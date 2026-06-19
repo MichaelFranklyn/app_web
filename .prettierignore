@@ -1,0 +1,8 @@
+node_modules
+.next
+dist
+build
+public
+*.min.js
+package-lock.json
+*.html

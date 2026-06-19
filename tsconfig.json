@@ -27,8 +27,9 @@
     "**/*.ts",
     "**/*.tsx",
     ".next/types/**/*.ts",
+    "tailwind.config.cjs",
     ".next/dev/types/**/*.ts",
-    "**/*.mts"
+    "src/app/(inside)/(operations)/clients/_components/ClientsHeader/_components/AddClientModal"
   ],
   "exclude": ["node_modules"]
 }

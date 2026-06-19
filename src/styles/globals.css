@@ -1,0 +1,319 @@
+/* src/styles/globals.css */
+@import url("https://fonts.googleapis.com/css2?family=Raleway:wght@400;500;600;700;800&family=Hanken+Grotesk:wght@400;500;600;700;800&display=swap");
+@import "tailwindcss";
+
+@theme {
+  /* Breakpoints */
+  --breakpoint-*: initial;
+  --breakpoint-mobile: 320px;
+  --breakpoint-tablet: 760px;
+  --breakpoint-desktop: 1024px;
+  --breakpoint-desktop-xl: 1600px;
+
+  /* Backgrounds */
+  --bg: #f5f4f0;
+  --bg2: #ffffff;
+  --bg3: #f0efe9;
+  --bg4: #e8e7e0;
+  --bg5: #dddcd4;
+
+  /* Borders */
+  --border: #e2e1d8;
+  --border2: #cccbc0;
+  --border3: #b8b7ac;
+
+  /* Text */
+  --text: #1a1a16;
+  --text2: #3d3d36;
+  --muted: #7a7a6e;
+  --muted2: #a0a094;
+  --dim: #c8c7bc;
+
+  /* Brand — Amber */
+  --amber: #c97f0a;
+  --amber2: #a86608;
+  --amber3: #8a5207;
+  --amber-bg: rgba(201, 127, 10, 0.07);
+  --amber-bg2: rgba(201, 127, 10, 0.13);
+  --amber-bd: rgba(201, 127, 10, 0.28);
+  --amber-light: #7a4a04;
+
+  /* Semantic */
+  --red: #c0392b;
+  --red-bg: rgba(192, 57, 43, 0.07);
+  --red-bd: rgba(192, 57, 43, 0.22);
+  --red2: #a93226;
+
+  --green: #1a7a56;
+  --green-bg: rgba(26, 122, 86, 0.07);
+  --green-bd: rgba(26, 122, 86, 0.22);
+
+  --blue: #2563c4;
+  --blue-bg: rgba(37, 99, 196, 0.07);
+  --blue-bd: rgba(37, 99, 196, 0.22);
+
+  --cyan: #0a7fa3;
+  --cyan-bg: rgba(10, 127, 163, 0.07);
+
+  --purple: #7c3aed;
+  --purple-bg: rgba(124, 58, 237, 0.07);
+
+  --orange: #d05a0a;
+  --orange-bg: rgba(208, 90, 10, 0.07);
+
+  --pink: #be185d;
+  --pink-bg: rgba(190, 24, 93, 0.07);
+
+  /* Module colors */
+  --mod-identity: #2563c4;
+  --mod-factory: #c2601a;
+  --mod-clients: #1a7a56;
+  --mod-products: #7c3aed;
+  --mod-orders: #a08010;
+  --mod-import: #c0392b;
+  --mod-routine: #0a7fa3;
+  --mod-intel: #be185d;
+
+  /* Typography */
+  --font-head: "Raleway", sans-serif;
+  /* Fonte de corpo/UI do sistema. (Mantém o nome --font-mono por compatibilidade
+     com as classes font-mono já usadas; o valor agora é uma sans-serif legível.) */
+  --font-mono: "Hanken Grotesk", sans-serif;
+
+  --weight-regular: 400;
+  --weight-medium: 500;
+  --weight-semibold: 600;
+  --weight-bold: 700;
+  --weight-extrabold: 800;
+
+  /* Radii */
+  --r-xs: 3px;
+  --r-sm: 4px;
+  --r-md: 6px;
+  --r-lg: 8px;
+  --r-xl: 12px;
+
+  /* Shadows */
+  --shadow-sm: 0 1px 3px rgba(0, 0, 0, 0.1);
+  --shadow-md: 0 4px 16px rgba(0, 0, 0, 0.1);
+  --shadow-lg: 0 8px 32px rgba(0, 0, 0, 0.12);
+
+  /* Spacing */
+  --spacing-0: 0px;
+  --spacing-1: 1px;
+  --spacing-2: 2px;
+  --spacing-3: 3px;
+  --spacing-4: 4px;
+  --spacing-5: 5px;
+  --spacing-6: 6px;
+  --spacing-7: 7px;
+  --spacing-8: 8px;
+  --spacing-9: 9px;
+  --spacing-10: 10px;
+  --spacing-12: 12px;
+  --spacing-16: 16px;
+  --spacing-20: 20px;
+  --spacing-24: 24px;
+  --spacing-32: 32px;
+  --spacing-40: 40px;
+  --spacing-48: 48px;
+  --spacing-64: 64px;
+
+  /* Radius */
+  --radius-none: 0;
+  --radius-xs: 3px;
+  --radius-sm: 4px;
+  --radius-md: 6px;
+  --radius-lg: 8px;
+  --radius-xl: 12px;
+  --radius-full: 50%;
+
+  --default-transition-duration: 150ms;
+  --default-transition-timing-function: ease;
+}
+
+@layer base {
+  *,
+  *::before,
+  *::after {
+    box-sizing: border-box;
+    margin: 0;
+    padding: 0;
+  }
+
+  html {
+    scroll-behavior: smooth;
+  }
+
+  body {
+    background: var(--bg);
+    color: var(--text);
+    font-family: var(--font-mono);
+    font-size: 14px;
+    line-height: 1.6;
+    text-rendering: optimizeLegibility;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+  }
+
+  h1,
+  h2,
+  h3,
+  h4,
+  h5,
+  h6 {
+    font-family: var(--font-head);
+    color: var(--text);
+  }
+
+  ::selection {
+    background: var(--amber-bg);
+    color: var(--text);
+  }
+
+  ::-webkit-scrollbar {
+    width: 4px;
+    height: 4px;
+  }
+
+  ::-webkit-scrollbar-track {
+    background: var(--bg3);
+    border-radius: 2px;
+  }
+
+  ::-webkit-scrollbar-thumb {
+    background: var(--muted2);
+    border-radius: 2px;
+    transition: background 0.3s ease;
+  }
+
+  ::-webkit-scrollbar-thumb:hover {
+    background: var(--muted);
+  }
+
+  ::-webkit-scrollbar-button {
+    display: none;
+  }
+}
+
+@layer utilities {
+  /* =========================================
+     TIPOGRAFIA DO DESIGN SYSTEM
+     ========================================= */
+  .text-heading-xl {
+    font-family: var(--font-head);
+    font-weight: var(--weight-extrabold);
+    font-size: 41px;
+    letter-spacing: -0.04em;
+    line-height: 1;
+  }
+
+  .text-heading-lg {
+    font-family: var(--font-head);
+    font-weight: var(--weight-bold);
+    font-size: 25px;
+    letter-spacing: -0.03em;
+  }
+
+  .text-heading-md {
+    font-family: var(--font-head);
+    font-weight: var(--weight-bold);
+    font-size: 19px;
+    letter-spacing: -0.02em;
+  }
+
+  .text-heading-sm {
+    font-family: var(--font-head);
+    font-weight: var(--weight-bold);
+    font-size: 14px;
+    letter-spacing: -0.01em;
+  }
+
+  .text-body-md {
+    font-family: var(--font-mono);
+    font-weight: var(--weight-regular);
+    font-size: 14px;
+    line-height: 1.6;
+    color: var(--text2);
+  }
+
+  .text-caption {
+    font-family: var(--font-mono);
+    font-weight: var(--weight-regular);
+    font-size: 12px;
+    color: var(--muted);
+  }
+
+  .text-label {
+    font-family: var(--font-mono);
+    font-weight: var(--weight-regular);
+    font-size: 12px;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    color: var(--muted2);
+  }
+
+  .text-kpi {
+    font-family: var(--font-head);
+    font-weight: var(--weight-extrabold);
+    font-size: 31px;
+    letter-spacing: -0.04em;
+    line-height: 1;
+    color: var(--amber);
+  }
+
+  .hide-scrollbar::-webkit-scrollbar {
+    display: none;
+  }
+
+  .hide-scrollbar {
+    -ms-overflow-style: none;
+    scrollbar-width: none;
+  }
+}
+
+@keyframes toast-progress {
+  from {
+    width: 100%;
+  }
+  to {
+    width: 0%;
+  }
+}
+
+@keyframes pulse-soft {
+  0%,
+  100% {
+    opacity: 1;
+    transform: scale(1);
+  }
+  50% {
+    opacity: 0.5;
+    transform: scale(0.85);
+  }
+}
+
+.animate-pulse-soft {
+  animation: pulse-soft 2s ease-in-out infinite;
+}
+
+@media print {
+  body * {
+    visibility: hidden;
+  }
+  .print-area,
+  .print-area * {
+    visibility: visible;
+  }
+  .print-area {
+    position: absolute;
+    left: 0;
+    top: 0;
+    width: 100%;
+    padding: 24px;
+    background: #ffffff;
+  }
+  .print-hide {
+    display: none !important;
+  }
+}

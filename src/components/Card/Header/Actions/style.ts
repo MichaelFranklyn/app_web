@@ -1,0 +1,1 @@
+export { actionsStyle } from "../../style";
