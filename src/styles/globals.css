@@ -1,7 +1,7 @@
 /* src/styles/globals.css */
-/* Título: Zilla Slab (slab serif, com personalidade). Corpo/UI: Hanken Grotesk (legível).
-   Para trocar o título, ajuste "Zilla+Slab"/"Zilla Slab" no @import e em --font-head. */
-@import url("https://fonts.googleapis.com/css2?family=Zilla+Slab:wght@400;500;600;700&family=Hanken+Grotesk:wght@400;500;600;700;800&display=swap");
+/* Título: Oswald (condensada, impacto). Corpo/UI: Hanken Grotesk (legível).
+   Para trocar o título, ajuste "Oswald" no @import e em --font-head. */
+@import url("https://fonts.googleapis.com/css2?family=Oswald:wght@400;500;600;700&family=Hanken+Grotesk:wght@400;500;600;700;800&display=swap");
 @import "tailwindcss";
 
 @theme {
@@ -77,7 +77,7 @@
   --mod-intel: #be185d;
 
   /* Typography */
-  --font-head: "Zilla Slab", serif;
+  --font-head: "Oswald", sans-serif;
   /* Fonte de corpo/UI do sistema. (Mantém o nome --font-mono por compatibilidade
      com as classes font-mono já usadas; o valor agora é uma sans-serif legível.) */
   --font-mono: "Hanken Grotesk", sans-serif;
