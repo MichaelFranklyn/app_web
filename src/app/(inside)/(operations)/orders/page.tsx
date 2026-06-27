@@ -1,7 +1,5 @@
 import OrdersContent from "./content";
 
-const Page = () => {
-  return <OrdersContent />;
-};
+const Page = () => <OrdersContent />;
 
 export default Page;

@@ -1,4 +1,4 @@
-import { ColumnChoice } from "../../_import/columns";
+import { ColumnChoice } from "@/utils/import/columns";
 import { MappingState } from "../../ProductsTab/ImportProductsModal/mapping";
 import { StMvaChoices } from "./StMvaFields";
 import { TaxColumn, TierColumn } from "./interface";
@@ -24,4 +24,7 @@ export interface PriceListTemplateConfig {
 export const isPriceListConfig = (
   value: unknown
 ): value is PriceListTemplateConfig =>
-  !!value && typeof value === "object" && "mapping" in value && "tierColumns" in value;
+  !!value &&
+  typeof value === "object" &&
+  "mapping" in value &&
+  "tierColumns" in value;

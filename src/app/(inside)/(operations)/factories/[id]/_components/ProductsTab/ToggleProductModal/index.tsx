@@ -4,9 +4,8 @@ import { Button } from "@/components/Button";
 import { Modal } from "@/components/Modal";
 import { useAsyncAction } from "@/hooks/useAsyncAction";
 import { useMutation } from "@apollo/client/react";
-import { UPDATE_PRODUCT_MUTATION } from "../EditProductModal/gql";
 import { getProductErrorMessage } from "../errors";
-import { FactoryProduct } from "../gql";
+import { FactoryProduct, UPDATE_PRODUCT_MUTATION } from "../gql";
 
 interface UpdateProductResponse {
   updateProduct: {
@@ -36,8 +35,9 @@ export function ToggleProductModal({
   onCommit,
   onRollback,
 }: Props) {
-  const [updateProduct] =
-    useMutation<UpdateProductResponse>(UPDATE_PRODUCT_MUTATION);
+  const [updateProduct] = useMutation<UpdateProductResponse>(
+    UPDATE_PRODUCT_MUTATION
+  );
   const { execute, isLoading } = useAsyncAction();
 
   const next = !product.isActive;

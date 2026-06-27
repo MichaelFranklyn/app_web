@@ -29,7 +29,9 @@
     ".next/types/**/*.ts",
     "tailwind.config.cjs",
     ".next/dev/types/**/*.ts",
-    "src/app/(inside)/(operations)/clients/_components/ClientsHeader/_components/AddClientModal"
+    "src/app/(inside)/(operations)/clients/_components/ClientsHeader/_components/AddClientModal",
+    ".next-e2e/types/**/*.ts",
+    ".next-e2e/dev/types/**/*.ts"
   ],
-  "exclude": ["node_modules"]
+  "exclude": ["node_modules", "vitest.config.ts"]
 }

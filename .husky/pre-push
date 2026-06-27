@@ -1,0 +1,4 @@
+# Gate local: roda a suíte unitária (vitest) antes do push.
+# E2E (Playwright) NÃO roda aqui — o build de produção é lento demais p/ pre-push;
+# fica no CI (.github/workflows/ci.yml).
+npm test

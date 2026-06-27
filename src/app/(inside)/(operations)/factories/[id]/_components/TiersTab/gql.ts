@@ -26,13 +26,6 @@ export const buildPriceTiersVariables = (companyFactoryId: string) => ({
   },
 });
 
-export const priceTiersRefetchQueries = (companyFactoryId: string) => [
-  {
-    query: PRICE_TIERS_QUERY,
-    variables: buildPriceTiersVariables(companyFactoryId),
-  },
-];
-
 export interface PriceTiersData {
   price_tiers: {
     __typename?: string;

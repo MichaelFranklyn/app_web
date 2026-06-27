@@ -15,8 +15,8 @@ import {
   SellerClientFactory,
   UpdateSellerClientFactoryResponse,
 } from "../../../../../interface";
-import { PRIORITY_OPTIONS } from "../LinkFactoryModal/utils";
-import { factoryName } from "../../utils";
+import { PRIORITY_OPTIONS } from "../../utils";
+import { factoryName } from "@/utils/company";
 import { UPDATE_SELLER_CLIENT_FACTORY_MUTATION } from "./gql";
 
 interface UpdateInput {
@@ -97,7 +97,7 @@ export function EditFactoryLinkModal({
   const initialData = useMemo<Record<string, unknown>>(
     () => ({
       priority: link.priority
-        ? PRIORITY_OPTIONS.find((o) => o.value === link.priority) ?? null
+        ? (PRIORITY_OPTIONS.find((o) => o.value === link.priority) ?? null)
         : null,
       visitFrequencyDays: link.visitFrequencyDays ?? "",
     }),

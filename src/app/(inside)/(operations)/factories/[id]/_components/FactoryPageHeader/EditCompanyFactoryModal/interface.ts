@@ -1,5 +1,3 @@
-import { CompanyFactoryDetail } from "../../../interface";
-
 export interface UpdateCompanyFactoryInput {
   commissionRate?: number;
   commissionCalcBasis?: string;
@@ -23,9 +21,4 @@ export interface UpdateCompanyFactoryResponse {
       contractEnd: string | null;
     } | null;
   };
-}
-
-export interface EditCompanyFactoryModalProps {
-  companyFactory: CompanyFactoryDetail;
-  onRefetch: () => void;
 }

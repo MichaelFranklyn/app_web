@@ -25,11 +25,36 @@ export interface WeightDefinition {
 }
 
 export const WEIGHT_DEFINITIONS: WeightDefinition[] = [
-  { key: "urgency", label: "Urgência de estoque", color: "red", defaultValue: 30 },
-  { key: "priority", label: "Prioridade do cliente", color: "amber", defaultValue: 20 },
-  { key: "frequency", label: "Frequência de visita", color: "blue", defaultValue: 25 },
-  { key: "potential", label: "Potencial de compra", color: "green", defaultValue: 15 },
-  { key: "recency", label: "Recência da visita", color: "cyan", defaultValue: 10 },
+  {
+    key: "urgency",
+    label: "Urgência de estoque",
+    color: "red",
+    defaultValue: 30,
+  },
+  {
+    key: "priority",
+    label: "Prioridade do cliente",
+    color: "amber",
+    defaultValue: 20,
+  },
+  {
+    key: "frequency",
+    label: "Frequência de visita",
+    color: "blue",
+    defaultValue: 25,
+  },
+  {
+    key: "potential",
+    label: "Potencial de compra",
+    color: "green",
+    defaultValue: 15,
+  },
+  {
+    key: "recency",
+    label: "Recência da visita",
+    color: "cyan",
+    defaultValue: 10,
+  },
 ];
 
 export const buildInitialFormState = (
@@ -40,7 +65,7 @@ export const buildInitialFormState = (
   workStartTime: config.workStartTime,
   workEndTime: config.workEndTime,
   avgVisitDurationMin: config.avgVisitDurationMin,
-  rescheduleSameWeek: config.rescheduleSameWeek,
+  isRescheduleSameWeek: config.isRescheduleSameWeek,
   maxRescheduleAttempts: config.maxRescheduleAttempts,
   penaltyScorePerMiss: config.penaltyScorePerMiss,
   priorityWeights: { ...(config.priorityWeights ?? {}) },
@@ -82,8 +107,8 @@ export const buildUpdateInput = (
   if (form.avgVisitDurationMin !== config.avgVisitDurationMin) {
     input.avgVisitDurationMin = form.avgVisitDurationMin;
   }
-  if (form.rescheduleSameWeek !== config.rescheduleSameWeek) {
-    input.rescheduleSameWeek = form.rescheduleSameWeek;
+  if (form.isRescheduleSameWeek !== config.isRescheduleSameWeek) {
+    input.isRescheduleSameWeek = form.isRescheduleSameWeek;
   }
   if (form.maxRescheduleAttempts !== config.maxRescheduleAttempts) {
     input.maxRescheduleAttempts = form.maxRescheduleAttempts;

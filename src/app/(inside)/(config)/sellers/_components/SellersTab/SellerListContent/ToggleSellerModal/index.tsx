@@ -4,8 +4,8 @@ import { Button } from "@/components/Button";
 import { Modal } from "@/components/Modal";
 import { useAsyncAction } from "@/hooks/useAsyncAction";
 import { useInvalidateQueriesClient } from "@/hooks/useInvalidateQueries";
-import { gql } from "@apollo/client";
 import { useMutation } from "@apollo/client/react";
+import { TOGGLE_SELLER_MUTATION } from "./gql";
 
 interface ToggleSellerResponse {
   updateSeller: {
@@ -13,15 +13,6 @@ interface ToggleSellerResponse {
     message: string;
   };
 }
-
-const TOGGLE_SELLER_MUTATION = gql`
-  mutation ToggleSeller($id: UUID!, $input: UpdateSellerInput!) {
-    updateSeller(id: $id, input: $input) {
-      status
-      message
-    }
-  }
-`;
 
 interface ToggleSellerModalProps {
   id: string;
@@ -44,7 +35,9 @@ export function ToggleSellerModal({
   onCommit,
   onRollback,
 }: ToggleSellerModalProps) {
-  const [updateSeller] = useMutation<ToggleSellerResponse>(TOGGLE_SELLER_MUTATION);
+  const [updateSeller] = useMutation<ToggleSellerResponse>(
+    TOGGLE_SELLER_MUTATION
+  );
   const invalidateClient = useInvalidateQueriesClient();
   const { execute, isLoading } = useAsyncAction();
 
@@ -58,17 +51,24 @@ export function ToggleSellerModal({
         });
 
         if (!res.data?.updateSeller?.status) {
-          throw new Error(res.data?.updateSeller?.message ?? "Erro ao atualizar vendedor");
+          throw new Error(
+            res.data?.updateSeller?.message ?? "Erro ao atualizar vendedor"
+          );
         }
 
         return res.data.updateSeller;
       },
       {
-        successMessage: isActive ? "Vendedor desativado com sucesso" : "Vendedor ativado com sucesso",
+        successMessage: isActive
+          ? "Vendedor desativado com sucesso"
+          : "Vendedor ativado com sucesso",
         onSuccess: async () => {
           onCommit();
           onOpenChange(false);
-          await invalidateClient(["sellers_list", "seller_factory_access_list"]);
+          await invalidateClient([
+            "sellers_list",
+            "seller_factory_access_list",
+          ]);
         },
         onError: () => {
           onRollback();

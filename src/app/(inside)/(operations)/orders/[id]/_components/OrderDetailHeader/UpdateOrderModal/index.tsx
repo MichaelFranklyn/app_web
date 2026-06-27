@@ -15,9 +15,6 @@ export function UpdateOrderModal({
   orderId,
   currentNotes,
   currentFreightType,
-  currentStatus,
-  currentFileUrl,
-  currentFileParsed,
   onSuccess,
 }: UpdateOrderModalProps) {
   const [open, setOpen] = useState(false);
@@ -27,40 +24,21 @@ export function UpdateOrderModal({
   const { execute, isLoading } = useAsyncAction();
 
   const handleSubmit = async (data: Record<string, unknown>) => {
-    const normalized = normalizeUpdateInput(data, currentNotes, currentFreightType);
+    const normalized = normalizeUpdateInput(
+      data,
+      currentNotes,
+      currentFreightType
+    );
 
     if (Object.keys(normalized).length === 0) {
       setOpen(false);
       return;
     }
 
-    const nextNotes = ("notes" in normalized ? normalized.notes : currentNotes) as string | null;
-    const nextFreight = (
-      "freightType" in normalized ? normalized.freightType : currentFreightType
-    ) as string | null;
-
     await execute(
       async () => {
         const res = await updateOrder({
           variables: { id: orderId, input: normalized },
-          // Otimismo: o cache do pedido reflete a alteração na hora.
-          optimisticResponse: {
-            updateOrder: {
-              __typename: "OrderTypeDataResponse",
-              status: true,
-              code: 200,
-              message: "",
-              data: {
-                __typename: "OrderType",
-                id: orderId,
-                status: currentStatus,
-                freightType: nextFreight,
-                notes: nextNotes,
-                fileUrl: currentFileUrl,
-                fileParsed: currentFileParsed,
-              },
-            },
-          },
         });
 
         if (!res.data?.updateOrder?.status || !res.data.updateOrder.data) {

@@ -8,20 +8,16 @@ import { Loading } from "@/components/Loading";
 import { Pagination } from "@/components/Pagination";
 import { Table } from "@/components/Table";
 import { Title } from "@/components/Title";
-import { useQuery } from "@apollo/client/react";
+import { useOptimisticList } from "@/hooks/useOptimisticList";
+import type { FieldConfig } from "@/hooks/useTableFilters";
+import { useTableData } from "@/hooks/useTableData";
 import { Tags } from "lucide-react";
-import { useMemo, useState } from "react";
+import { useMemo } from "react";
 import { AddItemModal } from "./AddItemModal";
 import { PRICE_LIST_ITEMS_QUERY } from "./gql";
-import { PriceListItemRow } from "./interface";
+import { ItemsQueryData, PriceListItemRow } from "./interface";
 import { ItemRowActions } from "./ItemRowActions";
-
-interface ItemsQueryData {
-  price_list_items: {
-    edges: { node: PriceListItemRow }[];
-    totalCount: number;
-  };
-}
+import { ITEMS_PER_PAGE, money } from "./utils";
 
 interface Props {
   priceListId: string;
@@ -30,61 +26,41 @@ interface Props {
   priceListActive: boolean;
 }
 
-const ITEMS_PER_PAGE = 10;
-
-const pageToAfter = (page: number, first: number): string | null =>
-  page <= 1 ? null : btoa(`arrayconnection:${(page - 1) * first - 1}`);
-
-const money = (value: number): string =>
-  value.toLocaleString("pt-BR", {
-    minimumFractionDigits: 2,
-    maximumFractionDigits: 2,
-  });
+const ITEM_FIELDS: Record<string, FieldConfig> = {
+  search: { type: "text", queryField: "search", operator: "like" },
+};
 
 export function ItemsTable({
   priceListId,
   companyFactoryId,
   priceListActive,
 }: Props) {
-  const [search, setSearch] = useState("");
-  const [page, setPage] = useState(1);
-
-  const variables = useMemo(
-    () => ({
-      input: {
-        first: ITEMS_PER_PAGE,
-        after: pageToAfter(page, ITEMS_PER_PAGE),
-        filters: [
-          { field: "price_list_id", operator: "eq", value: priceListId },
-          ...(search.trim()
-            ? [{ field: "search", operator: "like", value: search.trim() }]
-            : []),
-          ...(priceListActive
-            ? [{ field: "product_is_active", operator: "eq", value: "true" }]
-            : []),
-        ],
-      },
-    }),
-    [priceListId, page, search, priceListActive]
+  const baseFilters = useMemo(
+    () => [
+      { field: "price_list_id", operator: "eq", value: priceListId },
+      ...(priceListActive
+        ? [{ field: "product_is_active", operator: "eq", value: "true" }]
+        : []),
+    ],
+    [priceListId, priceListActive]
   );
 
-  const { data, loading, refetch } = useQuery<ItemsQueryData>(
-    PRICE_LIST_ITEMS_QUERY,
-    { variables }
-  );
+  const table = useTableData<ItemsQueryData, PriceListItemRow>({
+    query: PRICE_LIST_ITEMS_QUERY,
+    fields: ITEM_FIELDS,
+    getConnection: (d) => d.price_list_items,
+    baseFilters,
+    itemsPerPage: ITEMS_PER_PAGE,
+  });
 
-  const items = data?.price_list_items?.edges.map((e) => e.node) ?? [];
-  const totalCount = data?.price_list_items?.totalCount ?? 0;
-  const totalPages = Math.max(1, Math.ceil(totalCount / ITEMS_PER_PAGE));
-  const currentPage = Math.min(page, totalPages);
-
-  const handleSearch = (value: string) => {
-    setSearch(value);
-    setPage(1);
-  };
+  const optimistic = useOptimisticList<PriceListItemRow>({
+    initialData: table.displayedData,
+  });
+  const items = optimistic.items;
+  const search = table.inputValues.search ?? "";
 
   const handleChanged = () => {
-    refetch();
+    table.refetch();
   };
 
   return (
@@ -107,7 +83,7 @@ export function ItemsTable({
             containerClassName="w-70"
             placeholder="Buscar por nome ou SKU..."
             value={search}
-            onChange={(e) => handleSearch(e.target.value)}
+            onChange={(e) => table.setFilter("search", e.target.value)}
           />
 
           <AddItemModal
@@ -130,7 +106,7 @@ export function ItemsTable({
           </Table.Row>
         </Table.Header>
         <Table.Body>
-          {loading && items.length === 0 ? (
+          {table.loading && items.length === 0 ? (
             <Table.Skeleton columns={6} rows={5} />
           ) : items.length === 0 ? (
             <Table.Row>
@@ -169,7 +145,11 @@ export function ItemsTable({
                         {it.product?.name ?? "Produto removido"}
                       </Table.CellText>
                       {it.product?.sku ? (
-                        <Badge.Root color="subtle" appearance="tinted" size="xs">
+                        <Badge.Root
+                          color="subtle"
+                          appearance="tinted"
+                          size="xs"
+                        >
                           <Badge.Text>{it.product.sku}</Badge.Text>
                         </Badge.Root>
                       ) : (
@@ -208,6 +188,9 @@ export function ItemsTable({
                         item={it}
                         companyFactoryId={companyFactoryId}
                         onChanged={handleChanged}
+                        onRemoveOptimistic={optimistic.removeOptimistic}
+                        onCommit={optimistic.commit}
+                        onRollback={optimistic.rollback}
                       />
                     </div>
                   </Table.Cell>
@@ -220,18 +203,18 @@ export function ItemsTable({
 
       <Table.Footer>
         <Table.Footer.Info>
-          {loading && items.length > 0 && (
+          {table.loading && items.length > 0 && (
             <Loading.Spinner size="sm" className="mr-6 inline-block" />
           )}
-          {totalCount > 0
-            ? `${totalCount} item(ns) · página ${currentPage} de ${totalPages}`
+          {table.totalItems > 0
+            ? `${table.totalItems} item(ns) · página ${table.currentPage} de ${table.totalPages}`
             : "Nenhum item"}
         </Table.Footer.Info>
 
         <Pagination.Smart
-          currentPage={currentPage}
-          totalPages={totalPages}
-          onPageChange={setPage}
+          currentPage={table.currentPage}
+          totalPages={table.totalPages}
+          onPageChange={table.setCurrentPage}
         />
       </Table.Footer>
     </Table.Root>

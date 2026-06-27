@@ -12,9 +12,19 @@ interface Props {
   item: PriceListItemRow;
   companyFactoryId: string;
   onChanged: () => void;
+  onRemoveOptimistic: (id: string) => void;
+  onCommit: () => void;
+  onRollback: () => void;
 }
 
-export function ItemRowActions({ item, companyFactoryId, onChanged }: Props) {
+export function ItemRowActions({
+  item,
+  companyFactoryId,
+  onChanged,
+  onRemoveOptimistic,
+  onCommit,
+  onRollback,
+}: Props) {
   const router = useRouter();
   const [editOpen, setEditOpen] = useState(false);
   const [deleteOpen, setDeleteOpen] = useState(false);
@@ -62,6 +72,9 @@ export function ItemRowActions({ item, companyFactoryId, onChanged }: Props) {
         open={deleteOpen}
         onOpenChange={setDeleteOpen}
         onDeleted={onChanged}
+        onRemoveOptimistic={onRemoveOptimistic}
+        onCommit={onCommit}
+        onRollback={onRollback}
       />
     </>
   );

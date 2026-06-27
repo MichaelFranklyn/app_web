@@ -108,8 +108,8 @@ export default function InsideLayout({
   const [userData, setUserData] = useState<UserData | null>(null);
 
   useEffect(() => {
-    const data = getCookie<UserData>("userData");
-    setUserData(data);
+    const storedUser = getCookie<UserData>("userData");
+    setUserData(storedUser);
   }, []);
 
   const getUserInitials = (name: string): string => {
@@ -188,11 +188,7 @@ export default function InsideLayout({
             <Topbar.Status variant="online" label="API conectada" />
             <Topbar.Separator />
             <NotificationCenter />
-            <UserMenu
-              name={userName}
-              role={userRole}
-              initials={userInitials}
-            />
+            <UserMenu name={userName} role={userRole} initials={userInitials} />
           </Topbar.Actions>
         </Topbar.Root>
 

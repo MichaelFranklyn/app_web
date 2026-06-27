@@ -1,6 +1,7 @@
 import { ToastProvider } from "@/components/Toast/Provider";
 import { GraphqlProvider } from "@/services/graphql/provider";
 import type { Metadata } from "next";
+import { Suspense } from "react";
 import "../styles/globals.css";
 
 export const metadata: Metadata = {
@@ -19,7 +20,9 @@ export default function RootLayout({
     <html lang="pt-br">
       <body suppressHydrationWarning className={`antialiased`}>
         <GraphqlProvider>
-          <ToastProvider>{children}</ToastProvider>
+          <ToastProvider>
+            <Suspense fallback={null}>{children}</Suspense>
+          </ToastProvider>
         </GraphqlProvider>
       </body>
     </html>

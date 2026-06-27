@@ -4,8 +4,10 @@ import { EmptyState } from "@/components/EmptyState";
 import { HelpTooltip } from "@/components/HelpTooltip";
 import { Table } from "@/components/Table";
 import { Title } from "@/components/Title";
+import { useOptimisticList } from "@/hooks/useOptimisticList";
 import { useQuery } from "@apollo/client/react";
 import { Ruler } from "lucide-react";
+import { useMemo } from "react";
 import { PRODUCT_UNITS_QUERY } from "../../gql";
 import { AddUnitModal } from "./AddUnitModal";
 import { DeleteUnitModal } from "./DeleteUnitModal";
@@ -24,7 +26,13 @@ export function UnitsSection() {
     productUnits: { edges: { node: UnitNode }[]; totalCount: number };
   }>(PRODUCT_UNITS_QUERY, { variables: { input: listInput } });
 
-  const units = data?.productUnits.edges.map((e) => e.node) ?? [];
+  const initial = useMemo<UnitNode[]>(
+    () => data?.productUnits.edges.map((e) => e.node) ?? [],
+    [data]
+  );
+  const optimistic = useOptimisticList<UnitNode>({ initialData: initial });
+  const units = optimistic.items;
+  const onChanged = () => refetch();
 
   return (
     <Table.Root>
@@ -40,7 +48,8 @@ export function UnitsSection() {
                 </Title>
                 <Title variant="body-sm">
                   Como o produto é medido e vendido. Ex.: &quot;Saco&quot;,
-                  &quot;Metro&quot;, &quot;Quilograma&quot;, &quot;Unidade&quot;.
+                  &quot;Metro&quot;, &quot;Quilograma&quot;,
+                  &quot;Unidade&quot;.
                 </Title>
                 <Title variant="body-sm" color="muted">
                   É um catálogo da empresa, compartilhado por todas as fábricas.
@@ -51,7 +60,10 @@ export function UnitsSection() {
           />
         </Table.CardHead.Title>
         <Table.CardHead.Actions>
-          <AddUnitModal onDone={() => refetch()} />
+          <AddUnitModal
+            onAddOptimistic={optimistic.addOptimistic}
+            onDone={onChanged}
+          />
         </Table.CardHead.Actions>
       </Table.CardHead>
       <Table.Table maxHeight={360}>
@@ -75,8 +87,8 @@ export function UnitsSection() {
                     Nenhuma unidade cadastrada
                   </EmptyState.Title>
                   <EmptyState.Description>
-                    Use &quot;Nova unidade&quot; para definir como os produtos são
-                    medidos e vendidos.
+                    Use &quot;Nova unidade&quot; para definir como os produtos
+                    são medidos e vendidos.
                   </EmptyState.Description>
                 </EmptyState.Root>
               </Table.Cell>
@@ -87,11 +99,20 @@ export function UnitsSection() {
                 <Table.Cell variant="strong">{u.label}</Table.Cell>
                 <Table.Cell>
                   <div className="flex items-center justify-end gap-4">
-                    <EditUnitModal unit={u} onDone={() => refetch()} />
+                    <EditUnitModal
+                      unit={u}
+                      onUpdateOptimistic={optimistic.updateOptimistic}
+                      onCommit={optimistic.commit}
+                      onRollback={optimistic.rollback}
+                      onDone={onChanged}
+                    />
                     <DeleteUnitModal
                       unitId={u.id}
                       unitLabel={u.label}
-                      onDone={() => refetch()}
+                      onRemoveOptimistic={optimistic.removeOptimistic}
+                      onCommit={optimistic.commit}
+                      onRollback={optimistic.rollback}
+                      onDone={onChanged}
                     />
                   </div>
                 </Table.Cell>

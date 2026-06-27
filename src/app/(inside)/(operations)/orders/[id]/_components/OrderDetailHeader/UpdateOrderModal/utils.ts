@@ -1,4 +1,5 @@
 import { FormStepSchema } from "@/components/FormBuilder";
+import { extractSelectValue } from "@/utils/form";
 
 export const UPDATE_ORDER_FORM_STEPS: FormStepSchema[] = [
   {
@@ -29,13 +30,6 @@ export const UPDATE_ORDER_FORM_STEPS: FormStepSchema[] = [
     ],
   },
 ];
-
-const extractSelectValue = (val: unknown): string => {
-  if (val && typeof val === "object" && "value" in val) {
-    return String((val as { value: string }).value);
-  }
-  return String(val ?? "");
-};
 
 export const normalizeUpdateInput = (
   data: Record<string, unknown>,

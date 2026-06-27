@@ -1,13 +1,6 @@
 import { gql } from "@apollo/client";
 
-/** Lê um arquivo (File) e devolve só o conteúdo base64 (sem o prefixo data URL). */
-export const fileToBase64 = (file: File): Promise<string> =>
-  new Promise((resolve, reject) => {
-    const reader = new FileReader();
-    reader.onload = () => resolve(String(reader.result).split(",", 2)[1] ?? "");
-    reader.onerror = () => reject(reader.error ?? new Error("Falha ao ler o arquivo."));
-    reader.readAsDataURL(file);
-  });
+export { fileToBase64 } from "@/utils/file";
 
 export const PRODUCT_UNITS_QUERY = gql`
   query ImportPLUnits($input: BaseListInput!) {

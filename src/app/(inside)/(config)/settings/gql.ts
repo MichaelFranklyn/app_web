@@ -12,7 +12,7 @@ export const VISIT_SCHEDULE_CONFIGS_QUERY = gql`
           workStartTime
           workEndTime
           avgVisitDurationMin
-          rescheduleSameWeek
+          isRescheduleSameWeek
           maxRescheduleAttempts
           penaltyScorePerMiss
           priorityWeights
@@ -44,7 +44,7 @@ export const UPDATE_SCHEDULE_CONFIG_MUTATION = gql`
         workStartTime
         workEndTime
         avgVisitDurationMin
-        rescheduleSameWeek
+        isRescheduleSameWeek
         maxRescheduleAttempts
         penaltyScorePerMiss
         priorityWeights

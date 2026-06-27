@@ -5,8 +5,6 @@ import * as TooltipPrimitive from "@radix-ui/react-tooltip";
 import { TooltipProps } from "./Content/interface";
 import { tooltipContentStyles } from "./Content/style";
 
-export const TooltipProvider = TooltipPrimitive.Provider;
-
 export const Tooltip = ({
   content,
   children,

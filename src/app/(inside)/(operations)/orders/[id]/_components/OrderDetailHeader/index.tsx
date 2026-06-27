@@ -3,7 +3,7 @@
 import { Breadcrumb } from "@/components/Breadcrumb";
 import { PanelHeader } from "@/components/PanelHeader";
 import { formatDateDMY } from "@/utils/format/masks";
-import { clientName, factoryName } from "../../../utils";
+import { clientName, factoryName } from "@/utils/company";
 import { OrderDetail } from "../../interface";
 import { DeleteOrderModal } from "./DeleteOrderModal";
 import { UpdateOrderModal } from "./UpdateOrderModal";
@@ -20,7 +20,9 @@ export function OrderDetailHeader({ order, onRefetch }: Props) {
         <Breadcrumb.Root>
           <Breadcrumb.Item href="/orders">Pedidos</Breadcrumb.Item>
           <Breadcrumb.Separator />
-          <Breadcrumb.Item>{order.id.slice(0, 8).toUpperCase()}</Breadcrumb.Item>
+          <Breadcrumb.Item>
+            {order.id.slice(0, 8).toUpperCase()}
+          </Breadcrumb.Item>
         </Breadcrumb.Root>
       </div>
 
@@ -46,7 +48,7 @@ export function OrderDetailHeader({ order, onRefetch }: Props) {
                   currentFreightType={order.freightType}
                   currentStatus={order.status}
                   currentFileUrl={order.fileUrl}
-                  currentFileParsed={order.fileParsed}
+                  currentFileParsed={order.isFileParsed}
                   onSuccess={onRefetch}
                 />
                 <DeleteOrderModal orderId={order.id} />

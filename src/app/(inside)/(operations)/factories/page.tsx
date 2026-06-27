@@ -1,7 +1,5 @@
 import FactoriesContent from "./content";
 
-const Page = async () => {
-  return <FactoriesContent />;
-};
+const Page = async () => <FactoriesContent />;
 
 export default Page;

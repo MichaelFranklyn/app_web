@@ -83,21 +83,6 @@ export function EditTaxModal({ tax, onChanged }: Props) {
       async () => {
         const res = await updateTax({
           variables: { id: tax.id, input: { rate } },
-          // Otimista: mesma entidade (id), o Apollo atualiza a linha na hora.
-          optimisticResponse: {
-            updateProductTax: {
-              __typename: "ProductTaxTypeDataResponse",
-              status: true,
-              message: "",
-              data: {
-                __typename: "ProductTaxType",
-                id: tax.id,
-                rate: String(rate),
-                updatedAt: new Date().toISOString(),
-                taxRule: { __typename: "TaxRuleType", ...tax.taxRule },
-              },
-            },
-          },
         });
 
         if (

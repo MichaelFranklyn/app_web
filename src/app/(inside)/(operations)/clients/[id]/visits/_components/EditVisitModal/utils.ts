@@ -1,17 +1,14 @@
 import { FormStepSchema } from "@/components/FormBuilder";
+import { extractSelectValue } from "@/utils/form";
 import {
-  STOCK_OBSERVATION_LABEL,
-  VISIT_OUTCOME_LABEL,
-  VISIT_STATUS_LABEL,
-} from "../../../utils";
+  STOCK_OBSERVATION_OPTIONS as STOCK_OBS_OPTIONS,
+  VISIT_OUTCOME_OPTIONS,
+  VISIT_STATUS_OPTIONS,
+} from "@/utils/visit";
+
 import { UpdateVisitInput, VisitEditable } from "./interface";
 
-const toOptions = (map: Record<string, string>) =>
-  Object.entries(map).map(([value, label]) => ({ value, label }));
-
-export const VISIT_STATUS_OPTIONS = toOptions(VISIT_STATUS_LABEL);
-export const VISIT_OUTCOME_OPTIONS = toOptions(VISIT_OUTCOME_LABEL);
-export const STOCK_OBS_OPTIONS = toOptions(STOCK_OBSERVATION_LABEL);
+export { STOCK_OBS_OPTIONS, VISIT_OUTCOME_OPTIONS, VISIT_STATUS_OPTIONS };
 
 export const EDIT_VISIT_FORM_STEPS: FormStepSchema[] = [
   {
@@ -59,13 +56,6 @@ export const EDIT_VISIT_FORM_STEPS: FormStepSchema[] = [
     ],
   },
 ];
-
-export const extractSelectValue = (val: unknown): string => {
-  if (val && typeof val === "object" && "value" in val) {
-    return String((val as { value: string }).value);
-  }
-  return val != null ? String(val) : "";
-};
 
 const textOrNull = (val: unknown): string | null => {
   const s = val != null ? String(val).trim() : "";

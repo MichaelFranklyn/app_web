@@ -19,7 +19,6 @@ import { cn } from "@/lib/utils";
 import { InputRoot } from "./Root";
 import { InputLabel } from "./Label";
 import { InputHint } from "./Hint";
-import { InputControl } from "./Control";
 import { InputGroup } from "./Group";
 import { InputAddon } from "./Addon";
 import { useInputContext } from "./context";

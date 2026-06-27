@@ -4,8 +4,10 @@ import { EmptyState } from "@/components/EmptyState";
 import { HelpTooltip } from "@/components/HelpTooltip";
 import { Table } from "@/components/Table";
 import { Title } from "@/components/Title";
+import { useOptimisticList } from "@/hooks/useOptimisticList";
 import { useQuery } from "@apollo/client/react";
 import { Percent } from "lucide-react";
+import { useMemo } from "react";
 import { TAX_RULES_QUERY } from "../../gql";
 import { AddTaxRuleModal } from "./AddTaxRuleModal";
 import { DeleteTaxRuleModal } from "./DeleteTaxRuleModal";
@@ -23,7 +25,13 @@ export function TaxRulesSection() {
     taxRules: { edges: { node: TaxRuleNode }[]; totalCount: number };
   }>(TAX_RULES_QUERY, { variables: { input: listInput } });
 
-  const rules = data?.taxRules.edges.map((e) => e.node) ?? [];
+  const initial = useMemo<TaxRuleNode[]>(
+    () => data?.taxRules.edges.map((e) => e.node) ?? [],
+    [data]
+  );
+  const optimistic = useOptimisticList<TaxRuleNode>({ initialData: initial });
+  const rules = optimistic.items;
+  const onChanged = () => refetch();
 
   return (
     <Table.Root>
@@ -62,7 +70,10 @@ export function TaxRulesSection() {
           />
         </Table.CardHead.Title>
         <Table.CardHead.Actions>
-          <AddTaxRuleModal onDone={() => refetch()} />
+          <AddTaxRuleModal
+            onAddOptimistic={optimistic.addOptimistic}
+            onDone={onChanged}
+          />
         </Table.CardHead.Actions>
       </Table.CardHead>
       <Table.Table maxHeight={360}>
@@ -82,12 +93,10 @@ export function TaxRulesSection() {
                   <EmptyState.Icon>
                     <Percent size={32} />
                   </EmptyState.Icon>
-                  <EmptyState.Title>
-                    Nenhuma regra de imposto
-                  </EmptyState.Title>
+                  <EmptyState.Title>Nenhuma regra de imposto</EmptyState.Title>
                   <EmptyState.Description>
-                    Use &quot;Nova regra&quot; para cadastrar os impostos aplicados
-                    aos produtos da empresa.
+                    Use &quot;Nova regra&quot; para cadastrar os impostos
+                    aplicados aos produtos da empresa.
                   </EmptyState.Description>
                 </EmptyState.Root>
               </Table.Cell>
@@ -98,11 +107,20 @@ export function TaxRulesSection() {
                 <Table.Cell variant="strong">{r.name}</Table.Cell>
                 <Table.Cell>
                   <div className="flex items-center justify-end gap-4">
-                    <EditTaxRuleModal rule={r} onDone={() => refetch()} />
+                    <EditTaxRuleModal
+                      rule={r}
+                      onUpdateOptimistic={optimistic.updateOptimistic}
+                      onCommit={optimistic.commit}
+                      onRollback={optimistic.rollback}
+                      onDone={onChanged}
+                    />
                     <DeleteTaxRuleModal
                       ruleId={r.id}
                       ruleName={r.name}
-                      onDone={() => refetch()}
+                      onRemoveOptimistic={optimistic.removeOptimistic}
+                      onCommit={optimistic.commit}
+                      onRollback={optimistic.rollback}
+                      onDone={onChanged}
                     />
                   </div>
                 </Table.Cell>

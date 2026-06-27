@@ -4,8 +4,10 @@ import { EmptyState } from "@/components/EmptyState";
 import { HelpTooltip } from "@/components/HelpTooltip";
 import { Table } from "@/components/Table";
 import { Title } from "@/components/Title";
+import { useOptimisticList } from "@/hooks/useOptimisticList";
 import { useQuery } from "@apollo/client/react";
 import { Tag } from "lucide-react";
+import { useMemo } from "react";
 import { PRODUCT_UNIT_LABELS_QUERY } from "../../gql";
 import { AddLabelModal } from "./AddLabelModal";
 import { DeleteLabelModal } from "./DeleteLabelModal";
@@ -24,7 +26,13 @@ export function LabelsSection() {
     productUnitLabels: { edges: { node: LabelNode }[]; totalCount: number };
   }>(PRODUCT_UNIT_LABELS_QUERY, { variables: { input: listInput } });
 
-  const labels = data?.productUnitLabels.edges.map((e) => e.node) ?? [];
+  const initial = useMemo<LabelNode[]>(
+    () => data?.productUnitLabels.edges.map((e) => e.node) ?? [],
+    [data]
+  );
+  const optimistic = useOptimisticList<LabelNode>({ initialData: initial });
+  const labels = optimistic.items;
+  const onChanged = () => refetch();
 
   return (
     <Table.Root>
@@ -51,7 +59,10 @@ export function LabelsSection() {
           />
         </Table.CardHead.Title>
         <Table.CardHead.Actions>
-          <AddLabelModal onDone={() => refetch()} />
+          <AddLabelModal
+            onAddOptimistic={optimistic.addOptimistic}
+            onDone={onChanged}
+          />
         </Table.CardHead.Actions>
       </Table.CardHead>
       <Table.Table maxHeight={360}>
@@ -71,12 +82,10 @@ export function LabelsSection() {
                   <EmptyState.Icon>
                     <Tag size={32} />
                   </EmptyState.Icon>
-                  <EmptyState.Title>
-                    Nenhum rótulo cadastrado
-                  </EmptyState.Title>
+                  <EmptyState.Title>Nenhum rótulo cadastrado</EmptyState.Title>
                   <EmptyState.Description>
-                    Use &quot;Novo rótulo&quot; para cadastrar as embalagens em que
-                    os produtos são vendidos.
+                    Use &quot;Novo rótulo&quot; para cadastrar as embalagens em
+                    que os produtos são vendidos.
                   </EmptyState.Description>
                 </EmptyState.Root>
               </Table.Cell>
@@ -87,11 +96,20 @@ export function LabelsSection() {
                 <Table.Cell variant="strong">{l.label}</Table.Cell>
                 <Table.Cell>
                   <div className="flex items-center justify-end gap-4">
-                    <EditLabelModal label={l} onDone={() => refetch()} />
+                    <EditLabelModal
+                      label={l}
+                      onUpdateOptimistic={optimistic.updateOptimistic}
+                      onCommit={optimistic.commit}
+                      onRollback={optimistic.rollback}
+                      onDone={onChanged}
+                    />
                     <DeleteLabelModal
                       labelId={l.id}
                       labelText={l.label}
-                      onDone={() => refetch()}
+                      onRemoveOptimistic={optimistic.removeOptimistic}
+                      onCommit={optimistic.commit}
+                      onRollback={optimistic.rollback}
+                      onDone={onChanged}
                     />
                   </div>
                 </Table.Cell>

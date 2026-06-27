@@ -1,3 +1,7 @@
+import {
+  getCurrentWeekMondayIso,
+  toUtcIsoDate as toIsoDate,
+} from "@/utils/format/date";
 import { VisitClient, VisitFactory, VisitStatus } from "./interface";
 
 export type StopStatusColor = "green" | "amber" | "neutral" | "red" | "blue";
@@ -20,38 +24,11 @@ export const STOP_STATUS_LABEL: Record<VisitStatus, string> = {
   NO_TIME: "Sem tempo",
 };
 
-export const STOP_SCORE_COLOR: Record<VisitStatus, string> = {
-  COMPLETED: "text-(--green)",
-  PENDING: "text-(--blue)",
-  CLIENT_ABSENT: "text-(--red)",
-  CANCELLED: "text-(--red)",
-  RESCHEDULED: "text-(--blue)",
-  NO_TIME: "text-(--amber)",
-};
-
-const toIsoDate = (date: Date): string => {
-  const year = date.getUTCFullYear();
-  const month = String(date.getUTCMonth() + 1).padStart(2, "0");
-  const day = String(date.getUTCDate()).padStart(2, "0");
-  return `${year}-${month}-${day}`;
-};
-
 export const getTodayIso = (): string => {
   const now = new Date();
   return toIsoDate(
     new Date(Date.UTC(now.getFullYear(), now.getMonth(), now.getDate()))
   );
-};
-
-export const getCurrentWeekMondayIso = (): string => {
-  const now = new Date();
-  const utc = new Date(
-    Date.UTC(now.getFullYear(), now.getMonth(), now.getDate())
-  );
-  const dayOfWeek = utc.getUTCDay();
-  const offsetToMonday = dayOfWeek === 0 ? -6 : 1 - dayOfWeek;
-  utc.setUTCDate(utc.getUTCDate() + offsetToMonday);
-  return toIsoDate(utc);
 };
 
 // Desloca uma data ISO em N dias (para navegar dia anterior/seguinte).

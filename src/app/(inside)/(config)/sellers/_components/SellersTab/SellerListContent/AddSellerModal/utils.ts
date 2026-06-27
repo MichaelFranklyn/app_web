@@ -1,4 +1,5 @@
 import { FormStepSchema } from "@/components/FormBuilder";
+import { createCepAutofill } from "@/utils/cep";
 import { onlyDigits } from "@/utils/format/masks";
 
 export interface CreateSellerInput {
@@ -16,7 +17,9 @@ export interface CreateSellerInput {
   homeState?: string;
 }
 
-export const normalizeInput = (data: Record<string, unknown>): CreateSellerInput => ({
+export const normalizeInput = (
+  data: Record<string, unknown>
+): CreateSellerInput => ({
   name: String(data.name ?? ""),
   email: String(data.email ?? ""),
   ...(data.phone ? { phone: onlyDigits(String(data.phone)) } : {}),
@@ -25,30 +28,22 @@ export const normalizeInput = (data: Record<string, unknown>): CreateSellerInput
   ...(data.homeCep ? { homeCep: onlyDigits(String(data.homeCep)) } : {}),
   ...(data.homeStreet ? { homeStreet: String(data.homeStreet) } : {}),
   ...(data.homeNumber ? { homeNumber: String(data.homeNumber) } : {}),
-  ...(data.homeComplement ? { homeComplement: String(data.homeComplement) } : {}),
-  ...(data.homeNeighborhood ? { homeNeighborhood: String(data.homeNeighborhood) } : {}),
+  ...(data.homeComplement
+    ? { homeComplement: String(data.homeComplement) }
+    : {}),
+  ...(data.homeNeighborhood
+    ? { homeNeighborhood: String(data.homeNeighborhood) }
+    : {}),
   ...(data.homeCity ? { homeCity: String(data.homeCity) } : {}),
   ...(data.homeState ? { homeState: String(data.homeState) } : {}),
 });
 
-async function fetchAddressByCep(
-  value: unknown,
-  setValue: (name: string, value: unknown) => void
-) {
-  const digits = onlyDigits(String(value ?? ""));
-  if (digits.length !== 8) return;
-  try {
-    const res = await fetch(`https://viacep.com.br/ws/${digits}/json/`);
-    const data = await res.json();
-    if (data.erro) return;
-    setValue("homeStreet", data.logradouro ?? "");
-    setValue("homeNeighborhood", data.bairro ?? "");
-    setValue("homeCity", data.localidade ?? "");
-    setValue("homeState", data.uf ?? "");
-  } catch {
-    // user fills manually
-  }
-}
+const fetchAddressByCep = createCepAutofill({
+  street: "homeStreet",
+  neighborhood: "homeNeighborhood",
+  city: "homeCity",
+  state: "homeState",
+});
 
 export const FORM_STEPS: FormStepSchema[] = [
   {

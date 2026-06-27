@@ -12,14 +12,14 @@ import { useInvalidateQueriesClient } from "@/hooks/useInvalidateQueries";
 import { useMutation, useQuery } from "@apollo/client/react";
 import { Pencil } from "lucide-react";
 import { useMemo, useRef, useState } from "react";
-import { FactoryClientLink } from "../gql";
-import { PRICE_TIERS_FOR_LINK_QUERY } from "../LinkClientModal/gql";
+import {
+  FactoryClientLink,
+  PRICE_TIERS_FOR_LINK_QUERY,
+  TiersData,
+} from "../gql";
 import { PRIORITY_OPTIONS } from "../utils";
 import { UPDATE_SELLER_CLIENT_FACTORY_MUTATION } from "./gql";
-
-interface TiersData {
-  priceTiers: { edges: { node: { id: string; name: string } }[] };
-}
+import { extractSelectValue } from "@/utils/form";
 
 interface UpdateResponse {
   updateSellerClientFactory: {
@@ -36,11 +36,6 @@ interface Props {
   onCommit: () => void;
   onRollback: () => void;
 }
-
-const extractValue = (raw: unknown): string =>
-  raw && typeof raw === "object" && "value" in raw
-    ? String((raw as { value: string }).value)
-    : String(raw ?? "");
 
 export function EditClientLinkModal({
   link,
@@ -132,8 +127,8 @@ export function EditClientLinkModal({
   );
 
   const handleSubmit = async (data: Record<string, unknown>) => {
-    const priceTierId = extractValue(data.priceTierId);
-    const priority = extractValue(data.priority);
+    const priceTierId = extractSelectValue(data.priceTierId);
+    const priority = extractSelectValue(data.priority);
     if (!priceTierId) return;
 
     const input: Record<string, unknown> = { priceTierId };

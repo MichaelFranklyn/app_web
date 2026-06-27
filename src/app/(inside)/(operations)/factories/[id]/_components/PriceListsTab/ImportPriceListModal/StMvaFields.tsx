@@ -1,7 +1,7 @@
 "use client";
 
-import { ColumnChoice } from "../../_import/columns";
-import { FieldMapper } from "../../_import/FieldMapper";
+import { ColumnChoice } from "@/utils/import/columns";
+import { FieldMapper } from "@/components/Import";
 
 export interface StMvaChoices {
   mva: ColumnChoice;
@@ -17,11 +17,15 @@ export const EMPTY_ST_MVA: StMvaChoices = {
 
 /** ST está configurado quando os três componentes têm origem definida. */
 export const isStMvaComplete = (st: StMvaChoices): boolean =>
-  st.mva.kind !== "none" && st.icmsCredit.kind !== "none" && st.internalRate.kind !== "none";
+  st.mva.kind !== "none" &&
+  st.icmsCredit.kind !== "none" &&
+  st.internalRate.kind !== "none";
 
 export const isStMvaPartial = (st: StMvaChoices): boolean =>
   !isStMvaComplete(st) &&
-  (st.mva.kind !== "none" || st.icmsCredit.kind !== "none" || st.internalRate.kind !== "none");
+  (st.mva.kind !== "none" ||
+    st.icmsCredit.kind !== "none" ||
+    st.internalRate.kind !== "none");
 
 interface Props {
   headers: string[];

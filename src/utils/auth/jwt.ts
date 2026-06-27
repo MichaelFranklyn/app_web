@@ -16,9 +16,3 @@ export const getDecodedTokenServer = async () => {
   if (!token) return null;
   return parseJwtServer(token);
 };
-
-export const getUserPermission = async () => {
-  const decoded = await getDecodedTokenServer();
-  if (!decoded) return null;
-  return decoded["/"];
-};

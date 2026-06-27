@@ -18,22 +18,8 @@ import {
   FACTORY_PRICE_LISTS_OPTIONS_QUERY,
   PRICE_TIERS_OPTIONS_QUERY,
 } from "../gql";
-
-interface PriceListsData {
-  factoryPriceLists: {
-    edges: { node: { id: string; name: string; isActive: boolean } }[];
-  };
-}
-interface TiersData {
-  priceTiers: { edges: { node: { id: string; name: string } }[] };
-}
-interface CreateItemResponse {
-  createPriceListItem: {
-    status: boolean;
-    message: string;
-    data: { id: string } | null;
-  };
-}
+import { extractSelectValue } from "@/utils/form";
+import { CreateItemResponse, PriceListsData, TiersData } from "./interface";
 
 interface Props {
   productId: string;
@@ -42,11 +28,6 @@ interface Props {
   packLabel: string;
   onAdded: () => void;
 }
-
-const extractValue = (raw: unknown): string =>
-  raw && typeof raw === "object" && "value" in raw
-    ? String((raw as { value: string }).value)
-    : String(raw ?? "");
 
 export function AddPriceItemModal({
   productId,
@@ -149,8 +130,8 @@ export function AddPriceItemModal({
   };
 
   const handleSubmit = async (data: Record<string, unknown>) => {
-    const priceListId = extractValue(data.priceListId);
-    const tierId = extractValue(data.tierId);
+    const priceListId = extractSelectValue(data.priceListId);
+    const tierId = extractSelectValue(data.tierId);
     const unitPrice = parseMoneyToNumber(String(data.unitPrice ?? ""));
 
     await execute(

@@ -8,7 +8,11 @@ import { Input } from "@/components/Input";
 import { Title } from "@/components/Title";
 import { useToast } from "@/components/Toast";
 
-import { guessHeaderRow, readSpreadsheet, splitAt } from "../../_import/reader";
+import {
+  guessHeaderRow,
+  readSpreadsheet,
+  splitAt,
+} from "@/utils/import/reader";
 import { ImportProductRow } from "./interface";
 import { downloadExampleSheet, rowToInput } from "./utils";
 
@@ -42,7 +46,9 @@ export function TemplateMode({ onRowsChange, onResetResult }: Props) {
         variant: "error",
         title: "Erro",
         description:
-          error instanceof Error ? error.message : "Não foi possível ler a planilha.",
+          error instanceof Error
+            ? error.message
+            : "Não foi possível ler a planilha.",
       });
     }
   };

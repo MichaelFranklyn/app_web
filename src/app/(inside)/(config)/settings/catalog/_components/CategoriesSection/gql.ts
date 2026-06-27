@@ -1,5 +1,11 @@
 import { gql } from "@apollo/client";
-import { ProductCategoryRow } from "./AddCategoryModal/interface";
+
+export interface ProductCategoryRow {
+  __typename?: "ProductCategoryType";
+  id: string;
+  name: string;
+  segment: string;
+}
 
 export const PRODUCT_CATEGORIES_QUERY = gql`
   query SettingsProductCategories($input: BaseListInput!) {

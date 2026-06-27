@@ -1,14 +1,20 @@
 import type { NextConfig } from "next";
 
 const nextConfig: NextConfig = {
+  // Permite que os testes E2E façam build/start em um diretório isolado
+  // (.next-e2e), sem colidir com o .next do `next dev` em uso.
+  distDir: process.env.NEXT_DIST_DIR || ".next",
+
   // Recomendado true para identificar problemas no ciclo de vida do React
   reactStrictMode: true,
 
   // Segurança: Remove o cabeçalho "X-Powered-By: Next.js"
   poweredByHeader: false,
 
-  // Segurança: Não gera mapas de fonte em produção (ninguém vê seu código original no DevTools)
-  productionBrowserSourceMaps: false,
+  // Segurança: Não gera mapas de fonte em produção (ninguém vê seu código original no DevTools).
+  // Exceção: builds de cobertura E2E (COVERAGE=1) precisam dos source maps para
+  // mapear a cobertura V8 do browser de volta para src/**.
+  productionBrowserSourceMaps: !!process.env.COVERAGE,
 
   logging: {
     fetches: {
@@ -70,7 +76,6 @@ const nextConfig: NextConfig = {
       },
     ];
   },
-
 };
 
 export default nextConfig;

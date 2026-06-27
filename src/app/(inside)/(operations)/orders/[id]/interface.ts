@@ -16,13 +16,21 @@ export interface OrderDetail {
   commissionAmount: string;
   status: OrderStatus;
   fileUrl: string | null;
-  fileParsed: boolean;
+  isFileParsed: boolean;
   notes: string | null;
   freightType: "FOB" | "CIF" | null;
   createdAt: string;
   seller: { id: string; name: string } | null;
-  client: { id: string; razaoSocial: string; nomeFantasia: string | null } | null;
-  factory: { id: string; nomeFantasia: string | null; razaoSocial: string } | null;
+  client: {
+    id: string;
+    razaoSocial: string;
+    nomeFantasia: string | null;
+  } | null;
+  factory: {
+    id: string;
+    nomeFantasia: string | null;
+    razaoSocial: string;
+  } | null;
 }
 
 export interface OrderItemsResponse {

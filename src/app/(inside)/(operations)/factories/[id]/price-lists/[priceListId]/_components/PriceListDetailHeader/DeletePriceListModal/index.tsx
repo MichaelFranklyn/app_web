@@ -1,12 +1,10 @@
 "use client";
 
 import { Button } from "@/components/Button";
-import { Modal } from "@/components/Modal";
-import { useAsyncAction } from "@/hooks/useAsyncAction";
+import { ConfirmModal } from "@/components/ConfirmModal";
 import { useNavigation } from "@/hooks/useNavigation";
 import { useMutation } from "@apollo/client/react";
 import { Trash2 } from "lucide-react";
-import { useState } from "react";
 import { DELETE_FACTORY_PRICE_LIST_MUTATION } from "../gql";
 
 interface DeletePriceListResponse {
@@ -24,16 +22,25 @@ export function DeletePriceListModal({
   priceListName,
   priceListsHref,
 }: Props) {
-  const [open, setOpen] = useState(false);
   const { navigateTo } = useNavigation();
   const [deletePriceList] = useMutation<DeletePriceListResponse>(
     DELETE_FACTORY_PRICE_LIST_MUTATION
   );
-  const { execute, isLoading } = useAsyncAction();
 
-  const handleConfirm = async () => {
-    await execute(
-      async () => {
+  return (
+    <ConfirmModal
+      trigger={
+        <Button.Root appearance="outline" color="red" size="sm">
+          <Button.Icon icon={Trash2} />
+          <Button.Title>Excluir</Button.Title>
+        </Button.Root>
+      }
+      title="Remover tabela de preço"
+      description={`Remover a tabela "${priceListName}"? Todos os preços lançados nela também serão removidos.`}
+      confirmLabel="Excluir"
+      successMessage="Tabela de preço removida"
+      closeOnSuccess={false}
+      onConfirm={async () => {
         const res = await deletePriceList({ variables: { id: priceListId } });
         if (!res.data?.deleteFactoryPriceList?.status) {
           throw new Error(
@@ -41,58 +48,8 @@ export function DeletePriceListModal({
               "Erro ao remover tabela de preço"
           );
         }
-        return res.data.deleteFactoryPriceList;
-      },
-      {
-        successMessage: "Tabela de preço removida",
-        onSuccess: () => {
-          setOpen(false);
-          navigateTo(priceListsHref);
-        },
-      }
-    );
-  };
-
-  return (
-    <Modal.Root open={open} onOpenChange={setOpen}>
-      <Modal.Trigger asChild>
-        <Button.Root appearance="outline" color="red" size="sm">
-          <Button.Icon icon={Trash2} />
-          <Button.Title>Excluir</Button.Title>
-        </Button.Root>
-      </Modal.Trigger>
-
-      <Modal.Content size="md">
-        <Modal.Header
-          title="Remover tabela de preço"
-          description={`Remover a tabela "${priceListName}"? Todos os preços lançados nela também serão removidos.`}
-        />
-        <Modal.Footer>
-          <Modal.Close asChild>
-            <Button.Root
-              type="button"
-              appearance="ghost"
-              color="neutral"
-              size="md"
-              noUppercase
-              disabled={isLoading}
-            >
-              <Button.Title>Cancelar</Button.Title>
-            </Button.Root>
-          </Modal.Close>
-          <Button.Root
-            type="button"
-            appearance="solid"
-            color="red"
-            size="md"
-            noUppercase
-            loading={isLoading}
-            onClick={handleConfirm}
-          >
-            <Button.Title>Excluir</Button.Title>
-          </Button.Root>
-        </Modal.Footer>
-      </Modal.Content>
-    </Modal.Root>
+      }}
+      onSuccess={() => navigateTo(priceListsHref)}
+    />
   );
 }

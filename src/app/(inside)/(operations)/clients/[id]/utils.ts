@@ -1,30 +1,9 @@
-export function formatDate(iso: string | null | undefined): string {
-  if (!iso) return "—";
-  return new Date(iso).toLocaleDateString("pt-BR");
-}
+import { formatMoney } from "@/utils/format/masks";
 
 export function formatCurrency(value: string | number): string {
   const n = typeof value === "string" ? parseFloat(value) : value;
   if (isNaN(n)) return "—";
-  return n.toLocaleString("pt-BR", { style: "currency", currency: "BRL" });
-}
-
-export function factoryName(factory: { nomeFantasia: string | null; razaoSocial: string } | null): string {
-  if (!factory) return "—";
-  return factory.nomeFantasia ?? factory.razaoSocial;
-}
-
-export function priorityLabel(p: string | null): string {
-  if (p === "alta") return "Alta";
-  if (p === "media") return "Média";
-  if (p === "baixa") return "Baixa";
-  return "—";
-}
-
-export function priorityColor(p: string | null): "red" | "amber" | "neutral" {
-  if (p === "alta") return "red";
-  if (p === "media") return "amber";
-  return "neutral";
+  return formatMoney(n);
 }
 
 export function orderStatusLabel(s: string): string {
@@ -38,7 +17,9 @@ export function orderStatusLabel(s: string): string {
   return map[s] ?? s;
 }
 
-export function orderStatusColor(s: string): "neutral" | "blue" | "amber" | "green" | "red" {
+export function orderStatusColor(
+  s: string
+): "neutral" | "blue" | "amber" | "green" | "red" {
   const map: Record<string, "neutral" | "blue" | "amber" | "green" | "red"> = {
     rascunho: "neutral",
     enviado: "blue",
@@ -49,31 +30,11 @@ export function orderStatusColor(s: string): "neutral" | "blue" | "amber" | "gre
   return map[s] ?? "neutral";
 }
 
-import {
-  StockObservation,
-  VisitOutcome,
-  VisitStatus,
-} from "./interface";
+import { StockObservation, VisitOutcome } from "./interface";
 
 type BadgeColor = "neutral" | "blue" | "amber" | "green" | "red";
 
-export const VISIT_STATUS_LABEL: Record<VisitStatus, string> = {
-  PENDING: "Pendente",
-  COMPLETED: "Realizada",
-  CLIENT_ABSENT: "Ausente",
-  NO_TIME: "Sem tempo",
-  RESCHEDULED: "Remarcada",
-  CANCELLED: "Cancelada",
-};
-
-export const VISIT_STATUS_COLOR: Record<VisitStatus, BadgeColor> = {
-  PENDING: "neutral",
-  COMPLETED: "green",
-  CLIENT_ABSENT: "red",
-  NO_TIME: "blue",
-  RESCHEDULED: "blue",
-  CANCELLED: "red",
-};
+export { VISIT_STATUS_COLOR, VISIT_STATUS_LABEL } from "@/utils/visit";
 
 export const VISIT_OUTCOME_LABEL: Record<VisitOutcome, string> = {
   SOLD: "Vendeu",
@@ -105,7 +66,7 @@ export const STOCK_OBSERVATION_COLOR: Record<StockObservation, BadgeColor> = {
 
 export function stockSituation(
   daysSinceStockout: number,
-  churnRisk: string,
+  churnRisk: string
 ): { label: string; color: "red" | "amber" | "green" } {
   if (daysSinceStockout > 0) return { label: "Zerado", color: "red" };
   if (churnRisk === "alto") return { label: "Crítico", color: "amber" };
@@ -135,7 +96,7 @@ export function buildAddress(data: {
     data.addressNeighborhood ? `Bairro ${data.addressNeighborhood}` : null,
     data.addressCity && data.addressState
       ? `${data.addressCity} / ${data.addressState}`
-      : data.addressCity ?? data.addressState,
+      : (data.addressCity ?? data.addressState),
     data.addressZip ? `CEP ${data.addressZip}` : null,
   ].filter(Boolean);
   return parts.join(", ") || "—";

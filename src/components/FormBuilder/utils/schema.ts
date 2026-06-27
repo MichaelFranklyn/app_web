@@ -112,17 +112,15 @@ const createFieldValidator = (field: FormFieldSchema) => {
     const msg = labelText
       ? `${labelText} é obrigatório`
       : "Este campo é obrigatório";
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    validator = (validator as any).required(msg);
+    validator = validator.required(msg);
   }
 
   return validator;
 };
 
 // Schema é montado dinamicamente a partir dos steps, então o shape não é
-// conhecido estaticamente — `any` é necessário para o resolver genérico do RHF.
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
-type BuiltSchema = yup.ObjectSchema<any>;
+// conhecido estaticamente — usamos o tipo de objeto genérico do yup.
+type BuiltSchema = yup.AnyObjectSchema;
 
 export const buildYupSchema = (steps: FormStepSchema[]): BuiltSchema => {
   const schemaFields: Record<string, yup.AnySchema> = {};

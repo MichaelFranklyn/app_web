@@ -15,3 +15,10 @@ export interface PriceListItemRow {
   } | null;
   tier: { id: string; name: string } | null;
 }
+
+export interface ItemsQueryData {
+  price_list_items: {
+    edges: { node: PriceListItemRow }[];
+    totalCount: number;
+  };
+}

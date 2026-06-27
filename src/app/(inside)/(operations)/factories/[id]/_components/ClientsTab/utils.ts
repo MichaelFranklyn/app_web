@@ -1,5 +1,3 @@
-import { FactoryClientLink } from "./gql";
-
 export const PRIORITY_OPTIONS = [
   { value: "high", label: "Alta" },
   { value: "medium", label: "Média" },
@@ -18,6 +16,3 @@ export const priorityMeta = (
   priority: string | null
 ): { label: string; color: BadgeColor } =>
   (priority && PRIORITY_META[priority]) || { label: "—", color: "neutral" };
-
-export const clientName = (client: FactoryClientLink["client"]): string =>
-  client?.nomeFantasia || client?.razaoSocial || "—";

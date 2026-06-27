@@ -52,8 +52,14 @@ export const CLIENT_ORDERS_QUERY = gql`
 `;
 
 export const CLIENT_VISIT_SCORES_QUERY = gql`
-  query ClientVisitScores($sellerClientFactoryId: UUID!, $input: BaseListInput!) {
-    clientVisitScores(sellerClientFactoryId: $sellerClientFactoryId, input: $input) {
+  query ClientVisitScores(
+    $sellerClientFactoryId: UUID!
+    $input: BaseListInput!
+  ) {
+    clientVisitScores(
+      sellerClientFactoryId: $sellerClientFactoryId
+      input: $input
+    ) {
       edges {
         node {
           id
@@ -74,8 +80,14 @@ export const CLIENT_VISIT_SCORES_QUERY = gql`
 `;
 
 export const CLIENT_PRODUCT_INSIGHTS_QUERY = gql`
-  query ClientProductInsights($sellerClientFactoryId: UUID!, $input: BaseListInput!) {
-    clientProductInsights(sellerClientFactoryId: $sellerClientFactoryId, input: $input) {
+  query ClientProductInsights(
+    $sellerClientFactoryId: UUID!
+    $input: BaseListInput!
+  ) {
+    clientProductInsights(
+      sellerClientFactoryId: $sellerClientFactoryId
+      input: $input
+    ) {
       edges {
         node {
           id
@@ -91,7 +103,9 @@ export const CLIENT_PRODUCT_INSIGHTS_QUERY = gql`
           product {
             id
             name
-            unit
+            unit {
+              label
+            }
           }
         }
       }
@@ -176,64 +190,6 @@ export const CLIENT_QUERY = gql`
   }
 `;
 
-export const UPDATE_CLIENT_MUTATION = gql`
-  mutation UpdateClient($id: UUID!, $input: UpdateClientInput!) {
-    updateClient(id: $id, input: $input) {
-      status
-      code
-      message
-      data {
-        id
-        cnpj
-        razaoSocial
-        nomeFantasia
-        cnae
-        cnaeDescription
-        addressStreet
-        addressNumber
-        addressComplement
-        addressNeighborhood
-        addressZip
-        addressCity
-        addressState
-        updatedAt
-      }
-    }
-  }
-`;
-
-export const CLIENT_NOTES_QUERY = gql`
-  query ClientNotes($id: UUID!) {
-    clientNotes(id: $id) {
-      status
-      code
-      message
-      data {
-        id
-        notes
-        updatedAt
-      }
-    }
-  }
-`;
-
-export const CLIENT_STATISTICS_QUERY = gql`
-  query ClientStatistics($id: UUID!) {
-    clientStatistics(id: $id) {
-      status
-      code
-      message
-      data {
-        id
-        avgTicket
-        ordersLastYear
-        currentScore
-        lastVisitDate
-      }
-    }
-  }
-`;
-
 export const UPDATE_CLIENT_NOTES_MUTATION = gql`
   mutation UpdateClientNotes($id: UUID!, $input: UpdateClientNotesInput!) {
     updateClientNotes(id: $id, input: $input) {
@@ -274,7 +230,10 @@ export const CREATE_SELLER_CLIENT_FACTORY_MUTATION = gql`
 `;
 
 export const UPDATE_SELLER_CLIENT_FACTORY_MUTATION = gql`
-  mutation UpdateSellerClientFactory($id: UUID!, $input: UpdateSellerClientFactoryInput!) {
+  mutation UpdateSellerClientFactory(
+    $id: UUID!
+    $input: UpdateSellerClientFactoryInput!
+  ) {
     updateSellerClientFactory(id: $id, input: $input) {
       status
       code

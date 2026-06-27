@@ -1,24 +1,7 @@
+import { toUtcIsoDate as toIsoDate } from "@/utils/format/date";
 import { VisitScheduleDay, VisitStatus } from "./interface";
 
-export type StatusColor = "green" | "amber" | "neutral" | "red" | "blue";
-
-export const VISIT_STATUS_COLOR: Record<VisitStatus, StatusColor> = {
-  COMPLETED: "green",
-  PENDING: "neutral",
-  CLIENT_ABSENT: "red",
-  CANCELLED: "red",
-  RESCHEDULED: "blue",
-  NO_TIME: "blue",
-};
-
-export const VISIT_STATUS_LABEL: Record<VisitStatus, string> = {
-  COMPLETED: "Realizada",
-  PENDING: "Pendente",
-  CLIENT_ABSENT: "Cliente ausente",
-  CANCELLED: "Cancelada",
-  RESCHEDULED: "Remarcada",
-  NO_TIME: "Sem tempo",
-};
+export { VISIT_STATUS_COLOR, VISIT_STATUS_LABEL } from "@/utils/visit";
 
 export const VISIT_URGENCY_BORDER: Record<VisitStatus, string> = {
   COMPLETED: "border-l-[3px] border-l-(--green)",
@@ -78,29 +61,11 @@ export const formatWeekRange = (weekStartIso: string): string => {
   return `${startLabel} a ${endLabel} de ${end.getUTCFullYear()}`;
 };
 
-const toIsoDate = (date: Date): string => {
-  const year = date.getUTCFullYear();
-  const month = String(date.getUTCMonth() + 1).padStart(2, "0");
-  const day = String(date.getUTCDate()).padStart(2, "0");
-  return `${year}-${month}-${day}`;
-};
-
 export const getTodayIso = (): string => {
   const now = new Date();
   return toIsoDate(
     new Date(Date.UTC(now.getFullYear(), now.getMonth(), now.getDate()))
   );
-};
-
-export const getCurrentWeekMondayIso = (): string => {
-  const now = new Date();
-  const utc = new Date(
-    Date.UTC(now.getFullYear(), now.getMonth(), now.getDate())
-  );
-  const dayOfWeek = utc.getUTCDay();
-  const offsetToMonday = dayOfWeek === 0 ? -6 : 1 - dayOfWeek;
-  utc.setUTCDate(utc.getUTCDate() + offsetToMonday);
-  return toIsoDate(utc);
 };
 
 // Segunda-feira (início da semana) da semana que contém a data informada.
@@ -138,7 +103,9 @@ export const getIsoWeekNumber = (isoDate: string): number => {
   const dayOfWeek = (date.getUTCDay() + 6) % 7;
   date.setUTCDate(date.getUTCDate() - dayOfWeek + 3);
   const firstThursday = new Date(Date.UTC(date.getUTCFullYear(), 0, 4));
-  const diffDays = Math.round((date.getTime() - firstThursday.getTime()) / 86400000);
+  const diffDays = Math.round(
+    (date.getTime() - firstThursday.getTime()) / 86400000
+  );
   return 1 + Math.floor(diffDays / 7);
 };
 
@@ -175,28 +142,11 @@ export const buildWeekDays = (
 };
 
 // Opções dos enums — value = NOME do membro GraphQL, label = PT.
-export const VISIT_STATUS_OPTIONS = [
-  { value: "PENDING", label: "Pendente" },
-  { value: "COMPLETED", label: "Realizada" },
-  { value: "CLIENT_ABSENT", label: "Cliente ausente" },
-  { value: "NO_TIME", label: "Sem tempo" },
-  { value: "RESCHEDULED", label: "Remarcada" },
-  { value: "CANCELLED", label: "Cancelada" },
-];
-
-export const VISIT_OUTCOME_OPTIONS = [
-  { value: "SOLD", label: "Vendeu" },
-  { value: "NOT_BOUGHT", label: "Não comprou" },
-  { value: "RESCHEDULED", label: "Reagendou" },
-  { value: "CLOSED", label: "Fechado" },
-];
-
-export const STOCK_OBSERVATION_OPTIONS = [
-  { value: "OUT_OF_STOCK", label: "Zerado" },
-  { value: "LOW", label: "Baixo" },
-  { value: "ADEQUATE", label: "Adequado" },
-  { value: "HIGH", label: "Alto" },
-];
+export {
+  VISIT_STATUS_OPTIONS,
+  VISIT_OUTCOME_OPTIONS,
+  STOCK_OBSERVATION_OPTIONS,
+} from "@/utils/visit";
 
 export const RESCHEDULE_REASON_OPTIONS = [
   { value: "CLIENT_ABSENT", label: "Cliente ausente" },

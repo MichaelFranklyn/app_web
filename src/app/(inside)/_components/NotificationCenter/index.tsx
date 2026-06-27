@@ -2,13 +2,16 @@
 
 import { Title } from "@/components/Title";
 import { Topbar } from "@/components/Topbar";
+import { useAsyncAction } from "@/hooks/useAsyncAction";
 import { useInvalidateQueriesClient } from "@/hooks/useInvalidateQueries";
+import { useOptimisticList } from "@/hooks/useOptimisticList";
+import { useOptimisticObject } from "@/hooks/useOptimisticObject";
 import { cn } from "@/lib/utils";
 import * as DropdownMenuPrimitive from "@radix-ui/react-dropdown-menu";
 import { useMutation, useQuery } from "@apollo/client/react";
 import { Bell, Check, CheckCheck } from "lucide-react";
 import { useRouter } from "next/navigation";
-import { useState } from "react";
+import { useMemo, useState } from "react";
 import {
   MARK_ALL_NOTIFICATIONS_AS_READ_MUTATION,
   MARK_NOTIFICATION_AS_READ_MUTATION,
@@ -70,36 +73,98 @@ export function NotificationCenter() {
   const [markAllAsRead] = useMutation<MarkAllAsReadResponse>(
     MARK_ALL_NOTIFICATIONS_AS_READ_MUTATION
   );
+  const { execute } = useAsyncAction();
 
-  const unreadCount = countData?.myUnreadNotificationsCount?.data ?? 0;
-  const items = listData?.my_notifications?.edges.map((e) => e.node) ?? [];
+  // Estado exibido = hook otimista, seedado das queries (padrão único do app).
+  const serverItems = useMemo(
+    () => listData?.my_notifications?.edges.map((e) => e.node) ?? [],
+    [listData]
+  );
+  const list = useOptimisticList<Notification>({ initialData: serverItems });
+  const unread = useOptimisticObject<{ count: number }>({
+    initialData: useMemo(
+      () => ({ count: countData?.myUnreadNotificationsCount?.data ?? 0 }),
+      [countData]
+    ),
+  });
+
+  const unreadCount = unread.data.count;
+  const items = list.items;
 
   const refreshCounts = async () => {
-    await invalidateClient([
-      "myUnreadNotificationsCount",
-      "my_notifications",
-    ]);
+    await invalidateClient(["myUnreadNotificationsCount", "my_notifications"]);
   };
 
-  const handleItemClick = async (n: Notification) => {
-    if (!n.isRead) {
-      await markAsRead({ variables: { id: n.id } });
-      await refreshCounts();
+  const handleItemClick = (n: Notification) => {
+    if (n.isRead) {
+      setOpen(false);
+      if (n.link) router.push(n.link);
+      return;
     }
+
+    // Otimista PRIMEIRO: marca a linha como lida e decrementa o badge na hora.
+    list.updateOptimistic(n.id, {
+      isRead: true,
+      readAt: new Date().toISOString(),
+    });
+    unread.updateOptimistic({ count: Math.max(0, unread.data.count - 1) });
     setOpen(false);
-    if (n.link) {
-      router.push(n.link);
-    }
+    if (n.link) router.push(n.link);
+
+    void execute(
+      async () => {
+        const res = await markAsRead({ variables: { id: n.id } });
+        const payload = res.data?.markNotificationAsRead;
+        if (!payload?.status) {
+          throw new Error(payload?.message ?? "Erro ao marcar como lida");
+        }
+        return payload;
+      },
+      {
+        onSuccess: () => {
+          list.commit();
+          unread.commit();
+          void refreshCounts();
+        },
+        onError: () => {
+          list.rollback();
+          unread.rollback();
+        },
+      }
+    );
   };
 
-  const handleMarkAllRead = async (
-    e: React.MouseEvent<HTMLButtonElement>
-  ) => {
+  const handleMarkAllRead = (e: React.MouseEvent<HTMLButtonElement>) => {
     e.preventDefault();
     e.stopPropagation();
-    await markAllAsRead();
-    await refreshCounts();
-    await refetch();
+
+    // Otimista PRIMEIRO: zera o badge e marca tudo como lido.
+    const snapshot = list.items;
+    list.setItems(snapshot.map((n) => ({ ...n, isRead: true })));
+    unread.updateOptimistic({ count: 0 });
+
+    void execute(
+      async () => {
+        const res = await markAllAsRead();
+        const payload = res.data?.markAllNotificationsAsRead;
+        if (!payload?.status) {
+          throw new Error(payload?.message ?? "Erro ao marcar todas");
+        }
+        return payload;
+      },
+      {
+        successMessage: "Todas as notificações marcadas como lidas",
+        onSuccess: () => {
+          unread.commit();
+          void refreshCounts();
+          void refetch();
+        },
+        onError: () => {
+          list.setItems(snapshot);
+          unread.rollback();
+        },
+      }
+    );
   };
 
   return (
@@ -163,7 +228,7 @@ export function NotificationCenter() {
                   onClick={() => handleItemClick(n)}
                   className={cn(
                     "flex items-start gap-10 border-b border-(--border) px-12 py-10 text-left",
-                    "hover:bg-(--bg3) transition-colors last:border-b-0",
+                    "transition-colors last:border-b-0 hover:bg-(--bg3)",
                     !n.isRead && "bg-(--bg3)/40"
                   )}
                 >

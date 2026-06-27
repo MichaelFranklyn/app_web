@@ -2,6 +2,7 @@
 
 import { getNestedValue } from "@/utils/format/object";
 import { sortObjectsInArray } from "@/utils/format/sort";
+import { pageToAfter } from "@/utils/pagination";
 import { DocumentNode } from "@apollo/client";
 import { useSearchParams } from "next/navigation";
 import { useCallback, useMemo } from "react";
@@ -19,6 +20,12 @@ export interface SortState {
   secondaryCustomOrder?: (string | number)[];
 }
 
+export interface QueryFilter {
+  field: string;
+  operator?: string;
+  value: string | number | boolean;
+}
+
 export interface UseTableDataOptions<TData, TItem> {
   query: DocumentNode;
   fields: Record<string, FieldConfig>;
@@ -28,6 +35,11 @@ export interface UseTableDataOptions<TData, TItem> {
   };
   itemsPerPage?: number;
   initialSort?: SortState;
+  /**
+   * Filtros fixos sempre aplicados, mesclados antes dos filtros de busca.
+   * Use para listas escopadas a um pai (ex: `company_factory_id`, `product_id`).
+   */
+  baseFilters?: QueryFilter[];
 }
 
 export interface UseTableDataReturn<TItem> {
@@ -62,11 +74,6 @@ function buildQueryFilters(
   });
 }
 
-const pageToAfterCursor = (page: number, first: number): string | null => {
-  if (page <= 1) return null;
-  return btoa(`arrayconnection:${(page - 1) * first - 1}`);
-};
-
 export const useTableData = <TData, TItem extends object>(
   options: UseTableDataOptions<TData, TItem>
 ): UseTableDataReturn<TItem> => {
@@ -76,6 +83,7 @@ export const useTableData = <TData, TItem extends object>(
     getConnection,
     itemsPerPage = 10,
     initialSort = { key: "", direction: "none" },
+    baseFilters,
   } = options;
 
   const searchParams = useSearchParams();
@@ -93,15 +101,31 @@ export const useTableData = <TData, TItem extends object>(
     [queryFilters]
   );
 
+  const baseFiltersString = JSON.stringify(baseFilters ?? []);
+
+  // Filtros fixos (escopo) + filtros de busca. baseFilters tem `operator` opcional → default "eq".
+  const allFilters = useMemo(
+    () => [
+      ...(baseFilters ?? []).map((f) => ({
+        field: f.field,
+        operator: f.operator ?? "eq",
+        value: f.value,
+      })),
+      ...queryFilters,
+    ],
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+    [baseFiltersString, queryFiltersString]
+  );
+
   const variables = useMemo(
     () => ({
       input: {
         first: itemsPerPage,
-        after: pageToAfterCursor(currentPage, itemsPerPage),
-        ...(queryFilters.length > 0 && { filters: queryFilters }),
+        after: pageToAfter(currentPage, itemsPerPage),
+        ...(allFilters.length > 0 && { filters: allFilters }),
       },
     }),
-    [currentPage, itemsPerPage, queryFiltersString]
+    [currentPage, itemsPerPage, allFilters]
   );
 
   const { data, loading, refetch } = useAsyncQuery<TData>(query, {

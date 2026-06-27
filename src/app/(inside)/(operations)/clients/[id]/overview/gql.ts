@@ -36,7 +36,8 @@ export const SELLER_CLIENT_FACTORIES_QUERY = gql`
           id
           factory {
             id
-            name
+            nomeFantasia
+            razaoSocial
           }
           seller {
             id

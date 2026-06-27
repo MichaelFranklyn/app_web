@@ -32,6 +32,9 @@ export const Avatar = React.forwardRef<HTMLDivElement, AvatarProps>(
         {...props}
       >
         {src ? (
+          // Avatar aceita URL arbitrária (uploads/externas); next/image exigiria
+          // remotePatterns + dimensões fixas. <img> é intencional aqui.
+          // eslint-disable-next-line @next/next/no-img-element
           <img src={src} alt={alt ?? "Avatar"} className={avatarStyles.image} />
         ) : (
           <span>{displayContent}</span>

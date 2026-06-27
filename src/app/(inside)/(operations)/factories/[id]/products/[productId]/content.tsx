@@ -2,7 +2,8 @@
 
 import { EmptyState } from "@/components/EmptyState";
 import { Grid } from "@/components/Grid";
-import { useApolloClient, useQuery } from "@apollo/client/react";
+import { useRefetchQueriesClient } from "@/hooks/useInvalidateQueries";
+import { useQuery } from "@apollo/client/react";
 import { PackageX } from "lucide-react";
 import { useCallback } from "react";
 import { ComponentsTable } from "./_components/ComponentsTable";
@@ -20,7 +21,7 @@ interface Props {
 }
 
 export default function ProductDetailContent({ id }: Props) {
-  const client = useApolloClient();
+  const refetchClient = useRefetchQueriesClient();
   const { data, loading, refetch } = useQuery<ProductDetailResponse>(
     PRODUCT_DETAIL_QUERY,
     { variables: { id } }
@@ -29,8 +30,8 @@ export default function ProductDetailContent({ id }: Props) {
   // Mudou um imposto → o back recalcula o preço c/ imposto das tabelas ativas;
   // ressincroniza a tabela de preços para refletir os novos valores.
   const handleTaxesChanged = useCallback(() => {
-    client.refetchQueries({ include: [PRICE_LIST_ITEMS_QUERY] });
-  }, [client]);
+    refetchClient([PRICE_LIST_ITEMS_QUERY]);
+  }, [refetchClient]);
 
   const product = data?.product_detail?.data;
 
@@ -69,7 +70,10 @@ export default function ProductDetailContent({ id }: Props) {
           />
         </Grid.Item>
 
-        <Grid.Item span={{ base: 1, desktop: 1 }} className="flex flex-col gap-12">
+        <Grid.Item
+          span={{ base: 1, desktop: 1 }}
+          className="flex flex-col gap-12"
+        >
           <ProductInfoCard product={product} />
           <TaxesTable productId={id} onChanged={handleTaxesChanged} />
           <ComponentsTable

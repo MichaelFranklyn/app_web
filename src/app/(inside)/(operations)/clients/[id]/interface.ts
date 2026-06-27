@@ -44,21 +44,16 @@ export interface UpdateClientInput {
   addressState?: string;
 }
 
-export interface UpdateClientMutationResponse {
-  updateClient: {
-    status: boolean;
-    code: number;
-    message: string;
-    data: ClientDetail | null;
-  };
-}
-
 export interface SellerClientFactory {
   id: string;
   priority: string | null;
   visitFrequencyDays: number | null;
   lastVisitDate: string | null;
-  factory: { id: string; nomeFantasia: string | null; razaoSocial: string } | null;
+  factory: {
+    id: string;
+    nomeFantasia: string | null;
+    razaoSocial: string;
+  } | null;
   seller: { id: string; name: string } | null;
 }
 
@@ -75,7 +70,11 @@ export interface ClientOrder {
   totalAmount: string;
   status: string;
   notes: string | null;
-  factory: { id: string; nomeFantasia: string | null; razaoSocial: string } | null;
+  factory: {
+    id: string;
+    nomeFantasia: string | null;
+    razaoSocial: string;
+  } | null;
   seller: { id: string; name: string } | null;
 }
 
@@ -117,7 +116,7 @@ export interface ProductInsight {
   daysSinceStockout: number;
   nextPurchaseEstimate: string | null;
   churnRisk: "baixo" | "medio" | "alto";
-  product: { id: string; name: string; unit: string } | null;
+  product: { id: string; name: string; unit: { label: string } | null } | null;
 }
 
 export interface ClientProductInsightsQueryResponse {
@@ -157,7 +156,11 @@ export interface ClientVisit {
   } | null;
   clientFactoryLink: {
     id: string;
-    factory: { id: string; nomeFantasia: string | null; razaoSocial: string } | null;
+    factory: {
+      id: string;
+      nomeFantasia: string | null;
+      razaoSocial: string;
+    } | null;
   } | null;
 }
 

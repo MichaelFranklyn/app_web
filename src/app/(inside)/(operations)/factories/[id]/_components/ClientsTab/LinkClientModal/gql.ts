@@ -51,20 +51,6 @@ export const SELLERS_WITH_ACCESS_QUERY = gql`
   }
 `;
 
-// Níveis de preço desta fábrica (company_factory).
-export const PRICE_TIERS_FOR_LINK_QUERY = gql`
-  query PriceTiersForFactoryLink($input: BaseListInput!) {
-    priceTiers(input: $input) {
-      edges {
-        node {
-          id
-          name
-        }
-      }
-    }
-  }
-`;
-
 // Vínculos já existentes desta fábrica (para não repetir o cliente).
 export const EXISTING_LINKS_QUERY = gql`
   query ExistingFactoryClientLinks($input: BaseListInput!) {

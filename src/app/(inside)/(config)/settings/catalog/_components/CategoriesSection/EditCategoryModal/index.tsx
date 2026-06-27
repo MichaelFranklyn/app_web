@@ -11,8 +11,7 @@ import { useAsyncAction } from "@/hooks/useAsyncAction";
 import { useMutation } from "@apollo/client/react";
 import { Pencil } from "lucide-react";
 import { useMemo, useRef, useState } from "react";
-import { ProductCategoryRow } from "../AddCategoryModal/interface";
-import { categoriesRefetchQueries } from "../gql";
+import { ProductCategoryRow } from "../gql";
 import { UPDATE_PRODUCT_CATEGORY_MUTATION } from "./gql";
 
 interface UpdateProductCategoryResponse {
@@ -26,9 +25,22 @@ interface UpdateProductCategoryResponse {
 
 interface Props {
   category: ProductCategoryRow;
+  onUpdateOptimistic: (
+    id: string,
+    updates: Partial<ProductCategoryRow>
+  ) => void;
+  onCommit: () => void;
+  onRollback: () => void;
+  onChanged: () => void;
 }
 
-export function EditCategoryModal({ category }: Props) {
+export function EditCategoryModal({
+  category,
+  onUpdateOptimistic,
+  onCommit,
+  onRollback,
+  onChanged,
+}: Props) {
   const [open, setOpen] = useState(false);
   const formRef = useRef<FormBuilderRef>(null);
 
@@ -87,28 +99,18 @@ export function EditCategoryModal({ category }: Props) {
       return;
     }
 
+    // Otimista: a linha reflete o novo valor na hora; commit no sucesso,
+    // rollback no erro.
+    setOpen(false);
+    onUpdateOptimistic(category.id, {
+      name: name || category.name,
+      segment: segment || category.segment,
+    });
+
     await execute(
       async () => {
         const res = await updateCategory({
           variables: { id: category.id, input },
-          // Otimista: como o id é o mesmo, o Apollo atualiza a entidade
-          // normalizada na hora (a linha da lista reflete de imediato). Em
-          // erro, rollback automático.
-          optimisticResponse: {
-            updateProductCategory: {
-              __typename: "ProductCategoryTypeDataResponse",
-              status: true,
-              message: "",
-              data: {
-                __typename: "ProductCategoryType",
-                id: category.id,
-                name: name || category.name,
-                segment: segment || category.segment,
-              },
-            },
-          },
-          // Rede de segurança: ressincroniza a lista com o back após o sucesso.
-          refetchQueries: categoriesRefetchQueries(),
         });
 
         if (
@@ -125,7 +127,11 @@ export function EditCategoryModal({ category }: Props) {
       },
       {
         successMessage: "Categoria atualizada com sucesso",
-        onSuccess: () => setOpen(false),
+        onSuccess: () => {
+          onCommit();
+          onChanged();
+        },
+        onError: () => onRollback(),
       }
     );
   };

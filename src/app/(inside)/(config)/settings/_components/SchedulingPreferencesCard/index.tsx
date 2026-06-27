@@ -22,9 +22,9 @@ export function SchedulingPreferencesCard({ form, onChange }: Props) {
           <Card.Item.Label>Reagendar ausências na mesma semana</Card.Item.Label>
           <Card.Item.Actions>
             <InputToggle
-              checked={form.rescheduleSameWeek}
+              checked={form.isRescheduleSameWeek}
               onChange={(e) =>
-                onChange({ rescheduleSameWeek: e.target.checked })
+                onChange({ isRescheduleSameWeek: e.target.checked })
               }
             />
           </Card.Item.Actions>

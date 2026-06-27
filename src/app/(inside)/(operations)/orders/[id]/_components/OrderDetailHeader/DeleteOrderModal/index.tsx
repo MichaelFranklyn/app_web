@@ -2,9 +2,10 @@
 
 import { Button } from "@/components/Button";
 import { Modal } from "@/components/Modal";
-import { useToast } from "@/components/Toast";
+import { useAsyncAction } from "@/hooks/useAsyncAction";
+import { useInvalidateQueriesClient } from "@/hooks/useInvalidateQueries";
 import { useNavigation } from "@/hooks/useNavigation";
-import { useApolloClient, useMutation } from "@apollo/client/react";
+import { useMutation } from "@apollo/client/react";
 import { Trash2 } from "lucide-react";
 import { useState } from "react";
 import { DELETE_ORDER_MUTATION } from "./gql";
@@ -13,48 +14,37 @@ import { DeleteOrderModalProps, DeleteOrderResponse } from "./interface";
 export function DeleteOrderModal({ orderId }: DeleteOrderModalProps) {
   const [open, setOpen] = useState(false);
   const { navigateTo } = useNavigation();
-  const { toast } = useToast();
-  const client = useApolloClient();
+  const invalidateClient = useInvalidateQueriesClient();
+  const { execute, isLoading } = useAsyncAction();
 
   const [deleteOrder] = useMutation<DeleteOrderResponse>(DELETE_ORDER_MUTATION);
 
-  const handleConfirm = () => {
-    deleteOrder({ variables: { id: orderId } })
-      .then((res) => {
+  const handleConfirm = async () => {
+    await execute(
+      async () => {
+        const res = await deleteOrder({ variables: { id: orderId } });
+
         if (!res.data?.deleteOrder?.status) {
-          toast({
-            variant: "error",
-            title: "Erro",
-            description:
-              res.data?.deleteOrder?.message ?? "Erro ao excluir pedido",
-          });
-          return;
+          throw new Error(
+            res.data?.deleteOrder?.message ?? "Erro ao excluir pedido"
+          );
         }
-        // A lista é cache-first: invalidamos só o CAMPO da listagem (na raiz
-        // da query) para forçar um refetch sem o pedido excluído ao voltar.
-        // Não removemos a entidade OrderType: isso dispararia um refetch do
-        // detalhe (order(id)) ainda montado, que retornaria NotFound.
-        client.cache.evict({ id: "ROOT_QUERY", fieldName: "orders" });
-        client.cache.evict({ id: "ROOT_QUERY", fieldName: "orders_list" });
-        // KPIs (query client-side) também precisam refletir o pedido removido.
-        client.cache.evict({ id: "ROOT_QUERY", fieldName: "orderStats" });
-        client.cache.gc();
-        toast({
-          variant: "success",
-          title: "Sucesso",
-          description: "Pedido excluído com sucesso",
-        });
-        navigateTo("/orders");
-      })
-      .catch((error) => {
-        toast({
-          variant: "error",
-          title: "Erro",
-          description:
-            error instanceof Error ? error.message : "Erro ao excluir pedido",
-        });
-      });
-    setOpen(false);
+
+        return res.data.deleteOrder;
+      },
+      {
+        successMessage: "Pedido excluído com sucesso",
+        onSuccess: async () => {
+          // Invalida só os CAMPOS de listagem/KPIs (a lista é cache-first, então
+          // refaz o fetch sem o pedido excluído ao voltar). Não removemos a
+          // entidade OrderType: isso dispararia um refetch do detalhe (order(id))
+          // ainda montado, que retornaria NotFound.
+          await invalidateClient(["orders", "orders_list", "orderStats"]);
+          setOpen(false);
+          navigateTo("/orders");
+        },
+      }
+    );
   };
 
   return (
@@ -80,6 +70,7 @@ export function DeleteOrderModal({ orderId }: DeleteOrderModalProps) {
               color="neutral"
               size="md"
               noUppercase
+              disabled={isLoading}
             >
               <Button.Title>Voltar</Button.Title>
             </Button.Root>
@@ -90,6 +81,7 @@ export function DeleteOrderModal({ orderId }: DeleteOrderModalProps) {
             color="red"
             size="md"
             noUppercase
+            loading={isLoading}
             onClick={handleConfirm}
           >
             <Button.Title>Confirmar exclusão</Button.Title>

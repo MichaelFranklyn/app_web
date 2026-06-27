@@ -19,11 +19,3 @@ export interface CompanyFactoryDetail {
   specialConditions: Record<string, unknown> | null;
   factory: FactoryDetail;
 }
-
-export interface CompanyFactoryDetailResponse {
-  company_factory_detail: {
-    status: boolean;
-    message: string;
-    data: CompanyFactoryDetail | null;
-  };
-}

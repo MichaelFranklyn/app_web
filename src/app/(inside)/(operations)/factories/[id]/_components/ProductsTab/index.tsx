@@ -10,10 +10,11 @@ import { Table } from "@/components/Table";
 import { Title } from "@/components/Title";
 import { Tooltip } from "@/components/Tooltip";
 import { useOptimisticList } from "@/hooks/useOptimisticList";
-import { useQuery } from "@apollo/client/react";
+import type { FieldConfig } from "@/hooks/useTableFilters";
+import { useTableData } from "@/hooks/useTableData";
 import { AlertCircle, Package } from "lucide-react";
 import { Button } from "@/components/Button";
-import { useMemo, useState } from "react";
+import { useMemo } from "react";
 import { AddProductModal } from "./AddProductModal";
 import { ImportProductsModal } from "./ImportProductsModal";
 import { ProductRowActions } from "./ProductRowActions";
@@ -22,69 +23,47 @@ import {
   FactoryProduct,
   FactoryProductsData,
 } from "./gql";
+import { ITEMS_PER_PAGE } from "./utils";
 
 interface Props {
   companyFactoryId: string;
 }
 
-const ITEMS_PER_PAGE = 10;
-
-// Cursor offset no padrão do back (Relay arrayconnection), igual ao useTableData.
-const pageToAfter = (page: number, first: number): string | null =>
-  page <= 1 ? null : btoa(`arrayconnection:${(page - 1) * first - 1}`);
+const PRODUCT_FIELDS: Record<string, FieldConfig> = {
+  search: { type: "text", queryField: "name,sku", operator: "like" },
+  onlyAttention: {
+    type: "select",
+    queryField: "needs_attention",
+    operator: "eq",
+  },
+};
 
 export function ProductsTab({ companyFactoryId }: Props) {
-  const [search, setSearch] = useState("");
-  const [onlyAttention, setOnlyAttention] = useState(false);
-  const [page, setPage] = useState(1);
-
-  const variables = useMemo(
-    () => ({
-      input: {
-        first: ITEMS_PER_PAGE,
-        after: pageToAfter(page, ITEMS_PER_PAGE),
-        filters: [
-          {
-            field: "company_factory_id",
-            operator: "eq",
-            value: companyFactoryId,
-          },
-          ...(search.trim()
-            ? [{ field: "name,sku", operator: "like", value: search.trim() }]
-            : []),
-          ...(onlyAttention
-            ? [{ field: "needs_attention", operator: "eq", value: "true" }]
-            : []),
-        ],
-      },
-    }),
-    [companyFactoryId, page, search, onlyAttention]
+  const baseFilters = useMemo(
+    () => [
+      { field: "company_factory_id", operator: "eq", value: companyFactoryId },
+    ],
+    [companyFactoryId]
   );
 
-  const { data, loading, refetch } = useQuery<FactoryProductsData>(
-    FACTORY_PRODUCTS_QUERY,
-    { variables }
-  );
+  const table = useTableData<FactoryProductsData, FactoryProduct>({
+    query: FACTORY_PRODUCTS_QUERY,
+    fields: PRODUCT_FIELDS,
+    getConnection: (d) => d.factory_products,
+    baseFilters,
+    itemsPerPage: ITEMS_PER_PAGE,
+  });
 
-  const initialProducts = useMemo<FactoryProduct[]>(
-    () => data?.factory_products?.edges.map((e) => e.node) ?? [],
-    [data]
-  );
   const optimistic = useOptimisticList<FactoryProduct>({
-    initialData: initialProducts,
+    initialData: table.displayedData,
   });
   const products = optimistic.items;
-  const totalCount = data?.factory_products?.totalCount ?? 0;
-  const totalPages = Math.max(1, Math.ceil(totalCount / ITEMS_PER_PAGE));
-  const currentPage = Math.min(page, totalPages);
 
-  const handleSearch = (value: string) => {
-    setSearch(value);
-    setPage(1);
-  };
+  const search = table.inputValues.search ?? "";
+  const onlyAttention = table.inputValues.onlyAttention === "true";
 
   const onChanged = () => {
-    refetch();
+    table.refetch();
   };
 
   return (
@@ -139,7 +118,7 @@ export function ProductsTab({ companyFactoryId }: Props) {
               containerClassName="w-72"
               placeholder="Buscar por nome ou SKU..."
               value={search}
-              onChange={(e) => handleSearch(e.target.value)}
+              onChange={(e) => table.setFilter("search", e.target.value)}
             />
             <Button.Root
               type="button"
@@ -147,10 +126,12 @@ export function ProductsTab({ companyFactoryId }: Props) {
               color={onlyAttention ? "amber" : "neutral"}
               size="sm"
               noUppercase
-              onClick={() => {
-                setOnlyAttention((v) => !v);
-                setPage(1);
-              }}
+              onClick={() =>
+                table.setFilter(
+                  "onlyAttention",
+                  onlyAttention ? undefined : "true"
+                )
+              }
               aria-pressed={onlyAttention}
             >
               <Button.Icon icon={AlertCircle} />
@@ -181,7 +162,7 @@ export function ProductsTab({ companyFactoryId }: Props) {
           </Table.Row>
         </Table.Header>
         <Table.Body>
-          {loading && products.length === 0 ? (
+          {table.loading && products.length === 0 ? (
             <Table.Skeleton columns={6} rows={5} />
           ) : products.length === 0 ? (
             <Table.Row>
@@ -231,7 +212,7 @@ export function ProductsTab({ companyFactoryId }: Props) {
                         {p.isActive ? "Ativo" : "Inativo"}
                       </Badge.Text>
                     </Badge.Root>
-                    {p.needsAttention && (
+                    {p.isNeedsAttention && (
                       <Tooltip
                         className="max-w-100 whitespace-normal"
                         content={
@@ -242,7 +223,9 @@ export function ProductsTab({ companyFactoryId }: Props) {
                             <Title variant="body-sm">
                               {p.attentionReason ??
                                 "Revise os dados deste produto."}
-                              {" — edite e salve o produto para remover esta marcação."}
+                              {
+                                " — edite e salve o produto para remover esta marcação."
+                              }
                             </Title>
                           </div>
                         }
@@ -274,18 +257,18 @@ export function ProductsTab({ companyFactoryId }: Props) {
 
       <Table.Footer>
         <Table.Footer.Info>
-          {loading && products.length > 0 && (
+          {table.loading && products.length > 0 && (
             <Loading.Spinner size="sm" className="mr-6 inline-block" />
           )}
-          {totalCount > 0
-            ? `${totalCount} produto(s) · página ${currentPage} de ${totalPages}`
+          {table.totalItems > 0
+            ? `${table.totalItems} produto(s) · página ${table.currentPage} de ${table.totalPages}`
             : "Nenhum produto encontrado"}
         </Table.Footer.Info>
 
         <Pagination.Smart
-          currentPage={currentPage}
-          totalPages={totalPages}
-          onPageChange={setPage}
+          currentPage={table.currentPage}
+          totalPages={table.totalPages}
+          onPageChange={table.setCurrentPage}
         />
       </Table.Footer>
     </Table.Root>

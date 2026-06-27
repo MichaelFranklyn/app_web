@@ -1,0 +1,2635 @@
+# AUTO-GERADO por scripts/pull-schema.mjs — NÃO editar à mão.
+# Snapshot do schema do backend (app_user). Atualize com: npm run schema:pull
+# Fonte: 36 arquivos .graphql merge-ados (mesma regra do Ariadne).
+
+input BaseListInput {
+  filters: [FieldFilterInput!] = null
+  order: OrderInput = null
+  first: Int! = 20
+  after: String = null
+}
+
+type BaseResponse {
+  status: Boolean!
+  code: Int!
+  message: String!
+}
+
+"""Date (isoformat)"""
+scalar Date
+
+"""Date with time (isoformat)"""
+scalar DateTime
+
+"""Decimal (fixed-point)"""
+scalar Decimal
+
+input FieldFilterInput {
+  field: String!
+  operator: String! = "eq"
+  value: String = null
+  values: [String!] = null
+}
+
+"""
+The `JSON` scalar type represents JSON values as specified by [ECMA-404](https://ecma-international.org/wp-content/uploads/ECMA-404_2nd_edition_december_2017.pdf).
+"""
+scalar JSON @specifiedBy(url: "https://ecma-international.org/wp-content/uploads/ECMA-404_2nd_edition_december_2017.pdf")
+
+type PageInfo {
+  hasNextPage: Boolean!
+  hasPreviousPage: Boolean!
+  startCursor: String
+  endCursor: String
+}
+
+"""Time (isoformat)"""
+scalar Time
+
+scalar UUID
+
+
+type Query {
+  _empty: String
+}
+
+
+type Mutation {
+  _empty: String
+}
+
+type AuthTokens {
+    accessToken: String!
+    refreshToken: String!
+}
+
+type AuthTokensDataResponse {
+    status: Boolean!
+    code: Int!
+    message: String!
+    data: AuthTokens
+}
+
+input LoginInput {
+    email: String!
+    password: String!
+}
+
+type LoginPayload {
+    accessToken: String!
+    refreshToken: String!
+    userId: UUID!
+    userName: String!
+    companyName: String!
+    role: UserRole!
+}
+
+type LoginPayloadDataResponse {
+    status: Boolean!
+    code: Int!
+    message: String!
+    data: LoginPayload
+}
+
+input ResetPasswordInput {
+    token: String!
+    newPassword: String!
+}
+
+extend type Mutation {
+    login(input: LoginInput!): LoginPayloadDataResponse!
+    refreshToken(input: RefreshTokenInput!): AuthTokensDataResponse!
+    requestPasswordReset(input: RequestPasswordResetInput!): BaseResponse!
+    resetPassword(input: ResetPasswordInput!): LoginPayloadDataResponse!
+}
+
+input RefreshTokenInput {
+    refreshToken: String!
+}
+
+input RequestPasswordResetInput {
+    email: String!
+}
+
+type ClientContactType {
+  id: UUID!
+  companyId: UUID!
+  clientId: UUID!
+  name: String!
+  role: String
+  phone: String
+  email: String
+  isPrimary: Boolean!
+  isActive: Boolean!
+  createdAt: DateTime!
+  updatedAt: DateTime!
+}
+
+type ClientContactTypeConnectionResponse {
+  edges: [ClientContactTypeEdge!]!
+  pageInfo: PageInfo!
+  totalCount: Int!
+}
+
+type ClientContactTypeDataResponse {
+  status: Boolean!
+  code: Int!
+  message: String!
+  data: ClientContactType
+}
+
+type ClientContactTypeEdge {
+  node: ClientContactType!
+  cursor: String!
+}
+
+input CreateClientContactInput {
+  clientId: UUID!
+  name: String!
+  role: String = null
+  phone: String = null
+  email: String = null
+  isPrimary: Boolean = false
+}
+
+input UpdateClientContactInput {
+  name: String = null
+  role: String = null
+  phone: String = null
+  email: String = null
+  isPrimary: Boolean = null
+  isActive: Boolean = null
+}
+
+extend type Query {
+  clientContact(id: UUID!): ClientContactTypeDataResponse!
+  clientContacts(clientId: UUID!, input: BaseListInput!): ClientContactTypeConnectionResponse!
+}
+
+extend type Mutation {
+  createClientContact(input: CreateClientContactInput!): ClientContactTypeDataResponse!
+  updateClientContact(id: UUID!, input: UpdateClientContactInput!): ClientContactTypeDataResponse!
+  deleteClientContact(id: UUID!): BaseResponse!
+}
+
+type ClientProductInsightType {
+  id: UUID!
+  sellerClientFactoryId: UUID!
+  productId: UUID!
+  productCategoryId: UUID
+  lastPurchaseDate: Date
+  lastQuantity: Decimal!
+  purchaseCount: Int!
+  avgQuantity: Decimal!
+  avgShelfDays: Int
+  avgIntervalDays: Int
+  estimatedStockoutDate: Date
+  daysSinceStockout: Int!
+  nextPurchaseEstimate: Date
+  churnRisk: ChurnRisk!
+  updatedAt: DateTime!
+  clientFactoryLink: SellerClientFactoryType
+  product: ProductType
+  category: ProductCategoryType
+}
+
+type ClientProductInsightTypeConnectionResponse {
+  edges: [ClientProductInsightTypeEdge!]!
+  pageInfo: PageInfo!
+  totalCount: Int!
+}
+
+type ClientProductInsightTypeDataResponse {
+  status: Boolean!
+  code: Int!
+  message: String!
+  data: ClientProductInsightType
+}
+
+type ClientProductInsightTypeEdge {
+  node: ClientProductInsightType!
+  cursor: String!
+}
+
+extend type Query {
+  clientProductInsight(id: UUID!): ClientProductInsightTypeDataResponse!
+  clientProductInsights(sellerClientFactoryId: UUID!, input: BaseListInput!): ClientProductInsightTypeConnectionResponse!
+}
+enum ChurnRisk {
+  LOW
+  MEDIUM
+  HIGH
+}
+
+type ClientVisitScoreType {
+  id: UUID!
+  sellerClientFactoryId: UUID!
+  scoreDate: Date!
+  scoreTotal: Decimal!
+  scoreUrgency: Decimal!
+  scorePriority: Decimal!
+  scoreFrequency: Decimal!
+  scorePotential: Decimal!
+  scoreRecency: Decimal!
+  recommendedProducts: [JSON!]
+  stockoutAlerts: [JSON!]
+  updatedAt: DateTime!
+  clientFactoryLink: SellerClientFactoryType
+}
+
+type ClientVisitScoreTypeConnectionResponse {
+  edges: [ClientVisitScoreTypeEdge!]!
+  pageInfo: PageInfo!
+  totalCount: Int!
+}
+
+type ClientVisitScoreTypeEdge {
+  node: ClientVisitScoreType!
+  cursor: String!
+}
+
+extend type Query {
+  clientVisitScores(sellerClientFactoryId: UUID!, input: BaseListInput!): ClientVisitScoreTypeConnectionResponse!
+}
+
+type ClientStatsType {
+  totalClients: Int!
+  activeClients: Int!
+  atRiskClients: Int!
+  noVisit30d: Int!
+}
+
+type ClientType {
+  id: UUID!
+  cnpj: String!
+  razaoSocial: String!
+  nomeFantasia: String
+  cnae: String
+  cnaeDescription: String
+  addressStreet: String
+  addressNumber: String
+  addressComplement: String
+  addressNeighborhood: String
+  addressZip: String
+  addressCity: String
+  addressState: String
+  createdAt: DateTime!
+  updatedAt: DateTime!
+  deletedAt: DateTime
+  companyClient: CompanyClientType
+}
+
+type ClientTypeConnectionResponse {
+  edges: [ClientTypeEdge!]!
+  pageInfo: PageInfo!
+  totalCount: Int!
+}
+
+type ClientTypeDataResponse {
+  status: Boolean!
+  code: Int!
+  message: String!
+  data: ClientType
+}
+
+type ClientTypeEdge {
+  node: ClientType!
+  cursor: String!
+}
+
+input CreateClientInput {
+  cnpj: String!
+}
+
+input UpdateClientAddressInput {
+  addressStreet: String = null
+  addressNumber: String = null
+  addressComplement: String = null
+  addressNeighborhood: String = null
+  addressZip: String = null
+  addressCity: String = null
+  addressState: String = null
+}
+
+input UpdateClientInput {
+  razaoSocial: String = null
+  nomeFantasia: String = null
+  addressStreet: String = null
+  addressNumber: String = null
+  addressComplement: String = null
+  addressNeighborhood: String = null
+  addressZip: String = null
+  addressCity: String = null
+  addressState: String = null
+}
+
+input UpdateClientNotesInput {
+  notes: String = null
+}
+
+extend type Query {
+  client(id: UUID!): ClientTypeDataResponse!
+  clients(input: BaseListInput!): ClientTypeConnectionResponse!
+  clientStats: ClientStatsType!
+}
+
+extend type Mutation {
+  createClient(input: CreateClientInput!): ClientTypeDataResponse!
+  updateClient(id: UUID!, input: UpdateClientInput!): ClientTypeDataResponse!
+  updateClientAddress(id: UUID!, input: UpdateClientAddressInput!): ClientTypeDataResponse!
+  deleteClient(id: UUID!): BaseResponse!
+  addClientToCompany(input: AddClientToCompanyInput!): CompanyClientTypeDataResponse!
+  updateClientNotes(id: UUID!, input: UpdateClientNotesInput!): CompanyClientTypeDataResponse!
+}
+
+type CompanyType {
+  id: UUID!
+  cnpj: String!
+  razaoSocial: String!
+  nomeFantasia: String
+  segment: String!
+  accountType: String!
+  plan: String!
+  phone: String
+  email: String
+  addressCity: String
+  addressState: String
+  createdAt: DateTime!
+  updatedAt: DateTime!
+  deletedAt: DateTime
+  users: [UserType!]!
+  sellers: [SellerType!]!
+  importTemplates: [FactoryImportTemplateType!]!
+}
+
+type CompanyTypeConnectionResponse {
+  edges: [CompanyTypeEdge!]!
+  pageInfo: PageInfo!
+  totalCount: Int!
+}
+
+type CompanyTypeDataResponse {
+  status: Boolean!
+  code: Int!
+  message: String!
+  data: CompanyType
+}
+
+type CompanyTypeEdge {
+  node: CompanyType!
+  cursor: String!
+}
+
+input CreateCompanyInput {
+  cnpj: String!
+  segment: String!
+  accountType: String! = "company"
+  phone: String = null
+  email: String = null
+}
+
+input UpdateCompanyInput {
+  segment: String = null
+  phone: String = null
+  email: String = null
+  addressCity: String = null
+  addressState: String = null
+}
+
+extend type Query {
+  company(id: UUID!): CompanyTypeDataResponse!
+  companies(input: BaseListInput!): CompanyTypeConnectionResponse!
+  myCompany: CompanyTypeDataResponse!
+}
+
+extend type Mutation {
+  createCompany(input: CreateCompanyInput!): CompanyTypeDataResponse!
+  updateCompany(id: UUID!, input: UpdateCompanyInput!): CompanyTypeDataResponse!
+  deleteCompany(id: UUID!): BaseResponse!
+}
+
+type CompanyClientType {
+  id: UUID!
+  companyId: UUID!
+  clientId: UUID!
+  notes: String
+  isActive: Boolean!
+  createdAt: DateTime!
+  updatedAt: DateTime!
+  deletedAt: DateTime
+  company: CompanyType
+  client: ClientType
+}
+
+type CompanyClientTypeConnectionResponse {
+  edges: [CompanyClientTypeEdge!]!
+  pageInfo: PageInfo!
+  totalCount: Int!
+}
+
+type CompanyClientTypeDataResponse {
+  status: Boolean!
+  code: Int!
+  message: String!
+  data: CompanyClientType
+}
+
+type CompanyClientTypeEdge {
+  node: CompanyClientType!
+  cursor: String!
+}
+
+input CreateCompanyClientInput {
+  clientId: UUID!
+  notes: String = null
+}
+
+input UpdateCompanyClientInput {
+  notes: String = null
+  isActive: Boolean = null
+}
+
+extend type Query {
+  companyClient(id: UUID!): CompanyClientTypeDataResponse!
+  companyClients(input: BaseListInput!): CompanyClientTypeConnectionResponse!
+}
+
+extend type Mutation {
+  createCompanyClient(input: CreateCompanyClientInput!): CompanyClientTypeDataResponse!
+  updateCompanyClient(id: UUID!, input: UpdateCompanyClientInput!): CompanyClientTypeDataResponse!
+  deleteCompanyClient(id: UUID!): BaseResponse!
+}
+input AddClientToCompanyInput {
+  cnpj: String!
+  notes: String = null
+}
+
+type CompanyFactoryType {
+  id: UUID!
+  companyId: UUID!
+  factoryId: UUID!
+  commissionRate: Float!
+  commissionCalcBasis: String!
+  paymentTermDays: Int!
+  territory: String!
+  contractStart: DateTime
+  contractEnd: DateTime
+  specialConditions: JSON
+  createdAt: DateTime!
+  updatedAt: DateTime!
+  deletedAt: DateTime
+  company: CompanyType
+  factory: FactoryType
+}
+
+type CompanyFactoryTypeConnectionResponse {
+  edges: [CompanyFactoryTypeEdge!]!
+  pageInfo: PageInfo!
+  totalCount: Int!
+}
+
+type CompanyFactoryTypeDataResponse {
+  status: Boolean!
+  code: Int!
+  message: String!
+  data: CompanyFactoryType
+}
+
+type CompanyFactoryTypeEdge {
+  node: CompanyFactoryType!
+  cursor: String!
+}
+
+input LinkFactoryInput {
+  cnpj: String!
+  commissionRate: Float!
+  commissionCalcBasis: String!
+  paymentTermDays: Int!
+  territory: String!
+  contractStart: DateTime = null
+  contractEnd: DateTime = null
+  specialConditions: JSON = null
+}
+
+input CreateCompanyFactoryInput {
+  companyId: UUID!
+  factoryId: UUID!
+  commissionRate: Float!
+  commissionCalcBasis: String!
+  paymentTermDays: Int!
+  territory: String!
+  contractStart: DateTime = null
+  contractEnd: DateTime = null
+  specialConditions: JSON = null
+}
+
+input ImportCompanyFactoryRowInput {
+  cnpj: String!
+  commissionRate: Float!
+  commissionCalcBasis: String!
+  paymentTermDays: Int!
+  territory: String!
+  contractStart: DateTime = null
+  contractEnd: DateTime = null
+  specialConditions: JSON = null
+}
+
+input ImportCompanyFactoriesInput {
+  rows: [ImportCompanyFactoryRowInput!]!
+}
+
+type ImportFactoryRowDetail {
+  row: Int!
+  cnpj: String!
+  message: String!
+}
+
+type ImportCompanyFactoriesResult {
+  total: Int!
+  created: Int!
+  skipped: Int!
+  failed: Int!
+  errors: [ImportFactoryRowDetail!]!
+  ignored: [ImportFactoryRowDetail!]!
+}
+
+type ImportCompanyFactoriesResultDataResponse {
+  status: Boolean!
+  code: Int!
+  message: String!
+  data: ImportCompanyFactoriesResult
+}
+
+input UpdateCompanyFactoryInput {
+  commissionRate: Float = null
+  commissionCalcBasis: String = null
+  paymentTermDays: Int = null
+  territory: String = null
+  contractStart: DateTime = null
+  contractEnd: DateTime = null
+  specialConditions: JSON = null
+}
+
+extend type Query {
+  companyFactory(id: UUID!): CompanyFactoryTypeDataResponse!
+  companyFactories(input: BaseListInput!): CompanyFactoryTypeConnectionResponse!
+}
+
+extend type Mutation {
+  linkFactory(input: LinkFactoryInput!): CompanyFactoryTypeDataResponse!
+  importCompanyFactories(input: ImportCompanyFactoriesInput!): ImportCompanyFactoriesResultDataResponse!
+  createCompanyFactory(input: CreateCompanyFactoryInput!): CompanyFactoryTypeDataResponse!
+  updateCompanyFactory(id: UUID!, input: UpdateCompanyFactoryInput!): CompanyFactoryTypeDataResponse!
+  deleteCompanyFactory(id: UUID!): BaseResponse!
+}
+
+input CreateFactoryInput {
+  cnpj: String!
+  accountType: String! = "company"
+}
+
+type FactoryType {
+  id: UUID!
+  cnpj: String!
+  razaoSocial: String!
+  nomeFantasia: String
+  addressCity: String
+  addressState: String
+  createdAt: DateTime!
+  updatedAt: DateTime!
+  deletedAt: DateTime
+  importTemplates: [FactoryImportTemplateType!]!
+}
+
+type FactoryTypeConnectionResponse {
+  edges: [FactoryTypeEdge!]!
+  pageInfo: PageInfo!
+  totalCount: Int!
+}
+
+type FactoryTypeDataResponse {
+  status: Boolean!
+  code: Int!
+  message: String!
+  data: FactoryType
+}
+
+type FactoryTypeEdge {
+  node: FactoryType!
+  cursor: String!
+}
+
+input UpdateFactoryInput {
+  addressCity: String = null
+  addressState: String = null
+}
+
+extend type Query {
+  factory(id: UUID!): FactoryTypeDataResponse!
+  factories(input: BaseListInput!): FactoryTypeConnectionResponse!
+}
+
+extend type Mutation {
+  createFactory(input: CreateFactoryInput!): FactoryTypeDataResponse!
+  updateFactory(id: UUID!, input: UpdateFactoryInput!): FactoryTypeDataResponse!
+  deleteFactory(id: UUID!): BaseResponse!
+}
+
+type FactoryContactType {
+  id: UUID!
+  companyId: UUID!
+  factoryId: UUID!
+  name: String!
+  role: String
+  phone: String
+  email: String
+  isPrimary: Boolean!
+  isActive: Boolean!
+  createdAt: DateTime!
+  updatedAt: DateTime!
+}
+
+type FactoryContactTypeConnectionResponse {
+  edges: [FactoryContactTypeEdge!]!
+  pageInfo: PageInfo!
+  totalCount: Int!
+}
+
+type FactoryContactTypeDataResponse {
+  status: Boolean!
+  code: Int!
+  message: String!
+  data: FactoryContactType
+}
+
+type FactoryContactTypeEdge {
+  node: FactoryContactType!
+  cursor: String!
+}
+
+input CreateFactoryContactInput {
+  factoryId: UUID!
+  name: String!
+  role: String = null
+  phone: String = null
+  email: String = null
+  isPrimary: Boolean = false
+}
+
+input UpdateFactoryContactInput {
+  name: String = null
+  role: String = null
+  phone: String = null
+  email: String = null
+  isPrimary: Boolean = null
+  isActive: Boolean = null
+}
+
+extend type Query {
+  factoryContact(id: UUID!): FactoryContactTypeDataResponse!
+  factoryContacts(factoryId: UUID!, input: BaseListInput!): FactoryContactTypeConnectionResponse!
+}
+
+extend type Mutation {
+  createFactoryContact(input: CreateFactoryContactInput!): FactoryContactTypeDataResponse!
+  updateFactoryContact(id: UUID!, input: UpdateFactoryContactInput!): FactoryContactTypeDataResponse!
+  deleteFactoryContact(id: UUID!): BaseResponse!
+}
+
+type FactoryImportTemplateType {
+  id: UUID!
+  factoryId: UUID!
+  companyId: UUID
+  target: ImportTarget!
+  fileType: FileType!
+  parserStrategy: ParserStrategy!
+  config: JSON!
+  sampleFileUrl: String
+  version: Int!
+  isActive: Boolean!
+  createdAt: DateTime!
+  updatedAt: DateTime!
+  factory: FactoryType
+  company: CompanyType
+}
+
+type FactoryImportTemplateTypeConnectionResponse {
+  edges: [FactoryImportTemplateTypeEdge!]!
+  pageInfo: PageInfo!
+  totalCount: Int!
+}
+
+type FactoryImportTemplateTypeDataResponse {
+  status: Boolean!
+  code: Int!
+  message: String!
+  data: FactoryImportTemplateType
+}
+
+type FactoryImportTemplateTypeEdge {
+  node: FactoryImportTemplateType!
+  cursor: String!
+}
+input CreateImportTemplateInput {
+  factoryId: UUID!
+  companyId: UUID = null
+  target: ImportTarget = ORDER
+  fileType: FileType!
+  parserStrategy: ParserStrategy!
+  config: JSON!
+  sampleFileUrl: String = null
+  # Arquivo-modelo em base64 (o backend grava e preenche sampleFileUrl).
+  sampleFileBase64: String = null
+  sampleFileName: String = null
+}
+
+input UpdateImportTemplateInput {
+  fileType: FileType = null
+  parserStrategy: ParserStrategy = null
+  config: JSON = null
+  sampleFileUrl: String = null
+  sampleFileBase64: String = null
+  sampleFileName: String = null
+  isActive: Boolean = null
+}
+
+enum FileType {
+  PDF
+  XLSX
+  CSV
+}
+
+enum ImportTarget {
+  ORDER
+  PRICE_LIST
+}
+
+enum ParserStrategy {
+  AI_EXTRACTION
+  COLUMN_MAPPING
+  FIXED_LAYOUT
+}
+
+extend type Query {
+  importTemplate(id: UUID!): FactoryImportTemplateTypeDataResponse!
+  importTemplates(input: BaseListInput!): FactoryImportTemplateTypeConnectionResponse!
+}
+
+extend type Mutation {
+  createImportTemplate(input: CreateImportTemplateInput!): FactoryImportTemplateTypeDataResponse!
+  updateImportTemplate(id: UUID!, input: UpdateImportTemplateInput!): FactoryImportTemplateTypeDataResponse!
+  deleteImportTemplate(id: UUID!): BaseResponse!
+}
+
+input CreateFactoryPriceListInput {
+  companyFactoryId: UUID!
+  name: String!
+  """Escopo regional/fiscal da tabela (ex: "NORDESTE", "ICMS 7%"); "" = tabela geral. Permite 1 tabela ATIVA por região."""
+  region: String! = ""
+  validFrom: Date!
+  validUntil: Date = null
+  isActive: Boolean! = true
+}
+
+type FactoryPriceListType {
+  id: UUID!
+  companyFactoryId: UUID!
+  name: String!
+  region: String!
+  validFrom: Date!
+  validUntil: Date
+  isActive: Boolean!
+  clonedFromId: UUID
+  createdAt: DateTime!
+  updatedAt: DateTime!
+  deletedAt: DateTime
+  companyFactory: CompanyFactoryType
+}
+
+type FactoryPriceListTypeConnectionResponse {
+  edges: [FactoryPriceListTypeEdge!]!
+  pageInfo: PageInfo!
+  totalCount: Int!
+}
+
+type FactoryPriceListTypeDataResponse {
+  status: Boolean!
+  code: Int!
+  message: String!
+  data: FactoryPriceListType
+}
+
+type FactoryPriceListTypeEdge {
+  node: FactoryPriceListType!
+  cursor: String!
+}
+
+input UpdateFactoryPriceListInput {
+  name: String = null
+  region: String = null
+  validFrom: Date = null
+  validUntil: Date = null
+  isActive: Boolean = null
+}
+
+input CloneFactoryPriceListInput {
+  sourcePriceListId: UUID!
+  name: String!
+  """Região da nova tabela; null = herda a região da tabela de origem."""
+  region: String = null
+  validFrom: Date!
+  validUntil: Date = null
+}
+
+input ImportPriceCellInput {
+  tierName: String!
+  unitPrice: Decimal!
+}
+
+"""Imposto de um produto na planilha. RATE: alíquota aditiva simples. ST_MVA: ST calculado por MVA — informe mva, icmsCreditRate e internalRate (alíquota interna)."""
+input ImportPriceTaxInput {
+  name: String!
+  calcType: TaxCalcType! = RATE
+  rate: Decimal = null
+  mva: Decimal = null
+  icmsCreditRate: Decimal = null
+  internalRate: Decimal = null
+}
+
+input ImportPriceListRowInput {
+  sku: String!
+  name: String!
+  """Vazio/null usa a categoria padrão "Geral"."""
+  category: String = null
+  """Vazio/null usa a unidade padrão "Unidade"."""
+  unit: String = null
+  """Vazio/null usa o rótulo padrão "Unidade" (venda avulsa)."""
+  unitLabel: String = null
+  unitPerPack: Decimal!
+  """Múltiplo de venda não veio na planilha e foi assumido como 1; marca o produto como "Precisa de atenção"."""
+  packDefaulted: Boolean! = false
+  ncm: String = null
+  ipiRate: Decimal = null
+  """Demais impostos do produto (ICMS, ST...); aplicados além do ipiRate."""
+  taxes: [ImportPriceTaxInput!] = []
+  prices: [ImportPriceCellInput!]!
+}
+
+input ImportFactoryPriceListInput {
+  companyFactoryId: UUID!
+  listName: String!
+  """Escopo regional/fiscal da tabela importada (ex: "NORDESTE", "ICMS 7%"); "" = tabela geral."""
+  region: String! = ""
+  validFrom: Date!
+  validUntil: Date = null
+  tiers: [String!]!
+  importIpi: Boolean! = false
+  """IPI da planilha está em fração decimal (0.0325 = 3,25%); convertido para percentual multiplicando por 100."""
+  ipiAsFraction: Boolean! = false
+  """Alíquotas de `taxes` (rate/mva/icmsCreditRate/internalRate) em fração decimal (0.205 = 20,5%); convertidas para percentual."""
+  taxesAsFraction: Boolean! = false
+  """Preços da planilha são por unidade base (peça/kg); convertidos para preço por embalagem multiplicando por unitPerPack."""
+  pricesPerUnit: Boolean! = false
+  rows: [ImportPriceListRowInput!]!
+}
+
+type ImportPriceRowDetail {
+  row: Int!
+  sku: String!
+  message: String!
+}
+
+type ImportPriceListResult {
+  listName: String!
+  """Total de linhas enviadas (= linhas lidas/revisadas da planilha)."""
+  totalRows: Int!
+  tiers: Int!
+  productsCreated: Int!
+  productsReused: Int!
+  pricesSet: Int!
+  failed: Int!
+  """Produtos importados com aviso (novo, múltiplo assumido, sem preço): entram marcados "Precisa de atenção"."""
+  attention: Int!
+  errors: [ImportPriceRowDetail!]!
+}
+
+type ImportPriceListResultDataResponse {
+  status: Boolean!
+  code: Int!
+  message: String!
+  data: ImportPriceListResult
+}
+
+extend type Query {
+  factoryPriceList(id: UUID!): FactoryPriceListTypeDataResponse!
+  factoryPriceLists(input: BaseListInput!): FactoryPriceListTypeConnectionResponse!
+}
+
+input ExtractPriceListFileInput {
+  fileName: String!
+  fileBase64: String!
+}
+
+extend type Mutation {
+  createFactoryPriceList(input: CreateFactoryPriceListInput!): FactoryPriceListTypeDataResponse!
+  # Extrai a grade de um PDF de tabela de preço (reusa OrderImportGridType: rows).
+  extractPriceListFile(input: ExtractPriceListFileInput!): OrderImportGridResponse!
+  importFactoryPriceList(input: ImportFactoryPriceListInput!): ImportPriceListResultDataResponse!
+  cloneFactoryPriceList(input: CloneFactoryPriceListInput!): FactoryPriceListTypeDataResponse!
+  updateFactoryPriceList(id: UUID!, input: UpdateFactoryPriceListInput!): FactoryPriceListTypeDataResponse!
+  deleteFactoryPriceList(id: UUID!): BaseResponse!
+}
+
+input CreateImportLogInput {
+  orderId: UUID!
+  templateId: UUID!
+  fileUrl: String!
+  fileType: FileType!
+}
+
+type ImportLogType {
+  id: UUID!
+  orderId: UUID!
+  templateId: UUID!
+  uploadedBy: UUID!
+  fileUrl: String!
+  fileType: FileType!
+  status: ImportStatus!
+  rawExtraction: JSON
+  confidenceScore: Float
+  itemsExtracted: Int!
+  itemsConfirmed: Int!
+  errorDetails: String
+  reviewedBy: UUID
+  reviewedAt: DateTime
+  createdAt: DateTime!
+  updatedAt: DateTime!
+  order: OrderType
+  template: FactoryImportTemplateType
+  uploader: UserType
+  reviewer: UserType
+}
+
+type ImportLogTypeConnectionResponse {
+  edges: [ImportLogTypeEdge!]!
+  pageInfo: PageInfo!
+  totalCount: Int!
+}
+
+type ImportLogTypeDataResponse {
+  status: Boolean!
+  code: Int!
+  message: String!
+  data: ImportLogType
+}
+
+type ImportLogTypeEdge {
+  node: ImportLogType!
+  cursor: String!
+}
+
+input UpdateImportLogInput {
+  status: ImportStatus = null
+  rawExtraction: JSON = null
+  confidenceScore: Float = null
+  itemsExtracted: Int = null
+  itemsConfirmed: Int = null
+  errorDetails: String = null
+}
+
+extend type Query {
+  importLog(id: UUID!): ImportLogTypeDataResponse!
+  importLogs(orderId: UUID!, input: BaseListInput!): ImportLogTypeConnectionResponse!
+}
+
+extend type Mutation {
+  createImportLog(input: CreateImportLogInput!): ImportLogTypeDataResponse!
+  updateImportLog(id: UUID!, input: UpdateImportLogInput!): ImportLogTypeDataResponse!
+}
+enum ImportStatus {
+  PENDING
+  PROCESSING
+  REVIEW
+  DONE
+  ERROR
+}
+
+enum NotificationSeverity {
+  INFO
+  SUCCESS
+  WARNING
+  ERROR
+}
+
+enum NotificationCategory {
+  ORDER
+  VISIT
+  IMPORT
+  SCHEDULE
+  SYSTEM
+}
+
+type NotificationType {
+  id: UUID!
+  userId: UUID!
+  companyId: UUID!
+  severity: NotificationSeverity!
+  category: NotificationCategory!
+  title: String!
+  body: String
+  link: String
+  relatedEntityType: String
+  relatedEntityId: UUID
+  isRead: Boolean!
+  readAt: DateTime
+  createdAt: DateTime!
+  updatedAt: DateTime!
+}
+
+type NotificationTypeConnectionResponse {
+  edges: [NotificationTypeEdge!]!
+  pageInfo: PageInfo!
+  totalCount: Int!
+}
+
+type NotificationTypeDataResponse {
+  status: Boolean!
+  code: Int!
+  message: String!
+  data: NotificationType
+}
+
+type NotificationTypeEdge {
+  node: NotificationType!
+  cursor: String!
+}
+
+type UnreadNotificationsCountResponse {
+  status: Boolean!
+  code: Int!
+  message: String!
+  data: Int!
+}
+
+extend type Query {
+  myNotifications(input: BaseListInput!): NotificationTypeConnectionResponse!
+  myUnreadNotificationsCount: UnreadNotificationsCountResponse!
+}
+
+extend type Mutation {
+  markNotificationAsRead(id: UUID!): NotificationTypeDataResponse!
+  markAllNotificationsAsRead: BaseResponse!
+  deleteNotification(id: UUID!): BaseResponse!
+}
+
+input CreateOrderItemInput {
+  orderId: UUID!
+  productId: UUID!
+  tierId: UUID!
+  quantity: Decimal!
+  unitPrice: Decimal!
+  discount: Decimal! = "0.0"
+  avgShelfDays: Int = null
+  source: OrderItemSource! = MANUAL
+}
+
+enum OrderItemSource {
+  MANUAL
+  FILE_IMPORT
+}
+
+type OrderItemType {
+  id: UUID!
+  orderId: UUID!
+  productId: UUID!
+  tierId: UUID!
+  quantity: Decimal!
+  unitsTotal: Decimal!
+  unitPrice: Decimal!
+  discount: Decimal!
+  subtotal: Decimal!
+  avgShelfDays: Int
+  source: OrderItemSource!
+  createdAt: DateTime!
+  product: ProductType
+  tier: PriceTierType
+}
+
+type OrderItemTypeConnectionResponse {
+  edges: [OrderItemTypeEdge!]!
+  pageInfo: PageInfo!
+  totalCount: Int!
+}
+
+type OrderItemTypeDataResponse {
+  status: Boolean!
+  code: Int!
+  message: String!
+  data: OrderItemType
+}
+
+type OrderItemTypeEdge {
+  node: OrderItemType!
+  cursor: String!
+}
+
+input UpdateOrderItemInput {
+  quantity: Decimal = null
+  unitPrice: Decimal = null
+  discount: Decimal = null
+  avgShelfDays: Int = null
+}
+
+extend type Query {
+  orderItems(orderId: UUID!): OrderItemTypeConnectionResponse!
+}
+
+extend type Mutation {
+  createOrderItem(input: CreateOrderItemInput!): OrderItemTypeDataResponse!
+  updateOrderItem(id: UUID!, input: UpdateOrderItemInput!): OrderItemTypeDataResponse!
+  deleteOrderItem(id: UUID!): BaseResponse!
+}
+
+# Importação de pedido por arquivo (PDF/Excel) — fluxo determinístico v1:
+# extrair grade → mapear colunas (front) → preview/casamento → revisar → confirmar.
+
+input ExtractOrderFileInput {
+  # orderId: usa a receita do template ativo da fábrica do pedido (wizard).
+  orderId: UUID = null
+  # recipe: receita avulsa (config do template) para pré-visualização na tela de
+  # modelo da fábrica, quando ainda não há template salvo.
+  recipe: JSON = null
+  fileName: String!
+  fileBase64: String!
+}
+
+# Item já estruturado por uma receita determinística (quando há template/recipe).
+type OrderImportFileItemType {
+  sku: String!
+  name: String
+  quantity: Decimal!
+  unitPrice: Decimal
+  # Valores "R$" do item (multiline): a tela deixa escolher o preço unitário.
+  priceOptions: [String!]!
+}
+
+type OrderImportGridType {
+  fileType: String!
+  # Grade crua (quando NÃO há receita): o front mapeia as colunas.
+  rows: [[String!]!]!
+  # Itens já extraídos (quando há receita): pula a etapa de mapeamento.
+  items: [OrderImportFileItemType!]
+  # Preset detectado automaticamente (quando recipe.preset = "auto").
+  detectedPreset: String
+  # Descrições das linhas com cara de produto que NÃO puderam ser lidas (código
+  # embaralhado por texto sobreposto no PDF) e foram descartadas. O front lista
+  # para o usuário achar no PDF. null/[] = não se aplica / nenhuma.
+  unreadableRows: [String!]
+}
+
+type OrderImportGridResponse {
+  status: Boolean!
+  code: Int!
+  message: String!
+  data: OrderImportGridType
+}
+
+input OrderImportRowInput {
+  sku: String!
+  name: String = null
+  quantity: Decimal!
+  unitPrice: Decimal = null
+}
+
+input PreviewOrderImportInput {
+  orderId: UUID!
+  rows: [OrderImportRowInput!]!
+}
+
+type OrderImportTierOptionType {
+  tierId: UUID!
+  tierName: String
+  unitPrice: Decimal!
+}
+
+type OrderImportCandidateType {
+  rowIndex: Int!
+  rawSku: String!
+  rawName: String
+  quantity: Decimal!
+  matched: Boolean!
+  productId: UUID
+  productName: String
+  tierId: UUID
+  tierName: String
+  unitPrice: Decimal!
+  confidence: Decimal!
+  message: String
+  # Níveis disponíveis (com preço) deste produto, para trocar na revisão.
+  tierOptions: [OrderImportTierOptionType!]!
+}
+
+type OrderImportPreviewType {
+  candidates: [OrderImportCandidateType!]!
+  matchedCount: Int!
+  unmatchedCount: Int!
+}
+
+type OrderImportPreviewResponse {
+  status: Boolean!
+  code: Int!
+  message: String!
+  data: OrderImportPreviewType
+}
+
+input ConfirmOrderItemInput {
+  productId: UUID!
+  tierId: UUID!
+  quantity: Decimal!
+  unitPrice: Decimal!
+  discount: Decimal = 0
+  sku: String = null
+}
+
+input ConfirmOrderImportInput {
+  orderId: UUID!
+  items: [ConfirmOrderItemInput!]!
+}
+
+type OrderImportRowErrorType {
+  index: Int!
+  sku: String
+  message: String!
+}
+
+type OrderImportResultType {
+  created: Int!
+  failed: Int!
+  errors: [OrderImportRowErrorType!]!
+}
+
+type OrderImportResultResponse {
+  status: Boolean!
+  code: Int!
+  message: String!
+  data: OrderImportResultType
+}
+
+extend type Mutation {
+  extractOrderFile(input: ExtractOrderFileInput!): OrderImportGridResponse!
+  previewOrderImport(input: PreviewOrderImportInput!): OrderImportPreviewResponse!
+  confirmOrderImport(input: ConfirmOrderImportInput!): OrderImportResultResponse!
+}
+
+input CreateOrderInput {
+  sellerId: UUID!
+  clientId: UUID!
+  factoryId: UUID!
+  orderDate: Date!
+  notes: String = null
+  fileUrl: String = null
+  freightType: FreightType = null
+}
+
+input OrderInput {
+  by: String! = "created_at"
+  dir: String! = "desc"
+}
+
+"""Modalidade de frete. FOB: por conta do cliente. CIF: entrega pela fábrica."""
+enum FreightType {
+  FOB
+  CIF
+}
+
+enum OrderStatus {
+  DRAFT
+  SENT
+  CONFIRMED
+  DELIVERED
+  CANCELLED
+}
+
+type OrderType {
+  id: UUID!
+  companyId: UUID!
+  sellerId: UUID!
+  clientId: UUID!
+  factoryId: UUID!
+  orderDate: Date!
+  totalAmount: Decimal!
+  commissionAmount: Decimal!
+  status: OrderStatus!
+  freightType: FreightType
+  fileUrl: String
+  isFileParsed: Boolean!
+  notes: String
+  createdAt: DateTime!
+  updatedAt: DateTime!
+  deletedAt: DateTime
+  seller: SellerType
+  client: ClientType
+  factory: FactoryType
+  importLogs: [ImportLogType!]!
+}
+
+type OrderTypeConnectionResponse {
+  edges: [OrderTypeEdge!]!
+  pageInfo: PageInfo!
+  totalCount: Int!
+}
+
+type OrderTypeDataResponse {
+  status: Boolean!
+  code: Int!
+  message: String!
+  data: OrderType
+}
+
+type OrderTypeEdge {
+  node: OrderType!
+  cursor: String!
+}
+
+type OrderStatsType {
+  totalOrders: Int!
+  totalAmount: Decimal!
+  avgTicket: Decimal!
+}
+
+input UpdateOrderInput {
+  status: OrderStatus = null
+  notes: String = null
+  fileUrl: String = null
+  isFileParsed: Boolean = null
+  freightType: FreightType = null
+}
+
+extend type Query {
+  orders(input: BaseListInput!): OrderTypeConnectionResponse!
+  order(id: UUID!): OrderTypeDataResponse!
+  orderStats: OrderStatsType!
+}
+
+extend type Mutation {
+  createOrder(input: CreateOrderInput!): OrderTypeDataResponse!
+  updateOrder(id: UUID!, input: UpdateOrderInput!): OrderTypeDataResponse!
+  deleteOrder(id: UUID!): BaseResponse!
+}
+
+input CreatePriceListItemInput {
+  priceListId: UUID!
+  productId: UUID!
+  tierId: UUID!
+  unitPrice: Decimal!
+}
+
+type PriceListItemType {
+  id: UUID!
+  priceListId: UUID!
+  productId: UUID!
+  tierId: UUID!
+  unitPrice: Decimal!
+  unitPriceWithImpost: Decimal!
+  createdAt: DateTime!
+  priceList: FactoryPriceListType
+  product: ProductType
+  tier: PriceTierType
+}
+
+type PriceListItemTypeConnectionResponse {
+  edges: [PriceListItemTypeEdge!]!
+  pageInfo: PageInfo!
+  totalCount: Int!
+}
+
+type PriceListItemTypeDataResponse {
+  status: Boolean!
+  code: Int!
+  message: String!
+  data: PriceListItemType
+}
+
+type PriceListItemTypeEdge {
+  node: PriceListItemType!
+  cursor: String!
+}
+
+input UpdatePriceListItemInput {
+  unitPrice: Decimal = null
+}
+
+extend type Query {
+  priceListItem(id: UUID!): PriceListItemTypeDataResponse!
+  priceListItems(input: BaseListInput!): PriceListItemTypeConnectionResponse!
+}
+
+extend type Mutation {
+  createPriceListItem(input: CreatePriceListItemInput!): PriceListItemTypeDataResponse!
+  updatePriceListItem(id: UUID!, input: UpdatePriceListItemInput!): PriceListItemTypeDataResponse!
+  deletePriceListItem(id: UUID!): BaseResponse!
+}
+
+input CreatePriceTierInput {
+  companyFactoryId: UUID!
+  name: String!
+}
+
+type PriceTierType {
+  id: UUID!
+  companyFactoryId: UUID!
+  name: String!
+  createdAt: DateTime!
+  companyFactory: CompanyFactoryType
+}
+
+type PriceTierTypeConnectionResponse {
+  edges: [PriceTierTypeEdge!]!
+  pageInfo: PageInfo!
+  totalCount: Int!
+}
+
+type PriceTierTypeDataResponse {
+  status: Boolean!
+  code: Int!
+  message: String!
+  data: PriceTierType
+}
+
+type PriceTierTypeEdge {
+  node: PriceTierType!
+  cursor: String!
+}
+
+input UpdatePriceTierInput {
+  name: String = null
+}
+
+extend type Query {
+  priceTier(id: UUID!): PriceTierTypeDataResponse!
+  priceTiers(input: BaseListInput!): PriceTierTypeConnectionResponse!
+}
+
+extend type Mutation {
+  createPriceTier(input: CreatePriceTierInput!): PriceTierTypeDataResponse!
+  updatePriceTier(id: UUID!, input: UpdatePriceTierInput!): PriceTierTypeDataResponse!
+  deletePriceTier(id: UUID!): BaseResponse!
+}
+
+input CreateProductCategoryInput {
+  name: String!
+  segment: String!
+}
+
+type ProductCategoryType {
+  id: UUID!
+  companyId: UUID!
+  name: String!
+  segment: String!
+  createdAt: DateTime!
+  updatedAt: DateTime!
+  deletedAt: DateTime
+}
+
+type ProductCategoryTypeConnectionResponse {
+  edges: [ProductCategoryTypeEdge!]!
+  pageInfo: PageInfo!
+  totalCount: Int!
+}
+
+type ProductCategoryTypeDataResponse {
+  status: Boolean!
+  code: Int!
+  message: String!
+  data: ProductCategoryType
+}
+
+type ProductCategoryTypeEdge {
+  node: ProductCategoryType!
+  cursor: String!
+}
+
+input UpdateProductCategoryInput {
+  name: String = null
+  segment: String = null
+}
+
+extend type Query {
+  productCategories(input: BaseListInput!): ProductCategoryTypeConnectionResponse!
+  productCategory(id: UUID!): ProductCategoryTypeDataResponse!
+}
+
+extend type Mutation {
+  createProductCategory(input: CreateProductCategoryInput!): ProductCategoryTypeDataResponse!
+  updateProductCategory(id: UUID!, input: UpdateProductCategoryInput!): ProductCategoryTypeDataResponse!
+  deleteProductCategory(id: UUID!): BaseResponse!
+}
+
+input CreateProductComponentInput {
+  kitProductId: UUID!
+  componentProductId: UUID!
+  quantity: Decimal! = 1
+}
+
+input UpdateProductComponentInput {
+  quantity: Decimal = null
+}
+
+"""Item da composição de um kit: o produto-kit é montado a partir de outros produtos do mesmo catálogo."""
+type ProductComponentType {
+  id: UUID!
+  kitProductId: UUID!
+  componentProductId: UUID!
+  quantity: Decimal!
+  createdAt: DateTime!
+  updatedAt: DateTime!
+  kit: ProductType
+  component: ProductType
+}
+
+type ProductComponentTypeDataResponse {
+  status: Boolean!
+  code: Int!
+  message: String!
+  data: ProductComponentType
+}
+
+extend type ProductType {
+  """Composição do kit; vazio para produtos simples."""
+  components: [ProductComponentType!]!
+}
+
+extend type Mutation {
+  addComponentToProduct(input: CreateProductComponentInput!): ProductComponentTypeDataResponse!
+  updateProductComponent(id: UUID!, input: UpdateProductComponentInput!): ProductComponentTypeDataResponse!
+  removeComponentFromProduct(id: UUID!): BaseResponse!
+}
+
+type ProductUnitLabelType {
+  id: UUID!
+  companyId: UUID!
+  label: String!
+  isActive: Boolean!
+  createdAt: DateTime!
+  updatedAt: DateTime!
+}
+
+type ProductUnitLabelTypeConnectionResponse {
+  edges: [ProductUnitLabelTypeEdge!]!
+  pageInfo: PageInfo!
+  totalCount: Int!
+}
+
+type ProductUnitLabelTypeDataResponse {
+  status: Boolean!
+  code: Int!
+  message: String!
+  data: ProductUnitLabelType
+}
+
+type ProductUnitLabelTypeEdge {
+  node: ProductUnitLabelType!
+  cursor: String!
+}
+
+input CreateProductUnitLabelInput {
+  label: String!
+  isActive: Boolean! = true
+}
+
+input UpdateProductUnitLabelInput {
+  label: String = null
+  isActive: Boolean = null
+}
+
+extend type Query {
+  productUnitLabels(input: BaseListInput!): ProductUnitLabelTypeConnectionResponse!
+}
+
+extend type Mutation {
+  createProductUnitLabel(input: CreateProductUnitLabelInput!): ProductUnitLabelTypeDataResponse!
+  updateProductUnitLabel(id: UUID!, input: UpdateProductUnitLabelInput!): ProductUnitLabelTypeDataResponse!
+  deleteProductUnitLabel(id: UUID!): BaseResponse!
+}
+
+type ProductUnitType {
+  id: UUID!
+  companyId: UUID!
+  label: String!
+  isActive: Boolean!
+  createdAt: DateTime!
+  updatedAt: DateTime!
+}
+
+type ProductUnitTypeConnectionResponse {
+  edges: [ProductUnitTypeEdge!]!
+  pageInfo: PageInfo!
+  totalCount: Int!
+}
+
+type ProductUnitTypeDataResponse {
+  status: Boolean!
+  code: Int!
+  message: String!
+  data: ProductUnitType
+}
+
+type ProductUnitTypeEdge {
+  node: ProductUnitType!
+  cursor: String!
+}
+
+input CreateProductUnitInput {
+  label: String!
+  isActive: Boolean! = true
+}
+
+input UpdateProductUnitInput {
+  label: String = null
+  isActive: Boolean = null
+}
+
+extend type Query {
+  productUnits(input: BaseListInput!): ProductUnitTypeConnectionResponse!
+}
+
+extend type Mutation {
+  createProductUnit(input: CreateProductUnitInput!): ProductUnitTypeDataResponse!
+  updateProductUnit(id: UUID!, input: UpdateProductUnitInput!): ProductUnitTypeDataResponse!
+  deleteProductUnit(id: UUID!): BaseResponse!
+}
+
+input CreateProductInput {
+  companyFactoryId: UUID!
+  categoryId: UUID!
+  unitId: UUID!
+  unitLabelId: UUID!
+  name: String!
+  sku: String!
+  """Classificação fiscal (NCM)."""
+  ncm: String = null
+  unitPerPack: Decimal!
+  """Múltiplo de venda em embalagens; null = venda livre (aceita fração)."""
+  saleMultiple: Decimal = null
+  isActive: Boolean! = true
+}
+
+type ProductType {
+  id: UUID!
+  companyFactoryId: UUID!
+  categoryId: UUID!
+  unitId: UUID!
+  unitLabelId: UUID!
+  name: String!
+  sku: String!
+  ncm: String
+  unitPerPack: Decimal!
+  saleMultiple: Decimal
+  isActive: Boolean!
+  isNeedsAttention: Boolean!
+  attentionReason: String
+  createdAt: DateTime!
+  updatedAt: DateTime!
+  deletedAt: DateTime
+  companyFactory: CompanyFactoryType
+  category: ProductCategoryType
+  unit: ProductUnitType
+  unitLabel: ProductUnitLabelType
+  taxes: [ProductTaxType!]!
+}
+
+type ProductTypeConnectionResponse {
+  edges: [ProductTypeEdge!]!
+  pageInfo: PageInfo!
+  totalCount: Int!
+}
+
+type ProductTypeDataResponse {
+  status: Boolean!
+  code: Int!
+  message: String!
+  data: ProductType
+}
+
+type ProductTypeEdge {
+  node: ProductType!
+  cursor: String!
+}
+
+input ImportProductRowInput {
+  sku: String!
+  name: String!
+  category: String!
+  unit: String!
+  unitLabel: String!
+  unitPerPack: Decimal!
+}
+
+input ImportProductsInput {
+  companyFactoryId: UUID!
+  rows: [ImportProductRowInput!]!
+}
+
+type ImportProductRowDetail {
+  row: Int!
+  sku: String!
+  message: String!
+}
+
+type ImportProductsResult {
+  total: Int!
+  created: Int!
+  skipped: Int!
+  failed: Int!
+  errors: [ImportProductRowDetail!]!
+  ignored: [ImportProductRowDetail!]!
+}
+
+type ImportProductsResultDataResponse {
+  status: Boolean!
+  code: Int!
+  message: String!
+  data: ImportProductsResult
+}
+
+input UpdateProductInput {
+  categoryId: UUID = null
+  unitId: UUID = null
+  unitLabelId: UUID = null
+  name: String = null
+  sku: String = null
+  ncm: String = null
+  unitPerPack: Decimal = null
+  saleMultiple: Decimal = null
+  isActive: Boolean = null
+}
+
+extend type Query {
+  product(id: UUID!): ProductTypeDataResponse!
+  products(input: BaseListInput!): ProductTypeConnectionResponse!
+}
+
+extend type Mutation {
+  createProduct(input: CreateProductInput!): ProductTypeDataResponse!
+  importProducts(input: ImportProductsInput!): ImportProductsResultDataResponse!
+  updateProduct(id: UUID!, input: UpdateProductInput!): ProductTypeDataResponse!
+  deleteProduct(id: UUID!): BaseResponse!
+}
+
+input CreateSellerClientFactoryInput {
+  sellerId: UUID!
+  factoryId: UUID!
+  clientId: UUID!
+  priceTierId: UUID!
+  priority: String = null
+  visitFrequencyDays: Int = null
+  notes: String = null
+  lastVisitDate: DateTime = null
+}
+
+type SellerClientFactoryType {
+  id: UUID!
+  sellerId: UUID!
+  factoryId: UUID!
+  companyId: UUID!
+  clientId: UUID!
+  priceTierId: UUID
+  priority: String
+  visitFrequencyDays: Int
+  notes: String
+  lastVisitDate: DateTime
+  createdAt: DateTime!
+  updatedAt: DateTime!
+  deletedAt: DateTime
+  company: CompanyType
+  client: ClientType
+  seller: SellerType
+  factory: FactoryType
+  priceTier: PriceTierType
+}
+
+type SellerClientFactoryTypeConnectionResponse {
+  edges: [SellerClientFactoryTypeEdge!]!
+  pageInfo: PageInfo!
+  totalCount: Int!
+}
+
+type SellerClientFactoryTypeDataResponse {
+  status: Boolean!
+  code: Int!
+  message: String!
+  data: SellerClientFactoryType
+}
+
+type SellerClientFactoryTypeEdge {
+  node: SellerClientFactoryType!
+  cursor: String!
+}
+
+input UpdateSellerClientFactoryInput {
+  priceTierId: UUID = null
+  priority: String = null
+  visitFrequencyDays: Int = null
+  notes: String = null
+  lastVisitDate: DateTime = null
+}
+
+extend type Query {
+  sellerClientFactoryList(input: BaseListInput!): SellerClientFactoryTypeConnectionResponse!
+  sellerClientFactory(id: UUID!): SellerClientFactoryTypeDataResponse!
+}
+
+extend type Mutation {
+  createSellerClientFactory(input: CreateSellerClientFactoryInput!): SellerClientFactoryTypeDataResponse!
+  updateSellerClientFactory(id: UUID!, input: UpdateSellerClientFactoryInput!): SellerClientFactoryTypeDataResponse!
+  deleteSellerClientFactory(id: UUID!): BaseResponse!
+}
+
+input CreateSellerFactoryAccessInput {
+  sellerId: UUID!
+  factoryId: UUID!
+}
+
+type SellerFactoryAccessType {
+  id: UUID!
+  sellerId: UUID!
+  factoryId: UUID!
+  companyId: UUID!
+  grantedBy: UUID!
+  isActive: Boolean!
+  createdAt: DateTime!
+  updatedAt: DateTime!
+  deletedAt: DateTime
+  seller: SellerType
+  company: CompanyType
+  factory: FactoryType
+  grantedByUser: UserType
+}
+
+type SellerFactoryAccessTypeConnectionResponse {
+  edges: [SellerFactoryAccessTypeEdge!]!
+  pageInfo: PageInfo!
+  totalCount: Int!
+}
+
+type SellerFactoryAccessTypeDataResponse {
+  status: Boolean!
+  code: Int!
+  message: String!
+  data: SellerFactoryAccessType
+}
+
+type SellerFactoryAccessTypeEdge {
+  node: SellerFactoryAccessType!
+  cursor: String!
+}
+
+input UpdateSellerFactoryAccessInput {
+  sellerId: UUID = null
+  factoryId: UUID = null
+  companyId: UUID = null
+  grantedBy: UUID = null
+  isActive: Boolean = null
+}
+
+extend type Query {
+  sellerFactoryAccessList(input: BaseListInput!): SellerFactoryAccessTypeConnectionResponse!
+  sellerFactoryAccess(id: UUID!): SellerFactoryAccessTypeDataResponse!
+}
+
+extend type Mutation {
+  createSellerFactoryAccess(input: CreateSellerFactoryAccessInput!): SellerFactoryAccessTypeDataResponse!
+  updateSellerFactoryAccess(id: UUID!, input: UpdateSellerFactoryAccessInput!): SellerFactoryAccessTypeDataResponse!
+  deleteSellerFactoryAccess(id: UUID!): BaseResponse!
+}
+
+input CreateSellerInput {
+  name: String!
+  email: String!
+  phone: String = null
+  cpf: String = null
+  region: String = null
+  homeCep: String = null
+  homeStreet: String = null
+  homeNumber: String = null
+  homeComplement: String = null
+  homeNeighborhood: String = null
+  homeCity: String = null
+  homeState: String = null
+}
+
+type SellerType {
+  id: UUID!
+  userId: UUID!
+  companyId: UUID!
+  name: String!
+  phone: String
+  cpf: String
+  region: String
+  homeCep: String
+  homeStreet: String
+  homeNumber: String
+  homeComplement: String
+  homeNeighborhood: String
+  homeCity: String
+  homeState: String
+  isActive: Boolean!
+  factoryCount: Int!
+  clientCount: Int!
+  totalRevenue: Decimal!
+  lastOrderDate: Date
+  createdAt: DateTime!
+  updatedAt: DateTime!
+  deletedAt: DateTime
+  user: UserType
+  company: CompanyType
+  scheduleConfig: VisitScheduleConfigType
+  visitSchedules: [VisitScheduleType!]!
+}
+
+type SellerStatsType {
+  totalCount: Int!
+  activeCount: Int!
+  activeFactoryAccessCount: Int!
+  inactiveFactoryAccessCount: Int!
+}
+
+type SellerTypeConnectionResponse {
+  edges: [SellerTypeEdge!]!
+  pageInfo: PageInfo!
+  totalCount: Int!
+}
+
+type SellerTypeDataResponse {
+  status: Boolean!
+  code: Int!
+  message: String!
+  data: SellerType
+}
+
+type SellerTypeEdge {
+  node: SellerType!
+  cursor: String!
+}
+
+input UpdateSellerInput {
+  name: String = null
+  phone: String = null
+  region: String = null
+  homeCep: String = null
+  homeStreet: String = null
+  homeNumber: String = null
+  homeComplement: String = null
+  homeNeighborhood: String = null
+  homeCity: String = null
+  homeState: String = null
+  isActive: Boolean = null
+}
+
+extend type Query {
+  sellers(input: BaseListInput!): SellerTypeConnectionResponse!
+  seller(id: UUID!): SellerTypeDataResponse!
+  mySellerProfile: SellerTypeDataResponse!
+  sellersStats: SellerStatsType!
+}
+
+extend type Mutation {
+  createSeller(input: CreateSellerInput!): SellerTypeDataResponse!
+  updateSeller(id: UUID!, input: UpdateSellerInput!): SellerTypeDataResponse!
+  deleteSeller(id: UUID!): BaseResponse!
+}
+
+input CreateTaxRuleInput {
+  name: String!
+}
+
+input UpdateTaxRuleInput {
+  name: String = null
+}
+
+type TaxRuleType {
+  id: UUID!
+  companyId: UUID!
+  name: String!
+  createdAt: DateTime!
+}
+
+type TaxRuleTypeConnectionResponse {
+  edges: [TaxRuleTypeEdge!]!
+  pageInfo: PageInfo!
+  totalCount: Int!
+}
+
+type TaxRuleTypeDataResponse {
+  status: Boolean!
+  code: Int!
+  message: String!
+  data: TaxRuleType
+}
+
+type TaxRuleTypeEdge {
+  node: TaxRuleType!
+  cursor: String!
+}
+
+"""Forma de cálculo do imposto. RATE: alíquota aditiva simples. ST_MVA: substituição tributária — na precificação o ST é calculado com o IPI do produto na base: base × (1+IPI) × (1+MVA) × alíquota interna − base × crédito de ICMS."""
+enum TaxCalcType {
+  RATE
+  ST_MVA
+}
+
+"""Componentes do ST por MVA (percentuais, ex: 20.5 = 20,5%)."""
+input StMvaParamsInput {
+  mva: Decimal!
+  icmsCreditRate: Decimal!
+  internalRate: Decimal!
+}
+
+input CreateProductTaxInput {
+  productId: UUID!
+  taxRuleId: UUID!
+  calcType: TaxCalcType! = RATE
+  """Obrigatório para RATE; ignorado para ST_MVA (derivado dos params)."""
+  rate: Decimal = null
+  """Obrigatório para ST_MVA."""
+  params: StMvaParamsInput = null
+}
+
+input UpdateProductTaxInput {
+  calcType: TaxCalcType = null
+  rate: Decimal = null
+  params: StMvaParamsInput = null
+}
+
+type ProductTaxType {
+  id: UUID!
+  productId: UUID!
+  taxRuleId: UUID!
+  """Alíquota aditiva (percentual). Para ST_MVA é a nominal (sem IPI, igual à coluna ST das planilhas); a precificação usa os params com IPI na base."""
+  rate: Decimal!
+  calcType: TaxCalcType!
+  params: JSON
+  createdAt: DateTime!
+  updatedAt: DateTime!
+  product: ProductType
+  taxRule: TaxRuleType
+}
+
+type ProductTaxTypeConnectionResponse {
+  edges: [ProductTaxTypeEdge!]!
+  pageInfo: PageInfo!
+  totalCount: Int!
+}
+
+type ProductTaxTypeDataResponse {
+  status: Boolean!
+  code: Int!
+  message: String!
+  data: ProductTaxType
+}
+
+type ProductTaxTypeEdge {
+  node: ProductTaxType!
+  cursor: String!
+}
+
+extend type Query {
+  taxRules(input: BaseListInput!): TaxRuleTypeConnectionResponse!
+  taxRule(id: UUID!): TaxRuleTypeDataResponse!
+  productTaxes(input: BaseListInput!): ProductTaxTypeConnectionResponse!
+  productTax(id: UUID!): ProductTaxTypeDataResponse!
+}
+
+extend type Mutation {
+  createTaxRule(input: CreateTaxRuleInput!): TaxRuleTypeDataResponse!
+  updateTaxRule(id: UUID!, input: UpdateTaxRuleInput!): TaxRuleTypeDataResponse!
+  deleteTaxRule(id: UUID!): BaseResponse!
+  addTaxToProduct(input: CreateProductTaxInput!): ProductTaxTypeDataResponse!
+  updateProductTax(id: UUID!, input: UpdateProductTaxInput!): ProductTaxTypeDataResponse!
+  removeTaxFromProduct(id: UUID!): BaseResponse!
+}
+
+input CreateUserInput {
+    name: String!
+    email: String!
+    password: String = null
+    role: String! = "seller"
+}
+
+input UpdateUserInput {
+    name: String = null
+    email: String = null
+    role: String = null
+    password: String = null
+    isActive: Boolean = null
+}
+
+input UpdateUserPasswordInput {
+    userId: UUID!
+    newPassword: String!
+    currentPassword: String = null
+}
+
+input UpdateMyProfileInput {
+    name: String = null
+    email: String = null
+}
+
+input UpdateMyPasswordInput {
+    currentPassword: String!
+    newPassword: String!
+}
+
+enum UserRole {
+    SU
+    OWNER
+    ADMIN
+    SELLER
+}
+
+type UserType {
+    id: UUID!
+    companyId: UUID!
+    name: String!
+    email: String!
+    role: UserRole!
+    isActive: Boolean!
+    createdAt: DateTime!
+    updatedAt: DateTime!
+    deletedAt: DateTime
+    seller: SellerType
+    company: CompanyType
+}
+
+type UserTypeConnectionResponse {
+    edges: [UserTypeEdge!]!
+    pageInfo: PageInfo!
+    totalCount: Int!
+}
+
+type UserTypeDataResponse {
+    status: Boolean!
+    code: Int!
+    message: String!
+    data: UserType
+}
+
+type UserTypeEdge {
+    node: UserType!
+    cursor: String!
+}
+
+extend type Query {
+    users(input: BaseListInput!): UserTypeConnectionResponse!
+    user(id: UUID!): UserTypeDataResponse!
+    me: UserTypeDataResponse!
+}
+
+extend type Mutation {
+    createUser(input: CreateUserInput!): UserTypeDataResponse!
+    updateUser(id: UUID!, input: UpdateUserInput!): UserTypeDataResponse!
+    deleteUser(id: UUID!): BaseResponse!
+    updatePassword(input: UpdateUserPasswordInput!): BaseResponse!
+    updateMyProfile(input: UpdateMyProfileInput!): UserTypeDataResponse!
+    updateMyPassword(input: UpdateMyPasswordInput!): BaseResponse!
+}
+
+input CreateVisitRescheduleInput {
+  originalItemId: UUID!
+  reason: RescheduleReason!
+}
+
+input UpdateVisitRescheduleInput {
+  newItemId: UUID = null
+  reason: RescheduleReason = null
+}
+
+type VisitRescheduleType {
+  id: UUID!
+  originalItemId: UUID!
+  newItemId: UUID
+  reason: RescheduleReason!
+  missedAt: DateTime!
+  penaltyScore: Decimal!
+  attempts: Int!
+  createdAt: DateTime!
+  originalItem: VisitScheduleItemType
+  newItem: VisitScheduleItemType
+}
+
+type VisitRescheduleTypeConnectionResponse {
+  edges: [VisitRescheduleTypeEdge!]!
+  pageInfo: PageInfo!
+  totalCount: Int!
+}
+
+type VisitRescheduleTypeDataResponse {
+  status: Boolean!
+  code: Int!
+  message: String!
+  data: VisitRescheduleType
+}
+
+type VisitRescheduleTypeEdge {
+  node: VisitRescheduleType!
+  cursor: String!
+}
+
+extend type Query {
+  visitReschedule(id: UUID!): VisitRescheduleTypeDataResponse!
+  visitReschedules(originalItemId: UUID!, input: BaseListInput!): VisitRescheduleTypeConnectionResponse!
+}
+
+extend type Mutation {
+  createVisitReschedule(input: CreateVisitRescheduleInput!): VisitRescheduleTypeDataResponse!
+  updateVisitReschedule(id: UUID!, input: UpdateVisitRescheduleInput!): VisitRescheduleTypeDataResponse!
+  deleteVisitReschedule(id: UUID!): BaseResponse!
+}
+enum RescheduleReason {
+  CLIENT_ABSENT
+  NO_TIME
+  RESCHEDULED
+  CANCELLED
+}
+
+input CreateVisitScheduleConfigInput {
+  sellerId: UUID!
+  maxVisitsPerDay: Int! = 10
+  workDays: [Int!]! = [1, 2, 3, 4, 5]
+  workStartTime: Time!
+  workEndTime: Time!
+  avgVisitDurationMin: Int! = 30
+  isRescheduleSameWeek: Boolean! = true
+  maxRescheduleAttempts: Int! = 3
+  penaltyScorePerMiss: Decimal! = "1.0"
+  priorityWeights: JSON = null
+}
+
+input UpdateVisitScheduleConfigInput {
+  maxVisitsPerDay: Int = null
+  workDays: [Int!] = null
+  workStartTime: Time = null
+  workEndTime: Time = null
+  avgVisitDurationMin: Int = null
+  isRescheduleSameWeek: Boolean = null
+  maxRescheduleAttempts: Int = null
+  penaltyScorePerMiss: Decimal = null
+  priorityWeights: JSON = null
+}
+
+type VisitScheduleConfigType {
+  id: UUID!
+  sellerId: UUID!
+  maxVisitsPerDay: Int!
+  workDays: [Int!]!
+  workStartTime: Time!
+  workEndTime: Time!
+  avgVisitDurationMin: Int!
+  isRescheduleSameWeek: Boolean!
+  maxRescheduleAttempts: Int!
+  penaltyScorePerMiss: Decimal!
+  priorityWeights: JSON!
+  createdAt: DateTime!
+  updatedAt: DateTime!
+  seller: SellerType
+}
+
+type VisitScheduleConfigTypeConnectionResponse {
+  edges: [VisitScheduleConfigTypeEdge!]!
+  pageInfo: PageInfo!
+  totalCount: Int!
+}
+
+type VisitScheduleConfigTypeDataResponse {
+  status: Boolean!
+  code: Int!
+  message: String!
+  data: VisitScheduleConfigType
+}
+
+type VisitScheduleConfigTypeEdge {
+  node: VisitScheduleConfigType!
+  cursor: String!
+}
+
+extend type Query {
+  visitScheduleConfig(id: UUID!): VisitScheduleConfigTypeDataResponse!
+  visitScheduleConfigs(input: BaseListInput!): VisitScheduleConfigTypeConnectionResponse!
+}
+extend type Mutation {
+  createScheduleConfig(input: CreateVisitScheduleConfigInput!): VisitScheduleConfigTypeDataResponse!
+  updateScheduleConfig(id: UUID!, input: UpdateVisitScheduleConfigInput!): VisitScheduleConfigTypeDataResponse!
+}
+
+input CreateVisitScheduleDayInput {
+  scheduleId: UUID!
+  date: Date!
+  departureType: DepartureType!
+  departureLat: Decimal = null
+  departureLng: Decimal = null
+  departureAddress: String = null
+}
+
+input UpdateVisitScheduleDayInput {
+  departureType: DepartureType = null
+  departureLat: Decimal = null
+  departureLng: Decimal = null
+  departureAddress: String = null
+  status: DayStatus = null
+}
+
+type VisitScheduleDayType {
+  id: UUID!
+  scheduleId: UUID!
+  date: Date!
+  departureLat: Decimal
+  departureLng: Decimal
+  departureAddress: String
+  departureType: DepartureType!
+  routeDistanceKm: Decimal!
+  routeDurationMin: Int!
+  routeCalculatedAt: DateTime
+  status: DayStatus!
+  createdAt: DateTime!
+  updatedAt: DateTime!
+  schedule: VisitScheduleType
+  items: [VisitScheduleItemType!]!
+}
+
+type VisitScheduleDayTypeConnectionResponse {
+  edges: [VisitScheduleDayTypeEdge!]!
+  pageInfo: PageInfo!
+  totalCount: Int!
+}
+
+type VisitScheduleDayTypeDataResponse {
+  status: Boolean!
+  code: Int!
+  message: String!
+  data: VisitScheduleDayType
+}
+
+type VisitScheduleDayTypeEdge {
+  node: VisitScheduleDayType!
+  cursor: String!
+}
+
+extend type Query {
+  visitScheduleDays(scheduleId: UUID!, input: BaseListInput!): VisitScheduleDayTypeConnectionResponse!
+  visitScheduleDay(id: UUID!): VisitScheduleDayTypeDataResponse!
+}
+
+extend type Mutation {
+  createVisitScheduleDay(input: CreateVisitScheduleDayInput!): VisitScheduleDayTypeDataResponse!
+  updateVisitScheduleDay(id: UUID!, input: UpdateVisitScheduleDayInput!): VisitScheduleDayTypeDataResponse!
+  deleteVisitScheduleDay(id: UUID!): BaseResponse!
+}
+enum DepartureType {
+  HOME
+  CUSTOM
+  GPS
+}
+
+enum DayStatus {
+  PLANNED
+  IN_PROGRESS
+  DONE
+}
+
+input CreateVisitScheduleItemInput {
+  scheduleDayId: UUID!
+  sellerClientFactoryId: UUID!
+  plannedOrder: Int!
+  estimatedTravelMin: Int = null
+  suggestedProducts: [JSON!] = null
+  stockoutAlerts: [JSON!] = null
+}
+
+input UpdateVisitScheduleItemInput {
+  plannedOrder: Int = null
+  status: VisitStatus = null
+  outcome: VisitOutcome = null
+  outcomeReason: String = null
+  stockObservation: StockObservation = null
+  checkinLat: Decimal = null
+  checkinLng: Decimal = null
+  actualVisitAt: DateTime = null
+  nextVisitSuggestion: Date = null
+  notes: String = null
+}
+
+input RescheduleVisitInput {
+  originalItemId: UUID!
+  reason: RescheduleReason!
+  targetDayId: UUID = null
+  notes: String = null
+}
+
+input InsertUrgentVisitInput {
+  scheduleDayId: UUID!
+  sellerClientFactoryId: UUID!
+  notes: String = null
+}
+
+type RescheduleVisitResult {
+  originalItem: VisitScheduleItemType
+  newItem: VisitScheduleItemType
+}
+
+type RescheduleVisitResponse {
+  status: Boolean!
+  code: Int!
+  message: String!
+  data: RescheduleVisitResult
+}
+
+type VisitScheduleItemType {
+  id: UUID!
+  scheduleDayId: UUID!
+  sellerClientFactoryId: UUID!
+  plannedOrder: Int!
+  estimatedTravelMin: Int
+  suggestedProducts: [JSON!]
+  stockoutAlerts: [JSON!]
+  status: VisitStatus!
+  outcome: VisitOutcome
+  outcomeReason: String
+  stockObservation: StockObservation
+  checkinLat: Decimal
+  checkinLng: Decimal
+  actualVisitAt: DateTime
+  nextVisitSuggestion: Date
+  notes: String
+  createdAt: DateTime!
+  updatedAt: DateTime!
+  day: VisitScheduleDayType
+  clientFactoryLink: SellerClientFactoryType
+}
+
+type VisitScheduleItemTypeConnectionResponse {
+  edges: [VisitScheduleItemTypeEdge!]!
+  pageInfo: PageInfo!
+  totalCount: Int!
+}
+
+type VisitScheduleItemTypeDataResponse {
+  status: Boolean!
+  code: Int!
+  message: String!
+  data: VisitScheduleItemType
+}
+
+type VisitScheduleItemTypeEdge {
+  node: VisitScheduleItemType!
+  cursor: String!
+}
+
+extend type Query {
+  visitScheduleItems(dayId: UUID!, input: BaseListInput!): VisitScheduleItemTypeConnectionResponse!
+  visitScheduleItem(id: UUID!): VisitScheduleItemTypeDataResponse!
+  visitsBySellerClientFactory(
+    sellerClientFactoryId: UUID!
+    input: BaseListInput!
+  ): VisitScheduleItemTypeConnectionResponse!
+}
+
+extend type Mutation {
+  createVisitScheduleItem(input: CreateVisitScheduleItemInput!): VisitScheduleItemTypeDataResponse!
+  updateVisitScheduleItem(id: UUID!, input: UpdateVisitScheduleItemInput!): VisitScheduleItemTypeDataResponse!
+  deleteVisitScheduleItem(id: UUID!): BaseResponse!
+  rescheduleVisit(input: RescheduleVisitInput!): RescheduleVisitResponse!
+  insertUrgentVisit(input: InsertUrgentVisitInput!): VisitScheduleItemTypeDataResponse!
+}
+enum StockObservation {
+  OUT_OF_STOCK
+  LOW
+  ADEQUATE
+  HIGH
+}
+
+enum VisitOutcome {
+  SOLD
+  NOT_BOUGHT
+  RESCHEDULED
+  CLOSED
+}
+
+enum VisitStatus {
+  PENDING
+  COMPLETED
+  CLIENT_ABSENT
+  NO_TIME
+  RESCHEDULED
+  CANCELLED
+}
+
+input CreateVisitScheduleInput {
+  sellerId: UUID!
+  weekStart: Date!
+}
+
+input GenerateWeeklyScheduleInput {
+  sellerId: UUID!
+  weekStart: Date!
+}
+
+input UpdateVisitScheduleInput {
+  status: ScheduleStatus = null
+}
+
+type VisitScheduleType {
+  id: UUID!
+  sellerId: UUID!
+  companyId: UUID!
+  weekStart: Date!
+  generatedAt: DateTime!
+  status: ScheduleStatus!
+  createdAt: DateTime!
+  updatedAt: DateTime!
+  seller: SellerType
+  company: CompanyType
+  days: [VisitScheduleDayType!]!
+}
+
+type VisitScheduleTypeConnectionResponse {
+  edges: [VisitScheduleTypeEdge!]!
+  pageInfo: PageInfo!
+  totalCount: Int!
+}
+
+type VisitScheduleTypeDataResponse {
+  status: Boolean!
+  code: Int!
+  message: String!
+  data: VisitScheduleType
+}
+
+type VisitScheduleTypeEdge {
+  node: VisitScheduleType!
+  cursor: String!
+}
+
+extend type Query {
+  visitSchedule(id: UUID!): VisitScheduleTypeDataResponse!
+  visitSchedules(input: BaseListInput!): VisitScheduleTypeConnectionResponse!
+}
+
+extend type Mutation {
+  createVisitSchedule(input: CreateVisitScheduleInput!): VisitScheduleTypeDataResponse!
+  updateVisitSchedule(id: UUID!, input: UpdateVisitScheduleInput!): VisitScheduleTypeDataResponse!
+  deleteVisitSchedule(id: UUID!): BaseResponse!
+  generateWeeklySchedule(input: GenerateWeeklyScheduleInput!): VisitScheduleTypeDataResponse!
+}
+enum ScheduleStatus {
+  DRAFT
+  CONFIRMED
+}
+
+input UpsertStockObservationInput {
+  productId: UUID!
+  observation: StockObservation!
+  notes: String = null
+}
+
+type VisitStockObservationType {
+  id: UUID!
+  visitScheduleItemId: UUID!
+  productId: UUID!
+  observation: StockObservation!
+  notes: String
+  createdAt: DateTime!
+  updatedAt: DateTime!
+  product: ProductType
+}
+
+type VisitStockObservationListResponse {
+  status: Boolean!
+  code: Int!
+  message: String!
+  data: [VisitStockObservationType!]!
+}
+
+type VisitStockObservationTypeEdge {
+  node: VisitStockObservationType!
+  cursor: String!
+}
+
+type VisitStockObservationTypeConnectionResponse {
+  edges: [VisitStockObservationTypeEdge!]!
+  pageInfo: PageInfo!
+  totalCount: Int!
+}
+
+extend type Query {
+  visitStockObservations(
+    itemId: UUID!
+    input: BaseListInput!
+  ): VisitStockObservationTypeConnectionResponse!
+}
+
+extend type Mutation {
+  saveVisitStockObservations(
+    itemId: UUID!
+    observations: [UpsertStockObservationInput!]!
+  ): VisitStockObservationListResponse!
+}

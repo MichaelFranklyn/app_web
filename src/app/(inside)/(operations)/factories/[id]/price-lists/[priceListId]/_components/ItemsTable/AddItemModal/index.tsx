@@ -18,42 +18,16 @@ import {
   PRODUCTS_OPTIONS_QUERY,
   TIERS_OPTIONS_QUERY,
 } from "./gql";
+import { extractSelectValue } from "@/utils/form";
+import { CreateItemResponse, ProductsData, TiersData } from "./interface";
 
 type Option = SelectOption;
-
-interface ProductsData {
-  products: {
-    edges: {
-      node: {
-        id: string;
-        name: string;
-        sku: string;
-        unitLabel: { id: string; label: string } | null;
-      };
-    }[];
-  };
-}
-interface TiersData {
-  priceTiers: { edges: { node: { id: string; name: string } }[] };
-}
-interface CreateItemResponse {
-  createPriceListItem: {
-    status: boolean;
-    message: string;
-    data: { id: string } | null;
-  };
-}
 
 interface Props {
   priceListId: string;
   companyFactoryId: string;
   onAdded: () => void;
 }
-
-const extractValue = (raw: unknown): string =>
-  raw && typeof raw === "object" && "value" in raw
-    ? String((raw as { value: string }).value)
-    : String(raw ?? "");
 
 export function AddItemModal({
   priceListId,
@@ -72,10 +46,13 @@ export function AddItemModal({
     ],
   };
 
-  const { data: productsData } = useQuery<ProductsData>(PRODUCTS_OPTIONS_QUERY, {
-    variables: { input: byCompanyFactory },
-    skip: !open || !companyFactoryId,
-  });
+  const { data: productsData } = useQuery<ProductsData>(
+    PRODUCTS_OPTIONS_QUERY,
+    {
+      variables: { input: byCompanyFactory },
+      skip: !open || !companyFactoryId,
+    }
+  );
 
   const { data: tiersData } = useQuery<TiersData>(TIERS_OPTIONS_QUERY, {
     variables: { input: byCompanyFactory },
@@ -133,7 +110,7 @@ export function AddItemModal({
                 options: productOptions,
                 onChange: (value) => {
                   setPackLabel(
-                    packLabelByProduct.get(extractValue(value)) ?? null
+                    packLabelByProduct.get(extractSelectValue(value)) ?? null
                   );
                 },
               },
@@ -151,7 +128,9 @@ export function AddItemModal({
               {
                 name: "unitPrice",
                 type: "currency",
-                label: packLabel ? `Preço por ${packLabel}` : "Preço por embalagem",
+                label: packLabel
+                  ? `Preço por ${packLabel}`
+                  : "Preço por embalagem",
                 required: true,
                 placeholder: "0,00",
                 hint: "Preço da embalagem fechada. O valor com imposto é calculado a partir dos impostos do produto.",
@@ -173,8 +152,8 @@ export function AddItemModal({
   };
 
   const handleSubmit = async (data: Record<string, unknown>) => {
-    const productId = extractValue(data.productId);
-    const tierId = extractValue(data.tierId);
+    const productId = extractSelectValue(data.productId);
+    const tierId = extractSelectValue(data.tierId);
 
     await execute(
       async () => {

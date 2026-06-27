@@ -88,21 +88,6 @@ export function EditPriceItemModal({
       async () => {
         const res = await updateItem({
           variables: { id: item.id, input: { unitPrice } },
-          // Otimista: mesma entidade (id). O valor c/ imposto é recalculado no
-          // back, então o refetch (onChanged) ressincroniza o congelado.
-          optimisticResponse: {
-            updatePriceListItem: {
-              __typename: "PriceListItemTypeDataResponse",
-              status: true,
-              message: "",
-              data: {
-                __typename: "PriceListItemType",
-                id: item.id,
-                unitPrice: String(unitPrice),
-                unitPriceWithImpost: item.unitPriceWithImpost,
-              },
-            },
-          },
         });
 
         if (

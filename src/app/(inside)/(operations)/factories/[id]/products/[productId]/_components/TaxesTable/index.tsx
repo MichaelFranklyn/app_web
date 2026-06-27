@@ -4,9 +4,11 @@ import { EmptyState } from "@/components/EmptyState";
 import { HelpTooltip } from "@/components/HelpTooltip";
 import { Table } from "@/components/Table";
 import { Title } from "@/components/Title";
+import { useOptimisticList } from "@/hooks/useOptimisticList";
 import { formatDateDMY } from "@/utils/format/masks";
 import { useQuery } from "@apollo/client/react";
 import { Percent } from "lucide-react";
+import { useMemo } from "react";
 import { AddTaxModal } from "./AddTaxModal";
 import { EditTaxModal } from "./EditTaxModal";
 import { PRODUCT_TAXES_QUERY } from "./gql";
@@ -51,7 +53,12 @@ export function TaxesTable({ productId, onChanged }: Props) {
     }
   );
 
-  const taxes = data?.product_taxes?.edges.map((e) => e.node) ?? [];
+  const initial = useMemo(
+    () => data?.product_taxes?.edges.map((e) => e.node) ?? [],
+    [data]
+  );
+  const optimistic = useOptimisticList({ initialData: initial });
+  const taxes = optimistic.items;
   const handleChanged = () => {
     refetch();
     onChanged?.();
@@ -71,8 +78,8 @@ export function TaxesTable({ productId, onChanged }: Props) {
                 </Title>
                 <Title variant="body-sm">
                   Adicionar, editar a alíquota ou remover um imposto recalcula
-                  automaticamente o &quot;preço c/ imposto&quot; deste produto em
-                  todas as tabelas de preço <b>ativas</b>.
+                  automaticamente o &quot;preço c/ imposto&quot; deste produto
+                  em todas as tabelas de preço <b>ativas</b>.
                 </Title>
                 <Title variant="body-sm" color="muted">
                   Tabelas inativas (histórico) mantêm os valores da época, e
@@ -120,9 +127,7 @@ export function TaxesTable({ productId, onChanged }: Props) {
               <Table.Row key={tax.id}>
                 <Table.Cell variant="strong">{tax.taxRule.name}</Table.Cell>
                 <Table.Cell>
-                  <Title variant="value">
-                    {formatRate(tax.rate)}
-                  </Title>
+                  <Title variant="value">{formatRate(tax.rate)}</Title>
                 </Table.Cell>
                 <Table.Cell variant="dim">
                   {formatDateDMY(tax.updatedAt)}
@@ -134,6 +139,9 @@ export function TaxesTable({ productId, onChanged }: Props) {
                       productTaxId={tax.id}
                       taxName={tax.taxRule.name}
                       onRemoved={handleChanged}
+                      onRemoveOptimistic={optimistic.removeOptimistic}
+                      onCommit={optimistic.commit}
+                      onRollback={optimistic.rollback}
                     />
                   </div>
                 </Table.Cell>

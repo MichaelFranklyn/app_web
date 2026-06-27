@@ -14,6 +14,7 @@ import { Pencil } from "lucide-react";
 import { useMemo, useRef, useState } from "react";
 import { PriceListDetail } from "../../../interface";
 import { UPDATE_FACTORY_PRICE_LIST_MUTATION } from "../gql";
+import { extractSelectValue } from "@/utils/form";
 
 interface UpdatePriceListResponse {
   updateFactoryPriceList: {
@@ -33,11 +34,6 @@ const ACTIVE_OPTIONS = [
   { value: "true", label: "Ativa" },
   { value: "false", label: "Inativa" },
 ];
-
-const extractValue = (raw: unknown): string =>
-  raw && typeof raw === "object" && "value" in raw
-    ? String((raw as { value: string }).value)
-    : String(raw ?? "");
 
 export function EditPriceListModal({ priceList, onChanged }: Props) {
   const [open, setOpen] = useState(false);
@@ -116,7 +112,7 @@ export function EditPriceListModal({ priceList, onChanged }: Props) {
     if (validUntil !== toIsoDate(priceList.validUntil))
       input.validUntil = validUntil || null;
 
-    const isActive = extractValue(data.isActive) === "true";
+    const isActive = extractSelectValue(data.isActive) === "true";
     if (isActive !== priceList.isActive) input.isActive = isActive;
 
     if (Object.keys(input).length === 0) {
@@ -128,28 +124,6 @@ export function EditPriceListModal({ priceList, onChanged }: Props) {
       async () => {
         const res = await updatePriceList({
           variables: { id: priceList.id, input },
-          // Otimista: mesma entidade (id) → o cabeçalho reflete na hora.
-          optimisticResponse: {
-            updateFactoryPriceList: {
-              __typename: "FactoryPriceListTypeDataResponse",
-              status: true,
-              message: "",
-              data: {
-                __typename: "FactoryPriceListType",
-                id: priceList.id,
-                name: (input.name as string) ?? priceList.name,
-                validFrom: (input.validFrom as string) ?? priceList.validFrom,
-                validUntil:
-                  "validUntil" in input
-                    ? (input.validUntil as string | null)
-                    : priceList.validUntil,
-                isActive:
-                  "isActive" in input
-                    ? (input.isActive as boolean)
-                    : priceList.isActive,
-              },
-            },
-          },
         });
         if (
           !res.data?.updateFactoryPriceList?.status ||

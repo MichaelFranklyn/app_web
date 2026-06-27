@@ -1,3 +1,12 @@
+import { ColumnChoice } from "@/utils/import/columns";
+
+/** Colunas mapeadas do arquivo de pedido (SKU, quantidade, preço). */
+export type Mapping = {
+  sku: ColumnChoice;
+  quantity: ColumnChoice;
+  unitPrice: ColumnChoice;
+};
+
 /** Item já estruturado por uma receita (quando a fábrica tem modelo de pedido). */
 export interface ExtractedItem {
   sku: string;

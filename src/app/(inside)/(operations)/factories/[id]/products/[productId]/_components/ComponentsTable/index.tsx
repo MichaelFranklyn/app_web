@@ -4,10 +4,12 @@ import { EmptyState } from "@/components/EmptyState";
 import { HelpTooltip } from "@/components/HelpTooltip";
 import { Table } from "@/components/Table";
 import { Title } from "@/components/Title";
+import { useOptimisticList } from "@/hooks/useOptimisticList";
 import { formatNumber } from "@/utils/format/masks";
 import { useQuery } from "@apollo/client/react";
 import { Boxes } from "lucide-react";
 import Link from "next/link";
+import { useMemo } from "react";
 import { AddComponentModal } from "./AddComponentModal";
 import { EditComponentModal } from "./EditComponentModal";
 import { PRODUCT_COMPONENTS_QUERY } from "./gql";
@@ -25,7 +27,12 @@ export function ComponentsTable({ productId, companyFactoryId }: Props) {
     { variables: { id: productId } }
   );
 
-  const components = data?.product_components_detail?.data?.components ?? [];
+  const initial = useMemo(
+    () => data?.product_components_detail?.data?.components ?? [],
+    [data]
+  );
+  const optimistic = useOptimisticList({ initialData: initial });
+  const components = optimistic.items;
 
   return (
     <Table.Root>
@@ -40,9 +47,9 @@ export function ComponentsTable({ productId, companyFactoryId }: Props) {
                   Produto kit
                 </Title>
                 <Title variant="body-sm">
-                  Um kit é montado a partir de outros produtos do mesmo
-                  catálogo (ex.: padrão de entrada = disjuntor + caixa +
-                  haste). O kit tem SKU e preço próprios na tabela.
+                  Um kit é montado a partir de outros produtos do mesmo catálogo
+                  (ex.: padrão de entrada = disjuntor + caixa + haste). O kit
+                  tem SKU e preço próprios na tabela.
                 </Title>
                 <Title variant="body-sm" color="muted">
                   Produtos simples não têm composição — deixe vazio.
@@ -128,6 +135,9 @@ export function ComponentsTable({ productId, companyFactoryId }: Props) {
                       componentId={item.id}
                       componentName={item.component?.name ?? "componente"}
                       onRemoved={() => refetch()}
+                      onRemoveOptimistic={optimistic.removeOptimistic}
+                      onCommit={optimistic.commit}
+                      onRollback={optimistic.rollback}
                     />
                   </div>
                 </Table.Cell>

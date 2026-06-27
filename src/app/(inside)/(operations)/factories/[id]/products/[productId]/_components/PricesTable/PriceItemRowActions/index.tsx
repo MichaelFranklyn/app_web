@@ -16,9 +16,19 @@ interface Props {
   item: PriceItemNode;
   label: string;
   onChanged: () => void;
+  onRemoveOptimistic: (id: string) => void;
+  onCommit: () => void;
+  onRollback: () => void;
 }
 
-export function PriceItemRowActions({ item, label, onChanged }: Props) {
+export function PriceItemRowActions({
+  item,
+  label,
+  onChanged,
+  onRemoveOptimistic,
+  onCommit,
+  onRollback,
+}: Props) {
   const [editOpen, setEditOpen] = useState(false);
   const [removeOpen, setRemoveOpen] = useState(false);
 
@@ -57,6 +67,9 @@ export function PriceItemRowActions({ item, label, onChanged }: Props) {
         open={removeOpen}
         onOpenChange={setRemoveOpen}
         onRemoved={onChanged}
+        onRemoveOptimistic={onRemoveOptimistic}
+        onCommit={onCommit}
+        onRollback={onRollback}
       />
     </>
   );

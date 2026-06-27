@@ -9,7 +9,9 @@ import { DeleteFactoryLinkModal } from "./_components/DeleteFactoryLinkModal";
 import { EditFactoryLinkModal } from "./_components/EditFactoryLinkModal";
 import { LinkFactoryModal } from "./_components/LinkFactoryModal";
 import { FactoryLinksTableProps } from "./interface";
-import { factoryName, formatDate, priorityColor, priorityLabel } from "./utils";
+import { priorityColor, priorityLabel } from "./utils";
+import { factoryName } from "@/utils/company";
+import { formatDate } from "@/utils/format/date";
 
 export function FactoryLinksTable({
   clientId,

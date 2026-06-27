@@ -3,9 +3,10 @@
 import { Badge } from "@/components/Badges";
 import { EmptyState } from "@/components/EmptyState";
 import { Table } from "@/components/Table";
+import { useInvalidateQueriesClient } from "@/hooks/useInvalidateQueries";
 import { useOptimisticList } from "@/hooks/useOptimisticList";
 import { formatMoney, formatNumber } from "@/utils/format/masks";
-import { useApolloClient, useQuery } from "@apollo/client/react";
+import { useQuery } from "@apollo/client/react";
 import { Package } from "lucide-react";
 import { useMemo } from "react";
 import { OrderItem, OrderItemsResponse } from "../../interface";
@@ -23,7 +24,7 @@ interface Props {
 }
 
 export function OrderItemsTable({ orderId, factoryId, onOrderChanged }: Props) {
-  const client = useApolloClient();
+  const invalidateClient = useInvalidateQueriesClient();
   const { data, loading, refetch } = useQuery<OrderItemsResponse>(
     ORDER_ITEMS_QUERY,
     { variables: { orderId } }
@@ -42,8 +43,7 @@ export function OrderItemsTable({ orderId, factoryId, onOrderChanged }: Props) {
     onOrderChanged?.();
     // Invalida os KPIs (query client-side) para que /orders mostre os novos
     // totais ao voltar para a listagem.
-    client.cache.evict({ id: "ROOT_QUERY", fieldName: "orderStats" });
-    client.cache.gc();
+    void invalidateClient(["orderStats"]);
   };
 
   return (

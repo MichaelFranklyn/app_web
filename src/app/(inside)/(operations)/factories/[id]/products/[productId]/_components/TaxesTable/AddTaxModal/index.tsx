@@ -13,6 +13,7 @@ import { Plus } from "lucide-react";
 import { useCallback, useMemo, useRef, useState } from "react";
 import { ADD_TAX_TO_PRODUCT_MUTATION, TAX_RULES_QUERY } from "../gql";
 import { CreatedTaxRule, CreateTaxRuleDialog } from "./CreateTaxRuleDialog";
+import { extractSelectValue } from "@/utils/form";
 
 interface TaxRulesData {
   taxRules: {
@@ -30,11 +31,6 @@ interface Props {
 }
 
 type Option = { value: string; label: string; [key: string]: unknown };
-
-const extractValue = (raw: unknown): string =>
-  raw && typeof raw === "object" && "value" in raw
-    ? String((raw as { value: string }).value)
-    : String(raw ?? "");
 
 export function AddTaxModal({ productId, onAdded }: Props) {
   const [open, setOpen] = useState(false);
@@ -127,7 +123,7 @@ export function AddTaxModal({ productId, onAdded }: Props) {
   };
 
   const handleSubmit = async (data: Record<string, unknown>) => {
-    const taxRuleId = extractValue(data.taxRuleId);
+    const taxRuleId = extractSelectValue(data.taxRuleId);
     const rate = String(data.rate ?? "").trim();
 
     await execute(

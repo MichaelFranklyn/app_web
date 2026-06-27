@@ -12,9 +12,10 @@ import { useQuery } from "@apollo/client/react";
 import { Receipt } from "lucide-react";
 import { useMemo } from "react";
 import { ORDER_STATUS_COLOR, ORDER_STATUS_LABEL } from "../../../utils";
+import { EditOrderModal } from "../../../../orders/_components/EditOrderModal";
+import { UPDATE_ORDER_FROM_FACTORY_MUTATION } from "../../../../orders/_components/EditOrderModal/gql";
 import { AddOrderModal } from "./AddOrderModal";
 import { DeleteOrderModal } from "./DeleteOrderModal";
-import { EditOrderModal } from "./EditOrderModal";
 import { FACTORY_ORDERS_QUERY } from "./gql";
 
 interface Order {
@@ -172,7 +173,13 @@ export function OrdersTab({ factoryId }: Props) {
                   </Table.Cell>
                   <Table.Cell>
                     <div className="flex items-center justify-end gap-4">
-                      <EditOrderModal orderId={o.id} initialNotes={o.notes} />
+                      <EditOrderModal
+                        orderId={o.id}
+                        initialNotes={o.notes}
+                        mutation={UPDATE_ORDER_FROM_FACTORY_MUTATION}
+                        invalidateKeys={["factory_orders", "orders"]}
+                        stopPropagationOnTrigger
+                      />
                       <DeleteOrderModal
                         orderId={o.id}
                         orderCode={`#${o.id.slice(-6).toUpperCase()}`}

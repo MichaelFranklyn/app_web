@@ -1,11 +1,5 @@
 import { LinkFactoryInput } from "./interface";
 
-export const PRIORITY_OPTIONS = [
-  { value: "high", label: "Alta" },
-  { value: "medium", label: "Média" },
-  { value: "low", label: "Baixa" },
-];
-
 export const normalizeLinkFactoryInput = (
   data: Record<string, unknown>,
   clientId: string

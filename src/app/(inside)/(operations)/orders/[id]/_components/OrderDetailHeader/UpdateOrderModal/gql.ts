@@ -12,7 +12,7 @@ export const UPDATE_ORDER_MUTATION = gql`
         freightType
         notes
         fileUrl
-        fileParsed
+        isFileParsed
       }
     }
   }

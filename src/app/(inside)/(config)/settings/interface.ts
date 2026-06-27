@@ -15,7 +15,7 @@ export interface ScheduleConfig {
   workStartTime: string;
   workEndTime: string;
   avgVisitDurationMin: number;
-  rescheduleSameWeek: boolean;
+  isRescheduleSameWeek: boolean;
   maxRescheduleAttempts: number;
   penaltyScorePerMiss: string;
   priorityWeights: PriorityWeights;
@@ -35,7 +35,7 @@ export interface UpdateScheduleConfigInput {
   workStartTime?: string;
   workEndTime?: string;
   avgVisitDurationMin?: number;
-  rescheduleSameWeek?: boolean;
+  isRescheduleSameWeek?: boolean;
   maxRescheduleAttempts?: number;
   penaltyScorePerMiss?: string;
   priorityWeights?: PriorityWeights;
@@ -55,7 +55,7 @@ export interface SettingsFormState {
   workStartTime: string;
   workEndTime: string;
   avgVisitDurationMin: number;
-  rescheduleSameWeek: boolean;
+  isRescheduleSameWeek: boolean;
   maxRescheduleAttempts: number;
   penaltyScorePerMiss: string;
   priorityWeights: PriorityWeights;

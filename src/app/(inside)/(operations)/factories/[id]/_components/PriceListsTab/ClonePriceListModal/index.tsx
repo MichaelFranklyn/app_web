@@ -20,6 +20,7 @@ import {
   FactoryPriceListNode,
   FactoryPriceListsData,
 } from "../gql";
+import { extractSelectValue } from "@/utils/form";
 
 interface CloneResponse {
   cloneFactoryPriceList: {
@@ -34,11 +35,6 @@ interface Props {
   onCloned: () => void;
   onAddOptimistic: (priceList: FactoryPriceListNode) => void;
 }
-
-const extractValue = (raw: unknown): string =>
-  raw && typeof raw === "object" && "value" in raw
-    ? String((raw as { value: string }).value)
-    : String(raw ?? "");
 
 export function ClonePriceListModal({
   companyFactoryId,
@@ -134,7 +130,7 @@ export function ClonePriceListModal({
         const res = await clonePriceList({
           variables: {
             input: {
-              sourcePriceListId: extractValue(formData.sourcePriceListId),
+              sourcePriceListId: extractSelectValue(formData.sourcePriceListId),
               name: String(formData.name ?? "").trim(),
               region: region || null,
               validFrom: toIsoDate(formData.validFrom),

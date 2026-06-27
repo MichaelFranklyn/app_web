@@ -1,10 +1,11 @@
 "use client";
 
 import { useMutation } from "@apollo/client/react";
-import { Download, FileSpreadsheet, Upload } from "lucide-react";
-import { useRef, useState } from "react";
+import { Download, Upload } from "lucide-react";
+import { useState } from "react";
 
 import { Button } from "@/components/Button";
+import { Input } from "@/components/Input";
 import { Modal } from "@/components/Modal";
 import { Title } from "@/components/Title";
 import { useToast } from "@/components/Toast";
@@ -12,18 +13,14 @@ import { useAsyncAction } from "@/hooks/useAsyncAction";
 import { useInvalidateQueriesClient } from "@/hooks/useInvalidateQueries";
 
 import { IMPORT_COMPANY_FACTORIES_MUTATION } from "./gql";
-import {
-  ImportCompanyFactoriesResponse,
-  ImportResult,
-  ImportRowDetail,
-} from "./interface";
+import { ImportSummary } from "./ImportSummary";
+import { ImportCompanyFactoriesResponse, ImportResult } from "./interface";
 import { downloadExampleSheet, parseFactoriesFile } from "./utils";
 
 export function ImportFactoriesModal() {
   const [open, setOpen] = useState(false);
   const [file, setFile] = useState<File | null>(null);
   const [result, setResult] = useState<ImportResult | null>(null);
-  const inputRef = useRef<HTMLInputElement>(null);
 
   const { toast } = useToast();
   const invalidateClient = useInvalidateQueriesClient();
@@ -32,15 +29,12 @@ export function ImportFactoriesModal() {
   );
   const { execute, isLoading } = useAsyncAction();
 
-  const reset = () => {
-    setFile(null);
-    setResult(null);
-    if (inputRef.current) inputRef.current.value = "";
-  };
-
   const handleClose = (value: boolean) => {
     setOpen(value);
-    if (!value) reset();
+    if (!value) {
+      setFile(null);
+      setResult(null);
+    }
   };
 
   const handleImport = async () => {
@@ -115,25 +109,16 @@ export function ImportFactoriesModal() {
             </Button.Root>
           </div>
 
-          <label className="flex cursor-pointer flex-col items-center justify-center gap-6 rounded-lg border border-dashed border-(--border) px-16 py-24 text-center transition-colors hover:border-(--orange)">
-            <FileSpreadsheet className="size-24 text-(--muted)" />
-            <Title variant="body" weight="medium">
-              {file ? file.name : "Selecionar planilha CSV"}
-            </Title>
-            <Title variant="body-xs" color="muted">
-              Apenas arquivos .csv
-            </Title>
-            <input
-              ref={inputRef}
-              type="file"
-              accept=".csv,text/csv"
-              className="hidden"
-              onChange={(e) => {
-                setResult(null);
-                setFile(e.target.files?.[0] ?? null);
-              }}
-            />
-          </label>
+          <Input.Archive
+            variant="single"
+            accept=".csv,text/csv"
+            hint="Apenas arquivos .csv"
+            value={file ? [file] : []}
+            onChange={(files) => {
+              setResult(null);
+              setFile(files[0] ?? null);
+            }}
+          />
 
           {result && <ImportSummary result={result} />}
         </Modal.Body>
@@ -161,81 +146,12 @@ export function ImportFactoriesModal() {
             disabled={!file}
             onClick={handleImport}
           >
-            <Button.Title>{result ? "Importar novamente" : "Importar"}</Button.Title>
+            <Button.Title>
+              {result ? "Importar novamente" : "Importar"}
+            </Button.Title>
           </Button.Root>
         </Modal.Footer>
       </Modal.Content>
     </Modal.Root>
-  );
-}
-
-function ImportSummary({ result }: { result: ImportResult }) {
-  const hasDetails = result.errors.length > 0 || result.ignored.length > 0;
-
-  return (
-    <div className="flex flex-col gap-10">
-      <div className="grid grid-cols-3 gap-8">
-        <SummaryStat label="Criadas" value={result.created} tone="text-(--green)" />
-        <SummaryStat label="Ignoradas" value={result.skipped} tone="text-(--amber)" />
-        <SummaryStat label="Com erro" value={result.failed} tone="text-(--red)" />
-      </div>
-
-      {hasDetails && (
-        <div className="flex max-h-[180px] flex-col gap-4 overflow-y-auto rounded-lg border border-(--border) p-8">
-          {result.errors.map((err) => (
-            <DetailLine
-              key={`err-${err.row}-${err.cnpj}`}
-              label="Erro"
-              tone="text-(--red)"
-              detail={err}
-            />
-          ))}
-          {result.ignored.map((item) => (
-            <DetailLine
-              key={`ign-${item.row}-${item.cnpj}`}
-              label="Ignorada"
-              tone="text-(--amber)"
-              detail={item}
-            />
-          ))}
-        </div>
-      )}
-    </div>
-  );
-}
-
-function DetailLine({
-  label,
-  tone,
-  detail,
-}: {
-  label: string;
-  tone: string;
-  detail: ImportRowDetail;
-}) {
-  return (
-    <div className="text-xs text-(--text)">
-      <Title variant="body-xs" weight="medium" className={`inline ${tone}`}>
-        {label} · Linha {detail.row}
-      </Title>
-      {detail.cnpj ? ` (${detail.cnpj})` : ""}: {detail.message}
-    </div>
-  );
-}
-
-function SummaryStat({
-  label,
-  value,
-  tone,
-}: {
-  label: string;
-  value: number;
-  tone: string;
-}) {
-  return (
-    <div className="flex flex-col items-center rounded-lg border border-(--border) py-8">
-      <Title variant="heading-md" weight="semibold" className={tone}>{value}</Title>
-      <Title variant="body-xs" color="muted">{label}</Title>
-    </div>
   );
 }

@@ -19,6 +19,7 @@ import {
   AddComponentResponse,
   ComponentProductsOptionsData,
 } from "../interface";
+import { extractSelectValue } from "@/utils/form";
 
 interface Props {
   kitProductId: string;
@@ -27,11 +28,6 @@ interface Props {
   usedProductIds: string[];
   onAdded: () => void;
 }
-
-const extractValue = (raw: unknown): string =>
-  raw && typeof raw === "object" && "value" in raw
-    ? String((raw as { value: string }).value)
-    : String(raw ?? "");
 
 export function AddComponentModal({
   kitProductId,
@@ -49,7 +45,11 @@ export function AddComponentModal({
         input: {
           first: 200,
           filters: [
-            { field: "company_factory_id", operator: "eq", value: companyFactoryId },
+            {
+              field: "company_factory_id",
+              operator: "eq",
+              value: companyFactoryId,
+            },
           ],
         },
       },
@@ -115,7 +115,7 @@ export function AddComponentModal({
   };
 
   const handleSubmit = async (data: Record<string, unknown>) => {
-    const componentProductId = extractValue(data.componentProductId);
+    const componentProductId = extractSelectValue(data.componentProductId);
     const quantity = Number(String(data.quantity ?? "").replace(",", "."));
 
     await execute(

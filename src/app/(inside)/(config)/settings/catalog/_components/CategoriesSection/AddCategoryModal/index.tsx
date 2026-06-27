@@ -11,16 +11,16 @@ import { useAsyncAction } from "@/hooks/useAsyncAction";
 import { useMutation } from "@apollo/client/react";
 import { Plus } from "lucide-react";
 import { useMemo, useRef, useState } from "react";
-import {
-  buildCategoriesVariables,
-  categoriesRefetchQueries,
-  PRODUCT_CATEGORIES_QUERY,
-  ProductCategoriesData,
-} from "../gql";
+import { ProductCategoryRow } from "../gql";
 import { CREATE_PRODUCT_CATEGORY_MUTATION } from "./gql";
 import { CreateProductCategoryResponse } from "./interface";
 
-export function AddCategoryModal() {
+interface Props {
+  onAddOptimistic: (category: ProductCategoryRow) => void;
+  onChanged: () => void;
+}
+
+export function AddCategoryModal({ onAddOptimistic, onChanged }: Props) {
   const [open, setOpen] = useState(false);
   const formRef = useRef<FormBuilderRef>(null);
 
@@ -72,50 +72,6 @@ export function AddCategoryModal() {
       async () => {
         const res = await createCategory({
           variables: { input: { name, segment } },
-          // Otimista: a categoria aparece na lista na hora (id temporário).
-          // Se a mutation falhar, o Apollo faz rollback automático.
-          optimisticResponse: {
-            createProductCategory: {
-              __typename: "ProductCategoryTypeDataResponse",
-              status: true,
-              message: "",
-              data: {
-                __typename: "ProductCategoryType",
-                id: `optimistic-${crypto.randomUUID()}`,
-                name,
-                segment,
-              },
-            },
-          },
-          // Rede de segurança: após o sucesso, ressincroniza a lista com o back.
-          refetchQueries: categoriesRefetchQueries(),
-          update: (cache, { data: result }) => {
-            const created = result?.createProductCategory?.data;
-            if (!created) return;
-            cache.updateQuery<ProductCategoriesData>(
-              {
-                query: PRODUCT_CATEGORIES_QUERY,
-                variables: buildCategoriesVariables(),
-              },
-              (existing) => {
-                if (!existing) return existing;
-                const list = existing.product_categories;
-                if (list.edges.some((e) => e.node.id === created.id)) {
-                  return existing;
-                }
-                return {
-                  product_categories: {
-                    ...list,
-                    edges: [
-                      ...list.edges,
-                      { __typename: "ProductCategoryTypeEdge", node: created },
-                    ],
-                    totalCount: list.totalCount + 1,
-                  },
-                };
-              }
-            );
-          },
         });
 
         if (
@@ -132,7 +88,11 @@ export function AddCategoryModal() {
       },
       {
         successMessage: "Categoria cadastrada com sucesso",
-        onSuccess: () => handleClose(false),
+        onSuccess: (created) => {
+          handleClose(false);
+          onAddOptimistic(created);
+          onChanged();
+        },
       }
     );
   };

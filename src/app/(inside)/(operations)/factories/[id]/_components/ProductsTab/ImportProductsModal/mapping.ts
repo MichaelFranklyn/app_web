@@ -1,5 +1,4 @@
-import { ColumnChoice, valueForChoice } from "../../_import/columns";
-import { SheetData } from "../../_import/reader";
+import { ColumnChoice } from "@/utils/import/columns";
 import { ImportProductRow } from "./interface";
 
 export type { ColumnChoice };
@@ -23,7 +22,8 @@ export const TARGET_FIELDS: TargetField[] = [
   {
     key: "name",
     label: "Nome do produto",
-    description: "Nome comercial do produto, como o vendedor vê na hora de montar o pedido.",
+    description:
+      "Nome comercial do produto, como o vendedor vê na hora de montar o pedido.",
   },
   {
     key: "category",
@@ -62,13 +62,32 @@ const GUESS_HINTS: Record<string, string[]> = {
   // "modelo" identifica o produto em catálogos sem coluna de código (ex.: tabela
   // Lukma, onde "UNIPOLAR LK-2" é o próprio código). Fica por último: se houver
   // "código" de fato, ele ganha; "modelo" sobra como nome (fallback abaixo).
-  sku: ["sku", "código", "codigo", "cód", "cod.", "ref", "referência", "modelo"],
+  sku: [
+    "sku",
+    "código",
+    "codigo",
+    "cód",
+    "cod.",
+    "ref",
+    "referência",
+    "modelo",
+  ],
   name: ["nome", "produto", "descrição", "descricao", "item", "modelo"],
   category: ["categoria", "grupo", "linha", "família", "familia"],
   // unidade de venda / múltiplo costuma ser o número de unidades por embalagem.
   // "embal." (abreviado, com ponto) é a coluna EMBAL. das fichas de pedido —
   // não confunde com "embalagem" por extenso, que é rótulo (unitLabel).
-  unitPerPack: ["por embalagem", "unidade de venda", "venda", "múltiplo", "multiplo", "fator", "embal.", "qtd", "quantidade"],
+  unitPerPack: [
+    "por embalagem",
+    "unidade de venda",
+    "venda",
+    "múltiplo",
+    "multiplo",
+    "fator",
+    "embal.",
+    "qtd",
+    "quantidade",
+  ],
   unit: ["unidade", "unid", "medida", "un"],
   unitLabel: ["embalagem", "rótulo", "rotulo", "caixa", "pacote", "fardo"],
 };
@@ -81,7 +100,14 @@ const GUESS_EXCLUDE: Record<string, string[]> = {
 
 // Ordem de prioridade ao reivindicar colunas (campos mais específicos primeiro,
 // para que "unidade de venda" caia em unitPerPack e não em unit).
-const GUESS_ORDER = ["sku", "name", "category", "unitPerPack", "unit", "unitLabel"];
+const GUESS_ORDER = [
+  "sku",
+  "name",
+  "category",
+  "unitPerPack",
+  "unit",
+  "unitLabel",
+];
 
 export const autoGuessMapping = (headers: string[]): MappingState => {
   const mapping: MappingState = {};
@@ -123,26 +149,3 @@ export const isMappingComplete = (
     if (choice.kind === "fixed") return choice.value.trim() !== "";
     return false;
   });
-
-/** Substituições da conciliação: valor da planilha -> rótulo final (existente). */
-export interface Substitutions {
-  unit?: Record<string, string>;
-  unitLabel?: Record<string, string>;
-}
-
-const reconcile = (value: string, table?: Record<string, string>): string =>
-  (table && table[value]) || value;
-
-export const buildProductRows = (
-  data: SheetData,
-  mapping: MappingState,
-  substitutions: Substitutions = {}
-): ImportProductRow[] =>
-  data.rows.map((cells) => ({
-    sku: valueForChoice(mapping.sku, cells).trim(),
-    name: valueForChoice(mapping.name, cells).trim(),
-    category: valueForChoice(mapping.category, cells).trim(),
-    unit: reconcile(valueForChoice(mapping.unit, cells).trim(), substitutions.unit),
-    unitLabel: reconcile(valueForChoice(mapping.unitLabel, cells).trim(), substitutions.unitLabel),
-    unitPerPack: Number(valueForChoice(mapping.unitPerPack, cells).trim().replace(",", ".")),
-  }));

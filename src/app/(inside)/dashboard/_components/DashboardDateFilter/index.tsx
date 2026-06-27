@@ -4,7 +4,8 @@ import { InputDate } from "@/components/Input";
 import { useEffect, useMemo, useState } from "react";
 import { DateRange } from "react-day-picker";
 import { DateRangeIso } from "../../interface";
-import { isoToLocalDate, toIsoDate } from "../../utils";
+import { toUtcIsoDate } from "@/utils/format/date";
+import { isoToLocalDate } from "../../utils";
 
 interface Props {
   value: DateRangeIso;
@@ -12,7 +13,7 @@ interface Props {
 }
 
 const localDateToIso = (date: Date) =>
-  toIsoDate(
+  toUtcIsoDate(
     new Date(Date.UTC(date.getFullYear(), date.getMonth(), date.getDate()))
   );
 
@@ -21,6 +22,8 @@ export function DashboardDateFilter({ value, onChange }: Props) {
 
   useEffect(() => {
     setDraft(value);
+    // Sincroniza só quando os valores mudam, não a cada nova identidade do objeto.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [value.from, value.to]);
 
   const pickerValue = useMemo<DateRange>(

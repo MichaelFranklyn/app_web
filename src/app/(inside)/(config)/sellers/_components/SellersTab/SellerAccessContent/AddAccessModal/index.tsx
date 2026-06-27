@@ -1,7 +1,11 @@
 "use client";
 
 import { Button } from "@/components/Button";
-import { FormBuilder, FormBuilderRef, FormStepSchema } from "@/components/FormBuilder";
+import {
+  FormBuilder,
+  FormBuilderRef,
+  FormStepSchema,
+} from "@/components/FormBuilder";
 import { Modal } from "@/components/Modal";
 import { useAsyncAction } from "@/hooks/useAsyncAction";
 import { useInvalidateQueriesClient } from "@/hooks/useInvalidateQueries";
@@ -14,31 +18,12 @@ import {
   SELLER_ACCESSES_QUERY,
   SELLERS_OPTIONS_QUERY,
 } from "./gql";
-
-interface CreateAccessResponse {
-  createSellerFactoryAccess: { status: boolean; message: string };
-}
-
-interface SellersOptionsData {
-  sellers_options: { edges: { node: { id: string; name: string; isActive: boolean } }[] };
-}
-
-interface CompanyFactoriesOptionsData {
-  company_factories_options: {
-    edges: {
-      node: {
-        factoryId: string;
-        factory: { id: string; nomeFantasia: string | null; razaoSocial: string } | null;
-      };
-    }[];
-  };
-}
-
-interface SellerAccessesData {
-  seller_accesses: {
-    edges: { node: { sellerId: string; factoryId: string; isActive: boolean } }[];
-  };
-}
+import {
+  CompanyFactoriesOptionsData,
+  CreateAccessResponse,
+  SellerAccessesData,
+  SellersOptionsData,
+} from "./interface";
 
 const LIST_INPUT = { first: 200 };
 
@@ -48,20 +33,26 @@ export function AddAccessModal() {
   const formRef = useRef<FormBuilderRef>(null);
   const invalidateClient = useInvalidateQueriesClient();
 
-  const { data: sellersData } = useQuery<SellersOptionsData>(SELLERS_OPTIONS_QUERY, {
-    variables: { input: LIST_INPUT },
-    skip: !open,
-  });
+  const { data: sellersData } = useQuery<SellersOptionsData>(
+    SELLERS_OPTIONS_QUERY,
+    {
+      variables: { input: LIST_INPUT },
+      skip: !open,
+    }
+  );
 
   const { data: factoriesData } = useQuery<CompanyFactoriesOptionsData>(
     COMPANY_FACTORIES_OPTIONS_QUERY,
     { variables: { input: LIST_INPUT }, skip: !open }
   );
 
-  const { data: accessesData } = useQuery<SellerAccessesData>(SELLER_ACCESSES_QUERY, {
-    variables: { input: LIST_INPUT },
-    skip: !open,
-  });
+  const { data: accessesData } = useQuery<SellerAccessesData>(
+    SELLER_ACCESSES_QUERY,
+    {
+      variables: { input: LIST_INPUT },
+      skip: !open,
+    }
+  );
 
   // Apenas vendedores ativos
   const sellerOptions = useMemo(
@@ -85,7 +76,10 @@ export function AddAccessModal() {
   const factoryOptions = useMemo(
     () =>
       factoriesData?.company_factories_options?.edges
-        ?.filter(({ node }) => node.factory !== null && !linkedFactoryIds.has(node.factoryId))
+        ?.filter(
+          ({ node }) =>
+            node.factory !== null && !linkedFactoryIds.has(node.factoryId)
+        )
         .map(({ node }) => ({
           label: node.factory!.nomeFantasia ?? node.factory!.razaoSocial,
           value: node.factoryId,
@@ -152,7 +146,8 @@ export function AddAccessModal() {
 
         if (!res.data?.createSellerFactoryAccess?.status) {
           throw new Error(
-            res.data?.createSellerFactoryAccess?.message ?? "Erro ao criar vínculo"
+            res.data?.createSellerFactoryAccess?.message ??
+              "Erro ao criar vínculo"
           );
         }
 
@@ -171,7 +166,13 @@ export function AddAccessModal() {
   };
 
   return (
-    <Modal.Root open={open} onOpenChange={(v) => { setOpen(v); if (!v) setSelectedSellerId(null); }}>
+    <Modal.Root
+      open={open}
+      onOpenChange={(v) => {
+        setOpen(v);
+        if (!v) setSelectedSellerId(null);
+      }}
+    >
       <Modal.Trigger asChild>
         <Button.Root appearance="solid" color="amber" size="md">
           <Button.Icon icon={Plus} />

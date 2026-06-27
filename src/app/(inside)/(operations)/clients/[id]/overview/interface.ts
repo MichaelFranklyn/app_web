@@ -4,7 +4,6 @@ import {
   ClientDetailQueryResponse,
   CreateSellerClientFactoryResponse,
   SellerClientFactoriesQueryResponse,
-  SellerClientFactory,
   UpdateAddressResponse,
   UpdateClientNotesResponse,
   UpdateSellerClientFactoryResponse,
@@ -12,7 +11,6 @@ import {
 
 // Type aliases for overview context clarity
 export type ClientData = ClientDetail;
-export type SellerClientFactoryNode = SellerClientFactory;
 
 // Re-export parent types
 export type {

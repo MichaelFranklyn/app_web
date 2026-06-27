@@ -9,7 +9,7 @@ import { Table } from "@/components/Table";
 import { formatDateDMY, formatMoney } from "@/utils/format/masks";
 import { Receipt } from "lucide-react";
 import { Order } from "../../interface";
-import { clientName, factoryName } from "../../utils";
+import { clientName, factoryName } from "@/utils/company";
 
 interface Props {
   items: Order[];

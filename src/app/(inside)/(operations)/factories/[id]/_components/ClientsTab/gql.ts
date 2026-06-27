@@ -51,3 +51,21 @@ export interface FactoryClientLinksData {
     totalCount: number;
   };
 }
+
+// Níveis de preço da fábrica — compartilhado por LinkClientModal e EditClientLinkModal.
+export const PRICE_TIERS_FOR_LINK_QUERY = gql`
+  query PriceTiersForFactoryLink($input: BaseListInput!) {
+    priceTiers(input: $input) {
+      edges {
+        node {
+          id
+          name
+        }
+      }
+    }
+  }
+`;
+
+export interface TiersData {
+  priceTiers: { edges: { node: { id: string; name: string } }[] };
+}

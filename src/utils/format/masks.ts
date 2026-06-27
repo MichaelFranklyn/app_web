@@ -19,10 +19,6 @@ export const maskCNPJ = (value: string): string => {
     .replace(/(\d{4})(\d{1,2})$/, "$1-$2");
 };
 
-export const revertMaskCNPJ = (value: string): string => {
-  return onlyDigits(value).slice(0, 14);
-};
-
 // Mascara telefone: (00) 00000-0000
 export const maskPhoneBR = (value: string): string => {
   const digits = onlyDigits(value).slice(0, 11);
@@ -63,6 +59,14 @@ export const formatNumber = (value: number): string => {
   if (!isFinite(value)) return "";
   return new Intl.NumberFormat("pt-BR").format(value);
 };
+
+// Formata um valor com 2 casas decimais, sem símbolo de moeda (ex.: "1.234,56").
+// Usado em tabelas que prefixam o "R$" no JSX.
+export const formatAmount = (value: number | string): string =>
+  Number(value).toLocaleString("pt-BR", {
+    minimumFractionDigits: 2,
+    maximumFractionDigits: 2,
+  });
 
 // Mascara CEP: 00000-000
 export const maskCEP = (value: string): string => {

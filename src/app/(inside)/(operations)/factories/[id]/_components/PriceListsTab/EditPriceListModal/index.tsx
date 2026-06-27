@@ -13,6 +13,7 @@ import { useMutation } from "@apollo/client/react";
 import { Pencil } from "lucide-react";
 import { useMemo, useRef, useState } from "react";
 import { UPDATE_FACTORY_PRICE_LIST_MUTATION } from "../gql";
+import { extractSelectValue } from "@/utils/form";
 
 interface PriceListNode {
   __typename?: "FactoryPriceListType";
@@ -45,11 +46,6 @@ const ACTIVE_OPTIONS = [
   { value: "true", label: "Ativa" },
   { value: "false", label: "Inativa" },
 ];
-
-const extractValue = (raw: unknown): string =>
-  raw && typeof raw === "object" && "value" in raw
-    ? String((raw as { value: string }).value)
-    : String(raw ?? "");
 
 export function EditPriceListModal({
   priceList,
@@ -146,7 +142,7 @@ export function EditPriceListModal({
     if (validUntil !== toIsoDate(priceList.validUntil))
       input.validUntil = validUntil || null;
 
-    const isActive = extractValue(data.isActive) === "true";
+    const isActive = extractSelectValue(data.isActive) === "true";
     if (isActive !== priceList.isActive) input.isActive = isActive;
 
     if (Object.keys(input).length === 0) {
@@ -166,9 +162,7 @@ export function EditPriceListModal({
           ? (input.validUntil as string | null)
           : priceList.validUntil,
       isActive:
-        "isActive" in input
-          ? (input.isActive as boolean)
-          : priceList.isActive,
+        "isActive" in input ? (input.isActive as boolean) : priceList.isActive,
     });
 
     await execute(

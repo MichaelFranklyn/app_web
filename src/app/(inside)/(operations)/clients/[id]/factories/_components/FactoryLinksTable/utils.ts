@@ -1,18 +1,8 @@
-export const factoryName = (
-  factory?: { nomeFantasia?: string | null; razaoSocial?: string | null } | null
-): string => {
-  if (!factory) return "—";
-  return factory.nomeFantasia ?? factory.razaoSocial ?? "—";
-};
-
-export const formatDate = (date?: string | null): string => {
-  if (!date) return "—";
-  try {
-    return new Date(date).toLocaleDateString("pt-BR");
-  } catch {
-    return "—";
-  }
-};
+export const PRIORITY_OPTIONS = [
+  { value: "high", label: "Alta" },
+  { value: "medium", label: "Média" },
+  { value: "low", label: "Baixa" },
+];
 
 export const priorityColor = (
   priority?: string | null

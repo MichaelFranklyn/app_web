@@ -18,7 +18,8 @@ import {
   FactoryClientLinksData,
 } from "./gql";
 import { LinkClientModal } from "./LinkClientModal";
-import { clientName, priorityMeta } from "./utils";
+import { priorityMeta } from "./utils";
+import { clientName } from "@/utils/company";
 
 interface Props {
   factoryId: string;
@@ -100,9 +101,7 @@ export function ClientsTab({ factoryId, companyFactoryId }: Props) {
                   <EmptyState.Icon>
                     <Users size={32} />
                   </EmptyState.Icon>
-                  <EmptyState.Title>
-                    Nenhum cliente vinculado
-                  </EmptyState.Title>
+                  <EmptyState.Title>Nenhum cliente vinculado</EmptyState.Title>
                   <EmptyState.Description>
                     Use &quot;Vincular cliente&quot; para conectar um cliente da
                     sua carteira a esta fábrica.

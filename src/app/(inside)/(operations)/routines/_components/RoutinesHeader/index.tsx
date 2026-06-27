@@ -6,9 +6,9 @@ import { SelectOption } from "@/components/Input/InputSelect";
 import { PanelHeader } from "@/components/PanelHeader";
 import { CalendarDays, ChevronLeft, ChevronRight } from "lucide-react";
 import { RoutineSellerOption, VisitScheduleSeller } from "../../interface";
+import { getCurrentWeekMondayIso } from "@/utils/format/date";
 import {
   formatWeekRange,
-  getCurrentWeekMondayIso,
   getIsoWeekNumber,
   getWeekMondayIsoFromDate,
   isoToLocalDate,
@@ -43,8 +43,7 @@ export function RoutinesHeader({
   const description = `Semana ${weekNumber} · ${formatWeekRange(weekStart)}`;
   const isCurrentWeek = weekStart === getCurrentWeekMondayIso();
   const canSelectSeller = Boolean(sellers);
-  const sellerName =
-    selectedSellerName ?? seller?.user?.name ?? null;
+  const sellerName = selectedSellerName ?? seller?.user?.name ?? null;
 
   const sellerOptions: SelectOption[] = (sellers ?? []).map((s) => ({
     value: s.id,
@@ -60,9 +59,7 @@ export function RoutinesHeader({
           <PanelHeader.Eyebrow>
             07 — Rotina{sellerName ? ` · ${sellerName}` : ""}
           </PanelHeader.Eyebrow>
-          <PanelHeader.Title>
-            Rotina da Semana
-          </PanelHeader.Title>
+          <PanelHeader.Title>Rotina da Semana</PanelHeader.Title>
           <PanelHeader.Description>{description}</PanelHeader.Description>
           <PanelHeader.Actions className="mt-6">
             {canSelectSeller && (

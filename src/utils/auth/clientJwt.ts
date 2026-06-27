@@ -27,15 +27,3 @@ export const getDecodedToken = () => {
   if (!token) return null;
   return parseJwt(token);
 };
-
-export const checkPermission = (role: string) => {
-  const decoded = getDecodedToken();
-  if (!decoded) return false;
-  return decoded["/"] === role;
-};
-
-export const getClientUserPermission = () => {
-  const decoded = getDecodedToken();
-  if (!decoded) return null;
-  return decoded["/"];
-};

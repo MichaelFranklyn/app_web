@@ -1,6 +1,13 @@
-import { ColumnChoice, parseNumber, valueForChoice } from "../../_import/columns";
-import { SheetData } from "../../_import/reader";
-import { isMappingComplete, MappingState } from "../../ProductsTab/ImportProductsModal/mapping";
+import {
+  ColumnChoice,
+  parseNumber,
+  valueForChoice,
+} from "@/utils/import/columns";
+import { SheetData } from "@/utils/import/reader";
+import {
+  isMappingComplete,
+  MappingState,
+} from "../../ProductsTab/ImportProductsModal/mapping";
 import { TaxColumn, TierColumn } from "./interface";
 import { isStMvaComplete, StMvaChoices } from "./StMvaFields";
 
@@ -42,14 +49,14 @@ const validTiersOf = (tierColumns: TierColumn[]) =>
 const validTaxesOf = (taxColumns: TaxColumn[]) =>
   taxColumns.filter((t) => t.columnIndex !== null && t.taxName.trim() !== "");
 
-export const hasConfiguredTaxes = (args: Pick<BuildArgs, "taxColumns" | "stMva">): boolean =>
+export const hasConfiguredTaxes = (
+  args: Pick<BuildArgs, "taxColumns" | "stMva">
+): boolean =>
   validTaxesOf(args.taxColumns).length > 0 || isStMvaComplete(args.stMva);
 
 /** Pré-condições para habilitar a importação. */
 export const canImport = (args: BuildArgs): boolean =>
-  args.listName.trim() !== "" &&
-  args.validFrom !== "" &&
-  canSaveTemplate(args);
+  args.listName.trim() !== "" && args.validFrom !== "" && canSaveTemplate(args);
 
 /**
  * Pré-condições para salvar o modelo (mapeamento) da fábrica. NÃO exige
@@ -81,7 +88,13 @@ const buildRowTaxes = (
     const icmsCreditRate = parseNumber(valueForChoice(stMva.icmsCredit, cells));
     const internalRate = parseNumber(valueForChoice(stMva.internalRate, cells));
     if ([mva, icmsCreditRate, internalRate].every(Number.isFinite)) {
-      taxes.push({ name: "ST", calcType: "ST_MVA", mva, icmsCreditRate, internalRate });
+      taxes.push({
+        name: "ST",
+        calcType: "ST_MVA",
+        mva,
+        icmsCreditRate,
+        internalRate,
+      });
     }
   }
 
@@ -103,7 +116,8 @@ interface ImportRowPayload {
  */
 // Produto de verdade tem código E descrição. Sem isso é lixo (título, total,
 // observação no meio dos dados) e fica de fora.
-const hasIdentity = (row: ImportRowPayload): boolean => row.sku !== "" && row.name !== "";
+const hasIdentity = (row: ImportRowPayload): boolean =>
+  row.sku !== "" && row.name !== "";
 
 // Múltiplo/embalagem ausente NÃO descarta o produto: alguns setores da planilha
 // (ex.: calçados) não trazem múltiplo. Assume 1 e marca para revisão posterior.
@@ -123,12 +137,17 @@ export const buildImportInput = (args: BuildArgs) => {
       }))
       .filter((p) => Number.isFinite(p.unitPrice));
 
-    const ipiRaw = importIpi ? parseNumber(valueForChoice(ipiChoice, cells)) : NaN;
+    const ipiRaw = importIpi
+      ? parseNumber(valueForChoice(ipiChoice, cells))
+      : NaN;
     const ncm = valueForChoice(ncmChoice, cells).trim();
     // Vazios viram null — o backend aplica os padrões (Geral / Unidade).
     const category = valueForChoice(mapping.category, cells).trim();
     const unit = sub(valueForChoice(mapping.unit, cells).trim(), unitRecon);
-    const unitLabel = sub(valueForChoice(mapping.unitLabel, cells).trim(), labelRecon);
+    const unitLabel = sub(
+      valueForChoice(mapping.unitLabel, cells).trim(),
+      labelRecon
+    );
 
     return {
       sku: valueForChoice(mapping.sku, cells).trim(),

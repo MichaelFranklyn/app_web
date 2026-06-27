@@ -1,11 +1,9 @@
 "use client";
 
 import { Button } from "@/components/Button";
-import { Modal } from "@/components/Modal";
-import { useAsyncAction } from "@/hooks/useAsyncAction";
+import { ConfirmModal } from "@/components/ConfirmModal";
 import { useMutation } from "@apollo/client/react";
 import { Trash2 } from "lucide-react";
-import { useState } from "react";
 import { DELETE_SELLER_CLIENT_FACTORY_MUTATION } from "./gql";
 
 interface DeleteSellerClientFactoryResponse {
@@ -33,43 +31,13 @@ export function DeleteFactoryLinkModal({
   onCommit,
   onRollback,
 }: Props) {
-  const [open, setOpen] = useState(false);
   const [deleteLink] = useMutation<DeleteSellerClientFactoryResponse>(
     DELETE_SELLER_CLIENT_FACTORY_MUTATION
   );
-  const { execute, isLoading } = useAsyncAction();
-
-  const handleConfirm = async () => {
-    setOpen(false);
-    onRemoveOptimistic(linkId);
-
-    await execute(
-      async () => {
-        const res = await deleteLink({ variables: { id: linkId } });
-        if (!res.data?.deleteSellerClientFactory?.status) {
-          throw new Error(
-            res.data?.deleteSellerClientFactory?.message ??
-              "Erro ao remover vínculo"
-          );
-        }
-        return res.data.deleteSellerClientFactory;
-      },
-      {
-        successMessage: "Vínculo removido",
-        onSuccess: () => {
-          onCommit();
-          onRemoved();
-        },
-        onError: () => {
-          onRollback();
-        },
-      }
-    );
-  };
 
   return (
-    <Modal.Root open={open} onOpenChange={setOpen}>
-      <Modal.Trigger asChild>
+    <ConfirmModal
+      trigger={
         <Button.Root
           appearance="ghost"
           color="red"
@@ -78,39 +46,26 @@ export function DeleteFactoryLinkModal({
         >
           <Button.Icon icon={Trash2} />
         </Button.Root>
-      </Modal.Trigger>
-
-      <Modal.Content size="md">
-        <Modal.Header
-          title="Remover vínculo"
-          description={`Remover o vínculo com a fábrica "${factoryName}"? Esta ação não pode ser desfeita.`}
-        />
-        <Modal.Footer>
-          <Modal.Close asChild>
-            <Button.Root
-              type="button"
-              appearance="ghost"
-              color="neutral"
-              size="md"
-              noUppercase
-              disabled={isLoading}
-            >
-              <Button.Title>Cancelar</Button.Title>
-            </Button.Root>
-          </Modal.Close>
-          <Button.Root
-            type="button"
-            appearance="solid"
-            color="red"
-            size="md"
-            noUppercase
-            loading={isLoading}
-            onClick={handleConfirm}
-          >
-            <Button.Title>Remover</Button.Title>
-          </Button.Root>
-        </Modal.Footer>
-      </Modal.Content>
-    </Modal.Root>
+      }
+      title="Remover vínculo"
+      description={`Remover o vínculo com a fábrica "${factoryName}"? Esta ação não pode ser desfeita.`}
+      confirmLabel="Remover"
+      successMessage="Vínculo removido"
+      onBeforeConfirm={() => onRemoveOptimistic(linkId)}
+      onConfirm={async () => {
+        const res = await deleteLink({ variables: { id: linkId } });
+        if (!res.data?.deleteSellerClientFactory?.status) {
+          throw new Error(
+            res.data?.deleteSellerClientFactory?.message ??
+              "Erro ao remover vínculo"
+          );
+        }
+      }}
+      onSuccess={() => {
+        onCommit();
+        onRemoved();
+      }}
+      onError={onRollback}
+    />
   );
 }

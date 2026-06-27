@@ -4,11 +4,14 @@ import { EmptyState } from "@/components/EmptyState";
 import { HelpTooltip } from "@/components/HelpTooltip";
 import { Table } from "@/components/Table";
 import { Title } from "@/components/Title";
+import { useOptimisticList } from "@/hooks/useOptimisticList";
 import { useQuery } from "@apollo/client/react";
 import { Tag } from "lucide-react";
+import { useMemo } from "react";
 import { AddCategoryModal } from "./AddCategoryModal";
 import { DeleteCategoryModal } from "./DeleteCategoryModal";
 import { EditCategoryModal } from "./EditCategoryModal";
+import { ProductCategoryRow } from "./gql";
 import {
   buildCategoriesVariables,
   PRODUCT_CATEGORIES_QUERY,
@@ -16,12 +19,20 @@ import {
 } from "./gql";
 
 export function CategoriesSection() {
-  const { data, loading } = useQuery<ProductCategoriesData>(
+  const { data, loading, refetch } = useQuery<ProductCategoriesData>(
     PRODUCT_CATEGORIES_QUERY,
     { variables: buildCategoriesVariables() }
   );
 
-  const categories = data?.product_categories?.edges.map((e) => e.node) ?? [];
+  const initial = useMemo<ProductCategoryRow[]>(
+    () => data?.product_categories?.edges.map((e) => e.node) ?? [],
+    [data]
+  );
+  const optimistic = useOptimisticList<ProductCategoryRow>({
+    initialData: initial,
+  });
+  const categories = optimistic.items;
+  const onChanged = () => refetch();
 
   return (
     <Table.Root>
@@ -64,7 +75,10 @@ export function CategoriesSection() {
           />
         </Table.CardHead.Title>
         <Table.CardHead.Actions>
-          <AddCategoryModal />
+          <AddCategoryModal
+            onAddOptimistic={optimistic.addOptimistic}
+            onChanged={onChanged}
+          />
         </Table.CardHead.Actions>
       </Table.CardHead>
 
@@ -103,10 +117,20 @@ export function CategoriesSection() {
                 <Table.Cell variant="dim">{c.segment}</Table.Cell>
                 <Table.Cell>
                   <div className="flex items-center justify-end gap-4">
-                    <EditCategoryModal category={c} />
+                    <EditCategoryModal
+                      category={c}
+                      onUpdateOptimistic={optimistic.updateOptimistic}
+                      onCommit={optimistic.commit}
+                      onRollback={optimistic.rollback}
+                      onChanged={onChanged}
+                    />
                     <DeleteCategoryModal
                       categoryId={c.id}
                       categoryName={c.name}
+                      onRemoveOptimistic={optimistic.removeOptimistic}
+                      onCommit={optimistic.commit}
+                      onRollback={optimistic.rollback}
+                      onChanged={onChanged}
                     />
                   </div>
                 </Table.Cell>

@@ -14,7 +14,7 @@ export const ORDER_DETAIL_QUERY = gql`
         status
         freightType
         fileUrl
-        fileParsed
+        isFileParsed
         notes
         createdAt
         seller {

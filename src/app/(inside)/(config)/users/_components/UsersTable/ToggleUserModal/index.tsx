@@ -4,21 +4,12 @@ import { Button } from "@/components/Button";
 import { Modal } from "@/components/Modal";
 import { useAsyncAction } from "@/hooks/useAsyncAction";
 import { useInvalidateQueriesClient } from "@/hooks/useInvalidateQueries";
-import { gql } from "@apollo/client";
 import { useMutation } from "@apollo/client/react";
+import { TOGGLE_USER_MUTATION } from "./gql";
 
 interface ToggleUserResponse {
   updateUser: { status: boolean; message: string };
 }
-
-const TOGGLE_USER_MUTATION = gql`
-  mutation ToggleUser($id: UUID!, $input: UpdateUserInput!) {
-    updateUser(id: $id, input: $input) {
-      status
-      message
-    }
-  }
-`;
 
 interface ToggleUserModalProps {
   id: string;
@@ -55,13 +46,17 @@ export function ToggleUserModal({
         });
 
         if (!res.data?.updateUser?.status) {
-          throw new Error(res.data?.updateUser?.message ?? "Erro ao atualizar usuário");
+          throw new Error(
+            res.data?.updateUser?.message ?? "Erro ao atualizar usuário"
+          );
         }
 
         return res.data.updateUser;
       },
       {
-        successMessage: isActive ? "Usuário desativado com sucesso" : "Usuário ativado com sucesso",
+        successMessage: isActive
+          ? "Usuário desativado com sucesso"
+          : "Usuário ativado com sucesso",
         onSuccess: async () => {
           onCommit();
           onOpenChange(false);

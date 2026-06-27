@@ -35,13 +35,6 @@ export const buildFactoryPriceListsVariables = (companyFactoryId: string) => ({
   },
 });
 
-export const factoryPriceListsRefetchQueries = (companyFactoryId: string) => [
-  {
-    query: FACTORY_PRICE_LISTS_QUERY,
-    variables: buildFactoryPriceListsVariables(companyFactoryId),
-  },
-];
-
 export interface FactoryPriceListNode {
   __typename?: "FactoryPriceListType";
   id: string;

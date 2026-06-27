@@ -9,8 +9,6 @@ export const buildKpis = (stats: SellersStats): KpiItem[] => {
     inactiveFactoryAccessCount,
   } = stats;
 
-  console.log("Stats recebidos para construção dos KPIs:", stats);
-
   return [
     {
       label: "Vendedores ativos",

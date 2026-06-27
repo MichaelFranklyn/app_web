@@ -1,9 +1,4 @@
-export interface ProductCategoryRow {
-  __typename?: "ProductCategoryType";
-  id: string;
-  name: string;
-  segment: string;
-}
+import { ProductCategoryRow } from "../gql";
 
 export interface CreateProductCategoryResponse {
   createProductCategory: {

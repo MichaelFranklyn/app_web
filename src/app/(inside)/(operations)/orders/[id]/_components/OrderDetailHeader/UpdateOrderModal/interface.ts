@@ -18,7 +18,7 @@ export interface UpdateOrderResponse {
       freightType: string | null;
       notes: string | null;
       fileUrl: string | null;
-      fileParsed: boolean;
+      isFileParsed: boolean;
     } | null;
   };
 }

@@ -7,9 +7,10 @@ import { useAsyncAction } from "@/hooks/useAsyncAction";
 import { useInvalidateQueriesClient } from "@/hooks/useInvalidateQueries";
 import { useMutation } from "@apollo/client/react";
 import { useRef } from "react";
+import { UPDATE_SELLER_MUTATION } from "../../../../gql";
+import { UpdateSellerInput } from "../../../../interface";
+import { FORM_STEPS, normalizeInput } from "../../../../utils";
 import { Seller } from "../interface";
-import { UPDATE_SELLER_MUTATION } from "./gql";
-import { FORM_STEPS, UpdateSellerInput, normalizeInput } from "./utils";
 
 interface UpdateSellerResult {
   id: string;
@@ -46,7 +47,9 @@ export function UpdateSellerModal({
 }: UpdateSellerModalProps) {
   const formRef = useRef<FormBuilderRef>(null);
   const invalidateClient = useInvalidateQueriesClient();
-  const [updateSeller] = useMutation<UpdateSellerResponse>(UPDATE_SELLER_MUTATION);
+  const [updateSeller] = useMutation<UpdateSellerResponse>(
+    UPDATE_SELLER_MUTATION
+  );
   const { execute, isLoading } = useAsyncAction();
 
   const handleSubmit = async (data: Record<string, unknown>) => {
@@ -59,7 +62,9 @@ export function UpdateSellerModal({
         const res = await updateSeller({ variables: { id: seller.id, input } });
 
         if (!res.data?.updateSeller?.status || !res.data.updateSeller.data) {
-          throw new Error(res.data?.updateSeller?.message ?? "Erro ao atualizar vendedor");
+          throw new Error(
+            res.data?.updateSeller?.message ?? "Erro ao atualizar vendedor"
+          );
         }
 
         return res.data.updateSeller.data;

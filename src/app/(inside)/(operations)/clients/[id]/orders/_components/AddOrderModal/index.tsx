@@ -17,6 +17,7 @@ import {
   CLIENT_ASSIGNMENTS_QUERY,
   CREATE_ORDER_FROM_CLIENT_MUTATION,
 } from "./gql";
+import { extractSelectValue } from "@/utils/form";
 
 interface AssignmentsData {
   sellerClientFactoryList: {
@@ -37,15 +38,12 @@ interface AssignmentsData {
 }
 
 interface CreateOrderResponse {
-  createOrder: { status: boolean; message: string; data: { id: string } | null };
+  createOrder: {
+    status: boolean;
+    message: string;
+    data: { id: string } | null;
+  };
 }
-
-const extractSelectValue = (val: unknown): string => {
-  if (val && typeof val === "object" && "value" in val) {
-    return String((val as { value: string }).value);
-  }
-  return String(val ?? "");
-};
 
 interface Props {
   clientId: string;
