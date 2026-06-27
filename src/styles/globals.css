@@ -1,5 +1,7 @@
 /* src/styles/globals.css */
-@import url("https://fonts.googleapis.com/css2?family=Raleway:wght@400;500;600;700;800&family=Hanken+Grotesk:wght@400;500;600;700;800&display=swap");
+/* Título: Zilla Slab (slab serif, com personalidade). Corpo/UI: Hanken Grotesk (legível).
+   Para trocar o título, ajuste "Zilla+Slab"/"Zilla Slab" no @import e em --font-head. */
+@import url("https://fonts.googleapis.com/css2?family=Zilla+Slab:wght@400;500;600;700&family=Hanken+Grotesk:wght@400;500;600;700;800&display=swap");
 @import "tailwindcss";
 
 @theme {
@@ -75,7 +77,7 @@
   --mod-intel: #be185d;
 
   /* Typography */
-  --font-head: "Raleway", sans-serif;
+  --font-head: "Zilla Slab", serif;
   /* Fonte de corpo/UI do sistema. (Mantém o nome --font-mono por compatibilidade
      com as classes font-mono já usadas; o valor agora é uma sans-serif legível.) */
   --font-mono: "Hanken Grotesk", sans-serif;
