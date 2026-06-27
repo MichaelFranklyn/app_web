@@ -50,7 +50,7 @@ export default function LoginContent() {
         return result.data;
       },
       {
-        successMessage: "Acesso autorizado. Bem-vindo ao RepCom.",
+        successMessage: "Acesso autorizado. Bem-vindo ao Girus.",
         onSuccess(resultData) {
           setCookie("token", resultData.accessToken, { expires });
           setCookie("refresh_token", resultData.refreshToken, { expires });
