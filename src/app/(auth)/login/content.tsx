@@ -92,10 +92,14 @@ export default function LoginContent() {
             className="h-auto w-60"
           />
 
-          <Title variant="heading-lg" weight="extrabold" className="uppercase">
+          <Title
+            variant="heading-lg"
+            weight="extrabold"
+            className="text-[32px]! uppercase"
+          >
             Representação comercial
             <br />
-            inteligente
+            <span className="text-(--amber)">inteligente</span>
           </Title>
 
           <Title variant="caption" color="muted" className="leading-[1.6]!">
