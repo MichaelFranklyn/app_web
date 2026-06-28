@@ -95,7 +95,7 @@ export default function LoginContent() {
           <Title
             variant="heading-lg"
             weight="extrabold"
-            className="text-[32px]! uppercase"
+            className="pt-8 text-[32px]! uppercase"
           >
             Representação comercial
             <br />
