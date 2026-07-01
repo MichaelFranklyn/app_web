@@ -15,7 +15,7 @@ export default function SettingsLayout({
       <SettingsHeader />
 
       <div>
-        <Tabs.NavList>
+        <Tabs.NavList data-tour="settings-tabs">
           <Tabs.NavItem href="/settings/catalog">
             Catálogos da empresa
           </Tabs.NavItem>

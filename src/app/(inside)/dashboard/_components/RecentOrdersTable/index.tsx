@@ -4,7 +4,7 @@ import { Badge } from "@/components/Badges";
 import { Button } from "@/components/Button";
 import { EmptyState } from "@/components/EmptyState";
 import { Table } from "@/components/Table";
-import { Receipt } from "lucide-react";
+import { ArrowRight, Receipt } from "lucide-react";
 import { useNavigation } from "@/hooks/useNavigation";
 import { formatMoney } from "@/utils/format/masks";
 import { DashboardOrder } from "../../interface";
@@ -37,7 +37,8 @@ export function RecentOrdersTable({ orders }: Props) {
             disabled={isPending}
             onClick={() => navigateTo("/orders")}
           >
-            <Button.Title>Ver todos →</Button.Title>
+            <Button.Title>Ver todos</Button.Title>
+            <Button.Icon icon={ArrowRight} />
           </Button.Root>
         </Table.CardHead.Actions>
       </Table.CardHead>

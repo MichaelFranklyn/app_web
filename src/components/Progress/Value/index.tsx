@@ -11,10 +11,7 @@ export const Value = React.forwardRef<HTMLSpanElement, ProgressValueProps>(
   ({ color, className, style, ...props }, ref) => (
     <span
       ref={ref}
-      className={cn(
-        "font-head text-[12px] font-bold",
-        className
-      )}
+      className={cn("font-head text-[13px] font-bold", className)}
       style={{
         color: color ? PROGRESS_COLOR_TOKENS[color] : "var(--text)",
         ...style,

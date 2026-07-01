@@ -4,7 +4,7 @@ import { Alert } from "@/components/Alert";
 import { Button } from "@/components/Button";
 import { FormBuilder } from "@/components/FormBuilder";
 import { Modal } from "@/components/Modal";
-import { Info, Plus } from "lucide-react";
+import { ArrowLeft, ArrowRight, Info, Plus } from "lucide-react";
 
 import { AddSellerModalProps, useAddSeller } from "./useAddSeller";
 
@@ -84,7 +84,8 @@ export function AddSellerModal(props: AddSellerModalProps) {
               disabled={isLoading}
               onClick={handlePrev}
             >
-              <Button.Title>← Voltar</Button.Title>
+              <Button.Icon icon={ArrowLeft} />
+              <Button.Title>Voltar</Button.Title>
             </Button.Root>
           )}
 
@@ -110,7 +111,8 @@ export function AddSellerModal(props: AddSellerModalProps) {
               disabled={isLoading}
               onClick={handleNext}
             >
-              <Button.Title>Próximo →</Button.Title>
+              <Button.Title>Próximo</Button.Title>
+              <Button.Icon icon={ArrowRight} />
             </Button.Root>
           )}
         </Modal.Footer>

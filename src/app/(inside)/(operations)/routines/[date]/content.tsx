@@ -1,40 +1,86 @@
 "use client";
 
+import { Button } from "@/components/Button";
 import { EmptyState } from "@/components/EmptyState";
 import { PageContent } from "@/components/PageContent";
-import { useQuery } from "@apollo/client/react";
-import { CalendarOff, ChevronLeft, ChevronRight } from "lucide-react";
+import { useAsyncAction } from "@/hooks/useAsyncAction";
+import { useMutation, useQuery } from "@apollo/client/react";
+import {
+  CalendarOff,
+  CalendarPlus,
+  ChevronLeft,
+  ChevronRight,
+} from "lucide-react";
 import Link from "next/link";
 import { useMemo } from "react";
-import { RouteMapPlaceholder } from "./_components/RouteMapPlaceholder";
+import { useUserRole } from "@/services/flowTour/useUserRole";
+import { RouteMap } from "./_components/RouteMap";
 import { RouteStopsCard } from "./_components/RouteStopsCard";
 import { RouteSummary } from "./_components/RouteSummary";
 import { VisitsHeader } from "./_components/VisitsHeader";
 import { VisitsSkeleton } from "./_components/VisitsSkeleton";
+import { GENERATE_DAY_ROUTE_MUTATION } from "../gql";
 import { WEEK_SCHEDULE_QUERY } from "./gql";
 import { VisitsWeekScheduleResponse } from "./interface";
+
+interface GenerateDayRouteResponse {
+  generateDayRoute?: {
+    status: boolean;
+    message: string;
+    data?: { id: string } | null;
+  };
+}
 import { formatDateLong, getWeekMondayIso, shiftDateIso } from "./utils";
 
 interface Props {
   date: string;
-  seller: string | null;
 }
 
-export default function DayRouteContent({ date, seller }: Props) {
+export default function DayRouteContent({ date }: Props) {
   const weekStart = useMemo(() => getWeekMondayIso(date), [date]);
 
-  const filters = useMemo(() => {
-    const base = [{ field: "week_start", operator: "eq", value: weekStart }];
-    if (seller) {
-      base.push({ field: "seller_id", operator: "eq", value: seller });
-    }
-    return base;
-  }, [weekStart, seller]);
+  // Só o vendedor gera a própria rota; owner/admin apenas visualizam.
+  const canGenerate = useUserRole() === "SELLER";
+
+  // A rota do dia mostra sempre a rotina do próprio usuário logado. A sentinela
+  // seller_id="me" faz o backend escopar ao vendedor logado em qualquer papel.
+  const filters = useMemo(
+    () => [
+      { field: "week_start", operator: "eq", value: weekStart },
+      { field: "seller_id", operator: "eq", value: "me" },
+    ],
+    [weekStart]
+  );
 
   const { data, loading, refetch } = useQuery<VisitsWeekScheduleResponse>(
     WEEK_SCHEDULE_QUERY,
     { variables: { input: { first: 1, filters } } }
   );
+
+  const [generateDayRoute] = useMutation<GenerateDayRouteResponse>(
+    GENERATE_DAY_ROUTE_MUTATION
+  );
+  const { execute: generateRoute, isLoading: isGenerating } = useAsyncAction();
+
+  // Gera a rota do dia quando ele ainda não tem rota planejada. Sem sellerId: o
+  // backend resolve para o próprio usuário logado (mesma regra do escopo "me").
+  const handleGenerateDay = () =>
+    generateRoute(
+      async () => {
+        const res = await generateDayRoute({
+          variables: { input: { date } },
+        });
+        const payload = res.data?.generateDayRoute;
+        if (!payload?.status) {
+          throw new Error(payload?.message ?? "Erro ao gerar a rota do dia");
+        }
+        return payload;
+      },
+      {
+        successMessage: "Rota do dia gerada",
+        onSuccess: () => refetch(),
+      }
+    );
 
   const schedule = data?.week_schedule.edges[0]?.node;
   const day = schedule?.days.find((d) => d.date === date);
@@ -44,9 +90,8 @@ export default function DayRouteContent({ date, seller }: Props) {
     [day]
   );
 
-  const sellerQuery = seller ? `?seller=${seller}` : "";
-  const prevHref = `/routines/${shiftDateIso(date, -1)}${sellerQuery}`;
-  const nextHref = `/routines/${shiftDateIso(date, 1)}${sellerQuery}`;
+  const prevHref = `/routines/${shiftDateIso(date, -1)}`;
+  const nextHref = `/routines/${shiftDateIso(date, 1)}`;
 
   const controls = (
     <div className="flex items-center justify-between">
@@ -94,9 +139,26 @@ export default function DayRouteContent({ date, seller }: Props) {
           </EmptyState.Icon>
           <EmptyState.Title>Sem rota planejada para este dia</EmptyState.Title>
           <EmptyState.Description>
-            Não há um dia de rotina registrado para {formatDateLong(date)}. Use
-            as setas para navegar entre os dias ou volte para a rotina semanal.
+            Não há um dia de rotina registrado para {formatDateLong(date)}.{" "}
+            {canGenerate
+              ? "Gere uma rota para este dia, use as setas para navegar entre os dias ou volte para a rotina semanal."
+              : "Use as setas para navegar entre os dias ou volte para a rotina semanal."}
           </EmptyState.Description>
+          {canGenerate && (
+            <EmptyState.Actions>
+              <Button.Root
+                appearance="solid"
+                color="amber"
+                size="md"
+                noUppercase
+                loading={isGenerating}
+                onClick={handleGenerateDay}
+              >
+                <Button.Icon icon={CalendarPlus} />
+                <Button.Title>Gerar rota para este dia</Button.Title>
+              </Button.Root>
+            </EmptyState.Actions>
+          )}
         </EmptyState.Root>
       </PageContent>
     );
@@ -110,16 +172,22 @@ export default function DayRouteContent({ date, seller }: Props) {
         sellerName={schedule?.seller?.user?.name ?? null}
       />
 
-      <RouteSummary day={day} />
+      <div data-tour="routine-day-summary">
+        <RouteSummary day={day} />
+      </div>
 
-      <div className="flex gap-20">
+      <div className="desktop:flex-row flex flex-col gap-20">
         <div className="min-w-0 flex-1">
-          <RouteMapPlaceholder
-            stopsCount={sortedStops.length}
+          <RouteMap
+            stops={sortedStops}
             distanceKm={day.routeDistanceKm}
+            departureAddress={day.departureAddress}
           />
         </div>
-        <div className="flex w-[320px] shrink-0 flex-col gap-12">
+        <div
+          className="desktop:w-[320px] flex w-full shrink-0 flex-col gap-12"
+          data-tour="routine-day-stops"
+        >
           <RouteStopsCard
             stops={sortedStops}
             currentDayId={day.id}

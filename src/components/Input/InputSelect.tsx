@@ -390,7 +390,7 @@ const InputSelectControl = ({
               appearance="solid"
               className="h-[22px] shrink-0 px-2 py-0"
             >
-              <Badge.Text className="max-w-[120px] truncate text-[12px] font-medium">
+              <Badge.Text className="max-w-[120px] truncate text-[13px] font-medium">
                 {option.label}
               </Badge.Text>
               <Badge.Icon

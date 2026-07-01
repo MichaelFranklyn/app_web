@@ -18,7 +18,7 @@ export const Label = React.forwardRef<
 >(({ className, ...props }, ref) => (
   <span
     ref={ref}
-    className={cn("text-[12px] text-(--muted)", className)}
+    className={cn("text-[13px] text-(--muted)", className)}
     {...props}
   />
 ));

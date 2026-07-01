@@ -9,7 +9,11 @@ import { UnitsSection } from "./_components/UnitsSection";
 export default function CatalogSettingsContent() {
   return (
     <div className="flex flex-col gap-20">
-      <Grid.Root cols={{ base: 1, desktop: 2 }} gap={16}>
+      <Grid.Root
+        cols={{ base: 1, desktop: 2 }}
+        gap={16}
+        data-tour="settings-catalog-sections"
+      >
         <CategoriesSection />
         <UnitsSection />
         <LabelsSection />

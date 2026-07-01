@@ -8,7 +8,7 @@ export const Description = React.forwardRef<
   <p
     ref={ref}
     className={cn(
-      "max-w-[260px] text-[12px] leading-[1.6] text-(--muted)",
+      "max-w-[260px] text-[13px] leading-[1.6] text-(--muted)",
       className
     )}
     {...props}

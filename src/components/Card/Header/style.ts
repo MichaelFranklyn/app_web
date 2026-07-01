@@ -8,9 +8,15 @@ export const headerStyle = cn(cardHeadStyle, "@container/cardhead");
 
 export const headerBgVariants: Record<CardBg, string> = bgVariants;
 
-export const headerContentStyle = "flex min-w-0 flex-1 flex-col gap-4 truncate";
+// Conteúdo (eyebrow/título/descrição): ocupa a linha inteira quando o header é
+// estreito (título quebra em linhas em vez de virar "..."); divide a linha com
+// as ações a partir de 480px de largura do header.
+export const headerContentStyle =
+  "flex w-full min-w-0 flex-col gap-4 @min-[480px]/cardhead:w-auto @min-[480px]/cardhead:flex-1";
 
-export const headerActionsWrapperStyle = "flex shrink-0 items-center gap-6";
+// Ações: linha própria (full width) no estreito; ao lado do título no largo.
+export const headerActionsWrapperStyle =
+  "flex w-full shrink-0 items-center justify-end gap-6 @min-[480px]/cardhead:w-auto";
 
 // Ponto de corte: abaixo de 480px de largura do header, o texto das ações some
 // e o botão vira icon-only (com tooltip). Compartilhado entre Card.Header.Action

@@ -42,7 +42,7 @@ function CardSkeleton({
  */
 export function ClientDetailSkeleton() {
   return (
-    <div className="flex items-start gap-20">
+    <div className="desktop:flex-row desktop:items-start flex flex-col gap-20">
       <div className="flex min-w-0 flex-1 flex-col gap-16">
         <Card.Root>
           <Card.Header>

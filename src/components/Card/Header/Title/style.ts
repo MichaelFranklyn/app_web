@@ -5,7 +5,7 @@ export const titleStyle = cva(
   {
     variants: {
       size: {
-        xs: "text-[11px]",
+        xs: "text-[13px]",
         sm: "text-[15px]",
         md: "text-[19px]",
         lg: "text-[23px]",

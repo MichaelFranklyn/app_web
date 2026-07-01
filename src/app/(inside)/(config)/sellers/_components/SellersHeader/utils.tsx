@@ -2,12 +2,13 @@ import { KpiItem } from "@/components/Card/Kpi/Root/interface";
 import { SellersStats } from "../../interface";
 
 export const buildKpis = (stats: SellersStats): KpiItem[] => {
+  // Defensivo: se `stats` vier ausente, degrada para zeros sem quebrar a página.
   const {
-    totalCount,
-    activeCount,
-    activeFactoryAccessCount,
-    inactiveFactoryAccessCount,
-  } = stats;
+    totalCount = 0,
+    activeCount = 0,
+    activeFactoryAccessCount = 0,
+    inactiveFactoryAccessCount = 0,
+  } = stats ?? {};
 
   return [
     {

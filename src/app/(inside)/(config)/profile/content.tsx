@@ -45,10 +45,14 @@ export default function ProfileContent() {
     <PageContent>
       <ProfileHeader profile={me} />
 
-      <div className="flex gap-20">
+      <div className="desktop:flex-row flex flex-col gap-20">
         <div className="flex min-w-0 flex-1 flex-col gap-12">
-          <ProfileInfoCard profile={me} onRefetch={refetch} />
-          <PasswordCard />
+          <div data-tour="profile-info">
+            <ProfileInfoCard profile={me} onRefetch={refetch} />
+          </div>
+          <div data-tour="profile-password">
+            <PasswordCard />
+          </div>
         </div>
       </div>
     </PageContent>

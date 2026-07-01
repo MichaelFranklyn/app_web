@@ -99,7 +99,10 @@ export default function RoutinesContent() {
         <>
           <RoutinesSummary days={schedule.days} />
 
-          <div className="flex flex-wrap items-center gap-8">
+          <div
+            className="flex flex-wrap items-center gap-8"
+            data-tour="routines-period"
+          >
             <Title variant="body-xs" color="muted" weight="medium">
               Período:
             </Title>
@@ -123,13 +126,15 @@ export default function RoutinesContent() {
             </div>
           </div>
 
-          <RoutinesWeekGrid
-            weekStart={weekStart}
-            days={schedule.days}
-            sellerId={selectedSellerId}
-            periodDays={periodDays}
-            onChanged={() => refetch()}
-          />
+          <div data-tour="routines-grid">
+            <RoutinesWeekGrid
+              weekStart={weekStart}
+              days={schedule.days}
+              sellerId={selectedSellerId}
+              periodDays={periodDays}
+              onChanged={() => refetch()}
+            />
+          </div>
         </>
       )}
     </PageContent>

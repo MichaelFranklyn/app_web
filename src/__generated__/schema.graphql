@@ -1,6 +1,6 @@
 # AUTO-GERADO por scripts/pull-schema.mjs — NÃO editar à mão.
 # Snapshot do schema do backend (app_user). Atualize com: npm run schema:pull
-# Fonte: 36 arquivos .graphql merge-ados (mesma regra do Ariadne).
+# Fonte: 37 arquivos .graphql merge-ados (mesma regra do Ariadne).
 
 input BaseListInput {
   filters: [FieldFilterInput!] = null
@@ -2109,6 +2109,47 @@ extend type Mutation {
   removeTaxFromProduct(id: UUID!): BaseResponse!
 }
 
+type UserFlowLayoutType {
+  id: UUID!
+  userId: UUID!
+  flowKey: String!
+  status: String!
+  lastStep: Int!
+  version: Int!
+  completedAt: DateTime
+  createdAt: DateTime!
+  updatedAt: DateTime!
+}
+
+type UserFlowLayoutListResponse {
+  status: Boolean!
+  code: Int!
+  message: String!
+  data: [UserFlowLayoutType!]
+}
+
+type UserFlowLayoutTypeDataResponse {
+  status: Boolean!
+  code: Int!
+  message: String!
+  data: UserFlowLayoutType
+}
+
+input UpsertUserFlowLayoutInput {
+  flowKey: String!
+  status: String
+  lastStep: Int
+  version: Int
+}
+
+extend type Query {
+  userFlowLayout: UserFlowLayoutListResponse!
+}
+
+extend type Mutation {
+  upsertUserFlowLayout(input: UpsertUserFlowLayoutInput!): UserFlowLayoutTypeDataResponse!
+}
+
 input CreateUserInput {
     name: String!
     email: String!
@@ -2422,6 +2463,7 @@ input RescheduleVisitInput {
   originalItemId: UUID!
   reason: RescheduleReason!
   targetDayId: UUID = null
+  targetDate: Date = null
   notes: String = null
 }
 
@@ -2533,6 +2575,11 @@ input GenerateWeeklyScheduleInput {
   weekStart: Date!
 }
 
+input GenerateDayRouteInput {
+  date: Date!
+  sellerId: UUID = null
+}
+
 input UpdateVisitScheduleInput {
   status: ScheduleStatus = null
 }
@@ -2544,6 +2591,7 @@ type VisitScheduleType {
   weekStart: Date!
   generatedAt: DateTime!
   status: ScheduleStatus!
+  origin: ScheduleOrigin!
   createdAt: DateTime!
   updatedAt: DateTime!
   seller: SellerType
@@ -2579,10 +2627,16 @@ extend type Mutation {
   updateVisitSchedule(id: UUID!, input: UpdateVisitScheduleInput!): VisitScheduleTypeDataResponse!
   deleteVisitSchedule(id: UUID!): BaseResponse!
   generateWeeklySchedule(input: GenerateWeeklyScheduleInput!): VisitScheduleTypeDataResponse!
+  generateDayRoute(input: GenerateDayRouteInput!): VisitScheduleTypeDataResponse!
 }
 enum ScheduleStatus {
   DRAFT
   CONFIRMED
+}
+
+enum ScheduleOrigin {
+  MANUAL
+  SYSTEM
 }
 
 input UpsertStockObservationInput {

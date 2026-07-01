@@ -26,7 +26,7 @@ export function ResultView({ result }: { result: ImportPriceListResult }) {
             : ""}
         </Title>
       </Card.Root>
-      <div className="grid grid-cols-4 gap-8">
+      <div className="tablet:grid-cols-4 grid grid-cols-2 gap-8">
         <StatCard
           label="Produtos novos"
           value={result.productsCreated}

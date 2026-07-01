@@ -18,10 +18,10 @@ export function DashboardHeader({ range, onRangeChange }: Props) {
           <PanelHeader.Eyebrow>Visão Geral</PanelHeader.Eyebrow>
           <PanelHeader.Title>Dashboard</PanelHeader.Title>
           <PanelHeader.Description>{description}</PanelHeader.Description>
+          <PanelHeader.Actions className="mt-6">
+            <DashboardDateFilter value={range} onChange={onRangeChange} />
+          </PanelHeader.Actions>
         </PanelHeader.Left>
-        <PanelHeader.Actions>
-          <DashboardDateFilter value={range} onChange={onRangeChange} />
-        </PanelHeader.Actions>
       </PanelHeader.Top>
     </PanelHeader.Root>
   );

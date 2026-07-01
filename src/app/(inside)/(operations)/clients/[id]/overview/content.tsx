@@ -71,7 +71,7 @@ export default function OverviewContent() {
       ?.split("T")[0] ?? "—";
 
   return (
-    <div className="flex items-start gap-20">
+    <div className="desktop:flex-row desktop:items-start flex flex-col gap-20">
       <div className="flex min-w-0 flex-1 flex-col gap-16">
         <AddressCard
           clientId={id}
@@ -85,7 +85,7 @@ export default function OverviewContent() {
         <ContactCard clientId={id} />
       </div>
 
-      <div className="flex w-65 shrink-0 flex-col gap-12">
+      <div className="desktop:w-[260px] flex w-full shrink-0 flex-col gap-12">
         <SummaryCard
           lastVisitDate={lastVisitDate}
           cnae={clientView?.cnae ?? "—"}

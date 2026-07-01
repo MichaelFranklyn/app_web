@@ -23,7 +23,7 @@ export function FactoryLinksTable({
   onRollback,
 }: FactoryLinksTableProps) {
   return (
-    <Table.Root>
+    <Table.Root data-tour="client-factories-table">
       <Table.CardHead>
         <Table.CardHead.Title
           size="sm"
@@ -36,7 +36,7 @@ export function FactoryLinksTable({
             content="Fábricas que este cliente compra, com o vendedor responsável, prioridade e frequência de visita. Só aparecem fábricas que o vendedor tem acesso."
           />
         </Table.CardHead.Title>
-        <Table.CardHead.Actions>
+        <Table.CardHead.Actions data-tour="client-factories-actions">
           <LinkFactoryModal clientId={clientId} onSuccess={onChanged} />
         </Table.CardHead.Actions>
       </Table.CardHead>

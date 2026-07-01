@@ -32,13 +32,14 @@ export function ClientsTable() {
   });
 
   return (
-    <Table.Root>
+    <Table.Root data-tour="clients-table">
       <Table.CardHead>
         <Table.CardHead.Title>Carteira de clientes</Table.CardHead.Title>
         <Table.CardHead.Actions>
           <div className="flex items-center gap-8">
             <InputSearch
               placeholder="Buscar por nome..."
+              data-tour="clients-search"
               value={inputValues.search ?? ""}
               onChange={(e) => setFilter("search", e.target.value || undefined)}
             />
@@ -87,9 +88,12 @@ export function ClientsTable() {
               <Table.Row
                 key={node.id}
                 href={`/clients/${node.id}/overview`}
+                data-tour="clients-row"
                 className="group"
               >
-                <Table.Cell>
+                {/* whitespace-nowrap: a coluna não quebra palavra a palavra; como
+                    a tabela já rola na horizontal, o nome fica em uma linha. */}
+                <Table.Cell className="whitespace-nowrap">
                   <div className="flex flex-col gap-2">
                     <Table.CellText variant="strong">
                       {node.razaoSocial}
@@ -108,7 +112,7 @@ export function ClientsTable() {
                   </Badge.Root>
                 </Table.Cell>
 
-                <Table.Cell variant="dim" className="text-xs">
+                <Table.Cell variant="dim" className="text-[13px]">
                   <div className="flex flex-col gap-1">
                     <div className="font-medium">{node.cnae ?? "—"}</div>
                     <div className="line-clamp-2">{node.cnaeDescription}</div>

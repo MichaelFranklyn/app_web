@@ -5,10 +5,12 @@ import { Check } from "lucide-react";
 
 export interface InputCheckboxProps extends React.InputHTMLAttributes<HTMLInputElement> {
   label?: React.ReactNode;
+  /** Cor quando marcado: "amber" (padrão, seleção) ou "green" (sucesso/concluído). */
+  tone?: "amber" | "green";
 }
 
 export const InputCheckbox = forwardRef<HTMLInputElement, InputCheckboxProps>(
-  ({ className, label, id: externalId, ...props }, ref) => {
+  ({ className, label, id: externalId, tone = "amber", ...props }, ref) => {
     const generatedId = useId();
     const id = externalId || generatedId;
 
@@ -21,7 +23,7 @@ export const InputCheckbox = forwardRef<HTMLInputElement, InputCheckboxProps>(
           className={checkStyles.input}
           {...props}
         />
-        <div className={checkStyles.box}>
+        <div className={cn(checkStyles.box, checkStyles.boxTone[tone])}>
           <Check size={10} strokeWidth={4} className={checkStyles.mark} />
         </div>
         {label && <span>{label}</span>}

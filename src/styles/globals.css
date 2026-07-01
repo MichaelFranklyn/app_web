@@ -1,7 +1,7 @@
 /* src/styles/globals.css */
-/* Título: Oswald (condensada, impacto). Corpo/UI: Hanken Grotesk (legível).
+/* Título: Oswald (condensada, impacto). Corpo/UI: Nunito (legível).
    Para trocar o título, ajuste "Oswald" no @import e em --font-head. */
-@import url("https://fonts.googleapis.com/css2?family=Oswald:wght@400;500;600;700&family=Hanken+Grotesk:wght@400;500;600;700;800&display=swap");
+@import url("https://fonts.googleapis.com/css2?family=Oswald:wght@400;500;600;700&family=Nunito:wght@400;500;600;700;800&display=swap");
 @import "tailwindcss";
 
 @theme {
@@ -80,7 +80,7 @@
   --font-head: "Oswald", sans-serif;
   /* Fonte de corpo/UI do sistema. (Mantém o nome --font-mono por compatibilidade
      com as classes font-mono já usadas; o valor agora é uma sans-serif legível.) */
-  --font-mono: "Hanken Grotesk", sans-serif;
+  --font-mono: "Nunito", sans-serif;
 
   --weight-regular: 400;
   --weight-medium: 500;
@@ -88,12 +88,12 @@
   --weight-bold: 700;
   --weight-extrabold: 800;
 
-  /* Radii */
-  --r-xs: 3px;
-  --r-sm: 4px;
-  --r-md: 6px;
-  --r-lg: 8px;
-  --r-xl: 12px;
+  /* Radii — escala mais arredondada (visual moderno). */
+  --r-xs: 4px;
+  --r-sm: 7px;
+  --r-md: 10px;
+  --r-lg: 14px;
+  --r-xl: 18px;
 
   /* Shadows */
   --shadow-sm: 0 1px 3px rgba(0, 0, 0, 0.1);
@@ -121,13 +121,13 @@
   --spacing-48: 48px;
   --spacing-64: 64px;
 
-  /* Radius */
+  /* Radius (espelha a escala --r-*; mantém none/full). */
   --radius-none: 0;
-  --radius-xs: 3px;
-  --radius-sm: 4px;
-  --radius-md: 6px;
-  --radius-lg: 8px;
-  --radius-xl: 12px;
+  --radius-xs: 4px;
+  --radius-sm: 7px;
+  --radius-md: 10px;
+  --radius-lg: 14px;
+  --radius-xl: 18px;
   --radius-full: 50%;
 
   --default-transition-duration: 150ms;
@@ -242,14 +242,14 @@
   .text-caption {
     font-family: var(--font-mono);
     font-weight: var(--weight-regular);
-    font-size: 12px;
+    font-size: 13px;
     color: var(--muted);
   }
 
   .text-label {
     font-family: var(--font-mono);
     font-weight: var(--weight-regular);
-    font-size: 12px;
+    font-size: 13px;
     letter-spacing: 0.12em;
     text-transform: uppercase;
     color: var(--muted2);

@@ -56,7 +56,7 @@ export default function SellerDetailContent({ sellerId }: Props) {
       />
 
       <Tabs.Root defaultValue="visao-geral">
-        <Tabs.List>
+        <Tabs.List data-tour="seller-detail-tabs">
           <Tabs.Item value="visao-geral">Visão Geral</Tabs.Item>
           <Tabs.Item value="fabricas">Fábricas</Tabs.Item>
           <Tabs.Item value="clientes">Clientes</Tabs.Item>

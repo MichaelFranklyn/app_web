@@ -1,19 +1,16 @@
 "use client";
 
 import { Badge } from "@/components/Badges";
+import { getButtonClasses } from "@/components/Button/Root/style";
 import { Card } from "@/components/Card";
 import { Title } from "@/components/Title";
-import { ArrowUpRight, CalendarOff } from "lucide-react";
+import { useUserRole } from "@/services/flowTour/useUserRole";
+import { ArrowUpRight, Route } from "lucide-react";
 import Link from "next/link";
-import { VisitScheduleDay, VisitScheduleItem } from "../../interface";
-import {
-  VISIT_STATUS_COLOR,
-  VISIT_STATUS_LABEL,
-  VISIT_URGENCY_BORDER,
-  buildWeekDays,
-  getTodayIso,
-} from "../../utils";
-import { VisitActions } from "../VisitActions";
+import { VisitScheduleDay } from "../../interface";
+import { buildWeekDays, getTodayIso } from "../../utils";
+import { GenerateDayButton } from "./GenerateDayButton";
+import { VisitCard } from "../VisitCard";
 
 interface Props {
   weekStart: string;
@@ -24,17 +21,17 @@ interface Props {
   onChanged: () => void;
 }
 
-const getClientName = (item: VisitScheduleItem): string => {
-  const client = item.clientFactoryLink?.client;
-  if (!client) return "Cliente —";
-  return client.nomeFantasia ?? client.razaoSocial;
-};
-
-const getFactoryName = (item: VisitScheduleItem): string => {
-  const factory = item.clientFactoryLink?.factory;
-  if (!factory) return "—";
-  return factory.nomeFantasia ?? factory.razaoSocial;
-};
+// Botão âmbar "Ver rota do dia" (link → /routines/[date]).
+const routeButtonClass = getButtonClasses({
+  appearance: "tinted",
+  color: "amber",
+  size: "sm",
+  isIconOnly: false,
+  fullWidth: true,
+  active: false,
+  noPadding: false,
+  noUppercase: true,
+});
 
 export function RoutinesWeekGrid({
   weekStart,
@@ -45,26 +42,30 @@ export function RoutinesWeekGrid({
 }: Props) {
   const cells = buildWeekDays(weekStart, days);
   const todayIso = getTodayIso();
+  // Só o vendedor gera a própria rota; owner/admin apenas visualizam.
+  const canGenerate = useUserRole() === "SELLER";
 
   // Janela do período: começa em hoje (se a semana exibida o contém) ou na
-  // segunda-feira; cobre `periodDays` dias. "Semana" (>=7) não filtra nada.
+  // segunda-feira; cobre `periodDays` dias. "Semana" (>=7) mostra todos os dias.
   const todayIndex = cells.findIndex((c) => c.date === todayIso);
   const anchor = todayIndex >= 0 ? todayIndex : 0;
-  const isInPeriod = (index: number) =>
-    periodDays >= 7 || (index >= anchor && index < anchor + periodDays);
+  const visibleCells =
+    periodDays >= 7 ? cells : cells.slice(anchor, anchor + periodDays);
 
   return (
-    <div className="flex gap-8">
-      {cells.map((cell, index) => {
+    <div className="flex gap-8 overflow-x-auto pb-8">
+      {visibleCells.map((cell) => {
         const items = cell.day?.items ?? [];
         const isToday = cell.date === todayIso;
-        const inPeriod = isInPeriod(index);
         return (
-          <div key={cell.date} className="min-w-0 flex-1">
+          // Colunas com largura mínima generosa para o conteúdo não espremer; a
+          // faixa rola na horizontal quando não cabem todas. O flex-1 só faz as
+          // colunas preencherem a largura quando sobra espaço (poucos dias).
+          <div key={cell.date} className="shrink-0 grow basis-[240px]">
             <Card.Root
               className={`h-full ${
                 isToday ? "ring-1 ring-(--amber) ring-inset" : ""
-              } ${inPeriod ? "" : "opacity-60"}`}
+              }`}
             >
               <Card.Header bg="bg3">
                 {cell.day ? (
@@ -102,65 +103,46 @@ export function RoutinesWeekGrid({
                 </Badge.Root>
               </Card.Header>
               <Card.Body>
-                {!inPeriod ? (
-                  <div className="flex flex-col items-center gap-4 py-12 text-center">
-                    <CalendarOff size={18} className="text-(--muted2)" />
-                    <Title variant="micro" color="muted">
-                      Fora do período
-                    </Title>
-                  </div>
-                ) : !cell.day ? (
-                  <div className="py-8 text-center text-[12px] text-(--muted)">
-                    Folga
+                {!cell.day ? (
+                  <div className="flex flex-col items-center gap-10 py-8">
+                    <span className="text-[13px] text-(--muted)">Folga</span>
+                    {canGenerate && (
+                      <GenerateDayButton
+                        date={cell.date}
+                        sellerId={sellerId}
+                        onGenerated={onChanged}
+                      />
+                    )}
                   </div>
                 ) : items.length === 0 ? (
-                  <div className="py-8 text-center text-[12px] text-(--muted)">
+                  <div className="py-8 text-center text-[13px] text-(--muted)">
                     Sem visitas
                   </div>
                 ) : (
                   <div className="flex flex-col gap-6">
                     {items.map((item) => (
-                      <div
+                      <VisitCard
                         key={item.id}
-                        className={`rounded-(--r-md) border border-(--border) bg-(--bg3) p-[10px] ${VISIT_URGENCY_BORDER[item.status]}`}
-                      >
-                        <div className="flex items-start justify-between gap-4">
-                          <div className="min-w-0">
-                            <div className="truncate text-[12px] font-medium text-(--text)">
-                              {getClientName(item)}
-                            </div>
-                            <div className="truncate text-[10px] text-(--muted)">
-                              {getFactoryName(item)}
-                            </div>
-                          </div>
-                          <div className="-mr-[4px] -mt-[2px] shrink-0">
-                            <VisitActions
-                              item={item}
-                              currentDayId={cell.day!.id}
-                              scheduleDays={days}
-                              onChanged={onChanged}
-                            />
-                          </div>
-                        </div>
-                        <div className="mt-[6px] flex items-center justify-between">
-                          <Title variant="micro" color="muted">
-                            #{item.plannedOrder}
-                            {item.estimatedTravelMin != null
-                              ? ` · ${item.estimatedTravelMin}m`
-                              : ""}
-                          </Title>
-                          <Badge.Root
-                            color={VISIT_STATUS_COLOR[item.status]}
-                            appearance="tinted"
-                          >
-                            <Badge.Text>
-                              {VISIT_STATUS_LABEL[item.status]}
-                            </Badge.Text>
-                          </Badge.Root>
-                        </div>
-                      </div>
+                        item={item}
+                        currentDayId={cell.day!.id}
+                        scheduleDays={days}
+                        onChanged={onChanged}
+                      />
                     ))}
                   </div>
+                )}
+
+                {cell.day && (
+                  <Link
+                    href={`/routines/${cell.date}${
+                      sellerId ? `?seller=${sellerId}` : ""
+                    }`}
+                    className={`${routeButtonClass} mt-10`}
+                    title="Abrir a rota deste dia no mapa"
+                  >
+                    <Route size={14} />
+                    Ver rota do dia
+                  </Link>
                 )}
               </Card.Body>
             </Card.Root>

@@ -33,7 +33,7 @@ function WorkingParametersSkeleton() {
         <Loading.Skeleton className="h-4 w-44" />
       </Card.Header>
       <Card.Body>
-        <div className="flex flex-col gap-14">
+        <div className="flex flex-col gap-12">
           <InputSkeleton />
           <InputSkeleton />
           <div className="grid grid-cols-2 gap-10">

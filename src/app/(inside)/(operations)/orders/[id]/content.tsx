@@ -49,8 +49,11 @@ export default function OrderDetailContent({ id }: Props) {
     <PageContent className="print-area">
       <OrderDetailHeader order={order} onRefetch={refetch} />
 
-      <div className="flex gap-20">
-        <div className="flex min-w-0 flex-1 flex-col gap-12">
+      <div className="desktop:flex-row flex flex-col gap-20">
+        <div
+          className="flex min-w-0 flex-1 flex-col gap-12"
+          data-tour="order-items"
+        >
           <OrderItemsTable
             orderId={order.id}
             factoryId={order.factory?.id ?? null}
@@ -73,7 +76,10 @@ export default function OrderDetailContent({ id }: Props) {
           )}
         </div>
 
-        <div className="flex w-[260px] shrink-0 flex-col gap-12">
+        <div
+          className="desktop:w-[260px] flex w-full shrink-0 flex-col gap-12"
+          data-tour="order-summary"
+        >
           <OrderSummaryCard order={order} />
         </div>
       </div>

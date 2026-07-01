@@ -3,7 +3,13 @@ import { formatMoney } from "@/utils/format/masks";
 import type { OrdersStats } from "./interface";
 
 export const buildOrderKpis = (stats: OrdersStats): KpiItem[] => {
-  const { totalOrders, totalAmount, avgTicket } = stats.orderStats;
+  // Defensivo: se o back não devolver `orderStats` (hiccup/edge de loading),
+  // degrada para zeros em vez de derrubar a página inteira.
+  const {
+    totalOrders = 0,
+    totalAmount = "0",
+    avgTicket = "0",
+  } = stats.orderStats ?? {};
 
   return [
     {

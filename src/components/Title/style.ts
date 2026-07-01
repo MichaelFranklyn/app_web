@@ -55,7 +55,7 @@ export const variantConfig: Record<
   },
   "body-xs": {
     element: "span",
-    className: "font-mono text-[12px] leading-[1.6]",
+    className: "font-mono text-[13px] leading-[1.6]",
     defaultWeight: "regular",
   },
   caption: {
@@ -65,7 +65,7 @@ export const variantConfig: Record<
   },
   micro: {
     element: "span",
-    className: "font-mono text-[12px] leading-none",
+    className: "font-mono text-[13px] leading-none",
     defaultWeight: "regular",
   },
   label: {
@@ -75,7 +75,7 @@ export const variantConfig: Record<
   },
   eyebrow: {
     element: "p",
-    className: "font-mono text-[10px] leading-none tracking-[0.12em] uppercase",
+    className: "font-mono text-[13px] leading-none tracking-[0.12em] uppercase",
     defaultWeight: "regular",
   },
 };

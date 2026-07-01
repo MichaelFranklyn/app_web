@@ -2,8 +2,8 @@ import { cn } from "@/lib/utils";
 import { StepperSize } from "../Root/context";
 
 export const circleSize: Record<StepperSize, string> = {
-  sm: "h-[24px] w-[24px] text-[11px]",
-  md: "h-[28px] w-[28px] text-[12px]",
+  sm: "h-[24px] w-[24px] text-[13px]",
+  md: "h-[28px] w-[28px] text-[13px]",
 };
 
 export const iconSize: Record<StepperSize, number> = { sm: 11, md: 13 };

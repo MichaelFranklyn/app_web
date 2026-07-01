@@ -1,0 +1,30 @@
+// flow_key persistido no back (progresso por usuário/fluxo). Mantenha em sincronia
+// com as definições de fluxo em ./definitions/*.
+export const SYSTEM_OVERVIEW_FLOW = "system-overview";
+export const CLIENTS_FLOW = "clients";
+export const CLIENT_DETAIL_FLOW = "client-detail";
+export const CLIENT_VISITS_FLOW = "client-visits";
+export const CLIENT_STOCK_FLOW = "client-stock";
+export const CLIENT_SCORE_FLOW = "client-score";
+export const CLIENT_FACTORIES_FLOW = "client-factories";
+export const CLIENT_ORDERS_FLOW = "client-orders";
+export const ORDERS_FLOW = "orders";
+export const ORDER_DETAIL_FLOW = "order-detail";
+export const FACTORIES_FLOW = "factories";
+export const FACTORY_DETAIL_FLOW = "factory-detail";
+export const FACTORY_PRODUCTS_FLOW = "factory-products";
+export const FACTORY_PRICES_FLOW = "factory-prices";
+export const PRICE_LIST_DETAIL_FLOW = "price-list-detail";
+export const PRODUCT_DETAIL_FLOW = "product-detail";
+export const FACTORY_SELLERS_FLOW = "factory-sellers";
+export const FACTORY_CLIENTS_FLOW = "factory-clients";
+export const FACTORY_ORDERS_FLOW = "factory-orders";
+export const FACTORY_IMPORT_TEMPLATE_FLOW = "factory-import-template";
+export const USERS_FLOW = "users";
+export const SELLERS_FLOW = "sellers";
+export const SELLER_DETAIL_FLOW = "seller-detail";
+export const ROUTINES_FLOW = "routines";
+export const ROUTINE_DAY_FLOW = "routine-day";
+export const SETTINGS_CATALOG_FLOW = "settings-catalog";
+export const SETTINGS_ROUTINE_FLOW = "settings-routine";
+export const PROFILE_FLOW = "profile";

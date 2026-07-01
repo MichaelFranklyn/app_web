@@ -55,7 +55,7 @@ export function RouteStopsCard({
                   key={stop.id}
                   className="flex items-start gap-10 rounded-(--r-md) border border-(--border) p-10"
                 >
-                  <div className="mt-[2px] flex h-[22px] w-[22px] shrink-0 items-center justify-center rounded-full bg-(--amber) font-head text-[11px] font-bold text-white">
+                  <div className="font-head mt-[2px] flex h-[22px] w-[22px] shrink-0 items-center justify-center rounded-full bg-(--amber) text-[13px] font-bold text-white">
                     {stop.plannedOrder}
                   </div>
 
@@ -63,10 +63,10 @@ export function RouteStopsCard({
                     <div className="text-[13px] font-medium text-(--text)">
                       {clientLabel(client)}
                     </div>
-                    <div className="mt-[2px] text-[12px] text-(--muted)">
+                    <div className="mt-[2px] text-[13px] text-(--muted)">
                       {factoryLabel(factory)}
                     </div>
-                    <div className="mt-[2px] text-[12px] text-(--muted2)">
+                    <div className="mt-[2px] text-[13px] text-(--muted2)">
                       {clientAddress(client)}
                     </div>
                     <div className="mt-4 flex items-center gap-6">
@@ -79,7 +79,9 @@ export function RouteStopsCard({
                         color={STOP_STATUS_COLOR[stop.status]}
                         appearance="tinted"
                       >
-                        <Badge.Text>{STOP_STATUS_LABEL[stop.status]}</Badge.Text>
+                        <Badge.Text>
+                          {STOP_STATUS_LABEL[stop.status]}
+                        </Badge.Text>
                       </Badge.Root>
                     </div>
                   </div>

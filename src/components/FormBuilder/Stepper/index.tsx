@@ -14,7 +14,7 @@ export const Stepper = ({ steps, currentStepIndex }: StepperProps) => {
       {steps.map((step, idx) => (
         <div key={step.id} className="flex shrink-0 items-center gap-2">
           <div
-            className={`flex h-8 min-h-[32px] w-8 min-w-[32px] flex-none items-center justify-center rounded-full text-xs font-bold transition-colors ${
+            className={`flex h-8 min-h-[32px] w-8 min-w-[32px] flex-none items-center justify-center rounded-full text-[13px] font-bold transition-colors ${
               idx === currentStepIndex
                 ? "bg-(--amber) text-white"
                 : idx < currentStepIndex

@@ -91,12 +91,12 @@ export default function OrdersContent() {
   const hasFilters = search.trim() !== "" || statusFilter !== null;
 
   return (
-    <Table.Root>
+    <Table.Root data-tour="client-orders-table">
       <Table.CardHead>
         <Table.CardHead.Title size="sm" weight="semibold">
           Pedidos
         </Table.CardHead.Title>
-        <Table.CardHead.Actions>
+        <Table.CardHead.Actions data-tour="client-orders-actions">
           <div className="flex items-center gap-8">
             <InputSearch
               containerClassName="w-72"

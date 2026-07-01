@@ -1,6 +1,9 @@
 export const inputStyles = {
-  wrap: "flex flex-col gap-[5px]",
-  label: "font-mono text-[12px] text-(--muted) tracking-[0.08em] uppercase",
+  // max-desktop:w-full → no mobile/tablet todo input ocupa a largura total
+  // (inclusive em modais e qualquer lugar), sobrepondo larguras fixas; no
+  // desktop volta ao definido pelo uso (containerClassName).
+  wrap: "flex flex-col gap-[5px] max-desktop:w-full",
+  label: "font-mono text-[13px] text-(--muted) tracking-[0.08em] uppercase",
   controlBase:
     "font-mono text-[13px] bg-(--bg3) text-(--text) py-[8px] px-[12px] outline-none w-full transition-colors disabled:opacity-50 disabled:cursor-not-allowed appearance-none",
   controlBordered:
@@ -11,7 +14,7 @@ export const inputStyles = {
   error: "border-(--red) focus:border-(--red) focus:ring-(--red-bg)",
   success: "border-(--green) focus:border-(--green) focus:ring-(--green-bg)",
 
-  hint: "font-mono text-[12px] text-(--muted)",
+  hint: "font-mono text-[13px] text-(--muted)",
   hintError: "text-(--red)",
 
   group:
@@ -22,7 +25,7 @@ export const inputStyles = {
     "border-(--green) focus-within:border-(--green) focus-within:ring-(--green-bg)",
 
   addon:
-    "py-[8px] px-[12px] bg-(--bg4) border-r border-(--border) text-(--muted) text-[12px] flex items-center whitespace-nowrap [&>svg]:size-[14px] [&>svg]:shrink-0",
+    "py-[8px] px-[12px] bg-(--bg4) border-r border-(--border) text-(--muted) text-[13px] flex items-center whitespace-nowrap [&>svg]:size-[14px] [&>svg]:shrink-0",
 
   textarea: "resize-y min-h-[80px]",
 };
@@ -30,7 +33,14 @@ export const inputStyles = {
 export const checkStyles = {
   wrap: "flex items-center gap-[8px] cursor-pointer text-[13px] text-(--text2) select-none",
   input: "peer/check sr-only",
-  box: "flex items-center justify-center w-[16px] h-[16px] border-[1.5px] border-(--border2) rounded-(--r-xs) bg-(--bg3) shrink-0 transition-all duration-[120ms] peer-checked/check:bg-(--amber) peer-checked/check:border-(--amber) peer-checked/check:[&>svg]:!block",
+  box: "flex items-center justify-center w-[16px] h-[16px] border-[1.5px] border-(--border2) rounded-(--r-xs) bg-(--bg3) shrink-0 transition-all duration-[120ms] peer-checked/check:[&>svg]:!block",
+  // Cor quando marcado. amber = padrão (seleção); green = ação concluída/sucesso.
+  boxTone: {
+    amber:
+      "peer-checked/check:bg-(--amber) peer-checked/check:border-(--amber)",
+    green:
+      "peer-checked/check:bg-(--green) peer-checked/check:border-(--green)",
+  },
   mark: "text-white text-[13px] hidden",
 };
 
@@ -68,12 +78,13 @@ export const calendarStyles = {
   overlay:
     "flex bg-(--bg2) border border-(--border) rounded-(--r-md) shadow-lg z-50 overflow-hidden",
   sidebar:
-    "w-[140px] border-r border-(--border) bg-(--bg3) flex flex-col p-[8px] gap-[4px]",
+    "w-[140px] border-r border-(--border) bg-(--bg3) hidden tablet:flex flex-col p-[8px] gap-[4px]",
   sidebarButton:
     "w-full text-left px-[12px] py-[8px] text-[13px] text-(--text2) rounded-(--r-sm) hover:bg-(--bg4) hover:text-(--text) transition-colors cursor-pointer",
 
   wrapper: "p-[12px]",
-  months: "flex flex-col sm:flex-row space-y-[16px] sm:space-x-[16px] sm:space-y-0",
+  months:
+    "flex flex-col tablet:flex-row space-y-[16px] tablet:space-x-[16px] tablet:space-y-0",
   month: "space-y-[16px]",
   month_caption: "flex justify-center pt-1 relative items-center",
   caption_label: "text-[14px] font-medium text-(--text) font-mono",
@@ -85,7 +96,7 @@ export const calendarStyles = {
   month_grid: "w-full border-collapse space-y-[4px]",
   weekdays: "flex",
   weekday:
-    "text-(--muted) rounded-md w-[36px] font-normal text-[0.8rem] h-[36px] flex items-center justify-center",
+    "text-(--muted) rounded-md w-[36px] font-normal text-[13px] h-[36px] flex items-center justify-center",
   week: "flex w-full mt-[8px]",
 
   dropdowns: "flex gap-[6px] items-center",

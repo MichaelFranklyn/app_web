@@ -1,4 +1,10 @@
 import { cn } from "@/lib/utils";
+import {
+  ChevronLeft,
+  ChevronRight,
+  ChevronsLeft,
+  ChevronsRight,
+} from "lucide-react";
 import React from "react";
 import { itemVariants } from "../Item/style";
 
@@ -9,10 +15,10 @@ export const First = React.forwardRef<
   <button
     ref={ref}
     aria-label="Primeira página"
-    className={cn(itemVariants({}), "text-[13px]", className)}
+    className={cn(itemVariants({}), className)}
     {...props}
   >
-    {children || "‹‹"}
+    {children || <ChevronsLeft size={16} />}
   </button>
 ));
 
@@ -23,10 +29,10 @@ export const Prev = React.forwardRef<
   <button
     ref={ref}
     aria-label="Página anterior"
-    className={cn(itemVariants({}), "text-[15px]", className)}
+    className={cn(itemVariants({}), className)}
     {...props}
   >
-    {children || "‹"}
+    {children || <ChevronLeft size={16} />}
   </button>
 ));
 
@@ -37,10 +43,10 @@ export const Next = React.forwardRef<
   <button
     ref={ref}
     aria-label="Próxima página"
-    className={cn(itemVariants({}), "text-[15px]", className)}
+    className={cn(itemVariants({}), className)}
     {...props}
   >
-    {children || "›"}
+    {children || <ChevronRight size={16} />}
   </button>
 ));
 
@@ -51,10 +57,10 @@ export const Last = React.forwardRef<
   <button
     ref={ref}
     aria-label="Última página"
-    className={cn(itemVariants({}), "text-[13px]", className)}
+    className={cn(itemVariants({}), className)}
     {...props}
   >
-    {children || "››"}
+    {children || <ChevronsRight size={16} />}
   </button>
 ));
 

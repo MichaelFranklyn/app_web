@@ -1,5 +1,6 @@
 import { Card } from "@/components/Card";
 import { Grid } from "@/components/Grid";
+import { ArrowUp } from "lucide-react";
 import { useMemo } from "react";
 import { VisitScheduleDay } from "../../interface";
 
@@ -13,7 +14,8 @@ export function RoutinesSummary({ days }: Props) {
     const total = items.length;
     const completed = items.filter((i) => i.status === "COMPLETED").length;
     const absent = items.filter((i) => i.status === "CLIENT_ABSENT").length;
-    const completionRate = total > 0 ? Math.round((completed / total) * 100) : 0;
+    const completionRate =
+      total > 0 ? Math.round((completed / total) * 100) : 0;
     return { total, completed, absent, completionRate };
   }, [days]);
 
@@ -30,7 +32,8 @@ export function RoutinesSummary({ days }: Props) {
         <Card.Kpi.Label>Realizadas</Card.Kpi.Label>
         <Card.Kpi.Value status="ok">{stats.completed}</Card.Kpi.Value>
         <Card.Kpi.Delta positive>
-          ↑ {stats.completionRate}% de conclusão
+          <ArrowUp size={14} className="shrink-0" />
+          {stats.completionRate}% de conclusão
         </Card.Kpi.Delta>
       </Card.Kpi>
       <Card.Kpi>

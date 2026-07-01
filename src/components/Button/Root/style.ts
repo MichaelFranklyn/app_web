@@ -17,8 +17,8 @@ const uppercaseClasses = "uppercase tracking-[0.04em]";
 const sizeTextClasses: Record<ButtonSize, string> = {
   lg: "text-[13px] rounded-(--r-lg)",
   md: "text-[13px] rounded-(--r-md)",
-  sm: "text-[12px] rounded-(--r-sm)",
-  xs: "text-[12px] rounded-(--r-sm)",
+  sm: "text-[13px] rounded-(--r-sm)",
+  xs: "text-[13px] rounded-(--r-sm)",
 };
 
 const sizePaddingClasses: Record<ButtonSize, string> = {

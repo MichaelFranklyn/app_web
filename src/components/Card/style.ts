@@ -22,7 +22,7 @@ export const bgVariants: Record<CardBg, string> = {
 export const actionsStyle = "flex shrink-0 items-center gap-[6px]";
 
 export const cardHeadStyle =
-  "px-16 py-12 border-b border-(--border) flex items-center justify-between gap-3 min-h-[48px]";
+  "px-16 py-12 border-b border-(--border) flex flex-wrap items-center justify-between gap-3 min-h-[48px]";
 
 export const cardFooterBaseStyle =
-  "px-16 py-[10px] border-t border-(--border) flex items-center justify-between text-[12px] text-(--muted) min-h-[38px]";
+  "px-16 py-[10px] border-t border-(--border) flex items-center justify-between text-[13px] text-(--muted) min-h-[38px]";

@@ -17,6 +17,7 @@ export const BadgeRoot = React.forwardRef<HTMLSpanElement, BadgeProps>(
   ) => (
     <span
       ref={ref}
+      data-badge
       className={getBadgeClasses(color, appearance, size, fullWidth, className)}
       {...props}
     >

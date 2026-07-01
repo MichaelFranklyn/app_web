@@ -10,7 +10,7 @@ export const RootPageRoot = React.forwardRef<HTMLDivElement, RootPageProps>(
     return (
       <div
         ref={ref}
-        className={cn("min-h-screen w-screen bg-(--bg)", className)}
+        className={cn("min-h-screen w-full bg-(--bg)", className)}
         {...props}
       >
         {children}

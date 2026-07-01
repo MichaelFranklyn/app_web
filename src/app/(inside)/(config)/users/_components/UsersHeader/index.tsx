@@ -30,20 +30,16 @@ export function UsersHeader({
     <PanelHeader.Root>
       <PanelHeader.Top>
         <PanelHeader.Left>
-          <PanelHeader.Eyebrow>
-            Configurações
-          </PanelHeader.Eyebrow>
-          <PanelHeader.Title>
-            Usuários
-          </PanelHeader.Title>
+          <PanelHeader.Eyebrow>Configurações</PanelHeader.Eyebrow>
+          <PanelHeader.Title>Usuários</PanelHeader.Title>
           <PanelHeader.Description>
             Gestão de usuários da empresa. Roles: owner, admin, seller.
           </PanelHeader.Description>
-          <PanelHeader.Actions className="mt-6">
+          <PanelHeader.Actions className="mt-6" data-tour="users-actions">
             <Button.Root
               appearance="outline"
               color="neutral"
-              size="md"
+              size="sm"
               disabled={items.length === 0}
               onClick={handleExport}
             >

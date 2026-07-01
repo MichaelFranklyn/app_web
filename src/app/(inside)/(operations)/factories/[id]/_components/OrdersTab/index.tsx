@@ -62,7 +62,7 @@ export function OrdersTab({ factoryId }: Props) {
   const orders = optimistic.items;
 
   return (
-    <Table.Root>
+    <Table.Root data-tour="factory-orders-table">
       <Table.CardHead>
         <Table.CardHead.Title className="inline-flex items-center gap-6">
           Pedidos desta fábrica
@@ -87,7 +87,7 @@ export function OrdersTab({ factoryId }: Props) {
             }
           />
         </Table.CardHead.Title>
-        <Table.CardHead.Actions>
+        <Table.CardHead.Actions data-tour="factory-orders-actions">
           <AddOrderModal factoryId={factoryId} />
         </Table.CardHead.Actions>
       </Table.CardHead>

@@ -9,7 +9,7 @@ export const Ellipsis = React.forwardRef<
     ref={ref}
     aria-hidden
     className={cn(
-      "flex h-[28px] w-[28px] items-center justify-center font-head text-[12px] tracking-widest text-(--muted)",
+      "font-head flex h-[28px] w-[28px] items-center justify-center text-[13px] tracking-widest text-(--muted)",
       className
     )}
     {...props}

@@ -57,7 +57,7 @@ export function AddUserModal({
   return (
     <Modal.Root open={open} onOpenChange={setOpen}>
       <Modal.Trigger asChild>
-        <Button.Root appearance="solid" color="amber" size="md">
+        <Button.Root appearance="solid" color="amber" size="sm">
           <Button.Icon icon={Plus} />
           <Button.Title>Novo Usuário</Button.Title>
         </Button.Root>

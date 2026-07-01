@@ -1,7 +1,32 @@
-import { toUtcIsoDate as toIsoDate } from "@/utils/format/date";
-import { VisitScheduleDay, VisitStatus } from "./interface";
+import { getTodayIso, toUtcIsoDate as toIsoDate } from "@/utils/format/date";
+import { VisitScheduleDay, VisitScheduleItem, VisitStatus } from "./interface";
 
 export { VISIT_STATUS_COLOR, VISIT_STATUS_LABEL } from "@/utils/visit";
+export { getTodayIso };
+
+export interface VisitFollowupWarning {
+  needsStock: boolean;
+  needsOrder: boolean;
+  message: string;
+}
+
+// Uma visita CONCLUÍDA precisa render alguma informação útil para a próxima
+// rotina: ou o estoque observado no cliente, ou o resultado/pedido. Basta UMA
+// das duas (o vendedor pode só ter levantado o estoque, sem fechar pedido).
+// Só avisamos quando NENHUMA foi registrada.
+export const getVisitFollowupWarning = (
+  item: VisitScheduleItem
+): VisitFollowupWarning | null => {
+  if (item.status !== "COMPLETED") return null;
+  const needsStock = item.stockObservation == null;
+  const needsOrder = item.outcome == null;
+  if (!needsStock || !needsOrder) return null;
+  return {
+    needsStock,
+    needsOrder,
+    message: "Visita concluída — registre o estoque ou lance o pedido.",
+  };
+};
 
 export const VISIT_URGENCY_BORDER: Record<VisitStatus, string> = {
   COMPLETED: "border-l-[3px] border-l-(--green)",
@@ -59,13 +84,6 @@ export const formatWeekRange = (weekStartIso: string): string => {
   const startLabel = `${String(start.getUTCDate()).padStart(2, "0")} ${MONTH_LABELS[start.getUTCMonth()]}`;
   const endLabel = `${String(end.getUTCDate()).padStart(2, "0")} ${MONTH_LABELS[end.getUTCMonth()]}`;
   return `${startLabel} a ${endLabel} de ${end.getUTCFullYear()}`;
-};
-
-export const getTodayIso = (): string => {
-  const now = new Date();
-  return toIsoDate(
-    new Date(Date.UTC(now.getFullYear(), now.getMonth(), now.getDate()))
-  );
 };
 
 // Segunda-feira (início da semana) da semana que contém a data informada.

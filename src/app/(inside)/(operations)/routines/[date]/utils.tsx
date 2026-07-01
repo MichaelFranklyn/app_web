@@ -24,13 +24,6 @@ export const STOP_STATUS_LABEL: Record<VisitStatus, string> = {
   NO_TIME: "Sem tempo",
 };
 
-export const getTodayIso = (): string => {
-  const now = new Date();
-  return toIsoDate(
-    new Date(Date.UTC(now.getFullYear(), now.getMonth(), now.getDate()))
-  );
-};
-
 // Desloca uma data ISO em N dias (para navegar dia anterior/seguinte).
 export const shiftDateIso = (isoDate: string, days: number): string => {
   const [year, month, day] = isoDate.split("-").map(Number);
@@ -93,6 +86,31 @@ export const clientLabel = (client: VisitClient | null): string => {
 export const factoryLabel = (factory: VisitFactory | null): string => {
   if (!factory) return "—";
   return factory.nomeFantasia ?? factory.razaoSocial;
+};
+
+// Endereço em formato amigável ao Google Maps (vírgulas), ou null se não houver
+// dados suficientes para localizar — usado para origem/destino/waypoints da rota.
+export const mapsQuery = (client: VisitClient | null): string | null => {
+  if (!client) return null;
+  const parts: string[] = [];
+  if (client.addressStreet) {
+    parts.push(
+      client.addressNumber
+        ? `${client.addressStreet}, ${client.addressNumber}`
+        : client.addressStreet
+    );
+  }
+  if (client.addressNeighborhood) parts.push(client.addressNeighborhood);
+  if (client.addressCity) {
+    parts.push(
+      client.addressState
+        ? `${client.addressCity} - ${client.addressState}`
+        : client.addressCity
+    );
+  } else if (client.addressState) {
+    parts.push(client.addressState);
+  }
+  return parts.length > 0 ? parts.join(", ") : null;
 };
 
 export const clientAddress = (client: VisitClient | null): string => {

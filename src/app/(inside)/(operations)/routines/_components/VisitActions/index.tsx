@@ -1,14 +1,7 @@
 "use client";
 
-import { MoreOptions } from "@/components/MoreOptions";
-import { CalendarClock, PackageSearch, Pencil } from "lucide-react";
-import { useState } from "react";
 import { VisitScheduleItem } from "../../interface";
-import { EditVisitModal } from "./EditVisitModal";
-import { RescheduleVisitModal } from "./RescheduleVisitModal";
-import { StockVisitModal } from "./StockVisitModal";
-
-type ActiveModal = "edit" | "stock" | "reschedule" | null;
+import { useVisitActions } from "./useVisitActions";
 
 interface Props {
   item: VisitScheduleItem;
@@ -17,58 +10,13 @@ interface Props {
   onChanged: () => void;
 }
 
-export function VisitActions({
-  item,
-  currentDayId,
-  scheduleDays,
-  onChanged,
-}: Props) {
-  const [active, setActive] = useState<ActiveModal>(null);
-  const close = () => setActive(null);
+export function VisitActions(props: Props) {
+  const { menu, overlays } = useVisitActions(props);
 
   return (
     <>
-      <MoreOptions
-        options={[
-          {
-            label: "Editar visita",
-            icon: Pencil,
-            onClick: () => setActive("edit"),
-          },
-          {
-            label: "Estoque do cliente",
-            icon: PackageSearch,
-            onClick: () => setActive("stock"),
-          },
-          {
-            label: "Remarcar visita",
-            icon: CalendarClock,
-            onClick: () => setActive("reschedule"),
-          },
-        ]}
-      />
-
-      <EditVisitModal
-        item={item}
-        open={active === "edit"}
-        onOpenChange={(o) => !o && close()}
-        onDone={onChanged}
-      />
-
-      <StockVisitModal
-        item={item}
-        open={active === "stock"}
-        onOpenChange={(o) => !o && close()}
-      />
-
-      <RescheduleVisitModal
-        item={item}
-        currentDayId={currentDayId}
-        scheduleDays={scheduleDays}
-        open={active === "reschedule"}
-        onOpenChange={(o) => !o && close()}
-        onDone={onChanged}
-      />
+      {overlays}
+      {menu}
     </>
   );
 }

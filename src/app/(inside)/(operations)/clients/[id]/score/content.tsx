@@ -143,7 +143,10 @@ export default function ScoreContent() {
 
   return (
     <>
-      <div className="flex items-start gap-20">
+      <div
+        className="desktop:flex-row desktop:items-start flex flex-col gap-20"
+        data-tour="client-score"
+      >
         {/* Main */}
         <div className="flex min-w-0 flex-1 flex-col gap-16">
           {/* Decomposição */}
@@ -305,7 +308,7 @@ export default function ScoreContent() {
         </div>
 
         {/* Sidebar */}
-        <div className="flex w-65 shrink-0 flex-col gap-12">
+        <div className="desktop:w-[260px] flex w-full shrink-0 flex-col gap-12">
           <Card.Root>
             <Card.Header>
               <Card.Header.Title size="sm" weight="semibold">

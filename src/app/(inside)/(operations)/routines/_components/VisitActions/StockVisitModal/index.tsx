@@ -8,6 +8,7 @@ export function StockVisitModal({
   item,
   open,
   onOpenChange,
+  onSaved,
 }: StockVisitModalProps) {
   const client = item.clientFactoryLink?.client;
   const clientName = client?.nomeFantasia ?? client?.razaoSocial ?? "Cliente";
@@ -20,7 +21,7 @@ export function StockVisitModal({
           description="Marque como está o estoque de cada produto do último pedido."
         />
         <Modal.Body>
-          <StockObservationTab item={item} />
+          <StockObservationTab item={item} onSaved={onSaved} />
         </Modal.Body>
       </Modal.Content>
     </Modal.Root>

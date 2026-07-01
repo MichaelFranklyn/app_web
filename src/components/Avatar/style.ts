@@ -4,7 +4,7 @@ export const avatarStyles = {
   root: "rounded-full flex items-center justify-center font-head font-bold shrink-0 overflow-hidden relative",
 
   sizes: {
-    sm: "w-[28px] h-[28px] text-[11px]",
+    sm: "w-[28px] h-[28px] text-[13px]",
     md: "w-[36px] h-[36px] text-[13px]",
     lg: "w-[48px] h-[48px] text-[16px]",
   },

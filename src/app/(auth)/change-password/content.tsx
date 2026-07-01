@@ -11,7 +11,7 @@ import { Title } from "@/components/Title";
 import { useAsyncAction } from "@/hooks/useAsyncAction";
 import { setCookie } from "@/utils/cookies/clientCookie";
 import { useMutation } from "@apollo/client/react";
-import { X } from "lucide-react";
+import { ArrowRight, X } from "lucide-react";
 import { useRouter, useSearchParams } from "next/navigation";
 import { Suspense, useState } from "react";
 import { RESET_PASSWORD_MUTATION } from "./gql";
@@ -161,7 +161,8 @@ function ChangePasswordForm() {
                 disabled={tokenMissing}
                 onClick={handleSubmit}
               >
-                <Button.Title>Redefinir senha →</Button.Title>
+                <Button.Title>Redefinir senha</Button.Title>
+                <Button.Icon icon={ArrowRight} />
               </Button.Root>
 
               <Button.Root

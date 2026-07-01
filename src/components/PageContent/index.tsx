@@ -7,7 +7,10 @@ export const PageContent = React.forwardRef<
 >(({ className, ...props }, ref) => (
   <div
     ref={ref}
-    className={cn("flex flex-col gap-20 px-32 py-[28px]", className)}
+    className={cn(
+      "tablet:px-32 tablet:py-[28px] flex flex-col gap-20 px-16 py-20",
+      className
+    )}
     {...props}
   />
 ));

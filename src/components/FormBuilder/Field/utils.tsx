@@ -1,7 +1,13 @@
 import { Input, InputLabel } from "@/components/Input";
 import { SelectOption } from "@/components/Input/InputSelect";
 import { Title } from "@/components/Title";
-import { maskCEP, maskCNPJ, maskCPF, maskCurrency, maskPhoneBR } from "@/utils/format/masks";
+import {
+  maskCEP,
+  maskCNPJ,
+  maskCPF,
+  maskCurrency,
+  maskPhoneBR,
+} from "@/utils/format/masks";
 import React from "react";
 import { RenderInputProps } from "../interface";
 
@@ -271,6 +277,6 @@ export const renderInput = ({
       );
 
     default:
-      return <div className="text-[12px] text-(--red)">Tipo não suportado</div>;
+      return <div className="text-[13px] text-(--red)">Tipo não suportado</div>;
   }
 };

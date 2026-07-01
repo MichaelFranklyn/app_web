@@ -28,7 +28,9 @@ export const InputRoot = ({
     <InputContext.Provider
       value={{ id, error, success, disabled, inGroup: false }}
     >
-      <div className={cn(inputStyles.wrap, className)}>{children}</div>
+      <div data-input-root className={cn(inputStyles.wrap, className)}>
+        {children}
+      </div>
     </InputContext.Provider>
   );
 };

@@ -8,5 +8,5 @@ export const tableCellVariants = {
   strong: "text-(--text) font-medium",
   mono: "font-mono text-(--text2)",
   dim: "text-(--muted) text-[13px]",
-  dim2: "text-(--muted2) text-[12px]",
+  dim2: "text-(--muted2) text-[13px]",
 } as const;

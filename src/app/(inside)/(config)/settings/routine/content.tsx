@@ -25,7 +25,7 @@ function RoutineActionBar({
   onSave: () => void;
 }) {
   return (
-    <div className="flex items-start justify-between gap-16">
+    <div className="desktop:flex-row desktop:items-start desktop:justify-between desktop:gap-16 flex flex-col gap-12">
       <div>
         <Title variant="heading-sm">
           Configuração de rotina{sellerName ? ` · ${sellerName}` : ""}
@@ -37,7 +37,8 @@ function RoutineActionBar({
       <Button.Root
         appearance="solid"
         color="amber"
-        size="md"
+        size="sm"
+        className="desktop:w-auto w-full"
         disabled={!canSave || isSaving}
         loading={isSaving}
         onClick={onSave}
@@ -100,15 +101,21 @@ export default function RoutineSettingsContent() {
         </Alert.Content>
       </Alert.Root>
 
-      <Grid.Root cols={{ base: 1, desktop: 2 }} gap={16}>
+      <Grid.Root
+        cols={{ base: 1, desktop: 2 }}
+        gap={16}
+        data-tour="routine-params"
+      >
         <WorkingParametersCard form={form} onChange={handlePatch} />
         <SchedulingPreferencesCard form={form} onChange={handlePatch} />
       </Grid.Root>
 
-      <ScoreWeightsCard
-        weights={form.priorityWeights}
-        onChange={handleWeightsChange}
-      />
+      <div data-tour="routine-score-weights">
+        <ScoreWeightsCard
+          weights={form.priorityWeights}
+          onChange={handleWeightsChange}
+        />
+      </div>
     </div>
   );
 }

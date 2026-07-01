@@ -64,7 +64,7 @@ export function ItemsTable({
   };
 
   return (
-    <Table.Root>
+    <Table.Root data-tour="price-items-table">
       <Table.CardHead>
         <Table.CardHead.Title className="inline-flex items-center gap-6">
           Itens da tabela
@@ -78,7 +78,7 @@ export function ItemsTable({
             }
           />
         </Table.CardHead.Title>
-        <Table.CardHead.Actions>
+        <Table.CardHead.Actions data-tour="price-items-actions">
           <InputSearch
             containerClassName="w-70"
             placeholder="Buscar por nome ou SKU..."

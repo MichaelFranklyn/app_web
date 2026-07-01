@@ -67,7 +67,7 @@ export function ProductsTab({ companyFactoryId }: Props) {
   };
 
   return (
-    <Table.Root>
+    <Table.Root data-tour="products-table">
       <Table.CardHead>
         <Table.CardHead.Title className="inline-flex items-center gap-6">
           Catálogo de produtos
@@ -113,7 +113,7 @@ export function ProductsTab({ companyFactoryId }: Props) {
           />
         </Table.CardHead.Title>
         <Table.CardHead.Actions>
-          <div className="flex items-center gap-8">
+          <div className="flex items-center gap-8" data-tour="products-actions">
             <InputSearch
               containerClassName="w-72"
               placeholder="Buscar por nome ou SKU..."
@@ -122,6 +122,7 @@ export function ProductsTab({ companyFactoryId }: Props) {
             />
             <Button.Root
               type="button"
+              data-tour="products-attention"
               appearance={onlyAttention ? "solid" : "outline"}
               color={onlyAttention ? "amber" : "neutral"}
               size="sm"
@@ -193,6 +194,7 @@ export function ProductsTab({ companyFactoryId }: Props) {
               <Table.Row
                 key={p.id}
                 href={`/factories/${companyFactoryId}/products/${p.id}`}
+                data-tour="products-row"
               >
                 <Table.Cell>
                   <Badge.Root color="subtle" appearance="tinted">

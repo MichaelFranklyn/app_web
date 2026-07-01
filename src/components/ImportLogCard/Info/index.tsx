@@ -14,10 +14,7 @@ const InfoName = React.forwardRef<
 >(({ className, ...props }, ref) => (
   <div
     ref={ref}
-    className={cn(
-      "truncate text-[13px] font-medium text-(--text)",
-      className
-    )}
+    className={cn("truncate text-[13px] font-medium text-(--text)", className)}
     {...props}
   />
 ));
@@ -28,7 +25,7 @@ const InfoMeta = React.forwardRef<
 >(({ className, ...props }, ref) => (
   <div
     ref={ref}
-    className={cn("mt-[2px] text-[12px] text-(--muted)", className)}
+    className={cn("mt-[2px] text-[13px] text-(--muted)", className)}
     {...props}
   />
 ));

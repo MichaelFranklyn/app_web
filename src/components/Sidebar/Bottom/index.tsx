@@ -6,10 +6,15 @@ import { SidebarBottomProps } from "./interface";
 import { sidebarBottomStyles } from "./style";
 
 export const Bottom = React.forwardRef<HTMLDivElement, SidebarBottomProps>(
-  ({ name, role, initials, src, className, ...props }, ref) => (
+  ({ name, role, initials, src, collapsed, className, ...props }, ref) => (
     <div
       ref={ref}
-      className={cn(sidebarBottomStyles.root, className)}
+      className={cn(
+        sidebarBottomStyles.root,
+        collapsed && "desktop:justify-center desktop:px-0",
+        className
+      )}
+      title={collapsed ? name : undefined}
       {...props}
     >
       <Avatar
@@ -19,7 +24,9 @@ export const Bottom = React.forwardRef<HTMLDivElement, SidebarBottomProps>(
         src={src}
         alt={name}
       />
-      <div className="flex min-w-0 flex-col">
+      <div
+        className={cn("flex min-w-0 flex-col", collapsed && "desktop:hidden")}
+      >
         <Title
           variant="body-sm"
           weight="semibold"

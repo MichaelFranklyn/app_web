@@ -30,15 +30,13 @@ export function WorkingParametersCard({ form, onChange }: Props) {
         </Card.Header.Title>
       </Card.Header>
       <Card.Body>
-        <div className="flex flex-col gap-14">
+        <div className="flex flex-col gap-12">
           <InputNumber
             label="Máximo de visitas por dia"
             value={form.maxVisitsPerDay}
             onChange={(e) =>
               onChange({
-                maxVisitsPerDay: e.target.value
-                  ? Number(e.target.value)
-                  : 1,
+                maxVisitsPerDay: e.target.value ? Number(e.target.value) : 1,
               })
             }
             min={1}
@@ -57,33 +55,29 @@ export function WorkingParametersCard({ form, onChange }: Props) {
             min={15}
             max={180}
           />
-          <div className="grid grid-cols-2 gap-10">
-            <InputNumber
-              label="Início do expediente"
-              type="time"
-              value={toTimeString(form.workStartTime)}
-              onChange={(e) =>
-                onChange({ workStartTime: `${e.target.value}:00` })
-              }
-            />
-            <InputNumber
-              label="Fim do expediente"
-              type="time"
-              value={toTimeString(form.workEndTime)}
-              onChange={(e) =>
-                onChange({ workEndTime: `${e.target.value}:00` })
-              }
-            />
-          </div>
+          <InputNumber
+            label="Início do expediente"
+            type="time"
+            value={toTimeString(form.workStartTime)}
+            onChange={(e) =>
+              onChange({ workStartTime: `${e.target.value}:00` })
+            }
+          />
+          <InputNumber
+            label="Fim do expediente"
+            type="time"
+            value={toTimeString(form.workEndTime)}
+            onChange={(e) => onChange({ workEndTime: `${e.target.value}:00` })}
+          />
           <div className="flex flex-col gap-5">
             <Title
               variant="micro"
               color="muted"
-              className="uppercase tracking-[0.08em]"
+              className="tracking-[0.08em] uppercase"
             >
               Dias de trabalho
             </Title>
-            <div className="flex gap-6">
+            <div className="flex flex-wrap gap-6">
               {WEEKDAYS.map(({ value, label }) => {
                 const active = form.workDays.includes(value);
                 return (

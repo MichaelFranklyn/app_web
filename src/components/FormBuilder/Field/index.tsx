@@ -17,8 +17,12 @@ export const Field = ({ field, namePrefix }: FormBuilderFieldProps) => {
   const mobileCol = field.grid?.mobile
     ? `col-span-${field.grid.mobile}`
     : "col-span-12";
-  const mdCol = field.grid?.tablet ? `md:col-span-${field.grid.tablet}` : "";
-  const lgCol = field.grid?.desktop ? `lg:col-span-${field.grid.desktop}` : "";
+  const mdCol = field.grid?.tablet
+    ? `tablet:col-span-${field.grid.tablet}`
+    : "";
+  const lgCol = field.grid?.desktop
+    ? `desktop:col-span-${field.grid.desktop}`
+    : "";
 
   return (
     <div className={cn(mobileCol, mdCol, lgCol, "w-full")}>

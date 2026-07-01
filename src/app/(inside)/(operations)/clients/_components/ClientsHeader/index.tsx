@@ -21,21 +21,17 @@ export function ClientsHeader({ stats }: ClientsHeaderProps) {
       <PanelHeader.Root>
         <PanelHeader.Top>
           <PanelHeader.Left>
-            <PanelHeader.Eyebrow>
-              03 — Clientes
-            </PanelHeader.Eyebrow>
-            <PanelHeader.Title>
-              Clientes
-            </PanelHeader.Title>
+            <PanelHeader.Eyebrow>03 — Clientes</PanelHeader.Eyebrow>
+            <PanelHeader.Title>Clientes</PanelHeader.Title>
             <PanelHeader.Description>
               Carteira de clientes da empresa. Dados globais complementados com
               informações privadas.
             </PanelHeader.Description>
-            <PanelHeader.Actions className="mt-6">
+            <PanelHeader.Actions className="mt-6" data-tour="clients-actions">
               <Button.Root
                 appearance="outline"
                 color="neutral"
-                size="md"
+                size="sm"
                 noUppercase
               >
                 <Button.Icon icon={Download} />

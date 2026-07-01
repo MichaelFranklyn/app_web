@@ -27,7 +27,10 @@ export function ImportTemplateTab({ factoryId }: Props) {
 
   const { data, loading, refetch } = useQuery<ImportTemplatesData>(
     IMPORT_TEMPLATES_QUERY,
-    { variables: buildImportTemplatesVariables(factoryId), fetchPolicy: "cache-and-network" }
+    {
+      variables: buildImportTemplatesVariables(factoryId),
+      fetchPolicy: "cache-and-network",
+    }
   );
 
   const nodes = useMemo<ImportTemplateNode[]>(
@@ -48,11 +51,12 @@ export function ImportTemplateTab({ factoryId }: Props) {
   const isLoading = loading && !data;
 
   const orderFormatLabel = orderTemplate
-    ? presetById(String(orderTemplate.config?.preset ?? ""))?.label ?? "Formato personalizado"
+    ? (presetById(String(orderTemplate.config?.preset ?? ""))?.label ??
+      "Formato personalizado")
     : "";
 
   return (
-    <div className="flex flex-col gap-16">
+    <div className="flex flex-col gap-16" data-tour="factory-import-template">
       <Title variant="heading-sm" weight="bold">
         Modelos de importação
       </Title>
@@ -65,8 +69,8 @@ export function ImportTemplateTab({ factoryId }: Props) {
               Modelo de pedido
             </Title>
             <Title variant="body-sm">
-              Guarde um pedido de exemplo desta fábrica e o seu formato. Quando o
-              vendedor importar um pedido dela, o sistema já lê os itens
+              Guarde um pedido de exemplo desta fábrica e o seu formato. Quando
+              o vendedor importar um pedido dela, o sistema já lê os itens
               automaticamente, sem precisar apontar as colunas toda vez.
             </Title>
           </div>
@@ -78,7 +82,11 @@ export function ImportTemplateTab({ factoryId }: Props) {
         downloadLabel="Baixar pedido de exemplo"
         removeLabel="modelo de pedido"
         headerAction={
-          <ConfigureTemplateModal factoryId={factoryId} current={orderTemplate} onSaved={() => refetch()} />
+          <ConfigureTemplateModal
+            factoryId={factoryId}
+            current={orderTemplate}
+            onSaved={() => refetch()}
+          />
         }
         onChanged={() => refetch()}
       />
@@ -92,8 +100,8 @@ export function ImportTemplateTab({ factoryId }: Props) {
             </Title>
             <Title variant="body-sm">
               Guarda como as colunas da tabela desta fábrica foram mapeadas
-              (níveis, IPI, NCM, impostos). Nas próximas importações você só sobe
-              o novo arquivo — o mapeamento já vem preenchido.
+              (níveis, IPI, NCM, impostos). Nas próximas importações você só
+              sobe o novo arquivo — o mapeamento já vem preenchido.
             </Title>
           </div>
         }
@@ -112,7 +120,9 @@ export function ImportTemplateTab({ factoryId }: Props) {
             >
               <Button.Icon icon={Settings2} />
               <Button.Title>
-                {priceListTemplate ? "Reconfigurar modelo" : "Configurar modelo"}
+                {priceListTemplate
+                  ? "Reconfigurar modelo"
+                  : "Configurar modelo"}
               </Button.Title>
             </Button.Root>
           </Link>

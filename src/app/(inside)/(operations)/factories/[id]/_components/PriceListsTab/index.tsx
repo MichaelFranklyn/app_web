@@ -44,7 +44,7 @@ export function PriceListsTab({ companyFactoryId, factoryId }: Props) {
   const nameById = new Map(priceLists.map((pl) => [pl.id, pl.name]));
 
   return (
-    <Table.Root>
+    <Table.Root data-tour="prices-table">
       <Table.CardHead>
         <Table.CardHead.Title className="inline-flex items-center gap-6">
           Tabelas de preços
@@ -57,8 +57,8 @@ export function PriceListsTab({ companyFactoryId, factoryId }: Props) {
                 </Title>
                 <Title variant="body-sm">
                   Versiona os preços por vigência — promoções, reajustes,
-                  histórico. Dentro de cada tabela você lança o preço por produto
-                  e nível comercial.
+                  histórico. Dentro de cada tabela você lança o preço por
+                  produto e nível comercial.
                 </Title>
                 <Title variant="body-sm" color="muted">
                   Clique numa linha para abrir a tabela e gerenciar os preços.
@@ -67,7 +67,7 @@ export function PriceListsTab({ companyFactoryId, factoryId }: Props) {
             }
           />
         </Table.CardHead.Title>
-        <Table.CardHead.Actions>
+        <Table.CardHead.Actions data-tour="prices-actions">
           <ImportPriceListModal
             companyFactoryId={companyFactoryId}
             factoryId={factoryId}
@@ -119,6 +119,7 @@ export function PriceListsTab({ companyFactoryId, factoryId }: Props) {
               <Table.Row
                 key={pl.id}
                 href={`/factories/${companyFactoryId}/price-lists/${pl.id}`}
+                data-tour="prices-row"
               >
                 <Table.Cell>
                   <div className="flex flex-col">

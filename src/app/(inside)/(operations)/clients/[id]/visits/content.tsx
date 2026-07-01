@@ -97,7 +97,7 @@ export default function VisitsContent() {
   }
 
   return (
-    <Table.Root>
+    <Table.Root data-tour="client-visits-table">
       <Table.Table>
         <Table.Header>
           <Table.Row>

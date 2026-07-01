@@ -44,7 +44,7 @@ const Header = React.forwardRef<HTMLDivElement, HeaderProps>(
         )}
       </div>
       {showClose && (
-        <Dialog.Close className="mt-0.5 shrink-0 text-(--muted) transition-colors hover:text-(--fg)">
+        <Dialog.Close className="mt-2 shrink-0 text-(--muted) transition-colors hover:text-(--fg)">
           <svg
             xmlns="http://www.w3.org/2000/svg"
             width="16"
@@ -91,7 +91,9 @@ const Footer = React.forwardRef<
   <div
     ref={ref}
     className={cn(
-      "flex items-center justify-end gap-3 border-t border-(--border) px-16 py-12",
+      // Mobile/tablet: botões empilhados e full-width (alvos de toque grandes).
+      // Desktop: volta para linha, alinhados à direita, no tamanho natural.
+      "desktop:flex-row desktop:items-center desktop:justify-end desktop:[&>button]:w-auto flex flex-col gap-3 border-t border-(--border) px-16 py-12 [&>button]:w-full",
       className
     )}
     {...props}
@@ -132,6 +134,7 @@ const Content = React.forwardRef<
         ref={ref}
         className={cn(
           "fixed top-1/2 left-1/2 z-50 w-full -translate-x-1/2 -translate-y-1/2",
+          "max-w-[calc(100vw-32px)]",
           "flex max-h-[90vh] flex-col",
           "rounded-(--r-lg) border border-(--border) bg-(--bg2) shadow-(--shadow-md)",
           "data-[state=open]:animate-in data-[state=closed]:animate-out",

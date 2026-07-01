@@ -9,8 +9,8 @@ const baseClasses =
 // para que badge e botão de mesmo size fiquem com a mesma altura quando usados
 // lado a lado. Todos os tamanhos têm paridade 1:1 com o botão, inclusive o xs.
 const sizeClasses: Record<BadgeSize, string> = {
-  xs: "px-[8px] py-[3px] rounded-(--r-sm) text-[12px]",
-  sm: "px-[12px] py-[5px] rounded-(--r-sm) text-[12px]",
+  xs: "px-[8px] py-[3px] rounded-(--r-sm) text-[13px]",
+  sm: "px-[12px] py-[5px] rounded-(--r-sm) text-[13px]",
   md: "px-[16px] py-[8px] rounded-(--r-md) text-[13px]",
   lg: "px-[20px] py-[11px] rounded-(--r-lg) text-[13px]",
 };

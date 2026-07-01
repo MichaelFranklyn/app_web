@@ -65,7 +65,7 @@ export default function ClientLayout({
             {isHeaderLoading ? (
               <Loading.Skeleton className="inline-block h-[12px] w-32 align-middle" />
             ) : (
-              (name || "—")
+              name || "—"
             )}
           </Breadcrumb.Item>
         </Breadcrumb.Root>
@@ -73,9 +73,7 @@ export default function ClientLayout({
         <PanelHeader.Root>
           <PanelHeader.Top>
             <PanelHeader.Left>
-              <PanelHeader.Eyebrow>
-                03 — Clientes
-              </PanelHeader.Eyebrow>
+              <PanelHeader.Eyebrow>03 — Clientes</PanelHeader.Eyebrow>
               {isHeaderLoading ? (
                 <>
                   <Loading.Skeleton className="h-[24px] w-72" />
@@ -91,8 +89,7 @@ export default function ClientLayout({
                   <PanelHeader.Title>
                     {nameHighlight ? (
                       <>
-                        {name.replace(nameHighlight, "").trim()}{" "}
-                        {nameHighlight}
+                        {name.replace(nameHighlight, "").trim()} {nameHighlight}
                       </>
                     ) : (
                       name || "—"
@@ -102,7 +99,7 @@ export default function ClientLayout({
                     {`${cnae} · ${city} · CNPJ ${cnpj}`}
                   </PanelHeader.Description>
 
-                  <PanelHeader.Actions>
+                  <PanelHeader.Actions data-tour="client-detail-actions">
                     {companyClientView && (
                       <Badge.Root
                         color={companyClientView.isActive ? "green" : "neutral"}
@@ -139,7 +136,7 @@ export default function ClientLayout({
       </div>
 
       <div>
-        <Tabs.NavList>
+        <Tabs.NavList data-tour="client-tabs">
           <Tabs.NavItem href={`${basePath}/overview`}>Visão Geral</Tabs.NavItem>
           <Tabs.NavItem href={`${basePath}/factories`}>Fábricas</Tabs.NavItem>
           <Tabs.NavItem href={`${basePath}/orders`}>Pedidos</Tabs.NavItem>

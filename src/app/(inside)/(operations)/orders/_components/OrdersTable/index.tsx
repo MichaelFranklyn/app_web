@@ -33,12 +33,13 @@ export function OrdersTable({
   setFilter,
 }: Props) {
   return (
-    <Table.Root>
+    <Table.Root data-tour="orders-table">
       <Table.CardHead>
         <Table.CardHead.Title>Lista de pedidos</Table.CardHead.Title>
         <Table.CardHead.Actions>
           <InputSearch
             placeholder="Buscar por fábrica, vendedor ou código..."
+            data-tour="orders-search"
             value={inputValues.search ?? ""}
             onChange={(e) => setFilter("search", e.target.value || undefined)}
           />
@@ -81,6 +82,7 @@ export function OrdersTable({
               <Table.Row
                 key={order.id}
                 href={`/orders/${order.id}`}
+                data-tour="orders-row"
                 className="group"
               >
                 <Table.Cell>

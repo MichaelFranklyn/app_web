@@ -1,1 +1,1 @@
-export const itemSubStyle = "text-[12px] text-(--muted) mt-[1px] truncate";
+export const itemSubStyle = "text-[13px] text-(--muted) mt-[1px] truncate";

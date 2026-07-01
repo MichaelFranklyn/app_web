@@ -8,7 +8,7 @@ export const Eyebrow = React.forwardRef<
   <div
     ref={ref}
     className={cn(
-      "mb-[2px] text-[12px] font-medium tracking-[0.12em] text-(--muted) uppercase",
+      "mb-[2px] text-[13px] font-medium tracking-[0.12em] text-(--muted) uppercase",
       className
     )}
     {...props}

@@ -61,9 +61,12 @@ export function RoutinesHeader({
           </PanelHeader.Eyebrow>
           <PanelHeader.Title>Rotina da Semana</PanelHeader.Title>
           <PanelHeader.Description>{description}</PanelHeader.Description>
-          <PanelHeader.Actions className="mt-6">
+          <PanelHeader.Actions
+            className="mt-6"
+            data-tour="routines-header-actions"
+          >
             {canSelectSeller && (
-              <div className="w-[220px]">
+              <div className="desktop:w-[220px] w-full">
                 <Input.Select
                   options={sellerOptions}
                   value={sellerValue}
@@ -77,7 +80,7 @@ export function RoutinesHeader({
                 />
               </div>
             )}
-            <div className="w-[180px]">
+            <div className="desktop:w-[180px] w-full">
               <Input.Date
                 variant="single"
                 value={isoToLocalDate(weekStart)}
@@ -90,37 +93,44 @@ export function RoutinesHeader({
                 }}
               />
             </div>
-            <Button.Root
-              appearance="outline"
-              color="neutral"
-              size="sm"
-              isIconOnly
-              onClick={onPrevWeek}
-            >
-              <Button.Icon icon={ChevronLeft} />
-            </Button.Root>
-            <Button.Root
-              appearance="tinted"
-              color="amber"
-              size="sm"
-              noUppercase
-              disabled={isCurrentWeek}
-              onClick={onCurrentWeek}
-            >
-              <Button.Icon icon={CalendarDays} />
-              <Button.Title>
-                {isCurrentWeek ? "Semana atual" : "Voltar para atual"}
-              </Button.Title>
-            </Button.Root>
-            <Button.Root
-              appearance="outline"
-              color="neutral"
-              size="sm"
-              isIconOnly
-              onClick={onNextWeek}
-            >
-              <Button.Icon icon={ChevronRight} />
-            </Button.Root>
+            {/* Navegação de semana: anterior + atual + próxima sempre juntos
+                (quebram em bloco, nunca separados em linhas diferentes). No
+                mobile/tablet o bloco ocupa a largura toda e o botão central
+                cresce; a partir de desktop volta ao tamanho natural. */}
+            <div className="desktop:w-auto flex w-full items-center gap-8">
+              <Button.Root
+                appearance="outline"
+                color="neutral"
+                size="sm"
+                isIconOnly
+                onClick={onPrevWeek}
+              >
+                <Button.Icon icon={ChevronLeft} />
+              </Button.Root>
+              <Button.Root
+                appearance="tinted"
+                color="amber"
+                size="sm"
+                noUppercase
+                disabled={isCurrentWeek}
+                onClick={onCurrentWeek}
+                className="desktop:flex-initial flex-1"
+              >
+                <Button.Icon icon={CalendarDays} />
+                <Button.Title>
+                  {isCurrentWeek ? "Semana atual" : "Voltar para atual"}
+                </Button.Title>
+              </Button.Root>
+              <Button.Root
+                appearance="outline"
+                color="neutral"
+                size="sm"
+                isIconOnly
+                onClick={onNextWeek}
+              >
+                <Button.Icon icon={ChevronRight} />
+              </Button.Root>
+            </div>
           </PanelHeader.Actions>
         </PanelHeader.Left>
       </PanelHeader.Top>

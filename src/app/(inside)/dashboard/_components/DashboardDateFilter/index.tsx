@@ -43,7 +43,7 @@ export function DashboardDateFilter({ value, onChange }: Props) {
   };
 
   return (
-    <div className="w-[260px]">
+    <div className="tablet:w-[260px] w-full">
       <InputDate
         variant="range"
         value={pickerValue}

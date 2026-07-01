@@ -12,9 +12,10 @@ import { useStockObservation } from "./useStockObservation";
 
 interface Props {
   item: VisitScheduleItem;
+  onSaved?: () => void;
 }
 
-export function StockObservationTab({ item }: Props) {
+export function StockObservationTab({ item, onSaved }: Props) {
   const {
     loading,
     products,
@@ -24,7 +25,7 @@ export function StockObservationTab({ item }: Props) {
     selectedCount,
     handleSave,
     isLoading,
-  } = useStockObservation(item);
+  } = useStockObservation(item, onSaved);
 
   if (loading) {
     return (
@@ -69,7 +70,7 @@ export function StockObservationTab({ item }: Props) {
               <div className="truncate text-[13px] font-medium text-(--text)">
                 {p.name}
               </div>
-              <div className="text-[12px] text-(--muted)">{p.sku}</div>
+              <div className="text-[13px] text-(--muted)">{p.sku}</div>
             </div>
             <div className="flex shrink-0 gap-4">
               {STOCK_OBSERVATION_OPTIONS.map((opt) => {
@@ -79,7 +80,7 @@ export function StockObservationTab({ item }: Props) {
                     key={opt.value}
                     type="button"
                     onClick={() => toggle(p.id, opt.value)}
-                    className={`rounded-(--r-sm) border px-8 py-4 text-[12px] transition-colors ${
+                    className={`rounded-(--r-sm) border px-8 py-4 text-[13px] transition-colors ${
                       active
                         ? "border-(--amber) bg-(--amber) text-black"
                         : "border-(--border) text-(--muted) hover:border-(--border2)"

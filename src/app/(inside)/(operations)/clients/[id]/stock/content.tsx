@@ -75,7 +75,7 @@ export default function StockContent() {
         </Alert.Content>
       </Alert.Root>
 
-      <Table.Root>
+      <Table.Root data-tour="client-stock-table">
         <Table.Table>
           <Table.Header>
             <Table.Row>

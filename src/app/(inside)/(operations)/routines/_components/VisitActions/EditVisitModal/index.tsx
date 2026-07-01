@@ -23,6 +23,7 @@ export function EditVisitModal({
   open,
   onOpenChange,
   onDone,
+  onCompleted,
 }: EditVisitModalProps) {
   const formRef = useRef<FormBuilderRef>(null);
   const [updateItem] = useMutation<UpdateVisitScheduleItemResponse>(
@@ -106,6 +107,10 @@ export function EditVisitModal({
         onSuccess: () => {
           onOpenChange(false);
           onDone();
+          // Acabou de virar concluída aqui → oferece pedido/estoque.
+          if (status === "COMPLETED" && item.status !== "COMPLETED") {
+            onCompleted?.();
+          }
         },
       }
     );

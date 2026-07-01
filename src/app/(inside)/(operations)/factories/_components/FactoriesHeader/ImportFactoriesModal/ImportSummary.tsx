@@ -59,7 +59,7 @@ function DetailLine({
   detail: ImportRowDetail;
 }) {
   return (
-    <div className="text-xs text-(--text)">
+    <div className="text-[13px] text-(--text)">
       <Title variant="body-xs" weight="medium" className={`inline ${tone}`}>
         {label} · Linha {detail.row}
       </Title>

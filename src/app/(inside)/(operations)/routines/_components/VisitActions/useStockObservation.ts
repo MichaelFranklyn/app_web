@@ -29,7 +29,10 @@ interface ObsData {
   };
 }
 
-export function useStockObservation(item: VisitScheduleItem) {
+export function useStockObservation(
+  item: VisitScheduleItem,
+  onSaved?: () => void
+) {
   const clientId = item.clientFactoryLink?.client?.id;
   const factoryId = item.clientFactoryLink?.factory?.id;
 
@@ -121,7 +124,12 @@ export function useStockObservation(item: VisitScheduleItem) {
       },
       {
         successMessage: "Observações de estoque salvas",
-        onSuccess: () => refetchObs(),
+        onSuccess: () => {
+          refetchObs();
+          // Avisa a rotina para recarregar: o resumo de estoque da visita mudou,
+          // então o aviso de pendência some no card e no painel.
+          onSaved?.();
+        },
       }
     );
   };

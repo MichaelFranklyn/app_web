@@ -8,7 +8,7 @@ export const AlertDescription = React.forwardRef<
   <div
     ref={ref}
     className={cn(
-      "max-w-[90%] text-[12px] leading-relaxed opacity-80",
+      "max-w-[90%] text-[13px] leading-relaxed opacity-80",
       className
     )}
     {...props}

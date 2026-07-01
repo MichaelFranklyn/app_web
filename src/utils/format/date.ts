@@ -28,6 +28,17 @@ export const getCurrentWeekMondayIso = (): string => {
 };
 
 /**
+ * Retorna o ISO (aaaa-mm-dd, em UTC) do dia de hoje.
+ * Usado para atalhos que apontam para "o dia atual" (ex.: rota do dia).
+ */
+export const getTodayIso = (): string => {
+  const now = new Date();
+  return toUtcIsoDate(
+    new Date(Date.UTC(now.getFullYear(), now.getMonth(), now.getDate()))
+  );
+};
+
+/**
  * Formata uma data ISO para dd/mm/aaaa (pt-BR).
  * Retorna "—" se a data for ausente ou inválida (ideal para células de tabela).
  */

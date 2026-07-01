@@ -10,6 +10,7 @@ import { Responsive } from "@/components/Responsive";
 import { RootPage } from "@/components/RootPage";
 import { Title } from "@/components/Title";
 import { useAsyncAction } from "@/hooks/useAsyncAction";
+import { ArrowRight } from "lucide-react";
 import { setCookie } from "@/utils/cookies/clientCookie";
 import { useMutation } from "@apollo/client/react";
 import Image from "next/image";
@@ -221,7 +222,8 @@ export default function LoginContent() {
                 loading={isLoading}
                 onClick={() => formRef.current?.submitForm()}
               >
-                <Button.Title>Entrar →</Button.Title>
+                <Button.Title>Entrar</Button.Title>
+                <Button.Icon icon={ArrowRight} />
               </Button.Root>
             </Card.Body>
 

@@ -26,13 +26,11 @@ export function OrdersHeader({ stats, onAddOptimistic }: Props) {
         <PanelHeader.Top>
           <PanelHeader.Left>
             <PanelHeader.Eyebrow>05 — Pedidos</PanelHeader.Eyebrow>
-            <PanelHeader.Title>
-              Pedidos
-            </PanelHeader.Title>
+            <PanelHeader.Title>Pedidos</PanelHeader.Title>
             <PanelHeader.Description>
               Gestão de pedidos por fábrica e vendedor.
             </PanelHeader.Description>
-            <PanelHeader.Actions className="mt-6">
+            <PanelHeader.Actions className="mt-6" data-tour="orders-actions">
               <ImportOrderModal onAddOptimistic={onAddOptimistic} />
               <AddOrderModal onAddOptimistic={onAddOptimistic} />
             </PanelHeader.Actions>

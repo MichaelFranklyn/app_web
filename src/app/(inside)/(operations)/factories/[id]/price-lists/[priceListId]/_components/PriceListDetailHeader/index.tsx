@@ -28,7 +28,9 @@ export function PriceListDetailHeader({
 
   const validity = priceList
     ? `${formatDateDMY(priceList.validFrom)} → ${
-        priceList.validUntil ? formatDateDMY(priceList.validUntil) : "indeterminada"
+        priceList.validUntil
+          ? formatDateDMY(priceList.validUntil)
+          : "indeterminada"
       }`
     : "—";
 
@@ -57,7 +59,10 @@ export function PriceListDetailHeader({
               Vigência: {validity}
             </PanelHeader.Description>
             {priceList && (
-              <PanelHeader.Actions className="mt-6">
+              <PanelHeader.Actions
+                className="mt-6"
+                data-tour="price-detail-actions"
+              >
                 <Badge.Root
                   color={priceList.isActive ? "green" : "neutral"}
                   appearance="tinted"

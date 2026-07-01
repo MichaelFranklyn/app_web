@@ -12,4 +12,6 @@ export interface EditVisitModalProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
   onDone: () => void;
+  /** Chamado quando a visita passa a CONCLUÍDA aqui (para oferecer pedido/estoque). */
+  onCompleted?: () => void;
 }

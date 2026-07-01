@@ -45,13 +45,14 @@ export function UsersTable({
   const isEmpty = !loading && items.length === 0;
 
   return (
-    <Table.Root>
+    <Table.Root data-tour="users-table">
       <Table.CardHead>
         <Table.CardHead.Title>Usuários</Table.CardHead.Title>
         <Table.CardHead.Actions>
           <div className="flex items-center gap-8">
             <InputSearch
               placeholder="Buscar por nome..."
+              data-tour="users-search"
               value={inputValues.search ?? ""}
               onChange={(e) => setFilter("search", e.target.value || undefined)}
             />

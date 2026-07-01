@@ -11,7 +11,7 @@ import { Stepper } from "@/components/Stepper";
 import { Title } from "@/components/Title";
 import { useAsyncAction } from "@/hooks/useAsyncAction";
 import { useMutation } from "@apollo/client/react";
-import { FileWarning, Info } from "lucide-react";
+import { ArrowRight, FileWarning, Info } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { useRef, useState } from "react";
 import { REQUEST_PASSWORD_RESET_MUTATION } from "./gql";
@@ -143,7 +143,8 @@ export default function ForgotPasswordContent() {
                     loading={isLoading}
                     onClick={() => formRef.current?.submitForm()}
                   >
-                    <Button.Title>Enviar instruções →</Button.Title>
+                    <Button.Title>Enviar instruções</Button.Title>
+                    <Button.Icon icon={ArrowRight} />
                   </Button.Root>
 
                   <Button.Root

@@ -1,7 +1,7 @@
 import { cva } from "class-variance-authority";
 
 export const accentLabelStyle = cva(
-  "text-[12px] tracking-[0.08em] uppercase mb-1 font-medium",
+  "text-[13px] tracking-[0.08em] uppercase mb-1 font-medium",
   {
     variants: {
       color: {

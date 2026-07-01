@@ -8,7 +8,7 @@ import { Grid } from "@/components/Grid";
 import { Pagination } from "@/components/Pagination";
 import { useNavigation } from "@/hooks/useNavigation";
 import { maskCNPJ } from "@/utils/format/masks";
-import { Factory, Loader2 } from "lucide-react";
+import { ArrowRight, Factory } from "lucide-react";
 import { useEffect, useState } from "react";
 import { CompanyFactory } from "../../interface";
 import {
@@ -54,17 +54,20 @@ export function FactoriesGrid({
   if (!loading && visibleItems.length === 0) {
     return (
       <EmptyState.Root>
-        <EmptyState.Icon><Factory size={32} /></EmptyState.Icon>
+        <EmptyState.Icon>
+          <Factory size={32} />
+        </EmptyState.Icon>
         <EmptyState.Title>Nenhuma fábrica vinculada</EmptyState.Title>
         <EmptyState.Description>
-          Você ainda não vinculou nenhuma fábrica. Clique em &quot;Vincular Fábrica&quot; para começar.
+          Você ainda não vinculou nenhuma fábrica. Clique em &quot;Vincular
+          Fábrica&quot; para começar.
         </EmptyState.Description>
       </EmptyState.Root>
     );
   }
 
   return (
-    <div className="flex flex-col gap-16">
+    <div className="flex flex-col gap-16" data-tour="factories-grid">
       <Grid.Root cols={{ base: 1, tablet: 2, desktop: 3 }} gap={12}>
         {visibleItems.map((cf) => {
           const name = cf.factory.nomeFantasia ?? cf.factory.razaoSocial;
@@ -77,23 +80,21 @@ export function FactoriesGrid({
 
           return (
             <Grid.Item key={cf.id}>
-              <Card.Root className="h-full">
+              <Card.Root className="h-full" data-tour="factories-card">
                 <Card.Body>
                   <div className="mb-12 flex items-start justify-between">
                     <div className="min-w-0">
                       <div
-                        className="line-clamp-2 min-h-[36px] font-head text-[15px] font-bold leading-[18px] text-(--text)"
+                        className="font-head line-clamp-2 min-h-[36px] text-[15px] leading-[18px] font-bold text-(--text)"
                         title={name}
                       >
                         {name}
                       </div>
-                      <div className="mt-[2px] text-[12px] text-(--muted)">
+                      <div className="mt-[2px] text-[13px] text-(--muted)">
                         {maskCNPJ(cf.factory.cnpj)}
                       </div>
                       {city && (
-                        <div className="text-[12px] text-(--muted)">
-                          {city}
-                        </div>
+                        <div className="text-[13px] text-(--muted)">{city}</div>
                       )}
                     </div>
                     <div className="flex flex-wrap items-center justify-end gap-6">
@@ -124,7 +125,9 @@ export function FactoriesGrid({
                     <Card.Item.Value>{cf.commissionCalcBasis}</Card.Item.Value>
                   </Card.Item>
                   <Card.Item variant="stat">
-                    <Card.Item.Label>Dia de pagamento da fábrica</Card.Item.Label>
+                    <Card.Item.Label>
+                      Dia de pagamento da fábrica
+                    </Card.Item.Label>
                     <Card.Item.Value>Dia {cf.paymentTermDays}</Card.Item.Value>
                   </Card.Item>
                   <Card.Item variant="stat" bordered={false}>
@@ -141,12 +144,11 @@ export function FactoriesGrid({
                     className="mt-12 w-full justify-center"
                     noUppercase
                     disabled={isPending}
+                    loading={pendingId === cf.id}
                     onClick={() => handleNavigate(cf.id)}
                   >
-                    {pendingId === cf.id && (
-                      <Loader2 className="shrink-0 animate-spin" size={14} />
-                    )}
-                    <Button.Title>Ver detalhes →</Button.Title>
+                    <Button.Title>Ver detalhes</Button.Title>
+                    <Button.Icon icon={ArrowRight} />
                   </Button.Root>
                 </Card.Body>
               </Card.Root>
@@ -164,9 +166,7 @@ export function FactoriesGrid({
             />
             {Array.from({ length: Math.min(7, totalPages) }, (_, i) => {
               const page =
-                totalPages <= 7
-                  ? i + 1
-                  : Math.max(1, currentPage - 2) + i;
+                totalPages <= 7 ? i + 1 : Math.max(1, currentPage - 2) + i;
               return page <= totalPages ? (
                 <Pagination.Item
                   key={page}

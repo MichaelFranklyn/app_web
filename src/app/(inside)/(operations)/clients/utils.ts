@@ -14,8 +14,13 @@ export const TABLE_FIELDS: Record<string, FieldConfig> = {
 };
 
 export const buildKpis = (stats: ClientsStats): KpiItem[] => {
-  const { totalClients, activeClients, atRiskClients, noVisit30d } =
-    stats.clientStats;
+  // Defensivo: se `clientStats` vier ausente, degrada para zeros sem quebrar a página.
+  const {
+    totalClients = 0,
+    activeClients = 0,
+    atRiskClients = 0,
+    noVisit30d = 0,
+  } = stats.clientStats ?? {};
 
   return [
     {

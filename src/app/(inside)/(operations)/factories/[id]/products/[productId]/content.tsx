@@ -60,7 +60,11 @@ export default function ProductDetailContent({ id }: Props) {
       <ProductDetailHeader product={product} onRefetch={refetch} />
 
       <Grid cols={{ base: 1, desktop: 3 }} gap={20}>
-        <Grid.Item span={{ base: 1, desktop: 2 }} className="min-w-0">
+        <Grid.Item
+          span={{ base: 1, desktop: 2 }}
+          className="min-w-0"
+          data-tour="product-prices"
+        >
           <PricesTable
             productId={id}
             companyFactoryId={product.companyFactory?.id ?? ""}
@@ -74,12 +78,18 @@ export default function ProductDetailContent({ id }: Props) {
           span={{ base: 1, desktop: 1 }}
           className="flex flex-col gap-12"
         >
-          <ProductInfoCard product={product} />
-          <TaxesTable productId={id} onChanged={handleTaxesChanged} />
-          <ComponentsTable
-            productId={id}
-            companyFactoryId={product.companyFactory?.id ?? ""}
-          />
+          <div data-tour="product-info">
+            <ProductInfoCard product={product} />
+          </div>
+          <div data-tour="product-taxes">
+            <TaxesTable productId={id} onChanged={handleTaxesChanged} />
+          </div>
+          <div data-tour="product-components">
+            <ComponentsTable
+              productId={id}
+              companyFactoryId={product.companyFactory?.id ?? ""}
+            />
+          </div>
         </Grid.Item>
       </Grid>
     </div>

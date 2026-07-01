@@ -66,7 +66,7 @@ export function SellersTab({ factoryId }: Props) {
   const accesses = optimistic.items;
 
   return (
-    <Table.Root>
+    <Table.Root data-tour="factory-sellers-table">
       <Table.CardHead>
         <Table.CardHead.Title className="inline-flex items-center gap-6">
           Acesso de vendedores
@@ -91,7 +91,7 @@ export function SellersTab({ factoryId }: Props) {
             }
           />
         </Table.CardHead.Title>
-        <Table.CardHead.Actions>
+        <Table.CardHead.Actions data-tour="factory-sellers-actions">
           <AddSellerAccessModal factoryId={factoryId} />
         </Table.CardHead.Actions>
       </Table.CardHead>

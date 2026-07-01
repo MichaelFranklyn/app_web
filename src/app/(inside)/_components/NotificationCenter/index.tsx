@@ -178,7 +178,7 @@ export function NotificationCenter() {
           align="end"
           sideOffset={8}
           className={cn(
-            "z-50 flex w-[360px] flex-col border border-(--border) bg-(--bg2)",
+            "tablet:w-[360px] z-50 flex w-[calc(100vw-24px)] flex-col border border-(--border) bg-(--bg2)",
             "rounded-(--r-lg) shadow-(--shadow-md)",
             "animate-in fade-in zoom-in-95 duration-150"
           )}
@@ -204,7 +204,7 @@ export function NotificationCenter() {
               <button
                 type="button"
                 onClick={handleMarkAllRead}
-                className="flex items-center gap-4 text-[12px] text-(--muted) hover:text-(--text)"
+                className="flex items-center gap-4 text-[13px] text-(--muted) hover:text-(--text)"
               >
                 <CheckCheck size={12} />
                 Marcar todas

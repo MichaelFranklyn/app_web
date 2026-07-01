@@ -5,7 +5,7 @@ import { Button } from "@/components/Button";
 import { Card } from "@/components/Card";
 import { EmptyState } from "@/components/EmptyState";
 import { useNavigation } from "@/hooks/useNavigation";
-import { CalendarCheck } from "lucide-react";
+import { ArrowRight, CalendarCheck } from "lucide-react";
 import { ScheduleItem } from "../../interface";
 import { namedEntityLabel } from "../../utils";
 
@@ -35,7 +35,8 @@ export function UpcomingVisitsCard({ items }: Props) {
             disabled={isPending}
             onClick={() => navigateTo("/routines")}
           >
-            <Button.Title>Ver rotina →</Button.Title>
+            <Button.Title>Ver rotina</Button.Title>
+            <Button.Icon icon={ArrowRight} />
           </Button.Root>
         </Card.Header.Actions>
       </Card.Header>
@@ -47,8 +48,8 @@ export function UpcomingVisitsCard({ items }: Props) {
             </EmptyState.Icon>
             <EmptyState.Title>Sem visitas pendentes</EmptyState.Title>
             <EmptyState.Description>
-              Todas as visitas do período foram concluídas ou ainda não há rotina
-              programada.
+              Todas as visitas do período foram concluídas ou ainda não há
+              rotina programada.
             </EmptyState.Description>
           </EmptyState.Root>
         ) : (

@@ -49,7 +49,7 @@ export function ClientsTab({ factoryId, companyFactoryId }: Props) {
   const links = optimistic.items;
 
   return (
-    <Table.Root>
+    <Table.Root data-tour="factory-clients-table">
       <Table.CardHead>
         <Table.CardHead.Title className="inline-flex items-center gap-6">
           Clientes da fábrica
@@ -73,7 +73,7 @@ export function ClientsTab({ factoryId, companyFactoryId }: Props) {
             }
           />
         </Table.CardHead.Title>
-        <Table.CardHead.Actions>
+        <Table.CardHead.Actions data-tour="factory-clients-actions">
           <LinkClientModal
             factoryId={factoryId}
             companyFactoryId={companyFactoryId}

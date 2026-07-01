@@ -36,11 +36,11 @@ export function VisitsSkeleton() {
         ))}
       </Grid.Root>
 
-      <div className="flex gap-20">
+      <div className="desktop:flex-row flex flex-col gap-20">
         <div className="min-w-0 flex-1">
           <Loading.Skeleton className="h-[360px] w-full rounded-(--r-xl)" />
         </div>
-        <div className="flex w-[320px] shrink-0 flex-col gap-12">
+        <div className="desktop:w-[320px] flex w-full shrink-0 flex-col gap-12">
           <Card.Root>
             <Card.Header>
               <Loading.Skeleton className="h-[14px] w-40" />

@@ -9,13 +9,10 @@ import {
 import { Modal } from "@/components/Modal";
 import { useAsyncAction } from "@/hooks/useAsyncAction";
 import { extractSelectValue } from "@/utils/form";
+import { toIsoDate } from "@/utils/format/date";
 import { useMutation } from "@apollo/client/react";
 import { useMemo, useRef } from "react";
-import {
-  RESCHEDULE_REASON_OPTIONS,
-  formatDayLabel,
-  formatWeekdayLabel,
-} from "../../../utils";
+import { RESCHEDULE_REASON_OPTIONS } from "../../../utils";
 import { RESCHEDULE_VISIT_MUTATION } from "../gql";
 import {
   RescheduleVisitModalProps,
@@ -24,8 +21,6 @@ import {
 
 export function RescheduleVisitModal({
   item,
-  currentDayId,
-  scheduleDays,
   open,
   onOpenChange,
   onDone,
@@ -38,17 +33,6 @@ export function RescheduleVisitModal({
 
   const client = item.clientFactoryLink?.client;
   const clientName = client?.nomeFantasia ?? client?.razaoSocial ?? "Cliente";
-
-  const dayOptions = useMemo(
-    () =>
-      scheduleDays
-        .filter((d) => d.id !== currentDayId)
-        .map((d) => ({
-          value: d.id,
-          label: `${formatDayLabel(d.date)} · ${formatWeekdayLabel(d.date)}`,
-        })),
-    [scheduleDays, currentDayId]
-  );
 
   const steps: FormStepSchema[] = useMemo(
     () => [
@@ -67,14 +51,10 @@ export function RescheduleVisitModal({
                 options: RESCHEDULE_REASON_OPTIONS,
               },
               {
-                name: "targetDayId",
-                type: "select-single",
-                label: "Remarcar para",
-                placeholder:
-                  dayOptions.length === 0
-                    ? "Sem outros dias na semana — marca como falha"
-                    : "Escolha o dia (vazio = marcar falha)",
-                options: dayOptions,
+                name: "targetDate",
+                type: "date",
+                label: "Nova data da visita",
+                hint: "Escolha o dia em que pretende visitar. A rotina daquela semana é criada se ainda não existir. Deixe em branco para encaixar no próximo dia disponível.",
               },
               {
                 name: "notes",
@@ -88,16 +68,16 @@ export function RescheduleVisitModal({
         ],
       },
     ],
-    [dayOptions]
+    []
   );
 
   const handleSubmit = async (data: Record<string, unknown>) => {
     const reason = extractSelectValue(data.reason);
     if (!reason) return;
-    const targetDayId = extractSelectValue(data.targetDayId);
+    const targetDate = toIsoDate(data.targetDate);
     const notes = String(data.notes ?? "").trim();
     const input: Record<string, unknown> = { originalItemId: item.id, reason };
-    if (targetDayId) input.targetDayId = targetDayId;
+    if (targetDate) input.targetDate = targetDate;
     if (notes) input.notes = notes;
 
     await execute(

@@ -12,7 +12,10 @@ const Diamond = () => (
 );
 
 export const DividerRoot = React.forwardRef<HTMLDivElement, DividerProps>(
-  ({ orientation = "horizontal", diamond, children, className, ...props }, ref) => {
+  (
+    { orientation = "horizontal", diamond, children, className, ...props },
+    ref
+  ) => {
     if (orientation === "vertical") {
       if (diamond) {
         return (
@@ -67,7 +70,7 @@ export const DividerRoot = React.forwardRef<HTMLDivElement, DividerProps>(
           {...props}
         >
           <div className="h-px flex-1 bg-(--border)" />
-          <span className="font-mono text-[12px] tracking-[0.08em] text-(--muted2) uppercase">
+          <span className="font-mono text-[13px] tracking-[0.08em] text-(--muted2) uppercase">
             {children}
           </span>
           <div className="h-px flex-1 bg-(--border)" />
