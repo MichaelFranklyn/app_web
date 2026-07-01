@@ -3,6 +3,17 @@ export interface DateRangeIso {
   to: string;
 }
 
+export interface SellerOption {
+  id: string;
+  name: string;
+}
+
+export interface DashboardSellersResponse {
+  dashboard_sellers: {
+    edges: { node: SellerOption }[];
+  };
+}
+
 export type OrderStatus =
   | "DRAFT"
   | "SENT"

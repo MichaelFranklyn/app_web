@@ -1,4 +1,8 @@
-import { getTodayIso, toUtcIsoDate as toIsoDate } from "@/utils/format/date";
+import {
+  getCurrentWeekMondayIso,
+  getTodayIso,
+  toUtcIsoDate as toIsoDate,
+} from "@/utils/format/date";
 import { VisitScheduleDay, VisitScheduleItem, VisitStatus } from "./interface";
 
 export { VISIT_STATUS_COLOR, VISIT_STATUS_LABEL } from "@/utils/visit";
@@ -112,6 +116,14 @@ export const shiftWeekIso = (isoDate: string, weeks: number): string => {
   const date = new Date(Date.UTC(year, month - 1, day));
   date.setUTCDate(date.getUTCDate() + weeks * 7);
   return toIsoDate(date);
+};
+
+// Só é possível gerar uma rotina inexistente para a semana atual ou a próxima.
+// Semanas mais distantes (ou passadas) não exibem o botão de gerar.
+export const canGenerateWeek = (weekStartIso: string): boolean => {
+  const current = getCurrentWeekMondayIso();
+  const next = shiftWeekIso(current, 1);
+  return weekStartIso === current || weekStartIso === next;
 };
 
 export const getIsoWeekNumber = (isoDate: string): number => {

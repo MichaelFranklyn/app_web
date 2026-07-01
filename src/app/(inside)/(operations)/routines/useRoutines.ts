@@ -3,10 +3,15 @@ import { getCurrentWeekMondayIso } from "@/utils/format/date";
 import { useQuery } from "@apollo/client/react";
 import { useEffect, useMemo, useState } from "react";
 
-import { ROUTINE_SELLERS_QUERY, VISIT_SCHEDULES_QUERY } from "./gql";
+import {
+  ROUTINE_SELLERS_QUERY,
+  VISIT_SCHEDULE_CONFIG_QUERY,
+  VISIT_SCHEDULES_QUERY,
+} from "./gql";
 import {
   RoutineSellersQueryData,
   VisitSchedule,
+  VisitScheduleConfigQueryData,
   VisitSchedulesQueryData,
 } from "./interface";
 import { shiftWeekIso } from "./utils";
@@ -75,6 +80,30 @@ export function useRoutines() {
     [data]
   );
 
+  // Vendedor efetivo: o escolhido pelo gestor ou o dono da rotina exibida
+  // (vendedor logado não usa seletor). Usado para buscar o limite de visitas/dia.
+  const effectiveSellerId = selectedSellerId ?? schedule?.seller?.id ?? null;
+
+  const configQuery = useQuery<VisitScheduleConfigQueryData>(
+    VISIT_SCHEDULE_CONFIG_QUERY,
+    {
+      variables: {
+        input: {
+          first: 1,
+          filters: effectiveSellerId
+            ? [{ field: "seller_id", operator: "eq", value: effectiveSellerId }]
+            : [],
+        },
+      },
+      skip: !effectiveSellerId,
+    }
+  );
+
+  // Limite de visitas por dia (default 10, igual ao backend, quando sem config).
+  const maxVisitsPerDay =
+    configQuery.data?.visit_schedule_configs.edges[0]?.node.maxVisitsPerDay ??
+    10;
+
   // Gestor cujos vendedores ainda carregam, ou já carregaram mas sem nenhum.
   const sellersPending = canSelectSeller && sellersLoading;
   const hasNoSellers =
@@ -108,6 +137,8 @@ export function useRoutines() {
     selectedSellerId,
     setSelectedSellerId,
     selectedSellerName,
+    effectiveSellerId,
+    maxVisitsPerDay,
     schedule,
     showSkeleton,
     hasNoSellers,

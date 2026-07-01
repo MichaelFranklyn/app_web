@@ -34,22 +34,26 @@ import { formatDateLong, getWeekMondayIso, shiftDateIso } from "./utils";
 
 interface Props {
   date: string;
+  /** Vendedor escolhido (gestor vindo da grade). Ausente = rotina do logado. */
+  sellerId?: string | null;
 }
 
-export default function DayRouteContent({ date }: Props) {
+export default function DayRouteContent({ date, sellerId }: Props) {
   const weekStart = useMemo(() => getWeekMondayIso(date), [date]);
 
   // Só o vendedor gera a própria rota; owner/admin apenas visualizam.
   const canGenerate = useUserRole() === "SELLER";
 
-  // A rota do dia mostra sempre a rotina do próprio usuário logado. A sentinela
-  // seller_id="me" faz o backend escopar ao vendedor logado em qualquer papel.
+  // Sem vendedor explícito, mostra a rotina do próprio logado (sentinela "me",
+  // que o backend escopa ao usuário em qualquer papel). Quando o gestor chega
+  // pela grade com ?seller=<id>, busca a rotina daquele vendedor.
+  const scopedSeller = sellerId ?? "me";
   const filters = useMemo(
     () => [
       { field: "week_start", operator: "eq", value: weekStart },
-      { field: "seller_id", operator: "eq", value: "me" },
+      { field: "seller_id", operator: "eq", value: scopedSeller },
     ],
-    [weekStart]
+    [weekStart, scopedSeller]
   );
 
   const { data, loading, refetch } = useQuery<VisitsWeekScheduleResponse>(
@@ -90,8 +94,10 @@ export default function DayRouteContent({ date }: Props) {
     [day]
   );
 
-  const prevHref = `/routines/${shiftDateIso(date, -1)}`;
-  const nextHref = `/routines/${shiftDateIso(date, 1)}`;
+  // Mantém o vendedor escolhido ao navegar entre os dias (gestor).
+  const sellerQuery = sellerId ? `?seller=${sellerId}` : "";
+  const prevHref = `/routines/${shiftDateIso(date, -1)}${sellerQuery}`;
+  const nextHref = `/routines/${shiftDateIso(date, 1)}${sellerQuery}`;
 
   const controls = (
     <div className="flex items-center justify-between">

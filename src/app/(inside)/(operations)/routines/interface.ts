@@ -92,3 +92,15 @@ export interface RoutineSellersQueryData {
     edges: { node: RoutineSellerOption }[];
   };
 }
+
+export interface VisitScheduleConfigNode {
+  id: string;
+  sellerId: string;
+  maxVisitsPerDay: number;
+}
+
+export interface VisitScheduleConfigQueryData {
+  visit_schedule_configs: {
+    edges: { node: VisitScheduleConfigNode }[];
+  };
+}

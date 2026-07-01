@@ -4,18 +4,24 @@ import { Badge } from "@/components/Badges";
 import { getButtonClasses } from "@/components/Button/Root/style";
 import { Card } from "@/components/Card";
 import { Title } from "@/components/Title";
-import { useUserRole } from "@/services/flowTour/useUserRole";
 import { ArrowUpRight, Route } from "lucide-react";
 import Link from "next/link";
 import { VisitScheduleDay } from "../../interface";
 import { buildWeekDays, getTodayIso } from "../../utils";
 import { GenerateDayButton } from "./GenerateDayButton";
+import { AddVisitCard } from "../AddVisitCard";
 import { VisitCard } from "../VisitCard";
 
 interface Props {
   weekStart: string;
+  /** VisitSchedule da semana exibida (para criar dias em folgas). */
+  scheduleId: string;
   days: VisitScheduleDay[];
   sellerId?: string | null;
+  /** Vendedor dono da rotina exibida (para agendar visitas na carteira dele). */
+  effectiveSellerId?: string | null;
+  /** Limite de visitas por dia da agenda do vendedor. */
+  maxVisitsPerDay: number;
   /** Quantos dias exibir a rotina, a partir de hoje (7 = semana toda). */
   periodDays: number;
   onChanged: () => void;
@@ -35,15 +41,17 @@ const routeButtonClass = getButtonClasses({
 
 export function RoutinesWeekGrid({
   weekStart,
+  scheduleId,
   days,
   sellerId,
+  effectiveSellerId,
+  maxVisitsPerDay,
   periodDays,
   onChanged,
 }: Props) {
   const cells = buildWeekDays(weekStart, days);
   const todayIso = getTodayIso();
-  // Só o vendedor gera a própria rota; owner/admin apenas visualizam.
-  const canGenerate = useUserRole() === "SELLER";
+  const addSellerId = effectiveSellerId ?? sellerId ?? null;
 
   // Janela do período: começa em hoje (se a semana exibida o contém) ou na
   // segunda-feira; cobre `periodDays` dias. "Semana" (>=7) mostra todos os dias.
@@ -57,6 +65,10 @@ export function RoutinesWeekGrid({
       {visibleCells.map((cell) => {
         const items = cell.day?.items ?? [];
         const isToday = cell.date === todayIso;
+        // "Dia seguinte" = próximo dia da semana; só serve como alternativa de
+        // agendamento se for um dia útil (tem rotina), não uma folga.
+        const globalIndex = cells.indexOf(cell);
+        const nextDay = cells[globalIndex + 1]?.day ?? null;
         return (
           // Colunas com largura mínima generosa para o conteúdo não espremer; a
           // faixa rola na horizontal quando não cabem todas. O flex-1 só faz as
@@ -98,21 +110,38 @@ export function RoutinesWeekGrid({
                     </Title>
                   </div>
                 )}
-                <Badge.Root color="neutral" appearance="tinted">
-                  <Badge.Text>{items.length}</Badge.Text>
-                </Badge.Root>
+                <div className="flex items-center gap-6">
+                  {isToday && (
+                    <Badge.Root color="amber" appearance="tinted">
+                      <Badge.Text>Hoje</Badge.Text>
+                    </Badge.Root>
+                  )}
+                  <Badge.Root color="neutral" appearance="tinted">
+                    <Badge.Text>{items.length}</Badge.Text>
+                  </Badge.Root>
+                </div>
               </Card.Header>
               <Card.Body>
                 {!cell.day ? (
-                  <div className="flex flex-col items-center gap-10 py-8">
+                  // Folga: o usuário ainda pode querer trabalhar neste dia —
+                  // gerar a rota automática (pela carteira) ou agendar uma
+                  // visita manual (cria o dia com essa primeira visita).
+                  <div className="flex flex-col items-center gap-8 py-8">
                     <span className="text-[13px] text-(--muted)">Folga</span>
-                    {canGenerate && (
-                      <GenerateDayButton
-                        date={cell.date}
-                        sellerId={sellerId}
-                        onGenerated={onChanged}
-                      />
-                    )}
+                    <GenerateDayButton
+                      date={cell.date}
+                      sellerId={addSellerId}
+                      onGenerated={onChanged}
+                    />
+                    <AddVisitCard
+                      day={null}
+                      date={cell.date}
+                      scheduleId={scheduleId}
+                      nextDay={nextDay}
+                      sellerId={addSellerId}
+                      maxVisitsPerDay={maxVisitsPerDay}
+                      onChanged={onChanged}
+                    />
                   </div>
                 ) : items.length === 0 ? (
                   <div className="py-8 text-center text-[13px] text-(--muted)">
@@ -130,6 +159,18 @@ export function RoutinesWeekGrid({
                       />
                     ))}
                   </div>
+                )}
+
+                {cell.day && (
+                  <AddVisitCard
+                    day={cell.day}
+                    date={cell.date}
+                    scheduleId={scheduleId}
+                    nextDay={nextDay}
+                    sellerId={addSellerId}
+                    maxVisitsPerDay={maxVisitsPerDay}
+                    onChanged={onChanged}
+                  />
                 )}
 
                 {cell.day && (

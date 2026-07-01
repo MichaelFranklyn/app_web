@@ -6,12 +6,13 @@ import { PageContent } from "@/components/PageContent";
 import { Title } from "@/components/Title";
 import { CalendarOff, Users } from "lucide-react";
 
+import { GenerateWeekButton } from "./_components/GenerateWeekButton";
 import { RoutinesHeader } from "./_components/RoutinesHeader";
 import { RoutinesSkeleton } from "./_components/RoutinesSkeleton";
 import { RoutinesSummary } from "./_components/RoutinesSummary";
 import { RoutinesWeekGrid } from "./_components/RoutinesWeekGrid";
 import { useRoutines } from "./useRoutines";
-import { formatWeekRange } from "./utils";
+import { canGenerateWeek, formatWeekRange } from "./utils";
 
 // Quantos dias da rotina exibir (a partir de hoje); 7 = semana inteira.
 const PERIOD_OPTIONS = [
@@ -32,6 +33,8 @@ export default function RoutinesContent() {
     selectedSellerId,
     setSelectedSellerId,
     selectedSellerName,
+    effectiveSellerId,
+    maxVisitsPerDay,
     schedule,
     showSkeleton,
     hasNoSellers,
@@ -77,10 +80,21 @@ export default function RoutinesContent() {
           </EmptyState.Icon>
           <EmptyState.Title>Nenhuma rotina nesta semana</EmptyState.Title>
           <EmptyState.Description>
-            Não há rotina cadastrada para {formatWeekRange(weekStart)}. Navegue
-            entre as semanas ou volte para a semana atual.
+            Não há rotina cadastrada para {formatWeekRange(weekStart)}.
+            {canGenerateWeek(weekStart)
+              ? " Gere a rotina desta semana ou navegue entre as semanas."
+              : " Navegue entre as semanas ou volte para a semana atual."}
           </EmptyState.Description>
           <EmptyState.Actions>
+            {/* Gerar rotina só faz sentido para a semana atual e a seguinte;
+                semanas mais distantes ainda não têm carteira/agenda definida. */}
+            {canGenerateWeek(weekStart) && (
+              <GenerateWeekButton
+                weekStart={weekStart}
+                sellerId={selectedSellerId}
+                onGenerated={() => refetch()}
+              />
+            )}
             <Button.Root
               appearance="tinted"
               color="amber"
@@ -129,8 +143,11 @@ export default function RoutinesContent() {
           <div data-tour="routines-grid">
             <RoutinesWeekGrid
               weekStart={weekStart}
+              scheduleId={schedule.id}
               days={schedule.days}
               sellerId={selectedSellerId}
+              effectiveSellerId={effectiveSellerId}
+              maxVisitsPerDay={maxVisitsPerDay}
               periodDays={periodDays}
               onChanged={() => refetch()}
             />

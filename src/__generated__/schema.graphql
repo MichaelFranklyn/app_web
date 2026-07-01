@@ -2571,7 +2571,7 @@ input CreateVisitScheduleInput {
 }
 
 input GenerateWeeklyScheduleInput {
-  sellerId: UUID!
+  sellerId: UUID = null
   weekStart: Date!
 }
 

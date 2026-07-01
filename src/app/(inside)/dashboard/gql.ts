@@ -1,5 +1,19 @@
 import { gql } from "@apollo/client";
 
+// Lista de vendedores para o seletor do gestor (owner/admin/su) no dashboard.
+export const DASHBOARD_SELLERS_QUERY = gql`
+  query DashboardSellers($input: BaseListInput!) {
+    dashboard_sellers: sellers(input: $input) {
+      edges {
+        node {
+          id
+          name
+        }
+      }
+    }
+  }
+`;
+
 export const ORDERS_BY_PERIOD_QUERY = gql`
   query OrdersByPeriod($input: BaseListInput!) {
     orders_by_period: orders(input: $input) {

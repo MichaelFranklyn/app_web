@@ -14,6 +14,35 @@ export const GENERATE_DAY_ROUTE_MUTATION = gql`
   }
 `;
 
+// Gera a rotina da semana inteira (usada quando a semana ainda não tem rotina).
+// O backend resolve o seller_id para o vendedor logado; gestores mandam sellerId.
+export const GENERATE_WEEKLY_SCHEDULE_MUTATION = gql`
+  mutation GenerateWeeklySchedule($input: GenerateWeeklyScheduleInput!) {
+    generateWeeklySchedule(input: $input) {
+      status
+      message
+      data {
+        id
+      }
+    }
+  }
+`;
+
+// Config da agenda do vendedor — usada para saber o limite de visitas por dia.
+export const VISIT_SCHEDULE_CONFIG_QUERY = gql`
+  query VisitScheduleConfig($input: BaseListInput!) {
+    visit_schedule_configs: visitScheduleConfigs(input: $input) {
+      edges {
+        node {
+          id
+          sellerId
+          maxVisitsPerDay
+        }
+      }
+    }
+  }
+`;
+
 // Lista de vendedores para o seletor de rotina (owner/admin escolhe de quem ver).
 export const ROUTINE_SELLERS_QUERY = gql`
   query RoutineSellersOptions($input: BaseListInput!) {
