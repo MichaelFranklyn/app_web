@@ -5,15 +5,17 @@ import { Card } from "@/components/Card";
 import { Grid } from "@/components/Grid";
 import { PanelHeader } from "@/components/PanelHeader";
 import { Download, TrendingDown, TrendingUp } from "lucide-react";
-import { ClientsStats } from "../../interface";
+import { Client, ClientsStats } from "../../interface";
 import { buildKpis } from "../../utils";
 import { AddClientModal } from "./AddClientModal";
+import { ImportClientsModal } from "./ImportClientsModal";
 
 interface ClientsHeaderProps {
   stats: ClientsStats;
+  onAddOptimistic: (client: Client) => void;
 }
 
-export function ClientsHeader({ stats }: ClientsHeaderProps) {
+export function ClientsHeader({ stats, onAddOptimistic }: ClientsHeaderProps) {
   const kpis = buildKpis(stats);
 
   return (
@@ -37,7 +39,8 @@ export function ClientsHeader({ stats }: ClientsHeaderProps) {
                 <Button.Icon icon={Download} />
                 <Button.Title>Exportar</Button.Title>
               </Button.Root>
-              <AddClientModal />
+              <ImportClientsModal />
+              <AddClientModal onAddOptimistic={onAddOptimistic} />
             </PanelHeader.Actions>
           </PanelHeader.Left>
         </PanelHeader.Top>

@@ -1,8 +1,11 @@
+// Fallback de cor da ScoreCell quando `color` não é passado. Escala de urgência
+// única do app: score alto = quente/vermelho, baixo = verde. Mesmos limiares e
+// cores de utils/score.ts (scoreLevel) para não divergir.
 export function deriveScoreColor(
   score: number
-): "red" | "amber" | "blue" | "green" {
-  if (score >= 71) return "red";
-  if (score >= 41) return "amber";
-  if (score >= 21) return "blue";
+): "red" | "orange" | "amber" | "green" {
+  if (score >= 61) return "red";
+  if (score >= 41) return "orange";
+  if (score >= 21) return "amber";
   return "green";
 }

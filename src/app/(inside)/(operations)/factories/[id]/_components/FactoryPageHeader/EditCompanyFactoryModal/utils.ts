@@ -3,9 +3,11 @@ import { toIsoDate } from "@/utils/format/date";
 import { CompanyFactoryDetail } from "../../../interface";
 import { UpdateCompanyFactoryInput } from "./interface";
 
+// Os valores "Faturado"/"Pedido" são mantidos por compatibilidade com fábricas já
+// cadastradas; os rótulos usam a terminologia da comissão (Faturamento/Pagamento).
 export const COMMISSION_BASIS_OPTIONS = [
-  { value: "Faturado", label: "Faturado" },
-  { value: "Pedido", label: "Pedido" },
+  { value: "Faturado", label: "Faturamento — comissão paga no faturamento" },
+  { value: "Pedido", label: "Pagamento — comissão conforme o cliente paga" },
 ];
 
 export const FORM_STEPS: FormStepSchema[] = [
@@ -30,11 +32,12 @@ export const FORM_STEPS: FormStepSchema[] = [
             options: COMMISSION_BASIS_OPTIONS,
           },
           {
-            name: "paymentTermDays",
-            label: "Dia de pagamento da fábrica",
-            type: "number",
+            name: "paymentDays",
+            label: "Dia(s) de pagamento da comissão",
+            type: "text",
             required: true,
-            placeholder: "Ex: 30",
+            placeholder: "Ex: 10 ou 5, 20",
+            hint: "Dia(s) do mês em que a fábrica paga a comissão. Separe múltiplos por vírgula.",
           },
           {
             name: "territory",
@@ -86,9 +89,26 @@ export const normalizeInput = (
     input.commissionCalcBasis = basis;
   }
 
-  const days = Number(data.paymentTermDays);
-  if (!Number.isNaN(days) && days !== initial.paymentTermDays) {
-    input.paymentTermDays = days;
+  // Um único campo captura os dias de pagamento da comissão (pode ser múltiplos).
+  // Popula `commissionPaymentDays` e mantém o legado `paymentTermDays` (dia único,
+  // NOT NULL) sincronizado com o primeiro dia.
+  const parsedDays = Array.from(
+    new Set(
+      (String(data.paymentDays ?? "").match(/\d+/g) ?? [])
+        .map(Number)
+        .filter((n) => n >= 1 && n <= 31)
+    )
+  ).sort((a, b) => a - b);
+  const initialDays = initial.commissionPaymentDays ?? [
+    initial.paymentTermDays,
+  ];
+  const daysChanged =
+    parsedDays.length > 0 &&
+    (parsedDays.length !== initialDays.length ||
+      parsedDays.some((d, i) => d !== initialDays[i]));
+  if (daysChanged) {
+    input.commissionPaymentDays = parsedDays;
+    input.paymentTermDays = parsedDays[0];
   }
 
   const territory = String(data.territory ?? "").trim();

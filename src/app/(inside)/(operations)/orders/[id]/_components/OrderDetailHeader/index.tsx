@@ -5,6 +5,7 @@ import { PanelHeader } from "@/components/PanelHeader";
 import { formatDateDMY } from "@/utils/format/masks";
 import { clientName, factoryName } from "@/utils/company";
 import { OrderDetail } from "../../interface";
+import { InvoiceOrderModal } from "../InvoiceOrderModal";
 import { DeleteOrderModal } from "./DeleteOrderModal";
 import { UpdateOrderModal } from "./UpdateOrderModal";
 
@@ -42,6 +43,9 @@ export function OrderDetailHeader({ order, onRefetch }: Props) {
 
             <PanelHeader.Actions className="mt-6">
               <div className="print-hide flex items-center gap-8">
+                {!order.invoicedAt && order.status !== "CANCELLED" && (
+                  <InvoiceOrderModal order={order} onSuccess={onRefetch} />
+                )}
                 <UpdateOrderModal
                   orderId={order.id}
                   currentNotes={order.notes}

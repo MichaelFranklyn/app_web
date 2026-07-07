@@ -1,6 +1,6 @@
 # AUTO-GERADO por scripts/pull-schema.mjs — NÃO editar à mão.
 # Snapshot do schema do backend (app_user). Atualize com: npm run schema:pull
-# Fonte: 37 arquivos .graphql merge-ados (mesma regra do Ariadne).
+# Fonte: 39 arquivos .graphql merge-ados (mesma regra do Ariadne).
 
 input BaseListInput {
   filters: [FieldFilterInput!] = null
@@ -419,6 +419,8 @@ type CompanyClientType {
   deletedAt: DateTime
   company: CompanyType
   client: ClientType
+  visitScoreTotal: Decimal
+  topVisitScore: ClientVisitScoreType
 }
 
 type CompanyClientTypeConnectionResponse {
@@ -458,10 +460,42 @@ extend type Mutation {
   createCompanyClient(input: CreateCompanyClientInput!): CompanyClientTypeDataResponse!
   updateCompanyClient(id: UUID!, input: UpdateCompanyClientInput!): CompanyClientTypeDataResponse!
   deleteCompanyClient(id: UUID!): BaseResponse!
+  importCompanyClients(input: ImportCompanyClientsInput!): ImportCompanyClientsResultDataResponse!
 }
 input AddClientToCompanyInput {
   cnpj: String!
   notes: String = null
+}
+
+input ImportCompanyClientRowInput {
+  cnpj: String!
+  notes: String = null
+}
+
+input ImportCompanyClientsInput {
+  rows: [ImportCompanyClientRowInput!]!
+}
+
+type ImportClientRowDetail {
+  row: Int!
+  cnpj: String!
+  message: String!
+}
+
+type ImportCompanyClientsResult {
+  total: Int!
+  created: Int!
+  skipped: Int!
+  failed: Int!
+  errors: [ImportClientRowDetail!]!
+  ignored: [ImportClientRowDetail!]!
+}
+
+type ImportCompanyClientsResultDataResponse {
+  status: Boolean!
+  code: Int!
+  message: String!
+  data: ImportCompanyClientsResult
 }
 
 type CompanyFactoryType {
@@ -471,6 +505,7 @@ type CompanyFactoryType {
   commissionRate: Float!
   commissionCalcBasis: String!
   paymentTermDays: Int!
+  commissionPaymentDays: [Int!]
   territory: String!
   contractStart: DateTime
   contractEnd: DateTime
@@ -564,6 +599,7 @@ input UpdateCompanyFactoryInput {
   commissionRate: Float = null
   commissionCalcBasis: String = null
   paymentTermDays: Int = null
+  commissionPaymentDays: [Int!] = null
   territory: String = null
   contractStart: DateTime = null
   contractEnd: DateTime = null
@@ -779,6 +815,55 @@ extend type Mutation {
   createImportTemplate(input: CreateImportTemplateInput!): FactoryImportTemplateTypeDataResponse!
   updateImportTemplate(id: UUID!, input: UpdateImportTemplateInput!): FactoryImportTemplateTypeDataResponse!
   deleteImportTemplate(id: UUID!): BaseResponse!
+}
+
+input CreateFactoryPaymentTermInput {
+  companyFactoryId: UUID!
+  name: String!
+  installmentsDays: [Int!]!
+}
+
+type FactoryPaymentTermType {
+  id: UUID!
+  companyFactoryId: UUID!
+  name: String!
+  installmentsDays: [Int!]!
+  createdAt: DateTime!
+  companyFactory: CompanyFactoryType
+}
+
+type FactoryPaymentTermTypeConnectionResponse {
+  edges: [FactoryPaymentTermTypeEdge!]!
+  pageInfo: PageInfo!
+  totalCount: Int!
+}
+
+type FactoryPaymentTermTypeDataResponse {
+  status: Boolean!
+  code: Int!
+  message: String!
+  data: FactoryPaymentTermType
+}
+
+type FactoryPaymentTermTypeEdge {
+  node: FactoryPaymentTermType!
+  cursor: String!
+}
+
+input UpdateFactoryPaymentTermInput {
+  name: String = null
+  installmentsDays: [Int!] = null
+}
+
+extend type Query {
+  factoryPaymentTerm(id: UUID!): FactoryPaymentTermTypeDataResponse!
+  factoryPaymentTerms(input: BaseListInput!): FactoryPaymentTermTypeConnectionResponse!
+}
+
+extend type Mutation {
+  createFactoryPaymentTerm(input: CreateFactoryPaymentTermInput!): FactoryPaymentTermTypeDataResponse!
+  updateFactoryPaymentTerm(id: UUID!, input: UpdateFactoryPaymentTermInput!): FactoryPaymentTermTypeDataResponse!
+  deleteFactoryPaymentTerm(id: UUID!): BaseResponse!
 }
 
 input CreateFactoryPriceListInput {
@@ -1082,6 +1167,33 @@ extend type Mutation {
   deleteNotification(id: UUID!): BaseResponse!
 }
 
+enum InstallmentStatus {
+  PENDING
+  PAID
+  CANCELLED
+}
+
+type OrderInstallmentType {
+  id: UUID!
+  orderId: UUID!
+  sequence: Int!
+  amount: Decimal!
+  commissionAmount: Decimal!
+  dueDate: Date
+  status: InstallmentStatus!
+  paidAt: Date
+  isCommissionReceived: Boolean!
+  commissionReceivedAt: Date
+  createdAt: DateTime!
+}
+
+type OrderInstallmentTypeDataResponse {
+  status: Boolean!
+  code: Int!
+  message: String!
+  data: OrderInstallmentType
+}
+
 input CreateOrderItemInput {
   orderId: UUID!
   productId: UUID!
@@ -1286,6 +1398,7 @@ input CreateOrderInput {
   clientId: UUID!
   factoryId: UUID!
   orderDate: Date!
+  paymentTermId: UUID = null
   notes: String = null
   fileUrl: String = null
   freightType: FreightType = null
@@ -1306,6 +1419,7 @@ enum OrderStatus {
   DRAFT
   SENT
   CONFIRMED
+  INVOICED
   DELIVERED
   CANCELLED
 }
@@ -1320,6 +1434,8 @@ type OrderType {
   totalAmount: Decimal!
   commissionAmount: Decimal!
   status: OrderStatus!
+  paymentTermId: UUID
+  invoicedAt: Date
   freightType: FreightType
   fileUrl: String
   isFileParsed: Boolean!
@@ -1330,7 +1446,13 @@ type OrderType {
   seller: SellerType
   client: ClientType
   factory: FactoryType
+  paymentTerm: FactoryPaymentTermType
+  installments: [OrderInstallmentType!]!
   importLogs: [ImportLogType!]!
+  """Base de cálculo da comissão da fábrica (Faturamento/Pagamento) para este pedido."""
+  commissionCalcBasis: String
+  """Prazos de pagamento disponíveis da fábrica deste pedido (para faturar)."""
+  availablePaymentTerms: [FactoryPaymentTermType!]!
 }
 
 type OrderTypeConnectionResponse {
@@ -1359,22 +1481,63 @@ type OrderStatsType {
 
 input UpdateOrderInput {
   status: OrderStatus = null
+  paymentTermId: UUID = null
   notes: String = null
   fileUrl: String = null
   isFileParsed: Boolean = null
   freightType: FreightType = null
 }
 
+input InvoiceOrderInput {
+  invoicedAt: Date!
+  paymentTermId: UUID = null
+}
+
+"""Uma parcela de comissão (linha da tela de Comissões)."""
+type CommissionRowType {
+  orderId: UUID!
+  installmentId: UUID!
+  sequence: Int!
+  orderDate: Date!
+  invoicedAt: Date
+  dueDate: Date
+  paidAt: Date
+  installmentAmount: Decimal!
+  amount: Decimal!
+  status: String!
+  receiveDate: Date
+  isReceivable: Boolean!
+  isReceived: Boolean!
+  order: OrderType
+  client: ClientType
+  factory: FactoryType
+  seller: SellerType
+}
+
+type CommissionSummaryType {
+  rows: [CommissionRowType!]!
+  totalReceivable: Decimal!
+  totalReceived: Decimal!
+  totalPending: Decimal!
+  countReceivable: Int!
+}
+
 extend type Query {
   orders(input: BaseListInput!): OrderTypeConnectionResponse!
   order(id: UUID!): OrderTypeDataResponse!
   orderStats: OrderStatsType!
+  commissions(status: String = null, factoryId: UUID = null): CommissionSummaryType!
 }
 
 extend type Mutation {
   createOrder(input: CreateOrderInput!): OrderTypeDataResponse!
   updateOrder(id: UUID!, input: UpdateOrderInput!): OrderTypeDataResponse!
   deleteOrder(id: UUID!): BaseResponse!
+  invoiceOrder(id: UUID!, input: InvoiceOrderInput!): OrderTypeDataResponse!
+  payOrderInstallment(id: UUID!, paidAt: Date!): OrderInstallmentTypeDataResponse!
+  cancelOrderInstallment(id: UUID!): OrderInstallmentTypeDataResponse!
+  revertOrderInstallment(id: UUID!): OrderInstallmentTypeDataResponse!
+  markCommissionReceived(installmentIds: [UUID!]!, receivedAt: Date!): BaseResponse!
 }
 
 input CreatePriceListItemInput {
@@ -1806,6 +1969,7 @@ type SellerClientFactoryType {
   seller: SellerType
   factory: FactoryType
   priceTier: PriceTierType
+  latestVisitScore: ClientVisitScoreType
 }
 
 type SellerClientFactoryTypeConnectionResponse {

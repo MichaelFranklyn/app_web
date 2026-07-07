@@ -22,6 +22,7 @@ export function FactoryNavList({ basePath }: Props) {
       >
         Tabelas
       </Tabs.NavItem>
+      <Tabs.NavItem href={`${basePath}/payment-terms`}>Prazos</Tabs.NavItem>
       <Tabs.NavItem href={`${basePath}/sellers`}>Vendedores</Tabs.NavItem>
       <Tabs.NavItem href={`${basePath}/clients`}>Clientes</Tabs.NavItem>
       <Tabs.NavItem href={`${basePath}/orders`}>Pedidos</Tabs.NavItem>

@@ -10,6 +10,7 @@ export const COMPANY_FACTORY_DETAIL_QUERY = gql`
         commissionRate
         commissionCalcBasis
         paymentTermDays
+        commissionPaymentDays
         territory
         contractStart
         contractEnd

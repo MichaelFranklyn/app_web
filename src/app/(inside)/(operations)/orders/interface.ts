@@ -1,4 +1,10 @@
-export type OrderStatus = "DRAFT" | "SENT" | "CONFIRMED" | "DELIVERED" | "CANCELLED";
+export type OrderStatus =
+  | "DRAFT"
+  | "SENT"
+  | "CONFIRMED"
+  | "INVOICED"
+  | "DELIVERED"
+  | "CANCELLED";
 
 export interface Order {
   id: string;
@@ -7,8 +13,16 @@ export interface Order {
   commissionAmount: string;
   status: OrderStatus;
   seller: { id: string; name: string } | null;
-  client: { id: string; razaoSocial: string; nomeFantasia: string | null } | null;
-  factory: { id: string; nomeFantasia: string | null; razaoSocial: string } | null;
+  client: {
+    id: string;
+    razaoSocial: string;
+    nomeFantasia: string | null;
+  } | null;
+  factory: {
+    id: string;
+    nomeFantasia: string | null;
+    razaoSocial: string;
+  } | null;
 }
 
 export interface OrdersStats {

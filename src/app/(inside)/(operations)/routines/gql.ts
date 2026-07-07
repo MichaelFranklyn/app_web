@@ -93,11 +93,17 @@ export const VISIT_SCHEDULES_QUERY = gql`
                   id
                   razaoSocial
                   nomeFantasia
+                  companyClient {
+                    id
+                  }
                 }
                 factory {
                   id
                   razaoSocial
                   nomeFantasia
+                }
+                latestVisitScore {
+                  scoreTotal
                 }
               }
             }

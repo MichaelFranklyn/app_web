@@ -24,6 +24,10 @@ export const CLIENTS_QUERY = gql`
           cnaeDescription
           addressCity
           addressState
+          companyClient {
+            id
+            visitScoreTotal
+          }
         }
       }
       pageInfo {

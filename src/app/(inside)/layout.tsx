@@ -14,6 +14,7 @@ import {
   ChevronLeft,
   ChevronRight,
   ClipboardList,
+  Coins,
   LayoutDashboard,
   Menu,
   Route,
@@ -64,6 +65,11 @@ const NAV = [
     href: "/orders",
     label: "Pedidos",
     icon: ClipboardList,
+  },
+  {
+    href: "/commissions",
+    label: "Comissões",
+    icon: Coins,
   },
   {
     href: "/clients",

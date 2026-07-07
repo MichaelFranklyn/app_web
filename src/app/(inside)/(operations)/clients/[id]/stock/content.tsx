@@ -8,7 +8,7 @@ import { Table } from "@/components/Table";
 import { Title } from "@/components/Title";
 import { useQuery } from "@apollo/client/react";
 import { Info, PackageSearch } from "lucide-react";
-import { useParams } from "next/navigation";
+import { useClientRoute } from "../context";
 import {
   CLIENT_PRODUCT_INSIGHTS_QUERY,
   SELLER_CLIENT_FACTORIES_QUERY,
@@ -22,8 +22,7 @@ import { formatDate } from "@/utils/format/date";
 import { StockSkeleton } from "./_components/StockSkeleton";
 
 export default function StockContent() {
-  const params = useParams();
-  const id = params.id as string;
+  const { clientId: id } = useClientRoute();
 
   const { data: vinculosData, loading: vinculosLoading } =
     useQuery<SellerClientFactoriesQueryResponse>(

@@ -16,6 +16,7 @@ export interface VisitClient {
   id: string;
   razaoSocial: string;
   nomeFantasia: string | null;
+  companyClient: { id: string } | null;
   addressStreet: string | null;
   addressNumber: string | null;
   addressNeighborhood: string | null;
@@ -33,6 +34,7 @@ export interface VisitClientFactoryLink {
   id: string;
   client: VisitClient | null;
   factory: VisitFactory | null;
+  latestVisitScore: { scoreTotal: string } | null;
 }
 
 export interface VisitItem {

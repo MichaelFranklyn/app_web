@@ -20,6 +20,7 @@ export interface VisitClient {
   id: string;
   razaoSocial: string;
   nomeFantasia: string | null;
+  companyClient: { id: string } | null;
 }
 
 export interface VisitFactory {
@@ -32,6 +33,7 @@ export interface VisitClientFactoryLink {
   id: string;
   client: VisitClient | null;
   factory: VisitFactory | null;
+  latestVisitScore: { scoreTotal: string } | null;
 }
 
 export interface VisitScheduleItem {

@@ -17,6 +17,9 @@ export const ORDER_DETAIL_QUERY = gql`
         isFileParsed
         notes
         createdAt
+        invoicedAt
+        paymentTermId
+        commissionCalcBasis
         seller {
           id
           name
@@ -31,6 +34,81 @@ export const ORDER_DETAIL_QUERY = gql`
           nomeFantasia
           razaoSocial
         }
+        paymentTerm {
+          id
+          name
+          installmentsDays
+        }
+        availablePaymentTerms {
+          id
+          name
+          installmentsDays
+        }
+        installments {
+          id
+          sequence
+          amount
+          commissionAmount
+          dueDate
+          status
+          paidAt
+          isCommissionReceived
+          commissionReceivedAt
+        }
+      }
+    }
+  }
+`;
+
+export const INVOICE_ORDER_MUTATION = gql`
+  mutation InvoiceOrder($id: UUID!, $input: InvoiceOrderInput!) {
+    invoiceOrder(id: $id, input: $input) {
+      status
+      message
+      data {
+        id
+        status
+        invoicedAt
+      }
+    }
+  }
+`;
+
+export const PAY_ORDER_INSTALLMENT_MUTATION = gql`
+  mutation PayOrderInstallment($id: UUID!, $paidAt: Date!) {
+    payOrderInstallment(id: $id, paidAt: $paidAt) {
+      status
+      message
+      data {
+        id
+        status
+        paidAt
+      }
+    }
+  }
+`;
+
+export const CANCEL_ORDER_INSTALLMENT_MUTATION = gql`
+  mutation CancelOrderInstallment($id: UUID!) {
+    cancelOrderInstallment(id: $id) {
+      status
+      message
+      data {
+        id
+        status
+      }
+    }
+  }
+`;
+
+export const REVERT_ORDER_INSTALLMENT_MUTATION = gql`
+  mutation RevertOrderInstallment($id: UUID!) {
+    revertOrderInstallment(id: $id) {
+      status
+      message
+      data {
+        id
+        status
       }
     }
   }

@@ -1,6 +1,12 @@
 import React from "react";
 
-export type ProgressColor = "amber" | "green" | "red" | "blue" | "cyan";
+export type ProgressColor =
+  | "amber"
+  | "green"
+  | "red"
+  | "blue"
+  | "cyan"
+  | "orange";
 
 export type ProgressRootProps = React.HTMLAttributes<HTMLDivElement>;
 

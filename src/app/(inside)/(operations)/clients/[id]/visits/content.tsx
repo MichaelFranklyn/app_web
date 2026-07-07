@@ -9,8 +9,8 @@ import { Table } from "@/components/Table";
 import { useOptimisticList } from "@/hooks/useOptimisticList";
 import { useQuery } from "@apollo/client/react";
 import { CalendarCheck } from "lucide-react";
-import { useParams } from "next/navigation";
 import { useMemo, useState } from "react";
+import { useClientRoute } from "../context";
 import { CLIENT_VISITS_QUERY, SELLER_CLIENT_FACTORIES_QUERY } from "../gql";
 import {
   ClientVisit,
@@ -35,8 +35,7 @@ import { VisitsSkeleton } from "./_components/VisitsSkeleton";
 const ITEMS_PER_PAGE = 10;
 
 export default function VisitsContent() {
-  const params = useParams();
-  const id = params.id as string;
+  const { clientId: id } = useClientRoute();
   const [page, setPage] = useState(1);
 
   const { data: vinculosData, loading: vinculosLoading } =

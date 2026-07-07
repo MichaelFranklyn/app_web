@@ -9,6 +9,16 @@ export const ADD_CLIENT_TO_COMPANY_MUTATION = gql`
       data {
         id
         clientId
+        client {
+          id
+          cnpj
+          razaoSocial
+          nomeFantasia
+          cnae
+          cnaeDescription
+          addressCity
+          addressState
+        }
       }
     }
   }

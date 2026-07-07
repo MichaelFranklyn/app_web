@@ -9,6 +9,26 @@ export interface OrderDetailResponse {
   };
 }
 
+export type InstallmentStatus = "PENDING" | "PAID" | "CANCELLED";
+
+export interface PaymentTermRef {
+  id: string;
+  name: string;
+  installmentsDays: number[];
+}
+
+export interface OrderInstallment {
+  id: string;
+  sequence: number;
+  amount: string;
+  commissionAmount: string;
+  dueDate: string | null;
+  status: InstallmentStatus;
+  paidAt: string | null;
+  isCommissionReceived: boolean;
+  commissionReceivedAt: string | null;
+}
+
 export interface OrderDetail {
   id: string;
   orderDate: string;
@@ -20,6 +40,9 @@ export interface OrderDetail {
   notes: string | null;
   freightType: "FOB" | "CIF" | null;
   createdAt: string;
+  invoicedAt: string | null;
+  paymentTermId: string | null;
+  commissionCalcBasis: string | null;
   seller: { id: string; name: string } | null;
   client: {
     id: string;
@@ -31,6 +54,9 @@ export interface OrderDetail {
     nomeFantasia: string | null;
     razaoSocial: string;
   } | null;
+  paymentTerm: PaymentTermRef | null;
+  availablePaymentTerms: PaymentTermRef[];
+  installments: OrderInstallment[];
 }
 
 export interface OrderItemsResponse {

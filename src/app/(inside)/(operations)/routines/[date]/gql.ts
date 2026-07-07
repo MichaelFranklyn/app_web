@@ -36,6 +36,9 @@ export const WEEK_SCHEDULE_QUERY = gql`
                   id
                   razaoSocial
                   nomeFantasia
+                  companyClient {
+                    id
+                  }
                   addressStreet
                   addressNumber
                   addressNeighborhood
@@ -46,6 +49,9 @@ export const WEEK_SCHEDULE_QUERY = gql`
                   id
                   razaoSocial
                   nomeFantasia
+                }
+                latestVisitScore {
+                  scoreTotal
                 }
               }
             }

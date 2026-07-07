@@ -73,7 +73,9 @@ export function EditCompanyFactoryModal() {
       COMMISSION_BASIS_OPTIONS.find(
         (opt) => opt.value === companyFactory.commissionCalcBasis
       ) ?? null,
-    paymentTermDays: companyFactory.paymentTermDays,
+    paymentDays: (
+      companyFactory.commissionPaymentDays ?? [companyFactory.paymentTermDays]
+    ).join(", "),
     territory: companyFactory.territory,
     contractStart: parseLocalDate(companyFactory.contractStart),
     contractEnd: parseLocalDate(companyFactory.contractEnd),

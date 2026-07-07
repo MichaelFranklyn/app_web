@@ -30,7 +30,23 @@ const clientData = () => ({
 });
 
 // Queries que a página de detalhe dispara ao montar.
+// A rota é chaveada pelo id da carteira: o layout dispara `CompanyClient` (resolve
+// o vínculo + cliente aninhado) e o overview dispara `Client` com o clientId do
+// contexto. `client-1` na URL faz o papel de companyClientId.
 const renderMock = (contacts: Array<Record<string, unknown>> = []) => ({
+  CompanyClient: () => ({
+    companyClient: {
+      status: true,
+      code: 200,
+      message: "ok",
+      data: {
+        id: "client-1",
+        notes: null,
+        isActive: true,
+        client: clientData(),
+      },
+    },
+  }),
   Client: () => ({
     client: { status: true, code: 200, message: "ok", data: clientData() },
   }),

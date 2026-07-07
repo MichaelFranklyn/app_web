@@ -7,6 +7,7 @@ import {
   PackageSearch,
   Pencil,
   ReceiptText,
+  UserRound,
 } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { ReactNode, useState } from "react";
@@ -60,10 +61,15 @@ export function useVisitActions({
   // cliente, onde o vendedor cadastra ou importa o pedido. Só existe quando há
   // cliente vinculado.
   const client = item.clientFactoryLink?.client ?? null;
-  const clientId = client?.id ?? null;
+  // A rota /clients/[id] é chaveada pelo id da carteira (company_client), não
+  // pelo id global do cliente.
+  const companyClientId = client?.companyClient?.id ?? null;
   const clientName = client?.nomeFantasia ?? client?.razaoSocial ?? "Cliente";
-  const openOrder = clientId
-    ? () => router.push(`/clients/${clientId}/orders`)
+  const openClient = companyClientId
+    ? () => router.push(`/clients/${companyClientId}/overview`)
+    : undefined;
+  const openOrder = companyClientId
+    ? () => router.push(`/clients/${companyClientId}/orders`)
     : undefined;
 
   const menu = (
@@ -74,6 +80,15 @@ export function useVisitActions({
           icon: Eye,
           onClick: () => setActive("view"),
         },
+        ...(openClient
+          ? [
+              {
+                label: "Ver cliente",
+                icon: UserRound,
+                onClick: openClient,
+              },
+            ]
+          : []),
         {
           label: "Editar visita",
           icon: Pencil,

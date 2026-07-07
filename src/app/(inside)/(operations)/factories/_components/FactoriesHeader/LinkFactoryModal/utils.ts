@@ -1,9 +1,11 @@
 import { FormStepSchema } from "@/components/FormBuilder";
 import { toIsoDate } from "@/utils/format/date";
 
+// Os valores "Faturado"/"Pedido" são mantidos por compatibilidade com fábricas já
+// cadastradas; os rótulos usam a terminologia da comissão (Faturamento/Pagamento).
 export const COMMISSION_BASIS_OPTIONS = [
-  { value: "Faturado", label: "Faturado" },
-  { value: "Pedido", label: "Pedido" },
+  { value: "Faturado", label: "Faturamento — comissão paga no faturamento" },
+  { value: "Pedido", label: "Pagamento — comissão conforme o cliente paga" },
 ];
 
 export const FORM_STEPS: FormStepSchema[] = [

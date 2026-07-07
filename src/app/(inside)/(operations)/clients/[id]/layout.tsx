@@ -10,10 +10,13 @@ import { useOptimisticObject } from "@/hooks/useOptimisticObject";
 import { useQuery } from "@apollo/client/react";
 import { useParams } from "next/navigation";
 import React from "react";
+import { ClientDetailSkeleton } from "./_components/ClientDetailSkeleton";
 import { DeleteClientModal } from "./_components/DeleteClientModal";
 import { EditClientModal } from "./_components/EditClientModal";
-import { CLIENT_QUERY } from "./gql";
-import { ClientDetail, ClientDetailQueryResponse } from "./interface";
+import { ScoreTag } from "./_components/ScoreTag";
+import { ClientRouteProvider } from "./context";
+import { COMPANY_CLIENT_QUERY } from "./gql";
+import { ClientDetail, CompanyClientDetailQueryResponse } from "./interface";
 import { formatCnpj } from "./utils";
 
 export default function ClientLayout({
@@ -22,14 +25,26 @@ export default function ClientLayout({
   children: React.ReactNode;
 }) {
   const params = useParams();
-  const id = params.id as string;
+  const companyClientId = params.id as string;
 
-  const { data, loading } = useQuery<ClientDetailQueryResponse>(CLIENT_QUERY, {
-    variables: { id },
-    skip: !id,
-  });
+  const { data, loading } = useQuery<CompanyClientDetailQueryResponse>(
+    COMPANY_CLIENT_QUERY,
+    {
+      variables: { id: companyClientId },
+      skip: !companyClientId,
+    }
+  );
 
-  const clientData = data?.client?.data;
+  // A rota é chaveada pelo id da carteira; reconstruímos o ClientDetail (cliente
+  // global + vínculo aninhado) para manter o header e os modais inalterados.
+  const cc = data?.companyClient?.data;
+  const clientData: ClientDetail | undefined =
+    cc && cc.client
+      ? {
+          ...cc.client,
+          companyClient: { id: cc.id, notes: cc.notes, isActive: cc.isActive },
+        }
+      : undefined;
 
   const optimisticClient = useOptimisticObject<ClientDetail>({
     initialData: clientData ?? ({} as ClientDetail),
@@ -38,7 +53,7 @@ export default function ClientLayout({
     ? optimisticClient.data.companyClient
     : undefined;
 
-  const basePath = `/clients/${id}`;
+  const basePath = `/clients/${companyClientId}`;
 
   const name = clientData?.razaoSocial ?? "";
   const nameHighlight =
@@ -111,6 +126,7 @@ export default function ClientLayout({
                         </Badge.Text>
                       </Badge.Root>
                     )}
+                    <ScoreTag score={cc?.topVisitScore ?? null} />
                     {clientData && (
                       <EditClientModal
                         client={clientData}
@@ -147,7 +163,15 @@ export default function ClientLayout({
           <Tabs.NavItem href={`${basePath}/score`}>Score</Tabs.NavItem>
         </Tabs.NavList>
 
-        {children}
+        {clientData ? (
+          <ClientRouteProvider
+            value={{ companyClientId, clientId: clientData.id }}
+          >
+            {children}
+          </ClientRouteProvider>
+        ) : (
+          <ClientDetailSkeleton />
+        )}
       </div>
     </PageContent>
   );

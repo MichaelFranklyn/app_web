@@ -10,7 +10,7 @@ import { ProgressColor } from "@/components/Progress/Root/interface";
 import { Title } from "@/components/Title";
 import { useQuery } from "@apollo/client/react";
 import { Gauge, History, PackageSearch } from "lucide-react";
-import { useParams } from "next/navigation";
+import { useClientRoute } from "../context";
 import {
   CLIENT_PRODUCT_INSIGHTS_QUERY,
   CLIENT_VISIT_SCORES_QUERY,
@@ -22,6 +22,8 @@ import {
   SellerClientFactoriesQueryResponse,
 } from "../interface";
 import { formatDate } from "@/utils/format/date";
+import { scoreBarColor } from "@/utils/score";
+import { ScoreReasonsCard } from "./_components/ScoreReasonsCard";
 import { ScoreSkeleton } from "./_components/ScoreSkeleton";
 
 // Max values for each score dimension (derived from business rules)
@@ -33,11 +35,9 @@ const SCORE_MAX = {
   recency: 20,
 };
 
+// Score alto = urgente (vermelho); baixo = tranquilo (verde) — igual ao backend.
 function scoreColor(s: number): ProgressColor {
-  if (s >= 71) return "red";
-  if (s >= 41) return "amber";
-  if (s >= 21) return "blue";
-  return "green";
+  return scoreBarColor(s);
 }
 
 function insightUrgencyLabel(churnRisk: string): {
@@ -50,8 +50,7 @@ function insightUrgencyLabel(churnRisk: string): {
 }
 
 export default function ScoreContent() {
-  const params = useParams();
-  const id = params.id as string;
+  const { clientId: id } = useClientRoute();
 
   const { data: vinculosData, loading: vinculosLoading } =
     useQuery<SellerClientFactoriesQueryResponse>(
@@ -245,6 +244,9 @@ export default function ScoreContent() {
               </div>
             </Card.Body>
           </Card.Root>
+
+          {/* Por que este score? — motivos + o que fazer */}
+          <ScoreReasonsCard score={latest} />
 
           {/* Produtos Sugeridos */}
           <Card.Root>

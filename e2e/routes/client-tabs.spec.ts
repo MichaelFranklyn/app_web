@@ -3,11 +3,12 @@ import { mockGraphql } from "../support/graphql";
 
 /**
  * Cauda longa — smoke de RENDER das abas de leitura do cliente
- * (clients/[id]/{factories,orders,score,stock,visits}). O layout client-side
- * dispara `Client`; cada aba adiciona sua query. As abas score/stock/visits
- * são EM CASCATA (SellerClientFactoriesByClient → query dependente com
- * skip:!id); com a lista de vínculos vazia a dependente é pulada e a página
- * mostra o estado vazio — suficiente para o smoke.
+ * (clients/[id]/{factories,orders,score,stock,visits}). A rota é chaveada pelo id
+ * da carteira (company_client); o layout dispara `CompanyClient` e resolve o
+ * cliente global aninhado, disponibilizando o clientId às abas via contexto.
+ * Cada aba adiciona sua query. As abas score/stock/visits são EM CASCATA
+ * (SellerClientFactoriesByClient → query dependente com skip:!id); com a lista de
+ * vínculos vazia a dependente é pulada e a página mostra o estado vazio.
  */
 const conn = () => ({
   edges: [],
@@ -16,28 +17,32 @@ const conn = () => ({
 });
 
 const clientLayout = () => ({
-  Client: () => ({
-    client: {
+  CompanyClient: () => ({
+    companyClient: {
       status: true,
       code: 200,
       message: "ok",
       data: {
         id: "client-1",
-        cnpj: "12345678000190",
-        razaoSocial: "Cliente Abas LTDA",
-        nomeFantasia: "Cliente Abas",
-        cnae: null,
-        cnaeDescription: null,
-        addressStreet: null,
-        addressNumber: null,
-        addressComplement: null,
-        addressNeighborhood: null,
-        addressZip: null,
-        addressCity: null,
-        addressState: null,
-        createdAt: "2026-01-01T00:00:00Z",
-        updatedAt: "2026-01-01T00:00:00Z",
-        companyClient: { id: "cc-1", notes: null, isActive: true },
+        notes: null,
+        isActive: true,
+        client: {
+          id: "client-1",
+          cnpj: "12345678000190",
+          razaoSocial: "Cliente Abas LTDA",
+          nomeFantasia: "Cliente Abas",
+          cnae: null,
+          cnaeDescription: null,
+          addressStreet: null,
+          addressNumber: null,
+          addressComplement: null,
+          addressNeighborhood: null,
+          addressZip: null,
+          addressCity: null,
+          addressState: null,
+          createdAt: "2026-01-01T00:00:00Z",
+          updatedAt: "2026-01-01T00:00:00Z",
+        },
       },
     },
   }),
@@ -75,7 +80,7 @@ test("cliente/estoque: renderiza uma linha de insight com a unidade (unit.label)
   page,
 }) => {
   await mockGraphql(page, {
-    Client: clientLayout().Client,
+    CompanyClient: clientLayout().CompanyClient,
     // Precisa de um vínculo COM id para a cascata disparar ClientProductInsights.
     SellerClientFactoriesByClient: () => ({
       sellerClientFactoryList: {

@@ -6,6 +6,8 @@ import { Title } from "@/components/Title";
 import { useAsyncAction } from "@/hooks/useAsyncAction";
 import { useMutation } from "@apollo/client/react";
 import { TriangleAlert } from "lucide-react";
+import { cn } from "@/lib/utils";
+import { SCORE_TONE_BG, visitPriority } from "@/utils/score";
 import { VisitScheduleDay, VisitScheduleItem } from "../../interface";
 import {
   VISIT_STATUS_COLOR,
@@ -62,6 +64,10 @@ export function VisitCard({
   const { execute, isLoading } = useAsyncAction();
   const isCompleted = item.status === "COMPLETED";
   const warning = getVisitFollowupWarning(item);
+  const scoreValue = item.clientFactoryLink?.latestVisitScore
+    ? Number(item.clientFactoryLink.latestVisitScore.scoreTotal)
+    : null;
+  const priority = scoreValue != null ? visitPriority(scoreValue) : null;
 
   const toggleCompleted = (checked: boolean) => {
     execute(
@@ -103,7 +109,7 @@ export function VisitCard({
           }
         }}
         title="Visualizar visita"
-        className={`cursor-pointer rounded-(--r-md) border border-(--border) bg-(--bg3) p-[10px] transition-colors hover:border-(--amber) focus:outline-none focus-visible:ring-1 focus-visible:ring-(--amber) ${VISIT_URGENCY_BORDER[item.status]}`}
+        className={`cursor-pointer rounded-(--r-md) border border-(--border) bg-(--bg3) p-[14px] transition-colors hover:border-(--amber) focus:outline-none focus-visible:ring-1 focus-visible:ring-(--amber) ${VISIT_URGENCY_BORDER[item.status]}`}
       >
         <div className="flex items-start justify-between gap-4">
           <div className="flex min-w-0 items-start gap-6">
@@ -149,7 +155,24 @@ export function VisitCard({
             {menu}
           </div>
         </div>
-        <div className="mt-[6px] flex items-center justify-between gap-4">
+        {priority && !isCompleted && (
+          <div
+            className="mt-[10px] flex items-center gap-6"
+            title={`Score ${scoreValue?.toFixed(0)}`}
+          >
+            <span
+              className={cn(
+                "h-[8px] w-[8px] shrink-0 rounded-full",
+                SCORE_TONE_BG[priority.tone]
+              )}
+            />
+            <Title variant="micro" color="secondary">
+              {priority.label} · {scoreValue?.toFixed(0)}
+            </Title>
+          </div>
+        )}
+
+        <div className="mt-[10px] flex items-center justify-between gap-4">
           <Title variant="micro" color="muted">
             #{item.plannedOrder}
             {item.estimatedTravelMin != null

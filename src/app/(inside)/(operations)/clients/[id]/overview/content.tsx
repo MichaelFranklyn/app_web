@@ -2,8 +2,8 @@
 
 import { useOptimisticObject } from "@/hooks/useOptimisticObject";
 import { useQuery } from "@apollo/client/react";
-import { useParams } from "next/navigation";
 import { useMemo } from "react";
+import { useClientRoute } from "../context";
 import { CLIENT_QUERY, SELLER_CLIENT_FACTORIES_QUERY } from "../gql";
 import {
   ClientDetail,
@@ -19,8 +19,7 @@ import { NotesCard } from "./_components/NotesCard";
 import { SummaryCard } from "./_components/SummaryCard";
 
 export default function OverviewContent() {
-  const params = useParams();
-  const id = params.id as string;
+  const { clientId: id } = useClientRoute();
 
   const { data, loading, refetch } = useQuery<ClientDetailQueryResponse>(
     CLIENT_QUERY,

@@ -10,8 +10,8 @@ import { Table } from "@/components/Table";
 import { useOptimisticList } from "@/hooks/useOptimisticList";
 import { useQuery } from "@apollo/client/react";
 import { Receipt } from "lucide-react";
-import { useParams } from "next/navigation";
 import { useMemo, useState } from "react";
+import { useClientRoute } from "../context";
 import { CLIENT_ORDERS_QUERY } from "../gql";
 import { ClientOrder, ClientOrdersQueryResponse } from "../interface";
 import { formatCurrency, orderStatusColor, orderStatusLabel } from "../utils";
@@ -34,8 +34,7 @@ const STATUS_OPTIONS: SelectOption[] = [
 ];
 
 export default function OrdersContent() {
-  const params = useParams();
-  const id = params.id as string;
+  const { clientId: id } = useClientRoute();
 
   const [search, setSearch] = useState("");
   const [statusFilter, setStatusFilter] = useState<SelectOption | null>(null);

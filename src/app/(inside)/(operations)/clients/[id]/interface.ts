@@ -1,3 +1,5 @@
+import { ScoreDimensions } from "@/utils/score";
+
 export interface CompanyClientLink {
   id: string;
   notes: string | null;
@@ -29,6 +31,25 @@ export interface ClientDetailQueryResponse {
     code: number;
     message: string;
     data: ClientDetail | null;
+  };
+}
+
+// Resposta de companyClient(id): a rota de detalhe é chaveada pelo id da carteira
+// (company_client), então resolvemos o vínculo e lemos o cliente global aninhado.
+export interface CompanyClientDetail {
+  id: string;
+  notes: string | null;
+  isActive: boolean;
+  topVisitScore: ScoreDimensions | null;
+  client: ClientDetail | null;
+}
+
+export interface CompanyClientDetailQueryResponse {
+  companyClient: {
+    status: boolean;
+    code: number;
+    message: string;
+    data: CompanyClientDetail | null;
   };
 }
 

@@ -4,8 +4,8 @@ import { Loading } from "@/components/Loading";
 import { Table } from "@/components/Table";
 import { useOptimisticList } from "@/hooks/useOptimisticList";
 import { useQuery } from "@apollo/client/react";
-import { useParams } from "next/navigation";
 import { useMemo } from "react";
+import { useClientRoute } from "../context";
 import { SELLER_CLIENT_FACTORIES_QUERY } from "../gql";
 import {
   SellerClientFactoriesQueryResponse,
@@ -14,8 +14,7 @@ import {
 import { FactoryLinksTable } from "./_components/FactoryLinksTable";
 
 export default function FactoriesContent() {
-  const params = useParams();
-  const id = params.id as string;
+  const { clientId: id } = useClientRoute();
 
   const { data, loading, refetch } =
     useQuery<SellerClientFactoriesQueryResponse>(

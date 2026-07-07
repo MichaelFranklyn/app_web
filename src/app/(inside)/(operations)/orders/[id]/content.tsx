@@ -6,6 +6,7 @@ import { EmptyState } from "@/components/EmptyState";
 import { PageContent } from "@/components/PageContent";
 import { useQuery } from "@apollo/client/react";
 import { PackageX } from "lucide-react";
+import { InstallmentsCard } from "./_components/InstallmentsCard";
 import { OrderDetailHeader } from "./_components/OrderDetailHeader";
 import { OrderDetailSkeleton } from "./_components/OrderDetailSkeleton";
 import { OrderItemsTable } from "./_components/OrderItemsTable";
@@ -59,6 +60,10 @@ export default function OrderDetailContent({ id }: Props) {
             factoryId={order.factory?.id ?? null}
             onOrderChanged={() => refetch()}
           />
+
+          {order.invoicedAt && order.installments.length > 0 && (
+            <InstallmentsCard order={order} onChanged={() => refetch()} />
+          )}
 
           {order.notes && (
             <Card.Root>

@@ -13,6 +13,7 @@ export interface CompanyFactoryDetail {
   commissionRate: number;
   commissionCalcBasis: string;
   paymentTermDays: number;
+  commissionPaymentDays: number[] | null;
   territory: string;
   contractStart: string | null;
   contractEnd: string | null;

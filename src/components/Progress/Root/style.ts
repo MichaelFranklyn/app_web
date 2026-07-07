@@ -6,4 +6,5 @@ export const PROGRESS_COLOR_TOKENS: Record<ProgressColor, string> = {
   red: "var(--red)",
   blue: "var(--blue)",
   cyan: "var(--cyan)",
+  orange: "var(--orange)",
 };

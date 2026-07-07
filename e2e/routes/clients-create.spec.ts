@@ -4,12 +4,10 @@ import { mockGraphql } from "../support/graphql";
 /**
  * Fluxo de ESCRITA: adicionar cliente à carteira via AddClientModal.
  *
- * Variante vs. users-create: a mutation `AddClientToCompany` retorna SÓ IDs, então
- * NÃO há add otimista. A invalidação usa `useInvalidateQueriesClient` (evict+gc),
- * que recarrega a lista no PRÓXIMO mount — não sincroniza a linha na tela atual.
- * Por isso a asserção fiel ao app é o toast de sucesso + fechamento do modal
- * (não a linha aparecendo aqui). O mock `Clients`/`created` fica como cobertura
- * do refetch eventual. ClientStats (SSR) é atendida pelo stub GraphQL.
+ * A mutation `AddClientToCompany` retorna o vínculo (id da carteira) + o cliente
+ * global aninhado, o que permite ADD OTIMISTA: a linha entra na hora via
+ * useOptimisticList, seguida de invalidação para reconciliar. A asserção cobre o
+ * toast + a linha aparecendo imediatamente. ClientStats (SSR) vem do stub GraphQL.
  */
 test("clients: adiciona um cliente e confirma sucesso", async ({ page }) => {
   const created: Array<Record<string, unknown>> = [];
@@ -25,7 +23,7 @@ test("clients: adiciona um cliente e confirma sucesso", async ({ page }) => {
     AddClientToCompany: (variables) => {
       const input = (variables.input ?? {}) as { cnpj?: string };
       const seq = created.length + 1;
-      created.push({
+      const client = {
         id: `client-${seq}`,
         cnpj: String(input.cnpj ?? ""),
         razaoSocial: "Cliente Teste E2E",
@@ -34,13 +32,14 @@ test("clients: adiciona um cliente e confirma sucesso", async ({ page }) => {
         cnaeDescription: null,
         addressCity: "São Paulo",
         addressState: "SP",
-      });
+      };
+      created.push({ ...client, companyClient: { id: `cc-${seq}` } });
       return {
         addClientToCompany: {
           status: true,
           code: 200,
           message: "ok",
-          data: { id: `client-${seq}`, clientId: `client-${seq}` },
+          data: { id: `cc-${seq}`, clientId: `client-${seq}`, client },
         },
       };
     },
@@ -56,9 +55,10 @@ test("clients: adiciona um cliente e confirma sucesso", async ({ page }) => {
   await dialog.locator('input[name="cnpj"]').fill("11.222.333/0001-81");
   await dialog.getByRole("button", { name: "Adicionar cliente" }).click();
 
-  // Sucesso: toast + modal fechado (a linha entra no próximo mount — ver topo).
+  // Sucesso: toast + modal fechado + linha otimista já visível na lista.
   await expect(
     page.getByText("Cliente adicionado à carteira com sucesso")
   ).toBeVisible();
   await expect(dialog).toBeHidden();
+  await expect(page.getByText("Cliente Teste E2E").first()).toBeVisible();
 });

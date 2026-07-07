@@ -158,6 +158,46 @@ export const CLIENT_VISITS_QUERY = gql`
   }
 `;
 
+export const COMPANY_CLIENT_QUERY = gql`
+  query CompanyClient($id: UUID!) {
+    companyClient(id: $id) {
+      status
+      code
+      message
+      data {
+        id
+        notes
+        isActive
+        topVisitScore {
+          scoreTotal
+          scoreUrgency
+          scorePriority
+          scoreFrequency
+          scorePotential
+          scoreRecency
+        }
+        client {
+          id
+          cnpj
+          razaoSocial
+          nomeFantasia
+          cnae
+          cnaeDescription
+          addressStreet
+          addressNumber
+          addressComplement
+          addressNeighborhood
+          addressZip
+          addressCity
+          addressState
+          createdAt
+          updatedAt
+        }
+      }
+    }
+  }
+`;
+
 export const CLIENT_QUERY = gql`
   query Client($id: UUID!) {
     client(id: $id) {

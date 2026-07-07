@@ -7,30 +7,22 @@ import { InputSearch } from "@/components/Input";
 import { Loading } from "@/components/Loading";
 import { Pagination } from "@/components/Pagination";
 import { Table } from "@/components/Table";
-import { useTableData } from "@/hooks/useTableData";
 import { maskCNPJ } from "@/utils/format/masks";
+import { scoreBarColor } from "@/utils/score";
 import { Users } from "lucide-react";
-import { CLIENTS_QUERY } from "../../gql";
-import { formatCity, TABLE_FIELDS } from "../../utils";
-import { Client, QueryData } from "./interface";
+import { formatCity } from "../../utils";
+import { ClientsTableProps } from "./interface";
 
-export function ClientsTable() {
-  const {
-    inputValues,
-    setFilter,
-    displayedData: items,
-    loading,
-    totalItems: totalCount,
-    currentPage,
-    setCurrentPage,
-    totalPages,
-  } = useTableData<QueryData, Client>({
-    query: CLIENTS_QUERY,
-    fields: TABLE_FIELDS,
-    getConnection: (data) => data.clients_list,
-    itemsPerPage: 5,
-  });
-
+export function ClientsTable({
+  items,
+  inputValues,
+  setFilter,
+  loading,
+  totalItems: totalCount,
+  currentPage,
+  totalPages,
+  setCurrentPage,
+}: ClientsTableProps) {
   return (
     <Table.Root data-tour="clients-table">
       <Table.CardHead>
@@ -87,7 +79,7 @@ export function ClientsTable() {
             items.map((node) => (
               <Table.Row
                 key={node.id}
-                href={`/clients/${node.id}/overview`}
+                href={`/clients/${node.companyClient?.id ?? node.id}/overview`}
                 data-tour="clients-row"
                 className="group"
               >
@@ -130,7 +122,19 @@ export function ClientsTable() {
 
                 <Table.Cell variant="dim">—</Table.Cell>
 
-                <Table.ScoreCell score={0} />
+                {node.companyClient?.visitScoreTotal != null ? (
+                  <Table.ScoreCell
+                    score={Number(node.companyClient.visitScoreTotal)}
+                    color={scoreBarColor(
+                      Number(node.companyClient.visitScoreTotal)
+                    )}
+                    label={Number(node.companyClient.visitScoreTotal).toFixed(
+                      0
+                    )}
+                  />
+                ) : (
+                  <Table.ScoreCell score={0} noBar label="—" />
+                )}
               </Table.Row>
             ))
           )}

@@ -9,11 +9,16 @@ import { invalidateCacheMany } from "@/services/graphql/actions";
 import { useMutation } from "@apollo/client/react";
 import { Plus } from "lucide-react";
 import { useRef, useState } from "react";
+import { Client } from "../../../interface";
 import { ADD_CLIENT_TO_COMPANY_MUTATION } from "./gql";
 import { AddClientToCompanyResponse } from "./interface";
 import { FORM_STEPS, normalizeInput } from "./utils";
 
-export function AddClientModal() {
+interface AddClientModalProps {
+  onAddOptimistic: (client: Client) => void;
+}
+
+export function AddClientModal({ onAddOptimistic }: AddClientModalProps) {
   const [open, setOpen] = useState(false);
   const formRef = useRef<FormBuilderRef>(null);
   const invalidateClient = useInvalidateQueriesClient();
@@ -45,9 +50,13 @@ export function AddClientModal() {
       },
       {
         successMessage: "Cliente adicionado à carteira com sucesso",
-        onSuccess: async () => {
+        onSuccess: async (created) => {
           setOpen(false);
           formRef.current?.resetForm();
+          onAddOptimistic({
+            ...created.client,
+            companyClient: { id: created.id, visitScoreTotal: null },
+          });
           await invalidateClient(["clients_list"]);
           await invalidateCacheMany(["clients_stats"]);
         },
