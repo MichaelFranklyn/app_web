@@ -47,20 +47,28 @@ function Root({ urlParam, defaultValue, onValueChange, ...props }: RootProps) {
 
 Root.displayName = "Tabs.Root";
 
-const NavList = React.forwardRef<HTMLDivElement, React.HTMLAttributes<HTMLDivElement>>(
-  ({ className, ...props }, ref) => (
-    <div ref={ref} className={cn(tabsStyles.list, className)} {...props} />
-  )
-);
+const NavList = React.forwardRef<
+  HTMLDivElement,
+  React.HTMLAttributes<HTMLDivElement>
+>(({ className, ...props }, ref) => (
+  <div ref={ref} className={cn(tabsStyles.list, className)} {...props} />
+));
 NavList.displayName = "Tabs.NavList";
 
-type NavItemProps = Omit<React.ComponentPropsWithoutRef<typeof Link>, "href"> & {
+type NavItemProps = Omit<
+  React.ComponentPropsWithoutRef<typeof Link>,
+  "href"
+> & {
   href: string;
+  /** Só ativa em match exato (útil quando o href é prefixo de outra aba). */
+  exact?: boolean;
 };
 
-const NavItem = ({ href, className, ...props }: NavItemProps) => {
+const NavItem = ({ href, exact, className, ...props }: NavItemProps) => {
   const pathname = usePathname();
-  const isActive = pathname === href || pathname.startsWith(`${href}/`);
+  const isActive = exact
+    ? pathname === href
+    : pathname === href || pathname.startsWith(`${href}/`);
   return (
     <Link
       href={href}

@@ -1,6 +1,6 @@
 # AUTO-GERADO por scripts/pull-schema.mjs — NÃO editar à mão.
 # Snapshot do schema do backend (app_user). Atualize com: npm run schema:pull
-# Fonte: 39 arquivos .graphql merge-ados (mesma regra do Ariadne).
+# Fonte: 40 arquivos .graphql merge-ados (mesma regra do Ariadne).
 
 input BaseListInput {
   filters: [FieldFilterInput!] = null
@@ -617,6 +617,49 @@ extend type Mutation {
   createCompanyFactory(input: CreateCompanyFactoryInput!): CompanyFactoryTypeDataResponse!
   updateCompanyFactory(id: UUID!, input: UpdateCompanyFactoryInput!): CompanyFactoryTypeDataResponse!
   deleteCompanyFactory(id: UUID!): BaseResponse!
+}
+
+type RevenueByMonthPoint {
+  month: String!
+  total: Decimal!
+}
+
+type OrdersByMonthPoint {
+  month: String!
+  count: Int!
+}
+
+type RevenueByFactoryPoint {
+  factoryId: UUID!
+  factoryName: String!
+  total: Decimal!
+}
+
+type AvgTicketPoint {
+  entityId: UUID!
+  entityName: String!
+  avgTicket: Decimal!
+  orderCount: Int!
+}
+
+type OrderIntervalPoint {
+  entityId: UUID!
+  entityName: String!
+  avgDays: Float!
+  orderCount: Int!
+}
+
+extend type Query {
+  revenueByMonth(from: Date = null, to: Date = null, sellerId: UUID = null): [RevenueByMonthPoint!]!
+  ordersByMonth(from: Date = null, to: Date = null, sellerId: UUID = null): [OrdersByMonthPoint!]!
+  revenueByFactory(from: Date = null, to: Date = null, sellerId: UUID = null, limit: Int = 8): [RevenueByFactoryPoint!]!
+
+  avgTicketBySeller(from: Date = null, to: Date = null, sellerId: UUID = null, limit: Int = 8): [AvgTicketPoint!]!
+  avgTicketByFactory(from: Date = null, to: Date = null, sellerId: UUID = null, limit: Int = 8): [AvgTicketPoint!]!
+  avgTicketByClient(from: Date = null, to: Date = null, sellerId: UUID = null, limit: Int = 8): [AvgTicketPoint!]!
+
+  orderIntervalByFactory(from: Date = null, to: Date = null, sellerId: UUID = null, limit: Int = 8): [OrderIntervalPoint!]!
+  orderIntervalByClient(from: Date = null, to: Date = null, sellerId: UUID = null, limit: Int = 8): [OrderIntervalPoint!]!
 }
 
 input CreateFactoryInput {
