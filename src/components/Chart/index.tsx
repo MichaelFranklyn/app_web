@@ -2,7 +2,7 @@
 
 import { useEffect, useRef } from "react";
 
-import { BarChart, LineChart } from "echarts/charts";
+import { BarChart, LineChart, PieChart } from "echarts/charts";
 import {
   GridComponent,
   LegendComponent,
@@ -12,21 +12,35 @@ import * as echarts from "echarts/core";
 import type { EChartsCoreOption } from "echarts/core";
 import { CanvasRenderer } from "echarts/renderers";
 
-// Registra só o necessário (tree-shaking): barras, linhas, grid, tooltip, legenda.
+// Registra só o necessário (tree-shaking): barras, linhas, rosca, grid, tooltip,
+// legenda.
 echarts.use([
   BarChart,
   LineChart,
+  PieChart,
   GridComponent,
   TooltipComponent,
   LegendComponent,
   CanvasRenderer,
 ]);
 
+/** Subconjunto da instância ECharts exposto ao card (download da imagem). */
+export interface ChartInstance {
+  getDataURL: (opts?: {
+    type?: "png" | "jpeg" | "svg";
+    pixelRatio?: number;
+    backgroundColor?: string;
+  }) => string;
+  resize: () => void;
+}
+
 interface ChartProps {
   option: EChartsCoreOption;
   /** Altura do canvas em px (default 300). */
   height?: number;
   className?: string;
+  /** Recebe a instância ECharts quando pronta (ex.: para exportar imagem). */
+  onInit?: (instance: ChartInstance) => void;
 }
 
 /**
@@ -34,9 +48,17 @@ interface ChartProps {
  * muda (notMerge para refletir dados novos), redimensiona via ResizeObserver e
  * descarta a instância no unmount. Client-only (usa DOM).
  */
-export default function Chart({ option, height = 300, className }: ChartProps) {
+export default function Chart({
+  option,
+  height = 300,
+  className,
+  onInit,
+}: ChartProps) {
   const containerRef = useRef<HTMLDivElement>(null);
   const chartRef = useRef<echarts.ECharts | null>(null);
+  // Ref evita re-init quando o callback muda de identidade entre renders.
+  const onInitRef = useRef(onInit);
+  onInitRef.current = onInit;
 
   useEffect(() => {
     const el = containerRef.current;
@@ -44,6 +66,7 @@ export default function Chart({ option, height = 300, className }: ChartProps) {
 
     const chart = echarts.init(el, undefined, { renderer: "canvas" });
     chartRef.current = chart;
+    onInitRef.current?.(chart);
 
     const observer = new ResizeObserver(() => chart.resize());
     observer.observe(el);

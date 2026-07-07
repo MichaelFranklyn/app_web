@@ -18,8 +18,12 @@ import {
   DateRangeIso,
   SellerOption,
 } from "../interface";
+import { formatDateRangeLabel } from "../utils";
+import { AnalyticsPrintContext } from "./analyticsPrintContext";
+import { useAnalyticsPdf } from "./useAnalyticsPdf";
 import { AnalyticsHeader } from "./_components/AnalyticsHeader";
 import { AnalyticsSection } from "./_components/AnalyticsSection";
+import { AnalyticsSummary } from "./_components/AnalyticsSummary";
 import { CommissionsByMonthChart } from "./_components/CommissionsByMonthChart";
 import { EntityRankingChart } from "./_components/EntityRankingChart";
 import {
@@ -30,6 +34,8 @@ import {
   ORDER_INTERVAL_BY_FACTORY_QUERY,
 } from "./_components/EntityRankingChart/gql";
 import { LazyChartCard } from "./_components/LazyChartCard";
+import { OrdersByClientChart } from "./_components/OrdersByClientChart";
+import { OrdersByFactoryChart } from "./_components/OrdersByFactoryChart";
 import { OrdersByMonthChart } from "./_components/OrdersByMonthChart";
 import { RevenueByFactoryChart } from "./_components/RevenueByFactoryChart";
 import { RevenueByMonthChart } from "./_components/RevenueByMonthChart";
@@ -67,125 +73,161 @@ export default function AnalyticsContent() {
     sellerId: selectedSellerId,
   };
 
+  const { contextValue, downloadPdf, exporting } = useAnalyticsPdf();
+
+  const handleDownloadPdf = () => {
+    const sellerName = selectedSellerId
+      ? (sellers.find((s) => s.id === selectedSellerId)?.name ?? "Vendedor")
+      : "Todos os vendedores";
+    downloadPdf({
+      title: "Análises",
+      subtitle: `${formatDateRangeLabel(range.from, range.to)} · ${sellerName}`,
+    });
+  };
+
   return (
-    <PageContent>
-      <AnalyticsHeader
-        range={range}
-        onRangeChange={setRange}
-        canSelectSeller={canSelectSeller}
-        sellers={sellers}
-        selectedSellerId={selectedSellerId}
-        onSelectSeller={setSelectedSellerId}
-      />
+    <AnalyticsPrintContext.Provider value={contextValue}>
+      <PageContent>
+        <AnalyticsHeader
+          range={range}
+          onRangeChange={setRange}
+          canSelectSeller={canSelectSeller}
+          sellers={sellers}
+          selectedSellerId={selectedSellerId}
+          onSelectSeller={setSelectedSellerId}
+          onDownloadPdf={handleDownloadPdf}
+          exportingPdf={exporting}
+        />
 
-      <AnalyticsSection
-        title="Visão geral"
-        description="Faturamento, pedidos e comissões no período."
-      >
-        <Grid.Root cols={{ base: 1, desktop: 2 }} gap={12}>
-          <Grid.Item>
-            <LazyChartCard title="Faturamento por mês">
-              <RevenueByMonthChart filters={filters} />
-            </LazyChartCard>
-          </Grid.Item>
-          <Grid.Item>
-            <LazyChartCard title="Pedidos por mês">
-              <OrdersByMonthChart filters={filters} />
-            </LazyChartCard>
-          </Grid.Item>
-          <Grid.Item>
-            <LazyChartCard title="Faturamento por fábrica">
-              <RevenueByFactoryChart filters={filters} />
-            </LazyChartCard>
-          </Grid.Item>
-          <Grid.Item>
-            <LazyChartCard title="Comissões: a receber vs recebidas">
-              <CommissionsByMonthChart filters={filters} />
-            </LazyChartCard>
-          </Grid.Item>
-        </Grid.Root>
-      </AnalyticsSection>
+        <AnalyticsSummary filters={filters} />
 
-      <AnalyticsSection
-        title="Ticket médio"
-        description="Valor médio de cada pedido. Quanto maior, mais forte a venda."
-      >
-        <Grid.Root cols={{ base: 1, desktop: 2 }} gap={12}>
-          <Grid.Item>
-            <LazyChartCard title="Ticket médio por vendedor">
-              <EntityRankingChart
-                filters={filters}
-                query={AVG_TICKET_BY_SELLER_QUERY}
-                dataKey="avgTicketBySeller"
-                valueKey="avgTicket"
-                valueFormatter={formatMoney}
-                seriesName="Ticket médio"
-                color={SERIES_BLUE}
-              />
-            </LazyChartCard>
-          </Grid.Item>
-          <Grid.Item>
-            <LazyChartCard title="Ticket médio por fábrica">
-              <EntityRankingChart
-                filters={filters}
-                query={AVG_TICKET_BY_FACTORY_QUERY}
-                dataKey="avgTicketByFactory"
-                valueKey="avgTicket"
-                valueFormatter={formatMoney}
-                seriesName="Ticket médio"
-                color={SERIES_ORANGE}
-              />
-            </LazyChartCard>
-          </Grid.Item>
-          <Grid.Item>
-            <LazyChartCard title="Ticket médio por cliente">
-              <EntityRankingChart
-                filters={filters}
-                query={AVG_TICKET_BY_CLIENT_QUERY}
-                dataKey="avgTicketByClient"
-                valueKey="avgTicket"
-                valueFormatter={formatMoney}
-                seriesName="Ticket médio"
-                color={SERIES_GREEN}
-              />
-            </LazyChartCard>
-          </Grid.Item>
-        </Grid.Root>
-      </AnalyticsSection>
+        <AnalyticsSection
+          title="Visão geral"
+          description="Faturamento, pedidos e comissões no período."
+        >
+          <Grid.Root cols={{ base: 1, desktop: 2 }} gap={12}>
+            <Grid.Item>
+              <LazyChartCard title="Faturamento por mês">
+                <RevenueByMonthChart filters={filters} />
+              </LazyChartCard>
+            </Grid.Item>
+            <Grid.Item>
+              <LazyChartCard title="Pedidos por mês">
+                <OrdersByMonthChart filters={filters} />
+              </LazyChartCard>
+            </Grid.Item>
+            <Grid.Item>
+              <LazyChartCard title="Faturamento por fábrica">
+                <RevenueByFactoryChart filters={filters} />
+              </LazyChartCard>
+            </Grid.Item>
+            <Grid.Item>
+              <LazyChartCard title="Comissões: a receber vs recebidas">
+                <CommissionsByMonthChart filters={filters} />
+              </LazyChartCard>
+            </Grid.Item>
+          </Grid.Root>
+        </AnalyticsSection>
 
-      <AnalyticsSection
-        title="Cadência de pedidos"
-        description="Tempo médio entre um pedido e o próximo. Quanto menor, mais frequente a recompra."
-      >
-        <Grid.Root cols={{ base: 1, desktop: 2 }} gap={12}>
-          <Grid.Item>
-            <LazyChartCard title="Intervalo entre pedidos por fábrica">
-              <EntityRankingChart
-                filters={filters}
-                query={ORDER_INTERVAL_BY_FACTORY_QUERY}
-                dataKey="orderIntervalByFactory"
-                valueKey="avgDays"
-                valueFormatter={formatDays}
-                seriesName="Intervalo médio"
-                color={SERIES_ORANGE}
-              />
-            </LazyChartCard>
-          </Grid.Item>
-          <Grid.Item>
-            <LazyChartCard title="Intervalo entre pedidos por cliente">
-              <EntityRankingChart
-                filters={filters}
-                query={ORDER_INTERVAL_BY_CLIENT_QUERY}
-                dataKey="orderIntervalByClient"
-                valueKey="avgDays"
-                valueFormatter={formatDays}
-                seriesName="Intervalo médio"
-                color={SERIES_GREEN}
-              />
-            </LazyChartCard>
-          </Grid.Item>
-        </Grid.Root>
-      </AnalyticsSection>
-    </PageContent>
+        <AnalyticsSection
+          title="Volume de pedidos"
+          description="Quantos pedidos cada fábrica e cliente concentram no período."
+        >
+          <Grid.Root cols={{ base: 1, desktop: 2 }} gap={12}>
+            <Grid.Item>
+              <LazyChartCard title="Pedidos por fábrica">
+                <OrdersByFactoryChart filters={filters} />
+              </LazyChartCard>
+            </Grid.Item>
+            <Grid.Item>
+              <LazyChartCard title="Pedidos por cliente">
+                <OrdersByClientChart filters={filters} />
+              </LazyChartCard>
+            </Grid.Item>
+          </Grid.Root>
+        </AnalyticsSection>
+
+        <AnalyticsSection
+          title="Ticket médio"
+          description="Valor médio de cada pedido. Quanto maior, mais forte a venda."
+        >
+          <Grid.Root cols={{ base: 1, desktop: 2 }} gap={12}>
+            <Grid.Item>
+              <LazyChartCard title="Ticket médio por vendedor">
+                <EntityRankingChart
+                  filters={filters}
+                  query={AVG_TICKET_BY_SELLER_QUERY}
+                  dataKey="avgTicketBySeller"
+                  valueKey="avgTicket"
+                  valueFormatter={formatMoney}
+                  seriesName="Ticket médio"
+                  color={SERIES_BLUE}
+                />
+              </LazyChartCard>
+            </Grid.Item>
+            <Grid.Item>
+              <LazyChartCard title="Ticket médio por fábrica">
+                <EntityRankingChart
+                  filters={filters}
+                  query={AVG_TICKET_BY_FACTORY_QUERY}
+                  dataKey="avgTicketByFactory"
+                  valueKey="avgTicket"
+                  valueFormatter={formatMoney}
+                  seriesName="Ticket médio"
+                  color={SERIES_ORANGE}
+                />
+              </LazyChartCard>
+            </Grid.Item>
+            <Grid.Item>
+              <LazyChartCard title="Ticket médio por cliente">
+                <EntityRankingChart
+                  filters={filters}
+                  query={AVG_TICKET_BY_CLIENT_QUERY}
+                  dataKey="avgTicketByClient"
+                  valueKey="avgTicket"
+                  valueFormatter={formatMoney}
+                  seriesName="Ticket médio"
+                  color={SERIES_GREEN}
+                />
+              </LazyChartCard>
+            </Grid.Item>
+          </Grid.Root>
+        </AnalyticsSection>
+
+        <AnalyticsSection
+          title="Cadência de pedidos"
+          description="Tempo médio entre um pedido e o próximo. Quanto menor, mais frequente a recompra."
+        >
+          <Grid.Root cols={{ base: 1, desktop: 2 }} gap={12}>
+            <Grid.Item>
+              <LazyChartCard title="Intervalo entre pedidos por fábrica">
+                <EntityRankingChart
+                  filters={filters}
+                  query={ORDER_INTERVAL_BY_FACTORY_QUERY}
+                  dataKey="orderIntervalByFactory"
+                  valueKey="avgDays"
+                  valueFormatter={formatDays}
+                  seriesName="Intervalo médio"
+                  color={SERIES_ORANGE}
+                />
+              </LazyChartCard>
+            </Grid.Item>
+            <Grid.Item>
+              <LazyChartCard title="Intervalo entre pedidos por cliente">
+                <EntityRankingChart
+                  filters={filters}
+                  query={ORDER_INTERVAL_BY_CLIENT_QUERY}
+                  dataKey="orderIntervalByClient"
+                  valueKey="avgDays"
+                  valueFormatter={formatDays}
+                  seriesName="Intervalo médio"
+                  color={SERIES_GREEN}
+                />
+              </LazyChartCard>
+            </Grid.Item>
+          </Grid.Root>
+        </AnalyticsSection>
+      </PageContent>
+    </AnalyticsPrintContext.Provider>
   );
 }

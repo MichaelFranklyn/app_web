@@ -649,10 +649,29 @@ type OrderIntervalPoint {
   orderCount: Int!
 }
 
+type OrderCountPoint {
+  entityId: UUID!
+  entityName: String!
+  orderCount: Int!
+}
+
+type DashboardSummary {
+  totalOrders: Int!
+  totalAmount: Decimal!
+  avgTicket: Decimal!
+  activeClients: Int!
+}
+
 extend type Query {
+  dashboardSummary(from: Date = null, to: Date = null, sellerId: UUID = null): DashboardSummary!
+
+
   revenueByMonth(from: Date = null, to: Date = null, sellerId: UUID = null): [RevenueByMonthPoint!]!
   ordersByMonth(from: Date = null, to: Date = null, sellerId: UUID = null): [OrdersByMonthPoint!]!
   revenueByFactory(from: Date = null, to: Date = null, sellerId: UUID = null, limit: Int = 8): [RevenueByFactoryPoint!]!
+
+  ordersByFactory(from: Date = null, to: Date = null, sellerId: UUID = null, limit: Int = 8): [OrderCountPoint!]!
+  ordersByClient(from: Date = null, to: Date = null, sellerId: UUID = null, limit: Int = 8): [OrderCountPoint!]!
 
   avgTicketBySeller(from: Date = null, to: Date = null, sellerId: UUID = null, limit: Int = 8): [AvgTicketPoint!]!
   avgTicketByFactory(from: Date = null, to: Date = null, sellerId: UUID = null, limit: Int = 8): [AvgTicketPoint!]!

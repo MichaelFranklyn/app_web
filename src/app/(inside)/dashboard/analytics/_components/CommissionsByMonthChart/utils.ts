@@ -47,7 +47,8 @@ export const bucketCommissionsByMonth = (
   return [...byMonth.values()].sort((a, b) => a.month.localeCompare(b.month));
 };
 
-/** Barra agrupada 2 séries (A receber / Recebido) → 2 slots categóricos + legenda. */
+/** Linha dupla (A receber / Recebido) por mês → compara a evolução das duas ao
+ * longo do tempo, com legenda. */
 export const buildCommissionsOption = (
   buckets: CommissionMonthlyBucket[]
 ): EChartsCoreOption => ({
@@ -66,6 +67,7 @@ export const buildCommissionsOption = (
   },
   xAxis: {
     ...categoryAxis,
+    boundaryGap: false,
     data: buckets.map((b) => monthKeyToLabel(b.month)),
   },
   yAxis: {
@@ -78,16 +80,22 @@ export const buildCommissionsOption = (
   series: [
     {
       name: "A receber",
-      type: "bar",
-      barMaxWidth: 18,
-      itemStyle: { color: SERIES_BLUE, borderRadius: [4, 4, 0, 0] },
+      type: "line",
+      smooth: true,
+      symbol: "circle",
+      symbolSize: 7,
+      lineStyle: { width: 2, color: SERIES_BLUE },
+      itemStyle: { color: SERIES_BLUE },
       data: buckets.map((b) => b.receivable),
     },
     {
       name: "Recebido",
-      type: "bar",
-      barMaxWidth: 18,
-      itemStyle: { color: SERIES_GREEN, borderRadius: [4, 4, 0, 0] },
+      type: "line",
+      smooth: true,
+      symbol: "circle",
+      symbolSize: 7,
+      lineStyle: { width: 2, color: SERIES_GREEN },
+      itemStyle: { color: SERIES_GREEN },
       data: buckets.map((b) => b.received),
     },
   ],

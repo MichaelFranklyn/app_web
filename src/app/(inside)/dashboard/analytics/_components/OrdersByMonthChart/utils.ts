@@ -10,7 +10,8 @@ import {
 import { monthKeyToLabel } from "../../utils";
 import { OrdersByMonthPoint } from "./interface";
 
-/** Barra de quantidade de pedidos por mês (1 série → hue azul). */
+/** Linha de quantidade de pedidos por mês (série temporal → tendência). Linha
+ * limpa (sem área) para contrastar com a área do faturamento ao lado. */
 export const buildOrdersByMonthOption = (
   points: OrdersByMonthPoint[]
 ): EChartsCoreOption => ({
@@ -18,6 +19,7 @@ export const buildOrdersByMonthOption = (
   tooltip: { ...tooltipBase },
   xAxis: {
     ...categoryAxis,
+    boundaryGap: false,
     data: points.map((p) => monthKeyToLabel(p.month)),
   },
   yAxis: {
@@ -27,9 +29,12 @@ export const buildOrdersByMonthOption = (
   series: [
     {
       name: "Pedidos",
-      type: "bar",
-      barMaxWidth: 28,
-      itemStyle: { color: SERIES_BLUE, borderRadius: [4, 4, 0, 0] },
+      type: "line",
+      smooth: true,
+      symbol: "circle",
+      symbolSize: 8,
+      lineStyle: { width: 2, color: SERIES_BLUE },
+      itemStyle: { color: SERIES_BLUE },
       data: points.map((p) => p.count),
     },
   ],
