@@ -388,16 +388,16 @@ const InputSelectControl = ({
               key={option.value}
               color="amber"
               appearance="solid"
-              className="h-[22px] shrink-0 px-2 py-0"
+              className="h-[26px] shrink-0 gap-1 py-0 pr-[6px] pl-[10px]"
             >
-              <Badge.Text className="max-w-[120px] truncate text-[13px] font-medium">
+              <Badge.Text className="max-w-[220px] truncate text-[13px] font-medium">
                 {option.label}
               </Badge.Text>
               <Badge.Icon
                 onClick={(e) => handleRemoveMultiOption(option, e)}
-                className="ml-1 cursor-pointer transition-colors hover:text-red-500"
+                className="ml-[2px] flex size-[18px] cursor-pointer items-center justify-center rounded-full transition-colors hover:bg-black/20 [&>svg]:!size-3.5"
               >
-                <X size={12} strokeWidth={3} />
+                <X size={14} strokeWidth={2.5} />
               </Badge.Icon>
             </Badge>
           ))}

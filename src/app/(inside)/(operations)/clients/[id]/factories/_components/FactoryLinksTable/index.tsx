@@ -17,6 +17,7 @@ export function FactoryLinksTable({
   clientId,
   connections,
   onChanged,
+  autoOpenLink,
   onUpdateOptimistic,
   onRemoveOptimistic,
   onCommit,
@@ -37,7 +38,11 @@ export function FactoryLinksTable({
           />
         </Table.CardHead.Title>
         <Table.CardHead.Actions data-tour="client-factories-actions">
-          <LinkFactoryModal clientId={clientId} onSuccess={onChanged} />
+          <LinkFactoryModal
+            clientId={clientId}
+            onSuccess={onChanged}
+            autoOpen={autoOpenLink}
+          />
         </Table.CardHead.Actions>
       </Table.CardHead>
       <Table.Table>

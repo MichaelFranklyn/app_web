@@ -12,10 +12,6 @@ export const FACTORY_SELLER_ACCESSES_QUERY = gql`
             id
             name
             isActive
-            region
-            clientCount
-            factoryCount
-            totalRevenue
           }
           grantedByUser {
             id

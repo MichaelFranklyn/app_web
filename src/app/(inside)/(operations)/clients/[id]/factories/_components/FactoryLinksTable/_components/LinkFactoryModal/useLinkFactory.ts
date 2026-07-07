@@ -1,7 +1,7 @@
 import { FormBuilderRef, FormStepSchema } from "@/components/FormBuilder";
 import { useAsyncAction } from "@/hooks/useAsyncAction";
 import { useMutation, useQuery } from "@apollo/client/react";
-import { useMemo, useRef, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 
 import { CreateSellerClientFactoryResponse } from "../../../../interface";
 import {
@@ -60,7 +60,11 @@ interface PriceTiersData {
 
 const LIST_INPUT = { first: 200 };
 
-export function useLinkFactory({ clientId, onSuccess }: LinkFactoryModalProps) {
+export function useLinkFactory({
+  clientId,
+  onSuccess,
+  autoOpen,
+}: LinkFactoryModalProps) {
   const [open, setOpen] = useState(false);
   const [selectedSellerId, setSelectedSellerId] = useState<string | null>(null);
   const [selectedFactoryId, setSelectedFactoryId] = useState<string | null>(
@@ -68,6 +72,10 @@ export function useLinkFactory({ clientId, onSuccess }: LinkFactoryModalProps) {
   );
   const formRef = useRef<FormBuilderRef>(null);
   const { execute, isLoading } = useAsyncAction();
+
+  useEffect(() => {
+    if (autoOpen) setOpen(true);
+  }, [autoOpen]);
 
   const { data: sellersData } = useQuery<SellersData>(SELLERS_FOR_LINK_QUERY, {
     variables: { input: LIST_INPUT },

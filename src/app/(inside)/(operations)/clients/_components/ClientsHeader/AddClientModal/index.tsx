@@ -1,10 +1,12 @@
 "use client";
 
 import { Button } from "@/components/Button";
+import { ConfirmModal } from "@/components/ConfirmModal";
 import { FormBuilder, FormBuilderRef } from "@/components/FormBuilder";
 import { Modal } from "@/components/Modal";
 import { useAsyncAction } from "@/hooks/useAsyncAction";
 import { useInvalidateQueriesClient } from "@/hooks/useInvalidateQueries";
+import { useNavigation } from "@/hooks/useNavigation";
 import { invalidateCacheMany } from "@/services/graphql/actions";
 import { useMutation } from "@apollo/client/react";
 import { Plus } from "lucide-react";
@@ -20,8 +22,13 @@ interface AddClientModalProps {
 
 export function AddClientModal({ onAddOptimistic }: AddClientModalProps) {
   const [open, setOpen] = useState(false);
+  // company_client id recém-criado; dispara a pergunta de vínculo com fábrica.
+  const [createdCompanyClientId, setCreatedCompanyClientId] = useState<
+    string | null
+  >(null);
   const formRef = useRef<FormBuilderRef>(null);
   const invalidateClient = useInvalidateQueriesClient();
+  const { navigateTo } = useNavigation();
 
   const [addClientToCompany] = useMutation<AddClientToCompanyResponse>(
     ADD_CLIENT_TO_COMPANY_MUTATION
@@ -59,62 +66,82 @@ export function AddClientModal({ onAddOptimistic }: AddClientModalProps) {
           });
           await invalidateClient(["clients_list"]);
           await invalidateCacheMany(["clients_stats"]);
+          setCreatedCompanyClientId(created.id);
         },
       }
     );
   };
 
   return (
-    <Modal.Root open={open} onOpenChange={setOpen}>
-      <Modal.Trigger asChild>
-        <Button.Root appearance="solid" color="amber" size="sm">
-          <Button.Icon icon={Plus} />
-          <Button.Title>Novo Cliente</Button.Title>
-        </Button.Root>
-      </Modal.Trigger>
+    <>
+      <Modal.Root open={open} onOpenChange={setOpen}>
+        <Modal.Trigger asChild>
+          <Button.Root appearance="solid" color="amber" size="sm">
+            <Button.Icon icon={Plus} />
+            <Button.Title>Novo Cliente</Button.Title>
+          </Button.Root>
+        </Modal.Trigger>
 
-      <Modal.Content size="md">
-        <Modal.Header
-          title="Adicionar cliente"
-          description="Informe o CNPJ. Os demais dados são preenchidos automaticamente via Receita Federal."
-        />
-
-        <Modal.Body>
-          <FormBuilder
-            ref={formRef}
-            steps={FORM_STEPS}
-            onSubmit={handleSubmit}
-            loading={isLoading}
-            unstyled
+        <Modal.Content size="md">
+          <Modal.Header
+            title="Adicionar cliente"
+            description="Informe o CNPJ. Os demais dados são preenchidos automaticamente via Receita Federal."
           />
-        </Modal.Body>
 
-        <Modal.Footer>
-          <Modal.Close asChild>
+          <Modal.Body>
+            <FormBuilder
+              ref={formRef}
+              steps={FORM_STEPS}
+              onSubmit={handleSubmit}
+              loading={isLoading}
+              unstyled
+            />
+          </Modal.Body>
+
+          <Modal.Footer>
+            <Modal.Close asChild>
+              <Button.Root
+                type="button"
+                appearance="ghost"
+                color="neutral"
+                size="md"
+                noUppercase
+                disabled={isLoading}
+              >
+                <Button.Title>Cancelar</Button.Title>
+              </Button.Root>
+            </Modal.Close>
             <Button.Root
               type="button"
-              appearance="ghost"
-              color="neutral"
+              appearance="solid"
+              color="amber"
               size="md"
               noUppercase
-              disabled={isLoading}
+              loading={isLoading}
+              onClick={() => formRef.current?.submitForm()}
             >
-              <Button.Title>Cancelar</Button.Title>
+              <Button.Title>Adicionar cliente</Button.Title>
             </Button.Root>
-          </Modal.Close>
-          <Button.Root
-            type="button"
-            appearance="solid"
-            color="amber"
-            size="md"
-            noUppercase
-            loading={isLoading}
-            onClick={() => formRef.current?.submitForm()}
-          >
-            <Button.Title>Adicionar cliente</Button.Title>
-          </Button.Root>
-        </Modal.Footer>
-      </Modal.Content>
-    </Modal.Root>
+          </Modal.Footer>
+        </Modal.Content>
+      </Modal.Root>
+
+      <ConfirmModal
+        open={createdCompanyClientId !== null}
+        onOpenChange={(v) => {
+          if (!v) setCreatedCompanyClientId(null);
+        }}
+        title="Cliente adicionado!"
+        description="Deseja vincular este cliente a uma fábrica agora?"
+        confirmLabel="Vincular agora"
+        cancelLabel="Agora não"
+        confirmColor="amber"
+        onConfirm={async () => {
+          if (createdCompanyClientId) {
+            navigateTo(`/clients/${createdCompanyClientId}/factories?link=1`);
+          }
+        }}
+      />
+    </>
   );
 }

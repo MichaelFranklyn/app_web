@@ -5,10 +5,12 @@ import { Plus } from "lucide-react";
 import { useRef, useState } from "react";
 
 import { Button } from "@/components/Button";
+import { ConfirmModal } from "@/components/ConfirmModal";
 import { FormBuilder, FormBuilderRef } from "@/components/FormBuilder";
 import { Modal } from "@/components/Modal";
 import { useAsyncAction } from "@/hooks/useAsyncAction";
 import { useInvalidateQueriesClient } from "@/hooks/useInvalidateQueries";
+import { useNavigation } from "@/hooks/useNavigation";
 
 import { CompanyFactory } from "../../../interface";
 import { LINK_FACTORY_MUTATION } from "./gql";
@@ -22,8 +24,11 @@ interface LinkFactoryModalProps {
 export function LinkFactoryModal({ onAddOptimistic }: LinkFactoryModalProps) {
   const [open, setOpen] = useState(false);
   const [currentStep, setCurrentStep] = useState(0);
+  // company_factory id recém-criado; dispara a pergunta de vínculo de vendedores.
+  const [createdFactoryId, setCreatedFactoryId] = useState<string | null>(null);
   const formRef = useRef<FormBuilderRef>(null);
   const invalidateClient = useInvalidateQueriesClient();
+  const { navigateTo } = useNavigation();
   const totalSteps = FORM_STEPS.length;
 
   const [linkFactory] = useMutation<LinkFactoryResponse>(LINK_FACTORY_MUTATION);
@@ -50,10 +55,14 @@ export function LinkFactoryModal({ onAddOptimistic }: LinkFactoryModalProps) {
   const handleSubmit = async (data: Record<string, unknown>) => {
     await execute(
       async () => {
-        const res = await linkFactory({ variables: { input: normalizeInput(data) } });
+        const res = await linkFactory({
+          variables: { input: normalizeInput(data) },
+        });
 
         if (!res.data?.linkFactory?.status || !res.data.linkFactory.data) {
-          throw new Error(res.data?.linkFactory?.message ?? "Erro ao vincular fábrica");
+          throw new Error(
+            res.data?.linkFactory?.message ?? "Erro ao vincular fábrica"
+          );
         }
 
         return res.data.linkFactory.data;
@@ -72,62 +81,82 @@ export function LinkFactoryModal({ onAddOptimistic }: LinkFactoryModalProps) {
             factory: created.factory,
           });
           await invalidateClient(["companyFactories"]);
+          setCreatedFactoryId(created.id);
         },
       }
     );
   };
 
   return (
-    <Modal.Root open={open} onOpenChange={handleClose}>
-      <Modal.Trigger asChild>
-        <Button.Root appearance="solid" color="amber" size="md">
-          <Button.Icon icon={Plus} />
-          <Button.Title>Vincular Fábrica</Button.Title>
-        </Button.Root>
-      </Modal.Trigger>
+    <>
+      <Modal.Root open={open} onOpenChange={handleClose}>
+        <Modal.Trigger asChild>
+          <Button.Root appearance="solid" color="amber" size="md">
+            <Button.Icon icon={Plus} />
+            <Button.Title>Vincular Fábrica</Button.Title>
+          </Button.Root>
+        </Modal.Trigger>
 
-      <Modal.Content size="md">
-        <Modal.Header
-          title="Vincular Fábrica"
-          description="Adicione uma nova fábrica e configure os termos comerciais da parceria."
-        />
-        <Modal.Body>
-          <FormBuilder
-            ref={formRef}
-            steps={FORM_STEPS}
-            onSubmit={handleSubmit}
-            loading={isLoading}
-            unstyled
+        <Modal.Content size="md">
+          <Modal.Header
+            title="Vincular Fábrica"
+            description="Adicione uma nova fábrica e configure os termos comerciais da parceria."
           />
-        </Modal.Body>
-        <Modal.Footer>
-          <Modal.Close asChild>
+          <Modal.Body>
+            <FormBuilder
+              ref={formRef}
+              steps={FORM_STEPS}
+              onSubmit={handleSubmit}
+              loading={isLoading}
+              unstyled
+            />
+          </Modal.Body>
+          <Modal.Footer>
+            <Modal.Close asChild>
+              <Button.Root
+                type="button"
+                appearance="ghost"
+                color="neutral"
+                size="md"
+                noUppercase
+                disabled={isLoading}
+              >
+                <Button.Title>Cancelar</Button.Title>
+              </Button.Root>
+            </Modal.Close>
             <Button.Root
               type="button"
-              appearance="ghost"
-              color="neutral"
+              appearance="solid"
+              color="amber"
               size="md"
               noUppercase
-              disabled={isLoading}
+              loading={isLoading}
+              onClick={handleFooterClick}
             >
-              <Button.Title>Cancelar</Button.Title>
+              <Button.Title>
+                {currentStep < totalSteps - 1 ? "Próximo" : "Vincular"}
+              </Button.Title>
             </Button.Root>
-          </Modal.Close>
-          <Button.Root
-            type="button"
-            appearance="solid"
-            color="amber"
-            size="md"
-            noUppercase
-            loading={isLoading}
-            onClick={handleFooterClick}
-          >
-            <Button.Title>
-              {currentStep < totalSteps - 1 ? "Próximo" : "Vincular"}
-            </Button.Title>
-          </Button.Root>
-        </Modal.Footer>
-      </Modal.Content>
-    </Modal.Root>
+          </Modal.Footer>
+        </Modal.Content>
+      </Modal.Root>
+
+      <ConfirmModal
+        open={createdFactoryId !== null}
+        onOpenChange={(v) => {
+          if (!v) setCreatedFactoryId(null);
+        }}
+        title="Fábrica adicionada!"
+        description="Deseja vincular vendedores a esta fábrica agora?"
+        confirmLabel="Vincular agora"
+        cancelLabel="Agora não"
+        confirmColor="amber"
+        onConfirm={async () => {
+          if (createdFactoryId) {
+            navigateTo(`/factories/${createdFactoryId}/sellers?link=1`);
+          }
+        }}
+      />
+    </>
   );
 }

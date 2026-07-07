@@ -7,11 +7,10 @@ import { Loading } from "@/components/Loading";
 import { PageContent } from "@/components/PageContent";
 import { PanelHeader } from "@/components/PanelHeader";
 import { Table } from "@/components/Table";
-import { Title } from "@/components/Title";
 import { getTodayIso } from "@/utils/format/date";
 import { formatMoney } from "@/utils/format/masks";
 import { useQuery } from "@apollo/client/react";
-import { ChevronLeft, ChevronRight } from "lucide-react";
+import { CalendarDays, ChevronLeft, ChevronRight } from "lucide-react";
 import { useMemo, useState } from "react";
 import { CommissionsTable } from "./_components/CommissionsTable";
 import { MarkReceivedModal } from "./_components/MarkReceivedModal";
@@ -93,49 +92,48 @@ export default function CommissionsContent() {
             <PanelHeader.Description>
               O que você tem para receber das fábricas em {monthLabel(month)}.
             </PanelHeader.Description>
+            <PanelHeader.Actions className="mt-6">
+              {/* Navegação de mês: anterior + atual + próximo sempre juntos.
+                  No mobile/tablet o bloco ocupa a largura toda e o botão
+                  central cresce; a partir de desktop volta ao tamanho natural. */}
+              <div className="desktop:w-auto flex w-full items-center gap-8">
+                <Button.Root
+                  appearance="outline"
+                  color="neutral"
+                  size="sm"
+                  isIconOnly
+                  onClick={() => setMonth((m) => addMonths(m, -1))}
+                >
+                  <Button.Icon icon={ChevronLeft} />
+                </Button.Root>
+                <Button.Root
+                  appearance="tinted"
+                  color="amber"
+                  size="sm"
+                  noUppercase
+                  disabled={isCurrentMonth}
+                  onClick={() => setMonth(yearMonthFromIso(getTodayIso()))}
+                  className="desktop:flex-initial flex-1"
+                >
+                  <Button.Icon icon={CalendarDays} />
+                  <Button.Title>
+                    {isCurrentMonth ? "Mês atual" : "Voltar para atual"}
+                  </Button.Title>
+                </Button.Root>
+                <Button.Root
+                  appearance="outline"
+                  color="neutral"
+                  size="sm"
+                  isIconOnly
+                  onClick={() => setMonth((m) => addMonths(m, 1))}
+                >
+                  <Button.Icon icon={ChevronRight} />
+                </Button.Root>
+              </div>
+            </PanelHeader.Actions>
           </PanelHeader.Left>
         </PanelHeader.Top>
       </PanelHeader.Root>
-
-      {/* Navegação de mês */}
-      <div className="flex items-center justify-center gap-12">
-        <Button.Root
-          appearance="ghost"
-          color="neutral"
-          size="sm"
-          isIconOnly
-          onClick={() => setMonth((m) => addMonths(m, -1))}
-        >
-          <Button.Icon icon={ChevronLeft} />
-        </Button.Root>
-        <Title
-          variant="body"
-          weight="bold"
-          className="min-w-[180px] text-center"
-        >
-          {monthLabel(month)}
-        </Title>
-        <Button.Root
-          appearance="ghost"
-          color="neutral"
-          size="sm"
-          isIconOnly
-          onClick={() => setMonth((m) => addMonths(m, 1))}
-        >
-          <Button.Icon icon={ChevronRight} />
-        </Button.Root>
-        {!isCurrentMonth && (
-          <Button.Root
-            appearance="ghost"
-            color="amber"
-            size="sm"
-            noUppercase
-            onClick={() => setMonth(yearMonthFromIso(getTodayIso()))}
-          >
-            <Button.Title>Voltar para o mês atual</Button.Title>
-          </Button.Root>
-        )}
-      </div>
 
       <Grid.Root cols={{ base: 1, tablet: 3 }} gap={20}>
         {data?.commissions ? (

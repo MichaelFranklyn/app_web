@@ -4,7 +4,8 @@ import { Loading } from "@/components/Loading";
 import { Table } from "@/components/Table";
 import { useOptimisticList } from "@/hooks/useOptimisticList";
 import { useQuery } from "@apollo/client/react";
-import { useMemo } from "react";
+import { usePathname, useRouter, useSearchParams } from "next/navigation";
+import { useEffect, useMemo, useState } from "react";
 import { useClientRoute } from "../context";
 import { SELLER_CLIENT_FACTORIES_QUERY } from "../gql";
 import {
@@ -15,6 +16,19 @@ import { FactoryLinksTable } from "./_components/FactoryLinksTable";
 
 export default function FactoriesContent() {
   const { clientId: id } = useClientRoute();
+  const searchParams = useSearchParams();
+  const router = useRouter();
+  const pathname = usePathname();
+  const [autoOpenLink, setAutoOpenLink] = useState(false);
+
+  // Fluxo pós-criação: ?link=1 abre o modal uma vez e o parâmetro é removido
+  // da URL para não reabrir em refresh/voltar.
+  useEffect(() => {
+    if (searchParams.get("link") === "1") {
+      setAutoOpenLink(true);
+      router.replace(pathname);
+    }
+  }, [searchParams, router, pathname]);
 
   const { data, loading, refetch } =
     useQuery<SellerClientFactoriesQueryResponse>(
@@ -56,6 +70,7 @@ export default function FactoriesContent() {
       clientId={id}
       connections={optimisticLinks.items}
       onChanged={() => refetch()}
+      autoOpenLink={autoOpenLink}
       onUpdateOptimistic={optimisticLinks.updateOptimistic}
       onRemoveOptimistic={optimisticLinks.removeOptimistic}
       onCommit={optimisticLinks.commit}

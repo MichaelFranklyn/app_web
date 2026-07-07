@@ -1,6 +1,8 @@
 export interface LinkFactoryModalProps {
   clientId: string;
   onSuccess?: () => void;
+  /** Abre o modal automaticamente (fluxo pós-criação do cliente). */
+  autoOpen?: boolean;
 }
 
 export interface LinkFactoryInput {

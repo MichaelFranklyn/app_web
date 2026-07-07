@@ -7,7 +7,6 @@ import { HelpTooltip } from "@/components/HelpTooltip";
 import { Table } from "@/components/Table";
 import { Title } from "@/components/Title";
 import { useOptimisticList } from "@/hooks/useOptimisticList";
-import { formatMoney } from "@/utils/format/masks";
 import { useQuery } from "@apollo/client/react";
 import { Users } from "lucide-react";
 import { useMemo } from "react";
@@ -24,10 +23,6 @@ interface SellerAccess {
     id: string;
     name: string;
     isActive: boolean;
-    region: string | null;
-    clientCount: number;
-    factoryCount: number;
-    totalRevenue: string;
   } | null;
   grantedByUser: { id: string; name: string } | null;
 }
@@ -41,9 +36,11 @@ interface SellersQueryData {
 
 interface Props {
   factoryId: string;
+  /** Abre o modal de vínculo automaticamente (fluxo pós-criação da fábrica). */
+  autoOpenLink?: boolean;
 }
 
-export function SellersTab({ factoryId }: Props) {
+export function SellersTab({ factoryId, autoOpenLink }: Props) {
   const { data, loading } = useQuery<SellersQueryData>(
     FACTORY_SELLER_ACCESSES_QUERY,
     {
@@ -92,7 +89,7 @@ export function SellersTab({ factoryId }: Props) {
           />
         </Table.CardHead.Title>
         <Table.CardHead.Actions data-tour="factory-sellers-actions">
-          <AddSellerAccessModal factoryId={factoryId} />
+          <AddSellerAccessModal factoryId={factoryId} autoOpen={autoOpenLink} />
         </Table.CardHead.Actions>
       </Table.CardHead>
 
@@ -100,19 +97,16 @@ export function SellersTab({ factoryId }: Props) {
         <Table.Header>
           <Table.Row>
             <Table.Head>Vendedor</Table.Head>
-            <Table.Head>Região</Table.Head>
-            <Table.Head>Clientes</Table.Head>
-            <Table.Head>Faturamento</Table.Head>
             <Table.Head>Acesso</Table.Head>
             <Table.Head className="text-right">Ações</Table.Head>
           </Table.Row>
         </Table.Header>
         <Table.Body>
           {loading && accesses.length === 0 ? (
-            <Table.Skeleton columns={6} rows={5} />
+            <Table.Skeleton columns={3} rows={5} />
           ) : accesses.length === 0 ? (
             <Table.Row>
-              <Table.Cell colSpan={6}>
+              <Table.Cell colSpan={3}>
                 <EmptyState.Root>
                   <EmptyState.Icon>
                     <Users size={32} />
@@ -139,15 +133,6 @@ export function SellersTab({ factoryId }: Props) {
                   <Table.CellText variant="strong">
                     {a.seller?.name ?? "—"}
                   </Table.CellText>
-                </Table.Cell>
-                <Table.Cell variant="dim">{a.seller?.region ?? "—"}</Table.Cell>
-                <Table.Cell variant="strong">
-                  {a.seller?.clientCount ?? "—"}
-                </Table.Cell>
-                <Table.Cell variant="strong">
-                  {a.seller?.totalRevenue
-                    ? formatMoney(a.seller.totalRevenue)
-                    : "—"}
                 </Table.Cell>
                 <Table.Cell>
                   <Badge.Root

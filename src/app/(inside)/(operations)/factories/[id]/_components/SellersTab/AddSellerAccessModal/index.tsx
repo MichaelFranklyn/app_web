@@ -6,12 +6,14 @@ import {
   FormBuilderRef,
   FormStepSchema,
 } from "@/components/FormBuilder";
+import { SelectOption } from "@/components/Input/InputSelect";
 import { Modal } from "@/components/Modal";
+import { useToast } from "@/components/Toast";
 import { useAsyncAction } from "@/hooks/useAsyncAction";
 import { useInvalidateQueriesClient } from "@/hooks/useInvalidateQueries";
 import { useMutation, useQuery } from "@apollo/client/react";
 import { Plus } from "lucide-react";
-import { useMemo, useRef, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import {
   CREATE_SELLER_FACTORY_ACCESS_MUTATION,
   FACTORY_LINKED_ACCESSES_QUERY,
@@ -25,12 +27,19 @@ import {
 
 interface Props {
   factoryId: string;
+  /** Abre o modal automaticamente ao montar (fluxo pós-criação da fábrica). */
+  autoOpen?: boolean;
 }
 
-export function AddSellerAccessModal({ factoryId }: Props) {
+export function AddSellerAccessModal({ factoryId, autoOpen }: Props) {
   const [open, setOpen] = useState(false);
   const formRef = useRef<FormBuilderRef>(null);
   const invalidateClient = useInvalidateQueriesClient();
+  const { toast } = useToast();
+
+  useEffect(() => {
+    if (autoOpen) setOpen(true);
+  }, [autoOpen]);
 
   const { data: sellersData } = useQuery<FactorySellersOptionsData>(
     FACTORY_SELLERS_OPTIONS_QUERY,
@@ -63,9 +72,7 @@ export function AddSellerAccessModal({ factoryId }: Props) {
   const sellerOptions = useMemo(
     () =>
       sellersData?.factory_sellers_options?.edges
-        ?.filter(
-          ({ node }) => node.isActive && !linkedSellerIds.has(node.id)
-        )
+        ?.filter(({ node }) => node.isActive && !linkedSellerIds.has(node.id))
         .map(({ node }) => ({ label: node.name, value: node.id })) ?? [],
     [sellersData, linkedSellerIds]
   );
@@ -79,13 +86,13 @@ export function AddSellerAccessModal({ factoryId }: Props) {
             id: "seller",
             fields: [
               {
-                name: "seller",
-                type: "select-single",
-                label: "Vendedor",
+                name: "sellers",
+                type: "select-multi",
+                label: "Vendedores",
                 placeholder:
                   sellerOptions.length === 0
                     ? "Nenhum vendedor disponível"
-                    : "Selecione o vendedor",
+                    : "Selecione um ou mais vendedores",
                 options: sellerOptions,
                 required: true,
               },
@@ -103,32 +110,73 @@ export function AddSellerAccessModal({ factoryId }: Props) {
   const { execute, isLoading } = useAsyncAction();
 
   const handleSubmit = async (data: Record<string, unknown>) => {
-    const sellerId = (data.seller as { value: string } | null)?.value;
-    if (!sellerId) return;
+    const selected = Array.isArray(data.sellers)
+      ? (data.sellers as SelectOption[])
+      : [];
+    const sellerIds = selected.map((opt) => opt.value).filter(Boolean);
+    if (sellerIds.length === 0) {
+      toast({
+        variant: "error",
+        title: "Erro",
+        description: "Selecione ao menos um vendedor.",
+      });
+      return;
+    }
 
     await execute(
       async () => {
-        const res = await createAccess({
-          variables: { input: { sellerId, factoryId } },
-        });
+        const results = await Promise.allSettled(
+          sellerIds.map(async (sellerId) => {
+            const res = await createAccess({
+              variables: { input: { sellerId, factoryId } },
+            });
+            if (
+              !res.data?.createSellerFactoryAccess?.status ||
+              !res.data.createSellerFactoryAccess.data
+            ) {
+              throw new Error(
+                res.data?.createSellerFactoryAccess?.message ??
+                  "Erro ao conceder acesso"
+              );
+            }
+            return res.data.createSellerFactoryAccess.data;
+          })
+        );
 
-        if (
-          !res.data?.createSellerFactoryAccess?.status ||
-          !res.data.createSellerFactoryAccess.data
-        ) {
+        const successCount = results.filter(
+          (r) => r.status === "fulfilled"
+        ).length;
+        const failCount = results.length - successCount;
+
+        // Todos falharam → lança para o toast de erro do execute.
+        if (successCount === 0) {
+          const first = results.find(
+            (r): r is PromiseRejectedResult => r.status === "rejected"
+          );
+          const reason = first?.reason;
           throw new Error(
-            res.data?.createSellerFactoryAccess?.message ??
-              "Erro ao conceder acesso"
+            reason instanceof Error ? reason.message : "Erro ao conceder acesso"
           );
         }
 
-        return res.data.createSellerFactoryAccess.data;
+        return { successCount, failCount };
       },
       {
-        successMessage: "Acesso concedido com sucesso",
-        onSuccess: async () => {
+        onSuccess: async ({ successCount, failCount }) => {
           setOpen(false);
           formRef.current?.resetForm();
+          toast({
+            variant: "success",
+            title: "Sucesso",
+            description: `${successCount} vendedor(es) vinculado(s) com sucesso`,
+          });
+          if (failCount > 0) {
+            toast({
+              variant: "error",
+              title: "Atenção",
+              description: `${failCount} vínculo(s) não puderam ser criados`,
+            });
+          }
           await invalidateClient([
             "factory_seller_accesses",
             "sellerFactoryAccessList",
@@ -147,10 +195,10 @@ export function AddSellerAccessModal({ factoryId }: Props) {
         </Button.Root>
       </Modal.Trigger>
 
-      <Modal.Content size="md">
+      <Modal.Content size="lg">
         <Modal.Header
-          title="Conceder acesso de vendedor"
-          description="Apenas vendedores ativos sem vínculo com esta fábrica aparecem."
+          title="Conceder acesso a vendedores"
+          description="Selecione um ou mais vendedores. Apenas vendedores ativos sem vínculo com esta fábrica aparecem."
         />
 
         <Modal.Body>
