@@ -20,6 +20,26 @@ export interface PriceListsData {
   };
 }
 
+export interface ProductsData {
+  products: {
+    edges: {
+      node: {
+        id: string;
+        name: string;
+        sku: string | null;
+        saleMultiple: string | null;
+        unitLabel: { id: string; label: string } | null;
+      };
+    }[];
+  };
+}
+
+export interface TiersData {
+  priceTiers: {
+    edges: { node: { id: string; name: string } }[];
+  };
+}
+
 export interface PriceListItemsData {
   priceListItems: {
     edges: {

@@ -396,6 +396,48 @@ input UpdateCompanyInput {
   addressState: String = null
 }
 
+"""Provisiona uma empresa nova junto do seu primeiro usuário (owner).
+Operação de plataforma (super_user). Se `ownerPassword` vier nulo/vazio,
+a resposta traz `firstAccessLink` — um link de redefinição para o owner
+definir a própria senha no primeiro acesso."""
+input ProvisionCompanyInput {
+  cnpj: String!
+  segment: String!
+  accountType: String! = "company"
+  phone: String = null
+  email: String = null
+  ownerName: String!
+  ownerEmail: String!
+  ownerPassword: String = null
+}
+
+type ProvisionCompanyPayload {
+  company: CompanyType!
+  owner: UserType!
+  """Presente apenas quando nenhuma senha inicial foi definida: link para o
+  owner criar a própria senha (válido por tempo limitado)."""
+  firstAccessLink: String
+}
+
+type ProvisionCompanyPayloadDataResponse {
+  status: Boolean!
+  code: Int!
+  message: String!
+  data: ProvisionCompanyPayload
+}
+
+"""Auto-cadastro público (teste grátis): a própria empresa cria a conta a partir
+da landing/login. Sem autenticação. Exige CNPJ válido (razão social vem da
+Receita) e uma senha definida na hora — a resposta já traz os tokens de login
+para o usuário entrar direto. A empresa nasce com plano de teste (trial)."""
+input RegisterCompanyInput {
+  cnpj: String!
+  segment: String!
+  ownerName: String!
+  ownerEmail: String!
+  ownerPassword: String!
+}
+
 extend type Query {
   company(id: UUID!): CompanyTypeDataResponse!
   companies(input: BaseListInput!): CompanyTypeConnectionResponse!
@@ -404,6 +446,8 @@ extend type Query {
 
 extend type Mutation {
   createCompany(input: CreateCompanyInput!): CompanyTypeDataResponse!
+  provisionCompany(input: ProvisionCompanyInput!): ProvisionCompanyPayloadDataResponse!
+  registerCompany(input: RegisterCompanyInput!): LoginPayloadDataResponse!
   updateCompany(id: UUID!, input: UpdateCompanyInput!): CompanyTypeDataResponse!
   deleteCompany(id: UUID!): BaseResponse!
 }
@@ -1259,7 +1303,7 @@ type OrderInstallmentTypeDataResponse {
 input CreateOrderItemInput {
   orderId: UUID!
   productId: UUID!
-  tierId: UUID!
+  tierId: UUID = null
   quantity: Decimal!
   unitPrice: Decimal!
   discount: Decimal! = "0.0"
@@ -1276,7 +1320,7 @@ type OrderItemType {
   id: UUID!
   orderId: UUID!
   productId: UUID!
-  tierId: UUID!
+  tierId: UUID
   quantity: Decimal!
   unitsTotal: Decimal!
   unitPrice: Decimal!

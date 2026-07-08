@@ -241,15 +241,16 @@ export default function LoginContent() {
                   size="sm"
                   noPadding
                   noUppercase
+                  onClick={() => router.push("/signup")}
                 >
-                  <Button.Title>Solicitar acesso</Button.Title>
+                  <Button.Title>Criar conta grátis</Button.Title>
                 </Button.Root>
               </Title>
             </Card.Footer>
           </Card.Root>
 
           <Title variant="caption" color="muted" className="text-center">
-            Acesso restrito a representantes autorizados
+            Teste grátis · comece em minutos
           </Title>
         </div>
       </Responsive.Box>

@@ -3,7 +3,12 @@ import { NextResponse } from "next/server";
 import { UserData } from "./app/(auth)/login/interface";
 import { getServerCookie } from "./utils/cookies/serverCookie";
 
-const PUBLIC_ROUTES = ["/login", "/forgot-password", "/change-password"];
+const PUBLIC_ROUTES = [
+  "/login",
+  "/signup",
+  "/forgot-password",
+  "/change-password",
+];
 
 export async function proxy(request: NextRequest) {
   const { pathname } = request.nextUrl;
@@ -12,7 +17,7 @@ export async function proxy(request: NextRequest) {
   const userData = await getServerCookie<UserData>("userData");
 
   const isPublicRoute = PUBLIC_ROUTES.some(
-    (route) => pathname === route || pathname.startsWith(`${route}/`),
+    (route) => pathname === route || pathname.startsWith(`${route}/`)
   );
 
   if (!token || !userData) {

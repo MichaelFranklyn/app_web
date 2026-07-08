@@ -3,21 +3,13 @@
 import { Button } from "@/components/Button";
 import { FormBuilder } from "@/components/FormBuilder";
 import { Modal } from "@/components/Modal";
-import { Title } from "@/components/Title";
 import { Plus } from "lucide-react";
 
 import { AddOrderItemModalProps, useAddOrderItem } from "./useAddOrderItem";
 
 export function AddOrderItemModal(props: AddOrderItemModalProps) {
-  const {
-    open,
-    handleClose,
-    formRef,
-    steps,
-    handleSubmit,
-    isLoading,
-    noPriceList,
-  } = useAddOrderItem(props);
+  const { open, handleClose, formRef, steps, handleSubmit, isLoading } =
+    useAddOrderItem(props);
 
   return (
     <Modal.Root open={open} onOpenChange={handleClose}>
@@ -31,24 +23,17 @@ export function AddOrderItemModal(props: AddOrderItemModalProps) {
       <Modal.Content size="md">
         <Modal.Header
           title="Adicionar item ao pedido"
-          description="O preço por embalagem é puxado automaticamente da tabela de preço ativa da fábrica."
+          description="Escolha qualquer produto da fábrica. Ao selecionar um nível, o preço da tabela ativa é sugerido — e você pode ajustá-lo."
         />
 
         <Modal.Body>
-          {noPriceList ? (
-            <Title variant="body-sm" color="muted">
-              Esta fábrica não possui uma tabela de preço ativa. Cadastre uma
-              tabela ativa para adicionar itens ao pedido.
-            </Title>
-          ) : (
-            <FormBuilder
-              ref={formRef}
-              steps={steps}
-              onSubmit={handleSubmit}
-              loading={isLoading}
-              unstyled
-            />
-          )}
+          <FormBuilder
+            ref={formRef}
+            steps={steps}
+            onSubmit={handleSubmit}
+            loading={isLoading}
+            unstyled
+          />
         </Modal.Body>
 
         <Modal.Footer>
@@ -71,7 +56,6 @@ export function AddOrderItemModal(props: AddOrderItemModalProps) {
             size="md"
             noUppercase
             loading={isLoading}
-            disabled={noPriceList}
             onClick={() => formRef.current?.submitForm()}
           >
             <Button.Title>Adicionar</Button.Title>

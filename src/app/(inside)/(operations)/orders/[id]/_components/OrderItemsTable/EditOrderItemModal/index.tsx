@@ -8,7 +8,7 @@ import {
 } from "@/components/FormBuilder";
 import { Modal } from "@/components/Modal";
 import { useAsyncAction } from "@/hooks/useAsyncAction";
-import { formatMoney } from "@/utils/format/masks";
+import { maskCurrency, parseMoneyToNumber } from "@/utils/format/masks";
 import { useMutation } from "@apollo/client/react";
 import { Pencil } from "lucide-react";
 import { useMemo, useRef, useState } from "react";
@@ -55,11 +55,12 @@ export function EditOrderItemModal({
             id: "fields",
             fields: [
               {
-                name: "priceLabel",
-                type: "text",
-                label: "Preço por embalagem (tabela)",
-                disabled: true,
-                hint: "O preço vem da tabela de preço da fábrica e não é editável aqui.",
+                name: "unitPrice",
+                type: "currency",
+                label: "Preço por embalagem",
+                required: true,
+                placeholder: "0,00",
+                hint: "Preço da embalagem fechada. Ajuste se este pedido tiver um valor negociado.",
                 grid: { mobile: 12, tablet: 6, desktop: 6 },
               },
               {
@@ -91,8 +92,11 @@ export function EditOrderItemModal({
   const handleSubmit = async (data: Record<string, unknown>) => {
     const quantity = Number(data.quantity);
     const discount = Number(data.discount ?? 0) || 0;
-    const unitPrice = Number(item.unitPrice);
+    const unitPrice = parseMoneyToNumber(String(data.unitPrice ?? ""));
 
+    if (!unitPrice || unitPrice <= 0) {
+      throw new Error("Informe um preço válido para o item.");
+    }
     if (!quantity || quantity <= 0) {
       throw new Error("Informe uma quantidade válida.");
     }
@@ -107,6 +111,7 @@ export function EditOrderItemModal({
     onOptimisticUpdate(item.id, {
       quantity: String(quantity),
       discount: String(discount),
+      unitPrice: unitPrice.toFixed(2),
       subtotal: subtotal.toFixed(2),
     });
     setOpen(false);
@@ -116,7 +121,7 @@ export function EditOrderItemModal({
         const res = await updateOrderItem({
           variables: {
             id: item.id,
-            input: { quantity, discount },
+            input: { quantity, discount, unitPrice },
           },
         });
         if (!res.data?.updateOrderItem?.status) {
@@ -160,7 +165,7 @@ export function EditOrderItemModal({
             ref={formRef}
             steps={steps}
             initialData={{
-              priceLabel: formatMoney(item.unitPrice),
+              unitPrice: maskCurrency(Number(item.unitPrice).toFixed(2)),
               quantity: Number(item.quantity),
               discount: Number(item.discount),
             }}

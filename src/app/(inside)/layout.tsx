@@ -15,6 +15,7 @@ import {
   ChevronRight,
   ClipboardList,
   Coins,
+  Landmark,
   LayoutDashboard,
   Menu,
   Route,
@@ -100,6 +101,18 @@ const NAV = [
   },
 ];
 
+// Itens visíveis apenas para o super usuário (SU) — administração da plataforma,
+// acima de qualquer empresa. Anexados ao NAV só quando o role é SU.
+const SU_NAV = [
+  { divider: true },
+  { section: "Plataforma" },
+  {
+    href: "/companies",
+    label: "Empresas",
+    icon: Landmark,
+  },
+];
+
 const LABELS: Record<string, string> = {
   ...Object.fromEntries(
     NAV.filter((item) => "href" in item).map((item) => [
@@ -107,8 +120,9 @@ const LABELS: Record<string, string> = {
       (item as { href: string; label: string }).label,
     ])
   ),
-  // Rotas acessíveis fora da sidebar (ex: dropdown do topbar)
+  // Rotas acessíveis fora da sidebar (ex: dropdown do topbar) ou gated por role
   "/profile": "Meu Perfil",
+  "/companies": "Empresas",
 };
 
 export default function InsideLayout({
@@ -166,6 +180,8 @@ export default function InsideLayout({
       .toUpperCase();
   };
 
+  // SU enxerga os itens de plataforma; os demais roles, só o NAV padrão.
+  const navItems = userData?.role === "SU" ? [...NAV, ...SU_NAV] : NAV;
   const userInitials = userData ? getUserInitials(userData.userName) : "—";
   const userName = userData?.userName ?? "Usuário";
   const userRole = userData?.role
@@ -245,7 +261,7 @@ export default function InsideLayout({
           </Sidebar.Brand>
 
           <Sidebar.Content>
-            {NAV.map((item, i) => {
+            {navItems.map((item, i) => {
               if ("divider" in item) return <Sidebar.Divider key={i} />;
               if ("section" in item)
                 return (

@@ -4,35 +4,68 @@ import { Alert } from "@/components/Alert";
 import { Button } from "@/components/Button";
 import { EmptyState } from "@/components/EmptyState";
 import { Grid } from "@/components/Grid";
+import { Input } from "@/components/Input";
+import { SelectOption } from "@/components/Input/InputSelect";
 import { Title } from "@/components/Title";
-import { Info, Save, Settings } from "lucide-react";
+import { Info, Save, Settings, Users } from "lucide-react";
 
 import { RoutineSkeleton } from "./_components/RoutineSkeleton";
 import { ScoreWeightsCard } from "../_components/ScoreWeightsCard";
 import { SchedulingPreferencesCard } from "../_components/SchedulingPreferencesCard";
 import { WorkingParametersCard } from "../_components/WorkingParametersCard";
+import { RoutineConfigSeller } from "../interface";
 import { useRoutineSettings } from "./useRoutineSettings";
 
 function RoutineActionBar({
   sellerName,
+  sellers,
+  selectedSellerId,
+  onSelectSeller,
+  isNewConfig,
   canSave,
   isSaving,
   onSave,
 }: {
   sellerName: string | null;
+  sellers: RoutineConfigSeller[] | undefined;
+  selectedSellerId: string | null;
+  onSelectSeller: (id: string) => void;
+  isNewConfig: boolean;
   canSave: boolean;
   isSaving: boolean;
   onSave: () => void;
 }) {
+  const sellerOptions: SelectOption[] = (sellers ?? []).map((s) => ({
+    value: s.id,
+    label: s.name,
+  }));
+  const sellerValue =
+    sellerOptions.find((o) => o.value === selectedSellerId) ?? null;
+
   return (
     <div className="desktop:flex-row desktop:items-start desktop:justify-between desktop:gap-16 flex flex-col gap-12">
-      <div>
+      <div className="flex flex-col gap-8">
         <Title variant="heading-sm">
           Configuração de rotina{sellerName ? ` · ${sellerName}` : ""}
         </Title>
         <Title variant="body" color="muted">
           Parâmetros de geração automática de rotina de visitas.
         </Title>
+        {sellers && (
+          <div className="desktop:w-[240px] w-full">
+            <Input.Select
+              options={sellerOptions}
+              value={sellerValue}
+              variant="single"
+              disabledClear
+              placeholder="Selecionar vendedor"
+              onChange={(val: SelectOption | SelectOption[] | null) => {
+                const opt = Array.isArray(val) ? val[0] : val;
+                if (opt) onSelectSeller(opt.value);
+              }}
+            />
+          </div>
+        )}
       </div>
       <Button.Root
         appearance="solid"
@@ -44,7 +77,9 @@ function RoutineActionBar({
         onClick={onSave}
       >
         <Button.Icon icon={Save} />
-        <Button.Title>Salvar configurações</Button.Title>
+        <Button.Title>
+          {isNewConfig ? "Criar configuração" : "Salvar configurações"}
+        </Button.Title>
       </Button.Root>
     </div>
   );
@@ -52,9 +87,15 @@ function RoutineActionBar({
 
 export default function RoutineSettingsContent() {
   const {
-    config,
+    canSelectSeller,
+    sellers,
+    selectedSellerId,
+    setSelectedSellerId,
+    selectedSellerName,
     form,
+    isNewConfig,
     loading,
+    hasNoSellers,
     isDirty,
     isLoading,
     handlePatch,
@@ -62,11 +103,26 @@ export default function RoutineSettingsContent() {
     handleSave,
   } = useRoutineSettings();
 
-  if (loading && !config) {
+  if (loading && !form) {
     return <RoutineSkeleton />;
   }
 
-  if (!config || !form) {
+  if (hasNoSellers) {
+    return (
+      <EmptyState.Root>
+        <EmptyState.Icon>
+          <Users />
+        </EmptyState.Icon>
+        <EmptyState.Title>Nenhum vendedor cadastrado</EmptyState.Title>
+        <EmptyState.Description>
+          Cadastre um vendedor primeiro para configurar a geração automática de
+          rotina.
+        </EmptyState.Description>
+      </EmptyState.Root>
+    );
+  }
+
+  if (!form) {
     return (
       <EmptyState.Root>
         <EmptyState.Icon>
@@ -74,8 +130,8 @@ export default function RoutineSettingsContent() {
         </EmptyState.Icon>
         <EmptyState.Title>Nenhuma configuração de rotina</EmptyState.Title>
         <EmptyState.Description>
-          Ainda não há uma configuração de geração automática para a empresa.
-          Cadastre um vendedor primeiro para iniciar a configuração da rotina.
+          Ainda não há uma configuração de geração automática. Cadastre um
+          vendedor primeiro para iniciar a configuração da rotina.
         </EmptyState.Description>
       </EmptyState.Root>
     );
@@ -84,7 +140,11 @@ export default function RoutineSettingsContent() {
   return (
     <div className="flex flex-col gap-20">
       <RoutineActionBar
-        sellerName={config.seller?.user?.name ?? null}
+        sellerName={selectedSellerName}
+        sellers={canSelectSeller ? sellers : undefined}
+        selectedSellerId={selectedSellerId}
+        onSelectSeller={setSelectedSellerId}
+        isNewConfig={isNewConfig}
         canSave={isDirty}
         isSaving={isLoading}
         onSave={handleSave}
@@ -93,10 +153,15 @@ export default function RoutineSettingsContent() {
       <Alert.Root variant="info">
         <Alert.Icon icon={Info} />
         <Alert.Content>
-          <Alert.Title>Alterações aplicadas na próxima geração</Alert.Title>
+          <Alert.Title>
+            {isNewConfig
+              ? "Este vendedor ainda não tem configuração"
+              : "Alterações aplicadas na próxima geração"}
+          </Alert.Title>
           <Alert.Description>
-            Modificações aqui afetam apenas rotinas geradas a partir de agora.
-            Rotinas já confirmadas não são alteradas.
+            {isNewConfig
+              ? "Revise os parâmetros padrão abaixo e clique em Criar configuração para ativar a geração automática de rotina deste vendedor."
+              : "Modificações aqui afetam apenas rotinas geradas a partir de agora. Rotinas já confirmadas não são alteradas."}
           </Alert.Description>
         </Alert.Content>
       </Alert.Root>

@@ -1,7 +1,7 @@
 import { FormBuilderRef, FormStepSchema } from "@/components/FormBuilder";
 import { useAsyncAction } from "@/hooks/useAsyncAction";
 import { extractSelectValue } from "@/utils/form";
-import { formatMoney } from "@/utils/format/masks";
+import { maskCurrency, parseMoneyToNumber } from "@/utils/format/masks";
 import { useMutation, useQuery } from "@apollo/client/react";
 import { useMemo, useRef, useState } from "react";
 
@@ -11,12 +11,16 @@ import {
   ORDER_ITEM_COMPANY_FACTORIES_QUERY,
   ORDER_ITEM_PRICE_LIST_ITEMS_QUERY,
   ORDER_ITEM_PRICE_LISTS_QUERY,
+  ORDER_ITEM_PRODUCTS_QUERY,
+  ORDER_ITEM_TIERS_QUERY,
 } from "../gql";
 import {
   CompanyFactoriesData,
   CreateOrderItemResponse,
   PriceListItemsData,
   PriceListsData,
+  ProductsData,
+  TiersData,
 } from "./interface";
 import { priceKey } from "./utils";
 
@@ -28,6 +32,10 @@ export interface AddOrderItemModalProps {
   /** Re-sincroniza com o servidor após sucesso. */
   onRefetch: () => void;
 }
+
+// Converte um número em máscara de moeda BRL ("12,50") para preencher o campo.
+const toCurrencyMask = (value: number): string =>
+  maskCurrency(value.toFixed(2));
 
 export function useAddOrderItem({
   orderId,
@@ -58,7 +66,36 @@ export function useAddOrderItem({
     [cfData, factoryId]
   );
 
-  // 2) Tabelas de preço do vínculo — escolhemos a ativa.
+  const byCompanyFactory = useMemo(
+    () => ({
+      first: 1000,
+      filters: [
+        {
+          field: "company_factory_id",
+          operator: "eq",
+          value: companyFactoryId,
+        },
+      ],
+    }),
+    [companyFactoryId]
+  );
+
+  // 2) Todos os produtos da fábrica (catálogo completo, não só os com preço).
+  const { data: productsData } = useQuery<ProductsData>(
+    ORDER_ITEM_PRODUCTS_QUERY,
+    {
+      variables: { input: byCompanyFactory },
+      skip: !open || !companyFactoryId,
+    }
+  );
+
+  // 3) Todos os níveis comerciais da fábrica.
+  const { data: tiersData } = useQuery<TiersData>(ORDER_ITEM_TIERS_QUERY, {
+    variables: { input: byCompanyFactory },
+    skip: !open || !companyFactoryId,
+  });
+
+  // 4) Tabela de preço ativa — usada apenas para SUGERIR o preço.
   const { data: priceListsData } = useQuery<PriceListsData>(
     ORDER_ITEM_PRICE_LISTS_QUERY,
     {
@@ -85,13 +122,13 @@ export function useAddOrderItem({
     [priceListsData]
   );
 
-  // 3) Itens da tabela ativa — produto/nível/preço.
+  // 5) Itens da tabela ativa — só para o mapa de preços sugeridos.
   const { data: itemsData } = useQuery<PriceListItemsData>(
     ORDER_ITEM_PRICE_LIST_ITEMS_QUERY,
     {
       variables: {
         input: {
-          first: 500,
+          first: 1000,
           filters: [
             {
               field: "price_list_id",
@@ -105,67 +142,63 @@ export function useAddOrderItem({
     }
   );
 
-  const priceRows = useMemo(
-    () =>
-      (itemsData?.priceListItems.edges ?? [])
-        .map((e) => e.node)
-        .filter((n) => n.product && n.tier),
-    [itemsData]
+  const products = useMemo(
+    () => productsData?.products.edges.map((e) => e.node) ?? [],
+    [productsData]
   );
 
-  const productOptions = useMemo(() => {
-    const map = new Map<string, string>();
-    priceRows.forEach((n) => {
-      // Inclui o código (SKU) no rótulo para que o vendedor possa digitar o
-      // código e o select filtre por ele (busca por texto do label).
-      if (n.product) {
-        const label = n.product.sku
-          ? `${n.product.sku} — ${n.product.name}`
-          : n.product.name;
-        map.set(n.product.id, label);
-      }
-    });
-    return Array.from(map, ([value, label]) => ({ value, label }));
-  }, [priceRows]);
+  const productOptions = useMemo(
+    () =>
+      products.map((p) => ({
+        value: p.id,
+        // Inclui o código (SKU) no rótulo: o vendedor digita o código e o
+        // select filtra por texto do label.
+        label: p.sku ? `${p.sku} — ${p.name}` : p.name,
+      })),
+    [products]
+  );
 
-  const tierOptions = useMemo(() => {
-    const map = new Map<string, string>();
-    priceRows.forEach((n) => {
-      if (n.tier) map.set(n.tier.id, n.tier.name);
-    });
-    return Array.from(map, ([value, label]) => ({ value, label }));
-  }, [priceRows]);
+  const tierOptions = useMemo(
+    () =>
+      tiersData?.priceTiers.edges.map((e) => ({
+        value: e.node.id,
+        label: e.node.name,
+      })) ?? [],
+    [tiersData]
+  );
 
+  // Mapa de preço sugerido por produto+nível (da tabela ativa).
   const priceMap = useMemo(() => {
     const map = new Map<string, number>();
-    priceRows.forEach((n) => {
-      if (n.product && n.tier)
-        map.set(priceKey(n.product.id, n.tier.id), parseFloat(n.unitPrice));
+    (itemsData?.priceListItems.edges ?? []).forEach(({ node }) => {
+      if (node.product && node.tier) {
+        map.set(
+          priceKey(node.product.id, node.tier.id),
+          parseFloat(node.unitPrice)
+        );
+      }
     });
     return map;
-  }, [priceRows]);
+  }, [itemsData]);
 
   const packLabelByProduct = useMemo(() => {
     const map = new Map<string, string>();
-    priceRows.forEach((n) => {
-      if (n.product?.unitLabel)
-        map.set(n.product.id, n.product.unitLabel.label);
+    products.forEach((p) => {
+      if (p.unitLabel) map.set(p.id, p.unitLabel.label);
     });
     return map;
-  }, [priceRows]);
+  }, [products]);
 
   const saleMultipleByProduct = useMemo(() => {
     const map = new Map<string, number>();
-    priceRows.forEach((n) => {
-      const multiple = Number(n.product?.saleMultiple);
-      if (n.product && multiple > 0) map.set(n.product.id, multiple);
+    products.forEach((p) => {
+      const multiple = Number(p.saleMultiple);
+      if (multiple > 0) map.set(p.id, multiple);
     });
     return map;
-  }, [priceRows]);
+  }, [products]);
 
   const saleMultiple = saleMultipleByProduct.get(selectedProductRef.current);
-
-  const noPriceList = open && !!companyFactoryId && !activePriceListId;
 
   const steps: FormStepSchema[] = useMemo(
     () => [
@@ -182,7 +215,7 @@ export function useAddOrderItem({
                 required: true,
                 placeholder:
                   productOptions.length === 0
-                    ? "Nenhum produto com preço na tabela ativa"
+                    ? "Nenhum produto cadastrado nesta fábrica"
                     : "Digite o nome ou o código do produto",
                 options: productOptions,
                 onChange: (_value, setValue) => {
@@ -191,37 +224,33 @@ export function useAddOrderItem({
                     packLabelByProduct.get(selectedProductRef.current) ?? null
                   );
                   setValue("tierId", "");
-                  setValue("priceLabel", "");
                 },
               },
               {
                 name: "tierId",
                 type: "select-single",
-                label: "Nível comercial",
-                required: true,
-                placeholder: "Selecione o nível",
+                label: "Nível comercial (opcional)",
+                placeholder: "Selecione o nível para sugerir o preço",
                 options: tierOptions,
                 onChange: (_value, setValue) => {
                   const tierId = extractSelectValue(_value);
                   const price = priceMap.get(
                     priceKey(selectedProductRef.current, tierId)
                   );
-                  setValue(
-                    "priceLabel",
-                    price != null
-                      ? formatMoney(String(price))
-                      : "Sem preço para esta combinação"
-                  );
+                  // Sugere o preço da tabela; o vendedor pode ajustar.
+                  if (price != null)
+                    setValue("unitPrice", toCurrencyMask(price));
                 },
               },
               {
-                name: "priceLabel",
-                type: "text",
+                name: "unitPrice",
+                type: "currency",
                 label: packLabel
-                  ? `Preço por ${packLabel} (tabela ativa)`
-                  : "Preço por embalagem (tabela ativa)",
-                disabled: true,
-                placeholder: "Selecione produto e nível",
+                  ? `Preço por ${packLabel}`
+                  : "Preço por embalagem",
+                required: true,
+                placeholder: "0,00",
+                hint: "Sugerido pela tabela ativa quando há nível. Você pode ajustar o valor.",
               },
               {
                 name: "quantity",
@@ -282,15 +311,13 @@ export function useAddOrderItem({
     const tierId = extractSelectValue(data.tierId);
     const quantity = Number(data.quantity);
     const discount = Number(data.discount ?? 0) || 0;
-    const unitPrice = priceMap.get(priceKey(productId, tierId));
+    const unitPrice = parseMoneyToNumber(String(data.unitPrice ?? ""));
 
-    if (!productId || !tierId) {
-      throw new Error("Selecione o produto e o nível.");
+    if (!productId) {
+      throw new Error("Selecione o produto.");
     }
-    if (unitPrice == null) {
-      throw new Error(
-        "Não há preço cadastrado para este produto/nível na tabela ativa."
-      );
+    if (!unitPrice || unitPrice <= 0) {
+      throw new Error("Informe um preço válido para o item.");
     }
     if (!quantity || quantity <= 0) {
       throw new Error("Informe uma quantidade válida.");
@@ -311,7 +338,7 @@ export function useAddOrderItem({
             input: {
               orderId,
               productId,
-              tierId,
+              tierId: tierId || null,
               quantity,
               unitPrice,
               discount,
@@ -347,6 +374,5 @@ export function useAddOrderItem({
     steps,
     handleSubmit,
     isLoading,
-    noPriceList,
   };
 }

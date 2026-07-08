@@ -117,6 +117,41 @@ export const ORDER_ITEM_PRICE_LISTS_QUERY = gql`
   }
 `;
 
+// Todos os produtos do catálogo da fábrica — o vendedor pode adicionar qualquer
+// produto ao pedido, tenha ele preço na tabela ativa ou não.
+export const ORDER_ITEM_PRODUCTS_QUERY = gql`
+  query OrderItemProducts($input: BaseListInput!) {
+    products(input: $input) {
+      edges {
+        node {
+          id
+          name
+          sku
+          saleMultiple
+          unitLabel {
+            id
+            label
+          }
+        }
+      }
+    }
+  }
+`;
+
+// Todos os níveis comerciais da fábrica — o nível é opcional ao digitar o item.
+export const ORDER_ITEM_TIERS_QUERY = gql`
+  query OrderItemTiers($input: BaseListInput!) {
+    priceTiers(input: $input) {
+      edges {
+        node {
+          id
+          name
+        }
+      }
+    }
+  }
+`;
+
 export const ORDER_ITEM_PRICE_LIST_ITEMS_QUERY = gql`
   query OrderItemPriceListItems($input: BaseListInput!) {
     priceListItems(input: $input) {

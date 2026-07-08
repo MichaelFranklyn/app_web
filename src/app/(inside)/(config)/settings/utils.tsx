@@ -1,9 +1,39 @@
 import {
+  CreateScheduleConfigInput,
   PriorityWeights,
   ScheduleConfig,
   SettingsFormState,
   UpdateScheduleConfigInput,
 } from "./interface";
+
+// Valores padrão de uma nova configuração de rotina (espelham o seed do backend).
+export const DEFAULT_CONFIG_FORM: SettingsFormState = {
+  maxVisitsPerDay: 8,
+  workDays: [1, 2, 3, 4, 5],
+  workStartTime: "08:00:00",
+  workEndTime: "18:00:00",
+  avgVisitDurationMin: 30,
+  isRescheduleSameWeek: true,
+  maxRescheduleAttempts: 3,
+  penaltyScorePerMiss: "1.0",
+  priorityWeights: { recency: 1.0, urgency: 1.0, frequency: 1.0 },
+};
+
+export const buildCreateInput = (
+  form: SettingsFormState,
+  sellerId: string
+): CreateScheduleConfigInput => ({
+  sellerId,
+  maxVisitsPerDay: form.maxVisitsPerDay,
+  workDays: form.workDays,
+  workStartTime: form.workStartTime,
+  workEndTime: form.workEndTime,
+  avgVisitDurationMin: form.avgVisitDurationMin,
+  isRescheduleSameWeek: form.isRescheduleSameWeek,
+  maxRescheduleAttempts: form.maxRescheduleAttempts,
+  penaltyScorePerMiss: form.penaltyScorePerMiss,
+  priorityWeights: form.priorityWeights,
+});
 
 export const WEEKDAYS = [
   { value: 1, label: "Seg" },
