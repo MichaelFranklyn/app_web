@@ -2564,7 +2564,7 @@ enum RescheduleReason {
 }
 
 input CreateVisitScheduleConfigInput {
-  sellerId: UUID!
+  sellerId: UUID = null
   maxVisitsPerDay: Int! = 10
   workDays: [Int!]! = [1, 2, 3, 4, 5]
   workStartTime: Time!
