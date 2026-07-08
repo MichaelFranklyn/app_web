@@ -90,9 +90,16 @@ export function ImportPriceListModal(props: ImportPriceListModalProps) {
   return (
     <Modal.Root open={open} onOpenChange={handleClose}>
       <Modal.Trigger asChild>
-        <Button.Root appearance="outline" color="neutral" size="sm">
+        <Button.Root
+          appearance="outline"
+          color="neutral"
+          size="sm"
+          title="Importar tabela"
+        >
           <Button.Icon icon={Upload} />
-          <Button.Title>Importar tabela</Button.Title>
+          <Button.Title className="hidden @min-[640px]/cardhead:inline">
+            Importar tabela
+          </Button.Title>
         </Button.Root>
       </Modal.Trigger>
 

@@ -19,7 +19,7 @@ interface UnitNode {
   isActive: boolean;
 }
 
-const listInput = { first: 200 };
+const listInput = { first: 200, order: { by: "label", dir: "asc" } };
 
 export function UnitsSection() {
   const { data, loading, refetch } = useQuery<{
@@ -31,9 +31,7 @@ export function UnitsSection() {
     [data]
   );
   const optimistic = useOptimisticList<UnitNode>({ initialData: initial });
-  const units = [...optimistic.items].sort((a, b) =>
-    a.label.localeCompare(b.label, "pt-BR")
-  );
+  const units = optimistic.items;
   const onChanged = () => refetch();
 
   return (

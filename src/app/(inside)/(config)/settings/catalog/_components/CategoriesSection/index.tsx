@@ -31,9 +31,7 @@ export function CategoriesSection() {
   const optimistic = useOptimisticList<ProductCategoryRow>({
     initialData: initial,
   });
-  const categories = [...optimistic.items].sort((a, b) =>
-    a.name.localeCompare(b.name, "pt-BR")
-  );
+  const categories = optimistic.items;
   const onChanged = () => refetch();
 
   return (

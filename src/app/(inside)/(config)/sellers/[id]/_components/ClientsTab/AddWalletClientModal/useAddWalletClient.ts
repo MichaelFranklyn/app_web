@@ -1,0 +1,233 @@
+import { FormBuilderRef, FormStepSchema } from "@/components/FormBuilder";
+import { useAsyncAction } from "@/hooks/useAsyncAction";
+import { clientName, factoryName } from "@/utils/company";
+import { extractSelectValue } from "@/utils/form";
+import { useMutation, useQuery } from "@apollo/client/react";
+import { useMemo, useRef, useState } from "react";
+
+import {
+  COMPANY_CLIENTS_QUERY,
+  COMPANY_FACTORIES_QUERY,
+  CompanyClientsData,
+  CompanyFactoriesData,
+  CREATE_SELLER_CLIENT_FACTORY_MUTATION,
+  CreateSCFResponse,
+  ExistingLinksData,
+  PRICE_TIERS_QUERY,
+  PriceTiersData,
+  SELLER_CLIENT_FACTORIES_QUERY,
+  SELLER_FACTORY_ACCESSES_QUERY,
+  SellerAccessesData,
+} from "./gql";
+
+export interface AddWalletClientProps {
+  sellerId: string;
+  /** Re-sincroniza a carteira após o vínculo. */
+  onAdded: () => void;
+}
+
+export function useAddWalletClient({
+  sellerId,
+  onAdded,
+}: AddWalletClientProps) {
+  const [open, setOpen] = useState(false);
+  const formRef = useRef<FormBuilderRef>(null);
+  const [selectedFactoryId, setSelectedFactoryId] = useState("");
+
+  const bySeller = {
+    first: 200,
+    filters: [{ field: "seller_id", operator: "eq", value: sellerId }],
+  };
+
+  const { data: accessesData } = useQuery<SellerAccessesData>(
+    SELLER_FACTORY_ACCESSES_QUERY,
+    { variables: { input: bySeller }, skip: !open }
+  );
+
+  const { data: clientsData } = useQuery<CompanyClientsData>(
+    COMPANY_CLIENTS_QUERY,
+    { variables: { input: { first: 500 } }, skip: !open }
+  );
+
+  const { data: companyFactoriesData } = useQuery<CompanyFactoriesData>(
+    COMPANY_FACTORIES_QUERY,
+    { variables: { input: { first: 200 } }, skip: !open }
+  );
+
+  const { data: linksData } = useQuery<ExistingLinksData>(
+    SELLER_CLIENT_FACTORIES_QUERY,
+    { variables: { input: bySeller }, skip: !open }
+  );
+
+  const companyFactoryId = useMemo(
+    () =>
+      companyFactoriesData?.companyFactories.edges.find(
+        ({ node }) => node.factoryId === selectedFactoryId
+      )?.node.id ?? null,
+    [companyFactoriesData, selectedFactoryId]
+  );
+
+  const { data: tiersData } = useQuery<PriceTiersData>(PRICE_TIERS_QUERY, {
+    variables: {
+      input: {
+        first: 200,
+        filters: [
+          {
+            field: "company_factory_id",
+            operator: "eq",
+            value: companyFactoryId,
+          },
+        ],
+      },
+    },
+    skip: !open || !companyFactoryId,
+  });
+
+  const factoryOptions = useMemo(
+    () =>
+      (accessesData?.sellerFactoryAccessList.edges ?? [])
+        .filter(({ node }) => node.isActive && node.factory)
+        .map(({ node }) => ({
+          value: node.factoryId,
+          label: factoryName(node.factory),
+        })),
+    [accessesData]
+  );
+
+  // Clientes já na carteira do vendedor para a fábrica escolhida — excluídos.
+  const linkedClientIds = useMemo(
+    () =>
+      new Set(
+        (linksData?.sellerClientFactoryList.edges ?? [])
+          .filter(({ node }) => node.factoryId === selectedFactoryId)
+          .map(({ node }) => node.clientId)
+      ),
+    [linksData, selectedFactoryId]
+  );
+
+  const clientOptions = useMemo(
+    () =>
+      (clientsData?.companyClients.edges ?? [])
+        .filter(
+          ({ node }) =>
+            node.isActive && node.client && !linkedClientIds.has(node.client.id)
+        )
+        .map(({ node }) => ({
+          value: node.client!.id,
+          label: clientName(node.client),
+        })),
+    [clientsData, linkedClientIds]
+  );
+
+  const tierOptions = useMemo(
+    () =>
+      tiersData?.priceTiers.edges.map(({ node }) => ({
+        value: node.id,
+        label: node.name,
+      })) ?? [],
+    [tiersData]
+  );
+
+  const steps: FormStepSchema[] = useMemo(
+    () => [
+      {
+        id: "link",
+        sections: [
+          {
+            id: "fields",
+            fields: [
+              {
+                name: "factoryId",
+                type: "select-single",
+                label: "Fábrica",
+                required: true,
+                placeholder:
+                  factoryOptions.length === 0
+                    ? "Dê acesso a uma fábrica primeiro"
+                    : "Selecione a fábrica",
+                options: factoryOptions,
+                onChange: (_value, setValue) => {
+                  setSelectedFactoryId(extractSelectValue(_value));
+                  setValue("clientId", null);
+                  setValue("priceTierId", null);
+                },
+              },
+              {
+                name: "clientId",
+                type: "select-single",
+                label: "Cliente",
+                required: true,
+                placeholder: !selectedFactoryId
+                  ? "Selecione a fábrica primeiro"
+                  : clientOptions.length === 0
+                    ? "Nenhum cliente disponível para esta fábrica"
+                    : "Selecione o cliente",
+                options: clientOptions,
+              },
+              {
+                name: "priceTierId",
+                type: "select-single",
+                label: "Nível comercial",
+                required: true,
+                placeholder: !selectedFactoryId
+                  ? "Selecione a fábrica primeiro"
+                  : "Selecione o nível",
+                options: tierOptions,
+              },
+            ],
+          },
+        ],
+      },
+    ],
+    [factoryOptions, clientOptions, tierOptions, selectedFactoryId]
+  );
+
+  const [createLink] = useMutation<CreateSCFResponse>(
+    CREATE_SELLER_CLIENT_FACTORY_MUTATION
+  );
+  const { execute, isLoading } = useAsyncAction();
+
+  const handleClose = (v: boolean) => {
+    setOpen(v);
+    if (!v) {
+      formRef.current?.resetForm();
+      setSelectedFactoryId("");
+    }
+  };
+
+  const handleSubmit = async (data: Record<string, unknown>) => {
+    const factoryId = extractSelectValue(data.factoryId);
+    const clientId = extractSelectValue(data.clientId);
+    const priceTierId = extractSelectValue(data.priceTierId);
+
+    if (!factoryId || !clientId || !priceTierId) {
+      throw new Error("Selecione a fábrica, o cliente e o nível.");
+    }
+
+    await execute(
+      async () => {
+        const res = await createLink({
+          variables: {
+            input: { sellerId, factoryId, clientId, priceTierId },
+          },
+        });
+        if (!res.data?.createSellerClientFactory?.status) {
+          throw new Error(
+            res.data?.createSellerClientFactory?.message ??
+              "Erro ao adicionar cliente"
+          );
+        }
+        return res.data.createSellerClientFactory;
+      },
+      {
+        successMessage: "Cliente adicionado à carteira",
+        onSuccess: () => {
+          onAdded();
+          handleClose(false);
+        },
+      }
+    );
+  };
+
+  return { open, handleClose, formRef, steps, handleSubmit, isLoading };
+}

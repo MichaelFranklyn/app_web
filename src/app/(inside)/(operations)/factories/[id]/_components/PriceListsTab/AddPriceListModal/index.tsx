@@ -133,9 +133,16 @@ export function AddPriceListModal({
   return (
     <Modal.Root open={open} onOpenChange={handleClose}>
       <Modal.Trigger asChild>
-        <Button.Root appearance="solid" color="amber" size="sm">
+        <Button.Root
+          appearance="solid"
+          color="amber"
+          size="sm"
+          title="Nova tabela"
+        >
           <Button.Icon icon={Plus} />
-          <Button.Title>Nova tabela</Button.Title>
+          <Button.Title className="hidden @min-[640px]/cardhead:inline">
+            Nova tabela
+          </Button.Title>
         </Button.Root>
       </Modal.Trigger>
 

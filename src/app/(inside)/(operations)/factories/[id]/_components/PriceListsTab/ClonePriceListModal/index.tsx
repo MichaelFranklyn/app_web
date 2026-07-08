@@ -162,9 +162,16 @@ export function ClonePriceListModal({
   return (
     <Modal.Root open={open} onOpenChange={handleClose}>
       <Modal.Trigger asChild>
-        <Button.Root appearance="outline" color="neutral" size="sm">
+        <Button.Root
+          appearance="outline"
+          color="neutral"
+          size="sm"
+          title="Partir de outra"
+        >
           <Button.Icon icon={Copy} />
-          <Button.Title>Partir de outra</Button.Title>
+          <Button.Title className="hidden @min-[640px]/cardhead:inline">
+            Partir de outra
+          </Button.Title>
         </Button.Root>
       </Modal.Trigger>
 

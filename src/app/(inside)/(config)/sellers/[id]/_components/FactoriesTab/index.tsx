@@ -5,6 +5,7 @@ import { Table } from "@/components/Table";
 import { Tabs } from "@/components/Tabs";
 import { formatDateDMY } from "@/utils/format/masks";
 import { useQuery } from "@apollo/client/react";
+import { AddFactoryAccessModal } from "./AddFactoryAccessModal";
 import { SELLER_FACTORY_ACCESSES_QUERY } from "./gql";
 
 interface FactoryAccessNode {
@@ -34,14 +35,17 @@ interface Props {
 }
 
 export function FactoriesTab({ sellerId }: Props) {
-  const { data, loading } = useQuery<QueryResponse>(SELLER_FACTORY_ACCESSES_QUERY, {
-    variables: {
-      input: {
-        first: 50,
-        filters: [{ field: "seller_id", operator: "eq", value: sellerId }],
+  const { data, loading, refetch } = useQuery<QueryResponse>(
+    SELLER_FACTORY_ACCESSES_QUERY,
+    {
+      variables: {
+        input: {
+          first: 50,
+          filters: [{ field: "seller_id", operator: "eq", value: sellerId }],
+        },
       },
-    },
-  });
+    }
+  );
 
   const items = data?.seller_accesses?.edges?.map((e) => e.node) ?? [];
   const total = data?.seller_accesses?.totalCount ?? 0;
@@ -56,6 +60,10 @@ export function FactoriesTab({ sellerId }: Props) {
               <Badge.Root color="neutral" appearance="tinted">
                 <Badge.Text>{total} fábricas</Badge.Text>
               </Badge.Root>
+              <AddFactoryAccessModal
+                sellerId={sellerId}
+                onAdded={() => refetch()}
+              />
             </Table.CardHead.Actions>
           </Table.CardHead>
 
@@ -74,7 +82,7 @@ export function FactoriesTab({ sellerId }: Props) {
               ) : items.length === 0 ? (
                 <Table.Row>
                   <Table.Cell colSpan={4}>
-                    <div className="py-16 text-center text-(--fg-muted) text-sm">
+                    <div className="py-16 text-center text-sm text-(--fg-muted)">
                       Nenhuma fábrica vinculada
                     </div>
                   </Table.Cell>
@@ -84,7 +92,9 @@ export function FactoriesTab({ sellerId }: Props) {
                   <Table.Row key={node.id}>
                     <Table.Cell>
                       <Table.CellText variant="strong">
-                        {node.factory?.nomeFantasia ?? node.factory?.razaoSocial ?? "—"}
+                        {node.factory?.nomeFantasia ??
+                          node.factory?.razaoSocial ??
+                          "—"}
                       </Table.CellText>
                     </Table.Cell>
                     <Table.Cell>
@@ -92,7 +102,9 @@ export function FactoriesTab({ sellerId }: Props) {
                         color={node.isActive ? "green" : "red"}
                         appearance="tinted"
                       >
-                        <Badge.Text>{node.isActive ? "Ativo" : "Inativo"}</Badge.Text>
+                        <Badge.Text>
+                          {node.isActive ? "Ativo" : "Inativo"}
+                        </Badge.Text>
                       </Badge.Root>
                     </Table.Cell>
                     <Table.Cell>

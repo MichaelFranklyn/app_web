@@ -1,6 +1,7 @@
 import { OrderStatus } from "../../../../interface";
 
 export interface UpdateOrderInput {
+  status?: string | null;
   notes?: string | null;
   freightType?: string | null;
 }

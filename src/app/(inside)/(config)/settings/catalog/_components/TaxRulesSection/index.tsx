@@ -18,7 +18,7 @@ interface TaxRuleNode {
   name: string;
 }
 
-const listInput = { first: 200 };
+const listInput = { first: 200, order: { by: "name", dir: "asc" } };
 
 export function TaxRulesSection() {
   const { data, loading, refetch } = useQuery<{
@@ -30,9 +30,7 @@ export function TaxRulesSection() {
     [data]
   );
   const optimistic = useOptimisticList<TaxRuleNode>({ initialData: initial });
-  const rules = [...optimistic.items].sort((a, b) =>
-    a.name.localeCompare(b.name, "pt-BR")
-  );
+  const rules = optimistic.items;
   const onChanged = () => refetch();
 
   return (

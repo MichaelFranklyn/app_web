@@ -9,12 +9,17 @@ import { Pencil } from "lucide-react";
 import { useRef, useState } from "react";
 import { UPDATE_ORDER_MUTATION } from "./gql";
 import { UpdateOrderModalProps, UpdateOrderResponse } from "./interface";
-import { UPDATE_ORDER_FORM_STEPS, normalizeUpdateInput } from "./utils";
+import {
+  ORDER_STATUS_LABELS,
+  buildUpdateOrderSteps,
+  normalizeUpdateInput,
+} from "./utils";
 
 export function UpdateOrderModal({
   orderId,
   currentNotes,
   currentFreightType,
+  currentStatus,
   onSuccess,
 }: UpdateOrderModalProps) {
   const [open, setOpen] = useState(false);
@@ -27,7 +32,8 @@ export function UpdateOrderModal({
     const normalized = normalizeUpdateInput(
       data,
       currentNotes,
-      currentFreightType
+      currentFreightType,
+      currentStatus
     );
 
     if (Object.keys(normalized).length === 0) {
@@ -72,14 +78,18 @@ export function UpdateOrderModal({
       <Modal.Content size="md">
         <Modal.Header
           title="Editar pedido"
-          description="Atualize o frete e as observações do pedido."
+          description="Atualize o status, o frete e as observações do pedido."
         />
 
         <Modal.Body>
           <FormBuilder
             ref={formRef}
-            steps={UPDATE_ORDER_FORM_STEPS}
+            steps={buildUpdateOrderSteps(currentStatus)}
             initialData={{
+              status: {
+                value: currentStatus,
+                label: ORDER_STATUS_LABELS[currentStatus],
+              },
               notes: currentNotes ?? "",
               freightType:
                 currentFreightType === "FOB"

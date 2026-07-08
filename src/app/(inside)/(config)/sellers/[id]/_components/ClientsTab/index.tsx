@@ -5,6 +5,7 @@ import { Table } from "@/components/Table";
 import { Tabs } from "@/components/Tabs";
 import { formatDateDMY } from "@/utils/format/masks";
 import { useQuery } from "@apollo/client/react";
+import { AddWalletClientModal } from "./AddWalletClientModal";
 import { SELLER_CLIENTS_QUERY } from "./gql";
 
 interface ClientNode {
@@ -37,14 +38,17 @@ interface Props {
 }
 
 export function ClientsTab({ sellerId }: Props) {
-  const { data, loading } = useQuery<QueryResponse>(SELLER_CLIENTS_QUERY, {
-    variables: {
-      input: {
-        first: 50,
-        filters: [{ field: "seller_id", operator: "eq", value: sellerId }],
+  const { data, loading, refetch } = useQuery<QueryResponse>(
+    SELLER_CLIENTS_QUERY,
+    {
+      variables: {
+        input: {
+          first: 50,
+          filters: [{ field: "seller_id", operator: "eq", value: sellerId }],
+        },
       },
-    },
-  });
+    }
+  );
 
   const items = data?.seller_clients?.edges?.map((e) => e.node) ?? [];
   const total = data?.seller_clients?.totalCount ?? 0;
@@ -59,6 +63,10 @@ export function ClientsTab({ sellerId }: Props) {
               <Badge.Root color="neutral" appearance="tinted">
                 <Badge.Text>{total} clientes</Badge.Text>
               </Badge.Root>
+              <AddWalletClientModal
+                sellerId={sellerId}
+                onAdded={() => refetch()}
+              />
             </Table.CardHead.Actions>
           </Table.CardHead>
 
@@ -78,7 +86,7 @@ export function ClientsTab({ sellerId }: Props) {
               ) : items.length === 0 ? (
                 <Table.Row>
                   <Table.Cell colSpan={5}>
-                    <div className="py-16 text-center text-(--fg-muted) text-sm">
+                    <div className="py-16 text-center text-sm text-(--fg-muted)">
                       Nenhum cliente atribuído
                     </div>
                   </Table.Cell>
@@ -88,12 +96,16 @@ export function ClientsTab({ sellerId }: Props) {
                   <Table.Row key={node.id}>
                     <Table.Cell>
                       <Table.CellText variant="strong">
-                        {node.client?.nomeFantasia ?? node.client?.razaoSocial ?? "—"}
+                        {node.client?.nomeFantasia ??
+                          node.client?.razaoSocial ??
+                          "—"}
                       </Table.CellText>
                     </Table.Cell>
                     <Table.Cell>
                       <Table.CellText variant="dim">
-                        {node.factory?.nomeFantasia ?? node.factory?.razaoSocial ?? "—"}
+                        {node.factory?.nomeFantasia ??
+                          node.factory?.razaoSocial ??
+                          "—"}
                       </Table.CellText>
                     </Table.Cell>
                     <Table.Cell>

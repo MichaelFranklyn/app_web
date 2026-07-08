@@ -36,7 +36,7 @@ export const CATEGORIES_LIST_FIRST = 50;
  * otimista do cache, garantindo que ambos apontem para a MESMA entrada de cache.
  */
 export const buildCategoriesVariables = () => ({
-  input: { first: CATEGORIES_LIST_FIRST },
+  input: { first: CATEGORIES_LIST_FIRST, order: { by: "name", dir: "asc" } },
 });
 
 /**
