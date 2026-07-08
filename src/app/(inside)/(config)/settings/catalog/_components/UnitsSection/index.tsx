@@ -31,7 +31,9 @@ export function UnitsSection() {
     [data]
   );
   const optimistic = useOptimisticList<UnitNode>({ initialData: initial });
-  const units = optimistic.items;
+  const units = [...optimistic.items].sort((a, b) =>
+    a.label.localeCompare(b.label, "pt-BR")
+  );
   const onChanged = () => refetch();
 
   return (

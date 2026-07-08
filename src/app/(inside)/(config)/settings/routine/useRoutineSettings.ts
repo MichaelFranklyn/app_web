@@ -1,5 +1,4 @@
 import { useAsyncAction } from "@/hooks/useAsyncAction";
-import { useInvalidateQueriesClient } from "@/hooks/useInvalidateQueries";
 import { getCookie } from "@/utils/cookies/clientCookie";
 import { useMutation, useQuery } from "@apollo/client/react";
 import { useEffect, useMemo, useState } from "react";
@@ -51,12 +50,15 @@ export function useRoutineSettings() {
   );
 
   // Todas as configs que o usuário pode ver (gestor: da empresa; vendedor: a sua).
-  const { data, loading: configsLoading } =
-    useQuery<VisitScheduleConfigsResponse>(VISIT_SCHEDULE_CONFIGS_QUERY, {
-      variables: {
-        input: { first: 200, order: { by: "created_at", dir: "asc" } },
-      },
-    });
+  const {
+    data,
+    loading: configsLoading,
+    refetch: refetchConfigs,
+  } = useQuery<VisitScheduleConfigsResponse>(VISIT_SCHEDULE_CONFIGS_QUERY, {
+    variables: {
+      input: { first: 200, order: { by: "created_at", dir: "asc" } },
+    },
+  });
 
   const configs: ScheduleConfig[] = useMemo(
     () => data?.schedule_configs.edges.map((e) => e.node) ?? [],
@@ -95,7 +97,6 @@ export function useRoutineSettings() {
     );
   }, [config, selectedSellerId]);
 
-  const invalidateClient = useInvalidateQueriesClient();
   const [updateConfig] = useMutation<UpdateScheduleConfigResponse>(
     UPDATE_SCHEDULE_CONFIG_MUTATION
   );
@@ -140,7 +141,9 @@ export function useRoutineSettings() {
         {
           successMessage: "Configuração criada com sucesso",
           onSuccess: async () => {
-            await invalidateClient(["schedule_configs"]);
+            // Recarrega a lista: a nova config aparece, isNewConfig vira false
+            // e o botão passa de "Criar configuração" para "Salvar configurações".
+            await refetchConfigs();
           },
         }
       );
@@ -166,7 +169,9 @@ export function useRoutineSettings() {
       {
         successMessage: "Configuração salva com sucesso",
         onSuccess: async () => {
-          await invalidateClient(["schedule_configs"]);
+          // Recarrega a lista para refletir a nova/atualizada config: o alias
+          // `schedule_configs` não bate com o campo do cache, por isso refetch.
+          await refetchConfigs();
         },
       }
     );

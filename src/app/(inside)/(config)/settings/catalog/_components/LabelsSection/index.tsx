@@ -31,7 +31,9 @@ export function LabelsSection() {
     [data]
   );
   const optimistic = useOptimisticList<LabelNode>({ initialData: initial });
-  const labels = optimistic.items;
+  const labels = [...optimistic.items].sort((a, b) =>
+    a.label.localeCompare(b.label, "pt-BR")
+  );
   const onChanged = () => refetch();
 
   return (

@@ -19,12 +19,8 @@ export function SellersHeader({ stats }: SellersHeaderProps) {
       <PanelHeader.Root>
         <PanelHeader.Top>
           <PanelHeader.Left>
-            <PanelHeader.Eyebrow>
-              Configurações
-            </PanelHeader.Eyebrow>
-            <PanelHeader.Title>
-              Vendedores
-            </PanelHeader.Title>
+            <PanelHeader.Eyebrow>Configurações</PanelHeader.Eyebrow>
+            <PanelHeader.Title>Vendedores</PanelHeader.Title>
             <PanelHeader.Description>
               Perfis de vendedores em campo e controle de acesso por fábrica.
             </PanelHeader.Description>
@@ -33,7 +29,7 @@ export function SellersHeader({ stats }: SellersHeaderProps) {
       </PanelHeader.Root>
 
       {/* KPIs */}
-      <Grid.Root cols={{ base: 1, "desktop-xl": 3 }} gap={20}>
+      <Grid.Root cols={{ base: 1, tablet: 3 }} gap={20}>
         {kpis.map(
           ({
             label,

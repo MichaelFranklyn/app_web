@@ -30,7 +30,9 @@ export function TaxRulesSection() {
     [data]
   );
   const optimistic = useOptimisticList<TaxRuleNode>({ initialData: initial });
-  const rules = optimistic.items;
+  const rules = [...optimistic.items].sort((a, b) =>
+    a.name.localeCompare(b.name, "pt-BR")
+  );
   const onChanged = () => refetch();
 
   return (
