@@ -101,7 +101,8 @@ test("rotina: edita uma visita (notas)", async ({ page }) => {
 
   // Kebab DENTRO do card da visita. O `following::button[1]` era ambíguo: o
   // card virou role="button" e há outros botões depois dele no DOM.
-  const card = page.getByRole("button", { name: /Meu Cliente/ });
+  // O card exibe a RAZÃO SOCIAL (`clientDisplayName`), não o nome fantasia.
+  const card = page.getByRole("button", { name: /Cliente LTDA/ });
   await card.locator('[aria-haspopup="menu"]').click();
   await page.getByRole("menuitem", { name: "Editar visita" }).click();
 

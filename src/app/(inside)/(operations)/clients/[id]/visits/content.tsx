@@ -19,6 +19,7 @@ import {
   VISIT_STATUS_COLOR,
   VISIT_STATUS_LABEL,
 } from "../utils";
+import { clientDisplayName } from "@/utils/client";
 import { factoryName } from "@/utils/company";
 import { formatDate } from "@/utils/format/date";
 import { pageToAfter } from "@/utils/pagination";
@@ -61,10 +62,8 @@ const treatedLabel = (visit: ClientVisit): string => {
   return names.length === 0 ? "—" : abbreviate(names);
 };
 
-const clientLabel = (visit: ClientVisit): string => {
-  const client = visit.clientFactoryLink?.client;
-  return client?.nomeFantasia ?? client?.razaoSocial ?? "Cliente";
-};
+const clientLabel = (visit: ClientVisit): string =>
+  clientDisplayName(visit.clientFactoryLink?.client, "Cliente");
 
 export default function VisitsContent() {
   const { companyClientId } = useClientRoute();

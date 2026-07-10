@@ -126,7 +126,8 @@ async function openStockModal(page: import("@playwright/test").Page) {
   await page.goto("/routines");
 
   // Kebab DENTRO do card da visita (mesmo padrão de `routines.spec.ts`).
-  const card = page.getByRole("button", { name: /Meu Cliente/ });
+  // O card exibe a RAZÃO SOCIAL (`clientDisplayName`), não o nome fantasia.
+  const card = page.getByRole("button", { name: /Cliente LTDA/ });
   await card.locator('[aria-haspopup="menu"]').click();
   await page.getByRole("menuitem", { name: "Estoque do cliente" }).click();
 }
@@ -145,7 +146,7 @@ test("visita/estoque: todas as fábricas do vendedor aparecem, e a do foco já a
   await openStockModal(page);
 
   // Escopado ao modal: o nome da fábrica também aparece no card da visita atrás.
-  const modal = page.getByLabel("Estoque · Meu Cliente");
+  const modal = page.getByLabel("Estoque · Cliente LTDA");
 
   await expect(modal.getByText("Motivo da visita")).toBeVisible();
   await expect(
@@ -175,7 +176,7 @@ test("visita/estoque: abrir o card de outra fábrica acrescenta a aba dela", asy
   });
 
   await openStockModal(page);
-  const modal = page.getByLabel("Estoque · Meu Cliente");
+  const modal = page.getByLabel("Estoque · Cliente LTDA");
 
   await modal.getByRole("button", { name: /produtos de Fábrica Beta/ }).click();
 
@@ -209,7 +210,7 @@ test("visita/estoque: o pedido lançado carrega a fábrica e a visita de origem"
   });
 
   await openStockModal(page);
-  const stockModal = page.getByLabel("Estoque · Meu Cliente");
+  const stockModal = page.getByLabel("Estoque · Cliente LTDA");
 
   // Fábrica Beta, fora do foco: o vendedor foi por causa da Alfa mas vende da
   // Beta. É o caso que o vínculo por fábrica única não cobria.
@@ -323,7 +324,7 @@ test("cliente/visitas: registrar o estoque lista todas as fábricas do vendedor"
     .getByRole("button", { name: "Registrar estoque da visita" })
     .click();
 
-  const modal = page.getByLabel("Estoque · Meu Cliente");
+  const modal = page.getByLabel("Estoque · Cliente LTDA");
   await expect(
     modal.getByRole("button", { name: /produtos de Fábrica Alfa/ })
   ).toBeVisible();
@@ -347,7 +348,7 @@ test("visita/estoque: cancelar o pedido devolve o vendedor ao estoque", async ({
   });
 
   await openStockModal(page);
-  const stockModal = page.getByLabel("Estoque · Meu Cliente");
+  const stockModal = page.getByLabel("Estoque · Cliente LTDA");
 
   await stockModal.getByRole("button", { name: "Lançar pedido" }).click();
   await expect(
