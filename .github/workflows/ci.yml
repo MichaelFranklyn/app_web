@@ -34,7 +34,21 @@ jobs:
           node-version: 22
           cache: npm
       - run: npm ci
-      - run: npx playwright install --with-deps chromium
+
+      # O `--with-deps` roda apt-get e é o passo mais lento e mais instável do
+      # job (já pendurou >12min baixando fontes do mirror). Com o browser em
+      # cache, nada disso precisa rodar de novo: a imagem do runner já traz as
+      # libs de sistema do Chromium, e as fontes que o apt acrescenta (CJK,
+      # emoji) nenhum teste usa.
+      - uses: actions/cache@v4
+        id: playwright-cache
+        with:
+          path: ~/.cache/ms-playwright
+          key: playwright-${{ runner.os }}-${{ hashFiles('package-lock.json') }}
+
+      - if: steps.playwright-cache.outputs.cache-hit != 'true'
+        run: npx playwright install --with-deps chromium
+
       # webServer faz o build de produção isolado e sobe o app; globalSetup sobe
       # o stub GraphQL. CI=true (automático) força reuseExistingServer:false.
       - run: npm run e2e
