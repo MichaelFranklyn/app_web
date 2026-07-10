@@ -13,7 +13,6 @@ export const UPDATE_VISIT_SCHEDULE_ITEM_MUTATION = gql`
         status
         outcome
         outcomeReason
-        stockObservation
         notes
       }
     }

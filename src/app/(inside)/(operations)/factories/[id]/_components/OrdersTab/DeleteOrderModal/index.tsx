@@ -24,7 +24,7 @@ export function DeleteOrderModal({
         <Button.Root
           appearance="ghost"
           color="red"
-          size="xs"
+          size="sm"
           isIconOnly
           aria-label="Remover pedido"
           onClick={(e) => e.stopPropagation()}

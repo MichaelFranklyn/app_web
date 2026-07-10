@@ -60,7 +60,10 @@ test("cliente/fábricas: monta a aba", async ({ page }) => {
 test("cliente/pedidos: monta a aba", async ({ page }) => {
   await mockGraphql(page, {
     ...clientLayout(),
-    ClientOrders: () => ({ orders: conn() }),
+    // A aba agrupa por fábrica: os pedidos de cada uma só carregam ao abrir o card.
+    ClientFactoryOrders: () => ({
+      companyClient: { data: { id: "cc-1", factoryOrderSummaries: [] } },
+    }),
   });
   await page.goto("/clients/client-1/orders");
   await expect(page.getByText(eyebrow)).toBeVisible();
@@ -69,6 +72,10 @@ test("cliente/pedidos: monta a aba", async ({ page }) => {
 test("cliente/score: monta a aba", async ({ page }) => {
   await mockGraphql(page, {
     ...clientLayout(),
+    // O cliente tem um score POR FÁBRICA; a aba monta a grade a partir daqui.
+    ClientFactoryScores: () => ({
+      companyClient: { data: { id: "cc-1", factoryVisitScores: [] } },
+    }),
     ClientVisitScores: () => ({ clientVisitScores: conn() }),
     ClientProductInsights: () => ({ clientProductInsights: conn() }),
   });
@@ -81,27 +88,26 @@ test("cliente/estoque: renderiza uma linha de insight com a unidade (unit.label)
 }) => {
   await mockGraphql(page, {
     CompanyClient: clientLayout().CompanyClient,
-    // Precisa de um vínculo COM id para a cascata disparar ClientProductInsights.
-    SellerClientFactoriesByClient: () => ({
-      sellerClientFactoryList: {
-        edges: [
-          {
-            node: {
-              id: "scf-1",
+    // O estoque é por fábrica: a aba mostra um card por vínculo e os produtos só
+    // carregam quando o card abre.
+    ClientFactoryStock: () => ({
+      companyClient: {
+        data: {
+          id: "cc-1",
+          factoryStockSummaries: [
+            {
+              sellerClientFactoryId: "scf-1",
+              totalProducts: 1,
+              stockedOut: 0,
+              critical: 0,
               factory: {
                 id: "f-1",
                 nomeFantasia: "Fábrica",
                 razaoSocial: "Fábrica LTDA",
               },
-              seller: { id: "s-1", name: "Vendedor" },
-              priority: "high",
-              visitFrequencyDays: 30,
-              lastVisitDate: null,
             },
-          },
-        ],
-        pageInfo: { hasNextPage: false },
-        totalCount: 1,
+          ],
+        },
       },
     }),
     ClientProductInsights: () => ({
@@ -133,6 +139,11 @@ test("cliente/estoque: renderiza uma linha de insight com a unidade (unit.label)
   });
   await page.goto("/clients/client-1/stock");
   await expect(page.getByText(eyebrow)).toBeVisible();
+
+  await page
+    .getByRole("button", { name: "Ver os produtos de Fábrica" })
+    .click();
+
   await expect(page.getByText("Cimento Forte")).toBeVisible();
   // Valida o fix de contrato (unit virou objeto {label}); a célula mostra "10 SC".
   await expect(page.getByText("10 SC")).toBeVisible();
@@ -141,9 +152,8 @@ test("cliente/estoque: renderiza uma linha de insight com a unidade (unit.label)
 test("cliente/visitas: monta a aba", async ({ page }) => {
   await mockGraphql(page, {
     ...clientLayout(),
-    VisitsBySellerClientFactory: () => ({
-      visitsBySellerClientFactory: conn(),
-    }),
+    // A visita é do cliente, não do vínculo: uma ida cobre várias fábricas.
+    VisitsByCompanyClient: () => ({ visitsByCompanyClient: conn() }),
   });
   await page.goto("/clients/client-1/visits");
   await expect(page.getByText(eyebrow)).toBeVisible();

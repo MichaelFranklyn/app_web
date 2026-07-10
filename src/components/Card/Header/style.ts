@@ -2,23 +2,35 @@ import { cn } from "@/lib/utils";
 import { CardBg } from "../interface";
 import { bgVariants, cardHeadStyle } from "../style";
 
-// O header é um container query nomeado "cardhead": as ações reagem à largura
-// real do próprio header (não da viewport), colapsando para ícone quando estreito.
-export const headerStyle = cn(cardHeadStyle, "@container/cardhead");
+// O header tem 3 estágios, escolhidos por MEDIÇÃO do conteúdo real (ver
+// useHeaderActionsMode) — não por breakpoints de pixel fixos. O estágio vigente
+// fica no atributo data-actions-mode; os filhos reagem via group-data.
+//   • full   → cabe ícone + texto → ações em linha, à direita do título.
+//   • icon   → só o ícone cabe → ações em linha, botões sem texto.
+//   • column → nem o ícone cabe → ações descem e empilham, cada item full-width.
+// `group/cardhead` nomeia o grupo para os filhos lerem o estágio do header.
+export const headerStyle = cn(cardHeadStyle, "group/cardhead");
 
 export const headerBgVariants: Record<CardBg, string> = bgVariants;
 
-// Conteúdo (eyebrow/título/descrição): ocupa a linha inteira quando o header é
-// estreito (título quebra em linhas em vez de virar "..."); divide a linha com
-// as ações a partir de 480px de largura do header.
-export const headerContentStyle =
-  "flex w-full min-w-0 flex-col gap-4 @min-[480px]/cardhead:w-auto @min-[480px]/cardhead:flex-1";
+// Conteúdo (eyebrow/título/descrição): divide a linha com as ações nos estágios
+// de linha (full/icon); ocupa a linha inteira quando as ações descem (column).
+export const headerContentStyle = cn(
+  "flex min-w-0 flex-col gap-4",
+  "w-auto flex-1",
+  "group-data-[actions-mode=column]/cardhead:w-full",
+  "group-data-[actions-mode=column]/cardhead:flex-none"
+);
 
-// Ações: linha própria (full width) no estreito; ao lado do título no largo.
-export const headerActionsWrapperStyle =
-  "flex w-full shrink-0 items-center justify-end gap-6 @min-[480px]/cardhead:w-auto";
+// Wrapper das ações: no tamanho natural à direita (full/icon); full-width numa
+// linha própria (column).
+export const headerActionsWrapperStyle = cn(
+  "flex shrink-0 items-center justify-end gap-6",
+  "w-auto",
+  "group-data-[actions-mode=column]/cardhead:w-full"
+);
 
-// Ponto de corte: abaixo de 480px de largura do header, o texto das ações some
-// e o botão vira icon-only (com tooltip). Compartilhado entre Card.Header.Action
-// e usos manuais (ex.: triggers de modal) para manter o comportamento consistente.
-export const headerActionLabelStyle = "hidden @min-[480px]/cardhead:inline";
+// Texto das ações (usado por Card.Header.Action e triggers de modal): escondido
+// só no estágio `icon`. Nos demais (full e column, onde há espaço) fica visível.
+export const headerActionLabelStyle =
+  "inline group-data-[actions-mode=icon]/cardhead:hidden";

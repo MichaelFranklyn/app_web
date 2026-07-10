@@ -169,9 +169,7 @@ export function ClonePriceListModal({
           title="Partir de outra"
         >
           <Button.Icon icon={Copy} />
-          <Button.Title className="hidden @min-[640px]/cardhead:inline">
-            Partir de outra
-          </Button.Title>
+          <Button.Title>Clonar</Button.Title>
         </Button.Root>
       </Modal.Trigger>
 

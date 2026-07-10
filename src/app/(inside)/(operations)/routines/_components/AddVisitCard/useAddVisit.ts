@@ -1,5 +1,6 @@
 import { SelectOption } from "@/components/Input/InputSelect";
 import { useAsyncAction } from "@/hooks/useAsyncAction";
+import { clientDisplayName } from "@/utils/client";
 import { useMutation, useQuery } from "@apollo/client/react";
 import { useEffect, useMemo, useState } from "react";
 
@@ -17,7 +18,7 @@ import {
 
 const clientLabel = (
   client: { nomeFantasia: string | null; razaoSocial: string } | null
-): string => client?.nomeFantasia ?? client?.razaoSocial ?? "Cliente";
+): string => clientDisplayName(client, "Cliente");
 
 interface Params {
   open: boolean;

@@ -1,3 +1,25 @@
+export type InputSize = "xs" | "sm" | "md" | "lg";
+
+// Espelha Button e Badge (mesmos padY por size), para que input, botão e tag
+// fiquem com a MESMA altura quando usados lado a lado.
+// Altura = line-height (1.6 × 13px = 20.8) + 2×padY + 2×borda.
+export const inputSizePadding: Record<InputSize, string> = {
+  lg: "py-[11px] px-[20px]",
+  md: "py-[8px] px-[12px]",
+  sm: "py-[5px] px-[12px]",
+  xs: "py-[3px] px-[8px]",
+};
+
+// Piso de altura para os controles que são <div> (Select/Date), onde não há
+// caixa de texto garantindo a linha. Só fora de Group: dentro dele a borda é do
+// grupo, e o piso somaria os 2px dela por cima da altura já correta.
+export const inputSizeMinHeight: Record<InputSize, string> = {
+  lg: "min-h-[44.8px]",
+  md: "min-h-[38.8px]",
+  sm: "min-h-[32.8px]",
+  xs: "min-h-[28.8px]",
+};
+
 export const inputStyles = {
   // max-desktop:w-full → no mobile/tablet todo input ocupa a largura total
   // (inclusive em modais e qualquer lugar), sobrepondo larguras fixas; no
@@ -5,7 +27,7 @@ export const inputStyles = {
   wrap: "flex flex-col gap-[5px] max-desktop:w-full",
   label: "font-mono text-[13px] text-(--muted) tracking-[0.08em] uppercase",
   controlBase:
-    "font-mono text-[13px] bg-(--bg3) text-(--text) py-[8px] px-[12px] outline-none w-full transition-colors disabled:opacity-50 disabled:cursor-not-allowed appearance-none",
+    "font-mono text-[13px] bg-(--bg3) text-(--text) outline-none w-full transition-colors disabled:opacity-50 disabled:cursor-not-allowed appearance-none",
   controlBordered:
     "border border-(--border) rounded-(--r-md) focus:border-(--amber) focus:ring-[3px] focus:ring-(--amber-bg)",
   controlGrouped:
@@ -25,7 +47,7 @@ export const inputStyles = {
     "border-(--green) focus-within:border-(--green) focus-within:ring-(--green-bg)",
 
   addon:
-    "py-[8px] px-[12px] bg-(--bg4) border-r border-(--border) text-(--muted) text-[13px] flex items-center whitespace-nowrap [&>svg]:size-[14px] [&>svg]:shrink-0",
+    "bg-(--bg4) border-r border-(--border) text-(--muted) text-[13px] flex items-center whitespace-nowrap [&>svg]:size-[14px] [&>svg]:shrink-0",
 
   textarea: "resize-y min-h-[80px]",
 };

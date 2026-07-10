@@ -1,3 +1,4 @@
+import { clientDisplayName } from "@/utils/client";
 import {
   getCurrentWeekMondayIso,
   toUtcIsoDate as toIsoDate,
@@ -78,10 +79,8 @@ export const formatDistanceKm = (rawKm: string): string => {
   return `${value.toFixed(1).replace(".", ",")} km`;
 };
 
-export const clientLabel = (client: VisitClient | null): string => {
-  if (!client) return "Cliente —";
-  return client.nomeFantasia ?? client.razaoSocial;
-};
+export const clientLabel = (client: VisitClient | null): string =>
+  clientDisplayName(client);
 
 export const factoryLabel = (factory: VisitFactory | null): string => {
   if (!factory) return "—";

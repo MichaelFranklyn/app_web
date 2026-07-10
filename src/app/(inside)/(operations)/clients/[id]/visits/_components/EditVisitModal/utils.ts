@@ -1,14 +1,10 @@
 import { FormStepSchema } from "@/components/FormBuilder";
 import { extractSelectValue } from "@/utils/form";
-import {
-  STOCK_OBSERVATION_OPTIONS as STOCK_OBS_OPTIONS,
-  VISIT_OUTCOME_OPTIONS,
-  VISIT_STATUS_OPTIONS,
-} from "@/utils/visit";
+import { VISIT_OUTCOME_OPTIONS, VISIT_STATUS_OPTIONS } from "@/utils/visit";
 
 import { UpdateVisitInput, VisitEditable } from "./interface";
 
-export { STOCK_OBS_OPTIONS, VISIT_OUTCOME_OPTIONS, VISIT_STATUS_OPTIONS };
+export { VISIT_OUTCOME_OPTIONS, VISIT_STATUS_OPTIONS };
 
 export const EDIT_VISIT_FORM_STEPS: FormStepSchema[] = [
   {
@@ -36,13 +32,6 @@ export const EDIT_VISIT_FORM_STEPS: FormStepSchema[] = [
             type: "text",
             label: "Motivo",
             placeholder: "Motivo do resultado",
-          },
-          {
-            name: "stockObservation",
-            type: "select-single",
-            label: "Observação de estoque",
-            placeholder: "Sem observação",
-            options: STOCK_OBS_OPTIONS,
           },
           {
             name: "notes",
@@ -74,10 +63,6 @@ export const normalizeVisitInput = (
 
   const outcome = extractSelectValue(data.outcome) || null;
   if (outcome !== (initial.outcome ?? null)) out.outcome = outcome;
-
-  const stockObs = extractSelectValue(data.stockObservation) || null;
-  if (stockObs !== (initial.stockObservation ?? null))
-    out.stockObservation = stockObs;
 
   const reason = textOrNull(data.outcomeReason);
   if (reason !== (initial.outcomeReason ?? null)) out.outcomeReason = reason;

@@ -48,6 +48,7 @@ export function DashboardHeader({
             {canSelectSeller && (
               <div className="desktop:w-[220px] w-full">
                 <Input.Select
+                  size="sm"
                   options={sellerOptions}
                   value={sellerValue}
                   variant="single"

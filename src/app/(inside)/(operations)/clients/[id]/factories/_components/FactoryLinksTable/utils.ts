@@ -1,7 +1,10 @@
+// Valores no vocabulário canônico do backend (enum ClientPriority: alta/media/
+// baixa). O score só pontua a prioridade nesses termos — mandar "high"/"medium"/
+// "low" fazia a dimensão priority cair sempre em 0 e o score não mexer.
 export const PRIORITY_OPTIONS = [
-  { value: "high", label: "Alta" },
-  { value: "medium", label: "Média" },
-  { value: "low", label: "Baixa" },
+  { value: "alta", label: "Alta" },
+  { value: "media", label: "Média" },
+  { value: "baixa", label: "Baixa" },
 ];
 
 export const priorityColor = (
@@ -25,6 +28,10 @@ export const priorityColor = (
 export const priorityLabel = (priority?: string | null): string => {
   if (!priority) return "—";
   const map: Record<string, string> = {
+    alta: "Alta",
+    media: "Média",
+    baixa: "Baixa",
+    // Aliases legados: vínculos salvos antes do alinhamento de vocabulário.
     high: "Alta",
     medium: "Média",
     low: "Baixa",

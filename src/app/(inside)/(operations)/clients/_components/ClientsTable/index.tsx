@@ -30,7 +30,8 @@ export function ClientsTable({
         <Table.CardHead.Actions>
           <div className="flex items-center gap-8">
             <InputSearch
-              placeholder="Buscar por nome..."
+              size="sm"
+              placeholder="Buscar por razão social ou nome fantasia..."
               data-tour="clients-search"
               value={inputValues.search ?? ""}
               onChange={(e) => setFilter("search", e.target.value || undefined)}

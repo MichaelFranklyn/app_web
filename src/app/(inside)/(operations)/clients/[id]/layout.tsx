@@ -2,13 +2,16 @@
 
 import { Badge } from "@/components/Badges";
 import { Breadcrumb } from "@/components/Breadcrumb";
+import { Button } from "@/components/Button";
+import { EmptyState } from "@/components/EmptyState";
 import { Loading } from "@/components/Loading";
 import { PageContent } from "@/components/PageContent";
 import { PanelHeader } from "@/components/PanelHeader";
 import { Tabs } from "@/components/Tabs";
 import { useOptimisticObject } from "@/hooks/useOptimisticObject";
 import { useQuery } from "@apollo/client/react";
-import { useParams } from "next/navigation";
+import { UserX } from "lucide-react";
+import { useParams, useRouter } from "next/navigation";
 import React from "react";
 import { ClientDetailSkeleton } from "./_components/ClientDetailSkeleton";
 import { DeleteClientModal } from "./_components/DeleteClientModal";
@@ -25,6 +28,7 @@ export default function ClientLayout({
   children: React.ReactNode;
 }) {
   const params = useParams();
+  const router = useRouter();
   const companyClientId = params.id as string;
 
   const { data, loading } = useQuery<CompanyClientDetailQueryResponse>(
@@ -69,6 +73,42 @@ export default function ClientLayout({
   const cnpj = clientData ? formatCnpj(clientData.cnpj) : "—";
 
   const isHeaderLoading = loading && !clientData;
+
+  // Carteira inexistente (link/aba antiga após exclusão ou re-seed): o backend
+  // responde data=null. Sem isto, `clientData` ficava undefined e a tela travava
+  // no skeleton para sempre. Mostra um estado de "não encontrado" com volta.
+  if (!loading && !clientData) {
+    return (
+      <PageContent>
+        <Breadcrumb.Root>
+          <Breadcrumb.Item href="/clients">Clientes</Breadcrumb.Item>
+          <Breadcrumb.Separator />
+          <Breadcrumb.Item active>Não encontrado</Breadcrumb.Item>
+        </Breadcrumb.Root>
+        <EmptyState.Root>
+          <EmptyState.Icon>
+            <UserX size={32} />
+          </EmptyState.Icon>
+          <EmptyState.Title>Cliente não encontrado</EmptyState.Title>
+          <EmptyState.Description>
+            Este cliente pode ter sido removido ou o endereço está
+            desatualizado.
+          </EmptyState.Description>
+          <EmptyState.Actions>
+            <Button.Root
+              appearance="solid"
+              color="amber"
+              size="md"
+              noUppercase
+              onClick={() => router.push("/clients")}
+            >
+              <Button.Title>Voltar para Clientes</Button.Title>
+            </Button.Root>
+          </EmptyState.Actions>
+        </EmptyState.Root>
+      </PageContent>
+    );
+  }
 
   return (
     <PageContent>
@@ -126,7 +166,10 @@ export default function ClientLayout({
                         </Badge.Text>
                       </Badge.Root>
                     )}
-                    <ScoreTag score={cc?.topVisitScore ?? null} />
+                    <ScoreTag
+                      score={cc?.topVisitScore ?? null}
+                      factoryScores={cc?.factoryVisitScores ?? []}
+                    />
                     {clientData && (
                       <EditClientModal
                         client={clientData}

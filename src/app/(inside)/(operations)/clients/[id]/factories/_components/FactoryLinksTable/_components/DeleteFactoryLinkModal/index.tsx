@@ -41,7 +41,7 @@ export function DeleteFactoryLinkModal({
         <Button.Root
           appearance="ghost"
           color="red"
-          size="xs"
+          size="sm"
           aria-label="Remover vínculo"
         >
           <Button.Icon icon={Trash2} />

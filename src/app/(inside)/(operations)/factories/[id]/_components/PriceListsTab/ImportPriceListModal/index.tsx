@@ -97,9 +97,7 @@ export function ImportPriceListModal(props: ImportPriceListModalProps) {
           title="Importar tabela"
         >
           <Button.Icon icon={Upload} />
-          <Button.Title className="hidden @min-[640px]/cardhead:inline">
-            Importar tabela
-          </Button.Title>
+          <Button.Title>Importar</Button.Title>
         </Button.Root>
       </Modal.Trigger>
 

@@ -1,7 +1,6 @@
 import { describe, expect, it } from "vitest";
 
 import {
-  STOCK_OBSERVATION_OPTIONS,
   VISIT_OUTCOME_OPTIONS,
   VISIT_STATUS_COLOR,
   VISIT_STATUS_LABEL,
@@ -27,10 +26,7 @@ describe("catálogos de visita", () => {
     );
   });
 
-  it("outcome/estoque expõem os valores esperados", () => {
+  it("outcome expõe os valores esperados", () => {
     expect(VISIT_OUTCOME_OPTIONS.map((o) => o.value)).toContain("SOLD");
-    expect(STOCK_OBSERVATION_OPTIONS.map((o) => o.value)).toContain(
-      "OUT_OF_STOCK"
-    );
   });
 });

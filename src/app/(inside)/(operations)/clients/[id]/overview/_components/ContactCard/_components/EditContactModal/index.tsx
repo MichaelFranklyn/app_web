@@ -74,7 +74,9 @@ function buildInitialData(contact: ClientContact): Record<string, unknown> {
   };
 }
 
-function normalizeInput(data: Record<string, unknown>): UpdateClientContactInput {
+function normalizeInput(
+  data: Record<string, unknown>
+): UpdateClientContactInput {
   const phone = data.phone ? onlyDigits(String(data.phone)) : null;
   const isPrimary =
     Array.isArray(data.isPrimary) && data.isPrimary.includes("true");
@@ -124,7 +126,8 @@ export function EditContactModal({
         });
         if (!res.data?.updateClientContact?.status) {
           throw new Error(
-            res.data?.updateClientContact?.message ?? "Erro ao atualizar contato"
+            res.data?.updateClientContact?.message ??
+              "Erro ao atualizar contato"
           );
         }
         return res.data.updateClientContact.data;
@@ -148,7 +151,7 @@ export function EditContactModal({
         <Button.Root
           appearance="ghost"
           color="neutral"
-          size="xs"
+          size="sm"
           aria-label="Editar contato"
         >
           <Button.Icon icon={Pencil} />

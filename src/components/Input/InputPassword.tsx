@@ -18,6 +18,7 @@ export const InputPassword = ({
   addon,
   className,
   containerClassName,
+  size,
   ...props
 }: InputBaseProps) => {
   const [show, setShow] = useState(false);
@@ -32,6 +33,7 @@ export const InputPassword = ({
       success={success}
       disabled={props.disabled}
       className={containerClassName}
+      size={size}
     >
       {label && <InputLabel>{label}</InputLabel>}
       <InputGroup>

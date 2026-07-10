@@ -51,6 +51,7 @@ export function UsersTable({
         <Table.CardHead.Actions>
           <div className="flex items-center gap-8">
             <InputSearch
+              size="sm"
               placeholder="Buscar por nome..."
               data-tour="users-search"
               value={inputValues.search ?? ""}

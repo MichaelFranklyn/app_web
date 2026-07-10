@@ -1,70 +1,40 @@
 "use client";
 
 import { Alert } from "@/components/Alert";
-import { Badge } from "@/components/Badges";
 import { EmptyState } from "@/components/EmptyState";
 import { HelpTooltip } from "@/components/HelpTooltip";
-import { Table } from "@/components/Table";
 import { Title } from "@/components/Title";
 import { useQuery } from "@apollo/client/react";
 import { Info, PackageSearch } from "lucide-react";
+import { useState } from "react";
 import { useClientRoute } from "../context";
+import { CLIENT_FACTORY_STOCK_QUERY } from "../gql";
 import {
-  CLIENT_PRODUCT_INSIGHTS_QUERY,
-  SELLER_CLIENT_FACTORIES_QUERY,
-} from "../gql";
-import {
-  ClientProductInsightsQueryResponse,
-  SellerClientFactoriesQueryResponse,
+  ClientFactoryStockQueryResponse,
+  FactoryStockSummary,
 } from "../interface";
-import { stockSituation } from "../utils";
-import { formatDate } from "@/utils/format/date";
+import { FactoryStockCard } from "./_components/FactoryStockCard";
+import { FactoryStockModal } from "./_components/FactoryStockModal";
 import { StockSkeleton } from "./_components/StockSkeleton";
 
 export default function StockContent() {
-  const { clientId: id } = useClientRoute();
+  const { companyClientId } = useClientRoute();
+  const [selected, setSelected] = useState<FactoryStockSummary | null>(null);
 
-  const { data: vinculosData, loading: vinculosLoading } =
-    useQuery<SellerClientFactoriesQueryResponse>(
-      SELLER_CLIENT_FACTORIES_QUERY,
-      {
-        variables: {
-          input: {
-            filters: [{ field: "client_id", operator: "eq", value: id }],
-            first: 1,
-          },
-        },
-        skip: !id,
-      }
-    );
+  // O estoque é POR FÁBRICA: cada uma vende os seus produtos e tem histórico de
+  // compra próprio. O backend ordena das que mais pedem reposição às tranquilas.
+  const { data, loading } = useQuery<ClientFactoryStockQueryResponse>(
+    CLIENT_FACTORY_STOCK_QUERY,
+    { variables: { id: companyClientId }, skip: !companyClientId }
+  );
 
-  const sellerClientFactoryId =
-    vinculosData?.sellerClientFactoryList.edges[0]?.node.id ?? null;
+  const summaries = data?.companyClient.data?.factoryStockSummaries ?? [];
 
-  const { data: insightsData, loading: insightsLoading } =
-    useQuery<ClientProductInsightsQueryResponse>(
-      CLIENT_PRODUCT_INSIGHTS_QUERY,
-      {
-        variables: {
-          sellerClientFactoryId,
-          input: { first: 100 },
-        },
-        skip: !sellerClientFactoryId,
-      }
-    );
-
-  const insights =
-    insightsData?.clientProductInsights.edges.map((e) => e.node) ?? [];
-
-  const isLoading = vinculosLoading || insightsLoading;
-
-  if (isLoading && insights.length === 0) {
-    return <StockSkeleton />;
-  }
+  if (loading && summaries.length === 0) return <StockSkeleton />;
 
   return (
-    <>
-      <Alert.Root variant="info" className="mb-16">
+    <div className="flex flex-col gap-16">
+      <Alert.Root variant="info">
         <Info size={14} className="mt-[1px] shrink-0" />
         <Alert.Content>
           <Alert.Description>
@@ -74,145 +44,44 @@ export default function StockContent() {
         </Alert.Content>
       </Alert.Root>
 
-      <Table.Root data-tour="client-stock-table">
-        <Table.Table>
-          <Table.Header>
-            <Table.Row>
-              <Table.Head>Produto</Table.Head>
-              <Table.Head>Última compra</Table.Head>
-              <Table.Head>Qtd. comprada</Table.Head>
-              <Table.Head>
-                <span className="inline-flex items-center gap-4">
-                  Avg. duração
-                  <HelpTooltip
-                    label="O que é a duração média?"
-                    content={
-                      <Title variant="body-sm">
-                        Tempo médio, em dias, que a quantidade comprada costuma
-                        durar no cliente — calculado a partir do histórico de
-                        pedidos e das médias informadas pelo vendedor.
-                      </Title>
-                    }
-                  />
-                </span>
-              </Table.Head>
-              <Table.Head>
-                <span className="inline-flex items-center gap-4">
-                  Esgotamento est.
-                  <HelpTooltip
-                    label="Como é estimado o esgotamento?"
-                    content={
-                      <Title variant="body-sm">
-                        Data estimada em que o estoque do cliente deve zerar,
-                        projetada a partir da última compra somada à duração
-                        média do produto.
-                      </Title>
-                    }
-                  />
-                </span>
-              </Table.Head>
-              <Table.Head>
-                <span className="inline-flex items-center gap-4">
-                  Dias até esgotar
-                  <HelpTooltip
-                    label="O que significam os dias até esgotar?"
-                    content={
-                      <Title variant="body-sm">
-                        Dias restantes até a data estimada de esgotamento.
-                        Valores negativos indicam que o estoque provavelmente já
-                        zerou há alguns dias.
-                      </Title>
-                    }
-                  />
-                </span>
-              </Table.Head>
-              <Table.Head>
-                <span className="inline-flex items-center gap-4">
-                  Situação
-                  <HelpTooltip
-                    label="Como a situação é definida?"
-                    content={
-                      <Title variant="body-sm">
-                        Classificação derivada dos dias até esgotar e do risco
-                        de churn do produto, indicando a urgência de reposição.
-                      </Title>
-                    }
-                  />
-                </span>
-              </Table.Head>
-            </Table.Row>
-          </Table.Header>
-          <Table.Body>
-            {insights.length === 0 ? (
-              <Table.Row>
-                <Table.Cell colSpan={7}>
-                  <EmptyState.Root>
-                    <EmptyState.Icon>
-                      <PackageSearch size={32} />
-                    </EmptyState.Icon>
-                    <EmptyState.Title>
-                      Nenhum dado de estoque disponível
-                    </EmptyState.Title>
-                    <EmptyState.Description>
-                      As estimativas de estoque aparecem aqui conforme os
-                      pedidos e visitas são registrados para este cliente.
-                    </EmptyState.Description>
-                  </EmptyState.Root>
-                </Table.Cell>
-              </Table.Row>
-            ) : (
-              insights.map((e) => {
-                const sit = stockSituation(e.daysSinceStockout, e.churnRisk);
-                const diasValue = -e.daysSinceStockout;
-                const diasLabel = `${diasValue > 0 ? "+" : ""}${diasValue} dias`;
-                const qty = e.product
-                  ? `${parseFloat(e.lastQuantity).toFixed(0)} ${e.product.unit?.label ?? ""}`
-                  : parseFloat(e.lastQuantity).toFixed(0);
-                return (
-                  <Table.Row key={e.id} className="group">
-                    <Table.Cell>
-                      <Table.CellText variant="strong">
-                        {e.product?.name ?? "—"}
-                      </Table.CellText>
-                    </Table.Cell>
-                    <Table.Cell>
-                      <Table.CellText variant="dim">
-                        {formatDate(e.lastPurchaseDate)}
-                      </Table.CellText>
-                    </Table.Cell>
-                    <Table.Cell>
-                      <Table.CellText variant="dim">{qty}</Table.CellText>
-                    </Table.Cell>
-                    <Table.Cell>
-                      <Table.CellText variant="dim">
-                        {e.avgShelfDays != null
-                          ? `${e.avgShelfDays} dias`
-                          : "—"}
-                      </Table.CellText>
-                    </Table.Cell>
-                    <Table.Cell>
-                      <Table.CellText variant="dim">
-                        {formatDate(e.estimatedStockoutDate)}
-                      </Table.CellText>
-                    </Table.Cell>
-                    <Table.ScoreCell
-                      score={diasValue}
-                      color={sit.color}
-                      noBar
-                      label={diasLabel}
-                    />
-                    <Table.Cell>
-                      <Badge.Root color={sit.color} appearance="tinted">
-                        <Badge.Text>{sit.label}</Badge.Text>
-                      </Badge.Root>
-                    </Table.Cell>
-                  </Table.Row>
-                );
-              })
-            )}
-          </Table.Body>
-        </Table.Table>
-      </Table.Root>
-    </>
+      <div className="flex items-center gap-6">
+        <Title variant="heading-md">Estoque por fábrica</Title>
+        <HelpTooltip
+          label="Por que o estoque é separado por fábrica?"
+          content={
+            <Title variant="body-sm">
+              Cada fábrica vende os seus próprios produtos, e o cliente compra
+              de cada uma num ritmo diferente. Toque num card para ver os
+              produtos daquela fábrica e quando devem acabar.
+            </Title>
+          }
+        />
+      </div>
+
+      {summaries.length === 0 ? (
+        <EmptyState.Root>
+          <EmptyState.Icon>
+            <PackageSearch size={32} />
+          </EmptyState.Icon>
+          <EmptyState.Title>Nenhum dado de estoque disponível</EmptyState.Title>
+          <EmptyState.Description>
+            As estimativas de estoque aparecem aqui conforme os pedidos e
+            visitas são registrados para este cliente.
+          </EmptyState.Description>
+        </EmptyState.Root>
+      ) : (
+        <div className="desktop:grid-cols-3 tablet:grid-cols-2 grid grid-cols-1 gap-12">
+          {summaries.map((summary) => (
+            <FactoryStockCard
+              key={summary.sellerClientFactoryId}
+              summary={summary}
+              onSelect={setSelected}
+            />
+          ))}
+        </div>
+      )}
+
+      <FactoryStockModal summary={selected} onClose={() => setSelected(null)} />
+    </div>
   );
 }

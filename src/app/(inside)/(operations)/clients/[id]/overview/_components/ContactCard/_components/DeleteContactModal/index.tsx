@@ -66,7 +66,7 @@ export function DeleteContactModal({
         <Button.Root
           appearance="ghost"
           color="neutral"
-          size="xs"
+          size="sm"
           aria-label="Remover contato"
         >
           <Button.Icon icon={Trash2} />

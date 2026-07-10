@@ -21,14 +21,5 @@ export const settingsRoutineFlow: FlowDefinition = {
       side: "top",
       align: "start",
     },
-    {
-      element: '[data-tour="routine-score-weights"]',
-      requireSelector: '[data-tour="routine-score-weights"]',
-      title: "Pesos do score",
-      description:
-        "Ajuste o peso de cada fator que prioriza quais clientes visitar primeiro. As mudanças valem para as próximas rotinas geradas.",
-      side: "top",
-      align: "start",
-    },
   ],
 };

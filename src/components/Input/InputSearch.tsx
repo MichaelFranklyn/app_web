@@ -10,7 +10,16 @@ import { InputRoot } from "./Root";
 
 export const InputSearch = forwardRef<HTMLInputElement, InputBaseProps>(
   (
-    { label, hint, error, success, className, containerClassName, ...props },
+    {
+      label,
+      hint,
+      error,
+      success,
+      className,
+      containerClassName,
+      size,
+      ...props
+    },
     ref
   ) => {
     const isError = !!error;
@@ -22,6 +31,7 @@ export const InputSearch = forwardRef<HTMLInputElement, InputBaseProps>(
         success={success}
         disabled={props.disabled}
         className={containerClassName}
+        size={size}
       >
         {label && <InputLabel>{label}</InputLabel>}
         <InputGroup>

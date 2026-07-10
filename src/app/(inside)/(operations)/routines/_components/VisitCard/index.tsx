@@ -7,6 +7,7 @@ import { useAsyncAction } from "@/hooks/useAsyncAction";
 import { useMutation } from "@apollo/client/react";
 import { TriangleAlert } from "lucide-react";
 import { cn } from "@/lib/utils";
+import { clientDisplayName } from "@/utils/client";
 import { SCORE_TONE_BG, visitPriority } from "@/utils/score";
 import { VisitScheduleDay, VisitScheduleItem } from "../../interface";
 import {
@@ -14,6 +15,7 @@ import {
   VISIT_STATUS_LABEL,
   VISIT_URGENCY_BORDER,
   getVisitFollowupWarning,
+  getVisitScoreTotal,
 } from "../../utils";
 import { UPDATE_VISIT_ITEM_MUTATION } from "../VisitActions/gql";
 import { useVisitActions } from "../VisitActions/useVisitActions";
@@ -29,16 +31,30 @@ interface UpdateItemResponse {
   updateVisitScheduleItem?: { status: boolean; message: string };
 }
 
-const getClientName = (item: VisitScheduleItem): string => {
-  const client = item.clientFactoryLink?.client;
-  if (!client) return "Cliente —";
-  return client.nomeFantasia ?? client.razaoSocial;
-};
-
 const getFactoryName = (item: VisitScheduleItem): string => {
   const factory = item.clientFactoryLink?.factory;
   if (!factory) return "—";
   return factory.nomeFantasia ?? factory.razaoSocial;
+};
+
+// Quantos nomes de fábrica cabem sem espremer o card; o resto vira "+N".
+const FACTORY_NAMES_SHOWN = 2;
+
+/**
+ * As fábricas que esta visita vai tratar. Uma visita cobre o cliente inteiro:
+ * se duas fábricas dele estão urgentes, o vendedor conversa sobre as duas na
+ * mesma ida — por isso o card lista os nomes em vez de uma fábrica só.
+ */
+const getFocusLabel = (item: VisitScheduleItem): string => {
+  const names = (item.focusFactories ?? [])
+    .map((focus) => focus.factory?.nomeFantasia ?? focus.factory?.razaoSocial)
+    .filter((name): name is string => Boolean(name));
+
+  if (names.length === 0) return getFactoryName(item);
+
+  const shown = names.slice(0, FACTORY_NAMES_SHOWN).join(", ");
+  const rest = names.length - FACTORY_NAMES_SHOWN;
+  return rest > 0 ? `${shown} +${rest}` : shown;
 };
 
 // Card de uma visita na grade semanal. O card inteiro é clicável e abre o
@@ -64,9 +80,7 @@ export function VisitCard({
   const { execute, isLoading } = useAsyncAction();
   const isCompleted = item.status === "COMPLETED";
   const warning = getVisitFollowupWarning(item);
-  const scoreValue = item.clientFactoryLink?.latestVisitScore
-    ? Number(item.clientFactoryLink.latestVisitScore.scoreTotal)
-    : null;
+  const scoreValue = getVisitScoreTotal(item);
   const priority = scoreValue != null ? visitPriority(scoreValue) : null;
 
   const toggleCompleted = (checked: boolean) => {
@@ -141,10 +155,10 @@ export function VisitCard({
                   isCompleted ? "text-(--muted) line-through" : "text-(--text)"
                 }`}
               >
-                {getClientName(item)}
+                {clientDisplayName(item.clientFactoryLink?.client)}
               </div>
               <div className="truncate text-[13px] text-(--muted)">
-                {getFactoryName(item)}
+                {getFocusLabel(item)}
               </div>
             </div>
           </div>

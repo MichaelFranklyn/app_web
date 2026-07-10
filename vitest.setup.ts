@@ -14,3 +14,13 @@ afterEach(() => {
 // (mesmo padrão do workflow de CI). Definido aqui pois setupFiles roda antes
 // dos módulos de teste.
 process.env.NEXT_PUBLIC_COOKIE_SECRET_KEY ||= "test-secret-key";
+
+// jsdom não implementa ResizeObserver, usado por componentes que medem layout
+// (ex.: Card.Header). Mock no-op só para não quebrar o render nos testes.
+if (typeof globalThis.ResizeObserver === "undefined") {
+  globalThis.ResizeObserver = class {
+    observe() {}
+    unobserve() {}
+    disconnect() {}
+  };
+}

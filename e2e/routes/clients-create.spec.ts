@@ -55,10 +55,16 @@ test("clients: adiciona um cliente e confirma sucesso", async ({ page }) => {
   await dialog.locator('input[name="cnpj"]').fill("11.222.333/0001-81");
   await dialog.getByRole("button", { name: "Adicionar cliente" }).click();
 
-  // Sucesso: toast + modal fechado + linha otimista já visível na lista.
+  // Sucesso: toast + prompt "vincular agora?" + linha otimista na lista.
   await expect(
     page.getByText("Cliente adicionado à carteira com sucesso")
   ).toBeVisible();
-  await expect(dialog).toBeHidden();
+
+  // O modal de criação fecha e dá lugar ao ConfirmModal de vínculo — por isso
+  // `dialog` nunca fica oculto. Dispensa o prompt antes de conferir a lista.
+  await expect(page.getByText("Cliente adicionado!")).toBeVisible();
+  await page.getByRole("button", { name: "Agora não" }).click();
+
+  await expect(page.getByRole("dialog")).toBeHidden();
   await expect(page.getByText("Cliente Teste E2E").first()).toBeVisible();
 });

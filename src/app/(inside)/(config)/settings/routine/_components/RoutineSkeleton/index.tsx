@@ -3,7 +3,6 @@ import { Grid } from "@/components/Grid";
 import { Loading } from "@/components/Loading";
 
 const WEEKDAY_COUNT = 7;
-const WEIGHT_ROW_COUNT = 5;
 
 function ActionBarSkeleton() {
   return (
@@ -75,33 +74,6 @@ function SchedulingPreferencesSkeleton() {
   );
 }
 
-function ScoreWeightsSkeleton() {
-  return (
-    <Card.Root>
-      <Card.Header>
-        <Loading.Skeleton className="h-4 w-48" />
-        <Loading.Skeleton className="h-6 w-24 rounded-full" />
-      </Card.Header>
-      <Card.Body>
-        <div className="flex flex-col gap-12">
-          {Array.from({ length: WEIGHT_ROW_COUNT }).map((_, i) => (
-            <div key={i} className="flex flex-col gap-6">
-              <div className="flex items-center justify-between">
-                <Loading.Skeleton className="h-4 w-40" />
-                <div className="flex items-center gap-8">
-                  <Loading.Skeleton className="h-9 w-16" />
-                  <Loading.Skeleton className="h-4 w-10" />
-                </div>
-              </div>
-              <Loading.Skeleton className="h-2 w-full rounded-full" />
-            </div>
-          ))}
-        </div>
-      </Card.Body>
-    </Card.Root>
-  );
-}
-
 export function RoutineSkeleton() {
   return (
     <div className="flex flex-col gap-20">
@@ -111,7 +83,6 @@ export function RoutineSkeleton() {
         <WorkingParametersSkeleton />
         <SchedulingPreferencesSkeleton />
       </Grid.Root>
-      <ScoreWeightsSkeleton />
     </div>
   );
 }

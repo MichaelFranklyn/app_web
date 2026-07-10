@@ -34,6 +34,16 @@ export interface ClientDetailQueryResponse {
   };
 }
 
+// Score mais recente de um vínculo, com a fábrica de onde ele veio. Um cliente
+// tem um score por fábrica; o header mostra o mais alto e a aba mostra todos.
+export interface FactoryVisitScore extends ScoreDimensions {
+  scoreDate: string;
+  clientFactoryLink: {
+    id: string;
+    factory: { id: string; nomeFantasia: string | null } | null;
+  } | null;
+}
+
 // Resposta de companyClient(id): a rota de detalhe é chaveada pelo id da carteira
 // (company_client), então resolvemos o vínculo e lemos o cliente global aninhado.
 export interface CompanyClientDetail {
@@ -41,6 +51,7 @@ export interface CompanyClientDetail {
   notes: string | null;
   isActive: boolean;
   topVisitScore: ScoreDimensions | null;
+  factoryVisitScores: FactoryVisitScore[];
   client: ClientDetail | null;
 }
 
@@ -50,6 +61,12 @@ export interface CompanyClientDetailQueryResponse {
     code: number;
     message: string;
     data: CompanyClientDetail | null;
+  };
+}
+
+export interface ClientFactoryScoresQueryResponse {
+  companyClient: {
+    data: { id: string; factoryVisitScores: FactoryVisitScore[] } | null;
   };
 }
 
@@ -106,6 +123,27 @@ export interface ClientOrdersQueryResponse {
   };
 }
 
+// Resumo dos pedidos do cliente em uma fábrica. `totalOrders: 0` é informação de
+// venda: o cliente tem a fábrica vinculada e nunca comprou dela.
+export interface FactoryOrderSummary {
+  sellerClientFactoryId: string;
+  sellerId: string;
+  totalOrders: number;
+  totalAmount: string;
+  lastOrderDate: string | null;
+  factory: {
+    id: string;
+    nomeFantasia: string | null;
+    razaoSocial: string;
+  } | null;
+}
+
+export interface ClientFactoryOrdersQueryResponse {
+  companyClient: {
+    data: { id: string; factoryOrderSummaries: FactoryOrderSummary[] } | null;
+  };
+}
+
 export interface VisitScore {
   id: string;
   scoreDate: string;
@@ -115,8 +153,6 @@ export interface VisitScore {
   scoreFrequency: string;
   scorePotential: string;
   scoreRecency: string;
-  recommendedProducts: Record<string, unknown>[] | null;
-  stockoutAlerts: Record<string, unknown>[] | null;
 }
 
 export interface ClientVisitScoresQueryResponse {
@@ -147,6 +183,22 @@ export interface ClientProductInsightsQueryResponse {
   };
 }
 
+// Observação de estoque avulsa (fora de uma visita): o vendedor liga, o cliente
+// diz quantos dias ainda dura, e isso corrige a previsão de esgotamento na hora.
+export interface UpdateProductStockResponse {
+  updateProductStock: {
+    status: boolean;
+    code: number;
+    message: string;
+    data: {
+      id: string;
+      productId: string;
+      daysRemaining: number | null;
+      observation: string;
+    } | null;
+  };
+}
+
 export type VisitStatus =
   | "PENDING"
   | "COMPLETED"
@@ -157,16 +209,31 @@ export type VisitStatus =
 
 export type VisitOutcome = "SOLD" | "NOT_BOUGHT" | "RESCHEDULED" | "CLOSED";
 
-export type StockObservation = "OUT_OF_STOCK" | "LOW" | "ADEQUATE" | "HIGH";
+// Fábrica tratada numa visita. Uma ida ao cliente cobre as fábricas urgentes.
+export interface VisitFocusFactory {
+  scoreTotal: string | null;
+  factory: {
+    id: string;
+    nomeFantasia: string | null;
+    razaoSocial: string;
+  } | null;
+}
 
 export interface ClientVisit {
   id: string;
   status: VisitStatus;
   outcome: VisitOutcome | null;
   outcomeReason: string | null;
-  stockObservation: StockObservation | null;
   actualVisitAt: string | null;
   notes: string | null;
+  /** O que motivou a visita (sugestão do sistema). */
+  focusFactories: VisitFocusFactory[];
+  /** O que o vendedor de fato tratou, derivado das observações de estoque. */
+  treatedFactories: {
+    id: string;
+    nomeFantasia: string | null;
+    razaoSocial: string;
+  }[];
   day: {
     id: string;
     date: string;
@@ -177,6 +244,11 @@ export interface ClientVisit {
   } | null;
   clientFactoryLink: {
     id: string;
+    client: {
+      id: string;
+      nomeFantasia: string | null;
+      razaoSocial: string;
+    } | null;
     factory: {
       id: string;
       nomeFantasia: string | null;
@@ -186,9 +258,27 @@ export interface ClientVisit {
 }
 
 export interface ClientVisitsQueryResponse {
-  visitsBySellerClientFactory: {
+  visitsByCompanyClient: {
     edges: { node: ClientVisit }[];
     totalCount: number;
+  };
+}
+
+export interface FactoryStockSummary {
+  sellerClientFactoryId: string;
+  totalProducts: number;
+  stockedOut: number;
+  critical: number;
+  factory: {
+    id: string;
+    nomeFantasia: string | null;
+    razaoSocial: string;
+  } | null;
+}
+
+export interface ClientFactoryStockQueryResponse {
+  companyClient: {
+    data: { id: string; factoryStockSummaries: FactoryStockSummary[] } | null;
   };
 }
 

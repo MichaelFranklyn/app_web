@@ -5,14 +5,18 @@ import { InputControl, InputControlProps } from "./Control";
 import { InputGroup } from "./Group";
 import { InputAddon } from "./Addon";
 import { InputHint } from "./Hint";
+import { InputSize } from "./styles";
 
-export interface InputBaseProps extends InputControlProps {
+// `size` sombreia o atributo nativo do <input> (largura em caracteres), que não
+// usamos: aqui ele é a altura do controle, alinhada a Button e Badge.
+export interface InputBaseProps extends Omit<InputControlProps, "size"> {
   label?: React.ReactNode;
   hint?: React.ReactNode;
   error?: boolean | string;
   success?: boolean;
   addon?: React.ReactNode;
   containerClassName?: string;
+  size?: InputSize;
 }
 
 export const InputText = ({
@@ -23,6 +27,7 @@ export const InputText = ({
   addon,
   className,
   containerClassName,
+  size,
   ...props
 }: InputBaseProps) => {
   const isError = !!error;
@@ -34,6 +39,7 @@ export const InputText = ({
       success={success}
       disabled={props.disabled}
       className={containerClassName}
+      size={size}
     >
       {label && <InputLabel>{label}</InputLabel>}
       {addon ? (

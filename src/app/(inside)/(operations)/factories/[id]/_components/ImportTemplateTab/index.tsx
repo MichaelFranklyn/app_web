@@ -7,6 +7,7 @@ import { usePathname } from "next/navigation";
 import { Settings2 } from "lucide-react";
 
 import { Button } from "@/components/Button";
+import { Card } from "@/components/Card";
 import { Title } from "@/components/Title";
 
 import { ConfigureTemplateModal } from "./ConfigureTemplateModal";
@@ -61,74 +62,78 @@ export function ImportTemplateTab({ factoryId }: Props) {
         Modelos de importação
       </Title>
 
-      <TemplateCard
-        title="Modelo de pedido"
-        help={
-          <div className="flex flex-col gap-2">
-            <Title variant="label" color="amber">
-              Modelo de pedido
-            </Title>
-            <Title variant="body-sm">
-              Guarde um pedido de exemplo desta fábrica e o seu formato. Quando
-              o vendedor importar um pedido dela, o sistema já lê os itens
-              automaticamente, sem precisar apontar as colunas toda vez.
-            </Title>
-          </div>
-        }
-        template={orderTemplate}
-        loading={isLoading}
-        formatLabel={orderFormatLabel}
-        emptyDescription="Configure o modelo de pedido para importar os pedidos desta fábrica automaticamente."
-        downloadLabel="Baixar pedido de exemplo"
-        removeLabel="modelo de pedido"
-        headerAction={
-          <ConfigureTemplateModal
-            factoryId={factoryId}
-            current={orderTemplate}
-            onSaved={() => refetch()}
-          />
-        }
-        onChanged={() => refetch()}
-      />
+      {/* Mesma largura, empilhados: sem o grupo, o card de título mais longo
+          ("Modelo de tabela de preço") colapsaria antes do vizinho. */}
+      <Card.Header.Group>
+        <TemplateCard
+          title="Modelo de pedido"
+          help={
+            <div className="flex flex-col gap-2">
+              <Title variant="label" color="amber">
+                Modelo de pedido
+              </Title>
+              <Title variant="body-sm">
+                Guarde um pedido de exemplo desta fábrica e o seu formato.
+                Quando o vendedor importar um pedido dela, o sistema já lê os
+                itens automaticamente, sem precisar apontar as colunas toda vez.
+              </Title>
+            </div>
+          }
+          template={orderTemplate}
+          loading={isLoading}
+          formatLabel={orderFormatLabel}
+          emptyDescription="Configure o modelo de pedido para importar os pedidos desta fábrica automaticamente."
+          downloadLabel="Baixar pedido de exemplo"
+          removeLabel="modelo de pedido"
+          headerAction={
+            <ConfigureTemplateModal
+              factoryId={factoryId}
+              current={orderTemplate}
+              onSaved={() => refetch()}
+            />
+          }
+          onChanged={() => refetch()}
+        />
 
-      <TemplateCard
-        title="Modelo de tabela de preço"
-        help={
-          <div className="flex flex-col gap-2">
-            <Title variant="label" color="amber">
-              Modelo de tabela de preço
-            </Title>
-            <Title variant="body-sm">
-              Guarda como as colunas da tabela desta fábrica foram mapeadas
-              (níveis, IPI, NCM, impostos). Nas próximas importações você só
-              sobe o novo arquivo — o mapeamento já vem preenchido.
-            </Title>
-          </div>
-        }
-        template={priceListTemplate}
-        loading={isLoading}
-        formatLabel="Mapeamento de colunas"
-        emptyDescription="O modelo é salvo na hora de importar uma tabela. Clique em Configurar modelo para abrir a importação e, ao fim do mapeamento, em “Salvar como modelo”."
-        downloadLabel="Baixar tabela de exemplo"
-        removeLabel="modelo de tabela de preço"
-        headerAction={
-          <Link href={importHref}>
-            <Button.Root
-              appearance={priceListTemplate ? "outline" : "solid"}
-              color={priceListTemplate ? "neutral" : "amber"}
-              size="sm"
-            >
-              <Button.Icon icon={Settings2} />
-              <Button.Title>
-                {priceListTemplate
-                  ? "Reconfigurar modelo"
-                  : "Configurar modelo"}
-              </Button.Title>
-            </Button.Root>
-          </Link>
-        }
-        onChanged={() => refetch()}
-      />
+        <TemplateCard
+          title="Modelo de tabela de preço"
+          help={
+            <div className="flex flex-col gap-2">
+              <Title variant="label" color="amber">
+                Modelo de tabela de preço
+              </Title>
+              <Title variant="body-sm">
+                Guarda como as colunas da tabela desta fábrica foram mapeadas
+                (níveis, IPI, NCM, impostos). Nas próximas importações você só
+                sobe o novo arquivo — o mapeamento já vem preenchido.
+              </Title>
+            </div>
+          }
+          template={priceListTemplate}
+          loading={isLoading}
+          formatLabel="Mapeamento de colunas"
+          emptyDescription="O modelo é salvo na hora de importar uma tabela. Clique em Configurar modelo para abrir a importação e, ao fim do mapeamento, em “Salvar como modelo”."
+          downloadLabel="Baixar tabela de exemplo"
+          removeLabel="modelo de tabela de preço"
+          headerAction={
+            <Link href={importHref}>
+              <Button.Root
+                appearance={priceListTemplate ? "outline" : "solid"}
+                color={priceListTemplate ? "neutral" : "amber"}
+                size="sm"
+              >
+                <Button.Icon icon={Settings2} />
+                <Button.Title>
+                  {priceListTemplate
+                    ? "Reconfigurar modelo"
+                    : "Configurar modelo"}
+                </Button.Title>
+              </Button.Root>
+            </Link>
+          }
+          onChanged={() => refetch()}
+        />
+      </Card.Header.Group>
     </div>
   );
 }

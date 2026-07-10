@@ -27,7 +27,11 @@ test("dashboard: monta e renderiza o KPI de pedidos do período", async ({
     CompanyClientsCount: () => ({ company_clients_count: { totalCount: 12 } }),
   });
   await page.goto("/dashboard");
-  await expect(page.getByText("Visão Geral")).toBeVisible();
+  // "Visão Geral" é ambíguo: é o eyebrow do header E a aba de navegação.
+  // O <h1> do PanelHeader.Title é único na página.
+  await expect(
+    page.getByRole("heading", { name: "Dashboard", level: 1 })
+  ).toBeVisible();
   await expect(page.getByText("Pedidos no período")).toBeVisible();
   await expect(page.getByText("7", { exact: true })).toBeVisible();
 });

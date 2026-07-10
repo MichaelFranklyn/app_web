@@ -1,5 +1,6 @@
 "use client";
 
+import { Card } from "@/components/Card";
 import { useOptimisticObject } from "@/hooks/useOptimisticObject";
 import { useQuery } from "@apollo/client/react";
 import { useMemo } from "react";
@@ -71,18 +72,21 @@ export default function OverviewContent() {
 
   return (
     <div className="desktop:flex-row desktop:items-start flex flex-col gap-20">
-      <div className="flex min-w-0 flex-1 flex-col gap-16">
-        <AddressCard
-          clientId={id}
-          address={clientView ? buildAddress(clientView) : "—"}
-          currentAddress={clientView || undefined}
-          onUpdateOptimistic={optimisticClient.updateOptimistic}
-          onCommit={optimisticClient.commit}
-          onRollback={optimisticClient.rollback}
-        />
+      {/* Endereço + Contato: mesma largura, empilhados → colapsam juntos. */}
+      <Card.Header.Group>
+        <div className="flex min-w-0 flex-1 flex-col gap-16">
+          <AddressCard
+            clientId={id}
+            address={clientView ? buildAddress(clientView) : "—"}
+            currentAddress={clientView || undefined}
+            onUpdateOptimistic={optimisticClient.updateOptimistic}
+            onCommit={optimisticClient.commit}
+            onRollback={optimisticClient.rollback}
+          />
 
-        <ContactCard clientId={id} />
-      </div>
+          <ContactCard clientId={id} />
+        </div>
+      </Card.Header.Group>
 
       <div className="desktop:w-[260px] flex w-full shrink-0 flex-col gap-12">
         <SummaryCard

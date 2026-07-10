@@ -30,6 +30,7 @@ export function FactoriesHeader({
           </PanelHeader.Description>
           <PanelHeader.Actions className="mt-6" data-tour="factories-actions">
             <InputSearch
+              size="sm"
               placeholder="Buscar por CNPJ ou nome..."
               data-tour="factories-search"
               containerClassName="w-[260px]"

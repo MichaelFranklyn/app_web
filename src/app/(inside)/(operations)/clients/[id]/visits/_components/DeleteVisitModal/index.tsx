@@ -60,7 +60,7 @@ export function DeleteVisitModal({
         successMessage: "Visita removida",
         onSuccess: async () => {
           onCommit();
-          await invalidateClient(["visitsBySellerClientFactory"]);
+          await invalidateClient(["visitsByCompanyClient", "visitSchedules"]);
           onDeleted?.();
         },
         onError: () => {
@@ -76,7 +76,7 @@ export function DeleteVisitModal({
         <Button.Root
           appearance="ghost"
           color="red"
-          size="xs"
+          size="sm"
           aria-label="Remover visita"
         >
           <Button.Icon icon={Trash2} />

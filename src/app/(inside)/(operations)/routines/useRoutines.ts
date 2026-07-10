@@ -1,7 +1,8 @@
 import { getCookie } from "@/utils/cookies/clientCookie";
 import { getCurrentWeekMondayIso } from "@/utils/format/date";
 import { useQuery } from "@apollo/client/react";
-import { useEffect, useMemo, useState } from "react";
+import { usePathname, useRouter, useSearchParams } from "next/navigation";
+import { useCallback, useEffect, useMemo, useState } from "react";
 
 import {
   ROUTINE_SELLERS_QUERY,
@@ -23,6 +24,10 @@ export function useRoutines() {
   const [weekStart, setWeekStart] = useState<string>(getCurrentWeekMondayIso);
   const [periodDays, setPeriodDays] = useState(7);
 
+  const router = useRouter();
+  const pathname = usePathname();
+  const searchParams = useSearchParams();
+
   // Lido após o mount (cookie é client-only) para evitar mismatch de hidratação.
   const [canSelectSeller, setCanSelectSeller] = useState(false);
   useEffect(() => {
@@ -41,14 +46,26 @@ export function useRoutines() {
     [sellersData]
   );
 
-  const [selectedSellerId, setSelectedSellerId] = useState<string | null>(null);
+  // O vendedor escolhido vive na URL: ao sair da rotina (abrir um cliente, por
+  // exemplo) e voltar, o gestor reencontra a rotina que estava vendo, em vez de
+  // cair no primeiro vendedor da lista.
+  const selectedSellerId = searchParams.get("sellerId");
+
+  const setSelectedSellerId = useCallback(
+    (id: string) => {
+      const params = new URLSearchParams(searchParams.toString());
+      params.set("sellerId", id);
+      router.replace(`${pathname}?${params.toString()}`, { scroll: false });
+    },
+    [pathname, router, searchParams]
+  );
 
   // Default: primeiro vendedor da lista assim que ela carrega.
   useEffect(() => {
     if (canSelectSeller && !selectedSellerId && sellers.length > 0) {
       setSelectedSellerId(sellers[0].id);
     }
-  }, [canSelectSeller, selectedSellerId, sellers]);
+  }, [canSelectSeller, selectedSellerId, sellers, setSelectedSellerId]);
 
   const filters = useMemo(() => {
     const base = [{ field: "week_start", operator: "eq", value: weekStart }];

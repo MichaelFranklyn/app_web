@@ -16,7 +16,12 @@ import { InputBaseProps } from "./InputText";
 import { InputLabel } from "./Label";
 import { InputRoot } from "./Root";
 import { useInputContext } from "./context";
-import { inputStyles, selectStyles } from "./styles";
+import {
+  inputSizeMinHeight,
+  inputSizePadding,
+  inputStyles,
+  selectStyles,
+} from "./styles";
 
 export type SelectOption = {
   value: string;
@@ -53,6 +58,7 @@ export const InputSelect = ({
   onCreateOption,
   disabledClear = false,
   placeholder,
+  size,
   ...props
 }: InputSelectProps) => {
   const isError = !!error;
@@ -64,6 +70,7 @@ export const InputSelect = ({
       success={success}
       disabled={props.disabled}
       className={containerClassName}
+      size={size}
     >
       {label && <InputLabel>{label}</InputLabel>}
 
@@ -113,7 +120,7 @@ const InputSelectControl = ({
   disabledClear,
   placeholder,
   ...props
-}: InputSelectProps) => {
+}: Omit<InputSelectProps, "size">) => {
   const context = useInputContext();
   const modalPortal = useModalPortal();
   const inputRef = useRef<HTMLInputElement>(null);
@@ -366,9 +373,13 @@ const InputSelectControl = ({
     }
   };
 
+  const size = context?.size ?? "md";
+
   const computedClasses = cn(
     inputStyles.controlBase,
-    "flex items-center gap-[8px] cursor-text min-h-[36px]",
+    inputSizePadding[size],
+    !inGroup && inputSizeMinHeight[size],
+    "flex items-center gap-[8px] cursor-text",
     inGroup ? inputStyles.controlGrouped : inputStyles.controlBordered,
     !inGroup && isError && inputStyles.error,
     !inGroup && isSuccess && inputStyles.success,

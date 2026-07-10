@@ -11,15 +11,9 @@ import { useQuery } from "@apollo/client/react";
 import { CalendarCheck } from "lucide-react";
 import { useMemo, useState } from "react";
 import { useClientRoute } from "../context";
-import { CLIENT_VISITS_QUERY, SELLER_CLIENT_FACTORIES_QUERY } from "../gql";
+import { CLIENT_VISITS_QUERY } from "../gql";
+import { ClientVisit, ClientVisitsQueryResponse } from "../interface";
 import {
-  ClientVisit,
-  ClientVisitsQueryResponse,
-  SellerClientFactoriesQueryResponse,
-} from "../interface";
-import {
-  STOCK_OBSERVATION_COLOR,
-  STOCK_OBSERVATION_LABEL,
   VISIT_OUTCOME_COLOR,
   VISIT_OUTCOME_LABEL,
   VISIT_STATUS_COLOR,
@@ -31,40 +25,61 @@ import { pageToAfter } from "@/utils/pagination";
 import { DeleteVisitModal } from "./_components/DeleteVisitModal";
 import { EditVisitModal } from "./_components/EditVisitModal";
 import { VisitsSkeleton } from "./_components/VisitsSkeleton";
+import { VisitStockAction } from "./_components/VisitStockAction";
 
 const ITEMS_PER_PAGE = 10;
 
+const FACTORY_NAMES_SHOWN = 2;
+
+const abbreviate = (names: string[]): string => {
+  const shown = names.slice(0, FACTORY_NAMES_SHOWN).join(", ");
+  const rest = names.length - FACTORY_NAMES_SHOWN;
+  return rest > 0 ? `${shown} +${rest}` : shown;
+};
+
+/** Por que o sistema mandou visitar: as fábricas de score alto. */
+const focusLabel = (visit: ClientVisit): string => {
+  const names = (visit.focusFactories ?? [])
+    .map((f) => f.factory?.nomeFantasia ?? f.factory?.razaoSocial)
+    .filter((name): name is string => Boolean(name));
+
+  if (names.length === 0)
+    return factoryName(visit.clientFactoryLink?.factory ?? null);
+  return abbreviate(names);
+};
+
+/**
+ * O que o vendedor de fato tratou, derivado das observações de estoque que ele
+ * registrou. Pode incluir fábricas fora do foco: ele está na loja e aproveita
+ * para levantar o estoque de outros catálogos.
+ */
+const treatedLabel = (visit: ClientVisit): string => {
+  const names = (visit.treatedFactories ?? [])
+    .map((f) => f.nomeFantasia ?? f.razaoSocial)
+    .filter((name): name is string => Boolean(name));
+
+  return names.length === 0 ? "—" : abbreviate(names);
+};
+
+const clientLabel = (visit: ClientVisit): string => {
+  const client = visit.clientFactoryLink?.client;
+  return client?.nomeFantasia ?? client?.razaoSocial ?? "Cliente";
+};
+
 export default function VisitsContent() {
-  const { clientId: id } = useClientRoute();
+  const { companyClientId } = useClientRoute();
   const [page, setPage] = useState(1);
-
-  const { data: vinculosData, loading: vinculosLoading } =
-    useQuery<SellerClientFactoriesQueryResponse>(
-      SELLER_CLIENT_FACTORIES_QUERY,
-      {
-        variables: {
-          input: {
-            filters: [{ field: "client_id", operator: "eq", value: id }],
-            first: 1,
-          },
-        },
-        skip: !id,
-      }
-    );
-
-  const sellerClientFactoryId =
-    vinculosData?.sellerClientFactoryList.edges[0]?.node.id ?? null;
 
   const variables = useMemo(
     () => ({
-      sellerClientFactoryId,
+      companyClientId,
       input: {
         order: { by: "created_at", dir: "desc" },
         first: ITEMS_PER_PAGE,
         after: pageToAfter(page, ITEMS_PER_PAGE),
       },
     }),
-    [sellerClientFactoryId, page]
+    [companyClientId, page]
   );
 
   const {
@@ -73,23 +88,22 @@ export default function VisitsContent() {
     refetch,
   } = useQuery<ClientVisitsQueryResponse>(CLIENT_VISITS_QUERY, {
     variables,
-    skip: !sellerClientFactoryId,
+    skip: !companyClientId,
   });
 
   const initialVisits = useMemo<ClientVisit[]>(
-    () =>
-      visitsData?.visitsBySellerClientFactory.edges.map((e) => e.node) ?? [],
+    () => visitsData?.visitsByCompanyClient.edges.map((e) => e.node) ?? [],
     [visitsData]
   );
   const optimistic = useOptimisticList<ClientVisit>({
     initialData: initialVisits,
   });
   const visits = optimistic.items;
-  const totalCount = visitsData?.visitsBySellerClientFactory.totalCount ?? 0;
+  const totalCount = visitsData?.visitsByCompanyClient.totalCount ?? 0;
   const totalPages = Math.max(1, Math.ceil(totalCount / ITEMS_PER_PAGE));
   const currentPage = Math.min(page, totalPages);
 
-  const isLoading = vinculosLoading || visitsLoading;
+  const isLoading = visitsLoading;
 
   if (isLoading && visits.length === 0) {
     return <VisitsSkeleton />;
@@ -101,12 +115,12 @@ export default function VisitsContent() {
         <Table.Header>
           <Table.Row>
             <Table.Head>Data</Table.Head>
-            <Table.Head>Fábrica</Table.Head>
+            <Table.Head>Motivo da visita</Table.Head>
+            <Table.Head>Fábricas tratadas</Table.Head>
             <Table.Head>Vendedor</Table.Head>
             <Table.Head>Status</Table.Head>
             <Table.Head>Resultado</Table.Head>
             <Table.Head>Motivo</Table.Head>
-            <Table.Head>Obs. Estoque</Table.Head>
             <Table.Head className="text-right">Ações</Table.Head>
           </Table.Row>
         </Table.Header>
@@ -136,7 +150,12 @@ export default function VisitsContent() {
                 </Table.Cell>
                 <Table.Cell>
                   <Table.CellText variant="strong">
-                    {factoryName(v.clientFactoryLink?.factory ?? null)}
+                    {focusLabel(v)}
+                  </Table.CellText>
+                </Table.Cell>
+                <Table.Cell>
+                  <Table.CellText variant="dim">
+                    {treatedLabel(v)}
                   </Table.CellText>
                 </Table.Cell>
                 <Table.Cell>
@@ -172,30 +191,18 @@ export default function VisitsContent() {
                   </Table.CellText>
                 </Table.Cell>
                 <Table.Cell>
-                  {v.stockObservation ? (
-                    <Badge.Root
-                      color={STOCK_OBSERVATION_COLOR[v.stockObservation]}
-                      appearance="tinted"
-                    >
-                      <Badge.Text>
-                        {STOCK_OBSERVATION_LABEL[v.stockObservation]}
-                      </Badge.Text>
-                    </Badge.Root>
-                  ) : (
-                    <Title variant="body-xs" color="muted">
-                      —
-                    </Title>
-                  )}
-                </Table.Cell>
-                <Table.Cell>
                   <div className="flex items-center justify-end gap-2">
+                    <VisitStockAction
+                      visitId={v.id}
+                      clientName={clientLabel(v)}
+                      onSaved={() => refetch()}
+                    />
                     <EditVisitModal
                       visit={{
                         id: v.id,
                         status: v.status,
                         outcome: v.outcome,
                         outcomeReason: v.outcomeReason,
-                        stockObservation: v.stockObservation,
                         notes: v.notes,
                       }}
                       onUpdateOptimistic={(visitId, updates) =>

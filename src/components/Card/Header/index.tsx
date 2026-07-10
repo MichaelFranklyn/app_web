@@ -1,3 +1,5 @@
+"use client";
+
 import { cn } from "@/lib/utils";
 import React from "react";
 import { CardHeaderAction } from "./Action";
@@ -11,6 +13,7 @@ import {
   headerContentStyle,
   headerStyle,
 } from "./style";
+import { HeaderActionsGroup, useHeaderActionsMode } from "../../HeaderActions";
 import { HeaderTitle } from "./Title";
 
 const HeaderRoot = React.forwardRef<HTMLDivElement, CardHeaderRootProps>(
@@ -29,15 +32,32 @@ const HeaderRoot = React.forwardRef<HTMLDivElement, CardHeaderRootProps>(
         (child.type as React.FC) !== HeaderActions
     );
 
+    // Refs para medir espaço disponível vs. tamanho das ações em cada estágio.
+    const innerRef = React.useRef<HTMLDivElement>(null);
+    const contentRef = React.useRef<HTMLDivElement>(null);
+    const actionsRef = React.useRef<HTMLDivElement>(null);
+    React.useImperativeHandle(ref, () => innerRef.current as HTMLDivElement);
+
+    const mode = useHeaderActionsMode({
+      headerRef: innerRef,
+      contentRef,
+      actionsRef,
+    });
+
     return (
       <div
-        ref={ref}
+        ref={innerRef}
+        data-actions-mode={mode}
         className={cn(headerStyle, headerBgVariants[bg], className)}
         {...props}
       >
-        <div className={headerContentStyle}>{content}</div>
+        <div ref={contentRef} className={headerContentStyle}>
+          {content}
+        </div>
         {actions.length > 0 && (
-          <div className={headerActionsWrapperStyle}>{actions}</div>
+          <div ref={actionsRef} className={headerActionsWrapperStyle}>
+            {actions}
+          </div>
         )}
       </div>
     );
@@ -52,4 +72,6 @@ export const Header = Object.assign(HeaderRoot, {
   Description: HeaderDescription,
   Actions: HeaderActions,
   Action: CardHeaderAction,
+  // Envolve vários headers (ex.: cards num grid) p/ decidirem o estágio juntos.
+  Group: HeaderActionsGroup,
 });

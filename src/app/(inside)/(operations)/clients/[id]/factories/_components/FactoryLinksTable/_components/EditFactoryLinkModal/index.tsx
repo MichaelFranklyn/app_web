@@ -62,7 +62,18 @@ export function EditFactoryLinkModal({
   const formRef = useRef<FormBuilderRef>(null);
   const { execute, isLoading } = useAsyncAction();
   const [updateLink] = useMutation<UpdateSellerClientFactoryResponse>(
-    UPDATE_SELLER_CLIENT_FACTORY_MUTATION
+    UPDATE_SELLER_CLIENT_FACTORY_MUTATION,
+    {
+      // Prioridade/frequência entram no score: o backend recalcula o do vínculo.
+      // Invalida os campos que o exibem (aba de score e header vivem sob
+      // `companyClient`; o histórico sob `clientVisitScores`) para não mostrar o
+      // número antigo ao abrir a aba de score depois da edição.
+      update(cache) {
+        cache.evict({ id: "ROOT_QUERY", fieldName: "companyClient" });
+        cache.evict({ id: "ROOT_QUERY", fieldName: "clientVisitScores" });
+        cache.gc();
+      },
+    }
   );
 
   const formSteps = useMemo<FormStepSchema[]>(
@@ -140,7 +151,7 @@ export function EditFactoryLinkModal({
         <Button.Root
           appearance="ghost"
           color="neutral"
-          size="xs"
+          size="sm"
           aria-label="Editar vínculo"
         >
           <Button.Icon icon={Pencil} />

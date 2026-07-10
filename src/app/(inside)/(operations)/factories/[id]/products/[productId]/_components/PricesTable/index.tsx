@@ -95,6 +95,7 @@ export function PricesTable({
         </Table.CardHead.Title>
         <Table.CardHead.Actions>
           <InputSearch
+            size="sm"
             containerClassName="w-70"
             placeholder="Buscar por tabela ou nível..."
             value={search}

@@ -70,7 +70,7 @@ export function DeleteOrderModal({
         <Button.Root
           appearance="ghost"
           color="red"
-          size="xs"
+          size="sm"
           aria-label="Remover pedido"
         >
           <Button.Icon icon={Trash2} />

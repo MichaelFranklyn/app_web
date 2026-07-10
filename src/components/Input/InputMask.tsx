@@ -10,7 +10,7 @@ import { InputGroup } from "./Group";
 import { InputAddon } from "./Addon";
 import { InputHint } from "./Hint";
 import { useInputContext } from "./context";
-import { inputStyles } from "./styles";
+import { inputSizeMinHeight, inputSizePadding, inputStyles } from "./styles";
 import { InputBaseProps } from "./InputText";
 
 export interface InputMaskProps extends InputBaseProps {
@@ -39,9 +39,12 @@ const IMaskControl = forwardRef<HTMLInputElement, InputMaskProps>(
     const isSuccess = context?.success;
     const inGroup = context?.inGroup;
     const disabled = context?.disabled || props.disabled;
+    const size = context?.size ?? "md";
 
     const computedClasses = cn(
       inputStyles.controlBase,
+      inputSizePadding[size],
+      !inGroup && inputSizeMinHeight[size],
       inGroup ? inputStyles.controlGrouped : inputStyles.controlBordered,
       !inGroup && isError && inputStyles.error,
       !inGroup && isSuccess && inputStyles.success,
@@ -81,6 +84,7 @@ export const InputMask = forwardRef<HTMLInputElement, InputMaskProps>(
       onAccept,
       onComplete,
       dispatch,
+      size,
       ...props
     },
     ref
@@ -94,6 +98,7 @@ export const InputMask = forwardRef<HTMLInputElement, InputMaskProps>(
         success={success}
         disabled={props.disabled}
         className={containerClassName}
+        size={size}
       >
         {label && <InputLabel>{label}</InputLabel>}
 
