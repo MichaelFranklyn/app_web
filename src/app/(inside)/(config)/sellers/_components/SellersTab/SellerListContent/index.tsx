@@ -42,6 +42,7 @@ export default function SellerListContent() {
             <Table.CardHead.Actions>
               <div className="flex items-center gap-8">
                 <InputSearch
+                  size="sm"
                   placeholder="Buscar por nome..."
                   value={tableData.inputValues.search ?? ""}
                   onChange={(e) =>

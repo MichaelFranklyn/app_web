@@ -173,7 +173,7 @@ export function EditClientLinkModal({
   return (
     <Modal.Root open={open} onOpenChange={setOpen}>
       <Modal.Trigger asChild>
-        <Button.Root appearance="ghost" color="neutral" size="xs" noUppercase>
+        <Button.Root appearance="ghost" color="neutral" size="sm" noUppercase>
           <Button.Icon icon={Pencil} />
           <Button.Title>Editar</Button.Title>
         </Button.Root>

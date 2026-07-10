@@ -22,7 +22,13 @@ import { InputHint } from "./Hint";
 import { InputGroup } from "./Group";
 import { InputAddon } from "./Addon";
 import { useInputContext } from "./context";
-import { inputStyles, calendarStyles, selectStyles } from "./styles";
+import {
+  calendarStyles,
+  inputSizeMinHeight,
+  inputSizePadding,
+  inputStyles,
+  selectStyles,
+} from "./styles";
 import { InputBaseProps } from "./InputText";
 import { CalendarBase } from "./CalendarBase";
 import { Calendar as CalendarIcon, X } from "lucide-react";
@@ -109,6 +115,7 @@ export const InputDate = ({
   onClose,
   disabledClear,
   placeholder,
+  size,
   ...props
 }: InputDateProps) => {
   const isError = !!error;
@@ -120,6 +127,7 @@ export const InputDate = ({
       success={success}
       disabled={props.disabled}
       className={containerClassName}
+      size={size}
     >
       {label && <InputLabel>{label}</InputLabel>}
 
@@ -166,7 +174,7 @@ const InputDateControl = ({
   disabledClear,
   placeholder,
   ...props
-}: InputDateProps) => {
+}: Omit<InputDateProps, "size">) => {
   const context = useInputContext();
   const containerRef = useRef<HTMLDivElement>(null);
 
@@ -174,6 +182,7 @@ const InputDateControl = ({
   const isError = context?.error;
   const isSuccess = context?.success;
   const inGroup = context?.inGroup;
+  const size = context?.size ?? "md";
 
   const portalAnchor = useModalPortal();
 
@@ -338,7 +347,9 @@ const InputDateControl = ({
 
   const computedClasses = cn(
     inputStyles.controlBase,
-    "flex items-center gap-[8px] cursor-pointer min-h-[36px]",
+    inputSizePadding[size],
+    !inGroup && inputSizeMinHeight[size],
+    "flex items-center gap-[8px] cursor-pointer",
     inGroup ? inputStyles.controlGrouped : inputStyles.controlBordered,
     !inGroup && isError && inputStyles.error,
     !inGroup && isSuccess && inputStyles.success,

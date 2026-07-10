@@ -31,7 +31,7 @@ export const VISIT_STATUS_COLOR: Record<VisitStatus, VisitStatusColor> = {
 const toOptions = (map: Record<string, string>) =>
   Object.entries(map).map(([value, label]) => ({ value, label }));
 
-/** Opções de status/resultado/estoque de visita para selects (fonte única). */
+/** Opções de status/resultado de visita para selects (fonte única). */
 export const VISIT_STATUS_OPTIONS = toOptions(VISIT_STATUS_LABEL);
 
 export const VISIT_OUTCOME_OPTIONS = [
@@ -39,11 +39,4 @@ export const VISIT_OUTCOME_OPTIONS = [
   { value: "NOT_BOUGHT", label: "Não comprou" },
   { value: "RESCHEDULED", label: "Reagendou" },
   { value: "CLOSED", label: "Fechado" },
-];
-
-export const STOCK_OBSERVATION_OPTIONS = [
-  { value: "OUT_OF_STOCK", label: "Zerado" },
-  { value: "LOW", label: "Baixo" },
-  { value: "ADEQUATE", label: "Adequado" },
-  { value: "HIGH", label: "Alto" },
 ];

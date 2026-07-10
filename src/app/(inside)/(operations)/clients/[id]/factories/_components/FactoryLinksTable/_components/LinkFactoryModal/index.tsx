@@ -21,7 +21,7 @@ export function LinkFactoryModal(props: LinkFactoryModalProps) {
   return (
     <Modal.Root open={open} onOpenChange={handleOpenChange}>
       <Modal.Trigger asChild>
-        <Button.Root appearance="solid" color="amber" size="xs" noUppercase>
+        <Button.Root appearance="solid" color="amber" size="sm" noUppercase>
           <Button.Icon icon={Plus} />
           <Button.Title>Vincular</Button.Title>
         </Button.Root>

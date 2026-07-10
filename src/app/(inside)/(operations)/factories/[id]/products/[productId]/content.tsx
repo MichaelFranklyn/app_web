@@ -1,5 +1,6 @@
 "use client";
 
+import { Card } from "@/components/Card";
 import { EmptyState } from "@/components/EmptyState";
 import { Grid } from "@/components/Grid";
 import { useRefetchQueriesClient } from "@/hooks/useInvalidateQueries";
@@ -78,18 +79,22 @@ export default function ProductDetailContent({ id }: Props) {
           span={{ base: 1, desktop: 1 }}
           className="flex flex-col gap-12"
         >
-          <div data-tour="product-info">
-            <ProductInfoCard product={product} />
-          </div>
-          <div data-tour="product-taxes">
-            <TaxesTable productId={id} onChanged={handleTaxesChanged} />
-          </div>
-          <div data-tour="product-components">
-            <ComponentsTable
-              productId={id}
-              companyFactoryId={product.companyFactory?.id ?? ""}
-            />
-          </div>
+          {/* Impostos + Componentes: mesma largura (coluna direita) → juntos.
+              PricesTable fica de fora (largura diferente, decide sozinho). */}
+          <Card.Header.Group>
+            <div data-tour="product-info">
+              <ProductInfoCard product={product} />
+            </div>
+            <div data-tour="product-taxes">
+              <TaxesTable productId={id} onChanged={handleTaxesChanged} />
+            </div>
+            <div data-tour="product-components">
+              <ComponentsTable
+                productId={id}
+                companyFactoryId={product.companyFactory?.id ?? ""}
+              />
+            </div>
+          </Card.Header.Group>
         </Grid.Item>
       </Grid>
     </div>

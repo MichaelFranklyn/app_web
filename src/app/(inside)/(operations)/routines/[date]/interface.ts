@@ -1,3 +1,6 @@
+// Tipo compartilhado com a grade semanal (nível-pai da rota).
+import { VisitFocusFactory } from "../interface";
+
 export type VisitStatus =
   | "PENDING"
   | "COMPLETED"
@@ -9,8 +12,6 @@ export type VisitStatus =
 export type DayStatus = "PLANNED" | "IN_PROGRESS" | "DONE";
 
 export type VisitOutcome = "SOLD" | "NOT_BOUGHT" | "RESCHEDULED" | "CLOSED";
-
-export type StockObservation = "OUT_OF_STOCK" | "LOW" | "ADEQUATE" | "HIGH";
 
 export interface VisitClient {
   id: string;
@@ -43,8 +44,9 @@ export interface VisitItem {
   estimatedTravelMin: number | null;
   status: VisitStatus;
   outcome: VisitOutcome | null;
-  stockObservation: StockObservation | null;
   notes: string | null;
+  focusFactories: VisitFocusFactory[];
+  treatedFactories: VisitFactory[];
   clientFactoryLink: VisitClientFactoryLink | null;
 }
 

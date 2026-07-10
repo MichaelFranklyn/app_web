@@ -28,8 +28,20 @@ export const WEEK_SCHEDULE_QUERY = gql`
               estimatedTravelMin
               status
               outcome
-              stockObservation
               notes
+              focusFactories {
+                scoreTotal
+                factory {
+                  id
+                  nomeFantasia
+                  razaoSocial
+                }
+              }
+              treatedFactories {
+                id
+                nomeFantasia
+                razaoSocial
+              }
               clientFactoryLink {
                 id
                 client {

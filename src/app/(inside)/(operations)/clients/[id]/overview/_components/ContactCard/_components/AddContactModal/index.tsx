@@ -103,7 +103,10 @@ export function AddContactModal({ clientId, onAddOptimistic }: Props) {
     await execute(
       async () => {
         const res = await createContact({ variables: { input } });
-        if (!res.data?.createClientContact?.status || !res.data.createClientContact.data) {
+        if (
+          !res.data?.createClientContact?.status ||
+          !res.data.createClientContact.data
+        ) {
           throw new Error(
             res.data?.createClientContact?.message ?? "Erro ao criar contato"
           );
@@ -125,7 +128,7 @@ export function AddContactModal({ clientId, onAddOptimistic }: Props) {
   return (
     <Modal.Root open={open} onOpenChange={setOpen}>
       <Modal.Trigger asChild>
-        <Button.Root appearance="solid" color="amber" size="xs" noUppercase>
+        <Button.Root appearance="solid" color="amber" size="sm" noUppercase>
           <Button.Icon icon={Plus} />
           <Button.Title>Adicionar</Button.Title>
         </Button.Root>

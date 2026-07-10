@@ -66,12 +66,14 @@ test("factories: vincula uma fábrica e o card aparece na grid", async ({
 
   // Input.Select custom: digitar filtra e abre o dropdown (renderizado em
   // portal, fora do dialog); clicar a opção no portal.
+  // O `value` da opção é o legado "Faturado", mas o LABEL exibido (e filtrado
+  // ao digitar) é "Faturamento — comissão paga no faturamento".
   const basis = dialog.getByRole("textbox", { name: "Base de cálculo" });
   await basis.click();
-  await basis.pressSequentially("Faturado");
+  await basis.pressSequentially("Faturamento");
   await page
     .locator("[data-select-dropdown]")
-    .getByText("Faturado", { exact: true })
+    .getByText(/^Faturamento —/)
     .click();
 
   await dialog.locator('input[name="paymentTermDays"]').fill("5");

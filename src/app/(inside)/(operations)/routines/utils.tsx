@@ -18,11 +18,15 @@ export interface VisitFollowupWarning {
 // rotina: ou o estoque observado no cliente, ou o resultado/pedido. Basta UMA
 // das duas (o vendedor pode só ter levantado o estoque, sem fechar pedido).
 // Só avisamos quando NENHUMA foi registrada.
+//
+// "Registrou estoque" = tratou ao menos uma fábrica. As fábricas tratadas saem
+// das observações de estoque por produto, então a lista vazia é exatamente o
+// caso de quem saiu da loja sem levantar nada.
 export const getVisitFollowupWarning = (
   item: VisitScheduleItem
 ): VisitFollowupWarning | null => {
   if (item.status !== "COMPLETED") return null;
-  const needsStock = item.stockObservation == null;
+  const needsStock = (item.treatedFactories ?? []).length === 0;
   const needsOrder = item.outcome == null;
   if (!needsStock || !needsOrder) return null;
   return {
@@ -30,6 +34,32 @@ export const getVisitFollowupWarning = (
     needsOrder,
     message: "Visita concluída — registre o estoque ou lance o pedido.",
   };
+};
+
+/**
+ * Score da visita: o MAIOR entre as fábricas em foco, não o do vínculo principal.
+ *
+ * A visita é ao cliente e carrega N fábricas; mostrar o score de uma delas
+ * escolhida por acaso esconde justamente a urgente. Cai no vínculo só nas visitas
+ * antigas, geradas antes de o foco existir.
+ */
+export const getVisitScoreTotal = (item: VisitScheduleItem): number | null => {
+  // `Number(null)` é 0, não NaN: sem descartar o nulo antes, uma fábrica em foco
+  // que nunca teve score entraria como zero e ainda venceria o `Math.max` de uma
+  // lista toda nula.
+  const focusScores = (item.focusFactories ?? [])
+    .map((focus) => toScore(focus.scoreTotal))
+    .filter((score): score is number => score !== null);
+
+  if (focusScores.length > 0) return Math.max(...focusScores);
+
+  return toScore(item.clientFactoryLink?.latestVisitScore?.scoreTotal ?? null);
+};
+
+const toScore = (raw: string | null): number | null => {
+  if (raw == null) return null;
+  const parsed = Number(raw);
+  return Number.isFinite(parsed) ? parsed : null;
 };
 
 export const VISIT_URGENCY_BORDER: Record<VisitStatus, string> = {
@@ -172,11 +202,7 @@ export const buildWeekDays = (
 };
 
 // Opções dos enums — value = NOME do membro GraphQL, label = PT.
-export {
-  VISIT_STATUS_OPTIONS,
-  VISIT_OUTCOME_OPTIONS,
-  STOCK_OBSERVATION_OPTIONS,
-} from "@/utils/visit";
+export { VISIT_STATUS_OPTIONS, VISIT_OUTCOME_OPTIONS } from "@/utils/visit";
 
 export const RESCHEDULE_REASON_OPTIONS = [
   { value: "CLIENT_ABSENT", label: "Cliente ausente" },

@@ -14,8 +14,6 @@ export type VisitStatus =
 
 export type VisitOutcome = "SOLD" | "NOT_BOUGHT" | "RESCHEDULED" | "CLOSED";
 
-export type StockObservation = "OUT_OF_STOCK" | "LOW" | "ADEQUATE" | "HIGH";
-
 export interface VisitClient {
   id: string;
   razaoSocial: string;
@@ -36,14 +34,24 @@ export interface VisitClientFactoryLink {
   latestVisitScore: { scoreTotal: string } | null;
 }
 
+// Fábrica que esta visita vai tratar. A visita é ao CLIENTE: quando ele tem mais
+// de uma fábrica urgente, o vendedor vai uma vez e conversa sobre todas elas.
+export interface VisitFocusFactory {
+  scoreTotal: string | null;
+  factory: VisitFactory | null;
+}
+
 export interface VisitScheduleItem {
   id: string;
   plannedOrder: number;
   estimatedTravelMin: number | null;
   status: VisitStatus;
   outcome: VisitOutcome | null;
-  stockObservation: StockObservation | null;
   notes: string | null;
+  /** O que motivou a visita (sugestão do sistema). */
+  focusFactories: VisitFocusFactory[];
+  /** O que o vendedor de fato tratou, derivado das observações de estoque. */
+  treatedFactories: VisitFactory[];
   clientFactoryLink: VisitClientFactoryLink | null;
 }
 

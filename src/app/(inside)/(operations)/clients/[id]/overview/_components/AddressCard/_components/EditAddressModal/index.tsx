@@ -72,7 +72,7 @@ export function EditAddressModal({
   return (
     <Modal.Root open={open} onOpenChange={setOpen}>
       <Modal.Trigger asChild>
-        <Button.Root appearance="ghost" color="neutral" size="xs" noUppercase>
+        <Button.Root appearance="solid" color="amber" size="sm" noUppercase>
           <Button.Icon icon={Pencil} />
           <Button.Title>Editar</Button.Title>
         </Button.Root>

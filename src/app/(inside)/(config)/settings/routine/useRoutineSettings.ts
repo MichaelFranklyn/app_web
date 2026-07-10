@@ -11,7 +11,6 @@ import {
 } from "../gql";
 import {
   CreateScheduleConfigResponse,
-  PriorityWeights,
   RoutineConfigSeller,
   RoutineConfigSellersResponse,
   ScheduleConfig,
@@ -115,10 +114,6 @@ export function useRoutineSettings() {
     setForm((prev) => (prev ? { ...prev, ...patch } : prev));
   };
 
-  const handleWeightsChange = (weights: PriorityWeights) => {
-    setForm((prev) => (prev ? { ...prev, priorityWeights: weights } : prev));
-  };
-
   const handleSave = async () => {
     if (!form || !selectedSellerId) return;
 
@@ -196,7 +191,6 @@ export function useRoutineSettings() {
     isDirty,
     isLoading,
     handlePatch,
-    handleWeightsChange,
     handleSave,
   };
 }

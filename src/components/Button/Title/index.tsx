@@ -7,6 +7,8 @@ interface ButtonTitleProps {
 }
 
 export const ButtonTitle = ({ children, className }: ButtonTitleProps) => (
-  <span className={cn(className)}>{children}</span>
+  <span data-button-title className={cn(className)}>
+    {children}
+  </span>
 );
 ButtonTitle.displayName = "Button.Title";

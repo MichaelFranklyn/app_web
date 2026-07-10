@@ -64,7 +64,7 @@ export function EditOrderModal({
         <Button.Root
           appearance="ghost"
           color="neutral"
-          size="xs"
+          size="sm"
           noUppercase
           onClick={
             stopPropagationOnTrigger ? (e) => e.stopPropagation() : undefined

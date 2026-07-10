@@ -174,7 +174,7 @@ export function AddAccessModal() {
       }}
     >
       <Modal.Trigger asChild>
-        <Button.Root appearance="solid" color="amber" size="md">
+        <Button.Root appearance="solid" color="amber" size="sm">
           <Button.Icon icon={Plus} />
           <Button.Title>Novo Vínculo</Button.Title>
         </Button.Root>

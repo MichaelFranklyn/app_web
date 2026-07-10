@@ -1,6 +1,7 @@
 "use client";
 
 import { MoreOptions } from "@/components/MoreOptions";
+import { clientDisplayName } from "@/utils/client";
 import {
   CalendarClock,
   Eye,
@@ -15,7 +16,7 @@ import { VisitScheduleItem } from "../../interface";
 import { CompletionPromptModal } from "./CompletionPromptModal";
 import { EditVisitModal } from "./EditVisitModal";
 import { RescheduleVisitModal } from "./RescheduleVisitModal";
-import { StockVisitModal } from "./StockVisitModal";
+import { VisitStockModal } from "@/components/VisitStockModal";
 import { VisitDetailPanel } from "./VisitDetailPanel";
 
 type ActiveModal =
@@ -64,7 +65,7 @@ export function useVisitActions({
   // A rota /clients/[id] é chaveada pelo id da carteira (company_client), não
   // pelo id global do cliente.
   const companyClientId = client?.companyClient?.id ?? null;
-  const clientName = client?.nomeFantasia ?? client?.razaoSocial ?? "Cliente";
+  const clientName = clientDisplayName(client, "Cliente");
   const openClient = companyClientId
     ? () => router.push(`/clients/${companyClientId}/overview`)
     : undefined;
@@ -137,8 +138,9 @@ export function useVisitActions({
         onCompleted={() => setActive("completed")}
       />
 
-      <StockVisitModal
-        item={item}
+      <VisitStockModal
+        itemId={item.id}
+        clientName={clientName}
         open={active === "stock"}
         onOpenChange={(o) => !o && close()}
         onSaved={onChanged}

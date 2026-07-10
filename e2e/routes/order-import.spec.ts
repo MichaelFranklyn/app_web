@@ -1,5 +1,5 @@
 import { expect, test } from "../support/fixtures";
-import { mockGraphql } from "../support/graphql";
+import { mockGraphql, orderDetailData } from "../support/graphql";
 
 /**
  * Cauda longa — wizard de IMPORTAÇÃO de itens (orders/[id], ImportOrderModal).
@@ -19,29 +19,7 @@ test("pedido/import: importa itens de um arquivo (PDF mockado)", async ({
         status: true,
         code: 200,
         message: "ok",
-        data: {
-          id: "order-1",
-          orderDate: "2026-06-22",
-          totalAmount: "0",
-          commissionAmount: "0",
-          status: "DRAFT",
-          freightType: null,
-          fileUrl: null,
-          fileParsed: false,
-          notes: null,
-          createdAt: "2026-06-22T00:00:00Z",
-          seller: { id: "s-1", name: "Vendedor" },
-          client: {
-            id: "c-1",
-            razaoSocial: "Cliente LTDA",
-            nomeFantasia: "Cliente",
-          },
-          factory: {
-            id: "f-1",
-            nomeFantasia: "Fábrica",
-            razaoSocial: "Fábrica LTDA",
-          },
-        },
+        data: orderDetailData({ totalAmount: "0", commissionAmount: "0" }),
       },
     }),
     OrderItems: () => ({

@@ -91,7 +91,7 @@ export function LinkFactoryModal({ onAddOptimistic }: LinkFactoryModalProps) {
     <>
       <Modal.Root open={open} onOpenChange={handleClose}>
         <Modal.Trigger asChild>
-          <Button.Root appearance="solid" color="amber" size="md">
+          <Button.Root appearance="solid" color="amber" size="sm">
             <Button.Icon icon={Plus} />
             <Button.Title>Vincular Fábrica</Button.Title>
           </Button.Root>

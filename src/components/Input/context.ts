@@ -1,4 +1,5 @@
 import { createContext, useContext } from "react";
+import { InputSize } from "./styles";
 
 export interface InputContextProps {
   id?: string;
@@ -6,6 +7,7 @@ export interface InputContextProps {
   success?: boolean;
   disabled?: boolean;
   inGroup?: boolean;
+  size?: InputSize;
 }
 
 export const InputContext = createContext<InputContextProps | null>(null);

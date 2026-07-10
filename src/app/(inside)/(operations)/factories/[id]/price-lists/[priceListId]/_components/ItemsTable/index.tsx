@@ -80,6 +80,7 @@ export function ItemsTable({
         </Table.CardHead.Title>
         <Table.CardHead.Actions data-tour="price-items-actions">
           <InputSearch
+            size="sm"
             containerClassName="w-70"
             placeholder="Buscar por nome ou SKU..."
             value={search}

@@ -1,5 +1,5 @@
 import { expect, test } from "../support/fixtures";
-import { mockGraphql } from "../support/graphql";
+import { mockGraphql, orderDetailData } from "../support/graphql";
 
 /**
  * Cauda longa — adicionar item ao pedido (orders/[id], AddOrderItemModal).
@@ -14,21 +14,8 @@ import { mockGraphql } from "../support/graphql";
  */
 const URL = "/orders/order-1";
 
-const orderData = () => ({
-  id: "order-1",
-  orderDate: "2026-06-22",
-  totalAmount: "0.00",
-  commissionAmount: "0.00",
-  status: "DRAFT",
-  freightType: null,
-  fileUrl: null,
-  fileParsed: false,
-  notes: null,
-  createdAt: "2026-06-22T00:00:00Z",
-  seller: { id: "s-1", name: "Vendedor" },
-  client: { id: "c-1", razaoSocial: "Cliente LTDA", nomeFantasia: "Cliente" },
-  factory: { id: "f-1", nomeFantasia: "Fábrica", razaoSocial: "Fábrica LTDA" },
-});
+const orderData = () =>
+  orderDetailData({ totalAmount: "0.00", commissionAmount: "0.00" });
 
 test("pedido detalhe: adiciona um item (cascata produto/nível/preço)", async ({
   page,
@@ -61,6 +48,26 @@ test("pedido detalhe: adiciona um item (cascata produto/nível/preço)", async (
           },
         ],
       },
+    }),
+    // Produtos e níveis vêm da FÁBRICA (não da tabela de preço): o nível é
+    // opcional e a tabela ativa serve só para sugerir o preço.
+    OrderItemProducts: () => ({
+      products: {
+        edges: [
+          {
+            node: {
+              id: "p-1",
+              name: "Produto X",
+              sku: "SKU-1",
+              saleMultiple: null,
+              unitLabel: { id: "ul-1", label: "CX" },
+            },
+          },
+        ],
+      },
+    }),
+    OrderItemTiers: () => ({
+      priceTiers: { edges: [{ node: { id: "t-1", name: "Varejo" } }] },
     }),
     OrderItemPriceListItems: () => ({
       priceListItems: {
@@ -121,7 +128,9 @@ test("pedido detalhe: adiciona um item (cascata produto/nível/preço)", async (
     .getByText("SKU-1 — Produto X", { exact: true })
     .click();
 
-  const nivel = dialog.getByRole("textbox", { name: "Nível comercial" });
+  const nivel = dialog.getByRole("textbox", {
+    name: "Nível comercial (opcional)",
+  });
   await nivel.click();
   await nivel.pressSequentially("Varejo");
   await page

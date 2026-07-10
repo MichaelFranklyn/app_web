@@ -30,7 +30,7 @@ export function orderStatusColor(
   return map[s] ?? "neutral";
 }
 
-import { StockObservation, VisitOutcome } from "./interface";
+import { VisitOutcome } from "./interface";
 
 type BadgeColor = "neutral" | "blue" | "amber" | "green" | "red";
 
@@ -48,20 +48,6 @@ export const VISIT_OUTCOME_COLOR: Record<VisitOutcome, BadgeColor> = {
   NOT_BOUGHT: "neutral",
   RESCHEDULED: "blue",
   CLOSED: "amber",
-};
-
-export const STOCK_OBSERVATION_LABEL: Record<StockObservation, string> = {
-  OUT_OF_STOCK: "Zerado",
-  LOW: "Baixo",
-  ADEQUATE: "Adequado",
-  HIGH: "Alto",
-};
-
-export const STOCK_OBSERVATION_COLOR: Record<StockObservation, BadgeColor> = {
-  OUT_OF_STOCK: "red",
-  LOW: "amber",
-  ADEQUATE: "green",
-  HIGH: "green",
 };
 
 export function stockSituation(

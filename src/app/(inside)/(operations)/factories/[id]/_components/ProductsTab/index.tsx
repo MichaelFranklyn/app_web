@@ -115,6 +115,7 @@ export function ProductsTab({ companyFactoryId }: Props) {
         <Table.CardHead.Actions>
           <div className="flex items-center gap-8" data-tour="products-actions">
             <InputSearch
+              size="sm"
               containerClassName="w-72"
               placeholder="Buscar por nome ou SKU..."
               value={search}

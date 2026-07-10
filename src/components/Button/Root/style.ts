@@ -28,11 +28,25 @@ const sizePaddingClasses: Record<ButtonSize, string> = {
   xs: "px-[8px]  py-[3px]",
 };
 
+// Piso de altura do botão de texto, espelhando inputSizeMinHeight. Sem ele a
+// altura vem só do conteúdo: quando o texto some (estágio `icon` do
+// Card.Header, que esconde [data-button-title] via CSS) sobra o ícone, menor
+// que a linha de texto, e o botão encolhe em relação ao input ao lado.
+const sizeMinHeightClasses: Record<ButtonSize, string> = {
+  lg: "min-h-[44.8px]",
+  md: "min-h-[38.8px]",
+  sm: "min-h-[32.8px]",
+  xs: "min-h-[28.8px]",
+};
+
+// Quadrados com a MESMA altura do botão de texto do mesmo size, para que
+// só-ícone, botão com texto, badge e input fiquem alinhados lado a lado.
+// Altura = line-height (1.6 × 13px = 20.8) + 2×padY (sizePaddingClasses) + 2×borda.
 const iconOnlySizeClasses: Record<ButtonSize, string> = {
-  lg: "w-[40px] h-[40px] p-0 rounded-(--r-lg)",
-  md: "w-[32px] h-[32px] p-0 rounded-(--r-md)",
-  sm: "w-[24px] h-[24px] p-0 rounded-(--r-sm)",
-  xs: "w-[20px] h-[20px] p-0 rounded-(--r-sm)",
+  lg: "w-[44.8px] h-[44.8px] p-0 rounded-(--r-lg)",
+  md: "w-[38.8px] h-[38.8px] p-0 rounded-(--r-md)",
+  sm: "w-[32.8px] h-[32.8px] p-0 rounded-(--r-sm)",
+  xs: "w-[28.8px] h-[28.8px] p-0 rounded-(--r-sm)",
 };
 
 const appearanceHover: Record<ThemeAppearance, string> = {
@@ -78,6 +92,7 @@ export const getButtonClasses = ({
     appearanceHover[appearance],
     isIconOnly ? iconOnlySizeClasses[size] : sizeTextClasses[size],
     !noPadding && !isIconOnly && sizePaddingClasses[size],
+    !noPadding && !isIconOnly && sizeMinHeightClasses[size],
     noPadding && "p-0",
     focusClasses,
     active && isIconOnly && activeIconOnlyClasses,

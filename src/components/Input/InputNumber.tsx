@@ -15,6 +15,7 @@ export const InputNumber = ({
   addon,
   className,
   containerClassName,
+  size,
   ...props
 }: InputBaseProps) => {
   const isError = !!error;
@@ -26,6 +27,7 @@ export const InputNumber = ({
       success={success}
       disabled={props.disabled}
       className={containerClassName}
+      size={size}
     >
       {label && <InputLabel>{label}</InputLabel>}
       {addon ? (

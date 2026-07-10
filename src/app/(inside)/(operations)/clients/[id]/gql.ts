@@ -51,6 +51,35 @@ export const CLIENT_ORDERS_QUERY = gql`
   }
 `;
 
+// Score mais recente de cada fábrica do cliente, já ordenado do mais quente ao
+// mais frio pelo backend. Substitui o antigo "pega um vínculo qualquer com
+// first: 1 e sem order", que fazia a aba falar de uma fábrica sorteada.
+export const CLIENT_FACTORY_SCORES_QUERY = gql`
+  query ClientFactoryScores($id: UUID!) {
+    companyClient(id: $id) {
+      data {
+        id
+        factoryVisitScores {
+          scoreDate
+          scoreTotal
+          scoreUrgency
+          scorePriority
+          scoreFrequency
+          scorePotential
+          scoreRecency
+          clientFactoryLink {
+            id
+            factory {
+              id
+              nomeFantasia
+            }
+          }
+        }
+      }
+    }
+  }
+`;
+
 export const CLIENT_VISIT_SCORES_QUERY = gql`
   query ClientVisitScores(
     $sellerClientFactoryId: UUID!
@@ -70,8 +99,6 @@ export const CLIENT_VISIT_SCORES_QUERY = gql`
           scoreFrequency
           scorePotential
           scoreRecency
-          recommendedProducts
-          stockoutAlerts
         }
       }
       totalCount
@@ -114,22 +141,18 @@ export const CLIENT_PRODUCT_INSIGHTS_QUERY = gql`
   }
 `;
 
+// Visitas do CLIENTE, em todas as fábricas. A visita é ao cliente: uma ida cobre
+// várias fábricas, e o vínculo do item é só a principal daquele dia. Filtrar por
+// vínculo mostrava ~1/28 das visitas, escolhidas por qual fábrica estava quente.
 export const CLIENT_VISITS_QUERY = gql`
-  query VisitsBySellerClientFactory(
-    $sellerClientFactoryId: UUID!
-    $input: BaseListInput!
-  ) {
-    visitsBySellerClientFactory(
-      sellerClientFactoryId: $sellerClientFactoryId
-      input: $input
-    ) {
+  query VisitsByCompanyClient($companyClientId: UUID!, $input: BaseListInput!) {
+    visitsByCompanyClient(companyClientId: $companyClientId, input: $input) {
       edges {
         node {
           id
           status
           outcome
           outcomeReason
-          stockObservation
           actualVisitAt
           notes
           day {
@@ -143,8 +166,26 @@ export const CLIENT_VISITS_QUERY = gql`
               }
             }
           }
+          focusFactories {
+            scoreTotal
+            factory {
+              id
+              nomeFantasia
+              razaoSocial
+            }
+          }
+          treatedFactories {
+            id
+            nomeFantasia
+            razaoSocial
+          }
           clientFactoryLink {
             id
+            client {
+              id
+              nomeFantasia
+              razaoSocial
+            }
             factory {
               id
               nomeFantasia
@@ -154,6 +195,52 @@ export const CLIENT_VISITS_QUERY = gql`
         }
       }
       totalCount
+    }
+  }
+`;
+
+// Estoque estimado por fábrica: quantos produtos zerados e críticos em cada.
+export const CLIENT_FACTORY_STOCK_QUERY = gql`
+  query ClientFactoryStock($id: UUID!) {
+    companyClient(id: $id) {
+      data {
+        id
+        factoryStockSummaries {
+          sellerClientFactoryId
+          totalProducts
+          stockedOut
+          critical
+          factory {
+            id
+            nomeFantasia
+            razaoSocial
+          }
+        }
+      }
+    }
+  }
+`;
+
+// Pedidos agregados por fábrica: o backend já ordena da compra mais recente à
+// mais antiga e inclui as fábricas em que o cliente nunca comprou.
+export const CLIENT_FACTORY_ORDERS_QUERY = gql`
+  query ClientFactoryOrders($id: UUID!) {
+    companyClient(id: $id) {
+      data {
+        id
+        factoryOrderSummaries {
+          sellerClientFactoryId
+          sellerId
+          totalOrders
+          totalAmount
+          lastOrderDate
+          factory {
+            id
+            nomeFantasia
+            razaoSocial
+          }
+        }
+      }
     }
   }
 `;
@@ -175,6 +262,22 @@ export const COMPANY_CLIENT_QUERY = gql`
           scoreFrequency
           scorePotential
           scoreRecency
+        }
+        factoryVisitScores {
+          scoreDate
+          scoreTotal
+          scoreUrgency
+          scorePriority
+          scoreFrequency
+          scorePotential
+          scoreRecency
+          clientFactoryLink {
+            id
+            factory {
+              id
+              nomeFantasia
+            }
+          }
         }
         client {
           id
@@ -292,6 +395,32 @@ export const UPDATE_SELLER_CLIENT_FACTORY_MUTATION = gql`
           id
           name
         }
+      }
+    }
+  }
+`;
+
+export const UPDATE_PRODUCT_STOCK_MUTATION = gql`
+  mutation UpdateProductStock(
+    $sellerClientFactoryId: UUID!
+    $productId: UUID!
+    $daysRemaining: Int
+    $notes: String
+  ) {
+    updateProductStock(
+      sellerClientFactoryId: $sellerClientFactoryId
+      productId: $productId
+      daysRemaining: $daysRemaining
+      notes: $notes
+    ) {
+      status
+      code
+      message
+      data {
+        id
+        productId
+        daysRemaining
+        observation
       }
     }
   }

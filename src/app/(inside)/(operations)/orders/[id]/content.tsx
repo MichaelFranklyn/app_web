@@ -51,35 +51,37 @@ export default function OrderDetailContent({ id }: Props) {
       <OrderDetailHeader order={order} onRefetch={refetch} />
 
       <div className="desktop:flex-row flex flex-col gap-20">
-        <div
-          className="flex min-w-0 flex-1 flex-col gap-12"
-          data-tour="order-items"
-        >
-          <OrderItemsTable
-            orderId={order.id}
-            factoryId={order.factory?.id ?? null}
-            onOrderChanged={() => refetch()}
-          />
+        <Card.Header.Group>
+          <div
+            className="flex min-w-0 flex-1 flex-col gap-12"
+            data-tour="order-items"
+          >
+            <OrderItemsTable
+              orderId={order.id}
+              factoryId={order.factory?.id ?? null}
+              onOrderChanged={() => refetch()}
+            />
 
-          {order.invoicedAt && order.installments.length > 0 && (
-            <InstallmentsCard order={order} onChanged={() => refetch()} />
-          )}
+            {order.invoicedAt && order.installments.length > 0 && (
+              <InstallmentsCard order={order} onChanged={() => refetch()} />
+            )}
 
-          {order.notes && (
-            <Card.Root>
-              <Card.Header>
-                <Card.Header.Title size="sm" weight="bold">
-                  Observações
-                </Card.Header.Title>
-              </Card.Header>
-              <Card.Body>
-                <Title variant="body-sm" color="secondary">
-                  {order.notes}
-                </Title>
-              </Card.Body>
-            </Card.Root>
-          )}
-        </div>
+            {order.notes && (
+              <Card.Root>
+                <Card.Header>
+                  <Card.Header.Title size="sm" weight="bold">
+                    Observações
+                  </Card.Header.Title>
+                </Card.Header>
+                <Card.Body>
+                  <Title variant="body-sm" color="secondary">
+                    {order.notes}
+                  </Title>
+                </Card.Body>
+              </Card.Root>
+            )}
+          </div>
+        </Card.Header.Group>
 
         <div
           className="desktop:w-[260px] flex w-full shrink-0 flex-col gap-12"

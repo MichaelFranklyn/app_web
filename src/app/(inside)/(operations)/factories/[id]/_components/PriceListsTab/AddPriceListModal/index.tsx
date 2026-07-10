@@ -140,9 +140,7 @@ export function AddPriceListModal({
           title="Nova tabela"
         >
           <Button.Icon icon={Plus} />
-          <Button.Title className="hidden @min-[640px]/cardhead:inline">
-            Nova tabela
-          </Button.Title>
+          <Button.Title>Nova tabela</Button.Title>
         </Button.Root>
       </Modal.Trigger>
 

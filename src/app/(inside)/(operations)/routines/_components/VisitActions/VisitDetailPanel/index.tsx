@@ -3,6 +3,7 @@
 import { Badge } from "@/components/Badges";
 import { Button } from "@/components/Button";
 import { Title } from "@/components/Title";
+import { clientDisplayName } from "@/utils/client";
 import {
   CalendarClock,
   PackageSearch,
@@ -13,7 +14,6 @@ import {
 } from "lucide-react";
 import { VisitScheduleItem } from "../../../interface";
 import {
-  STOCK_OBSERVATION_OPTIONS,
   VISIT_OUTCOME_OPTIONS,
   VISIT_STATUS_COLOR,
   VISIT_STATUS_LABEL,
@@ -59,18 +59,18 @@ export function VisitDetailPanel({
   const warning = getVisitFollowupWarning(item);
   const client = item.clientFactoryLink?.client ?? null;
   const factory = item.clientFactoryLink?.factory ?? null;
-  const clientName = client
-    ? (client.nomeFantasia ?? client.razaoSocial)
-    : "Cliente —";
+  const clientName = clientDisplayName(client);
   const factoryName = factory
     ? (factory.nomeFantasia ?? factory.razaoSocial)
     : "—";
 
   const outcomeLabel = optionLabel(VISIT_OUTCOME_OPTIONS, item.outcome);
-  const stockLabel = optionLabel(
-    STOCK_OBSERVATION_OPTIONS,
-    item.stockObservation
-  );
+  // As fábricas tratadas saem das observações de estoque registradas: é o que o
+  // vendedor de fato levantou nesta ida, e não só a fábrica que motivou a visita.
+  const treatedLabel =
+    (item.treatedFactories ?? [])
+      .map((f) => f.nomeFantasia ?? f.razaoSocial)
+      .join(", ") || null;
 
   return (
     <>
@@ -155,7 +155,7 @@ export function VisitDetailPanel({
               }
             />
             <Field label="Resultado" value={outcomeLabel ?? "—"} />
-            <Field label="Estoque do cliente" value={stockLabel ?? "—"} />
+            <Field label="Fábricas tratadas" value={treatedLabel ?? "—"} />
           </div>
 
           <div className="flex flex-col gap-2">

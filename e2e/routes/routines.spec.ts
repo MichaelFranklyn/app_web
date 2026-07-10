@@ -1,5 +1,14 @@
+import { getCurrentWeekMondayIso } from "@/utils/format/date";
 import { expect, test } from "../support/fixtures";
 import { emptyConnection, mockGraphql } from "../support/graphql";
+
+// `useRoutines` lê `visit_schedule_configs.edges[0]` — o campo é não-nulo no
+// schema, então sem handler o fallback `{}` derruba a página inteira.
+const scheduleConfig = () => ({
+  visit_schedule_configs: {
+    edges: [{ node: { id: "cfg-1", sellerId: "s-1", maxVisitsPerDay: 8 } }],
+  },
+});
 
 test("routines: a rotina da semana carrega sem agendamentos", async ({
   page,
@@ -7,6 +16,7 @@ test("routines: a rotina da semana carrega sem agendamentos", async ({
   await mockGraphql(page, {
     RoutineSellersOptions: () => ({ routine_sellers: { edges: [] } }),
     VisitSchedules: () => ({ visit_schedules: emptyConnection() }),
+    VisitScheduleConfig: scheduleConfig,
   });
 
   await page.goto("/routines");
@@ -19,16 +29,21 @@ test("routines: a rotina da semana carrega sem agendamentos", async ({
  * acionável; o item tem um menu (MoreOptions) → "Editar visita". O EditVisitModal
  * tem status prefilled, então só alteramos as notas (evita o select de status).
  */
+// A grade sempre monta a SEMANA CORRENTE (`getCurrentWeekMondayIso`) e casa os
+// `days` por data. Uma data fixa aqui só funciona na semana em que foi escrita —
+// depois o item cai fora da grade e o card não renderiza. Ancorar em "hoje".
+const WEEK_START = getCurrentWeekMondayIso();
+
 const schedule = {
   id: "sch-1",
-  weekStart: "2026-06-22",
+  weekStart: WEEK_START,
   status: "CONFIRMED",
-  generatedAt: "2026-06-22T00:00:00Z",
+  generatedAt: `${WEEK_START}T00:00:00Z`,
   seller: { id: "s-1", user: { name: "João Vendedor" } },
   days: [
     {
       id: "d-1",
-      date: "2026-06-22",
+      date: WEEK_START,
       status: "PLANNED",
       departureType: "HOME",
       routeDistanceKm: "50.0",
@@ -40,8 +55,9 @@ const schedule = {
           estimatedTravelMin: 15,
           status: "PENDING",
           outcome: null,
-          stockObservation: null,
           notes: null,
+          focusFactories: [],
+          treatedFactories: [],
           clientFactoryLink: {
             id: "cfl-1",
             client: {
@@ -64,6 +80,7 @@ const schedule = {
 test("rotina: edita uma visita (notas)", async ({ page }) => {
   await mockGraphql(page, {
     RoutineSellersOptions: () => ({ routine_sellers: { edges: [] } }),
+    VisitScheduleConfig: scheduleConfig,
     VisitSchedules: () => ({
       visit_schedules: {
         edges: [{ node: schedule }],
@@ -82,11 +99,10 @@ test("rotina: edita uma visita (notas)", async ({ page }) => {
 
   await page.goto("/routines");
 
-  // Menu de ações do item (kebab logo após o nome do cliente no card).
-  await page
-    .getByText("Meu Cliente")
-    .locator("xpath=following::button[1]")
-    .click();
+  // Kebab DENTRO do card da visita. O `following::button[1]` era ambíguo: o
+  // card virou role="button" e há outros botões depois dele no DOM.
+  const card = page.getByRole("button", { name: /Meu Cliente/ });
+  await card.locator('[aria-haspopup="menu"]').click();
   await page.getByRole("menuitem", { name: "Editar visita" }).click();
 
   const dialog = page.getByRole("dialog");

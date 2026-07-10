@@ -12,7 +12,6 @@ import { UPDATE_VISIT_SCHEDULE_ITEM_MUTATION } from "./gql";
 import { EditVisitModalProps, UpdateVisitResponse } from "./interface";
 import {
   EDIT_VISIT_FORM_STEPS,
-  STOCK_OBS_OPTIONS,
   VISIT_OUTCOME_OPTIONS,
   VISIT_STATUS_OPTIONS,
   normalizeVisitInput,
@@ -60,7 +59,10 @@ export function EditVisitModal({
         onSuccess: async () => {
           formRef.current?.resetForm();
           onCommit();
-          await invalidateClient(["visitsBySellerClientFactory"]);
+          // `visitSchedules` alimenta a rotina da semana: o mesmo item aparece lá
+          // como card. Sem invalidar, voltar para /routines pode servir o status
+          // antigo do cache.
+          await invalidateClient(["visitsByCompanyClient", "visitSchedules"]);
         },
         onError: () => {
           onRollback();
@@ -75,7 +77,7 @@ export function EditVisitModal({
         <Button.Root
           appearance="ghost"
           color="neutral"
-          size="xs"
+          size="sm"
           aria-label="Editar visita"
         >
           <Button.Icon icon={Pencil} />
@@ -101,10 +103,6 @@ export function EditVisitModal({
                 VISIT_OUTCOME_OPTIONS.find((o) => o.value === visit.outcome) ??
                 null,
               outcomeReason: visit.outcomeReason ?? "",
-              stockObservation:
-                STOCK_OBS_OPTIONS.find(
-                  (o) => o.value === visit.stockObservation
-                ) ?? null,
               notes: visit.notes ?? "",
             }}
             unstyled

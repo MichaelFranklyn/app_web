@@ -8,6 +8,7 @@ import {
 } from "@/components/FormBuilder";
 import { Modal } from "@/components/Modal";
 import { useAsyncAction } from "@/hooks/useAsyncAction";
+import { clientDisplayName } from "@/utils/client";
 import { extractSelectValue } from "@/utils/form";
 import { useMutation } from "@apollo/client/react";
 import { useMemo, useRef } from "react";
@@ -33,7 +34,7 @@ export function EditVisitModal({
 
   const client = item.clientFactoryLink?.client;
   const factory = item.clientFactoryLink?.factory;
-  const clientName = client?.nomeFantasia ?? client?.razaoSocial ?? "Cliente";
+  const clientName = clientDisplayName(client, "Cliente");
   const factoryName = factory?.nomeFantasia ?? factory?.razaoSocial ?? "—";
 
   const steps: FormStepSchema[] = useMemo(

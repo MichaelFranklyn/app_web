@@ -64,7 +64,7 @@ export function DeleteOrderItemModal({
         <Button.Root
           appearance="ghost"
           color="red"
-          size="xs"
+          size="sm"
           isIconOnly
           noUppercase
           aria-label="Remover item"

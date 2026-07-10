@@ -10,7 +10,6 @@ import { Title } from "@/components/Title";
 import { Info, Save, Settings, Users } from "lucide-react";
 
 import { RoutineSkeleton } from "./_components/RoutineSkeleton";
-import { ScoreWeightsCard } from "../_components/ScoreWeightsCard";
 import { SchedulingPreferencesCard } from "../_components/SchedulingPreferencesCard";
 import { WorkingParametersCard } from "../_components/WorkingParametersCard";
 import { RoutineConfigSeller } from "../interface";
@@ -54,6 +53,7 @@ function RoutineActionBar({
         {sellers && (
           <div className="desktop:w-[240px] w-full">
             <Input.Select
+              size="sm"
               options={sellerOptions}
               value={sellerValue}
               variant="single"
@@ -99,7 +99,6 @@ export default function RoutineSettingsContent() {
     isDirty,
     isLoading,
     handlePatch,
-    handleWeightsChange,
     handleSave,
   } = useRoutineSettings();
 
@@ -174,13 +173,6 @@ export default function RoutineSettingsContent() {
         <WorkingParametersCard form={form} onChange={handlePatch} />
         <SchedulingPreferencesCard form={form} onChange={handlePatch} />
       </Grid.Root>
-
-      <div data-tour="routine-score-weights">
-        <ScoreWeightsCard
-          weights={form.priorityWeights}
-          onChange={handleWeightsChange}
-        />
-      </div>
     </div>
   );
 }

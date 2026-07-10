@@ -25,7 +25,7 @@ export function AddSellerModal(props: AddSellerModalProps) {
   return (
     <Modal.Root open={open} onOpenChange={handleOpenChange}>
       <Modal.Trigger asChild>
-        <Button.Root appearance="solid" color="amber" size="md">
+        <Button.Root appearance="solid" color="amber" size="sm">
           <Button.Icon icon={Plus} />
           <Button.Title>Novo Vendedor</Button.Title>
         </Button.Root>

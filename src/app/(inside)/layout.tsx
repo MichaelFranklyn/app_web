@@ -95,7 +95,12 @@ const NAV = [
     icon: UserCheck,
   },
   {
-    href: "/settings",
+    // Aponta direto para a aba padrão para evitar o flash em branco do redirect
+    // server-side de /settings. matchPrefix mantém o item ativo nas duas abas;
+    // tourRoute preserva o seletor do tour ([data-tour-route="/settings"]).
+    href: "/settings/catalog",
+    matchPrefix: "/settings",
+    tourRoute: "/settings",
     label: "Configurações",
     icon: Settings,
   },
@@ -292,16 +297,22 @@ export default function InsideLayout({
                 );
               }
 
-              const { href, label, icon } = item as {
+              const { href, label, icon, matchPrefix, tourRoute } = item as {
                 href: string;
                 label: string;
                 icon: React.ElementType;
+                matchPrefix?: string;
+                tourRoute?: string;
               };
 
+              // matchPrefix: item cujo href aponta para uma sub-rota (ex.: uma
+              // aba padrão), mas que deve ficar ativo em todo o prefixo.
+              const activeBase = matchPrefix ?? href;
               const isActive =
                 href === "/routines"
                   ? pathname === "/routines"
-                  : pathname === href || pathname.startsWith(`${href}/`);
+                  : pathname === activeBase ||
+                    pathname.startsWith(`${activeBase}/`);
 
               return (
                 <Sidebar.Item
@@ -310,7 +321,7 @@ export default function InsideLayout({
                   icon={icon}
                   active={isActive}
                   collapsed={collapsed}
-                  data-tour-route={href}
+                  data-tour-route={tourRoute ?? href}
                 >
                   {label}
                 </Sidebar.Item>

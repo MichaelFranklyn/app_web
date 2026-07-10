@@ -3,7 +3,6 @@ export interface VisitEditable {
   status: string;
   outcome: string | null;
   outcomeReason: string | null;
-  stockObservation: string | null;
   notes: string | null;
 }
 
@@ -11,7 +10,6 @@ export interface UpdateVisitInput {
   status?: string;
   outcome?: string | null;
   outcomeReason?: string | null;
-  stockObservation?: string | null;
   notes?: string | null;
 }
 

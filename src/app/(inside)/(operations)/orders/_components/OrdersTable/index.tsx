@@ -38,6 +38,7 @@ export function OrdersTable({
         <Table.CardHead.Title>Lista de pedidos</Table.CardHead.Title>
         <Table.CardHead.Actions>
           <InputSearch
+            size="sm"
             placeholder="Buscar por fábrica, vendedor ou código..."
             data-tour="orders-search"
             value={inputValues.search ?? ""}

@@ -1,6 +1,8 @@
+"use client";
 import React from "react";
 import { cn } from "@/lib/utils";
-import { inputStyles } from "./styles";
+import { useInputContext } from "./context";
+import { inputSizePadding, inputStyles } from "./styles";
 
 interface InputAddonProps extends React.HTMLAttributes<HTMLDivElement> {
   children: React.ReactNode;
@@ -11,8 +13,13 @@ export const InputAddon = ({
   className,
   ...props
 }: InputAddonProps) => {
+  const size = useInputContext()?.size ?? "md";
+
   return (
-    <div className={cn(inputStyles.addon, className)} {...props}>
+    <div
+      className={cn(inputStyles.addon, inputSizePadding[size], className)}
+      {...props}
+    >
       {children}
     </div>
   );

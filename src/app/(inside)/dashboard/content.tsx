@@ -1,5 +1,6 @@
 "use client";
 
+import { Card } from "@/components/Card";
 import { Grid } from "@/components/Grid";
 import { PageContent } from "@/components/PageContent";
 import { DashboardHeader } from "./_components/DashboardHeader";
@@ -52,10 +53,12 @@ export default function DashboardContent() {
             totalClients={totalClients}
           />
 
-          <Grid.Root cols={{ base: 1, desktop: 2 }} gap={12}>
-            <RecentOrdersTable orders={orders.slice(0, 4)} />
-            <UpcomingVisitsCard items={upcomingVisits} />
-          </Grid.Root>
+          <Card.Header.Group>
+            <Grid.Root cols={{ base: 1, desktop: 2 }} gap={12}>
+              <RecentOrdersTable orders={orders.slice(0, 4)} />
+              <UpcomingVisitsCard items={upcomingVisits} />
+            </Grid.Root>
+          </Card.Header.Group>
         </>
       )}
     </PageContent>

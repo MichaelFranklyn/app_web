@@ -8,6 +8,7 @@ import {
 } from "@/components/FormBuilder";
 import { Modal } from "@/components/Modal";
 import { useAsyncAction } from "@/hooks/useAsyncAction";
+import { clientDisplayName } from "@/utils/client";
 import { extractSelectValue } from "@/utils/form";
 import { toIsoDate } from "@/utils/format/date";
 import { useMutation } from "@apollo/client/react";
@@ -32,7 +33,7 @@ export function RescheduleVisitModal({
   const { execute, isLoading } = useAsyncAction();
 
   const client = item.clientFactoryLink?.client;
-  const clientName = client?.nomeFantasia ?? client?.razaoSocial ?? "Cliente";
+  const clientName = clientDisplayName(client, "Cliente");
 
   const steps: FormStepSchema[] = useMemo(
     () => [

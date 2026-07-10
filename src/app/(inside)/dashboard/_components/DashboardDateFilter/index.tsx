@@ -45,6 +45,7 @@ export function DashboardDateFilter({ value, onChange }: Props) {
   return (
     <div className="tablet:w-[260px] w-full">
       <InputDate
+        size="sm"
         variant="range"
         value={pickerValue}
         onChange={handleChange}

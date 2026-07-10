@@ -1,5 +1,9 @@
 import { expect, test } from "../support/fixtures";
-import { emptyConnection, mockGraphql } from "../support/graphql";
+import {
+  emptyConnection,
+  mockGraphql,
+  orderDetailData,
+} from "../support/graphql";
 
 /**
  * Lote 4 — detalhe do pedido (orders/[id], client-side: OrderDetail via useQuery).
@@ -7,21 +11,7 @@ import { emptyConnection, mockGraphql } from "../support/graphql";
  */
 const URL = "/orders/order-1";
 
-const orderData = () => ({
-  id: "order-1",
-  orderDate: "2026-06-22",
-  totalAmount: "1000.00",
-  commissionAmount: "100.00",
-  status: "DRAFT",
-  freightType: null,
-  fileUrl: null,
-  fileParsed: false,
-  notes: null,
-  createdAt: "2026-06-22T00:00:00Z",
-  seller: { id: "s-1", name: "Vendedor" },
-  client: { id: "c-1", razaoSocial: "Cliente LTDA", nomeFantasia: "Cliente" },
-  factory: { id: "f-1", nomeFantasia: "Fábrica", razaoSocial: "Fábrica LTDA" },
-});
+const orderData = () => orderDetailData();
 
 const orderItem = () => ({
   id: "oi-1",

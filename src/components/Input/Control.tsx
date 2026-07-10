@@ -2,7 +2,7 @@
 import { cn } from "@/lib/utils";
 import React, { forwardRef } from "react";
 import { useInputContext } from "./context";
-import { inputStyles } from "./styles";
+import { inputSizeMinHeight, inputSizePadding, inputStyles } from "./styles";
 
 export interface InputControlProps extends React.InputHTMLAttributes<HTMLInputElement> {
   isTextarea?: boolean;
@@ -19,9 +19,12 @@ export const InputControl = forwardRef<
   const isSuccess = context?.success;
   const inGroup = context?.inGroup;
   const disabled = context?.disabled || props.disabled;
+  const size = context?.size ?? "md";
 
   const computedClasses = cn(
     inputStyles.controlBase,
+    inputSizePadding[size],
+    !inGroup && inputSizeMinHeight[size],
     inGroup ? inputStyles.controlGrouped : inputStyles.controlBordered,
     !inGroup && isError && inputStyles.error,
     !inGroup && isSuccess && inputStyles.success,

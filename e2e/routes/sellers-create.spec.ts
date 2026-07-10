@@ -64,7 +64,7 @@ test("sellers: cadastra um vendedor pelo wizard de 3 steps", async ({
   await expect(dialog).toBeVisible();
 
   // Step 1: pula a seleção de usuário existente (opcional).
-  await dialog.getByRole("button", { name: "Próximo →" }).click();
+  await dialog.getByRole("button", { name: "Próximo" }).click();
 
   // Step 2: identificação (phone/cpf têm máscara; dígitos crus passam).
   await dialog.locator('input[name="name"]').fill("Vendedor E2E");
@@ -72,7 +72,7 @@ test("sellers: cadastra um vendedor pelo wizard de 3 steps", async ({
   await dialog.locator('input[name="phone"]').fill("11999990000");
   await dialog.locator('input[name="cpf"]').fill("12345678909");
   await dialog.locator('input[name="region"]').fill("Sudeste");
-  await dialog.getByRole("button", { name: "Próximo →" }).click();
+  await dialog.getByRole("button", { name: "Próximo" }).click();
 
   // Step 3: endereço — CEP dispara o autofill (ViaCEP mockado).
   await dialog.locator('input[name="homeCep"]').fill("01310-100");

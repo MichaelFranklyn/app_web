@@ -1,3 +1,9 @@
+// `Card.Header` e `Table.CardHead` vêm de um módulo "use client": a partir de um
+// Server Component eles chegam como referência opaca, e ler `.Actions` deles dá
+// `undefined` ("Element type is invalid"). Como `loading.tsx` é server, este
+// skeleton precisa ser client para acessar os subcomponentes.
+"use client";
+
 import { Card } from "@/components/Card";
 import { Loading } from "@/components/Loading";
 import { Table } from "@/components/Table";

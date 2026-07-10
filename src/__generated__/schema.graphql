@@ -1,6 +1,6 @@
 # AUTO-GERADO por scripts/pull-schema.mjs — NÃO editar à mão.
 # Snapshot do schema do backend (app_user). Atualize com: npm run schema:pull
-# Fonte: 40 arquivos .graphql merge-ados (mesma regra do Ariadne).
+# Fonte: 41 arquivos .graphql merge-ados (mesma regra do Ariadne).
 
 input BaseListInput {
   filters: [FieldFilterInput!] = null
@@ -231,8 +231,6 @@ type ClientVisitScoreType {
   scoreFrequency: Decimal!
   scorePotential: Decimal!
   scoreRecency: Decimal!
-  recommendedProducts: [JSON!]
-  stockoutAlerts: [JSON!]
   updatedAt: DateTime!
   clientFactoryLink: SellerClientFactoryType
 }
@@ -465,6 +463,32 @@ type CompanyClientType {
   client: ClientType
   visitScoreTotal: Decimal
   topVisitScore: ClientVisitScoreType
+  factoryVisitScores: [ClientVisitScoreType!]!
+  factoryStockSummaries: [FactoryStockSummaryType!]!
+  factoryOrderSummaries: [FactoryOrderSummaryType!]!
+}
+
+"""Resumo do estoque estimado do cliente em uma fábrica."""
+type FactoryStockSummaryType {
+  sellerClientFactoryId: UUID!
+  factory: FactoryType
+  totalProducts: Int!
+  stockedOut: Int!
+  critical: Int!
+}
+
+"""
+Resumo dos pedidos do cliente em uma fábrica. Inclui as fábricas em que ele
+nunca comprou (`totalOrders: 0`) — a ausência de pedido é informação de venda.
+"""
+type FactoryOrderSummaryType {
+  sellerClientFactoryId: UUID!
+  factory: FactoryType
+  """Vendedor do vínculo — o card mostra os pedidos dele naquela fábrica."""
+  sellerId: UUID!
+  totalOrders: Int!
+  totalAmount: Decimal!
+  lastOrderDate: Date
 }
 
 type CompanyClientTypeConnectionResponse {
@@ -1508,11 +1532,22 @@ input CreateOrderInput {
   notes: String = null
   fileUrl: String = null
   freightType: FreightType = null
+  """
+  Visita que originou o pedido. A fábrica do pedido não precisa ser a do foco da
+  visita: o vendedor vai por causa de uma e pode vender de outra.
+  """
+  visitScheduleItemId: UUID = null
+}
+
+"""Direção de ordenação. Aceita asc/desc com ou sem aspas."""
+enum SortDir {
+  asc
+  desc
 }
 
 input OrderInput {
   by: String! = "created_at"
-  dir: String! = "desc"
+  dir: SortDir! = desc
 }
 
 """Modalidade de frete. FOB: por conta do cliente. CIF: entrega pela fábrica."""
@@ -1542,6 +1577,8 @@ type OrderType {
   status: OrderStatus!
   paymentTermId: UUID
   invoicedAt: Date
+  """Visita que originou o pedido; nulo quando lançado fora de uma visita."""
+  visitScheduleItemId: UUID
   freightType: FreightType
   fileUrl: String
   isFileParsed: Boolean!
@@ -2505,6 +2542,18 @@ extend type Mutation {
     updateMyPassword(input: UpdateMyPasswordInput!): BaseResponse!
 }
 
+"""Fábrica em foco numa visita: o vínculo, a fábrica e o score no momento em que
+a rotina foi gerada."""
+type VisitItemFactoryType {
+  id: UUID!
+  visitScheduleItemId: UUID!
+  sellerClientFactoryId: UUID!
+  scoreTotal: Decimal
+  createdAt: DateTime!
+  clientFactoryLink: SellerClientFactoryType
+  factory: FactoryType
+}
+
 input CreateVisitRescheduleInput {
   originalItemId: UUID!
   reason: RescheduleReason!
@@ -2721,7 +2770,6 @@ input UpdateVisitScheduleItemInput {
   status: VisitStatus = null
   outcome: VisitOutcome = null
   outcomeReason: String = null
-  stockObservation: StockObservation = null
   checkinLat: Decimal = null
   checkinLng: Decimal = null
   actualVisitAt: DateTime = null
@@ -2766,7 +2814,6 @@ type VisitScheduleItemType {
   status: VisitStatus!
   outcome: VisitOutcome
   outcomeReason: String
-  stockObservation: StockObservation
   checkinLat: Decimal
   checkinLng: Decimal
   actualVisitAt: DateTime
@@ -2776,6 +2823,10 @@ type VisitScheduleItemType {
   updatedAt: DateTime!
   day: VisitScheduleDayType
   clientFactoryLink: SellerClientFactoryType
+  """Fábricas que motivaram a visita (sugestão do sistema, score alto)."""
+  focusFactories: [VisitItemFactoryType!]!
+  """Fábricas efetivamente tratadas, derivadas das observações de estoque registradas."""
+  treatedFactories: [FactoryType!]!
 }
 
 type VisitScheduleItemTypeConnectionResponse {
@@ -2803,6 +2854,45 @@ extend type Query {
     sellerClientFactoryId: UUID!
     input: BaseListInput!
   ): VisitScheduleItemTypeConnectionResponse!
+  """Visitas de um cliente da carteira, em todas as fábricas dele."""
+  visitsByCompanyClient(
+    companyClientId: UUID!
+    input: BaseListInput!
+  ): VisitScheduleItemTypeConnectionResponse!
+  """
+  Produtos que o vendedor pode observar nesta visita, agrupados por fábrica.
+  Traz TODAS as fábricas do cliente que o vendedor atende, não só as do foco.
+  """
+  visitStockCandidates(itemId: UUID!): [VisitStockCandidateGroupType!]!
+}
+
+"""Origem da lista de produtos de uma fábrica na visita."""
+enum StockCandidateSource {
+  """Produtos do último pedido do cliente naquela fábrica."""
+  LAST_ORDER
+  """Sem pedido: produtos com estoque acompanhado."""
+  TRACKED
+  """Nada a observar ainda; a fábrica aparece para o vendedor abrir a primeira venda."""
+  NO_PRODUCTS
+}
+
+type VisitStockCandidateProductType {
+  id: UUID!
+  name: String!
+  sku: String
+}
+
+type VisitStockCandidateGroupType {
+  sellerClientFactoryId: UUID!
+  factory: FactoryType
+  """Vendedor e cliente do vínculo — o pedido desta fábrica é lançado com eles."""
+  sellerId: UUID!
+  clientId: UUID!
+  """Esta fábrica motivou a visita (score alto)."""
+  isFocus: Boolean!
+  source: StockCandidateSource!
+  lastOrderDate: Date
+  products: [VisitStockCandidateProductType!]!
 }
 
 extend type Mutation {
@@ -2911,14 +3001,23 @@ enum ScheduleOrigin {
 
 input UpsertStockObservationInput {
   productId: UUID!
-  observation: StockObservation!
+  """
+  Dias que o produto ainda dura, segundo o cliente. 0 = já acabou.
+  Quando informado, é a fonte de verdade e `observation` é derivado dele.
+  """
+  daysRemaining: Int = null
+  """Rótulo. Opcional quando `daysRemaining` vem preenchido."""
+  observation: StockObservation = null
   notes: String = null
 }
 
 type VisitStockObservationType {
   id: UUID!
-  visitScheduleItemId: UUID!
+  """Visita de origem, quando houve uma. Nulo nas observações avulsas (telefonema)."""
+  visitScheduleItemId: UUID
+  sellerClientFactoryId: UUID!
   productId: UUID!
+  daysRemaining: Int
   observation: StockObservation!
   notes: String
   createdAt: DateTime!
@@ -2951,9 +3050,27 @@ extend type Query {
   ): VisitStockObservationTypeConnectionResponse!
 }
 
+type VisitStockObservationResponse {
+  status: Boolean!
+  code: Int!
+  message: String!
+  data: VisitStockObservationType
+}
+
 extend type Mutation {
   saveVisitStockObservations(
     itemId: UUID!
     observations: [UpsertStockObservationInput!]!
   ): VisitStockObservationListResponse!
+  """
+  Registra o estoque de um produto fora de uma visita (telefonema). Corrige a
+  previsão de esgotamento e recalcula o score do vínculo na hora.
+  """
+  updateProductStock(
+    sellerClientFactoryId: UUID!
+    productId: UUID!
+    daysRemaining: Int = null
+    observation: StockObservation = null
+    notes: String = null
+  ): VisitStockObservationResponse!
 }

@@ -8,10 +8,7 @@ import { useMutation } from "@apollo/client/react";
 import { Power } from "lucide-react";
 import { useState } from "react";
 import { UPDATE_SELLER_FACTORY_ACCESS_MUTATION } from "./gql";
-import {
-  EditSellerAccessModalProps,
-  UpdateAccessResponse,
-} from "./interface";
+import { EditSellerAccessModalProps, UpdateAccessResponse } from "./interface";
 
 export function EditSellerAccessModal({
   accessId,
@@ -77,7 +74,7 @@ export function EditSellerAccessModal({
         <Button.Root
           appearance="ghost"
           color="neutral"
-          size="xs"
+          size="sm"
           noUppercase
           disabled={!canActivate}
         >

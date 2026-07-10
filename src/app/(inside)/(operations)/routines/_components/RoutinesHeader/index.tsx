@@ -68,6 +68,7 @@ export function RoutinesHeader({
             {canSelectSeller && (
               <div className="desktop:w-[220px] w-full">
                 <Input.Select
+                  size="sm"
                   options={sellerOptions}
                   value={sellerValue}
                   variant="single"
@@ -82,6 +83,7 @@ export function RoutinesHeader({
             )}
             <div className="desktop:w-[180px] w-full">
               <Input.Date
+                size="sm"
                 variant="single"
                 value={isoToLocalDate(weekStart)}
                 disabledClear

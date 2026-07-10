@@ -74,7 +74,7 @@ export function ImportFactoriesModal() {
   return (
     <Modal.Root open={open} onOpenChange={handleClose}>
       <Modal.Trigger asChild>
-        <Button.Root appearance="outline" color="neutral" size="md">
+        <Button.Root appearance="outline" color="neutral" size="sm">
           <Button.Icon icon={Upload} />
           <Button.Title>Importar dados</Button.Title>
         </Button.Root>

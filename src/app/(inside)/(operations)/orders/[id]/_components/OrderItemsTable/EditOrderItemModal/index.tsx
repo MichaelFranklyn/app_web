@@ -145,7 +145,7 @@ export function EditOrderItemModal({
         <Button.Root
           appearance="ghost"
           color="neutral"
-          size="xs"
+          size="sm"
           isIconOnly
           noUppercase
           aria-label="Editar item"
