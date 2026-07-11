@@ -3,7 +3,7 @@
 import { ArrowRight } from "lucide-react";
 
 import { Input } from "@/components/Input";
-import { SelectOption } from "@/components/Input/InputSelect";
+import { SelectOption } from "@/components/Input";
 import { Title } from "@/components/Title";
 
 interface Props {

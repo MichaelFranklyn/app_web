@@ -2,7 +2,7 @@ import { useMutation, useQuery } from "@apollo/client/react";
 import { usePathname, useRouter, useSearchParams } from "next/navigation";
 import { useMemo, useState } from "react";
 
-import { SelectOption } from "@/components/Input/InputSelect";
+import { SelectOption } from "@/components/Input";
 import { useToast } from "@/components/Toast";
 import { toIsoDate } from "@/utils/format/date";
 import { useAsyncAction } from "@/hooks/useAsyncAction";

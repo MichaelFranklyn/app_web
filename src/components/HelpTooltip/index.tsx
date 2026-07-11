@@ -1,7 +1,7 @@
 "use client";
 
 import { Button } from "@/components/Button";
-import { ButtonSize } from "@/components/Button/Root/interface";
+import { ButtonSize } from "@/components/Button";
 import { cn } from "@/lib/utils";
 import { HelpCircle } from "lucide-react";
 import { ReactNode } from "react";

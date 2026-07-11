@@ -3,7 +3,7 @@
 import { Badge } from "@/components/Badges";
 import { EmptyState } from "@/components/EmptyState";
 import { InputSearch, InputSelect } from "@/components/Input";
-import { SelectOption } from "@/components/Input/InputSelect";
+import { SelectOption } from "@/components/Input";
 import { Modal } from "@/components/Modal";
 import { Pagination } from "@/components/Pagination";
 import { Table } from "@/components/Table";

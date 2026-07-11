@@ -6,7 +6,7 @@ import { ChangeEvent } from "react";
 import { Button } from "@/components/Button";
 import { HelpTooltip } from "@/components/HelpTooltip";
 import { Input } from "@/components/Input";
-import { SelectOption } from "@/components/Input/InputSelect";
+import { SelectOption } from "@/components/Input";
 import { Title } from "@/components/Title";
 
 import { TierColumn } from "./interface";
@@ -18,7 +18,9 @@ interface Props {
 }
 
 const newId = () =>
-  typeof crypto !== "undefined" && crypto.randomUUID ? crypto.randomUUID() : String(Math.random());
+  typeof crypto !== "undefined" && crypto.randomUUID
+    ? crypto.randomUUID()
+    : String(Math.random());
 
 export function TierMapper({ headers, tiers, onChange }: Props) {
   const columnOptions: SelectOption[] = headers.map((header, index) => ({
@@ -31,13 +33,16 @@ export function TierMapper({ headers, tiers, onChange }: Props) {
 
   const remove = (id: string) => onChange(tiers.filter((t) => t.id !== id));
 
-  const add = () => onChange([...tiers, { id: newId(), columnIndex: null, tierName: "" }]);
+  const add = () =>
+    onChange([...tiers, { id: newId(), columnIndex: null, tierName: "" }]);
 
   return (
     <div className="flex flex-col gap-8">
       <div className="grid grid-cols-[1fr_1fr_auto] items-center gap-8">
         <span className="inline-flex items-center gap-4">
-          <Title variant="caption" color="muted">Coluna de preço</Title>
+          <Title variant="caption" color="muted">
+            Coluna de preço
+          </Title>
           <HelpTooltip
             label="Como funcionam as colunas de preço?"
             content="Escolha as colunas da planilha que contêm preços. Ignore colunas de listas antigas ou de variação (%). A semântica do valor (por embalagem ou por unidade) é definida logo abaixo."
@@ -45,7 +50,9 @@ export function TierMapper({ headers, tiers, onChange }: Props) {
           />
         </span>
         <span className="inline-flex items-center gap-4">
-          <Title variant="caption" color="muted">Nível comercial</Title>
+          <Title variant="caption" color="muted">
+            Nível comercial
+          </Title>
           <HelpTooltip
             label="O que é nível comercial?"
             content="Faixa de preço praticada pela fábrica (ex.: DIAMANTE, PLATINA, OURO). Cada coluna de preço vira um nível; níveis que não existirem são criados."
@@ -56,10 +63,16 @@ export function TierMapper({ headers, tiers, onChange }: Props) {
       </div>
 
       {tiers.map((tier) => (
-        <div key={tier.id} className="grid grid-cols-[1fr_1fr_auto] items-center gap-8">
+        <div
+          key={tier.id}
+          className="grid grid-cols-[1fr_1fr_auto] items-center gap-8"
+        >
           <Input.Select
             options={columnOptions}
-            value={columnOptions.find((o) => o.value === String(tier.columnIndex)) ?? null}
+            value={
+              columnOptions.find((o) => o.value === String(tier.columnIndex)) ??
+              null
+            }
             variant="single"
             placeholder="Selecione a coluna"
             onChange={(val: SelectOption | SelectOption[] | null) => {
@@ -67,7 +80,9 @@ export function TierMapper({ headers, tiers, onChange }: Props) {
               const columnIndex = opt ? Number(opt.value) : null;
               // Sugere o nome do nível a partir do cabeçalho, se ainda vazio.
               const suggested =
-                !tier.tierName && columnIndex !== null ? headers[columnIndex] ?? "" : tier.tierName;
+                !tier.tierName && columnIndex !== null
+                  ? (headers[columnIndex] ?? "")
+                  : tier.tierName;
               update(tier.id, { columnIndex, tierName: suggested });
             }}
           />
@@ -91,7 +106,14 @@ export function TierMapper({ headers, tiers, onChange }: Props) {
       ))}
 
       <div>
-        <Button.Root type="button" appearance="outline" color="neutral" size="sm" noUppercase onClick={add}>
+        <Button.Root
+          type="button"
+          appearance="outline"
+          color="neutral"
+          size="sm"
+          noUppercase
+          onClick={add}
+        >
           <Button.Icon icon={Plus} />
           <Button.Title>Adicionar nível</Button.Title>
         </Button.Root>

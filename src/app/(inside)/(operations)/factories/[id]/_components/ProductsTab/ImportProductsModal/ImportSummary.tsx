@@ -1,7 +1,7 @@
 import { Card } from "@/components/Card";
 import { StatCard } from "@/components/StatCard";
 import { Title } from "@/components/Title";
-import { TitleColor } from "@/components/Title/interface";
+import { TitleColor } from "@/components/Title";
 
 import { ImportResult, ImportRowDetail } from "./interface";
 
@@ -17,12 +17,25 @@ export function ImportSummary({ result }: { result: ImportResult }) {
       </div>
 
       {hasDetails && (
-        <Card.Root isCompact className="flex max-h-[180px] flex-col gap-4 overflow-y-auto">
+        <Card.Root
+          isCompact
+          className="flex max-h-[180px] flex-col gap-4 overflow-y-auto"
+        >
           {result.errors.map((err) => (
-            <DetailLine key={`err-${err.row}-${err.sku}`} label="Erro" tone="red" detail={err} />
+            <DetailLine
+              key={`err-${err.row}-${err.sku}`}
+              label="Erro"
+              tone="red"
+              detail={err}
+            />
           ))}
           {result.ignored.map((item) => (
-            <DetailLine key={`ign-${item.row}-${item.sku}`} label="Ignorado" tone="amber" detail={item} />
+            <DetailLine
+              key={`ign-${item.row}-${item.sku}`}
+              label="Ignorado"
+              tone="amber"
+              detail={item}
+            />
           ))}
         </Card.Root>
       )}

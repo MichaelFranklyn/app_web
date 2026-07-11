@@ -6,7 +6,7 @@ import { Alert } from "@/components/Alert";
 import { Button } from "@/components/Button";
 import { FieldMapper, SheetPreview } from "@/components/Import";
 import { Input } from "@/components/Input";
-import { SelectOption } from "@/components/Input/InputSelect";
+import { SelectOption } from "@/components/Input";
 import { Modal } from "@/components/Modal";
 import { Table } from "@/components/Table";
 import { Title } from "@/components/Title";

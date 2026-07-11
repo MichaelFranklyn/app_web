@@ -5,7 +5,7 @@ import { Button } from "@/components/Button";
 import { EmptyState } from "@/components/EmptyState";
 import { Grid } from "@/components/Grid";
 import { Input } from "@/components/Input";
-import { SelectOption } from "@/components/Input/InputSelect";
+import { SelectOption } from "@/components/Input";
 import { Title } from "@/components/Title";
 import { Info, Save, Settings, Users } from "lucide-react";
 

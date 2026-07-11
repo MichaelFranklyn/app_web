@@ -1,4 +1,4 @@
-import { SelectOption } from "@/components/Input/InputSelect";
+import { SelectOption } from "@/components/Input";
 import React from "react";
 import { ControllerRenderProps } from "react-hook-form";
 

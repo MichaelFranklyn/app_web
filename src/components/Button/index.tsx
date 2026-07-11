@@ -7,3 +7,5 @@ export const Button = {
   Title: ButtonTitle,
   Icon: ButtonIcon,
 };
+
+export type { ButtonProps, ButtonSize } from "./Root/interface";

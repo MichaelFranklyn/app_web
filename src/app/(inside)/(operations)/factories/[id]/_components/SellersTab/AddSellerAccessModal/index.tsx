@@ -6,7 +6,7 @@ import {
   FormBuilderRef,
   FormStepSchema,
 } from "@/components/FormBuilder";
-import { SelectOption } from "@/components/Input/InputSelect";
+import { SelectOption } from "@/components/Input";
 import { Modal } from "@/components/Modal";
 import { useToast } from "@/components/Toast";
 import { useAsyncAction } from "@/hooks/useAsyncAction";

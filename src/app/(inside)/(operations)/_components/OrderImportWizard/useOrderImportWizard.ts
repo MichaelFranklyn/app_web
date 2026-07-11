@@ -1,7 +1,7 @@
 import { useMutation } from "@apollo/client/react";
 import { useEffect, useMemo, useState } from "react";
 
-import { SelectOption } from "@/components/Input/InputSelect";
+import { SelectOption } from "@/components/Input";
 import { useToast } from "@/components/Toast";
 import { useAsyncAction } from "@/hooks/useAsyncAction";
 import { parseNumber, valueForChoice } from "@/utils/import/columns";

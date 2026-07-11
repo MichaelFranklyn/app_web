@@ -1,6 +1,6 @@
 import { FieldMapper, SheetPreview } from "@/components/Import";
 import { Input } from "@/components/Input";
-import { SelectOption } from "@/components/Input/InputSelect";
+import { SelectOption } from "@/components/Input";
 import { Stepper } from "@/components/Stepper";
 import { Title } from "@/components/Title";
 import { ComponentProps, Dispatch, SetStateAction } from "react";

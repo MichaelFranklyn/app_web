@@ -2,7 +2,7 @@
 
 import { Button } from "@/components/Button";
 import { Input } from "@/components/Input";
-import { SelectOption } from "@/components/Input/InputSelect";
+import { SelectOption } from "@/components/Input";
 import { PanelHeader } from "@/components/PanelHeader";
 import { FileDown } from "lucide-react";
 import { DateRangeIso, SellerOption } from "../../../interface";

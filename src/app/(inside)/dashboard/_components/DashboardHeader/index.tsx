@@ -1,5 +1,5 @@
 import { Input } from "@/components/Input";
-import { SelectOption } from "@/components/Input/InputSelect";
+import { SelectOption } from "@/components/Input";
 import { PanelHeader } from "@/components/PanelHeader";
 import { DateRangeIso, SellerOption } from "../../interface";
 import { formatDateRangeLabel } from "../../utils";

@@ -1,6 +1,9 @@
-import { cardHeadStyle } from "@/components/Card/style";
 import { cn } from "@/lib/utils";
 import React from "react";
+
+// Espelha o cabeçalho do Card do design system; mantido local para autonomia do componente.
+const cardHeadStyle =
+  "px-16 py-12 border-b border-(--border) flex flex-wrap items-center justify-between gap-3 min-h-[48px]";
 
 const HeadRoot = React.forwardRef<
   HTMLDivElement,

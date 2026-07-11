@@ -6,7 +6,7 @@ import {
   FormBuilderRef,
   FormStepSchema,
 } from "@/components/FormBuilder";
-import { SelectOption } from "@/components/Input/InputSelect";
+import { SelectOption } from "@/components/Input";
 import { Modal } from "@/components/Modal";
 import { useAsyncAction } from "@/hooks/useAsyncAction";
 import { toIsoDate } from "@/utils/format/date";

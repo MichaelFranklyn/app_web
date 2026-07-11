@@ -4,7 +4,10 @@ import { TitleProps, TitleWeight } from "./interface";
 import { colorClasses, variantConfig, weightClasses } from "./style";
 
 export const Title = React.forwardRef<HTMLElement, TitleProps>(
-  ({ variant, color = "default", weight, className, children, ...props }, ref) => {
+  (
+    { variant, color = "default", weight, className, children, ...props },
+    ref
+  ) => {
     const config = variantConfig[variant];
     const finalWeight: TitleWeight = weight ?? config.defaultWeight;
 
@@ -27,3 +30,5 @@ export const Title = React.forwardRef<HTMLElement, TitleProps>(
 );
 
 Title.displayName = "Title";
+
+export type { TitleColor } from "./interface";

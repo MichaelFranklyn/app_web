@@ -1,5 +1,5 @@
 import { Input, InputLabel } from "@/components/Input";
-import { SelectOption } from "@/components/Input/InputSelect";
+import { SelectOption } from "@/components/Input";
 import { Title } from "@/components/Title";
 import {
   maskCEP,

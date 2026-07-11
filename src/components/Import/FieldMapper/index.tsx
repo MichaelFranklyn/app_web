@@ -4,7 +4,7 @@ import { ChangeEvent, ReactNode } from "react";
 
 import { HelpTooltip } from "@/components/HelpTooltip";
 import { Input } from "@/components/Input";
-import { SelectOption } from "@/components/Input/InputSelect";
+import { SelectOption } from "@/components/Input";
 import { Title } from "@/components/Title";
 
 import { ColumnChoice } from "@/utils/import/columns";

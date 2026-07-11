@@ -40,6 +40,8 @@ export {
   InputSearch,
 };
 
+export type { SelectOption } from "./InputSelect";
+
 // Export the compound component directly if someone prefers using it explicitly
 export const Input = {
   Root: InputRoot,

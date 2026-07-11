@@ -2,7 +2,7 @@
 
 import { Button } from "@/components/Button";
 import { Input } from "@/components/Input";
-import { SelectOption } from "@/components/Input/InputSelect";
+import { SelectOption } from "@/components/Input";
 import { PanelHeader } from "@/components/PanelHeader";
 import { CalendarDays, ChevronLeft, ChevronRight } from "lucide-react";
 import { RoutineSellerOption, VisitScheduleSeller } from "../../interface";

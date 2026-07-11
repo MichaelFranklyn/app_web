@@ -1,7 +1,7 @@
 "use client";
 
 import { Button } from "@/components/Button";
-import { ButtonProps } from "@/components/Button/Root/interface";
+import { ButtonProps } from "@/components/Button";
 import { Tooltip } from "@/components/Tooltip";
 import { cn } from "@/lib/utils";
 import { ElementType } from "react";

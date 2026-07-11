@@ -1,3 +1,3 @@
-import { AvatarProps } from "@/components/Avatar/interface";
+import { AvatarProps } from "@/components/Avatar";
 
 export type CardItemAvatarProps = AvatarProps;

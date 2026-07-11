@@ -1,6 +1,6 @@
 import { Card } from "@/components/Card";
 import { Title } from "@/components/Title";
-import { TitleColor } from "@/components/Title/interface";
+import { TitleColor } from "@/components/Title";
 
 export interface StatCardProps {
   label: string;

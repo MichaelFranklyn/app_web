@@ -1,4 +1,4 @@
-import { SelectOption } from "@/components/Input/InputSelect";
+import { SelectOption } from "@/components/Input";
 import { useAsyncAction } from "@/hooks/useAsyncAction";
 import { clientDisplayName } from "@/utils/client";
 import { useMutation, useQuery } from "@apollo/client/react";

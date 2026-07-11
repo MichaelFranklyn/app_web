@@ -2,7 +2,7 @@ import { Alert } from "@/components/Alert";
 import { HelpTooltip } from "@/components/HelpTooltip";
 import { SheetPreview } from "@/components/Import";
 import { Input } from "@/components/Input";
-import { SelectOption } from "@/components/Input/InputSelect";
+import { SelectOption } from "@/components/Input";
 import { Stepper } from "@/components/Stepper";
 import { Title } from "@/components/Title";
 import { SheetMatrix, WorkbookData } from "@/utils/import/reader";

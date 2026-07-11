@@ -1,7 +1,7 @@
 import { Badge } from "@/components/Badges";
 import { HelpTooltip } from "@/components/HelpTooltip";
 import { Input } from "@/components/Input";
-import { SelectOption } from "@/components/Input/InputSelect";
+import { SelectOption } from "@/components/Input";
 import { Stepper } from "@/components/Stepper";
 import { Table } from "@/components/Table";
 import { Title } from "@/components/Title";
