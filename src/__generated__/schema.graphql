@@ -1314,6 +1314,8 @@ type OrderInstallmentType {
   paidAt: Date
   isCommissionReceived: Boolean!
   commissionReceivedAt: Date
+  isCommissionReconciled: Boolean!
+  commissionReconciledAt: Date
   createdAt: DateTime!
 }
 
@@ -1651,6 +1653,8 @@ type CommissionRowType {
   receiveDate: Date
   isReceivable: Boolean!
   isReceived: Boolean!
+  isReconciled: Boolean!
+  reconciledAt: Date
   order: OrderType
   client: ClientType
   factory: FactoryType
@@ -1681,6 +1685,7 @@ extend type Mutation {
   cancelOrderInstallment(id: UUID!): OrderInstallmentTypeDataResponse!
   revertOrderInstallment(id: UUID!): OrderInstallmentTypeDataResponse!
   markCommissionReceived(installmentIds: [UUID!]!, receivedAt: Date!): BaseResponse!
+  setCommissionReconciled(installmentIds: [UUID!]!, reconciled: Boolean!): BaseResponse!
 }
 
 input CreatePriceListItemInput {

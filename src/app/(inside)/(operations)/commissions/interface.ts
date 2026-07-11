@@ -18,6 +18,8 @@ export interface CommissionRow {
   receiveDate: string | null;
   isReceivable: boolean;
   isReceived: boolean;
+  isReconciled: boolean;
+  reconciledAt: string | null;
   client: {
     id: string;
     razaoSocial: string;

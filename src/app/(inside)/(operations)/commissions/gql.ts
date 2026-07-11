@@ -21,6 +21,8 @@ export const COMMISSIONS_QUERY = gql`
         receiveDate
         isReceivable
         isReceived
+        isReconciled
+        reconciledAt
         client {
           id
           razaoSocial
@@ -48,6 +50,21 @@ export const MARK_COMMISSION_RECEIVED_MUTATION = gql`
     markCommissionReceived(
       installmentIds: $installmentIds
       receivedAt: $receivedAt
+    ) {
+      status
+      message
+    }
+  }
+`;
+
+export const SET_COMMISSION_RECONCILED_MUTATION = gql`
+  mutation SetCommissionReconciled(
+    $installmentIds: [UUID!]!
+    $reconciled: Boolean!
+  ) {
+    setCommissionReconciled(
+      installmentIds: $installmentIds
+      reconciled: $reconciled
     ) {
       status
       message

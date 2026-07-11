@@ -2,32 +2,20 @@
 
 import { Button } from "@/components/Button";
 import { Card } from "@/components/Card";
+import { EmptyState } from "@/components/EmptyState";
 import { Grid } from "@/components/Grid";
 import { Loading } from "@/components/Loading";
 import { PageContent } from "@/components/PageContent";
 import { PanelHeader } from "@/components/PanelHeader";
 import { Table } from "@/components/Table";
-import { getTodayIso } from "@/utils/format/date";
 import { formatMoney } from "@/utils/format/masks";
 import { useQuery } from "@apollo/client/react";
-import { CalendarDays, ChevronLeft, ChevronRight } from "lucide-react";
+import { Coins } from "lucide-react";
 import { useMemo, useState } from "react";
-import { CommissionsTable } from "./_components/CommissionsTable";
-import { MarkReceivedModal } from "./_components/MarkReceivedModal";
+import { FactoryCommissionGroup } from "./_components/FactoryCommissionGroup";
 import { COMMISSIONS_QUERY } from "./gql";
-import { CommissionRow, CommissionsResponse } from "./interface";
-import {
-  addMonths,
-  CommissionTab,
-  COMMISSION_TABS,
-  isInMonth,
-  monthLabel,
-  YearMonth,
-  yearMonthFromIso,
-} from "./utils";
-
-// A data em que a comissão da linha cai no mês (recebida/a receber/prevista).
-const rowMonthDate = (row: CommissionRow): string | null => row.receiveDate;
+import { CommissionsResponse } from "./interface";
+import { CommissionTab, COMMISSION_TABS, groupByFactory } from "./utils";
 
 export default function CommissionsContent() {
   const { data, loading, refetch } = useQuery<CommissionsResponse>(
@@ -35,52 +23,20 @@ export default function CommissionsContent() {
     { fetchPolicy: "cache-and-network" }
   );
   const [tab, setTab] = useState<CommissionTab>("receivable");
-  const [month, setMonth] = useState<YearMonth>(() =>
-    yearMonthFromIso(getTodayIso())
-  );
 
   const rows = useMemo(() => data?.commissions?.rows ?? [], [data]);
-
-  // Linhas do mês selecionado (pela data em que a comissão cai).
-  const monthRows = useMemo(
-    () => rows.filter((row) => isInMonth(rowMonthDate(row), month)),
-    [rows, month]
-  );
-
-  const sumBy = (list: CommissionRow[], status: CommissionRow["status"]) =>
-    list
-      .filter((row) => row.status === status)
-      .reduce((acc, row) => acc + Number(row.amount), 0);
-
-  const monthReceivable = useMemo(
-    () => sumBy(monthRows, "receivable"),
-    [monthRows]
-  );
-  const monthReceived = useMemo(
-    () => sumBy(monthRows, "received"),
-    [monthRows]
-  );
-  const monthPending = useMemo(() => sumBy(monthRows, "pending"), [monthRows]);
+  const summary = data?.commissions;
 
   const filteredRows = useMemo(() => {
-    if (tab === "all") return monthRows;
-    return monthRows.filter((row) => row.status === tab);
-  }, [monthRows, tab]);
+    if (tab === "all") return rows;
+    return rows.filter((row) => row.status === tab);
+  }, [rows, tab]);
 
-  // Recebíveis do mês (para o "Receber tudo").
-  const receivableIds = useMemo(
-    () =>
-      monthRows
-        .filter((row) => row.status === "receivable")
-        .map((row) => row.installmentId),
-    [monthRows]
-  );
+  // Agrupado por fábrica trabalhada — é assim que a fábrica manda a planilha.
+  // Cada card recorta o próprio mês (a planilha de repasse é mensal).
+  const groups = useMemo(() => groupByFactory(filteredRows), [filteredRows]);
 
   const handleChanged = () => refetch();
-  const isCurrentMonth = useMemo(() => {
-    const now = yearMonthFromIso(getTodayIso());
-    return now.year === month.year && now.month === month.month;
-  }, [month]);
 
   return (
     <PageContent>
@@ -90,71 +46,33 @@ export default function CommissionsContent() {
             <PanelHeader.Eyebrow>Comissões</PanelHeader.Eyebrow>
             <PanelHeader.Title>Comissões</PanelHeader.Title>
             <PanelHeader.Description>
-              O que você tem para receber das fábricas em {monthLabel(month)}.
+              O que você tem para receber das fábricas. Cada fábrica tem o seu
+              mês para você conferir contra a planilha que ela envia.
             </PanelHeader.Description>
-            <PanelHeader.Actions className="mt-6">
-              {/* Navegação de mês: anterior + atual + próximo sempre juntos.
-                  No mobile/tablet o bloco ocupa a largura toda e o botão
-                  central cresce; a partir de desktop volta ao tamanho natural. */}
-              <div className="desktop:w-auto flex w-full items-center gap-8">
-                <Button.Root
-                  appearance="outline"
-                  color="neutral"
-                  size="sm"
-                  isIconOnly
-                  onClick={() => setMonth((m) => addMonths(m, -1))}
-                >
-                  <Button.Icon icon={ChevronLeft} />
-                </Button.Root>
-                <Button.Root
-                  appearance="tinted"
-                  color="amber"
-                  size="sm"
-                  noUppercase
-                  disabled={isCurrentMonth}
-                  onClick={() => setMonth(yearMonthFromIso(getTodayIso()))}
-                  className="desktop:flex-initial flex-1"
-                >
-                  <Button.Icon icon={CalendarDays} />
-                  <Button.Title>
-                    {isCurrentMonth ? "Mês atual" : "Voltar para atual"}
-                  </Button.Title>
-                </Button.Root>
-                <Button.Root
-                  appearance="outline"
-                  color="neutral"
-                  size="sm"
-                  isIconOnly
-                  onClick={() => setMonth((m) => addMonths(m, 1))}
-                >
-                  <Button.Icon icon={ChevronRight} />
-                </Button.Root>
-              </div>
-            </PanelHeader.Actions>
           </PanelHeader.Left>
         </PanelHeader.Top>
       </PanelHeader.Root>
 
       <Grid.Root cols={{ base: 1, tablet: 3 }} gap={20}>
-        {data?.commissions ? (
+        {summary ? (
           <>
             <Grid.Item>
               <Card.Kpi>
-                <Card.Kpi.Label>
-                  A receber em {monthLabel(month)}
-                </Card.Kpi.Label>
+                <Card.Kpi.Label>A receber (total)</Card.Kpi.Label>
                 <Card.Kpi.Value status="atencao">
-                  {formatMoney(monthReceivable)}
+                  {formatMoney(Number(summary.totalReceivable))}
                 </Card.Kpi.Value>
                 <Card.Kpi.Delta>
-                  {receivableIds.length} parcela(s) confirmada(s)
+                  {summary.countReceivable} parcela(s) a receber
                 </Card.Kpi.Delta>
               </Card.Kpi>
             </Grid.Item>
             <Grid.Item>
               <Card.Kpi>
-                <Card.Kpi.Label>Previsto no mês</Card.Kpi.Label>
-                <Card.Kpi.Value>{formatMoney(monthPending)}</Card.Kpi.Value>
+                <Card.Kpi.Label>Previsto (total)</Card.Kpi.Label>
+                <Card.Kpi.Value>
+                  {formatMoney(Number(summary.totalPending))}
+                </Card.Kpi.Value>
                 <Card.Kpi.Delta>
                   Depende de faturamento/pagamento
                 </Card.Kpi.Delta>
@@ -162,9 +80,9 @@ export default function CommissionsContent() {
             </Grid.Item>
             <Grid.Item>
               <Card.Kpi>
-                <Card.Kpi.Label>Recebido no mês</Card.Kpi.Label>
+                <Card.Kpi.Label>Recebido (total)</Card.Kpi.Label>
                 <Card.Kpi.Value status="ok">
-                  {formatMoney(monthReceived)}
+                  {formatMoney(Number(summary.totalReceived))}
                 </Card.Kpi.Value>
                 <Card.Kpi.Delta>Já repassado pelas fábricas</Card.Kpi.Delta>
               </Card.Kpi>
@@ -183,41 +101,57 @@ export default function CommissionsContent() {
         )}
       </Grid.Root>
 
-      <Table.Root>
-        <Table.CardHead>
-          <Table.CardHead.Title>
-            <div className="flex flex-wrap items-center gap-4">
-              {COMMISSION_TABS.map((item) => (
-                <Button.Root
-                  key={item.id}
-                  appearance={tab === item.id ? "solid" : "ghost"}
-                  color={tab === item.id ? "amber" : "neutral"}
-                  size="sm"
-                  noUppercase
-                  onClick={() => setTab(item.id)}
-                >
-                  <Button.Title>{item.label}</Button.Title>
-                </Button.Root>
-              ))}
-            </div>
-          </Table.CardHead.Title>
-          {receivableIds.length > 0 && (
-            <Table.CardHead.Actions>
-              <MarkReceivedModal
-                installmentIds={receivableIds}
-                label={`Receber tudo (${receivableIds.length})`}
-                onSuccess={handleChanged}
-              />
-            </Table.CardHead.Actions>
-          )}
-        </Table.CardHead>
+      {/* Filtro por situação. Abaixo, um cartão por fábrica com o seu mês. */}
+      <div className="flex flex-wrap items-center gap-4">
+        {COMMISSION_TABS.map((item) => (
+          <Button.Root
+            key={item.id}
+            appearance={tab === item.id ? "solid" : "ghost"}
+            color={tab === item.id ? "amber" : "neutral"}
+            size="sm"
+            noUppercase
+            onClick={() => setTab(item.id)}
+          >
+            <Button.Title>{item.label}</Button.Title>
+          </Button.Root>
+        ))}
+      </div>
 
-        <CommissionsTable
-          rows={filteredRows}
-          loading={loading && !data?.commissions}
-          onChanged={handleChanged}
-        />
-      </Table.Root>
+      {loading && !data?.commissions ? (
+        <Table.Root>
+          <Table.Table>
+            <Table.Body>
+              <Table.Skeleton columns={8} rows={6} />
+            </Table.Body>
+          </Table.Table>
+        </Table.Root>
+      ) : groups.length === 0 ? (
+        <Table.Root>
+          <div className="p-24">
+            <EmptyState.Root>
+              <EmptyState.Icon>
+                <Coins size={32} />
+              </EmptyState.Icon>
+              <EmptyState.Title>Nenhuma comissão aqui</EmptyState.Title>
+              <EmptyState.Description>
+                As comissões aparecem quando os pedidos são faturados. Fature um
+                pedido para gerar as parcelas e acompanhar o que há a receber.
+              </EmptyState.Description>
+            </EmptyState.Root>
+          </div>
+        </Table.Root>
+      ) : (
+        <div className="flex flex-col gap-16">
+          {groups.map((group, i) => (
+            <FactoryCommissionGroup
+              key={group.factoryId}
+              group={group}
+              defaultOpen={i === 0}
+              onChanged={handleChanged}
+            />
+          ))}
+        </div>
+      )}
     </PageContent>
   );
 }

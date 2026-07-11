@@ -3,13 +3,14 @@
 import { Badge } from "@/components/Badges";
 import { EmptyState } from "@/components/EmptyState";
 import { Table } from "@/components/Table";
-import { clientName, factoryName } from "@/utils/company";
+import { clientName } from "@/utils/company";
 import { formatDateDMY, formatMoney } from "@/utils/format/masks";
 import { Coins } from "lucide-react";
 import Link from "next/link";
 import { CommissionRow } from "../../interface";
 import { COMMISSION_STATUS_LABEL, COMMISSION_STATUS_TONE } from "../../utils";
 import { MarkReceivedModal } from "../MarkReceivedModal";
+import { ReconcileToggle } from "../ReconcileToggle";
 
 interface Props {
   rows: CommissionRow[];
@@ -23,12 +24,12 @@ export function CommissionsTable({ rows, loading, onChanged }: Props) {
       <Table.Header>
         <Table.Row>
           <Table.Head>Cliente</Table.Head>
-          <Table.Head>Fábrica</Table.Head>
           <Table.Head>Pedido</Table.Head>
           <Table.Head>Parcela</Table.Head>
           <Table.Head>Quando</Table.Head>
           <Table.Head className="text-right">Comissão</Table.Head>
           <Table.Head>Situação</Table.Head>
+          <Table.Head>Conferência</Table.Head>
           <Table.Head className="text-right">Ação</Table.Head>
         </Table.Row>
       </Table.Header>
@@ -56,7 +57,6 @@ export function CommissionsTable({ rows, loading, onChanged }: Props) {
           rows.map((row) => (
             <Table.Row key={row.installmentId}>
               <Table.Cell variant="strong">{clientName(row.client)}</Table.Cell>
-              <Table.Cell>{factoryName(row.factory)}</Table.Cell>
               <Table.Cell>
                 <Link
                   href={`/orders/${row.orderId}`}
@@ -87,6 +87,14 @@ export function CommissionsTable({ rows, loading, onChanged }: Props) {
                 >
                   <Badge.Text>{COMMISSION_STATUS_LABEL[row.status]}</Badge.Text>
                 </Badge.Root>
+              </Table.Cell>
+              <Table.Cell>
+                <ReconcileToggle
+                  installmentId={row.installmentId}
+                  reconciled={row.isReconciled}
+                  onChanged={onChanged}
+                  locked={row.status === "received"}
+                />
               </Table.Cell>
               <Table.Cell>
                 <div className="flex items-center justify-end">

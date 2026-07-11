@@ -1,4 +1,5 @@
-import { CommissionStatus } from "./interface";
+import { factoryName } from "@/utils/company";
+import { CommissionRow, CommissionStatus } from "./interface";
 
 export const COMMISSION_STATUS_LABEL: Record<CommissionStatus, string> = {
   pending: "Previsto",
@@ -73,4 +74,89 @@ export const isInMonth = (
   if (!iso) return false;
   const ym = yearMonthFromIso(iso);
   return ym.year === year && ym.month === month;
+};
+
+/**
+ * Mês/ano mais recente entre as datas de recebimento (`receiveDate`) das linhas,
+ * ou `null` se nenhuma tem data. Usado para abrir cada fábrica já no mês da
+ * planilha mais nova — que é a que o gestor costuma conferir primeiro.
+ */
+export const latestMonthWithData = (
+  rows: CommissionRow[]
+): YearMonth | null => {
+  let best: YearMonth | null = null;
+  let bestKey = -Infinity;
+  for (const row of rows) {
+    if (!row.receiveDate) continue;
+    const ym = yearMonthFromIso(row.receiveDate);
+    const key = ym.year * 12 + ym.month;
+    if (key > bestKey) {
+      bestKey = key;
+      best = ym;
+    }
+  }
+  return best;
+};
+
+// ── Agrupamento por fábrica (de-para com a planilha) ─────────────────────────
+export interface FactoryGroup {
+  factoryId: string;
+  name: string;
+  rows: CommissionRow[]; // todas as linhas da fábrica (todos os meses)
+}
+
+const FACTORYLESS_ID = "__sem_fabrica__";
+
+/**
+ * Agrupa as linhas por fábrica trabalhada — é assim que a fábrica manda a
+ * planilha, então bater o olho fica direto. Cada grupo traz TODAS as linhas da
+ * fábrica; quem recorta por mês (a planilha é mensal) é o card, com o seletor de
+ * mês próprio. Ordena por nome da fábrica (pt-BR).
+ */
+export const groupByFactory = (rows: CommissionRow[]): FactoryGroup[] => {
+  const byId = new Map<string, FactoryGroup>();
+
+  for (const row of rows) {
+    const id = row.factory?.id ?? FACTORYLESS_ID;
+    let group = byId.get(id);
+    if (!group) {
+      group = { factoryId: id, name: factoryName(row.factory), rows: [] };
+      byId.set(id, group);
+    }
+    group.rows.push(row);
+  }
+
+  return Array.from(byId.values()).sort((a, b) =>
+    a.name.localeCompare(b.name, "pt-BR")
+  );
+};
+
+export interface RowsSummary {
+  receivable: number; // soma a receber
+  received: number; // soma recebida
+  reconciledCount: number; // quantas parcelas já foram conferidas
+  receivableIds: string[]; // parcelas a receber (para "Receber tudo")
+}
+
+/**
+ * Subtotais de um conjunto de linhas (já recortado por fábrica e mês pelo card):
+ * o que há a receber, o que já veio, quantas foram conferidas e os ids a receber
+ * para o repasse em massa.
+ */
+export const summarizeRows = (rows: CommissionRow[]): RowsSummary => {
+  const summary: RowsSummary = {
+    receivable: 0,
+    received: 0,
+    reconciledCount: 0,
+    receivableIds: [],
+  };
+  for (const row of rows) {
+    if (row.status === "receivable") {
+      summary.receivable += Number(row.amount);
+      summary.receivableIds.push(row.installmentId);
+    }
+    if (row.status === "received") summary.received += Number(row.amount);
+    if (row.isReconciled) summary.reconciledCount += 1;
+  }
+  return summary;
 };
