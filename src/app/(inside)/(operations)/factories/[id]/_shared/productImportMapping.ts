@@ -1,10 +1,22 @@
 import { ColumnChoice } from "@/utils/import/columns";
-import { ImportProductRow } from "./interface";
 
 export type { ColumnChoice };
 
+/**
+ * Campos-alvo do mapeamento de colunas de produto. É a fonte da verdade das
+ * chaves usadas tanto na importação de produtos (ProductsTab) quanto na
+ * importação de tabela de preço (PriceListsTab) — por isso vive em _shared.
+ */
+export type ProductFieldKey =
+  | "sku"
+  | "name"
+  | "category"
+  | "unit"
+  | "unitLabel"
+  | "unitPerPack";
+
 export interface TargetField {
-  key: keyof ImportProductRow;
+  key: ProductFieldKey;
   label: string;
   /** Texto do tooltip de ajuda exibido ao lado do label. */
   description: string;

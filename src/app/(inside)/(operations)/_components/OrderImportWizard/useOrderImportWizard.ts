@@ -4,7 +4,7 @@ import { useEffect, useMemo, useState } from "react";
 import { SelectOption } from "@/components/Input";
 import { useToast } from "@/components/Toast";
 import { useAsyncAction } from "@/hooks/useAsyncAction";
-import { parseNumber, valueForChoice } from "@/utils/import/columns";
+import { parseNumber } from "@/utils/import/columns";
 import {
   guessBestSheet,
   guessHeaderRow,
@@ -27,7 +27,14 @@ import {
   PreviewOrderImportResponse,
   ReviewRow,
 } from "./interface";
-import { fileToBase64, guessMapping, NONE, toMoneyMask } from "./utils";
+import {
+  fileToBase64,
+  guessMapping,
+  NONE,
+  rowsFromItems,
+  rowsFromSheet,
+  toMoneyMask,
+} from "./utils";
 
 interface UseOrderImportWizardArgs {
   orderId: string;
@@ -66,7 +73,7 @@ export function useOrderImportWizard({
 
   useEffect(() => onBusyChange?.(isLoading), [isLoading, onBusyChange]);
 
-  const data = useMemo(
+  const parsedSheet = useMemo(
     () => (matrix ? splitAt(matrix, headerIndex) : null),
     [matrix, headerIndex]
   );
@@ -143,25 +150,6 @@ export function useOrderImportWizard({
     );
   };
 
-  const buildPreviewRows = () => {
-    if (!data) return [];
-    return data.rows
-      .map((cells) => {
-        const priceRaw =
-          mapping.unitPrice.kind === "none"
-            ? NaN
-            : parseNumber(valueForChoice(mapping.unitPrice, cells));
-        return {
-          sku: valueForChoice(mapping.sku, cells).trim(),
-          quantity: parseNumber(valueForChoice(mapping.quantity, cells)),
-          unitPrice: Number.isFinite(priceRaw) ? priceRaw : null,
-        };
-      })
-      .filter(
-        (r) => r.sku !== "" && Number.isFinite(r.quantity) && r.quantity > 0
-      );
-  };
-
   // Casa as linhas (do mapeamento manual OU do modelo da fábrica) e abre a revisão.
   const runPreviewRows = async (
     rows: { sku: string; quantity: number; unitPrice: number | null }[]
@@ -206,22 +194,9 @@ export function useOrderImportWizard({
   };
 
   const previewItems = (items: ExtractedItem[]) =>
-    runPreviewRows(
-      items
-        .map((it) => {
-          const price = it.unitPrice != null ? parseNumber(it.unitPrice) : null;
-          return {
-            sku: it.sku.trim(),
-            quantity: parseNumber(it.quantity),
-            unitPrice: price != null && Number.isFinite(price) ? price : null,
-          };
-        })
-        .filter(
-          (r) => r.sku !== "" && Number.isFinite(r.quantity) && r.quantity > 0
-        )
-    );
+    runPreviewRows(rowsFromItems(items));
 
-  const runPreview = () => runPreviewRows(buildPreviewRows());
+  const runPreview = () => runPreviewRows(rowsFromSheet(parsedSheet, mapping));
 
   const confirmableCount = reviewRows.filter(
     (r) => r.include && r.candidate.productId && r.tierId
@@ -284,7 +259,7 @@ export function useOrderImportWizard({
     setStep,
     file,
     matrix,
-    data,
+    data: parsedSheet,
     headerIndex,
     mapping,
     setMapping,

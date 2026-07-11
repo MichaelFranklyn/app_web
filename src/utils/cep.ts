@@ -18,13 +18,13 @@ export async function fetchAddressByCep(
   if (digits.length !== 8) return null;
   try {
     const res = await fetch(`https://viacep.com.br/ws/${digits}/json/`);
-    const data = await res.json();
-    if (data.erro) return null;
+    const viaCep = await res.json();
+    if (viaCep.erro) return null;
     return {
-      street: data.logradouro ?? "",
-      neighborhood: data.bairro ?? "",
-      city: data.localidade ?? "",
-      state: data.uf ?? "",
+      street: viaCep.logradouro ?? "",
+      neighborhood: viaCep.bairro ?? "",
+      city: viaCep.localidade ?? "",
+      state: viaCep.uf ?? "",
     };
   } catch {
     return null;

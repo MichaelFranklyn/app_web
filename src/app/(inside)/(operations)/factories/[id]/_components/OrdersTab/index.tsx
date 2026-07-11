@@ -13,7 +13,7 @@ import { Receipt } from "lucide-react";
 import { useMemo } from "react";
 import { ORDER_STATUS_COLOR, ORDER_STATUS_LABEL } from "../../../utils";
 import { EditOrderModal } from "../../../../_components/EditOrderModal";
-import { UPDATE_ORDER_FROM_FACTORY_MUTATION } from "../../../../_components/EditOrderModal/gql";
+import { UPDATE_ORDER_FROM_FACTORY_MUTATION } from "../../../../_components/EditOrderModal";
 import { AddOrderModal } from "./AddOrderModal";
 import { DeleteOrderModal } from "./DeleteOrderModal";
 import { FACTORY_ORDERS_QUERY } from "./gql";

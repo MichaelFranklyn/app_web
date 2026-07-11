@@ -17,10 +17,10 @@ interface Props {
 /** Importa itens para um pedido EXISTENTE (detalhe do pedido). */
 export function ImportOrderModal({ orderId, onImported }: Props) {
   const [open, setOpen] = useState(false);
-  const [busy, setBusy] = useState(false);
+  const [isBusy, setIsBusy] = useState(false);
 
   const handleOpenChange = (value: boolean) => {
-    if (!value && busy) return; // Não fecha durante upload/preview/gravação.
+    if (!value && isBusy) return; // Não fecha durante upload/preview/gravação.
     setOpen(value);
   };
 
@@ -41,7 +41,7 @@ export function ImportOrderModal({ orderId, onImported }: Props) {
         <OrderImportWizard
           orderId={orderId}
           onImported={onImported}
-          onBusyChange={setBusy}
+          onBusyChange={setIsBusy}
           onClose={() => setOpen(false)}
         />
       </Modal.Content>

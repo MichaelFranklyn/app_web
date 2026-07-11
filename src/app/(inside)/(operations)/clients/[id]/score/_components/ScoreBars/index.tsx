@@ -31,8 +31,8 @@ const buildBars = (score: ScoreDimensions): Bar[] => {
     max: number,
     color: ProgressColor
   ): Bar => {
-    const value = parseFloat(raw) || 0;
-    return { label, pct: (value / max) * 100, color };
+    const parsedValue = parseFloat(raw) || 0;
+    return { label, pct: (parsedValue / max) * 100, color };
   };
 
   return [

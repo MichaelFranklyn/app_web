@@ -74,9 +74,9 @@ export const formatMinutes = (mins: number): string => {
 };
 
 export const formatDistanceKm = (rawKm: string): string => {
-  const value = Number(rawKm);
-  if (!isFinite(value)) return `${rawKm} km`;
-  return `${value.toFixed(1).replace(".", ",")} km`;
+  const km = Number(rawKm);
+  if (!isFinite(km)) return `${rawKm} km`;
+  return `${km.toFixed(1).replace(".", ",")} km`;
 };
 
 export const clientLabel = (client: VisitClient | null): string =>

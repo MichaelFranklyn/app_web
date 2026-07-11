@@ -10,7 +10,7 @@ import { PRICE_REQUIRED_FIELDS } from "./build";
 import {
   MappingState,
   TARGET_FIELDS,
-} from "../../ProductsTab/ImportProductsModal/mapping";
+} from "../../../_shared/productImportMapping";
 
 type ReconState = ComponentProps<typeof Reconciliation>["recon"];
 type ReconChange = ComponentProps<typeof Reconciliation>["onChange"];

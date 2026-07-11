@@ -1,11 +1,60 @@
 import { maskCurrency } from "@/utils/format/masks";
-import { ColumnChoice, parseNumber } from "@/utils/import/columns";
+import {
+  ColumnChoice,
+  parseNumber,
+  valueForChoice,
+} from "@/utils/import/columns";
 
-import { Mapping } from "./interface";
+import { ExtractedItem, Mapping } from "./interface";
 
 export { fileToBase64 } from "@/utils/file";
 
 export const NONE: ColumnChoice = { kind: "none" };
+
+/** Linha normalizada a enviar para o preview de importação. */
+export interface ImportRow {
+  sku: string;
+  quantity: number;
+  unitPrice: number | null;
+}
+
+// Só linhas com SKU e quantidade positiva viram item; o resto é descartado.
+const isValidRow = (row: ImportRow): boolean =>
+  row.sku !== "" && Number.isFinite(row.quantity) && row.quantity > 0;
+
+/** Linhas a importar a partir da planilha mapeada (Excel/CSV). */
+export const rowsFromSheet = (
+  sheet: { rows: string[][] } | null,
+  mapping: Mapping
+): ImportRow[] => {
+  if (!sheet) return [];
+  return sheet.rows
+    .map((cells) => {
+      const priceRaw =
+        mapping.unitPrice.kind === "none"
+          ? NaN
+          : parseNumber(valueForChoice(mapping.unitPrice, cells));
+      return {
+        sku: valueForChoice(mapping.sku, cells).trim(),
+        quantity: parseNumber(valueForChoice(mapping.quantity, cells)),
+        unitPrice: Number.isFinite(priceRaw) ? priceRaw : null,
+      };
+    })
+    .filter(isValidRow);
+};
+
+/** Linhas a importar a partir dos itens já extraídos pelo modelo da fábrica. */
+export const rowsFromItems = (items: ExtractedItem[]): ImportRow[] =>
+  items
+    .map((it) => {
+      const price = it.unitPrice != null ? parseNumber(it.unitPrice) : null;
+      return {
+        sku: it.sku.trim(),
+        quantity: parseNumber(it.quantity),
+        unitPrice: price != null && Number.isFinite(price) ? price : null,
+      };
+    })
+    .filter(isValidRow);
 
 /** Palpite de coluna por palavra-chave no cabeçalho (SKU, quantidade, preço). */
 export const guessMapping = (headers: string[]): Mapping => {

@@ -16,8 +16,8 @@ import {
   getVisitFollowupWarning,
   getVisitScoreTotal,
 } from "../../utils";
-import { UPDATE_VISIT_ITEM_MUTATION } from "../VisitActions/gql";
-import { useVisitActions } from "../VisitActions/useVisitActions";
+import { UPDATE_VISIT_ITEM_MUTATION } from "../../gql";
+import { useVisitActions } from "../../useVisitActions";
 
 interface Props {
   item: VisitScheduleItem;

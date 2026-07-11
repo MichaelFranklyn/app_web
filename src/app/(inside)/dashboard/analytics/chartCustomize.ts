@@ -305,13 +305,13 @@ export const optionToRows = (option: EChartsCoreOption): string[][] => {
   if (series.length === 0) return [];
 
   if (series[0]?.type === "pie") {
-    const data = (Array.isArray(series[0].data) ? series[0].data : []) as {
+    const pieData = (Array.isArray(series[0].data) ? series[0].data : []) as {
       name?: string;
       value?: number;
     }[];
     return [
       ["Item", "Valor"],
-      ...data.map((d) => [String(d.name ?? ""), String(d.value ?? "")]),
+      ...pieData.map((d) => [String(d.name ?? ""), String(d.value ?? "")]),
     ];
   }
 
@@ -332,8 +332,8 @@ export const optionToRows = (option: EChartsCoreOption): string[][] => {
   const rows = categories.map((c, i) => [
     String(c ?? ""),
     ...series.map((s) => {
-      const data = s.data as unknown[] | undefined;
-      return String(data?.[i] ?? "");
+      const seriesValues = s.data as unknown[] | undefined;
+      return String(seriesValues?.[i] ?? "");
     }),
   ]);
   return [header, ...rows];

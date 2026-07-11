@@ -56,7 +56,7 @@ export interface ImportOrderModalProps {
 
 export function useImportOrder({ onAddOptimistic }: ImportOrderModalProps) {
   const [open, setOpen] = useState(false);
-  const [busy, setBusy] = useState(false);
+  const [isBusy, setIsBusy] = useState(false);
   const [orderId, setOrderId] = useState<string | null>(null);
   const [sellerId, setSellerId] = useState("");
   const [factoryId, setFactoryId] = useState("");
@@ -200,7 +200,7 @@ export function useImportOrder({ onAddOptimistic }: ImportOrderModalProps) {
   };
 
   const handleClose = (value: boolean) => {
-    if (!value && (busy || isLoading)) return; // Não fecha durante criação/importação.
+    if (!value && (isBusy || isLoading)) return; // Não fecha durante criação/importação.
     setOpen(value);
     if (!value) {
       if (orderId) refetchList(); // Pedido criado: garante que a lista reflita.
@@ -237,7 +237,7 @@ export function useImportOrder({ onAddOptimistic }: ImportOrderModalProps) {
     open,
     handleClose,
     orderId,
-    setBusy,
+    setIsBusy,
     refetchList,
     formRef,
     formSteps,

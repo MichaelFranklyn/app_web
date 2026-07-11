@@ -57,18 +57,18 @@ export function EditLabelModal({
   const initialData = useMemo(() => ({ label: label.label }), [label]);
 
   const handleSubmit = async (data: Record<string, unknown>) => {
-    const value = String(data.label ?? "").trim();
-    if (!value || value === label.label) {
+    const trimmedLabel = String(data.label ?? "").trim();
+    if (!trimmedLabel || trimmedLabel === label.label) {
       setOpen(false);
       return;
     }
     setOpen(false);
-    onUpdateOptimistic(label.id, { label: value });
+    onUpdateOptimistic(label.id, { label: trimmedLabel });
 
     await execute(
       async () => {
         const res = await updateLabel({
-          variables: { id: label.id, input: { label: value } },
+          variables: { id: label.id, input: { label: trimmedLabel } },
         });
         if (!res.data?.updateProductUnitLabel?.status) {
           throw new Error(

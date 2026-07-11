@@ -12,12 +12,12 @@ import {
 } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { ReactNode, useState } from "react";
-import { VisitScheduleItem } from "../../interface";
-import { CompletionPromptModal } from "./CompletionPromptModal";
-import { EditVisitModal } from "./EditVisitModal";
-import { RescheduleVisitModal } from "./RescheduleVisitModal";
+import { VisitScheduleItem } from "./interface";
+import { CompletionPromptModal } from "./_components/VisitActions/CompletionPromptModal";
+import { EditVisitModal } from "./_components/VisitActions/EditVisitModal";
+import { RescheduleVisitModal } from "./_components/VisitActions/RescheduleVisitModal";
 import { VisitStockModal } from "@/components/VisitStockModal";
-import { VisitDetailPanel } from "./VisitDetailPanel";
+import { VisitDetailPanel } from "./_components/VisitActions/VisitDetailPanel";
 
 type ActiveModal =
   | "view"

@@ -46,11 +46,11 @@ export function AddUnitModal({ onAddOptimistic, onDone }: AddUnitModalProps) {
   );
 
   const handleSubmit = async (data: Record<string, unknown>) => {
-    const value = String(data.label ?? "").trim();
+    const trimmedLabel = String(data.label ?? "").trim();
     await execute(
       async () => {
         const res = await createUnit({
-          variables: { input: { label: value } },
+          variables: { input: { label: trimmedLabel } },
         });
         if (!res.data?.createProductUnit?.status) {
           throw new Error(
@@ -66,7 +66,7 @@ export function AddUnitModal({ onAddOptimistic, onDone }: AddUnitModalProps) {
           formRef.current?.resetForm();
           onAddOptimistic({
             id: `temp-${Date.now()}`,
-            label: value,
+            label: trimmedLabel,
             isActive: true,
           });
           onDone();

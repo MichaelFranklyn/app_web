@@ -13,7 +13,7 @@ import { extractSelectValue } from "@/utils/form";
 import { useMutation } from "@apollo/client/react";
 import { useMemo, useRef } from "react";
 import { VISIT_OUTCOME_OPTIONS, VISIT_STATUS_OPTIONS } from "../../../utils";
-import { UPDATE_VISIT_ITEM_MUTATION } from "../gql";
+import { UPDATE_VISIT_ITEM_MUTATION } from "../../../gql";
 import {
   EditVisitModalProps,
   UpdateVisitScheduleItemResponse,

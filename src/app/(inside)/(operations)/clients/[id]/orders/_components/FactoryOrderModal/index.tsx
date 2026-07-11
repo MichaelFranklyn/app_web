@@ -14,7 +14,7 @@ import { useMemo, useState } from "react";
 import { formatDate } from "@/utils/format/date";
 import { pageToAfter } from "@/utils/pagination";
 import { EditOrderModal } from "../../../../../_components/EditOrderModal";
-import { UPDATE_ORDER_FROM_CLIENT_MUTATION } from "../../../../../_components/EditOrderModal/gql";
+import { UPDATE_ORDER_FROM_CLIENT_MUTATION } from "../../../../../_components/EditOrderModal";
 import { CLIENT_ORDERS_QUERY } from "../../../gql";
 import {
   ClientOrder,

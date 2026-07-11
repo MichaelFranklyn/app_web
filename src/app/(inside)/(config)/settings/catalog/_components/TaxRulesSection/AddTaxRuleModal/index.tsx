@@ -49,11 +49,11 @@ export function AddTaxRuleModal({
   );
 
   const handleSubmit = async (data: Record<string, unknown>) => {
-    const value = String(data.name ?? "").trim();
+    const trimmedName = String(data.name ?? "").trim();
     await execute(
       async () => {
         const res = await createRule({
-          variables: { input: { name: value } },
+          variables: { input: { name: trimmedName } },
         });
         if (!res.data?.createTaxRule?.status) {
           throw new Error(
@@ -67,7 +67,7 @@ export function AddTaxRuleModal({
         onSuccess: () => {
           setOpen(false);
           formRef.current?.resetForm();
-          onAddOptimistic({ id: `temp-${Date.now()}`, name: value });
+          onAddOptimistic({ id: `temp-${Date.now()}`, name: trimmedName });
           onDone();
         },
       }

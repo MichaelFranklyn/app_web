@@ -111,7 +111,7 @@ export function FactoryScoreModal({ score, onClose }: Props) {
                 <Card.Root>
                   <Card.Body padding="compact">
                     {history.map((entry) => {
-                      const value = parseFloat(entry.scoreTotal) || 0;
+                      const scoreValue = parseFloat(entry.scoreTotal) || 0;
                       return (
                         <Card.Item key={entry.id}>
                           <Card.Item.Info>
@@ -120,8 +120,8 @@ export function FactoryScoreModal({ score, onClose }: Props) {
                             </Card.Item.Info.Name>
                           </Card.Item.Info>
                           <Card.Item.Action>
-                            <Progress.Value color={scoreBarColor(value)}>
-                              {value.toFixed(0)}
+                            <Progress.Value color={scoreBarColor(scoreValue)}>
+                              {scoreValue.toFixed(0)}
                             </Progress.Value>
                           </Card.Item.Action>
                         </Card.Item>

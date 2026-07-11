@@ -49,11 +49,11 @@ export function AddLabelModal({ onAddOptimistic, onDone }: AddLabelModalProps) {
   );
 
   const handleSubmit = async (data: Record<string, unknown>) => {
-    const value = String(data.label ?? "").trim();
+    const trimmedLabel = String(data.label ?? "").trim();
     await execute(
       async () => {
         const res = await createLabel({
-          variables: { input: { label: value } },
+          variables: { input: { label: trimmedLabel } },
         });
         if (!res.data?.createProductUnitLabel?.status) {
           throw new Error(
@@ -69,7 +69,7 @@ export function AddLabelModal({ onAddOptimistic, onDone }: AddLabelModalProps) {
           formRef.current?.resetForm();
           onAddOptimistic({
             id: `temp-${Date.now()}`,
-            label: value,
+            label: trimmedLabel,
             isActive: true,
           });
           onDone();

@@ -73,7 +73,7 @@ export default function AnalyticsContent() {
     sellerId: selectedSellerId,
   };
 
-  const { contextValue, downloadPdf, exporting } = useAnalyticsPdf();
+  const { contextValue, downloadPdf, isExporting } = useAnalyticsPdf();
 
   const handleDownloadPdf = () => {
     const sellerName = selectedSellerId
@@ -96,7 +96,7 @@ export default function AnalyticsContent() {
           selectedSellerId={selectedSellerId}
           onSelectSeller={setSelectedSellerId}
           onDownloadPdf={handleDownloadPdf}
-          exportingPdf={exporting}
+          exportingPdf={isExporting}
         />
 
         <AnalyticsSummary filters={filters} />

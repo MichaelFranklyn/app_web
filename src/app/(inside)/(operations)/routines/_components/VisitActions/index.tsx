@@ -1,7 +1,7 @@
 "use client";
 
 import { VisitScheduleItem } from "../../interface";
-import { useVisitActions } from "./useVisitActions";
+import { useVisitActions } from "../../useVisitActions";
 
 interface Props {
   item: VisitScheduleItem;

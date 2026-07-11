@@ -154,17 +154,17 @@ export default function InsideLayout({
   const [drawerOpen, setDrawerOpen] = useState(false);
   // Sidebar recolhida (só ícones) — comportamento exclusivo do desktop,
   // persistido em localStorage para sobreviver à navegação.
-  const [collapsed, setCollapsed] = useState(false);
+  const [isCollapsed, setIsCollapsed] = useState(false);
 
   useEffect(() => {
     const storedUser = getCookie<UserData>("userData");
     setUserData(storedUser);
     setTodayIso(getTodayIso());
-    setCollapsed(localStorage.getItem("sidebarCollapsed") === "1");
+    setIsCollapsed(localStorage.getItem("sidebarCollapsed") === "1");
   }, []);
 
   const toggleCollapsed = () => {
-    setCollapsed((prev) => {
+    setIsCollapsed((prev) => {
       const next = !prev;
       localStorage.setItem("sidebarCollapsed", next ? "1" : "0");
       return next;
@@ -214,7 +214,7 @@ export default function InsideLayout({
             drawerOpen ? "translate-x-0" : "-translate-x-full",
             // Desktop: volta a ser fixa em fluxo; largura varia se recolhida.
             "desktop:static desktop:z-auto desktop:translate-x-0",
-            collapsed ? "desktop:w-[72px]" : "desktop:w-[232px]",
+            isCollapsed ? "desktop:w-[72px]" : "desktop:w-[232px]",
             // Âncora para o botão flutuante de recolher (borda direita).
             "desktop:relative"
           )}
@@ -224,22 +224,22 @@ export default function InsideLayout({
           <button
             type="button"
             onClick={toggleCollapsed}
-            aria-label={collapsed ? "Expandir menu" : "Recolher menu"}
-            title={collapsed ? "Expandir menu" : "Recolher menu"}
+            aria-label={isCollapsed ? "Expandir menu" : "Recolher menu"}
+            title={isCollapsed ? "Expandir menu" : "Recolher menu"}
             className={cn(
               "absolute top-[74px] right-0 z-[95] hidden h-[24px] w-[24px] translate-x-1/2 items-center justify-center",
               "rounded-full border border-(--border) bg-(--bg2) text-(--muted) shadow-(--shadow-sm)",
               "desktop:flex cursor-pointer transition-colors hover:border-(--border2) hover:text-(--text)"
             )}
           >
-            {collapsed ? (
+            {isCollapsed ? (
               <ChevronRight size={14} strokeWidth={2.5} />
             ) : (
               <ChevronLeft size={14} strokeWidth={2.5} />
             )}
           </button>
 
-          <Sidebar.Brand collapsed={collapsed}>
+          <Sidebar.Brand collapsed={isCollapsed}>
             {/* Logo completa (expandida e sempre no drawer mobile). */}
             <Image
               src="/horizontal_logo.png"
@@ -247,7 +247,7 @@ export default function InsideLayout({
               width={1059}
               height={247}
               priority
-              className={cn("h-auto w-full", collapsed && "desktop:hidden")}
+              className={cn("h-auto w-full", isCollapsed && "desktop:hidden")}
             />
             {/* Só o ícone quando recolhida no desktop. `unoptimized` evita o
               otimizador do next/image, que recusa SVG sem dangerouslyAllowSVG. */}
@@ -260,7 +260,7 @@ export default function InsideLayout({
               unoptimized
               className={cn(
                 "hidden h-[28px] w-auto",
-                collapsed && "desktop:block"
+                isCollapsed && "desktop:block"
               )}
             />
           </Sidebar.Brand>
@@ -270,7 +270,7 @@ export default function InsideLayout({
               if ("divider" in item) return <Sidebar.Divider key={i} />;
               if ("section" in item)
                 return (
-                  <Sidebar.Section key={i} collapsed={collapsed}>
+                  <Sidebar.Section key={i} collapsed={isCollapsed}>
                     {item.section}
                   </Sidebar.Section>
                 );
@@ -289,7 +289,7 @@ export default function InsideLayout({
                     href={href}
                     icon={icon}
                     active={isDayRoute}
-                    collapsed={collapsed}
+                    collapsed={isCollapsed}
                     data-tour-route="/routines/today"
                   >
                     {label}
@@ -320,7 +320,7 @@ export default function InsideLayout({
                   href={href}
                   icon={icon}
                   active={isActive}
-                  collapsed={collapsed}
+                  collapsed={isCollapsed}
                   data-tour-route={tourRoute ?? href}
                 >
                   {label}
@@ -333,7 +333,7 @@ export default function InsideLayout({
             name={userName}
             role={userRole}
             initials={userInitials}
-            collapsed={collapsed}
+            collapsed={isCollapsed}
           />
         </Sidebar.Root>
 

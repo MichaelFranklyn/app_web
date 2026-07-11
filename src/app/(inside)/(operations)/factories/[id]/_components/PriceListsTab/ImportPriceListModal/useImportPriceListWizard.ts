@@ -1,4 +1,4 @@
-import { useMutation, useQuery } from "@apollo/client/react";
+import { useMutation } from "@apollo/client/react";
 import { usePathname, useRouter, useSearchParams } from "next/navigation";
 import { useMemo, useState } from "react";
 
@@ -7,15 +7,9 @@ import { useToast } from "@/components/Toast";
 import { toIsoDate } from "@/utils/format/date";
 import { useAsyncAction } from "@/hooks/useAsyncAction";
 import { useInvalidateQueriesClient } from "@/hooks/useInvalidateQueries";
-import {
-  ColumnChoice,
-  distinctValues,
-  parseNumber,
-  valueForChoice,
-} from "@/utils/import/columns";
+import { distinctValues } from "@/utils/import/columns";
 import {
   guessBestSheet,
-  guessHeaderRow,
   readWorkbook,
   SheetMatrix,
   splitAt,
@@ -25,35 +19,20 @@ import {
 import {
   autoGuessMapping,
   isMappingComplete,
-  MappingState,
-} from "../../ProductsTab/ImportProductsModal/mapping";
-import { buildImportTemplatesVariables } from "../../ImportTemplateTab/gql";
-import {
-  CREATE_IMPORT_TEMPLATE_MUTATION,
-  IMPORT_TEMPLATES_QUERY,
-  UPDATE_IMPORT_TEMPLATE_MUTATION,
-} from "../../ImportTemplateTab/gql";
-import { ImportTemplatesData } from "../../ImportTemplateTab/interface";
-import {
-  buildImportInput,
-  canImport,
-  canSaveTemplate,
-  PRICE_REQUIRED_FIELDS,
-} from "./build";
+} from "../../../_shared/productImportMapping";
+import { buildImportInput, canImport, PRICE_REQUIRED_FIELDS } from "./build";
 import {
   EXTRACT_PRICE_LIST_FILE_MUTATION,
   fileToBase64,
   IMPORT_PRICE_LIST_MUTATION,
 } from "./gql";
-import {
-  ImportPriceListResponse,
-  ImportPriceListResult,
-  TaxColumn,
-  TierColumn,
-} from "./interface";
-import { EMPTY_ST_MVA, StMvaChoices } from "./StMvaFields";
+import { ImportPriceListResponse, ImportPriceListResult } from "./interface";
 import { isPriceListConfig, PriceListTemplateConfig } from "./templateConfig";
+import { useListDetails } from "./useListDetails";
+import { useMappingState } from "./useMappingState";
 import { usePriceListCatalog } from "./usePriceListCatalog";
+import { usePriceListTemplate } from "./usePriceListTemplate";
+import { guessColumns } from "./wizardGuess";
 
 export interface ImportPriceListModalProps {
   companyFactoryId: string;
@@ -81,24 +60,6 @@ export function useImportPriceListWizard({
   const [workbook, setWorkbook] = useState<WorkbookData | null>(null);
   const [sheetName, setSheetName] = useState<string | null>(null);
   const [headerIndex, setHeaderIndex] = useState(0);
-  const [mapping, setMapping] = useState<MappingState>({});
-  const [tierColumns, setTierColumns] = useState<TierColumn[]>([]);
-  const [ipiChoice, setIpiChoice] = useState<ColumnChoice>({ kind: "none" });
-  // O sistema guarda alíquota percentual (3,25); planilhas costumam trazer
-  // fração decimal (0,0325). Conversão ×100 feita no backend.
-  const [ipiAsFraction, setIpiAsFraction] = useState(false);
-  const [ncmChoice, setNcmChoice] = useState<ColumnChoice>({ kind: "none" });
-  const [taxColumns, setTaxColumns] = useState<TaxColumn[]>([]);
-  const [stMva, setStMva] = useState<StMvaChoices>(EMPTY_ST_MVA);
-  // Mesma semântica do IPI, para os demais impostos (rate/MVA/crédito/interna).
-  const [taxesAsFraction, setTaxesAsFraction] = useState(false);
-  // Planilhas de fábrica costumam trazer preço por peça; o sistema armazena
-  // sempre o preço da embalagem fechada (conversão feita no backend).
-  const [pricesPerUnit, setPricesPerUnit] = useState(false);
-  const [listName, setListName] = useState("");
-  const [region, setRegion] = useState("");
-  const [validFrom, setValidFrom] = useState<Date | null>(new Date());
-  const [validUntil, setValidUntil] = useState<Date | null>(null);
   const [result, setResult] = useState<ImportPriceListResult | null>(null);
   // PDF é lido no backend (pdfplumber) e tabelas grandes demoram; sinaliza o
   // processamento para o usuário não achar que travou.
@@ -129,26 +90,6 @@ export function useImportPriceListWizard({
     };
   }>(EXTRACT_PRICE_LIST_FILE_MUTATION);
 
-  // Modelo (mapeamento) salvo desta fábrica para tabela de preço, se houver.
-  const { data: tplData, refetch: refetchTemplate } =
-    useQuery<ImportTemplatesData>(IMPORT_TEMPLATES_QUERY, {
-      variables: buildImportTemplatesVariables(factoryId),
-      skip: !open,
-      fetchPolicy: "cache-and-network",
-    });
-  const activeTemplate = useMemo(
-    () =>
-      tplData?.importTemplates.edges
-        .map((e) => e.node)
-        .find((n) => n.isActive && n.target === "PRICE_LIST") ?? null,
-    [tplData]
-  );
-  const [createTemplate] = useMutation<{
-    createImportTemplate: { status: boolean; message: string };
-  }>(CREATE_IMPORT_TEMPLATE_MUTATION);
-  const [updateTemplate] = useMutation<{
-    updateImportTemplate: { status: boolean; message: string };
-  }>(UPDATE_IMPORT_TEMPLATE_MUTATION);
   const [templateApplied, setTemplateApplied] = useState(false);
   const { execute, isLoading } = useAsyncAction();
   const invalidateClient = useInvalidateQueriesClient();
@@ -158,11 +99,50 @@ export function useImportPriceListWizard({
     [workbook, sheetName]
   );
 
-  const data = useMemo(
+  const parsedSheet = useMemo(
     () => (matrix ? splitAt(matrix, headerIndex) : null),
     [matrix, headerIndex]
   );
-  const rows = useMemo(() => data?.rows ?? [], [data]);
+  const rows = useMemo(() => parsedSheet?.rows ?? [], [parsedSheet]);
+
+  // Domínio de mapeamento (colunas → produto/nível/impostos) e metadados da lista
+  // separados em sub-hooks; o orquestrador só cuida da grade e da execução.
+  const {
+    mapping,
+    setMapping,
+    tierColumns,
+    setTierColumns,
+    ipiChoice,
+    handleIpiChoice,
+    ipiAsFraction,
+    setIpiAsFraction,
+    ncmChoice,
+    setNcmChoice,
+    taxColumns,
+    setTaxColumns,
+    stMva,
+    handleStMvaChange,
+    taxesAsFraction,
+    setTaxesAsFraction,
+    pricesPerUnit,
+    setPricesPerUnit,
+    applyGuess: applyMappingGuess,
+    applyConfig: applyMappingConfig,
+    reset: resetMapping,
+  } = useMappingState(rows);
+
+  const {
+    listName,
+    setListName,
+    region,
+    setRegion,
+    validFrom,
+    setValidFrom,
+    validUntil,
+    setValidUntil,
+    reset: resetDetails,
+  } = useListDetails();
+
   const distinctUnits = useMemo(
     () => distinctValues(rows, mapping.unit),
     [rows, mapping.unit]
@@ -181,6 +161,32 @@ export function useImportPriceListWizard({
     packRecon,
     setPackFinal,
   } = usePriceListCatalog({ matrix, distinctUnits, distinctPacks });
+
+  // Estado de mapeamento atual do wizard = config do modelo (sem nome/vigência).
+  const templateConfig: PriceListTemplateConfig = {
+    headerIndex,
+    mapping,
+    tierColumns,
+    ipiChoice,
+    ipiAsFraction,
+    ncmChoice,
+    taxColumns,
+    stMva,
+    pricesPerUnit,
+    taxesAsFraction,
+  };
+  const {
+    activeTemplate,
+    autoCreateTemplate,
+    handleSaveTemplate,
+    canSaveTemplateNow,
+  } = usePriceListTemplate({
+    factoryId,
+    open,
+    file,
+    config: templateConfig,
+    execute,
+  });
 
   const headerOptions: SelectOption[] = useMemo(() => {
     if (!matrix) return [];
@@ -205,37 +211,9 @@ export function useImportPriceListWizard({
     [workbook]
   );
 
-  // Se todos os valores da coluna são ≤ 1 (ex.: 0,0325), a planilha traz
-  // fração decimal e não percentual.
-  const looksLikeFraction = (
-    choice: ColumnChoice,
-    dataRows: string[][]
-  ): boolean => {
-    if (choice.kind === "none") return false;
-    const values = dataRows
-      .map((cells) => parseNumber(valueForChoice(choice, cells)))
-      .filter((v) => Number.isFinite(v) && v > 0);
-    return values.length > 0 && values.every((v) => v <= 1);
-  };
-
-  const handleIpiChoice = (choice: ColumnChoice) => {
-    setIpiChoice(choice);
-    if (choice.kind !== "none")
-      setIpiAsFraction(looksLikeFraction(choice, rows));
-  };
-
-  // Sugere a semântica dos demais impostos pela alíquota interna do ST (no
-  // padrão das planilhas, todas as colunas fiscais seguem a mesma convenção).
-  const handleStMvaChange = (next: StMvaChoices) => {
-    setStMva(next);
-    if (next.internalRate.kind !== "none") {
-      setTaxesAsFraction(looksLikeFraction(next.internalRate, rows));
-    }
-  };
-
   const buildArgs = {
     companyFactoryId,
-    data: data ?? { headers: [], rows: [] },
+    data: parsedSheet ?? { headers: [], rows: [] },
     mapping,
     unitRecon,
     labelRecon: packRecon,
@@ -259,19 +237,8 @@ export function useImportPriceListWizard({
     setTemplateApplied(false);
     setWorkbook(null);
     setSheetName(null);
-    setMapping({});
-    setTierColumns([]);
-    setIpiChoice({ kind: "none" });
-    setIpiAsFraction(false);
-    setNcmChoice({ kind: "none" });
-    setTaxColumns([]);
-    setStMva(EMPTY_ST_MVA);
-    setTaxesAsFraction(false);
-    setPricesPerUnit(false);
-    setListName("");
-    setRegion("");
-    setValidFrom(new Date());
-    setValidUntil(null);
+    resetMapping();
+    resetDetails();
     setResult(null);
     setUnreadable([]);
     setSkipped([]);
@@ -296,51 +263,15 @@ export function useImportPriceListWizard({
   // Re-executa os palpites (cabeçalho, IPI, NCM, ST) sobre a aba escolhida —
   // usado tanto no upload quanto na troca de aba.
   const applySheet = (parsed: SheetMatrix) => {
-    const guessed = guessHeaderRow(parsed);
-    applyHeader(parsed, guessed);
-    const split = splitAt(parsed, guessed);
-    // Hints em ordem de prioridade: o mais específico ganha mesmo que outra
-    // coluna apareça antes (ex.: "icms cred" acha ICMS CREDITO e não ICMS).
-    const findHeader = (...hints: string[]): ColumnChoice => {
-      for (const hint of hints) {
-        const idx = split.headers.findIndex((h) =>
-          h.toLowerCase().includes(hint)
-        );
-        if (idx >= 0) return { kind: "column", index: idx };
-      }
-      return { kind: "none" };
-    };
-    const ipi = findHeader("ipi");
-    setIpiChoice(ipi);
-    setIpiAsFraction(looksLikeFraction(ipi, split.rows));
-    setNcmChoice(findHeader("ncm"));
-    // Colunas fiscais da planilha estilo Bahia: MVA, ICMS Crédito, Alíquota Interna.
-    const guessedSt: StMvaChoices = {
-      mva: findHeader("mva"),
-      icmsCredit: findHeader("icms créd", "icms cred", "icms"),
-      internalRate: findHeader("interna"),
-    };
-    setStMva(guessedSt);
-    setTaxesAsFraction(looksLikeFraction(guessedSt.internalRate, split.rows));
-    setTierColumns([{ id: "t1", columnIndex: null, tierName: "" }]);
+    const guessed = guessColumns(parsed);
+    applyHeader(parsed, guessed.headerIndex);
+    applyMappingGuess(guessed);
   };
 
   // Aplica o mapeamento salvo no modelo da fábrica (em vez dos palpites).
   const applyTemplateConfig = (cfg: PriceListTemplateConfig) => {
     setHeaderIndex(cfg.headerIndex ?? 0);
-    setMapping(cfg.mapping ?? {});
-    setTierColumns(
-      cfg.tierColumns?.length
-        ? cfg.tierColumns
-        : [{ id: "t1", columnIndex: null, tierName: "" }]
-    );
-    setIpiChoice(cfg.ipiChoice ?? { kind: "none" });
-    setIpiAsFraction(!!cfg.ipiAsFraction);
-    setNcmChoice(cfg.ncmChoice ?? { kind: "none" });
-    setTaxColumns(cfg.taxColumns ?? []);
-    setStMva(cfg.stMva ?? EMPTY_ST_MVA);
-    setPricesPerUnit(!!cfg.pricesPerUnit);
-    setTaxesAsFraction(!!cfg.taxesAsFraction);
+    applyMappingConfig(cfg);
   };
 
   // Após carregar a grade: se a fábrica tem modelo salvo, aplica-o; senão adivinha.
@@ -358,99 +289,6 @@ export function useImportPriceListWizard({
     if (!workbook || name === sheetName) return;
     setSheetName(name);
     applySheet(workbook.sheets[name] ?? []);
-  };
-
-  // Payload do template = mapeamento atual + arquivo-modelo (base64). Compartilhado
-  // pelo salvar manual e pela criação automática no fim da 1ª importação.
-  const buildTemplateInput = async () => {
-    const selected = file[0];
-    const config: PriceListTemplateConfig = {
-      headerIndex,
-      mapping,
-      tierColumns,
-      ipiChoice,
-      ipiAsFraction,
-      ncmChoice,
-      taxColumns,
-      stMva,
-      pricesPerUnit,
-      taxesAsFraction,
-    };
-    const fileType = selected
-      ? /\.pdf$/i.test(selected.name)
-        ? "PDF"
-        : /\.csv$/i.test(selected.name)
-          ? "CSV"
-          : "XLSX"
-      : "XLSX";
-    const base64 = selected ? await fileToBase64(selected) : null;
-    return {
-      target: "PRICE_LIST",
-      fileType,
-      parserStrategy: "COLUMN_MAPPING",
-      config,
-      ...(base64
-        ? { sampleFileBase64: base64, sampleFileName: selected!.name }
-        : {}),
-    };
-  };
-
-  // Cria o modelo automaticamente na 1ª importação (só se a fábrica ainda não
-  // tem um): assim a próxima tabela do mesmo formato já vem mapeada, sem
-  // sobrescrever um modelo existente. Best-effort — falha aqui não derruba a
-  // importação que acabou de dar certo.
-  const autoCreateTemplate = async () => {
-    if (activeTemplate || !canSaveTemplate(buildArgs)) return;
-    try {
-      const input = await buildTemplateInput();
-      const res = await createTemplate({
-        variables: { input: { factoryId, companyId: null, ...input } },
-      });
-      if (res.data?.createImportTemplate?.status) {
-        await refetchTemplate();
-        toast({
-          variant: "success",
-          title: "Modelo salvo",
-          description:
-            "Guardamos esse mapeamento como modelo desta fábrica — a próxima tabela do mesmo formato já vem preenchida.",
-        });
-      }
-    } catch {
-      // Silencioso: o modelo é um extra; a tabela já foi importada.
-    }
-  };
-
-  const handleSaveTemplate = async () => {
-    await execute(
-      async () => {
-        const shared = await buildTemplateInput();
-        if (activeTemplate) {
-          const res = await updateTemplate({
-            variables: { id: activeTemplate.id, input: shared },
-          });
-          if (!res.data?.updateImportTemplate?.status) {
-            throw new Error(
-              res.data?.updateImportTemplate?.message ??
-                "Erro ao salvar o modelo"
-            );
-          }
-          return res.data.updateImportTemplate;
-        }
-        const res = await createTemplate({
-          variables: { input: { factoryId, companyId: null, ...shared } },
-        });
-        if (!res.data?.createImportTemplate?.status) {
-          throw new Error(
-            res.data?.createImportTemplate?.message ?? "Erro ao salvar o modelo"
-          );
-        }
-        return res.data.createImportTemplate;
-      },
-      {
-        successMessage: "Modelo de tabela salvo para esta fábrica",
-        onSuccess: () => refetchTemplate(),
-      }
-    );
   };
 
   const handleFiles = async (files: File[]) => {
@@ -521,7 +359,7 @@ export function useImportPriceListWizard({
   };
 
   // Pré-monta o payload para validar e exibir linhas ignoradas antes do envio.
-  const importPreview = data ? buildImportInput(buildArgs) : null;
+  const importPreview = parsedSheet ? buildImportInput(buildArgs) : null;
   const importableRows = importPreview?.input.rows.length ?? 0;
   const skippedRows = importPreview?.skippedRows ?? 0;
   const defaultedCount = importPreview?.defaultedPack.length ?? 0;
@@ -533,8 +371,8 @@ export function useImportPriceListWizard({
     (t) => t.columnIndex !== null && t.taxName.trim()
   ).length;
   const stepValid = [
-    Boolean(data && rows.length > 0), // Planilha: arquivo lido
-    Boolean(data && rows.length > 0), // Leitura: aba/cabeçalho com dados
+    Boolean(parsedSheet && rows.length > 0), // Planilha: arquivo lido
+    Boolean(parsedSheet && rows.length > 0), // Leitura: aba/cabeçalho com dados
     isMappingComplete(mapping, PRICE_REQUIRED_FIELDS),
     validTiersCount > 0,
     true, // Impostos: tudo opcional
@@ -577,8 +415,6 @@ export function useImportPriceListWizard({
     );
   };
 
-  const canSaveTemplateNow = canSaveTemplate(buildArgs);
-
   return {
     open,
     handleClose,
@@ -590,7 +426,7 @@ export function useImportPriceListWizard({
     extracting,
     handleFiles,
     matrix,
-    data,
+    data: parsedSheet,
     templateApplied,
     workbook,
     sheetName,

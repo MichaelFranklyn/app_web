@@ -1,5 +1,5 @@
 import { ColumnChoice } from "@/utils/import/columns";
-import { MappingState } from "../../ProductsTab/ImportProductsModal/mapping";
+import { MappingState } from "../../../_shared/productImportMapping";
 import { StMvaChoices } from "./StMvaFields";
 import { TaxColumn, TierColumn } from "./interface";
 

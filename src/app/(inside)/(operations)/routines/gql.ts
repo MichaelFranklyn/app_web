@@ -130,3 +130,24 @@ export const VISIT_SCHEDULES_QUERY = gql`
     }
   }
 `;
+
+// Atualiza status/notas de um item de visita. Compartilhada pelo card da grade
+// semanal (atalho de concluir/reabrir) e pelo EditVisitModal, por isso vive no
+// nível da página.
+export const UPDATE_VISIT_ITEM_MUTATION = gql`
+  mutation UpdateVisitScheduleItem(
+    $id: UUID!
+    $input: UpdateVisitScheduleItemInput!
+  ) {
+    updateVisitScheduleItem(id: $id, input: $input) {
+      status
+      message
+      data {
+        id
+        status
+        outcome
+        notes
+      }
+    }
+  }
+`;

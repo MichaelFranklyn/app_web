@@ -19,7 +19,7 @@ export function ImportOrderModal(props: ImportOrderModalProps) {
     open,
     handleClose,
     orderId,
-    setBusy,
+    setIsBusy,
     refetchList,
     formRef,
     formSteps,
@@ -50,7 +50,7 @@ export function ImportOrderModal(props: ImportOrderModalProps) {
           <OrderImportWizard
             orderId={orderId}
             onImported={refetchList}
-            onBusyChange={setBusy}
+            onBusyChange={setIsBusy}
             onClose={() => handleClose(false)}
           />
         ) : (

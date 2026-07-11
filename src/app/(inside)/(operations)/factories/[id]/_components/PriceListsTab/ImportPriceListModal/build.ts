@@ -7,7 +7,7 @@ import { SheetData } from "@/utils/import/reader";
 import {
   isMappingComplete,
   MappingState,
-} from "../../ProductsTab/ImportProductsModal/mapping";
+} from "../../../_shared/productImportMapping";
 import { TaxColumn, TierColumn } from "./interface";
 import { isStMvaComplete, StMvaChoices } from "./StMvaFields";
 

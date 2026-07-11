@@ -21,7 +21,7 @@ import { LoginFormData, LoginResponse } from "./interface";
 import { FEATURES, STATS } from "./utils";
 
 export default function LoginContent() {
-  const [remember, setRemember] = useState(false);
+  const [shouldRemember, setShouldRemember] = useState(false);
   const formRef = useRef<FormBuilderRef>(null);
   const router = useRouter();
 
@@ -30,7 +30,7 @@ export default function LoginContent() {
 
   const handleLogin = async (data: Record<string, unknown>) => {
     const formData = data as unknown as LoginFormData;
-    const expires = remember ? 30 : undefined;
+    const expires = shouldRemember ? 30 : undefined;
 
     await execute(
       async () => {
@@ -55,7 +55,7 @@ export default function LoginContent() {
         onSuccess(resultData) {
           setCookie("token", resultData.accessToken, { expires });
           setCookie("refresh_token", resultData.refreshToken, { expires });
-          setCookie("remember", String(remember), { expires });
+          setCookie("remember", String(shouldRemember), { expires });
           setCookie(
             "userData",
             {
@@ -196,9 +196,9 @@ export default function LoginContent() {
               <div className="flex items-center justify-between">
                 <Input.Checkbox
                   label="Lembrar por 30 dias"
-                  checked={remember}
+                  checked={shouldRemember}
                   onChange={(e: React.ChangeEvent<HTMLInputElement>) =>
-                    setRemember(e.target.checked)
+                    setShouldRemember(e.target.checked)
                   }
                 />
                 <Button.Root

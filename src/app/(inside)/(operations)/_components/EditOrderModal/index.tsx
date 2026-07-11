@@ -11,6 +11,13 @@ import { useRef, useState } from "react";
 import { EditOrderModalProps, UpdateOrderResponse } from "./interface";
 import { EDIT_ORDER_FORM_STEPS, normalizeUpdateInput } from "./utils";
 
+// Mutations expostas como API pública: o modal recebe a mutation por prop
+// conforme o contexto (fábrica ou cliente).
+export {
+  UPDATE_ORDER_FROM_FACTORY_MUTATION,
+  UPDATE_ORDER_FROM_CLIENT_MUTATION,
+} from "./gql";
+
 export function EditOrderModal({
   orderId,
   initialNotes,

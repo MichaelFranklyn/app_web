@@ -4,11 +4,7 @@ import { useMemo, useState } from "react";
 import { SelectOption } from "@/components/Input";
 import { useAsyncAction } from "@/hooks/useAsyncAction";
 import { fileToBase64 } from "@/utils/file";
-import {
-  ColumnChoice,
-  parseNumber,
-  valueForChoice,
-} from "@/utils/import/columns";
+import { ColumnChoice } from "@/utils/import/columns";
 import {
   guessBestSheet,
   guessHeaderRow,
@@ -34,6 +30,12 @@ import {
   presetById,
   SPREADSHEET_PRESET,
 } from "../presets";
+import {
+  buildPriceOptions,
+  buildSpreadsheetPreview,
+  ColumnMapping,
+  fileTypeOf,
+} from "./templateBuilders";
 
 const AUTO = "auto";
 const AUTO_LABEL = "Detectar automaticamente (recomendado)";
@@ -45,11 +47,6 @@ export interface ConfigureTemplateModalProps {
   onSaved: () => void;
 }
 
-type Mapping = {
-  sku: ColumnChoice;
-  quantity: ColumnChoice;
-  unitPrice: ColumnChoice;
-};
 const NONE: ColumnChoice = { kind: "none" };
 
 export function useConfigureTemplate({
@@ -65,7 +62,7 @@ export function useConfigureTemplate({
   // Planilha (Excel/CSV): grade + cabeçalho + mapeamento de colunas.
   const [matrix, setMatrix] = useState<SheetMatrix | null>(null);
   const [headerIndex, setHeaderIndex] = useState(0);
-  const [mapping, setMapping] = useState<Mapping>({
+  const [mapping, setMapping] = useState<ColumnMapping>({
     sku: NONE,
     quantity: NONE,
     unitPrice: NONE,
@@ -182,26 +179,6 @@ export function useConfigureTemplate({
     );
   };
 
-  const buildSpreadsheetPreview = (): PreviewItem[] => {
-    if (!sheet) return [];
-    return sheet.rows
-      .map((cells) => {
-        const qty = parseNumber(valueForChoice(mapping.quantity, cells));
-        const price =
-          mapping.unitPrice.kind === "none"
-            ? null
-            : parseNumber(valueForChoice(mapping.unitPrice, cells));
-        return {
-          sku: valueForChoice(mapping.sku, cells).trim(),
-          name: null,
-          quantity: Number.isFinite(qty) ? String(qty) : "0",
-          unitPrice:
-            price != null && Number.isFinite(price) ? String(price) : null,
-        };
-      })
-      .filter((r) => r.sku !== "" && Number(r.quantity) > 0);
-  };
-
   const previewPdf = async (idx: number | "none") => {
     const selected = file[0];
     if (!selected || !presetId) return;
@@ -243,20 +220,10 @@ export function useConfigureTemplate({
       await previewPdf(priceIndex);
       return;
     }
-    setPreview(buildSpreadsheetPreview());
+    setPreview(buildSpreadsheetPreview(sheet, mapping));
   };
 
-  // Item de amostra com valores "R$" p/ montar o seletor de preço unitário.
-  const priceSample = preview?.find((it) => (it.priceOptions?.length ?? 0) > 0);
-  const priceOptions: SelectOption[] = priceSample
-    ? [
-        ...(priceSample.priceOptions ?? []).map((v, i) => ({
-          value: String(i),
-          label: v,
-        })),
-        { value: "none", label: "Sem preço (usar a tabela da fábrica)" },
-      ]
-    : [];
+  const priceOptions = buildPriceOptions(preview);
 
   const onChangePriceIndex = (val: SelectOption | SelectOption[] | null) => {
     const opt = Array.isArray(val) ? val[0] : val;
@@ -287,11 +254,6 @@ export function useConfigureTemplate({
         unitPrice: asColumn(mapping.unitPrice),
       },
     };
-  };
-
-  const fileTypeOf = (name: string): "PDF" | "XLSX" | "CSV" => {
-    if (isPdfName(name)) return "PDF";
-    return /\.csv$/i.test(name) ? "CSV" : "XLSX";
   };
 
   const handleSave = async () => {

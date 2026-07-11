@@ -53,7 +53,7 @@ const waitForCharts = (
 export function useAnalyticsPdf() {
   const { toast } = useToast();
   const [forceRender, setForceRender] = useState(false);
-  const [exporting, setExporting] = useState(false);
+  const [isExporting, setIsExporting] = useState(false);
   const chartsRef = useRef<Map<string, ChartPrintEntry>>(new Map());
   const kpisRef = useRef<KpiPrintEntry[]>([]);
 
@@ -74,7 +74,7 @@ export function useAnalyticsPdf() {
 
   const downloadPdf = useCallback(
     async (meta: PdfMeta) => {
-      setExporting(true);
+      setIsExporting(true);
       setForceRender(true);
       try {
         const entries = Array.from(chartsRef.current.values());
@@ -102,11 +102,11 @@ export function useAnalyticsPdf() {
         });
       } finally {
         setForceRender(false);
-        setExporting(false);
+        setIsExporting(false);
       }
     },
     [toast]
   );
 
-  return { contextValue, downloadPdf, exporting };
+  return { contextValue, downloadPdf, isExporting };
 }

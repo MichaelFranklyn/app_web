@@ -14,16 +14,16 @@ import { useProvisionCompany } from "./useProvisionCompany";
 // O backend também barra (is_super_user); aqui é o gate de UX.
 export default function CompaniesContent() {
   const [role, setRole] = useState<string | null>(null);
-  const [resolved, setResolved] = useState(false);
+  const [isResolved, setIsResolved] = useState(false);
   const { submit, reset, result, isLoading } = useProvisionCompany();
 
   useEffect(() => {
     const userData = getCookie<{ role?: string }>("userData");
     setRole(userData?.role ?? null);
-    setResolved(true);
+    setIsResolved(true);
   }, []);
 
-  if (!resolved) return null;
+  if (!isResolved) return null;
 
   if (role !== "SU") {
     return (

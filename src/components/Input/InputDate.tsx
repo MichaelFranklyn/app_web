@@ -1,20 +1,6 @@
 "use client";
 
 import React, { useEffect, useRef, useState } from "react";
-import ReactDOM from "react-dom";
-import {
-  format,
-  subDays,
-  startOfWeek,
-  endOfWeek,
-  startOfMonth,
-  endOfMonth,
-  subMonths,
-  startOfYear,
-  endOfYear,
-  subWeeks,
-} from "date-fns";
-import { ptBR } from "date-fns/locale";
 import { cn } from "@/lib/utils";
 import { InputRoot } from "./Root";
 import { InputLabel } from "./Label";
@@ -23,17 +9,17 @@ import { InputGroup } from "./Group";
 import { InputAddon } from "./Addon";
 import { useInputContext } from "./context";
 import {
-  calendarStyles,
   inputSizeMinHeight,
   inputSizePadding,
   inputStyles,
   selectStyles,
 } from "./styles";
 import { InputBaseProps } from "./InputText";
-import { CalendarBase } from "./CalendarBase";
+import { DatePopup } from "./DatePopup";
 import { Calendar as CalendarIcon, X } from "lucide-react";
 import { DateRange } from "react-day-picker";
 import { useAnchoredDropdown } from "./useAnchoredDropdown";
+import { useDateSelection } from "./useDateSelection";
 
 export interface InputDateProps extends Omit<
   InputBaseProps,
@@ -45,61 +31,6 @@ export interface InputDateProps extends Omit<
   onClose?: () => void;
   disabledClear?: boolean;
 }
-
-type ShortcutSingle = { label: string; getValue: () => Date };
-type ShortcutRange = { label: string; getValue: () => DateRange };
-
-const singleShortcuts: ShortcutSingle[] = [
-  { label: "Hoje", getValue: () => new Date() },
-  { label: "Ontem", getValue: () => subDays(new Date(), 1) },
-  { label: "Amanhã", getValue: () => subDays(new Date(), -1) },
-];
-
-const rangeShortcuts: ShortcutRange[] = [
-  { label: "Hoje", getValue: () => ({ from: new Date(), to: new Date() }) },
-  {
-    label: "Ontem",
-    getValue: () => ({
-      from: subDays(new Date(), 1),
-      to: subDays(new Date(), 1),
-    }),
-  },
-  {
-    label: "Esta Semana",
-    getValue: () => ({
-      from: startOfWeek(new Date(), { locale: ptBR }),
-      to: endOfWeek(new Date(), { locale: ptBR }),
-    }),
-  },
-  {
-    label: "Semana Passada",
-    getValue: () => ({
-      from: startOfWeek(subWeeks(new Date(), 1), { locale: ptBR }),
-      to: endOfWeek(subWeeks(new Date(), 1), { locale: ptBR }),
-    }),
-  },
-  {
-    label: "Este Mês",
-    getValue: () => ({
-      from: startOfMonth(new Date()),
-      to: endOfMonth(new Date()),
-    }),
-  },
-  {
-    label: "Mês Passado",
-    getValue: () => ({
-      from: startOfMonth(subMonths(new Date(), 1)),
-      to: endOfMonth(subMonths(new Date(), 1)),
-    }),
-  },
-  {
-    label: "Este Ano",
-    getValue: () => ({
-      from: startOfYear(new Date()),
-      to: endOfYear(new Date()),
-    }),
-  },
-];
 
 export const InputDate = ({
   label,
@@ -182,6 +113,7 @@ const InputDateControl = ({
     open,
     setOpen,
     anchor: portalAnchor,
+    position,
   } = useAnchoredDropdown();
 
   const disabled = context?.disabled || props.disabled;
@@ -192,24 +124,13 @@ const InputDateControl = ({
 
   const [popupStyle, setPopupStyle] = useState<React.CSSProperties>({});
 
-  // Track internal state for uncontrolled usage
-  const [internalSingle, setInternalSingle] = useState<Date | undefined>(
-    value instanceof Date ? value : undefined
-  );
-  const [internalRange, setInternalRange] = useState<DateRange | undefined>(
-    value && !(value instanceof Date) ? value : undefined
-  );
-
-  // Sync props to internal state — but never while the popup is open, otherwise
-  // a parent re-render between range clicks would wipe the user's partial selection.
-  useEffect(() => {
-    if (open) return;
-    if (variant === "single") {
-      setInternalSingle(value instanceof Date ? value : undefined);
-    } else {
-      setInternalRange(value && !(value instanceof Date) ? value : undefined);
-    }
-  }, [value, variant, open]);
+  const dateSel = useDateSelection({
+    value,
+    variant: variant ?? "single",
+    onChange,
+    open,
+    setOpen,
+  });
 
   // Stop native mousedown inside the popup from bubbling to the document
   // outside-click listener. React's synthetic stopPropagation isn't enough —
@@ -266,74 +187,6 @@ const InputDateControl = ({
     setOpen(true);
   };
 
-  const handleSelectSingle = (date: Date | undefined) => {
-    setInternalSingle(date);
-    onChange?.(date);
-    if (date) setOpen(false);
-  };
-
-  const applyRange = (range: DateRange) => {
-    setInternalRange(range);
-    onChange?.(range);
-    setOpen(false);
-  };
-
-  // Two-click selection driven by `triggerDate`. We ignore react-day-picker's
-  // auto-extension logic (addToRange), which would complete a range from a
-  // single click whenever both endpoints are already set — that breaks the
-  // expected "click start, click end" UX. The popup stays open after the
-  // range is complete so the user can keep adjusting; consumers commit on
-  // close via the `onClose` callback.
-  const handleSelectRange = (
-    _range: DateRange | undefined,
-    triggerDate: Date | undefined
-  ) => {
-    if (!triggerDate) return;
-
-    const hasPendingFrom = !!internalRange?.from && !internalRange.to;
-
-    if (!hasPendingFrom) {
-      setInternalRange({ from: triggerDate, to: undefined });
-      return;
-    }
-
-    const from = internalRange!.from!;
-    const isBackwards = triggerDate.getTime() < from.getTime();
-    const completed: DateRange = {
-      from: isBackwards ? triggerDate : from,
-      to: isBackwards ? from : triggerDate,
-    };
-    setInternalRange(completed);
-    onChange?.(completed);
-  };
-
-  const handleClear = (e: React.MouseEvent) => {
-    e.stopPropagation();
-    if (variant === "single") {
-      setInternalSingle(undefined);
-      onChange?.(null);
-    } else {
-      setInternalRange(undefined);
-      onChange?.(null);
-    }
-  };
-
-  // Format Display Text
-  const formatDisplay = () => {
-    if (variant === "single") {
-      if (!internalSingle) return "";
-      return format(internalSingle, "dd/MM/yyyy");
-    } else {
-      if (!internalRange?.from) return "";
-      if (!internalRange.to) return format(internalRange.from, "dd/MM/yyyy");
-      return `${format(internalRange.from, "dd/MM/yyyy")} - ${format(internalRange.to, "dd/MM/yyyy")}`;
-    }
-  };
-
-  const hasValue =
-    variant === "single" ? !!internalSingle : !!internalRange?.from;
-  const displayValue = formatDisplay();
-
   const computedClasses = cn(
     inputStyles.controlBase,
     inputSizePadding[size],
@@ -369,85 +222,36 @@ const InputDateControl = ({
           placeholder ||
           (variant === "single" ? "Selecione a data" : "Selecione o período")
         }
-        value={displayValue}
+        value={dateSel.displayValue}
         style={{ cursor: disabled ? "not-allowed" : "pointer" }}
         className="pointer-events-none min-w-[50px] flex-1 bg-transparent outline-none disabled:cursor-not-allowed"
       />
 
-      {!disabledClear && hasValue && (
+      {!disabledClear && dateSel.hasValue && (
         <button
           type="button"
           className={cn(selectStyles.clearIcon, "pointer-events-auto")}
-          onClick={handleClear}
+          onClick={dateSel.handleClear}
           disabled={disabled}
         >
           <X size={14} strokeWidth={3} />
         </button>
       )}
 
-      {open &&
-        typeof document !== "undefined" &&
-        ReactDOM.createPortal(
-          <div
-            ref={popupRef}
-            style={{
-              ...popupStyle,
-              position: portalAnchor ? "absolute" : "fixed",
-              zIndex: 9999,
-            }}
-            className={cn(calendarStyles.overlay, "w-auto min-w-max flex-row")}
-            onMouseDown={(e) => e.preventDefault()}
-            onClick={(e) => e.stopPropagation()}
-          >
-            {/* Sidebar */}
-            <div className={calendarStyles.sidebar}>
-              {variant === "single"
-                ? singleShortcuts.map((shortcut) => (
-                    <button
-                      key={shortcut.label}
-                      type="button"
-                      className={calendarStyles.sidebarButton}
-                      onClick={() => handleSelectSingle(shortcut.getValue())}
-                    >
-                      {shortcut.label}
-                    </button>
-                  ))
-                : rangeShortcuts.map((shortcut) => (
-                    <button
-                      key={shortcut.label}
-                      type="button"
-                      className={calendarStyles.sidebarButton}
-                      onClick={() => applyRange(shortcut.getValue())}
-                    >
-                      {shortcut.label}
-                    </button>
-                  ))}
-            </div>
-
-            {/* Calendar */}
-            <div className="bg-(--bg3) p-1">
-              {variant === "single" ? (
-                <CalendarBase
-                  mode="single"
-                  selected={internalSingle}
-                  onSelect={handleSelectSingle}
-                  defaultMonth={internalSingle}
-                  initialFocus
-                />
-              ) : (
-                <CalendarBase
-                  mode="range"
-                  selected={internalRange}
-                  onSelect={handleSelectRange}
-                  defaultMonth={internalRange?.from}
-                  numberOfMonths={2}
-                  initialFocus
-                />
-              )}
-            </div>
-          </div>,
-          portalAnchor ?? document.body
-        )}
+      {open && typeof document !== "undefined" && (
+        <DatePopup
+          popupRef={popupRef}
+          style={popupStyle}
+          position={position}
+          portalTarget={portalAnchor ?? document.body}
+          variant={variant ?? "single"}
+          internalSingle={dateSel.internalSingle}
+          internalRange={dateSel.internalRange}
+          onSelectSingle={dateSel.handleSelectSingle}
+          onApplyRange={dateSel.applyRange}
+          onSelectRange={dateSel.handleSelectRange}
+        />
+      )}
     </div>
   );
 };
