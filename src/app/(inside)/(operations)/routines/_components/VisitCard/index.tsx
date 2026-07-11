@@ -8,12 +8,11 @@ import { useMutation } from "@apollo/client/react";
 import { TriangleAlert } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { clientDisplayName } from "@/utils/client";
-import { SCORE_TONE_BG, visitPriority } from "@/utils/score";
+import { visitPriority } from "@/utils/score";
 import { VisitScheduleDay, VisitScheduleItem } from "../../interface";
 import {
   VISIT_STATUS_COLOR,
   VISIT_STATUS_LABEL,
-  VISIT_URGENCY_BORDER,
   getVisitFollowupWarning,
   getVisitScoreTotal,
 } from "../../utils";
@@ -109,6 +108,11 @@ export function VisitCard({
     );
   };
 
+  // "Pendente" é o estado esperado de toda visita futura — mostrar o badge em
+  // cada card só polui a coluna. Ele aparece quando a visita saiu do previsto
+  // (realizada, ausente, remarcada…), que é a informação que vale destacar.
+  const showStatusBadge = item.status !== "PENDING";
+
   return (
     <>
       {overlays}
@@ -123,12 +127,12 @@ export function VisitCard({
           }
         }}
         title="Visualizar visita"
-        className={`cursor-pointer rounded-(--r-md) border border-(--border) bg-(--bg3) p-[14px] transition-colors hover:border-(--amber) focus:outline-none focus-visible:ring-1 focus-visible:ring-(--amber) ${VISIT_URGENCY_BORDER[item.status]}`}
+        className="cursor-pointer rounded-(--r-md) border border-(--border) bg-(--bg3) p-16 transition-colors hover:border-(--amber) focus:outline-none focus-visible:ring-1 focus-visible:ring-(--amber)"
       >
-        <div className="flex items-start justify-between gap-4">
-          <div className="flex min-w-0 items-start gap-6">
+        <div className="flex items-start justify-between gap-8">
+          <div className="flex min-w-0 items-start gap-8">
             <div
-              className="mt-[1px] shrink-0"
+              className="mt-1 shrink-0"
               onClick={(e) => e.stopPropagation()}
               onKeyDown={(e) => e.stopPropagation()}
             >
@@ -150,50 +154,49 @@ export function VisitCard({
               />
             </div>
             <div className="min-w-0">
-              <div
-                className={`truncate text-[13px] font-medium ${
-                  isCompleted ? "text-(--muted) line-through" : "text-(--text)"
-                }`}
+              <Title
+                variant="value"
+                color={isCompleted ? "muted" : "default"}
+                className={cn("block truncate", isCompleted && "line-through")}
               >
                 {clientDisplayName(item.clientFactoryLink?.client)}
-              </div>
-              <div className="truncate text-[13px] text-(--muted)">
+              </Title>
+              <Title
+                variant="body-xs"
+                color="muted"
+                className="mt-2 block truncate"
+              >
                 {getFocusLabel(item)}
-              </div>
+              </Title>
             </div>
           </div>
           <div
-            className="-mt-[2px] -mr-[4px] shrink-0"
+            className="-mt-2 -mr-4 shrink-0"
             onClick={(e) => e.stopPropagation()}
           >
             {menu}
           </div>
         </div>
+
         {priority && !isCompleted && (
-          <div
-            className="mt-[10px] flex items-center gap-6"
-            title={`Score ${scoreValue?.toFixed(0)}`}
-          >
-            <span
-              className={cn(
-                "h-[8px] w-[8px] shrink-0 rounded-full",
-                SCORE_TONE_BG[priority.tone]
-              )}
-            />
-            <Title variant="micro" color="secondary">
-              {priority.label} · {scoreValue?.toFixed(0)}
-            </Title>
+          <div className="mt-12 flex" title={`Score ${scoreValue?.toFixed(0)}`}>
+            <Badge.Root color={priority.tone} appearance="tinted">
+              <Badge.Dot />
+              <Badge.Text>
+                {priority.label} · {scoreValue?.toFixed(0)}
+              </Badge.Text>
+            </Badge.Root>
           </div>
         )}
 
-        <div className="mt-[10px] flex items-center justify-between gap-4">
+        <div className="mt-12 flex items-center justify-between gap-8 border-t border-(--border) pt-12">
           <Title variant="micro" color="muted">
             #{item.plannedOrder}
             {item.estimatedTravelMin != null
               ? ` · ${item.estimatedTravelMin}m`
               : ""}
           </Title>
-          <div className="flex items-center gap-4">
+          <div className="flex items-center gap-8">
             {warning && (
               <TriangleAlert
                 size={14}
@@ -203,12 +206,14 @@ export function VisitCard({
                 <title>{warning.message}</title>
               </TriangleAlert>
             )}
-            <Badge.Root
-              color={VISIT_STATUS_COLOR[item.status]}
-              appearance="tinted"
-            >
-              <Badge.Text>{VISIT_STATUS_LABEL[item.status]}</Badge.Text>
-            </Badge.Root>
+            {showStatusBadge && (
+              <Badge.Root
+                color={VISIT_STATUS_COLOR[item.status]}
+                appearance="tinted"
+              >
+                <Badge.Text>{VISIT_STATUS_LABEL[item.status]}</Badge.Text>
+              </Badge.Root>
+            )}
           </div>
         </div>
       </div>

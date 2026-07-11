@@ -61,10 +61,13 @@ export function RoutinesWeekGrid({
     periodDays >= 7 ? cells : cells.slice(anchor, anchor + periodDays);
 
   return (
-    <div className="flex gap-8 overflow-x-auto pb-8">
+    <div className="flex items-start gap-8 overflow-x-auto pb-8">
       {visibleCells.map((cell) => {
         const items = cell.day?.items ?? [];
         const isToday = cell.date === todayIso;
+        // Quantas já foram concluídas — alimenta o badge de progresso do dia.
+        const doneCount = items.filter((i) => i.status === "COMPLETED").length;
+        const allDone = items.length > 0 && doneCount === items.length;
         // "Dia seguinte" = próximo dia da semana; só serve como alternativa de
         // agendamento se for um dia útil (tem rotina), não uma folga.
         const globalIndex = cells.indexOf(cell);
@@ -116,17 +119,31 @@ export function RoutinesWeekGrid({
                       <Badge.Text>Hoje</Badge.Text>
                     </Badge.Root>
                   )}
-                  <Badge.Root color="neutral" appearance="tinted">
-                    <Badge.Text>{items.length}</Badge.Text>
+                  <Badge.Root
+                    color={allDone ? "green" : "neutral"}
+                    appearance="tinted"
+                    title={
+                      items.length > 0
+                        ? `${doneCount} de ${items.length} concluída(s)`
+                        : undefined
+                    }
+                  >
+                    <Badge.Text>
+                      {doneCount > 0
+                        ? `${doneCount}/${items.length}`
+                        : items.length}
+                    </Badge.Text>
                   </Badge.Root>
                 </div>
               </Card.Header>
-              <Card.Body>
+              {/* Sem padding no Body: a lista rola (área central) e as ações
+                  ficam fixas num rodapé próprio, separadas por um divisor. */}
+              <Card.Body padding="none">
                 {!cell.day ? (
                   // Folga: o usuário ainda pode querer trabalhar neste dia —
                   // gerar a rota automática (pela carteira) ou agendar uma
                   // visita manual (cria o dia com essa primeira visita).
-                  <div className="flex flex-col items-center gap-8 py-8">
+                  <div className="flex flex-1 flex-col items-center justify-center gap-8 p-16">
                     <span className="text-[13px] text-(--muted)">Folga</span>
                     <GenerateDayButton
                       date={cell.date}
@@ -143,47 +160,53 @@ export function RoutinesWeekGrid({
                       onChanged={onChanged}
                     />
                   </div>
-                ) : items.length === 0 ? (
-                  <div className="py-8 text-center text-[13px] text-(--muted)">
-                    Sem visitas
-                  </div>
                 ) : (
-                  <div className="flex flex-col gap-6">
-                    {items.map((item) => (
-                      <VisitCard
-                        key={item.id}
-                        item={item}
-                        currentDayId={cell.day!.id}
-                        scheduleDays={days}
+                  <>
+                    {/* Área rolável: cresce até um teto e então rola por dentro,
+                        em vez de esticar a coluna para baixo. */}
+                    <div className="max-h-[calc(100dvh-340px)] min-h-[64px] flex-1 overflow-y-auto p-16">
+                      {items.length === 0 ? (
+                        <div className="py-8 text-center text-[13px] text-(--muted)">
+                          Sem visitas
+                        </div>
+                      ) : (
+                        <div className="flex flex-col gap-6">
+                          {items.map((item) => (
+                            <VisitCard
+                              key={item.id}
+                              item={item}
+                              currentDayId={cell.day!.id}
+                              scheduleDays={days}
+                              onChanged={onChanged}
+                            />
+                          ))}
+                        </div>
+                      )}
+                    </div>
+
+                    {/* Rodapé fixo do dia: adicionar visita + abrir a rota. */}
+                    <div className="flex flex-col gap-8 border-t border-(--border) p-16">
+                      <AddVisitCard
+                        day={cell.day}
+                        date={cell.date}
+                        scheduleId={scheduleId}
+                        nextDay={nextDay}
+                        sellerId={addSellerId}
+                        maxVisitsPerDay={maxVisitsPerDay}
                         onChanged={onChanged}
                       />
-                    ))}
-                  </div>
-                )}
-
-                {cell.day && (
-                  <AddVisitCard
-                    day={cell.day}
-                    date={cell.date}
-                    scheduleId={scheduleId}
-                    nextDay={nextDay}
-                    sellerId={addSellerId}
-                    maxVisitsPerDay={maxVisitsPerDay}
-                    onChanged={onChanged}
-                  />
-                )}
-
-                {cell.day && (
-                  <Link
-                    href={`/routines/${cell.date}${
-                      sellerId ? `?seller=${sellerId}` : ""
-                    }`}
-                    className={`${routeButtonClass} mt-10`}
-                    title="Abrir a rota deste dia no mapa"
-                  >
-                    <Route size={14} />
-                    Ver rota do dia
-                  </Link>
+                      <Link
+                        href={`/routines/${cell.date}${
+                          sellerId ? `?seller=${sellerId}` : ""
+                        }`}
+                        className={routeButtonClass}
+                        title="Abrir a rota deste dia no mapa"
+                      >
+                        <Route size={14} />
+                        Ver rota do dia
+                      </Link>
+                    </div>
+                  </>
                 )}
               </Card.Body>
             </Card.Root>
