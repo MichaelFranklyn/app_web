@@ -13,4 +13,11 @@ export interface ButtonProps extends ButtonHTMLAttributes<HTMLButtonElement> {
   active?: boolean;
   noPadding?: boolean;
   noUppercase?: boolean;
+  /**
+   * Nome acessível + tooltip nativo do botão. Obrigatório na prática para
+   * botões `isIconOnly` (ações de linha), onde não há texto visível: alimenta
+   * `aria-label` (leitor de tela) e `title` (tooltip on-hover). Um `aria-label`
+   * ou `title` passado explicitamente tem precedência sobre este.
+   */
+  label?: string;
 }

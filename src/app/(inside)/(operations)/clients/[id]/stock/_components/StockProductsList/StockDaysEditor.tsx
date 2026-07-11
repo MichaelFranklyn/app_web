@@ -1,6 +1,7 @@
 "use client";
 
 import { Button } from "@/components/Button";
+import { Title } from "@/components/Title";
 import { cn } from "@/lib/utils";
 import { Check, X } from "lucide-react";
 import { useState } from "react";
@@ -41,11 +42,13 @@ export function StockDaysEditor({
 
   return (
     <div className="flex flex-col gap-8 rounded-(--r-md) border border-(--border) bg-(--bg3) px-12 py-10">
-      <div className="text-[13px] text-(--muted)">
+      <Title variant="body-sm" color="muted">
         Quantos dias o estoque de{" "}
-        <span className="font-medium text-(--text)">{productName}</span> ainda
-        dura, segundo o cliente?
-      </div>
+        <Title variant="body-xs" weight="medium">
+          {productName}
+        </Title>{" "}
+        ainda dura, segundo o cliente?
+      </Title>
 
       <div className="flex flex-wrap items-center gap-4">
         {SHORTCUTS.map((shortcut) => {

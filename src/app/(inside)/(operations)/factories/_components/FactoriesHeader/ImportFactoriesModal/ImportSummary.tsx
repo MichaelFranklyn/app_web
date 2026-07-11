@@ -59,12 +59,12 @@ function DetailLine({
   detail: ImportRowDetail;
 }) {
   return (
-    <div className="text-[13px] text-(--text)">
+    <Title variant="body-sm">
       <Title variant="body-xs" weight="medium" className={`inline ${tone}`}>
         {label} · Linha {detail.row}
       </Title>
       {detail.cnpj ? ` (${detail.cnpj})` : ""}: {detail.message}
-    </div>
+    </Title>
   );
 }
 

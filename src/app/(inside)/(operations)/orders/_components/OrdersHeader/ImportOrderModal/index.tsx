@@ -6,7 +6,7 @@ import { Button } from "@/components/Button";
 import { FormBuilder } from "@/components/FormBuilder";
 import { Modal } from "@/components/Modal";
 
-import { OrderImportWizard } from "../../../[id]/_components/OrderItemsTable/ImportOrderModal/OrderImportWizard";
+import { OrderImportWizard } from "../../../../_components/OrderImportWizard";
 import { ImportOrderModalProps, useImportOrder } from "./useImportOrder";
 
 /**

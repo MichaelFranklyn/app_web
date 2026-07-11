@@ -34,7 +34,13 @@ export function RemoveTaxModal({
   return (
     <ConfirmModal
       trigger={
-        <Button.Root appearance="ghost" color="red" size="sm" isIconOnly>
+        <Button.Root
+          appearance="ghost"
+          color="red"
+          size="sm"
+          isIconOnly
+          label="Remover imposto"
+        >
           <Button.Icon icon={Trash2} />
         </Button.Root>
       }

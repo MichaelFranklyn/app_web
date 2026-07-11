@@ -39,13 +39,15 @@ export const getTodayIso = (): string => {
 };
 
 /**
- * Formata uma data ISO para dd/mm/aaaa (pt-BR).
- * Retorna "—" se a data for ausente ou inválida (ideal para células de tabela).
+ * Formata uma data ISO para dd/mm/aaaa (pt-BR). Fonte única de formatação de
+ * data curta no app — `formatDateDMY` (masks.ts) delega aqui.
+ * @param fallback texto para data ausente/inválida. Padrão "—" (ideal para
+ *   células de tabela); passe "" para contextos que concatenam a saída.
  */
-export const formatDate = (date?: string | null): string => {
-  if (!date) return "—";
+export const formatDate = (date?: string | null, fallback = "—"): string => {
+  if (!date) return fallback;
   const parsed = new Date(date);
-  if (Number.isNaN(parsed.getTime())) return "—";
+  if (Number.isNaN(parsed.getTime())) return fallback;
   return parsed.toLocaleDateString("pt-BR");
 };
 

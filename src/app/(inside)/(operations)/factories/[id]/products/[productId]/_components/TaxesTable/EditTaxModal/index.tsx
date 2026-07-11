@@ -108,7 +108,13 @@ export function EditTaxModal({ tax, onChanged }: Props) {
   return (
     <Modal.Root open={open} onOpenChange={setOpen}>
       <Modal.Trigger asChild>
-        <Button.Root appearance="ghost" color="neutral" size="sm" isIconOnly>
+        <Button.Root
+          appearance="ghost"
+          color="neutral"
+          size="sm"
+          isIconOnly
+          label="Editar alíquota"
+        >
           <Button.Icon icon={Pencil} />
         </Button.Root>
       </Modal.Trigger>

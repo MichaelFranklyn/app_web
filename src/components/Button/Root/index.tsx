@@ -19,6 +19,9 @@ export const ButtonRoot = forwardRef<HTMLButtonElement, ButtonProps>(
       noUppercase = false,
       children,
       disabled,
+      label,
+      title,
+      "aria-label": ariaLabel,
       ...props
     },
     ref
@@ -38,6 +41,8 @@ export const ButtonRoot = forwardRef<HTMLButtonElement, ButtonProps>(
           className,
         })}
         disabled={loading || disabled}
+        title={title ?? label}
+        aria-label={ariaLabel ?? label}
         {...props}
       >
         {loading && (

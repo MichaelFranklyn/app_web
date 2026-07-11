@@ -21,7 +21,13 @@ export function MoreOptions({ options }: MoreOptionsProps) {
   return (
     <Dropdown.Root>
       <Dropdown.Trigger asChild>
-        <Button.Root appearance="ghost" color="neutral" size="sm">
+        <Button.Root
+          appearance="ghost"
+          color="neutral"
+          size="sm"
+          isIconOnly
+          label="Mais ações"
+        >
           <Button.Icon icon={MoreHorizontal} />
         </Button.Root>
       </Dropdown.Trigger>

@@ -1,3 +1,5 @@
+import { formatDate } from "./date";
+
 export const onlyDigits = (value: string): string => value.replace(/\D+/g, "");
 
 // Mascara CPF: 000.000.000-00
@@ -86,16 +88,10 @@ export const maskCurrency = (value: string): string => {
   return `${formatted},${decimal}`;
 };
 
-// Formata data para DD/MM/YYYY
-export const formatDateDMY = (dateString?: string): string => {
-  if (!dateString) return "";
-  const date = new Date(dateString);
-  if (Number.isNaN(date.getTime())) return "";
-  const day = String(date.getDate()).padStart(2, "0");
-  const month = String(date.getMonth() + 1).padStart(2, "0");
-  const year = date.getFullYear();
-  return `${day}/${month}/${year}`;
-};
+// Formata data para DD/MM/YYYY — delega ao canônico formatDate (date.ts),
+// só trocando o fallback para "" (as tabelas concatenam a saída).
+export const formatDateDMY = (dateString?: string): string =>
+  formatDate(dateString, "");
 
 // Formata data para MM/YYYY
 export const formatDateMY = (dateString?: string): string => {

@@ -3,6 +3,7 @@
 import { Badge } from "@/components/Badges";
 import { Table } from "@/components/Table";
 import { Tabs } from "@/components/Tabs";
+import { Title } from "@/components/Title";
 import { formatDateDMY } from "@/utils/format/masks";
 import { useQuery } from "@apollo/client/react";
 import { AddFactoryAccessModal } from "./AddFactoryAccessModal";
@@ -82,9 +83,13 @@ export function FactoriesTab({ sellerId }: Props) {
               ) : items.length === 0 ? (
                 <Table.Row>
                   <Table.Cell colSpan={4}>
-                    <div className="py-16 text-center text-sm text-(--fg-muted)">
+                    <Title
+                      variant="body-sm"
+                      color="muted"
+                      className="py-16 text-center"
+                    >
                       Nenhuma fábrica vinculada
-                    </div>
+                    </Title>
                   </Table.Cell>
                 </Table.Row>
               ) : (

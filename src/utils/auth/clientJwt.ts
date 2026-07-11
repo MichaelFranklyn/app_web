@@ -1,6 +1,7 @@
 import { getCookie } from "../cookies/clientCookie";
+import { JwtPayload } from "./types";
 
-export const parseJwt = (token: string) => {
+export const parseJwt = (token: string): JwtPayload | null => {
   if (typeof window !== "undefined") {
     try {
       const base64Url = token.split(".")[1];
@@ -14,7 +15,7 @@ export const parseJwt = (token: string) => {
           })
           .join("")
       );
-      return JSON.parse(jsonPayload);
+      return JSON.parse(jsonPayload) as JwtPayload;
     } catch {
       return null;
     }
@@ -22,7 +23,7 @@ export const parseJwt = (token: string) => {
   return null;
 };
 
-export const getDecodedToken = () => {
+export const getDecodedToken = (): JwtPayload | null => {
   const token = getCookie<string>("token");
   if (!token) return null;
   return parseJwt(token);

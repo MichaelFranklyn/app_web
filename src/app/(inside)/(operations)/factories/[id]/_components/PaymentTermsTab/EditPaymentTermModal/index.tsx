@@ -136,7 +136,13 @@ export function EditPaymentTermModal({
   return (
     <Modal.Root open={open} onOpenChange={setOpen}>
       <Modal.Trigger asChild>
-        <Button.Root appearance="ghost" color="neutral" size="sm" isIconOnly>
+        <Button.Root
+          appearance="ghost"
+          color="neutral"
+          size="sm"
+          isIconOnly
+          label="Editar prazo"
+        >
           <Button.Icon icon={Pencil} />
         </Button.Root>
       </Modal.Trigger>

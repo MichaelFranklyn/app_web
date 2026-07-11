@@ -1,5 +1,5 @@
 interface NamedClient {
-  razaoSocial: string;
+  razaoSocial?: string | null;
   nomeFantasia?: string | null;
 }
 

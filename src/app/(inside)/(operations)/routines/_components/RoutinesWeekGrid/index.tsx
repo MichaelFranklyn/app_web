@@ -144,7 +144,9 @@ export function RoutinesWeekGrid({
                   // gerar a rota automática (pela carteira) ou agendar uma
                   // visita manual (cria o dia com essa primeira visita).
                   <div className="flex flex-1 flex-col items-center justify-center gap-8 p-16">
-                    <span className="text-[13px] text-(--muted)">Folga</span>
+                    <Title variant="body-sm" color="muted">
+                      Folga
+                    </Title>
                     <GenerateDayButton
                       date={cell.date}
                       sellerId={addSellerId}
@@ -166,9 +168,13 @@ export function RoutinesWeekGrid({
                         em vez de esticar a coluna para baixo. */}
                     <div className="max-h-[calc(100dvh-340px)] min-h-[64px] flex-1 overflow-y-auto p-16">
                       {items.length === 0 ? (
-                        <div className="py-8 text-center text-[13px] text-(--muted)">
+                        <Title
+                          variant="body-sm"
+                          color="muted"
+                          className="py-8 text-center"
+                        >
                           Sem visitas
-                        </div>
+                        </Title>
                       ) : (
                         <div className="flex flex-col gap-6">
                           {items.map((item) => (

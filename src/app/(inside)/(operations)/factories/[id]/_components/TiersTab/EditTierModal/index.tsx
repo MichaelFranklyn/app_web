@@ -86,7 +86,10 @@ export function EditTierModal({
         const res = await updateTier({
           variables: { id: tierId, input: { name } },
         });
-        if (!res.data?.updatePriceTier?.status || !res.data.updatePriceTier.data) {
+        if (
+          !res.data?.updatePriceTier?.status ||
+          !res.data.updatePriceTier.data
+        ) {
           throw new Error(
             res.data?.updatePriceTier?.message ?? "Erro ao atualizar nível"
           );
@@ -109,7 +112,13 @@ export function EditTierModal({
   return (
     <Modal.Root open={open} onOpenChange={setOpen}>
       <Modal.Trigger asChild>
-        <Button.Root appearance="ghost" color="neutral" size="sm" isIconOnly>
+        <Button.Root
+          appearance="ghost"
+          color="neutral"
+          size="sm"
+          isIconOnly
+          label="Editar nível"
+        >
           <Button.Icon icon={Pencil} />
         </Button.Root>
       </Modal.Trigger>

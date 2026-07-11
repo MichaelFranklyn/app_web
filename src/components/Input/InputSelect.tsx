@@ -2,7 +2,6 @@
 
 import { Badge } from "@/components/Badges";
 import { Button } from "@/components/Button";
-import { useModalPortal } from "@/components/Modal";
 import { Title } from "@/components/Title";
 import { cn } from "@/lib/utils";
 import { ChevronDown, Plus, X } from "lucide-react";
@@ -22,6 +21,7 @@ import {
   inputStyles,
   selectStyles,
 } from "./styles";
+import { useAnchoredDropdown } from "./useAnchoredDropdown";
 
 export type SelectOption = {
   value: string;
@@ -122,10 +122,14 @@ const InputSelectControl = ({
   ...props
 }: Omit<InputSelectProps, "size">) => {
   const context = useInputContext();
-  const modalPortal = useModalPortal();
+  const {
+    containerRef,
+    floatingRef: dropdownRef,
+    open,
+    setOpen,
+    anchor: modalPortal,
+  } = useAnchoredDropdown();
   const inputRef = useRef<HTMLInputElement>(null);
-  const containerRef = useRef<HTMLDivElement>(null);
-  const dropdownRef = useRef<HTMLDivElement>(null);
   const [dropdownPos, setDropdownPos] = useState<{
     top: number;
     left: number;
@@ -136,8 +140,6 @@ const InputSelectControl = ({
   const isSuccess = context?.success;
   const inGroup = context?.inGroup;
   const disabled = context?.disabled || props.disabled;
-
-  const [open, setOpen] = useState(false);
   const [multiValue, setMultiValue] = useState<SelectOption[]>(
     Array.isArray(value) ? value : []
   );
@@ -183,23 +185,6 @@ const InputSelectControl = ({
   }, [open, variant, singleValue]);
 
   useEffect(() => {
-    const handleClickOutside = (event: MouseEvent) => {
-      if (
-        containerRef.current &&
-        !containerRef.current.contains(event.target as Node) &&
-        dropdownRef.current &&
-        !dropdownRef.current.contains(event.target as Node)
-      ) {
-        setOpen(false);
-      }
-    };
-    if (open) {
-      document.addEventListener("mousedown", handleClickOutside);
-    }
-    return () => document.removeEventListener("mousedown", handleClickOutside);
-  }, [open]);
-
-  useEffect(() => {
     if (!open || !containerRef.current) return;
     const updatePos = () => {
       if (!containerRef.current) return;
@@ -228,7 +213,7 @@ const InputSelectControl = ({
       window.removeEventListener("scroll", updatePos, true);
       window.removeEventListener("resize", updatePos);
     };
-  }, [open, modalPortal]);
+  }, [open, modalPortal, containerRef]);
 
   const handleSelectSingle = (option: SelectOption) => {
     onChange?.(option);

@@ -38,7 +38,13 @@ export function RemoveTierModal({
   return (
     <ConfirmModal
       trigger={
-        <Button.Root appearance="ghost" color="red" size="sm" isIconOnly>
+        <Button.Root
+          appearance="ghost"
+          color="red"
+          size="sm"
+          isIconOnly
+          label="Remover nível"
+        >
           <Button.Icon icon={Trash2} />
         </Button.Root>
       }

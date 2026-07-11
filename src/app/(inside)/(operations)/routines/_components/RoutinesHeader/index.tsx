@@ -105,6 +105,7 @@ export function RoutinesHeader({
                 color="neutral"
                 size="sm"
                 isIconOnly
+                label="Semana anterior"
                 onClick={onPrevWeek}
               >
                 <Button.Icon icon={ChevronLeft} />
@@ -128,6 +129,7 @@ export function RoutinesHeader({
                 color="neutral"
                 size="sm"
                 isIconOnly
+                label="Próxima semana"
                 onClick={onNextWeek}
               >
                 <Button.Icon icon={ChevronRight} />

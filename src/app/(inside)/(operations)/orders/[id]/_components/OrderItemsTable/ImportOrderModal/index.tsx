@@ -6,7 +6,7 @@ import { useState } from "react";
 import { Button } from "@/components/Button";
 import { Modal } from "@/components/Modal";
 
-import { OrderImportWizard } from "./OrderImportWizard";
+import { OrderImportWizard } from "../../../../../_components/OrderImportWizard";
 
 interface Props {
   orderId: string;

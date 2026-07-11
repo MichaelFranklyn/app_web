@@ -26,7 +26,13 @@ export function DeleteSellerAccessModal({
   return (
     <ConfirmModal
       trigger={
-        <Button.Root appearance="ghost" color="red" size="sm" isIconOnly>
+        <Button.Root
+          appearance="ghost"
+          color="red"
+          size="sm"
+          isIconOnly
+          label="Excluir vínculo"
+        >
           <Button.Icon icon={Trash2} />
         </Button.Root>
       }

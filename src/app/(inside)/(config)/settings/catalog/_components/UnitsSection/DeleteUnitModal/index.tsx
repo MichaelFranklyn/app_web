@@ -22,7 +22,13 @@ export function DeleteUnitModal({
   return (
     <ConfirmModal
       trigger={
-        <Button.Root appearance="ghost" color="red" size="sm" isIconOnly>
+        <Button.Root
+          appearance="ghost"
+          color="red"
+          size="sm"
+          isIconOnly
+          label="Remover unidade"
+        >
           <Button.Icon icon={Trash2} />
         </Button.Root>
       }

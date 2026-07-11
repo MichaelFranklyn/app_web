@@ -6,6 +6,7 @@ import { Card } from "@/components/Card";
 import { EmptyState } from "@/components/EmptyState";
 import { Grid } from "@/components/Grid";
 import { Pagination } from "@/components/Pagination";
+import { Title } from "@/components/Title";
 import { useNavigation } from "@/hooks/useNavigation";
 import { maskCNPJ } from "@/utils/format/masks";
 import { ArrowRight, Factory } from "lucide-react";
@@ -84,17 +85,25 @@ export function FactoriesGrid({
                 <Card.Body>
                   <div className="mb-12 flex items-start justify-between">
                     <div className="min-w-0">
-                      <div
-                        className="font-head line-clamp-2 min-h-[36px] text-[15px] leading-[18px] font-bold text-(--text)"
+                      <Title
+                        variant="body-md"
+                        weight="bold"
+                        className="font-head line-clamp-2 min-h-[36px] leading-[18px]"
                         title={name}
                       >
                         {name}
-                      </div>
-                      <div className="mt-[2px] text-[13px] text-(--muted)">
+                      </Title>
+                      <Title
+                        variant="body-sm"
+                        color="muted"
+                        className="mt-[2px]"
+                      >
                         {maskCNPJ(cf.factory.cnpj)}
-                      </div>
+                      </Title>
                       {city && (
-                        <div className="text-[13px] text-(--muted)">{city}</div>
+                        <Title variant="body-sm" color="muted">
+                          {city}
+                        </Title>
                       )}
                     </div>
                     <div className="flex flex-wrap items-center justify-end gap-6">

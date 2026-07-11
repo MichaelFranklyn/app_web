@@ -4,9 +4,9 @@ import { useMemo, useState } from "react";
 
 import { SelectOption } from "@/components/Input/InputSelect";
 import { useToast } from "@/components/Toast";
+import { toIsoDate } from "@/utils/format/date";
 import { useAsyncAction } from "@/hooks/useAsyncAction";
 import { useInvalidateQueriesClient } from "@/hooks/useInvalidateQueries";
-import { useReconciliation } from "@/hooks/useReconciliation";
 import {
   ColumnChoice,
   distinctValues,
@@ -44,19 +44,16 @@ import {
   EXTRACT_PRICE_LIST_FILE_MUTATION,
   fileToBase64,
   IMPORT_PRICE_LIST_MUTATION,
-  PRODUCT_UNIT_LABELS_QUERY,
-  PRODUCT_UNITS_QUERY,
 } from "./gql";
 import {
   ImportPriceListResponse,
   ImportPriceListResult,
-  ProductUnitLabelsData,
-  ProductUnitsData,
   TaxColumn,
   TierColumn,
 } from "./interface";
 import { EMPTY_ST_MVA, StMvaChoices } from "./StMvaFields";
 import { isPriceListConfig, PriceListTemplateConfig } from "./templateConfig";
+import { usePriceListCatalog } from "./usePriceListCatalog";
 
 export interface ImportPriceListModalProps {
   companyFactoryId: string;
@@ -64,9 +61,9 @@ export interface ImportPriceListModalProps {
   onImported: () => void;
 }
 
-const CATALOG_INPUT = { variables: { input: { first: 200 } } };
-const toIso = (date: Date | null): string =>
-  date ? date.toISOString().slice(0, 10) : "";
+// Usa os componentes de data LOCAIS (via toIsoDate), não `toISOString().slice`,
+// que converte para UTC e desloca o dia num fuso como o BRT (off-by-one).
+const toIso = (date: Date | null): string => toIsoDate(date);
 
 export function useImportPriceListWizard({
   companyFactoryId,
@@ -161,26 +158,6 @@ export function useImportPriceListWizard({
     [workbook, sheetName]
   );
 
-  const { data: unitsData } = useQuery<ProductUnitsData>(PRODUCT_UNITS_QUERY, {
-    ...CATALOG_INPUT,
-    skip: !matrix,
-  });
-  const { data: labelsData } = useQuery<ProductUnitLabelsData>(
-    PRODUCT_UNIT_LABELS_QUERY,
-    {
-      ...CATALOG_INPUT,
-      skip: !matrix,
-    }
-  );
-  const unitLabels = useMemo(
-    () => unitsData?.productUnits.edges.map((e) => e.node.label) ?? [],
-    [unitsData]
-  );
-  const packLabels = useMemo(
-    () => labelsData?.productUnitLabels.edges.map((e) => e.node.label) ?? [],
-    [labelsData]
-  );
-
   const data = useMemo(
     () => (matrix ? splitAt(matrix, headerIndex) : null),
     [matrix, headerIndex]
@@ -194,14 +171,16 @@ export function useImportPriceListWizard({
     () => distinctValues(rows, mapping.unitLabel),
     [rows, mapping.unitLabel]
   );
-  const { recon: unitRecon, setFinal: setUnitFinal } = useReconciliation(
-    distinctUnits,
-    unitLabels
-  );
-  const { recon: packRecon, setFinal: setPackFinal } = useReconciliation(
-    distinctPacks,
-    packLabels
-  );
+
+  // Catálogo do sistema (unidades/embalagens) + reconciliação com a planilha.
+  const {
+    unitLabels,
+    packLabels,
+    unitRecon,
+    setUnitFinal,
+    packRecon,
+    setPackFinal,
+  } = usePriceListCatalog({ matrix, distinctUnits, distinctPacks });
 
   const headerOptions: SelectOption[] = useMemo(() => {
     if (!matrix) return [];

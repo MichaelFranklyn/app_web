@@ -1,6 +1,8 @@
+import { getNestedValueFromSegments } from "./object";
+
 const defaultCollator = new Intl.Collator(undefined, {
   numeric: true,
-  sensitivity: 'base',
+  sensitivity: "base",
 });
 
 export interface SortBuilder<T> {
@@ -17,7 +19,7 @@ export type SortedArray<T> = T[] & {
 
 type SortRule = {
   path: string[];
-  direction: 'asc' | 'desc';
+  direction: "asc" | "desc";
   rank?: Map<unknown, number>;
 };
 
@@ -25,32 +27,19 @@ export function sortObjectsInArray<T>(array: T[]): SortBuilder<T> {
   const rules: SortRule[] = [];
   let currentPath: string[] = [];
 
-  const getValue = (obj: unknown, path: string[]): unknown => {
-    if (path.length === 1) {
-      return (obj as Record<string, unknown>)?.[path[0]];
-    }
-
-    return path.reduce((acc, currentKey) => {
-      if (acc && typeof acc === 'object') {
-        return (acc as Record<string, unknown>)[currentKey];
-      }
-      return undefined;
-    }, obj);
-  };
-
   const compareValues = (a: unknown, b: unknown): number => {
     if (a === b) return 0;
 
-    if (typeof a === 'string' && typeof b === 'string') {
+    if (typeof a === "string" && typeof b === "string") {
       return defaultCollator.compare(a, b);
     }
-    if (typeof a === 'number' && typeof b === 'number') {
+    if (typeof a === "number" && typeof b === "number") {
       return a - b;
     }
     if (a instanceof Date && b instanceof Date) {
       return a.getTime() - b.getTime();
     }
-    if (typeof a === 'boolean' && typeof b === 'boolean') {
+    if (typeof a === "boolean" && typeof b === "boolean") {
       return a === b ? 0 : a ? 1 : -1;
     }
 
@@ -63,8 +52,8 @@ export function sortObjectsInArray<T>(array: T[]): SortBuilder<T> {
 
     const sorted = [...array].sort((a, b) => {
       for (const rule of rules) {
-        const valA = getValue(a, rule.path);
-        const valB = getValue(b, rule.path);
+        const valA = getNestedValueFromSegments(a, rule.path);
+        const valB = getNestedValueFromSegments(b, rule.path);
 
         const isNullishA = valA === null || valA === undefined;
         const isNullishB = valB === null || valB === undefined;
@@ -90,7 +79,7 @@ export function sortObjectsInArray<T>(array: T[]): SortBuilder<T> {
         } else {
           result = compareValues(valA, valB);
 
-          if (rule.direction === 'desc') {
+          if (rule.direction === "desc") {
             result = -result;
           }
         }
@@ -127,20 +116,22 @@ export function sortObjectsInArray<T>(array: T[]): SortBuilder<T> {
     },
 
     asc() {
-      rules.push({ path: [...currentPath], direction: 'asc' });
+      rules.push({ path: [...currentPath], direction: "asc" });
       currentPath = [];
       return executeSort();
     },
 
     desc() {
-      rules.push({ path: [...currentPath], direction: 'desc' });
+      rules.push({ path: [...currentPath], direction: "desc" });
       currentPath = [];
       return executeSort();
     },
 
     as(...valuesInOrder: string[]) {
-      const rank = new Map<unknown, number>(valuesInOrder.map((v, i) => [v, i]));
-      rules.push({ path: [...currentPath], direction: 'asc', rank });
+      const rank = new Map<unknown, number>(
+        valuesInOrder.map((v, i) => [v, i])
+      );
+      rules.push({ path: [...currentPath], direction: "asc", rank });
       currentPath = [];
       return executeSort();
     },

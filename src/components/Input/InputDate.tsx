@@ -33,7 +33,7 @@ import { InputBaseProps } from "./InputText";
 import { CalendarBase } from "./CalendarBase";
 import { Calendar as CalendarIcon, X } from "lucide-react";
 import { DateRange } from "react-day-picker";
-import { useModalPortal } from "@/components/Modal";
+import { useAnchoredDropdown } from "./useAnchoredDropdown";
 
 export interface InputDateProps extends Omit<
   InputBaseProps,
@@ -176,7 +176,13 @@ const InputDateControl = ({
   ...props
 }: Omit<InputDateProps, "size">) => {
   const context = useInputContext();
-  const containerRef = useRef<HTMLDivElement>(null);
+  const {
+    containerRef,
+    floatingRef: popupRef,
+    open,
+    setOpen,
+    anchor: portalAnchor,
+  } = useAnchoredDropdown();
 
   const disabled = context?.disabled || props.disabled;
   const isError = context?.error;
@@ -184,11 +190,7 @@ const InputDateControl = ({
   const inGroup = context?.inGroup;
   const size = context?.size ?? "md";
 
-  const portalAnchor = useModalPortal();
-
-  const [open, setOpen] = useState(false);
   const [popupStyle, setPopupStyle] = useState<React.CSSProperties>({});
-  const popupRef = useRef<HTMLDivElement>(null);
 
   // Track internal state for uncontrolled usage
   const [internalSingle, setInternalSingle] = useState<Date | undefined>(
@@ -209,19 +211,6 @@ const InputDateControl = ({
     }
   }, [value, variant, open]);
 
-  useEffect(() => {
-    if (!open) return;
-    const handleClickOutside = (event: MouseEvent) => {
-      const target = event.target as Node | null;
-      if (!target) return;
-      if (containerRef.current?.contains(target)) return;
-      if (popupRef.current?.contains(target)) return;
-      setOpen(false);
-    };
-    document.addEventListener("mousedown", handleClickOutside);
-    return () => document.removeEventListener("mousedown", handleClickOutside);
-  }, [open]);
-
   // Stop native mousedown inside the popup from bubbling to the document
   // outside-click listener. React's synthetic stopPropagation isn't enough —
   // the native event still reaches `document.addEventListener` listeners,
@@ -234,7 +223,7 @@ const InputDateControl = ({
     const stop = (event: Event) => event.stopPropagation();
     popup.addEventListener("mousedown", stop);
     return () => popup.removeEventListener("mousedown", stop);
-  }, [open]);
+  }, [open, popupRef]);
 
   const onCloseRef = useRef(onClose);
   onCloseRef.current = onClose;

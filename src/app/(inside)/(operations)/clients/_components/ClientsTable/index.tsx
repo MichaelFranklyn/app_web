@@ -107,8 +107,12 @@ export function ClientsTable({
 
                 <Table.Cell variant="dim" className="text-[13px]">
                   <div className="flex flex-col gap-1">
-                    <div className="font-medium">{node.cnae ?? "—"}</div>
-                    <div className="line-clamp-2">{node.cnaeDescription}</div>
+                    <Table.CellText variant="dim" className="font-medium">
+                      {node.cnae ?? "—"}
+                    </Table.CellText>
+                    <Table.CellText variant="dim" className="line-clamp-2">
+                      {node.cnaeDescription}
+                    </Table.CellText>
                   </div>
                 </Table.Cell>
 

@@ -13,8 +13,8 @@ import { Receipt } from "lucide-react";
 import { useMemo, useState } from "react";
 import { formatDate } from "@/utils/format/date";
 import { pageToAfter } from "@/utils/pagination";
-import { EditOrderModal } from "../../../../../orders/_components/EditOrderModal";
-import { UPDATE_ORDER_FROM_CLIENT_MUTATION } from "../../../../../orders/_components/EditOrderModal/gql";
+import { EditOrderModal } from "../../../../../_components/EditOrderModal";
+import { UPDATE_ORDER_FROM_CLIENT_MUTATION } from "../../../../../_components/EditOrderModal/gql";
 import { CLIENT_ORDERS_QUERY } from "../../../gql";
 import {
   ClientOrder,

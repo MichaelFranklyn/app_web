@@ -22,7 +22,13 @@ export function DeleteTaxRuleModal({
   return (
     <ConfirmModal
       trigger={
-        <Button.Root appearance="ghost" color="red" size="sm" isIconOnly>
+        <Button.Root
+          appearance="ghost"
+          color="red"
+          size="sm"
+          isIconOnly
+          label="Remover regra de imposto"
+        >
           <Button.Icon icon={Trash2} />
         </Button.Root>
       }

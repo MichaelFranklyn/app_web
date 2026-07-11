@@ -3,7 +3,6 @@
 import { Avatar } from "@/components/Avatar";
 import { Badge } from "@/components/Badges";
 import { EmptyState } from "@/components/EmptyState";
-import { InputSearch } from "@/components/Input";
 import { Loading } from "@/components/Loading";
 import { Pagination } from "@/components/Pagination";
 import { Table } from "@/components/Table";
@@ -38,17 +37,7 @@ export default function SellerAccessContent() {
           <Table.CardHead>
             <Table.CardHead.Title>Acessos por Fábrica</Table.CardHead.Title>
             <Table.CardHead.Actions>
-              <div className="flex items-center gap-8">
-                <InputSearch
-                  size="sm"
-                  placeholder="Buscar por nome..."
-                  value={tableData.inputValues.search ?? ""}
-                  onChange={(e) =>
-                    tableData.setFilter("search", e.target.value || undefined)
-                  }
-                />
-                <AddAccessModal />
-              </div>
+              <AddAccessModal />
             </Table.CardHead.Actions>
           </Table.CardHead>
 

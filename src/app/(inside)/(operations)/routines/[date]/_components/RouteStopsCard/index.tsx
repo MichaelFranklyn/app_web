@@ -60,15 +60,19 @@ export function RouteStopsCard({
                   </div>
 
                   <div className="min-w-0 flex-1">
-                    <div className="text-[13px] font-medium text-(--text)">
+                    <Title variant="body-sm" weight="medium">
                       {clientLabel(client)}
-                    </div>
-                    <div className="mt-[2px] text-[13px] text-(--muted)">
+                    </Title>
+                    <Title variant="body-sm" color="muted" className="mt-[2px]">
                       {factoryLabel(factory)}
-                    </div>
-                    <div className="mt-[2px] text-[13px] text-(--muted2)">
+                    </Title>
+                    <Title
+                      variant="body-sm"
+                      color="muted2"
+                      className="mt-[2px]"
+                    >
                       {clientAddress(client)}
-                    </div>
+                    </Title>
                     <div className="mt-4 flex items-center gap-6">
                       {travel != null && (
                         <Title variant="micro" color="muted">
