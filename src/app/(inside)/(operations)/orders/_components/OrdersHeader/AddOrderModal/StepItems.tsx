@@ -1,0 +1,172 @@
+"use client";
+
+import { Plus, Trash } from "lucide-react";
+
+import { Button } from "@/components/Button";
+import { Input } from "@/components/Input";
+import { Table } from "@/components/Table";
+import { Title } from "@/components/Title";
+import { maskCurrency, formatMoney } from "@/utils/format/masks";
+
+import { OrderDraftItems } from "./useOrderDraftItems";
+
+interface Props {
+  draft: OrderDraftItems;
+}
+
+const subtotalOf = (unitPrice: number, quantity: number, discount: number) =>
+  Math.max(0, quantity * unitPrice - discount);
+
+export function StepItems({ draft }: Props) {
+  if (!draft.hasCatalog) {
+    return (
+      <Title variant="body-md" color="muted">
+        Esta fábrica ainda não tem produtos cadastrados. Você pode criar o
+        pedido sem itens e adicioná-los depois.
+      </Title>
+    );
+  }
+
+  return (
+    <div className="flex flex-col gap-16">
+      {/* Formulário de adição de um item */}
+      <div className="flex flex-col gap-8 rounded-(--r-md) border border-(--border) bg-(--bg2) p-16">
+        <Title variant="label" weight="bold" className="tracking-normal">
+          Adicionar item
+        </Title>
+
+        <div className="grid grid-cols-12 gap-x-8 gap-y-12">
+          <div className="col-span-12">
+            <Input.Select
+              label="Produto (nome ou código)"
+              placeholder="Digite o nome ou o código do produto"
+              options={draft.productOptions}
+              value={draft.selectedProduct}
+              onChange={draft.selectProduct}
+            />
+          </div>
+
+          <div className="col-span-12">
+            <Input.Select
+              label="Nível comercial (opcional)"
+              placeholder="Selecione o nível para sugerir o preço"
+              options={draft.tierOptions}
+              value={draft.selectedTier}
+              onChange={draft.selectTier}
+            />
+          </div>
+
+          <div className="col-span-12">
+            <Input.Text
+              label={
+                draft.packLabel
+                  ? `Preço por ${draft.packLabel}`
+                  : "Preço por embalagem"
+              }
+              addon="R$"
+              inputMode="numeric"
+              placeholder="0,00"
+              value={draft.unitPrice}
+              onChange={(e) => draft.setUnitPrice(maskCurrency(e.target.value))}
+              hint="Sugerido pela tabela ativa quando há nível. Você pode ajustar."
+            />
+          </div>
+
+          <div className="tablet:col-span-6 col-span-12">
+            <Input.Number
+              label="Quantidade"
+              placeholder="0"
+              value={draft.quantity}
+              onChange={(e) => draft.setQuantity(e.target.value)}
+              hint={
+                draft.saleMultiple
+                  ? `Em embalagens. Vendido em múltiplos de ${draft.saleMultiple}.`
+                  : "Em embalagens, não em unidades."
+              }
+            />
+          </div>
+
+          <div className="tablet:col-span-6 col-span-12">
+            <Input.Number
+              label="Desconto (R$)"
+              placeholder="0"
+              value={draft.discount}
+              onChange={(e) => draft.setDiscount(e.target.value)}
+            />
+          </div>
+        </div>
+
+        {draft.error && (
+          <Title variant="caption" color="red">
+            {draft.error}
+          </Title>
+        )}
+
+        <div className="flex">
+          <Button.Root
+            type="button"
+            appearance="solid"
+            color="amber"
+            size="sm"
+            noUppercase
+            onClick={draft.addItem}
+          >
+            <Button.Icon icon={Plus} />
+            <Button.Title>Adicionar item</Button.Title>
+          </Button.Root>
+        </div>
+      </div>
+
+      {/* Itens já adicionados ao rascunho */}
+      {draft.items.length > 0 && (
+        <Table.Root>
+          <Table.Table>
+            <Table.Header>
+              <Table.Row>
+                <Table.Head>Produto</Table.Head>
+                <Table.Head>Nível</Table.Head>
+                <Table.Head>Qtd</Table.Head>
+                <Table.Head>Preço</Table.Head>
+                <Table.Head>Subtotal</Table.Head>
+                <Table.Head className="text-right">Ações</Table.Head>
+              </Table.Row>
+            </Table.Header>
+            <Table.Body>
+              {draft.items.map((item, index) => (
+                <Table.Row key={`${item.productId}-${index}`}>
+                  <Table.Cell variant="strong">{item.productLabel}</Table.Cell>
+                  <Table.Cell variant="dim">{item.tierLabel || "—"}</Table.Cell>
+                  <Table.Cell variant="strong">{item.quantity}</Table.Cell>
+                  <Table.Cell variant="dim">
+                    {formatMoney(item.unitPrice)}
+                  </Table.Cell>
+                  <Table.Cell variant="strong">
+                    {formatMoney(
+                      subtotalOf(item.unitPrice, item.quantity, item.discount)
+                    )}
+                  </Table.Cell>
+                  <Table.Cell>
+                    <div className="flex items-center justify-end">
+                      <Button.Root
+                        type="button"
+                        appearance="ghost"
+                        color="red"
+                        size="sm"
+                        isIconOnly
+                        noUppercase
+                        label="Remover item"
+                        onClick={() => draft.removeItem(index)}
+                      >
+                        <Button.Icon icon={Trash} />
+                      </Button.Root>
+                    </div>
+                  </Table.Cell>
+                </Table.Row>
+              ))}
+            </Table.Body>
+          </Table.Table>
+        </Table.Root>
+      )}
+    </div>
+  );
+}

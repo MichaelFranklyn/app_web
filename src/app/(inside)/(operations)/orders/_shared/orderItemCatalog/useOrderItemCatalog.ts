@@ -9,7 +9,7 @@ import {
   ORDER_ITEM_PRICE_LISTS_QUERY,
   ORDER_ITEM_PRODUCTS_QUERY,
   ORDER_ITEM_TIERS_QUERY,
-} from "../gql";
+} from "./gql";
 import {
   CompanyFactoriesData,
   PriceListItemsData,
@@ -19,7 +19,7 @@ import {
 } from "./interface";
 import { priceKey } from "./utils";
 
-interface OrderItemCatalog {
+export interface OrderItemCatalog {
   productOptions: SelectOption[];
   tierOptions: SelectOption[];
   /** Preço sugerido por produto+nível (chave `priceKey`), da tabela ativa. */
@@ -35,6 +35,9 @@ interface OrderItemCatalog {
  * produtos, níveis e a tabela de preço ativa (só para SUGERIR preço), devolvendo
  * as opções e mapas prontos para o formulário. As 5 queries são encadeadas —
  * cada uma só dispara quando a anterior resolveu o id de que depende.
+ *
+ * Compartilhado entre a criação de pedido (/orders) e a edição de itens no
+ * detalhe (/orders/[id]).
  */
 export function useOrderItemCatalog(
   open: boolean,

@@ -1,4 +1,5 @@
 import { FormBuilderRef, FormStepSchema } from "@/components/FormBuilder";
+import { useToast } from "@/components/Toast";
 import { useAsyncAction } from "@/hooks/useAsyncAction";
 import { useRefetchQueriesClient } from "@/hooks/useInvalidateQueries";
 import { extractSelectValue } from "@/utils/form";
@@ -13,7 +14,11 @@ import {
   ORDER_SELLERS_OPTIONS_QUERY,
 } from "../gql";
 import { CreateOrderResponse } from "../interface";
+import { CreateOrderInput } from "../interface";
 import { normalizeInput } from "../utils";
+import { CREATE_ORDER_ITEM_MUTATION } from "./gql";
+import { CreateOrderItemResponse } from "./interface";
+import { useOrderDraftItems } from "./useOrderDraftItems";
 import { FREIGHT_OPTIONS } from "./utils";
 
 interface SellersOptionsData {
@@ -58,12 +63,21 @@ export interface AddOrderModalProps {
 
 export function useAddOrder({ onAddOptimistic }: AddOrderModalProps) {
   const [open, setOpen] = useState(false);
+  // 0 = dados do pedido, 1 = itens (opcional).
+  const [step, setStep] = useState(0);
   const formRef = useRef<FormBuilderRef>(null);
   const refetchClient = useRefetchQueriesClient();
+  const { toast } = useToast();
 
   // Seleção em cascata: vendedor → fábrica → cliente.
   const [sellerId, setSellerId] = useState("");
   const [factoryId, setFactoryId] = useState("");
+  // Dados validados do passo 1, usados ao criar o pedido no passo 2.
+  const [orderDetails, setOrderDetails] = useState<CreateOrderInput | null>(
+    null
+  );
+
+  const draft = useOrderDraftItems(open, factoryId);
 
   const { data: sellersData } = useQuery<SellersOptionsData>(
     ORDER_SELLERS_OPTIONS_QUERY,
@@ -141,7 +155,6 @@ export function useAddOrder({ onAddOptimistic }: AddOrderModalProps) {
         sections: [
           {
             id: "details",
-            title: "Dados do pedido",
             fields: [
               {
                 name: "sellerId",
@@ -212,44 +225,100 @@ export function useAddOrder({ onAddOptimistic }: AddOrderModalProps) {
   );
 
   const [createOrder] = useMutation<CreateOrderResponse>(CREATE_ORDER_MUTATION);
+  const [createOrderItem] = useMutation<CreateOrderItemResponse>(
+    CREATE_ORDER_ITEM_MUTATION
+  );
   const { execute, isLoading } = useAsyncAction();
 
   const handleClose = (v: boolean) => {
     setOpen(v);
     if (!v) {
       formRef.current?.resetForm();
+      setStep(0);
       setSellerId("");
       setFactoryId("");
+      setOrderDetails(null);
+      draft.reset();
     }
   };
 
-  const handleSubmit = async (data: Record<string, unknown>) => {
-    const normalized = normalizeInput(data);
+  // Passo 1 válido: guarda os dados e avança para os itens.
+  const handleDetailsValid = (data: Record<string, unknown>) => {
+    setOrderDetails(normalizeInput(data));
+    setStep(1);
+  };
+
+  const goToDetails = () => setStep(0);
+
+  // Passo 2: cria o pedido e, em seguida, cada item do rascunho.
+  const handleCreate = async () => {
+    if (!orderDetails) return;
 
     await execute(
       async () => {
-        const res = await createOrder({ variables: { input: normalized } });
-
+        const res = await createOrder({ variables: { input: orderDetails } });
         if (!res.data?.createOrder?.status || !res.data.createOrder.data) {
           throw new Error(
             res.data?.createOrder?.message ?? "Erro ao criar pedido"
           );
         }
+        const order = res.data.createOrder.data;
 
-        return res.data.createOrder.data;
+        // Itens são gravados após o pedido existir. Se algum falhar, o pedido
+        // permanece criado e o vendedor completa no detalhe.
+        const failed: string[] = [];
+        for (const item of draft.items) {
+          try {
+            const r = await createOrderItem({
+              variables: {
+                input: {
+                  orderId: order.id,
+                  productId: item.productId,
+                  tierId: item.tierId || null,
+                  quantity: item.quantity,
+                  unitPrice: item.unitPrice,
+                  discount: item.discount,
+                  source: "MANUAL",
+                },
+              },
+            });
+            if (!r.data?.createOrderItem?.status) {
+              failed.push(item.productLabel);
+            }
+          } catch {
+            failed.push(item.productLabel);
+          }
+        }
+        return { order, failed };
       },
       {
-        successMessage: "Pedido iniciado com sucesso",
-        onSuccess: (newOrder) => {
-          handleClose(false);
-          onAddOptimistic(newOrder);
-          // Refaz o fetch da listagem e dos KPIs (ambos ativos em /orders)
-          // para refletirem o novo pedido, mantendo os dados visíveis.
+        successMessage: "Pedido criado com sucesso",
+        onSuccess: ({ order, failed }) => {
+          onAddOptimistic(order);
           refetchClient(["Orders", "OrderStats"]);
+          if (failed.length) {
+            toast({
+              variant: "error",
+              title: "Alguns itens não foram adicionados",
+              description: `${failed.join(", ")} — adicione no detalhe do pedido.`,
+            });
+          }
+          handleClose(false);
         },
       }
     );
   };
 
-  return { open, handleClose, formRef, formSteps, handleSubmit, isLoading };
+  return {
+    open,
+    handleClose,
+    step,
+    formRef,
+    formSteps,
+    handleDetailsValid,
+    goToDetails,
+    handleCreate,
+    draft,
+    isLoading,
+  };
 }

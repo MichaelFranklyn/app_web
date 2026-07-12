@@ -3,13 +3,15 @@ import { useAsyncAction } from "@/hooks/useAsyncAction";
 import { extractSelectValue } from "@/utils/form";
 import { maskCurrency, parseMoneyToNumber } from "@/utils/format/masks";
 import { useMutation } from "@apollo/client/react";
-import { useMemo, useRef, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 
+import {
+  priceKey,
+  useOrderItemCatalog,
+} from "../../../../_shared/orderItemCatalog";
 import { OrderItem } from "../../../interface";
 import { CREATE_ORDER_ITEM_MUTATION } from "../gql";
 import { CreateOrderItemResponse } from "./interface";
-import { useOrderItemCatalog } from "./useOrderItemCatalog";
-import { priceKey } from "./utils";
 
 export interface AddOrderItemModalProps {
   orderId: string;
@@ -32,8 +34,12 @@ export function useAddOrderItem({
 }: AddOrderItemModalProps) {
   const [open, setOpen] = useState(false);
   const formRef = useRef<FormBuilderRef>(null);
-  // Produto selecionado no momento, para resolver o preço quando o nível muda.
-  const selectedProductRef = useRef<string>("");
+  // Produto+nível selecionados. É estado (não ref) porque a sugestão de preço
+  // é reativa: precisa reagir tanto à seleção quanto à chegada da tabela.
+  const [selection, setSelection] = useState({ productId: "", tierId: "" });
+  // Última combinação produto+nível já sugerida — evita sobrescrever um preço
+  // que o vendedor ajustou manualmente na mesma combinação.
+  const lastSuggestedRef = useRef<string>("");
   // Embalagem do produto selecionado, para nomear preço e quantidade.
   const [packLabel, setPackLabel] = useState<string | null>(null);
 
@@ -45,7 +51,23 @@ export function useAddOrderItem({
     saleMultipleByProduct,
   } = useOrderItemCatalog(open, factoryId);
 
-  const saleMultiple = saleMultipleByProduct.get(selectedProductRef.current);
+  const saleMultiple = saleMultipleByProduct.get(selection.productId);
+
+  // Sugere o preço da tabela ativa de forma REATIVA: dispara quando o nível é
+  // escolhido e também quando a tabela de preços termina de carregar (as 5
+  // queries são encadeadas, então o `priceMap` costuma chegar depois da
+  // seleção). Só sugere uma vez por combinação — depois disso o vendedor pode
+  // ajustar o valor livremente sem que o preço volte a ser reescrito.
+  useEffect(() => {
+    const { productId, tierId } = selection;
+    if (!productId || !tierId) return;
+    const key = priceKey(productId, tierId);
+    if (key === lastSuggestedRef.current) return;
+    const price = priceMap.get(key);
+    if (price == null) return; // tabela ainda não carregou (ou combinação sem preço)
+    lastSuggestedRef.current = key;
+    formRef.current?.setValue("unitPrice", toCurrencyMask(price));
+  }, [selection, priceMap]);
 
   const steps: FormStepSchema[] = useMemo(
     () => [
@@ -66,11 +88,14 @@ export function useAddOrderItem({
                     : "Digite o nome ou o código do produto",
                 options: productOptions,
                 onChange: (_value, setValue) => {
-                  selectedProductRef.current = extractSelectValue(_value);
-                  setPackLabel(
-                    packLabelByProduct.get(selectedProductRef.current) ?? null
-                  );
+                  const productId = extractSelectValue(_value);
+                  // Troca de produto zera o nível e o preço: a combinação antiga
+                  // não vale mais. O preço será re-sugerido ao escolher o nível.
+                  setSelection({ productId, tierId: "" });
+                  setPackLabel(packLabelByProduct.get(productId) ?? null);
+                  lastSuggestedRef.current = "";
                   setValue("tierId", "");
+                  setValue("unitPrice", "");
                 },
               },
               {
@@ -79,14 +104,11 @@ export function useAddOrderItem({
                 label: "Nível comercial (opcional)",
                 placeholder: "Selecione o nível para sugerir o preço",
                 options: tierOptions,
-                onChange: (_value, setValue) => {
-                  const tierId = extractSelectValue(_value);
-                  const price = priceMap.get(
-                    priceKey(selectedProductRef.current, tierId)
-                  );
-                  // Sugere o preço da tabela; o vendedor pode ajustar.
-                  if (price != null)
-                    setValue("unitPrice", toCurrencyMask(price));
+                onChange: (_value) => {
+                  setSelection((s) => ({
+                    ...s,
+                    tierId: extractSelectValue(_value),
+                  }));
                 },
               },
               {
@@ -129,14 +151,7 @@ export function useAddOrderItem({
         ],
       },
     ],
-    [
-      productOptions,
-      tierOptions,
-      priceMap,
-      packLabelByProduct,
-      packLabel,
-      saleMultiple,
-    ]
+    [productOptions, tierOptions, packLabelByProduct, packLabel, saleMultiple]
   );
 
   const [createOrderItem] = useMutation<CreateOrderItemResponse>(
@@ -148,7 +163,8 @@ export function useAddOrderItem({
     setOpen(v);
     if (!v) {
       formRef.current?.resetForm();
-      selectedProductRef.current = "";
+      setSelection({ productId: "", tierId: "" });
+      lastSuggestedRef.current = "";
       setPackLabel(null);
     }
   };
