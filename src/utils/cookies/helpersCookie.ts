@@ -21,7 +21,16 @@ export const encryptValue = (value: string): string => {
   return CryptoJS.AES.encrypt(value, SECRET_KEY).toString();
 };
 
+// Todo ciphertext do formato OpenSSL do crypto-js começa com "Salted__"
+// (base64 "U2FsdGVk"). Valores sem esse prefixo não são cifrados por nós.
+const CRYPTOJS_OPENSSL_PREFIX = "U2FsdGVk";
+
 export const decryptValue = (ciphertext: string): string => {
+  // Curto-circuito determinístico: decifrar lixo no crypto-js tem
+  // comportamento indefinido (ora lança Malformed-UTF8, ora devolve bytes
+  // "válidos" por acaso) — o que tornava o parsing do cookie não-determinístico.
+  if (!ciphertext.startsWith(CRYPTOJS_OPENSSL_PREFIX)) return "";
+
   try {
     const bytes = CryptoJS.AES.decrypt(ciphertext, SECRET_KEY);
     return bytes.toString(CryptoJS.enc.Utf8);
