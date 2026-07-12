@@ -1,8 +1,17 @@
-import CryptoJS from 'crypto-js';
-import LZString from 'lz-string';
+import CryptoJS from "crypto-js";
+import LZString from "lz-string";
 
+// ATENÇÃO: isto é OFUSCAÇÃO, não um controle de segurança.
+// A chave usa prefixo NEXT_PUBLIC_, então é embutida no bundle do navegador —
+// qualquer atacante client-side pode lê-la e decifrar/renomear cookies. Serve
+// apenas para não deixar valores em texto claro no DevTools; NÃO garante
+// confidencialidade contra XSS. Dados sensíveis de sessão (token) não devem
+// depender disto — a proteção real seria cookie httpOnly gravado no servidor.
 const SECRET_KEY = process.env.NEXT_PUBLIC_COOKIE_SECRET_KEY;
-if (!SECRET_KEY) throw new Error('NEXT_PUBLIC_COOKIE_SECRET_KEY environment variable is required');
+if (!SECRET_KEY)
+  throw new Error(
+    "NEXT_PUBLIC_COOKIE_SECRET_KEY environment variable is required"
+  );
 
 export const encryptKeyName = (name: string): string => {
   return CryptoJS.HmacSHA256(name, SECRET_KEY).toString();
@@ -17,17 +26,20 @@ export const decryptValue = (ciphertext: string): string => {
     const bytes = CryptoJS.AES.decrypt(ciphertext, SECRET_KEY);
     return bytes.toString(CryptoJS.enc.Utf8);
   } catch (e) {
-    console.warn('Failed to decrypt cookie value:', e);
-    return '';
+    console.warn("Failed to decrypt cookie value:", e);
+    return "";
   }
 };
 
-export const processEncryptedCookieValue = <T>(encryptedValue: string): T | null => {
+export const processEncryptedCookieValue = <T>(
+  encryptedValue: string
+): T | null => {
   try {
     const decrypted = decryptValue(encryptedValue);
     if (!decrypted) {
       // Fallback: tenta usar valor como-está se a descriptografia retornar vazio
-      const decompressed = LZString.decompressFromEncodedURIComponent(encryptedValue);
+      const decompressed =
+        LZString.decompressFromEncodedURIComponent(encryptedValue);
       const finalString = decompressed || encryptedValue;
       return parseJSON<T>(finalString) ?? (finalString as unknown as T);
     }
@@ -35,12 +47,12 @@ export const processEncryptedCookieValue = <T>(encryptedValue: string): T | null
     const finalString = decompressed || decrypted;
     return parseJSON<T>(finalString) ?? (finalString as unknown as T);
   } catch (e) {
-    console.warn('Failed to process encrypted cookie value:', e);
+    console.warn("Failed to process encrypted cookie value:", e);
     // Última tentativa: usar valor como-está (para valores não-encriptados)
     try {
       return parseJSON<T>(encryptedValue) ?? (encryptedValue as unknown as T);
     } catch (fallbackError) {
-      console.warn('Failed all parsing attempts:', fallbackError);
+      console.warn("Failed all parsing attempts:", fallbackError);
       return null;
     }
   }
@@ -58,27 +70,28 @@ export const parseJSON = <T>(value: string): T | null => {
 
   try {
     const parsed = JSON.parse(value);
-    if (typeof parsed === 'string') {
+    if (typeof parsed === "string") {
       try {
         return JSON.parse(parsed);
       } catch (e) {
-        console.warn('Failed to parse double-encoded JSON:', e);
+        console.warn("Failed to parse double-encoded JSON:", e);
         return parsed as unknown as T;
       }
     }
     return parsed;
   } catch (e) {
-    console.warn('Failed to parse JSON:', e);
+    console.warn("Failed to parse JSON:", e);
     return null;
   }
 };
 
 export const removeTypename = <T>(value: T): T => {
-  if (value === null || value === undefined || typeof value !== 'object') return value;
+  if (value === null || value === undefined || typeof value !== "object")
+    return value;
   if (Array.isArray(value)) return value.map(removeTypename) as unknown as T;
   const newObj: Record<string, unknown> = {};
   Object.keys(value).forEach((key) => {
-    if (key !== '__typename') {
+    if (key !== "__typename") {
       newObj[key] = removeTypename((value as Record<string, unknown>)[key]);
     }
   });

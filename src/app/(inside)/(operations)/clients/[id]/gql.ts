@@ -333,21 +333,6 @@ export const CLIENT_QUERY = gql`
   }
 `;
 
-export const UPDATE_CLIENT_NOTES_MUTATION = gql`
-  mutation UpdateClientNotes($id: UUID!, $input: UpdateClientNotesInput!) {
-    updateClientNotes(id: $id, input: $input) {
-      status
-      code
-      message
-      data {
-        id
-        notes
-        updatedAt
-      }
-    }
-  }
-`;
-
 export const CREATE_SELLER_CLIENT_FACTORY_MUTATION = gql`
   mutation CreateSellerClientFactory($input: CreateSellerClientFactoryInput!) {
     createSellerClientFactory(input: $input) {

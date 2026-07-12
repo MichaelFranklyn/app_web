@@ -8,6 +8,12 @@ const nextConfig: NextConfig = {
   // Recomendado true para identificar problemas no ciclo de vida do React
   reactStrictMode: true,
 
+  // Performance: importa apenas os ícones/funções usados desses pacotes de
+  // barril, cortando o custo de parse/bundle de importar o índice inteiro.
+  experimental: {
+    optimizePackageImports: ["lucide-react", "date-fns"],
+  },
+
   // Segurança: Remove o cabeçalho "X-Powered-By: Next.js"
   poweredByHeader: false,
 

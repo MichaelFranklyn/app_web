@@ -71,11 +71,11 @@ function ChangePasswordForm() {
       {
         successMessage: "Sua senha foi redefinida. Bem-vindo de volta.",
         onSuccess: (data) => {
-          const { accessToken, refreshToken, userName, companyName, role } =
-            data;
+          const { accessToken, userName, companyName, role } = data;
 
           setCookie("token", accessToken);
-          setCookie("refresh_token", refreshToken);
+          // refreshToken não é persistido (sem fluxo de refresh no cliente que
+          // o leia): evita expô-lo a XSS sem ganho funcional.
           setCookie("userData", { userName, companyName, role });
 
           router.push("/dashboard");

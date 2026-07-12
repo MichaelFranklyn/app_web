@@ -1,3 +1,9 @@
+export interface DashboardContentProps {
+  // Se o usuário logado é gestor (OWNER/ADMIN/SU) e pode escolher o vendedor.
+  // Resolvido no servidor (page.tsx) a partir do token.
+  canSelectSeller: boolean;
+}
+
 export interface DateRangeIso {
   from: string;
   to: string;

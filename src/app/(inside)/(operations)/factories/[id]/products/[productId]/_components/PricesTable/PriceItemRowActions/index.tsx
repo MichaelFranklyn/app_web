@@ -39,6 +39,7 @@ export function PriceItemRowActions({
         color="neutral"
         size="sm"
         isIconOnly
+        label="Editar preço"
         onClick={() => setEditOpen(true)}
       >
         <Button.Icon icon={Pencil} />
@@ -48,6 +49,7 @@ export function PriceItemRowActions({
         color="red"
         size="sm"
         isIconOnly
+        label="Remover preço"
         onClick={() => setRemoveOpen(true)}
       >
         <Button.Icon icon={Trash2} />

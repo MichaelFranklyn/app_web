@@ -54,7 +54,9 @@ export default function LoginContent() {
         successMessage: "Acesso autorizado. Bem-vindo ao Girus.",
         onSuccess(resultData) {
           setCookie("token", resultData.accessToken, { expires });
-          setCookie("refresh_token", resultData.refreshToken, { expires });
+          // O refreshToken não é persistido: não há fluxo de refresh no cliente
+          // que o leia, então guardá-lo num cookie legível por JS só ampliaria a
+          // superfície de ataque (roubo de sessão via XSS) sem uso funcional.
           setCookie("remember", String(shouldRemember), { expires });
           setCookie(
             "userData",

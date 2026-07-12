@@ -1,4 +1,3 @@
-import { getCookie } from "@/utils/cookies/clientCookie";
 import { useQuery } from "@apollo/client/react";
 import { useEffect, useMemo, useState } from "react";
 
@@ -18,9 +17,6 @@ import {
 } from "./interface";
 import { getCurrentWeekRangeIso } from "./utils";
 
-// Papéis que enxergam os dados de qualquer vendedor e escolhem de quem ver.
-const MANAGER_ROLES = ["OWNER", "ADMIN", "SU"];
-
 // Anexa o filtro de vendedor às buscas do dashboard quando um gestor escolhe
 // alguém no seletor. Vendedor logado é escopado pelo backend (token), não aqui.
 const withSeller = (
@@ -31,16 +27,11 @@ const withSeller = (
     ? [...filters, { field: "seller_id", operator: "eq", value: sellerId }]
     : filters;
 
-export function useDashboard() {
+// `canSelectSeller` é resolvido no servidor (page.tsx, a partir do token) e
+// entra por parâmetro — sem salto extra de hidratação para ler o cookie.
+export function useDashboard(canSelectSeller: boolean) {
   const initialRange = useMemo(getCurrentWeekRangeIso, []);
   const [range, setRange] = useState<DateRangeIso>(initialRange);
-
-  // Lido após o mount (cookie é client-only) para evitar mismatch de hidratação.
-  const [canSelectSeller, setCanSelectSeller] = useState(false);
-  useEffect(() => {
-    const userData = getCookie<{ role?: string }>("userData");
-    setCanSelectSeller(MANAGER_ROLES.includes(userData?.role ?? ""));
-  }, []);
 
   const sellersQuery = useQuery<DashboardSellersResponse>(
     DASHBOARD_SELLERS_QUERY,

@@ -55,7 +55,8 @@ export default function SignUpContent() {
         successMessage: "Conta criada! Bem-vindo ao Girus.",
         onSuccess(resultData) {
           setCookie("token", resultData.accessToken);
-          setCookie("refresh_token", resultData.refreshToken);
+          // refreshToken não é persistido (sem fluxo de refresh no cliente que
+          // o leia): evita expô-lo a XSS sem ganho funcional.
           setCookie("userData", {
             userId: resultData.userId,
             userName: resultData.userName,

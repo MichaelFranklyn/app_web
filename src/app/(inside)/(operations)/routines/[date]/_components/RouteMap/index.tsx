@@ -13,6 +13,9 @@ interface Props {
   departureAddress?: string | null;
 }
 
+// A chave vai no bundle (inerente à Maps Embed API client-side). Para evitar
+// abuso de billing, restrinja-a por referrer HTTP no Google Cloud Console
+// (Credenciais → restrições de aplicativo → sites) aos domínios do app.
 const MAPS_KEY = process.env.NEXT_PUBLIC_GOOGLE_MAPS_API_KEY;
 
 // Classe de botão âmbar (link externo precisa ser <a>, não <button>).

@@ -8,13 +8,15 @@ import { DashboardKpis } from "./_components/DashboardKpis";
 import { DashboardSkeleton } from "./_components/DashboardSkeleton";
 import { RecentOrdersTable } from "./_components/RecentOrdersTable";
 import { UpcomingVisitsCard } from "./_components/UpcomingVisitsCard";
+import { DashboardContentProps } from "./interface";
 import { useDashboard } from "./useDashboard";
 
-export default function DashboardContent() {
+export default function DashboardContent({
+  canSelectSeller,
+}: DashboardContentProps) {
   const {
     range,
     setRange,
-    canSelectSeller,
     sellers,
     selectedSellerId,
     setSelectedSellerId,
@@ -27,7 +29,7 @@ export default function DashboardContent() {
     totalPlannedVisits,
     upcomingVisits,
     isLoading,
-  } = useDashboard();
+  } = useDashboard(canSelectSeller);
 
   return (
     <PageContent>
