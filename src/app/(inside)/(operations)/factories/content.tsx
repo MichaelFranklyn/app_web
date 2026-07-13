@@ -6,16 +6,25 @@ import { useTableData } from "@/hooks/useTableData";
 import { FactoriesGrid } from "./_components/FactoriesGrid";
 import { FactoriesHeader } from "./_components/FactoriesHeader";
 import { COMPANY_FACTORIES_QUERY } from "./gql";
-import { CompanyFactory, CompanyFactoriesQueryData } from "./interface";
+import {
+  CompanyFactory,
+  CompanyFactoriesQueryData,
+  ITEMS_PER_PAGE,
+} from "./interface";
 
-export default function FactoriesContent() {
+export default function FactoriesContent({
+  initialData,
+}: {
+  initialData: CompanyFactoriesQueryData;
+}) {
   const tableData = useTableData<CompanyFactoriesQueryData, CompanyFactory>({
     query: COMPANY_FACTORIES_QUERY,
     fields: {
       search: { type: "text", queryField: "name" },
     },
     getConnection: (data) => data.company_factories_list,
-    itemsPerPage: 12,
+    itemsPerPage: ITEMS_PER_PAGE,
+    initialData,
   });
 
   const optimistic = useOptimisticList<CompanyFactory>({

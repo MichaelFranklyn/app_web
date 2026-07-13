@@ -39,6 +39,13 @@ export interface InputSelectProps extends Omit<
   variant?: "single" | "multi";
   onCreateOption?: (val: string) => Promise<SelectOption | null> | void;
   disabledClear?: boolean;
+  /**
+   * Busca server-side: desliga o filtro local e chama `onSearch(termo)` a cada
+   * digitação (debounce no consumidor — ver `useAsyncSelectOptions`).
+   */
+  onSearch?: (term: string) => void;
+  /** Indicador de carregamento das opções (usado no modo assíncrono). */
+  loading?: boolean;
 }
 
 export const InputSelect = ({
@@ -57,6 +64,8 @@ export const InputSelect = ({
   disabledClear = false,
   placeholder,
   size,
+  onSearch,
+  loading,
   ...props
 }: InputSelectProps) => {
   const isError = !!error;
@@ -84,6 +93,8 @@ export const InputSelect = ({
             onCreateOption={onCreateOption}
             disabledClear={disabledClear}
             placeholder={placeholder}
+            onSearch={onSearch}
+            loading={loading}
             {...props}
           />
         </InputGroup>
@@ -98,6 +109,8 @@ export const InputSelect = ({
             onCreateOption={onCreateOption}
             disabledClear={disabledClear}
             placeholder={placeholder}
+            onSearch={onSearch}
+            loading={loading}
             {...props}
           />
         </div>
@@ -117,6 +130,8 @@ const InputSelectControl = ({
   onCreateOption,
   disabledClear,
   placeholder,
+  onSearch,
+  loading,
   ...props
 }: Omit<InputSelectProps, "size">) => {
   const context = useInputContext();
@@ -149,6 +164,7 @@ const InputSelectControl = ({
     open,
     setOpen,
     inputRef,
+    onSearch,
   });
 
   useEffect(() => {
@@ -275,6 +291,7 @@ const InputSelectControl = ({
           pos={dropdownPos}
           portalTarget={modalPortal ?? document.body}
           variant={variant}
+          loading={loading}
           options={select.filteredOptions}
           isSelected={select.isSelected}
           areAllFilteredSelected={select.areAllFilteredSelected}

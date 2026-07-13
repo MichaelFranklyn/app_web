@@ -40,3 +40,7 @@ export interface QueryData {
     totalCount: number;
   };
 }
+
+// Itens por página. Compartilhado entre o fetch SSR (page.tsx) e o useTableData
+// (content.tsx) para as variáveis da query não divergirem.
+export const ITEMS_PER_PAGE = 15;

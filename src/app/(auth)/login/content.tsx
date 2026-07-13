@@ -10,14 +10,12 @@ import { Responsive } from "@/components/Responsive";
 import { RootPage } from "@/components/RootPage";
 import { Title } from "@/components/Title";
 import { useAsyncAction } from "@/hooks/useAsyncAction";
+import { postSession } from "@/utils/auth/session";
 import { ArrowRight } from "lucide-react";
-import { setCookie } from "@/utils/cookies/clientCookie";
-import { useMutation } from "@apollo/client/react";
 import Image from "next/image";
 import { useRouter } from "next/navigation";
 import { useRef, useState } from "react";
-import { LOGIN_MUTATION } from "./gql";
-import { LoginFormData, LoginResponse } from "./interface";
+import { LoginFormData } from "./interface";
 import { FEATURES, STATS } from "./utils";
 
 export default function LoginContent() {
@@ -25,50 +23,26 @@ export default function LoginContent() {
   const formRef = useRef<FormBuilderRef>(null);
   const router = useRouter();
 
-  const [login] = useMutation<LoginResponse>(LOGIN_MUTATION);
   const { execute, isLoading } = useAsyncAction();
 
   const handleLogin = async (data: Record<string, unknown>) => {
     const formData = data as unknown as LoginFormData;
-    const expires = shouldRemember ? 30 : undefined;
 
     await execute(
-      async () => {
-        const response = await login({
-          variables: {
+      // A sessão é estabelecida pela rota /api/session: ela roda a mutation no
+      // servidor e grava o token httpOnly. O token nunca chega ao JS.
+      () =>
+        postSession(
+          {
+            action: "login",
             input: { email: formData.email, password: formData.password },
+            remember: shouldRemember,
           },
-        });
-
-        const result = response.data?.login;
-
-        if (!result?.status || !result.data) {
-          throw new Error(
-            result?.message ??
-              "Credenciais inválidas. Verifique seu e-mail e senha."
-          );
-        }
-        return result.data;
-      },
+          "Credenciais inválidas. Verifique seu e-mail e senha."
+        ),
       {
         successMessage: "Acesso autorizado. Bem-vindo ao Girus.",
-        onSuccess(resultData) {
-          setCookie("token", resultData.accessToken, { expires });
-          // O refreshToken não é persistido: não há fluxo de refresh no cliente
-          // que o leia, então guardá-lo num cookie legível por JS só ampliaria a
-          // superfície de ataque (roubo de sessão via XSS) sem uso funcional.
-          setCookie("remember", String(shouldRemember), { expires });
-          setCookie(
-            "userData",
-            {
-              userId: resultData.userId,
-              userName: resultData.userName,
-              companyName: resultData.companyName,
-              role: resultData.role,
-            },
-            { expires }
-          );
-
+        onSuccess() {
           router.push("/dashboard");
         },
       }

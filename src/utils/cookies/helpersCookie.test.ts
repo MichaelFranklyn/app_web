@@ -1,4 +1,3 @@
-import LZString from "lz-string";
 import { describe, expect, it } from "vitest";
 
 import {
@@ -25,34 +24,21 @@ describe("encryptValue / decryptValue", () => {
     expect(decryptValue(enc)).toBe("hello");
   });
 
-  it("decrypt de texto não cifrado retorna vazio", () => {
-    expect(decryptValue("não-cifrado")).toBe("");
-  });
-
-  it("decrypt de ciphertext inválido retorna vazio", () => {
-    expect(decryptValue("garbagebase64notvalid")).toBe("");
+  it("decrypt de valor não-comprimido retorna vazio", () => {
+    expect(decryptValue("não-lzstring")).toBe("");
   });
 });
 
 describe("processEncryptedCookieValue", () => {
-  it("decifra + descomprime + parseia um objeto", () => {
+  it("descomprime + parseia um objeto", () => {
     const obj = { a: 1, b: "x" };
-    const payload = encryptValue(
-      LZString.compressToEncodedURIComponent(JSON.stringify(obj))
-    );
+    const payload = encryptValue(JSON.stringify(obj));
     expect(processEncryptedCookieValue(payload)).toEqual(obj);
   });
 
-  it("fallback: valor comprimido mas não cifrado é descomprimido + parseado", () => {
-    // decryptValue retorna "" (não está cifrado) → cai no ramo de fallback que
-    // tenta descomprimir e parsear o valor cru.
-    const obj = { only: "compressed" };
-    const payload = LZString.compressToEncodedURIComponent(JSON.stringify(obj));
-    expect(processEncryptedCookieValue(payload)).toEqual(obj);
-  });
-
-  it("fallback: string crua não-cifrada é retornada como está", () => {
-    // Não cifrado e não comprimível → finalString === valor cru.
+  it("fallback: string crua não-comprimida é retornada como está", () => {
+    // decryptValue devolve "" → finalString === valor cru → parseJSON falha →
+    // retorna a própria string (cookie de formato antigo / valor não-nosso).
     expect(processEncryptedCookieValue("texto-cru")).toBe("texto-cru");
   });
 });

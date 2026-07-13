@@ -12,18 +12,42 @@ type GraphqlBody = {
   operationName?: string;
   variables?: Record<string, unknown>;
 };
-type Handler = (variables: Record<string, unknown>) => unknown;
+type Variables = Record<string, unknown>;
+type Handler = (variables: Variables) => unknown;
+
+/**
+ * Espião das operações interceptadas. Como o mock casa por `operationName` e
+ * ignora as variáveis, o `spy` é o que permite afirmar QUE PAYLOAD o front
+ * enviou de fato (ex.: os itens mapeados numa importação), não só que a tela
+ * reagiu à resposta.
+ */
+export interface GraphqlSpy {
+  /** Todas as variables recebidas por essa operação, na ordem de chegada. */
+  calls(op: string): Variables[];
+  /** Variables da última chamada dessa operação (ou undefined se não houve). */
+  lastVariables(op: string): Variables | undefined;
+  /** Espera até a operação ser chamada ≥1 vez e devolve as variables dela. */
+  waitForCall(op: string, timeoutMs?: number): Promise<Variables>;
+}
 
 export async function mockGraphql(
   page: Page,
   handlers: Record<string, Handler>,
   fallback: Handler = () => ({})
-): Promise<void> {
+): Promise<GraphqlSpy> {
+  const recorded = new Map<string, Variables[]>();
+
   await page.route("**/graphql", async (route: Route) => {
     const body = route.request().postDataJSON() as GraphqlBody | null;
     const op = body?.operationName ?? "";
+    const variables = body?.variables ?? {};
+
+    const list = recorded.get(op) ?? [];
+    list.push(variables);
+    recorded.set(op, list);
+
     const handler = handlers[op] ?? fallback;
-    const data = handler(body?.variables ?? {});
+    const data = handler(variables);
 
     await route.fulfill({
       status: 200,
@@ -31,6 +55,24 @@ export async function mockGraphql(
       body: JSON.stringify({ data }),
     });
   });
+
+  return {
+    calls: (op) => recorded.get(op) ?? [],
+    lastVariables: (op) => recorded.get(op)?.at(-1),
+    async waitForCall(op, timeoutMs = 10_000) {
+      const deadline = Date.now() + timeoutMs;
+      for (;;) {
+        const last = recorded.get(op)?.at(-1);
+        if (last) return last;
+        if (Date.now() > deadline) {
+          throw new Error(
+            `Operação GraphQL "${op}" não foi chamada em ${timeoutMs}ms.`
+          );
+        }
+        await new Promise((r) => setTimeout(r, 50));
+      }
+    },
+  };
 }
 
 /** Conexão Relay vazia — formato padrão de lista paginada (useTableData). */

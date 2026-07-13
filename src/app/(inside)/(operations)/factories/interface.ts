@@ -1,3 +1,7 @@
+// Itens por página. Compartilhado entre o fetch SSR (page.tsx) e o useTableData
+// (content.tsx) para as variáveis da query não divergirem.
+export const ITEMS_PER_PAGE = 12;
+
 export interface CompanyFactory {
   id: string;
   commissionRate: number;

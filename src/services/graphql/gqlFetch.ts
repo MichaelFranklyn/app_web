@@ -1,7 +1,33 @@
 import { getServerCookie } from "@/utils/cookies/serverCookie";
-import { DocumentNode, OperationDefinitionNode, print } from "graphql";
+import { DocumentNode, OperationDefinitionNode, print, visit } from "graphql";
 
 const GQL_URI = process.env.NEXT_PUBLIC_GRAPHQL_API_HOST || "";
+
+/**
+ * Injeta `__typename` em toda seleção de objeto do documento (é um meta-campo
+ * sempre válido em GraphQL). O Apollo Client faz o mesmo automaticamente nas
+ * queries do navegador; replicar aqui garante que a resposta SSR tenha o mesmo
+ * shape que o cache do Apollo espera — sem isso, semear o cache com dados SSR
+ * (useTableData `initialData`) daria cache-miss e o waterfall de rede voltaria.
+ */
+function withTypename(doc: DocumentNode): DocumentNode {
+  return visit(doc, {
+    SelectionSet(node) {
+      const hasFields = node.selections.some((s) => s.kind === "Field");
+      const hasTypename = node.selections.some(
+        (s) => s.kind === "Field" && s.name.value === "__typename"
+      );
+      if (!hasFields || hasTypename) return undefined;
+      return {
+        ...node,
+        selections: [
+          ...node.selections,
+          { kind: "Field", name: { kind: "Name", value: "__typename" } },
+        ],
+      };
+    },
+  });
+}
 
 export class GqlNotFoundError extends Error {
   constructor(message = "Resource not found") {
@@ -43,7 +69,7 @@ export async function gqlFetch<
     queryString = query;
     operationName = query.match(/(?:query|mutation|subscription)\s+(\w+)/)?.[1];
   } else {
-    queryString = print(query);
+    queryString = print(withTypename(query));
     const operationDef = query.definitions.find(
       (def) => def.kind === "OperationDefinition"
     ) as OperationDefinitionNode | undefined;

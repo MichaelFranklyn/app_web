@@ -1,33 +1,32 @@
 import { afterEach, describe, expect, it, vi } from "vitest";
 
 import { removeCookie } from "../cookies/clientCookie";
-import { clearAuthCookies, logout } from "./logout";
+import { logout } from "./logout";
+import { deleteSession } from "./session";
 
 vi.mock("../cookies/clientCookie", () => ({ removeCookie: vi.fn() }));
+vi.mock("./session", () => ({
+  deleteSession: vi.fn().mockResolvedValue(undefined),
+}));
 
 afterEach(() => vi.clearAllMocks());
 
-describe("clearAuthCookies", () => {
-  it("remove os 4 cookies de auth", () => {
-    clearAuthCookies();
-    expect(removeCookie).toHaveBeenCalledWith("token");
-    expect(removeCookie).toHaveBeenCalledWith("refresh_token");
-    expect(removeCookie).toHaveBeenCalledWith("remember");
-    expect(removeCookie).toHaveBeenCalledWith("userData");
-    expect(vi.mocked(removeCookie)).toHaveBeenCalledTimes(4);
-  });
-});
-
 describe("logout", () => {
-  it("limpa cookies e redireciona p/ /login", () => {
+  it("limpa o token httpOnly no servidor, os cookies client e redireciona p/ /login", async () => {
     const replace = vi.fn();
     Object.defineProperty(window, "location", {
       value: { replace },
       writable: true,
       configurable: true,
     });
-    logout();
-    expect(vi.mocked(removeCookie)).toHaveBeenCalledTimes(4);
+
+    await logout();
+
+    // token httpOnly some via rota de sessão (o client não consegue apagá-lo).
+    expect(deleteSession).toHaveBeenCalledTimes(1);
+    // cookies legíveis por JS limpos no client.
+    expect(removeCookie).toHaveBeenCalledWith("remember");
+    expect(removeCookie).toHaveBeenCalledWith("userData");
     expect(replace).toHaveBeenCalledWith("/login");
   });
 });

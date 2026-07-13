@@ -1,17 +1,11 @@
 import { expect, test } from "../support/fixtures";
-import {
-  emptyDashboardQueries,
-  loginFailure,
-  loginSuccess,
-  mockGraphql,
-} from "../support/graphql";
+import { emptyDashboardQueries, mockGraphql } from "../support/graphql";
 
 test.describe("Login", () => {
   test("credenciais válidas → entra e cai no dashboard", async ({ page }) => {
-    await mockGraphql(page, {
-      Login: () => loginSuccess(),
-      ...emptyDashboardQueries,
-    });
+    // O login roda no servidor (rota /api/session) → o `Login` vem do
+    // stub-backend. Só as queries CLIENT do dashboard são mockadas no browser.
+    await mockGraphql(page, { ...emptyDashboardQueries });
 
     await page.goto("/login");
 
@@ -31,9 +25,15 @@ test.describe("Login", () => {
   }) => {
     const message = "Credenciais inválidas. Verifique seu e-mail e senha.";
 
-    await mockGraphql(page, {
-      Login: () => loginFailure(message),
-    });
+    // A rota /api/session responde a falha; interceptamos no browser (o stub
+    // sempre devolve sucesso para Login).
+    await page.route("**/api/session", (route) =>
+      route.fulfill({
+        status: 401,
+        contentType: "application/json",
+        body: JSON.stringify({ status: false, message }),
+      })
+    );
 
     await page.goto("/login");
 

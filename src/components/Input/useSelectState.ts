@@ -11,6 +11,12 @@ interface UseSelectStateArgs {
   open: boolean;
   setOpen: (open: boolean) => void;
   inputRef: RefObject<HTMLInputElement | null>;
+  /**
+   * Busca server-side: quando presente, o filtro local é desligado (as `options`
+   * já vêm filtradas do backend) e cada digitação chama `onSearch(termo)`. O
+   * debounce mora no consumidor (ver `useAsyncSelectOptions`).
+   */
+  onSearch?: (term: string) => void;
 }
 
 /**
@@ -28,6 +34,7 @@ export function useSelectState({
   open,
   setOpen,
   inputRef,
+  onSearch,
 }: UseSelectStateArgs) {
   const [multiValue, setMultiValue] = useState<SelectOption[]>(
     Array.isArray(value) ? value : []
@@ -39,11 +46,22 @@ export function useSelectState({
   const [isSearching, setIsSearching] = useState(false);
   const [isCreating, setIsCreating] = useState(false);
 
-  const filteredOptions = isSearching
-    ? options.filter((opt) =>
-        opt.label.toLowerCase().includes(inputValue.toLowerCase())
-      )
-    : options;
+  const isAsync = !!onSearch;
+
+  // Modo assíncrono: as opções já vêm filtradas do backend → não filtra local.
+  const filteredOptions =
+    isAsync || !isSearching
+      ? options
+      : options.filter((opt) =>
+          opt.label.toLowerCase().includes(inputValue.toLowerCase())
+        );
+
+  // Modo assíncrono: repassa o termo digitado ao backend (o debounce mora no
+  // consumidor). Só dispara enquanto o usuário está buscando ativamente, para
+  // não refazer o fetch ao apenas sincronizar o rótulo do valor selecionado.
+  useEffect(() => {
+    if (isAsync && isSearching) onSearch?.(inputValue);
+  }, [isAsync, isSearching, inputValue, onSearch]);
 
   // Sincroniza o valor interno com o `value` controlado que chega de fora.
   useEffect(() => {

@@ -8,7 +8,7 @@ import { useNavigation } from "@/hooks/useNavigation";
 import { useMutation } from "@apollo/client/react";
 import { Trash2 } from "lucide-react";
 import { useState } from "react";
-import { DELETE_ORDER_MUTATION } from "./gql";
+import { DELETE_ORDER_MUTATION } from "@/graphql/orders";
 import { DeleteOrderModalProps, DeleteOrderResponse } from "./interface";
 
 export function DeleteOrderModal({ orderId }: DeleteOrderModalProps) {

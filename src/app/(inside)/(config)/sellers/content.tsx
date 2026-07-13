@@ -5,12 +5,15 @@ import { SellersHeader } from "./_components/SellersHeader";
 import SellersTab from "./_components/SellersTab";
 import { SellersContentProps } from "./interface";
 
-export default function SellersContent({ stats }: SellersContentProps) {
+export default function SellersContent({
+  stats,
+  initialData,
+}: SellersContentProps) {
   return (
     <PageContent>
       <SellersHeader stats={stats} />
 
-      <SellersTab />
+      <SellersTab initialData={initialData} />
     </PageContent>
   );
 }

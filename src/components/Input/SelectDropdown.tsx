@@ -15,6 +15,7 @@ interface SelectDropdownProps {
   pos: { top: number; left: number; width: number };
   portalTarget: Element;
   variant: "single" | "multi";
+  loading?: boolean;
   options: SelectOption[];
   isSelected: (option: SelectOption) => boolean;
   areAllFilteredSelected: boolean;
@@ -33,6 +34,7 @@ export const SelectDropdown = ({
   pos,
   portalTarget,
   variant,
+  loading,
   options,
   isSelected,
   areAllFilteredSelected,
@@ -94,7 +96,11 @@ export const SelectDropdown = ({
         </div>
       ))}
 
-      {options.length === 0 && !showCreateOption && (
+      {loading && options.length === 0 && (
+        <div className={selectStyles.warningText}>Buscando…</div>
+      )}
+
+      {!loading && options.length === 0 && !showCreateOption && (
         <div className={selectStyles.warningText}>
           Nenhum resultado encontrado
         </div>

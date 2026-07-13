@@ -12,6 +12,7 @@
   "scripts": {
     "dev": "next dev",
     "build": "next build",
+    "analyze": "next experimental-analyze",
     "start": "next start",
     "lint": "eslint .",
     "lint:fix": "eslint . --fix",
@@ -39,6 +40,10 @@
       "prettier --write"
     ]
   },
+  "overrides": {
+    "postcss": "$postcss",
+    "esbuild": "^0.28.1"
+  },
   "dependencies": {
     "@apollo/client": "^4.0.9",
     "@hookform/resolvers": "^5.2.2",
@@ -48,7 +53,6 @@
     "@radix-ui/react-tooltip": "^1.2.8",
     "class-variance-authority": "^0.7.1",
     "clsx": "^2.1.1",
-    "crypto-js": "^4.2.0",
     "date-fns": "^4.1.0",
     "echarts": "^6.1.0",
     "graphql": "^16.12.0",
@@ -59,7 +63,7 @@
     "lz-string": "^1.5.0",
     "next": "^16.2.10",
     "patch-package": "^8.0.1",
-    "postcss": "^8.5.6",
+    "postcss": "^8.5.10",
     "postinstall-postinstall": "^2.1.0",
     "react": "^19.2.3",
     "react-day-picker": "^9.12.0",
@@ -78,7 +82,6 @@
     "@testing-library/jest-dom": "^6.9.1",
     "@testing-library/react": "^16.3.2",
     "@testing-library/user-event": "^14.6.1",
-    "@types/crypto-js": "^4.2.2",
     "@types/js-cookie": "^3.0.6",
     "@types/node": "^20",
     "@types/react": "^19.2.9",

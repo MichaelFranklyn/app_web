@@ -1,4 +1,3 @@
-import LZString from "lz-string";
 import { ResponseCookie } from "next/dist/compiled/@edge-runtime/cookies";
 import { cookies } from "next/headers";
 import {
@@ -25,8 +24,7 @@ export const setServerCookie = async (
   const cookieStore = await cookies();
 
   const stringValue = typeof value === "string" ? value : JSON.stringify(value);
-  const compressed = LZString.compressToEncodedURIComponent(stringValue);
-  const encryptedValue = encryptValue(compressed);
+  const encryptedValue = encryptValue(stringValue);
   const secureName = encryptKeyName(name);
 
   const expiresInput = options?.expires ?? DEFAULT_EXPIRATION_DAYS;

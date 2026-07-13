@@ -1,7 +1,15 @@
 import type { NextRequest } from "next/server";
 import { NextResponse } from "next/server";
 import { UserData } from "./app/(auth)/login/interface";
+import { parseJwtServer } from "./utils/auth/jwt";
 import { getServerCookie } from "./utils/cookies/serverCookie";
+
+// Token com `exp` no passado → expirado. Sem `exp`, não bloqueia (deixa o
+// backend decidir). Margem de 0s: o backend rejeita de qualquer forma.
+function isTokenExpired(token: string): boolean {
+  const exp = parseJwtServer(token)?.exp;
+  return typeof exp === "number" && exp * 1000 <= Date.now();
+}
 
 const PUBLIC_ROUTES = [
   "/login",
@@ -20,7 +28,11 @@ export async function proxy(request: NextRequest) {
     (route) => pathname === route || pathname.startsWith(`${route}/`)
   );
 
-  if (!token || !userData) {
+  // Token ausente, sem userData ou já expirado → sessão inválida. Checar o `exp`
+  // aqui evita bater no backend (BFF/SSR) com um token morto.
+  const invalidSession = !token || !userData || isTokenExpired(token);
+
+  if (invalidSession) {
     return isPublicRoute ? NextResponse.next() : forceLogout(request);
   }
 

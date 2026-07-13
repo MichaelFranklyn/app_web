@@ -122,6 +122,8 @@ const renderSelect: FieldRenderer = (
       variant={isMulti ? "multi" : "single"}
       options={f.options || []}
       onCreateOption={f.onCreateOption}
+      onSearch={f.onSearch}
+      loading={f.loading}
     />
   );
 };

@@ -1,69 +1,62 @@
-import CryptoJS from "crypto-js";
 import LZString from "lz-string";
 
 // ATENÇÃO: isto é OFUSCAÇÃO, não um controle de segurança.
 // A chave usa prefixo NEXT_PUBLIC_, então é embutida no bundle do navegador —
-// qualquer atacante client-side pode lê-la e decifrar/renomear cookies. Serve
-// apenas para não deixar valores em texto claro no DevTools; NÃO garante
-// confidencialidade contra XSS. Dados sensíveis de sessão (token) não devem
-// depender disto — a proteção real seria cookie httpOnly gravado no servidor.
+// qualquer atacante client-side pode lê-la. Serve apenas para não deixar valores
+// em texto claro no DevTools; NÃO garante confidencialidade contra XSS. Dados
+// sensíveis de sessão (token) não devem depender disto — a proteção real seria
+// cookie httpOnly gravado no servidor.
+//
+// A ofuscação é feita com LZString (compressão) em vez de AES: o crypto-js pesava
+// ~71 KB no bundle do cliente só para uma cifra que a própria chave pública tornava
+// simbólica. O nome do cookie é derivado por um hash não-criptográfico (FNV-1a)
+// salgado com a chave — determinístico e estável entre servidor e cliente.
 const SECRET_KEY = process.env.NEXT_PUBLIC_COOKIE_SECRET_KEY;
 if (!SECRET_KEY)
   throw new Error(
     "NEXT_PUBLIC_COOKIE_SECRET_KEY environment variable is required"
   );
 
-export const encryptKeyName = (name: string): string => {
-  return CryptoJS.HmacSHA256(name, SECRET_KEY).toString();
-};
+// FNV-1a 32-bit (determinístico, sem dependência de cripto). Math.imul mantém a
+// multiplicação em 32-bit; `>>> 0` normaliza para unsigned antes do hex.
+function fnv1aHex(input: string): string {
+  let h = 0x811c9dc5;
+  for (let i = 0; i < input.length; i++) {
+    h ^= input.charCodeAt(i);
+    h = Math.imul(h, 0x01000193);
+  }
+  return (h >>> 0).toString(16).padStart(8, "0");
+}
 
-export const encryptValue = (value: string): string => {
-  return CryptoJS.AES.encrypt(value, SECRET_KEY).toString();
-};
+// Nome ofuscado e estável do cookie. Prefixo "c" garante um nome de cookie válido
+// (começa por letra). Salgado com a chave para não ser um hash trivialmente
+// reconhecível do nome cru.
+export const encryptKeyName = (name: string): string =>
+  `c${fnv1aHex(`${SECRET_KEY}:${name}`)}`;
 
-// Todo ciphertext do formato OpenSSL do crypto-js começa com "Salted__"
-// (base64 "U2FsdGVk"). Valores sem esse prefixo não são cifrados por nós.
-const CRYPTOJS_OPENSSL_PREFIX = "U2FsdGVk";
+// Ofusca uma string comprimindo-a (URL-safe). Faz roundtrip com decryptValue.
+export const encryptValue = (value: string): string =>
+  LZString.compressToEncodedURIComponent(value);
 
-export const decryptValue = (ciphertext: string): string => {
-  // Curto-circuito determinístico: decifrar lixo no crypto-js tem
-  // comportamento indefinido (ora lança Malformed-UTF8, ora devolve bytes
-  // "válidos" por acaso) — o que tornava o parsing do cookie não-determinístico.
-  if (!ciphertext.startsWith(CRYPTOJS_OPENSSL_PREFIX)) return "";
-
+// Reverte encryptValue. Valores que não são nossos (formato antigo, lixo) fazem
+// o LZString devolver null/"" → retornamos "" para o chamador tratar como ausente.
+export const decryptValue = (stored: string): string => {
   try {
-    const bytes = CryptoJS.AES.decrypt(ciphertext, SECRET_KEY);
-    return bytes.toString(CryptoJS.enc.Utf8);
-  } catch (e) {
-    console.warn("Failed to decrypt cookie value:", e);
+    return LZString.decompressFromEncodedURIComponent(stored) || "";
+  } catch {
     return "";
   }
 };
 
-export const processEncryptedCookieValue = <T>(
-  encryptedValue: string
-): T | null => {
+export const processEncryptedCookieValue = <T>(stored: string): T | null => {
   try {
-    const decrypted = decryptValue(encryptedValue);
-    if (!decrypted) {
-      // Fallback: tenta usar valor como-está se a descriptografia retornar vazio
-      const decompressed =
-        LZString.decompressFromEncodedURIComponent(encryptedValue);
-      const finalString = decompressed || encryptedValue;
-      return parseJSON<T>(finalString) ?? (finalString as unknown as T);
-    }
-    const decompressed = LZString.decompressFromEncodedURIComponent(decrypted);
-    const finalString = decompressed || decrypted;
+    const decompressed = decryptValue(stored);
+    // Fallback: se não descomprimir (valor não-nosso), usa o valor cru como está.
+    const finalString = decompressed || stored;
     return parseJSON<T>(finalString) ?? (finalString as unknown as T);
   } catch (e) {
-    console.warn("Failed to process encrypted cookie value:", e);
-    // Última tentativa: usar valor como-está (para valores não-encriptados)
-    try {
-      return parseJSON<T>(encryptedValue) ?? (encryptedValue as unknown as T);
-    } catch (fallbackError) {
-      console.warn("Failed all parsing attempts:", fallbackError);
-      return null;
-    }
+    console.warn("Failed to process cookie value:", e);
+    return null;
   }
 };
 

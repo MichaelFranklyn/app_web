@@ -4,11 +4,12 @@ import { mockGraphql } from "../support/graphql";
 /**
  * Fluxo de ESCRITA mais complexo: criar pedido via AddOrderModal.
  *
- * Single-step (sem tabela de itens — itens entram depois), mas com 3 selects
- * custom EM CASCATA: Vendedor → Fábrica → Cliente. Cada seleção dispara uma
- * query (OrderSellerFactories / OrderSellerClients) e habilita o próximo select.
- * A data usa o atalho "Hoje" do date picker (evita navegar o calendário).
- * Após sucesso: add otimista + refetch de Orders/OrderStats.
+ * Wizard de 2 passos: passo 1 (Dados) com 3 selects custom EM CASCATA
+ * (Vendedor → Fábrica → Cliente — cada seleção dispara uma query e habilita o
+ * próximo select) + data via atalho "Hoje"; passo 2 (Itens, opcional) é pulado
+ * aqui. Escolher a fábrica já monta o catálogo do passo 2 (queries OrderItem*),
+ * por isso elas também são mockadas. Após sucesso: add otimista + refetch de
+ * Orders/OrderStats.
  */
 
 // Escolhe uma opção num Input.Select custom (dropdown em portal, fora do dialog).
@@ -20,6 +21,7 @@ async function pickOption(
   optionText: string
 ) {
   const select = dialog.getByRole("textbox", { name: fieldLabel });
+  await expect(select).toBeEnabled();
   await select.click();
   await select.pressSequentially(typeText);
   await page
@@ -33,7 +35,7 @@ test("orders: cria um pedido pela cascata vendedor→fábrica→cliente", async 
 }) => {
   const orders: Array<Record<string, unknown>> = [];
 
-  await mockGraphql(page, {
+  const gql = await mockGraphql(page, {
     Orders: () => ({
       orders_list: {
         edges: orders.map((node) => ({ node })),
@@ -85,6 +87,16 @@ test("orders: cria um pedido pela cascata vendedor→fábrica→cliente", async 
         ],
       },
     }),
+    // Ao escolher a Fábrica, o passo 2 do wizard (rascunho de itens) monta o
+    // catálogo da fábrica e dispara estas 5 queries. Sem mock elas caíam no
+    // fallback `{}` — resposta malformada que o Apollo refazia em loop,
+    // re-renderizando o form sem parar e desanexando o campo Cliente (o flake).
+    // Respostas vazias e bem-formadas encerram o loop (o passo 2 não é exercido).
+    OrderItemCompanyFactories: () => ({ companyFactories: { edges: [] } }),
+    OrderItemProducts: () => ({ products: { edges: [] } }),
+    OrderItemTiers: () => ({ priceTiers: { edges: [] } }),
+    OrderItemPriceLists: () => ({ factoryPriceLists: { edges: [] } }),
+    OrderItemPriceListItems: () => ({ priceListItems: { edges: [] } }),
     CreateOrder: () => {
       const node = {
         id: "order-1",
@@ -128,8 +140,25 @@ test("orders: cria um pedido pela cascata vendedor→fábrica→cliente", async 
     .click({ force: true });
   await page.getByRole("button", { name: "Hoje" }).click();
 
-  await dialog.getByRole("button", { name: "Criar pedido" }).click();
+  // Passo 1 (Dados): "Avançar" valida os campos e vai ao passo 2 (Itens).
+  await dialog.getByRole("button", { name: "Avançar" }).click();
+  // Passo 2 (Itens, opcional): sem itens, o botão é "Criar pedido".
+  await dialog
+    .getByRole("button", { name: "Criar pedido", exact: true })
+    .click();
 
-  await expect(page.getByText("Pedido iniciado com sucesso")).toBeVisible();
+  await expect(page.getByText("Pedido criado com sucesso")).toBeVisible();
   await expect(dialog).toBeHidden();
+
+  // Não basta o toast: o payload precisa carregar exatamente a cascata escolhida
+  // (vendedor/fábrica/cliente) + a data no formato ISO local.
+  const createVars = await gql.waitForCall("CreateOrder");
+  expect(createVars.input).toMatchObject({
+    sellerId: "seller-1",
+    factoryId: "factory-1",
+    clientId: "client-1",
+  });
+  expect((createVars.input as { orderDate: string }).orderDate).toMatch(
+    /^\d{4}-\d{2}-\d{2}$/
+  );
 });

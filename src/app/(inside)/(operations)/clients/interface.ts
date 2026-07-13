@@ -9,6 +9,7 @@ export interface ClientsStats {
 
 export interface ClientsContentProps {
   stats: ClientsStats;
+  initialData: QueryData;
 }
 
 export interface Client {

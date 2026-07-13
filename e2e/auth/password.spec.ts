@@ -1,9 +1,5 @@
 import { expect, test } from "../support/fixtures";
-import {
-  FAKE_JWT,
-  emptyDashboardQueries,
-  mockGraphql,
-} from "../support/graphql";
+import { emptyDashboardQueries, mockGraphql } from "../support/graphql";
 
 test("forgot-password: solicita o link de redefinição", async ({ page }) => {
   await mockGraphql(page, {
@@ -23,23 +19,9 @@ test("forgot-password: solicita o link de redefinição", async ({ page }) => {
 test("change-password: redefine a senha com token e entra no dashboard", async ({
   page,
 }) => {
-  await mockGraphql(page, {
-    ResetPassword: () => ({
-      resetPassword: {
-        status: true,
-        code: 200,
-        message: "ok",
-        data: {
-          accessToken: FAKE_JWT,
-          refreshToken: FAKE_JWT,
-          userName: "Vendedor Teste",
-          companyName: "Empresa Teste",
-          role: "SELLER",
-        },
-      },
-    }),
-    ...emptyDashboardQueries,
-  });
+  // ResetPassword estabelece sessão → roda no servidor (rota /api/session) e é
+  // servido pelo stub-backend. Só as queries CLIENT do dashboard são mockadas aqui.
+  await mockGraphql(page, { ...emptyDashboardQueries });
 
   await page.goto("/change-password?token=test-token");
 

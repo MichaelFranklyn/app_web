@@ -1,3 +1,6 @@
+import type { QueryData as SellerListQueryData } from "./_components/SellersTab/SellerListContent/interface";
+export type { SellerListQueryData };
+
 export interface SellersStatsRaw {
   sellerStats: SellersStats;
 }
@@ -11,6 +14,7 @@ export interface SellersStats {
 
 export interface SellersContentProps {
   stats: SellersStats;
+  initialData?: SellerListQueryData;
 }
 
 export interface UpdateSellerInput {

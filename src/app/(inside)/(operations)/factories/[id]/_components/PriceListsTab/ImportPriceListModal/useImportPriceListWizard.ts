@@ -415,71 +415,114 @@ export function useImportPriceListWizard({
     );
   };
 
+  const headers = parsedSheet?.headers ?? [];
+
   return {
+    // Máquina de estado + chrome do wizard (estado observável).
     open,
     handleClose,
     step,
     setStep,
-    result,
-    isLoading,
-    file,
-    extracting,
-    handleFiles,
-    matrix,
-    data: parsedSheet,
-    templateApplied,
-    workbook,
-    sheetName,
-    sheetOptions,
-    handleSheetChange,
-    headerOptions,
-    headerIndex,
-    applyHeader,
-    unreadable,
-    mapping,
-    setMapping,
-    ncmChoice,
-    setNcmChoice,
-    distinctUnits,
-    distinctPacks,
-    unitLabels,
-    packLabels,
-    unitRecon,
-    setUnitFinal,
-    packRecon,
-    setPackFinal,
-    tierColumns,
-    setTierColumns,
-    pricesPerUnit,
-    setPricesPerUnit,
-    ipiChoice,
-    handleIpiChoice,
-    ipiAsFraction,
-    setIpiAsFraction,
-    taxColumns,
-    setTaxColumns,
-    validTaxesCount,
-    stMva,
-    handleStMvaChange,
-    taxesAsFraction,
-    setTaxesAsFraction,
-    listName,
-    setListName,
-    region,
-    setRegion,
-    validFrom,
-    setValidFrom,
-    validUntil,
-    setValidUntil,
-    skippedRows,
-    importableRows,
-    defaultedCount,
-    skipped,
-    defaultedPack,
-    activeTemplate,
-    handleSaveTemplate,
     stepValid,
+    isLoading,
+    result,
     handleImport,
-    canSaveTemplateNow,
+    // Modelo da fábrica (salvar/atualizar mapeamento).
+    template: {
+      activeTemplate,
+      canSaveTemplateNow,
+      handleSaveTemplate,
+    },
+
+    // Bundles de props por Step — espelham 1:1 os props de cada componente
+    // Step*, que ficam intactos: o modal faz `<StepX {...w.xStep} />`. Os passos
+    // que dependem da grade ficam `null` até ela existir (o modal gateia no
+    // próprio bundle), o que estreita os tipos (matrix/data não-nulos aqui).
+    sheetStep: {
+      file,
+      extracting,
+      onFiles: handleFiles,
+      ready: Boolean(matrix && parsedSheet),
+      templateApplied,
+    },
+    readingStep:
+      matrix && parsedSheet
+        ? {
+            matrix,
+            data: parsedSheet,
+            workbook,
+            sheetName,
+            sheetOptions,
+            onSheetChange: handleSheetChange,
+            headerOptions,
+            headerIndex,
+            applyHeader,
+            unreadable,
+          }
+        : null,
+    productStep: parsedSheet
+      ? {
+          headers,
+          mapping,
+          setMapping,
+          ncmChoice,
+          setNcmChoice,
+          distinctUnits,
+          distinctPacks,
+          unitLabels,
+          packLabels,
+          unitRecon,
+          setUnitFinal,
+          packRecon,
+          setPackFinal,
+        }
+      : null,
+    pricesStep: parsedSheet
+      ? {
+          headers,
+          tierColumns,
+          setTierColumns,
+          pricesPerUnit,
+          setPricesPerUnit,
+        }
+      : null,
+    taxesStep: parsedSheet
+      ? {
+          headers,
+          ipiChoice,
+          onIpiChoice: handleIpiChoice,
+          ipiAsFraction,
+          setIpiAsFraction,
+          taxColumns,
+          setTaxColumns,
+          validTaxesCount,
+          stMva,
+          onStMvaChange: handleStMvaChange,
+          taxesAsFraction,
+          setTaxesAsFraction,
+        }
+      : null,
+    detailsStep: {
+      listName,
+      setListName,
+      region,
+      setRegion,
+      validFrom,
+      setValidFrom,
+      validUntil,
+      setValidUntil,
+      isLoading,
+      skippedRows,
+      importableRows,
+      defaultedCount,
+    },
+    resultStep: result
+      ? {
+          result,
+          skipped,
+          unreadable,
+          defaultedPack,
+        }
+      : null,
   };
 }

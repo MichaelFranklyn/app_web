@@ -1,5 +1,4 @@
 import Cookies from "js-cookie";
-import LZString from "lz-string";
 import {
   encryptKeyName,
   encryptValue,
@@ -13,8 +12,7 @@ export const setCookie = (
   options?: Cookies.CookieAttributes
 ) => {
   const stringValue = typeof value === "string" ? value : JSON.stringify(value);
-  const compressed = LZString.compressToEncodedURIComponent(stringValue);
-  const encryptedValue = encryptValue(compressed);
+  const encryptedValue = encryptValue(stringValue);
   const secureName = encryptKeyName(name);
 
   // Aplica o padrão de 5 dias se 'expires' não for informado.

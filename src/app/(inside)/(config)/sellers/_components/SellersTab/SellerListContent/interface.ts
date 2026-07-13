@@ -13,6 +13,10 @@ export interface QueryData {
   sellers_list: SellersQueryResponse["sellers_list"];
 }
 
+// Itens por página. Compartilhado entre o fetch SSR (page.tsx) e o useTableData
+// para as variáveis da query não divergirem.
+export const ITEMS_PER_PAGE = 10;
+
 export interface Seller {
   id: string;
   name: string;

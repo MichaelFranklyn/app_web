@@ -1,4 +1,5 @@
 import { Title } from "@/components/Title";
+import { ReactNode } from "react";
 import { Field } from "../Field";
 import { Repeater } from "../Repeater";
 import { FormSectionSchema } from "../interface";
@@ -7,15 +8,23 @@ interface SectionProps {
   section: FormSectionSchema;
 }
 
+// Cabeçalho da seção. Renderiza um <h3> (variant heading-md) roteado pelo Title,
+// com os overrides que dão o visual "eyebrow" mono/âmbar do FormBuilder.
+const SectionHeading = ({ children }: { children: ReactNode }) => (
+  <Title
+    variant="heading-md"
+    color="amber"
+    className="mt-4 border-b border-(--border) pb-2 font-mono text-[15px] font-medium tracking-wider"
+  >
+    {children}
+  </Title>
+);
+
 export const Section = ({ section }: SectionProps) => {
   if (section.isRepeatable && section.name) {
     return (
       <div className="flex flex-col gap-12">
-        {section.title && (
-          <h3 className="mt-4 border-b border-(--border) pb-2 font-mono text-[15px] font-medium tracking-wider text-(--amber)">
-            {section.title}
-          </h3>
-        )}
+        {section.title && <SectionHeading>{section.title}</SectionHeading>}
         {section.description && (
           <Title variant="body-sm" color="muted" className="mb-4">
             {section.description}
@@ -28,11 +37,7 @@ export const Section = ({ section }: SectionProps) => {
 
   return (
     <div className="flex w-full flex-col gap-12">
-      {section.title && (
-        <h3 className="mt-4 border-b border-(--border) pb-2 font-mono text-[15px] font-medium tracking-wider text-(--amber)">
-          {section.title}
-        </h3>
-      )}
+      {section.title && <SectionHeading>{section.title}</SectionHeading>}
 
       {section.description && (
         <Title variant="body-sm" color="muted" className="mb-4">

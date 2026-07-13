@@ -2,196 +2,33 @@
 
 import { Sidebar } from "@/components/Sidebar";
 import { Topbar } from "@/components/Topbar";
-import { FlowTourProvider } from "@/services/flowTour";
 import { cn } from "@/lib/utils";
-import { getCookie } from "@/utils/cookies/clientCookie";
-import { getTodayIso } from "@/utils/format/date";
+import { FlowTourProvider } from "@/services/flowTour";
+import { ChevronLeft, ChevronRight, Menu } from "lucide-react";
+import Image from "next/image";
 import { NotificationCenter } from "./_components/NotificationCenter";
 import { UserMenu } from "./_components/UserMenu";
-import {
-  Building2,
-  CalendarDays,
-  ChevronLeft,
-  ChevronRight,
-  ClipboardList,
-  Coins,
-  Landmark,
-  LayoutDashboard,
-  Menu,
-  Route,
-  Settings,
-  UserCheck,
-  UserCog,
-  Users,
-} from "lucide-react";
-import Image from "next/image";
-import { usePathname } from "next/navigation";
-import { useEffect, useState } from "react";
-
-interface UserData {
-  userId: string;
-  userName: string;
-  companyName: string;
-  role: string;
-}
-
-const ROLE_LABEL: Record<string, string> = {
-  SU: "Super Admin",
-  OWNER: "Proprietário",
-  ADMIN: "Administrador",
-  SELLER: "Vendedor",
-};
-
-const NAV = [
-  {
-    href: "/dashboard",
-    label: "Dashboard",
-    icon: LayoutDashboard,
-  },
-  {
-    // href resolvido em runtime para a data de hoje (rota do dia). Atalho para
-    // o vendedor abrir direto a rota de hoje, sem passar pela grade semanal.
-    todayRoute: true,
-    label: "Rota do dia",
-    icon: Route,
-  },
-  { divider: true },
-  { section: "Operações" },
-  {
-    href: "/routines",
-    label: "Rotina da Semana",
-    icon: CalendarDays,
-  },
-  {
-    href: "/orders",
-    label: "Pedidos",
-    icon: ClipboardList,
-  },
-  {
-    href: "/commissions",
-    label: "Comissões",
-    icon: Coins,
-  },
-  {
-    href: "/clients",
-    label: "Clientes",
-    icon: Users,
-  },
-  {
-    href: "/factories",
-    label: "Fábricas",
-    icon: Building2,
-  },
-  { divider: true },
-  { section: "Configurações" },
-  {
-    href: "/users",
-    label: "Usuários",
-    icon: UserCog,
-  },
-  {
-    href: "/sellers",
-    label: "Vendedores",
-    icon: UserCheck,
-  },
-  {
-    // Aponta direto para a aba padrão para evitar o flash em branco do redirect
-    // server-side de /settings. matchPrefix mantém o item ativo nas duas abas;
-    // tourRoute preserva o seletor do tour ([data-tour-route="/settings"]).
-    href: "/settings/catalog",
-    matchPrefix: "/settings",
-    tourRoute: "/settings",
-    label: "Configurações",
-    icon: Settings,
-  },
-];
-
-// Itens visíveis apenas para o super usuário (SU) — administração da plataforma,
-// acima de qualquer empresa. Anexados ao NAV só quando o role é SU.
-const SU_NAV = [
-  { divider: true },
-  { section: "Plataforma" },
-  {
-    href: "/companies",
-    label: "Empresas",
-    icon: Landmark,
-  },
-];
-
-const LABELS: Record<string, string> = {
-  ...Object.fromEntries(
-    NAV.filter((item) => "href" in item).map((item) => [
-      (item as { href: string; label: string }).href,
-      (item as { href: string; label: string }).label,
-    ])
-  ),
-  // Rotas acessíveis fora da sidebar (ex: dropdown do topbar) ou gated por role
-  "/profile": "Meu Perfil",
-  "/companies": "Empresas",
-};
+import { useInsideLayout } from "./useInsideLayout";
 
 export default function InsideLayout({
   children,
 }: {
   children: React.ReactNode;
 }) {
-  const pathname = usePathname();
-  // Rota de um dia específico (/routines/<data>), distinta da grade semanal.
-  const isDayRoute = /^\/routines\/[^/]+/.test(pathname);
-  const pageLabel = isDayRoute
-    ? "Rota do dia"
-    : (LABELS[pathname] ??
-      LABELS[
-        Object.keys(LABELS)
-          .filter((href) => pathname.startsWith(`${href}/`))
-          .sort((a, b) => b.length - a.length)[0]
-      ] ??
-      "Dashboard");
-  const [userData, setUserData] = useState<UserData | null>(null);
-  // Data de hoje resolvida só no cliente (evita mismatch de hidratação).
-  const [todayIso, setTodayIso] = useState<string | null>(null);
-  // Drawer do menu lateral no mobile/tablet (no desktop a sidebar é fixa).
-  const [drawerOpen, setDrawerOpen] = useState(false);
-  // Sidebar recolhida (só ícones) — comportamento exclusivo do desktop,
-  // persistido em localStorage para sobreviver à navegação.
-  const [isCollapsed, setIsCollapsed] = useState(false);
-
-  useEffect(() => {
-    const storedUser = getCookie<UserData>("userData");
-    setUserData(storedUser);
-    setTodayIso(getTodayIso());
-    setIsCollapsed(localStorage.getItem("sidebarCollapsed") === "1");
-  }, []);
-
-  const toggleCollapsed = () => {
-    setIsCollapsed((prev) => {
-      const next = !prev;
-      localStorage.setItem("sidebarCollapsed", next ? "1" : "0");
-      return next;
-    });
-  };
-
-  // Fecha o menu ao trocar de página (relevante no mobile).
-  useEffect(() => {
-    setDrawerOpen(false);
-  }, [pathname]);
-
-  const getUserInitials = (name: string): string => {
-    return name
-      .split(" ")
-      .slice(0, 2)
-      .map((word) => word[0])
-      .join("")
-      .toUpperCase();
-  };
-
-  // SU enxerga os itens de plataforma; os demais roles, só o NAV padrão.
-  const navItems = userData?.role === "SU" ? [...NAV, ...SU_NAV] : NAV;
-  const userInitials = userData ? getUserInitials(userData.userName) : "—";
-  const userName = userData?.userName ?? "Usuário";
-  const userRole = userData?.role
-    ? (ROLE_LABEL[userData.role] ?? userData.role)
-    : "—";
+  const {
+    pathname,
+    isDayRoute,
+    pageLabel,
+    todayIso,
+    drawerOpen,
+    setDrawerOpen,
+    isCollapsed,
+    toggleCollapsed,
+    navItems,
+    userName,
+    userRole,
+    userInitials,
+  } = useInsideLayout();
 
   return (
     <FlowTourProvider>

@@ -4,8 +4,9 @@ import { getNestedValue } from "@/utils/format/object";
 import { sortObjectsInArray } from "@/utils/format/sort";
 import { pageToAfter } from "@/utils/pagination";
 import { DocumentNode } from "@apollo/client";
+import { useApolloClient } from "@apollo/client/react";
 import { useSearchParams } from "next/navigation";
-import { useCallback, useMemo } from "react";
+import { useCallback, useMemo, useState } from "react";
 import { useAsyncQuery } from "./useAsyncQuery";
 import { FieldConfig, useTableFilters } from "./useTableFilters";
 
@@ -40,6 +41,14 @@ export interface UseTableDataOptions<TData, TItem> {
    * Use para listas escopadas a um pai (ex: `company_factory_id`, `product_id`).
    */
   baseFilters?: QueryFilter[];
+  /**
+   * Dados da 1ª página buscados no servidor (SSR), no shape da própria `query`
+   * (ex.: `{ clients_list: connection }`). Quando presentes, semeiam o cache do
+   * Apollo para as variáveis do estado default (página 1, sem busca) → o primeiro
+   * render acerta o cache (`cache-first`) e pinta a lista sem waterfall de rede.
+   * Busca/paginação/mutations seguem client normalmente.
+   */
+  initialData?: TData;
 }
 
 export interface UseTableDataReturn<TItem> {
@@ -84,6 +93,7 @@ export const useTableData = <TData, TItem extends object>(
     itemsPerPage = 10,
     initialSort = { key: "", direction: "none" },
     baseFilters,
+    initialData,
   } = options;
 
   const searchParams = useSearchParams();
@@ -127,6 +137,49 @@ export const useTableData = <TData, TItem extends object>(
     }),
     [currentPage, itemsPerPage, allFilters]
   );
+
+  // Variáveis do estado default (página 1, sem filtros de busca — só os fixos).
+  // Precisa bater byte a byte com o fetch SSR do `page.tsx` para o cache acertar.
+  const defaultVariables = useMemo(() => {
+    const base = (baseFilters ?? []).map((f) => ({
+      field: f.field,
+      operator: f.operator ?? "eq",
+      value: f.value,
+    }));
+    return {
+      input: {
+        first: itemsPerPage,
+        after: pageToAfter(1, itemsPerPage),
+        ...(base.length > 0 && { filters: base }),
+      },
+    };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [itemsPerPage, baseFiltersString]);
+
+  // Semeia o cache do Apollo uma única vez, antes de o `useAsyncQuery` abaixo
+  // subscrever. Inicializador de `useState` → roda no 1º render, síncrono, antes
+  // da leitura `cache-first`. Sem `initialData` (rotas ainda client), no-op.
+  //
+  // Só semeia se o SSR trouxe LINHAS de verdade: semear um connection vazio faria
+  // o `cache-first` acertar um "hit" vazio e NÃO buscar no cliente — mostrando
+  // lista vazia mesmo quando o servidor só falhou/degradou (e quebrando o E2E,
+  // cujo stub devolve vazio). Vazio → deixa o cliente buscar normalmente.
+  const apollo = useApolloClient();
+  useState(() => {
+    const seedEdges = initialData ? getConnection(initialData)?.edges : null;
+    if (initialData && seedEdges && seedEdges.length > 0) {
+      try {
+        apollo.writeQuery({
+          query,
+          variables: defaultVariables,
+          data: initialData,
+        });
+      } catch {
+        // Shape divergente: ignora e deixa o fetch client resolver.
+      }
+    }
+    return true;
+  });
 
   const { data, loading, refetch } = useAsyncQuery<TData>(query, {
     variables,

@@ -6,22 +6,17 @@ import { FormBuilder, FormBuilderRef } from "@/components/FormBuilder";
 import { RootPage } from "@/components/RootPage";
 import { Title } from "@/components/Title";
 import { useAsyncAction } from "@/hooks/useAsyncAction";
-import { setCookie } from "@/utils/cookies/clientCookie";
-import { useMutation } from "@apollo/client/react";
+import { postSession } from "@/utils/auth/session";
 import Image from "next/image";
 import { useRouter } from "next/navigation";
 import { useRef } from "react";
-import { REGISTER_COMPANY_MUTATION } from "./gql";
-import { RegisterCompanyResponse, SignUpFormData } from "./interface";
+import { SignUpFormData } from "./interface";
 import { FORM_STEPS, normalizeInput, validateSignUp } from "./utils";
 
 export default function SignUpContent() {
   const formRef = useRef<FormBuilderRef>(null);
   const router = useRouter();
 
-  const [register] = useMutation<RegisterCompanyResponse>(
-    REGISTER_COMPANY_MUTATION
-  );
   const { execute, isLoading } = useAsyncAction();
 
   const handleSignUp = async (data: Record<string, unknown>) => {
@@ -37,33 +32,15 @@ export default function SignUpContent() {
     }
 
     await execute(
-      async () => {
-        const response = await register({
-          variables: { input: normalizeInput(formData) },
-        });
-
-        const result = response.data?.registerCompany;
-        if (!result?.status || !result.data) {
-          throw new Error(
-            result?.message ??
-              "Não foi possível criar a conta. Verifique os dados e tente novamente."
-          );
-        }
-        return result.data;
-      },
+      // A rota /api/session roda a mutation no servidor e grava o token httpOnly.
+      () =>
+        postSession(
+          { action: "signup", input: normalizeInput(formData) },
+          "Não foi possível criar a conta. Verifique os dados e tente novamente."
+        ),
       {
         successMessage: "Conta criada! Bem-vindo ao Girus.",
-        onSuccess(resultData) {
-          setCookie("token", resultData.accessToken);
-          // refreshToken não é persistido (sem fluxo de refresh no cliente que
-          // o leia): evita expô-lo a XSS sem ganho funcional.
-          setCookie("userData", {
-            userId: resultData.userId,
-            userName: resultData.userName,
-            companyName: resultData.companyName,
-            role: resultData.role,
-          });
-
+        onSuccess() {
           router.push("/dashboard");
         },
       }

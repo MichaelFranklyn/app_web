@@ -1,11 +1,11 @@
-import CryptoJS from "crypto-js";
+import { createHash } from "node:crypto";
 import { afterEach, describe, expect, it } from "vitest";
 
 import { getCookie, removeCookie, setCookie } from "./clientCookie";
 
 /**
  * Gera uma string de alta entropia (incompressível) de forma determinística:
- * cadeia de SHA-256 em base64. Necessário para que após LZString + AES o valor
+ * cadeia de SHA-256 em base64. Necessário para que após o LZString o valor
  * ultrapasse o CHUNK_SIZE (2000) e force o caminho de fragmentação — texto
  * repetitivo (ex.: "A".repeat) comprime e nunca exercita os chunks.
  */
@@ -13,7 +13,7 @@ const incompressible = (len: number): string => {
   let out = "";
   let h = "seed";
   while (out.length < len) {
-    h = CryptoJS.SHA256(h).toString(CryptoJS.enc.Base64);
+    h = createHash("sha256").update(h).digest("base64");
     out += h;
   }
   return out.slice(0, len);

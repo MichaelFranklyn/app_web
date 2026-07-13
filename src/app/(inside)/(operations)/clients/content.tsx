@@ -7,14 +7,18 @@ import { ClientsHeader } from "./_components/ClientsHeader";
 import { ClientsTable } from "./_components/ClientsTable";
 import { CLIENTS_QUERY } from "./gql";
 import { Client, ClientsContentProps, QueryData } from "./interface";
-import { TABLE_FIELDS } from "./utils";
+import { ITEMS_PER_PAGE, TABLE_FIELDS } from "./utils";
 
-export default function ClientesContent({ stats }: ClientsContentProps) {
+export default function ClientesContent({
+  stats,
+  initialData,
+}: ClientsContentProps) {
   const tableData = useTableData<QueryData, Client>({
     query: CLIENTS_QUERY,
     fields: TABLE_FIELDS,
     getConnection: (data) => data.clients_list,
-    itemsPerPage: 5,
+    itemsPerPage: ITEMS_PER_PAGE,
+    initialData,
   });
 
   const optimistic = useOptimisticList<Client>({

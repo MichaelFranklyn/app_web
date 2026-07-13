@@ -77,6 +77,13 @@ export interface FieldConfigSelect extends FieldConfigBase {
   type: "select-single" | "select-multi";
   options: { label: string; value: string; [key: string]: unknown }[];
   onCreateOption?: (option: string) => Promise<SelectOption | null> | void;
+  /**
+   * Busca server-side das opções (ver `useAsyncSelectOptions`): repassa o termo
+   * digitado. Com isto, `options` deve conter só a página vinda do backend.
+   */
+  onSearch?: (term: string) => void;
+  /** Indicador de carregamento das opções no modo assíncrono. */
+  loading?: boolean;
 }
 
 export interface FieldConfigCheckbox extends FieldConfigBase {

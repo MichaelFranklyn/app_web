@@ -24,67 +24,18 @@ export function ImportPriceListModal(props: ImportPriceListModalProps) {
     handleClose,
     step,
     setStep,
-    result,
-    isLoading,
-    file,
-    extracting,
-    handleFiles,
-    matrix,
-    data,
-    templateApplied,
-    workbook,
-    sheetName,
-    sheetOptions,
-    handleSheetChange,
-    headerOptions,
-    headerIndex,
-    applyHeader,
-    unreadable,
-    mapping,
-    setMapping,
-    ncmChoice,
-    setNcmChoice,
-    distinctUnits,
-    distinctPacks,
-    unitLabels,
-    packLabels,
-    unitRecon,
-    setUnitFinal,
-    packRecon,
-    setPackFinal,
-    tierColumns,
-    setTierColumns,
-    pricesPerUnit,
-    setPricesPerUnit,
-    ipiChoice,
-    handleIpiChoice,
-    ipiAsFraction,
-    setIpiAsFraction,
-    taxColumns,
-    setTaxColumns,
-    validTaxesCount,
-    stMva,
-    handleStMvaChange,
-    taxesAsFraction,
-    setTaxesAsFraction,
-    listName,
-    setListName,
-    region,
-    setRegion,
-    validFrom,
-    setValidFrom,
-    validUntil,
-    setValidUntil,
-    skippedRows,
-    importableRows,
-    defaultedCount,
-    skipped,
-    defaultedPack,
-    activeTemplate,
-    handleSaveTemplate,
     stepValid,
+    isLoading,
+    result,
     handleImport,
-    canSaveTemplateNow,
+    template,
+    sheetStep,
+    readingStep,
+    productStep,
+    pricesStep,
+    taxesStep,
+    detailsStep,
+    resultStep,
   } = useImportPriceListWizard(props);
 
   return (
@@ -116,109 +67,31 @@ export function ImportPriceListModal(props: ImportPriceListModalProps) {
             }}
           >
             <Stepper.Item label="Planilha">
-              <StepSheet
-                file={file}
-                extracting={extracting}
-                onFiles={handleFiles}
-                ready={Boolean(matrix && data)}
-                templateApplied={templateApplied}
-              />
+              <StepSheet {...sheetStep} />
             </Stepper.Item>
 
             <Stepper.Item label="Leitura">
-              {matrix && data && (
-                <StepReading
-                  matrix={matrix}
-                  data={data}
-                  workbook={workbook}
-                  sheetName={sheetName}
-                  sheetOptions={sheetOptions}
-                  onSheetChange={handleSheetChange}
-                  headerOptions={headerOptions}
-                  headerIndex={headerIndex}
-                  applyHeader={applyHeader}
-                  unreadable={unreadable}
-                />
-              )}
+              {readingStep && <StepReading {...readingStep} />}
             </Stepper.Item>
 
             <Stepper.Item label="Produto">
-              {data && (
-                <StepProduct
-                  headers={data.headers}
-                  mapping={mapping}
-                  setMapping={setMapping}
-                  ncmChoice={ncmChoice}
-                  setNcmChoice={setNcmChoice}
-                  distinctUnits={distinctUnits}
-                  distinctPacks={distinctPacks}
-                  unitLabels={unitLabels}
-                  packLabels={packLabels}
-                  unitRecon={unitRecon}
-                  setUnitFinal={setUnitFinal}
-                  packRecon={packRecon}
-                  setPackFinal={setPackFinal}
-                />
-              )}
+              {productStep && <StepProduct {...productStep} />}
             </Stepper.Item>
 
             <Stepper.Item label="Preços">
-              {data && (
-                <StepPrices
-                  headers={data.headers}
-                  tierColumns={tierColumns}
-                  setTierColumns={setTierColumns}
-                  pricesPerUnit={pricesPerUnit}
-                  setPricesPerUnit={setPricesPerUnit}
-                />
-              )}
+              {pricesStep && <StepPrices {...pricesStep} />}
             </Stepper.Item>
 
             <Stepper.Item label="Impostos">
-              {data && (
-                <StepTaxes
-                  headers={data.headers}
-                  ipiChoice={ipiChoice}
-                  onIpiChoice={handleIpiChoice}
-                  ipiAsFraction={ipiAsFraction}
-                  setIpiAsFraction={setIpiAsFraction}
-                  taxColumns={taxColumns}
-                  setTaxColumns={setTaxColumns}
-                  validTaxesCount={validTaxesCount}
-                  stMva={stMva}
-                  onStMvaChange={handleStMvaChange}
-                  taxesAsFraction={taxesAsFraction}
-                  setTaxesAsFraction={setTaxesAsFraction}
-                />
-              )}
+              {taxesStep && <StepTaxes {...taxesStep} />}
             </Stepper.Item>
 
             <Stepper.Item label="Tabela">
-              <StepDetails
-                listName={listName}
-                setListName={setListName}
-                region={region}
-                setRegion={setRegion}
-                validFrom={validFrom}
-                setValidFrom={setValidFrom}
-                validUntil={validUntil}
-                setValidUntil={setValidUntil}
-                isLoading={isLoading}
-                skippedRows={skippedRows}
-                importableRows={importableRows}
-                defaultedCount={defaultedCount}
-              />
+              <StepDetails {...detailsStep} />
             </Stepper.Item>
 
             <Stepper.Item label="Resultado">
-              {result && (
-                <StepResult
-                  result={result}
-                  skipped={skipped}
-                  unreadable={unreadable}
-                  defaultedPack={defaultedPack}
-                />
-              )}
+              {resultStep && <StepResult {...resultStep} />}
             </Stepper.Item>
           </Stepper.Root>
         </Modal.Body>
@@ -255,7 +128,7 @@ export function ImportPriceListModal(props: ImportPriceListModalProps) {
               {/* Assim que o mapeamento (produto + níveis) está pronto, salvar o
                   modelo independe do nome/vigência da tabela — fica disponível
                   do passo Preços em diante. */}
-              {canSaveTemplateNow && (
+              {template.canSaveTemplateNow && (
                 <Button.Root
                   type="button"
                   appearance="ghost"
@@ -263,10 +136,12 @@ export function ImportPriceListModal(props: ImportPriceListModalProps) {
                   size="md"
                   noUppercase
                   loading={isLoading}
-                  onClick={handleSaveTemplate}
+                  onClick={template.handleSaveTemplate}
                 >
                   <Button.Title>
-                    {activeTemplate ? "Atualizar modelo" : "Salvar como modelo"}
+                    {template.activeTemplate
+                      ? "Atualizar modelo"
+                      : "Salvar como modelo"}
                   </Button.Title>
                 </Button.Root>
               )}

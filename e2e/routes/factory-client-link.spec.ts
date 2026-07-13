@@ -19,7 +19,7 @@ const conn = (nodes: Array<Record<string, unknown>>) => ({
 test("fábrica/clientes: vincula um cliente (cliente + vendedor + nível)", async ({
   page,
 }) => {
-  await mockGraphql(page, {
+  const gql = await mockGraphql(page, {
     FactoryClientLinks: () => ({ factory_client_links: conn([]) }),
     CompanyClientsForFactoryLink: () => ({
       companyClients: {
@@ -102,6 +102,15 @@ test("fábrica/clientes: vincula um cliente (cliente + vendedor + nível)", asyn
   await dialog.getByRole("button", { name: "Vincular cliente" }).click();
 
   await expect(page.getByText("Cliente vinculado com sucesso")).toBeVisible();
+
+  // O vínculo tem que enviar as três escolhas da cascata (cliente + vendedor +
+  // nível), não só reagir na tela.
+  const linkVars = await gql.waitForCall("LinkClientToFactory");
+  expect(linkVars.input).toMatchObject({
+    clientId: "client-1",
+    sellerId: "s-1",
+    priceTierId: "t-1",
+  });
 });
 
 test("fábrica/clientes: edita o vínculo (nível/prioridade)", async ({

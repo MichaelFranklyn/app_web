@@ -1,32 +1,18 @@
-import { getCookie } from "@/utils/cookies/clientCookie";
-import { ApolloClient, ApolloLink, HttpLink, InMemoryCache } from "@apollo/client";
+import { ApolloClient, HttpLink, InMemoryCache } from "@apollo/client";
 
+// As chamadas do cliente vão para o BFF same-origin (/api/graphql), que injeta o
+// token httpOnly no servidor. O cliente NÃO lê nem anexa o token (invisível ao
+// JS) — sem authLink. `credentials: "same-origin"` garante que o cookie httpOnly
+// acompanhe a requisição ao BFF.
 const httpLink = new HttpLink({
-  uri: process.env.NEXT_PUBLIC_GRAPHQL_API_HOST,
-});
-
-// Lê o token dos cookies a cada requisição (não em cache)
-const authLink = new ApolloLink((operation, forward) => {
-  if (typeof window !== "undefined") {
-    let token = getCookie<string>("token");
-    const code = getCookie<string>("code");
-    if (!token && code) token = code;
-
-    operation.setContext(({ headers = {} }: { headers?: Record<string, string> }) => ({
-      headers: {
-        ...headers,
-        ...(token ? { Authorization: `Bearer ${token}` } : {}),
-      },
-    }));
-  }
-
-  return forward(operation);
+  uri: "/api/graphql",
+  credentials: "same-origin",
 });
 
 export function createApolloClient() {
   return new ApolloClient({
     ssrMode: false,
-    link: authLink.concat(httpLink),
+    link: httpLink,
     cache: new InMemoryCache(),
   });
 }

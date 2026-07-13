@@ -13,7 +13,7 @@ const URL = "/orders/order-1";
 test("pedido/import: importa itens de um arquivo (PDF mockado)", async ({
   page,
 }) => {
-  await mockGraphql(page, {
+  const gql = await mockGraphql(page, {
     OrderDetail: () => ({
       order: {
         status: true,
@@ -96,4 +96,21 @@ test("pedido/import: importa itens de um arquivo (PDF mockado)", async ({
 
   // "Itens importados" aparece no toast e no passo Resultado — ambos = sucesso.
   await expect(page.getByText("Itens importados").first()).toBeVisible();
+
+  // Não basta a tela reagir: o payload de ConfirmOrderImport tem que carregar o
+  // item revisado (produto/nível/qtd/preço mapeados), não um objeto qualquer.
+  const confirmVars = await gql.waitForCall("ConfirmOrderImport");
+  const { orderId, items } = confirmVars.input as {
+    orderId: string;
+    items: Record<string, unknown>[];
+  };
+  expect(orderId).toBe("order-1");
+  expect(items).toHaveLength(1);
+  expect(items[0]).toMatchObject({
+    productId: "p-1",
+    tierId: "t-1",
+    quantity: 10,
+    unitPrice: 100,
+    sku: "SKU-001",
+  });
 });

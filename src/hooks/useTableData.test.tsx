@@ -290,6 +290,79 @@ describe("useTableData — ordenação", () => {
   });
 });
 
+describe("useTableData — initialData (SSR seed)", () => {
+  it("semeia o cache e pinta no 1º render sem disparar rede", async () => {
+    state.sp = new URLSearchParams();
+    const seeded: Item[] = [
+      { id: "9", name: "Seed", priority: "high", factory: { name: "S" } },
+    ];
+    // Mesmo shape que gqlFetch(withTypename) devolve no SSR: __typename em todo
+    // objeto → a leitura cache-first do Apollo encontra tudo e não busca na rede.
+    const initialData = {
+      items: {
+        __typename: "ItemConnection",
+        totalCount: 1,
+        edges: seeded.map((node) => ({
+          __typename: "ItemEdge",
+          node: {
+            __typename: "Item",
+            ...node,
+            factory: { __typename: "Factory", ...node.factory },
+          },
+        })),
+      },
+    } as unknown as ItemsData;
+
+    const { result } = renderHook(
+      () =>
+        useTableData<ItemsData, Item>({
+          query: QUERY,
+          fields: {},
+          getConnection: (d) => d.items,
+          itemsPerPage: 10,
+          initialData,
+        }),
+      {
+        // Sem mocks de propósito: se houvesse waterfall de rede, o MockedProvider
+        // erraria por operação não-mockada. Passar aqui = pintou do cache semeado.
+        wrapper: ({ children }: { children: ReactNode }) => (
+          <MockedProvider mocks={[]}>{children}</MockedProvider>
+        ),
+      }
+    );
+
+    expect(result.current.loading).toBe(false);
+    expect(ids(result.current.displayedData)).toEqual(["9"]);
+    expect(result.current.totalItems).toBe(1);
+  });
+
+  it("com initialData de connection VAZIO, não semeia — busca no cliente", async () => {
+    state.sp = new URLSearchParams();
+    // SSR degradado/vazio (ex.: stub do E2E): semear o vazio faria o cache-first
+    // acertar um hit vazio e nunca buscar. O guard deve pular o seed → o cliente
+    // busca e traz os dados (aqui, o mock DATA).
+    const emptyInitial = {
+      items: { edges: [], totalCount: 0 },
+    } as unknown as ItemsData;
+
+    const { result } = renderHook(
+      () =>
+        useTableData<ItemsData, Item>({
+          query: QUERY,
+          fields: {},
+          getConnection: (d) => d.items,
+          itemsPerPage: 10,
+          initialData: emptyInitial,
+        }),
+      { wrapper: makeWrapper(DATA) }
+    );
+
+    await waitFor(() => expect(result.current.loading).toBe(false));
+    // Veio da REDE (mock), não do seed vazio.
+    expect(result.current.displayedData).toHaveLength(DATA.length);
+  });
+});
+
 describe("useTableData — filtros de busca", () => {
   it("constrói filtros a partir dos fields e ignora campos sem valor", async () => {
     state.sp = new URLSearchParams("name=alp");

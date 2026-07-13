@@ -12,7 +12,7 @@ import { mockGraphql } from "../support/graphql";
 test("clients: adiciona um cliente e confirma sucesso", async ({ page }) => {
   const created: Array<Record<string, unknown>> = [];
 
-  await mockGraphql(page, {
+  const gql = await mockGraphql(page, {
     Clients: () => ({
       clients_list: {
         edges: created.map((node) => ({ node })),
@@ -67,4 +67,9 @@ test("clients: adiciona um cliente e confirma sucesso", async ({ page }) => {
 
   await expect(page.getByRole("dialog")).toBeHidden();
   await expect(page.getByText("Cliente Teste E2E").first()).toBeVisible();
+
+  // O CNPJ digitado com máscara tem que chegar à mutation só com dígitos.
+  const addVars = await gql.waitForCall("AddClientToCompany");
+  const sentCnpj = String((addVars.input as { cnpj?: string }).cnpj ?? "");
+  expect(sentCnpj.replace(/\D/g, "")).toBe("11222333000181");
 });

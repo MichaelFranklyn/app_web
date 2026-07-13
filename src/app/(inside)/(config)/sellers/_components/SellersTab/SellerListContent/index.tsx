@@ -15,16 +15,21 @@ import { Users } from "lucide-react";
 import { AddSellerModal } from "./AddSellerModal";
 import { SellerRowActions } from "./SellerRowActions";
 import { SELLERS_QUERY } from "./gql";
-import { QueryData, Seller } from "./interface";
+import { ITEMS_PER_PAGE, QueryData, Seller } from "./interface";
 
-export default function SellerListContent() {
+export default function SellerListContent({
+  initialData,
+}: {
+  initialData?: QueryData;
+}) {
   const tableData = useTableData<QueryData, Seller>({
     query: SELLERS_QUERY,
     fields: {
       search: { type: "text", queryField: "name" },
     },
     getConnection: (data) => data.sellers_list,
-    itemsPerPage: 10,
+    itemsPerPage: ITEMS_PER_PAGE,
+    initialData,
   });
 
   const optimistic = useOptimisticList<Seller>({

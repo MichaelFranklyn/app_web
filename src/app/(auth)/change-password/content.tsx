@@ -9,13 +9,10 @@ import { Responsive } from "@/components/Responsive";
 import { RootPage } from "@/components/RootPage";
 import { Title } from "@/components/Title";
 import { useAsyncAction } from "@/hooks/useAsyncAction";
-import { setCookie } from "@/utils/cookies/clientCookie";
-import { useMutation } from "@apollo/client/react";
+import { postSession } from "@/utils/auth/session";
 import { ArrowRight, X } from "lucide-react";
 import { useRouter, useSearchParams } from "next/navigation";
 import { Suspense, useState } from "react";
-import { RESET_PASSWORD_MUTATION } from "./gql";
-import { ResetPasswordResponse } from "./interface";
 import { RULES } from "./utils";
 
 // useSearchParams exige Suspense no prerender estático (build de produção).
@@ -35,10 +32,6 @@ function ChangePasswordForm() {
   const searchParams = useSearchParams();
   const token = searchParams.get("token") ?? "";
 
-  const [resetPassword] = useMutation<ResetPasswordResponse>(
-    RESET_PASSWORD_MUTATION
-  );
-
   const { execute, isLoading } = useAsyncAction();
 
   const allRulesMet = RULES.every(({ test }) => test(password));
@@ -52,32 +45,15 @@ function ChangePasswordForm() {
     if (tokenMissing) return;
 
     await execute(
-      async () => {
-        const response = await resetPassword({
-          variables: { input: { token, newPassword: password } },
-        });
-
-        const result = response.data?.resetPassword;
-
-        if (!result?.status || !result.data) {
-          throw new Error(
-            result?.message ??
-              "Não foi possível redefinir sua senha. Tente novamente."
-          );
-        }
-
-        return result.data;
-      },
+      // A rota /api/session roda o resetPassword no servidor e grava o token httpOnly.
+      () =>
+        postSession(
+          { action: "changePassword", input: { token, newPassword: password } },
+          "Não foi possível redefinir sua senha. Tente novamente."
+        ),
       {
         successMessage: "Sua senha foi redefinida. Bem-vindo de volta.",
-        onSuccess: (data) => {
-          const { accessToken, userName, companyName, role } = data;
-
-          setCookie("token", accessToken);
-          // refreshToken não é persistido (sem fluxo de refresh no cliente que
-          // o leia): evita expô-lo a XSS sem ganho funcional.
-          setCookie("userData", { userName, companyName, role });
-
+        onSuccess: () => {
           router.push("/dashboard");
         },
       }

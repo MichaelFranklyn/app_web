@@ -5,7 +5,7 @@ import { ConfirmModal } from "@/components/ConfirmModal";
 import { useInvalidateQueriesClient } from "@/hooks/useInvalidateQueries";
 import { useMutation } from "@apollo/client/react";
 import { Trash2 } from "lucide-react";
-import { DELETE_ORDER_MUTATION } from "./gql";
+import { DELETE_ORDER_MUTATION } from "@/graphql/orders";
 import { DeleteOrderModalProps, DeleteOrderResponse } from "./interface";
 
 export function DeleteOrderModal({

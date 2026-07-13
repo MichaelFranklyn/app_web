@@ -74,27 +74,30 @@ test.describe("responsividade — mobile", () => {
     await expect(burger).toBeVisible();
 
     const aside = page.locator("aside").first();
+    const asideX = async () => (await aside.boundingBox())!.x;
     // Fechado: sidebar fora da tela à esquerda (translate-x-full).
-    expect((await aside.boundingBox())!.x).toBeLessThan(0);
+    expect(await asideX()).toBeLessThan(0);
 
     await burger.click();
-    await page.waitForTimeout(350);
-    // Aberto: sidebar entra na tela.
-    expect((await aside.boundingBox())!.x).toBeGreaterThanOrEqual(0);
+    // Aberto: sidebar entra na tela. `expect.poll` re-mede o boundingBox até a
+    // transição do drawer terminar — sem depender do tempo exato da animação.
+    await expect.poll(asideX).toBeGreaterThanOrEqual(0);
 
     // Clicar no backdrop (fora da sidebar) fecha o drawer.
     await page
       .getByTestId("drawer-backdrop")
       .click({ position: { x: 320, y: 400 } });
-    await page.waitForTimeout(350);
-    expect((await aside.boundingBox())!.x).toBeLessThan(0);
+    await expect.poll(asideX).toBeLessThan(0);
   });
 
   for (const [url, handlers] of Object.entries(ROUTE_MOCKS)) {
     test(`sem overflow horizontal: ${url}`, async ({ page }) => {
       await mockGraphql(page, handlers);
       await page.goto(url);
-      await page.waitForTimeout(400);
+      // Espera o conteúdo assentar (queries client-side servidas + layout) em
+      // vez de um tempo fixo: só então a medição de overflow é confiável.
+      await expect(page.locator("main")).toBeVisible();
+      await page.waitForLoadState("networkidle");
       expect(
         await pageOverflow(page),
         `overflow em ${url}`
@@ -109,9 +112,9 @@ test.describe("responsividade — desktop", () => {
   test("sidebar fixa visível e sem hambúrguer", async ({ page }) => {
     await mockGraphql(page, ROUTE_MOCKS["/dashboard"]);
     await page.goto("/dashboard");
-    await page.waitForTimeout(300);
 
-    // Sidebar em fluxo: itens visíveis sem abrir nada.
+    // Sidebar em fluxo: itens visíveis sem abrir nada. O `toBeVisible`
+    // auto-espera — não é preciso um atraso fixo antes de afirmar.
     await expect(
       page.getByRole("link", { name: "Clientes", exact: true })
     ).toBeVisible();

@@ -1,7 +1,7 @@
 import { rmSync } from "node:fs";
 
 import { STUB_BACKEND_PORT } from "../../playwright.config";
-import { startStubBackend } from "./stub-backend";
+import { getUnhandledSsrOps, startStubBackend } from "./stub-backend";
 
 /**
  * Sobe o stub GraphQL antes da suíte. O dev server gerenciado pelo Playwright
@@ -10,6 +10,11 @@ import { startStubBackend } from "./stub-backend";
  *
  * Em COVERAGE=1, zera as pastas de cobertura V8 do E2E para não acumular dados
  * de execuções anteriores antes de coletar a nova rodada.
+ *
+ * Retorna um teardown (o Playwright chama a função devolvida ao fim da suíte):
+ * se alguma query SSR nova chegou sem resposta canned durante a run, FALHA a
+ * suíte inteira apontando quais — o stub e o teardown vivem no mesmo processo,
+ * então o conjunto registrado no stub está visível aqui.
  */
 export default async function globalSetup() {
   if (process.env.COVERAGE) {
@@ -17,4 +22,14 @@ export default async function globalSetup() {
     rmSync("coverage/e2e-server", { recursive: true, force: true });
   }
   await startStubBackend(STUB_BACKEND_PORT);
+
+  return () => {
+    const unhandled = getUnhandledSsrOps();
+    if (unhandled.length > 0) {
+      throw new Error(
+        `Query(s) SSR sem stub durante a suíte: ${unhandled.join(", ")}. ` +
+          `Adicione cada uma em SSR_RESPONSES (e2e/support/stub-backend.ts).`
+      );
+    }
+  };
 }

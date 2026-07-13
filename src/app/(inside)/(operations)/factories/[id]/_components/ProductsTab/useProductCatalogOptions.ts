@@ -1,4 +1,4 @@
-import { useToast } from "@/components/Toast";
+import { useAsyncAction } from "@/hooks/useAsyncAction";
 import { useMutation, useQuery } from "@apollo/client/react";
 import { useCallback, useMemo } from "react";
 
@@ -52,77 +52,63 @@ export function useProductCatalogOptions(open: boolean) {
   const [createUnitLabel] = useMutation<CreateProductUnitLabelResponse>(
     CREATE_PRODUCT_UNIT_LABEL_MUTATION
   );
-  const { toast } = useToast();
+  const { execute } = useAsyncAction();
 
+  // `execute` mostra o toast (sucesso/erro) e engole o erro devolvendo undefined.
+  // Como isto alimenta o `onCreateOption` do select, RELANÇAMOS em falha: sem o
+  // throw, o select criaria uma opção-fantasma com o label como id.
   const handleCreateUnit = useCallback(
     async (label: string): Promise<SelectOption> => {
-      try {
-        const res = await createUnit({
-          variables: { input: { label: label.trim() } },
-        });
-        const created = res.data?.createProductUnit?.data;
-        if (!res.data?.createProductUnit?.status || !created) {
-          throw new Error(
-            getProductErrorMessage(
-              res.data?.createProductUnit?.message,
-              "Erro ao criar unidade"
-            )
-          );
-        }
-        await refetchUnits();
-        toast({
-          variant: "success",
-          title: "Sucesso",
-          description: "Unidade criada com sucesso",
-        });
-        return { value: created.id, label: created.label };
-      } catch (error) {
-        toast({
-          variant: "error",
-          title: "Erro",
-          description: getProductErrorMessage(error, "Erro ao criar unidade"),
-        });
-        throw error;
-      }
+      const created = await execute(
+        async () => {
+          const res = await createUnit({
+            variables: { input: { label: label.trim() } },
+          });
+          const data = res.data?.createProductUnit?.data;
+          if (!res.data?.createProductUnit?.status || !data) {
+            throw new Error(
+              getProductErrorMessage(
+                res.data?.createProductUnit?.message,
+                "Erro ao criar unidade"
+              )
+            );
+          }
+          await refetchUnits();
+          return { value: data.id, label: data.label };
+        },
+        { successMessage: "Unidade criada com sucesso" }
+      );
+      if (!created) throw new Error("Erro ao criar unidade");
+      return created;
     },
-    [createUnit, refetchUnits, toast]
+    [execute, createUnit, refetchUnits]
   );
 
   const handleCreateLabel = useCallback(
     async (label: string): Promise<SelectOption> => {
-      try {
-        const res = await createUnitLabel({
-          variables: { input: { label: label.trim() } },
-        });
-        const created = res.data?.createProductUnitLabel?.data;
-        if (!res.data?.createProductUnitLabel?.status || !created) {
-          throw new Error(
-            getProductErrorMessage(
-              res.data?.createProductUnitLabel?.message,
-              "Erro ao criar rótulo de embalagem"
-            )
-          );
-        }
-        await refetchLabels();
-        toast({
-          variant: "success",
-          title: "Sucesso",
-          description: "Rótulo de embalagem criado com sucesso",
-        });
-        return { value: created.id, label: created.label };
-      } catch (error) {
-        toast({
-          variant: "error",
-          title: "Erro",
-          description: getProductErrorMessage(
-            error,
-            "Erro ao criar rótulo de embalagem"
-          ),
-        });
-        throw error;
-      }
+      const created = await execute(
+        async () => {
+          const res = await createUnitLabel({
+            variables: { input: { label: label.trim() } },
+          });
+          const data = res.data?.createProductUnitLabel?.data;
+          if (!res.data?.createProductUnitLabel?.status || !data) {
+            throw new Error(
+              getProductErrorMessage(
+                res.data?.createProductUnitLabel?.message,
+                "Erro ao criar rótulo de embalagem"
+              )
+            );
+          }
+          await refetchLabels();
+          return { value: data.id, label: data.label };
+        },
+        { successMessage: "Rótulo de embalagem criado com sucesso" }
+      );
+      if (!created) throw new Error("Erro ao criar rótulo de embalagem");
+      return created;
     },
-    [createUnitLabel, refetchLabels, toast]
+    [execute, createUnitLabel, refetchLabels]
   );
 
   const categoryOptions: SelectOption[] = useMemo(

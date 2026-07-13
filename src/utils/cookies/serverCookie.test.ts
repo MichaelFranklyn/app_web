@@ -1,4 +1,4 @@
-import CryptoJS from "crypto-js";
+import { createHash } from "node:crypto";
 import { afterEach, describe, expect, it, vi } from "vitest";
 
 // Store em memória p/ simular o cookieStore do next/headers (hoisted: o factory
@@ -27,13 +27,13 @@ afterEach(() => mockStore.clear());
 
 /**
  * String de alta entropia (incompressível) determinística (cadeia SHA-256 em
- * base64) → após LZString + AES ultrapassa o CHUNK_SIZE e força a fragmentação.
+ * base64) → após o LZString ultrapassa o CHUNK_SIZE e força a fragmentação.
  */
 const incompressible = (len: number): string => {
   let out = "";
   let h = "seed";
   while (out.length < len) {
-    h = CryptoJS.SHA256(h).toString(CryptoJS.enc.Base64);
+    h = createHash("sha256").update(h).digest("base64");
     out += h;
   }
   return out.slice(0, len);

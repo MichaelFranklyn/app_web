@@ -9,6 +9,10 @@ export const formatCity = (
   return [city, state].filter(Boolean).join(" / ") || "—";
 };
 
+// Itens por página da lista. Compartilhado entre o fetch SSR (page.tsx) e o
+// useTableData (content.tsx) para as variáveis da query não divergirem.
+export const ITEMS_PER_PAGE = 5;
+
 export const TABLE_FIELDS: Record<string, FieldConfig> = {
   // Colunas separadas por vírgula: o backend combina o `like` de cada uma com OR.
   search: { type: "text", queryField: "razao_social,nome_fantasia" },
