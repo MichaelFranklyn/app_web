@@ -24,7 +24,7 @@ export default function OrdersContent() {
   // O pedido é POR FÁBRICA: cada uma tem o seu catálogo e o seu ritmo de compra.
   // O backend ordena da compra mais recente à mais antiga e inclui as fábricas em
   // que o cliente nunca comprou — ausência de pedido também é informação de venda.
-  const { data, loading, refetch } = useQuery<ClientFactoryOrdersQueryResponse>(
+  const { data, loading } = useQuery<ClientFactoryOrdersQueryResponse>(
     CLIENT_FACTORY_ORDERS_QUERY,
     { variables: { id: companyClientId }, skip: !companyClientId }
   );
@@ -52,7 +52,9 @@ export default function OrdersContent() {
           />
         </div>
         <div data-tour="client-orders-actions">
-          <AddOrderModal clientId={clientId} onCreated={() => refetch()} />
+          {/* Ao criar, o modal redireciona para o pedido novo (não recarrega
+              esta lista). */}
+          <AddOrderModal clientId={clientId} />
         </div>
       </div>
 

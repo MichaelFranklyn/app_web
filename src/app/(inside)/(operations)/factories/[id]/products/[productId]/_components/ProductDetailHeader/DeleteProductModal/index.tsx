@@ -2,7 +2,6 @@
 
 import { Button } from "@/components/Button";
 import { ConfirmModal } from "@/components/ConfirmModal";
-import { useNavigation } from "@/hooks/useNavigation";
 import { useMutation } from "@apollo/client/react";
 import { Trash2 } from "lucide-react";
 import { DELETE_PRODUCT_MUTATION } from "./gql";
@@ -22,7 +21,6 @@ export function DeleteProductModal({
   productName,
   productsHref,
 }: Props) {
-  const { navigateTo } = useNavigation();
   const [deleteProduct] = useMutation<DeleteProductResponse>(
     DELETE_PRODUCT_MUTATION
   );
@@ -39,7 +37,7 @@ export function DeleteProductModal({
       description={`Tem certeza que deseja excluir o produto "${productName}"? Ele sai do catálogo e das tabelas de preço; pedidos já realizados não são afetados.`}
       confirmLabel="Excluir"
       successMessage="Produto removido com sucesso"
-      closeOnSuccess={false}
+      redirectTo={productsHref}
       onConfirm={async () => {
         const res = await deleteProduct({ variables: { id: productId } });
         if (!res.data?.deleteProduct?.status) {
@@ -48,7 +46,6 @@ export function DeleteProductModal({
           );
         }
       }}
-      onSuccess={() => navigateTo(productsHref)}
     />
   );
 }

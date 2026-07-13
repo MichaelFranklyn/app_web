@@ -10,7 +10,7 @@ export const routinesFlow: FlowDefinition = {
   description: "Acompanhe e organize as visitas planejadas da semana.",
   group: "Primeiros passos",
   route: FLOW_ROUTES.routines,
-  version: 1,
+  version: 2,
   autoStart: true,
   steps: [
     {
@@ -29,6 +29,15 @@ export const routinesFlow: FlowDefinition = {
         "Escolha quanto da rotina ver de uma vez: só hoje, 3 dias, 5 dias ou a semana inteira.",
       side: "bottom",
       align: "start",
+    },
+    {
+      element: '[data-tour="routines-view-toggle"]',
+      requireSelector: '[data-tour="routines-view-toggle"]',
+      title: "Kanban ou lista",
+      description:
+        "Escolha como ver a rotina: em quadro (Kanban), com uma coluna por dia, ou em lista, com as visitas de cada dia empilhadas.",
+      side: "bottom",
+      align: "end",
     },
     {
       element: '[data-tour="routines-grid"]',

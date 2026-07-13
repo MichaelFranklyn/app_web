@@ -336,6 +336,42 @@ test("cliente/visitas: registrar o estoque lista todas as fábricas do vendedor"
   ).toBeVisible();
 });
 
+test("visita/estoque: salvar o estoque conclui a visita", async ({ page }) => {
+  let updateInput: Record<string, unknown> | null = null;
+
+  await mockGraphql(page, {
+    RoutineSellersOptions: () => ({ routine_sellers: { edges: [] } }),
+    VisitSchedules: schedules,
+    VisitScheduleConfig: scheduleConfig,
+    VisitStockCandidates: candidates,
+    VisitStockObservations: () => ({ visitStockObservations: { edges: [] } }),
+    SaveVisitStockObservations: () => ({
+      saveVisitStockObservations: { status: true, message: "ok" },
+    }),
+    UpdateVisitScheduleItem: (variables) => {
+      updateInput = variables.input as Record<string, unknown>;
+      return {
+        updateVisitScheduleItem: {
+          status: true,
+          message: "ok",
+          data: { id: variables.id, ...(variables.input as object) },
+        },
+      };
+    },
+  });
+
+  await openStockModal(page);
+  const modal = page.getByLabel("Estoque · Cliente LTDA");
+
+  // Responde o estoque de um produto (a fábrica do foco já vem aberta) e salva.
+  await modal.getByRole("button", { name: "15 dias" }).first().click();
+  await modal.getByRole("button", { name: "Salvar estoque" }).click();
+
+  // Registrar o estoque é evidência de que a visita aconteceu: ela é concluída.
+  await expect(page.getByText("Visita concluída")).toBeVisible();
+  await expect.poll(() => updateInput).toMatchObject({ status: "COMPLETED" });
+});
+
 test("visita/estoque: cancelar o pedido devolve o vendedor ao estoque", async ({
   page,
 }) => {

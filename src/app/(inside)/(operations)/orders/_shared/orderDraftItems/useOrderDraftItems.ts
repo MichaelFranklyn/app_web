@@ -3,10 +3,7 @@ import { useEffect, useMemo, useRef, useState } from "react";
 import { SelectOption } from "@/components/Input";
 import { maskCurrency, parseMoneyToNumber } from "@/utils/format/masks";
 
-import {
-  priceKey,
-  useOrderItemCatalog,
-} from "../../../_shared/orderItemCatalog";
+import { priceKey, useOrderItemCatalog } from "../orderItemCatalog";
 import { DraftItem } from "./interface";
 
 const toCurrencyMask = (value: number): string =>

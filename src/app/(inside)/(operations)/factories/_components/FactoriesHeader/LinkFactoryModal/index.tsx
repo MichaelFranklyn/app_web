@@ -10,7 +10,6 @@ import { FormBuilder, FormBuilderRef } from "@/components/FormBuilder";
 import { Modal } from "@/components/Modal";
 import { useAsyncAction } from "@/hooks/useAsyncAction";
 import { useInvalidateQueriesClient } from "@/hooks/useInvalidateQueries";
-import { useNavigation } from "@/hooks/useNavigation";
 
 import { CompanyFactory } from "../../../interface";
 import { LINK_FACTORY_MUTATION } from "./gql";
@@ -28,7 +27,6 @@ export function LinkFactoryModal({ onAddOptimistic }: LinkFactoryModalProps) {
   const [createdFactoryId, setCreatedFactoryId] = useState<string | null>(null);
   const formRef = useRef<FormBuilderRef>(null);
   const invalidateClient = useInvalidateQueriesClient();
-  const { navigateTo } = useNavigation();
   const totalSteps = FORM_STEPS.length;
 
   const [linkFactory] = useMutation<LinkFactoryResponse>(LINK_FACTORY_MUTATION);
@@ -151,11 +149,12 @@ export function LinkFactoryModal({ onAddOptimistic }: LinkFactoryModalProps) {
         confirmLabel="Vincular agora"
         cancelLabel="Agora não"
         confirmColor="amber"
-        onConfirm={async () => {
-          if (createdFactoryId) {
-            navigateTo(`/factories/${createdFactoryId}/sellers?link=1`);
-          }
-        }}
+        redirectTo={
+          createdFactoryId
+            ? `/factories/${createdFactoryId}/sellers?link=1`
+            : undefined
+        }
+        onConfirm={async () => {}}
       />
     </>
   );

@@ -8,8 +8,10 @@ import { CalendarOff, Users } from "lucide-react";
 
 import { GenerateWeekButton } from "./_components/GenerateWeekButton";
 import { RoutinesHeader } from "./_components/RoutinesHeader";
+import { RoutinesList } from "./_components/RoutinesList";
 import { RoutinesSkeleton } from "./_components/RoutinesSkeleton";
 import { RoutinesSummary } from "./_components/RoutinesSummary";
+import { RoutinesViewToggle } from "./_components/RoutinesViewToggle";
 import { RoutinesWeekGrid } from "./_components/RoutinesWeekGrid";
 import { useRoutines } from "./useRoutines";
 import { canGenerateWeek, formatWeekRange } from "./utils";
@@ -28,6 +30,8 @@ export default function RoutinesContent() {
     setWeekStart,
     periodDays,
     setPeriodDays,
+    viewMode,
+    setViewMode,
     canSelectSeller,
     sellers,
     selectedSellerId,
@@ -113,44 +117,61 @@ export default function RoutinesContent() {
         <>
           <RoutinesSummary days={schedule.days} />
 
-          <div
-            className="flex flex-wrap items-center gap-8"
-            data-tour="routines-period"
-          >
-            <Title variant="body-xs" color="muted" weight="medium">
-              Período:
-            </Title>
-            <div className="flex items-center gap-4">
-              {PERIOD_OPTIONS.map((opt) => {
-                const active = periodDays === opt.value;
-                return (
-                  <Button.Root
-                    key={opt.value}
-                    type="button"
-                    appearance={active ? "tinted" : "outline"}
-                    color={active ? "amber" : "neutral"}
-                    size="sm"
-                    noUppercase
-                    onClick={() => setPeriodDays(opt.value)}
-                  >
-                    <Button.Title>{opt.label}</Button.Title>
-                  </Button.Root>
-                );
-              })}
+          <div className="flex flex-wrap items-center justify-between gap-16">
+            <div
+              className="flex flex-wrap items-center gap-8"
+              data-tour="routines-period"
+            >
+              <Title variant="body-xs" color="muted" weight="medium">
+                Período:
+              </Title>
+              <div className="flex items-center gap-4">
+                {PERIOD_OPTIONS.map((opt) => {
+                  const active = periodDays === opt.value;
+                  return (
+                    <Button.Root
+                      key={opt.value}
+                      type="button"
+                      appearance={active ? "tinted" : "outline"}
+                      color={active ? "amber" : "neutral"}
+                      size="sm"
+                      noUppercase
+                      onClick={() => setPeriodDays(opt.value)}
+                    >
+                      <Button.Title>{opt.label}</Button.Title>
+                    </Button.Root>
+                  );
+                })}
+              </div>
             </div>
+
+            <RoutinesViewToggle value={viewMode} onChange={setViewMode} />
           </div>
 
           <div data-tour="routines-grid">
-            <RoutinesWeekGrid
-              weekStart={weekStart}
-              scheduleId={schedule.id}
-              days={schedule.days}
-              sellerId={selectedSellerId}
-              effectiveSellerId={effectiveSellerId}
-              maxVisitsPerDay={maxVisitsPerDay}
-              periodDays={periodDays}
-              onChanged={() => refetch()}
-            />
+            {viewMode === "list" ? (
+              <RoutinesList
+                weekStart={weekStart}
+                scheduleId={schedule.id}
+                days={schedule.days}
+                sellerId={selectedSellerId}
+                effectiveSellerId={effectiveSellerId}
+                maxVisitsPerDay={maxVisitsPerDay}
+                periodDays={periodDays}
+                onChanged={() => refetch()}
+              />
+            ) : (
+              <RoutinesWeekGrid
+                weekStart={weekStart}
+                scheduleId={schedule.id}
+                days={schedule.days}
+                sellerId={selectedSellerId}
+                effectiveSellerId={effectiveSellerId}
+                maxVisitsPerDay={maxVisitsPerDay}
+                periodDays={periodDays}
+                onChanged={() => refetch()}
+              />
+            )}
           </div>
         </>
       )}

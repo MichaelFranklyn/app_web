@@ -6,7 +6,6 @@ import { FormBuilder, FormBuilderRef } from "@/components/FormBuilder";
 import { Modal } from "@/components/Modal";
 import { useAsyncAction } from "@/hooks/useAsyncAction";
 import { useInvalidateQueriesClient } from "@/hooks/useInvalidateQueries";
-import { useNavigation } from "@/hooks/useNavigation";
 import { invalidateCacheMany } from "@/services/graphql/actions";
 import { useMutation } from "@apollo/client/react";
 import { Plus } from "lucide-react";
@@ -28,7 +27,6 @@ export function AddClientModal({ onAddOptimistic }: AddClientModalProps) {
   >(null);
   const formRef = useRef<FormBuilderRef>(null);
   const invalidateClient = useInvalidateQueriesClient();
-  const { navigateTo } = useNavigation();
 
   const [addClientToCompany] = useMutation<AddClientToCompanyResponse>(
     ADD_CLIENT_TO_COMPANY_MUTATION
@@ -136,11 +134,12 @@ export function AddClientModal({ onAddOptimistic }: AddClientModalProps) {
         confirmLabel="Vincular agora"
         cancelLabel="Agora não"
         confirmColor="amber"
-        onConfirm={async () => {
-          if (createdCompanyClientId) {
-            navigateTo(`/clients/${createdCompanyClientId}/factories?link=1`);
-          }
-        }}
+        redirectTo={
+          createdCompanyClientId
+            ? `/clients/${createdCompanyClientId}/factories?link=1`
+            : undefined
+        }
+        onConfirm={async () => {}}
       />
     </>
   );

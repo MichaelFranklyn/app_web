@@ -3,6 +3,7 @@
 import { Button } from "@/components/Button";
 import { Modal } from "@/components/Modal";
 import { useAsyncAction } from "@/hooks/useAsyncAction";
+import { useRedirectTransition } from "@/hooks/useRedirectTransition";
 import { useState, type ComponentProps, type ReactNode } from "react";
 
 interface ConfirmModalProps {
@@ -25,12 +26,18 @@ interface ConfirmModalProps {
   successMessage?: string;
   /** Disparado de forma síncrona ANTES da ação (ex.: remoção otimista imediata). */
   onBeforeConfirm?: () => void;
-  /** Após sucesso (commit otimista, navegação, refetch). */
+  /** Após sucesso (commit otimista, refetch). */
   onSuccess?: () => void;
   /** Em caso de erro (rollback otimista). */
   onError?: () => void;
   /** Fecha ao concluir com sucesso (default `true`). */
   closeOnSuccess?: boolean;
+  /**
+   * Rota para onde ir após o sucesso. Quando definida, o botão continua em
+   * loading até a rota carregar e o modal NÃO é fechado (a navegação o desmonta)
+   * — preferível a navegar no `onSuccess`, que encerraria o loading cedo demais.
+   */
+  redirectTo?: string;
 }
 
 /**
@@ -55,6 +62,7 @@ export function ConfirmModal({
   onSuccess,
   onError,
   closeOnSuccess = true,
+  redirectTo,
 }: ConfirmModalProps) {
   const [internalOpen, setInternalOpen] = useState(false);
   const isControlled = openProp !== undefined;
@@ -65,6 +73,11 @@ export function ConfirmModal({
   };
 
   const { execute, isLoading } = useAsyncAction();
+  const { redirect, isRedirecting } = useRedirectTransition();
+
+  // O botão fica ocupado durante a ação E durante o redirect subsequente, até a
+  // próxima rota carregar.
+  const busy = isLoading || isRedirecting;
 
   const handleConfirm = () => {
     onBeforeConfirm?.();
@@ -72,7 +85,12 @@ export function ConfirmModal({
       successMessage,
       onSuccess: () => {
         onSuccess?.();
-        if (closeOnSuccess) setOpen(false);
+        if (redirectTo) {
+          // Segue em loading até a rota entrar; o modal desmonta com a navegação.
+          redirect(redirectTo);
+        } else if (closeOnSuccess) {
+          setOpen(false);
+        }
       },
       onError: () => onError?.(),
     });
@@ -92,7 +110,7 @@ export function ConfirmModal({
               color="neutral"
               size="md"
               noUppercase
-              disabled={isLoading}
+              disabled={busy}
             >
               <Button.Title>{cancelLabel}</Button.Title>
             </Button.Root>
@@ -103,7 +121,7 @@ export function ConfirmModal({
             color={confirmColor}
             size="md"
             noUppercase
-            loading={isLoading}
+            loading={busy}
             onClick={handleConfirm}
           >
             <Button.Title>{confirmLabel}</Button.Title>

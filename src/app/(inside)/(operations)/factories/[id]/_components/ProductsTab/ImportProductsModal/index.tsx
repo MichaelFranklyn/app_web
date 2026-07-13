@@ -7,7 +7,7 @@ import { Alert } from "@/components/Alert";
 import { Button } from "@/components/Button";
 import { Modal } from "@/components/Modal";
 import { Stepper } from "@/components/Stepper";
-import { useNavigation } from "@/hooks/useNavigation";
+import { useRedirectTransition } from "@/hooks/useRedirectTransition";
 
 import { useProductImport } from "./hook";
 import { ImportProductRow } from "./interface";
@@ -25,8 +25,10 @@ const RESULT_STEP = 2;
 export function ImportProductsModal({ companyFactoryId, onChanged }: Props) {
   const [open, setOpen] = useState(false);
   const [step, setStep] = useState(0);
-  const [pendingRows, setPendingRows] = useState<ImportProductRow[] | null>(null);
-  const { navigateTo } = useNavigation();
+  const [pendingRows, setPendingRows] = useState<ImportProductRow[] | null>(
+    null
+  );
+  const { redirect, isRedirecting } = useRedirectTransition();
 
   const { runImport, result, isLoading, resetResult } = useProductImport(
     companyFactoryId,
@@ -47,10 +49,10 @@ export function ImportProductsModal({ companyFactoryId, onChanged }: Props) {
     }
   };
 
-  const goToPriceListImport = () => {
-    setOpen(false);
-    navigateTo(`/factories/${companyFactoryId}/price-lists?import=price-list`);
-  };
+  // Mantém o loading no botão até a página de tabelas de preço carregar (a
+  // navegação desmonta este modal ao entrar).
+  const goToPriceListImport = () =>
+    redirect(`/factories/${companyFactoryId}/price-lists?import=price-list`);
 
   const handleImport = async () => {
     if (pendingRows?.length) await runImport(pendingRows);
@@ -87,8 +89,8 @@ export function ImportProductsModal({ companyFactoryId, onChanged }: Props) {
                       Vai subir uma tabela de preços da fábrica?
                     </Alert.Title>
                     <Alert.Description>
-                      Importe direto a tabela de preços — os produtos do catálogo
-                      são criados automaticamente junto com os preços.
+                      Importe direto a tabela de preços — os produtos do
+                      catálogo são criados automaticamente junto com os preços.
                     </Alert.Description>
                     <Button.Root
                       type="button"
@@ -97,6 +99,7 @@ export function ImportProductsModal({ companyFactoryId, onChanged }: Props) {
                       size="sm"
                       noUppercase
                       className="mt-8 self-start"
+                      loading={isRedirecting}
                       onClick={goToPriceListImport}
                     >
                       <Button.Title>Importar tabela de preços</Button.Title>
@@ -198,7 +201,8 @@ export function ImportProductsModal({ companyFactoryId, onChanged }: Props) {
                   onClick={handleImport}
                 >
                   <Button.Title>
-                    Importar{pendingRows?.length ? ` (${pendingRows.length})` : ""}
+                    Importar
+                    {pendingRows?.length ? ` (${pendingRows.length})` : ""}
                   </Button.Title>
                 </Button.Root>
               )}

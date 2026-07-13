@@ -201,6 +201,28 @@ export const buildWeekDays = (
   return cells;
 };
 
+// Ordena as visitas de um dia pela sequência planejada da rota (plannedOrder),
+// que é a ordem em que o vendedor deve percorrê-las. Não muta o array recebido.
+export const sortVisitsByRoute = (
+  items: VisitScheduleItem[]
+): VisitScheduleItem[] =>
+  [...items].sort((a, b) => a.plannedOrder - b.plannedOrder);
+
+// Janela do período: começa em hoje (se a semana exibida o contém) ou na
+// segunda-feira; cobre `periodDays` dias. `periodDays >= 7` mostra a semana
+// toda. Compartilhado pela grade (kanban) e pela lista para que os dois modos
+// exibam exatamente o mesmo recorte de dias.
+export const getVisibleCells = (
+  cells: WeekDayCell[],
+  periodDays: number,
+  todayIso: string
+): WeekDayCell[] => {
+  if (periodDays >= 7) return cells;
+  const todayIndex = cells.findIndex((c) => c.date === todayIso);
+  const anchor = todayIndex >= 0 ? todayIndex : 0;
+  return cells.slice(anchor, anchor + periodDays);
+};
+
 // Opções dos enums — value = NOME do membro GraphQL, label = PT.
 export { VISIT_STATUS_OPTIONS, VISIT_OUTCOME_OPTIONS } from "@/utils/visit";
 

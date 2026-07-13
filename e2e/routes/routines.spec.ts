@@ -1,4 +1,4 @@
-import { getCurrentWeekMondayIso } from "@/utils/format/date";
+import { getCurrentWeekMondayIso, getTodayIso } from "@/utils/format/date";
 import { expect, test } from "../support/fixtures";
 import { emptyConnection, mockGraphql } from "../support/graphql";
 
@@ -111,4 +111,94 @@ test("rotina: edita uma visita (notas)", async ({ page }) => {
   await dialog.getByRole("button", { name: "Salvar alterações" }).click();
 
   await expect(page.getByText("Visita atualizada")).toBeVisible();
+});
+
+// Modo lista: os dias vêm colapsados, só o de hoje abre sozinho. Montamos hoje
+// (com uma visita) e outro dia da mesma semana (com outra visita) para provar
+// que o de hoje aparece aberto e o outro vem fechado — e que fechar hoje some
+// com sua visita.
+const addDaysIso = (iso: string, n: number): string => {
+  const [y, m, d] = iso.split("-").map(Number);
+  const dt = new Date(Date.UTC(y, m - 1, d));
+  dt.setUTCDate(dt.getUTCDate() + n);
+  return dt.toISOString().slice(0, 10);
+};
+
+const TODAY = getTodayIso();
+// Um dia da semana garantidamente diferente de hoje (para vir fechado).
+const OTHER_DAY = TODAY === WEEK_START ? addDaysIso(WEEK_START, 1) : WEEK_START;
+
+const visitItem = (id: string, clientName: string) => ({
+  id,
+  plannedOrder: 1,
+  estimatedTravelMin: 15,
+  status: "PENDING",
+  outcome: null,
+  notes: null,
+  focusFactories: [],
+  treatedFactories: [],
+  clientFactoryLink: {
+    id: `cfl-${id}`,
+    client: { id: `c-${id}`, razaoSocial: clientName, nomeFantasia: null },
+    factory: {
+      id: "f-1",
+      razaoSocial: "Fábrica LTDA",
+      nomeFantasia: "Fábrica",
+    },
+    latestVisitScore: null,
+  },
+});
+
+const day = (id: string, date: string, clientName: string) => ({
+  id,
+  date,
+  status: "PLANNED",
+  departureType: "HOME",
+  routeDistanceKm: "10.0",
+  routeDurationMin: 30,
+  items: [visitItem(`it-${id}`, clientName)],
+});
+
+test("rotina (lista): dias colapsam, só hoje abre sozinho", async ({
+  page,
+}) => {
+  await mockGraphql(page, {
+    RoutineSellersOptions: () => ({ routine_sellers: { edges: [] } }),
+    VisitScheduleConfig: scheduleConfig,
+    VisitSchedules: () => ({
+      visit_schedules: {
+        edges: [
+          {
+            node: {
+              ...schedule,
+              days: [
+                day("today", TODAY, "Cliente De Hoje"),
+                day("other", OTHER_DAY, "Cliente De Outro Dia"),
+              ],
+            },
+          },
+        ],
+        pageInfo: { hasNextPage: false, endCursor: null },
+        totalCount: 1,
+      },
+    }),
+  });
+
+  await page.goto("/routines?view=list");
+
+  // O checkbox de concluir só existe nas linhas de visita renderizadas (o painel
+  // de detalhes repete o nome do cliente, então ancoramos no checkbox). Hoje vem
+  // aberto → 1 linha; o outro dia vem fechado → nada dele no DOM.
+  const doneChecks = page.getByLabel("Marcar visita como concluída");
+  await expect(doneChecks).toHaveCount(1);
+  await expect(page.getByText("Cliente De Outro Dia")).toHaveCount(0);
+
+  // O cabeçalho do dia tem o atalho para a rota daquele dia (mesmo fechado).
+  await expect(
+    page.getByRole("link", { name: "Ver rota" }).first()
+  ).toHaveAttribute("href", new RegExp(`/routines/${TODAY}`));
+
+  // Fechar o dia de hoje (único cabeçalho expandido) some com a linha da visita.
+  await page.getByRole("button", { expanded: true }).first().click();
+  await expect(doneChecks).toHaveCount(0);
 });

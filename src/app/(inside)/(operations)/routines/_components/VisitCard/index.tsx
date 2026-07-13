@@ -3,8 +3,6 @@
 import { Badge } from "@/components/Badges";
 import { InputCheckbox } from "@/components/Input/InputCheckbox";
 import { Title } from "@/components/Title";
-import { useAsyncAction } from "@/hooks/useAsyncAction";
-import { useMutation } from "@apollo/client/react";
 import { TriangleAlert } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { clientDisplayName } from "@/utils/client";
@@ -16,7 +14,6 @@ import {
   getVisitFollowupWarning,
   getVisitScoreTotal,
 } from "../../utils";
-import { UPDATE_VISIT_ITEM_MUTATION } from "../../gql";
 import { useVisitActions } from "../../useVisitActions";
 
 interface Props {
@@ -24,10 +21,6 @@ interface Props {
   currentDayId: string | null;
   scheduleDays: VisitScheduleDay[];
   onChanged: () => void;
-}
-
-interface UpdateItemResponse {
-  updateVisitScheduleItem?: { status: boolean; message: string };
 }
 
 const getFactoryName = (item: VisitScheduleItem): string => {
@@ -66,47 +59,18 @@ export function VisitCard({
   scheduleDays,
   onChanged,
 }: Props) {
-  const { openView, promptAfterComplete, menu, overlays } = useVisitActions({
-    item,
-    currentDayId,
-    scheduleDays,
-    onChanged,
-  });
+  const { openView, toggleCompleted, isToggling, menu, overlays } =
+    useVisitActions({
+      item,
+      currentDayId,
+      scheduleDays,
+      onChanged,
+    });
 
-  const [updateItem] = useMutation<UpdateItemResponse>(
-    UPDATE_VISIT_ITEM_MUTATION
-  );
-  const { execute, isLoading } = useAsyncAction();
   const isCompleted = item.status === "COMPLETED";
   const warning = getVisitFollowupWarning(item);
   const scoreValue = getVisitScoreTotal(item);
   const priority = scoreValue != null ? visitPriority(scoreValue) : null;
-
-  const toggleCompleted = (checked: boolean) => {
-    execute(
-      async () => {
-        const res = await updateItem({
-          variables: {
-            id: item.id,
-            input: { status: checked ? "COMPLETED" : "PENDING" },
-          },
-        });
-        const payload = res.data?.updateVisitScheduleItem;
-        if (!payload?.status) {
-          throw new Error(payload?.message ?? "Erro ao atualizar visita");
-        }
-        return payload;
-      },
-      {
-        successMessage: checked ? "Visita concluída" : "Visita reaberta",
-        onSuccess: () => {
-          onChanged();
-          // Ao concluir, oferece registrar o pedido ou o estoque do cliente.
-          if (checked) promptAfterComplete();
-        },
-      }
-    );
-  };
 
   // "Pendente" é o estado esperado de toda visita futura — mostrar o badge em
   // cada card só polui a coluna. Ele aparece quando a visita saiu do previsto
@@ -139,7 +103,7 @@ export function VisitCard({
               <InputCheckbox
                 tone="green"
                 checked={isCompleted}
-                disabled={isLoading}
+                disabled={isToggling}
                 onChange={(e) => toggleCompleted(e.target.checked)}
                 title={
                   isCompleted

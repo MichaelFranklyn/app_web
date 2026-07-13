@@ -88,6 +88,105 @@ const orderNode = {
   seller: { id: "s-1", name: "Vendedor Teste" },
 };
 
+// Escolhe uma opção num Input.Select custom (dropdown em portal, fora do dialog).
+async function pickOption(
+  dialog: import("@playwright/test").Locator,
+  page: import("@playwright/test").Page,
+  fieldLabel: string,
+  typeText: string,
+  optionText: string
+) {
+  const select = dialog.getByRole("textbox", { name: fieldLabel });
+  await expect(select).toBeEnabled();
+  await select.click();
+  await select.pressSequentially(typeText);
+  await page
+    .locator("[data-select-dropdown]")
+    .getByText(optionText, { exact: true })
+    .click();
+}
+
+test("cliente/pedidos: criar pedido usa o wizard e redireciona ao pedido novo", async ({
+  page,
+}) => {
+  let createVars: Record<string, unknown> | null = null;
+
+  await mockGraphql(page, {
+    ...clientLayout(),
+    ClientFactoryOrders: summaries,
+    // Vínculos vendedor→fábrica do cliente (passo 1 do wizard).
+    ClientAssignments: () => ({
+      sellerClientFactoryList: {
+        edges: [
+          {
+            node: {
+              id: "scf-1",
+              sellerId: "s-1",
+              factoryId: "f-1",
+              seller: { id: "s-1", name: "Vendedor A" },
+              factory: {
+                id: "f-1",
+                nomeFantasia: "Fábrica Alfa",
+                razaoSocial: "Alfa LTDA",
+              },
+            },
+          },
+        ],
+      },
+    }),
+    // Escolher o vínculo monta o catálogo do passo 2 (respostas vazias encerram
+    // o carregamento sem exercer os itens).
+    OrderItemCompanyFactories: () => ({ companyFactories: { edges: [] } }),
+    OrderItemProducts: () => ({ products: { edges: [] } }),
+    OrderItemTiers: () => ({ priceTiers: { edges: [] } }),
+    OrderItemPriceLists: () => ({ factoryPriceLists: { edges: [] } }),
+    OrderItemPriceListItems: () => ({ priceListItems: { edges: [] } }),
+    CreateOrderFromClient: (variables) => {
+      createVars = variables.input as Record<string, unknown>;
+      return {
+        createOrder: {
+          status: true,
+          code: 200,
+          message: "ok",
+          data: { id: "order-novo" },
+        },
+      };
+    },
+  });
+
+  await page.goto("/clients/cc-1/orders");
+  await page.getByRole("button", { name: "Pedido", exact: true }).click();
+
+  const dialog = page.getByRole("dialog");
+  await expect(dialog).toBeVisible();
+
+  await pickOption(
+    dialog,
+    page,
+    "Vendedor → Fábrica",
+    "Vendedor",
+    "Vendedor A → Fábrica Alfa"
+  );
+  await dialog
+    .getByRole("textbox", { name: "Data do pedido" })
+    .click({ force: true });
+  await page.getByRole("button", { name: "Hoje" }).click();
+
+  // Passo 1 (Dados) → passo 2 (Itens, opcional) → criar sem itens.
+  await dialog.getByRole("button", { name: "Avançar" }).click();
+  await dialog
+    .getByRole("button", { name: "Criar pedido", exact: true })
+    .click();
+
+  // Redireciona para o pedido recém-criado.
+  await page.waitForURL(/\/orders\/order-novo/);
+  expect(createVars).toMatchObject({
+    sellerId: "s-1",
+    clientId: "client-1",
+    factoryId: "f-1",
+  });
+});
+
 test("cliente/pedidos: um card por fábrica, incluindo onde nunca comprou", async ({
   page,
 }) => {

@@ -20,6 +20,9 @@ import { shiftWeekIso } from "./utils";
 // Papéis que enxergam a rotina de qualquer vendedor e podem escolher de quem ver.
 const MANAGER_ROLES = ["OWNER", "ADMIN", "SU"];
 
+export type RoutineViewMode = "kanban" | "list";
+const VIEW_MODES: RoutineViewMode[] = ["kanban", "list"];
+
 export function useRoutines() {
   const [weekStart, setWeekStart] = useState<string>(getCurrentWeekMondayIso);
   const [periodDays, setPeriodDays] = useState(7);
@@ -55,6 +58,25 @@ export function useRoutines() {
     (id: string) => {
       const params = new URLSearchParams(searchParams.toString());
       params.set("sellerId", id);
+      router.replace(`${pathname}?${params.toString()}`, { scroll: false });
+    },
+    [pathname, router, searchParams]
+  );
+
+  // Modo de visualização (kanban/lista) também vive na URL: ao voltar para a
+  // rotina, o usuário reencontra a visualização que estava usando. Kanban é o
+  // padrão (a grade por dia).
+  const viewParam = searchParams.get("view");
+  const viewMode: RoutineViewMode = VIEW_MODES.includes(
+    viewParam as RoutineViewMode
+  )
+    ? (viewParam as RoutineViewMode)
+    : "kanban";
+
+  const setViewMode = useCallback(
+    (mode: RoutineViewMode) => {
+      const params = new URLSearchParams(searchParams.toString());
+      params.set("view", mode);
       router.replace(`${pathname}?${params.toString()}`, { scroll: false });
     },
     [pathname, router, searchParams]
@@ -149,6 +171,8 @@ export function useRoutines() {
     setWeekStart,
     periodDays,
     setPeriodDays,
+    viewMode,
+    setViewMode,
     canSelectSeller,
     sellers,
     selectedSellerId,

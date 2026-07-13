@@ -7,7 +7,12 @@ import { Title } from "@/components/Title";
 import { ArrowUpRight, Route } from "lucide-react";
 import Link from "next/link";
 import { VisitScheduleDay } from "../../interface";
-import { buildWeekDays, getTodayIso } from "../../utils";
+import {
+  buildWeekDays,
+  getTodayIso,
+  getVisibleCells,
+  sortVisitsByRoute,
+} from "../../utils";
 import { GenerateDayButton } from "./GenerateDayButton";
 import { AddVisitCard } from "../AddVisitCard";
 import { VisitCard } from "../VisitCard";
@@ -52,18 +57,12 @@ export function RoutinesWeekGrid({
   const cells = buildWeekDays(weekStart, days);
   const todayIso = getTodayIso();
   const addSellerId = effectiveSellerId ?? sellerId ?? null;
-
-  // Janela do período: começa em hoje (se a semana exibida o contém) ou na
-  // segunda-feira; cobre `periodDays` dias. "Semana" (>=7) mostra todos os dias.
-  const todayIndex = cells.findIndex((c) => c.date === todayIso);
-  const anchor = todayIndex >= 0 ? todayIndex : 0;
-  const visibleCells =
-    periodDays >= 7 ? cells : cells.slice(anchor, anchor + periodDays);
+  const visibleCells = getVisibleCells(cells, periodDays, todayIso);
 
   return (
     <div className="flex items-start gap-8 overflow-x-auto pb-8">
       {visibleCells.map((cell) => {
-        const items = cell.day?.items ?? [];
+        const items = sortVisitsByRoute(cell.day?.items ?? []);
         const isToday = cell.date === todayIso;
         // Quantas já foram concluídas — alimenta o badge de progresso do dia.
         const doneCount = items.filter((i) => i.status === "COMPLETED").length;

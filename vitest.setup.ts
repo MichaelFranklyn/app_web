@@ -1,6 +1,25 @@
 import "@testing-library/jest-dom/vitest";
 import { cleanup } from "@testing-library/react";
-import { afterEach } from "vitest";
+import { afterEach, vi } from "vitest";
+
+// next/navigation exige o App Router montado, indisponível no jsdom. Vários
+// componentes usam useRouter — inclusive o ConfirmModal, via
+// useRedirectTransition. Mock global no-op para o render não estourar; testes
+// que precisam de comportamento específico declaram o próprio vi.mock (que tem
+// precedência no arquivo deles).
+vi.mock("next/navigation", () => ({
+  useRouter: () => ({
+    push: vi.fn(),
+    replace: vi.fn(),
+    prefetch: vi.fn(),
+    back: vi.fn(),
+    forward: vi.fn(),
+    refresh: vi.fn(),
+  }),
+  usePathname: () => "/",
+  useSearchParams: () => new URLSearchParams(),
+  useParams: () => ({}),
+}));
 
 // Como o vitest roda com `globals: false`, o auto-cleanup do Testing Library
 // (que depende do `afterEach` global) não é registrado. Sem isso a árvore de

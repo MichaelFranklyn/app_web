@@ -4,7 +4,7 @@ import { Button } from "@/components/Button";
 import { Modal } from "@/components/Modal";
 import { useAsyncAction } from "@/hooks/useAsyncAction";
 import { useInvalidateQueriesClient } from "@/hooks/useInvalidateQueries";
-import { useNavigation } from "@/hooks/useNavigation";
+import { useRedirectTransition } from "@/hooks/useRedirectTransition";
 import { useMutation } from "@apollo/client/react";
 import { Trash2 } from "lucide-react";
 import { useState } from "react";
@@ -13,9 +13,12 @@ import { DeleteOrderModalProps, DeleteOrderResponse } from "./interface";
 
 export function DeleteOrderModal({ orderId }: DeleteOrderModalProps) {
   const [open, setOpen] = useState(false);
-  const { navigateTo } = useNavigation();
+  const { redirect, isRedirecting } = useRedirectTransition();
   const invalidateClient = useInvalidateQueriesClient();
   const { execute, isLoading } = useAsyncAction();
+
+  // O botão segue em loading durante a exclusão E o redirect até /orders carregar.
+  const busy = isLoading || isRedirecting;
 
   const [deleteOrder] = useMutation<DeleteOrderResponse>(DELETE_ORDER_MUTATION);
 
@@ -40,8 +43,9 @@ export function DeleteOrderModal({ orderId }: DeleteOrderModalProps) {
           // entidade OrderType: isso dispararia um refetch do detalhe (order(id))
           // ainda montado, que retornaria NotFound.
           await invalidateClient(["orders", "orders_list", "orderStats"]);
-          setOpen(false);
-          navigateTo("/orders");
+          // Não fecha o modal: a navegação desmonta o detalhe quando /orders
+          // carrega, mantendo o loading até lá.
+          redirect("/orders");
         },
       }
     );
@@ -70,7 +74,7 @@ export function DeleteOrderModal({ orderId }: DeleteOrderModalProps) {
               color="neutral"
               size="md"
               noUppercase
-              disabled={isLoading}
+              disabled={busy}
             >
               <Button.Title>Voltar</Button.Title>
             </Button.Root>
@@ -81,7 +85,7 @@ export function DeleteOrderModal({ orderId }: DeleteOrderModalProps) {
             color="red"
             size="md"
             noUppercase
-            loading={isLoading}
+            loading={busy}
             onClick={handleConfirm}
           >
             <Button.Title>Confirmar exclusão</Button.Title>

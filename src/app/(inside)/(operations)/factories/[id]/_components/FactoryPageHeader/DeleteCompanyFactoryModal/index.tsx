@@ -5,7 +5,6 @@ import { ConfirmModal } from "@/components/ConfirmModal";
 import { useInvalidateQueriesClient } from "@/hooks/useInvalidateQueries";
 import { useMutation } from "@apollo/client/react";
 import { Trash2 } from "lucide-react";
-import { useRouter } from "next/navigation";
 import { DELETE_COMPANY_FACTORY_MUTATION } from "./gql";
 
 interface DeleteCompanyFactoryResponse {
@@ -21,7 +20,6 @@ export function DeleteCompanyFactoryModal({
   companyFactoryId,
   factoryName,
 }: Props) {
-  const router = useRouter();
   const invalidateClient = useInvalidateQueriesClient();
   const [deleteCompanyFactory] = useMutation<DeleteCompanyFactoryResponse>(
     DELETE_COMPANY_FACTORY_MUTATION
@@ -39,6 +37,7 @@ export function DeleteCompanyFactoryModal({
       description={`Tem certeza que deseja excluir o vínculo com a fábrica "${factoryName}"? Esta ação não pode ser desfeita.`}
       confirmLabel="Excluir vínculo"
       successMessage="Vínculo com a fábrica removido"
+      redirectTo="/factories"
       onConfirm={async () => {
         const res = await deleteCompanyFactory({
           variables: { id: companyFactoryId },
@@ -50,10 +49,7 @@ export function DeleteCompanyFactoryModal({
           );
         }
       }}
-      onSuccess={async () => {
-        await invalidateClient(["companyFactories"]);
-        router.push("/factories");
-      }}
+      onSuccess={() => invalidateClient(["companyFactories"])}
     />
   );
 }

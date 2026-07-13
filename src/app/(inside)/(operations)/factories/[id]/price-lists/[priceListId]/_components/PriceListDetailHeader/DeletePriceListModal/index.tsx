@@ -2,7 +2,6 @@
 
 import { Button } from "@/components/Button";
 import { ConfirmModal } from "@/components/ConfirmModal";
-import { useNavigation } from "@/hooks/useNavigation";
 import { useMutation } from "@apollo/client/react";
 import { Trash2 } from "lucide-react";
 import { DELETE_FACTORY_PRICE_LIST_MUTATION } from "../gql";
@@ -22,7 +21,6 @@ export function DeletePriceListModal({
   priceListName,
   priceListsHref,
 }: Props) {
-  const { navigateTo } = useNavigation();
   const [deletePriceList] = useMutation<DeletePriceListResponse>(
     DELETE_FACTORY_PRICE_LIST_MUTATION
   );
@@ -39,7 +37,7 @@ export function DeletePriceListModal({
       description={`Remover a tabela "${priceListName}"? Todos os preços lançados nela também serão removidos.`}
       confirmLabel="Excluir"
       successMessage="Tabela de preço removida"
-      closeOnSuccess={false}
+      redirectTo={priceListsHref}
       onConfirm={async () => {
         const res = await deletePriceList({ variables: { id: priceListId } });
         if (!res.data?.deleteFactoryPriceList?.status) {
@@ -49,7 +47,6 @@ export function DeletePriceListModal({
           );
         }
       }}
-      onSuccess={() => navigateTo(priceListsHref)}
     />
   );
 }

@@ -1,7 +1,9 @@
 "use client";
 
 import { MoreOptions } from "@/components/MoreOptions";
+import { useAsyncAction } from "@/hooks/useAsyncAction";
 import { clientDisplayName } from "@/utils/client";
+import { useMutation } from "@apollo/client/react";
 import {
   CalendarClock,
   Eye,
@@ -12,6 +14,7 @@ import {
 } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { ReactNode, useState } from "react";
+import { UPDATE_VISIT_ITEM_MUTATION } from "./gql";
 import { VisitScheduleItem } from "./interface";
 import { CompletionPromptModal } from "./_components/VisitActions/CompletionPromptModal";
 import { EditVisitModal } from "./_components/VisitActions/EditVisitModal";
@@ -34,11 +37,19 @@ interface Args {
   onChanged: () => void;
 }
 
+interface UpdateItemResponse {
+  updateVisitScheduleItem?: { status: boolean; message: string };
+}
+
 interface Result {
   /** Abre o painel lateral de detalhes da visita. */
   openView: () => void;
   /** Pergunta o próximo passo (pedido/estoque) após concluir a visita. */
   promptAfterComplete: () => void;
+  /** Conclui (ou reabre) a visita; ao concluir, oferece pedido/estoque. */
+  toggleCompleted: (checked: boolean) => void;
+  /** A mutação de conclusão está em andamento. */
+  isToggling: boolean;
   /** Menu de três pontos (visualizar/editar/estoque/remarcar). */
   menu: ReactNode;
   /** Painel lateral + modais; renderizar uma vez por item. */
@@ -57,6 +68,62 @@ export function useVisitActions({
   const router = useRouter();
   const [active, setActive] = useState<ActiveModal>(null);
   const close = () => setActive(null);
+
+  const [updateItem] = useMutation<UpdateItemResponse>(
+    UPDATE_VISIT_ITEM_MUTATION
+  );
+  const { execute, isLoading: isToggling } = useAsyncAction();
+
+  // Concluir/reabrir a visita. Ao concluir, oferece registrar o pedido ou o
+  // estoque do cliente (o mesmo prompt em qualquer visualização).
+  const toggleCompleted = (checked: boolean) => {
+    execute(
+      async () => {
+        const res = await updateItem({
+          variables: {
+            id: item.id,
+            input: { status: checked ? "COMPLETED" : "PENDING" },
+          },
+        });
+        const payload = res.data?.updateVisitScheduleItem;
+        if (!payload?.status) {
+          throw new Error(payload?.message ?? "Erro ao atualizar visita");
+        }
+        return payload;
+      },
+      {
+        successMessage: checked ? "Visita concluída" : "Visita reaberta",
+        onSuccess: () => {
+          onChanged();
+          if (checked) setActive("completed");
+        },
+      }
+    );
+  };
+
+  // Registrar o estoque é a evidência de que a visita aconteceu, então salvá-lo
+  // conclui a visita automaticamente. Sem reabrir o prompt de próximos passos (o
+  // estoque já foi o passo) e sem toast redundante quando ela já estava
+  // concluída — o modal de estoque já avisa "Estoque registrado".
+  const completeFromStock = () => {
+    if (item.status === "COMPLETED") {
+      onChanged();
+      return;
+    }
+    execute(
+      async () => {
+        const res = await updateItem({
+          variables: { id: item.id, input: { status: "COMPLETED" } },
+        });
+        const payload = res.data?.updateVisitScheduleItem;
+        if (!payload?.status) {
+          throw new Error(payload?.message ?? "Erro ao concluir visita");
+        }
+        return payload;
+      },
+      { successMessage: "Visita concluída", onSuccess: onChanged }
+    );
+  };
 
   // Atalho para lançar/subir o pedido desta visita: leva à página de pedidos do
   // cliente, onde o vendedor cadastra ou importa o pedido. Só existe quando há
@@ -143,7 +210,7 @@ export function useVisitActions({
         clientName={clientName}
         open={active === "stock"}
         onOpenChange={(o) => !o && close()}
-        onSaved={onChanged}
+        onSaved={completeFromStock}
       />
 
       <RescheduleVisitModal
@@ -168,6 +235,8 @@ export function useVisitActions({
   return {
     openView: () => setActive("view"),
     promptAfterComplete: () => setActive("completed"),
+    toggleCompleted,
+    isToggling,
     menu,
     overlays,
   };

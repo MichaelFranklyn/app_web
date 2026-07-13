@@ -10,7 +10,7 @@ import {
   ORDER_ITEM_PRICE_LISTS_QUERY,
   ORDER_ITEM_PRODUCTS_QUERY,
   ORDER_ITEM_TIERS_QUERY,
-} from "../../../_shared/orderItemCatalog";
+} from "../orderItemCatalog";
 import { useOrderDraftItems } from "./useOrderDraftItems";
 
 const byCF = {

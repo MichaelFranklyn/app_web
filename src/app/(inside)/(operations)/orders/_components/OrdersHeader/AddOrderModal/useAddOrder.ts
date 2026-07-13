@@ -16,9 +16,12 @@ import {
 import { CreateOrderResponse } from "../interface";
 import { CreateOrderInput } from "../interface";
 import { normalizeInput } from "../utils";
-import { CREATE_ORDER_ITEM_MUTATION } from "./gql";
-import { CreateOrderItemResponse } from "./interface";
-import { useOrderDraftItems } from "./useOrderDraftItems";
+import {
+  CREATE_ORDER_ITEM_MUTATION,
+  CreateOrderItemResponse,
+  createDraftItems,
+  useOrderDraftItems,
+} from "../../../_shared/orderDraftItems";
 import { FREIGHT_OPTIONS } from "./utils";
 
 interface SellersOptionsData {
@@ -264,31 +267,13 @@ export function useAddOrder({ onAddOptimistic }: AddOrderModalProps) {
         }
         const order = res.data.createOrder.data;
 
-        // Itens são gravados após o pedido existir. Se algum falhar, o pedido
-        // permanece criado e o vendedor completa no detalhe.
-        const failed: string[] = [];
-        for (const item of draft.items) {
-          try {
-            const r = await createOrderItem({
-              variables: {
-                input: {
-                  orderId: order.id,
-                  productId: item.productId,
-                  tierId: item.tierId || null,
-                  quantity: item.quantity,
-                  unitPrice: item.unitPrice,
-                  discount: item.discount,
-                  source: "MANUAL",
-                },
-              },
-            });
-            if (!r.data?.createOrderItem?.status) {
-              failed.push(item.productLabel);
-            }
-          } catch {
-            failed.push(item.productLabel);
-          }
-        }
+        // Itens são gravados após o pedido existir (o backend não os aceita no
+        // CreateOrderInput). Falhas parciais não desfazem o pedido.
+        const failed = await createDraftItems(
+          createOrderItem,
+          order.id,
+          draft.items
+        );
         return { order, failed };
       },
       {

@@ -3,7 +3,6 @@
 import { Button } from "@/components/Button";
 import { ConfirmModal } from "@/components/ConfirmModal";
 import { useInvalidateQueriesClient } from "@/hooks/useInvalidateQueries";
-import { useNavigation } from "@/hooks/useNavigation";
 import { invalidateCacheMany } from "@/services/graphql/actions";
 import { useMutation } from "@apollo/client/react";
 import { Trash2 } from "lucide-react";
@@ -23,7 +22,6 @@ interface Props {
 }
 
 export function DeleteClientModal({ companyClientId, clientName }: Props) {
-  const { navigateTo } = useNavigation();
   const invalidateClient = useInvalidateQueriesClient();
   const [deleteCompanyClient] = useMutation<DeleteCompanyClientResponse>(
     DELETE_COMPANY_CLIENT_MUTATION
@@ -41,6 +39,7 @@ export function DeleteClientModal({ companyClientId, clientName }: Props) {
       description={`Remover "${clientName}" da carteira da sua empresa? Os vínculos, contatos e pedidos associados deixam de aparecer. Esta ação não pode ser desfeita.`}
       confirmLabel="Remover"
       successMessage="Cliente removido da carteira"
+      redirectTo="/clients"
       onConfirm={async () => {
         const res = await deleteCompanyClient({
           variables: { id: companyClientId },
@@ -55,7 +54,6 @@ export function DeleteClientModal({ companyClientId, clientName }: Props) {
       onSuccess={async () => {
         await invalidateClient(["clients_list"]);
         await invalidateCacheMany(["clients_stats"]);
-        navigateTo("/clients");
       }}
     />
   );

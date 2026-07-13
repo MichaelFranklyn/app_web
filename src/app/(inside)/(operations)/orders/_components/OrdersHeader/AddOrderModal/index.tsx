@@ -7,8 +7,8 @@ import { Button } from "@/components/Button";
 import { FormBuilder, FormStepSchema } from "@/components/FormBuilder";
 import { Modal } from "@/components/Modal";
 
+import { StepItems } from "../../../_shared/orderDraftItems";
 import { StepDetails } from "./StepDetails";
-import { StepItems } from "./StepItems";
 import { AddOrderModalProps, useAddOrder } from "./useAddOrder";
 
 export function AddOrderModal(props: AddOrderModalProps) {
