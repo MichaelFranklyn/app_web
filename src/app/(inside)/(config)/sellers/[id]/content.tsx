@@ -2,6 +2,7 @@
 
 import { EmptyState } from "@/components/EmptyState";
 import { PageContent } from "@/components/PageContent";
+import { QueryError } from "@/components/QueryError";
 import { Tabs } from "@/components/Tabs";
 import { useQuery } from "@apollo/client/react";
 import { UserX } from "lucide-react";
@@ -19,7 +20,7 @@ interface Props {
 }
 
 export default function SellerDetailContent({ sellerId }: Props) {
-  const { data, loading, refetch } = useQuery<SellerDetailQueryResponse>(
+  const { data, loading, error, refetch } = useQuery<SellerDetailQueryResponse>(
     SELLER_DETAIL_QUERY,
     {
       variables: { id: sellerId },
@@ -30,6 +31,14 @@ export default function SellerDetailContent({ sellerId }: Props) {
 
   if (loading && !seller) {
     return <SellerDetailSkeleton />;
+  }
+
+  if (error && !seller) {
+    return (
+      <div className="flex min-h-[60vh] items-center justify-center px-32 py-[28px]">
+        <QueryError onRetry={() => refetch()} />
+      </div>
+    );
   }
 
   if (!seller) {

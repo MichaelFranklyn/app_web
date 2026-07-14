@@ -1,5 +1,6 @@
 import { SelectOption } from "@/components/Input";
 import { useAsyncAction } from "@/hooks/useAsyncAction";
+import { useQueryErrorToast } from "@/hooks/useQueryErrorToast";
 import { clientDisplayName } from "@/utils/client";
 import { useMutation, useQuery } from "@apollo/client/react";
 import { useEffect, useMemo, useState } from "react";
@@ -170,6 +171,11 @@ export function useAddVisit({
     if (!selectedLinkId || !nextDay) return;
     runCreate("next");
   };
+
+  useQueryErrorToast(
+    linksQuery.error,
+    "Não foi possível carregar os clientes para a visita."
+  );
 
   return {
     options,

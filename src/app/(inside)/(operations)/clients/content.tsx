@@ -1,6 +1,7 @@
 "use client";
 
 import { PageContent } from "@/components/PageContent";
+import { QueryError } from "@/components/QueryError";
 import { useOptimisticList } from "@/hooks/useOptimisticList";
 import { useTableData } from "@/hooks/useTableData";
 import { ClientsHeader } from "./_components/ClientsHeader";
@@ -29,16 +30,20 @@ export default function ClientesContent({
     <PageContent>
       <ClientsHeader stats={stats} onAddOptimistic={optimistic.addOptimistic} />
 
-      <ClientsTable
-        items={optimistic.items}
-        inputValues={tableData.inputValues}
-        setFilter={tableData.setFilter}
-        loading={tableData.loading}
-        totalItems={tableData.totalItems}
-        currentPage={tableData.currentPage}
-        totalPages={tableData.totalPages}
-        setCurrentPage={tableData.setCurrentPage}
-      />
+      {tableData.error && optimistic.items.length === 0 ? (
+        <QueryError onRetry={() => tableData.refetch()} />
+      ) : (
+        <ClientsTable
+          items={optimistic.items}
+          inputValues={tableData.inputValues}
+          setFilter={tableData.setFilter}
+          loading={tableData.loading}
+          totalItems={tableData.totalItems}
+          currentPage={tableData.currentPage}
+          totalPages={tableData.totalPages}
+          setCurrentPage={tableData.setCurrentPage}
+        />
+      )}
     </PageContent>
   );
 }

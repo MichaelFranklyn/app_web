@@ -2,6 +2,7 @@
 
 import { EmptyState } from "@/components/EmptyState";
 import { Loading } from "@/components/Loading";
+import { QueryError } from "@/components/QueryError";
 import type { EChartsCoreOption } from "echarts/core";
 import { BarChart3 } from "lucide-react";
 import dynamic from "next/dynamic";
@@ -21,6 +22,8 @@ interface Props {
   hasData: boolean;
   option: EChartsCoreOption;
   height?: number;
+  error?: unknown;
+  onRetry?: () => void;
 }
 
 /**
@@ -29,7 +32,14 @@ interface Props {
  * Registra a option/instância no card (menu de ações) e aplica rótulos quando
  * o card pede.
  */
-export function ChartCanvas({ loading, hasData, option, height = 300 }: Props) {
+export function ChartCanvas({
+  loading,
+  hasData,
+  option,
+  height = 300,
+  error,
+  onRetry,
+}: Props) {
   const { prefs, registerOption, registerInstance } = useChartCard();
 
   // Publica a option-base (sem rótulos) para o card poder expandir no modal.
@@ -46,6 +56,10 @@ export function ChartCanvas({ loading, hasData, option, height = 300 }: Props) {
 
   if (loading && !hasData) {
     return <Loading.Skeleton className="h-[300px] w-full" />;
+  }
+
+  if (error && !hasData) {
+    return <QueryError flat onRetry={onRetry} />;
   }
 
   if (!hasData) {

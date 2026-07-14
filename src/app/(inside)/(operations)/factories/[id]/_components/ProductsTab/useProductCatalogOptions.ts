@@ -1,4 +1,5 @@
 import { useAsyncAction } from "@/hooks/useAsyncAction";
+import { useQueryErrorToast } from "@/hooks/useQueryErrorToast";
 import { useMutation, useQuery } from "@apollo/client/react";
 import { useCallback, useMemo } from "react";
 
@@ -30,21 +31,29 @@ const COMPANY_CATALOG_INPUT = { first: 200 };
  * Devolve também os dados crus (`*Data`) para resolver os nós do patch otimista.
  */
 export function useProductCatalogOptions(open: boolean) {
-  const { data: categoriesData } = useQuery<ProductCategoriesData>(
-    PRODUCT_CATEGORIES_QUERY,
-    { variables: { input: COMPANY_CATALOG_INPUT }, skip: !open }
-  );
-
-  const { data: unitsData, refetch: refetchUnits } = useQuery<ProductUnitsData>(
-    PRODUCT_UNITS_QUERY,
-    { variables: { input: COMPANY_CATALOG_INPUT }, skip: !open }
-  );
-
-  const { data: labelsData, refetch: refetchLabels } =
-    useQuery<ProductUnitLabelsData>(PRODUCT_UNIT_LABELS_QUERY, {
+  const { data: categoriesData, error: categoriesError } =
+    useQuery<ProductCategoriesData>(PRODUCT_CATEGORIES_QUERY, {
       variables: { input: COMPANY_CATALOG_INPUT },
       skip: !open,
     });
+
+  const {
+    data: unitsData,
+    error: unitsError,
+    refetch: refetchUnits,
+  } = useQuery<ProductUnitsData>(PRODUCT_UNITS_QUERY, {
+    variables: { input: COMPANY_CATALOG_INPUT },
+    skip: !open,
+  });
+
+  const {
+    data: labelsData,
+    error: labelsError,
+    refetch: refetchLabels,
+  } = useQuery<ProductUnitLabelsData>(PRODUCT_UNIT_LABELS_QUERY, {
+    variables: { input: COMPANY_CATALOG_INPUT },
+    skip: !open,
+  });
 
   const [createUnit] = useMutation<CreateProductUnitResponse>(
     CREATE_PRODUCT_UNIT_MUTATION
@@ -136,6 +145,11 @@ export function useProductCatalogOptions(open: boolean) {
         label: e.node.label,
       })) ?? [],
     [labelsData]
+  );
+
+  useQueryErrorToast(
+    categoriesError ?? unitsError ?? labelsError,
+    "Não foi possível carregar as opções. Tente novamente."
   );
 
   return {

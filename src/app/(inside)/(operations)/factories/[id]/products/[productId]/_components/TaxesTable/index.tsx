@@ -1,6 +1,7 @@
 "use client";
 
 import { EmptyState } from "@/components/EmptyState";
+import { QueryError } from "@/components/QueryError";
 import { HelpTooltip } from "@/components/HelpTooltip";
 import { Table } from "@/components/Table";
 import { Title } from "@/components/Title";
@@ -41,7 +42,7 @@ interface Props {
 }
 
 export function TaxesTable({ productId, onChanged }: Props) {
-  const { data, loading, refetch } = useQuery<ProductTaxesData>(
+  const { data, loading, error, refetch } = useQuery<ProductTaxesData>(
     PRODUCT_TAXES_QUERY,
     {
       variables: {
@@ -107,6 +108,12 @@ export function TaxesTable({ productId, onChanged }: Props) {
         <Table.Body>
           {loading ? (
             <Table.Skeleton columns={4} rows={5} />
+          ) : error && taxes.length === 0 ? (
+            <Table.Row>
+              <Table.Cell colSpan={4}>
+                <QueryError flat onRetry={() => refetch()} />
+              </Table.Cell>
+            </Table.Row>
           ) : taxes.length === 0 ? (
             <Table.Row>
               <Table.Cell colSpan={4}>

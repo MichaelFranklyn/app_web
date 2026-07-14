@@ -14,10 +14,10 @@ export function CommissionsByMonthChart({
 }: {
   filters: ChartFilters;
 }) {
-  const { data, loading } = useAsyncQuery<CommissionsForChartResponse>(
-    COMMISSIONS_FOR_CHART_QUERY,
-    { skip: false }
-  );
+  const { data, loading, error, refetch } =
+    useAsyncQuery<CommissionsForChartResponse>(COMMISSIONS_FOR_CHART_QUERY, {
+      skip: false,
+    });
 
   const buckets = useMemo(
     () => bucketCommissionsByMonth(data?.commissions.rows ?? [], filters),
@@ -30,6 +30,8 @@ export function CommissionsByMonthChart({
       loading={loading}
       hasData={buckets.length > 0}
       option={option}
+      error={error}
+      onRetry={() => refetch()}
     />
   );
 }

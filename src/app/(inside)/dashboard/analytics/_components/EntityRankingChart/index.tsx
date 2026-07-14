@@ -23,11 +23,12 @@ export function EntityRankingChart({
 }: EntityRankingChartProps) {
   const variables = useMemo(() => ({ ...filters, limit: 8 }), [filters]);
 
-  const { data, loading } = useAsyncQuery<EntityRankingResponse>(query, {
-    variables,
-    skip: false,
-    autoFetch: true,
-  });
+  const { data, loading, error, refetch } =
+    useAsyncQuery<EntityRankingResponse>(query, {
+      variables,
+      skip: false,
+      autoFetch: true,
+    });
 
   const points = useMemo(
     () => toEntityPoints(data?.[dataKey] ?? [], valueKey),
@@ -44,6 +45,8 @@ export function EntityRankingChart({
       loading={loading}
       hasData={points.length > 0}
       option={option}
+      error={error}
+      onRetry={() => refetch()}
     />
   );
 }

@@ -1,6 +1,7 @@
 "use client";
 
 import { EmptyState } from "@/components/EmptyState";
+import { QueryError } from "@/components/QueryError";
 import { HelpTooltip } from "@/components/HelpTooltip";
 import { Table } from "@/components/Table";
 import { Title } from "@/components/Title";
@@ -24,7 +25,7 @@ interface Props {
 type PriceTier = { id: string; name: string };
 
 export function TiersTab({ companyFactoryId }: Props) {
-  const { data, loading, refetch } = useQuery<PriceTiersData>(
+  const { data, loading, error, refetch } = useQuery<PriceTiersData>(
     PRICE_TIERS_QUERY,
     { variables: buildPriceTiersVariables(companyFactoryId) }
   );
@@ -33,7 +34,9 @@ export function TiersTab({ companyFactoryId }: Props) {
     () => data?.price_tiers?.edges.map((e) => e.node) ?? [],
     [data]
   );
-  const optimistic = useOptimisticList<PriceTier>({ initialData: initialTiers });
+  const optimistic = useOptimisticList<PriceTier>({
+    initialData: initialTiers,
+  });
   const tiers = optimistic.items;
   const handleChanged = () => {
     refetch();
@@ -80,6 +83,12 @@ export function TiersTab({ companyFactoryId }: Props) {
         <Table.Body>
           {loading ? (
             <Table.Skeleton columns={2} rows={3} />
+          ) : error && tiers.length === 0 ? (
+            <Table.Row>
+              <Table.Cell colSpan={2}>
+                <QueryError flat onRetry={() => refetch()} />
+              </Table.Cell>
+            </Table.Row>
           ) : tiers.length === 0 ? (
             <Table.Row>
               <Table.Cell colSpan={2}>

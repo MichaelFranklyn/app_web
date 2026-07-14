@@ -3,6 +3,7 @@
 import { Avatar } from "@/components/Avatar";
 import { Badge } from "@/components/Badges";
 import { EmptyState } from "@/components/EmptyState";
+import { QueryError } from "@/components/QueryError";
 import { HelpTooltip } from "@/components/HelpTooltip";
 import { Table } from "@/components/Table";
 import { Title } from "@/components/Title";
@@ -41,7 +42,7 @@ interface Props {
 }
 
 export function SellersTab({ factoryId, autoOpenLink }: Props) {
-  const { data, loading } = useQuery<SellersQueryData>(
+  const { data, loading, error, refetch } = useQuery<SellersQueryData>(
     FACTORY_SELLER_ACCESSES_QUERY,
     {
       variables: {
@@ -104,6 +105,12 @@ export function SellersTab({ factoryId, autoOpenLink }: Props) {
         <Table.Body>
           {loading && accesses.length === 0 ? (
             <Table.Skeleton columns={3} rows={5} />
+          ) : error && accesses.length === 0 ? (
+            <Table.Row>
+              <Table.Cell colSpan={3}>
+                <QueryError flat onRetry={() => refetch()} />
+              </Table.Cell>
+            </Table.Row>
           ) : accesses.length === 0 ? (
             <Table.Row>
               <Table.Cell colSpan={3}>

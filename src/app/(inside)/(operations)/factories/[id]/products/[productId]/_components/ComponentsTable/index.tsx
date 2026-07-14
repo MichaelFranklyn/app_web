@@ -1,6 +1,7 @@
 "use client";
 
 import { EmptyState } from "@/components/EmptyState";
+import { QueryError } from "@/components/QueryError";
 import { HelpTooltip } from "@/components/HelpTooltip";
 import { Table } from "@/components/Table";
 import { Title } from "@/components/Title";
@@ -22,7 +23,7 @@ interface Props {
 }
 
 export function ComponentsTable({ productId, companyFactoryId }: Props) {
-  const { data, loading, refetch } = useQuery<ProductComponentsData>(
+  const { data, loading, error, refetch } = useQuery<ProductComponentsData>(
     PRODUCT_COMPONENTS_QUERY,
     { variables: { id: productId } }
   );
@@ -80,6 +81,12 @@ export function ComponentsTable({ productId, companyFactoryId }: Props) {
         <Table.Body>
           {loading ? (
             <Table.Skeleton columns={3} rows={3} />
+          ) : error && components.length === 0 ? (
+            <Table.Row>
+              <Table.Cell colSpan={3}>
+                <QueryError flat onRetry={() => refetch()} />
+              </Table.Cell>
+            </Table.Row>
           ) : components.length === 0 ? (
             <Table.Row>
               <Table.Cell colSpan={3}>

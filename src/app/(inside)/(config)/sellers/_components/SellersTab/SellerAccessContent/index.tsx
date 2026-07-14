@@ -5,6 +5,7 @@ import { Badge } from "@/components/Badges";
 import { EmptyState } from "@/components/EmptyState";
 import { Loading } from "@/components/Loading";
 import { Pagination } from "@/components/Pagination";
+import { QueryError } from "@/components/QueryError";
 import { Table } from "@/components/Table";
 import { Tabs } from "@/components/Tabs";
 import { useOptimisticList } from "@/hooks/useOptimisticList";
@@ -55,6 +56,12 @@ export default function SellerAccessContent() {
             <Table.Body>
               {tableData.loading && optimistic.items.length === 0 ? (
                 <Table.Skeleton columns={6} rows={5} />
+              ) : tableData.error && optimistic.items.length === 0 ? (
+                <Table.Row>
+                  <Table.Cell colSpan={6}>
+                    <QueryError flat onRetry={() => tableData.refetch()} />
+                  </Table.Cell>
+                </Table.Row>
               ) : isEmpty ? (
                 <Table.Row>
                   <Table.Cell colSpan={6}>

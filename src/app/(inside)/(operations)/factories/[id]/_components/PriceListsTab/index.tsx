@@ -2,6 +2,7 @@
 
 import { Badge } from "@/components/Badges";
 import { EmptyState } from "@/components/EmptyState";
+import { QueryError } from "@/components/QueryError";
 import { HelpTooltip } from "@/components/HelpTooltip";
 import { Table } from "@/components/Table";
 import { Title } from "@/components/Title";
@@ -28,7 +29,7 @@ interface Props {
 }
 
 export function PriceListsTab({ companyFactoryId, factoryId }: Props) {
-  const { data, loading, refetch } = useQuery<FactoryPriceListsData>(
+  const { data, loading, error, refetch } = useQuery<FactoryPriceListsData>(
     FACTORY_PRICE_LISTS_QUERY,
     { variables: buildFactoryPriceListsVariables(companyFactoryId) }
   );
@@ -100,6 +101,12 @@ export function PriceListsTab({ companyFactoryId, factoryId }: Props) {
         <Table.Body>
           {loading ? (
             <Table.Skeleton columns={6} rows={5} />
+          ) : error && priceLists.length === 0 ? (
+            <Table.Row>
+              <Table.Cell colSpan={6}>
+                <QueryError flat onRetry={() => refetch()} />
+              </Table.Cell>
+            </Table.Row>
           ) : priceLists.length === 0 ? (
             <Table.Row>
               <Table.Cell colSpan={6}>

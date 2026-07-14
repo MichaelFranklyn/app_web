@@ -6,6 +6,7 @@ import React, { useMemo, useState } from "react";
 
 import { useAsyncAction } from "@/hooks/useAsyncAction";
 import { useInvalidateQueriesClient } from "@/hooks/useInvalidateQueries";
+import { useQueryErrorToast } from "@/hooks/useQueryErrorToast";
 import { useOptimisticList } from "@/hooks/useOptimisticList";
 import { useOptimisticObject } from "@/hooks/useOptimisticObject";
 
@@ -38,14 +39,19 @@ export function useNotificationCenter() {
     { pollInterval: 60000 }
   );
 
-  const { data: listData, refetch } = useQuery<MyNotificationsResponse>(
-    MY_NOTIFICATIONS_QUERY,
-    {
-      variables: { input: { first: 20 } },
-      skip: !open,
-      fetchPolicy: "cache-and-network",
-    }
-  );
+  const {
+    data: listData,
+    error: listError,
+    refetch,
+  } = useQuery<MyNotificationsResponse>(MY_NOTIFICATIONS_QUERY, {
+    variables: { input: { first: 20 } },
+    skip: !open,
+    fetchPolicy: "cache-and-network",
+  });
+
+  // Só avisa quando o usuário abre o sino e a lista falha; a contagem faz
+  // polling em segundo plano e não deve estourar toast a cada rede instável.
+  useQueryErrorToast(listError, "Não foi possível carregar as notificações.");
 
   const [markAsRead] = useMutation<MarkAsReadResponse>(
     MARK_NOTIFICATION_AS_READ_MUTATION

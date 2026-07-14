@@ -3,6 +3,7 @@
 import { EmptyState } from "@/components/EmptyState";
 import { Loading } from "@/components/Loading";
 import { PageContent } from "@/components/PageContent";
+import { QueryError } from "@/components/QueryError";
 import { useQuery } from "@apollo/client/react";
 import { UserX } from "lucide-react";
 import { ME_QUERY } from "./gql";
@@ -12,7 +13,7 @@ import { ProfileHeader } from "./_components/ProfileHeader";
 import { ProfileInfoCard } from "./_components/ProfileInfoCard";
 
 export default function ProfileContent() {
-  const { data, loading, refetch } = useQuery<MeQueryResponse>(ME_QUERY);
+  const { data, loading, error, refetch } = useQuery<MeQueryResponse>(ME_QUERY);
 
   const me = data?.me?.data;
 
@@ -20,6 +21,14 @@ export default function ProfileContent() {
     return (
       <div className="flex h-64 items-center justify-center">
         <Loading.Spinner size="md" />
+      </div>
+    );
+  }
+
+  if (error && !me) {
+    return (
+      <div className="flex min-h-[60vh] items-center justify-center px-32 py-[28px]">
+        <QueryError onRetry={() => refetch()} />
       </div>
     );
   }

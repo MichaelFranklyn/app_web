@@ -2,6 +2,7 @@
 
 import { Badge } from "@/components/Badges";
 import { EmptyState } from "@/components/EmptyState";
+import { QueryError } from "@/components/QueryError";
 import { HelpTooltip } from "@/components/HelpTooltip";
 import { Table } from "@/components/Table";
 import { Title } from "@/components/Title";
@@ -25,7 +26,7 @@ interface Props {
 }
 
 export function PaymentTermsTab({ companyFactoryId }: Props) {
-  const { data, loading, refetch } = useQuery<FactoryPaymentTermsData>(
+  const { data, loading, error, refetch } = useQuery<FactoryPaymentTermsData>(
     FACTORY_PAYMENT_TERMS_QUERY,
     { variables: buildFactoryPaymentTermsVariables(companyFactoryId) }
   );
@@ -84,6 +85,12 @@ export function PaymentTermsTab({ companyFactoryId }: Props) {
         <Table.Body>
           {loading ? (
             <Table.Skeleton columns={3} rows={3} />
+          ) : error && terms.length === 0 ? (
+            <Table.Row>
+              <Table.Cell colSpan={3}>
+                <QueryError flat onRetry={() => refetch()} />
+              </Table.Cell>
+            </Table.Row>
           ) : terms.length === 0 ? (
             <Table.Row>
               <Table.Cell colSpan={3}>

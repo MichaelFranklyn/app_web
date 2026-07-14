@@ -12,10 +12,12 @@ import { buildRevenueByFactoryOption } from "./utils";
 export function RevenueByFactoryChart({ filters }: { filters: ChartFilters }) {
   const variables = useMemo(() => ({ ...filters, limit: 8 }), [filters]);
 
-  const { data, loading } = useAsyncQuery<RevenueByFactoryResponse>(
-    REVENUE_BY_FACTORY_QUERY,
-    { variables, skip: false, autoFetch: true }
-  );
+  const { data, loading, error, refetch } =
+    useAsyncQuery<RevenueByFactoryResponse>(REVENUE_BY_FACTORY_QUERY, {
+      variables,
+      skip: false,
+      autoFetch: true,
+    });
 
   const points = useMemo(() => data?.revenueByFactory ?? [], [data]);
   const option = useMemo(() => buildRevenueByFactoryOption(points), [points]);
@@ -25,6 +27,8 @@ export function RevenueByFactoryChart({ filters }: { filters: ChartFilters }) {
       loading={loading}
       hasData={points.length > 0}
       option={option}
+      error={error}
+      onRetry={() => refetch()}
     />
   );
 }

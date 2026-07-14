@@ -1,4 +1,5 @@
 "use client";
+import { useQueryErrorToast } from "@/hooks/useQueryErrorToast";
 
 import { Button } from "@/components/Button";
 import {
@@ -40,10 +41,13 @@ export function AddTaxModal({ productId, onAdded }: Props) {
   const [pendingRuleName, setPendingRuleName] = useState<string | null>(null);
   const ruleResolverRef = useRef<((opt: Option | null) => void) | null>(null);
 
-  const { data: rulesData } = useQuery<TaxRulesData>(TAX_RULES_QUERY, {
-    variables: { input: { first: 200 } },
-    skip: !open,
-  });
+  const { data: rulesData, error: rulesError } = useQuery<TaxRulesData>(
+    TAX_RULES_QUERY,
+    {
+      variables: { input: { first: 200 } },
+      skip: !open,
+    }
+  );
 
   const [addTax] = useMutation<AddTaxResponse>(ADD_TAX_TO_PRODUCT_MUTATION);
   const { execute, isLoading } = useAsyncAction();
@@ -147,6 +151,11 @@ export function AddTaxModal({ productId, onAdded }: Props) {
       }
     );
   };
+
+  useQueryErrorToast(
+    rulesError,
+    "Não foi possível carregar as opções. Tente novamente."
+  );
 
   return (
     <>

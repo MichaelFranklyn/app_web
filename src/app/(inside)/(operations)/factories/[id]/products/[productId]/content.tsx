@@ -2,6 +2,7 @@
 
 import { Card } from "@/components/Card";
 import { EmptyState } from "@/components/EmptyState";
+import { QueryError } from "@/components/QueryError";
 import { Grid } from "@/components/Grid";
 import { useRefetchQueriesClient } from "@/hooks/useInvalidateQueries";
 import { useQuery } from "@apollo/client/react";
@@ -23,7 +24,7 @@ interface Props {
 
 export default function ProductDetailContent({ id }: Props) {
   const refetchClient = useRefetchQueriesClient();
-  const { data, loading, refetch } = useQuery<ProductDetailResponse>(
+  const { data, loading, error, refetch } = useQuery<ProductDetailResponse>(
     PRODUCT_DETAIL_QUERY,
     { variables: { id } }
   );
@@ -38,6 +39,14 @@ export default function ProductDetailContent({ id }: Props) {
 
   if (loading && !product) {
     return <ProductDetailSkeleton />;
+  }
+
+  if (error && !product) {
+    return (
+      <div className="flex min-h-[40vh] items-center justify-center pt-20">
+        <QueryError onRetry={() => refetch()} />
+      </div>
+    );
   }
 
   if (!product) {

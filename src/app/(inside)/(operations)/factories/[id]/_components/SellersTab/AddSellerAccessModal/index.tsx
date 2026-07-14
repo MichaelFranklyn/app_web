@@ -1,4 +1,5 @@
 "use client";
+import { useQueryErrorToast } from "@/hooks/useQueryErrorToast";
 
 import { Button } from "@/components/Button";
 import {
@@ -41,14 +42,14 @@ export function AddSellerAccessModal({ factoryId, autoOpen }: Props) {
     if (autoOpen) setOpen(true);
   }, [autoOpen]);
 
-  const { data: sellersData } = useQuery<FactorySellersOptionsData>(
-    FACTORY_SELLERS_OPTIONS_QUERY,
-    { variables: { input: { first: 200 } }, skip: !open }
-  );
+  const { data: sellersData, error: sellersError } =
+    useQuery<FactorySellersOptionsData>(FACTORY_SELLERS_OPTIONS_QUERY, {
+      variables: { input: { first: 200 } },
+      skip: !open,
+    });
 
-  const { data: accessesData } = useQuery<FactoryLinkedAccessesData>(
-    FACTORY_LINKED_ACCESSES_QUERY,
-    {
+  const { data: accessesData, error: accessesError } =
+    useQuery<FactoryLinkedAccessesData>(FACTORY_LINKED_ACCESSES_QUERY, {
       variables: {
         input: {
           first: 200,
@@ -56,8 +57,7 @@ export function AddSellerAccessModal({ factoryId, autoOpen }: Props) {
         },
       },
       skip: !open,
-    }
-  );
+    });
 
   const linkedSellerIds = useMemo(
     () =>
@@ -185,6 +185,11 @@ export function AddSellerAccessModal({ factoryId, autoOpen }: Props) {
       }
     );
   };
+
+  useQueryErrorToast(
+    sellersError ?? accessesError,
+    "Não foi possível carregar as opções. Tente novamente."
+  );
 
   return (
     <Modal.Root open={open} onOpenChange={setOpen}>

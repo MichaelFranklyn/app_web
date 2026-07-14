@@ -1,4 +1,5 @@
 "use client";
+import { useQueryErrorToast } from "@/hooks/useQueryErrorToast";
 
 import { Button } from "@/components/Button";
 import {
@@ -33,26 +34,23 @@ export function AddAccessModal() {
   const formRef = useRef<FormBuilderRef>(null);
   const invalidateClient = useInvalidateQueriesClient();
 
-  const { data: sellersData } = useQuery<SellersOptionsData>(
-    SELLERS_OPTIONS_QUERY,
-    {
+  const { data: sellersData, error: sellersError } =
+    useQuery<SellersOptionsData>(SELLERS_OPTIONS_QUERY, {
       variables: { input: LIST_INPUT },
       skip: !open,
-    }
-  );
+    });
 
-  const { data: factoriesData } = useQuery<CompanyFactoriesOptionsData>(
-    COMPANY_FACTORIES_OPTIONS_QUERY,
-    { variables: { input: LIST_INPUT }, skip: !open }
-  );
-
-  const { data: accessesData } = useQuery<SellerAccessesData>(
-    SELLER_ACCESSES_QUERY,
-    {
+  const { data: factoriesData, error: factoriesError } =
+    useQuery<CompanyFactoriesOptionsData>(COMPANY_FACTORIES_OPTIONS_QUERY, {
       variables: { input: LIST_INPUT },
       skip: !open,
-    }
-  );
+    });
+
+  const { data: accessesData, error: accessesError } =
+    useQuery<SellerAccessesData>(SELLER_ACCESSES_QUERY, {
+      variables: { input: LIST_INPUT },
+      skip: !open,
+    });
 
   // Apenas vendedores ativos
   const sellerOptions = useMemo(
@@ -164,6 +162,11 @@ export function AddAccessModal() {
       }
     );
   };
+
+  useQueryErrorToast(
+    sellersError ?? factoriesError ?? accessesError,
+    "Não foi possível carregar as opções. Tente novamente."
+  );
 
   return (
     <Modal.Root

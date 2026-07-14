@@ -106,7 +106,7 @@ export function useRoutines() {
   // de agenda — senão a tela trava em "carregando" para sempre.
   const scheduleSkip = canSelectSeller && !selectedSellerId;
 
-  const { data, loading, refetch } = useQuery<VisitSchedulesQueryData>(
+  const { data, loading, error, refetch } = useQuery<VisitSchedulesQueryData>(
     VISIT_SCHEDULES_QUERY,
     {
       variables: { input: { first: 1, filters } },
@@ -182,6 +182,7 @@ export function useRoutines() {
     maxVisitsPerDay,
     schedule,
     showSkeleton,
+    error: !scheduleSkip ? error : undefined,
     hasNoSellers,
     isCurrentWeek,
     handlePrevWeek,

@@ -1,6 +1,7 @@
 "use client";
 
 import { EmptyState } from "@/components/EmptyState";
+import { QueryError } from "@/components/QueryError";
 import { useQuery } from "@apollo/client/react";
 import { ListX } from "lucide-react";
 import { useFactoryDetail } from "../../context";
@@ -17,7 +18,7 @@ interface Props {
 export default function PriceListDetailContent({ priceListId }: Props) {
   const { companyFactory } = useFactoryDetail();
 
-  const { data, loading, refetch } = useQuery<PriceListDetailResponse>(
+  const { data, loading, error, refetch } = useQuery<PriceListDetailResponse>(
     PRICE_LIST_DETAIL_QUERY,
     { variables: { id: priceListId } }
   );
@@ -26,6 +27,14 @@ export default function PriceListDetailContent({ priceListId }: Props) {
 
   if (loading && !priceList) {
     return <PriceListDetailSkeleton />;
+  }
+
+  if (error && !priceList) {
+    return (
+      <div className="flex min-h-[40vh] items-center justify-center">
+        <QueryError onRetry={() => refetch()} />
+      </div>
+    );
   }
 
   if (!loading && !priceList) {

@@ -7,6 +7,7 @@ import {
 } from "@/components/Chart/chartTheme";
 import { Grid } from "@/components/Grid";
 import { PageContent } from "@/components/PageContent";
+import { useQueryErrorToast } from "@/hooks/useQueryErrorToast";
 import { formatMoney } from "@/utils/format/masks";
 import { getCookie } from "@/utils/cookies/clientCookie";
 import { useQuery } from "@apollo/client/react";
@@ -60,6 +61,10 @@ export default function AnalyticsContent() {
   const sellersQuery = useQuery<DashboardSellersResponse>(
     DASHBOARD_SELLERS_QUERY,
     { variables: { input: { first: 200 } }, skip: !canSelectSeller }
+  );
+  useQueryErrorToast(
+    sellersQuery.error,
+    "Não foi possível carregar a lista de vendedores."
   );
   const sellers: SellerOption[] = useMemo(
     () => sellersQuery.data?.dashboard_sellers.edges.map((e) => e.node) ?? [],

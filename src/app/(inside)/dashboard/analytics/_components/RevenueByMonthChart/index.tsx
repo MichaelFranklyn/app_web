@@ -10,10 +10,12 @@ import { RevenueByMonthResponse } from "./interface";
 import { buildRevenueByMonthOption } from "./utils";
 
 export function RevenueByMonthChart({ filters }: { filters: ChartFilters }) {
-  const { data, loading } = useAsyncQuery<RevenueByMonthResponse>(
-    REVENUE_BY_MONTH_QUERY,
-    { variables: filters, skip: false, autoFetch: true }
-  );
+  const { data, loading, error, refetch } =
+    useAsyncQuery<RevenueByMonthResponse>(REVENUE_BY_MONTH_QUERY, {
+      variables: filters,
+      skip: false,
+      autoFetch: true,
+    });
 
   const points = useMemo(() => data?.revenueByMonth ?? [], [data]);
   const option = useMemo(() => buildRevenueByMonthOption(points), [points]);
@@ -23,6 +25,8 @@ export function RevenueByMonthChart({ filters }: { filters: ChartFilters }) {
       loading={loading}
       hasData={points.length > 0}
       option={option}
+      error={error}
+      onRetry={() => refetch()}
     />
   );
 }

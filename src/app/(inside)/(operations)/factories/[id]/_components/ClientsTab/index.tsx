@@ -3,6 +3,7 @@
 import { Avatar } from "@/components/Avatar";
 import { Badge } from "@/components/Badges";
 import { EmptyState } from "@/components/EmptyState";
+import { QueryError } from "@/components/QueryError";
 import { HelpTooltip } from "@/components/HelpTooltip";
 import { Table } from "@/components/Table";
 import { Title } from "@/components/Title";
@@ -27,7 +28,7 @@ interface Props {
 }
 
 export function ClientsTab({ factoryId, companyFactoryId }: Props) {
-  const { data, loading } = useQuery<FactoryClientLinksData>(
+  const { data, loading, error, refetch } = useQuery<FactoryClientLinksData>(
     FACTORY_CLIENT_LINKS_QUERY,
     {
       variables: {
@@ -94,6 +95,12 @@ export function ClientsTab({ factoryId, companyFactoryId }: Props) {
         <Table.Body>
           {loading && links.length === 0 ? (
             <Table.Skeleton columns={5} rows={5} />
+          ) : error && links.length === 0 ? (
+            <Table.Row>
+              <Table.Cell colSpan={5}>
+                <QueryError flat onRetry={() => refetch()} />
+              </Table.Cell>
+            </Table.Row>
           ) : links.length === 0 ? (
             <Table.Row>
               <Table.Cell colSpan={5}>

@@ -3,6 +3,7 @@
 import { Badge } from "@/components/Badges";
 import { Card } from "@/components/Card";
 import { EmptyState } from "@/components/EmptyState";
+import { QueryError } from "@/components/QueryError";
 import { HelpTooltip } from "@/components/HelpTooltip";
 import { Loading } from "@/components/Loading";
 import { Title } from "@/components/Title";
@@ -22,13 +23,11 @@ import {
 } from "./interface";
 
 export function ContactCard({ clientId }: ContactCardProps) {
-  const { data, loading } = useQuery<ClientContactsQueryResponse>(
-    CLIENT_CONTACTS_QUERY,
-    {
+  const { data, loading, error, refetch } =
+    useQuery<ClientContactsQueryResponse>(CLIENT_CONTACTS_QUERY, {
       variables: { clientId, input: { first: 50 } },
       skip: !clientId,
-    }
-  );
+    });
 
   const initialContacts = useMemo<ClientContact[]>(
     () => data?.clientContacts?.edges.map((e) => e.node) ?? [],
@@ -66,6 +65,8 @@ export function ContactCard({ clientId }: ContactCardProps) {
           <div className="flex justify-center py-12">
             <Loading.Spinner size="sm" />
           </div>
+        ) : error && contacts.length === 0 ? (
+          <QueryError flat onRetry={() => refetch()} />
         ) : contacts.length === 0 ? (
           <EmptyState.Root flat>
             <EmptyState.Icon>

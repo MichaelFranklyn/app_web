@@ -52,6 +52,7 @@ export function useRoutineSettings() {
   const {
     data,
     loading: configsLoading,
+    error: configsError,
     refetch: refetchConfigs,
   } = useQuery<VisitScheduleConfigsResponse>(VISIT_SCHEDULE_CONFIGS_QUERY, {
     variables: {
@@ -187,6 +188,8 @@ export function useRoutineSettings() {
     form,
     isNewConfig,
     loading: configsLoading || (canSelectSeller && sellersLoading),
+    error: configsError,
+    refetch: refetchConfigs,
     hasNoSellers: canSelectSeller && !sellersLoading && sellers.length === 0,
     isDirty,
     isLoading,

@@ -12,10 +12,12 @@ import { buildOrdersByClientOption } from "./utils";
 export function OrdersByClientChart({ filters }: { filters: ChartFilters }) {
   const variables = useMemo(() => ({ ...filters, limit: 8 }), [filters]);
 
-  const { data, loading } = useAsyncQuery<OrdersByClientResponse>(
-    ORDERS_BY_CLIENT_QUERY,
-    { variables, skip: false, autoFetch: true }
-  );
+  const { data, loading, error, refetch } =
+    useAsyncQuery<OrdersByClientResponse>(ORDERS_BY_CLIENT_QUERY, {
+      variables,
+      skip: false,
+      autoFetch: true,
+    });
 
   const points = useMemo(() => data?.ordersByClient ?? [], [data]);
   const option = useMemo(() => buildOrdersByClientOption(points), [points]);
@@ -25,6 +27,8 @@ export function OrdersByClientChart({ filters }: { filters: ChartFilters }) {
       loading={loading}
       hasData={points.length > 0}
       option={option}
+      error={error}
+      onRetry={() => refetch()}
     />
   );
 }

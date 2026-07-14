@@ -3,6 +3,7 @@
 import { Card } from "@/components/Card";
 import { Grid } from "@/components/Grid";
 import { Loading } from "@/components/Loading";
+import { QueryError } from "@/components/QueryError";
 import { useAsyncQuery } from "@/hooks/useAsyncQuery";
 import { formatMoney, formatNumber } from "@/utils/format/masks";
 import { useEffect, useMemo } from "react";
@@ -19,10 +20,12 @@ import { DashboardSummaryResponse } from "./interface";
  */
 export function AnalyticsSummary({ filters }: { filters: ChartFilters }) {
   const { setKpis } = useAnalyticsPrint();
-  const { data, loading } = useAsyncQuery<DashboardSummaryResponse>(
-    DASHBOARD_SUMMARY_QUERY,
-    { variables: filters, skip: false, autoFetch: true }
-  );
+  const { data, loading, error, refetch } =
+    useAsyncQuery<DashboardSummaryResponse>(DASHBOARD_SUMMARY_QUERY, {
+      variables: filters,
+      skip: false,
+      autoFetch: true,
+    });
 
   const summary = data?.dashboardSummary;
   const hasOrders = useMemo(() => (summary?.totalOrders ?? 0) > 0, [summary]);
@@ -53,6 +56,10 @@ export function AnalyticsSummary({ filters }: { filters: ChartFilters }) {
         ))}
       </Grid.Root>
     );
+  }
+
+  if (error && !summary) {
+    return <QueryError onRetry={() => refetch()} />;
   }
 
   return (

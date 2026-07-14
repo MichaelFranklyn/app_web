@@ -1,4 +1,5 @@
 import { FormBuilderRef, FormStepSchema } from "@/components/FormBuilder";
+import { useQueryErrorToast } from "@/hooks/useQueryErrorToast";
 import { useAsyncAction } from "@/hooks/useAsyncAction";
 import { clientName, factoryName } from "@/utils/company";
 import { extractSelectValue } from "@/utils/form";
@@ -39,22 +40,25 @@ export function useAddWalletClient({
     filters: [{ field: "seller_id", operator: "eq", value: sellerId }],
   };
 
-  const { data: accessesData } = useQuery<SellerAccessesData>(
-    SELLER_FACTORY_ACCESSES_QUERY,
-    { variables: { input: bySeller }, skip: !open }
-  );
+  const { data: accessesData, error: accessesError } =
+    useQuery<SellerAccessesData>(SELLER_FACTORY_ACCESSES_QUERY, {
+      variables: { input: bySeller },
+      skip: !open,
+    });
 
-  const { data: clientsData } = useQuery<CompanyClientsData>(
-    COMPANY_CLIENTS_QUERY,
-    { variables: { input: { first: 500 } }, skip: !open }
-  );
+  const { data: clientsData, error: clientsError } =
+    useQuery<CompanyClientsData>(COMPANY_CLIENTS_QUERY, {
+      variables: { input: { first: 500 } },
+      skip: !open,
+    });
 
-  const { data: companyFactoriesData } = useQuery<CompanyFactoriesData>(
-    COMPANY_FACTORIES_QUERY,
-    { variables: { input: { first: 200 } }, skip: !open }
-  );
+  const { data: companyFactoriesData, error: companyFactoriesError } =
+    useQuery<CompanyFactoriesData>(COMPANY_FACTORIES_QUERY, {
+      variables: { input: { first: 200 } },
+      skip: !open,
+    });
 
-  const { data: linksData } = useQuery<ExistingLinksData>(
+  const { data: linksData, error: linksError } = useQuery<ExistingLinksData>(
     SELLER_CLIENT_FACTORIES_QUERY,
     { variables: { input: bySeller }, skip: !open }
   );
@@ -67,21 +71,24 @@ export function useAddWalletClient({
     [companyFactoriesData, selectedFactoryId]
   );
 
-  const { data: tiersData } = useQuery<PriceTiersData>(PRICE_TIERS_QUERY, {
-    variables: {
-      input: {
-        first: 200,
-        filters: [
-          {
-            field: "company_factory_id",
-            operator: "eq",
-            value: companyFactoryId,
-          },
-        ],
+  const { data: tiersData, error: tiersError } = useQuery<PriceTiersData>(
+    PRICE_TIERS_QUERY,
+    {
+      variables: {
+        input: {
+          first: 200,
+          filters: [
+            {
+              field: "company_factory_id",
+              operator: "eq",
+              value: companyFactoryId,
+            },
+          ],
+        },
       },
-    },
-    skip: !open || !companyFactoryId,
-  });
+      skip: !open || !companyFactoryId,
+    }
+  );
 
   const factoryOptions = useMemo(
     () =>
@@ -228,6 +235,15 @@ export function useAddWalletClient({
       }
     );
   };
+
+  useQueryErrorToast(
+    accessesError ??
+      clientsError ??
+      companyFactoriesError ??
+      linksError ??
+      tiersError,
+    "Não foi possível carregar as opções. Tente novamente."
+  );
 
   return { open, handleClose, formRef, steps, handleSubmit, isLoading };
 }

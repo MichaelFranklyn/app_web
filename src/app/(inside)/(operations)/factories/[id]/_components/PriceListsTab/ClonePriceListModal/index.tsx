@@ -9,6 +9,7 @@ import {
 import { SelectOption } from "@/components/Input";
 import { Modal } from "@/components/Modal";
 import { useAsyncAction } from "@/hooks/useAsyncAction";
+import { useQueryErrorToast } from "@/hooks/useQueryErrorToast";
 import { toIsoDate } from "@/utils/format/date";
 import { useMutation, useQuery } from "@apollo/client/react";
 import { Copy } from "lucide-react";
@@ -44,10 +45,17 @@ export function ClonePriceListModal({
   const [open, setOpen] = useState(false);
   const formRef = useRef<FormBuilderRef>(null);
 
-  const { data } = useQuery<FactoryPriceListsData>(FACTORY_PRICE_LISTS_QUERY, {
-    variables: buildFactoryPriceListsVariables(companyFactoryId),
-    skip: !open,
-  });
+  const { data, error } = useQuery<FactoryPriceListsData>(
+    FACTORY_PRICE_LISTS_QUERY,
+    {
+      variables: buildFactoryPriceListsVariables(companyFactoryId),
+      skip: !open,
+    }
+  );
+  useQueryErrorToast(
+    error,
+    "Não foi possível carregar as tabelas para clonar."
+  );
 
   const [clonePriceList] = useMutation<CloneResponse>(
     CLONE_FACTORY_PRICE_LIST_MUTATION

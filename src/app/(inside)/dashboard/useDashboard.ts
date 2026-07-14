@@ -145,6 +145,22 @@ export function useDashboard(canSelectSeller: boolean) {
         clientsCount.loading ||
         schedulesByPeriod.loading));
 
+  // Qualquer uma das buscas do painel que falhe marca o dashboard como em erro.
+  const error =
+    sellersQuery.error ??
+    (!dataSkip
+      ? (ordersByPeriod.error ?? clientsCount.error ?? schedulesByPeriod.error)
+      : undefined);
+
+  const refetch = () => {
+    if (canSelectSeller) sellersQuery.refetch();
+    if (!dataSkip) {
+      ordersByPeriod.refetch();
+      clientsCount.refetch();
+      schedulesByPeriod.refetch();
+    }
+  };
+
   return {
     range,
     setRange,
@@ -161,5 +177,7 @@ export function useDashboard(canSelectSeller: boolean) {
     totalPlannedVisits,
     upcomingVisits,
     isLoading,
+    error,
+    refetch,
   };
 }

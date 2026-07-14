@@ -3,6 +3,7 @@
 import { Button } from "@/components/Button";
 import { EmptyState } from "@/components/EmptyState";
 import { PageContent } from "@/components/PageContent";
+import { QueryError } from "@/components/QueryError";
 import { Title } from "@/components/Title";
 import { CalendarOff, Users } from "lucide-react";
 
@@ -41,6 +42,7 @@ export default function RoutinesContent() {
     maxVisitsPerDay,
     schedule,
     showSkeleton,
+    error,
     hasNoSellers,
     isCurrentWeek,
     handlePrevWeek,
@@ -66,6 +68,8 @@ export default function RoutinesContent() {
 
       {showSkeleton ? (
         <RoutinesSkeleton />
+      ) : error ? (
+        <QueryError onRetry={() => refetch()} />
       ) : hasNoSellers ? (
         <EmptyState.Root>
           <EmptyState.Icon>

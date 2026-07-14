@@ -3,6 +3,7 @@
 import { Alert } from "@/components/Alert";
 import { EmptyState } from "@/components/EmptyState";
 import { HelpTooltip } from "@/components/HelpTooltip";
+import { QueryError } from "@/components/QueryError";
 import { Title } from "@/components/Title";
 import { useQuery } from "@apollo/client/react";
 import { Info, PackageSearch } from "lucide-react";
@@ -23,14 +24,17 @@ export default function StockContent() {
 
   // O estoque é POR FÁBRICA: cada uma vende os seus produtos e tem histórico de
   // compra próprio. O backend ordena das que mais pedem reposição às tranquilas.
-  const { data, loading } = useQuery<ClientFactoryStockQueryResponse>(
-    CLIENT_FACTORY_STOCK_QUERY,
-    { variables: { id: companyClientId }, skip: !companyClientId }
-  );
+  const { data, loading, error, refetch } =
+    useQuery<ClientFactoryStockQueryResponse>(CLIENT_FACTORY_STOCK_QUERY, {
+      variables: { id: companyClientId },
+      skip: !companyClientId,
+    });
 
   const summaries = data?.companyClient.data?.factoryStockSummaries ?? [];
 
   if (loading && summaries.length === 0) return <StockSkeleton />;
+  if (error && summaries.length === 0)
+    return <QueryError onRetry={() => refetch()} />;
 
   return (
     <div className="flex flex-col gap-16">

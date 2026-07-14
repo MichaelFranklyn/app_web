@@ -1,4 +1,5 @@
 import { FormBuilderRef, FormStepSchema } from "@/components/FormBuilder";
+import { useQueryErrorToast } from "@/hooks/useQueryErrorToast";
 import { useAsyncAction } from "@/hooks/useAsyncAction";
 import { extractSelectValue } from "@/utils/form";
 import { useMutation, useQuery } from "@apollo/client/react";
@@ -29,20 +30,23 @@ export function useEditProduct({ product, onSuccess }: EditProductModalProps) {
 
   const companyCatalogInput = { first: 200 };
 
-  const { data: categoriesData } = useQuery<ProductCategoriesOptionsData>(
-    PRODUCT_CATEGORIES_OPTIONS_QUERY,
-    { variables: { input: companyCatalogInput }, skip: !open }
-  );
+  const { data: categoriesData, error: categoriesError } =
+    useQuery<ProductCategoriesOptionsData>(PRODUCT_CATEGORIES_OPTIONS_QUERY, {
+      variables: { input: companyCatalogInput },
+      skip: !open,
+    });
 
-  const { data: unitsData } = useQuery<ProductUnitsOptionsData>(
-    PRODUCT_UNITS_OPTIONS_QUERY,
-    { variables: { input: companyCatalogInput }, skip: !open }
-  );
+  const { data: unitsData, error: unitsError } =
+    useQuery<ProductUnitsOptionsData>(PRODUCT_UNITS_OPTIONS_QUERY, {
+      variables: { input: companyCatalogInput },
+      skip: !open,
+    });
 
-  const { data: labelsData } = useQuery<ProductUnitLabelsOptionsData>(
-    PRODUCT_UNIT_LABELS_OPTIONS_QUERY,
-    { variables: { input: companyCatalogInput }, skip: !open }
-  );
+  const { data: labelsData, error: labelsError } =
+    useQuery<ProductUnitLabelsOptionsData>(PRODUCT_UNIT_LABELS_OPTIONS_QUERY, {
+      variables: { input: companyCatalogInput },
+      skip: !open,
+    });
 
   const categoryOptions = useMemo(
     () =>
@@ -251,6 +255,11 @@ export function useEditProduct({ product, onSuccess }: EditProductModalProps) {
       }
     );
   };
+
+  useQueryErrorToast(
+    categoriesError ?? unitsError ?? labelsError,
+    "Não foi possível carregar as opções. Tente novamente."
+  );
 
   return {
     open,

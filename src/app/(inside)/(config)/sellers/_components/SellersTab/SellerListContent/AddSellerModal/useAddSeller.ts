@@ -1,4 +1,5 @@
 import { FormBuilderRef, FormStepSchema } from "@/components/FormBuilder";
+import { useQueryErrorToast } from "@/hooks/useQueryErrorToast";
 import { useAsyncAction } from "@/hooks/useAsyncAction";
 import { useInvalidateQueriesClient } from "@/hooks/useInvalidateQueries";
 import { useMutation, useQuery } from "@apollo/client/react";
@@ -30,15 +31,19 @@ export function useAddSeller({ onAddOptimistic }: AddSellerModalProps) {
   const formRef = useRef<FormBuilderRef>(null);
   const invalidateClient = useInvalidateQueriesClient();
 
-  const { data: usersData } = useQuery<UsersOptionsData>(USERS_OPTIONS_QUERY, {
-    variables: { input: LIST_INPUT },
-    skip: !open,
-  });
-
-  const { data: sellersData } = useQuery<SellersUserIdsData>(
-    SELLERS_USER_IDS_QUERY,
-    { variables: { input: LIST_INPUT }, skip: !open }
+  const { data: usersData, error: usersError } = useQuery<UsersOptionsData>(
+    USERS_OPTIONS_QUERY,
+    {
+      variables: { input: LIST_INPUT },
+      skip: !open,
+    }
   );
+
+  const { data: sellersData, error: sellersError } =
+    useQuery<SellersUserIdsData>(SELLERS_USER_IDS_QUERY, {
+      variables: { input: LIST_INPUT },
+      skip: !open,
+    });
 
   const existingSellerUserIds = useMemo(() => {
     if (!sellersData) return new Set<string>();
@@ -178,6 +183,11 @@ export function useAddSeller({ onAddOptimistic }: AddSellerModalProps) {
       }
     );
   };
+
+  useQueryErrorToast(
+    usersError ?? sellersError,
+    "Não foi possível carregar as opções. Tente novamente."
+  );
 
   return {
     open,

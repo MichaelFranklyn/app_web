@@ -1,6 +1,7 @@
 "use client";
 
 import { EmptyState } from "@/components/EmptyState";
+import { QueryError } from "@/components/QueryError";
 import { HelpTooltip } from "@/components/HelpTooltip";
 import { Table } from "@/components/Table";
 import { Title } from "@/components/Title";
@@ -22,7 +23,7 @@ interface LabelNode {
 const listInput = { first: 200, order: { by: "label", dir: "asc" } };
 
 export function LabelsSection() {
-  const { data, loading, refetch } = useQuery<{
+  const { data, loading, error, refetch } = useQuery<{
     productUnitLabels: { edges: { node: LabelNode }[]; totalCount: number };
   }>(PRODUCT_UNIT_LABELS_QUERY, { variables: { input: listInput } });
 
@@ -75,6 +76,12 @@ export function LabelsSection() {
         <Table.Body>
           {loading ? (
             <Table.Skeleton columns={2} rows={3} />
+          ) : error && labels.length === 0 ? (
+            <Table.Row>
+              <Table.Cell colSpan={2}>
+                <QueryError flat onRetry={() => refetch()} />
+              </Table.Cell>
+            </Table.Row>
           ) : labels.length === 0 ? (
             <Table.Row>
               <Table.Cell colSpan={2}>

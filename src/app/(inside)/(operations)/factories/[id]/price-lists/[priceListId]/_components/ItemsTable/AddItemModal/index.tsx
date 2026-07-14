@@ -1,4 +1,5 @@
 "use client";
+import { useQueryErrorToast } from "@/hooks/useQueryErrorToast";
 
 import { Button } from "@/components/Button";
 import {
@@ -46,7 +47,7 @@ export function AddItemModal({
     ],
   };
 
-  const { data: productsData } = useQuery<ProductsData>(
+  const { data: productsData, error: productsError } = useQuery<ProductsData>(
     PRODUCTS_OPTIONS_QUERY,
     {
       variables: { input: byCompanyFactory },
@@ -54,10 +55,13 @@ export function AddItemModal({
     }
   );
 
-  const { data: tiersData } = useQuery<TiersData>(TIERS_OPTIONS_QUERY, {
-    variables: { input: byCompanyFactory },
-    skip: !open || !companyFactoryId,
-  });
+  const { data: tiersData, error: tiersError } = useQuery<TiersData>(
+    TIERS_OPTIONS_QUERY,
+    {
+      variables: { input: byCompanyFactory },
+      skip: !open || !companyFactoryId,
+    }
+  );
 
   const [createItem] = useMutation<CreateItemResponse>(
     CREATE_PRICE_LIST_ITEM_MUTATION
@@ -183,6 +187,11 @@ export function AddItemModal({
       }
     );
   };
+
+  useQueryErrorToast(
+    productsError ?? tiersError,
+    "Não foi possível carregar as opções. Tente novamente."
+  );
 
   return (
     <Modal.Root open={open} onOpenChange={handleClose}>

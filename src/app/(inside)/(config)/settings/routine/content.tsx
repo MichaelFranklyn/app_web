@@ -6,6 +6,7 @@ import { EmptyState } from "@/components/EmptyState";
 import { Grid } from "@/components/Grid";
 import { Input } from "@/components/Input";
 import { SelectOption } from "@/components/Input";
+import { QueryError } from "@/components/QueryError";
 import { Title } from "@/components/Title";
 import { Info, Save, Settings, Users } from "lucide-react";
 
@@ -95,6 +96,8 @@ export default function RoutineSettingsContent() {
     form,
     isNewConfig,
     loading,
+    error,
+    refetch,
     hasNoSellers,
     isDirty,
     isLoading,
@@ -104,6 +107,10 @@ export default function RoutineSettingsContent() {
 
   if (loading && !form) {
     return <RoutineSkeleton />;
+  }
+
+  if (error && !form) {
+    return <QueryError onRetry={() => refetch()} />;
   }
 
   if (hasNoSellers) {

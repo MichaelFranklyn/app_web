@@ -1,4 +1,5 @@
 import { useQuery } from "@apollo/client/react";
+import { useQueryErrorToast } from "@/hooks/useQueryErrorToast";
 import { useMemo } from "react";
 
 import { SelectOption } from "@/components/Input";
@@ -82,19 +83,21 @@ export function useLinkFactoryOptions({
   selectedSellerId,
   selectedFactoryId,
 }: LinkFactoryOptionsArgs): LinkFactoryOptions {
-  const { data: sellersData } = useQuery<SellersData>(SELLERS_FOR_LINK_QUERY, {
-    variables: { input: LIST_INPUT },
-    skip: !open,
-  });
+  const { data: sellersData, error: sellersError } = useQuery<SellersData>(
+    SELLERS_FOR_LINK_QUERY,
+    {
+      variables: { input: LIST_INPUT },
+      skip: !open,
+    }
+  );
 
-  const { data: accessesData } = useQuery<AccessesData>(
+  const { data: accessesData, error: accessesError } = useQuery<AccessesData>(
     SELLER_FACTORY_ACCESSES_FOR_LINK_QUERY,
     { variables: { input: LIST_INPUT }, skip: !open }
   );
 
-  const { data: clientLinksData } = useQuery<ClientLinksData>(
-    SELLER_CLIENT_FACTORIES_FOR_LINK_QUERY,
-    {
+  const { data: clientLinksData, error: clientLinksError } =
+    useQuery<ClientLinksData>(SELLER_CLIENT_FACTORIES_FOR_LINK_QUERY, {
       variables: {
         input: {
           first: 200,
@@ -102,13 +105,13 @@ export function useLinkFactoryOptions({
         },
       },
       skip: !open,
-    }
-  );
+    });
 
-  const { data: companyFactoriesData } = useQuery<CompanyFactoriesData>(
-    COMPANY_FACTORIES_FOR_LINK_QUERY,
-    { variables: { input: LIST_INPUT }, skip: !open }
-  );
+  const { data: companyFactoriesData, error: companyFactoriesError } =
+    useQuery<CompanyFactoriesData>(COMPANY_FACTORIES_FOR_LINK_QUERY, {
+      variables: { input: LIST_INPUT },
+      skip: !open,
+    });
 
   // O company_factory da fábrica selecionada; é dele que pendem os níveis de preço.
   const companyFactoryId = useMemo(
@@ -119,7 +122,7 @@ export function useLinkFactoryOptions({
     [companyFactoriesData, selectedFactoryId]
   );
 
-  const { data: tiersData } = useQuery<PriceTiersData>(
+  const { data: tiersData, error: tiersError } = useQuery<PriceTiersData>(
     PRICE_TIERS_FOR_LINK_QUERY,
     {
       variables: {
@@ -177,6 +180,15 @@ export function useLinkFactoryOptions({
         value: node.factoryId,
       }));
   }, [selectedSellerId, accessesData, clientLinksData]);
+
+  useQueryErrorToast(
+    sellersError ??
+      accessesError ??
+      clientLinksError ??
+      companyFactoriesError ??
+      tiersError,
+    "Não foi possível carregar as opções. Tente novamente."
+  );
 
   return { sellerOptions, factoryOptions, tierOptions };
 }

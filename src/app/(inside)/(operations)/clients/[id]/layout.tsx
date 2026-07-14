@@ -7,6 +7,7 @@ import { EmptyState } from "@/components/EmptyState";
 import { Loading } from "@/components/Loading";
 import { PageContent } from "@/components/PageContent";
 import { PanelHeader } from "@/components/PanelHeader";
+import { QueryError } from "@/components/QueryError";
 import { Tabs } from "@/components/Tabs";
 import { useOptimisticObject } from "@/hooks/useOptimisticObject";
 import { useQuery } from "@apollo/client/react";
@@ -31,13 +32,11 @@ export default function ClientLayout({
   const router = useRouter();
   const companyClientId = params.id as string;
 
-  const { data, loading } = useQuery<CompanyClientDetailQueryResponse>(
-    COMPANY_CLIENT_QUERY,
-    {
+  const { data, loading, error, refetch } =
+    useQuery<CompanyClientDetailQueryResponse>(COMPANY_CLIENT_QUERY, {
       variables: { id: companyClientId },
       skip: !companyClientId,
-    }
-  );
+    });
 
   // A rota é chaveada pelo id da carteira; reconstruímos o ClientDetail (cliente
   // global + vínculo aninhado) para manter o header e os modais inalterados.
@@ -73,6 +72,21 @@ export default function ClientLayout({
   const cnpj = clientData ? formatCnpj(clientData.cnpj) : "—";
 
   const isHeaderLoading = loading && !clientData;
+
+  // Falha de rede/GraphQL (ex.: schema do backend defasado): é diferente de "não
+  // existe". Mostra estado de erro com "tentar novamente", não "não encontrado".
+  if (error && !clientData) {
+    return (
+      <PageContent>
+        <Breadcrumb.Root>
+          <Breadcrumb.Item href="/clients">Clientes</Breadcrumb.Item>
+          <Breadcrumb.Separator />
+          <Breadcrumb.Item active>Erro</Breadcrumb.Item>
+        </Breadcrumb.Root>
+        <QueryError onRetry={() => refetch()} />
+      </PageContent>
+    );
+  }
 
   // Carteira inexistente (link/aba antiga após exclusão ou re-seed): o backend
   // responde data=null. Sem isto, `clientData` ficava undefined e a tela travava

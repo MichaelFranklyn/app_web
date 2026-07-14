@@ -61,6 +61,7 @@ export interface UseTableDataReturn<TItem> {
   totalPages: number;
   totalItems: number;
   loading: boolean;
+  error?: Error;
   handleSort: (key: string) => void;
   sortState: SortState;
   refetch: (variables?: Record<string, unknown>) => Promise<void>;
@@ -181,7 +182,7 @@ export const useTableData = <TData, TItem extends object>(
     return true;
   });
 
-  const { data, loading, refetch } = useAsyncQuery<TData>(query, {
+  const { data, loading, error, refetch } = useAsyncQuery<TData>(query, {
     variables,
     skip: false,
   });
@@ -363,6 +364,7 @@ export const useTableData = <TData, TItem extends object>(
     totalPages,
     totalItems,
     loading,
+    error,
     handleSort,
     sortState,
     refetch,

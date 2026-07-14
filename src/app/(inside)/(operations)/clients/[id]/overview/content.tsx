@@ -1,6 +1,7 @@
 "use client";
 
 import { Card } from "@/components/Card";
+import { QueryError } from "@/components/QueryError";
 import { useOptimisticObject } from "@/hooks/useOptimisticObject";
 import { useQuery } from "@apollo/client/react";
 import { useMemo } from "react";
@@ -22,7 +23,7 @@ import { SummaryCard } from "./_components/SummaryCard";
 export default function OverviewContent() {
   const { clientId: id } = useClientRoute();
 
-  const { data, loading, refetch } = useQuery<ClientDetailQueryResponse>(
+  const { data, loading, error, refetch } = useQuery<ClientDetailQueryResponse>(
     CLIENT_QUERY,
     {
       variables: { id },
@@ -30,19 +31,22 @@ export default function OverviewContent() {
     }
   );
 
-  const { data: connectionsData, loading: connectionsLoading } =
-    useQuery<SellerClientFactoriesQueryResponse>(
-      SELLER_CLIENT_FACTORIES_QUERY,
-      {
-        variables: {
-          input: {
-            filters: [{ field: "client_id", operator: "eq", value: id }],
-            first: 50,
-          },
+  const {
+    data: connectionsData,
+    loading: connectionsLoading,
+    error: connectionsError,
+  } = useQuery<SellerClientFactoriesQueryResponse>(
+    SELLER_CLIENT_FACTORIES_QUERY,
+    {
+      variables: {
+        input: {
+          filters: [{ field: "client_id", operator: "eq", value: id }],
+          first: 50,
         },
-        skip: !id,
-      }
-    );
+      },
+      skip: !id,
+    }
+  );
 
   const connections = useMemo<SellerClientFactory[]>(
     () =>
@@ -59,6 +63,10 @@ export default function OverviewContent() {
 
   if (loading || connectionsLoading) {
     return <ClientDetailSkeleton />;
+  }
+
+  if ((error || connectionsError) && !clientData) {
+    return <QueryError onRetry={() => refetch()} />;
   }
 
   const lastVisitDate =

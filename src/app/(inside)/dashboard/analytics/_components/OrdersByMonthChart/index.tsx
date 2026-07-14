@@ -10,10 +10,12 @@ import { OrdersByMonthResponse } from "./interface";
 import { buildOrdersByMonthOption } from "./utils";
 
 export function OrdersByMonthChart({ filters }: { filters: ChartFilters }) {
-  const { data, loading } = useAsyncQuery<OrdersByMonthResponse>(
-    ORDERS_BY_MONTH_QUERY,
-    { variables: filters, skip: false, autoFetch: true }
-  );
+  const { data, loading, error, refetch } =
+    useAsyncQuery<OrdersByMonthResponse>(ORDERS_BY_MONTH_QUERY, {
+      variables: filters,
+      skip: false,
+      autoFetch: true,
+    });
 
   const points = useMemo(() => data?.ordersByMonth ?? [], [data]);
   const option = useMemo(() => buildOrdersByMonthOption(points), [points]);
@@ -23,6 +25,8 @@ export function OrdersByMonthChart({ filters }: { filters: ChartFilters }) {
       loading={loading}
       hasData={points.length > 0}
       option={option}
+      error={error}
+      onRetry={() => refetch()}
     />
   );
 }

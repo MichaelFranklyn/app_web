@@ -3,6 +3,7 @@
 import { Button } from "@/components/Button";
 import { EmptyState } from "@/components/EmptyState";
 import { PageContent } from "@/components/PageContent";
+import { QueryError } from "@/components/QueryError";
 import { useAsyncAction } from "@/hooks/useAsyncAction";
 import { useMutation, useQuery } from "@apollo/client/react";
 import {
@@ -56,10 +57,10 @@ export default function DayRouteContent({ date, sellerId }: Props) {
     [weekStart, scopedSeller]
   );
 
-  const { data, loading, refetch } = useQuery<VisitsWeekScheduleResponse>(
-    WEEK_SCHEDULE_QUERY,
-    { variables: { input: { first: 1, filters } } }
-  );
+  const { data, loading, error, refetch } =
+    useQuery<VisitsWeekScheduleResponse>(WEEK_SCHEDULE_QUERY, {
+      variables: { input: { first: 1, filters } },
+    });
 
   const [generateDayRoute] = useMutation<GenerateDayRouteResponse>(
     GENERATE_DAY_ROUTE_MUTATION
@@ -129,6 +130,15 @@ export default function DayRouteContent({ date, sellerId }: Props) {
 
   if (loading && !schedule) {
     return <VisitsSkeleton />;
+  }
+
+  if (error && !schedule) {
+    return (
+      <PageContent>
+        {controls}
+        <QueryError onRetry={() => refetch()} />
+      </PageContent>
+    );
   }
 
   if (!day) {

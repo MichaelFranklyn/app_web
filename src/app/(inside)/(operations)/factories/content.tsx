@@ -1,6 +1,7 @@
 "use client";
 
 import { PageContent } from "@/components/PageContent";
+import { QueryError } from "@/components/QueryError";
 import { useOptimisticList } from "@/hooks/useOptimisticList";
 import { useTableData } from "@/hooks/useTableData";
 import { FactoriesGrid } from "./_components/FactoriesGrid";
@@ -40,13 +41,17 @@ export default function FactoriesContent({
         onAddOptimistic={optimistic.addOptimistic}
       />
 
-      <FactoriesGrid
-        items={optimistic.items}
-        loading={tableData.loading}
-        currentPage={tableData.currentPage}
-        totalPages={tableData.totalPages}
-        setCurrentPage={tableData.setCurrentPage}
-      />
+      {tableData.error && optimistic.items.length === 0 ? (
+        <QueryError onRetry={() => tableData.refetch()} />
+      ) : (
+        <FactoriesGrid
+          items={optimistic.items}
+          loading={tableData.loading}
+          currentPage={tableData.currentPage}
+          totalPages={tableData.totalPages}
+          setCurrentPage={tableData.setCurrentPage}
+        />
+      )}
     </PageContent>
   );
 }

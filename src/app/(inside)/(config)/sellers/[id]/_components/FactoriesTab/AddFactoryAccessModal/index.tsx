@@ -1,4 +1,5 @@
 "use client";
+import { useQueryErrorToast } from "@/hooks/useQueryErrorToast";
 
 import { Button } from "@/components/Button";
 import {
@@ -33,14 +34,14 @@ export function AddFactoryAccessModal({ sellerId, onAdded }: Props) {
   const [open, setOpen] = useState(false);
   const formRef = useRef<FormBuilderRef>(null);
 
-  const { data: factoriesData } = useQuery<CompanyFactoriesOptionsData>(
-    COMPANY_FACTORIES_OPTIONS_QUERY,
-    { variables: { input: { first: 200 } }, skip: !open }
-  );
+  const { data: factoriesData, error: factoriesError } =
+    useQuery<CompanyFactoriesOptionsData>(COMPANY_FACTORIES_OPTIONS_QUERY, {
+      variables: { input: { first: 200 } },
+      skip: !open,
+    });
 
-  const { data: accessesData } = useQuery<SellerAccessesData>(
-    SELLER_ACCESSES_QUERY,
-    {
+  const { data: accessesData, error: accessesError } =
+    useQuery<SellerAccessesData>(SELLER_ACCESSES_QUERY, {
       variables: {
         input: {
           first: 200,
@@ -48,8 +49,7 @@ export function AddFactoryAccessModal({ sellerId, onAdded }: Props) {
         },
       },
       skip: !open,
-    }
-  );
+    });
 
   const linkedFactoryIds = useMemo(
     () =>
@@ -137,6 +137,11 @@ export function AddFactoryAccessModal({ sellerId, onAdded }: Props) {
       }
     );
   };
+
+  useQueryErrorToast(
+    factoriesError ?? accessesError,
+    "Não foi possível carregar as opções. Tente novamente."
+  );
 
   return (
     <Modal.Root open={open} onOpenChange={handleClose}>

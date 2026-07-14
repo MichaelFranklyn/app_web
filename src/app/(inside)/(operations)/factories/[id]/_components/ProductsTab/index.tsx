@@ -6,6 +6,7 @@ import { HelpTooltip } from "@/components/HelpTooltip";
 import { InputSearch } from "@/components/Input";
 import { Loading } from "@/components/Loading";
 import { Pagination } from "@/components/Pagination";
+import { QueryError } from "@/components/QueryError";
 import { Table } from "@/components/Table";
 import { Title } from "@/components/Title";
 import { Tooltip } from "@/components/Tooltip";
@@ -166,6 +167,12 @@ export function ProductsTab({ companyFactoryId }: Props) {
         <Table.Body>
           {table.loading && products.length === 0 ? (
             <Table.Skeleton columns={6} rows={5} />
+          ) : table.error && products.length === 0 ? (
+            <Table.Row>
+              <Table.Cell colSpan={6}>
+                <QueryError flat onRetry={() => table.refetch()} />
+              </Table.Cell>
+            </Table.Row>
           ) : products.length === 0 ? (
             <Table.Row>
               <Table.Cell colSpan={6}>

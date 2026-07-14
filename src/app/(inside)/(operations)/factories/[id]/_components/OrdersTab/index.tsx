@@ -3,6 +3,7 @@
 import { Avatar } from "@/components/Avatar";
 import { Badge } from "@/components/Badges";
 import { EmptyState } from "@/components/EmptyState";
+import { QueryError } from "@/components/QueryError";
 import { HelpTooltip } from "@/components/HelpTooltip";
 import { Table } from "@/components/Table";
 import { Title } from "@/components/Title";
@@ -45,14 +46,17 @@ interface Props {
 }
 
 export function OrdersTab({ factoryId }: Props) {
-  const { data, loading } = useQuery<OrdersQueryData>(FACTORY_ORDERS_QUERY, {
-    variables: {
-      input: {
-        first: 50,
-        filters: [{ field: "factory_id", operator: "eq", value: factoryId }],
+  const { data, loading, error, refetch } = useQuery<OrdersQueryData>(
+    FACTORY_ORDERS_QUERY,
+    {
+      variables: {
+        input: {
+          first: 50,
+          filters: [{ field: "factory_id", operator: "eq", value: factoryId }],
+        },
       },
-    },
-  });
+    }
+  );
 
   const initialOrders = useMemo<Order[]>(
     () => data?.factory_orders?.edges.map((e) => e.node) ?? [],
@@ -108,6 +112,12 @@ export function OrdersTab({ factoryId }: Props) {
         <Table.Body>
           {loading && orders.length === 0 ? (
             <Table.Skeleton columns={8} rows={5} />
+          ) : error && orders.length === 0 ? (
+            <Table.Row>
+              <Table.Cell colSpan={8}>
+                <QueryError flat onRetry={() => refetch()} />
+              </Table.Cell>
+            </Table.Row>
           ) : orders.length === 0 ? (
             <Table.Row>
               <Table.Cell colSpan={8}>

@@ -1,6 +1,7 @@
 "use client";
 
 import { Badge } from "@/components/Badges";
+import { QueryError } from "@/components/QueryError";
 import { Table } from "@/components/Table";
 import { Tabs } from "@/components/Tabs";
 import { Title } from "@/components/Title";
@@ -39,7 +40,7 @@ interface Props {
 }
 
 export function ClientsTab({ sellerId }: Props) {
-  const { data, loading, refetch } = useQuery<QueryResponse>(
+  const { data, loading, error, refetch } = useQuery<QueryResponse>(
     SELLER_CLIENTS_QUERY,
     {
       variables: {
@@ -84,6 +85,12 @@ export function ClientsTab({ sellerId }: Props) {
             <Table.Body>
               {loading && items.length === 0 ? (
                 <Table.Skeleton columns={5} rows={5} />
+              ) : error && items.length === 0 ? (
+                <Table.Row>
+                  <Table.Cell colSpan={5}>
+                    <QueryError flat onRetry={() => refetch()} />
+                  </Table.Cell>
+                </Table.Row>
               ) : items.length === 0 ? (
                 <Table.Row>
                   <Table.Cell colSpan={5}>

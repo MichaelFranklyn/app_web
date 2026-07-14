@@ -1,4 +1,5 @@
 "use client";
+import { useQueryErrorToast } from "@/hooks/useQueryErrorToast";
 
 import { Button } from "@/components/Button";
 import {
@@ -38,9 +39,8 @@ export function AddComponentModal({
   const [open, setOpen] = useState(false);
   const formRef = useRef<FormBuilderRef>(null);
 
-  const { data: productsData } = useQuery<ComponentProductsOptionsData>(
-    COMPONENT_PRODUCTS_OPTIONS_QUERY,
-    {
+  const { data: productsData, error: productsError } =
+    useQuery<ComponentProductsOptionsData>(COMPONENT_PRODUCTS_OPTIONS_QUERY, {
       variables: {
         input: {
           first: 200,
@@ -54,8 +54,7 @@ export function AddComponentModal({
         },
       },
       skip: !open,
-    }
-  );
+    });
 
   const [addComponent] = useMutation<AddComponentResponse>(
     ADD_COMPONENT_TO_PRODUCT_MUTATION
@@ -143,6 +142,11 @@ export function AddComponentModal({
       }
     );
   };
+
+  useQueryErrorToast(
+    productsError,
+    "Não foi possível carregar as opções. Tente novamente."
+  );
 
   return (
     <Modal.Root open={open} onOpenChange={handleClose}>

@@ -1,6 +1,7 @@
 "use client";
 
 import { Badge } from "@/components/Badges";
+import { QueryError } from "@/components/QueryError";
 import { Table } from "@/components/Table";
 import { Tabs } from "@/components/Tabs";
 import { Title } from "@/components/Title";
@@ -36,7 +37,7 @@ interface Props {
 }
 
 export function FactoriesTab({ sellerId }: Props) {
-  const { data, loading, refetch } = useQuery<QueryResponse>(
+  const { data, loading, error, refetch } = useQuery<QueryResponse>(
     SELLER_FACTORY_ACCESSES_QUERY,
     {
       variables: {
@@ -80,6 +81,12 @@ export function FactoriesTab({ sellerId }: Props) {
             <Table.Body>
               {loading && items.length === 0 ? (
                 <Table.Skeleton columns={4} rows={5} />
+              ) : error && items.length === 0 ? (
+                <Table.Row>
+                  <Table.Cell colSpan={4}>
+                    <QueryError flat onRetry={() => refetch()} />
+                  </Table.Cell>
+                </Table.Row>
               ) : items.length === 0 ? (
                 <Table.Row>
                   <Table.Cell colSpan={4}>

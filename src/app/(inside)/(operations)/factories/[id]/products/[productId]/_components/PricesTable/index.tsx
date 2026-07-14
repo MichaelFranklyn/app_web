@@ -5,6 +5,7 @@ import { HelpTooltip } from "@/components/HelpTooltip";
 import { InputSearch } from "@/components/Input";
 import { Loading } from "@/components/Loading";
 import { Pagination } from "@/components/Pagination";
+import { QueryError } from "@/components/QueryError";
 import { Table } from "@/components/Table";
 import { Title } from "@/components/Title";
 import { Tag } from "lucide-react";
@@ -125,6 +126,12 @@ export function PricesTable({
         <Table.Body>
           {table.loading && items.length === 0 ? (
             <Table.Skeleton columns={5} rows={5} />
+          ) : table.error && items.length === 0 ? (
+            <Table.Row>
+              <Table.Cell colSpan={5}>
+                <QueryError flat onRetry={() => table.refetch()} />
+              </Table.Cell>
+            </Table.Row>
           ) : items.length === 0 ? (
             <Table.Row>
               <Table.Cell colSpan={5}>

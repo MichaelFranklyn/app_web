@@ -1,6 +1,7 @@
 "use client";
 
 import { PageContent } from "@/components/PageContent";
+import { QueryError } from "@/components/QueryError";
 import { useOptimisticList } from "@/hooks/useOptimisticList";
 import { useTableData } from "@/hooks/useTableData";
 import { UsersHeader } from "./_components/UsersHeader";
@@ -34,14 +35,18 @@ export default function UsersContent({
         items={optimistic.items}
       />
 
-      <UsersTable
-        {...tableData}
-        items={optimistic.items}
-        onUpdateOptimistic={optimistic.updateOptimistic}
-        onRemoveOptimistic={optimistic.removeOptimistic}
-        onRollback={optimistic.rollback}
-        onCommit={optimistic.commit}
-      />
+      {tableData.error && optimistic.items.length === 0 ? (
+        <QueryError onRetry={() => tableData.refetch()} />
+      ) : (
+        <UsersTable
+          {...tableData}
+          items={optimistic.items}
+          onUpdateOptimistic={optimistic.updateOptimistic}
+          onRemoveOptimistic={optimistic.removeOptimistic}
+          onRollback={optimistic.rollback}
+          onCommit={optimistic.commit}
+        />
+      )}
     </PageContent>
   );
 }

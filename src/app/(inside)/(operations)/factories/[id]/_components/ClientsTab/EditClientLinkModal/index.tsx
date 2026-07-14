@@ -1,4 +1,5 @@
 "use client";
+import { useQueryErrorToast } from "@/hooks/useQueryErrorToast";
 
 import { Button } from "@/components/Button";
 import {
@@ -49,21 +50,24 @@ export function EditClientLinkModal({
   const invalidateClient = useInvalidateQueriesClient();
   const { execute, isLoading } = useAsyncAction();
 
-  const { data: tiersData } = useQuery<TiersData>(PRICE_TIERS_FOR_LINK_QUERY, {
-    variables: {
-      input: {
-        first: 200,
-        filters: [
-          {
-            field: "company_factory_id",
-            operator: "eq",
-            value: companyFactoryId,
-          },
-        ],
+  const { data: tiersData, error: tiersError } = useQuery<TiersData>(
+    PRICE_TIERS_FOR_LINK_QUERY,
+    {
+      variables: {
+        input: {
+          first: 200,
+          filters: [
+            {
+              field: "company_factory_id",
+              operator: "eq",
+              value: companyFactoryId,
+            },
+          ],
+        },
       },
-    },
-    skip: !open,
-  });
+      skip: !open,
+    }
+  );
 
   const tierOptions = useMemo(
     () =>
@@ -169,6 +173,11 @@ export function EditClientLinkModal({
       }
     );
   };
+
+  useQueryErrorToast(
+    tiersError,
+    "Não foi possível carregar as opções. Tente novamente."
+  );
 
   return (
     <Modal.Root open={open} onOpenChange={setOpen}>

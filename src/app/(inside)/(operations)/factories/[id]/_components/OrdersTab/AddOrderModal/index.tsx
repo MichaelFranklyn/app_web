@@ -1,4 +1,5 @@
 "use client";
+import { useQueryErrorToast } from "@/hooks/useQueryErrorToast";
 
 import { Button } from "@/components/Button";
 import {
@@ -17,10 +18,7 @@ import {
   CREATE_ORDER_FROM_FACTORY_MUTATION,
   FACTORY_ASSIGNMENTS_QUERY,
 } from "./gql";
-import {
-  CreateOrderResponse,
-  FactoryAssignmentsData,
-} from "./interface";
+import { CreateOrderResponse, FactoryAssignmentsData } from "./interface";
 
 interface Props {
   factoryId: string;
@@ -37,20 +35,16 @@ export function AddOrderModal({ factoryId }: Props) {
   const invalidateClient = useInvalidateQueriesClient();
   const { execute, isLoading } = useAsyncAction();
 
-  const { data: assignmentsData } = useQuery<FactoryAssignmentsData>(
-    FACTORY_ASSIGNMENTS_QUERY,
-    {
+  const { data: assignmentsData, error: assignmentsError } =
+    useQuery<FactoryAssignmentsData>(FACTORY_ASSIGNMENTS_QUERY, {
       variables: {
         input: {
           first: 200,
-          filters: [
-            { field: "factory_id", operator: "eq", value: factoryId },
-          ],
+          filters: [{ field: "factory_id", operator: "eq", value: factoryId }],
         },
       },
       skip: !open,
-    }
-  );
+    });
 
   const assignments = useMemo(
     () =>
@@ -146,6 +140,11 @@ export function AddOrderModal({ factoryId }: Props) {
       }
     );
   };
+
+  useQueryErrorToast(
+    assignmentsError,
+    "Não foi possível carregar as opções. Tente novamente."
+  );
 
   return (
     <Modal.Root open={open} onOpenChange={setOpen}>

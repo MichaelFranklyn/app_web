@@ -1,4 +1,5 @@
 import { FormBuilderRef, FormStepSchema } from "@/components/FormBuilder";
+import { useQueryErrorToast } from "@/hooks/useQueryErrorToast";
 import { useAsyncAction } from "@/hooks/useAsyncAction";
 import { useInvalidateQueriesClient } from "@/hooks/useInvalidateQueries";
 import { extractSelectValue } from "@/utils/form";
@@ -39,36 +40,42 @@ export function useLinkClient({
     filters: [{ field: "factory_id", operator: "eq", value: factoryId }],
   };
 
-  const { data: clientsData } = useQuery<CompanyClientsData>(
-    COMPANY_CLIENTS_FOR_LINK_QUERY,
-    { variables: { input: { first: 200 } }, skip: !open }
-  );
+  const { data: clientsData, error: clientsError } =
+    useQuery<CompanyClientsData>(COMPANY_CLIENTS_FOR_LINK_QUERY, {
+      variables: { input: { first: 200 } },
+      skip: !open,
+    });
 
-  const { data: sellersData } = useQuery<SellersAccessData>(
-    SELLERS_WITH_ACCESS_QUERY,
-    { variables: { input: byFactory }, skip: !open }
-  );
+  const { data: sellersData, error: sellersError } =
+    useQuery<SellersAccessData>(SELLERS_WITH_ACCESS_QUERY, {
+      variables: { input: byFactory },
+      skip: !open,
+    });
 
-  const { data: tiersData } = useQuery<TiersData>(PRICE_TIERS_FOR_LINK_QUERY, {
-    variables: {
-      input: {
-        first: 200,
-        filters: [
-          {
-            field: "company_factory_id",
-            operator: "eq",
-            value: companyFactoryId,
-          },
-        ],
+  const { data: tiersData, error: tiersError } = useQuery<TiersData>(
+    PRICE_TIERS_FOR_LINK_QUERY,
+    {
+      variables: {
+        input: {
+          first: 200,
+          filters: [
+            {
+              field: "company_factory_id",
+              operator: "eq",
+              value: companyFactoryId,
+            },
+          ],
+        },
       },
-    },
-    skip: !open,
-  });
-
-  const { data: existingData } = useQuery<ExistingLinksData>(
-    EXISTING_LINKS_QUERY,
-    { variables: { input: byFactory }, skip: !open }
+      skip: !open,
+    }
   );
+
+  const { data: existingData, error: existingError } =
+    useQuery<ExistingLinksData>(EXISTING_LINKS_QUERY, {
+      variables: { input: byFactory },
+      skip: !open,
+    });
 
   const linkedClientIds = useMemo(
     () =>
@@ -214,6 +221,11 @@ export function useLinkClient({
       }
     );
   };
+
+  useQueryErrorToast(
+    clientsError ?? sellersError ?? tiersError ?? existingError,
+    "Não foi possível carregar as opções. Tente novamente."
+  );
 
   return { open, setOpen, formRef, formSteps, handleSubmit, isLoading };
 }

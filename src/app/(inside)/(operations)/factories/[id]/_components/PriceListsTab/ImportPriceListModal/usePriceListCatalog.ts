@@ -1,4 +1,5 @@
 import { useQuery } from "@apollo/client/react";
+import { useQueryErrorToast } from "@/hooks/useQueryErrorToast";
 import { useMemo } from "react";
 
 import { useReconciliation } from "@/hooks/useReconciliation";
@@ -28,17 +29,18 @@ export function usePriceListCatalog({
   distinctUnits,
   distinctPacks,
 }: PriceListCatalogArgs) {
-  const { data: unitsData } = useQuery<ProductUnitsData>(PRODUCT_UNITS_QUERY, {
-    ...CATALOG_INPUT,
-    skip: !matrix,
-  });
-  const { data: labelsData } = useQuery<ProductUnitLabelsData>(
-    PRODUCT_UNIT_LABELS_QUERY,
+  const { data: unitsData, error: unitsError } = useQuery<ProductUnitsData>(
+    PRODUCT_UNITS_QUERY,
     {
       ...CATALOG_INPUT,
       skip: !matrix,
     }
   );
+  const { data: labelsData, error: labelsError } =
+    useQuery<ProductUnitLabelsData>(PRODUCT_UNIT_LABELS_QUERY, {
+      ...CATALOG_INPUT,
+      skip: !matrix,
+    });
   const unitLabels = useMemo(
     () => unitsData?.productUnits.edges.map((e) => e.node.label) ?? [],
     [unitsData]
@@ -55,6 +57,11 @@ export function usePriceListCatalog({
   const { recon: packRecon, setFinal: setPackFinal } = useReconciliation(
     distinctPacks,
     packLabels
+  );
+
+  useQueryErrorToast(
+    unitsError ?? labelsError,
+    "Não foi possível carregar as opções. Tente novamente."
   );
 
   return {

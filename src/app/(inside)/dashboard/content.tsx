@@ -3,6 +3,7 @@
 import { Card } from "@/components/Card";
 import { Grid } from "@/components/Grid";
 import { PageContent } from "@/components/PageContent";
+import { QueryError } from "@/components/QueryError";
 import { DashboardHeader } from "./_components/DashboardHeader";
 import { DashboardKpis } from "./_components/DashboardKpis";
 import { DashboardSkeleton } from "./_components/DashboardSkeleton";
@@ -29,6 +30,8 @@ export default function DashboardContent({
     totalPlannedVisits,
     upcomingVisits,
     isLoading,
+    error,
+    refetch,
   } = useDashboard(canSelectSeller);
 
   return (
@@ -45,6 +48,8 @@ export default function DashboardContent({
 
       {isLoading ? (
         <DashboardSkeleton />
+      ) : error ? (
+        <QueryError onRetry={refetch} />
       ) : (
         <>
           <DashboardKpis
