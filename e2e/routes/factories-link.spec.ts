@@ -1,5 +1,6 @@
 import { expect, test } from "../support/fixtures";
 import { mockGraphql } from "../support/graphql";
+import { grantRole } from "../support/role";
 
 /**
  * Fluxo de ESCRITA: vincular fábrica via LinkFactoryModal (wizard de 2 steps).
@@ -50,6 +51,8 @@ test("factories: vincula uma fábrica e o card aparece na grid", async ({
     },
   });
 
+  // Vincular fábrica é ação de gestor — o header a esconde para vendedor.
+  await grantRole(page, "OWNER");
   await page.goto("/factories");
 
   await page.getByRole("button", { name: "Vincular Fábrica" }).click();

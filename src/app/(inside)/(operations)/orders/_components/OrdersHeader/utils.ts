@@ -9,6 +9,7 @@ export const normalizeInput = (
   clientId: extractSelectValue(data.clientId),
   factoryId: extractSelectValue(data.factoryId),
   orderDate: toIsoDate(data.orderDate),
+  paymentTermId: extractSelectValue(data.paymentTermId) || null,
   // Enum GraphQL por NOME (FOB/CIF); vazio = não informado.
   freightType: extractSelectValue(data.freightType) || null,
   notes: data.notes ? String(data.notes) : null,

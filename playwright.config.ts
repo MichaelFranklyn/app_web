@@ -1,4 +1,5 @@
 import { defineConfig, devices } from "@playwright/test";
+import { readFileSync } from "fs";
 
 /**
  * Testes E2E ponta-a-ponta (Playwright).
@@ -27,6 +28,22 @@ export const APP_PORT = 3100;
 export const STUB_BACKEND_PORT = 8099;
 export const BASE_URL = `http://localhost:${APP_PORT}`;
 export const STORAGE_STATE = "e2e/.auth/user.json";
+
+// O RUNNER também precisa da chave de ofuscação de cookies (helpers importados
+// pelos specs, ex.: forjar o cookie `userData` com outro papel) e ela deve ser
+// a MESMA do server. No CI vem do env do workflow; local, o `next` lê de
+// .env.local mas o runner não — carregamos daqui.
+if (!process.env.NEXT_PUBLIC_COOKIE_SECRET_KEY) {
+  try {
+    const envLocal = readFileSync(".env.local", "utf-8");
+    const match = envLocal.match(
+      /^NEXT_PUBLIC_COOKIE_SECRET_KEY='?([^'\n]+)'?$/m
+    );
+    if (match) process.env.NEXT_PUBLIC_COOKIE_SECRET_KEY = match[1];
+  } catch {
+    // sem .env.local — helpers que exigem a chave falharão com erro claro
+  }
+}
 
 export default defineConfig({
   testDir: "./e2e",

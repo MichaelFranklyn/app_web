@@ -29,7 +29,10 @@ const withSeller = (
 
 // `canSelectSeller` é resolvido no servidor (page.tsx, a partir do token) e
 // entra por parâmetro — sem salto extra de hidratação para ler o cookie.
-export function useDashboard(canSelectSeller: boolean) {
+export function useDashboard(
+  canSelectSeller: boolean,
+  ownSellerId?: string | null
+) {
   const initialRange = useMemo(getCurrentWeekRangeIso, []);
   const [range, setRange] = useState<DateRangeIso>(initialRange);
 
@@ -45,12 +48,14 @@ export function useDashboard(canSelectSeller: boolean) {
 
   const [selectedSellerId, setSelectedSellerId] = useState<string | null>(null);
 
-  // Default: primeiro vendedor da lista assim que ela carrega.
+  // Default: o próprio perfil do gestor quando ele também é vendedor (abre
+  // vendo "os meus"), senão o primeiro vendedor da lista.
   useEffect(() => {
     if (canSelectSeller && !selectedSellerId && sellers.length > 0) {
-      setSelectedSellerId(sellers[0].id);
+      const own = ownSellerId && sellers.find((s) => s.id === ownSellerId);
+      setSelectedSellerId(own ? own.id : sellers[0].id);
     }
-  }, [canSelectSeller, selectedSellerId, sellers]);
+  }, [canSelectSeller, selectedSellerId, sellers, ownSellerId]);
 
   const selectedSellerName = useMemo(
     () => sellers.find((s) => s.id === selectedSellerId)?.name ?? null,

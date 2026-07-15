@@ -60,6 +60,7 @@ const STALE_AFTER_SAVE = [
   "clientProductInsights", // aba Estoque: tabela de produtos da fábrica
   "companyClient", // factoryStockSummaries (cards de estoque) e topVisitScore
   "clientVisitScores", // histórico de score no modal da aba Score
+  "clients", // lista de clientes: coluna de score (visitScoreTotal)
 ];
 
 /**

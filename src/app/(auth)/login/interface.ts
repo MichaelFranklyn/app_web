@@ -5,6 +5,8 @@ export interface UserData {
   userName: string;
   companyName: string;
   role: UserRole;
+  /** Perfil de vendedor vinculado, se houver — owner/admin também podem vender. */
+  sellerId?: string | null;
 }
 
 export interface LoginResponse {

@@ -23,11 +23,13 @@ export function useUpdateProductStock(
       // O estoque mudou → o backend corrigiu a previsão de esgotamento e recalculou
       // o score do vínculo. Invalida os campos que exibem esses dados para que
       // recarreguem: os cards de estoque e o score/insights (aba e header) viviam
-      // sob `companyClient`, e o histórico do score sob `clientVisitScores`. Sem
-      // isto, trocar de aba mostrava o número velho.
+      // sob `companyClient`, o histórico do score sob `clientVisitScores` e a
+      // coluna de score da lista de clientes sob `clients` (visitScoreTotal).
+      // Sem isto, trocar de aba (ou voltar à lista) mostrava o número velho.
       update(cache) {
         cache.evict({ id: "ROOT_QUERY", fieldName: "companyClient" });
         cache.evict({ id: "ROOT_QUERY", fieldName: "clientVisitScores" });
+        cache.evict({ id: "ROOT_QUERY", fieldName: "clients" });
         cache.gc();
       },
     }

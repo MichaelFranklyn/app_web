@@ -13,6 +13,7 @@ export const LOGIN_MUTATION = gql`
         userName
         companyName
         role
+        sellerId
       }
     }
   }

@@ -12,6 +12,7 @@ export const RESET_PASSWORD_MUTATION = gql`
         userName
         companyName
         role
+        sellerId
       }
     }
   }

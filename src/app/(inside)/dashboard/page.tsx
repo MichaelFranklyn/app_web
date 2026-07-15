@@ -12,7 +12,12 @@ const Page = async () => {
   const userData = await getServerCookie<UserData>("userData");
   const canSelectSeller = MANAGER_ROLES.includes(userData?.role ?? "");
 
-  return <DashboardContent canSelectSeller={canSelectSeller} />;
+  return (
+    <DashboardContent
+      canSelectSeller={canSelectSeller}
+      ownSellerId={userData?.sellerId ?? null}
+    />
+  );
 };
 
 export default Page;

@@ -75,7 +75,8 @@ export async function POST(req: NextRequest) {
   }
 
   const { accessToken, userId, userName, companyName, role } = payload.data;
-  const userData = { userId, userName, companyName, role };
+  const sellerId = (payload.data.sellerId as string | null) ?? null;
+  const userData = { userId, userName, companyName, role, sellerId };
 
   const secure = process.env.NODE_ENV === "production";
   const common = { sameSite: "lax" as const, secure };

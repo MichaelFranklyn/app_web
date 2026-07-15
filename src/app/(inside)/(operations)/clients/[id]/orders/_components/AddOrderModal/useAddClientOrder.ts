@@ -13,6 +13,7 @@ import {
   createDraftItems,
   useOrderDraftItems,
 } from "../../../../../orders/_shared/orderDraftItems";
+import { usePaymentTermOptions } from "../../../../../orders/_shared/orderPaymentTerms";
 import {
   CLIENT_ASSIGNMENTS_QUERY,
   CREATE_ORDER_FROM_CLIENT_MUTATION,
@@ -47,6 +48,7 @@ interface OrderDetails {
   clientId: string;
   factoryId: string;
   orderDate: string;
+  paymentTermId: string | null;
   notes: string | null;
 }
 
@@ -63,6 +65,7 @@ export function useAddClientOrder(clientId: string) {
   const [orderDetails, setOrderDetails] = useState<OrderDetails | null>(null);
 
   const draft = useOrderDraftItems(open, factoryId);
+  const paymentTermOptions = usePaymentTermOptions(open, factoryId || null);
 
   const { data: assignmentsData } = useQuery<AssignmentsData>(
     CLIENT_ASSIGNMENTS_QUERY,
@@ -116,10 +119,13 @@ export function useAddClientOrder(clientId: string) {
                 options: assignmentOptions,
                 // Ao escolher o vínculo já sabemos a fábrica: o passo de itens
                 // pode carregar o catálogo dela enquanto o usuário preenche o resto.
-                onChange: (value) => {
+                onChange: (value, setValue) => {
                   const id = extractSelectValue(value);
                   const assignment = assignments.find((a) => a.id === id);
                   setFactoryId(assignment?.factoryId ?? "");
+                  // Condições de pagamento são da fábrica: trocar o vínculo
+                  // invalida a escolhida.
+                  setValue("paymentTermId", "");
                 },
               },
               {
@@ -127,6 +133,18 @@ export function useAddClientOrder(clientId: string) {
                 type: "date",
                 label: "Data do pedido",
                 required: true,
+              },
+              {
+                name: "paymentTermId",
+                type: "select-single",
+                label: "Condição de pagamento (opcional)",
+                placeholder: !factoryId
+                  ? "Selecione o vínculo primeiro"
+                  : paymentTermOptions.length === 0
+                    ? "Fábrica sem condições cadastradas"
+                    : "Selecione a condição (ex.: 30/60/90)",
+                disabled: !factoryId || paymentTermOptions.length === 0,
+                options: paymentTermOptions,
               },
               {
                 name: "notes",
@@ -140,7 +158,7 @@ export function useAddClientOrder(clientId: string) {
         ],
       },
     ],
-    [assignmentOptions, assignments]
+    [assignmentOptions, assignments, factoryId, paymentTermOptions]
   );
 
   const [createOrder] = useMutation<CreateOrderResponse>(
@@ -173,6 +191,7 @@ export function useAddClientOrder(clientId: string) {
       clientId,
       factoryId: assignment.factoryId,
       orderDate: toIsoDate(data.orderDate),
+      paymentTermId: extractSelectValue(data.paymentTermId) || null,
       notes: data.notes ? String(data.notes) : null,
     });
     setStep(1);

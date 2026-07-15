@@ -111,6 +111,11 @@ export function useRoutines() {
     {
       variables: { input: { first: 1, filters } },
       skip: scheduleSkip,
+      // O score dos cards (latestVisitScore) muda FORA desta página: registrar
+      // estoque, concluir visita ou lançar pedido pelo cliente recalcula no
+      // backend. Revalida em background a cada mount, mostrando o cache na
+      // hora — o skeleton só aparece quando ainda não há dados.
+      fetchPolicy: "cache-and-network",
     }
   );
 

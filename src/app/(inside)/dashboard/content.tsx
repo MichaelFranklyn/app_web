@@ -14,6 +14,7 @@ import { useDashboard } from "./useDashboard";
 
 export default function DashboardContent({
   canSelectSeller,
+  ownSellerId,
 }: DashboardContentProps) {
   const {
     range,
@@ -32,7 +33,7 @@ export default function DashboardContent({
     isLoading,
     error,
     refetch,
-  } = useDashboard(canSelectSeller);
+  } = useDashboard(canSelectSeller, ownSellerId);
 
   return (
     <PageContent>

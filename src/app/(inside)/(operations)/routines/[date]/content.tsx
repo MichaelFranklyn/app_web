@@ -60,6 +60,11 @@ export default function DayRouteContent({ date, sellerId }: Props) {
   const { data, loading, error, refetch } =
     useQuery<VisitsWeekScheduleResponse>(WEEK_SCHEDULE_QUERY, {
       variables: { input: { first: 1, filters } },
+      // O score das paradas (latestVisitScore) muda FORA desta página: registrar
+      // estoque, concluir visita ou lançar pedido pelo cliente recalcula no
+      // backend. Revalida em background a cada mount, mostrando o cache na
+      // hora — o skeleton só aparece quando ainda não há dados.
+      fetchPolicy: "cache-and-network",
     });
 
   const [generateDayRoute] = useMutation<GenerateDayRouteResponse>(

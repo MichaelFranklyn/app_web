@@ -1,31 +1,18 @@
-"use client";
-
-import { PageContent } from "@/components/PageContent";
-import { Tabs } from "@/components/Tabs";
+import { UserData } from "@/app/(auth)/login/interface";
+import { getServerCookie } from "@/utils/cookies/serverCookie";
 import React from "react";
-import { SettingsHeader } from "./_components/SettingsHeader";
+import { SettingsShell } from "./_components/SettingsShell";
 
-export default function SettingsLayout({
+export default async function SettingsLayout({
   children,
 }: {
   children: React.ReactNode;
 }) {
-  return (
-    <PageContent>
-      <SettingsHeader />
+  // Catálogos da empresa é gestão (mutations @is_admin no backend) — vendedor
+  // só vê a própria configuração de rotina. Papel lido no SERVER (cookie
+  // userData) para a aba nem piscar; a rota /settings/catalog também tem guard.
+  const userData = await getServerCookie<UserData>("userData");
+  const isSeller = userData?.role === "SELLER";
 
-      <div>
-        <Tabs.NavList data-tour="settings-tabs">
-          <Tabs.NavItem href="/settings/catalog">
-            Catálogos da empresa
-          </Tabs.NavItem>
-          <Tabs.NavItem href="/settings/routine">
-            Configuração de rotina
-          </Tabs.NavItem>
-        </Tabs.NavList>
-
-        {children}
-      </div>
-    </PageContent>
-  );
+  return <SettingsShell isSeller={isSeller}>{children}</SettingsShell>;
 }

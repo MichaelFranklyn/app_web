@@ -8,6 +8,7 @@ describe("normalizeInput (criar pedido)", () => {
       clientId: "c1",
       factoryId: { value: "f1" },
       orderDate: "2026-05-31",
+      paymentTermId: { value: "pt1", label: "30/60/90" },
       freightType: { value: "FOB" },
       notes: "obs",
     });
@@ -17,12 +18,13 @@ describe("normalizeInput (criar pedido)", () => {
       clientId: "c1",
       factoryId: "f1",
       orderDate: "2026-05-31",
+      paymentTermId: "pt1",
       freightType: "FOB",
       notes: "obs",
     });
   });
 
-  it("manda freightType/notes como null quando ausentes", () => {
+  it("manda paymentTermId/freightType/notes como null quando ausentes", () => {
     const result = normalizeInput({
       sellerId: "s1",
       clientId: "c1",
@@ -30,6 +32,7 @@ describe("normalizeInput (criar pedido)", () => {
       orderDate: "2026-05-31",
     });
 
+    expect(result.paymentTermId).toBeNull();
     expect(result.freightType).toBeNull();
     expect(result.notes).toBeNull();
   });

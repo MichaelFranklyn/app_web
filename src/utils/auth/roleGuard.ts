@@ -10,10 +10,12 @@ export const isAdminRole = (role?: string | null): boolean =>
 
 /**
  * Guard de página admin-only (server-side). Vendedor que acessar a rota é
- * redirecionado ao dashboard ANTES de qualquer query SSR — sem isso, as
- * queries `@is_admin` do backend voltam "Acesso negado" e a página crasha.
+ * redirecionado (default: dashboard) ANTES de qualquer query SSR — sem isso,
+ * as queries `@is_admin` do backend voltam "Acesso negado" e a página crasha.
  */
-export const requireAdminPage = async (): Promise<void> => {
+export const requireAdminPage = async (
+  redirectTo: string = "/dashboard"
+): Promise<void> => {
   const payload = await getDecodedTokenServer();
-  if (!isAdminRole(payload?.role)) redirect("/dashboard");
+  if (!isAdminRole(payload?.role)) redirect(redirectTo);
 };

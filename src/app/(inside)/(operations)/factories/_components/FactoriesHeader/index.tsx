@@ -2,6 +2,7 @@
 
 import { InputSearch } from "@/components/Input";
 import { PanelHeader } from "@/components/PanelHeader";
+import { useUserData } from "@/hooks/useUserData";
 import { CompanyFactory } from "../../interface";
 import { ImportFactoriesModal } from "./ImportFactoriesModal";
 import { LinkFactoryModal } from "./LinkFactoryModal";
@@ -18,6 +19,10 @@ export function FactoriesHeader({
   setFilter,
   onAddOptimistic,
 }: Props) {
+  // Vincular/importar fábrica são ações de gestão (mutations @is_admin no
+  // backend) — vendedor vê a lista das suas fábricas, sem essas ações.
+  const { isSeller } = useUserData();
+
   return (
     <PanelHeader.Root>
       <PanelHeader.Top>
@@ -37,8 +42,12 @@ export function FactoriesHeader({
               value={inputValues.search ?? ""}
               onChange={(e) => setFilter("search", e.target.value || undefined)}
             />
-            <ImportFactoriesModal />
-            <LinkFactoryModal onAddOptimistic={onAddOptimistic} />
+            {!isSeller && (
+              <>
+                <ImportFactoriesModal />
+                <LinkFactoryModal onAddOptimistic={onAddOptimistic} />
+              </>
+            )}
           </PanelHeader.Actions>
         </PanelHeader.Left>
       </PanelHeader.Top>

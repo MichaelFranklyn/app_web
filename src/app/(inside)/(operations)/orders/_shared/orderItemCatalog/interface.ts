@@ -4,6 +4,11 @@ export interface CompanyFactoriesData {
   };
 }
 
+export interface ConnectionPageInfo {
+  hasNextPage: boolean;
+  endCursor: string | null;
+}
+
 export interface PriceListsData {
   factoryPriceLists: {
     edges: {
@@ -29,6 +34,7 @@ export interface ProductsData {
         unitLabel: { id: string; label: string } | null;
       };
     }[];
+    pageInfo: ConnectionPageInfo;
   };
 }
 
@@ -54,5 +60,6 @@ export interface PriceListItemsData {
         tier: { id: string; name: string } | null;
       };
     }[];
+    pageInfo: ConnectionPageInfo;
   };
 }

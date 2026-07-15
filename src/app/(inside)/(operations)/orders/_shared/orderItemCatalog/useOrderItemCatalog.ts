@@ -1,5 +1,5 @@
 import { useQuery } from "@apollo/client/react";
-import { useMemo } from "react";
+import { useEffect, useMemo } from "react";
 
 import { SelectOption } from "@/components/Input";
 
@@ -31,6 +31,30 @@ export interface OrderItemCatalog {
 }
 
 /**
+ * Resolve o vínculo (`company_factory`) da fábrica escolhida — catálogo, preços
+ * e condições de pagamento são todos escopados por esse id, não pela fábrica.
+ */
+export function useCompanyFactoryId(
+  open: boolean,
+  factoryId: string | null
+): string | null {
+  const { data: cfData } = useQuery<CompanyFactoriesData>(
+    ORDER_ITEM_COMPANY_FACTORIES_QUERY,
+    {
+      variables: { input: { first: 200 } },
+      skip: !open || !factoryId,
+    }
+  );
+
+  return useMemo(
+    () =>
+      cfData?.companyFactories.edges.find((e) => e.node.factoryId === factoryId)
+        ?.node.id ?? null,
+    [cfData, factoryId]
+  );
+}
+
+/**
  * Catálogo do item de pedido: resolve o `company_factory` da fábrica e carrega
  * produtos, níveis e a tabela de preço ativa (só para SUGERIR preço), devolvendo
  * as opções e mapas prontos para o formulário. As 5 queries são encadeadas —
@@ -44,20 +68,7 @@ export function useOrderItemCatalog(
   factoryId: string | null
 ): OrderItemCatalog {
   // 1) Localiza o company_factory da fábrica deste pedido.
-  const { data: cfData } = useQuery<CompanyFactoriesData>(
-    ORDER_ITEM_COMPANY_FACTORIES_QUERY,
-    {
-      variables: { input: { first: 200 } },
-      skip: !open || !factoryId,
-    }
-  );
-
-  const companyFactoryId = useMemo(
-    () =>
-      cfData?.companyFactories.edges.find((e) => e.node.factoryId === factoryId)
-        ?.node.id ?? null,
-    [cfData, factoryId]
-  );
+  const companyFactoryId = useCompanyFactoryId(open, factoryId);
 
   const byCompanyFactory = useMemo(
     () => ({
@@ -74,13 +85,27 @@ export function useOrderItemCatalog(
   );
 
   // 2) Todos os produtos da fábrica (catálogo completo, não só os com preço).
-  const { data: productsData } = useQuery<ProductsData>(
-    ORDER_ITEM_PRODUCTS_QUERY,
-    {
+  const { data: productsData, fetchMore: fetchMoreProducts } =
+    useQuery<ProductsData>(ORDER_ITEM_PRODUCTS_QUERY, {
       variables: { input: byCompanyFactory },
       skip: !open || !companyFactoryId,
-    }
-  );
+    });
+
+  // Catálogos reais passam do `first` de uma página: segue buscando e
+  // concatenando até a última página, senão produtos ficam fora do select.
+  useEffect(() => {
+    const page = productsData?.products.pageInfo;
+    if (!page?.hasNextPage || !page.endCursor) return;
+    fetchMoreProducts({
+      variables: { input: { ...byCompanyFactory, after: page.endCursor } },
+      updateQuery: (prev, { fetchMoreResult }) => ({
+        products: {
+          ...fetchMoreResult.products,
+          edges: [...prev.products.edges, ...fetchMoreResult.products.edges],
+        },
+      }),
+    });
+  }, [productsData, fetchMoreProducts, byCompanyFactory]);
 
   // 3) Todos os níveis comerciais da fábrica.
   const { data: tiersData } = useQuery<TiersData>(ORDER_ITEM_TIERS_QUERY, {
@@ -116,24 +141,44 @@ export function useOrderItemCatalog(
   );
 
   // 5) Itens da tabela ativa — só para o mapa de preços sugeridos.
-  const { data: itemsData } = useQuery<PriceListItemsData>(
-    ORDER_ITEM_PRICE_LIST_ITEMS_QUERY,
-    {
-      variables: {
-        input: {
-          first: 1000,
-          filters: [
-            {
-              field: "price_list_id",
-              operator: "eq",
-              value: activePriceListId,
-            },
+  const itemsInput = useMemo(
+    () => ({
+      first: 1000,
+      filters: [
+        {
+          field: "price_list_id",
+          operator: "eq",
+          value: activePriceListId,
+        },
+      ],
+    }),
+    [activePriceListId]
+  );
+
+  const { data: itemsData, fetchMore: fetchMoreItems } =
+    useQuery<PriceListItemsData>(ORDER_ITEM_PRICE_LIST_ITEMS_QUERY, {
+      variables: { input: itemsInput },
+      skip: !open || !activePriceListId,
+    });
+
+  // A tabela tem produtos × níveis linhas (milhares num catálogo real): pagina
+  // até o fim, senão parte dos produtos fica sem preço sugerido ao digitar.
+  useEffect(() => {
+    const page = itemsData?.priceListItems.pageInfo;
+    if (!page?.hasNextPage || !page.endCursor) return;
+    fetchMoreItems({
+      variables: { input: { ...itemsInput, after: page.endCursor } },
+      updateQuery: (prev, { fetchMoreResult }) => ({
+        priceListItems: {
+          ...fetchMoreResult.priceListItems,
+          edges: [
+            ...prev.priceListItems.edges,
+            ...fetchMoreResult.priceListItems.edges,
           ],
         },
-      },
-      skip: !open || !activePriceListId,
-    }
-  );
+      }),
+    });
+  }, [itemsData, fetchMoreItems, itemsInput]);
 
   const products = useMemo(
     () => productsData?.products.edges.map((e) => e.node) ?? [],

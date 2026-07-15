@@ -5,6 +5,7 @@ export interface CreateOrderInput {
   clientId: string;
   factoryId: string;
   orderDate: string;
+  paymentTermId?: string | null;
   notes?: string | null;
   freightType?: string | null;
 }

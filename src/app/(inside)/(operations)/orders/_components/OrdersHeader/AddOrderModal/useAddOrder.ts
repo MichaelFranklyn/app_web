@@ -22,6 +22,7 @@ import {
   createDraftItems,
   useOrderDraftItems,
 } from "../../../_shared/orderDraftItems";
+import { usePaymentTermOptions } from "../../../_shared/orderPaymentTerms";
 import { FREIGHT_OPTIONS } from "./utils";
 
 interface SellersOptionsData {
@@ -81,6 +82,7 @@ export function useAddOrder({ onAddOptimistic }: AddOrderModalProps) {
   );
 
   const draft = useOrderDraftItems(open, factoryId);
+  const paymentTermOptions = usePaymentTermOptions(open, factoryId || null);
 
   const { data: sellersData } = useQuery<SellersOptionsData>(
     ORDER_SELLERS_OPTIONS_QUERY,
@@ -186,6 +188,9 @@ export function useAddOrder({ onAddOptimistic }: AddOrderModalProps) {
                 onChange: (value, setValue) => {
                   setFactoryId(extractSelectValue(value));
                   setValue("clientId", "");
+                  // Condições de pagamento são da fábrica: trocar de fábrica
+                  // invalida a escolhida.
+                  setValue("paymentTermId", "");
                 },
               },
               {
@@ -206,6 +211,18 @@ export function useAddOrder({ onAddOptimistic }: AddOrderModalProps) {
                 required: true,
               },
               {
+                name: "paymentTermId",
+                type: "select-single",
+                label: "Condição de pagamento (opcional)",
+                placeholder: !factoryId
+                  ? "Selecione a fábrica primeiro"
+                  : paymentTermOptions.length === 0
+                    ? "Fábrica sem condições cadastradas"
+                    : "Selecione a condição (ex.: 30/60/90)",
+                disabled: !factoryId || paymentTermOptions.length === 0,
+                options: paymentTermOptions,
+              },
+              {
                 name: "freightType",
                 type: "select-single",
                 label: "Frete (opcional)",
@@ -224,7 +241,14 @@ export function useAddOrder({ onAddOptimistic }: AddOrderModalProps) {
         ],
       },
     ],
-    [sellerOptions, factoryOptions, clientOptions, sellerId, factoryId]
+    [
+      sellerOptions,
+      factoryOptions,
+      clientOptions,
+      sellerId,
+      factoryId,
+      paymentTermOptions,
+    ]
   );
 
   const [createOrder] = useMutation<CreateOrderResponse>(CREATE_ORDER_MUTATION);

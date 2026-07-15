@@ -34,7 +34,8 @@ export const ORDER_ITEM_PRICE_LISTS_QUERY = gql`
 `;
 
 // Todos os produtos do catálogo da fábrica — o vendedor pode adicionar qualquer
-// produto ao pedido, tenha ele preço na tabela ativa ou não.
+// produto ao pedido, tenha ele preço na tabela ativa ou não. Com pageInfo:
+// catálogos reais passam de 1000 linhas e o hook pagina até o fim.
 export const ORDER_ITEM_PRODUCTS_QUERY = gql`
   query OrderItemProducts($input: BaseListInput!) {
     products(input: $input) {
@@ -49,6 +50,10 @@ export const ORDER_ITEM_PRODUCTS_QUERY = gql`
             label
           }
         }
+      }
+      pageInfo {
+        hasNextPage
+        endCursor
       }
     }
   }
@@ -68,6 +73,8 @@ export const ORDER_ITEM_TIERS_QUERY = gql`
   }
 `;
 
+// Com pageInfo: a tabela ativa tem produtos × níveis linhas (milhares num
+// catálogo real) e o hook pagina até o fim — truncar deixaria itens sem preço.
 export const ORDER_ITEM_PRICE_LIST_ITEMS_QUERY = gql`
   query OrderItemPriceListItems($input: BaseListInput!) {
     priceListItems(input: $input) {
@@ -90,6 +97,10 @@ export const ORDER_ITEM_PRICE_LIST_ITEMS_QUERY = gql`
             name
           }
         }
+      }
+      pageInfo {
+        hasNextPage
+        endCursor
       }
     }
   }

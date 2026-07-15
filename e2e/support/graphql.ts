@@ -106,6 +106,10 @@ export function loginSuccess(overrides: Record<string, unknown> = {}) {
         userId: "user-e2e-1",
         userName: "Vendedor Teste",
         companyName: "Empresa Teste",
+        // O estado autenticado padrão é um VENDEDOR (várias specs assumem o
+        // comportamento sem seletor de vendedor). Specs de ações admin trocam
+        // o papel do cookie com grantRole(page, "OWNER") — ver support/role.ts.
+        // O guard server-side usa o FAKE_JWT (role owner), que deixa passar.
         role: "SELLER",
         ...overrides,
       },

@@ -75,9 +75,16 @@ export function useInsideLayout() {
   // SU enxerga os itens de plataforma; os demais roles, só o NAV padrão.
   // Vendedor não vê itens admin-only (/users, /sellers) — as rotas também
   // são protegidas server-side (requireAdminPage), aqui é só a UI do menu.
+  // Configurações: vendedor só tem a aba de rotina, então o atalho aponta
+  // direto para ela (a aba de catálogos é admin-only e redirecionaria).
   const baseNav =
     userData?.role === "SELLER"
-      ? NAV.filter((item) => !("adminOnly" in item && item.adminOnly))
+      ? NAV.filter((item) => !("adminOnly" in item && item.adminOnly)).map(
+          (item) =>
+            "href" in item && item.href === "/settings/catalog"
+              ? { ...item, href: "/settings/routine" }
+              : item
+        )
       : NAV;
   const navItems = userData?.role === "SU" ? [...baseNav, ...SU_NAV] : baseNav;
   const userInitials = userData ? getUserInitials(userData.userName) : "—";
