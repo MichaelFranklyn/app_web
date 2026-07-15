@@ -1,4 +1,5 @@
 import { executeServerQueries } from "@/services/graphql/getDataServer";
+import { requireAdminPage } from "@/utils/auth/roleGuard";
 import SellersContent from "./content";
 import { SELLERS_QUERY } from "./_components/SellersTab/SellerListContent/gql";
 import {
@@ -9,6 +10,10 @@ import { SELLERS_STATS_QUERY } from "./gql";
 import { SellersStatsRaw } from "./interface";
 
 const Page = async () => {
+  // `sellers`/`sellersStats` são admin-only no backend — vendedor é
+  // redirecionado antes de disparar as queries (senão a página crasha).
+  await requireAdminPage();
+
   // Stats + 1ª página da aba padrão ("lista"). A lista semeia o cache do Apollo
   // no cliente (via useTableData) e pinta sem waterfall de rede.
   const data = await executeServerQueries<

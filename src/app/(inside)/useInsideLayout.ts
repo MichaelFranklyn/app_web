@@ -73,7 +73,13 @@ export function useInsideLayout() {
   }, [pathname]);
 
   // SU enxerga os itens de plataforma; os demais roles, só o NAV padrão.
-  const navItems = userData?.role === "SU" ? [...NAV, ...SU_NAV] : NAV;
+  // Vendedor não vê itens admin-only (/users, /sellers) — as rotas também
+  // são protegidas server-side (requireAdminPage), aqui é só a UI do menu.
+  const baseNav =
+    userData?.role === "SELLER"
+      ? NAV.filter((item) => !("adminOnly" in item && item.adminOnly))
+      : NAV;
+  const navItems = userData?.role === "SU" ? [...baseNav, ...SU_NAV] : baseNav;
   const userInitials = userData ? getUserInitials(userData.userName) : "—";
   const userName = userData?.userName ?? "Usuário";
   const userRole = userData?.role

@@ -65,11 +65,13 @@ export const NAV = [
     href: "/users",
     label: "Usuários",
     icon: UserCog,
+    adminOnly: true,
   },
   {
     href: "/sellers",
     label: "Vendedores",
     icon: UserCheck,
+    adminOnly: true,
   },
   {
     // Aponta direto para a aba padrão para evitar o flash em branco do redirect
