@@ -37,7 +37,15 @@ test("settings: vendedor cai na rotina e não vê a aba de catálogos", async ({
   await page.goto("/settings");
 
   await expect(page).toHaveURL(/\/settings\/routine$/);
-  await expect(page.getByText("Catálogos da empresa")).toHaveCount(0);
+  // Âncora primeiro: garante que a shell (abas) renderizou antes de afirmar a
+  // ausência — toHaveCount(0) passaria num DOM ainda vazio. E por role: o
+  // SUBTÍTULO do header contém "Catálogos da empresa...", só a ABA é link.
+  await expect(
+    page.getByRole("link", { name: "Configuração de rotina" })
+  ).toBeVisible();
+  await expect(
+    page.getByRole("link", { name: "Catálogos da empresa" })
+  ).toHaveCount(0);
 });
 
 test("settings/routine: renderiza a aba de configuração de rotina", async ({
