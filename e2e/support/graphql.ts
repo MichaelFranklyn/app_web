@@ -84,9 +84,14 @@ export function emptyConnection() {
   };
 }
 
-/** Token de 3 segmentos só para satisfazer o cookie/Bearer — não é validado nos mocks. */
+/**
+ * Token de 3 segmentos só para satisfazer o cookie/Bearer — não é validado nos
+ * mocks, mas o PAYLOAD é lido pelo servidor (roleGuard/requireAdminPage): sem
+ * `role` admin, /sellers e /users redirecionam para /dashboard.
+ * Payload: {"sub":"e2e-user","role":"owner"}
+ */
 export const FAKE_JWT =
-  "eyJhbGciOiJIUzI1NiJ9.eyJzdWIiOiJlMmUtdXNlciJ9.e2e-signature";
+  "eyJhbGciOiJIUzI1NiJ9.eyJzdWIiOiJlMmUtdXNlciIsInJvbGUiOiJvd25lciJ9.e2e-signature";
 
 /** Payload de sucesso do login, no formato esperado por LoginContent. */
 export function loginSuccess(overrides: Record<string, unknown> = {}) {

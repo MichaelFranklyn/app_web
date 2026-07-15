@@ -194,9 +194,13 @@ test("rotina (lista): dias colapsam, só hoje abre sozinho", async ({
   await expect(page.getByText("Cliente De Outro Dia")).toHaveCount(0);
 
   // O cabeçalho do dia tem o atalho para a rota daquele dia (mesmo fechado).
+  // Ancorado no href do dia de hoje: com dias anteriores na semana, o PRIMEIRO
+  // link é o deles — `.first()` só funcionava quando hoje era segunda-feira.
   await expect(
-    page.getByRole("link", { name: "Ver rota" }).first()
-  ).toHaveAttribute("href", new RegExp(`/routines/${TODAY}`));
+    page
+      .getByRole("link", { name: "Ver rota" })
+      .and(page.locator(`[href="/routines/${TODAY}"]`))
+  ).toBeVisible();
 
   // Fechar o dia de hoje (único cabeçalho expandido) some com a linha da visita.
   await page.getByRole("button", { expanded: true }).first().click();
