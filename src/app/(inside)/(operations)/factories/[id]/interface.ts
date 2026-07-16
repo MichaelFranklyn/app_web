@@ -18,5 +18,6 @@ export interface CompanyFactoryDetail {
   contractStart: string | null;
   contractEnd: string | null;
   specialConditions: Record<string, unknown> | null;
+  ipiInOrder: boolean;
   factory: FactoryDetail;
 }

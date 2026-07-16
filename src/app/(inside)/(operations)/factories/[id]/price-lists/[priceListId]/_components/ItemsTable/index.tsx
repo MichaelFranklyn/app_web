@@ -83,7 +83,7 @@ export function ItemsTable({
           <InputSearch
             size="sm"
             containerClassName="w-70"
-            placeholder="Buscar por nome ou SKU..."
+            placeholder="Buscar por nome ou código..."
             value={search}
             onChange={(e) => table.setFilter("search", e.target.value)}
           />

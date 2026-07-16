@@ -31,13 +31,11 @@ export function ProductDetailHeader({ product, onRefetch }: Props) {
       <PanelHeader.Root>
         <PanelHeader.Top>
           <PanelHeader.Left>
-            <PanelHeader.Eyebrow>
-              Produto · {factoryName}
-            </PanelHeader.Eyebrow>
+            <PanelHeader.Eyebrow>Produto · {factoryName}</PanelHeader.Eyebrow>
             <PanelHeader.Title>{product.name}</PanelHeader.Title>
             <PanelHeader.Description>
-              SKU: {product.sku} · Categoria: {product.category?.name ?? "—"} ·
-              Unidade base: {product.unit?.label ?? "—"}
+              Código: {product.sku} · Categoria: {product.category?.name ?? "—"}{" "}
+              · Unidade base: {product.unit?.label ?? "—"}
             </PanelHeader.Description>
             <PanelHeader.Actions className="mt-6">
               <Badge.Root

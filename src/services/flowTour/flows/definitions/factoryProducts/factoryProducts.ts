@@ -16,7 +16,7 @@ export const factoryProductsFlow: FlowDefinition = {
       element: '[data-tour="products-actions"]',
       title: "Adicionar e importar produtos",
       description:
-        "Cadastre um produto na mão ou importe vários de uma planilha. Use a busca para achar um produto pelo nome ou SKU.",
+        "Cadastre um produto na mão ou importe vários de uma planilha. Use a busca para achar um produto pelo nome ou código.",
       side: "bottom",
       align: "end",
     },
@@ -33,7 +33,7 @@ export const factoryProductsFlow: FlowDefinition = {
       requireSelector: '[data-tour="products-row"]',
       title: "Catálogo",
       description:
-        "Cada linha é um produto, com SKU, unidade e embalagem. A etiqueta âmbar avisa quando algo precisa de revisão.",
+        "Cada linha é um produto, com código, unidade e embalagem. A etiqueta âmbar avisa quando algo precisa de revisão.",
       side: "top",
       align: "start",
     },

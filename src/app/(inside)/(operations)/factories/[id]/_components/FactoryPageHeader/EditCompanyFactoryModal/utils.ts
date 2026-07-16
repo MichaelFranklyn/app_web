@@ -58,6 +58,18 @@ export const FORM_STEPS: FormStepSchema[] = [
             type: "date",
             required: false,
           },
+          {
+            name: "ipiInOrder",
+            label: "IPI cobrado no pedido",
+            type: "switch",
+            options: [
+              {
+                value: "true",
+                label:
+                  "Esta fábrica não traz IPI na tabela — o IPI é lançado por item no pedido",
+              },
+            ],
+          },
         ],
       },
     ],
@@ -126,6 +138,12 @@ export const normalizeInput = (
   const initialEnd = toDateOrNull(initial.contractEnd);
   if (contractEnd !== initialEnd) {
     input.contractEnd = contractEnd ?? undefined;
+  }
+
+  const ipiInOrder =
+    Array.isArray(data.ipiInOrder) && data.ipiInOrder.includes("true");
+  if (ipiInOrder !== initial.ipiInOrder) {
+    input.ipiInOrder = ipiInOrder;
   }
 
   return input;

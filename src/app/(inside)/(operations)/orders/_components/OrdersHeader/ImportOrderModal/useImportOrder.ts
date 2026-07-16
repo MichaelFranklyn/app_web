@@ -2,10 +2,13 @@ import { useMutation, useQuery } from "@apollo/client/react";
 import { useMemo, useRef, useState } from "react";
 
 import { FormBuilderRef, FormStepSchema } from "@/components/FormBuilder";
-import { useAsyncAction } from "@/hooks/useAsyncAction";
 import { useRefetchQueriesClient } from "@/hooks/useInvalidateQueries";
 import { extractSelectValue } from "@/utils/form";
 
+import { DeferredOrderTarget } from "../../../../_components/OrderImportWizard";
+import { useCompanyFactoryNode } from "../../../../_shared/orderItemCatalog";
+import { usePaymentTermOptions } from "../../../../_shared/orderPaymentTerms";
+import { FREIGHT_OPTIONS } from "../../../../_shared/orderFreight";
 import { Order } from "../../../interface";
 import {
   CREATE_ORDER_MUTATION,
@@ -13,7 +16,7 @@ import {
   ORDER_SELLER_FACTORIES_QUERY,
   ORDER_SELLERS_OPTIONS_QUERY,
 } from "../gql";
-import { CreateOrderResponse } from "../interface";
+import { CreateOrderInput, CreateOrderResponse } from "../interface";
 import { normalizeInput } from "../utils";
 
 interface SellersOptionsData {
@@ -57,14 +60,22 @@ export interface ImportOrderModalProps {
 export function useImportOrder({ onAddOptimistic }: ImportOrderModalProps) {
   const [open, setOpen] = useState(false);
   const [isBusy, setIsBusy] = useState(false);
-  const [orderId, setOrderId] = useState<string | null>(null);
+  // Dados validados do formulário — o pedido em si SÓ é criado na confirmação
+  // final do wizard (desistir no meio não deixa pedido vazio para trás).
+  const [pending, setPending] = useState<CreateOrderInput | null>(null);
   const [sellerId, setSellerId] = useState("");
   const [factoryId, setFactoryId] = useState("");
+  // Id do pedido criado pela confirmação — memoizado para uma re-tentativa
+  // (ex.: falha de rede ao gravar itens) não criar um segundo pedido.
+  const createdOrderIdRef = useRef<string | null>(null);
 
   const formRef = useRef<FormBuilderRef>(null);
   const refetchClient = useRefetchQueriesClient();
-  const { execute, isLoading } = useAsyncAction();
   const [createOrder] = useMutation<CreateOrderResponse>(CREATE_ORDER_MUTATION);
+
+  const paymentTermOptions = usePaymentTermOptions(open, factoryId || null);
+  const ipiInOrder =
+    useCompanyFactoryNode(open, factoryId || null)?.ipiInOrder ?? false;
 
   const { data: sellersData } = useQuery<SellersOptionsData>(
     ORDER_SELLERS_OPTIONS_QUERY,
@@ -168,6 +179,8 @@ export function useImportOrder({ onAddOptimistic }: ImportOrderModalProps) {
                 onChange: (value, setValue) => {
                   setFactoryId(extractSelectValue(value));
                   setValue("clientId", "");
+                  // Condições de pagamento são da fábrica: trocar invalida a escolha.
+                  setValue("paymentTermId", "");
                 },
               },
               {
@@ -187,12 +200,38 @@ export function useImportOrder({ onAddOptimistic }: ImportOrderModalProps) {
                 label: "Data do pedido",
                 required: true,
               },
+              {
+                name: "paymentTermId",
+                type: "select-single",
+                label: "Condição de pagamento (opcional)",
+                placeholder: !factoryId
+                  ? "Selecione a fábrica primeiro"
+                  : paymentTermOptions.length === 0
+                    ? "Fábrica sem condições cadastradas"
+                    : "Selecione a condição (ex.: 30/60/90)",
+                disabled: !factoryId || paymentTermOptions.length === 0,
+                options: paymentTermOptions,
+              },
+              {
+                name: "freightType",
+                type: "select-single",
+                label: "Frete (opcional)",
+                placeholder: "FOB ou CIF",
+                options: FREIGHT_OPTIONS,
+              },
             ],
           },
         ],
       },
     ],
-    [sellerOptions, factoryOptions, clientOptions, sellerId, factoryId]
+    [
+      sellerOptions,
+      factoryOptions,
+      clientOptions,
+      sellerId,
+      factoryId,
+      paymentTermOptions,
+    ]
   );
 
   const refetchList = () => {
@@ -200,48 +239,54 @@ export function useImportOrder({ onAddOptimistic }: ImportOrderModalProps) {
   };
 
   const handleClose = (value: boolean) => {
-    if (!value && (isBusy || isLoading)) return; // Não fecha durante criação/importação.
+    if (!value && isBusy) return; // Não fecha durante a importação.
     setOpen(value);
     if (!value) {
-      if (orderId) refetchList(); // Pedido criado: garante que a lista reflita.
-      setOrderId(null);
+      if (createdOrderIdRef.current) refetchList(); // Pedido criado: lista reflete.
+      setPending(null);
+      createdOrderIdRef.current = null;
       setSellerId("");
       setFactoryId("");
       formRef.current?.resetForm();
     }
   };
 
-  const handleCreate = async (data: Record<string, unknown>) => {
-    const input = normalizeInput(data);
-    await execute(
-      async () => {
-        const res = await createOrder({ variables: { input } });
+  // Formulário válido: guarda os dados e avança para o wizard — SEM criar nada.
+  const handleDetailsValid = (data: Record<string, unknown>) => {
+    setPending(normalizeInput(data));
+  };
+
+  // Alvo adiado do wizard: o pedido nasce na confirmação final da importação.
+  const deferred: DeferredOrderTarget | null = useMemo(() => {
+    if (!pending) return null;
+    return {
+      factoryId: pending.factoryId,
+      clientId: pending.clientId,
+      createOrder: async () => {
+        if (createdOrderIdRef.current) return createdOrderIdRef.current;
+        const res = await createOrder({ variables: { input: pending } });
         if (!res.data?.createOrder?.status || !res.data.createOrder.data) {
           throw new Error(
             res.data?.createOrder?.message ?? "Erro ao criar pedido"
           );
         }
-        return res.data.createOrder.data;
+        const order = res.data.createOrder.data;
+        createdOrderIdRef.current = order.id;
+        onAddOptimistic(order);
+        return order.id;
       },
-      {
-        successMessage: "Pedido criado. Agora importe os itens.",
-        onSuccess: (order) => {
-          onAddOptimistic(order);
-          setOrderId(order.id); // Avança para o wizard de importação.
-        },
-      }
-    );
-  };
+    };
+  }, [pending, createOrder, onAddOptimistic]);
 
   return {
     open,
     handleClose,
-    orderId,
+    deferred,
+    ipiInOrder,
     setIsBusy,
     refetchList,
     formRef,
     formSteps,
-    handleCreate,
-    isLoading,
+    handleDetailsValid,
   };
 }

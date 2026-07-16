@@ -33,6 +33,8 @@ export interface OrderDetail {
   id: string;
   orderDate: string;
   totalAmount: string;
+  ipiAmount: string;
+  ipiInOrder: boolean;
   commissionAmount: string;
   status: OrderStatus;
   fileUrl: string | null;
@@ -73,8 +75,16 @@ export interface OrderItem {
   unitPrice: string;
   discount: string;
   subtotal: string;
+  ipiRate: string;
+  ipiAmount: string;
   avgShelfDays: number | null;
   source: "MANUAL" | "IMPORTED" | "TEMPLATE";
-  product: { id: string; name: string; saleMultiple: string | null } | null;
+  product: {
+    id: string;
+    name: string;
+    sku: string;
+    saleMultiple: string | null;
+    unitPerPack: string;
+  } | null;
   tier: { id: string; name: string } | null;
 }

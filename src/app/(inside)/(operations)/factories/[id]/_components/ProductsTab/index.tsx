@@ -78,7 +78,7 @@ export function ProductsTab({ companyFactoryId }: Props) {
               <div className="flex flex-col gap-6">
                 <div className="flex flex-col gap-2">
                   <Title variant="label" color="amber">
-                    SKU
+                    Código do produto
                   </Title>
                   <Title variant="body-sm">
                     Código único que identifica o produto no catálogo desta
@@ -118,7 +118,7 @@ export function ProductsTab({ companyFactoryId }: Props) {
             <InputSearch
               size="sm"
               containerClassName="w-72"
-              placeholder="Buscar por nome ou SKU..."
+              placeholder="Buscar por nome ou código..."
               value={search}
               onChange={(e) => table.setFilter("search", e.target.value)}
             />
@@ -156,7 +156,7 @@ export function ProductsTab({ companyFactoryId }: Props) {
       <Table.Table>
         <Table.Header>
           <Table.Row>
-            <Table.Head>SKU</Table.Head>
+            <Table.Head>Código</Table.Head>
             <Table.Head>Produto</Table.Head>
             <Table.Head>Categoria</Table.Head>
             <Table.Head>Unidade</Table.Head>

@@ -21,9 +21,9 @@ import {
   CreateOrderItemResponse,
   createDraftItems,
   useOrderDraftItems,
-} from "../../../_shared/orderDraftItems";
-import { usePaymentTermOptions } from "../../../_shared/orderPaymentTerms";
-import { FREIGHT_OPTIONS } from "./utils";
+} from "../../../../_shared/orderDraftItems";
+import { usePaymentTermOptions } from "../../../../_shared/orderPaymentTerms";
+import { FREIGHT_OPTIONS } from "../../../../_shared/orderFreight";
 
 interface SellersOptionsData {
   order_sellers_options: { edges: { node: { id: string; name: string } }[] };

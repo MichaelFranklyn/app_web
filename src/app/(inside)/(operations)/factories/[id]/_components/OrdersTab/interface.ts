@@ -1,3 +1,4 @@
+// Tipos compartilhados entre AddOrderModal e ImportOrderModal (vivem no pai).
 export interface CreateOrderResponse {
   createOrder: {
     status: boolean;

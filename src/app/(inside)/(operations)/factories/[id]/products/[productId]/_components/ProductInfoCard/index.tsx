@@ -27,8 +27,8 @@ export function ProductInfoCard({ product }: Props) {
                       <b>Embalagem</b>: quantas unidades vêm na embalagem
                       fechada (ex.: caixa com 12). <b>NCM</b>: código fiscal
                       usado na nota. <b>Múltiplo de venda</b>: a fábrica só
-                      aceita quantidades múltiplas desse número — &quot;Livre&quot;
-                      significa qualquer quantidade.
+                      aceita quantidades múltiplas desse número —
+                      &quot;Livre&quot; significa qualquer quantidade.
                     </Title>
                     <Title variant="body-sm" color="muted">
                       Para alterar esses dados, use o botão Editar no topo da
@@ -42,7 +42,7 @@ export function ProductInfoCard({ product }: Props) {
         </Card.Header>
         <Card.Body padding="compact">
           <Card.Item variant="stat">
-            <Card.Item.Label>SKU</Card.Item.Label>
+            <Card.Item.Label>Código do produto</Card.Item.Label>
             <Card.Item.Value>{product.sku}</Card.Item.Value>
           </Card.Item>
           <Card.Item variant="stat">

@@ -7,7 +7,7 @@ import { ImportProductRow } from "./interface";
  * em `rowToInput` — manter sincronizado.
  */
 const EXAMPLE_HEADERS = [
-  "SKU",
+  "Código do produto",
   "Nome do produto",
   "Categoria",
   "Unidade",
@@ -21,7 +21,10 @@ const EXAMPLE_ROWS = [
 ];
 
 export const downloadExampleSheet = (): void => {
-  downloadCSV("modelo-importacao-produtos.csv", [EXAMPLE_HEADERS, ...EXAMPLE_ROWS]);
+  downloadCSV("modelo-importacao-produtos.csv", [
+    EXAMPLE_HEADERS,
+    ...EXAMPLE_ROWS,
+  ]);
 };
 
 /** Mapeia uma linha da planilha modelo (ordem fixa de colunas) para a mutation. */

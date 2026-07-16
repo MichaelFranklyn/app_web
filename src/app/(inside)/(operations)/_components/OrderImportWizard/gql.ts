@@ -14,6 +14,7 @@ export const EXTRACT_ORDER_FILE_MUTATION = gql`
           name
           quantity
           unitPrice
+          ipiRate
         }
       }
     }

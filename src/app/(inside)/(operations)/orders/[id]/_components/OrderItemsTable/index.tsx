@@ -19,11 +19,18 @@ import { ORDER_ITEMS_QUERY } from "./gql";
 interface Props {
   orderId: string;
   factoryId: string | null;
+  /** Fábrica cobra IPI no pedido: exibe a alíquota por item e o IPI nos totais. */
+  ipiInOrder?: boolean;
   /** Atualiza o detalhe do pedido (totais) após mudanças nos itens. */
   onOrderChanged?: () => void;
 }
 
-export function OrderItemsTable({ orderId, factoryId, onOrderChanged }: Props) {
+export function OrderItemsTable({
+  orderId,
+  factoryId,
+  ipiInOrder = false,
+  onOrderChanged,
+}: Props) {
   const invalidateClient = useInvalidateQueriesClient();
   const { data, loading, refetch } = useQuery<OrderItemsResponse>(
     ORDER_ITEMS_QUERY,
@@ -37,6 +44,8 @@ export function OrderItemsTable({ orderId, factoryId, onOrderChanged }: Props) {
 
   const { items, addOptimistic, updateOptimistic, removeOptimistic, rollback } =
     useOptimisticList<OrderItem>({ initialData: serverItems });
+
+  const columns = ipiInOrder ? 8 : 7;
 
   const handleRefetch = () => {
     refetch();
@@ -56,10 +65,15 @@ export function OrderItemsTable({ orderId, factoryId, onOrderChanged }: Props) {
               {items.length} {items.length === 1 ? "item" : "itens"}
             </Badge.Text>
           </Badge.Root>
-          <ImportOrderModal orderId={orderId} onImported={handleRefetch} />
+          <ImportOrderModal
+            orderId={orderId}
+            ipiInOrder={ipiInOrder}
+            onImported={handleRefetch}
+          />
           <AddOrderItemModal
             orderId={orderId}
             factoryId={factoryId}
+            ipiInOrder={ipiInOrder}
             onAdded={addOptimistic}
             onRefetch={handleRefetch}
           />
@@ -71,20 +85,21 @@ export function OrderItemsTable({ orderId, factoryId, onOrderChanged }: Props) {
           <Table.Row>
             <Table.Head>Produto</Table.Head>
             <Table.Head>Tabela</Table.Head>
-            <Table.Head>Qtd (embalagens)</Table.Head>
-            <Table.Head>Preço/embalagem</Table.Head>
+            <Table.Head>Qtd (unidades)</Table.Head>
+            <Table.Head>Preço/unidade</Table.Head>
             <Table.Head>Desconto</Table.Head>
-            <Table.Head>Subtotal</Table.Head>
+            {ipiInOrder && <Table.Head>Alíq. IPI</Table.Head>}
+            <Table.Head>Subtotal{ipiInOrder ? " (sem IPI)" : ""}</Table.Head>
             <Table.Head className="text-right">Ações</Table.Head>
           </Table.Row>
         </Table.Header>
 
         <Table.Body>
           {loading && items.length === 0 ? (
-            <Table.Skeleton columns={7} rows={5} />
+            <Table.Skeleton columns={columns} rows={5} />
           ) : items.length === 0 ? (
             <Table.Row>
-              <Table.Cell colSpan={7}>
+              <Table.Cell colSpan={columns}>
                 <EmptyState.Root>
                   <EmptyState.Icon>
                     <Package size={32} />
@@ -100,8 +115,17 @@ export function OrderItemsTable({ orderId, factoryId, onOrderChanged }: Props) {
           ) : (
             items.map((item) => (
               <Table.Row key={item.id} className="group">
-                <Table.Cell variant="strong">
-                  {item.product?.name ?? "—"}
+                <Table.Cell>
+                  <div className="flex flex-col">
+                    <Table.CellText variant="strong">
+                      {item.product?.name ?? "—"}
+                    </Table.CellText>
+                    {item.product?.sku && (
+                      <Table.CellText variant="dim2">
+                        Código {item.product.sku}
+                      </Table.CellText>
+                    )}
+                  </div>
                 </Table.Cell>
                 <Table.Cell variant="dim">{item.tier?.name ?? "—"}</Table.Cell>
                 <Table.Cell variant="strong">
@@ -115,6 +139,22 @@ export function OrderItemsTable({ orderId, factoryId, onOrderChanged }: Props) {
                     ? formatMoney(item.discount)
                     : "—"}
                 </Table.Cell>
+                {ipiInOrder && (
+                  <Table.Cell variant="dim">
+                    {parseFloat(item.ipiRate) > 0 ? (
+                      <div className="flex flex-col">
+                        <Table.CellText variant="strong">
+                          {formatNumber(Number(item.ipiRate))}%
+                        </Table.CellText>
+                        <Table.CellText variant="dim2">
+                          {formatMoney(item.ipiAmount)}
+                        </Table.CellText>
+                      </div>
+                    ) : (
+                      "—"
+                    )}
+                  </Table.Cell>
+                )}
                 <Table.Cell variant="strong">
                   {formatMoney(item.subtotal)}
                 </Table.Cell>
@@ -122,6 +162,7 @@ export function OrderItemsTable({ orderId, factoryId, onOrderChanged }: Props) {
                   <div className="flex items-center justify-end gap-4">
                     <EditOrderItemModal
                       item={item}
+                      ipiInOrder={ipiInOrder}
                       onOptimisticUpdate={updateOptimistic}
                       onRollback={rollback}
                       onRefetch={handleRefetch}

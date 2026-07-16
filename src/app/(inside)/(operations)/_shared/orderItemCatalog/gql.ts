@@ -11,6 +11,7 @@ export const ORDER_ITEM_COMPANY_FACTORIES_QUERY = gql`
         node {
           id
           factoryId
+          ipiInOrder
         }
       }
     }
@@ -45,7 +46,8 @@ export const ORDER_ITEM_PRODUCTS_QUERY = gql`
           name
           sku
           saleMultiple
-          unitLabel {
+          unitPerPack
+          unit {
             id
             label
           }
@@ -87,10 +89,7 @@ export const ORDER_ITEM_PRICE_LIST_ITEMS_QUERY = gql`
             name
             sku
             saleMultiple
-            unitLabel {
-              id
-              label
-            }
+            unitPerPack
           }
           tier {
             id

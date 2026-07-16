@@ -93,7 +93,7 @@ export function useEditProduct({ product, onSuccess }: EditProductModalProps) {
               {
                 name: "sku",
                 type: "text",
-                label: "SKU",
+                label: "Código do produto",
                 required: true,
                 placeholder: "Ex: ABC-123",
               },

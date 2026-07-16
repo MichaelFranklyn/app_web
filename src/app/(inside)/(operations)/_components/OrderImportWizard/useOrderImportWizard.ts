@@ -30,20 +30,38 @@ import {
 import {
   fileToBase64,
   guessMapping,
+  ImportRow,
   NONE,
   rowsFromItems,
   rowsFromSheet,
   toMoneyMask,
 } from "./utils";
 
+/** Fluxo em que o pedido ainda NÃO existe: só é criado na confirmação final. */
+export interface DeferredOrderTarget {
+  factoryId: string;
+  clientId: string;
+  /**
+   * Cria o pedido na hora de confirmar e devolve o id. DEVE memoizar o id em
+   * re-tentativas (uma falha ao gravar itens não pode criar um segundo pedido).
+   */
+  createOrder: () => Promise<string>;
+}
+
 interface UseOrderImportWizardArgs {
-  orderId: string;
+  /** Pedido existente (detalhe do pedido). Ausente → use `deferred`. */
+  orderId?: string | null;
+  deferred?: DeferredOrderTarget;
+  /** Fábrica cobra IPI no pedido: habilita mapear/editar a alíquota por item. */
+  ipiInOrder?: boolean;
   onImported: () => void;
   onBusyChange?: (busy: boolean) => void;
 }
 
 export function useOrderImportWizard({
   orderId,
+  deferred,
+  ipiInOrder = false,
   onImported,
   onBusyChange,
 }: UseOrderImportWizardArgs) {
@@ -55,6 +73,7 @@ export function useOrderImportWizard({
     sku: NONE,
     quantity: NONE,
     unitPrice: NONE,
+    ipiRate: NONE,
   });
   const [reviewRows, setReviewRows] = useState<ReviewRow[]>([]);
   const [result, setResult] = useState<ImportResult | null>(null);
@@ -116,9 +135,12 @@ export function useOrderImportWizard({
       > => {
         if (isPdf) {
           const base64 = await fileToBase64(selected);
+          const target = orderId
+            ? { orderId }
+            : { factoryId: deferred?.factoryId };
           const res = await extractFile({
             variables: {
-              input: { orderId, fileName: selected.name, fileBase64: base64 },
+              input: { ...target, fileName: selected.name, fileBase64: base64 },
             },
           });
           const payload = res.data?.extractOrderFile;
@@ -151,22 +173,33 @@ export function useOrderImportWizard({
   };
 
   // Casa as linhas (do mapeamento manual OU do modelo da fábrica) e abre a revisão.
-  const runPreviewRows = async (
-    rows: { sku: string; quantity: number; unitPrice: number | null }[]
-  ) => {
+  const runPreviewRows = async (rows: ImportRow[]) => {
     if (rows.length === 0) {
       toast({
         variant: "error",
         title: "Sem itens",
         description:
-          "Nenhuma linha com SKU e quantidade válidos foi encontrada.",
+          "Nenhuma linha com código do produto e quantidade válidos foi encontrada.",
       });
       return;
     }
     await execute(
       async () => {
+        const target = orderId
+          ? { orderId }
+          : {
+              factoryId: deferred?.factoryId,
+              clientId: deferred?.clientId,
+            };
+        // O preview casa por SKU/preço; o IPI viaja à parte (alinhado por
+        // rowIndex) e só entra na confirmação — o backend do preview não o aceita.
+        const previewRows = rows.map(({ sku, quantity, unitPrice }) => ({
+          sku,
+          quantity,
+          unitPrice,
+        }));
         const res = await previewImport({
-          variables: { input: { orderId, rows } },
+          variables: { input: { ...target, rows: previewRows } },
         });
         const payload = res.data?.previewOrderImport;
         if (!payload?.status || !payload.data) {
@@ -185,6 +218,11 @@ export function useOrderImportWizard({
               tierId: c.tierId,
               quantity: c.quantity,
               unitPrice: toMoneyMask(c.unitPrice),
+              // rowIndex é 1-based sobre as linhas enviadas ao preview.
+              ipiRate:
+                ipiInOrder && rows[c.rowIndex - 1]?.ipiRate
+                  ? String(rows[c.rowIndex - 1].ipiRate)
+                  : "",
             }))
           );
           setStep(2);
@@ -211,13 +249,17 @@ export function useOrderImportWizard({
         quantity: parseNumber(r.quantity),
         unitPrice: parseNumber(r.unitPrice),
         discount: 0,
+        ipiRate: ipiInOrder ? parseNumber(r.ipiRate) || 0 : 0,
         sku: r.candidate.rawSku,
       }));
 
     await execute(
       async () => {
+        // Fluxo sem pedido prévio: o pedido nasce AQUI, junto com os itens —
+        // desistir antes da confirmação não deixa pedido vazio para trás.
+        const targetOrderId = orderId ?? (await deferred!.createOrder());
         const res = await confirmImport({
-          variables: { input: { orderId, items } },
+          variables: { input: { orderId: targetOrderId, items } },
         });
         const payload = res.data?.confirmOrderImport;
         if (!payload?.status || !payload.data) {
@@ -274,5 +316,6 @@ export function useOrderImportWizard({
     runConfirm,
     updateRow,
     canMap,
+    ipiInOrder,
   };
 }

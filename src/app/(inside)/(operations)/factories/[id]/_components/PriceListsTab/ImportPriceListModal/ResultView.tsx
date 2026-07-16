@@ -76,7 +76,7 @@ export function ResultView({ result }: { result: ImportPriceListResult }) {
                 >
                   Linha {err.row}
                 </Title>
-                {err.sku ? ` (SKU ${err.sku})` : ""} — {err.message}
+                {err.sku ? ` (Código ${err.sku})` : ""} — {err.message}
               </Title>
             ))}
           </Card.Root>

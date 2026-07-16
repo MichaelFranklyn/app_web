@@ -6,7 +6,7 @@ import { Modal } from "@/components/Modal";
 import { Plus } from "lucide-react";
 import { useMemo } from "react";
 
-import { StepItems } from "../../../../../orders/_shared/orderDraftItems";
+import { StepItems } from "../../../../../_shared/orderDraftItems";
 import { useAddClientOrder } from "./useAddClientOrder";
 
 interface Props {

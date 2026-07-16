@@ -50,7 +50,7 @@ export function ComponentsTable({ productId, companyFactoryId }: Props) {
                 <Title variant="body-sm">
                   Um kit é montado a partir de outros produtos do mesmo catálogo
                   (ex.: padrão de entrada = disjuntor + caixa + haste). O kit
-                  tem SKU e preço próprios na tabela.
+                  tem código e preço próprios na tabela.
                 </Title>
                 <Title variant="body-sm" color="muted">
                   Produtos simples não têm composição — deixe vazio.

@@ -15,6 +15,7 @@ export const COMPANY_FACTORY_DETAIL_QUERY = gql`
         contractStart
         contractEnd
         specialConditions
+        ipiInOrder
         factory {
           id
           cnpj

@@ -49,15 +49,25 @@ export function CommercialCard({ companyFactory }: Props) {
         </Card.Item>
         <Card.Item variant="stat">
           <Card.Item.Label>Base de cálculo</Card.Item.Label>
-          <Card.Item.Value>{companyFactory.commissionCalcBasis}</Card.Item.Value>
+          <Card.Item.Value>
+            {companyFactory.commissionCalcBasis}
+          </Card.Item.Value>
         </Card.Item>
         <Card.Item variant="stat">
           <Card.Item.Label>Território</Card.Item.Label>
           <Card.Item.Value>{companyFactory.territory}</Card.Item.Value>
         </Card.Item>
-        <Card.Item variant="stat" bordered={false}>
+        <Card.Item variant="stat">
           <Card.Item.Label>Dia de pagamento da fábrica</Card.Item.Label>
-          <Card.Item.Value>Dia {companyFactory.paymentTermDays}</Card.Item.Value>
+          <Card.Item.Value>
+            Dia {companyFactory.paymentTermDays}
+          </Card.Item.Value>
+        </Card.Item>
+        <Card.Item variant="stat" bordered={false}>
+          <Card.Item.Label>IPI cobrado no pedido</Card.Item.Label>
+          <Card.Item.Value>
+            {companyFactory.ipiInOrder ? "Sim" : "Não"}
+          </Card.Item.Value>
         </Card.Item>
       </Card.Body>
     </Card.Root>

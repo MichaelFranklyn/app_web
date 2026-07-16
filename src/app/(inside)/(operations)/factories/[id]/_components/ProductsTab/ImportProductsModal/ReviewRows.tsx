@@ -9,7 +9,7 @@ const MAX_ROWS = 50;
 
 const COLUMNS: { label: string; render: (row: ImportProductRow) => string }[] =
   [
-    { label: "SKU", render: (row) => row.sku },
+    { label: "Código", render: (row) => row.sku },
     { label: "Nome", render: (row) => row.name },
     { label: "Categoria", render: (row) => row.category },
     { label: "Unidade", render: (row) => row.unit },

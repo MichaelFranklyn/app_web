@@ -59,16 +59,16 @@ export function StepItems({ draft }: Props) {
           <div className="col-span-12">
             <Input.Text
               label={
-                draft.packLabel
-                  ? `Preço por ${draft.packLabel}`
-                  : "Preço por embalagem"
+                draft.unitName
+                  ? `Preço por ${draft.unitName.toLowerCase()}`
+                  : "Preço por unidade"
               }
               addon="R$"
               inputMode="numeric"
               placeholder="0,00"
               value={draft.unitPrice}
               onChange={(e) => draft.setUnitPrice(maskCurrency(e.target.value))}
-              hint="Sugerido pela tabela ativa quando há nível. Você pode ajustar."
+              hint="Preço de uma unidade, sugerido pela tabela ativa quando há nível. Você pode ajustar."
             />
           </div>
 
@@ -80,8 +80,8 @@ export function StepItems({ draft }: Props) {
               onChange={(e) => draft.setQuantity(e.target.value)}
               hint={
                 draft.saleMultiple
-                  ? `Em embalagens. Vendido em múltiplos de ${draft.saleMultiple}.`
-                  : "Em embalagens, não em unidades."
+                  ? `Em unidades. Vendido em múltiplos de ${draft.saleMultiple}.`
+                  : "Em unidades (peças), não em embalagens."
               }
             />
           </div>
@@ -94,6 +94,18 @@ export function StepItems({ draft }: Props) {
               onChange={(e) => draft.setDiscount(e.target.value)}
             />
           </div>
+
+          {draft.ipiInOrder && (
+            <div className="tablet:col-span-6 col-span-12">
+              <Input.Number
+                label="Alíq. IPI (%)"
+                placeholder="0"
+                value={draft.ipiRate}
+                onChange={(e) => draft.setIpiRate(e.target.value)}
+                hint="IPI cobrado neste pedido, somado por cima do subtotal. Deixe 0 se não houver."
+              />
+            </div>
+          )}
         </div>
 
         {draft.error && (
@@ -125,9 +137,12 @@ export function StepItems({ draft }: Props) {
               <Table.Row>
                 <Table.Head>Produto</Table.Head>
                 <Table.Head>Nível</Table.Head>
-                <Table.Head>Qtd</Table.Head>
-                <Table.Head>Preço</Table.Head>
-                <Table.Head>Subtotal</Table.Head>
+                <Table.Head>Qtd (unidades)</Table.Head>
+                <Table.Head>Preço/unidade</Table.Head>
+                {draft.ipiInOrder && <Table.Head>Alíq. IPI</Table.Head>}
+                <Table.Head>
+                  Subtotal{draft.ipiInOrder ? " (sem IPI)" : ""}
+                </Table.Head>
                 <Table.Head className="text-right">Ações</Table.Head>
               </Table.Row>
             </Table.Header>
@@ -140,6 +155,11 @@ export function StepItems({ draft }: Props) {
                   <Table.Cell variant="dim">
                     {formatMoney(item.unitPrice)}
                   </Table.Cell>
+                  {draft.ipiInOrder && (
+                    <Table.Cell variant="dim">
+                      {item.ipiRate > 0 ? `${item.ipiRate}%` : "—"}
+                    </Table.Cell>
+                  )}
                   <Table.Cell variant="strong">
                     {formatMoney(
                       subtotalOf(item.unitPrice, item.quantity, item.discount)

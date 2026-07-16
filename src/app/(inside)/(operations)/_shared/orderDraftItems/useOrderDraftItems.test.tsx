@@ -44,7 +44,8 @@ const mocks: MockLink.MockedResponse[] = [
                 name: "Produto 1",
                 sku: "S1",
                 saleMultiple: "2",
-                unitLabel: { id: "u1", label: "Caixa" },
+                unitPerPack: "5.0000",
+                unit: { id: "u1", label: "Peça" },
               },
             },
           ],
@@ -107,13 +108,15 @@ const mocks: MockLink.MockedResponse[] = [
             {
               node: {
                 id: "pli-1",
+                // Preço da EMBALAGEM na tabela; com unitPerPack 5, o pedido
+                // sugere 32,50 ÷ 5 = 6,50 por unidade.
                 unitPrice: "32.5000",
                 product: {
                   id: "prod-1",
                   name: "Produto 1",
                   sku: "S1",
                   saleMultiple: "2",
-                  unitLabel: { id: "u1", label: "Caixa" },
+                  unitPerPack: "5.0000",
                 },
                 tier: { id: "tier-1", name: "Varejo" },
               },
@@ -130,7 +133,7 @@ const wrapper = ({ children }: { children: ReactNode }) => (
 );
 
 describe("useOrderDraftItems", () => {
-  it("sugere o preço da tabela ao escolher produto e nível", async () => {
+  it("sugere o preço POR UNIDADE da tabela ao escolher produto e nível", async () => {
     const { result } = renderHook(() => useOrderDraftItems(true, "fac-1"), {
       wrapper,
     });
@@ -142,10 +145,11 @@ describe("useOrderDraftItems", () => {
     );
     act(() => result.current.selectTier({ value: "tier-1", label: "Varejo" }));
 
-    await waitFor(() => expect(result.current.unitPrice).toContain("32,50"));
-    // rótulo da embalagem e múltiplo de venda vêm do catálogo
-    expect(result.current.packLabel).toBe("Caixa");
-    expect(result.current.saleMultiple).toBe(2);
+    // 32,50 (embalagem) ÷ 5 (unitPerPack) = 6,50 por unidade
+    await waitFor(() => expect(result.current.unitPrice).toContain("6,50"));
+    // rótulo da unidade e múltiplo de venda (em unidades) vêm do catálogo
+    expect(result.current.unitName).toBe("Peça");
+    expect(result.current.saleMultiple).toBe(10); // 2 embalagens × 5 unidades
   });
 
   it("adiciona e remove itens do rascunho", async () => {
@@ -158,17 +162,17 @@ describe("useOrderDraftItems", () => {
       result.current.selectProduct({ value: "prod-1", label: "S1 — Produto 1" })
     );
     act(() => result.current.selectTier({ value: "tier-1", label: "Varejo" }));
-    await waitFor(() => expect(result.current.unitPrice).toContain("32,50"));
+    await waitFor(() => expect(result.current.unitPrice).toContain("6,50"));
 
-    act(() => result.current.setQuantity("4")); // múltiplo de 2 → ok
+    act(() => result.current.setQuantity("20")); // múltiplo de 10 unidades → ok
     act(() => result.current.addItem());
 
     expect(result.current.items).toHaveLength(1);
     expect(result.current.items[0]).toMatchObject({
       productId: "prod-1",
       tierId: "tier-1",
-      unitPrice: 32.5,
-      quantity: 4,
+      unitPrice: 6.5,
+      quantity: 20,
     });
     // o formulário de novo item é limpo após adicionar
     expect(result.current.unitPrice).toBe("");
@@ -192,12 +196,12 @@ describe("useOrderDraftItems", () => {
       result.current.selectProduct({ value: "prod-1", label: "S1 — Produto 1" })
     );
     act(() => result.current.selectTier({ value: "tier-1", label: "Varejo" }));
-    await waitFor(() => expect(result.current.unitPrice).toContain("32,50"));
+    await waitFor(() => expect(result.current.unitPrice).toContain("6,50"));
 
-    // quantidade 3 não é múltiplo de 2
+    // quantidade 3 não é múltiplo de 10 unidades (2 embalagens × 5)
     act(() => result.current.setQuantity("3"));
     act(() => result.current.addItem());
-    expect(result.current.error).toMatch(/múltiplos de 2/i);
+    expect(result.current.error).toMatch(/múltiplos de 10 unidade/i);
     expect(result.current.items).toHaveLength(0);
   });
 });

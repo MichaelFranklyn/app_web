@@ -16,6 +16,8 @@ interface StepColumnsProps {
   onHeaderChange: (index: number) => void;
   mapping: Mapping;
   setMapping: Dispatch<SetStateAction<Mapping>>;
+  /** Fábrica cobra IPI no pedido: mostra o mapeamento da coluna de IPI. */
+  ipiInOrder?: boolean;
 }
 
 export function StepColumns({
@@ -25,13 +27,14 @@ export function StepColumns({
   onHeaderChange,
   mapping,
   setMapping,
+  ipiInOrder = false,
 }: StepColumnsProps) {
   return (
     <div className="flex flex-col gap-12">
       <Stepper.Intro step={2} total={4} title="Aponte as colunas do pedido">
-        Diga em qual coluna está o código do produto (SKU), a quantidade e — se
-        houver — o preço. Confira a amostra abaixo; se as colunas estiverem
-        deslocadas, ajuste a linha do cabeçalho.
+        Diga em qual coluna está o código do produto, a quantidade e — se houver
+        — o preço. Confira a amostra abaixo; se as colunas estiverem deslocadas,
+        ajuste a linha do cabeçalho.
       </Stepper.Intro>
       <div className="grid grid-cols-[190px_1fr] items-center gap-8">
         <Title variant="body-sm" weight="medium">
@@ -52,7 +55,7 @@ export function StepColumns({
       </div>
       <SheetPreview data={data} />
       <FieldMapper
-        label="SKU / Código"
+        label="Código do produto"
         help="Coluna com o código do produto na fábrica, usado para casar com o catálogo."
         headers={data.headers}
         choice={mapping.sku}
@@ -60,18 +63,27 @@ export function StepColumns({
       />
       <FieldMapper
         label="Quantidade"
-        help="Quantidade pedida, em embalagens fechadas (mesma unidade do cadastro do produto)."
+        help="Quantidade pedida, em unidades (peças), como vem no arquivo da fábrica."
         headers={data.headers}
         choice={mapping.quantity}
         onChange={(choice) => setMapping((p) => ({ ...p, quantity: choice }))}
       />
       <FieldMapper
         label="Preço (opcional)"
-        help="Preço por embalagem no pedido. Sem mapear, usamos o preço da tabela ativa da fábrica."
+        help="Preço por unidade no pedido. Sem mapear, usamos o preço por unidade da tabela ativa da fábrica."
         headers={data.headers}
         choice={mapping.unitPrice}
         onChange={(choice) => setMapping((p) => ({ ...p, unitPrice: choice }))}
       />
+      {ipiInOrder && (
+        <FieldMapper
+          label="Alíq. IPI (%) (opcional)"
+          help="Coluna com a alíquota de IPI de cada item (ex.: 3,25%). Linhas sem IPI (---) entram como 0."
+          headers={data.headers}
+          choice={mapping.ipiRate}
+          onChange={(choice) => setMapping((p) => ({ ...p, ipiRate: choice }))}
+        />
+      )}
     </div>
   );
 }

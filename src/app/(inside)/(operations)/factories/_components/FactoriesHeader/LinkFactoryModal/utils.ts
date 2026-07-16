@@ -77,6 +77,18 @@ export const FORM_STEPS: FormStepSchema[] = [
             required: false,
           },
           {
+            name: "ipiInOrder",
+            type: "switch",
+            label: "IPI cobrado no pedido",
+            options: [
+              {
+                value: "true",
+                label:
+                  "Esta fábrica não traz IPI na tabela — o IPI é lançado por item no pedido",
+              },
+            ],
+          },
+          {
             name: "specialConditions",
             type: "textarea",
             label: "Condições especiais",
@@ -118,5 +130,7 @@ export const normalizeInput = (data: Record<string, unknown>) => {
     contractStart: toIsoOrNull(data.contractStart),
     contractEnd: toIsoOrNull(data.contractEnd),
     specialConditions,
+    ipiInOrder:
+      Array.isArray(data.ipiInOrder) && data.ipiInOrder.includes("true"),
   };
 };

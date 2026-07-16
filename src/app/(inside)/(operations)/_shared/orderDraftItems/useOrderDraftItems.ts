@@ -3,7 +3,11 @@ import { useEffect, useMemo, useRef, useState } from "react";
 import { SelectOption } from "@/components/Input";
 import { maskCurrency, parseMoneyToNumber } from "@/utils/format/masks";
 
-import { priceKey, useOrderItemCatalog } from "../orderItemCatalog";
+import {
+  isQuantityMultiple,
+  priceKey,
+  useOrderItemCatalog,
+} from "../orderItemCatalog";
 import { DraftItem } from "./interface";
 
 const toCurrencyMask = (value: number): string =>
@@ -19,8 +23,9 @@ export function useOrderDraftItems(open: boolean, factoryId: string) {
   const {
     productOptions,
     tierOptions,
+    ipiInOrder,
     priceMap,
-    packLabelByProduct,
+    unitNameByProduct,
     saleMultipleByProduct,
   } = useOrderItemCatalog(open, factoryId || null);
 
@@ -30,6 +35,7 @@ export function useOrderDraftItems(open: boolean, factoryId: string) {
   const [unitPrice, setUnitPrice] = useState(""); // mascarado ("32,50")
   const [quantity, setQuantity] = useState("");
   const [discount, setDiscount] = useState("");
+  const [ipiRate, setIpiRate] = useState("");
   const [error, setError] = useState<string | null>(null);
   // Última combinação produto+nível já sugerida — não sobrescreve ajuste manual.
   const lastSuggestedRef = useRef<string>("");
@@ -46,9 +52,10 @@ export function useOrderDraftItems(open: boolean, factoryId: string) {
     setUnitPrice(toCurrencyMask(price));
   }, [productId, tierId, priceMap]);
 
-  const packLabel = productId
-    ? (packLabelByProduct.get(productId) ?? null)
+  const unitName = productId
+    ? (unitNameByProduct.get(productId) ?? null)
     : null;
+  // Múltiplo de venda já em unidades (peças).
   const saleMultiple = productId
     ? saleMultipleByProduct.get(productId)
     : undefined;
@@ -68,6 +75,7 @@ export function useOrderDraftItems(open: boolean, factoryId: string) {
     setUnitPrice("");
     setQuantity("");
     setDiscount("");
+    setIpiRate("");
     lastSuggestedRef.current = "";
   };
 
@@ -92,9 +100,9 @@ export function useOrderDraftItems(open: boolean, factoryId: string) {
     if (!productId) return setError("Selecione o produto.");
     if (!price || price <= 0) return setError("Informe um preço válido.");
     if (!qty || qty <= 0) return setError("Informe uma quantidade válida.");
-    if (saleMultiple && qty % saleMultiple !== 0) {
+    if (saleMultiple && !isQuantityMultiple(qty, saleMultiple)) {
       return setError(
-        `Este produto é vendido em múltiplos de ${saleMultiple} embalagem(ns).`
+        `Este produto é vendido em múltiplos de ${saleMultiple} unidade(s).`
       );
     }
     setItems((prev) => [
@@ -107,6 +115,7 @@ export function useOrderDraftItems(open: boolean, factoryId: string) {
         unitPrice: price,
         quantity: qty,
         discount: disc,
+        ipiRate: ipiInOrder ? Number(ipiRate) || 0 : 0,
       },
     ]);
     resetNewItem();
@@ -126,7 +135,8 @@ export function useOrderDraftItems(open: boolean, factoryId: string) {
     productOptions,
     tierOptions,
     hasCatalog: productOptions.length > 0,
-    packLabel,
+    ipiInOrder,
+    unitName,
     saleMultiple,
     items,
     selectedProduct,
@@ -134,12 +144,14 @@ export function useOrderDraftItems(open: boolean, factoryId: string) {
     unitPrice,
     quantity,
     discount,
+    ipiRate,
     error,
     selectProduct,
     selectTier,
     setUnitPrice,
     setQuantity,
     setDiscount,
+    setIpiRate,
     addItem,
     removeItem,
     reset,

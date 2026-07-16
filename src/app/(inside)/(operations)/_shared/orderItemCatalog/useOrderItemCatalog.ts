@@ -22,11 +22,17 @@ import { priceKey } from "./utils";
 export interface OrderItemCatalog {
   productOptions: SelectOption[];
   tierOptions: SelectOption[];
-  /** Preço sugerido por produto+nível (chave `priceKey`), da tabela ativa. */
+  /** A fábrica cobra IPI no pedido (por item), não embutido na tabela de preços. */
+  ipiInOrder: boolean;
+  /**
+   * Preço sugerido POR UNIDADE (peça) por produto+nível (chave `priceKey`).
+   * A tabela ativa guarda o preço da embalagem fechada; aqui já vem dividido
+   * pelo `unitPerPack` do produto.
+   */
   priceMap: Map<string, number>;
-  /** Rótulo da embalagem por produto (para nomear preço e quantidade). */
-  packLabelByProduct: Map<string, string>;
-  /** Múltiplo de venda por produto (0 = sem múltiplo). */
+  /** Rótulo da unidade de medida por produto (ex.: "Peça", para nomear o preço). */
+  unitNameByProduct: Map<string, string>;
+  /** Múltiplo de venda por produto, em UNIDADES (saleMultiple × unitPerPack; 0 = sem múltiplo). */
   saleMultipleByProduct: Map<string, number>;
 }
 
@@ -34,10 +40,10 @@ export interface OrderItemCatalog {
  * Resolve o vínculo (`company_factory`) da fábrica escolhida — catálogo, preços
  * e condições de pagamento são todos escopados por esse id, não pela fábrica.
  */
-export function useCompanyFactoryId(
+export function useCompanyFactoryNode(
   open: boolean,
   factoryId: string | null
-): string | null {
+): { id: string; factoryId: string; ipiInOrder: boolean } | null {
   const { data: cfData } = useQuery<CompanyFactoriesData>(
     ORDER_ITEM_COMPANY_FACTORIES_QUERY,
     {
@@ -49,9 +55,16 @@ export function useCompanyFactoryId(
   return useMemo(
     () =>
       cfData?.companyFactories.edges.find((e) => e.node.factoryId === factoryId)
-        ?.node.id ?? null,
+        ?.node ?? null,
     [cfData, factoryId]
   );
+}
+
+export function useCompanyFactoryId(
+  open: boolean,
+  factoryId: string | null
+): string | null {
+  return useCompanyFactoryNode(open, factoryId)?.id ?? null;
 }
 
 /**
@@ -68,7 +81,9 @@ export function useOrderItemCatalog(
   factoryId: string | null
 ): OrderItemCatalog {
   // 1) Localiza o company_factory da fábrica deste pedido.
-  const companyFactoryId = useCompanyFactoryId(open, factoryId);
+  const companyFactoryNode = useCompanyFactoryNode(open, factoryId);
+  const companyFactoryId = companyFactoryNode?.id ?? null;
+  const ipiInOrder = companyFactoryNode?.ipiInOrder ?? false;
 
   const byCompanyFactory = useMemo(
     () => ({
@@ -205,33 +220,38 @@ export function useOrderItemCatalog(
     [tiersData]
   );
 
-  // Mapa de preço sugerido por produto+nível (da tabela ativa).
+  // Mapa de preço sugerido por produto+nível (da tabela ativa), POR UNIDADE:
+  // a tabela guarda o preço da embalagem fechada, o pedido trabalha em peças.
   const priceMap = useMemo(() => {
     const map = new Map<string, number>();
     (itemsData?.priceListItems.edges ?? []).forEach(({ node }) => {
       if (node.product && node.tier) {
+        const perPack = Number(node.product.unitPerPack) || 1;
         map.set(
           priceKey(node.product.id, node.tier.id),
-          parseFloat(node.unitPrice)
+          parseFloat(node.unitPrice) / perPack
         );
       }
     });
     return map;
   }, [itemsData]);
 
-  const packLabelByProduct = useMemo(() => {
+  const unitNameByProduct = useMemo(() => {
     const map = new Map<string, string>();
     products.forEach((p) => {
-      if (p.unitLabel) map.set(p.id, p.unitLabel.label);
+      if (p.unit) map.set(p.id, p.unit.label);
     });
     return map;
   }, [products]);
 
+  // Múltiplo de venda em UNIDADES: o produto cadastra o múltiplo em embalagens,
+  // então o passo efetivo em peças é saleMultiple × unitPerPack.
   const saleMultipleByProduct = useMemo(() => {
     const map = new Map<string, number>();
     products.forEach((p) => {
       const multiple = Number(p.saleMultiple);
-      if (multiple > 0) map.set(p.id, multiple);
+      const perPack = Number(p.unitPerPack) || 1;
+      if (multiple > 0) map.set(p.id, multiple * perPack);
     });
     return map;
   }, [products]);
@@ -239,8 +259,9 @@ export function useOrderItemCatalog(
   return {
     productOptions,
     tierOptions,
+    ipiInOrder,
     priceMap,
-    packLabelByProduct,
+    unitNameByProduct,
     saleMultipleByProduct,
   };
 }

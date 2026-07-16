@@ -16,7 +16,16 @@ export interface ImportRow {
   sku: string;
   quantity: number;
   unitPrice: number | null;
+  /** Alíquota de IPI (%) lida da coluna mapeada; 0 quando não há coluna/valor. */
+  ipiRate: number;
 }
+
+// "3,25%" / "3.25" / "---" → número (0 quando não numérico). O parseNumber já
+// lida com vírgula decimal; aqui só removemos o "%" antes.
+export const parseIpiRate = (raw: string): number => {
+  const n = parseNumber(String(raw ?? "").replace("%", ""));
+  return Number.isFinite(n) && n > 0 ? n : 0;
+};
 
 // Só linhas com SKU e quantidade positiva viram item; o resto é descartado.
 const isValidRow = (row: ImportRow): boolean =>
@@ -38,6 +47,10 @@ export const rowsFromSheet = (
         sku: valueForChoice(mapping.sku, cells).trim(),
         quantity: parseNumber(valueForChoice(mapping.quantity, cells)),
         unitPrice: Number.isFinite(priceRaw) ? priceRaw : null,
+        ipiRate:
+          mapping.ipiRate.kind === "none"
+            ? 0
+            : parseIpiRate(valueForChoice(mapping.ipiRate, cells)),
       };
     })
     .filter(isValidRow);
@@ -52,6 +65,7 @@ export const rowsFromItems = (items: ExtractedItem[]): ImportRow[] =>
         sku: it.sku.trim(),
         quantity: parseNumber(it.quantity),
         unitPrice: price != null && Number.isFinite(price) ? price : null,
+        ipiRate: it.ipiRate != null ? parseIpiRate(it.ipiRate) : 0,
       };
     })
     .filter(isValidRow);
@@ -69,13 +83,14 @@ export const guessMapping = (headers: string[]): Mapping => {
     sku: find("sku", "código", "codigo", "cod", "ref"),
     quantity: find("qtd", "quant", "qtde", "qt"),
     unitPrice: find("preço", "preco", "valor", "unit"),
+    ipiRate: find("ipi", "alíq", "aliq"),
   };
 };
 
 export const confidenceTone = (value: number): "green" | "amber" | "red" =>
   value >= 90 ? "green" : value >= 50 ? "amber" : "red";
 
-// O SKU casou (senão seria 0%); a confiança mede o PREÇO/NÍVEL, não o SKU.
+// O código do produto casou (senão seria 0%); a confiança mede o PREÇO/NÍVEL.
 export const confidenceHelp = (value: number): string => {
   if (value >= 100)
     return "O preço do arquivo bate com um nível da tabela ativa.";
@@ -83,13 +98,13 @@ export const confidenceHelp = (value: number): string => {
     return "O arquivo não trouxe preço; usamos o preço da tabela ativa.";
   if (value >= 70)
     return (
-      "O SKU casou, mas o preço do arquivo não corresponde a nenhum nível da tabela " +
-      "(ex.: houve desconto). Escolhemos o nível de preço mais próximo — confira e, " +
-      "se precisar, troque o nível ao lado."
+      "O código do produto casou, mas o preço do arquivo não corresponde a nenhum " +
+      "nível da tabela (ex.: houve desconto). Escolhemos o nível de preço mais " +
+      "próximo — confira e, se precisar, troque o nível ao lado."
     );
   if (value >= 50)
     return "O produto não tem preço na tabela ativa; escolha o nível comercial.";
-  return "SKU não encontrado no catálogo desta fábrica.";
+  return "Código do produto não encontrado no catálogo desta fábrica.";
 };
 
 // Preço vindo do backend ("13.23") → máscara BRL digitável ("13,23"). parseNumber
@@ -98,4 +113,17 @@ export const toMoneyMask = (value: string | null | undefined): string => {
   if (!value) return "";
   const n = parseNumber(String(value));
   return Number.isFinite(n) ? maskCurrency(n.toFixed(2)) : "";
+};
+
+// O preço digitado difere do preço de tabela do nível? (> 1 centavo = desconto
+// ou ajuste manual — a revisão mostra a referência da tabela sob o campo).
+export const tierPriceDiffers = (
+  masked: string,
+  tierPrice: string | undefined
+): boolean => {
+  if (!tierPrice) return false;
+  const typed = parseNumber(masked);
+  const table = parseNumber(String(tierPrice));
+  if (!Number.isFinite(typed) || !Number.isFinite(table)) return false;
+  return Math.abs(typed - table) > 0.01;
 };

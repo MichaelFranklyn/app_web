@@ -79,6 +79,7 @@ export function EditCompanyFactoryModal() {
     territory: companyFactory.territory,
     contractStart: parseLocalDate(companyFactory.contractStart),
     contractEnd: parseLocalDate(companyFactory.contractEnd),
+    ipiInOrder: companyFactory.ipiInOrder ? ["true"] : [],
   };
 
   return (

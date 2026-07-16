@@ -1,6 +1,6 @@
 export interface CompanyFactoriesData {
   companyFactories: {
-    edges: { node: { id: string; factoryId: string } }[];
+    edges: { node: { id: string; factoryId: string; ipiInOrder: boolean } }[];
   };
 }
 
@@ -31,7 +31,8 @@ export interface ProductsData {
         name: string;
         sku: string | null;
         saleMultiple: string | null;
-        unitLabel: { id: string; label: string } | null;
+        unitPerPack: string;
+        unit: { id: string; label: string } | null;
       };
     }[];
     pageInfo: ConnectionPageInfo;
@@ -55,7 +56,7 @@ export interface PriceListItemsData {
           name: string;
           sku: string;
           saleMultiple: string | null;
-          unitLabel: { id: string; label: string } | null;
+          unitPerPack: string;
         } | null;
         tier: { id: string; name: string } | null;
       };

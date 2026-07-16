@@ -27,8 +27,8 @@ function mapByExtensions(message: string, ext: ErrorExtensions): string {
       // O backend gera "Product com sku 'X' já existe" (entidade/campo crus).
       if (ext.field === "sku") {
         return ext.value
-          ? `Já existe um produto com o SKU "${ext.value}" nesta fábrica.`
-          : "Já existe um produto com este SKU nesta fábrica.";
+          ? `Já existe um produto com o código "${ext.value}" nesta fábrica.`
+          : "Já existe um produto com este código nesta fábrica.";
       }
       return message;
     case "INTERNAL_SERVER_ERROR":

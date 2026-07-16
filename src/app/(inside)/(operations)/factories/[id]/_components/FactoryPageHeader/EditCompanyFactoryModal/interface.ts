@@ -6,6 +6,7 @@ export interface UpdateCompanyFactoryInput {
   territory?: string;
   contractStart?: string;
   contractEnd?: string;
+  ipiInOrder?: boolean;
 }
 
 export interface UpdateCompanyFactoryResponse {
@@ -21,6 +22,7 @@ export interface UpdateCompanyFactoryResponse {
       territory: string;
       contractStart: string | null;
       contractEnd: string | null;
+      ipiInOrder: boolean;
     } | null;
   };
 }

@@ -10,12 +10,14 @@ import { OrderImportWizard } from "../../../../../_components/OrderImportWizard"
 
 interface Props {
   orderId: string;
+  /** Fábrica cobra IPI no pedido: habilita mapear/editar a alíquota por item. */
+  ipiInOrder?: boolean;
   /** Disparado após gravar itens — recarrega a tabela e os totais do pedido. */
   onImported: () => void;
 }
 
 /** Importa itens para um pedido EXISTENTE (detalhe do pedido). */
-export function ImportOrderModal({ orderId, onImported }: Props) {
+export function ImportOrderModal({ orderId, ipiInOrder, onImported }: Props) {
   const [open, setOpen] = useState(false);
   const [isBusy, setIsBusy] = useState(false);
 
@@ -40,6 +42,7 @@ export function ImportOrderModal({ orderId, onImported }: Props) {
         />
         <OrderImportWizard
           orderId={orderId}
+          ipiInOrder={ipiInOrder}
           onImported={onImported}
           onBusyChange={setIsBusy}
           onClose={() => setOpen(false)}

@@ -24,7 +24,7 @@ export const productDetailFlow: FlowDefinition = {
       element: '[data-tour="product-info"]',
       title: "Dados do produto",
       description:
-        "SKU, unidade, embalagem e unidades por embalagem. Edite por aqui quando algo mudar.",
+        "Código do produto, unidade, embalagem e unidades por embalagem. Edite por aqui quando algo mudar.",
       side: "left",
       align: "start",
     },

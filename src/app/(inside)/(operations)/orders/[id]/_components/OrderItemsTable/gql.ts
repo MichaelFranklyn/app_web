@@ -11,12 +11,16 @@ export const ORDER_ITEMS_QUERY = gql`
           unitPrice
           discount
           subtotal
+          ipiRate
+          ipiAmount
           avgShelfDays
           source
           product {
             id
             name
+            sku
             saleMultiple
+            unitPerPack
           }
           tier {
             id
@@ -42,11 +46,15 @@ export const CREATE_ORDER_ITEM_MUTATION = gql`
         unitPrice
         discount
         subtotal
+        ipiRate
+        ipiAmount
         source
         product {
           id
           name
+          sku
           saleMultiple
+          unitPerPack
         }
         tier {
           id
@@ -70,6 +78,8 @@ export const UPDATE_ORDER_ITEM_MUTATION = gql`
         unitPrice
         discount
         subtotal
+        ipiRate
+        ipiAmount
       }
     }
   }

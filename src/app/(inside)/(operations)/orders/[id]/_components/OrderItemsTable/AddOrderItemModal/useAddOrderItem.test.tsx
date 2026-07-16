@@ -10,7 +10,7 @@ import {
   ORDER_ITEM_PRICE_LISTS_QUERY,
   ORDER_ITEM_PRODUCTS_QUERY,
   ORDER_ITEM_TIERS_QUERY,
-} from "../../../../_shared/orderItemCatalog";
+} from "../../../../../_shared/orderItemCatalog";
 import { AddOrderItemModalProps, useAddOrderItem } from "./useAddOrderItem";
 
 const byCF = {
@@ -44,7 +44,8 @@ const mocks: MockLink.MockedResponse[] = [
                 name: "Produto 1",
                 sku: "S1",
                 saleMultiple: null,
-                unitLabel: { id: "u1", label: "Caixa" },
+                unitPerPack: "5.0000",
+                unit: { id: "u1", label: "Peça" },
               },
             },
           ],
@@ -110,13 +111,15 @@ const mocks: MockLink.MockedResponse[] = [
             {
               node: {
                 id: "pli-1",
+                // Preço da EMBALAGEM na tabela; com unitPerPack 5, a sugestão
+                // do pedido é 32,50 ÷ 5 = 6,50 por unidade.
                 unitPrice: "32.5000",
                 product: {
                   id: "prod-1",
                   name: "Produto 1",
                   sku: "S1",
                   saleMultiple: null,
-                  unitLabel: { id: "u1", label: "Caixa" },
+                  unitPerPack: "5.0000",
                 },
                 tier: { id: "tier-1", name: "Varejo" },
               },
@@ -182,12 +185,12 @@ describe("useAddOrderItem — sugestão de preço", () => {
 
     // neste instante o preço ainda está vazio (tabela não chegou)
     expect(api.formRef.current!.getValues().unitPrice ?? "").not.toContain(
-      "32,50"
+      "6,50"
     );
 
     // quando a tabela chega, o preço é sugerido reativamente
     await waitFor(() => {
-      expect(api.formRef.current!.getValues().unitPrice).toContain("32,50");
+      expect(api.formRef.current!.getValues().unitPrice).toContain("6,50");
     });
   });
 
@@ -217,7 +220,7 @@ describe("useAddOrderItem — sugestão de preço", () => {
 
     await new Promise((r) => setTimeout(r, 30));
     expect(api.formRef.current!.getValues().unitPrice ?? "").not.toContain(
-      "32,50"
+      "6,50"
     );
   });
 });

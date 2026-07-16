@@ -27,7 +27,7 @@ export interface TargetField {
 export const TARGET_FIELDS: TargetField[] = [
   {
     key: "sku",
-    label: "SKU",
+    label: "Código do produto",
     description:
       "Código único do produto na fábrica (ex.: 101, ABC-123). É por ele que reconhecemos produtos já cadastrados para não duplicar.",
   },

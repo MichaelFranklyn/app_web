@@ -8,10 +8,20 @@ import { StepColumns } from "./StepColumns";
 import { StepFile } from "./StepFile";
 import { StepResult } from "./StepResult";
 import { StepReview } from "./StepReview";
-import { useOrderImportWizard } from "./useOrderImportWizard";
+import {
+  DeferredOrderTarget,
+  useOrderImportWizard,
+} from "./useOrderImportWizard";
+
+export type { DeferredOrderTarget } from "./useOrderImportWizard";
 
 interface Props {
-  orderId: string;
+  /** Pedido existente (detalhe do pedido). Ausente → informe `deferred`. */
+  orderId?: string | null;
+  /** Fluxo em que o pedido só é criado na confirmação final. */
+  deferred?: DeferredOrderTarget;
+  /** Fábrica cobra IPI no pedido: habilita mapear/editar a alíquota por item. */
+  ipiInOrder?: boolean;
   /** Disparado após gravar itens — recarrega a tabela e os totais do pedido. */
   onImported: () => void;
   /** Informa o pai sobre carregamento em curso (para travar o fechamento do modal). */
@@ -24,10 +34,12 @@ interface Props {
  * Núcleo do wizard de importação de itens de pedido (Arquivo → Colunas →
  * Revisão → Resultado). Renderiza Modal.Body + Modal.Footer; quem fornece o
  * Modal.Root/Content/Header é o componente que o usa (detalhe do pedido ou a
- * lista, que cria o pedido antes de montar este wizard).
+ * lista e a fábrica, que coletam os dados e só criam o pedido na confirmação).
  */
 export function OrderImportWizard({
   orderId,
+  deferred,
+  ipiInOrder,
   onImported,
   onBusyChange,
   onClose,
@@ -52,7 +64,14 @@ export function OrderImportWizard({
     runConfirm,
     updateRow,
     canMap,
-  } = useOrderImportWizard({ orderId, onImported, onBusyChange });
+    ipiInOrder: ipiEnabled,
+  } = useOrderImportWizard({
+    orderId,
+    deferred,
+    ipiInOrder,
+    onImported,
+    onBusyChange,
+  });
 
   return (
     <>
@@ -80,6 +99,7 @@ export function OrderImportWizard({
                 onHeaderChange={onHeaderChange}
                 mapping={mapping}
                 setMapping={setMapping}
+                ipiInOrder={ipiEnabled}
               />
             )}
           </Stepper.Item>
@@ -89,6 +109,7 @@ export function OrderImportWizard({
               reviewRows={reviewRows}
               updateRow={updateRow}
               confirmableCount={confirmableCount}
+              ipiInOrder={ipiEnabled}
             />
           </Stepper.Item>
 

@@ -31,6 +31,7 @@ export async function createDraftItems(
             quantity: item.quantity,
             unitPrice: item.unitPrice,
             discount: item.discount,
+            ipiRate: item.ipiRate,
             source: "MANUAL",
           },
         },

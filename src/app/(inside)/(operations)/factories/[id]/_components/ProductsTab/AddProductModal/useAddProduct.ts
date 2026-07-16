@@ -50,8 +50,11 @@ export function useAddProduct({
               {
                 name: "sku",
                 type: "text",
-                label: labelWithHelp("SKU", PRODUCT_FIELD_HELP.sku),
-                labelText: "SKU",
+                label: labelWithHelp(
+                  "Código do produto",
+                  PRODUCT_FIELD_HELP.sku
+                ),
+                labelText: "Código do produto",
                 required: true,
                 placeholder: "Ex: ABC-123",
                 minLength: 2,

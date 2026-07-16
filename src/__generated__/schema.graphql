@@ -580,6 +580,8 @@ type CompanyFactoryType {
   contractStart: DateTime
   contractEnd: DateTime
   specialConditions: JSON
+  """A fábrica cobra o IPI no pedido (por item), não embutido na tabela de preços."""
+  ipiInOrder: Boolean!
   createdAt: DateTime!
   updatedAt: DateTime!
   deletedAt: DateTime
@@ -614,6 +616,7 @@ input LinkFactoryInput {
   contractStart: DateTime = null
   contractEnd: DateTime = null
   specialConditions: JSON = null
+  ipiInOrder: Boolean = false
 }
 
 input CreateCompanyFactoryInput {
@@ -626,6 +629,7 @@ input CreateCompanyFactoryInput {
   contractStart: DateTime = null
   contractEnd: DateTime = null
   specialConditions: JSON = null
+  ipiInOrder: Boolean = false
 }
 
 input ImportCompanyFactoryRowInput {
@@ -674,6 +678,7 @@ input UpdateCompanyFactoryInput {
   contractStart: DateTime = null
   contractEnd: DateTime = null
   specialConditions: JSON = null
+  ipiInOrder: Boolean = null
 }
 
 extend type Query {
@@ -1335,6 +1340,8 @@ input CreateOrderItemInput {
   quantity: Decimal!
   unitPrice: Decimal!
   discount: Decimal! = "0.0"
+  """Alíquota de IPI do item (%). Só se aplica a fábricas com IPI no pedido."""
+  ipiRate: Decimal! = "0.0"
   avgShelfDays: Int = null
   source: OrderItemSource! = MANUAL
 }
@@ -1354,6 +1361,10 @@ type OrderItemType {
   unitPrice: Decimal!
   discount: Decimal!
   subtotal: Decimal!
+  """Alíquota de IPI do item (%); 0 nas fábricas sem IPI no pedido."""
+  ipiRate: Decimal!
+  """Valor do IPI do item (= subtotal × ipiRate/100)."""
+  ipiAmount: Decimal!
   avgShelfDays: Int
   source: OrderItemSource!
   createdAt: DateTime!
@@ -1383,6 +1394,7 @@ input UpdateOrderItemInput {
   quantity: Decimal = null
   unitPrice: Decimal = null
   discount: Decimal = null
+  ipiRate: Decimal = null
   avgShelfDays: Int = null
 }
 
@@ -1402,6 +1414,9 @@ extend type Mutation {
 input ExtractOrderFileInput {
   # orderId: usa a receita do template ativo da fábrica do pedido (wizard).
   orderId: UUID = null
+  # factoryId: alternativa ao orderId quando o pedido ainda NÃO existe (o fluxo
+  # de importação só cria o pedido na confirmação final).
+  factoryId: UUID = null
   # recipe: receita avulsa (config do template) para pré-visualização na tela de
   # modelo da fábrica, quando ainda não há template salvo.
   recipe: JSON = null
@@ -1417,6 +1432,8 @@ type OrderImportFileItemType {
   unitPrice: Decimal
   # Valores "R$" do item (multiline): a tela deixa escolher o preço unitário.
   priceOptions: [String!]!
+  # Alíquota de IPI do item (%), quando o pedido traz a coluna; null se não houver.
+  ipiRate: Decimal
 }
 
 type OrderImportGridType {
@@ -1448,7 +1465,11 @@ input OrderImportRowInput {
 }
 
 input PreviewOrderImportInput {
-  orderId: UUID!
+  # orderId OU factoryId+clientId: o segundo par serve ao fluxo em que o pedido
+  # só é criado na confirmação final.
+  orderId: UUID = null
+  factoryId: UUID = null
+  clientId: UUID = null
   rows: [OrderImportRowInput!]!
 }
 
@@ -1494,6 +1515,8 @@ input ConfirmOrderItemInput {
   quantity: Decimal!
   unitPrice: Decimal!
   discount: Decimal = 0
+  """Alíquota de IPI do item (%); usada em fábricas com IPI no pedido."""
+  ipiRate: Decimal = 0
   sku: String = null
 }
 
@@ -1577,6 +1600,8 @@ type OrderType {
   factoryId: UUID!
   orderDate: Date!
   totalAmount: Decimal!
+  """IPI acumulado do pedido. Total pago pelo cliente = totalAmount + ipiAmount."""
+  ipiAmount: Decimal!
   commissionAmount: Decimal!
   status: OrderStatus!
   paymentTermId: UUID
@@ -1600,6 +1625,8 @@ type OrderType {
   commissionCalcBasis: String
   """Prazos de pagamento disponíveis da fábrica deste pedido (para faturar)."""
   availablePaymentTerms: [FactoryPaymentTermType!]!
+  """A fábrica deste pedido cobra o IPI no pedido (por item), não na tabela de preços."""
+  ipiInOrder: Boolean!
 }
 
 type OrderTypeConnectionResponse {

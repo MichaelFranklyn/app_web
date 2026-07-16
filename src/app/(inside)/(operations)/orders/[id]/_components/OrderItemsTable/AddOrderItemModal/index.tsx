@@ -23,7 +23,11 @@ export function AddOrderItemModal(props: AddOrderItemModalProps) {
       <Modal.Content size="md">
         <Modal.Header
           title="Adicionar item ao pedido"
-          description="Escolha qualquer produto da fábrica. Ao selecionar um nível, o preço da tabela ativa é sugerido — e você pode ajustá-lo."
+          description={
+            props.ipiInOrder
+              ? "Escolha o produto da fábrica. O preço da tabela ativa é sugerido ao selecionar um nível; informe a alíquota de IPI deste item quando houver."
+              : "Escolha qualquer produto da fábrica. Ao selecionar um nível, o preço da tabela ativa é sugerido — e você pode ajustá-lo."
+          }
         />
 
         <Modal.Body>

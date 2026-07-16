@@ -6,27 +6,28 @@ import { Button } from "@/components/Button";
 import { FormBuilder } from "@/components/FormBuilder";
 import { Modal } from "@/components/Modal";
 
-import { OrderImportWizard } from "../../../../_components/OrderImportWizard";
-import { ImportOrderModalProps, useImportOrder } from "./useImportOrder";
+import { OrderImportWizard } from "../../../../../_components/OrderImportWizard";
+import {
+  ImportFactoryOrderProps,
+  useImportFactoryOrder,
+} from "./useImportFactoryOrder";
 
 /**
- * Importa um pedido a partir do arquivo da fábrica, para a lista /orders, onde
- * ainda não existe pedido. O formulário (vendedor → fábrica → cliente → data)
- * apenas coleta os dados: o pedido SÓ é criado na confirmação final do wizard,
- * junto com os itens — desistir no meio não deixa pedido vazio para trás.
+ * "Importar pedido" da aba de pedidos da fábrica — MESMO fluxo da lista
+ * /orders, com a fábrica fixa: escolhe o vínculo vendedor→cliente e sobe o
+ * arquivo; o pedido SÓ é criado na confirmação final, junto com os itens.
  */
-export function ImportOrderModal(props: ImportOrderModalProps) {
+export function ImportOrderModal(props: ImportFactoryOrderProps) {
   const {
     open,
     handleClose,
     deferred,
     ipiInOrder,
     setIsBusy,
-    refetchList,
     formRef,
     formSteps,
     handleDetailsValid,
-  } = useImportOrder(props);
+  } = useImportFactoryOrder(props);
 
   return (
     <Modal.Root open={open} onOpenChange={handleClose}>
@@ -43,7 +44,7 @@ export function ImportOrderModal(props: ImportOrderModalProps) {
           description={
             deferred
               ? "Suba o arquivo da fábrica (PDF ou Excel): casamos os produtos e você confere antes de gravar. O pedido é criado ao confirmar."
-              : "Escolha o vendedor, a fábrica e o cliente do pedido. Em seguida você sobe o arquivo."
+              : "Escolha o vínculo vendedor → cliente do pedido. Em seguida você sobe o arquivo."
           }
         />
 
@@ -51,7 +52,7 @@ export function ImportOrderModal(props: ImportOrderModalProps) {
           <OrderImportWizard
             deferred={deferred}
             ipiInOrder={ipiInOrder}
-            onImported={refetchList}
+            onImported={props.onChanged}
             onBusyChange={setIsBusy}
             onClose={() => handleClose(false)}
           />

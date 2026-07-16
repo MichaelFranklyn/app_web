@@ -306,6 +306,53 @@ describe("useOrderImportWizard — máquina de estado", () => {
     expect(api.reviewRows).toEqual([]);
   });
 
+  it("pedido adiado (deferred): nada é criado até a confirmação, que usa o id devolvido", async () => {
+    const createOrder = vi.fn(async () => "order-deferred-1");
+    function DeferredHarness() {
+      api = useOrderImportWizard({
+        deferred: { factoryId: "fac-1", clientId: "cli-1", createOrder },
+        onImported,
+      });
+      return null;
+    }
+    const captured: { variables?: Record<string, unknown> } = {};
+    onImported.mockClear();
+    render(
+      <MockedProvider
+        mocks={[
+          extractItemsMock([
+            {
+              sku: "SKU-001",
+              name: "Produto Teste",
+              quantity: "10",
+              unitPrice: "100.00",
+            },
+          ]),
+          previewMock([matchedCandidate()]),
+          confirmMock({ created: 1, failed: 0 }, captured),
+        ]}
+      >
+        <DeferredHarness />
+      </MockedProvider>
+    );
+
+    await uploadPdf();
+    await waitFor(() => expect(api.step).toBe(2));
+    // Upload + revisão NÃO criam o pedido.
+    expect(createOrder).not.toHaveBeenCalled();
+
+    await act(async () => {
+      await api.runConfirm();
+    });
+
+    await waitFor(() => expect(api.step).toBe(3));
+    expect(createOrder).toHaveBeenCalledTimes(1);
+    expect((captured.variables?.input as { orderId: string }).orderId).toBe(
+      "order-deferred-1"
+    );
+    expect(onImported).toHaveBeenCalledTimes(1);
+  });
+
   it("confirmableCount ignora candidatos não casados e sem nível", async () => {
     renderWizard([
       extractItemsMock([

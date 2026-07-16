@@ -7,7 +7,7 @@ import { Button } from "@/components/Button";
 import { FormBuilder, FormStepSchema } from "@/components/FormBuilder";
 import { Modal } from "@/components/Modal";
 
-import { StepItems } from "../../../_shared/orderDraftItems";
+import { StepItems } from "../../../../_shared/orderDraftItems";
 import { StepDetails } from "./StepDetails";
 import { AddOrderModalProps, useAddOrder } from "./useAddOrder";
 

@@ -6,9 +6,10 @@ import { useMutation } from "@apollo/client/react";
 import { useEffect, useMemo, useRef, useState } from "react";
 
 import {
+  isQuantityMultiple,
   priceKey,
   useOrderItemCatalog,
-} from "../../../../_shared/orderItemCatalog";
+} from "../../../../../_shared/orderItemCatalog";
 import { OrderItem } from "../../../interface";
 import { CREATE_ORDER_ITEM_MUTATION } from "../gql";
 import { CreateOrderItemResponse } from "./interface";
@@ -16,6 +17,8 @@ import { CreateOrderItemResponse } from "./interface";
 export interface AddOrderItemModalProps {
   orderId: string;
   factoryId: string | null;
+  /** Fábrica cobra IPI no pedido: exibe o campo de alíquota por item. */
+  ipiInOrder?: boolean;
   /** Insere o item (já confirmado pelo servidor) na lista. */
   onAdded: (item: OrderItem) => void;
   /** Re-sincroniza com o servidor após sucesso. */
@@ -29,6 +32,7 @@ const toCurrencyMask = (value: number): string =>
 export function useAddOrderItem({
   orderId,
   factoryId,
+  ipiInOrder = false,
   onAdded,
   onRefetch,
 }: AddOrderItemModalProps) {
@@ -40,14 +44,14 @@ export function useAddOrderItem({
   // Última combinação produto+nível já sugerida — evita sobrescrever um preço
   // que o vendedor ajustou manualmente na mesma combinação.
   const lastSuggestedRef = useRef<string>("");
-  // Embalagem do produto selecionado, para nomear preço e quantidade.
-  const [packLabel, setPackLabel] = useState<string | null>(null);
+  // Unidade de medida do produto selecionado (ex.: "Peça"), para nomear o preço.
+  const [unitName, setUnitName] = useState<string | null>(null);
 
   const {
     productOptions,
     tierOptions,
     priceMap,
-    packLabelByProduct,
+    unitNameByProduct,
     saleMultipleByProduct,
   } = useOrderItemCatalog(open, factoryId);
 
@@ -92,7 +96,7 @@ export function useAddOrderItem({
                   // Troca de produto zera o nível e o preço: a combinação antiga
                   // não vale mais. O preço será re-sugerido ao escolher o nível.
                   setSelection({ productId, tierId: "" });
-                  setPackLabel(packLabelByProduct.get(productId) ?? null);
+                  setUnitName(unitNameByProduct.get(productId) ?? null);
                   lastSuggestedRef.current = "";
                   setValue("tierId", "");
                   setValue("unitPrice", "");
@@ -114,12 +118,12 @@ export function useAddOrderItem({
               {
                 name: "unitPrice",
                 type: "currency",
-                label: packLabel
-                  ? `Preço por ${packLabel}`
-                  : "Preço por embalagem",
+                label: unitName
+                  ? `Preço por ${unitName.toLowerCase()}`
+                  : "Preço por unidade",
                 required: true,
                 placeholder: "0,00",
-                hint: "Sugerido pela tabela ativa quando há nível. Você pode ajustar o valor.",
+                hint: "Preço de uma unidade, sugerido pela tabela ativa quando há nível. Você pode ajustar o valor.",
               },
               {
                 name: "quantity",
@@ -128,30 +132,44 @@ export function useAddOrderItem({
                 required: true,
                 placeholder: "0",
                 hint: [
-                  packLabel
-                    ? `Em embalagens (${packLabel}).`
-                    : "Em embalagens, não em unidades.",
+                  "Em unidades (peças), não em embalagens.",
                   saleMultiple
                     ? `Vendido em múltiplos de ${saleMultiple}.`
                     : null,
                 ]
                   .filter(Boolean)
                   .join(" "),
-                grid: { mobile: 12, tablet: 6, desktop: 6 },
               },
               {
                 name: "discount",
                 type: "number",
                 label: "Desconto (R$)",
                 placeholder: "0",
-                grid: { mobile: 12, tablet: 6, desktop: 6 },
               },
+              ...(ipiInOrder
+                ? [
+                    {
+                      name: "ipiRate",
+                      type: "number" as const,
+                      label: "Alíq. IPI (%)",
+                      placeholder: "0",
+                      hint: "IPI cobrado neste pedido, somado por cima do subtotal. Deixe 0 se o produto não tem IPI.",
+                    },
+                  ]
+                : []),
             ],
           },
         ],
       },
     ],
-    [productOptions, tierOptions, packLabelByProduct, packLabel, saleMultiple]
+    [
+      productOptions,
+      tierOptions,
+      unitNameByProduct,
+      unitName,
+      saleMultiple,
+      ipiInOrder,
+    ]
   );
 
   const [createOrderItem] = useMutation<CreateOrderItemResponse>(
@@ -165,7 +183,7 @@ export function useAddOrderItem({
       formRef.current?.resetForm();
       setSelection({ productId: "", tierId: "" });
       lastSuggestedRef.current = "";
-      setPackLabel(null);
+      setUnitName(null);
     }
   };
 
@@ -174,6 +192,7 @@ export function useAddOrderItem({
     const tierId = extractSelectValue(data.tierId);
     const quantity = Number(data.quantity);
     const discount = Number(data.discount ?? 0) || 0;
+    const ipiRate = ipiInOrder ? Number(data.ipiRate ?? 0) || 0 : 0;
     const unitPrice = parseMoneyToNumber(String(data.unitPrice ?? ""));
 
     if (!productId) {
@@ -186,9 +205,9 @@ export function useAddOrderItem({
       throw new Error("Informe uma quantidade válida.");
     }
     const multiple = saleMultipleByProduct.get(productId);
-    if (multiple && quantity % multiple !== 0) {
+    if (multiple && !isQuantityMultiple(quantity, multiple)) {
       throw new Error(
-        `Este produto é vendido em múltiplos de ${multiple} embalagem(ns).`
+        `Este produto é vendido em múltiplos de ${multiple} unidade(s).`
       );
     }
 
@@ -205,6 +224,7 @@ export function useAddOrderItem({
               quantity,
               unitPrice,
               discount,
+              ipiRate,
               source: "MANUAL",
             },
           },

@@ -12,6 +12,7 @@ import { maskCurrency, parseMoneyToNumber } from "@/utils/format/masks";
 import { useMutation } from "@apollo/client/react";
 import { Pencil } from "lucide-react";
 import { useMemo, useRef, useState } from "react";
+import { isQuantityMultiple } from "../../../../../_shared/orderItemCatalog";
 import { OrderItem } from "../../../interface";
 import { UPDATE_ORDER_ITEM_MUTATION } from "../gql";
 
@@ -25,6 +26,7 @@ interface UpdateOrderItemResponse {
 
 interface Props {
   item: OrderItem;
+  ipiInOrder?: boolean;
   onOptimisticUpdate: (id: string, updates: Partial<OrderItem>) => void;
   onRollback: () => void;
   onRefetch: () => void;
@@ -32,6 +34,7 @@ interface Props {
 
 export function EditOrderItemModal({
   item,
+  ipiInOrder = false,
   onOptimisticUpdate,
   onRollback,
   onRefetch,
@@ -44,7 +47,11 @@ export function EditOrderItemModal({
   );
   const { execute, isLoading } = useAsyncAction();
 
-  const saleMultiple = Number(item.product?.saleMultiple) || 0;
+  // Múltiplo de venda em UNIDADES: o produto cadastra em embalagens, a
+  // quantidade do item é em peças (saleMultiple × unitPerPack).
+  const saleMultiple =
+    (Number(item.product?.saleMultiple) || 0) *
+    (Number(item.product?.unitPerPack) || 1);
 
   const steps: FormStepSchema[] = useMemo(
     () => [
@@ -57,11 +64,10 @@ export function EditOrderItemModal({
               {
                 name: "unitPrice",
                 type: "currency",
-                label: "Preço por embalagem",
+                label: "Preço por unidade",
                 required: true,
                 placeholder: "0,00",
-                hint: "Preço da embalagem fechada. Ajuste se este pedido tiver um valor negociado.",
-                grid: { mobile: 12, tablet: 6, desktop: 6 },
+                hint: "Preço de uma unidade. Ajuste se este pedido tiver um valor negociado.",
               },
               {
                 name: "quantity",
@@ -70,28 +76,40 @@ export function EditOrderItemModal({
                 required: true,
                 placeholder: "0",
                 hint: saleMultiple
-                  ? `Em embalagens. Vendido em múltiplos de ${saleMultiple}.`
-                  : "Em embalagens, não em unidades.",
-                grid: { mobile: 12, tablet: 6, desktop: 6 },
+                  ? `Em unidades. Vendido em múltiplos de ${saleMultiple}.`
+                  : "Em unidades (peças), não em embalagens.",
               },
               {
                 name: "discount",
                 type: "number",
                 label: "Desconto (R$)",
                 placeholder: "0",
-                grid: { mobile: 12, tablet: 6, desktop: 6 },
               },
+              ...(ipiInOrder
+                ? [
+                    {
+                      name: "ipiRate",
+                      type: "number" as const,
+                      label: "Alíq. IPI (%)",
+                      placeholder: "0",
+                      hint: "IPI cobrado neste pedido, somado por cima do subtotal.",
+                    },
+                  ]
+                : []),
             ],
           },
         ],
       },
     ],
-    [saleMultiple]
+    [saleMultiple, ipiInOrder]
   );
 
   const handleSubmit = async (data: Record<string, unknown>) => {
     const quantity = Number(data.quantity);
     const discount = Number(data.discount ?? 0) || 0;
+    const ipiRate = ipiInOrder
+      ? Number(data.ipiRate ?? 0) || 0
+      : Number(item.ipiRate);
     const unitPrice = parseMoneyToNumber(String(data.unitPrice ?? ""));
 
     if (!unitPrice || unitPrice <= 0) {
@@ -100,19 +118,22 @@ export function EditOrderItemModal({
     if (!quantity || quantity <= 0) {
       throw new Error("Informe uma quantidade válida.");
     }
-    if (saleMultiple && quantity % saleMultiple !== 0) {
+    if (saleMultiple && !isQuantityMultiple(quantity, saleMultiple)) {
       throw new Error(
-        `Este produto é vendido em múltiplos de ${saleMultiple} embalagem(ns).`
+        `Este produto é vendido em múltiplos de ${saleMultiple} unidade(s).`
       );
     }
 
     const subtotal = Math.max(0, quantity * unitPrice - discount);
+    const ipiAmount = subtotal * (ipiRate / 100);
 
     onOptimisticUpdate(item.id, {
       quantity: String(quantity),
       discount: String(discount),
       unitPrice: unitPrice.toFixed(2),
       subtotal: subtotal.toFixed(2),
+      ipiRate: String(ipiRate),
+      ipiAmount: ipiAmount.toFixed(2),
     });
     setOpen(false);
 
@@ -121,7 +142,7 @@ export function EditOrderItemModal({
         const res = await updateOrderItem({
           variables: {
             id: item.id,
-            input: { quantity, discount, unitPrice },
+            input: { quantity, discount, unitPrice, ipiRate },
           },
         });
         if (!res.data?.updateOrderItem?.status) {
@@ -168,6 +189,7 @@ export function EditOrderItemModal({
               unitPrice: maskCurrency(Number(item.unitPrice).toFixed(2)),
               quantity: Number(item.quantity),
               discount: Number(item.discount),
+              ...(ipiInOrder ? { ipiRate: Number(item.ipiRate) } : {}),
             }}
             onSubmit={handleSubmit}
             loading={isLoading}

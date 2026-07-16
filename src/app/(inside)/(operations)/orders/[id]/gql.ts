@@ -10,6 +10,8 @@ export const ORDER_DETAIL_QUERY = gql`
         id
         orderDate
         totalAmount
+        ipiAmount
+        ipiInOrder
         commissionAmount
         status
         freightType

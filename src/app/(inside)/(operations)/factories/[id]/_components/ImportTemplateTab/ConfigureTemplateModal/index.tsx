@@ -129,7 +129,7 @@ export function ConfigureTemplateModal(props: ConfigureTemplateModalProps) {
               </div>
               <SheetPreview data={sheet} />
               <FieldMapper
-                label="Código (SKU)"
+                label="Código do produto"
                 help="Coluna com o código do produto na fábrica."
                 headers={sheet.headers}
                 choice={mapping.sku}

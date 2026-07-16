@@ -17,6 +17,7 @@ export const UPDATE_COMPANY_FACTORY_MUTATION = gql`
         territory
         contractStart
         contractEnd
+        ipiInOrder
       }
     }
   }

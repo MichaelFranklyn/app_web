@@ -17,6 +17,7 @@ import { EditOrderModal } from "../../../../_components/EditOrderModal";
 import { UPDATE_ORDER_FROM_FACTORY_MUTATION } from "../../../../_components/EditOrderModal";
 import { AddOrderModal } from "./AddOrderModal";
 import { DeleteOrderModal } from "./DeleteOrderModal";
+import { ImportOrderModal } from "./ImportOrderModal";
 import { FACTORY_ORDERS_QUERY } from "./gql";
 
 interface Order {
@@ -92,6 +93,7 @@ export function OrdersTab({ factoryId }: Props) {
           />
         </Table.CardHead.Title>
         <Table.CardHead.Actions data-tour="factory-orders-actions">
+          <ImportOrderModal factoryId={factoryId} onChanged={() => refetch()} />
           <AddOrderModal factoryId={factoryId} />
         </Table.CardHead.Actions>
       </Table.CardHead>
