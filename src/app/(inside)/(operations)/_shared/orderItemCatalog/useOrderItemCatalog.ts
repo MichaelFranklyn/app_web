@@ -1,10 +1,11 @@
 import { useQuery } from "@apollo/client/react";
-import { useEffect, useMemo } from "react";
+import { useMemo } from "react";
 
 import { SelectOption } from "@/components/Input";
 
 import {
   ORDER_ITEM_COMPANY_FACTORIES_QUERY,
+  ORDER_ITEM_LINKED_TIER_QUERY,
   ORDER_ITEM_PRICE_LIST_ITEMS_QUERY,
   ORDER_ITEM_PRICE_LISTS_QUERY,
   ORDER_ITEM_PRODUCTS_QUERY,
@@ -12,12 +13,21 @@ import {
 } from "./gql";
 import {
   CompanyFactoriesData,
+  LinkedTierData,
+  PriceListItemNode,
   PriceListItemsData,
   PriceListsData,
+  ProductNode,
   ProductsData,
   TiersData,
 } from "./interface";
-import { priceKey } from "./utils";
+import { useAllPages } from "./useAllPages";
+import { IPI_RULE_NAME, priceKey } from "./utils";
+
+// Seletores no módulo: `useAllPages` os usa na dep list do efeito, então
+// precisam ser estáveis entre renders.
+const selectProducts = (data: ProductsData) => data?.products;
+const selectPriceListItems = (data: PriceListItemsData) => data?.priceListItems;
 
 export interface OrderItemCatalog {
   productOptions: SelectOption[];
@@ -34,6 +44,12 @@ export interface OrderItemCatalog {
   unitNameByProduct: Map<string, string>;
   /** Múltiplo de venda por produto, em UNIDADES (saleMultiple × unitPerPack; 0 = sem múltiplo). */
   saleMultipleByProduct: Map<string, number>;
+  /** Alíquota de IPI (%) vinculada ao produto; ausente = produto sem IPI. */
+  ipiRateByProduct: Map<string, number>;
+  /** Níveis que têm preço na tabela ativa, por produto (na ordem de `tierOptions`). */
+  pricedTiersByProduct: Map<string, string[]>;
+  /** Nível acordado no vínculo deste cliente com esta fábrica; null se não houver. */
+  linkedTierId: string | null;
 }
 
 /**
@@ -78,7 +94,8 @@ export function useCompanyFactoryId(
  */
 export function useOrderItemCatalog(
   open: boolean,
-  factoryId: string | null
+  factoryId: string | null,
+  clientId?: string | null
 ): OrderItemCatalog {
   // 1) Localiza o company_factory da fábrica deste pedido.
   const companyFactoryNode = useCompanyFactoryNode(open, factoryId);
@@ -100,27 +117,12 @@ export function useOrderItemCatalog(
   );
 
   // 2) Todos os produtos da fábrica (catálogo completo, não só os com preço).
-  const { data: productsData, fetchMore: fetchMoreProducts } =
-    useQuery<ProductsData>(ORDER_ITEM_PRODUCTS_QUERY, {
-      variables: { input: byCompanyFactory },
-      skip: !open || !companyFactoryId,
-    });
-
-  // Catálogos reais passam do `first` de uma página: segue buscando e
-  // concatenando até a última página, senão produtos ficam fora do select.
-  useEffect(() => {
-    const page = productsData?.products.pageInfo;
-    if (!page?.hasNextPage || !page.endCursor) return;
-    fetchMoreProducts({
-      variables: { input: { ...byCompanyFactory, after: page.endCursor } },
-      updateQuery: (prev, { fetchMoreResult }) => ({
-        products: {
-          ...fetchMoreResult.products,
-          edges: [...prev.products.edges, ...fetchMoreResult.products.edges],
-        },
-      }),
-    });
-  }, [productsData, fetchMoreProducts, byCompanyFactory]);
+  // Catálogos reais passam de uma página — `useAllPages` varre até o fim.
+  const { nodes: products } = useAllPages<ProductNode, ProductsData>(
+    ORDER_ITEM_PRODUCTS_QUERY,
+    open && companyFactoryId ? byCompanyFactory : null,
+    selectProducts
+  );
 
   // 3) Todos os níveis comerciais da fábrica.
   const { data: tiersData } = useQuery<TiersData>(ORDER_ITEM_TIERS_QUERY, {
@@ -170,34 +172,15 @@ export function useOrderItemCatalog(
     [activePriceListId]
   );
 
-  const { data: itemsData, fetchMore: fetchMoreItems } =
-    useQuery<PriceListItemsData>(ORDER_ITEM_PRICE_LIST_ITEMS_QUERY, {
-      variables: { input: itemsInput },
-      skip: !open || !activePriceListId,
-    });
-
-  // A tabela tem produtos × níveis linhas (milhares num catálogo real): pagina
-  // até o fim, senão parte dos produtos fica sem preço sugerido ao digitar.
-  useEffect(() => {
-    const page = itemsData?.priceListItems.pageInfo;
-    if (!page?.hasNextPage || !page.endCursor) return;
-    fetchMoreItems({
-      variables: { input: { ...itemsInput, after: page.endCursor } },
-      updateQuery: (prev, { fetchMoreResult }) => ({
-        priceListItems: {
-          ...fetchMoreResult.priceListItems,
-          edges: [
-            ...prev.priceListItems.edges,
-            ...fetchMoreResult.priceListItems.edges,
-          ],
-        },
-      }),
-    });
-  }, [itemsData, fetchMoreItems, itemsInput]);
-
-  const products = useMemo(
-    () => productsData?.products.edges.map((e) => e.node) ?? [],
-    [productsData]
+  // A tabela tem produtos × níveis linhas (1728 numa fábrica real): varre até o
+  // fim, senão parte dos produtos fica sem preço sugerido.
+  const { nodes: priceItems } = useAllPages<
+    PriceListItemNode,
+    PriceListItemsData
+  >(
+    ORDER_ITEM_PRICE_LIST_ITEMS_QUERY,
+    open && activePriceListId ? itemsInput : null,
+    selectPriceListItems
   );
 
   const productOptions = useMemo<SelectOption[]>(
@@ -220,11 +203,36 @@ export function useOrderItemCatalog(
     [tiersData]
   );
 
+  // 6) Nível acordado no vínculo deste cliente com esta fábrica. É o padrão do
+  // item; sem ele o vendedor teria de escolher o nível a cada item só para o
+  // preço aparecer. Pode não existir em vínculos antigos.
+  const { data: linkedTierData } = useQuery<LinkedTierData>(
+    ORDER_ITEM_LINKED_TIER_QUERY,
+    {
+      variables: {
+        input: {
+          first: 1,
+          filters: [
+            { field: "client_id", operator: "eq", value: clientId },
+            { field: "factory_id", operator: "eq", value: factoryId },
+          ],
+        },
+      },
+      skip: !open || !clientId || !factoryId,
+    }
+  );
+
+  // O nível do vínculo é uma conveniência: se a query falhar ou o vínculo não
+  // tiver nível, o item segue sem sugestão em vez de derrubar a tela.
+  const linkedTierId =
+    linkedTierData?.sellerClientFactoryList?.edges?.[0]?.node.priceTierId ??
+    null;
+
   // Mapa de preço sugerido por produto+nível (da tabela ativa), POR UNIDADE:
   // a tabela guarda o preço da embalagem fechada, o pedido trabalha em peças.
   const priceMap = useMemo(() => {
     const map = new Map<string, number>();
-    (itemsData?.priceListItems.edges ?? []).forEach(({ node }) => {
+    priceItems.forEach((node) => {
       if (node.product && node.tier) {
         const perPack = Number(node.product.unitPerPack) || 1;
         map.set(
@@ -234,7 +242,40 @@ export function useOrderItemCatalog(
       }
     });
     return map;
-  }, [itemsData]);
+  }, [priceItems]);
+
+  // Níveis que têm preço para cada produto, na ordem de `tierOptions`. Serve
+  // para escolher o nível sozinho quando o produto só é vendido em um deles.
+  const pricedTiersByProduct = useMemo(() => {
+    const map = new Map<string, string[]>();
+    tierOptions.forEach(({ value: tierId }) => {
+      products.forEach((p) => {
+        if (!priceMap.has(priceKey(p.id, tierId))) return;
+        const tiers = map.get(p.id);
+        if (tiers) tiers.push(tierId);
+        else map.set(p.id, [tierId]);
+      });
+    });
+    return map;
+  }, [products, tierOptions, priceMap]);
+
+  // IPI vinculado ao produto (import da tabela, modelo de pedido ou cadastro
+  // manual). Só a regra "IPI" com cálculo por alíquota — ST/ICMS entram no
+  // preço da tabela, não como imposto do item.
+  const ipiRateByProduct = useMemo(() => {
+    const map = new Map<string, number>();
+    products.forEach((p) => {
+      const ipi = p.taxes?.find(
+        (t) =>
+          t.taxRule?.name.toUpperCase() === IPI_RULE_NAME &&
+          t.calcType === "RATE"
+      );
+      if (!ipi) return;
+      const rate = parseFloat(ipi.rate);
+      if (rate > 0) map.set(p.id, rate);
+    });
+    return map;
+  }, [products]);
 
   const unitNameByProduct = useMemo(() => {
     const map = new Map<string, string>();
@@ -263,5 +304,8 @@ export function useOrderItemCatalog(
     priceMap,
     unitNameByProduct,
     saleMultipleByProduct,
+    ipiRateByProduct,
+    pricedTiersByProduct,
+    linkedTierId,
   };
 }

@@ -66,7 +66,7 @@ export function useAddClientOrder(clientId: string) {
   const [factoryId, setFactoryId] = useState("");
   const [orderDetails, setOrderDetails] = useState<OrderDetails | null>(null);
 
-  const draft = useOrderDraftItems(open, factoryId);
+  const draft = useOrderDraftItems(open, factoryId, clientId);
   const paymentTermOptions = usePaymentTermOptions(open, factoryId || null);
 
   const { data: assignmentsData } = useQuery<AssignmentsData>(

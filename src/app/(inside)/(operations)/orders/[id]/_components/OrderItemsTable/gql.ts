@@ -13,6 +13,8 @@ export const ORDER_ITEMS_QUERY = gql`
           subtotal
           ipiRate
           ipiAmount
+          taxAmount
+          unitPriceWithTax
           avgShelfDays
           source
           product {
@@ -21,6 +23,14 @@ export const ORDER_ITEMS_QUERY = gql`
             sku
             saleMultiple
             unitPerPack
+            taxes {
+              id
+              rate
+              taxRule {
+                id
+                name
+              }
+            }
           }
           tier {
             id
@@ -48,6 +58,8 @@ export const CREATE_ORDER_ITEM_MUTATION = gql`
         subtotal
         ipiRate
         ipiAmount
+        taxAmount
+        unitPriceWithTax
         source
         product {
           id
@@ -55,6 +67,14 @@ export const CREATE_ORDER_ITEM_MUTATION = gql`
           sku
           saleMultiple
           unitPerPack
+          taxes {
+            id
+            rate
+            taxRule {
+              id
+              name
+            }
+          }
         }
         tier {
           id
@@ -80,6 +100,8 @@ export const UPDATE_ORDER_ITEM_MUTATION = gql`
         subtotal
         ipiRate
         ipiAmount
+        taxAmount
+        unitPriceWithTax
       }
     }
   }

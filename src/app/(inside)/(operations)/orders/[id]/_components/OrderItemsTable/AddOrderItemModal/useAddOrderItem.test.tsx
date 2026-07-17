@@ -13,10 +13,14 @@ import {
 } from "../../../../../_shared/orderItemCatalog";
 import { AddOrderItemModalProps, useAddOrderItem } from "./useAddOrderItem";
 
+// Níveis são uma query simples (cabem numa página) → sem `after`.
 const byCF = {
   first: 1000,
   filters: [{ field: "company_factory_id", operator: "eq", value: "cf-1" }],
 };
+
+// Produtos passam por `useAllPages`, que manda `after` explícito (null na 1ª).
+const byCFPaged = { ...byCF, after: null };
 
 const mocks: MockLink.MockedResponse[] = [
   {
@@ -27,13 +31,18 @@ const mocks: MockLink.MockedResponse[] = [
     result: {
       data: {
         companyFactories: {
-          edges: [{ node: { id: "cf-1", factoryId: "fac-1" } }],
+          edges: [
+            { node: { id: "cf-1", factoryId: "fac-1", ipiInOrder: false } },
+          ],
         },
       },
     },
   },
   {
-    request: { query: ORDER_ITEM_PRODUCTS_QUERY, variables: { input: byCF } },
+    request: {
+      query: ORDER_ITEM_PRODUCTS_QUERY,
+      variables: { input: byCFPaged },
+    },
     result: {
       data: {
         products: {
@@ -46,9 +55,23 @@ const mocks: MockLink.MockedResponse[] = [
                 saleMultiple: null,
                 unitPerPack: "5.0000",
                 unit: { id: "u1", label: "Peça" },
+                taxes: [],
+              },
+            },
+            {
+              // Fora da tabela de preço: nenhum nível tem preço para ele.
+              node: {
+                id: "prod-2",
+                name: "Produto 2",
+                sku: "S2",
+                saleMultiple: null,
+                unitPerPack: "1.0000",
+                unit: { id: "u1", label: "Peça" },
+                taxes: [],
               },
             },
           ],
+          pageInfo: { hasNextPage: false, endCursor: null },
         },
       },
     },
@@ -98,6 +121,7 @@ const mocks: MockLink.MockedResponse[] = [
         input: {
           first: 1000,
           filters: [{ field: "price_list_id", operator: "eq", value: "pl-1" }],
+          after: null,
         },
       },
     },
@@ -125,6 +149,7 @@ const mocks: MockLink.MockedResponse[] = [
               },
             },
           ],
+          pageInfo: { hasNextPage: false, endCursor: null },
         },
       },
     },
@@ -173,7 +198,7 @@ describe("useAddOrderItem — sugestão de preço", () => {
 
     // produtos e níveis já carregaram, mas os itens de preço ainda não (delay)
     await waitFor(() => {
-      expect(findField("productId").options?.length).toBe(1);
+      expect(findField("productId").options?.length).toBe(2);
       expect(findField("tierId").options?.length).toBe(1);
     });
 
@@ -194,7 +219,7 @@ describe("useAddOrderItem — sugestão de preço", () => {
     });
   });
 
-  it("não sugere preço para combinação produto+nível sem entrada na tabela", async () => {
+  it("escolhe sozinho o único nível com preço do produto", async () => {
     render(
       <MockedProvider mocks={mocks}>
         <Harness
@@ -207,20 +232,71 @@ describe("useAddOrderItem — sugestão de preço", () => {
     );
 
     act(() => api.handleClose(true));
-    await waitFor(() => expect(findField("productId").options?.length).toBe(1));
+    await waitFor(() => expect(findField("productId").options?.length).toBe(2));
     // espera a tabela carregar
     await new Promise((r) => setTimeout(r, 100));
 
     const setValue = api.formRef.current!.setValue;
+    // Só o produto: prod-1 tem preço em um único nível, então o nível é
+    // preenchido sozinho e o preço vem junto — sem o vendedor tocar no nível.
     act(() => findField("productId").onChange!({ value: "prod-1" }, setValue));
-    // nível inexistente na tabela → sem preço
-    act(() =>
-      findField("tierId").onChange!({ value: "tier-inexistente" }, setValue)
+
+    await waitFor(() => {
+      expect(api.formRef.current!.getValues().unitPrice).toContain("6,50");
+    });
+  });
+
+  it("abre no nível do último item do pedido", async () => {
+    // Cada abertura do modal é um item novo, então o nível "em uso" do wizard
+    // não existe aqui — quem faz esse papel é o último item já gravado.
+    render(
+      <MockedProvider mocks={mocks}>
+        <Harness
+          orderId="o-1"
+          factoryId="fac-1"
+          lastTierId="tier-1"
+          onAdded={vi.fn()}
+          onRefetch={vi.fn()}
+        />
+      </MockedProvider>
     );
 
-    await new Promise((r) => setTimeout(r, 30));
-    expect(api.formRef.current!.getValues().unitPrice ?? "").not.toContain(
-      "6,50"
+    act(() => api.handleClose(true));
+    await waitFor(() => expect(findField("productId").options?.length).toBe(2));
+    await new Promise((r) => setTimeout(r, 100));
+
+    const setValue = api.formRef.current!.setValue;
+    act(() => findField("productId").onChange!({ value: "prod-1" }, setValue));
+
+    await waitFor(() => {
+      expect(api.formRef.current!.getValues().tierId).toBe("tier-1");
+      expect(api.formRef.current!.getValues().unitPrice).toContain("6,50");
+    });
+  });
+
+  it("deixa o preço vazio em produto sem preço na tabela ativa", async () => {
+    render(
+      <MockedProvider mocks={mocks}>
+        <Harness
+          orderId="o-1"
+          factoryId="fac-1"
+          onAdded={vi.fn()}
+          onRefetch={vi.fn()}
+        />
+      </MockedProvider>
     );
+
+    act(() => api.handleClose(true));
+    await waitFor(() => expect(findField("productId").options?.length).toBe(2));
+    // espera a tabela carregar
+    await new Promise((r) => setTimeout(r, 100));
+
+    const setValue = api.formRef.current!.setValue;
+    // prod-2 não está na tabela: nada a sugerir, o vendedor digita o preço.
+    act(() => findField("productId").onChange!({ value: "prod-2" }, setValue));
+    act(() => findField("tierId").onChange!({ value: "tier-1" }, setValue));
+
+    await new Promise((r) => setTimeout(r, 30));
+    expect(api.formRef.current!.getValues().unitPrice ?? "").toBe("");
   });
 });

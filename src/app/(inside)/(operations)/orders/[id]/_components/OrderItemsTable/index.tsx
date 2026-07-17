@@ -10,6 +10,7 @@ import { useQuery } from "@apollo/client/react";
 import { Package } from "lucide-react";
 import { useMemo } from "react";
 import { OrderItem, OrderItemsResponse } from "../../interface";
+import { taxRatesLabel } from "../../utils";
 import { AddOrderItemModal } from "./AddOrderItemModal";
 import { DeleteOrderItemModal } from "./DeleteOrderItemModal";
 import { EditOrderItemModal } from "./EditOrderItemModal";
@@ -19,6 +20,8 @@ import { ORDER_ITEMS_QUERY } from "./gql";
 interface Props {
   orderId: string;
   factoryId: string | null;
+  /** Cliente do pedido: define o nível acordado que sugere o preço do item. */
+  clientId?: string | null;
   /** Fábrica cobra IPI no pedido: exibe a alíquota por item e o IPI nos totais. */
   ipiInOrder?: boolean;
   /** Atualiza o detalhe do pedido (totais) após mudanças nos itens. */
@@ -28,6 +31,7 @@ interface Props {
 export function OrderItemsTable({
   orderId,
   factoryId,
+  clientId,
   ipiInOrder = false,
   onOrderChanged,
 }: Props) {
@@ -45,7 +49,23 @@ export function OrderItemsTable({
   const { items, addOptimistic, updateOptimistic, removeOptimistic, rollback } =
     useOptimisticList<OrderItem>({ initialData: serverItems });
 
-  const columns = ipiInOrder ? 8 : 7;
+  // Produto, Tabela, Qtd, Preço sem imposto, Preço com imposto, Desconto,
+  // Imposto, Subtotal, Ações — mais Alíq. IPI nas fábricas com IPI no pedido.
+  const columns = ipiInOrder ? 10 : 9;
+
+  // O mesmo produto não entra duas vezes no pedido.
+  const existingProductIds = useMemo(
+    () =>
+      items.map((item) => item.product?.id).filter((id): id is string => !!id),
+    [items]
+  );
+
+  // Nível do último item: o próximo abre nele, como o wizard mantém o nível
+  // entre itens. Itens com preço manual não têm nível — ignora esses.
+  const lastTierId = useMemo(
+    () => items.filter((item) => item.tier).at(-1)?.tier?.id ?? null,
+    [items]
+  );
 
   const handleRefetch = () => {
     refetch();
@@ -73,7 +93,10 @@ export function OrderItemsTable({
           <AddOrderItemModal
             orderId={orderId}
             factoryId={factoryId}
+            clientId={clientId}
             ipiInOrder={ipiInOrder}
+            existingProductIds={existingProductIds}
+            lastTierId={lastTierId}
             onAdded={addOptimistic}
             onRefetch={handleRefetch}
           />
@@ -86,9 +109,11 @@ export function OrderItemsTable({
             <Table.Head>Produto</Table.Head>
             <Table.Head>Tabela</Table.Head>
             <Table.Head>Qtd (unidades)</Table.Head>
-            <Table.Head>Preço/unidade</Table.Head>
+            <Table.Head>Preço sem imposto</Table.Head>
+            <Table.Head>Preço com imposto</Table.Head>
             <Table.Head>Desconto</Table.Head>
             {ipiInOrder && <Table.Head>Alíq. IPI</Table.Head>}
+            <Table.Head>Imposto</Table.Head>
             <Table.Head>Subtotal{ipiInOrder ? " (sem IPI)" : ""}</Table.Head>
             <Table.Head className="text-right">Ações</Table.Head>
           </Table.Row>
@@ -134,6 +159,9 @@ export function OrderItemsTable({
                 <Table.Cell variant="dim">
                   {formatMoney(item.unitPrice)}
                 </Table.Cell>
+                <Table.Cell variant="strong">
+                  {formatMoney(item.unitPriceWithTax)}
+                </Table.Cell>
                 <Table.Cell variant="dim">
                   {parseFloat(item.discount) > 0
                     ? formatMoney(item.discount)
@@ -155,6 +183,20 @@ export function OrderItemsTable({
                     )}
                   </Table.Cell>
                 )}
+                <Table.Cell variant="dim">
+                  {parseFloat(item.taxAmount) > 0 ? (
+                    <div className="flex flex-col">
+                      <Table.CellText variant="strong">
+                        {taxRatesLabel(item.product?.taxes, formatNumber)}
+                      </Table.CellText>
+                      <Table.CellText variant="dim2">
+                        {formatMoney(item.taxAmount)}
+                      </Table.CellText>
+                    </div>
+                  ) : (
+                    "—"
+                  )}
+                </Table.Cell>
                 <Table.Cell variant="strong">
                   {formatMoney(item.subtotal)}
                 </Table.Cell>

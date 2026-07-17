@@ -18,6 +18,8 @@ import { TaxMapper } from "./TaxMapper";
 
 interface StepTaxesProps {
   headers: string[];
+  /** Fábrica cobra o IPI no pedido: a coluna é importada, mas fica fora do preço. */
+  ipiInOrder: boolean;
   ipiChoice: ColumnChoice;
   onIpiChoice: (choice: ColumnChoice) => void;
   ipiAsFraction: boolean;
@@ -33,6 +35,7 @@ interface StepTaxesProps {
 
 export function StepTaxes({
   headers,
+  ipiInOrder,
   ipiChoice,
   onIpiChoice,
   ipiAsFraction,
@@ -76,9 +79,23 @@ export function StepTaxes({
           </Card.Header.Actions>
         </Card.Header>
         <Card.Body padding="compact" className="flex flex-col gap-12">
+          {ipiInOrder && (
+            <div className="rounded-md border border-(--border) bg-(--bg2) p-12">
+              <Title variant="caption" color="secondary">
+                Esta fábrica cobra o IPI no pedido, não na tabela. Mapeie a
+                coluna assim mesmo: o IPI fica guardado em cada produto e é
+                trazido sozinho ao montar o pedido. O preço da tabela continua
+                sem IPI.
+              </Title>
+            </div>
+          )}
           <FieldMapper
             label="Coluna do IPI"
-            help="Alíquota de IPI de cada produto, gravada como imposto do produto."
+            help={
+              ipiInOrder
+                ? "Alíquota de IPI de cada produto. Gravada no produto e usada no pedido; não entra no preço da tabela."
+                : "Alíquota de IPI de cada produto, gravada como imposto do produto."
+            }
             headers={headers}
             choice={ipiChoice}
             onChange={onIpiChoice}

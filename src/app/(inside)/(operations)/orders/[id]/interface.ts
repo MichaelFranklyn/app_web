@@ -68,6 +68,13 @@ export interface OrderItemsResponse {
   };
 }
 
+/** Imposto vinculado ao produto; `rate` é percentual (3.25 = 3,25%). */
+export interface OrderItemProductTax {
+  id: string;
+  rate: string;
+  taxRule: { id: string; name: string } | null;
+}
+
 export interface OrderItem {
   id: string;
   quantity: string;
@@ -77,6 +84,10 @@ export interface OrderItem {
   subtotal: string;
   ipiRate: string;
   ipiAmount: string;
+  /** Imposto da linha (informativo): já embutido no preço, fora do total. */
+  taxAmount: string;
+  /** Preço unitário COM imposto; igual a unitPrice em produto sem imposto. */
+  unitPriceWithTax: string;
   avgShelfDays: number | null;
   source: "MANUAL" | "IMPORTED" | "TEMPLATE";
   product: {
@@ -85,6 +96,7 @@ export interface OrderItem {
     sku: string;
     saleMultiple: string | null;
     unitPerPack: string;
+    taxes: OrderItemProductTax[];
   } | null;
   tier: { id: string; name: string } | null;
 }

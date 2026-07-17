@@ -1365,6 +1365,19 @@ type OrderItemType {
   ipiRate: Decimal!
   """Valor do IPI do item (= subtotal × ipiRate/100)."""
   ipiAmount: Decimal!
+  """
+  Imposto da linha derivado dos impostos do PRODUTO (IPI/ST/ICMS da tabela de
+  preço). INFORMATIVO: já está embutido no preço, então não entra no total do
+  pedido nem na comissão. Nas fábricas com IPI no pedido, o IPI não entra aqui
+  — sai em `ipiAmount`.
+  """
+  taxAmount: Decimal!
+  """
+  Preço unitário COM imposto (o que o cliente paga por unidade), calculado
+  sobre o `unitPrice` congelado no item. Igual a `unitPrice` quando o produto
+  não tem imposto. INFORMATIVO, pelo mesmo motivo de `taxAmount`.
+  """
+  unitPriceWithTax: Decimal!
   avgShelfDays: Int
   source: OrderItemSource!
   createdAt: DateTime!

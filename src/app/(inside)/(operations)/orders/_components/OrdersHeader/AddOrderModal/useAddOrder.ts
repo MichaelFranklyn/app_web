@@ -76,12 +76,15 @@ export function useAddOrder({ onAddOptimistic }: AddOrderModalProps) {
   // Seleção em cascata: vendedor → fábrica → cliente.
   const [sellerId, setSellerId] = useState("");
   const [factoryId, setFactoryId] = useState("");
+  // O cliente também é estado (não só campo do form) porque o passo 2 usa o
+  // nível acordado com ele para sugerir o preço dos itens.
+  const [clientId, setClientId] = useState("");
   // Dados validados do passo 1, usados ao criar o pedido no passo 2.
   const [orderDetails, setOrderDetails] = useState<CreateOrderInput | null>(
     null
   );
 
-  const draft = useOrderDraftItems(open, factoryId);
+  const draft = useOrderDraftItems(open, factoryId, clientId);
   const paymentTermOptions = usePaymentTermOptions(open, factoryId || null);
 
   const { data: sellersData } = useQuery<SellersOptionsData>(
@@ -171,6 +174,7 @@ export function useAddOrder({ onAddOptimistic }: AddOrderModalProps) {
                 onChange: (value, setValue) => {
                   setSellerId(extractSelectValue(value));
                   setFactoryId("");
+                  setClientId("");
                   setValue("factoryId", "");
                   setValue("clientId", "");
                 },
@@ -187,6 +191,7 @@ export function useAddOrder({ onAddOptimistic }: AddOrderModalProps) {
                 options: factoryOptions,
                 onChange: (value, setValue) => {
                   setFactoryId(extractSelectValue(value));
+                  setClientId("");
                   setValue("clientId", "");
                   // Condições de pagamento são da fábrica: trocar de fábrica
                   // invalida a escolhida.
@@ -203,6 +208,7 @@ export function useAddOrder({ onAddOptimistic }: AddOrderModalProps) {
                 required: true,
                 disabled: !factoryId,
                 options: clientOptions,
+                onChange: (value) => setClientId(extractSelectValue(value)),
               },
               {
                 name: "orderDate",
@@ -264,6 +270,7 @@ export function useAddOrder({ onAddOptimistic }: AddOrderModalProps) {
       setStep(0);
       setSellerId("");
       setFactoryId("");
+      setClientId("");
       setOrderDetails(null);
       draft.reset();
     }

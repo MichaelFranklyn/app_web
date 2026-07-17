@@ -59,6 +59,7 @@ export default function OrderDetailContent({ id }: Props) {
             <OrderItemsTable
               orderId={order.id}
               factoryId={order.factory?.id ?? null}
+              clientId={order.client?.id ?? null}
               ipiInOrder={order.ipiInOrder}
               onOrderChanged={() => refetch()}
             />

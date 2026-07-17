@@ -1,4 +1,4 @@
-import { downloadCSV, parseCSV } from "@/utils/format/csv";
+import { downloadSheet } from "@/utils/import/writer";
 
 import { ImportClientRow } from "./interface";
 
@@ -7,6 +7,9 @@ import { ImportClientRow } from "./interface";
  * leitura do arquivo enviado — manter sincronizado com `rowToInput`. Os demais
  * dados do cliente são preenchidos automaticamente via Receita Federal a partir
  * do CNPJ, então a planilha só pede CNPJ + observações internas (opcional).
+ *
+ * Espelha o `ImportCompanyClientRowInput` do backend: cnpj (obrigatório) e
+ * notes (opcional).
  */
 const EXAMPLE_HEADERS = ["CNPJ", "Observações"];
 
@@ -15,12 +18,12 @@ const EXAMPLE_ROWS = [
   ["11.222.333/0001-81", "Cliente indicado pela fábrica"],
 ];
 
-export const downloadExampleSheet = (): void => {
-  downloadCSV("modelo-importacao-clientes.csv", [
-    EXAMPLE_HEADERS,
-    ...EXAMPLE_ROWS,
-  ]);
-};
+export const downloadExampleSheet = (): Promise<void> =>
+  downloadSheet(
+    "modelo-importacao-clientes.xlsx",
+    [EXAMPLE_HEADERS, ...EXAMPLE_ROWS],
+    "Clientes"
+  );
 
 const rowToInput = (cells: string[]): ImportClientRow => {
   const notes = (cells[1] ?? "").trim();
@@ -31,11 +34,11 @@ const rowToInput = (cells: string[]): ImportClientRow => {
 };
 
 /**
- * Lê o conteúdo de um CSV e converte em linhas prontas para a mutation.
- * Descarta a primeira linha (cabeçalho). Lança erro se não houver dados.
+ * Converte a matriz de células do arquivo (xlsx ou csv, já lido) em linhas
+ * prontas para a mutation. Descarta a primeira linha (cabeçalho). Lança erro se
+ * não houver dados.
  */
-export const parseClientsFile = (text: string): ImportClientRow[] => {
-  const matrix = parseCSV(text);
+export const parseClientsRows = (matrix: string[][]): ImportClientRow[] => {
   const dataRows = matrix.slice(1);
 
   if (dataRows.length === 0) {

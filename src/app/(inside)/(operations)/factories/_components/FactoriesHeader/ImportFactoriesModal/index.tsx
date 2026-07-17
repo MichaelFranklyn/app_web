@@ -15,7 +15,9 @@ import { useInvalidateQueriesClient } from "@/hooks/useInvalidateQueries";
 import { IMPORT_COMPANY_FACTORIES_MUTATION } from "./gql";
 import { ImportSummary } from "./ImportSummary";
 import { ImportCompanyFactoriesResponse, ImportResult } from "./interface";
-import { downloadExampleSheet, parseFactoriesFile } from "./utils";
+import { readSpreadsheet } from "@/utils/import/reader";
+
+import { downloadExampleSheet, parseFactoriesRows } from "./utils";
 
 export function ImportFactoriesModal() {
   const [open, setOpen] = useState(false);
@@ -42,7 +44,7 @@ export function ImportFactoriesModal() {
 
     await execute(
       async () => {
-        const rows = parseFactoriesFile(await file.text());
+        const rows = parseFactoriesRows(await readSpreadsheet(file));
         const res = await importFactories({ variables: { input: { rows } } });
 
         const payload = res.data?.importCompanyFactories;
@@ -83,7 +85,7 @@ export function ImportFactoriesModal() {
       <Modal.Content size="md">
         <Modal.Header
           title="Importar fábricas"
-          description="Envie uma planilha CSV para vincular várias fábricas de uma vez. Cada linha vira um vínculo com seus termos comerciais."
+          description="Envie uma planilha do Excel para vincular várias fábricas de uma vez. Cada linha vira um vínculo com seus termos comerciais."
         />
 
         <Modal.Body className="flex flex-col gap-16">
@@ -111,8 +113,8 @@ export function ImportFactoriesModal() {
 
           <Input.Archive
             variant="single"
-            accept=".csv,text/csv"
-            hint="Apenas arquivos .csv"
+            accept=".xlsx,.xls,.csv"
+            hint="Planilha do Excel (.xlsx) ou .csv"
             value={file ? [file] : []}
             onChange={(files) => {
               setResult(null);

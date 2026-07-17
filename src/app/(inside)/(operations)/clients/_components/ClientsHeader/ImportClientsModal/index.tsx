@@ -13,10 +13,12 @@ import { useAsyncAction } from "@/hooks/useAsyncAction";
 import { useInvalidateQueriesClient } from "@/hooks/useInvalidateQueries";
 import { invalidateCacheMany } from "@/services/graphql/actions";
 
+import { readSpreadsheet } from "@/utils/import/reader";
+
 import { IMPORT_COMPANY_CLIENTS_MUTATION } from "./gql";
 import { ImportSummary } from "./ImportSummary";
 import { ImportCompanyClientsResponse, ImportResult } from "./interface";
-import { downloadExampleSheet, parseClientsFile } from "./utils";
+import { downloadExampleSheet, parseClientsRows } from "./utils";
 
 export function ImportClientsModal() {
   const [open, setOpen] = useState(false);
@@ -43,7 +45,7 @@ export function ImportClientsModal() {
 
     await execute(
       async () => {
-        const rows = parseClientsFile(await file.text());
+        const rows = parseClientsRows(await readSpreadsheet(file));
         const res = await importClients({ variables: { input: { rows } } });
 
         const payload = res.data?.importCompanyClients;
@@ -87,7 +89,7 @@ export function ImportClientsModal() {
       <Modal.Content size="md">
         <Modal.Header
           title="Importar clientes"
-          description="Envie uma planilha CSV com os CNPJs para adicionar vários clientes de uma vez. Os demais dados são preenchidos automaticamente via Receita Federal."
+          description="Envie uma planilha do Excel com os CNPJs para adicionar vários clientes de uma vez. Os demais dados são preenchidos automaticamente via Receita Federal."
         />
 
         <Modal.Body className="flex flex-col gap-16">
@@ -115,8 +117,8 @@ export function ImportClientsModal() {
 
           <Input.Archive
             variant="single"
-            accept=".csv,text/csv"
-            hint="Apenas arquivos .csv"
+            accept=".xlsx,.xls,.csv"
+            hint="Planilha do Excel (.xlsx) ou .csv"
             value={file ? [file] : []}
             onChange={(files) => {
               setResult(null);

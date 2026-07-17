@@ -248,6 +248,12 @@ export function useOrderImportWizard({
         tierId: r.tierId,
         quantity: parseNumber(r.quantity),
         unitPrice: parseNumber(r.unitPrice),
+        // Sempre 0, de propósito: no import o preço vem do arquivo da fábrica,
+        // que já é o preço negociado — o desconto costuma estar embutido nele, e
+        // aplicar outro por cima descontaria duas vezes. A revisão não pede
+        // desconto; quem precisar ajusta no item, no detalhe do pedido (lá o
+        // desconto aceita % ou R$). O input do backend aceita `discount`, então
+        // a coluna existe se um dia a planilha trouxer o desconto separado.
         discount: 0,
         ipiRate: ipiInOrder ? parseNumber(r.ipiRate) || 0 : 0,
         sku: r.candidate.rawSku,

@@ -23,19 +23,34 @@ export interface PriceListsData {
   };
 }
 
+/** Imposto vinculado ao produto; `rate` é percentual (3.25 = 3,25%). */
+export interface ProductTaxRef {
+  id: string;
+  rate: string;
+  calcType: "RATE" | "ST_MVA";
+  taxRule: { id: string; name: string } | null;
+}
+
+export interface ProductNode {
+  id: string;
+  name: string;
+  sku: string | null;
+  saleMultiple: string | null;
+  unitPerPack: string;
+  unit: { id: string; label: string } | null;
+  taxes: ProductTaxRef[];
+}
+
 export interface ProductsData {
   products: {
-    edges: {
-      node: {
-        id: string;
-        name: string;
-        sku: string | null;
-        saleMultiple: string | null;
-        unitPerPack: string;
-        unit: { id: string; label: string } | null;
-      };
-    }[];
+    edges: { node: ProductNode }[];
     pageInfo: ConnectionPageInfo;
+  };
+}
+
+export interface LinkedTierData {
+  sellerClientFactoryList: {
+    edges: { node: { id: string; priceTierId: string | null } }[];
   };
 }
 
@@ -45,22 +60,22 @@ export interface TiersData {
   };
 }
 
+export interface PriceListItemNode {
+  id: string;
+  unitPrice: string;
+  product: {
+    id: string;
+    name: string;
+    sku: string;
+    saleMultiple: string | null;
+    unitPerPack: string;
+  } | null;
+  tier: { id: string; name: string } | null;
+}
+
 export interface PriceListItemsData {
   priceListItems: {
-    edges: {
-      node: {
-        id: string;
-        unitPrice: string;
-        product: {
-          id: string;
-          name: string;
-          sku: string;
-          saleMultiple: string | null;
-          unitPerPack: string;
-        } | null;
-        tier: { id: string; name: string } | null;
-      };
-    }[];
+    edges: { node: PriceListItemNode }[];
     pageInfo: ConnectionPageInfo;
   };
 }

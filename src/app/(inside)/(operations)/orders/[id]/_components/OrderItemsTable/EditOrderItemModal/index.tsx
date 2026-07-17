@@ -8,10 +8,16 @@ import {
 } from "@/components/FormBuilder";
 import { Modal } from "@/components/Modal";
 import { useAsyncAction } from "@/hooks/useAsyncAction";
+import { extractSelectValue } from "@/utils/form";
 import { maskCurrency, parseMoneyToNumber } from "@/utils/format/masks";
 import { useMutation } from "@apollo/client/react";
 import { Pencil } from "lucide-react";
 import { useMemo, useRef, useState } from "react";
+import {
+  DISCOUNT_TYPE_OPTIONS,
+  DiscountType,
+  discountToAmount,
+} from "../../../../../_shared/orderDraftItems";
 import { isQuantityMultiple } from "../../../../../_shared/orderItemCatalog";
 import { OrderItem } from "../../../interface";
 import { UPDATE_ORDER_ITEM_MUTATION } from "../gql";
@@ -41,6 +47,7 @@ export function EditOrderItemModal({
 }: Props) {
   const [open, setOpen] = useState(false);
   const formRef = useRef<FormBuilderRef>(null);
+  const [discountType, setDiscountType] = useState<DiscountType>("VALUE");
 
   const [updateOrderItem] = useMutation<UpdateOrderItemResponse>(
     UPDATE_ORDER_ITEM_MUTATION
@@ -80,10 +87,34 @@ export function EditOrderItemModal({
                   : "Em unidades (peças), não em embalagens.",
               },
               {
+                name: "discountType",
+                type: "select-single",
+                label: "Tipo de desconto",
+                // Sem escolha, o desconto é em reais — o placeholder diz isso
+                // em vez de deixar o campo em branco.
+                placeholder: "R$ (valor)",
+                options: DISCOUNT_TYPE_OPTIONS,
+                onChange: (_value) => {
+                  setDiscountType(
+                    extractSelectValue(_value) === "PERCENT"
+                      ? "PERCENT"
+                      : "VALUE"
+                  );
+                },
+              },
+              {
                 name: "discount",
                 type: "number",
-                label: "Desconto (R$)",
+                label:
+                  discountType === "PERCENT" ? "Desconto (%)" : "Desconto (R$)",
                 placeholder: "0",
+                // O item guarda o desconto em reais; reabrir em % exigiria
+                // gravar o que foi digitado, então a edição parte sempre do
+                // valor e o vendedor troca para % se quiser.
+                hint:
+                  discountType === "PERCENT"
+                    ? "Sobre o valor bruto do item (preço × quantidade)."
+                    : undefined,
               },
               ...(ipiInOrder
                 ? [
@@ -101,12 +132,12 @@ export function EditOrderItemModal({
         ],
       },
     ],
-    [saleMultiple, ipiInOrder]
+    [saleMultiple, ipiInOrder, discountType]
   );
 
   const handleSubmit = async (data: Record<string, unknown>) => {
     const quantity = Number(data.quantity);
-    const discount = Number(data.discount ?? 0) || 0;
+    const rawDiscount = Number(data.discount ?? 0) || 0;
     const ipiRate = ipiInOrder
       ? Number(data.ipiRate ?? 0) || 0
       : Number(item.ipiRate);
@@ -122,6 +153,19 @@ export function EditOrderItemModal({
       throw new Error(
         `Este produto é vendido em múltiplos de ${saleMultiple} unidade(s).`
       );
+    }
+    if (discountType === "PERCENT" && rawDiscount > 100) {
+      throw new Error("O desconto em porcentagem não pode passar de 100%.");
+    }
+    // O backend só conhece desconto em reais: a porcentagem vira valor aqui.
+    const discount = discountToAmount(
+      rawDiscount,
+      discountType,
+      unitPrice,
+      quantity
+    );
+    if (discount > unitPrice * quantity) {
+      throw new Error("O desconto não pode ser maior que o valor do item.");
     }
 
     const subtotal = Math.max(0, quantity * unitPrice - discount);
@@ -160,8 +204,15 @@ export function EditOrderItemModal({
     );
   };
 
+  // Fechar volta o tipo para reais: o select reabre vazio (não está no
+  // initialData), e manter "%" no estado deixaria rótulo e campo discordando.
+  const handleOpenChange = (value: boolean) => {
+    setOpen(value);
+    if (!value) setDiscountType("VALUE");
+  };
+
   return (
-    <Modal.Root open={open} onOpenChange={setOpen}>
+    <Modal.Root open={open} onOpenChange={handleOpenChange}>
       <Modal.Trigger asChild>
         <Button.Root
           appearance="ghost"

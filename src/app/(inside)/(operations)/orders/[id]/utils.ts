@@ -1,4 +1,27 @@
-import { InstallmentStatus } from "./interface";
+import { InstallmentStatus, OrderItemProductTax } from "./interface";
+
+/**
+ * Rótulo das alíquotas do item para a coluna de imposto (ex.: "IPI 3,25% + ST 12%").
+ *
+ * Descarta alíquota zero: a importação da tabela grava 0 nos produtos fora do
+ * regime (coluna vazia/"---" da planilha), e mostrar "ST 0%" em centenas de
+ * linhas só polui. Sem imposto, a coluna mostra "—".
+ *
+ * A alíquota vem do produto e é a nominal já gravada — para ST por MVA é a
+ * mesma que sai na coluna ST da planilha da fábrica, que é o número que o
+ * vendedor reconhece.
+ */
+export const taxRatesLabel = (
+  taxes: OrderItemProductTax[] | undefined,
+  formatNumber: (value: number) => string
+): string => {
+  const applied = (taxes ?? [])
+    .filter((tax) => tax.taxRule && parseFloat(tax.rate) > 0)
+    .map(
+      (tax) => `${tax.taxRule!.name} ${formatNumber(parseFloat(tax.rate))}%`
+    );
+  return applied.length > 0 ? applied.join(" + ") : "—";
+};
 
 /**
  * Extrai o value de um campo select-single do FormBuilder, que devolve o objeto

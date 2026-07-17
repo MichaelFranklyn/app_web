@@ -1,6 +1,6 @@
 "use client";
 
-import { Plus, Trash } from "lucide-react";
+import { Check, Pencil, Plus, Trash, X } from "lucide-react";
 
 import { Button } from "@/components/Button";
 import { Input } from "@/components/Input";
@@ -8,6 +8,7 @@ import { Table } from "@/components/Table";
 import { Title } from "@/components/Title";
 import { maskCurrency, formatMoney } from "@/utils/format/masks";
 
+import { DISCOUNT_TYPE_OPTIONS, discountLabel } from "./utils";
 import { OrderDraftItems } from "./useOrderDraftItems";
 
 interface Props {
@@ -27,12 +28,14 @@ export function StepItems({ draft }: Props) {
     );
   }
 
+  const isEditing = draft.editingIndex !== null;
+
   return (
     <div className="flex flex-col gap-16">
-      {/* Formulário de adição de um item */}
+      {/* Formulário de adição (ou edição) de um item */}
       <div className="flex flex-col gap-8 rounded-(--r-md) border border-(--border) bg-(--bg2) p-16">
         <Title variant="label" weight="bold" className="tracking-normal">
-          Adicionar item
+          {isEditing ? "Editar item" : "Adicionar item"}
         </Title>
 
         <div className="grid grid-cols-12 gap-x-8 gap-y-12">
@@ -68,7 +71,11 @@ export function StepItems({ draft }: Props) {
               placeholder="0,00"
               value={draft.unitPrice}
               onChange={(e) => draft.setUnitPrice(maskCurrency(e.target.value))}
-              hint="Preço de uma unidade, sugerido pela tabela ativa quando há nível. Você pode ajustar."
+              hint={
+                draft.priceMissing
+                  ? "Este produto não tem preço neste nível na tabela ativa. Digite o preço."
+                  : "Preço de uma unidade, sugerido pela tabela ativa. Você pode ajustar."
+              }
             />
           </div>
 
@@ -86,9 +93,26 @@ export function StepItems({ draft }: Props) {
             />
           </div>
 
-          <div className="tablet:col-span-6 col-span-12">
+          <div className="tablet:col-span-3 col-span-6">
+            <Input.Select
+              label="Tipo de desconto"
+              options={DISCOUNT_TYPE_OPTIONS}
+              value={
+                DISCOUNT_TYPE_OPTIONS.find(
+                  (o) => o.value === draft.discountType
+                ) ?? null
+              }
+              onChange={draft.selectDiscountType}
+            />
+          </div>
+
+          <div className="tablet:col-span-3 col-span-6">
             <Input.Number
-              label="Desconto (R$)"
+              label={
+                draft.discountType === "PERCENT"
+                  ? "Desconto (%)"
+                  : "Desconto (R$)"
+              }
               placeholder="0"
               value={draft.discount}
               onChange={(e) => draft.setDiscount(e.target.value)}
@@ -102,7 +126,7 @@ export function StepItems({ draft }: Props) {
                 placeholder="0"
                 value={draft.ipiRate}
                 onChange={(e) => draft.setIpiRate(e.target.value)}
-                hint="IPI cobrado neste pedido, somado por cima do subtotal. Deixe 0 se não houver."
+                hint="Vem do IPI cadastrado no produto e é somado por cima do subtotal. Você pode ajustar."
               />
             </div>
           )}
@@ -114,18 +138,34 @@ export function StepItems({ draft }: Props) {
           </Title>
         )}
 
-        <div className="flex">
+        <div className="flex gap-8">
           <Button.Root
             type="button"
             appearance="solid"
             color="amber"
             size="sm"
             noUppercase
-            onClick={draft.addItem}
+            onClick={draft.submitItem}
           >
-            <Button.Icon icon={Plus} />
-            <Button.Title>Adicionar item</Button.Title>
+            <Button.Icon icon={isEditing ? Check : Plus} />
+            <Button.Title>
+              {isEditing ? "Salvar item" : "Adicionar item"}
+            </Button.Title>
           </Button.Root>
+
+          {isEditing && (
+            <Button.Root
+              type="button"
+              appearance="ghost"
+              color="neutral"
+              size="sm"
+              noUppercase
+              onClick={draft.cancelEdit}
+            >
+              <Button.Icon icon={X} />
+              <Button.Title>Cancelar</Button.Title>
+            </Button.Root>
+          )}
         </div>
       </div>
 
@@ -139,6 +179,7 @@ export function StepItems({ draft }: Props) {
                 <Table.Head>Nível</Table.Head>
                 <Table.Head>Qtd (unidades)</Table.Head>
                 <Table.Head>Preço/unidade</Table.Head>
+                <Table.Head>Desconto</Table.Head>
                 {draft.ipiInOrder && <Table.Head>Alíq. IPI</Table.Head>}
                 <Table.Head>
                   Subtotal{draft.ipiInOrder ? " (sem IPI)" : ""}
@@ -155,6 +196,14 @@ export function StepItems({ draft }: Props) {
                   <Table.Cell variant="dim">
                     {formatMoney(item.unitPrice)}
                   </Table.Cell>
+                  <Table.Cell variant="dim">
+                    {discountLabel(
+                      item.discount,
+                      item.discountInput,
+                      item.discountType,
+                      formatMoney
+                    )}
+                  </Table.Cell>
                   {draft.ipiInOrder && (
                     <Table.Cell variant="dim">
                       {item.ipiRate > 0 ? `${item.ipiRate}%` : "—"}
@@ -166,7 +215,19 @@ export function StepItems({ draft }: Props) {
                     )}
                   </Table.Cell>
                   <Table.Cell>
-                    <div className="flex items-center justify-end">
+                    <div className="flex items-center justify-end gap-4">
+                      <Button.Root
+                        type="button"
+                        appearance="ghost"
+                        color="neutral"
+                        size="sm"
+                        isIconOnly
+                        noUppercase
+                        label="Editar item"
+                        onClick={() => draft.startEdit(index)}
+                      >
+                        <Button.Icon icon={Pencil} />
+                      </Button.Root>
                       <Button.Root
                         type="button"
                         appearance="ghost"

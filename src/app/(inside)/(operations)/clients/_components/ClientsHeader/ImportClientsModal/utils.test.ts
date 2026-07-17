@@ -1,37 +1,42 @@
 import { describe, expect, it } from "vitest";
 
-import { parseClientsFile } from "./utils";
+import { parseClientsRows } from "./utils";
 
-// CSV com células sempre entre aspas → vírgula vira delimitador de forma
-// determinística (o detector escolhe "," e vírgulas dentro do campo ficam
-// protegidas pelas aspas).
-const toCsv = (rows: string[][]): string =>
-  rows
-    .map((r) => r.map((c) => `"${c.replace(/"/g, '""')}"`).join(","))
-    .join("\n");
-
+// O arquivo (xlsx ou csv) já chega ao parser como matriz de células, via
+// readSpreadsheet — aqui basta montar a matriz.
 const HEADER = ["CNPJ", "Observações"];
 
-describe("parseClientsFile", () => {
+describe("parseClientsRows", () => {
   it("descarta o cabeçalho e mapeia CNPJ (só dígitos) + observação", () => {
-    const csv = toCsv([HEADER, ["11.222.333/0001-81", "Cliente indicado"]]);
-    expect(parseClientsFile(csv)).toEqual([
-      { cnpj: "11222333000181", notes: "Cliente indicado" },
-    ]);
+    expect(
+      parseClientsRows([HEADER, ["11.222.333/0001-81", "Cliente indicado"]])
+    ).toEqual([{ cnpj: "11222333000181", notes: "Cliente indicado" }]);
   });
 
   it("observação vazia ou só espaços vira null", () => {
-    const csv = toCsv([HEADER, ["00.000.000/0001-91", "   "]]);
-    expect(parseClientsFile(csv)[0].notes).toBeNull();
+    expect(
+      parseClientsRows([HEADER, ["00.000.000/0001-91", "   "]])[0].notes
+    ).toBeNull();
+  });
+
+  it("CNPJ sem máscara (como o Excel entrega) passa igual", () => {
+    expect(parseClientsRows([HEADER, ["11222333000181", ""]])[0].cnpj).toBe(
+      "11222333000181"
+    );
+  });
+
+  it("linha sem a coluna de observação não quebra", () => {
+    expect(parseClientsRows([HEADER, ["11.222.333/0001-81"]])).toEqual([
+      { cnpj: "11222333000181", notes: null },
+    ]);
   });
 
   it("mapeia múltiplas linhas preservando a ordem", () => {
-    const csv = toCsv([
+    const rows = parseClientsRows([
       HEADER,
       ["11.222.333/0001-81", "A"],
       ["00.000.000/0001-91", "B"],
     ]);
-    const rows = parseClientsFile(csv);
     expect(rows.map((r) => r.cnpj)).toEqual([
       "11222333000181",
       "00000000000191",
@@ -39,7 +44,7 @@ describe("parseClientsFile", () => {
   });
 
   it("planilha só com cabeçalho (sem dados) lança erro", () => {
-    expect(() => parseClientsFile(toCsv([HEADER]))).toThrow(
+    expect(() => parseClientsRows([HEADER])).toThrow(
       "A planilha não contém linhas de dados."
     );
   });

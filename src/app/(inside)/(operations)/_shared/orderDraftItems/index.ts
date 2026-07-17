@@ -5,6 +5,15 @@
 export { StepItems } from "./StepItems";
 export { useOrderDraftItems } from "./useOrderDraftItems";
 export type { OrderDraftItems } from "./useOrderDraftItems";
-export type { DraftItem, CreateOrderItemResponse } from "./interface";
+export type {
+  DiscountType,
+  DraftItem,
+  CreateOrderItemResponse,
+} from "./interface";
 export { CREATE_ORDER_ITEM_MUTATION } from "./gql";
 export { createDraftItems } from "./createDraftItems";
+export {
+  DISCOUNT_TYPE_OPTIONS,
+  discountToAmount,
+  discountLabel,
+} from "./utils";

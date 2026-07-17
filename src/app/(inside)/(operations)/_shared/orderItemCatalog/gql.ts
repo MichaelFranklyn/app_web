@@ -37,6 +37,10 @@ export const ORDER_ITEM_PRICE_LISTS_QUERY = gql`
 // Todos os produtos do catálogo da fábrica — o vendedor pode adicionar qualquer
 // produto ao pedido, tenha ele preço na tabela ativa ou não. Com pageInfo:
 // catálogos reais passam de 1000 linhas e o hook pagina até o fim.
+//
+// `taxes` traz o IPI vinculado ao produto (venha ele do import da tabela, do
+// modelo de pedido ou do cadastro manual). Resolvido por DataLoader no backend,
+// então não custa uma query por produto.
 export const ORDER_ITEM_PRODUCTS_QUERY = gql`
   query OrderItemProducts($input: BaseListInput!) {
     products(input: $input) {
@@ -51,11 +55,36 @@ export const ORDER_ITEM_PRODUCTS_QUERY = gql`
             id
             label
           }
+          taxes {
+            id
+            rate
+            calcType
+            taxRule {
+              id
+              name
+            }
+          }
         }
       }
       pageInfo {
         hasNextPage
         endCursor
+      }
+    }
+  }
+`;
+
+// Nível comercial acordado com este cliente nesta fábrica (1 linha por
+// company×client×factory). É o padrão do item de pedido — sem ele o vendedor
+// teria de escolher o nível a cada item só para o preço aparecer.
+export const ORDER_ITEM_LINKED_TIER_QUERY = gql`
+  query OrderItemLinkedTier($input: BaseListInput!) {
+    sellerClientFactoryList(input: $input) {
+      edges {
+        node {
+          id
+          priceTierId
+        }
       }
     }
   }

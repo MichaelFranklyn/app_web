@@ -20,6 +20,7 @@ import {
   autoGuessMapping,
   isMappingComplete,
 } from "../../../_shared/productImportMapping";
+import { useCompanyFactoryNode } from "../../../../../_shared/orderItemCatalog";
 import { buildImportInput, canImport, PRICE_REQUIRED_FIELDS } from "./build";
 import {
   EXTRACT_PRICE_LIST_FILE_MUTATION,
@@ -55,6 +56,12 @@ export function useImportPriceListWizard({
   // Aberto direto pelo CTA do modal de importar produtos (?import=price-list)
   const [open, setOpen] = useState(searchParams.get("import") === "price-list");
   const [step, setStep] = useState(0);
+
+  // Fábrica que cobra IPI no pedido: a coluna de IPI da planilha continua sendo
+  // importada (vira imposto do produto e alimenta o item do pedido), mas não
+  // entra no preço da tabela. O passo de impostos explica isso.
+  const ipiInOrder =
+    useCompanyFactoryNode(open, factoryId)?.ipiInOrder ?? false;
 
   const [file, setFile] = useState<File[]>([]);
   const [workbook, setWorkbook] = useState<WorkbookData | null>(null);
@@ -489,6 +496,7 @@ export function useImportPriceListWizard({
     taxesStep: parsedSheet
       ? {
           headers,
+          ipiInOrder,
           ipiChoice,
           onIpiChoice: handleIpiChoice,
           ipiAsFraction,

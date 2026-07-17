@@ -55,8 +55,11 @@ export function useAddFactoryOrder({ factoryId }: AddFactoryOrderProps) {
   const { toast } = useToast();
   const { execute, isLoading } = useAsyncAction();
   const [orderDetails, setOrderDetails] = useState<OrderDetails | null>(null);
+  // Cliente do vínculo escolhido no passo 1 — o passo 2 usa o nível acordado
+  // com ele para sugerir o preço dos itens.
+  const [clientId, setClientId] = useState("");
 
-  const draft = useOrderDraftItems(open, factoryId);
+  const draft = useOrderDraftItems(open, factoryId, clientId);
   const paymentTermOptions = usePaymentTermOptions(open, factoryId || null);
 
   const { data: assignmentsData, error: assignmentsError } =
@@ -105,6 +108,12 @@ export function useAddFactoryOrder({ factoryId }: AddFactoryOrderProps) {
                     : "Selecione o vínculo",
                 required: true,
                 options: assignmentOptions,
+                onChange: (value) => {
+                  const assignment = assignments.find(
+                    (a) => a.id === extractSelectValue(value)
+                  );
+                  setClientId(assignment?.clientId ?? "");
+                },
               },
               {
                 name: "orderDate",
@@ -142,7 +151,7 @@ export function useAddFactoryOrder({ factoryId }: AddFactoryOrderProps) {
         ],
       },
     ],
-    [assignmentOptions, paymentTermOptions]
+    [assignments, assignmentOptions, paymentTermOptions]
   );
 
   const [createOrder] = useMutation<CreateOrderResponse>(
@@ -158,6 +167,7 @@ export function useAddFactoryOrder({ factoryId }: AddFactoryOrderProps) {
       formRef.current?.resetForm();
       setStep(0);
       setOrderDetails(null);
+      setClientId("");
       draft.reset();
     }
   };

@@ -1,10 +1,13 @@
-import { downloadCSV } from "@/utils/format/csv";
+import { downloadSheet } from "@/utils/import/writer";
 
 import { ImportProductRow } from "./interface";
 
 /**
  * Cabeçalho da planilha modelo. A ordem das colunas define o mapeamento posicional
  * em `rowToInput` — manter sincronizado.
+ *
+ * Espelha o `ImportProductRowInput` do backend: sku, name, category, unit,
+ * unitLabel e unitPerPack, todos obrigatórios.
  */
 const EXAMPLE_HEADERS = [
   "Código do produto",
@@ -20,12 +23,12 @@ const EXAMPLE_ROWS = [
   ["ARG-20KG", "Argamassa AC-III 20kg", "Argamassas", "Saco", "Pallet", "40"],
 ];
 
-export const downloadExampleSheet = (): void => {
-  downloadCSV("modelo-importacao-produtos.csv", [
-    EXAMPLE_HEADERS,
-    ...EXAMPLE_ROWS,
-  ]);
-};
+export const downloadExampleSheet = (): Promise<void> =>
+  downloadSheet(
+    "modelo-importacao-produtos.xlsx",
+    [EXAMPLE_HEADERS, ...EXAMPLE_ROWS],
+    "Produtos"
+  );
 
 /** Mapeia uma linha da planilha modelo (ordem fixa de colunas) para a mutation. */
 export const rowToInput = (cells: string[]): ImportProductRow => ({

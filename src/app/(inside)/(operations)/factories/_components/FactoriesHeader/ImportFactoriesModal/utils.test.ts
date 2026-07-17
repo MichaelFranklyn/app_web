@@ -1,14 +1,9 @@
 import { describe, expect, it } from "vitest";
 
-import { parseFactoriesFile } from "./utils";
+import { parseFactoriesRows } from "./utils";
 
-// Células sempre entre aspas: o delimitador vira "," de forma determinística e
-// decimais com vírgula ("7,5") ficam protegidos dentro do campo.
-const toCsv = (rows: string[][]): string =>
-  rows
-    .map((r) => r.map((c) => `"${c.replace(/"/g, '""')}"`).join(","))
-    .join("\n");
-
+// O arquivo (xlsx ou csv) já chega ao parser como matriz de células, via
+// readSpreadsheet — aqui basta montar a matriz.
 const HEADER = [
   "CNPJ",
   "Taxa",
@@ -20,21 +15,24 @@ const HEADER = [
   "Condições",
 ];
 
-const row = (cells: string[]) => toCsv([HEADER, cells]);
+const row = (cells: string[]) => [HEADER, cells];
 
-describe("parseFactoriesFile", () => {
+describe("parseFactoriesRows", () => {
   it("mapeia uma linha completa em input do vínculo", () => {
-    const csv = row([
-      "11.222.333/0001-81",
-      "7.5",
-      "Faturado",
-      "10",
-      "Sul",
-      "2025-01-01",
-      "2025-12-31",
-      "Frete por conta da fábrica",
-    ]);
-    expect(parseFactoriesFile(csv)).toEqual([
+    expect(
+      parseFactoriesRows(
+        row([
+          "11.222.333/0001-81",
+          "7.5",
+          "Faturado",
+          "10",
+          "Sul",
+          "2025-01-01",
+          "2025-12-31",
+          "Frete por conta da fábrica",
+        ])
+      )
+    ).toEqual([
       {
         cnpj: "11222333000181",
         commissionRate: 7.5,
@@ -49,45 +47,36 @@ describe("parseFactoriesFile", () => {
   });
 
   it("aceita vírgula como separador decimal na taxa de comissão", () => {
-    const csv = row([
-      "00.000.000/0001-91",
-      "7,5",
-      "Pedido",
-      "5",
-      "",
-      "",
-      "",
-      "",
-    ]);
-    expect(parseFactoriesFile(csv)[0].commissionRate).toBe(7.5);
+    expect(
+      parseFactoriesRows(
+        row(["00.000.000/0001-91", "7,5", "Pagamento", "5", "", "", "", ""])
+      )[0].commissionRate
+    ).toBe(7.5);
   });
 
   it("dia de pagamento ignora texto extra e mantém só os dígitos", () => {
-    const csv = row([
-      "00.000.000/0001-91",
-      "5",
-      "Pedido",
-      "dia 15",
-      "",
-      "",
-      "",
-      "",
-    ]);
-    expect(parseFactoriesFile(csv)[0].paymentTermDays).toBe(15);
+    expect(
+      parseFactoriesRows(
+        row(["00.000.000/0001-91", "5", "Pagamento", "dia 15", "", "", "", ""])
+      )[0].paymentTermDays
+    ).toBe(15);
   });
 
   it("datas vazias viram null e condição vazia vira specialConditions null", () => {
-    const csv = row([
-      "00.000.000/0001-91",
-      "5",
-      "Pedido",
-      "5",
-      "Nacional",
-      "",
-      "",
-      "   ",
-    ]);
-    expect(parseFactoriesFile(csv)[0]).toMatchObject({
+    expect(
+      parseFactoriesRows(
+        row([
+          "00.000.000/0001-91",
+          "5",
+          "Pagamento",
+          "5",
+          "Nacional",
+          "",
+          "",
+          "   ",
+        ])
+      )[0]
+    ).toMatchObject({
       contractStart: null,
       contractEnd: null,
       specialConditions: null,
@@ -95,7 +84,7 @@ describe("parseFactoriesFile", () => {
   });
 
   it("planilha só com cabeçalho (sem dados) lança erro", () => {
-    expect(() => parseFactoriesFile(toCsv([HEADER]))).toThrow(
+    expect(() => parseFactoriesRows([HEADER])).toThrow(
       "A planilha não contém linhas de dados."
     );
   });
