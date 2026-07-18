@@ -15,10 +15,19 @@ import { ReconcileToggle } from "../ReconcileToggle";
 interface Props {
   rows: CommissionRow[];
   loading: boolean;
+  /** Gestor vê as colunas de conferência e repasse; vendedor só visualiza. */
+  canManage: boolean;
   onChanged: () => void;
 }
 
-export function CommissionsTable({ rows, loading, onChanged }: Props) {
+export function CommissionsTable({
+  rows,
+  loading,
+  canManage,
+  onChanged,
+}: Props) {
+  // Colunas de "bater valores" (conferência + ação de repasse) só para gestão.
+  const columns = canManage ? 8 : 6;
   return (
     <Table.Table>
       <Table.Header>
@@ -29,17 +38,17 @@ export function CommissionsTable({ rows, loading, onChanged }: Props) {
           <Table.Head>Quando</Table.Head>
           <Table.Head className="text-right">Comissão</Table.Head>
           <Table.Head>Situação</Table.Head>
-          <Table.Head>Conferência</Table.Head>
-          <Table.Head className="text-right">Ação</Table.Head>
+          {canManage && <Table.Head>Conferência</Table.Head>}
+          {canManage && <Table.Head className="text-right">Ação</Table.Head>}
         </Table.Row>
       </Table.Header>
 
       <Table.Body>
         {loading ? (
-          <Table.Skeleton columns={8} rows={6} />
+          <Table.Skeleton columns={columns} rows={6} />
         ) : rows.length === 0 ? (
           <Table.Row>
-            <Table.Cell colSpan={8}>
+            <Table.Cell colSpan={columns}>
               <EmptyState.Root>
                 <EmptyState.Icon>
                   <Coins size={32} />
@@ -88,26 +97,30 @@ export function CommissionsTable({ rows, loading, onChanged }: Props) {
                   <Badge.Text>{COMMISSION_STATUS_LABEL[row.status]}</Badge.Text>
                 </Badge.Root>
               </Table.Cell>
-              <Table.Cell>
-                <ReconcileToggle
-                  installmentId={row.installmentId}
-                  reconciled={row.isReconciled}
-                  onChanged={onChanged}
-                  locked={row.status === "received"}
-                />
-              </Table.Cell>
-              <Table.Cell>
-                <div className="flex items-center justify-end">
-                  {row.isReceivable ? (
-                    <MarkReceivedModal
-                      installmentIds={[row.installmentId]}
-                      onSuccess={onChanged}
-                    />
-                  ) : (
-                    <Table.CellText variant="dim">—</Table.CellText>
-                  )}
-                </div>
-              </Table.Cell>
+              {canManage && (
+                <Table.Cell>
+                  <ReconcileToggle
+                    installmentId={row.installmentId}
+                    reconciled={row.isReconciled}
+                    onChanged={onChanged}
+                    locked={row.status === "received"}
+                  />
+                </Table.Cell>
+              )}
+              {canManage && (
+                <Table.Cell>
+                  <div className="flex items-center justify-end">
+                    {row.isReceivable ? (
+                      <MarkReceivedModal
+                        installmentIds={[row.installmentId]}
+                        onSuccess={onChanged}
+                      />
+                    ) : (
+                      <Table.CellText variant="dim">—</Table.CellText>
+                    )}
+                  </div>
+                </Table.Cell>
+              )}
             </Table.Row>
           ))
         )}

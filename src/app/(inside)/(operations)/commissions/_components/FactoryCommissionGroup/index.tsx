@@ -27,6 +27,8 @@ import { MarkReceivedModal } from "../MarkReceivedModal";
 interface Props {
   group: FactoryGroup;
   defaultOpen?: boolean;
+  /** Gestor (admin/owner): mostra conferência e repasse. Vendedor: só visualiza. */
+  canManage: boolean;
   onChanged: () => void;
 }
 
@@ -41,6 +43,7 @@ interface Props {
 export function FactoryCommissionGroup({
   group,
   defaultOpen = false,
+  canManage,
   onChanged,
 }: Props) {
   const [open, setOpen] = useState(defaultOpen);
@@ -77,9 +80,13 @@ export function FactoryCommissionGroup({
           />
           <div className="flex flex-col gap-2">
             <Title variant="heading-sm">{group.name}</Title>
-            <Title variant="caption" color={allReconciled ? "green" : "muted"}>
-              {summary.reconciledCount} de {total} parcela(s) conferida(s) em{" "}
-              {monthLabel(month)}
+            <Title
+              variant="caption"
+              color={canManage && allReconciled ? "green" : "muted"}
+            >
+              {canManage
+                ? `${summary.reconciledCount} de ${total} parcela(s) conferida(s) em ${monthLabel(month)}`
+                : `${total} parcela(s) em ${monthLabel(month)}`}
             </Title>
           </div>
         </button>
@@ -137,7 +144,7 @@ export function FactoryCommissionGroup({
               {formatMoney(summary.received)}
             </Title>
           </div>
-          {summary.receivableIds.length > 0 && (
+          {canManage && summary.receivableIds.length > 0 && (
             <MarkReceivedModal
               installmentIds={summary.receivableIds}
               label={`Receber tudo desta fábrica (${summary.receivableIds.length})`}
@@ -160,6 +167,7 @@ export function FactoryCommissionGroup({
             <CommissionsTable
               rows={monthRows}
               loading={false}
+              canManage={canManage}
               onChanged={onChanged}
             />
           )}

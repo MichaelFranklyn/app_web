@@ -8,6 +8,7 @@ import { Grid } from "@/components/Grid";
 import { Pagination } from "@/components/Pagination";
 import { Title } from "@/components/Title";
 import { useNavigation } from "@/hooks/useNavigation";
+import { useUserData } from "@/hooks/useUserData";
 import { maskCNPJ } from "@/utils/format/masks";
 import { ArrowRight, Factory } from "lucide-react";
 import { useEffect, useState } from "react";
@@ -36,6 +37,12 @@ export function FactoriesGrid({
 }: Props) {
   const { navigateTo, isPending } = useNavigation();
   const [pendingId, setPendingId] = useState<string | null>(null);
+
+  // O detalhe da fábrica é só para gestão; vendedor vê a lista sem o botão de
+  // detalhes (a rota /factories/[id] também é bloqueada no servidor). Escondido
+  // até saber o papel, para o vendedor nunca ver o botão piscar.
+  const { userData, isSeller } = useUserData();
+  const canSeeDetails = userData ? !isSeller : false;
 
   useEffect(() => {
     if (!isPending) setPendingId(null);
@@ -146,19 +153,21 @@ export function FactoriesGrid({
                     </Card.Item.Value>
                   </Card.Item>
 
-                  <Button.Root
-                    appearance="outline"
-                    color="neutral"
-                    size="sm"
-                    className="mt-12 w-full justify-center"
-                    noUppercase
-                    disabled={isPending}
-                    loading={pendingId === cf.id}
-                    onClick={() => handleNavigate(cf.id)}
-                  >
-                    <Button.Title>Ver detalhes</Button.Title>
-                    <Button.Icon icon={ArrowRight} />
-                  </Button.Root>
+                  {canSeeDetails && (
+                    <Button.Root
+                      appearance="outline"
+                      color="neutral"
+                      size="sm"
+                      className="mt-12 w-full justify-center"
+                      noUppercase
+                      disabled={isPending}
+                      loading={pendingId === cf.id}
+                      onClick={() => handleNavigate(cf.id)}
+                    >
+                      <Button.Title>Ver detalhes</Button.Title>
+                      <Button.Icon icon={ArrowRight} />
+                    </Button.Root>
+                  )}
                 </Card.Body>
               </Card.Root>
             </Grid.Item>

@@ -1,7 +1,7 @@
 "use client";
 
 import { Button } from "@/components/Button";
-import { LayoutGrid, List } from "lucide-react";
+import { LayoutGrid, List, Radar } from "lucide-react";
 import { RoutineViewMode } from "../../useRoutines";
 
 interface Props {
@@ -16,6 +16,7 @@ const OPTIONS: {
 }[] = [
   { value: "kanban", label: "Kanban", icon: LayoutGrid },
   { value: "list", label: "Lista", icon: List },
+  { value: "radar", label: "Radar", icon: Radar },
 ];
 
 // Alterna entre a grade por dia (kanban) e a lista de visitas. Espelha o

@@ -8,6 +8,7 @@ import { Title } from "@/components/Title";
 import { CalendarOff, Users } from "lucide-react";
 
 import { GenerateWeekButton } from "./_components/GenerateWeekButton";
+import { RadarMap } from "./_components/RadarMap";
 import { RoutinesHeader } from "./_components/RoutinesHeader";
 import { RoutinesList } from "./_components/RoutinesList";
 import { RoutinesSkeleton } from "./_components/RoutinesSkeleton";
@@ -153,7 +154,9 @@ export default function RoutinesContent() {
           </div>
 
           <div data-tour="routines-grid">
-            {viewMode === "list" ? (
+            {viewMode === "radar" ? (
+              <RadarMap sellerId={effectiveSellerId} />
+            ) : viewMode === "list" ? (
               <RoutinesList
                 weekStart={weekStart}
                 scheduleId={schedule.id}

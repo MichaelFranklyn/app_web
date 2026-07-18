@@ -9,6 +9,7 @@ import { PageContent } from "@/components/PageContent";
 import { PanelHeader } from "@/components/PanelHeader";
 import { QueryError } from "@/components/QueryError";
 import { Table } from "@/components/Table";
+import { useUserData } from "@/hooks/useUserData";
 import { formatMoney } from "@/utils/format/masks";
 import { useQuery } from "@apollo/client/react";
 import { Coins } from "lucide-react";
@@ -24,6 +25,12 @@ export default function CommissionsContent() {
     { fetchPolicy: "cache-and-network" }
   );
   const [tab, setTab] = useState<CommissionTab>("receivable");
+
+  // Vendedor só VISUALIZA quanto vai ganhar; conferir contra a planilha e marcar
+  // repasse ("bater valores") é tarefa de gestão. userData chega após o mount:
+  // até saber o papel, escondemos as ações (evita flash de botão que some).
+  const { userData, isSeller } = useUserData();
+  const canManage = userData ? !isSeller : false;
 
   const rows = useMemo(() => data?.commissions?.rows ?? [], [data]);
   const summary = data?.commissions;
@@ -47,8 +54,9 @@ export default function CommissionsContent() {
             <PanelHeader.Eyebrow>Comissões</PanelHeader.Eyebrow>
             <PanelHeader.Title>Comissões</PanelHeader.Title>
             <PanelHeader.Description>
-              O que você tem para receber das fábricas. Cada fábrica tem o seu
-              mês para você conferir contra a planilha que ela envia.
+              {canManage
+                ? "O que você tem para receber das fábricas. Cada fábrica tem o seu mês para você conferir contra a planilha que ela envia."
+                : "Quanto você tem para ganhar de comissão, por fábrica e por mês."}
             </PanelHeader.Description>
           </PanelHeader.Left>
         </PanelHeader.Top>
@@ -153,6 +161,7 @@ export default function CommissionsContent() {
                   key={group.factoryId}
                   group={group}
                   defaultOpen={i === 0}
+                  canManage={canManage}
                   onChanged={handleChanged}
                 />
               ))}

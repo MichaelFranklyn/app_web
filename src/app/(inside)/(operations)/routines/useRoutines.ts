@@ -20,8 +20,8 @@ import { shiftWeekIso } from "./utils";
 // Papéis que enxergam a rotina de qualquer vendedor e podem escolher de quem ver.
 const MANAGER_ROLES = ["OWNER", "ADMIN", "SU"];
 
-export type RoutineViewMode = "kanban" | "list";
-const VIEW_MODES: RoutineViewMode[] = ["kanban", "list"];
+export type RoutineViewMode = "kanban" | "list" | "radar";
+const VIEW_MODES: RoutineViewMode[] = ["kanban", "list", "radar"];
 
 export function useRoutines() {
   const [weekStart, setWeekStart] = useState<string>(getCurrentWeekMondayIso);

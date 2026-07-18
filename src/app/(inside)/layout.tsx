@@ -6,6 +6,7 @@ import { cn } from "@/lib/utils";
 import { FlowTourProvider } from "@/services/flowTour";
 import { ChevronLeft, ChevronRight, Menu } from "lucide-react";
 import Image from "next/image";
+import { DevRoleSwitch } from "./_components/DevRoleSwitch";
 import { NotificationCenter } from "./_components/NotificationCenter";
 import { UserMenu } from "./_components/UserMenu";
 import { useInsideLayout } from "./useInsideLayout";
@@ -198,6 +199,7 @@ export default function InsideLayout({
                 className="tablet:inline-flex hidden"
               />
               <Topbar.Separator className="tablet:block hidden" />
+              <DevRoleSwitch />
               <NotificationCenter />
               <UserMenu
                 name={userName}
