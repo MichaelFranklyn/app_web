@@ -18,6 +18,8 @@ export interface DraftItem {
   discountType: DiscountType;
   /** Alíquota de IPI do item (%); 0 quando a fábrica não cobra IPI no pedido. */
   ipiRate: number;
+  /** Produto+nível em promoção relâmpago no momento em que o item foi montado. */
+  isPromo: boolean;
 }
 
 export interface CreateOrderItemResponse {

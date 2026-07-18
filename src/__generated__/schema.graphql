@@ -1025,6 +1025,12 @@ type FactoryPriceListType {
   validFrom: Date!
   validUntil: Date
   isActive: Boolean!
+  """Início da janela da promoção relâmpago (por dia); null = sem promoção."""
+  promoStartsOn: Date
+  """Fim da janela da promoção relâmpago (por dia); null = sem promoção."""
+  promoEndsOn: Date
+  """Promoção relâmpago valendo HOJE (tabela ativa + hoje dentro da janela)."""
+  isPromoActive: Boolean!
   clonedFromId: UUID
   createdAt: DateTime!
   updatedAt: DateTime!
@@ -1146,6 +1152,23 @@ type ImportPriceListResultDataResponse {
   data: ImportPriceListResult
 }
 
+input PriceListPromotionItemInput {
+  productId: UUID!
+  tierId: UUID!
+  """Preço promocional por embalagem (mesma base do unitPrice)."""
+  promoPrice: Decimal!
+}
+
+input SetPriceListPromotionInput {
+  priceListId: UUID!
+  """Início da janela (por dia). Obrigatório quando há itens em promoção."""
+  promoStartsOn: Date = null
+  """Fim da janela (por dia). Obrigatório quando há itens em promoção."""
+  promoEndsOn: Date = null
+  """Substitui por completo os itens em promoção; os de fora têm a promoção limpa."""
+  items: [PriceListPromotionItemInput!]! = []
+}
+
 extend type Query {
   factoryPriceList(id: UUID!): FactoryPriceListTypeDataResponse!
   factoryPriceLists(input: BaseListInput!): FactoryPriceListTypeConnectionResponse!
@@ -1164,6 +1187,10 @@ extend type Mutation {
   cloneFactoryPriceList(input: CloneFactoryPriceListInput!): FactoryPriceListTypeDataResponse!
   updateFactoryPriceList(id: UUID!, input: UpdateFactoryPriceListInput!): FactoryPriceListTypeDataResponse!
   deleteFactoryPriceList(id: UUID!): BaseResponse!
+  # Define/atualiza a promoção relâmpago da tabela (janela + preços promocionais).
+  setPriceListPromotion(input: SetPriceListPromotionInput!): FactoryPriceListTypeDataResponse!
+  # Encerra a promoção: limpa a janela e o preço promocional de todos os itens.
+  clearPriceListPromotion(priceListId: UUID!): FactoryPriceListTypeDataResponse!
 }
 
 input CreateImportLogInput {
@@ -1346,6 +1373,8 @@ input CreateOrderItemInput {
   discount: Decimal! = "0.0"
   """Alíquota de IPI do item (%). Só se aplica a fábricas com IPI no pedido."""
   ipiRate: Decimal! = "0.0"
+  """Item vendido sob promoção relâmpago (o unitPrice já é o preço promocional)."""
+  isPromo: Boolean! = false
   avgShelfDays: Int = null
   source: OrderItemSource! = MANUAL
 }
@@ -1369,6 +1398,8 @@ type OrderItemType {
   ipiRate: Decimal!
   """Valor do IPI do item (= subtotal × ipiRate/100)."""
   ipiAmount: Decimal!
+  """Item vendido sob promoção relâmpago."""
+  isPromo: Boolean!
   """
   Imposto da linha derivado dos impostos do PRODUTO (IPI/ST/ICMS da tabela de
   preço). INFORMATIVO: já está embutido no preço, então não entra no total do
@@ -1748,6 +1779,14 @@ type PriceListItemType {
   tierId: UUID!
   unitPrice: Decimal!
   unitPriceWithImpost: Decimal!
+  """Preço promocional por embalagem; null = item sem promoção nesta tabela."""
+  promoPrice: Decimal
+  """Preço promocional com imposto, congelado no salvamento; null se sem promoção."""
+  promoPriceWithImpost: Decimal
+  """Este item está em promoção HOJE (janela da tabela ativa + promoPrice definido)."""
+  isPromoActive: Boolean!
+  """Preço que vale hoje: promoPrice se a promoção está ativa, senão unitPrice."""
+  effectiveUnitPrice: Decimal!
   createdAt: DateTime!
   priceList: FactoryPriceListType
   product: ProductType

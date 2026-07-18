@@ -1,15 +1,23 @@
 "use client";
 
+import { Badge } from "@/components/Badges";
 import { Button } from "@/components/Button";
 import { FormBuilder } from "@/components/FormBuilder";
 import { Modal } from "@/components/Modal";
-import { Plus } from "lucide-react";
+import { Plus, Zap } from "lucide-react";
 
 import { AddOrderItemModalProps, useAddOrderItem } from "./useAddOrderItem";
 
 export function AddOrderItemModal(props: AddOrderItemModalProps) {
-  const { open, handleClose, formRef, steps, handleSubmit, isLoading } =
-    useAddOrderItem(props);
+  const {
+    open,
+    handleClose,
+    formRef,
+    steps,
+    handleSubmit,
+    isLoading,
+    isPromoSelected,
+  } = useAddOrderItem(props);
 
   return (
     <Modal.Root open={open} onOpenChange={handleClose}>
@@ -31,6 +39,19 @@ export function AddOrderItemModal(props: AddOrderItemModalProps) {
         />
 
         <Modal.Body>
+          {isPromoSelected && (
+            <div className="mb-12 flex items-center gap-8 rounded-(--r-md) bg-(--orange-bg) px-12 py-8">
+              <Badge.Root color="orange" appearance="tinted" size="xs">
+                <Badge.Icon>
+                  <Zap />
+                </Badge.Icon>
+                <Badge.Text>Promoção relâmpago</Badge.Text>
+              </Badge.Root>
+              <span className="text-[13px] text-(--orange)">
+                Preço promocional aplicado a este produto.
+              </span>
+            </div>
+          )}
           <FormBuilder
             ref={formRef}
             steps={steps}

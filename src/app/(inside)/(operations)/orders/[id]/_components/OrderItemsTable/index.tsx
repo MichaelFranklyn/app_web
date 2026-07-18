@@ -7,7 +7,7 @@ import { useInvalidateQueriesClient } from "@/hooks/useInvalidateQueries";
 import { useOptimisticList } from "@/hooks/useOptimisticList";
 import { formatMoney, formatNumber } from "@/utils/format/masks";
 import { useQuery } from "@apollo/client/react";
-import { Package } from "lucide-react";
+import { Package, Zap } from "lucide-react";
 import { useMemo } from "react";
 import { OrderItem, OrderItemsResponse } from "../../interface";
 import { taxRatesLabel } from "../../utils";
@@ -53,6 +53,16 @@ export function OrderItemsTable({
   // Imposto, Subtotal, Ações — mais Alíq. IPI nas fábricas com IPI no pedido.
   const columns = ipiInOrder ? 10 : 9;
 
+  // Itens do mais novo para o mais antigo: cada item adicionado aparece no topo
+  // e empurra os anteriores para baixo (mesmo comportamento do wizard).
+  const displayedItems = useMemo(
+    () =>
+      [...items].sort((a, b) =>
+        (b.createdAt ?? "").localeCompare(a.createdAt ?? "")
+      ),
+    [items]
+  );
+
   // O mesmo produto não entra duas vezes no pedido.
   const existingProductIds = useMemo(
     () =>
@@ -60,11 +70,11 @@ export function OrderItemsTable({
     [items]
   );
 
-  // Nível do último item: o próximo abre nele, como o wizard mantém o nível
-  // entre itens. Itens com preço manual não têm nível — ignora esses.
+  // Nível do último item adicionado (o mais novo): o próximo abre nele, como o
+  // wizard mantém o nível entre itens. Itens com preço manual não têm nível.
   const lastTierId = useMemo(
-    () => items.filter((item) => item.tier).at(-1)?.tier?.id ?? null,
-    [items]
+    () => displayedItems.find((item) => item.tier)?.tier?.id ?? null,
+    [displayedItems]
   );
 
   const handleRefetch = () => {
@@ -138,10 +148,10 @@ export function OrderItemsTable({
               </Table.Cell>
             </Table.Row>
           ) : (
-            items.map((item) => (
+            displayedItems.map((item) => (
               <Table.Row key={item.id} className="group">
                 <Table.Cell>
-                  <div className="flex flex-col">
+                  <div className="flex flex-col items-start gap-2">
                     <Table.CellText variant="strong">
                       {item.product?.name ?? "—"}
                     </Table.CellText>
@@ -149,6 +159,14 @@ export function OrderItemsTable({
                       <Table.CellText variant="dim2">
                         Código {item.product.sku}
                       </Table.CellText>
+                    )}
+                    {item.isPromo && (
+                      <Badge.Root color="orange" appearance="tinted" size="xs">
+                        <Badge.Icon>
+                          <Zap />
+                        </Badge.Icon>
+                        <Badge.Text>Promoção</Badge.Text>
+                      </Badge.Root>
                     )}
                   </div>
                 </Table.Cell>

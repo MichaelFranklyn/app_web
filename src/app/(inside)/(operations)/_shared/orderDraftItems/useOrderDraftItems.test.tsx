@@ -72,6 +72,8 @@ const priceItem = (
   node: {
     id,
     unitPrice,
+    effectiveUnitPrice: unitPrice,
+    isPromoActive: false,
     product: PRODUCTS.find((p) => p.id === productId)!,
     tier: { id: tierId, name: tierId === "tier-1" ? "Varejo" : "Atacado" },
   },
@@ -414,5 +416,28 @@ describe("useOrderDraftItems", () => {
     expect(result.current.items).toHaveLength(1);
     expect(result.current.items[0].quantity).toBe(30);
     expect(result.current.editingIndex).toBeNull();
+  });
+
+  it("coloca o item novo no topo, empurrando os anteriores para baixo", async () => {
+    const { result } = renderDraft();
+    await waitFor(() => expect(result.current.productOptions.length).toBe(2));
+
+    // 1º item: prod-1
+    selectProd1(result);
+    act(() => result.current.selectTier({ value: "tier-1", label: "Varejo" }));
+    act(() => result.current.setUnitPrice("10,00"));
+    act(() => result.current.setQuantity("10"));
+    act(() => result.current.submitItem());
+    expect(result.current.items).toHaveLength(1);
+
+    // 2º item: prod-2 deve entrar ACIMA do prod-1
+    selectProd2(result);
+    act(() => result.current.setUnitPrice("20,00"));
+    act(() => result.current.setQuantity("5"));
+    act(() => result.current.submitItem());
+
+    expect(result.current.items).toHaveLength(2);
+    expect(result.current.items[0].productId).toBe("prod-2");
+    expect(result.current.items[1].productId).toBe("prod-1");
   });
 });

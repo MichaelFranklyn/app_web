@@ -4,6 +4,9 @@ export interface PriceListItemRow {
   id: string;
   unitPrice: string;
   unitPriceWithImpost: string;
+  promoPrice: string | null;
+  promoPriceWithImpost: string | null;
+  isPromoActive: boolean;
   product: {
     id: string;
     name: string;

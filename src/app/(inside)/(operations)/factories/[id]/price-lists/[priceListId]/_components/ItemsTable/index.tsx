@@ -12,7 +12,7 @@ import { Title } from "@/components/Title";
 import { useOptimisticList } from "@/hooks/useOptimisticList";
 import type { FieldConfig } from "@/hooks/useTableFilters";
 import { useTableData } from "@/hooks/useTableData";
-import { Tags } from "lucide-react";
+import { Tags, Zap } from "lucide-react";
 import { useMemo } from "react";
 import { AddItemModal } from "./AddItemModal";
 import { PRICE_LIST_ITEMS_QUERY } from "./gql";
@@ -176,9 +176,32 @@ export function ItemsTable({
                     </Table.CellText>
                   </Table.Cell>
                   <Table.Cell>
-                    <Table.CellText variant="strong">
-                      R$ {money(withImpost)}
-                    </Table.CellText>
+                    {it.isPromoActive && it.promoPriceWithImpost ? (
+                      <div className="flex flex-col items-start gap-2">
+                        <span className="inline-flex items-center gap-6">
+                          <Badge.Root
+                            color="orange"
+                            appearance="tinted"
+                            size="xs"
+                          >
+                            <Badge.Icon>
+                              <Zap />
+                            </Badge.Icon>
+                            <Badge.Text>Promo</Badge.Text>
+                          </Badge.Root>
+                          <Table.CellText variant="strong">
+                            R$ {money(Number(it.promoPriceWithImpost))}
+                          </Table.CellText>
+                        </span>
+                        <Table.CellText variant="dim2" className="line-through">
+                          R$ {money(withImpost)}
+                        </Table.CellText>
+                      </div>
+                    ) : (
+                      <Table.CellText variant="strong">
+                        R$ {money(withImpost)}
+                      </Table.CellText>
+                    )}
                   </Table.Cell>
                   <Table.Cell>
                     <div className="flex flex-col">

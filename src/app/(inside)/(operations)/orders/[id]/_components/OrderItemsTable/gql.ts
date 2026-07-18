@@ -15,8 +15,10 @@ export const ORDER_ITEMS_QUERY = gql`
           ipiAmount
           taxAmount
           unitPriceWithTax
+          isPromo
           avgShelfDays
           source
+          createdAt
           product {
             id
             name
@@ -60,7 +62,9 @@ export const CREATE_ORDER_ITEM_MUTATION = gql`
         ipiAmount
         taxAmount
         unitPriceWithTax
+        isPromo
         source
+        createdAt
         product {
           id
           name

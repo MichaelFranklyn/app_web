@@ -20,7 +20,11 @@ export async function createDraftItems(
   items: DraftItem[]
 ): Promise<string[]> {
   const failed: string[] = [];
-  for (const item of items) {
+  // A lista do wizard vem do mais novo para o mais antigo; criamos na ordem
+  // inversa (mais antigo primeiro) para que o `created_at` cresça na ordem em
+  // que o vendedor adicionou — assim o detalhe do pedido, ordenado do mais novo
+  // para o mais antigo, mostra os itens na mesma ordem do wizard.
+  for (const item of [...items].reverse()) {
     try {
       const r = await createOrderItem({
         variables: {
@@ -32,6 +36,7 @@ export async function createDraftItems(
             unitPrice: item.unitPrice,
             discount: item.discount,
             ipiRate: item.ipiRate,
+            isPromo: item.isPromo,
             source: "MANUAL",
           },
         },

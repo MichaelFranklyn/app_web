@@ -4,10 +4,12 @@ import { Badge } from "@/components/Badges";
 import { Breadcrumb } from "@/components/Breadcrumb";
 import { PanelHeader } from "@/components/PanelHeader";
 import { formatDateDMY } from "@/utils/format/masks";
+import { Zap } from "lucide-react";
 import { CompanyFactoryDetail } from "../../../../interface";
 import { PriceListDetail } from "../../interface";
 import { DeletePriceListModal } from "./DeletePriceListModal";
 import { EditPriceListModal } from "./EditPriceListModal";
+import { PromotionModal } from "./PromotionModal";
 
 interface Props {
   priceList: PriceListDetail | null | undefined;
@@ -34,6 +36,13 @@ export function PriceListDetailHeader({
       }`
     : "—";
 
+  const promoWindow =
+    priceList?.promoStartsOn && priceList?.promoEndsOn
+      ? `${formatDateDMY(priceList.promoStartsOn)} → ${formatDateDMY(
+          priceList.promoEndsOn
+        )}`
+      : null;
+
   return (
     <div className="flex flex-col gap-8">
       <Breadcrumb.Root>
@@ -57,6 +66,14 @@ export function PriceListDetailHeader({
             </PanelHeader.Title>
             <PanelHeader.Description>
               Vigência: {validity}
+              {promoWindow && (
+                <>
+                  {" · "}
+                  <span className="text-(--orange)">
+                    Promoção relâmpago: {promoWindow}
+                  </span>
+                </>
+              )}
             </PanelHeader.Description>
             {priceList && (
               <PanelHeader.Actions
@@ -72,6 +89,15 @@ export function PriceListDetailHeader({
                     {priceList.isActive ? "Ativa" : "Inativa"}
                   </Badge.Text>
                 </Badge.Root>
+                {priceList.isPromoActive && (
+                  <Badge.Root color="orange" appearance="tinted" size="sm">
+                    <Badge.Icon>
+                      <Zap />
+                    </Badge.Icon>
+                    <Badge.Text>Promoção no ar</Badge.Text>
+                  </Badge.Root>
+                )}
+                <PromotionModal priceList={priceList} onChanged={onRefetch} />
                 <EditPriceListModal
                   priceList={priceList}
                   onChanged={onRefetch}

@@ -1,6 +1,6 @@
 "use client";
 
-import { Check, Pencil, Plus, Trash, X } from "lucide-react";
+import { Check, Pencil, Plus, Trash, X, Zap } from "lucide-react";
 
 import { Button } from "@/components/Button";
 import { Input } from "@/components/Input";
@@ -190,7 +190,19 @@ export function StepItems({ draft }: Props) {
             <Table.Body>
               {draft.items.map((item, index) => (
                 <Table.Row key={`${item.productId}-${index}`}>
-                  <Table.Cell variant="strong">{item.productLabel}</Table.Cell>
+                  <Table.Cell variant="strong">
+                    <span className="inline-flex items-center gap-6">
+                      {item.productLabel}
+                      {item.isPromo && (
+                        <span
+                          className="inline-flex items-center gap-2 text-(--orange)"
+                          title="Promoção relâmpago"
+                        >
+                          <Zap size={13} />
+                        </span>
+                      )}
+                    </span>
+                  </Table.Cell>
                   <Table.Cell variant="dim">{item.tierLabel || "—"}</Table.Cell>
                   <Table.Cell variant="strong">{item.quantity}</Table.Cell>
                   <Table.Cell variant="dim">

@@ -48,6 +48,8 @@ export interface OrderItemCatalog {
   ipiRateByProduct: Map<string, number>;
   /** Níveis que têm preço na tabela ativa, por produto (na ordem de `tierOptions`). */
   pricedTiersByProduct: Map<string, string[]>;
+  /** Produto+nível (chave `priceKey`) com promoção relâmpago ativa hoje. */
+  promoActiveKeys: Set<string>;
   /** Nível acordado no vínculo deste cliente com esta fábrica; null se não houver. */
   linkedTierId: string | null;
 }
@@ -230,6 +232,8 @@ export function useOrderItemCatalog(
 
   // Mapa de preço sugerido por produto+nível (da tabela ativa), POR UNIDADE:
   // a tabela guarda o preço da embalagem fechada, o pedido trabalha em peças.
+  // Usa `effectiveUnitPrice`: já vem o preço promocional quando a promoção
+  // relâmpago está ativa hoje (senão, o preço normal da tabela).
   const priceMap = useMemo(() => {
     const map = new Map<string, number>();
     priceItems.forEach((node) => {
@@ -237,11 +241,23 @@ export function useOrderItemCatalog(
         const perPack = Number(node.product.unitPerPack) || 1;
         map.set(
           priceKey(node.product.id, node.tier.id),
-          parseFloat(node.unitPrice) / perPack
+          parseFloat(node.effectiveUnitPrice) / perPack
         );
       }
     });
     return map;
+  }, [priceItems]);
+
+  // Produto+nível em promoção relâmpago hoje — o formulário do item marca o
+  // item como promocional e exibe o selo "⚡ Promoção relâmpago".
+  const promoActiveKeys = useMemo(() => {
+    const set = new Set<string>();
+    priceItems.forEach((node) => {
+      if (node.isPromoActive && node.product && node.tier) {
+        set.add(priceKey(node.product.id, node.tier.id));
+      }
+    });
+    return set;
   }, [priceItems]);
 
   // Níveis que têm preço para cada produto, na ordem de `tierOptions`. Serve
@@ -306,6 +322,7 @@ export function useOrderItemCatalog(
     saleMultipleByProduct,
     ipiRateByProduct,
     pricedTiersByProduct,
+    promoActiveKeys,
     linkedTierId,
   };
 }

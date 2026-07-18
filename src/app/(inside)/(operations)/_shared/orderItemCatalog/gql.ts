@@ -113,6 +113,8 @@ export const ORDER_ITEM_PRICE_LIST_ITEMS_QUERY = gql`
         node {
           id
           unitPrice
+          effectiveUnitPrice
+          isPromoActive
           product {
             id
             name

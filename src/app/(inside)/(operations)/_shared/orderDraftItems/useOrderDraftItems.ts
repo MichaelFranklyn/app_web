@@ -39,6 +39,7 @@ export function useOrderDraftItems(
     saleMultipleByProduct,
     ipiRateByProduct,
     pricedTiersByProduct,
+    promoActiveKeys,
     linkedTierId,
   } = useOrderItemCatalog(open, factoryId || null, clientId);
 
@@ -201,11 +202,14 @@ export function useOrderDraftItems(
       discountInput: rawDiscount,
       discountType,
       ipiRate: ipiInOrder ? Number(ipiRate) || 0 : 0,
+      isPromo: !!tierId && promoActiveKeys.has(priceKey(productId, tierId)),
     };
 
+    // Item novo entra no TOPO da lista (empurra os anteriores para baixo);
+    // edição preserva a posição do item.
     setItems((prev) =>
       editingIndex === null
-        ? [...prev, item]
+        ? [item, ...prev]
         : prev.map((old, index) => (index === editingIndex ? item : old))
     );
     resetNewItem();

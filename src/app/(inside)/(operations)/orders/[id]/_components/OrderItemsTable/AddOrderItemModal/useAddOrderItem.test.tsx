@@ -138,6 +138,9 @@ const mocks: MockLink.MockedResponse[] = [
                 // Preço da EMBALAGEM na tabela; com unitPerPack 5, a sugestão
                 // do pedido é 32,50 ÷ 5 = 6,50 por unidade.
                 unitPrice: "32.5000",
+                // Sem promoção: o preço efetivo é o próprio preço de tabela.
+                effectiveUnitPrice: "32.5000",
+                isPromoActive: false,
                 product: {
                   id: "prod-1",
                   name: "Produto 1",

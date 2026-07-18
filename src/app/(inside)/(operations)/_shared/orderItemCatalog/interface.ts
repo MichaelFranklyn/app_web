@@ -63,6 +63,9 @@ export interface TiersData {
 export interface PriceListItemNode {
   id: string;
   unitPrice: string;
+  /** Preço que vale hoje: promocional se a promoção está ativa, senão o de tabela. */
+  effectiveUnitPrice: string;
+  isPromoActive: boolean;
   product: {
     id: string;
     name: string;

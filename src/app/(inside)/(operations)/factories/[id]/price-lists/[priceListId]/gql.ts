@@ -11,6 +11,9 @@ export const PRICE_LIST_DETAIL_QUERY = gql`
         validFrom
         validUntil
         isActive
+        promoStartsOn
+        promoEndsOn
+        isPromoActive
       }
     }
   }

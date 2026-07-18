@@ -8,6 +8,9 @@ export const PRICE_LIST_ITEMS_QUERY = gql`
           id
           unitPrice
           unitPriceWithImpost
+          promoPrice
+          promoPriceWithImpost
+          isPromoActive
           product {
             id
             name

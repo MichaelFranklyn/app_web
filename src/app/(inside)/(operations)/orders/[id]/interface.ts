@@ -88,6 +88,10 @@ export interface OrderItem {
   taxAmount: string;
   /** Preço unitário COM imposto; igual a unitPrice em produto sem imposto. */
   unitPriceWithTax: string;
+  /** Item vendido sob promoção relâmpago. */
+  isPromo: boolean;
+  /** Momento da criação — usado para ordenar do mais novo para o mais antigo. */
+  createdAt: string;
   avgShelfDays: number | null;
   source: "MANUAL" | "IMPORTED" | "TEMPLATE";
   product: {

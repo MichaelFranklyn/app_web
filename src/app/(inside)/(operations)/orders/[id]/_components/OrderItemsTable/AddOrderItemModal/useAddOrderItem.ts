@@ -78,10 +78,18 @@ export function useAddOrderItem({
     saleMultipleByProduct,
     ipiRateByProduct,
     pricedTiersByProduct,
+    promoActiveKeys,
     linkedTierId,
   } = useOrderItemCatalog(open, factoryId, clientId);
 
   const saleMultiple = saleMultipleByProduct.get(selection.productId);
+
+  // Produto+nível selecionados estão em promoção relâmpago hoje? Alimenta o selo
+  // no modal e marca o item como promocional ao salvar. Sem nível não há preço
+  // de tabela, logo não há promoção.
+  const isPromoSelected =
+    !!selection.tierId &&
+    promoActiveKeys.has(priceKey(selection.productId, selection.tierId));
 
   // Escolhe o nível assim que o produto é selecionado: o do último item do
   // pedido, o acordado com o cliente, ou o único nível com preço — sem isso o
@@ -324,6 +332,8 @@ export function useAddOrderItem({
               unitPrice,
               discount,
               ipiRate,
+              isPromo:
+                !!tierId && promoActiveKeys.has(priceKey(productId, tierId)),
               source: "MANUAL",
             },
           },
@@ -356,5 +366,6 @@ export function useAddOrderItem({
     steps,
     handleSubmit,
     isLoading,
+    isPromoSelected,
   };
 }

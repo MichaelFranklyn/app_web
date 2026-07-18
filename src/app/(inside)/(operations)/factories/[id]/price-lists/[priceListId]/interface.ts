@@ -4,6 +4,9 @@ export interface PriceListDetail {
   validFrom: string;
   validUntil: string | null;
   isActive: boolean;
+  promoStartsOn: string | null;
+  promoEndsOn: string | null;
+  isPromoActive: boolean;
 }
 
 export interface PriceListDetailResponse {
