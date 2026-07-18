@@ -76,6 +76,8 @@ test("pedido detalhe: adiciona um item (cascata produto/nível/preço)", async (
             node: {
               id: "pli-1",
               unitPrice: "100.00",
+              effectiveUnitPrice: "100.00",
+              isPromoActive: false,
               product: {
                 id: "p-1",
                 name: "Produto X",
