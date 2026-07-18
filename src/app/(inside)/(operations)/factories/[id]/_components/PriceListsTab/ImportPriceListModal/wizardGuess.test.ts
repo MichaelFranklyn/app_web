@@ -1,6 +1,10 @@
 import { describe, expect, it } from "vitest";
 
-import { guessColumns, looksLikeFraction } from "./wizardGuess";
+import {
+  findStaleListColumns,
+  guessColumns,
+  looksLikeFraction,
+} from "./wizardGuess";
 
 // Cabeçalho estilo "Ficha Bahia": código/nome + NCM/IPI + colunas fiscais ST.
 const HEADER = [
@@ -98,5 +102,55 @@ describe("guessColumns", () => {
 
     // "icms créd"/"icms cred" tem prioridade → índice 2, não o "icms" no 1.
     expect(g.stMva.icmsCredit).toEqual({ kind: "column", index: 2 });
+  });
+});
+
+describe("findStaleListColumns", () => {
+  // Cabeçalho real da "LISTA 39 - NORDESTE": a lista anterior (38) e a vigente
+  // (39) convivem com o mesmo nível DIAMANTE.
+  const HEADER_39 = [
+    "CÓD",
+    "PRODUTO",
+    "FAMÍLIA",
+    "UNIDADE DE VENDA",
+    "CAIXA MÁSTER",
+    "LISTA 38 DIAMANTE",
+    "%",
+    "LISTA 39 DIAMANTE",
+    "PLATINA",
+    "OURO",
+    "IPI",
+  ];
+
+  it("marca a coluna da lista anterior e aponta a vigente", () => {
+    const stale = findStaleListColumns(HEADER_39);
+    expect(stale).toHaveLength(1);
+    expect(stale[0]).toMatchObject({
+      index: 5,
+      listNumber: 38,
+      latestNumber: 39,
+      latestHeader: "LISTA 39 DIAMANTE",
+    });
+  });
+
+  it("sem número de lista repetido → nada a avisar", () => {
+    // Planilha 24.06: níveis puros, sem "LISTA N".
+    expect(
+      findStaleListColumns(["CÓD", "PRODUTO", "DIAMANTE", "PLATINA", "OURO"])
+    ).toEqual([]);
+  });
+
+  it("uma única LISTA N não é obsoleta", () => {
+    expect(findStaleListColumns(["CÓD", "LISTA 39 DIAMANTE"])).toEqual([]);
+  });
+
+  it("mais de duas listas: só a mais recente escapa", () => {
+    const stale = findStaleListColumns([
+      "LISTA 37 OURO",
+      "LISTA 38 OURO",
+      "LISTA 39 OURO",
+    ]);
+    expect(stale.map((s) => s.listNumber)).toEqual([37, 38]);
+    expect(stale.every((s) => s.latestNumber === 39)).toBe(true);
   });
 });

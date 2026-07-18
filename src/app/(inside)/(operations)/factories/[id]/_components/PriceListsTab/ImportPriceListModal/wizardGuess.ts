@@ -22,6 +22,44 @@ export const looksLikeFraction = (
   return values.length > 0 && values.every((v) => v <= 1);
 };
 
+/** Uma coluna de preço de uma LISTA anterior (obsoleta), com a dica da vigente. */
+export interface StaleListColumn {
+  index: number;
+  listNumber: number;
+  latestNumber: number;
+  latestHeader: string;
+}
+
+const LIST_NUMBER = /lista\s*(\d+)/i;
+
+/**
+ * Colunas de preço de uma lista ANTERIOR. Planilhas de fábrica costumam trazer a
+ * lista vigente e a anterior lado a lado, com o mesmo nome de nível ("LISTA 38
+ * DIAMANTE" e "LISTA 39 DIAMANTE") — marcar a antiga como nível importa preços
+ * desatualizados. Acha o padrão "LISTA N" nos cabeçalhos e, havendo mais de um N,
+ * marca como obsoletas as colunas de N menor que o máximo (a vigente).
+ */
+export const findStaleListColumns = (headers: string[]): StaleListColumn[] => {
+  const numbered = headers
+    .map((header, index) => {
+      const match = header.match(LIST_NUMBER);
+      return match ? { index, header, listNumber: Number(match[1]) } : null;
+    })
+    .filter((entry): entry is NonNullable<typeof entry> => entry !== null);
+  if (numbered.length < 2) return [];
+  const latestNumber = Math.max(...numbered.map((n) => n.listNumber));
+  const latestHeader =
+    numbered.find((n) => n.listNumber === latestNumber)?.header ?? "";
+  return numbered
+    .filter((n) => n.listNumber < latestNumber)
+    .map((n) => ({
+      index: n.index,
+      listNumber: n.listNumber,
+      latestNumber,
+      latestHeader,
+    }));
+};
+
 /** Palpites de coluna deduzidos dos cabeçalhos da grade (sem o mapeamento base). */
 export interface GuessedColumns {
   headerIndex: number;

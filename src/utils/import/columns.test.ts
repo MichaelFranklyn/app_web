@@ -54,4 +54,17 @@ describe("parseNumber", () => {
   it("texto sem número → NaN", () => {
     expect(parseNumber("abc")).toBeNaN();
   });
+
+  it("negativo e percentual (número único nas bordas)", () => {
+    expect(parseNumber("-5")).toBe(-5);
+    expect(parseNumber("3.25%")).toBe(3.25);
+    expect(parseNumber(" R$ 1.305,21 ")).toBe(1305.21);
+  });
+
+  it("múltiplo textual '1 c/N pçs' é ambíguo → NaN (não concatena p/ 1100)", () => {
+    // Antes: "1 c/100 pçs" virava 1100. Agora vira NaN → múltiplo assumido/revisão.
+    expect(parseNumber("1 c/100 pçs")).toBeNaN();
+    expect(parseNumber("1 c/72 pçs")).toBeNaN();
+    expect(parseNumber("8/4")).toBeNaN();
+  });
 });

@@ -37,8 +37,14 @@ export const distinctValues = (
 
 /** Parse de número aceitando vírgula/ponto e símbolos (ex.: " R$ 1.41 " → 1.41). */
 export const parseNumber = (value: string): number => {
-  const cleaned = value.replace(/[^0-9.,-]/g, "").trim();
-  if (!cleaned) return NaN;
+  // Grupos de dígitos (com seus separadores de milhar/decimal) no texto. Símbolo
+  // nas bordas ("R$", "%") não conta. DOIS grupos separados por texto no meio —
+  // "1 c/100 pçs" (1 caixa c/ 100 peças) — são ambíguos: concatenar daria 1100.
+  // Devolve NaN para o chamador tratar como ausente (múltiplo assumido/revisão)
+  // em vez de gravar um valor errado silenciosamente.
+  const groups = value.match(/-?\d[\d.,]*/g);
+  if (!groups || groups.length !== 1) return NaN;
+  const cleaned = groups[0];
   // Última vírgula/ponto é o separador decimal; o resto é milhar.
   const lastComma = cleaned.lastIndexOf(",");
   const lastDot = cleaned.lastIndexOf(".");
