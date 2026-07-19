@@ -1,3 +1,4 @@
+import { Alert } from "@/components/Alert";
 import { Badge } from "@/components/Badges";
 import { HelpTooltip } from "@/components/HelpTooltip";
 import { Input } from "@/components/Input";
@@ -6,15 +7,18 @@ import { Stepper } from "@/components/Stepper";
 import { Table } from "@/components/Table";
 import { Title } from "@/components/Title";
 import { formatMoney, maskCurrency } from "@/utils/format/masks";
+import { AlertTriangle } from "lucide-react";
 import { ChangeEvent } from "react";
 
-import { ReviewRow } from "./interface";
+import { ReviewRow, SkippedImportItem } from "./interface";
 import { confidenceHelp, confidenceTone, tierPriceDiffers } from "./utils";
 
 interface StepReviewProps {
   reviewRows: ReviewRow[];
   updateRow: (index: number, patch: Partial<ReviewRow>) => void;
   confirmableCount: number;
+  /** Itens do arquivo que não podem ser gravados (fora do catálogo/sem nível). */
+  skippedItems: SkippedImportItem[];
   /** Fábrica cobra IPI no pedido: mostra a coluna editável de alíquota. */
   ipiInOrder?: boolean;
 }
@@ -23,6 +27,7 @@ export function StepReview({
   reviewRows,
   updateRow,
   confirmableCount,
+  skippedItems,
   ipiInOrder = false,
 }: StepReviewProps) {
   return (
@@ -37,6 +42,23 @@ export function StepReview({
         sem produto ou sem nível não podem ser gravadas — ajuste o catálogo e
         importe de novo.
       </Stepper.Intro>
+      {skippedItems.length > 0 && (
+        <Alert.Root variant="warning">
+          <Alert.Icon icon={AlertTriangle} />
+          <Alert.Content>
+            <Alert.Title>
+              {skippedItems.length} de {reviewRows.length} itens não serão
+              importados
+            </Alert.Title>
+            <Alert.Description>
+              Estes códigos não têm produto ou nível no catálogo desta fábrica
+              (o produto pode ter saído de linha ou não estar cadastrado):{" "}
+              {skippedItems.map((s) => s.sku).join(", ")}. Cadastre-os e importe
+              de novo para incluí-los.
+            </Alert.Description>
+          </Alert.Content>
+        </Alert.Root>
+      )}
       <Table.Root>
         <Table.Table>
           <Table.Header>

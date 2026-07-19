@@ -34,6 +34,8 @@ export interface OrderDetail {
   orderDate: string;
   totalAmount: string;
   ipiAmount: string;
+  /** Imposto embutido agregado (soma dos taxAmount dos itens); exibição, fora da base de comissão. */
+  taxAmount: string;
   ipiInOrder: boolean;
   commissionAmount: string;
   status: OrderStatus;

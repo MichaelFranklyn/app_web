@@ -79,6 +79,13 @@ export interface ConfirmOrderImportResponse {
   };
 }
 
+/** Item extraído do arquivo que NÃO pôde ser importado (sem produto/nível no catálogo). */
+export interface SkippedImportItem {
+  sku: string;
+  name: string | null;
+  reason: string;
+}
+
 /** Linha da revisão: candidato do backend + estado editável de inclusão/nível/qtd/preço/IPI. */
 export interface ReviewRow {
   candidate: ImportCandidate;

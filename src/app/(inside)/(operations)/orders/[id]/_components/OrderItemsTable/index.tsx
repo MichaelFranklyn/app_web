@@ -216,7 +216,7 @@ export function OrderItemsTable({
                   )}
                 </Table.Cell>
                 <Table.Cell variant="strong">
-                  {formatMoney(item.subtotal)}
+                  {formatMoney(Number(item.subtotal) + Number(item.taxAmount))}
                 </Table.Cell>
                 <Table.Cell>
                   <div className="flex items-center justify-end gap-4">

@@ -61,6 +61,7 @@ export function OrderImportWizard({
     onHeaderChange,
     runPreview,
     confirmableCount,
+    skippedItems,
     runConfirm,
     updateRow,
     canMap,
@@ -109,12 +110,13 @@ export function OrderImportWizard({
               reviewRows={reviewRows}
               updateRow={updateRow}
               confirmableCount={confirmableCount}
+              skippedItems={skippedItems}
               ipiInOrder={ipiEnabled}
             />
           </Stepper.Item>
 
           <Stepper.Item label="Resultado">
-            {result && <StepResult result={result} />}
+            {result && <StepResult result={result} skipped={skippedItems} />}
           </Stepper.Item>
         </Stepper.Root>
       </Modal.Body>

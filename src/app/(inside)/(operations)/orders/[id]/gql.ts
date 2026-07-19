@@ -11,6 +11,7 @@ export const ORDER_DETAIL_QUERY = gql`
         orderDate
         totalAmount
         ipiAmount
+        taxAmount
         ipiInOrder
         commissionAmount
         status

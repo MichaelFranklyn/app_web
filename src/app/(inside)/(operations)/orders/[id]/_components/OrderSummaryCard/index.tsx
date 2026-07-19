@@ -9,8 +9,13 @@ interface Props {
 }
 
 export function OrderSummaryCard({ order }: Props) {
-  const hasIpi = Number(order.ipiAmount) > 0;
-  const grandTotal = Number(order.totalAmount) + Number(order.ipiAmount);
+  const ipi = Number(order.ipiAmount);
+  const hasIpi = ipi > 0;
+  // A coluna Subtotal da tabela já soma o imposto embutido da linha; o resumo
+  // acompanha para o subtotal e o total baterem com a tabela. O IPI, quando a
+  // fábrica cobra no pedido, continua somado à parte (tem colunas próprias).
+  const subtotalWithTax = Number(order.totalAmount) + Number(order.taxAmount);
+  const grandTotal = subtotalWithTax + ipi;
 
   return (
     <Card.Root>
@@ -25,7 +30,7 @@ export function OrderSummaryCard({ order }: Props) {
             <Card.Item variant="stat">
               <Card.Item.Label>Subtotal (sem IPI)</Card.Item.Label>
               <Card.Item.Value>
-                {formatMoney(order.totalAmount)}
+                {formatMoney(subtotalWithTax.toFixed(2))}
               </Card.Item.Value>
             </Card.Item>
             <Divider.Root className="my-2" />
@@ -40,7 +45,7 @@ export function OrderSummaryCard({ order }: Props) {
           <Card.Item.Label>Total do pedido</Card.Item.Label>
           <Card.Item.Value>
             <Title variant="body" weight="bold" className="text-[15px]">
-              {formatMoney(hasIpi ? grandTotal.toFixed(2) : order.totalAmount)}
+              {formatMoney(grandTotal.toFixed(2))}
             </Title>
           </Card.Item.Value>
         </Card.Item>

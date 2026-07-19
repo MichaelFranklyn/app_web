@@ -26,6 +26,7 @@ import {
   Mapping,
   PreviewOrderImportResponse,
   ReviewRow,
+  SkippedImportItem,
 } from "./interface";
 import {
   fileToBase64,
@@ -240,6 +241,20 @@ export function useOrderImportWizard({
     (r) => r.include && r.candidate.productId && r.tierId
   ).length;
 
+  // Itens que o arquivo trouxe mas NÃO podem ser gravados (produto fora de
+  // linha/não cadastrado ou sem nível de preço). Não são erro de digitação do
+  // usuário: são avisados para ele saber que subiu N e só M entraram.
+  const skippedItems: SkippedImportItem[] = reviewRows
+    .filter((r) => !r.candidate.productId || !r.tierId)
+    .map((r) => ({
+      sku: r.candidate.rawSku,
+      name: r.candidate.rawName ?? r.candidate.productName,
+      reason: !r.candidate.productId
+        ? (r.candidate.message ??
+          "Produto não encontrado no catálogo desta fábrica.")
+        : "Sem nível de preço para gravar.",
+    }));
+
   const runConfirm = async () => {
     const items = reviewRows
       .filter((r) => r.include && r.candidate.productId && r.tierId)
@@ -278,10 +293,14 @@ export function useOrderImportWizard({
           setResult(r);
           setStep(3);
           onImported();
+          const partial = r.failed > 0 || skippedItems.length > 0;
+          const skippedNote = skippedItems.length
+            ? ` · ${skippedItems.length} não importado(s) (fora do catálogo)`
+            : "";
           toast({
-            variant: r.failed > 0 ? "warning" : "success",
-            title: r.failed > 0 ? "Importação parcial" : "Itens importados",
-            description: `${r.created} item(ns) importado(s), ${r.failed} com erro.`,
+            variant: partial ? "warning" : "success",
+            title: partial ? "Importação parcial" : "Itens importados",
+            description: `${r.created} item(ns) importado(s), ${r.failed} com erro${skippedNote}.`,
           });
         },
       }
@@ -319,6 +338,7 @@ export function useOrderImportWizard({
     onHeaderChange,
     runPreview,
     confirmableCount,
+    skippedItems,
     runConfirm,
     updateRow,
     canMap,

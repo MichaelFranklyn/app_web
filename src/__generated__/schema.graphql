@@ -1650,6 +1650,8 @@ type OrderType {
   totalAmount: Decimal!
   """IPI acumulado do pedido. Total pago pelo cliente = totalAmount + ipiAmount."""
   ipiAmount: Decimal!
+  """Imposto embutido agregado (soma do taxAmount dos itens). Informativo, para exibir o total com imposto; não entra na base da comissão."""
+  taxAmount: Decimal!
   commissionAmount: Decimal!
   status: OrderStatus!
   paymentTermId: UUID
