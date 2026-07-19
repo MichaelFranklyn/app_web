@@ -60,6 +60,7 @@ export function AddOrderModal(props: AddFactoryOrderProps) {
             <FormBuilder
               ref={formRef}
               steps={formSteps}
+              initialData={{ orderKind: "order" }}
               onSubmit={handleDetailsValid}
               unstyled
             />

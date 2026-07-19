@@ -4,36 +4,101 @@ import { Button } from "@/components/Button";
 import { Card } from "@/components/Card";
 import { EmptyState } from "@/components/EmptyState";
 import { Grid } from "@/components/Grid";
+import { Input, SelectOption } from "@/components/Input";
 import { Loading } from "@/components/Loading";
 import { PageContent } from "@/components/PageContent";
 import { PanelHeader } from "@/components/PanelHeader";
 import { QueryError } from "@/components/QueryError";
 import { Table } from "@/components/Table";
-import { useUserData } from "@/hooks/useUserData";
+import { Title } from "@/components/Title";
+import { getTodayIso } from "@/utils/format/date";
 import { formatMoney } from "@/utils/format/masks";
 import { useQuery } from "@apollo/client/react";
-import { Coins } from "lucide-react";
-import { useMemo, useState } from "react";
+import { CalendarDays, ChevronLeft, ChevronRight, Coins } from "lucide-react";
+import { useEffect, useMemo, useState } from "react";
 import { FactoryCommissionGroup } from "./_components/FactoryCommissionGroup";
-import { COMMISSIONS_QUERY } from "./gql";
-import { CommissionsResponse } from "./interface";
-import { CommissionTab, COMMISSION_TABS, groupByFactory } from "./utils";
+import { COMMISSIONS_QUERY, COMMISSIONS_SELLERS_QUERY } from "./gql";
+import { CommissionsResponse, CommissionsSellersResponse } from "./interface";
+import {
+  addMonths,
+  COMMISSION_TABS,
+  CommissionTab,
+  groupByFactory,
+  latestMonthWithData,
+  monthLabel,
+  summarizeMonth,
+  yearMonthFromIso,
+} from "./utils";
 
-export default function CommissionsContent() {
+interface Props {
+  /** Gestor (owner/admin/su): pode escolher de qual vendedor ver as comissões. */
+  canSelectSeller: boolean;
+  /** Perfil de vendedor do próprio gestor, quando ele também vende. */
+  ownSellerId: string | null;
+}
+
+export default function CommissionsContent({
+  canSelectSeller,
+  ownSellerId,
+}: Props) {
+  // Vendedor só VISUALIZA quanto vai ganhar; conferir contra a planilha e marcar
+  // repasse ("bater valores") é tarefa de gestão (gestor = quem pode escolher vendedor).
+  const canManage = canSelectSeller;
+
+  // ── Seletor de vendedor (só gestor) ────────────────────────────────────────
+  const sellersQuery = useQuery<CommissionsSellersResponse>(
+    COMMISSIONS_SELLERS_QUERY,
+    { variables: { input: { first: 200 } }, skip: !canSelectSeller }
+  );
+  const sellers = useMemo(
+    () => sellersQuery.data?.commissions_sellers.edges.map((e) => e.node) ?? [],
+    [sellersQuery.data]
+  );
+
+  const [selectedSellerId, setSelectedSellerId] = useState<string | null>(null);
+
+  // Default: o próprio perfil quando o gestor também vende, senão o primeiro.
+  useEffect(() => {
+    if (canSelectSeller && !selectedSellerId && sellers.length > 0) {
+      const own = ownSellerId && sellers.find((s) => s.id === ownSellerId);
+      setSelectedSellerId(own ? own.id : sellers[0].id);
+    }
+  }, [canSelectSeller, selectedSellerId, sellers, ownSellerId]);
+
+  // Gestor sem vendedor escolhido ainda não busca (evita query sem escopo).
+  const dataSkip = canSelectSeller && !selectedSellerId;
+
   const { data, loading, error, refetch } = useQuery<CommissionsResponse>(
     COMMISSIONS_QUERY,
-    { fetchPolicy: "cache-and-network" }
+    {
+      variables: { sellerId: selectedSellerId },
+      fetchPolicy: "cache-and-network",
+      skip: dataSkip,
+    }
   );
-  const [tab, setTab] = useState<CommissionTab>("receivable");
 
-  // Vendedor só VISUALIZA quanto vai ganhar; conferir contra a planilha e marcar
-  // repasse ("bater valores") é tarefa de gestão. userData chega após o mount:
-  // até saber o papel, escondemos as ações (evita flash de botão que some).
-  const { userData, isSeller } = useUserData();
-  const canManage = userData ? !isSeller : false;
+  const [tab, setTab] = useState<CommissionTab>("receivable");
 
   const rows = useMemo(() => data?.commissions?.rows ?? [], [data]);
   const summary = data?.commissions;
+
+  // ── Navegador de mês global (pela data em que a comissão cai) ───────────────
+  // Inicializa no mês da comissão mais recente e depois respeita a navegação —
+  // ao trocar de vendedor, mantém o mês para comparar "agosto de um" vs "de outro".
+  const [month, setMonth] = useState(() => yearMonthFromIso(getTodayIso()));
+  const [monthPinned, setMonthPinned] = useState(false);
+  useEffect(() => {
+    if (!monthPinned && rows.length > 0) {
+      setMonth(latestMonthWithData(rows) ?? yearMonthFromIso(getTodayIso()));
+      setMonthPinned(true);
+    }
+  }, [monthPinned, rows]);
+
+  const monthTotals = useMemo(() => summarizeMonth(rows, month), [rows, month]);
+  const isCurrentMonth = useMemo(() => {
+    const now = yearMonthFromIso(getTodayIso());
+    return now.year === month.year && now.month === month.month;
+  }, [month]);
 
   const filteredRows = useMemo(() => {
     if (tab === "all") return rows;
@@ -41,10 +106,18 @@ export default function CommissionsContent() {
   }, [rows, tab]);
 
   // Agrupado por fábrica trabalhada — é assim que a fábrica manda a planilha.
-  // Cada card recorta o próprio mês (a planilha de repasse é mensal).
   const groups = useMemo(() => groupByFactory(filteredRows), [filteredRows]);
 
   const handleChanged = () => refetch();
+
+  const sellerOptions: SelectOption[] = sellers.map((s) => ({
+    value: s.id,
+    label: s.name,
+  }));
+  const sellerValue =
+    sellerOptions.find((o) => o.value === selectedSellerId) ?? null;
+
+  const showSkeleton = loading && !summary;
 
   return (
     <PageContent>
@@ -55,9 +128,27 @@ export default function CommissionsContent() {
             <PanelHeader.Title>Comissões</PanelHeader.Title>
             <PanelHeader.Description>
               {canManage
-                ? "O que você tem para receber das fábricas. Cada fábrica tem o seu mês para você conferir contra a planilha que ela envia."
+                ? "O que cada vendedor tem para receber das fábricas. Escolha o vendedor e o mês para ver quanto ele vai ganhar."
                 : "Quanto você tem para ganhar de comissão, por fábrica e por mês."}
             </PanelHeader.Description>
+            {canSelectSeller && (
+              <PanelHeader.Actions className="mt-6">
+                <div className="desktop:w-[220px] w-full">
+                  <Input.Select
+                    size="sm"
+                    options={sellerOptions}
+                    value={sellerValue}
+                    variant="single"
+                    disabledClear
+                    placeholder="Selecionar vendedor"
+                    onChange={(val: SelectOption | SelectOption[] | null) => {
+                      const opt = Array.isArray(val) ? val[0] : val;
+                      if (opt) setSelectedSellerId(opt.value);
+                    }}
+                  />
+                </div>
+              </PanelHeader.Actions>
+            )}
           </PanelHeader.Left>
         </PanelHeader.Top>
       </PanelHeader.Root>
@@ -66,25 +157,75 @@ export default function CommissionsContent() {
         <QueryError onRetry={() => refetch()} />
       ) : (
         <>
+          {/* Navegador de mês: controla os totais logo abaixo. */}
+          <div className="flex flex-wrap items-center justify-between gap-16">
+            <Title variant="heading-sm">Resumo de {monthLabel(month)}</Title>
+            <div className="flex items-center gap-4">
+              <Button.Root
+                appearance="outline"
+                color="neutral"
+                size="sm"
+                isIconOnly
+                label="Mês anterior"
+                onClick={() => {
+                  setMonthPinned(true);
+                  setMonth((m) => addMonths(m, -1));
+                }}
+              >
+                <Button.Icon icon={ChevronLeft} />
+              </Button.Root>
+              <Button.Root
+                appearance={isCurrentMonth ? "tinted" : "ghost"}
+                color={isCurrentMonth ? "amber" : "neutral"}
+                size="sm"
+                noUppercase
+                onClick={() => {
+                  setMonthPinned(true);
+                  setMonth(yearMonthFromIso(getTodayIso()));
+                }}
+              >
+                <Button.Icon icon={CalendarDays} />
+                <Button.Title>{monthLabel(month)}</Button.Title>
+              </Button.Root>
+              <Button.Root
+                appearance="outline"
+                color="neutral"
+                size="sm"
+                isIconOnly
+                label="Próximo mês"
+                onClick={() => {
+                  setMonthPinned(true);
+                  setMonth((m) => addMonths(m, 1));
+                }}
+              >
+                <Button.Icon icon={ChevronRight} />
+              </Button.Root>
+            </div>
+          </div>
+
           <Grid.Root cols={{ base: 1, tablet: 3 }} gap={20}>
-            {summary ? (
+            {!showSkeleton ? (
               <>
                 <Grid.Item>
                   <Card.Kpi>
-                    <Card.Kpi.Label>A receber (total)</Card.Kpi.Label>
+                    <Card.Kpi.Label>
+                      A receber em {monthLabel(month)}
+                    </Card.Kpi.Label>
                     <Card.Kpi.Value status="atencao">
-                      {formatMoney(Number(summary.totalReceivable))}
+                      {formatMoney(monthTotals.receivable)}
                     </Card.Kpi.Value>
                     <Card.Kpi.Delta>
-                      {summary.countReceivable} parcela(s) a receber
+                      {monthTotals.countReceivable} parcela(s) a receber
                     </Card.Kpi.Delta>
                   </Card.Kpi>
                 </Grid.Item>
                 <Grid.Item>
                   <Card.Kpi>
-                    <Card.Kpi.Label>Previsto (total)</Card.Kpi.Label>
+                    <Card.Kpi.Label>
+                      Previsto em {monthLabel(month)}
+                    </Card.Kpi.Label>
                     <Card.Kpi.Value>
-                      {formatMoney(Number(summary.totalPending))}
+                      {formatMoney(monthTotals.pending)}
                     </Card.Kpi.Value>
                     <Card.Kpi.Delta>
                       Depende de faturamento/pagamento
@@ -93,9 +234,11 @@ export default function CommissionsContent() {
                 </Grid.Item>
                 <Grid.Item>
                   <Card.Kpi>
-                    <Card.Kpi.Label>Recebido (total)</Card.Kpi.Label>
+                    <Card.Kpi.Label>
+                      Recebido em {monthLabel(month)}
+                    </Card.Kpi.Label>
                     <Card.Kpi.Value status="ok">
-                      {formatMoney(Number(summary.totalReceived))}
+                      {formatMoney(monthTotals.received)}
                     </Card.Kpi.Value>
                     <Card.Kpi.Delta>Já repassado pelas fábricas</Card.Kpi.Delta>
                   </Card.Kpi>
@@ -130,7 +273,7 @@ export default function CommissionsContent() {
             ))}
           </div>
 
-          {loading && !data?.commissions ? (
+          {showSkeleton ? (
             <Table.Root>
               <Table.Table>
                 <Table.Body>

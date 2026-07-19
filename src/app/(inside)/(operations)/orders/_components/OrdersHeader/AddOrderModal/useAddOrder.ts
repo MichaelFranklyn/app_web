@@ -165,6 +165,17 @@ export function useAddOrder({ onAddOptimistic }: AddOrderModalProps) {
             id: "details",
             fields: [
               {
+                name: "orderKind",
+                type: "radio",
+                label: "Tipo",
+                hint: "O orçamento pode ser convertido em pedido depois. Só o pedido pode ser faturado.",
+                required: true,
+                options: [
+                  { label: "Pedido", value: "order" },
+                  { label: "Orçamento", value: "quote" },
+                ],
+              },
+              {
                 name: "sellerId",
                 type: "select-single",
                 label: "Vendedor",

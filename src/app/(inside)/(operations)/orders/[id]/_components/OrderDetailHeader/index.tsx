@@ -1,12 +1,15 @@
 "use client";
 
+import { Badge } from "@/components/Badges";
 import { Breadcrumb } from "@/components/Breadcrumb";
 import { PanelHeader } from "@/components/PanelHeader";
 import { formatDateDMY } from "@/utils/format/masks";
 import { clientName, factoryName } from "@/utils/company";
 import { OrderDetail } from "../../interface";
 import { InvoiceOrderModal } from "../InvoiceOrderModal";
+import { ConvertToOrderModal } from "./ConvertToOrderModal";
 import { DeleteOrderModal } from "./DeleteOrderModal";
+import { OrderPdfButton } from "./OrderPdfButton";
 import { UpdateOrderModal } from "./UpdateOrderModal";
 
 interface Props {
@@ -15,6 +18,10 @@ interface Props {
 }
 
 export function OrderDetailHeader({ order, onRefetch }: Props) {
+  // Orçamento (rascunho/enviado): ainda não é pedido de fato — não fatura, mas
+  // pode ser convertido em pedido.
+  const isQuote = order.status === "DRAFT" || order.status === "SENT";
+
   return (
     <div className="flex flex-col gap-8">
       <div className="print-hide">
@@ -41,11 +48,32 @@ export function OrderDetailHeader({ order, onRefetch }: Props) {
               {formatDateDMY(order.orderDate)}
             </PanelHeader.Description>
 
+            {isQuote && (
+              <div className="mt-4">
+                <Badge.Root appearance="tinted" color="amber">
+                  <Badge.Text>
+                    {order.status === "SENT"
+                      ? "Orçamento enviado"
+                      : "Orçamento"}
+                  </Badge.Text>
+                </Badge.Root>
+              </div>
+            )}
+
             <PanelHeader.Actions className="mt-6">
               <div className="print-hide flex items-center gap-8">
-                {!order.invoicedAt && order.status !== "CANCELLED" && (
-                  <InvoiceOrderModal order={order} onSuccess={onRefetch} />
+                <OrderPdfButton order={order} />
+                {isQuote && (
+                  <ConvertToOrderModal
+                    orderId={order.id}
+                    onSuccess={onRefetch}
+                  />
                 )}
+                {!order.invoicedAt &&
+                  order.status !== "CANCELLED" &&
+                  !isQuote && (
+                    <InvoiceOrderModal order={order} onSuccess={onRefetch} />
+                  )}
                 <UpdateOrderModal
                   orderId={order.id}
                   currentNotes={order.notes}

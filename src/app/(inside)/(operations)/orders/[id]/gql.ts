@@ -63,6 +63,53 @@ export const ORDER_DETAIL_QUERY = gql`
   }
 `;
 
+// Itens do pedido. Mora aqui (pai do detalhe) por ser consumida por 2+ irmãos:
+// a tabela de itens (OrderItemsTable) e o botão de PDF (OrderPdfButton).
+export const ORDER_ITEMS_QUERY = gql`
+  query OrderItems($orderId: UUID!) {
+    orderItems(orderId: $orderId) {
+      edges {
+        node {
+          id
+          quantity
+          unitsTotal
+          unitPrice
+          discount
+          subtotal
+          ipiRate
+          ipiAmount
+          taxAmount
+          unitPriceWithTax
+          isPromo
+          avgShelfDays
+          source
+          createdAt
+          product {
+            id
+            name
+            sku
+            saleMultiple
+            unitPerPack
+            taxes {
+              id
+              rate
+              taxRule {
+                id
+                name
+              }
+            }
+          }
+          tier {
+            id
+            name
+          }
+        }
+      }
+      totalCount
+    }
+  }
+`;
+
 export const INVOICE_ORDER_MUTATION = gql`
   mutation InvoiceOrder($id: UUID!, $input: InvoiceOrderInput!) {
     invoiceOrder(id: $id, input: $input) {

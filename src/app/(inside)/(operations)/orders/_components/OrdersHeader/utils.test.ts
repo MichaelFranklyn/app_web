@@ -21,7 +21,21 @@ describe("normalizeInput (criar pedido)", () => {
       paymentTermId: "pt1",
       freightType: "FOB",
       notes: "obs",
+      isQuote: false,
     });
+  });
+
+  it("marca isQuote quando orderKind é 'quote' (orçamento)", () => {
+    const base = {
+      sellerId: "s1",
+      clientId: "c1",
+      factoryId: "f1",
+      orderDate: "2026-05-31",
+    };
+    expect(normalizeInput({ ...base, orderKind: "quote" }).isQuote).toBe(true);
+    expect(normalizeInput({ ...base, orderKind: "order" }).isQuote).toBe(false);
+    // Ausente (default) = pedido de fato.
+    expect(normalizeInput(base).isQuote).toBe(false);
   });
 
   it("manda paymentTermId/freightType/notes como null quando ausentes", () => {

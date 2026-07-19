@@ -1,8 +1,22 @@
 import { gql } from "@apollo/client";
 
+// Lista de vendedores para o seletor do gestor (owner/admin/su).
+export const COMMISSIONS_SELLERS_QUERY = gql`
+  query CommissionsSellers($input: BaseListInput!) {
+    commissions_sellers: sellers(input: $input) {
+      edges {
+        node {
+          id
+          name
+        }
+      }
+    }
+  }
+`;
+
 export const COMMISSIONS_QUERY = gql`
-  query Commissions {
-    commissions {
+  query Commissions($sellerId: UUID) {
+    commissions(sellerId: $sellerId) {
       totalReceivable
       totalReceived
       totalPending

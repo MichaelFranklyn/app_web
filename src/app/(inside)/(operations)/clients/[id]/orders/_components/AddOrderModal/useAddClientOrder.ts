@@ -52,6 +52,7 @@ interface OrderDetails {
   paymentTermId: string | null;
   freightType: string | null;
   notes: string | null;
+  isQuote: boolean;
 }
 
 export function useAddClientOrder(clientId: string) {
@@ -109,6 +110,17 @@ export function useAddClientOrder(clientId: string) {
           {
             id: "details",
             fields: [
+              {
+                name: "orderKind",
+                type: "radio",
+                label: "Tipo",
+                hint: "O orçamento pode ser convertido em pedido depois. Só o pedido pode ser faturado.",
+                required: true,
+                options: [
+                  { label: "Pedido", value: "order" },
+                  { label: "Orçamento", value: "quote" },
+                ],
+              },
               {
                 name: "assignment",
                 type: "select-single",
@@ -203,6 +215,7 @@ export function useAddClientOrder(clientId: string) {
       paymentTermId: extractSelectValue(data.paymentTermId) || null,
       freightType: extractSelectValue(data.freightType) || null,
       notes: data.notes ? String(data.notes) : null,
+      isQuote: extractSelectValue(data.orderKind) === "quote",
     });
     setStep(1);
   };

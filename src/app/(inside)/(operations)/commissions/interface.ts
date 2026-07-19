@@ -44,3 +44,14 @@ export interface CommissionsSummary {
 export interface CommissionsResponse {
   commissions: CommissionsSummary;
 }
+
+export interface SellerOption {
+  id: string;
+  name: string;
+}
+
+export interface CommissionsSellersResponse {
+  commissions_sellers: {
+    edges: { node: SellerOption }[];
+  };
+}

@@ -13,4 +13,6 @@ export const normalizeInput = (
   // Enum GraphQL por NOME (FOB/CIF); vazio = não informado.
   freightType: extractSelectValue(data.freightType) || null,
   notes: data.notes ? String(data.notes) : null,
+  // "quote" = orçamento; qualquer outro valor (default) = pedido de fato.
+  isQuote: extractSelectValue(data.orderKind) === "quote",
 });

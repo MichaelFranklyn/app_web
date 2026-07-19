@@ -4,8 +4,8 @@ import { extractSelectValue } from "@/utils/form";
 import { OrderStatus } from "../../../../interface";
 
 export const ORDER_STATUS_LABELS: Record<OrderStatus, string> = {
-  DRAFT: "Rascunho",
-  SENT: "Enviado",
+  DRAFT: "Orçamento",
+  SENT: "Orçamento enviado",
   CONFIRMED: "Confirmado",
   INVOICED: "Faturado",
   DELIVERED: "Entregue",

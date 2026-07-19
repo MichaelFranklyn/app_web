@@ -8,6 +8,8 @@ export interface CreateOrderInput {
   paymentTermId?: string | null;
   notes?: string | null;
   freightType?: string | null;
+  // Quando true, o pedido nasce como ORÇAMENTO (rascunho) até ser convertido.
+  isQuote?: boolean;
 }
 
 export interface CreateOrderResponse {

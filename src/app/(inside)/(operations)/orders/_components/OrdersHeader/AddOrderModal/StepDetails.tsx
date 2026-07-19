@@ -15,8 +15,17 @@ interface Props {
   onValid: (data: Record<string, unknown>) => void;
 }
 
+// Pré-seleciona "Pedido": o caminho comum é criar pedido, não orçamento.
+const INITIAL_DATA = { orderKind: "order" };
+
 export function StepDetails({ formRef, formSteps, onValid }: Props) {
   return (
-    <FormBuilder ref={formRef} steps={formSteps} onSubmit={onValid} unstyled />
+    <FormBuilder
+      ref={formRef}
+      steps={formSteps}
+      initialData={INITIAL_DATA}
+      onSubmit={onValid}
+      unstyled
+    />
   );
 }

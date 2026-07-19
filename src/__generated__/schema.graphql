@@ -1612,6 +1612,8 @@ input CreateOrderInput {
   visita: o vendedor vai por causa de uma e pode vender de outra.
   """
   visitScheduleItemId: UUID = null
+  """Quando true, o pedido nasce como ORÇAMENTO (rascunho) até ser convertido."""
+  isQuote: Boolean = false
 }
 
 """Direção de ordenação. Aceita asc/desc com ou sem aspas."""
@@ -1752,7 +1754,7 @@ extend type Query {
   orders(input: BaseListInput!): OrderTypeConnectionResponse!
   order(id: UUID!): OrderTypeDataResponse!
   orderStats: OrderStatsType!
-  commissions(status: String = null, factoryId: UUID = null): CommissionSummaryType!
+  commissions(status: String = null, factoryId: UUID = null, sellerId: UUID = null): CommissionSummaryType!
 }
 
 extend type Mutation {

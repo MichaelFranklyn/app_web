@@ -63,6 +63,7 @@ export function AddOrderModal({ clientId }: Props) {
             <FormBuilder
               ref={formRef}
               steps={formSteps}
+              initialData={{ orderKind: "order" }}
               onSubmit={handleDetailsValid}
               unstyled
             />

@@ -1,49 +1,8 @@
 import { gql } from "@apollo/client";
 
-export const ORDER_ITEMS_QUERY = gql`
-  query OrderItems($orderId: UUID!) {
-    orderItems(orderId: $orderId) {
-      edges {
-        node {
-          id
-          quantity
-          unitsTotal
-          unitPrice
-          discount
-          subtotal
-          ipiRate
-          ipiAmount
-          taxAmount
-          unitPriceWithTax
-          isPromo
-          avgShelfDays
-          source
-          createdAt
-          product {
-            id
-            name
-            sku
-            saleMultiple
-            unitPerPack
-            taxes {
-              id
-              rate
-              taxRule {
-                id
-                name
-              }
-            }
-          }
-          tier {
-            id
-            name
-          }
-        }
-      }
-      totalCount
-    }
-  }
-`;
+// Query dos itens hasteada para o gql do pai ([id]/gql.ts) por ser compartilhada
+// com o botão de PDF; re-exportada aqui para os consumidores locais da tabela.
+export { ORDER_ITEMS_QUERY } from "../../gql";
 
 export const CREATE_ORDER_ITEM_MUTATION = gql`
   mutation CreateOrderItem($input: CreateOrderItemInput!) {

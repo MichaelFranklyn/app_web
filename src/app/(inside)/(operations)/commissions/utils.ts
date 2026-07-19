@@ -98,6 +98,42 @@ export const latestMonthWithData = (
   return best;
 };
 
+export interface MonthSummary {
+  receivable: number; // a receber no mês
+  received: number; // já recebido no mês
+  pending: number; // previsto no mês (depende de faturamento/pagamento)
+  countReceivable: number; // parcelas a receber no mês
+}
+
+/**
+ * Consolida as comissões de UM mês (pela data em que a comissão cai,
+ * `receiveDate`) somando todas as fábricas — é o "quanto o vendedor vai receber
+ * em agosto". Linhas previstas sem data de recebimento entram como previsto.
+ */
+export const summarizeMonth = (
+  rows: CommissionRow[],
+  month: YearMonth
+): MonthSummary => {
+  const summary: MonthSummary = {
+    receivable: 0,
+    received: 0,
+    pending: 0,
+    countReceivable: 0,
+  };
+  for (const row of rows) {
+    if (!isInMonth(row.receiveDate, month)) continue;
+    if (row.status === "receivable") {
+      summary.receivable += Number(row.amount);
+      summary.countReceivable += 1;
+    } else if (row.status === "received") {
+      summary.received += Number(row.amount);
+    } else if (row.status === "pending") {
+      summary.pending += Number(row.amount);
+    }
+  }
+  return summary;
+};
+
 // ── Agrupamento por fábrica (de-para com a planilha) ─────────────────────────
 export interface FactoryGroup {
   factoryId: string;
