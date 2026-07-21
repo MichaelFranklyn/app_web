@@ -83,7 +83,10 @@ export function MarkDeliveredModal({ order, onSuccess }: Props) {
         return res.data.markOrderDelivered;
       },
       {
-        successMessage: "Entrega confirmada. Estoque do cliente atualizado.",
+        // A mensagem vem do backend: nem toda entrega abastece o estoque (pedido
+        // fora da carteira, pedido sem itens), e o toast não pode prometer o que
+        // não aconteceu.
+        successMessage: (result) => result?.message ?? "Entrega confirmada.",
         onSuccess: () => {
           handleClose(false);
           onSuccess();

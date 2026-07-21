@@ -6,7 +6,12 @@ import { useCallback, useState } from "react";
 export interface AsyncActionOptions<T> {
   onSuccess?: (data: T) => void;
   onError?: (error: unknown) => void;
-  successMessage?: string;
+  /**
+   * Texto fixo ou derivado do resultado. A forma de função existe para quando o
+   * backend é quem sabe o que aconteceu — ex.: uma entrega que não abasteceu o
+   * estoque porque o cliente não está na carteira daquela fábrica.
+   */
+  successMessage?: string | ((data: T) => string | undefined);
   errorMessage?: string;
 }
 
@@ -26,11 +31,16 @@ export const useAsyncAction = () => {
 
         options?.onSuccess?.(result);
 
-        if (options?.successMessage) {
+        const successMessage =
+          typeof options?.successMessage === "function"
+            ? options.successMessage(result)
+            : options?.successMessage;
+
+        if (successMessage) {
           toast({
             variant: "success",
             title: "Sucesso",
-            description: options.successMessage,
+            description: successMessage,
           });
         }
 
