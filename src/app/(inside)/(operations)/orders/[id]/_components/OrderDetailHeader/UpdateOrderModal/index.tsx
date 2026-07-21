@@ -20,6 +20,7 @@ export function UpdateOrderModal({
   currentNotes,
   currentFreightType,
   currentStatus,
+  currentDeliveryEstimateDays,
   onSuccess,
 }: UpdateOrderModalProps) {
   const [open, setOpen] = useState(false);
@@ -33,7 +34,8 @@ export function UpdateOrderModal({
       data,
       currentNotes,
       currentFreightType,
-      currentStatus
+      currentStatus,
+      currentDeliveryEstimateDays
     );
 
     if (Object.keys(normalized).length === 0) {
@@ -97,6 +99,7 @@ export function UpdateOrderModal({
                   : currentFreightType === "CIF"
                     ? { value: "CIF", label: "CIF — entrega pela fábrica" }
                     : null,
+              deliveryEstimateDays: currentDeliveryEstimateDays ?? "",
             }}
             onSubmit={handleSubmit}
             loading={isLoading}

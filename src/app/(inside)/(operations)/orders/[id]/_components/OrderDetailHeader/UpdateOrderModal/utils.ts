@@ -12,13 +12,14 @@ export const ORDER_STATUS_LABELS: Record<OrderStatus, string> = {
   CANCELLED: "Cancelado",
 };
 
-// Faturar tem fluxo próprio (gera parcelas/comissão), então INVOICED não é uma
-// opção manual — só aparece se o pedido já estiver nesse status (para exibição).
+// Faturar e Entregar têm fluxo próprio (faturar gera parcelas/comissão; entregar
+// grava a data e alimenta o estoque via botão "Confirmar entrega"), então
+// INVOICED e DELIVERED não são opções manuais — só aparecem se o pedido já
+// estiver nesse status (para exibição).
 const MANUAL_STATUSES: OrderStatus[] = [
   "DRAFT",
   "SENT",
   "CONFIRMED",
-  "DELIVERED",
   "CANCELLED",
 ];
 
@@ -58,6 +59,13 @@ export const buildUpdateOrderSteps = (
               ],
             },
             {
+              name: "deliveryEstimateDays",
+              type: "number",
+              label: "Prazo de entrega (dias)",
+              placeholder: "Ex: 15",
+              hint: "Dias estimados até a entrega, contados do faturamento. Herda o padrão da fábrica; ajuste se este pedido tiver prazo diferente.",
+            },
+            {
               name: "notes",
               type: "textarea",
               label: "Observações",
@@ -75,13 +83,25 @@ export const normalizeUpdateInput = (
   data: Record<string, unknown>,
   currentNotes: string | null,
   currentFreightType: string | null,
-  currentStatus: OrderStatus
+  currentStatus: OrderStatus,
+  currentDeliveryEstimateDays: number | null
 ): Record<string, unknown> => {
   const normalized: Record<string, unknown> = {};
 
   const nextStatus = extractSelectValue(data.status) || null;
   if (nextStatus && nextStatus !== currentStatus) {
     normalized.status = nextStatus;
+  }
+
+  // Prazo de entrega: vazio → null (limpa); número válido → grava.
+  const rawDays = String(data.deliveryEstimateDays ?? "").trim();
+  const parsed = rawDays === "" ? null : Number(rawDays);
+  const nextDays =
+    parsed !== null && Number.isFinite(parsed) && parsed >= 0
+      ? Math.round(parsed)
+      : null;
+  if (nextDays !== (currentDeliveryEstimateDays ?? null)) {
+    normalized.deliveryEstimateDays = nextDays;
   }
 
   const next = data.notes != null ? String(data.notes).trim() : "";

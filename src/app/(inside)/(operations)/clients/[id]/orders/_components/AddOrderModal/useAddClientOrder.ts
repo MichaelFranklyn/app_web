@@ -2,7 +2,7 @@ import { FormBuilderRef, FormStepSchema } from "@/components/FormBuilder";
 import { useToast } from "@/components/Toast";
 import { useAsyncAction } from "@/hooks/useAsyncAction";
 import { useRedirectTransition } from "@/hooks/useRedirectTransition";
-import { extractSelectValue } from "@/utils/form";
+import { extractSelectValue, parseDeliveryDays } from "@/utils/form";
 import { toIsoDate } from "@/utils/format/date";
 import { useMutation, useQuery } from "@apollo/client/react";
 import { useMemo, useRef, useState } from "react";
@@ -52,6 +52,7 @@ interface OrderDetails {
   paymentTermId: string | null;
   freightType: string | null;
   notes: string | null;
+  deliveryEstimateDays: number | null;
   isQuote: boolean;
 }
 
@@ -168,6 +169,13 @@ export function useAddClientOrder(clientId: string) {
                 options: FREIGHT_OPTIONS,
               },
               {
+                name: "deliveryEstimateDays",
+                type: "number",
+                label: "Prazo de entrega (dias)",
+                placeholder: "Ex: 15",
+                hint: "Dias até a mercadoria chegar, contados do faturamento. Em branco: usa o prazo padrão da fábrica.",
+              },
+              {
                 name: "notes",
                 type: "textarea",
                 label: "Observações",
@@ -215,6 +223,7 @@ export function useAddClientOrder(clientId: string) {
       paymentTermId: extractSelectValue(data.paymentTermId) || null,
       freightType: extractSelectValue(data.freightType) || null,
       notes: data.notes ? String(data.notes) : null,
+      deliveryEstimateDays: parseDeliveryDays(data.deliveryEstimateDays),
       isQuote: extractSelectValue(data.orderKind) === "quote",
     });
     setStep(1);

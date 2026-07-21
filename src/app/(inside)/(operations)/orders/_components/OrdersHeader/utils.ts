@@ -1,5 +1,5 @@
 import { toIsoDate } from "@/utils/format/date";
-import { extractSelectValue } from "@/utils/form";
+import { extractSelectValue, parseDeliveryDays } from "@/utils/form";
 import { CreateOrderInput } from "./interface";
 
 export const normalizeInput = (
@@ -13,6 +13,8 @@ export const normalizeInput = (
   // Enum GraphQL por NOME (FOB/CIF); vazio = não informado.
   freightType: extractSelectValue(data.freightType) || null,
   notes: data.notes ? String(data.notes) : null,
+  // Vazio → null: o backend aplica o prazo padrão da fábrica.
+  deliveryEstimateDays: parseDeliveryDays(data.deliveryEstimateDays),
   // "quote" = orçamento; qualquer outro valor (default) = pedido de fato.
   isQuote: extractSelectValue(data.orderKind) === "quote",
 });

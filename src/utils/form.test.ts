@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { extractSelectValue } from "./form";
+import { extractSelectValue, parseDeliveryDays } from "./form";
 
 describe("extractSelectValue", () => {
   it("extrai o `value` de um option de select", () => {
@@ -18,5 +18,26 @@ describe("extractSelectValue", () => {
   it("retorna string vazia para null/undefined", () => {
     expect(extractSelectValue(null)).toBe("");
     expect(extractSelectValue(undefined)).toBe("");
+  });
+});
+
+describe("parseDeliveryDays", () => {
+  it("vazio/nulo → null (backend usa o padrão da fábrica)", () => {
+    expect(parseDeliveryDays("")).toBeNull();
+    expect(parseDeliveryDays("   ")).toBeNull();
+    expect(parseDeliveryDays(null)).toBeNull();
+    expect(parseDeliveryDays(undefined)).toBeNull();
+  });
+
+  it("número válido → inteiro arredondado", () => {
+    expect(parseDeliveryDays("15")).toBe(15);
+    expect(parseDeliveryDays(20)).toBe(20);
+    expect(parseDeliveryDays("7.6")).toBe(8);
+    expect(parseDeliveryDays("0")).toBe(0);
+  });
+
+  it("negativo ou lixo → null", () => {
+    expect(parseDeliveryDays("-3")).toBeNull();
+    expect(parseDeliveryDays("abc")).toBeNull();
   });
 });

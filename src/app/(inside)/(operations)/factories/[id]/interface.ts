@@ -19,5 +19,7 @@ export interface CompanyFactoryDetail {
   contractEnd: string | null;
   specialConditions: Record<string, unknown> | null;
   ipiInOrder: boolean;
+  /** Prazo de entrega padrão (dias), contado do faturamento. Nulo = sem padrão. */
+  deliveryEstimateDays: number | null;
   factory: FactoryDetail;
 }

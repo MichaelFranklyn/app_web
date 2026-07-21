@@ -7,6 +7,7 @@ export interface UpdateCompanyFactoryInput {
   contractStart?: string;
   contractEnd?: string;
   ipiInOrder?: boolean;
+  deliveryEstimateDays?: number | null;
 }
 
 export interface UpdateCompanyFactoryResponse {
@@ -23,6 +24,7 @@ export interface UpdateCompanyFactoryResponse {
       contractStart: string | null;
       contractEnd: string | null;
       ipiInOrder: boolean;
+      deliveryEstimateDays: number | null;
     } | null;
   };
 }

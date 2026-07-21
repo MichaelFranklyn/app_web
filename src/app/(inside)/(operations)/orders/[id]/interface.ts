@@ -45,6 +45,14 @@ export interface OrderDetail {
   freightType: "FOB" | "CIF" | null;
   createdAt: string;
   invoicedAt: string | null;
+  /** Data em que a mercadoria chegou na loja; nulo até confirmar a entrega. */
+  deliveredAt: string | null;
+  /** Prazo de entrega estimado (dias), contado do faturamento. */
+  deliveryEstimateDays: number | null;
+  /** Data prevista de entrega = invoicedAt + deliveryEstimateDays; nulo sem os dois. */
+  estimatedDeliveryDate: string | null;
+  /** Faturado, prazo vencido e não entregue — pede confirmação de entrega. */
+  isDeliveryOverdue: boolean;
   paymentTermId: string | null;
   commissionCalcBasis: string | null;
   seller: { id: string; name: string } | null;

@@ -586,6 +586,8 @@ type CompanyFactoryType {
   specialConditions: JSON
   """A fábrica cobra o IPI no pedido (por item), não embutido na tabela de preços."""
   ipiInOrder: Boolean!
+  """Prazo de entrega padrão da fábrica, em dias (a partir do faturamento). Pré-preenche o pedido. Nulo = sem padrão."""
+  deliveryEstimateDays: Int
   createdAt: DateTime!
   updatedAt: DateTime!
   deletedAt: DateTime
@@ -621,6 +623,7 @@ input LinkFactoryInput {
   contractEnd: DateTime = null
   specialConditions: JSON = null
   ipiInOrder: Boolean = false
+  deliveryEstimateDays: Int = null
 }
 
 input CreateCompanyFactoryInput {
@@ -634,6 +637,7 @@ input CreateCompanyFactoryInput {
   contractEnd: DateTime = null
   specialConditions: JSON = null
   ipiInOrder: Boolean = false
+  deliveryEstimateDays: Int = null
 }
 
 input ImportCompanyFactoryRowInput {
@@ -683,6 +687,7 @@ input UpdateCompanyFactoryInput {
   contractEnd: DateTime = null
   specialConditions: JSON = null
   ipiInOrder: Boolean = null
+  deliveryEstimateDays: Int = null
 }
 
 extend type Query {
@@ -1612,6 +1617,8 @@ input CreateOrderInput {
   visita: o vendedor vai por causa de uma e pode vender de outra.
   """
   visitScheduleItemId: UUID = null
+  """Prazo de entrega estimado (dias). Nulo → herda o padrão da fábrica."""
+  deliveryEstimateDays: Int = null
   """Quando true, o pedido nasce como ORÇAMENTO (rascunho) até ser convertido."""
   isQuote: Boolean = false
 }
@@ -1658,6 +1665,14 @@ type OrderType {
   status: OrderStatus!
   paymentTermId: UUID
   invoicedAt: Date
+  """Data em que a mercadoria chegou na loja do cliente. Nulo até confirmar a entrega; é quando o estoque do cliente é reabastecido."""
+  deliveredAt: Date
+  """Prazo de entrega estimado em dias (herda o padrão da fábrica). Nulo = sem previsão."""
+  deliveryEstimateDays: Int
+  """Data prevista de entrega = invoicedAt + deliveryEstimateDays. Nulo se não faturado ou sem estimativa."""
+  estimatedDeliveryDate: Date
+  """Faturado, prazo previsto vencido e ainda não entregue — precisa confirmar a entrega para atualizar o estoque."""
+  isDeliveryOverdue: Boolean!
   """Visita que originou o pedido; nulo quando lançado fora de uma visita."""
   visitScheduleItemId: UUID
   freightType: FreightType
@@ -1712,6 +1727,7 @@ input UpdateOrderInput {
   fileUrl: String = null
   isFileParsed: Boolean = null
   freightType: FreightType = null
+  deliveryEstimateDays: Int = null
 }
 
 input InvoiceOrderInput {
@@ -1762,6 +1778,8 @@ extend type Mutation {
   updateOrder(id: UUID!, input: UpdateOrderInput!): OrderTypeDataResponse!
   deleteOrder(id: UUID!): BaseResponse!
   invoiceOrder(id: UUID!, input: InvoiceOrderInput!): OrderTypeDataResponse!
+  """Confirma a entrega de um pedido faturado: status → DELIVERED e reabastece o estoque do cliente usando a data real de chegada."""
+  markOrderDelivered(id: UUID!, deliveredAt: Date!): OrderTypeDataResponse!
   payOrderInstallment(id: UUID!, paidAt: Date!): OrderInstallmentTypeDataResponse!
   cancelOrderInstallment(id: UUID!): OrderInstallmentTypeDataResponse!
   revertOrderInstallment(id: UUID!): OrderInstallmentTypeDataResponse!

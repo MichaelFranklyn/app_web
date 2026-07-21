@@ -95,7 +95,14 @@ export function OrdersTable({
                 </Table.Cell>
 
                 <Table.Cell variant="strong">
-                  {clientName(order.client)}
+                  <span className="inline-flex items-center gap-6">
+                    {clientName(order.client)}
+                    {order.isDeliveryOverdue && (
+                      <Badge.Root color="red" appearance="tinted">
+                        <Badge.Text>Entrega atrasada</Badge.Text>
+                      </Badge.Root>
+                    )}
+                  </span>
                 </Table.Cell>
 
                 <Table.Cell variant="dim">

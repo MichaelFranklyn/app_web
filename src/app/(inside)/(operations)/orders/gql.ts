@@ -20,6 +20,7 @@ export const ORDERS_QUERY = gql`
           totalAmount
           commissionAmount
           status
+          isDeliveryOverdue
           seller {
             id
             name

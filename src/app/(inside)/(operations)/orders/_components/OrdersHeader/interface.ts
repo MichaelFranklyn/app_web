@@ -8,6 +8,8 @@ export interface CreateOrderInput {
   paymentTermId?: string | null;
   notes?: string | null;
   freightType?: string | null;
+  // Prazo de entrega estimado (dias); null → herda o padrão da fábrica no backend.
+  deliveryEstimateDays?: number | null;
   // Quando true, o pedido nasce como ORÇAMENTO (rascunho) até ser convertido.
   isQuote?: boolean;
 }

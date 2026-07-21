@@ -13,6 +13,9 @@ export const UPDATE_ORDER_MUTATION = gql`
         notes
         fileUrl
         isFileParsed
+        deliveryEstimateDays
+        estimatedDeliveryDate
+        isDeliveryOverdue
       }
     }
   }

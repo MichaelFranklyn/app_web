@@ -18,6 +18,7 @@ export const UPDATE_COMPANY_FACTORY_MUTATION = gql`
         contractStart
         contractEnd
         ipiInOrder
+        deliveryEstimateDays
       }
     }
   }

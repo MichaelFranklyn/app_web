@@ -12,6 +12,8 @@ export interface Order {
   totalAmount: string;
   commissionAmount: string;
   status: OrderStatus;
+  /** Faturado, prazo de entrega vencido e não entregue — pede confirmação. */
+  isDeliveryOverdue: boolean;
   seller: { id: string; name: string } | null;
   client: {
     id: string;

@@ -7,6 +7,7 @@ import { formatDateDMY } from "@/utils/format/masks";
 import { clientName, factoryName } from "@/utils/company";
 import { OrderDetail } from "../../interface";
 import { InvoiceOrderModal } from "../InvoiceOrderModal";
+import { MarkDeliveredModal } from "../MarkDeliveredModal";
 import { ConvertToOrderModal } from "./ConvertToOrderModal";
 import { DeleteOrderModal } from "./DeleteOrderModal";
 import { OrderPdfButton } from "./OrderPdfButton";
@@ -60,6 +61,32 @@ export function OrderDetailHeader({ order, onRefetch }: Props) {
               </div>
             )}
 
+            {order.deliveredAt && (
+              <div className="mt-4">
+                <Badge.Root appearance="tinted" color="green">
+                  <Badge.Text>
+                    Entregue em {formatDateDMY(order.deliveredAt)}
+                  </Badge.Text>
+                </Badge.Root>
+              </div>
+            )}
+
+            {/* Faturado, não entregue: mostra a previsão; vencida → alerta. */}
+            {!order.deliveredAt && order.estimatedDeliveryDate && (
+              <div className="mt-4">
+                <Badge.Root
+                  appearance="tinted"
+                  color={order.isDeliveryOverdue ? "red" : "blue"}
+                >
+                  <Badge.Text>
+                    {order.isDeliveryOverdue
+                      ? `Entrega atrasada (prevista ${formatDateDMY(order.estimatedDeliveryDate)}) — confirme`
+                      : `Entrega prevista: ${formatDateDMY(order.estimatedDeliveryDate)}`}
+                  </Badge.Text>
+                </Badge.Root>
+              </div>
+            )}
+
             <PanelHeader.Actions className="mt-6">
               <div className="print-hide flex items-center gap-8">
                 <OrderPdfButton order={order} />
@@ -74,6 +101,13 @@ export function OrderDetailHeader({ order, onRefetch }: Props) {
                   !isQuote && (
                     <InvoiceOrderModal order={order} onSuccess={onRefetch} />
                   )}
+                {/* Faturado e ainda não entregue: confirmar a chegada na loja é
+                    o que reabastece o estoque do cliente (faturar ≠ entregar). */}
+                {order.invoicedAt &&
+                  !order.deliveredAt &&
+                  order.status !== "CANCELLED" && (
+                    <MarkDeliveredModal order={order} onSuccess={onRefetch} />
+                  )}
                 <UpdateOrderModal
                   orderId={order.id}
                   currentNotes={order.notes}
@@ -81,6 +115,7 @@ export function OrderDetailHeader({ order, onRefetch }: Props) {
                   currentStatus={order.status}
                   currentFileUrl={order.fileUrl}
                   currentFileParsed={order.isFileParsed}
+                  currentDeliveryEstimateDays={order.deliveryEstimateDays}
                   onSuccess={onRefetch}
                 />
                 <DeleteOrderModal orderId={order.id} />

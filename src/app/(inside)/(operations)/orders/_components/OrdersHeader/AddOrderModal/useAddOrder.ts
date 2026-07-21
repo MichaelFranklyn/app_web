@@ -247,6 +247,13 @@ export function useAddOrder({ onAddOptimistic }: AddOrderModalProps) {
                 options: FREIGHT_OPTIONS,
               },
               {
+                name: "deliveryEstimateDays",
+                type: "number",
+                label: "Prazo de entrega (dias)",
+                placeholder: "Ex: 15",
+                hint: "Dias até a mercadoria chegar, contados do faturamento. Em branco: usa o prazo padrão da fábrica.",
+              },
+              {
                 name: "notes",
                 type: "textarea",
                 label: "Observações",

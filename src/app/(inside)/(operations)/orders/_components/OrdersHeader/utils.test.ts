@@ -11,6 +11,7 @@ describe("normalizeInput (criar pedido)", () => {
       paymentTermId: { value: "pt1", label: "30/60/90" },
       freightType: { value: "FOB" },
       notes: "obs",
+      deliveryEstimateDays: "15",
     });
 
     expect(result).toEqual({
@@ -21,8 +22,19 @@ describe("normalizeInput (criar pedido)", () => {
       paymentTermId: "pt1",
       freightType: "FOB",
       notes: "obs",
+      deliveryEstimateDays: 15,
       isQuote: false,
     });
+  });
+
+  it("prazo de entrega vazio vira null (backend usa o padrão da fábrica)", () => {
+    const result = normalizeInput({
+      sellerId: "s1",
+      clientId: "c1",
+      factoryId: "f1",
+      orderDate: "2026-05-31",
+    });
+    expect(result.deliveryEstimateDays).toBeNull();
   });
 
   it("marca isQuote quando orderKind é 'quote' (orçamento)", () => {

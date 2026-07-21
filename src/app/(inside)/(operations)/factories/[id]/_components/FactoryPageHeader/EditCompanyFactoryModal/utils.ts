@@ -47,6 +47,14 @@ export const FORM_STEPS: FormStepSchema[] = [
             placeholder: "Ex: Zona Sul, Interior SP",
           },
           {
+            name: "deliveryEstimateDays",
+            label: "Prazo de entrega (dias)",
+            type: "number",
+            required: false,
+            placeholder: "Ex: 15",
+            hint: "Dias estimados até a mercadoria chegar na loja, contados do faturamento. Pré-preenche o pedido e avisa quando a entrega atrasa.",
+          },
+          {
             name: "contractStart",
             label: "Início do contrato",
             type: "date",
@@ -144,6 +152,19 @@ export const normalizeInput = (
     Array.isArray(data.ipiInOrder) && data.ipiInOrder.includes("true");
   if (ipiInOrder !== initial.ipiInOrder) {
     input.ipiInOrder = ipiInOrder;
+  }
+
+  // Prazo de entrega: vazio → null (limpa o padrão); número válido → grava.
+  const rawDays = String(data.deliveryEstimateDays ?? "").trim();
+  const parsedDelivery = rawDays === "" ? null : Number(rawDays);
+  const deliveryDays =
+    parsedDelivery !== null &&
+    Number.isFinite(parsedDelivery) &&
+    parsedDelivery >= 0
+      ? Math.round(parsedDelivery)
+      : null;
+  if (deliveryDays !== (initial.deliveryEstimateDays ?? null)) {
+    input.deliveryEstimateDays = deliveryDays;
   }
 
   return input;

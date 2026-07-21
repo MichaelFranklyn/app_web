@@ -3,7 +3,7 @@ import { useMemo, useRef, useState } from "react";
 
 import { FormBuilderRef, FormStepSchema } from "@/components/FormBuilder";
 import { useQueryErrorToast } from "@/hooks/useQueryErrorToast";
-import { extractSelectValue } from "@/utils/form";
+import { extractSelectValue, parseDeliveryDays } from "@/utils/form";
 import { toIsoDate } from "@/utils/format/date";
 
 import { DeferredOrderTarget } from "../../../../../_components/OrderImportWizard";
@@ -33,6 +33,7 @@ interface PendingOrder {
   orderDate: string;
   paymentTermId: string | null;
   freightType: string | null;
+  deliveryEstimateDays: number | null;
 }
 
 /**
@@ -127,6 +128,13 @@ export function useImportFactoryOrder({
                 placeholder: "FOB ou CIF",
                 options: FREIGHT_OPTIONS,
               },
+              {
+                name: "deliveryEstimateDays",
+                type: "number",
+                label: "Prazo de entrega (dias)",
+                placeholder: "Ex: 15",
+                hint: "Dias até a mercadoria chegar, contados do faturamento. Em branco: usa o prazo padrão da fábrica.",
+              },
             ],
           },
         ],
@@ -161,6 +169,7 @@ export function useImportFactoryOrder({
       orderDate: toIsoDate(data.orderDate),
       paymentTermId: extractSelectValue(data.paymentTermId) || null,
       freightType: extractSelectValue(data.freightType) || null,
+      deliveryEstimateDays: parseDeliveryDays(data.deliveryEstimateDays),
     });
   };
 

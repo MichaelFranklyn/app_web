@@ -63,10 +63,18 @@ export function CommercialCard({ companyFactory }: Props) {
             Dia {companyFactory.paymentTermDays}
           </Card.Item.Value>
         </Card.Item>
-        <Card.Item variant="stat" bordered={false}>
+        <Card.Item variant="stat">
           <Card.Item.Label>IPI cobrado no pedido</Card.Item.Label>
           <Card.Item.Value>
             {companyFactory.ipiInOrder ? "Sim" : "Não"}
+          </Card.Item.Value>
+        </Card.Item>
+        <Card.Item variant="stat" bordered={false}>
+          <Card.Item.Label>Prazo de entrega</Card.Item.Label>
+          <Card.Item.Value>
+            {companyFactory.deliveryEstimateDays != null
+              ? `${companyFactory.deliveryEstimateDays} dia(s)`
+              : "—"}
           </Card.Item.Value>
         </Card.Item>
       </Card.Body>

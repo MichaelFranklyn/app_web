@@ -4,6 +4,7 @@ export interface UpdateOrderInput {
   status?: string | null;
   notes?: string | null;
   freightType?: string | null;
+  deliveryEstimateDays?: number | null;
 }
 
 export interface UpdateOrderResponse {
@@ -20,6 +21,9 @@ export interface UpdateOrderResponse {
       notes: string | null;
       fileUrl: string | null;
       isFileParsed: boolean;
+      deliveryEstimateDays: number | null;
+      estimatedDeliveryDate: string | null;
+      isDeliveryOverdue: boolean;
     } | null;
   };
 }
@@ -31,5 +35,6 @@ export interface UpdateOrderModalProps {
   currentStatus: OrderStatus;
   currentFileUrl: string | null;
   currentFileParsed: boolean;
+  currentDeliveryEstimateDays: number | null;
   onSuccess: () => void;
 }

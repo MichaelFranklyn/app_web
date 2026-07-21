@@ -80,6 +80,7 @@ export function EditCompanyFactoryModal() {
     contractStart: parseLocalDate(companyFactory.contractStart),
     contractEnd: parseLocalDate(companyFactory.contractEnd),
     ipiInOrder: companyFactory.ipiInOrder ? ["true"] : [],
+    deliveryEstimateDays: companyFactory.deliveryEstimateDays ?? "",
   };
 
   return (

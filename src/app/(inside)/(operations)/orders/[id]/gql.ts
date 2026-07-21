@@ -21,6 +21,10 @@ export const ORDER_DETAIL_QUERY = gql`
         notes
         createdAt
         invoicedAt
+        deliveredAt
+        deliveryEstimateDays
+        estimatedDeliveryDate
+        isDeliveryOverdue
         paymentTermId
         commissionCalcBasis
         seller {
@@ -119,6 +123,20 @@ export const INVOICE_ORDER_MUTATION = gql`
         id
         status
         invoicedAt
+      }
+    }
+  }
+`;
+
+export const MARK_ORDER_DELIVERED_MUTATION = gql`
+  mutation MarkOrderDelivered($id: UUID!, $deliveredAt: Date!) {
+    markOrderDelivered(id: $id, deliveredAt: $deliveredAt) {
+      status
+      message
+      data {
+        id
+        status
+        deliveredAt
       }
     }
   }

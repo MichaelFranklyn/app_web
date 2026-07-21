@@ -219,6 +219,13 @@ export function useImportOrder({ onAddOptimistic }: ImportOrderModalProps) {
                 placeholder: "FOB ou CIF",
                 options: FREIGHT_OPTIONS,
               },
+              {
+                name: "deliveryEstimateDays",
+                type: "number",
+                label: "Prazo de entrega (dias)",
+                placeholder: "Ex: 15",
+                hint: "Dias até a mercadoria chegar, contados do faturamento. Em branco: usa o prazo padrão da fábrica.",
+              },
             ],
           },
         ],
