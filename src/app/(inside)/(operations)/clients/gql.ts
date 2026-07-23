@@ -1,12 +1,26 @@
 import { gql } from "@apollo/client";
 
 export const CLIENT_STATS_QUERY = gql`
-  query ClientStats {
-    clientStats {
+  query ClientStats($sellerId: UUID) {
+    clientStats(sellerId: $sellerId) {
       totalClients
       activeClients
       atRiskClients
       noVisit30d
+    }
+  }
+`;
+
+// Vendedores para o filtro do gestor. Vendedor logado não usa (já vê só o seu).
+export const CLIENTS_SELLERS_QUERY = gql`
+  query ClientsSellers($input: BaseListInput!) {
+    clients_sellers: sellers(input: $input) {
+      edges {
+        node {
+          id
+          name
+        }
+      }
     }
   }
 `;
@@ -29,6 +43,12 @@ export const CLIENTS_QUERY = gql`
           companyClient {
             id
             visitScoreTotal
+            lastOrderDate
+            lastVisitDate
+            sellers {
+              id
+              name
+            }
           }
         }
       }

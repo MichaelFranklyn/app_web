@@ -1,19 +1,17 @@
 "use client";
 
-import { Avatar } from "@/components/Avatar";
-import { Badge } from "@/components/Badges";
 import { EmptyState } from "@/components/EmptyState";
-import { InputSearch } from "@/components/Input";
+import { Input, InputSearch, SelectOption } from "@/components/Input";
 import { Loading } from "@/components/Loading";
 import { Pagination } from "@/components/Pagination";
 import { Table } from "@/components/Table";
-import { Title } from "@/components/Title";
-import { Tooltip } from "@/components/Tooltip";
-import { maskCNPJ } from "@/utils/format/masks";
+import { formatDate } from "@/utils/format/date";
 import { scoreBarColor } from "@/utils/score";
 import { Users } from "lucide-react";
 import { formatCity } from "../../utils";
+import { ClientCell } from "./ClientCell";
 import { ClientsTableProps } from "./interface";
+import { SellerCell } from "./SellerCell";
 
 export function ClientsTable({
   items,
@@ -24,13 +22,33 @@ export function ClientsTable({
   currentPage,
   totalPages,
   setCurrentPage,
+  sellerOptions,
 }: ClientsTableProps) {
+  const selectedSeller =
+    sellerOptions?.find((option) => option.value === inputValues.sellerId) ??
+    null;
+
   return (
     <Table.Root data-tour="clients-table">
       <Table.CardHead>
         <Table.CardHead.Title>Carteira de clientes</Table.CardHead.Title>
         <Table.CardHead.Actions>
           <div className="flex items-center gap-8">
+            {sellerOptions && (
+              <div className="desktop:w-[200px] w-full">
+                <Input.Select
+                  size="sm"
+                  options={sellerOptions}
+                  value={selectedSeller}
+                  variant="single"
+                  placeholder="Todos os vendedores"
+                  onChange={(val: SelectOption | SelectOption[] | null) => {
+                    const option = Array.isArray(val) ? val[0] : val;
+                    setFilter("sellerId", option?.value);
+                  }}
+                />
+              </div>
+            )}
             <InputSearch
               size="sm"
               placeholder="Buscar por razão social ou nome fantasia..."
@@ -45,11 +63,11 @@ export function ClientsTable({
       <Table.Table>
         <Table.Header>
           <Table.Row>
+            {/* CNPJ e CNAE moram dentro da coluna Cliente (ver ClientCell). */}
             <Table.Head>Cliente</Table.Head>
-            <Table.Head>CNPJ</Table.Head>
-            <Table.Head>CNAE</Table.Head>
             <Table.Head>Cidade</Table.Head>
             <Table.Head>Vendedor</Table.Head>
+            <Table.Head>Última Compra</Table.Head>
             <Table.Head>Última Visita</Table.Head>
             <Table.Head>Score</Table.Head>
           </Table.Row>
@@ -57,10 +75,10 @@ export function ClientsTable({
 
         <Table.Body>
           {loading && items.length === 0 ? (
-            <Table.Skeleton columns={7} rows={5} />
+            <Table.Skeleton columns={6} rows={5} />
           ) : items.length === 0 ? (
             <Table.Row>
-              <Table.Cell colSpan={7}>
+              <Table.Cell colSpan={6}>
                 <EmptyState.Root>
                   <EmptyState.Icon>
                     <Users size={32} />
@@ -86,70 +104,24 @@ export function ClientsTable({
                 data-tour="clients-row"
                 className="group"
               >
-                {/* whitespace-nowrap: a coluna não quebra palavra a palavra; como
-                    a tabela já rola na horizontal, o nome fica em uma linha. */}
-                <Table.Cell className="whitespace-nowrap">
-                  <div className="flex flex-col gap-2">
-                    <div className="flex items-center gap-8">
-                      <Table.CellText variant="strong">
-                        {node.razaoSocial}
-                      </Table.CellText>
-                      {node.isNeedsAttention && (
-                        <Tooltip
-                          className="max-w-100 whitespace-normal"
-                          content={
-                            <div className="flex flex-col gap-2 text-left normal-case">
-                              <Title variant="label" color="amber">
-                                Precisa de atenção
-                              </Title>
-                              <Title variant="body-sm">
-                                {node.attentionReason ??
-                                  "Revise os dados deste cliente."}
-                              </Title>
-                            </div>
-                          }
-                        >
-                          <Badge.Root color="amber" appearance="tinted">
-                            <Badge.Text>Precisa de atenção</Badge.Text>
-                          </Badge.Root>
-                        </Tooltip>
-                      )}
-                    </div>
-                    <Table.CellText variant="dim">
-                      {node.nomeFantasia
-                        ? `${node.nomeFantasia} · Cód: ${node.id.slice(0, 8).toUpperCase()}`
-                        : `Cód: ${node.id.slice(0, 8).toUpperCase()}`}
-                    </Table.CellText>
-                  </div>
-                </Table.Cell>
+                <ClientCell client={node} />
 
-                <Table.Cell>
-                  <Badge.Root color="subtle" appearance="tinted">
-                    <Badge.Text>{maskCNPJ(node.cnpj)}</Badge.Text>
-                  </Badge.Root>
-                </Table.Cell>
-
-                <Table.Cell variant="dim" className="text-[13px]">
-                  <div className="flex flex-col gap-1">
-                    <Table.CellText variant="dim" className="font-medium">
-                      {node.cnae ?? "—"}
-                    </Table.CellText>
-                    <Table.CellText variant="dim" className="line-clamp-2">
-                      {node.cnaeDescription}
-                    </Table.CellText>
-                  </div>
-                </Table.Cell>
-
-                <Table.Cell variant="dim">
+                <Table.Cell variant="dim" className="whitespace-nowrap">
                   {formatCity(node.addressCity, node.addressState)}
                 </Table.Cell>
 
-                <Table.Cell flex>
-                  <Avatar size="sm" color="amber" initials="—" />
-                  <Table.CellText variant="dim">—</Table.CellText>
+                <SellerCell
+                  sellers={node.companyClient?.sellers ?? []}
+                  highlightSellerId={inputValues.sellerId ?? null}
+                />
+
+                <Table.Cell variant="dim" className="whitespace-nowrap">
+                  {formatDate(node.companyClient?.lastOrderDate)}
                 </Table.Cell>
 
-                <Table.Cell variant="dim">—</Table.Cell>
+                <Table.Cell variant="dim" className="whitespace-nowrap">
+                  {formatDate(node.companyClient?.lastVisitDate)}
+                </Table.Cell>
 
                 {node.companyClient?.visitScoreTotal != null ? (
                   <Table.ScoreCell

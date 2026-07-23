@@ -46,8 +46,13 @@ export const getTodayIso = (): string => {
  */
 export const formatDate = (date?: string | null, fallback = "—"): string => {
   if (!date) return fallback;
-  const parsed = new Date(date);
-  if (Number.isNaN(parsed.getTime())) return fallback;
+  // Data pura ("2026-05-31") é dia de calendário, não instante: `new Date` a
+  // leria como meia-noite UTC e o Brasil (UTC-3) mostraria o dia anterior.
+  // Datetime (com hora) continua no parse nativo, que é o instante de verdade.
+  const parsed = /^\d{4}-\d{2}-\d{2}$/.test(date)
+    ? parseLocalDate(date)
+    : new Date(date);
+  if (!parsed || Number.isNaN(parsed.getTime())) return fallback;
   return parsed.toLocaleDateString("pt-BR");
 };
 

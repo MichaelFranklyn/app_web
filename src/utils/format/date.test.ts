@@ -65,6 +65,9 @@ describe("formatDate", () => {
   it("formata ISO para dd/mm/aaaa (pt-BR)", () => {
     expect(formatDate("2026-05-31T12:00:00Z")).toBe("31/05/2026");
   });
+  it("mantém o dia de uma data pura (sem recuar em fuso negativo)", () => {
+    expect(formatDate("2026-05-31")).toBe("31/05/2026");
+  });
   it("retorna — p/ ausente ou inválida", () => {
     expect(formatDate(null)).toBe("—");
     expect(formatDate("")).toBe("—");

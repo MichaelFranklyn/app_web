@@ -8,11 +8,13 @@ import { ClientsHeader } from "./_components/ClientsHeader";
 import { ClientsTable } from "./_components/ClientsTable";
 import { CLIENTS_QUERY } from "./gql";
 import { Client, ClientsContentProps, QueryData } from "./interface";
+import { useSellerScope } from "./useSellerScope";
 import { ITEMS_PER_PAGE, TABLE_FIELDS } from "./utils";
 
 export default function ClientesContent({
   stats,
   initialData,
+  canFilterBySeller,
 }: ClientsContentProps) {
   const tableData = useTableData<QueryData, Client>({
     query: CLIENTS_QUERY,
@@ -22,13 +24,24 @@ export default function ClientesContent({
     initialData,
   });
 
+  const selectedSellerId = tableData.inputValues.sellerId || null;
+
+  const sellerScope = useSellerScope({
+    canFilterBySeller,
+    selectedSellerId,
+    fallbackStats: stats,
+  });
+
   const optimistic = useOptimisticList<Client>({
     initialData: tableData.displayedData,
   });
 
   return (
     <PageContent>
-      <ClientsHeader stats={stats} onAddOptimistic={optimistic.addOptimistic} />
+      <ClientsHeader
+        stats={sellerScope.stats}
+        onAddOptimistic={optimistic.addOptimistic}
+      />
 
       {tableData.error && optimistic.items.length === 0 ? (
         <QueryError onRetry={() => tableData.refetch()} />
@@ -42,6 +55,7 @@ export default function ClientesContent({
           currentPage={tableData.currentPage}
           totalPages={tableData.totalPages}
           setCurrentPage={tableData.setCurrentPage}
+          sellerOptions={canFilterBySeller ? sellerScope.sellerOptions : null}
         />
       )}
     </PageContent>

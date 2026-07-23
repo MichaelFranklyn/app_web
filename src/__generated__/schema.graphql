@@ -334,7 +334,8 @@ input UpdateClientNotesInput {
 extend type Query {
   client(id: UUID!): ClientTypeDataResponse!
   clients(input: BaseListInput!): ClientTypeConnectionResponse!
-  clientStats: ClientStatsType!
+  "KPIs da carteira. `sellerId` recorta pelo vendedor (só gestor; vendedor já é escopado)."
+  clientStats(sellerId: UUID = null): ClientStatsType!
   "Clientes da carteira (com coordenada) para o radar de lojas próximas."
   radarClients: [ClientType!]!
 }
@@ -474,6 +475,15 @@ type CompanyClientType {
   factoryVisitScores: [ClientVisitScoreType!]!
   factoryStockSummaries: [FactoryStockSummaryType!]!
   factoryOrderSummaries: [FactoryOrderSummaryType!]!
+  """
+  Vendedores que atendem este cliente. O vínculo é por fábrica, então o mesmo
+  vendedor aparece uma única vez (deduplicado). Para um vendedor logado, só ele.
+  """
+  sellers: [SellerType!]!
+  """Data da última compra (pedido não cancelado) do cliente na empresa."""
+  lastOrderDate: Date
+  """Data da visita mais recente registrada em qualquer vínculo do cliente."""
+  lastVisitDate: Date
 }
 
 """Resumo do estoque estimado do cliente em uma fábrica."""

@@ -16,6 +16,9 @@ export const ITEMS_PER_PAGE = 5;
 export const TABLE_FIELDS: Record<string, FieldConfig> = {
   // Colunas separadas por vírgula: o backend combina o `like` de cada uma com OR.
   search: { type: "text", queryField: "razao_social,nome_fantasia" },
+  // Não é coluna de cliente: o backend traduz em "clientes da carteira desse
+  // vendedor". Só o gestor manda; vendedor logado já vê apenas a própria carteira.
+  sellerId: { type: "select", queryField: "seller_id" },
 };
 
 export const buildKpis = (stats: ClientsStats): KpiItem[] => {

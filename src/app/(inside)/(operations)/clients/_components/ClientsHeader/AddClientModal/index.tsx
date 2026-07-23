@@ -60,7 +60,15 @@ export function AddClientModal({ onAddOptimistic }: AddClientModalProps) {
           formRef.current?.resetForm();
           onAddOptimistic({
             ...created.client,
-            companyClient: { id: created.id, visitScoreTotal: null },
+            // Cliente recém-adicionado ainda não tem vendedor, compra nem visita:
+            // a linha otimista já entra com as colunas vazias que o refetch confirma.
+            companyClient: {
+              id: created.id,
+              visitScoreTotal: null,
+              lastOrderDate: null,
+              lastVisitDate: null,
+              sellers: [],
+            },
           });
           await invalidateClient(["clients_list"]);
           await invalidateCacheMany(["clients_stats"]);
