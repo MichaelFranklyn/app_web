@@ -275,6 +275,8 @@ type ClientType {
   addressState: String
   latitude: Decimal
   longitude: Decimal
+  isNeedsAttention: Boolean!
+  attentionReason: String
   createdAt: DateTime!
   updatedAt: DateTime!
   deletedAt: DateTime

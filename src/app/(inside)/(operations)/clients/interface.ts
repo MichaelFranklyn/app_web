@@ -21,6 +21,10 @@ export interface Client {
   cnaeDescription: string | null;
   addressCity: string | null;
   addressState: string | null;
+  // Marcação de revisão: hoje sinaliza cliente cujo endereço não virou
+  // coordenada (some da rota/radar). attentionReason traz o motivo p/ o tooltip.
+  isNeedsAttention: boolean;
+  attentionReason: string | null;
   // Vínculo com a empresa logada: o id da carteira é o que chaveia a rota de
   // detalhe (/clients/[companyClientId]), pois o mesmo cliente global pode
   // pertencer a outras empresas e as abas são company-scoped.

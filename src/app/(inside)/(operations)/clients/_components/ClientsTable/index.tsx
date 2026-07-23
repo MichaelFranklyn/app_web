@@ -7,6 +7,8 @@ import { InputSearch } from "@/components/Input";
 import { Loading } from "@/components/Loading";
 import { Pagination } from "@/components/Pagination";
 import { Table } from "@/components/Table";
+import { Title } from "@/components/Title";
+import { Tooltip } from "@/components/Tooltip";
 import { maskCNPJ } from "@/utils/format/masks";
 import { scoreBarColor } from "@/utils/score";
 import { Users } from "lucide-react";
@@ -88,9 +90,31 @@ export function ClientsTable({
                     a tabela já rola na horizontal, o nome fica em uma linha. */}
                 <Table.Cell className="whitespace-nowrap">
                   <div className="flex flex-col gap-2">
-                    <Table.CellText variant="strong">
-                      {node.razaoSocial}
-                    </Table.CellText>
+                    <div className="flex items-center gap-8">
+                      <Table.CellText variant="strong">
+                        {node.razaoSocial}
+                      </Table.CellText>
+                      {node.isNeedsAttention && (
+                        <Tooltip
+                          className="max-w-100 whitespace-normal"
+                          content={
+                            <div className="flex flex-col gap-2 text-left normal-case">
+                              <Title variant="label" color="amber">
+                                Precisa de atenção
+                              </Title>
+                              <Title variant="body-sm">
+                                {node.attentionReason ??
+                                  "Revise os dados deste cliente."}
+                              </Title>
+                            </div>
+                          }
+                        >
+                          <Badge.Root color="amber" appearance="tinted">
+                            <Badge.Text>Precisa de atenção</Badge.Text>
+                          </Badge.Root>
+                        </Tooltip>
+                      )}
+                    </div>
                     <Table.CellText variant="dim">
                       {node.nomeFantasia
                         ? `${node.nomeFantasia} · Cód: ${node.id.slice(0, 8).toUpperCase()}`

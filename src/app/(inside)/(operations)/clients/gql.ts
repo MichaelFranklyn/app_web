@@ -24,6 +24,8 @@ export const CLIENTS_QUERY = gql`
           cnaeDescription
           addressCity
           addressState
+          isNeedsAttention
+          attentionReason
           companyClient {
             id
             visitScoreTotal
