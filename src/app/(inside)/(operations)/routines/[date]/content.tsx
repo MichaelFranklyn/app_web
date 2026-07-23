@@ -15,6 +15,7 @@ import {
 import Link from "next/link";
 import { useMemo } from "react";
 import { useUserRole } from "@/services/flowTour/useUserRole";
+import { DepartureCard } from "./_components/DepartureCard";
 import { RouteMap } from "./_components/RouteMap";
 import { RouteStopsCard } from "./_components/RouteStopsCard";
 import { RouteSummary } from "./_components/RouteSummary";
@@ -196,6 +197,14 @@ export default function DayRouteContent({ date, sellerId }: Props) {
       <div data-tour="routine-day-summary">
         <RouteSummary day={day} />
       </div>
+
+      <DepartureCard
+        dayId={day.id}
+        departureType={day.departureType}
+        departureAddress={day.departureAddress}
+        canEdit={canGenerate}
+        onChanged={() => refetch()}
+      />
 
       <div className="desktop:flex-row flex flex-col gap-20">
         <div className="min-w-0 flex-1">
