@@ -61,6 +61,8 @@ interface LinkFactoryOptionsArgs {
   clientId: string;
   selectedSellerId: string | null;
   selectedFactoryId: string | null;
+  /** Vendedor logado: a query de vendedores é admin-only, então é pulada. */
+  isSeller: boolean;
 }
 
 interface LinkFactoryOptions {
@@ -82,12 +84,14 @@ export function useLinkFactoryOptions({
   clientId,
   selectedSellerId,
   selectedFactoryId,
+  isSeller,
 }: LinkFactoryOptionsArgs): LinkFactoryOptions {
   const { data: sellersData, error: sellersError } = useQuery<SellersData>(
     SELLERS_FOR_LINK_QUERY,
     {
       variables: { input: LIST_INPUT },
-      skip: !open,
+      // Vendedor não lista colegas (query admin-only) e vincula só a si mesmo.
+      skip: !open || isSeller,
     }
   );
 

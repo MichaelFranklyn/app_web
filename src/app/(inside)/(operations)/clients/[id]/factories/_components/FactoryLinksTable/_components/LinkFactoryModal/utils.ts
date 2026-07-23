@@ -2,7 +2,9 @@ import { LinkFactoryInput } from "./interface";
 
 export const normalizeLinkFactoryInput = (
   data: Record<string, unknown>,
-  clientId: string
+  clientId: string,
+  /** Força o vendedor (fluxo do seller: o form não tem o campo "Vendedor"). */
+  sellerIdOverride?: string
 ): LinkFactoryInput => {
   const sellerRaw = data.sellerId as { value: string } | string | null;
   const factoryRaw = data.factoryId as { value: string } | string | null;
@@ -11,9 +13,10 @@ export const normalizeLinkFactoryInput = (
   const freq = Number(data.visitFrequencyDays);
 
   const sellerId =
-    typeof sellerRaw === "object" && sellerRaw !== null
+    sellerIdOverride ??
+    (typeof sellerRaw === "object" && sellerRaw !== null
       ? sellerRaw.value
-      : String(sellerRaw ?? "");
+      : String(sellerRaw ?? ""));
   const factoryId =
     typeof factoryRaw === "object" && factoryRaw !== null
       ? factoryRaw.value

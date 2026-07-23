@@ -1,5 +1,6 @@
 import { FormBuilderRef, FormStepSchema } from "@/components/FormBuilder";
 import { useAsyncAction } from "@/hooks/useAsyncAction";
+import { useUserData } from "@/hooks/useUserData";
 import { useMutation } from "@apollo/client/react";
 import { useEffect, useMemo, useRef, useState } from "react";
 
@@ -15,6 +16,7 @@ export function useLinkFactory({
   onSuccess,
   autoOpen,
 }: LinkFactoryModalProps) {
+  const { isSeller, sellerId } = useUserData();
   const [open, setOpen] = useState(false);
   const [selectedSellerId, setSelectedSellerId] = useState<string | null>(null);
   const [selectedFactoryId, setSelectedFactoryId] = useState<string | null>(
@@ -27,11 +29,18 @@ export function useLinkFactory({
     if (autoOpen) setOpen(true);
   }, [autoOpen]);
 
+  // Vendedor vincula só a si mesmo: o campo "Vendedor" some e o próprio perfil
+  // já fica selecionado, liberando as fábricas com o acesso dele.
+  useEffect(() => {
+    if (open && isSeller && sellerId) setSelectedSellerId(sellerId);
+  }, [open, isSeller, sellerId]);
+
   const { sellerOptions, factoryOptions, tierOptions } = useLinkFactoryOptions({
     open,
     clientId,
     selectedSellerId,
     selectedFactoryId,
+    isSeller,
   });
 
   const formSteps = useMemo<FormStepSchema[]>(
@@ -43,19 +52,28 @@ export function useLinkFactory({
             id: "assignment",
             title: "Vínculo do cliente",
             fields: [
-              {
-                name: "sellerId",
-                type: "select-single",
-                label: "Vendedor",
-                placeholder: "Selecione um vendedor",
-                required: true,
-                options: sellerOptions,
-                onChange: (value, setValue) => {
-                  const selected = value as { value: string } | null;
-                  setSelectedSellerId(selected?.value ?? null);
-                  setValue("factoryId", null);
-                },
-              },
+              // Gestor escolhe o vendedor; para o vendedor logado o campo some
+              // (ele só vincula a si mesmo — o backend também força isso).
+              ...(isSeller
+                ? []
+                : [
+                    {
+                      name: "sellerId",
+                      type: "select-single" as const,
+                      label: "Vendedor",
+                      placeholder: "Selecione um vendedor",
+                      required: true,
+                      options: sellerOptions,
+                      onChange: (
+                        value: unknown,
+                        setValue: (n: string, v: unknown) => void
+                      ) => {
+                        const selected = value as { value: string } | null;
+                        setSelectedSellerId(selected?.value ?? null);
+                        setValue("factoryId", null);
+                      },
+                    },
+                  ]),
               {
                 name: "factoryId",
                 type: "select-single",
@@ -110,6 +128,7 @@ export function useLinkFactory({
       selectedSellerId,
       selectedFactoryId,
       tierOptions,
+      isSeller,
     ]
   );
 
@@ -118,7 +137,12 @@ export function useLinkFactory({
   );
 
   const handleSubmit = async (data: Record<string, unknown>) => {
-    const normalized = normalizeLinkFactoryInput(data, clientId);
+    // Vendedor: o form não tem campo "Vendedor", então injeta o próprio perfil.
+    const normalized = normalizeLinkFactoryInput(
+      data,
+      clientId,
+      isSeller && sellerId ? sellerId : undefined
+    );
 
     await execute(
       async () => {
