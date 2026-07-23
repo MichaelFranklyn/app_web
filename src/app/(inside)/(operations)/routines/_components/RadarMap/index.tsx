@@ -56,6 +56,17 @@ export function RadarMap({ sellerId }: Props) {
   const clients = useMemo(() => data?.radarClients ?? [], [data]);
   const [selected, setSelected] = useState<RadarClient | null>(null);
 
+  // Revalida a carteira quando o gestor troca de vendedor. Pula o primeiro
+  // render: `cache-and-network` já busca ao montar.
+  const didMountRef = useRef(false);
+  useEffect(() => {
+    if (!didMountRef.current) {
+      didMountRef.current = true;
+      return;
+    }
+    refetch();
+  }, [sellerId, refetch]);
+
   const mapDivRef = useRef<HTMLDivElement | null>(null);
   const mapRef = useRef<google.maps.Map | null>(null);
   const clustererRef = useRef<MarkerClusterer | null>(null);

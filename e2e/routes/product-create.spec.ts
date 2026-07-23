@@ -34,6 +34,11 @@ test("fábrica/produtos: cadastra um produto (categoria + unidade + rótulo)", a
     ProductUnitLabelsOptions: () => ({
       productUnitLabels: { edges: [{ node: { id: "ul-1", label: "Saco" } }] },
     }),
+    // Passos "Impostos" e "Preços" do wizard — disparados ao abrir o modal
+    // (useProductExtrasOptions). Vazios: o teste só exercita o passo de dados.
+    AddProductTaxRules: () => ({ taxRules: { edges: [] } }),
+    AddProductPriceLists: () => ({ factoryPriceLists: { edges: [] } }),
+    AddProductPriceTiers: () => ({ priceTiers: { edges: [] } }),
     CreateProduct: (v) => {
       const i = v.input as Record<string, unknown>;
       return {
@@ -92,6 +97,11 @@ test("fábrica/produtos: cadastra um produto (categoria + unidade + rótulo)", a
     .click();
 
   await dialog.locator('input[name="unitPerPack"]').fill("1");
+
+  // Wizard de 3 passos: "Impostos" e "Preços" são opcionais. Avança até o
+  // último passo, onde o botão "Cadastrar" substitui o "Avançar".
+  await dialog.getByRole("button", { name: "Avançar" }).click();
+  await dialog.getByRole("button", { name: "Avançar" }).click();
 
   await dialog.getByRole("button", { name: "Cadastrar" }).click();
 
