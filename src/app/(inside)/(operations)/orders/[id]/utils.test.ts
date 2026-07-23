@@ -4,11 +4,14 @@ import { formatNumber } from "@/utils/format/masks";
 
 import { OrderItemProductTax } from "./interface";
 import {
+  backorderItemCount,
+  buildInvoiceItemsInput,
   byCreatedAtAsc,
   commissionModeLabel,
   isPaymentBasis,
   matchesProductSearch,
   taxRatesLabel,
+  validatePartialInvoice,
 } from "./utils";
 
 const tax = (name: string, rate: string): OrderItemProductTax => ({
@@ -119,5 +122,43 @@ describe("byCreatedAtAsc", () => {
         .sort(byCreatedAtAsc)
         .map((i) => i.id)
     ).toEqual(["x", "b"]);
+  });
+});
+
+describe("faturamento parcial (helpers)", () => {
+  const items = [
+    { id: "a", quantity: "39", product: { name: "Sifão" } },
+    { id: "b", quantity: "29", product: { name: "Torneira" } },
+    { id: "c", quantity: "16", product: { name: "Ralo" } },
+  ];
+
+  it("valida faixa 0..pedido e exige ao menos um positivo", () => {
+    expect(validatePartialInvoice(items, { a: "20", b: "29", c: "0" }).ok).toBe(
+      true
+    );
+    // acima do pedido
+    const over = validatePartialInvoice(items, { a: "40", b: "29", c: "0" });
+    expect(over.ok).toBe(false);
+    expect(over.error).toMatch(/Sifão/);
+    // tudo zero
+    expect(validatePartialInvoice(items, { a: "0", b: "0", c: "0" }).ok).toBe(
+      false
+    );
+    // negativo
+    expect(validatePartialInvoice(items, { a: "-1" }).ok).toBe(false);
+  });
+
+  it("monta o payload com a quantidade faturada (default = pedida)", () => {
+    // 'b' omitido → usa a quantidade pedida (cheio).
+    expect(buildInvoiceItemsInput(items, { a: "20", c: "0" })).toEqual([
+      { orderItemId: "a", invoicedQuantity: "20" },
+      { orderItemId: "b", invoicedQuantity: "29" },
+      { orderItemId: "c", invoicedQuantity: "0" },
+    ]);
+  });
+
+  it("conta itens que vão para o backorder (faturado < pedido)", () => {
+    expect(backorderItemCount(items, { a: "20", b: "29", c: "0" })).toBe(2);
+    expect(backorderItemCount(items, { a: "39", b: "29", c: "16" })).toBe(0);
   });
 });

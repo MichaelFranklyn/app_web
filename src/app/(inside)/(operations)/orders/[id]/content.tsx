@@ -6,6 +6,7 @@ import { EmptyState } from "@/components/EmptyState";
 import { PageContent } from "@/components/PageContent";
 import { useQuery } from "@apollo/client/react";
 import { PackageX } from "lucide-react";
+import { BackorderBanner } from "./_components/BackorderBanner";
 import { InstallmentsCard } from "./_components/InstallmentsCard";
 import { OrderDetailHeader } from "./_components/OrderDetailHeader";
 import { OrderDetailSkeleton } from "./_components/OrderDetailSkeleton";
@@ -49,6 +50,8 @@ export default function OrderDetailContent({ id }: Props) {
   return (
     <PageContent className="print-area">
       <OrderDetailHeader order={order} onRefetch={refetch} />
+
+      <BackorderBanner order={order} />
 
       <div className="desktop:flex-row flex flex-col gap-20">
         <Card.Header.Group>

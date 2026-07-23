@@ -7,6 +7,7 @@ import {
   FormStepSchema,
 } from "@/components/FormBuilder";
 import { Modal } from "@/components/Modal";
+import { useToast } from "@/components/Toast";
 import { useAsyncAction } from "@/hooks/useAsyncAction";
 import { getTodayIso, toIsoDate } from "@/utils/format/date";
 import { useMutation } from "@apollo/client/react";
@@ -15,12 +16,14 @@ import { useMemo, useRef, useState } from "react";
 import { INVOICE_ORDER_MUTATION } from "../../gql";
 import { OrderDetail } from "../../interface";
 import { isPaymentBasis, selectValue } from "../../utils";
+import { PartialItemsSection } from "./PartialItemsSection";
+import { usePartialInvoice } from "./usePartialInvoice";
 
 interface InvoiceResponse {
   invoiceOrder: {
     status: boolean;
     message: string;
-    data: { id: string } | null;
+    data: { id: string; backorderChildren: { id: string }[] } | null;
   };
 }
 
@@ -34,6 +37,8 @@ export function InvoiceOrderModal({ order, onSuccess }: Props) {
   const formRef = useRef<FormBuilderRef>(null);
   const [invoiceOrder] = useMutation<InvoiceResponse>(INVOICE_ORDER_MUTATION);
   const { execute, isLoading } = useAsyncAction();
+  const { toast } = useToast();
+  const partialApi = usePartialInvoice(order.id, open);
 
   const paymentMode = isPaymentBasis(order.commissionCalcBasis);
 
@@ -87,7 +92,10 @@ export function InvoiceOrderModal({ order, onSuccess }: Props) {
 
   const handleClose = (v: boolean) => {
     setOpen(v);
-    if (!v) formRef.current?.resetForm();
+    if (!v) {
+      formRef.current?.resetForm();
+      partialApi.reset();
+    }
   };
 
   const handleSubmit = async (data: Record<string, unknown>) => {
@@ -99,8 +107,15 @@ export function InvoiceOrderModal({ order, onSuccess }: Props) {
         if (paymentMode && !paymentTermId) {
           throw new Error("Selecione um prazo de pagamento para faturar.");
         }
+        const items = partialApi.buildItemsInput();
+        if (items && !partialApi.validation.ok) {
+          throw new Error(partialApi.validation.error);
+        }
         const res = await invoiceOrder({
-          variables: { id: order.id, input: { invoicedAt, paymentTermId } },
+          variables: {
+            id: order.id,
+            input: { invoicedAt, paymentTermId, ...(items ? { items } : {}) },
+          },
         });
         if (!res.data?.invoiceOrder?.status) {
           throw new Error(
@@ -110,10 +125,21 @@ export function InvoiceOrderModal({ order, onSuccess }: Props) {
         return res.data.invoiceOrder;
       },
       {
-        successMessage: "Pedido faturado. Parcelas geradas.",
-        onSuccess: () => {
+        successMessage: (res) =>
+          res?.data?.backorderChildren?.length
+            ? "Faturado parcial. O restante virou um novo pedido (backorder)."
+            : "Pedido faturado. Parcelas geradas.",
+        onSuccess: (res) => {
           handleClose(false);
           onSuccess();
+          if (res?.data?.backorderChildren?.length) {
+            toast({
+              variant: "info",
+              title: "Pedido de backorder criado",
+              description:
+                "O que faltou virou um novo pedido pendente. Fature-o quando a fábrica repuser o estoque.",
+            });
+          }
         },
       }
     );
@@ -142,6 +168,18 @@ export function InvoiceOrderModal({ order, onSuccess }: Props) {
             loading={isLoading}
             unstyled
           />
+          {partialApi.items.length > 0 && (
+            <div className="mt-16">
+              <PartialItemsSection
+                items={partialApi.items}
+                partial={partialApi.partial}
+                onPartialChange={partialApi.setPartial}
+                quantities={partialApi.quantities}
+                onQuantityChange={partialApi.setQuantity}
+                backorderCount={partialApi.backorderCount}
+              />
+            </div>
+          )}
         </Modal.Body>
         <Modal.Footer>
           <Modal.Close asChild>

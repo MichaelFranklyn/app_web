@@ -29,6 +29,13 @@ export interface OrderInstallment {
   commissionReceivedAt: string | null;
 }
 
+/** Referência enxuta a um pedido de backorder (filho) para exibir o vínculo. */
+export interface BackorderRef {
+  id: string;
+  status: OrderStatus;
+  totalAmount: string;
+}
+
 export interface OrderDetail {
   id: string;
   orderDate: string;
@@ -55,6 +62,12 @@ export interface OrderDetail {
   isDeliveryOverdue: boolean;
   paymentTermId: string | null;
   commissionCalcBasis: string | null;
+  /** Pedido-pai quando este é o restante (backorder) de um faturamento parcial. */
+  parentOrderId: string | null;
+  isBackorder: boolean;
+  parentOrder: { id: string; orderDate: string } | null;
+  /** Pedidos-filhos (backorders) gerados por faturamentos parciais deste pedido. */
+  backorderChildren: BackorderRef[];
   seller: { id: string; name: string } | null;
   client: {
     id: string;

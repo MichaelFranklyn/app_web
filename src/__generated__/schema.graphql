@@ -965,6 +965,7 @@ extend type Mutation {
 
 input CreateFactoryPaymentTermInput {
   companyFactoryId: UUID!
+  """Opcional: sem nome, o rótulo é derivado dos vencimentos (ex.: "30/60/90")."""
   name: String = null
   installmentsDays: [Int!]!
 }
@@ -1675,6 +1676,14 @@ type OrderType {
   isDeliveryOverdue: Boolean!
   """Visita que originou o pedido; nulo quando lançado fora de uma visita."""
   visitScheduleItemId: UUID
+  """Pedido-pai quando ESTE é o restante (backorder) de um faturamento parcial; nulo nos pedidos normais."""
+  parentOrderId: UUID
+  """Este pedido é o restante (backorder) de um faturamento parcial de outro pedido."""
+  isBackorder: Boolean!
+  """Pedido-pai deste backorder (o que foi faturado parcial e gerou este restante)."""
+  parentOrder: OrderType
+  """Pedidos-filhos (backorders) gerados por faturamentos parciais deste pedido."""
+  backorderChildren: [OrderType!]!
   freightType: FreightType
   fileUrl: String
   isFileParsed: Boolean!
@@ -1733,6 +1742,14 @@ input UpdateOrderInput {
 input InvoiceOrderInput {
   invoicedAt: Date!
   paymentTermId: UUID = null
+  """Faturamento PARCIAL: quantidade faturada (em unidades) por item, quando a fábrica não tinha tudo em estoque. Itens do pedido não listados aqui são faturados por inteiro. A sobra (pedida − faturada) de cada item vira um pedido-filho (backorder) CONFIRMADO, faturado depois. Omitir a lista = fatura o pedido inteiro (comportamento normal)."""
+  items: [InvoiceOrderItemInput!] = null
+}
+
+input InvoiceOrderItemInput {
+  orderItemId: UUID!
+  """Quantidade faturada em unidades; 0 ≤ faturada ≤ quantidade pedida do item."""
+  invoicedQuantity: Decimal!
 }
 
 """Uma parcela de comissão (linha da tela de Comissões)."""

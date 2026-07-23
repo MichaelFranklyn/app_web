@@ -27,6 +27,17 @@ export const ORDER_DETAIL_QUERY = gql`
         isDeliveryOverdue
         paymentTermId
         commissionCalcBasis
+        parentOrderId
+        isBackorder
+        parentOrder {
+          id
+          orderDate
+        }
+        backorderChildren {
+          id
+          status
+          totalAmount
+        }
         seller {
           id
           name
@@ -123,6 +134,9 @@ export const INVOICE_ORDER_MUTATION = gql`
         id
         status
         invoicedAt
+        backorderChildren {
+          id
+        }
       }
     }
   }

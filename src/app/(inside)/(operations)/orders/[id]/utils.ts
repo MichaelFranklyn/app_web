@@ -1,4 +1,73 @@
+import { formatNumber } from "@/utils/format/masks";
+
 import { InstallmentStatus, OrderItemProductTax } from "./interface";
+
+/** Item mínimo para o faturamento parcial (id, quantidade pedida, nome). */
+export interface InvoiceableItem {
+  id: string;
+  quantity: string;
+  product?: { name?: string | null } | null;
+}
+
+/** Quantidade digitada → número (tolera vírgula); inválido → NaN. */
+export const parseQty = (value: string): number => {
+  const n = Number(String(value ?? "").replace(",", "."));
+  return Number.isFinite(n) ? n : NaN;
+};
+
+/** Quantidade faturada de um item (a digitada, ou a pedida por padrão). */
+const invoicedOf = (
+  item: InvoiceableItem,
+  quantities: Record<string, string>
+): number => parseQty(quantities[item.id] ?? item.quantity);
+
+/**
+ * Valida as quantidades faturadas: cada uma entre 0 e a pedida, e ao menos um
+ * item com quantidade positiva (senão nada foi faturado).
+ */
+export const validatePartialInvoice = (
+  items: InvoiceableItem[],
+  quantities: Record<string, string>
+): { ok: boolean; error?: string } => {
+  let anyPositive = false;
+  for (const it of items) {
+    const inv = invoicedOf(it, quantities);
+    const ordered = Number(it.quantity);
+    if (!Number.isFinite(inv) || inv < 0 || inv > ordered) {
+      return {
+        ok: false,
+        error: `Quantidade faturada inválida em "${
+          it.product?.name ?? "item"
+        }" (0 a ${formatNumber(ordered)}).`,
+      };
+    }
+    if (inv > 0) anyPositive = true;
+  }
+  if (!anyPositive) {
+    return {
+      ok: false,
+      error: "Informe a quantidade faturada de ao menos um item.",
+    };
+  }
+  return { ok: true };
+};
+
+/** Payload `items` do faturamento parcial (quantidade faturada por item). */
+export const buildInvoiceItemsInput = (
+  items: InvoiceableItem[],
+  quantities: Record<string, string>
+): { orderItemId: string; invoicedQuantity: string }[] =>
+  items.map((it) => ({
+    orderItemId: it.id,
+    invoicedQuantity: String(invoicedOf(it, quantities)),
+  }));
+
+/** Quantos itens têm sobra (faturado < pedido) — irão para o backorder. */
+export const backorderItemCount = (
+  items: InvoiceableItem[],
+  quantities: Record<string, string>
+): number =>
+  items.filter((it) => invoicedOf(it, quantities) < Number(it.quantity)).length;
 
 /**
  * Rótulo das alíquotas do item para a coluna de imposto (ex.: "IPI 3,25% + ST 12%").
