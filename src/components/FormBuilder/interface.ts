@@ -126,6 +126,10 @@ export interface FormSectionSchema {
   title?: string;
   description?: string;
   isRepeatable?: boolean;
+  /** Seção repetível que pode ficar vazia (não exige ao menos um item). */
+  isOptional?: boolean;
+  /** Rótulo do botão que adiciona uma linha na seção repetível. */
+  addLabel?: string;
   fields: FormFieldSchema[];
 }
 

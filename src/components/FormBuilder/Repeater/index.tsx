@@ -59,7 +59,9 @@ export const Repeater = ({ section }: RepeaterProps) => {
           type="button"
         >
           <Button.Icon icon={Plus} />
-          <Button.Title>Adicionar Novo Item</Button.Title>
+          <Button.Title>
+            {section.addLabel ?? "Adicionar Novo Item"}
+          </Button.Title>
         </Button.Root>
       </div>
     </div>

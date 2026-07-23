@@ -133,11 +133,14 @@ export const buildYupSchema = (steps: FormStepSchema[]): BuiltSchema => {
           sectionShape[field.name] = createFieldValidator(field);
         });
 
-        schemaFields[section.name] = yup
+        const arrayValidator = yup
           .array()
           .of(yup.object().shape(sectionShape))
-          .min(1, "Adicione pelo menos um item nesta seção")
           .nullable();
+
+        schemaFields[section.name] = section.isOptional
+          ? arrayValidator
+          : arrayValidator.min(1, "Adicione pelo menos um item nesta seção");
       } else {
         section.fields?.forEach((field) => {
           schemaFields[field.name] = createFieldValidator(field);

@@ -1,3 +1,4 @@
+import { HelpTooltip } from "@/components/HelpTooltip";
 import { FieldMapper, SheetPreview } from "@/components/Import";
 import { Input } from "@/components/Input";
 import { SelectOption } from "@/components/Input";
@@ -6,6 +7,7 @@ import { Title } from "@/components/Title";
 import { ComponentProps, Dispatch, SetStateAction } from "react";
 
 import { Mapping } from "./interface";
+import { UnreadableAlert } from "./UnreadableAlert";
 
 type SheetData = ComponentProps<typeof SheetPreview>["data"];
 
@@ -18,6 +20,13 @@ interface StepColumnsProps {
   setMapping: Dispatch<SetStateAction<Mapping>>;
   /** Fábrica cobra IPI no pedido: mostra o mapeamento da coluna de IPI. */
   ipiInOrder?: boolean;
+  /** Abas do Excel (só aparece o seletor quando há mais de uma). */
+  sheetOptions: SelectOption[];
+  sheetName: string | null;
+  onSheetChange: (name: string) => void;
+  showSheetSelector: boolean;
+  /** Linhas com cara de item que o PDF não deixou ler (avisadas ao usuário). */
+  unreadableRows: string[];
 }
 
 export function StepColumns({
@@ -28,14 +37,44 @@ export function StepColumns({
   mapping,
   setMapping,
   ipiInOrder = false,
+  sheetOptions,
+  sheetName,
+  onSheetChange,
+  showSheetSelector,
+  unreadableRows,
 }: StepColumnsProps) {
   return (
     <div className="flex flex-col gap-12">
       <Stepper.Intro step={2} total={4} title="Aponte as colunas do pedido">
         Diga em qual coluna está o código do produto, a quantidade e — se houver
         — o preço. Confira a amostra abaixo; se as colunas estiverem deslocadas,
-        ajuste a linha do cabeçalho.
+        ajuste a aba ou a linha do cabeçalho.
       </Stepper.Intro>
+      <UnreadableAlert rows={unreadableRows} />
+      {showSheetSelector && (
+        <div className="grid grid-cols-[190px_1fr] items-center gap-8">
+          <span className="inline-flex items-center gap-4 whitespace-nowrap">
+            <Title variant="body-sm" weight="medium">
+              Aba da planilha
+            </Title>
+            <HelpTooltip
+              label="Qual aba escolher?"
+              content="O arquivo tem mais de uma aba. Escolha a que contém o PEDIDO (itens e quantidades) — abas de tabela de preço, base ou ajustes não servem. Trocar a aba refaz os palpites de cabeçalho e colunas."
+              position="right"
+            />
+          </span>
+          <Input.Select
+            options={sheetOptions}
+            value={sheetOptions.find((o) => o.value === sheetName) ?? null}
+            variant="single"
+            disabledClear
+            onChange={(val: SelectOption | SelectOption[] | null) => {
+              const opt = Array.isArray(val) ? val[0] : val;
+              if (opt) onSheetChange(String(opt.value));
+            }}
+          />
+        </div>
+      )}
       <div className="grid grid-cols-[190px_1fr] items-center gap-8">
         <Title variant="body-sm" weight="medium">
           Linha do cabeçalho

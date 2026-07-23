@@ -66,6 +66,11 @@ export function OrderImportWizard({
     updateRow,
     canMap,
     ipiInOrder: ipiEnabled,
+    workbook,
+    sheetName,
+    sheetOptions,
+    onSheetChange,
+    unreadableRows,
   } = useOrderImportWizard({
     orderId,
     deferred,
@@ -101,6 +106,13 @@ export function OrderImportWizard({
                 mapping={mapping}
                 setMapping={setMapping}
                 ipiInOrder={ipiEnabled}
+                sheetOptions={sheetOptions}
+                sheetName={sheetName}
+                onSheetChange={onSheetChange}
+                showSheetSelector={Boolean(
+                  workbook && workbook.sheetNames.length > 1
+                )}
+                unreadableRows={unreadableRows}
               />
             )}
           </Stepper.Item>
@@ -112,6 +124,7 @@ export function OrderImportWizard({
               confirmableCount={confirmableCount}
               skippedItems={skippedItems}
               ipiInOrder={ipiEnabled}
+              unreadableRows={unreadableRows}
             />
           </Stepper.Item>
 

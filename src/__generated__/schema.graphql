@@ -965,7 +965,7 @@ extend type Mutation {
 
 input CreateFactoryPaymentTermInput {
   companyFactoryId: UUID!
-  name: String!
+  name: String = null
   installmentsDays: [Int!]!
 }
 

@@ -49,13 +49,6 @@ export function AddPaymentTermModal({
             id: "fields",
             fields: [
               {
-                name: "name",
-                type: "text",
-                label: "Nome do prazo",
-                required: true,
-                placeholder: "Ex: 30/60/90, À vista",
-              },
-              {
                 name: "installments",
                 type: "text",
                 label: "Vencimentos (dias)",
@@ -79,15 +72,15 @@ export function AddPaymentTermModal({
   const handleSubmit = async (data: Record<string, unknown>) => {
     await execute(
       async () => {
-        const name = String(data.name ?? "").trim();
         const installmentsDays = parseInstallments(
           String(data.installments ?? "")
         );
         if (installmentsDays.length === 0) {
           throw new Error("Informe ao menos um vencimento (ex.: 30/60/90).");
         }
+        // O nome do prazo é derivado dos vencimentos pelo back (ex.: "30/60/90").
         const res = await createTerm({
-          variables: { input: { companyFactoryId, name, installmentsDays } },
+          variables: { input: { companyFactoryId, installmentsDays } },
         });
         if (
           !res.data?.createFactoryPaymentTerm?.status ||

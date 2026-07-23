@@ -85,8 +85,10 @@ export default function OrderDetailContent({ id }: Props) {
           </div>
         </Card.Header.Group>
 
+        {/* self-start: sem isso o flex-row estica a coluna à altura da lista de
+            itens e o card (h-full) cresce com espaço em branco embaixo. */}
         <div
-          className="desktop:w-[260px] flex w-full shrink-0 flex-col gap-12"
+          className="desktop:w-[260px] desktop:self-start flex w-full shrink-0 flex-col gap-12"
           data-tour="order-summary"
         >
           <OrderSummaryCard order={order} />

@@ -76,7 +76,7 @@ export function PaymentTermsTab({ companyFactoryId }: Props) {
       <Table.Table>
         <Table.Header>
           <Table.Row>
-            <Table.Head>Prazo</Table.Head>
+            <Table.Head>Vencimentos (dias)</Table.Head>
             <Table.Head>Parcelas</Table.Head>
             <Table.Head className="text-right">Ações</Table.Head>
           </Table.Row>
@@ -109,18 +109,17 @@ export function PaymentTermsTab({ companyFactoryId }: Props) {
           ) : (
             terms.map((term) => (
               <Table.Row key={term.id}>
-                <Table.Cell variant="strong">{term.name}</Table.Cell>
                 <Table.Cell>
-                  <div className="flex items-center gap-6">
-                    <Badge.Root color="subtle" appearance="tinted">
-                      <Badge.Text>
-                        {formatInstallments(term.installmentsDays)}
-                      </Badge.Text>
-                    </Badge.Root>
-                    <Table.CellText variant="dim">
-                      {installmentsCountLabel(term.installmentsDays)}
-                    </Table.CellText>
-                  </div>
+                  <Badge.Root color="subtle" appearance="tinted">
+                    <Badge.Text>
+                      {formatInstallments(term.installmentsDays)}
+                    </Badge.Text>
+                  </Badge.Root>
+                </Table.Cell>
+                <Table.Cell>
+                  <Table.CellText variant="dim">
+                    {installmentsCountLabel(term.installmentsDays)}
+                  </Table.CellText>
                 </Table.Cell>
                 <Table.Cell>
                   <div className="flex items-center justify-end gap-4">

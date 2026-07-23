@@ -1,16 +1,33 @@
-import { FormBuilderRef, FormStepSchema } from "@/components/FormBuilder";
-import { labelWithHelp } from "@/components/HelpTooltip";
+import { FormBuilderRef } from "@/components/FormBuilder";
+import { useToast } from "@/components/Toast";
 import { useAsyncAction } from "@/hooks/useAsyncAction";
 import { extractSelectValue } from "@/utils/form";
 import { useMutation } from "@apollo/client/react";
-import { useMemo, useRef, useState } from "react";
+import { useCallback, useMemo, useRef, useState } from "react";
 
 import { getProductErrorMessage } from "../errors";
 import { FactoryProduct } from "../gql";
-import { PRODUCT_FIELD_HELP } from "../productFieldHelp";
 import { useProductCatalogOptions } from "../useProductCatalogOptions";
-import { CREATE_PRODUCT_MUTATION } from "./gql";
-import { CreateProductResponse } from "./interface";
+import { createProductExtras } from "./createProductExtras";
+import {
+  ADD_TAX_TO_PRODUCT_MUTATION,
+  CREATE_PRICE_LIST_ITEM_MUTATION,
+  CREATE_PRODUCT_MUTATION,
+} from "./gql";
+import {
+  AddProductTaxResponse,
+  CreatePriceListItemResponse,
+  CreateProductResponse,
+} from "./interface";
+import { buildAddProductSteps } from "./steps";
+import { useProductExtrasOptions } from "./useProductExtrasOptions";
+import {
+  buildExtrasSummary,
+  findIncompleteStep,
+  parsePriceRows,
+  parseTaxRows,
+  toNumber,
+} from "./utils";
 
 export interface AddProductModalProps {
   companyFactoryId: string;
@@ -24,7 +41,9 @@ export function useAddProduct({
   onAddOptimistic,
 }: AddProductModalProps) {
   const [open, setOpen] = useState(false);
+  const [step, setStep] = useState(0);
   const formRef = useRef<FormBuilderRef>(null);
+  const { toast } = useToast();
 
   const {
     categoryOptions,
@@ -34,139 +53,131 @@ export function useAddProduct({
     handleCreateLabel,
   } = useProductCatalogOptions(open);
 
+  const { taxRuleOptions, priceListOptions, tierOptions, handleCreateTaxRule } =
+    useProductExtrasOptions(open, companyFactoryId);
+
   const [createProduct] = useMutation<CreateProductResponse>(
     CREATE_PRODUCT_MUTATION
   );
+  const [addTaxToProduct] = useMutation<AddProductTaxResponse>(
+    ADD_TAX_TO_PRODUCT_MUTATION
+  );
+  const [createPriceListItem] = useMutation<CreatePriceListItemResponse>(
+    CREATE_PRICE_LIST_ITEM_MUTATION
+  );
   const { execute, isLoading } = useAsyncAction();
 
-  const steps: FormStepSchema[] = useMemo(
-    () => [
-      {
-        id: "product",
-        sections: [
-          {
-            id: "fields",
-            fields: [
-              {
-                name: "sku",
-                type: "text",
-                label: labelWithHelp(
-                  "Código do produto",
-                  PRODUCT_FIELD_HELP.sku
-                ),
-                labelText: "Código do produto",
-                required: true,
-                placeholder: "Ex: ABC-123",
-                minLength: 2,
-                maxLength: 100,
-              },
-              {
-                name: "name",
-                type: "text",
-                label: labelWithHelp(
-                  "Nome do produto",
-                  PRODUCT_FIELD_HELP.name
-                ),
-                labelText: "Nome do produto",
-                required: true,
-                placeholder: "Ex: Cimento CP-II 50kg",
-                minLength: 2,
-                maxLength: 255,
-              },
-              {
-                name: "categoryId",
-                type: "select-single",
-                label: labelWithHelp("Categoria", PRODUCT_FIELD_HELP.category),
-                labelText: "Categoria",
-                required: true,
-                placeholder:
-                  categoryOptions.length === 0
-                    ? "Cadastre uma categoria primeiro"
-                    : "Selecione a categoria",
-                options: categoryOptions,
-              },
-              {
-                name: "unitId",
-                type: "select-single",
-                label: labelWithHelp("Unidade", PRODUCT_FIELD_HELP.unit),
-                labelText: "Unidade",
-                required: true,
-                placeholder: "Selecione ou digite para criar",
-                options: unitOptions,
-                onCreateOption: handleCreateUnit,
-              },
-              {
-                name: "unitLabelId",
-                type: "select-single",
-                label: labelWithHelp(
-                  "Rótulo de embalagem",
-                  PRODUCT_FIELD_HELP.unitLabel
-                ),
-                labelText: "Rótulo de embalagem",
-                required: true,
-                placeholder: "Selecione ou digite para criar",
-                options: labelOptions,
-                onCreateOption: handleCreateLabel,
-              },
-              {
-                name: "unitPerPack",
-                type: "text",
-                label: labelWithHelp(
-                  "Unidades por embalagem",
-                  PRODUCT_FIELD_HELP.unitPerPack
-                ),
-                labelText: "Unidades por embalagem",
-                required: true,
-                placeholder: "Ex: 12",
-              },
-              {
-                name: "ncm",
-                type: "text",
-                label: labelWithHelp("NCM (opcional)", PRODUCT_FIELD_HELP.ncm),
-                placeholder: "Ex: 3926.90.90",
-                maxLength: 20,
-              },
-              {
-                name: "saleMultiple",
-                type: "text",
-                label: labelWithHelp(
-                  "Múltiplo de venda (opcional)",
-                  PRODUCT_FIELD_HELP.saleMultiple
-                ),
-                placeholder: "Ex: 12",
-              },
-            ],
-          },
-        ],
-      },
-    ],
+  const steps = useMemo(
+    () =>
+      buildAddProductSteps({
+        categoryOptions,
+        unitOptions,
+        labelOptions,
+        taxRuleOptions,
+        priceListOptions,
+        tierOptions,
+        onCreateUnit: handleCreateUnit,
+        onCreateLabel: handleCreateLabel,
+        onCreateTaxRule: handleCreateTaxRule,
+      }),
     [
       categoryOptions,
       unitOptions,
       labelOptions,
+      taxRuleOptions,
+      priceListOptions,
+      tierOptions,
       handleCreateUnit,
       handleCreateLabel,
+      handleCreateTaxRule,
     ]
   );
 
+  const isLastStep = step === steps.length - 1;
+
   const handleClose = (v: boolean) => {
     setOpen(v);
-    if (!v) formRef.current?.resetForm();
+    if (!v) {
+      formRef.current?.resetForm();
+      setStep(0);
+    }
   };
+
+  // `nextStep` valida o passo corrente e só então avança; espelhamos o índice
+  // aqui porque o rodapé fica fora do FormBuilder.
+  const goNext = useCallback(async () => {
+    const moved = await formRef.current?.nextStep();
+    if (moved) setStep((prev) => prev + 1);
+  }, []);
+
+  const goPrev = useCallback(() => {
+    formRef.current?.prevStep();
+    setStep((prev) => Math.max(0, prev - 1));
+  }, []);
+
+  const sendTax = useCallback(
+    async (productId: string, taxRuleId: string, rate: number) => {
+      const res = await addTaxToProduct({
+        // Alíquota vai como texto: o scalar Decimal do back converte sem o
+        // arredondamento binário que um float traria.
+        variables: { input: { productId, taxRuleId, rate: String(rate) } },
+      });
+      if (!res.data?.addTaxToProduct?.status) {
+        throw new Error(
+          getProductErrorMessage(
+            res.data?.addTaxToProduct?.message,
+            "erro ao vincular"
+          )
+        );
+      }
+    },
+    [addTaxToProduct]
+  );
+
+  const sendPrice = useCallback(
+    async (
+      productId: string,
+      priceListId: string,
+      tierId: string,
+      unitPrice: number
+    ) => {
+      const res = await createPriceListItem({
+        variables: { input: { productId, priceListId, tierId, unitPrice } },
+      });
+      if (!res.data?.createPriceListItem?.status) {
+        throw new Error(
+          getProductErrorMessage(
+            res.data?.createPriceListItem?.message,
+            "erro ao cadastrar"
+          )
+        );
+      }
+    },
+    [createPriceListItem]
+  );
 
   const handleSubmit = async (data: Record<string, unknown>) => {
     const categoryId = extractSelectValue(data.categoryId);
     const unitId = extractSelectValue(data.unitId);
     const unitLabelId = extractSelectValue(data.unitLabelId);
-    const unitPerPack = Number(
-      String(data.unitPerPack ?? "").replace(",", ".")
-    );
-    const saleMultiple = Number(
-      String(data.saleMultiple ?? "").replace(",", ".")
-    );
+    const unitPerPack = toNumber(data.unitPerPack);
+    const saleMultiple = toNumber(data.saleMultiple);
     const sku = String(data.sku ?? "").trim();
     const name = String(data.name ?? "").trim();
     const ncm = String(data.ncm ?? "").trim();
+
+    const incomplete = findIncompleteStep(data.taxes, data.prices);
+    if (incomplete) {
+      toast({
+        variant: "error",
+        title: "Revise os dados",
+        description: incomplete,
+      });
+      return;
+    }
+
+    const taxRows = parseTaxRows(data.taxes);
+    const priceRows = parsePriceRows(data.prices);
 
     await execute(
       async () => {
@@ -202,18 +213,49 @@ export function useAddProduct({
           );
         }
 
-        return res.data.createProduct.data;
+        const product = res.data.createProduct.data;
+        // Impostos e preços exigem o produto já criado: são gravados aqui, um a
+        // um, para o usuário não precisar abrir o detalhe só para completá-los.
+        const extras = await createProductExtras(
+          taxRows,
+          priceRows,
+          (row) => sendTax(product.id, row.taxRuleId, row.rate),
+          (row) =>
+            sendPrice(product.id, row.priceListId, row.tierId, row.unitPrice)
+        );
+
+        return { product, extras };
       },
       {
-        successMessage: "Produto cadastrado com sucesso",
-        onSuccess: (created) => {
+        successMessage: (result) =>
+          buildExtrasSummary(result.extras.taxes, result.extras.prices),
+        onSuccess: ({ product, extras }) => {
           handleClose(false);
-          onAddOptimistic(created as FactoryProduct);
+          onAddOptimistic(product);
           onChanged();
+
+          if (extras.failures.length > 0) {
+            toast({
+              variant: "warning",
+              title: "Produto criado com pendências",
+              description: `${extras.failures.join(" · ")}. Você pode completar no detalhe do produto.`,
+            });
+          }
         },
       }
     );
   };
 
-  return { open, handleClose, formRef, steps, handleSubmit, isLoading };
+  return {
+    open,
+    handleClose,
+    formRef,
+    steps,
+    step,
+    isLastStep,
+    goNext,
+    goPrev,
+    handleSubmit,
+    isLoading,
+  };
 }

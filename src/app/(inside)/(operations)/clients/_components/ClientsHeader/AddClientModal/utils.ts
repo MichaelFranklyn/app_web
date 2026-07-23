@@ -22,7 +22,7 @@ export const FORM_STEPS: FormStepSchema[] = [
         fields: [
           {
             name: "cnpj",
-            type: "text",
+            type: "cnpj",
             label: "CNPJ",
             placeholder: "00.000.000/0000-00",
             required: true,

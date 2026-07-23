@@ -5,11 +5,40 @@ import {
   valueForChoice,
 } from "@/utils/import/columns";
 
+import { WorkbookData } from "@/utils/import/reader";
+
 import { ExtractedItem, Mapping } from "./interface";
 
 export { fileToBase64 } from "@/utils/file";
 
 export const NONE: ColumnChoice = { kind: "none" };
+
+// Palavras que denunciam a aba do PEDIDO (vs. tabela de preço/base/ajustes).
+const ORDER_SHEET_HINTS = [
+  "pedido",
+  "order",
+  "ficha",
+  "orçamento",
+  "orcamento",
+];
+
+/**
+ * Aba onde está o pedido num Excel com várias abas. Ao contrário da tabela de
+ * preço (a maior), o pedido costuma ser uma aba curta chamada "PEDIDO"/"Ficha".
+ * Prioriza o nome; sem casar, cai para a 1ª aba não vazia (nunca a maior, que
+ * costuma ser o catálogo "Base"). Retorna null se o workbook não tem aba útil.
+ */
+export const guessOrderSheet = (workbook: WorkbookData): string | null => {
+  const named = workbook.sheetNames.find((name) =>
+    ORDER_SHEET_HINTS.some((hint) => name.toLowerCase().includes(hint))
+  );
+  if (named) return named;
+  return (
+    workbook.sheetNames.find(
+      (name) => (workbook.sheets[name]?.length ?? 0) > 0
+    ) ?? null
+  );
+};
 
 /** Linha normalizada a enviar para o preview de importação. */
 export interface ImportRow {
@@ -79,9 +108,20 @@ export const guessMapping = (headers: string[]): Mapping => {
     }
     return NONE;
   };
+  // Quando há "QUANT. DE EMBALAGEM" e "QUANTIDADE TOTAL" (planilha do PADRÃO
+  // FORTE), o pedido quer a TOTAL (unidades) — prefere a coluna que tem
+  // "quant/qtd" E "total" antes do palpite genérico (que pegaria a de embalagem).
+  const totalQtyIdx = headers.findIndex((h) => {
+    const l = h.toLowerCase();
+    return (l.includes("quant") || l.includes("qtd")) && l.includes("total");
+  });
+  const quantity: ColumnChoice =
+    totalQtyIdx >= 0
+      ? { kind: "column", index: totalQtyIdx }
+      : find("qtd", "quant", "qtde", "qt");
   return {
     sku: find("sku", "código", "codigo", "cod", "ref"),
-    quantity: find("qtd", "quant", "qtde", "qt"),
+    quantity,
     unitPrice: find("preço", "preco", "valor", "unit"),
     ipiRate: find("ipi", "alíq", "aliq"),
   };

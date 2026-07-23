@@ -7,9 +7,25 @@ import { Plus } from "lucide-react";
 
 import { AddProductModalProps, useAddProduct } from "./useAddProduct";
 
+const STEP_DESCRIPTION = [
+  "Comece pelos dados do produto: código, nome, categoria e embalagem.",
+  "Informe os impostos que incidem sobre o produto. Este passo é opcional.",
+  "Informe o preço em cada tabela e nível. Este passo é opcional.",
+];
+
 export function AddProductModal(props: AddProductModalProps) {
-  const { open, handleClose, formRef, steps, handleSubmit, isLoading } =
-    useAddProduct(props);
+  const {
+    open,
+    handleClose,
+    formRef,
+    steps,
+    step,
+    isLastStep,
+    goNext,
+    goPrev,
+    handleSubmit,
+    isLoading,
+  } = useAddProduct(props);
 
   return (
     <Modal.Root open={open} onOpenChange={handleClose}>
@@ -20,12 +36,14 @@ export function AddProductModal(props: AddProductModalProps) {
         </Button.Root>
       </Modal.Trigger>
 
-      <Modal.Content size="md">
+      <Modal.Content size="2xl">
         <Modal.Header
           title="Novo produto"
-          description="Adicione um produto ao catálogo desta fábrica."
+          description={STEP_DESCRIPTION[step] ?? STEP_DESCRIPTION[0]}
         />
         <Modal.Body>
+          <FormBuilder.Stepper steps={steps} currentStepIndex={step} />
+
           <FormBuilder
             ref={formRef}
             steps={steps}
@@ -35,7 +53,20 @@ export function AddProductModal(props: AddProductModalProps) {
           />
         </Modal.Body>
         <Modal.Footer>
-          <Modal.Close asChild>
+          {step === 0 ? (
+            <Modal.Close asChild>
+              <Button.Root
+                type="button"
+                appearance="ghost"
+                color="neutral"
+                size="md"
+                noUppercase
+                disabled={isLoading}
+              >
+                <Button.Title>Cancelar</Button.Title>
+              </Button.Root>
+            </Modal.Close>
+          ) : (
             <Button.Root
               type="button"
               appearance="ghost"
@@ -43,21 +74,37 @@ export function AddProductModal(props: AddProductModalProps) {
               size="md"
               noUppercase
               disabled={isLoading}
+              onClick={goPrev}
             >
-              <Button.Title>Cancelar</Button.Title>
+              <Button.Title>Voltar</Button.Title>
             </Button.Root>
-          </Modal.Close>
-          <Button.Root
-            type="button"
-            appearance="solid"
-            color="amber"
-            size="md"
-            noUppercase
-            loading={isLoading}
-            onClick={() => formRef.current?.submitForm()}
-          >
-            <Button.Title>Cadastrar</Button.Title>
-          </Button.Root>
+          )}
+
+          {isLastStep ? (
+            <Button.Root
+              type="button"
+              appearance="solid"
+              color="amber"
+              size="md"
+              noUppercase
+              loading={isLoading}
+              onClick={() => formRef.current?.submitForm()}
+            >
+              <Button.Title>Cadastrar</Button.Title>
+            </Button.Root>
+          ) : (
+            <Button.Root
+              type="button"
+              appearance="solid"
+              color="amber"
+              size="md"
+              noUppercase
+              disabled={isLoading}
+              onClick={goNext}
+            >
+              <Button.Title>Avançar</Button.Title>
+            </Button.Root>
+          )}
         </Modal.Footer>
       </Modal.Content>
     </Modal.Root>

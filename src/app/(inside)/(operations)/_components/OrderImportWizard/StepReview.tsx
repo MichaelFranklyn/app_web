@@ -11,6 +11,7 @@ import { AlertTriangle } from "lucide-react";
 import { ChangeEvent } from "react";
 
 import { ReviewRow, SkippedImportItem } from "./interface";
+import { UnreadableAlert } from "./UnreadableAlert";
 import { confidenceHelp, confidenceTone, tierPriceDiffers } from "./utils";
 
 interface StepReviewProps {
@@ -21,6 +22,8 @@ interface StepReviewProps {
   skippedItems: SkippedImportItem[];
   /** Fábrica cobra IPI no pedido: mostra a coluna editável de alíquota. */
   ipiInOrder?: boolean;
+  /** Linhas do PDF com cara de item que não puderam ser lidas. */
+  unreadableRows?: string[];
 }
 
 export function StepReview({
@@ -29,6 +32,7 @@ export function StepReview({
   confirmableCount,
   skippedItems,
   ipiInOrder = false,
+  unreadableRows = [],
 }: StepReviewProps) {
   return (
     <div className="flex flex-col gap-12">
@@ -42,6 +46,7 @@ export function StepReview({
         sem produto ou sem nível não podem ser gravadas — ajuste o catálogo e
         importe de novo.
       </Stepper.Intro>
+      <UnreadableAlert rows={unreadableRows} />
       {skippedItems.length > 0 && (
         <Alert.Root variant="warning">
           <Alert.Icon icon={AlertTriangle} />

@@ -11,6 +11,7 @@ import {
   readWorkbook,
   SheetMatrix,
   splitAt,
+  WorkbookData,
 } from "@/utils/import/reader";
 
 import {
@@ -31,12 +32,18 @@ import {
 import {
   fileToBase64,
   guessMapping,
+  guessOrderSheet,
   ImportRow,
   NONE,
   rowsFromItems,
   rowsFromSheet,
   toMoneyMask,
 } from "./utils";
+
+// Quantas linhas iniciais aparecem no seletor de "Linha do cabeçalho". Precisa
+// cobrir o alcance do palpite (guessHeaderRow varre 15) com folga para o usuário
+// apontar um cabeçalho mais fundo em planilhas-formulário.
+const HEADER_OPTION_ROWS = 20;
 
 /** Fluxo em que o pedido ainda NÃO existe: só é criado na confirmação final. */
 export interface DeferredOrderTarget {
@@ -68,8 +75,15 @@ export function useOrderImportWizard({
 }: UseOrderImportWizardArgs) {
   const [step, setStep] = useState(0);
   const [file, setFile] = useState<File[]>([]);
+  // Excel com várias abas: guardamos o workbook e a aba escolhida para o
+  // seletor de aba (a "PEDIDO" costuma não ser a maior — essa é o catálogo).
+  const [workbook, setWorkbook] = useState<WorkbookData | null>(null);
+  const [sheetName, setSheetName] = useState<string | null>(null);
   const [matrix, setMatrix] = useState<SheetMatrix | null>(null);
   const [headerIndex, setHeaderIndex] = useState(0);
+  // Linhas com cara de item que o backend não conseguiu ler (PDF): avisadas ao
+  // usuário para ele não achar que subiram em silêncio.
+  const [unreadableRows, setUnreadableRows] = useState<string[]>([]);
   const [mapping, setMapping] = useState<Mapping>({
     sku: NONE,
     quantity: NONE,
@@ -100,7 +114,12 @@ export function useOrderImportWizard({
 
   const headerOptions: SelectOption[] = useMemo(() => {
     if (!matrix) return [];
-    return matrix.slice(0, 12).map((row, index) => {
+    // Cobre com folga o alcance do palpite (guessHeaderRow varre as 15 primeiras)
+    // e ainda deixa escolher um cabeçalho mais fundo — planilhas de pedido
+    // (ex.: PADRÃO FORTE) trazem o cabeçalho real após um bloco de dados do
+    // cliente, no índice ~12. Com o corte antigo (12) a linha certa nem aparecia
+    // na lista e o seletor ficava vazio, apesar de a amostra abaixo estar certa.
+    return matrix.slice(0, HEADER_OPTION_ROWS).map((row, index) => {
       const preview = row
         .filter((c) => c.trim())
         .slice(0, 4)
@@ -123,6 +142,9 @@ export function useOrderImportWizard({
   const handleFiles = async (files: File[]) => {
     setResult(null);
     setReviewRows([]);
+    setUnreadableRows([]);
+    setWorkbook(null);
+    setSheetName(null);
     setFile(files);
     const selected = files[0];
     if (!selected) {
@@ -132,7 +154,9 @@ export function useOrderImportWizard({
     const isPdf = /\.pdf$/i.test(selected.name);
     await execute(
       async (): Promise<
-        { items: ExtractedItem[] } | { matrix: SheetMatrix }
+        | { items: ExtractedItem[] }
+        | { matrix: SheetMatrix }
+        | { workbook: WorkbookData; sheet: string }
       > => {
         if (isPdf) {
           const base64 = await fileToBase64(selected);
@@ -148,6 +172,7 @@ export function useOrderImportWizard({
           if (!payload?.status || !payload.data) {
             throw new Error(payload?.message ?? "Não foi possível ler o PDF.");
           }
+          setUnreadableRows(payload.data.unreadableRows ?? []);
           // Fábrica com modelo de pedido: os itens já vêm prontos do backend →
           // pula o mapeamento de colunas e vai direto para a revisão.
           if (payload.data.items && payload.data.items.length > 0) {
@@ -155,15 +180,20 @@ export function useOrderImportWizard({
           }
           return { matrix: payload.data.rows };
         }
-        const workbook = await readWorkbook(selected);
-        const best = guessBestSheet(workbook);
-        if (!best) throw new Error("A planilha está vazia.");
-        return { matrix: workbook.sheets[best] ?? [] };
+        const parsed = await readWorkbook(selected);
+        // Prefere a aba do PEDIDO; o usuário troca no seletor se errarmos.
+        const sheet = guessOrderSheet(parsed) ?? guessBestSheet(parsed);
+        if (!sheet) throw new Error("A planilha está vazia.");
+        return { workbook: parsed, sheet };
       },
       {
         onSuccess: (out) => {
           if ("items" in out) void previewItems(out.items);
-          else applyMatrix(out.matrix);
+          else if ("workbook" in out) {
+            setWorkbook(out.workbook);
+            setSheetName(out.sheet);
+            applyMatrix(out.workbook.sheets[out.sheet] ?? []);
+          } else applyMatrix(out.matrix);
         },
         onError: () => {
           setMatrix(null);
@@ -171,6 +201,21 @@ export function useOrderImportWizard({
         },
       }
     );
+  };
+
+  const sheetOptions: SelectOption[] = useMemo(
+    () =>
+      workbook?.sheetNames.map((name) => ({
+        value: name,
+        label: `${name} (${workbook.sheets[name]?.length ?? 0} linhas)`,
+      })) ?? [],
+    [workbook]
+  );
+
+  const onSheetChange = (name: string) => {
+    if (!workbook || name === sheetName) return;
+    setSheetName(name);
+    applyMatrix(workbook.sheets[name] ?? []);
   };
 
   // Casa as linhas (do mapeamento manual OU do modelo da fábrica) e abre a revisão.
@@ -343,5 +388,10 @@ export function useOrderImportWizard({
     updateRow,
     canMap,
     ipiInOrder,
+    workbook,
+    sheetName,
+    sheetOptions,
+    onSheetChange,
+    unreadableRows,
   };
 }

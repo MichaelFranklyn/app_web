@@ -27,6 +27,8 @@ export interface ExtractOrderFileResponse {
       fileType: string;
       rows: string[][];
       items: ExtractedItem[] | null;
+      /** Linhas com cara de item que o backend não conseguiu ler (PDF). */
+      unreadableRows: string[] | null;
     } | null;
   };
 }

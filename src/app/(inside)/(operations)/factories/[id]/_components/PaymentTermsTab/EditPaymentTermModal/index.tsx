@@ -53,13 +53,6 @@ export function EditPaymentTermModal({
             id: "fields",
             fields: [
               {
-                name: "name",
-                type: "text",
-                label: "Nome do prazo",
-                required: true,
-                placeholder: "Ex: 30/60/90, À vista",
-              },
-              {
                 name: "installments",
                 type: "text",
                 label: "Vencimentos (dias)",
@@ -77,14 +70,12 @@ export function EditPaymentTermModal({
 
   const initialData = useMemo(
     () => ({
-      name: term.name,
       installments: formatInstallments(term.installmentsDays),
     }),
     [term]
   );
 
   const handleSubmit = async (data: Record<string, unknown>) => {
-    const name = String(data.name ?? "").trim();
     const installmentsDays = parseInstallments(String(data.installments ?? ""));
 
     if (installmentsDays.length === 0) {
@@ -92,14 +83,16 @@ export function EditPaymentTermModal({
       return;
     }
 
-    const sameName = name === term.name;
     const sameDays =
       installmentsDays.length === term.installmentsDays.length &&
       installmentsDays.every((d, i) => d === term.installmentsDays[i]);
-    if (sameName && sameDays) {
+    if (sameDays) {
       setOpen(false);
       return;
     }
+
+    // O nome acompanha os vencimentos (derivado no back).
+    const name = formatInstallments(installmentsDays);
 
     setOpen(false);
     onUpdateOptimistic(term.id, { name, installmentsDays });
@@ -107,7 +100,7 @@ export function EditPaymentTermModal({
     await execute(
       async () => {
         const res = await updateTerm({
-          variables: { id: term.id, input: { name, installmentsDays } },
+          variables: { id: term.id, input: { installmentsDays } },
         });
         if (
           !res.data?.updateFactoryPaymentTerm?.status ||

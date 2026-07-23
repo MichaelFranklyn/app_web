@@ -8,6 +8,7 @@ import { useState } from "react";
 import { ORDER_ITEMS_QUERY } from "../../../gql";
 import { OrderDetail, OrderItemsResponse } from "../../../interface";
 import { exportOrderPdf } from "../../../pdfExport";
+import { byCreatedAtAsc } from "../../../utils";
 
 interface Props {
   order: OrderDetail;
@@ -28,7 +29,10 @@ export function OrderPdfButton({ order }: Props) {
     try {
       const res = await fetchItems({ variables: { orderId: order.id } });
       if (res.error) throw res.error;
-      const items = res.data?.orderItems?.edges?.map((e) => e.node) ?? [];
+      // Mesma ordem da tabela (upload/criação): o PDF do cliente bate com a tela.
+      const items = (res.data?.orderItems?.edges?.map((e) => e.node) ?? [])
+        .slice()
+        .sort(byCreatedAtAsc);
       await exportOrderPdf(order, items);
     } catch {
       toast({

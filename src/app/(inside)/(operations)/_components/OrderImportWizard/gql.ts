@@ -9,6 +9,7 @@ export const EXTRACT_ORDER_FILE_MUTATION = gql`
       data {
         fileType
         rows
+        unreadableRows
         items {
           sku
           name

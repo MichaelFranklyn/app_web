@@ -2,20 +2,29 @@
 
 import { Badge } from "@/components/Badges";
 import { EmptyState } from "@/components/EmptyState";
+import { InputSearch } from "@/components/Input";
 import { Table } from "@/components/Table";
 import { useInvalidateQueriesClient } from "@/hooks/useInvalidateQueries";
 import { useOptimisticList } from "@/hooks/useOptimisticList";
 import { formatMoney, formatNumber } from "@/utils/format/masks";
 import { useQuery } from "@apollo/client/react";
-import { Package, Zap } from "lucide-react";
-import { useMemo } from "react";
+import { Package, SearchX, Zap } from "lucide-react";
+import { useMemo, useState } from "react";
 import { OrderItem, OrderItemsResponse } from "../../interface";
-import { taxRatesLabel } from "../../utils";
+import {
+  byCreatedAtAsc,
+  matchesProductSearch,
+  taxRatesLabel,
+} from "../../utils";
 import { AddOrderItemModal } from "./AddOrderItemModal";
 import { DeleteOrderItemModal } from "./DeleteOrderItemModal";
 import { EditOrderItemModal } from "./EditOrderItemModal";
 import { ImportOrderModal } from "./ImportOrderModal";
 import { ORDER_ITEMS_QUERY } from "./gql";
+
+// A partir de quantos itens a busca aparece — abaixo disso a lista cabe na tela
+// (mesma ordem de grandeza do maxHeight da tabela) e o campo só polui o cabeçalho.
+const SEARCH_THRESHOLD = 8;
 
 interface Props {
   orderId: string;
@@ -53,15 +62,27 @@ export function OrderItemsTable({
   // Imposto, Subtotal, Ações — mais Alíq. IPI nas fábricas com IPI no pedido.
   const columns = ipiInOrder ? 10 : 9;
 
-  // Itens do mais novo para o mais antigo: cada item adicionado aparece no topo
-  // e empurra os anteriores para baixo (mesmo comportamento do wizard).
+  const [search, setSearch] = useState("");
+
+  // Ordem de criação, do mais antigo para o mais novo. A importação grava um
+  // item por vez (commit por linha), então o created_at cresce na ordem da
+  // planilha — a tabela mostra os itens na MESMA ordem do arquivo enviado.
+  // Itens adicionados à mão depois entram no fim da lista.
   const displayedItems = useMemo(
-    () =>
-      [...items].sort((a, b) =>
-        (b.createdAt ?? "").localeCompare(a.createdAt ?? "")
-      ),
+    () => [...items].sort(byCreatedAtAsc),
     [items]
   );
+
+  // Filtro por código (SKU) OU nome do produto — casa por trecho, sem acento.
+  const filteredItems = useMemo(
+    () =>
+      displayedItems.filter((item) =>
+        matchesProductSearch(item.product, search)
+      ),
+    [displayedItems, search]
+  );
+
+  const showSearch = items.length > SEARCH_THRESHOLD;
 
   // O mesmo produto não entra duas vezes no pedido.
   const existingProductIds = useMemo(
@@ -70,12 +91,16 @@ export function OrderItemsTable({
     [items]
   );
 
-  // Nível do último item adicionado (o mais novo): o próximo abre nele, como o
-  // wizard mantém o nível entre itens. Itens com preço manual não têm nível.
-  const lastTierId = useMemo(
-    () => displayedItems.find((item) => item.tier)?.tier?.id ?? null,
-    [displayedItems]
-  );
+  // Nível do último item adicionado (o mais novo = o último da lista ordenada):
+  // o próximo item abre nele, como o wizard mantém o nível entre itens. Itens
+  // com preço manual não têm nível, então procuramos do fim para o início.
+  const lastTierId = useMemo(() => {
+    for (let i = displayedItems.length - 1; i >= 0; i--) {
+      const tierId = displayedItems[i].tier?.id;
+      if (tierId) return tierId;
+    }
+    return null;
+  }, [displayedItems]);
 
   const handleRefetch = () => {
     refetch();
@@ -90,6 +115,14 @@ export function OrderItemsTable({
       <Table.CardHead>
         <Table.CardHead.Title>Itens do pedido</Table.CardHead.Title>
         <Table.CardHead.Actions>
+          {showSearch && (
+            <InputSearch
+              size="sm"
+              placeholder="Buscar por código ou nome..."
+              value={search}
+              onChange={(e) => setSearch(e.target.value)}
+            />
+          )}
           <Badge.Root color="neutral" appearance="tinted">
             <Badge.Text>
               {items.length} {items.length === 1 ? "item" : "itens"}
@@ -113,7 +146,7 @@ export function OrderItemsTable({
         </Table.CardHead.Actions>
       </Table.CardHead>
 
-      <Table.Table>
+      <Table.Table maxHeight={520}>
         <Table.Header>
           <Table.Row>
             <Table.Head>Produto</Table.Head>
@@ -147,8 +180,23 @@ export function OrderItemsTable({
                 </EmptyState.Root>
               </Table.Cell>
             </Table.Row>
+          ) : filteredItems.length === 0 ? (
+            <Table.Row>
+              <Table.Cell colSpan={columns}>
+                <EmptyState.Root>
+                  <EmptyState.Icon>
+                    <SearchX size={32} />
+                  </EmptyState.Icon>
+                  <EmptyState.Title>Nenhum item encontrado</EmptyState.Title>
+                  <EmptyState.Description>
+                    Nenhum item deste pedido tem o código ou nome &quot;{search}
+                    &quot;.
+                  </EmptyState.Description>
+                </EmptyState.Root>
+              </Table.Cell>
+            </Table.Row>
           ) : (
-            displayedItems.map((item) => (
+            filteredItems.map((item) => (
               <Table.Row key={item.id} className="group">
                 <Table.Cell>
                   <div className="flex flex-col items-start gap-2">
