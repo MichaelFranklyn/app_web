@@ -3,8 +3,10 @@ import { mockGraphql } from "../support/graphql";
 import { grantRole } from "../support/role";
 
 /**
- * /settings/company — dados e LOGO da empresa. A aba é só do dono da conta
- * (updateCompany é @is_owner no backend), por isso o grantRole("OWNER").
+ * /company — dados e LOGO da empresa. Saiu das configurações e virou rota
+ * própria, aberta pelo atalho "Dados da empresa" no menu do usuário na topbar;
+ * é só do dono da conta (updateCompany é @is_owner no backend), por isso o
+ * grantRole("OWNER").
  *
  * O que este teste protege: a logo escolhida precisa chegar na mutation como
  * `logoBase64`. É o caminho que, se quebrar, deixa a empresa sem logo no menu
@@ -18,7 +20,13 @@ const company = {
   nomeFantasia: "Contato Rep.",
   segment: "Representação Comercial",
   phone: null,
-  email: "contato@exemplo.com",
+  whatsapp: null,
+  website: null,
+  addressZip: null,
+  addressStreet: null,
+  addressNumber: null,
+  addressComplement: null,
+  addressNeighborhood: null,
   addressCity: "Lauro de Freitas",
   addressState: "BA",
   logoUrl: null as string | null,
@@ -31,7 +39,7 @@ const PNG_1X1 = Buffer.from(
   "base64"
 );
 
-test("settings/company: envia logo e símbolo junto dos dados da empresa", async ({
+test("company: envia logo e símbolo junto dos dados da empresa", async ({
   page,
 }) => {
   let sentInput: Record<string, unknown> | null = null;
@@ -53,9 +61,9 @@ test("settings/company: envia logo e símbolo junto dos dados da empresa", async
   });
 
   await grantRole(page, "OWNER");
-  await page.goto("/settings/company");
+  await page.goto("/company");
 
-  // O título do card (a aba de navegação usa o mesmo texto).
+  // O título do card de edição.
   await expect(
     page.getByRole("heading", { name: "Dados da empresa" })
   ).toBeVisible();
@@ -86,7 +94,7 @@ test("settings/company: envia logo e símbolo junto dos dados da empresa", async
   expect(String(sentInput!.avatarBase64 ?? "").length).toBeGreaterThan(0);
 });
 
-test("settings/company: salvar sem alterações avisa em vez de ficar mudo", async ({
+test("company: salvar sem alterações avisa em vez de ficar mudo", async ({
   page,
 }) => {
   let called = false;
@@ -104,7 +112,7 @@ test("settings/company: salvar sem alterações avisa em vez de ficar mudo", asy
   });
 
   await grantRole(page, "OWNER");
-  await page.goto("/settings/company");
+  await page.goto("/company");
   await expect(
     page.getByRole("heading", { name: "Dados da empresa" })
   ).toBeVisible();
