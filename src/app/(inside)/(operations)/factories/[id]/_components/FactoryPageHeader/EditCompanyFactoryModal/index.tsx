@@ -100,10 +100,20 @@ export function EditCompanyFactoryModal() {
     }
 
     setOpen(false);
-    // Só os termos comerciais entram no otimismo: apelido e logo vivem em
-    // `factory` (resolvidos do vínculo no backend) e chegam pelo refetch.
-    if (Object.keys(commercial).length > 0) {
-      updateOptimistic(commercial as Partial<CompanyFactoryDetail>);
+    // Otimismo: termos comerciais estão no nível raiz; o apelido vive em
+    // `factory` (aninhado, resolvido do vínculo no backend), então funde o objeto
+    // `factory` inteiro preservando os demais campos — o merge do hook é raso.
+    // `"" → null` espelha a normalização do backend (mutations.py: strip() or None)
+    // p/ o factoryName cair no nome fantasia. A logo segue vindo pelo refetch: o
+    // front não tem a URL final /media/... que o backend gera.
+    const optimistic: Partial<CompanyFactoryDetail> = {
+      ...(commercial as Partial<CompanyFactoryDetail>),
+    };
+    if (branding.nickname !== undefined) {
+      optimistic.factory = { ...factory, nickname: branding.nickname || null };
+    }
+    if (Object.keys(optimistic).length > 0) {
+      updateOptimistic(optimistic);
     }
 
     await execute(
