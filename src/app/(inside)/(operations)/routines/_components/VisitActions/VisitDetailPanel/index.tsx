@@ -1,6 +1,7 @@
 "use client";
 
 import { Badge } from "@/components/Badges";
+import { factoryName } from "@/utils/company";
 import { Button } from "@/components/Button";
 import { Title } from "@/components/Title";
 import { clientDisplayName } from "@/utils/client";
@@ -60,17 +61,13 @@ export function VisitDetailPanel({
   const client = item.clientFactoryLink?.client ?? null;
   const factory = item.clientFactoryLink?.factory ?? null;
   const clientName = clientDisplayName(client);
-  const factoryName = factory
-    ? (factory.nomeFantasia ?? factory.razaoSocial)
-    : "—";
+  const factoryLabel = factoryName(factory);
 
   const outcomeLabel = optionLabel(VISIT_OUTCOME_OPTIONS, item.outcome);
   // As fábricas tratadas saem das observações de estoque registradas: é o que o
   // vendedor de fato levantou nesta ida, e não só a fábrica que motivou a visita.
   const treatedLabel =
-    (item.treatedFactories ?? [])
-      .map((f) => f.nomeFantasia ?? f.razaoSocial)
-      .join(", ") || null;
+    (item.treatedFactories ?? []).map((f) => factoryName(f)).join(", ") || null;
 
   return (
     <>
@@ -101,7 +98,7 @@ export function VisitDetailPanel({
               {clientName}
             </Title>
             <Title variant="body-xs" color="muted" className="mt-2 truncate">
-              {factoryName}
+              {factoryLabel}
             </Title>
           </div>
           <Button.Root

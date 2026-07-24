@@ -9,7 +9,9 @@ import { emptyConnection, mockGraphql } from "../support/graphql";
  */
 const URL = "/factories/factory-1/overview";
 
-test("fábrica detalhe: edita as condições comerciais", async ({ page }) => {
+test("fábrica detalhe: edita apelido e condições comerciais", async ({
+  page,
+}) => {
   await mockGraphql(page, {
     UpdateCompanyFactory: (v) => ({
       updateCompanyFactory: {
@@ -24,9 +26,17 @@ test("fábrica detalhe: edita as condições comerciais", async ({ page }) => {
 
   await page.getByRole("button", { name: "Editar" }).click();
   const dialog = page.getByRole("dialog");
-  await expect(dialog.getByText("Editar condições comerciais")).toBeVisible();
+  await expect(dialog.getByText("Editar fábrica")).toBeVisible();
 
-  // Muda um campo de texto (evita o select custom) para gerar diff e submeter.
+  // Passo 1 — identidade: o apelido convive com os termos comerciais no mesmo
+  // formulário, e vai junto no input da mutation.
+  await dialog.getByRole("textbox", { name: "Apelido" }).fill("Apelido E2E");
+  await dialog.getByRole("button", { name: "Próximo" }).click();
+
+  // Passo 2 — comissão (sem alterações) → passo 3.
+  await dialog.getByRole("button", { name: "Próximo" }).click();
+
+  // Passo 3 — muda um campo de texto (evita o select custom) para gerar diff.
   await dialog.locator('input[name="territory"]').fill("Nacional");
   await dialog.getByRole("button", { name: "Salvar" }).click();
 

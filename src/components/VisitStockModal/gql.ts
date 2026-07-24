@@ -15,6 +15,7 @@ export const VISIT_STOCK_CANDIDATES_QUERY = gql`
       factory {
         id
         nomeFantasia
+        nickname
         razaoSocial
       }
       products {

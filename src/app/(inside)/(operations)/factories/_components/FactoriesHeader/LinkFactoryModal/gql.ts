@@ -22,6 +22,8 @@ export const LINK_FACTORY_MUTATION = gql`
           cnpj
           razaoSocial
           nomeFantasia
+          nickname
+          logoUrl
           addressCity
           addressState
           deletedAt

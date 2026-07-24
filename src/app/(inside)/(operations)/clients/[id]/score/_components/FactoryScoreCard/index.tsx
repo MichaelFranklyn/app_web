@@ -1,6 +1,7 @@
 "use client";
 
 import { Badge } from "@/components/Badges";
+import { factoryName } from "@/utils/company";
 import { Title } from "@/components/Title";
 import { cn } from "@/lib/utils";
 import { formatDate } from "@/utils/format/date";
@@ -17,13 +18,13 @@ interface Props {
 export function FactoryScoreCard({ score, onSelect }: Props) {
   const total = parseFloat(score.scoreTotal) || 0;
   const level = scoreLevel(total);
-  const factoryName = score.clientFactoryLink?.factory?.nomeFantasia ?? "—";
+  const factoryLabel = factoryName(score.clientFactoryLink?.factory);
 
   return (
     <button
       type="button"
       onClick={() => onSelect(score)}
-      aria-label={`Ver por que ${factoryName} tem score ${total.toFixed(0)}`}
+      aria-label={`Ver por que ${factoryLabel} tem score ${total.toFixed(0)}`}
       className={cn(
         "flex w-full cursor-pointer flex-col gap-10 rounded-(--r-md) border border-(--border)",
         "bg-(--bg2) p-16 text-left transition-colors hover:bg-(--bg3)",
@@ -33,7 +34,7 @@ export function FactoryScoreCard({ score, onSelect }: Props) {
       <div className="flex items-start justify-between gap-8">
         <div className="flex min-w-0 flex-col gap-2">
           <Title variant="body" weight="semibold" className="truncate">
-            {factoryName}
+            {factoryLabel}
           </Title>
           <Title variant="micro" color="muted">
             {formatDate(score.scoreDate)}

@@ -8,6 +8,9 @@ export interface UpdateCompanyFactoryInput {
   contractEnd?: string;
   ipiInOrder?: boolean;
   deliveryEstimateDays?: number | null;
+  nickname?: string;
+  logoBase64?: string;
+  logoFileName?: string | null;
 }
 
 export interface UpdateCompanyFactoryResponse {
@@ -25,6 +28,8 @@ export interface UpdateCompanyFactoryResponse {
       contractEnd: string | null;
       ipiInOrder: boolean;
       deliveryEstimateDays: number | null;
+      nickname: string | null;
+      logoUrl: string | null;
     } | null;
   };
 }

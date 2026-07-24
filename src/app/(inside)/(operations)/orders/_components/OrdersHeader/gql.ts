@@ -24,6 +24,7 @@ export const CREATE_ORDER_MUTATION = gql`
         factory {
           id
           nomeFantasia
+          nickname
           razaoSocial
         }
       }
@@ -54,6 +55,7 @@ export const ORDER_SELLER_FACTORIES_QUERY = gql`
           factory {
             id
             nomeFantasia
+            nickname
             razaoSocial
           }
         }

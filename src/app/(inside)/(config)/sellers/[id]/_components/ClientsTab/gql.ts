@@ -18,6 +18,7 @@ export const SELLER_CLIENTS_QUERY = gql`
           factory {
             id
             nomeFantasia
+            nickname
             razaoSocial
           }
         }

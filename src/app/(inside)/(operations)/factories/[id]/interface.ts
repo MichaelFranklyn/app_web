@@ -3,6 +3,10 @@ export interface FactoryDetail {
   cnpj: string;
   razaoSocial: string;
   nomeFantasia: string | null;
+  /** Apelido que a empresa deu à fábrica (mora no vínculo). */
+  nickname: string | null;
+  /** Logo enviada pela empresa (caminho relativo /media/...). */
+  logoUrl: string | null;
   addressCity: string | null;
   addressState: string | null;
   deletedAt: string | null;

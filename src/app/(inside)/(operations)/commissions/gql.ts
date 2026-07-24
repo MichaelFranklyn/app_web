@@ -45,6 +45,7 @@ export const COMMISSIONS_QUERY = gql`
         factory {
           id
           nomeFantasia
+          nickname
           razaoSocial
         }
         seller {

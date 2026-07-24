@@ -28,6 +28,7 @@ export const CLIENT_ASSIGNMENTS_QUERY = gql`
           factory {
             id
             nomeFantasia
+            nickname
             razaoSocial
           }
         }

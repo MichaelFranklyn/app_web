@@ -16,6 +16,13 @@ import { LINK_FACTORY_MUTATION } from "./gql";
 import { LinkFactoryResponse } from "./interface";
 import { FORM_STEPS, normalizeInput } from "./utils";
 
+// O cabeçalho acompanha o passo: cada etapa diz o que se espera dela.
+const STEP_DESCRIPTIONS = [
+  "Informe o CNPJ da fábrica. Buscamos a razão social na Receita Federal.",
+  "Quanto esta fábrica paga de comissão e quando ela repassa.",
+  "Território de atuação e as condições do contrato.",
+];
+
 interface LinkFactoryModalProps {
   onAddOptimistic: (factory: CompanyFactory) => void;
 }
@@ -40,6 +47,11 @@ export function LinkFactoryModal({ onAddOptimistic }: LinkFactoryModalProps) {
     } else {
       formRef.current?.submitForm();
     }
+  };
+
+  const handleBack = () => {
+    formRef.current?.prevStep();
+    setCurrentStep((prev) => Math.max(0, prev - 1));
   };
 
   const handleClose = (v: boolean) => {
@@ -98,9 +110,16 @@ export function LinkFactoryModal({ onAddOptimistic }: LinkFactoryModalProps) {
         <Modal.Content size="md">
           <Modal.Header
             title="Vincular Fábrica"
-            description="Adicione uma nova fábrica e configure os termos comerciais da parceria."
+            description={STEP_DESCRIPTIONS[currentStep]}
           />
           <Modal.Body>
+            <FormBuilder.Stepper
+              steps={FORM_STEPS}
+              currentStepIndex={currentStep}
+              centered
+              className="mb-32"
+            />
+
             <FormBuilder
               ref={formRef}
               steps={FORM_STEPS}
@@ -110,7 +129,20 @@ export function LinkFactoryModal({ onAddOptimistic }: LinkFactoryModalProps) {
             />
           </Modal.Body>
           <Modal.Footer>
-            <Modal.Close asChild>
+            {currentStep === 0 ? (
+              <Modal.Close asChild>
+                <Button.Root
+                  type="button"
+                  appearance="ghost"
+                  color="neutral"
+                  size="md"
+                  noUppercase
+                  disabled={isLoading}
+                >
+                  <Button.Title>Cancelar</Button.Title>
+                </Button.Root>
+              </Modal.Close>
+            ) : (
               <Button.Root
                 type="button"
                 appearance="ghost"
@@ -118,10 +150,11 @@ export function LinkFactoryModal({ onAddOptimistic }: LinkFactoryModalProps) {
                 size="md"
                 noUppercase
                 disabled={isLoading}
+                onClick={handleBack}
               >
-                <Button.Title>Cancelar</Button.Title>
+                <Button.Title>Voltar</Button.Title>
               </Button.Root>
-            </Modal.Close>
+            )}
             <Button.Root
               type="button"
               appearance="solid"

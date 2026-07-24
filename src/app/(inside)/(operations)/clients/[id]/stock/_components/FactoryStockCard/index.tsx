@@ -5,6 +5,7 @@ import { Title } from "@/components/Title";
 import { cn } from "@/lib/utils";
 import { ChevronRight } from "lucide-react";
 import { FactoryStockSummary } from "../../../interface";
+import { factoryName } from "@/utils/company";
 
 interface Props {
   summary: FactoryStockSummary;
@@ -28,8 +29,7 @@ function situation(summary: FactoryStockSummary): {
 }
 
 export function FactoryStockCard({ summary, onSelect }: Props) {
-  const name =
-    summary.factory?.nomeFantasia ?? summary.factory?.razaoSocial ?? "—";
+  const name = factoryName(summary.factory);
   const sit = situation(summary);
   const plural = summary.totalProducts !== 1 ? "s" : "";
 

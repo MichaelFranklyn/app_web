@@ -6,6 +6,7 @@ import { cn } from "@/lib/utils";
 import { FlowTourProvider } from "@/services/flowTour";
 import { ChevronLeft, ChevronRight, Menu } from "lucide-react";
 import Image from "next/image";
+import { CompanyBadge } from "./_components/CompanyBadge";
 import { DevRoleSwitch } from "./_components/DevRoleSwitch";
 import { NotificationCenter } from "./_components/NotificationCenter";
 import { UserMenu } from "./_components/UserMenu";
@@ -29,6 +30,7 @@ export default function InsideLayout({
     userName,
     userRole,
     userInitials,
+    canManageCompany,
   } = useInsideLayout();
 
   return (
@@ -187,12 +189,18 @@ export default function InsideLayout({
               >
                 <Menu size={20} strokeWidth={2} />
               </button>
-              <span className="font-(--weight-semibold) text-(--text)">
+              {/* `truncate`: sem ele o rótulo era cortado no meio da palavra,
+                  sem reticências, ao ceder espaço para o lado direito. */}
+              <span className="truncate font-(--weight-semibold) text-(--text)">
                 {pageLabel}
               </span>
             </Topbar.Breadcrumb>
 
             <Topbar.Actions>
+              {/* Qual empresa está logada (a marca do produto fica na sidebar).
+                  No mobile a barra não comporta: o menu lateral já identifica. */}
+              <CompanyBadge className="tablet:flex hidden" />
+              <Topbar.Separator className="tablet:block hidden" />
               <Topbar.Status
                 variant="online"
                 label="API conectada"
@@ -205,6 +213,7 @@ export default function InsideLayout({
                 name={userName}
                 role={userRole}
                 initials={userInitials}
+                canManageCompany={canManageCompany}
               />
             </Topbar.Actions>
           </Topbar.Root>

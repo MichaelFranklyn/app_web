@@ -73,11 +73,16 @@ export interface OrderDetail {
     id: string;
     razaoSocial: string;
     nomeFantasia: string | null;
+    cnpj: string;
+    addressCity: string | null;
+    addressState: string | null;
   } | null;
   factory: {
     id: string;
     nomeFantasia: string | null;
+    nickname: string | null;
     razaoSocial: string;
+    logoUrl: string | null;
   } | null;
   paymentTerm: PaymentTermRef | null;
   availablePaymentTerms: PaymentTermRef[];

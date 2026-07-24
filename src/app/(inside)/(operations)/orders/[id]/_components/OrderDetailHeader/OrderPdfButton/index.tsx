@@ -2,12 +2,13 @@
 
 import { Button } from "@/components/Button";
 import { useToast } from "@/components/Toast";
+import { useCompanyBranding } from "@/hooks/useCompanyBranding";
 import { useLazyQuery } from "@apollo/client/react";
 import { FileText } from "lucide-react";
 import { useState } from "react";
 import { ORDER_ITEMS_QUERY } from "../../../gql";
 import { OrderDetail, OrderItemsResponse } from "../../../interface";
-import { exportOrderPdf } from "../../../pdfExport";
+import { exportOrderPdf } from "../../../pdf";
 import { byCreatedAtAsc } from "../../../utils";
 
 interface Props {
@@ -23,6 +24,8 @@ export function OrderPdfButton({ order }: Props) {
   const [busy, setBusy] = useState(false);
   const { toast } = useToast();
   const [fetchItems] = useLazyQuery<OrderItemsResponse>(ORDER_ITEMS_QUERY);
+  // Logo e nome da representação no cabeçalho do documento que vai ao cliente.
+  const { name: companyName, logoUrl: companyLogoUrl } = useCompanyBranding();
 
   const handleClick = async () => {
     setBusy(true);
@@ -33,7 +36,7 @@ export function OrderPdfButton({ order }: Props) {
       const items = (res.data?.orderItems?.edges?.map((e) => e.node) ?? [])
         .slice()
         .sort(byCreatedAtAsc);
-      await exportOrderPdf(order, items);
+      await exportOrderPdf(order, items, { companyName, companyLogoUrl });
     } catch {
       toast({
         variant: "error",

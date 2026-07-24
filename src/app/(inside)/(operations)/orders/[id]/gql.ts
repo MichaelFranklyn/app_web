@@ -46,11 +46,16 @@ export const ORDER_DETAIL_QUERY = gql`
           id
           razaoSocial
           nomeFantasia
+          cnpj
+          addressCity
+          addressState
         }
         factory {
           id
           nomeFantasia
+          nickname
           razaoSocial
+          logoUrl
         }
         paymentTerm {
           id

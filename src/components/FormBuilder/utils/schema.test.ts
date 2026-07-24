@@ -268,3 +268,27 @@ describe("buildYupSchema — seções repetíveis", () => {
     expect(() => schema.validateSync({ items: null })).not.toThrow();
   });
 });
+
+describe("campo cnpj", () => {
+  const schema = () => schemaOf({ name: "cnpj", type: "cnpj" });
+
+  it("rejeita CNPJ com dígito verificador errado", async () => {
+    // O erro precisa nascer no campo: antes o número errado ia ao servidor e
+    // voltava como "consulta de CNPJ indisponível", num toast.
+    await expect(
+      schema().validateAt("cnpj", { cnpj: "01050029000160" })
+    ).rejects.toThrow(/CNPJ inválido/);
+  });
+
+  it("aceita CNPJ válido mascarado", async () => {
+    await expect(
+      schema().validateAt("cnpj", { cnpj: "33.000.167/0001-01" })
+    ).resolves.toBeDefined();
+  });
+
+  it("deixa passar vazio (quem exige é o required)", async () => {
+    await expect(
+      schema().validateAt("cnpj", { cnpj: "" })
+    ).resolves.toBeDefined();
+  });
+});

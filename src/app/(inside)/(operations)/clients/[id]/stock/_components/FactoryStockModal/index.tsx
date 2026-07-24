@@ -9,6 +9,7 @@ import {
   FactoryStockSummary,
 } from "../../../interface";
 import { StockProductsList } from "../StockProductsList";
+import { factoryName } from "@/utils/company";
 
 interface Props {
   summary: FactoryStockSummary | null;
@@ -33,8 +34,7 @@ export function FactoryStockModal({ summary, onClose }: Props) {
   if (!summary) return null;
 
   const insights = data?.clientProductInsights.edges.map((e) => e.node) ?? [];
-  const name =
-    summary.factory?.nomeFantasia ?? summary.factory?.razaoSocial ?? "—";
+  const name = factoryName(summary.factory);
 
   return (
     <Modal.Root open onOpenChange={(open) => !open && onClose()}>

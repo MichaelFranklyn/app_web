@@ -19,6 +19,8 @@ export interface LinkFactoryResponse {
         cnpj: string;
         razaoSocial: string;
         nomeFantasia: string | null;
+        nickname: string | null;
+        logoUrl: string | null;
         addressCity: string | null;
         addressState: string | null;
         deletedAt: string | null;

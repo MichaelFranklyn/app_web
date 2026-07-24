@@ -3,12 +3,14 @@ import { mockGraphql } from "../support/graphql";
 import { grantRole } from "../support/role";
 
 /**
- * Fluxo de ESCRITA: vincular fábrica via LinkFactoryModal (wizard de 2 steps).
+ * Fluxo de ESCRITA: vincular fábrica via LinkFactoryModal (wizard de 3 steps:
+ * Fábrica → Comissão → Contrato).
  *
  * Cobre padrões novos vs. users-create: navegação multi-step ("Próximo" →
- * "Vincular"), campo com MÁSCARA (cnpj) e o Input.Select custom (dropdown em
- * portal, fora do dialog). Mock STATEFUL pelo mesmo motivo de users-create
- * (add otimista + invalidateClient → refetch de CompanyFactories).
+ * "Vincular"), volta de passo sem perder o que já foi digitado, campo com
+ * MÁSCARA (cnpj) e o Input.Select custom (dropdown em portal, fora do dialog).
+ * Mock STATEFUL pelo mesmo motivo de users-create (add otimista +
+ * invalidateClient → refetch de CompanyFactories).
  */
 const FACTORY_NAME = "Fábrica Teste E2E";
 
@@ -60,11 +62,13 @@ test("factories: vincula uma fábrica e o card aparece na grid", async ({
   const dialog = page.getByRole("dialog");
   await expect(dialog).toBeVisible();
 
-  // Step 1 — CNPJ (mascarado) → Próximo.
-  await dialog.locator('input[name="cnpj"]').fill("12345678000199");
+  // Step 1 — CNPJ (mascarado) + apelido opcional → Próximo. O número precisa
+  // ter dígito verificador válido: o formulário barra CNPJ malformado antes de
+  // enviar (ver utils/document.ts).
+  await dialog.locator('input[name="cnpj"]').fill("11222333000181");
   await dialog.getByRole("button", { name: "Próximo" }).click();
 
-  // Step 2 — termos comerciais.
+  // Step 2 — comissão.
   await dialog.locator('input[name="commissionRate"]').fill("10");
 
   // Input.Select custom: digitar filtra e abre o dropdown (renderizado em
@@ -80,6 +84,16 @@ test("factories: vincula uma fábrica e o card aparece na grid", async ({
     .click();
 
   await dialog.locator('input[name="paymentTermDays"]').fill("5");
+
+  // Voltar não pode perder o que já foi digitado no passo anterior.
+  await dialog.getByRole("button", { name: "Voltar" }).click();
+  await expect(dialog.locator('input[name="cnpj"]')).toHaveValue(
+    "11.222.333/0001-81"
+  );
+  await dialog.getByRole("button", { name: "Próximo" }).click();
+  await dialog.getByRole("button", { name: "Próximo" }).click();
+
+  // Step 3 — contrato.
   await dialog.locator('input[name="territory"]').fill("Sudeste");
 
   await dialog.getByRole("button", { name: "Vincular" }).click();

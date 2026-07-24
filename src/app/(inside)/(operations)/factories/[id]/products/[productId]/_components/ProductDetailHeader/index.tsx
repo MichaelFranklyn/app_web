@@ -1,4 +1,5 @@
 import { Badge } from "@/components/Badges";
+import { factoryName } from "@/utils/company";
 import { Breadcrumb } from "@/components/Breadcrumb";
 import { PanelHeader } from "@/components/PanelHeader";
 import { ProductDetail } from "../../interface";
@@ -12,9 +13,7 @@ interface Props {
 
 export function ProductDetailHeader({ product, onRefetch }: Props) {
   const factory = product.companyFactory?.factory;
-  const factoryName = factory
-    ? (factory.nomeFantasia ?? factory.razaoSocial)
-    : "—";
+  const factoryLabel = factoryName(factory);
 
   return (
     <div className="flex flex-col gap-8">
@@ -31,7 +30,7 @@ export function ProductDetailHeader({ product, onRefetch }: Props) {
       <PanelHeader.Root>
         <PanelHeader.Top>
           <PanelHeader.Left>
-            <PanelHeader.Eyebrow>Produto · {factoryName}</PanelHeader.Eyebrow>
+            <PanelHeader.Eyebrow>Produto · {factoryLabel}</PanelHeader.Eyebrow>
             <PanelHeader.Title>{product.name}</PanelHeader.Title>
             <PanelHeader.Description>
               Código: {product.sku} · Categoria: {product.category?.name ?? "—"}{" "}

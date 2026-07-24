@@ -12,6 +12,7 @@ export const SELLER_CLIENT_FACTORIES_QUERY = gql`
           factory {
             id
             nomeFantasia
+            nickname
             razaoSocial
           }
           seller {
@@ -38,6 +39,7 @@ export const CLIENT_ORDERS_QUERY = gql`
           factory {
             id
             nomeFantasia
+            nickname
             razaoSocial
           }
           seller {
@@ -72,6 +74,7 @@ export const CLIENT_FACTORY_SCORES_QUERY = gql`
             factory {
               id
               nomeFantasia
+              nickname
             }
           }
         }
@@ -171,6 +174,7 @@ export const CLIENT_VISITS_QUERY = gql`
             factory {
               id
               nomeFantasia
+              nickname
               razaoSocial
             }
           }
@@ -189,6 +193,7 @@ export const CLIENT_VISITS_QUERY = gql`
             factory {
               id
               nomeFantasia
+              nickname
               razaoSocial
             }
           }
@@ -213,6 +218,7 @@ export const CLIENT_FACTORY_STOCK_QUERY = gql`
           factory {
             id
             nomeFantasia
+            nickname
             razaoSocial
           }
         }
@@ -237,6 +243,7 @@ export const CLIENT_FACTORY_ORDERS_QUERY = gql`
           factory {
             id
             nomeFantasia
+            nickname
             razaoSocial
           }
         }
@@ -276,6 +283,7 @@ export const COMPANY_CLIENT_QUERY = gql`
             factory {
               id
               nomeFantasia
+              nickname
             }
           }
         }
@@ -346,6 +354,7 @@ export const CREATE_SELLER_CLIENT_FACTORY_MUTATION = gql`
         factory {
           id
           nomeFantasia
+          nickname
           razaoSocial
         }
         seller {
@@ -374,6 +383,7 @@ export const UPDATE_SELLER_CLIENT_FACTORY_MUTATION = gql`
         factory {
           id
           nomeFantasia
+          nickname
           razaoSocial
         }
         seller {

@@ -41,7 +41,7 @@ const abbreviate = (names: string[]): string => {
 /** Por que o sistema mandou visitar: as fábricas de score alto. */
 const focusLabel = (visit: ClientVisit): string => {
   const names = (visit.focusFactories ?? [])
-    .map((f) => f.factory?.nomeFantasia ?? f.factory?.razaoSocial)
+    .map((f) => factoryName(f.factory))
     .filter((name): name is string => Boolean(name));
 
   if (names.length === 0)
@@ -56,7 +56,7 @@ const focusLabel = (visit: ClientVisit): string => {
  */
 const treatedLabel = (visit: ClientVisit): string => {
   const names = (visit.treatedFactories ?? [])
-    .map((f) => f.nomeFantasia ?? f.razaoSocial)
+    .map((f) => factoryName(f))
     .filter((name): name is string => Boolean(name));
 
   return names.length === 0 ? "—" : abbreviate(names);

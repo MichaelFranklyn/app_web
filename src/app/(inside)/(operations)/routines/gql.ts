@@ -91,6 +91,7 @@ export const VISIT_SCHEDULES_QUERY = gql`
                 factory {
                   id
                   nomeFantasia
+                  nickname
                   razaoSocial
                 }
               }
@@ -113,6 +114,7 @@ export const VISIT_SCHEDULES_QUERY = gql`
                   id
                   razaoSocial
                   nomeFantasia
+                  nickname
                 }
                 latestVisitScore {
                   scoreTotal

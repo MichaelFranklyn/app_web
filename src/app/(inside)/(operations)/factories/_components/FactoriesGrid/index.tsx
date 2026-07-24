@@ -1,5 +1,6 @@
 "use client";
 
+import { Avatar } from "@/components/Avatar";
 import { Badge } from "@/components/Badges";
 import { Button } from "@/components/Button";
 import { Card } from "@/components/Card";
@@ -9,7 +10,9 @@ import { Pagination } from "@/components/Pagination";
 import { Title } from "@/components/Title";
 import { useNavigation } from "@/hooks/useNavigation";
 import { useUserData } from "@/hooks/useUserData";
+import { factoryName } from "@/utils/company";
 import { maskCNPJ } from "@/utils/format/masks";
+import { mediaUrl } from "@/utils/media";
 import { ArrowRight, Factory } from "lucide-react";
 import { useEffect, useState } from "react";
 import { CompanyFactory } from "../../interface";
@@ -78,7 +81,7 @@ export function FactoriesGrid({
     <div className="flex flex-col gap-16" data-tour="factories-grid">
       <Grid.Root cols={{ base: 1, tablet: 2, desktop: 3 }} gap={12}>
         {visibleItems.map((cf) => {
-          const name = cf.factory.nomeFantasia ?? cf.factory.razaoSocial;
+          const name = factoryName(cf.factory);
           const city = [cf.factory.addressCity, cf.factory.addressState]
             .filter(Boolean)
             .join(" / ");
@@ -90,28 +93,38 @@ export function FactoriesGrid({
             <Grid.Item key={cf.id}>
               <Card.Root className="h-full" data-tour="factories-card">
                 <Card.Body>
-                  <div className="mb-12 flex items-start justify-between">
-                    <div className="min-w-0">
-                      <Title
-                        variant="body-md"
-                        weight="bold"
-                        className="font-head line-clamp-2 min-h-[36px] leading-[18px]"
-                        title={name}
-                      >
-                        {name}
-                      </Title>
-                      <Title
-                        variant="body-sm"
-                        color="muted"
-                        className="mt-[2px]"
-                      >
-                        {maskCNPJ(cf.factory.cnpj)}
-                      </Title>
-                      {city && (
-                        <Title variant="body-sm" color="muted">
-                          {city}
+                  <div className="mb-12 flex items-start justify-between gap-8">
+                    <div className="flex min-w-0 gap-10">
+                      <Avatar
+                        size="lg"
+                        color="amber"
+                        src={mediaUrl(cf.factory.logoUrl)}
+                        alt={name}
+                        initials={name.slice(0, 2).toUpperCase()}
+                        className="mt-2 shrink-0"
+                      />
+                      <div className="min-w-0">
+                        <Title
+                          variant="body-md"
+                          weight="bold"
+                          className="font-head line-clamp-2 min-h-[36px] leading-[18px]"
+                          title={name}
+                        >
+                          {name}
                         </Title>
-                      )}
+                        <Title
+                          variant="body-sm"
+                          color="muted"
+                          className="mt-[2px]"
+                        >
+                          {maskCNPJ(cf.factory.cnpj)}
+                        </Title>
+                        {city && (
+                          <Title variant="body-sm" color="muted">
+                            {city}
+                          </Title>
+                        )}
+                      </div>
                     </div>
                     <div className="flex flex-wrap items-center justify-end gap-6">
                       {isExpired && (

@@ -1,6 +1,7 @@
 "use client";
 
 import { Card } from "@/components/Card";
+import { factoryName } from "@/utils/company";
 import { DividerRoot } from "@/components/Divider/Root";
 import { EmptyState } from "@/components/EmptyState";
 import { Modal } from "@/components/Modal";
@@ -49,13 +50,13 @@ export function FactoryScoreModal({ score, onClose }: Props) {
   if (!score) return null;
 
   const { total, level, reasons } = explainScore(score);
-  const factoryName = score.clientFactoryLink?.factory?.nomeFantasia ?? "—";
+  const factoryLabel = factoryName(score.clientFactoryLink?.factory);
 
   return (
     <Modal.Root open onOpenChange={(open) => !open && onClose()}>
       <Modal.Content size="2xl">
         <Modal.Header
-          title={`${factoryName} — Score ${total.toFixed(0)}`}
+          title={`${factoryLabel} — Score ${total.toFixed(0)}`}
           description={level.summary}
         />
         <Modal.Body>

@@ -1,5 +1,6 @@
 "use client";
 import { useQueryErrorToast } from "@/hooks/useQueryErrorToast";
+import { factoryName } from "@/utils/company";
 
 import { Button } from "@/components/Button";
 import {
@@ -79,7 +80,7 @@ export function AddAccessModal() {
             node.factory !== null && !linkedFactoryIds.has(node.factoryId)
         )
         .map(({ node }) => ({
-          label: node.factory!.nomeFantasia ?? node.factory!.razaoSocial,
+          label: factoryName(node.factory),
           value: node.factoryId,
         })) ?? [],
     [factoriesData, linkedFactoryIds]

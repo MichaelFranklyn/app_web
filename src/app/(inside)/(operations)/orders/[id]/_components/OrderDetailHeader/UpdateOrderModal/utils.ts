@@ -1,7 +1,14 @@
 import { FormStepSchema } from "@/components/FormBuilder";
 import { extractSelectValue } from "@/utils/form";
 
+import { paymentTermLabel } from "../../../utils";
+
 import { OrderStatus } from "../../../../interface";
+import { PaymentTermRef } from "../../../interface";
+
+/** Faturado/entregue: as parcelas já nasceram do prazo vigente. */
+const isInvoiced = (status: OrderStatus) =>
+  status === "INVOICED" || status === "DELIVERED";
 
 export const ORDER_STATUS_LABELS: Record<OrderStatus, string> = {
   DRAFT: "Orçamento",
@@ -24,7 +31,8 @@ const MANUAL_STATUSES: OrderStatus[] = [
 ];
 
 export const buildUpdateOrderSteps = (
-  currentStatus: OrderStatus
+  currentStatus: OrderStatus,
+  paymentTerms: PaymentTermRef[]
 ): FormStepSchema[] => {
   const statuses = MANUAL_STATUSES.includes(currentStatus)
     ? MANUAL_STATUSES
@@ -59,6 +67,27 @@ export const buildUpdateOrderSteps = (
               ],
             },
             {
+              name: "paymentTermId",
+              type: "select-single",
+              label: "Condição de pagamento",
+              placeholder: "Selecione a condição",
+              // Depois de faturado, as parcelas já foram geradas com o prazo
+              // vigente; trocá-lo aqui não as recalcularia e o pedido passaria
+              // a exibir uma condição que não corresponde ao que foi cobrado.
+              disabled: isInvoiced(currentStatus) || paymentTerms.length === 0,
+              // Select vazio sem explicação parece defeito: quando a fábrica
+              // não tem condição cadastrada, o campo diz onde cadastrar.
+              hint: isInvoiced(currentStatus)
+                ? "O pedido já foi faturado — as parcelas foram geradas com esta condição."
+                : paymentTerms.length === 0
+                  ? "Esta fábrica ainda não tem condições cadastradas. Cadastre em Fábricas → aba Pagamentos."
+                  : "Define as parcelas que serão geradas ao faturar.",
+              options: paymentTerms.map((term) => ({
+                value: term.id,
+                label: paymentTermLabel(term),
+              })),
+            },
+            {
               name: "deliveryEstimateDays",
               type: "number",
               label: "Prazo de entrega (dias)",
@@ -84,7 +113,8 @@ export const normalizeUpdateInput = (
   currentNotes: string | null,
   currentFreightType: string | null,
   currentStatus: OrderStatus,
-  currentDeliveryEstimateDays: number | null
+  currentDeliveryEstimateDays: number | null,
+  currentPaymentTermId: string | null
 ): Record<string, unknown> => {
   const normalized: Record<string, unknown> = {};
 
@@ -113,5 +143,14 @@ export const normalizeUpdateInput = (
   if (nextFreight !== (currentFreightType ?? null)) {
     normalized.freightType = nextFreight;
   }
+
+  // Campo desabilitado não envia nada: pedido faturado mantém a condição.
+  if (!isInvoiced(currentStatus)) {
+    const nextTerm = extractSelectValue(data.paymentTermId) || null;
+    if (nextTerm && nextTerm !== (currentPaymentTermId ?? null)) {
+      normalized.paymentTermId = nextTerm;
+    }
+  }
+
   return normalized;
 };

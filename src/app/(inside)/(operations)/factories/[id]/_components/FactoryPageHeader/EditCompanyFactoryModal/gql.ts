@@ -19,6 +19,15 @@ export const UPDATE_COMPANY_FACTORY_MUTATION = gql`
         contractEnd
         ipiInOrder
         deliveryEstimateDays
+        nickname
+        logoUrl
+        factory {
+          id
+          nomeFantasia
+          nickname
+          razaoSocial
+          logoUrl
+        }
       }
     }
   }

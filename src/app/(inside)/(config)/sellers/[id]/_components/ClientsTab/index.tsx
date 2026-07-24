@@ -9,6 +9,7 @@ import { formatDateDMY } from "@/utils/format/masks";
 import { useQuery } from "@apollo/client/react";
 import { AddWalletClientModal } from "./AddWalletClientModal";
 import { SELLER_CLIENTS_QUERY } from "./gql";
+import { factoryName } from "@/utils/company";
 
 interface ClientNode {
   id: string;
@@ -108,16 +109,12 @@ export function ClientsTab({ sellerId }: Props) {
                   <Table.Row key={node.id}>
                     <Table.Cell>
                       <Table.CellText variant="strong">
-                        {node.client?.nomeFantasia ??
-                          node.client?.razaoSocial ??
-                          "—"}
+                        {factoryName(node.client)}
                       </Table.CellText>
                     </Table.Cell>
                     <Table.Cell>
                       <Table.CellText variant="dim">
-                        {node.factory?.nomeFantasia ??
-                          node.factory?.razaoSocial ??
-                          "—"}
+                        {factoryName(node.factory)}
                       </Table.CellText>
                     </Table.Cell>
                     <Table.Cell>

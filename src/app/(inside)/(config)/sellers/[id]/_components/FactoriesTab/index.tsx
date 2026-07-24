@@ -9,6 +9,7 @@ import { formatDateDMY } from "@/utils/format/masks";
 import { useQuery } from "@apollo/client/react";
 import { AddFactoryAccessModal } from "./AddFactoryAccessModal";
 import { SELLER_FACTORY_ACCESSES_QUERY } from "./gql";
+import { factoryName } from "@/utils/company";
 
 interface FactoryAccessNode {
   id: string;
@@ -104,9 +105,7 @@ export function FactoriesTab({ sellerId }: Props) {
                   <Table.Row key={node.id}>
                     <Table.Cell>
                       <Table.CellText variant="strong">
-                        {node.factory?.nomeFantasia ??
-                          node.factory?.razaoSocial ??
-                          "—"}
+                        {factoryName(node.factory)}
                       </Table.CellText>
                     </Table.Cell>
                     <Table.Cell>

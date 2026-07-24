@@ -1,45 +1,115 @@
 "use client";
 
 import { Button } from "@/components/Button";
-import { FormBuilder, FormBuilderRef } from "@/components/FormBuilder";
+import {
+  FormBuilder,
+  FormBuilderRef,
+  FormStepSchema,
+} from "@/components/FormBuilder";
+import { useLogoUpload } from "@/components/LogoUpload";
 import { Modal } from "@/components/Modal";
 import { useAsyncAction } from "@/hooks/useAsyncAction";
+import { parseLocalDate } from "@/utils/format/date";
 import { useMutation } from "@apollo/client/react";
 import { Pencil } from "lucide-react";
-import { useRef, useState } from "react";
-import { UPDATE_COMPANY_FACTORY_MUTATION } from "./gql";
-import { UpdateCompanyFactoryResponse } from "./interface";
-import { COMMISSION_BASIS_OPTIONS, FORM_STEPS, normalizeInput } from "./utils";
-import { parseLocalDate } from "@/utils/format/date";
+import { useEffect, useRef, useState } from "react";
 import { useFactoryDetail } from "../../../context";
 import { CompanyFactoryDetail } from "../../../interface";
+import { UPDATE_COMPANY_FACTORY_MUTATION } from "./gql";
+import {
+  UpdateCompanyFactoryInput,
+  UpdateCompanyFactoryResponse,
+} from "./interface";
+import { StepIdentity } from "./StepIdentity";
+import { COMMISSION_BASIS_OPTIONS, FORM_STEPS, normalizeInput } from "./utils";
+
+// Trilha exibida no topo. O primeiro passo é custom (identidade visual); os
+// outros dois são os steps do FormBuilder, na mesma ordem.
+const WIZARD_STEPS: FormStepSchema[] = [
+  { id: "identity", title: "Identidade", sections: [] },
+  { id: "commission", title: "Comissão", sections: [] },
+  { id: "contract", title: "Contrato", sections: [] },
+];
+
+const STEP_DESCRIPTIONS = [
+  "Como esta fábrica aparece para você e nos pedidos que você envia ao cliente.",
+  "Quanto esta fábrica paga de comissão e quando ela repassa.",
+  "Território de atuação e as condições do contrato.",
+];
 
 export function EditCompanyFactoryModal() {
   const { companyFactory, updateOptimistic, commit, rollback, refetch } =
     useFactoryDetail();
+  const { factory } = companyFactory;
   const [open, setOpen] = useState(false);
+  // 0 = identidade (custom); 1 e 2 = passos do FormBuilder.
+  const [step, setStep] = useState(0);
+  const [nickname, setNickname] = useState(factory.nickname ?? "");
   const formRef = useRef<FormBuilderRef>(null);
+
+  const {
+    value: logoValue,
+    onChange: onLogoChange,
+    reset: resetLogo,
+    toLogoInput,
+  } = useLogoUpload();
 
   const [updateCompanyFactory] = useMutation<UpdateCompanyFactoryResponse>(
     UPDATE_COMPANY_FACTORY_MUTATION
   );
   const { execute, isLoading } = useAsyncAction();
 
-  const handleSubmit = async (data: Record<string, unknown>) => {
-    const normalized = normalizeInput(data, companyFactory);
+  // Reabrir mostra o que está salvo, não o rascunho da vez anterior.
+  useEffect(() => {
+    if (!open) return;
+    setStep(0);
+    setNickname(factory.nickname ?? "");
+    resetLogo();
+  }, [open, factory.nickname, resetLogo]);
 
-    if (Object.keys(normalized).length === 0) {
+  const handleNext = async () => {
+    // Identidade não tem campo obrigatório: avança direto para o formulário.
+    if (step === 0) {
+      setStep(1);
+      return;
+    }
+    const advanced = await formRef.current?.nextStep();
+    if (advanced) setStep((prev) => prev + 1);
+  };
+
+  const handleBack = () => {
+    // Voltar do primeiro passo do FormBuilder não mexe nele — só reexibe a
+    // identidade; dos demais, recua o passo interno junto.
+    if (step > 1) formRef.current?.prevStep();
+    setStep((prev) => Math.max(0, prev - 1));
+  };
+
+  const handleSubmit = async (data: Record<string, unknown>) => {
+    const commercial = normalizeInput(data, companyFactory);
+
+    const branding: UpdateCompanyFactoryInput = await toLogoInput();
+    const trimmedNickname = nickname.trim();
+    if (trimmedNickname !== (factory.nickname ?? "")) {
+      branding.nickname = trimmedNickname;
+    }
+
+    const input = { ...commercial, ...branding };
+    if (Object.keys(input).length === 0) {
       setOpen(false);
       return;
     }
 
     setOpen(false);
-    updateOptimistic(normalized as Partial<CompanyFactoryDetail>);
+    // Só os termos comerciais entram no otimismo: apelido e logo vivem em
+    // `factory` (resolvidos do vínculo no backend) e chegam pelo refetch.
+    if (Object.keys(commercial).length > 0) {
+      updateOptimistic(commercial as Partial<CompanyFactoryDetail>);
+    }
 
     await execute(
       async () => {
         const res = await updateCompanyFactory({
-          variables: { id: companyFactory.id, input: normalized },
+          variables: { id: companyFactory.id, input },
         });
 
         if (
@@ -57,6 +127,7 @@ export function EditCompanyFactoryModal() {
         successMessage: "Fábrica atualizada com sucesso",
         onSuccess: async () => {
           formRef.current?.resetForm();
+          resetLogo();
           commit();
           refetch();
         },
@@ -83,6 +154,8 @@ export function EditCompanyFactoryModal() {
     deliveryEstimateDays: companyFactory.deliveryEstimateDays ?? "",
   };
 
+  const isLastStep = step === WIZARD_STEPS.length - 1;
+
   return (
     <Modal.Root open={open} onOpenChange={setOpen}>
       <Modal.Trigger asChild>
@@ -94,21 +167,55 @@ export function EditCompanyFactoryModal() {
 
       <Modal.Content size="md">
         <Modal.Header
-          title="Editar condições comerciais"
-          description="Altere os termos da relação com esta fábrica."
+          title="Editar fábrica"
+          description={STEP_DESCRIPTIONS[step]}
         />
         <Modal.Body>
-          <FormBuilder
-            ref={formRef}
-            steps={FORM_STEPS}
-            onSubmit={handleSubmit}
-            loading={isLoading}
-            initialData={initialData}
-            unstyled
+          <FormBuilder.Stepper
+            steps={WIZARD_STEPS}
+            currentStepIndex={step}
+            centered
+            className="mb-32"
           />
+
+          {/* Os dois blocos ficam montados: navegar entre passos não pode
+              descartar o que já foi preenchido. */}
+          <div className={step === 0 ? "" : "hidden"}>
+            <StepIdentity
+              factory={factory}
+              nickname={nickname}
+              onNicknameChange={setNickname}
+              logo={logoValue}
+              onLogoChange={onLogoChange}
+              disabled={isLoading}
+            />
+          </div>
+          <div className={step === 0 ? "hidden" : ""}>
+            <FormBuilder
+              ref={formRef}
+              steps={FORM_STEPS}
+              onSubmit={handleSubmit}
+              loading={isLoading}
+              initialData={initialData}
+              unstyled
+            />
+          </div>
         </Modal.Body>
         <Modal.Footer>
-          <Modal.Close asChild>
+          {step === 0 ? (
+            <Modal.Close asChild>
+              <Button.Root
+                type="button"
+                appearance="ghost"
+                color="neutral"
+                size="md"
+                noUppercase
+                disabled={isLoading}
+              >
+                <Button.Title>Cancelar</Button.Title>
+              </Button.Root>
+            </Modal.Close>
+          ) : (
             <Button.Root
               type="button"
               appearance="ghost"
@@ -116,10 +223,11 @@ export function EditCompanyFactoryModal() {
               size="md"
               noUppercase
               disabled={isLoading}
+              onClick={handleBack}
             >
-              <Button.Title>Cancelar</Button.Title>
+              <Button.Title>Voltar</Button.Title>
             </Button.Root>
-          </Modal.Close>
+          )}
           <Button.Root
             type="button"
             appearance="solid"
@@ -127,9 +235,11 @@ export function EditCompanyFactoryModal() {
             size="md"
             noUppercase
             loading={isLoading}
-            onClick={() => formRef.current?.submitForm()}
+            onClick={() =>
+              isLastStep ? formRef.current?.submitForm() : handleNext()
+            }
           >
-            <Button.Title>Salvar</Button.Title>
+            <Button.Title>{isLastStep ? "Salvar" : "Próximo"}</Button.Title>
           </Button.Root>
         </Modal.Footer>
       </Modal.Content>

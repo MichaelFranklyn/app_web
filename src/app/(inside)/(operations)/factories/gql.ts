@@ -16,6 +16,8 @@ export const COMPANY_FACTORIES_QUERY = gql`
             cnpj
             razaoSocial
             nomeFantasia
+            nickname
+            logoUrl
             addressCity
             addressState
             deletedAt

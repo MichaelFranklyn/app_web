@@ -29,6 +29,7 @@ export const PRODUCT_DETAIL_QUERY = gql`
             id
             razaoSocial
             nomeFantasia
+            nickname
           }
         }
         category {

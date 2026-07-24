@@ -1,6 +1,7 @@
 "use client";
 
 import { Badge } from "@/components/Badges";
+import { factoryName } from "@/utils/company";
 import { InputCheckbox } from "@/components/Input/InputCheckbox";
 import { Title } from "@/components/Title";
 import { cn } from "@/lib/utils";
@@ -27,11 +28,11 @@ interface Props {
 // várias fábricas na mesma ida).
 const getFocusLabel = (item: VisitScheduleItem): string => {
   const names = (item.focusFactories ?? [])
-    .map((focus) => focus.factory?.nomeFantasia ?? focus.factory?.razaoSocial)
+    .map((focus) => factoryName(focus.factory))
     .filter((name): name is string => Boolean(name));
   if (names.length > 0) return names.join(", ");
   const factory = item.clientFactoryLink?.factory;
-  return factory?.nomeFantasia ?? factory?.razaoSocial ?? "—";
+  return factoryName(factory);
 };
 
 // Uma visita como linha da lista. Compartilha o comportamento do card do kanban

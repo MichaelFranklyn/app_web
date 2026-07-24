@@ -39,6 +39,7 @@ export const SELLER_FACTORY_ACCESSES_FOR_LINK_QUERY = gql`
           factory {
             id
             nomeFantasia
+            nickname
             razaoSocial
           }
         }

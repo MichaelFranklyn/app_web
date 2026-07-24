@@ -15,6 +15,7 @@ import {
   getVisitScoreTotal,
 } from "../../utils";
 import { useVisitActions } from "../../useVisitActions";
+import { factoryName } from "@/utils/company";
 
 interface Props {
   item: VisitScheduleItem;
@@ -26,7 +27,7 @@ interface Props {
 const getFactoryName = (item: VisitScheduleItem): string => {
   const factory = item.clientFactoryLink?.factory;
   if (!factory) return "—";
-  return factory.nomeFantasia ?? factory.razaoSocial;
+  return factoryName(factory);
 };
 
 // Quantos nomes de fábrica cabem sem espremer o card; o resto vira "+N".
@@ -39,7 +40,7 @@ const FACTORY_NAMES_SHOWN = 2;
  */
 const getFocusLabel = (item: VisitScheduleItem): string => {
   const names = (item.focusFactories ?? [])
-    .map((focus) => focus.factory?.nomeFantasia ?? focus.factory?.razaoSocial)
+    .map((focus) => factoryName(focus.factory))
     .filter((name): name is string => Boolean(name));
 
   if (names.length === 0) return getFactoryName(item);

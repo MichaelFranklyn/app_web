@@ -1,10 +1,12 @@
 import { OrderStatus } from "../../../../interface";
+import { PaymentTermRef } from "../../../interface";
 
 export interface UpdateOrderInput {
   status?: string | null;
   notes?: string | null;
   freightType?: string | null;
   deliveryEstimateDays?: number | null;
+  paymentTermId?: string | null;
 }
 
 export interface UpdateOrderResponse {
@@ -24,6 +26,8 @@ export interface UpdateOrderResponse {
       deliveryEstimateDays: number | null;
       estimatedDeliveryDate: string | null;
       isDeliveryOverdue: boolean;
+      paymentTermId: string | null;
+      paymentTerm: PaymentTermRef | null;
     } | null;
   };
 }
@@ -36,5 +40,8 @@ export interface UpdateOrderModalProps {
   currentFileUrl: string | null;
   currentFileParsed: boolean;
   currentDeliveryEstimateDays: number | null;
+  currentPaymentTermId: string | null;
+  /** Condições de pagamento da fábrica deste pedido. */
+  paymentTerms: PaymentTermRef[];
   onSuccess: () => void;
 }

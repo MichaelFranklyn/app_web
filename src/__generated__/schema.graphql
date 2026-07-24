@@ -358,9 +358,20 @@ type CompanyType {
   accountType: String!
   plan: String!
   phone: String
+  whatsapp: String
+  website: String
   email: String
+  addressZip: String
+  addressStreet: String
+  addressNumber: String
+  addressComplement: String
+  addressNeighborhood: String
   addressCity: String
   addressState: String
+  """Marca completa da empresa (URL relativa /media/...). Vai no cabeçalho do PDF."""
+  logoUrl: String
+  """Símbolo quadrado da empresa, para o avatar no topo do sistema. Sem ele, usa-se logoUrl."""
+  avatarUrl: String
   createdAt: DateTime!
   updatedAt: DateTime!
   deletedAt: DateTime
@@ -398,9 +409,22 @@ input CreateCompanyInput {
 input UpdateCompanyInput {
   segment: String = null
   phone: String = null
+  whatsapp: String = null
+  website: String = null
   email: String = null
+  addressZip: String = null
+  addressStreet: String = null
+  addressNumber: String = null
+  addressComplement: String = null
+  addressNeighborhood: String = null
   addressCity: String = null
   addressState: String = null
+  """Nova logo em base64 (PNG/JPG/WEBP, máx. 2 MB). String vazia remove a logo atual."""
+  logoBase64: String = null
+  logoFileName: String = null
+  """Novo símbolo (avatar) em base64, mesmas regras da logo. String vazia remove."""
+  avatarBase64: String = null
+  avatarFileName: String = null
 }
 
 """Provisiona uma empresa nova junto do seu primeiro usuário (owner).
@@ -600,6 +624,10 @@ type CompanyFactoryType {
   ipiInOrder: Boolean!
   """Prazo de entrega padrão da fábrica, em dias (a partir do faturamento). Pré-preenche o pedido. Nulo = sem padrão."""
   deliveryEstimateDays: Int
+  """Logo da fábrica enviada por esta empresa (URL relativa /media/...)."""
+  logoUrl: String
+  """Como esta empresa chama a fábrica no dia a dia. Tem prioridade sobre nomeFantasia na exibição."""
+  nickname: String
   createdAt: DateTime!
   updatedAt: DateTime!
   deletedAt: DateTime
@@ -636,6 +664,7 @@ input LinkFactoryInput {
   specialConditions: JSON = null
   ipiInOrder: Boolean = false
   deliveryEstimateDays: Int = null
+  nickname: String = null
 }
 
 input CreateCompanyFactoryInput {
@@ -650,6 +679,7 @@ input CreateCompanyFactoryInput {
   specialConditions: JSON = null
   ipiInOrder: Boolean = false
   deliveryEstimateDays: Int = null
+  nickname: String = null
 }
 
 input ImportCompanyFactoryRowInput {
@@ -700,6 +730,10 @@ input UpdateCompanyFactoryInput {
   specialConditions: JSON = null
   ipiInOrder: Boolean = null
   deliveryEstimateDays: Int = null
+  nickname: String = null
+  """Nova logo em base64 (PNG/JPG/WEBP, máx. 2 MB). String vazia remove a logo atual."""
+  logoBase64: String = null
+  logoFileName: String = null
 }
 
 extend type Query {
@@ -789,6 +823,10 @@ type FactoryType {
   nomeFantasia: String
   addressCity: String
   addressState: String
+  """Apelido dado pela empresa do contexto (vem do vínculo). Tem prioridade sobre nomeFantasia na exibição."""
+  nickname: String
+  """Logo da fábrica enviada pela empresa do contexto (vem do vínculo)."""
+  logoUrl: String
   createdAt: DateTime!
   updatedAt: DateTime!
   deletedAt: DateTime

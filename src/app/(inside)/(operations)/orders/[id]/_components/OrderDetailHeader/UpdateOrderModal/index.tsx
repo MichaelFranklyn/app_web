@@ -9,6 +9,7 @@ import { Pencil } from "lucide-react";
 import { useRef, useState } from "react";
 import { UPDATE_ORDER_MUTATION } from "./gql";
 import { UpdateOrderModalProps, UpdateOrderResponse } from "./interface";
+import { paymentTermLabel } from "../../../utils";
 import {
   ORDER_STATUS_LABELS,
   buildUpdateOrderSteps,
@@ -21,10 +22,14 @@ export function UpdateOrderModal({
   currentFreightType,
   currentStatus,
   currentDeliveryEstimateDays,
+  currentPaymentTermId,
+  paymentTerms,
   onSuccess,
 }: UpdateOrderModalProps) {
   const [open, setOpen] = useState(false);
   const formRef = useRef<FormBuilderRef>(null);
+  const currentTerm =
+    paymentTerms.find((term) => term.id === currentPaymentTermId) ?? null;
 
   const [updateOrder] = useMutation<UpdateOrderResponse>(UPDATE_ORDER_MUTATION);
   const { execute, isLoading } = useAsyncAction();
@@ -35,7 +40,8 @@ export function UpdateOrderModal({
       currentNotes,
       currentFreightType,
       currentStatus,
-      currentDeliveryEstimateDays
+      currentDeliveryEstimateDays,
+      currentPaymentTermId
     );
 
     if (Object.keys(normalized).length === 0) {
@@ -80,13 +86,13 @@ export function UpdateOrderModal({
       <Modal.Content size="md">
         <Modal.Header
           title="Editar pedido"
-          description="Atualize o status, o frete e as observações do pedido."
+          description="Atualize o status, a condição de pagamento, o frete e as observações."
         />
 
         <Modal.Body>
           <FormBuilder
             ref={formRef}
-            steps={buildUpdateOrderSteps(currentStatus)}
+            steps={buildUpdateOrderSteps(currentStatus, paymentTerms)}
             initialData={{
               status: {
                 value: currentStatus,
@@ -100,6 +106,12 @@ export function UpdateOrderModal({
                     ? { value: "CIF", label: "CIF — entrega pela fábrica" }
                     : null,
               deliveryEstimateDays: currentDeliveryEstimateDays ?? "",
+              paymentTermId: currentTerm
+                ? {
+                    value: currentTerm.id,
+                    label: paymentTermLabel(currentTerm),
+                  }
+                : null,
             }}
             onSubmit={handleSubmit}
             loading={isLoading}

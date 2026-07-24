@@ -1,8 +1,24 @@
 import { describe, expect, it } from "vitest";
 
-import { clientName, factoryName } from "./company";
+import { clientName, companyInitials, factoryName } from "./company";
 
 describe("factoryName", () => {
+  it("prioriza o apelido dado pela empresa", () => {
+    expect(
+      factoryName({
+        nickname: "Apelido",
+        nomeFantasia: "NF",
+        razaoSocial: "RS",
+      })
+    ).toBe("Apelido");
+  });
+
+  it("ignora apelido ausente e usa o nomeFantasia", () => {
+    expect(
+      factoryName({ nickname: null, nomeFantasia: "NF", razaoSocial: "RS" })
+    ).toBe("NF");
+  });
+
   it("prioriza o nomeFantasia", () => {
     expect(factoryName({ nomeFantasia: "NF", razaoSocial: "RS" })).toBe("NF");
   });
@@ -38,5 +54,21 @@ describe("clientName", () => {
     expect(clientName(undefined)).toBe("—");
     expect(clientName(null)).toBe("—");
     expect(clientName({})).toBe("—");
+  });
+});
+
+describe("companyInitials", () => {
+  it("ignora tokens sem letra", () => {
+    // "CONTATO - REPRESENTACOES LTDA." rendia "C-": o hífen virava inicial.
+    expect(companyInitials("CONTATO - REPRESENTACOES LTDA.")).toBe("CR");
+  });
+
+  it("usa as duas primeiras palavras", () => {
+    expect(companyInitials("Padrão Forte Indústria")).toBe("PF");
+  });
+
+  it("tolera vazio", () => {
+    expect(companyInitials(null)).toBe("");
+    expect(companyInitials("   ")).toBe("");
   });
 });

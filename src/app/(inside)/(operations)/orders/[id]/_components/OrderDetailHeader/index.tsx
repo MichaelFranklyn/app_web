@@ -116,6 +116,8 @@ export function OrderDetailHeader({ order, onRefetch }: Props) {
                   currentFileUrl={order.fileUrl}
                   currentFileParsed={order.isFileParsed}
                   currentDeliveryEstimateDays={order.deliveryEstimateDays}
+                  currentPaymentTermId={order.paymentTermId}
+                  paymentTerms={order.availablePaymentTerms}
                   onSuccess={onRefetch}
                 />
                 <DeleteOrderModal orderId={order.id} />

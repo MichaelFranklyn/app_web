@@ -1,3 +1,4 @@
+import { isValidCnpj, onlyDigits } from "@/utils/document";
 import * as yup from "yup";
 import { FormFieldSchema, FormStepSchema } from "../interface";
 
@@ -25,6 +26,17 @@ const createFieldValidator = (field: FormFieldSchema) => {
 
     case "email":
       validator = yup.string().email("Email inválido");
+      break;
+
+    case "cnpj":
+      // Vazio passa: quem exige preenchimento é o `required` lá embaixo.
+      validator = yup
+        .string()
+        .test(
+          "cnpj-digitos",
+          "CNPJ inválido. Confira os números digitados.",
+          (value) => !onlyDigits(value) || isValidCnpj(value)
+        );
       break;
 
     case "number":

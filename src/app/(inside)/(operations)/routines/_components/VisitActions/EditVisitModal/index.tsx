@@ -1,6 +1,7 @@
 "use client";
 
 import { Button } from "@/components/Button";
+import { factoryName } from "@/utils/company";
 import {
   FormBuilder,
   FormBuilderRef,
@@ -35,7 +36,7 @@ export function EditVisitModal({
   const client = item.clientFactoryLink?.client;
   const factory = item.clientFactoryLink?.factory;
   const clientName = clientDisplayName(client, "Cliente");
-  const factoryName = factory?.nomeFantasia ?? factory?.razaoSocial ?? "—";
+  const factoryLabel = factoryName(factory);
 
   const steps: FormStepSchema[] = useMemo(
     () => [
@@ -122,7 +123,7 @@ export function EditVisitModal({
       <Modal.Content size="md">
         <Modal.Header
           title={`Editar visita · ${clientName}`}
-          description={`${factoryName} · visita #${item.plannedOrder}`}
+          description={`${factoryLabel} · visita #${item.plannedOrder}`}
         />
         <Modal.Body>
           <FormBuilder

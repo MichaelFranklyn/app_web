@@ -32,6 +32,7 @@ export const ORDERS_BY_PERIOD_QUERY = gql`
             id
             razaoSocial
             nomeFantasia
+            nickname
           }
         }
       }
@@ -74,6 +75,7 @@ export const SCHEDULES_BY_PERIOD_QUERY = gql`
                   id
                   razaoSocial
                   nomeFantasia
+                  nickname
                 }
               }
             }

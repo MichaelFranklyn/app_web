@@ -27,6 +27,7 @@ import {
   orderStatusLabel,
 } from "../../../utils";
 import { DeleteOrderModal } from "../DeleteOrderModal";
+import { factoryName } from "@/utils/company";
 
 const ITEMS_PER_PAGE = 10;
 
@@ -103,8 +104,7 @@ export function FactoryOrderModal({ summary, clientId, onClose }: Props) {
 
   if (!summary) return null;
 
-  const name =
-    summary.factory?.nomeFantasia ?? summary.factory?.razaoSocial ?? "—";
+  const name = factoryName(summary.factory);
 
   return (
     <Modal.Root open onOpenChange={(open) => !open && onClose()}>

@@ -54,6 +54,7 @@ export const WEEK_SCHEDULE_QUERY = gql`
                 factory {
                   id
                   nomeFantasia
+                  nickname
                   razaoSocial
                 }
               }
@@ -81,6 +82,7 @@ export const WEEK_SCHEDULE_QUERY = gql`
                   id
                   razaoSocial
                   nomeFantasia
+                  nickname
                 }
                 latestVisitScore {
                   scoreTotal

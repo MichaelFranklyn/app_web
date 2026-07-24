@@ -16,6 +16,7 @@ export const SELLER_FACTORY_ACCESS_LIST_QUERY = gql`
           factory {
             id
             nomeFantasia
+            nickname
             razaoSocial
           }
           grantedByUser {

@@ -16,6 +16,7 @@ export const SELLER_CLIENT_LINKS_QUERY = gql`
             id
             razaoSocial
             nomeFantasia
+            nickname
           }
         }
       }

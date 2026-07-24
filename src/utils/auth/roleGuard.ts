@@ -1,12 +1,10 @@
 import { redirect } from "next/navigation";
 import { getDecodedTokenServer } from "./jwt";
+import { isAdminRole, isOwnerRole } from "./roles";
 
-// Roles com acesso às telas de administração (o JWT emite em minúsculo,
-// o cookie de UI em maiúsculo — normalizamos antes de comparar).
-const ADMIN_ROLES = ["OWNER", "ADMIN", "SU"];
-
-export const isAdminRole = (role?: string | null): boolean =>
-  ADMIN_ROLES.includes((role ?? "").toUpperCase());
+// Predicados puros vivem em `./roles` (client-safe). Reexportados aqui para não
+// quebrar quem já importava de `roleGuard`.
+export { isAdminRole, isOwnerRole };
 
 /**
  * Guard de página admin-only (server-side). Vendedor que acessar a rota é
@@ -18,4 +16,12 @@ export const requireAdminPage = async (
 ): Promise<void> => {
   const payload = await getDecodedTokenServer();
   if (!isAdminRole(payload?.role)) redirect(redirectTo);
+};
+
+/** Guard das telas que só o dono da conta pode abrir (ex.: dados da empresa). */
+export const requireOwnerPage = async (
+  redirectTo: string = "/dashboard"
+): Promise<void> => {
+  const payload = await getDecodedTokenServer();
+  if (!isOwnerRole(payload?.role)) redirect(redirectTo);
 };

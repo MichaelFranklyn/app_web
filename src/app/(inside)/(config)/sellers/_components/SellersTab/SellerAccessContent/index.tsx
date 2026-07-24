@@ -16,6 +16,7 @@ import { AccessRowActions } from "./AccessRowActions";
 import { AddAccessModal } from "./AddAccessModal";
 import { SELLER_FACTORY_ACCESS_LIST_QUERY } from "./gql";
 import { QueryData, SellerFactoryAccess } from "./interface";
+import { factoryName } from "@/utils/company";
 
 export default function SellerAccessContent() {
   const tableData = useTableData<QueryData, SellerFactoryAccess>({
@@ -97,9 +98,7 @@ export default function SellerAccessContent() {
 
                     <Table.Cell>
                       <Table.CellText variant="strong">
-                        {node.factory?.nomeFantasia ??
-                          node.factory?.razaoSocial ??
-                          "-"}
+                        {factoryName(node.factory) ?? "-"}
                       </Table.CellText>
                     </Table.Cell>
 
@@ -132,11 +131,7 @@ export default function SellerAccessContent() {
                         id={node.id}
                         sellerName={node.seller?.name ?? ""}
                         sellerIsActive={node.seller?.isActive ?? true}
-                        factoryName={
-                          node.factory?.nomeFantasia ??
-                          node.factory?.razaoSocial ??
-                          ""
-                        }
+                        factoryName={factoryName(node.factory) ?? ""}
                         isActive={node.isActive}
                         onRevoke={() =>
                           optimistic.updateOptimistic(node.id, {

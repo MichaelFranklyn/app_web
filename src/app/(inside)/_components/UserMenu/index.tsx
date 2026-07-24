@@ -5,11 +5,16 @@ import { Button } from "@/components/Button";
 import { Dropdown } from "@/components/Dropdown";
 import { Title } from "@/components/Title";
 import { logout } from "@/utils/auth/logout";
-import { LogOut, UserCircle } from "lucide-react";
+import { Building2, LogOut, UserCircle } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { UserMenuProps } from "./interface";
 
-export function UserMenu({ name, role, initials }: UserMenuProps) {
+export function UserMenu({
+  name,
+  role,
+  initials,
+  canManageCompany,
+}: UserMenuProps) {
   const router = useRouter();
 
   return (
@@ -47,6 +52,17 @@ export function UserMenu({ name, role, initials }: UserMenuProps) {
         >
           Meu Perfil
         </Dropdown.Item>
+
+        {/* Cadastro da própria empresa é do dono da conta (updateCompany é
+            @is_owner no backend); os demais papéis não veem o atalho. */}
+        {canManageCompany && (
+          <Dropdown.Item
+            icon={Building2}
+            onSelect={() => router.push("/company")}
+          >
+            Dados da empresa
+          </Dropdown.Item>
+        )}
 
         <Dropdown.Item icon={LogOut} danger onSelect={() => logout()}>
           Sair

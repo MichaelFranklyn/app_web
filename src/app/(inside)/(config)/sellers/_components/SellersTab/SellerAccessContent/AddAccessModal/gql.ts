@@ -32,6 +32,7 @@ export const COMPANY_FACTORIES_OPTIONS_QUERY = gql`
           factory {
             id
             nomeFantasia
+            nickname
             razaoSocial
           }
         }

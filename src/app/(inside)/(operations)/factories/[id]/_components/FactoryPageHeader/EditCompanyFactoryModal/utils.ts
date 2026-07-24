@@ -10,12 +10,14 @@ export const COMMISSION_BASIS_OPTIONS = [
   { value: "Pedido", label: "Pagamento — comissão conforme o cliente paga" },
 ];
 
+// Dois passos no formulário (o terceiro — Identidade — é custom, fora do
+// FormBuilder, porque a logo não é um campo de formulário comum).
 export const FORM_STEPS: FormStepSchema[] = [
   {
-    id: "commercial",
+    id: "commission",
     sections: [
       {
-        id: "terms",
+        id: "commission-terms",
         fields: [
           {
             name: "commissionRate",
@@ -39,6 +41,16 @@ export const FORM_STEPS: FormStepSchema[] = [
             placeholder: "Ex: 10 ou 5, 20",
             hint: "Dia(s) do mês em que a fábrica paga a comissão. Separe múltiplos por vírgula.",
           },
+        ],
+      },
+    ],
+  },
+  {
+    id: "contract",
+    sections: [
+      {
+        id: "contract-terms",
+        fields: [
           {
             name: "territory",
             label: "Território",
@@ -59,12 +71,14 @@ export const FORM_STEPS: FormStepSchema[] = [
             label: "Início do contrato",
             type: "date",
             required: false,
+            grid: { desktop: 6 },
           },
           {
             name: "contractEnd",
             label: "Término do contrato",
             type: "date",
             required: false,
+            grid: { desktop: 6 },
           },
           {
             name: "ipiInOrder",

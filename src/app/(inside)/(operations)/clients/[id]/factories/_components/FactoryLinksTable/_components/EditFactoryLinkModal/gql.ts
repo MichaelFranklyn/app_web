@@ -16,6 +16,7 @@ export const UPDATE_SELLER_CLIENT_FACTORY_MUTATION = gql`
         factory {
           id
           nomeFantasia
+          nickname
           razaoSocial
         }
         seller {

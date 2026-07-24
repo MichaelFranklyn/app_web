@@ -4,6 +4,7 @@ import {
   toUtcIsoDate as toIsoDate,
 } from "@/utils/format/date";
 import { VisitClient, VisitFactory, VisitStatus } from "./interface";
+import { factoryName } from "@/utils/company";
 
 export type StopStatusColor = "green" | "amber" | "neutral" | "red" | "blue";
 
@@ -84,7 +85,7 @@ export const clientLabel = (client: VisitClient | null): string =>
 
 export const factoryLabel = (factory: VisitFactory | null): string => {
   if (!factory) return "—";
-  return factory.nomeFantasia ?? factory.razaoSocial;
+  return factoryName(factory);
 };
 
 // Endereço em formato amigável ao Google Maps (vírgulas), ou null se não houver

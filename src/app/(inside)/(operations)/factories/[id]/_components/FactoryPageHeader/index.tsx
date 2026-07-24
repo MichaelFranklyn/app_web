@@ -3,7 +3,10 @@
 import { Badge } from "@/components/Badges";
 import { Breadcrumb } from "@/components/Breadcrumb";
 import { PanelHeader } from "@/components/PanelHeader";
+import { Avatar } from "@/components/Avatar";
+import { factoryName } from "@/utils/company";
 import { maskCNPJ } from "@/utils/format/masks";
+import { mediaUrl } from "@/utils/media";
 import { CompanyFactoryDetail } from "../../interface";
 import { isContractExpired } from "../../../utils";
 import { DeleteCompanyFactoryModal } from "./DeleteCompanyFactoryModal";
@@ -15,7 +18,7 @@ interface Props {
 
 export function FactoryPageHeader({ companyFactory }: Props) {
   const { factory } = companyFactory;
-  const name = factory.nomeFantasia ?? factory.razaoSocial;
+  const name = factoryName(factory);
   const city = [factory.addressCity, factory.addressState]
     .filter(Boolean)
     .join(" / ");
@@ -35,7 +38,17 @@ export function FactoryPageHeader({ companyFactory }: Props) {
         <PanelHeader.Top>
           <PanelHeader.Left>
             <PanelHeader.Eyebrow>02 — Fábricas</PanelHeader.Eyebrow>
-            <PanelHeader.Title>{name}</PanelHeader.Title>
+            <div className="flex items-center gap-12">
+              <Avatar
+                size="xl"
+                color="amber"
+                src={mediaUrl(factory.logoUrl)}
+                alt={name}
+                initials={name.slice(0, 2).toUpperCase()}
+                className="shrink-0"
+              />
+              <PanelHeader.Title>{name}</PanelHeader.Title>
+            </div>
             <PanelHeader.Description>
               {city} · CNPJ {maskCNPJ(factory.cnpj)}
             </PanelHeader.Description>

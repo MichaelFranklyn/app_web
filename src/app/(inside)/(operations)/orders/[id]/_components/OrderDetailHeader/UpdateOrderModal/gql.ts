@@ -16,6 +16,12 @@ export const UPDATE_ORDER_MUTATION = gql`
         deliveryEstimateDays
         estimatedDeliveryDate
         isDeliveryOverdue
+        paymentTermId
+        paymentTerm {
+          id
+          name
+          installmentsDays
+        }
       }
     }
   }

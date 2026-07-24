@@ -33,6 +33,7 @@ export const ORDERS_QUERY = gql`
           factory {
             id
             nomeFantasia
+            nickname
             razaoSocial
           }
         }

@@ -7,6 +7,7 @@ import { formatDate } from "@/utils/format/date";
 import { ChevronRight } from "lucide-react";
 import { FactoryOrderSummary } from "../../../interface";
 import { formatCurrency } from "../../../utils";
+import { factoryName } from "@/utils/company";
 
 interface Props {
   summary: FactoryOrderSummary;
@@ -28,8 +29,7 @@ function relationship(summary: FactoryOrderSummary): {
 }
 
 export function FactoryOrderCard({ summary, onSelect }: Props) {
-  const name =
-    summary.factory?.nomeFantasia ?? summary.factory?.razaoSocial ?? "—";
+  const name = factoryName(summary.factory);
   const rel = relationship(summary);
   const plural = summary.totalOrders !== 1 ? "s" : "";
 

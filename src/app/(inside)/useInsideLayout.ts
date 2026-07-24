@@ -1,5 +1,6 @@
 "use client";
 
+import { isOwnerRole } from "@/utils/auth/roles";
 import { getCookie } from "@/utils/cookies/clientCookie";
 import { getTodayIso } from "@/utils/format/date";
 import { usePathname } from "next/navigation";
@@ -92,6 +93,8 @@ export function useInsideLayout() {
   const userRole = userData?.role
     ? (ROLE_LABEL[userData.role] ?? userData.role)
     : "—";
+  // Dono da conta: ganha o atalho "Dados da empresa" no menu do usuário.
+  const canManageCompany = isOwnerRole(userData?.role);
 
   return {
     pathname,
@@ -106,5 +109,6 @@ export function useInsideLayout() {
     userName,
     userRole,
     userInitials,
+    canManageCompany,
   };
 }
