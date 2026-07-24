@@ -10,6 +10,18 @@ const backendOrigin = (() => {
   }
 })();
 
+// Origem do Supabase Storage (para o img-src). Em prod a <img> de uma logo aponta
+// pra API (backendOrigin), que responde 302 → URL pública do bucket no Supabase.
+// A CSP é checada em CADA URL da cadeia de redirect, então o host do Supabase
+// também precisa constar no img-src — senão a imagem é bloqueada em silêncio.
+const supabaseOrigin = (() => {
+  try {
+    return new URL(process.env.NEXT_PUBLIC_SUPABASE_URL || "").origin;
+  } catch {
+    return "";
+  }
+})();
+
 // Content-Security-Policy pragmática (aplicada, não report-only). 'unsafe-inline'
 // nos scripts/estilos é o compromisso do App Router (scripts de hidratação inline
 // sem nonce + estilos inline do Tailwind); a real proteção do token contra XSS
@@ -19,9 +31,9 @@ const backendOrigin = (() => {
 const csp = [
   `default-src 'self'`,
   `script-src 'self' 'unsafe-inline'`,
-  `style-src 'self' 'unsafe-inline'`,
-  `img-src 'self' data: blob: https://storage.googleapis.com https://drivops-public.s3.us-east-1.amazonaws.com https://drivops-public.s3.amazonaws.com https://maps.gstatic.com https://maps.googleapis.com`,
-  `font-src 'self' data:`,
+  `style-src 'self' 'unsafe-inline' https://fonts.googleapis.com`,
+  `img-src 'self' data: blob:${backendOrigin ? ` ${backendOrigin}` : ""}${supabaseOrigin ? ` ${supabaseOrigin}` : ""} https://storage.googleapis.com https://drivops-public.s3.us-east-1.amazonaws.com https://drivops-public.s3.amazonaws.com https://maps.gstatic.com https://maps.googleapis.com`,
+  `font-src 'self' data: https://fonts.gstatic.com`,
   `connect-src 'self'${backendOrigin ? ` ${backendOrigin}` : ""} https://maps.googleapis.com https://viacep.com.br`,
   `frame-src https://www.google.com`,
   `object-src 'none'`,
