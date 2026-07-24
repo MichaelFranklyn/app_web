@@ -10,15 +10,22 @@ const backendOrigin = (() => {
   }
 })();
 
-// Origem do Supabase Storage (para o img-src). Em prod a <img> de uma logo aponta
+// Origem do Supabase Storage (para img-src E connect-src). Em prod a logo aponta
 // pra API (backendOrigin), que responde 302 → URL pública do bucket no Supabase.
 // A CSP é checada em CADA URL da cadeia de redirect, então o host do Supabase
-// também precisa constar no img-src — senão a imagem é bloqueada em silêncio.
+// também precisa constar na diretiva — senão é bloqueado em silêncio. Vale para
+// os dois canais: a <img> na tela (img-src) e o `fetch` que embute a logo no PDF
+// do pedido (connect-src) — foi a falta dele no connect-src que fez o PDF sair
+// sem logo só em produção, enquanto a mesma imagem aparecia na interface.
+//
+// Quando NEXT_PUBLIC_SUPABASE_URL não está no ambiente do build (fácil de
+// esquecer na Vercel, já que o front nunca fala com o Supabase direto), cai no
+// wildcard do domínio: sem ele a CSP bloquearia a logo e o sintoma reapareceria.
 const supabaseOrigin = (() => {
   try {
     return new URL(process.env.NEXT_PUBLIC_SUPABASE_URL || "").origin;
   } catch {
-    return "";
+    return "https://*.supabase.co";
   }
 })();
 
@@ -34,7 +41,7 @@ const csp = [
   `style-src 'self' 'unsafe-inline' https://fonts.googleapis.com`,
   `img-src 'self' data: blob:${backendOrigin ? ` ${backendOrigin}` : ""}${supabaseOrigin ? ` ${supabaseOrigin}` : ""} https://storage.googleapis.com https://drivops-public.s3.us-east-1.amazonaws.com https://drivops-public.s3.amazonaws.com https://maps.gstatic.com https://maps.googleapis.com`,
   `font-src 'self' data: https://fonts.gstatic.com`,
-  `connect-src 'self'${backendOrigin ? ` ${backendOrigin}` : ""} https://maps.googleapis.com https://viacep.com.br`,
+  `connect-src 'self'${backendOrigin ? ` ${backendOrigin}` : ""}${supabaseOrigin ? ` ${supabaseOrigin}` : ""} https://maps.googleapis.com https://viacep.com.br`,
   `frame-src https://www.google.com`,
   `object-src 'none'`,
   `base-uri 'self'`,
