@@ -11,10 +11,12 @@ import {
 } from "./theme";
 
 // Caixa das logos do topo. As imagens chegam recortadas (trimTransparent), sem
-// moldura vazia: a altura aqui é a altura VISÍVEL da marca, e não precisa ser
-// grande para o documento parecer dele.
-const LOGO_MAX_H = 34;
-const LOGO_MAX_W = 130;
+// moldura vazia: a altura aqui é a altura VISÍVEL da marca. Subiu de 34x130 em
+// 2026-07-24 — no papel as marcas ficavam timidamente pequenas para quem é o
+// dono do documento. Marca em faixa esbarra na LARGURA (a Girus é 4,3:1), então
+// é o teto de largura que manda no tamanho final dessas — daí os dois subirem.
+const LOGO_MAX_H = 50;
+const LOGO_MAX_W = 200;
 
 export interface HeaderData {
   /** "Pedido" ou "Orçamento" — o mesmo documento serve aos dois. */
@@ -95,7 +97,9 @@ export const drawHeader = (pdf: Pdf, data: HeaderData): number => {
     factoryBottom = logoTop + 18;
   }
 
-  y = Math.max(textTop, factoryBottom) + 10;
+  // Folga entre a base da marca e a régua. Com as logos maiores, 10pt deixavam
+  // o texto miúdo da assinatura encostado na linha âmbar.
+  y = Math.max(textTop, factoryBottom) + 14;
 
   // Régua da marca.
   setDraw(pdf, COLOR.brand);

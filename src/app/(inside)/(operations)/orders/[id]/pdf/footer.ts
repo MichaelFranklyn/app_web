@@ -1,8 +1,11 @@
 import { LoadedImage } from "@/utils/media";
 import { COLOR, fitLogo, PAGE, Pdf, setDraw, setText } from "./theme";
 
-const GIRUS_MAX_H = 12;
-const GIRUS_MAX_W = 54;
+// Marca do sistema no rodapé (subiu de 12x54 em 2026-07-24). O teto de altura é
+// o que sobra entre a linha do rodapé e a borda da página: com o desenho abaixo
+// (`y - height + 6`), 18pt ficam centrados no texto sem cruzar a linha.
+const GIRUS_MAX_H = 18;
+const GIRUS_MAX_W = 80;
 
 /**
  * Rodapé de todas as páginas: marca do sistema à esquerda e paginação à
@@ -27,7 +30,7 @@ export const drawFooters = (pdf: Pdf, girusLogo: LoadedImage | null): void => {
       pdf.addImage(
         girusLogo.dataUrl,
         PAGE.margin,
-        y - box.height + 1,
+        y - box.height + 6,
         box.width,
         box.height
       );
