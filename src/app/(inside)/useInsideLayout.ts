@@ -5,7 +5,7 @@ import { getCookie } from "@/utils/cookies/clientCookie";
 import { getTodayIso } from "@/utils/format/date";
 import { usePathname } from "next/navigation";
 import { useEffect, useState } from "react";
-import { LABELS, NAV, ROLE_LABEL, SU_NAV } from "./navConfig";
+import { ROLE_LABEL, SU_NAV, visibleNav } from "./navConfig";
 
 interface UserData {
   userId: string;
@@ -33,16 +33,6 @@ export function useInsideLayout() {
 
   // Rota de um dia específico (/routines/<data>), distinta da grade semanal.
   const isDayRoute = /^\/routines\/[^/]+/.test(pathname);
-
-  const pageLabel = isDayRoute
-    ? "Rota do dia"
-    : (LABELS[pathname] ??
-      LABELS[
-        Object.keys(LABELS)
-          .filter((href) => pathname.startsWith(`${href}/`))
-          .sort((a, b) => b.length - a.length)[0]
-      ] ??
-      "Dashboard");
 
   const [userData, setUserData] = useState<UserData | null>(null);
   // Data de hoje resolvida só no cliente (evita mismatch de hidratação).
@@ -73,20 +63,11 @@ export function useInsideLayout() {
     setDrawerOpen(false);
   }, [pathname]);
 
-  // SU enxerga os itens de plataforma; os demais roles, só o NAV padrão.
-  // Vendedor não vê itens admin-only (/users, /sellers) — as rotas também
-  // são protegidas server-side (requireAdminPage), aqui é só a UI do menu.
-  // Configurações: vendedor só tem a aba de rotina, então o atalho aponta
-  // direto para ela (a aba de catálogos é admin-only e redirecionaria).
-  const baseNav =
-    userData?.role === "SELLER"
-      ? NAV.filter((item) => !("adminOnly" in item && item.adminOnly)).map(
-          (item) =>
-            "href" in item && item.href === "/settings/catalog"
-              ? { ...item, href: "/settings/routine" }
-              : item
-        )
-      : NAV;
+  // Cada destino de configuração tem o seu `access`, que espelha o guard da rota:
+  // o vendedor não vê Empresa/Pessoas/Catálogos (e a seção inteira desaparece com
+  // eles). As rotas seguem protegidas server-side — aqui é só a UI do menu.
+  // SU enxerga também os itens de plataforma.
+  const baseNav = visibleNav(userData?.role);
   const navItems = userData?.role === "SU" ? [...baseNav, ...SU_NAV] : baseNav;
   const userInitials = userData ? getUserInitials(userData.userName) : "—";
   const userName = userData?.userName ?? "Usuário";
@@ -99,7 +80,6 @@ export function useInsideLayout() {
   return {
     pathname,
     isDayRoute,
-    pageLabel,
     todayIso,
     drawerOpen,
     setDrawerOpen,

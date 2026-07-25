@@ -2,10 +2,12 @@ import { expect, test } from "../support/fixtures";
 import { mockGraphql } from "../support/graphql";
 
 /**
- * CRUD do catálogo (/settings/catalog). A página monta 4 seções, cada uma com
- * sua query de lista — todas precisam ser mockadas em todo teste. Criar = modal
- * (botão "Nova X" → submit); editar = ícone Pencil (1º botão da linha); excluir
- * = ícone Trash (2º) → ConfirmModal. Mocks STATEFUL (refetch via onChanged/onDone).
+ * CRUD do catálogo. Cada catálogo tem a sua rota (/settings/catalog/categories,
+ * /units, /labels, /tax-rules) — /settings/catalog em si é só o índice de cards.
+ * Os mocks das 4 listas ficam juntos porque o custo é zero e evita quebra quando
+ * um teste muda de rota. Criar = modal (botão "Nova X" → submit); editar = ícone
+ * Pencil (1º botão da linha); excluir = ícone Trash (2º) → ConfirmModal. Mocks
+ * STATEFUL (refetch via onChanged/onDone).
  */
 const conn = (nodes: Array<Record<string, unknown>>) => ({
   edges: nodes.map((node) => ({ node })),
@@ -49,7 +51,7 @@ test("catálogo: cria uma categoria", async ({ page }) => {
     },
   });
 
-  await page.goto("/settings/catalog");
+  await page.goto("/settings/catalog/categories");
   await page.getByRole("button", { name: "Nova categoria" }).click();
 
   const dialog = page.getByRole("dialog");
@@ -84,7 +86,7 @@ test("catálogo: edita uma categoria", async ({ page }) => {
     },
   });
 
-  await page.goto("/settings/catalog");
+  await page.goto("/settings/catalog/categories");
 
   const row = page.getByRole("row", { name: /Tubos/ });
   await row.getByRole("button").first().click(); // ícone Pencil (editar)
@@ -112,7 +114,7 @@ test("catálogo: exclui uma categoria", async ({ page }) => {
     },
   });
 
-  await page.goto("/settings/catalog");
+  await page.goto("/settings/catalog/categories");
 
   const row = page.getByRole("row", { name: /Categoria Velha/ });
   await row.getByRole("button").last().click(); // ícone Trash (excluir)
@@ -149,7 +151,7 @@ test("catálogo: cria uma unidade", async ({ page }) => {
     },
   });
 
-  await page.goto("/settings/catalog");
+  await page.goto("/settings/catalog/units");
   await page.getByRole("button", { name: "Nova unidade" }).click();
 
   const dialog = page.getByRole("dialog");
@@ -171,7 +173,7 @@ test("catálogo: exclui uma unidade", async ({ page }) => {
     },
   });
 
-  await page.goto("/settings/catalog");
+  await page.goto("/settings/catalog/units");
 
   const row = page.getByRole("row", { name: /Unidade Velha/ });
   await row.getByRole("button").last().click();
@@ -208,7 +210,7 @@ test("catálogo: cria um rótulo de embalagem", async ({ page }) => {
     },
   });
 
-  await page.goto("/settings/catalog");
+  await page.goto("/settings/catalog/labels");
   await page.getByRole("button", { name: "Novo rótulo" }).click();
 
   const dialog = page.getByRole("dialog");
@@ -233,7 +235,7 @@ test("catálogo: cria uma regra de imposto", async ({ page }) => {
     },
   });
 
-  await page.goto("/settings/catalog");
+  await page.goto("/settings/catalog/tax-rules");
   await page.getByRole("button", { name: "Nova regra" }).click();
 
   const dialog = page.getByRole("dialog");

@@ -10,5 +10,7 @@ test("factories: lista vazia carrega e renderiza o cabeçalho", async ({
 
   await page.goto("/factories");
 
-  await expect(page.getByText(/02.*Fábricas/)).toBeVisible();
+  await expect(
+    page.getByRole("heading", { name: "Fábricas Representadas", level: 1 })
+  ).toBeVisible();
 });

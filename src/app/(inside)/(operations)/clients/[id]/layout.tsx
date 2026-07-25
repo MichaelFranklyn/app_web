@@ -142,7 +142,6 @@ export default function ClientLayout({
         <PanelHeader.Root>
           <PanelHeader.Top>
             <PanelHeader.Left>
-              <PanelHeader.Eyebrow>03 — Clientes</PanelHeader.Eyebrow>
               {isHeaderLoading ? (
                 <>
                   <Loading.Skeleton className="h-[24px] w-72" />

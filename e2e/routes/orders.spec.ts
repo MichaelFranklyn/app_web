@@ -13,6 +13,8 @@ test("orders: lista vazia carrega e renderiza o cabeçalho", async ({
 
   await page.goto("/orders");
 
-  // Eyebrow é único por página (a sidebar repete "Pedidos", o eyebrow não).
-  await expect(page.getByText(/05.*Pedidos/)).toBeVisible();
+  // O <h1> do header é único (a sidebar repete "Pedidos", mas como link).
+  await expect(
+    page.getByRole("heading", { name: "Pedidos", level: 1 })
+  ).toBeVisible();
 });

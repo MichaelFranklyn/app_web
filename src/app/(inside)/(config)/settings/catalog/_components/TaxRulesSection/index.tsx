@@ -77,7 +77,7 @@ export function TaxRulesSection() {
           />
         </Table.CardHead.Actions>
       </Table.CardHead>
-      <Table.Table maxHeight={360}>
+      <Table.Table maxHeight={600}>
         <Table.Header>
           <Table.Row>
             <Table.Head>Nome</Table.Head>

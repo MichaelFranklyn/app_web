@@ -38,7 +38,6 @@ export default function RoutinesContent() {
     sellers,
     selectedSellerId,
     setSelectedSellerId,
-    selectedSellerName,
     effectiveSellerId,
     maxVisitsPerDay,
     schedule,
@@ -56,10 +55,8 @@ export default function RoutinesContent() {
     <PageContent>
       <RoutinesHeader
         weekStart={weekStart}
-        seller={schedule?.seller ?? null}
         sellers={canSelectSeller ? sellers : undefined}
         selectedSellerId={selectedSellerId}
-        selectedSellerName={selectedSellerName}
         onSelectSeller={setSelectedSellerId}
         onSelectDate={setWeekStart}
         onPrevWeek={handlePrevWeek}

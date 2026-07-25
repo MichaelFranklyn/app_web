@@ -12,5 +12,7 @@ test("clients: a carteira carrega vazia e renderiza o cabeçalho", async ({
 
   await page.goto("/clients");
 
-  await expect(page.getByText(/03.*Clientes/)).toBeVisible();
+  await expect(
+    page.getByRole("heading", { name: "Clientes", level: 1 })
+  ).toBeVisible();
 });

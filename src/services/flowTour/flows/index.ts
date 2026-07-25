@@ -14,10 +14,7 @@ import { productDetailFlows } from "./definitions/productDetail";
 import { profileFlows } from "./definitions/profile";
 import { routineDayFlows } from "./definitions/routineDay";
 import { routinesFlows } from "./definitions/routines";
-import { sellerDetailFlows } from "./definitions/sellerDetail";
-import { sellersFlows } from "./definitions/sellers";
 import { settingsCatalogFlows } from "./definitions/settingsCatalog";
-import { settingsRoutineFlows } from "./definitions/settingsRoutine";
 import { systemFlows } from "./definitions/system";
 import { usersFlows } from "./definitions/users";
 
@@ -43,10 +40,7 @@ const FLOW_LIST: FlowDefinition[] = [
   ...priceListDetailFlows,
   ...factoryTabsFlows,
   ...usersFlows,
-  ...sellersFlows,
-  ...sellerDetailFlows,
   ...settingsCatalogFlows,
-  ...settingsRoutineFlows,
   ...profileFlows,
 ];
 

@@ -5,7 +5,7 @@ import { Input } from "@/components/Input";
 import { SelectOption } from "@/components/Input";
 import { PanelHeader } from "@/components/PanelHeader";
 import { CalendarDays, ChevronLeft, ChevronRight } from "lucide-react";
-import { RoutineSellerOption, VisitScheduleSeller } from "../../interface";
+import { RoutineSellerOption } from "../../interface";
 import { getCurrentWeekMondayIso } from "@/utils/format/date";
 import {
   formatWeekRange,
@@ -16,10 +16,8 @@ import {
 
 interface Props {
   weekStart: string;
-  seller: VisitScheduleSeller | null;
   sellers?: RoutineSellerOption[];
   selectedSellerId?: string | null;
-  selectedSellerName?: string | null;
   onSelectSeller?: (id: string) => void;
   onSelectDate: (weekStartIso: string) => void;
   onPrevWeek: () => void;
@@ -29,10 +27,8 @@ interface Props {
 
 export function RoutinesHeader({
   weekStart,
-  seller,
   sellers,
   selectedSellerId,
-  selectedSellerName,
   onSelectSeller,
   onSelectDate,
   onPrevWeek,
@@ -43,7 +39,6 @@ export function RoutinesHeader({
   const description = `Semana ${weekNumber} · ${formatWeekRange(weekStart)}`;
   const isCurrentWeek = weekStart === getCurrentWeekMondayIso();
   const canSelectSeller = Boolean(sellers);
-  const sellerName = selectedSellerName ?? seller?.user?.name ?? null;
 
   const sellerOptions: SelectOption[] = (sellers ?? []).map((s) => ({
     value: s.id,
@@ -56,9 +51,6 @@ export function RoutinesHeader({
     <PanelHeader.Root>
       <PanelHeader.Top>
         <PanelHeader.Left>
-          <PanelHeader.Eyebrow>
-            07 — Rotina{sellerName ? ` · ${sellerName}` : ""}
-          </PanelHeader.Eyebrow>
           <PanelHeader.Title>Rotina da Semana</PanelHeader.Title>
           <PanelHeader.Description>{description}</PanelHeader.Description>
           <PanelHeader.Actions

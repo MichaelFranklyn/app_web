@@ -6,9 +6,14 @@ test("users: a lista carrega vazia e mostra o botão de criar", async ({
 }) => {
   await mockGraphql(page, {
     Users: () => ({ users_list: emptyConnection() }),
+    SellerFactoryAccessList: () => ({
+      seller_factory_access_list: emptyConnection(),
+    }),
   });
 
-  await page.goto("/users");
+  await page.goto("/settings/users");
 
-  await expect(page.getByRole("button", { name: /novo usu/i })).toBeVisible();
+  await expect(
+    page.getByRole("button", { name: /nova pessoa/i })
+  ).toBeVisible();
 });

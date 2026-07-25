@@ -19,6 +19,7 @@ import {
   FieldType,
   RenderInputProps,
 } from "../interface";
+import { parseLocalDate } from "@/utils/format/date";
 
 const getCommonProps = ({
   field,
@@ -98,9 +99,18 @@ const renderNumber: FieldRenderer = ({ controllerField }, common) => (
   <Input.Number {...common} value={controllerField.value ?? ""} />
 );
 
-const renderDate: FieldRenderer = ({ field }, common) => (
+const renderDate: FieldRenderer = ({ field, controllerField }, common) => (
   <Input.Date
     {...common}
+    // `Input.Date` trabalha com Date; o `initialData` costuma vir do backend como
+    // ISO ("1958-03-12"). Sem converter, o campo abria VAZIO mesmo havendo data
+    // salva — e salvar em seguida apagava o valor. `parseLocalDate` monta o Date
+    // pelos componentes locais, senão UTC-3 exibiria o dia anterior.
+    value={
+      field.type === "date-range"
+        ? controllerField.value
+        : parseLocalDate(controllerField.value)
+    }
     variant={field.type === "date-range" ? "range" : "single"}
   />
 );

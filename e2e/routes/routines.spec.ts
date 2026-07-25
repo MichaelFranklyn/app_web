@@ -21,7 +21,9 @@ test("routines: a rotina da semana carrega sem agendamentos", async ({
 
   await page.goto("/routines");
 
-  await expect(page.getByText(/07.*Rotina/)).toBeVisible();
+  await expect(
+    page.getByRole("heading", { name: "Rotina da Semana", level: 1 })
+  ).toBeVisible();
 });
 
 /**

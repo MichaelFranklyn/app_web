@@ -3,7 +3,7 @@ import { emptyConnection, mockGraphql } from "../support/graphql";
 
 /**
  * Cauda longa — conceder acesso de vendedor a uma fábrica
- * (/sellers → aba "Acessos por Fábrica" → AddAccessModal).
+ * (/settings/users → aba "Acessos por Fábrica" → AddAccessModal).
  *
  * Select-create com CASCATA: escolher o vendedor habilita/filtra as fábricas
  * (oculta as já vinculadas àquele vendedor).
@@ -20,7 +20,7 @@ test("vendedor/acessos: concede acesso a uma fábrica (cascata)", async ({
 }) => {
   await mockGraphql(page, {
     // Conteúdo das duas abas é montado junto (Tabs Radix renderiza ambos).
-    Sellers: () => ({ sellers_list: emptyConnection() }),
+    Users: () => ({ users_list: emptyConnection() }),
     SellerFactoryAccessList: () => ({
       seller_factory_access_list: emptyConnection(),
     }),
@@ -52,11 +52,20 @@ test("vendedor/acessos: concede acesso a uma fábrica (cascata)", async ({
     }),
     SellerAccessesForModal: () => ({ seller_accesses: { edges: [] } }),
     CreateSellerFactoryAccess: () => ({
-      createSellerFactoryAccess: { status: true, message: "ok" },
+      createSellerFactoryAccess: {
+        status: true,
+        message: "ok",
+        // A linha entra na tabela com o registro que a mutation devolve.
+        data: {
+          id: "acc-novo",
+          isActive: true,
+          createdAt: "2026-07-25T00:00:00Z",
+        },
+      },
     }),
   });
 
-  await page.goto("/sellers");
+  await page.goto("/settings/users");
   await page.getByRole("tab", { name: "Acessos por Fábrica" }).click();
   await page.getByRole("button", { name: "Novo Vínculo" }).click();
 
@@ -84,6 +93,17 @@ test("vendedor/acessos: concede acesso a uma fábrica (cascata)", async ({
   await dialog.getByRole("button", { name: "Criar vínculo" }).click();
 
   await expect(page.getByText("Vínculo criado com sucesso")).toBeVisible();
+
+  // O que estava quebrado: a linha não aparecia até recarregar a página. O evict
+  // por `fieldName` não pegava (o cache guarda o campo real, não o alias
+  // `seller_factory_access_list`) e nada inseria a linha.
+  const tabela = page.locator("table");
+  await expect(
+    tabela.getByText("Vendedor Cascata", { exact: true })
+  ).toBeVisible();
+  await expect(
+    tabela.getByText("Fábrica Disponível", { exact: true })
+  ).toBeVisible();
 });
 
 test("vendedor/acessos: revoga um acesso existente", async ({ page }) => {
@@ -100,7 +120,7 @@ test("vendedor/acessos: revoga um acesso existente", async ({ page }) => {
     grantedByUser: { id: "u-1", name: "Admin" },
   };
   await mockGraphql(page, {
-    Sellers: () => ({ sellers_list: emptyConnection() }),
+    Users: () => ({ users_list: emptyConnection() }),
     SellerFactoryAccessList: () => ({
       seller_factory_access_list: {
         edges: [{ node: access }],
@@ -113,7 +133,7 @@ test("vendedor/acessos: revoga um acesso existente", async ({ page }) => {
     }),
   });
 
-  await page.goto("/sellers");
+  await page.goto("/settings/users");
   await page.getByRole("tab", { name: "Acessos por Fábrica" }).click();
   await page
     .getByRole("row", { name: /Vendedor Ativo/ })

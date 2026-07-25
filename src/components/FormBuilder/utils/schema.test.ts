@@ -80,6 +80,31 @@ describe("buildYupSchema — número", () => {
 });
 
 describe("buildYupSchema — data", () => {
+  it("aceita data OPCIONAL em branco", () => {
+    // Regressão: o campo vazio chega como "", que caía no typeError e travava o
+    // form inteiro por causa de uma data que ninguém era obrigado a preencher.
+    const schema = schemaOf({
+      name: "d",
+      type: "date",
+      labelText: "Nascimento",
+    });
+
+    expect(schema.validateSync({ d: "" }).d).toBeNull();
+    expect(schema.validateSync({ d: null }).d).toBeNull();
+  });
+
+  it("continua barrando data inválida", () => {
+    const schema = schemaOf({
+      name: "d",
+      type: "date",
+      labelText: "Nascimento",
+    });
+
+    expect(() => schema.validateSync({ d: "xx" })).toThrow(
+      /Nascimento é obrigatória/
+    );
+  });
+
   it("usa labelText na mensagem de typeError", () => {
     const schema = schemaOf({
       name: "d",

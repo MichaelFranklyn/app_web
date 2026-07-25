@@ -45,7 +45,7 @@ test("users: edita o nome e a linha reflete a mudança", async ({ page }) => {
     },
   });
 
-  await page.goto("/users");
+  await page.goto("/settings/users");
 
   const row = page.getByRole("row", { name: /Maria Antiga/ });
   await row.getByRole("button").click();
@@ -77,7 +77,7 @@ test("users: exclui um usuário e a linha some", async ({ page }) => {
     },
   });
 
-  await page.goto("/users");
+  await page.goto("/settings/users");
 
   await expect(page.getByText("Maria Antiga")).toBeVisible();
 
@@ -110,7 +110,7 @@ test("users: desativa um usuário e o badge vira Inativo", async ({ page }) => {
     ToggleUser: () => ({ updateUser: { status: true, message: "ok" } }),
   });
 
-  await page.goto("/users");
+  await page.goto("/settings/users");
 
   const row = page.getByRole("row", { name: /Ana Toggle/ });
   await row.getByRole("button").click();

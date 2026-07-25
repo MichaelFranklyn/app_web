@@ -2,36 +2,41 @@ import { FlowDefinition } from "../../../interface";
 import { USERS_FLOW } from "../../keys";
 import { FLOW_ROUTES } from "../../routes";
 
-// Tour da listagem de Usuários. Dispara sozinho na 1ª visita.
+/**
+ * Tour da lista de Pessoas. Version 2: /sellers virou esta tela — a lista é uma
+ * só (vendedor é um usuário com perfil de campo) e os acessos por fábrica
+ * entraram como aba aqui.
+ */
 export const usersFlow: FlowDefinition = {
   key: USERS_FLOW,
-  label: "Tour dos Usuários",
-  description: "Como adicionar e gerenciar os usuários da empresa.",
+  label: "Tour das Pessoas",
+  description: "A equipe da empresa, quem vende em campo e os acessos.",
   group: "Primeiros passos",
   route: FLOW_ROUTES.users,
-  version: 1,
+  version: 2,
   autoStart: true,
   steps: [
     {
       element: '[data-tour="users-actions"]',
-      title: "Adicionar usuário",
+      title: "Adicionar alguém",
       description:
-        "Cadastre um novo usuário da empresa ou exporte a lista atual.",
+        "Cadastre uma pessoa da empresa ou exporte a lista atual. Ao escolher o perfil Vendedor, ela já nasce podendo operar em campo.",
       side: "bottom",
       align: "end",
     },
     {
-      element: '[data-tour="users-search"]',
-      title: "Buscar usuário",
-      description: "Encontre um usuário pelo nome.",
+      element: '[data-tour="users-tabs"]',
+      title: "Pessoas e acessos",
+      description:
+        'Em "Pessoas" está toda a equipe. Em "Acessos por Fábrica" você define quais fábricas cada vendedor atende.',
       side: "bottom",
       align: "start",
     },
     {
       element: '[data-tour="users-table"]',
-      title: "Lista de usuários",
+      title: "Uma lista só",
       description:
-        "Aqui ficam todos os usuários, com o papel de cada um. Você pode editar ou desativar a partir da linha.",
+        'Quem vende em campo aparece com o selo "Vende em campo" e o resumo de fábricas e carteira. Clique na linha para abrir o perfil completo.',
       side: "top",
       align: "start",
     },

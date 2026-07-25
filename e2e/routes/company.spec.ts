@@ -3,14 +3,15 @@ import { mockGraphql } from "../support/graphql";
 import { grantRole } from "../support/role";
 
 /**
- * /company — dados e LOGO da empresa. Saiu das configurações e virou rota
- * própria, aberta pelo atalho "Dados da empresa" no menu do usuário na topbar;
- * é só do dono da conta (updateCompany é @is_owner no backend), por isso o
- * grantRole("OWNER").
+ * /settings/company — dados e LOGO da empresa. É só do dono da conta
+ * (updateCompany é @is_owner no backend), por isso o grantRole("OWNER").
  *
- * O que este teste protege: a logo escolhida precisa chegar na mutation como
- * `logoBase64`. É o caminho que, se quebrar, deixa a empresa sem logo no menu
- * e no PDF do pedido sem qualquer aviso — a tela salva "com sucesso" do mesmo
+ * A tela tem a mesma forma do perfil da pessoa: cards em leitura, com o botão
+ * âmbar do cabeçalho abrindo o modal daquele assunto.
+ *
+ * O que estes testes protegem: a logo escolhida precisa chegar na mutation como
+ * `logoBase64`. É o caminho que, se quebrar, deixa a empresa sem logo no menu e
+ * no PDF do pedido sem qualquer aviso — a tela salva "com sucesso" do mesmo
  * jeito, porque os outros campos vão junto.
  */
 const company = {
@@ -61,15 +62,19 @@ test("company: envia logo e símbolo junto dos dados da empresa", async ({
   });
 
   await grantRole(page, "OWNER");
-  await page.goto("/company");
+  await page.goto("/settings/company");
 
-  // O título do card de edição.
+  // As imagens têm card próprio ("Marca da empresa"), e a troca é num modal.
   await expect(
-    page.getByRole("heading", { name: "Dados da empresa" })
+    page.getByRole("heading", { name: "Marca da empresa" })
   ).toBeVisible();
+  await page.getByRole("button", { name: "Trocar imagens" }).click();
+
+  const dialog = page.getByRole("dialog");
+  await expect(dialog).toBeVisible();
 
   // Dois campos de imagem: [0] logo completa (PDF), [1] símbolo (avatar).
-  const inputs = page.locator('input[type="file"]');
+  const inputs = dialog.locator('input[type="file"]');
   await expect(inputs).toHaveCount(2);
   await inputs.nth(0).setInputFiles({
     name: "marca.png",
@@ -82,7 +87,7 @@ test("company: envia logo e símbolo junto dos dados da empresa", async ({
     buffer: PNG_1X1,
   });
 
-  await page.getByRole("button", { name: "Salvar" }).click();
+  await dialog.getByRole("button", { name: "Salvar imagens" }).click();
 
   await expect(page.getByText("Dados da empresa atualizados")).toBeVisible();
   expect(sentInput).not.toBeNull();
@@ -94,7 +99,7 @@ test("company: envia logo e símbolo junto dos dados da empresa", async ({
   expect(String(sentInput!.avatarBase64 ?? "").length).toBeGreaterThan(0);
 });
 
-test("company: salvar sem alterações avisa em vez de ficar mudo", async ({
+test("company: salvar sem alterar fecha o modal sem ir ao servidor", async ({
   page,
 }) => {
   let called = false;
@@ -112,15 +117,50 @@ test("company: salvar sem alterações avisa em vez de ficar mudo", async ({
   });
 
   await grantRole(page, "OWNER");
-  await page.goto("/company");
+  await page.goto("/settings/company");
   await expect(
-    page.getByRole("heading", { name: "Dados da empresa" })
+    page.getByRole("heading", { name: "Identificação da empresa" })
   ).toBeVisible();
 
-  await page.getByRole("button", { name: "Salvar" }).click();
+  await page.getByRole("button", { name: "Editar segmento" }).click();
+  const dialog = page.getByRole("dialog");
+  await expect(dialog).toBeVisible();
+  await dialog.getByRole("button", { name: "Salvar alterações" }).click();
 
-  // Sem isso o botão parecia quebrado: nada acontecia e o usuário concluía que
-  // a logo tinha sido salva.
-  await expect(page.getByText("Nada para salvar")).toBeVisible();
+  // Fechar já é o retorno visível — e um "salvo com sucesso" sem mudança nenhuma
+  // seria mentira.
+  await expect(dialog).toBeHidden();
   expect(called).toBe(false);
+});
+
+test("company: edita o contato pelo modal do card", async ({ page }) => {
+  let sentInput: Record<string, unknown> | null = null;
+
+  await mockGraphql(page, {
+    MyCompany: () => ({
+      my_company: { status: true, message: "ok", data: company },
+    }),
+    UpdateCompany: (variables) => {
+      sentInput = (variables.input ?? {}) as Record<string, unknown>;
+      return {
+        updateCompany: {
+          status: true,
+          message: "ok",
+          data: { ...company, whatsapp: "71988887777" },
+        },
+      };
+    },
+  });
+
+  await grantRole(page, "OWNER");
+  await page.goto("/settings/company");
+
+  await page.getByRole("button", { name: "Editar contato" }).click();
+  const dialog = page.getByRole("dialog");
+  await dialog.locator('input[name="whatsapp"]').fill("71988887777");
+  await dialog.getByRole("button", { name: "Salvar alterações" }).click();
+
+  await expect(page.getByText("Dados da empresa atualizados")).toBeVisible();
+  // Só o assunto do card viaja: o modal de contato não manda endereço nem marca.
+  expect(Object.keys(sentInput!)).toEqual(["whatsapp"]);
 });

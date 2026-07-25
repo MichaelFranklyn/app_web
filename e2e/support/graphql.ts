@@ -87,7 +87,7 @@ export function emptyConnection() {
 /**
  * Token de 3 segmentos só para satisfazer o cookie/Bearer — não é validado nos
  * mocks, mas o PAYLOAD é lido pelo servidor (roleGuard/requireAdminPage): sem
- * `role` admin, /sellers e /users redirecionam para /dashboard.
+ * `role` admin, /sellers e /settings/users redirecionam para /dashboard.
  * Payload: {"sub":"e2e-user","role":"owner"}
  */
 export const FAKE_JWT =

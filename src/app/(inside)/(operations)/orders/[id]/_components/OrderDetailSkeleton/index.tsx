@@ -19,9 +19,6 @@ function HeaderSkeleton() {
       <PanelHeader.Root>
         <PanelHeader.Top>
           <PanelHeader.Left>
-            <PanelHeader.Eyebrow>
-              <Loading.Skeleton className="h-[10px] w-24" />
-            </PanelHeader.Eyebrow>
             <Loading.Skeleton className="h-[20px] w-72" />
             <Loading.Skeleton className="mt-[6px] h-[12px] w-56" />
             <PanelHeader.Actions className="mt-6">

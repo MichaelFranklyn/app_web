@@ -1,0 +1,87 @@
+"use client";
+
+import { EmptyState } from "@/components/EmptyState";
+import { Loading } from "@/components/Loading";
+import { PageContent } from "@/components/PageContent";
+import { QueryError } from "@/components/QueryError";
+import { useQuery } from "@apollo/client/react";
+import { UserX } from "lucide-react";
+import {
+  ClientsSection,
+  FactoriesSection,
+  RoutineSection,
+  USER_DETAIL_QUERY,
+  UserDetailQueryResponse,
+  UserProfileHeader,
+} from "../../../_shared/userProfile";
+import { MyProfileCards } from "./_components/MyProfileCards";
+
+interface Props {
+  userId: string;
+  canEnableSeller: boolean;
+}
+
+export default function MyProfileContent({ userId, canEnableSeller }: Props) {
+  const { data, loading, error, refetch } = useQuery<UserDetailQueryResponse>(
+    USER_DETAIL_QUERY,
+    { variables: { id: userId } }
+  );
+
+  const user = data?.user_detail?.data;
+
+  if (loading && !user) {
+    return (
+      <PageContent>
+        <Loading.Skeleton className="h-[420px]" />
+      </PageContent>
+    );
+  }
+
+  if (error && !user) {
+    return (
+      <PageContent>
+        <QueryError onRetry={() => refetch()} retrying={loading} />
+      </PageContent>
+    );
+  }
+
+  if (!user) {
+    return (
+      <PageContent>
+        <EmptyState.Root className="max-w-[420px]">
+          <EmptyState.Icon>
+            <UserX size={32} />
+          </EmptyState.Icon>
+          <EmptyState.Title>Perfil não encontrado</EmptyState.Title>
+          <EmptyState.Description>
+            Não conseguimos carregar os seus dados. Saia e entre de novo no
+            sistema; se continuar assim, fale com o gestor da sua empresa.
+          </EmptyState.Description>
+        </EmptyState.Root>
+      </PageContent>
+    );
+  }
+
+  const seller = user.seller;
+
+  return (
+    <PageContent>
+      {/* Sem ações de gestão: ninguém se desativa ou muda o próprio papel. */}
+      <UserProfileHeader user={user} isSelf />
+
+      {/* Uma página só, sem abas — igual à visão do gestor: seus dados, sua
+          rotina, suas fábricas e sua carteira, em sequência. */}
+      <div className="flex flex-col gap-24" data-tour="user-profile-sections">
+        <MyProfileCards
+          user={user}
+          canEnableSeller={canEnableSeller}
+          onRefetch={refetch}
+        />
+
+        {seller && <RoutineSection seller={seller} onRefetch={refetch} />}
+        {seller && <FactoriesSection sellerId={seller.id} />}
+        {seller && <ClientsSection sellerId={seller.id} />}
+      </div>
+    </PageContent>
+  );
+}

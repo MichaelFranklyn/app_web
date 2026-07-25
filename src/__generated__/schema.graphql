@@ -2392,33 +2392,21 @@ extend type Mutation {
 input CreateSellerInput {
   name: String!
   email: String!
-  phone: String = null
+  "CPF da pessoa: gravado em `users`, e único por empresa."
   cpf: String = null
   region: String = null
-  homeCep: String = null
-  homeStreet: String = null
-  homeNumber: String = null
-  homeComplement: String = null
-  homeNeighborhood: String = null
-  homeCity: String = null
-  homeState: String = null
 }
 
 type SellerType {
   id: UUID!
   userId: UUID!
   companyId: UUID!
+  """
+  Nome da pessoa — projeção de `user.name`, não uma cópia guardada aqui. Os
+  demais dados pessoais (telefone, CPF, endereço) vêm por `user`.
+  """
   name: String!
-  phone: String
-  cpf: String
   region: String
-  homeCep: String
-  homeStreet: String
-  homeNumber: String
-  homeComplement: String
-  homeNeighborhood: String
-  homeCity: String
-  homeState: String
   isActive: Boolean!
   factoryCount: Int!
   clientCount: Int!
@@ -2458,17 +2446,12 @@ type SellerTypeEdge {
   cursor: String!
 }
 
+"""
+Só o que é do perfil de campo. Nome, telefone, CPF e endereço da pessoa se editam
+em `updateMyProfile` (o dono) ou `updateUser` (o gestor).
+"""
 input UpdateSellerInput {
-  name: String = null
-  phone: String = null
   region: String = null
-  homeCep: String = null
-  homeStreet: String = null
-  homeNumber: String = null
-  homeComplement: String = null
-  homeNeighborhood: String = null
-  homeCity: String = null
-  homeState: String = null
   isActive: Boolean = null
 }
 
@@ -2648,6 +2631,7 @@ input UpdateUserInput {
     email: String = null
     role: String = null
     password: String = null
+    cpf: String = null
     isActive: Boolean = null
 }
 
@@ -2660,6 +2644,16 @@ input UpdateUserPasswordInput {
 input UpdateMyProfileInput {
     name: String = null
     email: String = null
+    phone: String = null
+    cpf: String = null
+    birthDate: Date = null
+    addressZip: String = null
+    addressStreet: String = null
+    addressNumber: String = null
+    addressComplement: String = null
+    addressNeighborhood: String = null
+    addressCity: String = null
+    addressState: String = null
 }
 
 input UpdateMyPasswordInput {
@@ -2681,6 +2675,18 @@ type UserType {
     email: String!
     role: UserRole!
     isActive: Boolean!
+    """Dados pessoais de quem usa o sistema — não confundir com o contato da empresa (CompanyType)."""
+    phone: String
+    "CPF da pessoa — único por empresa. Veio de `sellers`: é dado de quem usa o sistema, não do perfil de vendedor."
+    cpf: String
+    birthDate: Date
+    addressZip: String
+    addressStreet: String
+    addressNumber: String
+    addressComplement: String
+    addressNeighborhood: String
+    addressCity: String
+    addressState: String
     createdAt: DateTime!
     updatedAt: DateTime!
     deletedAt: DateTime

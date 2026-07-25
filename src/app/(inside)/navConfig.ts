@@ -1,3 +1,4 @@
+import { isAdminRole, isOwnerRole } from "@/utils/auth/roles";
 import {
   Building2,
   CalendarDays,
@@ -6,11 +7,13 @@ import {
   Landmark,
   LayoutDashboard,
   Route,
-  Settings,
-  UserCheck,
+  Tags,
   UserCog,
   Users,
 } from "lucide-react";
+
+/** Quem vê o item — espelha o guard da rota de destino. */
+export type NavAccess = "all" | "admin" | "owner";
 
 export const ROLE_LABEL: Record<string, string> = {
   SU: "Super Admin",
@@ -60,28 +63,30 @@ export const NAV = [
     icon: Building2,
   },
   { divider: true },
+  // Configuração desdobrada: em vez de um item único levando ao hub, cada assunto
+  // é um destino na sidebar. Quem precisa mexer no catálogo chega em um clique, e
+  // não em três. `access` espelha o guard da rota — item que leva a um redirect é
+  // pior do que item ausente (mesma regra do hub, em settings/utils.ts).
   { section: "Configurações" },
   {
-    href: "/users",
-    label: "Usuários",
+    href: "/settings/company",
+    label: "Empresa",
+    icon: Building2,
+    access: "owner",
+  },
+  {
+    href: "/settings/users",
+    matchPrefix: "/settings/users",
+    label: "Pessoas",
     icon: UserCog,
-    adminOnly: true,
+    access: "admin",
   },
   {
-    href: "/sellers",
-    label: "Vendedores",
-    icon: UserCheck,
-    adminOnly: true,
-  },
-  {
-    // Aponta direto para a aba padrão para evitar o flash em branco do redirect
-    // server-side de /settings. matchPrefix mantém o item ativo nas duas abas;
-    // tourRoute preserva o seletor do tour ([data-tour-route="/settings"]).
     href: "/settings/catalog",
-    matchPrefix: "/settings",
-    tourRoute: "/settings",
-    label: "Configurações",
-    icon: Settings,
+    matchPrefix: "/settings/catalog",
+    label: "Catálogos",
+    icon: Tags,
+    access: "admin",
   },
 ];
 
@@ -97,14 +102,41 @@ export const SU_NAV = [
   },
 ];
 
-export const LABELS: Record<string, string> = {
-  ...Object.fromEntries(
-    NAV.filter((item) => "href" in item).map((item) => [
-      (item as { href: string; label: string }).href,
-      (item as { href: string; label: string }).label,
-    ])
-  ),
-  // Rotas acessíveis fora da sidebar (ex: dropdown do topbar) ou gated por role
-  "/profile": "Meu Perfil",
-  "/companies": "Empresas",
+/**
+ * Itens que o papel pode abrir, já sem os grupos que ficaram vazios: um vendedor
+ * não vê nenhum destino de configuração, e um título "Configurações" solto (ou um
+ * divisor no fim da lista) é sujeira visível.
+ */
+export const visibleNav = (role?: string | null) => {
+  const isAdmin = isAdminRole(role);
+  const isOwner = isOwnerRole(role);
+
+  const allowed = NAV.filter((item) => {
+    const access = (item as { access?: NavAccess }).access;
+    if (!access || access === "all") return true;
+    return access === "owner" ? isOwner : isAdmin;
+  });
+
+  // Segunda passada: descarta seção sem nenhum destino depois dela e divisor que
+  // ficou encostado em outro (ou no fim).
+  return allowed.filter((item, index) => {
+    if ("section" in item) {
+      const next = allowed[index + 1];
+      return !!next && !("section" in next) && !("divider" in next);
+    }
+    if ("divider" in item) {
+      const next = allowed[index + 1];
+      if (!next || "divider" in next) return false;
+      // Divisor antes de uma seção que vai cair também não deve sobrar.
+      if ("section" in next) {
+        const afterSection = allowed[index + 2];
+        return (
+          !!afterSection &&
+          !("section" in afterSection) &&
+          !("divider" in afterSection)
+        );
+      }
+    }
+    return true;
+  });
 };

@@ -1,7 +1,6 @@
 "use client";
 
 import { Badge } from "@/components/Badges";
-import { factoryName } from "@/utils/company";
 import { Breadcrumb } from "@/components/Breadcrumb";
 import { PanelHeader } from "@/components/PanelHeader";
 import { formatDateDMY } from "@/utils/format/masks";
@@ -25,8 +24,6 @@ export function PriceListDetailHeader({
   companyFactory,
   onRefetch,
 }: Props) {
-  const factory = companyFactory.factory;
-  const factoryLabel = factoryName(factory);
   const basePath = `/factories/${companyFactory.id}`;
 
   const validity = priceList
@@ -59,9 +56,6 @@ export function PriceListDetailHeader({
       <PanelHeader.Root>
         <PanelHeader.Top>
           <PanelHeader.Left>
-            <PanelHeader.Eyebrow>
-              Tabela de preços · {factoryLabel}
-            </PanelHeader.Eyebrow>
             <PanelHeader.Title>
               {loading && !priceList ? "Carregando…" : priceList?.name}
             </PanelHeader.Title>

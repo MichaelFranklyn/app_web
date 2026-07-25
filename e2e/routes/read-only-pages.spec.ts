@@ -8,7 +8,7 @@ import {
 /**
  * Cauda longa — smoke de RENDER das páginas de leitura/visualização
  * (sem mutação). Mocka as queries de montagem e afirma um elemento estável
- * (eyebrow numerado / título único). Não exercita interação — garante que a
+ * (o <h1> do header). Não exercita interação — garante que a
  * rota monta sem quebrar com dados vazios.
  */
 const conn = (nodes: Array<Record<string, unknown>> = []) => ({
@@ -27,7 +27,6 @@ test("dashboard: monta e renderiza o KPI de pedidos do período", async ({
     CompanyClientsCount: () => ({ company_clients_count: { totalCount: 12 } }),
   });
   await page.goto("/dashboard");
-  // "Visão Geral" é ambíguo: é o eyebrow do header E a aba de navegação.
   // O <h1> do PanelHeader.Title é único na página.
   await expect(
     page.getByRole("heading", { name: "Dashboard", level: 1 })
@@ -36,32 +35,48 @@ test("dashboard: monta e renderiza o KPI de pedidos do período", async ({
   await expect(page.getByText("7", { exact: true })).toBeVisible();
 });
 
-test("vendedor detalhe: monta o cabeçalho", async ({ page }) => {
+// O perfil substituiu /sellers/[id]: uma tela só, keyed pelo USUÁRIO, que ganha
+// as abas de vendedor quando a pessoa tem perfil de vendedor.
+test("perfil do vendedor: cabeçalho e blocos de campo na mesma página", async ({
+  page,
+}) => {
   await mockGraphql(page, {
-    SellerDetail: () => ({
-      seller_detail: {
+    UserDetail: () => ({
+      user_detail: {
         status: true,
         message: "ok",
         data: {
-          id: "seller-1",
+          id: "u-1",
           name: "Vendedor Detalhe",
-          phone: "11999990000",
-          cpf: "12345678909",
-          region: "Sudeste",
-          homeCep: null,
-          homeStreet: null,
-          homeNumber: null,
-          homeComplement: null,
-          homeNeighborhood: null,
-          homeCity: null,
-          homeState: null,
+          email: "v@empresa.com",
+          role: "SELLER",
           isActive: true,
-          factoryCount: 0,
-          clientCount: 0,
-          totalRevenue: "0",
-          lastOrderDate: null,
+          phone: "11999990000",
+          birthDate: "1970-05-10",
+          addressZip: null,
+          addressStreet: null,
+          addressNumber: null,
+          addressComplement: null,
+          addressNeighborhood: null,
+          addressCity: null,
+          addressState: null,
           createdAt: "2026-01-01T00:00:00Z",
-          user: { id: "u-1", email: "v@empresa.com" },
+          company: {
+            id: "c-1",
+            nomeFantasia: "Empresa Teste",
+            razaoSocial: "Empresa Teste LTDA",
+          },
+          seller: {
+            id: "seller-1",
+            name: "Vendedor Detalhe",
+            region: "Sudeste",
+            isActive: true,
+            factoryCount: 0,
+            clientCount: 0,
+            totalRevenue: "0",
+            lastOrderDate: null,
+            scheduleConfig: null,
+          },
         },
       },
     }),
@@ -69,8 +84,23 @@ test("vendedor detalhe: monta o cabeçalho", async ({ page }) => {
     SellerClientLinks: () => ({ seller_clients: emptyConnection() }),
   });
 
-  await page.goto("/sellers/seller-1");
-  await expect(page.getByText("Vendedor Detalhe").first()).toBeVisible();
+  await page.goto("/settings/users/u-1");
+
+  await expect(
+    page.getByRole("heading", { name: "Vendedor Detalhe", level: 1 })
+  ).toBeVisible();
+  // Sem abas: os blocos de campo estão na mesma página, um abaixo do outro, e
+  // só existem porque este usuário tem perfil de vendedor.
+  const sections = page.locator('[data-tour="user-profile-sections"]');
+  for (const bloco of [
+    "Dados pessoais",
+    "Acesso ao sistema",
+    "Rotina de visitas",
+    "Fábricas com acesso",
+    "Carteira de clientes",
+  ]) {
+    await expect(sections.getByRole("heading", { name: bloco })).toBeVisible();
+  }
 });
 
 test("rotina por data: monta a semana", async ({ page }) => {
@@ -78,7 +108,9 @@ test("rotina por data: monta a semana", async ({ page }) => {
     VisitsWeekSchedule: () => ({ week_schedule: conn([]) }),
   });
   await page.goto("/routines/2026-06-22");
-  await expect(page.getByText(/07.*Rotina/)).toBeVisible();
+  await expect(
+    page.getByRole("heading", { name: "Rota do Dia", level: 1 })
+  ).toBeVisible();
 });
 
 test("fábrica/pedidos: monta a aba de pedidos", async ({ page }) => {
@@ -87,5 +119,7 @@ test("fábrica/pedidos: monta a aba de pedidos", async ({ page }) => {
     FactoryOrders: () => ({ factory_orders: conn([]) }),
   });
   await page.goto("/factories/factory-1/orders");
-  await expect(page.getByText(/02.*Fábricas/)).toBeVisible();
+  await expect(
+    page.getByRole("heading", { name: "Fábrica Detalhe", level: 1 })
+  ).toBeVisible();
 });

@@ -42,6 +42,7 @@ const FLOW_TOUR_SEEN = JSON.stringify(
       "users",
       "sellers",
       "seller-detail",
+      "settings-hub",
       "settings-catalog",
       "settings-routine",
       "profile",

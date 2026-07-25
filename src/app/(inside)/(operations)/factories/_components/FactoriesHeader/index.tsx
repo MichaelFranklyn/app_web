@@ -27,7 +27,6 @@ export function FactoriesHeader({
     <PanelHeader.Root>
       <PanelHeader.Top>
         <PanelHeader.Left>
-          <PanelHeader.Eyebrow>02 — Fábricas</PanelHeader.Eyebrow>
           <PanelHeader.Title>Fábricas Representadas</PanelHeader.Title>
           <PanelHeader.Description>
             Fábricas cujos produtos são vendidos pela empresa. Entidade global

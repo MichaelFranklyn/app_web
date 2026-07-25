@@ -39,7 +39,7 @@ const ROUTE_MOCKS: Record<string, Record<string, () => unknown>> = {
   "/factories": {
     CompanyFactories: () => ({ company_factories_list: conn() }),
   },
-  "/users": { Users: () => ({ users_list: conn() }) },
+  "/settings/users": { Users: () => ({ users_list: conn() }) },
   "/sellers": {
     Sellers: () => ({ sellers_list: conn() }),
     SellerFactoryAccessList: () => ({ seller_factory_access_list: conn() }),

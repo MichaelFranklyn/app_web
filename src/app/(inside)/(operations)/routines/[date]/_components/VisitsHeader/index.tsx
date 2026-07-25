@@ -12,12 +12,7 @@ export function VisitsHeader({ dateLabel, sellerName }: Props) {
     <PanelHeader.Root>
       <PanelHeader.Top>
         <PanelHeader.Left>
-          <PanelHeader.Eyebrow>
-            07 — Rotina
-          </PanelHeader.Eyebrow>
-          <PanelHeader.Title>
-            Rota do Dia
-          </PanelHeader.Title>
+          <PanelHeader.Title>Rota do Dia</PanelHeader.Title>
           <PanelHeader.Description>{description}</PanelHeader.Description>
         </PanelHeader.Left>
       </PanelHeader.Top>

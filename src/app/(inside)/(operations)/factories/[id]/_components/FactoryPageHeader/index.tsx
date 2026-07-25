@@ -37,7 +37,6 @@ export function FactoryPageHeader({ companyFactory }: Props) {
       <PanelHeader.Root>
         <PanelHeader.Top>
           <PanelHeader.Left>
-            <PanelHeader.Eyebrow>02 — Fábricas</PanelHeader.Eyebrow>
             <div className="flex items-center gap-12">
               <Avatar
                 size="xl"

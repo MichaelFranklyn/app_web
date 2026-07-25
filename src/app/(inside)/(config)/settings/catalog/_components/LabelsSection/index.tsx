@@ -66,7 +66,7 @@ export function LabelsSection() {
           />
         </Table.CardHead.Actions>
       </Table.CardHead>
-      <Table.Table maxHeight={360}>
+      <Table.Table maxHeight={600}>
         <Table.Header>
           <Table.Row>
             <Table.Head>Rótulo</Table.Head>

@@ -46,7 +46,6 @@ export default function CompaniesContent() {
       <PanelHeader.Root>
         <PanelHeader.Top>
           <PanelHeader.Left>
-            <PanelHeader.Eyebrow>Plataforma</PanelHeader.Eyebrow>
             <PanelHeader.Title>Nova empresa</PanelHeader.Title>
             <PanelHeader.Description>
               Cadastre uma empresa e o seu primeiro responsável para liberar o

@@ -29,7 +29,10 @@ export const CREATE_PRODUCT_UNIT_MUTATION = gql`
 `;
 
 export const UPDATE_PRODUCT_UNIT_MUTATION = gql`
-  mutation SettingsUpdateProductUnit($id: UUID!, $input: UpdateProductUnitInput!) {
+  mutation SettingsUpdateProductUnit(
+    $id: UUID!
+    $input: UpdateProductUnitInput!
+  ) {
     updateProductUnit(id: $id, input: $input) {
       status
       message
@@ -66,7 +69,9 @@ export const PRODUCT_UNIT_LABELS_QUERY = gql`
 `;
 
 export const CREATE_PRODUCT_UNIT_LABEL_MUTATION = gql`
-  mutation SettingsCreateProductUnitLabel($input: CreateProductUnitLabelInput!) {
+  mutation SettingsCreateProductUnitLabel(
+    $input: CreateProductUnitLabelInput!
+  ) {
     createProductUnitLabel(input: $input) {
       status
       message

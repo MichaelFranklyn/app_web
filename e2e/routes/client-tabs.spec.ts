@@ -49,12 +49,14 @@ const clientLayout = () => ({
   SellerClientFactoriesByClient: () => ({ sellerClientFactoryList: conn() }),
 });
 
-const eyebrow = /03.*Clientes/;
+// O <h1> do header do cliente — o eyebrow numerado saiu de todas as telas.
+const cabecalho = (page: import("@playwright/test").Page) =>
+  page.getByRole("heading", { name: "Cliente Abas", level: 1 });
 
 test("cliente/fábricas: monta a aba", async ({ page }) => {
   await mockGraphql(page, { ...clientLayout() });
   await page.goto("/clients/client-1/factories");
-  await expect(page.getByText(eyebrow)).toBeVisible();
+  await expect(cabecalho(page)).toBeVisible();
 });
 
 test("cliente/pedidos: monta a aba", async ({ page }) => {
@@ -66,7 +68,7 @@ test("cliente/pedidos: monta a aba", async ({ page }) => {
     }),
   });
   await page.goto("/clients/client-1/orders");
-  await expect(page.getByText(eyebrow)).toBeVisible();
+  await expect(cabecalho(page)).toBeVisible();
 });
 
 test("cliente/score: monta a aba", async ({ page }) => {
@@ -80,7 +82,7 @@ test("cliente/score: monta a aba", async ({ page }) => {
     ClientProductInsights: () => ({ clientProductInsights: conn() }),
   });
   await page.goto("/clients/client-1/score");
-  await expect(page.getByText(eyebrow)).toBeVisible();
+  await expect(cabecalho(page)).toBeVisible();
 });
 
 test("cliente/estoque: renderiza uma linha de insight com a unidade (unit.label)", async ({
@@ -138,7 +140,7 @@ test("cliente/estoque: renderiza uma linha de insight com a unidade (unit.label)
     }),
   });
   await page.goto("/clients/client-1/stock");
-  await expect(page.getByText(eyebrow)).toBeVisible();
+  await expect(cabecalho(page)).toBeVisible();
 
   await page
     .getByRole("button", { name: "Ver os produtos de Fábrica" })
@@ -156,5 +158,5 @@ test("cliente/visitas: monta a aba", async ({ page }) => {
     VisitsByCompanyClient: () => ({ visitsByCompanyClient: conn() }),
   });
   await page.goto("/clients/client-1/visits");
-  await expect(page.getByText(eyebrow)).toBeVisible();
+  await expect(cabecalho(page)).toBeVisible();
 });

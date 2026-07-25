@@ -25,7 +25,6 @@ export function OrdersHeader({ stats, onAddOptimistic }: Props) {
       <PanelHeader.Root>
         <PanelHeader.Top>
           <PanelHeader.Left>
-            <PanelHeader.Eyebrow>05 — Pedidos</PanelHeader.Eyebrow>
             <PanelHeader.Title>Pedidos</PanelHeader.Title>
             <PanelHeader.Description>
               Gestão de pedidos por fábrica e vendedor.

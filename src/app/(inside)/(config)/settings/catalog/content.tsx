@@ -1,28 +1,31 @@
 "use client";
 
-import { Card } from "@/components/Card";
 import { Grid } from "@/components/Grid";
-import { CategoriesSection } from "./_components/CategoriesSection";
-import { LabelsSection } from "./_components/LabelsSection";
-import { TaxRulesSection } from "./_components/TaxRulesSection";
-import { UnitsSection } from "./_components/UnitsSection";
+import { PageContent } from "@/components/PageContent";
+import { CatalogNavCard } from "./_components/CatalogNavCard";
+import { CatalogHeader } from "./_components/CatalogHeader";
+import { CATALOG_LINKS } from "./utils";
 
 export default function CatalogSettingsContent() {
   return (
-    <div className="flex flex-col gap-20">
-      {/* Group faz os 4 headers colapsarem juntos (mesma largura → mesmo estágio). */}
-      <Card.Header.Group>
-        <Grid.Root
-          cols={{ base: 1, desktop: 2 }}
-          gap={16}
-          data-tour="settings-catalog-sections"
-        >
-          <CategoriesSection />
-          <UnitsSection />
-          <LabelsSection />
-          <TaxRulesSection />
-        </Grid.Root>
-      </Card.Header.Group>
-    </div>
+    <PageContent>
+      <CatalogHeader />
+
+      <Grid.Root
+        cols={{ base: 1, desktop: 2 }}
+        gap={16}
+        data-tour="settings-catalog-sections"
+      >
+        {CATALOG_LINKS.map((link) => (
+          <CatalogNavCard
+            key={link.href}
+            href={link.href}
+            label={link.label}
+            description={link.description}
+            icon={link.icon}
+          />
+        ))}
+      </Grid.Root>
+    </PageContent>
   );
 }

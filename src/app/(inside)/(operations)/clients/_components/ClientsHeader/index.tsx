@@ -23,7 +23,6 @@ export function ClientsHeader({ stats, onAddOptimistic }: ClientsHeaderProps) {
       <PanelHeader.Root>
         <PanelHeader.Top>
           <PanelHeader.Left>
-            <PanelHeader.Eyebrow>03 — Clientes</PanelHeader.Eyebrow>
             <PanelHeader.Title>Clientes</PanelHeader.Title>
             <PanelHeader.Description>
               Carteira de clientes da empresa. Dados globais complementados com

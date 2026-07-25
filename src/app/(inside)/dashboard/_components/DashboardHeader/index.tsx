@@ -1,6 +1,11 @@
+"use client";
+
+import { Button } from "@/components/Button";
 import { Input } from "@/components/Input";
 import { SelectOption } from "@/components/Input";
 import { PanelHeader } from "@/components/PanelHeader";
+import { ChartLine } from "lucide-react";
+import { useRouter } from "next/navigation";
 import { DateRangeIso, SellerOption } from "../../interface";
 import { formatDateRangeLabel } from "../../utils";
 import { DashboardDateFilter } from "../DashboardDateFilter";
@@ -24,6 +29,7 @@ export function DashboardHeader({
   selectedSellerName,
   onSelectSeller,
 }: Props) {
+  const router = useRouter();
   const periodLabel = `Período · ${formatDateRangeLabel(range.from, range.to)}`;
   const description =
     canSelectSeller && selectedSellerName
@@ -41,7 +47,6 @@ export function DashboardHeader({
     <PanelHeader.Root>
       <PanelHeader.Top>
         <PanelHeader.Left>
-          <PanelHeader.Eyebrow>Visão Geral</PanelHeader.Eyebrow>
           <PanelHeader.Title>Dashboard</PanelHeader.Title>
           <PanelHeader.Description>{description}</PanelHeader.Description>
           <PanelHeader.Actions className="mt-6">
@@ -62,6 +67,18 @@ export function DashboardHeader({
               </div>
             )}
             <DashboardDateFilter value={range} onChange={onRangeChange} />
+            {/* As abas "Visão Geral"/"Análises" saíram: eram duas telas
+                irmãs disputando um cabeçalho. Daqui se vai para o desempenho e
+                de lá se volta pelo rastro. */}
+            <Button.Root
+              appearance="outline"
+              color="neutral"
+              size="sm"
+              onClick={() => router.push("/dashboard/analytics")}
+            >
+              <Button.Icon icon={ChartLine} />
+              <Button.Title>Ver desempenho</Button.Title>
+            </Button.Root>
           </PanelHeader.Actions>
         </PanelHeader.Left>
       </PanelHeader.Top>

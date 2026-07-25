@@ -20,9 +20,6 @@ export function ProductDetailSkeleton() {
         <PanelHeader.Root>
           <PanelHeader.Top>
             <PanelHeader.Left>
-              <PanelHeader.Eyebrow>
-                <Loading.Skeleton className="h-[10px] w-32" />
-              </PanelHeader.Eyebrow>
               <Loading.Skeleton className="h-[22px] w-64" />
               <Loading.Skeleton className="mt-[6px] h-[12px] w-96 max-w-full" />
               <PanelHeader.Actions className="mt-6">

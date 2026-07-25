@@ -39,6 +39,28 @@ const SSR_RESPONSES: Record<string, unknown> = {
       },
     },
   },
+  // Queries do SHELL (topbar/sidebar/tour). Não são SSR do Next: são do browser,
+  // mas passam pelo BFF (/api/graphql), então chegam aqui em todo spec que não
+  // as declara no mockGraphql — por ex. os specs do hub de /settings, que não
+  // mockam nada porque a página é estática.
+  MyUnreadNotificationsCount: {
+    myUnreadNotificationsCount: { status: true, data: 0 },
+  },
+  CompanyBranding: {
+    company_branding: {
+      status: true,
+      data: {
+        id: "c-1",
+        razaoSocial: "Empresa Teste LTDA",
+        nomeFantasia: "Empresa Teste",
+        logoUrl: null,
+        avatarUrl: null,
+      },
+    },
+  },
+  userFlowLayout: {
+    userFlowLayout: { status: true, code: 200, message: "ok", data: [] },
+  },
   ClientStats: {
     clientStats: {
       totalClients: 0,

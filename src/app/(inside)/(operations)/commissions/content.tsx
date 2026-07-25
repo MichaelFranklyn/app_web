@@ -124,7 +124,6 @@ export default function CommissionsContent({
       <PanelHeader.Root>
         <PanelHeader.Top>
           <PanelHeader.Left>
-            <PanelHeader.Eyebrow>Comissões</PanelHeader.Eyebrow>
             <PanelHeader.Title>Comissões</PanelHeader.Title>
             <PanelHeader.Description>
               {canManage

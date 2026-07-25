@@ -52,6 +52,14 @@ const createFieldValidator = (field: FormFieldSchema) => {
     case "date":
       validator = yup
         .date()
+        // Campo vazio chega como "", que o yup não consegue converter e cairia no
+        // `typeError` — uma data OPCIONAL em branco passaria a bloquear o form.
+        // `.nullable()` só cobre null, então normalizamos aqui.
+        .transform((value, original) =>
+          original === "" || original === null || original === undefined
+            ? null
+            : value
+        )
         .typeError(
           `${
             field.labelText ??

@@ -2,61 +2,125 @@ import { expect, test } from "../support/fixtures";
 import { emptyConnection, mockGraphql } from "../support/graphql";
 import { grantRole } from "../support/role";
 
-test("settings: redireciona para o catálogo e renderiza as seções", async ({
-  page,
-}) => {
-  await mockGraphql(page, {
-    SettingsProductCategories: () => ({
-      product_categories: emptyConnection(),
-    }),
-    SettingsProductUnits: () => ({ productUnits: emptyConnection() }),
-    SettingsProductUnitLabels: () => ({ productUnitLabels: emptyConnection() }),
-    SettingsTaxRules: () => ({ taxRules: emptyConnection() }),
-  });
+/**
+ * O hub de /settings deixou de existir: cada assunto é item na sidebar, então a
+ * rota só encaminha para o primeiro assunto que o papel pode abrir. Mandar todo
+ * mundo para /settings/company jogaria o admin contra o `requireOwnerPage`.
+ */
+const stub = {
+  MyCompany: () => ({
+    my_company: {
+      status: true,
+      message: "ok",
+      data: {
+        id: "c-1",
+        cnpj: "33000167000101",
+        razaoSocial: "EMPRESA TESTE LTDA",
+        nomeFantasia: "Empresa Teste",
+        segment: "Representação",
+        phone: null,
+        whatsapp: null,
+        website: null,
+        addressZip: null,
+        addressStreet: null,
+        addressNumber: null,
+        addressComplement: null,
+        addressNeighborhood: null,
+        addressCity: null,
+        addressState: null,
+        logoUrl: null,
+        avatarUrl: null,
+      },
+    },
+  }),
+  Users: () => ({ users_list: emptyConnection() }),
+  UsersStats: () => ({
+    users_stats: {
+      totalCount: 0,
+      activeCount: 0,
+      adminCount: 0,
+      sellerCount: 0,
+    },
+  }),
+};
 
-  // Catálogos da empresa é aba de gestor (vendedor só vê a rotina).
-  await grantRole(page, "OWNER");
+test("settings: o dono cai nos dados da empresa", async ({ page }) => {
+  await mockGraphql(page, stub);
+  await grantRole(page, "OWNER", { alsoJwt: true });
+
   await page.goto("/settings");
 
-  // /settings faz redirect server-side para /settings/catalog (papel gestor).
-  await expect(page).toHaveURL(/\/settings\/catalog$/);
-  await expect(page.getByText("Catálogos da empresa").first()).toBeVisible();
-  await expect(page.getByText("Categorias de produtos").first()).toBeVisible();
+  await expect(page).toHaveURL(/\/settings\/company$/);
 });
 
-test("settings: vendedor cai na rotina e não vê a aba de catálogos", async ({
-  page,
-}) => {
-  await mockGraphql(page, {
-    VisitScheduleConfigs: () => ({ schedule_configs: emptyConnection() }),
-  });
+test("settings: o admin cai na lista de pessoas", async ({ page }) => {
+  await mockGraphql(page, stub);
+  await grantRole(page, "ADMIN", { alsoJwt: true });
 
-  // Estado padrão do storageState já é SELLER, mas o redirect de /settings usa
-  // o papel do JWT (owner no FAKE_JWT) — forjamos um token de vendedor.
-  await grantRole(page, "SELLER", { alsoJwt: true });
   await page.goto("/settings");
 
-  await expect(page).toHaveURL(/\/settings\/routine$/);
-  // Âncora primeiro: garante que a shell (abas) renderizou antes de afirmar a
-  // ausência — toHaveCount(0) passaria num DOM ainda vazio. E por role: o
-  // SUBTÍTULO do header contém "Catálogos da empresa...", só a ABA é link.
+  // `updateCompany` é @is_owner: mandá-lo para /settings/company seria um beco.
+  await expect(page).toHaveURL(/\/settings\/users$/);
+});
+
+test("settings: o vendedor cai no próprio perfil", async ({ page }) => {
+  await mockGraphql(page, stub);
+  await grantRole(page, "SELLER", { alsoJwt: true });
+
+  await page.goto("/settings");
+
+  // Nenhum assunto da empresa é dele; o que é dele é o perfil.
+  await expect(page).toHaveURL(/\/settings\/user\/e2e-user$/);
+});
+
+test("settings: vendedor que abre o catálogo é devolvido", async ({ page }) => {
+  // Todos os guards de configuração devolvem para /profile — uma regra só, e sem
+  // a cadeia /settings/catalog → /settings → /profile que existia antes.
+  await mockGraphql(page, stub);
+  await grantRole(page, "SELLER", { alsoJwt: true });
+
+  await page.goto("/settings/catalog");
+
+  await expect(page).toHaveURL(/\/settings\/user\/e2e-user$/);
+});
+
+test("settings/catalog: o índice lista um card por catálogo", async ({
+  page,
+}) => {
+  await grantRole(page, "OWNER", { alsoJwt: true });
+  await page.goto("/settings/catalog");
+
+  const hub = page.locator('[data-tour="settings-catalog-sections"]');
   await expect(
-    page.getByRole("link", { name: "Configuração de rotina" })
+    hub.getByRole("link", { name: "Categorias de produtos" })
+  ).toBeVisible();
+  await expect(hub.getByRole("link", { name: "Unidades" })).toBeVisible();
+  await expect(
+    hub.getByRole("link", { name: "Rótulos de embalagem" })
   ).toBeVisible();
   await expect(
-    page.getByRole("link", { name: "Catálogos da empresa" })
-  ).toHaveCount(0);
+    hub.getByRole("link", { name: "Regras de imposto" })
+  ).toBeVisible();
 });
 
-test("settings/routine: renderiza a aba de configuração de rotina", async ({
+test("settings: nenhuma rota de configuração se abre para o vendedor", async ({
   page,
 }) => {
-  await mockGraphql(page, {
-    VisitScheduleConfigs: () => ({ schedule_configs: emptyConnection() }),
-  });
+  await mockGraphql(page, { ...stub });
+  await grantRole(page, "SELLER", { alsoJwt: true });
 
-  await page.goto("/settings/routine");
-
-  await expect(page).toHaveURL(/\/settings\/routine$/);
-  await expect(page.getByText("Configuração de rotina").first()).toBeVisible();
+  for (const rota of [
+    "/settings",
+    "/settings/company",
+    "/settings/users",
+    "/settings/catalog",
+    "/settings/catalog/categories",
+    "/settings/catalog/units",
+    "/settings/catalog/labels",
+    "/settings/catalog/tax-rules",
+  ]) {
+    await page.goto(rota);
+    // Sempre termina no próprio perfil — a única coisa que é dele.
+    await expect(page, `rota ${rota}`).toHaveURL(/\/settings\/user\/e2e-user$/);
+  }
 });

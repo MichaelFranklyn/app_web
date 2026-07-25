@@ -20,7 +20,6 @@ export default function InsideLayout({
   const {
     pathname,
     isDayRoute,
-    pageLabel,
     todayIso,
     drawerOpen,
     setDrawerOpen,
@@ -189,24 +188,13 @@ export default function InsideLayout({
               >
                 <Menu size={20} strokeWidth={2} />
               </button>
-              {/* `truncate`: sem ele o rótulo era cortado no meio da palavra,
-                  sem reticências, ao ceder espaço para o lado direito. */}
-              <span className="truncate font-(--weight-semibold) text-(--text)">
-                {pageLabel}
-              </span>
+              {/* Quem está logado, não onde está: o título da página já aparece
+                  logo abaixo, no header, e repetir o rótulo aqui era ler a mesma
+                  palavra duas vezes. */}
+              <CompanyBadge />
             </Topbar.Breadcrumb>
 
             <Topbar.Actions>
-              {/* Qual empresa está logada (a marca do produto fica na sidebar).
-                  No mobile a barra não comporta: o menu lateral já identifica. */}
-              <CompanyBadge className="tablet:flex hidden" />
-              <Topbar.Separator className="tablet:block hidden" />
-              <Topbar.Status
-                variant="online"
-                label="API conectada"
-                className="tablet:inline-flex hidden"
-              />
-              <Topbar.Separator className="tablet:block hidden" />
               <DevRoleSwitch />
               <NotificationCenter />
               <UserMenu

@@ -38,7 +38,6 @@ export function OrderDetailHeader({ order, onRefetch }: Props) {
       <PanelHeader.Root>
         <PanelHeader.Top>
           <PanelHeader.Left>
-            <PanelHeader.Eyebrow>05 — Pedidos</PanelHeader.Eyebrow>
             <PanelHeader.Title>
               {order.id.slice(0, 8).toUpperCase()}
               {" · "}

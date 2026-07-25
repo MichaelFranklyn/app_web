@@ -1,24 +1,8 @@
-import { executeServerQueries } from "@/services/graphql/getDataServer";
-import { requireAdminPage } from "@/utils/auth/roleGuard";
-import UsersContent from "./content";
-import { USERS_QUERY } from "./gql";
-import { ITEMS_PER_PAGE, QueryData } from "./interface";
+import { redirect } from "next/navigation";
 
-const Page = async () => {
-  // `users` é admin-only no backend — vendedor é redirecionado antes de
-  // disparar a query (senão a página crasha).
-  await requireAdminPage();
-
-  // 1ª página da lista no servidor → semeia o cache do Apollo no cliente.
-  const data = await executeServerQueries<QueryData>({
-    users_list: {
-      query: USERS_QUERY,
-      variables: { input: { first: ITEMS_PER_PAGE, after: null } },
-      cache: { tags: [`users_list`], noCache: true },
-    },
-  });
-
-  return <UsersContent initialData={data} />;
-};
+// A lista de pessoas passou a morar sob as configurações (/settings/users, item
+// "Pessoas" na sidebar). Mantido como atalho para não dar 404 em link salvo,
+// como já se faz com /sellers e /profile.
+const Page = () => redirect("/settings/users");
 
 export default Page;

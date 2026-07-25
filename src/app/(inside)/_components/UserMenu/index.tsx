@@ -58,7 +58,7 @@ export function UserMenu({
         {canManageCompany && (
           <Dropdown.Item
             icon={Building2}
-            onSelect={() => router.push("/company")}
+            onSelect={() => router.push("/settings/company")}
           >
             Dados da empresa
           </Dropdown.Item>
