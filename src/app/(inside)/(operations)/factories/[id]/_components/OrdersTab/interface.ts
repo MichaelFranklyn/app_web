@@ -29,6 +29,7 @@ export interface FactoryAssignment {
     id: string;
     razaoSocial: string;
     nomeFantasia: string | null;
+    cnpj: string | null;
   } | null;
 }
 

@@ -18,6 +18,10 @@ import {
 import { usePaymentTermOptions } from "../../../../../_shared/orderPaymentTerms";
 import { FREIGHT_OPTIONS } from "../../../../../_shared/orderFreight";
 import {
+  clientOptionLabel,
+  clientOptionSearchText,
+} from "../../../../../_shared/clientOption";
+import {
   CREATE_ORDER_FROM_FACTORY_MUTATION,
   FACTORY_ASSIGNMENTS_QUERY,
 } from "../gql";
@@ -37,11 +41,6 @@ interface OrderDetails {
   deliveryEstimateDays: number | null;
   isQuote: boolean;
 }
-
-const clientLabel = (c: {
-  razaoSocial: string;
-  nomeFantasia: string | null;
-}): string => c.nomeFantasia ?? c.razaoSocial;
 
 /**
  * Novo pedido a partir da fábrica — MESMO wizard de 2 passos da lista /orders
@@ -86,8 +85,9 @@ export function useAddFactoryOrder({ factoryId }: AddFactoryOrderProps) {
   const assignmentOptions = useMemo(
     () =>
       assignments.map((a) => ({
-        label: `${a.seller!.name} → ${clientLabel(a.client!)}`,
+        label: `${a.seller!.name} → ${clientOptionLabel(a.client!)}`,
         value: a.id,
+        searchText: clientOptionSearchText(a.client!),
       })),
     [assignments]
   );

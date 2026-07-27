@@ -67,7 +67,12 @@ export interface UseTableDataReturn<TItem> {
   refetch: (variables?: Record<string, unknown>) => Promise<void>;
 }
 
-function buildQueryFilters(
+/**
+ * Traduz os valores dos filtros da tela para o `filters` do BaseListInput.
+ * Exportada para quem precisa refazer a MESMA busca fora da tabela — o export
+ * da lista, que baixa todas as páginas do que está filtrado na tela.
+ */
+export function buildQueryFilters(
   fields: Record<string, FieldConfig>,
   values: Record<string, string>
 ) {

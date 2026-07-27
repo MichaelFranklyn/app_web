@@ -1,6 +1,7 @@
 import { RefObject, useEffect, useState } from "react";
 
 import type { InputSelectProps, SelectOption } from "./InputSelect";
+import { matchesSelectSearch } from "./selectFilter";
 
 interface UseSelectStateArgs {
   options: SelectOption[];
@@ -52,9 +53,7 @@ export function useSelectState({
   const filteredOptions =
     isAsync || !isSearching
       ? options
-      : options.filter((opt) =>
-          opt.label.toLowerCase().includes(inputValue.toLowerCase())
-        );
+      : options.filter((opt) => matchesSelectSearch(opt, inputValue));
 
   // Modo assíncrono: repassa o termo digitado ao backend (o debounce mora no
   // consumidor). Só dispara enquanto o usuário está buscando ativamente, para

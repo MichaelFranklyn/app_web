@@ -1,21 +1,29 @@
 "use client";
 
-import { Button } from "@/components/Button";
 import { Card } from "@/components/Card";
 import { Grid } from "@/components/Grid";
 import { PanelHeader } from "@/components/PanelHeader";
-import { Download, TrendingDown, TrendingUp } from "lucide-react";
+import { TrendingDown, TrendingUp } from "lucide-react";
 import { Client, ClientsStats } from "../../interface";
 import { buildKpis } from "../../utils";
 import { AddClientModal } from "./AddClientModal";
+import { ExportClientsButton } from "./ExportClientsButton";
 import { ImportClientsModal } from "./ImportClientsModal";
 
 interface ClientsHeaderProps {
   stats: ClientsStats;
   onAddOptimistic: (client: Client) => void;
+  /** Filtros ativos na tela — o export baixa o mesmo recorte que está à vista. */
+  inputValues: Record<string, string>;
+  hasClients: boolean;
 }
 
-export function ClientsHeader({ stats, onAddOptimistic }: ClientsHeaderProps) {
+export function ClientsHeader({
+  stats,
+  onAddOptimistic,
+  inputValues,
+  hasClients,
+}: ClientsHeaderProps) {
   const kpis = buildKpis(stats);
 
   return (
@@ -29,15 +37,10 @@ export function ClientsHeader({ stats, onAddOptimistic }: ClientsHeaderProps) {
               informações privadas.
             </PanelHeader.Description>
             <PanelHeader.Actions className="mt-6" data-tour="clients-actions">
-              <Button.Root
-                appearance="outline"
-                color="neutral"
-                size="sm"
-                noUppercase
-              >
-                <Button.Icon icon={Download} />
-                <Button.Title>Exportar</Button.Title>
-              </Button.Root>
+              <ExportClientsButton
+                inputValues={inputValues}
+                disabled={!hasClients}
+              />
               <ImportClientsModal />
               <AddClientModal onAddOptimistic={onAddOptimistic} />
             </PanelHeader.Actions>

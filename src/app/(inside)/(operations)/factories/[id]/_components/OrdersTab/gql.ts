@@ -44,6 +44,7 @@ export const FACTORY_ASSIGNMENTS_QUERY = gql`
             id
             razaoSocial
             nomeFantasia
+            cnpj
           }
         }
       }

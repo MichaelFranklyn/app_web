@@ -41,6 +41,8 @@ export default function ClientesContent({
       <ClientsHeader
         stats={sellerScope.stats}
         onAddOptimistic={optimistic.addOptimistic}
+        inputValues={tableData.inputValues}
+        hasClients={tableData.totalItems > 0}
       />
 
       {tableData.error && optimistic.items.length === 0 ? (

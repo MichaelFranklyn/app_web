@@ -26,6 +26,12 @@ export type SelectOption = {
   label: string;
   startIcon?: React.ReactNode;
   endIcon?: React.ReactNode;
+  /**
+   * Texto extra considerado pelo filtro local, além do rótulo. Use para dados
+   * pelos quais o usuário busca mas que não cabem no rótulo (ex.: razão social
+   * quando o rótulo mostra o nome fantasia).
+   */
+  searchText?: string;
   [key: string]: unknown;
 };
 

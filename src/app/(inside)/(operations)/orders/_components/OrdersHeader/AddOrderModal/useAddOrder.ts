@@ -1,4 +1,5 @@
 import { FormBuilderRef, FormStepSchema } from "@/components/FormBuilder";
+import { SelectOption } from "@/components/Input";
 import { useToast } from "@/components/Toast";
 import { useAsyncAction } from "@/hooks/useAsyncAction";
 import { useRefetchQueriesClient } from "@/hooks/useInvalidateQueries";
@@ -24,6 +25,10 @@ import {
 } from "../../../../_shared/orderDraftItems";
 import { usePaymentTermOptions } from "../../../../_shared/orderPaymentTerms";
 import { FREIGHT_OPTIONS } from "../../../../_shared/orderFreight";
+import {
+  clientOptionLabel,
+  clientOptionSearchText,
+} from "../../../../_shared/clientOption";
 
 interface SellersOptionsData {
   order_sellers_options: { edges: { node: { id: string; name: string } }[] };
@@ -53,6 +58,7 @@ interface SellerClientsData {
           id: string;
           razaoSocial: string;
           nomeFantasia: string | null;
+          cnpj: string | null;
         } | null;
       };
     }[];
@@ -144,16 +150,17 @@ export function useAddOrder({ onAddOptimistic }: AddOrderModalProps) {
   }, [factoriesData]);
 
   const clientOptions = useMemo(() => {
-    const map = new Map<string, string>();
+    const map = new Map<string, SelectOption>();
     clientsData?.sellerClientFactoryList?.edges?.forEach(({ node }) => {
       if (node.client) {
-        map.set(
-          node.clientId,
-          node.client.nomeFantasia ?? node.client.razaoSocial
-        );
+        map.set(node.clientId, {
+          value: node.clientId,
+          label: clientOptionLabel(node.client),
+          searchText: clientOptionSearchText(node.client),
+        });
       }
     });
-    return Array.from(map, ([value, label]) => ({ value, label }));
+    return Array.from(map.values());
   }, [clientsData]);
 
   const formSteps: FormStepSchema[] = useMemo(

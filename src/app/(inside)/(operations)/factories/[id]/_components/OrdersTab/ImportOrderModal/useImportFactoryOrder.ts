@@ -7,6 +7,10 @@ import { extractSelectValue, parseDeliveryDays } from "@/utils/form";
 import { toIsoDate } from "@/utils/format/date";
 
 import { DeferredOrderTarget } from "../../../../../_components/OrderImportWizard";
+import {
+  clientOptionLabel,
+  clientOptionSearchText,
+} from "../../../../../_shared/clientOption";
 import { useCompanyFactoryNode } from "../../../../../_shared/orderItemCatalog";
 import { usePaymentTermOptions } from "../../../../../_shared/orderPaymentTerms";
 import { FREIGHT_OPTIONS } from "../../../../../_shared/orderFreight";
@@ -21,11 +25,6 @@ export interface ImportFactoryOrderProps {
   /** Recarrega a lista de pedidos da fábrica após criar/importar. */
   onChanged: () => void;
 }
-
-const clientLabel = (c: {
-  razaoSocial: string;
-  nomeFantasia: string | null;
-}): string => c.nomeFantasia ?? c.razaoSocial;
 
 interface PendingOrder {
   sellerId: string;
@@ -78,8 +77,9 @@ export function useImportFactoryOrder({
   const assignmentOptions = useMemo(
     () =>
       assignments.map((a) => ({
-        label: `${a.seller!.name} → ${clientLabel(a.client!)}`,
+        label: `${a.seller!.name} → ${clientOptionLabel(a.client!)}`,
         value: a.id,
+        searchText: clientOptionSearchText(a.client!),
       })),
     [assignments]
   );

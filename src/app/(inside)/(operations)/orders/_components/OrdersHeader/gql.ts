@@ -75,6 +75,7 @@ export const ORDER_SELLER_CLIENTS_QUERY = gql`
             id
             razaoSocial
             nomeFantasia
+            cnpj
           }
         }
       }
