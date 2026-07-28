@@ -13,7 +13,12 @@ import { clientDisplayName } from "@/utils/client";
 import { extractSelectValue } from "@/utils/form";
 import { useMutation } from "@apollo/client/react";
 import { useMemo, useRef } from "react";
-import { VISIT_OUTCOME_OPTIONS, VISIT_STATUS_OPTIONS } from "../../../utils";
+import { VISIT_STATUS_OPTIONS } from "../../../utils";
+import {
+  CONTACT_TYPE_LABEL,
+  contactNoun,
+  outcomeOptionsFor,
+} from "@/utils/visit";
 import { UPDATE_VISIT_ITEM_MUTATION } from "../../../gql";
 import {
   EditVisitModalProps,
@@ -37,6 +42,14 @@ export function EditVisitModal({
   const factory = item.clientFactoryLink?.factory;
   const clientName = clientDisplayName(client, "Cliente");
   const factoryLabel = factoryName(factory);
+  const isRemote = item.contactType === "REMOTE";
+  const noun = contactNoun(item.contactType);
+  // No contato remoto o resultado que interessa é a resposta do cliente sobre
+  // visita — é ela que antecipa ou adia a próxima ida (o back lê e agenda).
+  const outcomeOptions = useMemo(
+    () => outcomeOptionsFor(item.contactType),
+    [item.contactType]
+  );
 
   const steps: FormStepSchema[] = useMemo(
     () => [
@@ -57,15 +70,15 @@ export function EditVisitModal({
               {
                 name: "outcome",
                 type: "select-single",
-                label: "Resultado",
+                label: isRemote ? "O que o cliente disse" : "Resultado",
                 placeholder: "Opcional",
-                options: VISIT_OUTCOME_OPTIONS,
+                options: outcomeOptions,
               },
               {
                 name: "notes",
                 type: "textarea",
                 label: "Observações",
-                placeholder: "Anotações sobre a visita",
+                placeholder: `Anotações sobre ${isRemote ? "o contato" : "a visita"}`,
                 rows: 3,
               },
             ],
@@ -73,17 +86,16 @@ export function EditVisitModal({
         ],
       },
     ],
-    []
+    [isRemote, outcomeOptions]
   );
 
   const initialData = useMemo(
     () => ({
       status: VISIT_STATUS_OPTIONS.find((o) => o.value === item.status) ?? null,
-      outcome:
-        VISIT_OUTCOME_OPTIONS.find((o) => o.value === item.outcome) ?? null,
+      outcome: outcomeOptions.find((o) => o.value === item.outcome) ?? null,
       notes: item.notes ?? "",
     }),
-    [item]
+    [item, outcomeOptions]
   );
 
   const handleSubmit = async (data: Record<string, unknown>) => {
@@ -100,12 +112,12 @@ export function EditVisitModal({
         const res = await updateItem({ variables: { id: item.id, input } });
         const payload = res.data?.updateVisitScheduleItem;
         if (!payload?.status) {
-          throw new Error(payload?.message ?? "Erro ao salvar visita");
+          throw new Error(payload?.message ?? `Erro ao salvar ${noun}`);
         }
         return payload;
       },
       {
-        successMessage: "Visita atualizada",
+        successMessage: `${CONTACT_TYPE_LABEL[item.contactType]} atualizad${isRemote ? "o" : "a"}`,
         onSuccess: () => {
           onOpenChange(false);
           onDone();
@@ -122,8 +134,8 @@ export function EditVisitModal({
     <Modal.Root open={open} onOpenChange={onOpenChange}>
       <Modal.Content size="md">
         <Modal.Header
-          title={`Editar visita · ${clientName}`}
-          description={`${factoryLabel} · visita #${item.plannedOrder}`}
+          title={`Editar ${noun} · ${clientName}`}
+          description={`${factoryLabel} · ${noun} #${item.plannedOrder}`}
         />
         <Modal.Body>
           <FormBuilder

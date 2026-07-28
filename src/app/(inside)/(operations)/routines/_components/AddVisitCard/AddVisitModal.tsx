@@ -6,9 +6,21 @@ import { SelectOption } from "@/components/Input";
 import { Modal } from "@/components/Modal";
 import { Title } from "@/components/Title";
 
+import { Car, Phone } from "lucide-react";
+import { CONTACT_TYPE_LABEL, contactNoun } from "@/utils/visit";
+import { VisitContactType } from "../../interface";
 import { formatDayLabel, formatWeekdayLabel } from "../../utils";
 import { AddVisitModalProps } from "./interface";
 import { useAddVisit } from "./useAddVisit";
+
+const CONTACT_TYPE_CHOICES: {
+  value: VisitContactType;
+  label: string;
+  icon: typeof Car;
+}[] = [
+  { value: "IN_PERSON", label: CONTACT_TYPE_LABEL.IN_PERSON, icon: Car },
+  { value: "REMOTE", label: CONTACT_TYPE_LABEL.REMOTE, icon: Phone },
+];
 
 export function AddVisitModal({
   open,
@@ -18,7 +30,7 @@ export function AddVisitModal({
   scheduleId,
   nextDay,
   sellerId,
-  maxVisitsPerDay,
+  capacity,
   onDone,
 }: AddVisitModalProps) {
   const {
@@ -26,6 +38,10 @@ export function AddVisitModal({
     optionsLoading,
     selectedLinkId,
     setSelectedLinkId,
+    contactType,
+    setContactType,
+    isContactTypeEnabled,
+    typeLimit,
     confirmingOverLimit,
     isFolga,
     isDayFull,
@@ -41,9 +57,11 @@ export function AddVisitModal({
     scheduleId,
     nextDay,
     sellerId,
-    maxVisitsPerDay,
+    capacity,
     onDone,
   });
+
+  const isRemote = contactType === "REMOTE";
 
   const selectValue = options.find((o) => o.value === selectedLinkId) ?? null;
   const nextDayLabel = nextDay
@@ -54,7 +72,7 @@ export function AddVisitModal({
     <Modal.Root open={open} onOpenChange={onOpenChange}>
       <Modal.Content size="sm">
         <Modal.Header
-          title="Adicionar visita"
+          title={`Adicionar ${contactNoun(contactType)}`}
           description={
             isFolga
               ? "Este dia está de folga. Escolha o cliente para começar a trabalhar neste dia."
@@ -63,6 +81,35 @@ export function AddVisitModal({
         />
         <Modal.Body>
           <div className="flex flex-col gap-12">
+            {/* Só oferece a escolha quando o vendedor tem contato remoto ligado
+                na configuração — senão a pergunta não tem resposta possível. */}
+            {isContactTypeEnabled && (
+              <div className="flex flex-col gap-6">
+                <Title variant="label" color="muted">
+                  O que você vai fazer?
+                </Title>
+                <div className="flex gap-8">
+                  {CONTACT_TYPE_CHOICES.map((choice) => (
+                    <Button.Root
+                      key={choice.value}
+                      type="button"
+                      appearance={
+                        contactType === choice.value ? "solid" : "outline"
+                      }
+                      color={contactType === choice.value ? "amber" : "neutral"}
+                      size="md"
+                      noUppercase
+                      fullWidth
+                      onClick={() => setContactType(choice.value)}
+                    >
+                      <Button.Icon icon={choice.icon} />
+                      <Button.Title>{choice.label}</Button.Title>
+                    </Button.Root>
+                  ))}
+                </div>
+              </div>
+            )}
+
             <Input.Select
               options={options}
               value={selectValue}
@@ -85,7 +132,8 @@ export function AddVisitModal({
             {confirmingOverLimit && isDayFull && (
               <div className="flex flex-col gap-8 rounded-(--radius-md) border border-(--amber-bd) bg-(--amber-bg) p-12">
                 <Title variant="body-xs" weight="semibold" color="amber">
-                  Este dia já atingiu o limite de {maxVisitsPerDay} visitas.
+                  Este dia já atingiu o limite de {typeLimit}{" "}
+                  {isRemote ? "contatos" : "visitas"}.
                 </Title>
                 <Title variant="micro" color="muted">
                   {nextDayHasRoom && nextDayLabel
@@ -137,7 +185,7 @@ export function AddVisitModal({
             <Button.Title>
               {confirmingOverLimit && isDayFull
                 ? "Adicionar mesmo assim"
-                : "Adicionar visita"}
+                : `Adicionar ${contactNoun(contactType)}`}
             </Button.Title>
           </Button.Root>
         </Modal.Footer>

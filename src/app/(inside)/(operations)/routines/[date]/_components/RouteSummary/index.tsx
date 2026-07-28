@@ -8,7 +8,11 @@ interface Props {
 }
 
 export function RouteSummary({ day }: Props) {
-  const totalVisitMin = day.items.reduce(
+  // Parada é deslocamento. Um contato remoto está no dia, mas não é parada — se
+  // entrasse na conta, o vendedor leria "12 paradas" num dia de 8 visitas.
+  const drivingStops = day.items.filter((i) => i.contactType !== "REMOTE");
+  const remoteCount = day.items.length - drivingStops.length;
+  const totalVisitMin = drivingStops.reduce(
     (sum, item) => sum + (item.estimatedTravelMin ?? 0),
     0
   );
@@ -18,9 +22,13 @@ export function RouteSummary({ day }: Props) {
       <Card.Kpi>
         <Card.Kpi.Label>Paradas</Card.Kpi.Label>
         <Card.Kpi.Value status="neutral" className="text-(--blue)!">
-          {day.items.length}
+          {drivingStops.length}
         </Card.Kpi.Value>
-        <Card.Kpi.Delta>clientes hoje</Card.Kpi.Delta>
+        <Card.Kpi.Delta>
+          {remoteCount > 0
+            ? `+ ${remoteCount} ${remoteCount === 1 ? "contato" : "contatos"}`
+            : "clientes hoje"}
+        </Card.Kpi.Delta>
       </Card.Kpi>
       <Card.Kpi>
         <Card.Kpi.Label>Distância total</Card.Kpi.Label>

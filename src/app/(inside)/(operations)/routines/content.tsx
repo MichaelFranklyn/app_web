@@ -39,7 +39,7 @@ export default function RoutinesContent() {
     selectedSellerId,
     setSelectedSellerId,
     effectiveSellerId,
-    maxVisitsPerDay,
+    capacity,
     schedule,
     showSkeleton,
     error,
@@ -160,7 +160,7 @@ export default function RoutinesContent() {
                 days={schedule.days}
                 sellerId={selectedSellerId}
                 effectiveSellerId={effectiveSellerId}
-                maxVisitsPerDay={maxVisitsPerDay}
+                capacity={capacity}
                 periodDays={periodDays}
                 onChanged={() => refetch()}
               />
@@ -171,7 +171,7 @@ export default function RoutinesContent() {
                 days={schedule.days}
                 sellerId={selectedSellerId}
                 effectiveSellerId={effectiveSellerId}
-                maxVisitsPerDay={maxVisitsPerDay}
+                capacity={capacity}
                 periodDays={periodDays}
                 onChanged={() => refetch()}
               />

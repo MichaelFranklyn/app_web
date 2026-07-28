@@ -36,18 +36,17 @@ type BadgeColor = "neutral" | "blue" | "amber" | "green" | "red";
 
 export { VISIT_STATUS_COLOR, VISIT_STATUS_LABEL } from "@/utils/visit";
 
-export const VISIT_OUTCOME_LABEL: Record<VisitOutcome, string> = {
-  SOLD: "Vendeu",
-  NOT_BOUGHT: "Não comprou",
-  RESCHEDULED: "Reagendou",
-  CLOSED: "Fechado",
-};
+// Rótulo vem do mapa compartilhado: a tabela do cliente mistura visitas e
+// contatos remotos, e uma cópia local voltaria a divergir (já aconteceu).
+export { ALL_OUTCOME_LABEL as VISIT_OUTCOME_LABEL } from "@/utils/visit";
 
 export const VISIT_OUTCOME_COLOR: Record<VisitOutcome, BadgeColor> = {
   SOLD: "green",
   NOT_BOUGHT: "neutral",
   RESCHEDULED: "blue",
   CLOSED: "amber",
+  WANTS_VISIT: "amber",
+  NO_VISIT_NEEDED: "neutral",
 };
 
 export function stockSituation(

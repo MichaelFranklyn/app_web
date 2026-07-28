@@ -1,5 +1,10 @@
-// Tipo compartilhado com a grade semanal (nível-pai da rota).
-import { VisitFocusFactory } from "../interface";
+// Fonte única: o enum de resultado ganhou os valores exclusivos do contato remoto.
+import type { VisitContactType, VisitOutcome } from "@/utils/visit";
+
+export type { VisitContactType, VisitOutcome };
+
+// Tipos compartilhados com a grade semanal (nível-pai da rota).
+import { VisitFocusFactory, VisitPrimaryContact } from "../interface";
 
 export type VisitStatus =
   | "PENDING"
@@ -11,8 +16,6 @@ export type VisitStatus =
 
 export type DayStatus = "PLANNED" | "IN_PROGRESS" | "DONE";
 
-export type VisitOutcome = "SOLD" | "NOT_BOUGHT" | "RESCHEDULED" | "CLOSED";
-
 export interface VisitClient {
   id: string;
   razaoSocial: string;
@@ -23,6 +26,7 @@ export interface VisitClient {
   addressNeighborhood: string | null;
   addressCity: string | null;
   addressState: string | null;
+  primaryContact: VisitPrimaryContact | null;
 }
 
 export interface VisitFactory {
@@ -41,6 +45,7 @@ export interface VisitClientFactoryLink {
 export interface VisitItem {
   id: string;
   plannedOrder: number;
+  contactType: VisitContactType;
   estimatedTravelMin: number | null;
   status: VisitStatus;
   outcome: VisitOutcome | null;

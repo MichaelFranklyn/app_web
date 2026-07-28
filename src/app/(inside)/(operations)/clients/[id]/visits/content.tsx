@@ -1,6 +1,7 @@
 "use client";
 
 import { Badge } from "@/components/Badges";
+import { ContactTypeTag } from "@/components/ContactTypeTag";
 import { Title } from "@/components/Title";
 import { EmptyState } from "@/components/EmptyState";
 import { Loading } from "@/components/Loading";
@@ -142,10 +143,16 @@ export default function VisitsContent() {
           ) : (
             visits.map((v) => (
               <Table.Row key={v.id} className="group">
+                {/* Tipo junto da data, não em coluna própria: a tabela já tem
+                    8 colunas e uma nona a faria rolar na horizontal. */}
                 <Table.Cell>
                   <Table.CellText variant="dim">
                     {formatDate(v.day?.date ?? v.actualVisitAt)}
                   </Table.CellText>
+                  <ContactTypeTag
+                    contactType={v.contactType}
+                    className="mt-2 flex"
+                  />
                 </Table.Cell>
                 <Table.Cell>
                   <Table.CellText variant="strong">

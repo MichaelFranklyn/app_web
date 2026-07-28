@@ -281,6 +281,8 @@ type ClientType {
   updatedAt: DateTime!
   deletedAt: DateTime
   companyClient: CompanyClientType
+  """Contato principal com telefone — quem o vendedor liga/manda WhatsApp."""
+  primaryContact: ClientContactType
 }
 
 type ClientTypeConnectionResponse {
@@ -2383,6 +2385,8 @@ type SellerClientFactoryType {
   visitFrequencyDays: Int
   notes: String
   lastVisitDate: DateTime
+  """Último toque de qualquer tipo — visita presencial OU contato remoto."""
+  lastContactDate: Date
   createdAt: DateTime!
   updatedAt: DateTime!
   deletedAt: DateTime
@@ -2917,6 +2921,9 @@ input CreateVisitScheduleConfigInput {
   workDays: [Int!]! = [1, 2, 3, 4, 5]
   workStartTime: Time!
   workEndTime: Time!
+  isRemoteContactEnabled: Boolean! = true
+  maxRemoteContactsPerDay: Int! = 5
+  remoteContactIntervalPct: Int! = 50
   avgVisitDurationMin: Int! = 30
   isRescheduleSameWeek: Boolean! = true
   maxRescheduleAttempts: Int! = 3
@@ -2929,6 +2936,9 @@ input UpdateVisitScheduleConfigInput {
   workDays: [Int!] = null
   workStartTime: Time = null
   workEndTime: Time = null
+  isRemoteContactEnabled: Boolean = null
+  maxRemoteContactsPerDay: Int = null
+  remoteContactIntervalPct: Int = null
   avgVisitDurationMin: Int = null
   isRescheduleSameWeek: Boolean = null
   maxRescheduleAttempts: Int = null
@@ -2943,6 +2953,12 @@ type VisitScheduleConfigType {
   workDays: [Int!]!
   workStartTime: Time!
   workEndTime: Time!
+  """Gera contatos remotos (ligação/WhatsApp) além das visitas presenciais."""
+  isRemoteContactEnabled: Boolean!
+  """Teto diário de contatos remotos — independente de maxVisitsPerDay."""
+  maxRemoteContactsPerDay: Int!
+  """% do ciclo de visita que dispara o contato intercalado (50 = na metade)."""
+  remoteContactIntervalPct: Int!
   avgVisitDurationMin: Int!
   isRescheduleSameWeek: Boolean!
   maxRescheduleAttempts: Int!
@@ -3059,6 +3075,7 @@ input CreateVisitScheduleItemInput {
   scheduleDayId: UUID!
   sellerClientFactoryId: UUID!
   plannedOrder: Int!
+  contactType: VisitContactType = IN_PERSON
   estimatedTravelMin: Int = null
   suggestedProducts: [JSON!] = null
   stockoutAlerts: [JSON!] = null
@@ -3066,6 +3083,7 @@ input CreateVisitScheduleItemInput {
 
 input UpdateVisitScheduleItemInput {
   plannedOrder: Int = null
+  contactType: VisitContactType = null
   status: VisitStatus = null
   outcome: VisitOutcome = null
   outcomeReason: String = null
@@ -3107,6 +3125,8 @@ type VisitScheduleItemType {
   scheduleDayId: UUID!
   sellerClientFactoryId: UUID!
   plannedOrder: Int!
+  """Visita presencial ou contato remoto (ligação/WhatsApp)."""
+  contactType: VisitContactType!
   estimatedTravelMin: Int
   suggestedProducts: [JSON!]
   stockoutAlerts: [JSON!]
@@ -3208,11 +3228,23 @@ enum StockObservation {
   HIGH
 }
 
+"""Como o vendedor toca o cliente nesta parada da rotina."""
+enum VisitContactType {
+  """Visita presencial: ocupa vaga de deslocamento e entra no mapa do dia."""
+  IN_PERSON
+  """Ligação ou WhatsApp — o canal é escolha do vendedor, a regra é a mesma."""
+  REMOTE
+}
+
 enum VisitOutcome {
   SOLD
   NOT_BOUGHT
   RESCHEDULED
   CLOSED
+  """O cliente pediu uma visita presencial — vai para o topo da próxima rotina."""
+  WANTS_VISIT
+  """O cliente dispensou a visita agora — a próxima procura é adiada um ciclo."""
+  NO_VISIT_NEEDED
 }
 
 enum VisitStatus {

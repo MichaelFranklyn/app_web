@@ -3,6 +3,7 @@
 import { MoreOptions } from "@/components/MoreOptions";
 import { useAsyncAction } from "@/hooks/useAsyncAction";
 import { clientDisplayName } from "@/utils/client";
+import { CONTACT_TYPE_LABEL, contactNoun } from "@/utils/visit";
 import { useMutation } from "@apollo/client/react";
 import {
   CalendarClock,
@@ -69,6 +70,13 @@ export function useVisitActions({
   const [active, setActive] = useState<ActiveModal>(null);
   const close = () => setActive(null);
 
+  // Todo texto de ação concorda com o tipo: "a visita" × "o contato". Sem isto o
+  // vendedor lê "Marcar visita como concluída" num card que é uma ligação.
+  const isRemote = item.contactType === "REMOTE";
+  const noun = contactNoun(item.contactType);
+  const doneSuffix = isRemote ? "o" : "a";
+  const capitalized = CONTACT_TYPE_LABEL[item.contactType];
+
   const [updateItem] = useMutation<UpdateItemResponse>(
     UPDATE_VISIT_ITEM_MUTATION
   );
@@ -87,12 +95,14 @@ export function useVisitActions({
         });
         const payload = res.data?.updateVisitScheduleItem;
         if (!payload?.status) {
-          throw new Error(payload?.message ?? "Erro ao atualizar visita");
+          throw new Error(payload?.message ?? `Erro ao atualizar ${noun}`);
         }
         return payload;
       },
       {
-        successMessage: checked ? "Visita concluída" : "Visita reaberta",
+        successMessage: checked
+          ? `${capitalized} concluíd${doneSuffix}`
+          : `${capitalized} reabert${doneSuffix}`,
         onSuccess: () => {
           onChanged();
           if (checked) setActive("completed");
@@ -117,11 +127,14 @@ export function useVisitActions({
         });
         const payload = res.data?.updateVisitScheduleItem;
         if (!payload?.status) {
-          throw new Error(payload?.message ?? "Erro ao concluir visita");
+          throw new Error(payload?.message ?? `Erro ao concluir ${noun}`);
         }
         return payload;
       },
-      { successMessage: "Visita concluída", onSuccess: onChanged }
+      {
+        successMessage: `${capitalized} concluíd${doneSuffix}`,
+        onSuccess: onChanged,
+      }
     );
   };
 
@@ -144,7 +157,7 @@ export function useVisitActions({
     <MoreOptions
       options={[
         {
-          label: "Visualizar visita",
+          label: `Visualizar ${noun}`,
           icon: Eye,
           onClick: () => setActive("view"),
         },
@@ -158,7 +171,7 @@ export function useVisitActions({
             ]
           : []),
         {
-          label: "Editar visita",
+          label: `Editar ${noun}`,
           icon: Pencil,
           onClick: () => setActive("edit"),
         },
@@ -177,7 +190,7 @@ export function useVisitActions({
             ]
           : []),
         {
-          label: "Remarcar visita",
+          label: `Remarcar ${noun}`,
           icon: CalendarClock,
           onClick: () => setActive("reschedule"),
         },
@@ -224,6 +237,7 @@ export function useVisitActions({
 
       <CompletionPromptModal
         clientName={clientName}
+        contactType={item.contactType}
         open={active === "completed"}
         onOpenChange={(o) => !o && close()}
         onStock={() => setActive("stock")}

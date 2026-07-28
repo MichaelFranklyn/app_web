@@ -12,11 +12,16 @@ export function RoutinesSummary({ days }: Props) {
   const stats = useMemo(() => {
     const items = days.flatMap((day) => day.items);
     const total = items.length;
+    // Visitas e contatos aparecem separados: a taxa de conclusão continua sobre
+    // o total (os dois são trabalho), mas "8 visitas" não pode virar "12" só
+    // porque o vendedor também tem 4 ligações na semana.
+    const visits = items.filter((i) => i.contactType !== "REMOTE").length;
+    const contacts = total - visits;
     const completed = items.filter((i) => i.status === "COMPLETED").length;
     const absent = items.filter((i) => i.status === "CLIENT_ABSENT").length;
     const completionRate =
       total > 0 ? Math.round((completed / total) * 100) : 0;
-    return { total, completed, absent, completionRate };
+    return { visits, contacts, completed, absent, completionRate };
   }, [days]);
 
   return (
@@ -24,9 +29,13 @@ export function RoutinesSummary({ days }: Props) {
       <Card.Kpi>
         <Card.Kpi.Label>Visitas planejadas</Card.Kpi.Label>
         <Card.Kpi.Value status="neutral" className="text-(--blue)!">
-          {stats.total}
+          {stats.visits}
         </Card.Kpi.Value>
-        <Card.Kpi.Delta>esta semana</Card.Kpi.Delta>
+        <Card.Kpi.Delta>
+          {stats.contacts > 0
+            ? `+ ${stats.contacts} ${stats.contacts === 1 ? "contato" : "contatos"}`
+            : "esta semana"}
+        </Card.Kpi.Delta>
       </Card.Kpi>
       <Card.Kpi>
         <Card.Kpi.Label>Realizadas</Card.Kpi.Label>

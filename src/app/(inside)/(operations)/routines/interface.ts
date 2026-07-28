@@ -1,3 +1,8 @@
+// Fonte única: o enum de resultado ganhou os valores exclusivos do contato remoto.
+import type { VisitContactType, VisitOutcome } from "@/utils/visit";
+
+export type { VisitContactType, VisitOutcome };
+
 export type ScheduleStatus = "DRAFT" | "CONFIRMED";
 
 export type DayStatus = "PLANNED" | "IN_PROGRESS" | "DONE";
@@ -12,13 +17,19 @@ export type VisitStatus =
   | "RESCHEDULED"
   | "CANCELLED";
 
-export type VisitOutcome = "SOLD" | "NOT_BOUGHT" | "RESCHEDULED" | "CLOSED";
+/** Com quem falar no cliente — alimenta os botões de ligar e WhatsApp. */
+export interface VisitPrimaryContact {
+  id: string;
+  name: string;
+  phone: string | null;
+}
 
 export interface VisitClient {
   id: string;
   razaoSocial: string;
   nomeFantasia: string | null;
   companyClient: { id: string } | null;
+  primaryContact: VisitPrimaryContact | null;
 }
 
 export interface VisitFactory {
@@ -44,6 +55,8 @@ export interface VisitFocusFactory {
 export interface VisitScheduleItem {
   id: string;
   plannedOrder: number;
+  /** Visita presencial ou contato remoto (ligação/WhatsApp). */
+  contactType: VisitContactType;
   estimatedTravelMin: number | null;
   status: VisitStatus;
   outcome: VisitOutcome | null;
@@ -107,6 +120,21 @@ export interface VisitScheduleConfigNode {
   id: string;
   sellerId: string;
   maxVisitsPerDay: number;
+  maxRemoteContactsPerDay: number;
+  isRemoteContactEnabled: boolean;
+}
+
+/**
+ * Tetos diários do vendedor, um por tipo de toque.
+ *
+ * Viaja junto porque a rotina agora tem duas capacidades independentes — três
+ * props soltas atravessariam cinco níveis de componente até o modal de
+ * adicionar, que é onde elas finalmente são lidas.
+ */
+export interface RoutineCapacity {
+  maxVisitsPerDay: number;
+  maxRemoteContactsPerDay: number;
+  isRemoteContactEnabled: boolean;
 }
 
 export interface VisitScheduleConfigQueryData {

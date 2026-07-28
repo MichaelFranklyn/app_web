@@ -16,6 +16,9 @@ import {
 } from "../../utils";
 import { useVisitActions } from "../../useVisitActions";
 import { factoryName } from "@/utils/company";
+import { contactNoun } from "@/utils/visit";
+import { ContactLinks } from "../ContactLinks";
+import { ContactTypeTag } from "@/components/ContactTypeTag";
 
 interface Props {
   item: VisitScheduleItem;
@@ -69,6 +72,10 @@ export function VisitCard({
     });
 
   const isCompleted = item.status === "COMPLETED";
+  const isRemote = item.contactType === "REMOTE";
+  const noun = contactNoun(item.contactType);
+  const client = item.clientFactoryLink?.client ?? null;
+  const clientName = clientDisplayName(client);
   const warning = getVisitFollowupWarning(item);
   const scoreValue = getVisitScoreTotal(item);
   const priority = scoreValue != null ? visitPriority(scoreValue) : null;
@@ -91,7 +98,7 @@ export function VisitCard({
             openView();
           }
         }}
-        title="Visualizar visita"
+        title={`Visualizar ${noun}`}
         className="cursor-pointer rounded-(--r-md) border border-(--border) bg-(--bg3) p-16 transition-colors hover:border-(--amber) focus:outline-none focus-visible:ring-1 focus-visible:ring-(--amber)"
       >
         <div className="flex items-start justify-between gap-8">
@@ -108,23 +115,27 @@ export function VisitCard({
                 onChange={(e) => toggleCompleted(e.target.checked)}
                 title={
                   isCompleted
-                    ? "Reabrir visita"
-                    : "Marcar visita como concluída"
+                    ? `Reabrir ${noun}`
+                    : `Marcar ${noun} como concluíd${isRemote ? "o" : "a"}`
                 }
                 aria-label={
                   isCompleted
-                    ? "Reabrir visita"
-                    : "Marcar visita como concluída"
+                    ? `Reabrir ${noun}`
+                    : `Marcar ${noun} como concluíd${isRemote ? "o" : "a"}`
                 }
               />
             </div>
             <div className="min-w-0">
+              <ContactTypeTag
+                contactType={item.contactType}
+                className="mb-4 flex"
+              />
               <Title
                 variant="value"
                 color={isCompleted ? "muted" : "default"}
                 className={cn("block truncate", isCompleted && "line-through")}
               >
-                {clientDisplayName(item.clientFactoryLink?.client)}
+                {clientName}
               </Title>
               <Title
                 variant="body-xs"
@@ -151,6 +162,21 @@ export function VisitCard({
                 {priority.label} · {scoreValue?.toFixed(0)}
               </Badge.Text>
             </Badge.Root>
+          </div>
+        )}
+
+        {/* Ligar/WhatsApp direto do card: o contato remoto só é executável se o
+            vendedor tiver o número à mão. Some quando já foi concluído. */}
+        {isRemote && !isCompleted && (
+          <div
+            className="mt-12"
+            onClick={(e) => e.stopPropagation()}
+            onKeyDown={(e) => e.stopPropagation()}
+          >
+            <ContactLinks
+              contact={client?.primaryContact ?? null}
+              clientName={clientName}
+            />
           </div>
         )}
 

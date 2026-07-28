@@ -15,11 +15,16 @@ import {
 } from "lucide-react";
 import { VisitScheduleItem } from "../../../interface";
 import {
-  VISIT_OUTCOME_OPTIONS,
   VISIT_STATUS_COLOR,
   VISIT_STATUS_LABEL,
   getVisitFollowupWarning,
 } from "../../../utils";
+import {
+  ALL_OUTCOME_LABEL,
+  CONTACT_TYPE_LABEL,
+  contactNoun,
+} from "@/utils/visit";
+import { ContactLinks } from "../../ContactLinks";
 
 interface Props {
   item: VisitScheduleItem;
@@ -30,12 +35,6 @@ interface Props {
   onReschedule: () => void;
   onOrder?: () => void;
 }
-
-const optionLabel = (
-  options: { value: string; label: string }[],
-  value: string | null
-): string | null =>
-  value ? (options.find((o) => o.value === value)?.label ?? value) : null;
 
 function Field({ label, value }: { label: string; value: string }) {
   return (
@@ -62,8 +61,13 @@ export function VisitDetailPanel({
   const factory = item.clientFactoryLink?.factory ?? null;
   const clientName = clientDisplayName(client);
   const factoryLabel = factoryName(factory);
+  const isRemote = item.contactType === "REMOTE";
+  const noun = contactNoun(item.contactType);
+  const typeLabel = CONTACT_TYPE_LABEL[item.contactType];
 
-  const outcomeLabel = optionLabel(VISIT_OUTCOME_OPTIONS, item.outcome);
+  const outcomeLabel = item.outcome
+    ? (ALL_OUTCOME_LABEL[item.outcome] ?? item.outcome)
+    : null;
   // As fábricas tratadas saem das observações de estoque registradas: é o que o
   // vendedor de fato levantou nesta ida, e não só a fábrica que motivou a visita.
   const treatedLabel =
@@ -83,7 +87,7 @@ export function VisitDetailPanel({
 
       <aside
         role="dialog"
-        aria-label="Detalhes da visita"
+        aria-label={`Detalhes d${isRemote ? "o" : "a"} ${noun}`}
         className={`fixed top-0 right-0 z-[60] flex h-full w-[400px] max-w-[calc(100vw-32px)] flex-col border-l border-(--border) bg-(--bg) shadow-xl transition-transform duration-200 ${
           open ? "translate-x-0" : "translate-x-full"
         }`}
@@ -92,7 +96,7 @@ export function VisitDetailPanel({
         <div className="flex items-start justify-between gap-8 border-b border-(--border) px-20 py-16">
           <div className="min-w-0">
             <Title variant="micro" color="muted">
-              Parada #{item.plannedOrder} · Visita
+              Parada #{item.plannedOrder} · {typeLabel}
             </Title>
             <Title variant="heading-sm" className="mt-2 truncate">
               {clientName}
@@ -141,16 +145,32 @@ export function VisitDetailPanel({
             </div>
           </div>
 
+          {/* Como falar com o cliente — só faz sentido no contato remoto; na
+              visita o que importa é o endereço, que já está no mapa do dia. */}
+          {isRemote && (
+            <div className="flex flex-col gap-6">
+              <Title variant="micro" color="muted">
+                Como falar
+              </Title>
+              <ContactLinks
+                contact={client?.primaryContact ?? null}
+                clientName={clientName}
+              />
+            </div>
+          )}
+
           <div className="grid grid-cols-2 gap-16">
             <Field label="Ordem na rota" value={`#${item.plannedOrder}`} />
-            <Field
-              label="Tempo estimado"
-              value={
-                item.estimatedTravelMin != null
-                  ? `${item.estimatedTravelMin} min`
-                  : "—"
-              }
-            />
+            {!isRemote && (
+              <Field
+                label="Tempo estimado"
+                value={
+                  item.estimatedTravelMin != null
+                    ? `${item.estimatedTravelMin} min`
+                    : "—"
+                }
+              />
+            )}
             <Field label="Resultado" value={outcomeLabel ?? "—"} />
             <Field label="Fábricas tratadas" value={treatedLabel ?? "—"} />
           </div>
@@ -168,7 +188,7 @@ export function VisitDetailPanel({
         {/* Ações */}
         <div className="flex flex-col gap-8 border-t border-(--border) px-20 py-16">
           <Title variant="micro" color="muted">
-            Alterar visita
+            Alterar {noun}
           </Title>
           <div className="flex flex-col gap-8">
             <Button.Root
@@ -180,7 +200,7 @@ export function VisitDetailPanel({
               onClick={onEdit}
             >
               <Button.Icon icon={Pencil} />
-              <Button.Title>Editar visita</Button.Title>
+              <Button.Title>Editar {noun}</Button.Title>
             </Button.Root>
             <Button.Root
               appearance="outline"
@@ -215,7 +235,7 @@ export function VisitDetailPanel({
               onClick={onReschedule}
             >
               <Button.Icon icon={CalendarClock} />
-              <Button.Title>Remarcar visita</Button.Title>
+              <Button.Title>Remarcar {noun}</Button.Title>
             </Button.Root>
           </div>
         </div>

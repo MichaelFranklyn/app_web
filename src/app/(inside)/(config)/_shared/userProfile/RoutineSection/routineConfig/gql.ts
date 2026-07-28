@@ -15,6 +15,9 @@ export const CREATE_SCHEDULE_CONFIG_MUTATION = gql`
         workDays
         workStartTime
         workEndTime
+        isRemoteContactEnabled
+        maxRemoteContactsPerDay
+        remoteContactIntervalPct
         avgVisitDurationMin
         isRescheduleSameWeek
         maxRescheduleAttempts
@@ -45,6 +48,9 @@ export const UPDATE_SCHEDULE_CONFIG_MUTATION = gql`
         workDays
         workStartTime
         workEndTime
+        isRemoteContactEnabled
+        maxRemoteContactsPerDay
+        remoteContactIntervalPct
         avgVisitDurationMin
         isRescheduleSameWeek
         maxRescheduleAttempts

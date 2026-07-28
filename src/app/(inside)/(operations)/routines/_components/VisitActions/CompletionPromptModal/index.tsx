@@ -4,9 +4,16 @@ import { Button } from "@/components/Button";
 import { Modal } from "@/components/Modal";
 import { Title } from "@/components/Title";
 import { ChevronRight, PackageSearch, ReceiptText } from "lucide-react";
+import {
+  CONTACT_TYPE_LABEL,
+  contactArticle,
+  contactNoun,
+  VisitContactType,
+} from "@/utils/visit";
 
 interface Props {
   clientName: string;
+  contactType: VisitContactType;
   open: boolean;
   onOpenChange: (open: boolean) => void;
   /** Abre o registro de estoque do cliente. */
@@ -47,21 +54,28 @@ function Option({ icon: Icon, title, description, onClick }: OptionProps) {
   );
 }
 
-// Aparece logo após o vendedor marcar a visita como concluída, oferecendo os
-// dois desdobramentos naturais: lançar o pedido ou registrar o estoque.
+// Aparece logo após o vendedor concluir a parada, oferecendo os dois
+// desdobramentos naturais: lançar o pedido ou registrar o estoque. Vale para
+// contato remoto tanto quanto para visita — perguntar o estoque por telefone é
+// justamente o motivo de a ligação existir na rotina.
 export function CompletionPromptModal({
   clientName,
+  contactType,
   open,
   onOpenChange,
   onStock,
   onOrder,
 }: Props) {
+  const isRemote = contactType === "REMOTE";
+  const noun = contactNoun(contactType);
+  const article = contactArticle(contactType);
+
   return (
     <Modal.Root open={open} onOpenChange={onOpenChange}>
       <Modal.Content size="sm">
         <Modal.Header
-          title="Visita concluída"
-          description={`O que deseja registrar da visita a ${clientName}?`}
+          title={`${CONTACT_TYPE_LABEL[contactType]} concluíd${isRemote ? "o" : "a"}`}
+          description={`O que deseja registrar d${article} ${noun} com ${clientName}?`}
         />
         <Modal.Body>
           <div className="flex flex-col gap-8">
@@ -69,7 +83,7 @@ export function CompletionPromptModal({
               <Option
                 icon={ReceiptText}
                 title="Lançar novo pedido"
-                description="Registrar um pedido feito nesta visita."
+                description={`Registrar um pedido feito ${isRemote ? "neste contato" : "nesta visita"}.`}
                 onClick={() => {
                   onOpenChange(false);
                   onOrder();

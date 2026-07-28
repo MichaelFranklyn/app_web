@@ -153,6 +153,7 @@ export const CLIENT_VISITS_QUERY = gql`
       edges {
         node {
           id
+          contactType
           status
           outcome
           outcomeReason
