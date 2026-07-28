@@ -5,7 +5,7 @@ import { Modal } from "@/components/Modal";
 import { Title } from "@/components/Title";
 import { ChevronRight, PackageSearch, ReceiptText } from "lucide-react";
 import {
-  CONTACT_TYPE_LABEL,
+  contactLabel,
   contactArticle,
   contactNoun,
   VisitContactType,
@@ -74,7 +74,7 @@ export function CompletionPromptModal({
     <Modal.Root open={open} onOpenChange={onOpenChange}>
       <Modal.Content size="sm">
         <Modal.Header
-          title={`${CONTACT_TYPE_LABEL[contactType]} concluíd${isRemote ? "o" : "a"}`}
+          title={`${contactLabel(contactType)} concluíd${isRemote ? "o" : "a"}`}
           description={`O que deseja registrar d${article} ${noun} com ${clientName}?`}
         />
         <Modal.Body>

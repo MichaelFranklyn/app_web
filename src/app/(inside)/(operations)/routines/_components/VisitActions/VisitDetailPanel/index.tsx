@@ -19,11 +19,7 @@ import {
   VISIT_STATUS_LABEL,
   getVisitFollowupWarning,
 } from "../../../utils";
-import {
-  ALL_OUTCOME_LABEL,
-  CONTACT_TYPE_LABEL,
-  contactNoun,
-} from "@/utils/visit";
+import { ALL_OUTCOME_LABEL, contactLabel, contactNoun } from "@/utils/visit";
 import { ContactLinks } from "../../ContactLinks";
 
 interface Props {
@@ -63,7 +59,7 @@ export function VisitDetailPanel({
   const factoryLabel = factoryName(factory);
   const isRemote = item.contactType === "REMOTE";
   const noun = contactNoun(item.contactType);
-  const typeLabel = CONTACT_TYPE_LABEL[item.contactType];
+  const typeLabel = contactLabel(item.contactType);
 
   const outcomeLabel = item.outcome
     ? (ALL_OUTCOME_LABEL[item.outcome] ?? item.outcome)

@@ -52,13 +52,33 @@ export const CONTACT_TYPE_LABEL: Record<VisitContactType, string> = {
   REMOTE: "Contato",
 };
 
+/**
+ * Tudo que não é explicitamente REMOTE é visita presencial.
+ *
+ * O tipo pode chegar ausente por dois caminhos reais: um backend ainda defasado
+ * (o campo só existe depois da migration `a4c8e2f6b1d9`) e o cache semeado no
+ * SSR. Como o default da coluna é `presencial`, cair em IN_PERSON diz a verdade
+ * — e derrubar o card inteiro por causa de um campo faltando seria um preço
+ * absurdo por uma palavra de rótulo.
+ */
+export const asContactType = (
+  contactType: VisitContactType | null | undefined
+): VisitContactType => (contactType === "REMOTE" ? "REMOTE" : "IN_PERSON");
+
+/** Rótulo do tipo, tolerante a valor ausente. */
+export const contactLabel = (
+  contactType: VisitContactType | null | undefined
+): string => CONTACT_TYPE_LABEL[asContactType(contactType)];
+
 /** O mesmo rótulo em minúscula, para caber no meio de uma frase. */
-export const contactNoun = (contactType: VisitContactType): string =>
-  CONTACT_TYPE_LABEL[contactType].toLowerCase();
+export const contactNoun = (
+  contactType: VisitContactType | null | undefined
+): string => contactLabel(contactType).toLowerCase();
 
 /** Concordância de gênero: "a visita" × "o contato". */
-export const contactArticle = (contactType: VisitContactType): string =>
-  contactType === "REMOTE" ? "o" : "a";
+export const contactArticle = (
+  contactType: VisitContactType | null | undefined
+): string => (asContactType(contactType) === "REMOTE" ? "o" : "a");
 
 const toOptions = (map: Record<string, string>) =>
   Object.entries(map).map(([value, label]) => ({ value, label }));
@@ -86,8 +106,12 @@ export const REMOTE_OUTCOME_OPTIONS = [
 ];
 
 /** Opções de resultado adequadas ao tipo de toque. */
-export const outcomeOptionsFor = (contactType: VisitContactType) =>
-  contactType === "REMOTE" ? REMOTE_OUTCOME_OPTIONS : VISIT_OUTCOME_OPTIONS;
+export const outcomeOptionsFor = (
+  contactType: VisitContactType | null | undefined
+) =>
+  asContactType(contactType) === "REMOTE"
+    ? REMOTE_OUTCOME_OPTIONS
+    : VISIT_OUTCOME_OPTIONS;
 
 /**
  * Rótulo de QUALQUER resultado, para exibir histórico — visita e contato

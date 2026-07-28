@@ -14,11 +14,7 @@ import { extractSelectValue } from "@/utils/form";
 import { useMutation } from "@apollo/client/react";
 import { useMemo, useRef } from "react";
 import { VISIT_STATUS_OPTIONS } from "../../../utils";
-import {
-  CONTACT_TYPE_LABEL,
-  contactNoun,
-  outcomeOptionsFor,
-} from "@/utils/visit";
+import { contactLabel, contactNoun, outcomeOptionsFor } from "@/utils/visit";
 import { UPDATE_VISIT_ITEM_MUTATION } from "../../../gql";
 import {
   EditVisitModalProps,
@@ -117,7 +113,7 @@ export function EditVisitModal({
         return payload;
       },
       {
-        successMessage: `${CONTACT_TYPE_LABEL[item.contactType]} atualizad${isRemote ? "o" : "a"}`,
+        successMessage: `${contactLabel(item.contactType)} atualizad${isRemote ? "o" : "a"}`,
         onSuccess: () => {
           onOpenChange(false);
           onDone();

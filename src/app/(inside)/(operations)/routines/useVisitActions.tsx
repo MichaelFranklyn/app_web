@@ -3,7 +3,7 @@
 import { MoreOptions } from "@/components/MoreOptions";
 import { useAsyncAction } from "@/hooks/useAsyncAction";
 import { clientDisplayName } from "@/utils/client";
-import { CONTACT_TYPE_LABEL, contactNoun } from "@/utils/visit";
+import { contactLabel, contactNoun } from "@/utils/visit";
 import { useMutation } from "@apollo/client/react";
 import {
   CalendarClock,
@@ -75,7 +75,7 @@ export function useVisitActions({
   const isRemote = item.contactType === "REMOTE";
   const noun = contactNoun(item.contactType);
   const doneSuffix = isRemote ? "o" : "a";
-  const capitalized = CONTACT_TYPE_LABEL[item.contactType];
+  const capitalized = contactLabel(item.contactType);
 
   const [updateItem] = useMutation<UpdateItemResponse>(
     UPDATE_VISIT_ITEM_MUTATION

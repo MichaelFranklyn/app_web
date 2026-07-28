@@ -39,6 +39,7 @@ const schedules = () => ({
                 {
                   id: "it-1",
                   plannedOrder: 1,
+                  contactType: "IN_PERSON",
                   estimatedTravelMin: 15,
                   status: "PENDING",
                   outcome: null,
@@ -53,6 +54,7 @@ const schedules = () => ({
                       razaoSocial: "Cliente LTDA",
                       nomeFantasia: "Meu Cliente",
                       companyClient: { id: "cc-1" },
+                      primaryContact: null,
                     },
                     factory: {
                       id: "f-1",
