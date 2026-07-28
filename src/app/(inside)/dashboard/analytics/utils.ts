@@ -43,3 +43,15 @@ export const formatDays = (value: number): string => {
   const rounded = Math.round(value);
   return rounded === 1 ? "1 dia" : `${rounded} dias`;
 };
+
+/** Fração (0..1) → "47%". Sem casas decimais: o público lê a ordem de grandeza,
+ * não a precisão. */
+export const formatPercent = (value: number): string =>
+  `${Math.round(value * 100)}%`;
+
+/** Contagem com o substantivo no singular/plural certo: "1 cliente" / "8 clientes". */
+export const formatCount = (
+  value: number,
+  singular: string,
+  plural: string
+): string => `${value} ${value === 1 ? singular : plural}`;

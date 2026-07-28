@@ -792,6 +792,91 @@ type DashboardSummary {
   activeClients: Int!
 }
 
+# ── Comportamento ao longo do tempo ─────────────────────────────────────
+
+type AvgTicketByMonthPoint {
+  month: String!
+  avgTicket: Decimal!
+  orderCount: Int!
+}
+
+type NewVsReturningPoint {
+  month: String!
+  newClients: Int!
+  returningClients: Int!
+}
+
+"Situação ATUAL dos pedidos feitos em cada mês (o pedido é contado no mês em que foi feito)."
+type OrderStatusByMonthPoint {
+  month: String!
+  quotes: Int!
+  confirmed: Int!
+  invoiced: Int!
+  delivered: Int!
+  cancelled: Int!
+}
+
+"Fatia do faturamento de um cliente. `entityId` nulo = linha agregada 'Outros clientes'."
+type RevenueSharePoint {
+  entityId: UUID
+  entityName: String!
+  total: Decimal!
+  share: Float!
+  cumulativeShare: Float!
+}
+
+"Um ponto (mês, entidade) das séries de evolução por vendedor ou fábrica."
+type EntityMonthPoint {
+  month: String!
+  entityId: UUID!
+  entityName: String!
+  total: Decimal!
+  orderCount: Int!
+}
+
+type VisitConversionPoint {
+  month: String!
+  visits: Int!
+  ordersFromVisits: Int!
+  conversionRate: Float!
+}
+
+type WalletCoveragePoint {
+  entityId: UUID!
+  entityName: String!
+  walletClients: Int!
+  activeClients: Int!
+  coverageRate: Float!
+}
+
+"`avgEstimatedDays` é nulo quando nenhum pedido entregue da fábrica tinha previsão."
+type DeliveryPerformancePoint {
+  entityId: UUID!
+  entityName: String!
+  avgEstimatedDays: Float
+  avgActualDays: Float!
+  lateRate: Float!
+  deliveredCount: Int!
+}
+
+"`riskRatio` = dias parado ÷ intervalo médio do próprio cliente. Acima de 1 = atrasado."
+type ClientRiskPoint {
+  entityId: UUID!
+  entityName: String!
+  lastOrderDate: Date!
+  daysSinceLastOrder: Int!
+  avgIntervalDays: Float!
+  riskRatio: Float!
+  orderCount: Int!
+}
+
+type RetentionPoint {
+  month: String!
+  activeClients: Int!
+  retainedClients: Int!
+  retentionRate: Float!
+}
+
 extend type Query {
   dashboardSummary(from: Date = null, to: Date = null, sellerId: UUID = null): DashboardSummary!
 
@@ -809,6 +894,21 @@ extend type Query {
 
   orderIntervalByFactory(from: Date = null, to: Date = null, sellerId: UUID = null, limit: Int = 8): [OrderIntervalPoint!]!
   orderIntervalByClient(from: Date = null, to: Date = null, sellerId: UUID = null, limit: Int = 8): [OrderIntervalPoint!]!
+
+  avgTicketByMonth(from: Date = null, to: Date = null, sellerId: UUID = null): [AvgTicketByMonthPoint!]!
+  newVsReturningClientsByMonth(from: Date = null, to: Date = null, sellerId: UUID = null): [NewVsReturningPoint!]!
+  orderStatusByMonth(from: Date = null, to: Date = null, sellerId: UUID = null): [OrderStatusByMonthPoint!]!
+  revenueConcentrationByClient(from: Date = null, to: Date = null, sellerId: UUID = null, limit: Int = 10): [RevenueSharePoint!]!
+
+  revenueBySellerMonth(from: Date = null, to: Date = null, sellerId: UUID = null, limit: Int = 5): [EntityMonthPoint!]!
+  visitConversionByMonth(from: Date = null, to: Date = null, sellerId: UUID = null): [VisitConversionPoint!]!
+  walletCoverageBySeller(from: Date = null, to: Date = null, sellerId: UUID = null, limit: Int = 8): [WalletCoveragePoint!]!
+
+  revenueByFactoryMonth(from: Date = null, to: Date = null, sellerId: UUID = null, limit: Int = 5): [EntityMonthPoint!]!
+  deliveryPerformanceByFactory(from: Date = null, to: Date = null, sellerId: UUID = null, limit: Int = 8): [DeliveryPerformancePoint!]!
+
+  clientsAtRisk(from: Date = null, to: Date = null, sellerId: UUID = null, limit: Int = 10): [ClientRiskPoint!]!
+  clientRetentionByMonth(from: Date = null, to: Date = null, sellerId: UUID = null): [RetentionPoint!]!
 }
 
 input CreateFactoryInput {
@@ -2631,8 +2731,22 @@ input UpdateUserInput {
     email: String = null
     role: String = null
     password: String = null
-    cpf: String = null
     isActive: Boolean = null
+    """
+    Dados pessoais de quem usa o sistema. O gestor precisa deles para completar o
+    cadastro de quem acabou de criar — o endereço, por exemplo, é o ponto de
+    partida da rota do dia de um vendedor.
+    """
+    cpf: String = null
+    phone: String = null
+    birthDate: Date = null
+    addressZip: String = null
+    addressStreet: String = null
+    addressNumber: String = null
+    addressComplement: String = null
+    addressNeighborhood: String = null
+    addressCity: String = null
+    addressState: String = null
 }
 
 input UpdateUserPasswordInput {

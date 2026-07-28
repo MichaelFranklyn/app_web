@@ -1,6 +1,12 @@
 import { describe, expect, it } from "vitest";
 
-import { formatDays, getLast12MonthsRangeIso, monthKeyToLabel } from "./utils";
+import {
+  formatCount,
+  formatDays,
+  formatPercent,
+  getLast12MonthsRangeIso,
+  monthKeyToLabel,
+} from "./utils";
 
 describe("monthKeyToLabel", () => {
   it('converte "YYYY-MM" em "mes/aa"', () => {
@@ -26,6 +32,31 @@ describe("formatDays", () => {
     expect(formatDays(18.666)).toBe("19 dias");
     expect(formatDays(1.2)).toBe("1 dia");
     expect(formatDays(2.5)).toBe("3 dias");
+  });
+});
+
+describe("formatPercent", () => {
+  it("converte a fração em porcentagem inteira", () => {
+    expect(formatPercent(0)).toBe("0%");
+    expect(formatPercent(0.5)).toBe("50%");
+    expect(formatPercent(1)).toBe("100%");
+  });
+
+  it("arredonda em vez de truncar", () => {
+    // 0.476 é "48%", não "47%": truncar subestimaria toda taxa exibida.
+    expect(formatPercent(0.476)).toBe("48%");
+    expect(formatPercent(0.004)).toBe("0%");
+  });
+});
+
+describe("formatCount", () => {
+  it("escolhe singular ou plural pelo número", () => {
+    expect(formatCount(1, "pedido", "pedidos")).toBe("1 pedido");
+    expect(formatCount(3, "pedido", "pedidos")).toBe("3 pedidos");
+  });
+
+  it("zero usa plural", () => {
+    expect(formatCount(0, "entrega", "entregas")).toBe("0 entregas");
   });
 });
 

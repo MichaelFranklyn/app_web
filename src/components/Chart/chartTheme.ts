@@ -18,6 +18,10 @@ export const CHART_PALETTE = [
 export const SERIES_BLUE = "#2563c4";
 export const SERIES_GREEN = "#1a7a56";
 export const SERIES_ORANGE = "#d05a0a";
+export const SERIES_PURPLE = "#7c3aed";
+export const SERIES_CYAN = "#0a7fa3";
+// Reservado a séries de sentido negativo (cancelado, atraso) — não à interação.
+export const SERIES_RED = "#c0392b";
 
 // Chrome do gráfico (eixos, grid, texto, tooltip) a partir dos neutros da marca.
 export const CHART_INK = "#1a1a16"; // --text
