@@ -37,6 +37,8 @@ export const VISIT_SCHEDULE_CONFIG_QUERY = gql`
           id
           sellerId
           maxVisitsPerDay
+          maxRemoteContactsPerDay
+          isRemoteContactEnabled
         }
       }
     }
@@ -82,6 +84,7 @@ export const VISIT_SCHEDULES_QUERY = gql`
             items {
               id
               plannedOrder
+              contactType
               estimatedTravelMin
               status
               outcome
@@ -108,6 +111,11 @@ export const VISIT_SCHEDULES_QUERY = gql`
                   nomeFantasia
                   companyClient {
                     id
+                  }
+                  primaryContact {
+                    id
+                    name
+                    phone
                   }
                 }
                 factory {
@@ -149,6 +157,7 @@ export const UPDATE_VISIT_ITEM_MUTATION = gql`
         status
         outcome
         notes
+        nextVisitSuggestion
       }
     }
   }

@@ -54,6 +54,7 @@ const schedule = {
         {
           id: "it-1",
           plannedOrder: 1,
+          contactType: "IN_PERSON",
           estimatedTravelMin: 15,
           status: "PENDING",
           outcome: null,
@@ -66,6 +67,7 @@ const schedule = {
               id: "c-1",
               razaoSocial: "Cliente LTDA",
               nomeFantasia: "Meu Cliente",
+              primaryContact: null,
             },
             factory: {
               id: "f-1",
@@ -133,6 +135,7 @@ const OTHER_DAY = TODAY === WEEK_START ? addDaysIso(WEEK_START, 1) : WEEK_START;
 const visitItem = (id: string, clientName: string) => ({
   id,
   plannedOrder: 1,
+  contactType: "IN_PERSON",
   estimatedTravelMin: 15,
   status: "PENDING",
   outcome: null,
@@ -141,7 +144,12 @@ const visitItem = (id: string, clientName: string) => ({
   treatedFactories: [],
   clientFactoryLink: {
     id: `cfl-${id}`,
-    client: { id: `c-${id}`, razaoSocial: clientName, nomeFantasia: null },
+    client: {
+      id: `c-${id}`,
+      razaoSocial: clientName,
+      nomeFantasia: null,
+      primaryContact: null,
+    },
     factory: {
       id: "f-1",
       razaoSocial: "Fábrica LTDA",

@@ -6,7 +6,7 @@ import { Title } from "@/components/Title";
 import { ChevronRight, Route } from "lucide-react";
 import Link from "next/link";
 import { useState } from "react";
-import { VisitScheduleDay } from "../../interface";
+import { RoutineCapacity, VisitScheduleDay } from "../../interface";
 import {
   buildWeekDays,
   getTodayIso,
@@ -23,7 +23,7 @@ interface Props {
   days: VisitScheduleDay[];
   sellerId?: string | null;
   effectiveSellerId?: string | null;
-  maxVisitsPerDay: number;
+  capacity: RoutineCapacity;
   periodDays: number;
   onChanged: () => void;
 }
@@ -37,7 +37,7 @@ export function RoutinesList({
   days,
   sellerId,
   effectiveSellerId,
-  maxVisitsPerDay,
+  capacity,
   periodDays,
   onChanged,
 }: Props) {
@@ -188,7 +188,7 @@ export function RoutinesList({
                     scheduleId={scheduleId}
                     nextDay={nextDay}
                     sellerId={addSellerId}
-                    maxVisitsPerDay={maxVisitsPerDay}
+                    capacity={capacity}
                     onChanged={onChanged}
                   />
                 </div>

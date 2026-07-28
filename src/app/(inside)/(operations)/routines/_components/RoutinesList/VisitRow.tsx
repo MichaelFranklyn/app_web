@@ -16,6 +16,9 @@ import {
   getVisitFollowupWarning,
   getVisitScoreTotal,
 } from "../../utils";
+import { contactNoun } from "@/utils/visit";
+import { ContactLinks } from "../ContactLinks";
+import { ContactTypeTag } from "@/components/ContactTypeTag";
 
 interface Props {
   item: VisitScheduleItem;
@@ -50,6 +53,10 @@ export function VisitRow({
     useVisitActions({ item, currentDayId, scheduleDays, onChanged });
 
   const isCompleted = item.status === "COMPLETED";
+  const isRemote = item.contactType === "REMOTE";
+  const noun = contactNoun(item.contactType);
+  const client = item.clientFactoryLink?.client ?? null;
+  const clientName = clientDisplayName(client);
   const warning = getVisitFollowupWarning(item);
   const scoreValue = getVisitScoreTotal(item);
   const priority = scoreValue != null ? visitPriority(scoreValue) : null;
@@ -68,7 +75,7 @@ export function VisitRow({
             openView();
           }
         }}
-        title="Visualizar visita"
+        title={`Visualizar ${noun}`}
         className="flex cursor-pointer items-center gap-12 border-t border-(--border) px-16 py-12 transition-colors hover:bg-(--bg3) focus:outline-none focus-visible:ring-1 focus-visible:ring-(--amber)"
       >
         <div
@@ -82,22 +89,30 @@ export function VisitRow({
             disabled={isToggling}
             onChange={(e) => toggleCompleted(e.target.checked)}
             title={
-              isCompleted ? "Reabrir visita" : "Marcar visita como concluída"
+              isCompleted
+                ? `Reabrir ${noun}`
+                : `Marcar ${noun} como concluíd${isRemote ? "o" : "a"}`
             }
             aria-label={
-              isCompleted ? "Reabrir visita" : "Marcar visita como concluída"
+              isCompleted
+                ? `Reabrir ${noun}`
+                : `Marcar ${noun} como concluíd${isRemote ? "o" : "a"}`
             }
           />
         </div>
 
-        {/* Cliente + fábricas em foco. */}
+        {/* Tipo + cliente + fábricas em foco. */}
         <div className="min-w-0 flex-1">
+          <ContactTypeTag
+            contactType={item.contactType}
+            className="mb-2 flex"
+          />
           <Title
             variant="value"
             color={isCompleted ? "muted" : "default"}
             className={cn("block truncate", isCompleted && "line-through")}
           >
-            {clientDisplayName(item.clientFactoryLink?.client)}
+            {clientName}
           </Title>
           <Title
             variant="body-xs"
@@ -106,6 +121,18 @@ export function VisitRow({
           >
             {getFocusLabel(item)}
           </Title>
+          {isRemote && !isCompleted && (
+            <div
+              className="mt-8"
+              onClick={(e) => e.stopPropagation()}
+              onKeyDown={(e) => e.stopPropagation()}
+            >
+              <ContactLinks
+                contact={client?.primaryContact ?? null}
+                clientName={clientName}
+              />
+            </div>
+          )}
         </div>
 
         {/* Prioridade (só nas pendentes). */}

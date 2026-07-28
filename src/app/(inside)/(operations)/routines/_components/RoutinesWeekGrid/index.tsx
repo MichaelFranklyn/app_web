@@ -6,7 +6,7 @@ import { Card } from "@/components/Card";
 import { Title } from "@/components/Title";
 import { ArrowUpRight, Route } from "lucide-react";
 import Link from "next/link";
-import { VisitScheduleDay } from "../../interface";
+import { RoutineCapacity, VisitScheduleDay } from "../../interface";
 import {
   buildWeekDays,
   getTodayIso,
@@ -26,7 +26,7 @@ interface Props {
   /** Vendedor dono da rotina exibida (para agendar visitas na carteira dele). */
   effectiveSellerId?: string | null;
   /** Limite de visitas por dia da agenda do vendedor. */
-  maxVisitsPerDay: number;
+  capacity: RoutineCapacity;
   /** Quantos dias exibir a rotina, a partir de hoje (7 = semana toda). */
   periodDays: number;
   onChanged: () => void;
@@ -50,7 +50,7 @@ export function RoutinesWeekGrid({
   days,
   sellerId,
   effectiveSellerId,
-  maxVisitsPerDay,
+  capacity,
   periodDays,
   onChanged,
 }: Props) {
@@ -157,7 +157,7 @@ export function RoutinesWeekGrid({
                       scheduleId={scheduleId}
                       nextDay={nextDay}
                       sellerId={addSellerId}
-                      maxVisitsPerDay={maxVisitsPerDay}
+                      capacity={capacity}
                       onChanged={onChanged}
                     />
                   </div>
@@ -197,7 +197,7 @@ export function RoutinesWeekGrid({
                         scheduleId={scheduleId}
                         nextDay={nextDay}
                         sellerId={addSellerId}
-                        maxVisitsPerDay={maxVisitsPerDay}
+                        capacity={capacity}
                         onChanged={onChanged}
                       />
                       <Link

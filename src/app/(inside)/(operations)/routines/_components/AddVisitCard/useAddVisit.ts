@@ -5,7 +5,12 @@ import { clientDisplayName } from "@/utils/client";
 import { useMutation, useQuery } from "@apollo/client/react";
 import { useEffect, useMemo, useState } from "react";
 
-import { VisitScheduleDay } from "../../interface";
+import {
+  RoutineCapacity,
+  VisitContactType,
+  VisitScheduleDay,
+} from "../../interface";
+import { CONTACT_TYPE_LABEL, contactNoun } from "@/utils/visit";
 import {
   CREATE_VISIT_DAY_MUTATION,
   CREATE_VISIT_ITEM_MUTATION,
@@ -29,9 +34,17 @@ interface Params {
   scheduleId: string;
   nextDay: VisitScheduleDay | null;
   sellerId: string;
-  maxVisitsPerDay: number;
+  capacity: RoutineCapacity;
   onDone: () => void;
 }
+
+// Quantos itens do tipo escolhido o dia já tem — o teto é por tipo, porque
+// ligação não consome vaga de deslocamento.
+const countByType = (
+  day: VisitScheduleDay | null,
+  contactType: VisitContactType
+): number =>
+  (day?.items ?? []).filter((i) => i.contactType === contactType).length;
 
 export function useAddVisit({
   open,
@@ -41,10 +54,11 @@ export function useAddVisit({
   scheduleId,
   nextDay,
   sellerId,
-  maxVisitsPerDay,
+  capacity,
   onDone,
 }: Params) {
   const [selectedLinkId, setSelectedLinkId] = useState<string | null>(null);
+  const [contactType, setContactType] = useState<VisitContactType>("IN_PERSON");
   // Passa para a etapa de confirmação quando o dia já está no limite.
   const [confirmingOverLimit, setConfirmingOverLimit] = useState(false);
 
@@ -73,9 +87,16 @@ export function useAddVisit({
   useEffect(() => {
     if (open) {
       setSelectedLinkId(null);
+      setContactType("IN_PERSON");
       setConfirmingOverLimit(false);
     }
   }, [open]);
+
+  // Mudar o tipo muda o teto: a confirmação de estouro precisa ser refeita
+  // contra a capacidade do novo tipo, senão o aviso fica falando do teto errado.
+  useEffect(() => {
+    setConfirmingOverLimit(false);
+  }, [contactType]);
 
   // Folga: o dia ainda não existe na rotina; será criado antes de agendar.
   const isFolga = !day;
@@ -98,9 +119,13 @@ export function useAddVisit({
       .map((n) => ({ value: n.id, label: clientLabel(n.client) }));
   }, [linksQuery.data, scheduledLinkIds]);
 
-  const isDayFull = day ? day.items.length >= maxVisitsPerDay : false;
+  const isRemote = contactType === "REMOTE";
+  const typeLimit = isRemote
+    ? capacity.maxRemoteContactsPerDay
+    : capacity.maxVisitsPerDay;
+  const isDayFull = day ? countByType(day, contactType) >= typeLimit : false;
   const nextDayHasRoom = Boolean(
-    nextDay && nextDay.items.length < maxVisitsPerDay
+    nextDay && countByType(nextDay, contactType) < typeLimit
   );
 
   // Cria o item numa das opções: um dia existente, ou uma folga (cria o dia antes).
@@ -139,17 +164,20 @@ export function useAddVisit({
               scheduleDayId,
               sellerClientFactoryId: selectedLinkId,
               plannedOrder,
+              contactType,
             },
           },
         });
         const payload = res.data?.createVisitScheduleItem;
         if (!payload?.status) {
-          throw new Error(payload?.message ?? "Erro ao agendar visita");
+          throw new Error(
+            payload?.message ?? `Erro ao agendar ${contactNoun(contactType)}`
+          );
         }
         return payload;
       },
       {
-        successMessage: "Visita agendada",
+        successMessage: `${CONTACT_TYPE_LABEL[contactType]} agendad${isRemote ? "o" : "a"}`,
         onSuccess: () => {
           onOpenChange(false);
           onDone();
@@ -182,6 +210,10 @@ export function useAddVisit({
     optionsLoading: linksQuery.loading,
     selectedLinkId,
     setSelectedLinkId,
+    contactType,
+    setContactType,
+    isContactTypeEnabled: capacity.isRemoteContactEnabled,
+    typeLimit,
     confirmingOverLimit,
     isFolga,
     isDayFull,

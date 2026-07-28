@@ -1,4 +1,4 @@
-import { VisitScheduleDay } from "../../interface";
+import { RoutineCapacity, VisitScheduleDay } from "../../interface";
 
 export interface ClientLinkNode {
   id: string;
@@ -48,6 +48,6 @@ export interface AddVisitModalProps {
   /** Próximo dia útil da semana (para "agendar no dia seguinte"); null se folga. */
   nextDay: VisitScheduleDay | null;
   sellerId: string;
-  maxVisitsPerDay: number;
+  capacity: RoutineCapacity;
   onDone: () => void;
 }

@@ -12,6 +12,9 @@ export const buildRoutineForm = (
   workDays: [...config.workDays],
   workStartTime: config.workStartTime,
   workEndTime: config.workEndTime,
+  isRemoteContactEnabled: config.isRemoteContactEnabled,
+  maxRemoteContactsPerDay: config.maxRemoteContactsPerDay,
+  remoteContactIntervalPct: config.remoteContactIntervalPct,
   avgVisitDurationMin: config.avgVisitDurationMin,
   isRescheduleSameWeek: config.isRescheduleSameWeek,
   maxRescheduleAttempts: config.maxRescheduleAttempts,
@@ -43,6 +46,15 @@ export const buildRoutineUpdateInput = (
   }
   if (form.workEndTime !== config.workEndTime) {
     input.workEndTime = form.workEndTime;
+  }
+  if (form.isRemoteContactEnabled !== config.isRemoteContactEnabled) {
+    input.isRemoteContactEnabled = form.isRemoteContactEnabled;
+  }
+  if (form.maxRemoteContactsPerDay !== config.maxRemoteContactsPerDay) {
+    input.maxRemoteContactsPerDay = form.maxRemoteContactsPerDay;
+  }
+  if (form.remoteContactIntervalPct !== config.remoteContactIntervalPct) {
+    input.remoteContactIntervalPct = form.remoteContactIntervalPct;
   }
   if (form.avgVisitDurationMin !== config.avgVisitDurationMin) {
     input.avgVisitDurationMin = form.avgVisitDurationMin;

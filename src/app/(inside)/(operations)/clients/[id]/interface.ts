@@ -1,3 +1,8 @@
+// Fonte única: o enum de resultado ganhou os valores exclusivos do contato remoto.
+import type { VisitContactType, VisitOutcome } from "@/utils/visit";
+
+export type { VisitContactType, VisitOutcome };
+
 import { ScoreDimensions } from "@/utils/score";
 
 export interface CompanyClientLink {
@@ -207,8 +212,6 @@ export type VisitStatus =
   | "RESCHEDULED"
   | "CANCELLED";
 
-export type VisitOutcome = "SOLD" | "NOT_BOUGHT" | "RESCHEDULED" | "CLOSED";
-
 // Fábrica tratada numa visita. Uma ida ao cliente cobre as fábricas urgentes.
 export interface VisitFocusFactory {
   scoreTotal: string | null;
@@ -221,6 +224,8 @@ export interface VisitFocusFactory {
 
 export interface ClientVisit {
   id: string;
+  /** Visita presencial ou contato remoto — o histórico mistura os dois. */
+  contactType: VisitContactType;
   status: VisitStatus;
   outcome: VisitOutcome | null;
   outcomeReason: string | null;

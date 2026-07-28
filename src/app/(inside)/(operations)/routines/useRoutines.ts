@@ -10,6 +10,7 @@ import {
   VISIT_SCHEDULES_QUERY,
 } from "./gql";
 import {
+  RoutineCapacity,
   RoutineSellersQueryData,
   VisitSchedule,
   VisitScheduleConfigQueryData,
@@ -143,10 +144,17 @@ export function useRoutines() {
     }
   );
 
-  // Limite de visitas por dia (default 10, igual ao backend, quando sem config).
-  const maxVisitsPerDay =
-    configQuery.data?.visit_schedule_configs.edges[0]?.node.maxVisitsPerDay ??
-    10;
+  // Tetos diários por tipo. Os defaults espelham o backend para o caso de o
+  // vendedor ainda não ter config (legado) — a rotina não pode ficar sem limite.
+  const configNode = configQuery.data?.visit_schedule_configs.edges[0]?.node;
+  const capacity: RoutineCapacity = useMemo(
+    () => ({
+      maxVisitsPerDay: configNode?.maxVisitsPerDay ?? 10,
+      maxRemoteContactsPerDay: configNode?.maxRemoteContactsPerDay ?? 5,
+      isRemoteContactEnabled: configNode?.isRemoteContactEnabled ?? true,
+    }),
+    [configNode]
+  );
 
   // Gestor cujos vendedores ainda carregam, ou já carregaram mas sem nenhum.
   const sellersPending = canSelectSeller && sellersLoading;
@@ -184,7 +192,7 @@ export function useRoutines() {
     setSelectedSellerId,
     selectedSellerName,
     effectiveSellerId,
-    maxVisitsPerDay,
+    capacity,
     schedule,
     showSkeleton,
     error: !scheduleSkip ? error : undefined,

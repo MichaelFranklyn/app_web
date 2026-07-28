@@ -26,6 +26,14 @@ export function RoutineSummary({ config }: Props) {
         <Card.Item.Value>até {config.maxVisitsPerDay}</Card.Item.Value>
       </Card.Item>
       <Card.Item variant="stat">
+        <Card.Item.Label>Ligações entre visitas</Card.Item.Label>
+        <Card.Item.Value>
+          {config.isRemoteContactEnabled
+            ? `até ${config.maxRemoteContactsPerDay} por dia, a partir de ${config.remoteContactIntervalPct}% do intervalo`
+            : "desligado"}
+        </Card.Item.Value>
+      </Card.Item>
+      <Card.Item variant="stat">
         <Card.Item.Label>Tempo médio de visita</Card.Item.Label>
         <Card.Item.Value>{config.avgVisitDurationMin} min</Card.Item.Value>
       </Card.Item>

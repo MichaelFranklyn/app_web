@@ -12,6 +12,7 @@ const factory = (id: string) => ({
 const item = (over: Partial<VisitScheduleItem> = {}): VisitScheduleItem => ({
   id: "it-1",
   plannedOrder: 1,
+  contactType: "IN_PERSON",
   estimatedTravelMin: null,
   status: "PENDING",
   outcome: null,

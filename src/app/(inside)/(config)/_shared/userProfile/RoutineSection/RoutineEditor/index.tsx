@@ -100,6 +100,69 @@ export function RoutineEditor({ form, disabled, onChange }: Props) {
       </Card.Item>
 
       <Card.Item variant="stat">
+        <Card.Item.Label>
+          Ligar para o cliente entre uma visita e outra
+        </Card.Item.Label>
+        <Card.Item.Actions>
+          <InputToggle
+            checked={form.isRemoteContactEnabled}
+            disabled={disabled}
+            onChange={(e) =>
+              onChange({ isRemoteContactEnabled: e.target.checked })
+            }
+          />
+        </Card.Item.Actions>
+      </Card.Item>
+
+      {/* Os dois parâmetros só existem se o contato estiver ligado — mostrá-los
+          desligados faria a pessoa ajustar número que não é usado. */}
+      {form.isRemoteContactEnabled && (
+        <>
+          <Card.Item variant="stat">
+            <Card.Item.Label>Ligações por dia, no máximo</Card.Item.Label>
+            <Card.Item.Actions>
+              <InputNumber
+                value={form.maxRemoteContactsPerDay}
+                disabled={disabled}
+                onChange={(e) =>
+                  onChange({
+                    maxRemoteContactsPerDay: e.target.value
+                      ? Number(e.target.value)
+                      : 0,
+                  })
+                }
+                min={0}
+                max={30}
+                containerClassName="w-[80px]"
+              />
+            </Card.Item.Actions>
+          </Card.Item>
+
+          <Card.Item variant="stat">
+            <Card.Item.Label>
+              Ligar quando passar desta parte do intervalo (%)
+            </Card.Item.Label>
+            <Card.Item.Actions>
+              <InputNumber
+                value={form.remoteContactIntervalPct}
+                disabled={disabled}
+                onChange={(e) =>
+                  onChange({
+                    remoteContactIntervalPct: e.target.value
+                      ? Number(e.target.value)
+                      : 50,
+                  })
+                }
+                min={10}
+                max={90}
+                containerClassName="w-[80px]"
+              />
+            </Card.Item.Actions>
+          </Card.Item>
+        </>
+      )}
+
+      <Card.Item variant="stat">
         <Card.Item.Label>Tempo médio de visita (minutos)</Card.Item.Label>
         <Card.Item.Actions>
           <InputNumber

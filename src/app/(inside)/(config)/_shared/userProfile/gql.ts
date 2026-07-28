@@ -47,6 +47,9 @@ export const USER_DETAIL_QUERY = gql`
             workDays
             workStartTime
             workEndTime
+            isRemoteContactEnabled
+            maxRemoteContactsPerDay
+            remoteContactIntervalPct
             avgVisitDurationMin
             isRescheduleSameWeek
             maxRescheduleAttempts

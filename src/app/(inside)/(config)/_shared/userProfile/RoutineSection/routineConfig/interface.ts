@@ -14,6 +14,9 @@ export interface ScheduleConfig {
   workDays: number[];
   workStartTime: string;
   workEndTime: string;
+  isRemoteContactEnabled: boolean;
+  maxRemoteContactsPerDay: number;
+  remoteContactIntervalPct: number;
   avgVisitDurationMin: number;
   isRescheduleSameWeek: boolean;
   maxRescheduleAttempts: number;
@@ -28,6 +31,9 @@ export interface CreateScheduleConfigInput {
   workDays: number[];
   workStartTime: string;
   workEndTime: string;
+  isRemoteContactEnabled: boolean;
+  maxRemoteContactsPerDay: number;
+  remoteContactIntervalPct: number;
   avgVisitDurationMin: number;
   isRescheduleSameWeek: boolean;
   maxRescheduleAttempts: number;
@@ -48,6 +54,9 @@ export interface UpdateScheduleConfigInput {
   workDays?: number[];
   workStartTime?: string;
   workEndTime?: string;
+  isRemoteContactEnabled?: boolean;
+  maxRemoteContactsPerDay?: number;
+  remoteContactIntervalPct?: number;
   avgVisitDurationMin?: number;
   isRescheduleSameWeek?: boolean;
   maxRescheduleAttempts?: number;
@@ -69,6 +78,9 @@ export interface SettingsFormState {
   workDays: number[];
   workStartTime: string;
   workEndTime: string;
+  isRemoteContactEnabled: boolean;
+  maxRemoteContactsPerDay: number;
+  remoteContactIntervalPct: number;
   avgVisitDurationMin: number;
   isRescheduleSameWeek: boolean;
   maxRescheduleAttempts: number;

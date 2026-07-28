@@ -2,7 +2,9 @@ import { Badge } from "@/components/Badges";
 import { Title } from "@/components/Title";
 import { Card } from "@/components/Card";
 import { EmptyState } from "@/components/EmptyState";
-import { MapPin } from "lucide-react";
+import { MapPin, Phone } from "lucide-react";
+import { cn } from "@/lib/utils";
+import { ContactLinks } from "../../../_components/ContactLinks";
 import { VisitActions } from "../../../_components/VisitActions";
 import { VisitItem } from "../../interface";
 import {
@@ -18,6 +20,11 @@ interface Props {
   currentDayId: string | null;
   scheduleDays: { id: string; date: string }[];
   onChanged: () => void;
+  /**
+   * "remote" muda só a moldura: os contatos do dia não são paradas de rota, mas
+   * a linha (cliente, fábrica, status, ações) é exatamente a mesma.
+   */
+  variant?: "route" | "remote";
 }
 
 export function RouteStopsCard({
@@ -25,12 +32,15 @@ export function RouteStopsCard({
   currentDayId,
   scheduleDays,
   onChanged,
+  variant = "route",
 }: Props) {
+  const isRemote = variant === "remote";
+
   return (
     <Card.Root>
       <Card.Header>
         <Card.Header.Title size="sm" weight="bold">
-          Sequência de paradas
+          {isRemote ? "Contatos do dia" : "Sequência de paradas"}
         </Card.Header.Title>
       </Card.Header>
       <Card.Body padding="compact">
@@ -55,8 +65,17 @@ export function RouteStopsCard({
                   key={stop.id}
                   className="flex items-start gap-10 rounded-(--r-md) border border-(--border) p-10"
                 >
-                  <div className="font-head mt-[2px] flex h-[22px] w-[22px] shrink-0 items-center justify-center rounded-full bg-(--amber) text-[13px] font-bold text-white">
-                    {stop.plannedOrder}
+                  <div
+                    className={cn(
+                      "font-head mt-[2px] flex h-[22px] w-[22px] shrink-0 items-center justify-center rounded-full text-[13px] font-bold text-white",
+                      isRemote ? "bg-(--blue)" : "bg-(--amber)"
+                    )}
+                  >
+                    {isRemote ? (
+                      <Phone size={12} aria-hidden />
+                    ) : (
+                      stop.plannedOrder
+                    )}
                   </div>
 
                   <div className="min-w-0 flex-1">
@@ -66,15 +85,26 @@ export function RouteStopsCard({
                     <Title variant="body-sm" color="muted" className="mt-[2px]">
                       {factoryLabel(factory)}
                     </Title>
-                    <Title
-                      variant="body-sm"
-                      color="muted2"
-                      className="mt-[2px]"
-                    >
-                      {clientAddress(client)}
-                    </Title>
+                    {/* No contato, o endereço não serve para nada — o que o
+                        vendedor precisa é do telefone. */}
+                    {isRemote ? (
+                      <div className="mt-6">
+                        <ContactLinks
+                          contact={client?.primaryContact ?? null}
+                          clientName={clientLabel(client)}
+                        />
+                      </div>
+                    ) : (
+                      <Title
+                        variant="body-sm"
+                        color="muted2"
+                        className="mt-[2px]"
+                      >
+                        {clientAddress(client)}
+                      </Title>
+                    )}
                     <div className="mt-4 flex items-center gap-6">
-                      {travel != null && (
+                      {travel != null && !isRemote && (
                         <Title variant="micro" color="muted">
                           ~{travel} min de visita
                         </Title>

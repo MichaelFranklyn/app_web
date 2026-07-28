@@ -101,6 +101,17 @@ export default function DayRouteContent({ date, sellerId }: Props) {
     [day]
   );
 
+  // O mapa e o resumo de trajeto são sobre DESLOCAMENTO: um contato remoto não
+  // é parada, então entra numa lista à parte em vez de virar um pino na rota.
+  const drivingStops = useMemo(
+    () => sortedStops.filter((s) => s.contactType !== "REMOTE"),
+    [sortedStops]
+  );
+  const remoteStops = useMemo(
+    () => sortedStops.filter((s) => s.contactType === "REMOTE"),
+    [sortedStops]
+  );
+
   // Mantém o vendedor escolhido ao navegar entre os dias (gestor).
   const sellerQuery = sellerId ? `?seller=${sellerId}` : "";
   const prevHref = `/routines/${shiftDateIso(date, -1)}${sellerQuery}`;
@@ -209,7 +220,7 @@ export default function DayRouteContent({ date, sellerId }: Props) {
       <div className="desktop:flex-row flex flex-col gap-20">
         <div className="min-w-0 flex-1">
           <RouteMap
-            stops={sortedStops}
+            stops={drivingStops}
             distanceKm={day.routeDistanceKm}
             departureAddress={day.departureAddress}
           />
@@ -219,11 +230,20 @@ export default function DayRouteContent({ date, sellerId }: Props) {
           data-tour="routine-day-stops"
         >
           <RouteStopsCard
-            stops={sortedStops}
+            stops={drivingStops}
             currentDayId={day.id}
             scheduleDays={schedule?.days ?? []}
             onChanged={() => refetch()}
           />
+          {remoteStops.length > 0 && (
+            <RouteStopsCard
+              stops={remoteStops}
+              currentDayId={day.id}
+              scheduleDays={schedule?.days ?? []}
+              onChanged={() => refetch()}
+              variant="remote"
+            />
+          )}
         </div>
       </div>
     </PageContent>

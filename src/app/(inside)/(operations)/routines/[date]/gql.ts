@@ -45,6 +45,7 @@ export const WEEK_SCHEDULE_QUERY = gql`
             items {
               id
               plannedOrder
+              contactType
               estimatedTravelMin
               status
               outcome
@@ -77,6 +78,11 @@ export const WEEK_SCHEDULE_QUERY = gql`
                   addressNeighborhood
                   addressCity
                   addressState
+                  primaryContact {
+                    id
+                    name
+                    phone
+                  }
                 }
                 factory {
                   id

@@ -4,7 +4,7 @@ import { Title } from "@/components/Title";
 import { Plus } from "lucide-react";
 import { useState } from "react";
 
-import { VisitScheduleDay } from "../../interface";
+import { RoutineCapacity, VisitScheduleDay } from "../../interface";
 import { AddVisitModal } from "./AddVisitModal";
 
 interface Props {
@@ -17,7 +17,7 @@ interface Props {
   /** Próximo dia útil da semana (para "agendar no dia seguinte"); null se folga. */
   nextDay: VisitScheduleDay | null;
   sellerId: string | null;
-  maxVisitsPerDay: number;
+  capacity: RoutineCapacity;
   onChanged: () => void;
 }
 
@@ -29,7 +29,7 @@ export function AddVisitCard({
   scheduleId,
   nextDay,
   sellerId,
-  maxVisitsPerDay,
+  capacity,
   onChanged,
 }: Props) {
   const [open, setOpen] = useState(false);
@@ -62,7 +62,7 @@ export function AddVisitCard({
         scheduleId={scheduleId}
         nextDay={nextDay}
         sellerId={sellerId}
-        maxVisitsPerDay={maxVisitsPerDay}
+        capacity={capacity}
         onDone={onChanged}
       />
     </>
