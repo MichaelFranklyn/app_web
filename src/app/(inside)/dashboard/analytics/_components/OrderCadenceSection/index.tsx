@@ -3,6 +3,7 @@
 import { SERIES_GREEN, SERIES_ORANGE } from "@/components/Chart/chartTheme";
 import { Grid } from "@/components/Grid";
 
+import { CHART_HELP } from "../../chartHelp";
 import { ChartFilters } from "../../interface";
 import { formatDays } from "../../utils";
 import { AnalyticsSection } from "../AnalyticsSection";
@@ -21,7 +22,10 @@ export function OrderCadenceSection({ filters }: { filters: ChartFilters }) {
     >
       <Grid.Root cols={{ base: 1, desktop: 2 }} gap={12}>
         <Grid.Item>
-          <LazyChartCard title="Intervalo entre pedidos por fábrica">
+          <LazyChartCard
+            title="Intervalo entre pedidos por fábrica"
+            help={CHART_HELP.orderIntervalByFactory}
+          >
             <EntityRankingChart
               filters={filters}
               query={ORDER_INTERVAL_BY_FACTORY_QUERY}
@@ -34,7 +38,10 @@ export function OrderCadenceSection({ filters }: { filters: ChartFilters }) {
           </LazyChartCard>
         </Grid.Item>
         <Grid.Item>
-          <LazyChartCard title="Intervalo entre pedidos por cliente">
+          <LazyChartCard
+            title="Intervalo entre pedidos por cliente"
+            help={CHART_HELP.orderIntervalByClient}
+          >
             <EntityRankingChart
               filters={filters}
               query={ORDER_INTERVAL_BY_CLIENT_QUERY}

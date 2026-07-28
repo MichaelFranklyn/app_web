@@ -2,6 +2,7 @@
 
 import { Grid } from "@/components/Grid";
 
+import { CHART_HELP } from "../../chartHelp";
 import { ChartFilters } from "../../interface";
 import { AnalyticsSection } from "../AnalyticsSection";
 import { DeliveryPerformanceChart } from "../DeliveryPerformanceChart";
@@ -26,6 +27,7 @@ export function FactoryPerformanceSection({
           <LazyChartCard
             title="Faturamento por fábrica"
             description="Uma linha por fábrica ao longo dos meses."
+            help={CHART_HELP.revenueByFactoryMonth}
           >
             <EntityMonthSeriesChart
               filters={filters}
@@ -38,6 +40,7 @@ export function FactoryPerformanceSection({
           <LazyChartCard
             title="Prazo de entrega: prometido e real"
             description="Dias que a fábrica prometeu e dias que levou de fato."
+            help={CHART_HELP.deliveryPerformance}
           >
             <DeliveryPerformanceChart filters={filters} />
           </LazyChartCard>

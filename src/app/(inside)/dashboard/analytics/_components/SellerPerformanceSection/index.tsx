@@ -2,6 +2,7 @@
 
 import { Grid } from "@/components/Grid";
 
+import { CHART_HELP } from "../../chartHelp";
 import { ChartFilters } from "../../interface";
 import { AnalyticsSection } from "../AnalyticsSection";
 import { EntityMonthSeriesChart } from "../EntityMonthSeriesChart";
@@ -27,6 +28,7 @@ export function SellerPerformanceSection({
           <LazyChartCard
             title="Faturamento por vendedor"
             description="Uma linha por vendedor ao longo dos meses."
+            help={CHART_HELP.revenueBySellerMonth}
           >
             <EntityMonthSeriesChart
               filters={filters}
@@ -39,6 +41,7 @@ export function SellerPerformanceSection({
           <LazyChartCard
             title="Visitas que viraram pedido"
             description="Quantas visitas foram feitas e quanto delas rendeu venda."
+            help={CHART_HELP.visitConversion}
           >
             <VisitConversionChart filters={filters} />
           </LazyChartCard>
@@ -47,6 +50,7 @@ export function SellerPerformanceSection({
           <LazyChartCard
             title="Quanto da carteira comprou"
             description="Fatia dos clientes de cada vendedor que fez pedido no período."
+            help={CHART_HELP.walletCoverage}
           >
             <WalletCoverageChart filters={filters} />
           </LazyChartCard>

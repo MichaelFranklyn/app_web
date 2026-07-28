@@ -30,6 +30,9 @@ import {
   defaultShowLegend,
   optionToRows,
 } from "../../chartCustomize";
+import { buildChartInsight } from "../../chartInsight";
+import { ChartHelp } from "../../interface";
+import { ChartHelpTip } from "../ChartHelpTip";
 import { ChartMenu } from "../ChartMenu";
 
 const EMPTY_CAPS = {
@@ -47,6 +50,8 @@ const Chart = dynamic(() => import("@/components/Chart"), {
 interface Props {
   title: string;
   description?: string;
+  /** Explicação do gráfico, no "?" ao lado do título (ver chartHelp.ts). */
+  help?: ChartHelp;
   children: ReactNode;
 }
 
@@ -56,7 +61,7 @@ interface Props {
  * baixar imagem/dados. O menu conversa com o gráfico interno via
  * ChartCardContext — o gráfico em si não precisa saber de nada disso.
  */
-export function LazyChartCard({ title, description, children }: Props) {
+export function LazyChartCard({ title, description, help, children }: Props) {
   const { ref, inView } = useInView<HTMLDivElement>({ once: true });
   const print = useAnalyticsPrint();
   const id = useId();
@@ -145,13 +150,28 @@ export function LazyChartCard({ title, description, children }: Props) {
     [option, prefs]
   );
 
+  // Lê os números do gráfico já montado: a análise acompanha o filtro de
+  // período/vendedor sem precisar de query própria.
+  const insight = useMemo(
+    () =>
+      option && help?.insight ? buildChartInsight(option, help.insight) : null,
+    [option, help]
+  );
+
   return (
     <ChartCardContext.Provider value={ctx}>
       <Card.Root>
         <Card.Header>
-          <Card.Header.Title size="sm" weight="semibold">
-            {title}
-          </Card.Header.Title>
+          {/* Título e "?" na mesma linha: a explicação é do gráfico, não do
+              card — longe do título ela vira mais um botão sem dono. */}
+          <div className="flex min-w-0 items-center gap-4">
+            <Card.Header.Title size="sm" weight="semibold" className="min-w-0">
+              {title}
+            </Card.Header.Title>
+            {help && (
+              <ChartHelpTip title={title} help={help} insight={insight} />
+            )}
+          </div>
           {description && (
             <Card.Header.Description>{description}</Card.Header.Description>
           )}

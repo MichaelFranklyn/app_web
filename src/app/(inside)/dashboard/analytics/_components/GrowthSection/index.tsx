@@ -2,6 +2,7 @@
 
 import { Grid } from "@/components/Grid";
 
+import { CHART_HELP } from "../../chartHelp";
 import { ChartFilters } from "../../interface";
 import { AnalyticsSection } from "../AnalyticsSection";
 import { AvgTicketByMonthChart } from "../AvgTicketByMonthChart";
@@ -23,6 +24,7 @@ export function GrowthSection({ filters }: { filters: ChartFilters }) {
           <LazyChartCard
             title="Ticket médio por mês"
             description="Quanto vale cada pedido, mês a mês."
+            help={CHART_HELP.avgTicketByMonth}
           >
             <AvgTicketByMonthChart filters={filters} />
           </LazyChartCard>
@@ -31,6 +33,7 @@ export function GrowthSection({ filters }: { filters: ChartFilters }) {
           <LazyChartCard
             title="Clientes novos e recompra"
             description="Quem comprou pela primeira vez e quem voltou."
+            help={CHART_HELP.newVsReturning}
           >
             <NewVsReturningChart filters={filters} />
           </LazyChartCard>
@@ -39,6 +42,7 @@ export function GrowthSection({ filters }: { filters: ChartFilters }) {
           <LazyChartCard
             title="Situação dos pedidos por mês"
             description="Em que pé estão hoje os pedidos feitos em cada mês."
+            help={CHART_HELP.orderStatusByMonth}
           >
             <OrderStatusByMonthChart filters={filters} />
           </LazyChartCard>
@@ -47,6 +51,7 @@ export function GrowthSection({ filters }: { filters: ChartFilters }) {
           <LazyChartCard
             title="De quem vem o faturamento"
             description="Quanto do total está concentrado nos maiores clientes."
+            help={CHART_HELP.revenueConcentration}
           >
             <RevenueConcentrationChart filters={filters} />
           </LazyChartCard>

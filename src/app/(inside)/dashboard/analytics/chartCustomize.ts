@@ -294,25 +294,60 @@ export const chartFilename = (title: string): string =>
     .replace(/[^a-z0-9]+/g, "-")
     .replace(/^-+|-+$/g, "");
 
+/** Dados numéricos por trás do desenho, já normalizados. */
+export interface ChartData {
+  /** Eixo de categoria: meses ("jul/26") ou nomes de entidade. */
+  categories: string[];
+  series: { name: string; values: number[] }[];
+  /** Rosca: as categorias são fatias de um todo, não uma sequência. */
+  isPie: boolean;
+}
+
+const EMPTY_DATA: ChartData = { categories: [], series: [], isPie: false };
+
 /**
- * Extrai os dados da option numa matriz pronta para CSV (cabeçalho + linhas).
- * Cobre rosca ({name,value}) e gráficos com eixo de categoria (mês/entidade)
- * com uma ou mais séries. Devolve `[]` quando não há o que exportar.
+ * Valor de um ponto da série. Quando a cor varia item a item (clientes em
+ * risco), o ECharts recebe `{ value, itemStyle }` em vez do número cru — sem
+ * desembrulhar, o valor viraria NaN aqui e "[object Object]" no CSV.
  */
-export const optionToRows = (option: EChartsCoreOption): string[][] => {
+const pointValue = (point: unknown): number => {
+  const raw =
+    point !== null && typeof point === "object"
+      ? (point as { value?: unknown }).value
+      : point;
+  return Number(raw) || 0;
+};
+
+/**
+ * Lê a option do ECharts de volta como dados. Cobre rosca ({name,value}) e
+ * gráficos com eixo de categoria (mês/entidade) com uma ou mais séries.
+ *
+ * É a única porta de entrada para quem precisa dos números depois que o gráfico
+ * já foi montado — hoje o export CSV e a análise do tooltip. Vale lembrar que a
+ * ordem aqui é a ordem do desenho: nos rankings horizontais o maior fica no
+ * FIM do array (o eixo Y cresce para cima), então quem for ranquear deve
+ * ordenar por valor, não confiar na posição.
+ */
+export const optionToData = (option: EChartsCoreOption): ChartData => {
   const o = option as Record<string, unknown>;
   const series = seriesOf(option);
-  if (series.length === 0) return [];
+  if (series.length === 0) return EMPTY_DATA;
 
   if (series[0]?.type === "pie") {
     const pieData = (Array.isArray(series[0].data) ? series[0].data : []) as {
       name?: string;
       value?: number;
     }[];
-    return [
-      ["Item", "Valor"],
-      ...pieData.map((d) => [String(d.name ?? ""), String(d.value ?? "")]),
-    ];
+    return {
+      categories: pieData.map((d) => String(d.name ?? "")),
+      series: [
+        {
+          name: String(series[0].name ?? "Valor"),
+          values: pieData.map((d) => pointValue(d.value)),
+        },
+      ],
+      isPie: true,
+    };
   }
 
   const xAxis = o.xAxis as { type?: string; data?: unknown[] } | undefined;
@@ -325,16 +360,34 @@ export const optionToRows = (option: EChartsCoreOption): string[][] => {
         : undefined;
   const categories = Array.isArray(catAxis?.data) ? catAxis.data : [];
 
-  const header = [
-    "Categoria",
-    ...series.map((s, i) => String(s.name ?? `Série ${i + 1}`)),
-  ];
-  const rows = categories.map((c, i) => [
-    String(c ?? ""),
-    ...series.map((s) => {
-      const seriesValues = s.data as unknown[] | undefined;
-      return String(seriesValues?.[i] ?? "");
+  return {
+    categories: categories.map((c) => String(c ?? "")),
+    series: series.map((s, i) => {
+      const values = s.data as unknown[] | undefined;
+      return {
+        name: String(s.name ?? `Série ${i + 1}`),
+        values: categories.map((_, index) => pointValue(values?.[index])),
+      };
     }),
+    isPie: false,
+  };
+};
+
+/**
+ * Extrai os dados da option numa matriz pronta para CSV (cabeçalho + linhas).
+ * Devolve `[]` quando não há o que exportar.
+ */
+export const optionToRows = (option: EChartsCoreOption): string[][] => {
+  const { categories, series, isPie } = optionToData(option);
+  if (series.length === 0) return [];
+
+  const header = isPie
+    ? ["Item", "Valor"]
+    : ["Categoria", ...series.map((s) => s.name)];
+
+  const rows = categories.map((category, i) => [
+    category,
+    ...series.map((s) => String(s.values[i] ?? "")),
   ]);
   return [header, ...rows];
 };

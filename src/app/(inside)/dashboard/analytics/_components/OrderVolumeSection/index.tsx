@@ -2,6 +2,7 @@
 
 import { Grid } from "@/components/Grid";
 
+import { CHART_HELP } from "../../chartHelp";
 import { ChartFilters } from "../../interface";
 import { AnalyticsSection } from "../AnalyticsSection";
 import { LazyChartCard } from "../LazyChartCard";
@@ -16,12 +17,18 @@ export function OrderVolumeSection({ filters }: { filters: ChartFilters }) {
     >
       <Grid.Root cols={{ base: 1, desktop: 2 }} gap={12}>
         <Grid.Item>
-          <LazyChartCard title="Pedidos por fábrica">
+          <LazyChartCard
+            title="Pedidos por fábrica"
+            help={CHART_HELP.ordersByFactory}
+          >
             <OrdersByFactoryChart filters={filters} />
           </LazyChartCard>
         </Grid.Item>
         <Grid.Item>
-          <LazyChartCard title="Pedidos por cliente">
+          <LazyChartCard
+            title="Pedidos por cliente"
+            help={CHART_HELP.ordersByClient}
+          >
             <OrdersByClientChart filters={filters} />
           </LazyChartCard>
         </Grid.Item>

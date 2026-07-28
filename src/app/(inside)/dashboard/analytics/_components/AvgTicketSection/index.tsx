@@ -8,6 +8,7 @@ import {
 import { Grid } from "@/components/Grid";
 import { formatMoney } from "@/utils/format/masks";
 
+import { CHART_HELP } from "../../chartHelp";
 import { ChartFilters } from "../../interface";
 import { AnalyticsSection } from "../AnalyticsSection";
 import { EntityRankingChart } from "../EntityRankingChart";
@@ -26,7 +27,10 @@ export function AvgTicketSection({ filters }: { filters: ChartFilters }) {
     >
       <Grid.Root cols={{ base: 1, desktop: 2 }} gap={12}>
         <Grid.Item>
-          <LazyChartCard title="Ticket médio por vendedor">
+          <LazyChartCard
+            title="Ticket médio por vendedor"
+            help={CHART_HELP.avgTicketBySeller}
+          >
             <EntityRankingChart
               filters={filters}
               query={AVG_TICKET_BY_SELLER_QUERY}
@@ -39,7 +43,10 @@ export function AvgTicketSection({ filters }: { filters: ChartFilters }) {
           </LazyChartCard>
         </Grid.Item>
         <Grid.Item>
-          <LazyChartCard title="Ticket médio por fábrica">
+          <LazyChartCard
+            title="Ticket médio por fábrica"
+            help={CHART_HELP.avgTicketByFactory}
+          >
             <EntityRankingChart
               filters={filters}
               query={AVG_TICKET_BY_FACTORY_QUERY}
@@ -52,7 +59,10 @@ export function AvgTicketSection({ filters }: { filters: ChartFilters }) {
           </LazyChartCard>
         </Grid.Item>
         <Grid.Item>
-          <LazyChartCard title="Ticket médio por cliente">
+          <LazyChartCard
+            title="Ticket médio por cliente"
+            help={CHART_HELP.avgTicketByClient}
+          >
             <EntityRankingChart
               filters={filters}
               query={AVG_TICKET_BY_CLIENT_QUERY}

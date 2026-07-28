@@ -2,6 +2,7 @@
 
 import { Grid } from "@/components/Grid";
 
+import { CHART_HELP } from "../../chartHelp";
 import { ChartFilters } from "../../interface";
 import { AnalyticsSection } from "../AnalyticsSection";
 import { ClientRetentionChart } from "../ClientRetentionChart";
@@ -21,6 +22,7 @@ export function ClientBehaviorSection({ filters }: { filters: ChartFilters }) {
           <LazyChartCard
             title="Clientes que estão sumindo"
             description="Passaram do próprio costume de compra. Em vermelho, os já atrasados."
+            help={CHART_HELP.clientsAtRisk}
           >
             <ClientsAtRiskChart filters={filters} />
           </LazyChartCard>
@@ -29,6 +31,7 @@ export function ClientBehaviorSection({ filters }: { filters: ChartFilters }) {
           <LazyChartCard
             title="A base se mantém?"
             description="Quantos dos que compraram no mês já compravam no mês anterior."
+            help={CHART_HELP.clientRetention}
           >
             <ClientRetentionChart filters={filters} />
           </LazyChartCard>
