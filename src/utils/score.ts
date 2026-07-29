@@ -10,8 +10,11 @@
  * calculate_visit_score.py). As dimensões continuam chegando em escala BRUTA —
  * por isso somar os cinco valores não reproduz o total.
  *
- * Atenção: o score NÃO é o que ordena a rotina do dia. O agendamento usa
- * `_ranking_score` (prioridade + dias de atraso), em generate_weekly_schedule.py.
+ * O score DECIDE a rotina (generate_weekly_schedule.py): a faixa "Urgente"
+ * (>= URGENT_THRESHOLD) é a única que paga um deslocamento; da faixa "Atenção"
+ * para baixo o cliente entra como LIGAÇÃO, e o "Tranquilo" só quando já passou
+ * da fração do ciclo desde a última visita. `_ranking_score` sobrou apenas como
+ * desempate.
  */
 
 export type ScoreTone =
@@ -86,28 +89,34 @@ export const scoreLevel = (total: number): ScoreLevel => {
     return {
       label: "Urgente",
       tone: "red",
-      summary: "Este cliente precisa de atenção agora — priorize uma visita.",
+      summary:
+        "Este cliente precisa de atenção agora — a rotina agenda uma visita.",
     };
   if (total >= ATTENTION_THRESHOLD)
     return {
       label: "Atenção",
       tone: "orange",
-      summary: "Vale agendar uma visita em breve.",
+      summary: "Vale um contato: a rotina agenda uma ligação, não uma visita.",
     };
   if (total >= FOLLOW_THRESHOLD)
     return {
       label: "Acompanhar",
       tone: "amber",
-      summary: "Mantenha o acompanhamento normal deste cliente.",
+      summary:
+        "Acompanhamento normal — entra na fila de ligações quando há vaga.",
     };
   return {
     label: "Tranquilo",
     tone: "green",
-    summary: "Sem pendências relevantes no momento.",
+    summary: "Sem pendências. Recebe ligação só na metade do ciclo de visita.",
   };
 };
 
-/** Uma fábrica "urgente" é a que cruza o limiar da faixa vermelha. */
+/**
+ * Uma fábrica "urgente" é a que cruza o limiar da faixa vermelha — o mesmo
+ * limiar que o motor de rotina usa para decidir que o caso vale deslocamento
+ * (VISIT_SCORE_THRESHOLD em generate_weekly_schedule.py).
+ */
 export const isUrgent = (total: number): boolean => total >= URGENT_THRESHOLD;
 
 /** Rótulo + cor de prioridade para o card de visita (usa o nível do score). */
