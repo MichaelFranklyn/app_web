@@ -174,6 +174,16 @@ extend type Mutation {
   deleteClientContact(id: UUID!): BaseResponse!
 }
 
+"""Uma compra do produto por aquele cliente naquela fábrica."""
+type ProductPurchaseType {
+  orderId: UUID!
+  """Data da ENTREGA quando existe (foi ela que abasteceu), senão a do pedido."""
+  purchaseDate: Date!
+  """Quantidade em UNIDADES (units_total do item)."""
+  quantity: Decimal!
+  unitPrice: Decimal
+}
+
 type ClientProductInsightType {
   id: UUID!
   sellerClientFactoryId: UUID!
@@ -185,6 +195,8 @@ type ClientProductInsightType {
   avgQuantity: Decimal!
   avgShelfDays: Int
   avgIntervalDays: Int
+  """Quando o vendedor observou a prateleira e ditou a duração média."""
+  shelfDaysObservedAt: Date
   estimatedStockoutDate: Date
   daysSinceStockout: Int!
   nextPurchaseEstimate: Date
@@ -193,6 +205,8 @@ type ClientProductInsightType {
   clientFactoryLink: SellerClientFactoryType
   product: ProductType
   category: ProductCategoryType
+  """Últimas compras do produto, da mais recente para a mais antiga."""
+  recentPurchases: [ProductPurchaseType!]!
 }
 
 type ClientProductInsightTypeConnectionResponse {
@@ -2383,6 +2397,12 @@ type SellerClientFactoryType {
   priceTierId: UUID
   priority: String
   visitFrequencyDays: Int
+  """
+  Intervalo médio (dias) entre os últimos PEDIDOS deste cliente nesta fábrica,
+  calculado pelo job de estoque. Serve de ciclo de visita quando ninguém
+  cadastrou visitFrequencyDays — que continua tendo precedência.
+  """
+  orderIntervalDays: Int
   notes: String
   lastVisitDate: DateTime
   """Último toque de qualquer tipo — visita presencial OU contato remoto."""

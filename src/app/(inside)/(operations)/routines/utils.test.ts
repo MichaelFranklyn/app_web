@@ -1,7 +1,11 @@
 import { describe, expect, it } from "vitest";
 
 import { VisitScheduleItem } from "./interface";
-import { getVisitFollowupWarning, getVisitScoreTotal } from "./utils";
+import {
+  getVisitFollowupWarning,
+  getVisitScoreTotal,
+  isPastDay,
+} from "./utils";
 
 const factory = (id: string) => ({
   id,
@@ -102,5 +106,26 @@ describe("getVisitFollowupWarning", () => {
     const visit = item({ status: "COMPLETED", outcome: "SOLD" });
 
     expect(getVisitFollowupWarning(visit)).toBeNull();
+  });
+});
+
+describe("isPastDay", () => {
+  const HOJE = "2026-07-29";
+
+  it("dia anterior a hoje já passou", () => {
+    expect(isPastDay("2026-07-28", HOJE)).toBe(true);
+  });
+
+  it("hoje não é passado — a rota do dia ainda pode ser gerada", () => {
+    expect(isPastDay(HOJE, HOJE)).toBe(false);
+  });
+
+  it("dia futuro não é passado", () => {
+    expect(isPastDay("2026-07-30", HOJE)).toBe(false);
+  });
+
+  it("compara pelo calendário, não pelo mês/dia soltos", () => {
+    expect(isPastDay("2025-12-31", HOJE)).toBe(true);
+    expect(isPastDay("2027-01-01", HOJE)).toBe(false);
   });
 });

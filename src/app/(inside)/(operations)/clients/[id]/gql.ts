@@ -8,6 +8,7 @@ export const SELLER_CLIENT_FACTORIES_QUERY = gql`
           id
           priority
           visitFrequencyDays
+          orderIntervalDays
           lastVisitDate
           factory {
             id
@@ -130,12 +131,21 @@ export const CLIENT_PRODUCT_INSIGHTS_QUERY = gql`
           daysSinceStockout
           nextPurchaseEstimate
           churnRisk
+          shelfDaysObservedAt
           product {
             id
             name
             unit {
               label
             }
+          }
+          # Últimas compras do produto: é delas que sai a duração média, então
+          # mostrá-las ao lado da estimativa deixa a conta auditável.
+          recentPurchases {
+            orderId
+            purchaseDate
+            quantity
+            unitPrice
           }
         }
       }

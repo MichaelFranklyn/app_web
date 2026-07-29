@@ -11,6 +11,7 @@ import { PackageSearch, Pencil } from "lucide-react";
 import { useState } from "react";
 import { ProductInsight } from "../../../interface";
 import { stockSituation } from "../../../utils";
+import { RecentPurchases } from "./RecentPurchases";
 import { StockDaysEditor } from "./StockDaysEditor";
 import { useUpdateProductStock } from "./useUpdateProductStock";
 
@@ -134,8 +135,9 @@ function ProductStockCard({
           }
           help={{
             title: "O que é a duração média?",
-            content:
-              "Tempo médio, em dias, que a quantidade comprada costuma durar no cliente — calculado a partir do histórico de pedidos e das médias informadas pelo vendedor.",
+            content: insight.shelfDaysObservedAt
+              ? `Tempo médio, em dias, que a quantidade comprada costuma durar no cliente. Este valor veio do estoque observado em ${formatDate(insight.shelfDaysObservedAt)} — o que o vendedor viu vale mais que a estimativa.`
+              : "Tempo médio, em dias, que a quantidade comprada costuma durar no cliente — calculado pelo intervalo entre as últimas compras. Abra 'últimas compras' abaixo para ver a conta.",
           }}
         />
         <Detail
@@ -148,6 +150,11 @@ function ProductStockCard({
           }}
         />
       </div>
+
+      <RecentPurchases
+        purchases={insight.recentPurchases ?? []}
+        unitLabel={insight.product?.unit?.label ?? ""}
+      />
 
       <div className="flex justify-end">
         <Button.Root
