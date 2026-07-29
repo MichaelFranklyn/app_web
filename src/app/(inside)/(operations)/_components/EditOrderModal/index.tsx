@@ -24,8 +24,19 @@ export function EditOrderModal({
   mutation,
   invalidateKeys = ["orders"],
   stopPropagationOnTrigger = false,
+  open: controlledOpen,
+  onOpenChange,
 }: EditOrderModalProps) {
-  const [open, setOpen] = useState(false);
+  const [uncontrolledOpen, setUncontrolledOpen] = useState(false);
+  // Controlado quando o pai passa `open`: aí o gatilho vive fora deste
+  // componente (tipicamente numa tabela dentro de outro modal, que precisa
+  // fechar antes deste abrir).
+  const isControlled = controlledOpen !== undefined;
+  const open = isControlled ? controlledOpen : uncontrolledOpen;
+  const setOpen = (value: boolean) => {
+    if (isControlled) onOpenChange?.(value);
+    else setUncontrolledOpen(value);
+  };
   const formRef = useRef<FormBuilderRef>(null);
   const invalidateClient = useInvalidateQueriesClient();
 
@@ -67,20 +78,22 @@ export function EditOrderModal({
 
   return (
     <Modal.Root open={open} onOpenChange={setOpen}>
-      <Modal.Trigger asChild>
-        <Button.Root
-          appearance="ghost"
-          color="neutral"
-          size="sm"
-          noUppercase
-          onClick={
-            stopPropagationOnTrigger ? (e) => e.stopPropagation() : undefined
-          }
-        >
-          <Button.Icon icon={Pencil} />
-          <Button.Title>Editar</Button.Title>
-        </Button.Root>
-      </Modal.Trigger>
+      {!isControlled && (
+        <Modal.Trigger asChild>
+          <Button.Root
+            appearance="ghost"
+            color="neutral"
+            size="sm"
+            noUppercase
+            onClick={
+              stopPropagationOnTrigger ? (e) => e.stopPropagation() : undefined
+            }
+          >
+            <Button.Icon icon={Pencil} />
+            <Button.Title>Editar</Button.Title>
+          </Button.Root>
+        </Modal.Trigger>
+      )}
 
       <Modal.Content size="md">
         <Modal.Header

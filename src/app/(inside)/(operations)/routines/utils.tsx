@@ -156,6 +156,16 @@ export const canGenerateWeek = (weekStartIso: string): boolean => {
   return weekStartIso === current || weekStartIso === next;
 };
 
+/**
+ * O dia já passou — não há rota a gerar para ele.
+ *
+ * O backend recusa gerar rota para trás (a visita seria impossível e ainda
+ * "gastaria" o cliente, que só entra uma vez na semana). Aqui o botão some antes
+ * de o vendedor tentar, para o erro nunca aparecer.
+ */
+export const isPastDay = (dateIso: string, todayIso: string): boolean =>
+  dateIso < todayIso;
+
 export const getIsoWeekNumber = (isoDate: string): number => {
   const [year, month, day] = isoDate.split("-").map(Number);
   if (!year || !month || !day) return 0;

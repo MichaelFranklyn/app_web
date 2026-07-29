@@ -4,6 +4,7 @@ import { Badge } from "@/components/Badges";
 import { EmptyState } from "@/components/EmptyState";
 import { HelpTooltip } from "@/components/HelpTooltip";
 import { Table } from "@/components/Table";
+import { Title } from "@/components/Title";
 import { Factory } from "lucide-react";
 import { DeleteFactoryLinkModal } from "./_components/DeleteFactoryLinkModal";
 import { EditFactoryLinkModal } from "./_components/EditFactoryLinkModal";
@@ -79,11 +80,24 @@ export function FactoryLinksTable({
                 </Badge.Root>
               </Table.Cell>
               <Table.Cell>
-                <Table.CellText variant="dim">
-                  {c.visitFrequencyDays != null
-                    ? `${c.visitFrequencyDays} dias`
-                    : "—"}
-                </Table.CellText>
+                {/* Sem ciclo cadastrado, mostramos o que os pedidos dizem: é
+                    esse número que o sistema usa para cobrar atraso de visita. */}
+                {c.visitFrequencyDays != null ? (
+                  <Table.CellText variant="dim">
+                    {`${c.visitFrequencyDays} dias`}
+                  </Table.CellText>
+                ) : c.orderIntervalDays != null ? (
+                  <div className="flex flex-col">
+                    <Table.CellText variant="dim">
+                      {`${c.orderIntervalDays} dias`}
+                    </Table.CellText>
+                    <Title variant="micro" color="muted">
+                      pelos pedidos
+                    </Title>
+                  </div>
+                ) : (
+                  <Table.CellText variant="dim">—</Table.CellText>
+                )}
               </Table.Cell>
               <Table.Cell>
                 <Table.CellText variant="dim">

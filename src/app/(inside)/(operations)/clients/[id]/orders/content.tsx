@@ -7,10 +7,15 @@ import { Title } from "@/components/Title";
 import { useQuery } from "@apollo/client/react";
 import { Receipt } from "lucide-react";
 import { useState } from "react";
+import {
+  EditOrderModal,
+  UPDATE_ORDER_FROM_CLIENT_MUTATION,
+} from "../../../_components/EditOrderModal";
 import { useClientRoute } from "../context";
 import { CLIENT_FACTORY_ORDERS_QUERY } from "../gql";
 import {
   ClientFactoryOrdersQueryResponse,
+  ClientOrder,
   FactoryOrderSummary,
 } from "../interface";
 import { AddOrderModal } from "./_components/AddOrderModal";
@@ -20,6 +25,24 @@ import { FactoryOrderModal } from "./_components/FactoryOrderModal";
 export default function OrdersContent() {
   const { clientId, companyClientId } = useClientRoute();
   const [selected, setSelected] = useState<FactoryOrderSummary | null>(null);
+  // Edição de pedido vive AQUI, não dentro do modal de pedidos da fábrica: os
+  // dois empilhados deixavam o usuário sem saber qual estava fechando. Ao
+  // editar, o modal da fábrica fecha; ao terminar, ele volta de onde o usuário
+  // estava (guardamos o card em `returnTo`).
+  const [editing, setEditing] = useState<ClientOrder | null>(null);
+  const [returnTo, setReturnTo] = useState<FactoryOrderSummary | null>(null);
+
+  const handleEditOrder = (order: ClientOrder) => {
+    setReturnTo(selected);
+    setSelected(null);
+    setEditing(order);
+  };
+
+  const handleEditClose = () => {
+    setEditing(null);
+    setSelected(returnTo);
+    setReturnTo(null);
+  };
 
   // O pedido é POR FÁBRICA: cada uma tem o seu catálogo e o seu ritmo de compra.
   // O backend ordena da compra mais recente à mais antiga e inclui as fábricas em
@@ -84,7 +107,19 @@ export default function OrdersContent() {
         summary={selected}
         clientId={clientId}
         onClose={() => setSelected(null)}
+        onEditOrder={handleEditOrder}
       />
+
+      {editing && (
+        <EditOrderModal
+          open
+          onOpenChange={(open) => !open && handleEditClose()}
+          orderId={editing.id}
+          initialNotes={editing.notes}
+          mutation={UPDATE_ORDER_FROM_CLIENT_MUTATION}
+          invalidateKeys={["orders", "companyClient"]}
+        />
+      )}
     </div>
   );
 }

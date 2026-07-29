@@ -95,7 +95,17 @@ export function EditFactoryLinkModal({
                 name: "visitFrequencyDays",
                 type: "number",
                 label: "Frequência de visita (dias)",
-                placeholder: "Ex: 7",
+                // Sem preenchimento, o sistema usa o ritmo de compra observado.
+                // Dizer o número evita que o gestor "chute" um ciclo pior do que
+                // o que os pedidos já mostram.
+                placeholder:
+                  link.orderIntervalDays != null
+                    ? `Pelos pedidos: ${link.orderIntervalDays} dias`
+                    : "Ex: 7",
+                hint:
+                  link.orderIntervalDays != null
+                    ? `Este cliente compra desta fábrica a cada ${link.orderIntervalDays} dias, em média. Deixe em branco para seguir esse ritmo.`
+                    : "Deixe em branco para o sistema seguir o intervalo médio entre os pedidos.",
               },
             ],
           },

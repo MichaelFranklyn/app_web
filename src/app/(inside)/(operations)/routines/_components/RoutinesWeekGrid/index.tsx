@@ -11,6 +11,7 @@ import {
   buildWeekDays,
   getTodayIso,
   getVisibleCells,
+  isPastDay,
   sortVisitsByRoute,
 } from "../../utils";
 import { GenerateDayButton } from "./GenerateDayButton";
@@ -146,11 +147,16 @@ export function RoutinesWeekGrid({
                     <Title variant="body-sm" color="muted">
                       Folga
                     </Title>
-                    <GenerateDayButton
-                      date={cell.date}
-                      sellerId={addSellerId}
-                      onGenerated={onChanged}
-                    />
+                    {/* Dia vencido não recebe rota nova: a visita já não pode
+                        acontecer, e recomendá-la só consumiria o cliente da
+                        semana. O backend recusa; aqui o botão nem aparece. */}
+                    {!isPastDay(cell.date, todayIso) && (
+                      <GenerateDayButton
+                        date={cell.date}
+                        sellerId={addSellerId}
+                        onGenerated={onChanged}
+                      />
+                    )}
                     <AddVisitCard
                       day={null}
                       date={cell.date}

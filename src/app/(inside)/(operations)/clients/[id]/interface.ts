@@ -91,6 +91,8 @@ export interface SellerClientFactory {
   id: string;
   priority: string | null;
   visitFrequencyDays: number | null;
+  /** Ciclo calculado pelo intervalo entre os últimos pedidos nesta fábrica. */
+  orderIntervalDays: number | null;
   lastVisitDate: string | null;
   factory: {
     id: string;
@@ -167,6 +169,15 @@ export interface ClientVisitScoresQueryResponse {
   };
 }
 
+/** Uma compra do produto por aquele cliente naquela fábrica. */
+export interface ProductPurchase {
+  orderId: string;
+  /** Data da entrega quando existe (foi ela que abasteceu), senão a do pedido. */
+  purchaseDate: string;
+  quantity: string;
+  unitPrice: string | null;
+}
+
 export interface ProductInsight {
   id: string;
   lastPurchaseDate: string | null;
@@ -178,7 +189,11 @@ export interface ProductInsight {
   daysSinceStockout: number;
   nextPurchaseEstimate: string | null;
   churnRisk: "baixo" | "medio" | "alto";
+  /** Quando o vendedor observou a prateleira e ditou a duração média. */
+  shelfDaysObservedAt: string | null;
   product: { id: string; name: string; unit: { label: string } | null } | null;
+  /** Últimas compras, da mais recente para a mais antiga. */
+  recentPurchases: ProductPurchase[];
 }
 
 export interface ClientProductInsightsQueryResponse {

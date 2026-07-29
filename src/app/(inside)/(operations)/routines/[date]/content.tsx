@@ -22,6 +22,7 @@ import { RouteSummary } from "./_components/RouteSummary";
 import { VisitsHeader } from "./_components/VisitsHeader";
 import { VisitsSkeleton } from "./_components/VisitsSkeleton";
 import { GENERATE_DAY_ROUTE_MUTATION } from "../gql";
+import { getTodayIso, isPastDay } from "../utils";
 import { WEEK_SCHEDULE_QUERY } from "./gql";
 import { VisitsWeekScheduleResponse } from "./interface";
 
@@ -43,8 +44,10 @@ interface Props {
 export default function DayRouteContent({ date, sellerId }: Props) {
   const weekStart = useMemo(() => getWeekMondayIso(date), [date]);
 
-  // Só o vendedor gera a própria rota; owner/admin apenas visualizam.
-  const canGenerate = useUserRole() === "SELLER";
+  // Só o vendedor gera a própria rota; owner/admin apenas visualizam. Dia
+  // vencido também não gera: a visita já não pode acontecer e o backend recusa.
+  const isSeller = useUserRole() === "SELLER";
+  const canGenerate = isSeller && !isPastDay(date, getTodayIso());
 
   // Sem vendedor explícito, mostra a rotina do próprio logado (sentinela "me",
   // que o backend escopa ao usuário em qualquer papel). Quando o gestor chega
@@ -213,7 +216,7 @@ export default function DayRouteContent({ date, sellerId }: Props) {
         dayId={day.id}
         departureType={day.departureType}
         departureAddress={day.departureAddress}
-        canEdit={canGenerate}
+        canEdit={isSeller}
         onChanged={() => refetch()}
       />
 

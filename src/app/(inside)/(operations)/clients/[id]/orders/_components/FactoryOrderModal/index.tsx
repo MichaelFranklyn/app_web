@@ -1,6 +1,7 @@
 "use client";
 
 import { Badge } from "@/components/Badges";
+import { Button } from "@/components/Button";
 import { EmptyState } from "@/components/EmptyState";
 import { InputSearch, InputSelect } from "@/components/Input";
 import { SelectOption } from "@/components/Input";
@@ -9,12 +10,10 @@ import { Pagination } from "@/components/Pagination";
 import { Table } from "@/components/Table";
 import { useOptimisticList } from "@/hooks/useOptimisticList";
 import { useQuery } from "@apollo/client/react";
-import { Receipt } from "lucide-react";
+import { Pencil, Receipt } from "lucide-react";
 import { useMemo, useState } from "react";
 import { formatDate } from "@/utils/format/date";
 import { pageToAfter } from "@/utils/pagination";
-import { EditOrderModal } from "../../../../../_components/EditOrderModal";
-import { UPDATE_ORDER_FROM_CLIENT_MUTATION } from "../../../../../_components/EditOrderModal";
 import { CLIENT_ORDERS_QUERY } from "../../../gql";
 import {
   ClientOrder,
@@ -43,6 +42,12 @@ interface Props {
   summary: FactoryOrderSummary | null;
   clientId: string;
   onClose: () => void;
+  /**
+   * Pedido a editar. Quem trata é a PÁGINA, não este modal: abrir a edição aqui
+   * empilhava dois modais (o de pedidos e o de edição), e o usuário não sabia
+   * qual estava fechando. A página fecha este e abre a edição no lugar.
+   */
+  onEditOrder: (order: ClientOrder) => void;
 }
 
 /**
@@ -52,7 +57,12 @@ interface Props {
  * card: um gestor que vê dois vendedores atendendo a mesma fábrica vê dois cards,
  * e cada um abre só os seus pedidos.
  */
-export function FactoryOrderModal({ summary, clientId, onClose }: Props) {
+export function FactoryOrderModal({
+  summary,
+  clientId,
+  onClose,
+  onEditOrder,
+}: Props) {
   const [search, setSearch] = useState("");
   const [statusFilter, setStatusFilter] = useState<SelectOption | null>(null);
   const [page, setPage] = useState(1);
@@ -212,12 +222,22 @@ export function FactoryOrderModal({ summary, clientId, onClose }: Props) {
                       </Table.Cell>
                       <Table.Cell>
                         <div className="flex items-center justify-end gap-2">
-                          <EditOrderModal
-                            orderId={p.id}
-                            initialNotes={p.notes}
-                            mutation={UPDATE_ORDER_FROM_CLIENT_MUTATION}
-                            invalidateKeys={["orders", "companyClient"]}
-                          />
+                          <Button.Root
+                            appearance="ghost"
+                            color="neutral"
+                            size="sm"
+                            noUppercase
+                            onClick={(e) => {
+                              // A linha inteira é um link para o pedido: sem
+                              // isso, editar também navegaria.
+                              e.stopPropagation();
+                              e.preventDefault();
+                              onEditOrder(p);
+                            }}
+                          >
+                            <Button.Icon icon={Pencil} />
+                            <Button.Title>Editar</Button.Title>
+                          </Button.Root>
                           <DeleteOrderModal
                             orderId={p.id}
                             orderCode={p.id.slice(0, 8).toUpperCase()}
