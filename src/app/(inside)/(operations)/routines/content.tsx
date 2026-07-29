@@ -9,6 +9,7 @@ import { CalendarOff, Users } from "lucide-react";
 
 import { GenerateWeekButton } from "./_components/GenerateWeekButton";
 import { RadarMap } from "./_components/RadarMap";
+import { RegenerateWeekButton } from "./_components/RegenerateWeekButton";
 import { RoutinesHeader } from "./_components/RoutinesHeader";
 import { RoutinesList } from "./_components/RoutinesList";
 import { RoutinesSkeleton } from "./_components/RoutinesSkeleton";
@@ -147,7 +148,19 @@ export default function RoutinesContent() {
               </div>
             </div>
 
-            <RoutinesViewToggle value={viewMode} onChange={setViewMode} />
+            <div className="flex flex-wrap items-center gap-8">
+              {/* Refazer só na semana atual e na próxima — o mesmo recorte do
+                  botão de gerar, e o backend recusa dias que já passaram. */}
+              {canGenerateWeek(weekStart) && (
+                <RegenerateWeekButton
+                  weekStart={weekStart}
+                  sellerId={selectedSellerId}
+                  isConfirmed={schedule.status === "CONFIRMED"}
+                  onRegenerated={() => refetch()}
+                />
+              )}
+              <RoutinesViewToggle value={viewMode} onChange={setViewMode} />
+            </div>
           </div>
 
           <div data-tour="routines-grid">
