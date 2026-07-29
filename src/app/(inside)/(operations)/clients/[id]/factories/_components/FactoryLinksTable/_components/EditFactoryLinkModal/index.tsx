@@ -112,7 +112,9 @@ export function EditFactoryLinkModal({
         ],
       },
     ],
-    []
+    // O ciclo derivado entra no placeholder e no hint: sem ele nas dependências,
+    // o form ficaria com o número do primeiro render depois de o job recalcular.
+    [link.orderIntervalDays]
   );
 
   const initialData = useMemo<Record<string, unknown>>(
