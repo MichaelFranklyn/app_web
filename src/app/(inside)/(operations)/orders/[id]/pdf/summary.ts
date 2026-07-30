@@ -1,6 +1,14 @@
 import { formatDateDMY, formatMoney } from "@/utils/format/masks";
 import { OrderInstallment } from "../interface";
-import { COLOR, PAGE, Pdf, setDraw, setFill, setText, truncate } from "./theme";
+import {
+  COLOR,
+  PAGE,
+  Pdf,
+  setDraw,
+  setFill,
+  setText,
+  truncate,
+} from "@/utils/pdf/theme";
 
 const BLOCK_W = 230;
 

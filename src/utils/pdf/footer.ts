@@ -1,5 +1,12 @@
-import { LoadedImage } from "@/utils/media";
+import { loadImageFromUrl, LoadedImage } from "@/utils/media";
 import { COLOR, fitLogo, PAGE, Pdf, setDraw, setText } from "./theme";
+
+/** Marca do sistema, servida pelo próprio front (não passa pela API). */
+const GIRUS_LOGO_URL = "/horizontal_logo.png";
+
+/** Carrega a marca do sistema para o rodapé. `null` se falhar — o PDF sai sem. */
+export const loadGirusLogo = (): Promise<LoadedImage | null> =>
+  loadImageFromUrl(GIRUS_LOGO_URL);
 
 // Marca do sistema no rodapé (subiu de 12x54 em 2026-07-24). O teto de altura é
 // o que sobra entre a linha do rodapé e a borda da página: com o desenho abaixo

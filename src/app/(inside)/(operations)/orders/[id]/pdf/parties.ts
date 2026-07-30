@@ -1,4 +1,11 @@
-import { COLOR, PAGE, Pdf, setDraw, setText, truncate } from "./theme";
+import {
+  COLOR,
+  PAGE,
+  Pdf,
+  setDraw,
+  setText,
+  truncate,
+} from "@/utils/pdf/theme";
 
 export interface PartyCard {
   title: string;

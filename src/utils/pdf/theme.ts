@@ -1,10 +1,10 @@
 import { LoadedImage } from "@/utils/media";
 
-/** jsPDF trabalha em pontos; A4 paisagem = 842 x 595 pt (o documento é
- *  horizontal para caber a coluna de código junto dos preços). */
+/** jsPDF trabalha em pontos; A4 = 595 x 842 pt (dobra no paisagem). Margem
+ *  comum a todos os documentos do sistema. */
 export const PAGE = { margin: 40 };
 
-/** Paleta do documento, alinhada aos tokens do sistema (âmbar #c97f0a). */
+/** Paleta dos documentos, alinhada aos tokens do sistema (âmbar #c97f0a). */
 export const COLOR = {
   ink: [31, 31, 31] as const,
   muted: [122, 122, 122] as const,

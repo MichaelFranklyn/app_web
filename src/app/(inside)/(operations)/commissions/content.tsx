@@ -16,6 +16,7 @@ import { formatMoney } from "@/utils/format/masks";
 import { useQuery } from "@apollo/client/react";
 import { CalendarDays, ChevronLeft, ChevronRight, Coins } from "lucide-react";
 import { useEffect, useMemo, useState } from "react";
+import { CommissionsPdfButton } from "./_components/CommissionsPdfButton";
 import { FactoryCommissionGroup } from "./_components/FactoryCommissionGroup";
 import { COMMISSIONS_QUERY, COMMISSIONS_SELLERS_QUERY } from "./gql";
 import { CommissionsResponse, CommissionsSellersResponse } from "./interface";
@@ -117,6 +118,10 @@ export default function CommissionsContent({
   const sellerValue =
     sellerOptions.find((o) => o.value === selectedSellerId) ?? null;
 
+  // Nome que assina o PDF: o do seletor (gestor) ou o das próprias linhas
+  // (vendedor, que não escolhe ninguém).
+  const sellerName = sellerValue?.label ?? rows[0]?.seller?.name ?? null;
+
   const showSkeleton = loading && !summary;
 
   return (
@@ -156,49 +161,57 @@ export default function CommissionsContent({
         <QueryError onRetry={() => refetch()} />
       ) : (
         <>
-          {/* Navegador de mês: controla os totais logo abaixo. */}
+          {/* Navegador de mês: controla os totais logo abaixo e o PDF do mês. */}
           <div className="flex flex-wrap items-center justify-between gap-16">
             <Title variant="heading-sm">Resumo de {monthLabel(month)}</Title>
-            <div className="flex items-center gap-4">
-              <Button.Root
-                appearance="outline"
-                color="neutral"
-                size="sm"
-                isIconOnly
-                label="Mês anterior"
-                onClick={() => {
-                  setMonthPinned(true);
-                  setMonth((m) => addMonths(m, -1));
-                }}
-              >
-                <Button.Icon icon={ChevronLeft} />
-              </Button.Root>
-              <Button.Root
-                appearance={isCurrentMonth ? "tinted" : "ghost"}
-                color={isCurrentMonth ? "amber" : "neutral"}
-                size="sm"
-                noUppercase
-                onClick={() => {
-                  setMonthPinned(true);
-                  setMonth(yearMonthFromIso(getTodayIso()));
-                }}
-              >
-                <Button.Icon icon={CalendarDays} />
-                <Button.Title>{monthLabel(month)}</Button.Title>
-              </Button.Root>
-              <Button.Root
-                appearance="outline"
-                color="neutral"
-                size="sm"
-                isIconOnly
-                label="Próximo mês"
-                onClick={() => {
-                  setMonthPinned(true);
-                  setMonth((m) => addMonths(m, 1));
-                }}
-              >
-                <Button.Icon icon={ChevronRight} />
-              </Button.Root>
+            <div className="flex flex-wrap items-center gap-8">
+              <CommissionsPdfButton
+                rows={rows}
+                month={month}
+                sellerName={sellerName}
+                disabled={showSkeleton}
+              />
+              <div className="flex items-center gap-4">
+                <Button.Root
+                  appearance="outline"
+                  color="neutral"
+                  size="sm"
+                  isIconOnly
+                  label="Mês anterior"
+                  onClick={() => {
+                    setMonthPinned(true);
+                    setMonth((m) => addMonths(m, -1));
+                  }}
+                >
+                  <Button.Icon icon={ChevronLeft} />
+                </Button.Root>
+                <Button.Root
+                  appearance={isCurrentMonth ? "tinted" : "ghost"}
+                  color={isCurrentMonth ? "amber" : "neutral"}
+                  size="sm"
+                  noUppercase
+                  onClick={() => {
+                    setMonthPinned(true);
+                    setMonth(yearMonthFromIso(getTodayIso()));
+                  }}
+                >
+                  <Button.Icon icon={CalendarDays} />
+                  <Button.Title>{monthLabel(month)}</Button.Title>
+                </Button.Root>
+                <Button.Root
+                  appearance="outline"
+                  color="neutral"
+                  size="sm"
+                  isIconOnly
+                  label="Próximo mês"
+                  onClick={() => {
+                    setMonthPinned(true);
+                    setMonth((m) => addMonths(m, 1));
+                  }}
+                >
+                  <Button.Icon icon={ChevronRight} />
+                </Button.Root>
+              </div>
             </div>
           </div>
 

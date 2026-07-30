@@ -5,6 +5,7 @@ import {
   groupByFactory,
   isInMonth,
   latestMonthWithData,
+  receivableReport,
   summarizeRows,
   yearMonthFromIso,
 } from "./utils";
@@ -116,6 +117,52 @@ describe("summarizeRows", () => {
       reconciledCount: 0,
       receivableIds: [],
     });
+  });
+});
+
+describe("receivableReport", () => {
+  const march = { year: 2026, month: 3 };
+
+  it("leva só o que há a receber no mês, com subtotal por fábrica e total", () => {
+    const report = receivableReport(
+      [
+        row({ installmentId: "a", amount: "10", receiveDate: "2026-03-10" }),
+        row({ installmentId: "b", amount: "7.5", receiveDate: "2026-03-20" }),
+        // Fora: outro mês, previsto e já recebido.
+        row({ installmentId: "c", amount: "99", receiveDate: "2026-04-01" }),
+        row({ installmentId: "d", amount: "99", status: "pending" }),
+        row({ installmentId: "e", amount: "99", status: "received" }),
+      ],
+      march
+    );
+
+    expect(report.count).toBe(2);
+    expect(report.total).toBe(17.5);
+    expect(report.groups).toHaveLength(1);
+    expect(report.groups[0].subtotal).toBe(17.5);
+    expect(report.groups[0].rows.map((r) => r.installmentId)).toEqual([
+      "a",
+      "b",
+    ]);
+  });
+
+  it("ordena as parcelas da fábrica pela data de recebimento", () => {
+    const report = receivableReport(
+      [
+        row({ installmentId: "tarde", receiveDate: "2026-03-28" }),
+        row({ installmentId: "cedo", receiveDate: "2026-03-02" }),
+      ],
+      march
+    );
+    expect(report.groups[0].rows.map((r) => r.installmentId)).toEqual([
+      "cedo",
+      "tarde",
+    ]);
+  });
+
+  it("devolve relatório vazio quando nada há a receber no mês", () => {
+    const report = receivableReport([row({ status: "received" })], march);
+    expect(report).toEqual({ groups: [], total: 0, count: 0 });
   });
 });
 

@@ -1,19 +1,16 @@
 import { factoryName } from "@/utils/company";
 import { formatDateDMY } from "@/utils/format/masks";
 import { trimTransparent } from "@/utils/image";
-import { loadImage, loadImageFromUrl } from "@/utils/media";
+import { loadImage } from "@/utils/media";
+import { drawFooters, loadGirusLogo } from "@/utils/pdf/footer";
+import { PAGE } from "@/utils/pdf/theme";
 import { OrderDetail, OrderItem } from "../interface";
 import { paymentTermLabel } from "../utils";
 import { clientCard, factoryCard } from "./cards";
-import { drawFooters } from "./footer";
 import { drawHeader } from "./header";
 import { drawItemsTable } from "./itemsTable";
 import { drawParties } from "./parties";
 import { drawNotes, drawPayment, drawTotals } from "./summary";
-import { PAGE } from "./theme";
-
-/** Marca do sistema, servida pelo próprio front (não passa pela API). */
-const GIRUS_LOGO_URL = "/horizontal_logo.png";
 
 export interface PdfBranding {
   companyLogoUrl?: string | null;
@@ -46,7 +43,7 @@ export const exportOrderPdf = async (
     [
       loadImage(branding.companyLogoUrl),
       loadImage(order.factory?.logoUrl),
-      loadImageFromUrl(GIRUS_LOGO_URL),
+      loadGirusLogo(),
     ].map((pending) => pending.then(trimTransparent))
   );
 
