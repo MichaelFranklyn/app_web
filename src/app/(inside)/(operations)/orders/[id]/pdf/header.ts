@@ -8,7 +8,7 @@ import {
   setFill,
   setText,
   truncate,
-} from "./theme";
+} from "@/utils/pdf/theme";
 
 // Caixa das logos do topo. As imagens chegam recortadas (trimTransparent), sem
 // moldura vazia: a altura aqui é a altura VISÍVEL da marca. Subiu de 34x130 em

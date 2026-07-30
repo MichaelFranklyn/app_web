@@ -1,4 +1,4 @@
-import { factoryName } from "@/utils/company";
+import { clientName, factoryName } from "@/utils/company";
 import { CommissionRow, CommissionStatus } from "./interface";
 
 export const COMMISSION_STATUS_LABEL: Record<CommissionStatus, string> = {
@@ -165,6 +165,57 @@ export const groupByFactory = (rows: CommissionRow[]): FactoryGroup[] => {
   return Array.from(byId.values()).sort((a, b) =>
     a.name.localeCompare(b.name, "pt-BR")
   );
+};
+
+// ── Relatório do que a fábrica tem a pagar no mês (PDF) ──────────────────────
+export interface ReceivableFactoryGroup {
+  factoryId: string;
+  name: string;
+  /** Parcelas a receber da fábrica no mês, da mais próxima para a mais distante. */
+  rows: CommissionRow[];
+  subtotal: number;
+}
+
+export interface ReceivableReport {
+  groups: ReceivableFactoryGroup[];
+  total: number;
+  count: number;
+}
+
+/**
+ * Recorta apenas o que há A RECEBER no mês (pela data em que a comissão cai),
+ * agrupado por fábrica e com subtotal de cada uma — é o documento que o gestor
+ * leva para cobrar/conferir o repasse. Previsto e recebido ficam de fora de
+ * propósito: o papel responde "quanto ainda tenho para receber neste mês".
+ *
+ * Dentro da fábrica, as parcelas saem por data de recebimento (as sem data por
+ * último) e, no empate, por cliente — a mesma leitura da planilha da fábrica.
+ */
+export const receivableReport = (
+  rows: CommissionRow[],
+  month: YearMonth
+): ReceivableReport => {
+  const receivable = rows.filter(
+    (row) => row.status === "receivable" && isInMonth(row.receiveDate, month)
+  );
+
+  const groups = groupByFactory(receivable).map((group) => ({
+    factoryId: group.factoryId,
+    name: group.name,
+    rows: [...group.rows].sort(
+      (a, b) =>
+        (a.receiveDate ?? "9999-12-31").localeCompare(
+          b.receiveDate ?? "9999-12-31"
+        ) || clientName(a.client).localeCompare(clientName(b.client), "pt-BR")
+    ),
+    subtotal: group.rows.reduce((sum, row) => sum + Number(row.amount), 0),
+  }));
+
+  return {
+    groups,
+    total: groups.reduce((sum, group) => sum + group.subtotal, 0),
+    count: receivable.length,
+  };
 };
 
 export interface RowsSummary {

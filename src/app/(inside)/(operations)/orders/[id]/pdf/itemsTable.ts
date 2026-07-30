@@ -1,7 +1,14 @@
 import { formatMoney, formatNumber } from "@/utils/format/masks";
 import { OrderItem } from "../interface";
 import { taxRatesLabel } from "../utils";
-import { COLOR, PAGE, Pdf, setFill, setText, truncate } from "./theme";
+import {
+  COLOR,
+  PAGE,
+  Pdf,
+  setFill,
+  setText,
+  truncate,
+} from "@/utils/pdf/theme";
 
 // Linha um pouco mais alta para caber, na coluna de imposto, a alíquota em cima
 // e o valor embaixo (igual à tabela de itens na tela).
