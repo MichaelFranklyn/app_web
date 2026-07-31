@@ -1,6 +1,28 @@
 import { KpiItem } from "@/components/Card/Kpi/Root/interface";
 import { formatMoney } from "@/utils/format/masks";
-import type { OrdersStats } from "./interface";
+import type { OrderStatus, OrdersStats } from "./interface";
+
+export const ORDER_STATUS_LABELS: Record<OrderStatus, string> = {
+  DRAFT: "Orçamento",
+  SENT: "Orçamento enviado",
+  CONFIRMED: "Confirmado",
+  INVOICED: "Faturado",
+  DELIVERED: "Entregue",
+  CANCELLED: "Cancelado",
+};
+
+/** Cor do Badge por status: o que ainda dá trabalho fica em destaque. */
+export const ORDER_STATUS_TONE: Record<
+  OrderStatus,
+  "subtle" | "neutral" | "blue" | "green" | "red"
+> = {
+  DRAFT: "subtle",
+  SENT: "subtle",
+  CONFIRMED: "blue",
+  INVOICED: "neutral",
+  DELIVERED: "green",
+  CANCELLED: "red",
+};
 
 export const buildOrderKpis = (stats: OrdersStats): KpiItem[] => {
   // Defensivo: se o back não devolver `orderStats` (hiccup/edge de loading),

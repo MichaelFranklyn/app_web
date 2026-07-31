@@ -4,20 +4,13 @@ import { extractSelectValue } from "@/utils/form";
 import { paymentTermLabel } from "../../../utils";
 
 import { OrderStatus } from "../../../../interface";
+// Os rótulos de status são compartilhados com a lista de pedidos → moram no pai.
+import { ORDER_STATUS_LABELS } from "../../../../utils";
 import { PaymentTermRef } from "../../../interface";
 
 /** Faturado/entregue: as parcelas já nasceram do prazo vigente. */
 const isInvoiced = (status: OrderStatus) =>
   status === "INVOICED" || status === "DELIVERED";
-
-export const ORDER_STATUS_LABELS: Record<OrderStatus, string> = {
-  DRAFT: "Orçamento",
-  SENT: "Orçamento enviado",
-  CONFIRMED: "Confirmado",
-  INVOICED: "Faturado",
-  DELIVERED: "Entregue",
-  CANCELLED: "Cancelado",
-};
 
 // Faturar e Entregar têm fluxo próprio (faturar gera parcelas/comissão; entregar
 // grava a data e alimenta o estoque via botão "Confirmar entrega"), então

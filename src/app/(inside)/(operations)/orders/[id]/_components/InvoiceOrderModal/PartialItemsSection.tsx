@@ -1,10 +1,10 @@
-import { Alert } from "@/components/Alert";
 import { Input } from "@/components/Input";
 import { Title } from "@/components/Title";
 import { formatNumber } from "@/utils/format/masks";
-import { PackageX } from "lucide-react";
 
 import { OrderItem } from "../../interface";
+import { RemainderChoice } from "./RemainderChoice";
+import { RemainderMode } from "./usePartialInvoice";
 
 interface Props {
   items: OrderItem[];
@@ -13,12 +13,15 @@ interface Props {
   quantities: Record<string, string>;
   onQuantityChange: (id: string, value: string) => void;
   backorderCount: number;
+  remainderMode: RemainderMode;
+  onRemainderModeChange: (mode: RemainderMode) => void;
 }
 
 /**
  * Faturamento parcial: um interruptor "faturou tudo?" e, quando desligado, a
  * lista de itens com a quantidade faturada editável (a fábrica não tinha estoque
- * de tudo). O que faltar vira um pedido novo (backorder).
+ * de tudo). Havendo sobra, o vendedor escolhe o destino dela: virar um pedido
+ * novo (backorder) para faturar depois, ou ser cancelada de vez.
  */
 export function PartialItemsSection({
   items,
@@ -27,6 +30,8 @@ export function PartialItemsSection({
   quantities,
   onQuantityChange,
   backorderCount,
+  remainderMode,
+  onRemainderModeChange,
 }: Props) {
   return (
     <div className="flex flex-col gap-12 border-t border-(--border) pt-16">
@@ -95,20 +100,11 @@ export function PartialItemsSection({
           </div>
 
           {backorderCount > 0 && (
-            <Alert.Root variant="info">
-              <Alert.Icon icon={PackageX} />
-              <Alert.Content>
-                <Alert.Description>
-                  {backorderCount}{" "}
-                  {backorderCount === 1
-                    ? "item vai para um novo pedido"
-                    : "itens vão para um novo pedido"}{" "}
-                  (backorder), que você fatura quando a fábrica tiver estoque. A
-                  comissão deste faturamento sai só sobre o que foi faturado
-                  agora.
-                </Alert.Description>
-              </Alert.Content>
-            </Alert.Root>
+            <RemainderChoice
+              count={backorderCount}
+              mode={remainderMode}
+              onChange={onRemainderModeChange}
+            />
           )}
         </div>
       )}

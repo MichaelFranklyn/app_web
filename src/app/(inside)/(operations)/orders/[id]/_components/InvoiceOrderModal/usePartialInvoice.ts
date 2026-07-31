@@ -15,6 +15,9 @@ export interface InvoiceItemInput {
   invoicedQuantity: string;
 }
 
+/** Destino do que a fábrica não faturou: virar um novo pedido ou ser cancelado. */
+export type RemainderMode = "backorder" | "cancel";
+
 /**
  * Estado do faturamento parcial: carrega os itens do pedido, guarda a quantidade
  * faturada por item (começa igual à pedida) e monta/valida o payload. Só carrega
@@ -34,6 +37,9 @@ export function usePartialInvoice(orderId: string, open: boolean) {
   const [partial, setPartial] = useState(false);
   // Quantidade faturada por item (string p/ o input); default = quantidade pedida.
   const [quantities, setQuantities] = useState<Record<string, string>>({});
+  // O que fazer com a sobra. Padrão: gerar o pedido-filho (nada se perde).
+  const [remainderMode, setRemainderMode] =
+    useState<RemainderMode>("backorder");
 
   useEffect(() => {
     setQuantities(Object.fromEntries(items.map((it) => [it.id, it.quantity])));
@@ -44,6 +50,7 @@ export function usePartialInvoice(orderId: string, open: boolean) {
 
   const reset = () => {
     setPartial(false);
+    setRemainderMode("backorder");
     setQuantities(Object.fromEntries(items.map((it) => [it.id, it.quantity])));
   };
 
@@ -62,6 +69,10 @@ export function usePartialInvoice(orderId: string, open: boolean) {
   const buildItemsInput = (): InvoiceItemInput[] | null =>
     partial ? buildInvoiceItemsInput(items, quantities) : null;
 
+  /** Cancelar o saldo só faz sentido quando é parcial e sobrou alguma coisa. */
+  const cancelRemainder =
+    partial && remainderMode === "cancel" && backorderCount > 0;
+
   return {
     items,
     loading,
@@ -71,6 +82,9 @@ export function usePartialInvoice(orderId: string, open: boolean) {
     setQuantity,
     reset,
     backorderCount,
+    remainderMode,
+    setRemainderMode,
+    cancelRemainder,
     validation,
     buildItemsInput,
   };

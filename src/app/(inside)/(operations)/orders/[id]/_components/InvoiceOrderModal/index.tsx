@@ -99,6 +99,10 @@ export function InvoiceOrderModal({ order, onSuccess }: Props) {
   };
 
   const handleSubmit = async (data: Record<string, unknown>) => {
+    // Capturado antes de enviar: fechar o modal reseta o estado do parcial, e as
+    // mensagens de sucesso rodam depois disso.
+    const cancellingRemainder = partialApi.cancelRemainder;
+
     await execute(
       async () => {
         const invoicedAt = toIsoDate(data.invoicedAt);
@@ -114,7 +118,11 @@ export function InvoiceOrderModal({ order, onSuccess }: Props) {
         const res = await invoiceOrder({
           variables: {
             id: order.id,
-            input: { invoicedAt, paymentTermId, ...(items ? { items } : {}) },
+            input: {
+              invoicedAt,
+              paymentTermId,
+              ...(items ? { items, cancelRemainder: cancellingRemainder } : {}),
+            },
           },
         });
         if (!res.data?.invoiceOrder?.status) {
@@ -125,10 +133,14 @@ export function InvoiceOrderModal({ order, onSuccess }: Props) {
         return res.data.invoiceOrder;
       },
       {
-        successMessage: (res) =>
-          res?.data?.backorderChildren?.length
-            ? "Faturado parcial. O restante virou um novo pedido (backorder)."
-            : "Pedido faturado. Parcelas geradas.",
+        successMessage: (res) => {
+          if (res?.data?.backorderChildren?.length) {
+            return "Faturado parcial. O restante virou um novo pedido (backorder).";
+          }
+          return cancellingRemainder
+            ? "Faturado parcial. O saldo que faltou foi cancelado."
+            : "Pedido faturado. Parcelas geradas.";
+        },
         onSuccess: (res) => {
           handleClose(false);
           onSuccess();
@@ -177,6 +189,8 @@ export function InvoiceOrderModal({ order, onSuccess }: Props) {
                 quantities={partialApi.quantities}
                 onQuantityChange={partialApi.setQuantity}
                 backorderCount={partialApi.backorderCount}
+                remainderMode={partialApi.remainderMode}
+                onRemainderModeChange={partialApi.setRemainderMode}
               />
             </div>
           )}

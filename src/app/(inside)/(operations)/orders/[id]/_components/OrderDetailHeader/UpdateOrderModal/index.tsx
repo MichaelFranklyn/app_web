@@ -10,11 +10,8 @@ import { useRef, useState } from "react";
 import { UPDATE_ORDER_MUTATION } from "./gql";
 import { UpdateOrderModalProps, UpdateOrderResponse } from "./interface";
 import { paymentTermLabel } from "../../../utils";
-import {
-  ORDER_STATUS_LABELS,
-  buildUpdateOrderSteps,
-  normalizeUpdateInput,
-} from "./utils";
+import { ORDER_STATUS_LABELS } from "../../../../utils";
+import { buildUpdateOrderSteps, normalizeUpdateInput } from "./utils";
 
 export function UpdateOrderModal({
   orderId,
