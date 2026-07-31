@@ -9,6 +9,7 @@ import { Table } from "@/components/Table";
 import { formatDateDMY, formatMoney } from "@/utils/format/masks";
 import { Receipt } from "lucide-react";
 import { Order } from "../../interface";
+import { ORDER_STATUS_LABELS, ORDER_STATUS_TONE } from "../../utils";
 import { clientName, factoryName } from "@/utils/company";
 
 interface Props {
@@ -20,6 +21,11 @@ interface Props {
   totalItems: number;
   inputValues: Record<string, string>;
   setFilter: (key: string, value: string | undefined) => void;
+  /** Título do card — muda por aba (todos × aguardando faturamento). */
+  title?: string;
+  /** O que dizer quando a lista vem vazia, também por aba. */
+  emptyTitle?: string;
+  emptyDescription?: string;
 }
 
 export function OrdersTable({
@@ -31,11 +37,14 @@ export function OrdersTable({
   totalItems,
   inputValues,
   setFilter,
+  title = "Lista de pedidos",
+  emptyTitle = "Nenhum pedido encontrado",
+  emptyDescription = 'Use "Novo pedido" para registrar o primeiro pedido.',
 }: Props) {
   return (
     <Table.Root data-tour="orders-table">
       <Table.CardHead>
-        <Table.CardHead.Title>Lista de pedidos</Table.CardHead.Title>
+        <Table.CardHead.Title>{title}</Table.CardHead.Title>
         <Table.CardHead.Actions>
           <InputSearch
             size="sm"
@@ -55,6 +64,7 @@ export function OrdersTable({
             <Table.Head>Fábrica</Table.Head>
             <Table.Head>Vendedor</Table.Head>
             <Table.Head>Data</Table.Head>
+            <Table.Head>Situação</Table.Head>
             <Table.Head>Valor</Table.Head>
             <Table.Head>Comissão</Table.Head>
           </Table.Row>
@@ -62,18 +72,17 @@ export function OrdersTable({
 
         <Table.Body>
           {loading && items.length === 0 ? (
-            <Table.Skeleton columns={7} rows={8} />
+            <Table.Skeleton columns={8} rows={8} />
           ) : items.length === 0 ? (
             <Table.Row>
-              <Table.Cell colSpan={7}>
+              <Table.Cell colSpan={8}>
                 <EmptyState.Root>
                   <EmptyState.Icon>
                     <Receipt size={32} />
                   </EmptyState.Icon>
-                  <EmptyState.Title>Nenhum pedido encontrado</EmptyState.Title>
+                  <EmptyState.Title>{emptyTitle}</EmptyState.Title>
                   <EmptyState.Description>
-                    Use &quot;Novo pedido&quot; para registrar o primeiro
-                    pedido.
+                    {emptyDescription}
                   </EmptyState.Description>
                 </EmptyState.Root>
               </Table.Cell>
@@ -115,6 +124,15 @@ export function OrdersTable({
 
                 <Table.Cell variant="dim">
                   {formatDateDMY(order.orderDate)}
+                </Table.Cell>
+
+                <Table.Cell>
+                  <Badge.Root
+                    color={ORDER_STATUS_TONE[order.status]}
+                    appearance="tinted"
+                  >
+                    <Badge.Text>{ORDER_STATUS_LABELS[order.status]}</Badge.Text>
+                  </Badge.Root>
                 </Table.Cell>
 
                 <Table.Cell variant="strong">

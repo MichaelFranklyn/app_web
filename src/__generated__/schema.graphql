@@ -1910,6 +1910,8 @@ input InvoiceOrderInput {
   paymentTermId: UUID = null
   """Faturamento PARCIAL: quantidade faturada (em unidades) por item, quando a fábrica não tinha tudo em estoque. Itens do pedido não listados aqui são faturados por inteiro. A sobra (pedida − faturada) de cada item vira um pedido-filho (backorder) CONFIRMADO, faturado depois. Omitir a lista = fatura o pedido inteiro (comportamento normal)."""
   items: [InvoiceOrderItemInput!] = null
+  """No faturamento parcial, CANCELA a sobra em vez de gerar o pedido-filho (backorder): o que não foi faturado sai do pedido e não fica pendente. Só tem efeito junto com `items`."""
+  cancelRemainder: Boolean = false
 }
 
 input InvoiceOrderItemInput {
