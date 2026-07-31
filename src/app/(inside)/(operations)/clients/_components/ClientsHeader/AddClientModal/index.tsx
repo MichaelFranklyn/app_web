@@ -66,6 +66,7 @@ export function AddClientModal({ onAddOptimistic }: AddClientModalProps) {
               id: created.id,
               visitScoreTotal: null,
               lastOrderDate: null,
+              lastInvoiceDate: null,
               lastVisitDate: null,
               sellers: [],
             },

@@ -522,6 +522,8 @@ type CompanyClientType {
   sellers: [SellerType!]!
   """Data da última compra (pedido não cancelado) do cliente na empresa."""
   lastOrderDate: Date
+  """Data do faturamento mais recente entre os pedidos do cliente na empresa."""
+  lastInvoiceDate: Date
   """Data da visita mais recente registrada em qualquer vínculo do cliente."""
   lastVisitDate: Date
 }

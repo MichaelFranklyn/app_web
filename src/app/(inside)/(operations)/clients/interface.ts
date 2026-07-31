@@ -45,6 +45,9 @@ export interface Client {
     // Últimas compra/visita e vendedores vêm do vínculo com a empresa: para um
     // vendedor logado o backend já devolve só o que é dele.
     lastOrderDate: string | null;
+    // Faturamento mais recente entre os pedidos do cliente — vazio enquanto ele
+    // só tiver pedido em aberto.
+    lastInvoiceDate: string | null;
     lastVisitDate: string | null;
     sellers: ClientSeller[];
   } | null;
