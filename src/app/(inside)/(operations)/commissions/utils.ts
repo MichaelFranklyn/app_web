@@ -138,16 +138,16 @@ export const summarizeMonth = (
 export interface FactoryGroup {
   factoryId: string;
   name: string;
-  rows: CommissionRow[]; // todas as linhas da fábrica (todos os meses)
+  rows: CommissionRow[]; // as linhas da fábrica dentre as que entraram
 }
 
 const FACTORYLESS_ID = "__sem_fabrica__";
 
 /**
  * Agrupa as linhas por fábrica trabalhada — é assim que a fábrica manda a
- * planilha, então bater o olho fica direto. Cada grupo traz TODAS as linhas da
- * fábrica; quem recorta por mês (a planilha é mensal) é o card, com o seletor de
- * mês próprio. Ordena por nome da fábrica (pt-BR).
+ * planilha, então bater o olho fica direto. Recebe as linhas JÁ recortadas
+ * pelos filtros da página (mês e situação); fábrica que ficou sem linha
+ * simplesmente não vira grupo. Ordena por nome da fábrica (pt-BR).
  */
 export const groupByFactory = (rows: CommissionRow[]): FactoryGroup[] => {
   const byId = new Map<string, FactoryGroup>();
@@ -221,12 +221,13 @@ export const receivableReport = (
 export interface RowsSummary {
   receivable: number; // soma a receber
   received: number; // soma recebida
+  pending: number; // soma prevista (depende de faturamento/pagamento)
   reconciledCount: number; // quantas parcelas já foram conferidas
   receivableIds: string[]; // parcelas a receber (para "Receber tudo")
 }
 
 /**
- * Subtotais de um conjunto de linhas (já recortado por fábrica e mês pelo card):
+ * Subtotais de um conjunto de linhas (já recortado por fábrica e pelos filtros):
  * o que há a receber, o que já veio, quantas foram conferidas e os ids a receber
  * para o repasse em massa.
  */
@@ -234,6 +235,7 @@ export const summarizeRows = (rows: CommissionRow[]): RowsSummary => {
   const summary: RowsSummary = {
     receivable: 0,
     received: 0,
+    pending: 0,
     reconciledCount: 0,
     receivableIds: [],
   };
@@ -243,7 +245,40 @@ export const summarizeRows = (rows: CommissionRow[]): RowsSummary => {
       summary.receivableIds.push(row.installmentId);
     }
     if (row.status === "received") summary.received += Number(row.amount);
+    if (row.status === "pending") summary.pending += Number(row.amount);
     if (row.isReconciled) summary.reconciledCount += 1;
   }
   return summary;
+};
+
+export interface FactoryHighlight {
+  label: string;
+  value: number;
+  color?: "amber" | "green";
+}
+
+/**
+ * Os valores que o cabeçalho do cartão da fábrica destaca, conforme a situação
+ * escolhida nos filtros. Com "A receber" ligado, um "Recebido R$ 0,00" ao lado
+ * era só ruído — o cartão mostra o número que o filtro pediu.
+ */
+export const factoryHighlights = (
+  summary: RowsSummary,
+  tab: CommissionTab
+): FactoryHighlight[] => {
+  switch (tab) {
+    case "receivable":
+      return [
+        { label: "A receber", value: summary.receivable, color: "amber" },
+      ];
+    case "received":
+      return [{ label: "Recebido", value: summary.received, color: "green" }];
+    case "pending":
+      return [{ label: "Previsto", value: summary.pending }];
+    default:
+      return [
+        { label: "A receber", value: summary.receivable, color: "amber" },
+        { label: "Recebido", value: summary.received, color: "green" },
+      ];
+  }
 };

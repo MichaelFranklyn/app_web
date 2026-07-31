@@ -25,6 +25,7 @@ import {
   COMMISSION_TABS,
   CommissionTab,
   groupByFactory,
+  isInMonth,
   latestMonthWithData,
   monthLabel,
   summarizeMonth,
@@ -101,10 +102,15 @@ export default function CommissionsContent({
     return now.year === month.year && now.month === month.month;
   }, [month]);
 
+  // Os dois filtros da tela — mês e situação — valem para TUDO o que vem
+  // abaixo, inclusive os cartões das fábricas. Antes cada fábrica tinha o seu
+  // próprio seletor de mês e o de cima só mexia nos totais: dois lugares para
+  // escolher a mesma coisa, mostrando meses diferentes na mesma tela.
   const filteredRows = useMemo(() => {
-    if (tab === "all") return rows;
-    return rows.filter((row) => row.status === tab);
-  }, [rows, tab]);
+    const inMonth = rows.filter((row) => isInMonth(row.receiveDate, month));
+    if (tab === "all") return inMonth;
+    return inMonth.filter((row) => row.status === tab);
+  }, [rows, tab, month]);
 
   // Agrupado por fábrica trabalhada — é assim que a fábrica manda a planilha.
   const groups = useMemo(() => groupByFactory(filteredRows), [filteredRows]);
@@ -300,11 +306,13 @@ export default function CommissionsContent({
                   <EmptyState.Icon>
                     <Coins size={32} />
                   </EmptyState.Icon>
-                  <EmptyState.Title>Nenhuma comissão aqui</EmptyState.Title>
+                  <EmptyState.Title>
+                    Nenhuma comissão em {monthLabel(month)}
+                  </EmptyState.Title>
                   <EmptyState.Description>
-                    As comissões aparecem quando os pedidos são faturados.
-                    Fature um pedido para gerar as parcelas e acompanhar o que
-                    há a receber.
+                    {rows.length > 0
+                      ? "Use as setas ao lado do mês, lá em cima, para conferir outro mês, ou troque a situação nos botões acima."
+                      : "As comissões aparecem quando os pedidos são faturados. Fature um pedido para gerar as parcelas e acompanhar o que há a receber."}
                   </EmptyState.Description>
                 </EmptyState.Root>
               </div>
@@ -315,6 +323,8 @@ export default function CommissionsContent({
                 <FactoryCommissionGroup
                   key={group.factoryId}
                   group={group}
+                  month={month}
+                  tab={tab}
                   defaultOpen={i === 0}
                   canManage={canManage}
                   onChanged={handleChanged}
