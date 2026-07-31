@@ -67,7 +67,9 @@ export function OrdersTable({
             <Table.Head>Cliente</Table.Head>
             <Table.Head>Fábrica</Table.Head>
             <Table.Head>Vendedor</Table.Head>
-            <Table.Head>Data</Table.Head>
+            {/* Duas datas na mesma tabela: "Data" sozinha ficaria ambígua. */}
+            <Table.Head>Data do pedido</Table.Head>
+            <Table.Head>Faturamento</Table.Head>
             <Table.Head>Situação</Table.Head>
             <Table.Head>Valor</Table.Head>
             <Table.Head>Comissão</Table.Head>
@@ -76,10 +78,10 @@ export function OrdersTable({
 
         <Table.Body>
           {loading && items.length === 0 ? (
-            <Table.Skeleton columns={8} rows={8} />
+            <Table.Skeleton columns={9} rows={8} />
           ) : items.length === 0 ? (
             <Table.Row>
-              <Table.Cell colSpan={8}>
+              <Table.Cell colSpan={9}>
                 <EmptyState.Root>
                   <EmptyState.Icon>
                     <Receipt size={32} />
@@ -126,8 +128,14 @@ export function OrdersTable({
                   {order.seller?.name ?? "—"}
                 </Table.Cell>
 
-                <Table.Cell variant="dim">
+                <Table.Cell variant="dim" className="whitespace-nowrap">
                   {formatDateDMY(order.orderDate)}
+                </Table.Cell>
+
+                {/* Traço enquanto a fábrica não faturou: o pedido existe, a
+                    data ainda não — não é dado faltando. */}
+                <Table.Cell variant="dim" className="whitespace-nowrap">
+                  {order.invoicedAt ? formatDateDMY(order.invoicedAt) : "—"}
                 </Table.Cell>
 
                 <Table.Cell>

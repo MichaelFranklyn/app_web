@@ -10,6 +10,7 @@ export const EXPORT_HEADERS = [
   "UF",
   "Vendedores",
   "Última compra",
+  "Faturamento",
   "Última visita",
   "Score",
 ];
@@ -29,6 +30,7 @@ export const buildExportRows = (clients: Client[]): string[][] =>
     client.addressState ?? "",
     (client.companyClient?.sellers ?? []).map((s) => s.name).join(", "),
     formatDate(client.companyClient?.lastOrderDate),
+    formatDate(client.companyClient?.lastInvoiceDate),
     formatDate(client.companyClient?.lastVisitDate),
     client.companyClient?.visitScoreTotal
       ? Number(client.companyClient.visitScoreTotal).toFixed(0)

@@ -21,6 +21,7 @@ import {
 import { LinkClientModal } from "./LinkClientModal";
 import { priorityMeta } from "./utils";
 import { clientName } from "@/utils/company";
+import { formatDate } from "@/utils/format/date";
 
 interface Props {
   factoryId: string;
@@ -89,21 +90,23 @@ export function ClientsTab({ factoryId, companyFactoryId }: Props) {
             <Table.Head>Vendedor</Table.Head>
             <Table.Head>Nível de preço</Table.Head>
             <Table.Head>Prioridade</Table.Head>
+            {/* Faturamento deste vínculo — não o do cliente somando fábricas. */}
+            <Table.Head>Faturamento</Table.Head>
             <Table.Head className="text-right">Ações</Table.Head>
           </Table.Row>
         </Table.Header>
         <Table.Body>
           {loading && links.length === 0 ? (
-            <Table.Skeleton columns={5} rows={5} />
+            <Table.Skeleton columns={6} rows={5} />
           ) : error && links.length === 0 ? (
             <Table.Row>
-              <Table.Cell colSpan={5}>
+              <Table.Cell colSpan={6}>
                 <QueryError flat onRetry={() => refetch()} />
               </Table.Cell>
             </Table.Row>
           ) : links.length === 0 ? (
             <Table.Row>
-              <Table.Cell colSpan={5}>
+              <Table.Cell colSpan={6}>
                 <EmptyState.Root>
                   <EmptyState.Icon>
                     <Users size={32} />
@@ -146,6 +149,9 @@ export function ClientsTab({ factoryId, companyFactoryId }: Props) {
                     <Badge.Root color={priority.color} appearance="tinted">
                       <Badge.Text>{priority.label}</Badge.Text>
                     </Badge.Root>
+                  </Table.Cell>
+                  <Table.Cell variant="dim" className="whitespace-nowrap">
+                    {formatDate(link.lastInvoiceDate)}
                   </Table.Cell>
                   <Table.Cell>
                     <div className="flex items-center justify-end gap-4">

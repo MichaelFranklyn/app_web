@@ -54,6 +54,7 @@ export function ClientsTable({
             <Table.Head>Cidade</Table.Head>
             <Table.Head>Vendedor</Table.Head>
             <Table.Head>Última Compra</Table.Head>
+            <Table.Head>Faturamento</Table.Head>
             <Table.Head>Última Visita</Table.Head>
             <Table.Head>Score</Table.Head>
           </Table.Row>
@@ -61,10 +62,10 @@ export function ClientsTable({
 
         <Table.Body>
           {loading && items.length === 0 ? (
-            <Table.Skeleton columns={6} rows={5} />
+            <Table.Skeleton columns={7} rows={5} />
           ) : items.length === 0 ? (
             <Table.Row>
-              <Table.Cell colSpan={6}>
+              <Table.Cell colSpan={7}>
                 <EmptyState.Root>
                   <EmptyState.Icon>
                     <Users size={32} />
@@ -103,6 +104,12 @@ export function ClientsTable({
 
                 <Table.Cell variant="dim" className="whitespace-nowrap">
                   {formatDate(node.companyClient?.lastOrderDate)}
+                </Table.Cell>
+
+                {/* Último pedido faturado: vazio enquanto o cliente só tiver
+                    pedido em aberto. */}
+                <Table.Cell variant="dim" className="whitespace-nowrap">
+                  {formatDate(node.companyClient?.lastInvoiceDate)}
                 </Table.Cell>
 
                 <Table.Cell variant="dim" className="whitespace-nowrap">

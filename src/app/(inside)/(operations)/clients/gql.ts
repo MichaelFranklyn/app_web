@@ -42,6 +42,7 @@ export const CLIENTS_QUERY = gql`
             id
             visitScoreTotal
             lastOrderDate
+            lastInvoiceDate
             lastVisitDate
             sellers {
               id

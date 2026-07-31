@@ -16,6 +16,7 @@ const client: Client = {
     id: "cc1",
     visitScoreTotal: "72.4",
     lastOrderDate: "2026-05-10",
+    lastInvoiceDate: "2026-05-18",
     lastVisitDate: null,
     sellers: [
       { id: "s1", name: "Ana" },
@@ -34,6 +35,7 @@ describe("buildExportRows", () => {
     expect(cell(row, "Razão social")).toBe("Bom Preço Comércio LTDA");
     expect(cell(row, "CNPJ")).toBe("12.345.678/0001-90");
     expect(cell(row, "Vendedores")).toBe("Ana, Bruno");
+    expect(cell(row, "Faturamento")).toBe("18/05/2026");
     expect(cell(row, "Score")).toBe("72");
   });
 

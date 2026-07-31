@@ -9,6 +9,8 @@ export type OrderStatus =
 export interface Order {
   id: string;
   orderDate: string;
+  /** Quando a fábrica faturou. Nulo enquanto o pedido não foi faturado. */
+  invoicedAt: string | null;
   totalAmount: string;
   commissionAmount: string;
   status: OrderStatus;

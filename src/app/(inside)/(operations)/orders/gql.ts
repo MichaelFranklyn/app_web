@@ -70,6 +70,7 @@ export const ORDERS_QUERY = gql`
         node {
           id
           orderDate
+          invoicedAt
           totalAmount
           commissionAmount
           status

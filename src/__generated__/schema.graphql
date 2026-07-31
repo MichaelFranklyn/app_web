@@ -522,6 +522,8 @@ type CompanyClientType {
   sellers: [SellerType!]!
   """Data da última compra (pedido não cancelado) do cliente na empresa."""
   lastOrderDate: Date
+  """Data do faturamento mais recente entre os pedidos do cliente na empresa."""
+  lastInvoiceDate: Date
   """Data da visita mais recente registrada em qualquer vínculo do cliente."""
   lastVisitDate: Date
 }
@@ -2422,6 +2424,11 @@ type SellerClientFactoryType {
   lastVisitDate: DateTime
   """Último toque de qualquer tipo — visita presencial OU contato remoto."""
   lastContactDate: Date
+  """
+  Faturamento mais recente deste vínculo — só os pedidos deste vendedor para
+  este cliente nesta fábrica. Nulo enquanto nenhum pedido do vínculo foi faturado.
+  """
+  lastInvoiceDate: Date
   createdAt: DateTime!
   updatedAt: DateTime!
   deletedAt: DateTime
