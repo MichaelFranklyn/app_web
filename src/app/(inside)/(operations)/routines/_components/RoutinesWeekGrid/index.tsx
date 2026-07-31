@@ -76,10 +76,10 @@ export function RoutinesWeekGrid({
         const globalIndex = cells.indexOf(cell);
         const nextDay = cells[globalIndex + 1]?.day ?? null;
         return (
-          // Colunas com largura mínima generosa para o conteúdo não espremer; a
-          // faixa rola na horizontal quando não cabem todas. O flex-1 só faz as
-          // colunas preencherem a largura quando sobra espaço (poucos dias).
-          <div key={cell.date} className="shrink-0 grow basis-[240px]">
+          // Largura travada em 290px (mínimo = máximo): a coluna do dia não
+          // estica quando há poucos dias em tela nem comprime quando há muitos
+          // — quando as 7 não cabem, a faixa rola na horizontal.
+          <div key={cell.date} className="max-w-[290px] min-w-[290px] shrink-0">
             <Card.Root
               className={`h-full ${
                 isToday ? "ring-1 ring-(--amber) ring-inset" : ""
