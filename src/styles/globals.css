@@ -1,7 +1,7 @@
 /* src/styles/globals.css */
 /* Título: Oswald (condensada, impacto). Corpo/UI: Nunito (legível).
-   Para trocar o título, ajuste "Oswald" no @import e em --font-head. */
-@import url("https://fonts.googleapis.com/css2?family=Oswald:wght@400;500;600;700&family=Nunito:wght@400;500;600;700;800&display=swap");
+   As duas são carregadas por `next/font` no layout raiz (auto-hospedadas) —
+   para trocar, mexa no `src/app/layout.tsx` e nas variáveis abaixo. */
 @import "tailwindcss";
 
 @theme {
@@ -76,11 +76,12 @@
   --mod-routine: #0a7fa3;
   --mod-intel: #be185d;
 
-  /* Typography */
-  --font-head: "Oswald", sans-serif;
+  /* Typography — as famílias vêm de `next/font` (variáveis definidas no <html>
+     pelo layout raiz); o fallback vale enquanto o CSS da fonte não aplicou. */
+  --font-head: var(--font-head-family), sans-serif;
   /* Fonte de corpo/UI do sistema. (Mantém o nome --font-mono por compatibilidade
      com as classes font-mono já usadas; o valor agora é uma sans-serif legível.) */
-  --font-mono: "Nunito", sans-serif;
+  --font-mono: var(--font-body-family), sans-serif;
 
   --weight-regular: 400;
   --weight-medium: 500;

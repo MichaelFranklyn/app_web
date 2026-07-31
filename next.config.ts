@@ -42,6 +42,10 @@ const csp = [
   // bloqueia o script e o mapa não carrega. O Maps Embed (rota do dia) é iframe
   // e sai pelo frame-src, por isso só o radar quebrava.
   `script-src 'self' 'unsafe-inline' https://maps.googleapis.com https://maps.gstatic.com`,
+  // fonts.googleapis.com/fonts.gstatic.com aqui e no font-src NÃO são mais das
+  // nossas fontes (auto-hospedadas por `next/font`, ver layout raiz): quem pede
+  // é o Maps JavaScript API, que injeta a Roboto dele. Sem eles o mapa carrega,
+  // mas enche o console de violação de CSP.
   `style-src 'self' 'unsafe-inline' https://fonts.googleapis.com`,
   `img-src 'self' data: blob:${backendOrigin ? ` ${backendOrigin}` : ""}${supabaseOrigin ? ` ${supabaseOrigin}` : ""} https://storage.googleapis.com https://drivops-public.s3.us-east-1.amazonaws.com https://drivops-public.s3.amazonaws.com https://maps.gstatic.com https://maps.googleapis.com`,
   `font-src 'self' data: https://fonts.gstatic.com`,
