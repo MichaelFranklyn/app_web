@@ -99,7 +99,7 @@ export function VisitCard({
           }
         }}
         title={`Visualizar ${noun}`}
-        className="cursor-pointer rounded-(--r-md) border border-(--border) bg-(--bg3) p-16 transition-colors hover:border-(--amber) focus:outline-none focus-visible:ring-1 focus-visible:ring-(--amber)"
+        className="cursor-pointer rounded-(--r-md) border border-(--border) bg-(--bg3) p-12 transition-colors hover:border-(--amber) focus:outline-none focus-visible:ring-1 focus-visible:ring-(--amber)"
       >
         <div className="flex items-start justify-between gap-8">
           <div className="flex min-w-0 items-start gap-8">
@@ -155,7 +155,7 @@ export function VisitCard({
         </div>
 
         {priority && !isCompleted && (
-          <div className="mt-12 flex" title={`Score ${scoreValue?.toFixed(0)}`}>
+          <div className="mt-8 flex" title={`Score ${scoreValue?.toFixed(0)}`}>
             <Badge.Root color={priority.tone} appearance="tinted">
               <Badge.Dot />
               <Badge.Text>
@@ -169,7 +169,7 @@ export function VisitCard({
             vendedor tiver o número à mão. Some quando já foi concluído. */}
         {isRemote && !isCompleted && (
           <div
-            className="mt-12"
+            className="mt-8"
             onClick={(e) => e.stopPropagation()}
             onKeyDown={(e) => e.stopPropagation()}
           >
@@ -180,7 +180,7 @@ export function VisitCard({
           </div>
         )}
 
-        <div className="mt-12 flex items-center justify-between gap-8 border-t border-(--border) pt-12">
+        <div className="mt-8 flex items-center justify-between gap-8 border-t border-(--border) pt-8">
           <Title variant="micro" color="muted">
             #{item.plannedOrder}
             {item.estimatedTravelMin != null
