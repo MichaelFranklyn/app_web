@@ -37,7 +37,11 @@ const supabaseOrigin = (() => {
 // build de produção, então continua exercitando a CSP).
 const csp = [
   `default-src 'self'`,
-  `script-src 'self' 'unsafe-inline'`,
+  // maps.googleapis.com/maps.gstatic.com: a Maps JavaScript API (radar de
+  // clientes) é carregada injetando um <script> desses hosts — sem eles a CSP
+  // bloqueia o script e o mapa não carrega. O Maps Embed (rota do dia) é iframe
+  // e sai pelo frame-src, por isso só o radar quebrava.
+  `script-src 'self' 'unsafe-inline' https://maps.googleapis.com https://maps.gstatic.com`,
   `style-src 'self' 'unsafe-inline' https://fonts.googleapis.com`,
   `img-src 'self' data: blob:${backendOrigin ? ` ${backendOrigin}` : ""}${supabaseOrigin ? ` ${supabaseOrigin}` : ""} https://storage.googleapis.com https://drivops-public.s3.us-east-1.amazonaws.com https://drivops-public.s3.amazonaws.com https://maps.gstatic.com https://maps.googleapis.com`,
   `font-src 'self' data: https://fonts.gstatic.com`,
