@@ -97,7 +97,15 @@ test.describe("responsividade — mobile", () => {
       // Espera o conteúdo assentar (queries client-side servidas + layout) em
       // vez de um tempo fixo: só então a medição de overflow é confiável.
       await expect(page.locator("main")).toBeVisible();
-      await page.waitForLoadState("networkidle");
+      // `networkidle` é o sinal FELIZ (mocks respondem na hora, fica ocioso em
+      // <1s), mas não pode ser bloqueante: qualquer gotejo de rede (prefetch
+      // dos links da sidebar, polling de notificações) impede os 500ms de
+      // silêncio e estourava o teste com a página já renderizada. Com o teto,
+      // segue-se para a medição — o `main` visível + mocks instantâneos
+      // garantem o layout pronto.
+      await page
+        .waitForLoadState("networkidle", { timeout: 10_000 })
+        .catch(() => {});
       expect(
         await pageOverflow(page),
         `overflow em ${url}`
