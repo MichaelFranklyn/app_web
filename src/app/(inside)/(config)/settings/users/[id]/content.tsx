@@ -1,7 +1,6 @@
 "use client";
 
 import { EmptyState } from "@/components/EmptyState";
-import { Loading } from "@/components/Loading";
 import { PageContent } from "@/components/PageContent";
 import { QueryError } from "@/components/QueryError";
 import { useQuery } from "@apollo/client/react";
@@ -13,6 +12,7 @@ import {
   USER_DETAIL_QUERY,
   UserDetailQueryResponse,
   UserProfileHeader,
+  UserProfileSkeleton,
 } from "../../../_shared/userProfile";
 import { ProfileCards } from "./_components/ProfileCards";
 import { UserDetailActions } from "./_components/UserDetailActions";
@@ -30,11 +30,8 @@ export default function UserProfileContent({ userId }: Props) {
   const user = data?.user_detail?.data;
 
   if (loading && !user) {
-    return (
-      <PageContent>
-        <Loading.Skeleton className="h-[420px]" />
-      </PageContent>
-    );
+    // Visão do gestor: tem o rastro "Pessoas › nome" acima do cabeçalho.
+    return <UserProfileSkeleton hasBreadcrumb />;
   }
 
   if (error && !user) {

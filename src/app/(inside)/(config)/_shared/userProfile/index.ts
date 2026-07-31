@@ -38,3 +38,4 @@ export { SellerDataCard } from "./SellerDataCard";
 export { SellerKpis } from "./SellerKpis";
 export { SystemAccessCard } from "./SystemAccessCard";
 export { UserProfileHeader } from "./UserProfileHeader";
+export { UserProfileSkeleton } from "./UserProfileSkeleton";
