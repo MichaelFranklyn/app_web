@@ -84,6 +84,8 @@ export function VisitCard({
   // cada card só polui a coluna. Ele aparece quando a visita saiu do previsto
   // (realizada, ausente, remarcada…), que é a informação que vale destacar.
   const showStatusBadge = item.status !== "PENDING";
+  // Score não se aplica a visita concluída: o que importa passa a ser o estado.
+  const showPriority = Boolean(priority) && !isCompleted;
 
   return (
     <>
@@ -126,14 +128,38 @@ export function VisitCard({
               />
             </div>
             <div className="min-w-0">
-              <ContactTypeTag
-                contactType={item.contactType}
-                className="mb-4 flex"
-              />
+              {/* Identidade do compromisso numa linha só: se é visita ou
+                  contato, a posição na rota e o tempo de deslocamento. O alerta
+                  de acompanhamento entra aqui porque qualifica esse mesmo
+                  compromisso. */}
+              <div className="mb-4 flex flex-wrap items-center gap-x-8 gap-y-2">
+                <ContactTypeTag contactType={item.contactType} />
+                <Title variant="micro" color="muted">
+                  #{item.plannedOrder}
+                  {item.estimatedTravelMin != null
+                    ? ` · ${item.estimatedTravelMin}m`
+                    : ""}
+                </Title>
+                {warning && (
+                  <TriangleAlert
+                    size={14}
+                    className="shrink-0 text-(--amber)"
+                    aria-label={warning.message}
+                  >
+                    <title>{warning.message}</title>
+                  </TriangleAlert>
+                )}
+              </div>
+              {/* Nome quebra em várias linhas em vez de truncar: numa coluna de
+                  240px o "…" escondia justamente o que identifica a loja.
+                  `break-words` cobre razão social longa sem espaços. */}
               <Title
                 variant="value"
                 color={isCompleted ? "muted" : "default"}
-                className={cn("block truncate", isCompleted && "line-through")}
+                className={cn(
+                  "block break-words",
+                  isCompleted && "line-through"
+                )}
               >
                 {clientName}
               </Title>
@@ -154,17 +180,6 @@ export function VisitCard({
           </div>
         </div>
 
-        {priority && !isCompleted && (
-          <div className="mt-8 flex" title={`Score ${scoreValue?.toFixed(0)}`}>
-            <Badge.Root color={priority.tone} appearance="tinted">
-              <Badge.Dot />
-              <Badge.Text>
-                {priority.label} · {scoreValue?.toFixed(0)}
-              </Badge.Text>
-            </Badge.Root>
-          </div>
-        )}
-
         {/* Ligar/WhatsApp direto do card: o contato remoto só é executável se o
             vendedor tiver o número à mão. Some quando já foi concluído. */}
         {isRemote && !isCompleted && (
@@ -180,25 +195,33 @@ export function VisitCard({
           </div>
         )}
 
-        <div className="mt-8 flex items-center justify-between gap-8 border-t border-(--border) pt-8">
-          <Title variant="micro" color="muted">
-            #{item.plannedOrder}
-            {item.estimatedTravelMin != null
-              ? ` · ${item.estimatedTravelMin}m`
-              : ""}
-          </Title>
-          <div className="flex items-center gap-8">
-            {warning && (
-              <TriangleAlert
-                size={14}
-                className="shrink-0 text-(--amber)"
-                aria-label={warning.message}
+        {/* Rodapé único: urgência, posição na rota e estado numa só linha — é o
+            que mantém o card baixo, já que a coluna do kanban acompanha a altura
+            do dia mais cheio. `flex-wrap` é a válvula de escape: em coluna
+            estreita a linha quebra em vez de estourar a largura. */}
+        {/* Urgência e estado em largura total, empilhados: badge de largura
+            própria numa coluna de 240px ficava perdido e podia estourar a linha
+            — ocupando a faixa inteira, cada um se lê de relance. O bloco todo
+            desaparece quando não há nem score nem estado a mostrar, para não
+            sobrar um divisor solto. */}
+        {(showPriority || showStatusBadge) && (
+          <div className="mt-8 flex flex-col gap-4 border-t border-(--border) pt-8">
+            {showPriority && priority && (
+              <Badge.Root
+                fullWidth
+                color={priority.tone}
+                appearance="tinted"
+                title={`Score ${scoreValue?.toFixed(0)}`}
               >
-                <title>{warning.message}</title>
-              </TriangleAlert>
+                <Badge.Dot />
+                <Badge.Text>
+                  {priority.label} · {scoreValue?.toFixed(0)}
+                </Badge.Text>
+              </Badge.Root>
             )}
             {showStatusBadge && (
               <Badge.Root
+                fullWidth
                 color={VISIT_STATUS_COLOR[item.status]}
                 appearance="tinted"
               >
@@ -206,7 +229,7 @@ export function VisitCard({
               </Badge.Root>
             )}
           </div>
-        </div>
+        )}
       </div>
     </>
   );
