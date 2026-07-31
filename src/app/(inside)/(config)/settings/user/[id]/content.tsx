@@ -1,7 +1,6 @@
 "use client";
 
 import { EmptyState } from "@/components/EmptyState";
-import { Loading } from "@/components/Loading";
 import { PageContent } from "@/components/PageContent";
 import { QueryError } from "@/components/QueryError";
 import { useQuery } from "@apollo/client/react";
@@ -13,6 +12,7 @@ import {
   USER_DETAIL_QUERY,
   UserDetailQueryResponse,
   UserProfileHeader,
+  UserProfileSkeleton,
 } from "../../../_shared/userProfile";
 import { MyProfileCards } from "./_components/MyProfileCards";
 
@@ -30,11 +30,7 @@ export default function MyProfileContent({ userId, canEnableSeller }: Props) {
   const user = data?.user_detail?.data;
 
   if (loading && !user) {
-    return (
-      <PageContent>
-        <Loading.Skeleton className="h-[420px]" />
-      </PageContent>
-    );
+    return <UserProfileSkeleton />;
   }
 
   if (error && !user) {
