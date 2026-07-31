@@ -1,5 +1,6 @@
 import { ToastProvider } from "@/components/Toast/Provider";
 import { GraphqlProvider } from "@/services/graphql/provider";
+import { SpeedInsights } from "@vercel/speed-insights/next";
 import type { Metadata } from "next";
 import { Suspense } from "react";
 import "../styles/globals.css";
@@ -24,6 +25,11 @@ export default function RootLayout({
             <Suspense fallback={null}>{children}</Suspense>
           </ToastProvider>
         </GraphqlProvider>
+        {/* Web Vitals reais dos usuários. Script e beacon saem por
+            /_vercel/speed-insights (mesma origem), então a CSP de produção já
+            os cobre em `script-src 'self'` e `connect-src 'self'`. Só coleta
+            quando servido pela Vercel — em dev e no E2E fica inerte. */}
+        <SpeedInsights />
       </body>
     </html>
   );
