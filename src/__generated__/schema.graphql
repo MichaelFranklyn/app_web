@@ -2424,6 +2424,11 @@ type SellerClientFactoryType {
   lastVisitDate: DateTime
   """Último toque de qualquer tipo — visita presencial OU contato remoto."""
   lastContactDate: Date
+  """
+  Faturamento mais recente deste vínculo — só os pedidos deste vendedor para
+  este cliente nesta fábrica. Nulo enquanto nenhum pedido do vínculo foi faturado.
+  """
+  lastInvoiceDate: Date
   createdAt: DateTime!
   updatedAt: DateTime!
   deletedAt: DateTime

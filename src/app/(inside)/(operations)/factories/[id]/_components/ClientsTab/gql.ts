@@ -8,6 +8,7 @@ export const FACTORY_CLIENT_LINKS_QUERY = gql`
           id
           priority
           priceTierId
+          lastInvoiceDate
           client {
             id
             razaoSocial
@@ -36,6 +37,8 @@ export interface FactoryClientLink {
   id: string;
   priority: string | null;
   priceTierId: string | null;
+  /** Faturamento mais recente deste vínculo (este vendedor, nesta fábrica). */
+  lastInvoiceDate: string | null;
   client: {
     id: string;
     razaoSocial: string;
