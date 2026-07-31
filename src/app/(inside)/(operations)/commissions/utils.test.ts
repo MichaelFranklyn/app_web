@@ -2,6 +2,7 @@ import { describe, expect, it } from "vitest";
 import { CommissionRow } from "./interface";
 import {
   addMonths,
+  factoryHighlights,
   groupByFactory,
   isInMonth,
   latestMonthWithData,
@@ -103,9 +104,16 @@ describe("summarizeRows", () => {
         isReceivable: false,
       }),
       row({ installmentId: "c", status: "receivable", amount: "7" }),
+      row({
+        installmentId: "d",
+        status: "pending",
+        amount: "3",
+        isReceivable: false,
+      }),
     ]);
     expect(summary.receivable).toBe(17);
     expect(summary.received).toBe(5);
+    expect(summary.pending).toBe(3);
     expect(summary.reconciledCount).toBe(1);
     expect(summary.receivableIds).toEqual(["a", "c"]);
   });
@@ -114,9 +122,37 @@ describe("summarizeRows", () => {
     expect(summarizeRows([])).toEqual({
       receivable: 0,
       received: 0,
+      pending: 0,
       reconciledCount: 0,
       receivableIds: [],
     });
+  });
+});
+
+describe("factoryHighlights", () => {
+  const summary = summarizeRows([
+    row({ installmentId: "a", status: "receivable", amount: "10" }),
+    row({ installmentId: "b", status: "received", amount: "5" }),
+    row({ installmentId: "c", status: "pending", amount: "3" }),
+  ]);
+
+  it("destaca só o valor da situação filtrada", () => {
+    expect(factoryHighlights(summary, "receivable")).toEqual([
+      { label: "A receber", value: 10, color: "amber" },
+    ]);
+    expect(factoryHighlights(summary, "received")).toEqual([
+      { label: "Recebido", value: 5, color: "green" },
+    ]);
+    expect(factoryHighlights(summary, "pending")).toEqual([
+      { label: "Previsto", value: 3 },
+    ]);
+  });
+
+  it("com todas as situações, mostra a receber e recebido", () => {
+    expect(factoryHighlights(summary, "all").map((h) => h.label)).toEqual([
+      "A receber",
+      "Recebido",
+    ]);
   });
 });
 
