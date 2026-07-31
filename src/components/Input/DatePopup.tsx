@@ -17,6 +17,7 @@ import { DateRange } from "react-day-picker";
 import { cn } from "@/lib/utils";
 
 import { CalendarBase } from "./CalendarBase";
+import { RangeCalendars } from "./RangeCalendars";
 import { calendarStyles } from "./styles";
 
 type ShortcutSingle = { label: string; getValue: () => Date };
@@ -145,14 +146,7 @@ export const DatePopup = ({
             initialFocus
           />
         ) : (
-          <CalendarBase
-            mode="range"
-            selected={internalRange}
-            onSelect={onSelectRange}
-            defaultMonth={internalRange?.from}
-            numberOfMonths={2}
-            initialFocus
-          />
+          <RangeCalendars selected={internalRange} onSelect={onSelectRange} />
         )}
       </div>
     </div>,
