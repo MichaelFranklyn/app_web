@@ -60,8 +60,11 @@ export function RoutinesWeekGrid({
   const addSellerId = effectiveSellerId ?? sellerId ?? null;
   const visibleCells = getVisibleCells(cells, periodDays, todayIso);
 
+  // items-stretch (e não items-start): num kanban as colunas têm de terminar na
+  // mesma linha. O dia de folga tem pouco conteúdo, mas acompanha a altura do
+  // dia mais cheio e completa o resto com espaço em branco.
   return (
-    <div className="flex items-start gap-8 overflow-x-auto pb-8">
+    <div className="flex items-stretch gap-8 overflow-x-auto pb-8">
       {visibleCells.map((cell) => {
         const items = sortVisitsByRoute(cell.day?.items ?? []);
         const isToday = cell.date === todayIso;
@@ -140,33 +143,41 @@ export function RoutinesWeekGrid({
                   ficam fixas num rodapé próprio, separadas por um divisor. */}
               <Card.Body padding="none">
                 {!cell.day ? (
-                  // Folga: o usuário ainda pode querer trabalhar neste dia —
-                  // gerar a rota automática (pela carteira) ou agendar uma
-                  // visita manual (cria o dia com essa primeira visita).
-                  <div className="flex flex-1 flex-col items-center justify-center gap-8 p-16">
-                    <Title variant="body-sm" color="muted">
-                      Folga
-                    </Title>
-                    {/* Dia vencido não recebe rota nova: a visita já não pode
-                        acontecer, e recomendá-la só consumiria o cliente da
-                        semana. O backend recusa; aqui o botão nem aparece. */}
-                    {!isPastDay(cell.date, todayIso) && (
-                      <GenerateDayButton
+                  // Folga: mesma anatomia dos dias úteis — o aviso ocupa a área
+                  // central (é dela que vem o espaço em branco que iguala a
+                  // altura) e as ações ficam no rodapé, após o divisor.
+                  <>
+                    <div className="flex flex-1 flex-col items-center p-16">
+                      <Title variant="body-sm" color="muted">
+                        Folga
+                      </Title>
+                    </div>
+
+                    {/* O usuário ainda pode querer trabalhar neste dia: gerar a
+                        rota automática (pela carteira) ou agendar uma visita
+                        manual (cria o dia com essa primeira visita). */}
+                    <div className="flex flex-col gap-8 border-t border-(--border) p-16">
+                      {/* Dia vencido não recebe rota nova: a visita já não pode
+                          acontecer, e recomendá-la só consumiria o cliente da
+                          semana. O backend recusa; aqui o botão nem aparece. */}
+                      {!isPastDay(cell.date, todayIso) && (
+                        <GenerateDayButton
+                          date={cell.date}
+                          sellerId={addSellerId}
+                          onGenerated={onChanged}
+                        />
+                      )}
+                      <AddVisitCard
+                        day={null}
                         date={cell.date}
+                        scheduleId={scheduleId}
+                        nextDay={nextDay}
                         sellerId={addSellerId}
-                        onGenerated={onChanged}
+                        capacity={capacity}
+                        onChanged={onChanged}
                       />
-                    )}
-                    <AddVisitCard
-                      day={null}
-                      date={cell.date}
-                      scheduleId={scheduleId}
-                      nextDay={nextDay}
-                      sellerId={addSellerId}
-                      capacity={capacity}
-                      onChanged={onChanged}
-                    />
-                  </div>
+                    </div>
+                  </>
                 ) : (
                   <>
                     {/* Área rolável: cresce até um teto e então rola por dentro,
