@@ -33,7 +33,14 @@ const ROUTE_MOCKS: Record<string, Record<string, () => unknown>> = {
   "/orders": {
     Orders: () => ({ orders_list: conn() }),
     OrderStats: () => ({
-      orderStats: { totalOrders: 0, totalAmount: "0", avgTicket: "0" },
+      orderStats: {
+        totalOrders: 0,
+        totalAmount: "0",
+        avgTicket: "0",
+        invoicedOrders: 0,
+        invoicedAmount: "0",
+        commissionAmount: "0",
+      },
     }),
   },
   "/factories": {

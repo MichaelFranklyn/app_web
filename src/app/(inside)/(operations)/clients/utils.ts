@@ -19,7 +19,47 @@ export const TABLE_FIELDS: Record<string, FieldConfig> = {
   // Não é coluna de cliente: o backend traduz em "clientes da carteira desse
   // vendedor". Só o gestor manda; vendedor logado já vê apenas a própria carteira.
   sellerId: { type: "select", queryField: "seller_id" },
+  state: { type: "select", queryField: "address_state" },
+  // Vai como "true"/"false"; o `parse_value` do backend já converte em booleano.
+  needsAttention: { type: "select", queryField: "is_needs_attention" },
 };
+
+/**
+ * UFs para o filtro de estado, em ordem alfabética.
+ *
+ * Lista fixa em vez de "os estados que aparecem na carteira": a carteira é
+ * paginada, então só daria para montar a lista a partir da página atual — e o
+ * seletor mudaria de conteúdo conforme a pessoa navega.
+ */
+export const STATE_OPTIONS = [
+  "AC",
+  "AL",
+  "AM",
+  "AP",
+  "BA",
+  "CE",
+  "DF",
+  "ES",
+  "GO",
+  "MA",
+  "MG",
+  "MS",
+  "MT",
+  "PA",
+  "PB",
+  "PE",
+  "PI",
+  "PR",
+  "RJ",
+  "RN",
+  "RO",
+  "RR",
+  "RS",
+  "SC",
+  "SE",
+  "SP",
+  "TO",
+].map((uf) => ({ value: uf, label: uf }));
 
 export const buildKpis = (stats: ClientsStats): KpiItem[] => {
   // Defensivo: se `clientStats` vier ausente, degrada para zeros sem quebrar a página.

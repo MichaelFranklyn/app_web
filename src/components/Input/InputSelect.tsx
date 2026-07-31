@@ -18,7 +18,7 @@ import {
   inputStyles,
   selectStyles,
 } from "./styles";
-import { useAnchoredDropdown } from "./useAnchoredDropdown";
+import { useAnchoredDropdown } from "@/hooks/useAnchoredDropdown";
 import { useSelectState } from "./useSelectState";
 
 export type SelectOption = {
@@ -127,6 +127,10 @@ export const InputSelect = ({
   );
 };
 
+// Espelha o `max-h-[240px]` de `selectStyles.overlay`: é a altura máxima que a
+// lista pode ocupar, e é por ela que se decide se há espaço abaixo do campo.
+const DROPDOWN_MAX_HEIGHT = 240;
+
 const InputSelectControl = ({
   className,
   options,
@@ -154,6 +158,7 @@ const InputSelectControl = ({
     top: number;
     left: number;
     width: number;
+    openTop: boolean;
   } | null>(null);
 
   const isError = context?.error;
@@ -178,20 +183,30 @@ const InputSelectControl = ({
     const updatePos = () => {
       if (!containerRef.current) return;
       const rect = containerRef.current.getBoundingClientRect();
+      // Sem espaço abaixo, a lista abre para cima — e só se couber lá. O painel
+      // é `fixed`/`absolute` num portal: passando do rodapé da janela ele fica
+      // simplesmente inalcançável, porque rolar a página não o traz de volta.
+      // Aparecia nos campos de baixo do painel de filtros.
+      const openTop =
+        window.innerHeight - rect.bottom < DROPDOWN_MAX_HEIGHT &&
+        rect.top > DROPDOWN_MAX_HEIGHT;
+
       if (modalPortal) {
         // Dentro do Modal: Dialog.Content tem transform, então position:fixed fica relativo a ele.
         // Usamos position:absolute no portalEl (inset-0) → coordenadas relativas ao Dialog.Content.
         const origin = modalPortal.getBoundingClientRect();
         setDropdownPos({
-          top: rect.bottom - origin.top + 4,
+          top: openTop ? rect.top - origin.top : rect.bottom - origin.top + 4,
           left: rect.left - origin.left,
           width: rect.width,
+          openTop,
         });
       } else {
         setDropdownPos({
-          top: rect.bottom + 4,
+          top: openTop ? rect.top : rect.bottom + 4,
           left: rect.left,
           width: rect.width,
+          openTop,
         });
       }
     };

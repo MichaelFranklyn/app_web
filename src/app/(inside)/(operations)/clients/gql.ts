@@ -34,8 +34,6 @@ export const CLIENTS_QUERY = gql`
           cnpj
           razaoSocial
           nomeFantasia
-          cnae
-          cnaeDescription
           addressCity
           addressState
           isNeedsAttention

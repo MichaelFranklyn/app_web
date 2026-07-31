@@ -21,11 +21,12 @@ export const clientsFlow: FlowDefinition = {
       align: "end",
     },
     {
-      element: '[data-tour="clients-search"]',
-      title: "Buscar cliente",
-      description: "Digite o nome de uma empresa para encontrá-la rapidamente.",
+      element: '[data-tour="clients-filters"]',
+      title: "Buscar e filtrar",
+      description:
+        "Clique aqui para procurar uma empresa pelo nome, ou para ver só os clientes de um vendedor, de um estado, ou só os cadastros que precisam de atenção.",
       side: "bottom",
-      align: "start",
+      align: "end",
     },
     {
       element: '[data-tour="clients-table"]',

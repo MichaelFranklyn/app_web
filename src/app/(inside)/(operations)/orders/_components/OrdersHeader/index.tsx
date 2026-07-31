@@ -12,13 +12,15 @@ import { ImportOrderModal } from "./ImportOrderModal";
 
 interface Props {
   stats?: OrdersStats;
+  /** Há filtro ativo? Só muda a legenda dos cartões ("da empresa" × "no filtro"). */
+  isFiltered?: boolean;
   onAddOptimistic: (order: Order) => void;
 }
 
-const KPI_COUNT = 3;
+const KPI_COUNT = 4;
 
-export function OrdersHeader({ stats, onAddOptimistic }: Props) {
-  const kpis = stats ? buildOrderKpis(stats) : null;
+export function OrdersHeader({ stats, isFiltered, onAddOptimistic }: Props) {
+  const kpis = stats ? buildOrderKpis(stats, isFiltered) : null;
 
   return (
     <>
@@ -37,7 +39,7 @@ export function OrdersHeader({ stats, onAddOptimistic }: Props) {
         </PanelHeader.Top>
       </PanelHeader.Root>
 
-      <Grid.Root cols={{ base: 1, tablet: 3 }} gap={20}>
+      <Grid.Root cols={{ base: 1, tablet: 2, desktop: 4 }} gap={20}>
         {kpis
           ? kpis.map(
               ({

@@ -32,6 +32,45 @@ export interface OrdersStats {
     totalOrders: number;
     totalAmount: string;
     avgTicket: string;
+    /** Pedidos que a fábrica já faturou, dentro do recorte filtrado. */
+    invoicedOrders: number;
+    invoicedAmount: string;
+    /** Comissão gerada pelo que já foi faturado no recorte. */
+    commissionAmount: string;
+  };
+}
+
+/** Opções dos selects do painel de filtros. */
+export interface OrderFilterSellers {
+  order_filter_sellers: { edges: { node: { id: string; name: string } }[] };
+}
+
+export interface OrderFilterFactories {
+  order_filter_factories: {
+    edges: {
+      node: {
+        id: string;
+        factory: {
+          id: string;
+          nomeFantasia: string | null;
+          nickname: string | null;
+          razaoSocial: string;
+        } | null;
+      };
+    }[];
+  };
+}
+
+export interface OrderFilterClients {
+  order_filter_clients: {
+    edges: {
+      node: {
+        id: string;
+        razaoSocial: string;
+        nomeFantasia: string | null;
+        cnpj: string | null;
+      };
+    }[];
   };
 }
 

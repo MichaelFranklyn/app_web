@@ -18,7 +18,7 @@ import { InputBaseProps } from "./InputText";
 import { DatePopup } from "./DatePopup";
 import { Calendar as CalendarIcon, X } from "lucide-react";
 import { DateRange } from "react-day-picker";
-import { useAnchoredDropdown } from "./useAnchoredDropdown";
+import { useAnchoredDropdown } from "@/hooks/useAnchoredDropdown";
 import { useDateSelection } from "./useDateSelection";
 
 export interface InputDateProps extends Omit<

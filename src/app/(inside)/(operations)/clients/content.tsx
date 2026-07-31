@@ -8,6 +8,7 @@ import { ClientsHeader } from "./_components/ClientsHeader";
 import { ClientsTable } from "./_components/ClientsTable";
 import { CLIENTS_QUERY } from "./gql";
 import { Client, ClientsContentProps, QueryData } from "./interface";
+import { useClientFilters } from "./useClientFilters";
 import { useSellerScope } from "./useSellerScope";
 import { ITEMS_PER_PAGE, TABLE_FIELDS } from "./utils";
 
@@ -32,6 +33,12 @@ export default function ClientesContent({
     fallbackStats: stats,
   });
 
+  const filterFields = useClientFilters({
+    canFilterBySeller,
+    sellerOptions: sellerScope.sellerOptions,
+    sellersLoading: sellerScope.sellersLoading,
+  });
+
   const optimistic = useOptimisticList<Client>({
     initialData: tableData.displayedData,
   });
@@ -52,12 +59,13 @@ export default function ClientesContent({
           items={optimistic.items}
           inputValues={tableData.inputValues}
           setFilter={tableData.setFilter}
+          setFilters={tableData.setFilters}
+          filterFields={filterFields}
           loading={tableData.loading}
           totalItems={tableData.totalItems}
           currentPage={tableData.currentPage}
           totalPages={tableData.totalPages}
           setCurrentPage={tableData.setCurrentPage}
-          sellerOptions={canFilterBySeller ? sellerScope.sellerOptions : null}
         />
       )}
     </PageContent>

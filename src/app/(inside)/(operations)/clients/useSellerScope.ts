@@ -50,5 +50,5 @@ export function useSellerScope({
   const stats =
     selectedSellerId && statsQuery.data ? statsQuery.data : fallbackStats;
 
-  return { sellerOptions, stats };
+  return { sellerOptions, sellersLoading: sellersQuery.loading, stats };
 }

@@ -21,11 +21,12 @@ export const ordersFlow: FlowDefinition = {
       align: "end",
     },
     {
-      element: '[data-tour="orders-search"]',
-      title: "Buscar pedido",
-      description: "Pesquise por fábrica, vendedor ou pelo código do pedido.",
+      element: '[data-tour="orders-filters"]',
+      title: "Filtrar os pedidos",
+      description:
+        "Clique aqui para ver só os pedidos de um vendedor, de uma fábrica, de um cliente, de uma situação (confirmado, faturado, entregue…) ou de um período — inclusive pela data em que a fábrica faturou. Os números lá de cima acompanham o que você filtrar.",
       side: "bottom",
-      align: "start",
+      align: "end",
     },
     {
       element: '[data-tour="orders-table"]',

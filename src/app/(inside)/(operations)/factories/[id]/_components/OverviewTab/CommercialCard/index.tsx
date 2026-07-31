@@ -31,8 +31,10 @@ export function CommercialCard({ companyFactory }: Props) {
                   </Title>
                   <Title variant="body-sm" color="muted">
                     O dia de pagamento é quando a fábrica costuma pagar a
-                    comissão. Para alterar, use o botão Editar no topo da
-                    página.
+                    comissão. O <b>corte do faturamento</b> é o último dia do
+                    mês que ainda entra nesse pagamento: o pedido faturado
+                    depois dele só é pago no mês seguinte. Para alterar, use o
+                    botão Editar no topo da página.
                   </Title>
                 </div>
               }
@@ -61,6 +63,14 @@ export function CommercialCard({ companyFactory }: Props) {
           <Card.Item.Label>Dia de pagamento da fábrica</Card.Item.Label>
           <Card.Item.Value>
             Dia {companyFactory.paymentTermDays}
+          </Card.Item.Value>
+        </Card.Item>
+        <Card.Item variant="stat">
+          <Card.Item.Label>Corte do faturamento</Card.Item.Label>
+          <Card.Item.Value>
+            {companyFactory.commissionCutoffDay != null
+              ? `Até o dia ${companyFactory.commissionCutoffDay}`
+              : "Sem corte"}
           </Card.Item.Value>
         </Card.Item>
         <Card.Item variant="stat">

@@ -61,8 +61,14 @@ export function useAsyncSelectOptions<TData, TNode>({
 
   const { data, loading } = useAsyncQuery<TData>(query, { variables, skip });
 
+  // Encadeamento opcional de propósito: com `errorPolicy: "all"`, uma query que
+  // falha em parte entrega `data` sem a chave da connection. Sem isso, um
+  // select de apoio quebrava a PÁGINA inteira que o hospeda.
   const options = useMemo<SelectOption[]>(
-    () => (data ? getConnection(data).edges.map((e) => toOption(e.node)) : []),
+    () =>
+      data
+        ? (getConnection(data)?.edges?.map((e) => toOption(e.node)) ?? [])
+        : [],
     [data, getConnection, toOption]
   );
 

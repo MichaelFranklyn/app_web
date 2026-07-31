@@ -632,6 +632,8 @@ type CompanyFactoryType {
   commissionCalcBasis: String!
   paymentTermDays: Int!
   commissionPaymentDays: [Int!]
+  """Dia do mês (1-31) até o qual o faturamento entra no fechamento da comissão do mês seguinte. Nulo = sem corte: vale o próximo dia de pagamento após o faturamento."""
+  commissionCutoffDay: Int
   territory: String!
   contractStart: DateTime
   contractEnd: DateTime
@@ -674,6 +676,7 @@ input LinkFactoryInput {
   commissionRate: Float!
   commissionCalcBasis: String!
   paymentTermDays: Int!
+  commissionCutoffDay: Int = null
   territory: String!
   contractStart: DateTime = null
   contractEnd: DateTime = null
@@ -689,6 +692,7 @@ input CreateCompanyFactoryInput {
   commissionRate: Float!
   commissionCalcBasis: String!
   paymentTermDays: Int!
+  commissionCutoffDay: Int = null
   territory: String!
   contractStart: DateTime = null
   contractEnd: DateTime = null
@@ -703,6 +707,7 @@ input ImportCompanyFactoryRowInput {
   commissionRate: Float!
   commissionCalcBasis: String!
   paymentTermDays: Int!
+  commissionCutoffDay: Int = null
   territory: String!
   contractStart: DateTime = null
   contractEnd: DateTime = null
@@ -740,6 +745,7 @@ input UpdateCompanyFactoryInput {
   commissionCalcBasis: String = null
   paymentTermDays: Int = null
   commissionPaymentDays: [Int!] = null
+  commissionCutoffDay: Int = null
   territory: String = null
   contractStart: DateTime = null
   contractEnd: DateTime = null
@@ -1893,6 +1899,12 @@ type OrderStatsType {
   totalOrders: Int!
   totalAmount: Decimal!
   avgTicket: Decimal!
+  """Pedidos que a fábrica já faturou (invoicedAt preenchido)."""
+  invoicedOrders: Int!
+  """Valor somado dos pedidos já faturados — o total faturado no recorte filtrado."""
+  invoicedAmount: Decimal!
+  """Comissão somada dos pedidos já faturados no recorte."""
+  commissionAmount: Decimal!
 }
 
 input UpdateOrderInput {
@@ -1954,7 +1966,8 @@ type CommissionSummaryType {
 extend type Query {
   orders(input: BaseListInput!): OrderTypeConnectionResponse!
   order(id: UUID!): OrderTypeDataResponse!
-  orderStats: OrderStatsType!
+  """Resumo dos pedidos. Aceita os MESMOS filtros da query `orders` (a paginação é ignorada); sem `input`, resume a empresa inteira."""
+  orderStats(input: BaseListInput = null): OrderStatsType!
   commissions(status: String = null, factoryId: UUID = null, sellerId: UUID = null): CommissionSummaryType!
 }
 

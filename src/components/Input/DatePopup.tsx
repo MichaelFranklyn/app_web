@@ -107,6 +107,7 @@ export const DatePopup = ({
   createPortal(
     <div
       ref={popupRef}
+      data-date-popup
       style={{ ...style, position, zIndex: 9999 }}
       className={cn(calendarStyles.overlay, "w-auto min-w-max flex-row")}
       onMouseDown={(e) => e.preventDefault()}

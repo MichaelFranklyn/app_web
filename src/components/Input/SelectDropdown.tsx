@@ -12,7 +12,8 @@ import { selectStyles } from "./styles";
 interface SelectDropdownProps {
   dropdownRef: RefObject<HTMLDivElement | null>;
   position: "absolute" | "fixed";
-  pos: { top: number; left: number; width: number };
+  /** `openTop`: abre para CIMA do campo quando não há espaço abaixo. */
+  pos: { top: number; left: number; width: number; openTop?: boolean };
   portalTarget: Element;
   variant: "single" | "multi";
   loading?: boolean;
@@ -50,7 +51,17 @@ export const SelectDropdown = ({
       ref={dropdownRef}
       data-select-dropdown
       className={selectStyles.overlay}
-      style={{ position, top: pos.top, left: pos.left, width: pos.width }}
+      style={{
+        position,
+        top: pos.top,
+        left: pos.left,
+        width: pos.width,
+        // Abrindo para cima, `top` é a borda SUPERIOR do campo: o translate
+        // sobe a lista inteira, cuja altura só se conhece depois de renderizar.
+        ...(pos.openTop
+          ? { transform: "translateY(-100%) translateY(-4px)" }
+          : {}),
+      }}
       onMouseDown={(e) => e.preventDefault()}
     >
       {variant === "multi" && options.length > 0 && (
