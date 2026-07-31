@@ -30,8 +30,6 @@ export interface Client {
   cnpj: string;
   razaoSocial: string;
   nomeFantasia: string | null;
-  cnae: string;
-  cnaeDescription: string | null;
   addressCity: string | null;
   addressState: string | null;
   // Marcação de revisão: hoje sinaliza cliente cujo endereço não virou

@@ -1,7 +1,7 @@
 "use client";
 
 import { EmptyState } from "@/components/EmptyState";
-import { Input, InputSearch, SelectOption } from "@/components/Input";
+import { Filters } from "@/components/Filters";
 import { Loading } from "@/components/Loading";
 import { Pagination } from "@/components/Pagination";
 import { Table } from "@/components/Table";
@@ -17,46 +17,32 @@ export function ClientsTable({
   items,
   inputValues,
   setFilter,
+  setFilters,
+  filterFields,
   loading,
   totalItems: totalCount,
   currentPage,
   totalPages,
   setCurrentPage,
-  sellerOptions,
 }: ClientsTableProps) {
-  const selectedSeller =
-    sellerOptions?.find((option) => option.value === inputValues.sellerId) ??
-    null;
+  // A lista vazia diz coisas diferentes: "sua carteira está vazia" é um estado
+  // do sistema, "não achei nada" é consequência do que a pessoa pediu.
+  const isNarrowed = Object.values(inputValues).some(Boolean);
 
   return (
     <Table.Root data-tour="clients-table">
       <Table.CardHead>
         <Table.CardHead.Title>Carteira de clientes</Table.CardHead.Title>
         <Table.CardHead.Actions>
-          <div className="flex items-center gap-8">
-            {sellerOptions && (
-              <div className="desktop:w-[200px] w-full">
-                <Input.Select
-                  size="sm"
-                  options={sellerOptions}
-                  value={selectedSeller}
-                  variant="single"
-                  placeholder="Todos os vendedores"
-                  onChange={(val: SelectOption | SelectOption[] | null) => {
-                    const option = Array.isArray(val) ? val[0] : val;
-                    setFilter("sellerId", option?.value);
-                  }}
-                />
-              </div>
-            )}
-            <InputSearch
-              size="sm"
-              placeholder="Buscar por razão social ou nome fantasia..."
-              data-tour="clients-search"
-              value={inputValues.search ?? ""}
-              onChange={(e) => setFilter("search", e.target.value || undefined)}
-            />
-          </div>
+          <Filters
+            fields={filterFields}
+            values={inputValues}
+            onChange={setFilters}
+            // A busca vai por aqui para manter o debounce do campo: pelo
+            // `onChange` cada tecla viraria uma consulta ao backend.
+            onTextChange={setFilter}
+            data-tour="clients-filters"
+          />
         </Table.CardHead.Actions>
       </Table.CardHead>
 
@@ -84,13 +70,13 @@ export function ClientsTable({
                     <Users size={32} />
                   </EmptyState.Icon>
                   <EmptyState.Title>
-                    {inputValues.search
+                    {isNarrowed
                       ? "Nenhum cliente encontrado"
                       : "Nenhum cliente na carteira"}
                   </EmptyState.Title>
                   <EmptyState.Description>
-                    {inputValues.search
-                      ? "Tente ajustar a busca para encontrar o cliente."
+                    {isNarrowed
+                      ? "Tente ajustar a busca ou os filtros para encontrar o cliente."
                       : "Os clientes vinculados às fábricas que você atende aparecerão aqui."}
                   </EmptyState.Description>
                 </EmptyState.Root>

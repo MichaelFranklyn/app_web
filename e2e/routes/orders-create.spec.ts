@@ -48,6 +48,9 @@ test("orders: cria um pedido pela cascata vendedor→fábrica→cliente", async 
         totalOrders: orders.length,
         totalAmount: "0",
         avgTicket: "0",
+        invoicedOrders: 0,
+        invoicedAmount: "0",
+        commissionAmount: "0",
       },
     }),
     OrderSellersOptions: () => ({

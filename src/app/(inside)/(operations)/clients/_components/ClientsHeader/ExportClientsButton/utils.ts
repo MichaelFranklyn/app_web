@@ -6,8 +6,6 @@ export const EXPORT_HEADERS = [
   "Razão social",
   "Nome fantasia",
   "CNPJ",
-  "CNAE",
-  "Ramo de atividade",
   "Cidade",
   "UF",
   "Vendedores",
@@ -16,14 +14,17 @@ export const EXPORT_HEADERS = [
   "Score",
 ];
 
-/** Uma linha de planilha por cliente, nas mesmas colunas em que a tela os mostra. */
+/**
+ * Uma linha de planilha por cliente, nas mesmas colunas em que a tela os mostra.
+ *
+ * "Nome fantasia" sai vazio para quem não tem um: nem toda empresa registra
+ * nome fantasia na Receita, e é de lá que o cadastro vem.
+ */
 export const buildExportRows = (clients: Client[]): string[][] =>
   clients.map((client) => [
     client.razaoSocial,
     client.nomeFantasia ?? "",
     maskCNPJ(client.cnpj),
-    client.cnae,
-    client.cnaeDescription ?? "",
     client.addressCity ?? "",
     client.addressState ?? "",
     (client.companyClient?.sellers ?? []).map((s) => s.name).join(", "),

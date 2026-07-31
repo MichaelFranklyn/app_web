@@ -157,6 +157,7 @@ export function EditCompanyFactoryModal() {
     paymentDays: (
       companyFactory.commissionPaymentDays ?? [companyFactory.paymentTermDays]
     ).join(", "),
+    commissionCutoffDay: companyFactory.commissionCutoffDay ?? "",
     territory: companyFactory.territory,
     contractStart: parseLocalDate(companyFactory.contractStart),
     contractEnd: parseLocalDate(companyFactory.contractEnd),

@@ -41,6 +41,14 @@ export const FORM_STEPS: FormStepSchema[] = [
             placeholder: "Ex: 10 ou 5, 20",
             hint: "Dia(s) do mês em que a fábrica paga a comissão. Separe múltiplos por vírgula.",
           },
+          {
+            name: "commissionCutoffDay",
+            label: "Corte do faturamento (dia do mês)",
+            type: "number",
+            required: false,
+            placeholder: "Ex: 25",
+            hint: "Até que dia do mês o pedido precisa ser faturado para a comissão entrar no pagamento do mês seguinte. Faturou depois? A comissão cai só no mês seguinte a esse. Deixe em branco se a fábrica não tem corte.",
+          },
         ],
       },
     ],
@@ -143,6 +151,22 @@ export const normalizeInput = (
   if (daysChanged) {
     input.commissionPaymentDays = parsedDays;
     input.paymentTermDays = parsedDays[0];
+  }
+
+  // Corte do faturamento: vazio → null (fábrica sem corte); 1-31 → grava.
+  // Fora da faixa é descartado aqui e barrado no backend — não adianta gravar
+  // "dia 45" e a comissão nunca fechar.
+  const rawCutoff = String(data.commissionCutoffDay ?? "").trim();
+  const parsedCutoff = rawCutoff === "" ? null : Number(rawCutoff);
+  const cutoffDay =
+    parsedCutoff !== null &&
+    Number.isFinite(parsedCutoff) &&
+    parsedCutoff >= 1 &&
+    parsedCutoff <= 31
+      ? Math.round(parsedCutoff)
+      : null;
+  if (cutoffDay !== (initial.commissionCutoffDay ?? null)) {
+    input.commissionCutoffDay = cutoffDay;
   }
 
   const territory = String(data.territory ?? "").trim();

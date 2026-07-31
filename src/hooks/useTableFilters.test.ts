@@ -73,6 +73,77 @@ describe("useTableFilters", () => {
     expect(result.current.queryValues.status).toBeUndefined();
   });
 
+  it("setFilters grava várias chaves num único replace", () => {
+    const { result } = renderHook(() => useTableFilters(fields));
+    act(() => result.current.setFilters({ status: "ACTIVE", search: "delta" }));
+
+    expect(result.current.inputValues).toEqual({
+      status: "ACTIVE",
+      search: "delta",
+    });
+    expect(result.current.queryValues).toEqual({
+      status: "ACTIVE",
+      search: "delta",
+    });
+    // Um replace só: chamar setFilter duas vezes faria a segunda chamada
+    // sobrescrever a primeira (as duas partem do mesmo searchParams).
+    expect(replace).toHaveBeenCalledTimes(1);
+    const url = replace.mock.calls[0][0];
+    expect(url).toContain("status=ACTIVE");
+    expect(url).toContain("search=delta");
+  });
+
+  it("setFilters com valor vazio limpa a chave e mantém as outras", () => {
+    const { result } = renderHook(() => useTableFilters(fields));
+    act(() => result.current.setFilters({ status: "X", search: "y" }));
+    replace.mockClear();
+    act(() => result.current.setFilters({ status: undefined }));
+
+    expect(result.current.inputValues).toEqual({ search: "y" });
+    expect(result.current.queryValues).toEqual({ search: "y" });
+  });
+
+  it("setFilters leva junto o texto que ainda não venceu o debounce", () => {
+    vi.useFakeTimers();
+    const { result } = renderHook(() => useTableFilters(fields));
+    act(() => result.current.setFilter("search", "abc")); // arma o timer
+    act(() => result.current.setFilters({ status: "ACTIVE" }));
+
+    // Digitar a busca e escolher um filtro no mesmo painel, antes dos 300ms,
+    // não pode apagar o que foi digitado: os dois valem no mesmo replace.
+    expect(result.current.queryValues.search).toBe("abc");
+    expect(result.current.queryValues.status).toBe("ACTIVE");
+    expect(replace).toHaveBeenLastCalledWith(
+      expect.stringContaining("search=abc"),
+      { scroll: false }
+    );
+
+    // E o timer cancelado não dispara depois, por cima do que já foi aplicado.
+    const callsBefore = replace.mock.calls.length;
+    act(() => vi.advanceTimersByTime(300));
+    expect(replace.mock.calls.length).toBe(callsBefore);
+  });
+
+  it("setFilters tem a última palavra quando mexe na mesma chave do texto", () => {
+    vi.useFakeTimers();
+    const { result } = renderHook(() => useTableFilters(fields));
+    act(() => result.current.setFilter("search", "abc"));
+    act(() => result.current.setFilters({ search: undefined }));
+
+    // É o caso do "Limpar filtros" logo depois de digitar.
+    expect(result.current.queryValues.search).toBeUndefined();
+    expect(result.current.inputValues.search).toBeUndefined();
+  });
+
+  it("setFilters volta para a página 1", () => {
+    state.sp = new URLSearchParams("page=4");
+    const { result } = renderHook(() => useTableFilters(fields));
+    act(() => result.current.setFilters({ status: "ACTIVE" }));
+    expect(replace).toHaveBeenCalledWith(expect.not.stringContaining("page="), {
+      scroll: false,
+    });
+  });
+
   it("clearFilters zera estado e remove os campos da URL", () => {
     const { result } = renderHook(() => useTableFilters(fields));
     act(() => result.current.setFilter("status", "X"));

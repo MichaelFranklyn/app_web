@@ -18,6 +18,11 @@ export interface CompanyFactoryDetail {
   commissionCalcBasis: string;
   paymentTermDays: number;
   commissionPaymentDays: number[] | null;
+  /**
+   * Dia do mês até o qual o faturamento entra no fechamento da comissão do mês
+   * seguinte. Nulo = fábrica sem corte declarado.
+   */
+  commissionCutoffDay: number | null;
   territory: string;
   contractStart: string | null;
   contractEnd: string | null;

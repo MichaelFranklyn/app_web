@@ -54,6 +54,8 @@ export interface UseTableDataOptions<TData, TItem> {
 export interface UseTableDataReturn<TItem> {
   inputValues: Record<string, string>;
   setFilter: (key: string, value: string | undefined) => void;
+  /** Aplica várias chaves numa tacada só (ex.: as duas pontas de um período). */
+  setFilters: (patch: Record<string, string | undefined>) => void;
   clearFilters: () => void;
   displayedData: TItem[];
   currentPage: number;
@@ -362,6 +364,7 @@ export const useTableData = <TData, TItem extends object>(
   return {
     inputValues: filters.inputValues,
     setFilter: filters.setFilter,
+    setFilters: filters.setFilters,
     clearFilters: filters.clearFilters,
     displayedData,
     currentPage: Math.min(currentPage, totalPages),

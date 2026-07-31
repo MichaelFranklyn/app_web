@@ -68,7 +68,14 @@ test("pedido detalhe: deleta o pedido", async ({ page }) => {
     ...renderMock(),
     Orders: () => ({ orders_list: emptyConnection() }),
     OrderStats: () => ({
-      orderStats: { totalOrders: 0, totalAmount: "0", avgTicket: "0" },
+      orderStats: {
+        totalOrders: 0,
+        totalAmount: "0",
+        avgTicket: "0",
+        invoicedOrders: 0,
+        invoicedAmount: "0",
+        commissionAmount: "0",
+      },
     }),
     DeleteOrder: () => ({ deleteOrder: { status: true, message: "ok" } }),
   });

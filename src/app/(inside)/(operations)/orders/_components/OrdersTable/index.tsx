@@ -2,7 +2,7 @@
 
 import { Badge } from "@/components/Badges";
 import { EmptyState } from "@/components/EmptyState";
-import { InputSearch } from "@/components/Input";
+import { FilterField, Filters } from "@/components/Filters";
 import { Loading } from "@/components/Loading";
 import { Pagination } from "@/components/Pagination";
 import { Table } from "@/components/Table";
@@ -19,8 +19,12 @@ interface Props {
   setCurrentPage: (page: number) => void;
   totalPages: number;
   totalItems: number;
+  /** Valores dos filtros ativos (vêm da URL, via useTableData). */
   inputValues: Record<string, string>;
-  setFilter: (key: string, value: string | undefined) => void;
+  /** Aplica várias chaves de uma vez — o período mexe nas duas pontas. */
+  setFilters: (patch: Record<string, string | undefined>) => void;
+  /** Campos do painel "Filtros" (vendedor, fábrica, cliente, datas). */
+  filterFields: FilterField[];
   /** Título do card — muda por aba (todos × aguardando faturamento). */
   title?: string;
   /** O que dizer quando a lista vem vazia, também por aba. */
@@ -36,7 +40,8 @@ export function OrdersTable({
   totalPages,
   totalItems,
   inputValues,
-  setFilter,
+  setFilters,
+  filterFields,
   title = "Lista de pedidos",
   emptyTitle = "Nenhum pedido encontrado",
   emptyDescription = 'Use "Novo pedido" para registrar o primeiro pedido.',
@@ -46,12 +51,11 @@ export function OrdersTable({
       <Table.CardHead>
         <Table.CardHead.Title>{title}</Table.CardHead.Title>
         <Table.CardHead.Actions>
-          <InputSearch
-            size="sm"
-            placeholder="Buscar por fábrica, vendedor ou código..."
-            data-tour="orders-search"
-            value={inputValues.search ?? ""}
-            onChange={(e) => setFilter("search", e.target.value || undefined)}
+          <Filters
+            fields={filterFields}
+            values={inputValues}
+            onChange={setFilters}
+            data-tour="orders-filters"
           />
         </Table.CardHead.Actions>
       </Table.CardHead>

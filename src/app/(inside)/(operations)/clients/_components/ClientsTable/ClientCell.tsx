@@ -12,19 +12,17 @@ interface ClientCellProps {
 }
 
 /**
- * Identificação do cliente em uma coluna só: nome, apelido/código e, embaixo,
- * CNPJ e CNAE.
+ * Identificação do cliente em uma coluna só: nome, nome fantasia e o CNPJ.
  *
- * Eram três colunas. Juntá-las devolve a largura que a tabela precisa para
- * mostrar as datas e o Score sem rolagem horizontal — e nome, documento e ramo
- * são a mesma pergunta ("quem é este cliente?").
+ * Fica só o que a pessoa usa para reconhecer o cliente. O código interno, o
+ * CNAE e a descrição do ramo saíram daqui: eram três informações que ninguém
+ * lê na lista e que competiam por espaço com o nome — quem precisa delas abre
+ * o cliente.
  */
 export function ClientCell({ client }: ClientCellProps) {
-  const code = client.id.slice(0, 8).toUpperCase();
-
   return (
-    // max-w: sem teto, o ramo de atividade (texto longo) esticaria a coluna e
-    // empurraria o Score para fora da tela. Com teto, o texto trunca em "…".
+    // max-w: sem teto, uma razão social longa esticaria a coluna e empurraria o
+    // Score para fora da tela. Com teto, o texto trunca em "…".
     <Table.Cell className="max-w-[420px]">
       <div className="flex flex-col gap-2">
         <div className="flex min-w-0 items-center gap-8">
@@ -58,25 +56,18 @@ export function ClientCell({ client }: ClientCellProps) {
           )}
         </div>
 
-        <Table.CellText variant="dim">
-          {client.nomeFantasia
-            ? `${client.nomeFantasia} · Cód: ${code}`
-            : `Cód: ${code}`}
-        </Table.CellText>
+        {client.nomeFantasia && (
+          <Table.CellText variant="dim" className="block truncate">
+            {client.nomeFantasia}
+          </Table.CellText>
+        )}
 
-        {/* min-w-0 + truncate: o ramo de atividade é longo e só complementa —
-            encolhe até "…" em vez de empurrar o CNPJ para outra linha. */}
+        {/* A linha existe para o badge não esticar na largura da coluna: numa
+            flex-col ele herdaria o `stretch` do container. */}
         <div className="flex items-center gap-8">
           <Badge.Root color="subtle" appearance="tinted">
             <Badge.Text>{maskCNPJ(client.cnpj)}</Badge.Text>
           </Badge.Root>
-          <div className="min-w-0">
-            <Table.CellText variant="dim" className="block truncate">
-              {[client.cnae, client.cnaeDescription]
-                .filter(Boolean)
-                .join(" · ") || "Sem CNAE"}
-            </Table.CellText>
-          </div>
         </div>
       </div>
     </Table.Cell>
