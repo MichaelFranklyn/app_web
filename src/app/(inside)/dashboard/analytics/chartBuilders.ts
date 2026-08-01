@@ -35,17 +35,29 @@ export interface StackedSeries {
  * agrupar — mantém o total do mês legível de relance, que é o que interessa
  * quando as séries são partes de um todo (novos + recompra, situação dos
  * pedidos).
+ *
+ * `tooltipLines` assume o tooltip quando a leitura precisa de algo que não está
+ * desenhado — a fatia que uma das partes representa, o dinheiro por trás da
+ * contagem. Sem ele, o tooltip lista as séries com o `valueFormatter`.
  */
 export const buildStackedBarOption = (
   categories: string[],
   series: StackedSeries[],
-  valueFormatter: (v: number) => string = String
+  valueFormatter: (v: number) => string = String,
+  tooltipLines?: (index: number) => string[]
 ): EChartsCoreOption => ({
   grid: { ...baseGrid, top: 40 },
   legend: topLegend,
   tooltip: {
     ...tooltipBase,
-    valueFormatter: (v: unknown) => valueFormatter(Number(v)),
+    ...(tooltipLines
+      ? {
+          formatter: (params: unknown) => {
+            const rows = params as { dataIndex: number }[];
+            return tooltipLines(rows[0]?.dataIndex ?? 0).join("<br/>");
+          },
+        }
+      : { valueFormatter: (v: unknown) => valueFormatter(Number(v)) }),
   },
   xAxis: { ...categoryAxis, data: categories },
   yAxis: {
@@ -67,6 +79,51 @@ export const buildStackedBarOption = (
     },
     data: s.data,
   })),
+});
+
+/**
+ * Barra vertical por categoria, com o tooltip escrito pelo chamador.
+ *
+ * Difere de `buildStackedBarOption` no tooltip: aqui a linha de apoio costuma
+ * ser outra grandeza (a fatia do total, o dinheiro daquela barra), que não é o
+ * valor desenhado e por isso não sai de um `valueFormatter`.
+ *
+ * Vertical (e não deitada) porque as categorias são uma escala com ordem
+ * natural — faixas de valor da menor para a maior, dias de segunda a domingo —
+ * e a ordem se lê da esquerda para a direita.
+ */
+export const buildVerticalBarOption = (
+  categories: string[],
+  series: { name: string; color: string; data: number[] },
+  valueFormatter: (v: number) => string,
+  tooltipLines: (index: number) => string[]
+): EChartsCoreOption => ({
+  grid: baseGrid,
+  tooltip: {
+    ...tooltipBase,
+    formatter: (params: unknown) => {
+      const rows = params as { dataIndex: number }[];
+      return tooltipLines(rows[0]?.dataIndex ?? 0).join("<br/>");
+    },
+  },
+  xAxis: { ...categoryAxis, data: categories },
+  yAxis: {
+    ...valueAxis,
+    minInterval: 1,
+    axisLabel: {
+      ...valueAxis.axisLabel,
+      formatter: (v: number) => valueFormatter(v),
+    },
+  },
+  series: [
+    {
+      name: series.name,
+      type: "bar",
+      barMaxWidth: 44,
+      itemStyle: { color: series.color, borderRadius: [4, 4, 0, 0] },
+      data: series.data,
+    },
+  ],
 });
 
 export interface BarLineSpec {
@@ -142,6 +199,49 @@ export const buildBarLineOption = (
   ],
 });
 
+export interface MonthLineSeries {
+  name: string;
+  color: string;
+  data: number[];
+}
+
+/**
+ * Uma linha por série ao longo dos meses (o eixo X já vem rotulado). É a forma
+ * de responder "como isso vem se comportando mês a mês" quando as séries
+ * convivem no mesmo gráfico para serem comparadas — quem sobe, quem cai, quem
+ * ficou parado.
+ */
+export const buildMonthLinesOption = (
+  monthLabels: string[],
+  series: MonthLineSeries[],
+  valueFormatter: (v: number) => string
+): EChartsCoreOption => ({
+  grid: { ...baseGrid, top: 40 },
+  legend: topLegend,
+  tooltip: {
+    ...tooltipBase,
+    valueFormatter: (v: unknown) => valueFormatter(Number(v)),
+  },
+  xAxis: { ...categoryAxis, boundaryGap: false, data: monthLabels },
+  yAxis: {
+    ...valueAxis,
+    axisLabel: {
+      ...valueAxis.axisLabel,
+      formatter: (v: number) => valueFormatter(v),
+    },
+  },
+  series: series.map((s) => ({
+    name: s.name,
+    type: "line",
+    smooth: true,
+    symbol: "circle",
+    symbolSize: 7,
+    lineStyle: { width: 2, color: s.color },
+    itemStyle: { color: s.color },
+    data: s.data,
+  })),
+});
+
 export interface HorizontalSeries {
   name: string;
   color: string;
@@ -159,12 +259,19 @@ export interface HorizontalSeries {
  * Horizontal porque os rótulos são nomes de cliente/fábrica/vendedor — não
  * cabem deitados no eixo X. A ordem recebida é preservada, com o primeiro item
  * no topo.
+ *
+ * Com `stacked`, as séries viram uma única barra por linha: use quando elas são
+ * partes de um mesmo total (recebido + a receber, faixas de atraso) e o
+ * comprimento da barra inteira precisa ser lido de relance. Sem isso, cada
+ * série ganha sua própria barra ao lado — o certo quando as grandezas se
+ * comparam mas não somam.
  */
 export const buildHorizontalBarOption = (
   labels: string[],
   series: HorizontalSeries[],
   valueFormatter: (v: number) => string,
-  tooltipLines: (index: number) => string[]
+  tooltipLines: (index: number) => string[],
+  options?: { stacked?: boolean }
 ): EChartsCoreOption => {
   // O eixo Y do ECharts cresce de baixo para cima: invertemos para que o
   // primeiro item da lista apareça no topo.
@@ -190,11 +297,19 @@ export const buildHorizontalBarOption = (
       },
     },
     yAxis: { ...categoryAxis, data: order.map((i) => labels[i]) },
-    series: series.map((s) => ({
+    series: series.map((s, index) => ({
       name: s.name,
       type: "bar",
       barMaxWidth: 22,
-      itemStyle: { color: s.color, borderRadius: [0, 4, 4, 0] },
+      ...(options?.stacked ? { stack: "total" } : {}),
+      itemStyle: {
+        color: s.color,
+        // Empilhado: só a última série arredonda a ponta da barra.
+        borderRadius:
+          options?.stacked && index !== series.length - 1
+            ? [0, 0, 0, 0]
+            : [0, 4, 4, 0],
+      },
       data: s.itemColors
         ? order.map((i) => ({
             value: s.data[i] ?? 0,

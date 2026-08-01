@@ -23,6 +23,9 @@ export interface PivotedSeries {
   series: EntitySeries[];
 }
 
+/** Qual número da linha vira a série: dinheiro faturado ou nº de pedidos. */
+export type EntityMonthValueKey = "total" | "orderCount";
+
 export interface EntityMonthSeriesChartProps {
   filters: ChartFilters;
   query: DocumentNode;
@@ -30,6 +33,14 @@ export interface EntityMonthSeriesChartProps {
   dataKey: string;
   /** Quantas entidades o backend deve trazer (top N por faturamento). */
   limit?: number;
+  /**
+   * Campo de valor de cada ponto. Padrão `total` (faturamento) — a mesma
+   * agregação também devolve `orderCount`, o que responde "quantas VEZES cada
+   * um vendeu" sem precisar de uma query nova.
+   */
+  valueKey?: EntityMonthValueKey;
+  /** Formata o valor no eixo e no tooltip. Padrão: dinheiro. */
+  valueFormatter?: (v: number) => string;
 }
 
 export type EntityMonthSeriesResponse = Record<string, EntityMonthPoint[]>;

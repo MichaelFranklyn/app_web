@@ -62,6 +62,9 @@ export const exportAnalyticsPdf = async (
   // ── Gráficos, na ordem visual (top do card) ──
   const ordered = [...charts].sort((a, b) => a.getTop() - b.getTop());
   let included = 0;
+  // A última parte impressa: o cabeçalho da parte só entra quando ela muda, para
+  // o papel manter a mesma divisão da tela em vez de virar uma fila de gráficos.
+  let printedSection = "";
 
   for (const chart of ordered) {
     const img = chart.getImage();
@@ -69,11 +72,29 @@ export const exportAnalyticsPdf = async (
 
     const props = pdf.getImageProperties(img);
     const imgH = (contentW * props.height) / props.width;
+    const isNewSection = !!chart.section && chart.section !== printedSection;
+    const headerH = isNewSection ? 34 : 0;
 
-    // título + gráfico não cabem na página atual? nova página.
-    if (y + 16 + imgH > pageH - MARGIN) {
+    // cabeçalho da parte + título + gráfico não cabem na página atual? nova página.
+    if (y + headerH + 16 + imgH > pageH - MARGIN) {
       pdf.addPage();
       y = MARGIN;
+    }
+
+    if (isNewSection) {
+      printedSection = chart.section;
+      if (chart.sectionStep) {
+        pdf.setFont("helvetica", "normal");
+        pdf.setFontSize(8);
+        pdf.setTextColor(MUTED);
+        pdf.text(chart.sectionStep.toUpperCase(), MARGIN, y);
+        y += 12;
+      }
+      pdf.setFont("helvetica", "bold");
+      pdf.setFontSize(14);
+      pdf.setTextColor(INK);
+      pdf.text(chart.section, MARGIN, y);
+      y += 18;
     }
 
     pdf.setFont("helvetica", "bold");

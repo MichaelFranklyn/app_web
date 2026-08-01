@@ -16,15 +16,15 @@ import { formatDateRangeLabel } from "../utils";
 import { AnalyticsPrintContext } from "./analyticsPrintContext";
 import { useAnalyticsPdf } from "./useAnalyticsPdf";
 import { AnalyticsHeader } from "./_components/AnalyticsHeader";
+import { AnalyticsStoryIndex } from "./_components/AnalyticsStoryIndex";
 import { AnalyticsSummary } from "./_components/AnalyticsSummary";
-import { AvgTicketSection } from "./_components/AvgTicketSection";
-import { ClientBehaviorSection } from "./_components/ClientBehaviorSection";
-import { FactoryPerformanceSection } from "./_components/FactoryPerformanceSection";
-import { GrowthSection } from "./_components/GrowthSection";
-import { OrderCadenceSection } from "./_components/OrderCadenceSection";
-import { OrderVolumeSection } from "./_components/OrderVolumeSection";
-import { OverviewSection } from "./_components/OverviewSection";
-import { SellerPerformanceSection } from "./_components/SellerPerformanceSection";
+import { ClientPortfolioSection } from "./_components/ClientPortfolioSection";
+import { CommissionsSection } from "./_components/CommissionsSection";
+import { FactoryServiceSection } from "./_components/FactoryServiceSection";
+import { GrowthDriversSection } from "./_components/GrowthDriversSection";
+import { PeriodResultSection } from "./_components/PeriodResultSection";
+import { RevenueDependencySection } from "./_components/RevenueDependencySection";
+import { SalesTeamSection } from "./_components/SalesTeamSection";
 import { ChartFilters } from "./interface";
 import { getLast12MonthsRangeIso } from "./utils";
 
@@ -90,18 +90,25 @@ export default function AnalyticsContent() {
         />
 
         <AnalyticsSummary filters={filters} />
+        <AnalyticsStoryIndex />
 
-        {/* Ordem de leitura: primeiro o retrato do período (o que aconteceu),
-            depois a evolução por dimensão (como cada parte vem se comportando). */}
-        <OverviewSection filters={filters} />
-        <OrderVolumeSection filters={filters} />
-        <AvgTicketSection filters={filters} />
-        <OrderCadenceSection filters={filters} />
-
-        <GrowthSection filters={filters} />
-        <SellerPerformanceSection filters={filters} />
-        <FactoryPerformanceSection filters={filters} />
-        <ClientBehaviorSection filters={filters} />
+        {/* A página conta uma história, e a ordem é o argumento (ver
+            storyParts.ts): o resultado, o que o explica, de quem ele depende e
+            só então as três pessoas por trás dele — cliente, vendedor e
+            fábrica. A comissão fecha porque é consequência de todo o resto. */}
+        <PeriodResultSection filters={filters} />
+        <GrowthDriversSection filters={filters} />
+        <RevenueDependencySection filters={filters} />
+        <ClientPortfolioSection filters={filters} />
+        <SalesTeamSection
+          filters={filters}
+          canCompareSellers={canSelectSeller}
+        />
+        <FactoryServiceSection filters={filters} />
+        <CommissionsSection
+          filters={filters}
+          canCompareSellers={canSelectSeller}
+        />
       </PageContent>
     </AnalyticsPrintContext.Provider>
   );

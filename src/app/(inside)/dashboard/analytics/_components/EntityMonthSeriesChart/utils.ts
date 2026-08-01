@@ -1,15 +1,14 @@
-import {
-  baseGrid,
-  categoryAxis,
-  CHART_PALETTE,
-  tooltipBase,
-  valueAxis,
-} from "@/components/Chart/chartTheme";
+import { CHART_PALETTE } from "@/components/Chart/chartTheme";
 import { formatMoney } from "@/utils/format/masks";
 import type { EChartsCoreOption } from "echarts/core";
 
+import { buildMonthLinesOption } from "../../chartBuilders";
 import { monthKeyToLabel } from "../../utils";
-import { EntityMonthPoint, PivotedSeries } from "./interface";
+import {
+  EntityMonthPoint,
+  EntityMonthValueKey,
+  PivotedSeries,
+} from "./interface";
 
 /**
  * Vira as linhas (mês, entidade) em séries contínuas.
@@ -19,7 +18,10 @@ import { EntityMonthPoint, PivotedSeries } from "./interface";
  * esse preenchimento a linha "pularia" o mês vazio e ligaria dois meses não
  * adjacentes, sugerindo uma continuidade que não existiu.
  */
-export const pivotEntityMonths = (rows: EntityMonthPoint[]): PivotedSeries => {
+export const pivotEntityMonths = (
+  rows: EntityMonthPoint[],
+  valueKey: EntityMonthValueKey = "total"
+): PivotedSeries => {
   const months = [...new Set(rows.map((r) => r.month))].sort();
   const monthIndex = new Map(months.map((m, index) => [m, index]));
 
@@ -29,7 +31,7 @@ export const pivotEntityMonths = (rows: EntityMonthPoint[]): PivotedSeries => {
       name: row.entityName,
       values: Array(months.length).fill(0),
     };
-    entry.values[monthIndex.get(row.month) ?? 0] = Number(row.total) || 0;
+    entry.values[monthIndex.get(row.month) ?? 0] = Number(row[valueKey]) || 0;
     byEntity.set(row.entityId, entry);
   }
 
@@ -54,47 +56,20 @@ export const pivotEntityMonths = (rows: EntityMonthPoint[]): PivotedSeries => {
  * Uma linha por entidade ao longo dos meses. É o gráfico que responde "quem
  * está subindo e quem está caindo" — o ranking do período inteiro esconde
  * exatamente isso.
+ *
+ * O formatador decide a grandeza da série: dinheiro (faturamento, o padrão) ou
+ * contagem (nº de pedidos), que é a mesma leitura em outra unidade.
  */
-export const buildEntityMonthSeriesOption = ({
-  months,
-  series,
-}: PivotedSeries): EChartsCoreOption => ({
-  grid: { ...baseGrid, top: 40 },
-  legend: {
-    top: 0,
-    left: 0,
-    icon: "roundRect",
-    itemWidth: 12,
-    itemHeight: 12,
-    textStyle: { fontSize: 12 },
-  },
-  tooltip: {
-    ...tooltipBase,
-    valueFormatter: (v: unknown) => formatMoney(Number(v)),
-  },
-  xAxis: {
-    ...categoryAxis,
-    boundaryGap: false,
-    data: months.map(monthKeyToLabel),
-  },
-  yAxis: {
-    ...valueAxis,
-    axisLabel: {
-      ...valueAxis.axisLabel,
-      formatter: (v: number) => formatMoney(v),
-    },
-  },
-  series: series.map((serie, index) => {
-    const color = CHART_PALETTE[index % CHART_PALETTE.length];
-    return {
+export const buildEntityMonthSeriesOption = (
+  { months, series }: PivotedSeries,
+  valueFormatter: (v: number) => string = formatMoney
+): EChartsCoreOption =>
+  buildMonthLinesOption(
+    months.map(monthKeyToLabel),
+    series.map((serie, index) => ({
       name: serie.entityName,
-      type: "line",
-      smooth: true,
-      symbol: "circle",
-      symbolSize: 6,
-      lineStyle: { width: 2, color },
-      itemStyle: { color },
+      color: CHART_PALETTE[index % CHART_PALETTE.length],
       data: serie.values,
-    };
-  }),
-});
+    })),
+    valueFormatter
+  );
