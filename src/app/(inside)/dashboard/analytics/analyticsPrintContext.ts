@@ -6,6 +6,10 @@ import { createContext, useContext } from "react";
 export interface ChartPrintEntry {
   id: string;
   title: string;
+  /** Parte da história em que o card está ("Sua carteira de clientes"). */
+  section: string;
+  /** "Parte 4 de 7" da parte, quando informado. */
+  sectionStep: string;
   /** dataURL PNG da instância ECharts, ou null se ainda não montou. */
   getImage: () => string | null;
   /** Posição vertical do card (para ordenar os gráficos no PDF). */

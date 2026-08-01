@@ -20,6 +20,7 @@ import {
 } from "react";
 
 import { useAnalyticsPrint } from "../../analyticsPrintContext";
+import { useAnalyticsSection } from "../../analyticsSectionContext";
 import { ChartCardContext } from "../../chartCardContext";
 import {
   chartCapabilities,
@@ -64,6 +65,7 @@ interface Props {
 export function LazyChartCard({ title, description, help, children }: Props) {
   const { ref, inView } = useInView<HTMLDivElement>({ once: true });
   const print = useAnalyticsPrint();
+  const section = useAnalyticsSection();
   const id = useId();
   const [prefs, setPrefs] = useState<ChartPrefs>(DEFAULT_CHART_PREFS);
   const [expanded, setExpanded] = useState(false);
@@ -91,6 +93,8 @@ export function LazyChartCard({ title, description, help, children }: Props) {
     print.registerChart({
       id,
       title,
+      section: section.title,
+      sectionStep: section.step,
       // JPEG (não PNG) para o PDF não ficar pesado demais com vários gráficos.
       getImage: () =>
         instanceRef.current?.getDataURL({
@@ -102,7 +106,7 @@ export function LazyChartCard({ title, description, help, children }: Props) {
     });
     return () => print.unregisterChart(id);
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [id, title]);
+  }, [id, title, section.title, section.step]);
 
   const hasChart = option !== null;
   const capabilities = useMemo(

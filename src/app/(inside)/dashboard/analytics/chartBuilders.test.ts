@@ -3,6 +3,7 @@ import { describe, expect, it } from "vitest";
 import {
   buildBarLineOption,
   buildHorizontalBarOption,
+  buildMonthLinesOption,
   buildStackedBarOption,
 } from "./chartBuilders";
 
@@ -38,6 +39,74 @@ describe("buildStackedBarOption", () => {
       [0, 0, 0, 0],
       [4, 4, 0, 0],
     ]);
+  });
+});
+
+describe("buildStackedBarOption — tooltip do chamador", () => {
+  it("usa tooltipLines quando informado, com o índice da categoria", () => {
+    const labels = ["jan", "fev"];
+    const option = buildStackedBarOption(
+      labels,
+      [{ name: "A", color: "#111", data: [1, 2] }],
+      String,
+      (index) => [labels[index]]
+    );
+    const formatter = (
+      option as { tooltip: { formatter: (p: unknown) => string } }
+    ).tooltip.formatter;
+
+    expect(formatter([{ dataIndex: 1 }])).toBe("fev");
+  });
+
+  it("sem tooltipLines, mantém o formatter de valor das séries", () => {
+    const option = buildStackedBarOption(
+      ["jan"],
+      [{ name: "A", color: "#111", data: [1] }],
+      (v) => `${v} un`
+    );
+    const tooltip = (
+      option as {
+        tooltip: {
+          formatter?: unknown;
+          valueFormatter?: (v: unknown) => string;
+        };
+      }
+    ).tooltip;
+
+    expect(tooltip.formatter).toBeUndefined();
+    expect(tooltip.valueFormatter?.(3)).toBe("3 un");
+  });
+});
+
+describe("buildMonthLinesOption", () => {
+  it("desenha uma linha por série sobre os meses recebidos", () => {
+    const option = buildMonthLinesOption(
+      ["jan/26", "fev/26"],
+      [
+        { name: "Ana", color: "#111", data: [10, 20] },
+        { name: "Bruno", color: "#222", data: [0, 5] },
+      ],
+      String
+    );
+
+    expect(axisData((option as { xAxis: unknown }).xAxis)).toEqual([
+      "jan/26",
+      "fev/26",
+    ]);
+    expect(seriesOf(option).map((s) => s.type)).toEqual(["line", "line"]);
+    expect(seriesOf(option).map((s) => s.name)).toEqual(["Ana", "Bruno"]);
+    expect(seriesOf(option)[1].data).toEqual([0, 5]);
+  });
+
+  it("encosta a linha na borda do eixo (sem folga de categoria)", () => {
+    const option = buildMonthLinesOption(
+      ["jan/26"],
+      [{ name: "Ana", color: "#111", data: [10] }],
+      String
+    );
+    expect(
+      (option as { xAxis: { boundaryGap: boolean } }).xAxis.boundaryGap
+    ).toBe(false);
   });
 });
 
@@ -116,6 +185,55 @@ describe("buildHorizontalBarOption", () => {
     expect(seriesOf(option)[0].data).toEqual([
       { value: 20, itemStyle: { color: "#bbb" } },
       { value: 10, itemStyle: { color: "#aaa" } },
+    ]);
+  });
+
+  it("empilha as séries na mesma barra quando pedido", () => {
+    const option = buildHorizontalBarOption(
+      ["A"],
+      [
+        { name: "Recebido", color: "#111", data: [1] },
+        { name: "A receber", color: "#222", data: [2] },
+      ],
+      String,
+      () => [],
+      { stacked: true }
+    );
+
+    expect(seriesOf(option).map((s) => s.stack)).toEqual(["total", "total"]);
+    // Só a ponta da barra (última série da pilha) arredonda.
+    expect(
+      seriesOf(option).map(
+        (s) => (s.itemStyle as { borderRadius: number[] }).borderRadius
+      )
+    ).toEqual([
+      [0, 0, 0, 0],
+      [0, 4, 4, 0],
+    ]);
+  });
+
+  it("sem empilhar, cada série vira uma barra própria arredondada", () => {
+    const option = buildHorizontalBarOption(
+      ["A"],
+      [
+        { name: "V", color: "#111", data: [1] },
+        { name: "W", color: "#222", data: [2] },
+      ],
+      String,
+      () => []
+    );
+
+    expect(seriesOf(option).map((s) => s.stack)).toEqual([
+      undefined,
+      undefined,
+    ]);
+    expect(
+      seriesOf(option).map(
+        (s) => (s.itemStyle as { borderRadius: number[] }).borderRadius
+      )
+    ).toEqual([
+      [0, 4, 4, 0],
+      [0, 4, 4, 0],
     ]);
   });
 

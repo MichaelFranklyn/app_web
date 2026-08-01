@@ -901,6 +901,44 @@ type RetentionPoint {
   retentionRate: Float!
 }
 
+# ── Perfil dos pedidos ──────────────────────────────────────────────────
+
+"""Uma faixa de valor do pedido. `share` é a fatia dos pedidos do período que caiu nela."""
+type OrderSizeBandPoint {
+  band: String!
+  label: String!
+  orderCount: Int!
+  totalAmount: Decimal!
+  share: Float!
+}
+
+"""Pedidos fechados em um dia da semana. `weekday`: 1 = segunda … 7 = domingo."""
+type WeekdayVolumePoint {
+  weekday: Int!
+  label: String!
+  orderCount: Int!
+  totalAmount: Decimal!
+  share: Float!
+}
+
+"""Volume do mês separando venda nova de sobra (backorder) de faturamento parcial. `backorderShare` é a fatia dos pedidos do mês que é sobra."""
+type BackorderByMonthPoint {
+  month: String!
+  newOrders: Int!
+  backorders: Int!
+  backorderShare: Float!
+  backorderAmount: Decimal!
+}
+
+"""Profundidade do pedido médio de uma fábrica: itens diferentes e peças."""
+type ItemsPerOrderPoint {
+  entityId: UUID!
+  entityName: String!
+  avgItems: Float!
+  avgUnits: Float!
+  orderCount: Int!
+}
+
 extend type Query {
   dashboardSummary(from: Date = null, to: Date = null, sellerId: UUID = null): DashboardSummary!
 
@@ -911,6 +949,16 @@ extend type Query {
 
   ordersByFactory(from: Date = null, to: Date = null, sellerId: UUID = null, limit: Int = 8): [OrderCountPoint!]!
   ordersByClient(from: Date = null, to: Date = null, sellerId: UUID = null, limit: Int = 8): [OrderCountPoint!]!
+  ordersBySeller(from: Date = null, to: Date = null, sellerId: UUID = null, limit: Int = 8): [OrderCountPoint!]!
+
+  """Quantos pedidos caíram em cada faixa de valor. Devolve SEMPRE as cinco faixas, da menor para a maior (faixa sem pedido vem zerada)."""
+  orderSizeDistribution(from: Date = null, to: Date = null, sellerId: UUID = null): [OrderSizeBandPoint!]!
+  """Pedidos por dia da semana (data do pedido). Devolve SEMPRE os sete dias, de segunda a domingo."""
+  ordersByWeekday(from: Date = null, to: Date = null, sellerId: UUID = null): [WeekdayVolumePoint!]!
+  """Quanto do volume de cada mês é sobra (backorder) de faturamento parcial, e não venda nova."""
+  backorderByMonth(from: Date = null, to: Date = null, sellerId: UUID = null): [BackorderByMonthPoint!]!
+  """Itens diferentes e peças do pedido médio de cada fábrica, das mais profundas para as mais rasas."""
+  itemsPerOrderByFactory(from: Date = null, to: Date = null, sellerId: UUID = null, limit: Int = 8): [ItemsPerOrderPoint!]!
 
   avgTicketBySeller(from: Date = null, to: Date = null, sellerId: UUID = null, limit: Int = 8): [AvgTicketPoint!]!
   avgTicketByFactory(from: Date = null, to: Date = null, sellerId: UUID = null, limit: Int = 8): [AvgTicketPoint!]!

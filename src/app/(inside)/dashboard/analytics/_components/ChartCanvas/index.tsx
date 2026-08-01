@@ -24,6 +24,10 @@ interface Props {
   height?: number;
   error?: unknown;
   onRetry?: () => void;
+  /** Vazio quando não ter dado é o RESULTADO (nada atrasado, nada em risco) e
+   * não falta de informação — aí o texto padrão ("ajuste o período") engana. */
+  emptyTitle?: string;
+  emptyDescription?: string;
 }
 
 /**
@@ -39,6 +43,8 @@ export function ChartCanvas({
   height = 300,
   error,
   onRetry,
+  emptyTitle = "Sem dados no período",
+  emptyDescription = "Ajuste o período ou o vendedor no filtro acima.",
 }: Props) {
   const { prefs, registerOption, registerInstance } = useChartCard();
 
@@ -68,10 +74,8 @@ export function ChartCanvas({
         <EmptyState.Icon>
           <BarChart3 size={32} />
         </EmptyState.Icon>
-        <EmptyState.Title>Sem dados no período</EmptyState.Title>
-        <EmptyState.Description>
-          Ajuste o período ou o vendedor no filtro acima.
-        </EmptyState.Description>
+        <EmptyState.Title>{emptyTitle}</EmptyState.Title>
+        <EmptyState.Description>{emptyDescription}</EmptyState.Description>
       </EmptyState.Root>
     );
   }

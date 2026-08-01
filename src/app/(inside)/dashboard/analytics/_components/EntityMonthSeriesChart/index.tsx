@@ -20,6 +20,8 @@ export function EntityMonthSeriesChart({
   query,
   dataKey,
   limit = 5,
+  valueKey = "total",
+  valueFormatter,
 }: EntityMonthSeriesChartProps) {
   const variables = useMemo(() => ({ ...filters, limit }), [filters, limit]);
 
@@ -31,12 +33,12 @@ export function EntityMonthSeriesChart({
     });
 
   const pivoted = useMemo(
-    () => pivotEntityMonths(data?.[dataKey] ?? []),
-    [data, dataKey]
+    () => pivotEntityMonths(data?.[dataKey] ?? [], valueKey),
+    [data, dataKey, valueKey]
   );
   const option = useMemo(
-    () => buildEntityMonthSeriesOption(pivoted),
-    [pivoted]
+    () => buildEntityMonthSeriesOption(pivoted, valueFormatter),
+    [pivoted, valueFormatter]
   );
 
   return (
