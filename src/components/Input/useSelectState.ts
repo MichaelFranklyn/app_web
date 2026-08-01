@@ -21,6 +21,22 @@ interface UseSelectStateArgs {
 }
 
 /**
+ * Só um `SelectOption` de verdade vira valor selecionado.
+ *
+ * O `value` chega de fora e nem sempre é uma opção: um formulário que guarda só
+ * o id ("abc123") manda uma string. Aceitá-la como valor deixava `singleValue`
+ * sem `label`, e o `inputValue` virava `undefined` — o React então acusava o
+ * campo mudando de controlado para não controlado.
+ */
+const asOption = (value: InputSelectProps["value"]): SelectOption | null =>
+  value &&
+  typeof value === "object" &&
+  !Array.isArray(value) &&
+  "label" in value
+    ? value
+    : null;
+
+/**
  * Estado e comportamento de seleção do InputSelect (single/multi): valor
  * interno, texto de busca, filtro, criação de opção e as regras de teclado.
  * Sincroniza com o `value` controlado e delega posicionamento/portais ao
@@ -41,7 +57,7 @@ export function useSelectState({
     Array.isArray(value) ? value : []
   );
   const [singleValue, setSingleValue] = useState<SelectOption | null>(
-    value && !Array.isArray(value) ? value : null
+    asOption(value)
   );
   const [inputValue, setInputValue] = useState("");
   const [isSearching, setIsSearching] = useState(false);
@@ -71,8 +87,7 @@ export function useSelectState({
       value !== undefined &&
       !Array.isArray(value)
     ) {
-      const normalized =
-        value && typeof value === "object" && "label" in value ? value : null;
+      const normalized = asOption(value);
       setSingleValue(normalized);
       if (!isSearching) {
         setInputValue(normalized?.label ?? "");
@@ -87,7 +102,7 @@ export function useSelectState({
       if (variant === "multi") {
         setInputValue("");
       } else {
-        setInputValue(singleValue ? singleValue.label : "");
+        setInputValue(singleValue?.label ?? "");
       }
     }
   }, [open, variant, singleValue]);

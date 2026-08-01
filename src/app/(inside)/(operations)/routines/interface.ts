@@ -58,6 +58,12 @@ export interface VisitScheduleItem {
   /** Visita presencial ou contato remoto (ligação/WhatsApp). */
   contactType: VisitContactType;
   estimatedTravelMin: number | null;
+  /** Hora prevista de início da visita ("09:40"); nula em contato remoto. */
+  plannedStartTime: string | null;
+  /** Hora prevista de término da visita ("10:10"). */
+  plannedEndTime: string | null;
+  /** Minutos que a parada ocupa na agenda (config do vendedor). */
+  visitDurationMin: number | null;
   status: VisitStatus;
   outcome: VisitOutcome | null;
   notes: string | null;

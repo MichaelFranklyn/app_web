@@ -20,23 +20,16 @@ import {
   ClientOrdersQueryResponse,
   FactoryOrderSummary,
 } from "../../../interface";
+import { formatCurrency } from "../../../utils";
 import {
-  formatCurrency,
-  orderStatusColor,
+  ORDER_STATUS_OPTIONS,
   orderStatusLabel,
-} from "../../../utils";
+  orderStatusTone,
+} from "../../../../../_shared/orderStatus";
 import { DeleteOrderModal } from "../DeleteOrderModal";
 import { factoryName } from "@/utils/company";
 
 const ITEMS_PER_PAGE = 10;
-
-const STATUS_OPTIONS: SelectOption[] = [
-  { value: "enviado", label: "Enviado" },
-  { value: "confirmado", label: "Confirmado" },
-  { value: "entregue", label: "Entregue" },
-  { value: "cancelado", label: "Cancelado" },
-  { value: "rascunho", label: "Rascunho" },
-];
 
 interface Props {
   summary: FactoryOrderSummary | null;
@@ -138,7 +131,7 @@ export function FactoryOrderModal({
             <InputSelect
               size="sm"
               placeholder="Todos os status"
-              options={STATUS_OPTIONS}
+              options={ORDER_STATUS_OPTIONS}
               value={statusFilter}
               onChange={(val) => {
                 setStatusFilter(val as SelectOption | null);
@@ -214,7 +207,7 @@ export function FactoryOrderModal({
                       </Table.Cell>
                       <Table.Cell>
                         <Badge.Root
-                          color={orderStatusColor(p.status)}
+                          color={orderStatusTone(p.status)}
                           appearance="tinted"
                         >
                           <Badge.Text>{orderStatusLabel(p.status)}</Badge.Text>

@@ -84,6 +84,31 @@ describe("InputSelect (single)", () => {
     expect(onChange).toHaveBeenLastCalledWith(null);
     expect(input.value).toBe("");
   });
+
+  // Um formulário que guarda só o id manda a string crua como `value`. Isso
+  // deixava o campo com `value={undefined}` e o React acusava um input
+  // controlado virando não controlado.
+  it("ignora um value que não é opção sem descontrolar o input", () => {
+    const errors: unknown[] = [];
+    const spy = vi
+      .spyOn(console, "error")
+      .mockImplementation((...args) => errors.push(args[0]));
+
+    render(
+      <InputSelect
+        options={OPTIONS}
+        placeholder="Nível"
+        value={"2" as unknown as SelectOption}
+      />
+    );
+
+    const input = screen.getByPlaceholderText<HTMLInputElement>("Nível");
+    expect(input.value).toBe("");
+    expect(
+      errors.filter((e) => String(e).includes("uncontrolled"))
+    ).toHaveLength(0);
+    spy.mockRestore();
+  });
 });
 
 describe("InputSelect (multi)", () => {

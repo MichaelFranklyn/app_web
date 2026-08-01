@@ -2,6 +2,7 @@
 
 import { Button } from "@/components/Button";
 import { EmptyState } from "@/components/EmptyState";
+import { Grid } from "@/components/Grid";
 import { PageContent } from "@/components/PageContent";
 import { QueryError } from "@/components/QueryError";
 import { useAsyncAction } from "@/hooks/useAsyncAction";
@@ -15,6 +16,7 @@ import {
 import Link from "next/link";
 import { useMemo } from "react";
 import { useUserRole } from "@/services/flowTour/useUserRole";
+import { OverdueVisitsCard } from "../_components/OverdueVisitsCard";
 import { DepartureCard } from "./_components/DepartureCard";
 import { RouteMap } from "./_components/RouteMap";
 import { RouteStopsCard } from "./_components/RouteStopsCard";
@@ -47,7 +49,12 @@ export default function DayRouteContent({ date, sellerId }: Props) {
   // Só o vendedor gera a própria rota; owner/admin apenas visualizam. Dia
   // vencido também não gera: a visita já não pode acontecer e o backend recusa.
   const isSeller = useUserRole() === "SELLER";
-  const canGenerate = isSeller && !isPastDay(date, getTodayIso());
+  const todayIso = getTodayIso();
+  const canGenerate = isSeller && !isPastDay(date, todayIso);
+  // A dívida de visitas passadas só é cobrada no dia de HOJE: é a tela de
+  // trabalho. Perguntar "o que houve na sexta?" enquanto o vendedor planeja a
+  // semana que vem é cobrança fora de hora.
+  const isToday = date === todayIso;
 
   // Sem vendedor explícito, mostra a rotina do próprio logado (sentinela "me",
   // que o backend escopa ao usuário em qualquer papel). Quando o gestor chega
@@ -169,6 +176,15 @@ export default function DayRouteContent({ date, sellerId }: Props) {
           dateLabel={formatDateLong(date)}
           sellerName={schedule?.seller?.user?.name ?? null}
         />
+        {/* Dia sem rota não anula a dívida do passado — pelo contrário, é
+            quando o vendedor tem tempo de responder. */}
+        {isToday && (
+          <OverdueVisitsCard
+            sellerId={sellerId}
+            canAnswer={isSeller}
+            onAnswered={() => refetch()}
+          />
+        )}
         <EmptyState.Root>
           <EmptyState.Icon>
             <CalendarOff />
@@ -208,6 +224,16 @@ export default function DayRouteContent({ date, sellerId }: Props) {
         sellerName={schedule?.seller?.user?.name ?? null}
       />
 
+      {/* Antes do dia de hoje vem o que ficou do passado: responder libera a
+          vaga daquele dia e reajusta o score de quem já foi visitado. */}
+      {isToday && (
+        <OverdueVisitsCard
+          sellerId={sellerId}
+          canAnswer={isSeller}
+          onAnswered={() => refetch()}
+        />
+      )}
+
       <div data-tour="routine-day-summary">
         <RouteSummary day={day} />
       </div>
@@ -220,35 +246,39 @@ export default function DayRouteContent({ date, sellerId }: Props) {
         onChanged={() => refetch()}
       />
 
-      <div className="desktop:flex-row flex flex-col gap-20">
-        <div className="min-w-0 flex-1">
-          <RouteMap
-            stops={drivingStops}
-            distanceKm={day.routeDistanceKm}
-            departureAddress={day.departureAddress}
-          />
-        </div>
-        <div
-          className="desktop:w-[320px] flex w-full shrink-0 flex-col gap-12"
-          data-tour="routine-day-stops"
-        >
+      {/* A agenda vem ANTES do mapa: é o que o vendedor lê para trabalhar o dia
+          — o mapa é apoio. Paradas e ligações ficam lado a lado porque são as
+          duas metades do mesmo dia; sem ligações, as paradas ocupam a largura
+          toda em vez de deixar meia tela vazia. */}
+      <Grid.Root
+        cols={{ base: 1, desktop: remoteStops.length > 0 ? 2 : 1 }}
+        gap={20}
+        data-tour="routine-day-stops"
+      >
+        <Grid.Item>
           <RouteStopsCard
             stops={drivingStops}
-            currentDayId={day.id}
-            scheduleDays={schedule?.days ?? []}
+            dayDate={day.date}
             onChanged={() => refetch()}
           />
-          {remoteStops.length > 0 && (
+        </Grid.Item>
+        {remoteStops.length > 0 && (
+          <Grid.Item>
             <RouteStopsCard
               stops={remoteStops}
-              currentDayId={day.id}
-              scheduleDays={schedule?.days ?? []}
+              dayDate={day.date}
               onChanged={() => refetch()}
               variant="remote"
             />
-          )}
-        </div>
-      </div>
+          </Grid.Item>
+        )}
+      </Grid.Root>
+
+      <RouteMap
+        stops={drivingStops}
+        distanceKm={day.routeDistanceKm}
+        departureAddress={day.departureAddress}
+      />
     </PageContent>
   );
 }

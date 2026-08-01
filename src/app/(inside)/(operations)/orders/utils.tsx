@@ -1,7 +1,7 @@
 import { KpiItem } from "@/components/Card/Kpi/Root/interface";
 import { FieldConfig } from "@/hooks/useTableFilters";
 import { formatMoney } from "@/utils/format/masks";
-import type { OrderStatus, OrdersStats } from "./interface";
+import type { OrdersStats } from "./interface";
 
 /**
  * Campos que viram filtro na query — cada chave é também o nome do parâmetro na
@@ -41,43 +41,14 @@ export const PENDING_ORDER_TABLE_FIELDS: Record<string, FieldConfig> =
     Object.entries(ORDER_TABLE_FIELDS).filter(([key]) => key !== "status")
   );
 
-export const ORDER_STATUS_LABELS: Record<OrderStatus, string> = {
-  DRAFT: "Orçamento",
-  SENT: "Orçamento enviado",
-  CONFIRMED: "Confirmado",
-  INVOICED: "Faturado",
-  DELIVERED: "Entregue",
-  CANCELLED: "Cancelado",
-};
-
-/**
- * Opções do filtro "Situação", na ordem em que o pedido caminha — de orçamento
- * a entregue, com o cancelado no fim. É a mesma palavra que aparece na coluna
- * Situação da tabela, para o filtro e a linha não se contradizerem.
- */
-export const ORDER_STATUS_OPTIONS: { value: OrderStatus; label: string }[] = (
-  [
-    "DRAFT",
-    "SENT",
-    "CONFIRMED",
-    "INVOICED",
-    "DELIVERED",
-    "CANCELLED",
-  ] as OrderStatus[]
-).map((status) => ({ value: status, label: ORDER_STATUS_LABELS[status] }));
-
-/** Cor do Badge por status: o que ainda dá trabalho fica em destaque. */
-export const ORDER_STATUS_TONE: Record<
-  OrderStatus,
-  "subtle" | "neutral" | "blue" | "green" | "red"
-> = {
-  DRAFT: "subtle",
-  SENT: "subtle",
-  CONFIRMED: "blue",
-  INVOICED: "neutral",
-  DELIVERED: "green",
-  CANCELLED: "red",
-};
+// O vocabulário do status mora em `_shared`: a lista de pedidos e os pedidos do
+// cliente são rotas-irmãs e precisam falar a mesma língua. Aqui só se reexporta
+// para não mexer nos imports de quem já lê de `../utils`.
+export {
+  ORDER_STATUS_LABELS,
+  ORDER_STATUS_OPTIONS,
+  ORDER_STATUS_TONE,
+} from "../_shared/orderStatus";
 
 export const buildOrderKpis = (
   stats: OrdersStats,
