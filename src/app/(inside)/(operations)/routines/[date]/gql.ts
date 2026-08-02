@@ -61,6 +61,17 @@ export const WEEK_SCHEDULE_QUERY = gql`
                   nickname
                   razaoSocial
                 }
+                clientFactoryLink {
+                  id
+                  latestVisitScore {
+                    scoreTotal
+                    scoreUrgency
+                    scorePriority
+                    scoreFrequency
+                    scorePotential
+                    scoreRecency
+                  }
+                }
               }
               treatedFactories {
                 id
@@ -95,6 +106,11 @@ export const WEEK_SCHEDULE_QUERY = gql`
                 }
                 latestVisitScore {
                   scoreTotal
+                  scoreUrgency
+                  scorePriority
+                  scoreFrequency
+                  scorePotential
+                  scoreRecency
                 }
               }
             }

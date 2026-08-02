@@ -18,9 +18,11 @@ import {
   VISIT_STATUS_COLOR,
   VISIT_STATUS_LABEL,
   getVisitFollowupWarning,
+  getVisitScoreReasons,
 } from "../../../utils";
 import { ALL_OUTCOME_LABEL, contactLabel, contactNoun } from "@/utils/visit";
 import { ContactLinks } from "../../ContactLinks";
+import { VisitScoreReasons } from "./VisitScoreReasons";
 
 interface Props {
   item: VisitScheduleItem;
@@ -68,6 +70,9 @@ export function VisitDetailPanel({
   // vendedor de fato levantou nesta ida, e não só a fábrica que motivou a visita.
   const treatedLabel =
     (item.treatedFactories ?? []).map((f) => factoryName(f)).join(", ") || null;
+  // O motivo do score responde "por que vou até este cliente": vem por empresa,
+  // já que quem pontua é o vínculo com cada fábrica.
+  const scoreReasons = getVisitScoreReasons(item);
 
   return (
     <>
@@ -140,6 +145,11 @@ export function VisitDetailPanel({
               </Badge.Root>
             </div>
           </div>
+
+          {/* O porquê vem antes dos detalhes de execução (horário, duração,
+              deslocamento): é a informação que faz o vendedor entender a
+              sugestão do sistema em vez de só cumpri-la. */}
+          <VisitScoreReasons reasons={scoreReasons} />
 
           {/* Como falar com o cliente — só faz sentido no contato remoto; na
               visita o que importa é o endereço, que já está no mapa do dia. */}

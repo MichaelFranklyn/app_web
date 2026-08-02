@@ -5,6 +5,7 @@ export type { VisitContactType, VisitOutcome };
 
 // Tipos compartilhados com a grade semanal (nível-pai da rota).
 import { VisitFocusFactory, VisitPrimaryContact } from "../interface";
+import type { ScoreDimensions } from "@/utils/score";
 
 export type VisitStatus =
   | "PENDING"
@@ -39,7 +40,7 @@ export interface VisitClientFactoryLink {
   id: string;
   client: VisitClient | null;
   factory: VisitFactory | null;
-  latestVisitScore: { scoreTotal: string } | null;
+  latestVisitScore: ScoreDimensions | null;
 }
 
 export interface VisitItem {
