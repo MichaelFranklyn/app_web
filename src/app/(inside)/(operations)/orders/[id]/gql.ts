@@ -84,7 +84,7 @@ export const ORDER_DETAIL_QUERY = gql`
 `;
 
 // Itens do pedido. Mora aqui (pai do detalhe) por ser consumida por 2+ irmãos:
-// a tabela de itens (OrderItemsTable) e o botão de PDF (OrderPdfButton).
+// a tabela de itens (OrderItemsTable) e a exportação (OrderExportMenu).
 export const ORDER_ITEMS_QUERY = gql`
   query OrderItems($orderId: UUID!) {
     orderItems(orderId: $orderId) {

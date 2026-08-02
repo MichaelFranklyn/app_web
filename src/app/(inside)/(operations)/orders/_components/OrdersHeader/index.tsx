@@ -5,9 +5,11 @@ import { Grid } from "@/components/Grid";
 import { Loading } from "@/components/Loading";
 import { PanelHeader } from "@/components/PanelHeader";
 import { TrendingDown, TrendingUp } from "lucide-react";
+import { FilterField } from "@/components/Filters";
 import { Order, OrdersStats } from "../../interface";
 import { buildOrderKpis } from "../../utils";
 import { AddOrderModal } from "./AddOrderModal";
+import { ExportOrdersButton, QueryFilter } from "./ExportOrdersButton";
 import { ImportOrderModal } from "./ImportOrderModal";
 
 interface Props {
@@ -15,11 +17,27 @@ interface Props {
   /** Há filtro ativo? Só muda a legenda dos cartões ("da empresa" × "no filtro"). */
   isFiltered?: boolean;
   onAddOptimistic: (order: Order) => void;
+  /** O MESMO recorte da tabela (aba + painel), para a exportação repeti-lo. */
+  exportFilters: QueryFilter[];
+  filterFields: FilterField[];
+  inputValues: Record<string, string>;
+  /** Aba corrente, quando ela restringe a lista ("Ainda não faturados"). */
+  scopeLabel?: string | null;
+  hasOrders: boolean;
 }
 
 const KPI_COUNT = 4;
 
-export function OrdersHeader({ stats, isFiltered, onAddOptimistic }: Props) {
+export function OrdersHeader({
+  stats,
+  isFiltered,
+  onAddOptimistic,
+  exportFilters,
+  filterFields,
+  inputValues,
+  scopeLabel,
+  hasOrders,
+}: Props) {
   const kpis = stats ? buildOrderKpis(stats, isFiltered) : null;
 
   return (
@@ -32,6 +50,13 @@ export function OrdersHeader({ stats, isFiltered, onAddOptimistic }: Props) {
               Gestão de pedidos por fábrica e vendedor.
             </PanelHeader.Description>
             <PanelHeader.Actions className="mt-6" data-tour="orders-actions">
+              <ExportOrdersButton
+                filters={exportFilters}
+                filterFields={filterFields}
+                inputValues={inputValues}
+                scopeLabel={scopeLabel}
+                disabled={!hasOrders}
+              />
               <ImportOrderModal onAddOptimistic={onAddOptimistic} />
               <AddOrderModal onAddOptimistic={onAddOptimistic} />
             </PanelHeader.Actions>

@@ -49,6 +49,11 @@ export default function ClientesContent({
         stats={sellerScope.stats}
         onAddOptimistic={optimistic.addOptimistic}
         inputValues={tableData.inputValues}
+        sellerLabel={
+          sellerScope.sellerOptions.find(
+            (option) => option.value === selectedSellerId
+          )?.label ?? null
+        }
         hasClients={tableData.totalItems > 0}
       />
 

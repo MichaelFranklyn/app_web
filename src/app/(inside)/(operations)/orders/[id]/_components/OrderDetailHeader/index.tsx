@@ -10,7 +10,7 @@ import { InvoiceOrderModal } from "../InvoiceOrderModal";
 import { MarkDeliveredModal } from "../MarkDeliveredModal";
 import { ConvertToOrderModal } from "./ConvertToOrderModal";
 import { DeleteOrderModal } from "./DeleteOrderModal";
-import { OrderPdfButton } from "./OrderPdfButton";
+import { OrderExportMenu } from "./OrderExportMenu";
 import { UpdateOrderModal } from "./UpdateOrderModal";
 
 interface Props {
@@ -88,7 +88,7 @@ export function OrderDetailHeader({ order, onRefetch }: Props) {
 
             <PanelHeader.Actions className="mt-6">
               <div className="print-hide flex items-center gap-8">
-                <OrderPdfButton order={order} />
+                <OrderExportMenu order={order} />
                 {isQuote && (
                   <ConvertToOrderModal
                     orderId={order.id}

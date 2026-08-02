@@ -1,22 +1,24 @@
 "use client";
 
 import { useApolloClient } from "@apollo/client/react";
-import { Download } from "lucide-react";
-import { useState } from "react";
 
-import { Button } from "@/components/Button";
+import { ExportMenu } from "@/components/ExportMenu";
 import { useToast } from "@/components/Toast";
+import { useCompanyBranding } from "@/hooks/useCompanyBranding";
 import { buildQueryFilters } from "@/hooks/useTableData";
 import { downloadSheet } from "@/utils/import/writer";
 
 import { CLIENTS_QUERY } from "../../../gql";
 import { Client, ClientsQueryResponse } from "../../../interface";
+import { exportClientsPdf } from "../../../pdf";
 import { TABLE_FIELDS } from "../../../utils";
 import { EXPORT_HEADERS, buildExportRows } from "./utils";
 
 interface Props {
   /** Filtros ativos na tela: o arquivo sai com o mesmo recorte que está à vista. */
   inputValues: Record<string, string>;
+  /** Nome do vendedor filtrado — o PDF escreve o recorte no cabeçalho. */
+  sellerLabel?: string | null;
   disabled?: boolean;
 }
 
@@ -25,17 +27,22 @@ const PAGE_SIZE = 100;
 const MAX_PAGES = 100;
 
 /**
- * Baixa a carteira em planilha (.xlsx) — mesmo formato dos modelos de importação,
- * que abre no Excel sem diálogo de separador e sem perder acento.
+ * Baixa a carteira em planilha (.xlsx) — para trabalhar os dados — ou em PDF —
+ * para imprimir e levar para a rua.
  *
  * A lista da tela pagina de 5 em 5, então exportar o que está em memória daria
  * um arquivo de cinco linhas. Aqui a query é refeita sob demanda, varrendo todas
  * as páginas com o mesmo filtro de busca/vendedor que o usuário aplicou.
  */
-export function ExportClientsButton({ inputValues, disabled }: Props) {
-  const [busy, setBusy] = useState(false);
+export function ExportClientsButton({
+  inputValues,
+  sellerLabel,
+  disabled,
+}: Props) {
   const apollo = useApolloClient();
   const { toast } = useToast();
+  // Logo e nome da representação no cabeçalho do documento impresso.
+  const { name: companyName, logoUrl: companyLogoUrl } = useCompanyBranding();
 
   const fetchAllClients = async (): Promise<Client[]> => {
     const filters = buildQueryFilters(TABLE_FIELDS, inputValues);
@@ -68,8 +75,8 @@ export function ExportClientsButton({ inputValues, disabled }: Props) {
     return all;
   };
 
-  const handleExport = async () => {
-    setBusy(true);
+  /** Varre a carteira e entrega ao formato pedido; nada baixa se vier vazia. */
+  const runExport = async (write: (clients: Client[]) => Promise<void>) => {
     try {
       const clients = await fetchAllClients();
       if (clients.length === 0) {
@@ -80,34 +87,38 @@ export function ExportClientsButton({ inputValues, disabled }: Props) {
         });
         return;
       }
-      await downloadSheet(
-        "clientes.xlsx",
-        [EXPORT_HEADERS, ...buildExportRows(clients)],
-        "Clientes"
-      );
+      await write(clients);
     } catch {
       toast({
         variant: "error",
         title: "Não foi possível exportar",
         description: "Tente novamente em instantes.",
       });
-    } finally {
-      setBusy(false);
     }
   };
 
   return (
-    <Button.Root
-      appearance="outline"
-      color="neutral"
-      size="sm"
-      noUppercase
-      loading={busy}
+    <ExportMenu
       disabled={disabled}
-      onClick={handleExport}
-    >
-      <Button.Icon icon={Download} />
-      <Button.Title>Exportar</Button.Title>
-    </Button.Root>
+      onExportSheet={() =>
+        runExport((clients) =>
+          downloadSheet(
+            "clientes.xlsx",
+            [EXPORT_HEADERS, ...buildExportRows(clients)],
+            "Clientes"
+          )
+        )
+      }
+      onExportPdf={() =>
+        runExport((clients) =>
+          exportClientsPdf(clients, {
+            companyName,
+            companyLogoUrl,
+            inputValues,
+            sellerLabel,
+          })
+        )
+      }
+    />
   );
 }

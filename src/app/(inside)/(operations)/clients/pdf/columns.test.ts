@@ -1,0 +1,77 @@
+import { describe, expect, it } from "vitest";
+
+import { Client } from "../interface";
+import { buildClientsContext, CLIENT_COLUMNS } from "./columns";
+
+const client: Client = {
+  id: "c1",
+  cnpj: "12345678000190",
+  razaoSocial: "Bom Preço Comércio LTDA",
+  nomeFantasia: "Mercado Bom Preço",
+  addressCity: "Salvador",
+  addressState: "BA",
+  isNeedsAttention: false,
+  attentionReason: null,
+  companyClient: {
+    id: "cc1",
+    visitScoreTotal: "72.4",
+    lastOrderDate: "2026-05-10",
+    lastInvoiceDate: "2026-05-18",
+    lastVisitDate: null,
+    sellers: [
+      { id: "s1", name: "Ana" },
+      { id: "s2", name: "Bruno" },
+    ],
+  },
+};
+
+const column = (header: string) =>
+  CLIENT_COLUMNS.find((item) => item.header === header)!;
+
+describe("CLIENT_COLUMNS", () => {
+  it("mostra a razão social com o nome fantasia como segunda linha", () => {
+    const cliente = column("CLIENTE");
+    expect(cliente.value(client)).toBe("Bom Preço Comércio LTDA");
+    expect(cliente.sub?.(client)).toBe("Mercado Bom Preço");
+  });
+
+  it("junta cidade e UF numa célula só", () => {
+    expect(column("CIDADE / UF").value(client)).toBe("Salvador / BA");
+  });
+
+  it("marca com travessão o que o cadastro não tem", () => {
+    const semVinculo = {
+      ...client,
+      companyClient: null,
+      addressCity: null,
+      addressState: null,
+    };
+    expect(column("CIDADE / UF").value(semVinculo)).toBe("—");
+    expect(column("VENDEDOR").value(semVinculo)).toBe("—");
+    expect(column("SCORE").value(semVinculo)).toBe("—");
+    expect(column("ÚLT. VISITA").value(semVinculo)).toBe("—");
+  });
+
+  it("arredonda o score, que no papel é um número inteiro", () => {
+    expect(column("SCORE").value(client)).toBe("72");
+  });
+});
+
+describe("buildClientsContext", () => {
+  it("não escreve nada quando a carteira sai inteira", () => {
+    expect(buildClientsContext({ inputValues: {} })).toEqual([]);
+  });
+
+  it("escreve os filtros aplicados, para a lista não passar por completa", () => {
+    const context = buildClientsContext({
+      inputValues: { search: "bom", state: "BA", needsAttention: "true" },
+      sellerLabel: "Ana",
+    });
+    expect(context).toEqual([
+      "Vendedor: Ana",
+      'Busca: "bom"',
+      "UF: BA",
+      "Somente: precisa de atenção",
+    ]);
+  });
+});
