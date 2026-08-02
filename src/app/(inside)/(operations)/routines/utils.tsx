@@ -3,6 +3,8 @@ import {
   getTodayIso,
   toUtcIsoDate as toIsoDate,
 } from "@/utils/format/date";
+import { factoryName } from "@/utils/company";
+import { explainScore, ScoreExplanation } from "@/utils/score";
 import { VisitScheduleDay, VisitScheduleItem, VisitStatus } from "./interface";
 
 export { VISIT_STATUS_COLOR, VISIT_STATUS_LABEL } from "@/utils/visit";
@@ -54,6 +56,59 @@ export const getVisitScoreTotal = (item: VisitScheduleItem): number | null => {
   if (focusScores.length > 0) return Math.max(...focusScores);
 
   return toScore(item.clientFactoryLink?.latestVisitScore?.scoreTotal ?? null);
+};
+
+/** Motivo do score de UMA empresa (fábrica) que puxou esta visita. */
+export interface VisitScoreReason {
+  /** Chave estável para a lista (id do vínculo ou da fábrica). */
+  key: string;
+  factoryLabel: string;
+  explanation: ScoreExplanation;
+}
+
+/**
+ * Por que esta visita existe, empresa por empresa.
+ *
+ * A visita é ao CLIENTE, mas quem pontua é o vínculo com cada fábrica — o
+ * vendedor precisa saber que vai lá porque a Telhas Potiguar está com estoque
+ * no fim, não só que "o score é 78". As dimensões vêm do score ATUAL do vínculo
+ * (`latestVisitScore`), não do total congelado na geração da rotina.
+ *
+ * Ordena da empresa mais urgente para a menos urgente e ignora vínculos sem
+ * score calculado (nada a explicar). Visitas antigas, geradas antes de o foco
+ * existir, caem no vínculo principal.
+ */
+export const getVisitScoreReasons = (
+  item: VisitScheduleItem
+): VisitScoreReason[] => {
+  const fromFocus = (item.focusFactories ?? []).flatMap((focus, index) => {
+    const dims = focus.clientFactoryLink?.latestVisitScore;
+    if (!dims) return [];
+    return [
+      {
+        key:
+          focus.clientFactoryLink?.id ?? focus.factory?.id ?? `focus-${index}`,
+        factoryLabel: factoryName(focus.factory),
+        explanation: explainScore(dims),
+      },
+    ];
+  });
+
+  const link = item.clientFactoryLink;
+  const reasons =
+    fromFocus.length > 0
+      ? fromFocus
+      : link?.latestVisitScore
+        ? [
+            {
+              key: link.id,
+              factoryLabel: factoryName(link.factory),
+              explanation: explainScore(link.latestVisitScore),
+            },
+          ]
+        : [];
+
+  return [...reasons].sort((a, b) => b.explanation.total - a.explanation.total);
 };
 
 const toScore = (raw: string | null): number | null => {

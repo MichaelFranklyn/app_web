@@ -51,6 +51,11 @@ export interface ScoreReason {
   label: string;
   value: number;
   why: string;
+  /**
+   * O mesmo motivo em três palavras ("Estoque acabando"), para onde não cabe a
+   * frase inteira — a coluna de uma folha impressa, por exemplo.
+   */
+  short: string;
   /** O que fazer para mudar este fator; ausente quando é apenas informativo. */
   tip: string | null;
   tone: ScoreTone;
@@ -143,6 +148,8 @@ interface DimensionMeta {
   label: string;
   tone: ScoreTone;
   why: string;
+  /** Versão curta do `why`, para colunas estreitas (PDF da rota). */
+  short: string;
   tip: string | null;
   /** Teto da dimensão na escala bruta (espelha _DIMENSION_MAX no backend). */
   max: number;
@@ -157,6 +164,7 @@ const DIMENSIONS: DimensionMeta[] = [
     label: "Urgência",
     tone: "red",
     why: "O estoque do cliente está perto de acabar.",
+    short: "Estoque acabando",
     tip: "Registre uma reposição ou um novo pedido para o cliente.",
     max: 100,
     weight: 0.55,
@@ -166,6 +174,7 @@ const DIMENSIONS: DimensionMeta[] = [
     label: "Frequência",
     tone: "blue",
     why: "A visita está atrasada em relação ao ciclo combinado.",
+    short: "Visita atrasada",
     tip: "Agende ou conclua uma visita para voltar ao ciclo.",
     max: 40,
     weight: 0.2,
@@ -175,6 +184,7 @@ const DIMENSIONS: DimensionMeta[] = [
     label: "Recência",
     tone: "cyan",
     why: "Faz tempo desde o último contato registrado.",
+    short: "Sem contato há tempo",
     tip: "Faça um check-in / registre uma visita ao cliente.",
     max: 20,
     weight: 0.1,
@@ -184,6 +194,7 @@ const DIMENSIONS: DimensionMeta[] = [
     label: "Prioridade",
     tone: "amber",
     why: "O cliente está marcado como prioridade alta.",
+    short: "Cliente prioritário",
     tip: "Ajuste a prioridade no cadastro do vínculo, se já não for tão relevante.",
     max: 50,
     weight: 0.1,
@@ -193,6 +204,7 @@ const DIMENSIONS: DimensionMeta[] = [
     label: "Potencial",
     tone: "green",
     why: "É um cliente de alto ticket (topo da curva ABC).",
+    short: "Alto potencial",
     tip: null,
     max: 30,
     weight: 0.05,
@@ -223,6 +235,7 @@ export const explainScore = (dims: ScoreDimensions): ScoreExplanation => {
     label: meta.label,
     value: Number(dims[meta.key]) || 0,
     why: meta.why,
+    short: meta.short,
     tip: meta.tip,
     tone: meta.tone,
     contribution: contribution(meta, Number(dims[meta.key]) || 0),

@@ -1,5 +1,8 @@
 // Fonte única: o enum de resultado ganhou os valores exclusivos do contato remoto.
 import type { VisitContactType, VisitOutcome } from "@/utils/visit";
+// As cinco dimensões do score chegam junto com o total: são elas que explicam,
+// no painel da visita, POR QUE aquela empresa está pedindo atenção.
+import type { ScoreDimensions } from "@/utils/score";
 
 export type { VisitContactType, VisitOutcome };
 
@@ -42,7 +45,7 @@ export interface VisitClientFactoryLink {
   id: string;
   client: VisitClient | null;
   factory: VisitFactory | null;
-  latestVisitScore: { scoreTotal: string } | null;
+  latestVisitScore: ScoreDimensions | null;
 }
 
 // Fábrica que esta visita vai tratar. A visita é ao CLIENTE: quando ele tem mais
@@ -50,6 +53,16 @@ export interface VisitClientFactoryLink {
 export interface VisitFocusFactory {
   scoreTotal: string | null;
   factory: VisitFactory | null;
+  /**
+   * Vínculo (vendedor × cliente × fábrica) que gerou o foco, com as dimensões
+   * do score ATUAL. `scoreTotal` acima é o número congelado na geração da
+   * rotina; o motivo exibido tem de ser o de hoje, senão o painel explicaria
+   * uma urgência que o cliente já resolveu.
+   */
+  clientFactoryLink: {
+    id: string;
+    latestVisitScore: ScoreDimensions | null;
+  } | null;
 }
 
 export interface VisitScheduleItem {

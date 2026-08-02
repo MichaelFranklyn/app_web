@@ -18,6 +18,7 @@ import { useMemo } from "react";
 import { useUserRole } from "@/services/flowTour/useUserRole";
 import { OverdueVisitsCard } from "../_components/OverdueVisitsCard";
 import { DepartureCard } from "./_components/DepartureCard";
+import { PrintRouteButton } from "./_components/PrintRouteButton";
 import { RouteMap } from "./_components/RouteMap";
 import { RouteStopsCard } from "./_components/RouteStopsCard";
 import { RouteSummary } from "./_components/RouteSummary";
@@ -222,6 +223,17 @@ export default function DayRouteContent({ date, sellerId }: Props) {
       <VisitsHeader
         dateLabel={formatDateLong(day.date)}
         sellerName={schedule?.seller?.user?.name ?? null}
+        actions={
+          <PrintRouteButton
+            date={day.date}
+            stops={drivingStops}
+            remoteStops={remoteStops}
+            sellerName={schedule?.seller?.user?.name ?? null}
+            departureAddress={day.departureAddress}
+            routeDistanceKm={day.routeDistanceKm}
+            routeDurationMin={day.routeDurationMin}
+          />
+        }
       />
 
       {/* Antes do dia de hoje vem o que ficou do passado: responder libera a

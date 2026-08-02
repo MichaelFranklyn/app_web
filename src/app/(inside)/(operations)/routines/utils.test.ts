@@ -1,10 +1,12 @@
 import { describe, expect, it } from "vitest";
 
+import type { ScoreDimensions } from "@/utils/score";
 import { VisitScheduleItem } from "./interface";
 import {
   formatTravelToStop,
   formatVisitSlot,
   getVisitFollowupWarning,
+  getVisitScoreReasons,
   getVisitScoreTotal,
   isPastDay,
 } from "./utils";
@@ -13,6 +15,17 @@ const factory = (id: string) => ({
   id,
   nomeFantasia: `Fábrica ${id}`,
   razaoSocial: `Fábrica ${id} LTDA`,
+});
+
+// Dimensões zeradas: cada teste liga só o fator que quer explicar.
+const score = (over: Partial<ScoreDimensions> = {}): ScoreDimensions => ({
+  scoreTotal: "0",
+  scoreUrgency: "0",
+  scorePriority: "0",
+  scoreFrequency: "0",
+  scorePotential: "0",
+  scoreRecency: "0",
+  ...over,
 });
 
 const item = (over: Partial<VisitScheduleItem> = {}): VisitScheduleItem => ({
@@ -36,8 +49,8 @@ describe("getVisitScoreTotal", () => {
   it("usa o maior score entre as fábricas em foco", () => {
     const visit = item({
       focusFactories: [
-        { scoreTotal: "20.00", factory: factory("a") },
-        { scoreTotal: "90.00", factory: factory("b") },
+        { scoreTotal: "20.00", factory: factory("a"), clientFactoryLink: null },
+        { scoreTotal: "90.00", factory: factory("b"), clientFactoryLink: null },
       ],
     });
 
@@ -48,12 +61,14 @@ describe("getVisitScoreTotal", () => {
   // mostrava 20 numa visita que existia por causa de um score 90.
   it("ignora o score do vínculo quando há foco", () => {
     const visit = item({
-      focusFactories: [{ scoreTotal: "90.00", factory: factory("b") }],
+      focusFactories: [
+        { scoreTotal: "90.00", factory: factory("b"), clientFactoryLink: null },
+      ],
       clientFactoryLink: {
         id: "cfl-1",
         client: null,
         factory: factory("a"),
-        latestVisitScore: { scoreTotal: "20.00" },
+        latestVisitScore: score({ scoreTotal: "20.00" }),
       },
     });
 
@@ -66,7 +81,7 @@ describe("getVisitScoreTotal", () => {
         id: "cfl-1",
         client: null,
         factory: factory("a"),
-        latestVisitScore: { scoreTotal: "33.00" },
+        latestVisitScore: score({ scoreTotal: "33.00" }),
       },
     });
 
@@ -77,9 +92,105 @@ describe("getVisitScoreTotal", () => {
     expect(getVisitScoreTotal(item())).toBeNull();
     expect(
       getVisitScoreTotal(
-        item({ focusFactories: [{ scoreTotal: null, factory: factory("a") }] })
+        item({
+          focusFactories: [
+            {
+              scoreTotal: null,
+              factory: factory("a"),
+              clientFactoryLink: null,
+            },
+          ],
+        })
       )
     ).toBeNull();
+  });
+});
+
+describe("getVisitScoreReasons", () => {
+  const focus = (id: string, dims: ScoreDimensions) => ({
+    scoreTotal: dims.scoreTotal,
+    factory: factory(id),
+    clientFactoryLink: { id: `cfl-${id}`, latestVisitScore: dims },
+  });
+
+  it("explica o score de cada empresa em foco, da mais urgente para a menos", () => {
+    const visit = item({
+      focusFactories: [
+        focus("a", score({ scoreTotal: "30.00", scoreFrequency: "40" })),
+        focus("b", score({ scoreTotal: "80.00", scoreUrgency: "100" })),
+      ],
+    });
+
+    const reasons = getVisitScoreReasons(visit);
+
+    expect(reasons.map((r) => r.factoryLabel)).toEqual([
+      "Fábrica b",
+      "Fábrica a",
+    ]);
+    expect(reasons[0].explanation.level.label).toBe("Urgente");
+    expect(reasons[0].explanation.reasons[0].label).toBe("Urgência");
+    expect(reasons[1].explanation.reasons[0].label).toBe("Frequência");
+  });
+
+  // O total do foco é congelado na geração da rotina; o MOTIVO tem de refletir
+  // o score de hoje, senão o painel explica uma urgência já resolvida.
+  it("usa as dimensões do score atual do vínculo, não o total congelado", () => {
+    const visit = item({
+      focusFactories: [
+        {
+          scoreTotal: "90.00",
+          factory: factory("a"),
+          clientFactoryLink: {
+            id: "cfl-a",
+            latestVisitScore: score({
+              scoreTotal: "20.00",
+              scorePriority: "50",
+            }),
+          },
+        },
+      ],
+    });
+
+    const [reason] = getVisitScoreReasons(visit);
+
+    expect(reason.explanation.total).toBe(20);
+    expect(reason.explanation.reasons.map((r) => r.label)).toEqual([
+      "Prioridade",
+    ]);
+  });
+
+  it("cai no vínculo principal nas visitas antigas, sem foco", () => {
+    const visit = item({
+      clientFactoryLink: {
+        id: "cfl-1",
+        client: null,
+        factory: factory("a"),
+        latestVisitScore: score({ scoreTotal: "33.00", scoreRecency: "20" }),
+      },
+    });
+
+    const reasons = getVisitScoreReasons(visit);
+
+    expect(reasons).toHaveLength(1);
+    expect(reasons[0].factoryLabel).toBe("Fábrica a");
+    expect(reasons[0].explanation.reasons[0].label).toBe("Recência");
+  });
+
+  it("sem score calculado não há motivo a exibir", () => {
+    expect(getVisitScoreReasons(item())).toEqual([]);
+    expect(
+      getVisitScoreReasons(
+        item({
+          focusFactories: [
+            {
+              scoreTotal: "90.00",
+              factory: factory("a"),
+              clientFactoryLink: { id: "cfl-a", latestVisitScore: null },
+            },
+          ],
+        })
+      )
+    ).toEqual([]);
   });
 });
 
