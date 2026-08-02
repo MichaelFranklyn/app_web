@@ -42,6 +42,18 @@ export function InvoiceOrderModal({ order, onSuccess }: Props) {
 
   const paymentMode = isPaymentBasis(order.commissionCalcBasis);
 
+  // Mesma opção usada no campo e no valor inicial: o select trabalha com
+  // `{ value, label }`, e passar só o id deixava o prazo já salvo aparecendo
+  // como campo vazio.
+  const paymentTermOptions = useMemo(
+    () =>
+      order.availablePaymentTerms.map((term) => ({
+        label: `${term.name} (${term.installmentsDays.join("/")})`,
+        value: term.id,
+      })),
+    [order.availablePaymentTerms]
+  );
+
   const steps: FormStepSchema[] = useMemo(
     () => [
       {
@@ -63,31 +75,30 @@ export function InvoiceOrderModal({ order, onSuccess }: Props) {
                 label: "Prazo de pagamento",
                 required: paymentMode,
                 placeholder:
-                  order.availablePaymentTerms.length > 0
+                  paymentTermOptions.length > 0
                     ? "Selecione o prazo (ex.: 30/60/90)"
                     : "Nenhum prazo cadastrado nesta fábrica",
                 hint: paymentMode
                   ? "Obrigatório: a comissão é liberada por parcela paga."
                   : "Opcional: sem prazo, o pedido é faturado à vista.",
-                options: order.availablePaymentTerms.map((term) => ({
-                  label: `${term.name} (${term.installmentsDays.join("/")})`,
-                  value: term.id,
-                })),
+                options: paymentTermOptions,
               },
             ],
           },
         ],
       },
     ],
-    [paymentMode, order.availablePaymentTerms]
+    [paymentMode, paymentTermOptions]
   );
 
   const initialData = useMemo(
     () => ({
       invoicedAt: getTodayIso(),
-      paymentTermId: order.paymentTermId ?? undefined,
+      paymentTermId:
+        paymentTermOptions.find((opt) => opt.value === order.paymentTermId) ??
+        null,
     }),
-    [order.paymentTermId]
+    [order.paymentTermId, paymentTermOptions]
   );
 
   const handleClose = (v: boolean) => {

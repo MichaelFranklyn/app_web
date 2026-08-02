@@ -242,3 +242,33 @@ export const RESCHEDULE_REASON_OPTIONS = [
   { value: "RESCHEDULED", label: "Reagendado" },
   { value: "CANCELLED", label: "Cancelado" },
 ];
+
+/**
+ * O compromisso no relógio: "09:40 · 30 min".
+ *
+ * Existe porque o card mostrava só `estimatedTravelMin` ("· 7m") — o tempo de
+ * DESLOCAMENTO até a parada, que todo mundo lia como "visita de 7 minutos". A
+ * visita tem duração própria (a configuração do vendedor, 30 min por padrão) e
+ * hora marcada; o deslocamento é outra informação, e aparece com nome.
+ *
+ * Contato remoto não tem horário previsto (não é parada de rota): sobra só a
+ * posição na fila do dia.
+ */
+export const formatVisitSlot = (item: {
+  plannedStartTime: string | null;
+  visitDurationMin: number | null;
+}): string => {
+  if (!item.plannedStartTime) return "";
+  const duration = item.visitDurationMin
+    ? ` · ${item.visitDurationMin} min`
+    : "";
+  return ` · ${item.plannedStartTime}${duration}`;
+};
+
+/** "20 min até aqui" — o deslocamento, dito com todas as letras. */
+export const formatTravelToStop = (
+  estimatedTravelMin: number | null
+): string | null =>
+  estimatedTravelMin == null || estimatedTravelMin <= 0
+    ? null
+    : `${estimatedTravelMin} min até aqui`;

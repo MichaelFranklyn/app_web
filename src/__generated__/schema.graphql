@@ -3217,7 +3217,14 @@ type VisitScheduleItemType {
   plannedOrder: Int!
   """Visita presencial ou contato remoto (ligação/WhatsApp)."""
   contactType: VisitContactType!
+  """Minutos de DESLOCAMENTO até esta parada (não é a duração da visita)."""
   estimatedTravelMin: Int
+  """Hora prevista de início da visita ("09:40"), já respeitando a abertura do expediente e o almoço. Nulo em contato remoto e quando o dia não tem trajeto calculado."""
+  plannedStartTime: String
+  """Hora prevista de término da visita ("10:10")."""
+  plannedEndTime: String
+  """Minutos que a parada ocupa na agenda — o `avgVisitDurationMin` da configuração do vendedor."""
+  visitDurationMin: Int
   suggestedProducts: [JSON!]
   stockoutAlerts: [JSON!]
   status: VisitStatus!
@@ -3236,6 +3243,55 @@ type VisitScheduleItemType {
   focusFactories: [VisitItemFactoryType!]!
   """Fábricas efetivamente tratadas, derivadas das observações de estoque registradas."""
   treatedFactories: [FactoryType!]!
+}
+
+"""Cliente da região que vale entrar na mesma viagem da visita promovida."""
+type NearbyVisitCandidateType {
+  """Vínculo (vendedor × cliente × fábrica) que vira a visita, se escolhido."""
+  sellerClientFactoryId: UUID!
+  client: ClientType
+  factory: FactoryType
+  """Distância em linha reta até o cliente que motivou a viagem, em km."""
+  distanceKm: Float!
+  scoreTotal: Decimal!
+  """Score na faixa "Urgente" (>= 45) — os demais estão em "Atenção"."""
+  isUrgent: Boolean!
+}
+
+"""O que acontece com o dia se este contato virar visita presencial."""
+type VisitPromotionPreviewType {
+  """Dá para ir, visitar e voltar dentro da jornada?"""
+  isReachable: Boolean!
+  """A visita convive com as paradas já marcadas para o dia?"""
+  fitsWithExisting: Boolean!
+  """Entrando ela, o resto do dia não cabe mais — exige confirmação."""
+  occupiesWholeDay: Boolean!
+  """Minutos de deslocamento até o cliente (só a ida)."""
+  travelMinOneWay: Int!
+  distanceKm: Float!
+  """Quantas visitas já marcadas sairiam do caminho."""
+  displacedCount: Int!
+  """Quem mais está naquela região merecendo visita."""
+  nearby: [NearbyVisitCandidateType!]!
+}
+
+"""O que fazer com as visitas que a viagem expulsa do dia."""
+enum DisplacedStopStrategy {
+  """Viram ligação no mesmo dia — o cliente continua sendo tocado."""
+  TO_REMOTE
+  """Vão para os próximos dias com vaga; sem vaga, viram ligação."""
+  NEXT_DAYS
+}
+
+input PromoteContactToVisitInput {
+  itemId: UUID!
+  """Confirmação do aviso "esta viagem ocupa o dia inteiro"."""
+  confirmWholeDay: Boolean = false
+  displacedStrategy: DisplacedStopStrategy = TO_REMOTE
+  """Vínculos da região que entram na mesma viagem."""
+  includeLinkIds: [UUID!] = []
+  """Levar a viagem para outro dia. Ausente = o dia em que o contato já está."""
+  targetDate: Date = null
 }
 
 type VisitScheduleItemTypeConnectionResponse {
@@ -3273,6 +3329,17 @@ extend type Query {
   Traz TODAS as fábricas do cliente que o vendedor atende, não só as do foco.
   """
   visitStockCandidates(itemId: UUID!): [VisitStockCandidateGroupType!]!
+  """
+  Visitas cujo dia já passou e que ficaram sem desfecho — o vendedor precisa
+  dizer o que houve. Sem `sellerId`, responde pelo vendedor logado.
+  Mais recentes primeiro.
+  """
+  overdueVisits(sellerId: UUID = null): [VisitScheduleItemType!]!
+  """
+  Simula transformar um contato remoto em visita presencial: distância, se a
+  viagem cabe no dia e quem mais está naquela região merecendo visita.
+  """
+  visitPromotionPreview(itemId: UUID!, targetDate: Date = null): VisitPromotionPreviewType!
 }
 
 """Origem da lista de produtos de uma fábrica na visita."""
@@ -3310,6 +3377,12 @@ extend type Mutation {
   deleteVisitScheduleItem(id: UUID!): BaseResponse!
   rescheduleVisit(input: RescheduleVisitInput!): RescheduleVisitResponse!
   insertUrgentVisit(input: InsertUrgentVisitInput!): VisitScheduleItemTypeDataResponse!
+  """
+  Transforma o contato remoto em visita presencial. Quando a viagem ocupa o dia
+  inteiro, exige `confirmWholeDay` e aplica `displacedStrategy` no que já estava
+  marcado. `includeLinkIds` marca junto os vizinhos da região.
+  """
+  promoteContactToVisit(input: PromoteContactToVisitInput!): BaseResponse!
 }
 enum StockObservation {
   OUT_OF_STOCK

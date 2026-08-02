@@ -6,29 +6,14 @@ export function formatCurrency(value: string | number): string {
   return formatMoney(n);
 }
 
-export function orderStatusLabel(s: string): string {
-  const map: Record<string, string> = {
-    rascunho: "Rascunho",
-    enviado: "Enviado",
-    confirmado: "Confirmado",
-    entregue: "Entregue",
-    cancelado: "Cancelado",
-  };
-  return map[s] ?? s;
-}
-
-export function orderStatusColor(
-  s: string
-): "neutral" | "blue" | "amber" | "green" | "red" {
-  const map: Record<string, "neutral" | "blue" | "amber" | "green" | "red"> = {
-    rascunho: "neutral",
-    enviado: "blue",
-    confirmado: "amber",
-    entregue: "green",
-    cancelado: "red",
-  };
-  return map[s] ?? "neutral";
-}
+// O status do pedido é traduzido em `_shared/orderStatus`, junto com a lista de
+// pedidos. O mapa que existia aqui era indexado pelo valor em português
+// ("confirmado") e o backend manda o NOME do enum ("CONFIRMED"): toda tag caía
+// no fallback e aparecia em inglês na tela.
+export {
+  orderStatusLabel,
+  orderStatusTone as orderStatusColor,
+} from "../../_shared/orderStatus";
 
 import { VisitOutcome } from "./interface";
 

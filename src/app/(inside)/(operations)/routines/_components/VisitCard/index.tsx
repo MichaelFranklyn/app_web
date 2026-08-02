@@ -7,10 +7,12 @@ import { TriangleAlert } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { clientDisplayName } from "@/utils/client";
 import { visitPriority } from "@/utils/score";
-import { VisitScheduleDay, VisitScheduleItem } from "../../interface";
+import { VisitScheduleItem } from "../../interface";
 import {
   VISIT_STATUS_COLOR,
   VISIT_STATUS_LABEL,
+  formatTravelToStop,
+  formatVisitSlot,
   getVisitFollowupWarning,
   getVisitScoreTotal,
 } from "../../utils";
@@ -22,8 +24,7 @@ import { ContactTypeTag } from "@/components/ContactTypeTag";
 
 interface Props {
   item: VisitScheduleItem;
-  currentDayId: string | null;
-  scheduleDays: VisitScheduleDay[];
+  dayDate?: string | null;
   onChanged: () => void;
 }
 
@@ -57,19 +58,9 @@ const getFocusLabel = (item: VisitScheduleItem): string => {
 // painel lateral de detalhes; o checkbox é um atalho para concluir/reabrir a
 // visita e o menu de três pontos cobre as demais ações. Os controles têm o
 // clique isolado (stopPropagation) para não dispararem o painel.
-export function VisitCard({
-  item,
-  currentDayId,
-  scheduleDays,
-  onChanged,
-}: Props) {
+export function VisitCard({ item, dayDate, onChanged }: Props) {
   const { openView, toggleCompleted, isToggling, menu, overlays } =
-    useVisitActions({
-      item,
-      currentDayId,
-      scheduleDays,
-      onChanged,
-    });
+    useVisitActions({ item, dayDate, onChanged });
 
   const isCompleted = item.status === "COMPLETED";
   const isRemote = item.contactType === "REMOTE";
@@ -129,16 +120,18 @@ export function VisitCard({
             </div>
             <div className="min-w-0">
               {/* Identidade do compromisso numa linha só: se é visita ou
-                  contato, a posição na rota e o tempo de deslocamento. O alerta
-                  de acompanhamento entra aqui porque qualifica esse mesmo
-                  compromisso. */}
+                  contato, a posição na rota e QUANDO ela acontece. O alerta de
+                  acompanhamento entra aqui porque qualifica esse mesmo
+                  compromisso.
+
+                  O horário vem antes do deslocamento de propósito: o número
+                  solto de minutos era lido como "visita de 7 minutos", que é o
+                  contrário do que ele significa. */}
               <div className="mb-4 flex flex-wrap items-center gap-x-8 gap-y-2">
                 <ContactTypeTag contactType={item.contactType} />
                 <Title variant="micro" color="muted">
                   #{item.plannedOrder}
-                  {item.estimatedTravelMin != null
-                    ? ` · ${item.estimatedTravelMin}m`
-                    : ""}
+                  {formatVisitSlot(item)}
                 </Title>
                 {warning && (
                   <TriangleAlert
@@ -170,6 +163,13 @@ export function VisitCard({
               >
                 {getFocusLabel(item)}
               </Title>
+              {/* O deslocamento sai do lugar do horário e vem com nome: é o
+                  tempo ATÉ a parada, não a duração dela. */}
+              {formatTravelToStop(item.estimatedTravelMin) && (
+                <Title variant="micro" color="muted" className="mt-2 block">
+                  {formatTravelToStop(item.estimatedTravelMin)}
+                </Title>
+              )}
             </div>
           </div>
           <div

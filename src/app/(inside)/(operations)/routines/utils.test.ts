@@ -2,6 +2,8 @@ import { describe, expect, it } from "vitest";
 
 import { VisitScheduleItem } from "./interface";
 import {
+  formatTravelToStop,
+  formatVisitSlot,
   getVisitFollowupWarning,
   getVisitScoreTotal,
   isPastDay,
@@ -18,6 +20,9 @@ const item = (over: Partial<VisitScheduleItem> = {}): VisitScheduleItem => ({
   plannedOrder: 1,
   contactType: "IN_PERSON",
   estimatedTravelMin: null,
+  plannedStartTime: null,
+  plannedEndTime: null,
+  visitDurationMin: null,
   status: "PENDING",
   outcome: null,
   notes: null,
@@ -127,5 +132,37 @@ describe("isPastDay", () => {
   it("compara pelo calendário, não pelo mês/dia soltos", () => {
     expect(isPastDay("2025-12-31", HOJE)).toBe(true);
     expect(isPastDay("2027-01-01", HOJE)).toBe(false);
+  });
+});
+
+describe("formatVisitSlot", () => {
+  it("mostra a hora e a duração da visita", () => {
+    expect(
+      formatVisitSlot({ plannedStartTime: "09:40", visitDurationMin: 30 })
+    ).toBe(" · 09:40 · 30 min");
+  });
+
+  it("sem duração, mostra só a hora", () => {
+    expect(
+      formatVisitSlot({ plannedStartTime: "09:40", visitDurationMin: null })
+    ).toBe(" · 09:40");
+  });
+
+  it("contato remoto não tem horário de rota — nada é exibido", () => {
+    expect(
+      formatVisitSlot({ plannedStartTime: null, visitDurationMin: 30 })
+    ).toBe("");
+  });
+});
+
+describe("formatTravelToStop", () => {
+  it("diz que o número é deslocamento, com todas as letras", () => {
+    // O bug que motivou o helper: "· 7m" solto era lido como visita de 7 min.
+    expect(formatTravelToStop(7)).toBe("7 min até aqui");
+  });
+
+  it("primeira parada do dia (ou sem trajeto) não vira linha vazia", () => {
+    expect(formatTravelToStop(0)).toBeNull();
+    expect(formatTravelToStop(null)).toBeNull();
   });
 });

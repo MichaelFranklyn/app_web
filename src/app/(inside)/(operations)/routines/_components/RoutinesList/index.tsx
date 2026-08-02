@@ -155,8 +155,7 @@ export function RoutinesList({
                       <VisitRow
                         key={item.id}
                         item={item}
-                        currentDayId={cell.day!.id}
-                        scheduleDays={days}
+                        dayDate={cell.date}
                         onChanged={onChanged}
                       />
                     ))}

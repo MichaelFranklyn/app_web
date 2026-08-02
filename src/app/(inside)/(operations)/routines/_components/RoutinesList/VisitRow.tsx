@@ -8,7 +8,7 @@ import { cn } from "@/lib/utils";
 import { clientDisplayName } from "@/utils/client";
 import { visitPriority } from "@/utils/score";
 import { TriangleAlert } from "lucide-react";
-import { VisitScheduleDay, VisitScheduleItem } from "../../interface";
+import { VisitScheduleItem } from "../../interface";
 import { useVisitActions } from "../../useVisitActions";
 import {
   VISIT_STATUS_COLOR,
@@ -22,8 +22,7 @@ import { ContactTypeTag } from "@/components/ContactTypeTag";
 
 interface Props {
   item: VisitScheduleItem;
-  currentDayId: string | null;
-  scheduleDays: VisitScheduleDay[];
+  dayDate?: string | null;
   onChanged: () => void;
 }
 
@@ -43,14 +42,9 @@ const getFocusLabel = (item: VisitScheduleItem): string => {
 // reabre e o menu cobre as demais ações. Os overlays são renderizados inline
 // (fixed) — como no card do kanban — para não sair do container rolável da
 // página.
-export function VisitRow({
-  item,
-  currentDayId,
-  scheduleDays,
-  onChanged,
-}: Props) {
+export function VisitRow({ item, dayDate, onChanged }: Props) {
   const { openView, toggleCompleted, isToggling, menu, overlays } =
-    useVisitActions({ item, currentDayId, scheduleDays, onChanged });
+    useVisitActions({ item, dayDate, onChanged });
 
   const isCompleted = item.status === "COMPLETED";
   const isRemote = item.contactType === "REMOTE";

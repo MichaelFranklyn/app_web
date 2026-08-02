@@ -159,7 +159,27 @@ export function VisitDetailPanel({
             <Field label="Ordem na rota" value={`#${item.plannedOrder}`} />
             {!isRemote && (
               <Field
-                label="Tempo estimado"
+                label="Horário previsto"
+                value={
+                  item.plannedStartTime
+                    ? `${item.plannedStartTime} – ${item.plannedEndTime ?? ""}`
+                    : "—"
+                }
+              />
+            )}
+            {!isRemote && (
+              <Field
+                label="Duração da visita"
+                value={
+                  item.visitDurationMin != null
+                    ? `${item.visitDurationMin} min`
+                    : "—"
+                }
+              />
+            )}
+            {!isRemote && (
+              <Field
+                label="Deslocamento até aqui"
                 value={
                   item.estimatedTravelMin != null
                     ? `${item.estimatedTravelMin} min`

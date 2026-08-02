@@ -47,6 +47,9 @@ export const WEEK_SCHEDULE_QUERY = gql`
               plannedOrder
               contactType
               estimatedTravelMin
+              plannedStartTime
+              plannedEndTime
+              visitDurationMin
               status
               outcome
               notes

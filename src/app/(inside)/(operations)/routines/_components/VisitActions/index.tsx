@@ -5,8 +5,7 @@ import { useVisitActions } from "../../useVisitActions";
 
 interface Props {
   item: VisitScheduleItem;
-  currentDayId: string | null;
-  scheduleDays: { id: string; date: string }[];
+  dayDate?: string | null;
   onChanged: () => void;
 }
 

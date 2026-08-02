@@ -17,8 +17,8 @@ import {
 
 interface Props {
   stops: VisitItem[];
-  currentDayId: string | null;
-  scheduleDays: { id: string; date: string }[];
+  /** Data do dia da rota — usada ao transformar uma ligação em visita. */
+  dayDate: string;
   onChanged: () => void;
   /**
    * "remote" muda só a moldura: os contatos do dia não são paradas de rota, mas
@@ -29,8 +29,7 @@ interface Props {
 
 export function RouteStopsCard({
   stops,
-  currentDayId,
-  scheduleDays,
+  dayDate,
   onChanged,
   variant = "route",
 }: Props) {
@@ -55,7 +54,11 @@ export function RouteStopsCard({
             </EmptyState.Description>
           </EmptyState.Root>
         ) : (
-          <div className="flex flex-col gap-6">
+          // Paradas lado a lado, quebrando conforme a largura: o card agora
+          // ocupa meia tela (ou a tela toda), e uma coluna única deixava um dia
+          // de 8 visitas com metros de rolagem e um vazio à direita. O mínimo de
+          // 260px é o que o bloco precisa para o nome da loja não truncar.
+          <div className="grid [grid-template-columns:repeat(auto-fill,minmax(260px,1fr))] gap-8">
             {stops.map((stop) => {
               const client = stop.clientFactoryLink?.client ?? null;
               const factory = stop.clientFactoryLink?.factory ?? null;
@@ -103,10 +106,23 @@ export function RouteStopsCard({
                         {clientAddress(client)}
                       </Title>
                     )}
-                    <div className="mt-4 flex items-center gap-6">
-                      {travel != null && !isRemote && (
+                    <div className="mt-4 flex flex-wrap items-center gap-6">
+                      {/* Era aqui que o deslocamento se disfarçava de duração:
+                          "~7 min de visita" eram 7 minutos DE CARRO até a loja.
+                          Agora o horário e a duração vêm da agenda, e o
+                          deslocamento aparece com o nome dele. */}
+                      {!isRemote && stop.plannedStartTime && (
                         <Title variant="micro" color="muted">
-                          ~{travel} min de visita
+                          {stop.plannedStartTime}
+                          {stop.plannedEndTime ? `–${stop.plannedEndTime}` : ""}
+                          {stop.visitDurationMin
+                            ? ` · ${stop.visitDurationMin} min de visita`
+                            : ""}
+                        </Title>
+                      )}
+                      {travel != null && travel > 0 && !isRemote && (
+                        <Title variant="micro" color="muted2">
+                          {travel} min até aqui
                         </Title>
                       )}
                       <Badge.Root
@@ -123,8 +139,7 @@ export function RouteStopsCard({
                   <div className="-mr-[4px] shrink-0">
                     <VisitActions
                       item={stop}
-                      currentDayId={currentDayId}
-                      scheduleDays={scheduleDays}
+                      dayDate={dayDate}
                       onChanged={onChanged}
                     />
                   </div>

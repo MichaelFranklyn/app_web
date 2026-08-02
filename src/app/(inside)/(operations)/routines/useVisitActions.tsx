@@ -8,6 +8,7 @@ import { useMutation } from "@apollo/client/react";
 import {
   CalendarClock,
   Eye,
+  MapPin,
   PackageSearch,
   Pencil,
   ReceiptText,
@@ -19,6 +20,7 @@ import { UPDATE_VISIT_ITEM_MUTATION } from "./gql";
 import { VisitScheduleItem } from "./interface";
 import { CompletionPromptModal } from "./_components/VisitActions/CompletionPromptModal";
 import { EditVisitModal } from "./_components/VisitActions/EditVisitModal";
+import { PromoteContactModal } from "./_components/PromoteContactModal";
 import { RescheduleVisitModal } from "./_components/VisitActions/RescheduleVisitModal";
 import { VisitStockModal } from "@/components/VisitStockModal";
 import { VisitDetailPanel } from "./_components/VisitActions/VisitDetailPanel";
@@ -29,12 +31,13 @@ type ActiveModal =
   | "stock"
   | "reschedule"
   | "completed"
+  | "promote"
   | null;
 
 interface Args {
   item: VisitScheduleItem;
-  currentDayId: string | null;
-  scheduleDays: { id: string; date: string }[];
+  /** Data do dia em que a parada está — padrão da viagem ao promover. */
+  dayDate?: string | null;
   onChanged: () => void;
 }
 
@@ -62,8 +65,7 @@ interface Result {
 // comportamento (e o card inteiro possa abrir o painel ao ser clicado).
 export function useVisitActions({
   item,
-  currentDayId,
-  scheduleDays,
+  dayDate = null,
   onChanged,
 }: Args): Result {
   const router = useRouter();
@@ -189,6 +191,15 @@ export function useVisitActions({
               },
             ]
           : []),
+        ...(isRemote && item.status === "PENDING"
+          ? [
+              {
+                label: "Ir visitar",
+                icon: MapPin,
+                onClick: () => setActive("promote"),
+              },
+            ]
+          : []),
         {
           label: `Remarcar ${noun}`,
           icon: CalendarClock,
@@ -226,10 +237,19 @@ export function useVisitActions({
         onSaved={completeFromStock}
       />
 
+      {isRemote && (
+        <PromoteContactModal
+          itemId={item.id}
+          client={client}
+          currentDate={dayDate}
+          open={active === "promote"}
+          onOpenChange={(o) => !o && close()}
+          onDone={onChanged}
+        />
+      )}
+
       <RescheduleVisitModal
         item={item}
-        currentDayId={currentDayId}
-        scheduleDays={scheduleDays}
         open={active === "reschedule"}
         onOpenChange={(o) => !o && close()}
         onDone={onChanged}
