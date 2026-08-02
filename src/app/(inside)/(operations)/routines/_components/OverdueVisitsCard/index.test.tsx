@@ -35,11 +35,19 @@ const VISIT = {
   },
 };
 
-const listMock = (visits: unknown[]) => ({
+const listMock = (visits: unknown[], maxUsageCount = 1) => ({
   request: { query: OVERDUE_VISITS_QUERY, variables: { sellerId: null } },
   result: { data: { overdueVisits: visits } },
-  maxUsageCount: 5,
+  maxUsageCount,
 });
+
+/**
+ * Responder dispara `refetch`, e o backend devolveria a lista SEM a visita
+ * respondida. Reusar o mock cheio fazia a linha voltar assim que o refetch
+ * chegava — a asserção só passava quando corria antes dele (verde na máquina,
+ * vermelho no CI, que é mais lento).
+ */
+const listAfterAnswer = () => listMock([]);
 
 const answerMock = (input: Record<string, unknown>) => ({
   request: {
@@ -98,6 +106,7 @@ describe("OverdueVisitsCard", () => {
     renderCard([
       listMock([VISIT]),
       answerMock({ status: "COMPLETED", actualVisitAt: plannedIso }),
+      listAfterAnswer(),
     ]);
 
     await userEvent.click(await screen.findByRole("button", { name: /Fui/ }));
