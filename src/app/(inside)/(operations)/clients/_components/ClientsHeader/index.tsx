@@ -15,6 +15,8 @@ interface ClientsHeaderProps {
   onAddOptimistic: (client: Client) => void;
   /** Filtros ativos na tela — o export baixa o mesmo recorte que está à vista. */
   inputValues: Record<string, string>;
+  /** Nome do vendedor filtrado, escrito no cabeçalho do PDF. */
+  sellerLabel?: string | null;
   hasClients: boolean;
 }
 
@@ -22,6 +24,7 @@ export function ClientsHeader({
   stats,
   onAddOptimistic,
   inputValues,
+  sellerLabel,
   hasClients,
 }: ClientsHeaderProps) {
   const kpis = buildKpis(stats);
@@ -39,6 +42,7 @@ export function ClientsHeader({
             <PanelHeader.Actions className="mt-6" data-tour="clients-actions">
               <ExportClientsButton
                 inputValues={inputValues}
+                sellerLabel={sellerLabel}
                 disabled={!hasClients}
               />
               <ImportClientsModal />

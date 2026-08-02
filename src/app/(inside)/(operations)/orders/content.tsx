@@ -115,6 +115,12 @@ export default function OrdersContent({
         stats={statsData}
         isFiltered={queryFilters.length > 0}
         onAddOptimistic={optimistic.addOptimistic}
+        // Os mesmos filtros dos KPIs: o arquivo sai com o recorte da tela.
+        exportFilters={statsFilters}
+        filterFields={filterFields}
+        inputValues={tableData.inputValues}
+        scopeLabel={isPending ? "Somente: ainda não faturados" : null}
+        hasOrders={tableData.totalItems > 0}
       />
 
       <Tabs.Root value={tab} onValueChange={handleTabChange}>
