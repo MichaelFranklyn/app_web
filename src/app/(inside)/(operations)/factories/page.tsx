@@ -10,7 +10,7 @@ const Page = async () => {
     company_factories_list: {
       query: COMPANY_FACTORIES_QUERY,
       variables: { input: { first: ITEMS_PER_PAGE, after: null } },
-      cache: { tags: [`company_factories_list`], noCache: true },
+      cache: { tags: [`company_factories_list`] },
     },
   });
 

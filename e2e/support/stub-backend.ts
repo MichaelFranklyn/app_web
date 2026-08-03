@@ -21,6 +21,15 @@ const SSR_RESPONSES: Record<string, unknown> = {
   CompanyFactories: { company_factories_list: emptyConnection() },
   Orders: { orders_list: emptyConnection() },
 
+  // O DETALHE do pedido também busca no servidor (detalhe + itens em paralelo,
+  // para o cliente não encadear uma query depois da outra). Mesma ideia das
+  // listas: vazio aqui, e o `page.route` de cada spec continua mandando no que
+  // a tela mostra.
+  OrderDetail: {
+    order: { status: true, code: 200, message: "ok", data: null },
+  },
+  OrderItems: { orderItems: emptyConnection() },
+
   // Auth via BFF: login/change-password agora rodam a mutation no SERVIDOR
   // (rota /api/session), fora do alcance do page.route do browser — então o stub
   // precisa respondê-las como qualquer fetch SSR do Next.

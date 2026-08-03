@@ -14,11 +14,11 @@ const Page = async () => {
     users_list: {
       query: USERS_QUERY,
       variables: { input: { first: ITEMS_PER_PAGE, after: null } },
-      cache: { tags: [`users_list`], noCache: true },
+      cache: { tags: [`users_list`] },
     },
     sellerStats: {
       query: SELLERS_STATS_QUERY,
-      cache: { tags: [`sellers_stats`], noCache: true },
+      cache: { tags: [`sellers_stats`] },
     },
   });
 

@@ -1,6 +1,7 @@
 "use client";
 
 import { SelectOption } from "@/components/Input";
+import { useIdleReady } from "@/hooks/useIdleReady";
 import { useQuery } from "@apollo/client/react";
 import { useMemo } from "react";
 import { CLIENTS_SELLERS_QUERY, CLIENT_STATS_QUERY } from "./gql";
@@ -27,9 +28,13 @@ export function useSellerScope({
   selectedSellerId,
   fallbackStats,
 }: UseSellerScopeParams) {
+  // A lista de vendedores só preenche o seletor do painel de filtros: espera a
+  // carga da página terminar em vez de disputar a rede com a tabela.
+  const idleReady = useIdleReady();
+
   const sellersQuery = useQuery<ClientsSellersResponse>(CLIENTS_SELLERS_QUERY, {
     variables: { input: { first: 200 } },
-    skip: !canFilterBySeller,
+    skip: !canFilterBySeller || !idleReady,
   });
 
   const sellerOptions: SelectOption[] = useMemo(
@@ -50,5 +55,10 @@ export function useSellerScope({
   const stats =
     selectedSellerId && statsQuery.data ? statsQuery.data : fallbackStats;
 
-  return { sellerOptions, sellersLoading: sellersQuery.loading, stats };
+  // Enquanto a busca está represada o seletor precisa parecer "carregando", e
+  // não "sem vendedores": `loading` do Apollo é false enquanto a query está skipada.
+  const sellersLoading =
+    canFilterBySeller && (!idleReady || sellersQuery.loading);
+
+  return { sellerOptions, sellersLoading, stats };
 }
