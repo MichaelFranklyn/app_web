@@ -154,6 +154,11 @@ export function orderDetailData(overrides: Record<string, unknown> = {}) {
     notes: null,
     createdAt: "2026-06-22T00:00:00Z",
     invoicedAt: null,
+    deliveredAt: null,
+    deliveryEstimateDays: null,
+    // A tela lê a lista de backorders direto (é `[OrderType!]!` no schema);
+    // sem ela no mock, o pedido faturado quebra na montagem do modal.
+    backorderChildren: [],
     paymentTermId: null,
     commissionCalcBasis: "FATURAMENTO",
     seller: { id: "s-1", name: "Vendedor" },

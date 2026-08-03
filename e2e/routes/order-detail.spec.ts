@@ -90,6 +90,125 @@ test("pedido detalhe: deleta o pedido", async ({ page }) => {
   await expect(page).toHaveURL(/\/orders$/);
 });
 
+/**
+ * Faturamento é lançamento manual (data da nota, prazo, entrega): corrigir tem
+ * que ser possível sem apagar o pedido. O caminho pesado — refazer o
+ * faturamento para lançar de novo como parcial — confirma dentro do modal.
+ */
+const invoicedOrder = () =>
+  orderDetailData({
+    status: "INVOICED",
+    invoicedAt: "2026-07-10",
+    paymentTermId: "term-1",
+    deliveryEstimateDays: 15,
+    paymentTerm: {
+      id: "term-1",
+      name: "30/60",
+      installmentsDays: [30, 60],
+      minOrderAmount: null,
+    },
+    availablePaymentTerms: [
+      {
+        id: "term-1",
+        name: "30/60",
+        installmentsDays: [30, 60],
+        minOrderAmount: null,
+      },
+    ],
+    installments: [
+      {
+        id: "inst-1",
+        sequence: 1,
+        amount: "500.00",
+        commissionAmount: "50.00",
+        dueDate: "2026-08-09",
+        status: "PENDING",
+        paidAt: null,
+        isCommissionReceived: false,
+        commissionReceivedAt: null,
+      },
+    ],
+  });
+
+test("pedido faturado: corrige os dados do faturamento", async ({ page }) => {
+  const spy = await mockGraphql(page, {
+    OrderDetail: () => ({
+      order: { status: true, code: 200, message: "ok", data: invoicedOrder() },
+    }),
+    OrderItems: () => ({
+      orderItems: {
+        edges: [],
+        pageInfo: { hasNextPage: false, endCursor: null },
+        totalCount: 0,
+      },
+    }),
+    ReviseOrderInvoice: () => ({
+      reviseOrderInvoice: {
+        status: true,
+        message: "Faturamento corrigido. As parcelas foram refeitas.",
+        data: { id: "order-1" },
+      },
+    }),
+  });
+
+  await page.goto(URL);
+  await page.getByRole("button", { name: "Editar faturamento" }).click();
+
+  const dialog = page.getByRole("dialog");
+  // A data usa o calendário do FormBuilder (campo não digitável); aqui basta
+  // corrigir a previsão de entrega para provar que a revisão chega ao backend
+  // com a data de faturamento preservada.
+  await dialog.locator('[name="deliveryEstimateDays"]').fill("20");
+  await dialog.getByRole("button", { name: "Salvar", exact: true }).click();
+
+  await expect(page.getByText("Faturamento corrigido.")).toBeVisible();
+  const sent = spy.lastVariables("ReviseOrderInvoice") as {
+    input: { invoicedAt: string; deliveryEstimateDays: number };
+  };
+  expect(sent.input.deliveryEstimateDays).toBe(20);
+  expect(sent.input.invoicedAt).toBe("2026-07-10");
+});
+
+test("pedido faturado: refaz o faturamento para lançar de novo", async ({
+  page,
+}) => {
+  await mockGraphql(page, {
+    OrderDetail: () => ({
+      order: { status: true, code: 200, message: "ok", data: invoicedOrder() },
+    }),
+    OrderItems: () => ({
+      orderItems: {
+        edges: [],
+        pageInfo: { hasNextPage: false, endCursor: null },
+        totalCount: 0,
+      },
+    }),
+    UninvoiceOrder: () => ({
+      uninvoiceOrder: {
+        status: true,
+        message: "Faturamento desfeito. O pedido voltou para confirmado.",
+        data: { id: "order-1", status: "CONFIRMED", invoicedAt: null },
+      },
+    }),
+  });
+
+  await page.goto(URL);
+  await page.getByRole("button", { name: "Editar faturamento" }).click();
+
+  const dialog = page.getByRole("dialog");
+  await dialog.getByRole("button", { name: "Refazer faturamento" }).click();
+  // Confirmação no corpo do próprio modal — sem empilhar outra janela.
+  await expect(
+    dialog.getByText("Refazer o faturamento deste pedido?")
+  ).toBeVisible();
+  await dialog
+    .getByRole("button", { name: "Refazer faturamento" })
+    .last()
+    .click();
+
+  await expect(page.getByText("Faturamento desfeito.")).toBeVisible();
+});
+
 test("pedido detalhe: edita um item", async ({ page }) => {
   await mockGraphql(page, {
     ...renderMock([orderItem()]),

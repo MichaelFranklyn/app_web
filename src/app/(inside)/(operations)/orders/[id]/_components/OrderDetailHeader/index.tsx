@@ -6,6 +6,7 @@ import { PanelHeader } from "@/components/PanelHeader";
 import { formatDateDMY } from "@/utils/format/masks";
 import { clientName, factoryName } from "@/utils/company";
 import { OrderDetail } from "../../interface";
+import { EditInvoiceModal } from "../EditInvoiceModal";
 import { InvoiceOrderModal } from "../InvoiceOrderModal";
 import { MarkDeliveredModal } from "../MarkDeliveredModal";
 import { ConvertToOrderModal } from "./ConvertToOrderModal";
@@ -107,6 +108,11 @@ export function OrderDetailHeader({ order, onRefetch }: Props) {
                   order.status !== "CANCELLED" && (
                     <MarkDeliveredModal order={order} onSuccess={onRefetch} />
                   )}
+                {/* Faturamento é lançamento manual (data da nota, prazo, entrega):
+                    errar acontece, e corrigir não pode exigir apagar o pedido. */}
+                {order.invoicedAt && order.status !== "CANCELLED" && (
+                  <EditInvoiceModal order={order} onSuccess={onRefetch} />
+                )}
                 <UpdateOrderModal
                   orderId={order.id}
                   currentNotes={order.notes}

@@ -51,7 +51,9 @@ export const SELLERS_WITH_ACCESS_QUERY = gql`
   }
 `;
 
-// Vínculos já existentes desta fábrica (para não repetir o cliente).
+// Vínculos já existentes desta fábrica: quem atende cada cliente hoje. O cliente
+// ocupado continua na lista (o vendedor pode ter saído, deixado a fábrica...),
+// marcado com o nome de quem atende — escolhê-lo é transferir o atendimento.
 export const EXISTING_LINKS_QUERY = gql`
   query ExistingFactoryClientLinks($input: BaseListInput!) {
     sellerClientFactoryList(input: $input) {
@@ -59,6 +61,11 @@ export const EXISTING_LINKS_QUERY = gql`
         node {
           id
           clientId
+          sellerId
+          seller {
+            id
+            name
+          }
         }
       }
     }

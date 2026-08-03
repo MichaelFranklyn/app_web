@@ -29,7 +29,14 @@ export interface SellersAccessData {
 
 export interface ExistingLinksData {
   sellerClientFactoryList: {
-    edges: { node: { id: string; clientId: string } }[];
+    edges: {
+      node: {
+        id: string;
+        clientId: string;
+        sellerId: string;
+        seller: { id: string; name: string } | null;
+      };
+    }[];
   };
 }
 
