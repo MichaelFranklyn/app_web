@@ -22,6 +22,19 @@ export interface DraftItem {
   isPromo: boolean;
 }
 
+/**
+ * Piso de faturamento da condição de pagamento escolhida.
+ *
+ * Existe para o vendedor saber ANTES de terminar: o mesmo número aparece no
+ * rótulo da condição no passo 1 e no rodapé dos itens no passo 2. O rascunho
+ * abaixo do piso é salvo normalmente; o bloqueio só acontece na confirmação,
+ * quando o pedido e os itens já estão gravados.
+ */
+export interface PaymentTermMinimum {
+  termName: string;
+  amount: number;
+}
+
 export interface CreateOrderItemResponse {
   createOrderItem: {
     status: boolean;

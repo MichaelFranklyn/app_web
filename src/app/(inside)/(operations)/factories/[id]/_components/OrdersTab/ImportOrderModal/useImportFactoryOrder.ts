@@ -70,7 +70,12 @@ export function useImportFactoryOrder({
     [assignmentsData]
   );
 
-  const paymentTermOptions = usePaymentTermOptions(open, factoryId || null);
+  // Só as opções: a importação não monta itens na tela (o wizard traz os do
+  // arquivo), então o piso aparece apenas no rótulo da condição.
+  const { options: paymentTermOptions } = usePaymentTermOptions(
+    open,
+    factoryId || null
+  );
   const ipiInOrder =
     useCompanyFactoryNode(open, factoryId || null)?.ipiInOrder ?? false;
 

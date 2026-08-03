@@ -2,6 +2,7 @@ import { useQuery } from "@apollo/client/react";
 import { useMemo } from "react";
 
 import { SelectOption } from "@/components/Input";
+import { ProductThumb } from "@/components/ProductThumb";
 
 import {
   ORDER_ITEM_COMPANY_FACTORIES_QUERY,
@@ -21,7 +22,7 @@ import {
   ProductsData,
   TiersData,
 } from "./interface";
-import { useAllPages } from "./useAllPages";
+import { useAllPages } from "@/hooks/useAllPages";
 import { IPI_RULE_NAME, priceKey } from "./utils";
 
 // Seletores no módulo: `useAllPages` os usa na dep list do efeito, então
@@ -192,6 +193,11 @@ export function useOrderItemCatalog(
         // Inclui o código (SKU) no rótulo: o vendedor digita o código e o
         // select filtra por texto do label.
         label: p.sku ? `${p.sku} — ${p.name}` : p.name,
+        // A foto ajuda a achar o item na lista e serve para mostrar o produto
+        // ao cliente na tela, durante a visita.
+        startIcon: (
+          <ProductThumb imageUrl={p.imageUrl} name={p.name} size="xs" />
+        ),
       })),
     [products]
   );

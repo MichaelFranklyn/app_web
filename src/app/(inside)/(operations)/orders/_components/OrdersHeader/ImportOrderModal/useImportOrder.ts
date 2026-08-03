@@ -79,7 +79,12 @@ export function useImportOrder({ onAddOptimistic }: ImportOrderModalProps) {
   const refetchClient = useRefetchQueriesClient();
   const [createOrder] = useMutation<CreateOrderResponse>(CREATE_ORDER_MUTATION);
 
-  const paymentTermOptions = usePaymentTermOptions(open, factoryId || null);
+  // Só as opções: a importação não monta itens na tela (o wizard traz os do
+  // arquivo), então o piso aparece apenas no rótulo da condição.
+  const { options: paymentTermOptions } = usePaymentTermOptions(
+    open,
+    factoryId || null
+  );
   const ipiInOrder =
     useCompanyFactoryNode(open, factoryId || null)?.ipiInOrder ?? false;
 

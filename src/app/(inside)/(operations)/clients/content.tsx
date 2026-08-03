@@ -8,6 +8,7 @@ import { ClientsHeader } from "./_components/ClientsHeader";
 import { ClientsTable } from "./_components/ClientsTable";
 import { CLIENTS_QUERY } from "./gql";
 import { Client, ClientsContentProps, QueryData } from "./interface";
+import { useClassificationOptions } from "./useClassificationOptions";
 import { useClientFilters } from "./useClientFilters";
 import { useSellerScope } from "./useSellerScope";
 import { ITEMS_PER_PAGE, TABLE_FIELDS } from "./utils";
@@ -33,10 +34,15 @@ export default function ClientesContent({
     fallbackStats: stats,
   });
 
+  const classification = useClassificationOptions();
+
   const filterFields = useClientFilters({
     canFilterBySeller,
     sellerOptions: sellerScope.sellerOptions,
     sellersLoading: sellerScope.sellersLoading,
+    networkOptions: classification.networkOptions,
+    segmentOptions: classification.segmentOptions,
+    classificationLoading: classification.loading,
   });
 
   const optimistic = useOptimisticList<Client>({

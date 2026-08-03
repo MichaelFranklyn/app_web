@@ -273,6 +273,16 @@ export const COMPANY_CLIENT_QUERY = gql`
         id
         notes
         isActive
+        networkId
+        segmentId
+        network {
+          id
+          name
+        }
+        segment {
+          id
+          name
+        }
         topVisitScore {
           scoreTotal
           scoreUrgency
@@ -346,6 +356,16 @@ export const CLIENT_QUERY = gql`
           id
           notes
           isActive
+          networkId
+          segmentId
+          network {
+            id
+            name
+          }
+          segment {
+            id
+            name
+          }
         }
       }
     }

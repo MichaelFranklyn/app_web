@@ -1,6 +1,7 @@
 "use client";
 
 import { ExportMenu } from "@/components/ExportMenu";
+import { Images } from "lucide-react";
 import { useToast } from "@/components/Toast";
 import { useCompanyBranding } from "@/hooks/useCompanyBranding";
 import { useLazyQuery } from "@apollo/client/react";
@@ -54,6 +55,22 @@ export function OrderExportMenu({ order }: Props) {
           exportOrderPdf(order, items, { companyName, companyLogoUrl })
         )
       }
+      extraActions={[
+        {
+          // Saída à parte, e não uma opção do PDF normal: as fotos engordam o
+          // arquivo e a geração demora, então quem escolhe está escolhendo isso.
+          label: "PDF com fotos",
+          icon: Images,
+          onSelect: () =>
+            runExport((items) =>
+              exportOrderPdf(order, items, {
+                companyName,
+                companyLogoUrl,
+                withPhotos: true,
+              })
+            ),
+        },
+      ]}
     />
   );
 }

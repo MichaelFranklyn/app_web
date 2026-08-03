@@ -8,6 +8,7 @@ import {
 } from "@/components/FormBuilder";
 import { Modal } from "@/components/Modal";
 import { useAsyncAction } from "@/hooks/useAsyncAction";
+import { parseMoneyToNumber } from "@/utils/format/masks";
 import { useMutation } from "@apollo/client/react";
 import { Plus } from "lucide-react";
 import { useMemo, useRef, useState } from "react";
@@ -56,6 +57,13 @@ export function AddPaymentTermModal({
                 placeholder: "Ex: 30/60/90 — use 0 para à vista",
                 hint: "Dias de cada parcela a partir do pedido, separados por / ou vírgula.",
               },
+              {
+                name: "minOrderAmount",
+                type: "currency",
+                label: "Valor mínimo do pedido (opcional)",
+                placeholder: "0,00",
+                hint: "Quanto a fábrica exige em mercadoria para liberar este prazo. Deixe em branco se não houver mínimo.",
+              },
             ],
           },
         ],
@@ -78,9 +86,15 @@ export function AddPaymentTermModal({
         if (installmentsDays.length === 0) {
           throw new Error("Informe ao menos um vencimento (ex.: 30/60/90).");
         }
+        // Campo vazio vira 0 e o back trata como "sem mínimo".
+        const minOrderAmount = parseMoneyToNumber(
+          String(data.minOrderAmount ?? "")
+        );
         // O nome do prazo é derivado dos vencimentos pelo back (ex.: "30/60/90").
         const res = await createTerm({
-          variables: { input: { companyFactoryId, installmentsDays } },
+          variables: {
+            input: { companyFactoryId, installmentsDays, minOrderAmount },
+          },
         });
         if (
           !res.data?.createFactoryPaymentTerm?.status ||

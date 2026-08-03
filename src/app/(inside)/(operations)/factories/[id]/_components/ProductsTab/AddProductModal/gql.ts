@@ -89,6 +89,7 @@ export const CREATE_PRODUCT_MUTATION = gql`
         sku
         name
         ncm
+        imageUrl
         unitPerPack
         isActive
         unitId

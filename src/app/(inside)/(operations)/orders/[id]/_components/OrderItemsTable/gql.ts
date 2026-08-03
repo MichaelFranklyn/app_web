@@ -28,6 +28,7 @@ export const CREATE_ORDER_ITEM_MUTATION = gql`
           id
           name
           sku
+          imageUrl
           saleMultiple
           unitPerPack
           taxes {

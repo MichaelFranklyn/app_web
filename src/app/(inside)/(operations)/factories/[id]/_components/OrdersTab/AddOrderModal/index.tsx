@@ -21,6 +21,7 @@ export function AddOrderModal(props: AddFactoryOrderProps) {
     goToDetails,
     handleCreate,
     draft,
+    paymentMinimum,
     isLoading,
   } = useAddFactoryOrder(props);
 
@@ -66,7 +67,7 @@ export function AddOrderModal(props: AddFactoryOrderProps) {
             />
           </div>
           <div className={step === 1 ? "" : "hidden"}>
-            <StepItems draft={draft} />
+            <StepItems draft={draft} minimum={paymentMinimum} />
           </div>
         </Modal.Body>
 

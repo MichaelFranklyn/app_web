@@ -2,7 +2,7 @@
 
 import { fileToBase64 } from "@/utils/file";
 import { useCallback, useState } from "react";
-import { LogoInput, LogoValue } from "./interface";
+import { LogoField, LogoInput, LogoValue } from "./interface";
 
 export const EMPTY_LOGO: LogoValue = { file: null, cleared: false };
 
@@ -13,10 +13,11 @@ export const EMPTY_LOGO: LogoValue = { file: null, cleared: false };
  * pelo BFF); `<field>Base64: ""` é o sinal combinado com o backend para REMOVER
  * a imagem atual — por isso remover e "não mexer" são estados distintos.
  *
- * `field` existe porque a empresa tem DUAS imagens no mesmo formulário: a logo
- * completa (`logoBase64`) e o símbolo do avatar (`avatarBase64`).
+ * `field` existe porque a empresa tem DUAS imagens no mesmo formulário — a logo
+ * completa (`logoBase64`) e o símbolo do avatar (`avatarBase64`) — e porque a
+ * foto do produto (`imageBase64`) reaproveita este mesmo caminho.
  */
-export function useLogoUpload(field: "logo" | "avatar" = "logo") {
+export function useLogoUpload(field: LogoField = "logo") {
   const [value, setValue] = useState<LogoValue>(EMPTY_LOGO);
 
   const reset = useCallback(() => setValue(EMPTY_LOGO), []);

@@ -45,7 +45,15 @@ export default function ClientLayout({
     cc && cc.client
       ? {
           ...cc.client,
-          companyClient: { id: cc.id, notes: cc.notes, isActive: cc.isActive },
+          companyClient: {
+            id: cc.id,
+            notes: cc.notes,
+            isActive: cc.isActive,
+            networkId: cc.networkId,
+            segmentId: cc.segmentId,
+            network: cc.network,
+            segment: cc.segment,
+          },
         }
       : undefined;
 

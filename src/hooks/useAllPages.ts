@@ -2,7 +2,10 @@ import { DocumentNode } from "@apollo/client";
 import { useApolloClient } from "@apollo/client/react";
 import { useEffect, useRef, useState } from "react";
 
-import { ConnectionPageInfo } from "./interface";
+export interface ConnectionPageInfo {
+  hasNextPage: boolean;
+  endCursor: string | null;
+}
 
 export interface Connection<TNode> {
   edges: { node: TNode }[];
@@ -16,10 +19,11 @@ const MAX_PAGES = 50;
 /**
  * Carrega TODAS as páginas de uma conexão e devolve os nós concatenados.
  *
- * O catálogo do pedido precisa da tabela inteira em memória (o preço de qualquer
- * produto tem de estar no mapa), que é uma operação diferente da paginação
- * incremental do Apollo: aqui não existe "carregar mais", existe "carregar
- * tudo". Fazer isso com `fetchMore` + `updateQuery` quebrava — sem `typePolicies`
+ * Alguns usos precisam da lista inteira em memória (o preço de qualquer produto
+ * tem de estar no mapa do pedido; a foto enviada em massa tem de achar o SKU
+ * dela), que é uma operação diferente da paginação incremental do Apollo: aqui
+ * não existe "carregar mais", existe "carregar tudo". Fazer isso com
+ * `fetchMore` + `updateQuery` quebrava — sem `typePolicies`
  * cada `after` é uma entrada de cache própria, o `updateQuery` do Apollo 4
  * recebia `prev = null` e o merge estourava, derrubando o mapa de preços inteiro
  * (uma tabela real tem 1728 linhas, ou seja, sempre mais de uma página).
@@ -80,8 +84,8 @@ export function useAllPages<TNode, TData>(
         }
         if (!cancelled) setNodes(all);
       } catch {
-        // Sem catálogo o formulário ainda funciona: o vendedor digita o preço.
-        // Derrubar a tela por causa da sugestão seria pior que não sugerir.
+        // Lista vazia em vez de exceção: quem usa o hook decide como avisar.
+        // Derrubar a tela por uma varredura incompleta seria pior.
         if (!cancelled) setNodes([]);
       } finally {
         if (!cancelled) setLoading(false);

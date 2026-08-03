@@ -1,5 +1,6 @@
 import { FormStepSchema } from "@/components/FormBuilder";
 import { labelWithHelp } from "@/components/HelpTooltip";
+import { useLogoUpload } from "@/components/LogoUpload";
 import { useAsyncAction } from "@/hooks/useAsyncAction";
 import { extractSelectValue } from "@/utils/form";
 import { useMutation } from "@apollo/client/react";
@@ -48,6 +49,10 @@ export function useEditProduct({
     handleCreateUnit,
     handleCreateLabel,
   } = useProductCatalogOptions(open);
+
+  // A foto fica fora do FormBuilder (não há tipo de campo de imagem): o estado
+  // vem daqui e vira `imageBase64`/`imageFileName` no envio.
+  const photo = useLogoUpload("image");
 
   const [updateProduct] = useMutation<UpdateProductResponse>(
     UPDATE_PRODUCT_MUTATION
@@ -220,6 +225,8 @@ export function useEditProduct({
     if (categoryId && categoryId !== product.category?.id)
       input.categoryId = categoryId;
 
+    Object.assign(input, await photo.toLogoInput());
+
     if (Object.keys(input).length === 0) {
       onOpenChange(false);
       return;
@@ -281,6 +288,7 @@ export function useEditProduct({
         onSuccess: () => {
           onCommit();
           onChanged();
+          photo.reset();
         },
         onError: () => {
           onRollback();
@@ -289,5 +297,12 @@ export function useEditProduct({
     );
   };
 
-  return { steps, initialData, handleSubmit, isLoading, attentionReasons };
+  return {
+    steps,
+    initialData,
+    handleSubmit,
+    isLoading,
+    attentionReasons,
+    photo,
+  };
 }

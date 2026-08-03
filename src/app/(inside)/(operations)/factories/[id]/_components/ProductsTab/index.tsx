@@ -6,6 +6,7 @@ import { HelpTooltip } from "@/components/HelpTooltip";
 import { InputSearch } from "@/components/Input";
 import { Loading } from "@/components/Loading";
 import { Pagination } from "@/components/Pagination";
+import { ProductThumb } from "@/components/ProductThumb";
 import { QueryError } from "@/components/QueryError";
 import { Table } from "@/components/Table";
 import { Title } from "@/components/Title";
@@ -19,6 +20,7 @@ import { useMemo } from "react";
 import { AddProductModal } from "./AddProductModal";
 import { ImportProductsModal } from "./ImportProductsModal";
 import { ProductRowActions } from "./ProductRowActions";
+import { UploadPhotosModal } from "./UploadPhotosModal";
 import {
   FACTORY_PRODUCTS_QUERY,
   FactoryProduct,
@@ -144,6 +146,10 @@ export function ProductsTab({ companyFactoryId }: Props) {
               companyFactoryId={companyFactoryId}
               onChanged={onChanged}
             />
+            <UploadPhotosModal
+              companyFactoryId={companyFactoryId}
+              onChanged={onChanged}
+            />
             <AddProductModal
               companyFactoryId={companyFactoryId}
               onChanged={onChanged}
@@ -156,6 +162,7 @@ export function ProductsTab({ companyFactoryId }: Props) {
       <Table.Table>
         <Table.Header>
           <Table.Row>
+            <Table.Head className="w-56">Foto</Table.Head>
             <Table.Head>Código</Table.Head>
             <Table.Head>Produto</Table.Head>
             <Table.Head>Categoria</Table.Head>
@@ -166,16 +173,16 @@ export function ProductsTab({ companyFactoryId }: Props) {
         </Table.Header>
         <Table.Body>
           {table.loading && products.length === 0 ? (
-            <Table.Skeleton columns={6} rows={5} />
+            <Table.Skeleton columns={7} rows={5} />
           ) : table.error && products.length === 0 ? (
             <Table.Row>
-              <Table.Cell colSpan={6}>
+              <Table.Cell colSpan={7}>
                 <QueryError flat onRetry={() => table.refetch()} />
               </Table.Cell>
             </Table.Row>
           ) : products.length === 0 ? (
             <Table.Row>
-              <Table.Cell colSpan={6}>
+              <Table.Cell colSpan={7}>
                 <EmptyState.Root>
                   <EmptyState.Icon>
                     <Package size={32} />
@@ -204,6 +211,9 @@ export function ProductsTab({ companyFactoryId }: Props) {
                 href={`/factories/${companyFactoryId}/products/${p.id}`}
                 data-tour="products-row"
               >
+                <Table.Cell>
+                  <ProductThumb imageUrl={p.imageUrl} name={p.name} />
+                </Table.Cell>
                 <Table.Cell>
                   <Badge.Root color="subtle" appearance="tinted">
                     <Badge.Text>{p.sku}</Badge.Text>

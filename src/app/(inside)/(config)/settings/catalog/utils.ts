@@ -1,4 +1,4 @@
-import { Boxes, Package, Percent, Tags } from "lucide-react";
+import { Boxes, Package, Percent, Store, Tags } from "lucide-react";
 import { CatalogLink } from "./interface";
 
 /**
@@ -25,6 +25,13 @@ export const CATALOG_LINKS: CatalogLink[] = [
     description:
       "O nome da embalagem em que o produto é entregue — caixa, pallet, fardo.",
     icon: Package,
+  },
+  {
+    href: "/settings/catalog/segments",
+    label: "Segmentos de clientes",
+    description:
+      "O ramo de atividade do cliente — farmácia, mercearia, atacado. Filtra a carteira e agrupa os números por tipo de negócio.",
+    icon: Store,
   },
   {
     href: "/settings/catalog/tax-rules",

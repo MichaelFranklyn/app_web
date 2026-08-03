@@ -11,6 +11,10 @@ interface Params {
   /** Vendedores da empresa (vêm de useSellerScope). */
   sellerOptions: SelectOption[];
   sellersLoading: boolean;
+  /** Redes e segmentos cadastrados (vêm de useClassificationOptions). */
+  networkOptions: SelectOption[];
+  segmentOptions: SelectOption[];
+  classificationLoading: boolean;
 }
 
 /**
@@ -27,6 +31,9 @@ export function useClientFilters({
   canFilterBySeller,
   sellerOptions,
   sellersLoading,
+  networkOptions,
+  segmentOptions,
+  classificationLoading,
 }: Params): FilterField[] {
   return useMemo(
     () => [
@@ -47,6 +54,25 @@ export function useClientFilters({
       },
       {
         type: "select",
+        key: "networkId",
+        label: "Rede",
+        placeholder: "Todas as redes",
+        options: networkOptions,
+        loading: classificationLoading,
+        // Empresa que não usa redes não precisa ver o campo ocupando espaço.
+        hidden: networkOptions.length === 0,
+      },
+      {
+        type: "select",
+        key: "segmentId",
+        label: "Segmento",
+        placeholder: "Todos os segmentos",
+        options: segmentOptions,
+        loading: classificationLoading,
+        hidden: segmentOptions.length === 0,
+      },
+      {
+        type: "select",
         key: "state",
         label: "Estado",
         placeholder: "Todos os estados",
@@ -63,6 +89,13 @@ export function useClientFilters({
         ],
       },
     ],
-    [canFilterBySeller, sellerOptions, sellersLoading]
+    [
+      canFilterBySeller,
+      sellerOptions,
+      sellersLoading,
+      networkOptions,
+      segmentOptions,
+      classificationLoading,
+    ]
   );
 }

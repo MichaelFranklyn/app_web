@@ -9,16 +9,21 @@ export interface LogoValue {
   cleared: boolean;
 }
 
+/** Campo de imagem que a mutation espera — decide o prefixo dos dois inputs. */
+export type LogoField = "logo" | "avatar" | "image";
+
 /**
- * Campos de imagem aceitos pelas mutations (updateCompany /
- * updateCompanyFactory). `avatar*` só existe na empresa, que tem duas imagens:
- * a logo completa (documentos) e o símbolo (avatar do sistema).
+ * Campos de imagem aceitos pelas mutations. `avatar*` só existe na empresa, que
+ * tem duas imagens (a logo completa dos documentos e o símbolo do sistema);
+ * `image*` é a foto do produto, que usa o mesmo caminho de upload.
  */
 export interface LogoInput {
   logoBase64?: string;
   logoFileName?: string | null;
   avatarBase64?: string;
   avatarFileName?: string | null;
+  imageBase64?: string;
+  imageFileName?: string | null;
 }
 
 export interface LogoUploadProps {

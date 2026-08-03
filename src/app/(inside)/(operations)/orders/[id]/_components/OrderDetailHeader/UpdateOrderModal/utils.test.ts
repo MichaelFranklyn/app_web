@@ -8,11 +8,13 @@ const TERM_30_60: PaymentTermRef = {
   id: "term-1",
   name: "A prazo",
   installmentsDays: [30, 60],
+  minOrderAmount: null,
 };
 const TERM_AVISTA: PaymentTermRef = {
   id: "term-2",
   name: "À vista",
   installmentsDays: [],
+  minOrderAmount: null,
 };
 const TERMS = [TERM_30_60, TERM_AVISTA];
 

@@ -8,6 +8,16 @@ export const UPDATE_COMPANY_CLIENT_MUTATION = gql`
       data {
         id
         isActive
+        networkId
+        segmentId
+        network {
+          id
+          name
+        }
+        segment {
+          id
+          name
+        }
       }
     }
   }

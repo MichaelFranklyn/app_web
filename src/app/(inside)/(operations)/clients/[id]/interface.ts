@@ -9,6 +9,11 @@ export interface CompanyClientLink {
   id: string;
   notes: string | null;
   isActive: boolean;
+  /** Rede e segmento moram no vínculo, não no cliente global. */
+  networkId: string | null;
+  segmentId: string | null;
+  network: { id: string; name: string } | null;
+  segment: { id: string; name: string } | null;
 }
 
 export interface ClientDetail {
@@ -55,6 +60,10 @@ export interface CompanyClientDetail {
   id: string;
   notes: string | null;
   isActive: boolean;
+  networkId: string | null;
+  segmentId: string | null;
+  network: { id: string; name: string } | null;
+  segment: { id: string; name: string } | null;
   topVisitScore: ScoreDimensions | null;
   factoryVisitScores: FactoryVisitScore[];
   client: ClientDetail | null;

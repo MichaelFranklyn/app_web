@@ -67,3 +67,9 @@ export interface ClientsQueryResponse {
 export interface QueryData {
   clients_list: ClientsQueryResponse["clients_list"];
 }
+
+/** Nós dos catálogos de classificação (rede e segmento) usados nos filtros. */
+export interface ClassificationData {
+  clientNetworks?: { edges: { node: { id: string; name: string } }[] };
+  clientSegments?: { edges: { node: { id: string; name: string } }[] };
+}
