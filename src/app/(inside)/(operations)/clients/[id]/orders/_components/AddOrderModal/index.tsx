@@ -24,6 +24,7 @@ export function AddOrderModal({ clientId }: Props) {
     goToDetails,
     handleCreate,
     draft,
+    paymentMinimum,
     isLoading,
   } = useAddClientOrder(clientId);
 
@@ -69,7 +70,7 @@ export function AddOrderModal({ clientId }: Props) {
             />
           </div>
           <div className={step === 1 ? "" : "hidden"}>
-            <StepItems draft={draft} />
+            <StepItems draft={draft} minimum={paymentMinimum} />
           </div>
         </Modal.Body>
 

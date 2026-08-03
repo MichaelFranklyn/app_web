@@ -35,6 +35,8 @@ export interface ProductNode {
   id: string;
   name: string;
   sku: string | null;
+  /** Foto do produto; alimenta a miniatura ao lado da opção no select. */
+  imageUrl: string | null;
   saleMultiple: string | null;
   unitPerPack: string;
   unit: { id: string; label: string } | null;

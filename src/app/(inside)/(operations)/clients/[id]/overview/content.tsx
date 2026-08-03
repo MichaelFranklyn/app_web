@@ -101,6 +101,8 @@ export default function OverviewContent() {
           lastVisitDate={lastVisitDate}
           cnae={clientView?.cnae ?? "—"}
           cnaeDescription={clientView?.cnaeDescription ?? null}
+          networkName={clientView?.companyClient?.network?.name ?? null}
+          segmentName={clientView?.companyClient?.segment?.name ?? null}
         />
 
         <NotesCard

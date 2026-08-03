@@ -2,6 +2,7 @@ import { factoryName } from "@/utils/company";
 import { formatDateDMY } from "@/utils/format/masks";
 import { trimTransparent } from "@/utils/image";
 import { loadImage } from "@/utils/media";
+import type { LoadedImage } from "@/utils/media";
 import { drawFooters, loadGirusLogo } from "@/utils/pdf/footer";
 import { PAGE } from "@/utils/pdf/theme";
 import { OrderDetail, OrderItem } from "../interface";
@@ -15,9 +16,33 @@ import { drawNotes, drawPayment, drawTotals } from "./summary";
 export interface PdfBranding {
   companyLogoUrl?: string | null;
   companyName?: string | null;
+  /**
+   * Inclui a foto de cada produto numa coluna à esquerda.
+   *
+   * Fica desligado por padrão: baixar dezenas de imagens e embuti-las engorda o
+   * arquivo e demora (a geração é toda no navegador). Vale quando o documento
+   * vai ao cliente e o que importa é ele reconhecer o produto.
+   */
+  withPhotos?: boolean;
 }
 
 const isQuote = (status: string) => status === "DRAFT" || status === "SENT";
+
+/** Baixa as fotos dos produtos do pedido, indexadas pelo id do produto. */
+const loadItemPhotos = async (
+  items: OrderItem[]
+): Promise<Map<string, LoadedImage>> => {
+  const withImage = items.filter((item) => item.product?.imageUrl);
+  const loaded = await Promise.all(
+    withImage.map(async (item) => {
+      const image = await loadImage(item.product!.imageUrl);
+      return [item.product!.id, image] as const;
+    })
+  );
+  return new Map(
+    loaded.filter((entry): entry is [string, LoadedImage] => Boolean(entry[1]))
+  );
+};
 
 /**
  * Gera e baixa o PDF de um pedido (ou orçamento) para o vendedor compartilhar
@@ -46,6 +71,10 @@ export const exportOrderPdf = async (
       loadGirusLogo(),
     ].map((pending) => pending.then(trimTransparent))
   );
+
+  // Uma requisição por produto com foto; falha individual só tira a miniatura
+  // daquela linha. Roda em paralelo para não somar as latências.
+  const photos = branding.withPhotos ? await loadItemPhotos(items) : undefined;
 
   const quote = isQuote(order.status);
   const docKind = quote ? "Orçamento" : "Pedido";
@@ -78,7 +107,7 @@ export const exportOrderPdf = async (
     return PAGE.margin;
   };
 
-  y = drawItemsTable(pdf, items, y, startNewPage).y;
+  y = drawItemsTable(pdf, items, y, startNewPage, photos).y;
 
   // Mesma conta do resumo financeiro na tela (OrderSummaryCard): o subtotal já
   // embute o imposto (ST) — como a coluna Subtotal dos itens — e o total final

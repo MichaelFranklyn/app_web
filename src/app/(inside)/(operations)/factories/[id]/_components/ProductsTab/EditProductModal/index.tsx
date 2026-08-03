@@ -3,6 +3,7 @@
 import { Alert } from "@/components/Alert";
 import { Button } from "@/components/Button";
 import { FormBuilder, FormBuilderRef } from "@/components/FormBuilder";
+import { LogoUpload } from "@/components/LogoUpload";
 import { Modal } from "@/components/Modal";
 import { AlertCircle } from "lucide-react";
 import { useRef } from "react";
@@ -12,8 +13,14 @@ import { EditProductModalProps, useEditProduct } from "./useEditProduct";
 export function EditProductModal(props: EditProductModalProps) {
   const { product, open, onOpenChange } = props;
   const formRef = useRef<FormBuilderRef>(null);
-  const { steps, initialData, handleSubmit, isLoading, attentionReasons } =
-    useEditProduct(props);
+  const {
+    steps,
+    initialData,
+    handleSubmit,
+    isLoading,
+    attentionReasons,
+    photo,
+  } = useEditProduct(props);
 
   return (
     <Modal.Root open={open} onOpenChange={onOpenChange}>
@@ -37,6 +44,15 @@ export function EditProductModal(props: EditProductModalProps) {
               </Alert.Content>
             </Alert.Root>
           )}
+          <LogoUpload
+            currentUrl={product.imageUrl}
+            value={photo.value}
+            onChange={photo.onChange}
+            label="Foto do produto"
+            hint="PNG, JPG ou WEBP de até 2 MB. Aparece na lista e na hora de montar o pedido."
+            disabled={isLoading}
+          />
+
           <FormBuilder
             ref={formRef}
             steps={steps}

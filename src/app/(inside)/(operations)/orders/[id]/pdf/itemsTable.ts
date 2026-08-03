@@ -1,4 +1,5 @@
 import { formatMoney, formatNumber } from "@/utils/format/masks";
+import type { LoadedImage } from "@/utils/media";
 import { OrderItem } from "../interface";
 import { taxRatesLabel } from "../utils";
 import {
@@ -13,12 +14,18 @@ import {
 // Linha um pouco mais alta para caber, na coluna de imposto, a alíquota em cima
 // e o valor embaixo (igual à tabela de itens na tela).
 const ROW_H = 24;
+// Na versão ilustrada a linha cresce para caber a miniatura quadrada.
+const PHOTO_ROW_H = 46;
+const PHOTO_SIZE = 38;
+/** Faixa reservada à miniatura à esquerda do código. */
+const PHOTO_COL = PHOTO_SIZE + 10;
 const HEAD_H = 22;
 
 const formatQty = (value: string) =>
   Number(value || 0).toLocaleString("pt-BR", { maximumFractionDigits: 2 });
 
 interface Columns {
+  photo: number;
   code: number;
   codeMax: number;
   product: number;
@@ -36,15 +43,17 @@ const CODE_MAX = 88;
 /** Largura para o rótulo de alíquotas (ex.: "ST 12,00% + FCP 2,00%"). */
 const TAX_MAX = 84;
 
-const columnsOf = (pageW: number): Columns => {
+const columnsOf = (pageW: number, withPhotos: boolean): Columns => {
   const subtotal = pageW - PAGE.margin - 10;
   const tax = subtotal - 100;
   const discount = tax - TAX_MAX - 8;
   const price = discount - 80;
   const qty = price - 62;
-  const code = PAGE.margin + 10;
+  const photo = PAGE.margin + 10;
+  const code = withPhotos ? photo + PHOTO_COL : photo;
   const product = code + CODE_MAX + 14;
   return {
+    photo,
     code,
     codeMax: CODE_MAX,
     product,
@@ -58,7 +67,12 @@ const columnsOf = (pageW: number): Columns => {
   };
 };
 
-const drawHead = (pdf: Pdf, cols: Columns, y: number): number => {
+const drawHead = (
+  pdf: Pdf,
+  cols: Columns,
+  y: number,
+  withPhotos: boolean
+): number => {
   const pageW = pdf.internal.pageSize.getWidth();
   setFill(pdf, COLOR.ink);
   pdf.rect(PAGE.margin, y, pageW - PAGE.margin * 2, HEAD_H, "F");
@@ -67,6 +81,7 @@ const drawHead = (pdf: Pdf, cols: Columns, y: number): number => {
   pdf.setFontSize(8);
   setText(pdf, COLOR.white);
   const textY = y + 14;
+  if (withPhotos) pdf.text("FOTO", cols.photo, textY);
   pdf.text("CÓDIGO", cols.code, textY);
   pdf.text("PRODUTO", cols.product, textY);
   pdf.text("QTD", cols.qty, textY, { align: "right" });
@@ -83,6 +98,28 @@ export interface ItemsTableResult {
 }
 
 /**
+ * Desenha a miniatura encaixada num quadrado, sem distorcer a foto: a menor
+ * escala manda e a imagem fica centrada na célula.
+ */
+const drawPhoto = (
+  pdf: Pdf,
+  photo: LoadedImage,
+  x: number,
+  rowY: number
+): void => {
+  const scale = Math.min(PHOTO_SIZE / photo.width, PHOTO_SIZE / photo.height);
+  const w = photo.width * scale;
+  const h = photo.height * scale;
+  pdf.addImage(
+    photo.dataUrl,
+    x + (PHOTO_SIZE - w) / 2,
+    rowY + (PHOTO_ROW_H - h) / 2,
+    w,
+    h
+  );
+};
+
+/**
  * Tabela dos itens, com cabeçalho escuro e linhas zebradas — numa lista longa,
  * a zebra é o que mantém o olho na mesma linha até a coluna do subtotal.
  *
@@ -93,33 +130,44 @@ export const drawItemsTable = (
   pdf: Pdf,
   items: OrderItem[],
   startY: number,
-  onNewPage: () => number
+  onNewPage: () => number,
+  photos?: Map<string, LoadedImage>
 ): ItemsTableResult => {
   const pageW = pdf.internal.pageSize.getWidth();
   const pageH = pdf.internal.pageSize.getHeight();
-  const cols = columnsOf(pageW);
+  // Sem nenhuma foto carregada a coluna não abre: reservar a faixa e deixá-la
+  // vazia só espremeria o nome do produto.
+  const withPhotos = Boolean(photos && photos.size > 0);
+  const rowH = withPhotos ? PHOTO_ROW_H : ROW_H;
+  const cols = columnsOf(pageW, withPhotos);
 
   pdf.setFont("helvetica", "bold");
   pdf.setFontSize(9);
   setText(pdf, COLOR.muted);
   pdf.text("ITENS", PAGE.margin, startY);
-  let y = drawHead(pdf, cols, startY + 8);
+  let y = drawHead(pdf, cols, startY + 8, withPhotos);
 
   pdf.setFontSize(9);
   items.forEach((item, index) => {
     if (y > pageH - PAGE.margin - 90) {
       y = onNewPage();
-      y = drawHead(pdf, cols, y);
+      y = drawHead(pdf, cols, y, withPhotos);
       pdf.setFontSize(9);
     }
 
     if (index % 2 === 1) {
       setFill(pdf, COLOR.zebra);
-      pdf.rect(PAGE.margin, y, pageW - PAGE.margin * 2, ROW_H, "F");
+      pdf.rect(PAGE.margin, y, pageW - PAGE.margin * 2, rowH, "F");
     }
 
-    const textY = y + 15;
+    // O texto fica centrado na altura da linha, que muda com a miniatura.
+    const textY = y + (withPhotos ? 26 : 15);
     const name = item.product?.name ?? "Produto";
+
+    if (withPhotos) {
+      const photo = photos?.get(item.product?.id ?? "");
+      if (photo) drawPhoto(pdf, photo, cols.photo, y);
+    }
 
     // Baseline da linha: fonte normal 9 (a coluna de imposto muda e restaura).
     pdf.setFont("helvetica", "normal");
@@ -160,12 +208,12 @@ export const drawItemsTable = (
           cols.taxMax
         ),
         cols.tax,
-        y + 9,
+        textY - 6,
         { align: "right" }
       );
       pdf.setFontSize(8.5);
       setText(pdf, COLOR.ink);
-      pdf.text(formatMoney(item.taxAmount), cols.tax, y + 19, {
+      pdf.text(formatMoney(item.taxAmount), cols.tax, textY + 4, {
         align: "right",
       });
     } else {
@@ -185,14 +233,14 @@ export const drawItemsTable = (
       { align: "right" }
     );
 
-    y += ROW_H;
+    y += rowH;
   });
 
   if (items.length === 0) {
     pdf.setFont("helvetica", "italic");
     setText(pdf, COLOR.muted);
     pdf.text("Nenhum item adicionado.", cols.product, y + 14);
-    y += ROW_H;
+    y += rowH;
   }
 
   return { y: y + 4 };

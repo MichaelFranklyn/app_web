@@ -15,6 +15,8 @@ export interface PaymentTermRef {
   id: string;
   name: string;
   installmentsDays: number[];
+  /** Piso de faturamento exigido pela fábrica; null = prazo sem mínimo. */
+  minOrderAmount: number | null;
 }
 
 export interface OrderInstallment {
@@ -126,6 +128,8 @@ export interface OrderItem {
     id: string;
     name: string;
     sku: string;
+    /** Foto do produto; usada na versão ilustrada do PDF do pedido. */
+    imageUrl: string | null;
     saleMultiple: string | null;
     unitPerPack: string;
     taxes: OrderItemProductTax[];

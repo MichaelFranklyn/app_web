@@ -1,6 +1,6 @@
 # AUTO-GERADO por scripts/pull-schema.mjs — NÃO editar à mão.
 # Snapshot do schema do backend (app_user). Atualize com: npm run schema:pull
-# Fonte: 41 arquivos .graphql merge-ados (mesma regra do Ariadne).
+# Fonte: 43 arquivos .graphql merge-ados (mesma regra do Ariadne).
 
 input BaseListInput {
   filters: [FieldFilterInput!] = null
@@ -174,6 +174,63 @@ extend type Mutation {
   deleteClientContact(id: UUID!): BaseResponse!
 }
 
+input CreateClientNetworkInput {
+  name: String!
+  notes: String = null
+}
+
+type ClientNetworkType {
+  id: UUID!
+  companyId: UUID!
+  name: String!
+  notes: String
+  isActive: Boolean!
+  createdAt: DateTime!
+  updatedAt: DateTime!
+  deletedAt: DateTime
+  """Lojas da carteira ligadas a esta rede."""
+  storeCount: Int!
+  """Faturamento acumulado das lojas da rede (pedidos faturados)."""
+  invoicedAmount: Decimal!
+  """Data do pedido mais recente de qualquer loja da rede."""
+  lastOrderDate: Date
+}
+
+type ClientNetworkTypeConnectionResponse {
+  edges: [ClientNetworkTypeEdge!]!
+  pageInfo: PageInfo!
+  totalCount: Int!
+}
+
+type ClientNetworkTypeDataResponse {
+  status: Boolean!
+  code: Int!
+  message: String!
+  data: ClientNetworkType
+}
+
+type ClientNetworkTypeEdge {
+  node: ClientNetworkType!
+  cursor: String!
+}
+
+input UpdateClientNetworkInput {
+  name: String = null
+  notes: String = null
+  isActive: Boolean = null
+}
+
+extend type Query {
+  clientNetwork(id: UUID!): ClientNetworkTypeDataResponse!
+  clientNetworks(input: BaseListInput!): ClientNetworkTypeConnectionResponse!
+}
+
+extend type Mutation {
+  createClientNetwork(input: CreateClientNetworkInput!): ClientNetworkTypeDataResponse!
+  updateClientNetwork(id: UUID!, input: UpdateClientNetworkInput!): ClientNetworkTypeDataResponse!
+  deleteClientNetwork(id: UUID!): BaseResponse!
+}
+
 """Uma compra do produto por aquele cliente naquela fábrica."""
 type ProductPurchaseType {
   orderId: UUID!
@@ -235,6 +292,52 @@ enum ChurnRisk {
   LOW
   MEDIUM
   HIGH
+}
+
+input CreateClientSegmentInput {
+  name: String!
+}
+
+type ClientSegmentType {
+  id: UUID!
+  companyId: UUID!
+  name: String!
+  createdAt: DateTime!
+  updatedAt: DateTime!
+  deletedAt: DateTime
+}
+
+type ClientSegmentTypeConnectionResponse {
+  edges: [ClientSegmentTypeEdge!]!
+  pageInfo: PageInfo!
+  totalCount: Int!
+}
+
+type ClientSegmentTypeDataResponse {
+  status: Boolean!
+  code: Int!
+  message: String!
+  data: ClientSegmentType
+}
+
+type ClientSegmentTypeEdge {
+  node: ClientSegmentType!
+  cursor: String!
+}
+
+input UpdateClientSegmentInput {
+  name: String = null
+}
+
+extend type Query {
+  clientSegment(id: UUID!): ClientSegmentTypeDataResponse!
+  clientSegments(input: BaseListInput!): ClientSegmentTypeConnectionResponse!
+}
+
+extend type Mutation {
+  createClientSegment(input: CreateClientSegmentInput!): ClientSegmentTypeDataResponse!
+  updateClientSegment(id: UUID!, input: UpdateClientSegmentInput!): ClientSegmentTypeDataResponse!
+  deleteClientSegment(id: UUID!): BaseResponse!
 }
 
 type ClientVisitScoreType {
@@ -510,6 +613,12 @@ type CompanyClientType {
   deletedAt: DateTime
   company: CompanyType
   client: ClientType
+  networkId: UUID
+  segmentId: UUID
+  """Rede a que a loja pertence; nulo para o cliente independente."""
+  network: ClientNetworkType
+  """Ramo de atividade do cliente (Farmácia, Mercearia…)."""
+  segment: ClientSegmentType
   visitScoreTotal: Decimal
   topVisitScore: ClientVisitScoreType
   factoryVisitScores: [ClientVisitScoreType!]!
@@ -577,6 +686,12 @@ input CreateCompanyClientInput {
 input UpdateCompanyClientInput {
   notes: String = null
   isActive: Boolean = null
+  """
+  Rede e segmento do cliente. `null` EXPLÍCITO desvincula (o cliente saiu da
+  rede); omitir o campo mantém o que está gravado.
+  """
+  networkId: UUID = null
+  segmentId: UUID = null
 }
 
 extend type Query {
@@ -1190,6 +1305,8 @@ input CreateFactoryPaymentTermInput {
   """Opcional: sem nome, o rótulo é derivado dos vencimentos (ex.: "30/60/90")."""
   name: String = null
   installmentsDays: [Int!]!
+  """Piso de faturamento para usar este prazo. Nulo = sem mínimo."""
+  minOrderAmount: Decimal = null
 }
 
 type FactoryPaymentTermType {
@@ -1197,6 +1314,7 @@ type FactoryPaymentTermType {
   companyFactoryId: UUID!
   name: String!
   installmentsDays: [Int!]!
+  minOrderAmount: Decimal
   createdAt: DateTime!
   companyFactory: CompanyFactoryType
 }
@@ -1222,6 +1340,8 @@ type FactoryPaymentTermTypeEdge {
 input UpdateFactoryPaymentTermInput {
   name: String = null
   installmentsDays: [Int!] = null
+  """Zero remove o mínimo — `null` é "não mexer", como nos demais updates."""
+  minOrderAmount: Decimal = null
 }
 
 extend type Query {
@@ -2338,6 +2458,9 @@ input CreateProductInput {
   """Múltiplo de venda em embalagens; null = venda livre (aceita fração)."""
   saleMultiple: Decimal = null
   isActive: Boolean! = true
+  """Foto do produto em base64 (PNG/JPG/WEBP, máx. 2 MB)."""
+  imageBase64: String = null
+  imageFileName: String = null
 }
 
 type ProductType {
@@ -2351,6 +2474,7 @@ type ProductType {
   ncm: String
   unitPerPack: Decimal!
   saleMultiple: Decimal
+  imageUrl: String
   isActive: Boolean!
   isNeedsAttention: Boolean!
   attentionReason: String
@@ -2428,6 +2552,39 @@ input UpdateProductInput {
   unitPerPack: Decimal = null
   saleMultiple: Decimal = null
   isActive: Boolean = null
+  """Base64 vazio ("") remove a foto atual; null é "não mexer"."""
+  imageBase64: String = null
+  imageFileName: String = null
+}
+
+input SetProductImageInput {
+  productId: UUID!
+  imageBase64: String!
+  imageFileName: String!
+}
+
+input SetProductImagesInput {
+  companyFactoryId: UUID!
+  images: [SetProductImageInput!]!
+}
+
+type SetProductImageError {
+  fileName: String!
+  message: String!
+}
+
+type SetProductImagesResult {
+  total: Int!
+  updated: Int!
+  failed: Int!
+  errors: [SetProductImageError!]!
+}
+
+type SetProductImagesResultDataResponse {
+  status: Boolean!
+  code: Int!
+  message: String!
+  data: SetProductImagesResult
 }
 
 extend type Query {
@@ -2438,6 +2595,7 @@ extend type Query {
 extend type Mutation {
   createProduct(input: CreateProductInput!): ProductTypeDataResponse!
   importProducts(input: ImportProductsInput!): ImportProductsResultDataResponse!
+  setProductImages(input: SetProductImagesInput!): SetProductImagesResultDataResponse!
   updateProduct(id: UUID!, input: UpdateProductInput!): ProductTypeDataResponse!
   deleteProduct(id: UUID!): BaseResponse!
 }

@@ -8,6 +8,7 @@ import {
 } from "@/components/FormBuilder";
 import { Modal } from "@/components/Modal";
 import { useAsyncAction } from "@/hooks/useAsyncAction";
+import { maskCurrency, parseMoneyToNumber } from "@/utils/format/masks";
 import { useMutation } from "@apollo/client/react";
 import { Pencil } from "lucide-react";
 import { useMemo, useRef, useState } from "react";
@@ -60,6 +61,13 @@ export function EditPaymentTermModal({
                 placeholder: "Ex: 30/60/90 — use 0 para à vista",
                 hint: "Dias de cada parcela a partir do pedido, separados por / ou vírgula.",
               },
+              {
+                name: "minOrderAmount",
+                type: "currency",
+                label: "Valor mínimo do pedido (opcional)",
+                placeholder: "0,00",
+                hint: "Quanto a fábrica exige em mercadoria para liberar este prazo. Zere o campo para deixar o prazo sem mínimo.",
+              },
             ],
           },
         ],
@@ -71,6 +79,9 @@ export function EditPaymentTermModal({
   const initialData = useMemo(
     () => ({
       installments: formatInstallments(term.installmentsDays),
+      minOrderAmount: term.minOrderAmount
+        ? maskCurrency(String(Math.round(term.minOrderAmount * 100)))
+        : "",
     }),
     [term]
   );
@@ -86,7 +97,15 @@ export function EditPaymentTermModal({
     const sameDays =
       installmentsDays.length === term.installmentsDays.length &&
       installmentsDays.every((d, i) => d === term.installmentsDays[i]);
-    if (sameDays) {
+
+    // Campo vazio vira 0, que é como o back recebe o pedido de remover o piso —
+    // e é diferente de "não enviar" (que significaria manter o que está lá).
+    const minOrderAmount = parseMoneyToNumber(
+      String(data.minOrderAmount ?? "")
+    );
+    const sameMinimum = minOrderAmount === (term.minOrderAmount ?? 0);
+
+    if (sameDays && sameMinimum) {
       setOpen(false);
       return;
     }
@@ -95,12 +114,19 @@ export function EditPaymentTermModal({
     const name = formatInstallments(installmentsDays);
 
     setOpen(false);
-    onUpdateOptimistic(term.id, { name, installmentsDays });
+    onUpdateOptimistic(term.id, {
+      name,
+      installmentsDays,
+      minOrderAmount: minOrderAmount || null,
+    });
 
     await execute(
       async () => {
         const res = await updateTerm({
-          variables: { id: term.id, input: { installmentsDays } },
+          variables: {
+            id: term.id,
+            input: { installmentsDays, minOrderAmount },
+          },
         });
         if (
           !res.data?.updateFactoryPaymentTerm?.status ||

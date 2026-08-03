@@ -1,5 +1,6 @@
 import { FormBuilderRef } from "@/components/FormBuilder";
 import { useToast } from "@/components/Toast";
+import { useLogoUpload } from "@/components/LogoUpload";
 import { useAsyncAction } from "@/hooks/useAsyncAction";
 import { extractSelectValue } from "@/utils/form";
 import { useMutation } from "@apollo/client/react";
@@ -66,6 +67,7 @@ export function useAddProduct({
     CREATE_PRICE_LIST_ITEM_MUTATION
   );
   const { execute, isLoading } = useAsyncAction();
+  const photo = useLogoUpload("image");
 
   const steps = useMemo(
     () =>
@@ -100,6 +102,7 @@ export function useAddProduct({
     if (!v) {
       formRef.current?.resetForm();
       setStep(0);
+      photo.reset();
     }
   };
 
@@ -178,6 +181,8 @@ export function useAddProduct({
 
     const taxRows = parseTaxRows(data.taxes);
     const priceRows = parsePriceRows(data.prices);
+    // A foto fica fora do FormBuilder (não há tipo de campo de imagem).
+    const photoInput = await photo.toLogoInput();
 
     await execute(
       async () => {
@@ -195,6 +200,7 @@ export function useAddProduct({
                 ncm: ncm || null,
                 unitPerPack,
                 saleMultiple: saleMultiple > 0 ? saleMultiple : null,
+                ...photoInput,
               },
             },
           });
@@ -250,6 +256,7 @@ export function useAddProduct({
     open,
     handleClose,
     formRef,
+    photo,
     steps,
     step,
     isLastStep,

@@ -9,6 +9,7 @@ export const FACTORY_PRODUCTS_QUERY = gql`
           sku
           name
           ncm
+          imageUrl
           unitPerPack
           isActive
           isNeedsAttention
@@ -44,6 +45,8 @@ export interface FactoryProduct {
   sku: string;
   name: string;
   ncm: string | null;
+  /** Foto do produto (caminho relativo /media/...); null = sem foto. */
+  imageUrl: string | null;
   unitPerPack: number;
   isActive: boolean;
   isNeedsAttention: boolean;
@@ -157,6 +160,7 @@ export const UPDATE_PRODUCT_MUTATION = gql`
         sku
         name
         ncm
+        imageUrl
         unitPerPack
         isActive
         unitId

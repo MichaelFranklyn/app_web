@@ -156,3 +156,58 @@ export const DELETE_TAX_RULE_MUTATION = gql`
     }
   }
 `;
+
+// Segmentos de cliente — ramo de atividade da loja (Farmácia, Mercearia…).
+// Catálogo por empresa, escolhido na ficha do cliente e usado como filtro da
+// carteira. Não confundir com o `segment` da categoria de PRODUTO.
+export const CLIENT_SEGMENTS_QUERY = gql`
+  query SettingsClientSegments($input: BaseListInput!) {
+    clientSegments(input: $input) {
+      edges {
+        node {
+          id
+          name
+        }
+      }
+      totalCount
+    }
+  }
+`;
+
+export const CREATE_CLIENT_SEGMENT_MUTATION = gql`
+  mutation SettingsCreateClientSegment($input: CreateClientSegmentInput!) {
+    createClientSegment(input: $input) {
+      status
+      message
+      data {
+        id
+        name
+      }
+    }
+  }
+`;
+
+export const UPDATE_CLIENT_SEGMENT_MUTATION = gql`
+  mutation SettingsUpdateClientSegment(
+    $id: UUID!
+    $input: UpdateClientSegmentInput!
+  ) {
+    updateClientSegment(id: $id, input: $input) {
+      status
+      message
+      data {
+        id
+        name
+      }
+    }
+  }
+`;
+
+export const DELETE_CLIENT_SEGMENT_MUTATION = gql`
+  mutation SettingsDeleteClientSegment($id: UUID!) {
+    deleteClientSegment(id: $id) {
+      status
+      message
+    }
+  }
+`;

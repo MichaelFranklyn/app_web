@@ -5,7 +5,13 @@ import { HelpTooltip } from "@/components/HelpTooltip";
 import { Title } from "@/components/Title";
 import { SummaryCardProps } from "./interface";
 
-export function SummaryCard({ lastVisitDate, cnae, cnaeDescription }: SummaryCardProps) {
+export function SummaryCard({
+  lastVisitDate,
+  cnae,
+  cnaeDescription,
+  networkName,
+  segmentName,
+}: SummaryCardProps) {
   return (
     <Card.Root>
       <Card.Header>
@@ -17,16 +23,15 @@ export function SummaryCard({ lastVisitDate, cnae, cnaeDescription }: SummaryCar
           Resumo do Cliente
           <HelpTooltip
             label="Sobre o resumo"
-            content="Indicadores rápidos do cliente: data da última visita e a classificação de atividade (CNAE)."
+            content="Indicadores rápidos do cliente: última visita, como a sua empresa o classifica (rede e segmento) e a atividade declarada na Receita (CNAE)."
           />
         </Card.Header.Title>
       </Card.Header>
       <Card.Body padding="compact">
-        <Card.Item
-          variant="stat"
-          label="Última visita"
-          value={lastVisitDate}
-        />
+        <Card.Item variant="stat" label="Última visita" value={lastVisitDate} />
+        {/* Classificação da SUA empresa — o CNAE abaixo é o da Receita. */}
+        <Card.Item variant="stat" label="Rede" value={networkName ?? "—"} />
+        <Card.Item variant="stat" label="Segmento" value={segmentName ?? "—"} />
         <Card.Item
           variant="stat"
           bordered={false}

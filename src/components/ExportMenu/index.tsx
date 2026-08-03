@@ -3,13 +3,27 @@
 import { Button } from "@/components/Button";
 import { Dropdown } from "@/components/Dropdown";
 import { ChevronDown, Download, FileSpreadsheet, FileText } from "lucide-react";
+import type { LucideIcon } from "lucide-react";
 import { useState } from "react";
+
+/** Saída extra específica de uma tela (ex.: o PDF do pedido com as fotos). */
+export interface ExportMenuAction {
+  label: string;
+  icon: LucideIcon;
+  onSelect: () => Promise<void> | void;
+}
 
 interface ExportMenuProps {
   /** Baixa a planilha (.xlsx). O menu cuida do estado de carregamento. */
   onExportSheet: () => Promise<void> | void;
   /** Baixa o PDF. O menu cuida do estado de carregamento. */
   onExportPdf: () => Promise<void> | void;
+  /**
+   * Saídas adicionais, listadas depois das duas padrão. Existe para variações
+   * de um mesmo formato que só fazem sentido numa tela — a alternativa seria
+   * mais um botão no cabeçalho, competindo com o "Exportar".
+   */
+  extraActions?: ExportMenuAction[];
   disabled?: boolean;
   label?: string;
   sheetLabel?: string;
@@ -32,6 +46,7 @@ interface ExportMenuProps {
 export function ExportMenu({
   onExportSheet,
   onExportPdf,
+  extraActions = [],
   disabled,
   label = "Exportar",
   sheetLabel = "Planilha (.xlsx)",
@@ -72,6 +87,15 @@ export function ExportMenu({
         <Dropdown.Item icon={FileText} onSelect={run(onExportPdf)}>
           {pdfLabel}
         </Dropdown.Item>
+        {extraActions.map((action) => (
+          <Dropdown.Item
+            key={action.label}
+            icon={action.icon}
+            onSelect={run(action.onSelect)}
+          >
+            {action.label}
+          </Dropdown.Item>
+        ))}
       </Dropdown.Content>
     </Dropdown.Root>
   );

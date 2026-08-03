@@ -2,6 +2,7 @@
 
 import { Button } from "@/components/Button";
 import { FormBuilder } from "@/components/FormBuilder";
+import { LogoUpload } from "@/components/LogoUpload";
 import { Modal } from "@/components/Modal";
 import { Plus } from "lucide-react";
 
@@ -18,6 +19,7 @@ export function AddProductModal(props: AddProductModalProps) {
     open,
     handleClose,
     formRef,
+    photo,
     steps,
     step,
     isLastStep,
@@ -51,6 +53,18 @@ export function AddProductModal(props: AddProductModalProps) {
             loading={isLoading}
             unstyled
           />
+
+          {/* A foto pertence ao passo de dados; nos passos de imposto e preço
+              o campo sairia do assunto. */}
+          {step === 0 && (
+            <LogoUpload
+              value={photo.value}
+              onChange={photo.onChange}
+              label="Foto do produto (opcional)"
+              hint="PNG, JPG ou WEBP de até 2 MB. Você também pode enviar as fotos em massa depois, pelo botão 'Enviar fotos'."
+              disabled={isLoading}
+            />
+          )}
         </Modal.Body>
         <Modal.Footer>
           {step === 0 ? (

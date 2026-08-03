@@ -12,6 +12,7 @@ import { OrderDetailHeader } from "./_components/OrderDetailHeader";
 import { OrderDetailSkeleton } from "./_components/OrderDetailSkeleton";
 import { OrderItemsTable } from "./_components/OrderItemsTable";
 import { OrderSummaryCard } from "./_components/OrderSummaryCard";
+import { PaymentMinimumBanner } from "./_components/PaymentMinimumBanner";
 import { ORDER_DETAIL_QUERY } from "./gql";
 import { OrderDetailResponse } from "./interface";
 
@@ -52,6 +53,8 @@ export default function OrderDetailContent({ id }: Props) {
       <OrderDetailHeader order={order} onRefetch={refetch} />
 
       <BackorderBanner order={order} />
+
+      <PaymentMinimumBanner order={order} />
 
       <div className="desktop:flex-row flex flex-col gap-20">
         <Card.Header.Group>

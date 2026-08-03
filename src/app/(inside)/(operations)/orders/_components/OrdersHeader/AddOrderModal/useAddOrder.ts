@@ -91,7 +91,13 @@ export function useAddOrder({ onAddOptimistic }: AddOrderModalProps) {
   );
 
   const draft = useOrderDraftItems(open, factoryId, clientId);
-  const paymentTermOptions = usePaymentTermOptions(open, factoryId || null);
+  const { options: paymentTermOptions, minimumOf } = usePaymentTermOptions(
+    open,
+    factoryId || null
+  );
+  // Só existe a partir do passo 2: a condição é escolhida no passo 1 e chega
+  // aqui já validada, dentro de `orderDetails`.
+  const paymentMinimum = minimumOf(orderDetails?.paymentTermId);
 
   const { data: sellersData } = useQuery<SellersOptionsData>(
     ORDER_SELLERS_OPTIONS_QUERY,
@@ -360,6 +366,7 @@ export function useAddOrder({ onAddOptimistic }: AddOrderModalProps) {
     goToDetails,
     handleCreate,
     draft,
+    paymentMinimum,
     isLoading,
   };
 }

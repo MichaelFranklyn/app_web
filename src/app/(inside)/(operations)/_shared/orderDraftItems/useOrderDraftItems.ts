@@ -10,7 +10,7 @@ import {
   useOrderItemCatalog,
 } from "../orderItemCatalog";
 import { DiscountType, DraftItem } from "./interface";
-import { discountToAmount } from "./utils";
+import { discountToAmount, draftTotal } from "./utils";
 
 const toCurrencyMask = (value: number): string =>
   maskCurrency(value.toFixed(2));
@@ -264,6 +264,8 @@ export function useOrderDraftItems(
     saleMultiple,
     priceMissing,
     items,
+    /** Mercadoria acumulada (sem IPI) — base do aviso de valor mínimo. */
+    total: draftTotal(items),
     selectedProduct,
     selectedTier,
     unitPrice,

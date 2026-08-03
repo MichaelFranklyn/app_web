@@ -8,17 +8,21 @@ import { Table } from "@/components/Table";
 import { Title } from "@/components/Title";
 import { maskCurrency, formatMoney } from "@/utils/format/masks";
 
-import { DISCOUNT_TYPE_OPTIONS, discountLabel } from "./utils";
+import { DISCOUNT_TYPE_OPTIONS, discountLabel, itemSubtotal } from "./utils";
 import { OrderDraftItems } from "./useOrderDraftItems";
+import { DraftTotal } from "./DraftTotal";
+import { PaymentTermMinimum } from "./interface";
 
 interface Props {
   draft: OrderDraftItems;
+  /**
+   * Piso da condição de pagamento escolhida no passo 1, quando ela tem um.
+   * Só avisa — quem barra é o servidor, e só na confirmação do pedido.
+   */
+  minimum?: PaymentTermMinimum | null;
 }
 
-const subtotalOf = (unitPrice: number, quantity: number, discount: number) =>
-  Math.max(0, quantity * unitPrice - discount);
-
-export function StepItems({ draft }: Props) {
+export function StepItems({ draft, minimum }: Props) {
   if (!draft.hasCatalog) {
     return (
       <Title variant="body-md" color="muted">
@@ -223,7 +227,7 @@ export function StepItems({ draft }: Props) {
                   )}
                   <Table.Cell variant="strong">
                     {formatMoney(
-                      subtotalOf(item.unitPrice, item.quantity, item.discount)
+                      itemSubtotal(item.unitPrice, item.quantity, item.discount)
                     )}
                   </Table.Cell>
                   <Table.Cell>
@@ -259,6 +263,10 @@ export function StepItems({ draft }: Props) {
             </Table.Body>
           </Table.Table>
         </Table.Root>
+      )}
+
+      {draft.items.length > 0 && (
+        <DraftTotal total={draft.total} minimum={minimum} />
       )}
     </div>
   );

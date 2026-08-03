@@ -8,6 +8,7 @@ export type { OrderDraftItems } from "./useOrderDraftItems";
 export type {
   DiscountType,
   DraftItem,
+  PaymentTermMinimum,
   CreateOrderItemResponse,
 } from "./interface";
 export { CREATE_ORDER_ITEM_MUTATION } from "./gql";
@@ -16,4 +17,6 @@ export {
   DISCOUNT_TYPE_OPTIONS,
   discountToAmount,
   discountLabel,
+  itemSubtotal,
+  draftTotal,
 } from "./utils";

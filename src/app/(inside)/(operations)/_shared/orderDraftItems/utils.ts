@@ -1,6 +1,6 @@
 import { SelectOption } from "@/components/Input";
 
-import { DiscountType } from "./interface";
+import { DiscountType, DraftItem } from "./interface";
 
 export const DISCOUNT_TYPE_OPTIONS: SelectOption[] = [
   { value: "VALUE", label: "R$ (valor)" },
@@ -26,6 +26,28 @@ export const discountToAmount = (
   const gross = unitPrice * quantity;
   return Math.round(gross * (input / 100) * 100) / 100;
 };
+
+/** Valor de um item já com o desconto aplicado. Nunca negativo. */
+export const itemSubtotal = (
+  unitPrice: number,
+  quantity: number,
+  discount: number
+): number => Math.max(0, quantity * unitPrice - discount);
+
+/**
+ * Total da mercadoria no rascunho — sem IPI e sem frete.
+ *
+ * É a mesma base que o backend guarda em `orders.total_amount` (e de que a
+ * comissão é calculada), por isso é ela que se compara com o valor mínimo da
+ * condição de pagamento: o aviso na tela tem de bater com o que o servidor vai
+ * cobrar na confirmação.
+ */
+export const draftTotal = (items: DraftItem[]): number =>
+  items.reduce(
+    (sum, item) =>
+      sum + itemSubtotal(item.unitPrice, item.quantity, item.discount),
+    0
+  );
 
 /** Rótulo do desconto de um item já adicionado (ex.: "5% (R$ 12,50)"). */
 export const discountLabel = (

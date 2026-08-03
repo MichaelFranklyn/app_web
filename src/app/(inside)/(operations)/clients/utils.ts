@@ -22,6 +22,10 @@ export const TABLE_FIELDS: Record<string, FieldConfig> = {
   state: { type: "select", queryField: "address_state" },
   // Vai como "true"/"false"; o `parse_value` do backend já converte em booleano.
   needsAttention: { type: "select", queryField: "is_needs_attention" },
+  // Rede e segmento são colunas do VÍNCULO (company_clients), não de Client: o
+  // backend as retira dos filtros e transforma em recorte do join.
+  networkId: { type: "select", queryField: "network_id" },
+  segmentId: { type: "select", queryField: "segment_id" },
 };
 
 /**

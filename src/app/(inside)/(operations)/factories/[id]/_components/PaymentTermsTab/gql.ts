@@ -8,6 +8,7 @@ export const FACTORY_PAYMENT_TERMS_QUERY = gql`
           id
           name
           installmentsDays
+          minOrderAmount
         }
       }
       totalCount
@@ -33,6 +34,8 @@ export interface PaymentTermNode {
   id: string;
   name: string;
   installmentsDays: number[];
+  /** Piso de faturamento exigido pela fábrica; null = prazo sem mínimo. */
+  minOrderAmount: number | null;
 }
 
 export interface FactoryPaymentTermsData {

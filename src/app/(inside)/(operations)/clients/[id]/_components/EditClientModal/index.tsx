@@ -1,61 +1,13 @@
 "use client";
 
 import { Button } from "@/components/Button";
-import {
-  FormBuilder,
-  FormBuilderRef,
-  FormStepSchema,
-} from "@/components/FormBuilder";
+import { FormBuilder, FormBuilderRef } from "@/components/FormBuilder";
 import { Modal } from "@/components/Modal";
-import { useAsyncAction } from "@/hooks/useAsyncAction";
-import { useInvalidateQueriesClient } from "@/hooks/useInvalidateQueries";
-import { useMutation } from "@apollo/client/react";
 import { Pencil } from "lucide-react";
 import { useRef, useState } from "react";
+
 import { ClientDetail } from "../../interface";
-import { UPDATE_COMPANY_CLIENT_MUTATION } from "./gql";
-
-interface UpdateCompanyClientResponse {
-  updateCompanyClient: {
-    status: boolean;
-    message: string;
-    data: { id: string; isActive: boolean } | null;
-  };
-}
-
-const FORM_STEPS: FormStepSchema[] = [
-  {
-    id: "client",
-    sections: [
-      {
-        id: "identity",
-        title: "Identificação",
-        fields: [
-          {
-            name: "razaoSocial",
-            type: "text",
-            label: "Razão social",
-            disabled: true,
-            hint: "Dado vindo da Receita Federal — não pode ser alterado.",
-          },
-          {
-            name: "nomeFantasia",
-            type: "text",
-            label: "Nome fantasia",
-            disabled: true,
-            hint: "Dado vindo da Receita Federal — não pode ser alterado.",
-          },
-          {
-            name: "isActive",
-            type: "switch",
-            label: "Situação na carteira",
-            options: [{ value: "true", label: "Cliente ativo" }],
-          },
-        ],
-      },
-    ],
-  },
-];
+import { useEditClient } from "./useEditClient";
 
 interface Props {
   client: ClientDetail;
@@ -64,65 +16,15 @@ interface Props {
   onRollback: () => void;
 }
 
-export function EditClientModal({
-  client,
-  onUpdateOptimistic,
-  onCommit,
-  onRollback,
-}: Props) {
+export function EditClientModal(props: Props) {
   const [open, setOpen] = useState(false);
   const formRef = useRef<FormBuilderRef>(null);
-  const invalidateClient = useInvalidateQueriesClient();
-  const [updateCompanyClient] = useMutation<UpdateCompanyClientResponse>(
-    UPDATE_COMPANY_CLIENT_MUTATION
-  );
-  const { execute, isLoading } = useAsyncAction();
 
-  const companyClient = client.companyClient;
-
-  const handleSubmit = async (data: Record<string, unknown>) => {
-    if (!companyClient) {
-      setOpen(false);
-      return;
-    }
-
-    const isActive =
-      Array.isArray(data.isActive) && data.isActive.includes("true");
-
-    if (isActive === companyClient.isActive) {
-      setOpen(false);
-      return;
-    }
-
-    setOpen(false);
-    onUpdateOptimistic({
-      companyClient: { ...companyClient, isActive },
-    });
-
-    await execute(
-      async () => {
-        const res = await updateCompanyClient({
-          variables: { id: companyClient.id, input: { isActive } },
-        });
-        if (!res.data?.updateCompanyClient?.status) {
-          throw new Error(
-            res.data?.updateCompanyClient?.message ?? "Erro ao atualizar cliente"
-          );
-        }
-        return res.data.updateCompanyClient.data;
-      },
-      {
-        successMessage: "Cliente atualizado com sucesso",
-        onSuccess: async () => {
-          onCommit();
-          await invalidateClient(["client"]);
-        },
-        onError: () => {
-          onRollback();
-        },
-      }
-    );
-  };
+  const { steps, initialData, handleSubmit, isLoading } = useEditClient({
+    ...props,
+    open,
+    onClose: () => setOpen(false),
+  });
 
   return (
     <Modal.Root open={open} onOpenChange={setOpen}>
@@ -136,19 +38,15 @@ export function EditClientModal({
       <Modal.Content size="md">
         <Modal.Header
           title="Editar cliente"
-          description="Os dados da Receita Federal não podem ser editados. Aqui você define a situação do cliente na sua carteira."
+          description="Os dados da Receita Federal não podem ser editados. Aqui você define a situação do cliente na sua carteira e como ele é classificado."
         />
         <Modal.Body>
           <FormBuilder
             ref={formRef}
-            steps={FORM_STEPS}
+            steps={steps}
             onSubmit={handleSubmit}
             loading={isLoading}
-            initialData={{
-              razaoSocial: client.razaoSocial,
-              nomeFantasia: client.nomeFantasia ?? "",
-              isActive: companyClient?.isActive ? ["true"] : [],
-            }}
+            initialData={initialData}
             unstyled
           />
         </Modal.Body>

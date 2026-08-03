@@ -61,11 +61,13 @@ export const ORDER_DETAIL_QUERY = gql`
           id
           name
           installmentsDays
+          minOrderAmount
         }
         availablePaymentTerms {
           id
           name
           installmentsDays
+          minOrderAmount
         }
         installments {
           id
@@ -108,6 +110,7 @@ export const ORDER_ITEMS_QUERY = gql`
             id
             name
             sku
+            imageUrl
             saleMultiple
             unitPerPack
             taxes {

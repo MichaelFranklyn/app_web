@@ -7,6 +7,7 @@ import { HelpTooltip } from "@/components/HelpTooltip";
 import { Table } from "@/components/Table";
 import { Title } from "@/components/Title";
 import { useOptimisticList } from "@/hooks/useOptimisticList";
+import { formatMoney } from "@/utils/format/masks";
 import { useQuery } from "@apollo/client/react";
 import { CalendarClock } from "lucide-react";
 import { useMemo } from "react";
@@ -78,22 +79,23 @@ export function PaymentTermsTab({ companyFactoryId }: Props) {
           <Table.Row>
             <Table.Head>Vencimentos (dias)</Table.Head>
             <Table.Head>Parcelas</Table.Head>
+            <Table.Head>Valor mínimo</Table.Head>
             <Table.Head className="text-right">Ações</Table.Head>
           </Table.Row>
         </Table.Header>
 
         <Table.Body>
           {loading ? (
-            <Table.Skeleton columns={3} rows={3} />
+            <Table.Skeleton columns={4} rows={3} />
           ) : error && terms.length === 0 ? (
             <Table.Row>
-              <Table.Cell colSpan={3}>
+              <Table.Cell colSpan={4}>
                 <QueryError flat onRetry={() => refetch()} />
               </Table.Cell>
             </Table.Row>
           ) : terms.length === 0 ? (
             <Table.Row>
-              <Table.Cell colSpan={3}>
+              <Table.Cell colSpan={4}>
                 <EmptyState.Root>
                   <EmptyState.Icon>
                     <CalendarClock size={32} />
@@ -119,6 +121,15 @@ export function PaymentTermsTab({ companyFactoryId }: Props) {
                 <Table.Cell>
                   <Table.CellText variant="dim">
                     {installmentsCountLabel(term.installmentsDays)}
+                  </Table.CellText>
+                </Table.Cell>
+                <Table.Cell>
+                  <Table.CellText
+                    variant={term.minOrderAmount ? "strong" : "dim"}
+                  >
+                    {term.minOrderAmount
+                      ? formatMoney(term.minOrderAmount)
+                      : "Sem mínimo"}
                   </Table.CellText>
                 </Table.Cell>
                 <Table.Cell>

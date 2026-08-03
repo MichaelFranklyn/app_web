@@ -49,6 +49,7 @@ export const ORDER_ITEM_PRODUCTS_QUERY = gql`
           id
           name
           sku
+          imageUrl
           saleMultiple
           unitPerPack
           unit {

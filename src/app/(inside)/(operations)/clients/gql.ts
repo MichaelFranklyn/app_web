@@ -59,3 +59,31 @@ export const CLIENTS_QUERY = gql`
     }
   }
 `;
+
+// Catálogos de classificação da carteira (rede e segmento), usados nos filtros
+// da lista e na ficha do cliente. Curtos por natureza — uma página basta.
+export const CLIENT_NETWORKS_QUERY = gql`
+  query ClientsNetworks($input: BaseListInput!) {
+    clientNetworks(input: $input) {
+      edges {
+        node {
+          id
+          name
+        }
+      }
+    }
+  }
+`;
+
+export const CLIENT_SEGMENTS_QUERY = gql`
+  query ClientsSegments($input: BaseListInput!) {
+    clientSegments(input: $input) {
+      edges {
+        node {
+          id
+          name
+        }
+      }
+    }
+  }
+`;
