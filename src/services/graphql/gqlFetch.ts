@@ -37,9 +37,21 @@ export class GqlNotFoundError extends Error {
 }
 
 export interface CacheOptions {
+  /** Rótulos para invalidar a entrada via `invalidateCache` (server action). */
   tags?: string[];
+  /**
+   * Segundos de validade da entrada no Data Cache. Omitido = 1s, que na prática
+   * é "sempre busca de novo": serve só para juntar as chamadas de uma mesma
+   * rajada (o SSR de uma navegação), não para poupar idas ao backend entre
+   * visitas.
+   *
+   * Antes de aumentar, confira se TODOS os fluxos que mexem no dado invalidam a
+   * tag. Listas com colunas derivadas (última compra, faturamento, score) mudam
+   * por ações em outras telas e pelos jobs noturnos, que não invalidam nada — e
+   * quando o resultado do SSR semeia o cache do Apollo, o `cache-first` acerta e
+   * a tela nem tenta buscar a versão nova.
+   */
   revalidate?: number | false;
-  noCache?: boolean;
 }
 
 export interface GqlQueryOptions<TVariables = Record<string, unknown>> {

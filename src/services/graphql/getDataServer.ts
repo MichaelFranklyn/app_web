@@ -66,18 +66,18 @@ export async function executeServerQueries<TResult>(
 
   const results = await Promise.all(
     Object.entries(queries).map(async ([key, options]) => {
-      const {
-        tags = [],
-        revalidate = 1,
-        noCache = false,
-      } = options.cache ?? {};
+      // 1s por padrão: junta as chamadas de uma mesma rajada sem servir dado
+      // velho entre visitas. Havia aqui um `noCache` que também resultava em 1s
+      // — mesmo valor do padrão, ou seja, não desligava nada; foi removido para
+      // não sugerir um controle que não existia. Ver `CacheOptions.revalidate`.
+      const { tags = [], revalidate = 1 } = options.cache ?? {};
 
       const cached = unstable_cache(
         (t: string | null) => fetchAndExtract(key, options, t),
         [key, userId, JSON.stringify(options.variables ?? {})],
         {
           tags: ["global", `user-${userId}`, ...tags],
-          revalidate: noCache ? 1 : revalidate,
+          revalidate,
         }
       );
 

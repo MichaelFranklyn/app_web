@@ -21,7 +21,7 @@ const Page = async () => {
     orders_list: {
       query: ORDERS_QUERY,
       variables: { input: { first: ITEMS_PER_PAGE, after: null } },
-      cache: { tags: [`orders_list`], noCache: true },
+      cache: { tags: [`orders_list`] },
     },
   });
 

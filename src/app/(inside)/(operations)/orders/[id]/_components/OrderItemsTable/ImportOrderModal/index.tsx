@@ -1,12 +1,31 @@
 "use client";
 
 import { Upload } from "lucide-react";
+import dynamic from "next/dynamic";
 import { useState } from "react";
 
 import { Button } from "@/components/Button";
+import { Loading } from "@/components/Loading";
 import { Modal } from "@/components/Modal";
 
-import { OrderImportWizard } from "../../../../../_components/OrderImportWizard";
+// Carregado sob demanda: o wizard é o maior bloco de JS da tela (os três passos,
+// os parsers de PDF/Excel e o casamento de produtos) e só serve depois do clique
+// em "Importar pedido". Estático, ele entrava no bundle da rota e era baixado e
+// interpretado antes do primeiro desenho do DETALHE do pedido — que é o que
+// praticamente todo mundo que abre esta página veio ver.
+const OrderImportWizard = dynamic(
+  () =>
+    import("../../../../../_components/OrderImportWizard").then(
+      (m) => m.OrderImportWizard
+    ),
+  {
+    loading: () => (
+      <div className="flex items-center justify-center py-64">
+        <Loading.Spinner size="lg" />
+      </div>
+    ),
+  }
+);
 
 interface Props {
   orderId: string;

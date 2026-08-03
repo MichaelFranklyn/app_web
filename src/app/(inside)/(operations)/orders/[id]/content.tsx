@@ -4,6 +4,7 @@ import { Card } from "@/components/Card";
 import { Title } from "@/components/Title";
 import { EmptyState } from "@/components/EmptyState";
 import { PageContent } from "@/components/PageContent";
+import { useSeedQuery } from "@/hooks/useSeedQuery";
 import { useQuery } from "@apollo/client/react";
 import { PackageX } from "lucide-react";
 import { BackorderBanner } from "./_components/BackorderBanner";
@@ -13,14 +14,34 @@ import { OrderDetailSkeleton } from "./_components/OrderDetailSkeleton";
 import { OrderItemsTable } from "./_components/OrderItemsTable";
 import { OrderSummaryCard } from "./_components/OrderSummaryCard";
 import { PaymentMinimumBanner } from "./_components/PaymentMinimumBanner";
-import { ORDER_DETAIL_QUERY } from "./gql";
-import { OrderDetailResponse } from "./interface";
+import { ORDER_DETAIL_QUERY, ORDER_ITEMS_QUERY } from "./gql";
+import { OrderDetailResponse, OrderItemsResponse } from "./interface";
 
 interface Props {
   id: string;
+  /** Detalhe já buscado no servidor (page.tsx); null se o SSR falhou. */
+  seedDetail?: OrderDetailResponse | null;
+  /** Itens já buscados no servidor, semeados junto para a tabela não ir à rede. */
+  seedItems?: OrderItemsResponse | null;
 }
 
-export default function OrderDetailContent({ id }: Props) {
+export default function OrderDetailContent({
+  id,
+  seedDetail,
+  seedItems,
+}: Props) {
+  // Antes das leituras abaixo: com o cache quente o `cache-first` acerta já no
+  // 1º render e a tela pinta sem esperar a rede. Os itens entram aqui — e não na
+  // tabela — porque ela só monta depois que o pedido existe; semear no pai
+  // desfaz o encadeamento (detalhe → itens) que existia no cliente.
+  useSeedQuery(
+    [
+      { query: ORDER_DETAIL_QUERY, variables: { id }, data: seedDetail },
+      { query: ORDER_ITEMS_QUERY, variables: { orderId: id }, data: seedItems },
+    ],
+    id
+  );
+
   const { data, loading, refetch } = useQuery<OrderDetailResponse>(
     ORDER_DETAIL_QUERY,
     { variables: { id } }
