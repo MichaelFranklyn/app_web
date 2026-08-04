@@ -8,6 +8,7 @@ import {
   LayoutDashboard,
   Route,
   Tags,
+  Target,
   UserCog,
   Users,
 } from "lucide-react";
@@ -51,6 +52,13 @@ export const NAV = [
     href: "/commissions",
     label: "Comissões",
     icon: Coins,
+  },
+  {
+    // Vendedor entra para acompanhar a própria meta; gestor, para definir as de
+    // todo mundo. Mesma tela, sem guard de rota — daí `access` ausente.
+    href: "/goals",
+    label: "Metas",
+    icon: Target,
   },
   {
     href: "/clients",

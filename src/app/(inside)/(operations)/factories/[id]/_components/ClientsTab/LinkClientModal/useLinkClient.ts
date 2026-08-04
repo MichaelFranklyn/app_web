@@ -2,6 +2,7 @@ import { FormBuilderRef, FormStepSchema } from "@/components/FormBuilder";
 import { useQueryErrorToast } from "@/hooks/useQueryErrorToast";
 import { useAsyncAction } from "@/hooks/useAsyncAction";
 import { useInvalidateQueriesClient } from "@/hooks/useInvalidateQueries";
+import { useUserData } from "@/hooks/useUserData";
 import { extractSelectValue } from "@/utils/form";
 import { useMutation, useQuery } from "@apollo/client/react";
 import { useMemo, useRef, useState } from "react";
@@ -31,9 +32,17 @@ export function useLinkClient({
   companyFactoryId,
 }: LinkClientModalProps) {
   const [open, setOpen] = useState(false);
+  const [selectedClientId, setSelectedClientId] = useState<string | null>(null);
+  const [selectedSellerId, setSelectedSellerId] = useState<string | null>(null);
+  // Dados do formulário guardados enquanto o usuário confirma a transferência.
+  const [pendingTransfer, setPendingTransfer] = useState<Record<
+    string,
+    unknown
+  > | null>(null);
   const formRef = useRef<FormBuilderRef>(null);
   const invalidateClient = useInvalidateQueriesClient();
   const { execute, isLoading } = useAsyncAction();
+  const { isSeller } = useUserData();
 
   const byFactory = {
     first: 200,
@@ -77,28 +86,36 @@ export function useLinkClient({
       skip: !open,
     });
 
-  const linkedClientIds = useMemo(
-    () =>
-      new Set(
-        existingData?.sellerClientFactoryList?.edges?.map(
-          ({ node }) => node.clientId
-        ) ?? []
-      ),
-    [existingData]
-  );
+  /** Quem atende cada cliente nesta fábrica hoje (um vendedor por cliente). */
+  const assignmentByClient = useMemo(() => {
+    const map = new Map<string, { sellerId: string; sellerName: string }>();
+    for (const { node } of existingData?.sellerClientFactoryList?.edges ?? []) {
+      map.set(node.clientId, {
+        sellerId: node.sellerId,
+        sellerName: node.seller?.name ?? "outro vendedor",
+      });
+    }
+    return map;
+  }, [existingData]);
 
+  // Cliente já vinculado continua na lista, com o nome de quem atende: o
+  // vendedor pode ter saído da empresa ou deixado de atender esta fábrica, e
+  // esconder o cliente deixava a troca impossível pela tela.
   const clientOptions = useMemo(
     () =>
       clientsData?.companyClients?.edges
-        ?.filter(
-          ({ node }) =>
-            node.isActive && node.client && !linkedClientIds.has(node.client.id)
-        )
-        .map(({ node }) => ({
-          label: node.client!.nomeFantasia || node.client!.razaoSocial,
-          value: node.client!.id,
-        })) ?? [],
-    [clientsData, linkedClientIds]
+        ?.filter(({ node }) => node.isActive && node.client)
+        .map(({ node }) => {
+          const name = node.client!.nomeFantasia || node.client!.razaoSocial;
+          const current = assignmentByClient.get(node.client!.id);
+          return {
+            label: current
+              ? `${name} — atendido por ${current.sellerName}`
+              : name,
+            value: node.client!.id,
+          };
+        }) ?? [],
+    [clientsData, assignmentByClient]
   );
 
   const sellerOptions = useMemo(
@@ -139,6 +156,10 @@ export function useLinkClient({
                     : "Selecione o cliente",
                 required: true,
                 options: clientOptions,
+                onChange: (value: unknown) => {
+                  const selected = value as { value: string } | null;
+                  setSelectedClientId(selected?.value ?? null);
+                },
               },
               {
                 name: "sellerId",
@@ -150,6 +171,10 @@ export function useLinkClient({
                     : "Selecione o vendedor",
                 required: true,
                 options: sellerOptions,
+                onChange: (value: unknown) => {
+                  const selected = value as { value: string } | null;
+                  setSelectedSellerId(selected?.value ?? null);
+                },
               },
               {
                 name: "priceTierId",
@@ -182,44 +207,79 @@ export function useLinkClient({
     CREATE_SELLER_CLIENT_FACTORY_MUTATION
   );
 
-  const handleSubmit = async (data: Record<string, unknown>) => {
+  // O cliente escolhido já é de OUTRO vendedor nesta fábrica: salvar transfere
+  // o atendimento, e isso é confirmado antes.
+  const currentAssignment = selectedClientId
+    ? (assignmentByClient.get(selectedClientId) ?? null)
+    : null;
+  const isTakeover = Boolean(
+    currentAssignment &&
+    selectedSellerId &&
+    currentAssignment.sellerId !== selectedSellerId
+  );
+  // Tomar a carteira de um colega é decisão de gestor (o backend também barra).
+  const canTransfer = !isSeller;
+
+  /** Chamada crua da mutation: LANÇA no erro (quem chama decide o feedback). */
+  const runLink = async (
+    data: Record<string, unknown>,
+    transferFromCurrentSeller: boolean
+  ) => {
     const clientId = extractSelectValue(data.clientId);
     const sellerId = extractSelectValue(data.sellerId);
     const priceTierId = extractSelectValue(data.priceTierId);
     const priority = extractSelectValue(data.priority);
-    if (!clientId || !sellerId || !priceTierId) return;
+    if (!clientId || !sellerId || !priceTierId) return null;
 
     const input: Record<string, unknown> = {
       clientId,
       sellerId,
       factoryId,
       priceTierId,
+      transferFromCurrentSeller,
       ...(priority ? { priority } : {}),
     };
 
-    await execute(
-      async () => {
-        const res = await linkClient({ variables: { input } });
-        if (!res.data?.createSellerClientFactory?.status) {
-          throw new Error(
-            res.data?.createSellerClientFactory?.message ??
-              "Erro ao vincular cliente"
-          );
-        }
-        return res.data.createSellerClientFactory.data;
-      },
-      {
-        successMessage: "Cliente vinculado com sucesso",
-        onSuccess: async () => {
-          setOpen(false);
-          formRef.current?.resetForm();
-          await invalidateClient([
-            "factory_client_links",
-            "sellerClientFactoryList",
-          ]);
-        },
-      }
-    );
+    const res = await linkClient({ variables: { input } });
+    if (!res.data?.createSellerClientFactory?.status) {
+      throw new Error(
+        res.data?.createSellerClientFactory?.message ??
+          "Erro ao vincular cliente"
+      );
+    }
+    return res.data.createSellerClientFactory.data;
+  };
+
+  const finishLink = async () => {
+    setPendingTransfer(null);
+    setSelectedClientId(null);
+    setSelectedSellerId(null);
+    setOpen(false);
+    formRef.current?.resetForm();
+    await invalidateClient(["factory_client_links", "sellerClientFactoryList"]);
+  };
+
+  const handleSubmit = async (data: Record<string, unknown>) => {
+    if (isTakeover) {
+      if (!canTransfer) return;
+      setPendingTransfer(data);
+      return;
+    }
+    await execute(() => runLink(data, false), {
+      successMessage: "Cliente vinculado com sucesso",
+      onSuccess: finishLink,
+    });
+  };
+
+  /**
+   * Confirmou a transferência: reenvia o mesmo formulário autorizando a troca.
+   * Sem `execute` aqui — o loading e o toast são do ConfirmModal, e envolver os
+   * dois engoliria o erro, fechando a confirmação como se tivesse dado certo.
+   */
+  const confirmTransfer = async () => {
+    if (!pendingTransfer) return;
+    await runLink(pendingTransfer, true);
+    await finishLink();
   };
 
   useQueryErrorToast(
@@ -227,5 +287,30 @@ export function useLinkClient({
     "Não foi possível carregar as opções. Tente novamente."
   );
 
-  return { open, setOpen, formRef, formSteps, handleSubmit, isLoading };
+  return {
+    open,
+    setOpen: (v: boolean) => {
+      setOpen(v);
+      if (!v) {
+        setSelectedClientId(null);
+        setSelectedSellerId(null);
+        setPendingTransfer(null);
+      }
+    },
+    formRef,
+    formSteps,
+    handleSubmit,
+    isLoading,
+    /** O cliente escolhido já é atendido por outro vendedor nesta fábrica. */
+    isTakeover,
+    canTransfer,
+    currentSellerName: currentAssignment?.sellerName ?? null,
+    newSellerName:
+      sellerOptions.find((opt) => opt.value === selectedSellerId)?.label ??
+      null,
+    /** Confirmação da transferência aberta (usuário mandou salvar). */
+    confirmOpen: pendingTransfer !== null,
+    closeConfirm: () => setPendingTransfer(null),
+    confirmTransfer,
+  };
 }

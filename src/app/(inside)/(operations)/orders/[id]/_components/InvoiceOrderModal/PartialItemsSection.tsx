@@ -72,6 +72,13 @@ export function PartialItemsSection({
                     >
                       {it.product?.name ?? "—"}
                     </Title>
+                    {/* O código vem antes da quantidade: é por ele que o vendedor
+                        acha a linha na nota da fábrica. */}
+                    {it.product?.sku && (
+                      <Title variant="body-xs" color="muted">
+                        Código {it.product.sku}
+                      </Title>
+                    )}
                     <Title variant="body-xs" color="muted">
                       Pedido: {formatNumber(ordered)} un
                       {missing > 0 && (

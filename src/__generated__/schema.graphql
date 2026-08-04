@@ -1,6 +1,6 @@
 # AUTO-GERADO por scripts/pull-schema.mjs — NÃO editar à mão.
 # Snapshot do schema do backend (app_user). Atualize com: npm run schema:pull
-# Fonte: 43 arquivos .graphql merge-ados (mesma regra do Ariadne).
+# Fonte: 44 arquivos .graphql merge-ados (mesma regra do Ariadne).
 
 input BaseListInput {
   filters: [FieldFilterInput!] = null
@@ -2096,6 +2096,31 @@ input InvoiceOrderInput {
   cancelRemainder: Boolean = false
 }
 
+"""
+Correção de um faturamento JÁ lançado (data errada, prazo errado, entrega
+digitada errada). Campo ausente = mantém o que está gravado; para APAGAR um
+valor use o `clear*` correspondente. Mudar a data ou o prazo REFAZ as parcelas:
+quando a quantidade de parcelas continua a mesma, as baixas já lançadas são
+preservadas; quando muda, é preciso confirmar com `force`. Para corrigir as
+QUANTIDADES faturadas (faturou cheio e foi parcial), use `uninvoiceOrder` e
+fature de novo.
+"""
+input ReviseOrderInvoiceInput {
+  invoicedAt: Date = null
+  paymentTermId: UUID = null
+  """Deixa o pedido SEM prazo (à vista). Só em fábrica que paga comissão no faturamento."""
+  clearPaymentTerm: Boolean = false
+  deliveryEstimateDays: Int = null
+  """Remove a previsão de entrega (pedido sem prazo estimado)."""
+  clearDeliveryEstimate: Boolean = false
+  """Corrige a data em que a mercadoria chegou. Só para pedido já entregue."""
+  deliveredAt: Date = null
+  """Desfaz uma entrega marcada por engano: volta para faturado, aguardando entrega."""
+  clearDelivery: Boolean = false
+  """Autoriza refazer as parcelas mesmo apagando baixas de pagamento/comissão."""
+  force: Boolean = false
+}
+
 input InvoiceOrderItemInput {
   orderItemId: UUID!
   """Quantidade faturada em unidades; 0 ≤ faturada ≤ quantidade pedida do item."""
@@ -2146,6 +2171,10 @@ extend type Mutation {
   updateOrder(id: UUID!, input: UpdateOrderInput!): OrderTypeDataResponse!
   deleteOrder(id: UUID!): BaseResponse!
   invoiceOrder(id: UUID!, input: InvoiceOrderInput!): OrderTypeDataResponse!
+  """Corrige os dados de um faturamento já lançado (data, prazo, previsão e data de entrega), refazendo as parcelas quando a data ou o prazo mudam."""
+  reviseOrderInvoice(id: UUID!, input: ReviseOrderInvoiceInput!): OrderTypeDataResponse!
+  """Desfaz o faturamento para lançá-lo de novo: apaga as parcelas, traz o restante (backorder) de volta ao pedido e devolve o status para CONFIRMADO. `force` autoriza apagar baixas de pagamento/comissão já lançadas."""
+  uninvoiceOrder(id: UUID!, force: Boolean = false): OrderTypeDataResponse!
   """Confirma a entrega de um pedido faturado: status → DELIVERED e reabastece o estoque do cliente usando a data real de chegada."""
   markOrderDelivered(id: UUID!, deliveredAt: Date!): OrderTypeDataResponse!
   payOrderInstallment(id: UUID!, paidAt: Date!): OrderInstallmentTypeDataResponse!
@@ -2609,6 +2638,13 @@ input CreateSellerClientFactoryInput {
   visitFrequencyDays: Int = null
   notes: String = null
   lastVisitDate: DateTime = null
+  """
+  Assume um vínculo que já é de OUTRO vendedor (ele saiu, deixou de atender esta
+  fábrica...). O atendimento passa para o vendedor informado e as visitas ainda
+  pendentes vão para a agenda dele; pedidos, comissões e visitas já concluídas
+  continuam no histórico do vendedor anterior. Só gestor pode transferir.
+  """
+  transferFromCurrentSeller: Boolean = false
 }
 
 type SellerClientFactoryType {
@@ -2675,6 +2711,12 @@ input UpdateSellerClientFactoryInput {
 extend type Query {
   sellerClientFactoryList(input: BaseListInput!): SellerClientFactoryTypeConnectionResponse!
   sellerClientFactory(id: UUID!): SellerClientFactoryTypeDataResponse!
+  """
+  Vínculo ATIVO deste cliente nesta fábrica, seja de qual vendedor for (não
+  respeita o recorte de carteira: é justamente para descobrir que o cliente já é
+  de um colega antes de tentar vincular). `data` nulo = fábrica livre.
+  """
+  clientFactoryAssignment(clientId: UUID!, factoryId: UUID!): SellerClientFactoryTypeDataResponse!
 }
 
 extend type Mutation {
@@ -2739,6 +2781,97 @@ extend type Mutation {
   createSellerFactoryAccess(input: CreateSellerFactoryAccessInput!): SellerFactoryAccessTypeDataResponse!
   updateSellerFactoryAccess(id: UUID!, input: UpdateSellerFactoryAccessInput!): SellerFactoryAccessTypeDataResponse!
   deleteSellerFactoryAccess(id: UUID!): BaseResponse!
+}
+
+"""
+Meta mensal de um vendedor em UMA fábrica. A meta do vendedor no mês é a soma
+das fábricas dele. Alvo nulo = indicador não acompanhado (≠ zero).
+"""
+type SellerGoalType {
+  id: UUID!
+  companyId: UUID!
+  sellerId: UUID!
+  factoryId: UUID!
+  """Sempre o dia 1 do mês da meta."""
+  periodMonth: Date!
+  """Meta de faturamento (R$): o que a fábrica faturar no mês."""
+  targetInvoicedAmount: Decimal
+  """Meta de venda (R$): pedidos lançados no mês, faturados ou não."""
+  targetOrderedAmount: Decimal
+  """Meta de positivação: clientes distintos que compram no mês."""
+  targetPositivations: Int
+  """Meta de visitas presenciais concluídas no mês."""
+  targetVisits: Int
+  createdAt: DateTime!
+  updatedAt: DateTime!
+  deletedAt: DateTime
+  seller: SellerType
+  factory: FactoryType
+}
+
+"""
+Uma linha do acompanhamento do mês: a meta (quando existe) ao lado do realizado.
+Pares que venderam SEM meta definida também aparecem, com `goalId` nulo.
+"""
+type SellerGoalRowType {
+  """Nulo quando o vendedor movimentou a fábrica no mês mas não tem meta definida."""
+  goalId: UUID
+  sellerId: UUID!
+  factoryId: UUID!
+  periodMonth: Date!
+  seller: SellerType
+  factory: FactoryType
+  targetInvoicedAmount: Decimal
+  targetOrderedAmount: Decimal
+  targetPositivations: Int
+  targetVisits: Int
+  """Faturado no mês pela data em que a fábrica faturou (a mesma que move a comissão)."""
+  invoicedAmount: Decimal!
+  """Vendido no mês pela data do pedido (orçamento e cancelado ficam de fora)."""
+  orderedAmount: Decimal!
+  """Clientes distintos que compraram no mês."""
+  positivations: Int!
+  """Visitas presenciais concluídas no mês."""
+  visits: Int!
+}
+
+type SellerGoalOverviewType {
+  periodMonth: Date!
+  rows: [SellerGoalRowType!]!
+}
+
+type SellerGoalTypeDataResponse {
+  status: Boolean!
+  code: Int!
+  message: String!
+  data: SellerGoalType
+}
+
+input SetSellerGoalInput {
+  sellerId: UUID!
+  factoryId: UUID!
+  """Qualquer dia do mês da meta; é normalizado para o dia 1."""
+  periodMonth: Date!
+  targetInvoicedAmount: Decimal = null
+  targetOrderedAmount: Decimal = null
+  targetPositivations: Int = null
+  targetVisits: Int = null
+}
+
+extend type Query {
+  """
+  Metas e realizado de um mês. Vendedor enxerga só as próprias metas; gestor vê
+  a empresa toda, ou um vendedor específico com `sellerId`.
+  """
+  sellerGoals(periodMonth: Date!, sellerId: UUID = null): SellerGoalOverviewType!
+}
+
+extend type Mutation {
+  """Define ou atualiza a meta de um vendedor numa fábrica, num mês (admin)."""
+  setSellerGoal(input: SetSellerGoalInput!): SellerGoalTypeDataResponse!
+  deleteSellerGoal(id: UUID!): BaseResponse!
+  """Repete as metas de um mês no outro. Só preenche o que falta, a não ser com `overwrite`."""
+  copySellerGoals(fromMonth: Date!, toMonth: Date!, sellerId: UUID = null, overwrite: Boolean = false): BaseResponse!
 }
 
 input CreateSellerInput {

@@ -1,5 +1,6 @@
 import { FormBuilderRef, FormStepSchema } from "@/components/FormBuilder";
 import { useAsyncAction } from "@/hooks/useAsyncAction";
+import { useClientFactoryAssignment } from "@/hooks/useClientFactoryAssignment";
 import { useUserData } from "@/hooks/useUserData";
 import { useMutation } from "@apollo/client/react";
 import { useEffect, useMemo, useRef, useState } from "react";
@@ -136,7 +137,31 @@ export function useLinkFactory({
     CREATE_SELLER_CLIENT_FACTORY_MUTATION
   );
 
-  const handleSubmit = async (data: Record<string, unknown>) => {
+  // Cada cliente tem UM vendedor por fábrica. Se a fábrica escolhida já é de um
+  // colega, salvar não cria um segundo vínculo: transfere o atendimento — e isso
+  // precisa ser dito antes, não virar um erro no fim do formulário.
+  const effectiveSellerId = isSeller && sellerId ? sellerId : selectedSellerId;
+  const { currentSellerName, isTakeover } = useClientFactoryAssignment({
+    clientId,
+    factoryId: selectedFactoryId,
+    sellerId: effectiveSellerId,
+    enabled: open,
+  });
+
+  // Dados do formulário guardados enquanto o usuário confirma a transferência.
+  const [pendingTransfer, setPendingTransfer] = useState<Record<
+    string,
+    unknown
+  > | null>(null);
+
+  const newSellerName =
+    sellerOptions.find((opt) => opt.value === effectiveSellerId)?.label ?? null;
+
+  /** Chamada crua da mutation: LANÇA no erro (quem chama decide o feedback). */
+  const runLink = async (
+    data: Record<string, unknown>,
+    transferFromCurrentSeller: boolean
+  ) => {
     // Vendedor: o form não tem campo "Vendedor", então injeta o próprio perfil.
     const normalized = normalizeLinkFactoryInput(
       data,
@@ -144,31 +169,52 @@ export function useLinkFactory({
       isSeller && sellerId ? sellerId : undefined
     );
 
-    await execute(
-      async () => {
-        const res = await linkFactory({
-          variables: { input: normalized },
-        });
+    const res = await linkFactory({
+      variables: { input: { ...normalized, transferFromCurrentSeller } },
+    });
 
-        if (!res.data?.createSellerClientFactory?.status) {
-          throw new Error(
-            res.data?.createSellerClientFactory?.message ?? "Erro ao vincular"
-          );
-        }
+    if (!res.data?.createSellerClientFactory?.status) {
+      throw new Error(
+        res.data?.createSellerClientFactory?.message ?? "Erro ao vincular"
+      );
+    }
 
-        return res.data.createSellerClientFactory.data;
-      },
-      {
-        successMessage: "Vínculo criado com sucesso",
-        onSuccess: () => {
-          setOpen(false);
-          setSelectedSellerId(null);
-          setSelectedFactoryId(null);
-          formRef.current?.resetForm();
-          onSuccess?.();
-        },
-      }
-    );
+    return res.data.createSellerClientFactory.data;
+  };
+
+  const finishLink = () => {
+    setPendingTransfer(null);
+    setOpen(false);
+    setSelectedSellerId(null);
+    setSelectedFactoryId(null);
+    formRef.current?.resetForm();
+    onSuccess?.();
+  };
+
+  // Tomar a carteira de um colega é decisão de gestor (o backend também barra).
+  const canTransfer = !isSeller;
+
+  const handleSubmit = async (data: Record<string, unknown>) => {
+    if (isTakeover) {
+      if (!canTransfer) return;
+      setPendingTransfer(data);
+      return;
+    }
+    await execute(() => runLink(data, false), {
+      successMessage: "Vínculo criado com sucesso",
+      onSuccess: finishLink,
+    });
+  };
+
+  /**
+   * Confirmou a transferência: reenvia o mesmo formulário autorizando a troca.
+   * Sem `execute` aqui — o loading e o toast são do ConfirmModal, e envolver os
+   * dois engoliria o erro, fechando a confirmação como se tivesse dado certo.
+   */
+  const confirmTransfer = async () => {
+    if (!pendingTransfer) return;
+    await runLink(pendingTransfer, true);
+    finishLink();
   };
 
   const handleOpenChange = (v: boolean) => {
@@ -176,6 +222,7 @@ export function useLinkFactory({
     if (!v) {
       setSelectedSellerId(null);
       setSelectedFactoryId(null);
+      setPendingTransfer(null);
     }
   };
 
@@ -186,5 +233,14 @@ export function useLinkFactory({
     formSteps,
     handleSubmit,
     isLoading,
+    /** A fábrica escolhida já é atendida por outro vendedor. */
+    isTakeover,
+    canTransfer,
+    currentSellerName,
+    newSellerName,
+    /** Confirmação da transferência aberta (usuário mandou salvar). */
+    confirmOpen: pendingTransfer !== null,
+    closeConfirm: () => setPendingTransfer(null),
+    confirmTransfer,
   };
 }

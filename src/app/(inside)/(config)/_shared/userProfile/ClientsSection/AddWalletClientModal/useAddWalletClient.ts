@@ -1,5 +1,7 @@
 import { FormBuilderRef, FormStepSchema } from "@/components/FormBuilder";
+import { useClientFactoryAssignment } from "@/hooks/useClientFactoryAssignment";
 import { useQueryErrorToast } from "@/hooks/useQueryErrorToast";
+import { useUserData } from "@/hooks/useUserData";
 import { useAsyncAction } from "@/hooks/useAsyncAction";
 import { clientName, factoryName } from "@/utils/company";
 import { extractSelectValue } from "@/utils/form";
@@ -34,6 +36,13 @@ export function useAddWalletClient({
   const [open, setOpen] = useState(false);
   const formRef = useRef<FormBuilderRef>(null);
   const [selectedFactoryId, setSelectedFactoryId] = useState("");
+  const [selectedClientId, setSelectedClientId] = useState("");
+  // Dados do formulário guardados enquanto o usuário confirma a transferência.
+  const [pendingTransfer, setPendingTransfer] = useState<Record<
+    string,
+    unknown
+  > | null>(null);
+  const { isSeller } = useUserData();
 
   const bySeller = {
     first: 200,
@@ -155,6 +164,7 @@ export function useAddWalletClient({
                 options: factoryOptions,
                 onChange: (_value, setValue) => {
                   setSelectedFactoryId(extractSelectValue(_value));
+                  setSelectedClientId("");
                   setValue("clientId", null);
                   setValue("priceTierId", null);
                 },
@@ -170,6 +180,9 @@ export function useAddWalletClient({
                     ? "Nenhum cliente disponível para esta fábrica"
                     : "Selecione o cliente",
                 options: clientOptions,
+                onChange: (_value) => {
+                  setSelectedClientId(extractSelectValue(_value));
+                },
               },
               {
                 name: "priceTierId",
@@ -199,10 +212,27 @@ export function useAddWalletClient({
     if (!v) {
       formRef.current?.resetForm();
       setSelectedFactoryId("");
+      setSelectedClientId("");
+      setPendingTransfer(null);
     }
   };
 
-  const handleSubmit = async (data: Record<string, unknown>) => {
+  // O cliente escolhido pode já ser de OUTRO vendedor nesta fábrica: cada par
+  // cliente+fábrica tem um responsável só, então salvar seria transferir.
+  const { currentSellerName, isTakeover } = useClientFactoryAssignment({
+    clientId: selectedClientId || null,
+    factoryId: selectedFactoryId || null,
+    sellerId,
+    enabled: open,
+  });
+  // Tomar a carteira de um colega é decisão de gestor (o backend também barra).
+  const canTransfer = !isSeller;
+
+  /** Chamada crua da mutation: LANÇA no erro (quem chama decide o feedback). */
+  const runLink = async (
+    data: Record<string, unknown>,
+    transferFromCurrentSeller: boolean
+  ) => {
     const factoryId = extractSelectValue(data.factoryId);
     const clientId = extractSelectValue(data.clientId);
     const priceTierId = extractSelectValue(data.priceTierId);
@@ -211,29 +241,51 @@ export function useAddWalletClient({
       throw new Error("Selecione a fábrica, o cliente e o nível.");
     }
 
-    await execute(
-      async () => {
-        const res = await createLink({
-          variables: {
-            input: { sellerId, factoryId, clientId, priceTierId },
-          },
-        });
-        if (!res.data?.createSellerClientFactory?.status) {
-          throw new Error(
-            res.data?.createSellerClientFactory?.message ??
-              "Erro ao adicionar cliente"
-          );
-        }
-        return res.data.createSellerClientFactory;
-      },
-      {
-        successMessage: "Cliente adicionado à carteira",
-        onSuccess: () => {
-          onAdded();
-          handleClose(false);
+    const res = await createLink({
+      variables: {
+        input: {
+          sellerId,
+          factoryId,
+          clientId,
+          priceTierId,
+          transferFromCurrentSeller,
         },
-      }
-    );
+      },
+    });
+    if (!res.data?.createSellerClientFactory?.status) {
+      throw new Error(
+        res.data?.createSellerClientFactory?.message ??
+          "Erro ao adicionar cliente"
+      );
+    }
+    return res.data.createSellerClientFactory;
+  };
+
+  const handleSubmit = async (data: Record<string, unknown>) => {
+    if (isTakeover) {
+      if (!canTransfer) return;
+      setPendingTransfer(data);
+      return;
+    }
+    await execute(() => runLink(data, false), {
+      successMessage: "Cliente adicionado à carteira",
+      onSuccess: () => {
+        onAdded();
+        handleClose(false);
+      },
+    });
+  };
+
+  /**
+   * Confirmou a transferência: reenvia o mesmo formulário autorizando a troca.
+   * Sem `execute` aqui — o loading e o toast são do ConfirmModal, e envolver os
+   * dois engoliria o erro, fechando a confirmação como se tivesse dado certo.
+   */
+  const confirmTransfer = async () => {
+    if (!pendingTransfer) return;
+    await runLink(pendingTransfer, true);
+    onAdded();
+    handleClose(false);
   };
 
   useQueryErrorToast(
@@ -245,5 +297,20 @@ export function useAddWalletClient({
     "Não foi possível carregar as opções. Tente novamente."
   );
 
-  return { open, handleClose, formRef, steps, handleSubmit, isLoading };
+  return {
+    open,
+    handleClose,
+    formRef,
+    steps,
+    handleSubmit,
+    isLoading,
+    /** O cliente escolhido já é atendido por outro vendedor nesta fábrica. */
+    isTakeover,
+    canTransfer,
+    currentSellerName,
+    /** Confirmação da transferência aberta (usuário mandou salvar). */
+    confirmOpen: pendingTransfer !== null,
+    closeConfirm: () => setPendingTransfer(null),
+    confirmTransfer,
+  };
 }
