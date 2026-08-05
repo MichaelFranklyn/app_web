@@ -2,14 +2,15 @@
 
 import { Badge } from "@/components/Badges";
 import { EmptyState } from "@/components/EmptyState";
-import { InputSearch } from "@/components/Input";
+import { Filters, FilterField } from "@/components/Filters";
 import { Table } from "@/components/Table";
 import { useInvalidateQueriesClient } from "@/hooks/useInvalidateQueries";
+import { useLocalTable, LocalField } from "@/hooks/useLocalTable";
 import { useOptimisticList } from "@/hooks/useOptimisticList";
 import { formatMoney, formatNumber } from "@/utils/format/masks";
 import { useQuery } from "@apollo/client/react";
 import { Package, SearchX, Zap } from "lucide-react";
-import { useMemo, useState } from "react";
+import { useMemo } from "react";
 import { OrderItem, OrderItemsResponse } from "../../interface";
 import {
   byCreatedAtAsc,
@@ -21,6 +22,34 @@ import { DeleteOrderItemModal } from "./DeleteOrderItemModal";
 import { EditOrderItemModal } from "./EditOrderItemModal";
 import { ImportOrderModal } from "./ImportOrderModal";
 import { ORDER_ITEMS_QUERY } from "./gql";
+
+/**
+ * Colunas ordenáveis. Todo valor de dinheiro/quantidade chega como STRING do
+ * backend (Numeric), então o `Number` não é enfeite: sem ele "1000" viria antes
+ * de "300", que é a comparação de texto dígito a dígito.
+ */
+const ITEM_COLUMNS = {
+  product: (item: OrderItem) => item.product?.name,
+  tier: (item: OrderItem) => item.tier?.name,
+  // O que a célula mostra é `quantity`; ordenar por `unitsTotal` faria a
+  // coluna reordenar por um número que não está na tela.
+  units: (item: OrderItem) => Number(item.quantity),
+  unitPrice: (item: OrderItem) => Number(item.unitPrice),
+  unitPriceWithTax: (item: OrderItem) => Number(item.unitPriceWithTax),
+  discount: (item: OrderItem) => Number(item.discount),
+  ipiRate: (item: OrderItem) => Number(item.ipiRate),
+  taxAmount: (item: OrderItem) => Number(item.taxAmount),
+  subtotal: (item: OrderItem) => Number(item.subtotal),
+};
+
+const ITEM_FIELDS: Record<string, LocalField<OrderItem>> = {
+  // Casa por trecho do código (SKU) OU do nome, sem acento.
+  search: {
+    type: "text",
+    match: (item, value) => matchesProductSearch(item.product, value),
+  },
+  tierId: { type: "select", match: (item, value) => item.tier?.id === value },
+};
 
 // A partir de quantos itens a busca aparece — abaixo disso a lista cabe na tela
 // (mesma ordem de grandeza do maxHeight da tabela) e o campo só polui o cabeçalho.
@@ -62,24 +91,56 @@ export function OrderItemsTable({
   // Imposto, Subtotal, Ações — mais Alíq. IPI nas fábricas com IPI no pedido.
   const columns = ipiInOrder ? 10 : 9;
 
-  const [search, setSearch] = useState("");
-
   // Ordem de criação, do mais antigo para o mais novo. A importação grava um
   // item por vez (commit por linha), então o created_at cresce na ordem da
   // planilha — a tabela mostra os itens na MESMA ordem do arquivo enviado.
-  // Itens adicionados à mão depois entram no fim da lista.
+  // Itens adicionados à mão depois entram no fim da lista. Esta continua sendo
+  // a ordem BASE: ordenar por uma coluna a substitui, e o 3º clique a devolve.
   const displayedItems = useMemo(
     () => [...items].sort(byCreatedAtAsc),
     [items]
   );
 
-  // Filtro por código (SKU) OU nome do produto — casa por trecho, sem acento.
-  const filteredItems = useMemo(
+  const table = useLocalTable<OrderItem>({
+    items: displayedItems,
+    columns: ITEM_COLUMNS,
+    fields: ITEM_FIELDS,
+  });
+  const filteredItems = table.displayedData;
+
+  const tierOptions = useMemo(
     () =>
-      displayedItems.filter((item) =>
-        matchesProductSearch(item.product, search)
-      ),
-    [displayedItems, search]
+      [
+        ...new Map(
+          items
+            .filter((item) => item.tier)
+            .map((item) => [item.tier!.id, item.tier!.name])
+        ).entries(),
+      ]
+        .map(([value, label]) => ({ value, label }))
+        .sort((a, b) => a.label.localeCompare(b.label, "pt-BR")),
+    [items]
+  );
+
+  const filterFields = useMemo<FilterField[]>(
+    () => [
+      {
+        type: "text",
+        key: "search",
+        label: "Produto",
+        placeholder: "Código ou nome do produto",
+      },
+      {
+        type: "select",
+        key: "tierId",
+        label: "Tabela",
+        placeholder: "Todas as tabelas",
+        options: tierOptions,
+        // Um pedido de tabela única não tem o que escolher aqui.
+        hidden: tierOptions.length < 2,
+      },
+    ],
+    [tierOptions]
   );
 
   const showSearch = items.length > SEARCH_THRESHOLD;
@@ -111,16 +172,16 @@ export function OrderItemsTable({
   };
 
   return (
-    <Table.Root>
+    <Table.Root sort={table.sort}>
       <Table.CardHead>
         <Table.CardHead.Title>Itens do pedido</Table.CardHead.Title>
         <Table.CardHead.Actions>
           {showSearch && (
-            <InputSearch
-              size="sm"
-              placeholder="Buscar por código ou nome..."
-              value={search}
-              onChange={(e) => setSearch(e.target.value)}
+            <Filters
+              fields={filterFields}
+              values={table.inputValues}
+              onChange={table.setFilters}
+              onTextChange={table.setFilter}
             />
           )}
           <Badge.Root color="neutral" appearance="tinted">
@@ -149,15 +210,35 @@ export function OrderItemsTable({
       <Table.Table maxHeight={520}>
         <Table.Header>
           <Table.Row>
-            <Table.Head>Produto</Table.Head>
-            <Table.Head>Tabela</Table.Head>
-            <Table.Head>Qtd (unidades)</Table.Head>
-            <Table.Head>Preço sem imposto</Table.Head>
-            <Table.Head>Preço com imposto</Table.Head>
-            <Table.Head>Desconto</Table.Head>
-            {ipiInOrder && <Table.Head>Alíq. IPI</Table.Head>}
-            <Table.Head>Imposto</Table.Head>
-            <Table.Head>Subtotal{ipiInOrder ? " (sem IPI)" : ""}</Table.Head>
+            <Table.Head sortKey="product">Produto</Table.Head>
+            <Table.Head sortKey="tier">Tabela</Table.Head>
+            <Table.Head sortKey="units" sortFirst="desc" align="right">
+              Qtd (unidades)
+            </Table.Head>
+            <Table.Head sortKey="unitPrice" sortFirst="desc" align="right">
+              Preço sem imposto
+            </Table.Head>
+            <Table.Head
+              sortKey="unitPriceWithTax"
+              sortFirst="desc"
+              align="right"
+            >
+              Preço com imposto
+            </Table.Head>
+            <Table.Head sortKey="discount" sortFirst="desc" align="right">
+              Desconto
+            </Table.Head>
+            {ipiInOrder && (
+              <Table.Head sortKey="ipiRate" sortFirst="desc" align="right">
+                Alíq. IPI
+              </Table.Head>
+            )}
+            <Table.Head sortKey="taxAmount" sortFirst="desc" align="right">
+              Imposto
+            </Table.Head>
+            <Table.Head sortKey="subtotal" sortFirst="desc" align="right">
+              Subtotal{ipiInOrder ? " (sem IPI)" : ""}
+            </Table.Head>
             <Table.Head className="text-right">Ações</Table.Head>
           </Table.Row>
         </Table.Header>
@@ -189,8 +270,7 @@ export function OrderItemsTable({
                   </EmptyState.Icon>
                   <EmptyState.Title>Nenhum item encontrado</EmptyState.Title>
                   <EmptyState.Description>
-                    Nenhum item deste pedido tem o código ou nome &quot;{search}
-                    &quot;.
+                    Nenhum item deste pedido casa com os filtros aplicados.
                   </EmptyState.Description>
                 </EmptyState.Root>
               </Table.Cell>
@@ -219,22 +299,22 @@ export function OrderItemsTable({
                   </div>
                 </Table.Cell>
                 <Table.Cell variant="dim">{item.tier?.name ?? "—"}</Table.Cell>
-                <Table.Cell variant="strong">
+                <Table.Cell variant="strong" align="right">
                   {formatNumber(Number(item.quantity))}
                 </Table.Cell>
-                <Table.Cell variant="dim">
+                <Table.Cell variant="dim" align="right">
                   {formatMoney(item.unitPrice)}
                 </Table.Cell>
-                <Table.Cell variant="strong">
+                <Table.Cell variant="strong" align="right">
                   {formatMoney(item.unitPriceWithTax)}
                 </Table.Cell>
-                <Table.Cell variant="dim">
+                <Table.Cell variant="dim" align="right">
                   {parseFloat(item.discount) > 0
                     ? formatMoney(item.discount)
                     : "—"}
                 </Table.Cell>
                 {ipiInOrder && (
-                  <Table.Cell variant="dim">
+                  <Table.Cell variant="dim" align="right">
                     {parseFloat(item.ipiRate) > 0 ? (
                       <div className="flex flex-col">
                         <Table.CellText variant="strong">
@@ -249,7 +329,7 @@ export function OrderItemsTable({
                     )}
                   </Table.Cell>
                 )}
-                <Table.Cell variant="dim">
+                <Table.Cell variant="dim" align="right">
                   {parseFloat(item.taxAmount) > 0 ? (
                     <div className="flex flex-col">
                       <Table.CellText variant="strong">
@@ -263,7 +343,7 @@ export function OrderItemsTable({
                     "—"
                   )}
                 </Table.Cell>
-                <Table.Cell variant="strong">
+                <Table.Cell variant="strong" align="right">
                   {formatMoney(Number(item.subtotal) + Number(item.taxAmount))}
                 </Table.Cell>
                 <Table.Cell>

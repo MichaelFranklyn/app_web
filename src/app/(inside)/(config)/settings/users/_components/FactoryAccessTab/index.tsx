@@ -3,6 +3,7 @@
 import { Avatar } from "@/components/Avatar";
 import { Badge } from "@/components/Badges";
 import { EmptyState } from "@/components/EmptyState";
+import { Filters } from "@/components/Filters";
 import { Loading } from "@/components/Loading";
 import { Pagination } from "@/components/Pagination";
 import { QueryError } from "@/components/QueryError";
@@ -16,15 +17,25 @@ import { AccessRowActions } from "./AccessRowActions";
 import { AddAccessModal } from "./AddAccessModal";
 import { SELLER_FACTORY_ACCESS_LIST_QUERY } from "./gql";
 import { QueryData, SellerFactoryAccess } from "./interface";
+import {
+  ACCESS_SORTABLE_FIELDS,
+  ACCESS_TABLE_FIELDS,
+  useAccessFilters,
+} from "./useAccessFilters";
 import { factoryName } from "@/utils/company";
 
 export function FactoryAccessTab() {
   const tableData = useTableData<QueryData, SellerFactoryAccess>({
     query: SELLER_FACTORY_ACCESS_LIST_QUERY,
-    fields: {},
+    fields: ACCESS_TABLE_FIELDS,
     getConnection: (data) => data.seller_factory_access_list,
     itemsPerPage: 10,
+    sortableFields: ACCESS_SORTABLE_FIELDS,
+    // O `ListUseCase` ordena por `created_at desc` quando ninguém pede nada.
+    backendDefaultSort: { key: "created_at", direction: "desc" },
   });
+
+  const filterFields = useAccessFilters();
 
   const optimistic = useOptimisticList<SellerFactoryAccess>({
     initialData: tableData.displayedData,
@@ -35,10 +46,15 @@ export function FactoryAccessTab() {
   return (
     <Tabs.Content value="acessos">
       <div className="mt-16">
-        <Table.Root>
+        <Table.Root sort={tableData.sort}>
           <Table.CardHead>
             <Table.CardHead.Title>Acessos por Fábrica</Table.CardHead.Title>
             <Table.CardHead.Actions>
+              <Filters
+                fields={filterFields}
+                values={tableData.inputValues}
+                onChange={tableData.setFilters}
+              />
               <AddAccessModal onAddOptimistic={optimistic.addOptimistic} />
             </Table.CardHead.Actions>
           </Table.CardHead>
@@ -46,11 +62,15 @@ export function FactoryAccessTab() {
           <Table.Table>
             <Table.Header>
               <Table.Row>
+                {/* Vendedor, fábrica e quem concedeu vêm de tabelas vizinhas:
+                    dá para FILTRAR por id, mas não ordenar pelo nome. */}
                 <Table.Head>Vendedor</Table.Head>
                 <Table.Head>Fábrica</Table.Head>
                 <Table.Head>Concedido por</Table.Head>
-                <Table.Head>Data</Table.Head>
-                <Table.Head>Status</Table.Head>
+                <Table.Head sortKey="created_at" sortFirst="desc">
+                  Data
+                </Table.Head>
+                <Table.Head sortKey="is_active">Status</Table.Head>
                 <Table.Head />
               </Table.Row>
             </Table.Header>
@@ -74,8 +94,9 @@ export function FactoryAccessTab() {
                         Nenhum acesso encontrado
                       </EmptyState.Title>
                       <EmptyState.Description>
-                        Adicione um acesso para vincular um vendedor a uma
-                        fábrica.
+                        {Object.values(tableData.inputValues).some(Boolean)
+                          ? "Ajuste os filtros para encontrar o acesso."
+                          : "Adicione um acesso para vincular um vendedor a uma fábrica."}
                       </EmptyState.Description>
                     </EmptyState.Root>
                   </Table.Cell>

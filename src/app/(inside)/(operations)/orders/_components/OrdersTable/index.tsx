@@ -5,7 +5,7 @@ import { EmptyState } from "@/components/EmptyState";
 import { FilterField, Filters } from "@/components/Filters";
 import { Loading } from "@/components/Loading";
 import { Pagination } from "@/components/Pagination";
-import { Table } from "@/components/Table";
+import { Table, TableSort } from "@/components/Table";
 import { formatDateDMY, formatMoney } from "@/utils/format/masks";
 import { Receipt } from "lucide-react";
 import { Order } from "../../interface";
@@ -25,6 +25,8 @@ interface Props {
   setFilters: (patch: Record<string, string | undefined>) => void;
   /** Campos do painel "Filtros" (vendedor, fábrica, cliente, datas). */
   filterFields: FilterField[];
+  /** Ordenação da lista — vem do `useTableData` e desce até cada cabeçalho. */
+  sort: TableSort;
   /** Título do card — muda por aba (todos × aguardando faturamento). */
   title?: string;
   /** O que dizer quando a lista vem vazia, também por aba. */
@@ -41,13 +43,14 @@ export function OrdersTable({
   totalItems,
   inputValues,
   setFilters,
+  sort,
   filterFields,
   title = "Lista de pedidos",
   emptyTitle = "Nenhum pedido encontrado",
   emptyDescription = 'Use "Novo pedido" para registrar o primeiro pedido.',
 }: Props) {
   return (
-    <Table.Root data-tour="orders-table">
+    <Table.Root sort={sort} data-tour="orders-table">
       <Table.CardHead>
         <Table.CardHead.Title>{title}</Table.CardHead.Title>
         <Table.CardHead.Actions>
@@ -63,25 +66,35 @@ export function OrdersTable({
       <Table.Table>
         <Table.Header>
           <Table.Row>
+            {/* Pedido, cliente, fábrica e vendedor não ordenam: na tabela
+                `orders` os três últimos são o UUID da chave estrangeira. */}
             <Table.Head>Pedido</Table.Head>
             <Table.Head>Cliente</Table.Head>
             <Table.Head>Fábrica</Table.Head>
             <Table.Head>Vendedor</Table.Head>
-            {/* Duas datas na mesma tabela: "Data" sozinha ficaria ambígua. */}
-            <Table.Head>Data do pedido</Table.Head>
-            <Table.Head>Faturamento</Table.Head>
-            <Table.Head>Situação</Table.Head>
-            <Table.Head>Valor</Table.Head>
-            <Table.Head>Comissão</Table.Head>
+            <Table.Head sortKey="order_date" sortFirst="desc">
+              Data do pedido
+            </Table.Head>
+            <Table.Head sortKey="status">Situação</Table.Head>
+            <Table.Head sortKey="total_amount" sortFirst="desc" align="right">
+              Valor
+            </Table.Head>
+            <Table.Head
+              sortKey="commission_amount"
+              sortFirst="desc"
+              align="right"
+            >
+              Comissão
+            </Table.Head>
           </Table.Row>
         </Table.Header>
 
         <Table.Body>
           {loading && items.length === 0 ? (
-            <Table.Skeleton columns={9} rows={8} />
+            <Table.Skeleton columns={8} rows={8} />
           ) : items.length === 0 ? (
             <Table.Row>
-              <Table.Cell colSpan={9}>
+              <Table.Cell colSpan={8}>
                 <EmptyState.Root>
                   <EmptyState.Icon>
                     <Receipt size={32} />
@@ -132,12 +145,6 @@ export function OrdersTable({
                   {formatDateDMY(order.orderDate)}
                 </Table.Cell>
 
-                {/* Traço enquanto a fábrica não faturou: o pedido existe, a
-                    data ainda não — não é dado faltando. */}
-                <Table.Cell variant="dim" className="whitespace-nowrap">
-                  {order.invoicedAt ? formatDateDMY(order.invoicedAt) : "—"}
-                </Table.Cell>
-
                 <Table.Cell>
                   <Badge.Root
                     color={ORDER_STATUS_TONE[order.status]}
@@ -147,11 +154,11 @@ export function OrdersTable({
                   </Badge.Root>
                 </Table.Cell>
 
-                <Table.Cell variant="strong">
+                <Table.Cell variant="strong" align="right">
                   {formatMoney(order.totalAmount)}
                 </Table.Cell>
 
-                <Table.Cell variant="dim">
+                <Table.Cell variant="dim" align="right">
                   {formatMoney(order.commissionAmount)}
                 </Table.Cell>
               </Table.Row>

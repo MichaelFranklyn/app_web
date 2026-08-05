@@ -105,3 +105,27 @@ export const buildKpis = (stats: ClientsStats): KpiItem[] => {
     },
   ];
 };
+
+/**
+ * Colunas por onde a carteira pode ser ordenada.
+ *
+ * As três últimas não são colunas de `clients`: cada uma é uma subconsulta no
+ * repositório (`_COMPUTED_ORDER_COLUMNS`) que espelha regra por regra o valor
+ * mostrado na célula — mesma empresa, mesmo recorte por vendedor, cancelado
+ * fora na compra, e no score o mais recente de cada vínculo antes do maior
+ * entre eles.
+ *
+ * Esta lista é METADE de um contrato: o outro lado é o mapa do repositório, e
+ * um nome que exista só aqui cai no `getattr` e faz a lista se ordenar por
+ * `created_at` em silêncio. O backend tem um teste que trava o conjunto.
+ *
+ * Vendedor fica de fora por natureza: um cliente pode ter vários, e não existe
+ * "o vendedor" da linha para comparar.
+ */
+export const CLIENT_SORTABLE_FIELDS = [
+  "razao_social",
+  "address_city",
+  "last_order_date",
+  "last_visit_date",
+  "visit_score_total",
+];

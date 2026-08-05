@@ -12,7 +12,12 @@ import { OrdersTable } from "./_components/OrdersTable";
 import { ORDER_STATS_QUERY, ORDERS_QUERY } from "./gql";
 import { ITEMS_PER_PAGE, Order, OrdersStats, QueryData } from "./interface";
 import { useOrderFilters } from "./useOrderFilters";
-import { ORDER_TABLE_FIELDS, PENDING_ORDER_TABLE_FIELDS } from "./utils";
+import {
+  ORDER_DEFAULT_SORT,
+  ORDER_SORTABLE_FIELDS,
+  ORDER_TABLE_FIELDS,
+  PENDING_ORDER_TABLE_FIELDS,
+} from "./utils";
 
 /** Aba "aguardando faturamento": confirmados que a fábrica ainda não faturou. */
 const PENDING_FILTERS = [{ field: "pending_invoice", value: "true" }];
@@ -53,6 +58,8 @@ export default function OrdersContent({
     fields: tableFields,
     getConnection: (data) => data.orders_list,
     itemsPerPage: ITEMS_PER_PAGE,
+    sortableFields: ORDER_SORTABLE_FIELDS,
+    backendDefaultSort: ORDER_DEFAULT_SORT,
     baseFilters,
     // O SSR trouxe a lista SEM filtro: semear o cache na aba filtrada mostraria
     // os pedidos errados (as variáveis não batem com o que ela consulta).
@@ -98,6 +105,7 @@ export default function OrdersContent({
       totalItems={tableData.totalItems}
       inputValues={tableData.inputValues}
       setFilters={tableData.setFilters}
+      sort={tableData.sort}
       filterFields={filterFields}
       title={isPending ? "Pedidos a faturar" : "Lista de pedidos"}
       emptyTitle={isPending ? "Nenhum pedido esperando faturamento" : undefined}

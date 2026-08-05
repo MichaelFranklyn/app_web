@@ -24,6 +24,13 @@ export interface UseTableFiltersReturn {
   setFilter: (key: string, value: string | undefined) => void;
   /** Aplica várias chaves de uma vez (ver a nota sobre a URL na implementação). */
   setFilters: (patch: Record<string, string | undefined>) => void;
+  /**
+   * Escreve na URL parâmetros que NÃO são filtro (hoje, a ordenação): eles não
+   * viram condição de busca, não aparecem no painel de filtros e sobrevivem a
+   * um "limpar filtros" — quem ordenou por valor continua ordenado por valor
+   * depois de limpar a busca.
+   */
+  setParams: (patch: Record<string, string | undefined>) => void;
   clearFilters: () => void;
   setPage: (page: number) => void;
 }
@@ -165,15 +172,22 @@ export const useTableFilters = (
   );
 
   /**
-   * Escreve várias chaves numa tacada só.
+   * Escreve várias chaves numa tacada só, sempre voltando para a página 1.
    *
    * Chamar `setFilter` duas vezes no mesmo evento NÃO funciona: as duas montam
    * a URL a partir do mesmo `searchParams` deste render, então a segunda
    * sobrescreve a primeira (um filtro de período gravaria só o "até"). Aqui as
    * chaves entram no mesmo `URLSearchParams` e num único `router.replace`.
+   *
+   * `filterPatch` vai para o estado dos filtros E para a URL; `urlPatch` só
+   * para a URL. É essa separação que deixa a ordenação viajar pela URL sem
+   * virar condição de busca.
    */
-  const setFilters = useCallback(
-    (rawPatch: Record<string, string | undefined>) => {
+  const commit = useCallback(
+    (
+      filterPatch: Record<string, string | undefined>,
+      urlPatch: Record<string, string | undefined>
+    ) => {
       if (textDebounceRef.current) {
         clearTimeout(textDebounceRef.current);
         textDebounceRef.current = null;
@@ -185,15 +199,17 @@ export const useTableFilters = (
       const pendingText = pendingTextRef.current;
       pendingTextRef.current = null;
       const patch =
-        pendingText && !(pendingText.key in rawPatch)
-          ? { [pendingText.key]: pendingText.value, ...rawPatch }
-          : rawPatch;
+        pendingText && !(pendingText.key in filterPatch)
+          ? { [pendingText.key]: pendingText.value, ...filterPatch }
+          : filterPatch;
 
-      setInputValues((prev) => applyPatch(prev, patch));
-      setQueryValues((prev) => applyPatch(prev, patch));
+      if (Object.keys(patch).length > 0) {
+        setInputValues((prev) => applyPatch(prev, patch));
+        setQueryValues((prev) => applyPatch(prev, patch));
+      }
 
       const params = new URLSearchParams(searchParams.toString());
-      Object.entries(patch).forEach(([key, value]) => {
+      Object.entries({ ...patch, ...urlPatch }).forEach(([key, value]) => {
         if (value) params.set(key, value);
         else params.delete(key);
       });
@@ -201,6 +217,16 @@ export const useTableFilters = (
       router.replace(`${pathname}?${params.toString()}`, { scroll: false });
     },
     [searchParams, pathname, router]
+  );
+
+  const setFilters = useCallback(
+    (patch: Record<string, string | undefined>) => commit(patch, {}),
+    [commit]
+  );
+
+  const setParams = useCallback(
+    (patch: Record<string, string | undefined>) => commit({}, patch),
+    [commit]
   );
 
   const clearFilters = useCallback(() => {
@@ -234,6 +260,7 @@ export const useTableFilters = (
     queryValues,
     setFilter,
     setFilters,
+    setParams,
     clearFilters,
     setPage,
   };

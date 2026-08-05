@@ -82,3 +82,19 @@ export const FACTORY_ORDERS_QUERY = gql`
     }
   }
 `;
+
+/** Uma linha da tabela de pedidos da fábrica. */
+export interface FactoryOrder {
+  id: string;
+  orderDate: string;
+  totalAmount: string;
+  commissionAmount: string;
+  status: string;
+  notes: string | null;
+  seller: { id: string; name: string } | null;
+  client: {
+    id: string;
+    razaoSocial: string;
+    nomeFantasia: string | null;
+  } | null;
+}

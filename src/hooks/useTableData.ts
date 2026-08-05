@@ -1,7 +1,6 @@
 "use client";
 
-import { getNestedValue } from "@/utils/format/object";
-import { sortObjectsInArray } from "@/utils/format/sort";
+import { TableSort, TableSortDirection } from "@/components/Table";
 import { pageToAfter } from "@/utils/pagination";
 import { DocumentNode } from "@apollo/client";
 import { useApolloClient } from "@apollo/client/react";
@@ -10,16 +9,14 @@ import { useCallback, useMemo, useState } from "react";
 import { useAsyncQuery } from "./useAsyncQuery";
 import { FieldConfig, useTableFilters } from "./useTableFilters";
 
-export type SortDirection = "asc" | "desc" | "none";
-
-export interface SortState {
+/** Coluna e direção ativas na URL. `null` = a lista está na ordem padrão. */
+export interface ActiveSort {
   key: string;
-  direction: SortDirection;
-  customOrder?: (string | number)[];
-  secondaryKey?: string;
-  secondaryDirection?: SortDirection;
-  secondaryCustomOrder?: (string | number)[];
+  direction: TableSortDirection;
 }
+
+export const SORT_KEY_PARAM = "sortBy";
+export const SORT_DIR_PARAM = "sortDir";
 
 export interface QueryFilter {
   field: string;
@@ -49,7 +46,31 @@ export interface UseTableDataOptions<TData, TItem> {
     totalCount: number;
   };
   itemsPerPage?: number;
-  initialSort?: SortState;
+  /**
+   * Colunas por onde a lista pode ser ordenada — nomes de COLUNA no backend
+   * (`order_date`, `total_amount`), os mesmos que vão no `sortKey` de cada
+   * `Table.Head`.
+   *
+   * Vale como lista de permissão: `?sortBy=` com qualquer outra coisa é
+   * ignorado. Não é preciosismo — o backend resolve a coluna com
+   * `getattr(model, campo)`, e um nome que não é coluna derruba a consulta
+   * inteira. Sem esta lista, bastaria alguém colar uma URL editada.
+   */
+  sortableFields?: string[];
+  /**
+   * A ordenação que o BACKEND já aplica sozinho quando ninguém pede nada
+   * (pedidos: `order_date desc`). Serve só para o cabeçalho mostrar por onde a
+   * lista está ordenada antes do primeiro clique — NÃO entra nas variables,
+   * justamente para as variáveis do estado inicial continuarem batendo, byte a
+   * byte, com o fetch do SSR que semeia o cache.
+   */
+  backendDefaultSort?: ActiveSort;
+  /**
+   * Argumentos da query que ficam FORA do `input` (ex.: `companyClientId` em
+   * `visitsByCompanyClient`). Entram nas variables ao lado dele, inclusive nas
+   * do estado inicial — senão o cache semeado pelo SSR nunca acertaria.
+   */
+  extraVariables?: Record<string, unknown>;
   /**
    * Filtros fixos sempre aplicados, mesclados antes dos filtros de busca.
    * Use para listas escopadas a um pai (ex: `company_factory_id`, `product_id`).
@@ -78,8 +99,8 @@ export interface UseTableDataReturn<TItem> {
   totalItems: number;
   loading: boolean;
   error?: Error;
-  handleSort: (key: string) => void;
-  sortState: SortState;
+  /** Entra inteiro no `Table.Root sort={...}`; cada `Table.Head` lê daí. */
+  sort: TableSort;
   refetch: (variables?: Record<string, unknown>) => Promise<void>;
 }
 
@@ -113,7 +134,9 @@ export const useTableData = <TData, TItem extends object>(
     fields,
     getConnection,
     itemsPerPage = 10,
-    initialSort = { key: "", direction: "none" },
+    sortableFields,
+    backendDefaultSort,
+    extraVariables,
     baseFilters,
     initialData,
   } = options;
@@ -122,6 +145,24 @@ export const useTableData = <TData, TItem extends object>(
   const currentPage = Math.max(1, Number(searchParams.get("page")) || 1);
 
   const filters = useTableFilters(fields);
+
+  const sortableFieldsString = JSON.stringify(sortableFields ?? []);
+
+  /**
+   * O que a URL pede. `null` quando ninguém clicou em nada — e é a AUSÊNCIA do
+   * `order` nas variables que preserva o default do backend (e o acerto do
+   * cache semeado pelo SSR).
+   */
+  const urlSort = useMemo((): ActiveSort | null => {
+    const key = searchParams.get(SORT_KEY_PARAM);
+    if (!key) return null;
+    const allowed: string[] = JSON.parse(sortableFieldsString);
+    if (!allowed.includes(key)) return null;
+    return {
+      key,
+      direction: searchParams.get(SORT_DIR_PARAM) === "asc" ? "asc" : "desc",
+    };
+  }, [searchParams, sortableFieldsString]);
 
   const queryFilters = useMemo(
     () => buildQueryFilters(fields, filters.queryValues),
@@ -142,15 +183,22 @@ export const useTableData = <TData, TItem extends object>(
     [baseFiltersString, queryFiltersString]
   );
 
+  const extraVariablesString = JSON.stringify(extraVariables ?? null);
+
   const variables = useMemo(
     () => ({
+      ...extraVariables,
       input: {
         first: itemsPerPage,
         after: pageToAfter(currentPage, itemsPerPage),
         ...(allFilters.length > 0 && { filters: allFilters }),
+        // Quem ordena é o banco: ordenar no cliente reordenaria só as 10 linhas
+        // já baixadas, e "o maior pedido" seria o maior da página aberta.
+        ...(urlSort && { order: { by: urlSort.key, dir: urlSort.direction } }),
       },
     }),
-    [currentPage, itemsPerPage, allFilters]
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+    [currentPage, itemsPerPage, allFilters, urlSort, extraVariablesString]
   );
 
   // Variáveis do estado default (página 1, sem filtros de busca — só os fixos).
@@ -158,6 +206,7 @@ export const useTableData = <TData, TItem extends object>(
   const defaultVariables = useMemo(() => {
     const base = (baseFilters ?? []).map(toQueryFilter);
     return {
+      ...extraVariables,
       input: {
         first: itemsPerPage,
         after: pageToAfter(1, itemsPerPage),
@@ -165,7 +214,7 @@ export const useTableData = <TData, TItem extends object>(
       },
     };
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [itemsPerPage, baseFiltersString]);
+  }, [itemsPerPage, baseFiltersString, extraVariablesString]);
 
   // Semeia o cache do Apollo uma única vez, antes de o `useAsyncQuery` abaixo
   // subscrever. Inicializador de `useState` → roda no 1º render, síncrono, antes
@@ -211,157 +260,60 @@ export const useTableData = <TData, TItem extends object>(
     [totalItems, itemsPerPage]
   );
 
-  const sortState: SortState = useMemo(() => {
-    const urlKey = searchParams.get("sortKey");
-    const activeKey = urlKey || initialSort.key;
+  /**
+   * O que o cabeçalho MOSTRA. Antes do primeiro clique é a ordem que o backend
+   * já aplica sozinho — sem isto, a lista de pedidos apareceria como "sem
+   * ordenação" enquanto está, de fato, da mais recente para a mais antiga.
+   */
+  // Desmontado em escalares: `backendDefaultSort` costuma ser um literal na
+  // chamada, e um objeto novo a cada render remontaria `sort` a cada render.
+  const defaultKey = backendDefaultSort?.key ?? null;
+  const defaultDirection = backendDefaultSort?.direction ?? null;
 
-    return {
-      key: activeKey,
-      direction:
-        (searchParams.get("sortDir") as SortDirection) || initialSort.direction,
-      customOrder:
-        activeKey === initialSort.key ? initialSort.customOrder : undefined,
-      secondaryKey: initialSort.secondaryKey,
-      secondaryDirection: initialSort.secondaryDirection || "asc",
-      secondaryCustomOrder: initialSort.secondaryCustomOrder,
-    };
-  }, [
-    initialSort.key,
-    initialSort.direction,
-    initialSort.customOrder,
-    initialSort.secondaryKey,
-    initialSort.secondaryDirection,
-    initialSort.secondaryCustomOrder,
-    searchParams,
-  ]);
+  const activeSort = useMemo(
+    (): ActiveSort | null =>
+      urlSort ??
+      (defaultKey && defaultDirection
+        ? { key: defaultKey, direction: defaultDirection }
+        : null),
+    [urlSort, defaultKey, defaultDirection]
+  );
 
-  const sortedData = useMemo(() => {
-    if (!sortState.key || sortState.direction === "none") return allItems;
+  const onSort = useCallback(
+    (key: string, firstDirection: TableSortDirection = "asc") => {
+      const isActive = activeSort?.key === key;
 
-    const normalize = (str: unknown) =>
-      String(str || "indefinido")
-        .normalize("NFD")
-        .trim()
-        .toLowerCase();
+      // Coluna já ordenada: inverte. Coluna nova: começa pela direção útil dela
+      // (`sortFirst` no Table.Head) — quem clica em "Valor" quer o maior antes.
+      const nextDirection: TableSortDirection = isActive
+        ? activeSort!.direction === "asc"
+          ? "desc"
+          : "asc"
+        : firstDirection;
 
-    if (sortState.customOrder && sortState.customOrder.length > 0) {
-      const collator = new Intl.Collator(undefined, {
-        numeric: true,
-        sensitivity: "base",
-      });
+      // Se a direção seguinte é justamente a que o backend já aplica por conta
+      // própria, some com os parâmetros em vez de repeti-los: o resultado é o
+      // mesmo e a URL volta a ser a da lista limpa — que é também a única que
+      // acerta o cache semeado pelo SSR.
+      const isBackendDefault =
+        defaultKey === key && defaultDirection === nextDirection;
 
-      const createOrderMap = (orderArray: (string | number)[]) => {
-        const map = new Map<string, number>();
-        orderArray.forEach((item, index) => {
-          const normalizedItem = normalize(item);
-          if (!map.has(normalizedItem)) {
-            map.set(normalizedItem, index);
-          }
-        });
-        return map;
-      };
-
-      const primaryOrderMap = createOrderMap(sortState.customOrder);
-      const secondaryOrderMap =
-        sortState.secondaryCustomOrder &&
-        sortState.secondaryCustomOrder.length > 0
-          ? createOrderMap(sortState.secondaryCustomOrder)
-          : null;
-
-      const getCustomOrderPosition = (
-        rawValue: unknown,
-        orderMap: Map<string, number>
-      ) => {
-        const val =
-          rawValue !== undefined && rawValue !== null
-            ? normalize(rawValue)
-            : normalize("indefinido");
-        const index = orderMap.get(val);
-        return index !== undefined ? index : 9999;
-      };
-
-      return [...allItems].sort((a, b) => {
-        const rawValA = getNestedValue(a, sortState.key);
-        const rawValB = getNestedValue(b, sortState.key);
-
-        const posA = getCustomOrderPosition(rawValA, primaryOrderMap);
-        const posB = getCustomOrderPosition(rawValB, primaryOrderMap);
-
-        if (posA !== posB) {
-          return sortState.direction === "asc" ? posA - posB : posB - posA;
-        }
-
-        if (sortState.secondaryKey) {
-          const rawSecValA = getNestedValue(a, sortState.secondaryKey);
-          const rawSecValB = getNestedValue(b, sortState.secondaryKey);
-
-          if (secondaryOrderMap) {
-            const posSecA = getCustomOrderPosition(
-              rawSecValA,
-              secondaryOrderMap
-            );
-            const posSecB = getCustomOrderPosition(
-              rawSecValB,
-              secondaryOrderMap
-            );
-
-            if (posSecA !== posSecB) {
-              return sortState.secondaryDirection === "desc"
-                ? posSecB - posSecA
-                : posSecA - posSecB;
-            }
-            return 0;
-          }
-
-          const secValStrA = String(rawSecValA || "");
-          const secValStrB = String(rawSecValB || "");
-          const secCompare = collator.compare(secValStrA, secValStrB);
-
-          return sortState.secondaryDirection === "desc"
-            ? -secCompare
-            : secCompare;
-        }
-
-        return 0;
-      });
-    }
-
-    const keys = sortState.key.split(".");
-    const [rootKey, ...nestedKeys] = keys;
-    if (!rootKey) return allItems;
-
-    const sorter = sortObjectsInArray(allItems).byKey(rootKey);
-    nestedKeys.forEach((k) => sorter.inKey(k));
-
-    const result = sortState.direction === "asc" ? sorter.asc() : sorter.desc();
-    return Array.isArray(result) ? result : [];
-  }, [
-    allItems,
-    sortState.key,
-    sortState.direction,
-    sortState.customOrder,
-    sortState.secondaryKey,
-    sortState.secondaryDirection,
-    sortState.secondaryCustomOrder,
-  ]);
-
-  const displayedData = useMemo(() => {
-    return sortedData;
-  }, [sortedData]);
-
-  const handleSort = useCallback(
-    (key: string) => {
-      const currentKey = searchParams.get("sortKey");
-      const currentDir = searchParams.get("sortDir") as SortDirection;
-
-      let nextDir: SortDirection = "asc";
-      if (currentKey === key) {
-        nextDir = currentDir === "asc" ? "desc" : "asc";
-      }
-
-      filters.setFilter("_sort", JSON.stringify({ key, direction: nextDir }));
+      filters.setParams(
+        isBackendDefault
+          ? { [SORT_KEY_PARAM]: undefined, [SORT_DIR_PARAM]: undefined }
+          : { [SORT_KEY_PARAM]: key, [SORT_DIR_PARAM]: nextDirection }
+      );
     },
-    [filters, searchParams]
+    [filters, activeSort, defaultKey, defaultDirection]
+  );
+
+  const sort: TableSort = useMemo(
+    () => ({
+      key: activeSort?.key ?? null,
+      direction: activeSort?.direction ?? "asc",
+      onSort,
+    }),
+    [activeSort, onSort]
   );
 
   return {
@@ -369,15 +321,14 @@ export const useTableData = <TData, TItem extends object>(
     setFilter: filters.setFilter,
     setFilters: filters.setFilters,
     clearFilters: filters.clearFilters,
-    displayedData,
+    displayedData: allItems,
     currentPage: Math.min(currentPage, totalPages),
     setCurrentPage: filters.setPage,
     totalPages,
     totalItems,
     loading,
     error,
-    handleSort,
-    sortState,
+    sort,
     refetch,
   };
 };

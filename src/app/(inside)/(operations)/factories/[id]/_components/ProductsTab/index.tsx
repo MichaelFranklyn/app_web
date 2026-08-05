@@ -55,6 +55,10 @@ export function ProductsTab({ companyFactoryId }: Props) {
     getConnection: (d) => d.factory_products,
     baseFilters,
     itemsPerPage: ITEMS_PER_PAGE,
+    // Categoria e unidade vivem em tabelas vizinhas; a foto e as ações não são
+    // dado ordenável. Sobram código e nome — que são as duas maneiras de
+    // procurar um produto no catálogo.
+    sortableFields: ["sku", "name"],
   });
 
   const optimistic = useOptimisticList<FactoryProduct>({
@@ -70,7 +74,7 @@ export function ProductsTab({ companyFactoryId }: Props) {
   };
 
   return (
-    <Table.Root data-tour="products-table">
+    <Table.Root sort={table.sort} data-tour="products-table">
       <Table.CardHead>
         <Table.CardHead.Title className="inline-flex items-center gap-6">
           Catálogo de produtos
@@ -163,8 +167,8 @@ export function ProductsTab({ companyFactoryId }: Props) {
         <Table.Header>
           <Table.Row>
             <Table.Head className="w-56">Foto</Table.Head>
-            <Table.Head>Código</Table.Head>
-            <Table.Head>Produto</Table.Head>
+            <Table.Head sortKey="sku">Código</Table.Head>
+            <Table.Head sortKey="name">Produto</Table.Head>
             <Table.Head>Categoria</Table.Head>
             <Table.Head>Unidade</Table.Head>
             <Table.Head>Status</Table.Head>

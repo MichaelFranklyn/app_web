@@ -3,6 +3,7 @@
 import { Avatar } from "@/components/Avatar";
 import { Badge } from "@/components/Badges";
 import { EmptyState } from "@/components/EmptyState";
+import { Filters } from "@/components/Filters";
 import { QueryError } from "@/components/QueryError";
 import { HelpTooltip } from "@/components/HelpTooltip";
 import { Table } from "@/components/Table";
@@ -18,26 +19,12 @@ import { UPDATE_ORDER_FROM_FACTORY_MUTATION } from "../../../../_components/Edit
 import { AddOrderModal } from "./AddOrderModal";
 import { DeleteOrderModal } from "./DeleteOrderModal";
 import { ImportOrderModal } from "./ImportOrderModal";
-import { FACTORY_ORDERS_QUERY } from "./gql";
-
-interface Order {
-  id: string;
-  orderDate: string;
-  totalAmount: string;
-  commissionAmount: string;
-  status: string;
-  notes: string | null;
-  seller: { id: string; name: string } | null;
-  client: {
-    id: string;
-    razaoSocial: string;
-    nomeFantasia: string | null;
-  } | null;
-}
+import { FACTORY_ORDERS_QUERY, FactoryOrder } from "./gql";
+import { useOrdersTable } from "./useOrdersTable";
 
 interface OrdersQueryData {
   factory_orders: {
-    edges: { node: Order }[];
+    edges: { node: FactoryOrder }[];
     totalCount: number;
   };
 }
@@ -59,15 +46,18 @@ export function OrdersTab({ factoryId }: Props) {
     }
   );
 
-  const initialOrders = useMemo<Order[]>(
+  const initialOrders = useMemo<FactoryOrder[]>(
     () => data?.factory_orders?.edges.map((e) => e.node) ?? [],
     [data]
   );
-  const optimistic = useOptimisticList<Order>({ initialData: initialOrders });
-  const orders = optimistic.items;
+  const optimistic = useOptimisticList<FactoryOrder>({
+    initialData: initialOrders,
+  });
+  const table = useOrdersTable(optimistic.items);
+  const orders = table.displayedData;
 
   return (
-    <Table.Root data-tour="factory-orders-table">
+    <Table.Root sort={table.sort} data-tour="factory-orders-table">
       <Table.CardHead>
         <Table.CardHead.Title className="inline-flex items-center gap-6">
           Pedidos desta fábrica
@@ -93,6 +83,11 @@ export function OrdersTab({ factoryId }: Props) {
           />
         </Table.CardHead.Title>
         <Table.CardHead.Actions data-tour="factory-orders-actions">
+          <Filters
+            fields={table.filterFields}
+            values={table.inputValues}
+            onChange={table.setFilters}
+          />
           <ImportOrderModal factoryId={factoryId} onChanged={() => refetch()} />
           <AddOrderModal factoryId={factoryId} />
         </Table.CardHead.Actions>
@@ -102,12 +97,22 @@ export function OrdersTab({ factoryId }: Props) {
         <Table.Header>
           <Table.Row>
             <Table.Head>Pedido</Table.Head>
-            <Table.Head>Cliente</Table.Head>
-            <Table.Head>Vendedor</Table.Head>
-            <Table.Head>Data</Table.Head>
-            <Table.Head>Valor</Table.Head>
-            <Table.Head>Comissão</Table.Head>
-            <Table.Head>Status</Table.Head>
+            <Table.Head sortKey="client">Cliente</Table.Head>
+            <Table.Head sortKey="seller">Vendedor</Table.Head>
+            <Table.Head sortKey="orderDate" sortFirst="desc">
+              Data
+            </Table.Head>
+            <Table.Head sortKey="totalAmount" sortFirst="desc" align="right">
+              Valor
+            </Table.Head>
+            <Table.Head
+              sortKey="commissionAmount"
+              sortFirst="desc"
+              align="right"
+            >
+              Comissão
+            </Table.Head>
+            <Table.Head sortKey="status">Status</Table.Head>
             <Table.Head className="text-right">Ações</Table.Head>
           </Table.Row>
         </Table.Header>
@@ -129,8 +134,9 @@ export function OrdersTab({ factoryId }: Props) {
                   </EmptyState.Icon>
                   <EmptyState.Title>Nenhum pedido encontrado</EmptyState.Title>
                   <EmptyState.Description>
-                    Use &quot;Novo pedido&quot; para registrar o primeiro pedido
-                    desta fábrica.
+                    {table.totalUnfiltered > 0
+                      ? "Ajuste os filtros para encontrar o pedido."
+                      : 'Use "Novo pedido" para registrar o primeiro pedido desta fábrica.'}
                   </EmptyState.Description>
                 </EmptyState.Root>
               </Table.Cell>
@@ -167,10 +173,10 @@ export function OrdersTab({ factoryId }: Props) {
                   <Table.Cell variant="dim">
                     {formatDateDMY(o.orderDate)}
                   </Table.Cell>
-                  <Table.Cell variant="strong">
+                  <Table.Cell variant="strong" align="right">
                     {formatMoney(o.totalAmount)}
                   </Table.Cell>
-                  <Table.Cell variant="dim">
+                  <Table.Cell variant="dim" align="right">
                     {formatMoney(o.commissionAmount)}
                   </Table.Cell>
                   <Table.Cell>

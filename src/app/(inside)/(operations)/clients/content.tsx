@@ -11,7 +11,7 @@ import { Client, ClientsContentProps, QueryData } from "./interface";
 import { useClassificationOptions } from "./useClassificationOptions";
 import { useClientFilters } from "./useClientFilters";
 import { useSellerScope } from "./useSellerScope";
-import { ITEMS_PER_PAGE, TABLE_FIELDS } from "./utils";
+import { CLIENT_SORTABLE_FIELDS, ITEMS_PER_PAGE, TABLE_FIELDS } from "./utils";
 
 export default function ClientesContent({
   stats,
@@ -23,6 +23,7 @@ export default function ClientesContent({
     fields: TABLE_FIELDS,
     getConnection: (data) => data.clients_list,
     itemsPerPage: ITEMS_PER_PAGE,
+    sortableFields: CLIENT_SORTABLE_FIELDS,
     initialData,
   });
 
@@ -71,6 +72,7 @@ export default function ClientesContent({
           inputValues={tableData.inputValues}
           setFilter={tableData.setFilter}
           setFilters={tableData.setFilters}
+          sort={tableData.sort}
           filterFields={filterFields}
           loading={tableData.loading}
           totalItems={tableData.totalItems}
