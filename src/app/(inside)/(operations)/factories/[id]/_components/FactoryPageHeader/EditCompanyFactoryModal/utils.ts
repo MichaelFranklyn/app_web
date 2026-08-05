@@ -75,6 +75,24 @@ export const FORM_STEPS: FormStepSchema[] = [
             hint: "Dias estimados até a mercadoria chegar na loja, contados do faturamento. Pré-preenche o pedido e avisa quando a entrega atrasa.",
           },
           {
+            name: "minOrderAmount",
+            label: "Pedido mínimo (R$)",
+            type: "number",
+            required: false,
+            placeholder: "Ex: 1000",
+            hint: "Valor mínimo que a fábrica aceita. Abaixo dele o pedido não pode ser confirmado — e a rotina deixa de recomendar visita a quem não consegue fechar esse valor. Deixe em branco se a fábrica não exige mínimo.",
+            grid: { desktop: 6 },
+          },
+          {
+            name: "freeFreightAmount",
+            label: "Frete grátis a partir de (R$)",
+            type: "number",
+            required: false,
+            placeholder: "Ex: 5000",
+            hint: "Valor a partir do qual a fábrica não cobra frete. Não bloqueia pedido nenhum — aparece no pedido como argumento de venda. Deixe em branco se a fábrica não oferece.",
+            grid: { desktop: 6 },
+          },
+          {
             name: "contractStart",
             label: "Início do contrato",
             type: "date",
@@ -105,6 +123,16 @@ export const FORM_STEPS: FormStepSchema[] = [
     ],
   },
 ];
+
+/** Valor em reais vindo do formulário. Vazio, inválido ou zero viram `null` —
+ * "sem piso" e "piso de zero reais" precisam ser a mesma coisa em toda a
+ * cadeia, do formulário ao `shortfall` no backend. */
+const toAmountOrNull = (value: unknown): number | null => {
+  const raw = String(value ?? "").trim();
+  if (raw === "") return null;
+  const parsed = Number(raw.replace(",", "."));
+  return Number.isFinite(parsed) && parsed > 0 ? parsed : null;
+};
 
 const toDateOrNull = (value: unknown): string | null => {
   const iso = toIsoDate(value);
@@ -203,6 +231,15 @@ export const normalizeInput = (
       : null;
   if (deliveryDays !== (initial.deliveryEstimateDays ?? null)) {
     input.deliveryEstimateDays = deliveryDays;
+  }
+
+  // Os dois pisos de valor. Vazio ou zero → null ("esta fábrica não tem piso"),
+  // e não R$ 0,00 — senão a tela leria de volta um mínimo que não existe.
+  for (const field of ["minOrderAmount", "freeFreightAmount"] as const) {
+    const amount = toAmountOrNull(data[field]);
+    if (amount !== (initial[field] ?? null)) {
+      input[field] = amount;
+    }
   }
 
   return input;

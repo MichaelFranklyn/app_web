@@ -14,6 +14,7 @@ export const UPDATE_ORDER_MUTATION = gql`
         fileUrl
         isFileParsed
         deliveryEstimateDays
+        coverageDays
         estimatedDeliveryDate
         isDeliveryOverdue
         paymentTermId

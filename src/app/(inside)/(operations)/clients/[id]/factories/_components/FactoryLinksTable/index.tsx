@@ -5,12 +5,14 @@ import { EmptyState } from "@/components/EmptyState";
 import { HelpTooltip } from "@/components/HelpTooltip";
 import { Table } from "@/components/Table";
 import { Title } from "@/components/Title";
-import { Factory } from "lucide-react";
+import { Tooltip } from "@/components/Tooltip";
+import { Factory, TriangleAlert } from "lucide-react";
 import { DeleteFactoryLinkModal } from "./_components/DeleteFactoryLinkModal";
 import { EditFactoryLinkModal } from "./_components/EditFactoryLinkModal";
 import { LinkFactoryModal } from "./_components/LinkFactoryModal";
 import { FactoryLinksTableProps } from "./interface";
 import { priorityColor, priorityLabel } from "./utils";
+import { cadenceDaysLabel, cadenceSourceLabel } from "@/utils/cadence";
 import { factoryName } from "@/utils/company";
 import { formatDate } from "@/utils/format/date";
 
@@ -80,24 +82,33 @@ export function FactoryLinksTable({
                 </Badge.Root>
               </Table.Cell>
               <Table.Cell>
-                {/* Sem ciclo cadastrado, mostramos o que os pedidos dizem: é
-                    esse número que o sistema usa para cobrar atraso de visita. */}
-                {c.visitFrequencyDays != null ? (
-                  <Table.CellText variant="dim">
-                    {`${c.visitFrequencyDays} dias`}
-                  </Table.CellText>
-                ) : c.orderIntervalDays != null ? (
-                  <div className="flex flex-col">
+                {/* O número E a procedência dele. Mostrar só "45 dias"
+                    esconderia do vendedor o que ele não tem como saber de
+                    cabeça: o intervalo real entre os últimos pedidos. Quando a
+                    estimativa dele contradiz esse intervalo, o aviso diz os
+                    dois números e qual está valendo. */}
+                <div className="flex flex-col">
+                  <div className="flex items-center gap-4">
                     <Table.CellText variant="dim">
-                      {`${c.orderIntervalDays} dias`}
+                      {cadenceDaysLabel(c.cadence)}
                     </Table.CellText>
-                    <Title variant="micro" color="muted">
-                      pelos pedidos
-                    </Title>
+                    {c.cadence?.isDivergent && c.cadence.divergenceMessage && (
+                      <Tooltip content={c.cadence.divergenceMessage}>
+                        <span
+                          className="text-(--amber)"
+                          aria-label={c.cadence.divergenceMessage}
+                        >
+                          <TriangleAlert size={13} aria-hidden />
+                        </span>
+                      </Tooltip>
+                    )}
                   </div>
-                ) : (
-                  <Table.CellText variant="dim">—</Table.CellText>
-                )}
+                  {c.cadence && c.cadence.days != null && (
+                    <Title variant="micro" color="muted">
+                      {cadenceSourceLabel(c.cadence.source)}
+                    </Title>
+                  )}
+                </div>
               </Table.Cell>
               <Table.Cell>
                 <Table.CellText variant="dim">

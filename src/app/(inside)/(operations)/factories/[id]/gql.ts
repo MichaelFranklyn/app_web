@@ -18,6 +18,8 @@ export const COMPANY_FACTORY_DETAIL_QUERY = gql`
         specialConditions
         ipiInOrder
         deliveryEstimateDays
+        minOrderAmount
+        freeFreightAmount
         factory {
           id
           cnpj

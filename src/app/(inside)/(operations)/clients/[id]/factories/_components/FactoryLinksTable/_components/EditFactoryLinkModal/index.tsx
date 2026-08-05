@@ -95,17 +95,19 @@ export function EditFactoryLinkModal({
                 name: "visitFrequencyDays",
                 type: "number",
                 label: "Frequência de visita (dias)",
-                // Sem preenchimento, o sistema usa o ritmo de compra observado.
-                // Dizer o número evita que o gestor "chute" um ciclo pior do que
-                // o que os pedidos já mostram.
+                // O hint não pode prometer que preencher aqui manda na rotina:
+                // desde 2026-08-04 a recorrência REAL dos pedidos arbitra, e
+                // este campo é o último recurso (ver cadence.py). Dizer o
+                // contrário faria o gestor digitar um número, ver a rotina
+                // ignorá-lo e concluir que a tela está quebrada.
                 placeholder:
                   link.orderIntervalDays != null
                     ? `Pelos pedidos: ${link.orderIntervalDays} dias`
                     : "Ex: 7",
                 hint:
                   link.orderIntervalDays != null
-                    ? `Este cliente compra desta fábrica a cada ${link.orderIntervalDays} dias, em média. Deixe em branco para seguir esse ritmo.`
-                    : "Deixe em branco para o sistema seguir o intervalo médio entre os pedidos.",
+                    ? `Este cliente compra desta fábrica a cada ${link.orderIntervalDays} dias, em média — e é esse ritmo que a rotina segue. Preencha aqui só se ficou combinado um intervalo de visita diferente do de compra.`
+                    : "Enquanto não houver pedidos suficientes para medir o ritmo, é este número que a rotina usa.",
               },
             ],
           },

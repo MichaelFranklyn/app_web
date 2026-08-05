@@ -49,7 +49,7 @@ export function VisitStockModal({
         <Modal.Content size="5xl">
           <Modal.Header
             title={`Estoque · ${clientName}`}
-            description="Toque numa fábrica para abrir os produtos dela e pergunte ao cliente quantos dias cada um ainda dura. As que motivaram a visita já vêm abertas."
+            description="Toque numa fábrica para abrir os produtos dela. Em cada uma, o sistema destaca os poucos que realmente decidem se este cliente precisa de visita — pergunte por esses. O resto ele estima sozinho."
           />
           <Modal.Body>
             <StockObservationList

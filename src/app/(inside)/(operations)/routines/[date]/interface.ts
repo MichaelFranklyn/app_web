@@ -6,6 +6,7 @@ export type { VisitContactType, VisitOutcome };
 // Tipos compartilhados com a grade semanal (nível-pai da rota).
 import { VisitFocusFactory, VisitPrimaryContact } from "../interface";
 import type { ScoreDimensions } from "@/utils/score";
+import type { Viability } from "@/utils/viability";
 
 export type VisitStatus =
   | "PENDING"
@@ -59,6 +60,11 @@ export interface VisitItem {
   notes: string | null;
   focusFactories: VisitFocusFactory[];
   treatedFactories: VisitFactory[];
+  /**
+   * O pedido possível contra o mínimo da fábrica, congelado no planejamento.
+   * Nulo quando a fábrica não tem mínimo cadastrado.
+   */
+  viability: Viability | null;
   clientFactoryLink: VisitClientFactoryLink | null;
 }
 

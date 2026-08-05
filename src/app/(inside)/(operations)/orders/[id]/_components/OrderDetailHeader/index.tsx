@@ -121,6 +121,7 @@ export function OrderDetailHeader({ order, onRefetch }: Props) {
                   currentFileUrl={order.fileUrl}
                   currentFileParsed={order.isFileParsed}
                   currentDeliveryEstimateDays={order.deliveryEstimateDays}
+                  currentCoverageDays={order.coverageDays}
                   currentPaymentTermId={order.paymentTermId}
                   paymentTerms={order.availablePaymentTerms}
                   onSuccess={onRefetch}

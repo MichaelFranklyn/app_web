@@ -18,6 +18,8 @@ const initial = (
   specialConditions: null,
   ipiInOrder: false,
   deliveryEstimateDays: null,
+  minOrderAmount: null,
+  freeFreightAmount: null,
   factory: {
     id: "f1",
     cnpj: "123",
@@ -80,5 +82,58 @@ describe("normalizeInput — corte do faturamento", () => {
       initial()
     );
     expect(input.commissionCutoffDay).toBe(25);
+  });
+});
+
+describe("normalizeInput — pisos de valor do pedido", () => {
+  it("grava o pedido mínimo da fábrica", () => {
+    const input = normalizeInput(form({ minOrderAmount: "1000" }), initial());
+    expect(input.minOrderAmount).toBe(1000);
+  });
+
+  it("grava o piso de frete grátis separadamente do mínimo", () => {
+    // São regras diferentes: o mínimo barra a confirmação, o frete grátis não.
+    // Mexer em um não pode arrastar o outro. O FormBuilder sempre devolve os
+    // dois campos, então ambos aparecem no `form`.
+    const input = normalizeInput(
+      form({ minOrderAmount: "1000", freeFreightAmount: "5000" }),
+      initial({ minOrderAmount: 1000 })
+    );
+    expect(input.freeFreightAmount).toBe(5000);
+    expect("minOrderAmount" in input).toBe(false);
+  });
+
+  it("campo esvaziado limpa o piso", () => {
+    const input = normalizeInput(
+      form({ minOrderAmount: "" }),
+      initial({ minOrderAmount: 1000 })
+    );
+    expect(input.minOrderAmount).toBeNull();
+  });
+
+  it("zero é ausência de piso, não piso de zero reais", () => {
+    // Guardar 0 funcionaria no backend, mas a tela leria de volta
+    // "mínimo: R$ 0,00" onde não há mínimo nenhum.
+    const input = normalizeInput(
+      form({ minOrderAmount: "0" }),
+      initial({ minOrderAmount: 1000 })
+    );
+    expect(input.minOrderAmount).toBeNull();
+  });
+
+  it("aceita vírgula como separador decimal", () => {
+    const input = normalizeInput(
+      form({ minOrderAmount: "1500,50" }),
+      initial()
+    );
+    expect(input.minOrderAmount).toBe(1500.5);
+  });
+
+  it("não manda o campo quando nada mudou", () => {
+    const input = normalizeInput(
+      form({ minOrderAmount: "1000" }),
+      initial({ minOrderAmount: 1000 })
+    );
+    expect("minOrderAmount" in input).toBe(false);
   });
 });

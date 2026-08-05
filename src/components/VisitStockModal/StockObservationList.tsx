@@ -9,7 +9,7 @@ import { PackageSearch, ReceiptText } from "lucide-react";
 import { useEffect, useMemo, useState } from "react";
 
 import { FactoryCard, factoryLabel, sourceLabel } from "./FactoryCard";
-import { ProductDaysRow } from "./ProductDaysRow";
+import { DecisiveProductsGroup } from "./DecisiveProductsGroup";
 import {
   StockCandidateGroup,
   useStockObservation,
@@ -182,16 +182,11 @@ export function StockObservationList({ itemId, onSaved, onOrder }: Props) {
                     </EmptyState.Description>
                   </EmptyState.Root>
                 ) : (
-                  <div className="desktop:grid-cols-2 grid grid-cols-1 gap-8">
-                    {group.products.map((product) => (
-                      <ProductDaysRow
-                        key={product.id}
-                        product={product}
-                        days={daysMap[product.id]}
-                        onChange={setDays}
-                      />
-                    ))}
-                  </div>
+                  <DecisiveProductsGroup
+                    products={group.products}
+                    daysMap={daysMap}
+                    onChange={setDays}
+                  />
                 )}
               </div>
             </Tabs.Content>

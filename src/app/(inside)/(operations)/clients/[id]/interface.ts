@@ -3,7 +3,8 @@ import type { VisitContactType, VisitOutcome } from "@/utils/visit";
 
 export type { VisitContactType, VisitOutcome };
 
-import { ScoreDimensions } from "@/utils/score";
+import { ScoreDimensions, StockConfidence } from "@/utils/score";
+import type { Cadence } from "@/utils/cadence";
 
 export interface CompanyClientLink {
   id: string;
@@ -102,6 +103,11 @@ export interface SellerClientFactory {
   visitFrequencyDays: number | null;
   /** Ciclo calculado pelo intervalo entre os últimos pedidos nesta fábrica. */
   orderIntervalDays: number | null;
+  /**
+   * O ciclo que VALE, arbitrado entre a recorrência dos pedidos, a estimativa
+   * do vendedor e o cadastro — com o aviso quando eles discordam.
+   */
+  cadence: Cadence | null;
   lastVisitDate: string | null;
   factory: {
     id: string;
@@ -169,6 +175,8 @@ export interface VisitScore {
   scoreFrequency: string;
   scorePotential: string;
   scoreRecency: string;
+  /** Lastro do dado de estoque por trás da urgência — ver @/utils/score. */
+  stockConfidence: StockConfidence;
 }
 
 export interface ClientVisitScoresQueryResponse {

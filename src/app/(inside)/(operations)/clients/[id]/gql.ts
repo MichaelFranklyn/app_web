@@ -10,6 +10,16 @@ export const SELLER_CLIENT_FACTORIES_QUERY = gql`
           visitFrequencyDays
           orderIntervalDays
           lastVisitDate
+          cadence {
+            days
+            source
+            isDivergent
+            declaredDays
+            observedDays
+            nextOrderDue
+            nextVisitEstimate
+            divergenceMessage
+          }
           factory {
             id
             nomeFantasia
@@ -70,6 +80,7 @@ export const CLIENT_FACTORY_SCORES_QUERY = gql`
           scoreFrequency
           scorePotential
           scoreRecency
+          stockConfidence
           clientFactoryLink {
             id
             factory {
@@ -103,6 +114,7 @@ export const CLIENT_VISIT_SCORES_QUERY = gql`
           scoreFrequency
           scorePotential
           scoreRecency
+          stockConfidence
         }
       }
       totalCount
@@ -290,6 +302,7 @@ export const COMPANY_CLIENT_QUERY = gql`
           scoreFrequency
           scorePotential
           scoreRecency
+          stockConfidence
         }
         factoryVisitScores {
           scoreDate
@@ -299,6 +312,7 @@ export const COMPANY_CLIENT_QUERY = gql`
           scoreFrequency
           scorePotential
           scoreRecency
+          stockConfidence
           clientFactoryLink {
             id
             factory {
