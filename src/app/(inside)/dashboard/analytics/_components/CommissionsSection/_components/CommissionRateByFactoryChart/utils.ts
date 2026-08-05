@@ -2,7 +2,10 @@ import { SERIES_PURPLE } from "@/components/Chart/chartTheme";
 import { formatMoney } from "@/utils/format/masks";
 import type { EChartsCoreOption } from "echarts/core";
 
-import { buildHorizontalBarOption, mutedLine } from "../../../../chartBuilders";
+import {
+  buildHorizontalBarOption,
+  mutedLine,
+} from "../../../../../chartBuilders";
 import { ScopedCommissionRow } from "../../interface";
 import { commissionTotalsBy } from "../../utils";
 

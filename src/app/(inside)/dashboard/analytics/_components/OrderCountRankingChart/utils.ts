@@ -2,7 +2,7 @@ import type { EChartsCoreOption } from "echarts/core";
 
 import { formatNumber } from "@/utils/format/masks";
 
-import { buildHorizontalBarOption } from "../../chartBuilders";
+import { buildHorizontalBarOption } from "../../../chartBuilders";
 import { formatCount } from "../../utils";
 import { OrderCountPoint } from "./interface";
 

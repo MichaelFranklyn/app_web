@@ -30,5 +30,9 @@ export interface CompanyFactoryDetail {
   ipiInOrder: boolean;
   /** Prazo de entrega padrão (dias), contado do faturamento. Nulo = sem padrão. */
   deliveryEstimateDays: number | null;
+  /** Piso para o pedido existir na fábrica. Nulo = fábrica sem mínimo. */
+  minOrderAmount: number | null;
+  /** Piso de frete grátis — incentivo, nunca bloqueio. Nulo = não oferece. */
+  freeFreightAmount: number | null;
   factory: FactoryDetail;
 }

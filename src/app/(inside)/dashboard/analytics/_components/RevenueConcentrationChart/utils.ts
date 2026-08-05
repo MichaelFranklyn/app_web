@@ -2,7 +2,7 @@ import { SERIES_BLUE, SERIES_ORANGE } from "@/components/Chart/chartTheme";
 import { formatMoney } from "@/utils/format/masks";
 import type { EChartsCoreOption } from "echarts/core";
 
-import { buildBarLineOption } from "../../chartBuilders";
+import { buildBarLineOption } from "../../../chartBuilders";
 import { formatPercent } from "../../utils";
 import { RevenueSharePoint } from "./interface";
 

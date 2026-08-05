@@ -22,6 +22,9 @@ export const VISIT_STOCK_CANDIDATES_QUERY = gql`
         id
         name
         sku
+        daysSinceStockout
+        signalConfidence
+        isDecisive
       }
     }
   }

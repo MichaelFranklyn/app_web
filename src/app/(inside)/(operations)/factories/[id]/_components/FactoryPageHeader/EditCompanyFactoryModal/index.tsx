@@ -163,6 +163,8 @@ export function EditCompanyFactoryModal() {
     contractEnd: parseLocalDate(companyFactory.contractEnd),
     ipiInOrder: companyFactory.ipiInOrder ? ["true"] : [],
     deliveryEstimateDays: companyFactory.deliveryEstimateDays ?? "",
+    minOrderAmount: companyFactory.minOrderAmount ?? "",
+    freeFreightAmount: companyFactory.freeFreightAmount ?? "",
   };
 
   const isLastStep = step === WIZARD_STEPS.length - 1;

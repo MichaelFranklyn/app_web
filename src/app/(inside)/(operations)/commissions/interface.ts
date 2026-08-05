@@ -1,8 +1,9 @@
-export type CommissionStatus =
-  | "pending"
-  | "receivable"
-  | "received"
-  | "cancelled";
+// A situação da parcela mora no vocabulário compartilhado (`_shared/commissions`),
+// junto dos rótulos e das cores — para o tipo e a tradução não divergirem entre
+// esta tela e o relatório de comissões.
+import type { CommissionStatus } from "../../_shared/commissions";
+
+export type { CommissionStatus };
 
 export interface CommissionRow {
   orderId: string;

@@ -8,6 +8,9 @@ import {
   URGENT_THRESHOLD,
 } from "./score";
 
+// `stockConfidence: "confirmado"` é o default de propósito: mantém os pesos
+// nominais e deixa cada teste falar de UMA coisa. Quem quer exercitar o peso
+// adaptativo sobrescreve — e é o que faz o bloco "peso adaptativo" lá embaixo.
 const dims = (over: Partial<ScoreDimensions> = {}): ScoreDimensions => ({
   scoreTotal: "0",
   scoreUrgency: "0",
@@ -15,6 +18,7 @@ const dims = (over: Partial<ScoreDimensions> = {}): ScoreDimensions => ({
   scoreFrequency: "0",
   scorePotential: "0",
   scoreRecency: "0",
+  stockConfidence: "confirmado",
   ...over,
 });
 
@@ -133,5 +137,84 @@ describe("explainScore", () => {
     const exp = explainScore(dims({ scoreTotal: "75" }));
     expect(exp.total).toBe(75);
     expect(exp.level.tone).toBe("red");
+  });
+});
+
+describe("explainScore com peso adaptativo (lastro do estoque)", () => {
+  it("urgência sem lastro vai para o fim da lista, não para o topo", () => {
+    // O caso dos ~85% da carteira: `scoreUrgency` chega 100 porque a projeção diz
+    // que o estoque acabou. Listá-la como o motivo PRINCIPAL seria repetir na tela
+    // o erro que o backend parou de cometer — mas escondê-la também mente, porque
+    // desde o piso de `sem_lastro` (k=0.10) ela empurra o total de verdade.
+    // O lugar dela é o último, rotulada como estimativa.
+    const { reasons } = explainScore(
+      dims({
+        scoreTotal: "44",
+        scoreUrgency: "100",
+        scoreFrequency: "40",
+        stockConfidence: "sem_lastro",
+      })
+    );
+    expect(reasons.map((r) => r.key)).toEqual([
+      "scoreFrequency",
+      "scoreUrgency",
+    ]);
+    // O ciclo empurrou muito mais que a projeção de estoque.
+    expect(reasons[0].contribution).toBeGreaterThan(
+      reasons[1].contribution * 5
+    );
+    expect(reasons[1].why).toContain("estimativa sem histórico");
+  });
+
+  it("o mesmo cliente com o estoque confirmado põe a urgência no topo", () => {
+    const { reasons } = explainScore(
+      dims({
+        scoreTotal: "75",
+        scoreUrgency: "100",
+        scoreFrequency: "40",
+        stockConfidence: "confirmado",
+      })
+    );
+    expect(reasons.map((r) => r.key)).toEqual([
+      "scoreUrgency",
+      "scoreFrequency",
+    ]);
+  });
+
+  it("lastro fraco não tira a urgência da lista, só a rebaixa", () => {
+    const { reasons } = explainScore(
+      dims({
+        scoreUrgency: "100",
+        scoreFrequency: "40",
+        stockConfidence: "fraco",
+      })
+    );
+    // 100/100 × 0.22 = 22 contra 40/40 × 0.3467 = 34,7.
+    expect(reasons.map((r) => r.key)).toEqual([
+      "scoreFrequency",
+      "scoreUrgency",
+    ]);
+  });
+
+  it("a origem do dado vai junto do motivo da urgência", () => {
+    const estimado = explainScore(
+      dims({ scoreUrgency: "100", stockConfidence: "historico" })
+    ).reasons[0];
+    expect(estimado.why).toContain("histórico de compras");
+
+    const confirmado = explainScore(
+      dims({ scoreUrgency: "100", stockConfidence: "confirmado" })
+    ).reasons[0];
+    expect(confirmado.why).toContain("confirmado na última visita");
+  });
+
+  it("score antigo sem o campo é tratado como estimativa, não como confirmado", () => {
+    // Linhas gravadas antes da coluna existir. Assumir confiança aqui
+    // reintroduziria a urgência inventada justamente nos dados mais velhos.
+    const { reasons } = explainScore({
+      ...dims({ scoreUrgency: "100", scoreRecency: "20" }),
+      stockConfidence: undefined,
+    });
+    expect(reasons.map((r) => r.key)).toEqual(["scoreRecency"]);
   });
 });

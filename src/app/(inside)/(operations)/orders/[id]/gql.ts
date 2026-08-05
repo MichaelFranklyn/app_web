@@ -23,6 +23,7 @@ export const ORDER_DETAIL_QUERY = gql`
         invoicedAt
         deliveredAt
         deliveryEstimateDays
+        coverageDays
         estimatedDeliveryDate
         isDeliveryOverdue
         paymentTermId

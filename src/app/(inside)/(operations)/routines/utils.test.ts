@@ -25,6 +25,10 @@ const score = (over: Partial<ScoreDimensions> = {}): ScoreDimensions => ({
   scoreFrequency: "0",
   scorePotential: "0",
   scoreRecency: "0",
+  // Estoque confirmado por padrão: mantém os pesos nominais e deixa cada teste
+  // isolar o fator que quer explicar. Sem lastro a urgência contribui zero e
+  // some da lista de motivos (ver @/utils/score).
+  stockConfidence: "confirmado",
   ...over,
 });
 

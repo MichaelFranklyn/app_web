@@ -26,6 +26,10 @@ const score = (over: Partial<ScoreDimensions> = {}): ScoreDimensions => ({
   scoreFrequency: "0",
   scorePotential: "0",
   scoreRecency: "0",
+  // Estoque confirmado por padrão: mantém os pesos nominais e deixa cada teste
+  // isolar o fator que quer explicar. Sem lastro a urgência contribui zero e
+  // some da lista de motivos (ver @/utils/score).
+  stockConfidence: "confirmado",
   ...over,
 });
 
@@ -38,6 +42,9 @@ const stop = (over: Partial<VisitItem> = {}): VisitItem => ({
   plannedEndTime: "10:10",
   visitDurationMin: 30,
   status: "PENDING",
+  // Sem mínimo cadastrado na fábrica — o estado de todo vínculo até o gestor
+  // preencher, e o único em que o PDF da rota não fala de pedido mínimo.
+  viability: null,
   outcome: null,
   notes: null,
   focusFactories: [],

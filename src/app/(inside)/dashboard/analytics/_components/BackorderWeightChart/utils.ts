@@ -2,7 +2,7 @@ import { SERIES_BLUE, SERIES_ORANGE } from "@/components/Chart/chartTheme";
 import { formatMoney, formatNumber } from "@/utils/format/masks";
 import type { EChartsCoreOption } from "echarts/core";
 
-import { buildStackedBarOption, mutedLine } from "../../chartBuilders";
+import { buildStackedBarOption, mutedLine } from "../../../chartBuilders";
 import { formatCount, formatPercent, monthKeyToLabel } from "../../utils";
 import { BackorderMonthPoint } from "./interface";
 

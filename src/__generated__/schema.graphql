@@ -350,6 +350,13 @@ type ClientVisitScoreType {
   scoreFrequency: Decimal!
   scorePotential: Decimal!
   scoreRecency: Decimal!
+  """
+  De onde veio o dado de estoque que gerou a urgência: `confirmado` (alguém
+  olhou a prateleira), `historico` (ritmo de compra regular), `fraco` (uma ou
+  duas compras) ou `sem_lastro` (estimativa padrão). Decide quanto da urgência
+  entrou no total — a tela usa para dizer "estimado" em vez de afirmar ruptura.
+  """
+  stockConfidence: String!
   updatedAt: DateTime!
   clientFactoryLink: SellerClientFactoryType
 }
@@ -759,6 +766,10 @@ type CompanyFactoryType {
   ipiInOrder: Boolean!
   """Prazo de entrega padrão da fábrica, em dias (a partir do faturamento). Pré-preenche o pedido. Nulo = sem padrão."""
   deliveryEstimateDays: Int
+  """Valor mínimo que a fábrica aceita para o pedido existir. Barra a confirmação abaixo dele, sem saída por troca de prazo. Nulo = fábrica sem mínimo."""
+  minOrderAmount: Decimal
+  """Valor a partir do qual a fábrica não cobra frete. Nunca bloqueia nada — é argumento de venda. Nulo = fábrica sem frete grátis."""
+  freeFreightAmount: Decimal
   """Logo da fábrica enviada por esta empresa (URL relativa /media/...)."""
   logoUrl: String
   """Como esta empresa chama a fábrica no dia a dia. Tem prioridade sobre nomeFantasia na exibição."""
@@ -800,6 +811,8 @@ input LinkFactoryInput {
   specialConditions: JSON = null
   ipiInOrder: Boolean = false
   deliveryEstimateDays: Int = null
+  minOrderAmount: Decimal = null
+  freeFreightAmount: Decimal = null
   nickname: String = null
 }
 
@@ -816,6 +829,8 @@ input CreateCompanyFactoryInput {
   specialConditions: JSON = null
   ipiInOrder: Boolean = false
   deliveryEstimateDays: Int = null
+  minOrderAmount: Decimal = null
+  freeFreightAmount: Decimal = null
   nickname: String = null
 }
 
@@ -869,6 +884,8 @@ input UpdateCompanyFactoryInput {
   specialConditions: JSON = null
   ipiInOrder: Boolean = null
   deliveryEstimateDays: Int = null
+  minOrderAmount: Decimal = null
+  freeFreightAmount: Decimal = null
   nickname: String = null
   """Nova logo em base64 (PNG/JPG/WEBP, máx. 2 MB). String vazia remove a logo atual."""
   logoBase64: String = null
@@ -1054,6 +1071,106 @@ type ItemsPerOrderPoint {
   orderCount: Int!
 }
 
+# ── Faturamento (recorte pela data de faturamento) ──────────────────────
+
+"""
+Um mês DE FATURAMENTO. Difere de `RevenueByMonthPoint`, que conta pela data do
+PEDIDO: aqui um pedido de junho faturado em julho entra em julho.
+"""
+type InvoicedByMonthPoint {
+  month: String!
+  total: Decimal!
+  orderCount: Int!
+  commissionAmount: Decimal!
+}
+
+"""Faturamento de uma fábrica no período de faturamento."""
+type InvoicedByFactoryPoint {
+  entityId: UUID!
+  entityName: String!
+  total: Decimal!
+  orderCount: Int!
+  commissionAmount: Decimal!
+}
+
+"""
+Pedidos COLOCADOS numa fábrica no período (pela data do pedido) e quanto dela já
+voltou faturado. Só o que virou pedido de verdade — confirmado, faturado ou
+entregue; orçamento e cancelado ficam fora.
+"""
+type PlacedByFactoryPoint {
+  entityId: UUID!
+  entityName: String!
+  orderCount: Int!
+  total: Decimal!
+  invoicedCount: Int!
+  invoicedAmount: Decimal!
+}
+
+# ── Positivação (matriz cliente × fábrica) ──────────────────────────────
+
+"""Uma fábrica da matriz de positivação — uma COLUNA da tabela."""
+type PositivationFactoryType {
+  factoryId: UUID!
+  factoryName: String!
+  """Clientes com vínculo ativo nesta fábrica."""
+  linkedClients: Int!
+  """Desses, quantos compraram dela no período."""
+  positivatedClients: Int!
+  positivationRate: Float!
+  totalAmount: Decimal!
+}
+
+"""
+Uma célula da matriz: o que este cliente comprou desta fábrica no período.
+`isLinked: false` é o cliente que não tem vínculo nessa fábrica — a célula existe
+só para as colunas não escorregarem de posição na linha.
+"""
+type PositivationCellType {
+  factoryId: UUID!
+  factoryName: String!
+  isLinked: Boolean!
+  isPositivated: Boolean!
+  orderCount: Int!
+  totalAmount: Decimal!
+  lastOrderDate: Date
+}
+
+"""Uma LINHA da matriz: um cliente da carteira e suas fábricas."""
+type PositivationRowType {
+  clientId: UUID!
+  """Id do vínculo na carteira (`company_clients`) — a chave da rota /clients/[id]."""
+  companyClientId: UUID
+  clientName: String!
+  sellerId: UUID!
+  sellerName: String!
+  """Uma célula por coluna, na mesma ordem de `factories`."""
+  cells: [PositivationCellType!]!
+  linkedFactories: Int!
+  positivatedFactories: Int!
+  orderCount: Int!
+  totalAmount: Decimal!
+  lastOrderDate: Date
+}
+
+"""
+Positivação da carteira no período. `clientPositivationRate` é a fatia dos
+CLIENTES que compraram algo; `pairPositivationRate`, a dos VÍNCULOS
+(cliente×fábrica) que giraram — a segunda revela o cliente fiel a uma fábrica e
+fechado para as outras.
+"""
+type PositivationReportType {
+  factories: [PositivationFactoryType!]!
+  rows: [PositivationRowType!]!
+  walletClients: Int!
+  positivatedClients: Int!
+  clientPositivationRate: Float!
+  linkedPairs: Int!
+  positivatedPairs: Int!
+  pairPositivationRate: Float!
+  totalAmount: Decimal!
+}
+
 extend type Query {
   dashboardSummary(from: Date = null, to: Date = null, sellerId: UUID = null): DashboardSummary!
 
@@ -1096,6 +1213,20 @@ extend type Query {
 
   clientsAtRisk(from: Date = null, to: Date = null, sellerId: UUID = null, limit: Int = 10): [ClientRiskPoint!]!
   clientRetentionByMonth(from: Date = null, to: Date = null, sellerId: UUID = null): [RetentionPoint!]!
+
+  """
+  Positivação da carteira no período: uma linha por cliente com vínculo ativo e
+  uma célula por fábrica, incluindo as em que ele NÃO comprou — que é o conteúdo
+  do relatório. Sem corte de top-N: é um documento de conferência.
+  """
+  positivationReport(from: Date = null, to: Date = null, sellerId: UUID = null): PositivationReportType!
+
+  """Faturamento por mês DE FATURAMENTO (não pela data do pedido)."""
+  invoicedRevenueByMonth(from: Date = null, to: Date = null, sellerId: UUID = null): [InvoicedByMonthPoint!]!
+  """Faturamento por fábrica no período DE FATURAMENTO, maiores primeiro."""
+  invoicedRevenueByFactory(from: Date = null, to: Date = null, sellerId: UUID = null, limit: Int = 8): [InvoicedByFactoryPoint!]!
+  """Pedidos colocados por fábrica no período (data do pedido), com a parte já faturada."""
+  placedOrdersByFactory(from: Date = null, to: Date = null, sellerId: UUID = null, limit: Int = 8): [PlacedByFactoryPoint!]!
 }
 
 input CreateFactoryInput {
@@ -1962,6 +2093,14 @@ input CreateOrderInput {
   visitScheduleItemId: UUID = null
   """Prazo de entrega estimado (dias). Nulo → herda o padrão da fábrica."""
   deliveryEstimateDays: Int = null
+  """
+  Quantos dias o vendedor estima que este pedido dura na loja do cliente. É o
+  dado mais barato de coletar do sistema — uma pergunta no fechamento — e o que
+  permite prever a próxima visita sem depender do estoque produto a produto.
+  Vale como HIPÓTESE: quando contradiz a recorrência real dos pedidos daquele
+  cliente, a recorrência vence e a divergência é mostrada ao vendedor.
+  """
+  coverageDays: Int = null
   """Quando true, o pedido nasce como ORÇAMENTO (rascunho) até ser convertido."""
   isQuote: Boolean = false
 }
@@ -2012,6 +2151,14 @@ type OrderType {
   deliveredAt: Date
   """Prazo de entrega estimado em dias (herda o padrão da fábrica). Nulo = sem previsão."""
   deliveryEstimateDays: Int
+  """
+  Quantos dias o vendedor estima que este pedido dura na loja do cliente. É o
+  dado mais barato de coletar do sistema — uma pergunta no fechamento — e o que
+  permite prever a próxima visita sem depender do estoque produto a produto.
+  Vale como HIPÓTESE: quando contradiz a recorrência real dos pedidos daquele
+  cliente, a recorrência vence e a divergência é mostrada ao vendedor.
+  """
+  coverageDays: Int
   """Data prevista de entrega = invoicedAt + deliveryEstimateDays. Nulo se não faturado ou sem estimativa."""
   estimatedDeliveryDate: Date
   """Faturado, prazo previsto vencido e ainda não entregue — precisa confirmar a entrega para atualizar o estoque."""
@@ -2085,6 +2232,7 @@ input UpdateOrderInput {
   isFileParsed: Boolean = null
   freightType: FreightType = null
   deliveryEstimateDays: Int = null
+  coverageDays: Int = null
 }
 
 input InvoiceOrderInput {
@@ -2111,6 +2259,7 @@ input ReviseOrderInvoiceInput {
   """Deixa o pedido SEM prazo (à vista). Só em fábrica que paga comissão no faturamento."""
   clearPaymentTerm: Boolean = false
   deliveryEstimateDays: Int = null
+  coverageDays: Int = null
   """Remove a previsão de entrega (pedido sem prazo estimado)."""
   clearDeliveryEstimate: Boolean = false
   """Corrige a data em que a mercadoria chegou. Só para pedido já entregue."""
@@ -2658,10 +2807,20 @@ type SellerClientFactoryType {
   visitFrequencyDays: Int
   """
   Intervalo médio (dias) entre os últimos PEDIDOS deste cliente nesta fábrica,
-  calculado pelo job de estoque. Serve de ciclo de visita quando ninguém
-  cadastrou visitFrequencyDays — que continua tendo precedência.
+  calculado pelo job de estoque. É a MEDIÇÃO do ritmo de compra e, desde
+  2026-08-04, ela ARBITRA a cadência: quando contradiz o visitFrequencyDays
+  digitado, é ela que vale (ver o campo `cadence`).
   """
   orderIntervalDays: Int
+  """Data do último pedido deste cliente nesta fábrica."""
+  lastPurchaseDate: Date
+  """Quantos pedidos existem no histórico do vínculo (sustentam a média acima)."""
+  orderCount: Int!
+  """
+  De quanto em quanto tempo este cliente compra, de onde esse número saiu, e o
+  aviso quando a estimativa do vendedor não bate com os pedidos.
+  """
+  cadence: CadenceType
   notes: String
   lastVisitDate: DateTime
   """Último toque de qualquer tipo — visita presencial OU contato remoto."""
@@ -2680,6 +2839,32 @@ type SellerClientFactoryType {
   factory: FactoryType
   priceTier: PriceTierType
   latestVisitScore: ClientVisitScoreType
+}
+
+"""
+O ritmo de compra de um vínculo e a procedência dele.
+
+Existe porque três fontes disputam esse número — a recorrência real dos pedidos,
+a cobertura que o vendedor declarou no fechamento ("esse pedido dura um mês") e
+a frequência de visita cadastrada — e nem sempre concordam. Devolver só o número
+escondia do vendedor justamente a informação que ele não tem como ter: o
+intervalo real entre os últimos doze pedidos daquele cliente.
+"""
+type CadenceType {
+  """Dias entre compras. Nulo quando não há base nenhuma para estimar."""
+  days: Int
+  """`observada` (pedidos reais) | `declarada` (estimativa do vendedor) | `combinada` (cadastro) | `desconhecida`."""
+  source: String!
+  """A estimativa do vendedor contradiz os pedidos. Quando true, `days` já é a observada."""
+  isDivergent: Boolean!
+  declaredDays: Int
+  observedDays: Int
+  """Quando o cliente deve precisar repor. Nulo sem base para prever."""
+  nextOrderDue: Date
+  """Quando o vendedor deveria estar lá — antes de faltar, não no dia em que faltou."""
+  nextVisitEstimate: Date
+  """O aviso pronto para a tela quando há divergência. Nulo quando não há."""
+  divergenceMessage: String
 }
 
 type SellerClientFactoryTypeConnectionResponse {
@@ -3518,6 +3703,12 @@ type VisitScheduleItemType {
   visitDurationMin: Int
   suggestedProducts: [JSON!]
   stockoutAlerts: [JSON!]
+  """
+  O pedido que dava para montar quando a rotina foi planejada, contra o mínimo
+  da fábrica. Congelado de propósito: é o que EXPLICA a decisão do motor. Nulo
+  quando a fábrica não tem mínimo cadastrado ou o vínculo ainda não tem cesta.
+  """
+  viability: VisitViabilityType
   status: VisitStatus!
   outcome: VisitOutcome
   outcomeReason: String
@@ -3585,6 +3776,45 @@ input PromoteContactToVisitInput {
   targetDate: Date = null
 }
 
+"""Um produto que ajudaria a fechar o pedido mínimo."""
+type ViabilitySuggestionType {
+  productId: UUID!
+  productName: String
+  sku: String
+  """Quantidade média que este cliente costuma comprar deste produto."""
+  quantity: Decimal!
+  """Quanto essa quantidade acrescenta ao pedido."""
+  value: Decimal!
+  """Dias até acabar na loja. Negativo = já acabou."""
+  daysUntilOut: Int
+}
+
+"""
+O pedido possível de um cliente contra o mínimo da fábrica, como estava no
+momento do planejamento.
+
+Existe porque o mínimo deixou de ser só um erro na confirmação e virou insumo da
+rotina: cliente em ruptura cuja reposição não fecha o mínimo não faz pedido, e
+mandar o vendedor até lá hoje queima a viagem.
+"""
+type VisitViabilityType {
+  """`fecha` | `quase` | `longe`."""
+  status: String!
+  """Valor da reposição devida hoje."""
+  basketValue: Decimal!
+  minimumAmount: Decimal!
+  """Quanto falta para o pedido existir. Zero quando já fecha."""
+  missingAmount: Decimal!
+  """
+  Dia em que a cesta deve cruzar o mínimo. Só em `longe` — é o que transforma
+  "não vá" em "vá no dia 22". Nulo quando o cliente não fecha o mínimo sozinho
+  nem esperando (caso de conversa, não de espera).
+  """
+  readyOn: Date
+  """Do que acaba primeiro para o mais distante — nunca do mais caro."""
+  suggestions: [ViabilitySuggestionType!]!
+}
+
 type VisitScheduleItemTypeConnectionResponse {
   edges: [VisitScheduleItemTypeEdge!]!
   pageInfo: PageInfo!
@@ -3647,6 +3877,23 @@ type VisitStockCandidateProductType {
   id: UUID!
   name: String!
   sku: String
+  """
+  Dias desde o esgotamento estimado. Negativo = ainda dura. Nulo = produto sem
+  estoque acompanhado (não há o que confirmar, só o que descobrir).
+  """
+  daysSinceStockout: Int
+  """
+  Lastro do número acima: `confirmado` | `historico` | `fraco` | `sem_lastro`.
+  A tela usa para dizer "estimado" em vez de afirmar ruptura.
+  """
+  signalConfidence: String
+  """
+  Vale perguntar por este: o número dele não tem lastro E ele manda na urgência
+  do cliente. Confirmar produto que não move o score gasta a paciência do
+  cliente à toa — e é assim que o vendedor abandona o formulário na décima
+  quinta linha. Vem no topo da lista.
+  """
+  isDecisive: Boolean!
 }
 
 type VisitStockCandidateGroupType {

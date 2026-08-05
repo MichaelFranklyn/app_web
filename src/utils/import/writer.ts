@@ -1,4 +1,11 @@
-import { SheetMatrix } from "./reader";
+/**
+ * Célula de ESCRITA. Diferente da leitura (`SheetMatrix`, sempre texto): número
+ * gravado como número é o que permite somar a coluna no Excel — "R$ 4.820,00" em
+ * célula de texto não entra em soma, e é justamente para somar que a planilha
+ * de um relatório existe.
+ */
+export type SheetCell = string | number;
+export type SheetOutput = SheetCell[][];
 
 /**
  * Baixa uma matriz de células como planilha Excel (.xlsx).
@@ -13,7 +20,7 @@ import { SheetMatrix } from "./reader";
  */
 export const downloadSheet = async (
   filename: string,
-  rows: SheetMatrix,
+  rows: SheetOutput,
   sheetName = "Modelo"
 ): Promise<void> => {
   const XLSX = await import("xlsx");
@@ -28,7 +35,7 @@ export const downloadSheet = async (
 };
 
 /** Largura de cada coluna pelo maior conteúdo, com folga e teto. */
-const columnWidths = (rows: SheetMatrix) => {
+const columnWidths = (rows: SheetOutput) => {
   const count = Math.max(...rows.map((row) => row.length), 0);
   return Array.from({ length: count }, (_, index) => {
     const longest = rows.reduce(

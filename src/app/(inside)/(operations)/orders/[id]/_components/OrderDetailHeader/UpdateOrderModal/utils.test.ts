@@ -118,3 +118,47 @@ describe("normalizeUpdateInput — condição de pagamento", () => {
     expect(out).not.toHaveProperty("paymentTermId");
   });
 });
+
+describe("normalizeUpdateInput — cobertura estimada do pedido", () => {
+  const base = {
+    status: { value: "CONFIRMED" },
+    notes: "",
+    freightType: null,
+    deliveryEstimateDays: "",
+    paymentTermId: null,
+  };
+
+  const run = (over: Record<string, unknown>, current: number | null = null) =>
+    normalizeUpdateInput(
+      { ...base, ...over },
+      null,
+      null,
+      "CONFIRMED",
+      null,
+      null,
+      current
+    );
+
+  it("grava a estimativa do vendedor", () => {
+    expect(run({ coverageDays: "30" }).coverageDays).toBe(30);
+  });
+
+  it("campo vazio é resposta legítima e limpa o valor", () => {
+    // "não sei dizer" é melhor que um chute virar dado: a cadência cai na
+    // recorrência dos pedidos, que é medição.
+    expect(run({ coverageDays: "" }, 30).coverageDays).toBeNull();
+  });
+
+  it("não manda o campo quando nada mudou", () => {
+    expect("coverageDays" in run({ coverageDays: "30" }, 30)).toBe(false);
+  });
+
+  it("zero e negativo não são cobertura", () => {
+    expect(run({ coverageDays: "0" }, 30).coverageDays).toBeNull();
+    expect(run({ coverageDays: "-5" }, 30).coverageDays).toBeNull();
+  });
+
+  it("arredonda decimal digitado por engano", () => {
+    expect(run({ coverageDays: "30.4" }).coverageDays).toBe(30);
+  });
+});

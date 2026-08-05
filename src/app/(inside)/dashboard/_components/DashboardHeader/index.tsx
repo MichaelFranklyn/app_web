@@ -4,7 +4,7 @@ import { Button } from "@/components/Button";
 import { Input } from "@/components/Input";
 import { SelectOption } from "@/components/Input";
 import { PanelHeader } from "@/components/PanelHeader";
-import { ChartLine } from "lucide-react";
+import { ChartLine, FileText } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { DateRangeIso, SellerOption } from "../../interface";
 import { formatDateRangeLabel } from "../../utils";
@@ -69,7 +69,7 @@ export function DashboardHeader({
             <DashboardDateFilter value={range} onChange={onRangeChange} />
             {/* As abas "Visão Geral"/"Análises" saíram: eram duas telas
                 irmãs disputando um cabeçalho. Daqui se vai para o desempenho e
-                de lá se volta pelo rastro. */}
+                para os relatórios, e de lá se volta pelo rastro. */}
             <Button.Root
               appearance="outline"
               color="neutral"
@@ -78,6 +78,15 @@ export function DashboardHeader({
             >
               <Button.Icon icon={ChartLine} />
               <Button.Title>Ver desempenho</Button.Title>
+            </Button.Root>
+            <Button.Root
+              appearance="outline"
+              color="neutral"
+              size="sm"
+              onClick={() => router.push("/dashboard/reports")}
+            >
+              <Button.Icon icon={FileText} />
+              <Button.Title>Relatórios</Button.Title>
             </Button.Root>
           </PanelHeader.Actions>
         </PanelHeader.Left>

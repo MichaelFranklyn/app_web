@@ -13,7 +13,7 @@ export function formatCurrency(value: string | number): string {
 export {
   orderStatusLabel,
   orderStatusTone as orderStatusColor,
-} from "../../_shared/orderStatus";
+} from "../../../_shared/orderStatus";
 
 import { VisitOutcome } from "./interface";
 

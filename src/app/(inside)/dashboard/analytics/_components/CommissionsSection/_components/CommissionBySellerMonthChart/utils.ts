@@ -2,7 +2,7 @@ import { CHART_PALETTE } from "@/components/Chart/chartTheme";
 import { formatMoney } from "@/utils/format/masks";
 import type { EChartsCoreOption } from "echarts/core";
 
-import { buildMonthLinesOption } from "../../../../chartBuilders";
+import { buildMonthLinesOption } from "../../../../../chartBuilders";
 import { monthKeyToLabel } from "../../../../utils";
 import { ScopedCommissionRow } from "../../interface";
 import { commissionMonths, commissionTotalsBy } from "../../utils";

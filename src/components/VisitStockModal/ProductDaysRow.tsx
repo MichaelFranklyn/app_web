@@ -4,6 +4,7 @@ import { Title } from "@/components/Title";
 import { cn } from "@/lib/utils";
 import { useState } from "react";
 
+import { stockGuessLabel } from "./stockGuess";
 import { StockCandidateProduct } from "./useStockObservation";
 
 // O vendedor pergunta "ainda tem?" e o cliente responde em dias, não em rótulos.
@@ -32,6 +33,7 @@ export function ProductDaysRow({ product, days, onChange }: Props) {
   );
 
   const marked = days != null;
+  const currentGuess = stockGuessLabel(product);
 
   return (
     <div className="flex flex-col gap-8 rounded-(--r-md) border border-(--border) bg-(--bg3) px-12 py-10">
@@ -42,10 +44,20 @@ export function ProductDaysRow({ product, days, onChange }: Props) {
           </div>
           <div className="text-[13px] text-(--muted)">{product.sku}</div>
         </div>
-        {marked && (
+        {marked ? (
           <Title variant="micro" color="secondary" className="shrink-0">
             {days === 0 ? "sem estoque" : `dura ~${days} dias`}
           </Title>
+        ) : (
+          // Antes de responder, o vendedor vê o que o sistema ACHA — e a
+          // procedência do palpite. Confirmar ou corrigir um número é muito
+          // mais rápido que produzir um do zero, e é a diferença entre o
+          // cliente responder e dar de ombros.
+          currentGuess && (
+            <Title variant="micro" color="muted2" className="shrink-0">
+              {currentGuess}
+            </Title>
+          )
         )}
       </div>
 

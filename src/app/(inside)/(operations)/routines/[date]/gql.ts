@@ -70,6 +70,7 @@ export const WEEK_SCHEDULE_QUERY = gql`
                     scoreFrequency
                     scorePotential
                     scoreRecency
+                    stockConfidence
                   }
                 }
               }
@@ -77,6 +78,21 @@ export const WEEK_SCHEDULE_QUERY = gql`
                 id
                 nomeFantasia
                 razaoSocial
+              }
+              viability {
+                status
+                basketValue
+                minimumAmount
+                missingAmount
+                readyOn
+                suggestions {
+                  productId
+                  productName
+                  sku
+                  quantity
+                  value
+                  daysUntilOut
+                }
               }
               clientFactoryLink {
                 id
@@ -111,6 +127,7 @@ export const WEEK_SCHEDULE_QUERY = gql`
                   scoreFrequency
                   scorePotential
                   scoreRecency
+                  stockConfidence
                 }
               }
             }

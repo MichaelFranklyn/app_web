@@ -58,6 +58,8 @@ export interface OrderDetail {
   deliveredAt: string | null;
   /** Prazo de entrega estimado (dias), contado do faturamento. */
   deliveryEstimateDays: number | null;
+  /** Dias que o vendedor estima que este pedido dura na loja do cliente. */
+  coverageDays: number | null;
   /** Data prevista de entrega = invoicedAt + deliveryEstimateDays; nulo sem os dois. */
   estimatedDeliveryDate: string | null;
   /** Faturado, prazo vencido e não entregue — pede confirmação de entrega. */

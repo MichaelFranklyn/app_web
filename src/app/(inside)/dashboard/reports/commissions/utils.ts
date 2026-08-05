@@ -1,0 +1,172 @@
+import {
+  COMMISSION_STATUS_LABEL,
+  groupByFactory,
+} from "@/app/(inside)/_shared/commissions";
+import {
+  SERIES_BLUE,
+  SERIES_GREEN,
+  SERIES_ORANGE,
+} from "@/components/Chart/chartTheme";
+import { clientName, factoryName } from "@/utils/company";
+import { formatDateDMY, formatMoney } from "@/utils/format/masks";
+import type { EChartsCoreOption } from "echarts/core";
+
+import { buildHorizontalBarOption, mutedLine } from "../../chartBuilders";
+import {
+  CommissionRow,
+  CommissionsByFactory,
+  CommissionsTotals,
+} from "./interface";
+
+/**
+ * Recorta as parcelas pelo período do relatório, pela data em que a comissão CAI
+ * (`receiveDate`) — a mesma régua da tela de Comissões.
+ *
+ * Não é a data do pedido nem a do faturamento: a comissão de um pedido faturado em
+ * junho com prazo de 30 dias cai em julho, e é em julho que ela entra no bolso.
+ * Parcela sem data ainda não tem quando cair (depende do faturamento) e fica fora
+ * de qualquer período — aparece na tela de Comissões como "previsto".
+ */
+export const filterByPeriod = (
+  rows: CommissionRow[],
+  from: string,
+  to: string
+): CommissionRow[] =>
+  rows.filter(
+    (row) =>
+      !!row.receiveDate && row.receiveDate >= from && row.receiveDate <= to
+  );
+
+/** Fecha o conjunto de parcelas nas três situações que importam. */
+export const summarize = (rows: CommissionRow[]): CommissionsTotals => {
+  const totals: CommissionsTotals = {
+    receivable: 0,
+    received: 0,
+    pending: 0,
+    count: rows.length,
+    countReceivable: 0,
+  };
+
+  for (const row of rows) {
+    const amount = Number(row.amount);
+    if (row.status === "receivable") {
+      totals.receivable += amount;
+      totals.countReceivable += 1;
+    } else if (row.status === "received") {
+      totals.received += amount;
+    } else if (row.status === "pending") {
+      totals.pending += amount;
+    }
+  }
+
+  return totals;
+};
+
+/**
+ * Agrupa por fábrica trabalhada — é assim que a fábrica manda a planilha, então
+ * conferir fica direto. Reusa o `groupByFactory` da tela de Comissões para o
+ * agrupamento e o nome da fábrica serem os mesmos nos dois lugares.
+ */
+export const byFactory = (rows: CommissionRow[]): CommissionsByFactory[] =>
+  groupByFactory(rows)
+    .map((group) => {
+      const totals = summarize(group.rows);
+      return {
+        factoryId: group.factoryId,
+        name: group.name,
+        receivable: totals.receivable,
+        received: totals.received,
+        pending: totals.pending,
+        count: group.rows.length,
+      };
+    })
+    .sort(
+      (a, b) =>
+        b.receivable +
+        b.received +
+        b.pending -
+        (a.receivable + a.received + a.pending)
+    );
+
+/**
+ * Comissão por fábrica, empilhada nas três situações.
+ *
+ * Empilhado porque as partes somam a comissão do período naquela fábrica — a
+ * barra inteira é o total, e as cores dizem em que pé está: verde já entrou,
+ * âmbar é o que se pode cobrar agora, azul ainda depende do faturamento.
+ */
+export const buildFactoryOption = (
+  groups: CommissionsByFactory[]
+): EChartsCoreOption =>
+  buildHorizontalBarOption(
+    groups.map((group) => group.name),
+    [
+      {
+        name: "Recebido",
+        color: SERIES_GREEN,
+        data: groups.map((group) => group.received),
+      },
+      {
+        name: "A receber",
+        color: SERIES_ORANGE,
+        data: groups.map((group) => group.receivable),
+      },
+      {
+        name: "Previsto",
+        color: SERIES_BLUE,
+        data: groups.map((group) => group.pending),
+      },
+    ],
+    (value) => formatMoney(value),
+    (index) => {
+      const group = groups[index];
+      if (!group) return [];
+      return [
+        group.name,
+        `Recebido: <b>${formatMoney(group.received)}</b>`,
+        `A receber: <b>${formatMoney(group.receivable)}</b>`,
+        `Previsto: <b>${formatMoney(group.pending)}</b>`,
+        mutedLine(`${group.count} parcela(s)`),
+      ];
+    },
+    { stacked: true }
+  );
+
+export const COMMISSIONS_EXPORT_HEADERS = [
+  "Recebimento",
+  "Cliente",
+  "Fábrica",
+  "Vendedor",
+  "Parcela",
+  "Valor da parcela",
+  "Comissão",
+  "Situação",
+  "Conferida",
+];
+
+export const buildCommissionsExportRows = (
+  rows: CommissionRow[]
+): (string | number)[][] =>
+  rows.map((row) => [
+    row.receiveDate ? formatDateDMY(row.receiveDate) : "—",
+    clientName(row.client),
+    factoryName(row.factory),
+    row.seller?.name ?? "—",
+    String(row.sequence),
+    Number(row.installmentAmount),
+    Number(row.amount),
+    COMMISSION_STATUS_LABEL[row.status],
+    row.isReconciled ? "Sim" : "Não",
+  ]);
+
+/**
+ * Ordena para a conferência: pela data em que a comissão cai e, no empate, por
+ * cliente — a mesma leitura da planilha da fábrica. Sem data vai para o fim.
+ */
+export const sortForReport = (rows: CommissionRow[]): CommissionRow[] =>
+  [...rows].sort(
+    (a, b) =>
+      (a.receiveDate ?? "9999-12-31").localeCompare(
+        b.receiveDate ?? "9999-12-31"
+      ) || clientName(a.client).localeCompare(clientName(b.client), "pt-BR")
+  );

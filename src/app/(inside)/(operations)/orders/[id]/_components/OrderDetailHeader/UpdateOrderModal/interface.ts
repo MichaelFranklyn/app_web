@@ -40,6 +40,8 @@ export interface UpdateOrderModalProps {
   currentFileUrl: string | null;
   currentFileParsed: boolean;
   currentDeliveryEstimateDays: number | null;
+  /** Dias que o vendedor estimou que este pedido dura. Ver @/utils/cadence. */
+  currentCoverageDays: number | null;
   currentPaymentTermId: string | null;
   /** Condições de pagamento da fábrica deste pedido. */
   paymentTerms: PaymentTermRef[];

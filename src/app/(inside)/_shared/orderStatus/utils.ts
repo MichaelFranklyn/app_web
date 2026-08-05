@@ -1,10 +1,11 @@
 /**
- * Vocabulário do status do pedido — a mesma palavra em toda a operação.
+ * Vocabulário do status do pedido — a mesma palavra em todo o sistema.
  *
- * Mora no pai porque duas rotas-irmãs precisam dele: a lista de pedidos e os
- * pedidos do cliente (clients/[id]/orders). O status chega do backend como NOME
- * do enum (CONFIRMED, INVOICED); traduzir isso em cada rota já produziu uma tela
- * com a tag em inglês, porque o mapa local só conhecia parte dos status.
+ * Subiu de `(operations)/_shared` para cá quando os relatórios do dashboard
+ * passaram a precisar dele: código compartilhado mora no pai comum, e o pai
+ * comum de `(operations)` e `dashboard` é este. O status chega do backend como
+ * NOME do enum (CONFIRMED, INVOICED); traduzir isso em cada rota já produziu uma
+ * tela com a tag em inglês, porque o mapa local só conhecia parte dos status.
  */
 export type OrderStatus =
   | "DRAFT"

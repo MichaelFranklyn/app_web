@@ -19,6 +19,7 @@ export function UpdateOrderModal({
   currentFreightType,
   currentStatus,
   currentDeliveryEstimateDays,
+  currentCoverageDays,
   currentPaymentTermId,
   paymentTerms,
   onSuccess,
@@ -38,7 +39,8 @@ export function UpdateOrderModal({
       currentFreightType,
       currentStatus,
       currentDeliveryEstimateDays,
-      currentPaymentTermId
+      currentPaymentTermId,
+      currentCoverageDays
     );
 
     if (Object.keys(normalized).length === 0) {
@@ -103,6 +105,7 @@ export function UpdateOrderModal({
                     ? { value: "CIF", label: "CIF — entrega pela fábrica" }
                     : null,
               deliveryEstimateDays: currentDeliveryEstimateDays ?? "",
+              coverageDays: currentCoverageDays ?? "",
               paymentTermId: currentTerm
                 ? {
                     value: currentTerm.id,

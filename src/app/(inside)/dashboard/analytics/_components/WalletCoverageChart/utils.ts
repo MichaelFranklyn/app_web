@@ -1,7 +1,7 @@
 import { SERIES_PURPLE } from "@/components/Chart/chartTheme";
 import type { EChartsCoreOption } from "echarts/core";
 
-import { buildHorizontalBarOption, mutedLine } from "../../chartBuilders";
+import { buildHorizontalBarOption, mutedLine } from "../../../chartBuilders";
 import { formatPercent } from "../../utils";
 import { WalletCoveragePoint } from "./interface";
 

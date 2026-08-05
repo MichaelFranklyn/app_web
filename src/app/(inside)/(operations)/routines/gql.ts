@@ -109,6 +109,7 @@ export const VISIT_SCHEDULES_QUERY = gql`
                     scoreFrequency
                     scorePotential
                     scoreRecency
+                    stockConfidence
                   }
                 }
               }
@@ -145,6 +146,7 @@ export const VISIT_SCHEDULES_QUERY = gql`
                   scoreFrequency
                   scorePotential
                   scoreRecency
+                  stockConfidence
                 }
               }
             }

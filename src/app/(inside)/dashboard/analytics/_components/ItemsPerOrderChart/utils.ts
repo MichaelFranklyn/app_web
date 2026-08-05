@@ -2,7 +2,7 @@ import { SERIES_ORANGE } from "@/components/Chart/chartTheme";
 import { formatNumber } from "@/utils/format/masks";
 import type { EChartsCoreOption } from "echarts/core";
 
-import { buildHorizontalBarOption, mutedLine } from "../../chartBuilders";
+import { buildHorizontalBarOption, mutedLine } from "../../../chartBuilders";
 import { formatCount } from "../../utils";
 import { ItemsPerOrderPoint } from "./interface";
 

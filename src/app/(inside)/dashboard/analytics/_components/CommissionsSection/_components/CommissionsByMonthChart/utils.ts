@@ -6,7 +6,7 @@ import {
 import { formatMoney } from "@/utils/format/masks";
 import type { EChartsCoreOption } from "echarts/core";
 
-import { buildMonthLinesOption } from "../../../../chartBuilders";
+import { buildMonthLinesOption } from "../../../../../chartBuilders";
 import { monthKeyToLabel } from "../../../../utils";
 import { ScopedCommissionRow } from "../../interface";
 import { commissionMonths } from "../../utils";

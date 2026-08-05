@@ -6,6 +6,7 @@ import { MapPin, Phone } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { ContactLinks } from "../../../_components/ContactLinks";
 import { VisitActions } from "../../../_components/VisitActions";
+import { ViabilityNote } from "../../../_components/ViabilityNote";
 import { VisitItem } from "../../interface";
 import {
   STOP_STATUS_COLOR,
@@ -134,6 +135,9 @@ export function RouteStopsCard({
                         </Badge.Text>
                       </Badge.Root>
                     </div>
+                    {/* "Dá pedido nesse cliente hoje?" — a pergunta que o
+                        vendedor só conseguia fazer no balcão, tarde. */}
+                    <ViabilityNote viability={stop.viability} />
                   </div>
 
                   <div className="-mr-[4px] shrink-0">

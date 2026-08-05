@@ -88,6 +88,13 @@ export const buildUpdateOrderSteps = (
               hint: "Dias estimados até a entrega, contados do faturamento. Herda o padrão da fábrica; ajuste se este pedido tiver prazo diferente.",
             },
             {
+              name: "coverageDays",
+              type: "number",
+              label: "Este pedido dura quantos dias?",
+              placeholder: "Ex: 30",
+              hint: "Sua estimativa de quanto tempo essa mercadoria segura a loja do cliente. É o que permite a rotina prever a próxima visita sem depender do estoque item a item. Se os pedidos dele mostrarem outro ritmo, a rotina avisa.",
+            },
+            {
               name: "notes",
               type: "textarea",
               label: "Observações",
@@ -107,7 +114,8 @@ export const normalizeUpdateInput = (
   currentFreightType: string | null,
   currentStatus: OrderStatus,
   currentDeliveryEstimateDays: number | null,
-  currentPaymentTermId: string | null
+  currentPaymentTermId: string | null,
+  currentCoverageDays: number | null = null
 ): Record<string, unknown> => {
   const normalized: Record<string, unknown> = {};
 
@@ -125,6 +133,21 @@ export const normalizeUpdateInput = (
       : null;
   if (nextDays !== (currentDeliveryEstimateDays ?? null)) {
     normalized.deliveryEstimateDays = nextDays;
+  }
+
+  // Cobertura estimada: vazio → null (o vendedor não sabe dizer, e isso é uma
+  // resposta legítima — melhor que um chute virar dado). Fora da faixa
+  // plausível o backend também descarta.
+  const rawCoverage = String(data.coverageDays ?? "").trim();
+  const parsedCoverage = rawCoverage === "" ? null : Number(rawCoverage);
+  const nextCoverage =
+    parsedCoverage !== null &&
+    Number.isFinite(parsedCoverage) &&
+    parsedCoverage > 0
+      ? Math.round(parsedCoverage)
+      : null;
+  if (nextCoverage !== (currentCoverageDays ?? null)) {
+    normalized.coverageDays = nextCoverage;
   }
 
   const next = data.notes != null ? String(data.notes).trim() : "";

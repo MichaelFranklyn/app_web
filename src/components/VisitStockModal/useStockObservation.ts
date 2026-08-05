@@ -15,6 +15,15 @@ export interface StockCandidateProduct {
   id: string;
   name: string;
   sku: string | null;
+  /** Dias desde o esgotamento estimado. Negativo = ainda dura. */
+  daysSinceStockout: number | null;
+  /** `confirmado` | `historico` | `fraco` | `sem_lastro`. */
+  signalConfidence: string | null;
+  /**
+   * A resposta deste produto pode mudar a decisão da rotina: o número dele não
+   * tem lastro E ele manda na urgência do cliente. Vem no topo da lista.
+   */
+  isDecisive: boolean;
 }
 
 export interface StockCandidateGroup {
