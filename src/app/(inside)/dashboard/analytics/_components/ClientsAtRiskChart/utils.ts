@@ -2,7 +2,7 @@ import { CHART_INK_MUTED, SERIES_RED } from "@/components/Chart/chartTheme";
 import { formatDateDMY } from "@/utils/format/masks";
 import type { EChartsCoreOption } from "echarts/core";
 
-import { buildHorizontalBarOption, mutedLine } from "../../chartBuilders";
+import { buildHorizontalBarOption, mutedLine } from "../../../chartBuilders";
 import { formatDays } from "../../utils";
 import { ClientRiskPoint } from "./interface";
 

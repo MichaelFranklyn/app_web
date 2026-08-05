@@ -72,3 +72,50 @@ export const namedEntityLabel = (
   if (!entity) return "—";
   return entity.nomeFantasia ?? entity.razaoSocial;
 };
+
+// ── Formatadores das telas de análise ────────────────────────────────────
+//
+// Moram aqui, no pai, porque `analytics/` e `reports/` os consomem — as duas
+// rotas escrevem o mesmo mês no eixo e a mesma porcentagem no cartão, e duas
+// implementações já produziriam "jul/26" numa tela e "07/2026" na outra.
+
+const MONTHS_SHORT = [
+  "jan",
+  "fev",
+  "mar",
+  "abr",
+  "mai",
+  "jun",
+  "jul",
+  "ago",
+  "set",
+  "out",
+  "nov",
+  "dez",
+];
+
+/** "2026-07" → "jul/26" para o eixo. */
+export const monthKeyToLabel = (key: string): string => {
+  const [year, month] = key.split("-");
+  const idx = Number(month) - 1;
+  if (idx < 0 || idx > 11) return key;
+  return `${MONTHS_SHORT[idx]}/${year.slice(2)}`;
+};
+
+/** Dias arredondados, em linguagem concreta: "1 dia" / "18 dias". */
+export const formatDays = (value: number): string => {
+  const rounded = Math.round(value);
+  return rounded === 1 ? "1 dia" : `${rounded} dias`;
+};
+
+/** Fração (0..1) → "47%". Sem casas decimais: o público lê a ordem de grandeza,
+ * não a precisão. */
+export const formatPercent = (value: number): string =>
+  `${Math.round(value * 100)}%`;
+
+/** Contagem com o substantivo no singular/plural certo: "1 cliente" / "8 clientes". */
+export const formatCount = (
+  value: number,
+  singular: string,
+  plural: string
+): string => `${value} ${value === 1 ? singular : plural}`;

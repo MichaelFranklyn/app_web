@@ -2,7 +2,7 @@ import { SERIES_CYAN } from "@/components/Chart/chartTheme";
 import { formatMoney, formatNumber } from "@/utils/format/masks";
 import type { EChartsCoreOption } from "echarts/core";
 
-import { buildVerticalBarOption, mutedLine } from "../../chartBuilders";
+import { buildVerticalBarOption, mutedLine } from "../../../chartBuilders";
 import { formatCount, formatPercent } from "../../utils";
 import { WeekdayVolumePoint } from "./interface";
 

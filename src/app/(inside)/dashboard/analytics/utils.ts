@@ -1,20 +1,17 @@
 import { toUtcIsoDate } from "@/utils/format/date";
 import { DateRangeIso } from "../interface";
 
-const MONTHS_SHORT = [
-  "jan",
-  "fev",
-  "mar",
-  "abr",
-  "mai",
-  "jun",
-  "jul",
-  "ago",
-  "set",
-  "out",
-  "nov",
-  "dez",
-];
+// Os formatadores (mês no eixo, porcentagem, dias, contagem) subiram para o pai
+// quando `reports/` passou a precisar deles — ver `dashboard/utils.tsx`. Ficam
+// re-exportados aqui porque os ~29 gráficos desta aba já os consomem por este
+// caminho; o que importa é existir UMA implementação (mesma regra de
+// `commissions/utils.ts` com os helpers de mês).
+export {
+  formatCount,
+  formatDays,
+  formatPercent,
+  monthKeyToLabel,
+} from "../utils";
 
 /** Período default dos gráficos: início do mês 11 meses atrás → hoje (12 meses). */
 export const getLast12MonthsRangeIso = (): DateRangeIso => {
@@ -29,29 +26,3 @@ export const getLast12MonthsRangeIso = (): DateRangeIso => {
     ),
   };
 };
-
-/** "2026-07" → "jul/26" para o eixo. */
-export const monthKeyToLabel = (key: string): string => {
-  const [year, month] = key.split("-");
-  const idx = Number(month) - 1;
-  if (idx < 0 || idx > 11) return key;
-  return `${MONTHS_SHORT[idx]}/${year.slice(2)}`;
-};
-
-/** Dias arredondados, em linguagem concreta: "1 dia" / "18 dias". */
-export const formatDays = (value: number): string => {
-  const rounded = Math.round(value);
-  return rounded === 1 ? "1 dia" : `${rounded} dias`;
-};
-
-/** Fração (0..1) → "47%". Sem casas decimais: o público lê a ordem de grandeza,
- * não a precisão. */
-export const formatPercent = (value: number): string =>
-  `${Math.round(value * 100)}%`;
-
-/** Contagem com o substantivo no singular/plural certo: "1 cliente" / "8 clientes". */
-export const formatCount = (
-  value: number,
-  singular: string,
-  plural: string
-): string => `${value} ${value === 1 ? singular : plural}`;

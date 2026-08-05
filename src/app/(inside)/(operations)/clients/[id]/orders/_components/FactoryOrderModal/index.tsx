@@ -25,7 +25,7 @@ import {
   ORDER_STATUS_OPTIONS,
   orderStatusLabel,
   orderStatusTone,
-} from "../../../../../_shared/orderStatus";
+} from "../../../../../../_shared/orderStatus";
 import { DeleteOrderModal } from "../DeleteOrderModal";
 import { factoryName } from "@/utils/company";
 

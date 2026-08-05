@@ -8,8 +8,9 @@ import {
 import type { EChartsCoreOption } from "echarts/core";
 
 /**
- * Formas de gráfico usadas por mais de um dos gráficos da aba. Ficam no pai
- * (e não dentro de um deles) porque são código compartilhado entre irmãos.
+ * Formas de gráfico usadas por mais de um gráfico do dashboard. Moram aqui, no
+ * pai de `analytics/` e `reports/`, porque as duas rotas as consomem — código
+ * compartilhado entre irmãos sobe, um irmão não importa do outro.
  * São funções puras: recebem categorias + séries já numéricas e devolvem a
  * option do ECharts, sem saber de onde os dados vieram.
  */

@@ -49,7 +49,7 @@ export {
   ORDER_STATUS_OPTIONS,
   ORDER_STATUS_TONE,
   orderStatusLabel,
-} from "../_shared/orderStatus";
+} from "../../_shared/orderStatus";
 
 export const buildOrderKpis = (
   stats: OrdersStats,

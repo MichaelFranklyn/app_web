@@ -1,27 +1,26 @@
-import { clientName, factoryName } from "@/utils/company";
+import { clientName } from "@/utils/company";
 import {
   isInMonth,
   yearMonthFromIso,
   type YearMonth,
 } from "@/utils/format/month";
-import { CommissionRow, CommissionStatus } from "./interface";
+import { CommissionRow } from "./interface";
 
-export const COMMISSION_STATUS_LABEL: Record<CommissionStatus, string> = {
-  pending: "Previsto",
-  receivable: "A receber",
-  received: "Recebido",
-  cancelled: "Cancelado",
-};
+// O vocabulário da situação e o agrupamento por fábrica subiram para
+// `(inside)/_shared/commissions` quando o relatório de comissões passou a
+// precisar deles — o papel e a tela têm de chamar a mesma coisa pelo mesmo nome.
+// Re-exportados aqui porque a página inteira já os consome por este arquivo.
+import { groupByFactory } from "../../_shared/commissions";
 
-export const COMMISSION_STATUS_TONE: Record<
-  CommissionStatus,
-  "neutral" | "amber" | "green" | "red"
-> = {
-  pending: "neutral",
-  receivable: "amber",
-  received: "green",
-  cancelled: "red",
-};
+export {
+  COMMISSION_STATUS_LABEL,
+  COMMISSION_STATUS_TONE,
+  groupByFactory,
+} from "../../_shared/commissions";
+
+/** O grupo desta página é sempre de linhas de comissão — o genérico fica no pai. */
+export type FactoryGroup =
+  import("../../_shared/commissions").FactoryGroup<CommissionRow>;
 
 export type CommissionTab = "receivable" | "pending" | "received" | "all";
 
@@ -99,39 +98,6 @@ export const summarizeMonth = (
     }
   }
   return summary;
-};
-
-// ── Agrupamento por fábrica (de-para com a planilha) ─────────────────────────
-export interface FactoryGroup {
-  factoryId: string;
-  name: string;
-  rows: CommissionRow[]; // as linhas da fábrica dentre as que entraram
-}
-
-const FACTORYLESS_ID = "__sem_fabrica__";
-
-/**
- * Agrupa as linhas por fábrica trabalhada — é assim que a fábrica manda a
- * planilha, então bater o olho fica direto. Recebe as linhas JÁ recortadas
- * pelos filtros da página (mês e situação); fábrica que ficou sem linha
- * simplesmente não vira grupo. Ordena por nome da fábrica (pt-BR).
- */
-export const groupByFactory = (rows: CommissionRow[]): FactoryGroup[] => {
-  const byId = new Map<string, FactoryGroup>();
-
-  for (const row of rows) {
-    const id = row.factory?.id ?? FACTORYLESS_ID;
-    let group = byId.get(id);
-    if (!group) {
-      group = { factoryId: id, name: factoryName(row.factory), rows: [] };
-      byId.set(id, group);
-    }
-    group.rows.push(row);
-  }
-
-  return Array.from(byId.values()).sort((a, b) =>
-    a.name.localeCompare(b.name, "pt-BR")
-  );
 };
 
 // ── Relatório do que a fábrica tem a pagar no mês (PDF) ──────────────────────

@@ -1,7 +1,7 @@
 import { SERIES_BLUE, SERIES_GREEN } from "@/components/Chart/chartTheme";
 import type { EChartsCoreOption } from "echarts/core";
 
-import { buildStackedBarOption } from "../../chartBuilders";
+import { buildStackedBarOption } from "../../../chartBuilders";
 import { monthKeyToLabel } from "../../utils";
 import { NewVsReturningPoint } from "./interface";
 

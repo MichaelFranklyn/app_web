@@ -6,6 +6,10 @@ import { Item } from "./Item";
 import { Kpi } from "./Kpi";
 import { Root } from "./Root";
 
+// O status do KPI é escolhido por quem monta a faixa de números, então o tipo
+// sai pelo mesmo barrel do componente.
+export type { KpiStatus } from "./Kpi";
+
 export const Card = Object.assign(Root, {
   Root,
   Header,

@@ -6,7 +6,10 @@ import {
 import { formatMoney } from "@/utils/format/masks";
 import type { EChartsCoreOption } from "echarts/core";
 
-import { buildHorizontalBarOption, mutedLine } from "../../../../chartBuilders";
+import {
+  buildHorizontalBarOption,
+  mutedLine,
+} from "../../../../../chartBuilders";
 import { CommissionEntityTotals, ScopedCommissionRow } from "../../interface";
 import { commissionTotalsBy } from "../../utils";
 

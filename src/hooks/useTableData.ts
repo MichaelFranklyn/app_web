@@ -24,8 +24,22 @@ export interface SortState {
 export interface QueryFilter {
   field: string;
   operator?: string;
-  value: string | number | boolean;
+  value?: string | number | boolean;
+  /**
+   * Valores do operador `in` — o backend lê `values`, não `value` (ver
+   * `FieldFilterInput`). É como um relatório pede várias situações de uma vez
+   * ("confirmado, faturado ou entregue"): três filtros de igualdade se somariam
+   * em E e não casariam com pedido nenhum.
+   */
+  values?: string[];
 }
+
+/** Normaliza um filtro fixo para o formato do `BaseListInput`. */
+const toQueryFilter = (filter: QueryFilter) => ({
+  field: filter.field,
+  operator: filter.operator ?? (filter.values ? "in" : "eq"),
+  ...(filter.values ? { values: filter.values } : { value: filter.value }),
+});
 
 export interface UseTableDataOptions<TData, TItem> {
   query: DocumentNode;
@@ -123,14 +137,7 @@ export const useTableData = <TData, TItem extends object>(
 
   // Filtros fixos (escopo) + filtros de busca. baseFilters tem `operator` opcional → default "eq".
   const allFilters = useMemo(
-    () => [
-      ...(baseFilters ?? []).map((f) => ({
-        field: f.field,
-        operator: f.operator ?? "eq",
-        value: f.value,
-      })),
-      ...queryFilters,
-    ],
+    () => [...(baseFilters ?? []).map(toQueryFilter), ...queryFilters],
     // eslint-disable-next-line react-hooks/exhaustive-deps
     [baseFiltersString, queryFiltersString]
   );
@@ -149,11 +156,7 @@ export const useTableData = <TData, TItem extends object>(
   // Variáveis do estado default (página 1, sem filtros de busca — só os fixos).
   // Precisa bater byte a byte com o fetch SSR do `page.tsx` para o cache acertar.
   const defaultVariables = useMemo(() => {
-    const base = (baseFilters ?? []).map((f) => ({
-      field: f.field,
-      operator: f.operator ?? "eq",
-      value: f.value,
-    }));
+    const base = (baseFilters ?? []).map(toQueryFilter);
     return {
       input: {
         first: itemsPerPage,

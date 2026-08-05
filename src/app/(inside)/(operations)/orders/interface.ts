@@ -1,6 +1,6 @@
 // Definido junto dos rótulos, em `_shared/orderStatus`, para o tipo e o mapa de
 // tradução nunca saírem de sincronia.
-import type { OrderStatus } from "../_shared/orderStatus";
+import type { OrderStatus } from "../../_shared/orderStatus";
 
 export type { OrderStatus };
 

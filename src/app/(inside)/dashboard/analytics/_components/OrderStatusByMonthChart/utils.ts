@@ -7,7 +7,7 @@ import {
 import { CHART_INK_MUTED } from "@/components/Chart/chartTheme";
 import type { EChartsCoreOption } from "echarts/core";
 
-import { buildStackedBarOption } from "../../chartBuilders";
+import { buildStackedBarOption } from "../../../chartBuilders";
 import { monthKeyToLabel } from "../../utils";
 import { OrderStatusByMonthPoint } from "./interface";
 

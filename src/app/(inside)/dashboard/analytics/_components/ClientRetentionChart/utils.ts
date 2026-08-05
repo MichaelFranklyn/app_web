@@ -1,7 +1,7 @@
 import { SERIES_BLUE, SERIES_GREEN } from "@/components/Chart/chartTheme";
 import type { EChartsCoreOption } from "echarts/core";
 
-import { buildBarLineOption } from "../../chartBuilders";
+import { buildBarLineOption } from "../../../chartBuilders";
 import { formatPercent, monthKeyToLabel } from "../../utils";
 import { RetentionPoint } from "./interface";
 

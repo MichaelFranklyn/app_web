@@ -66,9 +66,13 @@ type NavItemProps = Omit<
 
 const NavItem = ({ href, exact, className, ...props }: NavItemProps) => {
   const pathname = usePathname();
+  // O href pode levar querystring (uma aba que preserva o filtro da tela ao
+  // navegar), e `pathname` nunca a tem: comparar a string inteira deixaria
+  // TODAS as abas inativas.
+  const target = href.split(/[?#]/)[0];
   const isActive = exact
-    ? pathname === href
-    : pathname === href || pathname.startsWith(`${href}/`);
+    ? pathname === target
+    : pathname === target || pathname.startsWith(`${target}/`);
   return (
     <Link
       href={href}
