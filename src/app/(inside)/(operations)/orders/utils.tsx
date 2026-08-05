@@ -41,6 +41,32 @@ export const PENDING_ORDER_TABLE_FIELDS: Record<string, FieldConfig> =
     Object.entries(ORDER_TABLE_FIELDS).filter(([key]) => key !== "status")
   );
 
+/**
+ * Colunas de `orders` por onde a lista pode ser ordenada — os mesmos nomes que
+ * vão no `sortKey` de cada `Table.Head`.
+ *
+ * Cliente, fábrica e vendedor ficam de fora de propósito: na tabela `orders`
+ * eles são só o UUID da chave estrangeira, e ordenar por UUID devolveria uma
+ * ordem sem sentido nenhum. Ordenar por NOME exigiria o `ORDER BY` alcançar a
+ * tabela vizinha, que o listador genérico não faz.
+ */
+export const ORDER_SORTABLE_FIELDS = [
+  "order_date",
+  "status",
+  "total_amount",
+  "commission_amount",
+];
+
+/**
+ * A ordem que o backend já aplica sozinho (ver `_default_order_ordering`): do
+ * pedido mais recente para o mais antigo. Declarada aqui só para o cabeçalho
+ * mostrar a seta na coluna certa antes do primeiro clique.
+ */
+export const ORDER_DEFAULT_SORT = {
+  key: "order_date",
+  direction: "desc",
+} as const;
+
 // O vocabulário do status mora em `_shared`: a lista de pedidos e os pedidos do
 // cliente são rotas-irmãs e precisam falar a mesma língua. Aqui só se reexporta
 // para não mexer nos imports de quem já lê de `../utils`.

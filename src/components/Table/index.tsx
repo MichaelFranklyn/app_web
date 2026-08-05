@@ -11,6 +11,8 @@ import { CardHead } from "./CardHead";
 import { Footer } from "./Footer";
 import { Skeleton } from "./Skeleton";
 
+export type { TableSort, TableSortDirection } from "./interface";
+
 export const Table = Object.assign(Root, {
   Root,
   Table: Primitive,

@@ -18,6 +18,7 @@ export function ClientsTable({
   inputValues,
   setFilter,
   setFilters,
+  sort,
   filterFields,
   loading,
   totalItems: totalCount,
@@ -30,7 +31,7 @@ export function ClientsTable({
   const isNarrowed = Object.values(inputValues).some(Boolean);
 
   return (
-    <Table.Root data-tour="clients-table">
+    <Table.Root sort={sort} data-tour="clients-table">
       <Table.CardHead>
         <Table.CardHead.Title>Carteira de clientes</Table.CardHead.Title>
         <Table.CardHead.Actions>
@@ -50,22 +51,32 @@ export function ClientsTable({
         <Table.Header>
           <Table.Row>
             {/* CNPJ e CNAE moram dentro da coluna Cliente (ver ClientCell). */}
-            <Table.Head>Cliente</Table.Head>
-            <Table.Head>Cidade</Table.Head>
+            <Table.Head sortKey="razao_social">Cliente</Table.Head>
+            <Table.Head sortKey="address_city">Cidade</Table.Head>
+            {/* Vendedor não ordena: o cliente pode ter vários, e não existe
+                "o vendedor" da linha para comparar. */}
             <Table.Head>Vendedor</Table.Head>
-            <Table.Head>Última Compra</Table.Head>
-            <Table.Head>Faturamento</Table.Head>
-            <Table.Head>Última Visita</Table.Head>
-            <Table.Head>Score</Table.Head>
+            {/* As duas datas ordenam por subconsulta que repete a regra da
+                célula — ver _COMPUTED_ORDER_COLUMNS no ClientRepository. */}
+            <Table.Head sortKey="last_order_date" sortFirst="desc">
+              Última Compra
+            </Table.Head>
+            <Table.Head sortKey="last_visit_date" sortFirst="desc">
+              Última Visita
+            </Table.Head>
+            {/* Score maior = mais urgente, então o 1º clique traz o topo. */}
+            <Table.Head sortKey="visit_score_total" sortFirst="desc">
+              Score
+            </Table.Head>
           </Table.Row>
         </Table.Header>
 
         <Table.Body>
           {loading && items.length === 0 ? (
-            <Table.Skeleton columns={7} rows={5} />
+            <Table.Skeleton columns={6} rows={5} />
           ) : items.length === 0 ? (
             <Table.Row>
-              <Table.Cell colSpan={7}>
+              <Table.Cell colSpan={6}>
                 <EmptyState.Root>
                   <EmptyState.Icon>
                     <Users size={32} />
@@ -104,12 +115,6 @@ export function ClientsTable({
 
                 <Table.Cell variant="dim" className="whitespace-nowrap">
                   {formatDate(node.companyClient?.lastOrderDate)}
-                </Table.Cell>
-
-                {/* Último pedido faturado: vazio enquanto o cliente só tiver
-                    pedido em aberto. */}
-                <Table.Cell variant="dim" className="whitespace-nowrap">
-                  {formatDate(node.companyClient?.lastInvoiceDate)}
                 </Table.Cell>
 
                 <Table.Cell variant="dim" className="whitespace-nowrap">

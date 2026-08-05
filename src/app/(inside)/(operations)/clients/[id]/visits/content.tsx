@@ -4,6 +4,7 @@ import { Badge } from "@/components/Badges";
 import { ContactTypeTag } from "@/components/ContactTypeTag";
 import { Title } from "@/components/Title";
 import { EmptyState } from "@/components/EmptyState";
+import { Filters } from "@/components/Filters";
 import { Loading } from "@/components/Loading";
 import { Pagination } from "@/components/Pagination";
 import { Table } from "@/components/Table";
@@ -23,13 +24,24 @@ import {
 import { clientDisplayName } from "@/utils/client";
 import { factoryName } from "@/utils/company";
 import { formatDate } from "@/utils/format/date";
-import { pageToAfter } from "@/utils/pagination";
 import { DeleteVisitModal } from "./_components/DeleteVisitModal";
 import { EditVisitModal } from "./_components/EditVisitModal";
 import { VisitsSkeleton } from "./_components/VisitsSkeleton";
 import { VisitStockAction } from "./_components/VisitStockAction";
+import { useVisitsTable } from "./useVisitsTable";
 
 const ITEMS_PER_PAGE = 10;
+
+/**
+ * Teto de visitas trazidas de uma vez.
+ *
+ * O histórico é de UM cliente, então cabe: mesmo um cliente visitado toda semana
+ * há dois anos fica na casa da centena. Trazer tudo é o que permite ordenar por
+ * Data e por Vendedor — os dois valores vêm do DIA da agenda, tabela vizinha, e
+ * o `ORDER BY` do listador genérico não a alcança. Paginando no servidor, essas
+ * duas colunas simplesmente não ordenariam.
+ */
+const MAX_VISITS = 200;
 
 const FACTORY_NAMES_SHOWN = 2;
 
@@ -75,11 +87,11 @@ export default function VisitsContent() {
       companyClientId,
       input: {
         order: { by: "created_at", dir: "desc" },
-        first: ITEMS_PER_PAGE,
-        after: pageToAfter(page, ITEMS_PER_PAGE),
+        first: MAX_VISITS,
+        after: null,
       },
     }),
-    [companyClientId, page]
+    [companyClientId]
   );
 
   const {
@@ -98,10 +110,25 @@ export default function VisitsContent() {
   const optimistic = useOptimisticList<ClientVisit>({
     initialData: initialVisits,
   });
-  const visits = optimistic.items;
+  const table = useVisitsTable(optimistic.items);
+
   const totalCount = visitsData?.visitsByCompanyClient.totalCount ?? 0;
-  const totalPages = Math.max(1, Math.ceil(totalCount / ITEMS_PER_PAGE));
+  // Passou do teto: o rodapé avisa, em vez de deixar a conta não fechar em
+  // silêncio com o total que o servidor informou.
+  const isTruncated = totalCount > optimistic.items.length;
+
+  const totalPages = Math.max(1, Math.ceil(table.totalItems / ITEMS_PER_PAGE));
   const currentPage = Math.min(page, totalPages);
+  // Paginação local: a lista inteira já está aqui, e recortar a página depois
+  // do filtro é o que faz "página 1 de 3" bater com o que está na tela.
+  const visits = useMemo(
+    () =>
+      table.displayedData.slice(
+        (currentPage - 1) * ITEMS_PER_PAGE,
+        currentPage * ITEMS_PER_PAGE
+      ),
+    [table.displayedData, currentPage]
+  );
 
   const isLoading = visitsLoading;
 
@@ -110,17 +137,32 @@ export default function VisitsContent() {
   }
 
   return (
-    <Table.Root data-tour="client-visits-table">
+    <Table.Root sort={table.sort} data-tour="client-visits-table">
+      <Table.CardHead>
+        <Table.CardHead.Title>Visitas do cliente</Table.CardHead.Title>
+        <Table.CardHead.Actions>
+          <Filters
+            fields={table.filterFields}
+            values={table.inputValues}
+            onChange={table.setFilters}
+          />
+        </Table.CardHead.Actions>
+      </Table.CardHead>
+
       <Table.Table>
         <Table.Header>
           <Table.Row>
-            <Table.Head>Data</Table.Head>
+            <Table.Head sortKey="date" sortFirst="desc">
+              Data
+            </Table.Head>
+            {/* Motivo e fábricas tratadas saem de listas de fábricas por visita:
+                não há um valor único por linha para comparar. */}
             <Table.Head>Motivo da visita</Table.Head>
             <Table.Head>Fábricas tratadas</Table.Head>
-            <Table.Head>Vendedor</Table.Head>
-            <Table.Head>Status</Table.Head>
-            <Table.Head>Resultado</Table.Head>
-            <Table.Head>Motivo</Table.Head>
+            <Table.Head sortKey="seller">Vendedor</Table.Head>
+            <Table.Head sortKey="status">Status</Table.Head>
+            <Table.Head sortKey="outcome">Resultado</Table.Head>
+            <Table.Head sortKey="outcomeReason">Motivo</Table.Head>
             <Table.Head className="text-right">Ações</Table.Head>
           </Table.Row>
         </Table.Header>
@@ -132,10 +174,15 @@ export default function VisitsContent() {
                   <EmptyState.Icon>
                     <CalendarCheck size={32} />
                   </EmptyState.Icon>
-                  <EmptyState.Title>Nenhuma visita registrada</EmptyState.Title>
+                  <EmptyState.Title>
+                    {table.totalUnfiltered > 0
+                      ? "Nenhuma visita encontrada"
+                      : "Nenhuma visita registrada"}
+                  </EmptyState.Title>
                   <EmptyState.Description>
-                    As visitas deste cliente aparecem aqui conforme a rota do
-                    vendedor é executada.
+                    {table.totalUnfiltered > 0
+                      ? "Ajuste os filtros para encontrar a visita."
+                      : "As visitas deste cliente aparecem aqui conforme a rota do vendedor é executada."}
                   </EmptyState.Description>
                 </EmptyState.Root>
               </Table.Cell>
@@ -242,8 +289,10 @@ export default function VisitsContent() {
           {visitsLoading && visits.length > 0 && (
             <Loading.Spinner size="sm" className="mr-6 inline-block" />
           )}
-          {totalCount > 0
-            ? `${totalCount} visita(s) · página ${currentPage} de ${totalPages}`
+          {table.totalItems > 0
+            ? `${table.totalItems} visita(s) · página ${currentPage} de ${totalPages}${
+                isTruncated ? ` · mostrando as ${MAX_VISITS} mais recentes` : ""
+              }`
             : "Nenhuma visita registrada"}
         </Table.Footer.Info>
         <Pagination.Smart

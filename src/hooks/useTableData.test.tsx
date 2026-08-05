@@ -13,7 +13,8 @@ vi.mock("next/navigation", () => ({
   usePathname: () => "/test",
 }));
 
-import { SortState, useTableData } from "./useTableData";
+import { pageToAfter } from "@/utils/pagination";
+import { ActiveSort, useTableData } from "./useTableData";
 
 interface Item {
   id: string;
@@ -51,12 +52,19 @@ const DATA: Item[] = [
   { id: "4", name: "Aaa", priority: "high", factory: { name: "Xis" } },
 ];
 
-// Sort é client-side → as variables não mudam; um mock só serve todos os casos.
-const makeWrapper = (data: Item[], filters?: object) => {
+// O sort agora vai NAS VARIABLES: cada ordenação é uma consulta diferente, e o
+// mock só casa se o `order` esperado for exatamente o que o hook montou.
+const makeWrapper = (
+  data: Item[],
+  filters?: object,
+  order?: object,
+  after: string | null = null
+) => {
   const input = {
     first: 10,
-    after: null,
+    after,
     ...(filters ? { filters } : {}),
+    ...(order ? { order } : {}),
   };
   const mocks = [
     {
@@ -77,7 +85,16 @@ const makeWrapper = (data: Item[], filters?: object) => {
   );
 };
 
-const run = async (opts: { sp?: string; initialSort?: SortState }) => {
+const SORTABLE = ["name", "created_at"];
+
+const run = async (opts: {
+  sp?: string;
+  sortableFields?: string[];
+  backendDefaultSort?: ActiveSort;
+  order?: object;
+  /** Cursor da página pedida — só quando `sp` traz `page`. */
+  after?: string;
+}) => {
   if (opts.sp) state.sp = new URLSearchParams(opts.sp);
   const { result } = renderHook(
     () =>
@@ -86,13 +103,20 @@ const run = async (opts: { sp?: string; initialSort?: SortState }) => {
         fields: {},
         getConnection: (d) => d.items,
         itemsPerPage: 10,
-        initialSort: opts.initialSort,
+        sortableFields: opts.sortableFields ?? SORTABLE,
+        backendDefaultSort: opts.backendDefaultSort,
       }),
-    { wrapper: makeWrapper(DATA) }
+    { wrapper: makeWrapper(DATA, undefined, opts.order, opts.after ?? null) }
   );
   await waitFor(() => expect(result.current.loading).toBe(false));
   return result;
 };
+
+/** Parâmetros da última URL escrita pelo router. */
+const lastUrlParams = () =>
+  new URLSearchParams(
+    decodeURIComponent(replace.mock.calls.at(-1)![0] as string).split("?")[1]
+  );
 
 const ids = (items: Item[]) => items.map((i) => i.id);
 
@@ -126,167 +150,134 @@ describe("useTableData — baseFilters", () => {
   });
 });
 
-describe("useTableData — ordenação", () => {
-  it("sem sort retorna na ordem original", async () => {
+describe("useTableData — ordenação (servidor)", () => {
+  it("sem sort na URL não manda `order` — preserva o default do backend", async () => {
+    // O mock é montado SEM `order`; se o hook mandasse um, a operação não
+    // casaria e o teste travaria em loading.
     const r = await run({});
-    expect(ids(r.current.displayedData)).toEqual(["3", "1", "2", "4"]);
+    expect(r.current.sort.key).toBeNull();
+    expect(r.current.displayedData).toHaveLength(DATA.length);
   });
 
-  it("direção 'none' não ordena mesmo com sortKey", async () => {
-    const r = await run({ sp: "sortKey=name&sortDir=none" });
-    expect(ids(r.current.displayedData)).toEqual(["3", "1", "2", "4"]);
-  });
-
-  it("byKey asc/desc por nome (via URL)", async () => {
-    const asc = await run({ sp: "sortKey=name&sortDir=asc" });
-    expect(ids(asc.current.displayedData)).toEqual(["4", "1", "2", "3"]); // Aaa,Alpha,Bravo,Charlie
-    const desc = await run({ sp: "sortKey=name&sortDir=desc" });
-    expect(ids(desc.current.displayedData)).toEqual(["3", "2", "1", "4"]);
-  });
-
-  it("byKey com chave aninhada (factory.name)", async () => {
-    const r = await run({ sp: "sortKey=factory.name&sortDir=asc" });
-    // Alfa(2), Beta(1), Xis(4), Zeta(3)
-    expect(ids(r.current.displayedData)).toEqual(["2", "1", "4", "3"]);
-  });
-
-  it("customOrder primário asc/desc", async () => {
-    const asc = await run({
-      initialSort: {
-        key: "priority",
-        direction: "asc",
-        customOrder: ["high", "medium", "low"],
-      },
-    });
-    // high: 1,4 (ordem estável) → medium:2 → low:3
-    expect(ids(asc.current.displayedData)).toEqual(["1", "4", "2", "3"]);
-    const desc = await run({
-      initialSort: {
-        key: "priority",
-        direction: "desc",
-        customOrder: ["high", "medium", "low"],
-      },
-    });
-    expect(ids(desc.current.displayedData)).toEqual(["3", "2", "1", "4"]);
-  });
-
-  it("customOrder primário + secundário por collator (name)", async () => {
+  it("sort na URL vira `order: {by, dir}` nas variables", async () => {
     const r = await run({
-      initialSort: {
-        key: "priority",
-        direction: "asc",
-        customOrder: ["high", "medium", "low"],
-        secondaryKey: "name",
-        secondaryDirection: "asc",
-      },
+      sp: "sortBy=name&sortDir=asc",
+      order: { by: "name", dir: "asc" },
     });
-    // high desempata por name: Aaa(4), Alpha(1) → depois medium(2), low(3)
-    expect(ids(r.current.displayedData)).toEqual(["4", "1", "2", "3"]);
+    expect(r.current.sort).toMatchObject({ key: "name", direction: "asc" });
+    expect(r.current.displayedData).toHaveLength(DATA.length);
   });
 
-  it("customOrder primário + secondaryCustomOrder", async () => {
+  it("a lista chega na ordem do servidor — o hook não reordena nada", async () => {
+    // O backend devolve o que quiser; reordenar aqui só bagunçaria a paginação
+    // (a página 2 viria ordenada por outro critério que a 1).
     const r = await run({
-      initialSort: {
-        key: "priority",
-        direction: "asc",
-        customOrder: ["high", "medium", "low"],
-        secondaryKey: "factory.name",
-        secondaryDirection: "asc",
-        secondaryCustomOrder: ["Xis", "Beta"],
-      },
+      sp: "sortBy=name&sortDir=asc",
+      order: { by: "name", dir: "asc" },
     });
-    // high desempata por factory custom [Xis,Beta]: Xis(4) antes de Beta(1)
-    expect(ids(r.current.displayedData)).toEqual(["4", "1", "2", "3"]);
+    expect(ids(r.current.displayedData)).toEqual(ids(DATA));
   });
 
-  it("handleSort dispara atualização de filtro (URL)", async () => {
+  it("coluna fora de sortableFields é ignorada (URL editada não derruba a consulta)", async () => {
+    // `?sortBy=DROP TABLE` chegaria no `getattr(model, campo)` do backend.
+    const r = await run({ sp: "sortBy=coluna_inventada&sortDir=asc" });
+    expect(r.current.sort.key).toBeNull();
+    expect(r.current.displayedData).toHaveLength(DATA.length);
+  });
+
+  it("sortDir inválido cai em desc", async () => {
+    const r = await run({
+      sp: "sortBy=name&sortDir=lixo",
+      order: { by: "name", dir: "desc" },
+    });
+    expect(r.current.sort.direction).toBe("desc");
+  });
+
+  it("clicar numa coluna nova grava a direção do primeiro clique", async () => {
     const r = await run({});
     replace.mockClear();
-    act(() => r.current.handleSort("name"));
-    expect(replace).toHaveBeenCalled();
+    act(() => r.current.sort.onSort("name", "desc"));
+
+    const params = lastUrlParams();
+    expect(params.get("sortBy")).toBe("name");
+    expect(params.get("sortDir")).toBe("desc");
   });
 
-  it("handleSort alterna asc→desc quando já ordenado pela mesma chave", async () => {
-    const r = await run({ sp: "sortKey=name&sortDir=asc" });
-    replace.mockClear();
-    act(() => r.current.handleSort("name"));
-    // setFilter("_sort", {key:name,direction:desc}) → URL contém o valor desc.
-    const url = decodeURIComponent(replace.mock.calls[0][0]);
-    expect(url).toContain('"direction":"desc"');
-  });
-
-  it("customOrder trata valores ausentes como 'indefinido'", async () => {
-    const data: Item[] = [
-      { id: "1", name: "A", priority: "high", factory: { name: "x" } },
-      {
-        id: "2",
-        name: "B",
-        priority: undefined as unknown as string,
-        factory: { name: "y" },
-      },
-    ];
-    const { result } = renderHook(
-      () =>
-        useTableData<ItemsData, Item>({
-          query: QUERY,
-          fields: {},
-          getConnection: (d) => d.items,
-          itemsPerPage: 10,
-          initialSort: {
-            key: "priority",
-            direction: "asc",
-            customOrder: ["high", "indefinido"],
-          },
-        }),
-      { wrapper: makeWrapper(data) }
-    );
-    await waitFor(() => expect(result.current.loading).toBe(false));
-    // high(0) antes de undefined→"indefinido"(1).
-    expect(ids(result.current.displayedData)).toEqual(["1", "2"]);
-  });
-
-  it("secondaryCustomOrder com direção desc e empate (retorna 0)", async () => {
-    const data: Item[] = [
-      { id: "1", name: "A", priority: "high", factory: { name: "Beta" } },
-      { id: "2", name: "B", priority: "high", factory: { name: "Xis" } },
-      { id: "3", name: "C", priority: "high", factory: { name: "Outro" } },
-      { id: "4", name: "D", priority: "high", factory: { name: "Outro" } },
-    ];
-    const { result } = renderHook(
-      () =>
-        useTableData<ItemsData, Item>({
-          query: QUERY,
-          fields: {},
-          getConnection: (d) => d.items,
-          itemsPerPage: 10,
-          initialSort: {
-            key: "priority",
-            direction: "asc",
-            customOrder: ["high"],
-            secondaryKey: "factory.name",
-            secondaryDirection: "desc",
-            secondaryCustomOrder: ["Xis", "Beta"],
-          },
-        }),
-      { wrapper: makeWrapper(data) }
-    );
-    await waitFor(() => expect(result.current.loading).toBe(false));
-    // desc → posições maiores primeiro: Outro(9999, empatam→estável) → Beta(1) → Xis(0).
-    expect(ids(result.current.displayedData)).toEqual(["3", "4", "1", "2"]);
-  });
-
-  it("secundário por collator com direção desc", async () => {
+  it("clicar na coluna já ordenada inverte a direção", async () => {
     const r = await run({
-      initialSort: {
-        key: "priority",
-        direction: "asc",
-        customOrder: ["high", "medium", "low"],
-        secondaryKey: "name",
-        secondaryDirection: "desc",
-      },
+      sp: "sortBy=name&sortDir=asc",
+      order: { by: "name", dir: "asc" },
     });
-    // high desempata por name DESC: Alpha(1) antes de Aaa(4).
-    expect(ids(r.current.displayedData)).toEqual(["1", "4", "2", "3"]);
+    replace.mockClear();
+    act(() => r.current.sort.onSort("name", "asc"));
+
+    expect(lastUrlParams().get("sortDir")).toBe("desc");
+  });
+
+  it("ordenar volta para a página 1", async () => {
+    // Página 3 de uma ordem que acabou de mudar não mostra as mesmas linhas.
+    const r = await run({ sp: "page=3", after: pageToAfter(3, 10)! });
+    replace.mockClear();
+    act(() => r.current.sort.onSort("name", "asc"));
+
+    expect(lastUrlParams().has("page")).toBe(false);
+  });
+
+  it("ordenar preserva os filtros que já estavam na URL", async () => {
+    const r = await run({ sp: "search=alpha" });
+    replace.mockClear();
+    act(() => r.current.sort.onSort("name", "asc"));
+
+    expect(lastUrlParams().get("search")).toBe("alpha");
+  });
+});
+
+describe("useTableData — backendDefaultSort", () => {
+  const DEFAULT_SORT: ActiveSort = { key: "created_at", direction: "desc" };
+
+  it("aparece no cabeçalho sem ir para as variables", async () => {
+    // Sem isto a lista apareceria como "sem ordenação" enquanto o backend já a
+    // devolve ordenada. E mandar o `order` explícito furaria o cache do SSR.
+    const r = await run({ backendDefaultSort: DEFAULT_SORT });
+    expect(r.current.sort).toMatchObject({
+      key: "created_at",
+      direction: "desc",
+    });
+  });
+
+  it("clicar na coluna do default inverte (e aí sim manda `order`)", async () => {
+    const r = await run({ backendDefaultSort: DEFAULT_SORT });
+    replace.mockClear();
+    act(() => r.current.sort.onSort("created_at", "desc"));
+
+    const params = lastUrlParams();
+    expect(params.get("sortBy")).toBe("created_at");
+    expect(params.get("sortDir")).toBe("asc");
+  });
+
+  it("voltar para a direção do default LIMPA a URL em vez de repeti-la", async () => {
+    // Repetir o default nas variables daria o mesmo resultado, mas erraria o
+    // cache semeado pelo SSR — que só existe para as variáveis sem `order`.
+    const r = await run({
+      sp: "sortBy=created_at&sortDir=asc",
+      backendDefaultSort: DEFAULT_SORT,
+      order: { by: "created_at", dir: "asc" },
+    });
+    replace.mockClear();
+    act(() => r.current.sort.onSort("created_at", "desc"));
+
+    const params = lastUrlParams();
+    expect(params.has("sortBy")).toBe(false);
+    expect(params.has("sortDir")).toBe(false);
+  });
+
+  it("a URL vence o default quando as duas existem", async () => {
+    const r = await run({
+      sp: "sortBy=name&sortDir=asc",
+      backendDefaultSort: DEFAULT_SORT,
+      order: { by: "name", dir: "asc" },
+    });
+    expect(r.current.sort).toMatchObject({ key: "name", direction: "asc" });
   });
 });
 

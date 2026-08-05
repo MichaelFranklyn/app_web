@@ -122,3 +122,55 @@ test("fábrica/import: remove o modelo de pedido", async ({ page }) => {
 
   await expect(page.getByText(/removido/i).first()).toBeVisible();
 });
+
+test("fábrica/clientes: ordenar e filtrar acontecem sem ir ao servidor", async ({
+  page,
+}) => {
+  const links = [
+    ["link-1", "Zulmira Comércio", "s-1", "Ana", "alta"],
+    ["link-2", "ácaro Materiais", "s-2", "Bruno", "baixa"],
+    ["link-3", "Brito Depósito", "s-1", "Ana", "media"],
+  ].map(([id, razaoSocial, sellerId, sellerName, priority]) => ({
+    id,
+    priority,
+    priceTierId: null,
+    lastInvoiceDate: null,
+    client: { id: `c-${id}`, razaoSocial, nomeFantasia: null },
+    seller: { id: sellerId, name: sellerName },
+    priceTier: null,
+  }));
+
+  const spy = await mockGraphql(page, {
+    FactoryClientLinks: () => ({ factory_client_links: conn(links) }),
+  });
+
+  await page.goto(`${base}/clients`);
+  await expect(page.getByText("Zulmira Comércio")).toBeVisible();
+
+  const callsBefore = spy.calls("FactoryClientLinks").length;
+
+  // Ordenar por Cliente põe "ácaro" na frente: é o colator pt-BR trabalhando,
+  // e não a ordem de código de caractere, que jogaria o acento para o fim.
+  await page
+    .getByRole("columnheader", { name: "Cliente" })
+    .getByRole("button")
+    .click();
+  await expect(page.locator("tbody tr").first()).toContainText("ácaro");
+  await expect(page).toHaveURL(/sortBy=client/);
+
+  // Filtrar por vendedor deixa só as linhas do Bruno.
+  await page.getByRole("button", { name: "Filtros" }).click();
+  await page
+    .locator("[data-filters-panel]")
+    .getByPlaceholder("Todos os vendedores")
+    .click();
+  await page
+    .locator("[data-select-dropdown]")
+    .getByText("Bruno", { exact: true })
+    .click();
+  await expect(page.locator("tbody tr")).toHaveCount(1);
+  await expect(page.locator("tbody tr").first()).toContainText("ácaro");
+
+  // O ponto da tabela local: nada disso encostou na rede.
+  expect(spy.calls("FactoryClientLinks").length).toBe(callsBefore);
+});

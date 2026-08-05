@@ -108,3 +108,82 @@ test("orders: filtrar por situação vai ao backend pelo NOME do enum", async ({
     .poll(() => JSON.stringify(spy.lastVariables("OrderStats") ?? {}))
     .toContain("INVOICED");
 });
+
+const ORDER_STATS_ZERO = {
+  orderStats: {
+    totalOrders: 0,
+    totalAmount: "0",
+    avgTicket: "0",
+    invoicedOrders: 0,
+    invoicedAmount: "0",
+    commissionAmount: "0",
+  },
+};
+
+test("orders: ordenar por Valor manda `order` ao backend e marca a coluna", async ({
+  page,
+}) => {
+  const spy = await mockGraphql(page, {
+    Orders: () => ({ orders_list: emptyConnection() }),
+    OrderStats: () => ORDER_STATS_ZERO,
+  });
+
+  await page.goto("/orders");
+  await page.getByRole("button", { name: "Valor" }).click();
+
+  // Ordenação de SERVIDOR: o que prova a feature é a consulta ter saído com
+  // `order`, não a tabela ter reordenado o que já estava na tela.
+  await expect
+    .poll(() => JSON.stringify(spy.lastVariables("Orders") ?? {}))
+    .toContain('"order":{"by":"total_amount","dir":"desc"}');
+
+  // A URL carrega o recorte: um pedido ordenado pode ser copiado e enviado.
+  await expect(page).toHaveURL(/sortBy=total_amount/);
+  await expect(page).toHaveURL(/sortDir=desc/);
+
+  await expect(
+    page.getByRole("columnheader", { name: "Valor" })
+  ).toHaveAttribute("aria-sort", "descending");
+});
+
+test("orders: clicar de novo inverte a direção", async ({ page }) => {
+  const spy = await mockGraphql(page, {
+    Orders: () => ({ orders_list: emptyConnection() }),
+    OrderStats: () => ORDER_STATS_ZERO,
+  });
+
+  await page.goto("/orders?sortBy=total_amount&sortDir=desc");
+  await page.getByRole("button", { name: "Valor" }).click();
+
+  await expect
+    .poll(() => JSON.stringify(spy.lastVariables("Orders") ?? {}))
+    .toContain('"dir":"asc"');
+  await expect(
+    page.getByRole("columnheader", { name: "Valor" })
+  ).toHaveAttribute("aria-sort", "ascending");
+});
+
+test("orders: voltar à ordem padrão limpa a URL e para de mandar `order`", async ({
+  page,
+}) => {
+  const spy = await mockGraphql(page, {
+    Orders: () => ({ orders_list: emptyConnection() }),
+    OrderStats: () => ORDER_STATS_ZERO,
+  });
+
+  // A data do pedido já vem em desc do backend; a tela mostra isso sem ter
+  // pedido nada. Da posição invertida, um clique deve voltar ao padrão — e
+  // voltar significa SUMIR com os parâmetros, não repeti-los.
+  await page.goto("/orders?sortBy=order_date&sortDir=asc");
+  await page.getByRole("button", { name: "Data do pedido" }).click();
+
+  await expect(page).not.toHaveURL(/sortBy=/);
+  await expect
+    .poll(() => JSON.stringify(spy.lastVariables("Orders") ?? {}))
+    .not.toContain('"order"');
+
+  // Some da URL, mas continua indicada: a lista segue ordenada por data.
+  await expect(
+    page.getByRole("columnheader", { name: "Data do pedido" })
+  ).toHaveAttribute("aria-sort", "descending");
+});

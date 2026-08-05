@@ -3,6 +3,7 @@
 import { Avatar } from "@/components/Avatar";
 import { Badge } from "@/components/Badges";
 import { EmptyState } from "@/components/EmptyState";
+import { Filters } from "@/components/Filters";
 import { QueryError } from "@/components/QueryError";
 import { HelpTooltip } from "@/components/HelpTooltip";
 import { Table } from "@/components/Table";
@@ -19,6 +20,7 @@ import {
   FactoryClientLinksData,
 } from "./gql";
 import { LinkClientModal } from "./LinkClientModal";
+import { useClientsTable } from "./useClientsTable";
 import { priorityMeta } from "./utils";
 import { clientName } from "@/utils/company";
 import { formatDate } from "@/utils/format/date";
@@ -48,10 +50,11 @@ export function ClientsTab({ factoryId, companyFactoryId }: Props) {
   const optimistic = useOptimisticList<FactoryClientLink>({
     initialData: initialLinks,
   });
-  const links = optimistic.items;
+  const table = useClientsTable(optimistic.items);
+  const links = table.displayedData;
 
   return (
-    <Table.Root data-tour="factory-clients-table">
+    <Table.Root sort={table.sort} data-tour="factory-clients-table">
       <Table.CardHead>
         <Table.CardHead.Title className="inline-flex items-center gap-6">
           Clientes da fábrica
@@ -76,6 +79,12 @@ export function ClientsTab({ factoryId, companyFactoryId }: Props) {
           />
         </Table.CardHead.Title>
         <Table.CardHead.Actions data-tour="factory-clients-actions">
+          <Filters
+            fields={table.filterFields}
+            values={table.inputValues}
+            onChange={table.setFilters}
+            onTextChange={table.setFilter}
+          />
           <LinkClientModal
             factoryId={factoryId}
             companyFactoryId={companyFactoryId}
@@ -86,12 +95,14 @@ export function ClientsTab({ factoryId, companyFactoryId }: Props) {
       <Table.Table>
         <Table.Header>
           <Table.Row>
-            <Table.Head>Cliente</Table.Head>
-            <Table.Head>Vendedor</Table.Head>
-            <Table.Head>Nível de preço</Table.Head>
-            <Table.Head>Prioridade</Table.Head>
+            <Table.Head sortKey="client">Cliente</Table.Head>
+            <Table.Head sortKey="seller">Vendedor</Table.Head>
+            <Table.Head sortKey="priceTier">Nível de preço</Table.Head>
+            <Table.Head sortKey="priority">Prioridade</Table.Head>
             {/* Faturamento deste vínculo — não o do cliente somando fábricas. */}
-            <Table.Head>Faturamento</Table.Head>
+            <Table.Head sortKey="lastInvoiceDate" sortFirst="desc">
+              Faturamento
+            </Table.Head>
             <Table.Head className="text-right">Ações</Table.Head>
           </Table.Row>
         </Table.Header>
@@ -111,10 +122,17 @@ export function ClientsTab({ factoryId, companyFactoryId }: Props) {
                   <EmptyState.Icon>
                     <Users size={32} />
                   </EmptyState.Icon>
-                  <EmptyState.Title>Nenhum cliente vinculado</EmptyState.Title>
+                  {/* "Não há vínculo" e "o filtro não achou" pedem saídas
+                      diferentes: uma manda cadastrar, a outra manda afrouxar. */}
+                  <EmptyState.Title>
+                    {table.totalUnfiltered > 0
+                      ? "Nenhum cliente encontrado"
+                      : "Nenhum cliente vinculado"}
+                  </EmptyState.Title>
                   <EmptyState.Description>
-                    Use &quot;Vincular cliente&quot; para conectar um cliente da
-                    sua carteira a esta fábrica.
+                    {table.totalUnfiltered > 0
+                      ? "Ajuste os filtros para encontrar o cliente."
+                      : 'Use "Vincular cliente" para conectar um cliente da sua carteira a esta fábrica.'}
                   </EmptyState.Description>
                 </EmptyState.Root>
               </Table.Cell>
