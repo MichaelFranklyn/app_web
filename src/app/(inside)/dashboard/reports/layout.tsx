@@ -10,7 +10,7 @@ import { ReportTabsNav } from "./_components/ReportTabsNav";
 export const dynamic = "force-dynamic";
 
 /**
- * Moldura das cinco abas de relatório: o cabeçalho, a navegação e o lugar do
+ * Moldura das abas de relatório: o cabeçalho, a navegação e o lugar do
  * relatório escolhido.
  *
  * O período e o vendedor NÃO ficam aqui de propósito: eles moram na URL (ver

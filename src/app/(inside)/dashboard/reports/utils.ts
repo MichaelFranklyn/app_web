@@ -2,16 +2,22 @@ import { toUtcIsoDate } from "@/utils/format/date";
 import { ReportTab } from "./interface";
 
 /**
- * As cinco abas, na ordem em que a operação acontece: vende-se (vendas), manda-se
- * para a fábrica (pedidos enviados), recebe-se por isso (comissões), e então se
- * olha para trás — quem comprou (positivação) e quem é a carteira (clientes).
+ * As abas, na ordem em que a operação acontece: vende-se (vendas), manda-se
+ * para a fábrica (pedidos enviados), a fábrica fatura e gera boleto
+ * (faturamento), recebe-se por isso (comissões), e então se olha para trás —
+ * de quem se vende (fábricas), quem comprou (positivação), quem é a carteira
+ * (clientes), como ela está (situação) e quanto cada um pesa (curva ABC).
  */
 export const REPORT_TABS: ReportTab[] = [
   { slug: "sales", label: "Vendas" },
   { slug: "sent-orders", label: "Pedidos enviados" },
+  { slug: "billing", label: "Faturamento" },
   { slug: "commissions", label: "Comissões" },
+  { slug: "factories", label: "Fábricas" },
   { slug: "positivation", label: "Positivação" },
   { slug: "clients", label: "Clientes" },
+  { slug: "wallet", label: "Situação da carteira" },
+  { slug: "abc", label: "Curva ABC" },
 ];
 
 export const REPORTS_BASE_PATH = "/dashboard/reports";

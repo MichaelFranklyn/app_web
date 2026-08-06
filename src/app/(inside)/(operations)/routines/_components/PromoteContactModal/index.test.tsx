@@ -3,7 +3,7 @@ import { MockedProvider } from "@apollo/client/testing/react";
 import { fireEvent, render, screen, waitFor } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { ComponentProps } from "react";
-import { describe, expect, it, vi } from "vitest";
+import { afterAll, beforeAll, describe, expect, it, vi } from "vitest";
 import { PROMOTE_CONTACT_MUTATION, VISIT_PROMOTION_PREVIEW_QUERY } from "./gql";
 import { PromoteContactModal } from "./index";
 
@@ -179,7 +179,29 @@ describe("PromoteContactModal", () => {
   });
 });
 
+/**
+ * Estes casos falam de datas FIXAS (o contato está em 05/08/2026 e a viagem é
+ * remarcada para o dia 6), e o componente compara essas datas com HOJE para
+ * avisar "este dia já passou". Sem congelar o relógio o bloco tinha prazo de
+ * validade: a partir de 06/08/2026 as fixtures viravam passado e os dois casos
+ * quebravam sozinhos — foi o que aconteceu, primeiro em UTC (onde o dia vira 3
+ * horas antes daqui) e depois em qualquer fuso.
+ *
+ * `shouldAdvanceTime` mantém os timers correndo, senão `userEvent` e `waitFor`
+ * ficariam esperando um relógio parado.
+ */
 describe("PromoteContactModal · dia da viagem", () => {
+  beforeAll(() => {
+    vi.useFakeTimers({
+      shouldAdvanceTime: true,
+      now: new Date("2026-08-05T12:00:00Z"),
+    });
+  });
+
+  afterAll(() => {
+    vi.useRealTimers();
+  });
+
   const otherDayMock = () => ({
     request: {
       query: VISIT_PROMOTION_PREVIEW_QUERY,

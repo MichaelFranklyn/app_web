@@ -34,7 +34,7 @@ export interface ReportPdfMeta {
  * Gera e baixa um relatório em PDF: cabeçalho da representação, o recorte
  * escrito, o fechamento em números e a tabela linha-a-linha.
  *
- * Existe uma moldura só para as cinco abas porque o documento é o MESMO papel com
+ * Existe uma moldura só para todas as abas porque o documento é o MESMO papel com
  * conteúdo diferente — cada aba entrega apenas suas colunas e suas linhas. Sem
  * isso, cinco geradores iguais divergiriam no primeiro ajuste de layout.
  *

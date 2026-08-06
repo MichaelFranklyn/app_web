@@ -6,7 +6,7 @@ import { useSearchParams } from "next/navigation";
 import { REPORT_TABS, REPORTS_BASE_PATH } from "../../utils";
 
 /**
- * As cinco abas dos relatórios, como navegação de rota (cada aba é uma página).
+ * As abas dos relatórios, como navegação de rota (cada aba é uma página).
  *
  * O querystring atual viaja no href de propósito: o período e o vendedor
  * escolhidos são o recorte do TRABALHO, não de uma tela — quem filtrou julho de
