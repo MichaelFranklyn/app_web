@@ -10,12 +10,23 @@ import { grantRole } from "../support/role";
 const nav = (page: import("@playwright/test").Page) =>
   page.locator("aside").first();
 
+/**
+ * A sidebar entra recolhida (só ícones), e recolhida o TÍTULO da seção some —
+ * fica só o ícone de cada destino. Quem quer conferir o rótulo escrito precisa
+ * expandir primeiro; os links seguem alcançáveis pelo nome nos dois estados,
+ * porque recolhido o rótulo vira o `title` do ícone.
+ */
+const expandSidebar = async (page: import("@playwright/test").Page) => {
+  await page.getByRole("button", { name: "Expandir menu" }).click();
+};
+
 test("sidebar: o dono vê os três destinos de configuração", async ({
   page,
 }) => {
   await mockGraphql(page, {});
   await grantRole(page, "OWNER");
   await page.goto("/orders");
+  await expandSidebar(page);
 
   const sidebar = nav(page);
   await expect(sidebar.getByText("Configurações")).toBeVisible();

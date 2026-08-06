@@ -37,7 +37,7 @@ export interface ReportExportSpec<T> {
  * As duas saídas de um relatório — planilha e PDF — a partir de uma única
  * descrição do que ele é.
  *
- * Concentra o que as cinco abas repetiriam: varrer todas as páginas, avisar
+ * Concentra o que todas as abas repetiriam: varrer todas as páginas, avisar
  * quando não há nada para exportar e não deixar um erro de rede virar um arquivo
  * vazio (baixar um PDF de zero linhas é pior do que não baixar, porque parece
  * que o mês não teve venda).

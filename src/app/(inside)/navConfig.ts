@@ -4,7 +4,6 @@ import {
   CalendarDays,
   ClipboardList,
   Coins,
-  FileText,
   Landmark,
   LayoutDashboard,
   Route,
@@ -29,16 +28,6 @@ export const NAV = [
     href: "/dashboard",
     label: "Dashboard",
     icon: LayoutDashboard,
-  },
-  {
-    // Destino próprio, e não só o atalho no cabeçalho do dashboard: quem entra
-    // para tirar um relatório entra POR ele — dois cliques a menos, e sem passar
-    // por uma tela que não era a que se queria. `matchPrefix` mantém o item
-    // aceso nas cinco abas.
-    href: "/dashboard/reports",
-    matchPrefix: "/dashboard/reports",
-    label: "Relatórios",
-    icon: FileText,
   },
   {
     // href resolvido em runtime para a data de hoje (rota do dia). Atalho para

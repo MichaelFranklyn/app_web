@@ -1,6 +1,6 @@
 # AUTO-GERADO por scripts/pull-schema.mjs — NÃO editar à mão.
 # Snapshot do schema do backend (app_user). Atualize com: npm run schema:pull
-# Fonte: 44 arquivos .graphql merge-ados (mesma regra do Ariadne).
+# Fonte: 45 arquivos .graphql merge-ados (mesma regra do Ariadne).
 
 input BaseListInput {
   filters: [FieldFilterInput!] = null
@@ -2776,6 +2776,178 @@ extend type Mutation {
   setProductImages(input: SetProductImagesInput!): SetProductImagesResultDataResponse!
   updateProduct(id: UUID!, input: UpdateProductInput!): ProductTypeDataResponse!
   deleteProduct(id: UUID!): BaseResponse!
+}
+
+# ── Faturamento: as duplicatas do período ───────────────────────────────
+
+"""
+Em que pé está a parcela. `PAID` ganha de `OVERDUE` mesmo com a data vencida —
+quem quitou em atraso não continua devendo.
+"""
+enum BillingSituation {
+  DUE
+  OVERDUE
+  PAID
+}
+
+"Uma duplicata do período, com o pedido de onde ela saiu."
+type BillingInstallmentRow {
+  installmentId: UUID!
+  orderId: UUID!
+  sequence: Int!
+  clientId: UUID!
+  clientName: String!
+  factoryId: UUID!
+  factoryName: String!
+  sellerId: UUID!
+  sellerName: String!
+  "Quando a fábrica faturou o pedido que gerou esta parcela."
+  invoicedAt: Date
+  dueDate: Date
+  amount: Decimal!
+  commissionAmount: Decimal!
+  situation: BillingSituation!
+  paidAt: Date
+  "Dias de atraso; 0 quando a parcela não está vencida."
+  daysOverdue: Int!
+  isCommissionReceived: Boolean!
+}
+
+"""
+As parcelas que VENCEM no período, e o fechamento delas. Recorte por `dueDate`
+(agenda de cobrança), diferente da aba Vendas, que recorta por `invoicedAt`.
+"""
+type BillingReportType {
+  rows: [BillingInstallmentRow!]!
+  installmentCount: Int!
+  "Pedidos distintos representados nas parcelas."
+  orderCount: Int!
+  totalAmount: Decimal!
+  paidAmount: Decimal!
+  dueAmount: Decimal!
+  overdueAmount: Decimal!
+  overdueCount: Int!
+  commissionAmount: Decimal!
+}
+
+# ── Fábricas por pedido ─────────────────────────────────────────────────
+
+"""
+Uma fábrica e o que foi colocado nela no período (pela data do pedido, só o que
+virou pedido de verdade). `share` é a fatia dela no total do período.
+"""
+type FactoryOrdersRow {
+  entityId: UUID!
+  entityName: String!
+  orderCount: Int!
+  totalAmount: Decimal!
+  avgTicket: Decimal!
+  "Clientes distintos que compraram desta fábrica no período."
+  clientCount: Int!
+  invoicedCount: Int!
+  invoicedAmount: Decimal!
+  commissionAmount: Decimal!
+  lastOrderDate: Date
+  share: Float!
+}
+
+# ── Situação da carteira ────────────────────────────────────────────────
+
+"""
+Situação do cliente medida contra o PRÓPRIO ritmo de compra: `ACTIVE` está
+dentro do ciclo dele, `AT_RISK` passou do ciclo, `INACTIVE` passou do dobro.
+`NEW` é quem só comprou uma vez, e há pouco tempo; `NEVER`, quem nunca comprou.
+"""
+enum ClientWalletSituation {
+  ACTIVE
+  AT_RISK
+  INACTIVE
+  NEW
+  NEVER
+}
+
+"Um cliente da carteira e a situação em que ele está hoje."
+type WalletStatusRow {
+  clientId: UUID!
+  "Id do vínculo na carteira (`company_clients`) — a chave da rota /clients/[id]."
+  companyClientId: UUID
+  clientName: String!
+  city: String
+  state: String
+  situation: ClientWalletSituation!
+  lastOrderDate: Date
+  daysSinceLastOrder: Int
+  "Intervalo médio entre as compras do cliente; nulo com menos de 2 pedidos."
+  avgIntervalDays: Float
+  "Dias parados ÷ intervalo médio. Acima de 1 = atrasado. Nulo sem ritmo próprio."
+  riskRatio: Float
+  "Pedidos do cliente em toda a história, não só no período."
+  orderCount: Int!
+  periodOrderCount: Int!
+  periodAmount: Decimal!
+}
+
+"""
+A carteira inteira com a situação de cada cliente. A situação é um retrato de
+HOJE; o período do filtro governa apenas as colunas "no período".
+"""
+type WalletStatusReportType {
+  rows: [WalletStatusRow!]!
+  totalClients: Int!
+  activeClients: Int!
+  atRiskClients: Int!
+  inactiveClients: Int!
+  neverBoughtClients: Int!
+  newClients: Int!
+  periodAmount: Decimal!
+}
+
+# ── Curva ABC de clientes ───────────────────────────────────────────────
+
+"Classe do cliente na curva de Pareto: A = os primeiros 80% do faturamento."
+enum AbcClass {
+  A
+  B
+  C
+}
+
+"Um cliente na curva ABC, do maior faturamento para o menor."
+type ClientAbcRow {
+  clientId: UUID!
+  clientName: String!
+  rank: Int!
+  totalAmount: Decimal!
+  orderCount: Int!
+  commissionAmount: Decimal!
+  share: Float!
+  cumulativeShare: Float!
+  abcClass: AbcClass!
+  lastOrderDate: Date
+}
+
+extend type Query {
+  """
+  As duplicatas que vencem no período (recorte por vencimento), com o fechamento
+  do que está pago, a vencer e vencido.
+  """
+  billingReport(from: Date = null, to: Date = null, sellerId: UUID = null): BillingReportType!
+
+  """
+  Uma linha por fábrica com o que foi colocado nela no período. Sem corte de
+  top-N: é um documento de conferência.
+  """
+  factoryOrdersReport(from: Date = null, to: Date = null, sellerId: UUID = null): [FactoryOrdersRow!]!
+
+  """
+  A carteira de clientes com a situação de cada um. Sem corte de top-N.
+  """
+  walletStatusReport(from: Date = null, to: Date = null, sellerId: UUID = null): WalletStatusReportType!
+
+  """
+  Curva ABC dos clientes pelo FATURADO no período (mesma base da aba Vendas),
+  com a fatia de cada um e a acumulada.
+  """
+  clientAbcCurve(from: Date = null, to: Date = null, sellerId: UUID = null): [ClientAbcRow!]!
 }
 
 input CreateSellerClientFactoryInput {

@@ -40,14 +40,19 @@ export function useInsideLayout() {
   // Drawer do menu lateral no mobile/tablet (no desktop a sidebar é fixa).
   const [drawerOpen, setDrawerOpen] = useState(false);
   // Sidebar recolhida (só ícones) — comportamento exclusivo do desktop,
-  // persistido em localStorage para sobreviver à navegação.
+  // persistido em localStorage para sobreviver à navegação. Começa `false` no
+  // primeiro render para casar com o servidor; o padrão real (recolhida) entra
+  // no efeito, junto com a preferência salva.
   const [isCollapsed, setIsCollapsed] = useState(false);
 
   useEffect(() => {
     const storedUser = getCookie<UserData>("userData");
     setUserData(storedUser);
     setTodayIso(getTodayIso());
-    setIsCollapsed(localStorage.getItem("sidebarCollapsed") === "1");
+    // Padrão recolhido: quem nunca mexeu entra com o menu fechado, e a tela
+    // inteira fica para o conteúdo. Só a escolha explícita de expandir ("0")
+    // sobrevive — sem valor salvo, recolhe.
+    setIsCollapsed(localStorage.getItem("sidebarCollapsed") !== "0");
   }, []);
 
   const toggleCollapsed = () => {
