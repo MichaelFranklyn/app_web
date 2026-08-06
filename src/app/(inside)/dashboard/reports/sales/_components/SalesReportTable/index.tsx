@@ -2,9 +2,11 @@
 
 import { Badge } from "@/components/Badges";
 import { EmptyState } from "@/components/EmptyState";
+import { FilterField, Filters } from "@/components/Filters";
+import { HelpTooltip } from "@/components/HelpTooltip";
 import { Loading } from "@/components/Loading";
 import { Pagination } from "@/components/Pagination";
-import { Table } from "@/components/Table";
+import { Table, TableSort } from "@/components/Table";
 import { clientName, factoryName } from "@/utils/company";
 import { formatDateDMY, formatMoney } from "@/utils/format/masks";
 import { Receipt } from "lucide-react";
@@ -19,6 +21,12 @@ import { sumBy } from "../../utils";
 interface Props {
   items: SalesReportOrder[];
   loading: boolean;
+  /** Campos do painel: busca livre e situação. */
+  filterFields: FilterField[];
+  inputValues: Record<string, string>;
+  setFilter: (key: string, value: string | undefined) => void;
+  setFilters: (patch: Record<string, string | undefined>) => void;
+  sort: TableSort;
   currentPage: number;
   setCurrentPage: (page: number) => void;
   totalPages: number;
@@ -36,6 +44,11 @@ interface Props {
 export function SalesReportTable({
   items,
   loading,
+  filterFields,
+  inputValues,
+  setFilter,
+  setFilters,
+  sort,
   currentPage,
   setCurrentPage,
   totalPages,
@@ -43,27 +56,52 @@ export function SalesReportTable({
 }: Props) {
   const pageAmount = sumBy(items, (order) => order.totalAmount);
   const pageCommission = sumBy(items, (order) => order.commissionAmount);
+  const isNarrowed = Object.values(inputValues).some(Boolean);
 
   return (
-    <Table.Root>
+    <Table.Root sort={sort}>
       <Table.CardHead>
-        <Table.CardHead.Title>Pedidos faturados</Table.CardHead.Title>
-        <Table.CardHead.Description>
-          Recortados pela data em que a fábrica faturou.
-        </Table.CardHead.Description>
+        <Table.CardHead.Title className="inline-flex items-center gap-6">
+          Pedidos faturados
+          <HelpTooltip
+            label="Sobre os pedidos faturados"
+            content="Recortados pela data em que a FÁBRICA faturou: um pedido de junho faturado em julho é venda de julho."
+          />
+        </Table.CardHead.Title>
+        <Table.CardHead.Actions>
+          <Filters
+            fields={filterFields}
+            values={inputValues}
+            onChange={setFilters}
+            // A busca vai por aqui para manter o debounce do campo: pelo
+            // `onChange` cada tecla viraria uma consulta ao backend.
+            onTextChange={setFilter}
+          />
+        </Table.CardHead.Actions>
       </Table.CardHead>
 
       <Table.Table>
         <Table.Header>
           <Table.Row>
-            <Table.Head>Faturamento</Table.Head>
-            <Table.Head>Data do pedido</Table.Head>
+            <Table.Head sortKey="invoiced_at" sortFirst="desc">
+              Faturamento
+            </Table.Head>
+            <Table.Head sortKey="order_date" sortFirst="desc">
+              Data do pedido
+            </Table.Head>
+            {/* Cliente, fábrica e vendedor não ordenam: em `orders` são só o
+                UUID da chave estrangeira, e o listador genérico não alcança o
+                nome na tabela vizinha. */}
             <Table.Head>Cliente</Table.Head>
             <Table.Head>Fábrica</Table.Head>
             <Table.Head>Vendedor</Table.Head>
-            <Table.Head>Situação</Table.Head>
-            <Table.Head>Valor</Table.Head>
-            <Table.Head>Comissão</Table.Head>
+            <Table.Head sortKey="status">Situação</Table.Head>
+            <Table.Head sortKey="total_amount" sortFirst="desc">
+              Valor
+            </Table.Head>
+            <Table.Head sortKey="commission_amount" sortFirst="desc">
+              Comissão
+            </Table.Head>
           </Table.Row>
         </Table.Header>
 
@@ -78,11 +116,14 @@ export function SalesReportTable({
                     <Receipt size={32} />
                   </EmptyState.Icon>
                   <EmptyState.Title>
-                    Nenhum faturamento no período
+                    {isNarrowed
+                      ? "Nenhum pedido com esses filtros"
+                      : "Nenhum faturamento no período"}
                   </EmptyState.Title>
                   <EmptyState.Description>
-                    Só entram aqui os pedidos que a fábrica já faturou. Amplie o
-                    período ou confira a aba &quot;Pedidos enviados&quot;.
+                    {isNarrowed
+                      ? "A busca cobre fábrica, vendedor e código do pedido — não o nome do cliente."
+                      : "Só entram aqui os pedidos que a fábrica já faturou. Amplie o período ou confira a aba “Pedidos enviados”."}
                   </EmptyState.Description>
                 </EmptyState.Root>
               </Table.Cell>

@@ -7,6 +7,7 @@ import { ExportMenu } from "@/components/ExportMenu";
 import { useToast } from "@/components/Toast";
 import { useCompanyBranding } from "@/hooks/useCompanyBranding";
 import { downloadSheet } from "@/utils/import/writer";
+import { ReportOrder } from "@/utils/pdf/context";
 
 import { ORDERS_QUERY } from "../../../gql";
 import { Order, QueryData } from "../../../interface";
@@ -26,6 +27,8 @@ interface Props {
   /** Campos do painel, para o PDF escrever o recorte por extenso. */
   filterFields: FilterField[];
   inputValues: Record<string, string>;
+  /** Ordenação à vista na tabela; o arquivo sai na MESMA ordem. */
+  order?: ReportOrder | null;
   /** Aba corrente, quando ela restringe a lista ("Ainda não faturados"). */
   scopeLabel?: string | null;
   disabled?: boolean;
@@ -41,12 +44,14 @@ const MAX_PAGES = 100;
  *
  * A tela pagina de 15 em 15, então exportar o que está em memória daria um
  * arquivo de quinze linhas. Aqui a query é refeita sob demanda, varrendo todas
- * as páginas com os mesmos filtros que o usuário aplicou.
+ * as páginas com os mesmos filtros E a mesma ordenação que o usuário aplicou —
+ * exportar é levar embora a lista que está à vista, não outra parecida.
  */
 export function ExportOrdersButton({
   filters,
   filterFields,
   inputValues,
+  order,
   scopeLabel,
   disabled,
 }: Props) {
@@ -67,6 +72,7 @@ export function ExportOrdersButton({
             first: PAGE_SIZE,
             after,
             ...(filters.length > 0 && { filters }),
+            ...(order && { order }),
           },
         },
         fetchPolicy: "network-only",
@@ -125,6 +131,7 @@ export function ExportOrdersButton({
             companyLogoUrl,
             filterFields,
             inputValues,
+            order,
             scopeLabel,
           })
         )

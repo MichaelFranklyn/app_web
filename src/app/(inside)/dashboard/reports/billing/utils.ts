@@ -7,7 +7,9 @@ import { formatDateDMY, formatMoney } from "@/utils/format/masks";
 import type { EChartsCoreOption } from "echarts/core";
 
 import { buildHorizontalBarOption, mutedLine } from "../../chartBuilders";
-import { BillingRow, BillingScope, BillingSituation } from "./interface";
+import { SortLabel } from "@/utils/pdf/context";
+
+import { BillingRow, BillingSituation } from "./interface";
 
 /** Rótulo da situação da parcela, do jeito que a cobrança fala. */
 export const BILLING_SITUATION_LABEL: Record<BillingSituation, string> = {
@@ -29,31 +31,13 @@ export const BILLING_SITUATION_COLOR: Record<
   PAID: "green",
 };
 
-/** As quatro visões da aba, na ordem em que a cobrança pergunta. */
-export const BILLING_SCOPES: { value: BillingScope; label: string }[] = [
-  { value: "all", label: "Todas" },
-  { value: "overdue", label: "Vencidas" },
-  { value: "due", label: "A vencer" },
-  { value: "paid", label: "Pagas" },
-];
-
-const SCOPE_SITUATION: Record<
-  Exclude<BillingScope, "all">,
-  BillingSituation
-> = {
-  due: "DUE",
-  overdue: "OVERDUE",
-  paid: "PAID",
-};
-
-/** Aplica o recorte local da aba sobre as linhas do período. */
-export const filterByScope = (
-  rows: BillingRow[],
-  scope: BillingScope
-): BillingRow[] =>
-  scope === "all"
-    ? rows
-    : rows.filter((row) => row.situation === SCOPE_SITUATION[scope]);
+/** As três situações como opções do filtro, na ordem em que a cobrança pergunta. */
+export const BILLING_SITUATION_OPTIONS = (
+  ["OVERDUE", "DUE", "PAID"] as BillingSituation[]
+).map((situation) => ({
+  value: situation,
+  label: BILLING_SITUATION_LABEL[situation],
+}));
 
 export const sumBy = (
   rows: BillingRow[],
@@ -138,6 +122,33 @@ export const buildFactoryOption = (rows: BillingRow[]): EChartsCoreOption => {
     },
     { stacked: true }
   );
+};
+
+/**
+ * Colunas por onde as duplicatas podem ser ordenadas.
+ *
+ * O vencimento é a ordem natural (é a agenda de cobrança); as outras respondem
+ * as perguntas do dia — "a maior vencida", "quem está mais atrasado".
+ */
+export const BILLING_SORT_COLUMNS = {
+  dueDate: (row: BillingRow) => row.dueDate,
+  situation: (row: BillingRow) => BILLING_SITUATION_LABEL[row.situation],
+  daysOverdue: (row: BillingRow) => row.daysOverdue,
+  client: (row: BillingRow) => row.clientName,
+  factory: (row: BillingRow) => row.factoryName,
+  amount: (row: BillingRow) => Number(row.amount || 0),
+  commissionAmount: (row: BillingRow) => Number(row.commissionAmount || 0),
+};
+
+/** Como cada coluna ordenável se chama no papel, e em que sentido ela é lida. */
+export const BILLING_SORT_LABELS: Record<string, SortLabel> = {
+  dueDate: { label: "Vencimento", kind: "date" },
+  situation: { label: "Situação", kind: "text" },
+  daysOverdue: { label: "Atraso", kind: "number" },
+  client: { label: "Cliente", kind: "text" },
+  factory: { label: "Fábrica", kind: "text" },
+  amount: { label: "Valor", kind: "number" },
+  commissionAmount: { label: "Comissão", kind: "number" },
 };
 
 export const BILLING_EXPORT_HEADERS = [

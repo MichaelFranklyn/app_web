@@ -1,5 +1,7 @@
 "use client";
 
+import { buildReportContext } from "@/utils/pdf/context";
+
 import { ReportChartCard } from "../_components/ReportChartCard";
 import { ReportKpis } from "../_components/ReportKpis";
 import { ReportToolbar } from "../_components/ReportToolbar";
@@ -13,6 +15,7 @@ import {
   buildWalletExportRows,
   summarize,
   WALLET_EXPORT_HEADERS,
+  WALLET_SORT_LABELS,
 } from "./utils";
 
 interface Props {
@@ -21,33 +24,32 @@ interface Props {
 
 export default function WalletReportContent({ canSelectSeller }: Props) {
   const { filters, setRange, setSellerId } = useReportFilters();
-  const {
-    kpis,
-    kpisLoading,
-    chart,
-    rows,
-    pageRows,
-    scope,
-    setScope,
-    currentPage,
-    setCurrentPage,
-    totalPages,
-    loading,
-    fetchAllRows,
-    hasRows,
-  } = useWalletReport(filters);
+  const report = useWalletReport(filters);
   const { context } = useReportContext(filters);
 
   const { exportSheet, exportPdf } = useReportExport({
     slug: "carteira",
     title: "Situação da carteira",
     from: filters.from,
-    context,
-    fetchRows: fetchAllRows,
+    // O recorte inteiro no papel: período e vendedor (da barra de cima), os
+    // filtros do painel e a ordem da tabela. Uma lista só de parados impressa
+    // sem dizer isso seria lida como "a carteira toda parou".
+    context: [
+      ...context,
+      ...buildReportContext({
+        fields: report.filterFields,
+        values: report.inputValues,
+        order: report.sort.key
+          ? { by: report.sort.key, dir: report.sort.direction }
+          : null,
+        sortLabels: WALLET_SORT_LABELS,
+      }),
+    ],
+    fetchRows: report.fetchAllRows,
     sheetHeaders: WALLET_EXPORT_HEADERS,
     buildSheetRows: buildWalletExportRows,
     pdfColumns: WALLET_PDF_COLUMNS,
-    // O fechamento sai das linhas impressas: com uma visão escolhida ("só os
+    // O fechamento sai das linhas impressas: com um filtro aplicado ("só os
     // parados"), o papel tem de fechar com o que está nele.
     buildKpis: (exported) => {
       const totals = summarize(exported);
@@ -77,31 +79,34 @@ export default function WalletReportContent({ canSelectSeller }: Props) {
         canSelectSeller={canSelectSeller}
         onExportSheet={exportSheet}
         onExportPdf={exportPdf}
-        exportDisabled={!hasRows}
+        exportDisabled={!report.hasRows}
       />
 
-      <ReportKpis items={kpis} loading={kpisLoading} />
+      <ReportKpis items={report.kpis} loading={report.kpisLoading} />
 
       <ReportChartCard
         title="Como a carteira se reparte"
         description="Cada cliente é comparado com o próprio ritmo de compra, não com um prazo fixo."
-        option={chart.option}
-        hasData={chart.hasData}
-        loading={chart.loading}
-        error={chart.error}
-        onRetry={chart.refetch}
+        option={report.chart.option}
+        hasData={report.chart.hasData}
+        loading={report.chart.loading}
+        error={report.chart.error}
+        onRetry={report.chart.refetch}
         emptyDescription="Nenhum cliente vinculado na carteira deste recorte."
       />
 
       <WalletReportTable
-        items={pageRows}
-        loading={loading}
-        scope={scope}
-        onScopeChange={setScope}
-        currentPage={currentPage}
-        setCurrentPage={setCurrentPage}
-        totalPages={totalPages}
-        totalItems={rows.length}
+        items={report.pageRows}
+        loading={report.loading}
+        filterFields={report.filterFields}
+        inputValues={report.inputValues}
+        setFilter={report.setFilter}
+        setFilters={report.setFilters}
+        sort={report.sort}
+        currentPage={report.currentPage}
+        setCurrentPage={report.setCurrentPage}
+        totalPages={report.totalPages}
+        totalItems={report.rows.length}
       />
     </div>
   );

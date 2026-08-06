@@ -5,8 +5,14 @@ import { ReportTab } from "./interface";
  * As abas, na ordem em que a operação acontece: vende-se (vendas), manda-se
  * para a fábrica (pedidos enviados), a fábrica fatura e gera boleto
  * (faturamento), recebe-se por isso (comissões), e então se olha para trás —
- * de quem se vende (fábricas), quem comprou (positivação), quem é a carteira
- * (clientes), como ela está (situação) e quanto cada um pesa (curva ABC).
+ * de quem se vende (fábricas), quem comprou (positivação), quando cada um
+ * comprou de cada fábrica (últimas compras), quem é a carteira (clientes), como
+ * ela está (situação) e quanto cada um pesa (curva ABC).
+ *
+ * "Últimas compras" fica ao lado da positivação porque as duas leem o mesmo par
+ * cliente×fábrica, e é fácil confundi-las: a positivação pergunta se o par
+ * comprou DENTRO do período; esta pergunta QUANDO ele comprou pela última vez,
+ * sem prazo nenhum — é a que encontra a fábrica em que o cliente parou.
  */
 export const REPORT_TABS: ReportTab[] = [
   { slug: "sales", label: "Vendas" },
@@ -15,6 +21,7 @@ export const REPORT_TABS: ReportTab[] = [
   { slug: "commissions", label: "Comissões" },
   { slug: "factories", label: "Fábricas" },
   { slug: "positivation", label: "Positivação" },
+  { slug: "purchases", label: "Últimas compras" },
   { slug: "clients", label: "Clientes" },
   { slug: "wallet", label: "Situação da carteira" },
   { slug: "abc", label: "Curva ABC" },

@@ -2,16 +2,16 @@
 
 import { Badge } from "@/components/Badges";
 import { EmptyState } from "@/components/EmptyState";
+import { FilterField, Filters } from "@/components/Filters";
+import { HelpTooltip } from "@/components/HelpTooltip";
 import { Loading } from "@/components/Loading";
 import { Pagination } from "@/components/Pagination";
-import { Table } from "@/components/Table";
-import { Tabs } from "@/components/Tabs";
+import { Table, TableSort } from "@/components/Table";
 import { formatDateDMY, formatMoney } from "@/utils/format/masks";
 import { Receipt } from "lucide-react";
 
-import { BillingRow, BillingScope } from "../../interface";
+import { BillingRow } from "../../interface";
 import {
-  BILLING_SCOPES,
   BILLING_SITUATION_COLOR,
   BILLING_SITUATION_LABEL,
   dueDateLabel,
@@ -22,8 +22,12 @@ import {
 interface Props {
   items: BillingRow[];
   loading: boolean;
-  scope: BillingScope;
-  onScopeChange: (scope: BillingScope) => void;
+  /** Campos do painel: cliente, situação, fábrica e vendedor. */
+  filterFields: FilterField[];
+  inputValues: Record<string, string>;
+  setFilter: (key: string, value: string | undefined) => void;
+  setFilters: (patch: Record<string, string | undefined>) => void;
+  sort: TableSort;
   currentPage: number;
   setCurrentPage: (page: number) => void;
   totalPages: number;
@@ -41,51 +45,56 @@ interface Props {
 export function BillingReportTable({
   items,
   loading,
-  scope,
-  onScopeChange,
+  filterFields,
+  inputValues,
+  setFilter,
+  setFilters,
+  sort,
   currentPage,
   setCurrentPage,
   totalPages,
   totalItems,
 }: Props) {
   const pageAmount = sumBy(items, (row) => row.amount);
+  const isNarrowed = Object.values(inputValues).some(Boolean);
 
   return (
-    <Table.Root>
+    <Table.Root sort={sort}>
       <Table.CardHead>
-        <Table.CardHead.Title>Duplicatas do período</Table.CardHead.Title>
-        <Table.CardHead.Description>
-          Recortadas pela data de vencimento, das mais antigas para as mais
-          novas.
-        </Table.CardHead.Description>
+        <Table.CardHead.Title className="inline-flex items-center gap-6">
+          Duplicatas do período
+          <HelpTooltip
+            label="Sobre as duplicatas do período"
+            content="Recortadas pela data de VENCIMENTO (a agenda de cobrança), das mais antigas para as mais novas. Um pedido faturado em junho com boleto para agosto é problema de agosto."
+          />
+        </Table.CardHead.Title>
+        <Table.CardHead.Actions>
+          <Filters
+            fields={filterFields}
+            values={inputValues}
+            onChange={setFilters}
+            onTextChange={setFilter}
+          />
+        </Table.CardHead.Actions>
       </Table.CardHead>
-
-      <div className="px-12 pb-8">
-        <Tabs.Root
-          value={scope}
-          onValueChange={(value) => onScopeChange(value as BillingScope)}
-        >
-          <Tabs.List>
-            {BILLING_SCOPES.map((option) => (
-              <Tabs.Item key={option.value} value={option.value}>
-                {option.label}
-              </Tabs.Item>
-            ))}
-          </Tabs.List>
-        </Tabs.Root>
-      </div>
 
       <Table.Table>
         <Table.Header>
           <Table.Row>
-            <Table.Head>Vencimento</Table.Head>
-            <Table.Head>Situação</Table.Head>
-            <Table.Head>Atraso</Table.Head>
-            <Table.Head>Cliente</Table.Head>
-            <Table.Head>Fábrica</Table.Head>
+            <Table.Head sortKey="dueDate">Vencimento</Table.Head>
+            <Table.Head sortKey="situation">Situação</Table.Head>
+            <Table.Head sortKey="daysOverdue" sortFirst="desc">
+              Atraso
+            </Table.Head>
+            <Table.Head sortKey="client">Cliente</Table.Head>
+            <Table.Head sortKey="factory">Fábrica</Table.Head>
             <Table.Head>Parcela</Table.Head>
-            <Table.Head>Valor</Table.Head>
-            <Table.Head>Comissão</Table.Head>
+            <Table.Head sortKey="amount" sortFirst="desc">
+              Valor
+            </Table.Head>
+            <Table.Head sortKey="commissionAmount" sortFirst="desc">
+              Comissão
+            </Table.Head>
           </Table.Row>
         </Table.Header>
 
@@ -100,12 +109,14 @@ export function BillingReportTable({
                     <Receipt size={32} />
                   </EmptyState.Icon>
                   <EmptyState.Title>
-                    Nenhuma duplicata no período
+                    {isNarrowed
+                      ? "Nenhuma duplicata com esses filtros"
+                      : "Nenhuma duplicata no período"}
                   </EmptyState.Title>
                   <EmptyState.Description>
-                    As parcelas nascem no faturamento do pedido, pelo prazo de
-                    pagamento escolhido. Amplie o período ou confira a visão
-                    escolhida acima.
+                    {isNarrowed
+                      ? "Tente outra situação ou outra fábrica no painel de filtros."
+                      : "As parcelas nascem no faturamento do pedido, pelo prazo de pagamento escolhido. Amplie o período."}
                   </EmptyState.Description>
                 </EmptyState.Root>
               </Table.Cell>

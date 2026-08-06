@@ -3,13 +3,14 @@ import { getTodayIso } from "@/utils/format/date";
 import { formatDateDMY } from "@/utils/format/masks";
 import { trimTransparent } from "@/utils/image";
 import { loadImage } from "@/utils/media";
+import { buildReportContext, ReportOrder } from "@/utils/pdf/context";
 import { drawFooters, loadGirusLogo } from "@/utils/pdf/footer";
 import { drawReportHeader } from "@/utils/pdf/reportHeader";
 import { drawReportTable } from "@/utils/pdf/table";
 import { PAGE } from "@/utils/pdf/theme";
 import { Order } from "../interface";
+import { ORDER_SORT_LABELS } from "../utils";
 import { buildOrderTotals, ORDER_COLUMNS } from "./columns";
-import { buildOrdersContext } from "./context";
 
 export interface OrdersPdfMeta {
   companyName?: string | null;
@@ -19,6 +20,8 @@ export interface OrdersPdfMeta {
   inputValues: Record<string, string>;
   /** Aba corrente, quando ela restringe a lista ("Ainda não faturados"). */
   scopeLabel?: string | null;
+  /** Ordenação à vista na tabela, para o papel dizer em que ordem ele está. */
+  order?: ReportOrder | null;
 }
 
 /**
@@ -50,10 +53,12 @@ export const exportOrdersPdf = async (
     companyLogo,
     title: "Relatório de pedidos",
     highlight: `${orders.length} pedido(s)`,
-    context: buildOrdersContext({
+    context: buildReportContext({
       fields: meta.filterFields,
       values: meta.inputValues,
       scopeLabel: meta.scopeLabel,
+      order: meta.order,
+      sortLabels: ORDER_SORT_LABELS,
     }),
     issuedAt: formatDateDMY(getTodayIso()),
   });

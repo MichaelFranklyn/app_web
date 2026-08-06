@@ -1,5 +1,6 @@
 import { SERIES_BLUE, SERIES_GREEN } from "@/components/Chart/chartTheme";
 import { formatDateDMY, formatMoney } from "@/utils/format/masks";
+import { SortLabel } from "@/utils/pdf/context";
 import type { EChartsCoreOption } from "echarts/core";
 
 import { buildHorizontalBarOption, mutedLine } from "../../chartBuilders";
@@ -55,6 +56,37 @@ export const buildFactoryOption = (
       ];
     }
   );
+};
+
+/**
+ * Colunas por onde as fábricas podem ser ordenadas.
+ *
+ * A ordem natural é por valor colocado (o backend já devolve assim), que é a
+ * pergunta de sempre; as outras respondem "quem tem mais clientes", "quem
+ * demora a faturar", "quem rende mais por pedido".
+ */
+export const FACTORIES_SORT_COLUMNS = {
+  factory: (row: FactoryOrdersRow) => row.entityName,
+  orderCount: (row: FactoryOrdersRow) => row.orderCount,
+  clientCount: (row: FactoryOrdersRow) => row.clientCount,
+  totalAmount: (row: FactoryOrdersRow) => Number(row.totalAmount || 0),
+  avgTicket: (row: FactoryOrdersRow) => Number(row.avgTicket || 0),
+  invoicedAmount: (row: FactoryOrdersRow) => Number(row.invoicedAmount || 0),
+  commissionAmount: (row: FactoryOrdersRow) =>
+    Number(row.commissionAmount || 0),
+  lastOrderDate: (row: FactoryOrdersRow) => row.lastOrderDate,
+};
+
+/** Como cada coluna ordenável se chama no papel, e em que sentido ela é lida. */
+export const FACTORIES_SORT_LABELS: Record<string, SortLabel> = {
+  factory: { label: "Fábrica", kind: "text" },
+  orderCount: { label: "Pedidos", kind: "number" },
+  clientCount: { label: "Clientes", kind: "number" },
+  totalAmount: { label: "Valor colocado", kind: "number" },
+  avgTicket: { label: "Ticket médio", kind: "number" },
+  invoicedAmount: { label: "Já faturado", kind: "number" },
+  commissionAmount: { label: "Comissão", kind: "number" },
+  lastOrderDate: { label: "Último pedido", kind: "date" },
 };
 
 export const FACTORY_EXPORT_HEADERS = [

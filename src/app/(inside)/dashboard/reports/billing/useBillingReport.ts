@@ -1,17 +1,18 @@
 "use client";
 
+import { useLocalTable } from "@/hooks/useLocalTable";
 import { useQueryErrorToast } from "@/hooks/useQueryErrorToast";
 import { formatMoney } from "@/utils/format/masks";
 import { useQuery } from "@apollo/client/react";
 import { useCallback, useMemo } from "react";
-import { useSearchParams } from "next/navigation";
 
 import { formatPercent } from "../../utils";
 import { ReportFilters, ReportKpi } from "../interface";
 import { useLocalReportPage } from "../useLocalReportPage";
 import { BILLING_REPORT_QUERY } from "./gql";
-import { BillingReportResponse, BillingRow, BillingScope } from "./interface";
-import { buildFactoryOption, filterByScope } from "./utils";
+import { BillingReportResponse, BillingRow } from "./interface";
+import { BILLING_FILTER_FIELDS, useBillingFilters } from "./useBillingFilters";
+import { BILLING_SORT_COLUMNS, buildFactoryOption } from "./utils";
 
 export const BILLING_PER_PAGE = 25;
 
@@ -30,18 +31,16 @@ const EMPTY_REPORT = {
 /**
  * Os dados da agenda de cobrança: as duplicatas que vencem no período.
  *
- * O relatório chega inteiro do backend, então o recorte por situação e a
- * paginação são locais — e os dois moram na URL, para o link levar ao mesmo
- * papel (ver `useLocalReportPage`).
+ * O relatório chega inteiro do backend, então filtro, ordenação e paginação são
+ * locais — os três moram na URL, para o link levar ao mesmo papel (ver
+ * `useLocalReportPage`). É a lista JÁ filtrada e ordenada que vai para o
+ * XLSX/PDF.
  *
  * Os KPIs vêm do fechamento do SERVIDOR, não da soma das linhas à vista: o
- * recorte "só as vencidas" muda a tabela, e o topo tem de continuar dizendo
+ * filtro "só as vencidas" muda a tabela, e o topo tem de continuar dizendo
  * quanto o período inteiro vale — senão trocar de visão parece mudar o mês.
  */
 export const useBillingReport = (filters: ReportFilters) => {
-  const searchParams = useSearchParams();
-  const scope = (searchParams.get("scope") ?? "all") as BillingScope;
-
   const { data, loading, error, refetch } = useQuery<BillingReportResponse>(
     BILLING_REPORT_QUERY,
     {
@@ -56,21 +55,17 @@ export const useBillingReport = (filters: ReportFilters) => {
 
   const report = data?.billingReport ?? EMPTY_REPORT;
 
-  const rows = useMemo(
-    () => filterByScope(report.rows, scope),
-    [report.rows, scope]
-  );
+  const table = useLocalTable<BillingRow>({
+    items: report.rows,
+    columns: BILLING_SORT_COLUMNS,
+    fields: BILLING_FILTER_FIELDS,
+  });
 
-  const { currentPage, setCurrentPage, totalPages, pageRows, push } =
+  const filterFields = useBillingFilters(report.rows);
+  const rows = table.displayedData;
+
+  const { currentPage, setCurrentPage, totalPages, pageRows } =
     useLocalReportPage(rows, BILLING_PER_PAGE);
-
-  const setScope = useCallback(
-    (next: BillingScope) =>
-      // Trocar de visão zera a página: a lista de vencidas é bem menor que a
-      // do mês inteiro, e a página 4 dela costuma não existir.
-      push({ scope: next === "all" ? null : next, page: null }),
-    [push]
-  );
 
   const kpis: ReportKpi[] = useMemo(() => {
     const total = Number(report.totalAmount || 0);
@@ -123,10 +118,13 @@ export const useBillingReport = (filters: ReportFilters) => {
       error,
       refetch: () => void refetch(),
     },
+    filterFields,
+    inputValues: table.inputValues,
+    setFilter: table.setFilter,
+    setFilters: table.setFilters,
+    sort: table.sort,
     rows,
     pageRows,
-    scope,
-    setScope,
     currentPage,
     setCurrentPage,
     totalPages,

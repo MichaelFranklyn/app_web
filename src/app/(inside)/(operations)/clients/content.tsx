@@ -56,11 +56,10 @@ export default function ClientesContent({
         stats={sellerScope.stats}
         onAddOptimistic={optimistic.addOptimistic}
         inputValues={tableData.inputValues}
-        sellerLabel={
-          sellerScope.sellerOptions.find(
-            (option) => option.value === selectedSellerId
-          )?.label ?? null
-        }
+        // O painel de filtros e a ordenação da tabela definem o que o arquivo
+        // exportado contém — e o cabeçalho do PDF os escreve por extenso.
+        filterFields={filterFields}
+        order={tableData.order}
         hasClients={tableData.totalItems > 0}
       />
 

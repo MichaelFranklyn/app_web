@@ -1,5 +1,7 @@
 import { SERIES_BLUE, SERIES_GREEN } from "@/components/Chart/chartTheme";
 import type { QueryFilter } from "@/hooks/useTableData";
+import type { FieldConfig } from "@/hooks/useTableFilters";
+import type { SortLabel } from "@/utils/pdf/context";
 import { clientName, factoryName } from "@/utils/company";
 import { formatDateDMY, formatMoney } from "@/utils/format/masks";
 import type { EChartsCoreOption } from "echarts/core";
@@ -27,6 +29,38 @@ export const buildSentOrdersFilters = (
     ? [{ field: "seller_id", operator: "eq", value: filters.sellerId }]
     : []),
 ];
+
+/**
+ * Campos do painel que viram filtro NA QUERY (a tabela pagina no servidor).
+ *
+ * `search` é a busca livre que o backend já oferece em pedidos: fábrica, vendedor
+ * ou código do pedido — não o nome do cliente, e o rótulo do campo diz isso.
+ */
+export const SENT_ORDERS_TABLE_FIELDS: Record<string, FieldConfig> = {
+  search: { type: "text", queryField: "search" },
+  status: { type: "select", queryField: "status" },
+};
+
+/**
+ * Colunas de `orders` por onde a lista pode ser ordenada.
+ *
+ * Cliente, fábrica e vendedor ficam de fora: na tabela `orders` são só o UUID da
+ * chave estrangeira.
+ */
+export const SENT_ORDERS_SORTABLE_FIELDS = [
+  "order_date",
+  "invoiced_at",
+  "status",
+  "total_amount",
+];
+
+/** Como cada coluna ordenável se chama no papel, e em que sentido ela é lida. */
+export const SENT_ORDERS_SORT_LABELS: Record<string, SortLabel> = {
+  order_date: { label: "Data do pedido", kind: "date" },
+  invoiced_at: { label: "Faturamento", kind: "date" },
+  status: { label: "Situação", kind: "text" },
+  total_amount: { label: "Valor", kind: "number" },
+};
 
 /** Um pedido está pendente na fábrica enquanto ela não o faturou. */
 export const isPendingAtFactory = (order: SentOrder): boolean =>

@@ -1,6 +1,7 @@
 "use client";
 
 import { formatMoney } from "@/utils/format/masks";
+import { buildReportContext } from "@/utils/pdf/context";
 
 import { formatPercent } from "../../utils";
 import { ReportChartCard } from "../_components/ReportChartCard";
@@ -16,7 +17,7 @@ import { usePositivationReport } from "./usePositivationReport";
 import {
   buildPositivationExportRows,
   buildPositivationHeaders,
-  scopeContextLine,
+  POSITIVATION_SORT_LABELS,
   summarizeRows,
 } from "./utils";
 
@@ -36,16 +37,25 @@ export default function PositivationReportContent({ canSelectSeller }: Props) {
     slug: "positivacao",
     title: "Positivação da carteira",
     from: filters.from,
-    // O escopo entra no cabeçalho: uma lista só de zerados impressa sem dizer isso
-    // seria lida como "a carteira inteira não comprou". Se o PDF cortou colunas,
-    // o papel também diz — silêncio aqui pareceria cobertura completa.
+    // O recorte entra no cabeçalho: uma lista só de zerados impressa sem dizer
+    // isso seria lida como "a carteira inteira não comprou". Se o PDF cortou
+    // colunas, o papel também diz — silêncio aqui pareceria cobertura completa.
     context: [
       ...context,
-      scopeContextLine(report.scope),
-      cutFactories > 0
-        ? `PDF com as ${PDF_FACTORY_LIMIT} primeiras fábricas (${cutFactories} fora; a planilha traz todas)`
-        : null,
-    ].filter((line): line is string => Boolean(line)),
+      ...buildReportContext({
+        fields: report.filterFields,
+        values: report.inputValues,
+        order: report.sort.key
+          ? { by: report.sort.key, dir: report.sort.direction }
+          : null,
+        sortLabels: POSITIVATION_SORT_LABELS,
+      }),
+      ...(cutFactories > 0
+        ? [
+            `PDF com as ${PDF_FACTORY_LIMIT} primeiras fábricas (${cutFactories} fora; a planilha traz todas)`,
+          ]
+        : []),
+    ],
     fetchRows: report.fetchAllRows,
     sheetHeaders: buildPositivationHeaders(factories),
     buildSheetRows: (rows) => buildPositivationExportRows(rows, factories),
@@ -102,8 +112,11 @@ export default function PositivationReportContent({ canSelectSeller }: Props) {
         factories={factories}
         items={report.pageRows}
         loading={report.loading}
-        scope={report.scope}
-        onScopeChange={report.setScope}
+        filterFields={report.filterFields}
+        inputValues={report.inputValues}
+        setFilter={report.setFilter}
+        setFilters={report.setFilters}
+        sort={report.sort}
         currentPage={report.currentPage}
         setCurrentPage={report.setCurrentPage}
         totalPages={report.totalPages}

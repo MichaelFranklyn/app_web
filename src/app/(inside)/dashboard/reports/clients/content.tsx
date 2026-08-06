@@ -1,5 +1,7 @@
 "use client";
 
+import { buildReportContext } from "@/utils/pdf/context";
+
 import { ReportChartCard } from "../_components/ReportChartCard";
 import { ReportKpis } from "../_components/ReportKpis";
 import { ReportToolbar } from "../_components/ReportToolbar";
@@ -12,6 +14,7 @@ import { useClientsReport } from "./useClientsReport";
 import {
   buildClientsExportRows,
   CLIENTS_EXPORT_HEADERS,
+  CLIENTS_REPORT_SORT_LABELS,
   daysSinceOrder,
 } from "./utils";
 
@@ -21,8 +24,15 @@ interface Props {
 
 export default function ClientsReportContent({ canSelectSeller }: Props) {
   const { filters, setRange, setSellerId } = useReportFilters();
-  const { kpis, kpisLoading, chart, tableData, fetchAllRows, hasRows } =
-    useClientsReport(filters);
+  const {
+    kpis,
+    kpisLoading,
+    chart,
+    filterFields,
+    tableData,
+    fetchAllRows,
+    hasRows,
+  } = useClientsReport(filters);
   const { context } = useReportContext(filters);
 
   const { exportSheet, exportPdf } = useReportExport({
@@ -31,7 +41,17 @@ export default function ClientsReportContent({ canSelectSeller }: Props) {
     from: filters.from,
     // A carteira é um retrato de hoje: dizer isso evita que o papel seja lido
     // como "os clientes do período" — o período só governa o gráfico de atraso.
-    context: [...context, "Carteira: retrato de hoje"],
+    // Depois vêm os filtros do painel e a ordem da tabela.
+    context: [
+      ...context,
+      "Carteira: retrato de hoje",
+      ...buildReportContext({
+        fields: filterFields,
+        values: tableData.inputValues,
+        order: tableData.order,
+        sortLabels: CLIENTS_REPORT_SORT_LABELS,
+      }),
+    ],
     fetchRows: fetchAllRows,
     sheetHeaders: CLIENTS_EXPORT_HEADERS,
     buildSheetRows: buildClientsExportRows,
@@ -85,6 +105,11 @@ export default function ClientsReportContent({ canSelectSeller }: Props) {
         setCurrentPage={tableData.setCurrentPage}
         totalPages={tableData.totalPages}
         totalItems={tableData.totalItems}
+        filterFields={filterFields}
+        inputValues={tableData.inputValues}
+        setFilter={tableData.setFilter}
+        setFilters={tableData.setFilters}
+        sort={tableData.sort}
       />
     </div>
   );

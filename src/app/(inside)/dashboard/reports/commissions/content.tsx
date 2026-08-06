@@ -1,6 +1,7 @@
 "use client";
 
 import { formatMoney } from "@/utils/format/masks";
+import { buildReportContext } from "@/utils/pdf/context";
 
 import { ReportChartCard } from "../_components/ReportChartCard";
 import { ReportKpis } from "../_components/ReportKpis";
@@ -14,6 +15,7 @@ import { useCommissionsReport } from "./useCommissionsReport";
 import {
   buildCommissionsExportRows,
   COMMISSIONS_EXPORT_HEADERS,
+  COMMISSIONS_SORT_LABELS,
   summarize,
 } from "./utils";
 
@@ -30,7 +32,20 @@ export default function CommissionsReportContent({ canSelectSeller }: Props) {
     slug: "comissoes",
     title: "Comissões do período",
     from: filters.from,
-    context,
+    // O recorte inteiro no papel: período e vendedor, os filtros do painel e a
+    // ordem da tabela — um papel só das parcelas não conferidas tem de dizer que
+    // é isso, senão o fechamento do mês parece menor do que é.
+    context: [
+      ...context,
+      ...buildReportContext({
+        fields: report.filterFields,
+        values: report.inputValues,
+        order: report.sort.key
+          ? { by: report.sort.key, dir: report.sort.direction }
+          : null,
+        sortLabels: COMMISSIONS_SORT_LABELS,
+      }),
+    ],
     fetchRows: report.fetchAllRows,
     sheetHeaders: COMMISSIONS_EXPORT_HEADERS,
     buildSheetRows: buildCommissionsExportRows,
@@ -91,6 +106,11 @@ export default function CommissionsReportContent({ canSelectSeller }: Props) {
       <CommissionsReportTable
         items={report.pageRows}
         loading={report.loading}
+        filterFields={report.filterFields}
+        inputValues={report.inputValues}
+        setFilter={report.setFilter}
+        setFilters={report.setFilters}
+        sort={report.sort}
         currentPage={report.currentPage}
         setCurrentPage={report.setCurrentPage}
         totalPages={report.totalPages}

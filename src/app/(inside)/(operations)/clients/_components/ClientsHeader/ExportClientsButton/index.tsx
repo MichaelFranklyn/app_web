@@ -3,10 +3,12 @@
 import { useApolloClient } from "@apollo/client/react";
 
 import { ExportMenu } from "@/components/ExportMenu";
+import { FilterField } from "@/components/Filters";
 import { useToast } from "@/components/Toast";
 import { useCompanyBranding } from "@/hooks/useCompanyBranding";
 import { buildQueryFilters } from "@/hooks/useTableData";
 import { downloadSheet } from "@/utils/import/writer";
+import { ReportOrder } from "@/utils/pdf/context";
 
 import { CLIENTS_QUERY } from "../../../gql";
 import { Client, ClientsQueryResponse } from "../../../interface";
@@ -17,8 +19,10 @@ import { EXPORT_HEADERS, buildExportRows } from "./utils";
 interface Props {
   /** Filtros ativos na tela: o arquivo sai com o mesmo recorte que está à vista. */
   inputValues: Record<string, string>;
-  /** Nome do vendedor filtrado — o PDF escreve o recorte no cabeçalho. */
-  sellerLabel?: string | null;
+  /** Campos do painel, para o PDF escrever o recorte por extenso. */
+  filterFields: FilterField[];
+  /** Ordenação à vista na tabela; o arquivo sai na MESMA ordem. */
+  order?: ReportOrder | null;
   disabled?: boolean;
 }
 
@@ -32,11 +36,13 @@ const MAX_PAGES = 100;
  *
  * A lista da tela pagina de 5 em 5, então exportar o que está em memória daria
  * um arquivo de cinco linhas. Aqui a query é refeita sob demanda, varrendo todas
- * as páginas com o mesmo filtro de busca/vendedor que o usuário aplicou.
+ * as páginas com os mesmos filtros E a mesma ordenação que o usuário aplicou —
+ * exportar é levar embora a lista que está à vista, não outra parecida.
  */
 export function ExportClientsButton({
   inputValues,
-  sellerLabel,
+  filterFields,
+  order,
   disabled,
 }: Props) {
   const apollo = useApolloClient();
@@ -58,6 +64,7 @@ export function ExportClientsButton({
               first: PAGE_SIZE,
               after,
               ...(filters.length > 0 && { filters }),
+              ...(order && { order }),
             },
           },
           fetchPolicy: "network-only",
@@ -114,8 +121,9 @@ export function ExportClientsButton({
           exportClientsPdf(clients, {
             companyName,
             companyLogoUrl,
+            filterFields,
             inputValues,
-            sellerLabel,
+            order,
           })
         )
       }

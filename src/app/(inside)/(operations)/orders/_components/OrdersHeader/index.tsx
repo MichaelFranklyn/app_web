@@ -6,6 +6,7 @@ import { Loading } from "@/components/Loading";
 import { PanelHeader } from "@/components/PanelHeader";
 import { TrendingDown, TrendingUp } from "lucide-react";
 import { FilterField } from "@/components/Filters";
+import { ReportOrder } from "@/utils/pdf/context";
 import { Order, OrdersStats } from "../../interface";
 import { buildOrderKpis } from "../../utils";
 import { AddOrderModal } from "./AddOrderModal";
@@ -21,6 +22,8 @@ interface Props {
   exportFilters: QueryFilter[];
   filterFields: FilterField[];
   inputValues: Record<string, string>;
+  /** Ordenação à vista na tabela — o arquivo sai na mesma ordem. */
+  order?: ReportOrder | null;
   /** Aba corrente, quando ela restringe a lista ("Ainda não faturados"). */
   scopeLabel?: string | null;
   hasOrders: boolean;
@@ -35,6 +38,7 @@ export function OrdersHeader({
   exportFilters,
   filterFields,
   inputValues,
+  order,
   scopeLabel,
   hasOrders,
 }: Props) {
@@ -54,6 +58,7 @@ export function OrdersHeader({
                 filters={exportFilters}
                 filterFields={filterFields}
                 inputValues={inputValues}
+                order={order}
                 scopeLabel={scopeLabel}
                 disabled={!hasOrders}
               />

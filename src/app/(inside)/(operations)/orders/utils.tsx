@@ -1,6 +1,7 @@
 import { KpiItem } from "@/components/Card/Kpi/Root/interface";
 import { FieldConfig } from "@/hooks/useTableFilters";
 import { formatMoney } from "@/utils/format/masks";
+import type { SortLabel } from "@/utils/pdf/context";
 import type { OrdersStats } from "./interface";
 
 /**
@@ -56,6 +57,20 @@ export const ORDER_SORTABLE_FIELDS = [
   "total_amount",
   "commission_amount",
 ];
+
+/**
+ * Como cada coluna ordenável se chama no papel, e em que sentido ela é lida.
+ *
+ * Serve ao cabeçalho do PDF, que registra a ordenação junto com os filtros: a
+ * lista dos maiores pedidos impressa sem essa linha passa pela lista do mês em
+ * ordem de data, e a conferência começa pelo pedido errado.
+ */
+export const ORDER_SORT_LABELS: Record<string, SortLabel> = {
+  order_date: { label: "Data", kind: "date" },
+  status: { label: "Situação", kind: "text" },
+  total_amount: { label: "Valor", kind: "number" },
+  commission_amount: { label: "Comissão", kind: "number" },
+};
 
 /**
  * A ordem que o backend já aplica sozinho (ver `_default_order_ordering`): do

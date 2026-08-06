@@ -6,9 +6,11 @@ import {
 } from "@/app/(inside)/_shared/commissions";
 import { Badge } from "@/components/Badges";
 import { EmptyState } from "@/components/EmptyState";
+import { FilterField, Filters } from "@/components/Filters";
+import { HelpTooltip } from "@/components/HelpTooltip";
 import { Loading } from "@/components/Loading";
 import { Pagination } from "@/components/Pagination";
-import { Table } from "@/components/Table";
+import { Table, TableSort } from "@/components/Table";
 import { clientName, factoryName } from "@/utils/company";
 import { formatDateDMY, formatMoney } from "@/utils/format/masks";
 import { Coins } from "lucide-react";
@@ -19,6 +21,12 @@ import { summarize } from "../../utils";
 interface Props {
   items: CommissionRow[];
   loading: boolean;
+  /** Campos do painel: cliente, fábrica, vendedor, situação e conferência. */
+  filterFields: FilterField[];
+  inputValues: Record<string, string>;
+  setFilter: (key: string, value: string | undefined) => void;
+  setFilters: (patch: Record<string, string | undefined>) => void;
+  sort: TableSort;
   currentPage: number;
   setCurrentPage: (page: number) => void;
   totalPages: number;
@@ -35,34 +43,57 @@ interface Props {
 export function CommissionsReportTable({
   items,
   loading,
+  filterFields,
+  inputValues,
+  setFilter,
+  setFilters,
+  sort,
   currentPage,
   setCurrentPage,
   totalPages,
   totalItems,
 }: Props) {
   const page = summarize(items);
+  const isNarrowed = Object.values(inputValues).some(Boolean);
 
   return (
-    <Table.Root>
+    <Table.Root sort={sort}>
       <Table.CardHead>
-        <Table.CardHead.Title>Parcelas de comissão</Table.CardHead.Title>
-        <Table.CardHead.Description>
-          Pela data em que a comissão cai — não pela data do pedido.
-        </Table.CardHead.Description>
+        <Table.CardHead.Title className="inline-flex items-center gap-6">
+          Parcelas de comissão
+          <HelpTooltip
+            label="Sobre as parcelas de comissão"
+            content="Recortadas pela data em que a comissão CAI — não pela data do pedido. A coluna 'Conferida' marca o que já bateu com a planilha da fábrica."
+          />
+        </Table.CardHead.Title>
+        <Table.CardHead.Actions>
+          <Filters
+            fields={filterFields}
+            values={inputValues}
+            onChange={setFilters}
+            onTextChange={setFilter}
+          />
+        </Table.CardHead.Actions>
       </Table.CardHead>
 
       <Table.Table>
         <Table.Header>
           <Table.Row>
-            <Table.Head>Recebimento</Table.Head>
-            <Table.Head>Cliente</Table.Head>
-            <Table.Head>Fábrica</Table.Head>
-            <Table.Head>Vendedor</Table.Head>
+            <Table.Head sortKey="receiveDate">Recebimento</Table.Head>
+            <Table.Head sortKey="client">Cliente</Table.Head>
+            <Table.Head sortKey="factory">Fábrica</Table.Head>
+            <Table.Head sortKey="seller">Vendedor</Table.Head>
             <Table.Head>Parcela</Table.Head>
-            <Table.Head>Valor da parcela</Table.Head>
-            <Table.Head>Comissão</Table.Head>
-            <Table.Head>Situação</Table.Head>
-            <Table.Head>Conferida</Table.Head>
+            <Table.Head sortKey="installmentAmount" sortFirst="desc">
+              Valor da parcela
+            </Table.Head>
+            <Table.Head sortKey="amount" sortFirst="desc">
+              Comissão
+            </Table.Head>
+            <Table.Head sortKey="status">Situação</Table.Head>
+            <Table.Head sortKey="isReconciled" sortFirst="desc">
+              Conferida
+            </Table.Head>
           </Table.Row>
         </Table.Header>
 
@@ -77,12 +108,14 @@ export function CommissionsReportTable({
                     <Coins size={32} />
                   </EmptyState.Icon>
                   <EmptyState.Title>
-                    Nenhuma comissão no período
+                    {isNarrowed
+                      ? "Nenhuma parcela com esses filtros"
+                      : "Nenhuma comissão no período"}
                   </EmptyState.Title>
                   <EmptyState.Description>
-                    A comissão cai depois do faturamento e do prazo de
-                    pagamento. Amplie o período para ver as parcelas mais à
-                    frente.
+                    {isNarrowed
+                      ? "Tente outra fábrica ou outra situação no painel de filtros."
+                      : "A comissão cai depois do faturamento e do prazo de pagamento. Amplie o período para ver as parcelas mais à frente."}
                   </EmptyState.Description>
                 </EmptyState.Root>
               </Table.Cell>

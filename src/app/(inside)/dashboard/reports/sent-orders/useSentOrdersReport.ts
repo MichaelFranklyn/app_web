@@ -1,7 +1,7 @@
 "use client";
 
 import { useQueryErrorToast } from "@/hooks/useQueryErrorToast";
-import { useTableData } from "@/hooks/useTableData";
+import { buildQueryFilters, useTableData } from "@/hooks/useTableData";
 import { formatMoney } from "@/utils/format/masks";
 import { useApolloClient, useQuery } from "@apollo/client/react";
 import { useCallback, useMemo } from "react";
@@ -19,7 +19,13 @@ import {
   SentOrdersResponse,
   SentOrdersStatsResponse,
 } from "./interface";
-import { buildPlacedByFactoryOption, buildSentOrdersFilters } from "./utils";
+import { useSentOrdersFilters } from "./useSentOrdersFilters";
+import {
+  SENT_ORDERS_SORTABLE_FIELDS,
+  SENT_ORDERS_TABLE_FIELDS,
+  buildPlacedByFactoryOption,
+  buildSentOrdersFilters,
+} from "./utils";
 
 export const SENT_ORDERS_PER_PAGE = 20;
 
@@ -40,17 +46,32 @@ export const useSentOrdersReport = (filters: ReportFilters) => {
 
   const tableData = useTableData<SentOrdersResponse, SentOrder>({
     query: SENT_ORDERS_QUERY,
-    fields: {},
+    fields: SENT_ORDERS_TABLE_FIELDS,
     getConnection: (data) => data.sent_orders_report,
     itemsPerPage: SENT_ORDERS_PER_PAGE,
+    sortableFields: SENT_ORDERS_SORTABLE_FIELDS,
     baseFilters: queryFilters,
   });
 
+  const filterFields = useSentOrdersFilters();
+
+  // O recorte COMPLETO da tabela: o do relatório (período pela data do pedido +
+  // vendedor) mais o que o painel pediu. É o que os KPIs e a exportação repetem.
+  const exportFilters = useMemo(
+    () => [
+      ...queryFilters,
+      ...buildQueryFilters(SENT_ORDERS_TABLE_FIELDS, tableData.inputValues),
+    ],
+    [queryFilters, tableData.inputValues]
+  );
+
+  // Os KPIs consultam o MESMO recorte da tabela (inclusive o painel de
+  // filtros): senão, filtrar uma situação deixaria o topo somando o mês inteiro.
   const statsQuery = useQuery<SentOrdersStatsResponse>(
     SENT_ORDERS_STATS_QUERY,
     {
       variables: {
-        input: { first: SENT_ORDERS_PER_PAGE, filters: queryFilters },
+        input: { first: SENT_ORDERS_PER_PAGE, filters: exportFilters },
       },
     }
   );
@@ -117,13 +138,15 @@ export const useSentOrdersReport = (filters: ReportFilters) => {
       fetchAllPages<SentOrdersResponse, SentOrder>(
         apollo,
         SENT_ORDERS_QUERY,
-        queryFilters,
-        (data) => data.sent_orders_report
+        exportFilters,
+        (data) => data.sent_orders_report,
+        tableData.order
       ),
-    [apollo, queryFilters]
+    [apollo, exportFilters, tableData.order]
   );
 
   return {
+    filterFields,
     kpis,
     kpisLoading: statsQuery.loading && !stats,
     chart: {

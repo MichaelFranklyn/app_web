@@ -1,5 +1,6 @@
 "use client";
 
+import { useLocalTable } from "@/hooks/useLocalTable";
 import { useQueryErrorToast } from "@/hooks/useQueryErrorToast";
 import { formatMoney } from "@/utils/format/masks";
 import { useQuery } from "@apollo/client/react";
@@ -11,7 +12,11 @@ import { useLocalReportPage } from "../useLocalReportPage";
 import { safeRate } from "../utils";
 import { FACTORY_ORDERS_REPORT_QUERY } from "./gql";
 import { FactoryOrdersResponse, FactoryOrdersRow } from "./interface";
-import { buildFactoryOption, sumBy } from "./utils";
+import {
+  FACTORIES_FILTER_FIELDS,
+  useFactoriesFilters,
+} from "./useFactoriesFilters";
+import { FACTORIES_SORT_COLUMNS, buildFactoryOption, sumBy } from "./utils";
 
 export const FACTORIES_PER_PAGE = 25;
 
@@ -28,6 +33,9 @@ const EMPTY_ROWS: FactoryOrdersRow[] = [];
  * Os KPIs saem das linhas, não de uma segunda consulta: o backend já devolveu
  * o conjunto completo, e somar de novo no servidor abriria a porta para os dois
  * números divergirem.
+ *
+ * Filtro, ordenação e paginação são locais, e é a lista JÁ filtrada e ordenada
+ * que vai para o XLSX/PDF.
  */
 export const useFactoriesReport = (filters: ReportFilters) => {
   const { data, loading, error, refetch } = useQuery<FactoryOrdersResponse>(
@@ -42,20 +50,32 @@ export const useFactoriesReport = (filters: ReportFilters) => {
   );
   useQueryErrorToast(error, "Não foi possível carregar as fábricas.");
 
-  const rows = data?.factoryOrdersReport ?? EMPTY_ROWS;
+  const allRows = data?.factoryOrdersReport ?? EMPTY_ROWS;
+
+  const table = useLocalTable<FactoryOrdersRow>({
+    items: allRows,
+    columns: FACTORIES_SORT_COLUMNS,
+    fields: FACTORIES_FILTER_FIELDS,
+  });
+
+  const filterFields = useFactoriesFilters(allRows);
+  const rows = table.displayedData;
 
   const { currentPage, setCurrentPage, totalPages, pageRows } =
     useLocalReportPage(rows, FACTORIES_PER_PAGE);
 
+  // Os cartões e o gráfico falam do PERÍODO INTEIRO, não do recorte à vista:
+  // filtrar por uma fábrica muda a tabela, e o topo tem de continuar dizendo de
+  // que tamanho é o mês — senão o filtro parece encolher o faturamento.
   const kpis: ReportKpi[] = useMemo(() => {
-    const total = sumBy(rows, (row) => row.totalAmount);
-    const invoiced = sumBy(rows, (row) => row.invoicedAmount);
-    const orders = sumBy(rows, (row) => row.orderCount);
-    const leader = rows[0];
+    const total = sumBy(allRows, (row) => row.totalAmount);
+    const invoiced = sumBy(allRows, (row) => row.invoicedAmount);
+    const orders = sumBy(allRows, (row) => row.orderCount);
+    const leader = allRows[0];
     return [
       {
         label: "Fábricas com pedido",
-        value: String(rows.length),
+        value: String(allRows.length),
         hint: `${orders} pedido(s) no período`,
         status: "neutral",
       },
@@ -83,7 +103,7 @@ export const useFactoriesReport = (filters: ReportFilters) => {
         status: leader && leader.share >= 0.5 ? "urgente" : "neutral",
       },
     ];
-  }, [rows]);
+  }, [allRows]);
 
   const fetchAllRows = useCallback(
     async (): Promise<FactoryOrdersRow[]> => rows,
@@ -92,14 +112,19 @@ export const useFactoriesReport = (filters: ReportFilters) => {
 
   return {
     kpis,
-    kpisLoading: loading && rows.length === 0,
+    kpisLoading: loading && allRows.length === 0,
     chart: {
-      option: buildFactoryOption(rows),
-      hasData: rows.length > 0,
+      option: buildFactoryOption(allRows),
+      hasData: allRows.length > 0,
       loading,
       error,
       refetch: () => void refetch(),
     },
+    filterFields,
+    inputValues: table.inputValues,
+    setFilter: table.setFilter,
+    setFilters: table.setFilters,
+    sort: table.sort,
     rows,
     pageRows,
     currentPage,

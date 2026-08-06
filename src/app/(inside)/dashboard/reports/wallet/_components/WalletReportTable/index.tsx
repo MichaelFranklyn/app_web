@@ -2,31 +2,37 @@
 
 import { Badge } from "@/components/Badges";
 import { EmptyState } from "@/components/EmptyState";
+import { FilterField, Filters } from "@/components/Filters";
+import { HelpTooltip } from "@/components/HelpTooltip";
 import { Loading } from "@/components/Loading";
 import { Pagination } from "@/components/Pagination";
-import { Table } from "@/components/Table";
-import { Tabs } from "@/components/Tabs";
+import { Table, TableSort } from "@/components/Table";
 import { formatDateDMY, formatMoney } from "@/utils/format/masks";
 import { Users } from "lucide-react";
 
-import { WalletRow, WalletScope } from "../../interface";
+import {
+  SITUATION_COLOR,
+  SITUATION_HINT,
+  SITUATION_LABEL,
+} from "../../../situation";
+import { WalletRow } from "../../interface";
 import {
   cadenceLabel,
   cityAndState,
   idleLabel,
   riskLabel,
   sumBy,
-  WALLET_SCOPES,
-  WALLET_SITUATION_COLOR,
-  WALLET_SITUATION_HINT,
-  WALLET_SITUATION_LABEL,
 } from "../../utils";
 
 interface Props {
   items: WalletRow[];
   loading: boolean;
-  scope: WalletScope;
-  onScopeChange: (scope: WalletScope) => void;
+  /** Campos do painel: cliente, situação e UF. */
+  filterFields: FilterField[];
+  inputValues: Record<string, string>;
+  setFilter: (key: string, value: string | undefined) => void;
+  setFilters: (patch: Record<string, string | undefined>) => void;
+  sort: TableSort;
   currentPage: number;
   setCurrentPage: (page: number) => void;
   totalPages: number;
@@ -44,52 +50,65 @@ interface Props {
 export function WalletReportTable({
   items,
   loading,
-  scope,
-  onScopeChange,
+  filterFields,
+  inputValues,
+  setFilter,
+  setFilters,
+  sort,
   currentPage,
   setCurrentPage,
   totalPages,
   totalItems,
 }: Props) {
   const pageAmount = sumBy(items, (row) => row.periodAmount);
+  // A tabela vazia diz coisas diferentes: "a carteira está vazia" é um estado do
+  // relatório, "não achei nada" é consequência do que a pessoa pediu.
+  const isNarrowed = Object.values(inputValues).some(Boolean);
 
   return (
-    <Table.Root>
+    <Table.Root sort={sort}>
       <Table.CardHead>
-        <Table.CardHead.Title>Clientes da carteira</Table.CardHead.Title>
-        <Table.CardHead.Description>
-          A situação compara cada cliente com o próprio ritmo de compra, e é um
-          retrato de hoje — o período do filtro governa só as colunas do
-          período.
-        </Table.CardHead.Description>
+        {/* A explicação vai no "?" e não numa Description: o cabeçalho decide
+            por MEDIÇÃO se as ações cabem na linha (useHeaderActionsMode), e um
+            parágrafo aqui colapsaria o botão "Filtros" num ícone sem rótulo. */}
+        <Table.CardHead.Title className="inline-flex items-center gap-6">
+          Clientes da carteira
+          <HelpTooltip
+            label="Sobre a situação da carteira"
+            content="A situação compara cada cliente com o próprio ritmo de compra, e é um retrato de hoje — o período do filtro governa só as colunas do período."
+          />
+        </Table.CardHead.Title>
+        <Table.CardHead.Actions>
+          <Filters
+            fields={filterFields}
+            values={inputValues}
+            onChange={setFilters}
+            onTextChange={setFilter}
+          />
+        </Table.CardHead.Actions>
       </Table.CardHead>
-
-      <div className="px-12 pb-8">
-        <Tabs.Root
-          value={scope}
-          onValueChange={(value) => onScopeChange(value as WalletScope)}
-        >
-          <Tabs.List>
-            {WALLET_SCOPES.map((option) => (
-              <Tabs.Item key={option.value} value={option.value}>
-                {option.label}
-              </Tabs.Item>
-            ))}
-          </Tabs.List>
-        </Tabs.Root>
-      </div>
 
       <Table.Table>
         <Table.Header>
           <Table.Row>
-            <Table.Head>Cliente</Table.Head>
-            <Table.Head>Cidade/UF</Table.Head>
-            <Table.Head>Situação</Table.Head>
-            <Table.Head>Parado há</Table.Head>
-            <Table.Head>Ritmo</Table.Head>
-            <Table.Head>Atraso</Table.Head>
-            <Table.Head>Última compra</Table.Head>
-            <Table.Head>No período</Table.Head>
+            <Table.Head sortKey="client">Cliente</Table.Head>
+            <Table.Head sortKey="city">Cidade/UF</Table.Head>
+            <Table.Head sortKey="situation">Situação</Table.Head>
+            <Table.Head sortKey="idle" sortFirst="desc">
+              Parado há
+            </Table.Head>
+            <Table.Head sortKey="cadence" sortFirst="desc">
+              Ritmo
+            </Table.Head>
+            <Table.Head sortKey="risk" sortFirst="desc">
+              Atraso
+            </Table.Head>
+            <Table.Head sortKey="lastOrderDate" sortFirst="desc">
+              Última compra
+            </Table.Head>
+            <Table.Head sortKey="periodAmount" sortFirst="desc">
+              No período
+            </Table.Head>
           </Table.Row>
         </Table.Header>
 
@@ -104,11 +123,14 @@ export function WalletReportTable({
                     <Users size={32} />
                   </EmptyState.Icon>
                   <EmptyState.Title>
-                    Nenhum cliente nesta visão
+                    {isNarrowed
+                      ? "Nenhum cliente com esses filtros"
+                      : "Nenhum cliente na carteira"}
                   </EmptyState.Title>
                   <EmptyState.Description>
-                    Escolha outra situação acima ou confira se a carteira do
-                    vendedor selecionado tem clientes vinculados.
+                    {isNarrowed
+                      ? "Tente outra situação ou outro estado no painel de filtros."
+                      : "Confira se a carteira do vendedor selecionado tem clientes vinculados."}
                   </EmptyState.Description>
                 </EmptyState.Root>
               </Table.Cell>
@@ -135,12 +157,12 @@ export function WalletReportTable({
                 </Table.Cell>
                 <Table.Cell>
                   <Badge.Root
-                    color={WALLET_SITUATION_COLOR[row.situation]}
+                    color={SITUATION_COLOR[row.situation]}
                     appearance="tinted"
                   >
                     <Badge.Text>
-                      <span title={WALLET_SITUATION_HINT[row.situation]}>
-                        {WALLET_SITUATION_LABEL[row.situation]}
+                      <span title={SITUATION_HINT[row.situation]}>
+                        {SITUATION_LABEL[row.situation]}
                       </span>
                     </Badge.Text>
                   </Badge.Root>

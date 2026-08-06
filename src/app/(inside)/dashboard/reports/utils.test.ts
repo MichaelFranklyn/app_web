@@ -9,7 +9,7 @@ import {
 } from "./utils";
 
 describe("REPORT_TABS", () => {
-  it("tem as nove abas, na ordem da operação e com slugs únicos", () => {
+  it("tem as dez abas, na ordem da operação e com slugs únicos", () => {
     const slugs = REPORT_TABS.map((tab) => tab.slug);
     expect(slugs).toEqual([
       "sales",
@@ -18,6 +18,7 @@ describe("REPORT_TABS", () => {
       "commissions",
       "factories",
       "positivation",
+      "purchases",
       "clients",
       "wallet",
       "abc",

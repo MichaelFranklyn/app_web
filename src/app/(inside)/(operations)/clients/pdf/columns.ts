@@ -18,8 +18,13 @@ const score = (client: Client): string => {
 };
 
 /**
- * Colunas do relatório da carteira, na mesma ordem em que a tela mostra os
- * dados — quem imprime está conferindo contra o que viu.
+ * Colunas do relatório da carteira: as MESMAS que a tela mostra, na mesma ordem
+ * — quem imprime está conferindo contra o que viu, e uma coluna a mais no papel
+ * faz a conferência procurar na tela um dado que não está lá.
+ *
+ * Por isso o CNPJ é coluna aqui e não na tela: lá ele vive dentro da célula do
+ * cliente (ver `ClientCell`), que no papel não caberia em duas linhas junto com
+ * o nome fantasia. É o mesmo dado, remanejado — não um dado novo.
  *
  * A razão social leva o nome fantasia como segunda linha: é por ele que o
  * vendedor reconhece a loja ("Mercado Bom Preço"), mas é a razão social que
@@ -28,54 +33,22 @@ const score = (client: Client): string => {
 export const CLIENT_COLUMNS: ReportColumn<Client>[] = [
   {
     header: "CLIENTE",
-    width: 26,
+    width: 30,
     value: (client) => client.razaoSocial,
     sub: (client) => client.nomeFantasia,
   },
   { header: "CNPJ", width: 13, value: (client) => maskCNPJ(client.cnpj) },
-  { header: "CIDADE / UF", width: 14, value: cityAndState },
-  { header: "VENDEDOR", width: 14, value: sellerNames },
+  { header: "CIDADE / UF", width: 15, value: cityAndState },
+  { header: "VENDEDOR", width: 16, value: sellerNames },
   {
     header: "ÚLT. COMPRA",
-    width: 9,
+    width: 10,
     value: (client) => formatDate(client.companyClient?.lastOrderDate),
   },
   {
-    header: "FATURAMENTO",
-    width: 9,
-    value: (client) => formatDate(client.companyClient?.lastInvoiceDate),
-  },
-  {
     header: "ÚLT. VISITA",
-    width: 9,
+    width: 10,
     value: (client) => formatDate(client.companyClient?.lastVisitDate),
   },
   { header: "SCORE", width: 6, align: "right", bold: true, value: score },
 ];
-
-export interface ContextParams {
-  /** Filtros ativos na tela, como estão na URL. */
-  inputValues: Record<string, string>;
-  /** Nome do vendedor escolhido no filtro — o id sozinho não diz nada no papel. */
-  sellerLabel?: string | null;
-}
-
-/**
- * Descreve, em uma linha, o recorte que o documento cobre.
- *
- * Uma lista filtrada impressa sem essa linha passa por "a carteira inteira" —
- * e é assim que uma reunião discute o número errado. A contagem fica de fora:
- * ela já aparece na faixa do título.
- */
-export const buildClientsContext = ({
-  inputValues,
-  sellerLabel,
-}: ContextParams): string[] =>
-  [
-    sellerLabel ? `Vendedor: ${sellerLabel}` : null,
-    inputValues.search ? `Busca: "${inputValues.search}"` : null,
-    inputValues.state ? `UF: ${inputValues.state}` : null,
-    inputValues.needsAttention === "true"
-      ? "Somente: precisa de atenção"
-      : null,
-  ].filter((part): part is string => Boolean(part));

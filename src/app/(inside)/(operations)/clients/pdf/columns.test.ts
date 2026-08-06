@@ -1,7 +1,7 @@
 import { describe, expect, it } from "vitest";
 
 import { Client } from "../interface";
-import { buildClientsContext, CLIENT_COLUMNS } from "./columns";
+import { CLIENT_COLUMNS } from "./columns";
 
 const client: Client = {
   id: "c1",
@@ -29,6 +29,21 @@ const column = (header: string) =>
   CLIENT_COLUMNS.find((item) => item.header === header)!;
 
 describe("CLIENT_COLUMNS", () => {
+  it("tem as colunas da TELA, e nenhuma além delas", () => {
+    // O papel é conferido contra a tabela: uma coluna a mais faz quem confere
+    // procurar na tela um dado que não está lá. A data do último faturamento já
+    // apareceu aqui por isso — a tabela não a mostra (só a planilha traz).
+    expect(CLIENT_COLUMNS.map((column) => column.header)).toEqual([
+      "CLIENTE",
+      "CNPJ",
+      "CIDADE / UF",
+      "VENDEDOR",
+      "ÚLT. COMPRA",
+      "ÚLT. VISITA",
+      "SCORE",
+    ]);
+  });
+
   it("mostra a razão social com o nome fantasia como segunda linha", () => {
     const cliente = column("CLIENTE");
     expect(cliente.value(client)).toBe("Bom Preço Comércio LTDA");
@@ -54,24 +69,5 @@ describe("CLIENT_COLUMNS", () => {
 
   it("arredonda o score, que no papel é um número inteiro", () => {
     expect(column("SCORE").value(client)).toBe("72");
-  });
-});
-
-describe("buildClientsContext", () => {
-  it("não escreve nada quando a carteira sai inteira", () => {
-    expect(buildClientsContext({ inputValues: {} })).toEqual([]);
-  });
-
-  it("escreve os filtros aplicados, para a lista não passar por completa", () => {
-    const context = buildClientsContext({
-      inputValues: { search: "bom", state: "BA", needsAttention: "true" },
-      sellerLabel: "Ana",
-    });
-    expect(context).toEqual([
-      "Vendedor: Ana",
-      'Busca: "bom"',
-      "UF: BA",
-      "Somente: precisa de atenção",
-    ]);
   });
 });

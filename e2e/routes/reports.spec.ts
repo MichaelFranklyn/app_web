@@ -284,9 +284,20 @@ test("positivação: matriz cliente × fábrica e o recorte de zerados", async (
   await expect(page.getByText("CASA DO SONO")).toBeVisible();
   await expect(page.getByText("MOVEIS NORTE")).toBeVisible();
 
-  // O recorte que faz o relatório valer: só quem não comprou nada.
-  await page.getByRole("tab", { name: "Zerados" }).click();
-  await expect(page).toHaveURL(/scope=zeroed/);
+  // O recorte que faz o relatório valer: só quem não comprou nada. Virou campo
+  // do painel de filtros (antes eram abas), para poder se combinar com fábrica
+  // e vendedor.
+  await page.getByRole("button", { name: "Filtros" }).click();
+  const positivacao = page
+    .locator("[data-filters-panel]")
+    .getByPlaceholder("Positivaram ou não");
+  await positivacao.click();
+  await page
+    .locator("[data-select-dropdown]")
+    .getByText("Zerados (não compraram)", { exact: true })
+    .click();
+
+  await expect(page).toHaveURL(/positivated=no/);
   await expect(page.getByText("MOVEIS NORTE")).toBeVisible();
   await expect(page.getByText("CASA DO SONO")).toHaveCount(0);
 });

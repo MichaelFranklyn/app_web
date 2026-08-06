@@ -2,49 +2,12 @@ import { SERIES_BLUE, SERIES_GREEN } from "@/components/Chart/chartTheme";
 import { formatDateDMY, formatMoney } from "@/utils/format/masks";
 import type { EChartsCoreOption } from "echarts/core";
 
+import { SortLabel } from "@/utils/pdf/context";
+
 import { buildHorizontalBarOption, mutedLine } from "../../chartBuilders";
 import { formatPercent } from "../../utils";
-import {
-  PositivationFactory,
-  PositivationRow,
-  PositivationScope,
-} from "./interface";
+import { PositivationFactory, PositivationRow } from "./interface";
 
-export const POSITIVATION_SCOPES: {
-  id: PositivationScope;
-  label: string;
-}[] = [
-  { id: "all", label: "Toda a carteira" },
-  { id: "positivated", label: "Positivaram" },
-  { id: "zeroed", label: "Zerados" },
-];
-
-/**
- * Recorta as linhas pelo escopo escolhido.
- *
- * "Zerados" é o recorte que faz o relatório valer a viagem: é a lista de quem
- * está na carteira e não comprou nada no período — quem precisa de visita.
- */
-export const filterByScope = (
-  rows: PositivationRow[],
-  scope: PositivationScope
-): PositivationRow[] => {
-  if (scope === "positivated") {
-    return rows.filter((row) => row.positivatedFactories > 0);
-  }
-  if (scope === "zeroed") {
-    return rows.filter((row) => row.positivatedFactories === 0);
-  }
-  return rows;
-};
-
-/**
- * Taxa de positivação por fábrica, em barras horizontais.
- *
- * As duas séries somam os clientes VINCULADOS àquela fábrica: verde comprou, azul
- * não. Assim a barra inteira é o tamanho da carteira naquela fábrica — sem isso,
- * uma fábrica com 2 vínculos e 100% pareceria melhor que outra com 50 e 60%.
- */
 export const buildFactoryRateOption = (
   factories: PositivationFactory[]
 ): EChartsCoreOption =>
@@ -86,6 +49,30 @@ export const positivatedLabel = (row: PositivationRow): string =>
  * Cabeçalho da planilha: as colunas fixas e uma por fábrica, na mesma ordem da
  * tela. A matriz precisa manter a forma no arquivo — é ela que se lê de relance.
  */
+/**
+ * Colunas por onde a matriz pode ser ordenada.
+ *
+ * As colunas de FÁBRICA ficam de fora: cada uma é um visto (comprou/não
+ * comprou), e ordenar por um sim/não só agrupa a coluna — o filtro "comprou da
+ * fábrica" responde melhor a mesma pergunta.
+ */
+export const POSITIVATION_SORT_COLUMNS = {
+  client: (row: PositivationRow) => row.clientName,
+  seller: (row: PositivationRow) => row.sellerName,
+  positivated: (row: PositivationRow) => row.positivatedFactories,
+  totalAmount: (row: PositivationRow) => Number(row.totalAmount || 0),
+  lastOrderDate: (row: PositivationRow) => row.lastOrderDate,
+};
+
+/** Como cada coluna ordenável se chama no papel, e em que sentido ela é lida. */
+export const POSITIVATION_SORT_LABELS: Record<string, SortLabel> = {
+  client: { label: "Cliente", kind: "text" },
+  seller: { label: "Vendedor", kind: "text" },
+  positivated: { label: "Positivou", kind: "number" },
+  totalAmount: { label: "Valor no período", kind: "number" },
+  lastOrderDate: { label: "Última compra", kind: "date" },
+};
+
 export const buildPositivationHeaders = (
   factories: PositivationFactory[]
 ): string[] => [
@@ -143,11 +130,4 @@ export const summarizeRows = (rows: PositivationRow[]): PositivationTotals => {
     zeroed: rows.length - positivated,
     amount: rows.reduce((total, row) => total + Number(row.totalAmount), 0),
   };
-};
-
-/** Texto do recorte para o cabeçalho do documento, quando não é a carteira toda. */
-export const scopeContextLine = (scope: PositivationScope): string | null => {
-  if (scope === "positivated") return "Somente: clientes que positivaram";
-  if (scope === "zeroed") return "Somente: clientes zerados";
-  return null;
 };

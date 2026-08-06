@@ -1,4 +1,6 @@
+import type { FieldConfig } from "@/hooks/useTableFilters";
 import type { QueryFilter } from "@/hooks/useTableData";
+import type { SortLabel } from "@/utils/pdf/context";
 import { clientName, factoryName } from "@/utils/company";
 import { formatDateDMY, formatMoney } from "@/utils/format/masks";
 import type { EChartsCoreOption } from "echarts/core";
@@ -23,6 +25,45 @@ import {
  * orçamento, mas não o pedido faturado e cancelado depois.
  */
 const INVOICED_STATUSES = ["INVOICED", "DELIVERED"];
+
+/**
+ * Campos do painel de filtros que viram filtro NA QUERY (a tabela pagina no
+ * servidor, então o recorte tem de ir para o banco).
+ *
+ * `search` é a busca livre que o backend já oferece em pedidos: nome da fábrica,
+ * nome do vendedor ou código do pedido (ver `_search_clause`). Não busca por
+ * cliente — o rótulo do campo diz isso, para ninguém digitar o nome da loja e
+ * concluir que ela não comprou.
+ */
+export const SALES_TABLE_FIELDS: Record<string, FieldConfig> = {
+  search: { type: "text", queryField: "search" },
+  // O valor viaja como NOME do enum; o backend o traduz no valor gravado.
+  status: { type: "select", queryField: "status" },
+};
+
+/**
+ * Colunas de `orders` por onde a lista pode ser ordenada — nomes de COLUNA no
+ * backend, os mesmos que vão no `sortKey` de cada `Table.Head`.
+ *
+ * Cliente, fábrica e vendedor ficam de fora: na tabela `orders` são só o UUID da
+ * chave estrangeira, e ordenar por UUID devolveria uma ordem sem sentido.
+ */
+export const SALES_SORTABLE_FIELDS = [
+  "invoiced_at",
+  "order_date",
+  "status",
+  "total_amount",
+  "commission_amount",
+];
+
+/** Como cada coluna ordenável se chama no papel, e em que sentido ela é lida. */
+export const SALES_SORT_LABELS: Record<string, SortLabel> = {
+  invoiced_at: { label: "Faturamento", kind: "date" },
+  order_date: { label: "Data do pedido", kind: "date" },
+  status: { label: "Situação", kind: "text" },
+  total_amount: { label: "Valor", kind: "number" },
+  commission_amount: { label: "Comissão", kind: "number" },
+};
 
 /**
  * O recorte do relatório: período pela DATA DE FATURAMENTO.
