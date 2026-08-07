@@ -101,6 +101,16 @@ export interface UseTableDataReturn<TItem> {
   error?: Error;
   /** Entra inteiro no `Table.Root sort={...}`; cada `Table.Head` lê daí. */
   sort: TableSort;
+  /**
+   * A ordenação à vista no formato do `order` da query (`{ by, dir }`), ou
+   * `null` quando a lista está na ordem crua do backend.
+   *
+   * Existe para quem precisa REFAZER a mesma consulta fora da tabela — a
+   * exportação da lista, que varre todas as páginas. Sem isto o arquivo saía
+   * sempre na ordem default: quem ordenou por valor e clicou em exportar
+   * recebia uma planilha por data e conferia a lista errada.
+   */
+  order: { by: string; dir: TableSortDirection } | null;
   refetch: (variables?: Record<string, unknown>) => Promise<void>;
 }
 
@@ -329,6 +339,12 @@ export const useTableData = <TData, TItem extends object>(
     loading,
     error,
     sort,
+    // O `activeSort`, e não o `urlSort`: quando a lista está na ordem que o
+    // backend já aplica sozinho, o arquivo exportado tem de sair nela também —
+    // e mandá-la explícita dá o mesmo resultado (ver `_apply_order`).
+    order: activeSort
+      ? { by: activeSort.key, dir: activeSort.direction }
+      : null,
     refetch,
   };
 };

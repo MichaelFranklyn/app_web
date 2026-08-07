@@ -4,7 +4,9 @@ import { Badge } from "@/components/Badges";
 import { EmptyState } from "@/components/EmptyState";
 import { Loading } from "@/components/Loading";
 import { Pagination } from "@/components/Pagination";
-import { Table } from "@/components/Table";
+import { FilterField, Filters } from "@/components/Filters";
+import { HelpTooltip } from "@/components/HelpTooltip";
+import { Table, TableSort } from "@/components/Table";
 import { formatDateDMY, maskCNPJ } from "@/utils/format/masks";
 import { Users } from "lucide-react";
 
@@ -24,6 +26,12 @@ interface Props {
   setCurrentPage: (page: number) => void;
   totalPages: number;
   totalItems: number;
+  /** Campos do painel: cliente, estado e situação do cadastro. */
+  filterFields: FilterField[];
+  inputValues: Record<string, string>;
+  setFilter: (key: string, value: string | undefined) => void;
+  setFilters: (patch: Record<string, string | undefined>) => void;
+  sort: TableSort;
 }
 
 /** Acima disso o cliente já passou de um mês parado — destaca em âmbar. */
@@ -36,29 +44,57 @@ export function ClientsReportTable({
   setCurrentPage,
   totalPages,
   totalItems,
+  filterFields,
+  inputValues,
+  setFilter,
+  setFilters,
+  sort,
 }: Props) {
+  const isNarrowed = Object.values(inputValues).some(Boolean);
+
   return (
-    <Table.Root>
+    <Table.Root sort={sort}>
       <Table.CardHead>
-        <Table.CardHead.Title>Carteira de clientes</Table.CardHead.Title>
-        <Table.CardHead.Description>
-          Retrato de hoje: quem está na carteira, quando comprou e quando foi
-          visitado pela última vez.
-        </Table.CardHead.Description>
+        <Table.CardHead.Title className="inline-flex items-center gap-6">
+          Carteira de clientes
+          <HelpTooltip
+            label="Sobre a carteira de clientes"
+            content="Retrato de hoje: quem está na carteira, quando comprou e quando foi visitado pela última vez. O período do filtro governa só o gráfico de atraso."
+          />
+        </Table.CardHead.Title>
+        <Table.CardHead.Actions>
+          <Filters
+            fields={filterFields}
+            values={inputValues}
+            onChange={setFilters}
+            onTextChange={setFilter}
+          />
+        </Table.CardHead.Actions>
       </Table.CardHead>
 
       <Table.Table>
         <Table.Header>
           <Table.Row>
-            <Table.Head>Cliente</Table.Head>
+            <Table.Head sortKey="razao_social">Cliente</Table.Head>
             <Table.Head>CNPJ</Table.Head>
-            <Table.Head>Cidade / UF</Table.Head>
+            <Table.Head sortKey="address_city">Cidade / UF</Table.Head>
             <Table.Head>Rede</Table.Head>
+            {/* Vendedor não ordena: o cliente pode ter vários, e não existe "o
+                vendedor" da linha para comparar. */}
             <Table.Head>Vendedor</Table.Head>
-            <Table.Head>Última compra</Table.Head>
+            <Table.Head sortKey="last_order_date" sortFirst="desc">
+              Última compra
+            </Table.Head>
+            {/* "Sem comprar" é a MESMA coluna do banco que a última compra,
+                lida ao contrário — ordenar por ela seria ordenar duas vezes
+                pelo mesmo dado, com setas em dois cabeçalhos. */}
             <Table.Head>Sem comprar</Table.Head>
-            <Table.Head>Última visita</Table.Head>
-            <Table.Head>Score</Table.Head>
+            <Table.Head sortKey="last_visit_date" sortFirst="desc">
+              Última visita
+            </Table.Head>
+            <Table.Head sortKey="visit_score_total" sortFirst="desc">
+              Score
+            </Table.Head>
           </Table.Row>
         </Table.Header>
 
@@ -73,10 +109,14 @@ export function ClientsReportTable({
                     <Users size={32} />
                   </EmptyState.Icon>
                   <EmptyState.Title>
-                    Nenhum cliente na carteira
+                    {isNarrowed
+                      ? "Nenhum cliente com esses filtros"
+                      : "Nenhum cliente na carteira"}
                   </EmptyState.Title>
                   <EmptyState.Description>
-                    Vincule clientes em Clientes para o relatório ter linhas.
+                    {isNarrowed
+                      ? "Tente outro estado ou outro nome no painel de filtros."
+                      : "Vincule clientes em Clientes para o relatório ter linhas."}
                   </EmptyState.Description>
                 </EmptyState.Root>
               </Table.Cell>

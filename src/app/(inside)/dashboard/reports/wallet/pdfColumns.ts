@@ -1,14 +1,9 @@
 import { formatDateDMY, formatMoney } from "@/utils/format/masks";
 import { ReportColumn } from "@/utils/pdf/table";
 
+import { SITUATION_LABEL } from "../situation";
 import { WalletRow } from "./interface";
-import {
-  cadenceLabel,
-  cityAndState,
-  idleLabel,
-  riskLabel,
-  WALLET_SITUATION_LABEL,
-} from "./utils";
+import { cadenceLabel, cityAndState, idleLabel, riskLabel } from "./utils";
 
 /**
  * Colunas do PDF da carteira, na mesma ordem da tela.
@@ -32,7 +27,7 @@ export const WALLET_PDF_COLUMNS: ReportColumn<WalletRow>[] = [
     header: "SITUAÇÃO",
     width: 11,
     bold: true,
-    value: (row) => WALLET_SITUATION_LABEL[row.situation],
+    value: (row) => SITUATION_LABEL[row.situation],
   },
   {
     header: "PARADO HÁ",

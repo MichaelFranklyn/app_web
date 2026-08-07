@@ -1,20 +1,25 @@
 "use client";
 
+import { useLocalTable } from "@/hooks/useLocalTable";
 import { useQueryErrorToast } from "@/hooks/useQueryErrorToast";
 import { formatMoney } from "@/utils/format/masks";
 import { useQuery } from "@apollo/client/react";
-import { usePathname, useRouter, useSearchParams } from "next/navigation";
 import { useCallback, useMemo } from "react";
 
 import { formatPercent } from "../../utils";
 import { ReportFilters, ReportKpi } from "../interface";
+import { useLocalReportPage } from "../useLocalReportPage";
 import { POSITIVATION_REPORT_QUERY } from "./gql";
+import { PositivationReportResponse, PositivationRow } from "./interface";
 import {
-  PositivationReportResponse,
-  PositivationRow,
-  PositivationScope,
-} from "./interface";
-import { buildFactoryRateOption, filterByScope, summarizeRows } from "./utils";
+  POSITIVATION_FILTER_FIELDS,
+  usePositivationFilters,
+} from "./usePositivationFilters";
+import {
+  POSITIVATION_SORT_COLUMNS,
+  buildFactoryRateOption,
+  summarizeRows,
+} from "./utils";
 
 export const POSITIVATION_PER_PAGE = 25;
 
@@ -34,42 +39,11 @@ const EMPTY_REPORT = {
  * Os dados da matriz de positivação.
  *
  * O backend devolve o relatório inteiro (sem top-N: esconder linhas seria esconder
- * quem não comprou, que é o assunto), então o escopo e a paginação são locais. O
- * escopo mora na URL junto do período, para o link levar ao mesmo recorte.
+ * quem não comprou, que é o assunto), então filtro, ordenação e paginação são
+ * locais e moram na URL junto do período — o link leva ao mesmo recorte. É a
+ * lista JÁ filtrada e ordenada que vai para o XLSX/PDF.
  */
 export const usePositivationReport = (filters: ReportFilters) => {
-  const searchParams = useSearchParams();
-  const pathname = usePathname();
-  const router = useRouter();
-
-  const scope = (searchParams.get("scope") ?? "all") as PositivationScope;
-  const currentPage = Math.max(1, Number(searchParams.get("page")) || 1);
-
-  const push = useCallback(
-    (patch: Record<string, string | null>) => {
-      const params = new URLSearchParams(searchParams.toString());
-      for (const [key, value] of Object.entries(patch)) {
-        if (value === null) params.delete(key);
-        else params.set(key, value);
-      }
-      router.replace(`${pathname}?${params.toString()}`, { scroll: false });
-    },
-    [pathname, router, searchParams]
-  );
-
-  const setScope = useCallback(
-    (next: PositivationScope) =>
-      // Trocar de escopo volta para a página 1: a lista de zerados é bem menor
-      // que a carteira, e a página 4 dela costuma não existir.
-      push({ scope: next === "all" ? null : next, page: null }),
-    [push]
-  );
-
-  const setCurrentPage = useCallback(
-    (page: number) => push({ page: page <= 1 ? null : String(page) }),
-    [push]
-  );
-
   const { data, loading, error, refetch } =
     useQuery<PositivationReportResponse>(POSITIVATION_REPORT_QUERY, {
       variables: {
@@ -82,10 +56,17 @@ export const usePositivationReport = (filters: ReportFilters) => {
 
   const report = data?.positivationReport ?? EMPTY_REPORT;
 
-  const rows = useMemo(
-    () => filterByScope(report.rows, scope),
-    [report.rows, scope]
-  );
+  const table = useLocalTable<PositivationRow>({
+    items: report.rows,
+    columns: POSITIVATION_SORT_COLUMNS,
+    fields: POSITIVATION_FILTER_FIELDS,
+  });
+
+  const filterFields = usePositivationFilters(report.rows, report.factories);
+  const rows = table.displayedData;
+
+  const { currentPage, setCurrentPage, totalPages, pageRows } =
+    useLocalReportPage(rows, POSITIVATION_PER_PAGE);
 
   const kpis: ReportKpi[] = useMemo(() => {
     const zeroed = report.walletClients - report.positivatedClients;
@@ -118,19 +99,6 @@ export const usePositivationReport = (filters: ReportFilters) => {
     ];
   }, [report]);
 
-  const totalPages = Math.max(
-    1,
-    Math.ceil(rows.length / POSITIVATION_PER_PAGE)
-  );
-  const pageRows = useMemo(
-    () =>
-      rows.slice(
-        (currentPage - 1) * POSITIVATION_PER_PAGE,
-        currentPage * POSITIVATION_PER_PAGE
-      ),
-    [rows, currentPage]
-  );
-
   const fetchAllRows = useCallback(
     async (): Promise<PositivationRow[]> => rows,
     [rows]
@@ -147,11 +115,14 @@ export const usePositivationReport = (filters: ReportFilters) => {
       error,
       refetch: () => void refetch(),
     },
+    filterFields,
+    inputValues: table.inputValues,
+    setFilter: table.setFilter,
+    setFilters: table.setFilters,
+    sort: table.sort,
     rows,
     pageRows,
     totals: summarizeRows(rows),
-    scope,
-    setScope,
     currentPage,
     setCurrentPage,
     totalPages,

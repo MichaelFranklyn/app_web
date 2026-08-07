@@ -1,9 +1,11 @@
 "use client";
 
 import { EmptyState } from "@/components/EmptyState";
+import { FilterField, Filters } from "@/components/Filters";
+import { HelpTooltip } from "@/components/HelpTooltip";
 import { Loading } from "@/components/Loading";
 import { Pagination } from "@/components/Pagination";
-import { Table } from "@/components/Table";
+import { Table, TableSort } from "@/components/Table";
 import { formatDateDMY, formatMoney } from "@/utils/format/masks";
 import { Building2 } from "lucide-react";
 
@@ -14,6 +16,12 @@ import { invoicedRate, sumBy } from "../../utils";
 interface Props {
   items: FactoryOrdersRow[];
   loading: boolean;
+  /** Campos do painel: fábrica e se já houve faturamento. */
+  filterFields: FilterField[];
+  inputValues: Record<string, string>;
+  setFilter: (key: string, value: string | undefined) => void;
+  setFilters: (patch: Record<string, string | undefined>) => void;
+  sort: TableSort;
   currentPage: number;
   setCurrentPage: (page: number) => void;
   totalPages: number;
@@ -30,6 +38,11 @@ interface Props {
 export function FactoriesReportTable({
   items,
   loading,
+  filterFields,
+  inputValues,
+  setFilter,
+  setFilters,
+  sort,
   currentPage,
   setCurrentPage,
   totalPages,
@@ -37,27 +50,53 @@ export function FactoriesReportTable({
 }: Props) {
   const pageAmount = sumBy(items, (row) => row.totalAmount);
 
+  const isNarrowed = Object.values(inputValues).some(Boolean);
+
   return (
-    <Table.Root>
+    <Table.Root sort={sort}>
       <Table.CardHead>
-        <Table.CardHead.Title>Fábricas do período</Table.CardHead.Title>
-        <Table.CardHead.Description>
-          Pedidos colocados em cada fábrica, pela data do pedido. Orçamento e
-          cancelado ficam de fora.
-        </Table.CardHead.Description>
+        <Table.CardHead.Title className="inline-flex items-center gap-6">
+          Fábricas do período
+          <HelpTooltip
+            label="Sobre as fábricas do período"
+            content="Pedidos colocados em cada fábrica, pela data do pedido. Orçamento e cancelado ficam de fora."
+          />
+        </Table.CardHead.Title>
+        <Table.CardHead.Actions>
+          <Filters
+            fields={filterFields}
+            values={inputValues}
+            onChange={setFilters}
+            onTextChange={setFilter}
+          />
+        </Table.CardHead.Actions>
       </Table.CardHead>
 
       <Table.Table>
         <Table.Header>
           <Table.Row>
-            <Table.Head>Fábrica</Table.Head>
-            <Table.Head>Pedidos</Table.Head>
-            <Table.Head>Clientes</Table.Head>
-            <Table.Head>Valor colocado</Table.Head>
-            <Table.Head>Ticket médio</Table.Head>
-            <Table.Head>Já faturado</Table.Head>
-            <Table.Head>Comissão</Table.Head>
-            <Table.Head>Último pedido</Table.Head>
+            <Table.Head sortKey="factory">Fábrica</Table.Head>
+            <Table.Head sortKey="orderCount" sortFirst="desc">
+              Pedidos
+            </Table.Head>
+            <Table.Head sortKey="clientCount" sortFirst="desc">
+              Clientes
+            </Table.Head>
+            <Table.Head sortKey="totalAmount" sortFirst="desc">
+              Valor colocado
+            </Table.Head>
+            <Table.Head sortKey="avgTicket" sortFirst="desc">
+              Ticket médio
+            </Table.Head>
+            <Table.Head sortKey="invoicedAmount" sortFirst="desc">
+              Já faturado
+            </Table.Head>
+            <Table.Head sortKey="commissionAmount" sortFirst="desc">
+              Comissão
+            </Table.Head>
+            <Table.Head sortKey="lastOrderDate" sortFirst="desc">
+              Último pedido
+            </Table.Head>
           </Table.Row>
         </Table.Header>
 
@@ -72,11 +111,14 @@ export function FactoriesReportTable({
                     <Building2 size={32} />
                   </EmptyState.Icon>
                   <EmptyState.Title>
-                    Nenhuma fábrica com pedido no período
+                    {isNarrowed
+                      ? "Nenhuma fábrica com esses filtros"
+                      : "Nenhuma fábrica com pedido no período"}
                   </EmptyState.Title>
                   <EmptyState.Description>
-                    Só entram fábricas que receberam pedido confirmado, faturado
-                    ou entregue. Amplie o período no filtro acima.
+                    {isNarrowed
+                      ? "Tente outra fábrica no painel de filtros."
+                      : "Só entram fábricas que receberam pedido confirmado, faturado ou entregue. Amplie o período no filtro acima."}
                   </EmptyState.Description>
                 </EmptyState.Root>
               </Table.Cell>

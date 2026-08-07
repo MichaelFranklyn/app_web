@@ -127,6 +127,9 @@ export default function OrdersContent({
         exportFilters={statsFilters}
         filterFields={filterFields}
         inputValues={tableData.inputValues}
+        // A ordenação da tabela vale para o arquivo também: quem ordenou por
+        // valor e clicou em exportar quer os maiores pedidos no topo do papel.
+        order={tableData.order}
         scopeLabel={isPending ? "Somente: ainda não faturados" : null}
         hasOrders={tableData.totalItems > 0}
       />

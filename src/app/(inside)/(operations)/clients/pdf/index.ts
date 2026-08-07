@@ -1,20 +1,26 @@
+import { FilterField } from "@/components/Filters";
 import { getTodayIso } from "@/utils/format/date";
 import { formatDateDMY } from "@/utils/format/masks";
 import { trimTransparent } from "@/utils/image";
 import { loadImage } from "@/utils/media";
+import { buildReportContext, ReportOrder } from "@/utils/pdf/context";
 import { drawFooters, loadGirusLogo } from "@/utils/pdf/footer";
 import { drawReportHeader } from "@/utils/pdf/reportHeader";
 import { drawReportTable } from "@/utils/pdf/table";
 import { PAGE } from "@/utils/pdf/theme";
 import { Client } from "../interface";
-import { buildClientsContext, CLIENT_COLUMNS } from "./columns";
+import { CLIENT_SORT_LABELS } from "../utils";
+import { CLIENT_COLUMNS } from "./columns";
 
 export interface ClientsPdfMeta {
   companyName?: string | null;
   companyLogoUrl?: string | null;
+  /** Campos do painel de filtros da tela — viram o recorte escrito no topo. */
+  filterFields: FilterField[];
   /** Filtros ativos na tela — vão escritos no cabeçalho do documento. */
   inputValues: Record<string, string>;
-  sellerLabel?: string | null;
+  /** Ordenação à vista na tabela, para o papel dizer em que ordem ele está. */
+  order?: ReportOrder | null;
 }
 
 /**
@@ -45,9 +51,11 @@ export const exportClientsPdf = async (
     companyLogo,
     title: "Carteira de clientes",
     highlight: `${clients.length} cliente(s)`,
-    context: buildClientsContext({
-      inputValues: meta.inputValues,
-      sellerLabel: meta.sellerLabel,
+    context: buildReportContext({
+      fields: meta.filterFields,
+      values: meta.inputValues,
+      order: meta.order,
+      sortLabels: CLIENT_SORT_LABELS,
     }),
     issuedAt: formatDateDMY(getTodayIso()),
   });

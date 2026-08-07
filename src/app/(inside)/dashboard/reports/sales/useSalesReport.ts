@@ -6,6 +6,8 @@ import { formatMoney } from "@/utils/format/masks";
 import { useApolloClient, useQuery } from "@apollo/client/react";
 import { useCallback, useMemo } from "react";
 
+import { buildQueryFilters } from "@/hooks/useTableData";
+
 import { fetchAllPages } from "../fetchAllPages";
 import { ReportFilters, ReportKpi } from "../interface";
 import {
@@ -21,7 +23,10 @@ import {
   SalesReportOrdersResponse,
   SalesReportStatsResponse,
 } from "./interface";
+import { useSalesFilters } from "./useSalesFilters";
 import {
+  SALES_SORTABLE_FIELDS,
+  SALES_TABLE_FIELDS,
   buildFactoryOption,
   buildMonthOption,
   buildSalesFilters,
@@ -49,15 +54,31 @@ export const useSalesReport = (filters: ReportFilters) => {
 
   const tableData = useTableData<SalesReportOrdersResponse, SalesReportOrder>({
     query: SALES_REPORT_ORDERS_QUERY,
-    fields: {},
+    fields: SALES_TABLE_FIELDS,
     getConnection: (data) => data.sales_report_orders,
     itemsPerPage: SALES_PER_PAGE,
+    sortableFields: SALES_SORTABLE_FIELDS,
     baseFilters: queryFilters,
   });
 
+  const filterFields = useSalesFilters();
+
+  // O recorte COMPLETO da tabela: o do relatório (período por faturamento +
+  // vendedor) mais o que o painel de filtros pediu. É o que a exportação repete.
+  const exportFilters = useMemo(
+    () => [
+      ...queryFilters,
+      ...buildQueryFilters(SALES_TABLE_FIELDS, tableData.inputValues),
+    ],
+    [queryFilters, tableData.inputValues]
+  );
+
+  // Os KPIs consultam o MESMO recorte da tabela (inclusive o painel de
+  // filtros): sem isso, filtrar uma fábrica deixaria o topo somando o mês
+  // inteiro — dois números para a mesma pergunta na mesma tela.
   const statsQuery = useQuery<SalesReportStatsResponse>(
     SALES_REPORT_STATS_QUERY,
-    { variables: { input: { first: SALES_PER_PAGE, filters: queryFilters } } }
+    { variables: { input: { first: SALES_PER_PAGE, filters: exportFilters } } }
   );
   useQueryErrorToast(
     statsQuery.error,
@@ -152,16 +173,18 @@ export const useSalesReport = (filters: ReportFilters) => {
       fetchAllPages<SalesReportOrdersResponse, SalesReportOrder>(
         apollo,
         SALES_REPORT_ORDERS_QUERY,
-        queryFilters,
-        (data) => data.sales_report_orders
+        exportFilters,
+        (data) => data.sales_report_orders,
+        tableData.order
       ),
-    [apollo, queryFilters]
+    [apollo, exportFilters, tableData.order]
   );
 
   return {
     kpis,
     kpisLoading: statsQuery.loading && !stats,
     chart,
+    filterFields,
     tableData,
     fetchAllRows,
     hasRows: tableData.totalItems > 0,

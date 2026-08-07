@@ -2,6 +2,7 @@
 
 import { orderStatusLabel } from "@/app/(inside)/_shared/orderStatus";
 import { formatMoney } from "@/utils/format/masks";
+import { buildReportContext } from "@/utils/pdf/context";
 
 import { ReportChartCard } from "../_components/ReportChartCard";
 import { ReportKpis } from "../_components/ReportKpis";
@@ -15,6 +16,7 @@ import { useSentOrdersReport } from "./useSentOrdersReport";
 import {
   buildSentOrdersExportRows,
   SENT_ORDERS_EXPORT_HEADERS,
+  SENT_ORDERS_SORT_LABELS,
   summarizeSentOrders,
 } from "./utils";
 
@@ -24,15 +26,32 @@ interface Props {
 
 export default function SentOrdersReportContent({ canSelectSeller }: Props) {
   const { filters, setRange, setSellerId } = useReportFilters();
-  const { kpis, kpisLoading, chart, tableData, fetchAllRows, hasRows } =
-    useSentOrdersReport(filters);
+  const {
+    kpis,
+    kpisLoading,
+    chart,
+    filterFields,
+    tableData,
+    fetchAllRows,
+    hasRows,
+  } = useSentOrdersReport(filters);
   const { context } = useReportContext(filters);
 
   const { exportSheet, exportPdf } = useReportExport({
     slug: "pedidos-enviados",
     title: "Pedidos enviados",
     from: filters.from,
-    context,
+    // O recorte inteiro no papel: período e vendedor, os filtros do painel e a
+    // ordem da tabela.
+    context: [
+      ...context,
+      ...buildReportContext({
+        fields: filterFields,
+        values: tableData.inputValues,
+        order: tableData.order,
+        sortLabels: SENT_ORDERS_SORT_LABELS,
+      }),
+    ],
     fetchRows: fetchAllRows,
     sheetHeaders: SENT_ORDERS_EXPORT_HEADERS,
     buildSheetRows: (rows) => buildSentOrdersExportRows(rows, orderStatusLabel),
@@ -89,6 +108,11 @@ export default function SentOrdersReportContent({ canSelectSeller }: Props) {
       <SentOrdersTable
         items={tableData.displayedData}
         loading={tableData.loading}
+        filterFields={filterFields}
+        inputValues={tableData.inputValues}
+        setFilter={tableData.setFilter}
+        setFilters={tableData.setFilters}
+        sort={tableData.sort}
         currentPage={tableData.currentPage}
         setCurrentPage={tableData.setCurrentPage}
         totalPages={tableData.totalPages}

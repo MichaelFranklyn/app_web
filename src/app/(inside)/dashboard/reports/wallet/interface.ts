@@ -1,10 +1,4 @@
-/** Situação do cliente — o enum `ClientWalletSituation` do schema. */
-export type WalletSituation =
-  | "ACTIVE"
-  | "AT_RISK"
-  | "INACTIVE"
-  | "NEW"
-  | "NEVER";
+import { ClientSituation } from "../situation";
 
 /** Um cliente da carteira e a situação em que ele está hoje. */
 export interface WalletRow {
@@ -14,7 +8,7 @@ export interface WalletRow {
   clientName: string;
   city: string | null;
   state: string | null;
-  situation: WalletSituation;
+  situation: ClientSituation;
   lastOrderDate: string | null;
   daysSinceLastOrder: number | null;
   /** Nulo com menos de 2 pedidos: sem segundo pedido não há ritmo próprio. */
@@ -41,4 +35,4 @@ export interface WalletReportResponse {
 }
 
 /** Recorte local da aba: qual situação está à vista. */
-export type WalletScope = "all" | WalletSituation;
+export type WalletScope = "all" | ClientSituation;

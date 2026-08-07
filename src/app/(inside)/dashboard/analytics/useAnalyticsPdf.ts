@@ -9,6 +9,7 @@ import {
   KpiPrintEntry,
 } from "./analyticsPrintContext";
 import { exportAnalyticsPdf, PdfMeta } from "./pdfExport";
+import { PrintSelection, selectedEntries } from "./printSelection";
 
 const delay = (ms: number) => new Promise((r) => setTimeout(r, ms));
 
@@ -47,8 +48,12 @@ const waitForCharts = (
 /**
  * Orquestra o export de PDF da página: mantém o registro dos gráficos/KPIs e o
  * flag que força os cards lazy a montarem. Ao baixar, monta tudo, espera os
- * gráficos renderizarem (com animação concluída) e gera o PDF. Avisa se não há
- * nenhum gráfico com dados no período.
+ * gráficos ESCOLHIDOS renderizarem (com animação concluída) e gera o PDF. Avisa
+ * se não há nenhum gráfico com dados no período.
+ *
+ * O registro é a fonte do seletor de impressão: cada `LazyChartCard` se anuncia
+ * ao montar (o card monta sempre; só o gráfico de dentro é lazy), então a lista
+ * de partes e gráficos está completa antes de qualquer scroll.
  */
 export function useAnalyticsPdf() {
   const { toast } = useToast();
@@ -72,25 +77,50 @@ export function useAnalyticsPdf() {
     [forceRender, registerChart, unregisterChart, setKpis]
   );
 
+  /**
+   * Os gráficos da página, na ordem visual, no momento da chamada.
+   *
+   * Fotografia, e não estado reativo: quem pergunta é o seletor, ao abrir. Manter
+   * isto em estado faria a página re-renderizar a cada card que se registra —
+   * trinta re-renders na carga — para uma lista que só é lida sob demanda.
+   */
+  const listCharts = useCallback((): ChartPrintEntry[] => {
+    return Array.from(chartsRef.current.values()).sort(
+      (a, b) => a.getTop() - b.getTop()
+    );
+  }, []);
+
   const downloadPdf = useCallback(
-    async (meta: PdfMeta) => {
+    async (meta: PdfMeta, selection?: PrintSelection) => {
       setIsExporting(true);
       setForceRender(true);
       try {
-        const entries = Array.from(chartsRef.current.values());
+        const all = listCharts();
+        // Sem seleção (chamada direta), sai a página inteira — que é o que este
+        // hook sempre fez antes de existir o seletor.
+        const entries = selection ? selectedEntries(all, selection) : all;
+        const kpis = selection?.includeKpis === false ? [] : kpisRef.current;
+
         await waitForCharts(entries);
         await delay(200); // respiro extra p/ o último frame
-        const included = await exportAnalyticsPdf(
-          entries,
-          kpisRef.current,
-          meta
-        );
+        const included = await exportAnalyticsPdf(entries, kpis, meta);
         if (included === 0) {
           toast({
             variant: "warning",
             title: "Nada para exportar",
             description:
               "Os gráficos ainda não carregaram ou não há dados no período. Tente novamente em instantes.",
+          });
+        } else if (included < entries.length) {
+          // Gráfico sem dados no período não gera imagem e é pulado. Quem
+          // escolheu um por um precisa saber que ele não está no papel — em
+          // silêncio, o PDF passaria por "está tudo aqui".
+          const missing = entries.length - included;
+          toast({
+            variant: "warning",
+            title: `${missing} gráfico(s) ficaram de fora`,
+            description:
+              "Eles não têm dados no período escolhido. Os demais estão no PDF.",
           });
         }
       } catch (error) {
@@ -105,8 +135,8 @@ export function useAnalyticsPdf() {
         setIsExporting(false);
       }
     },
-    [toast]
+    [toast, listCharts]
   );
 
-  return { contextValue, downloadPdf, isExporting };
+  return { contextValue, downloadPdf, isExporting, listCharts };
 }

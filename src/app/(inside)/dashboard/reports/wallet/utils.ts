@@ -1,68 +1,18 @@
-import {
-  SERIES_BLUE,
-  SERIES_GREEN,
-  SERIES_ORANGE,
-  SERIES_RED,
-} from "@/components/Chart/chartTheme";
+import { SERIES_GREEN } from "@/components/Chart/chartTheme";
 import { formatDateDMY, formatMoney } from "@/utils/format/masks";
+import { SortLabel } from "@/utils/pdf/context";
 import type { EChartsCoreOption } from "echarts/core";
 
 import { buildHorizontalBarOption, mutedLine } from "../../chartBuilders";
 import { formatDays } from "../../utils";
 import {
-  WalletReport,
-  WalletRow,
-  WalletScope,
-  WalletSituation,
-} from "./interface";
-
-/**
- * Rótulo da situação, em linguagem de quem atende a carteira — "sumiu" diz
- * mais do que "inativo" para quem vai ligar para o cliente.
- */
-export const WALLET_SITUATION_LABEL: Record<WalletSituation, string> = {
-  ACTIVE: "Em dia",
-  AT_RISK: "Atrasado",
-  INACTIVE: "Parado",
-  NEW: "Novo",
-  NEVER: "Nunca comprou",
-};
-
-/** O que cada situação significa, para o tooltip e o cabeçalho da coluna. */
-export const WALLET_SITUATION_HINT: Record<WalletSituation, string> = {
-  ACTIVE: "comprou dentro do próprio ritmo",
-  AT_RISK: "passou do intervalo que costuma levar",
-  INACTIVE: "passou do dobro do próprio intervalo",
-  NEW: "primeira compra, há menos de 90 dias",
-  NEVER: "está na carteira e nunca comprou",
-};
-
-export const WALLET_SITUATION_COLOR: Record<
-  WalletSituation,
-  "green" | "red" | "blue" | "neutral" | "subtle"
-> = {
-  ACTIVE: "green",
-  AT_RISK: "red",
-  INACTIVE: "neutral",
-  NEW: "blue",
-  NEVER: "subtle",
-};
-
-/** As visões da aba, da carteira inteira para o caso mais urgente. */
-export const WALLET_SCOPES: { value: WalletScope; label: string }[] = [
-  { value: "all", label: "Toda a carteira" },
-  { value: "AT_RISK", label: "Atrasados" },
-  { value: "INACTIVE", label: "Parados" },
-  { value: "ACTIVE", label: "Em dia" },
-  { value: "NEW", label: "Novos" },
-  { value: "NEVER", label: "Nunca compraram" },
-];
-
-export const filterByScope = (
-  rows: WalletRow[],
-  scope: WalletScope
-): WalletRow[] =>
-  scope === "all" ? rows : rows.filter((row) => row.situation === scope);
+  ClientSituation,
+  SITUATION_HINT,
+  SITUATION_LABEL,
+  SITUATION_ORDER,
+  SITUATION_SERIES_COLOR,
+} from "../situation";
+import { WalletReport, WalletRow } from "./interface";
 
 export const sumBy = (
   rows: WalletRow[],
@@ -99,30 +49,28 @@ export const riskLabel = (row: WalletRow): string =>
 export const buildSituationOption = (
   report: WalletReport
 ): EChartsCoreOption => {
-  const entries: { situation: WalletSituation; count: number }[] = [
-    { situation: "ACTIVE", count: report.activeClients },
-    { situation: "AT_RISK", count: report.atRiskClients },
-    { situation: "INACTIVE", count: report.inactiveClients },
-    { situation: "NEW", count: report.newClients },
-    { situation: "NEVER", count: report.neverBoughtClients },
-  ];
-
-  const colorBySituation: Record<WalletSituation, string> = {
-    ACTIVE: SERIES_GREEN,
-    AT_RISK: SERIES_RED,
-    INACTIVE: SERIES_ORANGE,
-    NEW: SERIES_BLUE,
-    NEVER: "#9a9a8e",
+  const countBySituation: Record<ClientSituation, number> = {
+    ACTIVE: report.activeClients,
+    AT_RISK: report.atRiskClients,
+    INACTIVE: report.inactiveClients,
+    NEW: report.newClients,
+    NEVER: report.neverBoughtClients,
   };
+  const entries = SITUATION_ORDER.map((situation) => ({
+    situation,
+    count: countBySituation[situation],
+  }));
 
   return buildHorizontalBarOption(
-    entries.map((entry) => WALLET_SITUATION_LABEL[entry.situation]),
+    entries.map((entry) => SITUATION_LABEL[entry.situation]),
     [
       {
         name: "Clientes",
         color: SERIES_GREEN,
         data: entries.map((entry) => entry.count),
-        itemColors: entries.map((entry) => colorBySituation[entry.situation]),
+        itemColors: entries.map(
+          (entry) => SITUATION_SERIES_COLOR[entry.situation]
+        ),
       },
     ],
     (value) => String(Math.round(value)),
@@ -132,12 +80,42 @@ export const buildSituationOption = (
       const share =
         report.totalClients > 0 ? entry.count / report.totalClients : 0;
       return [
-        WALLET_SITUATION_LABEL[entry.situation],
+        SITUATION_LABEL[entry.situation],
         `<b>${entry.count}</b> de ${report.totalClients} cliente(s) · ${Math.round(share * 100)}%`,
-        mutedLine(WALLET_SITUATION_HINT[entry.situation]),
+        mutedLine(SITUATION_HINT[entry.situation]),
       ];
     }
   );
+};
+
+/**
+ * Colunas por onde a carteira pode ser ordenada, e o que comparar em cada uma.
+ *
+ * A ordenação é em memória (o relatório vem inteiro) e é ela que responde às
+ * perguntas de trabalho: "quem está parado há mais tempo" é a coluna do tempo
+ * parado em ordem decrescente.
+ */
+export const WALLET_SORT_COLUMNS = {
+  client: (row: WalletRow) => row.clientName,
+  city: (row: WalletRow) => cityAndState(row),
+  situation: (row: WalletRow) => SITUATION_LABEL[row.situation],
+  idle: (row: WalletRow) => row.daysSinceLastOrder,
+  cadence: (row: WalletRow) => row.avgIntervalDays,
+  risk: (row: WalletRow) => row.riskRatio,
+  lastOrderDate: (row: WalletRow) => row.lastOrderDate,
+  periodAmount: (row: WalletRow) => Number(row.periodAmount || 0),
+};
+
+/** Como cada coluna ordenável se chama no papel, e em que sentido ela é lida. */
+export const WALLET_SORT_LABELS: Record<string, SortLabel> = {
+  client: { label: "Cliente", kind: "text" },
+  city: { label: "Cidade/UF", kind: "text" },
+  situation: { label: "Situação", kind: "text" },
+  idle: { label: "Parado há", kind: "number" },
+  cadence: { label: "Ritmo", kind: "number" },
+  risk: { label: "Atraso sobre o ritmo", kind: "number" },
+  lastOrderDate: { label: "Última compra", kind: "date" },
+  periodAmount: { label: "No período", kind: "number" },
 };
 
 export const WALLET_EXPORT_HEADERS = [
@@ -159,7 +137,7 @@ export const buildWalletExportRows = (
   rows.map((row) => [
     row.clientName,
     cityAndState(row),
-    WALLET_SITUATION_LABEL[row.situation],
+    SITUATION_LABEL[row.situation],
     row.lastOrderDate ? formatDateDMY(row.lastOrderDate) : "nunca comprou",
     row.daysSinceLastOrder ?? "—",
     row.avgIntervalDays ? Math.round(row.avgIntervalDays) : "—",

@@ -1,6 +1,11 @@
 import { KpiItem } from "@/components/Card/Kpi/Root/interface";
 import { FieldConfig } from "@/hooks/useTableState";
+import { SortLabel } from "@/utils/pdf/context";
 import { ClientsStats } from "./interface";
+
+// A lista de UFs mora em `_shared`: o relatório de clientes filtra pela mesma
+// coluna (ver `dashboard/reports/clients`). Reexportada para quem já a lia daqui.
+export { STATE_OPTIONS } from "@/app/(inside)/_shared/brazilStates";
 
 export const formatCity = (
   city: string | null,
@@ -27,43 +32,6 @@ export const TABLE_FIELDS: Record<string, FieldConfig> = {
   networkId: { type: "select", queryField: "network_id" },
   segmentId: { type: "select", queryField: "segment_id" },
 };
-
-/**
- * UFs para o filtro de estado, em ordem alfabética.
- *
- * Lista fixa em vez de "os estados que aparecem na carteira": a carteira é
- * paginada, então só daria para montar a lista a partir da página atual — e o
- * seletor mudaria de conteúdo conforme a pessoa navega.
- */
-export const STATE_OPTIONS = [
-  "AC",
-  "AL",
-  "AM",
-  "AP",
-  "BA",
-  "CE",
-  "DF",
-  "ES",
-  "GO",
-  "MA",
-  "MG",
-  "MS",
-  "MT",
-  "PA",
-  "PB",
-  "PE",
-  "PI",
-  "PR",
-  "RJ",
-  "RN",
-  "RO",
-  "RR",
-  "RS",
-  "SC",
-  "SE",
-  "SP",
-  "TO",
-].map((uf) => ({ value: uf, label: uf }));
 
 export const buildKpis = (stats: ClientsStats): KpiItem[] => {
   // Defensivo: se `clientStats` vier ausente, degrada para zeros sem quebrar a página.
@@ -129,3 +97,20 @@ export const CLIENT_SORTABLE_FIELDS = [
   "last_visit_date",
   "visit_score_total",
 ];
+
+/**
+ * Como cada coluna ordenável se chama no papel, e em que sentido ela é lida.
+ *
+ * Serve ao cabeçalho do PDF, que registra a ordenação junto com os filtros: uma
+ * carteira ordenada por score impressa sem essa linha passa por "a carteira em
+ * ordem alfabética", e quem conferir vai procurar um nome onde está uma
+ * urgência. Os rótulos repetem os do `Table.Head` de propósito — é o mesmo
+ * vocabulário da tela.
+ */
+export const CLIENT_SORT_LABELS: Record<string, SortLabel> = {
+  razao_social: { label: "Cliente", kind: "text" },
+  address_city: { label: "Cidade", kind: "text" },
+  last_order_date: { label: "Última compra", kind: "date" },
+  last_visit_date: { label: "Última visita", kind: "date" },
+  visit_score_total: { label: "Score", kind: "number" },
+};

@@ -5,12 +5,13 @@ import {
   PositivationFactory,
   PositivationRow,
 } from "./interface";
+import { POSITIVATION_FILTER_FIELDS } from "./usePositivationFilters";
 import {
   buildPositivationExportRows,
   buildPositivationHeaders,
-  filterByScope,
+  POSITIVATION_SORT_COLUMNS,
+  POSITIVATION_SORT_LABELS,
   positivatedLabel,
-  scopeContextLine,
   summarizeRows,
 } from "./utils";
 
@@ -52,26 +53,49 @@ const row = (over: Partial<PositivationRow> = {}): PositivationRow => ({
   ...over,
 });
 
-describe("filterByScope", () => {
-  const rows = [
-    row({ clientId: "comprou", positivatedFactories: 1 }),
-    row({ clientId: "zerado", positivatedFactories: 0 }),
-  ];
+describe("POSITIVATION_FILTER_FIELDS", () => {
+  const comprou = row({ clientId: "comprou", positivatedFactories: 1 });
+  const zerado = row({ clientId: "zerado", positivatedFactories: 0 });
 
   it("'zerados' devolve só quem não comprou nada — a fila de visita", () => {
-    expect(filterByScope(rows, "zeroed").map((r) => r.clientId)).toEqual([
-      "zerado",
-    ]);
+    expect(POSITIVATION_FILTER_FIELDS.positivated.match(zerado, "no")).toBe(
+      true
+    );
+    expect(POSITIVATION_FILTER_FIELDS.positivated.match(comprou, "no")).toBe(
+      false
+    );
   });
 
   it("'positivaram' devolve só quem comprou de alguma fábrica", () => {
-    expect(filterByScope(rows, "positivated").map((r) => r.clientId)).toEqual([
-      "comprou",
-    ]);
+    expect(POSITIVATION_FILTER_FIELDS.positivated.match(comprou, "yes")).toBe(
+      true
+    );
   });
 
-  it("'toda a carteira' não filtra nada", () => {
-    expect(filterByScope(rows, "all")).toHaveLength(2);
+  it("o filtro de fábrica olha a CÉLULA: comprou daquela fábrica no período", () => {
+    // A matriz não responde isso de relance quando há muitas colunas.
+    const linha = row({
+      cells: [
+        cell("f1", { isPositivated: true }),
+        cell("f2", { isPositivated: false }),
+      ],
+    });
+    expect(POSITIVATION_FILTER_FIELDS.factoryId.match(linha, "f1")).toBe(true);
+    expect(POSITIVATION_FILTER_FIELDS.factoryId.match(linha, "f2")).toBe(false);
+  });
+});
+
+describe("POSITIVATION_SORT_COLUMNS", () => {
+  it("tem rótulo de papel para toda coluna ordenável", () => {
+    expect(Object.keys(POSITIVATION_SORT_LABELS).sort()).toEqual(
+      Object.keys(POSITIVATION_SORT_COLUMNS).sort()
+    );
+  });
+
+  it("ordena dinheiro como número, não como texto", () => {
+    expect(
+      POSITIVATION_SORT_COLUMNS.totalAmount(row({ totalAmount: "900" }))
+    ).toBe(900);
   });
 });
 
@@ -188,20 +212,5 @@ describe("summarizeRows", () => {
       zeroed: 0,
       amount: 0,
     });
-  });
-});
-
-describe("scopeContextLine", () => {
-  it("escreve o recorte no documento quando ele não é a carteira toda", () => {
-    // Uma lista só de zerados impressa sem esta linha é lida como "a carteira
-    // inteira não comprou".
-    expect(scopeContextLine("zeroed")).toBe("Somente: clientes zerados");
-    expect(scopeContextLine("positivated")).toBe(
-      "Somente: clientes que positivaram"
-    );
-  });
-
-  it("carteira toda não precisa de linha de recorte", () => {
-    expect(scopeContextLine("all")).toBeNull();
   });
 });

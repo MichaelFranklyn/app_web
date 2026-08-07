@@ -1,15 +1,21 @@
 "use client";
 
+import { useLocalTable } from "@/hooks/useLocalTable";
 import { useQueryErrorToast } from "@/hooks/useQueryErrorToast";
 import { formatMoney } from "@/utils/format/masks";
 import { useQuery } from "@apollo/client/react";
-import { usePathname, useRouter, useSearchParams } from "next/navigation";
 import { useCallback, useMemo } from "react";
 
 import { ReportFilters, ReportKpi } from "../interface";
+import { useLocalReportPage } from "../useLocalReportPage";
 import { COMMISSIONS_REPORT_QUERY } from "./gql";
 import { CommissionRow, CommissionsReportResponse } from "./interface";
 import {
+  COMMISSIONS_FILTER_FIELDS,
+  useCommissionsFilters,
+} from "./useCommissionsFilters";
+import {
+  COMMISSIONS_SORT_COLUMNS,
   buildFactoryOption,
   byFactory,
   filterByPeriod,
@@ -27,25 +33,10 @@ export const COMMISSIONS_PER_PAGE = 20;
  * que a tela de Comissões trabalha), e o recorte é feito aqui, pela data em que a
  * comissão CAI. Como o conjunto já está inteiro em memória, a paginação da tabela
  * também é local — e por isso o "Exportar" não precisa de uma segunda ida à rede.
+ * Filtro e ordenação seguem o mesmo caminho, e é a lista JÁ filtrada e ordenada
+ * que vai para o XLSX/PDF.
  */
 export const useCommissionsReport = (filters: ReportFilters) => {
-  const searchParams = useSearchParams();
-  const pathname = usePathname();
-  const router = useRouter();
-  const currentPage = Math.max(1, Number(searchParams.get("page")) || 1);
-
-  // A página vive na URL, como nas abas que paginam no servidor: voltar no
-  // navegador desfaz a virada de página em vez de sair da tela.
-  const setCurrentPage = useCallback(
-    (page: number) => {
-      const params = new URLSearchParams(searchParams.toString());
-      if (page <= 1) params.delete("page");
-      else params.set("page", String(page));
-      router.replace(`${pathname}?${params.toString()}`, { scroll: false });
-    },
-    [pathname, router, searchParams]
-  );
-
   const { data, loading, error, refetch } = useQuery<CommissionsReportResponse>(
     COMMISSIONS_REPORT_QUERY,
     { variables: { sellerId: filters.sellerId } }
@@ -54,13 +45,26 @@ export const useCommissionsReport = (filters: ReportFilters) => {
 
   const allRows = useMemo(() => data?.commissions_report.rows ?? [], [data]);
 
-  const rows = useMemo(
+  // As parcelas do período, na ordem da conferência — antes de qualquer filtro
+  // ou ordenação da tela.
+  const periodRows = useMemo(
     () => sortForReport(filterByPeriod(allRows, filters.from, filters.to)),
     [allRows, filters.from, filters.to]
   );
 
-  const totals = useMemo(() => summarize(rows), [rows]);
-  const groups = useMemo(() => byFactory(rows), [rows]);
+  const table = useLocalTable<CommissionRow>({
+    items: periodRows,
+    columns: COMMISSIONS_SORT_COLUMNS,
+    fields: COMMISSIONS_FILTER_FIELDS,
+  });
+
+  const filterFields = useCommissionsFilters(periodRows);
+  const rows = table.displayedData;
+
+  // Cartões e gráfico falam do PERÍODO INTEIRO: filtrar por uma fábrica muda a
+  // tabela, e o topo tem de continuar dizendo quanto o mês vale.
+  const totals = useMemo(() => summarize(periodRows), [periodRows]);
+  const groups = useMemo(() => byFactory(periodRows), [periodRows]);
 
   const kpis: ReportKpi[] = useMemo(
     () => [
@@ -95,15 +99,8 @@ export const useCommissionsReport = (filters: ReportFilters) => {
     [totals]
   );
 
-  const totalPages = Math.max(1, Math.ceil(rows.length / COMMISSIONS_PER_PAGE));
-  const pageRows = useMemo(
-    () =>
-      rows.slice(
-        (currentPage - 1) * COMMISSIONS_PER_PAGE,
-        currentPage * COMMISSIONS_PER_PAGE
-      ),
-    [rows, currentPage]
-  );
+  const { currentPage, setCurrentPage, totalPages, pageRows } =
+    useLocalReportPage(rows, COMMISSIONS_PER_PAGE);
 
   // O conjunto já está completo em memória: exportar é devolvê-lo, sem varrer
   // páginas como nas abas que paginam no servidor.
@@ -122,6 +119,11 @@ export const useCommissionsReport = (filters: ReportFilters) => {
       error,
       refetch: () => void refetch(),
     },
+    filterFields,
+    inputValues: table.inputValues,
+    setFilter: table.setFilter,
+    setFilters: table.setFilters,
+    sort: table.sort,
     rows,
     pageRows,
     currentPage,

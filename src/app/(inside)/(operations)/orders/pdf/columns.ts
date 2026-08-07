@@ -6,8 +6,10 @@ import { Order } from "../interface";
 import { orderStatusLabel } from "../utils";
 
 /**
- * Colunas do relatório de pedidos, na ordem em que a tabela da tela as mostra —
- * quem imprime está conferindo contra o que viu.
+ * Colunas do relatório de pedidos: as MESMAS oito da tela, na mesma ordem — quem
+ * imprime está conferindo contra o que viu, e uma coluna a mais no papel faz a
+ * conferência procurar na tabela um dado que não está lá (era o caso da data de
+ * faturamento).
  *
  * O número do pedido é o prefixo do id (os mesmos 8 caracteres que a tela e o
  * PDF do pedido exibem): é por ele que se acha o pedido no sistema depois.
@@ -18,38 +20,27 @@ export const ORDER_COLUMNS: ReportColumn<Order>[] = [
     width: 8,
     value: (order) => order.id.slice(0, 8).toUpperCase(),
   },
-  { header: "DATA", width: 8, value: (order) => formatDate(order.orderDate) },
   {
     header: "CLIENTE",
-    width: 20,
+    width: 24,
     value: (order) => clientName(order.client),
     sub: (order) => order.client?.nomeFantasia ?? null,
   },
   {
     header: "FÁBRICA",
-    width: 14,
+    width: 15,
     value: (order) => factoryName(order.factory),
   },
   {
     header: "VENDEDOR",
-    width: 12,
+    width: 13,
     value: (order) => order.seller?.name ?? "—",
   },
+  { header: "DATA", width: 9, value: (order) => formatDate(order.orderDate) },
   {
     header: "SITUAÇÃO",
     width: 10,
     value: (order) => orderStatusLabel(order.status),
-  },
-  {
-    header: "FATURADO",
-    width: 8,
-    value: (order) => formatDate(order.invoicedAt),
-  },
-  {
-    header: "COMISSÃO",
-    width: 9,
-    align: "right",
-    value: (order) => formatMoney(order.commissionAmount),
   },
   {
     header: "VALOR",
@@ -57,6 +48,12 @@ export const ORDER_COLUMNS: ReportColumn<Order>[] = [
     align: "right",
     bold: true,
     value: (order) => formatMoney(order.totalAmount),
+  },
+  {
+    header: "COMISSÃO",
+    width: 10,
+    align: "right",
+    value: (order) => formatMoney(order.commissionAmount),
   },
 ];
 

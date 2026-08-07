@@ -1,6 +1,7 @@
 "use client";
 
 import { formatMoney } from "@/utils/format/masks";
+import { buildReportContext } from "@/utils/pdf/context";
 
 import { orderStatusLabel } from "@/app/(inside)/_shared/orderStatus";
 import { ReportChartCard } from "../_components/ReportChartCard";
@@ -12,7 +13,12 @@ import { useReportFilters } from "../useReportFilters";
 import { SalesReportTable } from "./_components/SalesReportTable";
 import { SALES_PDF_COLUMNS } from "./pdfColumns";
 import { useSalesReport } from "./useSalesReport";
-import { buildSalesExportRows, SALES_EXPORT_HEADERS, sumBy } from "./utils";
+import {
+  buildSalesExportRows,
+  SALES_EXPORT_HEADERS,
+  SALES_SORT_LABELS,
+  sumBy,
+} from "./utils";
 
 interface Props {
   canSelectSeller: boolean;
@@ -20,15 +26,32 @@ interface Props {
 
 export default function SalesReportContent({ canSelectSeller }: Props) {
   const { filters, setRange, setSellerId } = useReportFilters();
-  const { kpis, kpisLoading, chart, tableData, fetchAllRows, hasRows } =
-    useSalesReport(filters);
+  const {
+    kpis,
+    kpisLoading,
+    chart,
+    filterFields,
+    tableData,
+    fetchAllRows,
+    hasRows,
+  } = useSalesReport(filters);
   const { context } = useReportContext(filters);
 
   const { exportSheet, exportPdf } = useReportExport({
     slug: "vendas",
     title: "Vendas do período",
     from: filters.from,
-    context,
+    // O recorte inteiro no papel: período e vendedor, os filtros do painel e a
+    // ordem da tabela.
+    context: [
+      ...context,
+      ...buildReportContext({
+        fields: filterFields,
+        values: tableData.inputValues,
+        order: tableData.order,
+        sortLabels: SALES_SORT_LABELS,
+      }),
+    ],
     fetchRows: fetchAllRows,
     sheetHeaders: SALES_EXPORT_HEADERS,
     buildSheetRows: (rows) => buildSalesExportRows(rows, orderStatusLabel),
@@ -84,6 +107,11 @@ export default function SalesReportContent({ canSelectSeller }: Props) {
       <SalesReportTable
         items={tableData.displayedData}
         loading={tableData.loading}
+        filterFields={filterFields}
+        inputValues={tableData.inputValues}
+        setFilter={tableData.setFilter}
+        setFilters={tableData.setFilters}
+        sort={tableData.sort}
         currentPage={tableData.currentPage}
         setCurrentPage={tableData.setCurrentPage}
         totalPages={tableData.totalPages}

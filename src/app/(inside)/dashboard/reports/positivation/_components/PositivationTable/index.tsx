@@ -1,27 +1,28 @@
 "use client";
 
 import { EmptyState } from "@/components/EmptyState";
+import { FilterField, Filters } from "@/components/Filters";
+import { HelpTooltip } from "@/components/HelpTooltip";
 import { Loading } from "@/components/Loading";
 import { Pagination } from "@/components/Pagination";
-import { Table } from "@/components/Table";
-import { Tabs } from "@/components/Tabs";
+import { Table, TableSort } from "@/components/Table";
 import { formatDateDMY, formatMoney } from "@/utils/format/masks";
 import { Users } from "lucide-react";
 
-import {
-  PositivationFactory,
-  PositivationRow,
-  PositivationScope,
-} from "../../interface";
-import { POSITIVATION_SCOPES, positivatedLabel } from "../../utils";
+import { PositivationFactory, PositivationRow } from "../../interface";
+import { positivatedLabel } from "../../utils";
 import { PositivationCellMark } from "../PositivationCell";
 
 interface Props {
   factories: PositivationFactory[];
   items: PositivationRow[];
   loading: boolean;
-  scope: PositivationScope;
-  onScopeChange: (scope: PositivationScope) => void;
+  /** Campos do painel: cliente, positivação, fábrica e vendedor. */
+  filterFields: FilterField[];
+  inputValues: Record<string, string>;
+  setFilter: (key: string, value: string | undefined) => void;
+  setFilters: (patch: Record<string, string | undefined>) => void;
+  sort: TableSort;
   currentPage: number;
   setCurrentPage: (page: number) => void;
   totalPages: number;
@@ -40,52 +41,57 @@ export function PositivationTable({
   factories,
   items,
   loading,
-  scope,
-  onScopeChange,
+  filterFields,
+  inputValues,
+  setFilter,
+  setFilters,
+  sort,
   currentPage,
   setCurrentPage,
   totalPages,
   totalItems,
 }: Props) {
   const columnCount = factories.length + 4;
+  const isNarrowed = Object.values(inputValues).some(Boolean);
 
   return (
-    <Table.Root>
+    <Table.Root sort={sort}>
       <Table.CardHead>
-        <Table.CardHead.Title>Cliente × fábrica</Table.CardHead.Title>
-        <Table.CardHead.Description>
-          Visto verde comprou no período; traço âmbar é vínculo sem compra;
-          ponto é fábrica que o cliente não atende.
-        </Table.CardHead.Description>
+        <Table.CardHead.Title className="inline-flex items-center gap-6">
+          Cliente × fábrica
+          <HelpTooltip
+            label="Sobre a matriz de positivação"
+            content="Visto verde comprou no período; traço âmbar é vínculo sem compra; ponto é fábrica que o cliente não atende."
+          />
+        </Table.CardHead.Title>
+        <Table.CardHead.Actions>
+          <Filters
+            fields={filterFields}
+            values={inputValues}
+            onChange={setFilters}
+            onTextChange={setFilter}
+          />
+        </Table.CardHead.Actions>
       </Table.CardHead>
-
-      <div className="px-12 pb-8">
-        <Tabs.Root
-          value={scope}
-          onValueChange={(value) => onScopeChange(value as PositivationScope)}
-        >
-          <Tabs.List>
-            {POSITIVATION_SCOPES.map((option) => (
-              <Tabs.Item key={option.id} value={option.id}>
-                {option.label}
-              </Tabs.Item>
-            ))}
-          </Tabs.List>
-        </Tabs.Root>
-      </div>
 
       <Table.Table>
         <Table.Header>
           <Table.Row>
-            <Table.Head>Cliente</Table.Head>
+            <Table.Head sortKey="client">Cliente</Table.Head>
             {factories.map((factory) => (
               <Table.Head key={factory.factoryId} className="text-center">
                 {factory.factoryName}
               </Table.Head>
             ))}
-            <Table.Head>Positivou</Table.Head>
-            <Table.Head>Valor no período</Table.Head>
-            <Table.Head>Última compra</Table.Head>
+            <Table.Head sortKey="positivated" sortFirst="desc">
+              Positivou
+            </Table.Head>
+            <Table.Head sortKey="totalAmount" sortFirst="desc">
+              Valor no período
+            </Table.Head>
+            <Table.Head sortKey="lastOrderDate" sortFirst="desc">
+              Última compra
+            </Table.Head>
           </Table.Row>
         </Table.Header>
 
@@ -100,13 +106,13 @@ export function PositivationTable({
                     <Users size={32} />
                   </EmptyState.Icon>
                   <EmptyState.Title>
-                    {scope === "zeroed"
-                      ? "Nenhum cliente zerado no período"
+                    {isNarrowed
+                      ? "Nenhum cliente com esses filtros"
                       : "Nenhum cliente na carteira"}
                   </EmptyState.Title>
                   <EmptyState.Description>
-                    {scope === "zeroed"
-                      ? "Todo cliente com vínculo ativo comprou de alguma fábrica no período."
+                    {isNarrowed
+                      ? "Com o filtro de zerados vazio, é boa notícia: todo cliente com vínculo comprou de alguma fábrica no período."
                       : "A positivação parte dos vínculos ativos: vincule clientes às fábricas para o relatório ter linhas."}
                   </EmptyState.Description>
                 </EmptyState.Root>

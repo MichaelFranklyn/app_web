@@ -2902,6 +2902,76 @@ type WalletStatusReportType {
   periodAmount: Decimal!
 }
 
+# ── Últimas compras por cliente e fábrica ───────────────────────────────
+
+"""
+A última compra de um cliente em UMA fábrica. Uma linha por par cliente×fábrica:
+o mesmo cliente aparece tantas vezes quantas fábricas ele tem no histórico ou no
+vínculo. Orçamento e cancelado não contam como compra.
+"""
+type ClientFactoryPurchaseRow {
+  clientId: UUID!
+  "Id do vínculo na carteira (`company_clients`) — a chave da rota /clients/[id]."
+  companyClientId: UUID!
+  clientName: String!
+  city: String
+  state: String
+  factoryId: UUID!
+  "Como a empresa chama a fábrica (o apelido do vínculo, quando existe)."
+  factoryName: String!
+  "Quem atende o par hoje; sem vínculo ativo, quem vendeu da última vez."
+  sellerName: String
+  priority: String
+  visitFrequencyDays: Int
+  """
+  Há vínculo ativo deste cliente nesta fábrica. `false` = o vínculo foi desfeito
+  e a linha existe pelo histórico de compras.
+  """
+  isLinked: Boolean!
+  """
+  Situação do par medida contra o ritmo de compra DESTA fábrica — é ela que
+  revela o cliente em dia numa fábrica e parado em outra.
+  """
+  situation: ClientWalletSituation!
+  "O pedido da última compra, para abrir e ver o que foi comprado. Nulo se nunca comprou."
+  lastOrderId: UUID
+  lastOrderDate: Date
+  lastOrderAmount: Decimal!
+  lastOrderStatus: OrderStatus
+  "Quando a fábrica faturou a última compra; nulo se ainda não faturou."
+  lastInvoicedAt: Date
+  daysSinceLastOrder: Int
+  "Intervalo médio entre as compras NESTA fábrica; nulo com menos de 2 pedidos."
+  avgIntervalDays: Float
+  "Dias parado ÷ intervalo médio. Acima de 1 = atrasado. Nulo sem ritmo próprio."
+  riskRatio: Float
+  "Compras do par em toda a história, não só no período."
+  orderCount: Int!
+  "Quanto o par comprou em toda a história."
+  historyAmount: Decimal!
+  periodOrderCount: Int!
+  periodAmount: Decimal!
+}
+
+"""
+As últimas compras de todos os pares cliente×fábrica. Sem corte de top-N: quem
+parou de comprar é justamente quem cairia fora de um resumo.
+"""
+type ClientFactoryPurchasesReportType {
+  rows: [ClientFactoryPurchaseRow!]!
+  totalRows: Int!
+  "Clientes distintos representados nas linhas."
+  clientCount: Int!
+  "Fábricas distintas representadas nas linhas."
+  factoryCount: Int!
+  "Pares cadastrados que nunca compraram daquela fábrica."
+  neverBoughtRows: Int!
+  atRiskRows: Int!
+  inactiveRows: Int!
+  periodOrderCount: Int!
+  periodAmount: Decimal!
+}
+
 # ── Curva ABC de clientes ───────────────────────────────────────────────
 
 "Classe do cliente na curva de Pareto: A = os primeiros 80% do faturamento."
@@ -2948,6 +3018,13 @@ extend type Query {
   com a fatia de cada um e a acumulada.
   """
   clientAbcCurve(from: Date = null, to: Date = null, sellerId: UUID = null): [ClientAbcRow!]!
+
+  """
+  A última compra de cada cliente EM CADA FÁBRICA, uma linha por par. A situação
+  e o ritmo são de HOJE e da história inteira do par; o período governa só as
+  colunas "no período". Sem corte de top-N.
+  """
+  clientFactoryPurchasesReport(from: Date = null, to: Date = null, sellerId: UUID = null): ClientFactoryPurchasesReportType!
 }
 
 input CreateSellerClientFactoryInput {

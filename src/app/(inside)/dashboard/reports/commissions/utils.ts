@@ -9,6 +9,7 @@ import {
 } from "@/components/Chart/chartTheme";
 import { clientName, factoryName } from "@/utils/company";
 import { formatDateDMY, formatMoney } from "@/utils/format/masks";
+import { SortLabel } from "@/utils/pdf/context";
 import type { EChartsCoreOption } from "echarts/core";
 
 import { buildHorizontalBarOption, mutedLine } from "../../chartBuilders";
@@ -131,6 +132,36 @@ export const buildFactoryOption = (
     },
     { stacked: true }
   );
+
+/**
+ * Colunas por onde as parcelas de comissão podem ser ordenadas.
+ *
+ * A ordem natural é a da conferência (data em que a comissão cai, ver
+ * `sortForReport`); as outras respondem as perguntas do fechamento — "a maior
+ * comissão do mês", "o que está previsto e ainda não caiu".
+ */
+export const COMMISSIONS_SORT_COLUMNS = {
+  receiveDate: (row: CommissionRow) => row.receiveDate,
+  client: (row: CommissionRow) => clientName(row.client),
+  factory: (row: CommissionRow) => factoryName(row.factory),
+  seller: (row: CommissionRow) => row.seller?.name,
+  installmentAmount: (row: CommissionRow) => Number(row.installmentAmount || 0),
+  amount: (row: CommissionRow) => Number(row.amount || 0),
+  status: (row: CommissionRow) => COMMISSION_STATUS_LABEL[row.status],
+  isReconciled: (row: CommissionRow) => (row.isReconciled ? 1 : 0),
+};
+
+/** Como cada coluna ordenável se chama no papel, e em que sentido ela é lida. */
+export const COMMISSIONS_SORT_LABELS: Record<string, SortLabel> = {
+  receiveDate: { label: "Recebimento", kind: "date" },
+  client: { label: "Cliente", kind: "text" },
+  factory: { label: "Fábrica", kind: "text" },
+  seller: { label: "Vendedor", kind: "text" },
+  installmentAmount: { label: "Valor da parcela", kind: "number" },
+  amount: { label: "Comissão", kind: "number" },
+  status: { label: "Situação", kind: "text" },
+  isReconciled: { label: "Conferida", kind: "number" },
+};
 
 export const COMMISSIONS_EXPORT_HEADERS = [
   "Recebimento",

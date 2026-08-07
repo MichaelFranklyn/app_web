@@ -8,7 +8,9 @@ import { Badge } from "@/components/Badges";
 import { EmptyState } from "@/components/EmptyState";
 import { Loading } from "@/components/Loading";
 import { Pagination } from "@/components/Pagination";
-import { Table } from "@/components/Table";
+import { FilterField, Filters } from "@/components/Filters";
+import { HelpTooltip } from "@/components/HelpTooltip";
+import { Table, TableSort } from "@/components/Table";
 import { clientName, factoryName } from "@/utils/company";
 import { formatDateDMY, formatMoney } from "@/utils/format/masks";
 import { Send } from "lucide-react";
@@ -19,6 +21,12 @@ import { isPendingAtFactory, summarizeSentOrders } from "../../utils";
 interface Props {
   items: SentOrder[];
   loading: boolean;
+  /** Campos do painel: busca livre e situação. */
+  filterFields: FilterField[];
+  inputValues: Record<string, string>;
+  setFilter: (key: string, value: string | undefined) => void;
+  setFilters: (patch: Record<string, string | undefined>) => void;
+  sort: TableSort;
   currentPage: number;
   setCurrentPage: (page: number) => void;
   totalPages: number;
@@ -28,35 +36,57 @@ interface Props {
 export function SentOrdersTable({
   items,
   loading,
+  filterFields,
+  inputValues,
+  setFilter,
+  setFilters,
+  sort,
   currentPage,
   setCurrentPage,
   totalPages,
   totalItems,
 }: Props) {
   const page = summarizeSentOrders(items);
+  const isNarrowed = Object.values(inputValues).some(Boolean);
 
   return (
-    <Table.Root>
+    <Table.Root sort={sort}>
       <Table.CardHead>
-        <Table.CardHead.Title>
+        <Table.CardHead.Title className="inline-flex items-center gap-6">
           Pedidos colocados na fábrica
+          <HelpTooltip
+            label="Sobre os pedidos colocados"
+            content="Pela data do PEDIDO. Quem ainda não tem faturamento está esperando a fábrica — é o que este papel serve para cobrar."
+          />
         </Table.CardHead.Title>
-        <Table.CardHead.Description>
-          Pela data do pedido. Quem ainda não tem faturamento está esperando a
-          fábrica.
-        </Table.CardHead.Description>
+        <Table.CardHead.Actions>
+          <Filters
+            fields={filterFields}
+            values={inputValues}
+            onChange={setFilters}
+            onTextChange={setFilter}
+          />
+        </Table.CardHead.Actions>
       </Table.CardHead>
 
       <Table.Table>
         <Table.Header>
           <Table.Row>
-            <Table.Head>Data do pedido</Table.Head>
+            <Table.Head sortKey="order_date" sortFirst="desc">
+              Data do pedido
+            </Table.Head>
+            {/* Cliente, fábrica e vendedor não ordenam: em `orders` são só o
+                UUID da chave estrangeira. */}
             <Table.Head>Cliente</Table.Head>
             <Table.Head>Fábrica</Table.Head>
             <Table.Head>Vendedor</Table.Head>
-            <Table.Head>Situação</Table.Head>
-            <Table.Head>Faturamento</Table.Head>
-            <Table.Head>Valor</Table.Head>
+            <Table.Head sortKey="status">Situação</Table.Head>
+            <Table.Head sortKey="invoiced_at" sortFirst="desc">
+              Faturamento
+            </Table.Head>
+            <Table.Head sortKey="total_amount" sortFirst="desc">
+              Valor
+            </Table.Head>
           </Table.Row>
         </Table.Header>
 
@@ -71,11 +101,14 @@ export function SentOrdersTable({
                     <Send size={32} />
                   </EmptyState.Icon>
                   <EmptyState.Title>
-                    Nenhum pedido enviado no período
+                    {isNarrowed
+                      ? "Nenhum pedido com esses filtros"
+                      : "Nenhum pedido enviado no período"}
                   </EmptyState.Title>
                   <EmptyState.Description>
-                    Orçamento ainda não conta aqui: só entra o pedido confirmado
-                    em diante.
+                    {isNarrowed
+                      ? "A busca cobre fábrica, vendedor e código do pedido — não o nome do cliente."
+                      : "Orçamento ainda não conta aqui: só entra o pedido confirmado em diante."}
                   </EmptyState.Description>
                 </EmptyState.Root>
               </Table.Cell>

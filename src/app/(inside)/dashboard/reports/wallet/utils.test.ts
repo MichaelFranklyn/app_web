@@ -1,14 +1,16 @@
 import { describe, expect, it } from "vitest";
 
 import { WalletRow } from "./interface";
+import { WALLET_FILTER_FIELDS } from "./useWalletFilters";
 import {
   buildWalletExportRows,
   cadenceLabel,
   cityAndState,
-  filterByScope,
   idleLabel,
   riskLabel,
   summarize,
+  WALLET_SORT_COLUMNS,
+  WALLET_SORT_LABELS,
 } from "./utils";
 
 const row = (patch: Partial<WalletRow>): WalletRow => ({
@@ -28,22 +30,35 @@ const row = (patch: Partial<WalletRow>): WalletRow => ({
   ...patch,
 });
 
-describe("filterByScope", () => {
-  const rows = [
-    row({ clientId: "a", situation: "ACTIVE" }),
-    row({ clientId: "b", situation: "AT_RISK" }),
-    row({ clientId: "c", situation: "NEVER" }),
-  ];
-
-  it("devolve a carteira inteira em 'all'", () => {
-    expect(filterByScope(rows, "all")).toHaveLength(3);
+describe("WALLET_FILTER_FIELDS", () => {
+  it("recorta por situação e por UF", () => {
+    const cliente = row({ situation: "AT_RISK", state: "BA" });
+    expect(WALLET_FILTER_FIELDS.situation.match(cliente, "AT_RISK")).toBe(true);
+    expect(WALLET_FILTER_FIELDS.situation.match(cliente, "ACTIVE")).toBe(false);
+    expect(WALLET_FILTER_FIELDS.state.match(cliente, "BA")).toBe(true);
+    expect(WALLET_FILTER_FIELDS.state.match(cliente, "SP")).toBe(false);
   });
 
-  it("recorta por situação", () => {
-    expect(filterByScope(rows, "AT_RISK").map((r) => r.clientId)).toEqual([
-      "b",
-    ]);
-    expect(filterByScope(rows, "NEVER").map((r) => r.clientId)).toEqual(["c"]);
+  it("busca o cliente sem exigir a caixa certa", () => {
+    const cliente = row({ clientName: "Mercado Bom Preço" });
+    expect(WALLET_FILTER_FIELDS.search.match(cliente, "bom")).toBe(true);
+    expect(WALLET_FILTER_FIELDS.search.match(cliente, "zeta")).toBe(false);
+  });
+});
+
+describe("WALLET_SORT_COLUMNS", () => {
+  it("tem rótulo de papel para toda coluna ordenável", () => {
+    // As duas metades são um contrato: coluna sem rótulo sairia do PDF sem
+    // dizer em que ordem o papel está.
+    expect(Object.keys(WALLET_SORT_LABELS).sort()).toEqual(
+      Object.keys(WALLET_SORT_COLUMNS).sort()
+    );
+  });
+
+  it("ordena dinheiro como número, não como texto", () => {
+    expect(WALLET_SORT_COLUMNS.periodAmount(row({ periodAmount: "900" }))).toBe(
+      900
+    );
   });
 });
 

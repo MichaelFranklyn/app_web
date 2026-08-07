@@ -1,9 +1,9 @@
 "use client";
 
+import { useLocalTable } from "@/hooks/useLocalTable";
 import { useQueryErrorToast } from "@/hooks/useQueryErrorToast";
 import { formatMoney } from "@/utils/format/masks";
 import { useQuery } from "@apollo/client/react";
-import { useSearchParams } from "next/navigation";
 import { useCallback, useMemo } from "react";
 
 import { formatPercent } from "../../utils";
@@ -11,10 +11,11 @@ import { ReportFilters, ReportKpi } from "../interface";
 import { useLocalReportPage } from "../useLocalReportPage";
 import { safeRate } from "../utils";
 import { CLIENT_ABC_CURVE_QUERY } from "./gql";
-import { AbcCurveResponse, AbcRow, AbcScope } from "./interface";
+import { AbcCurveResponse, AbcRow } from "./interface";
+import { ABC_FILTER_FIELDS, useAbcFilters } from "./useAbcFilters";
 import {
+  ABC_SORT_COLUMNS,
   buildCurveOption,
-  filterByScope,
   summarizeByClass,
   sumBy,
 } from "./utils";
@@ -26,15 +27,15 @@ const EMPTY_ROWS: AbcRow[] = [];
 /**
  * A curva ABC dos clientes: quem sustenta o faturamento do período.
  *
+ * Filtro, ordenação e paginação são locais (a curva vem inteira), e é a lista JÁ
+ * filtrada e ordenada que vai para o XLSX/PDF.
+ *
  * Os KPIs falam da curva INTEIRA mesmo quando a tabela mostra uma classe só —
  * a pergunta do relatório é de concentração ("quantos clientes seguram 80% do
  * meu faturamento?"), e ela se responde com o todo. O recorte por classe serve
  * para trabalhar a lista depois de lida a concentração.
  */
 export const useAbcReport = (filters: ReportFilters) => {
-  const searchParams = useSearchParams();
-  const scope = (searchParams.get("scope") ?? "all") as AbcScope;
-
   const { data, loading, error, refetch } = useQuery<AbcCurveResponse>(
     CLIENT_ABC_CURVE_QUERY,
     {
@@ -49,16 +50,17 @@ export const useAbcReport = (filters: ReportFilters) => {
 
   const allRows = data?.clientAbcCurve ?? EMPTY_ROWS;
 
-  const rows = useMemo(() => filterByScope(allRows, scope), [allRows, scope]);
+  const table = useLocalTable<AbcRow>({
+    items: allRows,
+    columns: ABC_SORT_COLUMNS,
+    fields: ABC_FILTER_FIELDS,
+  });
 
-  const { currentPage, setCurrentPage, totalPages, pageRows, push } =
+  const filterFields = useAbcFilters();
+  const rows = table.displayedData;
+
+  const { currentPage, setCurrentPage, totalPages, pageRows } =
     useLocalReportPage(rows, ABC_PER_PAGE);
-
-  const setScope = useCallback(
-    (next: AbcScope) =>
-      push({ scope: next === "all" ? null : next, page: null }),
-    [push]
-  );
 
   const kpis: ReportKpi[] = useMemo(() => {
     const totals = summarizeByClass(allRows);
@@ -108,10 +110,13 @@ export const useAbcReport = (filters: ReportFilters) => {
       refetch: () => void refetch(),
     },
     allRows,
+    filterFields,
+    inputValues: table.inputValues,
+    setFilter: table.setFilter,
+    setFilters: table.setFilters,
+    sort: table.sort,
     rows,
     pageRows,
-    scope,
-    setScope,
     currentPage,
     setCurrentPage,
     totalPages,

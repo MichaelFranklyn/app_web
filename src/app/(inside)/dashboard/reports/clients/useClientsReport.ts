@@ -1,7 +1,7 @@
 "use client";
 
 import { useQueryErrorToast } from "@/hooks/useQueryErrorToast";
-import { useTableData } from "@/hooks/useTableData";
+import { buildQueryFilters, useTableData } from "@/hooks/useTableData";
 import { useApolloClient, useQuery } from "@apollo/client/react";
 import { useCallback, useMemo } from "react";
 
@@ -18,7 +18,13 @@ import {
   ClientsReportResponse,
   ClientsReportStatsResponse,
 } from "./interface";
-import { buildAtRiskOption, buildClientsFilters } from "./utils";
+import { useClientsReportFilters } from "./useClientsReportFilters";
+import {
+  CLIENTS_REPORT_SORTABLE_FIELDS,
+  CLIENTS_REPORT_TABLE_FIELDS,
+  buildAtRiskOption,
+  buildClientsFilters,
+} from "./utils";
 
 export const CLIENTS_PER_PAGE = 20;
 
@@ -39,11 +45,24 @@ export const useClientsReport = (filters: ReportFilters) => {
 
   const tableData = useTableData<ClientsReportResponse, ClientReportRow>({
     query: CLIENTS_REPORT_QUERY,
-    fields: {},
+    fields: CLIENTS_REPORT_TABLE_FIELDS,
     getConnection: (data) => data.clients_report,
     itemsPerPage: CLIENTS_PER_PAGE,
+    sortableFields: CLIENTS_REPORT_SORTABLE_FIELDS,
     baseFilters: queryFilters,
   });
+
+  const filterFields = useClientsReportFilters();
+
+  // O recorte COMPLETO da tabela: o do relatório (vendedor) mais o que o painel
+  // pediu. É o que a exportação repete.
+  const exportFilters = useMemo(
+    () => [
+      ...queryFilters,
+      ...buildQueryFilters(CLIENTS_REPORT_TABLE_FIELDS, tableData.inputValues),
+    ],
+    [queryFilters, tableData.inputValues]
+  );
 
   const statsQuery = useQuery<ClientsReportStatsResponse>(
     CLIENTS_REPORT_STATS_QUERY,
@@ -103,13 +122,15 @@ export const useClientsReport = (filters: ReportFilters) => {
       fetchAllPages<ClientsReportResponse, ClientReportRow>(
         apollo,
         CLIENTS_REPORT_QUERY,
-        queryFilters,
-        (data) => data.clients_report
+        exportFilters,
+        (data) => data.clients_report,
+        tableData.order
       ),
-    [apollo, queryFilters]
+    [apollo, exportFilters, tableData.order]
   );
 
   return {
+    filterFields,
     kpis,
     kpisLoading: statsQuery.loading && !stats,
     chart: {

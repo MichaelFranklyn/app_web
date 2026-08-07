@@ -1,10 +1,12 @@
 import { describe, expect, it } from "vitest";
 
 import { BillingRow } from "./interface";
+import { BILLING_FILTER_FIELDS } from "./useBillingFilters";
 import {
+  BILLING_SORT_COLUMNS,
+  BILLING_SORT_LABELS,
   buildBillingExportRows,
   dueDateLabel,
-  filterByScope,
   overdueLabel,
   sumBy,
 } from "./utils";
@@ -30,27 +32,32 @@ const row = (patch: Partial<BillingRow>): BillingRow => ({
   ...patch,
 });
 
-describe("filterByScope", () => {
-  const rows = [
-    row({ installmentId: "a", situation: "DUE" }),
-    row({ installmentId: "b", situation: "OVERDUE" }),
-    row({ installmentId: "c", situation: "PAID" }),
-  ];
-
-  it("devolve tudo em 'todas'", () => {
-    expect(filterByScope(rows, "all")).toHaveLength(3);
+describe("BILLING_FILTER_FIELDS", () => {
+  it("recorta por situação, fábrica e vendedor", () => {
+    const parcela = row({ situation: "OVERDUE" });
+    expect(BILLING_FILTER_FIELDS.situation.match(parcela, "OVERDUE")).toBe(
+      true
+    );
+    expect(BILLING_FILTER_FIELDS.situation.match(parcela, "PAID")).toBe(false);
+    expect(BILLING_FILTER_FIELDS.factoryId.match(parcela, "f1")).toBe(true);
+    expect(BILLING_FILTER_FIELDS.sellerId.match(parcela, "s2")).toBe(false);
   });
 
-  it("recorta por situação", () => {
-    expect(filterByScope(rows, "overdue").map((r) => r.installmentId)).toEqual([
-      "b",
-    ]);
-    expect(filterByScope(rows, "paid").map((r) => r.installmentId)).toEqual([
-      "c",
-    ]);
-    expect(filterByScope(rows, "due").map((r) => r.installmentId)).toEqual([
-      "a",
-    ]);
+  it("busca o cliente sem exigir a caixa certa", () => {
+    const parcela = row({ clientName: "Casa do Sono" });
+    expect(BILLING_FILTER_FIELDS.search.match(parcela, "sono")).toBe(true);
+  });
+});
+
+describe("BILLING_SORT_COLUMNS", () => {
+  it("tem rótulo de papel para toda coluna ordenável", () => {
+    expect(Object.keys(BILLING_SORT_LABELS).sort()).toEqual(
+      Object.keys(BILLING_SORT_COLUMNS).sort()
+    );
+  });
+
+  it("ordena dinheiro como número, não como texto", () => {
+    expect(BILLING_SORT_COLUMNS.amount(row({ amount: "900" }))).toBe(900);
   });
 });
 

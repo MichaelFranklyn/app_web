@@ -4,7 +4,9 @@ import type { EChartsCoreOption } from "echarts/core";
 
 import { buildBarLineOption, mutedLine } from "../../chartBuilders";
 import { formatPercent } from "../../utils";
-import { AbcClass, AbcRow, AbcScope } from "./interface";
+import { SortLabel } from "@/utils/pdf/context";
+
+import { AbcClass, AbcRow } from "./interface";
 
 export const ABC_CLASS_LABEL: Record<AbcClass, string> = {
   A: "Classe A",
@@ -25,15 +27,10 @@ export const ABC_CLASS_COLOR: Record<AbcClass, "green" | "blue" | "subtle"> = {
   C: "subtle",
 };
 
-export const ABC_SCOPES: { value: AbcScope; label: string }[] = [
-  { value: "all", label: "Todos" },
-  { value: "A", label: "Classe A" },
-  { value: "B", label: "Classe B" },
-  { value: "C", label: "Classe C" },
-];
-
-export const filterByScope = (rows: AbcRow[], scope: AbcScope): AbcRow[] =>
-  scope === "all" ? rows : rows.filter((row) => row.abcClass === scope);
+/** As três classes como opções do filtro, na ordem da curva. */
+export const ABC_CLASS_OPTIONS = (["A", "B", "C"] as AbcClass[]).map(
+  (abcClass) => ({ value: abcClass, label: ABC_CLASS_LABEL[abcClass] })
+);
 
 export const sumBy = (
   rows: AbcRow[],
@@ -101,6 +98,36 @@ export const abcTooltipLines = (row: AbcRow | undefined): string[] => {
     mutedLine(`Acumulado até aqui: ${formatPercent(row.cumulativeShare)}`),
     mutedLine(`${ABC_CLASS_LABEL[row.abcClass]} · ${row.orderCount} pedido(s)`),
   ];
+};
+
+/**
+ * Colunas por onde a curva pode ser ordenada.
+ *
+ * A ordem natural (posição) é a da curva, e é a que responde à pergunta do
+ * relatório; as outras servem para trabalhar a lista depois — "quem faturou
+ * muito com poucos pedidos", por exemplo.
+ */
+export const ABC_SORT_COLUMNS = {
+  rank: (row: AbcRow) => row.rank,
+  client: (row: AbcRow) => row.clientName,
+  abcClass: (row: AbcRow) => row.abcClass,
+  totalAmount: (row: AbcRow) => Number(row.totalAmount || 0),
+  share: (row: AbcRow) => row.share,
+  cumulativeShare: (row: AbcRow) => row.cumulativeShare,
+  orderCount: (row: AbcRow) => row.orderCount,
+  lastOrderDate: (row: AbcRow) => row.lastOrderDate,
+};
+
+/** Como cada coluna ordenável se chama no papel, e em que sentido ela é lida. */
+export const ABC_SORT_LABELS: Record<string, SortLabel> = {
+  rank: { label: "Posição", kind: "number" },
+  client: { label: "Cliente", kind: "text" },
+  abcClass: { label: "Classe", kind: "text" },
+  totalAmount: { label: "Faturamento", kind: "number" },
+  share: { label: "Participação", kind: "number" },
+  cumulativeShare: { label: "Acumulado", kind: "number" },
+  orderCount: { label: "Pedidos", kind: "number" },
+  lastOrderDate: { label: "Último faturamento", kind: "date" },
 };
 
 export const ABC_EXPORT_HEADERS = [

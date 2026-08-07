@@ -1,8 +1,10 @@
 "use client";
 
 import { Card } from "@/components/Card";
+import { FilterField } from "@/components/Filters";
 import { Grid } from "@/components/Grid";
 import { PanelHeader } from "@/components/PanelHeader";
+import { ReportOrder } from "@/utils/pdf/context";
 import { Network, TrendingDown, TrendingUp } from "lucide-react";
 import Link from "next/link";
 
@@ -31,8 +33,10 @@ interface ClientsHeaderProps {
   onAddOptimistic: (client: Client) => void;
   /** Filtros ativos na tela — o export baixa o mesmo recorte que está à vista. */
   inputValues: Record<string, string>;
-  /** Nome do vendedor filtrado, escrito no cabeçalho do PDF. */
-  sellerLabel?: string | null;
+  /** Campos do painel de filtros, para o PDF escrever o recorte por extenso. */
+  filterFields: FilterField[];
+  /** Ordenação à vista na tabela — o arquivo sai na mesma ordem. */
+  order?: ReportOrder | null;
   hasClients: boolean;
 }
 
@@ -40,7 +44,8 @@ export function ClientsHeader({
   stats,
   onAddOptimistic,
   inputValues,
-  sellerLabel,
+  filterFields,
+  order,
   hasClients,
 }: ClientsHeaderProps) {
   const kpis = buildKpis(stats);
@@ -58,7 +63,8 @@ export function ClientsHeader({
             <PanelHeader.Actions className="mt-6" data-tour="clients-actions">
               <ExportClientsButton
                 inputValues={inputValues}
-                sellerLabel={sellerLabel}
+                filterFields={filterFields}
+                order={order}
                 disabled={!hasClients}
               />
               {/* Redes não têm item próprio na sidebar: são um recorte da

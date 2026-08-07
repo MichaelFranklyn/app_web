@@ -1,9 +1,9 @@
 "use client";
 
+import { useLocalTable } from "@/hooks/useLocalTable";
 import { useQueryErrorToast } from "@/hooks/useQueryErrorToast";
 import { formatMoney } from "@/utils/format/masks";
 import { useQuery } from "@apollo/client/react";
-import { useSearchParams } from "next/navigation";
 import { useCallback, useMemo } from "react";
 
 import { formatPercent } from "../../utils";
@@ -11,8 +11,9 @@ import { ReportFilters, ReportKpi } from "../interface";
 import { useLocalReportPage } from "../useLocalReportPage";
 import { safeRate } from "../utils";
 import { WALLET_STATUS_REPORT_QUERY } from "./gql";
-import { WalletReportResponse, WalletRow, WalletScope } from "./interface";
-import { buildSituationOption, filterByScope } from "./utils";
+import { WalletReportResponse, WalletRow } from "./interface";
+import { WALLET_FILTER_FIELDS, useWalletFilters } from "./useWalletFilters";
+import { buildSituationOption, WALLET_SORT_COLUMNS } from "./utils";
 
 export const WALLET_PER_PAGE = 25;
 
@@ -36,13 +37,13 @@ const EMPTY_REPORT = {
  * cliente comprou dentro do recorte.
  *
  * Os KPIs saem do fechamento do servidor (a carteira inteira), não do recorte
- * à vista: escolher "só os atrasados" muda a tabela, e o topo tem de continuar
+ * à vista: filtrar por "atrasados" muda a tabela, e o topo tem de continuar
  * dizendo de que tamanho é a carteira.
+ *
+ * Filtro, ordenação e paginação são locais (o relatório vem inteiro), e é a
+ * lista JÁ filtrada e ordenada que vai para o XLSX/PDF.
  */
 export const useWalletReport = (filters: ReportFilters) => {
-  const searchParams = useSearchParams();
-  const scope = (searchParams.get("scope") ?? "all") as WalletScope;
-
   const { data, loading, error, refetch } = useQuery<WalletReportResponse>(
     WALLET_STATUS_REPORT_QUERY,
     {
@@ -57,19 +58,17 @@ export const useWalletReport = (filters: ReportFilters) => {
 
   const report = data?.walletStatusReport ?? EMPTY_REPORT;
 
-  const rows = useMemo(
-    () => filterByScope(report.rows, scope),
-    [report.rows, scope]
-  );
+  const table = useLocalTable<WalletRow>({
+    items: report.rows,
+    columns: WALLET_SORT_COLUMNS,
+    fields: WALLET_FILTER_FIELDS,
+  });
 
-  const { currentPage, setCurrentPage, totalPages, pageRows, push } =
+  const filterFields = useWalletFilters(report.rows);
+  const rows = table.displayedData;
+
+  const { currentPage, setCurrentPage, totalPages, pageRows } =
     useLocalReportPage(rows, WALLET_PER_PAGE);
-
-  const setScope = useCallback(
-    (next: WalletScope) =>
-      push({ scope: next === "all" ? null : next, page: null }),
-    [push]
-  );
 
   const kpis: ReportKpi[] = useMemo(() => {
     const needAttention = report.atRiskClients + report.inactiveClients;
@@ -122,10 +121,13 @@ export const useWalletReport = (filters: ReportFilters) => {
       error,
       refetch: () => void refetch(),
     },
+    filterFields,
+    inputValues: table.inputValues,
+    setFilter: table.setFilter,
+    setFilters: table.setFilters,
+    sort: table.sort,
     rows,
     pageRows,
-    scope,
-    setScope,
     currentPage,
     setCurrentPage,
     totalPages,

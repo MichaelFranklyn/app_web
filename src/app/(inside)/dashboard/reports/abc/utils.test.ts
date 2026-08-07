@@ -1,9 +1,11 @@
 import { describe, expect, it } from "vitest";
 
 import { AbcRow } from "./interface";
+import { ABC_FILTER_FIELDS } from "./useAbcFilters";
 import {
+  ABC_SORT_COLUMNS,
+  ABC_SORT_LABELS,
   buildAbcExportRows,
-  filterByScope,
   summarizeByClass,
   sumBy,
 } from "./utils";
@@ -22,19 +24,31 @@ const row = (patch: Partial<AbcRow>): AbcRow => ({
   ...patch,
 });
 
-describe("filterByScope", () => {
-  const rows = [
-    row({ clientId: "a", abcClass: "A" }),
-    row({ clientId: "b", abcClass: "B" }),
-    row({ clientId: "c", abcClass: "C" }),
-  ];
-
-  it("devolve a curva inteira em 'all'", () => {
-    expect(filterByScope(rows, "all")).toHaveLength(3);
+describe("ABC_FILTER_FIELDS", () => {
+  it("recorta por classe", () => {
+    expect(ABC_FILTER_FIELDS.abcClass.match(row({ abcClass: "C" }), "C")).toBe(
+      true
+    );
+    expect(ABC_FILTER_FIELDS.abcClass.match(row({ abcClass: "A" }), "C")).toBe(
+      false
+    );
   });
 
-  it("recorta por classe", () => {
-    expect(filterByScope(rows, "C").map((r) => r.clientId)).toEqual(["c"]);
+  it("busca o cliente sem exigir a caixa certa", () => {
+    const cliente = row({ clientName: "TENDTUDO VALERIA" });
+    expect(ABC_FILTER_FIELDS.search.match(cliente, "valeria")).toBe(true);
+  });
+});
+
+describe("ABC_SORT_COLUMNS", () => {
+  it("tem rótulo de papel para toda coluna ordenável", () => {
+    expect(Object.keys(ABC_SORT_LABELS).sort()).toEqual(
+      Object.keys(ABC_SORT_COLUMNS).sort()
+    );
+  });
+
+  it("ordena dinheiro como número, não como texto", () => {
+    expect(ABC_SORT_COLUMNS.totalAmount(row({ totalAmount: "900" }))).toBe(900);
   });
 });
 

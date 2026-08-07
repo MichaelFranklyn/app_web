@@ -1,5 +1,7 @@
 import { SERIES_ORANGE, SERIES_RED } from "@/components/Chart/chartTheme";
 import type { QueryFilter } from "@/hooks/useTableData";
+import type { FieldConfig } from "@/hooks/useTableFilters";
+import type { SortLabel } from "@/utils/pdf/context";
 import { formatDateDMY, maskCNPJ } from "@/utils/format/masks";
 import type { EChartsCoreOption } from "echarts/core";
 
@@ -14,6 +16,46 @@ import { ClientReportRow, ClientRiskPoint } from "./interface";
  */
 export const buildClientsFilters = (sellerId: string | null): QueryFilter[] =>
   sellerId ? [{ field: "seller_id", operator: "eq", value: sellerId }] : [];
+
+/**
+ * Campos do painel que viram filtro NA QUERY (a tabela pagina no servidor).
+ *
+ * São os mesmos campos e os mesmos nomes de coluna da carteira em
+ * `(operations)/clients` — é a MESMA listagem vista com outras colunas, e um
+ * nome de campo diferente aqui produziria dois recortes que não se conversam.
+ */
+export const CLIENTS_REPORT_TABLE_FIELDS: Record<string, FieldConfig> = {
+  // Colunas separadas por vírgula: o backend combina o `like` de cada uma com OR.
+  search: { type: "text", queryField: "razao_social,nome_fantasia" },
+  state: { type: "select", queryField: "address_state" },
+  // Vai como "true"/"false"; o `parse_value` do backend converte em booleano.
+  needsAttention: { type: "select", queryField: "is_needs_attention" },
+};
+
+/**
+ * Colunas por onde a carteira pode ser ordenada.
+ *
+ * As três últimas não são colunas de `clients`: cada uma é uma subconsulta do
+ * repositório (`_COMPUTED_ORDER_COLUMNS`) que espelha a regra da célula. A lista
+ * é METADE de um contrato — o outro lado é o mapa do repositório, e um nome que
+ * exista só aqui faz a lista se ordenar por `created_at` em silêncio.
+ */
+export const CLIENTS_REPORT_SORTABLE_FIELDS = [
+  "razao_social",
+  "address_city",
+  "last_order_date",
+  "last_visit_date",
+  "visit_score_total",
+];
+
+/** Como cada coluna ordenável se chama no papel, e em que sentido ela é lida. */
+export const CLIENTS_REPORT_SORT_LABELS: Record<string, SortLabel> = {
+  razao_social: { label: "Cliente", kind: "text" },
+  address_city: { label: "Cidade / UF", kind: "text" },
+  last_order_date: { label: "Última compra", kind: "date" },
+  last_visit_date: { label: "Última visita", kind: "date" },
+  visit_score_total: { label: "Score", kind: "number" },
+};
 
 /** Dias desde a última compra; `null` quando o cliente nunca comprou. */
 export const daysSinceOrder = (
