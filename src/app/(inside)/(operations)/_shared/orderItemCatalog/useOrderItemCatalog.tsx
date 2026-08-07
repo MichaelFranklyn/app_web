@@ -59,10 +59,15 @@ export interface OrderItemCatalog {
  * Resolve o vínculo (`company_factory`) da fábrica escolhida — catálogo, preços
  * e condições de pagamento são todos escopados por esse id, não pela fábrica.
  */
+/** O nó como ele vem da query — derivado, não redigitado: a assinatura já
+ *  divergiu do `select` uma vez, e campo novo na query ficava invisível aqui. */
+type CompanyFactoryNode =
+  CompanyFactoriesData["companyFactories"]["edges"][number]["node"];
+
 export function useCompanyFactoryNode(
   open: boolean,
   factoryId: string | null
-): { id: string; factoryId: string; ipiInOrder: boolean } | null {
+): CompanyFactoryNode | null {
   const { data: cfData } = useQuery<CompanyFactoriesData>(
     ORDER_ITEM_COMPANY_FACTORIES_QUERY,
     {

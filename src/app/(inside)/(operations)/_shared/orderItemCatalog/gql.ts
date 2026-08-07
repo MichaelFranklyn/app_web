@@ -12,6 +12,10 @@ export const ORDER_ITEM_COMPANY_FACTORIES_QUERY = gql`
           id
           factoryId
           ipiInOrder
+          # Piso de frete grátis (só CIF): o aviso "faltam R$ X para o frete
+          # grátis em CIF" sai daqui, aproveitando a consulta que o wizard já
+          # faz para resolver o vínculo da fábrica.
+          freeFreightCifAmount
         }
       }
     }

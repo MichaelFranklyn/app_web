@@ -104,7 +104,6 @@ export const ORDER_ITEMS_QUERY = gql`
           taxAmount
           unitPriceWithTax
           isPromo
-          avgShelfDays
           source
           createdAt
           product {

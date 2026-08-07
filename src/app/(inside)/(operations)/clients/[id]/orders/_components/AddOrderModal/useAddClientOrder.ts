@@ -2,7 +2,11 @@ import { FormBuilderRef, FormStepSchema } from "@/components/FormBuilder";
 import { useToast } from "@/components/Toast";
 import { useAsyncAction } from "@/hooks/useAsyncAction";
 import { useRedirectTransition } from "@/hooks/useRedirectTransition";
-import { extractSelectValue, parseDeliveryDays } from "@/utils/form";
+import {
+  extractSelectValue,
+  parseDeliveryDays,
+  parseCoverageDays,
+} from "@/utils/form";
 import { toIsoDate } from "@/utils/format/date";
 import { useMutation, useQuery } from "@apollo/client/react";
 import { useMemo, useRef, useState } from "react";
@@ -14,7 +18,10 @@ import {
   useOrderDraftItems,
 } from "../../../../../_shared/orderDraftItems";
 import { usePaymentTermOptions } from "../../../../../_shared/orderPaymentTerms";
-import { FREIGHT_OPTIONS } from "../../../../../_shared/orderFreight";
+import {
+  FREIGHT_OPTIONS,
+  useFreeFreightTarget,
+} from "../../../../../_shared/orderFreight";
 import {
   CLIENT_ASSIGNMENTS_QUERY,
   CREATE_ORDER_FROM_CLIENT_MUTATION,
@@ -53,6 +60,7 @@ interface OrderDetails {
   freightType: string | null;
   notes: string | null;
   deliveryEstimateDays: number | null;
+  coverageDays: number | null;
   isQuote: boolean;
 }
 
@@ -76,6 +84,13 @@ export function useAddClientOrder(clientId: string) {
   // Só existe a partir do passo 2: a condição é escolhida no passo 1 e chega
   // aqui já validada, dentro de `orderDetails`.
   const paymentMinimum = minimumOf(orderDetails?.paymentTermId);
+  // Piso de frete grátis da modalidade escolhida no passo 1 — incentivo,
+  // nunca bloqueio. Reaproveita a consulta do vínculo da fábrica.
+  const freeFreight = useFreeFreightTarget(
+    open,
+    factoryId || null,
+    orderDetails?.freightType
+  );
 
   const { data: assignmentsData } = useQuery<AssignmentsData>(
     CLIENT_ASSIGNMENTS_QUERY,
@@ -182,6 +197,13 @@ export function useAddClientOrder(clientId: string) {
                 hint: "Dias até a mercadoria chegar, contados do faturamento. Em branco: usa o prazo padrão da fábrica.",
               },
               {
+                name: "coverageDays",
+                type: "number",
+                label: "Dura quantos dias na loja? (opcional)",
+                placeholder: "Ex: 30",
+                hint: "Sua estimativa de quanto tempo esta compra segura o cliente. É o que ensina a rotina a saber quando voltar.",
+              },
+              {
                 name: "notes",
                 type: "textarea",
                 label: "Observações",
@@ -230,6 +252,8 @@ export function useAddClientOrder(clientId: string) {
       freightType: extractSelectValue(data.freightType) || null,
       notes: data.notes ? String(data.notes) : null,
       deliveryEstimateDays: parseDeliveryDays(data.deliveryEstimateDays),
+      // Estimativa de campo do vendedor; o backend descarta fora da faixa plausivel.
+      coverageDays: parseCoverageDays(data.coverageDays),
       isQuote: extractSelectValue(data.orderKind) === "quote",
     });
     setStep(1);
@@ -287,6 +311,7 @@ export function useAddClientOrder(clientId: string) {
     handleCreate,
     draft,
     paymentMinimum,
+    freeFreight,
     // Inclui o redirect: o botão "Criar" só sai do loading quando o pedido novo
     // já carregou.
     isLoading: isLoading || isRedirecting,

@@ -44,18 +44,44 @@ export const getVisitFollowupWarning = (
  * A visita é ao cliente e carrega N fábricas; mostrar o score de uma delas
  * escolhida por acaso esconde justamente a urgente. Cai no vínculo só nas visitas
  * antigas, geradas antes de o foco existir.
+ *
+ * Usa o score de HOJE (`latestVisitScore`), a mesma fonte de `getVisitScoreReasons`
+ * — o card e o painel de detalhe têm de dizer o mesmo número. `focus.scoreTotal` é
+ * o total CONGELADO na geração da rotina e serve para auditar o plano, não para
+ * descrever o cliente agora: uma rotina montada na terça e executada na segunda
+ * seguinte carrega um score de uma semana atrás, e o card anunciava "Urgente · 62"
+ * para um cliente que já estava em "Atenção · 41".
+ *
+ * O congelado sobrou como último recurso, para a visita cujo vínculo perdeu o
+ * score (job ainda não rodou, vínculo desativado): melhor um número velho do que
+ * card nenhum. Mas basta UM foco ter score atual para os congelados saírem da
+ * disputa — misturar as duas escalas no mesmo `Math.max` faria o card mostrar um
+ * valor que o painel não explica.
  */
 export const getVisitScoreTotal = (item: VisitScheduleItem): number | null => {
+  const focusFactories = item.focusFactories ?? [];
+
   // `Number(null)` é 0, não NaN: sem descartar o nulo antes, uma fábrica em foco
   // que nunca teve score entraria como zero e ainda venceria o `Math.max` de uma
   // lista toda nula.
-  const focusScores = (item.focusFactories ?? [])
+  const currentScores = focusFactories
+    .map((focus) =>
+      toScore(focus.clientFactoryLink?.latestVisitScore?.scoreTotal ?? null)
+    )
+    .filter((score): score is number => score !== null);
+
+  if (currentScores.length > 0) return Math.max(...currentScores);
+
+  const linkScore = toScore(
+    item.clientFactoryLink?.latestVisitScore?.scoreTotal ?? null
+  );
+  if (linkScore !== null) return linkScore;
+
+  const frozenScores = focusFactories
     .map((focus) => toScore(focus.scoreTotal))
     .filter((score): score is number => score !== null);
 
-  if (focusScores.length > 0) return Math.max(...focusScores);
-
-  return toScore(item.clientFactoryLink?.latestVisitScore?.scoreTotal ?? null);
+  return frozenScores.length > 0 ? Math.max(...frozenScores) : null;
 };
 
 /** Motivo do score de UMA empresa (fábrica) que puxou esta visita. */

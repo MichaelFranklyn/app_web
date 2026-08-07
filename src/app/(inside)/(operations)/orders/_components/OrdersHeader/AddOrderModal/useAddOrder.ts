@@ -24,7 +24,10 @@ import {
   useOrderDraftItems,
 } from "../../../../_shared/orderDraftItems";
 import { usePaymentTermOptions } from "../../../../_shared/orderPaymentTerms";
-import { FREIGHT_OPTIONS } from "../../../../_shared/orderFreight";
+import {
+  FREIGHT_OPTIONS,
+  useFreeFreightTarget,
+} from "../../../../_shared/orderFreight";
 import {
   clientOptionLabel,
   clientOptionSearchText,
@@ -98,6 +101,13 @@ export function useAddOrder({ onAddOptimistic }: AddOrderModalProps) {
   // Só existe a partir do passo 2: a condição é escolhida no passo 1 e chega
   // aqui já validada, dentro de `orderDetails`.
   const paymentMinimum = minimumOf(orderDetails?.paymentTermId);
+  // Piso de frete grátis da modalidade escolhida no passo 1 — incentivo,
+  // nunca bloqueio. Reaproveita a consulta do vínculo da fábrica.
+  const freeFreight = useFreeFreightTarget(
+    open,
+    factoryId || null,
+    orderDetails?.freightType
+  );
 
   const { data: sellersData } = useQuery<SellersOptionsData>(
     ORDER_SELLERS_OPTIONS_QUERY,
@@ -267,6 +277,13 @@ export function useAddOrder({ onAddOptimistic }: AddOrderModalProps) {
                 hint: "Dias até a mercadoria chegar, contados do faturamento. Em branco: usa o prazo padrão da fábrica.",
               },
               {
+                name: "coverageDays",
+                type: "number",
+                label: "Dura quantos dias na loja? (opcional)",
+                placeholder: "Ex: 30",
+                hint: "Sua estimativa de quanto tempo esta compra segura o cliente. É o que ensina a rotina a saber quando voltar.",
+              },
+              {
                 name: "notes",
                 type: "textarea",
                 label: "Observações",
@@ -367,6 +384,7 @@ export function useAddOrder({ onAddOptimistic }: AddOrderModalProps) {
     handleCreate,
     draft,
     paymentMinimum,
+    freeFreight,
     isLoading,
   };
 }

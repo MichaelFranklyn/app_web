@@ -1,5 +1,9 @@
 import { toIsoDate } from "@/utils/format/date";
-import { extractSelectValue, parseDeliveryDays } from "@/utils/form";
+import {
+  extractSelectValue,
+  parseCoverageDays,
+  parseDeliveryDays,
+} from "@/utils/form";
 import { CreateOrderInput } from "./interface";
 
 export const normalizeInput = (
@@ -15,6 +19,8 @@ export const normalizeInput = (
   notes: data.notes ? String(data.notes) : null,
   // Vazio → null: o backend aplica o prazo padrão da fábrica.
   deliveryEstimateDays: parseDeliveryDays(data.deliveryEstimateDays),
+  // Estimativa de campo do vendedor; o backend descarta fora da faixa plausivel.
+  coverageDays: parseCoverageDays(data.coverageDays),
   // "quote" = orçamento; qualquer outro valor (default) = pedido de fato.
   isQuote: extractSelectValue(data.orderKind) === "quote",
 });

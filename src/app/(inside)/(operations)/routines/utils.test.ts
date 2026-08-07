@@ -50,12 +50,20 @@ const item = (over: Partial<VisitScheduleItem> = {}): VisitScheduleItem => ({
 });
 
 describe("getVisitScoreTotal", () => {
+  // Foco com score de hoje: é o formato que a rotina gerada pelo motor atual
+  // produz, e o único que o painel de detalhe sabe explicar.
+  const liveFocus = (id: string, total: string, frozen = total) => ({
+    scoreTotal: frozen,
+    factory: factory(id),
+    clientFactoryLink: {
+      id: `cfl-${id}`,
+      latestVisitScore: score({ scoreTotal: total }),
+    },
+  });
+
   it("usa o maior score entre as fábricas em foco", () => {
     const visit = item({
-      focusFactories: [
-        { scoreTotal: "20.00", factory: factory("a"), clientFactoryLink: null },
-        { scoreTotal: "90.00", factory: factory("b"), clientFactoryLink: null },
-      ],
+      focusFactories: [liveFocus("a", "20.00"), liveFocus("b", "90.00")],
     });
 
     expect(getVisitScoreTotal(visit)).toBe(90);
@@ -65,9 +73,7 @@ describe("getVisitScoreTotal", () => {
   // mostrava 20 numa visita que existia por causa de um score 90.
   it("ignora o score do vínculo quando há foco", () => {
     const visit = item({
-      focusFactories: [
-        { scoreTotal: "90.00", factory: factory("b"), clientFactoryLink: null },
-      ],
+      focusFactories: [liveFocus("b", "90.00")],
       clientFactoryLink: {
         id: "cfl-1",
         client: null,
@@ -77,6 +83,30 @@ describe("getVisitScoreTotal", () => {
     });
 
     expect(getVisitScoreTotal(visit)).toBe(90);
+  });
+
+  // O caso real: rotina gerada em 04/08 com score 62, executada na semana
+  // seguinte com o cliente já em 41. O card dizia "Urgente · 62" e o painel logo
+  // abaixo dizia "Atenção · 41" — para a mesma visita.
+  it("mostra o score de hoje, não o congelado na geração da rotina", () => {
+    const visit = item({
+      focusFactories: [liveFocus("a", "41.20", "62.00")],
+    });
+
+    expect(getVisitScoreTotal(visit)).toBe(41.2);
+  });
+
+  // Misturar as escalas faria o Math.max premiar justamente o congelado alto que
+  // o painel não lista — a divergência voltaria por outro caminho.
+  it("não deixa um congelado alto vencer o score atual de outro foco", () => {
+    const visit = item({
+      focusFactories: [
+        liveFocus("a", "30.00"),
+        { scoreTotal: "95.00", factory: factory("b"), clientFactoryLink: null },
+      ],
+    });
+
+    expect(getVisitScoreTotal(visit)).toBe(30);
   });
 
   it("cai no vínculo nas visitas antigas, sem foco", () => {
@@ -90,6 +120,18 @@ describe("getVisitScoreTotal", () => {
     });
 
     expect(getVisitScoreTotal(visit)).toBe(33);
+  });
+
+  // Último recurso: sem score atual em lugar nenhum, um número velho ainda diz
+  // mais que um card sem faixa.
+  it("usa o congelado quando nada tem score atual", () => {
+    const visit = item({
+      focusFactories: [
+        { scoreTotal: "55.00", factory: factory("a"), clientFactoryLink: null },
+      ],
+    });
+
+    expect(getVisitScoreTotal(visit)).toBe(55);
   });
 
   it("devolve null quando não há score em lugar nenhum", () => {

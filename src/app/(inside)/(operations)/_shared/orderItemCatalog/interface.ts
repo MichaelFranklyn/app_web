@@ -1,6 +1,13 @@
 export interface CompanyFactoriesData {
   companyFactories: {
-    edges: { node: { id: string; factoryId: string; ipiInOrder: boolean } }[];
+    edges: {
+      node: {
+        id: string;
+        factoryId: string;
+        ipiInOrder: boolean;
+        freeFreightCifAmount: number | null;
+      };
+    }[];
   };
 }
 

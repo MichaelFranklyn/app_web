@@ -17,7 +17,6 @@ const item = (overrides: Partial<OrderItem> = {}): OrderItem =>
     unitPriceWithTax: "10.41",
     isPromo: false,
     createdAt: "2026-05-10T12:00:00Z",
-    avgShelfDays: null,
     source: "MANUAL",
     product: {
       id: "p1",

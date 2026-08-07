@@ -238,6 +238,13 @@ export function useImportOrder({ onAddOptimistic }: ImportOrderModalProps) {
                 placeholder: "Ex: 15",
                 hint: "Dias até a mercadoria chegar, contados do faturamento. Em branco: usa o prazo padrão da fábrica.",
               },
+              {
+                name: "coverageDays",
+                type: "number",
+                label: "Dura quantos dias na loja? (opcional)",
+                placeholder: "Ex: 30",
+                hint: "Sua estimativa de quanto tempo esta compra segura o cliente. É o que ensina a rotina a saber quando voltar.",
+              },
             ],
           },
         ],

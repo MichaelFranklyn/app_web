@@ -10,7 +10,7 @@ export interface UpdateCompanyFactoryInput {
   ipiInOrder?: boolean;
   deliveryEstimateDays?: number | null;
   minOrderAmount?: number | null;
-  freeFreightAmount?: number | null;
+  freeFreightCifAmount?: number | null;
   nickname?: string;
   logoBase64?: string;
   logoFileName?: string | null;
@@ -33,7 +33,7 @@ export interface UpdateCompanyFactoryResponse {
       ipiInOrder: boolean;
       deliveryEstimateDays: number | null;
       minOrderAmount: number | null;
-      freeFreightAmount: number | null;
+      freeFreightCifAmount: number | null;
       nickname: string | null;
       logoUrl: string | null;
     } | null;

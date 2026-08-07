@@ -9,3 +9,6 @@ export const FREIGHT_OPTIONS: SelectOption[] = [
   { value: "FOB", label: "FOB — frete por conta do cliente" },
   { value: "CIF", label: "CIF — entrega pela fábrica" },
 ];
+
+export * from "./interface";
+export * from "./useFreeFreightTarget";

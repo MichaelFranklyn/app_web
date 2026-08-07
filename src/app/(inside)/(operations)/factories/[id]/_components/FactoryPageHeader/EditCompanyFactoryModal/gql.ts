@@ -21,7 +21,7 @@ export const UPDATE_COMPANY_FACTORY_MUTATION = gql`
         ipiInOrder
         deliveryEstimateDays
         minOrderAmount
-        freeFreightAmount
+        freeFreightCifAmount
         nickname
         logoUrl
         factory {

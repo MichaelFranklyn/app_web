@@ -127,7 +127,14 @@ const mocks: MockLink.MockedResponse[] = [
     },
     // Atraso: simula a última query da cadeia chegando DEPOIS de o vendedor já
     // ter escolhido produto e nível (a corrida que zerava o preço).
-    delay: 60,
+    //
+    // A margem é larga de propósito. Com 60ms o teste passava isolado e falhava
+    // ~1 em 4 na suíte COMPLETA: a asserção intermediária ("neste instante o
+    // preço ainda está vazio") é uma corrida contra o relógio, e sob carga a
+    // tabela às vezes chegava antes dela. Qualquer mudança no encadeamento das
+    // 5 queries do catálogo reabre a janela — foi o que aconteceu ao acrescentar
+    // um campo à primeira delas.
+    delay: 400,
     result: {
       data: {
         priceListItems: {

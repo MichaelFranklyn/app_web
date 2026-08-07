@@ -19,7 +19,7 @@ const initial = (
   ipiInOrder: false,
   deliveryEstimateDays: null,
   minOrderAmount: null,
-  freeFreightAmount: null,
+  freeFreightCifAmount: null,
   factory: {
     id: "f1",
     cnpj: "123",
@@ -96,10 +96,10 @@ describe("normalizeInput — pisos de valor do pedido", () => {
     // Mexer em um não pode arrastar o outro. O FormBuilder sempre devolve os
     // dois campos, então ambos aparecem no `form`.
     const input = normalizeInput(
-      form({ minOrderAmount: "1000", freeFreightAmount: "5000" }),
+      form({ minOrderAmount: "1000", freeFreightCifAmount: "5000" }),
       initial({ minOrderAmount: 1000 })
     );
-    expect(input.freeFreightAmount).toBe(5000);
+    expect(input.freeFreightCifAmount).toBe(5000);
     expect("minOrderAmount" in input).toBe(false);
   });
 

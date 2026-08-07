@@ -32,7 +32,8 @@ export interface CompanyFactoryDetail {
   deliveryEstimateDays: number | null;
   /** Piso para o pedido existir na fábrica. Nulo = fábrica sem mínimo. */
   minOrderAmount: number | null;
-  /** Piso de frete grátis — incentivo, nunca bloqueio. Nulo = não oferece. */
-  freeFreightAmount: number | null;
+  /** Piso de frete grátis, só em CIF — incentivo, nunca bloqueio.
+   *  Nulo = a fábrica não oferece. */
+  freeFreightCifAmount: number | null;
   factory: FactoryDetail;
 }
