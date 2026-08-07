@@ -164,7 +164,7 @@ export function EditCompanyFactoryModal() {
     ipiInOrder: companyFactory.ipiInOrder ? ["true"] : [],
     deliveryEstimateDays: companyFactory.deliveryEstimateDays ?? "",
     minOrderAmount: companyFactory.minOrderAmount ?? "",
-    freeFreightAmount: companyFactory.freeFreightAmount ?? "",
+    freeFreightCifAmount: companyFactory.freeFreightCifAmount ?? "",
   };
 
   const isLastStep = step === WIZARD_STEPS.length - 1;
@@ -178,7 +178,11 @@ export function EditCompanyFactoryModal() {
         </Button.Root>
       </Modal.Trigger>
 
-      <Modal.Content size="md">
+      {/* Mais largo que o `md` padrão dos modais: são três passos com campos de
+          contrato e valores comerciais, e o hint de cada piso é uma frase inteira
+          — em `md` cada rótulo quebrava em duas linhas e o passo do contrato
+          virava uma coluna alta demais para ler de uma vez. */}
+      <Modal.Content size="2xl">
         <Modal.Header
           title="Editar fábrica"
           description={STEP_DESCRIPTIONS[step]}

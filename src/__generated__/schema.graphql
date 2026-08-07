@@ -769,7 +769,7 @@ type CompanyFactoryType {
   """Valor mínimo que a fábrica aceita para o pedido existir. Barra a confirmação abaixo dele, sem saída por troca de prazo. Nulo = fábrica sem mínimo."""
   minOrderAmount: Decimal
   """Valor a partir do qual a fábrica não cobra frete. Nunca bloqueia nada — é argumento de venda. Nulo = fábrica sem frete grátis."""
-  freeFreightAmount: Decimal
+  freeFreightCifAmount: Decimal
   """Logo da fábrica enviada por esta empresa (URL relativa /media/...)."""
   logoUrl: String
   """Como esta empresa chama a fábrica no dia a dia. Tem prioridade sobre nomeFantasia na exibição."""
@@ -812,7 +812,7 @@ input LinkFactoryInput {
   ipiInOrder: Boolean = false
   deliveryEstimateDays: Int = null
   minOrderAmount: Decimal = null
-  freeFreightAmount: Decimal = null
+  freeFreightCifAmount: Decimal = null
   nickname: String = null
 }
 
@@ -830,7 +830,7 @@ input CreateCompanyFactoryInput {
   ipiInOrder: Boolean = false
   deliveryEstimateDays: Int = null
   minOrderAmount: Decimal = null
-  freeFreightAmount: Decimal = null
+  freeFreightCifAmount: Decimal = null
   nickname: String = null
 }
 
@@ -885,7 +885,7 @@ input UpdateCompanyFactoryInput {
   ipiInOrder: Boolean = null
   deliveryEstimateDays: Int = null
   minOrderAmount: Decimal = null
-  freeFreightAmount: Decimal = null
+  freeFreightCifAmount: Decimal = null
   nickname: String = null
   """Nova logo em base64 (PNG/JPG/WEBP, máx. 2 MB). String vazia remove a logo atual."""
   logoBase64: String = null
@@ -1854,7 +1854,6 @@ input CreateOrderItemInput {
   ipiRate: Decimal! = "0.0"
   """Item vendido sob promoção relâmpago (o unitPrice já é o preço promocional)."""
   isPromo: Boolean! = false
-  avgShelfDays: Int = null
   source: OrderItemSource! = MANUAL
 }
 
@@ -1892,7 +1891,6 @@ type OrderItemType {
   não tem imposto. INFORMATIVO, pelo mesmo motivo de `taxAmount`.
   """
   unitPriceWithTax: Decimal!
-  avgShelfDays: Int
   source: OrderItemSource!
   createdAt: DateTime!
   product: ProductType
@@ -1922,7 +1920,6 @@ input UpdateOrderItemInput {
   unitPrice: Decimal = null
   discount: Decimal = null
   ipiRate: Decimal = null
-  avgShelfDays: Int = null
 }
 
 extend type Query {

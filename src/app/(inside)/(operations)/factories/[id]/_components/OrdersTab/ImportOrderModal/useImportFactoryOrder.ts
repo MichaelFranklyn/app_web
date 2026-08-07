@@ -3,7 +3,11 @@ import { useMemo, useRef, useState } from "react";
 
 import { FormBuilderRef, FormStepSchema } from "@/components/FormBuilder";
 import { useQueryErrorToast } from "@/hooks/useQueryErrorToast";
-import { extractSelectValue, parseDeliveryDays } from "@/utils/form";
+import {
+  extractSelectValue,
+  parseDeliveryDays,
+  parseCoverageDays,
+} from "@/utils/form";
 import { toIsoDate } from "@/utils/format/date";
 
 import { DeferredOrderTarget } from "../../../../../_components/OrderImportWizard";
@@ -33,6 +37,7 @@ interface PendingOrder {
   paymentTermId: string | null;
   freightType: string | null;
   deliveryEstimateDays: number | null;
+  coverageDays: number | null;
 }
 
 /**
@@ -140,6 +145,13 @@ export function useImportFactoryOrder({
                 placeholder: "Ex: 15",
                 hint: "Dias até a mercadoria chegar, contados do faturamento. Em branco: usa o prazo padrão da fábrica.",
               },
+              {
+                name: "coverageDays",
+                type: "number",
+                label: "Dura quantos dias na loja? (opcional)",
+                placeholder: "Ex: 30",
+                hint: "Sua estimativa de quanto tempo esta compra segura o cliente. É o que ensina a rotina a saber quando voltar.",
+              },
             ],
           },
         ],
@@ -175,6 +187,8 @@ export function useImportFactoryOrder({
       paymentTermId: extractSelectValue(data.paymentTermId) || null,
       freightType: extractSelectValue(data.freightType) || null,
       deliveryEstimateDays: parseDeliveryDays(data.deliveryEstimateDays),
+      // Estimativa de campo do vendedor; o backend descarta fora da faixa plausivel.
+      coverageDays: parseCoverageDays(data.coverageDays),
     });
   };
 

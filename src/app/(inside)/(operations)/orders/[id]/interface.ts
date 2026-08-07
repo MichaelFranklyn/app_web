@@ -124,7 +124,6 @@ export interface OrderItem {
   isPromo: boolean;
   /** Momento da criação — usado para ordenar do mais novo para o mais antigo. */
   createdAt: string;
-  avgShelfDays: number | null;
   source: "MANUAL" | "IMPORTED" | "TEMPLATE";
   product: {
     id: string;

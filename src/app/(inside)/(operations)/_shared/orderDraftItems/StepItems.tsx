@@ -11,6 +11,7 @@ import { maskCurrency, formatMoney } from "@/utils/format/masks";
 import { DISCOUNT_TYPE_OPTIONS, discountLabel, itemSubtotal } from "./utils";
 import { OrderDraftItems } from "./useOrderDraftItems";
 import { DraftTotal } from "./DraftTotal";
+import { FreeFreightTarget } from "../orderFreight";
 import { PaymentTermMinimum } from "./interface";
 
 interface Props {
@@ -20,9 +21,14 @@ interface Props {
    * Só avisa — quem barra é o servidor, e só na confirmação do pedido.
    */
   minimum?: PaymentTermMinimum | null;
+  /**
+   * Piso de frete grátis da modalidade escolhida no passo 1. Só incentiva —
+   * diferente do piso da condição, nunca impede a confirmação.
+   */
+  freeFreight?: FreeFreightTarget | null;
 }
 
-export function StepItems({ draft, minimum }: Props) {
+export function StepItems({ draft, minimum, freeFreight }: Props) {
   if (!draft.hasCatalog) {
     return (
       <Title variant="body-md" color="muted">
@@ -266,7 +272,11 @@ export function StepItems({ draft, minimum }: Props) {
       )}
 
       {draft.items.length > 0 && (
-        <DraftTotal total={draft.total} minimum={minimum} />
+        <DraftTotal
+          total={draft.total}
+          minimum={minimum}
+          freeFreight={freeFreight}
+        />
       )}
     </div>
   );

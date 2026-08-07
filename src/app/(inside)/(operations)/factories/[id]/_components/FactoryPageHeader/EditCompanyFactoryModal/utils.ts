@@ -74,6 +74,10 @@ export const FORM_STEPS: FormStepSchema[] = [
             placeholder: "Ex: 15",
             hint: "Dias estimados até a mercadoria chegar na loja, contados do faturamento. Pré-preenche o pedido e avisa quando a entrega atrasa.",
           },
+          // Os dois pisos ficam um embaixo do outro, em largura inteira: lado a
+          // lado, o hint de cada um (uma frase explicando o que ele faz na
+          // rotina) espremia a coluna e as duas regras — que são diferentes, uma
+          // barra e a outra incentiva — passavam a ser lidas como um par.
           {
             name: "minOrderAmount",
             label: "Pedido mínimo (R$)",
@@ -81,16 +85,17 @@ export const FORM_STEPS: FormStepSchema[] = [
             required: false,
             placeholder: "Ex: 1000",
             hint: "Valor mínimo que a fábrica aceita. Abaixo dele o pedido não pode ser confirmado — e a rotina deixa de recomendar visita a quem não consegue fechar esse valor. Deixe em branco se a fábrica não exige mínimo.",
-            grid: { desktop: 6 },
           },
+          // Só CIF: frete grátis é a fábrica deixando de cobrar a ENTREGA. Em
+          // FOB o cliente contrata o transporte por conta própria, não há o que
+          // isentar — e por isso o aviso no pedido some na modalidade FOB.
           {
-            name: "freeFreightAmount",
-            label: "Frete grátis a partir de (R$)",
+            name: "freeFreightCifAmount",
+            label: "Frete grátis em CIF a partir de (R$)",
             type: "number",
             required: false,
             placeholder: "Ex: 5000",
-            hint: "Valor a partir do qual a fábrica não cobra frete. Não bloqueia pedido nenhum — aparece no pedido como argumento de venda. Deixe em branco se a fábrica não oferece.",
-            grid: { desktop: 6 },
+            hint: "Valor a partir do qual a fábrica entrega sem cobrar frete. Vale só para pedidos CIF (em FOB o frete é contratado pelo cliente). Não bloqueia pedido nenhum — vira aviso ao vendedor enquanto falta valor. Deixe em branco se a fábrica não oferece.",
           },
           {
             name: "contractStart",
@@ -235,7 +240,7 @@ export const normalizeInput = (
 
   // Os dois pisos de valor. Vazio ou zero → null ("esta fábrica não tem piso"),
   // e não R$ 0,00 — senão a tela leria de volta um mínimo que não existe.
-  for (const field of ["minOrderAmount", "freeFreightAmount"] as const) {
+  for (const field of ["minOrderAmount", "freeFreightCifAmount"] as const) {
     const amount = toAmountOrNull(data[field]);
     if (amount !== (initial[field] ?? null)) {
       input[field] = amount;

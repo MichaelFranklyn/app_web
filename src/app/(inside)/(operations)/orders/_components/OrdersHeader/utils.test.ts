@@ -12,6 +12,7 @@ describe("normalizeInput (criar pedido)", () => {
       freightType: { value: "FOB" },
       notes: "obs",
       deliveryEstimateDays: "15",
+      coverageDays: "30",
     });
 
     expect(result).toEqual({
@@ -23,8 +24,22 @@ describe("normalizeInput (criar pedido)", () => {
       freightType: "FOB",
       notes: "obs",
       deliveryEstimateDays: 15,
+      coverageDays: 30,
       isQuote: false,
     });
+  });
+
+  // A estimativa é opcional: o vendedor com pressa não pode ser barrado por ela.
+  it("cobertura vazia vira null", () => {
+    const result = normalizeInput({
+      sellerId: "s1",
+      clientId: "c1",
+      factoryId: "f1",
+      orderDate: "2026-05-31",
+      coverageDays: "",
+    });
+
+    expect(result.coverageDays).toBeNull();
   });
 
   it("prazo de entrega vazio vira null (backend usa o padrão da fábrica)", () => {
