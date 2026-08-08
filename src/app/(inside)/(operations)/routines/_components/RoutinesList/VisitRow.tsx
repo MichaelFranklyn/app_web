@@ -19,6 +19,7 @@ import {
 import { contactNoun } from "@/utils/visit";
 import { ContactLinks } from "../ContactLinks";
 import { ContactTypeTag } from "@/components/ContactTypeTag";
+import { FixedVisitTag } from "@/components/FixedVisitTag";
 
 interface Props {
   item: VisitScheduleItem;
@@ -97,10 +98,10 @@ export function VisitRow({ item, dayDate, onChanged }: Props) {
 
         {/* Tipo + cliente + fábricas em foco. */}
         <div className="min-w-0 flex-1">
-          <ContactTypeTag
-            contactType={item.contactType}
-            className="mb-2 flex"
-          />
+          <div className="mb-2 flex flex-wrap items-center gap-x-8">
+            <ContactTypeTag contactType={item.contactType} />
+            <FixedVisitTag fixedScheduleId={item.fixedScheduleId} />
+          </div>
           <Title
             variant="value"
             color={isCompleted ? "muted" : "default"}

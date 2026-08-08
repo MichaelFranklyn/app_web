@@ -28,6 +28,7 @@ export { EditSellerDataModal } from "./EditSellerDataModal";
 export { EnableSellerCard } from "./EnableSellerCard";
 export { EnableSellerModal } from "./EnableSellerModal";
 export { FactoriesSection } from "./FactoriesSection";
+export { FixedSchedulesSection } from "./FixedSchedulesSection";
 // Reexportado para quem monta os cards do perfil não precisar saber de dois
 // caminhos — a fonte é `_shared/dataCards`.
 export { DataField, EditCardAction } from "../dataCards";

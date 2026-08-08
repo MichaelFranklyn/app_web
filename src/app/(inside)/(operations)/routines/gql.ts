@@ -83,6 +83,7 @@ export const VISIT_SCHEDULES_QUERY = gql`
             routeDurationMin
             items {
               id
+              fixedScheduleId
               plannedOrder
               contactType
               estimatedTravelMin

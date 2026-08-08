@@ -15,6 +15,10 @@ import {
   clientOptionLabel,
   clientOptionSearchText,
 } from "../../../../../_shared/clientOption";
+import {
+  coverageHint,
+  useCoverageSuggestion,
+} from "../../../../../_shared/orderCoverage";
 import { useCompanyFactoryNode } from "../../../../../_shared/orderItemCatalog";
 import { usePaymentTermOptions } from "../../../../../_shared/orderPaymentTerms";
 import { FREIGHT_OPTIONS } from "../../../../../_shared/orderFreight";
@@ -52,6 +56,9 @@ export function useImportFactoryOrder({
   const [open, setOpen] = useState(false);
   const [isBusy, setIsBusy] = useState(false);
   const [pending, setPending] = useState<PendingOrder | null>(null);
+  // O vínculo escolhido também vira estado: é dele que sai a sugestão de
+  // "dura quantos dias na loja?".
+  const [assignmentId, setAssignmentId] = useState("");
   // Memoiza o pedido criado na confirmação: re-tentativa não cria um segundo.
   const createdOrderIdRef = useRef<string | null>(null);
   const formRef = useRef<FormBuilderRef>(null);
@@ -74,6 +81,13 @@ export function useImportFactoryOrder({
         .filter((n) => n.seller && n.client) ?? [],
     [assignmentsData]
   );
+
+  const selectedAssignment = useMemo(
+    () => assignments.find((a) => a.id === assignmentId) ?? null,
+    [assignments, assignmentId]
+  );
+
+  useCoverageSuggestion(formRef, selectedAssignment?.cadence, open);
 
   // Só as opções: a importação não monta itens na tela (o wizard traz os do
   // arquivo), então o piso aparece apenas no rótulo da condição.
@@ -113,6 +127,7 @@ export function useImportFactoryOrder({
                     : "Selecione o vínculo",
                 required: true,
                 options: assignmentOptions,
+                onChange: (value) => setAssignmentId(extractSelectValue(value)),
               },
               {
                 name: "orderDate",
@@ -148,16 +163,16 @@ export function useImportFactoryOrder({
               {
                 name: "coverageDays",
                 type: "number",
-                label: "Dura quantos dias na loja? (opcional)",
+                label: "Dura quantos dias na loja?",
                 placeholder: "Ex: 30",
-                hint: "Sua estimativa de quanto tempo esta compra segura o cliente. É o que ensina a rotina a saber quando voltar.",
+                hint: coverageHint(selectedAssignment?.cadence),
               },
             ],
           },
         ],
       },
     ],
-    [assignmentOptions, paymentTermOptions]
+    [assignmentOptions, paymentTermOptions, selectedAssignment]
   );
 
   const [createOrder] = useMutation<CreateOrderResponse>(
@@ -171,6 +186,7 @@ export function useImportFactoryOrder({
       if (createdOrderIdRef.current) onChanged(); // Pedido criado: lista reflete.
       setPending(null);
       createdOrderIdRef.current = null;
+      setAssignmentId("");
       formRef.current?.resetForm();
     }
   };

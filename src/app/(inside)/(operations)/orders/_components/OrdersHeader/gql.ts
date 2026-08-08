@@ -78,6 +78,13 @@ export const ORDER_SELLER_CLIENTS_QUERY = gql`
             nomeFantasia
             cnpj
           }
+          # Sugere "dura quantos dias na loja?" já preenchido — o campo estava
+          # vazio em 100% dos pedidos, e é dele que sai a única medida de
+          # DURAÇÃO que o motor de rotina tem.
+          cadence {
+            days
+            source
+          }
         }
       }
     }

@@ -32,6 +32,12 @@ import {
   clientOptionLabel,
   clientOptionSearchText,
 } from "../../../../_shared/clientOption";
+import {
+  CoverageCadence,
+  cadenceByClientFrom,
+  coverageHint,
+  useCoverageSuggestion,
+} from "../../../../_shared/orderCoverage";
 
 interface SellersOptionsData {
   order_sellers_options: { edges: { node: { id: string; name: string } }[] };
@@ -63,6 +69,7 @@ interface SellerClientsData {
           nomeFantasia: string | null;
           cnpj: string | null;
         } | null;
+        cadence: CoverageCadence | null;
       };
     }[];
   };
@@ -179,6 +186,15 @@ export function useAddOrder({ onAddOptimistic }: AddOrderModalProps) {
     return Array.from(map.values());
   }, [clientsData]);
 
+  // A cadência de cada cliente nesta fábrica: é dela que sai a sugestão de
+  // cobertura. Vem na mesma consulta das opções — nenhuma requisição a mais.
+  const cadenceByClient = useMemo(
+    () => cadenceByClientFrom(clientsData?.sellerClientFactoryList?.edges),
+    [clientsData]
+  );
+
+  useCoverageSuggestion(formRef, cadenceByClient.get(clientId), open);
+
   const formSteps: FormStepSchema[] = useMemo(
     () => [
       {
@@ -279,9 +295,9 @@ export function useAddOrder({ onAddOptimistic }: AddOrderModalProps) {
               {
                 name: "coverageDays",
                 type: "number",
-                label: "Dura quantos dias na loja? (opcional)",
+                label: "Dura quantos dias na loja?",
                 placeholder: "Ex: 30",
-                hint: "Sua estimativa de quanto tempo esta compra segura o cliente. É o que ensina a rotina a saber quando voltar.",
+                hint: coverageHint(cadenceByClient.get(clientId)),
               },
               {
                 name: "notes",
@@ -302,6 +318,10 @@ export function useAddOrder({ onAddOptimistic }: AddOrderModalProps) {
       sellerId,
       factoryId,
       paymentTermOptions,
+      // A dica do campo de cobertura muda com o cliente escolhido: ela diz de
+      // onde veio o número sugerido, e é isso que faz o vendedor corrigi-lo.
+      cadenceByClient,
+      clientId,
     ]
   );
 

@@ -19,6 +19,10 @@ import {
   createDraftItems,
   useOrderDraftItems,
 } from "../../../../../_shared/orderDraftItems";
+import {
+  coverageHint,
+  useCoverageSuggestion,
+} from "../../../../../_shared/orderCoverage";
 import { usePaymentTermOptions } from "../../../../../_shared/orderPaymentTerms";
 import {
   FREIGHT_OPTIONS,
@@ -67,6 +71,9 @@ export function useAddFactoryOrder({ factoryId }: AddFactoryOrderProps) {
   // Cliente do vínculo escolhido no passo 1 — o passo 2 usa o nível acordado
   // com ele para sugerir o preço dos itens.
   const [clientId, setClientId] = useState("");
+  // O vínculo inteiro, e não só o cliente: a sugestão de cobertura sai da
+  // cadência dele.
+  const [assignmentId, setAssignmentId] = useState("");
 
   const draft = useOrderDraftItems(open, factoryId, clientId);
   const { options: paymentTermOptions, minimumOf } = usePaymentTermOptions(
@@ -102,6 +109,13 @@ export function useAddFactoryOrder({ factoryId }: AddFactoryOrderProps) {
         .filter((n) => n.seller && n.client) ?? [],
     [assignmentsData]
   );
+
+  const selectedAssignment = useMemo(
+    () => assignments.find((a) => a.id === assignmentId) ?? null,
+    [assignments, assignmentId]
+  );
+
+  useCoverageSuggestion(formRef, selectedAssignment?.cadence, open);
 
   const assignmentOptions = useMemo(
     () =>
@@ -143,9 +157,9 @@ export function useAddFactoryOrder({ factoryId }: AddFactoryOrderProps) {
                 required: true,
                 options: assignmentOptions,
                 onChange: (value) => {
-                  const assignment = assignments.find(
-                    (a) => a.id === extractSelectValue(value)
-                  );
+                  const id = extractSelectValue(value);
+                  const assignment = assignments.find((a) => a.id === id);
+                  setAssignmentId(id);
                   setClientId(assignment?.clientId ?? "");
                 },
               },
@@ -183,9 +197,9 @@ export function useAddFactoryOrder({ factoryId }: AddFactoryOrderProps) {
               {
                 name: "coverageDays",
                 type: "number",
-                label: "Dura quantos dias na loja? (opcional)",
+                label: "Dura quantos dias na loja?",
                 placeholder: "Ex: 30",
-                hint: "Sua estimativa de quanto tempo esta compra segura o cliente. É o que ensina a rotina a saber quando voltar.",
+                hint: coverageHint(selectedAssignment?.cadence),
               },
               {
                 name: "notes",
@@ -199,7 +213,14 @@ export function useAddFactoryOrder({ factoryId }: AddFactoryOrderProps) {
         ],
       },
     ],
-    [assignments, assignmentOptions, paymentTermOptions]
+    [
+      assignments,
+      assignmentOptions,
+      paymentTermOptions,
+      // A dica do campo de cobertura diz de onde veio o número sugerido, e isso
+      // muda com o vínculo escolhido.
+      selectedAssignment,
+    ]
   );
 
   const [createOrder] = useMutation<CreateOrderResponse>(
@@ -216,6 +237,7 @@ export function useAddFactoryOrder({ factoryId }: AddFactoryOrderProps) {
       setStep(0);
       setOrderDetails(null);
       setClientId("");
+      setAssignmentId("");
       draft.reset();
     }
   };

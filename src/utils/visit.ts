@@ -4,7 +4,15 @@ export type VisitStatus =
   | "CLIENT_ABSENT"
   | "NO_TIME"
   | "RESCHEDULED"
-  | "CANCELLED";
+  | "CANCELLED"
+  /**
+   * Ocorrência de DIA FIXO que não vai acontecer porque o próprio cliente pediu
+   * para não ser procurado nesta data. O motor a registra e devolve a vaga do
+   * dia — ela existe para ser lida, não para ser feita.
+   *
+   * Ninguém marca este status à mão: ele não entra em `VISIT_STATUS_OPTIONS`.
+   */
+  | "SKIPPED_BY_CUSTOMER";
 
 export type VisitOutcome =
   | "SOLD"
@@ -26,6 +34,9 @@ export const VISIT_STATUS_LABEL: Record<VisitStatus, string> = {
   NO_TIME: "Sem tempo",
   RESCHEDULED: "Remarcada",
   CANCELLED: "Cancelada",
+  // Quem adiou foi o cliente, e é isso que o rótulo precisa dizer: "pulada"
+  // soa como falha do vendedor, e ele não deixou de fazer nada.
+  SKIPPED_BY_CUSTOMER: "Cliente adiou",
 };
 
 /** Cor de badge por status de visita (fonte única). */
@@ -36,7 +47,19 @@ export const VISIT_STATUS_COLOR: Record<VisitStatus, VisitStatusColor> = {
   NO_TIME: "blue",
   RESCHEDULED: "blue",
   CANCELLED: "red",
+  // Azul, como remarcada: é informação, não erro.
+  SKIPPED_BY_CUSTOMER: "blue",
 };
+
+/**
+ * Status que o sistema atribui sozinho e ninguém escolhe num formulário.
+ *
+ * "Cliente adiou" nasce da rotina quando um dia fixo cai numa data em que o
+ * cliente pediu para não ser procurado. Oferecê-lo num select convidaria o
+ * vendedor a marcá-lo numa visita comum, onde ele não significa nada — e o
+ * campo é o mesmo em toda a tela de edição.
+ */
+const SYSTEM_ONLY_STATUSES: VisitStatus[] = ["SKIPPED_BY_CUSTOMER"];
 
 /**
  * Como o vendedor toca o cliente: indo até lá ou à distância.
@@ -84,7 +107,9 @@ const toOptions = (map: Record<string, string>) =>
   Object.entries(map).map(([value, label]) => ({ value, label }));
 
 /** Opções de status/resultado de visita para selects (fonte única). */
-export const VISIT_STATUS_OPTIONS = toOptions(VISIT_STATUS_LABEL);
+export const VISIT_STATUS_OPTIONS = toOptions(VISIT_STATUS_LABEL).filter(
+  (option) => !SYSTEM_ONLY_STATUSES.includes(option.value as VisitStatus)
+);
 
 export const VISIT_OUTCOME_OPTIONS = [
   { value: "SOLD", label: "Vendeu" },

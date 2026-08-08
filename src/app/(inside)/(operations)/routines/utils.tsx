@@ -150,6 +150,7 @@ export const VISIT_URGENCY_BORDER: Record<VisitStatus, string> = {
   CANCELLED: "border-l-[3px] border-l-(--red)",
   RESCHEDULED: "border-l-[3px] border-l-(--blue)",
   NO_TIME: "border-l-[3px] border-l-(--amber)",
+  SKIPPED_BY_CUSTOMER: "border-l-[3px] border-l-(--blue)",
 };
 
 const WEEKDAY_LABELS = [
