@@ -1,3 +1,4 @@
+import { FixedVisitTag } from "@/components/FixedVisitTag";
 import { Badge } from "@/components/Badges";
 import { Title } from "@/components/Title";
 import { Card } from "@/components/Card";
@@ -108,6 +109,7 @@ export function RouteStopsCard({
                       </Title>
                     )}
                     <div className="mt-4 flex flex-wrap items-center gap-6">
+                      <FixedVisitTag fixedScheduleId={stop.fixedScheduleId} />
                       {/* Era aqui que o deslocamento se disfarçava de duração:
                           "~7 min de visita" eram 7 minutos DE CARRO até a loja.
                           Agora o horário e a duração vêm da agenda, e o

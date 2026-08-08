@@ -1,20 +1,16 @@
 // Fonte única: o enum de resultado ganhou os valores exclusivos do contato remoto.
-import type { VisitContactType, VisitOutcome } from "@/utils/visit";
+import type {
+  VisitContactType,
+  VisitOutcome,
+  VisitStatus,
+} from "@/utils/visit";
 
-export type { VisitContactType, VisitOutcome };
+export type { VisitContactType, VisitOutcome, VisitStatus };
 
 // Tipos compartilhados com a grade semanal (nível-pai da rota).
 import { VisitFocusFactory, VisitPrimaryContact } from "../interface";
 import type { ScoreDimensions } from "@/utils/score";
 import type { Viability } from "@/utils/viability";
-
-export type VisitStatus =
-  | "PENDING"
-  | "COMPLETED"
-  | "CLIENT_ABSENT"
-  | "NO_TIME"
-  | "RESCHEDULED"
-  | "CANCELLED";
 
 export type DayStatus = "PLANNED" | "IN_PROGRESS" | "DONE";
 
@@ -46,6 +42,8 @@ export interface VisitClientFactoryLink {
 
 export interface VisitItem {
   id: string;
+  /** Veio de um DIA FIXO (compromisso com o cliente), não da escolha do motor. */
+  fixedScheduleId: string | null;
   plannedOrder: number;
   contactType: VisitContactType;
   estimatedTravelMin: number | null;

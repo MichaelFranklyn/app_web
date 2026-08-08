@@ -11,6 +11,12 @@ import {
   clientOptionLabel,
   clientOptionSearchText,
 } from "../../../../_shared/clientOption";
+import {
+  CoverageCadence,
+  cadenceByClientFrom,
+  coverageHint,
+  useCoverageSuggestion,
+} from "../../../../_shared/orderCoverage";
 import { useCompanyFactoryNode } from "../../../../_shared/orderItemCatalog";
 import { usePaymentTermOptions } from "../../../../_shared/orderPaymentTerms";
 import { FREIGHT_OPTIONS } from "../../../../_shared/orderFreight";
@@ -52,6 +58,7 @@ interface SellerClientsData {
           nomeFantasia: string | null;
           cnpj: string | null;
         } | null;
+        cadence: CoverageCadence | null;
       };
     }[];
   };
@@ -71,6 +78,9 @@ export function useImportOrder({ onAddOptimistic }: ImportOrderModalProps) {
   const [pending, setPending] = useState<CreateOrderInput | null>(null);
   const [sellerId, setSellerId] = useState("");
   const [factoryId, setFactoryId] = useState("");
+  // O cliente também vira estado (e não só campo do form) para a sugestão de
+  // cobertura saber de qual prateleira está falando.
+  const [clientId, setClientId] = useState("");
   // Id do pedido criado pela confirmação — memoizado para uma re-tentativa
   // (ex.: falha de rede ao gravar itens) não criar um segundo pedido.
   const createdOrderIdRef = useRef<string | null>(null);
@@ -155,6 +165,13 @@ export function useImportOrder({ onAddOptimistic }: ImportOrderModalProps) {
     return Array.from(map.values());
   }, [clientsData]);
 
+  const cadenceByClient = useMemo(
+    () => cadenceByClientFrom(clientsData?.sellerClientFactoryList?.edges),
+    [clientsData]
+  );
+
+  useCoverageSuggestion(formRef, cadenceByClient.get(clientId), open);
+
   const formSteps: FormStepSchema[] = useMemo(
     () => [
       {
@@ -174,6 +191,7 @@ export function useImportOrder({ onAddOptimistic }: ImportOrderModalProps) {
                 onChange: (value, setValue) => {
                   setSellerId(extractSelectValue(value));
                   setFactoryId("");
+                  setClientId("");
                   setValue("factoryId", "");
                   setValue("clientId", "");
                 },
@@ -190,6 +208,7 @@ export function useImportOrder({ onAddOptimistic }: ImportOrderModalProps) {
                 options: factoryOptions,
                 onChange: (value, setValue) => {
                   setFactoryId(extractSelectValue(value));
+                  setClientId("");
                   setValue("clientId", "");
                   // Condições de pagamento são da fábrica: trocar invalida a escolha.
                   setValue("paymentTermId", "");
@@ -205,6 +224,7 @@ export function useImportOrder({ onAddOptimistic }: ImportOrderModalProps) {
                 required: true,
                 disabled: !factoryId,
                 options: clientOptions,
+                onChange: (value) => setClientId(extractSelectValue(value)),
               },
               {
                 name: "orderDate",
@@ -241,9 +261,9 @@ export function useImportOrder({ onAddOptimistic }: ImportOrderModalProps) {
               {
                 name: "coverageDays",
                 type: "number",
-                label: "Dura quantos dias na loja? (opcional)",
+                label: "Dura quantos dias na loja?",
                 placeholder: "Ex: 30",
-                hint: "Sua estimativa de quanto tempo esta compra segura o cliente. É o que ensina a rotina a saber quando voltar.",
+                hint: coverageHint(cadenceByClient.get(clientId)),
               },
             ],
           },
@@ -257,6 +277,8 @@ export function useImportOrder({ onAddOptimistic }: ImportOrderModalProps) {
       sellerId,
       factoryId,
       paymentTermOptions,
+      cadenceByClient,
+      clientId,
     ]
   );
 
@@ -273,6 +295,7 @@ export function useImportOrder({ onAddOptimistic }: ImportOrderModalProps) {
       createdOrderIdRef.current = null;
       setSellerId("");
       setFactoryId("");
+      setClientId("");
       formRef.current?.resetForm();
     }
   };

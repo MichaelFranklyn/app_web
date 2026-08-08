@@ -46,6 +46,11 @@ export const FACTORY_ASSIGNMENTS_QUERY = gql`
             nomeFantasia
             cnpj
           }
+          # Alimenta a sugestão de "dura quantos dias na loja?" no fechamento.
+          cadence {
+            days
+            source
+          }
         }
       }
     }

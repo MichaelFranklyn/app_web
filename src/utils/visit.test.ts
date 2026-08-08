@@ -26,8 +26,23 @@ describe("catálogos de visita", () => {
       value: "PENDING",
       label: "Pendente",
     });
-    expect(VISIT_STATUS_OPTIONS).toHaveLength(
+    // Todo status tem rótulo — inclusive os que ninguém escolhe à mão —, então a
+    // lista de opções é o mapa MENOS os automáticos, nunca mais que ele.
+    expect(VISIT_STATUS_OPTIONS.length).toBeLessThanOrEqual(
       Object.keys(VISIT_STATUS_LABEL).length
+    );
+    expect(
+      VISIT_STATUS_OPTIONS.every((o) => o.value in VISIT_STATUS_LABEL)
+    ).toBe(true);
+  });
+
+  it('"Cliente adiou" tem rótulo mas não se escolhe num formulário', () => {
+    // Ele nasce da rotina, quando um dia fixo cai numa data em que o cliente
+    // pediu para não ser procurado. Ofertá-lo num select convidaria o vendedor
+    // a marcá-lo numa visita comum, onde não significa nada.
+    expect(VISIT_STATUS_LABEL.SKIPPED_BY_CUSTOMER).toBe("Cliente adiou");
+    expect(VISIT_STATUS_OPTIONS.map((o) => o.value)).not.toContain(
+      "SKIPPED_BY_CUSTOMER"
     );
   });
 

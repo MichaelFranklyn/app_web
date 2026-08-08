@@ -1,24 +1,20 @@
 // Fonte única: o enum de resultado ganhou os valores exclusivos do contato remoto.
-import type { VisitContactType, VisitOutcome } from "@/utils/visit";
+import type {
+  VisitContactType,
+  VisitOutcome,
+  VisitStatus,
+} from "@/utils/visit";
 // As cinco dimensões do score chegam junto com o total: são elas que explicam,
 // no painel da visita, POR QUE aquela empresa está pedindo atenção.
 import type { ScoreDimensions } from "@/utils/score";
 
-export type { VisitContactType, VisitOutcome };
+export type { VisitContactType, VisitOutcome, VisitStatus };
 
 export type ScheduleStatus = "DRAFT" | "CONFIRMED";
 
 export type DayStatus = "PLANNED" | "IN_PROGRESS" | "DONE";
 
 export type DepartureType = "HOME" | "CUSTOM" | "GPS";
-
-export type VisitStatus =
-  | "PENDING"
-  | "COMPLETED"
-  | "CLIENT_ABSENT"
-  | "NO_TIME"
-  | "RESCHEDULED"
-  | "CANCELLED";
 
 /** Com quem falar no cliente — alimenta os botões de ligar e WhatsApp. */
 export interface VisitPrimaryContact {
@@ -67,6 +63,12 @@ export interface VisitFocusFactory {
 
 export interface VisitScheduleItem {
   id: string;
+  /**
+   * Preenchido quando a parada veio de um DIA FIXO (compromisso do gestor com o
+   * cliente), e não de uma escolha do motor. O vendedor precisa saber a
+   * diferença: uma ele pode remarcar sem consequência, a outra é promessa.
+   */
+  fixedScheduleId: string | null;
   plannedOrder: number;
   /** Visita presencial ou contato remoto (ligação/WhatsApp). */
   contactType: VisitContactType;

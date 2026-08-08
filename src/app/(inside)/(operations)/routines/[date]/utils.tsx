@@ -3,28 +3,20 @@ import {
   getCurrentWeekMondayIso,
   toUtcIsoDate as toIsoDate,
 } from "@/utils/format/date";
-import { VisitClient, VisitFactory, VisitStatus } from "./interface";
+import { VisitClient, VisitFactory } from "./interface";
 import { factoryName } from "@/utils/company";
+import {
+  VISIT_STATUS_COLOR,
+  VISIT_STATUS_LABEL,
+  VisitStatusColor,
+} from "@/utils/visit";
 
-export type StopStatusColor = "green" | "amber" | "neutral" | "red" | "blue";
-
-export const STOP_STATUS_COLOR: Record<VisitStatus, StopStatusColor> = {
-  COMPLETED: "green",
-  PENDING: "neutral",
-  CLIENT_ABSENT: "red",
-  CANCELLED: "red",
-  RESCHEDULED: "blue",
-  NO_TIME: "blue",
-};
-
-export const STOP_STATUS_LABEL: Record<VisitStatus, string> = {
-  COMPLETED: "Realizada",
-  PENDING: "Pendente",
-  CLIENT_ABSENT: "Cliente ausente",
-  CANCELLED: "Cancelada",
-  RESCHEDULED: "Remarcada",
-  NO_TIME: "Sem tempo",
-};
+// Cor e rótulo de status são os MESMOS da grade semanal — a rota do dia só os
+// chamava por outro nome, e manter duas tabelas iguais garantia que um status
+// novo aparecesse traduzido numa tela e cru na outra.
+export type StopStatusColor = VisitStatusColor;
+export const STOP_STATUS_COLOR = VISIT_STATUS_COLOR;
+export const STOP_STATUS_LABEL = VISIT_STATUS_LABEL;
 
 // Desloca uma data ISO em N dias (para navegar dia anterior/seguinte).
 export const shiftDateIso = (isoDate: string, days: number): string => {

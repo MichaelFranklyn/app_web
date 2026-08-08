@@ -34,6 +34,7 @@ const score = (over: Partial<ScoreDimensions> = {}): ScoreDimensions => ({
 
 const item = (over: Partial<VisitScheduleItem> = {}): VisitScheduleItem => ({
   id: "it-1",
+  fixedScheduleId: null,
   plannedOrder: 1,
   contactType: "IN_PERSON",
   estimatedTravelMin: null,

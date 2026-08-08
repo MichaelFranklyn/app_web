@@ -1,3 +1,5 @@
+import { CoverageCadence } from "../../../../_shared/orderCoverage";
+
 // Tipos compartilhados entre AddOrderModal e ImportOrderModal (vivem no pai).
 export interface CreateOrderResponse {
   createOrder: {
@@ -31,6 +33,8 @@ export interface FactoryAssignment {
     nomeFantasia: string | null;
     cnpj: string | null;
   } | null;
+  /** Ritmo de compra do vínculo — sugere a cobertura no fechamento do pedido. */
+  cadence: CoverageCadence | null;
 }
 
 export interface FactoryAssignmentsData {

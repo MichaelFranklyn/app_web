@@ -1,6 +1,6 @@
 # AUTO-GERADO por scripts/pull-schema.mjs — NÃO editar à mão.
 # Snapshot do schema do backend (app_user). Atualize com: npm run schema:pull
-# Fonte: 45 arquivos .graphql merge-ados (mesma regra do Ariadne).
+# Fonte: 46 arquivos .graphql merge-ados (mesma regra do Ariadne).
 
 input BaseListInput {
   filters: [FieldFilterInput!] = null
@@ -1672,6 +1672,82 @@ extend type Mutation {
   clearPriceListPromotion(priceListId: UUID!): FactoryPriceListTypeDataResponse!
 }
 
+input CreateFixedScheduleInput {
+  """Vendedor dono do compromisso. Opcional para o próprio vendedor: vem do token."""
+  sellerId: UUID = null
+  clientId: UUID!
+  """Dia da semana em ISO (1 = segunda .. 7 = domingo)."""
+  weekday: Int!
+  """Cadência em semanas: 1 = toda semana, 2 = quinzenal, 3, 4 = mensal."""
+  intervalWeeks: Int! = 1
+  """Data a partir da qual o compromisso vale. O sistema normaliza para o primeiro dia da semana escolhido a partir dela; no passado, vale a partir de hoje."""
+  startsOn: Date = null
+  """Fim do compromisso. Nulo = enquanto estiver ativo."""
+  endsOn: Date = null
+  notes: String = null
+  isActive: Boolean! = true
+}
+
+input UpdateFixedScheduleInput {
+  weekday: Int = null
+  intervalWeeks: Int = null
+  startsOn: Date = null
+  endsOn: Date = null
+  notes: String = null
+  isActive: Boolean = null
+}
+
+type FixedScheduleType {
+  id: UUID!
+  companyId: UUID!
+  sellerId: UUID!
+  clientId: UUID!
+  """Dia da semana em ISO (1 = segunda .. 7 = domingo)."""
+  weekday: Int!
+  intervalWeeks: Int!
+  startsOn: Date!
+  endsOn: Date
+  isActive: Boolean!
+  notes: String
+  """Próximas datas em que o compromisso cai, a partir de hoje."""
+  nextOccurrences(limit: Int = 4): [Date!]!
+  createdAt: DateTime!
+  updatedAt: DateTime!
+  seller: SellerType
+  client: ClientType
+}
+
+type FixedScheduleTypeConnectionResponse {
+  edges: [FixedScheduleTypeEdge!]!
+  pageInfo: PageInfo!
+  totalCount: Int!
+}
+
+type FixedScheduleTypeDataResponse {
+  status: Boolean!
+  code: Int!
+  message: String!
+  data: FixedScheduleType
+}
+
+type FixedScheduleTypeEdge {
+  node: FixedScheduleType!
+  cursor: String!
+}
+
+extend type Query {
+  fixedSchedule(id: UUID!): FixedScheduleTypeDataResponse!
+  """Compromissos fixos da empresa. `sellerId` recorta por vendedor; o vendedor logado só enxerga os próprios."""
+  fixedSchedules(input: BaseListInput!, sellerId: UUID = null): FixedScheduleTypeConnectionResponse!
+}
+
+extend type Mutation {
+  """Cria um compromisso de rota fixa. Recusa (409) quando o dia não comporta: capacidade fixa, distância entre os clientes do dia ou jornada estourada."""
+  createFixedSchedule(input: CreateFixedScheduleInput!): FixedScheduleTypeDataResponse!
+  updateFixedSchedule(id: UUID!, input: UpdateFixedScheduleInput!): FixedScheduleTypeDataResponse!
+  deleteFixedSchedule(id: UUID!): FixedScheduleTypeDataResponse!
+}
+
 input CreateImportLogInput {
   orderId: UUID!
   templateId: UUID!
@@ -2992,6 +3068,54 @@ type ClientAbcRow {
   lastOrderDate: Date
 }
 
+
+# ── O motor de rotina acertou? ──────────────────────────────────────────
+
+"""
+A faixa de score em que a recomendação caiu, na mesma régua do motor:
+`URGENT_TOP` e `URGENT` pagam deslocamento (>= 45), `ATTENTION` é a fila do
+telefone e `CALM` é o cliente tranquilo.
+"""
+enum VisitScoreBand {
+  URGENT_TOP
+  URGENT
+  ATTENTION
+  CALM
+}
+
+"Um recorte do acerto: faixa de score × tipo de toque."
+type VisitAccuracyRow {
+  band: VisitScoreBand!
+  contactType: VisitContactType!
+  "Recomendações que o motor fez no período (o denominador de tudo)."
+  planned: Int!
+  "Quantas o vendedor de fato trabalhou (qualquer desfecho)."
+  worked: Int!
+  "Quantas viraram pedido do cliente dentro da janela de conversão."
+  converted: Int!
+  executionRate: Float!
+  conversionRate: Float!
+  orderAmount: Decimal!
+}
+
+"""
+Se as recomendações do motor viram pedido — a única leitura que diz se a
+priorização está funcionando. `lift` compara a taxa do motor com a linha de base
+da carteira: 1.0 significa que priorizar não mudou nada em relação ao acaso.
+"""
+type VisitAccuracyReportType {
+  rows: [VisitAccuracyRow!]!
+  planned: Int!
+  worked: Int!
+  converted: Int!
+  conversionRate: Float!
+  orderAmount: Decimal!
+  "Chance de um cliente da carteira comprar numa janela igual, sem recomendação."
+  baselineRate: Float!
+  "Razão entre a taxa do motor e a linha de base. Nulo quando não há base medida."
+  lift: Float
+}
+
 extend type Query {
   """
   As duplicatas que vencem no período (recorte por vencimento), com o fechamento
@@ -3022,6 +3146,13 @@ extend type Query {
   colunas "no período". Sem corte de top-N.
   """
   clientFactoryPurchasesReport(from: Date = null, to: Date = null, sellerId: UUID = null): ClientFactoryPurchasesReportType!
+
+  """
+  Das recomendações que o motor fez no período, quantas viraram pedido — por
+  faixa de score e por tipo de toque, com a linha de base da carteira para
+  comparação. `windowDays` é a janela de crédito do pedido ao toque.
+  """
+  visitAccuracyReport(from: Date = null, to: Date = null, sellerId: UUID = null, windowDays: Int = 7): VisitAccuracyReportType!
 }
 
 input CreateSellerClientFactoryInput {
@@ -3099,7 +3230,11 @@ intervalo real entre os últimos doze pedidos daquele cliente.
 type CadenceType {
   """Dias entre compras. Nulo quando não há base nenhuma para estimar."""
   days: Int
-  """`observada` (pedidos reais) | `declarada` (estimativa do vendedor) | `combinada` (cadastro) | `desconhecida`."""
+  """
+  `observada` (pedidos reais) | `declarada` (estimativa do vendedor) |
+  `combinada` (cadastro) | `tipica` (mediana da fábrica, quando o cliente ainda
+  não tem histórico próprio) | `desconhecida`.
+  """
   source: String!
   """A estimativa do vendedor contradiz os pedidos. Quando true, `days` já é a observada."""
   isDivergent: Boolean!
@@ -3936,6 +4071,8 @@ type VisitScheduleItemType {
   id: UUID!
   scheduleDayId: UUID!
   sellerClientFactoryId: UUID!
+  """Preenchido quando a parada veio de um compromisso de ROTA FIXA (contrato), não de uma escolha do motor."""
+  fixedScheduleId: UUID
   plannedOrder: Int!
   """Visita presencial ou contato remoto (ligação/WhatsApp)."""
   contactType: VisitContactType!
@@ -4201,6 +4338,8 @@ enum VisitStatus {
   NO_TIME
   RESCHEDULED
   CANCELLED
+  """Ocorrência de rota fixa que não vai acontecer porque o próprio cliente pediu para não ser procurado nesta data. Fica registrada e devolve a vaga do dia ao motor."""
+  SKIPPED_BY_CUSTOMER
 }
 
 input CreateVisitScheduleInput {

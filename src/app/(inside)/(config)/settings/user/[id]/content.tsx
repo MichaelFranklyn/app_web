@@ -8,6 +8,7 @@ import { UserX } from "lucide-react";
 import {
   ClientsSection,
   FactoriesSection,
+  FixedSchedulesSection,
   RoutineSection,
   USER_DETAIL_QUERY,
   UserDetailQueryResponse,
@@ -75,6 +76,7 @@ export default function MyProfileContent({ userId, canEnableSeller }: Props) {
         />
 
         {seller && <RoutineSection seller={seller} onRefetch={refetch} />}
+        {seller && <FixedSchedulesSection sellerId={seller.id} />}
         {seller && <FactoriesSection sellerId={seller.id} />}
         {seller && <ClientsSection sellerId={seller.id} />}
       </div>

@@ -44,6 +44,7 @@ export const WEEK_SCHEDULE_QUERY = gql`
             status
             items {
               id
+              fixedScheduleId
               plannedOrder
               contactType
               estimatedTravelMin
