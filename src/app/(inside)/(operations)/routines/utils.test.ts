@@ -1,8 +1,9 @@
-import { describe, expect, it } from "vitest";
+import { afterEach, describe, expect, it, vi } from "vitest";
 
 import type { ScoreDimensions } from "@/utils/score";
 import { VisitScheduleItem } from "./interface";
 import {
+  canGenerateWeek,
   formatTravelToStop,
   formatVisitSlot,
   getVisitFollowupWarning,
@@ -269,6 +270,42 @@ describe("getVisitFollowupWarning", () => {
     const visit = item({ status: "COMPLETED", outcome: "SOLD" });
 
     expect(getVisitFollowupWarning(visit)).toBeNull();
+  });
+});
+
+describe("canGenerateWeek", () => {
+  afterEach(() => {
+    vi.useRealTimers();
+  });
+
+  // Quarta-feira, 29/07/2026 — semana que começou em 27/07.
+  const congelaQuarta = () => {
+    vi.useFakeTimers();
+    vi.setSystemTime(new Date(2026, 6, 29, 10, 0, 0));
+  };
+
+  it("a semana atual pode ser gerada", () => {
+    congelaQuarta();
+    expect(canGenerateWeek("2026-07-27")).toBe(true);
+  });
+
+  // O plano de uma semana que ainda não começou nasceria com o score de hoje e
+  // chegaria desatualizado — quem gera a semana que vem é o job da segunda.
+  it("a próxima semana não pode ser gerada", () => {
+    congelaQuarta();
+    expect(canGenerateWeek("2026-08-03")).toBe(false);
+  });
+
+  it("semana passada não pode ser gerada", () => {
+    congelaQuarta();
+    expect(canGenerateWeek("2026-07-20")).toBe(false);
+  });
+
+  // Na própria segunda a semana corrente já é a de hoje.
+  it("na segunda, a semana que começa hoje pode ser gerada", () => {
+    vi.useFakeTimers();
+    vi.setSystemTime(new Date(2026, 6, 27, 3, 30, 0));
+    expect(canGenerateWeek("2026-07-27")).toBe(true);
   });
 });
 

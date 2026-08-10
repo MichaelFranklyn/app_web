@@ -230,13 +230,18 @@ export const shiftWeekIso = (isoDate: string, weeks: number): string => {
   return toIsoDate(date);
 };
 
-// Só é possível gerar uma rotina inexistente para a semana atual ou a próxima.
-// Semanas mais distantes (ou passadas) não exibem o botão de gerar.
-export const canGenerateWeek = (weekStartIso: string): boolean => {
-  const current = getCurrentWeekMondayIso();
-  const next = shiftWeekIso(current, 1);
-  return weekStartIso === current || weekStartIso === next;
-};
+/**
+ * Só a SEMANA ATUAL pode ser gerada.
+ *
+ * A rotina montada com antecedência congela o score do dia em que foi feita, e o
+ * score continua andando: quando a semana chegava, boa parte das visitas já não
+ * se justificava e os clientes que ficaram urgentes no caminho não estavam no
+ * plano. Por isso o sistema planeja uma semana de cada vez — o job automático
+ * roda na madrugada de segunda, e aqui o vendedor gera a semana em que já está.
+ * Semanas futuras (ou passadas) não exibem o botão.
+ */
+export const canGenerateWeek = (weekStartIso: string): boolean =>
+  weekStartIso === getCurrentWeekMondayIso();
 
 /**
  * O dia já passou — não há rota a gerar para ele.
