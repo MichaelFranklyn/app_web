@@ -90,11 +90,12 @@ export default function RoutinesContent() {
             Não há rotina cadastrada para {formatWeekRange(weekStart)}.
             {canGenerateWeek(weekStart)
               ? " Gere a rotina desta semana ou navegue entre as semanas."
-              : " Navegue entre as semanas ou volte para a semana atual."}
+              : " A rotina é gerada uma semana por vez, na semana em que ela" +
+                " começa. Volte para a semana atual para gerá-la."}
           </EmptyState.Description>
           <EmptyState.Actions>
-            {/* Gerar rotina só faz sentido para a semana atual e a seguinte;
-                semanas mais distantes ainda não têm carteira/agenda definida. */}
+            {/* Gerar rotina só na semana atual: o plano é feito para a semana
+                que já começou, senão nasce com o score defasado. */}
             {canGenerateWeek(weekStart) && (
               <GenerateWeekButton
                 weekStart={weekStart}
@@ -149,8 +150,8 @@ export default function RoutinesContent() {
             </div>
 
             <div className="flex flex-wrap items-center gap-8">
-              {/* Refazer só na semana atual e na próxima — o mesmo recorte do
-                  botão de gerar, e o backend recusa dias que já passaram. */}
+              {/* Refazer só na semana atual — o mesmo recorte do botão de
+                  gerar, e o backend recusa dias que já passaram. */}
               {canGenerateWeek(weekStart) && (
                 <RegenerateWeekButton
                   weekStart={weekStart}
