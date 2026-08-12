@@ -56,6 +56,8 @@ export function OrderImportWizard({
     reviewRows,
     result,
     isLoading,
+    isRedirecting,
+    viewOrder,
     handleFiles,
     headerOptions,
     onHeaderChange,
@@ -85,7 +87,8 @@ export function OrderImportWizard({
         <Stepper.Root
           current={step}
           onChange={(index) => {
-            if (!result && !isLoading && index < 3) setStep(index);
+            if (!result && !isLoading && !isRedirecting && index < 3)
+              setStep(index);
           }}
         >
           <Stepper.Item label="Arquivo">
@@ -136,15 +139,20 @@ export function OrderImportWizard({
 
       <Modal.Footer>
         {result ? (
+          // Com o pedido gravado o caminho é a página dele. Só chegamos aqui com
+          // `viewOrder` quando algum item falhou ao gravar (a lista de erros
+          // acima é a razão de não redirecionar sozinho) — o botão leva o
+          // usuário para lá em vez de deixá-lo na lista.
           <Button.Root
             type="button"
             appearance="solid"
             color="amber"
             size="md"
             noUppercase
-            onClick={onClose}
+            loading={isRedirecting}
+            onClick={viewOrder ?? onClose}
           >
-            <Button.Title>Fechar</Button.Title>
+            <Button.Title>{viewOrder ? "Ver pedido" : "Fechar"}</Button.Title>
           </Button.Root>
         ) : (
           <>
@@ -155,7 +163,7 @@ export function OrderImportWizard({
                 color="neutral"
                 size="md"
                 noUppercase
-                disabled={isLoading}
+                disabled={isLoading || isRedirecting}
                 onClick={() => setStep((s) => s - 1)}
               >
                 <Button.Title>Voltar</Button.Title>
@@ -195,7 +203,9 @@ export function OrderImportWizard({
                 color="amber"
                 size="md"
                 noUppercase
-                loading={isLoading}
+                // O loading só termina quando a página do pedido já carregou —
+                // sem o flash de "pronto" com a próxima tela em branco.
+                loading={isLoading || isRedirecting}
                 disabled={confirmableCount === 0}
                 onClick={runConfirm}
               >
