@@ -4,6 +4,7 @@ import { useEffect, useMemo, useState } from "react";
 import { SelectOption } from "@/components/Input";
 import { useToast } from "@/components/Toast";
 import { useAsyncAction } from "@/hooks/useAsyncAction";
+import { useRedirectTransition } from "@/hooks/useRedirectTransition";
 import { parseNumber } from "@/utils/import/columns";
 import {
   guessBestSheet,
@@ -92,9 +93,13 @@ export function useOrderImportWizard({
   });
   const [reviewRows, setReviewRows] = useState<ReviewRow[]>([]);
   const [result, setResult] = useState<ImportResult | null>(null);
+  // Pedido em que os itens foram gravados — é para a página dele que o fluxo
+  // termina indo (o wizard só sabe o id depois de confirmar, no caso `deferred`).
+  const [savedOrderId, setSavedOrderId] = useState<string | null>(null);
 
   const { toast } = useToast();
   const { execute, isLoading } = useAsyncAction();
+  const { redirect, isRedirecting } = useRedirectTransition();
   const [extractFile] = useMutation<ExtractOrderFileResponse>(
     EXTRACT_ORDER_FILE_MUTATION
   );
@@ -105,7 +110,24 @@ export function useOrderImportWizard({
     CONFIRM_ORDER_IMPORT_MUTATION
   );
 
-  useEffect(() => onBusyChange?.(isLoading), [isLoading, onBusyChange]);
+  // Redirecionando também é "ocupado": o modal não pode fechar no meio da
+  // navegação (fechar antes encerraria o loading com a próxima tela em branco).
+  useEffect(
+    () => onBusyChange?.(isLoading || isRedirecting),
+    [isLoading, isRedirecting, onBusyChange]
+  );
+
+  /**
+   * Fluxos que CRIAM o pedido (lista /orders e aba da fábrica) terminam na
+   * página do pedido. No detalhe do pedido já estamos nela — navegar para a
+   * mesma rota só recarregaria a tela com o modal aberto.
+   */
+  const redirectsToOrder = Boolean(deferred);
+
+  const viewOrder =
+    redirectsToOrder && savedOrderId
+      ? () => redirect(`/orders/${savedOrderId}`)
+      : null;
 
   const parsedSheet = useMemo(
     () => (matrix ? splitAt(matrix, headerIndex) : null),
@@ -141,6 +163,7 @@ export function useOrderImportWizard({
 
   const handleFiles = async (files: File[]) => {
     setResult(null);
+    setSavedOrderId(null);
     setReviewRows([]);
     setUnreadableRows([]);
     setWorkbook(null);
@@ -331,12 +354,11 @@ export function useOrderImportWizard({
         if (!payload?.status || !payload.data) {
           throw new Error(payload?.message ?? "Erro ao importar os itens.");
         }
-        return payload.data;
+        return { ...payload.data, orderId: targetOrderId };
       },
       {
-        onSuccess: (r) => {
-          setResult(r);
-          setStep(3);
+        onSuccess: ({ orderId: targetOrderId, ...r }) => {
+          setSavedOrderId(targetOrderId);
           onImported();
           const partial = r.failed > 0 || skippedItems.length > 0;
           const skippedNote = skippedItems.length
@@ -347,6 +369,16 @@ export function useOrderImportWizard({
             title: partial ? "Importação parcial" : "Itens importados",
             description: `${r.created} item(ns) importado(s), ${r.failed} com erro${skippedNote}.`,
           });
+          // Subiu o pedido → cai na página dele. Só paramos no passo de resultado
+          // quando algum item FALHOU ao gravar: a mensagem de erro de cada linha
+          // existe apenas ali (o que ficou fora do catálogo já foi mostrado na
+          // revisão, antes de confirmar, e volta no toast).
+          if (redirectsToOrder && r.failed === 0) {
+            redirect(`/orders/${targetOrderId}`);
+            return;
+          }
+          setResult(r);
+          setStep(3);
         },
       }
     );
@@ -378,6 +410,9 @@ export function useOrderImportWizard({
     reviewRows,
     result,
     isLoading,
+    isRedirecting,
+    /** Vai para a página do pedido; null quando o fluxo já está nela. */
+    viewOrder,
     handleFiles,
     headerOptions,
     onHeaderChange,

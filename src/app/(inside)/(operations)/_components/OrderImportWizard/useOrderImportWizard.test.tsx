@@ -18,7 +18,20 @@ vi.mock("@/components/Toast", () => ({
   useToast: () => ({ toast: toastSpy }),
 }));
 
-beforeEach(() => toastSpy.mockClear());
+// O wizard termina indo para a página do pedido (useRedirectTransition → router).
+// O mock global do setup devolve um push novo a cada render, que não dá para
+// assertar; aqui fixamos o spy. Precedência: vi.mock local vence o global.
+const push = vi.fn();
+vi.mock("next/navigation", () => ({
+  useRouter: () => ({ push }),
+  usePathname: () => "/orders",
+  useSearchParams: () => new URLSearchParams(),
+}));
+
+beforeEach(() => {
+  toastSpy.mockClear();
+  push.mockClear();
+});
 
 /** Candidato de preview "casado" (SKU→produto/nível/preço), pronto p/ incluir. */
 function matchedCandidate(overrides: Record<string, unknown> = {}) {
@@ -206,6 +219,9 @@ describe("useOrderImportWizard — máquina de estado", () => {
     expect(toastSpy).toHaveBeenCalledWith(
       expect.objectContaining({ variant: "success", title: "Itens importados" })
     );
+    // Detalhe do pedido: já estamos na página dele → nada de navegar.
+    expect(push).not.toHaveBeenCalled();
+    expect(api.viewOrder).toBeNull();
 
     // O reviewRow vira exatamente 1 item no payload do confirm.
     const items = (
@@ -306,8 +322,11 @@ describe("useOrderImportWizard — máquina de estado", () => {
     expect(api.reviewRows).toEqual([]);
   });
 
-  it("pedido adiado (deferred): nada é criado até a confirmação, que usa o id devolvido", async () => {
-    const createOrder = vi.fn(async () => "order-deferred-1");
+  /** Renderiza o wizard no fluxo em que o pedido só nasce na confirmação. */
+  function renderDeferred(
+    mocks: MockLink.MockedResponse[],
+    createOrder: () => Promise<string>
+  ) {
     function DeferredHarness() {
       api = useOrderImportWizard({
         deferred: { factoryId: "fac-1", clientId: "cli-1", createOrder },
@@ -315,25 +334,34 @@ describe("useOrderImportWizard — máquina de estado", () => {
       });
       return null;
     }
-    const captured: { variables?: Record<string, unknown> } = {};
     onImported.mockClear();
     render(
-      <MockedProvider
-        mocks={[
-          extractItemsMock([
-            {
-              sku: "SKU-001",
-              name: "Produto Teste",
-              quantity: "10",
-              unitPrice: "100.00",
-            },
-          ]),
-          previewMock([matchedCandidate()]),
-          confirmMock({ created: 1, failed: 0 }, captured),
-        ]}
-      >
+      <MockedProvider mocks={mocks}>
         <DeferredHarness />
       </MockedProvider>
+    );
+  }
+
+  const oneItem = () =>
+    extractItemsMock([
+      {
+        sku: "SKU-001",
+        name: "Produto Teste",
+        quantity: "10",
+        unitPrice: "100.00",
+      },
+    ]);
+
+  it("pedido adiado (deferred): nada é criado até a confirmação, que usa o id devolvido", async () => {
+    const createOrder = vi.fn(async () => "order-deferred-1");
+    const captured: { variables?: Record<string, unknown> } = {};
+    renderDeferred(
+      [
+        oneItem(),
+        previewMock([matchedCandidate()]),
+        confirmMock({ created: 1, failed: 0 }, captured),
+      ],
+      createOrder
     );
 
     await uploadPdf();
@@ -345,12 +373,66 @@ describe("useOrderImportWizard — máquina de estado", () => {
       await api.runConfirm();
     });
 
-    await waitFor(() => expect(api.step).toBe(3));
-    expect(createOrder).toHaveBeenCalledTimes(1);
+    await waitFor(() => expect(createOrder).toHaveBeenCalledTimes(1));
     expect((captured.variables?.input as { orderId: string }).orderId).toBe(
       "order-deferred-1"
     );
     expect(onImported).toHaveBeenCalledTimes(1);
+  });
+
+  it("importação limpa fora do detalhe: vai para a página do pedido criado", async () => {
+    renderDeferred(
+      [
+        oneItem(),
+        previewMock([matchedCandidate()]),
+        confirmMock({ created: 1, failed: 0 }),
+      ],
+      async () => "order-deferred-1"
+    );
+
+    await uploadPdf();
+    await waitFor(() => expect(api.step).toBe(2));
+
+    await act(async () => {
+      await api.runConfirm();
+    });
+
+    await waitFor(() =>
+      expect(push).toHaveBeenCalledWith("/orders/order-deferred-1")
+    );
+    // Redireciona em vez de parar no passo de resultado — o usuário cai no pedido.
+    expect(api.step).toBe(2);
+    expect(api.result).toBeNull();
+  });
+
+  it("item que falhou ao gravar: para no resultado e oferece 'ver pedido'", async () => {
+    renderDeferred(
+      [
+        oneItem(),
+        previewMock([matchedCandidate()]),
+        confirmMock({
+          created: 0,
+          failed: 1,
+          errors: [{ index: 1, sku: "SKU-001", message: "SKU inválido" }],
+        }),
+      ],
+      async () => "order-deferred-2"
+    );
+
+    await uploadPdf();
+    await waitFor(() => expect(api.step).toBe(2));
+
+    await act(async () => {
+      await api.runConfirm();
+    });
+
+    // A lista de erros por linha só existe no resultado: não navega sozinho.
+    await waitFor(() => expect(api.step).toBe(3));
+    expect(push).not.toHaveBeenCalled();
+    expect(api.viewOrder).not.toBeNull();
+
+    act(() => api.viewOrder?.());
+    expect(push).toHaveBeenCalledWith("/orders/order-deferred-2");
   });
 
   it("confirmableCount ignora candidatos não casados e sem nível", async () => {
