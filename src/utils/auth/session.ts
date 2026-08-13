@@ -3,10 +3,19 @@
 // login/signup/change-password e o logout não repetirem o fetch.
 
 export interface SessionBody {
-  action: "login" | "signup" | "changePassword";
+  action:
+    | "login"
+    | "signup"
+    | "changePassword"
+    // Troca a sessão do SU pela de outro usuário, e a volta. Não são
+    // autenticação: rodam com o token atual e mexem nos cookies da sessão
+    // guardada. Ver `startImpersonation` na rota.
+    | "impersonate"
+    | "stopImpersonation";
   // `object` (não Record) para aceitar tanto literais quanto os inputs tipados
   // (ex.: RegisterCompanyInput) sem cast; é só payload de transporte serializado.
-  input: object;
+  // Ausente em `stopImpersonation`, que não recebe nada.
+  input?: object;
   remember?: boolean;
 }
 

@@ -1,4 +1,4 @@
-export type UserRole = "SU" | "OWNER" | "ADMIN" | "SELLER";
+export type UserRole = "SU" | "SUPPORT" | "OWNER" | "ADMIN" | "SELLER";
 
 export interface UserData {
   userId: string;

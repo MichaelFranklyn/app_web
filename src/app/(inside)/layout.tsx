@@ -8,6 +8,7 @@ import { ChevronLeft, ChevronRight, Menu } from "lucide-react";
 import Image from "next/image";
 import { CompanyBadge } from "./_components/CompanyBadge";
 import { DevRoleSwitch } from "./_components/DevRoleSwitch";
+import { ImpersonationBanner } from "./_components/ImpersonationBanner";
 import { NotificationCenter } from "./_components/NotificationCenter";
 import { UserMenu } from "./_components/UserMenu";
 import { useInsideLayout } from "./useInsideLayout";
@@ -177,6 +178,11 @@ export default function InsideLayout({
         </Sidebar.Root>
 
         <div className="flex flex-1 flex-col overflow-hidden">
+          {/* Acima da topbar de propósito: numa sessão emprestada, o aviso não
+              pode competir por atenção com o resto do cabeçalho. Em sessão
+              comum não renderiza nada. */}
+          <ImpersonationBanner />
+
           <Topbar.Root>
             <Topbar.Breadcrumb>
               {/* Hambúrguer: abre o drawer no mobile/tablet; some no desktop. */}

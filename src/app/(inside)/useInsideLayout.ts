@@ -5,7 +5,7 @@ import { getCookie } from "@/utils/cookies/clientCookie";
 import { getTodayIso } from "@/utils/format/date";
 import { usePathname } from "next/navigation";
 import { useEffect, useState } from "react";
-import { ROLE_LABEL, SU_NAV, visibleNav } from "./navConfig";
+import { ROLE_LABEL, visibleNav } from "./navConfig";
 
 interface UserData {
   userId: string;
@@ -72,8 +72,7 @@ export function useInsideLayout() {
   // o vendedor não vê Empresa/Pessoas/Catálogos (e a seção inteira desaparece com
   // eles). As rotas seguem protegidas server-side — aqui é só a UI do menu.
   // SU enxerga também os itens de plataforma.
-  const baseNav = visibleNav(userData?.role);
-  const navItems = userData?.role === "SU" ? [...baseNav, ...SU_NAV] : baseNav;
+  const navItems = visibleNav(userData?.role);
   const userInitials = userData ? getUserInitials(userData.userName) : "—";
   const userName = userData?.userName ?? "Usuário";
   const userRole = userData?.role
