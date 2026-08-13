@@ -1,6 +1,6 @@
 # AUTO-GERADO por scripts/pull-schema.mjs — NÃO editar à mão.
 # Snapshot do schema do backend (app_user). Atualize com: npm run schema:pull
-# Fonte: 46 arquivos .graphql merge-ados (mesma regra do Ariadne).
+# Fonte: 47 arquivos .graphql merge-ados (mesma regra do Ariadne).
 
 input BaseListInput {
   filters: [FieldFilterInput!] = null
@@ -498,6 +498,22 @@ type CompanyType {
   logoUrl: String
   """Símbolo quadrado da empresa, para o avatar no topo do sistema. Sem ele, usa-se logoUrl."""
   avatarUrl: String
+
+  # Governança da plataforma: só o SU altera (via `setTenantStatus` /
+  # `updateTenantPlan`), mas a leitura é aberta à própria empresa — são fatos
+  # sobre a conta dela, e esconder o teto de usuários faria o erro ao criar o
+  # próximo parecer um defeito.
+  """Falso = login bloqueado para a empresa inteira. Não é exclusão: os dados
+  seguem intactos."""
+  isActive: Boolean!
+  suspendedAt: DateTime
+  suspensionReason: String
+  """Vencimento do teste. Nulo = sem prazo."""
+  trialEndsAt: DateTime
+  """Tetos de contratação. Nulo = sem teto (não confundir com zero)."""
+  maxUsers: Int
+  maxSellers: Int
+
   createdAt: DateTime!
   updatedAt: DateTime!
   deletedAt: DateTime
@@ -2406,6 +2422,848 @@ extend type Mutation {
   setCommissionReconciled(installmentIds: [UUID!]!, reconciled: Boolean!): BaseResponse!
 }
 
+# Console da plataforma — tudo aqui é exclusivo do super usuário (SU).
+#
+# É o único recorte do schema que lê por cima dos tenants: enquanto o resto da
+# API responde sempre dentro de uma empresa, estas operações somam, comparam e
+# governam todas elas. Os resolvers são `@is_authenticated @is_super_user` sem
+# exceção, e nenhum usa `@requires_company_context` — o `company_id` do token
+# do SU é o da empresa em que ele está ancorado, não um recorte de leitura.
+
+"""Ação de plataforma registrada na trilha do SU. Declarada desde já porque a
+tabela `platform_audit_logs` grava esses valores — a leitura da trilha entra
+com as telas de auditoria."""
+enum PlatformAuditAction {
+  PROVISION_COMPANY
+  SUSPEND_COMPANY
+  REACTIVATE_COMPANY
+  UPDATE_PLAN
+  ISSUE_ACCESS_LINK
+  IMPERSONATE_USER
+  """Governança da própria equipe — as duas ações que o suporte não executa, e
+  as mais sensíveis da trilha: criam e revogam quem enxerga todas as empresas."""
+  CREATE_PLATFORM_USER
+  SET_PLATFORM_USER_STATUS
+}
+
+"""Desfecho de uma execução de job agendado. `RUNNING` que não sai desse estado
+é o sintoma de job morto no meio."""
+enum JobRunStatus {
+  RUNNING
+  SUCCESS
+  FAILED
+  """Lock ocupado: o job acordou e não trabalhou. Uma ou outra é normal (duas
+  instâncias acordando juntas); todas puladas significa que o trabalho nunca
+  acontece — e é um silêncio que se parece com saúde."""
+  SKIPPED
+}
+
+"""Números da plataforma inteira. Os campos `...InPeriod` respeitam a janela
+pedida; os totais são absolutos."""
+type PlatformOverviewType {
+  totalCompanies: Int!
+  activeCompanies: Int!
+  suspendedCompanies: Int!
+  trialCompanies: Int!
+  newCompaniesInPeriod: Int!
+
+  totalUsers: Int!
+  """Usuários que entraram pelo menos uma vez dentro da janela."""
+  activeUsersInPeriod: Int!
+  """Contas que nunca fizeram login — provisionadas e não usadas."""
+  neverLoggedUsers: Int!
+  """Empresas com pelo menos um login na janela: o corte entre cliente vivo e
+  cadastro parado."""
+  engagedCompanies: Int!
+
+  totalSellers: Int!
+  totalClients: Int!
+  """Vínculos empresa↔fábrica ativos — não é o número de fábricas distintas."""
+  totalFactoryLinks: Int!
+
+  totalOrders: Int!
+  ordersInPeriod: Int!
+  """Soma dos pedidos confirmados, faturados e entregues na janela. Orçamento e
+  cancelado ficam de fora, como no dashboard do tenant."""
+  gmvInPeriod: Decimal!
+}
+
+type PlatformOverviewTypeDataResponse {
+  status: Boolean!
+  code: Int!
+  message: String!
+  data: PlatformOverviewType
+}
+
+"""Um mês da série de crescimento. Mês sem movimento não vem na lista."""
+type PlatformGrowthPointType {
+  month: String!
+  newCompanies: Int!
+  newUsers: Int!
+  orders: Int!
+  gmv: Decimal!
+}
+
+type PlatformGrowthPointListDataResponse {
+  status: Boolean!
+  code: Int!
+  message: String!
+  data: [PlatformGrowthPointType!]
+}
+
+"""Uma empresa vista pela plataforma: cadastro, governança e uso no mesmo
+registro."""
+type PlatformTenantType {
+  id: UUID!
+  cnpj: String!
+  razaoSocial: String!
+  nomeFantasia: String
+  segment: String!
+  plan: String!
+  logoUrl: String
+  createdAt: DateTime!
+
+  """Falso = login bloqueado para a empresa inteira. Não confundir com
+  exclusão: os dados continuam íntegros."""
+  isActive: Boolean!
+  suspendedAt: DateTime
+  suspensionReason: String
+  """Vencimento do teste. Nulo = sem prazo."""
+  trialEndsAt: DateTime
+  """Tetos de contratação. Nulo = sem teto (não é zero)."""
+  maxUsers: Int
+  maxSellers: Int
+
+  usersCount: Int!
+  sellersCount: Int!
+  clientsCount: Int!
+  factoriesCount: Int!
+  ordersCount: Int!
+  ordersInPeriod: Int!
+  gmvInPeriod: Decimal!
+  """Login mais recente de qualquer usuário da empresa. Nulo = ninguém entrou."""
+  lastLoginAt: DateTime
+  lastOrderDate: Date
+}
+
+type PlatformTenantTypeEdge {
+  node: PlatformTenantType!
+  cursor: String!
+}
+
+type PlatformTenantTypeConnectionResponse {
+  edges: [PlatformTenantTypeEdge!]!
+  pageInfo: PageInfo!
+  totalCount: Int!
+}
+
+type PlatformTenantTypeDataResponse {
+  status: Boolean!
+  code: Int!
+  message: String!
+  data: PlatformTenantType
+}
+
+"""Janela de análise. Omitida, o padrão é os últimos 30 dias — o mesmo recorte
+em que a visão geral e as colunas de uso da lista concordam entre si."""
+input PlatformPeriodInput {
+  startDate: Date = null
+  endDate: Date = null
+}
+
+"""Uma pessoa vista pela plataforma: o usuário mais a empresa a que pertence.
+O nome da empresa vem junto porque, na lista global, um primeiro nome repetido
+não identifica ninguém."""
+type PlatformUserType {
+  id: UUID!
+  name: String!
+  email: String!
+  role: UserRole!
+  isActive: Boolean!
+  lastLoginAt: DateTime
+  createdAt: DateTime!
+  companyId: UUID!
+  companyName: String!
+}
+
+type PlatformUserTypeDataResponse {
+  status: Boolean!
+  code: Int!
+  message: String!
+  data: PlatformUserType
+}
+
+type PlatformUserTypeEdge {
+  node: PlatformUserType!
+  cursor: String!
+}
+
+type PlatformUserTypeConnectionResponse {
+  edges: [PlatformUserTypeEdge!]!
+  pageInfo: PageInfo!
+  totalCount: Int!
+}
+
+"""Uma linha da trilha do SU. `actorEmail` e `targetLabel` são cópias em texto:
+sobrevivem ao sumiço do usuário ou da empresa que a linha referencia."""
+type PlatformAuditLogType {
+  id: UUID!
+  createdAt: DateTime!
+  action: PlatformAuditAction!
+  actorEmail: String!
+  targetCompanyId: UUID
+  targetUserId: UUID
+  targetLabel: String
+  payload: JSON
+  reason: String
+  ipAddress: String
+}
+
+type PlatformAuditLogTypeEdge {
+  node: PlatformAuditLogType!
+  cursor: String!
+}
+
+type PlatformAuditLogTypeConnectionResponse {
+  edges: [PlatformAuditLogTypeEdge!]!
+  pageInfo: PageInfo!
+  totalCount: Int!
+}
+
+"""Última execução de um job agendado."""
+type PlatformJobRunType {
+  jobName: String!
+  startedAt: DateTime!
+  finishedAt: DateTime
+  status: JobRunStatus!
+  errorMessage: String
+  stats: JSON
+  """Quanto durou. Nulo enquanto não terminou — que é justamente o estado de um
+  job morto no meio, e por isso não pode virar zero."""
+  durationMs: Int
+}
+
+"""Estado técnico da plataforma."""
+type PlatformHealthType {
+  """Revisão do Alembic gravada no banco."""
+  databaseRevision: String
+  """Revisão mais nova presente no código. Diferente da de cima = migration
+  pendente, que é a causa clássica de erro de coluna inexistente em produção."""
+  codeRevision: String
+  hasPendingMigration: Boolean!
+  jobs: [PlatformJobRunType!]!
+  """Empresas cujo teste venceu e que ainda não foram suspensas."""
+  expiredTrials: Int!
+}
+
+type PlatformHealthTypeDataResponse {
+  status: Boolean!
+  code: Int!
+  message: String!
+  data: PlatformHealthType
+}
+
+"""O que exige decisão do SU agora. Cada item nasce de uma condição objetiva no
+banco e some sozinho quando ela deixa de valer — não há "marcar como resolvido"."""
+enum PlatformAttentionKind {
+  """Teste venceu: o login JÁ é recusado sem ninguém ter decidido isso."""
+  TRIAL_EXPIRED
+  TRIAL_EXPIRING
+  """Empresa provisionada em que ninguém entrou até hoje."""
+  NEVER_LOGGED_IN
+  """Já comprou algum dia, mas parou."""
+  DORMANT
+}
+
+enum PlatformAttentionSeverity {
+  CRITICAL
+  WARNING
+  INFO
+}
+
+type PlatformAttentionItemType {
+  kind: PlatformAttentionKind!
+  severity: PlatformAttentionSeverity!
+  companyId: UUID
+  companyName: String
+  detail: String!
+}
+
+type PlatformAttentionItemListDataResponse {
+  status: Boolean!
+  code: Int!
+  message: String!
+  data: [PlatformAttentionItemType!]
+}
+
+"""Para onde o tenant está indo, comparando a janela pedida com a anterior de
+mesmo tamanho."""
+enum PlatformTrend {
+  """Nenhum pedido nos dois períodos — não está operando."""
+  IDLE
+  """Primeira janela com movimento: adesão, não crescimento."""
+  NEW
+  GROWING
+  STABLE
+  DECLINING
+}
+
+type PlatformTenantHealthType {
+  companyId: UUID!
+  companyName: String!
+  isActive: Boolean!
+  ordersCurrent: Int!
+  ordersPrevious: Int!
+  gmvCurrent: Decimal!
+  gmvPrevious: Decimal!
+  """Nulo quando não houve faturamento no período anterior: sem base não existe
+  variação, existe um começo."""
+  changePercent: Float
+  trend: PlatformTrend!
+  lastOrderDate: Date
+}
+
+type PlatformTenantHealthListDataResponse {
+  status: Boolean!
+  code: Int!
+  message: String!
+  data: [PlatformTenantHealthType!]
+}
+
+"""Quantas empresas têm dado em cada parte do sistema. "Usar" é ter registro
+vivo — é o que se mede sem telemetria."""
+type PlatformFeatureAdoptionType {
+  feature: String!
+  label: String!
+  tenantsUsing: Int!
+  """Total de empresas ATIVAS: as suspensas não podem adotar nada."""
+  totalTenants: Int!
+}
+
+type PlatformFeatureAdoptionListDataResponse {
+  status: Boolean!
+  code: Int!
+  message: String!
+  data: [PlatformFeatureAdoptionType!]
+}
+
+"""A plataforma inteira como se fosse um tenant só."""
+type PlatformOperationType {
+  activeClients: Int!
+  """Clientes distintos que compraram na janela."""
+  positivatedClients: Int!
+  visitsPlanned: Int!
+  visitsDone: Int!
+  averageTicket: Decimal!
+  """Vendedor ATIVO é o que registrou pedido na janela, não o que tem cadastro."""
+  activeSellers: Int!
+  ordersPerSeller: Float!
+}
+
+type PlatformOperationTypeDataResponse {
+  status: Boolean!
+  code: Int!
+  message: String!
+  data: PlatformOperationType
+}
+
+"""Uma ação executada por um usuário dentro do produto.
+
+Distinta de `PlatformAuditLogType`: aquela é o que a PLATAFORMA fez sobre as
+empresas (permanente); esta é o que as EMPRESAS fizeram dentro do sistema
+(expira em 90 dias). `operation` é o nome do campo da mutation, sem semântica
+de negócio — a linha diz `updateOrder`, não "mudou o prazo".
+
+NUNCA traz as variáveis enviadas: só a operação e os UUIDs encontrados nelas."""
+type ActivityLogType {
+  id: UUID!
+  createdAt: DateTime!
+  operation: String!
+  status: String!
+  errorMessage: String
+  durationMs: Int
+  companyId: UUID
+  userId: UUID
+  userEmail: String
+  userRole: String
+  """UUIDs que apareceram nas variáveis — responde "em qual registro"."""
+  targetIds: JSON
+  ipAddress: String
+}
+
+type ActivityLogTypeEdge {
+  node: ActivityLogType!
+  cursor: String!
+}
+
+type ActivityLogTypeConnectionResponse {
+  edges: [ActivityLogTypeEdge!]!
+  pageInfo: PageInfo!
+  totalCount: Int!
+}
+
+"""Quanto cada operação é usada, com as falhas ao lado: muito uso com muito
+erro é defeito, não adoção."""
+type ActivitySummaryItemType {
+  key: String!
+  total: Int!
+  errors: Int!
+}
+
+type ActivitySummaryType {
+  """Operações mais usadas na janela."""
+  byOperation: [ActivitySummaryItemType!]!
+  """Ações por dia (`key` = "YYYY-MM-DD"): o pulso da plataforma."""
+  byDay: [ActivitySummaryItemType!]!
+  totalActions: Int!
+  totalErrors: Int!
+}
+
+type ActivitySummaryTypeDataResponse {
+  status: Boolean!
+  code: Int!
+  message: String!
+  data: ActivitySummaryType
+}
+
+"""Como uma operação vem se comportando na janela: quanto falha e quanto demora.
+
+As duas medidas juntas de propósito — uma operação que responde em quatro
+segundos sem nunca falhar é um problema tão real quanto uma que falha em 10%
+das chamadas, e olhar só o erro deixaria a primeira invisível."""
+type OperationHealthType {
+  """Nome do campo da mutation (`invoiceOrder`)."""
+  operation: String!
+  total: Int!
+  """Falhas do SISTEMA: 5xx, ou erro sem código. É o que exige conserto."""
+  errors: Int!
+  """Recusas esperadas (4xx): senha errada, duplicidade, regra de negócio
+  barrando. Não são defeito — aparecem só para explicar a diferença entre o
+  total de chamadas e o de sucessos, e nunca ordenam a lista."""
+  rejections: Int!
+  """Duração típica. Mediana, não média: a média é puxada por um único caso
+  extremo e faz parecer lenta uma operação que quase sempre responde rápido."""
+  medianMs: Int!
+  """Duração abaixo da qual 95% das chamadas ficaram — é o que o usuário sente
+  como "às vezes trava"."""
+  p95Ms: Int!
+  maxMs: Int!
+  lastErrorAt: DateTime
+  """Mensagem da falha mais recente. É ela que transforma "12 erros" em algo
+  acionável."""
+  lastErrorMessage: String
+}
+
+"""Estado das operações do sistema, mais grave primeiro."""
+type OperationHealthReportType {
+  operations: [OperationHealthType!]!
+  """Quantas operações falharam pelo menos uma vez na janela."""
+  failing: Int!
+  """Quantas têm p95 acima de um segundo."""
+  slow: Int!
+}
+
+type OperationHealthReportTypeDataResponse {
+  status: Boolean!
+  code: Int!
+  message: String!
+  data: OperationHealthReportType
+}
+
+"""Uma turma de empresas que entrou no mesmo mês, e o que sobrou dela.
+
+`values[0]` é o próprio mês de entrada — quase nunca igual a `companies`, e isso
+é achado, não erro: mede quantas empresas conseguiram fazer alguma coisa no mesmo
+mês em que foram criadas.
+
+A lista é mais curta nas turmas recentes: uma coorte só tem tantos meses quanto
+já viveu. Preencher o futuro com zero desenharia uma queda que é só ausência de
+tempo."""
+type PlatformRetentionCohortType {
+  """Mês de entrada, "YYYY-MM"."""
+  cohort: String!
+  """Tamanho da turma. Inclui as empresas suspensas depois: elas não saem da
+  turma em que nasceram, e tirá-las inflaria a permanência dos meses antigos."""
+  companies: Int!
+  """Empresas da turma que operaram em cada mês de vida (0 = mês de entrada).
+  "Operar" é ter registrado pedido, com ou sem status de venda: o que se mede é
+  permanência de uso, não receita."""
+  values: [Int!]!
+}
+
+"""Permanência das empresas ao longo do tempo — a pergunta que o gráfico de
+crescimento não responde. Dez empresas novas por mês com nove saindo é
+crescimento no gráfico de adesão e morte no negócio."""
+type PlatformRetentionType {
+  cohorts: [PlatformRetentionCohortType!]!
+  """Curva média por mês de vida, em porcentagem, ponderada pelo tamanho da
+  turma. O mês corrente fica de fora: está pela metade e cairia em posições
+  diferentes de cada turma.
+
+  Ponto NULO onde nenhuma turma serve de base — mês de vida que ninguém
+  alcançou. Zero ali afirmaria que ninguém ficou sobre o que nem aconteceu."""
+  overall: [Float]!
+  """Mês corrente ("YYYY-MM"), sempre incompleto. A tela marca essas células
+  para não se ler como queda o que é só o mês pela metade."""
+  currentMonth: String!
+  months: Int!
+}
+
+type PlatformRetentionTypeDataResponse {
+  status: Boolean!
+  code: Int!
+  message: String!
+  data: PlatformRetentionType
+}
+
+"""Um dia de uso medido em PESSOAS, não em volume."""
+type PlatformEngagementPointType {
+  """Dia "YYYY-MM-DD", no fuso de São Paulo."""
+  day: String!
+  users: Int!
+  companies: Int!
+  actions: Int!
+}
+
+"""Quanta gente usa a plataforma e com que frequência.
+
+ATENÇÃO ao que este número NÃO cobre: o histórico registra mutations, e consulta
+não deixa rastro. Quem entrou só para olhar relatório não aparece. É "quem
+trabalhou", nunca "quem acessou"."""
+type PlatformEngagementType {
+  """Série diária completa — dias sem ação chegam zerados, para o vale de fim de
+  semana aparecer no gráfico em vez de ser costurado."""
+  daily: [PlatformEngagementPointType!]!
+  """Média de pessoas por dia ÚTIL. Sábado e domingo entram na série e ficam
+  fora da média: a ferramenta é de trabalho de campo, e dois dias vazios por
+  semana rebaixariam a média em quase 30% sem dizer nada sobre adoção."""
+  dailyAverage: Float!
+  """Pessoas distintas nos últimos 7 dias corridos."""
+  weeklyActive: Int!
+  """Pessoas distintas na janela inteira."""
+  monthlyActive: Int!
+  activeCompanies: Int!
+  """`dailyAverage` sobre `monthlyActive`, em porcentagem. É a medida de hábito:
+  100% seria todo mundo todo dia; 5% é ferramenta de consulta esporádica."""
+  stickiness: Float!
+  peakUsers: Int!
+  peakDay: String
+}
+
+type PlatformEngagementTypeDataResponse {
+  status: Boolean!
+  code: Int!
+  message: String!
+  data: PlatformEngagementType
+}
+
+"""O pulso técnico de um dia."""
+type PlatformOperationPulseType {
+  day: String!
+  calls: Int!
+  """Só defeito (5xx ou erro sem código) — recusa esperada não entra."""
+  errors: Int!
+  p95Ms: Int!
+}
+
+"""Em que uma operação piorou."""
+enum OperationRegressionKind {
+  """Ficou mais lenta."""
+  SLOWER
+  """Passou a falhar, ou a falhar mais."""
+  FAILING
+  BOTH
+}
+
+"""Uma operação que PIOROU entre a janela pedida e a anterior de mesmo tamanho.
+
+Não é a lista do que está ruim — é a lista do que MUDOU para pior, que é onde
+uma causa recente costuma estar. Operação nova não entra: sem janela anterior,
+tudo nela é novo, e chamá-la de piora encheria a lista a cada lançamento."""
+type OperationRegressionType {
+  operation: String!
+  kind: OperationRegressionKind!
+  callsCurrent: Int!
+  callsPrevious: Int!
+  p95Current: Int!
+  p95Previous: Int!
+  """Crescimento do p95 em porcentagem. Nulo quando não havia p95 anterior."""
+  p95Change: Float
+  errorsCurrent: Int!
+  errorsPrevious: Int!
+  errorRateCurrent: Float!
+  errorRatePrevious: Float!
+  lastErrorMessage: String
+}
+
+"""A saúde técnica com eixo do TEMPO: a foto das operações vira filme.
+
+Sem isto, a operação que sempre levou dois segundos e a que levava trezentos
+milissegundos até o deploy da semana passada aparecem iguais — e exigem trabalho
+completamente diferente."""
+type OperationTrendReportType {
+  daily: [PlatformOperationPulseType!]!
+  """Mais grave primeiro: falha antes de lentidão."""
+  regressions: [OperationRegressionType!]!
+  """Operações que só existem na janela atual. Não são regressão, mas explicam
+  um degrau na série sem nada ter quebrado: uma tela nova entrou no ar."""
+  newOperations: [String!]!
+  """Operações que existiam antes e não foram chamadas nenhuma vez agora."""
+  vanishedOperations: [String!]!
+}
+
+type OperationTrendReportTypeDataResponse {
+  status: Boolean!
+  code: Int!
+  message: String!
+  data: OperationTrendReportType
+}
+
+"""Uma execução na série do job."""
+type PlatformJobRunPointType {
+  startedAt: DateTime!
+  status: JobRunStatus!
+  """Nulo enquanto não terminou — que é o estado de um job morto no meio, e por
+  isso não pode virar zero."""
+  durationMs: Int
+}
+
+"""Um job ao longo do tempo. A última execução responde "rodou hoje?"; a série
+responde "para onde está indo" — um job que passou de dois para vinte minutos
+continua verde até o dia em que estoura o prazo do agendador."""
+type PlatformJobHistoryType {
+  jobName: String!
+  runs: Int!
+  failures: Int!
+  """Execuções puladas por lock ocupado."""
+  skipped: Int!
+  lastStatus: JobRunStatus!
+  lastStartedAt: DateTime!
+  lastSuccessAt: DateTime
+  """Mensagem da falha mais recente da JANELA, não da última execução: é ela que
+  transforma "3 de 14 falharam" em algo acionável, e some se ficar presa à
+  última rodada quando o job volta a funcionar sozinho."""
+  lastErrorMessage: String
+  """Duração típica. Mediana, não média — uma execução extrema esconde o normal."""
+  medianDurationMs: Int
+  lastDurationMs: Int
+  """Distância entre a última execução e a mediana, em porcentagem. É o sinal de
+  job engordando, que aparece muito antes de ele começar a falhar."""
+  durationChange: Float
+  series: [PlatformJobRunPointType!]!
+}
+
+type PlatformJobHistoryListDataResponse {
+  status: Boolean!
+  code: Int!
+  message: String!
+  data: [PlatformJobHistoryType!]
+}
+
+"""Uma pessoa da EQUIPE DA PLATAFORMA — não confundir com `PlatformUserType`,
+que é uma pessoa das empresas. Esta enxerga todas elas."""
+type PlatformStaffType {
+  id: UUID!
+  name: String!
+  email: String!
+  """SU ou SUPPORT. O suporte faz tudo no console menos mexer nesta lista."""
+  role: UserRole!
+  """Falso = login recusado. É como se revoga o acesso de quem saiu do time; a
+  conta não é apagada para a trilha permanente continuar apontando para um nome."""
+  isActive: Boolean!
+  lastLoginAt: DateTime
+  createdAt: DateTime!
+  """Empresa a que a conta está amarrada porque `users.company_id` é NOT NULL.
+  NÃO limita o que a pessoa enxerga — aparece só para ninguém concluir que a
+  conta pertence àquela empresa."""
+  anchorCompanyName: String!
+}
+
+type PlatformStaffListDataResponse {
+  status: Boolean!
+  code: Int!
+  message: String!
+  data: [PlatformStaffType!]
+}
+
+"""Conta nova da equipe. O papel não vem no input: esta porta cria SUPPORT e só.
+
+Promover alguém a SU continua fora da API, no comando `app.seeds.create_su` —
+sem essa fronteira, a tela viraria um caminho para multiplicar super usuários e a
+diferença entre os dois papéis deixaria de existir na prática."""
+input CreatePlatformUserInput {
+  name: String!
+  email: String!
+}
+
+"""Resultado da criação. O link aparece UMA vez, aqui: não há serviço de e-mail,
+então quem cria a conta precisa repassá-lo. Ele não entra na trilha — é a
+credencial em si."""
+type CreatePlatformUserPayload {
+  userId: UUID!
+  name: String!
+  email: String!
+  role: UserRole!
+  link: String!
+}
+
+type CreatePlatformUserPayloadDataResponse {
+  status: Boolean!
+  code: Int!
+  message: String!
+  data: CreatePlatformUserPayload
+}
+
+"""Liga/desliga uma conta de SUPORTE. Conta de SU não se altera por aqui."""
+input SetPlatformUserStatusInput {
+  isActive: Boolean!
+  reason: String = null
+}
+
+type PlatformStaffStatusPayload {
+  userId: UUID!
+  name: String!
+  email: String!
+  role: UserRole!
+  isActive: Boolean!
+}
+
+type PlatformStaffStatusPayloadDataResponse {
+  status: Boolean!
+  code: Int!
+  message: String!
+  data: PlatformStaffStatusPayload
+}
+
+extend type Query {
+  platformOverview(period: PlatformPeriodInput = null): PlatformOverviewTypeDataResponse!
+  """Histórico de ações dos usuários. Filtros aceitos em `input.filters`:
+  `company_id`, `user_id`, `operation` e `status`."""
+  platformActivity(input: BaseListInput!): ActivityLogTypeConnectionResponse!
+  """Resumo do histórico. `companyId` recorta por empresa."""
+  platformActivitySummary(
+    companyId: UUID = null
+    period: PlatformPeriodInput = null
+  ): ActivitySummaryTypeDataResponse!
+  """Fila de trabalho do SU, mais grave primeiro."""
+  platformAttention: PlatformAttentionItemListDataResponse!
+  """Saúde da carteira: cada tenant classificado por tendência, pior primeiro."""
+  platformTenantHealth(period: PlatformPeriodInput = null): PlatformTenantHealthListDataResponse!
+  platformFeatureAdoption(period: PlatformPeriodInput = null): PlatformFeatureAdoptionListDataResponse!
+  platformOperation(period: PlatformPeriodInput = null): PlatformOperationTypeDataResponse!
+  """Série mensal dos últimos `months` meses (padrão 12, teto 36)."""
+  platformGrowth(months: Int = 12): PlatformGrowthPointListDataResponse!
+  """Permanência por coorte de entrada, nos últimos `months` meses."""
+  platformRetention(months: Int = 12): PlatformRetentionTypeDataResponse!
+  """Pessoas ativas por dia, semana e período — uso medido em gente."""
+  platformEngagement(period: PlatformPeriodInput = null): PlatformEngagementTypeDataResponse!
+  """Pulso técnico diário e o que piorou contra a janela anterior."""
+  platformOperationTrend(
+    period: PlatformPeriodInput = null
+  ): OperationTrendReportTypeDataResponse!
+  """Histórico dos jobs agendados nos últimos `days` dias (padrão 14)."""
+  platformJobHistory(days: Int = 14): PlatformJobHistoryListDataResponse!
+  platformTenants(
+    input: BaseListInput!
+    period: PlatformPeriodInput = null
+  ): PlatformTenantTypeConnectionResponse!
+  platformTenant(id: UUID!, period: PlatformPeriodInput = null): PlatformTenantTypeDataResponse!
+  """Pessoas da plataforma. Filtros aceitos em `input.filters`: `company_id`
+  (recorta por empresa), `search` (nome ou e-mail) e `role`."""
+  platformUsers(input: BaseListInput!): PlatformUserTypeConnectionResponse!
+  """Uma pessoa, para a ficha do console."""
+  platformUser(id: UUID!): PlatformUserTypeDataResponse!
+  """O que está falhando ou demorando, por operação."""
+  platformOperationHealth(
+    period: PlatformPeriodInput = null
+  ): OperationHealthReportTypeDataResponse!
+  """Trilha do SU. Filtro aceito: `target_company_id`."""
+  platformAuditLogs(input: BaseListInput!): PlatformAuditLogTypeConnectionResponse!
+  platformHealth: PlatformHealthTypeDataResponse!
+  """A equipe da plataforma (SU e suporte), inclusive quem está desativado.
+
+  **Só o SU lê.** O suporte não precisa da lista para trabalhar, e mantê-la fora
+  do alcance dele evita entregar o mapa de quem tem acesso total — que é a
+  primeira coisa que se procura ao tentar escalar privilégio."""
+  platformStaff: PlatformStaffListDataResponse!
+}
+
+"""Suspende ou reativa a empresa inteira. Não é exclusão: os dados ficam
+intactos e o que muda é o direito de entrar. O motivo é obrigatório ao
+suspender — é ele que a trilha mostra quando alguém for investigar."""
+input SetTenantStatusInput {
+  isActive: Boolean!
+  reason: String = null
+}
+
+"""Governança da relação comercial. Campo omitido não é alterado; campo
+enviado como `null` REMOVE o valor (é assim que se tira um teto ou o prazo do
+teste). O cadastro da empresa em si não se edita por aqui.
+
+ATENÇÃO — os campos NÃO têm `= null` de propósito, ao contrário dos demais
+inputs de update do schema. Com o default, o graphql-core preenche as chaves
+omitidas com nulo e o resolver perde a distinção entre "não mexa" e "apague":
+toda chamada tentaria zerar o plano, que é NOT NULL no banco."""
+input UpdateTenantPlanInput {
+  plan: String
+  trialEndsAt: Date
+  maxUsers: Int
+  maxSellers: Int
+}
+
+"""Sessão emprestada de um usuário, para suporte. Devolve apenas um token de
+acesso de vida curta — sem refresh, para a sessão morrer sozinha."""
+type ImpersonationPayload {
+  accessToken: String!
+  userId: UUID!
+  userName: String!
+  userEmail: String!
+  companyName: String!
+  role: UserRole!
+  sellerId: UUID
+  expiresInMinutes: Int!
+}
+
+type ImpersonationPayloadDataResponse {
+  status: Boolean!
+  code: Int!
+  message: String!
+  data: ImpersonationPayload
+}
+
+"""Link de primeiro acesso/redefinição emitido pelo console."""
+type AccessLinkPayload {
+  link: String!
+  userEmail: String!
+  userName: String!
+}
+
+type AccessLinkPayloadDataResponse {
+  status: Boolean!
+  code: Int!
+  message: String!
+  data: AccessLinkPayload
+}
+
+extend type Mutation {
+  setTenantStatus(companyId: UUID!, input: SetTenantStatusInput!): CompanyTypeDataResponse!
+  updateTenantPlan(companyId: UUID!, input: UpdateTenantPlanInput!): CompanyTypeDataResponse!
+  """Emite um link novo e invalida os anteriores do mesmo usuário."""
+  issueTenantAccessLink(userId: UUID!): AccessLinkPayloadDataResponse!
+  impersonateUser(userId: UUID!, reason: String = null): ImpersonationPayloadDataResponse!
+
+  # As duas únicas operações do console exclusivas do SU. Todo o resto — inclusive
+  # suspender empresa e entrar como usuário — o suporte também faz.
+  """Cria uma conta de SUPORTE e devolve o link de primeiro acesso. Só o SU."""
+  createPlatformUser(input: CreatePlatformUserInput!): CreatePlatformUserPayloadDataResponse!
+  """Revoga ou devolve o acesso de alguém da equipe. Só o SU, e nunca sobre uma
+  conta de SU: dois cliques trancariam a plataforma fora dela mesma."""
+  setPlatformUserStatus(
+    userId: UUID!
+    input: SetPlatformUserStatusInput!
+  ): PlatformStaffStatusPayloadDataResponse!
+}
+
 input CreatePriceListItemInput {
   priceListId: UUID!
   productId: UUID!
@@ -3727,7 +4585,14 @@ input UpdateMyPasswordInput {
 }
 
 enum UserRole {
+    """Super usuário: governa a plataforma inteira, inclusive a própria equipe."""
     SU
+    """Suporte: faz tudo o que o SU faz no console — inclusive suspender empresa
+    e entrar como usuário —, e só não cria nem desativa conta de plataforma.
+
+    Como o SU, NÃO é atribuível pela API de usuários do tenant: as duas contas de
+    plataforma nascem só por `createPlatformUser` (SU) ou pelo comando de seed."""
+    SUPPORT
     OWNER
     ADMIN
     SELLER

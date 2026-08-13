@@ -4,7 +4,6 @@ import {
   CalendarDays,
   ClipboardList,
   Coins,
-  Landmark,
   LayoutDashboard,
   Route,
   Tags,
@@ -98,17 +97,11 @@ export const NAV = [
   },
 ];
 
-// Itens visíveis apenas para o super usuário (SU) — administração da plataforma,
-// acima de qualquer empresa. Anexados ao NAV só quando o role é SU.
-export const SU_NAV = [
-  { divider: true },
-  { section: "Plataforma" },
-  {
-    href: "/companies",
-    label: "Empresas",
-    icon: Landmark,
-  },
-];
+// Não existe item de plataforma neste menu: o SU nunca chega a renderizar esta
+// casca. O middleware (`proxy.ts`) devolve qualquer rota do tenant para
+// `/platform`, porque o sistema é de owner/admin/vendedor e a empresa onde a
+// conta do SU está ancorada é exigência do modelo, não lugar de trabalho.
+// Quando ele precisa entrar numa empresa, o caminho é a impersonação.
 
 /**
  * Itens que o papel pode abrir, já sem os grupos que ficaram vazios: um vendedor
