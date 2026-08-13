@@ -59,7 +59,7 @@ export default function AnalyticsContent() {
     "Não foi possível carregar a lista de vendedores."
   );
   const sellers: SellerOption[] = useMemo(
-    () => sellersQuery.data?.dashboard_sellers.edges.map((e) => e.node) ?? [],
+    () => sellersQuery.data?.dashboard_sellers?.edges.map((e) => e.node) ?? [],
     [sellersQuery.data]
   );
 

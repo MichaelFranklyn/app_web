@@ -1,5 +1,6 @@
 import { expect, test } from "../support/fixtures";
 import { emptyConnection, mockGraphql } from "../support/graphql";
+import { grantRole } from "../support/role";
 
 /**
  * As cinco abas de relatório (/dashboard/reports).
@@ -373,4 +374,44 @@ test("o recorte sobrevive à troca de aba", async ({ page }) => {
   const sent = JSON.stringify(variables);
   expect(sent).toContain("2026-05-01");
   expect(sent).toContain("seller-1");
+});
+
+/**
+ * Regressão de 13/08/2026: a tela inteira caía no error boundary quando a
+ * resposta da lista de vendedores chegava SEM o campo — `data?.x.edges` protegia
+ * só o primeiro nível, e o throw dentro do `useMemo` derrubava o render antes de
+ * o toast de erro ter chance de aparecer.
+ *
+ * O CI pegou por acaso (o mock vazio devolve `{}` e a corrida entre a query e a
+ * asserção decidia o resultado), mas o caso é real: erro parcial do GraphQL
+ * devolve `data` preenchido e o campo nulo. O relatório precisa ficar de pé sem
+ * a lista, não sumir.
+ */
+test("relatórios: resposta sem a lista de vendedores não derruba a tela", async ({
+  page,
+}) => {
+  const spy = await mockGraphql(page, {
+    // Exatamente o que um erro parcial produz: a chave existe, o campo não.
+    DashboardSellers: () => ({}),
+  });
+  // OWNER é quem pode escolher vendedor — é esse papel que faz a toolbar
+  // disparar a consulta (`skip: !canSelectSeller`).
+  await grantRole(page, "OWNER");
+
+  await page.goto("/dashboard/reports/sales");
+
+  // Esperar a resposta RUIM chegar é o que torna o teste determinístico: o
+  // heading vem do SSR e já está na tela, então asserir direto venceria a
+  // corrida contra o re-render que quebrava — foi assim que o bug passou no CI
+  // rápido e falhou no lento.
+  await spy.waitForCall("DashboardSellers");
+
+  await page.waitForLoadState("networkidle");
+
+  // Só depois do re-render é que a asserção significa alguma coisa: o heading
+  // vive dentro do `main`, que é justamente o que o error boundary substitui.
+  await expect(page.getByRole("heading", { name: "Relatórios" })).toBeVisible();
+  await expect(
+    page.getByText("Não foi possível carregar esta página")
+  ).toHaveCount(0);
 });

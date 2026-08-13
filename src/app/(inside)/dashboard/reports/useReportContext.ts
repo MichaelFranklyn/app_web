@@ -27,7 +27,7 @@ export const useReportContext = (filters: ReportFilters) => {
   const sellerName = useMemo(() => {
     if (!filters.sellerId) return null;
     const sellers =
-      data?.dashboard_sellers.edges.map((edge) => edge.node) ?? [];
+      data?.dashboard_sellers?.edges.map((edge) => edge.node) ?? [];
     return (
       sellers.find((seller) => seller.id === filters.sellerId)?.name ?? null
     );
