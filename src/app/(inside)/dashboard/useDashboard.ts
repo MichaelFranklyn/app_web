@@ -42,7 +42,7 @@ export function useDashboard(
   );
 
   const sellers: SellerOption[] = useMemo(
-    () => sellersQuery.data?.dashboard_sellers.edges.map((e) => e.node) ?? [],
+    () => sellersQuery.data?.dashboard_sellers?.edges.map((e) => e.node) ?? [],
     [sellersQuery.data]
   );
 
@@ -116,7 +116,7 @@ export function useDashboard(
   );
 
   const orders =
-    ordersByPeriod.data?.orders_by_period.edges.map((e) => e.node) ?? [];
+    ordersByPeriod.data?.orders_by_period?.edges.map((e) => e.node) ?? [];
   const totalOrders = ordersByPeriod.data?.orders_by_period.totalCount ?? 0;
   const totalRevenue = orders.reduce(
     (sum, order) => sum + Number(order.totalAmount || 0),
@@ -126,7 +126,7 @@ export function useDashboard(
   const totalClients = clientsCount.data?.company_clients_count.totalCount ?? 0;
 
   const schedules =
-    schedulesByPeriod.data?.schedules_by_period.edges.map((e) => e.node) ?? [];
+    schedulesByPeriod.data?.schedules_by_period?.edges.map((e) => e.node) ?? [];
   const allItems = schedules.flatMap((s) => s.days.flatMap((d) => d.items));
   const completedVisits = allItems.filter(
     (i) => i.status === "COMPLETED"

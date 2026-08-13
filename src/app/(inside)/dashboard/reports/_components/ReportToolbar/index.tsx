@@ -53,8 +53,14 @@ export function ReportToolbar({
   );
 
   const sellerOptions: SelectOption[] = useMemo(() => {
+    // O `?.` precisa estar nos DOIS níveis. Com ele só em `data`, uma resposta
+    // que chega sem o campo (erro parcial do GraphQL devolve `data` preenchido e
+    // o campo nulo) estoura `Cannot read properties of undefined` DENTRO do
+    // useMemo — e um throw no render derruba a tela inteira no error boundary,
+    // antes de o `useQueryErrorToast` acima ter chance de mostrar o aviso.
     const sellers: SellerOption[] =
-      sellersQuery.data?.dashboard_sellers.edges.map((edge) => edge.node) ?? [];
+      sellersQuery.data?.dashboard_sellers?.edges.map((edge) => edge.node) ??
+      [];
     return [
       { value: ALL_SELLERS, label: "Todos os vendedores" },
       ...sellers.map((seller) => ({ value: seller.id, label: seller.name })),
