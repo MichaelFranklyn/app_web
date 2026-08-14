@@ -4,6 +4,7 @@ import { UserData } from "./app/(auth)/login/interface";
 import { parseJwtServer } from "./utils/auth/jwt";
 import { isPlatformRole } from "./utils/auth/roles";
 import { getServerCookie } from "./utils/cookies/serverCookie";
+import { PUBLIC_MARKETING_ROUTES } from "./utils/site";
 
 // Token com `exp` no passado → expirado. Sem `exp`, não bloqueia (deixa o
 // backend decidir). Margem de 0s: o backend rejeita de qualquer forma.
@@ -24,6 +25,16 @@ const PLATFORM_ROOT = "/platform";
 
 export async function proxy(request: NextRequest) {
   const { pathname } = request.nextUrl;
+
+  // Páginas de marketing saem antes de qualquer leitura de cookie: a landing é
+  // a mesma para visitante, cliente logado e usuário da plataforma.
+  //
+  // Match EXATO, ao contrário de `PUBLIC_ROUTES`, que também libera as
+  // subrotas: um `startsWith("/")` para a raiz casaria com o sistema inteiro e
+  // abriria todas as telas privadas de uma vez.
+  if (PUBLIC_MARKETING_ROUTES.includes(pathname)) {
+    return NextResponse.next();
+  }
 
   const token = await getServerCookie<string>("token");
   const userData = await getServerCookie<UserData>("userData");
@@ -80,8 +91,16 @@ function forceLogout(request: NextRequest) {
   return response;
 }
 
+/**
+ * `robots.txt`, `sitemap.xml` e `opengraph-image*` são gerados pelo App Router
+ * e precisam ficar FORA do proxy: quem os busca é um robô sem cookie nenhum, e
+ * o redirecionamento para o login devolveria a página de login no lugar do
+ * arquivo — sitemap inválido para o buscador e card de link sem imagem no
+ * WhatsApp. As extensões da lista antiga (`.svg`, `.png`, …) não cobriam nem
+ * `.txt`/`.xml` nem o nome com hash que o Next dá à imagem de OG.
+ */
 export const config = {
   matcher: [
-    "/((?!api|_next/static|_next/image|favicon.ico|.well-known|.*\\.(?:svg|png|jpg|jpeg|gif|webp|ico|bmp|tiff|ttf|woff|woff2)$).*)",
+    "/((?!api|_next/static|_next/image|favicon.ico|.well-known|robots.txt|sitemap.xml|opengraph-image|.*\\.(?:svg|png|jpg|jpeg|gif|webp|ico|bmp|tiff|ttf|woff|woff2)$).*)",
   ],
 };

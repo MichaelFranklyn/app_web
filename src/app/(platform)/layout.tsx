@@ -1,4 +1,6 @@
+import { AppProviders } from "@/components/AppProviders";
 import { requirePlatformPage } from "@/utils/auth/roleGuard";
+import type { Metadata } from "next";
 import { PlatformShell } from "./_components/PlatformShell";
 
 /**
@@ -16,6 +18,11 @@ import { PlatformShell } from "./_components/PlatformShell";
  * Como só decodifica um cookie (sem rede), não precisa de `loading.tsx` neste
  * nível — o vazio de layout assíncrono que exigiria um Suspense não existe aqui.
  */
+/** O console da plataforma não existe para o mundo lá fora. */
+export const metadata: Metadata = {
+  robots: { index: false, follow: false },
+};
+
 export default async function PlatformLayout({
   children,
 }: {
@@ -23,5 +30,9 @@ export default async function PlatformLayout({
 }) {
   await requirePlatformPage();
 
-  return <PlatformShell>{children}</PlatformShell>;
+  return (
+    <AppProviders>
+      <PlatformShell>{children}</PlatformShell>
+    </AppProviders>
+  );
 }
