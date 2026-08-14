@@ -55,6 +55,30 @@ const SSR_RESPONSES: Record<string, unknown> = {
   MyUnreadNotificationsCount: {
     myUnreadNotificationsCount: { status: true, data: 0 },
   },
+  // O plano da empresa é lido no SERVIDOR, no layout de `(inside)`: é ele que
+  // decide quais itens a sidebar tem. Sem esta resposta, todo spec de tela
+  // interna rodaria como se a empresa não tivesse contratado nada, e o menu
+  // sairia sem Rotina, Comissões nem Metas.
+  MyPlanFeatures: {
+    myPlan: {
+      status: true,
+      code: 200,
+      message: "ok",
+      data: {
+        code: "pro",
+        label: "Pro",
+        features: [
+          "ROUTINES",
+          "ANALYTICS",
+          "REPORTS",
+          "BULK_IMPORT",
+          "GOALS",
+          "COMMISSIONS",
+          "NOTIFICATIONS",
+        ],
+      },
+    },
+  },
   CompanyBranding: {
     company_branding: {
       status: true,

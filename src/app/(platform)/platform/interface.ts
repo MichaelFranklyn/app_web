@@ -1,3 +1,5 @@
+import { PlanFeature, PlanLimitKey } from "@/services/plan";
+
 export interface PlatformOverview {
   totalCompanies: number;
   activeCompanies: number;
@@ -182,4 +184,29 @@ export interface ActivitySummary {
   totalErrors: number;
   byOperation: ActivitySummaryItem[];
   byDay: ActivitySummaryItem[];
+}
+
+/**
+ * Um plano do catálogo, como o backend o descreve (`planCatalog`).
+ *
+ * Vive no PAI porque duas telas o leem: a referência em `/platform/plans` e o
+ * modal que troca o plano de uma empresa. É a mesma matriz aplicada em runtime
+ * — o console não guarda cópia própria, que envelheceria em silêncio.
+ */
+export interface PlanCatalogLimit {
+  key: PlanLimitKey;
+  label: string;
+  /** Nulo = o plano não impõe teto para esse recurso. */
+  limit: number | null;
+}
+
+export interface PlanCatalogEntry {
+  code: string;
+  label: string;
+  features: PlanFeature[];
+  limits: PlanCatalogLimit[];
+}
+
+export interface PlanCatalogQueryData {
+  planCatalog: { data: PlanCatalogEntry[] | null } | null;
 }

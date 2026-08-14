@@ -8,6 +8,7 @@ import { TenantActivityCard } from "./_components/TenantActivityCard";
 import { TenantActivityChart } from "./_components/TenantActivityChart";
 import { TenantAuditCard } from "./_components/TenantAuditCard";
 import { TenantHeader } from "./_components/TenantHeader";
+import { TenantPlanCard } from "./_components/TenantPlanCard";
 import { TenantPlanModal } from "./_components/TenantPlanModal";
 import { TenantUsageCard } from "./_components/TenantUsageCard";
 import { TenantUsersCard } from "./_components/TenantUsersCard";
@@ -60,6 +61,7 @@ export default function TenantDetailContent(props: TenantDetailContentProps) {
         onEditPlan={() => setPlanModalOpen(true)}
       />
 
+      <TenantPlanCard tenant={tenant} />
       <TenantUsageCard tenant={tenant} />
       <TenantUsersCard users={users} loading={usersLoading || tenantLoading} />
       <TenantActivityChart

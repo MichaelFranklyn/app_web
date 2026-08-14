@@ -1,5 +1,7 @@
+import { PlanFeature } from "@/services/plan";
 import { isAdminRole, isOwnerRole } from "@/utils/auth/roles";
 import {
+  BadgeCheck,
   Building2,
   CalendarDays,
   ClipboardList,
@@ -14,6 +16,14 @@ import {
 
 /** Quem vê o item — espelha o guard da rota de destino. */
 export type NavAccess = "all" | "admin" | "owner";
+
+/**
+ * Papel e plano respondem perguntas diferentes e o item precisa passar nas
+ * duas: `access` diz quem PODE (o gerente vê Pessoas, o vendedor não), e
+ * `feature` diz o que a empresa CONTRATOU (o plano básico não tem rotina, para
+ * ninguém). Item sem `feature` está em todo plano.
+ */
+export type NavFeature = PlanFeature;
 
 export const ROLE_LABEL: Record<string, string> = {
   SU: "Super Admin",
@@ -34,6 +44,7 @@ export const NAV = [
     todayRoute: true,
     label: "Rota do dia",
     icon: Route,
+    feature: "ROUTINES" as NavFeature,
   },
   { divider: true },
   { section: "Operações" },
@@ -41,6 +52,7 @@ export const NAV = [
     href: "/routines",
     label: "Rotina da Semana",
     icon: CalendarDays,
+    feature: "ROUTINES" as NavFeature,
   },
   {
     href: "/orders",
@@ -51,6 +63,7 @@ export const NAV = [
     href: "/commissions",
     label: "Comissões",
     icon: Coins,
+    feature: "COMMISSIONS" as NavFeature,
   },
   {
     // Vendedor entra para acompanhar a própria meta; gestor, para definir as de
@@ -58,6 +71,7 @@ export const NAV = [
     href: "/goals",
     label: "Metas",
     icon: Target,
+    feature: "GOALS" as NavFeature,
   },
   {
     href: "/clients",
@@ -89,6 +103,14 @@ export const NAV = [
     access: "admin",
   },
   {
+    // Sem `feature`: a tela do plano existe em TODO plano — é onde se descobre
+    // por que um botão parou de funcionar.
+    href: "/settings/plan",
+    label: "Plano",
+    icon: BadgeCheck,
+    access: "owner",
+  },
+  {
     href: "/settings/catalog",
     matchPrefix: "/settings/catalog",
     label: "Catálogos",
@@ -108,11 +130,19 @@ export const NAV = [
  * não vê nenhum destino de configuração, e um título "Configurações" solto (ou um
  * divisor no fim da lista) é sujeira visível.
  */
-export const visibleNav = (role?: string | null) => {
+export const visibleNav = (
+  role?: string | null,
+  features: readonly NavFeature[] = []
+) => {
   const isAdmin = isAdminRole(role);
   const isOwner = isOwnerRole(role);
 
   const allowed = NAV.filter((item) => {
+    // Plano primeiro: recurso que a empresa não tem não existe para papel
+    // nenhum, nem para o dono da conta.
+    const feature = (item as { feature?: NavFeature }).feature;
+    if (feature && !features.includes(feature)) return false;
+
     const access = (item as { access?: NavAccess }).access;
     if (!access || access === "all") return true;
     return access === "owner" ? isOwner : isAdmin;

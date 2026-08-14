@@ -1,9 +1,12 @@
+import { PlanFeature, PlanLimitKey } from "@/services/plan";
+
 import {
   AttentionSeverity,
   FeatureAdoption,
   PlatformEngagement,
   PlatformGrowthPoint,
   PlatformOperation,
+  PlanCatalogEntry,
   PlatformOverview,
   TenantTrend,
 } from "./interface";
@@ -329,4 +332,64 @@ export const activityLabel = (days: number | null): string => {
   if (days === 0) return "Hoje";
   if (days === 1) return "Ontem";
   return `Há ${days} dias`;
+};
+
+// ─── Efeito de uma troca de plano ─────────────────────────────── //
+
+export interface PlanChange {
+  /** Recursos que a empresa PASSA a ter. */
+  gained: PlanFeature[];
+  /** Recursos que ela PERDE — o lado que precisa ser dito em voz alta. */
+  lost: PlanFeature[];
+  /** Tetos que mudam, com o antes e o depois. */
+  limitChanges: {
+    key: PlanLimitKey;
+    label: string;
+    from: number | null;
+    to: number | null;
+    /** Verdadeiro quando o teto novo é MENOR que o atual (ou passa a existir). */
+    isTighter: boolean;
+  }[];
+}
+
+/**
+ * O que muda ao trocar o plano de uma empresa.
+ *
+ * Existe porque "trocar de basic para pro" não diz nada a quem está na tela: o
+ * que importa é o que a empresa ganha e, principalmente, o que ela PERDE — um
+ * downgrade tira telas inteiras de gente que estava usando, e o SU precisa
+ * enxergar isso antes de salvar, não depois do telefone tocar.
+ *
+ * Compara só o catálogo, sem os overrides do tenant: os overrides são editados
+ * no mesmo formulário, e misturá-los aqui responderia uma pergunta que ninguém
+ * fez ("e se eu mudar o plano mas mantiver o teto manual?").
+ */
+export const describePlanChange = (
+  from: PlanCatalogEntry | null,
+  to: PlanCatalogEntry | null
+): PlanChange => {
+  if (!from || !to || from.code === to.code)
+    return { gained: [], lost: [], limitChanges: [] };
+
+  const toLimit = new Map(to.limits.map((l) => [l.key, l.limit]));
+
+  return {
+    gained: to.features.filter((f) => !from.features.includes(f)),
+    lost: from.features.filter((f) => !to.features.includes(f)),
+    limitChanges: from.limits
+      .filter((l) => toLimit.get(l.key) !== l.limit)
+      .map((l) => {
+        const next = toLimit.get(l.key) ?? null;
+        return {
+          key: l.key,
+          label: l.label,
+          from: l.limit,
+          to: next,
+          // Nulo é "sem teto": sair de nulo para qualquer número aperta, e
+          // chegar a nulo nunca aperta. Comparar os dois como números faria
+          // "sem limite" perder para 3.
+          isTighter: next !== null && (l.limit === null || next < l.limit),
+        };
+      }),
+  };
 };

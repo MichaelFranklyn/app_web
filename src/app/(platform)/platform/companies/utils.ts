@@ -27,10 +27,16 @@ export const SORTABLE_FIELDS = [
   "last_login_at",
 ];
 
+/**
+ * Os planos que existem, na mesma grafia do catálogo do backend
+ * (`app/core/domain/plans.py`). Não é decoração: `updateTenantPlan` recusa
+ * código fora do catálogo, e um valor a mais aqui viraria erro no console.
+ */
 export const PLAN_OPTIONS = [
   { value: "trial", label: "Teste" },
   { value: "basic", label: "Básico" },
   { value: "pro", label: "Pro" },
+  { value: "enterprise", label: "Enterprise" },
 ];
 
 export const STATUS_OPTIONS = [

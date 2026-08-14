@@ -30,6 +30,7 @@ export default function DashboardContent({
     completedVisits,
     totalPlannedVisits,
     upcomingVisits,
+    hasRoutines,
     isLoading,
     error,
     refetch,
@@ -59,12 +60,18 @@ export default function DashboardContent({
             completedVisits={completedVisits}
             totalPlannedVisits={totalPlannedVisits}
             totalClients={totalClients}
+            hasRoutines={hasRoutines}
           />
 
           <Card.Header.Group>
-            <Grid.Root cols={{ base: 1, desktop: 2 }} gap={12}>
+            {/* Sem rotina no plano, os pedidos recentes ocupam a linha inteira —
+                metade da tela vazia diria "faltou carregar", não "não contratado". */}
+            <Grid.Root
+              cols={{ base: 1, desktop: hasRoutines ? 2 : 1 }}
+              gap={12}
+            >
               <RecentOrdersTable orders={orders.slice(0, 4)} />
-              <UpcomingVisitsCard items={upcomingVisits} />
+              {hasRoutines && <UpcomingVisitsCard items={upcomingVisits} />}
             </Grid.Root>
           </Card.Header.Group>
         </>

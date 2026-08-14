@@ -1,6 +1,8 @@
+import { PlanFeature, PlanLimitKey } from "@/services/plan";
 import { describe, expect, it } from "vitest";
 import {
   FeatureAdoption,
+  PlanCatalogEntry,
   PlatformEngagement,
   PlatformGrowthPoint,
   PlatformOperation,
@@ -10,6 +12,7 @@ import {
   activityLabel,
   activityTone,
   adoptionRate,
+  describePlanChange,
   dormantCompanies,
   engagementRate,
   formatChange,
@@ -358,5 +361,115 @@ describe("inactiveThisWeek", () => {
     expect(
       inactiveThisWeek(engagement({ weeklyActive: 40, monthlyActive: 40 }))
     ).toBe(0);
+  });
+});
+
+// ─── Efeito de uma troca de plano ─────────────────────────────── //
+
+const catalogEntry = (
+  code: string,
+  features: PlanFeature[],
+  limits: [PlanLimitKey, number | null][]
+): PlanCatalogEntry => ({
+  code,
+  label: code,
+  features,
+  limits: limits.map(([key, limit]) => ({
+    key,
+    label: key.toLowerCase(),
+    limit,
+  })),
+});
+
+const BASICO = catalogEntry(
+  "basic",
+  ["COMMISSIONS", "NOTIFICATIONS"],
+  [
+    ["USERS", 8],
+    ["SELLERS", 3],
+  ]
+);
+
+const PRO = catalogEntry(
+  "pro",
+  ["COMMISSIONS", "NOTIFICATIONS", "ROUTINES", "REPORTS"],
+  [
+    ["USERS", 40],
+    ["SELLERS", 15],
+  ]
+);
+
+describe("describePlanChange", () => {
+  it("lista o que a empresa ganha ao subir de plano", () => {
+    const change = describePlanChange(BASICO, PRO);
+    expect(change.gained).toEqual(["ROUTINES", "REPORTS"]);
+    expect(change.lost).toEqual([]);
+  });
+
+  it("lista o que ela PERDE ao descer — o lado que gera chamado", () => {
+    const change = describePlanChange(PRO, BASICO);
+    expect(change.lost).toEqual(["ROUTINES", "REPORTS"]);
+    expect(change.gained).toEqual([]);
+  });
+
+  it("mostra o antes e o depois de cada teto que muda", () => {
+    const change = describePlanChange(BASICO, PRO);
+    expect(change.limitChanges).toEqual([
+      { key: "USERS", label: "users", from: 8, to: 40, isTighter: false },
+      { key: "SELLERS", label: "sellers", from: 3, to: 15, isTighter: false },
+    ]);
+  });
+
+  it("marca o teto que aperta", () => {
+    const change = describePlanChange(PRO, BASICO);
+    expect(change.limitChanges.every((l) => l.isTighter)).toBe(true);
+  });
+
+  it("sair de 'sem limite' para um número aperta", () => {
+    // Comparar os dois como número faria `null` perder para 3 e o downgrade
+    // passar despercebido.
+    const ilimitado = catalogEntry("enterprise", PRO.features, [
+      ["SELLERS", null],
+    ]);
+    const [change] = describePlanChange(
+      ilimitado,
+      catalogEntry("pro", PRO.features, [["SELLERS", 15]])
+    ).limitChanges;
+    expect(change.isTighter).toBe(true);
+  });
+
+  it("chegar a 'sem limite' nunca aperta", () => {
+    const ilimitado = catalogEntry("enterprise", PRO.features, [
+      ["SELLERS", null],
+    ]);
+    const [change] = describePlanChange(
+      catalogEntry("pro", PRO.features, [["SELLERS", 15]]),
+      ilimitado
+    ).limitChanges;
+    expect(change.isTighter).toBe(false);
+  });
+
+  it("teto que não muda fica fora da lista", () => {
+    const igual = catalogEntry("outro", BASICO.features, [
+      ["USERS", 8],
+      ["SELLERS", 99],
+    ]);
+    const change = describePlanChange(BASICO, igual);
+    expect(change.limitChanges.map((l) => l.key)).toEqual(["SELLERS"]);
+  });
+
+  it("mesmo plano não descreve mudança nenhuma", () => {
+    expect(describePlanChange(PRO, PRO)).toEqual({
+      gained: [],
+      lost: [],
+      limitChanges: [],
+    });
+  });
+
+  it("plano desconhecido dos dois lados não inventa diferença", () => {
+    // Acontece com dado legado: a empresa aponta para um código que saiu do
+    // catálogo, e `findPlan` devolve nulo.
+    expect(describePlanChange(null, PRO).gained).toEqual([]);
+    expect(describePlanChange(BASICO, null).lost).toEqual([]);
   });
 });

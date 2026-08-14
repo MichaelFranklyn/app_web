@@ -2,6 +2,7 @@
 
 import { InputSearch } from "@/components/Input";
 import { PanelHeader } from "@/components/PanelHeader";
+import { PlanLimitGate } from "@/components/PlanLimitGate";
 import { useUserData } from "@/hooks/useUserData";
 import { CompanyFactory } from "../../interface";
 import { ImportFactoriesModal } from "./ImportFactoriesModal";
@@ -44,7 +45,9 @@ export function FactoriesHeader({
             {!isSeller && (
               <>
                 <ImportFactoriesModal />
-                <LinkFactoryModal onAddOptimistic={onAddOptimistic} />
+                <PlanLimitGate limit="FACTORIES">
+                  <LinkFactoryModal onAddOptimistic={onAddOptimistic} />
+                </PlanLimitGate>
               </>
             )}
           </PanelHeader.Actions>

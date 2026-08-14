@@ -1,5 +1,6 @@
 import {
   Activity,
+  BadgeCheck,
   Building2,
   History,
   LayoutDashboard,
@@ -38,6 +39,14 @@ export const PLATFORM_NAV = [
     matchPrefix: "/platform/users",
     label: "Pessoas",
     icon: UserCog,
+  },
+  {
+    // Referência, não governança: aqui só se LÊ o que cada plano entrega. A
+    // troca do plano de uma empresa continua na ficha dela, junto do histórico
+    // e da auditoria daquela conta — que é o contexto de quem decide trocar.
+    href: "/platform/plans",
+    label: "Planos",
+    icon: BadgeCheck,
   },
   { divider: true },
   { section: "Operação" },

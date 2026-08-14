@@ -6,10 +6,14 @@ import { Modal } from "@/components/Modal";
 import { useAsyncAction } from "@/hooks/useAsyncAction";
 import { parseLocalDate, toIsoDate } from "@/utils/format/date";
 import { useMutation } from "@apollo/client/react";
-import { ChangeEvent, useState } from "react";
+import { ChangeEvent, useMemo, useState } from "react";
+import { PlanSummary } from "../../../../_components/PlanSummary";
+import { usePlanCatalog } from "../../../../usePlanCatalog";
+import { describePlanChange } from "../../../../utils";
 import { PLAN_OPTIONS } from "../../../utils";
 import { UPDATE_TENANT_PLAN_MUTATION } from "../../gql";
 import { TenantDetail, UpdateTenantPlanData } from "../../interface";
+import { PlanChangeNotice } from "./PlanChangeNotice";
 
 interface Props {
   open: boolean;
@@ -32,6 +36,23 @@ export function TenantPlanModal({ open, onOpenChange, tenant, onDone }: Props) {
   const [maxSellers, setMaxSellers] = useState(
     tenant.maxSellers?.toString() ?? ""
   );
+
+  const { findPlan } = usePlanCatalog();
+  // O catálogo é a MESMA matriz que o backend aplica — o console não mantém
+  // cópia, senão prometeria o que o sistema recusa.
+  const currentPlan = findPlan(tenant.plan);
+  const selectedPlan = findPlan(plan);
+  const change = useMemo(
+    () => describePlanChange(currentPlan, selectedPlan),
+    [currentPlan, selectedPlan]
+  );
+
+  /** O teto que o PLANO dá, para o campo dizer o que está sendo sobrescrito. */
+  const planLimit = (key: "USERS" | "SELLERS"): string => {
+    const limit = selectedPlan?.limits.find((l) => l.key === key);
+    if (!limit) return "";
+    return limit.limit === null ? "Plano: sem limite" : `Plano: ${limit.limit}`;
+  };
 
   const [mutate] = useMutation<UpdateTenantPlanData>(
     UPDATE_TENANT_PLAN_MUTATION
@@ -92,6 +113,12 @@ export function TenantPlanModal({ open, onOpenChange, tenant, onDone }: Props) {
             }}
           />
 
+          {/* O que o plano escolhido entrega — a resposta que faltava para
+              "basic" e "pro" significarem alguma coisa nesta tela. */}
+          {selectedPlan && <PlanSummary plan={selectedPlan} showMissing />}
+
+          <PlanChangeNotice change={change} />
+
           <Input.Date
             label="Fim do teste"
             hint="Em branco = sem prazo. Passada a data, o login é recusado."
@@ -105,7 +132,9 @@ export function TenantPlanModal({ open, onOpenChange, tenant, onDone }: Props) {
           <div className="grid grid-cols-2 gap-8">
             <Input.Number
               label="Máximo de pessoas"
-              hint={`Hoje: ${tenant.usersCount}`}
+              // Vazio = vale o teto do plano; preenchido = override do contrato.
+              // Sem o número do plano ao lado, o SU não sabe o que está trocando.
+              hint={`Hoje: ${tenant.usersCount} · ${planLimit("USERS")}`}
               value={maxUsers}
               placeholder="Sem limite"
               min={1}
@@ -116,7 +145,7 @@ export function TenantPlanModal({ open, onOpenChange, tenant, onDone }: Props) {
             />
             <Input.Number
               label="Máximo de vendedores"
-              hint={`Hoje: ${tenant.sellersCount}`}
+              hint={`Hoje: ${tenant.sellersCount} · ${planLimit("SELLERS")}`}
               value={maxSellers}
               placeholder="Sem limite"
               min={1}
