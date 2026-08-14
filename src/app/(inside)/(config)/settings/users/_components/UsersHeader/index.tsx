@@ -4,6 +4,7 @@ import { Button } from "@/components/Button";
 import { Card } from "@/components/Card";
 import { Grid } from "@/components/Grid";
 import { PanelHeader } from "@/components/PanelHeader";
+import { PlanLimitGate } from "@/components/PlanLimitGate";
 import { downloadCSV } from "@/utils/format/csv";
 import { formatDateDMY } from "@/utils/format/masks";
 import { Download, TrendingDown, TrendingUp } from "lucide-react";
@@ -54,7 +55,12 @@ export function UsersHeader({ stats, onAddOptimistic, items }: Props) {
                 <Button.Icon icon={Download} />
                 <Button.Title>Exportar</Button.Title>
               </Button.Root>
-              <AddUserModal onAddOptimistic={onAddOptimistic} />
+              {/* Pelo teto de LOGINS: o papel só é escolhido dentro do modal, e
+                  quem pedir vendedor sem cota de vendedor recebe a recusa da
+                  própria mutation, com a frase daquele teto. */}
+              <PlanLimitGate limit="USERS">
+                <AddUserModal onAddOptimistic={onAddOptimistic} />
+              </PlanLimitGate>
             </PanelHeader.Actions>
           </PanelHeader.Left>
         </PanelHeader.Top>

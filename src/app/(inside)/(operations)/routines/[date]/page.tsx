@@ -1,3 +1,4 @@
+import { requireFeaturePage } from "@/services/plan/server";
 import DayRouteContent from "./content";
 
 type Props = {
@@ -6,6 +7,7 @@ type Props = {
 };
 
 const Page = async ({ params, searchParams }: Props) => {
+  await requireFeaturePage("ROUTINES");
   const { date } = await params;
   const { seller } = await searchParams;
   return <DayRouteContent date={date} sellerId={seller ?? null} />;

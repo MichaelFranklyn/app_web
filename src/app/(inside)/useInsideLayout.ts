@@ -1,5 +1,6 @@
 "use client";
 
+import { usePlan } from "@/services/plan";
 import { isOwnerRole } from "@/utils/auth/roles";
 import { getCookie } from "@/utils/cookies/clientCookie";
 import { getTodayIso } from "@/utils/format/date";
@@ -72,7 +73,12 @@ export function useInsideLayout() {
   // o vendedor não vê Empresa/Pessoas/Catálogos (e a seção inteira desaparece com
   // eles). As rotas seguem protegidas server-side — aqui é só a UI do menu.
   // SU enxerga também os itens de plataforma.
-  const navItems = visibleNav(userData?.role);
+  //
+  // O plano corta antes do papel: o que a empresa não contratou não aparece
+  // para ninguém. Vem do SSR (ver o layout), então o menu já nasce certo — sem
+  // itens que somem depois que a resposta chega.
+  const { features } = usePlan();
+  const navItems = visibleNav(userData?.role, features);
   const userInitials = userData ? getUserInitials(userData.userName) : "—";
   const userName = userData?.userName ?? "Usuário";
   const userRole = userData?.role

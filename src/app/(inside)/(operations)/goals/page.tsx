@@ -1,4 +1,5 @@
 import { UserData } from "@/app/(auth)/login/interface";
+import { requireFeaturePage } from "@/services/plan/server";
 import { getServerCookie } from "@/utils/cookies/serverCookie";
 import GoalsContent from "./content";
 
@@ -7,6 +8,7 @@ import GoalsContent from "./content";
 const MANAGER_ROLES = ["OWNER", "ADMIN", "SU"];
 
 export default async function Page() {
+  await requireFeaturePage("GOALS");
   // Papel resolvido no servidor (mesmo cookie `userData` do login): evita o
   // salto de hidratação em que os botões de gestor piscam para o vendedor.
   const userData = await getServerCookie<UserData>("userData");

@@ -167,3 +167,28 @@ export const PLATFORM_GROWTH_QUERY = gql`
     }
   }
 `;
+
+/**
+ * O catálogo de planos. Sem variáveis e sem banco do outro lado — é constante
+ * de código no backend —, então o cache do Apollo responde a todas as telas que
+ * o pedirem depois da primeira.
+ */
+export const PLAN_CATALOG_QUERY = gql`
+  query PlanCatalog {
+    planCatalog {
+      status
+      code
+      message
+      data {
+        code
+        label
+        features
+        limits {
+          key
+          label
+          limit
+        }
+      }
+    }
+  }
+`;

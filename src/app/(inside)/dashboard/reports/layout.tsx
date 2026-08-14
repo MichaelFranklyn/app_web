@@ -1,6 +1,7 @@
 import { Breadcrumb } from "@/components/Breadcrumb";
 import { PageContent } from "@/components/PageContent";
 import { PanelHeader } from "@/components/PanelHeader";
+import { requireFeaturePage } from "@/services/plan/server";
 import React, { Suspense } from "react";
 
 import { ReportTabsNav } from "./_components/ReportTabsNav";
@@ -17,11 +18,16 @@ export const dynamic = "force-dynamic";
  * `useReportFilters`) e são desenhados por cada aba junto do "Exportar", porque
  * é a aba que sabe montar o próprio arquivo.
  */
-export default function ReportsLayout({
+export default async function ReportsLayout({
   children,
 }: {
   children: React.ReactNode;
 }) {
+  // No layout, e não em cada aba: são nove páginas, e uma esquecida seria uma
+  // porta aberta. O fetch do plano é o mesmo do layout de `(inside)` — o
+  // `cache` do React resolve os dois com uma consulta só.
+  await requireFeaturePage("REPORTS");
+
   return (
     <PageContent>
       <div className="flex flex-col gap-8">

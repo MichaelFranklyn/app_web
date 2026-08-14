@@ -9,6 +9,9 @@ interface Props {
   completedVisits: number;
   totalPlannedVisits: number;
   totalClients: number;
+  /** Empresa sem o motor de rotina no plano não vê o cartão de visitas: "0
+   * realizadas" pareceria uma semana parada, e não um recurso que ela não tem. */
+  hasRoutines: boolean;
 }
 
 export function DashboardKpis({
@@ -17,6 +20,7 @@ export function DashboardKpis({
   completedVisits,
   totalPlannedVisits,
   totalClients,
+  hasRoutines,
 }: Props) {
   const completionRate =
     totalPlannedVisits > 0
@@ -24,7 +28,10 @@ export function DashboardKpis({
       : 0;
 
   return (
-    <Grid.Root cols={{ base: 1, tablet: 2, "desktop-xl": 4 }} gap={12}>
+    <Grid.Root
+      cols={{ base: 1, tablet: 2, "desktop-xl": hasRoutines ? 4 : 3 }}
+      gap={12}
+    >
       <Grid.Item>
         <Card.Kpi>
           <Card.Kpi.Label>Pedidos no período</Card.Kpi.Label>
@@ -41,7 +48,9 @@ export function DashboardKpis({
       <Grid.Item>
         <Card.Kpi>
           <Card.Kpi.Label>Faturamento</Card.Kpi.Label>
-          <Card.Kpi.Value status="ok">{formatMoney(totalRevenue)}</Card.Kpi.Value>
+          <Card.Kpi.Value status="ok">
+            {formatMoney(totalRevenue)}
+          </Card.Kpi.Value>
           <Card.Kpi.Delta positive={totalRevenue > 0}>
             {totalRevenue > 0 && <TrendingUp size={12} />}
             soma dos pedidos do período
@@ -49,19 +58,21 @@ export function DashboardKpis({
         </Card.Kpi>
       </Grid.Item>
 
-      <Grid.Item>
-        <Card.Kpi>
-          <Card.Kpi.Label>Visitas realizadas</Card.Kpi.Label>
-          <Card.Kpi.Value status="neutral" className="text-(--blue)!">
-            {completedVisits}
-          </Card.Kpi.Value>
-          <Card.Kpi.Delta>
-            {totalPlannedVisits > 0
-              ? `de ${totalPlannedVisits} planejadas · ${completionRate}%`
-              : "sem rotina ativa"}
-          </Card.Kpi.Delta>
-        </Card.Kpi>
-      </Grid.Item>
+      {hasRoutines && (
+        <Grid.Item>
+          <Card.Kpi>
+            <Card.Kpi.Label>Visitas realizadas</Card.Kpi.Label>
+            <Card.Kpi.Value status="neutral" className="text-(--blue)!">
+              {completedVisits}
+            </Card.Kpi.Value>
+            <Card.Kpi.Delta>
+              {totalPlannedVisits > 0
+                ? `de ${totalPlannedVisits} planejadas · ${completionRate}%`
+                : "sem rotina ativa"}
+            </Card.Kpi.Delta>
+          </Card.Kpi>
+        </Grid.Item>
+      )}
 
       <Grid.Item>
         <Card.Kpi>

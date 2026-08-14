@@ -1,3 +1,4 @@
+import { useFeature } from "@/services/plan";
 import { useQuery } from "@apollo/client/react";
 import { useEffect, useMemo, useState } from "react";
 
@@ -35,6 +36,7 @@ export function useDashboard(
 ) {
   const initialRange = useMemo(getCurrentWeekRangeIso, []);
   const [range, setRange] = useState<DateRangeIso>(initialRange);
+  const hasRoutines = useFeature("ROUTINES");
 
   const sellersQuery = useQuery<DashboardSellersResponse>(
     DASHBOARD_SELLERS_QUERY,
@@ -111,7 +113,10 @@ export function useDashboard(
           ),
         },
       },
-      skip: dataSkip,
+      // Sem o motor de rotina no plano, o backend recusa `visitSchedules` — e a
+      // recusa derrubaria o dashboard inteiro por causa de um cartão. Quem não
+      // contratou não pergunta.
+      skip: dataSkip || !hasRoutines,
     }
   );
 
@@ -162,7 +167,7 @@ export function useDashboard(
     if (!dataSkip) {
       ordersByPeriod.refetch();
       clientsCount.refetch();
-      schedulesByPeriod.refetch();
+      if (hasRoutines) schedulesByPeriod.refetch();
     }
   };
 
@@ -181,6 +186,10 @@ export function useDashboard(
     completedVisits,
     totalPlannedVisits,
     upcomingVisits,
+    // A tela usa para esconder os cartões de visita — sem o motor de rotina não
+    // há o que mostrar, e um "0 visitas" pareceria um dia vazio, não um recurso
+    // ausente.
+    hasRoutines,
     isLoading,
     error,
     refetch,

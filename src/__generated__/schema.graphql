@@ -522,6 +522,57 @@ type CompanyType {
   importTemplates: [FactoryImportTemplateType!]!
 }
 
+"""Recurso que um plano pode incluir. O front usa este vocabulário para decidir
+o que mostrar — e o backend, para decidir o que responder. Ver `core/domain/plans.py`."""
+enum PlanFeature {
+  ROUTINES
+  ANALYTICS
+  REPORTS
+  BULK_IMPORT
+  GOALS
+  COMMISSIONS
+  NOTIFICATIONS
+}
+
+"""Teto de volume que um plano impõe."""
+enum PlanLimit {
+  USERS
+  SELLERS
+  CLIENTS
+  FACTORIES
+}
+
+"""Um teto e quanto dele já foi ocupado. `limit` nulo = ilimitado; nesse caso
+`used` continua vindo, porque a tela mostra o número de qualquer forma."""
+type PlanLimitUsageType {
+  key: PlanLimit!
+  """Nome do recurso no plural, como se diz ao usuário ("vendedores")."""
+  label: String!
+  limit: Int
+  used: Int!
+  """Verdadeiro quando não cabe mais nenhum. É isto que desabilita o botão de
+  criar — o front não deve recalcular a comparação por conta própria."""
+  isAtLimit: Boolean!
+}
+
+"""O plano da empresa do usuário logado, já com os overrides do tenant
+aplicados. Leitura aberta a qualquer papel: esconder o próprio contrato faria
+todo bloqueio parecer defeito."""
+type MyPlanType {
+  code: String!
+  """Nome comercial do plano ("Básico", "Pro")."""
+  label: String!
+  features: [PlanFeature!]!
+  limits: [PlanLimitUsageType!]!
+}
+
+type MyPlanTypeDataResponse {
+  status: Boolean!
+  code: Int!
+  message: String!
+  data: MyPlanType
+}
+
 type CompanyTypeConnectionResponse {
   edges: [CompanyTypeEdge!]!
   pageInfo: PageInfo!
@@ -615,6 +666,8 @@ extend type Query {
   company(id: UUID!): CompanyTypeDataResponse!
   companies(input: BaseListInput!): CompanyTypeConnectionResponse!
   myCompany: CompanyTypeDataResponse!
+  """O plano da empresa do usuário logado, com o uso atual de cada teto."""
+  myPlan: MyPlanTypeDataResponse!
 }
 
 extend type Mutation {
@@ -3135,7 +3188,38 @@ type PlatformStaffStatusPayloadDataResponse {
   data: PlatformStaffStatusPayload
 }
 
+"""Um teto do catálogo, do jeito que o console mostra. `limit` nulo = o plano não
+impõe teto para esse recurso."""
+type PlanCatalogLimit {
+  key: PlanLimit!
+  """Nome do recurso no plural, como se diz ao usuário ("vendedores")."""
+  label: String!
+  limit: Int
+}
+
+"""Um plano do catálogo. É a MESMA matriz que o backend aplica em runtime
+(`core/domain/plans.py`) — o console lê daqui em vez de manter a própria cópia,
+que envelheceria em silêncio e faria o SU prometer o que o sistema não entrega."""
+type PlanCatalogEntry {
+  code: String!
+  """Nome comercial ("Básico", "Pro")."""
+  label: String!
+  features: [PlanFeature!]!
+  limits: [PlanCatalogLimit!]!
+}
+
+type PlanCatalogEntryListDataResponse {
+  status: Boolean!
+  code: Int!
+  message: String!
+  data: [PlanCatalogEntry!]
+}
+
 extend type Query {
+  """O catálogo de planos, do mais baixo para o mais alto. Leitura da
+  plataforma: é a referência que SU e suporte usam para saber o que cada plano
+  entrega antes de trocar o de uma empresa."""
+  planCatalog: PlanCatalogEntryListDataResponse!
   platformOverview(period: PlatformPeriodInput = null): PlatformOverviewTypeDataResponse!
   """Histórico de ações dos usuários. Filtros aceitos em `input.filters`:
   `company_id`, `user_id`, `operation` e `status`."""

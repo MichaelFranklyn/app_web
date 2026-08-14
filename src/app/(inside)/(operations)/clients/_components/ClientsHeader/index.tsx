@@ -9,6 +9,7 @@ import { Network, TrendingDown, TrendingUp } from "lucide-react";
 import Link from "next/link";
 
 import { getButtonClasses } from "@/components/Button/Root/style";
+import { PlanLimitGate } from "@/components/PlanLimitGate";
 import { Title } from "@/components/Title";
 import { Client, ClientsStats } from "../../interface";
 import { buildKpis } from "../../utils";
@@ -77,7 +78,9 @@ export function ClientsHeader({
                 </Title>
               </Link>
               <ImportClientsModal />
-              <AddClientModal onAddOptimistic={onAddOptimistic} />
+              <PlanLimitGate limit="CLIENTS">
+                <AddClientModal onAddOptimistic={onAddOptimistic} />
+              </PlanLimitGate>
             </PanelHeader.Actions>
           </PanelHeader.Left>
         </PanelHeader.Top>
