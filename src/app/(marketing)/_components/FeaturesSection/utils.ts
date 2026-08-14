@@ -30,13 +30,13 @@ export const FEATURES: MarketingFeature[] = [
     icon: Users,
     color: "var(--mod-clients)",
     title: "Carteira de clientes",
-    text: "Cada cliente com as fábricas que compra, rede e segmento, histórico de pedidos e a estimativa do que ainda tem na prateleira.",
+    text: "Cada cliente com as fábricas que compra, rede e segmento, contatos, endereço e o histórico completo de pedidos.",
   },
   {
     icon: Route,
     color: "var(--mod-routine)",
     title: "Rotina e rota do dia",
-    text: "O sistema monta a semana do vendedor, agrupa por região, ordena a rota no mapa e registra o que saiu de cada visita.",
+    text: "O sistema monta a semana do vendedor, organiza a rota no mapa e registra o que saiu de cada visita.",
   },
   {
     icon: Tags,

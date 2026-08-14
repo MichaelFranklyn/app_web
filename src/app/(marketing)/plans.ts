@@ -23,7 +23,7 @@
  * `app_user/app/modules/companies/use_cases/register_company.py` — o número que
  * a landing anuncia é o mesmo que o `register_company` grava em
  * `trial_ends_at`. Mudou lá, muda aqui. */
-export const TRIAL_DAYS = 14;
+export const TRIAL_DAYS = 7;
 
 /** Um plano na vitrine. `code` é o mesmo do catálogo do backend — serve de
  * chave de lista e de rastro para quem for conferir a matriz. */
@@ -69,7 +69,7 @@ export const PLANS: MarketingPlan[] = [
     isHighlighted: true,
     features: [
       "Tudo do Básico",
-      "Rotina, score de visita e rota do dia",
+      "Rotina de visitas e rota do dia",
       "Desempenho, rankings e relatórios",
       "Importação de planilha e de pedido em PDF",
       "Metas por vendedor, fábrica e mês",
@@ -152,7 +152,7 @@ export const PLAN_MATRIX: PlanMatrixGroup[] = [
         enterprise: true,
       },
       {
-        label: "Score de visita e estoque estimado",
+        label: "Prioridade de visita e registro de estoque",
         basic: false,
         pro: true,
         enterprise: true,

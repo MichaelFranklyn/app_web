@@ -74,7 +74,7 @@ export const PRIVACY_SECTIONS: LegalSection[] = [
   {
     heading: "Segurança",
     paragraphs: [
-      "O tráfego é criptografado, as senhas são armazenadas com algoritmo próprio para isso (nunca em texto legível) e cada empresa é isolada das demais dentro do sistema.",
+      "O tráfego é criptografado, as senhas são armazenadas com algoritmo específico para senhas (nunca em texto legível) e cada empresa é isolada das demais dentro do sistema.",
       "O acesso é individual, com permissões por papel: o que um vendedor enxerga é a carteira dele, não a da empresa inteira. Operações sensíveis ficam registradas.",
       "Nenhuma medida elimina risco por completo. Em caso de incidente de segurança relevante, comunicaremos os afetados e a autoridade, conforme a lei.",
     ],
