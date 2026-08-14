@@ -18,7 +18,7 @@ const STEPS = [
   },
   {
     title: "O mês fecha sozinho",
-    text: "Faturamento vira comissão, comissão vira o que se tem a receber por fábrica, e a rotina da semana seguinte já nasce da carteira.",
+    text: "Faturamento vira comissão, comissão vira o que se tem a receber por fábrica, e a agenda da semana seguinte já chega pronta.",
   },
 ];
 

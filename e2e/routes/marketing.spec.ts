@@ -29,12 +29,12 @@ test.describe("Páginas públicas de marketing", () => {
       page.getByRole("heading", { name: /o comercial da sua representação/i })
     ).toBeVisible();
     // `exact` é obrigatório aqui: sem ele o `name` casa por trecho e os dois
-    // "Testar 14 dias grátis" do corpo entrariam na conta do botão do topo.
+    // "Testar 7 dias grátis" do corpo entrariam na conta do botão do topo.
     await expect(
       page.getByRole("link", { name: "Testar grátis", exact: true })
     ).toHaveCount(2);
     await expect(
-      page.getByRole("link", { name: "Testar 14 dias grátis", exact: true })
+      page.getByRole("link", { name: "Testar 7 dias grátis", exact: true })
     ).toHaveCount(2);
     await expect(
       page.getByRole("link", { name: "Entrar" }).first()
