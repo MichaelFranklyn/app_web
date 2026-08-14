@@ -1,5 +1,4 @@
-import { ToastProvider } from "@/components/Toast/Provider";
-import { GraphqlProvider } from "@/services/graphql/provider";
+import { getSiteUrl } from "@/utils/site";
 import { Analytics } from "@vercel/analytics/next";
 import { SpeedInsights } from "@vercel/speed-insights/next";
 import type { Metadata } from "next";
@@ -32,11 +31,40 @@ const fontBody = Nunito({
   variable: "--font-body-family",
 });
 
+/**
+ * `metadataBase` é o que transforma os caminhos relativos das tags OpenGraph em
+ * URLs absolutas — sem ele o Next avisa no build e o card de link sai sem
+ * imagem no WhatsApp e no LinkedIn.
+ *
+ * A descrição encurtou (a anterior tinha ~380 caracteres): buscador e
+ * pré-visualização cortam por volta de 160, então o que passa disso não é lido
+ * por ninguém — só empurra a frase útil para fora.
+ */
+const description =
+  "Pedidos, carteira de clientes, comissões e a rota do dia do vendedor: o comercial da sua representação em um lugar só.";
+
 export const metadata: Metadata = {
-  title: "Girus - Plataforma de Gestão Comercial",
-  description:
-    "Girus é uma plataforma de gestão comercial projetada para otimizar as operações de vendas, marketing e atendimento ao cliente. Com uma interface intuitiva e recursos avançados, o Girus ajuda as empresas a aumentar a eficiência, melhorar o relacionamento com os clientes e impulsionar o crescimento dos negócios.",
+  metadataBase: new URL(getSiteUrl()),
+  title: {
+    default: "Girus — Plataforma de Gestão Comercial",
+    // As telas internas passam só o próprio nome; a marca entra aqui.
+    template: "%s | Girus",
+  },
+  description,
   icons: "/favicon.ico",
+  openGraph: {
+    type: "website",
+    locale: "pt_BR",
+    siteName: "Girus",
+    url: "/",
+    title: "Girus — Plataforma de Gestão Comercial",
+    description,
+  },
+  twitter: {
+    card: "summary_large_image",
+    title: "Girus — Plataforma de Gestão Comercial",
+    description,
+  },
 };
 
 export default function RootLayout({
@@ -51,11 +79,11 @@ export default function RootLayout({
       className={`${fontHead.variable} ${fontBody.variable}`}
     >
       <body suppressHydrationWarning className={`antialiased`}>
-        <GraphqlProvider>
-          <ToastProvider>
-            <Suspense fallback={null}>{children}</Suspense>
-          </ToastProvider>
-        </GraphqlProvider>
+        {/* Apollo e toasts NÃO entram aqui: cada grupo de rotas que fala com o
+            backend monta o `AppProviders` no próprio layout. O layout raiz é
+            compartilhado com a landing pública, que é estática e não deve pagar
+            o cliente do Apollo na primeira pintura. */}
+        <Suspense fallback={null}>{children}</Suspense>
         {/* Web Vitals reais dos usuários e contagem de visitas/páginas. Os dois
             saem por /_vercel/* (mesma origem), então a CSP de produção já os
             cobre em `script-src 'self'` e `connect-src 'self'`. Só coletam

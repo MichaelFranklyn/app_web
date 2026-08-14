@@ -8,6 +8,7 @@ import { Title } from "@/components/Title";
 import { useAsyncAction } from "@/hooks/useAsyncAction";
 import { postSession } from "@/utils/auth/session";
 import Image from "next/image";
+import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useRef } from "react";
 import { SignUpFormData } from "./interface";
@@ -78,6 +79,25 @@ export default function SignUpContent() {
               prevLabel="Voltar"
               submitLabel="Criar conta grátis"
             />
+
+            {/* Os dois documentos precisam estar a um clique de onde a pessoa
+                aceita, e não só no rodapé da landing: quem chega direto no
+                `/signup` por link nunca passou por lá. */}
+            <Title
+              variant="micro"
+              color="muted"
+              className="mt-16 block text-center"
+            >
+              Ao criar a conta você concorda com os{" "}
+              <Link href="/termos" className="underline hover:opacity-70">
+                Termos de uso
+              </Link>{" "}
+              e a{" "}
+              <Link href="/privacidade" className="underline hover:opacity-70">
+                Política de privacidade
+              </Link>
+              .
+            </Title>
           </Card.Body>
 
           <Card.Footer bg="bg3">
