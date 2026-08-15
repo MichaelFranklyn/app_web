@@ -1,6 +1,6 @@
 # AUTO-GERADO por scripts/pull-schema.mjs — NÃO editar à mão.
 # Snapshot do schema do backend (app_user). Atualize com: npm run schema:pull
-# Fonte: 47 arquivos .graphql merge-ados (mesma regra do Ariadne).
+# Fonte: 48 arquivos .graphql merge-ados (mesma regra do Ariadne).
 
 input BaseListInput {
   filters: [FieldFilterInput!] = null
@@ -229,6 +229,252 @@ extend type Mutation {
   createClientNetwork(input: CreateClientNetworkInput!): ClientNetworkTypeDataResponse!
   updateClientNetwork(id: UUID!, input: UpdateClientNetworkInput!): ClientNetworkTypeDataResponse!
   deleteClientNetwork(id: UUID!): BaseResponse!
+}
+
+"""
+Quem manda o link e para qual cliente ele aponta.
+
+Existe para o cliente saber de quem é a página que abriu: um link recebido no
+WhatsApp, sem cabeçalho nenhum, é indistinguível de golpe. Por isso o nome e a
+logo do escritório vêm junto do nome dele.
+"""
+type PortalProfileType {
+  """Nome fantasia do cliente; a razão social quando não houver."""
+  clientName: String!
+  clientCity: String
+  clientState: String
+  """Nome do escritório que atende o cliente."""
+  companyName: String!
+  companyLogoUrl: String
+}
+
+"""
+Um pedido, como o CLIENTE o vê.
+
+Deliberadamente mais pobre que `OrderType`: não há comissão, vendedor, base de
+cálculo, nem nada que descreva a operação do escritório. O que sai daqui é o que
+o cliente já saberia olhando a própria nota — mais o acompanhamento da entrega,
+que é o motivo de a página existir.
+"""
+type PortalOrderType {
+  id: UUID!
+  orderDate: Date!
+  """Nome da fábrica (fantasia, ou razão social quando não houver)."""
+  factoryName: String!
+  """Valor das mercadorias, sem IPI."""
+  totalAmount: Decimal!
+  """IPI do pedido. Total a pagar = totalAmount + ipiAmount."""
+  ipiAmount: Decimal!
+  status: OrderStatus!
+  invoicedAt: Date
+  deliveredAt: Date
+  """Previsão de entrega = invoicedAt + prazo estimado. Nula antes do faturamento."""
+  estimatedDeliveryDate: Date
+}
+
+"""
+Um item do pedido, como o cliente o vê.
+
+Sem nível de preço e sem desconto: aquilo descreve a negociação entre o
+escritório e a fábrica, não a compra. O que fica é o que estaria na nota —
+quanto veio, a que preço, quanto deu.
+"""
+type PortalOrderItemType {
+  id: UUID!
+  productName: String!
+  sku: String
+  """Unidades pedidas (o pedido é sempre por UNIDADE, não por embalagem)."""
+  quantity: Decimal!
+  unitPrice: Decimal!
+  """Sem IPI — o IPI do item vem separado, como na nota."""
+  subtotal: Decimal!
+  ipiAmount: Decimal!
+}
+
+"""Uma parcela do pedido faturado. Sem nada de comissão."""
+type PortalInstallmentType {
+  sequence: Int!
+  amount: Decimal!
+  dueDate: Date
+  status: InstallmentStatus!
+  paidAt: Date
+}
+
+type PortalOrderDetailType {
+  id: UUID!
+  orderDate: Date!
+  factoryName: String!
+  totalAmount: Decimal!
+  ipiAmount: Decimal!
+  status: OrderStatus!
+  invoicedAt: Date
+  deliveredAt: Date
+  estimatedDeliveryDate: Date
+  """Prazo de pagamento combinado (ex.: "30/60/90"). Nulo se não houver."""
+  paymentTermName: String
+  items: [PortalOrderItemType!]!
+  """Vazio até o faturamento: é ele que gera as parcelas."""
+  installments: [PortalInstallmentType!]!
+}
+
+type PortalOrderDetailTypeDataResponse {
+  status: Boolean!
+  code: Int!
+  message: String!
+  data: PortalOrderDetailType
+}
+
+"""Total comprado num mês. `month` é sempre o dia 1."""
+type PortalMonthTotalType {
+  month: Date!
+  amount: Decimal!
+  orderCount: Int!
+}
+
+type PortalFactoryTotalType {
+  factoryName: String!
+  amount: Decimal!
+  orderCount: Int!
+}
+
+"""
+O retrato das compras: quanto por mês, quanto por fábrica.
+
+Os meses vêm CONTÍNUOS, incluindo os vazios — num gráfico, pular o mês em que
+não houve compra achata justamente o buraco que o cliente quer enxergar.
+"""
+type PortalPurchaseSummaryType {
+  months: [PortalMonthTotalType!]!
+  factories: [PortalFactoryTotalType!]!
+  totalAmount: Decimal!
+  orderCount: Int!
+  averageTicket: Decimal!
+}
+
+type PortalPurchaseSummaryTypeDataResponse {
+  status: Boolean!
+  code: Int!
+  message: String!
+  data: PortalPurchaseSummaryType
+}
+
+"""
+Um produto que o cliente compra, com o que o sistema estima do estoque dele.
+
+`daysRemaining` é a estimativa ATUAL (dias até a previsão de esgotamento), e é
+ela que o campo do formulário mostra preenchida — o cliente corrige um número em
+vez de inventar um.
+"""
+type PortalStockItemType {
+  productId: UUID!
+  productName: String!
+  sku: String
+  factoryName: String!
+  lastPurchaseDate: Date
+  estimatedStockoutDate: Date
+  daysRemaining: Int
+  """Quando alguém informou este estoque pela última vez. Nulo = nunca."""
+  lastReportedAt: Date
+}
+
+type PortalStockItemTypeListResponse {
+  status: Boolean!
+  code: Int!
+  message: String!
+  data: [PortalStockItemType!]!
+}
+
+input PortalStockEntryInput {
+  productId: UUID!
+  """Quantos dias aquele produto ainda dura na loja. 0 = acabou."""
+  daysRemaining: Int!
+}
+
+input SubmitPortalStockInput {
+  items: [PortalStockEntryInput!]!
+}
+
+type PortalProfileTypeDataResponse {
+  status: Boolean!
+  code: Int!
+  message: String!
+  data: PortalProfileType
+}
+
+type PortalOrderTypeEdge {
+  node: PortalOrderType!
+  cursor: String!
+}
+
+type PortalOrderTypeConnectionResponse {
+  edges: [PortalOrderTypeEdge!]!
+  pageInfo: PageInfo!
+  totalCount: Int!
+}
+
+"""
+Link ativo do portal de um cliente. Lado do ESCRITÓRIO — quem lê isto é o
+vendedor, não o cliente.
+"""
+type ClientPortalLinkType {
+  """
+  A URL completa. Só vem preenchida na emissão: o que fica guardado é o hash, e
+  um link já emitido não pode ser mostrado de novo — só substituído por outro.
+  """
+  url: String
+  expiresAt: DateTime!
+  """Última vez que o cliente abriu a página. Nulo = ele nunca entrou."""
+  lastAccessedAt: DateTime
+  createdAt: DateTime!
+}
+
+type ClientPortalLinkTypeDataResponse {
+  status: Boolean!
+  code: Int!
+  message: String!
+  data: ClientPortalLinkType
+}
+
+extend type Query {
+  """
+  Dados do cliente do link. Autenticada pelo header `X-Portal-Token`, não por
+  sessão: quem chama aqui não tem conta no sistema.
+  """
+  portalProfile: PortalProfileTypeDataResponse!
+  """
+  Pedidos do cliente do link, do mais recente para o mais antigo.
+
+  Traz o que o cliente comprou no escritório inteiro — todas as fábricas, todos
+  os vendedores —, porque é isso que "tudo que já comprei" significa para ele.
+  Rascunhos e orçamentos ficam de fora: são conversa interna até virarem pedido.
+  """
+  portalOrders(input: BaseListInput!): PortalOrderTypeConnectionResponse!
+  """
+  Um pedido com os itens e as parcelas. O id é conferido contra o cliente do
+  token: endereço de pedido alheio responde "não encontrado", não o pedido.
+  """
+  portalOrder(id: UUID!): PortalOrderDetailTypeDataResponse!
+  """Quanto o cliente comprou por mês e por fábrica — a base dos gráficos."""
+  portalPurchaseSummary(months: Int = 12): PortalPurchaseSummaryTypeDataResponse!
+  """Os produtos que o cliente acompanha, com a estimativa de estoque atual."""
+  portalStock: PortalStockItemTypeListResponse!
+  """Link ativo do cliente, para o escritório. Nulo se não houver nenhum vivo."""
+  clientPortalLink(companyClientId: UUID!): ClientPortalLinkTypeDataResponse!
+}
+
+extend type Mutation {
+  """
+  O cliente informa quanto tempo cada produto ainda dura na loja dele.
+
+  Vale o mesmo que o vendedor olhando a prateleira — é o dado que corrige a
+  previsão de esgotamento e recalcula o score do vínculo na hora. A observação
+  fica marcada com origem CLIENTE, para o vendedor saber de onde veio.
+  """
+  submitPortalStock(input: SubmitPortalStockInput!): BaseResponse!
+  """Emite um link novo e derruba o anterior. Devolve a URL — única vez em que ela existe."""
+  issueClientPortalLink(companyClientId: UUID!): ClientPortalLinkTypeDataResponse!
+  """Corta o link ativo. Use quando ele tiver ido parar onde não devia."""
+  revokeClientPortalLink(companyClientId: UUID!): BaseResponse!
 }
 
 """Uma compra do produto por aquele cliente naquela fábrica."""
