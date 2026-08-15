@@ -23,6 +23,12 @@ const PUBLIC_ROUTES = [
 /** Raiz do console da plataforma. */
 const PLATFORM_ROOT = "/platform";
 
+/** Raiz do portal do cliente — páginas abertas por link, sem sessão. */
+const PORTAL_ROOT = "/p";
+
+const isPortalRoute = (pathname: string): boolean =>
+  pathname === PORTAL_ROOT || pathname.startsWith(`${PORTAL_ROOT}/`);
+
 export async function proxy(request: NextRequest) {
   const { pathname } = request.nextUrl;
 
@@ -33,6 +39,15 @@ export async function proxy(request: NextRequest) {
   // subrotas: um `startsWith("/")` para a raiz casaria com o sistema inteiro e
   // abriria todas as telas privadas de uma vez.
   if (PUBLIC_MARKETING_ROUTES.includes(pathname)) {
+    return NextResponse.next();
+  }
+
+  // Portal do cliente. Aqui o match é por PREFIXO, e não exato como o de cima,
+  // porque o token faz parte do caminho (`/p/<token>`) — não há lista de
+  // endereços a declarar. O prefixo é seguro justamente por ser um: `/p/` não é
+  // raiz de nenhuma tela privada, e quem entra sem token válido não vê nada,
+  // porque a autorização é do backend, não daqui.
+  if (isPortalRoute(pathname)) {
     return NextResponse.next();
   }
 

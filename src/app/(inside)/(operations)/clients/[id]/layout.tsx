@@ -18,6 +18,7 @@ import { ClientDetailSkeleton } from "./_components/ClientDetailSkeleton";
 import { DeleteClientModal } from "./_components/DeleteClientModal";
 import { EditClientModal } from "./_components/EditClientModal";
 import { ScoreTag } from "./_components/ScoreTag";
+import { SharePortalModal } from "./_components/SharePortalModal";
 import { ClientRouteProvider } from "./context";
 import { COMPANY_CLIENT_QUERY } from "./gql";
 import { ClientDetail, CompanyClientDetailQueryResponse } from "./interface";
@@ -197,6 +198,14 @@ export default function ClientLayout({
                         onUpdateOptimistic={optimisticClient.updateOptimistic}
                         onCommit={optimisticClient.commit}
                         onRollback={optimisticClient.rollback}
+                      />
+                    )}
+                    {clientData?.companyClient && (
+                      <SharePortalModal
+                        companyClientId={clientData.companyClient.id}
+                        clientName={
+                          clientData.nomeFantasia ?? clientData.razaoSocial
+                        }
                       />
                     )}
                     {clientData?.companyClient && (

@@ -79,6 +79,144 @@ const SSR_RESPONSES: Record<string, unknown> = {
       },
     },
   },
+  // Portal do cliente: TODAS as telas são SSR (não há Apollo no navegador lá),
+  // então cada query e a mutation do estoque precisam de resposta aqui — o
+  // `page.route` do spec não alcança nenhuma delas.
+  PortalProfile: {
+    portalProfile: {
+      status: true,
+      code: 200,
+      message: "ok",
+      data: {
+        clientName: "Loja do Cliente",
+        clientCity: "Salvador",
+        clientState: "BA",
+        companyName: "Empresa Teste",
+        companyLogoUrl: null,
+      },
+    },
+  },
+  PortalPurchases: {
+    portalPurchaseSummary: {
+      status: true,
+      code: 200,
+      message: "ok",
+      data: {
+        totalAmount: "5000.0000",
+        orderCount: 2,
+        averageTicket: "2500.0000",
+        months: [
+          { month: "2026-07-01", amount: "2000.0000", orderCount: 1 },
+          { month: "2026-08-01", amount: "3000.0000", orderCount: 1 },
+        ],
+        factories: [
+          { factoryName: "Fábrica Alfa", amount: "3000.0000", orderCount: 1 },
+          { factoryName: "Fábrica Beta", amount: "2000.0000", orderCount: 1 },
+        ],
+      },
+    },
+    portalOrders: {
+      totalCount: 1,
+      pageInfo: { hasNextPage: false, hasPreviousPage: false },
+      edges: [
+        {
+          node: {
+            id: "order-portal-1",
+            orderDate: "2026-08-01",
+            factoryName: "Fábrica Alfa",
+            totalAmount: "3000.0000",
+            ipiAmount: "0.0000",
+            status: "DELIVERED",
+            invoicedAt: "2026-08-05",
+            deliveredAt: "2026-08-10",
+            estimatedDeliveryDate: null,
+          },
+        },
+      ],
+    },
+  },
+  PortalOrder: {
+    portalOrder: {
+      status: true,
+      code: 200,
+      message: "ok",
+      data: {
+        id: "order-portal-1",
+        orderDate: "2026-08-01",
+        factoryName: "Fábrica Alfa",
+        totalAmount: "3000.0000",
+        ipiAmount: "0.0000",
+        status: "DELIVERED",
+        invoicedAt: "2026-08-05",
+        deliveredAt: "2026-08-10",
+        estimatedDeliveryDate: null,
+        paymentTermName: "30/60",
+        items: [
+          {
+            id: "item-1",
+            productName: "Torneira Teste",
+            sku: "SKU-1",
+            quantity: "12.0000",
+            unitPrice: "250.0000",
+            subtotal: "3000.0000",
+            ipiAmount: "0.0000",
+          },
+        ],
+        installments: [
+          {
+            sequence: 1,
+            amount: "1500.0000",
+            dueDate: "2026-09-05",
+            status: "PENDING",
+            paidAt: null,
+          },
+          {
+            sequence: 2,
+            amount: "1500.0000",
+            dueDate: "2026-10-05",
+            status: "PAID",
+            paidAt: "2026-10-01",
+          },
+        ],
+      },
+    },
+  },
+  PortalStock: {
+    portalStock: {
+      status: true,
+      code: 200,
+      message: "ok",
+      data: [
+        {
+          productId: "prod-1",
+          productName: "Torneira Teste",
+          sku: "SKU-1",
+          factoryName: "Fábrica Alfa",
+          lastPurchaseDate: "2026-08-01",
+          estimatedStockoutDate: "2026-08-20",
+          daysRemaining: 5,
+          lastReportedAt: null,
+        },
+        {
+          productId: "prod-2",
+          productName: "Sifão Teste",
+          sku: "SKU-2",
+          factoryName: "Fábrica Beta",
+          lastPurchaseDate: "2026-07-01",
+          estimatedStockoutDate: null,
+          daysRemaining: null,
+          lastReportedAt: null,
+        },
+      ],
+    },
+  },
+  SubmitPortalStock: {
+    submitPortalStock: {
+      status: true,
+      code: 200,
+      message: "Obrigado! Seu representante já vê essa informação.",
+    },
+  },
   CompanyBranding: {
     company_branding: {
       status: true,
