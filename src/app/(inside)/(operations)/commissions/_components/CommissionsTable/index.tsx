@@ -11,8 +11,8 @@ import { Coins } from "lucide-react";
 import Link from "next/link";
 import { CommissionRow } from "../../interface";
 import { COMMISSION_STATUS_LABEL, COMMISSION_STATUS_TONE } from "../../utils";
-import { MarkReceivedModal } from "../MarkReceivedModal";
 import { ReconcileToggle } from "../ReconcileToggle";
+import { CommissionRowActions } from "./CommissionRowActions";
 import { InstallmentStateCell } from "./InstallmentStateCell";
 
 interface Props {
@@ -160,14 +160,7 @@ export function CommissionsTable({
               {canManage && (
                 <Table.Cell>
                   <div className="flex items-center justify-end">
-                    {row.isReceivable ? (
-                      <MarkReceivedModal
-                        installmentIds={[row.installmentId]}
-                        onSuccess={onChanged}
-                      />
-                    ) : (
-                      <Table.CellText variant="dim">—</Table.CellText>
-                    )}
+                    <CommissionRowActions row={row} onChanged={onChanged} />
                   </div>
                 </Table.Cell>
               )}

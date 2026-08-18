@@ -13,10 +13,17 @@ import { LucideIcon } from "lucide-react";
 import { useMemo, useRef, useState } from "react";
 
 interface Props {
-  /** Rótulo do botão que abre o modal. */
+  /** Rótulo do botão que abre o modal. Ignorado no modo controlado. */
   label: string;
   icon: LucideIcon;
   color: "amber" | "green" | "red" | "neutral";
+  /**
+   * Modo controlado: quem abre é o menu de ações da linha, e o modal não
+   * renderiza gatilho nenhum. Sem estas props ele traz o próprio botão (a barra
+   * de ações em lote usa assim).
+   */
+  open?: boolean;
+  onOpenChange?: (v: boolean) => void;
   title: string;
   description: string;
   /** Rótulo do campo de data (ex.: "Data do pagamento"). */
@@ -49,10 +56,14 @@ export function DateActionModal({
   confirmLabel,
   successMessage,
   disabled = false,
+  open: controlledOpen,
+  onOpenChange,
   onConfirm,
   onSuccess,
 }: Props) {
-  const [open, setOpen] = useState(false);
+  const [uncontrolledOpen, setUncontrolledOpen] = useState(false);
+  const isControlled = controlledOpen !== undefined;
+  const open = isControlled ? controlledOpen : uncontrolledOpen;
   const formRef = useRef<FormBuilderRef>(null);
   const { execute, isLoading } = useAsyncAction();
 
@@ -80,7 +91,8 @@ export function DateActionModal({
   );
 
   const handleClose = (v: boolean) => {
-    setOpen(v);
+    if (isControlled) onOpenChange?.(v);
+    else setUncontrolledOpen(v);
     if (!v) formRef.current?.resetForm();
   };
 
@@ -103,17 +115,19 @@ export function DateActionModal({
 
   return (
     <Modal.Root open={open} onOpenChange={handleClose}>
-      <Modal.Trigger asChild>
-        <Button.Root
-          appearance="ghost"
-          color={color}
-          size="sm"
-          disabled={disabled}
-        >
-          <Button.Icon icon={icon} />
-          <Button.Title>{label}</Button.Title>
-        </Button.Root>
-      </Modal.Trigger>
+      {!isControlled && (
+        <Modal.Trigger asChild>
+          <Button.Root
+            appearance="ghost"
+            color={color}
+            size="sm"
+            disabled={disabled}
+          >
+            <Button.Icon icon={icon} />
+            <Button.Title>{label}</Button.Title>
+          </Button.Root>
+        </Modal.Trigger>
+      )}
 
       <Modal.Content size="sm">
         <Modal.Header title={title} description={description} />

@@ -184,3 +184,31 @@ export const SETTLE_INSTALLMENTS_IN_PERIOD_MUTATION = gql`
     }
   }
 `;
+
+export const UNMARK_COMMISSION_RECEIVED_MUTATION = gql`
+  mutation UnmarkCommissionReceived($installmentIds: [UUID!]!) {
+    unmarkCommissionReceived(installmentIds: $installmentIds) {
+      status
+      message
+    }
+  }
+`;
+
+export const UNMARK_SELLER_COMMISSION_PAID_MUTATION = gql`
+  mutation UnmarkSellerCommissionPaid($installmentIds: [UUID!]!) {
+    unmarkSellerCommissionPaid(installmentIds: $installmentIds) {
+      status
+      message
+    }
+  }
+`;
+
+/** Volta o boleto para "em aberto" — desfaz pagamento ou inadimplência. */
+export const REVERT_ORDER_INSTALLMENT_MUTATION = gql`
+  mutation RevertOrderInstallment($id: UUID!) {
+    revertOrderInstallment(id: $id) {
+      status
+      message
+    }
+  }
+`;
