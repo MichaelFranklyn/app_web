@@ -71,7 +71,6 @@ export function VisitStockModal({
         itemId={itemId}
         open={open && isOrdering}
         onClose={() => setOrderingGroup(null)}
-        onCreated={() => closeAll(false)}
       />
     </>
   );

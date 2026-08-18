@@ -9,8 +9,8 @@ import {
 import { Modal } from "@/components/Modal";
 import { useAsyncAction } from "@/hooks/useAsyncAction";
 import { useInvalidateQueriesClient } from "@/hooks/useInvalidateQueries";
+import { useRedirectTransition } from "@/hooks/useRedirectTransition";
 import { useMutation } from "@apollo/client/react";
-import { useRouter } from "next/navigation";
 import { useRef } from "react";
 import { toIsoDate } from "@/utils/format/date";
 
@@ -35,8 +35,6 @@ interface Props {
   open: boolean;
   /** Cancelar: devolve o vendedor ao estoque. */
   onClose: () => void;
-  /** Criado: fecha o fluxo inteiro, senão o estoque pisca antes de navegarmos. */
-  onCreated: () => void;
 }
 
 const FORM_STEPS: FormStepSchema[] = [
@@ -75,17 +73,14 @@ const FORM_STEPS: FormStepSchema[] = [
  * O pedido nasce vazio; ao criar, levamos o vendedor à página do pedido, onde ele
  * adiciona os itens.
  */
-export function VisitOrderModal({
-  group,
-  itemId,
-  open,
-  onClose,
-  onCreated,
-}: Props) {
-  const router = useRouter();
+export function VisitOrderModal({ group, itemId, open, onClose }: Props) {
   const formRef = useRef<FormBuilderRef>(null);
   const invalidateClient = useInvalidateQueriesClient();
+  const { redirect, isRedirecting } = useRedirectTransition();
   const { execute, isLoading } = useAsyncAction();
+  // O botão só descansa quando o pedido já está na tela — como nas outras
+  // entradas de pedido.
+  const isBusy = isLoading || isRedirecting;
 
   const [createOrder] = useMutation<CreateOrderResponse>(
     CREATE_VISIT_ORDER_MUTATION
@@ -116,10 +111,11 @@ export function VisitOrderModal({
       {
         successMessage: "Pedido criado — adicione os itens",
         onSuccess: async (order) => {
-          formRef.current?.resetForm();
-          onCreated();
           await invalidateClient(["orders", "companyClient"]);
-          router.push(`/orders/${order.id}`);
+          // Não fecha o fluxo aqui: quem desmonta a visita (e estes modais) é a
+          // navegação. Fechar antes devolveria a rotina por baixo enquanto o
+          // pedido ainda carrega — o mesmo flash que o loading existe para evitar.
+          redirect(`/orders/${order.id}`);
         },
       }
     );
@@ -141,7 +137,7 @@ export function VisitOrderModal({
             ref={formRef}
             steps={FORM_STEPS}
             onSubmit={handleSubmit}
-            loading={isLoading}
+            loading={isBusy}
             // O pedido nasce durante a visita: a data de hoje é a resposta certa
             // quase sempre, e o vendedor só mexe nela na exceção.
             initialData={{ orderDate: new Date() }}
@@ -156,7 +152,7 @@ export function VisitOrderModal({
               color="neutral"
               size="md"
               noUppercase
-              disabled={isLoading}
+              disabled={isBusy}
             >
               <Button.Title>Cancelar</Button.Title>
             </Button.Root>
@@ -167,7 +163,7 @@ export function VisitOrderModal({
             color="amber"
             size="md"
             noUppercase
-            loading={isLoading}
+            loading={isBusy}
             onClick={() => formRef.current?.submitForm()}
           >
             <Button.Title>Criar pedido</Button.Title>

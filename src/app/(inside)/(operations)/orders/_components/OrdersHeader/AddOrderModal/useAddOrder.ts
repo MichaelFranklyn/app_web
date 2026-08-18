@@ -2,7 +2,8 @@ import { FormBuilderRef, FormStepSchema } from "@/components/FormBuilder";
 import { SelectOption } from "@/components/Input";
 import { useToast } from "@/components/Toast";
 import { useAsyncAction } from "@/hooks/useAsyncAction";
-import { useRefetchQueriesClient } from "@/hooks/useInvalidateQueries";
+import { useInvalidateQueriesClient } from "@/hooks/useInvalidateQueries";
+import { useRedirectTransition } from "@/hooks/useRedirectTransition";
 import { extractSelectValue } from "@/utils/form";
 import { useMutation, useQuery } from "@apollo/client/react";
 import { useMemo, useRef, useState } from "react";
@@ -86,7 +87,10 @@ export function useAddOrder({ onAddOptimistic }: AddOrderModalProps) {
   // 0 = dados do pedido, 1 = itens (opcional).
   const [step, setStep] = useState(0);
   const formRef = useRef<FormBuilderRef>(null);
-  const refetchClient = useRefetchQueriesClient();
+  // Sai da lista logo depois de criar: invalidar (evict) deixa a listagem
+  // pronta para o próximo mount, sem refetch de uma tela que vai desmontar.
+  const invalidateClient = useInvalidateQueriesClient();
+  const { redirect, isRedirecting } = useRedirectTransition();
   const { toast } = useToast();
 
   // Seleção em cascata: vendedor → fábrica → cliente.
@@ -379,7 +383,7 @@ export function useAddOrder({ onAddOptimistic }: AddOrderModalProps) {
         successMessage: "Pedido criado com sucesso",
         onSuccess: ({ order, failed }) => {
           onAddOptimistic(order);
-          refetchClient(["Orders", "OrderStats"]);
+          invalidateClient(["orders", "orderStats"]);
           if (failed.length) {
             toast({
               variant: "error",
@@ -387,7 +391,10 @@ export function useAddOrder({ onAddOptimistic }: AddOrderModalProps) {
               description: `${failed.join(", ")} — adicione no detalhe do pedido.`,
             });
           }
-          handleClose(false);
+          // Não fecha o modal: o botão segue em loading até o pedido novo
+          // carregar, e a navegação desmonta esta página (com o modal) ao
+          // entrar. Fechar antes daria "concluído" com a tela ainda em branco.
+          redirect(`/orders/${order.id}`);
         },
       }
     );
@@ -405,6 +412,8 @@ export function useAddOrder({ onAddOptimistic }: AddOrderModalProps) {
     draft,
     paymentMinimum,
     freeFreight,
-    isLoading,
+    // Inclui o redirect: o botão "Criar pedido" só sai do loading quando o
+    // pedido recém-criado já carregou.
+    isLoading: isLoading || isRedirecting,
   };
 }

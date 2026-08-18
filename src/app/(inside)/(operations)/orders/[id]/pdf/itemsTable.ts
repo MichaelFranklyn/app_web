@@ -14,9 +14,11 @@ import {
 // Linha um pouco mais alta para caber, na coluna de imposto, a alíquota em cima
 // e o valor embaixo (igual à tabela de itens na tela).
 const ROW_H = 24;
-// Na versão ilustrada a linha cresce para caber a miniatura quadrada.
-const PHOTO_ROW_H = 46;
-const PHOTO_SIZE = 38;
+// Na versão ilustrada a linha cresce para caber a miniatura quadrada. A foto é
+// o que o cliente olha para reconhecer a peça, então ela pede um pouco mais de
+// papel do que o mínimo — a linha acompanha, senão a miniatura encosta na de cima.
+const PHOTO_SIZE = 48;
+const PHOTO_ROW_H = PHOTO_SIZE + 8;
 /** Faixa reservada à miniatura à esquerda do código. */
 const PHOTO_COL = PHOTO_SIZE + 10;
 const HEAD_H = 22;
@@ -161,7 +163,7 @@ export const drawItemsTable = (
     }
 
     // O texto fica centrado na altura da linha, que muda com a miniatura.
-    const textY = y + (withPhotos ? 26 : 15);
+    const textY = y + (withPhotos ? PHOTO_ROW_H / 2 + 3 : 15);
     const name = item.product?.name ?? "Produto";
 
     if (withPhotos) {
