@@ -10,6 +10,7 @@ import {
 import { SelectOption } from "@/components/Input";
 import { Modal } from "@/components/Modal";
 import { useAsyncAction } from "@/hooks/useAsyncAction";
+import { useAsyncSelectOptions } from "@/hooks/useAsyncSelectOptions";
 import { parseMoneyToNumber } from "@/utils/format/masks";
 import { useMutation, useQuery } from "@apollo/client/react";
 import { Plus } from "lucide-react";
@@ -20,9 +21,23 @@ import {
   TIERS_OPTIONS_QUERY,
 } from "./gql";
 import { extractSelectValue } from "@/utils/form";
-import { CreateItemResponse, ProductsData, TiersData } from "./interface";
+import {
+  CreateItemResponse,
+  ProductOptionNode,
+  ProductsData,
+  TiersData,
+} from "./interface";
 
 type Option = SelectOption;
+
+const PRODUCT_ORDER = { by: "name", dir: "asc" } as const;
+
+// Referências estáveis: o hook de busca as usa em dependências de memo.
+const getProductsConnection = (d: ProductsData) => d.products;
+const toProductOption = (n: ProductOptionNode) => ({
+  value: n.id,
+  label: `${n.name} (${n.sku})`,
+});
 
 interface Props {
   priceListId: string;
@@ -40,25 +55,49 @@ export function AddItemModal({
   const [packLabel, setPackLabel] = useState<string | null>(null);
   const formRef = useRef<FormBuilderRef>(null);
 
-  const byCompanyFactory = {
-    first: 200,
-    filters: [
+  // O catálogo de uma fábrica passa de 600 produtos: buscar uma página fixa
+  // deixava de fora tudo o que não coubesse nela — e o produto ausente parecia
+  // não estar cadastrado. A busca vai ao servidor, por nome ou código.
+  const productScope = useMemo(
+    () => [
       { field: "company_factory_id", operator: "eq", value: companyFactoryId },
     ],
-  };
-
-  const { data: productsData, error: productsError } = useQuery<ProductsData>(
-    PRODUCTS_OPTIONS_QUERY,
-    {
-      variables: { input: byCompanyFactory },
-      skip: !open || !companyFactoryId,
-    }
+    [companyFactoryId]
   );
+
+  const {
+    options: productOptions,
+    nodes: productNodes,
+    loading: loadingProducts,
+    onSearch: onProductSearch,
+  } = useAsyncSelectOptions<ProductsData, ProductOptionNode>({
+    query: PRODUCTS_OPTIONS_QUERY,
+    getConnection: getProductsConnection,
+    toOption: toProductOption,
+    searchField: "name,sku",
+    baseFilters: productScope,
+    // Alfabética e larga o bastante para uma busca por código caber inteira na
+    // primeira página (o código "150" casa com 27 produtos).
+    order: PRODUCT_ORDER,
+    first: 50,
+    skip: !open || !companyFactoryId,
+  });
 
   const { data: tiersData, error: tiersError } = useQuery<TiersData>(
     TIERS_OPTIONS_QUERY,
     {
-      variables: { input: byCompanyFactory },
+      variables: {
+        input: {
+          first: 200,
+          filters: [
+            {
+              field: "company_factory_id",
+              operator: "eq",
+              value: companyFactoryId,
+            },
+          ],
+        },
+      },
       skip: !open || !companyFactoryId,
     }
   );
@@ -68,22 +107,15 @@ export function AddItemModal({
   );
   const { execute, isLoading } = useAsyncAction();
 
-  const productOptions: Option[] = useMemo(
-    () =>
-      productsData?.products.edges.map((e) => ({
-        value: e.node.id,
-        label: `${e.node.name} (${e.node.sku})`,
-      })) ?? [],
-    [productsData]
-  );
-
+  // Só a página atual da busca; basta, porque o rótulo é lido no clique — o
+  // produto escolhido está sempre entre os que estão à vista.
   const packLabelByProduct = useMemo(() => {
     const map = new Map<string, string>();
-    productsData?.products.edges.forEach((e) => {
-      if (e.node.unitLabel) map.set(e.node.id, e.node.unitLabel.label);
+    productNodes.forEach((node) => {
+      if (node.unitLabel) map.set(node.id, node.unitLabel.label);
     });
     return map;
-  }, [productsData]);
+  }, [productNodes]);
 
   const tierOptions: Option[] = useMemo(
     () =>
@@ -107,11 +139,12 @@ export function AddItemModal({
                 type: "select-single",
                 label: "Produto",
                 required: true,
-                placeholder:
-                  productOptions.length === 0
-                    ? "Cadastre um produto primeiro"
-                    : "Selecione o produto",
+                // Com a busca no servidor, lista vazia quer dizer "nada casa com
+                // o que você digitou" — não "a fábrica não tem catálogo".
+                placeholder: "Busque pelo nome ou código",
                 options: productOptions,
+                onSearch: onProductSearch,
+                loading: loadingProducts,
                 onChange: (value) => {
                   setPackLabel(
                     packLabelByProduct.get(extractSelectValue(value)) ?? null
@@ -144,7 +177,14 @@ export function AddItemModal({
         ],
       },
     ],
-    [productOptions, tierOptions, packLabelByProduct, packLabel]
+    [
+      productOptions,
+      onProductSearch,
+      loadingProducts,
+      tierOptions,
+      packLabelByProduct,
+      packLabel,
+    ]
   );
 
   const handleClose = (v: boolean) => {
@@ -189,7 +229,7 @@ export function AddItemModal({
   };
 
   useQueryErrorToast(
-    productsError ?? tiersError,
+    tiersError,
     "Não foi possível carregar as opções. Tente novamente."
   );
 

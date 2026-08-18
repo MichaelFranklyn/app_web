@@ -1,5 +1,4 @@
 "use client";
-import { useQueryErrorToast } from "@/hooks/useQueryErrorToast";
 
 import { Button } from "@/components/Button";
 import {
@@ -9,7 +8,8 @@ import {
 } from "@/components/FormBuilder";
 import { Modal } from "@/components/Modal";
 import { useAsyncAction } from "@/hooks/useAsyncAction";
-import { useMutation, useQuery } from "@apollo/client/react";
+import { useAsyncSelectOptions } from "@/hooks/useAsyncSelectOptions";
+import { useMutation } from "@apollo/client/react";
 import { Plus } from "lucide-react";
 import { useMemo, useRef, useState } from "react";
 import {
@@ -18,9 +18,19 @@ import {
 } from "../gql";
 import {
   AddComponentResponse,
+  ComponentProductNode,
   ComponentProductsOptionsData,
 } from "../interface";
 import { extractSelectValue } from "@/utils/form";
+
+const PRODUCT_ORDER = { by: "name", dir: "asc" } as const;
+
+// Referências estáveis: o hook de busca as usa em dependências de memo.
+const getProductsConnection = (d: ComponentProductsOptionsData) => d.products;
+const toProductOption = (n: ComponentProductNode) => ({
+  value: n.id,
+  label: `${n.sku} — ${n.name}`,
+});
 
 interface Props {
   kitProductId: string;
@@ -39,22 +49,33 @@ export function AddComponentModal({
   const [open, setOpen] = useState(false);
   const formRef = useRef<FormBuilderRef>(null);
 
-  const { data: productsData, error: productsError } =
-    useQuery<ComponentProductsOptionsData>(COMPONENT_PRODUCTS_OPTIONS_QUERY, {
-      variables: {
-        input: {
-          first: 200,
-          filters: [
-            {
-              field: "company_factory_id",
-              operator: "eq",
-              value: companyFactoryId,
-            },
-          ],
-        },
-      },
+  // Catálogo de fábrica passa de 600 produtos: uma página fixa deixaria de fora
+  // tudo o que não coubesse nela. A busca vai ao servidor, por nome ou código.
+  const productScope = useMemo(
+    () => [
+      { field: "company_factory_id", operator: "eq", value: companyFactoryId },
+    ],
+    [companyFactoryId]
+  );
+
+  const {
+    options: fetchedOptions,
+    loading: loadingProducts,
+    onSearch: onProductSearch,
+  } = useAsyncSelectOptions<ComponentProductsOptionsData, ComponentProductNode>(
+    {
+      query: COMPONENT_PRODUCTS_OPTIONS_QUERY,
+      getConnection: getProductsConnection,
+      toOption: toProductOption,
+      searchField: "name,sku",
+      baseFilters: productScope,
+      // Alfabética e larga o bastante para uma busca por código caber inteira
+      // na primeira página (o código "150" casa com 27 produtos).
+      order: PRODUCT_ORDER,
+      first: 50,
       skip: !open,
-    });
+    }
+  );
 
   const [addComponent] = useMutation<AddComponentResponse>(
     ADD_COMPONENT_TO_PRODUCT_MUTATION
@@ -63,15 +84,8 @@ export function AddComponentModal({
 
   const productOptions = useMemo(() => {
     const hidden = new Set([kitProductId, ...usedProductIds]);
-    return (
-      productsData?.products.edges
-        .filter((e) => !hidden.has(e.node.id))
-        .map((e) => ({
-          value: e.node.id,
-          label: `${e.node.sku} — ${e.node.name}`,
-        })) ?? []
-    );
-  }, [productsData, kitProductId, usedProductIds]);
+    return fetchedOptions.filter((option) => !hidden.has(option.value));
+  }, [fetchedOptions, kitProductId, usedProductIds]);
 
   const steps: FormStepSchema[] = useMemo(
     () => [
@@ -86,11 +100,12 @@ export function AddComponentModal({
                 type: "select-single",
                 label: "Produto componente",
                 required: true,
-                placeholder:
-                  productOptions.length === 0
-                    ? "Nenhum produto disponível"
-                    : "Selecione o produto",
+                // Com a busca no servidor, lista vazia quer dizer "nada casa com
+                // o que você digitou" — não "a fábrica não tem catálogo".
+                placeholder: "Busque pelo nome ou código",
                 options: productOptions,
+                onSearch: onProductSearch,
+                loading: loadingProducts,
               },
               {
                 name: "quantity",
@@ -105,7 +120,7 @@ export function AddComponentModal({
         ],
       },
     ],
-    [productOptions]
+    [productOptions, onProductSearch, loadingProducts]
   );
 
   const handleClose = (v: boolean) => {
@@ -142,11 +157,6 @@ export function AddComponentModal({
       }
     );
   };
-
-  useQueryErrorToast(
-    productsError,
-    "Não foi possível carregar as opções. Tente novamente."
-  );
 
   return (
     <Modal.Root open={open} onOpenChange={handleClose}>

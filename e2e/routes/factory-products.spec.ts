@@ -117,3 +117,41 @@ test("fábrica/produtos: desativa um produto", async ({ page }) => {
 
   await expect(page.getByText("Produto desativado com sucesso")).toBeVisible();
 });
+
+test("fábrica/produtos: filtra o catálogo por categoria", async ({ page }) => {
+  // O painel de filtros monta as opções com o catálogo da EMPRESA e manda o
+  // recorte ao backend — a lista é paginada, filtrar em memória esconderia o
+  // que está nas páginas seguintes.
+  const spy = await mockGraphql(page, {
+    ...productOptions,
+    ProductCategoriesOptions: () => ({
+      productCategories: {
+        edges: [{ node: { id: "c-1", name: "Torneiras" } }],
+      },
+    }),
+    FactoryProducts: () => ({ factory_products: conn([seedProduct()]) }),
+  });
+
+  await page.goto(base);
+  await page.getByRole("button", { name: "Filtros" }).click();
+  const categoria = page.getByRole("textbox", { name: "Categoria" });
+  await categoria.click();
+  await page
+    .locator("[data-select-dropdown]")
+    .getByText("Torneiras", { exact: true })
+    .click();
+
+  await expect(page.getByRole("button", { name: "Filtros (1)" })).toBeVisible();
+  await expect
+    .poll(() =>
+      spy
+        .calls("FactoryProducts")
+        .some((v) =>
+          (
+            (v?.input as { filters?: { field: string; value?: string }[] })
+              ?.filters ?? []
+          ).some((f) => f.field === "category_id" && f.value === "c-1")
+        )
+    )
+    .toBe(true);
+});

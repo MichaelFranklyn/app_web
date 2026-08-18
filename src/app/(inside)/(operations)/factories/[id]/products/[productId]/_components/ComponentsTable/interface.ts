@@ -24,9 +24,15 @@ export interface ProductComponentsData {
   };
 }
 
+export interface ComponentProductNode {
+  id: string;
+  sku: string;
+  name: string;
+}
+
 export interface ComponentProductsOptionsData {
   products: {
-    edges: { node: { id: string; sku: string; name: string } }[];
+    edges: { node: ComponentProductNode }[];
   };
 }
 

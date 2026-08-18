@@ -21,6 +21,12 @@ interface UseAsyncSelectOptionsArgs<TData, TNode> {
   baseFilters?: readonly { field: string; operator: string; value: string }[];
   /** Quantos itens buscar por vez (página server-side). */
   first?: number;
+  /**
+   * Ordem da página vinda do backend (`{ by: "name", dir: "asc" }`). Sem ela o
+   * banco devolve as linhas na ordem que quiser — o que numa lista de escolha
+   * significa a mesma busca sair em ordens diferentes.
+   */
+  order?: { by: string; dir: "asc" | "desc" };
   /** Pula o fetch (ex.: modal fechado). */
   skip?: boolean;
   /** Debounce da digitação antes de bater no backend. */
@@ -43,6 +49,7 @@ export function useAsyncSelectOptions<TData, TNode>({
   searchField,
   baseFilters,
   first = 20,
+  order,
   skip = false,
   debounceMs = 300,
 }: UseAsyncSelectOptionsArgs<TData, TNode>) {
@@ -58,6 +65,9 @@ export function useAsyncSelectOptions<TData, TNode>({
   // de escopo inline, e comparar por referência refaria o fetch a cada render.
   const baseFiltersKey = JSON.stringify(baseFilters ?? []);
 
+  // Mesmo motivo do `baseFiltersKey`: o chamador monta o objeto inline.
+  const orderKey = JSON.stringify(order ?? null);
+
   const variables = useMemo(() => {
     const value = debounced.trim();
     const filters = [
@@ -68,28 +78,38 @@ export function useAsyncSelectOptions<TData, TNode>({
       }[]),
       ...(value ? [{ field: searchField, operator: "like", value }] : []),
     ];
+    const parsedOrder = JSON.parse(orderKey) as {
+      by: string;
+      dir: string;
+    } | null;
     return {
       input: {
         first,
         ...(filters.length ? { filters } : {}),
+        ...(parsedOrder ? { order: parsedOrder } : {}),
       },
     };
-  }, [first, debounced, searchField, baseFiltersKey]);
+  }, [first, debounced, searchField, baseFiltersKey, orderKey]);
 
   const { data, loading } = useAsyncQuery<TData>(query, { variables, skip });
 
   // Encadeamento opcional de propósito: com `errorPolicy: "all"`, uma query que
   // falha em parte entrega `data` sem a chave da connection. Sem isso, um
   // select de apoio quebrava a PÁGINA inteira que o hospeda.
+  const nodes = useMemo<TNode[]>(
+    () => (data ? (getConnection(data)?.edges?.map((e) => e.node) ?? []) : []),
+    [data, getConnection]
+  );
+
   const options = useMemo<SelectOption[]>(
-    () =>
-      data
-        ? (getConnection(data)?.edges?.map((e) => toOption(e.node)) ?? [])
-        : [],
-    [data, getConnection, toOption]
+    () => nodes.map(toOption),
+    [nodes, toOption]
   );
 
   const onSearch = useCallback((t: string) => setTerm(t), []);
 
-  return { options, loading, onSearch };
+  // `nodes` são os mesmos itens de `options`, ainda inteiros: quem precisa de um
+  // atributo que não cabe no par value/label (o rótulo da embalagem do produto,
+  // por exemplo) lê daqui em vez de refazer a consulta.
+  return { options, nodes, loading, onSearch };
 }

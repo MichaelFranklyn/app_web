@@ -1,12 +1,14 @@
+export interface ProductOptionNode {
+  id: string;
+  name: string;
+  sku: string;
+  unitLabel: { id: string; label: string } | null;
+}
+
 export interface ProductsData {
   products: {
     edges: {
-      node: {
-        id: string;
-        name: string;
-        sku: string;
-        unitLabel: { id: string; label: string } | null;
-      };
+      node: ProductOptionNode;
     }[];
   };
 }
