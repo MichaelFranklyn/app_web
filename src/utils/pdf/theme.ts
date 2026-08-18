@@ -36,6 +36,32 @@ export const truncate = (pdf: Pdf, text: string, maxWidth: number): string => {
   return `${out}…`;
 };
 
+/**
+ * Quebra o texto em até `maxLines` linhas que caibam na largura, cortando entre
+ * PALAVRAS. O que não couber na última linha vira reticências.
+ *
+ * Existe para nome de produto em tabela: cortar um nome longo na primeira linha
+ * esconde justamente o fim, que é onde costuma estar a medida que diferencia
+ * duas peças ("...CAIXA SIFONADA 150" x "...CAIXA SIFONADA 200").
+ *
+ * Mede na fonte CORRENTE — chame depois de `setFont`/`setFontSize`, senão a
+ * conta sai na fonte errada e a linha estoura a coluna.
+ */
+export const wrapLines = (
+  pdf: Pdf,
+  text: string,
+  maxWidth: number,
+  maxLines = 2
+): string[] => {
+  const lines = pdf.splitTextToSize(text, maxWidth) as string[];
+  if (lines.length <= maxLines) return lines;
+  // A sobra volta para a última linha permitida antes de virar reticências: o
+  // começo da palavra cortada ainda ajuda a reconhecer o produto.
+  const kept = lines.slice(0, maxLines - 1);
+  const rest = lines.slice(maxLines - 1).join(" ");
+  return [...kept, truncate(pdf, rest, maxWidth)];
+};
+
 export interface LogoBox {
   width: number;
   height: number;

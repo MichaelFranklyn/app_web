@@ -9,6 +9,7 @@ import {
   setFill,
   setText,
   truncate,
+  wrapLines,
 } from "@/utils/pdf/theme";
 
 // Linha um pouco mais alta para caber, na coluna de imposto, a alíquota em cima
@@ -17,8 +18,14 @@ const ROW_H = 24;
 // Na versão ilustrada a linha cresce para caber a miniatura quadrada. A foto é
 // o que o cliente olha para reconhecer a peça, então ela pede um pouco mais de
 // papel do que o mínimo — a linha acompanha, senão a miniatura encosta na de cima.
-const PHOTO_SIZE = 48;
+//
+// 72pt (~2,5 cm) é o maior tamanho que NÃO custa linhas por página: com a altura
+// de linha resultante ainda cabem 6 itens nas páginas cheias, as mesmas de quando
+// a miniatura media 48pt. Passar de 72 derruba para 5 e estica o documento.
+const PHOTO_SIZE = 72;
 const PHOTO_ROW_H = PHOTO_SIZE + 8;
+/** Entrelinha do nome do produto quando ele ocupa duas linhas. */
+const NAME_LINE_H = 11;
 /** Faixa reservada à miniatura à esquerda do código. */
 const PHOTO_COL = PHOTO_SIZE + 10;
 const HEAD_H = 22;
@@ -140,7 +147,6 @@ export const drawItemsTable = (
   // Sem nenhuma foto carregada a coluna não abre: reservar a faixa e deixá-la
   // vazia só espremeria o nome do produto.
   const withPhotos = Boolean(photos && photos.size > 0);
-  const rowH = withPhotos ? PHOTO_ROW_H : ROW_H;
   const cols = columnsOf(pageW, withPhotos);
 
   pdf.setFont("helvetica", "bold");
@@ -157,23 +163,31 @@ export const drawItemsTable = (
       pdf.setFontSize(9);
     }
 
+    // Baseline da linha: fonte normal 9 (a coluna de imposto muda e restaura).
+    // Vem antes de medir o nome: `wrapLines` mede na fonte CORRENTE.
+    pdf.setFont("helvetica", "normal");
+    pdf.setFontSize(9);
+
+    const name = item.product?.name ?? "Produto";
+    const nameLines = wrapLines(pdf, name, cols.productMax, 2);
+    // A linha cresce com o nome: sem isso a segunda linha de um nome longo
+    // encostaria na linha de baixo e escaparia da faixa zebrada.
+    const rowH = withPhotos
+      ? PHOTO_ROW_H
+      : Math.max(ROW_H, nameLines.length * NAME_LINE_H + 10);
+
     if (index % 2 === 1) {
       setFill(pdf, COLOR.zebra);
       pdf.rect(PAGE.margin, y, pageW - PAGE.margin * 2, rowH, "F");
     }
 
     // O texto fica centrado na altura da linha, que muda com a miniatura.
-    const textY = y + (withPhotos ? PHOTO_ROW_H / 2 + 3 : 15);
-    const name = item.product?.name ?? "Produto";
+    const textY = y + (withPhotos ? PHOTO_ROW_H / 2 + 3 : rowH / 2 + 3);
 
     if (withPhotos) {
       const photo = photos?.get(item.product?.id ?? "");
       if (photo) drawPhoto(pdf, photo, cols.photo, y);
     }
-
-    // Baseline da linha: fonte normal 9 (a coluna de imposto muda e restaura).
-    pdf.setFont("helvetica", "normal");
-    pdf.setFontSize(9);
 
     // Código na coluna própria (apagado, como um identificador secundário).
     setText(pdf, COLOR.muted);
@@ -183,8 +197,14 @@ export const drawItemsTable = (
       textY
     );
 
+    // Nome em até duas linhas: cortar tudo na primeira esconderia o fim, que é
+    // onde mora a medida que separa uma peça da outra. As linhas ficam centradas
+    // no mesmo eixo do resto da linha.
     setText(pdf, COLOR.ink);
-    pdf.text(truncate(pdf, name, cols.productMax), cols.product, textY);
+    const nameY = textY - ((nameLines.length - 1) * NAME_LINE_H) / 2;
+    nameLines.forEach((line, lineIndex) => {
+      pdf.text(line, cols.product, nameY + lineIndex * NAME_LINE_H);
+    });
 
     pdf.text(formatQty(item.unitsTotal), cols.qty, textY, { align: "right" });
     pdf.text(formatMoney(item.unitPrice), cols.price, textY, {
@@ -242,7 +262,7 @@ export const drawItemsTable = (
     pdf.setFont("helvetica", "italic");
     setText(pdf, COLOR.muted);
     pdf.text("Nenhum item adicionado.", cols.product, y + 14);
-    y += rowH;
+    y += withPhotos ? PHOTO_ROW_H : ROW_H;
   }
 
   return { y: y + 4 };
