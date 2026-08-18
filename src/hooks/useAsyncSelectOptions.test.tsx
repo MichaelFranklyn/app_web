@@ -35,7 +35,8 @@ const mkMock = (variables: object, nodes: Node[]) => ({
 const render = (
   mocks: ReturnType<typeof mkMock>[],
   debounceMs = 10,
-  baseFilters?: { field: string; operator: string; value: string }[]
+  baseFilters?: { field: string; operator: string; value: string }[],
+  order?: { by: string; dir: "asc" | "desc" }
 ) =>
   renderHook(
     () =>
@@ -45,6 +46,7 @@ const render = (
         toOption: (n) => ({ value: n.id, label: n.name }),
         searchField: "name",
         baseFilters,
+        order,
         debounceMs,
       }),
     {
@@ -122,5 +124,20 @@ describe("useAsyncSelectOptions", () => {
 
     act(() => result.current.onSearch("bru"));
     await waitFor(() => expect(result.current.options[0]?.label).toBe("Bruno"));
+  });
+
+  it("manda a ordem pedida e devolve os nós inteiros", async () => {
+    // `nodes` existe para quem precisa de um atributo que não cabe no par
+    // value/label — sem refazer a consulta só para lê-lo.
+    const order = { by: "name", dir: "asc" } as const;
+    const { result } = render(
+      [mkMock({ input: { first: 20, order } }, [{ id: "1", name: "Ana" }])],
+      10,
+      undefined,
+      order
+    );
+
+    await waitFor(() => expect(result.current.nodes).toHaveLength(1));
+    expect(result.current.nodes[0]).toEqual({ id: "1", name: "Ana" });
   });
 });
