@@ -53,7 +53,11 @@ export const inputStyles = {
 };
 
 export const checkStyles = {
-  wrap: "flex items-center gap-[8px] cursor-pointer text-[13px] text-(--text2) select-none",
+  // `relative` NÃO é decoração: o input é `sr-only`, que é
+  // `position: absolute`. Sem um ancestral posicionado ele se ancora no
+  // documento, e numa lista longa cada linha estica a página além da viewport —
+  // aparece como um segundo scroll que nunca termina (bug na tela de comissões).
+  wrap: "relative flex items-center gap-[8px] cursor-pointer text-[13px] text-(--text2) select-none",
   input: "peer/check sr-only",
   box: "flex items-center justify-center w-[16px] h-[16px] border-[1.5px] border-(--border2) rounded-(--r-xs) bg-(--bg3) shrink-0 transition-all duration-[120ms] peer-checked/check:[&>svg]:!block",
   // Cor quando marcado. amber = padrão (seleção); green = ação concluída/sucesso.
@@ -67,14 +71,16 @@ export const checkStyles = {
 };
 
 export const radioStyles = {
-  wrap: "flex items-center gap-[8px] cursor-pointer text-[13px] text-(--text2) select-none",
+  // Mesmo motivo do checkbox: o input `sr-only` precisa se ancorar aqui.
+  wrap: "relative flex items-center gap-[8px] cursor-pointer text-[13px] text-(--text2) select-none",
   input: "peer/radio sr-only",
   box: "flex items-center justify-center w-[16px] h-[16px] border-[1.5px] border-(--border2) rounded-full bg-(--bg3) shrink-0 transition-all duration-[120ms] peer-checked/radio:border-(--amber) peer-checked/radio:[&>div]:!block",
   dot: "w-[7px] h-[7px] rounded-full bg-(--amber) hidden",
 };
 
 export const toggleStyles = {
-  wrap: "flex items-center gap-[10px] cursor-pointer text-[13px] text-(--text2) select-none",
+  // Mesmo motivo do checkbox: o input `sr-only` precisa se ancorar aqui.
+  wrap: "relative flex items-center gap-[10px] cursor-pointer text-[13px] text-(--text2) select-none",
   input: "peer/toggle sr-only",
   track:
     "relative w-[36px] h-[20px] bg-(--bg4) border border-(--border2) rounded-[10px] shrink-0 transition-colors duration-[150ms] peer-checked/toggle:bg-(--amber3) peer-checked/toggle:border-(--amber3) peer-checked/toggle:[&>div]:translate-x-[16px] peer-checked/toggle:[&>div]:bg-(--amber)",

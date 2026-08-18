@@ -2797,8 +2797,12 @@ extend type Mutation {
   markOrderInstallmentsDefaulted(installmentIds: [UUID!]!, defaultedAt: Date!): BaseResponse!
   revertOrderInstallment(id: UUID!): OrderInstallmentTypeDataResponse!
   markCommissionReceived(installmentIds: [UUID!]!, receivedAt: Date!): BaseResponse!
+  """Desfaz o recebimento lançado por engano (ou glosado pela fábrica depois). Não mexe na conferência."""
+  unmarkCommissionReceived(installmentIds: [UUID!]!): BaseResponse!
   """Registra que o escritório repassou ao vendedor a fatia dele."""
   markSellerCommissionPaid(installmentIds: [UUID!]!, paidAt: Date!): BaseResponse!
+  """Desfaz o repasse ao vendedor; cancela junto o estorno que estivesse agendado."""
+  unmarkSellerCommissionPaid(installmentIds: [UUID!]!): BaseResponse!
   """Escolhe em que mês o escritório desconta do vendedor o estorno de um calote (nulo devolve à fila)."""
   scheduleSellerChargeback(installmentIds: [UUID!]!, month: Date): BaseResponse!
   setCommissionReconciled(installmentIds: [UUID!]!, reconciled: Boolean!): BaseResponse!
