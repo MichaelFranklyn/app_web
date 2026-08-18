@@ -6,6 +6,7 @@ import { useToast } from "@/components/Toast";
 import { useAsyncAction } from "@/hooks/useAsyncAction";
 import { useInvalidateQueriesClient } from "@/hooks/useInvalidateQueries";
 import { useQueryErrorToast } from "@/hooks/useQueryErrorToast";
+import { useRedirectTransition } from "@/hooks/useRedirectTransition";
 import {
   extractSelectValue,
   parseDeliveryDays,
@@ -65,6 +66,7 @@ export function useAddFactoryOrder({ factoryId }: AddFactoryOrderProps) {
   const [step, setStep] = useState(0);
   const formRef = useRef<FormBuilderRef>(null);
   const invalidateClient = useInvalidateQueriesClient();
+  const { redirect, isRedirecting } = useRedirectTransition();
   const { toast } = useToast();
   const { execute, isLoading } = useAsyncAction();
   const [orderDetails, setOrderDetails] = useState<OrderDetails | null>(null);
@@ -284,11 +286,11 @@ export function useAddFactoryOrder({ factoryId }: AddFactoryOrderProps) {
           order.id,
           draft.items
         );
-        return { failed };
+        return { order, failed };
       },
       {
         successMessage: "Pedido criado com sucesso",
-        onSuccess: async ({ failed }) => {
+        onSuccess: async ({ order, failed }) => {
           if (failed.length) {
             toast({
               variant: "error",
@@ -296,8 +298,11 @@ export function useAddFactoryOrder({ factoryId }: AddFactoryOrderProps) {
               description: `${failed.join(", ")} — adicione no detalhe do pedido.`,
             });
           }
-          handleClose(false);
           await invalidateClient(["factory_orders", "orders"]);
+          // Como nas outras entradas, criar leva PARA DENTRO do pedido. O modal
+          // não se fecha: quem o desmonta é a navegação, e é ela que segura o
+          // loading do botão até a tela do pedido carregar.
+          redirect(`/orders/${order.id}`);
         },
       }
     );
@@ -320,6 +325,7 @@ export function useAddFactoryOrder({ factoryId }: AddFactoryOrderProps) {
     draft,
     paymentMinimum,
     freeFreight,
-    isLoading,
+    // Inclui o redirect: o botão só sai do loading com o pedido novo na tela.
+    isLoading: isLoading || isRedirecting,
   };
 }

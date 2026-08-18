@@ -8,8 +8,9 @@ import { mockGraphql } from "../support/graphql";
  * (Vendedor → Fábrica → Cliente — cada seleção dispara uma query e habilita o
  * próximo select) + data via atalho "Hoje"; passo 2 (Itens, opcional) é pulado
  * aqui. Escolher a fábrica já monta o catálogo do passo 2 (queries OrderItem*),
- * por isso elas também são mockadas. Após sucesso: add otimista + refetch de
- * Orders/OrderStats.
+ * por isso elas também são mockadas. Após sucesso: add otimista, invalidação da
+ * listagem e ENTRADA no pedido recém-criado (o modal não fecha sozinho — quem o
+ * desmonta é a navegação, e é isso que segura o loading do botão até lá).
  */
 
 // Escolhe uma opção num Input.Select custom (dropdown em portal, fora do dialog).
@@ -124,6 +125,62 @@ test("orders: cria um pedido pela cascata vendedor→fábrica→cliente", async 
         createOrder: { status: true, code: 200, message: "ok", data: node },
       };
     },
+    // Destino do redirect: o pedido recém-criado abre sozinho.
+    OrderDetail: () => ({
+      order: {
+        status: true,
+        code: 200,
+        message: "ok",
+        data: {
+          id: "order-1",
+          orderDate: "2026-06-22",
+          totalAmount: "0",
+          ipiAmount: "0",
+          taxAmount: "0",
+          ipiInOrder: false,
+          commissionAmount: "0",
+          status: "DRAFT",
+          freightType: null,
+          fileUrl: null,
+          isFileParsed: false,
+          notes: null,
+          createdAt: "2026-06-22T12:00:00Z",
+          invoicedAt: null,
+          deliveredAt: null,
+          deliveryEstimateDays: null,
+          coverageDays: null,
+          estimatedDeliveryDate: null,
+          isDeliveryOverdue: false,
+          paymentTermId: null,
+          commissionCalcBasis: null,
+          installmentDueBasis: null,
+          parentOrderId: null,
+          isBackorder: false,
+          parentOrder: null,
+          backorderChildren: [],
+          seller: { id: "seller-1", name: "Vendedor A" },
+          client: {
+            id: "client-1",
+            razaoSocial: "Cliente LTDA",
+            nomeFantasia: "Cliente XYZ",
+            cnpj: null,
+            addressCity: null,
+            addressState: null,
+          },
+          factory: {
+            id: "factory-1",
+            nomeFantasia: "Fábrica Modelo",
+            nickname: null,
+            razaoSocial: "Fabrica LTDA",
+            logoUrl: null,
+          },
+          paymentTerm: null,
+          availablePaymentTerms: [],
+          installments: [],
+        },
+      },
+    }),
+    OrderItems: () => ({ orderItems: { edges: [], totalCount: 0 } }),
   });
 
   await page.goto("/orders");
@@ -151,6 +208,9 @@ test("orders: cria um pedido pela cascata vendedor→fábrica→cliente", async 
     .click();
 
   await expect(page.getByText("Pedido criado com sucesso")).toBeVisible();
+  // Criar leva PARA DENTRO do pedido: é o que o vendedor faz em seguida
+  // (conferir e lançar itens), e o modal sai de cena com a navegação.
+  await expect(page).toHaveURL(/\/orders\/order-1$/);
   await expect(dialog).toBeHidden();
 
   // Não basta o toast: o payload precisa carregar exatamente a cascata escolhida
