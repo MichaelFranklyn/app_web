@@ -116,7 +116,6 @@ export function LinkFactoryModal({ onAddOptimistic }: LinkFactoryModalProps) {
             <FormBuilder.Stepper
               steps={FORM_STEPS}
               currentStepIndex={currentStep}
-              centered
               className="mb-32"
             />
 

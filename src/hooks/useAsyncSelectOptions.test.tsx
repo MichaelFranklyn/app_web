@@ -32,7 +32,11 @@ const mkMock = (variables: object, nodes: Node[]) => ({
   result: { data: { things: { edges: nodes.map((node) => ({ node })) } } },
 });
 
-const render = (mocks: ReturnType<typeof mkMock>[], debounceMs = 10) =>
+const render = (
+  mocks: ReturnType<typeof mkMock>[],
+  debounceMs = 10,
+  baseFilters?: { field: string; operator: string; value: string }[]
+) =>
   renderHook(
     () =>
       useAsyncSelectOptions<Data, Node>({
@@ -40,6 +44,7 @@ const render = (mocks: ReturnType<typeof mkMock>[], debounceMs = 10) =>
         getConnection: (d) => d.things,
         toOption: (n) => ({ value: n.id, label: n.name }),
         searchField: "name",
+        baseFilters,
         debounceMs,
       }),
     {
@@ -82,5 +87,40 @@ describe("useAsyncSelectOptions", () => {
 
     await waitFor(() => expect(result.current.options).toHaveLength(1));
     expect(result.current.options[0].label).toBe("Ana");
+  });
+
+  it("mantém o filtro de escopo com e sem termo de busca", async () => {
+    // Catálogo escopado (os produtos DESTA fábrica) não pode escolher entre
+    // paginar e filtrar: o escopo entra junto do `like`.
+    const scope = [
+      { field: "company_factory_id", operator: "eq", value: "cf-1" },
+    ];
+    const { result } = render(
+      [
+        mkMock({ input: { first: 20, filters: scope } }, [
+          { id: "1", name: "Ana" },
+        ]),
+        mkMock(
+          {
+            input: {
+              first: 20,
+              filters: [
+                ...scope,
+                { field: "name", operator: "like", value: "bru" },
+              ],
+            },
+          },
+          [{ id: "2", name: "Bruno" }]
+        ),
+      ],
+      10,
+      scope
+    );
+
+    await waitFor(() => expect(result.current.options).toHaveLength(1));
+    expect(result.current.options[0].label).toBe("Ana");
+
+    act(() => result.current.onSearch("bru"));
+    await waitFor(() => expect(result.current.options[0]?.label).toBe("Bruno"));
   });
 });

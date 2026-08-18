@@ -3,6 +3,7 @@ import { render, renderHook, screen, waitFor } from "@testing-library/react";
 import { ComponentProps, ReactNode } from "react";
 import { describe, expect, it } from "vitest";
 
+import { FeatureGate } from "@/components/FeatureGate";
 import { PlanLimitGate } from "@/components/PlanLimitGate";
 import { MY_PLAN_QUERY } from "./gql";
 import { PlanProvider, useFeature, usePlan } from "./PlanProvider";
@@ -168,5 +169,54 @@ describe("PlanLimitGate", () => {
       const button = screen.getByRole("button", { name: "Novo Cliente" });
       expect(button.closest("[aria-disabled]")).not.toBeNull();
     });
+  });
+});
+
+describe("FeatureGate", () => {
+  const withPlan = (features: string[], children: ReactNode) =>
+    render(
+      <PlanProvider
+        plan={{
+          code: "basic",
+          label: "Básico",
+          features: features as ComponentProps<
+            typeof PlanProvider
+          >["plan"]["features"],
+        }}
+      >
+        {children}
+      </PlanProvider>
+    );
+
+  it("mostra o que o plano contratou", () => {
+    withPlan(["BULK_IMPORT"], <button>Importar planilha</button>);
+    expect(
+      screen.getByRole("button", { name: "Importar planilha" })
+    ).toBeTruthy();
+  });
+
+  it("some com o que o plano não tem — não desabilita, some", () => {
+    // Diferente do teto: recurso ausente não é um limite que se explica, é algo
+    // que a empresa nunca contratou. Botão que recusa no clique parece defeito.
+    withPlan(
+      ["COMMISSIONS"],
+      <FeatureGate feature="BULK_IMPORT">
+        <button>Importar planilha</button>
+      </FeatureGate>
+    );
+    expect(
+      screen.queryByRole("button", { name: "Importar planilha" })
+    ).toBeNull();
+  });
+
+  it("aceita um conteúdo alternativo no lugar", () => {
+    withPlan(
+      [],
+      <FeatureGate feature="ROUTINES" fallback={<span>Disponível no Pro</span>}>
+        <button>Rota do dia</button>
+      </FeatureGate>
+    );
+    expect(screen.getByText("Disponível no Pro")).toBeTruthy();
+    expect(screen.queryByRole("button", { name: "Rota do dia" })).toBeNull();
   });
 });

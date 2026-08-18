@@ -19,6 +19,7 @@ import { UPDATE_ORDER_FROM_FACTORY_MUTATION } from "../../../../_components/Edit
 import { AddOrderModal } from "./AddOrderModal";
 import { DeleteOrderModal } from "./DeleteOrderModal";
 import { ImportOrderModal } from "./ImportOrderModal";
+import { FeatureGate } from "@/components/FeatureGate";
 import { FACTORY_ORDERS_QUERY, FactoryOrder } from "./gql";
 import { useOrdersTable } from "./useOrdersTable";
 
@@ -88,7 +89,13 @@ export function OrdersTab({ factoryId }: Props) {
             values={table.inputValues}
             onChange={table.setFilters}
           />
-          <ImportOrderModal factoryId={factoryId} onChanged={() => refetch()} />
+          {/* Importação em massa é recurso de plano. */}
+          <FeatureGate feature="BULK_IMPORT">
+            <ImportOrderModal
+              factoryId={factoryId}
+              onChanged={() => refetch()}
+            />
+          </FeatureGate>
           <AddOrderModal factoryId={factoryId} />
         </Table.CardHead.Actions>
       </Table.CardHead>

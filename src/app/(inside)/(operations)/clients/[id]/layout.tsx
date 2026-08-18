@@ -4,6 +4,7 @@ import { Badge } from "@/components/Badges";
 import { Breadcrumb } from "@/components/Breadcrumb";
 import { Button } from "@/components/Button";
 import { EmptyState } from "@/components/EmptyState";
+import { FeatureGate } from "@/components/FeatureGate";
 import { Loading } from "@/components/Loading";
 import { PageContent } from "@/components/PageContent";
 import { PanelHeader } from "@/components/PanelHeader";
@@ -188,10 +189,12 @@ export default function ClientLayout({
                         </Badge.Text>
                       </Badge.Root>
                     )}
-                    <ScoreTag
-                      score={cc?.topVisitScore ?? null}
-                      factoryScores={cc?.factoryVisitScores ?? []}
-                    />
+                    <FeatureGate feature="ROUTINES">
+                      <ScoreTag
+                        score={cc?.topVisitScore ?? null}
+                        factoryScores={cc?.factoryVisitScores ?? []}
+                      />
+                    </FeatureGate>
                     {clientData && (
                       <EditClientModal
                         client={clientData}
@@ -229,11 +232,15 @@ export default function ClientLayout({
           <Tabs.NavItem href={`${basePath}/overview`}>Visão Geral</Tabs.NavItem>
           <Tabs.NavItem href={`${basePath}/factories`}>Fábricas</Tabs.NavItem>
           <Tabs.NavItem href={`${basePath}/orders`}>Pedidos</Tabs.NavItem>
-          <Tabs.NavItem href={`${basePath}/visits`}>Visitas</Tabs.NavItem>
-          <Tabs.NavItem href={`${basePath}/stock`}>
-            Estoque Estimado
-          </Tabs.NavItem>
-          <Tabs.NavItem href={`${basePath}/score`}>Score</Tabs.NavItem>
+          {/* Visita, estoque estimado e score são o motor de rotina: um
+              recurso só, e um plano que não o tem não tem nenhum dos três. */}
+          <FeatureGate feature="ROUTINES">
+            <Tabs.NavItem href={`${basePath}/visits`}>Visitas</Tabs.NavItem>
+            <Tabs.NavItem href={`${basePath}/stock`}>
+              Estoque Estimado
+            </Tabs.NavItem>
+            <Tabs.NavItem href={`${basePath}/score`}>Score</Tabs.NavItem>
+          </FeatureGate>
         </Tabs.NavList>
 
         {clientData ? (

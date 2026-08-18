@@ -2,6 +2,7 @@
 
 import { Badge } from "@/components/Badges";
 import { EmptyState } from "@/components/EmptyState";
+import { FeatureGate } from "@/components/FeatureGate";
 import { QueryError } from "@/components/QueryError";
 import { HelpTooltip } from "@/components/HelpTooltip";
 import { Table } from "@/components/Table";
@@ -69,11 +70,14 @@ export function PriceListsTab({ companyFactoryId, factoryId }: Props) {
           />
         </Table.CardHead.Title>
         <Table.CardHead.Actions data-tour="prices-actions">
-          <ImportPriceListModal
-            companyFactoryId={companyFactoryId}
-            factoryId={factoryId}
-            onImported={() => refetch()}
-          />
+          {/* Importação em massa é recurso de plano. */}
+          <FeatureGate feature="BULK_IMPORT">
+            <ImportPriceListModal
+              companyFactoryId={companyFactoryId}
+              factoryId={factoryId}
+              onImported={() => refetch()}
+            />
+          </FeatureGate>
           <ClonePriceListModal
             companyFactoryId={companyFactoryId}
             onCloned={() => refetch()}

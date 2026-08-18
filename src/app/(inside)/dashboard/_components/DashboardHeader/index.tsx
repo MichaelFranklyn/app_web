@@ -1,6 +1,7 @@
 "use client";
 
 import { Button } from "@/components/Button";
+import { FeatureGate } from "@/components/FeatureGate";
 import { Input } from "@/components/Input";
 import { SelectOption } from "@/components/Input";
 import { PanelHeader } from "@/components/PanelHeader";
@@ -70,24 +71,31 @@ export function DashboardHeader({
             {/* As abas "Visão Geral"/"Análises" saíram: eram duas telas
                 irmãs disputando um cabeçalho. Daqui se vai para o desempenho e
                 para os relatórios, e de lá se volta pelo rastro. */}
-            <Button.Root
-              appearance="outline"
-              color="neutral"
-              size="sm"
-              onClick={() => router.push("/dashboard/analytics")}
-            >
-              <Button.Icon icon={ChartLine} />
-              <Button.Title>Ver desempenho</Button.Title>
-            </Button.Root>
-            <Button.Root
-              appearance="outline"
-              color="neutral"
-              size="sm"
-              onClick={() => router.push("/dashboard/reports")}
-            >
-              <Button.Icon icon={FileText} />
-              <Button.Title>Relatórios</Button.Title>
-            </Button.Root>
+            {/* Cada destino é um recurso de plano à parte, e a página de
+                lá redireciona quem não tem — botão que leva a um redirect é
+                pior do que botão ausente (mesma regra da sidebar). */}
+            <FeatureGate feature="ANALYTICS">
+              <Button.Root
+                appearance="outline"
+                color="neutral"
+                size="sm"
+                onClick={() => router.push("/dashboard/analytics")}
+              >
+                <Button.Icon icon={ChartLine} />
+                <Button.Title>Ver desempenho</Button.Title>
+              </Button.Root>
+            </FeatureGate>
+            <FeatureGate feature="REPORTS">
+              <Button.Root
+                appearance="outline"
+                color="neutral"
+                size="sm"
+                onClick={() => router.push("/dashboard/reports")}
+              >
+                <Button.Icon icon={FileText} />
+                <Button.Title>Relatórios</Button.Title>
+              </Button.Root>
+            </FeatureGate>
           </PanelHeader.Actions>
         </PanelHeader.Left>
       </PanelHeader.Top>

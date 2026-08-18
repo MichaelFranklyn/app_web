@@ -28,7 +28,10 @@ export function AddOrderItemModal(props: AddOrderItemModalProps) {
         </Button.Root>
       </Modal.Trigger>
 
-      <Modal.Content size="md">
+      {/* Largura maior que o padrão: os campos do item cabem em duas colunas
+          (ver `grid` no schema), e o rótulo do produto — código + nome + foto —
+          precisa de linha para ser lido sem truncar. */}
+      <Modal.Content size="2xl">
         <Modal.Header
           title="Adicionar item ao pedido"
           description={

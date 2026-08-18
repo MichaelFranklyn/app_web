@@ -3,6 +3,7 @@
 import { InputSearch } from "@/components/Input";
 import { PanelHeader } from "@/components/PanelHeader";
 import { PlanLimitGate } from "@/components/PlanLimitGate";
+import { FeatureGate } from "@/components/FeatureGate";
 import { useUserData } from "@/hooks/useUserData";
 import { CompanyFactory } from "../../interface";
 import { ImportFactoriesModal } from "./ImportFactoriesModal";
@@ -44,7 +45,10 @@ export function FactoriesHeader({
             />
             {!isSeller && (
               <>
-                <ImportFactoriesModal />
+                {/* Importação em massa é recurso de plano. */}
+                <FeatureGate feature="BULK_IMPORT">
+                  <ImportFactoriesModal />
+                </FeatureGate>
                 <PlanLimitGate limit="FACTORIES">
                   <LinkFactoryModal onAddOptimistic={onAddOptimistic} />
                 </PlanLimitGate>

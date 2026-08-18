@@ -21,6 +21,7 @@ import { AddOrderItemModal } from "./AddOrderItemModal";
 import { DeleteOrderItemModal } from "./DeleteOrderItemModal";
 import { EditOrderItemModal } from "./EditOrderItemModal";
 import { ImportOrderModal } from "./ImportOrderModal";
+import { FeatureGate } from "@/components/FeatureGate";
 import { ORDER_ITEMS_QUERY } from "./gql";
 
 /**
@@ -189,11 +190,14 @@ export function OrderItemsTable({
               {items.length} {items.length === 1 ? "item" : "itens"}
             </Badge.Text>
           </Badge.Root>
-          <ImportOrderModal
-            orderId={orderId}
-            ipiInOrder={ipiInOrder}
-            onImported={handleRefetch}
-          />
+          {/* Importação em massa é recurso de plano. */}
+          <FeatureGate feature="BULK_IMPORT">
+            <ImportOrderModal
+              orderId={orderId}
+              ipiInOrder={ipiInOrder}
+              onImported={handleRefetch}
+            />
+          </FeatureGate>
           <AddOrderItemModal
             orderId={orderId}
             factoryId={factoryId}

@@ -13,13 +13,18 @@ interface Props {
 }
 
 const BOX = {
-  /** Cabe na linha de uma opção de select sem esticá-la. */
-  xs: "size-28",
+  /**
+   * Cabe na linha de uma opção de select sem esticá-la. 24px é um valor da
+   * escala de spacing do tema (`--spacing-24`) — número fora dela cai no
+   * `--spacing` padrão do Tailwind (0.25rem), e era o que fazia a miniatura
+   * do select sair com 112px.
+   */
+  xs: "size-24",
   sm: "size-40",
   lg: "aspect-square w-full",
 } as const;
 
-const ICON = { xs: 13, sm: 16, lg: 28 } as const;
+const ICON = { xs: 12, sm: 16, lg: 28 } as const;
 
 /**
  * Miniatura do produto, com o mesmo enquadramento em qualquer lugar que ela

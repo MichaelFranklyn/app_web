@@ -4,11 +4,13 @@ import { mockGraphql, orderDetailData } from "../support/graphql";
 /**
  * Cauda longa — adicionar item ao pedido (orders/[id], AddOrderItemModal).
  *
- * CASCATA de 3 queries para resolver produto/nível/preço a partir da fábrica
+ * CASCATA de queries para resolver produto/nível/preço a partir da fábrica
  * do pedido:
  *   1) OrderItemCompanyFactories  → acha o company_factory da fábrica (f-1)
- *   2) OrderItemPriceLists        → acha a tabela de preço ATIVA
- *   3) OrderItemPriceListItems    → produto + nível + preço
+ *   2) OrderItemProductOptions    → a PÁGINA de produtos que o select mostra
+ *   3) OrderItemProducts          → o nó completo do produto escolhido (por id)
+ *   4) OrderItemPriceLists        → acha a tabela de preço ATIVA
+ *   5) OrderItemPriceListItems    → preço do produto escolhido, por nível
  * Selecionar o produto reseta o nível; selecionar o nível preenche o preço
  * (campo disabled, derivado do priceMap). O preço vai no input da mutation.
  */
@@ -49,8 +51,25 @@ test("pedido detalhe: adiciona um item (cascata produto/nível/preço)", async (
         ],
       },
     }),
-    // Produtos e níveis vêm da FÁBRICA (não da tabela de preço): o nível é
-    // opcional e a tabela ativa serve só para sugerir o preço.
+    // As opções do select são uma BUSCA no servidor: o que o vendedor digita
+    // vira filtro `like`, e o catálogo inteiro nunca é baixado.
+    OrderItemProductOptions: () => ({
+      products: {
+        edges: [
+          {
+            node: {
+              id: "p-1",
+              name: "Produto X",
+              sku: "SKU-1",
+              imageUrl: null,
+            },
+          },
+        ],
+      },
+    }),
+    // O nó completo vem depois da escolha (`id in [p-1]`): é dele que saem
+    // unidade, múltiplo de venda e IPI. Níveis vêm da FÁBRICA, não da tabela —
+    // o nível é opcional e a tabela ativa serve só para sugerir o preço.
     OrderItemProducts: () => ({
       products: {
         edges: [
@@ -59,11 +78,15 @@ test("pedido detalhe: adiciona um item (cascata produto/nível/preço)", async (
               id: "p-1",
               name: "Produto X",
               sku: "SKU-1",
+              imageUrl: null,
               saleMultiple: null,
-              unitLabel: { id: "ul-1", label: "CX" },
+              unitPerPack: "1.0000",
+              unit: { id: "ul-1", label: "CX" },
+              taxes: [],
             },
           },
         ],
+        pageInfo: { hasNextPage: false, endCursor: null },
       },
     }),
     OrderItemTiers: () => ({
@@ -83,7 +106,7 @@ test("pedido detalhe: adiciona um item (cascata produto/nível/preço)", async (
                 name: "Produto X",
                 sku: "SKU-1",
                 saleMultiple: null,
-                unitLabel: { id: "ul-1", label: "CX" },
+                unitPerPack: "1.0000",
               },
               tier: { id: "t-1", name: "Varejo" },
             },

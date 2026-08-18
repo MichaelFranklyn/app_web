@@ -9,6 +9,7 @@ import {
   ORDER_ITEM_LINKED_TIER_QUERY,
   ORDER_ITEM_PRICE_LIST_ITEMS_QUERY,
   ORDER_ITEM_PRICE_LISTS_QUERY,
+  ORDER_ITEM_PRODUCT_OPTIONS_QUERY,
   ORDER_ITEM_PRODUCTS_QUERY,
   ORDER_ITEM_TIERS_QUERY,
 } from "../orderItemCatalog";
@@ -20,14 +21,11 @@ const byCF = {
   filters: [{ field: "company_factory_id", operator: "eq", value: "cf-1" }],
 };
 
-// Produtos passam por `useAllPages`, que manda `after` explícito (null na 1ª).
-const byCFPaged = { ...byCF, after: null };
-
-const itemsInput = (after: string | null) => ({
-  first: 1000,
-  filters: [{ field: "price_list_id", operator: "eq", value: "pl-1" }],
-  after,
-});
+const cfFilter = {
+  field: "company_factory_id",
+  operator: "eq",
+  value: "cf-1",
+};
 
 const lastPage = { hasNextPage: false, endCursor: null };
 
@@ -47,6 +45,7 @@ const PRODUCTS = [
     id: "prod-1",
     name: "Produto 1",
     sku: "S1",
+    imageUrl: null,
     saleMultiple: "2",
     unitPerPack: "5.0000",
     unit: { id: "u1", label: "Peça" },
@@ -56,6 +55,7 @@ const PRODUCTS = [
     id: "prod-2",
     name: "Produto 2",
     sku: "S2",
+    imageUrl: null,
     saleMultiple: null,
     unitPerPack: "1.0000",
     unit: { id: "u1", label: "Peça" },
@@ -79,6 +79,71 @@ const priceItem = (
   },
 });
 
+// Preço da EMBALAGEM na tabela; o pedido divide por unitPerPack.
+const PRICE_ITEMS: Record<string, ReturnType<typeof priceItem>[]> = {
+  "prod-1": [
+    priceItem("pli-1", "prod-1", "tier-1", "32.5000"), // → 6,50/un
+    priceItem("pli-2", "prod-1", "tier-2", "30.0000"), // → 6,00/un
+  ],
+  "prod-2": [
+    priceItem("pli-3", "prod-2", "tier-1", "10.0000"), // → 10,00/un
+    priceItem("pli-4", "prod-2", "tier-2", "9.0000"), // → 9,00/un
+  ],
+};
+
+/**
+ * O catálogo busca os dados de apoio por `id in [...]`, e a lista de ids cresce
+ * conforme o rascunho ganha itens — daí um mock por combinação usada nos casos.
+ */
+const productsByIdsMock = (ids: string[]): MockLink.MockedResponse => ({
+  request: {
+    query: ORDER_ITEM_PRODUCTS_QUERY,
+    variables: {
+      input: {
+        first: ids.length,
+        filters: [cfFilter, { field: "id", operator: "in", values: ids }],
+      },
+    },
+  },
+  maxUsageCount: Number.POSITIVE_INFINITY,
+  result: {
+    data: {
+      products: {
+        edges: PRODUCTS.filter((p) => ids.includes(p.id)).map((node) => ({
+          node,
+        })),
+        pageInfo: lastPage,
+      },
+    },
+  },
+});
+
+const priceItemsByIdsMock = (ids: string[]): MockLink.MockedResponse => ({
+  request: {
+    query: ORDER_ITEM_PRICE_LIST_ITEMS_QUERY,
+    variables: {
+      input: {
+        first: 1000,
+        filters: [
+          { field: "price_list_id", operator: "eq", value: "pl-1" },
+          { field: "product_id", operator: "in", values: ids },
+        ],
+      },
+    },
+  },
+  maxUsageCount: Number.POSITIVE_INFINITY,
+  result: {
+    data: {
+      priceListItems: {
+        edges: ids.flatMap((id) => PRICE_ITEMS[id] ?? []),
+        pageInfo: lastPage,
+      },
+    },
+  },
+});
+
+const ID_COMBOS = [["prod-1"], ["prod-2"], ["prod-1", "prod-2"]];
+
 const catalogMocks: MockLink.MockedResponse[] = [
   {
     request: {
@@ -96,17 +161,19 @@ const catalogMocks: MockLink.MockedResponse[] = [
       },
     },
   },
+  // Opções do select: uma página do catálogo da fábrica, sem termo de busca.
   {
     request: {
-      query: ORDER_ITEM_PRODUCTS_QUERY,
-      variables: { input: byCFPaged },
+      query: ORDER_ITEM_PRODUCT_OPTIONS_QUERY,
+      variables: { input: { first: 25, filters: [cfFilter] } },
     },
     maxUsageCount: Number.POSITIVE_INFINITY,
     result: {
       data: {
         products: {
-          edges: PRODUCTS.map((node) => ({ node })),
-          pageInfo: lastPage,
+          edges: PRODUCTS.map(({ id, name, sku, imageUrl }) => ({
+            node: { id, name, sku, imageUrl },
+          })),
         },
       },
     },
@@ -131,9 +198,7 @@ const catalogMocks: MockLink.MockedResponse[] = [
       variables: {
         input: {
           first: 100,
-          filters: [
-            { field: "company_factory_id", operator: "eq", value: "cf-1" },
-          ],
+          filters: [cfFilter],
         },
       },
     },
@@ -156,46 +221,8 @@ const catalogMocks: MockLink.MockedResponse[] = [
       },
     },
   },
-  // A tabela de preço vem em DUAS páginas, como numa fábrica real (1728 linhas
-  // com first=1000). O preço de prod-2 só existe na 2ª página: se a varredura
-  // parar na 1ª, ele fica sem preço — foi exatamente o bug de produção.
-  {
-    request: {
-      query: ORDER_ITEM_PRICE_LIST_ITEMS_QUERY,
-      variables: { input: itemsInput(null) },
-    },
-    maxUsageCount: Number.POSITIVE_INFINITY,
-    result: {
-      data: {
-        priceListItems: {
-          // Preço da EMBALAGEM na tabela; o pedido divide por unitPerPack.
-          edges: [
-            priceItem("pli-1", "prod-1", "tier-1", "32.5000"), // → 6,50/un
-            priceItem("pli-2", "prod-1", "tier-2", "30.0000"), // → 6,00/un
-          ],
-          pageInfo: { hasNextPage: true, endCursor: "cursor-p1" },
-        },
-      },
-    },
-  },
-  {
-    request: {
-      query: ORDER_ITEM_PRICE_LIST_ITEMS_QUERY,
-      variables: { input: itemsInput("cursor-p1") },
-    },
-    maxUsageCount: Number.POSITIVE_INFINITY,
-    result: {
-      data: {
-        priceListItems: {
-          edges: [
-            priceItem("pli-3", "prod-2", "tier-1", "10.0000"), // → 10,00/un
-            priceItem("pli-4", "prod-2", "tier-2", "9.0000"), // → 9,00/un
-          ],
-          pageInfo: lastPage,
-        },
-      },
-    },
-  },
+  ...ID_COMBOS.map(productsByIdsMock),
+  ...ID_COMBOS.map(priceItemsByIdsMock),
 ];
 
 // Vínculo do cliente com a fábrica: nível acordado = Atacado.

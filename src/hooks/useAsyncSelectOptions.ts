@@ -13,6 +13,12 @@ interface UseAsyncSelectOptionsArgs<TData, TNode> {
   toOption: (node: TNode) => SelectOption;
   /** Campo do backend para o filtro `like` (ex.: "name", "razao_social,nome_fantasia"). */
   searchField: string;
+  /**
+   * Filtros que valem sempre, somados ao `like` da busca — o escopo do catálogo
+   * (ex.: os produtos DESTA fábrica). Sem eles, um select escopado teria de
+   * escolher entre paginar e filtrar.
+   */
+  baseFilters?: readonly { field: string; operator: string; value: string }[];
   /** Quantos itens buscar por vez (página server-side). */
   first?: number;
   /** Pula o fetch (ex.: modal fechado). */
@@ -35,6 +41,7 @@ export function useAsyncSelectOptions<TData, TNode>({
   getConnection,
   toOption,
   searchField,
+  baseFilters,
   first = 20,
   skip = false,
   debounceMs = 300,
@@ -47,17 +54,27 @@ export function useAsyncSelectOptions<TData, TNode>({
     return () => clearTimeout(id);
   }, [term, debounceMs]);
 
+  // Serializado na dep list de propósito: o chamador quase sempre monta o array
+  // de escopo inline, e comparar por referência refaria o fetch a cada render.
+  const baseFiltersKey = JSON.stringify(baseFilters ?? []);
+
   const variables = useMemo(() => {
     const value = debounced.trim();
+    const filters = [
+      ...(JSON.parse(baseFiltersKey) as {
+        field: string;
+        operator: string;
+        value: string;
+      }[]),
+      ...(value ? [{ field: searchField, operator: "like", value }] : []),
+    ];
     return {
       input: {
         first,
-        ...(value
-          ? { filters: [{ field: searchField, operator: "like", value }] }
-          : {}),
+        ...(filters.length ? { filters } : {}),
       },
     };
-  }, [first, debounced, searchField]);
+  }, [first, debounced, searchField, baseFiltersKey]);
 
   const { data, loading } = useAsyncQuery<TData>(query, { variables, skip });
 

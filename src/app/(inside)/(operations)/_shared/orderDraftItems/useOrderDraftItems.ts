@@ -30,19 +30,6 @@ export function useOrderDraftItems(
   factoryId: string,
   clientId?: string | null
 ) {
-  const {
-    productOptions,
-    tierOptions,
-    ipiInOrder,
-    priceMap,
-    unitNameByProduct,
-    saleMultipleByProduct,
-    ipiRateByProduct,
-    pricedTiersByProduct,
-    promoActiveKeys,
-    linkedTierId,
-  } = useOrderItemCatalog(open, factoryId || null, clientId);
-
   const [items, setItems] = useState<DraftItem[]>([]);
   const [productId, setProductId] = useState("");
   const [tierId, setTierId] = useState("");
@@ -60,6 +47,35 @@ export function useOrderDraftItems(
   // produto deixa o vendedor trocar o nível na mão sem ser corrigido de volta.
   const tierResolvedForRef = useRef<string>("");
   const ipiFilledForRef = useRef<string>("");
+
+  // Produtos que precisam de dado de apoio (unidade, múltiplo, IPI, preço): o
+  // que está no formulário e os que já entraram no rascunho — a lista de itens
+  // continua mostrando unidade e múltiplo depois de a busca mudar de página.
+  const catalogProductIds = useMemo(
+    () =>
+      Array.from(
+        new Set([productId, ...items.map((item) => item.productId)])
+      ).filter(Boolean),
+    [productId, items]
+  );
+
+  const {
+    productOptions,
+    onProductSearch,
+    isLoadingProducts,
+    hasProducts,
+    productOptionById,
+    loadedProductIds,
+    tierOptions,
+    ipiInOrder,
+    priceMap,
+    unitNameByProduct,
+    saleMultipleByProduct,
+    ipiRateByProduct,
+    pricedTiersByProduct,
+    promoActiveKeys,
+    linkedTierId,
+  } = useOrderItemCatalog(open, factoryId || null, clientId, catalogProductIds);
 
   // Escolhe o nível assim que o produto é selecionado (herda do item anterior,
   // cai no nível do vínculo ou no único nível com preço). Reativo: o catálogo
@@ -91,12 +107,14 @@ export function useOrderDraftItems(
   // se precisar. Produto sem IPI zera o campo — senão herdaria o do anterior.
   useEffect(() => {
     if (!productId || !ipiInOrder) return;
-    if (productOptions.length === 0) return; // catálogo ainda não carregou
+    // Sem o nó do produto não se sabe se ele tem IPI — zerar aqui apagaria a
+    // alíquota certa um instante depois de ela chegar.
+    if (!loadedProductIds.has(productId)) return;
     if (ipiFilledForRef.current === productId) return;
     ipiFilledForRef.current = productId;
     const rate = ipiRateByProduct.get(productId);
     setIpiRate(rate == null ? "" : String(rate));
-  }, [productId, ipiInOrder, ipiRateByProduct, productOptions.length]);
+  }, [productId, ipiInOrder, ipiRateByProduct, loadedProductIds]);
 
   const unitName = productId
     ? (unitNameByProduct.get(productId) ?? null)
@@ -106,9 +124,11 @@ export function useOrderDraftItems(
     ? saleMultipleByProduct.get(productId)
     : undefined;
 
+  // Do mapa dos escolhidos, não da lista de opções: a lista mostra o resultado
+  // da busca atual, e o produto do item pode não estar mais nela.
   const selectedProduct = useMemo(
-    () => productOptions.find((o) => o.value === productId) ?? null,
-    [productOptions, productId]
+    () => productOptionById.get(productId) ?? null,
+    [productOptionById, productId]
   );
   const selectedTier = useMemo(
     () => tierOptions.find((o) => o.value === tierId) ?? null,
@@ -257,8 +277,10 @@ export function useOrderDraftItems(
 
   return {
     productOptions,
+    onProductSearch,
+    isLoadingProducts,
     tierOptions,
-    hasCatalog: productOptions.length > 0,
+    hasCatalog: hasProducts,
     ipiInOrder,
     unitName,
     saleMultiple,
