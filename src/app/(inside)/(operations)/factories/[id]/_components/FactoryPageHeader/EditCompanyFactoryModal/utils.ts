@@ -1,3 +1,4 @@
+import { isPaymentBasis } from "@/app/(inside)/_shared/commissions";
 import { FormStepSchema } from "@/components/FormBuilder";
 import { toIsoDate } from "@/utils/format/date";
 import { INSTALLMENT_DUE_BASIS_OPTIONS } from "@/app/(inside)/_shared/commissions";
@@ -11,6 +12,21 @@ export const COMMISSION_BASIS_OPTIONS = [
   { value: "Faturamento", label: "Faturamento — comissão paga no faturamento" },
   { value: "Pagamento", label: "Pagamento — comissão conforme o cliente paga" },
 ];
+
+/**
+ * Qual opção do select representa a base gravada na fábrica.
+ *
+ * Casar por igualdade não basta: uma base que ainda não passou pela migration
+ * `d2b6e9c1f473` traz o texto antigo ("Faturado"), o `find` não acha nada e o
+ * campo — que é obrigatório — abre VAZIO, travando a edição de qualquer outro
+ * termo do contrato. Por isso o desempate segue a mesma regra do servidor:
+ * "pag*" é Pagamento, o resto é Faturamento.
+ */
+export const commissionBasisOption = (basis: string | null | undefined) =>
+  COMMISSION_BASIS_OPTIONS.find((opt) => opt.value === basis) ??
+  (isPaymentBasis(basis)
+    ? COMMISSION_BASIS_OPTIONS[1]
+    : COMMISSION_BASIS_OPTIONS[0]);
 
 // Dois passos no formulário (o terceiro — Identidade — é custom, fora do
 // FormBuilder, porque a logo não é um campo de formulário comum).

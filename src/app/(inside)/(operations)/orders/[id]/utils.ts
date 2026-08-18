@@ -103,23 +103,13 @@ export const selectValue = (raw: unknown): string => {
   return String(raw ?? "");
 };
 
-/**
- * Modo Pagamento: a fábrica paga a comissão conforme o cliente paga os boletos.
- *
- * Espelha `is_payment_basis` do backend — inclusive em NÃO aceitar mais o
- * rótulo antigo "Pedido", que hoje é o texto da base do VENCIMENTO
- * (`installmentDueBasis`) e significa outra coisa. As duas leituras têm de
- * divergir nunca: o modo decide toda a régua da comissão.
- */
-export const isPaymentBasis = (basis: string | null | undefined): boolean => {
-  if (!basis) return false;
-  const norm = basis.normalize("NFKD").replace(/[̀-ͯ]/g, "").trim().toLowerCase();
-  return norm.startsWith("pag");
-};
-
-export const commissionModeLabel = (
-  basis: string | null | undefined
-): string => (isPaymentBasis(basis) ? "Pagamento" : "Faturamento");
+// O modo da comissão e seu rótulo moram no vocabulário compartilhado
+// (`(inside)/_shared/commissions`): o cadastro do contrato na tela de fábricas
+// precisa da MESMA leitura, e duas cópias divergiriam no dia em que uma mudasse.
+export {
+  commissionModeLabel,
+  isPaymentBasis,
+} from "@/app/(inside)/_shared/commissions";
 
 /**
  * Ordena itens de pedido para exibição na ORDEM DE CRIAÇÃO (mais antigo

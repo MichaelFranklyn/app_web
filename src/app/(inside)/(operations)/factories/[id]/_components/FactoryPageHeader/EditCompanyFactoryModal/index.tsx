@@ -22,7 +22,7 @@ import {
   UpdateCompanyFactoryResponse,
 } from "./interface";
 import { StepIdentity } from "./StepIdentity";
-import { COMMISSION_BASIS_OPTIONS, FORM_STEPS, normalizeInput } from "./utils";
+import { commissionBasisOption, FORM_STEPS, normalizeInput } from "./utils";
 
 // Trilha exibida no topo. O primeiro passo é custom (identidade visual); os
 // outros dois são os steps do FormBuilder, na mesma ordem.
@@ -151,10 +151,9 @@ export function EditCompanyFactoryModal() {
 
   const initialData = {
     commissionRate: companyFactory.commissionRate,
-    commissionCalcBasis:
-      COMMISSION_BASIS_OPTIONS.find(
-        (opt) => opt.value === companyFactory.commissionCalcBasis
-      ) ?? null,
+    commissionCalcBasis: commissionBasisOption(
+      companyFactory.commissionCalcBasis
+    ),
     paymentDays: (
       companyFactory.commissionPaymentDays ?? [companyFactory.paymentTermDays]
     ).join(", "),

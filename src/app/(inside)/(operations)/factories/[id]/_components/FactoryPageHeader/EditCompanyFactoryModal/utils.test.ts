@@ -1,7 +1,7 @@
 import { describe, expect, it } from "vitest";
 
 import { CompanyFactoryDetail } from "../../../interface";
-import { normalizeInput } from "./utils";
+import { commissionBasisOption, normalizeInput } from "./utils";
 
 const initial = (
   over: Partial<CompanyFactoryDetail> = {}
@@ -159,5 +159,23 @@ describe("base do vencimento do boleto", () => {
       initial()
     );
     expect(input.installmentDueBasis).toBeUndefined();
+  });
+});
+
+describe("commissionBasisOption", () => {
+  it("casa o valor canônico", () => {
+    expect(commissionBasisOption("Pagamento")?.value).toBe("Pagamento");
+    expect(commissionBasisOption("Faturamento")?.value).toBe("Faturamento");
+  });
+
+  it("casa o texto antigo de uma base ainda não migrada", () => {
+    // O select é obrigatório: sem casar "Faturado", ele abre vazio e trava a
+    // edição de qualquer outro termo do contrato (quebrou o E2E assim).
+    expect(commissionBasisOption("Faturado")?.value).toBe("Faturamento");
+  });
+
+  it("nunca devolve vazio", () => {
+    expect(commissionBasisOption(null)?.value).toBe("Faturamento");
+    expect(commissionBasisOption(undefined)?.value).toBe("Faturamento");
   });
 });

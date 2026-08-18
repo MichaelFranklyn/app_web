@@ -105,3 +105,25 @@ export const installmentDueBasisLabel = (
   basis && basis.toLowerCase().startsWith("pedido")
     ? "da data do pedido"
     : "do faturamento";
+
+/**
+ * Modo Pagamento: a fábrica paga a comissão conforme o cliente paga os boletos.
+ *
+ * Espelha `is_payment_basis` do backend — inclusive em NÃO aceitar o rótulo
+ * antigo "Pedido", que hoje é o texto da base do VENCIMENTO
+ * (`installmentDueBasis`) e significa outra coisa. As duas leituras não podem
+ * divergir: o modo decide toda a régua da comissão.
+ */
+export const isPaymentBasis = (basis: string | null | undefined): boolean => {
+  if (!basis) return false;
+  const norm = basis
+    .normalize("NFKD")
+    .replace(/[\u0300-\u036f]/g, "")
+    .trim()
+    .toLowerCase();
+  return norm.startsWith("pag");
+};
+
+export const commissionModeLabel = (
+  basis: string | null | undefined
+): string => (isPaymentBasis(basis) ? "Pagamento" : "Faturamento");
