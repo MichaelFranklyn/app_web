@@ -1073,6 +1073,8 @@ type CompanyFactoryType {
   commissionPaymentDays: [Int!]
   """Dia do mês (1-31) até o qual o faturamento entra no fechamento da comissão do mês seguinte. Nulo = sem corte: vale o próximo dia de pagamento após o faturamento."""
   commissionCutoffDay: Int
+  """De onde contam os dias do boleto: "Faturamento" (nota fiscal) ou "Pedido" (data da compra). Nulo = Faturamento."""
+  installmentDueBasis: String
   territory: String!
   contractStart: DateTime
   contractEnd: DateTime
@@ -1120,6 +1122,8 @@ input LinkFactoryInput {
   commissionCalcBasis: String!
   paymentTermDays: Int!
   commissionCutoffDay: Int = null
+  """De onde contam os dias do boleto: "Faturamento" (nota fiscal) ou "Pedido" (data da compra). Nulo = Faturamento."""
+  installmentDueBasis: String = null
   territory: String!
   contractStart: DateTime = null
   contractEnd: DateTime = null
@@ -1138,6 +1142,8 @@ input CreateCompanyFactoryInput {
   commissionCalcBasis: String!
   paymentTermDays: Int!
   commissionCutoffDay: Int = null
+  """De onde contam os dias do boleto: "Faturamento" (nota fiscal) ou "Pedido" (data da compra). Nulo = Faturamento."""
+  installmentDueBasis: String = null
   territory: String!
   contractStart: DateTime = null
   contractEnd: DateTime = null
@@ -1155,6 +1161,8 @@ input ImportCompanyFactoryRowInput {
   commissionCalcBasis: String!
   paymentTermDays: Int!
   commissionCutoffDay: Int = null
+  """De onde contam os dias do boleto: "Faturamento" (nota fiscal) ou "Pedido" (data da compra). Nulo = Faturamento."""
+  installmentDueBasis: String = null
   territory: String!
   contractStart: DateTime = null
   contractEnd: DateTime = null
@@ -1193,6 +1201,8 @@ input UpdateCompanyFactoryInput {
   paymentTermDays: Int = null
   commissionPaymentDays: [Int!] = null
   commissionCutoffDay: Int = null
+  """De onde contam os dias do boleto: "Faturamento" (nota fiscal) ou "Pedido" (data da compra). Nulo = Faturamento."""
+  installmentDueBasis: String = null
   territory: String = null
   contractStart: DateTime = null
   contractEnd: DateTime = null
@@ -2209,6 +2219,8 @@ enum InstallmentStatus {
   PENDING
   PAID
   CANCELLED
+  """Cliente não pagou o boleto (calote). Diferente de CANCELLED, que é o boleto que deixou de existir."""
+  DEFAULTED
 }
 
 type OrderInstallmentType {
@@ -2220,10 +2232,18 @@ type OrderInstallmentType {
   dueDate: Date
   status: InstallmentStatus!
   paidAt: Date
+  """Vencido e ainda não pago. Derivado da data — nenhum job muda o status."""
+  isOverdue: Boolean!
+  defaultedAt: Date
   isCommissionReceived: Boolean!
   commissionReceivedAt: Date
   isCommissionReconciled: Boolean!
   commissionReconciledAt: Date
+  """O escritório já repassou ao vendedor a fatia dele desta parcela."""
+  isSellerCommissionPaid: Boolean!
+  sellerCommissionPaidAt: Date
+  """Mês em que o escritório vai descontar do vendedor o estorno deste calote; nulo = ainda não decidiu."""
+  sellerChargebackMonth: Date
   createdAt: DateTime!
 }
 
@@ -2576,6 +2596,8 @@ type OrderType {
   importLogs: [ImportLogType!]!
   """Base de cálculo da comissão da fábrica (Faturamento/Pagamento) para este pedido."""
   commissionCalcBasis: String
+  """De onde contam os dias do boleto nesta fábrica: "Faturamento" (padrão) ou "Pedido"."""
+  installmentDueBasis: String
   """Prazos de pagamento disponíveis da fábrica deste pedido (para faturar)."""
   availablePaymentTerms: [FactoryPaymentTermType!]!
   """A fábrica deste pedido cobra o IPI no pedido (por item), não na tabela de preços."""
@@ -2664,7 +2686,12 @@ input InvoiceOrderItemInput {
   invoicedQuantity: Decimal!
 }
 
-"""Uma parcela de comissão (linha da tela de Comissões)."""
+"""Uma parcela de comissão (linha da tela de Comissões).
+
+Os campos principais (`amount`, `status`, `receiveDate`…) são do nível de quem
+está olhando: para o gestor, o que a FÁBRICA deve ao escritório; para o
+vendedor, a fatia dele. Os campos `seller*` são sempre o nível do vendedor.
+"""
 type CommissionRowType {
   orderId: UUID!
   installmentId: UUID!
@@ -2674,13 +2701,25 @@ type CommissionRowType {
   dueDate: Date
   paidAt: Date
   installmentAmount: Decimal!
+  """Negativo quando `status` é "chargeback": comissão paga que volta por calote do cliente."""
   amount: Decimal!
+  """pending | receivable | received | cancelled | chargeback"""
   status: String!
   receiveDate: Date
   isReceivable: Boolean!
   isReceived: Boolean!
   isReconciled: Boolean!
   reconciledAt: Date
+  """Boleto vencido e não pago (derivado da data)."""
+  isOverdue: Boolean!
+  """Quando o boleto virou calote."""
+  defaultedAt: Date
+  sellerAmount: Decimal!
+  sellerStatus: String!
+  sellerReceiveDate: Date
+  isSellerPaid: Boolean!
+  """Mês escolhido para descontar o estorno do vendedor; nulo = ainda na fila."""
+  sellerChargebackMonth: Date
   order: OrderType
   client: ClientType
   factory: FactoryType
@@ -2689,14 +2728,36 @@ type CommissionRowType {
 
 type CommissionSummaryType {
   rows: [CommissionRowType!]!
+  """Já líquido dos estornos: é o que cai no próximo fechamento."""
   totalReceivable: Decimal!
   totalReceived: Decimal!
   totalPending: Decimal!
   countReceivable: Int!
+  """Total (negativo) a devolver por calote do cliente."""
+  totalChargeback: Decimal!
+  """Estornos do vendedor, incluindo os já agendados."""
+  totalSellerChargeback: Decimal!
+  """Estornos do vendedor sem mês de desconto escolhido — a fila do escritório."""
+  totalSellerChargebackPending: Decimal!
+  """Quantos boletos estão vencidos e não pagos."""
+  countOverdue: Int!
+}
+
+"""Quanto uma baixa em lote por período pegaria (sem gravar nada)."""
+type SettleInstallmentsPreviewType {
+  count: Int!
+  amount: Decimal!
 }
 
 extend type Query {
   orders(input: BaseListInput!): OrderTypeConnectionResponse!
+  """Prévia da baixa em lote: quantos boletos em aberto vencem no período e quanto somam."""
+  settleInstallmentsPreview(
+    dueFrom: Date!
+    dueTo: Date!
+    factoryId: UUID = null
+    sellerId: UUID = null
+  ): SettleInstallmentsPreviewType!
   order(id: UUID!): OrderTypeDataResponse!
   """Resumo dos pedidos. Aceita os MESMOS filtros da query `orders` (a paginação é ignorada); sem `input`, resume a empresa inteira."""
   orderStats(input: BaseListInput = null): OrderStatsType!
@@ -2715,9 +2776,31 @@ extend type Mutation {
   """Confirma a entrega de um pedido faturado: status → DELIVERED e reabastece o estoque do cliente usando a data real de chegada."""
   markOrderDelivered(id: UUID!, deliveredAt: Date!): OrderTypeDataResponse!
   payOrderInstallment(id: UUID!, paidAt: Date!): OrderInstallmentTypeDataResponse!
+  """Marca vários boletos como pagos de uma vez, conferindo o relatório da fábrica."""
+  payOrderInstallments(installmentIds: [UUID!]!, paidAt: Date!): BaseResponse!
+  """
+  Baixa TODOS os boletos em aberto que vencem no período — o atalho para colocar
+  o histórico em dia depois de subir pedidos antigos. `paidAt` nulo baixa cada
+  boleto no próprio vencimento (preserva a cronologia); com data, todos recebem
+  a mesma. Ignora parcela paga, cancelada, inadimplente ou com comissão já
+  recebida.
+  """
+  settleInstallmentsInPeriod(
+    dueFrom: Date!
+    dueTo: Date!
+    factoryId: UUID = null
+    sellerId: UUID = null
+    paidAt: Date = null
+  ): BaseResponse!
   cancelOrderInstallment(id: UUID!): OrderInstallmentTypeDataResponse!
+  """Calote: o cliente não pagou. Se a comissão já tinha sido paga, vira estorno."""
+  markOrderInstallmentsDefaulted(installmentIds: [UUID!]!, defaultedAt: Date!): BaseResponse!
   revertOrderInstallment(id: UUID!): OrderInstallmentTypeDataResponse!
   markCommissionReceived(installmentIds: [UUID!]!, receivedAt: Date!): BaseResponse!
+  """Registra que o escritório repassou ao vendedor a fatia dele."""
+  markSellerCommissionPaid(installmentIds: [UUID!]!, paidAt: Date!): BaseResponse!
+  """Escolhe em que mês o escritório desconta do vendedor o estorno de um calote (nulo devolve à fila)."""
+  scheduleSellerChargeback(installmentIds: [UUID!]!, month: Date): BaseResponse!
   setCommissionReconciled(installmentIds: [UUID!]!, reconciled: Boolean!): BaseResponse!
 }
 
@@ -4482,6 +4565,10 @@ extend type Mutation {
 input CreateSellerFactoryAccessInput {
   sellerId: UUID!
   factoryId: UUID!
+  """Percentual DA COMISSÃO da fábrica que fica com o vendedor. Nulo = 100%."""
+  sellerCommissionShare: Decimal
+  """Quando o escritório repassa: "Faturamento" ou "Pagamento". Nulo = igual à fábrica."""
+  sellerCommissionBasis: String
 }
 
 type SellerFactoryAccessType {
@@ -4491,6 +4578,10 @@ type SellerFactoryAccessType {
   companyId: UUID!
   grantedBy: UUID!
   isActive: Boolean!
+  """Percentual DA COMISSÃO da fábrica que fica com o vendedor. Nulo = 100%."""
+  sellerCommissionShare: Decimal
+  """Quando o escritório repassa: "Faturamento" ou "Pagamento". Nulo = igual à fábrica."""
+  sellerCommissionBasis: String
   createdAt: DateTime!
   updatedAt: DateTime!
   deletedAt: DateTime
@@ -4524,6 +4615,12 @@ input UpdateSellerFactoryAccessInput {
   companyId: UUID = null
   grantedBy: UUID = null
   isActive: Boolean = null
+  sellerCommissionShare: Decimal = null
+  sellerCommissionBasis: String = null
+  """Volta o vendedor para 100% da comissão (nulo significa "não mexer")."""
+  clearSellerCommissionShare: Boolean = false
+  """Volta o repasse a seguir a base da fábrica."""
+  clearSellerCommissionBasis: Boolean = false
 }
 
 extend type Query {

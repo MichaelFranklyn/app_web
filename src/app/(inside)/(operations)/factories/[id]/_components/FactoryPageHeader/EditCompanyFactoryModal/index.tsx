@@ -13,6 +13,7 @@ import { parseLocalDate } from "@/utils/format/date";
 import { useMutation } from "@apollo/client/react";
 import { Pencil } from "lucide-react";
 import { useEffect, useRef, useState } from "react";
+import { INSTALLMENT_DUE_BASIS_OPTIONS } from "@/app/(inside)/_shared/commissions";
 import { useFactoryDetail } from "../../../context";
 import { CompanyFactoryDetail } from "../../../interface";
 import { UPDATE_COMPANY_FACTORY_MUTATION } from "./gql";
@@ -158,6 +159,11 @@ export function EditCompanyFactoryModal() {
       companyFactory.commissionPaymentDays ?? [companyFactory.paymentTermDays]
     ).join(", "),
     commissionCutoffDay: companyFactory.commissionCutoffDay ?? "",
+    installmentDueBasis:
+      INSTALLMENT_DUE_BASIS_OPTIONS.find(
+        (opt) =>
+          opt.value === (companyFactory.installmentDueBasis ?? "Faturamento")
+      ) ?? null,
     territory: companyFactory.territory,
     contractStart: parseLocalDate(companyFactory.contractStart),
     contractEnd: parseLocalDate(companyFactory.contractEnd),

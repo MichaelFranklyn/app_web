@@ -13,6 +13,7 @@ import {
   summarizeRows,
   YearMonth,
 } from "../../utils";
+import { BulkActionsBar } from "../BulkActionsBar";
 import { CommissionsTable } from "../CommissionsTable";
 import { MarkReceivedModal } from "../MarkReceivedModal";
 
@@ -48,6 +49,27 @@ export function FactoryCommissionGroup({
   onChanged,
 }: Props) {
   const [open, setOpen] = useState(defaultOpen);
+  // A seleção é POR FÁBRICA de propósito: a conferência acontece contra a
+  // planilha de uma fábrica por vez, e um lote que misturasse fábricas seria
+  // marcado com a data de repasse errada.
+  const [selectedIds, setSelectedIds] = useState<Set<string>>(new Set());
+
+  const toggleRow = (installmentId: string) =>
+    setSelectedIds((current) => {
+      const next = new Set(current);
+      if (next.has(installmentId)) next.delete(installmentId);
+      else next.add(installmentId);
+      return next;
+    });
+
+  const toggleAll = () =>
+    setSelectedIds((current) =>
+      current.size === group.rows.length
+        ? new Set()
+        : new Set(group.rows.map((row) => row.installmentId))
+    );
+
+  const clearSelection = () => setSelectedIds(new Set());
 
   const summary = useMemo(() => summarizeRows(group.rows), [group.rows]);
   const highlights = useMemo(
@@ -116,8 +138,24 @@ export function FactoryCommissionGroup({
             rows={group.rows}
             loading={false}
             canManage={canManage}
+            selectedIds={canManage ? selectedIds : undefined}
+            onToggleRow={canManage ? toggleRow : undefined}
+            onToggleAll={canManage ? toggleAll : undefined}
             onChanged={onChanged}
           />
+          {canManage && (
+            <BulkActionsBar
+              selectedIds={Array.from(selectedIds)}
+              receivableIds={group.rows
+                .filter(
+                  (row) =>
+                    selectedIds.has(row.installmentId) && row.isReceivable
+                )
+                .map((row) => row.installmentId)}
+              onClear={clearSelection}
+              onChanged={onChanged}
+            />
+          )}
         </div>
       )}
     </Table.Root>

@@ -23,6 +23,7 @@ import {
 } from "./gql";
 import { SellerFactoryAccess } from "../interface";
 import { SELLER_FACTORY_ACCESS_LIST_QUERY } from "../gql";
+import { SELLER_BASIS_OPTIONS } from "../utils";
 import {
   CompanyFactoriesOptionsData,
   CreateAccessResponse,
@@ -135,6 +136,28 @@ export function AddAccessModal({
               },
             ],
           },
+          {
+            id: "commission",
+            title: "Comissão do vendedor",
+            description:
+              "Opcional. Em branco, o vendedor fica com a comissão inteira, na mesma base da fábrica.",
+            fields: [
+              {
+                name: "sellerShare",
+                type: "number",
+                label: "Quanto da comissão fica com o vendedor (%)",
+                placeholder: "Ex: 50",
+                hint: "Percentual DA COMISSÃO da fábrica, não do valor do pedido.",
+              },
+              {
+                name: "sellerBasis",
+                type: "select-single",
+                label: "Quando o escritório repassa",
+                options: SELLER_BASIS_OPTIONS,
+                placeholder: "Igual à fábrica",
+              },
+            ],
+          },
         ],
       },
     ],
@@ -151,11 +174,25 @@ export function AddAccessModal({
     const factory = data.factory as { value: string; label: string } | null;
     const sellerId = seller?.value;
     const factoryId = factory?.value;
+    const rawShare = data.sellerShare;
+    const sellerCommissionShare =
+      rawShare === "" || rawShare === null || rawShare === undefined
+        ? null
+        : Number(rawShare);
+    const sellerCommissionBasis =
+      (data.sellerBasis as { value: string } | null)?.value || null;
 
     await execute(
       async () => {
         const res = await createAccess({
-          variables: { input: { sellerId, factoryId } },
+          variables: {
+            input: {
+              sellerId,
+              factoryId,
+              sellerCommissionShare,
+              sellerCommissionBasis,
+            },
+          },
         });
 
         if (!res.data?.createSellerFactoryAccess?.status) {
@@ -182,6 +219,8 @@ export function AddAccessModal({
               id: created.data.id,
               isActive: created.data.isActive,
               createdAt: created.data.createdAt,
+              sellerCommissionShare,
+              sellerCommissionBasis,
               seller: {
                 id: sellerId,
                 name: seller?.label ?? "",

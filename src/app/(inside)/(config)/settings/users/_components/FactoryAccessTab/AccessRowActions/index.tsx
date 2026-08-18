@@ -1,8 +1,9 @@
 "use client";
 
 import { MoreOptions } from "@/components/MoreOptions";
-import { Power, Trash2 } from "lucide-react";
+import { Percent, Power, Trash2 } from "lucide-react";
 import { useState } from "react";
+import { CommissionAgreementModal } from "../CommissionAgreementModal";
 import { DeleteAccessModal } from "../DeleteAccessModal";
 import { UpdateAccessModal } from "../UpdateAccessModal";
 
@@ -12,6 +13,10 @@ interface AccessRowActionsProps {
   sellerIsActive: boolean;
   factoryName: string;
   isActive: boolean;
+  sellerCommissionShare: string | number | null;
+  sellerCommissionBasis: string | null;
+  /** Recarrega a lista depois de salvar o acordo de comissão. */
+  onAgreementSaved: () => void;
   onRevoke: () => void;
   onCommit: () => void;
   onRollback: () => void;
@@ -24,6 +29,9 @@ export function AccessRowActions({
   sellerIsActive,
   factoryName,
   isActive,
+  sellerCommissionShare,
+  sellerCommissionBasis,
+  onAgreementSaved,
   onRevoke,
   onCommit,
   onRollback,
@@ -31,6 +39,7 @@ export function AccessRowActions({
 }: AccessRowActionsProps) {
   const [updateOpen, setUpdateOpen] = useState(false);
   const [deleteOpen, setDeleteOpen] = useState(false);
+  const [agreementOpen, setAgreementOpen] = useState(false);
 
   const canActivate = isActive || sellerIsActive;
 
@@ -47,6 +56,11 @@ export function AccessRowActions({
             icon: Power,
             disabled: !canActivate,
             onClick: () => setUpdateOpen(true),
+          },
+          {
+            label: "Comissão do vendedor",
+            icon: Percent,
+            onClick: () => setAgreementOpen(true),
           },
           {
             label: "Excluir vínculo",
@@ -66,6 +80,16 @@ export function AccessRowActions({
         onRevoke={onRevoke}
         onCommit={onCommit}
         onRollback={onRollback}
+      />
+      <CommissionAgreementModal
+        id={id}
+        sellerName={sellerName}
+        factoryName={factoryName}
+        sellerCommissionShare={sellerCommissionShare}
+        sellerCommissionBasis={sellerCommissionBasis}
+        open={agreementOpen}
+        onOpenChange={setAgreementOpen}
+        onSaved={onAgreementSaved}
       />
       <DeleteAccessModal
         id={id}

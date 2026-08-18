@@ -24,7 +24,7 @@ describe("parseFactoriesRows", () => {
         row([
           "11.222.333/0001-81",
           "7.5",
-          "Faturado",
+          "Faturamento",
           "10",
           "Sul",
           "2025-01-01",
@@ -36,7 +36,7 @@ describe("parseFactoriesRows", () => {
       {
         cnpj: "11222333000181",
         commissionRate: 7.5,
-        commissionCalcBasis: "Faturado",
+        commissionCalcBasis: "Faturamento",
         paymentTermDays: 10,
         territory: "Sul",
         contractStart: "2025-01-01",

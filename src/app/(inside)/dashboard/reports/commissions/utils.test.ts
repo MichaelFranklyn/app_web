@@ -25,6 +25,8 @@ const row = (over: Partial<CommissionRow> = {}): CommissionRow => ({
   isReceived: false,
   isReconciled: false,
   reconciledAt: null,
+  isOverdue: false,
+  defaultedAt: null,
   client: {
     id: "c1",
     razaoSocial: "CASA DO SONO LTDA",

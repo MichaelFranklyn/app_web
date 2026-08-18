@@ -28,6 +28,7 @@ export const ORDER_DETAIL_QUERY = gql`
         isDeliveryOverdue
         paymentTermId
         commissionCalcBasis
+        installmentDueBasis
         parentOrderId
         isBackorder
         parentOrder {
@@ -78,8 +79,13 @@ export const ORDER_DETAIL_QUERY = gql`
           dueDate
           status
           paidAt
+          isOverdue
+          defaultedAt
           isCommissionReceived
           commissionReceivedAt
+          isSellerCommissionPaid
+          sellerCommissionPaidAt
+          sellerChargebackMonth
         }
       }
     }
@@ -174,6 +180,21 @@ export const PAY_ORDER_INSTALLMENT_MUTATION = gql`
         status
         paidAt
       }
+    }
+  }
+`;
+
+export const MARK_ORDER_INSTALLMENTS_DEFAULTED_MUTATION = gql`
+  mutation MarkOrderInstallmentsDefaulted(
+    $installmentIds: [UUID!]!
+    $defaultedAt: Date!
+  ) {
+    markOrderInstallmentsDefaulted(
+      installmentIds: $installmentIds
+      defaultedAt: $defaultedAt
+    ) {
+      status
+      message
     }
   }
 `;

@@ -91,6 +91,7 @@ export function CommissionsReportTable({
               Comissão
             </Table.Head>
             <Table.Head sortKey="status">Situação</Table.Head>
+            <Table.Head>Boleto</Table.Head>
             <Table.Head sortKey="isReconciled" sortFirst="desc">
               Conferida
             </Table.Head>
@@ -99,10 +100,10 @@ export function CommissionsReportTable({
 
         <Table.Body>
           {loading && items.length === 0 ? (
-            <Table.Skeleton columns={9} rows={8} />
+            <Table.Skeleton columns={10} rows={8} />
           ) : items.length === 0 ? (
             <Table.Row>
-              <Table.Cell colSpan={9}>
+              <Table.Cell colSpan={10}>
                 <EmptyState.Root>
                   <EmptyState.Icon>
                     <Coins size={32} />
@@ -161,6 +162,21 @@ export function CommissionsReportTable({
                     </Badge.Text>
                   </Badge.Root>
                 </Table.Cell>
+                {/* Situação do BOLETO do cliente: é o que trava a comissão —
+                    vencido ainda pode virar pagamento, calote já não. */}
+                <Table.Cell>
+                  {row.defaultedAt ? (
+                    <Badge.Root color="red" appearance="tinted">
+                      <Badge.Text>Não pagou</Badge.Text>
+                    </Badge.Root>
+                  ) : row.isOverdue ? (
+                    <Badge.Root color="amber" appearance="tinted">
+                      <Badge.Text>Vencido</Badge.Text>
+                    </Badge.Root>
+                  ) : (
+                    <Table.CellText variant="dim">—</Table.CellText>
+                  )}
+                </Table.Cell>
                 <Table.Cell variant="dim">
                   {row.isReconciled ? "Sim" : "—"}
                 </Table.Cell>
@@ -178,7 +194,7 @@ export function CommissionsReportTable({
           {/* Sem linhas o rodapé fica quieto: repetir aqui a frase do estado
               vazio dizia a mesma coisa duas vezes na mesma tela. */}
           {totalItems > 0 &&
-            `${totalItems} parcelas · página ${currentPage} de ${totalPages} · nesta página: a receber ${formatMoney(page.receivable)}, recebido ${formatMoney(page.received)}`}
+            `${totalItems} parcelas · página ${currentPage} de ${totalPages} · nesta página: a receber ${formatMoney(page.receivable)}, recebido ${formatMoney(page.received)}${page.countOverdue > 0 ? `, ${page.countOverdue} boleto(s) em atraso` : ""}`}
         </Table.Footer.Info>
 
         <Pagination.Smart

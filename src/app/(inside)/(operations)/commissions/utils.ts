@@ -22,14 +22,52 @@ export {
 export type FactoryGroup =
   import("../../_shared/commissions").FactoryGroup<CommissionRow>;
 
-export type CommissionTab = "receivable" | "pending" | "received" | "all";
+export type CommissionTab =
+  | "receivable"
+  | "pending"
+  | "received"
+  | "overdue"
+  | "all";
 
 export const COMMISSION_TABS: { id: CommissionTab; label: string }[] = [
   { id: "receivable", label: "A receber" },
   { id: "pending", label: "Previsto" },
   { id: "received", label: "Recebido" },
+  { id: "overdue", label: "Boleto em atraso" },
   { id: "all", label: "Todas" },
 ];
+
+/**
+ * Recorta as linhas pela situação escolhida.
+ *
+ * "Boleto em atraso" não é um status de comissão e sim do BOLETO: junta o
+ * vencido não pago com o calote confirmado, que é o que está travando o
+ * dinheiro. As demais abas continuam filtrando pelo status da comissão.
+ */
+export const filterByTab = (
+  rows: CommissionRow[],
+  tab: CommissionTab
+): CommissionRow[] => {
+  if (tab === "all") return rows;
+  if (tab === "overdue")
+    return rows.filter((row) => row.isOverdue || row.defaultedAt !== null);
+  return rows.filter((row) => row.status === tab);
+};
+
+/**
+ * Recorta pelo mês escolhido. A data que importa muda com a aba: nas de
+ * comissão é quando o dinheiro cai (`receiveDate`); em "Boleto em atraso" é o
+ * VENCIMENTO — o atraso se conta pelo boleto, e um calote pode nem ter data de
+ * recebimento ainda (fica na fila do escritório).
+ */
+export const filterByMonth = (
+  rows: CommissionRow[],
+  month: YearMonth,
+  tab: CommissionTab
+): CommissionRow[] =>
+  rows.filter((row) =>
+    isInMonth(tab === "overdue" ? row.dueDate : row.receiveDate, month)
+  );
 
 // A navegação por mês virou coisa de duas telas (comissões e metas) e mora em
 // @/utils/format/month. Re-exportado aqui porque a página inteira já a consome
@@ -65,10 +103,11 @@ export const latestMonthWithData = (
 };
 
 export interface MonthSummary {
-  receivable: number; // a receber no mês
+  receivable: number; // a receber no mês, JÁ LÍQUIDO dos estornos
   received: number; // já recebido no mês
   pending: number; // previsto no mês (depende de faturamento/pagamento)
   countReceivable: number; // parcelas a receber no mês
+  chargeback: number; // estornos (negativo) que caem no mês
 }
 
 /**
@@ -85,6 +124,7 @@ export const summarizeMonth = (
     received: 0,
     pending: 0,
     countReceivable: 0,
+    chargeback: 0,
   };
   for (const row of rows) {
     if (!isInMonth(row.receiveDate, month)) continue;
@@ -95,6 +135,10 @@ export const summarizeMonth = (
       summary.received += Number(row.amount);
     } else if (row.status === "pending") {
       summary.pending += Number(row.amount);
+    } else if (row.status === "chargeback") {
+      // Estorno já vem negativo: entra no a receber para o mês fechar líquido.
+      summary.chargeback += Number(row.amount);
+      summary.receivable += Number(row.amount);
     }
   }
   return summary;
@@ -152,11 +196,13 @@ export const receivableReport = (
 };
 
 export interface RowsSummary {
-  receivable: number; // soma a receber
+  receivable: number; // soma a receber, JÁ LÍQUIDA dos estornos
   received: number; // soma recebida
   pending: number; // soma prevista (depende de faturamento/pagamento)
+  chargeback: number; // soma dos estornos (negativa)
   reconciledCount: number; // quantas parcelas já foram conferidas
   receivableIds: string[]; // parcelas a receber (para "Receber tudo")
+  overdueCount: number; // boletos vencidos ou em calote
 }
 
 /**
@@ -169,8 +215,10 @@ export const summarizeRows = (rows: CommissionRow[]): RowsSummary => {
     receivable: 0,
     received: 0,
     pending: 0,
+    chargeback: 0,
     reconciledCount: 0,
     receivableIds: [],
+    overdueCount: 0,
   };
   for (const row of rows) {
     if (row.status === "receivable") {
@@ -179,7 +227,12 @@ export const summarizeRows = (rows: CommissionRow[]): RowsSummary => {
     }
     if (row.status === "received") summary.received += Number(row.amount);
     if (row.status === "pending") summary.pending += Number(row.amount);
+    if (row.status === "chargeback") {
+      summary.chargeback += Number(row.amount);
+      summary.receivable += Number(row.amount);
+    }
     if (row.isReconciled) summary.reconciledCount += 1;
+    if (row.isOverdue || row.defaultedAt) summary.overdueCount += 1;
   }
   return summary;
 };
@@ -187,7 +240,7 @@ export const summarizeRows = (rows: CommissionRow[]): RowsSummary => {
 export interface FactoryHighlight {
   label: string;
   value: number;
-  color?: "amber" | "green";
+  color?: "amber" | "green" | "red";
 }
 
 /**
@@ -208,6 +261,8 @@ export const factoryHighlights = (
       return [{ label: "Recebido", value: summary.received, color: "green" }];
     case "pending":
       return [{ label: "Previsto", value: summary.pending }];
+    case "overdue":
+      return [{ label: "Estorno", value: summary.chargeback, color: "red" }];
     default:
       return [
         { label: "A receber", value: summary.receivable, color: "amber" },

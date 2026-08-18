@@ -4,6 +4,7 @@ export interface UpdateCompanyFactoryInput {
   paymentTermDays?: number;
   commissionPaymentDays?: number[];
   commissionCutoffDay?: number | null;
+  installmentDueBasis?: string;
   territory?: string;
   contractStart?: string;
   contractEnd?: string;
@@ -27,6 +28,7 @@ export interface UpdateCompanyFactoryResponse {
       paymentTermDays: number;
       commissionPaymentDays: number[] | null;
       commissionCutoffDay: number | null;
+      installmentDueBasis: string | null;
       territory: string;
       contractStart: string | null;
       contractEnd: string | null;

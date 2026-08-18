@@ -7,14 +7,14 @@ import { ImportFactoryRow } from "./interface";
  * Cabeçalho da planilha modelo. A ordem das colunas define o mapeamento na
  * leitura do arquivo enviado — manter sincronizado com `rowToInput`.
  *
- * "Base de cálculo" aceita Faturado (comissão no faturamento) ou Pagamento
+ * "Base de cálculo" aceita Faturamento (comissão no faturamento) ou Pagamento
  * (comissão conforme o cliente paga) — os mesmos dois modos do formulário de
  * vínculo. O backend rejeita a linha se vier outra coisa.
  */
 const EXAMPLE_HEADERS = [
   "CNPJ",
   "Taxa de comissão (%)",
-  "Base de cálculo (Faturado ou Pagamento)",
+  "Base de cálculo (Faturamento ou Pagamento)",
   "Dia de pagamento (1-31)",
   "Território",
   "Início do contrato (AAAA-MM-DD)",
@@ -26,7 +26,7 @@ const EXAMPLE_ROWS = [
   [
     "00.000.000/0001-91",
     "5",
-    "Faturado",
+    "Faturamento",
     "10",
     "Sul",
     "2025-01-01",

@@ -30,6 +30,8 @@ export const COMMISSIONS_REPORT_QUERY = gql`
         isReceived
         isReconciled
         reconciledAt
+        isOverdue
+        defaultedAt
         client {
           id
           razaoSocial

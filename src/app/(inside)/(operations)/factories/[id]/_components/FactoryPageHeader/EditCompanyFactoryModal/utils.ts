@@ -1,13 +1,15 @@
 import { FormStepSchema } from "@/components/FormBuilder";
 import { toIsoDate } from "@/utils/format/date";
+import { INSTALLMENT_DUE_BASIS_OPTIONS } from "@/app/(inside)/_shared/commissions";
 import { CompanyFactoryDetail } from "../../../interface";
 import { UpdateCompanyFactoryInput } from "./interface";
 
-// Os valores "Faturado"/"Pedido" são mantidos por compatibilidade com fábricas já
-// cadastradas; os rótulos usam a terminologia da comissão (Faturamento/Pagamento).
+// Valores canônicos. O vocabulário legado ("Faturado"/"Pedido") saiu do banco na
+// migration `d2b6e9c1f473`: "Pedido" queria dizer Pagamento aqui e quer dizer
+// outra coisa em `installmentDueBasis`, logo abaixo no mesmo formulário.
 export const COMMISSION_BASIS_OPTIONS = [
-  { value: "Faturado", label: "Faturamento — comissão paga no faturamento" },
-  { value: "Pedido", label: "Pagamento — comissão conforme o cliente paga" },
+  { value: "Faturamento", label: "Faturamento — comissão paga no faturamento" },
+  { value: "Pagamento", label: "Pagamento — comissão conforme o cliente paga" },
 ];
 
 // Dois passos no formulário (o terceiro — Identidade — é custom, fora do
@@ -48,6 +50,14 @@ export const FORM_STEPS: FormStepSchema[] = [
             required: false,
             placeholder: "Ex: 25",
             hint: "Até que dia do mês o pedido precisa ser faturado para a comissão entrar no pagamento do mês seguinte. Faturou depois? A comissão cai só no mês seguinte a esse. Deixe em branco se a fábrica não tem corte.",
+          },
+          {
+            name: "installmentDueBasis",
+            label: "Os dias do boleto contam de quando?",
+            type: "select-single",
+            required: false,
+            options: INSTALLMENT_DUE_BASIS_OPTIONS,
+            hint: "Prazo 30/60/90 conta da nota fiscal na maioria das fábricas, mas algumas contam da data em que o pedido foi feito. Muda o vencimento de cada boleto e, com ele, a previsão da comissão.",
           },
         ],
       },
@@ -200,6 +210,15 @@ export const normalizeInput = (
       : null;
   if (cutoffDay !== (initial.commissionCutoffDay ?? null)) {
     input.commissionCutoffDay = cutoffDay;
+  }
+
+  // Vazio grava "Faturamento" (o padrão) em vez de deixar o campo intocado:
+  // quem abre o select e limpa está dizendo que conta da nota.
+  const dueBasis =
+    (data.installmentDueBasis as { value: string } | null)?.value ||
+    "Faturamento";
+  if (dueBasis !== (initial.installmentDueBasis ?? "Faturamento")) {
+    input.installmentDueBasis = dueBasis;
   }
 
   const territory = String(data.territory ?? "").trim();

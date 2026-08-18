@@ -21,6 +21,18 @@ export interface CommissionRow {
   isReceived: boolean;
   isReconciled: boolean;
   reconciledAt: string | null;
+  /** Boleto vencido e ainda não pago pelo cliente. */
+  isOverdue: boolean;
+  /** Quando o boleto virou calote; null = não é inadimplente. */
+  defaultedAt: string | null;
+  /** Fatia do vendedor (negativa em estorno). */
+  sellerAmount: string;
+  sellerStatus: CommissionStatus;
+  sellerReceiveDate: string | null;
+  /** O escritório já repassou a fatia ao vendedor. */
+  isSellerPaid: boolean;
+  /** Mês do desconto do estorno no vendedor; null = ainda na fila. */
+  sellerChargebackMonth: string | null;
   client: {
     id: string;
     razaoSocial: string;
@@ -39,6 +51,12 @@ export interface CommissionsSummary {
   totalReceived: string;
   totalPending: string;
   countReceivable: number;
+  /** Total (negativo) a devolver às fábricas por calote do cliente. */
+  totalChargeback: string;
+  totalSellerChargeback: string;
+  /** Estornos do vendedor ainda sem mês de desconto escolhido. */
+  totalSellerChargebackPending: string;
+  countOverdue: number;
   rows: CommissionRow[];
 }
 

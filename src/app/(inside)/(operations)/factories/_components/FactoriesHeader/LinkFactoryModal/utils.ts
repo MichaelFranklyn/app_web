@@ -1,11 +1,13 @@
 import { FormStepSchema } from "@/components/FormBuilder";
+import { INSTALLMENT_DUE_BASIS_OPTIONS } from "@/app/(inside)/_shared/commissions";
 import { toIsoDate } from "@/utils/format/date";
 
-// Os valores "Faturado"/"Pedido" são mantidos por compatibilidade com fábricas já
-// cadastradas; os rótulos usam a terminologia da comissão (Faturamento/Pagamento).
+// Valores canônicos. O vocabulário legado ("Faturado"/"Pedido") saiu do banco na
+// migration `d2b6e9c1f473`: "Pedido" queria dizer Pagamento aqui e quer dizer
+// outra coisa em `installmentDueBasis`, logo abaixo no mesmo formulário.
 export const COMMISSION_BASIS_OPTIONS = [
-  { value: "Faturado", label: "Faturamento — comissão paga no faturamento" },
-  { value: "Pedido", label: "Pagamento — comissão conforme o cliente paga" },
+  { value: "Faturamento", label: "Faturamento — comissão paga no faturamento" },
+  { value: "Pagamento", label: "Pagamento — comissão conforme o cliente paga" },
 ];
 
 // Três passos curtos em vez de um formulário longo: quem cadastra a fábrica é
@@ -65,6 +67,14 @@ export const FORM_STEPS: FormStepSchema[] = [
             label: "Dia de pagamento da fábrica",
             required: true,
             placeholder: "Dia do mês em que a fábrica paga (ex: 5, 10, 31)",
+          },
+          {
+            name: "installmentDueBasis",
+            type: "select-single",
+            label: "Os dias do boleto contam de quando?",
+            options: INSTALLMENT_DUE_BASIS_OPTIONS,
+            placeholder: "Faturamento — conta da nota fiscal",
+            hint: "Prazo 30/60/90 conta da nota fiscal na maioria das fábricas, mas algumas contam da data em que o pedido foi feito.",
           },
         ],
       },
@@ -152,6 +162,11 @@ export const normalizeInput = (data: Record<string, unknown>) => {
     contractStart: toIsoOrNull(data.contractStart),
     contractEnd: toIsoOrNull(data.contractEnd),
     specialConditions,
+    // Vazio manda "Faturamento" (o padrão explícito, e o que o backend
+    // entende como nulo na leitura).
+    installmentDueBasis:
+      (data.installmentDueBasis as { value: string } | null)?.value ||
+      "Faturamento",
     ipiInOrder:
       Array.isArray(data.ipiInOrder) && data.ipiInOrder.includes("true"),
     nickname: String(data.nickname ?? "").trim() || null,

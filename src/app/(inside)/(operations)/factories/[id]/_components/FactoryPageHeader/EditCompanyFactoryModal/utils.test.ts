@@ -8,10 +8,11 @@ const initial = (
 ): CompanyFactoryDetail => ({
   id: "cf1",
   commissionRate: 5,
-  commissionCalcBasis: "Faturado",
+  commissionCalcBasis: "Faturamento",
   paymentTermDays: 10,
   commissionPaymentDays: [10],
   commissionCutoffDay: null,
+  installmentDueBasis: null,
   territory: "Bahia",
   contractStart: null,
   contractEnd: null,
@@ -37,7 +38,7 @@ const initial = (
 // Só os campos que o formulário sempre envia; cada teste acrescenta o seu.
 const form = (over: Record<string, unknown> = {}) => ({
   commissionRate: 5,
-  commissionCalcBasis: "Faturado",
+  commissionCalcBasis: "Faturamento",
   paymentDays: "10",
   territory: "Bahia",
   ...over,
@@ -135,5 +136,28 @@ describe("normalizeInput — pisos de valor do pedido", () => {
       initial({ minOrderAmount: 1000 })
     );
     expect("minOrderAmount" in input).toBe(false);
+  });
+});
+
+describe("base do vencimento do boleto", () => {
+  it("envia a troca para contar da data do pedido", () => {
+    const input = normalizeInput(
+      { ...form(), installmentDueBasis: { value: "Pedido", label: "Pedido" } },
+      initial()
+    );
+    expect(input.installmentDueBasis).toBe("Pedido");
+  });
+
+  it("não envia nada quando a fábrica continua contando da nota", () => {
+    // Nulo no banco já significa Faturamento: mandar o campo à toa marcaria o
+    // contrato como alterado sem nenhuma mudança real.
+    const input = normalizeInput(
+      {
+        ...form(),
+        installmentDueBasis: { value: "Faturamento", label: "Faturamento" },
+      },
+      initial()
+    );
+    expect(input.installmentDueBasis).toBeUndefined();
   });
 });
