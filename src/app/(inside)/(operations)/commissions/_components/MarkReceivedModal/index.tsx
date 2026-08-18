@@ -21,15 +21,22 @@ interface MarkResponse {
 interface Props {
   installmentIds: string[];
   label?: string;
+  /** Modo controlado (aberto pelo menu de ações da linha): sem gatilho próprio. */
+  open?: boolean;
+  onOpenChange?: (v: boolean) => void;
   onSuccess: () => void;
 }
 
 export function MarkReceivedModal({
   installmentIds,
   label = "Recebi",
+  open: controlledOpen,
+  onOpenChange,
   onSuccess,
 }: Props) {
-  const [open, setOpen] = useState(false);
+  const [uncontrolledOpen, setUncontrolledOpen] = useState(false);
+  const isControlled = controlledOpen !== undefined;
+  const open = isControlled ? controlledOpen : uncontrolledOpen;
   const formRef = useRef<FormBuilderRef>(null);
   const [markReceived] = useMutation<MarkResponse>(
     MARK_COMMISSION_RECEIVED_MUTATION
@@ -60,7 +67,8 @@ export function MarkReceivedModal({
   );
 
   const handleClose = (v: boolean) => {
-    setOpen(v);
+    if (isControlled) onOpenChange?.(v);
+    else setUncontrolledOpen(v);
     if (!v) formRef.current?.resetForm();
   };
 
@@ -93,12 +101,14 @@ export function MarkReceivedModal({
 
   return (
     <Modal.Root open={open} onOpenChange={handleClose}>
-      <Modal.Trigger asChild>
-        <Button.Root appearance="ghost" color="green" size="sm">
-          <Button.Icon icon={BadgeCheck} />
-          <Button.Title>{label}</Button.Title>
-        </Button.Root>
-      </Modal.Trigger>
+      {!isControlled && (
+        <Modal.Trigger asChild>
+          <Button.Root appearance="ghost" color="green" size="sm">
+            <Button.Icon icon={BadgeCheck} />
+            <Button.Title>{label}</Button.Title>
+          </Button.Root>
+        </Modal.Trigger>
+      )}
 
       <Modal.Content size="sm">
         <Modal.Header
