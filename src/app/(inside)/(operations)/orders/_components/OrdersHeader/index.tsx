@@ -12,6 +12,7 @@ import { buildOrderKpis } from "../../utils";
 import { AddOrderModal } from "./AddOrderModal";
 import { ExportOrdersButton, QueryFilter } from "./ExportOrdersButton";
 import { ImportOrderModal } from "./ImportOrderModal";
+import { FeatureGate } from "@/components/FeatureGate";
 
 interface Props {
   stats?: OrdersStats;
@@ -62,7 +63,10 @@ export function OrdersHeader({
                 scopeLabel={scopeLabel}
                 disabled={!hasOrders}
               />
-              <ImportOrderModal onAddOptimistic={onAddOptimistic} />
+              {/* Importação em massa é recurso de plano. */}
+              <FeatureGate feature="BULK_IMPORT">
+                <ImportOrderModal onAddOptimistic={onAddOptimistic} />
+              </FeatureGate>
               <AddOrderModal onAddOptimistic={onAddOptimistic} />
             </PanelHeader.Actions>
           </PanelHeader.Left>

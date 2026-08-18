@@ -1,5 +1,5 @@
 import { useQuery } from "@apollo/client/react";
-import { useMemo } from "react";
+import { useEffect, useMemo, useState } from "react";
 
 import { SelectOption } from "@/components/Input";
 import { ProductThumb } from "@/components/ProductThumb";
@@ -9,29 +9,70 @@ import {
   ORDER_ITEM_LINKED_TIER_QUERY,
   ORDER_ITEM_PRICE_LIST_ITEMS_QUERY,
   ORDER_ITEM_PRICE_LISTS_QUERY,
+  ORDER_ITEM_PRODUCT_OPTIONS_QUERY,
   ORDER_ITEM_PRODUCTS_QUERY,
   ORDER_ITEM_TIERS_QUERY,
 } from "./gql";
 import {
   CompanyFactoriesData,
   LinkedTierData,
-  PriceListItemNode,
   PriceListItemsData,
   PriceListsData,
   ProductNode,
+  ProductOptionNode,
+  ProductOptionsData,
   ProductsData,
   TiersData,
 } from "./interface";
-import { useAllPages } from "@/hooks/useAllPages";
+import { useAsyncSelectOptions } from "@/hooks/useAsyncSelectOptions";
 import { IPI_RULE_NAME, priceKey } from "./utils";
 
-// Seletores no módulo: `useAllPages` os usa na dep list do efeito, então
-// precisam ser estáveis entre renders.
-const selectProducts = (data: ProductsData) => data?.products;
-const selectPriceListItems = (data: PriceListItemsData) => data?.priceListItems;
+/**
+ * Rótulo e miniatura da opção de produto. Vive no módulo porque
+ * `useAsyncSelectOptions` o usa em dep list — recriá-lo a cada render refaria a
+ * lista de opções sem motivo.
+ */
+const toProductOption = (node: ProductOptionNode): SelectOption => ({
+  value: node.id,
+  // Inclui o código (SKU) no rótulo: o vendedor digita o código e a busca do
+  // backend casa em `name,sku`.
+  label: node.sku ? `${node.sku} — ${node.name}` : node.name,
+  // A foto ajuda a achar o item na lista e serve para mostrar o produto ao
+  // cliente na tela, durante a visita.
+  startIcon: (
+    <ProductThumb imageUrl={node.imageUrl} name={node.name} size="xs" />
+  ),
+});
+
+const getProductsConnection = (data: ProductOptionsData) => data?.products;
+
+/** Quantas opções o select traz por busca. */
+const PRODUCT_PAGE_SIZE = 25;
 
 export interface OrderItemCatalog {
+  /** Uma página do catálogo, já filtrada pelo termo digitado. */
   productOptions: SelectOption[];
+  /** Repassa o termo ao backend (modo assíncrono do select, com debounce). */
+  onProductSearch: (term: string) => void;
+  /** Busca de opções em andamento — alimenta o `loading` do select. */
+  isLoadingProducts: boolean;
+  /**
+   * A fábrica tem catálogo. Não é `productOptions.length > 0`: a lista mostra o
+   * resultado da BUSCA, e uma busca sem resultado não significa fábrica sem
+   * produto — significa que aquele termo não achou nada.
+   */
+  hasProducts: boolean;
+  /**
+   * Opção dos produtos JÁ ESCOLHIDOS. O select mostra uma página por vez, então
+   * um produto do pedido pode não estar em `productOptions` — quem precisa
+   * exibir o item escolhido lê daqui.
+   */
+  productOptionById: Map<string, SelectOption>;
+  /**
+   * Produtos cujo nó completo já chegou. É o sinal de "os dados deste produto
+   * carregaram", que antes era lido de `productOptions.length`.
+   */
+  loadedProductIds: Set<string>;
   tierOptions: SelectOption[];
   /** A fábrica cobra IPI no pedido (por item), não embutido na tabela de preços. */
   ipiInOrder: boolean;
@@ -92,10 +133,20 @@ export function useCompanyFactoryId(
 }
 
 /**
- * Catálogo do item de pedido: resolve o `company_factory` da fábrica e carrega
- * produtos, níveis e a tabela de preço ativa (só para SUGERIR preço), devolvendo
- * as opções e mapas prontos para o formulário. As 5 queries são encadeadas —
- * cada uma só dispara quando a anterior resolveu o id de que depende.
+ * Catálogo do item de pedido: resolve o `company_factory` da fábrica, oferece a
+ * busca de produtos e carrega — só para os produtos ESCOLHIDOS — a unidade, o
+ * múltiplo de venda, o IPI e o preço da tabela ativa (que apenas SUGERE o
+ * preço).
+ *
+ * A escolha do produto é uma BUSCA no servidor, não uma lista em memória: o
+ * catálogo de uma fábrica real passa de mil itens e varrê-lo inteiro (produtos
+ * + a tabela de preços, que tem produtos × níveis linhas) era o que fazia o
+ * modal de item demorar a responder. Como o pedido usa alguns produtos, os
+ * dados de apoio vêm por `id in [...]` — completos para todos os itens do
+ * pedido, sem trazer o resto.
+ *
+ * `selectedProductIds` são os produtos que precisam de dado de apoio: o que
+ * está no formulário e os que já entraram no pedido.
  *
  * Compartilhado entre a criação de pedido (/orders) e a edição de itens no
  * detalhe (/orders/[id]).
@@ -103,7 +154,8 @@ export function useCompanyFactoryId(
 export function useOrderItemCatalog(
   open: boolean,
   factoryId: string | null,
-  clientId?: string | null
+  clientId?: string | null,
+  selectedProductIds: readonly string[] = []
 ): OrderItemCatalog {
   // 1) Localiza o company_factory da fábrica deste pedido.
   const companyFactoryNode = useCompanyFactoryNode(open, factoryId);
@@ -124,21 +176,90 @@ export function useOrderItemCatalog(
     [companyFactoryId]
   );
 
-  // 2) Todos os produtos da fábrica (catálogo completo, não só os com preço).
-  // Catálogos reais passam de uma página — `useAllPages` varre até o fim.
-  const { nodes: products } = useAllPages<ProductNode, ProductsData>(
-    ORDER_ITEM_PRODUCTS_QUERY,
-    open && companyFactoryId ? byCompanyFactory : null,
-    selectProducts
+  // 2) Opções do select: uma página do catálogo da fábrica, filtrada no
+  // servidor pelo que o vendedor digita (nome ou código).
+  const productScope = useMemo(
+    () => [
+      {
+        field: "company_factory_id",
+        operator: "eq",
+        value: companyFactoryId ?? "",
+      },
+    ],
+    [companyFactoryId]
   );
 
-  // 3) Todos os níveis comerciais da fábrica.
+  const {
+    options: productOptions,
+    loading: isLoadingProducts,
+    onSearch: onProductSearch,
+  } = useAsyncSelectOptions<ProductOptionsData, ProductOptionNode>({
+    query: ORDER_ITEM_PRODUCT_OPTIONS_QUERY,
+    getConnection: getProductsConnection,
+    toOption: toProductOption,
+    searchField: "name,sku",
+    baseFilters: productScope,
+    first: PRODUCT_PAGE_SIZE,
+    skip: !open || !companyFactoryId,
+  });
+
+  // Uma vez que a busca trouxe produtos, a fábrica tem catálogo — e continua
+  // tendo depois de um termo que não acha nada. Zera ao trocar de fábrica.
+  const [hasProducts, setHasProducts] = useState(false);
+
+  useEffect(() => {
+    setHasProducts(false);
+  }, [companyFactoryId]);
+
+  useEffect(() => {
+    if (productOptions.length > 0) setHasProducts(true);
+  }, [productOptions.length]);
+
+  // Ids em ordem estável e sem repetição: eles entram nas variables de duas
+  // queries, e a mesma seleção em outra ordem seria outra entrada de cache.
+  const selectedIdsKey = useMemo(
+    () => Array.from(new Set(selectedProductIds)).sort().join(","),
+    [selectedProductIds]
+  );
+  const selectedIds = useMemo(
+    () => (selectedIdsKey ? selectedIdsKey.split(",") : []),
+    [selectedIdsKey]
+  );
+  const hasSelection = selectedIds.length > 0;
+
+  // 3) Nó completo dos produtos escolhidos: unidade, múltiplo de venda e IPI.
+  const { data: selectedProductsData } = useQuery<ProductsData>(
+    ORDER_ITEM_PRODUCTS_QUERY,
+    {
+      variables: {
+        input: {
+          first: selectedIds.length || 1,
+          filters: [
+            {
+              field: "company_factory_id",
+              operator: "eq",
+              value: companyFactoryId,
+            },
+            { field: "id", operator: "in", values: selectedIds },
+          ],
+        },
+      },
+      skip: !open || !companyFactoryId || !hasSelection,
+    }
+  );
+
+  const products = useMemo<ProductNode[]>(
+    () => selectedProductsData?.products.edges.map((e) => e.node) ?? [],
+    [selectedProductsData]
+  );
+
+  // 4) Todos os níveis comerciais da fábrica (são poucos, cabem numa página).
   const { data: tiersData } = useQuery<TiersData>(ORDER_ITEM_TIERS_QUERY, {
     variables: { input: byCompanyFactory },
     skip: !open || !companyFactoryId,
   });
 
-  // 4) Tabela de preço ativa — usada apenas para SUGERIR o preço.
+  // 5) Tabela de preço ativa — usada apenas para SUGERIR o preço.
   const { data: priceListsData } = useQuery<PriceListsData>(
     ORDER_ITEM_PRICE_LISTS_QUERY,
     {
@@ -165,46 +286,31 @@ export function useOrderItemCatalog(
     [priceListsData]
   );
 
-  // 5) Itens da tabela ativa — só para o mapa de preços sugeridos.
-  const itemsInput = useMemo(
-    () => ({
-      first: 1000,
-      filters: [
-        {
-          field: "price_list_id",
-          operator: "eq",
-          value: activePriceListId,
-        },
-      ],
-    }),
-    [activePriceListId]
-  );
-
-  // A tabela tem produtos × níveis linhas (1728 numa fábrica real): varre até o
-  // fim, senão parte dos produtos fica sem preço sugerido.
-  const { nodes: priceItems } = useAllPages<
-    PriceListItemNode,
-    PriceListItemsData
-  >(
+  // 6) Preços da tabela ativa para os produtos escolhidos — uma linha por nível
+  // de cada produto, não a tabela inteira.
+  const { data: priceItemsData } = useQuery<PriceListItemsData>(
     ORDER_ITEM_PRICE_LIST_ITEMS_QUERY,
-    open && activePriceListId ? itemsInput : null,
-    selectPriceListItems
+    {
+      variables: {
+        input: {
+          first: 1000,
+          filters: [
+            {
+              field: "price_list_id",
+              operator: "eq",
+              value: activePriceListId,
+            },
+            { field: "product_id", operator: "in", values: selectedIds },
+          ],
+        },
+      },
+      skip: !open || !activePriceListId || !hasSelection,
+    }
   );
 
-  const productOptions = useMemo<SelectOption[]>(
-    () =>
-      products.map((p) => ({
-        value: p.id,
-        // Inclui o código (SKU) no rótulo: o vendedor digita o código e o
-        // select filtra por texto do label.
-        label: p.sku ? `${p.sku} — ${p.name}` : p.name,
-        // A foto ajuda a achar o item na lista e serve para mostrar o produto
-        // ao cliente na tela, durante a visita.
-        startIcon: (
-          <ProductThumb imageUrl={p.imageUrl} name={p.name} size="xs" />
-        ),
-      })),
-    [products]
+  const priceItems = useMemo(
+    () => priceItemsData?.priceListItems.edges.map((e) => e.node) ?? [],
+    [priceItemsData]
   );
 
   const tierOptions = useMemo<SelectOption[]>(
@@ -216,7 +322,20 @@ export function useOrderItemCatalog(
     [tiersData]
   );
 
-  // 6) Nível acordado no vínculo deste cliente com esta fábrica. É o padrão do
+  // Rótulo e miniatura dos produtos escolhidos: o select mostra uma página por
+  // vez, e o item do pedido tem de continuar legível depois de a busca mudar.
+  const productOptionById = useMemo(() => {
+    const map = new Map<string, SelectOption>();
+    products.forEach((p) => map.set(p.id, toProductOption(p)));
+    return map;
+  }, [products]);
+
+  const loadedProductIds = useMemo(
+    () => new Set(products.map((p) => p.id)),
+    [products]
+  );
+
+  // 7) Nível acordado no vínculo deste cliente com esta fábrica. É o padrão do
   // item; sem ele o vendedor teria de escolher o nível a cada item só para o
   // preço aparecer. Pode não existir em vínculos antigos.
   const { data: linkedTierData } = useQuery<LinkedTierData>(
@@ -326,6 +445,11 @@ export function useOrderItemCatalog(
 
   return {
     productOptions,
+    onProductSearch,
+    isLoadingProducts,
+    hasProducts,
+    productOptionById,
+    loadedProductIds,
     tierOptions,
     ipiInOrder,
     priceMap,

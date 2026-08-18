@@ -50,6 +50,20 @@ export interface ProductNode {
   taxes: ProductTaxRef[];
 }
 
+/** O nó enxuto do select: só o que o rótulo e a miniatura mostram. */
+export interface ProductOptionNode {
+  id: string;
+  name: string;
+  sku: string | null;
+  imageUrl: string | null;
+}
+
+export interface ProductOptionsData {
+  products: {
+    edges: { node: ProductOptionNode }[];
+  };
+}
+
 export interface ProductsData {
   products: {
     edges: { node: ProductNode }[];

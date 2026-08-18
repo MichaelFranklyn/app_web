@@ -66,12 +66,20 @@ export function useAddOrderItem({
   // não corrigir de volta o que o vendedor escolher na mão.
   const tierResolvedForRef = useRef<string>("");
   const ipiFilledForRef = useRef<string>("");
-  // Unidade de medida do produto selecionado (ex.: "Peça"), para nomear o preço.
-  const [unitName, setUnitName] = useState<string | null>(null);
   const [discountType, setDiscountType] = useState<DiscountType>("VALUE");
+
+  // Só o produto em edição precisa de dado de apoio aqui: o modal adiciona um
+  // item por vez, e os que já estão no pedido vêm prontos na lista.
+  const catalogProductIds = useMemo(
+    () => (selection.productId ? [selection.productId] : []),
+    [selection.productId]
+  );
 
   const {
     productOptions,
+    onProductSearch,
+    isLoadingProducts,
+    loadedProductIds,
     tierOptions,
     priceMap,
     unitNameByProduct,
@@ -80,9 +88,14 @@ export function useAddOrderItem({
     pricedTiersByProduct,
     promoActiveKeys,
     linkedTierId,
-  } = useOrderItemCatalog(open, factoryId, clientId);
+  } = useOrderItemCatalog(open, factoryId, clientId, catalogProductIds);
 
   const saleMultiple = saleMultipleByProduct.get(selection.productId);
+  // Derivada, não guardada em estado: a unidade chega junto com o nó do produto
+  // (uma consulta depois da escolha), então o rótulo do preço precisa reagir.
+  const unitName = selection.productId
+    ? (unitNameByProduct.get(selection.productId) ?? null)
+    : null;
 
   // Produto+nível selecionados estão em promoção relâmpago hoje? Alimenta o selo
   // no modal e marca o item como promocional ao salvar. Sem nível não há preço
@@ -135,12 +148,14 @@ export function useAddOrderItem({
   useEffect(() => {
     const { productId } = selection;
     if (!productId || !ipiInOrder) return;
-    if (productOptions.length === 0) return; // catálogo ainda não carregou
+    // Sem o nó do produto não se sabe se ele tem IPI — zerar aqui apagaria a
+    // alíquota certa um instante depois de ela chegar.
+    if (!loadedProductIds.has(productId)) return;
     if (ipiFilledForRef.current === productId) return;
     ipiFilledForRef.current = productId;
     const rate = ipiRateByProduct.get(productId);
     formRef.current?.setValue("ipiRate", rate == null ? "" : String(rate));
-  }, [selection, ipiInOrder, ipiRateByProduct, productOptions.length]);
+  }, [selection, ipiInOrder, ipiRateByProduct, loadedProductIds]);
 
   const steps: FormStepSchema[] = useMemo(
     () => [
@@ -155,17 +170,18 @@ export function useAddOrderItem({
                 type: "select-single",
                 label: "Produto (nome ou código)",
                 required: true,
-                placeholder:
-                  productOptions.length === 0
-                    ? "Nenhum produto cadastrado nesta fábrica"
-                    : "Digite o nome ou o código do produto",
+                placeholder: "Digite o nome ou o código do produto",
                 options: productOptions,
+                // A lista é uma busca no servidor, não o catálogo inteiro em
+                // memória: digitar filtra, e o modal abre sem esperar milhares
+                // de produtos.
+                onSearch: onProductSearch,
+                loading: isLoadingProducts,
                 onChange: (_value, setValue) => {
                   const productId = extractSelectValue(_value);
                   // O nível é mantido: quase sempre é o mesmo do item anterior,
                   // e o efeito acima o corrige se não servir a este produto.
                   setSelection((s) => ({ ...s, productId }));
-                  setUnitName(unitNameByProduct.get(productId) ?? null);
                   lastSuggestedRef.current = "";
                   setValue("unitPrice", "");
                 },
@@ -173,6 +189,10 @@ export function useAddOrderItem({
               {
                 name: "tierId",
                 type: "select-single",
+                // Meia largura: o modal é largo o bastante para pares de
+                // campos curtos, e o produto (rótulo longo) fica com a linha
+                // inteira acima.
+                grid: { desktop: 6 },
                 label: "Nível comercial (opcional)",
                 placeholder: "Selecione o nível para sugerir o preço",
                 options: tierOptions,
@@ -186,6 +206,7 @@ export function useAddOrderItem({
               {
                 name: "unitPrice",
                 type: "currency",
+                grid: { desktop: 6 },
                 label: unitName
                   ? `Preço por ${unitName.toLowerCase()}`
                   : "Preço por unidade",
@@ -196,6 +217,7 @@ export function useAddOrderItem({
               {
                 name: "quantity",
                 type: "number",
+                grid: { desktop: 6 },
                 label: "Quantidade",
                 required: true,
                 placeholder: "0",
@@ -211,6 +233,7 @@ export function useAddOrderItem({
               {
                 name: "discountType",
                 type: "select-single",
+                grid: { desktop: 6 },
                 label: "Tipo de desconto",
                 // Sem escolha, o desconto é em reais — o placeholder diz isso
                 // em vez de deixar o campo em branco.
@@ -227,6 +250,7 @@ export function useAddOrderItem({
               {
                 name: "discount",
                 type: "number",
+                grid: { desktop: 6 },
                 label:
                   discountType === "PERCENT" ? "Desconto (%)" : "Desconto (R$)",
                 placeholder: "0",
@@ -236,6 +260,7 @@ export function useAddOrderItem({
                     {
                       name: "ipiRate",
                       type: "number" as const,
+                      grid: { desktop: 6 },
                       label: "Alíq. IPI (%)",
                       placeholder: "0",
                       hint: "Vem do IPI cadastrado no produto e é somado por cima do subtotal. Você pode ajustar.",
@@ -249,8 +274,9 @@ export function useAddOrderItem({
     ],
     [
       productOptions,
+      onProductSearch,
+      isLoadingProducts,
       tierOptions,
-      unitNameByProduct,
       unitName,
       saleMultiple,
       ipiInOrder,
@@ -271,7 +297,6 @@ export function useAddOrderItem({
       lastSuggestedRef.current = "";
       tierResolvedForRef.current = "";
       ipiFilledForRef.current = "";
-      setUnitName(null);
       setDiscountType("VALUE");
     }
   };

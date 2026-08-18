@@ -9,5 +9,7 @@ export interface StepperRootProps extends Omit<
   onChange?: (index: number) => void;
   orientation?: StepperOrientation;
   size?: StepperSize;
+  /** Centraliza a trilha (padrão do wizard). Ver `Stepper.Trail`. */
+  centered?: boolean;
   panelClassName?: string;
 }

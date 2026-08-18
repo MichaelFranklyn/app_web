@@ -16,6 +16,7 @@ import type { FieldConfig } from "@/hooks/useTableFilters";
 import { useTableData } from "@/hooks/useTableData";
 import { AlertCircle, Package } from "lucide-react";
 import { Button } from "@/components/Button";
+import { FeatureGate } from "@/components/FeatureGate";
 import { useMemo } from "react";
 import { AddProductModal } from "./AddProductModal";
 import { ImportProductsModal } from "./ImportProductsModal";
@@ -146,10 +147,13 @@ export function ProductsTab({ companyFactoryId }: Props) {
               <Button.Icon icon={AlertCircle} />
               <Button.Title>Precisa de atenção</Button.Title>
             </Button.Root>
-            <ImportProductsModal
-              companyFactoryId={companyFactoryId}
-              onChanged={onChanged}
-            />
+            {/* Importação em massa é recurso de plano. */}
+            <FeatureGate feature="BULK_IMPORT">
+              <ImportProductsModal
+                companyFactoryId={companyFactoryId}
+                onChanged={onChanged}
+              />
+            </FeatureGate>
             <UploadPhotosModal
               companyFactoryId={companyFactoryId}
               onChanged={onChanged}

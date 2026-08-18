@@ -1,6 +1,7 @@
 "use client";
 
 import { Sidebar } from "@/components/Sidebar";
+import { FeatureGate } from "@/components/FeatureGate";
 import { Topbar } from "@/components/Topbar";
 import { cn } from "@/lib/utils";
 import { FlowTourProvider } from "@/services/flowTour";
@@ -207,7 +208,11 @@ export default function InsideShell({
 
             <Topbar.Actions>
               <DevRoleSwitch />
-              <NotificationCenter />
+              {/* Notificação automática é recurso de plano: sem ele o sino
+                  ficaria sempre vazio (o backend recusa a consulta). */}
+              <FeatureGate feature="NOTIFICATIONS">
+                <NotificationCenter />
+              </FeatureGate>
               <UserMenu
                 name={userName}
                 role={userRole}

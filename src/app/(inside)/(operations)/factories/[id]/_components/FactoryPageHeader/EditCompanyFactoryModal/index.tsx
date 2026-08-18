@@ -196,7 +196,6 @@ export function EditCompanyFactoryModal() {
           <FormBuilder.Stepper
             steps={WIZARD_STEPS}
             currentStepIndex={step}
-            centered
             className="mb-32"
           />
 

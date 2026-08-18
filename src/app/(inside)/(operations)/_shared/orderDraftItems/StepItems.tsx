@@ -56,6 +56,10 @@ export function StepItems({ draft, minimum, freeFreight }: Props) {
               options={draft.productOptions}
               value={draft.selectedProduct}
               onChange={draft.selectProduct}
+              // Busca no servidor: o catálogo de uma fábrica real não cabe em
+              // memória, e digitar é como o vendedor acha o produto.
+              onSearch={draft.onProductSearch}
+              loading={draft.isLoadingProducts}
             />
           </div>
 

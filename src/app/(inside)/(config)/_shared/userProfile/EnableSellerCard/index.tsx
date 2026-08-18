@@ -2,6 +2,7 @@
 
 import { Button } from "@/components/Button";
 import { Card } from "@/components/Card";
+import { PlanLimitGate } from "@/components/PlanLimitGate";
 import { Title } from "@/components/Title";
 import { Store } from "lucide-react";
 
@@ -35,20 +36,25 @@ export function EnableSellerCard({ isSelf, onEnable }: Props) {
             ? "Ao habilitar, você ganha rotina de visitas, acesso a fábricas e carteira de clientes — e continua com o mesmo nível de acesso que tem hoje."
             : "Ao habilitar, ela ganha rotina de visitas, acesso a fábricas e carteira de clientes — e continua com o mesmo nível de acesso que tem hoje."}
         </Title>
-        <Button.Root
-          appearance="solid"
-          color="amber"
-          size="md"
-          noUppercase
-          onClick={onEnable}
-        >
-          <Button.Icon icon={Store} />
-          <Button.Title>
-            {isSelf
-              ? "Passar a vender em campo"
-              : "Habilitar perfil de vendedor"}
-          </Button.Title>
-        </Button.Root>
+        {/* Habilitar perfil de campo cria um vendedor, e vendedor tem teto no
+            plano (`createSeller` cobra a cota SELLERS). O botão fica visível e
+            explica o limite — é a mesma frase que a mutation devolveria. */}
+        <PlanLimitGate limit="SELLERS">
+          <Button.Root
+            appearance="solid"
+            color="amber"
+            size="md"
+            noUppercase
+            onClick={onEnable}
+          >
+            <Button.Icon icon={Store} />
+            <Button.Title>
+              {isSelf
+                ? "Passar a vender em campo"
+                : "Habilitar perfil de vendedor"}
+            </Button.Title>
+          </Button.Root>
+        </PlanLimitGate>
       </Card.Body>
     </Card.Root>
   );

@@ -10,6 +10,7 @@ import Link from "next/link";
 
 import { getButtonClasses } from "@/components/Button/Root/style";
 import { PlanLimitGate } from "@/components/PlanLimitGate";
+import { FeatureGate } from "@/components/FeatureGate";
 import { Title } from "@/components/Title";
 import { Client, ClientsStats } from "../../interface";
 import { buildKpis } from "../../utils";
@@ -77,7 +78,10 @@ export function ClientsHeader({
                   Redes
                 </Title>
               </Link>
-              <ImportClientsModal />
+              {/* Importação em massa é recurso de plano. */}
+              <FeatureGate feature="BULK_IMPORT">
+                <ImportClientsModal />
+              </FeatureGate>
               <PlanLimitGate limit="CLIENTS">
                 <AddClientModal onAddOptimistic={onAddOptimistic} />
               </PlanLimitGate>

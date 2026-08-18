@@ -38,9 +38,31 @@ export const ORDER_ITEM_PRICE_LISTS_QUERY = gql`
   }
 `;
 
-// Todos os produtos do catálogo da fábrica — o vendedor pode adicionar qualquer
-// produto ao pedido, tenha ele preço na tabela ativa ou não. Com pageInfo:
-// catálogos reais passam de 1000 linhas e o hook pagina até o fim.
+// Opções do select de produto: uma PÁGINA do catálogo, filtrada no servidor
+// pelo termo digitado (`name,sku` com `like`). Só os campos que o rótulo e a
+// miniatura usam — o resto do nó vem depois, e apenas para o produto escolhido.
+//
+// Varrer o catálogo inteiro para montar este select era o que fazia o modal
+// demorar a abrir: uma fábrica real tem milhares de produtos, e o vendedor
+// escolhe um.
+export const ORDER_ITEM_PRODUCT_OPTIONS_QUERY = gql`
+  query OrderItemProductOptions($input: BaseListInput!) {
+    products(input: $input) {
+      edges {
+        node {
+          id
+          name
+          sku
+          imageUrl
+        }
+      }
+    }
+  }
+`;
+
+// O nó completo dos produtos JÁ ESCOLHIDOS (filtro `id in [...]`) — é daqui que
+// saem unidade, múltiplo de venda e IPI. Buscar por id mantém os mapas
+// completos para todos os itens do pedido sem trazer o catálogo inteiro.
 //
 // `taxes` traz o IPI vinculado ao produto (venha ele do import da tabela, do
 // modelo de pedido ou do cadastro manual). Resolvido por DataLoader no backend,
@@ -109,8 +131,9 @@ export const ORDER_ITEM_TIERS_QUERY = gql`
   }
 `;
 
-// Com pageInfo: a tabela ativa tem produtos × níveis linhas (milhares num
-// catálogo real) e o hook pagina até o fim — truncar deixaria itens sem preço.
+// Preços da tabela ativa PARA OS PRODUTOS ESCOLHIDOS (`product_id in [...]`).
+// A tabela inteira tem produtos × níveis linhas (1728 numa fábrica real); o que
+// sugere o preço de um item são as poucas linhas do produto dele.
 export const ORDER_ITEM_PRICE_LIST_ITEMS_QUERY = gql`
   query OrderItemPriceListItems($input: BaseListInput!) {
     priceListItems(input: $input) {

@@ -1,6 +1,7 @@
 "use client";
 
 import { EmptyState } from "@/components/EmptyState";
+import { FeatureGate } from "@/components/FeatureGate";
 import { PageContent } from "@/components/PageContent";
 import { QueryError } from "@/components/QueryError";
 import { useQuery } from "@apollo/client/react";
@@ -75,8 +76,12 @@ export default function MyProfileContent({ userId, canEnableSeller }: Props) {
           onRefetch={refetch}
         />
 
-        {seller && <RoutineSection seller={seller} onRefetch={refetch} />}
-        {seller && <FixedSchedulesSection sellerId={seller.id} />}
+        {/* Configuração de rotina e rotas fixas alimentam o motor de
+            visita: sem o recurso no plano, não há rotina para configurar. */}
+        <FeatureGate feature="ROUTINES">
+          {seller && <RoutineSection seller={seller} onRefetch={refetch} />}
+          {seller && <FixedSchedulesSection sellerId={seller.id} />}
+        </FeatureGate>
         {seller && <FactoriesSection sellerId={seller.id} />}
         {seller && <ClientsSection sellerId={seller.id} />}
       </div>

@@ -8,6 +8,7 @@ import {
   ORDER_ITEM_COMPANY_FACTORIES_QUERY,
   ORDER_ITEM_PRICE_LIST_ITEMS_QUERY,
   ORDER_ITEM_PRICE_LISTS_QUERY,
+  ORDER_ITEM_PRODUCT_OPTIONS_QUERY,
   ORDER_ITEM_PRODUCTS_QUERY,
   ORDER_ITEM_TIERS_QUERY,
 } from "../../../../../_shared/orderItemCatalog";
@@ -19,8 +20,86 @@ const byCF = {
   filters: [{ field: "company_factory_id", operator: "eq", value: "cf-1" }],
 };
 
-// Produtos passam por `useAllPages`, que manda `after` explícito (null na 1ª).
-const byCFPaged = { ...byCF, after: null };
+const cfFilter = {
+  field: "company_factory_id",
+  operator: "eq",
+  value: "cf-1",
+};
+
+/** O nó completo de um produto, buscado por id depois da escolha. */
+const PRODUCT_NODES: Record<string, Record<string, unknown>> = {
+  "prod-1": {
+    id: "prod-1",
+    name: "Produto 1",
+    sku: "S1",
+    imageUrl: null,
+    saleMultiple: null,
+    unitPerPack: "5.0000",
+    unit: { id: "u1", label: "Peça" },
+    taxes: [],
+  },
+  // Fora da tabela de preço: nenhum nível tem preço para ele.
+  "prod-2": {
+    id: "prod-2",
+    name: "Produto 2",
+    sku: "S2",
+    imageUrl: null,
+    saleMultiple: null,
+    unitPerPack: "1.0000",
+    unit: { id: "u1", label: "Peça" },
+    taxes: [],
+  },
+};
+
+/** Resposta da busca por id (o catálogo só carrega o produto escolhido). */
+const productByIdMock = (id: string): MockLink.MockedResponse => ({
+  request: {
+    query: ORDER_ITEM_PRODUCTS_QUERY,
+    variables: {
+      input: {
+        first: 1,
+        filters: [cfFilter, { field: "id", operator: "in", values: [id] }],
+      },
+    },
+  },
+  result: {
+    data: {
+      products: {
+        edges: [{ node: PRODUCT_NODES[id] }],
+        pageInfo: { hasNextPage: false, endCursor: null },
+      },
+    },
+  },
+});
+
+/** Linhas da tabela ativa para o produto escolhido. */
+const priceItemsMock = (
+  id: string,
+  edges: unknown[],
+  delay?: number
+): MockLink.MockedResponse => ({
+  request: {
+    query: ORDER_ITEM_PRICE_LIST_ITEMS_QUERY,
+    variables: {
+      input: {
+        first: 1000,
+        filters: [
+          { field: "price_list_id", operator: "eq", value: "pl-1" },
+          { field: "product_id", operator: "in", values: [id] },
+        ],
+      },
+    },
+  },
+  ...(delay ? { delay } : {}),
+  result: {
+    data: {
+      priceListItems: {
+        edges,
+        pageInfo: { hasNextPage: false, endCursor: null },
+      },
+    },
+  },
+});
 
 const mocks: MockLink.MockedResponse[] = [
   {
@@ -38,10 +117,12 @@ const mocks: MockLink.MockedResponse[] = [
       },
     },
   },
+  // Opções do select: uma página do catálogo, escopada na fábrica e sem termo
+  // de busca (o vendedor ainda não digitou nada).
   {
     request: {
-      query: ORDER_ITEM_PRODUCTS_QUERY,
-      variables: { input: byCFPaged },
+      query: ORDER_ITEM_PRODUCT_OPTIONS_QUERY,
+      variables: { input: { first: 25, filters: [cfFilter] } },
     },
     result: {
       data: {
@@ -52,30 +133,24 @@ const mocks: MockLink.MockedResponse[] = [
                 id: "prod-1",
                 name: "Produto 1",
                 sku: "S1",
-                saleMultiple: null,
-                unitPerPack: "5.0000",
-                unit: { id: "u1", label: "Peça" },
-                taxes: [],
+                imageUrl: null,
               },
             },
             {
-              // Fora da tabela de preço: nenhum nível tem preço para ele.
               node: {
                 id: "prod-2",
                 name: "Produto 2",
                 sku: "S2",
-                saleMultiple: null,
-                unitPerPack: "1.0000",
-                unit: { id: "u1", label: "Peça" },
-                taxes: [],
+                imageUrl: null,
               },
             },
           ],
-          pageInfo: { hasNextPage: false, endCursor: null },
         },
       },
     },
   },
+  productByIdMock("prod-1"),
+  productByIdMock("prod-2"),
   {
     request: { query: ORDER_ITEM_TIERS_QUERY, variables: { input: byCF } },
     result: {
@@ -90,9 +165,7 @@ const mocks: MockLink.MockedResponse[] = [
       variables: {
         input: {
           first: 100,
-          filters: [
-            { field: "company_factory_id", operator: "eq", value: "cf-1" },
-          ],
+          filters: [cfFilter],
         },
       },
     },
@@ -114,56 +187,39 @@ const mocks: MockLink.MockedResponse[] = [
       },
     },
   },
-  {
-    request: {
-      query: ORDER_ITEM_PRICE_LIST_ITEMS_QUERY,
-      variables: {
-        input: {
-          first: 1000,
-          filters: [{ field: "price_list_id", operator: "eq", value: "pl-1" }],
-          after: null,
+  // Atraso: simula a tabela de preço chegando DEPOIS de o vendedor já ter
+  // escolhido produto e nível (a corrida que zerava o preço).
+  //
+  // A margem é larga de propósito. Com 60ms o teste passava isolado e falhava
+  // ~1 em 4 na suíte COMPLETA: a asserção intermediária ("neste instante o
+  // preço ainda está vazio") é uma corrida contra o relógio, e sob carga a
+  // tabela às vezes chegava antes dela.
+  priceItemsMock(
+    "prod-1",
+    [
+      {
+        node: {
+          id: "pli-1",
+          // Preço da EMBALAGEM na tabela; com unitPerPack 5, a sugestão do
+          // pedido é 32,50 ÷ 5 = 6,50 por unidade.
+          unitPrice: "32.5000",
+          // Sem promoção: o preço efetivo é o próprio preço de tabela.
+          effectiveUnitPrice: "32.5000",
+          isPromoActive: false,
+          product: {
+            id: "prod-1",
+            name: "Produto 1",
+            sku: "S1",
+            saleMultiple: null,
+            unitPerPack: "5.0000",
+          },
+          tier: { id: "tier-1", name: "Varejo" },
         },
       },
-    },
-    // Atraso: simula a última query da cadeia chegando DEPOIS de o vendedor já
-    // ter escolhido produto e nível (a corrida que zerava o preço).
-    //
-    // A margem é larga de propósito. Com 60ms o teste passava isolado e falhava
-    // ~1 em 4 na suíte COMPLETA: a asserção intermediária ("neste instante o
-    // preço ainda está vazio") é uma corrida contra o relógio, e sob carga a
-    // tabela às vezes chegava antes dela. Qualquer mudança no encadeamento das
-    // 5 queries do catálogo reabre a janela — foi o que aconteceu ao acrescentar
-    // um campo à primeira delas.
-    delay: 400,
-    result: {
-      data: {
-        priceListItems: {
-          edges: [
-            {
-              node: {
-                id: "pli-1",
-                // Preço da EMBALAGEM na tabela; com unitPerPack 5, a sugestão
-                // do pedido é 32,50 ÷ 5 = 6,50 por unidade.
-                unitPrice: "32.5000",
-                // Sem promoção: o preço efetivo é o próprio preço de tabela.
-                effectiveUnitPrice: "32.5000",
-                isPromoActive: false,
-                product: {
-                  id: "prod-1",
-                  name: "Produto 1",
-                  sku: "S1",
-                  saleMultiple: null,
-                  unitPerPack: "5.0000",
-                },
-                tier: { id: "tier-1", name: "Varejo" },
-              },
-            },
-          ],
-          pageInfo: { hasNextPage: false, endCursor: null },
-        },
-      },
-    },
-  },
+    ],
+    400
+  ),
+  priceItemsMock("prod-2", []),
 ];
 
 // Captura a API do hook e renderiza um FormBuilder real ligado ao formRef
