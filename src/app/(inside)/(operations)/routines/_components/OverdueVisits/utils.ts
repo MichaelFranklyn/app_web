@@ -1,3 +1,12 @@
+import { OverdueOutcome } from "./interface";
+
+/** Confirmação de cada resposta, na voz de quem registrou o que houve. */
+export const ANSWER_MESSAGE: Record<OverdueOutcome, string> = {
+  COMPLETED: "Visita registrada",
+  CLIENT_ABSENT: "Registrado: cliente não estava",
+  NO_TIME: "Registrado: não deu tempo",
+};
+
 /**
  * O horário do dia planejado que vale como "hora da visita" quando a resposta
  * vem atrasada.

@@ -7,16 +7,11 @@ import { PageContent } from "@/components/PageContent";
 import { QueryError } from "@/components/QueryError";
 import { useAsyncAction } from "@/hooks/useAsyncAction";
 import { useMutation, useQuery } from "@apollo/client/react";
-import {
-  CalendarOff,
-  CalendarPlus,
-  ChevronLeft,
-  ChevronRight,
-} from "lucide-react";
-import Link from "next/link";
+import { CalendarOff, CalendarPlus } from "lucide-react";
 import { useMemo } from "react";
 import { useUserRole } from "@/services/flowTour/useUserRole";
-import { OverdueVisitsCard } from "../_components/OverdueVisitsCard";
+import { OverdueVisits } from "../_components/OverdueVisits";
+import { DayNavActions } from "./_components/DayNavActions";
 import { DepartureCard } from "./_components/DepartureCard";
 import { PrintRouteButton } from "./_components/PrintRouteButton";
 import { RouteMap } from "./_components/RouteMap";
@@ -128,33 +123,7 @@ export default function DayRouteContent({ date, sellerId }: Props) {
   const prevHref = `/routines/${shiftDateIso(date, -1)}${sellerQuery}`;
   const nextHref = `/routines/${shiftDateIso(date, 1)}${sellerQuery}`;
 
-  const controls = (
-    <div className="flex items-center justify-between">
-      <Link
-        href="/routines"
-        className="inline-flex items-center gap-4 text-[13px] text-(--muted) transition-colors hover:text-(--text)"
-      >
-        <ChevronLeft size={14} />
-        Voltar para a rotina
-      </Link>
-      <div className="flex items-center gap-8">
-        <Link
-          href={prevHref}
-          aria-label="Dia anterior"
-          className="inline-flex items-center justify-center rounded-(--r-md) border border-(--border) p-[7px] text-(--muted) transition-colors hover:border-(--border2) hover:text-(--text)"
-        >
-          <ChevronLeft size={16} />
-        </Link>
-        <Link
-          href={nextHref}
-          aria-label="Próximo dia"
-          className="inline-flex items-center justify-center rounded-(--r-md) border border-(--border) p-[7px] text-(--muted) transition-colors hover:border-(--border2) hover:text-(--text)"
-        >
-          <ChevronRight size={16} />
-        </Link>
-      </div>
-    </div>
-  );
+  const dayNav = <DayNavActions prevHref={prevHref} nextHref={nextHref} />;
 
   if (loading && !schedule) {
     return <VisitsSkeleton />;
@@ -163,7 +132,11 @@ export default function DayRouteContent({ date, sellerId }: Props) {
   if (error && !schedule) {
     return (
       <PageContent>
-        {controls}
+        <VisitsHeader
+          dateLabel={formatDateLong(date)}
+          sellerName={null}
+          actions={dayNav}
+        />
         <QueryError onRetry={() => refetch()} />
       </PageContent>
     );
@@ -172,15 +145,15 @@ export default function DayRouteContent({ date, sellerId }: Props) {
   if (!day) {
     return (
       <PageContent>
-        {controls}
         <VisitsHeader
           dateLabel={formatDateLong(date)}
           sellerName={schedule?.seller?.user?.name ?? null}
+          actions={dayNav}
         />
         {/* Dia sem rota não anula a dívida do passado — pelo contrário, é
             quando o vendedor tem tempo de responder. */}
         {isToday && (
-          <OverdueVisitsCard
+          <OverdueVisits
             sellerId={sellerId}
             canAnswer={isSeller}
             onAnswered={() => refetch()}
@@ -219,27 +192,31 @@ export default function DayRouteContent({ date, sellerId }: Props) {
 
   return (
     <PageContent>
-      {controls}
       <VisitsHeader
         dateLabel={formatDateLong(day.date)}
         sellerName={schedule?.seller?.user?.name ?? null}
         actions={
-          <PrintRouteButton
-            date={day.date}
-            stops={drivingStops}
-            remoteStops={remoteStops}
-            sellerName={schedule?.seller?.user?.name ?? null}
-            departureAddress={day.departureAddress}
-            routeDistanceKm={day.routeDistanceKm}
-            routeDurationMin={day.routeDurationMin}
-          />
+          <>
+            {dayNav}
+            <PrintRouteButton
+              date={day.date}
+              stops={drivingStops}
+              remoteStops={remoteStops}
+              sellerName={schedule?.seller?.user?.name ?? null}
+              departureAddress={day.departureAddress}
+              routeDistanceKm={day.routeDistanceKm}
+              routeDurationMin={day.routeDurationMin}
+            />
+          </>
         }
       />
 
-      {/* Antes do dia de hoje vem o que ficou do passado: responder libera a
-          vaga daquele dia e reajusta o score de quem já foi visitado. */}
+      {/* O que ficou do passado é lembrado numa faixa de uma linha, não numa
+          lista: quem abre o dia quer ver a rota. Responder libera a vaga
+          daquele dia e reajusta o score de quem já foi visitado — mas isso
+          acontece no painel lateral, sem tirar o caminho de hoje da tela. */}
       {isToday && (
-        <OverdueVisitsCard
+        <OverdueVisits
           sellerId={sellerId}
           canAnswer={isSeller}
           onAnswered={() => refetch()}
