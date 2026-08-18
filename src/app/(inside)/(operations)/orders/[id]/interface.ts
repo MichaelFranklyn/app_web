@@ -9,7 +9,12 @@ export interface OrderDetailResponse {
   };
 }
 
-export type InstallmentStatus = "PENDING" | "PAID" | "CANCELLED";
+export type InstallmentStatus =
+  | "PENDING"
+  | "PAID"
+  | "CANCELLED"
+  /** Cliente não pagou (calote). CANCELLED é o boleto que deixou de existir. */
+  | "DEFAULTED";
 
 export interface PaymentTermRef {
   id: string;
@@ -27,8 +32,16 @@ export interface OrderInstallment {
   dueDate: string | null;
   status: InstallmentStatus;
   paidAt: string | null;
+  /** Vencido e não pago — derivado da data no servidor. */
+  isOverdue: boolean;
+  defaultedAt: string | null;
   isCommissionReceived: boolean;
   commissionReceivedAt: string | null;
+  /** O escritório já repassou ao vendedor a fatia dele desta parcela. */
+  isSellerCommissionPaid: boolean;
+  sellerCommissionPaidAt: string | null;
+  /** Mês em que o estorno será descontado do vendedor; null = ainda na fila. */
+  sellerChargebackMonth: string | null;
 }
 
 /** Referência enxuta a um pedido de backorder (filho) para exibir o vínculo. */
@@ -66,6 +79,8 @@ export interface OrderDetail {
   isDeliveryOverdue: boolean;
   paymentTermId: string | null;
   commissionCalcBasis: string | null;
+  /** De onde contam os dias do boleto: "Faturamento" (padrão) ou "Pedido". */
+  installmentDueBasis: string | null;
   /** Pedido-pai quando este é o restante (backorder) de um faturamento parcial. */
   parentOrderId: string | null;
   isBackorder: boolean;

@@ -2,7 +2,9 @@
 
 import { Badge } from "@/components/Badges";
 import { EmptyState } from "@/components/EmptyState";
+import { Input } from "@/components/Input";
 import { Table } from "@/components/Table";
+import { Title } from "@/components/Title";
 import { clientName } from "@/utils/company";
 import { formatDateDMY, formatMoney } from "@/utils/format/masks";
 import { Coins } from "lucide-react";
@@ -11,30 +13,69 @@ import { CommissionRow } from "../../interface";
 import { COMMISSION_STATUS_LABEL, COMMISSION_STATUS_TONE } from "../../utils";
 import { MarkReceivedModal } from "../MarkReceivedModal";
 import { ReconcileToggle } from "../ReconcileToggle";
+import { InstallmentStateCell } from "./InstallmentStateCell";
 
 interface Props {
   rows: CommissionRow[];
   loading: boolean;
   /** Gestor vê as colunas de conferência e repasse; vendedor só visualiza. */
   canManage: boolean;
+  /** Parcelas marcadas para as ações em lote (só gestão). */
+  selectedIds?: Set<string>;
+  onToggleRow?: (installmentId: string) => void;
+  onToggleAll?: () => void;
   onChanged: () => void;
 }
+
+/** Quando a comissão cai (ou caiu), na linguagem de cada situação. */
+const whenLabel = (row: CommissionRow): string => {
+  if (row.status === "received")
+    return `Recebido em ${formatDateDMY(row.receiveDate ?? undefined)}`;
+  if (row.status === "receivable")
+    return `Receber em ${formatDateDMY(row.receiveDate ?? undefined)}`;
+  if (row.status === "chargeback")
+    return row.receiveDate
+      ? `Desconto em ${formatDateDMY(row.receiveDate)}`
+      : "Desconto a agendar";
+  if (row.status === "pending")
+    return row.receiveDate
+      ? `Previsto p/ ${formatDateDMY(row.receiveDate)}`
+      : "Aguardando pagamento";
+  return "—";
+};
 
 export function CommissionsTable({
   rows,
   loading,
   canManage,
+  selectedIds,
+  onToggleRow,
+  onToggleAll,
   onChanged,
 }: Props) {
-  // Colunas de "bater valores" (conferência + ação de repasse) só para gestão.
-  const columns = canManage ? 8 : 6;
+  const selectable = canManage && !!onToggleRow;
+  // Seleção + boleto + conferência/repasse: as colunas de gestão.
+  const columns = 7 + (selectable ? 1 : 0) + (canManage ? 2 : 0);
+  const allSelected =
+    rows.length > 0 && rows.every((row) => selectedIds?.has(row.installmentId));
+
   return (
     <Table.Table>
       <Table.Header>
         <Table.Row>
+          {selectable && (
+            <Table.Head>
+              <Input.Checkbox
+                label=""
+                checked={allSelected}
+                onChange={() => onToggleAll?.()}
+              />
+            </Table.Head>
+          )}
           <Table.Head>Cliente</Table.Head>
           <Table.Head>Pedido</Table.Head>
           <Table.Head>Parcela</Table.Head>
+          <Table.Head>Boleto</Table.Head>
           <Table.Head>Quando</Table.Head>
           <Table.Head className="text-right">Comissão</Table.Head>
           <Table.Head>Situação</Table.Head>
@@ -65,6 +106,15 @@ export function CommissionsTable({
         ) : (
           rows.map((row) => (
             <Table.Row key={row.installmentId}>
+              {selectable && (
+                <Table.Cell>
+                  <Input.Checkbox
+                    label=""
+                    checked={selectedIds?.has(row.installmentId) ?? false}
+                    onChange={() => onToggleRow?.(row.installmentId)}
+                  />
+                </Table.Cell>
+              )}
               <Table.Cell variant="strong">{clientName(row.client)}</Table.Cell>
               <Table.Cell>
                 <Link
@@ -76,18 +126,18 @@ export function CommissionsTable({
               </Table.Cell>
               <Table.Cell>{row.sequence}</Table.Cell>
               <Table.Cell>
-                {row.status === "received"
-                  ? `Recebido em ${formatDateDMY(row.receiveDate ?? undefined)}`
-                  : row.status === "receivable"
-                    ? `Receber em ${formatDateDMY(row.receiveDate ?? undefined)}`
-                    : row.status === "pending"
-                      ? row.receiveDate
-                        ? `Previsto p/ ${formatDateDMY(row.receiveDate)}`
-                        : "Aguardando pagamento"
-                      : "—"}
+                <InstallmentStateCell row={row} />
               </Table.Cell>
+              <Table.Cell>{whenLabel(row)}</Table.Cell>
               <Table.Cell className="text-right">
-                {formatMoney(row.amount)}
+                {/* Estorno vem negativo: sai em vermelho para não ser lido como ganho. */}
+                <Title
+                  variant="body-sm"
+                  color={row.status === "chargeback" ? "red" : undefined}
+                  weight={row.status === "chargeback" ? "bold" : undefined}
+                >
+                  {formatMoney(row.amount)}
+                </Title>
               </Table.Cell>
               <Table.Cell>
                 <Badge.Root

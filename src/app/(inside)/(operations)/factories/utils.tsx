@@ -1,6 +1,9 @@
 import { parseLocalDate } from "@/utils/format/date";
 
-export const ORDER_STATUS_COLOR: Record<string, "blue" | "green" | "amber" | "neutral" | "red"> = {
+export const ORDER_STATUS_COLOR: Record<
+  string,
+  "blue" | "green" | "amber" | "neutral" | "red"
+> = {
   DRAFT: "neutral",
   SENT: "blue",
   CONFIRMED: "amber",
@@ -30,7 +33,9 @@ export const getContractStatus = (contractEnd: string | null) => {
   const today = new Date();
   today.setHours(0, 0, 0, 0);
   if (end < today) return { label: "Expirado", color: "red" as const };
-  const days = Math.ceil((end.getTime() - today.getTime()) / (1000 * 60 * 60 * 24));
+  const days = Math.ceil(
+    (end.getTime() - today.getTime()) / (1000 * 60 * 60 * 24)
+  );
   if (days <= 90) return { label: "A renovar", color: "amber" as const };
   return { label: "Vigente", color: "green" as const };
 };

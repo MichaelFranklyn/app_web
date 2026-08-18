@@ -42,6 +42,13 @@ export const COMMISSIONS_FILTER_FIELDS: Record<
     match: (row, value) =>
       value === "yes" ? row.isReconciled : !row.isReconciled,
   },
+  // Situação do BOLETO do cliente, que é outra pergunta: "o que está travado
+  // porque o cliente não pagou?" não se responde pelo status da comissão.
+  installment: {
+    type: "select",
+    match: (row, value) =>
+      value === "defaulted" ? row.defaultedAt !== null : row.isOverdue,
+  },
 };
 
 /** Campos do painel: cliente, fábrica, vendedor, situação e conferência. */
@@ -91,6 +98,16 @@ export const useCommissionsFilters = (rows: CommissionRow[]): FilterField[] =>
         label: "Situação",
         placeholder: "Todas as situações",
         options: statuses,
+      },
+      {
+        type: "select",
+        key: "installment",
+        label: "Boleto",
+        placeholder: "Qualquer situação",
+        options: [
+          { value: "overdue", label: "Vencidos e não pagos" },
+          { value: "defaulted", label: "Inadimplentes" },
+        ],
       },
       {
         type: "select",

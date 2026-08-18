@@ -1,17 +1,18 @@
 import { describe, expect, it } from "vitest";
 
 import { CompanyFactoryDetail } from "../../../interface";
-import { normalizeInput } from "./utils";
+import { commissionBasisOption, normalizeInput } from "./utils";
 
 const initial = (
   over: Partial<CompanyFactoryDetail> = {}
 ): CompanyFactoryDetail => ({
   id: "cf1",
   commissionRate: 5,
-  commissionCalcBasis: "Faturado",
+  commissionCalcBasis: "Faturamento",
   paymentTermDays: 10,
   commissionPaymentDays: [10],
   commissionCutoffDay: null,
+  installmentDueBasis: null,
   territory: "Bahia",
   contractStart: null,
   contractEnd: null,
@@ -37,7 +38,7 @@ const initial = (
 // Só os campos que o formulário sempre envia; cada teste acrescenta o seu.
 const form = (over: Record<string, unknown> = {}) => ({
   commissionRate: 5,
-  commissionCalcBasis: "Faturado",
+  commissionCalcBasis: "Faturamento",
   paymentDays: "10",
   territory: "Bahia",
   ...over,
@@ -135,5 +136,46 @@ describe("normalizeInput — pisos de valor do pedido", () => {
       initial({ minOrderAmount: 1000 })
     );
     expect("minOrderAmount" in input).toBe(false);
+  });
+});
+
+describe("base do vencimento do boleto", () => {
+  it("envia a troca para contar da data do pedido", () => {
+    const input = normalizeInput(
+      { ...form(), installmentDueBasis: { value: "Pedido", label: "Pedido" } },
+      initial()
+    );
+    expect(input.installmentDueBasis).toBe("Pedido");
+  });
+
+  it("não envia nada quando a fábrica continua contando da nota", () => {
+    // Nulo no banco já significa Faturamento: mandar o campo à toa marcaria o
+    // contrato como alterado sem nenhuma mudança real.
+    const input = normalizeInput(
+      {
+        ...form(),
+        installmentDueBasis: { value: "Faturamento", label: "Faturamento" },
+      },
+      initial()
+    );
+    expect(input.installmentDueBasis).toBeUndefined();
+  });
+});
+
+describe("commissionBasisOption", () => {
+  it("casa o valor canônico", () => {
+    expect(commissionBasisOption("Pagamento")?.value).toBe("Pagamento");
+    expect(commissionBasisOption("Faturamento")?.value).toBe("Faturamento");
+  });
+
+  it("casa o texto antigo de uma base ainda não migrada", () => {
+    // O select é obrigatório: sem casar "Faturado", ele abre vazio e trava a
+    // edição de qualquer outro termo do contrato (quebrou o E2E assim).
+    expect(commissionBasisOption("Faturado")?.value).toBe("Faturamento");
+  });
+
+  it("nunca devolve vazio", () => {
+    expect(commissionBasisOption(null)?.value).toBe("Faturamento");
+    expect(commissionBasisOption(undefined)?.value).toBe("Faturamento");
   });
 });

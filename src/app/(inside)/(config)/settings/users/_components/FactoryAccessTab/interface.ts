@@ -17,6 +17,10 @@ export interface SellerFactoryAccess {
   id: string;
   isActive: boolean;
   createdAt: string;
+  /** Fatia da comissão da fábrica que fica com o vendedor; nulo = 100%. */
+  sellerCommissionShare: string | number | null;
+  /** Quando o escritório repassa; nulo = mesma base da fábrica. */
+  sellerCommissionBasis: string | null;
   seller: {
     id: string;
     name: string;

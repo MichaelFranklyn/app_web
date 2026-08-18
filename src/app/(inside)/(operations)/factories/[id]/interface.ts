@@ -23,6 +23,8 @@ export interface CompanyFactoryDetail {
    * seguinte. Nulo = fábrica sem corte declarado.
    */
   commissionCutoffDay: number | null;
+  /** De onde contam os dias do boleto: "Faturamento" (padrão) ou "Pedido". */
+  installmentDueBasis: string | null;
   territory: string;
   contractStart: string | null;
   contractEnd: string | null;

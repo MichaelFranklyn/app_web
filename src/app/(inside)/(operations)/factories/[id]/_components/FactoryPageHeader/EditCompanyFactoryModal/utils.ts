@@ -1,14 +1,32 @@
+import { isPaymentBasis } from "@/app/(inside)/_shared/commissions";
 import { FormStepSchema } from "@/components/FormBuilder";
 import { toIsoDate } from "@/utils/format/date";
+import { INSTALLMENT_DUE_BASIS_OPTIONS } from "@/app/(inside)/_shared/commissions";
 import { CompanyFactoryDetail } from "../../../interface";
 import { UpdateCompanyFactoryInput } from "./interface";
 
-// Os valores "Faturado"/"Pedido" são mantidos por compatibilidade com fábricas já
-// cadastradas; os rótulos usam a terminologia da comissão (Faturamento/Pagamento).
+// Valores canônicos. O vocabulário legado ("Faturado"/"Pedido") saiu do banco na
+// migration `d2b6e9c1f473`: "Pedido" queria dizer Pagamento aqui e quer dizer
+// outra coisa em `installmentDueBasis`, logo abaixo no mesmo formulário.
 export const COMMISSION_BASIS_OPTIONS = [
-  { value: "Faturado", label: "Faturamento — comissão paga no faturamento" },
-  { value: "Pedido", label: "Pagamento — comissão conforme o cliente paga" },
+  { value: "Faturamento", label: "Faturamento — comissão paga no faturamento" },
+  { value: "Pagamento", label: "Pagamento — comissão conforme o cliente paga" },
 ];
+
+/**
+ * Qual opção do select representa a base gravada na fábrica.
+ *
+ * Casar por igualdade não basta: uma base que ainda não passou pela migration
+ * `d2b6e9c1f473` traz o texto antigo ("Faturado"), o `find` não acha nada e o
+ * campo — que é obrigatório — abre VAZIO, travando a edição de qualquer outro
+ * termo do contrato. Por isso o desempate segue a mesma regra do servidor:
+ * "pag*" é Pagamento, o resto é Faturamento.
+ */
+export const commissionBasisOption = (basis: string | null | undefined) =>
+  COMMISSION_BASIS_OPTIONS.find((opt) => opt.value === basis) ??
+  (isPaymentBasis(basis)
+    ? COMMISSION_BASIS_OPTIONS[1]
+    : COMMISSION_BASIS_OPTIONS[0]);
 
 // Dois passos no formulário (o terceiro — Identidade — é custom, fora do
 // FormBuilder, porque a logo não é um campo de formulário comum).
@@ -48,6 +66,14 @@ export const FORM_STEPS: FormStepSchema[] = [
             required: false,
             placeholder: "Ex: 25",
             hint: "Até que dia do mês o pedido precisa ser faturado para a comissão entrar no pagamento do mês seguinte. Faturou depois? A comissão cai só no mês seguinte a esse. Deixe em branco se a fábrica não tem corte.",
+          },
+          {
+            name: "installmentDueBasis",
+            label: "Os dias do boleto contam de quando?",
+            type: "select-single",
+            required: false,
+            options: INSTALLMENT_DUE_BASIS_OPTIONS,
+            hint: "Prazo 30/60/90 conta da nota fiscal na maioria das fábricas, mas algumas contam da data em que o pedido foi feito. Muda o vencimento de cada boleto e, com ele, a previsão da comissão.",
           },
         ],
       },
@@ -200,6 +226,15 @@ export const normalizeInput = (
       : null;
   if (cutoffDay !== (initial.commissionCutoffDay ?? null)) {
     input.commissionCutoffDay = cutoffDay;
+  }
+
+  // Vazio grava "Faturamento" (o padrão) em vez de deixar o campo intocado:
+  // quem abre o select e limpa está dizendo que conta da nota.
+  const dueBasis =
+    (data.installmentDueBasis as { value: string } | null)?.value ||
+    "Faturamento";
+  if (dueBasis !== (initial.installmentDueBasis ?? "Faturamento")) {
+    input.installmentDueBasis = dueBasis;
   }
 
   const territory = String(data.territory ?? "").trim();

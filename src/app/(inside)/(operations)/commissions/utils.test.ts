@@ -3,6 +3,8 @@ import { CommissionRow } from "./interface";
 import {
   addMonths,
   factoryHighlights,
+  filterByMonth,
+  filterByTab,
   groupByFactory,
   isInMonth,
   latestMonthWithData,
@@ -27,6 +29,13 @@ const row = (over: Partial<CommissionRow>): CommissionRow => ({
   isReceived: false,
   isReconciled: false,
   reconciledAt: null,
+  isOverdue: false,
+  defaultedAt: null,
+  sellerAmount: "5",
+  sellerStatus: "receivable",
+  sellerReceiveDate: "2026-03-10",
+  isSellerPaid: false,
+  sellerChargebackMonth: null,
   client: null,
   factory: { id: "f1", nomeFantasia: "Alfa", razaoSocial: "Alfa SA" },
   seller: null,
@@ -123,8 +132,10 @@ describe("summarizeRows", () => {
       receivable: 0,
       received: 0,
       pending: 0,
+      chargeback: 0,
       reconciledCount: 0,
       receivableIds: [],
+      overdueCount: 0,
     });
   });
 });
@@ -221,5 +232,90 @@ describe("latestMonthWithData", () => {
       ])
     ).toEqual({ year: 2025, month: 12 });
     expect(latestMonthWithData([row({ receiveDate: null })])).toBeNull();
+  });
+});
+
+describe("estorno nos subtotais", () => {
+  it("desconta o estorno do que há a receber", () => {
+    // O cartão da fábrica precisa fechar no LÍQUIDO: a fábrica paga 10 e
+    // desconta 4 do calote, então o mês vale 6.
+    const summary = summarizeRows([
+      row({ installmentId: "a", status: "receivable", amount: "10" }),
+      row({ installmentId: "b", status: "chargeback", amount: "-4" }),
+    ]);
+    expect(summary.receivable).toBe(6);
+    expect(summary.chargeback).toBe(-4);
+    // O estorno não é uma parcela a receber: não entra no repasse em massa.
+    expect(summary.receivableIds).toEqual(["a"]);
+  });
+
+  it("conta boleto vencido e calote como atraso", () => {
+    const summary = summarizeRows([
+      row({ installmentId: "a", isOverdue: true }),
+      row({ installmentId: "b", defaultedAt: "2026-03-20" }),
+      row({ installmentId: "c" }),
+    ]);
+    expect(summary.overdueCount).toBe(2);
+  });
+});
+
+describe("filterByTab", () => {
+  const rows = [
+    row({ installmentId: "a", status: "receivable" }),
+    row({ installmentId: "b", status: "received" }),
+    row({ installmentId: "c", status: "receivable", isOverdue: true }),
+    row({ installmentId: "d", status: "cancelled", defaultedAt: "2026-03-20" }),
+  ];
+
+  it("filtra pelo status da comissão nas abas de comissão", () => {
+    expect(filterByTab(rows, "received").map((r) => r.installmentId)).toEqual([
+      "b",
+    ]);
+  });
+
+  it('junta vencido e calote em "Boleto em atraso"', () => {
+    // Vencido ainda tem comissão a receber (modo Faturamento) e calote já foi
+    // cancelado: a aba é do BOLETO, não do status da comissão.
+    expect(filterByTab(rows, "overdue").map((r) => r.installmentId)).toEqual([
+      "c",
+      "d",
+    ]);
+  });
+
+  it("não filtra nada em Todas", () => {
+    expect(filterByTab(rows, "all")).toHaveLength(4);
+  });
+});
+
+describe("filterByMonth", () => {
+  const rows = [
+    row({
+      installmentId: "a",
+      receiveDate: "2026-03-10",
+      dueDate: "2026-01-05",
+    }),
+    row({
+      installmentId: "b",
+      receiveDate: "2026-05-10",
+      dueDate: "2026-03-05",
+    }),
+  ];
+
+  it("usa a data do recebimento nas abas de comissão", () => {
+    expect(
+      filterByMonth(rows, { year: 2026, month: 3 }, "receivable").map(
+        (r) => r.installmentId
+      )
+    ).toEqual(["a"]);
+  });
+
+  it("usa o VENCIMENTO na aba de boleto em atraso", () => {
+    // O atraso se conta pelo boleto — e um calote pode nem ter data de
+    // recebimento ainda, ficando na fila do escritório.
+    expect(
+      filterByMonth(rows, { year: 2026, month: 3 }, "overdue").map(
+        (r) => r.installmentId
+      )
+    ).toEqual(["b"]);
   });
 });

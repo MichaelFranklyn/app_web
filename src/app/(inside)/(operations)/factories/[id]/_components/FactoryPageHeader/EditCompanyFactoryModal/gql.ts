@@ -15,6 +15,7 @@ export const UPDATE_COMPANY_FACTORY_MUTATION = gql`
         paymentTermDays
         commissionPaymentDays
         commissionCutoffDay
+        installmentDueBasis
         territory
         contractStart
         contractEnd

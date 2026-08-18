@@ -53,15 +53,21 @@ describe("taxRatesLabel", () => {
 });
 
 describe("isPaymentBasis", () => {
-  it("reconhece o valor canônico e o legado", () => {
+  it("reconhece o valor canônico", () => {
     expect(isPaymentBasis("Pagamento")).toBe(true);
-    expect(isPaymentBasis("Pedido")).toBe(true);
+    expect(isPaymentBasis("Faturamento")).toBe(false);
     expect(isPaymentBasis("Faturado")).toBe(false);
     expect(isPaymentBasis(null)).toBe(false);
   });
 
+  it('não lê mais "Pedido" como Pagamento', () => {
+    // Hoje "Pedido" é o texto da base do VENCIMENTO (conta da data da compra);
+    // lê-lo aqui trocaria a régua da comissão inteira por um campo confundido.
+    expect(isPaymentBasis("Pedido")).toBe(false);
+  });
+
   it("commissionModeLabel traduz o modo", () => {
-    expect(commissionModeLabel("Pedido")).toBe("Pagamento");
+    expect(commissionModeLabel("Pagamento")).toBe("Pagamento");
     expect(commissionModeLabel("Faturado")).toBe("Faturamento");
   });
 });

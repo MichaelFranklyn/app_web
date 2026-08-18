@@ -21,6 +21,10 @@ export const COMMISSIONS_QUERY = gql`
       totalReceived
       totalPending
       countReceivable
+      totalChargeback
+      totalSellerChargeback
+      totalSellerChargebackPending
+      countOverdue
       rows {
         orderId
         installmentId
@@ -37,6 +41,13 @@ export const COMMISSIONS_QUERY = gql`
         isReceived
         isReconciled
         reconciledAt
+        isOverdue
+        defaultedAt
+        sellerAmount
+        sellerStatus
+        sellerReceiveDate
+        isSellerPaid
+        sellerChargebackMonth
         client {
           id
           razaoSocial
@@ -80,6 +91,93 @@ export const SET_COMMISSION_RECONCILED_MUTATION = gql`
     setCommissionReconciled(
       installmentIds: $installmentIds
       reconciled: $reconciled
+    ) {
+      status
+      message
+    }
+  }
+`;
+
+export const PAY_ORDER_INSTALLMENTS_MUTATION = gql`
+  mutation PayOrderInstallments($installmentIds: [UUID!]!, $paidAt: Date!) {
+    payOrderInstallments(installmentIds: $installmentIds, paidAt: $paidAt) {
+      status
+      message
+    }
+  }
+`;
+
+export const MARK_INSTALLMENTS_DEFAULTED_MUTATION = gql`
+  mutation MarkOrderInstallmentsDefaulted(
+    $installmentIds: [UUID!]!
+    $defaultedAt: Date!
+  ) {
+    markOrderInstallmentsDefaulted(
+      installmentIds: $installmentIds
+      defaultedAt: $defaultedAt
+    ) {
+      status
+      message
+    }
+  }
+`;
+
+export const MARK_SELLER_COMMISSION_PAID_MUTATION = gql`
+  mutation MarkSellerCommissionPaid($installmentIds: [UUID!]!, $paidAt: Date!) {
+    markSellerCommissionPaid(installmentIds: $installmentIds, paidAt: $paidAt) {
+      status
+      message
+    }
+  }
+`;
+
+export const SCHEDULE_SELLER_CHARGEBACK_MUTATION = gql`
+  mutation ScheduleSellerChargeback($installmentIds: [UUID!]!, $month: Date) {
+    scheduleSellerChargeback(installmentIds: $installmentIds, month: $month) {
+      status
+      message
+    }
+  }
+`;
+
+/**
+ * Quanto a baixa em lote pegaria. O número vem do SERVIDOR, não das linhas
+ * carregadas: a tela está recortada por mês e por situação, e o que a baixa
+ * alcança é outra coisa — prometer "12 boletos" e baixar 150 seria péssimo.
+ */
+export const SETTLE_PREVIEW_QUERY = gql`
+  query SettleInstallmentsPreview(
+    $dueFrom: Date!
+    $dueTo: Date!
+    $factoryId: UUID
+    $sellerId: UUID
+  ) {
+    settleInstallmentsPreview(
+      dueFrom: $dueFrom
+      dueTo: $dueTo
+      factoryId: $factoryId
+      sellerId: $sellerId
+    ) {
+      count
+      amount
+    }
+  }
+`;
+
+export const SETTLE_INSTALLMENTS_IN_PERIOD_MUTATION = gql`
+  mutation SettleInstallmentsInPeriod(
+    $dueFrom: Date!
+    $dueTo: Date!
+    $factoryId: UUID
+    $sellerId: UUID
+    $paidAt: Date
+  ) {
+    settleInstallmentsInPeriod(
+      dueFrom: $dueFrom
+      dueTo: $dueTo
+      factoryId: $factoryId
+      sellerId: $sellerId
+      paidAt: $paidAt
     ) {
       status
       message

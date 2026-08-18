@@ -23,6 +23,10 @@ export interface CommissionRow {
   isReceived: boolean;
   isReconciled: boolean;
   reconciledAt: string | null;
+  /** Boleto vencido e ainda não pago pelo cliente. */
+  isOverdue: boolean;
+  /** Quando o boleto virou calote; null = não é inadimplente. */
+  defaultedAt: string | null;
   client: {
     id: string;
     razaoSocial: string;
@@ -48,11 +52,16 @@ export interface CommissionsReportResponse {
 
 /** Fechamento do período: o que entra, o que entrou e o que ainda depende da fábrica. */
 export interface CommissionsTotals {
+  /** Já líquido dos estornos: é o que a fábrica realmente vai pagar. */
   receivable: number;
   received: number;
   pending: number;
   count: number;
   countReceivable: number;
+  /** Estornos (negativo) por calote do cliente. */
+  chargeback: number;
+  /** Parcelas com boleto vencido ou em calote. */
+  countOverdue: number;
 }
 
 /** Uma barra do gráfico: a comissão do período naquela fábrica. */

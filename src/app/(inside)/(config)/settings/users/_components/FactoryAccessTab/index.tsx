@@ -14,6 +14,7 @@ import { useTableData } from "@/hooks/useTableData";
 import { formatDateDMY } from "@/utils/format/masks";
 import { Building2 } from "lucide-react";
 import { AccessRowActions } from "./AccessRowActions";
+import { sellerAgreementLabel } from "./utils";
 import { AddAccessModal } from "./AddAccessModal";
 import { SELLER_FACTORY_ACCESS_LIST_QUERY } from "./gql";
 import { QueryData, SellerFactoryAccess } from "./interface";
@@ -67,6 +68,7 @@ export function FactoryAccessTab() {
                 <Table.Head>Vendedor</Table.Head>
                 <Table.Head>Fábrica</Table.Head>
                 <Table.Head>Concedido por</Table.Head>
+                <Table.Head>Comissão do vendedor</Table.Head>
                 <Table.Head sortKey="created_at" sortFirst="desc">
                   Data
                 </Table.Head>
@@ -76,16 +78,16 @@ export function FactoryAccessTab() {
             </Table.Header>
             <Table.Body>
               {tableData.loading && optimistic.items.length === 0 ? (
-                <Table.Skeleton columns={6} rows={5} />
+                <Table.Skeleton columns={7} rows={5} />
               ) : tableData.error && optimistic.items.length === 0 ? (
                 <Table.Row>
-                  <Table.Cell colSpan={6}>
+                  <Table.Cell colSpan={7}>
                     <QueryError flat onRetry={() => tableData.refetch()} />
                   </Table.Cell>
                 </Table.Row>
               ) : isEmpty ? (
                 <Table.Row>
-                  <Table.Cell colSpan={6}>
+                  <Table.Cell colSpan={7}>
                     <EmptyState.Root>
                       <EmptyState.Icon>
                         <Building2 size={32} />
@@ -131,6 +133,15 @@ export function FactoryAccessTab() {
 
                     <Table.Cell>
                       <Table.CellText variant="dim">
+                        {sellerAgreementLabel(
+                          node.sellerCommissionShare,
+                          node.sellerCommissionBasis
+                        )}
+                      </Table.CellText>
+                    </Table.Cell>
+
+                    <Table.Cell>
+                      <Table.CellText variant="dim">
                         {formatDateDMY(node.createdAt)}
                       </Table.CellText>
                     </Table.Cell>
@@ -154,6 +165,9 @@ export function FactoryAccessTab() {
                         sellerIsActive={node.seller?.isActive ?? true}
                         factoryName={factoryName(node.factory) ?? ""}
                         isActive={node.isActive}
+                        sellerCommissionShare={node.sellerCommissionShare}
+                        sellerCommissionBasis={node.sellerCommissionBasis}
+                        onAgreementSaved={() => tableData.refetch()}
                         onRevoke={() =>
                           optimistic.updateOptimistic(node.id, {
                             isActive: !node.isActive,

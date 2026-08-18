@@ -103,19 +103,13 @@ export const selectValue = (raw: unknown): string => {
   return String(raw ?? "");
 };
 
-/**
- * Modo Pagamento: a fábrica paga a comissão conforme o cliente paga os boletos.
- * Espelha `is_payment_basis` do backend (aceita "Pagamento" e o legado "Pedido").
- */
-export const isPaymentBasis = (basis: string | null | undefined): boolean => {
-  if (!basis) return false;
-  const norm = basis.normalize("NFKD").replace(/[̀-ͯ]/g, "").trim().toLowerCase();
-  return norm.startsWith("pag") || norm.startsWith("pedido");
-};
-
-export const commissionModeLabel = (
-  basis: string | null | undefined
-): string => (isPaymentBasis(basis) ? "Pagamento" : "Faturamento");
+// O modo da comissão e seu rótulo moram no vocabulário compartilhado
+// (`(inside)/_shared/commissions`): o cadastro do contrato na tela de fábricas
+// precisa da MESMA leitura, e duas cópias divergiriam no dia em que uma mudasse.
+export {
+  commissionModeLabel,
+  isPaymentBasis,
+} from "@/app/(inside)/_shared/commissions";
 
 /**
  * Ordena itens de pedido para exibição na ORDEM DE CRIAÇÃO (mais antigo
@@ -154,6 +148,7 @@ export const INSTALLMENT_STATUS_LABEL: Record<InstallmentStatus, string> = {
   PENDING: "Pendente",
   PAID: "Pago",
   CANCELLED: "Cancelado",
+  DEFAULTED: "Inadimplente",
 };
 
 /** Cor do Badge para o status da parcela. */
@@ -164,6 +159,7 @@ export const INSTALLMENT_STATUS_TONE: Record<
   PENDING: "neutral",
   PAID: "green",
   CANCELLED: "red",
+  DEFAULTED: "red",
 };
 
 /**

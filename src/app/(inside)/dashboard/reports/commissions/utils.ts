@@ -38,7 +38,13 @@ export const filterByPeriod = (
       !!row.receiveDate && row.receiveDate >= from && row.receiveDate <= to
   );
 
-/** Fecha o conjunto de parcelas nas três situações que importam. */
+/**
+ * Fecha o conjunto de parcelas nas situações que importam.
+ *
+ * O estorno (calote depois de a comissão ter sido paga) já vem negativo e é
+ * somado ao "a receber": o relatório precisa mostrar o LÍQUIDO, senão promete
+ * um valor que a fábrica vai descontar no mesmo fechamento.
+ */
 export const summarize = (rows: CommissionRow[]): CommissionsTotals => {
   const totals: CommissionsTotals = {
     receivable: 0,
@@ -46,6 +52,8 @@ export const summarize = (rows: CommissionRow[]): CommissionsTotals => {
     pending: 0,
     count: rows.length,
     countReceivable: 0,
+    chargeback: 0,
+    countOverdue: 0,
   };
 
   for (const row of rows) {
@@ -57,7 +65,11 @@ export const summarize = (rows: CommissionRow[]): CommissionsTotals => {
       totals.received += amount;
     } else if (row.status === "pending") {
       totals.pending += amount;
+    } else if (row.status === "chargeback") {
+      totals.chargeback += amount;
+      totals.receivable += amount;
     }
+    if (row.isOverdue || row.defaultedAt) totals.countOverdue += 1;
   }
 
   return totals;

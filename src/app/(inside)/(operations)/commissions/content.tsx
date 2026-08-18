@@ -11,6 +11,7 @@ import { PanelHeader } from "@/components/PanelHeader";
 import { QueryError } from "@/components/QueryError";
 import { Table } from "@/components/Table";
 import { Title } from "@/components/Title";
+import { factoryName } from "@/utils/company";
 import { getTodayIso } from "@/utils/format/date";
 import { formatMoney } from "@/utils/format/masks";
 import { useQuery } from "@apollo/client/react";
@@ -18,14 +19,17 @@ import { CalendarDays, ChevronLeft, ChevronRight, Coins } from "lucide-react";
 import { useEffect, useMemo, useState } from "react";
 import { CommissionsPdfButton } from "./_components/CommissionsPdfButton";
 import { FactoryCommissionGroup } from "./_components/FactoryCommissionGroup";
+import { SellerChargebackPanel } from "./_components/SellerChargebackPanel";
+import { SettlePeriodModal } from "./_components/SettlePeriodModal";
 import { COMMISSIONS_QUERY, COMMISSIONS_SELLERS_QUERY } from "./gql";
 import { CommissionsResponse, CommissionsSellersResponse } from "./interface";
 import {
   addMonths,
   COMMISSION_TABS,
   CommissionTab,
+  filterByMonth,
+  filterByTab,
   groupByFactory,
-  isInMonth,
   latestMonthWithData,
   monthLabel,
   summarizeMonth,
@@ -106,16 +110,26 @@ export default function CommissionsContent({
   // abaixo, inclusive os cartões das fábricas. Antes cada fábrica tinha o seu
   // próprio seletor de mês e o de cima só mexia nos totais: dois lugares para
   // escolher a mesma coisa, mostrando meses diferentes na mesma tela.
-  const filteredRows = useMemo(() => {
-    const inMonth = rows.filter((row) => isInMonth(row.receiveDate, month));
-    if (tab === "all") return inMonth;
-    return inMonth.filter((row) => row.status === tab);
-  }, [rows, tab, month]);
+  const filteredRows = useMemo(
+    () => filterByTab(filterByMonth(rows, month, tab), tab),
+    [rows, tab, month]
+  );
 
   // Agrupado por fábrica trabalhada — é assim que a fábrica manda a planilha.
   const groups = useMemo(() => groupByFactory(filteredRows), [filteredRows]);
 
   const handleChanged = () => refetch();
+
+  // Fábricas que aparecem nas comissões — o recorte opcional da baixa em lote.
+  const factoryOptions: SelectOption[] = useMemo(() => {
+    const byId = new Map<string, string>();
+    for (const row of rows) {
+      if (row.factory) byId.set(row.factory.id, factoryName(row.factory));
+    }
+    return Array.from(byId, ([value, label]) => ({ value, label })).sort(
+      (a, b) => a.label.localeCompare(b.label, "pt-BR")
+    );
+  }, [rows]);
 
   const sellerOptions: SelectOption[] = sellers.map((s) => ({
     value: s.id,
@@ -171,6 +185,14 @@ export default function CommissionsContent({
           <div className="flex flex-wrap items-center justify-between gap-16">
             <Title variant="heading-sm">Resumo de {monthLabel(month)}</Title>
             <div className="flex flex-wrap items-center gap-8">
+              {canManage && (
+                <SettlePeriodModal
+                  sellerId={selectedSellerId}
+                  sellerName={sellerName}
+                  factoryOptions={factoryOptions}
+                  onSettled={handleChanged}
+                />
+              )}
               <CommissionsPdfButton
                 rows={rows}
                 month={month}
@@ -233,7 +255,9 @@ export default function CommissionsContent({
                       {formatMoney(monthTotals.receivable)}
                     </Card.Kpi.Value>
                     <Card.Kpi.Delta>
-                      {monthTotals.countReceivable} parcela(s) a receber
+                      {monthTotals.chargeback < 0
+                        ? `${monthTotals.countReceivable} parcela(s) · já descontado ${formatMoney(Math.abs(monthTotals.chargeback))} de estorno`
+                        : `${monthTotals.countReceivable} parcela(s) a receber`}
                     </Card.Kpi.Delta>
                   </Card.Kpi>
                 </Grid.Item>
@@ -290,6 +314,14 @@ export default function CommissionsContent({
               </Button.Root>
             ))}
           </div>
+
+          {canManage && !showSkeleton && (
+            <SellerChargebackPanel
+              rows={rows}
+              month={month}
+              onChanged={handleChanged}
+            />
+          )}
 
           {showSkeleton ? (
             <Table.Root>
