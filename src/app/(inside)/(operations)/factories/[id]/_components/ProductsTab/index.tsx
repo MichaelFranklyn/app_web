@@ -2,6 +2,7 @@
 
 import { Badge } from "@/components/Badges";
 import { EmptyState } from "@/components/EmptyState";
+import { Filters } from "@/components/Filters";
 import { HelpTooltip } from "@/components/HelpTooltip";
 import { InputSearch } from "@/components/Input";
 import { Loading } from "@/components/Loading";
@@ -22,6 +23,7 @@ import { AddProductModal } from "./AddProductModal";
 import { ImportProductsModal } from "./ImportProductsModal";
 import { ProductRowActions } from "./ProductRowActions";
 import { UploadPhotosModal } from "./UploadPhotosModal";
+import { useProductFilters } from "./useProductFilters";
 import {
   FACTORY_PRODUCTS_QUERY,
   FactoryProduct,
@@ -40,6 +42,12 @@ const PRODUCT_FIELDS: Record<string, FieldConfig> = {
     queryField: "needs_attention",
     operator: "eq",
   },
+  // Colunas do próprio produto: o filtro vai ao banco e vale para o catálogo
+  // inteiro, não só para a página aberta.
+  categoryId: { type: "select", queryField: "category_id", operator: "eq" },
+  unitId: { type: "select", queryField: "unit_id", operator: "eq" },
+  // "true"/"false" — o `parse_value` do backend já converte em booleano.
+  status: { type: "select", queryField: "is_active", operator: "eq" },
 };
 
 export function ProductsTab({ companyFactoryId }: Props) {
@@ -56,11 +64,13 @@ export function ProductsTab({ companyFactoryId }: Props) {
     getConnection: (d) => d.factory_products,
     baseFilters,
     itemsPerPage: ITEMS_PER_PAGE,
-    // Categoria e unidade vivem em tabelas vizinhas; a foto e as ações não são
-    // dado ordenável. Sobram código e nome — que são as duas maneiras de
-    // procurar um produto no catálogo.
-    sortableFields: ["sku", "name"],
+    // Categoria e unidade vivem em tabelas vizinhas: ordenar por elas exigiria o
+    // ORDER BY cruzar o join. Sobram as colunas do próprio produto — código,
+    // nome e situação.
+    sortableFields: ["sku", "name", "is_active"],
   });
+
+  const filterFields = useProductFilters();
 
   const optimistic = useOptimisticList<FactoryProduct>({
     initialData: table.displayedData,
@@ -69,6 +79,15 @@ export function ProductsTab({ companyFactoryId }: Props) {
 
   const search = table.inputValues.search ?? "";
   const onlyAttention = table.inputValues.onlyAttention === "true";
+  // Lista vazia com algum recorte valendo é "nada casa com o filtro", não
+  // "a fábrica não tem catálogo" — e a saída de cada caso é diferente.
+  const isFiltered =
+    search.trim().length > 0 ||
+    Boolean(
+      table.inputValues.categoryId ||
+      table.inputValues.unitId ||
+      table.inputValues.status
+    );
 
   const onChanged = () => {
     table.refetch();
@@ -129,6 +148,13 @@ export function ProductsTab({ companyFactoryId }: Props) {
               value={search}
               onChange={(e) => table.setFilter("search", e.target.value)}
             />
+            <Filters
+              fields={filterFields}
+              values={table.inputValues}
+              onChange={table.setFilters}
+              onTextChange={table.setFilter}
+              data-tour="products-filters"
+            />
             <Button.Root
               type="button"
               data-tour="products-attention"
@@ -175,7 +201,9 @@ export function ProductsTab({ companyFactoryId }: Props) {
             <Table.Head sortKey="name">Produto</Table.Head>
             <Table.Head>Categoria</Table.Head>
             <Table.Head>Unidade</Table.Head>
-            <Table.Head>Status</Table.Head>
+            <Table.Head sortKey="is_active" sortFirst="desc">
+              Status
+            </Table.Head>
             <Table.Head className="text-right">Ações</Table.Head>
           </Table.Row>
         </Table.Header>
@@ -198,15 +226,15 @@ export function ProductsTab({ companyFactoryId }: Props) {
                   <EmptyState.Title>
                     {onlyAttention
                       ? "Nenhum produto precisa de atenção"
-                      : search.trim()
+                      : isFiltered
                         ? "Nenhum produto encontrado"
                         : "Nenhum produto cadastrado"}
                   </EmptyState.Title>
                   <EmptyState.Description>
                     {onlyAttention
                       ? "Todos os produtos desta fábrica estão revisados."
-                      : search.trim()
-                        ? "Ajuste a busca ou cadastre um novo produto."
+                      : isFiltered
+                        ? "Ajuste a busca ou os filtros, ou cadastre um novo produto."
                         : 'Use "Novo produto" para começar o catálogo desta fábrica.'}
                   </EmptyState.Description>
                 </EmptyState.Root>
