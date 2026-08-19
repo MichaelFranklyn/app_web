@@ -157,6 +157,9 @@ export const COMMISSIONS_SORT_COLUMNS = {
   client: (row: CommissionRow) => clientName(row.client),
   factory: (row: CommissionRow) => factoryName(row.factory),
   seller: (row: CommissionRow) => row.seller?.name,
+  // Sem nota vai para o fim em ordem crescente: a leitura abre pelo que já dá
+  // para conferir contra a planilha da fábrica.
+  invoiceNumber: (row: CommissionRow) => row.invoiceNumber ?? "zzzz",
   installmentAmount: (row: CommissionRow) => Number(row.installmentAmount || 0),
   amount: (row: CommissionRow) => Number(row.amount || 0),
   status: (row: CommissionRow) => COMMISSION_STATUS_LABEL[row.status],
@@ -169,6 +172,7 @@ export const COMMISSIONS_SORT_LABELS: Record<string, SortLabel> = {
   client: { label: "Cliente", kind: "text" },
   factory: { label: "Fábrica", kind: "text" },
   seller: { label: "Vendedor", kind: "text" },
+  invoiceNumber: { label: "Nota fiscal", kind: "text" },
   installmentAmount: { label: "Valor da parcela", kind: "number" },
   amount: { label: "Comissão", kind: "number" },
   status: { label: "Situação", kind: "text" },
@@ -180,6 +184,7 @@ export const COMMISSIONS_EXPORT_HEADERS = [
   "Cliente",
   "Fábrica",
   "Vendedor",
+  "Nota fiscal",
   "Parcela",
   "Valor da parcela",
   "Comissão",
@@ -195,6 +200,7 @@ export const buildCommissionsExportRows = (
     clientName(row.client),
     factoryName(row.factory),
     row.seller?.name ?? "—",
+    row.invoiceNumber ?? "—",
     String(row.sequence),
     Number(row.installmentAmount),
     Number(row.amount),

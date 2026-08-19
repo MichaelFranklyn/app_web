@@ -8,6 +8,7 @@ import { Pagination } from "@/components/Pagination";
 import { Table, TableSort } from "@/components/Table";
 import { formatDateDMY, formatMoney } from "@/utils/format/masks";
 import { Receipt } from "lucide-react";
+import { ORDER_COLUMN_HELP } from "../../help";
 import { Order } from "../../interface";
 import { ORDER_STATUS_LABELS, ORDER_STATUS_TONE } from "../../utils";
 import { clientName, factoryName } from "@/utils/company";
@@ -23,6 +24,8 @@ interface Props {
   inputValues: Record<string, string>;
   /** Aplica várias chaves de uma vez — o período mexe nas duas pontas. */
   setFilters: (patch: Record<string, string | undefined>) => void;
+  /** Uma chave só, com o debounce do campo — é o caminho do texto digitado. */
+  setFilter: (key: string, value: string | undefined) => void;
   /** Campos do painel "Filtros" (vendedor, fábrica, cliente, datas). */
   filterFields: FilterField[];
   /** Ordenação da lista — vem do `useTableData` e desce até cada cabeçalho. */
@@ -43,6 +46,7 @@ export function OrdersTable({
   totalItems,
   inputValues,
   setFilters,
+  setFilter,
   sort,
   filterFields,
   title = "Lista de pedidos",
@@ -58,6 +62,9 @@ export function OrdersTable({
             fields={filterFields}
             values={inputValues}
             onChange={setFilters}
+            // Sem isto, cada tecla do código do pedido viraria uma consulta ao
+            // backend e uma entrada no histórico do navegador.
+            onTextChange={setFilter}
             data-tour="orders-filters"
           />
         </Table.CardHead.Actions>
@@ -66,23 +73,53 @@ export function OrdersTable({
       <Table.Table>
         <Table.Header>
           <Table.Row>
-            {/* Pedido, cliente, fábrica e vendedor não ordenam: na tabela
-                `orders` os três últimos são o UUID da chave estrangeira. */}
-            <Table.Head>Pedido</Table.Head>
-            <Table.Head>Cliente</Table.Head>
-            <Table.Head>Fábrica</Table.Head>
-            <Table.Head>Vendedor</Table.Head>
-            <Table.Head sortKey="order_date" sortFirst="desc">
+            {/* Só "Pedido" não ordena: o código é o prefixo do id, e uma
+                lista em ordem de UUID não responde pergunta nenhuma. Cliente,
+                fábrica e vendedor ordenam pelo NOME — quem faz o ORDER BY
+                alcançar a tabela vizinha é o repositório de pedidos.
+
+                A explicação de cada coluna vai no `title` do cabeçalho — o
+                cabeçalho ordenável é um `<button>`, e um botão de ajuda dentro
+                dele seria HTML inválido. */}
+            <Table.Head title={ORDER_COLUMN_HELP.code}>Pedido</Table.Head>
+            <Table.Head sortKey="client_name" title={ORDER_COLUMN_HELP.client}>
+              Cliente
+            </Table.Head>
+            <Table.Head
+              sortKey="factory_name"
+              title={ORDER_COLUMN_HELP.factory}
+            >
+              Fábrica
+            </Table.Head>
+            <Table.Head sortKey="seller_name" title={ORDER_COLUMN_HELP.seller}>
+              Vendedor
+            </Table.Head>
+            <Table.Head
+              sortKey="order_date"
+              sortFirst="desc"
+              title={ORDER_COLUMN_HELP.date}
+            >
               Data do pedido
             </Table.Head>
-            <Table.Head sortKey="status">Situação</Table.Head>
-            <Table.Head sortKey="total_amount" sortFirst="desc" align="right">
-              Valor
+            <Table.Head sortKey="status" title={ORDER_COLUMN_HELP.status}>
+              Situação
+            </Table.Head>
+            <Table.Head
+              sortKey="total_amount"
+              sortFirst="desc"
+              align="right"
+              title={ORDER_COLUMN_HELP.amount}
+            >
+              {/* "Valor" sozinho prometia o total do pedido e entregava a
+                  mercadoria: no detalhe o mesmo pedido aparecia maior, com IPI
+                  e imposto embutido. O rótulo diz qual das duas bases é esta. */}
+              Valor (sem impostos)
             </Table.Head>
             <Table.Head
               sortKey="commission_amount"
               sortFirst="desc"
               align="right"
+              title={ORDER_COLUMN_HELP.commission}
             >
               Comissão
             </Table.Head>

@@ -83,6 +83,7 @@ export function CommissionsReportTable({
             <Table.Head sortKey="client">Cliente</Table.Head>
             <Table.Head sortKey="factory">Fábrica</Table.Head>
             <Table.Head sortKey="seller">Vendedor</Table.Head>
+            <Table.Head sortKey="invoiceNumber">Nota fiscal</Table.Head>
             <Table.Head>Parcela</Table.Head>
             <Table.Head sortKey="installmentAmount" sortFirst="desc">
               Valor da parcela
@@ -100,10 +101,10 @@ export function CommissionsReportTable({
 
         <Table.Body>
           {loading && items.length === 0 ? (
-            <Table.Skeleton columns={10} rows={8} />
+            <Table.Skeleton columns={11} rows={8} />
           ) : items.length === 0 ? (
             <Table.Row>
-              <Table.Cell colSpan={10}>
+              <Table.Cell colSpan={11}>
                 <EmptyState.Root>
                   <EmptyState.Icon>
                     <Coins size={32} />
@@ -145,6 +146,9 @@ export function CommissionsReportTable({
                   {factoryName(row.factory)}
                 </Table.Cell>
                 <Table.Cell variant="dim">{row.seller?.name ?? "—"}</Table.Cell>
+                <Table.Cell variant="dim" className="whitespace-nowrap">
+                  {row.invoiceNumber ?? "—"}
+                </Table.Cell>
                 <Table.Cell variant="dim">{row.sequence}</Table.Cell>
                 <Table.Cell variant="dim" className="whitespace-nowrap">
                   {formatMoney(row.installmentAmount)}

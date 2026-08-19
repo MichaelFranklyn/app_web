@@ -49,9 +49,16 @@ export function OrderDetailHeader({ order, onRefetch }: Props) {
               {formatDateDMY(order.orderDate)}
             </PanelHeader.Description>
 
+            {/* As tarjas dizem em que pé está o pedido; o `title` explica o
+                que cada estado significa para quem ainda não domina o fluxo
+                (orçamento → confirmado → faturado → entregue). */}
             {isQuote && (
               <div className="mt-4">
-                <Badge.Root appearance="tinted" color="amber">
+                <Badge.Root
+                  appearance="tinted"
+                  color="amber"
+                  title="Orçamento ainda não é pedido: não gera nota, nem parcelas, nem comissão. Use “Converter em pedido” quando o cliente fechar."
+                >
                   <Badge.Text>
                     {order.status === "SENT"
                       ? "Orçamento enviado"
@@ -63,7 +70,11 @@ export function OrderDetailHeader({ order, onRefetch }: Props) {
 
             {order.deliveredAt && (
               <div className="mt-4">
-                <Badge.Root appearance="tinted" color="green">
+                <Badge.Root
+                  appearance="tinted"
+                  color="green"
+                  title="Dia em que a mercadoria chegou na loja do cliente. É essa data que reabastece o estoque estimado dele e alimenta a próxima visita."
+                >
                   <Badge.Text>
                     Entregue em {formatDateDMY(order.deliveredAt)}
                   </Badge.Text>
@@ -77,6 +88,11 @@ export function OrderDetailHeader({ order, onRefetch }: Props) {
                 <Badge.Root
                   appearance="tinted"
                   color={order.isDeliveryOverdue ? "red" : "blue"}
+                  title={
+                    order.isDeliveryOverdue
+                      ? "A previsão de entrega (data da nota + prazo da fábrica) já passou e ninguém confirmou a chegada. Confirme em “Marcar como entregue” — é o que atualiza o estoque do cliente."
+                      : "Previsão calculada a partir da data da nota mais o prazo de entrega da fábrica. Quando a mercadoria chegar, confirme a entrega."
+                  }
                 >
                   <Badge.Text>
                     {order.isDeliveryOverdue

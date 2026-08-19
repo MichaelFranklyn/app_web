@@ -2,18 +2,11 @@ import { useMutation, useQuery } from "@apollo/client/react";
 import { useMemo, useRef, useState } from "react";
 
 import { FormBuilderRef, FormStepSchema } from "@/components/FormBuilder";
-import { SelectOption } from "@/components/Input";
 import { useRefetchQueriesClient } from "@/hooks/useInvalidateQueries";
 import { extractSelectValue } from "@/utils/form";
 
 import { DeferredOrderTarget } from "../../../../_components/OrderImportWizard";
 import {
-  clientOptionLabel,
-  clientOptionSearchText,
-} from "../../../../_shared/clientOption";
-import {
-  CoverageCadence,
-  cadenceByClientFrom,
   coverageHint,
   useCoverageSuggestion,
 } from "../../../../_shared/orderCoverage";
@@ -23,10 +16,10 @@ import { FREIGHT_OPTIONS } from "../../../../_shared/orderFreight";
 import { Order } from "../../../interface";
 import {
   CREATE_ORDER_MUTATION,
-  ORDER_SELLER_CLIENTS_QUERY,
   ORDER_SELLER_FACTORIES_QUERY,
   ORDER_SELLERS_OPTIONS_QUERY,
 } from "../gql";
+import { useOrderClientOptions } from "../useOrderClientOptions";
 import { CreateOrderInput, CreateOrderResponse } from "../interface";
 import { normalizeInput } from "../utils";
 
@@ -47,36 +40,30 @@ interface SellerFactoriesData {
     }[];
   };
 }
-interface SellerClientsData {
-  sellerClientFactoryList: {
-    edges: {
-      node: {
-        clientId: string;
-        client: {
-          id: string;
-          razaoSocial: string;
-          nomeFantasia: string | null;
-          cnpj: string | null;
-        } | null;
-        cadence: CoverageCadence | null;
-      };
-    }[];
-  };
-}
 
 const LIST_INPUT = { first: 200 };
 
 export interface ImportOrderModalProps {
   onAddOptimistic: (order: Order) => void;
+  /** Gestor escolhe o vendedor; o vendedor não (a query `sellers` é admin-only). */
+  canSelectSeller: boolean;
+  /** Perfil de vendedor de quem usa a tela — o dono do pedido quando não há escolha. */
+  ownSellerId: string | null;
 }
 
-export function useImportOrder({ onAddOptimistic }: ImportOrderModalProps) {
+export function useImportOrder({
+  onAddOptimistic,
+  canSelectSeller,
+  ownSellerId,
+}: ImportOrderModalProps) {
   const [open, setOpen] = useState(false);
   const [isBusy, setIsBusy] = useState(false);
   // Dados validados do formulário — o pedido em si SÓ é criado na confirmação
   // final do wizard (desistir no meio não deixa pedido vazio para trás).
   const [pending, setPending] = useState<CreateOrderInput | null>(null);
-  const [sellerId, setSellerId] = useState("");
+  const [sellerId, setSellerId] = useState(
+    canSelectSeller ? "" : (ownSellerId ?? "")
+  );
   const [factoryId, setFactoryId] = useState("");
   // O cliente também vira estado (e não só campo do form) para a sugestão de
   // cobertura saber de qual prateleira está falando.
@@ -102,7 +89,7 @@ export function useImportOrder({ onAddOptimistic }: ImportOrderModalProps) {
     ORDER_SELLERS_OPTIONS_QUERY,
     {
       variables: { input: LIST_INPUT },
-      skip: !open,
+      skip: !open || !canSelectSeller,
     }
   );
   const { data: factoriesData } = useQuery<SellerFactoriesData>(
@@ -117,21 +104,9 @@ export function useImportOrder({ onAddOptimistic }: ImportOrderModalProps) {
       skip: !open || !sellerId,
     }
   );
-  const { data: clientsData } = useQuery<SellerClientsData>(
-    ORDER_SELLER_CLIENTS_QUERY,
-    {
-      variables: {
-        input: {
-          ...LIST_INPUT,
-          filters: [
-            { field: "seller_id", operator: "eq", value: sellerId },
-            { field: "factory_id", operator: "eq", value: factoryId },
-          ],
-        },
-      },
-      skip: !open || !sellerId || !factoryId,
-    }
-  );
+  // Carteira do vendedor naquela fábrica: a única lista destes modais que pode
+  // passar de uma página, por isso busca no servidor (ver o hook, no pai).
+  const clients = useOrderClientOptions(open, sellerId, factoryId);
 
   const sellerOptions = useMemo(
     () =>
@@ -152,23 +127,8 @@ export function useImportOrder({ onAddOptimistic }: ImportOrderModalProps) {
     });
     return Array.from(map, ([value, label]) => ({ value, label }));
   }, [factoriesData]);
-  const clientOptions = useMemo(() => {
-    const map = new Map<string, SelectOption>();
-    clientsData?.sellerClientFactoryList?.edges?.forEach(({ node }) => {
-      if (node.client)
-        map.set(node.clientId, {
-          value: node.clientId,
-          label: clientOptionLabel(node.client),
-          searchText: clientOptionSearchText(node.client),
-        });
-    });
-    return Array.from(map.values());
-  }, [clientsData]);
-
-  const cadenceByClient = useMemo(
-    () => cadenceByClientFrom(clientsData?.sellerClientFactoryList?.edges),
-    [clientsData]
-  );
+  const clientOptions = clients.options;
+  const cadenceByClient = clients.cadenceByClient;
 
   useCoverageSuggestion(formRef, cadenceByClient.get(clientId), open);
 
@@ -181,21 +141,29 @@ export function useImportOrder({ onAddOptimistic }: ImportOrderModalProps) {
             id: "details",
             title: "Para qual pedido?",
             fields: [
-              {
-                name: "sellerId",
-                type: "select-single",
-                label: "Vendedor",
-                placeholder: "Selecione o vendedor",
-                required: true,
-                options: sellerOptions,
-                onChange: (value, setValue) => {
-                  setSellerId(extractSelectValue(value));
-                  setFactoryId("");
-                  setClientId("");
-                  setValue("factoryId", "");
-                  setValue("clientId", "");
-                },
-              },
+              // Só gestor escolhe o vendedor (ver `canSelectSeller`).
+              ...(canSelectSeller
+                ? [
+                    {
+                      name: "sellerId",
+                      type: "select-single" as const,
+                      label: "Vendedor",
+                      placeholder: "Selecione o vendedor",
+                      required: true,
+                      options: sellerOptions,
+                      onChange: (
+                        value: unknown,
+                        setValue: (n: string, v: unknown) => void
+                      ) => {
+                        setSellerId(extractSelectValue(value));
+                        setFactoryId("");
+                        setClientId("");
+                        setValue("factoryId", "");
+                        setValue("clientId", "");
+                      },
+                    },
+                  ]
+                : []),
               {
                 name: "factoryId",
                 type: "select-single",
@@ -224,6 +192,10 @@ export function useImportOrder({ onAddOptimistic }: ImportOrderModalProps) {
                 required: true,
                 disabled: !factoryId,
                 options: clientOptions,
+                // `onSearch` vem `undefined` quando a carteira coube inteira na
+                // primeira página: aí o select filtra em memória, sem latência.
+                onSearch: clients.onSearch,
+                loading: clients.loading,
                 onChange: (value) => setClientId(extractSelectValue(value)),
               },
               {
@@ -271,9 +243,12 @@ export function useImportOrder({ onAddOptimistic }: ImportOrderModalProps) {
       },
     ],
     [
+      canSelectSeller,
       sellerOptions,
       factoryOptions,
       clientOptions,
+      clients.onSearch,
+      clients.loading,
       sellerId,
       factoryId,
       paymentTermOptions,
@@ -293,7 +268,7 @@ export function useImportOrder({ onAddOptimistic }: ImportOrderModalProps) {
       if (createdOrderIdRef.current) refetchList(); // Pedido criado: lista reflete.
       setPending(null);
       createdOrderIdRef.current = null;
-      setSellerId("");
+      setSellerId(canSelectSeller ? "" : (ownSellerId ?? ""));
       setFactoryId("");
       setClientId("");
       formRef.current?.resetForm();
@@ -302,7 +277,7 @@ export function useImportOrder({ onAddOptimistic }: ImportOrderModalProps) {
 
   // Formulário válido: guarda os dados e avança para o wizard — SEM criar nada.
   const handleDetailsValid = (data: Record<string, unknown>) => {
-    setPending(normalizeInput(data));
+    setPending(normalizeInput(data, sellerId));
   };
 
   // Alvo adiado do wizard: o pedido nasce na confirmação final da importação.

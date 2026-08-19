@@ -156,6 +156,7 @@ test("comissões: recorta as parcelas pelo período em que a comissão cai", asy
             sequence: 1,
             orderDate: "2026-06-10",
             invoicedAt: "2026-06-20",
+            invoiceNumber: "12345",
             dueDate: "2026-07-20",
             paidAt: null,
             installmentAmount: "4820.00",

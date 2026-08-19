@@ -18,9 +18,12 @@ export const COMMISSIONS_PDF_COLUMNS: ReportColumn<CommissionRow>[] = [
     width: 11,
     value: (row) => (row.receiveDate ? formatDateDMY(row.receiveDate) : "—"),
   },
-  { header: "CLIENTE", width: 22, value: (row) => clientName(row.client) },
-  { header: "FÁBRICA", width: 17, value: (row) => factoryName(row.factory) },
-  { header: "VENDEDOR", width: 13, value: (row) => row.seller?.name ?? "—" },
+  { header: "CLIENTE", width: 20, value: (row) => clientName(row.client) },
+  { header: "FÁBRICA", width: 15, value: (row) => factoryName(row.factory) },
+  { header: "VENDEDOR", width: 11, value: (row) => row.seller?.name ?? "—" },
+  // A planilha que a fábrica manda vem pela NOTA: sem esta coluna, casar o
+  // repasse com a parcela é feito por cliente + valor, no olho.
+  { header: "NOTA", width: 6, value: (row) => row.invoiceNumber ?? "—" },
   {
     header: "PARC.",
     width: 5,

@@ -1,13 +1,19 @@
 import { expect, test } from "../support/fixtures";
 import { mockGraphql } from "../support/graphql";
+import { grantRole } from "../support/role";
 
 /**
  * Fluxo de ESCRITA mais complexo: criar pedido via AddOrderModal.
  *
- * Wizard de 2 passos: passo 1 (Dados) com 3 selects custom EM CASCATA
- * (Vendedor → Fábrica → Cliente — cada seleção dispara uma query e habilita o
- * próximo select) + data via atalho "Hoje"; passo 2 (Itens, opcional) é pulado
- * aqui. Escolher a fábrica já monta o catálogo do passo 2 (queries OrderItem*),
+ * O usuário do storageState é um VENDEDOR, e para ele a cascata começa na
+ * fábrica: o campo "Vendedor" só existe para gestor, porque a query `sellers`
+ * é admin-only no backend (403 para o vendedor) e o `createOrder` já força o
+ * vendedor do token. Enquanto o campo existia para todo mundo, este spec
+ * passava com o select preenchido pelo mock e a tela real ficava travada.
+ *
+ * Wizard de 2 passos: passo 1 (Dados) com selects custom EM CASCATA (Fábrica →
+ * Cliente — cada seleção dispara uma query e habilita o próximo) + data via
+ * atalho "Hoje"; passo 2 (Itens, opcional) é pulado aqui. Escolher a fábrica já monta o catálogo do passo 2 (queries OrderItem*),
  * por isso elas também são mockadas. Após sucesso: add otimista, invalidação da
  * listagem e ENTRADA no pedido recém-criado (o modal não fecha sozinho — quem o
  * desmonta é a navegação, e é isso que segura o loading do botão até lá).
@@ -189,7 +195,10 @@ test("orders: cria um pedido pela cascata vendedor→fábrica→cliente", async 
   const dialog = page.getByRole("dialog");
   await expect(dialog).toBeVisible();
 
-  await pickOption(dialog, page, "Vendedor", "Vendedor A", "Vendedor A");
+  // Vendedor logado não escolhe vendedor: o campo nem existe para ele.
+  await expect(dialog.getByRole("textbox", { name: "Vendedor" })).toHaveCount(
+    0
+  );
   await pickOption(dialog, page, "Fábrica", "Fábrica", "Fábrica Modelo");
   await pickOption(dialog, page, "Cliente", "Cliente", "Cliente XYZ");
 
@@ -217,6 +226,8 @@ test("orders: cria um pedido pela cascata vendedor→fábrica→cliente", async 
   // (vendedor/fábrica/cliente) + a data no formato ISO local.
   const createVars = await gql.waitForCall("CreateOrder");
   expect(createVars.input).toMatchObject({
+    // Veio do perfil de quem está logado (cookie `userData.sellerId`), não de
+    // um campo do formulário.
     sellerId: "seller-1",
     factoryId: "factory-1",
     clientId: "client-1",
@@ -224,4 +235,50 @@ test("orders: cria um pedido pela cascata vendedor→fábrica→cliente", async 
   expect((createVars.input as { orderDate: string }).orderDate).toMatch(
     /^\d{4}-\d{2}-\d{2}$/
   );
+});
+
+/**
+ * A outra metade da regra: o GESTOR escolhe de quem é o pedido.
+ *
+ * Sem este caso, esconder o campo para o vendedor poderia ter escondido para
+ * todo mundo — e o gestor perderia a única forma de lançar um pedido no nome de
+ * outra pessoa.
+ */
+test("orders: gestor escolhe o vendedor do pedido", async ({ page }) => {
+  await grantRole(page, "OWNER");
+  await mockGraphql(page, {
+    Orders: () => ({
+      orders_list: {
+        edges: [],
+        pageInfo: { hasNextPage: false, endCursor: null },
+        totalCount: 0,
+      },
+    }),
+    OrderStats: () => ({
+      orderStats: {
+        totalOrders: 0,
+        totalAmount: "0",
+        avgTicket: "0",
+        invoicedOrders: 0,
+        invoicedAmount: "0",
+        commissionAmount: "0",
+      },
+    }),
+    // Opções do painel de filtros (só o gestor as vê).
+    OrderFilterSellers: () => ({ order_filter_sellers: { edges: [] } }),
+    OrderFilterFactories: () => ({ order_filter_factories: { edges: [] } }),
+    OrderFilterClients: () => ({ order_filter_clients: { edges: [] } }),
+    OrderSellersOptions: () => ({
+      order_sellers_options: {
+        edges: [{ node: { id: "seller-1", name: "Vendedor A" } }],
+      },
+    }),
+  });
+
+  await page.goto("/orders");
+  await page.getByRole("button", { name: "Novo Pedido" }).click();
+
+  const dialog = page.getByRole("dialog");
+  await expect(dialog).toBeVisible();
+  await expect(dialog.getByRole("textbox", { name: "Vendedor" })).toBeEnabled();
 });

@@ -146,6 +146,29 @@ test("orders: ordenar por Valor manda `order` ao backend e marca a coluna", asyn
   ).toHaveAttribute("aria-sort", "descending");
 });
 
+test("orders: ordenar por Cliente sai pelo NOME, não pelo id", async ({
+  page,
+}) => {
+  const spy = await mockGraphql(page, {
+    Orders: () => ({ orders_list: emptyConnection() }),
+    OrderStats: () => ORDER_STATS_ZERO,
+  });
+
+  await page.goto("/orders");
+  await page.getByRole("button", { name: "Cliente" }).click();
+
+  // `client_name` não é coluna de `orders` — quem alcança a tabela do cliente é
+  // o repositório. O que prova a feature é o campo que sai na consulta: pedir
+  // `client_id` ordenaria por UUID, e a lista sairia numa ordem sem sentido.
+  await expect
+    .poll(() => JSON.stringify(spy.lastVariables("Orders") ?? {}))
+    .toContain('"order":{"by":"client_name","dir":"asc"}');
+
+  await expect(
+    page.getByRole("columnheader", { name: "Cliente" })
+  ).toHaveAttribute("aria-sort", "ascending");
+});
+
 test("orders: clicar de novo inverte a direção", async ({ page }) => {
   const spy = await mockGraphql(page, {
     Orders: () => ({ orders_list: emptyConnection() }),

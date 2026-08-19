@@ -111,6 +111,12 @@ export function useOrderFilters({
   return useMemo(
     () => [
       {
+        type: "text",
+        key: "search",
+        label: "Código do pedido",
+        placeholder: "Ex.: 3F2A9C10",
+      },
+      {
         type: "select",
         key: "sellerId",
         label: "Vendedor",

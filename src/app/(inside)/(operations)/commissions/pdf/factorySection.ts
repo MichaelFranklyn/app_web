@@ -20,6 +20,8 @@ export interface Columns {
   client: number;
   clientMax: number;
   order: number;
+  invoice: number;
+  invoiceMax: number;
   sequence: number;
   date: number;
   amount: number;
@@ -29,17 +31,24 @@ export interface Columns {
  * Colunas do A4 retrato: cliente à esquerda, dinheiro colado na direita. Os
  * vãos são medidos pelo pior caso de cada coluna (valor na casa dos milhares,
  * data completa) — com folga menor, o valor encostava na data.
+ *
+ * A nota fica entre o pedido e a parcela porque é por ela que a fábrica
+ * identifica o repasse na planilha dela: quem confere lê "cliente, nota,
+ * quanto". O espaço dela saiu do nome do cliente, que tinha folga de sobra.
  */
 export const columnsOf = (pageW: number): Columns => {
   const amount = pageW - PAGE.margin - 10;
   const date = amount - 120;
   const sequence = date - 20;
-  const order = sequence - 72;
+  const invoice = sequence - 72;
+  const order = invoice - 62;
   const client = PAGE.margin + 10;
   return {
     client,
     clientMax: order - client - 12,
     order,
+    invoice,
+    invoiceMax: sequence - invoice - 14,
     sequence,
     date,
     amount,
@@ -57,6 +66,7 @@ const drawHead = (pdf: Pdf, cols: Columns, y: number): number => {
   const textY = y + 13;
   pdf.text("CLIENTE", cols.client, textY);
   pdf.text("PEDIDO", cols.order, textY);
+  pdf.text("NOTA", cols.invoice, textY);
   pdf.text("PARC.", cols.sequence, textY, { align: "right" });
   pdf.text("RECEBER EM", cols.date, textY);
   pdf.text("COMISSÃO", cols.amount, textY, { align: "right" });
@@ -125,6 +135,13 @@ export const drawFactorySection = (
 
     setText(pdf, COLOR.muted);
     pdf.text(row.orderId.slice(0, 8).toUpperCase(), cols.order, textY);
+    // Pedido faturado antes de a nota chegar sai com o traço: o papel diz que
+    // falta o dado, em vez de deixar a célula vazia e parecer erro de impressão.
+    pdf.text(
+      truncate(pdf, row.invoiceNumber ?? "—", cols.invoiceMax),
+      cols.invoice,
+      textY
+    );
     pdf.text(String(row.sequence), cols.sequence, textY, { align: "right" });
     pdf.text(
       formatDateDMY(row.receiveDate ?? undefined) || "—",

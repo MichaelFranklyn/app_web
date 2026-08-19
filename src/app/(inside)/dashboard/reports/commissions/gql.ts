@@ -20,6 +20,7 @@ export const COMMISSIONS_REPORT_QUERY = gql`
         sequence
         orderDate
         invoicedAt
+        invoiceNumber
         dueDate
         paidAt
         installmentAmount

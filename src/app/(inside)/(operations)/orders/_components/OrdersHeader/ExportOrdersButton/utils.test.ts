@@ -41,7 +41,7 @@ describe("buildExportRows", () => {
   it("escreve dinheiro no formato que o Excel pt-BR soma", () => {
     const [row] = buildExportRows([order]);
     // Sem "R$" e com vírgula decimal: célula numérica, não texto.
-    expect(cell(row, "Valor total (R$)")).toBe("1.234,50");
+    expect(cell(row, "Valor sem impostos (R$)")).toBe("1.234,50");
     expect(cell(row, "Comissão (R$)")).toBe("61,73");
   });
 

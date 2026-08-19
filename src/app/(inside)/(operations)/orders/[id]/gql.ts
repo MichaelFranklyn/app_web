@@ -21,6 +21,7 @@ export const ORDER_DETAIL_QUERY = gql`
         notes
         createdAt
         invoicedAt
+        invoiceNumber
         deliveredAt
         deliveryEstimateDays
         coverageDays
@@ -148,6 +149,7 @@ export const INVOICE_ORDER_MUTATION = gql`
         id
         status
         invoicedAt
+        invoiceNumber
         backorderChildren {
           id
         }

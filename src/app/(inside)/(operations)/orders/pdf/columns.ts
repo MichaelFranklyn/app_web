@@ -43,7 +43,9 @@ export const ORDER_COLUMNS: ReportColumn<Order>[] = [
     value: (order) => orderStatusLabel(order.status),
   },
   {
-    header: "VALOR",
+    // Mercadoria, sem IPI nem imposto embutido — a mesma base da coluna da tela
+    // e do cálculo da comissão.
+    header: "VALOR S/ IMP.",
     width: 11,
     align: "right",
     bold: true,
@@ -62,7 +64,7 @@ const COMMISSION_INDEX = ORDER_COLUMNS.findIndex(
   (column) => column.header === "COMISSÃO"
 );
 const AMOUNT_INDEX = ORDER_COLUMNS.findIndex(
-  (column) => column.header === "VALOR"
+  (column) => column.header === "VALOR S/ IMP."
 );
 
 const sum = (orders: Order[], pick: (order: Order) => string): number =>

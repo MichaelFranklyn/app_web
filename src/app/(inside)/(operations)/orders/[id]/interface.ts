@@ -67,6 +67,8 @@ export interface OrderDetail {
   freightType: "FOB" | "CIF" | null;
   createdAt: string;
   invoicedAt: string | null;
+  /** Número da nota fiscal da fábrica; é por ele que a planilha de comissão bate. */
+  invoiceNumber: string | null;
   /** Data em que a mercadoria chegou na loja; nulo até confirmar a entrega. */
   deliveredAt: string | null;
   /** Prazo de entrega estimado (dias), contado do faturamento. */

@@ -1,5 +1,4 @@
 import { FormBuilderRef, FormStepSchema } from "@/components/FormBuilder";
-import { SelectOption } from "@/components/Input";
 import { useToast } from "@/components/Toast";
 import { useAsyncAction } from "@/hooks/useAsyncAction";
 import { useInvalidateQueriesClient } from "@/hooks/useInvalidateQueries";
@@ -11,10 +10,10 @@ import { useMemo, useRef, useState } from "react";
 import { Order } from "../../../interface";
 import {
   CREATE_ORDER_MUTATION,
-  ORDER_SELLER_CLIENTS_QUERY,
   ORDER_SELLER_FACTORIES_QUERY,
   ORDER_SELLERS_OPTIONS_QUERY,
 } from "../gql";
+import { useOrderClientOptions } from "../useOrderClientOptions";
 import { CreateOrderResponse } from "../interface";
 import { CreateOrderInput } from "../interface";
 import { normalizeInput } from "../utils";
@@ -30,12 +29,6 @@ import {
   useFreeFreightTarget,
 } from "../../../../_shared/orderFreight";
 import {
-  clientOptionLabel,
-  clientOptionSearchText,
-} from "../../../../_shared/clientOption";
-import {
-  CoverageCadence,
-  cadenceByClientFrom,
   coverageHint,
   useCoverageSuggestion,
 } from "../../../../_shared/orderCoverage";
@@ -59,30 +52,27 @@ interface SellerFactoriesData {
   };
 }
 
-interface SellerClientsData {
-  sellerClientFactoryList: {
-    edges: {
-      node: {
-        clientId: string;
-        client: {
-          id: string;
-          razaoSocial: string;
-          nomeFantasia: string | null;
-          cnpj: string | null;
-        } | null;
-        cadence: CoverageCadence | null;
-      };
-    }[];
-  };
-}
-
+// Vendedores e fábricas por empresa cabem numa página só (dezenas).
 const LIST_INPUT = { first: 200 };
 
 export interface AddOrderModalProps {
   onAddOptimistic: (order: Order) => void;
+  /**
+   * Gestor (owner/admin/su) escolhe de quem é o pedido. O vendedor não: a query
+   * `sellers` é admin-only no backend (403 para ele), e o `createOrder` já
+   * força o vendedor do token. Enquanto o campo existia para todo mundo, o
+   * vendedor abria o modal com um select vazio e não conseguia nem avançar.
+   */
+  canSelectSeller: boolean;
+  /** Perfil de vendedor de quem está usando a tela — o dono do pedido quando não há escolha. */
+  ownSellerId: string | null;
 }
 
-export function useAddOrder({ onAddOptimistic }: AddOrderModalProps) {
+export function useAddOrder({
+  onAddOptimistic,
+  canSelectSeller,
+  ownSellerId,
+}: AddOrderModalProps) {
   const [open, setOpen] = useState(false);
   // 0 = dados do pedido, 1 = itens (opcional).
   const [step, setStep] = useState(0);
@@ -93,8 +83,11 @@ export function useAddOrder({ onAddOptimistic }: AddOrderModalProps) {
   const { redirect, isRedirecting } = useRedirectTransition();
   const { toast } = useToast();
 
-  // Seleção em cascata: vendedor → fábrica → cliente.
-  const [sellerId, setSellerId] = useState("");
+  // Seleção em cascata: vendedor → fábrica → cliente. Sem escolha de vendedor,
+  // a cascata já começa no próprio perfil e a fábrica abre destravada.
+  const [sellerId, setSellerId] = useState(
+    canSelectSeller ? "" : (ownSellerId ?? "")
+  );
   const [factoryId, setFactoryId] = useState("");
   // O cliente também é estado (não só campo do form) porque o passo 2 usa o
   // nível acordado com ele para sugerir o preço dos itens.
@@ -122,7 +115,7 @@ export function useAddOrder({ onAddOptimistic }: AddOrderModalProps) {
 
   const { data: sellersData } = useQuery<SellersOptionsData>(
     ORDER_SELLERS_OPTIONS_QUERY,
-    { variables: { input: LIST_INPUT }, skip: !open }
+    { variables: { input: LIST_INPUT }, skip: !open || !canSelectSeller }
   );
 
   const { data: factoriesData } = useQuery<SellerFactoriesData>(
@@ -138,21 +131,9 @@ export function useAddOrder({ onAddOptimistic }: AddOrderModalProps) {
     }
   );
 
-  const { data: clientsData } = useQuery<SellerClientsData>(
-    ORDER_SELLER_CLIENTS_QUERY,
-    {
-      variables: {
-        input: {
-          ...LIST_INPUT,
-          filters: [
-            { field: "seller_id", operator: "eq", value: sellerId },
-            { field: "factory_id", operator: "eq", value: factoryId },
-          ],
-        },
-      },
-      skip: !open || !sellerId || !factoryId,
-    }
-  );
+  // Carteira do vendedor naquela fábrica: a única lista destes modais que pode
+  // passar de uma página, por isso busca no servidor (ver o hook).
+  const clients = useOrderClientOptions(open, sellerId, factoryId);
 
   const sellerOptions = useMemo(
     () =>
@@ -176,26 +157,8 @@ export function useAddOrder({ onAddOptimistic }: AddOrderModalProps) {
     return Array.from(map, ([value, label]) => ({ value, label }));
   }, [factoriesData]);
 
-  const clientOptions = useMemo(() => {
-    const map = new Map<string, SelectOption>();
-    clientsData?.sellerClientFactoryList?.edges?.forEach(({ node }) => {
-      if (node.client) {
-        map.set(node.clientId, {
-          value: node.clientId,
-          label: clientOptionLabel(node.client),
-          searchText: clientOptionSearchText(node.client),
-        });
-      }
-    });
-    return Array.from(map.values());
-  }, [clientsData]);
-
-  // A cadência de cada cliente nesta fábrica: é dela que sai a sugestão de
-  // cobertura. Vem na mesma consulta das opções — nenhuma requisição a mais.
-  const cadenceByClient = useMemo(
-    () => cadenceByClientFrom(clientsData?.sellerClientFactoryList?.edges),
-    [clientsData]
-  );
+  const clientOptions = clients.options;
+  const cadenceByClient = clients.cadenceByClient;
 
   useCoverageSuggestion(formRef, cadenceByClient.get(clientId), open);
 
@@ -218,21 +181,29 @@ export function useAddOrder({ onAddOptimistic }: AddOrderModalProps) {
                   { label: "Orçamento", value: "quote" },
                 ],
               },
-              {
-                name: "sellerId",
-                type: "select-single",
-                label: "Vendedor",
-                placeholder: "Selecione o vendedor",
-                required: true,
-                options: sellerOptions,
-                onChange: (value, setValue) => {
-                  setSellerId(extractSelectValue(value));
-                  setFactoryId("");
-                  setClientId("");
-                  setValue("factoryId", "");
-                  setValue("clientId", "");
-                },
-              },
+              // Só gestor escolhe o vendedor (ver `canSelectSeller`).
+              ...(canSelectSeller
+                ? [
+                    {
+                      name: "sellerId",
+                      type: "select-single" as const,
+                      label: "Vendedor",
+                      placeholder: "Selecione o vendedor",
+                      required: true,
+                      options: sellerOptions,
+                      onChange: (
+                        value: unknown,
+                        setValue: (n: string, v: unknown) => void
+                      ) => {
+                        setSellerId(extractSelectValue(value));
+                        setFactoryId("");
+                        setClientId("");
+                        setValue("factoryId", "");
+                        setValue("clientId", "");
+                      },
+                    },
+                  ]
+                : []),
               {
                 name: "factoryId",
                 type: "select-single",
@@ -240,6 +211,8 @@ export function useAddOrder({ onAddOptimistic }: AddOrderModalProps) {
                 placeholder: sellerId
                   ? "Selecione a fábrica"
                   : "Selecione o vendedor primeiro",
+                // Sem vendedor escolhido não há fábrica para listar (as opções
+                // saem do acesso DELE); com o vendedor implícito, já abre livre.
                 required: true,
                 disabled: !sellerId,
                 options: factoryOptions,
@@ -262,6 +235,10 @@ export function useAddOrder({ onAddOptimistic }: AddOrderModalProps) {
                 required: true,
                 disabled: !factoryId,
                 options: clientOptions,
+                // `onSearch` vem `undefined` quando a carteira coube inteira na
+                // primeira página: aí o select filtra em memória, sem latência.
+                onSearch: clients.onSearch,
+                loading: clients.loading,
                 onChange: (value) => setClientId(extractSelectValue(value)),
               },
               {
@@ -316,9 +293,12 @@ export function useAddOrder({ onAddOptimistic }: AddOrderModalProps) {
       },
     ],
     [
+      canSelectSeller,
       sellerOptions,
       factoryOptions,
       clientOptions,
+      clients.onSearch,
+      clients.loading,
       sellerId,
       factoryId,
       paymentTermOptions,
@@ -340,7 +320,7 @@ export function useAddOrder({ onAddOptimistic }: AddOrderModalProps) {
     if (!v) {
       formRef.current?.resetForm();
       setStep(0);
-      setSellerId("");
+      setSellerId(canSelectSeller ? "" : (ownSellerId ?? ""));
       setFactoryId("");
       setClientId("");
       setOrderDetails(null);
@@ -350,7 +330,7 @@ export function useAddOrder({ onAddOptimistic }: AddOrderModalProps) {
 
   // Passo 1 válido: guarda os dados e avança para os itens.
   const handleDetailsValid = (data: Record<string, unknown>) => {
-    setOrderDetails(normalizeInput(data));
+    setOrderDetails(normalizeInput(data, sellerId));
     setStep(1);
   };
 

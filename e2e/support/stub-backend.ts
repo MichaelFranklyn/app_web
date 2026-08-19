@@ -34,6 +34,11 @@ const SSR_RESPONSES: Record<string, unknown> = {
   // (rota /api/session), fora do alcance do page.route do browser — então o stub
   // precisa respondê-las como qualquer fetch SSR do Next.
   Login: loginSuccess(),
+  // Rede do dono do pedido: só é consultada quando o cookie não traz o
+  // `sellerId` (sessão antiga) — ver `resolveOwnSellerId` em orders/page.tsx.
+  MySellerProfileId: {
+    mySellerProfile: { status: true, data: { id: "seller-1" } },
+  },
   ResetPassword: {
     resetPassword: {
       status: true,

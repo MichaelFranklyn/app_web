@@ -1,8 +1,29 @@
 import { Card } from "@/components/Card";
 import { Divider } from "@/components/Divider";
+import { HelpTooltip } from "@/components/HelpTooltip";
 import { Title } from "@/components/Title";
 import { formatMoney } from "@/utils/format/masks";
+import { ReactNode } from "react";
+import { SUMMARY_HELP } from "../../../help";
 import { OrderDetail } from "../../interface";
+
+/**
+ * Rótulo com o "?" ao lado. Cada linha deste resumo soma uma base diferente
+ * (com IPI, sem IPI, só a comissão) e é aqui que o vendedor confere o pedido
+ * contra o que a fábrica cobrou — o rótulo sozinho não diz qual é qual.
+ */
+const LabelWithHelp = ({
+  children,
+  help,
+}: {
+  children: ReactNode;
+  help: ReactNode;
+}) => (
+  <Card.Item.Label className="inline-flex items-center gap-2">
+    {children}
+    <HelpTooltip label="Sobre este valor" content={help} position="left" />
+  </Card.Item.Label>
+);
 
 interface Props {
   order: OrderDetail;
@@ -28,21 +49,25 @@ export function OrderSummaryCard({ order }: Props) {
         {hasIpi && (
           <>
             <Card.Item variant="stat">
-              <Card.Item.Label>Subtotal (sem IPI)</Card.Item.Label>
+              <LabelWithHelp help={SUMMARY_HELP.subtotal}>
+                Subtotal (sem IPI)
+              </LabelWithHelp>
               <Card.Item.Value>
                 {formatMoney(subtotalWithTax.toFixed(2))}
               </Card.Item.Value>
             </Card.Item>
             <Divider.Root className="my-2" />
             <Card.Item variant="stat">
-              <Card.Item.Label>IPI</Card.Item.Label>
+              <LabelWithHelp help={SUMMARY_HELP.ipi}>IPI</LabelWithHelp>
               <Card.Item.Value>{formatMoney(order.ipiAmount)}</Card.Item.Value>
             </Card.Item>
             <Divider.Root className="my-2" />
           </>
         )}
         <Card.Item variant="stat">
-          <Card.Item.Label>Total do pedido</Card.Item.Label>
+          <LabelWithHelp help={SUMMARY_HELP.total}>
+            Total do pedido
+          </LabelWithHelp>
           <Card.Item.Value>
             <Title variant="body" weight="bold" className="text-[15px]">
               {formatMoney(grandTotal.toFixed(2))}
@@ -51,19 +76,21 @@ export function OrderSummaryCard({ order }: Props) {
         </Card.Item>
         <Divider.Root className="my-2" />
         <Card.Item variant="stat">
-          <Card.Item.Label>Comissão</Card.Item.Label>
+          <LabelWithHelp help={SUMMARY_HELP.commission}>Comissão</LabelWithHelp>
           <Card.Item.Value color="amber">
             {formatMoney(order.commissionAmount)}
           </Card.Item.Value>
         </Card.Item>
         <Divider.Root className="my-2" />
         <Card.Item variant="stat">
-          <Card.Item.Label>Prazo de pagamento</Card.Item.Label>
+          <LabelWithHelp help={SUMMARY_HELP.paymentTerm}>
+            Prazo de pagamento
+          </LabelWithHelp>
           <Card.Item.Value>{order.paymentTerm?.name ?? "—"}</Card.Item.Value>
         </Card.Item>
         <Divider.Root className="my-2" />
         <Card.Item variant="stat">
-          <Card.Item.Label>Frete</Card.Item.Label>
+          <LabelWithHelp help={SUMMARY_HELP.freight}>Frete</LabelWithHelp>
           <Card.Item.Value>
             {order.freightType === "FOB"
               ? "FOB — por conta do cliente"

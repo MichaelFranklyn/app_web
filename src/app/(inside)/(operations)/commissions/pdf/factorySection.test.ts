@@ -9,7 +9,8 @@ describe("columnsOf", () => {
 
   it("mantém as colunas na ordem de leitura, dentro da margem", () => {
     expect(cols.client).toBeLessThan(cols.order);
-    expect(cols.order).toBeLessThan(cols.sequence);
+    expect(cols.order).toBeLessThan(cols.invoice);
+    expect(cols.invoice).toBeLessThan(cols.sequence);
     expect(cols.sequence).toBeLessThan(cols.date);
     expect(cols.date).toBeLessThan(cols.amount);
     expect(cols.amount).toBeLessThanOrEqual(PAGE_W - 40);
@@ -23,5 +24,11 @@ describe("columnsOf", () => {
 
   it("reserva espaço de sobra para o nome do cliente", () => {
     expect(cols.clientMax).toBeGreaterThan(200);
+  });
+
+  it("cabe uma nota com série na coluna da nota", () => {
+    // "123456-1" em helvetica 8.5 fica na casa dos 35pt; a folga aqui aceita
+    // numeração longa sem invadir a coluna da parcela.
+    expect(cols.invoiceMax).toBeGreaterThanOrEqual(50);
   });
 });

@@ -4,6 +4,8 @@ import { buildQueryFilters } from "@/hooks/useTableData";
 import { OrdersStats } from "./interface";
 import {
   buildOrderKpis,
+  ORDER_SORT_LABELS,
+  ORDER_SORTABLE_FIELDS,
   ORDER_STATUS_LABELS,
   ORDER_STATUS_OPTIONS,
   ORDER_TABLE_FIELDS,
@@ -20,6 +22,23 @@ const stats = (over: Partial<OrdersStats["orderStats"]> = {}): OrdersStats => ({
     commissionAmount: "20",
     ...over,
   },
+});
+
+describe("ORDER_SORTABLE_FIELDS", () => {
+  it("aceita ordenar por cliente, fábrica e vendedor", () => {
+    // Não são colunas de `orders`: quem faz o ORDER BY alcançar a tabela
+    // vizinha é o repositório de pedidos. Se a allowlist do cliente não os
+    // trouxer, o clique no cabeçalho não vira consulta nenhuma.
+    expect(ORDER_SORTABLE_FIELDS).toEqual(
+      expect.arrayContaining(["client_name", "factory_name", "seller_name"])
+    );
+  });
+
+  it("dá nome de papel a cada campo ordenável", () => {
+    ORDER_SORTABLE_FIELDS.forEach((field) => {
+      expect(ORDER_SORT_LABELS[field]).toBeTruthy();
+    });
+  });
 });
 
 describe("ORDER_TABLE_FIELDS", () => {
@@ -123,9 +142,14 @@ describe("buildOrderKpis", () => {
   });
 
   it("muda a legenda quando há filtro ativo", () => {
-    expect(buildOrderKpis(stats(), false)[0].delta).toBe("pedidos da empresa");
+    // "feitos" não é enfeite: os cartões contam só confirmado/faturado/entregue
+    // (ver `_apply_placed_only` no backend), e a lista abaixo mostra também
+    // orçamento e cancelado — o número menor precisa se explicar.
+    expect(buildOrderKpis(stats(), false)[0].delta).toBe(
+      "pedidos feitos da empresa"
+    );
     expect(buildOrderKpis(stats(), true)[0].delta).toBe(
-      "pedidos no filtro atual"
+      "pedidos feitos no filtro atual"
     );
   });
 

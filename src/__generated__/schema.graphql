@@ -2555,6 +2555,8 @@ type OrderType {
   status: OrderStatus!
   paymentTermId: UUID
   invoicedAt: Date
+  """Número da nota fiscal emitida pela fábrica. É por ele que a planilha de comissão da fábrica identifica o pedido. Nulo quando ainda não informado."""
+  invoiceNumber: String
   """Data em que a mercadoria chegou na loja do cliente. Nulo até confirmar a entrega; é quando o estoque do cliente é reabastecido."""
   deliveredAt: Date
   """Prazo de entrega estimado em dias (herda o padrão da fábrica). Nulo = sem previsão."""
@@ -2648,6 +2650,8 @@ input UpdateOrderInput {
 input InvoiceOrderInput {
   invoicedAt: Date!
   paymentTermId: UUID = null
+  """Número da nota fiscal da fábrica. Opcional: a nota nem sempre está em mãos na hora de lançar; pode ser preenchida depois em `reviseOrderInvoice`."""
+  invoiceNumber: String = null
   """Faturamento PARCIAL: quantidade faturada (em unidades) por item, quando a fábrica não tinha tudo em estoque. Itens do pedido não listados aqui são faturados por inteiro. A sobra (pedida − faturada) de cada item vira um pedido-filho (backorder) CONFIRMADO, faturado depois. Omitir a lista = fatura o pedido inteiro (comportamento normal)."""
   items: [InvoiceOrderItemInput!] = null
   """No faturamento parcial, CANCELA a sobra em vez de gerar o pedido-filho (backorder): o que não foi faturado sai do pedido e não fica pendente. Só tem efeito junto com `items`."""
@@ -2665,6 +2669,10 @@ fature de novo.
 """
 input ReviseOrderInvoiceInput {
   invoicedAt: Date = null
+  """Número da nota fiscal da fábrica. É por aqui que a nota é preenchida depois do faturamento."""
+  invoiceNumber: String = null
+  """Apaga o número da nota (lançado errado). Sem isto, nulo significa "não mexer"."""
+  clearInvoiceNumber: Boolean = false
   paymentTermId: UUID = null
   """Deixa o pedido SEM prazo (à vista). Só em fábrica que paga comissão no faturamento."""
   clearPaymentTerm: Boolean = false
@@ -2698,6 +2706,8 @@ type CommissionRowType {
   sequence: Int!
   orderDate: Date!
   invoicedAt: Date
+  """Nota fiscal do pedido — a chave pela qual a fábrica identifica o repasse na planilha dela."""
+  invoiceNumber: String
   dueDate: Date
   paidAt: Date
   installmentAmount: Decimal!

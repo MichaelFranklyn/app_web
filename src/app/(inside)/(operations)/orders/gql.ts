@@ -63,6 +63,26 @@ export const ORDER_FILTER_CLIENTS_QUERY = gql`
   }
 `;
 
+/**
+ * Perfil de vendedor de quem está logado — só o id.
+ *
+ * Rede de segurança do vendedor: o dono do pedido normalmente sai do cookie
+ * `userData`, mas sessão antiga (aberta antes de o cookie levar o `sellerId`)
+ * chegaria aqui sem ele, e o `createOrder` recusaria um `sellerId` vazio. Esta
+ * query é permitida a qualquer usuário com perfil — ao contrário de `sellers`,
+ * que é admin-only.
+ */
+export const MY_SELLER_PROFILE_QUERY = gql`
+  query MySellerProfileId {
+    mySellerProfile {
+      status
+      data {
+        id
+      }
+    }
+  }
+`;
+
 export const ORDERS_QUERY = gql`
   query Orders($input: BaseListInput!) {
     orders_list: orders(input: $input) {
