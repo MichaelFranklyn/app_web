@@ -1,10 +1,11 @@
 "use client";
 
-import { Table } from "@/components/Table";
+import { Badge } from "@/components/Badges";
+import { Table, TableSort } from "@/components/Table";
 import { Title } from "@/components/Title";
 import { formatMoney } from "@/utils/format/masks";
 import { ChevronDown } from "lucide-react";
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import {
   CommissionTab,
   factoryHighlights,
@@ -13,9 +14,11 @@ import {
   summarizeRows,
   YearMonth,
 } from "../../utils";
-import { BulkActionsBar } from "../BulkActionsBar";
 import { CommissionsTable } from "../CommissionsTable";
 import { MarkReceivedModal } from "../MarkReceivedModal";
+
+/** Nada marcado neste cartão: um Set só, para não recriar um por render. */
+const EMPTY_SELECTION: Set<string> = new Set();
 
 interface Props {
   /** Linhas da fábrica já recortadas pelos filtros da tela (mês e situação). */
@@ -27,6 +30,18 @@ interface Props {
   defaultOpen?: boolean;
   /** Gestor (admin/owner): mostra conferência e repasse. Vendedor: só visualiza. */
   canManage: boolean;
+  /**
+   * Ordenação da tela, publicada para os cabeçalhos desta tabela. É a MESMA de
+   * todos os cartões: escolhida uma vez, as fábricas ficam comparáveis entre si.
+   */
+  sort: TableSort;
+  /**
+   * Parcelas marcadas NESTA fábrica, ou `undefined` quando a seleção viva é de
+   * outro cartão. A seleção mora na página — ver `useScopedSelection`.
+   */
+  selectedIds?: Set<string>;
+  onToggleRow?: (installmentId: string) => void;
+  onToggleAll?: (installmentIds: string[]) => void;
   onChanged: () => void;
 }
 
@@ -39,6 +54,10 @@ interface Props {
  * O mês vem pronto do filtro da página: o cartão não escolhe o seu. Antes cada
  * um tinha o próprio seletor, e a tela acabava mostrando fábricas em meses
  * diferentes enquanto o topo somava outro.
+ *
+ * A seleção também vem de fora, e continua sendo POR FÁBRICA: a conferência
+ * acontece contra a planilha de uma fábrica por vez, e um lote que misturasse
+ * fábricas seria marcado com a data de repasse errada.
  */
 export function FactoryCommissionGroup({
   group,
@@ -46,30 +65,20 @@ export function FactoryCommissionGroup({
   tab,
   defaultOpen = false,
   canManage,
+  sort,
+  selectedIds,
+  onToggleRow,
+  onToggleAll,
   onChanged,
 }: Props) {
   const [open, setOpen] = useState(defaultOpen);
-  // A seleção é POR FÁBRICA de propósito: a conferência acontece contra a
-  // planilha de uma fábrica por vez, e um lote que misturasse fábricas seria
-  // marcado com a data de repasse errada.
-  const [selectedIds, setSelectedIds] = useState<Set<string>>(new Set());
+  const selectedCount = selectedIds?.size ?? 0;
 
-  const toggleRow = (installmentId: string) =>
-    setSelectedIds((current) => {
-      const next = new Set(current);
-      if (next.has(installmentId)) next.delete(installmentId);
-      else next.add(installmentId);
-      return next;
-    });
-
-  const toggleAll = () =>
-    setSelectedIds((current) =>
-      current.size === group.rows.length
-        ? new Set()
-        : new Set(group.rows.map((row) => row.installmentId))
-    );
-
-  const clearSelection = () => setSelectedIds(new Set());
+  // Marcar linha num cartão fechado é impossível, mas a seleção pode sobreviver
+  // a um "recolher" — reabrir o cartão é o que devolve o contexto do lote.
+  useEffect(() => {
+    if (selectedCount > 0) setOpen(true);
+  }, [selectedCount]);
 
   const summary = useMemo(() => summarizeRows(group.rows), [group.rows]);
   const highlights = useMemo(
@@ -81,7 +90,7 @@ export function FactoryCommissionGroup({
   const allReconciled = total > 0 && summary.reconciledCount === total;
 
   return (
-    <Table.Root>
+    <Table.Root sort={sort}>
       <div className="flex flex-wrap items-center gap-16 p-16">
         <button
           type="button"
@@ -95,7 +104,16 @@ export function FactoryCommissionGroup({
             }`}
           />
           <div className="flex flex-col gap-2">
-            <Title variant="heading-sm">{group.name}</Title>
+            <div className="flex flex-wrap items-center gap-8">
+              <Title variant="heading-sm">{group.name}</Title>
+              {/* Eco da seleção no TOPO: quem marca a primeira linha está aqui
+                  em cima, e a barra de atalhos aparece na base da janela. */}
+              {selectedCount > 0 && (
+                <Badge.Root color="amber" appearance="tinted">
+                  <Badge.Text>{selectedCount} selecionada(s)</Badge.Text>
+                </Badge.Root>
+              )}
+            </div>
             <Title
               variant="caption"
               color={canManage && allReconciled ? "green" : "muted"}
@@ -138,24 +156,15 @@ export function FactoryCommissionGroup({
             rows={group.rows}
             loading={false}
             canManage={canManage}
-            selectedIds={canManage ? selectedIds : undefined}
-            onToggleRow={canManage ? toggleRow : undefined}
-            onToggleAll={canManage ? toggleAll : undefined}
+            selectedIds={selectedIds ?? EMPTY_SELECTION}
+            onToggleRow={onToggleRow}
+            onToggleAll={
+              onToggleAll
+                ? () => onToggleAll(group.rows.map((row) => row.installmentId))
+                : undefined
+            }
             onChanged={onChanged}
           />
-          {canManage && (
-            <BulkActionsBar
-              selectedIds={Array.from(selectedIds)}
-              receivableIds={group.rows
-                .filter(
-                  (row) =>
-                    selectedIds.has(row.installmentId) && row.isReceivable
-                )
-                .map((row) => row.installmentId)}
-              onClear={clearSelection}
-              onChanged={onChanged}
-            />
-          )}
         </div>
       )}
     </Table.Root>

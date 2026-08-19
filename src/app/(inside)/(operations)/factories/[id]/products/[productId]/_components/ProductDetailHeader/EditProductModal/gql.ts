@@ -36,6 +36,7 @@ export const PRODUCT_CATEGORIES_OPTIONS_QUERY = gql`
           segment
         }
       }
+      totalCount
     }
   }
 `;
@@ -49,6 +50,7 @@ export const PRODUCT_UNITS_OPTIONS_QUERY = gql`
           label
         }
       }
+      totalCount
     }
   }
 `;
@@ -62,6 +64,7 @@ export const PRODUCT_UNIT_LABELS_OPTIONS_QUERY = gql`
           label
         }
       }
+      totalCount
     }
   }
 `;

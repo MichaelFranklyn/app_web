@@ -4,11 +4,11 @@ export interface CatalogOption {
 }
 
 export interface ProductUnitsData {
-  productUnits: { edges: { node: CatalogOption }[] };
+  productUnits: { edges: { node: CatalogOption }[]; totalCount: number };
 }
 
 export interface ProductUnitLabelsData {
-  productUnitLabels: { edges: { node: CatalogOption }[] };
+  productUnitLabels: { edges: { node: CatalogOption }[]; totalCount: number };
 }
 
 /** Uma coluna de preço da planilha vinculada a um nível comercial. */

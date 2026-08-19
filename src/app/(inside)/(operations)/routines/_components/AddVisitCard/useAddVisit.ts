@@ -2,7 +2,8 @@ import { SelectOption } from "@/components/Input";
 import { useAsyncAction } from "@/hooks/useAsyncAction";
 import { useQueryErrorToast } from "@/hooks/useQueryErrorToast";
 import { clientDisplayName } from "@/utils/client";
-import { useMutation, useQuery } from "@apollo/client/react";
+import { useCompleteList } from "@/hooks/useCompleteList";
+import { useMutation } from "@apollo/client/react";
 import { useEffect, useMemo, useState } from "react";
 
 import {
@@ -46,6 +47,9 @@ const countByType = (
 ): number =>
   (day?.items ?? []).filter((i) => i.contactType === contactType).length;
 
+// Carteira do vendedor carregada por inteiro (ver useCompleteList).
+const getLinks = (d: SellerClientLinksQueryData) => d.seller_client_links;
+
 export function useAddVisit({
   open,
   onOpenChange,
@@ -62,17 +66,18 @@ export function useAddVisit({
   // Passa para a etapa de confirmação quando o dia já está no limite.
   const [confirmingOverLimit, setConfirmingOverLimit] = useState(false);
 
-  const linksQuery = useQuery<SellerClientLinksQueryData>(
+  const bySeller = useMemo(
+    () => ({
+      filters: [{ field: "seller_id", operator: "eq", value: sellerId }],
+    }),
+    [sellerId]
+  );
+
+  const linksQuery = useCompleteList<SellerClientLinksQueryData>(
     SELLER_CLIENT_LINKS_QUERY,
-    {
-      variables: {
-        input: {
-          first: 500,
-          filters: [{ field: "seller_id", operator: "eq", value: sellerId }],
-        },
-      },
-      skip: !open,
-    }
+    bySeller,
+    getLinks,
+    { skip: !open }
   );
 
   const [createVisitItem] = useMutation<CreateVisitItemResponse>(

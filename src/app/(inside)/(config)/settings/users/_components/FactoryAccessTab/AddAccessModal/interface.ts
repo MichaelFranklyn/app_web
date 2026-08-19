@@ -10,6 +10,7 @@ export interface CreateAccessResponse {
 export interface SellersOptionsData {
   sellers_options: {
     edges: { node: { id: string; name: string; isActive: boolean } }[];
+    totalCount: number;
   };
 }
 
@@ -25,6 +26,7 @@ export interface CompanyFactoriesOptionsData {
         } | null;
       };
     }[];
+    totalCount: number;
   };
 }
 
@@ -33,5 +35,6 @@ export interface SellerAccessesData {
     edges: {
       node: { sellerId: string; factoryId: string; isActive: boolean };
     }[];
+    totalCount: number;
   };
 }

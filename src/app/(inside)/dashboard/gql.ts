@@ -10,6 +10,7 @@ export const DASHBOARD_SELLERS_QUERY = gql`
           name
         }
       }
+      totalCount
     }
   }
 `;

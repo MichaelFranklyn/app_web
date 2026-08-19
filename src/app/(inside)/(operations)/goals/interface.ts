@@ -32,6 +32,7 @@ export interface SellerGoalsResponse {
 export interface GoalsSellersResponse {
   goals_sellers: {
     edges: { node: { id: string; name: string; isActive: boolean } }[];
+    totalCount: number;
   };
 }
 
@@ -49,5 +50,6 @@ export interface GoalsFactoriesResponse {
         } | null;
       };
     }[];
+    totalCount: number;
   };
 }

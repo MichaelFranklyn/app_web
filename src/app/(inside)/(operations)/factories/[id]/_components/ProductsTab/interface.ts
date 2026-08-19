@@ -4,18 +4,21 @@
 export interface ProductCategoriesData {
   productCategories: {
     edges: { node: { id: string; name: string } }[];
+    totalCount: number;
   };
 }
 
 export interface ProductUnitsData {
   productUnits: {
     edges: { node: { id: string; label: string } }[];
+    totalCount: number;
   };
 }
 
 export interface ProductUnitLabelsData {
   productUnitLabels: {
     edges: { node: { id: string; label: string } }[];
+    totalCount: number;
   };
 }
 

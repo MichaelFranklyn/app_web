@@ -11,7 +11,8 @@ import { Modal } from "@/components/Modal";
 import { useAsyncAction } from "@/hooks/useAsyncAction";
 import { extractSelectValue } from "@/utils/form";
 import { factoryName } from "@/utils/company";
-import { useMutation, useQuery } from "@apollo/client/react";
+import { useCompleteList } from "@/hooks/useCompleteList";
+import { useMutation } from "@apollo/client/react";
 import { Plus } from "lucide-react";
 import { useMemo, useRef, useState } from "react";
 
@@ -30,26 +31,38 @@ interface Props {
   onAdded: () => void;
 }
 
+// Catálogos pequenos carregados por inteiro (ver useCompleteList).
+const EMPTY_INPUT = {};
+const getFactories = (d: CompanyFactoriesOptionsData) =>
+  d.company_factories_options;
+const getAccesses = (d: SellerAccessesData) => d.seller_accesses;
+
 export function AddFactoryAccessModal({ sellerId, onAdded }: Props) {
   const [open, setOpen] = useState(false);
   const formRef = useRef<FormBuilderRef>(null);
 
   const { data: factoriesData, error: factoriesError } =
-    useQuery<CompanyFactoriesOptionsData>(COMPANY_FACTORIES_OPTIONS_QUERY, {
-      variables: { input: { first: 200 } },
-      skip: !open,
-    });
+    useCompleteList<CompanyFactoriesOptionsData>(
+      COMPANY_FACTORIES_OPTIONS_QUERY,
+      EMPTY_INPUT,
+      getFactories,
+      { skip: !open }
+    );
+
+  const bySeller = useMemo(
+    () => ({
+      filters: [{ field: "seller_id", operator: "eq", value: sellerId }],
+    }),
+    [sellerId]
+  );
 
   const { data: accessesData, error: accessesError } =
-    useQuery<SellerAccessesData>(SELLER_ACCESSES_QUERY, {
-      variables: {
-        input: {
-          first: 200,
-          filters: [{ field: "seller_id", operator: "eq", value: sellerId }],
-        },
-      },
-      skip: !open,
-    });
+    useCompleteList<SellerAccessesData>(
+      SELLER_ACCESSES_QUERY,
+      bySeller,
+      getAccesses,
+      { skip: !open }
+    );
 
   const linkedFactoryIds = useMemo(
     () =>

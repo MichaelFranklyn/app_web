@@ -94,6 +94,7 @@ export const PRODUCT_CATEGORIES_QUERY = gql`
           name
         }
       }
+      totalCount
     }
   }
 `;
@@ -107,6 +108,7 @@ export const PRODUCT_UNITS_QUERY = gql`
           label
         }
       }
+      totalCount
     }
   }
 `;
@@ -120,6 +122,7 @@ export const PRODUCT_UNIT_LABELS_QUERY = gql`
           label
         }
       }
+      totalCount
     }
   }
 `;

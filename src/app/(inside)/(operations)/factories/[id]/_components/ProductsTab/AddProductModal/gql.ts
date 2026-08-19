@@ -10,6 +10,7 @@ export const TAX_RULES_QUERY = gql`
           name
         }
       }
+      totalCount
     }
   }
 `;
@@ -50,6 +51,7 @@ export const FACTORY_PRICE_LISTS_OPTIONS_QUERY = gql`
           isActive
         }
       }
+      totalCount
     }
   }
 `;
@@ -63,6 +65,7 @@ export const PRICE_TIERS_OPTIONS_QUERY = gql`
           name
         }
       }
+      totalCount
     }
   }
 `;

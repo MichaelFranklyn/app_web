@@ -35,6 +35,11 @@ interface Props {
   /** Executa a ação com a data escolhida (ISO). Deve lançar erro em falha. */
   onConfirm: (isoDate: string) => Promise<void>;
   onSuccess: () => void;
+  /**
+   * Bloco mostrado acima do campo de data — o que a ação vai causar, em número.
+   * A descrição do cabeçalho explica a regra; isto explica ESTE lote.
+   */
+  children?: React.ReactNode;
 }
 
 /**
@@ -60,6 +65,7 @@ export function DateActionModal({
   onOpenChange,
   onConfirm,
   onSuccess,
+  children,
 }: Props) {
   const [uncontrolledOpen, setUncontrolledOpen] = useState(false);
   const isControlled = controlledOpen !== undefined;
@@ -132,6 +138,7 @@ export function DateActionModal({
       <Modal.Content size="sm">
         <Modal.Header title={title} description={description} />
         <Modal.Body>
+          {children}
           <FormBuilder
             ref={formRef}
             steps={steps}

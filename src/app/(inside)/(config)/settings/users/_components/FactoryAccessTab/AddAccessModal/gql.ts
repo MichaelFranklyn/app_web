@@ -24,6 +24,7 @@ export const SELLERS_OPTIONS_QUERY = gql`
           isActive
         }
       }
+      totalCount
     }
   }
 `;
@@ -42,6 +43,7 @@ export const COMPANY_FACTORIES_OPTIONS_QUERY = gql`
           }
         }
       }
+      totalCount
     }
   }
 `;
@@ -56,6 +58,7 @@ export const SELLER_ACCESSES_QUERY = gql`
           isActive
         }
       }
+      totalCount
     }
   }
 `;

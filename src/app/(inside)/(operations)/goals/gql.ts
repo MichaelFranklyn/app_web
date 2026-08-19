@@ -43,6 +43,7 @@ export const GOALS_SELLERS_QUERY = gql`
           isActive
         }
       }
+      totalCount
     }
   }
 `;
@@ -63,6 +64,7 @@ export const GOALS_FACTORIES_QUERY = gql`
           }
         }
       }
+      totalCount
     }
   }
 `;

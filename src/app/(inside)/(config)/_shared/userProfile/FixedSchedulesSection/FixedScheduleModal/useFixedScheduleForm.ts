@@ -3,7 +3,8 @@ import { useAsyncAction } from "@/hooks/useAsyncAction";
 import { useQueryErrorToast } from "@/hooks/useQueryErrorToast";
 import { clientName } from "@/utils/company";
 import { extractSelectValue } from "@/utils/form";
-import { useMutation, useQuery } from "@apollo/client/react";
+import { useCompleteList } from "@/hooks/useCompleteList";
+import { useMutation } from "@apollo/client/react";
 import { useEffect, useMemo, useRef, useState } from "react";
 
 import {
@@ -18,6 +19,9 @@ import {
 } from "../interface";
 import { CADENCE_OPTIONS, optionalIsoDate, WEEKDAY_OPTIONS } from "../utils";
 
+// Carteira do vendedor carregada por inteiro (ver useCompleteList).
+const getWallet = (d: WalletData) => d.sellerClientFactoryList;
+
 interface WalletData {
   sellerClientFactoryList: {
     edges: {
@@ -31,6 +35,7 @@ interface WalletData {
         } | null;
       };
     }[];
+    totalCount: number;
   };
 }
 
@@ -57,15 +62,19 @@ export function useFixedScheduleForm({
   const [refusal, setRefusal] = useState<string | null>(null);
   const isEditing = Boolean(schedule);
 
-  const { data, error } = useQuery<WalletData>(WALLET_CLIENTS_QUERY, {
-    variables: {
-      input: {
-        first: 500,
-        filters: [{ field: "seller_id", operator: "eq", value: sellerId }],
-      },
-    },
-    skip: !open || isEditing,
-  });
+  const bySeller = useMemo(
+    () => ({
+      filters: [{ field: "seller_id", operator: "eq", value: sellerId }],
+    }),
+    [sellerId]
+  );
+
+  const { data, error } = useCompleteList<WalletData>(
+    WALLET_CLIENTS_QUERY,
+    bySeller,
+    getWallet,
+    { skip: !open || isEditing }
+  );
 
   const clientOptions = useMemo(() => {
     const taken = new Set(takenClientIds);

@@ -11,6 +11,7 @@ import {
   receivableReport,
   summarizeRows,
   yearMonthFromIso,
+  defaultImpact,
 } from "./utils";
 
 const row = (over: Partial<CommissionRow>): CommissionRow => ({
@@ -31,11 +32,15 @@ const row = (over: Partial<CommissionRow>): CommissionRow => ({
   reconciledAt: null,
   isOverdue: false,
   defaultedAt: null,
+  isChargebackSettled: false,
+  chargebackSettledAt: null,
   sellerAmount: "5",
   sellerStatus: "receivable",
   sellerReceiveDate: "2026-03-10",
   isSellerPaid: false,
   sellerChargebackMonth: null,
+  isSellerChargebackSettled: false,
+  sellerChargebackSettledAt: null,
   client: null,
   factory: { id: "f1", nomeFantasia: "Alfa", razaoSocial: "Alfa SA" },
   seller: null,
@@ -129,6 +134,7 @@ describe("summarizeRows", () => {
 
   it("zera tudo para uma lista vazia", () => {
     expect(summarizeRows([])).toEqual({
+      refund: 0,
       receivable: 0,
       received: 0,
       pending: 0,
@@ -309,13 +315,117 @@ describe("filterByMonth", () => {
     ).toEqual(["a"]);
   });
 
-  it("usa o VENCIMENTO na aba de boleto em atraso", () => {
-    // O atraso se conta pelo boleto — e um calote pode nem ter data de
-    // recebimento ainda, ficando na fila do escritório.
+  it("não recorta a aba de boleto em atraso", () => {
+    // Atraso é acúmulo, não evento de mês: a conferência é feita contra o
+    // relatório da fábrica, que vem com vencimentos espalhados. Recortando,
+    // seria um lote por mês de vencimento para um relatório só.
     expect(
       filterByMonth(rows, { year: 2026, month: 3 }, "overdue").map(
         (r) => r.installmentId
       )
-    ).toEqual(["b"]);
+    ).toEqual(["a", "b"]);
+  });
+});
+
+describe("estorno e devolução no fechamento", () => {
+  const estorno = row({
+    installmentId: "i-estorno",
+    status: "chargeback",
+    amount: "-30",
+    receiveDate: "2026-03-10",
+  });
+  const descontado = row({
+    installmentId: "i-descontado",
+    status: "chargeback_settled",
+    amount: "-30",
+    receiveDate: "2026-03-10",
+  });
+  const devolucao = row({
+    installmentId: "i-devolucao",
+    status: "refund",
+    amount: "30",
+    receiveDate: "2026-03-10",
+  });
+
+  it("a aba A receber mostra o que compõe o fechamento, não só o positivo", () => {
+    // Estorno e devolução caem no mesmo mês e no mesmo bolso: separá-los faria
+    // o gestor somar de cabeça para saber quanto entra.
+    const rows = [row({}), estorno, devolucao, descontado];
+    const ids = filterByTab(rows, "receivable").map((r) => r.installmentId);
+    expect(ids).toEqual(["i1", "i-estorno", "i-devolucao"]);
+  });
+
+  it("estorno já descontado não pesa mais no total", () => {
+    // Ele saiu no mês em que saiu; repetir a conta cobraria a dívida duas vezes.
+    const summary = summarizeRows([row({}), descontado]);
+    expect(summary.receivable).toBe(10);
+    expect(summary.chargeback).toBe(0);
+  });
+
+  it("devolução soma como dinheiro que volta", () => {
+    const summary = summarizeRows([estorno, devolucao]);
+    expect(summary.chargeback).toBe(-30);
+    expect(summary.refund).toBe(30);
+    // Um anula o outro: o mês fecha zerado, que é o certo.
+    expect(summary.receivable).toBe(0);
+  });
+});
+
+describe("defaultImpact", () => {
+  const julho = { year: 2026, month: 7 };
+  const vendedor = { id: "s1", name: "Rafael" };
+
+  const paga = (over: Partial<CommissionRow>) =>
+    row({
+      status: "received",
+      isReceived: true,
+      isSellerPaid: true,
+      seller: vendedor,
+      amount: "400",
+      sellerAmount: "200",
+      receiveDate: "2026-07-10",
+      ...over,
+    });
+
+  it("soma o que volta para a fábrica e o que há a recuperar do vendedor", () => {
+    const a = paga({ installmentId: "a" });
+    const b = paga({ installmentId: "b" });
+    const mes = row({
+      installmentId: "mes",
+      status: "receivable",
+      seller: vendedor,
+      sellerStatus: "receivable",
+      sellerAmount: "1000",
+      receiveDate: "2026-07-10",
+      sellerReceiveDate: "2026-07-10",
+    });
+
+    const impacto = defaultImpact([a, b], [a, b, mes], julho);
+
+    expect(impacto.factoryChargeback).toBe(800);
+    expect(impacto.sellers).toHaveLength(1);
+    expect(impacto.sellers[0].amount).toBe(400);
+    // Medido contra o fechamento DO VENDEDOR (sellerAmount pela data dele), e
+    // não contra o do escritório: são dois números diferentes.
+    expect(impacto.sellers[0].monthCommission).toBe(1000);
+    expect(impacto.sellers[0].share).toBeCloseTo(0.4);
+  });
+
+  it("parcela sem comissão paga não gera dívida para ninguém", () => {
+    const prevista = row({ installmentId: "p", status: "receivable" });
+    const impacto = defaultImpact([prevista], [prevista], julho);
+
+    expect(impacto.factoryChargeback).toBe(0);
+    expect(impacto.sellers).toHaveLength(0);
+    expect(impacto.withoutDebt).toBe(1);
+  });
+
+  it("mês sem comissão nenhuma conta como mês inteiro consumido", () => {
+    // Dividir por zero mostraria "Infinity% do mês" na tela.
+    const a = paga({ installmentId: "a" });
+    const impacto = defaultImpact([a], [a], { year: 2026, month: 12 });
+
+    expect(impacto.sellers[0].monthCommission).toBe(0);
+    expect(impacto.sellers[0].share).toBe(1);
   });
 });

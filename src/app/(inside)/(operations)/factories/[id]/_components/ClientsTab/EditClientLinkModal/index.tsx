@@ -10,7 +10,8 @@ import {
 import { Modal } from "@/components/Modal";
 import { useAsyncAction } from "@/hooks/useAsyncAction";
 import { useInvalidateQueriesClient } from "@/hooks/useInvalidateQueries";
-import { useMutation, useQuery } from "@apollo/client/react";
+import { useCompleteList } from "@/hooks/useCompleteList";
+import { useMutation } from "@apollo/client/react";
 import { Pencil } from "lucide-react";
 import { useMemo, useRef, useState } from "react";
 import {
@@ -29,6 +30,9 @@ interface UpdateResponse {
     data: { id: string } | null;
   };
 }
+
+// Catálogo pequeno carregado por inteiro (ver useCompleteList).
+const getTiers = (d: TiersData) => d.priceTiers;
 
 interface Props {
   link: FactoryClientLink;
@@ -50,23 +54,24 @@ export function EditClientLinkModal({
   const invalidateClient = useInvalidateQueriesClient();
   const { execute, isLoading } = useAsyncAction();
 
-  const { data: tiersData, error: tiersError } = useQuery<TiersData>(
-    PRICE_TIERS_FOR_LINK_QUERY,
-    {
-      variables: {
-        input: {
-          first: 200,
-          filters: [
-            {
-              field: "company_factory_id",
-              operator: "eq",
-              value: companyFactoryId,
-            },
-          ],
+  const byCompanyFactory = useMemo(
+    () => ({
+      filters: [
+        {
+          field: "company_factory_id",
+          operator: "eq",
+          value: companyFactoryId,
         },
-      },
-      skip: !open,
-    }
+      ],
+    }),
+    [companyFactoryId]
+  );
+
+  const { data: tiersData, error: tiersError } = useCompleteList<TiersData>(
+    PRICE_TIERS_FOR_LINK_QUERY,
+    byCompanyFactory,
+    getTiers,
+    { skip: !open }
   );
 
   const tierOptions = useMemo(

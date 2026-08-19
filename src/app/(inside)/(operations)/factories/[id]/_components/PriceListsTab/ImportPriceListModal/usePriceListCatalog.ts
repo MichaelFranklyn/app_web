@@ -1,4 +1,4 @@
-import { useQuery } from "@apollo/client/react";
+import { useCompleteList } from "@/hooks/useCompleteList";
 import { useQueryErrorToast } from "@/hooks/useQueryErrorToast";
 import { useMemo } from "react";
 
@@ -8,7 +8,10 @@ import { SheetMatrix } from "@/utils/import/reader";
 import { PRODUCT_UNIT_LABELS_QUERY, PRODUCT_UNITS_QUERY } from "./gql";
 import { ProductUnitLabelsData, ProductUnitsData } from "./interface";
 
-const CATALOG_INPUT = { variables: { input: { first: 200 } } };
+// Catálogos pequenos carregados por inteiro (ver useCompleteList).
+const CATALOG_INPUT = {};
+const getUnits = (d: ProductUnitsData) => d.productUnits;
+const getLabels = (d: ProductUnitLabelsData) => d.productUnitLabels;
 
 interface PriceListCatalogArgs {
   /** A grade lida; enquanto ausente, as queries de catálogo ficam suspensas. */
@@ -29,18 +32,20 @@ export function usePriceListCatalog({
   distinctUnits,
   distinctPacks,
 }: PriceListCatalogArgs) {
-  const { data: unitsData, error: unitsError } = useQuery<ProductUnitsData>(
-    PRODUCT_UNITS_QUERY,
-    {
-      ...CATALOG_INPUT,
-      skip: !matrix,
-    }
-  );
+  const { data: unitsData, error: unitsError } =
+    useCompleteList<ProductUnitsData>(
+      PRODUCT_UNITS_QUERY,
+      CATALOG_INPUT,
+      getUnits,
+      { skip: !matrix }
+    );
   const { data: labelsData, error: labelsError } =
-    useQuery<ProductUnitLabelsData>(PRODUCT_UNIT_LABELS_QUERY, {
-      ...CATALOG_INPUT,
-      skip: !matrix,
-    });
+    useCompleteList<ProductUnitLabelsData>(
+      PRODUCT_UNIT_LABELS_QUERY,
+      CATALOG_INPUT,
+      getLabels,
+      { skip: !matrix }
+    );
   const unitLabels = useMemo(
     () => unitsData?.productUnits.edges.map((e) => e.node.label) ?? [],
     [unitsData]

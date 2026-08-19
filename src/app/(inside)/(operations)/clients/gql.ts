@@ -21,6 +21,7 @@ export const CLIENTS_SELLERS_QUERY = gql`
           name
         }
       }
+      totalCount
     }
   }
 `;
@@ -71,6 +72,7 @@ export const CLIENT_NETWORKS_QUERY = gql`
           name
         }
       }
+      totalCount
     }
   }
 `;
@@ -84,6 +86,7 @@ export const CLIENT_SEGMENTS_QUERY = gql`
           name
         }
       }
+      totalCount
     }
   }
 `;

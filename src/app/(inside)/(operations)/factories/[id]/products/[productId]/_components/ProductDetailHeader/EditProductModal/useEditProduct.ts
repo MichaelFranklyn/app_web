@@ -2,7 +2,8 @@ import { FormBuilderRef, FormStepSchema } from "@/components/FormBuilder";
 import { useQueryErrorToast } from "@/hooks/useQueryErrorToast";
 import { useAsyncAction } from "@/hooks/useAsyncAction";
 import { extractSelectValue } from "@/utils/form";
-import { useMutation, useQuery } from "@apollo/client/react";
+import { useCompleteList } from "@/hooks/useCompleteList";
+import { useMutation } from "@apollo/client/react";
 import { useMemo, useRef, useState } from "react";
 
 import {
@@ -19,6 +20,13 @@ import {
   UpdateProductResponse,
 } from "./interface";
 
+// Catálogos da empresa carregados por inteiro (ver useCompleteList).
+const COMPANY_CATALOG_INPUT = {};
+const getCategories = (d: ProductCategoriesOptionsData) =>
+  d.product_categories_options;
+const getUnits = (d: ProductUnitsOptionsData) => d.productUnits;
+const getLabels = (d: ProductUnitLabelsOptionsData) => d.productUnitLabels;
+
 const ACTIVE_OPTIONS = [
   { value: "true", label: "Ativo" },
   { value: "false", label: "Inativo" },
@@ -28,25 +36,29 @@ export function useEditProduct({ product, onSuccess }: EditProductModalProps) {
   const [open, setOpen] = useState(false);
   const formRef = useRef<FormBuilderRef>(null);
 
-  const companyCatalogInput = { first: 200 };
-
   const { data: categoriesData, error: categoriesError } =
-    useQuery<ProductCategoriesOptionsData>(PRODUCT_CATEGORIES_OPTIONS_QUERY, {
-      variables: { input: companyCatalogInput },
-      skip: !open,
-    });
+    useCompleteList<ProductCategoriesOptionsData>(
+      PRODUCT_CATEGORIES_OPTIONS_QUERY,
+      COMPANY_CATALOG_INPUT,
+      getCategories,
+      { skip: !open }
+    );
 
   const { data: unitsData, error: unitsError } =
-    useQuery<ProductUnitsOptionsData>(PRODUCT_UNITS_OPTIONS_QUERY, {
-      variables: { input: companyCatalogInput },
-      skip: !open,
-    });
+    useCompleteList<ProductUnitsOptionsData>(
+      PRODUCT_UNITS_OPTIONS_QUERY,
+      COMPANY_CATALOG_INPUT,
+      getUnits,
+      { skip: !open }
+    );
 
   const { data: labelsData, error: labelsError } =
-    useQuery<ProductUnitLabelsOptionsData>(PRODUCT_UNIT_LABELS_OPTIONS_QUERY, {
-      variables: { input: companyCatalogInput },
-      skip: !open,
-    });
+    useCompleteList<ProductUnitLabelsOptionsData>(
+      PRODUCT_UNIT_LABELS_OPTIONS_QUERY,
+      COMPANY_CATALOG_INPUT,
+      getLabels,
+      { skip: !open }
+    );
 
   const categoryOptions = useMemo(
     () =>

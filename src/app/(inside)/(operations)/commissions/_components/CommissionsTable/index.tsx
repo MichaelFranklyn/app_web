@@ -65,21 +65,34 @@ export function CommissionsTable({
         <Table.Row>
           {selectable && (
             <Table.Head>
+              {/* `label` no checkbox vira texto visível; o nome acessível vai
+                  no `aria-label` — sem ele o leitor de tela anuncia "caixa de
+                  seleção" e nada mais. */}
               <Input.Checkbox
                 label=""
+                aria-label="Selecionar todas as parcelas desta fábrica"
                 checked={allSelected}
                 onChange={() => onToggleAll?.()}
               />
             </Table.Head>
           )}
-          <Table.Head>Cliente</Table.Head>
-          <Table.Head>Pedido</Table.Head>
-          <Table.Head>Parcela</Table.Head>
-          <Table.Head>Boleto</Table.Head>
-          <Table.Head>Quando</Table.Head>
-          <Table.Head className="text-right">Comissão</Table.Head>
-          <Table.Head>Situação</Table.Head>
-          {canManage && <Table.Head>Conferência</Table.Head>}
+          <Table.Head sortKey="client">Cliente</Table.Head>
+          <Table.Head sortKey="order">Pedido</Table.Head>
+          <Table.Head sortKey="sequence">Parcela</Table.Head>
+          {/* Data e dinheiro abrem na ordem útil: o mais recente e o maior. */}
+          <Table.Head sortKey="dueDate" sortFirst="desc">
+            Boleto
+          </Table.Head>
+          <Table.Head sortKey="receiveDate" sortFirst="desc">
+            Quando
+          </Table.Head>
+          <Table.Head sortKey="amount" sortFirst="desc" align="right">
+            Comissão
+          </Table.Head>
+          <Table.Head sortKey="status">Situação</Table.Head>
+          {canManage && (
+            <Table.Head sortKey="reconciled">Conferência</Table.Head>
+          )}
           {canManage && <Table.Head className="text-right">Ação</Table.Head>}
         </Table.Row>
       </Table.Header>
@@ -110,6 +123,7 @@ export function CommissionsTable({
                 <Table.Cell>
                   <Input.Checkbox
                     label=""
+                    aria-label={`Selecionar a parcela ${row.sequence} de ${clientName(row.client)}`}
                     checked={selectedIds?.has(row.installmentId) ?? false}
                     onChange={() => onToggleRow?.(row.installmentId)}
                   />

@@ -1,16 +1,19 @@
 "use client";
 
 import { FilterField } from "@/components/Filters";
+import { useCompleteList } from "@/hooks/useCompleteList";
 import { useQueryErrorToast } from "@/hooks/useQueryErrorToast";
-import { useQuery } from "@apollo/client/react";
 import { useMemo } from "react";
 
 import { PRODUCT_CATEGORIES_QUERY, PRODUCT_UNITS_QUERY } from "./gql";
 import { ProductCategoriesData, ProductUnitsData } from "./interface";
 
 // Categorias e unidades são catálogo da EMPRESA (escopo no back), não da
-// fábrica: a mesma lista alimenta o formulário de produto.
-const COMPANY_CATALOG_INPUT = { first: 200 };
+// fábrica: a mesma lista alimenta o formulário de produto. Sem `first` fixo — o
+// `useCompleteList` traz o total quando a primeira página não dá conta.
+const COMPANY_CATALOG_INPUT = {};
+const getCategories = (d: ProductCategoriesData) => d.productCategories;
+const getUnits = (d: ProductUnitsData) => d.productUnits;
 
 /**
  * Campos do painel de filtros do catálogo de produtos.
@@ -24,14 +27,18 @@ const COMPANY_CATALOG_INPUT = { first: 200 };
  */
 export function useProductFilters(): FilterField[] {
   const { data: categoriesData, error: categoriesError } =
-    useQuery<ProductCategoriesData>(PRODUCT_CATEGORIES_QUERY, {
-      variables: { input: COMPANY_CATALOG_INPUT },
-    });
+    useCompleteList<ProductCategoriesData>(
+      PRODUCT_CATEGORIES_QUERY,
+      COMPANY_CATALOG_INPUT,
+      getCategories
+    );
 
-  const { data: unitsData, error: unitsError } = useQuery<ProductUnitsData>(
-    PRODUCT_UNITS_QUERY,
-    { variables: { input: COMPANY_CATALOG_INPUT } }
-  );
+  const { data: unitsData, error: unitsError } =
+    useCompleteList<ProductUnitsData>(
+      PRODUCT_UNITS_QUERY,
+      COMPANY_CATALOG_INPUT,
+      getUnits
+    );
 
   useQueryErrorToast(
     categoriesError ?? unitsError,

@@ -12,18 +12,21 @@ export interface UpdateProductResponse {
 export interface ProductCategoriesOptionsData {
   product_categories_options: {
     edges: { node: { id: string; name: string; segment: string } }[];
+    totalCount: number;
   };
 }
 
 export interface ProductUnitsOptionsData {
   productUnits: {
     edges: { node: { id: string; label: string } }[];
+    totalCount: number;
   };
 }
 
 export interface ProductUnitLabelsOptionsData {
   productUnitLabels: {
     edges: { node: { id: string; label: string } }[];
+    totalCount: number;
   };
 }
 

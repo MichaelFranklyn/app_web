@@ -17,6 +17,7 @@ export interface ClientLinkNode {
 export interface SellerClientLinksQueryData {
   seller_client_links: {
     edges: { node: ClientLinkNode }[];
+    totalCount: number;
   };
 }
 

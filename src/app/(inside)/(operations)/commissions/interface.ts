@@ -25,6 +25,9 @@ export interface CommissionRow {
   isOverdue: boolean;
   /** Quando o boleto virou calote; null = não é inadimplente. */
   defaultedAt: string | null;
+  /** A fábrica já descontou o estorno do escritório. */
+  isChargebackSettled: boolean;
+  chargebackSettledAt: string | null;
   /** Fatia do vendedor (negativa em estorno). */
   sellerAmount: string;
   sellerStatus: CommissionStatus;
@@ -33,6 +36,9 @@ export interface CommissionRow {
   isSellerPaid: boolean;
   /** Mês do desconto do estorno no vendedor; null = ainda na fila. */
   sellerChargebackMonth: string | null;
+  /** O escritório já descontou o estorno do vendedor. */
+  isSellerChargebackSettled: boolean;
+  sellerChargebackSettledAt: string | null;
   client: {
     id: string;
     razaoSocial: string;
@@ -57,6 +63,9 @@ export interface CommissionsSummary {
   /** Estornos do vendedor ainda sem mês de desconto escolhido. */
   totalSellerChargebackPending: string;
   countOverdue: number;
+  /** Devoluções a fazer (positivo): o cliente pagou depois do desconto. */
+  totalRefund: string;
+  totalSellerRefund: string;
   rows: CommissionRow[];
 }
 
@@ -72,5 +81,6 @@ export interface SellerOption {
 export interface CommissionsSellersResponse {
   commissions_sellers: {
     edges: { node: SellerOption }[];
+    totalCount: number;
   };
 }

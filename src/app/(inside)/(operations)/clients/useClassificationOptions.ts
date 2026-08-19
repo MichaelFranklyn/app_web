@@ -1,22 +1,28 @@
 "use client";
 
-import { useQuery } from "@apollo/client/react";
 import { useMemo } from "react";
 
 import { SelectOption } from "@/components/Input";
+import { useCompleteList } from "@/hooks/useCompleteList";
 import { useIdleReady } from "@/hooks/useIdleReady";
 import { useQueryErrorToast } from "@/hooks/useQueryErrorToast";
 
 import { CLIENT_NETWORKS_QUERY, CLIENT_SEGMENTS_QUERY } from "./gql";
 import { ClassificationData } from "./interface";
 
-const listInput = { first: 200, order: { by: "name", dir: "asc" } };
+const listInput = { order: { by: "name", dir: "asc" } };
+// A conexão é opcional no tipo (erro parcial entrega `data` sem a chave); o
+// hook aceita `undefined` e trata como "ainda não sei o total".
+const getNetworks = (d: ClassificationData) => d.clientNetworks;
+const getSegments = (d: ClassificationData) => d.clientSegments;
 
 /**
  * Redes e segmentos da empresa, para os filtros da carteira e para a ficha do
  * cliente.
  *
- * São catálogos curtos (dezenas de itens): uma página basta e não vale paginar.
+ * São catálogos curtos (dezenas de itens): uma requisição basta — e, se um dia
+ * passarem do teto da primeira página, o `useCompleteList` rebusca pelo total em
+ * vez de esconder o resto.
  * Falha de carregamento vira aviso, não tela de erro — o resto dos filtros
  * continua servindo.
  */
@@ -25,14 +31,18 @@ export function useClassificationOptions() {
   // para não disputar rede e thread principal com a tabela da carteira.
   const idleReady = useIdleReady();
 
-  const { data, loading, error } = useQuery<ClassificationData>(
+  const { data, loading, error } = useCompleteList<ClassificationData>(
     CLIENT_NETWORKS_QUERY,
-    { variables: { input: listInput }, skip: !idleReady }
+    listInput,
+    getNetworks,
+    { skip: !idleReady }
   );
-  const segments = useQuery<ClassificationData>(CLIENT_SEGMENTS_QUERY, {
-    variables: { input: listInput },
-    skip: !idleReady,
-  });
+  const segments = useCompleteList<ClassificationData>(
+    CLIENT_SEGMENTS_QUERY,
+    listInput,
+    getSegments,
+    { skip: !idleReady }
+  );
 
   useQueryErrorToast(error, "Não foi possível carregar as redes.");
   useQueryErrorToast(segments.error, "Não foi possível carregar os segmentos.");

@@ -1,4 +1,4 @@
-import { useQuery } from "@apollo/client/react";
+import { useCompleteList } from "@/hooks/useCompleteList";
 import { useQueryErrorToast } from "@/hooks/useQueryErrorToast";
 import { useMemo } from "react";
 
@@ -15,6 +15,7 @@ import {
 interface SellersData {
   sellers: {
     edges: { node: { id: string; name: string; isActive: boolean } }[];
+    totalCount: number;
   };
 }
 
@@ -33,28 +34,39 @@ interface AccessesData {
         } | null;
       };
     }[];
+    totalCount: number;
   };
 }
 
 interface ClientLinksData {
   sellerClientFactoryList: {
     edges: { node: { id: string; sellerId: string; factoryId: string } }[];
+    totalCount: number;
   };
 }
 
 interface CompanyFactoriesData {
   companyFactories: {
     edges: { node: { id: string; factoryId: string } }[];
+    totalCount: number;
   };
 }
 
 interface PriceTiersData {
   priceTiers: {
     edges: { node: { id: string; name: string } }[];
+    totalCount: number;
   };
 }
 
-const LIST_INPUT = { first: 200 };
+// Catálogos pequenos carregados por inteiro (ver useCompleteList): sem `first`
+// fixo, quem passar do teto é rebuscado pelo total em vez de sumir do select.
+const LIST_INPUT = {};
+const getSellers = (d: SellersData) => d.sellers;
+const getAccesses = (d: AccessesData) => d.sellerFactoryAccessList;
+const getClientLinks = (d: ClientLinksData) => d.sellerClientFactoryList;
+const getCompanyFactories = (d: CompanyFactoriesData) => d.companyFactories;
+const getTiers = (d: PriceTiersData) => d.priceTiers;
 
 interface LinkFactoryOptionsArgs {
   open: boolean;
@@ -86,36 +98,47 @@ export function useLinkFactoryOptions({
   selectedFactoryId,
   isSeller,
 }: LinkFactoryOptionsArgs): LinkFactoryOptions {
-  const { data: sellersData, error: sellersError } = useQuery<SellersData>(
-    SELLERS_FOR_LINK_QUERY,
-    {
-      variables: { input: LIST_INPUT },
-      // Vendedor não lista colegas (query admin-only) e vincula só a si mesmo.
-      skip: !open || isSeller,
-    }
-  );
+  const { data: sellersData, error: sellersError } =
+    useCompleteList<SellersData>(
+      SELLERS_FOR_LINK_QUERY,
+      LIST_INPUT,
+      getSellers,
+      {
+        // Vendedor não lista colegas (query admin-only) e vincula só a si mesmo.
+        skip: !open || isSeller,
+      }
+    );
 
-  const { data: accessesData, error: accessesError } = useQuery<AccessesData>(
-    SELLER_FACTORY_ACCESSES_FOR_LINK_QUERY,
-    { variables: { input: LIST_INPUT }, skip: !open }
+  const { data: accessesData, error: accessesError } =
+    useCompleteList<AccessesData>(
+      SELLER_FACTORY_ACCESSES_FOR_LINK_QUERY,
+      LIST_INPUT,
+      getAccesses,
+      { skip: !open }
+    );
+
+  const byClient = useMemo(
+    () => ({
+      filters: [{ field: "client_id", operator: "eq", value: clientId }],
+    }),
+    [clientId]
   );
 
   const { data: clientLinksData, error: clientLinksError } =
-    useQuery<ClientLinksData>(SELLER_CLIENT_FACTORIES_FOR_LINK_QUERY, {
-      variables: {
-        input: {
-          first: 200,
-          filters: [{ field: "client_id", operator: "eq", value: clientId }],
-        },
-      },
-      skip: !open,
-    });
+    useCompleteList<ClientLinksData>(
+      SELLER_CLIENT_FACTORIES_FOR_LINK_QUERY,
+      byClient,
+      getClientLinks,
+      { skip: !open }
+    );
 
   const { data: companyFactoriesData, error: companyFactoriesError } =
-    useQuery<CompanyFactoriesData>(COMPANY_FACTORIES_FOR_LINK_QUERY, {
-      variables: { input: LIST_INPUT },
-      skip: !open,
-    });
+    useCompleteList<CompanyFactoriesData>(
+      COMPANY_FACTORIES_FOR_LINK_QUERY,
+      LIST_INPUT,
+      getCompanyFactories,
+      { skip: !open }
+    );
 
   // O company_factory da fábrica selecionada; é dele que pendem os níveis de preço.
   const companyFactoryId = useMemo(
@@ -126,24 +149,26 @@ export function useLinkFactoryOptions({
     [companyFactoriesData, selectedFactoryId]
   );
 
-  const { data: tiersData, error: tiersError } = useQuery<PriceTiersData>(
-    PRICE_TIERS_FOR_LINK_QUERY,
-    {
-      variables: {
-        input: {
-          first: 200,
-          filters: [
-            {
-              field: "company_factory_id",
-              operator: "eq",
-              value: companyFactoryId,
-            },
-          ],
+  const byCompanyFactory = useMemo(
+    () => ({
+      filters: [
+        {
+          field: "company_factory_id",
+          operator: "eq",
+          value: companyFactoryId ?? "",
         },
-      },
-      skip: !open || !companyFactoryId,
-    }
+      ],
+    }),
+    [companyFactoryId]
   );
+
+  const { data: tiersData, error: tiersError } =
+    useCompleteList<PriceTiersData>(
+      PRICE_TIERS_FOR_LINK_QUERY,
+      byCompanyFactory,
+      getTiers,
+      { skip: !open || !companyFactoryId }
+    );
 
   const tierOptions = useMemo<SelectOption[]>(
     () =>

@@ -2703,7 +2703,7 @@ type CommissionRowType {
   installmentAmount: Decimal!
   """Negativo quando `status` é "chargeback": comissão paga que volta por calote do cliente."""
   amount: Decimal!
-  """pending | receivable | received | cancelled | chargeback"""
+  """pending | receivable | received | cancelled | chargeback | chargeback_settled | refund"""
   status: String!
   receiveDate: Date
   isReceivable: Boolean!
@@ -2714,12 +2714,18 @@ type CommissionRowType {
   isOverdue: Boolean!
   """Quando o boleto virou calote."""
   defaultedAt: Date
+  """A fábrica já descontou o estorno do escritório."""
+  isChargebackSettled: Boolean!
+  chargebackSettledAt: Date
   sellerAmount: Decimal!
   sellerStatus: String!
   sellerReceiveDate: Date
   isSellerPaid: Boolean!
   """Mês escolhido para descontar o estorno do vendedor; nulo = ainda na fila."""
   sellerChargebackMonth: Date
+  """O escritório já descontou o estorno do vendedor."""
+  isSellerChargebackSettled: Boolean!
+  sellerChargebackSettledAt: Date
   order: OrderType
   client: ClientType
   factory: FactoryType
@@ -2741,6 +2747,10 @@ type CommissionSummaryType {
   totalSellerChargebackPending: Decimal!
   """Quantos boletos estão vencidos e não pagos."""
   countOverdue: Int!
+  """Devoluções a fazer: o cliente pagou depois de um estorno já descontado."""
+  totalRefund: Decimal!
+  """A parte da devolução que volta para o vendedor."""
+  totalSellerRefund: Decimal!
 }
 
 """Quanto uma baixa em lote por período pegaria (sem gravar nada)."""
@@ -2805,6 +2815,14 @@ extend type Mutation {
   unmarkSellerCommissionPaid(installmentIds: [UUID!]!): BaseResponse!
   """Escolhe em que mês o escritório desconta do vendedor o estorno de um calote (nulo devolve à fila)."""
   scheduleSellerChargeback(installmentIds: [UUID!]!, month: Date): BaseResponse!
+  """Registra que a fábrica já descontou o estorno: ele vira histórico e sai do fechamento."""
+  markChargebackSettled(installmentIds: [UUID!]!, settledAt: Date!): BaseResponse!
+  """Registra que o escritório já descontou o estorno do vendedor (exige mês agendado)."""
+  markSellerChargebackSettled(installmentIds: [UUID!]!, settledAt: Date!): BaseResponse!
+  """Encerra a devolução da fábrica: o cliente pagou e o estorno descontado voltou."""
+  markChargebackRefunded(installmentIds: [UUID!]!): BaseResponse!
+  """Encerra a devolução ao vendedor: o valor descontado dele voltou."""
+  markSellerChargebackRefunded(installmentIds: [UUID!]!): BaseResponse!
   setCommissionReconciled(installmentIds: [UUID!]!, reconciled: Boolean!): BaseResponse!
 }
 

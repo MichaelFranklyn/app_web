@@ -12,7 +12,8 @@ import { Modal } from "@/components/Modal";
 import { useToast } from "@/components/Toast";
 import { useAsyncAction } from "@/hooks/useAsyncAction";
 import { useInvalidateQueriesClient } from "@/hooks/useInvalidateQueries";
-import { useMutation, useQuery } from "@apollo/client/react";
+import { useCompleteList } from "@/hooks/useCompleteList";
+import { useMutation } from "@apollo/client/react";
 import { Plus } from "lucide-react";
 import { useEffect, useMemo, useRef, useState } from "react";
 import {
@@ -25,6 +26,11 @@ import {
   FactoryLinkedAccessesData,
   FactorySellersOptionsData,
 } from "./interface";
+
+// Catálogos pequenos carregados por inteiro (ver useCompleteList).
+const EMPTY_INPUT = {};
+const getSellers = (d: FactorySellersOptionsData) => d.factory_sellers_options;
+const getAccesses = (d: FactoryLinkedAccessesData) => d.factory_linked_accesses;
 
 interface Props {
   factoryId: string;
@@ -43,21 +49,27 @@ export function AddSellerAccessModal({ factoryId, autoOpen }: Props) {
   }, [autoOpen]);
 
   const { data: sellersData, error: sellersError } =
-    useQuery<FactorySellersOptionsData>(FACTORY_SELLERS_OPTIONS_QUERY, {
-      variables: { input: { first: 200 } },
-      skip: !open,
-    });
+    useCompleteList<FactorySellersOptionsData>(
+      FACTORY_SELLERS_OPTIONS_QUERY,
+      EMPTY_INPUT,
+      getSellers,
+      { skip: !open }
+    );
+
+  const byFactory = useMemo(
+    () => ({
+      filters: [{ field: "factory_id", operator: "eq", value: factoryId }],
+    }),
+    [factoryId]
+  );
 
   const { data: accessesData, error: accessesError } =
-    useQuery<FactoryLinkedAccessesData>(FACTORY_LINKED_ACCESSES_QUERY, {
-      variables: {
-        input: {
-          first: 200,
-          filters: [{ field: "factory_id", operator: "eq", value: factoryId }],
-        },
-      },
-      skip: !open,
-    });
+    useCompleteList<FactoryLinkedAccessesData>(
+      FACTORY_LINKED_ACCESSES_QUERY,
+      byFactory,
+      getAccesses,
+      { skip: !open }
+    );
 
   const linkedSellerIds = useMemo(
     () =>

@@ -8,7 +8,8 @@ import {
   parseCoverageDays,
 } from "@/utils/form";
 import { toIsoDate } from "@/utils/format/date";
-import { useMutation, useQuery } from "@apollo/client/react";
+import { useCompleteList } from "@/hooks/useCompleteList";
+import { useMutation } from "@apollo/client/react";
 import { useMemo, useRef, useState } from "react";
 
 import {
@@ -40,8 +41,14 @@ interface AssignmentNode {
 }
 
 interface AssignmentsData {
-  sellerClientFactoryList: { edges: { node: AssignmentNode }[] };
+  sellerClientFactoryList: {
+    edges: { node: AssignmentNode }[];
+    totalCount: number;
+  };
 }
+
+// Carteira do cliente carregada por inteiro (ver useCompleteList).
+const getAssignments = (d: AssignmentsData) => d.sellerClientFactoryList;
 
 interface CreateOrderResponse {
   createOrder: {
@@ -92,17 +99,18 @@ export function useAddClientOrder(clientId: string) {
     orderDetails?.freightType
   );
 
-  const { data: assignmentsData } = useQuery<AssignmentsData>(
+  const byClient = useMemo(
+    () => ({
+      filters: [{ field: "client_id", operator: "eq", value: clientId }],
+    }),
+    [clientId]
+  );
+
+  const { data: assignmentsData } = useCompleteList<AssignmentsData>(
     CLIENT_ASSIGNMENTS_QUERY,
-    {
-      variables: {
-        input: {
-          first: 200,
-          filters: [{ field: "client_id", operator: "eq", value: clientId }],
-        },
-      },
-      skip: !open,
-    }
+    byClient,
+    getAssignments,
+    { skip: !open }
   );
 
   const assignments = useMemo(

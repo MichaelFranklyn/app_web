@@ -53,7 +53,8 @@ export interface OrderItemCatalog {
   /** Uma página do catálogo, já filtrada pelo termo digitado. */
   productOptions: SelectOption[];
   /** Repassa o termo ao backend (modo assíncrono do select, com debounce). */
-  onProductSearch: (term: string) => void;
+  /** `undefined` quando o catálogo inteiro coube na primeira página (filtro local). */
+  onProductSearch?: (term: string) => void;
   /** Busca de opções em andamento — alimenta o `loading` do select. */
   isLoadingProducts: boolean;
   /**

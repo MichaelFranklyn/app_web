@@ -3,6 +3,7 @@
 import * as DropdownMenuPrimitive from "@radix-ui/react-dropdown-menu";
 import { Content } from "./Content";
 import { Item } from "./Item";
+import { Label } from "./Label";
 import { Separator } from "./Separator";
 
 export const Dropdown = {
@@ -12,5 +13,6 @@ export const Dropdown = {
   Group: DropdownMenuPrimitive.Group,
   Content,
   Item,
+  Label,
   Separator,
 };

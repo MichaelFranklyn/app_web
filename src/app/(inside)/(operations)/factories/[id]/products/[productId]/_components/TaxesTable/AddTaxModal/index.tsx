@@ -9,16 +9,22 @@ import {
 } from "@/components/FormBuilder";
 import { Modal } from "@/components/Modal";
 import { useAsyncAction } from "@/hooks/useAsyncAction";
-import { useMutation, useQuery } from "@apollo/client/react";
+import { useCompleteList } from "@/hooks/useCompleteList";
+import { useMutation } from "@apollo/client/react";
 import { Plus } from "lucide-react";
 import { useCallback, useMemo, useRef, useState } from "react";
 import { ADD_TAX_TO_PRODUCT_MUTATION, TAX_RULES_QUERY } from "../gql";
 import { CreatedTaxRule, CreateTaxRuleDialog } from "./CreateTaxRuleDialog";
 import { extractSelectValue } from "@/utils/form";
 
+// Catálogo pequeno carregado por inteiro (ver useCompleteList).
+const EMPTY_INPUT = {};
+const getTaxRules = (d: TaxRulesData) => d.taxRules;
+
 interface TaxRulesData {
   taxRules: {
     edges: { node: { id: string; name: string } }[];
+    totalCount: number;
   };
 }
 
@@ -41,10 +47,11 @@ export function AddTaxModal({ productId, onAdded }: Props) {
   const [pendingRuleName, setPendingRuleName] = useState<string | null>(null);
   const ruleResolverRef = useRef<((opt: Option | null) => void) | null>(null);
 
-  const { data: rulesData, error: rulesError } = useQuery<TaxRulesData>(
+  const { data: rulesData, error: rulesError } = useCompleteList<TaxRulesData>(
     TAX_RULES_QUERY,
+    EMPTY_INPUT,
+    getTaxRules,
     {
-      variables: { input: { first: 200 } },
       skip: !open,
     }
   );

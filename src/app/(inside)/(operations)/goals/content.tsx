@@ -19,6 +19,7 @@ import {
   monthStartIso,
   yearMonthFromIso,
 } from "@/utils/format/month";
+import { useCompleteList } from "@/hooks/useCompleteList";
 import { useQuery } from "@apollo/client/react";
 import { CalendarDays, ChevronLeft, ChevronRight, Target } from "lucide-react";
 import { useMemo, useState } from "react";
@@ -43,6 +44,12 @@ interface Props {
   canManage: boolean;
 }
 
+// Catálogos pequenos carregados por inteiro: `useCompleteList` rebusca pelo
+// total se um dia passarem da primeira página, em vez de truncar calado.
+const EMPTY_INPUT = {};
+const getGoalsSellers = (d: GoalsSellersResponse) => d.goals_sellers;
+const getGoalsFactories = (d: GoalsFactoriesResponse) => d.goals_factories;
+
 export default function GoalsContent({ canManage }: Props) {
   // Começa no mês corrente: a pergunta do dia a dia é "como estamos ESTE mês".
   const [month, setMonth] = useState(() => yearMonthFromIso(getTodayIso()));
@@ -52,13 +59,17 @@ export default function GoalsContent({ canManage }: Props) {
   // nem manda o parâmetro: o backend já o prende à própria meta.
   const [selectedSellerId, setSelectedSellerId] = useState<string | null>(null);
 
-  const sellersQuery = useQuery<GoalsSellersResponse>(GOALS_SELLERS_QUERY, {
-    variables: { input: { first: 200 } },
-    skip: !canManage,
-  });
-  const factoriesQuery = useQuery<GoalsFactoriesResponse>(
+  const sellersQuery = useCompleteList<GoalsSellersResponse>(
+    GOALS_SELLERS_QUERY,
+    EMPTY_INPUT,
+    getGoalsSellers,
+    { skip: !canManage }
+  );
+  const factoriesQuery = useCompleteList<GoalsFactoriesResponse>(
     GOALS_FACTORIES_QUERY,
-    { variables: { input: { first: 200 } }, skip: !canManage }
+    EMPTY_INPUT,
+    getGoalsFactories,
+    { skip: !canManage }
   );
 
   const { data, loading, error, refetch } = useQuery<SellerGoalsResponse>(

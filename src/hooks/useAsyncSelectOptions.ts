@@ -2,13 +2,23 @@
 
 import { SelectOption } from "@/components/Input";
 import { DocumentNode } from "@apollo/client";
-import { useCallback, useEffect, useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { useAsyncQuery } from "./useAsyncQuery";
 
 interface UseAsyncSelectOptionsArgs<TData, TNode> {
   query: DocumentNode;
-  /** Extrai a connection (edges) da resposta da query. */
-  getConnection: (data: TData) => { edges: { node: TNode }[] };
+  /**
+   * Extrai a connection da resposta da query.
+   *
+   * Peça `totalCount` na query sempre que puder: é com ele que o hook sabe se a
+   * primeira página já trouxe o catálogo INTEIRO — e, nesse caso, devolve
+   * `onSearch: undefined` para o select filtrar em memória, instantâneo. Sem
+   * `totalCount` o hook assume catálogo grande e busca sempre no servidor.
+   */
+  getConnection: (data: TData) => {
+    edges: { node: TNode }[];
+    totalCount?: number;
+  };
   /** Converte um nó em opção do select. */
   toOption: (node: TNode) => SelectOption;
   /** Campo do backend para o filtro `like` (ex.: "name", "razao_social,nome_fantasia"). */
@@ -41,6 +51,13 @@ interface UseAsyncSelectOptionsArgs<TData, TNode> {
  *
  * Enquanto o usuário não digita, traz a 1ª página (`first`); a cada termo,
  * refaz o fetch filtrado. O cache-first do Apollo evita rebuscar o mesmo termo.
+ *
+ * **Adapta-se ao tamanho do catálogo.** Com `totalCount` na query, uma lista que
+ * coube inteira na primeira página devolve `onSearch: undefined` — o select
+ * volta a filtrar em memória, sem latência, e nada muda para o usuário. Se um
+ * dia essa mesma lista passar do `first`, o hook liga a busca no servidor
+ * sozinho. É o que impede um catálogo pequeno de virar, com o tempo, um select
+ * que esconde registro.
  */
 export function useAsyncSelectOptions<TData, TNode>({
   query,
@@ -108,8 +125,32 @@ export function useAsyncSelectOptions<TData, TNode>({
 
   const onSearch = useCallback((t: string) => setTerm(t), []);
 
+  // Catálogo pequeno não precisa de ida ao servidor a cada tecla: se a primeira
+  // página (a que vem SEM termo) já trouxe tudo, o select filtra em memória.
+  // A decisão é tomada uma vez e mantida — trocar de modo no meio da digitação
+  // faria a lista piscar entre dois comportamentos.
+  const completeRef = useRef<boolean | null>(null);
+  const connection = data ? getConnection(data) : undefined;
+  const total = connection?.totalCount;
+  if (
+    completeRef.current === null &&
+    !debounced.trim() &&
+    total !== undefined &&
+    !loading
+  ) {
+    completeRef.current = nodes.length >= total;
+  }
+  const isComplete = completeRef.current === true;
+
   // `nodes` são os mesmos itens de `options`, ainda inteiros: quem precisa de um
   // atributo que não cabe no par value/label (o rótulo da embalagem do produto,
   // por exemplo) lê daqui em vez de refazer a consulta.
-  return { options, nodes, loading, onSearch };
+  return {
+    options,
+    nodes,
+    loading,
+    /** `undefined` quando a lista inteira já está na mão (filtro local). */
+    onSearch: isComplete ? undefined : onSearch,
+    isComplete,
+  };
 }
