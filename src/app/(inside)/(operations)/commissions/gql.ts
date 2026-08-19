@@ -34,6 +34,7 @@ export const COMMISSIONS_QUERY = gql`
         sequence
         orderDate
         invoicedAt
+        invoiceNumber
         dueDate
         paidAt
         installmentAmount

@@ -2,6 +2,7 @@
 
 import { Card } from "@/components/Card";
 import { Grid } from "@/components/Grid";
+import { HelpTooltip } from "@/components/HelpTooltip";
 import { Loading } from "@/components/Loading";
 import { PanelHeader } from "@/components/PanelHeader";
 import { TrendingDown, TrendingUp } from "lucide-react";
@@ -19,6 +20,10 @@ interface Props {
   /** Há filtro ativo? Só muda a legenda dos cartões ("da empresa" × "no filtro"). */
   isFiltered?: boolean;
   onAddOptimistic: (order: Order) => void;
+  /** Gestor escolhe o vendedor do pedido novo; o vendedor logado, não. */
+  canSelectSeller: boolean;
+  /** Perfil de vendedor de quem usa a tela — dono implícito do pedido. */
+  ownSellerId: string | null;
   /** O MESMO recorte da tabela (aba + painel), para a exportação repeti-lo. */
   exportFilters: QueryFilter[];
   filterFields: FilterField[];
@@ -36,6 +41,8 @@ export function OrdersHeader({
   stats,
   isFiltered,
   onAddOptimistic,
+  canSelectSeller,
+  ownSellerId,
   exportFilters,
   filterFields,
   inputValues,
@@ -65,9 +72,17 @@ export function OrdersHeader({
               />
               {/* Importação em massa é recurso de plano. */}
               <FeatureGate feature="BULK_IMPORT">
-                <ImportOrderModal onAddOptimistic={onAddOptimistic} />
+                <ImportOrderModal
+                  onAddOptimistic={onAddOptimistic}
+                  canSelectSeller={canSelectSeller}
+                  ownSellerId={ownSellerId}
+                />
               </FeatureGate>
-              <AddOrderModal onAddOptimistic={onAddOptimistic} />
+              <AddOrderModal
+                onAddOptimistic={onAddOptimistic}
+                canSelectSeller={canSelectSeller}
+                ownSellerId={ownSellerId}
+              />
             </PanelHeader.Actions>
           </PanelHeader.Left>
         </PanelHeader.Top>
@@ -84,10 +99,19 @@ export function OrdersHeader({
                 negative,
                 status,
                 valueClassName,
+                help,
               }) => (
                 <Grid.Item key={label}>
                   <Card.Kpi>
-                    <Card.Kpi.Label>{label}</Card.Kpi.Label>
+                    {/* Os quatro cartões somam recortes diferentes (todos os
+                        pedidos × só a mercadoria × só o faturado): sem a
+                        explicação ao lado, um parece contradizer o outro. */}
+                    <Card.Kpi.Label className="inline-flex items-center gap-2">
+                      {label}
+                      {help && (
+                        <HelpTooltip label={`Sobre ${label}`} content={help} />
+                      )}
+                    </Card.Kpi.Label>
                     <Card.Kpi.Value status={status} className={valueClassName}>
                       {value}
                     </Card.Kpi.Value>

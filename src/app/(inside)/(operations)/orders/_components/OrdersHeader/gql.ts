@@ -65,10 +65,19 @@ export const ORDER_SELLER_FACTORIES_QUERY = gql`
   }
 `;
 
-// Clientes designados ao vendedor + fábrica (seller_client_factories).
+/**
+ * Clientes designados ao vendedor + fábrica (seller_client_factories).
+ *
+ * Buscada no SERVIDOR (ver `useAsyncSelectOptions`): a carteira de um vendedor
+ * numa fábrica passa de uma página em representação grande, e a página fixa
+ * truncava a lista sem avisar — o cliente que faltava não tinha como ser
+ * encontrado. `totalCount` é o que deixa o hook voltar ao filtro em memória
+ * quando a carteira cabe inteira na primeira página.
+ */
 export const ORDER_SELLER_CLIENTS_QUERY = gql`
   query OrderSellerClients($input: BaseListInput!) {
     sellerClientFactoryList(input: $input) {
+      totalCount
       edges {
         node {
           clientId

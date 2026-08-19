@@ -85,6 +85,13 @@ export function useEditInvoice(order: OrderDetail, onSuccess: () => void) {
                 hint: "É a data da nota da fábrica. As parcelas contam a partir dela.",
               },
               {
+                name: "invoiceNumber",
+                type: "text",
+                label: "Número da nota fiscal",
+                placeholder: "Ex.: 12345",
+                hint: "Como está na nota da fábrica. Apaga o campo para tirar uma nota lançada errada; mudar o número não mexe nas parcelas.",
+              },
+              {
                 name: "paymentTermId",
                 type: "select-single",
                 label: "Prazo de pagamento",
@@ -125,6 +132,7 @@ export function useEditInvoice(order: OrderDetail, onSuccess: () => void) {
   const initialData = useMemo(
     () => ({
       invoicedAt: order.invoicedAt,
+      invoiceNumber: order.invoiceNumber ?? "",
       paymentTermId:
         paymentTermOptions.find((opt) => opt.value === order.paymentTermId) ??
         null,
@@ -164,11 +172,14 @@ export function useEditInvoice(order: OrderDetail, onSuccess: () => void) {
     if (!invoicedAt) throw new Error("Informe a data do faturamento.");
 
     const selectedTerm = selectValue(data.paymentTermId) || null;
+    const invoiceNumber = String(data.invoiceNumber ?? "").trim();
     const days = Number(data.deliveryEstimateDays);
     const deliveredAt = order.deliveredAt ? toIsoDate(data.deliveredAt) : null;
 
     const input: Record<string, unknown> = {
       invoicedAt,
+      // Campo esvaziado = apagar a nota; um nulo sozinho significaria "não mexer".
+      ...(invoiceNumber ? { invoiceNumber } : { clearInvoiceNumber: true }),
       // Sem prazo escolhido = à vista; `clearPaymentTerm` é o que diz "apague",
       // já que um nulo sozinho significa "não mexer".
       ...(selectedTerm

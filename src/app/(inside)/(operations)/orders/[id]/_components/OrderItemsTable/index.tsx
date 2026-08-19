@@ -11,6 +11,7 @@ import { formatMoney, formatNumber } from "@/utils/format/masks";
 import { useQuery } from "@apollo/client/react";
 import { Package, SearchX, Zap } from "lucide-react";
 import { useMemo } from "react";
+import { ITEM_COLUMN_HELP } from "../../../help";
 import { OrderItem, OrderItemsResponse } from "../../interface";
 import {
   byCreatedAtAsc,
@@ -214,36 +215,78 @@ export function OrderItemsTable({
       <Table.Table maxHeight={520}>
         <Table.Header>
           <Table.Row>
-            <Table.Head sortKey="product">Produto</Table.Head>
-            <Table.Head sortKey="tier">Tabela</Table.Head>
-            <Table.Head sortKey="units" sortFirst="desc" align="right">
+            {/* O que cada coluna significa vai no `title` do cabeçalho: ele é
+                um `<button>` de ordenação, e um "?" dentro dele seria botão
+                aninhado. "Preço sem imposto" e "Preço com imposto" são a dupla
+                que mais confunde — a tabela da fábrica traz um, o cliente paga
+                o outro. */}
+            <Table.Head sortKey="product" title={ITEM_COLUMN_HELP.product}>
+              Produto
+            </Table.Head>
+            <Table.Head sortKey="tier" title={ITEM_COLUMN_HELP.tier}>
+              Tabela
+            </Table.Head>
+            <Table.Head
+              sortKey="units"
+              sortFirst="desc"
+              align="right"
+              title={ITEM_COLUMN_HELP.units}
+            >
               Qtd (unidades)
             </Table.Head>
-            <Table.Head sortKey="unitPrice" sortFirst="desc" align="right">
+            <Table.Head
+              sortKey="unitPrice"
+              sortFirst="desc"
+              align="right"
+              title={ITEM_COLUMN_HELP.unitPrice}
+            >
               Preço sem imposto
             </Table.Head>
             <Table.Head
               sortKey="unitPriceWithTax"
               sortFirst="desc"
               align="right"
+              title={ITEM_COLUMN_HELP.unitPriceWithTax}
             >
               Preço com imposto
             </Table.Head>
-            <Table.Head sortKey="discount" sortFirst="desc" align="right">
+            <Table.Head
+              sortKey="discount"
+              sortFirst="desc"
+              align="right"
+              title={ITEM_COLUMN_HELP.discount}
+            >
               Desconto
             </Table.Head>
             {ipiInOrder && (
-              <Table.Head sortKey="ipiRate" sortFirst="desc" align="right">
+              <Table.Head
+                sortKey="ipiRate"
+                sortFirst="desc"
+                align="right"
+                title={ITEM_COLUMN_HELP.ipiRate}
+              >
                 Alíq. IPI
               </Table.Head>
             )}
-            <Table.Head sortKey="taxAmount" sortFirst="desc" align="right">
+            <Table.Head
+              sortKey="taxAmount"
+              sortFirst="desc"
+              align="right"
+              title={ITEM_COLUMN_HELP.tax}
+            >
               Imposto
             </Table.Head>
-            <Table.Head sortKey="subtotal" sortFirst="desc" align="right">
+            <Table.Head
+              sortKey="subtotal"
+              sortFirst="desc"
+              align="right"
+              title={ITEM_COLUMN_HELP.subtotal}
+            >
               Subtotal{ipiInOrder ? " (sem IPI)" : ""}
             </Table.Head>
-            <Table.Head className="text-right">Ações</Table.Head>
+            <Table.Head className="text-right" title={ITEM_COLUMN_HELP.actions}>
+              Ações
+            </Table.Head>
           </Table.Row>
         </Table.Header>
 

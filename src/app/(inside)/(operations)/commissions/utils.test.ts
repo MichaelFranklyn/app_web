@@ -20,6 +20,7 @@ const row = (over: Partial<CommissionRow>): CommissionRow => ({
   sequence: 1,
   orderDate: "2026-03-01",
   invoicedAt: null,
+  invoiceNumber: null,
   dueDate: null,
   paidAt: null,
   installmentAmount: "100",

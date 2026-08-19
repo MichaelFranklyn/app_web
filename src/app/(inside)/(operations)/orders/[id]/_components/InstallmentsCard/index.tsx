@@ -6,6 +6,7 @@ import { Table } from "@/components/Table";
 import { Title } from "@/components/Title";
 import { formatDateDMY, formatMoney } from "@/utils/format/masks";
 import { installmentDueBasisLabel } from "@/app/(inside)/_shared/commissions";
+import { INSTALLMENT_COLUMN_HELP } from "../../../help";
 import { OrderDetail } from "../../interface";
 import { commissionModeLabel, isPaymentBasis } from "../../utils";
 import { InstallmentRowActions } from "./InstallmentRowActions";
@@ -51,6 +52,13 @@ export function InstallmentsCard({ order, onChanged }: Props) {
               Faturado em {formatDateDMY(order.invoicedAt ?? undefined)}
             </Badge.Text>
           </Badge.Root>
+          {/* A nota é a chave que a fábrica usa na planilha de comissão. Sem ela
+              à vista, conferir o repasse obriga a abrir o pedido item a item. */}
+          {order.invoiceNumber && (
+            <Badge.Root color="subtle" appearance="tinted">
+              <Badge.Text>NF {order.invoiceNumber}</Badge.Text>
+            </Badge.Root>
+          )}
           {/* Sem isto, um vencimento contado da compra parece erro de cálculo
               para quem confere olhando a data da nota. */}
           <Badge.Root color="subtle" appearance="tinted">
@@ -65,12 +73,31 @@ export function InstallmentsCard({ order, onChanged }: Props) {
       <Table.Table>
         <Table.Header>
           <Table.Row>
-            <Table.Head>#</Table.Head>
-            <Table.Head>Vencimento</Table.Head>
-            <Table.Head className="text-right">Valor</Table.Head>
-            <Table.Head className="text-right">Comissão</Table.Head>
-            <Table.Head>Situação</Table.Head>
-            <Table.Head className="text-right">Ações</Table.Head>
+            <Table.Head title={INSTALLMENT_COLUMN_HELP.sequence}>#</Table.Head>
+            <Table.Head title={INSTALLMENT_COLUMN_HELP.dueDate}>
+              Vencimento
+            </Table.Head>
+            <Table.Head
+              className="text-right"
+              title={INSTALLMENT_COLUMN_HELP.amount}
+            >
+              Valor
+            </Table.Head>
+            <Table.Head
+              className="text-right"
+              title={INSTALLMENT_COLUMN_HELP.commission}
+            >
+              Comissão
+            </Table.Head>
+            <Table.Head title={INSTALLMENT_COLUMN_HELP.status}>
+              Situação
+            </Table.Head>
+            <Table.Head
+              className="text-right"
+              title={INSTALLMENT_COLUMN_HELP.actions}
+            >
+              Ações
+            </Table.Head>
           </Table.Row>
         </Table.Header>
 

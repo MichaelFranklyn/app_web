@@ -65,6 +65,29 @@ describe("normalizeInput (criar pedido)", () => {
     expect(normalizeInput(base).isQuote).toBe(false);
   });
 
+  // O vendedor logado não vê o campo "Vendedor" (a lista de vendedores é
+  // admin-only no backend): o pedido sai no nome dele, vindo do perfil.
+  it("usa o vendedor implícito quando o formulário não tem o campo", () => {
+    const result = normalizeInput(
+      { clientId: "c1", factoryId: "f1", orderDate: "2026-05-31" },
+      "s-proprio"
+    );
+    expect(result.sellerId).toBe("s-proprio");
+  });
+
+  it("o vendedor escolhido no formulário vence o implícito", () => {
+    const result = normalizeInput(
+      {
+        sellerId: { value: "s-escolhido" },
+        clientId: "c1",
+        factoryId: "f1",
+        orderDate: "2026-05-31",
+      },
+      "s-proprio"
+    );
+    expect(result.sellerId).toBe("s-escolhido");
+  });
+
   it("manda paymentTermId/freightType/notes como null quando ausentes", () => {
     const result = normalizeInput({
       sellerId: "s1",

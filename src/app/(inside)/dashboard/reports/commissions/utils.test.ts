@@ -4,10 +4,14 @@ import { CommissionRow } from "./interface";
 import {
   buildCommissionsExportRows,
   byFactory,
+  COMMISSIONS_EXPORT_HEADERS,
   filterByPeriod,
   sortForReport,
   summarize,
 } from "./utils";
+
+/** A coluna pelo cabeçalho: inserir uma coluna no meio não quebra a asserção. */
+const col = (header: string) => COMMISSIONS_EXPORT_HEADERS.indexOf(header);
 
 const row = (over: Partial<CommissionRow> = {}): CommissionRow => ({
   orderId: "o1",
@@ -15,6 +19,7 @@ const row = (over: Partial<CommissionRow> = {}): CommissionRow => ({
   sequence: 1,
   orderDate: "2026-06-10",
   invoicedAt: "2026-06-20",
+  invoiceNumber: "12345",
   dueDate: "2026-07-20",
   paidAt: null,
   installmentAmount: "1000.00",
@@ -164,13 +169,13 @@ describe("sortForReport", () => {
 describe("buildCommissionsExportRows", () => {
   it("grava valor da parcela e comissão como número", () => {
     const [line] = buildCommissionsExportRows([row()]);
-    expect(line[5]).toBe(1000);
-    expect(line[6]).toBe(30);
+    expect(line[col("Valor da parcela")]).toBe(1000);
+    expect(line[col("Comissão")]).toBe(30);
   });
 
   it("traduz a situação para o rótulo do sistema", () => {
     const [line] = buildCommissionsExportRows([row({ status: "received" })]);
-    expect(line[7]).toBe("Recebido");
+    expect(line[col("Situação")]).toBe("Recebido");
   });
 
   it("marca a conferência com sim/não", () => {
@@ -180,7 +185,20 @@ describe("buildCommissionsExportRows", () => {
     const [pendente] = buildCommissionsExportRows([
       row({ isReconciled: false }),
     ]);
-    expect(conferida[8]).toBe("Sim");
-    expect(pendente[8]).toBe("Não");
+    expect(conferida[col("Conferida")]).toBe("Sim");
+    expect(pendente[col("Conferida")]).toBe("Não");
+  });
+
+  it("leva a nota fiscal, e marca com traço o pedido que ainda não tem", () => {
+    // A planilha da fábrica vem pela nota: sem ela na exportação, conferir o
+    // repasse volta a ser casar cliente + valor no olho.
+    const [comNota] = buildCommissionsExportRows([
+      row({ invoiceNumber: "88" }),
+    ]);
+    const [semNota] = buildCommissionsExportRows([
+      row({ invoiceNumber: null }),
+    ]);
+    expect(comNota[col("Nota fiscal")]).toBe("88");
+    expect(semNota[col("Nota fiscal")]).toBe("—");
   });
 });

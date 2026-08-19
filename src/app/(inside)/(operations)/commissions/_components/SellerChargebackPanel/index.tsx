@@ -1,5 +1,6 @@
 "use client";
 
+import { HelpTooltip } from "@/components/HelpTooltip";
 import { Table } from "@/components/Table";
 import { Title } from "@/components/Title";
 import { useLocalTable } from "@/hooks/useLocalTable";
@@ -7,6 +8,7 @@ import { clientName, factoryName } from "@/utils/company";
 import { CalendarClock, Check, HandCoins, Undo2 } from "lucide-react";
 import { useMemo } from "react";
 
+import { CHARGEBACK_PANEL_HELP } from "../../help";
 import { CommissionRow } from "../../interface";
 import { monthLabel, YearMonth } from "../../utils";
 import { ChargebackSection, SectionAction } from "./ChargebackSection";
@@ -96,11 +98,24 @@ export function SellerChargebackPanel({
   return (
     <Table.Root sort={table.sort}>
       <div className="flex flex-col gap-2 p-16">
-        <Title variant="heading-sm">Estornos na comissão do vendedor</Title>
+        <div className="flex items-center gap-4">
+          <Title variant="heading-sm">Estornos na comissão do vendedor</Title>
+          <HelpTooltip
+            label="Sobre os estornos do vendedor"
+            position="right"
+            content={CHARGEBACK_PANEL_HELP}
+          />
+        </div>
         <Title variant="caption" color="muted">
           {canManage
             ? "Comissão já repassada de boletos que o cliente não pagou. Enquanto você não escolher o mês, o valor continua na fila."
             : "Boletos que o cliente não pagou depois de a comissão já ter sido repassada. O escritório define em qual mês o valor sai."}
+        </Title>
+        {/* O recorte da tela não vale aqui, e isso precisa estar ESCRITO: quem
+            vê quatro linhas num mês que "só tem uma" acha que a conta furou. */}
+        <Title variant="caption" color="muted">
+          Esta lista mostra os estornos de todos os meses — ela não segue o mês
+          nem a aba escolhidos acima.
         </Title>
       </div>
 

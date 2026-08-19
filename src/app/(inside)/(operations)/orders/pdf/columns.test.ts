@@ -42,7 +42,7 @@ describe("ORDER_COLUMNS", () => {
       "VENDEDOR",
       "DATA",
       "SITUAÇÃO",
-      "VALOR",
+      "VALOR S/ IMP.",
       "COMISSÃO",
     ]);
   });
@@ -67,7 +67,9 @@ describe("buildOrderTotals", () => {
       order(),
       order({ totalAmount: "500.50", commissionAmount: "15.50" }),
     ]);
-    const valueIndex = ORDER_COLUMNS.findIndex((c) => c.header === "VALOR");
+    const valueIndex = ORDER_COLUMNS.findIndex(
+      (c) => c.header === "VALOR S/ IMP."
+    );
     const commissionIndex = ORDER_COLUMNS.findIndex(
       (c) => c.header === "COMISSÃO"
     );

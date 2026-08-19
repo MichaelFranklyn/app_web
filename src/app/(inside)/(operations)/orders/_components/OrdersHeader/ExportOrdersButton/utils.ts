@@ -13,7 +13,9 @@ export const EXPORT_HEADERS = [
   "Vendedor",
   "Situação",
   "Faturado em",
-  "Valor total (R$)",
+  // Mercadoria, sem IPI nem imposto embutido: é o que a coluna da tela mostra
+  // e a base sobre a qual a fábrica calcula a comissão.
+  "Valor sem impostos (R$)",
   "Comissão (R$)",
 ];
 

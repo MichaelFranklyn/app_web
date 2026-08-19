@@ -10,6 +10,7 @@ import { useMemo } from "react";
 import { OrdersHeader } from "./_components/OrdersHeader";
 import { OrdersTable } from "./_components/OrdersTable";
 import { ORDER_STATS_QUERY, ORDERS_QUERY } from "./gql";
+import { ORDER_TAB_HELP } from "./help";
 import { ITEMS_PER_PAGE, Order, OrdersStats, QueryData } from "./interface";
 import { useOrderFilters } from "./useOrderFilters";
 import {
@@ -26,11 +27,14 @@ interface Props {
   initialData: QueryData;
   /** Gestor (owner/admin/su) pode filtrar por vendedor; vendedor já vê só o seu. */
   canFilterBySeller: boolean;
+  /** Perfil de vendedor de quem abriu a tela; dono implícito do pedido novo. */
+  ownSellerId: string | null;
 }
 
 export default function OrdersContent({
   initialData,
   canFilterBySeller,
+  ownSellerId,
 }: Props) {
   const router = useRouter();
   const pathname = usePathname();
@@ -105,6 +109,7 @@ export default function OrdersContent({
       totalItems={tableData.totalItems}
       inputValues={tableData.inputValues}
       setFilters={tableData.setFilters}
+      setFilter={tableData.setFilter}
       sort={tableData.sort}
       filterFields={filterFields}
       title={isPending ? "Pedidos a faturar" : "Lista de pedidos"}
@@ -123,6 +128,8 @@ export default function OrdersContent({
         stats={statsData}
         isFiltered={queryFilters.length > 0}
         onAddOptimistic={optimistic.addOptimistic}
+        canSelectSeller={canFilterBySeller}
+        ownSellerId={ownSellerId}
         // Os mesmos filtros dos KPIs: o arquivo sai com o recorte da tela.
         exportFilters={statsFilters}
         filterFields={filterFields}
@@ -136,8 +143,14 @@ export default function OrdersContent({
 
       <Tabs.Root value={tab} onValueChange={handleTabChange}>
         <Tabs.List data-tour="orders-tabs">
-          <Tabs.Item value="all">Todos os pedidos</Tabs.Item>
-          <Tabs.Item value="pending">Ainda não faturados</Tabs.Item>
+          {/* A explicação vai no `title` do próprio gatilho: a aba já é um
+              botão, e um "?" ao lado dela viraria botão dentro de botão. */}
+          <Tabs.Item value="all" title={ORDER_TAB_HELP.all}>
+            Todos os pedidos
+          </Tabs.Item>
+          <Tabs.Item value="pending" title={ORDER_TAB_HELP.pending}>
+            Ainda não faturados
+          </Tabs.Item>
         </Tabs.List>
 
         <Tabs.Content value="all">{table}</Tabs.Content>

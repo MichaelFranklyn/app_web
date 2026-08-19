@@ -55,7 +55,7 @@ export function CommissionsTable({
 }: Props) {
   const selectable = canManage && !!onToggleRow;
   // Seleção + boleto + conferência/repasse: as colunas de gestão.
-  const columns = 7 + (selectable ? 1 : 0) + (canManage ? 2 : 0);
+  const columns = 8 + (selectable ? 1 : 0) + (canManage ? 2 : 0);
   const allSelected =
     rows.length > 0 && rows.every((row) => selectedIds?.has(row.installmentId));
 
@@ -76,24 +76,77 @@ export function CommissionsTable({
               />
             </Table.Head>
           )}
-          <Table.Head sortKey="client">Cliente</Table.Head>
-          <Table.Head sortKey="order">Pedido</Table.Head>
-          <Table.Head sortKey="sequence">Parcela</Table.Head>
+          {/* A explicação de cada coluna vai no `title` do cabeçalho (tooltip
+              do próprio navegador) e não num HelpTooltip: cabeçalho ordenável já
+              É um botão, e um botão de ajuda dentro dele seria HTML inválido. */}
+          <Table.Head sortKey="client" title="Cliente que comprou o pedido.">
+            Cliente
+          </Table.Head>
+          <Table.Head
+            sortKey="order"
+            title="Código curto do pedido. Clique para abrir o pedido inteiro."
+          >
+            Pedido
+          </Table.Head>
+          {/* A planilha da fábrica vem pela NOTA, não pelo pedido: sem esta
+              coluna, casar o repasse com a parcela é feito no olho. */}
+          <Table.Head
+            sortKey="invoiceNumber"
+            title="Número da nota que a fábrica emitiu — é por ele que a planilha da fábrica é conferida. “Sem nota” significa que ainda não foi informada: dá para preencher em “Editar faturamento”, dentro do pedido."
+          >
+            Nota fiscal
+          </Table.Head>
+          <Table.Head
+            sortKey="sequence"
+            title="Número da parcela do pedido: 1 de 3, 2 de 3…"
+          >
+            Parcela
+          </Table.Head>
           {/* Data e dinheiro abrem na ordem útil: o mais recente e o maior. */}
-          <Table.Head sortKey="dueDate" sortFirst="desc">
+          <Table.Head
+            sortKey="dueDate"
+            sortFirst="desc"
+            title="Situação do boleto do CLIENTE (a vencer, vencido, pago, não pagou). É outra coisa que a situação da comissão: boleto vencido pode ter comissão a receber."
+          >
             Boleto
           </Table.Head>
-          <Table.Head sortKey="receiveDate" sortFirst="desc">
+          <Table.Head
+            sortKey="receiveDate"
+            sortFirst="desc"
+            title="Data em que a comissão cai (ou caiu). É por esta data que o mês lá em cima recorta a tela."
+          >
             Quando
           </Table.Head>
-          <Table.Head sortKey="amount" sortFirst="desc" align="right">
+          <Table.Head
+            sortKey="amount"
+            sortFirst="desc"
+            align="right"
+            title="Valor da comissão desta parcela. Estorno aparece em vermelho e com sinal negativo: é comissão que volta."
+          >
             Comissão
           </Table.Head>
-          <Table.Head sortKey="status">Situação</Table.Head>
+          <Table.Head
+            sortKey="status"
+            title="Situação da COMISSÃO: prevista, a receber, recebida, estorno ou devolução."
+          >
+            Situação
+          </Table.Head>
           {canManage && (
-            <Table.Head sortKey="reconciled">Conferência</Table.Head>
+            <Table.Head
+              sortKey="reconciled"
+              title="Marque quando esta parcela bater com a planilha que a fábrica mandou. A marca fica salva para a conferência não recomeçar do zero."
+            >
+              Conferência
+            </Table.Head>
           )}
-          {canManage && <Table.Head className="text-right">Ação</Table.Head>}
+          {canManage && (
+            <Table.Head
+              className="text-right"
+              title="Ações da parcela: registrar o recebimento da comissão, baixar o boleto, marcar calote e desfazer."
+            >
+              Ação
+            </Table.Head>
+          )}
         </Table.Row>
       </Table.Header>
 
@@ -137,6 +190,15 @@ export function CommissionsTable({
                 >
                   {row.orderId.slice(0, 8).toUpperCase()}
                 </Link>
+              </Table.Cell>
+              <Table.Cell>
+                {row.invoiceNumber ? (
+                  row.invoiceNumber
+                ) : (
+                  <Title variant="body-sm" color="muted">
+                    Sem nota
+                  </Title>
+                )}
               </Table.Cell>
               <Table.Cell>{row.sequence}</Table.Cell>
               <Table.Cell>

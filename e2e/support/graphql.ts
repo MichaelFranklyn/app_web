@@ -111,6 +111,10 @@ export function loginSuccess(overrides: Record<string, unknown> = {}) {
         // o papel do cookie com grantRole(page, "OWNER") — ver support/role.ts.
         // O guard server-side usa o FAKE_JWT (role owner), que deixa passar.
         role: "SELLER",
+        // O backend devolve o perfil de vendedor no login, e o cookie o guarda:
+        // é dele que sai o dono do pedido nas telas em que o vendedor não
+        // escolhe vendedor nenhum (a lista de vendedores é admin-only).
+        sellerId: "seller-1",
         ...overrides,
       },
     },

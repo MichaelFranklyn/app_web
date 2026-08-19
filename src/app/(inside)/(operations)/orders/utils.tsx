@@ -2,6 +2,7 @@ import { KpiItem } from "@/components/Card/Kpi/Root/interface";
 import { FieldConfig } from "@/hooks/useTableFilters";
 import { formatMoney } from "@/utils/format/masks";
 import type { SortLabel } from "@/utils/pdf/context";
+import { ORDER_KPI_HELP } from "./help";
 import type { OrdersStats } from "./interface";
 
 /**
@@ -13,11 +14,16 @@ import type { OrdersStats } from "./interface";
  * — as datas entram duas vezes, uma ponta com `gte` e outra com `lte`, que o
  * backend combina com AND.
  *
- * Não há mais busca livre por texto: fábrica, vendedor e cliente viraram
- * filtros próprios, que dizem exatamente o que está sendo consultado. O
- * backend continua aceitando o filtro `search` — só ninguém o envia daqui.
+ * Fábrica, vendedor e cliente têm filtros próprios (dizem exatamente o que está
+ * sendo consultado); a busca livre ficou para o que não vira select: o CÓDIGO
+ * do pedido, que é como ele circula fora do sistema (papel, WhatsApp, e-mail).
  */
 export const ORDER_TABLE_FIELDS: Record<string, FieldConfig> = {
+  // Busca livre do backend (`search`): casa o CÓDIGO do pedido (o prefixo do
+  // id que a tela, o PDF e o WhatsApp mostram), o nome da fábrica e o do
+  // vendedor. É o caminho de volta de quem tem o código na mão e não sabe de
+  // qual cliente ele é — sem isso, achar o pedido exigia adivinhar o filtro.
+  search: { type: "text", queryField: "search", operator: "like" },
   sellerId: { type: "select", queryField: "seller_id" },
   factoryId: { type: "select", queryField: "factory_id" },
   clientId: { type: "select", queryField: "client_id" },
@@ -43,19 +49,23 @@ export const PENDING_ORDER_TABLE_FIELDS: Record<string, FieldConfig> =
   );
 
 /**
- * Colunas de `orders` por onde a lista pode ser ordenada — os mesmos nomes que
- * vão no `sortKey` de cada `Table.Head`.
+ * Por onde a lista pode ser ordenada — os mesmos nomes que vão no `sortKey` de
+ * cada `Table.Head`.
  *
- * Cliente, fábrica e vendedor ficam de fora de propósito: na tabela `orders`
- * eles são só o UUID da chave estrangeira, e ordenar por UUID devolveria uma
- * ordem sem sentido nenhum. Ordenar por NOME exigiria o `ORDER BY` alcançar a
- * tabela vizinha, que o listador genérico não faz.
+ * Os quatro primeiros são colunas de `orders`. Cliente, fábrica e vendedor não
+ * são: na tabela do pedido eles são só o UUID da chave estrangeira. O
+ * repositório de pedidos alcança a tabela vizinha e ordena pelo nome EXIBIDO —
+ * o mesmo que a coluna mostra, apelido da fábrica incluído (ver
+ * `_related_sort_criteria`, no backend).
  */
 export const ORDER_SORTABLE_FIELDS = [
   "order_date",
   "status",
   "total_amount",
   "commission_amount",
+  "client_name",
+  "factory_name",
+  "seller_name",
 ];
 
 /**
@@ -67,6 +77,9 @@ export const ORDER_SORTABLE_FIELDS = [
  */
 export const ORDER_SORT_LABELS: Record<string, SortLabel> = {
   order_date: { label: "Data", kind: "date" },
+  client_name: { label: "Cliente", kind: "text" },
+  factory_name: { label: "Fábrica", kind: "text" },
+  seller_name: { label: "Vendedor", kind: "text" },
   status: { label: "Situação", kind: "text" },
   total_amount: { label: "Valor", kind: "number" },
   commission_amount: { label: "Comissão", kind: "number" },
@@ -108,14 +121,22 @@ export const buildOrderKpis = (
     commissionAmount = "0",
   } = stats.orderStats ?? {};
 
+  // Os cartões contam só PEDIDO FEITO (confirmado, faturado, entregue) — ver
+  // `_apply_placed_only`, no backend. A legenda diz isso: sem ela, o número
+  // menor que o da lista (que mostra orçamento e cancelado) parece erro.
   const scope = isFiltered ? "no filtro atual" : "da empresa";
 
+  // O texto de cada cartão vem de `help.tsx`, indexado pelo rótulo: os quatro
+  // somam coisas diferentes (todos os pedidos × só a mercadoria × só o
+  // faturado), e sem isso "Valor total" e "Faturado" parecem o mesmo número
+  // divergindo.
   return [
     {
       label: "Pedidos",
       value: String(totalOrders),
-      delta: `pedidos ${scope}`,
+      delta: `pedidos feitos ${scope}`,
       status: "atencao",
+      help: ORDER_KPI_HELP["Pedidos"],
     },
     {
       label: "Valor total",
@@ -123,6 +144,7 @@ export const buildOrderKpis = (
       delta: `ticket médio ${formatMoney(avgTicket)}`,
       positive: totalOrders > 0,
       status: "ok",
+      help: ORDER_KPI_HELP["Valor total"],
     },
     {
       // O número que responde "quanto de pedido a fábrica já faturou" —
@@ -132,12 +154,14 @@ export const buildOrderKpis = (
       delta: `${invoicedOrders} de ${totalOrders} pedidos faturados`,
       positive: invoicedOrders > 0,
       status: "ok",
+      help: ORDER_KPI_HELP["Faturado"],
     },
     {
       label: "Comissão do faturado",
       value: formatMoney(commissionAmount),
       delta: "gerada pelo que já foi faturado",
       status: "neutral",
+      help: ORDER_KPI_HELP["Comissão do faturado"],
     },
   ];
 };

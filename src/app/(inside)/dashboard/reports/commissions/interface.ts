@@ -12,6 +12,8 @@ export interface CommissionRow {
   sequence: number;
   orderDate: string;
   invoicedAt: string | null;
+  /** Nota fiscal do pedido — a chave pela qual a planilha da fábrica é conferida. */
+  invoiceNumber: string | null;
   dueDate: string | null;
   paidAt: string | null;
   installmentAmount: string;

@@ -22,8 +22,15 @@ export const COMMISSIONS_FILTER_FIELDS: Record<
 > = {
   search: {
     type: "text",
-    match: (row, value) =>
-      clientName(row.client).toLowerCase().includes(value.toLowerCase()),
+    // Cliente e nota no mesmo campo: quem confere tem ora o nome, ora o número
+    // da nota na mão — é o que vem escrito na planilha da fábrica.
+    match: (row, value) => {
+      const termo = value.trim().toLowerCase();
+      return (
+        clientName(row.client).toLowerCase().includes(termo) ||
+        (row.invoiceNumber ?? "").toLowerCase().includes(termo)
+      );
+    },
   },
   factoryId: {
     type: "select",
@@ -73,8 +80,8 @@ export const useCommissionsFilters = (rows: CommissionRow[]): FilterField[] =>
       {
         type: "text",
         key: "search",
-        label: "Cliente",
-        placeholder: "Nome do cliente",
+        label: "Cliente ou nota",
+        placeholder: "Nome do cliente ou número da nota",
       },
       {
         type: "select",

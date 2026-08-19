@@ -70,6 +70,13 @@ export function InvoiceOrderModal({ order, onSuccess }: Props) {
                 hint: "Data em que a fábrica faturou o pedido. As parcelas contam a partir dela.",
               },
               {
+                name: "invoiceNumber",
+                type: "text",
+                label: "Número da nota fiscal",
+                placeholder: "Ex.: 12345",
+                hint: "Como está na nota que a fábrica emitiu. É por ele que a planilha de comissão da fábrica encontra este pedido. Pode ficar em branco e ser preenchido depois em “Editar faturamento”.",
+              },
+              {
                 name: "paymentTermId",
                 type: "select-single",
                 label: "Prazo de pagamento",
@@ -94,11 +101,12 @@ export function InvoiceOrderModal({ order, onSuccess }: Props) {
   const initialData = useMemo(
     () => ({
       invoicedAt: getTodayIso(),
+      invoiceNumber: order.invoiceNumber ?? "",
       paymentTermId:
         paymentTermOptions.find((opt) => opt.value === order.paymentTermId) ??
         null,
     }),
-    [order.paymentTermId, paymentTermOptions]
+    [order.invoiceNumber, order.paymentTermId, paymentTermOptions]
   );
 
   const handleClose = (v: boolean) => {
@@ -119,6 +127,9 @@ export function InvoiceOrderModal({ order, onSuccess }: Props) {
         const invoicedAt = toIsoDate(data.invoicedAt);
         if (!invoicedAt) throw new Error("Informe a data do faturamento.");
         const paymentTermId = selectValue(data.paymentTermId) || null;
+        // Campo em branco = pedido sem nota informada, não string vazia: é o
+        // mesmo estado de quem faturou antes de a nota chegar.
+        const invoiceNumber = String(data.invoiceNumber ?? "").trim() || null;
         if (paymentMode && !paymentTermId) {
           throw new Error("Selecione um prazo de pagamento para faturar.");
         }
@@ -131,6 +142,7 @@ export function InvoiceOrderModal({ order, onSuccess }: Props) {
             id: order.id,
             input: {
               invoicedAt,
+              invoiceNumber,
               paymentTermId,
               ...(items ? { items, cancelRemainder: cancellingRemainder } : {}),
             },

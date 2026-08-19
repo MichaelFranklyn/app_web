@@ -44,7 +44,10 @@ const FIELDS: Record<string, LocalField<CommissionRow>> = {
       const termo = value.trim().toLowerCase();
       return (
         clientName(row.client).toLowerCase().includes(termo) ||
-        row.orderId.slice(0, 8).toLowerCase().includes(termo)
+        row.orderId.slice(0, 8).toLowerCase().includes(termo) ||
+        // A nota é o que vem escrito na planilha da fábrica — é por ela que a
+        // conferência começa quando o repasse não bate.
+        (row.invoiceNumber ?? "").toLowerCase().includes(termo)
       );
     },
   },
@@ -73,6 +76,9 @@ const FIELDS: Record<string, LocalField<CommissionRow>> = {
 const COLUMNS = {
   client: (row: CommissionRow) => clientName(row.client),
   order: (row: CommissionRow) => row.orderId,
+  // Sem nota vai para o fim em ordem crescente: a lista abre pelo que dá para
+  // conferir, e o que falta preencher fica junto, no fim.
+  invoiceNumber: (row: CommissionRow) => row.invoiceNumber ?? "zzzz",
   sequence: (row: CommissionRow) => row.sequence,
   dueDate: (row: CommissionRow) => row.dueDate,
   receiveDate: (row: CommissionRow) => row.receiveDate,
@@ -122,8 +128,8 @@ export const useCommissionsTable = (
       {
         type: "text",
         key: "search",
-        label: "Cliente ou pedido",
-        placeholder: "Nome do cliente ou código do pedido",
+        label: "Cliente, pedido ou nota",
+        placeholder: "Nome do cliente, código do pedido ou número da nota",
       },
       {
         type: "select",

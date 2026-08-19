@@ -5,6 +5,7 @@ import { Card } from "@/components/Card";
 import { EmptyState } from "@/components/EmptyState";
 import { Filters } from "@/components/Filters";
 import { Grid } from "@/components/Grid";
+import { HelpTooltip } from "@/components/HelpTooltip";
 import { Input, SelectOption } from "@/components/Input";
 import { Loading } from "@/components/Loading";
 import { PageContent } from "@/components/PageContent";
@@ -22,15 +23,26 @@ import { CalendarDays, ChevronLeft, ChevronRight, Coins } from "lucide-react";
 import { useEffect, useMemo, useState } from "react";
 import { BulkActionsBar } from "./_components/BulkActionsBar";
 import { CommissionsPdfButton } from "./_components/CommissionsPdfButton";
+import { CommissionTabsBar } from "./_components/CommissionTabsBar";
 import { FactoryCommissionGroup } from "./_components/FactoryCommissionGroup";
 import { SellerChargebackPanel } from "./_components/SellerChargebackPanel";
 import { SettlePeriodModal } from "./_components/SettlePeriodModal";
+import { TabScopeAlert } from "./_components/TabScopeAlert";
 import { COMMISSIONS_QUERY, COMMISSIONS_SELLERS_QUERY } from "./gql";
+import {
+  FILTERS_HELP,
+  ignoresMonth,
+  KPI_PENDING_HELP,
+  KPI_RECEIVABLE_HELP,
+  KPI_RECEIVED_HELP,
+  MONTH_HELP,
+  PDF_HELP,
+  SELLER_SELECT_HELP,
+} from "./help";
 import { CommissionsResponse, CommissionsSellersResponse } from "./interface";
 import { useCommissionsTable } from "./useCommissionsTable";
 import {
   addMonths,
-  COMMISSION_TABS,
   CommissionTab,
   filterByMonth,
   filterByTab,
@@ -202,18 +214,24 @@ export default function CommissionsContent({
             </PanelHeader.Description>
             {canSelectSeller && (
               <PanelHeader.Actions className="mt-6">
-                <div className="desktop:w-[220px] w-full">
-                  <Input.Select
-                    size="sm"
-                    options={sellerOptions}
-                    value={sellerValue}
-                    variant="single"
-                    disabledClear
-                    placeholder="Selecionar vendedor"
-                    onChange={(val: SelectOption | SelectOption[] | null) => {
-                      const opt = Array.isArray(val) ? val[0] : val;
-                      if (opt) setSelectedSellerId(opt.value);
-                    }}
+                <div className="flex items-center gap-4">
+                  <div className="desktop:w-[220px] w-full">
+                    <Input.Select
+                      size="sm"
+                      options={sellerOptions}
+                      value={sellerValue}
+                      variant="single"
+                      disabledClear
+                      placeholder="Selecionar vendedor"
+                      onChange={(val: SelectOption | SelectOption[] | null) => {
+                        const opt = Array.isArray(val) ? val[0] : val;
+                        if (opt) setSelectedSellerId(opt.value);
+                      }}
+                    />
+                  </div>
+                  <HelpTooltip
+                    label="Sobre o seletor de vendedor"
+                    content={SELLER_SELECT_HELP}
                   />
                 </div>
               </PanelHeader.Actions>
@@ -228,11 +246,18 @@ export default function CommissionsContent({
         <>
           {/* Navegador de mês: controla os totais logo abaixo e o PDF do mês. */}
           <div className="flex flex-wrap items-center justify-between gap-16">
-            <Title variant="heading-sm">
-              {tab === "overdue"
-                ? "Boletos travados, de todos os vencimentos"
-                : `Resumo de ${monthLabel(month)}`}
-            </Title>
+            <div className="flex items-center gap-4">
+              <Title variant="heading-sm">
+                {tab === "overdue"
+                  ? "Boletos travados, de todos os vencimentos"
+                  : `Resumo de ${monthLabel(month)}`}
+              </Title>
+              <HelpTooltip
+                label="Como o mês funciona nesta tela"
+                position="right"
+                content={MONTH_HELP}
+              />
+            </div>
             <div className="flex flex-wrap items-center gap-8">
               {canManage && (
                 <SettlePeriodModal
@@ -242,12 +267,15 @@ export default function CommissionsContent({
                   onSettled={handleChanged}
                 />
               )}
-              <CommissionsPdfButton
-                rows={visibleRows}
-                month={month}
-                sellerName={sellerName}
-                disabled={showSkeleton}
-              />
+              <div className="flex items-center gap-2">
+                <CommissionsPdfButton
+                  rows={visibleRows}
+                  month={month}
+                  sellerName={sellerName}
+                  disabled={showSkeleton}
+                />
+                <HelpTooltip label="O que sai no PDF" content={PDF_HELP} />
+              </div>
               <div className="flex items-center gap-4">
                 <Button.Root
                   appearance="outline"
@@ -297,8 +325,12 @@ export default function CommissionsContent({
               <>
                 <Grid.Item>
                   <Card.Kpi>
-                    <Card.Kpi.Label>
+                    <Card.Kpi.Label className="inline-flex items-center gap-2">
                       A receber em {monthLabel(month)}
+                      <HelpTooltip
+                        label="Sobre o valor a receber no mês"
+                        content={KPI_RECEIVABLE_HELP}
+                      />
                     </Card.Kpi.Label>
                     <Card.Kpi.Value status="atencao">
                       {formatMoney(monthTotals.receivable)}
@@ -312,8 +344,12 @@ export default function CommissionsContent({
                 </Grid.Item>
                 <Grid.Item>
                   <Card.Kpi>
-                    <Card.Kpi.Label>
+                    <Card.Kpi.Label className="inline-flex items-center gap-2">
                       Previsto em {monthLabel(month)}
+                      <HelpTooltip
+                        label="Sobre o valor previsto no mês"
+                        content={KPI_PENDING_HELP}
+                      />
                     </Card.Kpi.Label>
                     <Card.Kpi.Value>
                       {formatMoney(monthTotals.pending)}
@@ -325,8 +361,12 @@ export default function CommissionsContent({
                 </Grid.Item>
                 <Grid.Item>
                   <Card.Kpi>
-                    <Card.Kpi.Label>
+                    <Card.Kpi.Label className="inline-flex items-center gap-2">
                       Recebido em {monthLabel(month)}
+                      <HelpTooltip
+                        label="Sobre o valor recebido no mês"
+                        content={KPI_RECEIVED_HELP}
+                      />
                     </Card.Kpi.Label>
                     <Card.Kpi.Value status="ok">
                       {formatMoney(monthTotals.received)}
@@ -350,20 +390,7 @@ export default function CommissionsContent({
 
           {/* Filtro por situação. Abaixo, um cartão por fábrica com o seu mês. */}
           <div className="flex flex-wrap items-center justify-between gap-8">
-            <div className="flex flex-wrap items-center gap-4">
-              {COMMISSION_TABS.map((item) => (
-                <Button.Root
-                  key={item.id}
-                  appearance={tab === item.id ? "solid" : "ghost"}
-                  color={tab === item.id ? "amber" : "neutral"}
-                  size="sm"
-                  noUppercase
-                  onClick={() => setTab(item.id)}
-                >
-                  <Button.Title>{item.label}</Button.Title>
-                </Button.Root>
-              ))}
-            </div>
+            <CommissionTabsBar tab={tab} onChange={setTab} />
             <div className="flex flex-wrap items-center gap-8">
               {/* Quantas linhas o filtro deixou passar: sem isto, um recorte
                   esquecido no painel explicaria sozinho um total menor. */}
@@ -372,14 +399,23 @@ export default function CommissionsContent({
                   {table.totalItems} de {table.totalUnfiltered} parcela(s)
                 </Title>
               )}
-              <Filters
-                fields={table.filterFields}
-                values={table.inputValues}
-                onChange={table.setFilters}
-                onTextChange={table.setFilter}
-              />
+              <div className="flex items-center gap-2">
+                <Filters
+                  fields={table.filterFields}
+                  values={table.inputValues}
+                  onChange={table.setFilters}
+                  onTextChange={table.setFilter}
+                />
+                <HelpTooltip
+                  label="Até onde vão os filtros"
+                  content={FILTERS_HELP}
+                />
+              </div>
             </div>
           </div>
+
+          {/* O aviso aparece só na aba que foge do mês (ver TabScopeAlert). */}
+          <TabScopeAlert tab={tab} month={month} />
 
           {/* O vendedor vê o mesmo painel sem os botões: a fila não cai em
               fechamento nenhum enquanto não tem mês, e ele precisa saber do
@@ -408,8 +444,12 @@ export default function CommissionsContent({
                   <EmptyState.Icon>
                     <Coins size={32} />
                   </EmptyState.Icon>
+                  {/* Na aba que ignora o mês, nomear o mês aqui seria mentir
+                      sobre o que foi procurado. */}
                   <EmptyState.Title>
-                    Nenhuma comissão em {monthLabel(month)}
+                    {ignoresMonth(tab)
+                      ? "Nenhum boleto em atraso"
+                      : `Nenhuma comissão em ${monthLabel(month)}`}
                   </EmptyState.Title>
                   <EmptyState.Description>
                     {isFiltered

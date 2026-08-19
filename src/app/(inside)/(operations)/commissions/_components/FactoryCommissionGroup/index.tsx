@@ -14,6 +14,7 @@ import {
   summarizeRows,
   YearMonth,
 } from "../../utils";
+import { ignoresMonth } from "../../help";
 import { CommissionsTable } from "../CommissionsTable";
 import { MarkReceivedModal } from "../MarkReceivedModal";
 
@@ -88,6 +89,11 @@ export function FactoryCommissionGroup({
 
   const total = group.rows.length;
   const allReconciled = total > 0 && summary.reconciledCount === total;
+  // A aba "Boleto em atraso" traz todos os vencimentos: dizer "em agosto" aqui
+  // seria o rótulo contradizendo as linhas logo abaixo dele.
+  const scopeLabel = ignoresMonth(tab)
+    ? "de todos os vencimentos"
+    : `em ${monthLabel(month)}`;
 
   return (
     <Table.Root sort={sort}>
@@ -119,8 +125,8 @@ export function FactoryCommissionGroup({
               color={canManage && allReconciled ? "green" : "muted"}
             >
               {canManage
-                ? `${summary.reconciledCount} de ${total} parcela(s) conferida(s) em ${monthLabel(month)}`
-                : `${total} parcela(s) em ${monthLabel(month)}`}
+                ? `${summary.reconciledCount} de ${total} parcela(s) conferida(s) ${scopeLabel}`
+                : `${total} parcela(s) ${scopeLabel}`}
             </Title>
           </div>
         </button>
