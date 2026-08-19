@@ -1,6 +1,8 @@
 import { FormBuilderRef, FormStepSchema } from "@/components/FormBuilder";
 import { useQueryErrorToast } from "@/hooks/useQueryErrorToast";
+import { useAllPages } from "@/hooks/useAllPages";
 import { useAsyncAction } from "@/hooks/useAsyncAction";
+import { useAsyncSelectOptions } from "@/hooks/useAsyncSelectOptions";
 import { useInvalidateQueriesClient } from "@/hooks/useInvalidateQueries";
 import { useUserData } from "@/hooks/useUserData";
 import { extractSelectValue } from "@/utils/form";
@@ -16,11 +18,20 @@ import {
   SELLERS_WITH_ACCESS_QUERY,
 } from "./gql";
 import {
+  CompanyClientNode,
   CompanyClientsData,
   CreateResponse,
+  ExistingLinkNode,
   ExistingLinksData,
+  SellerAccessNode,
   SellersAccessData,
 } from "./interface";
+
+// Referências estáveis: entram em dependências dos hooks de busca/paginação.
+const getCompanyClients = (d: CompanyClientsData) => d.companyClients;
+const selectAccesses = (d: SellersAccessData) => d.sellerFactoryAccessList;
+const selectExistingLinks = (d: ExistingLinksData) => d.sellerClientFactoryList;
+const CLIENT_ORDER = { by: "created_at", dir: "desc" } as const;
 
 export interface LinkClientModalProps {
   factoryId: string;
@@ -44,22 +55,52 @@ export function useLinkClient({
   const { execute, isLoading } = useAsyncAction();
   const { isSeller } = useUserData();
 
-  const byFactory = {
-    first: 200,
-    filters: [{ field: "factory_id", operator: "eq", value: factoryId }],
-  };
+  const byFactory = useMemo(
+    () =>
+      open
+        ? {
+            first: 200,
+            filters: [
+              { field: "factory_id", operator: "eq", value: factoryId },
+            ],
+          }
+        : null,
+    [open, factoryId]
+  );
 
-  const { data: clientsData, error: clientsError } =
-    useQuery<CompanyClientsData>(COMPANY_CLIENTS_FOR_LINK_QUERY, {
-      variables: { input: { first: 200 } },
-      skip: !open,
-    });
+  // A carteira de uma empresa passa de 100 clientes e cresce sempre: a busca vai
+  // ao servidor (o backend traduz `search` em JOIN com `clients`, onde mora o
+  // nome). Se a carteira couber inteira na primeira página, o hook devolve
+  // `onSearch: undefined` e o select filtra em memória, como antes.
+  const clientScope = useMemo(
+    () => [{ field: "is_active", operator: "eq", value: "true" }],
+    []
+  );
 
-  const { data: sellersData, error: sellersError } =
-    useQuery<SellersAccessData>(SELLERS_WITH_ACCESS_QUERY, {
-      variables: { input: byFactory },
-      skip: !open,
-    });
+  const {
+    nodes: clientNodes,
+    loading: loadingClients,
+    onSearch: onClientSearch,
+  } = useAsyncSelectOptions<CompanyClientsData, CompanyClientNode>({
+    query: COMPANY_CLIENTS_FOR_LINK_QUERY,
+    getConnection: getCompanyClients,
+    toOption: (node) => ({
+      value: node.client?.id ?? node.id,
+      label: node.client?.nomeFantasia || node.client?.razaoSocial || "Cliente",
+    }),
+    searchField: "search",
+    baseFilters: clientScope,
+    order: CLIENT_ORDER,
+    first: 50,
+    skip: !open,
+  });
+
+  // Acesso e vínculo não têm coluna de texto para buscar: aqui a saída é
+  // percorrer TODAS as páginas, em vez de torcer para caber numa só.
+  const { nodes: accessNodes } = useAllPages<
+    SellerAccessNode,
+    SellersAccessData
+  >(SELLERS_WITH_ACCESS_QUERY, byFactory, selectAccesses);
 
   const { data: tiersData, error: tiersError } = useQuery<TiersData>(
     PRICE_TIERS_FOR_LINK_QUERY,
@@ -80,32 +121,31 @@ export function useLinkClient({
     }
   );
 
-  const { data: existingData, error: existingError } =
-    useQuery<ExistingLinksData>(EXISTING_LINKS_QUERY, {
-      variables: { input: byFactory },
-      skip: !open,
-    });
+  const { nodes: existingLinks } = useAllPages<
+    ExistingLinkNode,
+    ExistingLinksData
+  >(EXISTING_LINKS_QUERY, byFactory, selectExistingLinks);
 
   /** Quem atende cada cliente nesta fábrica hoje (um vendedor por cliente). */
   const assignmentByClient = useMemo(() => {
     const map = new Map<string, { sellerId: string; sellerName: string }>();
-    for (const { node } of existingData?.sellerClientFactoryList?.edges ?? []) {
+    for (const node of existingLinks) {
       map.set(node.clientId, {
         sellerId: node.sellerId,
         sellerName: node.seller?.name ?? "outro vendedor",
       });
     }
     return map;
-  }, [existingData]);
+  }, [existingLinks]);
 
   // Cliente já vinculado continua na lista, com o nome de quem atende: o
   // vendedor pode ter saído da empresa ou deixado de atender esta fábrica, e
   // esconder o cliente deixava a troca impossível pela tela.
   const clientOptions = useMemo(
     () =>
-      clientsData?.companyClients?.edges
-        ?.filter(({ node }) => node.isActive && node.client)
-        .map(({ node }) => {
+      clientNodes
+        .filter((node) => node.isActive && node.client)
+        .map((node) => {
           const name = node.client!.nomeFantasia || node.client!.razaoSocial;
           const current = assignmentByClient.get(node.client!.id);
           return {
@@ -114,19 +154,19 @@ export function useLinkClient({
               : name,
             value: node.client!.id,
           };
-        }) ?? [],
-    [clientsData, assignmentByClient]
+        }),
+    [clientNodes, assignmentByClient]
   );
 
   const sellerOptions = useMemo(
     () =>
-      sellersData?.sellerFactoryAccessList?.edges
-        ?.filter(({ node }) => node.isActive && node.seller)
-        .map(({ node }) => ({
+      accessNodes
+        .filter((node) => node.isActive && node.seller)
+        .map((node) => ({
           label: node.seller!.name,
           value: node.seller!.id,
-        })) ?? [],
-    [sellersData]
+        })),
+    [accessNodes]
   );
 
   const tierOptions = useMemo(
@@ -150,12 +190,17 @@ export function useLinkClient({
                 name: "clientId",
                 type: "select-single",
                 label: "Cliente",
-                placeholder:
-                  clientOptions.length === 0
+                // Com busca no servidor, lista vazia é "nada casa com o termo",
+                // não "a carteira está vazia".
+                placeholder: onClientSearch
+                  ? "Busque pelo nome do cliente"
+                  : clientOptions.length === 0
                     ? "Nenhum cliente disponível na carteira"
                     : "Selecione o cliente",
                 required: true,
                 options: clientOptions,
+                onSearch: onClientSearch,
+                loading: loadingClients,
                 onChange: (value: unknown) => {
                   const selected = value as { value: string } | null;
                   setSelectedClientId(selected?.value ?? null);
@@ -200,7 +245,7 @@ export function useLinkClient({
         ],
       },
     ],
-    [clientOptions, sellerOptions, tierOptions]
+    [clientOptions, onClientSearch, loadingClients, sellerOptions, tierOptions]
   );
 
   const [linkClient] = useMutation<CreateResponse>(
@@ -283,7 +328,7 @@ export function useLinkClient({
   };
 
   useQueryErrorToast(
-    clientsError ?? sellersError ?? tiersError ?? existingError,
+    tiersError,
     "Não foi possível carregar as opções. Tente novamente."
   );
 

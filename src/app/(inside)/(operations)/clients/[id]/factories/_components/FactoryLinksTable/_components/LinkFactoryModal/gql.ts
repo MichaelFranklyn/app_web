@@ -23,6 +23,7 @@ export const SELLERS_FOR_LINK_QUERY = gql`
           isActive
         }
       }
+      totalCount
     }
   }
 `;
@@ -44,6 +45,7 @@ export const SELLER_FACTORY_ACCESSES_FOR_LINK_QUERY = gql`
           }
         }
       }
+      totalCount
     }
   }
 `;
@@ -58,6 +60,7 @@ export const SELLER_CLIENT_FACTORIES_FOR_LINK_QUERY = gql`
           factoryId
         }
       }
+      totalCount
     }
   }
 `;
@@ -73,6 +76,7 @@ export const COMPANY_FACTORIES_FOR_LINK_QUERY = gql`
           factoryId
         }
       }
+      totalCount
     }
   }
 `;
@@ -86,6 +90,7 @@ export const PRICE_TIERS_FOR_LINK_QUERY = gql`
           name
         }
       }
+      totalCount
     }
   }
 `;

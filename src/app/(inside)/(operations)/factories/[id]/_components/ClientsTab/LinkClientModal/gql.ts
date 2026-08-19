@@ -28,6 +28,7 @@ export const COMPANY_CLIENTS_FOR_LINK_QUERY = gql`
           }
         }
       }
+      totalCount
     }
   }
 `;
@@ -46,6 +47,10 @@ export const SELLERS_WITH_ACCESS_QUERY = gql`
             name
           }
         }
+      }
+      pageInfo {
+        hasNextPage
+        endCursor
       }
     }
   }
@@ -67,6 +72,10 @@ export const EXISTING_LINKS_QUERY = gql`
             name
           }
         }
+      }
+      pageInfo {
+        hasNextPage
+        endCursor
       }
     }
   }

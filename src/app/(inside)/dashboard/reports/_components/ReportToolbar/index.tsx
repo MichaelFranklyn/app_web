@@ -2,14 +2,19 @@
 
 import { ExportMenu } from "@/components/ExportMenu";
 import { Input, SelectOption } from "@/components/Input";
+import { useCompleteList } from "@/hooks/useCompleteList";
 import { useQueryErrorToast } from "@/hooks/useQueryErrorToast";
-import { useQuery } from "@apollo/client/react";
 import { useMemo } from "react";
 
 import { DASHBOARD_SELLERS_QUERY } from "../../../gql";
 import { DashboardSellersResponse, SellerOption } from "../../../interface";
 import { DashboardDateFilter } from "../../../_components/DashboardDateFilter";
 import { ReportFilters } from "../../interface";
+
+// Catálogo pequeno carregado por inteiro: `useCompleteList` rebusca pelo
+// total se um dia passar da primeira página, em vez de truncar calado.
+const EMPTY_INPUT = {};
+const getSellers = (d: DashboardSellersResponse) => d.dashboard_sellers;
 
 const ALL_SELLERS = "__all__";
 
@@ -43,9 +48,11 @@ export function ReportToolbar({
   onExportPdf,
   exportDisabled,
 }: Props) {
-  const sellersQuery = useQuery<DashboardSellersResponse>(
+  const sellersQuery = useCompleteList<DashboardSellersResponse>(
     DASHBOARD_SELLERS_QUERY,
-    { variables: { input: { first: 200 } }, skip: !canSelectSeller }
+    EMPTY_INPUT,
+    getSellers,
+    { skip: !canSelectSeller }
   );
   useQueryErrorToast(
     sellersQuery.error,

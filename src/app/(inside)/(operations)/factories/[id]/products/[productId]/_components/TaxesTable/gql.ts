@@ -46,6 +46,7 @@ export const TAX_RULES_QUERY = gql`
           name
         }
       }
+      totalCount
     }
   }
 `;

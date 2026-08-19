@@ -20,6 +20,7 @@ export const SELLER_CLIENT_LINKS_QUERY = gql`
           }
         }
       }
+      totalCount
     }
   }
 `;

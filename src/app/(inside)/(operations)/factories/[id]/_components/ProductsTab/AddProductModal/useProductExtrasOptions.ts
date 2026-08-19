@@ -1,6 +1,7 @@
 import { useAsyncAction } from "@/hooks/useAsyncAction";
 import { useQueryErrorToast } from "@/hooks/useQueryErrorToast";
-import { useMutation, useQuery } from "@apollo/client/react";
+import { useCompleteList } from "@/hooks/useCompleteList";
+import { useMutation } from "@apollo/client/react";
 import { useCallback, useMemo } from "react";
 
 import { getProductErrorMessage } from "../errors";
@@ -18,7 +19,12 @@ import {
   TaxRulesData,
 } from "./interface";
 
-const LIST_INPUT = { first: 200 };
+// Catálogos pequenos carregados por inteiro (ver useCompleteList): sem `first`
+// fixo, quem passar do teto é rebuscado pelo total em vez de sumir da lista.
+const LIST_INPUT = {};
+const getTaxRules = (d: TaxRulesData) => d.taxRules;
+const getPriceLists = (d: FactoryPriceListsData) => d.factoryPriceLists;
+const getTiers = (d: PriceTiersData) => d.priceTiers;
 
 /**
  * Opções dos passos "Impostos" e "Preços" do cadastro manual de produto:
@@ -31,7 +37,6 @@ export function useProductExtrasOptions(
 ) {
   const byCompanyFactory = useMemo(
     () => ({
-      first: 200,
       filters: [
         {
           field: "company_factory_id",
@@ -47,21 +52,25 @@ export function useProductExtrasOptions(
     data: rulesData,
     error: rulesError,
     refetch: refetchRules,
-  } = useQuery<TaxRulesData>(TAX_RULES_QUERY, {
-    variables: { input: LIST_INPUT },
+  } = useCompleteList<TaxRulesData>(TAX_RULES_QUERY, LIST_INPUT, getTaxRules, {
     skip: !open,
   });
 
   const { data: listsData, error: listsError } =
-    useQuery<FactoryPriceListsData>(FACTORY_PRICE_LISTS_OPTIONS_QUERY, {
-      variables: { input: byCompanyFactory },
-      skip: !open || !companyFactoryId,
-    });
+    useCompleteList<FactoryPriceListsData>(
+      FACTORY_PRICE_LISTS_OPTIONS_QUERY,
+      byCompanyFactory,
+      getPriceLists,
+      { skip: !open || !companyFactoryId }
+    );
 
-  const { data: tiersData, error: tiersError } = useQuery<PriceTiersData>(
-    PRICE_TIERS_OPTIONS_QUERY,
-    { variables: { input: byCompanyFactory }, skip: !open || !companyFactoryId }
-  );
+  const { data: tiersData, error: tiersError } =
+    useCompleteList<PriceTiersData>(
+      PRICE_TIERS_OPTIONS_QUERY,
+      byCompanyFactory,
+      getTiers,
+      { skip: !open || !companyFactoryId }
+    );
 
   const [createTaxRule] = useMutation<CreateTaxRuleResponse>(
     CREATE_TAX_RULE_MUTATION

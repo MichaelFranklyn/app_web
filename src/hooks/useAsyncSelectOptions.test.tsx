@@ -27,6 +27,24 @@ interface Data {
   things: { edges: { node: Node }[] };
 }
 
+const QUERY_COM_TOTAL = gql`
+  query ThingsComTotal($input: BaseListInput!) {
+    things(input: $input) {
+      edges {
+        node {
+          id
+          name
+        }
+      }
+      totalCount
+    }
+  }
+`;
+
+interface DataComTotal {
+  things: { edges: { node: Node }[]; totalCount: number };
+}
+
 const mkMock = (variables: object, nodes: Node[]) => ({
   request: { query: QUERY, variables },
   result: { data: { things: { edges: nodes.map((node) => ({ node })) } } },
@@ -85,7 +103,7 @@ describe("useAsyncSelectOptions", () => {
 
     await waitFor(() => expect(result.current.options).toHaveLength(2));
 
-    act(() => result.current.onSearch("an"));
+    act(() => result.current.onSearch?.("an"));
 
     await waitFor(() => expect(result.current.options).toHaveLength(1));
     expect(result.current.options[0].label).toBe("Ana");
@@ -122,7 +140,7 @@ describe("useAsyncSelectOptions", () => {
     await waitFor(() => expect(result.current.options).toHaveLength(1));
     expect(result.current.options[0].label).toBe("Ana");
 
-    act(() => result.current.onSearch("bru"));
+    act(() => result.current.onSearch?.("bru"));
     await waitFor(() => expect(result.current.options[0]?.label).toBe("Bruno"));
   });
 
@@ -139,5 +157,75 @@ describe("useAsyncSelectOptions", () => {
 
     await waitFor(() => expect(result.current.nodes).toHaveLength(1));
     expect(result.current.nodes[0]).toEqual({ id: "1", name: "Ana" });
+  });
+
+  it("catálogo que coube inteiro filtra em memória (sem onSearch)", async () => {
+    // `totalCount` igual ao que veio = a lista toda está na mão. Devolver
+    // `onSearch` aqui faria o select ir ao servidor a cada tecla para filtrar 2
+    // itens que já estão no navegador.
+    const mock = {
+      request: { query: QUERY_COM_TOTAL, variables: { input: { first: 20 } } },
+      result: {
+        data: {
+          things: {
+            edges: [{ node: { id: "1", name: "Ana" } }],
+            totalCount: 1,
+          },
+        },
+      },
+    };
+    const { result } = renderHook(
+      () =>
+        useAsyncSelectOptions<DataComTotal, Node>({
+          query: QUERY_COM_TOTAL,
+          getConnection: (d) => d.things,
+          toOption: (n) => ({ value: n.id, label: n.name }),
+          searchField: "name",
+          debounceMs: 10,
+        }),
+      {
+        wrapper: ({ children }: { children: ReactNode }) => (
+          <MockedProvider mocks={[mock]}>{children}</MockedProvider>
+        ),
+      }
+    );
+
+    await waitFor(() => expect(result.current.options).toHaveLength(1));
+    await waitFor(() => expect(result.current.isComplete).toBe(true));
+    expect(result.current.onSearch).toBeUndefined();
+  });
+
+  it("catálogo maior que a página segue buscando no servidor", async () => {
+    const mock = {
+      request: { query: QUERY_COM_TOTAL, variables: { input: { first: 20 } } },
+      result: {
+        data: {
+          things: {
+            edges: [{ node: { id: "1", name: "Ana" } }],
+            // Uma linha veio, o banco tem 900: filtrar em memória esconderia 899.
+            totalCount: 900,
+          },
+        },
+      },
+    };
+    const { result } = renderHook(
+      () =>
+        useAsyncSelectOptions<DataComTotal, Node>({
+          query: QUERY_COM_TOTAL,
+          getConnection: (d) => d.things,
+          toOption: (n) => ({ value: n.id, label: n.name }),
+          searchField: "name",
+          debounceMs: 10,
+        }),
+      {
+        wrapper: ({ children }: { children: ReactNode }) => (
+          <MockedProvider mocks={[mock]}>{children}</MockedProvider>
+        ),
+      }
+    );
+
+    await waitFor(() => expect(result.current.options).toHaveLength(1));
+    expect(result.current.isComplete).toBe(false);
+    expect(typeof result.current.onSearch).toBe("function");
   });
 });

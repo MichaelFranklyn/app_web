@@ -4,7 +4,7 @@ import {
   yearMonthFromIso,
   type YearMonth,
 } from "@/utils/format/month";
-import { CommissionRow } from "./interface";
+import { CommissionRow, CommissionStatus } from "./interface";
 
 // O vocabulário da situação e o agrupamento por fábrica subiram para
 // `(inside)/_shared/commissions` quando o relatório de comissões passou a
@@ -37,6 +37,16 @@ export const COMMISSION_TABS: { id: CommissionTab; label: string }[] = [
   { id: "all", label: "Todas" },
 ];
 
+/** O que compõe o próximo fechamento: entradas e saídas, no líquido. */
+const RECEIVABLE_STATUSES: CommissionStatus[] = [
+  "receivable",
+  // Estorno a descontar e devolução a receber saem do mesmo bolso e no mesmo
+  // mês do que há a receber — separá-los em abas faria o gestor somar de
+  // cabeça para saber quanto cai.
+  "chargeback",
+  "refund",
+];
+
 /**
  * Recorta as linhas pela situação escolhida.
  *
@@ -51,23 +61,31 @@ export const filterByTab = (
   if (tab === "all") return rows;
   if (tab === "overdue")
     return rows.filter((row) => row.isOverdue || row.defaultedAt !== null);
+  if (tab === "receivable")
+    return rows.filter((row) => RECEIVABLE_STATUSES.includes(row.status));
   return rows.filter((row) => row.status === tab);
 };
 
 /**
- * Recorta pelo mês escolhido. A data que importa muda com a aba: nas de
- * comissão é quando o dinheiro cai (`receiveDate`); em "Boleto em atraso" é o
- * VENCIMENTO — o atraso se conta pelo boleto, e um calote pode nem ter data de
- * recebimento ainda (fica na fila do escritório).
+ * Recorta pelo mês escolhido — exceto em "Boleto em atraso".
+ *
+ * Nas abas de comissão o mês É o assunto: elas respondem "quanto cai neste
+ * fechamento", e a data que importa é a de recebimento.
+ *
+ * Atraso não é evento de mês, é acúmulo. E a conferência do que o cliente não
+ * pagou é feita contra o relatório que a fábrica manda — que vem com boletos de
+ * vencimentos espalhados, não de um mês só. Recortando por mês, o gestor teria
+ * de descobrir os meses de vencimento um a um e marcar um lote em cada: quatro
+ * navegações para um relatório só. Aqui a aba mostra tudo o que está travado.
  */
 export const filterByMonth = (
   rows: CommissionRow[],
   month: YearMonth,
   tab: CommissionTab
 ): CommissionRow[] =>
-  rows.filter((row) =>
-    isInMonth(tab === "overdue" ? row.dueDate : row.receiveDate, month)
-  );
+  tab === "overdue"
+    ? rows
+    : rows.filter((row) => isInMonth(row.receiveDate, month));
 
 // A navegação por mês virou coisa de duas telas (comissões e metas) e mora em
 // @/utils/format/month. Re-exportado aqui porque a página inteira já a consome
@@ -108,6 +126,7 @@ export interface MonthSummary {
   pending: number; // previsto no mês (depende de faturamento/pagamento)
   countReceivable: number; // parcelas a receber no mês
   chargeback: number; // estornos (negativo) que caem no mês
+  refund: number; // devoluções (positivo) que voltam no mês
 }
 
 /**
@@ -125,6 +144,7 @@ export const summarizeMonth = (
     pending: 0,
     countReceivable: 0,
     chargeback: 0,
+    refund: 0,
   };
   for (const row of rows) {
     if (!isInMonth(row.receiveDate, month)) continue;
@@ -138,6 +158,9 @@ export const summarizeMonth = (
     } else if (row.status === "chargeback") {
       // Estorno já vem negativo: entra no a receber para o mês fechar líquido.
       summary.chargeback += Number(row.amount);
+      summary.receivable += Number(row.amount);
+    } else if (row.status === "refund") {
+      summary.refund += Number(row.amount);
       summary.receivable += Number(row.amount);
     }
   }
@@ -200,6 +223,7 @@ export interface RowsSummary {
   received: number; // soma recebida
   pending: number; // soma prevista (depende de faturamento/pagamento)
   chargeback: number; // soma dos estornos (negativa)
+  refund: number; // soma das devoluções (positiva)
   reconciledCount: number; // quantas parcelas já foram conferidas
   receivableIds: string[]; // parcelas a receber (para "Receber tudo")
   overdueCount: number; // boletos vencidos ou em calote
@@ -216,6 +240,7 @@ export const summarizeRows = (rows: CommissionRow[]): RowsSummary => {
     received: 0,
     pending: 0,
     chargeback: 0,
+    refund: 0,
     reconciledCount: 0,
     receivableIds: [],
     overdueCount: 0,
@@ -230,6 +255,14 @@ export const summarizeRows = (rows: CommissionRow[]): RowsSummary => {
     if (row.status === "chargeback") {
       summary.chargeback += Number(row.amount);
       summary.receivable += Number(row.amount);
+    }
+    // Devolução é positiva: o cliente pagou depois de o desconto ter saído, e o
+    // valor volta pelo mesmo fechamento. Estorno JÁ descontado não entra em
+    // conta nenhuma — ele pesou no mês em que saiu e virou histórico.
+    if (row.status === "refund") {
+      summary.refund += Number(row.amount);
+      summary.receivable += Number(row.amount);
+      summary.receivableIds.push(row.installmentId);
     }
     if (row.isReconciled) summary.reconciledCount += 1;
     if (row.isOverdue || row.defaultedAt) summary.overdueCount += 1;
@@ -253,10 +286,26 @@ export const factoryHighlights = (
   tab: CommissionTab
 ): FactoryHighlight[] => {
   switch (tab) {
-    case "receivable":
-      return [
+    case "receivable": {
+      const destaques: FactoryHighlight[] = [
         { label: "A receber", value: summary.receivable, color: "amber" },
       ];
+      // O líquido sozinho esconde o que o compõe: com estorno ou devolução no
+      // mês, o gestor precisa ver de onde veio a diferença antes de cobrar.
+      if (summary.chargeback !== 0)
+        destaques.push({
+          label: "Estorno",
+          value: summary.chargeback,
+          color: "red",
+        });
+      if (summary.refund !== 0)
+        destaques.push({
+          label: "Devolução",
+          value: summary.refund,
+          color: "green",
+        });
+      return destaques;
+    }
     case "received":
       return [{ label: "Recebido", value: summary.received, color: "green" }];
     case "pending":
@@ -269,4 +318,92 @@ export const factoryHighlights = (
         { label: "Recebido", value: summary.received, color: "green" },
       ];
   }
+};
+
+// ── Impacto de marcar um lote como calote ────────────────────────────────────
+
+export interface SellerImpact {
+  sellerId: string;
+  name: string;
+  /** Quanto será recuperado deste vendedor (positivo). */
+  amount: number;
+  /** Comissão dele no mês aberto, antes do desconto. */
+  monthCommission: number;
+  /** Fatia do mês que o desconto consome (1 = o mês inteiro). */
+  share: number;
+}
+
+export interface DefaultImpact {
+  /** Comissão já recebida da fábrica que volta como estorno (positivo). */
+  factoryChargeback: number;
+  /** Quantas das parcelas escolhidas ainda não tinham gerado comissão paga. */
+  withoutDebt: number;
+  sellers: SellerImpact[];
+}
+
+/**
+ * O que acontece se estas parcelas forem marcadas como calote.
+ *
+ * Serve para o gestor decidir com o número na frente, e não descobrir depois:
+ * quanto volta para a fábrica, de quem o escritório precisa recuperar e —
+ * principalmente — que fatia do mês daquele vendedor o desconto consome. Um
+ * calote de seis parcelas pode passar do mês inteiro dele.
+ *
+ * `allRows` é a lista completa (todos os meses, todas as fábricas): a comissão
+ * do mês do vendedor não cabe no recorte da fábrica que está sendo conferida.
+ */
+export const defaultImpact = (
+  selected: CommissionRow[],
+  allRows: CommissionRow[],
+  month: YearMonth
+): DefaultImpact => {
+  const factoryChargeback = selected
+    .filter((row) => row.isReceived)
+    .reduce((sum, row) => sum + Number(row.amount), 0);
+
+  const porVendedor = new Map<string, SellerImpact>();
+  for (const row of selected) {
+    // Só quem já recebeu a fatia tem o que devolver; para o resto o calote
+    // apenas cancela uma comissão que nunca chegou.
+    if (!row.isSellerPaid || !row.seller) continue;
+    const atual = porVendedor.get(row.seller.id);
+    const amount = Math.abs(Number(row.sellerAmount));
+    if (atual) {
+      atual.amount += amount;
+      continue;
+    }
+    // A comissão DO VENDEDOR no mês: soma `sellerAmount` pela data DELE
+    // (`sellerReceiveDate`). Usar os campos principais mediria o estorno do
+    // vendedor contra o fechamento do escritório — dois números diferentes.
+    const monthCommission = allRows
+      .filter(
+        (r) =>
+          r.seller?.id === row.seller!.id &&
+          isInMonth(r.sellerReceiveDate, month) &&
+          (r.sellerStatus === "receivable" ||
+            r.sellerStatus === "chargeback" ||
+            r.sellerStatus === "refund")
+      )
+      .reduce((sum, r) => sum + Number(r.sellerAmount), 0);
+    porVendedor.set(row.seller.id, {
+      sellerId: row.seller.id,
+      name: row.seller.name,
+      amount,
+      monthCommission,
+      share: 0,
+    });
+  }
+
+  const sellers = [...porVendedor.values()].map((item) => ({
+    ...item,
+    // Mês sem comissão nenhuma: o desconto é maior que tudo o que há, e
+    // dividir por zero daria Infinity na tela.
+    share: item.monthCommission > 0 ? item.amount / item.monthCommission : 1,
+  }));
+
+  return {
+    factoryChargeback: Math.abs(factoryChargeback),
+    withoutDebt: selected.filter((row) => !row.isReceived).length,
+    sellers,
+  };
 };

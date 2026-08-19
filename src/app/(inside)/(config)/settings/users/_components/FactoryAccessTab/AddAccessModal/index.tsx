@@ -12,7 +12,8 @@ import { Modal } from "@/components/Modal";
 import { useAsyncAction } from "@/hooks/useAsyncAction";
 import { useRefetchQueriesClient } from "@/hooks/useInvalidateQueries";
 import { useUserData } from "@/hooks/useUserData";
-import { useMutation, useQuery } from "@apollo/client/react";
+import { useCompleteList } from "@/hooks/useCompleteList";
+import { useMutation } from "@apollo/client/react";
 import { Plus } from "lucide-react";
 import { useMemo, useRef, useState } from "react";
 import {
@@ -31,7 +32,13 @@ import {
   SellersOptionsData,
 } from "./interface";
 
-const LIST_INPUT = { first: 200 };
+// Catálogos pequenos carregados por inteiro: `useCompleteList` rebusca pelo
+// total se um dia passarem da primeira página, em vez de truncar calado.
+const LIST_INPUT = {};
+const getSellers = (d: SellersOptionsData) => d.sellers_options;
+const getFactories = (d: CompanyFactoriesOptionsData) =>
+  d.company_factories_options;
+const getAccesses = (d: SellerAccessesData) => d.seller_accesses;
 
 export function AddAccessModal({
   onAddOptimistic,
@@ -50,22 +57,28 @@ export function AddAccessModal({
   const { userData } = useUserData();
 
   const { data: sellersData, error: sellersError } =
-    useQuery<SellersOptionsData>(SELLERS_OPTIONS_QUERY, {
-      variables: { input: LIST_INPUT },
-      skip: !open,
-    });
+    useCompleteList<SellersOptionsData>(
+      SELLERS_OPTIONS_QUERY,
+      LIST_INPUT,
+      getSellers,
+      { skip: !open }
+    );
 
   const { data: factoriesData, error: factoriesError } =
-    useQuery<CompanyFactoriesOptionsData>(COMPANY_FACTORIES_OPTIONS_QUERY, {
-      variables: { input: LIST_INPUT },
-      skip: !open,
-    });
+    useCompleteList<CompanyFactoriesOptionsData>(
+      COMPANY_FACTORIES_OPTIONS_QUERY,
+      LIST_INPUT,
+      getFactories,
+      { skip: !open }
+    );
 
   const { data: accessesData, error: accessesError } =
-    useQuery<SellerAccessesData>(SELLER_ACCESSES_QUERY, {
-      variables: { input: LIST_INPUT },
-      skip: !open,
-    });
+    useCompleteList<SellerAccessesData>(
+      SELLER_ACCESSES_QUERY,
+      LIST_INPUT,
+      getAccesses,
+      { skip: !open }
+    );
 
   // Apenas vendedores ativos
   const sellerOptions = useMemo(

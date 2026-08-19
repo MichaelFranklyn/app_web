@@ -12,6 +12,7 @@ export interface CreateProductResponse {
 export interface TaxRulesData {
   taxRules: {
     edges: { node: { id: string; name: string } }[];
+    totalCount: number;
   };
 }
 
@@ -33,12 +34,14 @@ export interface AddProductTaxResponse {
 export interface FactoryPriceListsData {
   factoryPriceLists: {
     edges: { node: { id: string; name: string; isActive: boolean } }[];
+    totalCount: number;
   };
 }
 
 export interface PriceTiersData {
   priceTiers: {
     edges: { node: { id: string; name: string } }[];
+    totalCount: number;
   };
 }
 

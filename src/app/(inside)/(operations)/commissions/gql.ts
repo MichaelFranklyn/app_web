@@ -10,6 +10,7 @@ export const COMMISSIONS_SELLERS_QUERY = gql`
           name
         }
       }
+      totalCount
     }
   }
 `;
@@ -24,6 +25,8 @@ export const COMMISSIONS_QUERY = gql`
       totalChargeback
       totalSellerChargeback
       totalSellerChargebackPending
+      totalRefund
+      totalSellerRefund
       countOverdue
       rows {
         orderId
@@ -43,11 +46,15 @@ export const COMMISSIONS_QUERY = gql`
         reconciledAt
         isOverdue
         defaultedAt
+        isChargebackSettled
+        chargebackSettledAt
         sellerAmount
         sellerStatus
         sellerReceiveDate
         isSellerPaid
         sellerChargebackMonth
+        isSellerChargebackSettled
+        sellerChargebackSettledAt
         client {
           id
           razaoSocial
@@ -207,6 +214,55 @@ export const UNMARK_SELLER_COMMISSION_PAID_MUTATION = gql`
 export const REVERT_ORDER_INSTALLMENT_MUTATION = gql`
   mutation RevertOrderInstallment($id: UUID!) {
     revertOrderInstallment(id: $id) {
+      status
+      message
+    }
+  }
+`;
+
+/** Baixa do estorno no nível da fábrica: ele vira histórico e sai do fechamento. */
+export const MARK_CHARGEBACK_SETTLED_MUTATION = gql`
+  mutation MarkChargebackSettled($installmentIds: [UUID!]!, $settledAt: Date!) {
+    markChargebackSettled(
+      installmentIds: $installmentIds
+      settledAt: $settledAt
+    ) {
+      status
+      message
+    }
+  }
+`;
+
+/** Baixa do desconto na comissão do vendedor (exige o mês já agendado). */
+export const MARK_SELLER_CHARGEBACK_SETTLED_MUTATION = gql`
+  mutation MarkSellerChargebackSettled(
+    $installmentIds: [UUID!]!
+    $settledAt: Date!
+  ) {
+    markSellerChargebackSettled(
+      installmentIds: $installmentIds
+      settledAt: $settledAt
+    ) {
+      status
+      message
+    }
+  }
+`;
+
+/** Encerra a devolução da fábrica ao escritório. */
+export const MARK_CHARGEBACK_REFUNDED_MUTATION = gql`
+  mutation MarkChargebackRefunded($installmentIds: [UUID!]!) {
+    markChargebackRefunded(installmentIds: $installmentIds) {
+      status
+      message
+    }
+  }
+`;
+
+/** Encerra a devolução do escritório ao vendedor. */
+export const MARK_SELLER_CHARGEBACK_REFUNDED_MUTATION = gql`
+  mutation MarkSellerChargebackRefunded($installmentIds: [UUID!]!) {
+    markSellerChargebackRefunded(installmentIds: $installmentIds) {
       status
       message
     }

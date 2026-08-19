@@ -38,6 +38,7 @@ export const FACTORY_SELLERS_OPTIONS_QUERY = gql`
           isActive
         }
       }
+      totalCount
     }
   }
 `;
@@ -50,6 +51,7 @@ export const FACTORY_LINKED_ACCESSES_QUERY = gql`
           sellerId
         }
       }
+      totalCount
     }
   }
 `;

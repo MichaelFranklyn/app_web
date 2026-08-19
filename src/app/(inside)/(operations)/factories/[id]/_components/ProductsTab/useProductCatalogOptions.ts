@@ -1,6 +1,7 @@
 import { useAsyncAction } from "@/hooks/useAsyncAction";
 import { useQueryErrorToast } from "@/hooks/useQueryErrorToast";
-import { useMutation, useQuery } from "@apollo/client/react";
+import { useCompleteList } from "@/hooks/useCompleteList";
+import { useMutation } from "@apollo/client/react";
 import { useCallback, useMemo } from "react";
 
 import { getProductErrorMessage } from "./errors";
@@ -21,7 +22,12 @@ import {
 } from "./interface";
 
 // Categorias, unidades e rótulos são catálogo da empresa (escopo no back).
-const COMPANY_CATALOG_INPUT = { first: 200 };
+// Sem `first` fixo: o `useCompleteList` rebusca pelo total se a primeira página
+// não trouxer tudo — um teto silencioso aqui esconderia opção do formulário.
+const COMPANY_CATALOG_INPUT = {};
+const getCategories = (d: ProductCategoriesData) => d.productCategories;
+const getUnits = (d: ProductUnitsData) => d.productUnits;
+const getLabels = (d: ProductUnitLabelsData) => d.productUnitLabels;
 
 /**
  * Catálogo compartilhado pelos formulários de produto (Add/Edit): carrega
@@ -32,28 +38,34 @@ const COMPANY_CATALOG_INPUT = { first: 200 };
  */
 export function useProductCatalogOptions(open: boolean) {
   const { data: categoriesData, error: categoriesError } =
-    useQuery<ProductCategoriesData>(PRODUCT_CATEGORIES_QUERY, {
-      variables: { input: COMPANY_CATALOG_INPUT },
-      skip: !open,
-    });
+    useCompleteList<ProductCategoriesData>(
+      PRODUCT_CATEGORIES_QUERY,
+      COMPANY_CATALOG_INPUT,
+      getCategories,
+      { skip: !open }
+    );
 
   const {
     data: unitsData,
     error: unitsError,
     refetch: refetchUnits,
-  } = useQuery<ProductUnitsData>(PRODUCT_UNITS_QUERY, {
-    variables: { input: COMPANY_CATALOG_INPUT },
-    skip: !open,
-  });
+  } = useCompleteList<ProductUnitsData>(
+    PRODUCT_UNITS_QUERY,
+    COMPANY_CATALOG_INPUT,
+    getUnits,
+    { skip: !open }
+  );
 
   const {
     data: labelsData,
     error: labelsError,
     refetch: refetchLabels,
-  } = useQuery<ProductUnitLabelsData>(PRODUCT_UNIT_LABELS_QUERY, {
-    variables: { input: COMPANY_CATALOG_INPUT },
-    skip: !open,
-  });
+  } = useCompleteList<ProductUnitLabelsData>(
+    PRODUCT_UNIT_LABELS_QUERY,
+    COMPANY_CATALOG_INPUT,
+    getLabels,
+    { skip: !open }
+  );
 
   const [createUnit] = useMutation<CreateProductUnitResponse>(
     CREATE_PRODUCT_UNIT_MUTATION

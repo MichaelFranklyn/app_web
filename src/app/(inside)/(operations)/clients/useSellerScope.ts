@@ -2,6 +2,7 @@
 
 import { SelectOption } from "@/components/Input";
 import { useIdleReady } from "@/hooks/useIdleReady";
+import { useCompleteList } from "@/hooks/useCompleteList";
 import { useQuery } from "@apollo/client/react";
 import { useMemo } from "react";
 import { CLIENTS_SELLERS_QUERY, CLIENT_STATS_QUERY } from "./gql";
@@ -23,6 +24,10 @@ interface UseSellerScopeParams {
  * Sem isto, filtrar a tabela por um vendedor deixaria o topo da página contando
  * a empresa inteira — dois números diferentes na mesma tela.
  */
+// Catálogo pequeno carregado por inteiro (ver useCompleteList).
+const EMPTY_INPUT = {};
+const getClientsSellers = (d: ClientsSellersResponse) => d.clients_sellers;
+
 export function useSellerScope({
   canFilterBySeller,
   selectedSellerId,
@@ -32,10 +37,12 @@ export function useSellerScope({
   // carga da página terminar em vez de disputar a rede com a tabela.
   const idleReady = useIdleReady();
 
-  const sellersQuery = useQuery<ClientsSellersResponse>(CLIENTS_SELLERS_QUERY, {
-    variables: { input: { first: 200 } },
-    skip: !canFilterBySeller || !idleReady,
-  });
+  const sellersQuery = useCompleteList<ClientsSellersResponse>(
+    CLIENTS_SELLERS_QUERY,
+    EMPTY_INPUT,
+    getClientsSellers,
+    { skip: !canFilterBySeller || !idleReady }
+  );
 
   const sellerOptions: SelectOption[] = useMemo(
     () =>

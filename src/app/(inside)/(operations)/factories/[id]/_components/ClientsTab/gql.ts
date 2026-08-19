@@ -65,10 +65,14 @@ export const PRICE_TIERS_FOR_LINK_QUERY = gql`
           name
         }
       }
+      totalCount
     }
   }
 `;
 
 export interface TiersData {
-  priceTiers: { edges: { node: { id: string; name: string } }[] };
+  priceTiers: {
+    edges: { node: { id: string; name: string } }[];
+    totalCount: number;
+  };
 }

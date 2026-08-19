@@ -75,61 +75,76 @@ export function CommissionRowActions({
 
   const boletoEmAberto = !row.paidAt && !row.defaultedAt;
 
-  const options = [
-    ...(row.isReceivable
-      ? [
-          {
-            label: "Recebi da fábrica",
-            icon: BadgeCheck,
-            onClick: () => setOpenModal("received"),
-          },
-        ]
-      : []),
-    ...(row.isReceived
-      ? [
-          {
-            label: "Não recebi da fábrica",
-            icon: Undo2,
-            onClick: () => setConfirm("unreceive"),
-          },
-        ]
-      : []),
-    ...(boletoEmAberto
-      ? [
-          {
-            label: "Cliente pagou o boleto",
-            icon: CircleDollarSign,
-            onClick: () => setOpenModal("paid"),
-          },
-          {
-            label: "Cliente não pagou",
-            icon: Ban,
-            danger: true,
-            onClick: () => setOpenModal("defaulted"),
-          },
-        ]
-      : [
-          {
-            label: "Reverter boleto para em aberto",
-            icon: RotateCcw,
-            onClick: () => setConfirm("revert"),
-          },
-        ]),
-    ...(row.isSellerPaid
-      ? [
-          {
-            label: "Desfazer repasse ao vendedor",
-            icon: Undo2,
-            onClick: () => setConfirm("unpaid"),
-          },
-        ]
-      : [
-          {
-            label: "Repassei ao vendedor",
-            icon: HandCoins,
-            onClick: () => setOpenModal("sellerPaid"),
-          },
-        ]),
+  // Três assuntos diferentes, e não três alternativas: o boleto é do CLIENTE, a
+  // comissão vem da FÁBRICA e o repasse vai para o VENDEDOR. Numa lista corrida
+  // "Cliente pagou" e "Recebi da fábrica" pareciam excludentes, quando na
+  // verdade são etapas que se completam.
+  const grupos = [
+    {
+      title: "Boleto do cliente",
+      options: boletoEmAberto
+        ? [
+            {
+              label: "Cliente pagou o boleto",
+              icon: CircleDollarSign,
+              onClick: () => setOpenModal("paid"),
+            },
+            {
+              label: "Cliente não pagou",
+              icon: Ban,
+              danger: true,
+              onClick: () => setOpenModal("defaulted"),
+            },
+          ]
+        : [
+            {
+              label: "Reverter boleto para em aberto",
+              icon: RotateCcw,
+              onClick: () => setConfirm("revert"),
+            },
+          ],
+    },
+    {
+      title: "Comissão da fábrica",
+      options: [
+        ...(row.isReceivable
+          ? [
+              {
+                label: "Recebi da fábrica",
+                icon: BadgeCheck,
+                onClick: () => setOpenModal("received"),
+              },
+            ]
+          : []),
+        ...(row.isReceived
+          ? [
+              {
+                label: "Não recebi da fábrica",
+                icon: Undo2,
+                onClick: () => setConfirm("unreceive"),
+              },
+            ]
+          : []),
+      ],
+    },
+    {
+      title: "Repasse ao vendedor",
+      options: row.isSellerPaid
+        ? [
+            {
+              label: "Desfazer repasse ao vendedor",
+              icon: Undo2,
+              onClick: () => setConfirm("unpaid"),
+            },
+          ]
+        : [
+            {
+              label: "Repassei ao vendedor",
+              icon: HandCoins,
+              onClick: () => setOpenModal("sellerPaid"),
+            },
+          ],
+    },
   ];
 
   const run = async (
@@ -144,7 +159,7 @@ export function CommissionRowActions({
 
   return (
     <>
-      <MoreOptions options={options} />
+      <MoreOptions options={grupos} />
 
       <MarkReceivedModal
         installmentIds={ids}

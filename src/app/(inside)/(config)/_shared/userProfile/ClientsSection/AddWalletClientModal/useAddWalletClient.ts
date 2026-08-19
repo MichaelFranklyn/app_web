@@ -5,7 +5,9 @@ import { useUserData } from "@/hooks/useUserData";
 import { useAsyncAction } from "@/hooks/useAsyncAction";
 import { clientName, factoryName } from "@/utils/company";
 import { extractSelectValue } from "@/utils/form";
-import { useMutation, useQuery } from "@apollo/client/react";
+import { useAsyncSelectOptions } from "@/hooks/useAsyncSelectOptions";
+import { useCompleteList } from "@/hooks/useCompleteList";
+import { useMutation } from "@apollo/client/react";
 import { useMemo, useRef, useState } from "react";
 
 import {
@@ -21,6 +23,7 @@ import {
   SELLER_CLIENT_FACTORIES_QUERY,
   SELLER_FACTORY_ACCESSES_QUERY,
   SellerAccessesData,
+  WalletClientNode,
 } from "./gql";
 
 export interface AddWalletClientProps {
@@ -28,6 +31,19 @@ export interface AddWalletClientProps {
   /** Re-sincroniza a carteira após o vínculo. */
   onAdded: () => void;
 }
+
+// Catálogos pequenos carregados por inteiro (ver useCompleteList); a carteira
+// de clientes é a única que busca no servidor.
+const EMPTY_INPUT = {};
+const getAccesses = (d: SellerAccessesData) => d.sellerFactoryAccessList;
+const getCompanyFactories = (d: CompanyFactoriesData) => d.companyFactories;
+const getLinks = (d: ExistingLinksData) => d.sellerClientFactoryList;
+const getTiers = (d: PriceTiersData) => d.priceTiers;
+const getCompanyClients = (d: CompanyClientsData) => d.companyClients;
+const toClientOption = (node: WalletClientNode) => ({
+  value: node.client?.id ?? node.id,
+  label: clientName(node.client),
+});
 
 export function useAddWalletClient({
   sellerId,
@@ -44,33 +60,53 @@ export function useAddWalletClient({
   > | null>(null);
   const { isSeller } = useUserData();
 
-  const bySeller = {
-    first: 200,
-    filters: [{ field: "seller_id", operator: "eq", value: sellerId }],
-  };
+  const bySeller = useMemo(
+    () => ({
+      filters: [{ field: "seller_id", operator: "eq", value: sellerId }],
+    }),
+    [sellerId]
+  );
 
   const { data: accessesData, error: accessesError } =
-    useQuery<SellerAccessesData>(SELLER_FACTORY_ACCESSES_QUERY, {
-      variables: { input: bySeller },
-      skip: !open,
-    });
+    useCompleteList<SellerAccessesData>(
+      SELLER_FACTORY_ACCESSES_QUERY,
+      bySeller,
+      getAccesses,
+      { skip: !open }
+    );
 
-  const { data: clientsData, error: clientsError } =
-    useQuery<CompanyClientsData>(COMPANY_CLIENTS_QUERY, {
-      variables: { input: { first: 500 } },
-      skip: !open,
-    });
+  // A carteira da empresa cresce sem teto: a busca vai ao servidor (o backend
+  // traduz `search` em JOIN com `clients`, onde o nome mora). Cabendo tudo na
+  // primeira página, o hook devolve `onSearch: undefined` e o select filtra em
+  // memória, como antes.
+  const {
+    nodes: clientNodes,
+    loading: loadingClients,
+    onSearch: onClientSearch,
+  } = useAsyncSelectOptions<CompanyClientsData, WalletClientNode>({
+    query: COMPANY_CLIENTS_QUERY,
+    getConnection: getCompanyClients,
+    toOption: toClientOption,
+    searchField: "search",
+    first: 50,
+    skip: !open,
+  });
 
   const { data: companyFactoriesData, error: companyFactoriesError } =
-    useQuery<CompanyFactoriesData>(COMPANY_FACTORIES_QUERY, {
-      variables: { input: { first: 200 } },
-      skip: !open,
-    });
+    useCompleteList<CompanyFactoriesData>(
+      COMPANY_FACTORIES_QUERY,
+      EMPTY_INPUT,
+      getCompanyFactories,
+      { skip: !open }
+    );
 
-  const { data: linksData, error: linksError } = useQuery<ExistingLinksData>(
-    SELLER_CLIENT_FACTORIES_QUERY,
-    { variables: { input: bySeller }, skip: !open }
-  );
+  const { data: linksData, error: linksError } =
+    useCompleteList<ExistingLinksData>(
+      SELLER_CLIENT_FACTORIES_QUERY,
+      bySeller,
+      getLinks,
+      { skip: !open }
+    );
 
   const companyFactoryId = useMemo(
     () =>
@@ -80,24 +116,26 @@ export function useAddWalletClient({
     [companyFactoriesData, selectedFactoryId]
   );
 
-  const { data: tiersData, error: tiersError } = useQuery<PriceTiersData>(
-    PRICE_TIERS_QUERY,
-    {
-      variables: {
-        input: {
-          first: 200,
-          filters: [
-            {
-              field: "company_factory_id",
-              operator: "eq",
-              value: companyFactoryId,
-            },
-          ],
+  const byCompanyFactory = useMemo(
+    () => ({
+      filters: [
+        {
+          field: "company_factory_id",
+          operator: "eq",
+          value: companyFactoryId ?? "",
         },
-      },
-      skip: !open || !companyFactoryId,
-    }
+      ],
+    }),
+    [companyFactoryId]
   );
+
+  const { data: tiersData, error: tiersError } =
+    useCompleteList<PriceTiersData>(
+      PRICE_TIERS_QUERY,
+      byCompanyFactory,
+      getTiers,
+      { skip: !open || !companyFactoryId }
+    );
 
   const factoryOptions = useMemo(
     () =>
@@ -123,16 +161,16 @@ export function useAddWalletClient({
 
   const clientOptions = useMemo(
     () =>
-      (clientsData?.companyClients.edges ?? [])
+      clientNodes
         .filter(
-          ({ node }) =>
+          (node) =>
             node.isActive && node.client && !linkedClientIds.has(node.client.id)
         )
-        .map(({ node }) => ({
+        .map((node) => ({
           value: node.client!.id,
           label: clientName(node.client),
         })),
-    [clientsData, linkedClientIds]
+    [clientNodes, linkedClientIds]
   );
 
   const tierOptions = useMemo(
@@ -176,10 +214,16 @@ export function useAddWalletClient({
                 required: true,
                 placeholder: !selectedFactoryId
                   ? "Selecione a fábrica primeiro"
-                  : clientOptions.length === 0
-                    ? "Nenhum cliente disponível para esta fábrica"
-                    : "Selecione o cliente",
+                  : // Com busca no servidor, lista vazia é "nada casa com o
+                    // termo", não "a carteira acabou".
+                    onClientSearch
+                    ? "Busque pelo nome do cliente"
+                    : clientOptions.length === 0
+                      ? "Nenhum cliente disponível para esta fábrica"
+                      : "Selecione o cliente",
                 options: clientOptions,
+                onSearch: onClientSearch,
+                loading: loadingClients,
                 onChange: (_value) => {
                   setSelectedClientId(extractSelectValue(_value));
                 },
@@ -199,7 +243,14 @@ export function useAddWalletClient({
         ],
       },
     ],
-    [factoryOptions, clientOptions, tierOptions, selectedFactoryId]
+    [
+      factoryOptions,
+      clientOptions,
+      onClientSearch,
+      loadingClients,
+      tierOptions,
+      selectedFactoryId,
+    ]
   );
 
   const [createLink] = useMutation<CreateSCFResponse>(
@@ -289,11 +340,7 @@ export function useAddWalletClient({
   };
 
   useQueryErrorToast(
-    accessesError ??
-      clientsError ??
-      companyFactoriesError ??
-      linksError ??
-      tiersError,
+    accessesError ?? companyFactoriesError ?? linksError ?? tiersError,
     "Não foi possível carregar as opções. Tente novamente."
   );
 

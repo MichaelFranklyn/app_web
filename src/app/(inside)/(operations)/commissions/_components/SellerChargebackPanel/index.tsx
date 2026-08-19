@@ -1,201 +1,184 @@
 "use client";
 
-import { Badge } from "@/components/Badges";
-import { Button } from "@/components/Button";
 import { Table } from "@/components/Table";
 import { Title } from "@/components/Title";
-import { useAsyncAction } from "@/hooks/useAsyncAction";
+import { useLocalTable } from "@/hooks/useLocalTable";
 import { clientName, factoryName } from "@/utils/company";
-import { formatMoney } from "@/utils/format/masks";
-import { useMutation } from "@apollo/client/react";
-import { CalendarClock, Undo2 } from "lucide-react";
+import { CalendarClock, Check, HandCoins, Undo2 } from "lucide-react";
 import { useMemo } from "react";
-import { SCHEDULE_SELLER_CHARGEBACK_MUTATION } from "../../gql";
+
 import { CommissionRow } from "../../interface";
 import { monthLabel, YearMonth } from "../../utils";
+import { ChargebackSection, SectionAction } from "./ChargebackSection";
+import { useChargebackActions } from "./useChargebackActions";
 
 interface Props {
   /** TODAS as linhas do vendedor — a fila não é recortada por mês. */
   rows: CommissionRow[];
   /** Mês aberto no navegador da página: é nele que o desconto é agendado. */
   month: YearMonth;
+  /** Falso para o vendedor: ele acompanha, quem decide é o escritório. */
+  canManage: boolean;
   onChanged: () => void;
 }
 
 /**
- * Estornos a descontar do vendedor.
+ * A vida do estorno na comissão do vendedor, do calote à devolução.
  *
- * Quando o cliente dá calote numa parcela cuja fatia já foi repassada, o
- * escritório tem um valor a recuperar — mas escolhe QUANDO cobrar: descontar
- * tudo de uma vez pode zerar o mês do vendedor. Enquanto ninguém agenda, o
- * estorno fica aqui, e passa de mês sem sumir.
+ * São quatro momentos, e cada um pede uma coisa diferente de quem olha: o que
+ * ainda vai ser descontado (e quando), o que já saiu, e o que precisa voltar
+ * porque o cliente acabou pagando. Ficam todos aqui, um abaixo do outro, porque
+ * é a mesma pergunta do vendedor: "o que aconteceu com a minha comissão?".
+ *
+ * O vendedor vê a mesma coisa sem os botões. Antes disto ele não via nada — o
+ * estorno sem mês definido não caía em fechamento nenhum, e a primeira notícia
+ * era o dinheiro a menos.
  */
-export function SellerChargebackPanel({ rows, month, onChanged }: Props) {
-  const [schedule] = useMutation<{
-    scheduleSellerChargeback: { status: boolean; message: string };
-  }>(SCHEDULE_SELLER_CHARGEBACK_MUTATION);
-  const { execute, isLoading } = useAsyncAction();
+/**
+ * As colunas ordenáveis das quatro seções.
+ *
+ * As chaves levam o prefixo `cb` porque a ordenação mora na URL e é uma só na
+ * tela: sem o prefixo, ordenar aqui por "cliente" acenderia também a coluna
+ * "Cliente" dos cartões de fábrica, que compara outra coisa.
+ */
+const CHARGEBACK_COLUMNS = {
+  cbClient: (row: CommissionRow) => clientName(row.client),
+  cbFactory: (row: CommissionRow) => factoryName(row.factory),
+  cbAmount: (row: CommissionRow) => Number(row.sellerAmount),
+  // A coluna mostra o mês em que o desconto saiu ou vai sair — o que já saiu
+  // tem data própria e é por ela que ele se ordena.
+  cbMonth: (row: CommissionRow) =>
+    row.sellerChargebackSettledAt ?? row.sellerChargebackMonth,
+};
 
-  const queue = useMemo(
-    () =>
-      rows.filter(
-        (row) =>
-          row.sellerStatus === "chargeback" &&
-          row.sellerChargebackMonth === null
-      ),
-    [rows]
-  );
+export function SellerChargebackPanel({
+  rows,
+  month,
+  canManage,
+  onChanged,
+}: Props) {
+  const { scheduleTo, markSettled, markRefunded, isLoading } =
+    useChargebackActions(onChanged);
 
-  const scheduled = useMemo(
-    () =>
-      rows.filter(
-        (row) =>
-          row.sellerStatus === "chargeback" &&
-          row.sellerChargebackMonth !== null
-      ),
-    [rows]
-  );
+  // Ordena ANTES de separar as seções: a comparação é a mesma nas quatro, e
+  // separar depois preserva a ordem escolhida em cada uma.
+  const table = useLocalTable<CommissionRow>({
+    items: rows,
+    columns: CHARGEBACK_COLUMNS,
+  });
+  const sortedRows = table.displayedData;
 
-  const total = useMemo(
-    () => queue.reduce((sum, row) => sum + Number(row.sellerAmount), 0),
-    [queue]
-  );
-
-  if (queue.length === 0 && scheduled.length === 0) return null;
-
-  const runSchedule = (installmentIds: string[], target: string | null) =>
-    execute(
-      async () => {
-        const res = await schedule({
-          variables: { installmentIds, month: target },
-        });
-        if (!res.data?.scheduleSellerChargeback?.status) {
-          throw new Error(
-            res.data?.scheduleSellerChargeback?.message ??
-              "Erro ao agendar o desconto"
-          );
-        }
-      },
-      {
-        successMessage: target
-          ? `Desconto agendado para ${monthLabel(month)}`
-          : "Estorno devolvido para a fila",
-        onSuccess: onChanged,
-      }
+  const grupos = useMemo(() => {
+    const chargebacks = sortedRows.filter(
+      (row) => row.sellerStatus === "chargeback"
     );
+    return {
+      fila: chargebacks.filter((row) => row.sellerChargebackMonth === null),
+      agendados: chargebacks.filter(
+        (row) => row.sellerChargebackMonth !== null
+      ),
+      descontados: sortedRows.filter(
+        (row) => row.sellerStatus === "chargeback_settled"
+      ),
+      devolucoes: sortedRows.filter((row) => row.sellerStatus === "refund"),
+    };
+  }, [sortedRows]);
 
-  // Primeiro dia do mês aberto: o que se escolhe é o fechamento, não o dia.
-  const targetMonth = `${month.year}-${String(month.month).padStart(2, "0")}-01`;
+  const vazio =
+    grupos.fila.length === 0 &&
+    grupos.agendados.length === 0 &&
+    grupos.descontados.length === 0 &&
+    grupos.devolucoes.length === 0;
+  if (vazio) return null;
+
+  const acoes = (lista: SectionAction[]) => (canManage ? lista : []);
 
   return (
-    <Table.Root>
-      <div className="flex flex-wrap items-center gap-16 p-16">
-        <div className="flex flex-1 flex-col gap-2">
-          <Title variant="heading-sm">Estornos a descontar do vendedor</Title>
-          <Title variant="caption" color="muted">
-            Comissão já repassada de boletos que o cliente não pagou. Enquanto
-            você não escolher o mês, o valor continua aqui.
-          </Title>
-        </div>
-        <div className="flex flex-wrap items-center gap-16">
-          <div className="flex flex-col items-end">
-            <Title variant="caption" color="muted">
-              Na fila
-            </Title>
-            <Title variant="body-sm" color="red" weight="semibold">
-              {formatMoney(total)}
-            </Title>
-          </div>
-          {queue.length > 0 && (
-            <Button.Root
-              appearance="tinted"
-              color="red"
-              size="sm"
-              noUppercase
-              loading={isLoading}
-              onClick={() =>
-                runSchedule(
-                  queue.map((row) => row.installmentId),
-                  targetMonth
-                )
-              }
-            >
-              <Button.Icon icon={CalendarClock} />
-              <Button.Title>Descontar tudo em {monthLabel(month)}</Button.Title>
-            </Button.Root>
-          )}
-        </div>
+    <Table.Root sort={table.sort}>
+      <div className="flex flex-col gap-2 p-16">
+        <Title variant="heading-sm">Estornos na comissão do vendedor</Title>
+        <Title variant="caption" color="muted">
+          {canManage
+            ? "Comissão já repassada de boletos que o cliente não pagou. Enquanto você não escolher o mês, o valor continua na fila."
+            : "Boletos que o cliente não pagou depois de a comissão já ter sido repassada. O escritório define em qual mês o valor sai."}
+        </Title>
       </div>
 
-      <Table.Table>
-        <Table.Header>
-          <Table.Row>
-            <Table.Head>Cliente</Table.Head>
-            <Table.Head>Fábrica</Table.Head>
-            <Table.Head className="text-right">Valor</Table.Head>
-            <Table.Head>Desconto</Table.Head>
-            <Table.Head className="text-right">Ação</Table.Head>
-          </Table.Row>
-        </Table.Header>
-        <Table.Body>
-          {[...queue, ...scheduled].map((row) => (
-            <Table.Row key={row.installmentId}>
-              <Table.Cell variant="strong">{clientName(row.client)}</Table.Cell>
-              <Table.Cell>{factoryName(row.factory)}</Table.Cell>
-              <Table.Cell className="text-right">
-                <Title variant="body-sm" color="red" weight="bold">
-                  {formatMoney(row.sellerAmount)}
-                </Title>
-              </Table.Cell>
-              <Table.Cell>
-                {row.sellerChargebackMonth ? (
-                  <Badge.Root color="red" appearance="tinted">
-                    <Badge.Text>
-                      {monthLabel({
-                        year: Number(row.sellerChargebackMonth.slice(0, 4)),
-                        month: Number(row.sellerChargebackMonth.slice(5, 7)),
-                      })}
-                    </Badge.Text>
-                  </Badge.Root>
-                ) : (
-                  <Table.CellText variant="dim">Não agendado</Table.CellText>
-                )}
-              </Table.Cell>
-              <Table.Cell>
-                <div className="flex items-center justify-end">
-                  {row.sellerChargebackMonth ? (
-                    <Button.Root
-                      appearance="ghost"
-                      color="neutral"
-                      size="sm"
-                      noUppercase
-                      onClick={() => runSchedule([row.installmentId], null)}
-                    >
-                      <Button.Icon icon={Undo2} />
-                      <Button.Title>Voltar para a fila</Button.Title>
-                    </Button.Root>
-                  ) : (
-                    <Button.Root
-                      appearance="ghost"
-                      color="red"
-                      size="sm"
-                      noUppercase
-                      onClick={() =>
-                        runSchedule([row.installmentId], targetMonth)
-                      }
-                    >
-                      <Button.Icon icon={CalendarClock} />
-                      <Button.Title>
-                        Descontar em {monthLabel(month)}
-                      </Button.Title>
-                    </Button.Root>
-                  )}
-                </div>
-              </Table.Cell>
-            </Table.Row>
-          ))}
-        </Table.Body>
-      </Table.Table>
+      <ChargebackSection
+        title="A descontar"
+        hint={
+          canManage
+            ? "Ainda sem mês definido — pode segurar quanto for preciso."
+            : "O escritório ainda não definiu o mês do desconto."
+        }
+        rows={grupos.fila}
+        tone="red"
+        isLoading={isLoading}
+        actions={acoes([
+          {
+            label: `Descontar em ${monthLabel(month)}`,
+            bulkLabel: `Descontar tudo em ${monthLabel(month)}`,
+            icon: CalendarClock,
+            color: "red",
+            onRun: (ids) => scheduleTo(ids, month),
+          },
+        ])}
+      />
+
+      <ChargebackSection
+        title="Agendado"
+        hint={
+          canManage
+            ? "Sai no fechamento do mês marcado. Registre o desconto quando ele acontecer."
+            : "Vai sair no fechamento do mês marcado."
+        }
+        rows={grupos.agendados}
+        tone="red"
+        isLoading={isLoading}
+        actions={acoes([
+          {
+            label: "Descontei",
+            bulkLabel: "Registrar todos como descontados",
+            icon: Check,
+            color: "red",
+            onRun: markSettled,
+          },
+          {
+            label: "Voltar para a fila",
+            icon: Undo2,
+            color: "neutral",
+            onRun: (ids) => scheduleTo(ids, null),
+          },
+        ])}
+      />
+
+      <ChargebackSection
+        title="A devolver"
+        hint={
+          canManage
+            ? "O cliente pagou depois do desconto: o valor volta para o vendedor."
+            : "O cliente pagou depois do desconto — este valor volta para você."
+        }
+        rows={grupos.devolucoes}
+        tone="green"
+        isLoading={isLoading}
+        actions={acoes([
+          {
+            label: "Devolvi",
+            bulkLabel: "Registrar todas as devoluções",
+            icon: HandCoins,
+            color: "green",
+            onRun: markRefunded,
+          },
+        ])}
+      />
+
+      <ChargebackSection
+        title="Já descontado"
+        hint="Histórico: saíram do fechamento do mês indicado e não pesam mais."
+        rows={grupos.descontados}
+        tone="neutral"
+      />
     </Table.Root>
   );
 }

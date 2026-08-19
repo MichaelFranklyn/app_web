@@ -89,6 +89,7 @@ export const WALLET_CLIENTS_QUERY = gql`
           }
         }
       }
+      totalCount
     }
   }
 `;

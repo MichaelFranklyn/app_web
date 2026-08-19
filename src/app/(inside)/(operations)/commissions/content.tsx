@@ -3,6 +3,7 @@
 import { Button } from "@/components/Button";
 import { Card } from "@/components/Card";
 import { EmptyState } from "@/components/EmptyState";
+import { Filters } from "@/components/Filters";
 import { Grid } from "@/components/Grid";
 import { Input, SelectOption } from "@/components/Input";
 import { Loading } from "@/components/Loading";
@@ -14,15 +15,19 @@ import { Title } from "@/components/Title";
 import { factoryName } from "@/utils/company";
 import { getTodayIso } from "@/utils/format/date";
 import { formatMoney } from "@/utils/format/masks";
+import { useCompleteList } from "@/hooks/useCompleteList";
+import { useScopedSelection } from "@/hooks/useScopedSelection";
 import { useQuery } from "@apollo/client/react";
 import { CalendarDays, ChevronLeft, ChevronRight, Coins } from "lucide-react";
 import { useEffect, useMemo, useState } from "react";
+import { BulkActionsBar } from "./_components/BulkActionsBar";
 import { CommissionsPdfButton } from "./_components/CommissionsPdfButton";
 import { FactoryCommissionGroup } from "./_components/FactoryCommissionGroup";
 import { SellerChargebackPanel } from "./_components/SellerChargebackPanel";
 import { SettlePeriodModal } from "./_components/SettlePeriodModal";
 import { COMMISSIONS_QUERY, COMMISSIONS_SELLERS_QUERY } from "./gql";
 import { CommissionsResponse, CommissionsSellersResponse } from "./interface";
+import { useCommissionsTable } from "./useCommissionsTable";
 import {
   addMonths,
   COMMISSION_TABS,
@@ -43,6 +48,11 @@ interface Props {
   ownSellerId: string | null;
 }
 
+// Catálogo pequeno carregado por inteiro: `useCompleteList` rebusca pelo
+// total se um dia passar da primeira página, em vez de truncar calado.
+const EMPTY_INPUT = {};
+const getSellers = (d: CommissionsSellersResponse) => d.commissions_sellers;
+
 export default function CommissionsContent({
   canSelectSeller,
   ownSellerId,
@@ -52,9 +62,11 @@ export default function CommissionsContent({
   const canManage = canSelectSeller;
 
   // ── Seletor de vendedor (só gestor) ────────────────────────────────────────
-  const sellersQuery = useQuery<CommissionsSellersResponse>(
+  const sellersQuery = useCompleteList<CommissionsSellersResponse>(
     COMMISSIONS_SELLERS_QUERY,
-    { variables: { input: { first: 200 } }, skip: !canSelectSeller }
+    EMPTY_INPUT,
+    getSellers,
+    { skip: !canSelectSeller }
   );
   const sellers = useMemo(
     () => sellersQuery.data?.commissions_sellers.edges.map((e) => e.node) ?? [],
@@ -88,6 +100,13 @@ export default function CommissionsContent({
   const rows = useMemo(() => data?.commissions?.rows ?? [], [data]);
   const summary = data?.commissions;
 
+  // Filtro e ordenação valem para a tela toda: os KPIs, os cartões das fábricas
+  // e o painel de estorno leem as MESMAS linhas. Um filtro que valesse só dentro
+  // de um cartão faria o total lá em cima contradizer a tabela logo abaixo dele.
+  const table = useCommissionsTable(rows, canManage);
+  const visibleRows = table.displayedData;
+  const isFiltered = table.totalItems < table.totalUnfiltered;
+
   // ── Navegador de mês global (pela data em que a comissão cai) ───────────────
   // Inicializa no mês da comissão mais recente e depois respeita a navegação —
   // ao trocar de vendedor, mantém o mês para comparar "agosto de um" vs "de outro".
@@ -100,7 +119,10 @@ export default function CommissionsContent({
     }
   }, [monthPinned, rows]);
 
-  const monthTotals = useMemo(() => summarizeMonth(rows, month), [rows, month]);
+  const monthTotals = useMemo(
+    () => summarizeMonth(visibleRows, month),
+    [visibleRows, month]
+  );
   const isCurrentMonth = useMemo(() => {
     const now = yearMonthFromIso(getTodayIso());
     return now.year === month.year && now.month === month.month;
@@ -111,12 +133,35 @@ export default function CommissionsContent({
   // próprio seletor de mês e o de cima só mexia nos totais: dois lugares para
   // escolher a mesma coisa, mostrando meses diferentes na mesma tela.
   const filteredRows = useMemo(
-    () => filterByTab(filterByMonth(rows, month, tab), tab),
-    [rows, tab, month]
+    () => filterByTab(filterByMonth(visibleRows, month, tab), tab),
+    [visibleRows, tab, month]
   );
 
   // Agrupado por fábrica trabalhada — é assim que a fábrica manda a planilha.
   const groups = useMemo(() => groupByFactory(filteredRows), [filteredRows]);
+
+  // A seleção mora aqui, e não em cada cartão, para que exista UMA por vez: a
+  // barra de atalhos é uma só, e um lote que misturasse fábricas seria marcado
+  // com a data de repasse errada.
+  const selection = useScopedSelection();
+  const { clear: clearSelection } = selection;
+
+  // Trocar de mês, de situação ou de vendedor troca as linhas debaixo do lote —
+  // manter a seleção marcaria parcelas que saíram da tela.
+  useEffect(() => {
+    clearSelection();
+  }, [month, tab, selectedSellerId, clearSelection]);
+
+  const selectedRows = useMemo(() => {
+    if (selection.count === 0) return [];
+    const ids = new Set(selection.ids);
+    return rows.filter((row) => ids.has(row.installmentId));
+  }, [rows, selection.ids, selection.count]);
+
+  const selectionScopeLabel = useMemo(() => {
+    const group = groups.find((g) => g.factoryId === selection.scopeId);
+    return group ? `${group.name} · ${monthLabel(month)}` : monthLabel(month);
+  }, [groups, selection.scopeId, month]);
 
   const handleChanged = () => refetch();
 
@@ -183,7 +228,11 @@ export default function CommissionsContent({
         <>
           {/* Navegador de mês: controla os totais logo abaixo e o PDF do mês. */}
           <div className="flex flex-wrap items-center justify-between gap-16">
-            <Title variant="heading-sm">Resumo de {monthLabel(month)}</Title>
+            <Title variant="heading-sm">
+              {tab === "overdue"
+                ? "Boletos travados, de todos os vencimentos"
+                : `Resumo de ${monthLabel(month)}`}
+            </Title>
             <div className="flex flex-wrap items-center gap-8">
               {canManage && (
                 <SettlePeriodModal
@@ -194,7 +243,7 @@ export default function CommissionsContent({
                 />
               )}
               <CommissionsPdfButton
-                rows={rows}
+                rows={visibleRows}
                 month={month}
                 sellerName={sellerName}
                 disabled={showSkeleton}
@@ -300,25 +349,46 @@ export default function CommissionsContent({
           </Grid.Root>
 
           {/* Filtro por situação. Abaixo, um cartão por fábrica com o seu mês. */}
-          <div className="flex flex-wrap items-center gap-4">
-            {COMMISSION_TABS.map((item) => (
-              <Button.Root
-                key={item.id}
-                appearance={tab === item.id ? "solid" : "ghost"}
-                color={tab === item.id ? "amber" : "neutral"}
-                size="sm"
-                noUppercase
-                onClick={() => setTab(item.id)}
-              >
-                <Button.Title>{item.label}</Button.Title>
-              </Button.Root>
-            ))}
+          <div className="flex flex-wrap items-center justify-between gap-8">
+            <div className="flex flex-wrap items-center gap-4">
+              {COMMISSION_TABS.map((item) => (
+                <Button.Root
+                  key={item.id}
+                  appearance={tab === item.id ? "solid" : "ghost"}
+                  color={tab === item.id ? "amber" : "neutral"}
+                  size="sm"
+                  noUppercase
+                  onClick={() => setTab(item.id)}
+                >
+                  <Button.Title>{item.label}</Button.Title>
+                </Button.Root>
+              ))}
+            </div>
+            <div className="flex flex-wrap items-center gap-8">
+              {/* Quantas linhas o filtro deixou passar: sem isto, um recorte
+                  esquecido no painel explicaria sozinho um total menor. */}
+              {isFiltered && (
+                <Title variant="caption" color="muted">
+                  {table.totalItems} de {table.totalUnfiltered} parcela(s)
+                </Title>
+              )}
+              <Filters
+                fields={table.filterFields}
+                values={table.inputValues}
+                onChange={table.setFilters}
+                onTextChange={table.setFilter}
+              />
+            </div>
           </div>
 
-          {canManage && !showSkeleton && (
+          {/* O vendedor vê o mesmo painel sem os botões: a fila não cai em
+              fechamento nenhum enquanto não tem mês, e ele precisa saber do
+              desconto antes de o dinheiro faltar. */}
+          {!showSkeleton && (
             <SellerChargebackPanel
-              rows={rows}
+              rows={visibleRows}
               month={month}
+              canManage={canManage}
               onChanged={handleChanged}
             />
           )}
@@ -342,9 +412,11 @@ export default function CommissionsContent({
                     Nenhuma comissão em {monthLabel(month)}
                   </EmptyState.Title>
                   <EmptyState.Description>
-                    {rows.length > 0
-                      ? "Use as setas ao lado do mês, lá em cima, para conferir outro mês, ou troque a situação nos botões acima."
-                      : "As comissões aparecem quando os pedidos são faturados. Fature um pedido para gerar as parcelas e acompanhar o que há a receber."}
+                    {isFiltered
+                      ? "Nenhuma parcela passou pelos filtros. Ajuste-os no botão “Filtros”, ao lado das situações."
+                      : rows.length > 0
+                        ? "Use as setas ao lado do mês, lá em cima, para conferir outro mês, ou troque a situação nos botões acima."
+                        : "As comissões aparecem quando os pedidos são faturados. Fature um pedido para gerar as parcelas e acompanhar o que há a receber."}
                   </EmptyState.Description>
                 </EmptyState.Root>
               </div>
@@ -359,10 +431,42 @@ export default function CommissionsContent({
                   tab={tab}
                   defaultOpen={i === 0}
                   canManage={canManage}
+                  sort={table.sort}
+                  selectedIds={
+                    canManage
+                      ? selection.selectedIn(group.factoryId)
+                      : undefined
+                  }
+                  onToggleRow={
+                    canManage
+                      ? (id) => selection.toggle(group.factoryId, id)
+                      : undefined
+                  }
+                  onToggleAll={
+                    canManage
+                      ? (ids) => selection.toggleAll(group.factoryId, ids)
+                      : undefined
+                  }
                   onChanged={handleChanged}
                 />
               ))}
             </div>
+          )}
+
+          {/* Uma barra para a tela inteira: a seleção é única (ver
+              `useScopedSelection`) e ela aparece fixa na base da janela. */}
+          {canManage && (
+            <BulkActionsBar
+              selectedIds={selection.ids}
+              allRows={rows}
+              month={month}
+              scopeLabel={selectionScopeLabel}
+              receivableIds={selectedRows
+                .filter((row) => row.isReceivable)
+                .map((row) => row.installmentId)}
+              onClear={clearSelection}
+              onChanged={handleChanged}
+            />
           )}
         </>
       )}

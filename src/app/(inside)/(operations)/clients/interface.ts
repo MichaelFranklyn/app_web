@@ -22,6 +22,7 @@ export interface ClientSeller {
 export interface ClientsSellersResponse {
   clients_sellers: {
     edges: { node: ClientSeller }[];
+    totalCount: number;
   };
 }
 
@@ -70,6 +71,12 @@ export interface QueryData {
 
 /** Nós dos catálogos de classificação (rede e segmento) usados nos filtros. */
 export interface ClassificationData {
-  clientNetworks?: { edges: { node: { id: string; name: string } }[] };
-  clientSegments?: { edges: { node: { id: string; name: string } }[] };
+  clientNetworks?: {
+    edges: { node: { id: string; name: string } }[];
+    totalCount: number;
+  };
+  clientSegments?: {
+    edges: { node: { id: string; name: string } }[];
+    totalCount: number;
+  };
 }

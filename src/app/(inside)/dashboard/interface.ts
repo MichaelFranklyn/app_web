@@ -20,6 +20,7 @@ export interface SellerOption {
 export interface DashboardSellersResponse {
   dashboard_sellers: {
     edges: { node: SellerOption }[];
+    totalCount: number;
   };
 }
 

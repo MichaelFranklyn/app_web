@@ -11,7 +11,8 @@ import { SelectOption } from "@/components/Input";
 import { Modal } from "@/components/Modal";
 import { useAsyncAction } from "@/hooks/useAsyncAction";
 import { parseMoneyToNumber } from "@/utils/format/masks";
-import { useMutation, useQuery } from "@apollo/client/react";
+import { useCompleteList } from "@/hooks/useCompleteList";
+import { useMutation } from "@apollo/client/react";
 import { Plus } from "lucide-react";
 import { useMemo, useRef, useState } from "react";
 import {
@@ -21,6 +22,10 @@ import {
 } from "../gql";
 import { extractSelectValue } from "@/utils/form";
 import { CreateItemResponse, PriceListsData, TiersData } from "./interface";
+
+// Catálogos pequenos carregados por inteiro (ver useCompleteList).
+const getPriceLists = (d: PriceListsData) => d.factoryPriceLists;
+const getTiers = (d: TiersData) => d.priceTiers;
 
 interface Props {
   productId: string;
@@ -39,24 +44,32 @@ export function AddPriceItemModal({
   const [open, setOpen] = useState(false);
   const formRef = useRef<FormBuilderRef>(null);
 
-  const byCompanyFactory = {
-    first: 200,
-    filters: [
-      { field: "company_factory_id", operator: "eq", value: companyFactoryId },
-    ],
-  };
-
-  const { data: listsData, error: listsError } = useQuery<PriceListsData>(
-    FACTORY_PRICE_LISTS_OPTIONS_QUERY,
-    { variables: { input: byCompanyFactory }, skip: !open || !companyFactoryId }
+  const byCompanyFactory = useMemo(
+    () => ({
+      filters: [
+        {
+          field: "company_factory_id",
+          operator: "eq",
+          value: companyFactoryId,
+        },
+      ],
+    }),
+    [companyFactoryId]
   );
 
-  const { data: tiersData, error: tiersError } = useQuery<TiersData>(
+  const { data: listsData, error: listsError } =
+    useCompleteList<PriceListsData>(
+      FACTORY_PRICE_LISTS_OPTIONS_QUERY,
+      byCompanyFactory,
+      getPriceLists,
+      { skip: !open || !companyFactoryId }
+    );
+
+  const { data: tiersData, error: tiersError } = useCompleteList<TiersData>(
     PRICE_TIERS_OPTIONS_QUERY,
-    {
-      variables: { input: byCompanyFactory },
-      skip: !open || !companyFactoryId,
-    }
+    byCompanyFactory,
+    getTiers,
+    { skip: !open || !companyFactoryId }
   );
 
   const [createItem] = useMutation<CreateItemResponse>(

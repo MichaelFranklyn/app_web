@@ -27,6 +27,7 @@ export const COMPANY_FACTORIES_OPTIONS_QUERY = gql`
           }
         }
       }
+      totalCount
     }
   }
 `;
@@ -42,6 +43,7 @@ export const SELLER_ACCESSES_QUERY = gql`
           isActive
         }
       }
+      totalCount
     }
   }
 `;
@@ -58,6 +60,7 @@ export interface CompanyFactoriesOptionsData {
         } | null;
       };
     }[];
+    totalCount: number;
   };
 }
 
@@ -66,6 +69,7 @@ export interface SellerAccessesData {
     edges: {
       node: { sellerId: string; factoryId: string; isActive: boolean };
     }[];
+    totalCount: number;
   };
 }
 

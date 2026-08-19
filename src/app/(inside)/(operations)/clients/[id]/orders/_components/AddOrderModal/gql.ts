@@ -33,6 +33,7 @@ export const CLIENT_ASSIGNMENTS_QUERY = gql`
           }
         }
       }
+      totalCount
     }
   }
 `;

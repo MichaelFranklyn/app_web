@@ -17,7 +17,11 @@ export type CommissionStatus =
   | "received"
   | "cancelled"
   /** Calote depois de a comissão ter sido paga: valor negativo, a devolver. */
-  | "chargeback";
+  | "chargeback"
+  /** Estorno que já foi descontado: histórico, não pesa mais em fechamento. */
+  | "chargeback_settled"
+  /** O cliente pagou depois do desconto: o valor volta para quem o perdeu. */
+  | "refund";
 
 export const COMMISSION_STATUS_LABEL: Record<CommissionStatus, string> = {
   pending: "Previsto",
@@ -25,6 +29,8 @@ export const COMMISSION_STATUS_LABEL: Record<CommissionStatus, string> = {
   received: "Recebido",
   cancelled: "Cancelado",
   chargeback: "Estorno",
+  chargeback_settled: "Estorno descontado",
+  refund: "Devolução",
 };
 
 export const COMMISSION_STATUS_TONE: Record<
@@ -36,6 +42,9 @@ export const COMMISSION_STATUS_TONE: Record<
   received: "green",
   cancelled: "red",
   chargeback: "red",
+  chargeback_settled: "neutral",
+  // Devolução é dinheiro voltando: fica no mesmo tom do que há a receber.
+  refund: "amber",
 };
 
 /** O mínimo que o agrupamento por fábrica precisa saber de uma linha. */

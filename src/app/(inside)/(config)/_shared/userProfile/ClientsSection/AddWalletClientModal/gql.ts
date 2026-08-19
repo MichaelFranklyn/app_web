@@ -31,6 +31,7 @@ export const SELLER_FACTORY_ACCESSES_QUERY = gql`
           }
         }
       }
+      totalCount
     }
   }
 `;
@@ -50,6 +51,7 @@ export const COMPANY_CLIENTS_QUERY = gql`
           }
         }
       }
+      totalCount
     }
   }
 `;
@@ -64,6 +66,7 @@ export const COMPANY_FACTORIES_QUERY = gql`
           factoryId
         }
       }
+      totalCount
     }
   }
 `;
@@ -77,6 +80,7 @@ export const PRICE_TIERS_QUERY = gql`
           name
         }
       }
+      totalCount
     }
   }
 `;
@@ -94,6 +98,7 @@ export const SELLER_CLIENT_FACTORIES_QUERY = gql`
           clientId
         }
       }
+      totalCount
     }
   }
 `;
@@ -113,34 +118,38 @@ export interface SellerAccessesData {
         } | null;
       };
     }[];
+    totalCount: number;
   };
+}
+
+export interface WalletClientNode {
+  id: string;
+  isActive: boolean;
+  client: {
+    id: string;
+    razaoSocial: string;
+    nomeFantasia: string | null;
+  } | null;
 }
 
 export interface CompanyClientsData {
   companyClients: {
-    edges: {
-      node: {
-        id: string;
-        isActive: boolean;
-        client: {
-          id: string;
-          razaoSocial: string;
-          nomeFantasia: string | null;
-        } | null;
-      };
-    }[];
+    edges: { node: WalletClientNode }[];
+    totalCount: number;
   };
 }
 
 export interface CompanyFactoriesData {
   companyFactories: {
     edges: { node: { id: string; factoryId: string } }[];
+    totalCount: number;
   };
 }
 
 export interface PriceTiersData {
   priceTiers: {
     edges: { node: { id: string; name: string } }[];
+    totalCount: number;
   };
 }
 
@@ -154,6 +163,7 @@ export interface ExistingLinksData {
         clientId: string;
       };
     }[];
+    totalCount: number;
   };
 }
 
