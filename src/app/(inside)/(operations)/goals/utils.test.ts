@@ -2,8 +2,10 @@ import { describe, expect, it } from "vitest";
 
 import { GoalRow } from "./interface";
 import {
+  copySourceMonths,
   groupBySeller,
   metricValues,
+  overallPercent,
   percentOf,
   percentTone,
   sumRows,
@@ -114,5 +116,95 @@ describe("groupBySeller", () => {
     ]);
     expect(groups.map((g) => g.sellerName)).toEqual(["Rafael", "Zeca"]);
     expect(groups[0].rows).toHaveLength(2);
+  });
+});
+
+describe("overallPercent", () => {
+  const totals = (
+    over: Partial<Record<string, { target: number | null; done: number }>> = {}
+  ) => ({
+    invoiced: { target: 100, done: 50 },
+    ordered: { target: 100, done: 100 },
+    positivations: { target: 10, done: 5 },
+    visits: { target: 10, done: 5 },
+    ...over,
+  });
+
+  it("é a média dos indicadores, não só o faturamento", () => {
+    // 50 + 100 + 50 + 50 = 250 / 4. Quem bateu a venda mas não visitou ninguém
+    // não cumpriu o mês, e um número só esconderia isso.
+    expect(overallPercent(totals())).toBeCloseTo(62.5);
+  });
+
+  it("indicador sem meta fica de fora da média", () => {
+    // Só faturamento (50%) e vendas (100%) foram combinados.
+    const percent = overallPercent(
+      totals({
+        positivations: { target: null, done: 5 },
+        visits: { target: null, done: 5 },
+      })
+    );
+    expect(percent).toBeCloseTo(75);
+  });
+
+  it("nada combinado devolve nulo — a tela diz 'sem meta', não '0%'", () => {
+    const percent = overallPercent(
+      totals({
+        invoiced: { target: null, done: 900 },
+        ordered: { target: null, done: 900 },
+        positivations: { target: null, done: 9 },
+        visits: { target: null, done: 9 },
+      })
+    );
+    expect(percent).toBeNull();
+  });
+
+  it("passa de 100% quando o vendedor supera o combinado", () => {
+    const percent = overallPercent(
+      totals({
+        invoiced: { target: 100, done: 200 },
+        ordered: { target: 100, done: 200 },
+        positivations: { target: 10, done: 20 },
+        visits: { target: 10, done: 20 },
+      })
+    );
+    expect(percent).toBe(200);
+  });
+});
+
+describe("copySourceMonths", () => {
+  it("lista os meses já decorridos do ano, do mais recente ao mais antigo", () => {
+    // Em agosto, a grade pode vir de janeiro a julho — não de setembro, que
+    // ainda não aconteceu.
+    expect(copySourceMonths({ year: 2026, month: 8 })).toEqual([
+      { year: 2026, month: 7 },
+      { year: 2026, month: 6 },
+      { year: 2026, month: 5 },
+      { year: 2026, month: 4 },
+      { year: 2026, month: 3 },
+      { year: 2026, month: 2 },
+      { year: 2026, month: 1 },
+    ]);
+  });
+
+  it("em fevereiro sobra só janeiro", () => {
+    expect(copySourceMonths({ year: 2026, month: 2 })).toEqual([
+      { year: 2026, month: 1 },
+    ]);
+  });
+
+  it("em janeiro oferece o ano anterior inteiro, de dezembro para trás", () => {
+    // A virada do ano é justamente quando repetir a grade mais importa.
+    const meses = copySourceMonths({ year: 2026, month: 1 });
+    expect(meses).toHaveLength(12);
+    expect(meses[0]).toEqual({ year: 2025, month: 12 });
+    expect(meses[11]).toEqual({ year: 2025, month: 1 });
+  });
+
+  it("nunca oferece o próprio mês", () => {
+    for (const month of [1, 5, 12]) {
+      const meses = copySourceMonths({ year: 2026, month });
+      expect(meses).not.toContainEqual({ year: 2026, month });
+    }
   });
 });

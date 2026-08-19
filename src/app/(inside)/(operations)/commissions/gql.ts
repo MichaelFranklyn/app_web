@@ -15,9 +15,32 @@ export const COMMISSIONS_SELLERS_QUERY = gql`
   }
 `;
 
+/**
+ * As linhas de comissão do MÊS aberto.
+ *
+ * O período recorta no servidor (ver o resolver `commissions`): a tela mostra um
+ * mês por vez, e baixar a carteira inteira para exibir cinquenta linhas ficava
+ * mais caro a cada mês de histórico. O que a tela mostra fora do mês vem junto
+ * — estorno do vendedor sempre, boleto travado quando a aba de atraso pede
+ * (`includeOverdue`).
+ *
+ * `latestReceiveDate` é medida antes do recorte: é por ela que a tela sabe em
+ * que mês abrir sem precisar do histórico.
+ */
 export const COMMISSIONS_QUERY = gql`
-  query Commissions($sellerId: UUID) {
-    commissions(sellerId: $sellerId) {
+  query Commissions(
+    $sellerId: UUID
+    $from: Date
+    $to: Date
+    $includeOverdue: Boolean
+  ) {
+    commissions(
+      sellerId: $sellerId
+      from: $from
+      to: $to
+      includeOverdue: $includeOverdue
+    ) {
+      latestReceiveDate
       totalReceivable
       totalReceived
       totalPending
@@ -72,6 +95,32 @@ export const COMMISSIONS_QUERY = gql`
           name
         }
       }
+    }
+  }
+`;
+
+/**
+ * Fábricas do vínculo da empresa, para o recorte opcional da baixa em lote.
+ *
+ * Não sai das linhas da tela de propósito: a tela mostra UM mês, e a baixa
+ * trabalha num período de vencimento que não tem relação com ele — tirar a
+ * lista dali fazia sumir a fábrica que não teve comissão naquele mês.
+ */
+export const COMMISSIONS_FACTORIES_QUERY = gql`
+  query CommissionsFactories($input: BaseListInput!) {
+    commissions_factories: companyFactories(input: $input) {
+      edges {
+        node {
+          id
+          factory {
+            id
+            nomeFantasia
+            nickname
+            razaoSocial
+          }
+        }
+      }
+      totalCount
     }
   }
 `;

@@ -8,18 +8,28 @@ import { Title } from "@/components/Title";
 import { useAsyncAction } from "@/hooks/useAsyncAction";
 import { toIsoDate } from "@/utils/format/date";
 import { formatMoney } from "@/utils/format/masks";
+import { useCompleteList } from "@/hooks/useCompleteList";
+import { factoryName } from "@/utils/company";
 import { useLazyQuery, useMutation } from "@apollo/client/react";
 import { CheckCheck, Info } from "lucide-react";
-import { useEffect, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import {
+  COMMISSIONS_FACTORIES_QUERY,
   SETTLE_INSTALLMENTS_IN_PERIOD_MUTATION,
   SETTLE_PREVIEW_QUERY,
 } from "../../gql";
 import {
+  CommissionsFactoriesResponse,
   SettlePeriodModalProps,
   SettlePreviewResponse,
   SettleResponse,
 } from "./interface";
+
+// Catálogo pequeno (dezenas por empresa): `useCompleteList` rebusca pelo total
+// se um dia passar da primeira página, em vez de truncar calado.
+const EMPTY_INPUT = {};
+const getFactories = (d: CommissionsFactoriesResponse) =>
+  d.commissions_factories;
 
 /**
  * Baixa em lote dos boletos que vencem num período.
@@ -35,7 +45,6 @@ import {
 export function SettlePeriodModal({
   sellerId,
   sellerName,
-  factoryOptions,
   onSettled,
 }: SettlePeriodModalProps) {
   const [open, setOpen] = useState(false);
@@ -48,6 +57,30 @@ export function SettlePeriodModal({
   // dia quer a empresa inteira. Sem escolher, a baixa seguiria o recorte da
   // tela em silêncio e deixaria os outros vendedores para trás.
   const [allSellers, setAllSellers] = useState(false);
+
+  // As fábricas vêm do VÍNCULO da empresa, e só quando o modal abre: tirá-las
+  // das linhas da tela faria a lista depender do mês aberto, que nada tem a ver
+  // com o período de vencimento que esta baixa alcança.
+  const factoriesQuery = useCompleteList<CommissionsFactoriesResponse>(
+    COMMISSIONS_FACTORIES_QUERY,
+    EMPTY_INPUT,
+    getFactories,
+    { skip: !open }
+  );
+
+  const factoryOptions = useMemo(
+    () =>
+      (factoriesQuery.data?.commissions_factories.edges ?? [])
+        // Vínculo sem fábrica carregada não vira opção: o filtro casa com o id
+        // da FÁBRICA, não com o do vínculo.
+        .filter(({ node }) => node.factory)
+        .map(({ node }) => ({
+          value: node.factory!.id,
+          label: factoryName(node.factory),
+        }))
+        .sort((a, b) => a.label.localeCompare(b.label, "pt-BR")),
+    [factoriesQuery.data]
+  );
 
   const [loadPreview, preview] = useLazyQuery<SettlePreviewResponse>(
     SETTLE_PREVIEW_QUERY,

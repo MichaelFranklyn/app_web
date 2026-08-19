@@ -70,28 +70,36 @@ export function useSetGoal({
                       options: factoryOptions,
                     },
                   ]),
+              // Os campos abrem VAZIOS (vazio = indicador não acompanhado), e o
+              // exemplo no placeholder é o que mostra a ordem de grandeza
+              // esperada em cada um — sem ele, quatro caixas em branco não
+              // dizem se ali se digita dinheiro ou quantidade.
               {
                 name: "targetInvoicedAmount",
                 type: "number",
                 label: "Meta de faturamento (R$)",
+                placeholder: "Ex.: 80000",
                 hint: "Quanto a fábrica deve faturar no mês. Deixe em branco para não acompanhar.",
               },
               {
                 name: "targetOrderedAmount",
                 type: "number",
                 label: "Meta de vendas (R$)",
+                placeholder: "Ex.: 100000",
                 hint: "Quanto o vendedor deve vender no mês, mesmo sem a fábrica ter faturado.",
               },
               {
                 name: "targetPositivations",
                 type: "number",
                 label: "Meta de clientes que compram",
+                placeholder: "Ex.: 20",
                 hint: "Quantos clientes diferentes devem fazer pedido no mês.",
               },
               {
                 name: "targetVisits",
                 type: "number",
                 label: "Meta de visitas",
+                placeholder: "Ex.: 40",
                 hint: "Visitas presenciais concluídas no mês.",
               },
             ],
