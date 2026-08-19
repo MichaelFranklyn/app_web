@@ -59,3 +59,15 @@ export const isInMonth = (
 /** Primeiro dia do mês em ISO ("2026-08-01") — como as metas gravam o período. */
 export const monthStartIso = ({ year, month }: YearMonth): string =>
   `${year}-${String(month).padStart(2, "0")}-01`;
+
+/**
+ * Último dia do mês em ISO ("2026-08-31").
+ *
+ * `new Date(ano, mês, 0)` devolve o último dia do mês anterior ao índice — com
+ * `month` já 1-based, é exatamente o fim do mês pedido, com fevereiro e ano
+ * bissexto resolvidos pelo próprio calendário.
+ */
+export const monthEndIso = ({ year, month }: YearMonth): string => {
+  const lastDay = new Date(year, month, 0).getDate();
+  return `${year}-${String(month).padStart(2, "0")}-${String(lastDay).padStart(2, "0")}`;
+};

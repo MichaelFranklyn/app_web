@@ -13,7 +13,6 @@ import { PanelHeader } from "@/components/PanelHeader";
 import { QueryError } from "@/components/QueryError";
 import { Table } from "@/components/Table";
 import { Title } from "@/components/Title";
-import { factoryName } from "@/utils/company";
 import { getTodayIso } from "@/utils/format/date";
 import { formatMoney } from "@/utils/format/masks";
 import { useCompleteList } from "@/hooks/useCompleteList";
@@ -44,10 +43,11 @@ import { useCommissionsTable } from "./useCommissionsTable";
 import {
   addMonths,
   CommissionTab,
+  monthEndIso,
+  monthStartIso,
   filterByMonth,
   filterByTab,
   groupByFactory,
-  latestMonthWithData,
   monthLabel,
   summarizeMonth,
   yearMonthFromIso,
@@ -98,16 +98,32 @@ export default function CommissionsContent({
   // Gestor sem vendedor escolhido ainda não busca (evita query sem escopo).
   const dataSkip = canSelectSeller && !selectedSellerId;
 
+  const [tab, setTab] = useState<CommissionTab>("receivable");
+
+  // ── Navegador de mês global (pela data em que a comissão cai) ───────────────
+  // Abre no mês corrente e, quando a resposta traz uma data mais recente, salta
+  // para lá (é onde está o movimento). Depois disso respeita a navegação — ao
+  // trocar de vendedor, mantém o mês para comparar "agosto de um" vs "de outro".
+  const [month, setMonth] = useState(() => yearMonthFromIso(getTodayIso()));
+  const [monthPinned, setMonthPinned] = useState(false);
+
+  // O período recorta no SERVIDOR: a tela mostra um mês por vez, e baixar a
+  // carteira inteira para exibir cinquenta linhas piorava a cada mês de
+  // histórico. `includeOverdue` é o pedido da aba que junta todos os
+  // vencimentos — só ela precisa das linhas de fora do mês.
   const { data, loading, error, refetch } = useQuery<CommissionsResponse>(
     COMMISSIONS_QUERY,
     {
-      variables: { sellerId: selectedSellerId },
+      variables: {
+        sellerId: selectedSellerId,
+        from: monthStartIso(month),
+        to: monthEndIso(month),
+        includeOverdue: ignoresMonth(tab),
+      },
       fetchPolicy: "cache-and-network",
       skip: dataSkip,
     }
   );
-
-  const [tab, setTab] = useState<CommissionTab>("receivable");
 
   const rows = useMemo(() => data?.commissions?.rows ?? [], [data]);
   const summary = data?.commissions;
@@ -119,17 +135,16 @@ export default function CommissionsContent({
   const visibleRows = table.displayedData;
   const isFiltered = table.totalItems < table.totalUnfiltered;
 
-  // ── Navegador de mês global (pela data em que a comissão cai) ───────────────
-  // Inicializa no mês da comissão mais recente e depois respeita a navegação —
-  // ao trocar de vendedor, mantém o mês para comparar "agosto de um" vs "de outro".
-  const [month, setMonth] = useState(() => yearMonthFromIso(getTodayIso()));
-  const [monthPinned, setMonthPinned] = useState(false);
+  // O salto inicial para o mês com movimento: a data mais recente vem do
+  // servidor (medida antes do recorte), então descobri-la não custa mais baixar
+  // o histórico inteiro. Uma vez saltado, quem manda é a navegação.
+  const latestReceiveDate = summary?.latestReceiveDate ?? null;
   useEffect(() => {
-    if (!monthPinned && rows.length > 0) {
-      setMonth(latestMonthWithData(rows) ?? yearMonthFromIso(getTodayIso()));
+    if (!monthPinned && latestReceiveDate) {
+      setMonth(yearMonthFromIso(latestReceiveDate));
       setMonthPinned(true);
     }
-  }, [monthPinned, rows]);
+  }, [monthPinned, latestReceiveDate]);
 
   const monthTotals = useMemo(
     () => summarizeMonth(visibleRows, month),
@@ -176,17 +191,6 @@ export default function CommissionsContent({
   }, [groups, selection.scopeId, month]);
 
   const handleChanged = () => refetch();
-
-  // Fábricas que aparecem nas comissões — o recorte opcional da baixa em lote.
-  const factoryOptions: SelectOption[] = useMemo(() => {
-    const byId = new Map<string, string>();
-    for (const row of rows) {
-      if (row.factory) byId.set(row.factory.id, factoryName(row.factory));
-    }
-    return Array.from(byId, ([value, label]) => ({ value, label })).sort(
-      (a, b) => a.label.localeCompare(b.label, "pt-BR")
-    );
-  }, [rows]);
 
   const sellerOptions: SelectOption[] = sellers.map((s) => ({
     value: s.id,
@@ -263,7 +267,6 @@ export default function CommissionsContent({
                 <SettlePeriodModal
                   sellerId={selectedSellerId}
                   sellerName={sellerName}
-                  factoryOptions={factoryOptions}
                   onSettled={handleChanged}
                 />
               )}

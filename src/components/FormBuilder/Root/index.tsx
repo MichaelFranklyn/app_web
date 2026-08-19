@@ -93,6 +93,21 @@ export const Root = forwardRef<FormBuilderRef, FormBuilderProps>(
             </div>
           </div>
 
+          {/* Enter no campo tem de enviar o formulário — é assim que se entra
+              num sistema, e quem digita e-mail e senha não vai atrás do mouse.
+              O HTML só faz isso quando existe um botão de submit DENTRO do
+              form; no modo `unstyled` o botão de verdade mora fora (a tela o
+              desenha e chama `submitForm`), então o form ficava sem nenhum e a
+              tecla não fazia nada. Este botão invisível é o que devolve o
+              comportamento — fora da ordem de tabulação, para não virar uma
+              parada extra no teclado.
+
+              Só com um passo: em formulário de vários passos, Enter enviaria o
+              conjunto inteiro no lugar de avançar. */}
+          {unstyled && steps.length === 1 && (
+            <button type="submit" hidden aria-hidden tabIndex={-1} />
+          )}
+
           {!unstyled && (
             <Navigation
               isFirstStep={isFirstStep}

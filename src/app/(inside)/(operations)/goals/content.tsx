@@ -8,6 +8,7 @@ import { Input, SelectOption } from "@/components/Input";
 import { Loading } from "@/components/Loading";
 import { PageContent } from "@/components/PageContent";
 import { PanelHeader } from "@/components/PanelHeader";
+import { HelpTooltip } from "@/components/HelpTooltip";
 import { QueryError } from "@/components/QueryError";
 import { Title } from "@/components/Title";
 import { factoryName } from "@/utils/company";
@@ -22,10 +23,11 @@ import {
 import { useCompleteList } from "@/hooks/useCompleteList";
 import { useQuery } from "@apollo/client/react";
 import { CalendarDays, ChevronLeft, ChevronRight, Target } from "lucide-react";
+import { useRouter, useSearchParams } from "next/navigation";
 import { useMemo, useState } from "react";
 
 import { CopyGoalsModal } from "./_components/CopyGoalsModal";
-import { SellerGoalsCard } from "./_components/SellerGoalsCard";
+import { GoalsTable } from "./_components/GoalsTable";
 import { SetGoalModal } from "./_components/SetGoalModal";
 import {
   GOALS_FACTORIES_QUERY,
@@ -37,7 +39,14 @@ import {
   GoalsSellersResponse,
   SellerGoalsResponse,
 } from "./interface";
-import { groupBySeller, percentOf, percentTone, sumRows } from "./utils";
+import {
+  GOAL_METRICS,
+  groupBySeller,
+  percentOf,
+  percentTone,
+  SellerGroup,
+  sumRows,
+} from "./utils";
 
 interface Props {
   /** Gestor (owner/admin/su): define metas e escolhe de quem ver. */
@@ -51,8 +60,15 @@ const getGoalsSellers = (d: GoalsSellersResponse) => d.goals_sellers;
 const getGoalsFactories = (d: GoalsFactoriesResponse) => d.goals_factories;
 
 export default function GoalsContent({ canManage }: Props) {
-  // Começa no mês corrente: a pergunta do dia a dia é "como estamos ESTE mês".
-  const [month, setMonth] = useState(() => yearMonthFromIso(getTodayIso()));
+  const router = useRouter();
+  const searchParams = useSearchParams();
+
+  // Começa no mês corrente — a pergunta do dia a dia é "como estamos ESTE mês"
+  // —, ou no mês que veio da página de um vendedor: voltar de lá tem de cair no
+  // mesmo lugar de onde se saiu.
+  const [month, setMonth] = useState(() =>
+    yearMonthFromIso(searchParams.get("month") ?? getTodayIso())
+  );
   const periodMonthIso = monthStartIso(month);
 
   // Gestor pode ver a empresa inteira (nulo) ou filtrar um vendedor. O vendedor
@@ -108,6 +124,11 @@ export default function GoalsContent({ canManage }: Props) {
     return now.year === month.year && now.month === month.month;
   }, [month]);
 
+  // Detalhe de uma pessoa, NA PÁGINA (nunca sobre a lista: modal dentro de
+  // modal é proibido, e definir meta já é um modal). É o mesmo estado do
+  // seletor do topo — escolher alguém ali ou clicar na linha leva ao mesmo
+  // lugar, e a consulta já volta recortada por ele. O vendedor, que só tem a
+  // própria meta, cai direto aqui.
   const showSkeleton = loading && !data;
 
   return (
@@ -209,24 +230,39 @@ export default function GoalsContent({ canManage }: Props) {
           ) : (
             <>
               <Grid.Root cols={{ base: 1, tablet: 2, desktop: 4 }} gap={20}>
+                {/* Os quatro cartões somam o recorte da tela (o vendedor
+                    escolhido, ou a empresa toda). A explicação de cada um vem
+                    de GOAL_METRICS — a mesma das barras, para o indicador não
+                    significar duas coisas em dois lugares. */}
                 <Grid.Item>
                   <GoalKpi
                     label={`Faturado em ${monthLabel(month)}`}
                     values={totals.invoiced}
+                    help={GOAL_METRICS[0].help}
                     money
                   />
                 </Grid.Item>
                 <Grid.Item>
-                  <GoalKpi label="Vendido" values={totals.ordered} money />
+                  <GoalKpi
+                    label="Vendido"
+                    values={totals.ordered}
+                    help={GOAL_METRICS[1].help}
+                    money
+                  />
                 </Grid.Item>
                 <Grid.Item>
                   <GoalKpi
                     label="Clientes que compraram"
                     values={totals.positivations}
+                    help={GOAL_METRICS[2].help}
                   />
                 </Grid.Item>
                 <Grid.Item>
-                  <GoalKpi label="Visitas concluídas" values={totals.visits} />
+                  <GoalKpi
+                    label="Visitas concluídas"
+                    values={totals.visits}
+                    help={GOAL_METRICS[3].help}
+                  />
                 </Grid.Item>
               </Grid.Root>
 
@@ -245,19 +281,17 @@ export default function GoalsContent({ canManage }: Props) {
                   </EmptyState.Description>
                 </EmptyState.Root>
               ) : (
-                <div className="flex flex-col gap-20">
-                  {groups.map((group) => (
-                    <SellerGoalsCard
-                      key={group.sellerId}
-                      group={group}
-                      periodMonthIso={periodMonthIso}
-                      canManage={canManage}
-                      sellerOptions={sellerOptions}
-                      factoryOptions={factoryOptions}
-                      onChanged={() => refetch()}
-                    />
-                  ))}
-                </div>
+                <GoalsTable
+                  groups={groups}
+                  // A pessoa tem página própria: é lá que as fábricas dela
+                  // viram cartões editáveis, sem modal sobre modal. O mês vai
+                  // junto para a navegação não perder o recorte.
+                  onOpen={(group: SellerGroup) =>
+                    router.push(
+                      `/goals/${group.sellerId}?month=${periodMonthIso}`
+                    )
+                  }
+                />
               )}
             </>
           )}
@@ -270,11 +304,13 @@ export default function GoalsContent({ canManage }: Props) {
 interface GoalKpiProps {
   label: string;
   values: { target: number | null; done: number };
+  /** O que este indicador mede — o mesmo texto das barras de cada fábrica. */
+  help?: string;
   money?: boolean;
 }
 
 /** Um indicador somado do recorte: o realizado grande e a meta embaixo. */
-function GoalKpi({ label, values, money }: GoalKpiProps) {
+function GoalKpi({ label, values, help, money }: GoalKpiProps) {
   const percent = percentOf(values);
   const format = (value: number) =>
     money ? formatMoney(value) : formatNumber(value);
@@ -282,7 +318,10 @@ function GoalKpi({ label, values, money }: GoalKpiProps) {
 
   return (
     <Card.Kpi>
-      <Card.Kpi.Label>{label}</Card.Kpi.Label>
+      <Card.Kpi.Label className="inline-flex items-center gap-2">
+        {label}
+        {help && <HelpTooltip label={`Sobre ${label}`} content={help} />}
+      </Card.Kpi.Label>
       <Card.Kpi.Value
         status={
           values.target === null

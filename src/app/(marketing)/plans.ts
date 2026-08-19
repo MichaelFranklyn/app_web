@@ -19,11 +19,11 @@
  * de checkout avisa em letra grande que nada é cobrado.
  */
 
-/** Duração do teste grátis. Espelha `TRIAL_PERIOD_DAYS` em
- * `app_user/app/modules/companies/use_cases/register_company.py` — o número que
- * a landing anuncia é o mesmo que o `register_company` grava em
- * `trial_ends_at`. Mudou lá, muda aqui. */
-export const TRIAL_DAYS = 7;
+// A duração do teste subiu para `@/utils/trial` quando a tela de login passou a
+// anunciá-la também: o número é o mesmo nos dois grupos de rota, e duas cópias
+// envelheceriam em ritmos diferentes. Reexportado aqui porque a vitrine inteira
+// já o consome por este arquivo.
+export { TRIAL_DAYS } from "@/utils/trial";
 
 /** Um plano na vitrine. `code` é o mesmo do catálogo do backend — serve de
  * chave de lista e de rastro para quem for conferir a matriz. */

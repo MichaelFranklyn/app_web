@@ -20,6 +20,24 @@ test.describe("Login", () => {
     await expect(page.getByRole("link", { name: "Fábricas" })).toBeVisible();
   });
 
+  test("Enter no campo de senha entra, sem precisar do mouse", async ({
+    page,
+  }) => {
+    // O formulário do login roda em modo `unstyled`: o botão "Entrar" mora fora
+    // do <form>, e o HTML só envia com Enter quando existe um botão de submit
+    // DENTRO dele. Ficou um tempo sem enviar nada — quem digita e-mail e senha
+    // e aperta Enter não vai atrás do mouse.
+    await mockGraphql(page, { ...emptyDashboardQueries });
+
+    await page.goto("/login");
+
+    await page.locator('input[name="email"]').fill("vendedor@empresa.com.br");
+    await page.locator('input[name="password"]').fill("senha-correta");
+    await page.locator('input[name="password"]').press("Enter");
+
+    await expect(page).toHaveURL(/\/dashboard$/);
+  });
+
   test("credenciais inválidas → mostra erro e permanece no login", async ({
     page,
   }) => {

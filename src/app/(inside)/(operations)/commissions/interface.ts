@@ -55,6 +55,8 @@ export interface CommissionRow {
 }
 
 export interface CommissionsSummary {
+  /** Data mais recente em que alguma comissão cai — medida antes do recorte. */
+  latestReceiveDate: string | null;
   totalReceivable: string;
   totalReceived: string;
   totalPending: string;
