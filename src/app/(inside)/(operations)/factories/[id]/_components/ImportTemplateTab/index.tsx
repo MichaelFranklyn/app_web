@@ -1,7 +1,7 @@
 "use client";
 
 import { useMemo } from "react";
-import { useQuery } from "@apollo/client/react";
+import { useCompleteList } from "@/hooks/useCompleteList";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { Settings2 } from "lucide-react";
@@ -13,7 +13,7 @@ import { Title } from "@/components/Title";
 
 import { ConfigureTemplateModal } from "./ConfigureTemplateModal";
 import { TemplateCard } from "./TemplateCard";
-import { buildImportTemplatesVariables, IMPORT_TEMPLATES_QUERY } from "./gql";
+import { buildImportTemplatesInput, IMPORT_TEMPLATES_QUERY } from "./gql";
 import { ImportTemplateNode, ImportTemplatesData } from "./interface";
 import { presetById } from "./presets";
 
@@ -21,19 +21,26 @@ interface Props {
   factoryId: string;
 }
 
+const getTemplates = (d: ImportTemplatesData) => d.importTemplates;
+
 export function ImportTemplateTab({ factoryId }: Props) {
   const pathname = usePathname();
   // O modelo de tabela é salvo dentro do fluxo de importação: este link abre a
   // aba Tabelas com o modal já aberto (?import=price-list).
   const importHref = `${pathname.replace(/\/import-template\/?$/, "")}/price-lists?import=price-list`;
 
-  const { data, loading, error, refetch } = useQuery<ImportTemplatesData>(
-    IMPORT_TEMPLATES_QUERY,
-    {
-      variables: buildImportTemplatesVariables(factoryId),
-      fetchPolicy: "cache-and-network",
-    }
+  const listInput = useMemo(
+    () => buildImportTemplatesInput(factoryId),
+    [factoryId]
   );
+
+  const { data, loading, error, refetch } =
+    useCompleteList<ImportTemplatesData>(
+      IMPORT_TEMPLATES_QUERY,
+      listInput,
+      getTemplates,
+      { skip: !factoryId, fetchPolicy: "cache-and-network" }
+    );
 
   const nodes = useMemo<ImportTemplateNode[]>(
     () => data?.importTemplates.edges.map((e) => e.node) ?? [],

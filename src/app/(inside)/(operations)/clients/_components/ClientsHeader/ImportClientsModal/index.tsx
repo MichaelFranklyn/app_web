@@ -58,7 +58,7 @@ export function ImportClientsModal() {
         onSuccess: async ({ data, message }) => {
           setResult(data);
           if (data.created > 0) {
-            await invalidateClient(["clients_list"]);
+            await invalidateClient(["clients", "clientStats"]);
             await invalidateCacheMany(["clients_stats"]);
           }
 

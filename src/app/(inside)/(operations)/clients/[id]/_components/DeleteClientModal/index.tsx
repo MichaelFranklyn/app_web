@@ -52,7 +52,7 @@ export function DeleteClientModal({ companyClientId, clientName }: Props) {
         }
       }}
       onSuccess={async () => {
-        await invalidateClient(["clients_list"]);
+        await invalidateClient(["clients", "clientStats"]);
         await invalidateCacheMany(["clients_stats"]);
       }}
     />

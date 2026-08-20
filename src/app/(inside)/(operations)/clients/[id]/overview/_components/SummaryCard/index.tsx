@@ -2,11 +2,13 @@
 
 import { Card } from "@/components/Card";
 import { HelpTooltip } from "@/components/HelpTooltip";
+import { Loading } from "@/components/Loading";
 import { Title } from "@/components/Title";
 import { SummaryCardProps } from "./interface";
 
 export function SummaryCard({
   lastVisitDate,
+  lastVisitLoading = false,
   cnae,
   cnaeDescription,
   networkName,
@@ -28,7 +30,20 @@ export function SummaryCard({
         </Card.Header.Title>
       </Card.Header>
       <Card.Body padding="compact">
-        <Card.Item variant="stat" label="Última visita" value={lastVisitDate} />
+        {/* Enquanto a consulta dos vínculos não volta, um traço aqui diria
+            "nunca visitado" — que é uma resposta, e errada. */}
+        {lastVisitLoading ? (
+          <Card.Item variant="stat">
+            <Card.Item.Label>Última visita</Card.Item.Label>
+            <Loading.Skeleton className="h-[14px] w-20" />
+          </Card.Item>
+        ) : (
+          <Card.Item
+            variant="stat"
+            label="Última visita"
+            value={lastVisitDate}
+          />
+        )}
         {/* Classificação da SUA empresa — o CNAE abaixo é o da Receita. */}
         <Card.Item variant="stat" label="Rede" value={networkName ?? "—"} />
         <Card.Item variant="stat" label="Segmento" value={segmentName ?? "—"} />

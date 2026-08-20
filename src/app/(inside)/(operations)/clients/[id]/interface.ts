@@ -36,15 +36,6 @@ export interface ClientDetail {
   companyClient: CompanyClientLink | null;
 }
 
-export interface ClientDetailQueryResponse {
-  client: {
-    status: boolean;
-    code: number;
-    message: string;
-    data: ClientDetail | null;
-  };
-}
-
 // Score mais recente de um vínculo, com a fábrica de onde ele veio. Um cliente
 // tem um score por fábrica; o header mostra o mais alto e a aba mostra todos.
 export interface FactoryVisitScore extends ScoreDimensions {

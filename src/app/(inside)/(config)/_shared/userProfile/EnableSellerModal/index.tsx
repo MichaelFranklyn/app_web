@@ -5,6 +5,7 @@ import { FormBuilder, FormBuilderRef } from "@/components/FormBuilder";
 import { Modal } from "@/components/Modal";
 import { Title } from "@/components/Title";
 import { useAsyncAction } from "@/hooks/useAsyncAction";
+import { useInvalidateQueriesClient } from "@/hooks/useInvalidateQueries";
 import { useMutation } from "@apollo/client/react";
 import { useRef } from "react";
 import { UserDetail } from "../interface";
@@ -37,6 +38,7 @@ export function EnableSellerModal({
     CREATE_SELLER_PROFILE_MUTATION
   );
   const { execute, isLoading } = useAsyncAction();
+  const invalidateClient = useInvalidateQueriesClient();
 
   const handleSubmit = async (data: Record<string, unknown>) => {
     await execute(
@@ -61,10 +63,13 @@ export function EnableSellerModal({
       },
       {
         successMessage: "Perfil de vendedor habilitado",
-        onSuccess: () => {
+        onSuccess: async () => {
           onOpenChange(false);
           formRef.current?.resetForm();
           onDone();
+          // Nasceu um vendedor: os selects que o listam estão em OUTRAS telas
+          // (pedido, rotina, metas), cada uma com sua entrada de cache.
+          await invalidateClient(["sellers"]);
         },
       }
     );

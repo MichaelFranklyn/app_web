@@ -1,4 +1,5 @@
-import { useMutation, useQuery } from "@apollo/client/react";
+import { useMutation } from "@apollo/client/react";
+import { useCompleteList } from "@/hooks/useCompleteList";
 import { useMemo, useRef, useState } from "react";
 
 import { FormBuilderRef, FormStepSchema } from "@/components/FormBuilder";
@@ -49,6 +50,8 @@ interface PendingOrder {
  * fixa: escolhe o vínculo vendedor→cliente e cai no OrderImportWizard — o
  * pedido SÓ é criado na confirmação final, junto com os itens.
  */
+const getAssignments = (d: FactoryAssignmentsData) => d.sellerClientFactoryList;
+
 export function useImportFactoryOrder({
   factoryId,
   onChanged,
@@ -63,16 +66,23 @@ export function useImportFactoryOrder({
   const createdOrderIdRef = useRef<string | null>(null);
   const formRef = useRef<FormBuilderRef>(null);
 
+  // Sem teto fixo: é o select de "vendedor → cliente" do pedido, e uma fábrica
+  // com carteira grande passava do limite antigo — o cliente existia e a tela
+  // dizia que não. O hook rebusca pelo total quando a 1ª página não dá conta.
+  const assignmentsInput = useMemo(
+    () => ({
+      filters: [{ field: "factory_id", operator: "eq", value: factoryId }],
+    }),
+    [factoryId]
+  );
+
   const { data: assignmentsData, error: assignmentsError } =
-    useQuery<FactoryAssignmentsData>(FACTORY_ASSIGNMENTS_QUERY, {
-      variables: {
-        input: {
-          first: 200,
-          filters: [{ field: "factory_id", operator: "eq", value: factoryId }],
-        },
-      },
-      skip: !open,
-    });
+    useCompleteList<FactoryAssignmentsData>(
+      FACTORY_ASSIGNMENTS_QUERY,
+      assignmentsInput,
+      getAssignments,
+      { skip: !open }
+    );
 
   const assignments = useMemo(
     () =>

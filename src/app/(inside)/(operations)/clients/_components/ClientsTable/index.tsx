@@ -8,6 +8,7 @@ import { Table } from "@/components/Table";
 import { formatDate } from "@/utils/format/date";
 import { scoreBarColor } from "@/utils/score";
 import { Users } from "lucide-react";
+import { CLIENT_COLUMN_HELP } from "../../help";
 import { formatCity } from "../../utils";
 import { ClientCell } from "./ClientCell";
 import { ClientsTableProps } from "./interface";
@@ -51,21 +52,40 @@ export function ClientsTable({
         <Table.Header>
           <Table.Row>
             {/* CNPJ e CNAE moram dentro da coluna Cliente (ver ClientCell). */}
-            <Table.Head sortKey="razao_social">Cliente</Table.Head>
-            <Table.Head sortKey="address_city">Cidade</Table.Head>
+            <Table.Head
+              sortKey="razao_social"
+              title={CLIENT_COLUMN_HELP.client}
+            >
+              Cliente
+            </Table.Head>
+            <Table.Head sortKey="address_city" title={CLIENT_COLUMN_HELP.city}>
+              Cidade
+            </Table.Head>
             {/* Vendedor não ordena: o cliente pode ter vários, e não existe
                 "o vendedor" da linha para comparar. */}
-            <Table.Head>Vendedor</Table.Head>
+            <Table.Head title={CLIENT_COLUMN_HELP.seller}>Vendedor</Table.Head>
             {/* As duas datas ordenam por subconsulta que repete a regra da
                 célula — ver _COMPUTED_ORDER_COLUMNS no ClientRepository. */}
-            <Table.Head sortKey="last_order_date" sortFirst="desc">
+            <Table.Head
+              sortKey="last_order_date"
+              sortFirst="desc"
+              title={CLIENT_COLUMN_HELP.lastOrder}
+            >
               Última Compra
             </Table.Head>
-            <Table.Head sortKey="last_visit_date" sortFirst="desc">
+            <Table.Head
+              sortKey="last_visit_date"
+              sortFirst="desc"
+              title={CLIENT_COLUMN_HELP.lastVisit}
+            >
               Última Visita
             </Table.Head>
             {/* Score maior = mais urgente, então o 1º clique traz o topo. */}
-            <Table.Head sortKey="visit_score_total" sortFirst="desc">
+            <Table.Head
+              sortKey="visit_score_total"
+              sortFirst="desc"
+              title={CLIENT_COLUMN_HELP.score}
+            >
               Score
             </Table.Head>
           </Table.Row>

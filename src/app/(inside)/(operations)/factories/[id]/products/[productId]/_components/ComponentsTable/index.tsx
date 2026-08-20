@@ -3,6 +3,7 @@
 import { EmptyState } from "@/components/EmptyState";
 import { QueryError } from "@/components/QueryError";
 import { HelpTooltip } from "@/components/HelpTooltip";
+import { PRODUCT_COMPONENT_COLUMN_HELP } from "../../../../../help";
 import { Table } from "@/components/Table";
 import { Title } from "@/components/Title";
 import { useOptimisticList } from "@/hooks/useOptimisticList";
@@ -72,8 +73,12 @@ export function ComponentsTable({ productId, companyFactoryId }: Props) {
       <Table.Table>
         <Table.Header>
           <Table.Row>
-            <Table.Head>Componente</Table.Head>
-            <Table.Head>Qtd. no kit</Table.Head>
+            <Table.Head title={PRODUCT_COMPONENT_COLUMN_HELP.component}>
+              Componente
+            </Table.Head>
+            <Table.Head title={PRODUCT_COMPONENT_COLUMN_HELP.quantity}>
+              Qtd. no kit
+            </Table.Head>
             <Table.Head />
           </Table.Row>
         </Table.Header>

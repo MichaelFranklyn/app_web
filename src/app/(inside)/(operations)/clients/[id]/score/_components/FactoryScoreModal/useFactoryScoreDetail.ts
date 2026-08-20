@@ -32,7 +32,17 @@ export function useFactoryScoreDetail(sellerClientFactoryId: string | null) {
     useQuery<ClientProductInsightsQueryResponse>(
       CLIENT_PRODUCT_INSIGHTS_QUERY,
       {
-        variables: { sellerClientFactoryId, input: { first: 20 } },
+        // Os 20 MAIS urgentes, não 20 quaisquer: sem `order` o backend não
+        // ordena (ver `_apply_order`), então o produto zerado podia ficar de
+        // fora do corte enquanto vinte tranquilos ocupavam a lista — e a tela
+        // os chama de "sugeridos para reposição".
+        variables: {
+          sellerClientFactoryId,
+          input: {
+            order: { by: "estimated_stockout_date", dir: "asc" },
+            first: 20,
+          },
+        },
         skip,
       }
     );

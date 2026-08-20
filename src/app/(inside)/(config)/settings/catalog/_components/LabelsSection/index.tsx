@@ -4,9 +4,10 @@ import { EmptyState } from "@/components/EmptyState";
 import { QueryError } from "@/components/QueryError";
 import { HelpTooltip } from "@/components/HelpTooltip";
 import { Table } from "@/components/Table";
+import { LABEL_COLUMN_HELP } from "../../help";
 import { Title } from "@/components/Title";
+import { useCompleteList } from "@/hooks/useCompleteList";
 import { useOptimisticList } from "@/hooks/useOptimisticList";
-import { useQuery } from "@apollo/client/react";
 import { Tag } from "lucide-react";
 import { useMemo } from "react";
 import { PRODUCT_UNIT_LABELS_QUERY } from "../../gql";
@@ -20,12 +21,23 @@ interface LabelNode {
   isActive: boolean;
 }
 
-const listInput = { first: 200, order: { by: "label", dir: "asc" } };
+type Connection = { edges: { node: LabelNode }[]; totalCount: number };
+
+// Sem `first`: quem consome é o `useCompleteList`, que traz o catálogo inteiro
+// e rebusca pelo total quando a primeira página não dá conta. O `first: 200`
+// que estava aqui cobria a empresa comum e, no dia em que não cobrisse,
+// esconderia o cadastro sem nada na tela dizer — e um cadastro que "não existe"
+// é procurado, recriado e vira duplicata.
+const listInput = { order: { by: "label", dir: "asc" } };
+const getConnection = (d: { productUnitLabels: Connection }) =>
+  d.productUnitLabels;
 
 export function LabelsSection() {
-  const { data, loading, error, refetch } = useQuery<{
-    productUnitLabels: { edges: { node: LabelNode }[]; totalCount: number };
-  }>(PRODUCT_UNIT_LABELS_QUERY, { variables: { input: listInput } });
+  const { data, loading, error, refetch } = useCompleteList<{
+    productUnitLabels: Connection;
+  }>(PRODUCT_UNIT_LABELS_QUERY, listInput, getConnection, {
+    fetchPolicy: "cache-and-network",
+  });
 
   const initial = useMemo<LabelNode[]>(
     () => data?.productUnitLabels.edges.map((e) => e.node) ?? [],
@@ -69,8 +81,13 @@ export function LabelsSection() {
       <Table.Table maxHeight={600}>
         <Table.Header>
           <Table.Row>
-            <Table.Head>Rótulo</Table.Head>
-            <Table.Head className="text-right">Ações</Table.Head>
+            <Table.Head title={LABEL_COLUMN_HELP.name}>Rótulo</Table.Head>
+            <Table.Head
+              className="text-right"
+              title={LABEL_COLUMN_HELP.actions}
+            >
+              Ações
+            </Table.Head>
           </Table.Row>
         </Table.Header>
         <Table.Body>

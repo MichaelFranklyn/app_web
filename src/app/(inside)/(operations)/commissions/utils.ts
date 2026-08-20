@@ -1,9 +1,5 @@
 import { clientName } from "@/utils/company";
-import {
-  isInMonth,
-  yearMonthFromIso,
-  type YearMonth,
-} from "@/utils/format/month";
+import { isInMonth, type YearMonth } from "@/utils/format/month";
 import { CommissionRow, CommissionStatus } from "./interface";
 
 // O vocabulário da situação e o agrupamento por fábrica subiram para
@@ -93,32 +89,12 @@ export const filterByMonth = (
 export {
   addMonths,
   isInMonth,
+  monthEndIso,
   monthLabel,
+  monthStartIso,
   yearMonthFromIso,
   type YearMonth,
 } from "@/utils/format/month";
-
-/**
- * Mês/ano mais recente entre as datas de recebimento (`receiveDate`) das linhas,
- * ou `null` se nenhuma tem data. Usado para abrir cada fábrica já no mês da
- * planilha mais nova — que é a que o gestor costuma conferir primeiro.
- */
-export const latestMonthWithData = (
-  rows: CommissionRow[]
-): YearMonth | null => {
-  let best: YearMonth | null = null;
-  let bestKey = -Infinity;
-  for (const row of rows) {
-    if (!row.receiveDate) continue;
-    const ym = yearMonthFromIso(row.receiveDate);
-    const key = ym.year * 12 + ym.month;
-    if (key > bestKey) {
-      bestKey = key;
-      best = ym;
-    }
-  }
-  return best;
-};
 
 export interface MonthSummary {
   receivable: number; // a receber no mês, JÁ LÍQUIDO dos estornos

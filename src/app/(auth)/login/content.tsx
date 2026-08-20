@@ -1,6 +1,5 @@
 "use client";
 
-import { Badge } from "@/components/Badges";
 import { Button } from "@/components/Button";
 import { Card } from "@/components/Card";
 import { Divider } from "@/components/Divider";
@@ -11,12 +10,14 @@ import { RootPage } from "@/components/RootPage";
 import { Title } from "@/components/Title";
 import { useAsyncAction } from "@/hooks/useAsyncAction";
 import { postSession } from "@/utils/auth/session";
+import { TRIAL_DAYS } from "@/utils/trial";
 import { ArrowRight } from "lucide-react";
 import Image from "next/image";
+import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useRef, useState } from "react";
 import { LoginFormData } from "./interface";
-import { FEATURES, STATS } from "./utils";
+import { FEATURES, HEADLINE, SUBTITLE } from "./utils";
 
 export default function LoginContent() {
   const [shouldRemember, setShouldRemember] = useState(false);
@@ -60,46 +61,32 @@ export default function LoginContent() {
           display="flex"
           className="w-120 flex-col items-start justify-center gap-8"
         >
-          <Image
-            src="/horizontal_logo.png"
-            alt="Girus"
-            width={1059}
-            height={247}
-            priority
-            className="h-auto w-60"
-          />
+          {/* A marca leva à vitrine: quem cai aqui por link direto e ainda
+              não conhece o sistema precisa de um caminho de volta. */}
+          <Link href="/" aria-label="Conhecer o Girus">
+            <Image
+              src="/horizontal_logo.png"
+              alt="Girus"
+              width={1059}
+              height={247}
+              priority
+              className="h-auto w-60"
+            />
+          </Link>
 
           <Title
             variant="heading-lg"
             weight="extrabold"
             className="pt-8 text-[32px]! uppercase"
           >
-            Representação comercial
+            {HEADLINE.lead}
             <br />
-            <span className="text-(--amber)">inteligente</span>
+            <span className="text-(--amber)">{HEADLINE.highlight}</span>
           </Title>
 
           <Title variant="caption" color="muted" className="leading-[1.6]!">
-            Tudo que você precisa para gerenciar sua operação
-            <br />
-            de representação em um único lugar.
+            {SUBTITLE}
           </Title>
-
-          <Divider.Root className="mb-8" />
-
-          <div className="mb-8 flex gap-8">
-            {STATS.map(({ value, label }) => (
-              <div key={label} className="flex flex-col">
-                <Title variant="kpi" color="amber">
-                  {value}
-                </Title>
-
-                <Title variant="label" color="muted">
-                  {label}
-                </Title>
-              </div>
-            ))}
-          </div>
 
           <Divider.Root className="mb-8" />
 
@@ -114,10 +101,6 @@ export default function LoginContent() {
                 </Title>
               </div>
             ))}
-
-            <Badge.Root appearance="tinted" color="neutral">
-              <Badge.Text>v1.0.0</Badge.Text>
-            </Badge.Root>
           </div>
         </Responsive.Show>
 
@@ -126,6 +109,22 @@ export default function LoginContent() {
         </Responsive.Show>
 
         <div className="desktop:justify-center flex w-full max-w-95 flex-col gap-8">
+          {/* No celular o painel da esquerda não existe, e sem isto a tela de
+              entrada ficava sem marca nenhuma — justamente onde o vendedor
+              entra todo dia. */}
+          <Responsive.Hide from="desktop" className="flex justify-center">
+            <Link href="/" aria-label="Conhecer o Girus">
+              <Image
+                src="/horizontal_logo.png"
+                alt="Girus"
+                width={1059}
+                height={247}
+                priority
+                className="h-auto w-[180px]"
+              />
+            </Link>
+          </Responsive.Hide>
+
           <Card.Root className="w-full shadow-(--shadow-md)">
             <Card.Header bg="bg3">
               <Card.Header.Eyebrow>Autenticação</Card.Header.Eyebrow>
@@ -202,31 +201,21 @@ export default function LoginContent() {
                 <Button.Icon icon={ArrowRight} />
               </Button.Root>
             </Card.Body>
-
-            <Card.Footer bg="bg3">
-              <Title
-                variant="caption"
-                color="muted"
-                className="flex w-full items-center justify-center gap-1"
-              >
-                Novo na plataforma?
-                <Button.Root
-                  type="button"
-                  color="amber"
-                  appearance="ghost"
-                  size="sm"
-                  noPadding
-                  noUppercase
-                  onClick={() => router.push("/signup")}
-                >
-                  <Button.Title>Criar conta grátis</Button.Title>
-                </Button.Root>
-              </Title>
-            </Card.Footer>
           </Card.Root>
 
-          <Title variant="caption" color="muted" className="text-center">
-            Teste grátis · comece em minutos
+          {/* O mesmo compromisso da landing, com o número que o backend grava
+              em `trial_ends_at` — e não um "teste grátis" solto. O link de volta
+              à vitrine aparece aqui porque no celular o painel não existe. */}
+          <Title
+            variant="caption"
+            color="muted"
+            className="flex flex-wrap items-center justify-center gap-6 text-center"
+          >
+            <span>{TRIAL_DAYS} dias grátis · sem cartão</span>
+            <span aria-hidden>·</span>
+            <Link href="/" className="text-(--amber) hover:underline">
+              Conhecer o Girus
+            </Link>
           </Title>
         </div>
       </Responsive.Box>

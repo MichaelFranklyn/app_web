@@ -6,9 +6,12 @@ import { describe, expect, it } from "vitest";
 
 import { useSeedQuery } from "./useSeedQuery";
 
+// `order(id: $id)` e não `order`: é o argumento que separa as entradas do cache
+// (`order({"id":"o1"})`). Sem ele todos os pedidos cairiam na MESMA entrada, e o
+// teste de troca de registro passaria por acidente.
 const ORDER_QUERY = gql`
   query Order($id: ID!) {
-    order {
+    order(id: $id) {
       status
       data {
         id
@@ -20,7 +23,7 @@ const ORDER_QUERY = gql`
 
 const ITEMS_QUERY = gql`
   query Items($orderId: ID!) {
-    items {
+    items(orderId: $orderId) {
       totalCount
     }
   }
@@ -139,6 +142,28 @@ describe("useSeedQuery", () => {
     expect(
       client.readQuery({ query: ORDER_QUERY, variables: { id: "o2" } })
     ).toMatchObject({ order: { data: { code: "B2" } } });
+  });
+
+  // A guarda que faltava. O `data` vem do payload RSC, que numa volta de
+  // navegação pode ser anterior à mutation que já atualizou o cache: escrever
+  // por cima devolvia o dado velho à tela até o próximo reload.
+  it("não sobrescreve o que já está no cache", () => {
+    const client = makeClient();
+
+    // Estado "pós-mutation": o cliente já tem a versão nova.
+    client.writeQuery({
+      query: ORDER_QUERY,
+      variables: { id: "o1" },
+      data: orderData("NOVO"),
+    });
+
+    renderSeed(client, [
+      { query: ORDER_QUERY, variables: { id: "o1" }, data: orderData("VELHO") },
+    ]);
+
+    expect(
+      client.readQuery({ query: ORDER_QUERY, variables: { id: "o1" } })
+    ).toMatchObject({ order: { data: { code: "NOVO" } } });
   });
 
   it("não repete a escrita enquanto a chave não muda", () => {

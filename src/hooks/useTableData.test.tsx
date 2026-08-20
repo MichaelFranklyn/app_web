@@ -1,4 +1,4 @@
-import { gql } from "@apollo/client";
+import { gql, InMemoryCache } from "@apollo/client";
 import { MockedProvider } from "@apollo/client/testing/react";
 import { act, renderHook, waitFor } from "@testing-library/react";
 import { ReactNode } from "react";
@@ -325,6 +325,56 @@ describe("useTableData — initialData (SSR seed)", () => {
     expect(result.current.loading).toBe(false);
     expect(ids(result.current.displayedData)).toEqual(["9"]);
     expect(result.current.totalItems).toBe(1);
+  });
+
+  // A guarda que faltava. O `initialData` vem do payload RSC, que numa volta de
+  // navegação o Next serve do router cache — podendo ser anterior à mutation que
+  // já atualizou o cache do Apollo. Escrever por cima ressuscitava a linha
+  // apagada (ou sumia com a recém-criada) até o próximo reload.
+  it("com o cache já quente, o seed do SSR não sobrescreve", async () => {
+    state.sp = new URLSearchParams();
+    const node = (id: string, name: string) => ({
+      __typename: "Item",
+      id,
+      name,
+      priority: "high",
+      factory: { __typename: "Factory", name: "F" },
+    });
+    const connection = (id: string, name: string) => ({
+      items: {
+        __typename: "ItemConnection",
+        totalCount: 1,
+        edges: [{ __typename: "ItemEdge", node: node(id, name) }],
+      },
+    });
+
+    // Estado "pós-mutation": o cliente já tem a versão nova destas variables.
+    const cache = new InMemoryCache();
+    cache.writeQuery({
+      query: QUERY,
+      variables: { input: { first: 10, after: pageToAfter(1, 10) } },
+      data: connection("9", "Novo"),
+    });
+
+    const { result } = renderHook(
+      () =>
+        useTableData<ItemsData, Item>({
+          query: QUERY,
+          fields: {},
+          getConnection: (d) => d.items,
+          itemsPerPage: 10,
+          initialData: connection("9", "Velho") as unknown as ItemsData,
+        }),
+      {
+        wrapper: ({ children }: { children: ReactNode }) => (
+          <MockedProvider cache={cache} mocks={[]}>
+            {children}
+          </MockedProvider>
+        ),
+      }
+    );
+
+    expect(result.current.displayedData[0]?.name).toBe("Novo");
   });
 
   it("com initialData de connection VAZIO, não semeia — busca no cliente", async () => {

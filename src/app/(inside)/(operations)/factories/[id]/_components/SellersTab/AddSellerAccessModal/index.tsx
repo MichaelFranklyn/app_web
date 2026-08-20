@@ -189,10 +189,7 @@ export function AddSellerAccessModal({ factoryId, autoOpen }: Props) {
               description: `${failCount} vínculo(s) não puderam ser criados`,
             });
           }
-          await invalidateClient([
-            "factory_seller_accesses",
-            "sellerFactoryAccessList",
-          ]);
+          await invalidateClient(["sellerFactoryAccessList"]);
         },
       }
     );

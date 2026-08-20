@@ -43,6 +43,8 @@ export function useRoutines() {
     useQuery<RoutineSellersQueryData>(ROUTINE_SELLERS_QUERY, {
       variables: { input: { first: 200 } },
       skip: !canSelectSeller,
+      // Vendedor se cadastra noutra tela.
+      fetchPolicy: "cache-and-network",
     });
 
   const sellers = useMemo(
@@ -141,6 +143,8 @@ export function useRoutines() {
         },
       },
       skip: !effectiveSellerId,
+      // Os tetos se editam no perfil do vendedor, noutra tela.
+      fetchPolicy: "cache-and-network",
     }
   );
 

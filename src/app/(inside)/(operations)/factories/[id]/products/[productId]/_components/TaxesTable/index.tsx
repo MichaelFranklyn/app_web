@@ -3,11 +3,12 @@
 import { EmptyState } from "@/components/EmptyState";
 import { QueryError } from "@/components/QueryError";
 import { HelpTooltip } from "@/components/HelpTooltip";
+import { PRODUCT_TAX_COLUMN_HELP } from "../../../../../help";
 import { Table } from "@/components/Table";
 import { Title } from "@/components/Title";
+import { useCompleteList } from "@/hooks/useCompleteList";
 import { useOptimisticList } from "@/hooks/useOptimisticList";
 import { formatDateDMY } from "@/utils/format/masks";
-import { useQuery } from "@apollo/client/react";
 import { Percent } from "lucide-react";
 import { useMemo } from "react";
 import { AddTaxModal } from "./AddTaxModal";
@@ -41,17 +42,22 @@ interface Props {
   onChanged?: () => void;
 }
 
+const getTaxes = (d: ProductTaxesData) => d.product_taxes;
+
 export function TaxesTable({ productId, onChanged }: Props) {
-  const { data, loading, error, refetch } = useQuery<ProductTaxesData>(
+  // Sem teto fixo — mesma régua das outras listas da ficha.
+  const listInput = useMemo(
+    () => ({
+      filters: [{ field: "product_id", operator: "eq", value: productId }],
+    }),
+    [productId]
+  );
+
+  const { data, loading, error, refetch } = useCompleteList<ProductTaxesData>(
     PRODUCT_TAXES_QUERY,
-    {
-      variables: {
-        input: {
-          first: 50,
-          filters: [{ field: "product_id", operator: "eq", value: productId }],
-        },
-      },
-    }
+    listInput,
+    getTaxes,
+    { skip: !productId }
   );
 
   const initial = useMemo(
@@ -98,9 +104,13 @@ export function TaxesTable({ productId, onChanged }: Props) {
       <Table.Table>
         <Table.Header>
           <Table.Row>
-            <Table.Head>Imposto</Table.Head>
-            <Table.Head>Alíquota</Table.Head>
-            <Table.Head>Última atualização</Table.Head>
+            <Table.Head title={PRODUCT_TAX_COLUMN_HELP.tax}>Imposto</Table.Head>
+            <Table.Head title={PRODUCT_TAX_COLUMN_HELP.rate}>
+              Alíquota
+            </Table.Head>
+            <Table.Head title={PRODUCT_TAX_COLUMN_HELP.updatedAt}>
+              Última atualização
+            </Table.Head>
             <Table.Head />
           </Table.Row>
         </Table.Header>

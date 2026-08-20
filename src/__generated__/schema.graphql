@@ -2744,6 +2744,8 @@ type CommissionRowType {
 
 type CommissionSummaryType {
   rows: [CommissionRowType!]!
+  """Data mais recente em que alguma comissão cai, medida antes do recorte de período: é por ela que a tela sabe em que mês abrir."""
+  latestReceiveDate: Date
   """Já líquido dos estornos: é o que cai no próximo fechamento."""
   totalReceivable: Decimal!
   totalReceived: Decimal!
@@ -2781,7 +2783,22 @@ extend type Query {
   order(id: UUID!): OrderTypeDataResponse!
   """Resumo dos pedidos. Aceita os MESMOS filtros da query `orders` (a paginação é ignorada); sem `input`, resume a empresa inteira."""
   orderStats(input: BaseListInput = null): OrderStatsType!
-  commissions(status: String = null, factoryId: UUID = null, sellerId: UUID = null): CommissionSummaryType!
+  """
+  Linhas de comissão da carteira. `from`/`to` recortam pela data em que a
+  comissão CAI — a tela abre um mês por vez e não precisa do histórico inteiro.
+  O estorno do vendedor vem junto mesmo fora do período — o painel dele não
+  segue mês nem aba. Boleto travado só com `includeOverdue`, que é o recorte da
+  aba "Boleto em atraso" (todos os vencimentos de uma vez). Sem o período,
+  devolve tudo. Os totais somam sempre a carteira inteira.
+  """
+  commissions(
+    status: String = null
+    factoryId: UUID = null
+    sellerId: UUID = null
+    from: Date = null
+    to: Date = null
+    includeOverdue: Boolean = false
+  ): CommissionSummaryType!
 }
 
 extend type Mutation {

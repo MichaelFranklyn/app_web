@@ -37,14 +37,14 @@ export function usePriceListCatalog({
       PRODUCT_UNITS_QUERY,
       CATALOG_INPUT,
       getUnits,
-      { skip: !matrix }
+      { skip: !matrix, fetchPolicy: "cache-and-network" }
     );
   const { data: labelsData, error: labelsError } =
     useCompleteList<ProductUnitLabelsData>(
       PRODUCT_UNIT_LABELS_QUERY,
       CATALOG_INPUT,
       getLabels,
-      { skip: !matrix }
+      { skip: !matrix, fetchPolicy: "cache-and-network" }
     );
   const unitLabels = useMemo(
     () => unitsData?.productUnits.edges.map((e) => e.node.label) ?? [],

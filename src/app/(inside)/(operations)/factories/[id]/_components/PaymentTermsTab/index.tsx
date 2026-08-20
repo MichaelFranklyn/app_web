@@ -6,15 +6,15 @@ import { QueryError } from "@/components/QueryError";
 import { HelpTooltip } from "@/components/HelpTooltip";
 import { Table } from "@/components/Table";
 import { Title } from "@/components/Title";
+import { FACTORY_PAYMENT_TERM_COLUMN_HELP } from "../../../help";
+import { useCompleteList } from "@/hooks/useCompleteList";
 import { useOptimisticList } from "@/hooks/useOptimisticList";
 import { formatMoney } from "@/utils/format/masks";
-import { useQuery } from "@apollo/client/react";
 import { CalendarClock } from "lucide-react";
 import { useMemo } from "react";
 import { AddPaymentTermModal } from "./AddPaymentTermModal";
 import { EditPaymentTermModal } from "./EditPaymentTermModal";
 import {
-  buildFactoryPaymentTermsVariables,
   FACTORY_PAYMENT_TERMS_QUERY,
   FactoryPaymentTermsData,
   PaymentTermNode,
@@ -26,11 +26,32 @@ interface Props {
   companyFactoryId: string;
 }
 
+const getConnection = (d: FactoryPaymentTermsData) => d.payment_terms;
+
 export function PaymentTermsTab({ companyFactoryId }: Props) {
-  const { data, loading, error, refetch } = useQuery<FactoryPaymentTermsData>(
-    FACTORY_PAYMENT_TERMS_QUERY,
-    { variables: buildFactoryPaymentTermsVariables(companyFactoryId) }
+  // Sem teto fixo: o `first: 50` que estava aqui cobria a fábrica comum e, no
+  // dia em que não cobrisse, esconderia o 51º registro sem nada na tela dizer.
+  // O hook confere o `totalCount` e rebusca pelo total quando ele passa.
+  const listInput = useMemo(
+    () => ({
+      filters: [
+        {
+          field: "company_factory_id",
+          operator: "eq",
+          value: companyFactoryId,
+        },
+      ],
+    }),
+    [companyFactoryId]
   );
+
+  const { data, loading, error, refetch } =
+    useCompleteList<FactoryPaymentTermsData>(
+      FACTORY_PAYMENT_TERMS_QUERY,
+      listInput,
+      getConnection,
+      { skip: !companyFactoryId, fetchPolicy: "cache-and-network" }
+    );
 
   const initial = useMemo<PaymentTermNode[]>(
     () => data?.payment_terms?.edges.map((e) => e.node) ?? [],
@@ -77,10 +98,21 @@ export function PaymentTermsTab({ companyFactoryId }: Props) {
       <Table.Table>
         <Table.Header>
           <Table.Row>
-            <Table.Head>Vencimentos (dias)</Table.Head>
-            <Table.Head>Parcelas</Table.Head>
-            <Table.Head>Valor mínimo</Table.Head>
-            <Table.Head className="text-right">Ações</Table.Head>
+            <Table.Head title={FACTORY_PAYMENT_TERM_COLUMN_HELP.days}>
+              Vencimentos (dias)
+            </Table.Head>
+            <Table.Head title={FACTORY_PAYMENT_TERM_COLUMN_HELP.installments}>
+              Parcelas
+            </Table.Head>
+            <Table.Head title={FACTORY_PAYMENT_TERM_COLUMN_HELP.minimum}>
+              Valor mínimo
+            </Table.Head>
+            <Table.Head
+              className="text-right"
+              title={FACTORY_PAYMENT_TERM_COLUMN_HELP.actions}
+            >
+              Ações
+            </Table.Head>
           </Table.Row>
         </Table.Header>
 

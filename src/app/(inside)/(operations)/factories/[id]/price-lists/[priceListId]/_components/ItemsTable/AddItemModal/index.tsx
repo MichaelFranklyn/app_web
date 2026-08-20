@@ -12,7 +12,8 @@ import { Modal } from "@/components/Modal";
 import { useAsyncAction } from "@/hooks/useAsyncAction";
 import { useAsyncSelectOptions } from "@/hooks/useAsyncSelectOptions";
 import { parseMoneyToNumber } from "@/utils/format/masks";
-import { useMutation, useQuery } from "@apollo/client/react";
+import { useMutation } from "@apollo/client/react";
+import { useCompleteList } from "@/hooks/useCompleteList";
 import { Plus } from "lucide-react";
 import { useMemo, useRef, useState } from "react";
 import {
@@ -44,6 +45,8 @@ interface Props {
   companyFactoryId: string;
   onAdded: () => void;
 }
+
+const getTiers = (d: TiersData) => d.priceTiers;
 
 export function AddItemModal({
   priceListId,
@@ -83,23 +86,27 @@ export function AddItemModal({
     skip: !open || !companyFactoryId,
   });
 
-  const { data: tiersData, error: tiersError } = useQuery<TiersData>(
-    TIERS_OPTIONS_QUERY,
-    {
-      variables: {
-        input: {
-          first: 200,
-          filters: [
-            {
-              field: "company_factory_id",
-              operator: "eq",
-              value: companyFactoryId,
-            },
-          ],
+  // Níveis são poucos por fábrica, mas o teto fixo é o mesmo padrão que já
+  // escondeu catálogo: o hook traz a lista inteira e rebusca pelo total se um
+  // dia ela passar da primeira página.
+  const tiersInput = useMemo(
+    () => ({
+      filters: [
+        {
+          field: "company_factory_id",
+          operator: "eq",
+          value: companyFactoryId,
         },
-      },
-      skip: !open || !companyFactoryId,
-    }
+      ],
+    }),
+    [companyFactoryId]
+  );
+
+  const { data: tiersData, error: tiersError } = useCompleteList<TiersData>(
+    TIERS_OPTIONS_QUERY,
+    tiersInput,
+    getTiers,
+    { skip: !open || !companyFactoryId }
   );
 
   const [createItem] = useMutation<CreateItemResponse>(

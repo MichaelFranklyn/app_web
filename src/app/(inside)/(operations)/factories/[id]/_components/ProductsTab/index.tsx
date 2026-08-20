@@ -9,6 +9,7 @@ import { Loading } from "@/components/Loading";
 import { Pagination } from "@/components/Pagination";
 import { ProductThumb } from "@/components/ProductThumb";
 import { QueryError } from "@/components/QueryError";
+import { FACTORY_PRODUCT_COLUMN_HELP } from "../../../help";
 import { Table } from "@/components/Table";
 import { Title } from "@/components/Title";
 import { Tooltip } from "@/components/Tooltip";
@@ -196,15 +197,40 @@ export function ProductsTab({ companyFactoryId }: Props) {
       <Table.Table>
         <Table.Header>
           <Table.Row>
-            <Table.Head className="w-56">Foto</Table.Head>
-            <Table.Head sortKey="sku">Código</Table.Head>
-            <Table.Head sortKey="name">Produto</Table.Head>
-            <Table.Head>Categoria</Table.Head>
-            <Table.Head>Unidade</Table.Head>
-            <Table.Head sortKey="is_active" sortFirst="desc">
+            <Table.Head
+              className="w-56"
+              title={FACTORY_PRODUCT_COLUMN_HELP.photo}
+            >
+              Foto
+            </Table.Head>
+            <Table.Head sortKey="sku" title={FACTORY_PRODUCT_COLUMN_HELP.sku}>
+              Código
+            </Table.Head>
+            <Table.Head sortKey="name" title={FACTORY_PRODUCT_COLUMN_HELP.name}>
+              Produto
+            </Table.Head>
+            {/* Categoria e unidade não ordenam: no produto elas são o UUID do
+                catálogo, e ordenar por ele alinharia a lista por um número que
+                ninguém vê. */}
+            <Table.Head title={FACTORY_PRODUCT_COLUMN_HELP.category}>
+              Categoria
+            </Table.Head>
+            <Table.Head title={FACTORY_PRODUCT_COLUMN_HELP.unit}>
+              Unidade
+            </Table.Head>
+            <Table.Head
+              sortKey="is_active"
+              sortFirst="desc"
+              title={FACTORY_PRODUCT_COLUMN_HELP.status}
+            >
               Status
             </Table.Head>
-            <Table.Head className="text-right">Ações</Table.Head>
+            <Table.Head
+              className="text-right"
+              title={FACTORY_PRODUCT_COLUMN_HELP.actions}
+            >
+              Ações
+            </Table.Head>
           </Table.Row>
         </Table.Header>
         <Table.Body>

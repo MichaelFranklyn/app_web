@@ -90,6 +90,8 @@ export function useImportOrder({
     {
       variables: { input: LIST_INPUT },
       skip: !open || !canSelectSeller,
+      // Vendedor se cadastra noutra tela.
+      fetchPolicy: "cache-and-network",
     }
   );
   const { data: factoriesData } = useQuery<SellerFactoriesData>(

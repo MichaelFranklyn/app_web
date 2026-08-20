@@ -7,9 +7,9 @@ import { QueryError } from "@/components/QueryError";
 import { HelpTooltip } from "@/components/HelpTooltip";
 import { Loading } from "@/components/Loading";
 import { Title } from "@/components/Title";
+import { useCompleteList } from "@/hooks/useCompleteList";
 import { useOptimisticList } from "@/hooks/useOptimisticList";
 import { maskPhoneBR } from "@/utils/format/masks";
-import { useQuery } from "@apollo/client/react";
 import { Users } from "lucide-react";
 import { useMemo } from "react";
 import { AddContactModal } from "./_components/AddContactModal";
@@ -22,12 +22,20 @@ import {
   ContactCardProps,
 } from "./interface";
 
+const EMPTY_INPUT = {};
+const getContacts = (d: ClientContactsQueryResponse) => d.clientContacts;
+
 export function ContactCard({ clientId }: ContactCardProps) {
+  // Sem teto fixo: `first: 50` cobria o cliente comum e, no dia em que não
+  // cobrisse, esconderia o 51º contato sem nada na tela dizer. O hook confere o
+  // `totalCount` e rebusca pelo total só quando ele passa do que veio.
   const { data, loading, error, refetch } =
-    useQuery<ClientContactsQueryResponse>(CLIENT_CONTACTS_QUERY, {
-      variables: { clientId, input: { first: 50 } },
-      skip: !clientId,
-    });
+    useCompleteList<ClientContactsQueryResponse>(
+      CLIENT_CONTACTS_QUERY,
+      EMPTY_INPUT,
+      getContacts,
+      { skip: !clientId, extraVariables: { clientId } }
+    );
 
   const initialContacts = useMemo<ClientContact[]>(
     () => data?.clientContacts?.edges.map((e) => e.node) ?? [],

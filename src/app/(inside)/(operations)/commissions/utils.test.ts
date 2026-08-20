@@ -7,7 +7,6 @@ import {
   filterByTab,
   groupByFactory,
   isInMonth,
-  latestMonthWithData,
   receivableReport,
   summarizeRows,
   yearMonthFromIso,
@@ -217,28 +216,6 @@ describe("receivableReport", () => {
   it("devolve relatório vazio quando nada há a receber no mês", () => {
     const report = receivableReport([row({ status: "received" })], march);
     expect(report).toEqual({ groups: [], total: 0, count: 0 });
-  });
-});
-
-describe("latestMonthWithData", () => {
-  it("pega o mês/ano mais recente entre as datas de recebimento", () => {
-    expect(
-      latestMonthWithData([
-        row({ receiveDate: "2026-03-10" }),
-        row({ receiveDate: "2026-07-01" }),
-        row({ receiveDate: "2026-05-20" }),
-      ])
-    ).toEqual({ year: 2026, month: 7 });
-  });
-
-  it("ignora linhas sem data e devolve null quando nenhuma tem", () => {
-    expect(
-      latestMonthWithData([
-        row({ receiveDate: null }),
-        row({ receiveDate: "2025-12-31" }),
-      ])
-    ).toEqual({ year: 2025, month: 12 });
-    expect(latestMonthWithData([row({ receiveDate: null })])).toBeNull();
   });
 });
 

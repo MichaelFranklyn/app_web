@@ -37,6 +37,12 @@ import { useCallback } from "react";
  * CAMPO da listagem sem remover as entidades — a query refaz o fetch ao
  * remontar.
  *
+ * ⚠️ O nome é o do SCHEMA, nunca o alias do documento. O cache guarda o campo
+ * por `clients(...)`, mesmo que a query o leia como `clients_list: clients`;
+ * passar o alias faz o evict devolver `false` em silêncio e nada é invalidado —
+ * a tela segue com a página velha até um reload. O teste de contrato ao lado
+ * (`useInvalidateQueries.contract.test.ts`) quebra se um alias escapar.
+ *
  * @example
  * const invalidateClient = useInvalidateQueriesClient();
  * await invalidateClient(["orders", "orderStats"]);

@@ -4,6 +4,7 @@ import { Avatar } from "@/components/Avatar";
 import { Badge } from "@/components/Badges";
 import { EmptyState } from "@/components/EmptyState";
 import { Filters } from "@/components/Filters";
+import { HelpTooltip } from "@/components/HelpTooltip";
 import { Loading } from "@/components/Loading";
 import { Pagination } from "@/components/Pagination";
 import { QueryError } from "@/components/QueryError";
@@ -13,6 +14,7 @@ import { useOptimisticList } from "@/hooks/useOptimisticList";
 import { useTableData } from "@/hooks/useTableData";
 import { formatDateDMY } from "@/utils/format/masks";
 import { Building2 } from "lucide-react";
+import { ACCESS_COLUMN_HELP, ACCESS_HELP } from "../../help";
 import { AccessRowActions } from "./AccessRowActions";
 import { sellerAgreementLabel } from "./utils";
 import { AddAccessModal } from "./AddAccessModal";
@@ -49,7 +51,13 @@ export function FactoryAccessTab() {
       <div className="mt-16">
         <Table.Root sort={tableData.sort}>
           <Table.CardHead>
-            <Table.CardHead.Title>Acessos por Fábrica</Table.CardHead.Title>
+            <Table.CardHead.Title className="inline-flex items-center gap-6">
+              Acessos por Fábrica
+              <HelpTooltip
+                label="O que é um acesso por fábrica?"
+                content={ACCESS_HELP}
+              />
+            </Table.CardHead.Title>
             <Table.CardHead.Actions>
               <Filters
                 fields={filterFields}
@@ -65,15 +73,32 @@ export function FactoryAccessTab() {
               <Table.Row>
                 {/* Vendedor, fábrica e quem concedeu vêm de tabelas vizinhas:
                     dá para FILTRAR por id, mas não ordenar pelo nome. */}
-                <Table.Head>Vendedor</Table.Head>
-                <Table.Head>Fábrica</Table.Head>
-                <Table.Head>Concedido por</Table.Head>
-                <Table.Head>Comissão do vendedor</Table.Head>
-                <Table.Head sortKey="created_at" sortFirst="desc">
+                <Table.Head title={ACCESS_COLUMN_HELP.seller}>
+                  Vendedor
+                </Table.Head>
+                <Table.Head title={ACCESS_COLUMN_HELP.factory}>
+                  Fábrica
+                </Table.Head>
+                <Table.Head title={ACCESS_COLUMN_HELP.grantedBy}>
+                  Concedido por
+                </Table.Head>
+                <Table.Head title={ACCESS_COLUMN_HELP.commission}>
+                  Comissão do vendedor
+                </Table.Head>
+                <Table.Head
+                  sortKey="created_at"
+                  sortFirst="desc"
+                  title={ACCESS_COLUMN_HELP.date}
+                >
                   Data
                 </Table.Head>
-                <Table.Head sortKey="is_active">Status</Table.Head>
-                <Table.Head />
+                <Table.Head
+                  sortKey="is_active"
+                  title={ACCESS_COLUMN_HELP.status}
+                >
+                  Status
+                </Table.Head>
+                <Table.Head title={ACCESS_COLUMN_HELP.actions} />
               </Table.Row>
             </Table.Header>
             <Table.Body>

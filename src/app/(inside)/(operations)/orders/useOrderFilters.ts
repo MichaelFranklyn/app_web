@@ -50,7 +50,12 @@ export function useOrderFilters({
 }: Params): FilterField[] {
   const sellersQuery = useQuery<OrderFilterSellers>(
     ORDER_FILTER_SELLERS_QUERY,
-    { variables: { input: { first: OPTIONS_PAGE } }, skip: !canFilterBySeller }
+    {
+      variables: { input: { first: OPTIONS_PAGE } },
+      skip: !canFilterBySeller,
+      // Vendedor se cadastra noutra tela.
+      fetchPolicy: "cache-and-network",
+    }
   );
 
   const factoriesQuery = useQuery<OrderFilterFactories>(

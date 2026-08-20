@@ -4,9 +4,10 @@ import { EmptyState } from "@/components/EmptyState";
 import { QueryError } from "@/components/QueryError";
 import { HelpTooltip } from "@/components/HelpTooltip";
 import { Table } from "@/components/Table";
+import { TAX_RULE_COLUMN_HELP } from "../../help";
 import { Title } from "@/components/Title";
+import { useCompleteList } from "@/hooks/useCompleteList";
 import { useOptimisticList } from "@/hooks/useOptimisticList";
-import { useQuery } from "@apollo/client/react";
 import { Percent } from "lucide-react";
 import { useMemo } from "react";
 import { TAX_RULES_QUERY } from "../../gql";
@@ -19,12 +20,22 @@ interface TaxRuleNode {
   name: string;
 }
 
-const listInput = { first: 200, order: { by: "name", dir: "asc" } };
+type Connection = { edges: { node: TaxRuleNode }[]; totalCount: number };
+
+// Sem `first`: quem consome é o `useCompleteList`, que traz o catálogo inteiro
+// e rebusca pelo total quando a primeira página não dá conta. O `first: 200`
+// que estava aqui cobria a empresa comum e, no dia em que não cobrisse,
+// esconderia o cadastro sem nada na tela dizer — e um cadastro que "não existe"
+// é procurado, recriado e vira duplicata.
+const listInput = { order: { by: "name", dir: "asc" } };
+const getConnection = (d: { taxRules: Connection }) => d.taxRules;
 
 export function TaxRulesSection() {
-  const { data, loading, error, refetch } = useQuery<{
-    taxRules: { edges: { node: TaxRuleNode }[]; totalCount: number };
-  }>(TAX_RULES_QUERY, { variables: { input: listInput } });
+  const { data, loading, error, refetch } = useCompleteList<{
+    taxRules: Connection;
+  }>(TAX_RULES_QUERY, listInput, getConnection, {
+    fetchPolicy: "cache-and-network",
+  });
 
   const initial = useMemo<TaxRuleNode[]>(
     () => data?.taxRules.edges.map((e) => e.node) ?? [],
@@ -80,8 +91,13 @@ export function TaxRulesSection() {
       <Table.Table maxHeight={600}>
         <Table.Header>
           <Table.Row>
-            <Table.Head>Nome</Table.Head>
-            <Table.Head className="text-right">Ações</Table.Head>
+            <Table.Head title={TAX_RULE_COLUMN_HELP.name}>Nome</Table.Head>
+            <Table.Head
+              className="text-right"
+              title={TAX_RULE_COLUMN_HELP.actions}
+            >
+              Ações
+            </Table.Head>
           </Table.Row>
         </Table.Header>
         <Table.Body>

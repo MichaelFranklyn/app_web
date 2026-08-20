@@ -10,6 +10,7 @@ import { UsersHeader } from "./_components/UsersHeader";
 import { UsersTable } from "./_components/UsersTable";
 import { USERS_QUERY } from "./gql";
 import { ITEMS_PER_PAGE, QueryData, SellersStats, User } from "./interface";
+import { USER_SORTABLE_FIELDS } from "./utils";
 
 interface Props {
   initialData: QueryData;
@@ -29,6 +30,10 @@ export default function UsersContent({ initialData, stats }: Props) {
     },
     getConnection: (data) => data.users_list,
     itemsPerPage: ITEMS_PER_PAGE,
+    // Quem ordena é o banco, sobre a empresa inteira: a lista pagina, e
+    // ordenar em memória alinharia só as dez linhas abertas — "a pessoa mais
+    // antiga" seria a mais antiga da página.
+    sortableFields: USER_SORTABLE_FIELDS,
     initialData,
   });
 
@@ -41,7 +46,8 @@ export default function UsersContent({ initialData, stats }: Props) {
       <UsersHeader
         stats={stats}
         onAddOptimistic={optimistic.addOptimistic}
-        items={optimistic.items}
+        search={tableData.inputValues.search ?? ""}
+        totalItems={tableData.totalItems}
       />
 
       <Tabs.Root defaultValue="pessoas">

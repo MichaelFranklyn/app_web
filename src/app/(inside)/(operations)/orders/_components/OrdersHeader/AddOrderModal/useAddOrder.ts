@@ -115,7 +115,12 @@ export function useAddOrder({
 
   const { data: sellersData } = useQuery<SellersOptionsData>(
     ORDER_SELLERS_OPTIONS_QUERY,
-    { variables: { input: LIST_INPUT }, skip: !open || !canSelectSeller }
+    {
+      variables: { input: LIST_INPUT },
+      skip: !open || !canSelectSeller,
+      // Vendedor se cadastra noutra tela.
+      fetchPolicy: "cache-and-network",
+    }
   );
 
   const { data: factoriesData } = useQuery<SellerFactoriesData>(

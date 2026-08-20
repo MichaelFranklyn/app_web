@@ -37,6 +37,8 @@ export function usePaymentTermOptions(
       },
     },
     skip: !open || !companyFactoryId,
+    // Prazo e mínimo se editam na tela da fábrica e valem aqui na hora.
+    fetchPolicy: "cache-and-network",
   });
 
   return useMemo(() => {

@@ -7,8 +7,9 @@ import { QueryError } from "@/components/QueryError";
 import { HelpTooltip } from "@/components/HelpTooltip";
 import { Table } from "@/components/Table";
 import { Title } from "@/components/Title";
+import { FACTORY_SELLER_COLUMN_HELP } from "../../../help";
+import { useCompleteList } from "@/hooks/useCompleteList";
 import { useOptimisticList } from "@/hooks/useOptimisticList";
-import { useQuery } from "@apollo/client/react";
 import { Users } from "lucide-react";
 import { useMemo } from "react";
 import { AddSellerAccessModal } from "./AddSellerAccessModal";
@@ -41,17 +42,23 @@ interface Props {
   autoOpenLink?: boolean;
 }
 
+const getAccesses = (d: SellersQueryData) => d.factory_seller_accesses;
+
 export function SellersTab({ factoryId, autoOpenLink }: Props) {
-  const { data, loading, error, refetch } = useQuery<SellersQueryData>(
+  // Sem teto fixo: o `first: 50` cobria a equipe comum e, passando dele,
+  // esconderia um vendedor com acesso sem nada na tela dizer.
+  const listInput = useMemo(
+    () => ({
+      filters: [{ field: "factory_id", operator: "eq", value: factoryId }],
+    }),
+    [factoryId]
+  );
+
+  const { data, loading, error, refetch } = useCompleteList<SellersQueryData>(
     FACTORY_SELLER_ACCESSES_QUERY,
-    {
-      variables: {
-        input: {
-          first: 50,
-          filters: [{ field: "factory_id", operator: "eq", value: factoryId }],
-        },
-      },
-    }
+    listInput,
+    getAccesses,
+    { skip: !factoryId }
   );
 
   const initialAccesses = useMemo<SellerAccess[]>(
@@ -97,9 +104,18 @@ export function SellersTab({ factoryId, autoOpenLink }: Props) {
       <Table.Table>
         <Table.Header>
           <Table.Row>
-            <Table.Head>Vendedor</Table.Head>
-            <Table.Head>Acesso</Table.Head>
-            <Table.Head className="text-right">Ações</Table.Head>
+            <Table.Head title={FACTORY_SELLER_COLUMN_HELP.seller}>
+              Vendedor
+            </Table.Head>
+            <Table.Head title={FACTORY_SELLER_COLUMN_HELP.access}>
+              Acesso
+            </Table.Head>
+            <Table.Head
+              className="text-right"
+              title={FACTORY_SELLER_COLUMN_HELP.actions}
+            >
+              Ações
+            </Table.Head>
           </Table.Row>
         </Table.Header>
         <Table.Body>

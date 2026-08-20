@@ -3,6 +3,7 @@
 import { Badge } from "@/components/Badges";
 import { EmptyState } from "@/components/EmptyState";
 import { HelpTooltip } from "@/components/HelpTooltip";
+import { CLIENT_FACTORY_COLUMN_HELP } from "../../../../help";
 import { Table } from "@/components/Table";
 import { Title } from "@/components/Title";
 import { Tooltip } from "@/components/Tooltip";
@@ -51,13 +52,27 @@ export function FactoryLinksTable({
       <Table.Table>
         <Table.Header>
           <Table.Row>
-            <Table.Head>Fábrica</Table.Head>
-            <Table.Head>Vendedor</Table.Head>
-            <Table.Head>Prioridade</Table.Head>
-            <Table.Head>Frequência</Table.Head>
-            <Table.Head>Última Visita</Table.Head>
-            <Table.Head>Status</Table.Head>
-            <Table.Head>Ações</Table.Head>
+            <Table.Head title={CLIENT_FACTORY_COLUMN_HELP.factory}>
+              Fábrica
+            </Table.Head>
+            <Table.Head title={CLIENT_FACTORY_COLUMN_HELP.seller}>
+              Vendedor
+            </Table.Head>
+            <Table.Head title={CLIENT_FACTORY_COLUMN_HELP.priority}>
+              Prioridade
+            </Table.Head>
+            <Table.Head title={CLIENT_FACTORY_COLUMN_HELP.frequency}>
+              Frequência
+            </Table.Head>
+            <Table.Head title={CLIENT_FACTORY_COLUMN_HELP.lastVisit}>
+              Última Visita
+            </Table.Head>
+            <Table.Head title={CLIENT_FACTORY_COLUMN_HELP.status}>
+              Status
+            </Table.Head>
+            <Table.Head title={CLIENT_FACTORY_COLUMN_HELP.actions}>
+              Ações
+            </Table.Head>
           </Table.Row>
         </Table.Header>
         <Table.Body>

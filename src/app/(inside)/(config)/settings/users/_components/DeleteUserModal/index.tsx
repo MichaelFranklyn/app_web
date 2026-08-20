@@ -47,7 +47,7 @@ export function DeleteUserModal({
         }
       }}
       onSuccess={() => {
-        void invalidateClient(["users_list"]);
+        void invalidateClient(["users", "sellers"]);
       }}
       onError={onRollback}
     />

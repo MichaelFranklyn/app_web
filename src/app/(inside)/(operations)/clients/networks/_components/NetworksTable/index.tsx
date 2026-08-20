@@ -12,6 +12,7 @@ import { formatDate } from "@/utils/format/date";
 import { formatMoney } from "@/utils/format/masks";
 import { Network } from "lucide-react";
 
+import { NETWORK_COLUMN_HELP } from "../../../help";
 import { ClientNetwork, ClientNetworksData } from "../../interface";
 import { DeleteNetworkModal } from "./DeleteNetworkModal";
 import { EditNetworkModal } from "./EditNetworkModal";
@@ -34,7 +35,7 @@ export function NetworksTable({
   const search = table.inputValues.search ?? "";
 
   return (
-    <Table.Root>
+    <Table.Root sort={table.sort}>
       <Table.CardHead>
         <Table.CardHead.Title>Redes</Table.CardHead.Title>
         <Table.CardHead.Actions>
@@ -51,10 +52,21 @@ export function NetworksTable({
       <Table.Table>
         <Table.Header>
           <Table.Row>
-            <Table.Head>Rede</Table.Head>
-            <Table.Head>Lojas</Table.Head>
-            <Table.Head>Faturamento</Table.Head>
-            <Table.Head>Último pedido</Table.Head>
+            {/* Só o nome ordena no banco: lojas, faturamento e último pedido
+                são consolidados por DataLoader depois da consulta (ver
+                `client_networks/loaders.py`) e não existem como coluna para o
+                `ORDER BY` alcançar. Ordenar por eles reordenaria só a página
+                aberta, dizendo "a rede que mais comprou" sobre dez de trinta. */}
+            <Table.Head sortKey="name" title={NETWORK_COLUMN_HELP.name}>
+              Rede
+            </Table.Head>
+            <Table.Head title={NETWORK_COLUMN_HELP.stores}>Lojas</Table.Head>
+            <Table.Head title={NETWORK_COLUMN_HELP.invoiced}>
+              Faturamento
+            </Table.Head>
+            <Table.Head title={NETWORK_COLUMN_HELP.lastOrder}>
+              Último pedido
+            </Table.Head>
             <Table.Head className="text-right">Ações</Table.Head>
           </Table.Row>
         </Table.Header>

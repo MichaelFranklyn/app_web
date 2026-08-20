@@ -53,7 +53,7 @@ export function DeleteAccessModal({
         }
       }}
       onSuccess={() => {
-        void invalidateClient(["seller_factory_access_list"]);
+        void invalidateClient(["sellerFactoryAccessList"]);
       }}
       onError={onRollback}
     />

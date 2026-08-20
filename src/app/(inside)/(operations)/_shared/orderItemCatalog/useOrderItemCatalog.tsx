@@ -277,6 +277,9 @@ export function useOrderItemCatalog(
         },
       },
       skip: !open || !companyFactoryId,
+      // A tabela de preço é mantida na tela da fábrica; quem monta o pedido só
+      // lê. `cache-first` servia a tabela de ontem para o pedido de hoje.
+      fetchPolicy: "cache-and-network",
     }
   );
 
@@ -306,6 +309,8 @@ export function useOrderItemCatalog(
         },
       },
       skip: !open || !activePriceListId || !hasSelection,
+      // Mesmo motivo da tabela acima: o preço é editado noutra tela.
+      fetchPolicy: "cache-and-network",
     }
   );
 

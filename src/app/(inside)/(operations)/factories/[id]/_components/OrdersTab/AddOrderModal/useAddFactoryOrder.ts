@@ -1,4 +1,5 @@
-import { useMutation, useQuery } from "@apollo/client/react";
+import { useMutation } from "@apollo/client/react";
+import { useCompleteList } from "@/hooks/useCompleteList";
 import { useMemo, useRef, useState } from "react";
 
 import { FormBuilderRef, FormStepSchema } from "@/components/FormBuilder";
@@ -60,6 +61,8 @@ interface OrderDetails {
  * (dados + itens opcionais), com a fábrica fixa: o passo 1 escolhe o vínculo
  * vendedor→cliente e o passo 2 usa o rascunho de itens compartilhado.
  */
+const getAssignments = (d: FactoryAssignmentsData) => d.sellerClientFactoryList;
+
 export function useAddFactoryOrder({ factoryId }: AddFactoryOrderProps) {
   const [open, setOpen] = useState(false);
   // 0 = dados do pedido, 1 = itens (opcional).
@@ -93,16 +96,23 @@ export function useAddFactoryOrder({ factoryId }: AddFactoryOrderProps) {
     orderDetails?.freightType
   );
 
+  // Sem teto fixo: é o select de "vendedor → cliente" do pedido, e uma fábrica
+  // com carteira grande passava do limite antigo — o cliente existia e a tela
+  // dizia que não. O hook rebusca pelo total quando a 1ª página não dá conta.
+  const assignmentsInput = useMemo(
+    () => ({
+      filters: [{ field: "factory_id", operator: "eq", value: factoryId }],
+    }),
+    [factoryId]
+  );
+
   const { data: assignmentsData, error: assignmentsError } =
-    useQuery<FactoryAssignmentsData>(FACTORY_ASSIGNMENTS_QUERY, {
-      variables: {
-        input: {
-          first: 200,
-          filters: [{ field: "factory_id", operator: "eq", value: factoryId }],
-        },
-      },
-      skip: !open,
-    });
+    useCompleteList<FactoryAssignmentsData>(
+      FACTORY_ASSIGNMENTS_QUERY,
+      assignmentsInput,
+      getAssignments,
+      { skip: !open }
+    );
 
   const assignments = useMemo(
     () =>
@@ -298,7 +308,7 @@ export function useAddFactoryOrder({ factoryId }: AddFactoryOrderProps) {
               description: `${failed.join(", ")} — adicione no detalhe do pedido.`,
             });
           }
-          await invalidateClient(["factory_orders", "orders"]);
+          await invalidateClient(["orders"]);
           // Como nas outras entradas, criar leva PARA DENTRO do pedido. O modal
           // não se fecha: quem o desmonta é a navegação, e é ela que segura o
           // loading do botão até a tela do pedido carregar.

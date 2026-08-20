@@ -42,7 +42,7 @@ export function useProductCatalogOptions(open: boolean) {
       PRODUCT_CATEGORIES_QUERY,
       COMPANY_CATALOG_INPUT,
       getCategories,
-      { skip: !open }
+      { skip: !open, fetchPolicy: "cache-and-network" }
     );
 
   const {
@@ -53,7 +53,7 @@ export function useProductCatalogOptions(open: boolean) {
     PRODUCT_UNITS_QUERY,
     COMPANY_CATALOG_INPUT,
     getUnits,
-    { skip: !open }
+    { skip: !open, fetchPolicy: "cache-and-network" }
   );
 
   const {
@@ -64,7 +64,7 @@ export function useProductCatalogOptions(open: boolean) {
     PRODUCT_UNIT_LABELS_QUERY,
     COMPANY_CATALOG_INPUT,
     getLabels,
-    { skip: !open }
+    { skip: !open, fetchPolicy: "cache-and-network" }
   );
 
   const [createUnit] = useMutation<CreateProductUnitResponse>(

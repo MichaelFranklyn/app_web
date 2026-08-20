@@ -5,17 +5,14 @@ import { QueryError } from "@/components/QueryError";
 import { HelpTooltip } from "@/components/HelpTooltip";
 import { Table } from "@/components/Table";
 import { Title } from "@/components/Title";
+import { FACTORY_TIER_COLUMN_HELP } from "../../../help";
+import { useCompleteList } from "@/hooks/useCompleteList";
 import { useOptimisticList } from "@/hooks/useOptimisticList";
-import { useQuery } from "@apollo/client/react";
 import { Layers } from "lucide-react";
 import { useMemo } from "react";
 import { AddTierModal } from "./AddTierModal";
 import { EditTierModal } from "./EditTierModal";
-import {
-  buildPriceTiersVariables,
-  PRICE_TIERS_QUERY,
-  PriceTiersData,
-} from "./gql";
+import { PRICE_TIERS_QUERY, PriceTiersData } from "./gql";
 import { RemoveTierModal } from "./RemoveTierModal";
 
 interface Props {
@@ -24,10 +21,30 @@ interface Props {
 
 type PriceTier = { id: string; name: string };
 
+const getConnection = (d: PriceTiersData) => d.price_tiers;
+
 export function TiersTab({ companyFactoryId }: Props) {
-  const { data, loading, error, refetch } = useQuery<PriceTiersData>(
+  // Sem teto fixo: o `first: 50` que estava aqui cobria a fábrica comum e, no
+  // dia em que não cobrisse, esconderia o 51º registro sem nada na tela dizer.
+  // O hook confere o `totalCount` e rebusca pelo total quando ele passa.
+  const listInput = useMemo(
+    () => ({
+      filters: [
+        {
+          field: "company_factory_id",
+          operator: "eq",
+          value: companyFactoryId,
+        },
+      ],
+    }),
+    [companyFactoryId]
+  );
+
+  const { data, loading, error, refetch } = useCompleteList<PriceTiersData>(
     PRICE_TIERS_QUERY,
-    { variables: buildPriceTiersVariables(companyFactoryId) }
+    listInput,
+    getConnection,
+    { skip: !companyFactoryId }
   );
 
   const initialTiers = useMemo<PriceTier[]>(
@@ -75,8 +92,13 @@ export function TiersTab({ companyFactoryId }: Props) {
       <Table.Table>
         <Table.Header>
           <Table.Row>
-            <Table.Head>Nível</Table.Head>
-            <Table.Head className="text-right">Ações</Table.Head>
+            <Table.Head title={FACTORY_TIER_COLUMN_HELP.tier}>Nível</Table.Head>
+            <Table.Head
+              className="text-right"
+              title={FACTORY_TIER_COLUMN_HELP.actions}
+            >
+              Ações
+            </Table.Head>
           </Table.Row>
         </Table.Header>
 

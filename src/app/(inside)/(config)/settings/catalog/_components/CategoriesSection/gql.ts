@@ -26,29 +26,23 @@ export const PRODUCT_CATEGORIES_QUERY = gql`
   }
 `;
 
-export const CATEGORIES_LIST_FIRST = 50;
-
 /**
- * Variáveis canônicas da listagem de categorias da empresa.
+ * Escopo canônico da listagem de categorias da empresa.
  *
  * Categorias são catálogo por empresa (escopo aplicado no back via contexto),
- * por isso não enviamos filtro. Usado tanto pela query quanto pelo `update`
- * otimista do cache, garantindo que ambos apontem para a MESMA entrada de cache.
+ * por isso não enviamos filtro.
+ *
+ * Sem `first`: quem consome é o `useCompleteList`, que traz o catálogo inteiro
+ * e rebusca pelo total quando a primeira página não dá conta. O teto de 50 que
+ * havia aqui era o menor dos cinco catálogos, justamente no que mais cresce —
+ * categoria escondida é procurada, recriada e vira duplicata.
+ *
+ * Havia também um `categoriesRefetchQueries()` logo abaixo, descrevendo o
+ * refetch da listagem para as mutations. Nenhuma mutation o importava: o
+ * `onDone` de cada modal chama o `refetch` da própria seção. Removido — um
+ * descritor de cache que ninguém usa envelhece sem que nada acuse.
  */
-export const buildCategoriesVariables = () => ({
-  input: { first: CATEGORIES_LIST_FIRST, order: { by: "name", dir: "asc" } },
-});
-
-/**
- * Descritor de refetch da listagem — rede de segurança após as mutations
- * otimistas (sincroniza o cache com o servidor).
- */
-export const categoriesRefetchQueries = () => [
-  {
-    query: PRODUCT_CATEGORIES_QUERY,
-    variables: buildCategoriesVariables(),
-  },
-];
+export const CATEGORIES_LIST_INPUT = { order: { by: "name", dir: "asc" } };
 
 export interface ProductCategoriesData {
   product_categories: {

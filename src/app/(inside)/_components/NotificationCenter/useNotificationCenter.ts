@@ -78,7 +78,7 @@ export function useNotificationCenter() {
   const items = list.items;
 
   const refreshCounts = async () => {
-    await invalidateClient(["myUnreadNotificationsCount", "my_notifications"]);
+    await invalidateClient(["myUnreadNotificationsCount", "myNotifications"]);
   };
 
   const handleItemClick = (n: Notification) => {

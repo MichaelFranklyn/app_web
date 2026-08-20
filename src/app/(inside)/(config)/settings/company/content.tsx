@@ -4,6 +4,7 @@ import { Grid } from "@/components/Grid";
 import { Loading } from "@/components/Loading";
 import { PageContent } from "@/components/PageContent";
 import { QueryError } from "@/components/QueryError";
+import { useSeedQuery } from "@/hooks/useSeedQuery";
 import { useQuery } from "@apollo/client/react";
 import { useState } from "react";
 import { CompanyAddressCard } from "./_components/CompanyAddressCard";
@@ -30,7 +31,16 @@ import {
 /** Qual assunto está aberto para edição — um modal por vez. */
 type EditTarget = "identity" | "contact" | "address" | "brand" | null;
 
-export default function CompanyContent() {
+interface Props {
+  /** Ficha já buscada no servidor (page.tsx); null se o SSR falhou. */
+  seed: MyCompanyQueryData | null;
+}
+
+export default function CompanyContent({ seed }: Props) {
+  // Antes da leitura abaixo: com o cache quente o `cache-first` acerta já no
+  // 1º render e a tela pinta sem esperar a rede.
+  useSeedQuery([{ query: MY_COMPANY_QUERY, data: seed }]);
+
   const { data, loading, error, refetch } =
     useQuery<MyCompanyQueryData>(MY_COMPANY_QUERY);
   const [editing, setEditing] = useState<EditTarget>(null);

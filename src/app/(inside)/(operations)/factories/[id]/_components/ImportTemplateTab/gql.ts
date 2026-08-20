@@ -17,6 +17,8 @@ export const IMPORT_TEMPLATES_QUERY = gql`
           isActive
         }
       }
+      # O total é o que denuncia truncamento (ver useCompleteList).
+      totalCount
     }
   }
 `;
@@ -34,7 +36,10 @@ export const CREATE_IMPORT_TEMPLATE_MUTATION = gql`
 `;
 
 export const UPDATE_IMPORT_TEMPLATE_MUTATION = gql`
-  mutation UpdateImportTemplate($id: UUID!, $input: UpdateImportTemplateInput!) {
+  mutation UpdateImportTemplate(
+    $id: UUID!
+    $input: UpdateImportTemplateInput!
+  ) {
     updateImportTemplate(id: $id, input: $input) {
       status
       message
@@ -75,10 +80,14 @@ export const EXTRACT_ORDER_FILE_PREVIEW_MUTATION = gql`
   }
 `;
 
-/** Lista templates da fábrica; a UI filtra o ativo em memória. */
-export const buildImportTemplatesVariables = (factoryId: string) => ({
-  input: {
-    first: 50,
-    filters: [{ field: "factory_id", operator: "eq", value: factoryId }],
-  },
+/**
+ * Escopo da lista de modelos da fábrica; a UI filtra o ativo em memória.
+ *
+ * Sem `first`: quem consome é o `useCompleteList`, que traz a lista inteira e
+ * rebusca pelo total quando a primeira página não dá conta. Era o último teto
+ * fixo da área — pequeno na prática (uma fábrica tem um ou dois modelos), mas
+ * é o mesmo padrão que já escondeu catálogo em outra tela.
+ */
+export const buildImportTemplatesInput = (factoryId: string) => ({
+  filters: [{ field: "factory_id", operator: "eq", value: factoryId }],
 });

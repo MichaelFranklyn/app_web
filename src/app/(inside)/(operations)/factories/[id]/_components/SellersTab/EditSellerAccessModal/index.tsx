@@ -56,10 +56,7 @@ export function EditSellerAccessModal({
           : "Acesso ativado com sucesso",
         onSuccess: async () => {
           onCommit();
-          await invalidateClient([
-            "factory_seller_accesses",
-            "sellerFactoryAccessList",
-          ]);
+          await invalidateClient(["sellerFactoryAccessList"]);
         },
         onError: () => {
           onRollback();

@@ -11,6 +11,7 @@ import { clientName } from "@/utils/company";
 import { formatDate } from "@/utils/format/date";
 import { Store } from "lucide-react";
 
+import { CLIENT_COLUMN_HELP, STORE_COLUMN_HELP } from "../../../../help";
 import { formatCity } from "../../../../utils";
 import { NetworkStore, NetworkStoresData } from "../../interface";
 
@@ -31,11 +32,17 @@ export function NetworkStoresTable({ table, stores }: Props) {
       <Table.Table>
         <Table.Header>
           <Table.Row>
-            <Table.Head>Loja</Table.Head>
-            <Table.Head>Cidade</Table.Head>
-            <Table.Head>Segmento</Table.Head>
-            <Table.Head>Vendedor</Table.Head>
-            <Table.Head>Última compra</Table.Head>
+            {/* Nenhuma ordena: são as mesmas colunas da carteira, mas aqui a
+                lista é um recorte por `network_id` e as três computadas
+                (vendedor, última compra) não existem como coluna para o banco
+                ordenar. Ordenar só a página aberta seria pior que não ordenar. */}
+            <Table.Head title={STORE_COLUMN_HELP.store}>Loja</Table.Head>
+            <Table.Head title={CLIENT_COLUMN_HELP.city}>Cidade</Table.Head>
+            <Table.Head title={STORE_COLUMN_HELP.segment}>Segmento</Table.Head>
+            <Table.Head title={CLIENT_COLUMN_HELP.seller}>Vendedor</Table.Head>
+            <Table.Head title={CLIENT_COLUMN_HELP.lastOrder}>
+              Última compra
+            </Table.Head>
           </Table.Row>
         </Table.Header>
 

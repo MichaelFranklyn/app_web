@@ -6,6 +6,7 @@ import { Button } from "@/components/Button";
 import { Card } from "@/components/Card";
 import { EmptyState } from "@/components/EmptyState";
 import { Grid } from "@/components/Grid";
+import { HelpTooltip } from "@/components/HelpTooltip";
 import { Pagination } from "@/components/Pagination";
 import { Title } from "@/components/Title";
 import { useNavigation } from "@/hooks/useNavigation";
@@ -15,6 +16,7 @@ import { maskCNPJ } from "@/utils/format/masks";
 import { mediaUrl } from "@/utils/media";
 import { ArrowRight, Factory } from "lucide-react";
 import { useEffect, useState } from "react";
+import { FACTORY_CARD_HELP } from "../../help";
 import { CompanyFactory } from "../../interface";
 import {
   formatCommissionRate,
@@ -29,6 +31,19 @@ interface Props {
   currentPage: number;
   totalPages: number;
   setCurrentPage: (page: number) => void;
+}
+
+/** Rótulo de um número do card, com o "?" que o explica. */
+function StatLabel({ label }: { label: string }) {
+  return (
+    <Card.Item.Label className="inline-flex items-center gap-2">
+      {label}
+      <HelpTooltip
+        label={`Sobre ${label}`}
+        content={FACTORY_CARD_HELP[label]}
+      />
+    </Card.Item.Label>
+  );
 }
 
 export function FactoriesGrid({
@@ -143,24 +158,26 @@ export function FactoriesGrid({
                     </div>
                   </div>
 
+                  {/* Os quatro falam da MESMA comissão por ângulos diferentes
+                      (quanto, sobre o quê, quando cai, até quando vale): sem a
+                      explicação ao lado, "Faturamento" e "Dia 10" parecem dizer
+                      a mesma coisa. */}
                   <Card.Item variant="stat">
-                    <Card.Item.Label>Comissão</Card.Item.Label>
+                    <StatLabel label="Comissão" />
                     <Card.Item.Value color="amber">
                       {formatCommissionRate(cf.commissionRate)}
                     </Card.Item.Value>
                   </Card.Item>
                   <Card.Item variant="stat">
-                    <Card.Item.Label>Base de cálculo</Card.Item.Label>
+                    <StatLabel label="Base de cálculo" />
                     <Card.Item.Value>{cf.commissionCalcBasis}</Card.Item.Value>
                   </Card.Item>
                   <Card.Item variant="stat">
-                    <Card.Item.Label>
-                      Dia de pagamento da fábrica
-                    </Card.Item.Label>
+                    <StatLabel label="Dia de pagamento da fábrica" />
                     <Card.Item.Value>Dia {cf.paymentTermDays}</Card.Item.Value>
                   </Card.Item>
                   <Card.Item variant="stat" bordered={false}>
-                    <Card.Item.Label>Contrato</Card.Item.Label>
+                    <StatLabel label="Contrato" />
                     <Card.Item.Value color={contract.color}>
                       {contract.label}
                     </Card.Item.Value>

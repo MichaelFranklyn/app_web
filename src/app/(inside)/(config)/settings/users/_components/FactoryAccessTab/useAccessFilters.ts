@@ -44,6 +44,9 @@ const STATUS_OPTIONS: SelectOption[] = [
 export function useAccessFilters(): FilterField[] {
   const sellersQuery = useQuery<SellersOptionsData>(SELLERS_OPTIONS_QUERY, {
     variables: { input: { first: OPTIONS_PAGE } },
+    // Vendedor se cadastra noutra tela: revalida ao montar para o recém-criado
+    // aparecer sem depender de reload.
+    fetchPolicy: "cache-and-network",
   });
 
   const factoriesQuery = useQuery<CompanyFactoriesOptionsData>(

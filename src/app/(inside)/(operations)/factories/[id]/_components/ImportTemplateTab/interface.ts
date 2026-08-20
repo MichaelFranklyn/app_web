@@ -23,6 +23,7 @@ export interface ImportTemplateNode {
 export interface ImportTemplatesData {
   importTemplates: {
     edges: { node: ImportTemplateNode }[];
+    totalCount: number;
   };
 }
 
