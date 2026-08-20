@@ -6,6 +6,7 @@ import { InputSearch } from "@/components/Input";
 import { Loading } from "@/components/Loading";
 import { Pagination } from "@/components/Pagination";
 import { QueryError } from "@/components/QueryError";
+import { PRODUCT_PRICE_COLUMN_HELP } from "../../../../../help";
 import { Table } from "@/components/Table";
 import { Title } from "@/components/Title";
 import { Tag } from "lucide-react";
@@ -115,11 +116,24 @@ export function PricesTable({
       <Table.Table>
         <Table.Header>
           <Table.Row>
-            <Table.Head>Nível</Table.Head>
-            <Table.Head>Preço por {pack.packLabel}</Table.Head>
-            <Table.Head>Preço c/ imposto</Table.Head>
-            <Table.Head>Preço por {pack.baseUnitLabel}</Table.Head>
-            <Table.Head className="text-right">Ações</Table.Head>
+            <Table.Head title={PRODUCT_PRICE_COLUMN_HELP.tier}>
+              Nível
+            </Table.Head>
+            <Table.Head title={PRODUCT_PRICE_COLUMN_HELP.packPrice}>
+              Preço por {pack.packLabel}
+            </Table.Head>
+            <Table.Head title={PRODUCT_PRICE_COLUMN_HELP.priceWithTax}>
+              Preço c/ imposto
+            </Table.Head>
+            <Table.Head title={PRODUCT_PRICE_COLUMN_HELP.unitPrice}>
+              Preço por {pack.baseUnitLabel}
+            </Table.Head>
+            <Table.Head
+              className="text-right"
+              title={PRODUCT_PRICE_COLUMN_HELP.actions}
+            >
+              Ações
+            </Table.Head>
           </Table.Row>
         </Table.Header>
 

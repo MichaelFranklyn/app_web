@@ -2,7 +2,7 @@
 
 import { Loading } from "@/components/Loading";
 import { Modal } from "@/components/Modal";
-import { useQuery } from "@apollo/client/react";
+import { useCompleteList } from "@/hooks/useCompleteList";
 import { CLIENT_PRODUCT_INSIGHTS_QUERY } from "../../../gql";
 import {
   ClientProductInsightsQueryResponse,
@@ -16,18 +16,34 @@ interface Props {
   onClose: () => void;
 }
 
+// Do que zera primeiro (ou já zerou) ao que está tranquilo. Sem `order` o
+// listador genérico não ordena nada (`_apply_order` devolve a query intocada) e
+// o banco entrega na ordem que quiser — a lista de reposição saía embaralhada,
+// e podia até sair diferente a cada abertura. Produto sem estimativa cai no
+// fim: no Postgres, `ASC` põe os nulos por último.
+const STOCKOUT_FIRST = { order: { by: "estimated_stockout_date", dir: "asc" } };
+const getInsights = (d: ClientProductInsightsQueryResponse) =>
+  d.clientProductInsights;
+
 /** Produtos e estimativas de esgotamento do cliente NAQUELA fábrica. */
 export function FactoryStockModal({ summary, onClose }: Props) {
   const linkId = summary?.sellerClientFactoryId ?? null;
 
   // Só busca quando o modal abre: um cliente tem dezenas de fábricas e carregar
   // os produtos de todas ao abrir a aba seria desperdício.
+  //
+  // E sem teto fixo: são os produtos que o cliente compra NAQUELA fábrica, e
+  // `first: 100` é o tipo de limite que só aparece no cliente grande — a lista
+  // mostraria 100 de 130 e o vendedor concluiria que os outros trinta nunca
+  // foram comprados. O hook rebusca pelo total quando ele passa do que veio.
   const { data, loading, refetch } =
-    useQuery<ClientProductInsightsQueryResponse>(
+    useCompleteList<ClientProductInsightsQueryResponse>(
       CLIENT_PRODUCT_INSIGHTS_QUERY,
+      STOCKOUT_FIRST,
+      getInsights,
       {
-        variables: { sellerClientFactoryId: linkId, input: { first: 100 } },
         skip: !linkId,
+        extraVariables: { sellerClientFactoryId: linkId },
       }
     );
 

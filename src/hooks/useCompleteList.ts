@@ -1,6 +1,6 @@
 "use client";
 
-import { DocumentNode } from "@apollo/client";
+import { DocumentNode, WatchQueryFetchPolicy } from "@apollo/client";
 import { useQuery } from "@apollo/client/react";
 import { useEffect, useMemo, useState } from "react";
 
@@ -14,6 +14,26 @@ interface Options {
   skip?: boolean;
   /** Tamanho da primeira busca. Uma só requisição enquanto couber tudo nela. */
   initialFirst?: number;
+  /**
+   * Argumentos que ficam FORA do `input` (ex.: `clientId` em `clientContacts`,
+   * `sellerClientFactoryId` em `clientProductInsights`). Entram nas variables ao
+   * lado dele — sem isto, listas escopadas a um pai não teriam como usar o hook
+   * e voltariam ao `first` fixo, que é justamente o que ele existe para evitar.
+   */
+  extraVariables?: Record<string, unknown>;
+  /**
+   * Padrão `cache-first`: uma busca por sessão, que é o certo para catálogo que
+   * só esta tela edita.
+   *
+   * Use `cache-and-network` no catálogo COMPARTILHADO — aquele que se cria numa
+   * tela e se escolhe em outra (categorias, unidades, regras de imposto,
+   * segmentos, tabelas de preço). Duas telas leem o mesmo campo com `input`
+   * diferente, ou seja, entradas de cache diferentes: o `refetch()` de quem
+   * criou renova só a dele, e a outra continua com a lista velha até o reload.
+   * `cache-and-network` pinta na hora com o que tem e revalida por cima, sem
+   * flicker — o custo é uma lista curta por montagem.
+   */
+  fetchPolicy?: WatchQueryFetchPolicy;
 }
 
 /**
@@ -39,19 +59,28 @@ export function useCompleteList<TData, TNode = unknown>(
   query: DocumentNode,
   input: Record<string, unknown>,
   getConnection: (data: TData) => CountedConnection<TNode> | undefined,
-  { skip = false, initialFirst = 200 }: Options = {}
+  {
+    skip = false,
+    initialFirst = 200,
+    extraVariables,
+    fetchPolicy,
+  }: Options = {}
 ) {
   const [first, setFirst] = useState(initialFirst);
 
   // Serializado de propósito: o chamador quase sempre monta o objeto inline, e
   // comparar por referência refaria o fetch a cada render.
   const inputKey = JSON.stringify(input ?? {});
+  const extraKey = JSON.stringify(extraVariables ?? null);
   const variables = useMemo(
-    () => ({ input: { ...(JSON.parse(inputKey) as object), first } }),
-    [inputKey, first]
+    () => ({
+      ...((JSON.parse(extraKey) as object) ?? {}),
+      input: { ...(JSON.parse(inputKey) as object), first },
+    }),
+    [inputKey, extraKey, first]
   );
 
-  const result = useQuery<TData>(query, { variables, skip });
+  const result = useQuery<TData>(query, { variables, skip, fetchPolicy });
 
   // A rebusca pelo total pode falhar (rede, timeout). Cair para `previousData`
   // devolve a página que já estava na mão: ficar sem lista nenhuma seria pior do

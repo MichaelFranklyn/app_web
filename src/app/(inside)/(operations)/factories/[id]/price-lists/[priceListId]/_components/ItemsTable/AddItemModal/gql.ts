@@ -27,6 +27,8 @@ export const TIERS_OPTIONS_QUERY = gql`
           name
         }
       }
+      # O total é o que denuncia truncamento (ver useCompleteList).
+      totalCount
     }
   }
 `;

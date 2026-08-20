@@ -7,6 +7,7 @@ import { EmptyState } from "@/components/EmptyState";
 import { Filters } from "@/components/Filters";
 import { Loading } from "@/components/Loading";
 import { Pagination } from "@/components/Pagination";
+import { CLIENT_VISIT_COLUMN_HELP } from "../../help";
 import { Table } from "@/components/Table";
 import { useOptimisticList } from "@/hooks/useOptimisticList";
 import { useQuery } from "@apollo/client/react";
@@ -152,18 +153,51 @@ export default function VisitsContent() {
       <Table.Table>
         <Table.Header>
           <Table.Row>
-            <Table.Head sortKey="date" sortFirst="desc">
+            <Table.Head
+              sortKey="date"
+              sortFirst="desc"
+              title={CLIENT_VISIT_COLUMN_HELP.date}
+            >
               Data
             </Table.Head>
             {/* Motivo e fábricas tratadas saem de listas de fábricas por visita:
                 não há um valor único por linha para comparar. */}
-            <Table.Head>Motivo da visita</Table.Head>
-            <Table.Head>Fábricas tratadas</Table.Head>
-            <Table.Head sortKey="seller">Vendedor</Table.Head>
-            <Table.Head sortKey="status">Status</Table.Head>
-            <Table.Head sortKey="outcome">Resultado</Table.Head>
-            <Table.Head sortKey="outcomeReason">Motivo</Table.Head>
-            <Table.Head className="text-right">Ações</Table.Head>
+            <Table.Head title={CLIENT_VISIT_COLUMN_HELP.focus}>
+              Motivo da visita
+            </Table.Head>
+            <Table.Head title={CLIENT_VISIT_COLUMN_HELP.treated}>
+              Fábricas tratadas
+            </Table.Head>
+            <Table.Head
+              sortKey="seller"
+              title={CLIENT_VISIT_COLUMN_HELP.seller}
+            >
+              Vendedor
+            </Table.Head>
+            <Table.Head
+              sortKey="status"
+              title={CLIENT_VISIT_COLUMN_HELP.status}
+            >
+              Status
+            </Table.Head>
+            <Table.Head
+              sortKey="outcome"
+              title={CLIENT_VISIT_COLUMN_HELP.outcome}
+            >
+              Resultado
+            </Table.Head>
+            <Table.Head
+              sortKey="outcomeReason"
+              title={CLIENT_VISIT_COLUMN_HELP.outcomeReason}
+            >
+              Motivo
+            </Table.Head>
+            <Table.Head
+              className="text-right"
+              title={CLIENT_VISIT_COLUMN_HELP.actions}
+            >
+              Ações
+            </Table.Head>
           </Table.Row>
         </Table.Header>
         <Table.Body>

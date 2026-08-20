@@ -40,7 +40,11 @@ export function useDashboard(
 
   const sellersQuery = useQuery<DashboardSellersResponse>(
     DASHBOARD_SELLERS_QUERY,
-    { variables: { input: { first: 200 } }, skip: !canSelectSeller }
+    {
+      variables: { input: { first: 200 } },
+      skip: !canSelectSeller,
+      fetchPolicy: "cache-and-network",
+    }
   );
 
   const sellers: SellerOption[] = useMemo(

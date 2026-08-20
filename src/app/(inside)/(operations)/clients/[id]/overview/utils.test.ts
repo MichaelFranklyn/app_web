@@ -1,12 +1,19 @@
 import { describe, expect, it } from "vitest";
-import { buildAddress, factoryName } from "./utils";
+import { buildAddress } from "../utils";
 import type { ClientData } from "./interface";
 
-// ---------------------------------------------------------------------------
-// Helpers
-// ---------------------------------------------------------------------------
+/**
+ * `buildAddress` mora no PAI da aba (`clients/[id]/utils.ts`) — é essa a função
+ * que a Visão Geral chama.
+ *
+ * Havia aqui uma segunda `buildAddress`, num `overview/utils.ts` que tela
+ * nenhuma importava, e este teste cobria essa cópia. As duas divergiam no
+ * bairro e no CEP: o teste afirmava, com um caso dedicado, que o bairro NÃO
+ * entra no endereço — enquanto a função de verdade o escreve. Cobertura sobre
+ * código morto é pior do que nenhuma: ela responde pela tela sem passar por ela.
+ */
 
-/** Minimal ClientData with all address fields null — override per-test. */
+/** Cliente com todos os campos de endereço nulos — sobrescreva por teste. */
 const makeClient = (overrides: Partial<ClientData> = {}): ClientData => ({
   id: "1",
   cnpj: "00.000.000/0001-00",
@@ -27,20 +34,17 @@ const makeClient = (overrides: Partial<ClientData> = {}): ClientData => ({
   ...overrides,
 });
 
-// ---------------------------------------------------------------------------
-// buildAddress
-// ---------------------------------------------------------------------------
-
 describe("buildAddress", () => {
-  it("returns em-dash when all address fields are null", () => {
+  it("devolve travessão quando não há endereço nenhum", () => {
     expect(buildAddress(makeClient())).toBe("—");
   });
 
-  it("returns em-dash when all address fields are empty strings", () => {
+  it("devolve travessão quando os campos vêm como texto vazio", () => {
     const client = makeClient({
       addressStreet: "",
       addressNumber: "",
       addressComplement: "",
+      addressNeighborhood: "",
       addressCity: "",
       addressState: "",
       addressZip: "",
@@ -48,45 +52,34 @@ describe("buildAddress", () => {
     expect(buildAddress(client)).toBe("—");
   });
 
-  it("joins all six address parts when all are present", () => {
+  it("escreve o endereço inteiro, com bairro e CEP por extenso", () => {
     const client = makeClient({
       addressStreet: "Rua das Flores",
       addressNumber: "123",
       addressComplement: "Apto 4",
+      addressNeighborhood: "Centro",
       addressCity: "São Paulo",
       addressState: "SP",
       addressZip: "01310-100",
     });
     expect(buildAddress(client)).toBe(
-      "Rua das Flores, 123, Apto 4, São Paulo, SP, 01310-100"
+      "Rua das Flores, 123, Apto 4, Bairro Centro, São Paulo / SP, CEP 01310-100"
     );
   });
 
-  it("skips null parts and joins the rest", () => {
+  it("pula as partes ausentes e junta o resto", () => {
     const client = makeClient({
       addressStreet: "Av. Brasil",
       addressNumber: "500",
-      addressComplement: null,
       addressCity: "Rio de Janeiro",
       addressState: "RJ",
-      addressZip: null,
     });
-    expect(buildAddress(client)).toBe("Av. Brasil, 500, Rio de Janeiro, RJ");
+    expect(buildAddress(client)).toBe("Av. Brasil, 500, Rio de Janeiro / RJ");
   });
 
-  it("skips empty-string parts (falsy filter)", () => {
-    const client = makeClient({
-      addressStreet: "Rua A",
-      addressNumber: "",
-      addressComplement: "",
-      addressCity: "Campinas",
-      addressState: "SP",
-      addressZip: "13000-000",
-    });
-    expect(buildAddress(client)).toBe("Rua A, Campinas, SP, 13000-000");
-  });
-
-  it("works with only street and city", () => {
+  // Cidade e estado saem juntos numa parte só ("São Paulo / SP"): com um deles
+  // ausente, o que sobrou aparece sozinho, sem a barra pendurada.
+  it("escreve a cidade sozinha quando falta o estado", () => {
     const client = makeClient({
       addressStreet: "Rua X",
       addressCity: "Curitiba",
@@ -94,53 +87,13 @@ describe("buildAddress", () => {
     expect(buildAddress(client)).toBe("Rua X, Curitiba");
   });
 
-  it("works with a single address field", () => {
-    const client = makeClient({ addressCity: "Belo Horizonte" });
-    expect(buildAddress(client)).toBe("Belo Horizonte");
+  it("escreve o estado sozinho quando falta a cidade", () => {
+    expect(buildAddress(makeClient({ addressState: "MG" }))).toBe("MG");
   });
 
-  // addressNeighborhood is NOT in the parts list — confirm it is ignored
-  it("does NOT include addressNeighborhood in the result", () => {
-    const client = makeClient({
-      addressStreet: "Rua Y",
-      addressCity: "Fortaleza",
-      // comportamento de runtime: addressNeighborhood existe no tipo, mas
-      // buildAddress o ignora de propósito (lê só os 6 campos listados).
-      addressNeighborhood: "Centro",
-    });
-    const result = buildAddress(client);
-    expect(result).not.toContain("Centro");
-    expect(result).toBe("Rua Y, Fortaleza");
-  });
-});
-
-// ---------------------------------------------------------------------------
-// factoryName
-// ---------------------------------------------------------------------------
-
-describe("factoryName", () => {
-  it("returns the factory name when it is a non-empty string", () => {
-    expect(factoryName({ name: "Fábrica Alpha" })).toBe("Fábrica Alpha");
-  });
-
-  it("returns em-dash when factory is undefined", () => {
-    expect(factoryName(undefined)).toBe("—");
-  });
-
-  it("returns em-dash when factory is null", () => {
-    expect(factoryName(null)).toBe("—");
-  });
-
-  it("returns em-dash when factory.name is undefined", () => {
-    expect(factoryName({})).toBe("—");
-  });
-
-  it("returns em-dash when factory.name is an empty string (falsy via ??)", () => {
-    // Note: ?? only guards undefined/null, so empty-string IS returned as-is
-    expect(factoryName({ name: "" })).toBe("");
-  });
-
-  it("returns the name even when it is a numeric-looking string", () => {
-    expect(factoryName({ name: "42" })).toBe("42");
+  it("funciona com um campo só", () => {
+    expect(buildAddress(makeClient({ addressCity: "Belo Horizonte" }))).toBe(
+      "Belo Horizonte"
+    );
   });
 });

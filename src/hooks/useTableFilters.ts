@@ -14,6 +14,18 @@ export interface SelectFieldConfig {
   type: "select";
   queryField: string;
   operator?: string;
+  /**
+   * Outros valores gravados que significam a MESMA escolha da tela.
+   *
+   * Existe para coluna cujo vocabulário mudou depois que já havia registro
+   * salvo: a prioridade do vínculo, por exemplo, hoje é "alta"/"media"/"baixa",
+   * mas as linhas antigas guardam "high"/"medium"/"low". Filtrando no banco por
+   * um valor só, esses registros somem da lista — e some sem avisar, que é o
+   * pior jeito de sumir.
+   *
+   * Com o mapa preenchido, a escolha vira um `in` com todas as grafias.
+   */
+  aliases?: Record<string, string[]>;
 }
 
 export type FieldConfig = TextFieldConfig | SelectFieldConfig;

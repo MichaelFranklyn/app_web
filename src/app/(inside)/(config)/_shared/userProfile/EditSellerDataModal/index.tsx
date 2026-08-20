@@ -4,6 +4,7 @@ import { Button } from "@/components/Button";
 import { FormBuilder, FormBuilderRef } from "@/components/FormBuilder";
 import { Modal } from "@/components/Modal";
 import { useAsyncAction } from "@/hooks/useAsyncAction";
+import { useInvalidateQueriesClient } from "@/hooks/useInvalidateQueries";
 import { useMutation } from "@apollo/client/react";
 import { useRef } from "react";
 import { ProfileSeller } from "../interface";
@@ -33,6 +34,7 @@ export function EditSellerDataModal({
     UPDATE_SELLER_MUTATION
   );
   const { execute, isLoading } = useAsyncAction();
+  const invalidateClient = useInvalidateQueriesClient();
 
   const handleSubmit = async (data: Record<string, unknown>) => {
     await execute(
@@ -49,10 +51,11 @@ export function EditSellerDataModal({
       },
       {
         successMessage: "Atuação em campo atualizada",
-        onSuccess: () => {
+        onSuccess: async () => {
           onOpenChange(false);
           formRef.current?.resetForm();
           onDone();
+          await invalidateClient(["sellers"]);
         },
       }
     );

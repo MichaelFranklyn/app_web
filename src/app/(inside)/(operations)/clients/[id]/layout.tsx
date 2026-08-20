@@ -14,7 +14,7 @@ import { useOptimisticObject } from "@/hooks/useOptimisticObject";
 import { useQuery } from "@apollo/client/react";
 import { UserX } from "lucide-react";
 import { useParams, useRouter } from "next/navigation";
-import React from "react";
+import React, { useMemo } from "react";
 import { ClientDetailSkeleton } from "./_components/ClientDetailSkeleton";
 import { DeleteClientModal } from "./_components/DeleteClientModal";
 import { EditClientModal } from "./_components/EditClientModal";
@@ -43,21 +43,27 @@ export default function ClientLayout({
   // A rota é chaveada pelo id da carteira; reconstruímos o ClientDetail (cliente
   // global + vínculo aninhado) para manter o header e os modais inalterados.
   const cc = data?.companyClient?.data;
-  const clientData: ClientDetail | undefined =
-    cc && cc.client
-      ? {
-          ...cc.client,
-          companyClient: {
-            id: cc.id,
-            notes: cc.notes,
-            isActive: cc.isActive,
-            networkId: cc.networkId,
-            segmentId: cc.segmentId,
-            network: cc.network,
-            segment: cc.segment,
-          },
-        }
-      : undefined;
+  // Memoizado porque é a ficha que desce pelo contexto: remontá-lo a cada
+  // render daria um objeto novo a cada vez, e toda a aba aberta re-renderizaria
+  // sem nada ter mudado.
+  const clientData: ClientDetail | undefined = useMemo(
+    () =>
+      cc && cc.client
+        ? {
+            ...cc.client,
+            companyClient: {
+              id: cc.id,
+              notes: cc.notes,
+              isActive: cc.isActive,
+              networkId: cc.networkId,
+              segmentId: cc.segmentId,
+              network: cc.network,
+              segment: cc.segment,
+            },
+          }
+        : undefined,
+    [cc]
+  );
 
   const optimisticClient = useOptimisticObject<ClientDetail>({
     initialData: clientData ?? ({} as ClientDetail),
@@ -65,6 +71,34 @@ export default function ClientLayout({
   const companyClientView = clientData
     ? optimisticClient.data.companyClient
     : undefined;
+
+  // Memoizado porque agora ele carrega a ficha inteira: um objeto novo a cada
+  // render do layout re-renderizaria TODA a aba aberta sem nada ter mudado.
+  const routeValue = useMemo(
+    () =>
+      clientData
+        ? {
+            companyClientId,
+            clientId: clientData.id,
+            client: optimisticClient.data,
+            updateOptimistic: optimisticClient.updateOptimistic,
+            commit: optimisticClient.commit,
+            rollback: optimisticClient.rollback,
+            refetch: () => {
+              void refetch();
+            },
+          }
+        : null,
+    [
+      clientData,
+      companyClientId,
+      optimisticClient.data,
+      optimisticClient.updateOptimistic,
+      optimisticClient.commit,
+      optimisticClient.rollback,
+      refetch,
+    ]
+  );
 
   const basePath = `/clients/${companyClientId}`;
 
@@ -243,10 +277,11 @@ export default function ClientLayout({
           </FeatureGate>
         </Tabs.NavList>
 
-        {clientData ? (
-          <ClientRouteProvider
-            value={{ companyClientId, clientId: clientData.id }}
-          >
+        {routeValue ? (
+          // A ficha desce inteira, com o estado otimista junto: a aba Visão
+          // Geral lia os mesmos campos por uma segunda query, que só saía
+          // depois desta responder (ver `context.tsx`).
+          <ClientRouteProvider value={routeValue}>
             {children}
           </ClientRouteProvider>
         ) : (

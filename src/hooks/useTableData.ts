@@ -122,10 +122,19 @@ export interface UseTableDataReturn<TItem> {
 export function buildQueryFilters(
   fields: Record<string, FieldConfig>,
   values: Record<string, string>
-) {
-  return Object.entries(fields).flatMap(([key, config]) => {
+): QueryFilter[] {
+  return Object.entries(fields).flatMap(([key, config]): QueryFilter[] => {
     const value = values[key];
     if (!value) return [];
+
+    // Vocabulário que mudou com o tempo: a escolha da tela vale por todas as
+    // grafias gravadas (ver `aliases` em SelectFieldConfig).
+    const aliases =
+      config.type === "select" ? config.aliases?.[value] : undefined;
+    if (aliases && aliases.length > 0) {
+      return [{ field: config.queryField, operator: "in", values: aliases }];
+    }
+
     return [
       {
         field: config.queryField,
@@ -239,11 +248,23 @@ export const useTableData = <TData, TItem extends object>(
     const seedEdges = initialData ? getConnection(initialData)?.edges : null;
     if (initialData && seedEdges && seedEdges.length > 0) {
       try {
-        apollo.writeQuery({
+        // Só semeia em cache FRIO. O `initialData` vem do payload RSC, que numa
+        // volta de navegação pode ser mais VELHO do que o cache: o Next serve o
+        // payload do router cache, enquanto o cache do Apollo já foi atualizado
+        // pela mutation que acabou de rodar. Escrever por cima devolvia a linha
+        // apagada (ou sumia com a recém-criada) até o próximo reload — o reload
+        // "consertava" só porque refazia o SSR.
+        const cached = apollo.cache.readQuery({
           query,
           variables: defaultVariables,
-          data: initialData,
         });
+        if (!cached) {
+          apollo.writeQuery({
+            query,
+            variables: defaultVariables,
+            data: initialData,
+          });
+        }
       } catch {
         // Shape divergente: ignora e deixa o fetch client resolver.
       }

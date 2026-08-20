@@ -23,3 +23,17 @@ export const priorityMeta = (
   priority: string | null
 ): { label: string; color: BadgeColor } =>
   (priority && PRIORITY_META[priority]) || { label: "—", color: "neutral" };
+
+/**
+ * As grafias que cada escolha do filtro precisa casar no banco.
+ *
+ * O vocabulário canônico é "alta"/"media"/"baixa"; vínculos salvos antes do
+ * alinhamento guardam "high"/"medium"/"low" (ver o mapa acima). Filtrando no
+ * BANCO por um valor só, esses registros sumiriam da lista sem nada avisar —
+ * o filtro em memória, que comparava pelo rótulo já traduzido, pegava os dois.
+ */
+export const PRIORITY_ALIASES: Record<string, string[]> = {
+  alta: ["alta", "high"],
+  media: ["media", "medium"],
+  baixa: ["baixa", "low"],
+};

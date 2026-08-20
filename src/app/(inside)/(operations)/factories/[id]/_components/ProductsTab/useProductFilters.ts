@@ -30,14 +30,16 @@ export function useProductFilters(): FilterField[] {
     useCompleteList<ProductCategoriesData>(
       PRODUCT_CATEGORIES_QUERY,
       COMPANY_CATALOG_INPUT,
-      getCategories
+      getCategories,
+      { fetchPolicy: "cache-and-network" }
     );
 
   const { data: unitsData, error: unitsError } =
     useCompleteList<ProductUnitsData>(
       PRODUCT_UNITS_QUERY,
       COMPANY_CATALOG_INPUT,
-      getUnits
+      getUnits,
+      { fetchPolicy: "cache-and-network" }
     );
 
   useQueryErrorToast(

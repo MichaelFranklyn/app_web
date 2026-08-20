@@ -6,10 +6,11 @@ import { EmptyState } from "@/components/EmptyState";
 import { InputSearch } from "@/components/Input";
 import { Loading } from "@/components/Loading";
 import { Pagination } from "@/components/Pagination";
-import { Table } from "@/components/Table";
+import { Table, TableSort } from "@/components/Table";
 import { Tabs } from "@/components/Tabs";
 import { formatDateDMY, maskPhoneBR } from "@/utils/format/masks";
 import { Users } from "lucide-react";
+import { USER_COLUMN_HELP } from "../../help";
 import { User } from "../../interface";
 import { ROLE_COLOR, ROLE_LABEL, UserRole } from "../../utils";
 import { fieldSummary } from "./utils";
@@ -17,6 +18,8 @@ import { UserRowActions } from "./UserRowActions";
 
 interface UsersTableProps {
   items: User[];
+  /** Ordenação da lista — vem do `useTableData` e desce até cada cabeçalho. */
+  sort: TableSort;
   loading: boolean;
   totalItems: number;
   currentPage: number;
@@ -37,6 +40,7 @@ interface UsersTableProps {
  */
 export function UsersTable({
   items,
+  sort,
   loading,
   totalItems: totalCount,
   currentPage,
@@ -53,7 +57,7 @@ export function UsersTable({
 
   return (
     <Tabs.Content value="pessoas">
-      <Table.Root className="mt-16" data-tour="users-table">
+      <Table.Root className="mt-16" sort={sort} data-tour="users-table">
         <Table.CardHead>
           <Table.CardHead.Title>Pessoas da empresa</Table.CardHead.Title>
           <Table.CardHead.Actions>
@@ -70,16 +74,35 @@ export function UsersTable({
         <Table.Table>
           <Table.Header>
             <Table.Row>
-              <Table.Head>Pessoa</Table.Head>
-              <Table.Head />
+              {/* Uma coluna só para a identidade (a tabela nunca rola), então
+                  a ordenação por nome e por data de entrada mora aqui dentro —
+                  são duas leituras da mesma coluna. */}
+              <Table.Head sortKey="name" title={USER_COLUMN_HELP.person}>
+                Pessoa
+              </Table.Head>
+              <Table.Head
+                sortKey="created_at"
+                sortFirst="desc"
+                title="Quando a pessoa entrou na empresa dentro do sistema."
+              >
+                Desde
+              </Table.Head>
+              <Table.Head
+                sortKey="is_active"
+                sortFirst="desc"
+                className="text-right"
+                title={USER_COLUMN_HELP.badges}
+              >
+                Situação
+              </Table.Head>
             </Table.Row>
           </Table.Header>
           <Table.Body>
             {loading && items.length === 0 ? (
-              <Table.Skeleton columns={2} rows={5} />
+              <Table.Skeleton columns={3} rows={5} />
             ) : isEmpty ? (
               <Table.Row>
-                <Table.Cell colSpan={2}>
+                <Table.Cell colSpan={3}>
                   <EmptyState.Root>
                     <EmptyState.Icon>
                       <Users size={32} />
@@ -115,14 +138,9 @@ export function UsersTable({
 
                       {/* Identidade numa coluna só: a tabela nunca rola. */}
                       <div className="flex min-w-0 flex-col gap-2">
-                        <div className="flex items-center gap-4">
-                          <Table.CellText variant="strong">
-                            {node.name}
-                          </Table.CellText>
-                          <Table.CellText variant="dim2">
-                            desde {formatDateDMY(node.createdAt)}
-                          </Table.CellText>
-                        </div>
+                        <Table.CellText variant="strong">
+                          {node.name}
+                        </Table.CellText>
                         <Table.CellText variant="dim">
                           {node.email}
                           {node.phone ? ` · ${maskPhoneBR(node.phone)}` : ""}
@@ -133,6 +151,10 @@ export function UsersTable({
                           </Table.CellText>
                         )}
                       </div>
+                    </Table.Cell>
+
+                    <Table.Cell variant="dim" className="whitespace-nowrap">
+                      {formatDateDMY(node.createdAt)}
                     </Table.Cell>
 
                     <Table.Cell flex className="justify-end">

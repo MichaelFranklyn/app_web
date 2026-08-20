@@ -60,7 +60,7 @@ export function EditUserModal({
           onOpenChange(false);
           formRef.current?.resetForm();
           onCommit();
-          await invalidateClient(["users_list"]);
+          await invalidateClient(["users"]);
         },
         onError: () => {
           onRollback();

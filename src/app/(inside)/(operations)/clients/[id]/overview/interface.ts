@@ -1,7 +1,6 @@
 // SSOT (Single Source of Truth): Import ALL types from parent route
 import {
   ClientDetail,
-  ClientDetailQueryResponse,
   CreateSellerClientFactoryResponse,
   SellerClientFactoriesQueryResponse,
   UpdateAddressResponse,
@@ -14,7 +13,6 @@ export type ClientData = ClientDetail;
 
 // Re-export parent types
 export type {
-  ClientDetailQueryResponse,
   CreateSellerClientFactoryResponse,
   SellerClientFactoriesQueryResponse,
   UpdateAddressResponse,

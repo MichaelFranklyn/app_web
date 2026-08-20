@@ -344,48 +344,6 @@ export const COMPANY_CLIENT_QUERY = gql`
   }
 `;
 
-export const CLIENT_QUERY = gql`
-  query Client($id: UUID!) {
-    client(id: $id) {
-      status
-      code
-      message
-      data {
-        id
-        cnpj
-        razaoSocial
-        nomeFantasia
-        cnae
-        cnaeDescription
-        addressStreet
-        addressNumber
-        addressComplement
-        addressNeighborhood
-        addressZip
-        addressCity
-        addressState
-        createdAt
-        updatedAt
-        companyClient {
-          id
-          notes
-          isActive
-          networkId
-          segmentId
-          network {
-            id
-            name
-          }
-          segment {
-            id
-            name
-          }
-        }
-      }
-    }
-  }
-`;
-
 export const CREATE_SELLER_CLIENT_FACTORY_MUTATION = gql`
   mutation CreateSellerClientFactory($input: CreateSellerClientFactoryInput!) {
     createSellerClientFactory(input: $input) {

@@ -60,7 +60,7 @@ export function ToggleUserModal({
         onSuccess: async () => {
           onCommit();
           onOpenChange(false);
-          await invalidateClient(["users_list"]);
+          await invalidateClient(["users", "sellers"]);
         },
         onError: () => {
           onRollback();

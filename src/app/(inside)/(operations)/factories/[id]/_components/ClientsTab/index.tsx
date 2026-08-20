@@ -8,19 +8,16 @@ import { QueryError } from "@/components/QueryError";
 import { HelpTooltip } from "@/components/HelpTooltip";
 import { Table } from "@/components/Table";
 import { Title } from "@/components/Title";
+import { Loading } from "@/components/Loading";
+import { Pagination } from "@/components/Pagination";
 import { useOptimisticList } from "@/hooks/useOptimisticList";
-import { useQuery } from "@apollo/client/react";
 import { Users } from "lucide-react";
-import { useMemo } from "react";
+import { FACTORY_CLIENT_COLUMN_HELP } from "../../../help";
 import { DeleteClientLinkModal } from "./DeleteClientLinkModal";
 import { EditClientLinkModal } from "./EditClientLinkModal";
-import {
-  FACTORY_CLIENT_LINKS_QUERY,
-  FactoryClientLink,
-  FactoryClientLinksData,
-} from "./gql";
+import { FactoryClientLink } from "./gql";
 import { LinkClientModal } from "./LinkClientModal";
-import { useClientsTable } from "./useClientsTable";
+import { useFactoryClientsTable } from "./useFactoryClientsTable";
 import { priorityMeta } from "./utils";
 import { clientName } from "@/utils/company";
 import { formatDate } from "@/utils/format/date";
@@ -31,27 +28,15 @@ interface Props {
 }
 
 export function ClientsTab({ factoryId, companyFactoryId }: Props) {
-  const { data, loading, error, refetch } = useQuery<FactoryClientLinksData>(
-    FACTORY_CLIENT_LINKS_QUERY,
-    {
-      variables: {
-        input: {
-          first: 50,
-          filters: [{ field: "factory_id", operator: "eq", value: factoryId }],
-        },
-      },
-    }
-  );
+  // Página, ordem e filtros resolvidos no BANCO — ver `useFactoryClientsTable`.
+  const table = useFactoryClientsTable(factoryId, companyFactoryId);
 
-  const initialLinks = useMemo<FactoryClientLink[]>(
-    () => data?.factory_client_links?.edges.map((e) => e.node) ?? [],
-    [data]
-  );
   const optimistic = useOptimisticList<FactoryClientLink>({
-    initialData: initialLinks,
+    initialData: table.displayedData,
   });
-  const table = useClientsTable(optimistic.items);
-  const links = table.displayedData;
+  const links = optimistic.items;
+  const { loading, error, refetch } = table;
+  const isNarrowed = Object.values(table.inputValues).some(Boolean);
 
   return (
     <Table.Root sort={table.sort} data-tour="factory-clients-table">
@@ -95,15 +80,38 @@ export function ClientsTab({ factoryId, companyFactoryId }: Props) {
       <Table.Table>
         <Table.Header>
           <Table.Row>
-            <Table.Head sortKey="client">Cliente</Table.Head>
-            <Table.Head sortKey="seller">Vendedor</Table.Head>
-            <Table.Head sortKey="priceTier">Nível de preço</Table.Head>
-            <Table.Head sortKey="priority">Prioridade</Table.Head>
+            {/* Só duas colunas ordenam, e quem ordena é o banco. Vendedor e
+                nível são UUID no vínculo; prioridade é texto ("alta", "baixa",
+                "media"), cuja ordem alfabética não é a ordem que se lê. */}
+            <Table.Head
+              sortKey="client_name"
+              title={FACTORY_CLIENT_COLUMN_HELP.client}
+            >
+              Cliente
+            </Table.Head>
+            <Table.Head title={FACTORY_CLIENT_COLUMN_HELP.seller}>
+              Vendedor
+            </Table.Head>
+            <Table.Head title={FACTORY_CLIENT_COLUMN_HELP.priceTier}>
+              Nível de preço
+            </Table.Head>
+            <Table.Head title={FACTORY_CLIENT_COLUMN_HELP.priority}>
+              Prioridade
+            </Table.Head>
             {/* Faturamento deste vínculo — não o do cliente somando fábricas. */}
-            <Table.Head sortKey="lastInvoiceDate" sortFirst="desc">
+            <Table.Head
+              sortKey="last_invoice_date"
+              sortFirst="desc"
+              title={FACTORY_CLIENT_COLUMN_HELP.lastInvoice}
+            >
               Faturamento
             </Table.Head>
-            <Table.Head className="text-right">Ações</Table.Head>
+            <Table.Head
+              className="text-right"
+              title={FACTORY_CLIENT_COLUMN_HELP.actions}
+            >
+              Ações
+            </Table.Head>
           </Table.Row>
         </Table.Header>
         <Table.Body>
@@ -125,12 +133,12 @@ export function ClientsTab({ factoryId, companyFactoryId }: Props) {
                   {/* "Não há vínculo" e "o filtro não achou" pedem saídas
                       diferentes: uma manda cadastrar, a outra manda afrouxar. */}
                   <EmptyState.Title>
-                    {table.totalUnfiltered > 0
+                    {isNarrowed
                       ? "Nenhum cliente encontrado"
                       : "Nenhum cliente vinculado"}
                   </EmptyState.Title>
                   <EmptyState.Description>
-                    {table.totalUnfiltered > 0
+                    {isNarrowed
                       ? "Ajuste os filtros para encontrar o cliente."
                       : 'Use "Vincular cliente" para conectar um cliente da sua carteira a esta fábrica.'}
                   </EmptyState.Description>
@@ -195,6 +203,24 @@ export function ClientsTab({ factoryId, companyFactoryId }: Props) {
           )}
         </Table.Body>
       </Table.Table>
+
+      {/* Faltava: a aba mostrava 50 vínculos e nada dizia que havia mais. */}
+      <Table.Footer>
+        <Table.Footer.Info>
+          {loading && links.length > 0 && (
+            <Loading.Spinner size="sm" className="mr-6 inline-block" />
+          )}
+          {table.totalItems > 0
+            ? `${table.totalItems} cliente(s) · página ${table.currentPage} de ${table.totalPages}`
+            : "Nenhum cliente encontrado"}
+        </Table.Footer.Info>
+
+        <Pagination.Smart
+          currentPage={table.currentPage}
+          totalPages={table.totalPages}
+          onPageChange={table.setCurrentPage}
+        />
+      </Table.Footer>
     </Table.Root>
   );
 }

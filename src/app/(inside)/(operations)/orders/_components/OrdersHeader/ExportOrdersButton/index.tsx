@@ -7,6 +7,7 @@ import { ExportMenu } from "@/components/ExportMenu";
 import { useToast } from "@/components/Toast";
 import { useCompanyBranding } from "@/hooks/useCompanyBranding";
 import { downloadSheet } from "@/utils/import/writer";
+import type { QueryFilter } from "@/hooks/useTableData";
 import { ReportOrder } from "@/utils/pdf/context";
 
 import { ORDERS_QUERY } from "../../../gql";
@@ -14,12 +15,16 @@ import { Order, QueryData } from "../../../interface";
 import { exportOrdersPdf } from "../../../pdf";
 import { EXPORT_HEADERS, buildExportRows } from "./utils";
 
-/** Filtro no formato que a query espera (campo, operador e valor). */
-export interface QueryFilter {
-  field: string;
-  value: string;
-  operator?: string;
-}
+/**
+ * Filtro no formato que a query espera. É o tipo canônico do `useTableData`,
+ * reexportado por compatibilidade com quem já o importava daqui.
+ *
+ * A cópia local que existia aqui exigia `value: string` e não conhecia
+ * `values` — então um filtro `in` (o de várias situações de uma vez, ou o de
+ * vocabulário legado) não atravessava a fronteira de tipo, e o arquivo
+ * exportado sairia com um recorte diferente do que está na tela.
+ */
+export type { QueryFilter };
 
 interface Props {
   /** O MESMO recorte da tabela: filtros do painel + o da aba corrente. */

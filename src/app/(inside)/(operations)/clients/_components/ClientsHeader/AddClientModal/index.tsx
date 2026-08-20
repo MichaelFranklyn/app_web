@@ -71,7 +71,7 @@ export function AddClientModal({ onAddOptimistic }: AddClientModalProps) {
               sellers: [],
             },
           });
-          await invalidateClient(["clients_list"]);
+          await invalidateClient(["clients", "clientStats"]);
           await invalidateCacheMany(["clients_stats"]);
           setCreatedCompanyClientId(created.id);
         },

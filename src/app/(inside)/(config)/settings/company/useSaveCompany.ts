@@ -38,6 +38,9 @@ export function useSaveCompany(companyId: string, onSaved: () => void) {
         onSuccess: () => {
           afterSave?.();
           onSaved();
+          // Sem evict de `myCompany`: o `data` tem `id`, então o Apollo o
+          // normaliza em `Company:<id>` e o refetch do `onSaved` já atualiza a
+          // logo/apelido lidos por `useCompanyBranding` na barra superior.
         },
       }
     );

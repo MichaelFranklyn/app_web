@@ -40,5 +40,7 @@ export interface FactoryAssignment {
 export interface FactoryAssignmentsData {
   sellerClientFactoryList: {
     edges: { node: FactoryAssignment }[];
+    /** Quantos vínculos a fábrica tem ao todo — é ele que denuncia truncamento. */
+    totalCount: number;
   };
 }

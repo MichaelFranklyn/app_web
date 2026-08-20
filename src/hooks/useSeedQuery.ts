@@ -31,6 +31,11 @@ interface SeedEntry {
  * pedido para outro). Sem ela, o React reaproveitaria a instância do componente
  * — mesma rota, só o parâmetro muda — e o segundo registro nunca seria semeado.
  *
+ * Semear NUNCA sobrescreve o que já está no cache. Numa volta de navegação o
+ * Next serve o payload RSC do router cache, que pode ser anterior à mutation
+ * que acabou de rodar; escrever por cima devolvia o dado velho à tela, e só o
+ * reload consertava — porque refazia o SSR. Cache quente = a leitura vale.
+ *
  * Entrada `data` nula (SSR falhou, backend fora, sessão expirada) é ignorada: o
  * cliente busca normalmente. Semear vazio seria pior que não semear — o
  * `cache-first` acertaria um "hit" vazio e a tela ficaria parada sem tentar de novo.
@@ -47,6 +52,10 @@ export function useSeedQuery(entries: SeedEntry[], seedKey?: string): void {
     for (const { query, variables, data } of entries) {
       if (!data) continue;
       try {
+        // Cache FRIO só. O `data` vem do payload RSC, que numa volta de
+        // navegação pode ser mais velho que o cache — ver o comentário longo
+        // acima do `seedKey`.
+        if (apollo.cache.readQuery({ query, variables })) continue;
         apollo.writeQuery({ query, variables, data });
       } catch {
         // Shape divergente do documento: ignora e deixa o fetch client resolver.

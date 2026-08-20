@@ -7,9 +7,10 @@ import { QueryError } from "@/components/QueryError";
 import { HelpTooltip } from "@/components/HelpTooltip";
 import { Table } from "@/components/Table";
 import { Title } from "@/components/Title";
+import { FACTORY_PRICE_LIST_COLUMN_HELP } from "../../../help";
+import { useCompleteList } from "@/hooks/useCompleteList";
 import { useOptimisticList } from "@/hooks/useOptimisticList";
 import { formatDateDMY } from "@/utils/format/masks";
-import { useQuery } from "@apollo/client/react";
 import { ListChecks } from "lucide-react";
 import { useMemo } from "react";
 import { AddPriceListModal } from "./AddPriceListModal";
@@ -18,7 +19,6 @@ import { ImportPriceListModal } from "./ImportPriceListModal";
 import { DeletePriceListModal } from "./DeletePriceListModal";
 import { EditPriceListModal } from "./EditPriceListModal";
 import {
-  buildFactoryPriceListsVariables,
   FACTORY_PRICE_LISTS_QUERY,
   FactoryPriceListNode,
   FactoryPriceListsData,
@@ -29,11 +29,32 @@ interface Props {
   factoryId: string;
 }
 
+const getConnection = (d: FactoryPriceListsData) => d.factory_price_lists;
+
 export function PriceListsTab({ companyFactoryId, factoryId }: Props) {
-  const { data, loading, error, refetch } = useQuery<FactoryPriceListsData>(
-    FACTORY_PRICE_LISTS_QUERY,
-    { variables: buildFactoryPriceListsVariables(companyFactoryId) }
+  // Sem teto fixo: o `first: 50` que estava aqui cobria a fábrica comum e, no
+  // dia em que não cobrisse, esconderia o 51º registro sem nada na tela dizer.
+  // O hook confere o `totalCount` e rebusca pelo total quando ele passa.
+  const listInput = useMemo(
+    () => ({
+      filters: [
+        {
+          field: "company_factory_id",
+          operator: "eq",
+          value: companyFactoryId,
+        },
+      ],
+    }),
+    [companyFactoryId]
   );
+
+  const { data, loading, error, refetch } =
+    useCompleteList<FactoryPriceListsData>(
+      FACTORY_PRICE_LISTS_QUERY,
+      listInput,
+      getConnection,
+      { skip: !companyFactoryId, fetchPolicy: "cache-and-network" }
+    );
 
   const initialPriceLists = useMemo<FactoryPriceListNode[]>(
     () => data?.factory_price_lists?.edges.map((e) => e.node) ?? [],
@@ -94,12 +115,27 @@ export function PriceListsTab({ companyFactoryId, factoryId }: Props) {
       <Table.Table>
         <Table.Header>
           <Table.Row>
-            <Table.Head>Nome</Table.Head>
-            <Table.Head>Região</Table.Head>
-            <Table.Head>Vigência início</Table.Head>
-            <Table.Head>Vigência fim</Table.Head>
-            <Table.Head>Status</Table.Head>
-            <Table.Head className="text-right">Ações</Table.Head>
+            <Table.Head title={FACTORY_PRICE_LIST_COLUMN_HELP.name}>
+              Nome
+            </Table.Head>
+            <Table.Head title={FACTORY_PRICE_LIST_COLUMN_HELP.region}>
+              Região
+            </Table.Head>
+            <Table.Head title={FACTORY_PRICE_LIST_COLUMN_HELP.from}>
+              Vigência início
+            </Table.Head>
+            <Table.Head title={FACTORY_PRICE_LIST_COLUMN_HELP.to}>
+              Vigência fim
+            </Table.Head>
+            <Table.Head title={FACTORY_PRICE_LIST_COLUMN_HELP.status}>
+              Status
+            </Table.Head>
+            <Table.Head
+              className="text-right"
+              title={FACTORY_PRICE_LIST_COLUMN_HELP.actions}
+            >
+              Ações
+            </Table.Head>
           </Table.Row>
         </Table.Header>
         <Table.Body>

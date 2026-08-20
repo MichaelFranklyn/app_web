@@ -1,11 +1,13 @@
 "use client";
 
+import { Alert } from "@/components/Alert";
 import { Card } from "@/components/Card";
 import { FilterField } from "@/components/Filters";
 import { Grid } from "@/components/Grid";
+import { HelpTooltip } from "@/components/HelpTooltip";
 import { PanelHeader } from "@/components/PanelHeader";
 import { ReportOrder } from "@/utils/pdf/context";
-import { Network, TrendingDown, TrendingUp } from "lucide-react";
+import { Info, Network, TrendingDown, TrendingUp } from "lucide-react";
 import Link from "next/link";
 
 import { getButtonClasses } from "@/components/Button/Root/style";
@@ -13,7 +15,7 @@ import { PlanLimitGate } from "@/components/PlanLimitGate";
 import { FeatureGate } from "@/components/FeatureGate";
 import { Title } from "@/components/Title";
 import { Client, ClientsStats } from "../../interface";
-import { buildKpis } from "../../utils";
+import { KPI_IGNORED_FILTERS, buildKpis, listFilters } from "../../utils";
 import { AddClientModal } from "./AddClientModal";
 import { ExportClientsButton } from "./ExportClientsButton";
 import { ImportClientsModal } from "./ImportClientsModal";
@@ -51,6 +53,9 @@ export function ClientsHeader({
   hasClients,
 }: ClientsHeaderProps) {
   const kpis = buildKpis(stats);
+  // Os nomes, e não as chaves: o aviso repete o rótulo que a pessoa acabou de
+  // usar no painel ("Rede", "Estado"), senão ela não liga um ao outro.
+  const ignoredFilters = KPI_IGNORED_FILTERS(filterFields, inputValues);
 
   return (
     <>
@@ -100,10 +105,19 @@ export function ClientsHeader({
             negative,
             status,
             valueClassName,
+            help,
           }) => (
             <Grid.Item key={label}>
               <Card.Kpi>
-                <Card.Kpi.Label>{label}</Card.Kpi.Label>
+                {/* Os quatro cartões medem coisas diferentes que soam iguais
+                    (marcado como ativo × atrasado para comprar × sem visita):
+                    sem a explicação ao lado, um parece contradizer o outro. */}
+                <Card.Kpi.Label className="inline-flex items-center gap-2">
+                  {label}
+                  {help && (
+                    <HelpTooltip label={`Sobre ${label}`} content={help} />
+                  )}
+                </Card.Kpi.Label>
                 <Card.Kpi.Value status={status} className={valueClassName}>
                   {value}
                 </Card.Kpi.Value>
@@ -117,6 +131,24 @@ export function ClientsHeader({
           )
         )}
       </Grid.Root>
+
+      {/* O aviso só aparece quando ele é necessário — com a carteira inteira à
+          vista, os cartões e a lista contam a mesma coisa e não há o que
+          explicar. Escrito na tela, e não só no "?": quem filtra por rede e vê
+          o total continuar igual conclui que a conta furou antes de procurar
+          uma interrogação. */}
+      {ignoredFilters.length > 0 && (
+        <Alert.Root variant="info">
+          <Info size={14} className="mt-[1px] shrink-0" />
+          <Alert.Content>
+            <Alert.Description>
+              {`${listFilters(ignoredFilters)} ${
+                ignoredFilters.length === 1 ? "filtra" : "filtram"
+              } apenas a lista abaixo — os quatro cartões acima continuam contando a carteira inteira.`}
+            </Alert.Description>
+          </Alert.Content>
+        </Alert.Root>
+      )}
     </>
   );
 }

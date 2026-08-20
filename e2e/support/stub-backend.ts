@@ -18,6 +18,7 @@ const SSR_RESPONSES: Record<string, unknown> = {
   Users: { users_list: emptyConnection() },
   Sellers: { sellers_list: emptyConnection() },
   Clients: { clients_list: emptyConnection() },
+  ClientNetworks: { client_networks: emptyConnection() },
   CompanyFactories: { company_factories_list: emptyConnection() },
   Orders: { orders_list: emptyConnection() },
 
@@ -29,6 +30,21 @@ const SSR_RESPONSES: Record<string, unknown> = {
     order: { status: true, code: 200, message: "ok", data: null },
   },
   OrderItems: { orderItems: emptyConnection() },
+
+  // A ficha da empresa passou a ser buscada no SERVIDOR (SSR-seed do
+  // /settings/company). `data: null` porque o seed só semeia com conteúdo: o
+  // cliente busca normalmente e o `page.route` de cada spec manda no que a tela
+  // mostra — o mesmo arranjo das listas acima.
+  MyCompany: {
+    my_company: { status: true, message: "ok", data: null },
+  },
+
+  // O plano COM os limites (a tela /settings/plan) também passou a ser buscado
+  // no servidor. Vazio de propósito, como os demais seeds: o cliente busca e o
+  // `page.route` de cada spec manda no que a tela mostra.
+  MyPlan: {
+    myPlan: { status: true, code: 200, message: "ok", data: null },
+  },
 
   // Auth via BFF: login/change-password agora rodam a mutation no SERVIDOR
   // (rota /api/session), fora do alcance do page.route do browser — então o stub

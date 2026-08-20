@@ -1,10 +1,11 @@
-import { useMutation, useQuery } from "@apollo/client/react";
+import { useMutation } from "@apollo/client/react";
 import { useMemo } from "react";
 
 import { useToast } from "@/components/Toast";
 import { useAsyncAction } from "@/hooks/useAsyncAction";
 
-import { buildImportTemplatesVariables } from "../../ImportTemplateTab/gql";
+import { useCompleteList } from "@/hooks/useCompleteList";
+import { buildImportTemplatesInput } from "../../ImportTemplateTab/gql";
 import {
   CREATE_IMPORT_TEMPLATE_MUTATION,
   IMPORT_TEMPLATES_QUERY,
@@ -35,6 +36,8 @@ interface PriceListTemplateArgs {
  * caminhos de gravação — salvar manual e auto-criar na 1ª importação. Autocontido:
  * recebe o config do wizard e devolve as ações, sem tocar no resto do estado.
  */
+const getTemplates = (d: ImportTemplatesData) => d.importTemplates;
+
 export function usePriceListTemplate({
   factoryId,
   open,
@@ -45,12 +48,20 @@ export function usePriceListTemplate({
   const { toast } = useToast();
 
   // Modelo (mapeamento) salvo desta fábrica para tabela de preço, se houver.
+  // Mesmas variáveis da aba de modelos, pelo mesmo hook: sem teto fixo, e as
+  // duas telas dividem a resposta no cache.
+  const templatesInput = useMemo(
+    () => buildImportTemplatesInput(factoryId),
+    [factoryId]
+  );
+
   const { data: tplData, refetch: refetchTemplate } =
-    useQuery<ImportTemplatesData>(IMPORT_TEMPLATES_QUERY, {
-      variables: buildImportTemplatesVariables(factoryId),
-      skip: !open,
-      fetchPolicy: "cache-and-network",
-    });
+    useCompleteList<ImportTemplatesData>(
+      IMPORT_TEMPLATES_QUERY,
+      templatesInput,
+      getTemplates,
+      { skip: !open, fetchPolicy: "cache-and-network" }
+    );
   const activeTemplate = useMemo(
     () =>
       tplData?.importTemplates.edges

@@ -53,6 +53,7 @@ export function AddTaxModal({ productId, onAdded }: Props) {
     getTaxRules,
     {
       skip: !open,
+      fetchPolicy: "cache-and-network",
     }
   );
 

@@ -8,54 +8,39 @@ import { QueryError } from "@/components/QueryError";
 import { HelpTooltip } from "@/components/HelpTooltip";
 import { Table } from "@/components/Table";
 import { Title } from "@/components/Title";
+import { Loading } from "@/components/Loading";
+import { Pagination } from "@/components/Pagination";
 import { useOptimisticList } from "@/hooks/useOptimisticList";
+import {
+  orderStatusLabel,
+  orderStatusTone,
+} from "@/app/(inside)/_shared/orderStatus";
 import { formatDateDMY, formatMoney } from "@/utils/format/masks";
-import { useQuery } from "@apollo/client/react";
 import { Receipt } from "lucide-react";
-import { useMemo } from "react";
-import { ORDER_STATUS_COLOR, ORDER_STATUS_LABEL } from "../../../utils";
+import { FACTORY_ORDER_COLUMN_HELP } from "../../../help";
 import { EditOrderModal } from "../../../../_components/EditOrderModal";
 import { UPDATE_ORDER_FROM_FACTORY_MUTATION } from "../../../../_components/EditOrderModal";
 import { AddOrderModal } from "./AddOrderModal";
 import { DeleteOrderModal } from "./DeleteOrderModal";
 import { ImportOrderModal } from "./ImportOrderModal";
 import { FeatureGate } from "@/components/FeatureGate";
-import { FACTORY_ORDERS_QUERY, FactoryOrder } from "./gql";
-import { useOrdersTable } from "./useOrdersTable";
-
-interface OrdersQueryData {
-  factory_orders: {
-    edges: { node: FactoryOrder }[];
-    totalCount: number;
-  };
-}
+import { FactoryOrder } from "./gql";
+import { useFactoryOrdersTable } from "./useFactoryOrdersTable";
 
 interface Props {
   factoryId: string;
 }
 
 export function OrdersTab({ factoryId }: Props) {
-  const { data, loading, error, refetch } = useQuery<OrdersQueryData>(
-    FACTORY_ORDERS_QUERY,
-    {
-      variables: {
-        input: {
-          first: 50,
-          filters: [{ field: "factory_id", operator: "eq", value: factoryId }],
-        },
-      },
-    }
-  );
+  // Página, ordem e filtros resolvidos no BANCO — ver `useFactoryOrdersTable`.
+  const table = useFactoryOrdersTable(factoryId);
 
-  const initialOrders = useMemo<FactoryOrder[]>(
-    () => data?.factory_orders?.edges.map((e) => e.node) ?? [],
-    [data]
-  );
   const optimistic = useOptimisticList<FactoryOrder>({
-    initialData: initialOrders,
+    initialData: table.displayedData,
   });
-  const table = useOrdersTable(optimistic.items);
-  const orders = table.displayedData;
+  const orders = optimistic.items;
+  const { loading, error, refetch } = table;
+  const isNarrowed = Object.values(table.inputValues).some(Boolean);
 
   return (
     <Table.Root sort={table.sort} data-tour="factory-orders-table">
@@ -103,24 +88,59 @@ export function OrdersTab({ factoryId }: Props) {
       <Table.Table>
         <Table.Header>
           <Table.Row>
-            <Table.Head>Pedido</Table.Head>
-            <Table.Head sortKey="client">Cliente</Table.Head>
-            <Table.Head sortKey="seller">Vendedor</Table.Head>
-            <Table.Head sortKey="orderDate" sortFirst="desc">
+            {/* Os `sortKey` são nomes de COLUNA no backend, não campos do
+                JSON: quem ordena é o banco, sobre a fábrica inteira. Cliente e
+                vendedor ordenam pelo nome exibido, resolvido na tabela vizinha. */}
+            <Table.Head title={FACTORY_ORDER_COLUMN_HELP.code}>
+              Pedido
+            </Table.Head>
+            <Table.Head
+              sortKey="client_name"
+              title={FACTORY_ORDER_COLUMN_HELP.client}
+            >
+              Cliente
+            </Table.Head>
+            <Table.Head
+              sortKey="seller_name"
+              title={FACTORY_ORDER_COLUMN_HELP.seller}
+            >
+              Vendedor
+            </Table.Head>
+            <Table.Head
+              sortKey="order_date"
+              sortFirst="desc"
+              title={FACTORY_ORDER_COLUMN_HELP.date}
+            >
               Data
             </Table.Head>
-            <Table.Head sortKey="totalAmount" sortFirst="desc" align="right">
+            <Table.Head
+              sortKey="total_amount"
+              sortFirst="desc"
+              align="right"
+              title={FACTORY_ORDER_COLUMN_HELP.amount}
+            >
               Valor
             </Table.Head>
             <Table.Head
-              sortKey="commissionAmount"
+              sortKey="commission_amount"
               sortFirst="desc"
               align="right"
+              title={FACTORY_ORDER_COLUMN_HELP.commission}
             >
               Comissão
             </Table.Head>
-            <Table.Head sortKey="status">Status</Table.Head>
-            <Table.Head className="text-right">Ações</Table.Head>
+            <Table.Head
+              sortKey="status"
+              title={FACTORY_ORDER_COLUMN_HELP.status}
+            >
+              Status
+            </Table.Head>
+            <Table.Head
+              className="text-right"
+              title={FACTORY_ORDER_COLUMN_HELP.actions}
+            >
+              Ações
+            </Table.Head>
           </Table.Row>
         </Table.Header>
         <Table.Body>
@@ -141,7 +161,7 @@ export function OrdersTab({ factoryId }: Props) {
                   </EmptyState.Icon>
                   <EmptyState.Title>Nenhum pedido encontrado</EmptyState.Title>
                   <EmptyState.Description>
-                    {table.totalUnfiltered > 0
+                    {isNarrowed
                       ? "Ajuste os filtros para encontrar o pedido."
                       : 'Use "Novo pedido" para registrar o primeiro pedido desta fábrica.'}
                   </EmptyState.Description>
@@ -187,13 +207,14 @@ export function OrdersTab({ factoryId }: Props) {
                     {formatMoney(o.commissionAmount)}
                   </Table.Cell>
                   <Table.Cell>
+                    {/* Vocabulário compartilhado: o mapa local desta pasta não
+                        conhece INVOICED, e pedido faturado aparecia com a
+                        palavra crua, em inglês, na cor de "sem situação". */}
                     <Badge.Root
-                      color={ORDER_STATUS_COLOR[o.status] ?? "neutral"}
+                      color={orderStatusTone(o.status)}
                       appearance="tinted"
                     >
-                      <Badge.Text>
-                        {ORDER_STATUS_LABEL[o.status] ?? o.status}
-                      </Badge.Text>
+                      <Badge.Text>{orderStatusLabel(o.status)}</Badge.Text>
                     </Badge.Root>
                   </Table.Cell>
                   <Table.Cell>
@@ -202,7 +223,7 @@ export function OrdersTab({ factoryId }: Props) {
                         orderId={o.id}
                         initialNotes={o.notes}
                         mutation={UPDATE_ORDER_FROM_FACTORY_MUTATION}
-                        invalidateKeys={["factory_orders", "orders"]}
+                        invalidateKeys={["orders"]}
                         stopPropagationOnTrigger
                       />
                       <DeleteOrderModal
@@ -220,6 +241,24 @@ export function OrdersTab({ factoryId }: Props) {
           )}
         </Table.Body>
       </Table.Table>
+
+      {/* Faltava: a aba mostrava 50 pedidos e nada dizia que havia mais. */}
+      <Table.Footer>
+        <Table.Footer.Info>
+          {loading && orders.length > 0 && (
+            <Loading.Spinner size="sm" className="mr-6 inline-block" />
+          )}
+          {table.totalItems > 0
+            ? `${table.totalItems} pedido(s) · página ${table.currentPage} de ${table.totalPages}`
+            : "Nenhum pedido encontrado"}
+        </Table.Footer.Info>
+
+        <Pagination.Smart
+          currentPage={table.currentPage}
+          totalPages={table.totalPages}
+          onPageChange={table.setCurrentPage}
+        />
+      </Table.Footer>
     </Table.Root>
   );
 }

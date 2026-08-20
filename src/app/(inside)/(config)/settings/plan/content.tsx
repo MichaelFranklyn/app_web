@@ -5,6 +5,7 @@ import { Loading } from "@/components/Loading";
 import { PageContent } from "@/components/PageContent";
 import { QueryError } from "@/components/QueryError";
 import { MY_PLAN_QUERY, MyPlanQueryData } from "@/services/plan";
+import { useSeedQuery } from "@/hooks/useSeedQuery";
 import { useQuery } from "@apollo/client/react";
 
 import { PlanFeaturesCard } from "./_components/PlanFeaturesCard";
@@ -19,7 +20,16 @@ import { PlanUsageCard } from "./_components/PlanUsageCard";
  * quando o botão de adicionar vendedor para de funcionar, a resposta tem de
  * estar em algum lugar do sistema, e não só na conversa com o suporte.
  */
-export default function PlanContent() {
+interface Props {
+  /** Plano já buscado no servidor (page.tsx); null se o SSR falhou. */
+  seed: MyPlanQueryData | null;
+}
+
+export default function PlanContent({ seed }: Props) {
+  // Antes da leitura abaixo: com o cache quente a tela pinta no 1º render, e a
+  // revalidação do `cache-and-network` segue acontecendo por cima.
+  useSeedQuery([{ query: MY_PLAN_QUERY, data: seed }]);
+
   const { data, loading, error, refetch } = useQuery<MyPlanQueryData>(
     MY_PLAN_QUERY,
     // Contagem de uso envelhece a cada cadastro feito noutra tela; buscar de

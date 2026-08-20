@@ -42,7 +42,7 @@ export function DeleteOrderModal({ orderId }: DeleteOrderModalProps) {
           // refaz o fetch sem o pedido excluído ao voltar). Não removemos a
           // entidade OrderType: isso dispararia um refetch do detalhe (order(id))
           // ainda montado, que retornaria NotFound.
-          await invalidateClient(["orders", "orders_list", "orderStats"]);
+          await invalidateClient(["orders", "orderStats"]);
           // Não fecha o modal: a navegação desmonta o detalhe quando /orders
           // carrega, mantendo o loading até lá.
           redirect("/orders");

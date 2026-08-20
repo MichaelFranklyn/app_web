@@ -7,6 +7,7 @@ import { InputSearch, InputSelect } from "@/components/Input";
 import { SelectOption } from "@/components/Input";
 import { Modal } from "@/components/Modal";
 import { Pagination } from "@/components/Pagination";
+import { CLIENT_ORDER_COLUMN_HELP } from "../../../../help";
 import { Table } from "@/components/Table";
 import { useOptimisticList } from "@/hooks/useOptimisticList";
 import { useQuery } from "@apollo/client/react";
@@ -145,12 +146,27 @@ export function FactoryOrderModal({
             <Table.Table>
               <Table.Header>
                 <Table.Row>
-                  <Table.Head>Pedido</Table.Head>
-                  <Table.Head>Vendedor</Table.Head>
-                  <Table.Head>Data</Table.Head>
-                  <Table.Head>Valor</Table.Head>
-                  <Table.Head>Status</Table.Head>
-                  <Table.Head className="text-right">Ações</Table.Head>
+                  <Table.Head title={CLIENT_ORDER_COLUMN_HELP.code}>
+                    Pedido
+                  </Table.Head>
+                  <Table.Head title={CLIENT_ORDER_COLUMN_HELP.seller}>
+                    Vendedor
+                  </Table.Head>
+                  <Table.Head title={CLIENT_ORDER_COLUMN_HELP.date}>
+                    Data
+                  </Table.Head>
+                  <Table.Head title={CLIENT_ORDER_COLUMN_HELP.amount}>
+                    Valor
+                  </Table.Head>
+                  <Table.Head title={CLIENT_ORDER_COLUMN_HELP.status}>
+                    Status
+                  </Table.Head>
+                  <Table.Head
+                    className="text-right"
+                    title={CLIENT_ORDER_COLUMN_HELP.actions}
+                  >
+                    Ações
+                  </Table.Head>
                 </Table.Row>
               </Table.Header>
               <Table.Body>

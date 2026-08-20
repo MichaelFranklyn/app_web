@@ -59,7 +59,7 @@ export function AddUserModal({
             phone: null,
             seller: null,
           });
-          await invalidateClient(["users_list"]);
+          await invalidateClient(["users"]);
           if (normalized.role.toUpperCase() === "SELLER") {
             setPendingSeller(newUser.id);
           }

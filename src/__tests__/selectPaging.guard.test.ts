@@ -48,6 +48,17 @@ const readSources = (): Map<string, string> => {
   return out;
 };
 
+/**
+ * Tira comentários antes de procurar o teto.
+ *
+ * O guarda lê TEXTO, e um arquivo que explica por que deixou de ter teto fixo
+ * escreve o número antigo por extenso ("o `first: 50` que estava aqui"). Sem
+ * isto, documentar a correção acusa o arquivo corrigido — e o caminho mais
+ * curto para o verde passaria a ser apagar a explicação.
+ */
+const stripComments = (text: string): string =>
+  text.replace(/\/\*[\s\S]*?\*\//g, "").replace(/\/\/[^\n]*/g, "");
+
 const sources = readSources();
 
 /** Um select costuma nascer num arquivo e ser desenhado no vizinho. */
@@ -55,7 +66,7 @@ const groupOf = (path: string): string => {
   const dir = dirname(path);
   return [...sources]
     .filter(([p]) => dirname(p) === dir)
-    .map(([, text]) => text)
+    .map(([, text]) => stripComments(text))
     .join("\n");
 };
 
@@ -66,12 +77,13 @@ const findOffenders = (): string[] => {
   const offenders: string[] = [];
   for (const [path, text] of sources) {
     if (/\.(test|spec)\.tsx?$/.test(path)) continue;
-    const pages = [...text.matchAll(/first:\s*(\d+)/g)].map((m) =>
+    const code = stripComments(text);
+    const pages = [...code.matchAll(/first:\s*(\d+)/g)].map((m) =>
       Number(m[1])
     );
     if (!pages.some((n) => n >= MIN_PAGE_SIZE)) continue;
     // Quem pagina em laço não tem teto: percorre até a última página.
-    if (text.includes("useAllPages") || text.includes("MAX_PAGES")) continue;
+    if (code.includes("useAllPages") || code.includes("MAX_PAGES")) continue;
     const group = groupOf(path);
     if (!drawsSelect(group)) continue;
     if (group.includes("onSearch")) continue;

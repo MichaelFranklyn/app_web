@@ -4,9 +4,10 @@ import { EmptyState } from "@/components/EmptyState";
 import { QueryError } from "@/components/QueryError";
 import { HelpTooltip } from "@/components/HelpTooltip";
 import { Table } from "@/components/Table";
+import { CATEGORY_COLUMN_HELP } from "../../help";
 import { Title } from "@/components/Title";
+import { useCompleteList } from "@/hooks/useCompleteList";
 import { useOptimisticList } from "@/hooks/useOptimisticList";
-import { useQuery } from "@apollo/client/react";
 import { Tag } from "lucide-react";
 import { useMemo } from "react";
 import { AddCategoryModal } from "./AddCategoryModal";
@@ -14,16 +15,22 @@ import { DeleteCategoryModal } from "./DeleteCategoryModal";
 import { EditCategoryModal } from "./EditCategoryModal";
 import { ProductCategoryRow } from "./gql";
 import {
-  buildCategoriesVariables,
+  CATEGORIES_LIST_INPUT,
   PRODUCT_CATEGORIES_QUERY,
   ProductCategoriesData,
 } from "./gql";
 
+// A conexão é opcional no tipo (erro parcial entrega `data` sem a chave).
+const getConnection = (d: ProductCategoriesData) => d.product_categories;
+
 export function CategoriesSection() {
-  const { data, loading, error, refetch } = useQuery<ProductCategoriesData>(
-    PRODUCT_CATEGORIES_QUERY,
-    { variables: buildCategoriesVariables() }
-  );
+  const { data, loading, error, refetch } =
+    useCompleteList<ProductCategoriesData>(
+      PRODUCT_CATEGORIES_QUERY,
+      CATEGORIES_LIST_INPUT,
+      getConnection,
+      { fetchPolicy: "cache-and-network" }
+    );
 
   const initial = useMemo<ProductCategoryRow[]>(
     () => data?.product_categories?.edges.map((e) => e.node) ?? [],
@@ -86,9 +93,16 @@ export function CategoriesSection() {
       <Table.Table maxHeight={600}>
         <Table.Header>
           <Table.Row>
-            <Table.Head>Nome</Table.Head>
-            <Table.Head>Segmento</Table.Head>
-            <Table.Head className="text-right">Ações</Table.Head>
+            <Table.Head title={CATEGORY_COLUMN_HELP.name}>Nome</Table.Head>
+            <Table.Head title={CATEGORY_COLUMN_HELP.segment}>
+              Segmento
+            </Table.Head>
+            <Table.Head
+              className="text-right"
+              title={CATEGORY_COLUMN_HELP.actions}
+            >
+              Ações
+            </Table.Head>
           </Table.Row>
         </Table.Header>
         <Table.Body>

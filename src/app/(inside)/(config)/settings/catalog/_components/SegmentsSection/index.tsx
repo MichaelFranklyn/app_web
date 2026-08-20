@@ -4,9 +4,10 @@ import { EmptyState } from "@/components/EmptyState";
 import { HelpTooltip } from "@/components/HelpTooltip";
 import { QueryError } from "@/components/QueryError";
 import { Table } from "@/components/Table";
+import { SEGMENT_COLUMN_HELP } from "../../help";
 import { Title } from "@/components/Title";
+import { useCompleteList } from "@/hooks/useCompleteList";
 import { useOptimisticList } from "@/hooks/useOptimisticList";
-import { useQuery } from "@apollo/client/react";
 import { Store } from "lucide-react";
 import { useMemo } from "react";
 
@@ -16,12 +17,22 @@ import { DeleteSegmentModal } from "./DeleteSegmentModal";
 import { EditSegmentModal } from "./EditSegmentModal";
 import { SegmentNode } from "./interface";
 
-const listInput = { first: 200, order: { by: "name", dir: "asc" } };
+type Connection = { edges: { node: SegmentNode }[]; totalCount: number };
+
+// Sem `first`: quem consome é o `useCompleteList`, que traz o catálogo inteiro
+// e rebusca pelo total quando a primeira página não dá conta. O `first: 200`
+// que estava aqui cobria a empresa comum e, no dia em que não cobrisse,
+// esconderia o cadastro sem nada na tela dizer — e um cadastro que "não existe"
+// é procurado, recriado e vira duplicata.
+const listInput = { order: { by: "name", dir: "asc" } };
+const getConnection = (d: { clientSegments: Connection }) => d.clientSegments;
 
 export function SegmentsSection() {
-  const { data, loading, error, refetch } = useQuery<{
-    clientSegments: { edges: { node: SegmentNode }[]; totalCount: number };
-  }>(CLIENT_SEGMENTS_QUERY, { variables: { input: listInput } });
+  const { data, loading, error, refetch } = useCompleteList<{
+    clientSegments: Connection;
+  }>(CLIENT_SEGMENTS_QUERY, listInput, getConnection, {
+    fetchPolicy: "cache-and-network",
+  });
 
   const initial = useMemo<SegmentNode[]>(
     () => data?.clientSegments.edges.map((e) => e.node) ?? [],
@@ -67,8 +78,13 @@ export function SegmentsSection() {
       <Table.Table maxHeight={600}>
         <Table.Header>
           <Table.Row>
-            <Table.Head>Segmento</Table.Head>
-            <Table.Head className="text-right">Ações</Table.Head>
+            <Table.Head title={SEGMENT_COLUMN_HELP.name}>Segmento</Table.Head>
+            <Table.Head
+              className="text-right"
+              title={SEGMENT_COLUMN_HELP.actions}
+            >
+              Ações
+            </Table.Head>
           </Table.Row>
         </Table.Header>
         <Table.Body>

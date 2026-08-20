@@ -7,6 +7,7 @@ import { InputSearch } from "@/components/Input";
 import { Loading } from "@/components/Loading";
 import { Pagination } from "@/components/Pagination";
 import { QueryError } from "@/components/QueryError";
+import { PRICE_ITEM_COLUMN_HELP } from "../../../../../help";
 import { Table } from "@/components/Table";
 import { Title } from "@/components/Title";
 import { useOptimisticList } from "@/hooks/useOptimisticList";
@@ -99,12 +100,25 @@ export function ItemsTable({
       <Table.Table>
         <Table.Header>
           <Table.Row>
-            <Table.Head>Produto</Table.Head>
-            <Table.Head>Nível</Table.Head>
-            <Table.Head>Preço da embalagem</Table.Head>
-            <Table.Head>Preço c/ imposto</Table.Head>
-            <Table.Head>Preço por unidade</Table.Head>
-            <Table.Head className="text-right">Ações</Table.Head>
+            <Table.Head title={PRICE_ITEM_COLUMN_HELP.product}>
+              Produto
+            </Table.Head>
+            <Table.Head title={PRICE_ITEM_COLUMN_HELP.tier}>Nível</Table.Head>
+            <Table.Head title={PRICE_ITEM_COLUMN_HELP.packPrice}>
+              Preço da embalagem
+            </Table.Head>
+            <Table.Head title={PRICE_ITEM_COLUMN_HELP.priceWithTax}>
+              Preço c/ imposto
+            </Table.Head>
+            <Table.Head title={PRICE_ITEM_COLUMN_HELP.unitPrice}>
+              Preço por unidade
+            </Table.Head>
+            <Table.Head
+              className="text-right"
+              title={PRICE_ITEM_COLUMN_HELP.actions}
+            >
+              Ações
+            </Table.Head>
           </Table.Row>
         </Table.Header>
         <Table.Body>

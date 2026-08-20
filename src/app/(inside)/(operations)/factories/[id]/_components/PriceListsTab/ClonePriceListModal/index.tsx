@@ -9,13 +9,13 @@ import {
 import { SelectOption } from "@/components/Input";
 import { Modal } from "@/components/Modal";
 import { useAsyncAction } from "@/hooks/useAsyncAction";
+import { useCompleteList } from "@/hooks/useCompleteList";
 import { useQueryErrorToast } from "@/hooks/useQueryErrorToast";
 import { toIsoDate } from "@/utils/format/date";
-import { useMutation, useQuery } from "@apollo/client/react";
+import { useMutation } from "@apollo/client/react";
 import { Copy } from "lucide-react";
 import { useMemo, useRef, useState } from "react";
 import {
-  buildFactoryPriceListsVariables,
   CLONE_FACTORY_PRICE_LIST_MUTATION,
   FACTORY_PRICE_LISTS_QUERY,
   FactoryPriceListNode,
@@ -37,6 +37,8 @@ interface Props {
   onAddOptimistic: (priceList: FactoryPriceListNode) => void;
 }
 
+const getPriceLists = (d: FactoryPriceListsData) => d.factory_price_lists;
+
 export function ClonePriceListModal({
   companyFactoryId,
   onCloned,
@@ -45,12 +47,30 @@ export function ClonePriceListModal({
   const [open, setOpen] = useState(false);
   const formRef = useRef<FormBuilderRef>(null);
 
-  const { data, error } = useQuery<FactoryPriceListsData>(
+  // Mesmo hook e mesmas variáveis da aba: o select de origem não tem mais teto
+  // fixo — o de antes escondia justamente a tabela antiga que se quer clonar —
+  // e divide a resposta com a lista no cache.
+  //
+  // (Sem o número escrito por extenso aqui: o guarda de arquitetura que procura
+  // teto fixo lê o texto do arquivo e não sabe distinguir comentário de código.)
+  const listInput = useMemo(
+    () => ({
+      filters: [
+        {
+          field: "company_factory_id",
+          operator: "eq",
+          value: companyFactoryId,
+        },
+      ],
+    }),
+    [companyFactoryId]
+  );
+
+  const { data, error } = useCompleteList<FactoryPriceListsData>(
     FACTORY_PRICE_LISTS_QUERY,
-    {
-      variables: buildFactoryPriceListsVariables(companyFactoryId),
-      skip: !open,
-    }
+    listInput,
+    getPriceLists,
+    { skip: !open, fetchPolicy: "cache-and-network" }
   );
   useQueryErrorToast(
     error,

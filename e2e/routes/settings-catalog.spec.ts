@@ -245,3 +245,49 @@ test("catálogo: cria uma regra de imposto", async ({ page }) => {
   await expect(page.getByText("Regra de imposto criada")).toBeVisible();
   await expect(page.getByRole("cell", { name: "IPI" })).toBeVisible();
 });
+
+/**
+ * O catálogo pedia uma página fixa (`first: 200`, e 50 nas categorias) e
+ * mostrava o que viesse. Enquanto coubesse, funcionava; passando disso, o
+ * cadastro existia e a tela dizia que não — e um cadastro que "não existe" é
+ * procurado, recriado e vira duplicata.
+ *
+ * Agora a lista confere o total e rebusca por ele. O que este teste prende é a
+ * SEGUNDA chamada: sem ela, a tela voltaria a esconder em silêncio.
+ */
+test("catálogo: lista truncada é rebuscada pelo total", async ({ page }) => {
+  const PRIMEIRA_PAGINA = 200;
+  const TOTAL = 250;
+
+  const unidades = (quantas: number) =>
+    Array.from({ length: quantas }, (_, i) => ({
+      id: `u-${i}`,
+      label: `Unidade ${i}`,
+      isActive: true,
+    }));
+
+  const spy = await mockGraphql(page, {
+    ...catalogLists({}),
+    // O servidor devolve só o que foi pedido, mas informa o total de verdade —
+    // é o total que denuncia o truncamento.
+    SettingsProductUnits: (v) => {
+      const input = (v.input ?? {}) as { first?: number };
+      const pedidos = input.first ?? PRIMEIRA_PAGINA;
+      return {
+        productUnits: {
+          edges: unidades(Math.min(pedidos, TOTAL)).map((node) => ({ node })),
+          pageInfo: { hasNextPage: pedidos < TOTAL, endCursor: null },
+          totalCount: TOTAL,
+        },
+      };
+    },
+  });
+
+  await page.goto("/settings/catalog/units");
+
+  // A 250ª unidade só aparece porque a lista foi buscada de novo pelo total.
+  await expect(page.getByText("Unidade 249")).toBeVisible();
+
+  const chamadas = spy.calls("SettingsProductUnits");
+  expect(JSON.stringify(chamadas.at(-1) ?? {})).toContain(`"first":${TOTAL}`);
+});

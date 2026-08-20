@@ -35,13 +35,13 @@ export function useClassificationOptions() {
     CLIENT_NETWORKS_QUERY,
     listInput,
     getNetworks,
-    { skip: !idleReady }
+    { skip: !idleReady, fetchPolicy: "cache-and-network" }
   );
   const segments = useCompleteList<ClassificationData>(
     CLIENT_SEGMENTS_QUERY,
     listInput,
     getSegments,
-    { skip: !idleReady }
+    { skip: !idleReady, fetchPolicy: "cache-and-network" }
   );
 
   useQueryErrorToast(error, "Não foi possível carregar as redes.");

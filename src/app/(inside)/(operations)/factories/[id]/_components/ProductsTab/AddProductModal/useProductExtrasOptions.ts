@@ -54,6 +54,7 @@ export function useProductExtrasOptions(
     refetch: refetchRules,
   } = useCompleteList<TaxRulesData>(TAX_RULES_QUERY, LIST_INPUT, getTaxRules, {
     skip: !open,
+    fetchPolicy: "cache-and-network",
   });
 
   const { data: listsData, error: listsError } =
@@ -61,7 +62,7 @@ export function useProductExtrasOptions(
       FACTORY_PRICE_LISTS_OPTIONS_QUERY,
       byCompanyFactory,
       getPriceLists,
-      { skip: !open || !companyFactoryId }
+      { skip: !open || !companyFactoryId, fetchPolicy: "cache-and-network" }
     );
 
   const { data: tiersData, error: tiersError } =

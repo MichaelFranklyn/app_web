@@ -6,7 +6,8 @@ import { useAsyncSelectOptions } from "@/hooks/useAsyncSelectOptions";
 import { useInvalidateQueriesClient } from "@/hooks/useInvalidateQueries";
 import { useUserData } from "@/hooks/useUserData";
 import { extractSelectValue } from "@/utils/form";
-import { useMutation, useQuery } from "@apollo/client/react";
+import { useMutation } from "@apollo/client/react";
+import { useCompleteList } from "@/hooks/useCompleteList";
 import { useMemo, useRef, useState } from "react";
 
 import { PRICE_TIERS_FOR_LINK_QUERY, TiersData } from "../gql";
@@ -37,6 +38,8 @@ export interface LinkClientModalProps {
   factoryId: string;
   companyFactoryId: string;
 }
+
+const getTiers = (d: TiersData) => d.priceTiers;
 
 export function useLinkClient({
   factoryId,
@@ -102,23 +105,27 @@ export function useLinkClient({
     SellersAccessData
   >(SELLERS_WITH_ACCESS_QUERY, byFactory, selectAccesses);
 
-  const { data: tiersData, error: tiersError } = useQuery<TiersData>(
-    PRICE_TIERS_FOR_LINK_QUERY,
-    {
-      variables: {
-        input: {
-          first: 200,
-          filters: [
-            {
-              field: "company_factory_id",
-              operator: "eq",
-              value: companyFactoryId,
-            },
-          ],
+  // Níveis são poucos por fábrica, mas o teto fixo é o mesmo padrão que já
+  // escondeu catálogo: o hook traz a lista inteira e rebusca pelo total se um
+  // dia ela passar da primeira página.
+  const tiersInput = useMemo(
+    () => ({
+      filters: [
+        {
+          field: "company_factory_id",
+          operator: "eq",
+          value: companyFactoryId,
         },
-      },
-      skip: !open,
-    }
+      ],
+    }),
+    [companyFactoryId]
+  );
+
+  const { data: tiersData, error: tiersError } = useCompleteList<TiersData>(
+    PRICE_TIERS_FOR_LINK_QUERY,
+    tiersInput,
+    getTiers,
+    { skip: !open }
   );
 
   const { nodes: existingLinks } = useAllPages<
@@ -301,7 +308,7 @@ export function useLinkClient({
     setSelectedSellerId(null);
     setOpen(false);
     formRef.current?.resetForm();
-    await invalidateClient(["factory_client_links", "sellerClientFactoryList"]);
+    await invalidateClient(["sellerClientFactoryList"]);
   };
 
   const handleSubmit = async (data: Record<string, unknown>) => {

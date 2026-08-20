@@ -22,6 +22,7 @@ export const useReportContext = (filters: ReportFilters) => {
   const { data } = useQuery<DashboardSellersResponse>(DASHBOARD_SELLERS_QUERY, {
     variables: { input: { first: 200 } },
     skip: !filters.sellerId,
+    fetchPolicy: "cache-and-network",
   });
 
   const sellerName = useMemo(() => {

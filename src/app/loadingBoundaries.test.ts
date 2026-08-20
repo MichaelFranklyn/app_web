@@ -18,8 +18,18 @@ import { describe, expect, it } from "vitest";
 
 const APP_DIR = join(process.cwd(), "src/app");
 
-/** Chamadas que fazem a página esperar o backend antes de renderizar. */
-const SERVER_FETCH = "executeServerQueries";
+/**
+ * Chamadas que fazem a página esperar o backend antes de renderizar.
+ *
+ * São duas porque há dois jeitos de buscar no servidor: `executeServerQueries`
+ * (listas, que desembrulha a resposta) e `gqlFetch` direto (páginas de detalhe
+ * que semeiam o cache do Apollo — ver `useSeedQuery`, que precisa do shape cru).
+ *
+ * O guarda nasceu conhecendo só o primeiro, e as páginas de detalhe passaram a
+ * usar o segundo: três telas do console de plataforma esperavam o backend sem
+ * limite de Suspense e o teste continuava verde.
+ */
+const SERVER_FETCHES = ["executeServerQueries", "gqlFetch"];
 
 function findPagesWithServerFetch(dir: string): string[] {
   const found: string[] = [];
@@ -32,10 +42,9 @@ function findPagesWithServerFetch(dir: string): string[] {
       continue;
     }
 
-    if (
-      entry === "page.tsx" &&
-      readFileSync(path, "utf-8").includes(SERVER_FETCH)
-    ) {
+    if (entry === "page.tsx") {
+      const text = readFileSync(path, "utf-8");
+      if (!SERVER_FETCHES.some((call) => text.includes(call))) continue;
       found.push(dir);
     }
   }
