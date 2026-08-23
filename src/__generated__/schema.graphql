@@ -4664,11 +4664,15 @@ type SellerFactoryAccessTypeEdge {
   cursor: String!
 }
 
+"""
+O que se edita num acesso já concedido é o ACORDO (ativo/inativo e o repasse),
+nunca a identidade dele. `sellerId`, `factoryId`, `companyId` e `grantedBy`
+ficaram de fora de propósito: o resolver repassa o input inteiro ao UPDATE, e
+com eles aqui um admin moveria o registro para outro tenant, ou o apontaria para
+um vendedor/fábrica que a empresa não representa. Para trocar de vendedor ou de
+fábrica, revogue este acesso e conceda outro.
+"""
 input UpdateSellerFactoryAccessInput {
-  sellerId: UUID = null
-  factoryId: UUID = null
-  companyId: UUID = null
-  grantedBy: UUID = null
   isActive: Boolean = null
   sellerCommissionShare: Decimal = null
   sellerCommissionBasis: String = null
