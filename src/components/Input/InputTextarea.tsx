@@ -17,6 +17,7 @@ export const InputTextarea = ({
   containerClassName,
   rows = 3,
   size,
+  required,
   ...props
 }: InputTextareaProps) => {
   const isError = !!error;
@@ -29,6 +30,8 @@ export const InputTextarea = ({
       disabled={props.disabled}
       className={containerClassName}
       size={size}
+      required={required}
+      id={props.id}
     >
       {label && <InputLabel>{label}</InputLabel>}
       <InputControl isTextarea rows={rows} className={className} {...props} />

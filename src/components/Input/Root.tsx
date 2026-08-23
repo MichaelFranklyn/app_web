@@ -12,6 +12,7 @@ interface InputRootProps {
   success?: boolean;
   disabled?: boolean;
   size?: InputSize;
+  required?: boolean;
 }
 
 export const InputRoot = ({
@@ -22,13 +23,14 @@ export const InputRoot = ({
   success = false,
   disabled = false,
   size = "md",
+  required = false,
 }: InputRootProps) => {
   const generatedId = useId();
   const id = externalId || generatedId;
 
   return (
     <InputContext.Provider
-      value={{ id, error, success, disabled, inGroup: false, size }}
+      value={{ id, error, success, disabled, inGroup: false, size, required }}
     >
       <div data-input-root className={cn(inputStyles.wrap, className)}>
         {children}

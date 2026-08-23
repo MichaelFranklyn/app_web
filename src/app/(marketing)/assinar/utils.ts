@@ -1,10 +1,5 @@
 import { ANNUAL_BILLED_MONTHS, MarketingPlan, PLANS } from "../plans";
-import {
-  BillingCycle,
-  BillingData,
-  CardData,
-  ChargeOutcome,
-} from "./interface";
+import { BillingCycle, CardData, ChargeOutcome } from "./interface";
 
 /**
  * Regras do checkout SIMULADO. Nada aqui fala com gateway nenhum — quando a
@@ -56,26 +51,6 @@ export function simulateCharge(card: CardData): ChargeOutcome {
   return digitsOf(card.number) === digitsOf(DEMO_CARDS.declined)
     ? "declined"
     : "approved";
-}
-
-/** Erros de cada campo do passo de cobrança, por nome do campo. Vazio = pode
- * seguir. */
-export function validateBilling(data: BillingData): Partial<BillingData> {
-  const errors: Partial<BillingData> = {};
-
-  if (data.companyName.trim().length < 3) {
-    errors.companyName = "Informe o nome da empresa.";
-  }
-
-  if (digitsOf(data.document).length !== 14) {
-    errors.document = "O CNPJ precisa ter 14 dígitos.";
-  }
-
-  if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(data.email)) {
-    errors.email = "Informe um e-mail válido.";
-  }
-
-  return errors;
 }
 
 /** Mesma ideia para o cartão. A validação é de FORMATO — número de cartão de

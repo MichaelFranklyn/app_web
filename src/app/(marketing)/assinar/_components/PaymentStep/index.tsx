@@ -47,6 +47,7 @@ export function PaymentStep({
 
       <Input.Mask
         label="Número do cartão"
+        required
         mask="0000 0000 0000 0000"
         value={data.number}
         error={errors.number}
@@ -56,6 +57,7 @@ export function PaymentStep({
 
       <Input.Text
         label="Nome impresso no cartão"
+        required
         value={data.holder}
         error={errors.holder}
         autoComplete="off"
@@ -65,6 +67,7 @@ export function PaymentStep({
       <div className="tablet:grid-cols-2 grid gap-16">
         <Input.Mask
           label="Validade"
+          required
           mask="00/00"
           placeholder="MM/AA"
           value={data.expiry}
@@ -75,6 +78,7 @@ export function PaymentStep({
 
         <Input.Mask
           label="Código de segurança"
+          required
           mask="000"
           value={data.cvv}
           error={errors.cvv}

@@ -2637,6 +2637,12 @@ type OrderStatsType {
 }
 
 input UpdateOrderInput {
+  """
+  Data do pedido. Só pode ser corrigida enquanto o pedido NÃO foi faturado: depois
+  do faturamento ela já entrou nas parcelas e na comissão, e a correção é feita
+  por `reviseOrderInvoice`.
+  """
+  orderDate: Date = null
   status: OrderStatus = null
   paymentTermId: UUID = null
   notes: String = null

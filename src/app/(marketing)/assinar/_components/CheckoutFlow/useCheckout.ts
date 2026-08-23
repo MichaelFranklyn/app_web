@@ -8,7 +8,7 @@ import {
   ChargeOutcome,
   CheckoutStep,
 } from "../../interface";
-import { simulateCharge, validateBilling, validateCard } from "../../utils";
+import { simulateCharge, validateCard } from "../../utils";
 
 /** Quanto tempo a "cobrança" fica processando. Um gateway real leva alguns
  * segundos, e a espera existe para o estado de carregamento ser visto — sem
@@ -57,10 +57,12 @@ export function useCheckout() {
 
   const goToBilling = () => setStep("billing");
 
-  const submitBilling = () => {
-    const found = validateBilling(billing);
-    setErrors(found);
-    if (Object.keys(found).length === 0) setStep("payment");
+  // Quem valida os dados de cobrança é o formulário do passo (FormBuilder, com
+  // as regras declaradas nos campos); aqui só se guarda o que ele já aprovou.
+  const submitBilling = (next: BillingData) => {
+    setBilling(next);
+    setErrors({});
+    setStep("payment");
   };
 
   const submitPayment = () => {
@@ -90,7 +92,6 @@ export function useCheckout() {
     cycle,
     setCycle,
     billing,
-    setBilling,
     card,
     setCard,
     errors,

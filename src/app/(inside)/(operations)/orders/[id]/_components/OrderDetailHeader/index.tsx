@@ -131,6 +131,7 @@ export function OrderDetailHeader({ order, onRefetch }: Props) {
                 )}
                 <UpdateOrderModal
                   orderId={order.id}
+                  currentOrderDate={order.orderDate}
                   currentNotes={order.notes}
                   currentFreightType={order.freightType}
                   currentStatus={order.status}

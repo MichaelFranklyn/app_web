@@ -56,8 +56,6 @@ export function CheckoutFlow() {
         {checkout.step === "billing" && (
           <BillingStep
             data={checkout.billing}
-            errors={checkout.errors}
-            onChange={checkout.setBilling}
             onBack={checkout.backToPlan}
             onContinue={checkout.submitBilling}
           />

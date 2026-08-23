@@ -18,6 +18,7 @@ export const InputSearch = forwardRef<HTMLInputElement, InputBaseProps>(
       className,
       containerClassName,
       size,
+      required,
       ...props
     },
     ref
@@ -32,6 +33,8 @@ export const InputSearch = forwardRef<HTMLInputElement, InputBaseProps>(
         disabled={props.disabled}
         className={containerClassName}
         size={size}
+        required={required}
+        id={props.id}
       >
         {label && <InputLabel>{label}</InputLabel>}
         <InputGroup>

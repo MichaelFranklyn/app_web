@@ -1,5 +1,5 @@
 import { InputRoot } from "./Root";
-import { InputLabel } from "./Label";
+import { InputLabel, RequiredMark } from "./Label";
 import { InputHint } from "./Hint";
 import { InputGroup } from "./Group";
 import { InputAddon } from "./Addon";
@@ -21,6 +21,7 @@ import { InputSearch } from "./InputSearch";
 export {
   InputRoot,
   InputLabel,
+  RequiredMark,
   InputHint,
   InputGroup,
   InputAddon,

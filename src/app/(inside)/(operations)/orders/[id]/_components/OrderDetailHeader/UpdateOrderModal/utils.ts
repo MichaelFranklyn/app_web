@@ -1,4 +1,5 @@
 import { FormStepSchema } from "@/components/FormBuilder";
+import { toIsoDate } from "@/utils/format/date";
 import { extractSelectValue } from "@/utils/form";
 
 import { paymentTermLabel } from "../../../utils";
@@ -38,6 +39,20 @@ export const buildUpdateOrderSteps = (
         {
           id: "fields",
           fields: [
+            // O pedido-filho de um faturamento parcial nasce com a data do
+            // faturamento; quando ela sai errada, é aqui que se corrige.
+            {
+              name: "orderDate",
+              type: "date",
+              label: "Data do pedido",
+              // Faturado, a data já entrou nas parcelas e no ciclo de comissão:
+              // corrigir aqui deixaria o pedido dizendo uma data e os boletos
+              // outra. O caminho é "Revisar faturamento", que refaz as parcelas.
+              disabled: isInvoiced(currentStatus),
+              hint: isInvoiced(currentStatus)
+                ? "O pedido já foi faturado — para corrigir datas, use Revisar faturamento."
+                : "Dia em que o cliente fez o pedido.",
+            },
             {
               name: "status",
               type: "select-single",
@@ -115,9 +130,19 @@ export const normalizeUpdateInput = (
   currentStatus: OrderStatus,
   currentDeliveryEstimateDays: number | null,
   currentPaymentTermId: string | null,
-  currentCoverageDays: number | null = null
+  currentCoverageDays: number | null = null,
+  currentOrderDate: string | null = null
 ): Record<string, unknown> => {
   const normalized: Record<string, unknown> = {};
+
+  // Campo desabilitado (pedido faturado) não envia nada. `toIsoDate` porque o
+  // campo date do FormBuilder devolve Date/string local, não ISO puro.
+  if (!isInvoiced(currentStatus)) {
+    const nextOrderDate = toIsoDate(data.orderDate);
+    if (nextOrderDate && nextOrderDate !== toIsoDate(currentOrderDate)) {
+      normalized.orderDate = nextOrderDate;
+    }
+  }
 
   const nextStatus = extractSelectValue(data.status) || null;
   if (nextStatus && nextStatus !== currentStatus) {

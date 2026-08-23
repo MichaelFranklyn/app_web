@@ -1,14 +1,15 @@
 "use client";
 
 import { Button } from "@/components/Button";
-import { Input } from "@/components/Input";
+import { FormBuilder, FormBuilderRef } from "@/components/FormBuilder";
 import { Modal } from "@/components/Modal";
 import { Title } from "@/components/Title";
 import { useAsyncAction } from "@/hooks/useAsyncAction";
 import { useMutation } from "@apollo/client/react";
-import { ChangeEvent, useState } from "react";
+import { useMemo, useRef } from "react";
 import { SET_PLATFORM_USER_STATUS_MUTATION } from "../../gql";
 import { PlatformStaffMember } from "../../interface";
+import { buildRevokeSteps, reasonOf } from "./utils";
 
 interface Props {
   /** Nulo fecha a janela — quem abre escolhe a pessoa. */
@@ -32,20 +33,21 @@ interface StatusData {
  * responde, meses depois, por que aquela conta parou.
  */
 export function RevokeAccessModal({ member, onOpenChange, onDone }: Props) {
-  const [reason, setReason] = useState("");
+  const formRef = useRef<FormBuilderRef>(null);
   const [mutate] = useMutation<StatusData>(SET_PLATFORM_USER_STATUS_MUTATION);
   const { execute, isLoading } = useAsyncAction();
 
   const isRevoking = member?.isActive ?? true;
+  const steps = useMemo(() => buildRevokeSteps(isRevoking), [isRevoking]);
 
-  const handleConfirm = async () => {
+  const handleConfirm = async (formData: Record<string, unknown>) => {
     if (!member) return;
     await execute(
       async () => {
         const { data } = await mutate({
           variables: {
             userId: member.id,
-            input: { isActive: !isRevoking, reason: reason.trim() || null },
+            input: { isActive: !isRevoking, reason: reasonOf(formData) },
           },
         });
         const response = data?.setPlatformUserStatus;
@@ -56,7 +58,7 @@ export function RevokeAccessModal({ member, onOpenChange, onDone }: Props) {
       {
         successMessage: isRevoking ? "Acesso revogado." : "Acesso devolvido.",
         onSuccess() {
-          setReason("");
+          formRef.current?.resetForm();
           onOpenChange(false);
           onDone();
         },
@@ -89,20 +91,12 @@ export function RevokeAccessModal({ member, onOpenChange, onDone }: Props) {
             )}
           </Title>
 
-          <Input.Text
-            label="Motivo"
-            hint="Fica registrado na auditoria permanente da plataforma."
-            value={reason}
-            placeholder={
-              isRevoking
-                ? "Ex.: saiu da equipe em 13/08"
-                : "Ex.: retorno de férias"
-            }
-            maxLength={255}
-            disabled={isLoading}
-            onChange={(e: ChangeEvent<HTMLInputElement>) =>
-              setReason(e.target.value)
-            }
+          <FormBuilder
+            ref={formRef}
+            steps={steps}
+            onSubmit={handleConfirm}
+            loading={isLoading}
+            unstyled
           />
         </Modal.Body>
 
@@ -113,9 +107,10 @@ export function RevokeAccessModal({ member, onOpenChange, onDone }: Props) {
             </Button.Root>
           </Modal.Close>
           <Button.Root
+            type="button"
             appearance="solid"
             color={isRevoking ? "red" : "amber"}
-            onClick={handleConfirm}
+            onClick={() => formRef.current?.submitForm()}
             loading={isLoading}
           >
             <Button.Title>

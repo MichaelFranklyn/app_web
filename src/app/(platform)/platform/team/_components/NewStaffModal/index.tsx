@@ -2,16 +2,17 @@
 
 import { Alert } from "@/components/Alert";
 import { Button } from "@/components/Button";
-import { Input } from "@/components/Input";
+import { FormBuilder, FormBuilderRef } from "@/components/FormBuilder";
 import { Modal } from "@/components/Modal";
 import { Title } from "@/components/Title";
 import { useToast } from "@/components/Toast";
 import { useAsyncAction } from "@/hooks/useAsyncAction";
 import { useMutation } from "@apollo/client/react";
 import { Copy, ShieldAlert } from "lucide-react";
-import { ChangeEvent, useState } from "react";
+import { useRef, useState } from "react";
 import { CREATE_PLATFORM_USER_MUTATION } from "../../gql";
 import { CreatedPlatformUser } from "../../interface";
+import { FORM_STEPS, normalizeStaffInput } from "./utils";
 
 interface Props {
   open: boolean;
@@ -43,20 +44,17 @@ interface CreateData {
  * mutation o devolve em vez de enviá-lo.
  */
 export function NewStaffModal({ open, onOpenChange, onCreated }: Props) {
-  const [name, setName] = useState("");
-  const [email, setEmail] = useState("");
   const [result, setResult] = useState<CreatedPlatformUser | null>(null);
+  const formRef = useRef<FormBuilderRef>(null);
   const [mutate] = useMutation<CreateData>(CREATE_PLATFORM_USER_MUTATION);
   const { execute, isLoading } = useAsyncAction();
   const { toast } = useToast();
 
-  const canSubmit = name.trim().length > 0 && email.trim().length > 0;
-
-  const handleCreate = async () => {
+  const handleCreate = async (formData: Record<string, unknown>) => {
     await execute(
       async () => {
         const { data } = await mutate({
-          variables: { input: { name: name.trim(), email: email.trim() } },
+          variables: { input: normalizeStaffInput(formData) },
         });
         const response = data?.createPlatformUser;
         if (!response?.status) {
@@ -89,8 +87,7 @@ export function NewStaffModal({ open, onOpenChange, onCreated }: Props) {
 
   const handleOpenChange = (next: boolean) => {
     if (!next) {
-      setName("");
-      setEmail("");
+      formRef.current?.resetForm();
       setResult(null);
     }
     onOpenChange(next);
@@ -125,26 +122,12 @@ export function NewStaffModal({ open, onOpenChange, onCreated }: Props) {
                 </Alert.Content>
               </Alert.Root>
 
-              <Input.Text
-                label="Nome"
-                value={name}
-                placeholder="Ex.: Ana Souza"
-                maxLength={255}
-                disabled={isLoading}
-                onChange={(e: ChangeEvent<HTMLInputElement>) =>
-                  setName(e.target.value)
-                }
-              />
-
-              <Input.Email
-                label="E-mail"
-                hint="Será o login. A senha não é definida aqui — a pessoa cria a dela pelo link."
-                value={email}
-                placeholder="ana@suaempresa.com"
-                disabled={isLoading}
-                onChange={(e: ChangeEvent<HTMLInputElement>) =>
-                  setEmail(e.target.value)
-                }
+              <FormBuilder
+                ref={formRef}
+                steps={FORM_STEPS}
+                onSubmit={handleCreate}
+                loading={isLoading}
+                unstyled
               />
             </>
           ) : (
@@ -174,11 +157,11 @@ export function NewStaffModal({ open, onOpenChange, onCreated }: Props) {
             </Button.Root>
           ) : (
             <Button.Root
+              type="button"
               appearance="solid"
               color="amber"
-              onClick={handleCreate}
+              onClick={() => formRef.current?.submitForm()}
               loading={isLoading}
-              disabled={!canSubmit}
             >
               <Button.Title>Criar conta</Button.Title>
             </Button.Root>

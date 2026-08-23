@@ -70,6 +70,7 @@ export const InputSelect = ({
   disabledClear = false,
   placeholder,
   size,
+  required,
   onSearch,
   loading,
   ...props
@@ -84,6 +85,8 @@ export const InputSelect = ({
       disabled={props.disabled}
       className={containerClassName}
       size={size}
+      required={required}
+      id={props.id}
     >
       {label && <InputLabel>{label}</InputLabel>}
 

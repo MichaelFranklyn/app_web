@@ -1,36 +1,33 @@
 "use client";
 
 import { Button } from "@/components/Button";
-import { Input } from "@/components/Input";
+import { FormBuilder, FormBuilderRef } from "@/components/FormBuilder";
 import { Title } from "@/components/Title";
+import { useRef } from "react";
 import { BillingData } from "../../interface";
+import { BILLING_STEPS, toBillingData } from "./utils";
 
 /**
  * Segundo passo: quem recebe a nota. Três campos e nada mais — o cadastro
  * completo da empresa é feito depois, no `/signup`, e repetir aqui o que o
  * sistema já vai perguntar dobra o trabalho de quem está contratando.
+ *
+ * `initialData` reidrata o que já foi digitado: voltar do cartão para corrigir
+ * um dado não pode custar o preenchimento inteiro.
  */
 export function BillingStep({
   data,
-  errors,
-  onChange,
   onBack,
   onContinue,
 }: {
   data: BillingData;
-  errors: Record<string, string>;
-  onChange: (data: BillingData) => void;
   onBack: () => void;
-  onContinue: () => void;
+  onContinue: (data: BillingData) => void;
 }) {
+  const formRef = useRef<FormBuilderRef>(null);
+
   return (
-    <form
-      className="flex flex-col gap-24"
-      onSubmit={(event) => {
-        event.preventDefault();
-        onContinue();
-      }}
-    >
+    <div className="flex flex-col gap-24">
       <div className="flex flex-col gap-8">
         <Title variant="heading-md">Dados de cobrança</Title>
 
@@ -39,32 +36,20 @@ export function BillingStep({
         </Title>
       </div>
 
-      <Input.Text
-        label="Razão social"
-        value={data.companyName}
-        error={errors.companyName}
-        onChange={(event) =>
-          onChange({ ...data, companyName: event.target.value })
-        }
-      />
-
-      <Input.Mask
-        label="CNPJ"
-        mask="00.000.000/0000-00"
-        value={data.document}
-        error={errors.document}
-        onAccept={(value) => onChange({ ...data, document: value })}
-      />
-
-      <Input.Email
-        label="E-mail para a nota"
-        value={data.email}
-        error={errors.email}
-        onChange={(event) => onChange({ ...data, email: event.target.value })}
+      <FormBuilder
+        ref={formRef}
+        steps={BILLING_STEPS}
+        initialData={{ ...data }}
+        onSubmit={(formData) => onContinue(toBillingData(formData))}
+        unstyled
       />
 
       <div className="flex flex-wrap gap-12">
-        <Button.Root type="submit" color="amber">
+        <Button.Root
+          type="button"
+          color="amber"
+          onClick={() => formRef.current?.submitForm()}
+        >
           <Button.Title>Ir para o pagamento</Button.Title>
         </Button.Root>
 
@@ -72,6 +57,6 @@ export function BillingStep({
           <Button.Title>Voltar</Button.Title>
         </Button.Root>
       </div>
-    </form>
+    </div>
   );
 }

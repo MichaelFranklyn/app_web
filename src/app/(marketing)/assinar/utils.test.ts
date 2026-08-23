@@ -6,7 +6,6 @@ import {
   findPlanByCode,
   simulateCharge,
   totalForCycle,
-  validateBilling,
   validateCard,
 } from "./utils";
 
@@ -64,32 +63,6 @@ describe("simulateCharge", () => {
     expect(simulateCharge(card({ number: "4000000000000002" }))).toBe(
       "declined"
     );
-  });
-});
-
-describe("validateBilling", () => {
-  it("aceita dados completos", () => {
-    expect(
-      validateBilling({
-        companyName: "Representações Demo",
-        document: "11.222.333/0001-81",
-        email: "financeiro@demo.com",
-      })
-    ).toEqual({});
-  });
-
-  it("acusa CNPJ incompleto e e-mail inválido", () => {
-    const errors = validateBilling({
-      companyName: "Ok",
-      document: "11.222",
-      email: "sem-arroba",
-    });
-
-    expect(Object.keys(errors).sort()).toEqual([
-      "companyName",
-      "document",
-      "email",
-    ]);
   });
 });
 

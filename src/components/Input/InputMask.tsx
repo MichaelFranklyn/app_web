@@ -85,6 +85,7 @@ export const InputMask = forwardRef<HTMLInputElement, InputMaskProps>(
       onComplete,
       dispatch,
       size,
+      required,
       ...props
     },
     ref
@@ -99,6 +100,8 @@ export const InputMask = forwardRef<HTMLInputElement, InputMaskProps>(
         disabled={props.disabled}
         className={containerClassName}
         size={size}
+        required={required}
+        id={props.id}
       >
         {label && <InputLabel>{label}</InputLabel>}
 
