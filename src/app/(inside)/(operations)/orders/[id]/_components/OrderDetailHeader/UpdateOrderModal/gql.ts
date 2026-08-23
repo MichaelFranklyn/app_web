@@ -8,6 +8,7 @@ export const UPDATE_ORDER_MUTATION = gql`
       message
       data {
         id
+        orderDate
         status
         freightType
         notes

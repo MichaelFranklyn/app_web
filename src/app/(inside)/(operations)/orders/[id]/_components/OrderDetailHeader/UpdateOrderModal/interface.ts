@@ -2,6 +2,7 @@ import { OrderStatus } from "../../../../interface";
 import { PaymentTermRef } from "../../../interface";
 
 export interface UpdateOrderInput {
+  orderDate?: string | null;
   status?: string | null;
   notes?: string | null;
   freightType?: string | null;
@@ -18,6 +19,7 @@ export interface UpdateOrderResponse {
     data: {
       __typename?: "OrderType";
       id: string;
+      orderDate: string;
       status: OrderStatus;
       freightType: string | null;
       notes: string | null;
@@ -34,6 +36,8 @@ export interface UpdateOrderResponse {
 
 export interface UpdateOrderModalProps {
   orderId: string;
+  /** Data do pedido (ISO). Editável enquanto não faturado. */
+  currentOrderDate: string;
   currentNotes: string | null;
   currentFreightType: string | null;
   currentStatus: OrderStatus;

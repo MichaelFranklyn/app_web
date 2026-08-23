@@ -8,6 +8,8 @@ export interface InputContextProps {
   disabled?: boolean;
   inGroup?: boolean;
   size?: InputSize;
+  /** Campo obrigatório: o label ganha asterisco e o controle, `aria-required`. */
+  required?: boolean;
 }
 
 export const InputContext = createContext<InputContextProps | null>(null);

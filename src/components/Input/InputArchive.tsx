@@ -37,6 +37,7 @@ export const InputArchive = React.forwardRef<
       maxFiles,
       maxSizeMb = 10, // Default 10mb limit per file
       accept,
+      required,
       ...props
     },
     ref
@@ -150,7 +151,7 @@ export const InputArchive = React.forwardRef<
     };
 
     return (
-      <InputRoot>
+      <InputRoot required={required} id={props.id}>
         {label && <InputLabel>{label}</InputLabel>}
 
         <div

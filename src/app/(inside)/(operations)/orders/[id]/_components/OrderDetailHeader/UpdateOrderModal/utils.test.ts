@@ -162,3 +162,74 @@ describe("normalizeUpdateInput — cobertura estimada do pedido", () => {
     expect(run({ coverageDays: "30.4" }).coverageDays).toBe(30);
   });
 });
+
+describe("normalizeUpdateInput — data do pedido", () => {
+  const base = {
+    status: { value: "CONFIRMED" },
+    notes: "",
+    freightType: null,
+    deliveryEstimateDays: "",
+    paymentTermId: null,
+  };
+
+  const run = (
+    over: Record<string, unknown>,
+    current: string | null,
+    status: Parameters<typeof buildUpdateOrderSteps>[0] = "CONFIRMED"
+  ) =>
+    normalizeUpdateInput(
+      { ...base, ...over },
+      null,
+      null,
+      status,
+      null,
+      null,
+      null,
+      current
+    );
+
+  it("envia a data corrigida", () => {
+    // O caso real: pedido-filho de faturamento parcial nascido com a data
+    // errada, corrigido para o dia em que a fábrica faturou.
+    const out = run({ orderDate: "2026-08-05" }, "2026-08-22");
+    expect(out.orderDate).toBe("2026-08-05");
+  });
+
+  it("não envia nada quando a data é a mesma", () => {
+    const out = run({ orderDate: "2026-08-05" }, "2026-08-05");
+    expect(out).not.toHaveProperty("orderDate");
+  });
+
+  it("aceita Date do calendário e normaliza para ISO", () => {
+    // O campo date do FormBuilder devolve Date; `.slice` numa Date não presta.
+    const out = run({ orderDate: new Date(2026, 7, 5) }, "2026-08-22");
+    expect(out.orderDate).toBe("2026-08-05");
+  });
+
+  it("campo vazio não apaga a data", () => {
+    const out = run({ orderDate: "" }, "2026-08-22");
+    expect(out).not.toHaveProperty("orderDate");
+  });
+
+  it("ignora o campo em pedido faturado", () => {
+    // A data já entrou nas parcelas e na comissão — correção é por
+    // Revisar faturamento, e o backend também recusa.
+    const out = run({ orderDate: "2026-08-05" }, "2026-08-22", "INVOICED");
+    expect(out).not.toHaveProperty("orderDate");
+  });
+});
+
+describe("buildUpdateOrderSteps — campo de data", () => {
+  const orderDateField = (
+    status: Parameters<typeof buildUpdateOrderSteps>[0]
+  ) => fieldsOf(status).find((field) => field.name === "orderDate")!;
+
+  it("existe e é editável no pedido não faturado", () => {
+    expect(orderDateField("CONFIRMED").disabled).toBe(false);
+  });
+
+  it("fica travado depois de faturado", () => {
+    expect(orderDateField("INVOICED").disabled).toBe(true);
+    expect(orderDateField("DELIVERED").disabled).toBe(true);
+  });
+});

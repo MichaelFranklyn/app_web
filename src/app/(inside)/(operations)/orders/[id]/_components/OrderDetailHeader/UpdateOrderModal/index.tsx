@@ -15,6 +15,7 @@ import { buildUpdateOrderSteps, normalizeUpdateInput } from "./utils";
 
 export function UpdateOrderModal({
   orderId,
+  currentOrderDate,
   currentNotes,
   currentFreightType,
   currentStatus,
@@ -40,7 +41,8 @@ export function UpdateOrderModal({
       currentStatus,
       currentDeliveryEstimateDays,
       currentPaymentTermId,
-      currentCoverageDays
+      currentCoverageDays,
+      currentOrderDate
     );
 
     if (Object.keys(normalized).length === 0) {
@@ -85,7 +87,7 @@ export function UpdateOrderModal({
       <Modal.Content size="md">
         <Modal.Header
           title="Editar pedido"
-          description="Atualize o status, a condição de pagamento, o frete e as observações."
+          description="Atualize a data, o status, a condição de pagamento, o frete e as observações."
         />
 
         <Modal.Body>
@@ -93,6 +95,7 @@ export function UpdateOrderModal({
             ref={formRef}
             steps={buildUpdateOrderSteps(currentStatus, paymentTerms)}
             initialData={{
+              orderDate: currentOrderDate,
               status: {
                 value: currentStatus,
                 label: ORDER_STATUS_LABELS[currentStatus],

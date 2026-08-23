@@ -20,6 +20,11 @@ export const InputControl = forwardRef<
   const inGroup = context?.inGroup;
   const disabled = context?.disabled || props.disabled;
   const size = context?.size ?? "md";
+  // `aria-required` em vez do atributo nativo `required`: a validação é do yup
+  // (FormBuilder), e o `required` do HTML abriria o balão do navegador por cima
+  // dela, com outra mensagem e em inglês.
+  const ariaRequired =
+    props["aria-required"] ?? (context?.required || undefined);
 
   const computedClasses = cn(
     inputStyles.controlBase,
@@ -39,6 +44,7 @@ export const InputControl = forwardRef<
         ref={ref as React.Ref<HTMLTextAreaElement>}
         className={computedClasses}
         disabled={disabled}
+        aria-required={ariaRequired}
         {...(props as unknown as React.TextareaHTMLAttributes<HTMLTextAreaElement>)}
       />
     );
@@ -50,6 +56,7 @@ export const InputControl = forwardRef<
       ref={ref as React.Ref<HTMLInputElement>}
       className={computedClasses}
       disabled={disabled}
+      aria-required={ariaRequired}
       {...props}
     />
   );

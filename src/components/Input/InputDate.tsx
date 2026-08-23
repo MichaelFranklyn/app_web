@@ -47,6 +47,7 @@ export const InputDate = ({
   disabledClear,
   placeholder,
   size,
+  required,
   ...props
 }: InputDateProps) => {
   const isError = !!error;
@@ -59,6 +60,8 @@ export const InputDate = ({
       disabled={props.disabled}
       className={containerClassName}
       size={size}
+      required={required}
+      id={props.id}
     >
       {label && <InputLabel>{label}</InputLabel>}
 

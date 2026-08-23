@@ -1,4 +1,4 @@
-import { Input, InputLabel } from "@/components/Input";
+import { Input, InputLabel, RequiredMark } from "@/components/Input";
 import { SelectOption } from "@/components/Input";
 import { Title } from "@/components/Title";
 import {
@@ -32,6 +32,10 @@ const getCommonProps = ({
   disabled: typeof field.disabled === "boolean" ? field.disabled : false,
   error,
   label: field.label,
+  // Mesmo `required` que o buildYupSchema usa para exigir preenchimento: a
+  // marca visual sai da regra de validação, nunca de uma segunda lista que
+  // pudesse divergir dela.
+  required: field.required,
   hint: field.hint,
   placeholder: field.placeholder,
   addon: field.addon,
@@ -142,7 +146,7 @@ const renderCheckbox: FieldRenderer = ({ field, controllerField, error }) => {
   const f = field as FieldConfigCheckbox;
   return (
     <div className="flex flex-col gap-5">
-      {f.label && <InputLabel>{f.label}</InputLabel>}
+      {f.label && <InputLabel required={f.required}>{f.label}</InputLabel>}
       <div className="flex flex-wrap gap-16">
         {f.options?.map((opt) => (
           <Input.Checkbox
@@ -187,7 +191,7 @@ const renderRadio: FieldRenderer = ({ field, controllerField, error }) => {
   const f = field as FieldConfigRadio;
   return (
     <div className="flex flex-col gap-5">
-      {f.label && <InputLabel>{f.label}</InputLabel>}
+      {f.label && <InputLabel required={f.required}>{f.label}</InputLabel>}
       <div className="flex flex-wrap gap-16">
         {f.options?.map((opt) => (
           <Input.Radio
@@ -218,6 +222,7 @@ const renderSwitch: FieldRenderer = ({ field, controllerField, error }) => {
       {f.label && (
         <label className="text-[13px] font-medium text-(--text2)">
           {f.label}
+          {f.required && <RequiredMark />}
         </label>
       )}
       <div className="flex flex-wrap gap-4">
