@@ -20,6 +20,9 @@ const PUBLIC_ROUTES = [
   "/change-password",
 ];
 
+/** Rota de entrada do sistema — o mesmo destino do login bem-sucedido. */
+const SYSTEM_ROOT = "/dashboard";
+
 /** Raiz do console da plataforma. */
 const PLATFORM_ROOT = "/platform";
 
@@ -64,6 +67,17 @@ export async function proxy(request: NextRequest) {
 
   if (invalidSession) {
     return isPublicRoute ? NextResponse.next() : forceLogout(request);
+  }
+
+  // Sessão de pé e a pessoa abrindo o login (link antigo, favorito, botão
+  // "voltar") — não há o que autenticar: manda para dentro. O destino é o mesmo
+  // do login bem-sucedido, e para quem é da plataforma o desvio logo abaixo
+  // continua valendo, porque `/platform` é decidido pelo papel, não pela URL.
+  if (pathname === "/login") {
+    const destination = isPlatformRole(userData.role)
+      ? PLATFORM_ROOT
+      : SYSTEM_ROOT;
+    return NextResponse.redirect(new URL(destination, request.url));
   }
 
   // O SU vive no console e só nele: o sistema do tenant é de owner/admin/
