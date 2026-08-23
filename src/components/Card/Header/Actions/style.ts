@@ -16,7 +16,10 @@ export const headerActionsStyle = [
   // (container), não o viewport; senão o input esticaria no meio da linha.
   "[&_[data-input-root]]:w-auto",
   // Estágio icon: esconde o texto dos botões que têm ícone.
-  "group-data-[actions-mode=icon]/cardhead:[&_*:has(>svg)>[data-button-title]]:hidden",
+  // `sr-only` e não `hidden`: o rótulo sai da tela, mas continua no nome
+  // acessível do botão. Com `display:none` o leitor de tela (e o teste)
+  // encontrava um botão sem nome nenhum — só um ícone.
+  "group-data-[actions-mode=icon]/cardhead:[&_*:has(>svg)>[data-button-title]]:sr-only",
   // Estágio column: empilha tudo full-width, cada item no seu mínimo.
   "group-data-[actions-mode=column]/cardhead:w-full",
   "group-data-[actions-mode=column]/cardhead:flex-col",

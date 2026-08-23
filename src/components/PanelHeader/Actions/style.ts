@@ -23,7 +23,10 @@ export const panelActionsStyle = [
   "max-desktop:[&>div]:w-auto",
   // Estágio icon: esconde o texto dos botões que têm ícone (o :has(>svg) evita
   // esvaziar botões só-texto, que ficariam sem rótulo nenhum).
-  "group-data-[actions-mode=icon]/panelhead:[&_*:has(>svg)>[data-button-title]]:hidden",
+  // `sr-only` e não `hidden`: o rótulo sai da tela, mas continua no nome
+  // acessível do botão. Com `display:none` o leitor de tela (e o teste)
+  // encontrava um botão sem nome nenhum — só um ícone.
+  "group-data-[actions-mode=icon]/panelhead:[&_*:has(>svg)>[data-button-title]]:sr-only",
   // Estágio column: empilha tudo full-width, cada item no seu mínimo. Inclui o
   // caso comum de um <div> interno agrupando controles (ele também empilha).
   "group-data-[actions-mode=column]/panelhead:w-full",
