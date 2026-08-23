@@ -128,11 +128,7 @@ export function PositivationTable({
                     : undefined
                 }
               >
-                <Table.Cell
-                  variant="strong"
-                  className="max-w-[240px] truncate"
-                  title={row.clientName}
-                >
+                <Table.Cell variant="strong" title={row.clientName}>
                   {row.clientName}
                 </Table.Cell>
 

@@ -21,18 +21,14 @@ interface ClientCellProps {
  */
 export function ClientCell({ client }: ClientCellProps) {
   return (
-    // max-w: sem teto, uma razão social longa esticaria a coluna e empurraria o
-    // Score para fora da tela. Com teto, o texto trunca em "…".
-    <Table.Cell className="max-w-[420px]">
+    // Sem teto de largura: a razão social aparece inteira, numa linha só, e
+    // quando a soma das colunas não cabe é a tabela que rola na horizontal.
+    <Table.Cell>
       <div className="flex flex-col gap-2">
         <div className="flex min-w-0 items-center gap-8">
-          {/* Nome em uma linha só: trunca em "…" e o título completo fica no
-              atributo `title` (o detalhe do cliente é um clique na linha). */}
-          <Table.CellText
-            variant="strong"
-            className="block truncate"
-            title={client.razaoSocial}
-          >
+          {/* Nome em uma linha só e por extenso — o `nowrap` vem da própria
+              `Table.Cell`. */}
+          <Table.CellText variant="strong" className="block">
             {client.razaoSocial}
           </Table.CellText>
           {client.isNeedsAttention && (
@@ -57,7 +53,7 @@ export function ClientCell({ client }: ClientCellProps) {
         </div>
 
         {client.nomeFantasia && (
-          <Table.CellText variant="dim" className="block truncate">
+          <Table.CellText variant="dim" className="block">
             {client.nomeFantasia}
           </Table.CellText>
         )}

@@ -1,8 +1,13 @@
 // Respiro lateral maior que o vertical: a linha ganha densidade sem as colunas
 // se encostarem. `py-12` no lugar dos 16px de antes tira ~8px de altura por
 // linha — numa página de 10, quase uma linha inteira a mais na tela.
+// `whitespace-nowrap`: o dado ocupa uma linha só. Quando a soma das colunas não
+// cabe, quem cede é a largura da tabela — o wrapper do `Table.Table` rola na
+// horizontal — e não o nome do cliente, que virava duas ou três linhas e
+// desalinhava a leitura vertical da lista. Uma célula que precise mesmo quebrar
+// (texto livre) pede `whitespace-normal` na própria `Table.Cell`.
 export const tableCellBase =
-  "px-16 py-12 align-middle border-b border-(--border) group-last:border-b-0";
+  "px-16 py-12 align-middle whitespace-nowrap border-b border-(--border) group-last:border-b-0";
 
 export const tableCellFlex = "flex items-center gap-8";
 

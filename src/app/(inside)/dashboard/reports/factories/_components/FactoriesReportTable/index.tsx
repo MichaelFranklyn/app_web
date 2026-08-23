@@ -126,11 +126,7 @@ export function FactoriesReportTable({
           ) : (
             items.map((row) => (
               <Table.Row key={row.entityId} href={`/factories/${row.entityId}`}>
-                <Table.Cell
-                  variant="strong"
-                  className="max-w-[220px] truncate"
-                  title={row.entityName}
-                >
+                <Table.Cell variant="strong" title={row.entityName}>
                   {row.entityName}
                 </Table.Cell>
                 <Table.Cell variant="dim">{row.orderCount}</Table.Cell>

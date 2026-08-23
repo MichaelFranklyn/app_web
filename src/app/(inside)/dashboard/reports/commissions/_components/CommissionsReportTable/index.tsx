@@ -131,18 +131,10 @@ export function CommissionsReportTable({
                 <Table.Cell variant="strong" className="whitespace-nowrap">
                   {row.receiveDate ? formatDateDMY(row.receiveDate) : "—"}
                 </Table.Cell>
-                <Table.Cell
-                  variant="strong"
-                  className="max-w-[200px] truncate"
-                  title={clientName(row.client)}
-                >
+                <Table.Cell variant="strong" title={clientName(row.client)}>
                   {clientName(row.client)}
                 </Table.Cell>
-                <Table.Cell
-                  variant="dim"
-                  className="max-w-[160px] truncate"
-                  title={factoryName(row.factory)}
-                >
+                <Table.Cell variant="dim" title={factoryName(row.factory)}>
                   {factoryName(row.factory)}
                 </Table.Cell>
                 <Table.Cell variant="dim">{row.seller?.name ?? "—"}</Table.Cell>
