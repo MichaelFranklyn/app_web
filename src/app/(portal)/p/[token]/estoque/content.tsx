@@ -32,7 +32,11 @@ export function PortalStockContent({ items, token }: PortalStockContentProps) {
     INITIAL_STATE
   );
 
-  if (items.length === 0) {
+  // Depois de um envio, a lista boa é a que a action releu: é ela que traz a
+  // estimativa nova ao lado da confirmação. Antes disso, a que veio do servidor.
+  const rows = state.items ?? items;
+
+  if (rows.length === 0) {
     return (
       <EmptyState.Root>
         <EmptyState.Icon>
@@ -72,7 +76,7 @@ export function PortalStockContent({ items, token }: PortalStockContentProps) {
           (onde o card já ocupa a largura toda), duas no tablet e quatro no
           desktop. */}
       <div className="tablet:grid-cols-2 desktop:grid-cols-4 grid grid-cols-1 gap-[12px]">
-        {items.map((item) => (
+        {rows.map((item) => (
           <PortalStockRow key={item.productId} item={item} />
         ))}
       </div>

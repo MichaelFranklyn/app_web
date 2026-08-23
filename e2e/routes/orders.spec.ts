@@ -129,7 +129,9 @@ test("orders: ordenar por Valor manda `order` ao backend e marca a coluna", asyn
   });
 
   await page.goto("/orders");
-  await page.getByRole("button", { name: "Valor" }).click();
+  // Pelo rótulo inteiro: "Valor" sozinho também casa com o botão de ajuda da
+  // coluna ("Sobre Valor total"), que monta junto com a tabela.
+  await page.getByRole("button", { name: "Valor (sem impostos)" }).click();
 
   // Ordenação de SERVIDOR: o que prova a feature é a consulta ter saído com
   // `order`, não a tabela ter reordenado o que já estava na tela.
@@ -176,7 +178,7 @@ test("orders: clicar de novo inverte a direção", async ({ page }) => {
   });
 
   await page.goto("/orders?sortBy=total_amount&sortDir=desc");
-  await page.getByRole("button", { name: "Valor" }).click();
+  await page.getByRole("button", { name: "Valor (sem impostos)" }).click();
 
   await expect
     .poll(() => JSON.stringify(spy.lastVariables("Orders") ?? {}))

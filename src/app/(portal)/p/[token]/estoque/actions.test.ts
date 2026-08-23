@@ -1,14 +1,9 @@
 import { beforeEach, describe, expect, it, vi } from "vitest";
 
 const portalFetchSpy = vi.fn();
-const revalidateSpy = vi.fn();
 
 vi.mock("@/services/graphql/portalFetch", () => ({
   portalFetch: (...args: unknown[]) => portalFetchSpy(...args),
-}));
-
-vi.mock("next/cache", () => ({
-  revalidatePath: (...args: unknown[]) => revalidateSpy(...args),
 }));
 
 const { submitPortalStockAction } = await import("./actions");
@@ -32,12 +27,20 @@ const sentItems = () =>
     daysRemaining: number;
   }>;
 
+/** A lista que a action releu depois do envio (2ª ida ao backend). */
+const freshList = [
+  { productId: "p1", productName: "Torneira", daysRemaining: 5 },
+  { productId: "p2", productName: "Sifão", daysRemaining: null },
+];
+
 beforeEach(() => {
   portalFetchSpy.mockReset();
-  revalidateSpy.mockReset();
-  portalFetchSpy.mockResolvedValue({
-    submitPortalStock: { status: true, message: "Obrigado!" },
-  });
+  // 1ª chamada: a mutation. 2ª: a releitura da lista.
+  portalFetchSpy
+    .mockResolvedValueOnce({
+      submitPortalStock: { status: true, message: "Obrigado!" },
+    })
+    .mockResolvedValueOnce({ portalStock: { data: freshList } });
 });
 
 describe("submitPortalStockAction", () => {
@@ -112,14 +115,41 @@ describe("submitPortalStockAction", () => {
     expect(portalFetchSpy.mock.calls[0][1]).toBe("tok-abc");
   });
 
-  it("revalida a própria tela no sucesso", async () => {
-    await submitPortalStockAction(IDLE, formWith({ days__p1: "5" }, "tok-abc"));
+  it("devolve a lista relida, para a tela mostrar a estimativa nova", async () => {
+    const result = await submitPortalStockAction(
+      IDLE,
+      formWith({ days__p1: "5" }, "tok-abc")
+    );
 
-    // Sem isto o cliente veria a estimativa antiga ao lado do "obrigado".
-    expect(revalidateSpy).toHaveBeenCalledWith("/p/tok-abc/estoque");
+    // Sem isto o cliente veria a estimativa antiga ao lado do "obrigado". A
+    // lista vem NA RESPOSTA da action (e não de um `revalidatePath`, que sob
+    // concorrência às vezes deixa o envio sem terminar — ver actions.ts).
+    expect(portalFetchSpy).toHaveBeenCalledTimes(2);
+    expect(portalFetchSpy.mock.calls[1][1]).toBe("tok-abc");
+    // Já ordenada por urgência: quem não tem estimativa vai para o fim.
+    expect(result.items?.map((i) => i.productId)).toEqual(["p1", "p2"]);
   });
 
-  it("devolve a recusa do backend sem revalidar", async () => {
+  it("o envio vale mesmo se a releitura da lista falhar", async () => {
+    portalFetchSpy.mockReset();
+    portalFetchSpy
+      .mockResolvedValueOnce({
+        submitPortalStock: { status: true, message: "Obrigado!" },
+      })
+      .mockResolvedValueOnce(null);
+
+    const result = await submitPortalStockAction(
+      IDLE,
+      formWith({ days__p1: "5" })
+    );
+
+    // Confirmação na tela e nenhuma lista nova: a que já estava lá continua.
+    expect(result.status).toBe("success");
+    expect(result.items).toBeUndefined();
+  });
+
+  it("devolve a recusa do backend sem reler a lista", async () => {
+    portalFetchSpy.mockReset();
     portalFetchSpy.mockResolvedValue({
       submitPortalStock: { status: false, message: "Não deu." },
     });
@@ -130,11 +160,13 @@ describe("submitPortalStockAction", () => {
     );
 
     expect(result).toEqual({ status: "error", message: "Não deu." });
-    expect(revalidateSpy).not.toHaveBeenCalled();
+    // Só a mutation: recusado, não há lista nova para buscar.
+    expect(portalFetchSpy).toHaveBeenCalledTimes(1);
   });
 
   it("link morto no meio do preenchimento vira recado, não tela quebrada", async () => {
     // portalFetch devolve null quando o backend recusa o token.
+    portalFetchSpy.mockReset();
     portalFetchSpy.mockResolvedValue(null);
 
     const result = await submitPortalStockAction(
