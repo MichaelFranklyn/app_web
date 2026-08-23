@@ -146,18 +146,10 @@ export function BillingReportTable({
                 >
                   {overdueLabel(row.daysOverdue)}
                 </Table.Cell>
-                <Table.Cell
-                  variant="strong"
-                  className="max-w-[220px] truncate"
-                  title={row.clientName}
-                >
+                <Table.Cell variant="strong" title={row.clientName}>
                   {row.clientName}
                 </Table.Cell>
-                <Table.Cell
-                  variant="dim"
-                  className="max-w-[160px] truncate"
-                  title={row.factoryName}
-                >
+                <Table.Cell variant="dim" title={row.factoryName}>
                   {row.factoryName}
                 </Table.Cell>
                 <Table.Cell variant="dim" className="whitespace-nowrap">

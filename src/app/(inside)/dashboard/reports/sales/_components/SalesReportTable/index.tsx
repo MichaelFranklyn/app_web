@@ -137,18 +137,10 @@ export function SalesReportTable({
                 <Table.Cell variant="dim" className="whitespace-nowrap">
                   {formatDateDMY(order.orderDate)}
                 </Table.Cell>
-                <Table.Cell
-                  variant="strong"
-                  className="max-w-[220px] truncate"
-                  title={clientName(order.client)}
-                >
+                <Table.Cell variant="strong" title={clientName(order.client)}>
                   {clientName(order.client)}
                 </Table.Cell>
-                <Table.Cell
-                  variant="dim"
-                  className="max-w-[180px] truncate"
-                  title={factoryName(order.factory)}
-                >
+                <Table.Cell variant="dim" title={factoryName(order.factory)}>
                   {factoryName(order.factory)}
                 </Table.Cell>
                 <Table.Cell variant="dim">

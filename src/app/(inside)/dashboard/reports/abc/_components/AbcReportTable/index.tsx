@@ -120,11 +120,7 @@ export function AbcReportTable({
             items.map((row) => (
               <Table.Row key={row.clientId}>
                 <Table.Cell variant="dim">{row.rank}</Table.Cell>
-                <Table.Cell
-                  variant="strong"
-                  className="max-w-[260px] truncate"
-                  title={row.clientName}
-                >
+                <Table.Cell variant="strong" title={row.clientName}>
                   {row.clientName}
                 </Table.Cell>
                 <Table.Cell>

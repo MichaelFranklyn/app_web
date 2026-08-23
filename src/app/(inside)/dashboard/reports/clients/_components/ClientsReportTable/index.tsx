@@ -135,11 +135,7 @@ export function ClientsReportTable({
                       : undefined
                   }
                 >
-                  <Table.Cell
-                    variant="strong"
-                    className="max-w-[240px] truncate"
-                    title={row.razaoSocial}
-                  >
+                  <Table.Cell variant="strong" title={row.razaoSocial}>
                     <span className="inline-flex items-center gap-6">
                       {row.nomeFantasia ?? row.razaoSocial}
                       {row.isNeedsAttention && (
@@ -156,11 +152,7 @@ export function ClientsReportTable({
                   <Table.Cell variant="dim">
                     {row.companyClient?.network?.name ?? "—"}
                   </Table.Cell>
-                  <Table.Cell
-                    variant="dim"
-                    className="max-w-[160px] truncate"
-                    title={sellerNames(row)}
-                  >
+                  <Table.Cell variant="dim" title={sellerNames(row)}>
                     {sellerNames(row)}
                   </Table.Cell>
                   <Table.Cell variant="dim" className="whitespace-nowrap">

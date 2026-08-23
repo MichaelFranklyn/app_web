@@ -41,7 +41,11 @@ export default function InsideShell({
 
   return (
     <FlowTourProvider>
-      <div className="flex h-screen overflow-hidden">
+      {/* A casca respira: um padding na página deixa as bordas da sidebar e do
+          painel de conteúdo aparecerem, em vez de as duas colarem na janela.
+          Só no desktop — no mobile a sidebar é drawer e o conteúdo usa a tela
+          inteira. */}
+      <div className="desktop:gap-16 desktop:p-12 flex h-screen overflow-hidden bg-(--bg3)">
         {/* Backdrop do drawer (só mobile/tablet, quando aberto) */}
         {drawerOpen && (
           <div
@@ -55,8 +59,10 @@ export default function InsideShell({
         <Sidebar.Root
           className={cn(
             "z-[90] w-[232px] shrink-0",
-            // Mobile/tablet: drawer fixo que desliza da esquerda.
-            "fixed inset-y-0 left-0 transition-[transform,width] duration-200 ease-out",
+            // Mobile/tablet: drawer fixo que desliza da esquerda — colado na
+            // janela, então sem cantos arredondados.
+            "fixed inset-y-0 left-0 rounded-none transition-[transform,width] duration-200 ease-out",
+            "desktop:rounded-(--radius-lg)",
             drawerOpen ? "translate-x-0" : "-translate-x-full",
             // Desktop: volta a ser fixa em fluxo; largura varia se recolhida.
             "desktop:static desktop:z-auto desktop:translate-x-0",
@@ -183,7 +189,10 @@ export default function InsideShell({
           />
         </Sidebar.Root>
 
-        <div className="flex flex-1 flex-col overflow-hidden">
+        {/* O conteúdo também é um painel cercado: mesma borda e mesmo raio da
+            sidebar. `overflow-hidden` para a topbar e o `main` não vazarem por
+            cima dos cantos arredondados. */}
+        <div className="desktop:rounded-(--radius-lg) desktop:border desktop:border-(--border) flex flex-1 flex-col overflow-hidden bg-(--bg)">
           {/* Acima da topbar de propósito: numa sessão emprestada, o aviso não
               pode competir por atenção com o resto do cabeçalho. Em sessão
               comum não renderiza nada. */}
@@ -222,7 +231,14 @@ export default function InsideShell({
             </Topbar.Actions>
           </Topbar.Root>
 
-          <main className="flex-1 overflow-y-auto">{children}</main>
+          {/* `pb`: o lançador de tutoriais flutua no canto inferior direito
+              (fixo na janela). Sem esse respiro no fim da área rolável, a
+              última linha de uma lista longa termina embaixo dele — visível,
+              mas fora de alcance do clique. Em página curta não muda nada: o
+              conteúdo não chega ao fim do scroll. */}
+          <main className="desktop:pb-[72px] flex-1 overflow-y-auto">
+            {children}
+          </main>
         </div>
       </div>
     </FlowTourProvider>

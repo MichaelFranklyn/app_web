@@ -147,18 +147,10 @@ export function PurchasesReportTable({
                 key={`${row.clientId}-${row.factoryId}`}
                 href={rowHref(row)}
               >
-                <Table.Cell
-                  variant="strong"
-                  className="max-w-[220px] truncate"
-                  title={row.clientName}
-                >
+                <Table.Cell variant="strong" title={row.clientName}>
                   {row.clientName}
                 </Table.Cell>
-                <Table.Cell
-                  variant="dim"
-                  className="max-w-[140px] truncate"
-                  title={row.factoryName}
-                >
+                <Table.Cell variant="dim" title={row.factoryName}>
                   {row.factoryName}
                   {/* Vínculo desfeito: a compra está no histórico e ninguém
                       atende esse cliente nessa fábrica hoje. */}

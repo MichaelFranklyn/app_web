@@ -28,7 +28,7 @@ export function PlatformShell({ children }: { children: React.ReactNode }) {
   } = usePlatformShell();
 
   return (
-    <div className="flex h-screen overflow-hidden">
+    <div className="desktop:gap-16 desktop:p-12 flex h-screen overflow-hidden bg-(--bg3)">
       {drawerOpen && (
         <div
           data-testid="platform-drawer-backdrop"
@@ -41,7 +41,8 @@ export function PlatformShell({ children }: { children: React.ReactNode }) {
       <Sidebar.Root
         className={cn(
           "z-[90] w-[232px] shrink-0",
-          "fixed inset-y-0 left-0 transition-transform duration-200 ease-out",
+          "fixed inset-y-0 left-0 rounded-none transition-transform duration-200 ease-out",
+          "desktop:rounded-(--radius-lg)",
           drawerOpen ? "translate-x-0" : "-translate-x-full",
           "desktop:static desktop:z-auto desktop:translate-x-0"
         )}
@@ -91,7 +92,7 @@ export function PlatformShell({ children }: { children: React.ReactNode }) {
         />
       </Sidebar.Root>
 
-      <div className="flex flex-1 flex-col overflow-hidden">
+      <div className="desktop:rounded-(--radius-lg) desktop:border desktop:border-(--border) flex flex-1 flex-col overflow-hidden bg-(--bg)">
         <Topbar.Root>
           <Topbar.Breadcrumb>
             <button
