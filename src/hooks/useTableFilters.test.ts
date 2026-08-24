@@ -3,11 +3,13 @@ import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
 import { FieldConfig, useTableFilters } from "./useTableFilters";
 
+// A URL é escrita pela History API nativa, não pelo roteador: filtrar uma
+// lista não pode custar uma volta ao servidor (ver `writeUrl`). O espião abaixo
+// é o que garante que a troca não regrida para `router.replace`.
 const replace = vi.fn();
 const { state } = vi.hoisted(() => ({ state: { sp: new URLSearchParams() } }));
 
 vi.mock("next/navigation", () => ({
-  useRouter: () => ({ replace }),
   usePathname: () => "/list",
   useSearchParams: () => state.sp,
 }));
@@ -20,6 +22,9 @@ const fields: Record<string, FieldConfig> = {
 beforeEach(() => {
   state.sp = new URLSearchParams();
   replace.mockClear();
+  vi.spyOn(window.history, "replaceState").mockImplementation(
+    (_state, _unused, url) => replace(url)
+  );
 });
 afterEach(() => vi.useRealTimers());
 
@@ -30,8 +35,7 @@ describe("useTableFilters", () => {
     expect(result.current.inputValues.status).toBe("ACTIVE");
     expect(result.current.queryValues.status).toBe("ACTIVE");
     expect(replace).toHaveBeenCalledWith(
-      expect.stringContaining("status=ACTIVE"),
-      { scroll: false }
+      expect.stringContaining("status=ACTIVE")
     );
   });
 
@@ -45,12 +49,7 @@ describe("useTableFilters", () => {
 
     act(() => vi.advanceTimersByTime(300));
     expect(result.current.queryValues.search).toBe("abc");
-    expect(replace).toHaveBeenCalledWith(
-      expect.stringContaining("search=abc"),
-      {
-        scroll: false,
-      }
-    );
+    expect(replace).toHaveBeenCalledWith(expect.stringContaining("search=abc"));
   });
 
   it("debounce sucessivo cancela o timer anterior", () => {
@@ -73,7 +72,7 @@ describe("useTableFilters", () => {
     expect(result.current.queryValues.status).toBeUndefined();
   });
 
-  it("setFilters grava várias chaves num único replace", () => {
+  it("setFilters grava várias chaves numa única escrita da URL", () => {
     const { result } = renderHook(() => useTableFilters(fields));
     act(() => result.current.setFilters({ status: "ACTIVE", search: "delta" }));
 
@@ -85,7 +84,7 @@ describe("useTableFilters", () => {
       status: "ACTIVE",
       search: "delta",
     });
-    // Um replace só: chamar setFilter duas vezes faria a segunda chamada
+    // Uma escrita só: chamar setFilter duas vezes faria a segunda chamada
     // sobrescrever a primeira (as duas partem do mesmo searchParams).
     expect(replace).toHaveBeenCalledTimes(1);
     const url = replace.mock.calls[0][0];
@@ -110,12 +109,11 @@ describe("useTableFilters", () => {
     act(() => result.current.setFilters({ status: "ACTIVE" }));
 
     // Digitar a busca e escolher um filtro no mesmo painel, antes dos 300ms,
-    // não pode apagar o que foi digitado: os dois valem no mesmo replace.
+    // não pode apagar o que foi digitado: os dois valem na mesma escrita.
     expect(result.current.queryValues.search).toBe("abc");
     expect(result.current.queryValues.status).toBe("ACTIVE");
     expect(replace).toHaveBeenLastCalledWith(
-      expect.stringContaining("search=abc"),
-      { scroll: false }
+      expect.stringContaining("search=abc")
     );
 
     // E o timer cancelado não dispara depois, por cima do que já foi aplicado.
@@ -139,9 +137,7 @@ describe("useTableFilters", () => {
     state.sp = new URLSearchParams("page=4");
     const { result } = renderHook(() => useTableFilters(fields));
     act(() => result.current.setFilters({ status: "ACTIVE" }));
-    expect(replace).toHaveBeenCalledWith(expect.not.stringContaining("page="), {
-      scroll: false,
-    });
+    expect(replace).toHaveBeenCalledWith(expect.not.stringContaining("page="));
   });
 
   it("clearFilters zera estado e remove os campos da URL", () => {
@@ -151,19 +147,16 @@ describe("useTableFilters", () => {
     act(() => result.current.clearFilters());
     expect(result.current.inputValues).toEqual({});
     expect(result.current.queryValues).toEqual({});
-    expect(replace).toHaveBeenCalledWith("/list?", { scroll: false });
+    expect(replace).toHaveBeenCalledWith("/list");
   });
 
   it("setPage seta page>1 e remove em page<=1", () => {
     const { result } = renderHook(() => useTableFilters(fields));
     act(() => result.current.setPage(3));
-    expect(replace).toHaveBeenCalledWith(expect.stringContaining("page=3"), {
-      scroll: false,
-    });
+    expect(replace).toHaveBeenCalledWith(expect.stringContaining("page=3"));
     act(() => result.current.setPage(1));
     expect(replace).toHaveBeenLastCalledWith(
-      expect.not.stringContaining("page="),
-      { scroll: false }
+      expect.not.stringContaining("page=")
     );
   });
 

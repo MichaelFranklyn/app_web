@@ -1,6 +1,6 @@
 "use client";
 
-import { usePathname, useRouter, useSearchParams } from "next/navigation";
+import { usePathname, useSearchParams } from "next/navigation";
 import { useCallback, useEffect, useRef, useState } from "react";
 
 export interface TextFieldConfig {
@@ -71,7 +71,6 @@ function omitKey(
 export const useTableFilters = (
   fields: Record<string, FieldConfig>
 ): UseTableFiltersReturn => {
-  const router = useRouter();
   const pathname = usePathname();
   const searchParams = useSearchParams();
   const textDebounceRef = useRef<NodeJS.Timeout | null>(null);
@@ -140,15 +139,43 @@ export const useTableFilters = (
     };
   }, []);
 
+  /**
+   * Escreve o estado da lista na URL SEM passar pelo roteador.
+   *
+   * `router.replace` trata a troca de filtro como navegação: o Next volta ao
+   * servidor buscar o payload da rota, e numa lista com dados no SSR isso
+   * significa refazer as consultas da página inteira a cada tecla digitada,
+   * cada página virada e cada coluna ordenada — trabalho que ninguém vê, já que
+   * quem repinta a tabela é o Apollo, no cliente. Era o custo por interação que
+   * o Speed Insights media na carteira de clientes.
+   *
+   * A History API nativa é integrada ao roteador do Next (`usePathname` e
+   * `useSearchParams` continuam refletindo a URL), então o link permanece
+   * compartilhável e o F5 continua abrindo o mesmo recorte — só não há mais ida
+   * ao servidor. `replaceState`, e não `pushState`: filtrar não é um passo do
+   * histórico, o "voltar" tem de sair da lista.
+   */
+  const writeUrl = useCallback(
+    (params: URLSearchParams) => {
+      const query = params.toString();
+      window.history.replaceState(
+        null,
+        "",
+        query ? `${pathname}?${query}` : pathname
+      );
+    },
+    [pathname]
+  );
+
   const updateUrl = useCallback(
     (key: string, value: string | undefined) => {
       const params = new URLSearchParams(searchParams.toString());
       if (value) params.set(key, value);
       else params.delete(key);
       params.delete("page");
-      router.replace(`${pathname}?${params.toString()}`, { scroll: false });
+      writeUrl(params);
     },
-    [searchParams, pathname, router]
+    [searchParams, writeUrl]
   );
 
   const setFilter = useCallback(
@@ -189,7 +216,7 @@ export const useTableFilters = (
    * Chamar `setFilter` duas vezes no mesmo evento NÃO funciona: as duas montam
    * a URL a partir do mesmo `searchParams` deste render, então a segunda
    * sobrescreve a primeira (um filtro de período gravaria só o "até"). Aqui as
-   * chaves entram no mesmo `URLSearchParams` e num único `router.replace`.
+   * chaves entram no mesmo `URLSearchParams` e numa única escrita da URL.
    *
    * `filterPatch` vai para o estado dos filtros E para a URL; `urlPatch` só
    * para a URL. É essa separação que deixa a ordenação viajar pela URL sem
@@ -226,9 +253,9 @@ export const useTableFilters = (
         else params.delete(key);
       });
       params.delete("page");
-      router.replace(`${pathname}?${params.toString()}`, { scroll: false });
+      writeUrl(params);
     },
-    [searchParams, pathname, router]
+    [searchParams, writeUrl]
   );
 
   const setFilters = useCallback(
@@ -254,17 +281,17 @@ export const useTableFilters = (
     const params = new URLSearchParams(searchParams.toString());
     Object.keys(fields).forEach((key) => params.delete(key));
     params.delete("page");
-    router.replace(`${pathname}?${params.toString()}`, { scroll: false });
-  }, [fields, searchParams, pathname, router]);
+    writeUrl(params);
+  }, [fields, searchParams, writeUrl]);
 
   const setPage = useCallback(
     (page: number) => {
       const params = new URLSearchParams(searchParams.toString());
       if (page <= 1) params.delete("page");
       else params.set("page", String(page));
-      router.replace(`${pathname}?${params.toString()}`, { scroll: false });
+      writeUrl(params);
     },
-    [pathname, searchParams, router]
+    [searchParams, writeUrl]
   );
 
   return {

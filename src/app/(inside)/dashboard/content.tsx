@@ -15,6 +15,9 @@ import { useDashboard } from "./useDashboard";
 export default function DashboardContent({
   canSelectSeller,
   ownSellerId,
+  initialRange,
+  initialSellerId,
+  seed,
 }: DashboardContentProps) {
   const {
     range,
@@ -34,7 +37,13 @@ export default function DashboardContent({
     isLoading,
     error,
     refetch,
-  } = useDashboard(canSelectSeller, ownSellerId);
+  } = useDashboard({
+    canSelectSeller,
+    ownSellerId,
+    initialRange,
+    initialSellerId,
+    seed,
+  });
 
   return (
     <PageContent>
@@ -70,7 +79,7 @@ export default function DashboardContent({
               cols={{ base: 1, desktop: hasRoutines ? 2 : 1 }}
               gap={12}
             >
-              <RecentOrdersTable orders={orders.slice(0, 4)} />
+              <RecentOrdersTable orders={orders} />
               {hasRoutines && <UpcomingVisitsCard items={upcomingVisits} />}
             </Grid.Root>
           </Card.Header.Group>

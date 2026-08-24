@@ -1,5 +1,9 @@
-import { getCurrentWeekMondayIso, toUtcIsoDate } from "@/utils/format/date";
-import { OrderStatus } from "./interface";
+import {
+  getBrtTodayIso,
+  toUtcIsoDate,
+  weekMondayIso,
+} from "@/utils/format/date";
+import { DateRangeIso, OrderStatus } from "./interface";
 
 export type OrderStatusColor = "neutral" | "blue" | "amber" | "green" | "red";
 
@@ -32,13 +36,97 @@ export const isoToLocalDate = (iso: string): Date => {
   return new Date(year, (month ?? 1) - 1, day ?? 1);
 };
 
-export const getCurrentWeekRangeIso = (): { from: string; to: string } => {
-  const from = getCurrentWeekMondayIso();
+/**
+ * A semana (segunda a domingo) que contém um dia ISO qualquer.
+ *
+ * Sem argumento, a semana de hoje EM BRASÍLIA — e não a do relógio do ambiente:
+ * a página busca esta mesma semana no servidor para semear o cache, e um
+ * servidor em UTC ancoraria outra semana das 21h em diante. Aí o dado do SSR
+ * não casaria com a consulta do navegador e a tela voltaria a piscar o esqueleto.
+ */
+export const getCurrentWeekRangeIso = (
+  todayIso: string = getBrtTodayIso()
+): DateRangeIso => {
+  const from = weekMondayIso(todayIso);
   const start = isoToDate(from);
   const end = new Date(start);
   end.setUTCDate(start.getUTCDate() + 6);
   return { from, to: toUtcIsoDate(end) };
 };
+
+/** Quantos pedidos do período entram na soma do faturamento. */
+export const ORDERS_PAGE_SIZE = 100;
+
+/** Quantas linhas a tabela "Pedidos recentes" mostra. */
+export const RECENT_ORDERS_SIZE = 4;
+
+/** Vendedores no seletor do gestor. */
+export const SELLERS_VARIABLES = { input: { first: 200 } };
+
+// Anexa o filtro de vendedor às buscas do painel quando um gestor escolhe
+// alguém no seletor. Vendedor logado é escopado pelo backend (token), não aqui.
+const withSeller = (
+  filters: { field: string; operator: string; value: string }[],
+  sellerId: string | null
+) =>
+  sellerId
+    ? [...filters, { field: "seller_id", operator: "eq", value: sellerId }]
+    : filters;
+
+/**
+ * As variáveis das três consultas do painel.
+ *
+ * Uma função só, chamada pelo SERVIDOR (que busca para semear o cache) e pelo
+ * hook do cliente (que consulta). O seed do Apollo casa por variável: bastava
+ * um `first` diferente entre os dois lados para o cache dar miss e a tela pagar
+ * de novo a ida à rede que o SSR tinha acabado de pagar.
+ */
+export const dashboardVariables = (
+  range: DateRangeIso,
+  sellerId: string | null
+) => ({
+  orders: {
+    input: {
+      first: ORDERS_PAGE_SIZE,
+      filters: withSeller(
+        [
+          { field: "order_date", operator: "gte", value: range.from },
+          { field: "order_date", operator: "lte", value: range.to },
+        ],
+        sellerId
+      ),
+      order: { by: "created_at", dir: "desc" },
+    },
+  },
+  recentOrders: {
+    input: {
+      first: RECENT_ORDERS_SIZE,
+      filters: withSeller(
+        [
+          { field: "order_date", operator: "gte", value: range.from },
+          { field: "order_date", operator: "lte", value: range.to },
+        ],
+        sellerId
+      ),
+      order: { by: "created_at", dir: "desc" },
+    },
+  },
+  clientsCount: {
+    input: { first: 1, filters: withSeller([], sellerId) },
+  },
+  schedules: {
+    input: {
+      first: 20,
+      filters: withSeller(
+        [
+          { field: "week_start", operator: "gte", value: range.from },
+          { field: "week_start", operator: "lte", value: range.to },
+        ],
+        sellerId
+      ),
+    },
+  },
+});
 
 const MONTH_LABELS = [
   "Jan",

@@ -52,8 +52,9 @@ test("plano: mostra o uso de cada teto", async ({ page }) => {
 
   await expect(page.getByText("Pro").first()).toBeVisible();
   await expect(page.getByText("4 de 10")).toBeVisible();
-  // Teto ausente não vira "0 de 0": vira "sem limite", e sem barra.
-  await expect(page.getByText("7 · sem limite")).toBeVisible();
+  // Teto ausente não vira "0 de 0": o número aparece sozinho, sem barra, e o
+  // rodapé do cartão diz por quê.
+  await expect(page.getByText("sem limite neste plano")).toBeVisible();
 });
 
 test("plano: teto cheio avisa por que o cadastro vai ser recusado", async ({

@@ -15,14 +15,15 @@ import {
   MARK_NOTIFICATION_AS_READ_MUTATION,
   MY_NOTIFICATIONS_QUERY,
   MY_UNREAD_NOTIFICATIONS_COUNT_QUERY,
-} from "./gql";
+} from "../../_shared/notifications/gql";
 import {
   MarkAllAsReadResponse,
   MarkAsReadResponse,
   MyNotificationsResponse,
   MyUnreadCountResponse,
   Notification,
-} from "./interface";
+} from "../../_shared/notifications/interface";
+import { notificationHref } from "../../_shared/notifications/utils";
 
 /**
  * Motor do NotificationCenter: queries (contagem + lista), mutations de leitura
@@ -82,9 +83,13 @@ export function useNotificationCenter() {
   };
 
   const handleItemClick = (n: Notification) => {
+    // Insight não tem registro para abrir: o aviso É o conteúdo, e quem o
+    // mostra por inteiro (com a ação ao lado) é a central. Ver `notificationHref`.
+    const href = notificationHref(n);
+
     if (n.isRead) {
       setOpen(false);
-      if (n.link) router.push(n.link);
+      if (href) router.push(href);
       return;
     }
 
@@ -95,7 +100,7 @@ export function useNotificationCenter() {
     });
     unread.updateOptimistic({ count: Math.max(0, unread.data.count - 1) });
     setOpen(false);
-    if (n.link) router.push(n.link);
+    if (href) router.push(href);
 
     void execute(
       async () => {

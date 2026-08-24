@@ -22,6 +22,26 @@ const SSR_RESPONSES: Record<string, unknown> = {
   CompanyFactories: { company_factories_list: emptyConnection() },
   Orders: { orders_list: emptyConnection() },
 
+  // O DASHBOARD passou a buscar no servidor: os vendedores (para já abrir com
+  // um escolhido, em vez de esperar a lista para só então perguntar os números)
+  // e as três consultas do painel. Vazio de propósito, como os demais seeds — o
+  // `page.route` de cada spec continua mandando no que a tela mostra.
+  DashboardSellers: { dashboard_sellers: emptyConnection() },
+  OrdersByPeriod: { orders_by_period: emptyConnection() },
+  RecentOrders: { recent_orders: emptyConnection() },
+  CompanyClientsCount: { company_clients_count: emptyConnection() },
+  SchedulesByPeriod: { schedules_by_period: emptyConnection() },
+
+  // O índice de catálogos conta os cinco no servidor para mostrar o tamanho de
+  // cada um no card. Zeros aqui: nenhum spec do índice depende do número.
+  SettingsCatalogCounts: {
+    categories: { totalCount: 0 },
+    units: { totalCount: 0 },
+    labels: { totalCount: 0 },
+    segments: { totalCount: 0 },
+    taxRules: { totalCount: 0 },
+  },
+
   // O DETALHE do pedido também busca no servidor (detalhe + itens em paralelo,
   // para o cliente não encadear uma query depois da outra). Mesma ideia das
   // listas: vazio aqui, e o `page.route` de cada spec continua mandando no que
@@ -75,6 +95,15 @@ const SSR_RESPONSES: Record<string, unknown> = {
   // mockam nada porque a página é estática.
   MyUnreadNotificationsCount: {
     myUnreadNotificationsCount: { status: true, data: 0 },
+  },
+  // O sino busca a lista pelo BFF (browser), mas a resposta precisa existir
+  // aqui para os specs que não a declaram.
+  MyNotifications: { my_notifications: emptyConnection() },
+  // A tela de insights faz a leitura inteira no SERVIDOR. `data: null` porque o
+  // seed só semeia com conteúdo: o cliente busca e o `page.route` de cada spec
+  // manda no que a tela mostra.
+  MyInsights: {
+    myInsights: { status: true, code: 200, message: "ok", data: null },
   },
   // O plano da empresa é lido no SERVIDOR, no layout de `(inside)`: é ele que
   // decide quais itens a sidebar tem. Sem esta resposta, todo spec de tela

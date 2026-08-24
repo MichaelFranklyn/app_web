@@ -7,6 +7,7 @@ import {
   ClipboardList,
   Coins,
   LayoutDashboard,
+  Lightbulb,
   Route,
   Tags,
   Target,
@@ -45,6 +46,14 @@ export const NAV = [
     label: "Rota do dia",
     icon: Route,
     feature: "ROUTINES" as NavFeature,
+  },
+  {
+    // O que está pendente HOJE e por quê. Sem `feature`: a leitura é calculada
+    // na hora a partir de carteira, pedidos, boletos e metas — não depende do
+    // módulo de avisos automáticos, que é outra coisa (o sino).
+    href: "/insights",
+    label: "Insights",
+    icon: Lightbulb,
   },
   { divider: true },
   { section: "Operações" },

@@ -1,5 +1,12 @@
 import { gql } from "@apollo/client";
 
+/**
+ * As consultas de notificação, no pai dos dois consumidores: o sino da topbar
+ * (prévia das 20 últimas) e a central em `/notifications` (histórico com
+ * filtro e paginação). Uma cópia em cada lado divergiria no primeiro campo novo
+ * — e o cache do Apollo, que casa por documento, deixaria de ser um só.
+ */
+
 export const MY_NOTIFICATIONS_QUERY = gql`
   query MyNotifications($input: BaseListInput!) {
     my_notifications: myNotifications(input: $input) {
@@ -17,6 +24,10 @@ export const MY_NOTIFICATIONS_QUERY = gql`
           readAt
           createdAt
         }
+      }
+      pageInfo {
+        hasNextPage
+        endCursor
       }
       totalCount
     }

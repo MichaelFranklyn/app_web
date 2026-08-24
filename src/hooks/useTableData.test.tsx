@@ -4,12 +4,12 @@ import { act, renderHook, waitFor } from "@testing-library/react";
 import { ReactNode } from "react";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 
-// useTableData/useTableFilters dependem do router do App Router.
+// useTableData/useTableFilters leem a URL pelo App Router e a ESCREVEM pela
+// History API nativa (ver `writeUrl`) — o espião abaixo faz o papel dela.
 const { state } = vi.hoisted(() => ({ state: { sp: new URLSearchParams() } }));
 const replace = vi.fn();
 vi.mock("next/navigation", () => ({
   useSearchParams: () => state.sp,
-  useRouter: () => ({ replace }),
   usePathname: () => "/test",
 }));
 
@@ -112,7 +112,7 @@ const run = async (opts: {
   return result;
 };
 
-/** Parâmetros da última URL escrita pelo router. */
+/** Parâmetros da última URL escrita na barra de endereços. */
 const lastUrlParams = () =>
   new URLSearchParams(
     decodeURIComponent(replace.mock.calls.at(-1)![0] as string).split("?")[1]
@@ -123,6 +123,9 @@ const ids = (items: Item[]) => items.map((i) => i.id);
 beforeEach(() => {
   state.sp = new URLSearchParams();
   replace.mockClear();
+  vi.spyOn(window.history, "replaceState").mockImplementation(
+    (_state, _unused, url) => replace(url)
+  );
 });
 
 describe("useTableData — baseFilters", () => {

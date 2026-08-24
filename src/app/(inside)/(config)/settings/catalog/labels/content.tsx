@@ -8,6 +8,7 @@ export default function LabelsContent() {
   return (
     <PageContent>
       <CatalogSubHeader
+        href="/settings/catalog/labels"
         title="Rótulos de embalagem"
         description="O nome da embalagem em que o produto é entregue. Junto com as unidades por embalagem, define como o produto é comercializado (ex.: 12 sacos por pallet)."
       />

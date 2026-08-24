@@ -2,8 +2,9 @@
 
 import { EmptyState } from "@/components/EmptyState";
 import { QueryError } from "@/components/QueryError";
-import { HelpTooltip } from "@/components/HelpTooltip";
 import { Table } from "@/components/Table";
+
+import { CatalogSectionHead } from "../CatalogSectionHead";
 import { LABEL_COLUMN_HELP } from "../../help";
 import { Title } from "@/components/Title";
 import { useCompleteList } from "@/hooks/useCompleteList";
@@ -49,35 +50,32 @@ export function LabelsSection() {
 
   return (
     <Table.Root>
-      <Table.CardHead>
-        <Table.CardHead.Title className="inline-flex items-center gap-6">
-          Rótulos de embalagem
-          <HelpTooltip
-            label="O que é um rótulo de embalagem?"
-            content={
-              <div className="flex flex-col gap-2">
-                <Title variant="label" color="amber">
-                  Rótulo de embalagem
-                </Title>
-                <Title variant="body-sm">
-                  Nome da embalagem em que o produto é entregue. Ex.:
-                  &quot;Caixa&quot;, &quot;Pallet&quot;, &quot;Fardo&quot;.
-                </Title>
-                <Title variant="body-sm" color="muted">
-                  Combinado com &quot;unidades por embalagem&quot; no produto,
-                  define como ele é comercializado (ex.: 12 sacos por pallet).
-                </Title>
-              </div>
-            }
-          />
-        </Table.CardHead.Title>
-        <Table.CardHead.Actions>
-          <AddLabelModal
-            onAddOptimistic={optimistic.addOptimistic}
-            onDone={onChanged}
-          />
-        </Table.CardHead.Actions>
-      </Table.CardHead>
+      <CatalogSectionHead
+        count={labels.length}
+        loading={loading && labels.length === 0}
+        noun={{ one: "rótulo", many: "rótulos" }}
+        helpLabel="O que é um rótulo de embalagem?"
+        helpContent={
+          <div className="flex flex-col gap-2">
+            <Title variant="label" color="amber">
+              Rótulo de embalagem
+            </Title>
+            <Title variant="body-sm">
+              Nome da embalagem em que o produto é entregue. Ex.:
+              &quot;Caixa&quot;, &quot;Pallet&quot;, &quot;Fardo&quot;.
+            </Title>
+            <Title variant="body-sm" color="muted">
+              Combinado com &quot;unidades por embalagem&quot; no produto,
+              define como ele é comercializado (ex.: 12 sacos por pallet).
+            </Title>
+          </div>
+        }
+      >
+        <AddLabelModal
+          onAddOptimistic={optimistic.addOptimistic}
+          onDone={onChanged}
+        />
+      </CatalogSectionHead>
       <Table.Table maxHeight={600}>
         <Table.Header>
           <Table.Row>

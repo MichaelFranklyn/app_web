@@ -2,8 +2,9 @@
 
 import { EmptyState } from "@/components/EmptyState";
 import { QueryError } from "@/components/QueryError";
-import { HelpTooltip } from "@/components/HelpTooltip";
 import { Table } from "@/components/Table";
+
+import { CatalogSectionHead } from "../CatalogSectionHead";
 import { TAX_RULE_COLUMN_HELP } from "../../help";
 import { Title } from "@/components/Title";
 import { useCompleteList } from "@/hooks/useCompleteList";
@@ -47,47 +48,44 @@ export function TaxRulesSection() {
 
   return (
     <Table.Root>
-      <Table.CardHead>
-        <Table.CardHead.Title className="inline-flex items-center gap-6">
-          Regras de imposto
-          <HelpTooltip
-            label="Como funcionam as regras de imposto?"
-            content={
-              <div className="flex flex-col gap-6">
-                <div className="flex flex-col gap-2">
-                  <Title variant="label" color="amber">
-                    Tipo de cálculo
-                  </Title>
-                  <Title variant="body-sm">
-                    Percentual (%) aplica uma alíquota sobre o preço; Valor fixo
-                    (R$) soma um valor fechado por item.
-                  </Title>
-                </div>
-                <div className="flex flex-col gap-2">
-                  <Title variant="label" color="amber">
-                    Incluso no preço
-                  </Title>
-                  <Title variant="body-sm">
-                    &quot;Sim&quot; = o imposto já está embutido no preço
-                    cadastrado. &quot;Não&quot; = é somado por cima do preço ao
-                    montar o pedido.
-                  </Title>
-                </div>
-                <Title variant="body-sm" color="muted">
-                  As regras são o catálogo de impostos da empresa. A alíquota de
-                  cada produto é definida depois, na tabela de preços.
-                </Title>
-              </div>
-            }
-          />
-        </Table.CardHead.Title>
-        <Table.CardHead.Actions>
-          <AddTaxRuleModal
-            onAddOptimistic={optimistic.addOptimistic}
-            onDone={onChanged}
-          />
-        </Table.CardHead.Actions>
-      </Table.CardHead>
+      <CatalogSectionHead
+        count={rules.length}
+        loading={loading && rules.length === 0}
+        noun={{ one: "regra", many: "regras" }}
+        helpLabel="Como funcionam as regras de imposto?"
+        helpContent={
+          <div className="flex flex-col gap-6">
+            <div className="flex flex-col gap-2">
+              <Title variant="label" color="amber">
+                Tipo de cálculo
+              </Title>
+              <Title variant="body-sm">
+                Percentual (%) aplica uma alíquota sobre o preço; Valor fixo
+                (R$) soma um valor fechado por item.
+              </Title>
+            </div>
+            <div className="flex flex-col gap-2">
+              <Title variant="label" color="amber">
+                Incluso no preço
+              </Title>
+              <Title variant="body-sm">
+                &quot;Sim&quot; = o imposto já está embutido no preço
+                cadastrado. &quot;Não&quot; = é somado por cima do preço ao
+                montar o pedido.
+              </Title>
+            </div>
+            <Title variant="body-sm" color="muted">
+              As regras são o catálogo de impostos da empresa. A alíquota de
+              cada produto é definida depois, na tabela de preços.
+            </Title>
+          </div>
+        }
+      >
+        <AddTaxRuleModal
+          onAddOptimistic={optimistic.addOptimistic}
+          onDone={onChanged}
+        />
+      </CatalogSectionHead>
       <Table.Table maxHeight={600}>
         <Table.Header>
           <Table.Row>
