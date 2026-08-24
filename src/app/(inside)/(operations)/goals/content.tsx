@@ -1,19 +1,16 @@
 "use client";
 
 import { Button } from "@/components/Button";
-import { Card } from "@/components/Card";
 import { EmptyState } from "@/components/EmptyState";
 import { Grid } from "@/components/Grid";
 import { Input, SelectOption } from "@/components/Input";
 import { Loading } from "@/components/Loading";
 import { PageContent } from "@/components/PageContent";
 import { PanelHeader } from "@/components/PanelHeader";
-import { HelpTooltip } from "@/components/HelpTooltip";
 import { QueryError } from "@/components/QueryError";
 import { Title } from "@/components/Title";
 import { factoryName } from "@/utils/company";
 import { getTodayIso } from "@/utils/format/date";
-import { formatMoney, formatNumber } from "@/utils/format/masks";
 import {
   addMonths,
   monthLabel,
@@ -27,6 +24,7 @@ import { useRouter, useSearchParams } from "next/navigation";
 import { useMemo, useState } from "react";
 
 import { CopyGoalsModal } from "./_components/CopyGoalsModal";
+import { GoalKpiCard } from "./_components/GoalKpiCard";
 import { GoalsTable } from "./_components/GoalsTable";
 import { SetGoalModal } from "./_components/SetGoalModal";
 import {
@@ -39,14 +37,7 @@ import {
   GoalsSellersResponse,
   SellerGoalsResponse,
 } from "./interface";
-import {
-  GOAL_METRICS,
-  groupBySeller,
-  percentOf,
-  percentTone,
-  SellerGroup,
-  sumRows,
-} from "./utils";
+import { GOAL_METRICS, groupBySeller, SellerGroup, sumRows } from "./utils";
 
 interface Props {
   /** Gestor (owner/admin/su): define metas e escolhe de quem ver. */
@@ -235,31 +226,36 @@ export default function GoalsContent({ canManage }: Props) {
                     de GOAL_METRICS — a mesma das barras, para o indicador não
                     significar duas coisas em dois lugares. */}
                 <Grid.Item>
-                  <GoalKpi
+                  <GoalKpiCard
                     label={`Faturado em ${monthLabel(month)}`}
+                    status="ok"
                     values={totals.invoiced}
                     help={GOAL_METRICS[0].help}
                     money
                   />
                 </Grid.Item>
                 <Grid.Item>
-                  <GoalKpi
+                  <GoalKpiCard
                     label="Vendido"
+                    status="atencao"
                     values={totals.ordered}
                     help={GOAL_METRICS[1].help}
                     money
                   />
                 </Grid.Item>
                 <Grid.Item>
-                  <GoalKpi
+                  <GoalKpiCard
                     label="Clientes que compraram"
+                    status="neutral"
+                    valueClassName="text-(--blue)!"
                     values={totals.positivations}
                     help={GOAL_METRICS[2].help}
                   />
                 </Grid.Item>
                 <Grid.Item>
-                  <GoalKpi
+                  <GoalKpiCard
                     label="Visitas concluídas"
+                    status="ok"
                     values={totals.visits}
                     help={GOAL_METRICS[3].help}
                   />
@@ -298,48 +294,5 @@ export default function GoalsContent({ canManage }: Props) {
         </>
       )}
     </PageContent>
-  );
-}
-
-interface GoalKpiProps {
-  label: string;
-  values: { target: number | null; done: number };
-  /** O que este indicador mede — o mesmo texto das barras de cada fábrica. */
-  help?: string;
-  money?: boolean;
-}
-
-/** Um indicador somado do recorte: o realizado grande e a meta embaixo. */
-function GoalKpi({ label, values, help, money }: GoalKpiProps) {
-  const percent = percentOf(values);
-  const format = (value: number) =>
-    money ? formatMoney(value) : formatNumber(value);
-  const tone = percentTone(percent);
-
-  return (
-    <Card.Kpi>
-      <Card.Kpi.Label className="inline-flex items-center gap-2">
-        {label}
-        {help && <HelpTooltip label={`Sobre ${label}`} content={help} />}
-      </Card.Kpi.Label>
-      <Card.Kpi.Value
-        status={
-          values.target === null
-            ? "neutral"
-            : tone === "green"
-              ? "ok"
-              : tone === "red"
-                ? "urgente"
-                : "atencao"
-        }
-      >
-        {format(values.done)}
-      </Card.Kpi.Value>
-      <Card.Kpi.Delta>
-        {values.target === null
-          ? "sem meta definida"
-          : `${percent?.toFixed(0)}% da meta de ${format(values.target)}`}
-      </Card.Kpi.Delta>
-    </Card.Kpi>
   );
 }

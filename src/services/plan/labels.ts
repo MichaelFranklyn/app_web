@@ -1,3 +1,14 @@
+import {
+  Bell,
+  ChartLine,
+  FileText,
+  HandCoins,
+  LucideIcon,
+  Route,
+  Target,
+  Upload,
+} from "lucide-react";
+
 import { PlanFeature } from "./interface";
 
 /**
@@ -41,3 +52,18 @@ export const FEATURE_ORDER: PlanFeature[] = [
   "COMMISSIONS",
   "NOTIFICATIONS",
 ];
+
+/**
+ * O desenho de cada recurso. Mesmo ícone que a sidebar usa para o destino
+ * correspondente — a lista do plano é onde se descobre por que um item do menu
+ * não está lá, e o pareamento é o que faz a ligação sem precisar de texto.
+ */
+export const FEATURE_ICON: Record<PlanFeature, LucideIcon> = {
+  ROUTINES: Route,
+  ANALYTICS: ChartLine,
+  REPORTS: FileText,
+  BULK_IMPORT: Upload,
+  GOALS: Target,
+  COMMISSIONS: HandCoins,
+  NOTIFICATIONS: Bell,
+};

@@ -1,9 +1,10 @@
 "use client";
 
 import { EmptyState } from "@/components/EmptyState";
-import { HelpTooltip } from "@/components/HelpTooltip";
 import { QueryError } from "@/components/QueryError";
 import { Table } from "@/components/Table";
+
+import { CatalogSectionHead } from "../CatalogSectionHead";
 import { SEGMENT_COLUMN_HELP } from "../../help";
 import { Title } from "@/components/Title";
 import { useCompleteList } from "@/hooks/useCompleteList";
@@ -44,36 +45,32 @@ export function SegmentsSection() {
 
   return (
     <Table.Root>
-      <Table.CardHead>
-        <Table.CardHead.Title className="inline-flex items-center gap-6">
-          Segmentos de clientes
-          <HelpTooltip
-            label="O que é um segmento de cliente?"
-            content={
-              <div className="flex flex-col gap-2">
-                <Title variant="label" color="amber">
-                  Segmento
-                </Title>
-                <Title variant="body-sm">
-                  O ramo de atividade da loja. Ex.: &quot;Farmácia&quot;,
-                  &quot;Mercearia&quot;, &quot;Atacado&quot;.
-                </Title>
-                <Title variant="body-sm" color="muted">
-                  Você escolhe o segmento na ficha de cada cliente. Ele serve
-                  para filtrar a carteira e comparar os números por tipo de
-                  negócio.
-                </Title>
-              </div>
-            }
-          />
-        </Table.CardHead.Title>
-        <Table.CardHead.Actions>
-          <AddSegmentModal
-            onAddOptimistic={optimistic.addOptimistic}
-            onDone={onChanged}
-          />
-        </Table.CardHead.Actions>
-      </Table.CardHead>
+      <CatalogSectionHead
+        count={segments.length}
+        loading={loading && segments.length === 0}
+        noun={{ one: "segmento", many: "segmentos" }}
+        helpLabel="O que é um segmento de cliente?"
+        helpContent={
+          <div className="flex flex-col gap-2">
+            <Title variant="label" color="amber">
+              Segmento
+            </Title>
+            <Title variant="body-sm">
+              O ramo de atividade da loja. Ex.: &quot;Farmácia&quot;,
+              &quot;Mercearia&quot;, &quot;Atacado&quot;.
+            </Title>
+            <Title variant="body-sm" color="muted">
+              Você escolhe o segmento na ficha de cada cliente. Ele serve para
+              filtrar a carteira e comparar os números por tipo de negócio.
+            </Title>
+          </div>
+        }
+      >
+        <AddSegmentModal
+          onAddOptimistic={optimistic.addOptimistic}
+          onDone={onChanged}
+        />
+      </CatalogSectionHead>
 
       <Table.Table maxHeight={600}>
         <Table.Header>

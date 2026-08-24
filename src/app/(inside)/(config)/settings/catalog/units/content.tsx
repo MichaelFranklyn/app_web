@@ -8,6 +8,7 @@ export default function UnitsContent() {
   return (
     <PageContent>
       <CatalogSubHeader
+        href="/settings/catalog/units"
         title="Unidades"
         description="Como o produto é medido e vendido. Cada produto escolhe uma unidade base — saco, metro, quilograma, unidade."
       />

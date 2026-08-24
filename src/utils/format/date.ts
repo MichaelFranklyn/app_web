@@ -28,6 +28,38 @@ export const getCurrentWeekMondayIso = (): string => {
 };
 
 /**
+ * A segunda-feira da semana de um dia ISO qualquer (aaaa-mm-dd).
+ *
+ * Recebe o dia em vez de olhar o relógio: é o que permite o SERVIDOR ancorar a
+ * mesma semana que o navegador vai ancorar. Duas âncoras diferentes seriam duas
+ * consultas diferentes, e o dado trazido no SSR não serviria para nada.
+ */
+export const weekMondayIso = (todayIso: string): string => {
+  const [year, month, day] = todayIso.split("-").map(Number);
+  const utc = new Date(Date.UTC(year, (month ?? 1) - 1, day ?? 1));
+  const dayOfWeek = utc.getUTCDay();
+  utc.setUTCDate(utc.getUTCDate() + (dayOfWeek === 0 ? -6 : 1 - dayOfWeek));
+  return toUtcIsoDate(utc);
+};
+
+/**
+ * Hoje no fuso de Brasília (aaaa-mm-dd).
+ *
+ * `getTodayIso` lê o relógio DO AMBIENTE — no navegador de um vendedor isso é
+ * o Brasil, mas no servidor da Vercel é UTC. Das 21h à meia-noite os dois
+ * discordam do dia, e num domingo à noite discordariam da SEMANA inteira. O
+ * backend já decide tudo em BRT (`today_brt`); o que o servidor calcula para a
+ * tela tem de decidir igual.
+ */
+export const getBrtTodayIso = (): string =>
+  new Intl.DateTimeFormat("en-CA", {
+    timeZone: "America/Sao_Paulo",
+    year: "numeric",
+    month: "2-digit",
+    day: "2-digit",
+  }).format(new Date());
+
+/**
  * Retorna o ISO (aaaa-mm-dd, em UTC) do dia de hoje.
  * Usado para atalhos que apontam para "o dia atual" (ex.: rota do dia).
  */

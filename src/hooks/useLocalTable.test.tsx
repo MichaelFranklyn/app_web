@@ -5,7 +5,6 @@ const { state } = vi.hoisted(() => ({ state: { sp: new URLSearchParams() } }));
 const replace = vi.fn();
 vi.mock("next/navigation", () => ({
   useSearchParams: () => state.sp,
-  useRouter: () => ({ replace }),
   usePathname: () => "/test",
 }));
 
@@ -62,6 +61,9 @@ const lastUrlParams = () =>
 beforeEach(() => {
   state.sp = new URLSearchParams();
   replace.mockClear();
+  vi.spyOn(window.history, "replaceState").mockImplementation(
+    (_state, _unused, url) => replace(url)
+  );
 });
 
 describe("useLocalTable — ordenação", () => {

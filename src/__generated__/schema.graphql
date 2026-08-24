@@ -1,6 +1,6 @@
 # AUTO-GERADO por scripts/pull-schema.mjs — NÃO editar à mão.
 # Snapshot do schema do backend (app_user). Atualize com: npm run schema:pull
-# Fonte: 48 arquivos .graphql merge-ados (mesma regra do Ariadne).
+# Fonte: 49 arquivos .graphql merge-ados (mesma regra do Ariadne).
 
 input BaseListInput {
   filters: [FieldFilterInput!] = null
@@ -2147,6 +2147,91 @@ enum ImportStatus {
   ERROR
 }
 
+"""
+O que está pendente e por quê — a leitura do sistema sobre o que fazer para
+vender mais.
+
+Cada insight é uma PENDÊNCIA contável, não um texto: o backend responde quantos
+casos existem, quanto dinheiro está envolvido e alguns exemplos; o rótulo, a
+explicação e a ação ficam do lado da tela (mesma divisão de `FEATURE_LABEL`).
+"""
+enum InsightKind {
+  """Clientes que passaram do PRÓPRIO ritmo de compra."""
+  CLIENT_OVERDUE
+  """Cliente com score alto que ficou fora da rotina da semana."""
+  PRIORITY_OFF_ROUTE
+  """Vínculo cuja visita venceu a frequência combinada."""
+  VISIT_OVERDUE
+  """Clientes na carteira sem nenhuma visita nos últimos 30 dias."""
+  NO_VISIT_30D
+  """Rascunho ou orçamento parado há dias, sem virar pedido."""
+  DRAFT_STALE
+  """Pedido confirmado que a fábrica ainda não faturou."""
+  PENDING_INVOICE
+  """Pedido faturado cujo prazo de entrega venceu sem confirmação."""
+  DELIVERY_UNCONFIRMED
+  """Boleto vencido e não pago."""
+  INSTALLMENT_OVERDUE
+  """Meta do mês cujo realizado está atrás do ritmo necessário."""
+  GOAL_BEHIND
+}
+
+enum InsightGroup {
+  """Quem visitar e quem está sumindo."""
+  WALLET
+  """Pedido que empacou no meio do caminho."""
+  ORDERS
+  """Dinheiro que ainda não entrou."""
+  MONEY
+  """O combinado do mês."""
+  GOALS
+}
+
+"""Um caso concreto do insight — o que a pessoa vai abrir para resolver."""
+type InsightSampleType {
+  id: UUID!
+  label: String!
+  """Complemento curto: dias de atraso, valor, nome da fábrica."""
+  detail: String
+  """Rota do registro, quando ele tem tela própria."""
+  link: String
+}
+
+type InsightType {
+  kind: InsightKind!
+  group: InsightGroup!
+  """Quantos casos existem no recorte."""
+  count: Int!
+  """Dinheiro envolvido, quando a pendência tem valor (nulo quando não tem)."""
+  amount: Decimal
+  """Dias úteis que ainda restam no mês — só faz sentido em GOAL_BEHIND."""
+  daysLeft: Int
+  """Até três exemplos, para a tela mostrar de quem está falando."""
+  samples: [InsightSampleType!]!
+}
+
+type InsightsOverviewType {
+  """Quando a leitura foi feita (os números são calculados na hora)."""
+  generatedAt: DateTime!
+  """Só os insights com pelo menos um caso — pendência zerada não vira cartão."""
+  insights: [InsightType!]!
+}
+
+type InsightsOverviewDataResponse {
+  status: Boolean!
+  code: Int!
+  message: String!
+  data: InsightsOverviewType
+}
+
+extend type Query {
+  """
+  As pendências de quem consulta. Vendedor vê as suas (escopo do token);
+  gestor vê a empresa inteira, ou um vendedor com `sellerId`.
+  """
+  myInsights(sellerId: UUID = null): InsightsOverviewDataResponse!
+}
+
 enum NotificationSeverity {
   INFO
   SUCCESS
@@ -2159,6 +2244,7 @@ enum NotificationCategory {
   VISIT
   IMPORT
   SCHEDULE
+  INSIGHT
   SYSTEM
 }
 

@@ -12,7 +12,12 @@
 export { PlanProvider, useFeature, usePlan } from "./PlanProvider";
 export type { PlanContract } from "./PlanProvider";
 export { MY_PLAN_FEATURES_QUERY, MY_PLAN_QUERY } from "./gql";
-export { FEATURE_DESCRIPTION, FEATURE_LABEL, FEATURE_ORDER } from "./labels";
+export {
+  FEATURE_DESCRIPTION,
+  FEATURE_ICON,
+  FEATURE_LABEL,
+  FEATURE_ORDER,
+} from "./labels";
 export type {
   MyPlan,
   MyPlanQueryData,

@@ -2,8 +2,9 @@
 
 import { EmptyState } from "@/components/EmptyState";
 import { QueryError } from "@/components/QueryError";
-import { HelpTooltip } from "@/components/HelpTooltip";
 import { Table } from "@/components/Table";
+
+import { CatalogSectionHead } from "../CatalogSectionHead";
 import { UNIT_COLUMN_HELP } from "../../help";
 import { Title } from "@/components/Title";
 import { useCompleteList } from "@/hooks/useCompleteList";
@@ -48,36 +49,32 @@ export function UnitsSection() {
 
   return (
     <Table.Root>
-      <Table.CardHead>
-        <Table.CardHead.Title className="inline-flex items-center gap-6">
-          Unidades
-          <HelpTooltip
-            label="O que é uma unidade?"
-            content={
-              <div className="flex flex-col gap-2">
-                <Title variant="label" color="amber">
-                  Unidade
-                </Title>
-                <Title variant="body-sm">
-                  Como o produto é medido e vendido. Ex.: &quot;Saco&quot;,
-                  &quot;Metro&quot;, &quot;Quilograma&quot;,
-                  &quot;Unidade&quot;.
-                </Title>
-                <Title variant="body-sm" color="muted">
-                  É um catálogo da empresa, compartilhado por todas as fábricas.
-                  Cada produto escolhe uma unidade base.
-                </Title>
-              </div>
-            }
-          />
-        </Table.CardHead.Title>
-        <Table.CardHead.Actions>
-          <AddUnitModal
-            onAddOptimistic={optimistic.addOptimistic}
-            onDone={onChanged}
-          />
-        </Table.CardHead.Actions>
-      </Table.CardHead>
+      <CatalogSectionHead
+        count={units.length}
+        loading={loading && units.length === 0}
+        noun={{ one: "unidade", many: "unidades" }}
+        helpLabel="O que é uma unidade?"
+        helpContent={
+          <div className="flex flex-col gap-2">
+            <Title variant="label" color="amber">
+              Unidade
+            </Title>
+            <Title variant="body-sm">
+              Como o produto é medido e vendido. Ex.: &quot;Saco&quot;,
+              &quot;Metro&quot;, &quot;Quilograma&quot;, &quot;Unidade&quot;.
+            </Title>
+            <Title variant="body-sm" color="muted">
+              É um catálogo da empresa, compartilhado por todas as fábricas.
+              Cada produto escolhe uma unidade base.
+            </Title>
+          </div>
+        }
+      >
+        <AddUnitModal
+          onAddOptimistic={optimistic.addOptimistic}
+          onDone={onChanged}
+        />
+      </CatalogSectionHead>
       <Table.Table maxHeight={600}>
         <Table.Header>
           <Table.Row>

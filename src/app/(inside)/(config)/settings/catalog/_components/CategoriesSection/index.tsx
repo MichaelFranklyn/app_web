@@ -2,8 +2,9 @@
 
 import { EmptyState } from "@/components/EmptyState";
 import { QueryError } from "@/components/QueryError";
-import { HelpTooltip } from "@/components/HelpTooltip";
 import { Table } from "@/components/Table";
+
+import { CatalogSectionHead } from "../CatalogSectionHead";
 import { CATEGORY_COLUMN_HELP } from "../../help";
 import { Title } from "@/components/Title";
 import { useCompleteList } from "@/hooks/useCompleteList";
@@ -44,51 +45,47 @@ export function CategoriesSection() {
 
   return (
     <Table.Root>
-      <Table.CardHead>
-        <Table.CardHead.Title className="inline-flex items-center gap-6">
-          Categorias de produtos
-          <HelpTooltip
-            label="Qual a diferença entre categoria e segmento?"
-            content={
-              <div className="flex flex-col gap-6">
-                <div className="flex flex-col gap-2">
-                  <Title variant="label" color="amber">
-                    Segmento
-                  </Title>
-                  <Title variant="body-sm">
-                    A grande frente da obra — a área de atuação a que o material
-                    pertence. Ex.: Hidráulica, Elétrica, Estrutura, Acabamento.
-                  </Title>
-                </div>
-                <div className="flex flex-col gap-2">
-                  <Title variant="label" color="amber">
-                    Categoria
-                  </Title>
-                  <Title variant="body-sm">
-                    Um agrupamento mais fino, de produtos semelhantes dentro de
-                    um segmento. Ex.: em Hidráulica → &quot;Tubos e
-                    conexões&quot;, &quot;Registros e válvulas&quot;; em
-                    Estrutura → &quot;Cimento e argamassa&quot;,
-                    &quot;Vergalhões&quot;.
-                  </Title>
-                </div>
-                <Title variant="body-sm" color="muted">
-                  Resumindo: o segmento responde &quot;de que área da obra
-                  é?&quot; e a categoria, &quot;que tipo de produto é?&quot;.
-                  Cada produto fica ligado a uma categoria, o que organiza o
-                  catálogo e facilita os filtros ao montar um pedido.
-                </Title>
-              </div>
-            }
-          />
-        </Table.CardHead.Title>
-        <Table.CardHead.Actions>
-          <AddCategoryModal
-            onAddOptimistic={optimistic.addOptimistic}
-            onChanged={onChanged}
-          />
-        </Table.CardHead.Actions>
-      </Table.CardHead>
+      <CatalogSectionHead
+        count={categories.length}
+        loading={loading && categories.length === 0}
+        noun={{ one: "categoria", many: "categorias" }}
+        helpLabel="Qual a diferença entre categoria e segmento?"
+        helpContent={
+          <div className="flex flex-col gap-6">
+            <div className="flex flex-col gap-2">
+              <Title variant="label" color="amber">
+                Segmento
+              </Title>
+              <Title variant="body-sm">
+                A grande frente da obra — a área de atuação a que o material
+                pertence. Ex.: Hidráulica, Elétrica, Estrutura, Acabamento.
+              </Title>
+            </div>
+            <div className="flex flex-col gap-2">
+              <Title variant="label" color="amber">
+                Categoria
+              </Title>
+              <Title variant="body-sm">
+                Um agrupamento mais fino, de produtos semelhantes dentro de um
+                segmento. Ex.: em Hidráulica → &quot;Tubos e conexões&quot;,
+                &quot;Registros e válvulas&quot;; em Estrutura → &quot;Cimento e
+                argamassa&quot;, &quot;Vergalhões&quot;.
+              </Title>
+            </div>
+            <Title variant="body-sm" color="muted">
+              Resumindo: o segmento responde &quot;de que área da obra é?&quot;
+              e a categoria, &quot;que tipo de produto é?&quot;. Cada produto
+              fica ligado a uma categoria, o que organiza o catálogo e facilita
+              os filtros ao montar um pedido.
+            </Title>
+          </div>
+        }
+      >
+        <AddCategoryModal
+          onAddOptimistic={optimistic.addOptimistic}
+          onChanged={onChanged}
+        />
+      </CatalogSectionHead>
 
       <Table.Table maxHeight={600}>
         <Table.Header>

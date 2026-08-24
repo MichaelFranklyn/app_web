@@ -1,5 +1,36 @@
 import { gql } from "@apollo/client";
 
+/**
+ * Quanto já existe em cada catálogo, numa consulta só.
+ *
+ * O índice mostrava cinco cards idênticos: quem chegava não sabia o que já
+ * estava preenchido e o que nunca foi tocado — a pergunta que traz alguém a
+ * esta tela. Cinco contagens custam pouco (nenhuma traz linha, só o total) e
+ * saem no SSR, junto com a página.
+ */
+export const CATALOG_COUNTS_QUERY = gql`
+  query SettingsCatalogCounts($input: BaseListInput!) {
+    categories: productCategories(input: $input) {
+      totalCount
+    }
+    units: productUnits(input: $input) {
+      totalCount
+    }
+    labels: productUnitLabels(input: $input) {
+      totalCount
+    }
+    segments: clientSegments(input: $input) {
+      totalCount
+    }
+    taxRules: taxRules(input: $input) {
+      totalCount
+    }
+  }
+`;
+
+/** Só o total interessa — nenhuma linha precisa vir junto. */
+export const CATALOG_COUNTS_INPUT = { first: 1 };
+
 export const PRODUCT_UNITS_QUERY = gql`
   query SettingsProductUnits($input: BaseListInput!) {
     productUnits(input: $input) {

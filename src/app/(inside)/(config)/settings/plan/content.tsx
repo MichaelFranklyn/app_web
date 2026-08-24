@@ -1,16 +1,15 @@
 "use client";
 
-import { Grid } from "@/components/Grid";
 import { Loading } from "@/components/Loading";
 import { PageContent } from "@/components/PageContent";
 import { QueryError } from "@/components/QueryError";
-import { MY_PLAN_QUERY, MyPlanQueryData } from "@/services/plan";
 import { useSeedQuery } from "@/hooks/useSeedQuery";
+import { MY_PLAN_QUERY, MyPlanQueryData } from "@/services/plan";
 import { useQuery } from "@apollo/client/react";
 
-import { PlanFeaturesCard } from "./_components/PlanFeaturesCard";
+import { PlanFeaturesSection } from "./_components/PlanFeaturesSection";
 import { PlanHeader } from "./_components/PlanHeader";
-import { PlanUsageCard } from "./_components/PlanUsageCard";
+import { PlanUsageSection } from "./_components/PlanUsageSection";
 
 /**
  * O contrato da empresa, do lado de quem paga por ele: qual plano, o que ele
@@ -58,15 +57,8 @@ export default function PlanContent({ seed }: Props) {
   return (
     <PageContent>
       <PlanHeader plan={plan} />
-
-      <Grid.Root cols={{ base: 1, desktop: 2 }} gap={12}>
-        <Grid.Item>
-          <PlanUsageCard limits={plan.limits} />
-        </Grid.Item>
-        <Grid.Item>
-          <PlanFeaturesCard features={plan.features} />
-        </Grid.Item>
-      </Grid.Root>
+      <PlanUsageSection limits={plan.limits} />
+      <PlanFeaturesSection features={plan.features} />
     </PageContent>
   );
 }

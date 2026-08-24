@@ -4,30 +4,17 @@ import { Title } from "@/components/Title";
 import { Topbar } from "@/components/Topbar";
 import { cn } from "@/lib/utils";
 import * as DropdownMenuPrimitive from "@radix-ui/react-dropdown-menu";
-import { Bell, Check, CheckCheck } from "lucide-react";
-import { NotificationSeverity } from "./interface";
+import { ArrowRight, Bell, Check, CheckCheck } from "lucide-react";
+import Link from "next/link";
+
+// O sino é a PRÉVIA; a lista inteira, com filtro e paginação, está na central.
+// Rótulos, cores e o `timeAgo` vêm do pai, para os dois contarem a mesma coisa.
+import {
+  INSIGHTS_ROUTE,
+  SEVERITY_DOT,
+  timeAgo,
+} from "../../_shared/notifications/utils";
 import { useNotificationCenter } from "./useNotificationCenter";
-
-const SEVERITY_DOT: Record<NotificationSeverity, string> = {
-  INFO: "bg-(--blue)",
-  SUCCESS: "bg-(--green)",
-  WARNING: "bg-(--amber)",
-  ERROR: "bg-(--red)",
-};
-
-function timeAgo(iso: string): string {
-  const diff = Date.now() - new Date(iso).getTime();
-  const sec = Math.round(diff / 1000);
-  if (sec < 60) return "agora";
-  const min = Math.round(sec / 60);
-  if (min < 60) return `${min}min`;
-  const hours = Math.round(min / 60);
-  if (hours < 24) return `${hours}h`;
-  const days = Math.round(hours / 24);
-  if (days < 7) return `${days}d`;
-  const weeks = Math.round(days / 7);
-  return `${weeks}sem`;
-}
 
 export function NotificationCenter() {
   const {
@@ -146,6 +133,22 @@ export function NotificationCenter() {
               ))
             )}
           </div>
+
+          {/* A saída do sino é a AÇÃO, não mais avisos: aqui os itens são o que
+              já aconteceu; lá está o que ainda precisa ser feito, com o motivo. */}
+          <Link
+            href={INSIGHTS_ROUTE}
+            onClick={() => setOpen(false)}
+            className={cn(
+              "flex items-center justify-center gap-6 border-t border-(--border) px-12 py-10",
+              "text-(--muted) transition-colors hover:bg-(--bg3) hover:text-(--text)"
+            )}
+          >
+            <Title variant="micro" weight="semibold" className="text-inherit">
+              Ver o que está pendente
+            </Title>
+            <ArrowRight size={12} />
+          </Link>
         </DropdownMenuPrimitive.Content>
       </DropdownMenuPrimitive.Portal>
     </DropdownMenuPrimitive.Root>

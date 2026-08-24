@@ -5,6 +5,25 @@ export interface DashboardContentProps {
   // Perfil de vendedor do PRÓPRIO gestor, se ele também vende — vira o default
   // do seletor (abre vendo os dados dele, podendo trocar). Null: sem perfil.
   ownSellerId?: string | null;
+  // A semana aberta, ancorada NO SERVIDOR (em BRT): é ela que define as
+  // consultas semeadas, e recalcular no cliente arriscaria outra semana.
+  initialRange: DateRangeIso;
+  // Vendedor já escolhido pelo servidor. Sem isto, a tela precisava esperar a
+  // lista de vendedores chegar para só então descobrir de quem eram os números
+  // — duas idas à rede em fila, com o esqueleto na tela o tempo todo.
+  initialSellerId: string | null;
+  // Respostas trazidas pelo SSR, no shape das próprias queries (ver `useSeedQuery`).
+  seed: DashboardSeed | null;
+}
+
+/** O que o servidor já buscou para a primeira pintura. Chave nula = falhou lá,
+ * e o cliente busca por conta própria. */
+export interface DashboardSeed {
+  sellers: DashboardSellersResponse | null;
+  orders: OrdersByPeriodResponse | null;
+  recentOrders: RecentOrdersResponse | null;
+  clients: CompanyClientsCountResponse | null;
+  schedules: SchedulesByPeriodResponse | null;
 }
 
 export interface DateRangeIso {
@@ -54,8 +73,21 @@ export interface DashboardOrder {
   factory: NamedEntity | null;
 }
 
+/** O que entra na soma do período: só o valor. */
+export interface OrderAmount {
+  id: string;
+  totalAmount: string;
+}
+
 export interface OrdersByPeriodResponse {
   orders_by_period: {
+    edges: { node: OrderAmount }[];
+    totalCount: number;
+  };
+}
+
+export interface RecentOrdersResponse {
+  recent_orders: {
     edges: { node: DashboardOrder }[];
     totalCount: number;
   };
