@@ -1,5 +1,6 @@
 import { expect, test } from "../support/fixtures";
 import { mockGraphql } from "../support/graphql";
+import { grantRole } from "../support/role";
 
 /**
  * Cauda longa — vincular um cliente à fábrica
@@ -111,6 +112,137 @@ test("fábrica/clientes: vincula um cliente (cliente + vendedor + nível)", asyn
     sellerId: "s-1",
     priceTierId: "t-1",
   });
+});
+
+/**
+ * Transferir o atendimento é confirmado ANTES de salvar — e a confirmação
+ * NUNCA divide a tela com o formulário. Modal sobre modal é proibido: o
+ * formulário sai de cena e volta preenchido se o gestor desistir.
+ */
+test("fábrica/clientes: a confirmação de transferência não empilha modal", async ({
+  page,
+}) => {
+  // Tomar a carteira de um colega é decisão de gestor.
+  await grantRole(page, "OWNER");
+
+  await mockGraphql(page, {
+    FactoryClientLinks: () => ({ factory_client_links: conn([]) }),
+    CompanyClientsForFactoryLink: () => ({
+      companyClients: {
+        edges: [
+          {
+            node: {
+              id: "cc-1",
+              isActive: true,
+              client: {
+                id: "client-1",
+                razaoSocial: "Cliente Alvo SA",
+                nomeFantasia: "Cliente Alvo",
+              },
+            },
+          },
+        ],
+      },
+    }),
+    SellersWithAccessForFactory: () => ({
+      sellerFactoryAccessList: {
+        edges: [
+          {
+            node: {
+              id: "a-1",
+              sellerId: "s-1",
+              isActive: true,
+              seller: { id: "s-1", name: "Vendedor Novo" },
+            },
+          },
+        ],
+      },
+    }),
+    PriceTiersForFactoryLink: () => ({
+      priceTiers: { edges: [{ node: { id: "t-1", name: "Varejo" } }] },
+    }),
+    // O cliente JÁ é atendido por outro vendedor nesta fábrica: salvar transfere.
+    ExistingFactoryClientLinks: () => ({
+      sellerClientFactoryList: {
+        edges: [
+          {
+            node: {
+              id: "link-9",
+              clientId: "client-1",
+              sellerId: "s-9",
+              seller: { id: "s-9", name: "Vendedor Antigo" },
+            },
+          },
+        ],
+      },
+    }),
+    LinkClientToFactory: () => ({
+      createSellerClientFactory: {
+        status: true,
+        message: "ok",
+        data: { id: "link-1" },
+      },
+    }),
+  });
+
+  await page.goto(`${base}/clients`);
+  await page.getByRole("button", { name: "Vincular cliente" }).click();
+
+  const dialog = page.getByRole("dialog");
+  const cliente = dialog.getByRole("textbox", { name: "Cliente" });
+  await cliente.click();
+  await cliente.pressSequentially("Cliente Alvo");
+  await page
+    .locator("[data-select-dropdown]")
+    .getByText("Cliente Alvo — atendido por Vendedor Antigo", { exact: true })
+    .click();
+
+  const vendedor = dialog.getByRole("textbox", { name: "Vendedor" });
+  await vendedor.click();
+  await vendedor.pressSequentially("Vendedor Novo");
+  await page
+    .locator("[data-select-dropdown]")
+    .getByText("Vendedor Novo", { exact: true })
+    .click();
+
+  const nivel = dialog.getByRole("textbox", {
+    name: "Nível da tabela de preço",
+  });
+  await nivel.click();
+  await nivel.pressSequentially("Varejo");
+  await page
+    .locator("[data-select-dropdown]")
+    .getByText("Varejo", { exact: true })
+    .click();
+
+  // Avisa antes: o botão muda de "Vincular cliente" para "Transferir vínculo".
+  await dialog.getByRole("button", { name: "Transferir vínculo" }).click();
+
+  // UM diálogo na tela — o da confirmação. O formulário saiu do DOM.
+  //
+  // A contagem é por seletor CSS, não por getByRole: quando um Radix Dialog
+  // abre sobre outro, o de baixo recebe `aria-hidden` e SOME da árvore de
+  // acessibilidade — `getByRole("dialog")` devolveria 1 mesmo com os dois
+  // empilhados, e o teste passaria justamente no caso que ele existe para pegar.
+  const dialogs = page.locator('[role="dialog"]');
+  await expect(
+    page.getByRole("heading", {
+      name: "Transferir o atendimento deste cliente?",
+    })
+  ).toBeVisible();
+  await expect(dialogs).toHaveCount(1);
+  await expect(page.locator('input[name="clientId"]')).toHaveCount(0);
+
+  // Desistiu: a confirmação sai, o formulário volta — e volta PREENCHIDO.
+  await page.getByRole("button", { name: "Cancelar" }).click();
+
+  await expect(dialogs).toHaveCount(1);
+  await expect(page.getByRole("textbox", { name: "Cliente" })).toHaveValue(
+    "Cliente Alvo — atendido por Vendedor Antigo"
+  );
+  await expect(
+    page.getByRole("textbox", { name: "Nível da tabela de preço" })
+  ).toHaveValue("Varejo");
 });
 
 test("fábrica/clientes: edita o vínculo (nível/prioridade)", async ({

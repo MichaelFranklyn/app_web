@@ -25,6 +25,7 @@ export function LinkClientModal(props: LinkClientModalProps) {
     confirmOpen,
     closeConfirm,
     confirmTransfer,
+    initialData,
   } = useLinkClient(props);
 
   const blocked = isTakeover && !canTransfer;
@@ -60,7 +61,7 @@ export function LinkClientModal(props: LinkClientModalProps) {
                     <Alert.Description>
                       {blocked
                         ? "Peça a um gestor para transferir o atendimento."
-                        : "Ao salvar, você transfere o atendimento. Vamos pedir sua confirmação antes."}
+                        : "Ao salvar, este formulário sai e pedimos sua confirmação antes de transferir."}
                     </Alert.Description>
                   </Alert.Content>
                 </Alert.Root>
@@ -68,6 +69,10 @@ export function LinkClientModal(props: LinkClientModalProps) {
 
               <FormBuilder
                 ref={formRef}
+                // Volta preenchido quando o usuário cancela a confirmação: o
+                // Modal desmonta o corpo ao fechar, então sem isto o formulário
+                // reabriria em branco.
+                initialData={initialData}
                 steps={formSteps}
                 onSubmit={handleSubmit}
                 loading={isLoading}

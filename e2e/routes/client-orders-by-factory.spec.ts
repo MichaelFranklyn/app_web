@@ -236,15 +236,17 @@ test("cliente/pedidos: abrir o card carrega os pedidos daquela fábrica", async 
   // Escopado ao modal: o nome do vendedor logado também aparece na sidebar.
   await expect(modal.getByText("Vendedor Teste")).toBeVisible();
 
-  // O recorte é o vínculo (vendedor × cliente × fábrica): sem o filtro de fábrica
-  // o modal mostraria os pedidos de todas as fábricas do cliente.
+  // O recorte é cliente × fábrica: sem o filtro de fábrica o modal mostraria os
+  // pedidos de todas as fábricas do cliente.
   const filters = (
     (ordersVariables as unknown as { input: { filters: unknown[] } }).input
       .filters as { field: string; value: string }[]
   ).map((f) => [f.field, f.value]);
 
   expect(filters).toContainEqual(["factory_id", "f-1"]);
-  expect(filters).toContainEqual(["seller_id", "s-1"]);
   // `[id]` da rota é a carteira; a query de pedidos usa o id do cliente global.
   expect(filters).toContainEqual(["client_id", "client-1"]);
+  // NUNCA por vendedor: o vínculo troca de dono e o histórico de compra fica —
+  // filtrar por `seller_id` sumia com tudo o que o vendedor anterior vendeu.
+  expect(filters.map(([field]) => field)).not.toContain("seller_id");
 });

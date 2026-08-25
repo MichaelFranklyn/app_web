@@ -1,6 +1,7 @@
 import { FormBuilderRef, FormStepSchema } from "@/components/FormBuilder";
 import { useAsyncAction } from "@/hooks/useAsyncAction";
 import { useClientFactoryAssignment } from "@/hooks/useClientFactoryAssignment";
+import { useTakeoverConfirmation } from "@/hooks/useTakeoverConfirmation";
 import { useUserData } from "@/hooks/useUserData";
 import { useMutation } from "@apollo/client/react";
 import { useEffect, useMemo, useRef, useState } from "react";
@@ -36,8 +37,25 @@ export function useLinkFactory({
     if (open && isSeller && sellerId) setSelectedSellerId(sellerId);
   }, [open, isSeller, sellerId]);
 
+  // O formulário sai de cena enquanto a confirmação está na tela (nunca os dois
+  // juntos) e volta com o que estava preenchido se o usuário desistir.
+  const {
+    draft,
+    confirmOpen,
+    requestConfirmation,
+    cancelConfirmation,
+    reset: resetConfirmation,
+  } = useTakeoverConfirmation({ setFormOpen: setOpen });
+
+  // Enquanto a confirmação está na tela o formulário está fechado, mas os dados
+  // que a mensagem cita (quem atende hoje, quem vai passar a atender) continuam
+  // sendo lidos daqui.
+  const optionsLive = open || confirmOpen;
+
   const { sellerOptions, factoryOptions, tierOptions } = useLinkFactoryOptions({
-    open,
+    // `optionsLive` em vez de `open`: com a confirmação em cena o formulário está
+    // fechado, mas o nome do vendedor NOVO da mensagem sai destas opções.
+    open: optionsLive,
     clientId,
     selectedSellerId,
     selectedFactoryId,
@@ -145,14 +163,10 @@ export function useLinkFactory({
     clientId,
     factoryId: selectedFactoryId,
     sellerId: effectiveSellerId,
-    enabled: open,
+    // Continua valendo com o formulário fechado: a confirmação em cena precisa
+    // do nome de quem atende hoje para a mensagem não virar "outro vendedor".
+    enabled: optionsLive,
   });
-
-  // Dados do formulário guardados enquanto o usuário confirma a transferência.
-  const [pendingTransfer, setPendingTransfer] = useState<Record<
-    string,
-    unknown
-  > | null>(null);
 
   const newSellerName =
     sellerOptions.find((opt) => opt.value === effectiveSellerId)?.label ?? null;
@@ -183,7 +197,7 @@ export function useLinkFactory({
   };
 
   const finishLink = () => {
-    setPendingTransfer(null);
+    resetConfirmation();
     setOpen(false);
     setSelectedSellerId(null);
     setSelectedFactoryId(null);
@@ -197,7 +211,7 @@ export function useLinkFactory({
   const handleSubmit = async (data: Record<string, unknown>) => {
     if (isTakeover) {
       if (!canTransfer) return;
-      setPendingTransfer(data);
+      requestConfirmation(data);
       return;
     }
     await execute(() => runLink(data, false), {
@@ -212,8 +226,8 @@ export function useLinkFactory({
    * dois engoliria o erro, fechando a confirmação como se tivesse dado certo.
    */
   const confirmTransfer = async () => {
-    if (!pendingTransfer) return;
-    await runLink(pendingTransfer, true);
+    if (!draft) return;
+    await runLink(draft, true);
     finishLink();
   };
 
@@ -222,7 +236,7 @@ export function useLinkFactory({
     if (!v) {
       setSelectedSellerId(null);
       setSelectedFactoryId(null);
-      setPendingTransfer(null);
+      resetConfirmation();
     }
   };
 
@@ -238,9 +252,11 @@ export function useLinkFactory({
     canTransfer,
     currentSellerName,
     newSellerName,
-    /** Confirmação da transferência aberta (usuário mandou salvar). */
-    confirmOpen: pendingTransfer !== null,
-    closeConfirm: () => setPendingTransfer(null),
+    /** Confirmação da transferência aberta (o formulário está fechado). */
+    confirmOpen,
+    closeConfirm: cancelConfirmation,
     confirmTransfer,
+    /** Rascunho devolvido ao formulário quando ele reabre após um cancelamento. */
+    initialData: draft ?? undefined,
   };
 }
