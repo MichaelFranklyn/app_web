@@ -12,6 +12,7 @@ const insight = (over: Record<string, unknown> = {}) => ({
   kind: "CLIENT_OVERDUE",
   group: "WALLET",
   count: 23,
+  blockedCount: 0,
   amount: null,
   daysLeft: null,
   samples: [
@@ -20,9 +21,31 @@ const insight = (over: Record<string, unknown> = {}) => ({
       label: "DECORE CASA & CONSTRUCAO",
       detail: "348 dias sem comprar",
       link: null,
+      reason: null,
     },
   ],
   ...over,
+});
+
+const caseItem = (over: Record<string, unknown> = {}) => ({
+  id: "c-1",
+  label: "DECORE CASA & CONSTRUCAO",
+  detail: "348 dias sem comprar",
+  link: null,
+  reason: null,
+  ...over,
+});
+
+const casesPage = (
+  kind: string,
+  totalCount: number,
+  cases: Array<Record<string, unknown>>
+) => ({
+  myInsightCases: {
+    status: true,
+    message: "ok",
+    data: { kind, totalCount, cases },
+  },
 });
 
 const overview = (insights: Array<Record<string, unknown>>) => ({
@@ -104,4 +127,131 @@ test("insights: sem pendência, a tela diz que está tudo em dia", async ({
   await page.goto("/insights");
 
   await expect(page.getByText("Nada pendente")).toBeVisible();
+});
+
+test('insights: o "e mais N" abre a lista completa, paginada no servidor', async ({
+  page,
+}) => {
+  // O cartão mostra 1 de 23. O "e mais 22" era um beco — dizia que havia mais e
+  // não deixava ver quem.
+  const spy = await mockGraphql(page, {
+    MyInsights: () => overview([insight()]),
+    MyInsightCases: (variables) =>
+      casesPage(
+        "CLIENT_OVERDUE",
+        23,
+        Number(variables.offset) === 0
+          ? [caseItem(), caseItem({ id: "c-2", label: "ESKINA DA CONSTRUCAO" })]
+          : [caseItem({ id: "c-21", label: "VITORIA TEND-TUDO SALVADOR" })]
+      ),
+  });
+
+  await page.goto("/insights");
+  await page.getByRole("button", { name: "e mais 22" }).click();
+
+  // A lista chega do servidor, não de um recorte que o front inventou.
+  await expect(page.getByText("ESKINA DA CONSTRUCAO")).toBeVisible();
+  const primeira = await spy.waitForCall("MyInsightCases");
+  expect(primeira).toMatchObject({ kind: "CLIENT_OVERDUE", offset: 0 });
+
+  // Página 2: o offset anda, e é o servidor que devolve o próximo pedaço.
+  await page.getByRole("button", { name: "2", exact: true }).click();
+  await expect(page.getByText("VITORIA TEND-TUDO SALVADOR")).toBeVisible();
+  expect(spy.lastVariables("MyInsightCases")).toMatchObject({ offset: 20 });
+});
+
+test("insights: prioritário travado explica o motivo em vez de acusar a rotina", async ({
+  page,
+}) => {
+  // O caso que veio da produção: nove "prioritários ignorados" que o próprio
+  // motor tinha descartado de propósito.
+  await mockGraphql(page, {
+    MyInsights: () =>
+      overview([
+        insight({
+          kind: "PRIORITY_OFF_ROUTE",
+          count: 0,
+          blockedCount: 5,
+          samples: [
+            {
+              id: "c-9",
+              label: "CENTRO MATERIAL",
+              detail: "score 63 · HERC, pedido de 28/11/2025",
+              link: null,
+              reason: "ORDER_OPEN",
+            },
+          ],
+        }),
+      ]),
+    MyInsightCases: () =>
+      casesPage("PRIORITY_OFF_ROUTE", 5, [
+        caseItem({
+          id: "c-9",
+          label: "CENTRO MATERIAL",
+          detail: "score 63 · HERC, pedido de 28/11/2025",
+          reason: "ORDER_OPEN",
+        }),
+      ]),
+  });
+
+  await page.goto("/insights");
+
+  // Sem nada a decidir, o cartão fala de pendência — não manda rever a rotina.
+  await expect(
+    page.getByText("5 clientes prioritários estão travados por uma pendência")
+  ).toBeVisible();
+  await expect(page.getByText(/de propósito/i)).toBeVisible();
+  // E cai para "De olho": travado não compete com o que custa dinheiro hoje.
+  await expect(
+    page.getByRole("heading", { name: "De olho", level: 4 })
+  ).toBeVisible();
+
+  // O motivo, por caso, na lista completa.
+  await page.getByRole("button", { name: "Ver todos" }).click();
+  await expect(
+    page.getByText("Pedido em aberto", { exact: true })
+  ).toBeVisible();
+});
+
+test("insights: dois casos do mesmo registro aparecem os dois", async ({
+  page,
+}) => {
+  // Duas metas atrasadas da MESMA fábrica, de vendedores diferentes: mesmo
+  // `id` (o da fábrica), casos distintos. A chave do React saía duplicada e o
+  // React avisava que pode duplicar ou OMITIR — o risco real é o gestor ver uma
+  // linha onde há duas cobranças.
+  const fabrica = "57573182-0642-492c-b651-e5e6908a93ee";
+  await mockGraphql(page, {
+    MyInsights: () =>
+      overview([
+        insight({
+          kind: "GOAL_BEHIND",
+          group: "GOALS",
+          count: 2,
+          amount: "37964.09",
+          daysLeft: 6,
+          samples: [
+            {
+              id: fabrica,
+              label: "HERC · Celso",
+              detail: "faltam R$ 23.118,10",
+              link: "/goals",
+              reason: null,
+            },
+            {
+              id: fabrica,
+              label: "HERC · Lacerda",
+              detail: "faltam R$ 11.845,99",
+              link: "/goals",
+              reason: null,
+            },
+          ],
+        }),
+      ]),
+  });
+
+  await page.goto("/insights");
+
+  await expect(page.getByText("HERC · Celso")).toBeVisible();
+  await expect(page.getByText("HERC · Lacerda")).toBeVisible();
 });

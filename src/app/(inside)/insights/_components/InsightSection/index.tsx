@@ -17,6 +17,8 @@ const DOT: Record<InsightTone, string> = {
 interface Props {
   tone: InsightTone;
   insights: Insight[];
+  /** O vendedor escolhido no topo — segue até o modal de cada cartão. */
+  sellerId: string | null;
 }
 
 /**
@@ -27,7 +29,7 @@ interface Props {
  * nenhum caso simplesmente não aparece: título com lista vazia ensina a rolar
  * a tela sem ler.
  */
-export function InsightSection({ tone, insights }: Props) {
+export function InsightSection({ tone, insights, sellerId }: Props) {
   if (insights.length === 0) return null;
 
   const section = TONE_SECTION[tone];
@@ -49,7 +51,7 @@ export function InsightSection({ tone, insights }: Props) {
       <Grid.Root cols={{ base: 1, "desktop-xl": 2 }} gap={16}>
         {insights.map((insight) => (
           <Grid.Item key={insight.kind}>
-            <InsightCard insight={insight} />
+            <InsightCard insight={insight} sellerId={sellerId} />
           </Grid.Item>
         ))}
       </Grid.Root>

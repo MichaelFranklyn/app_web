@@ -7,11 +7,20 @@ import { Title } from "@/components/Title";
 import { useNavigation } from "@/hooks/useNavigation";
 import { cn } from "@/lib/utils";
 import { formatMoney } from "@/utils/format/masks";
-import { ArrowRight } from "lucide-react";
+import { ArrowRight, List } from "lucide-react";
 import Link from "next/link";
+import { useState } from "react";
 
 import { Insight, InsightSample } from "../../interface";
-import { GROUP_LABEL, INSIGHT_COPY, InsightTone } from "../../utils";
+import {
+  cardCount,
+  caseTotal,
+  GROUP_LABEL,
+  INSIGHT_COPY,
+  InsightTone,
+  toneOf,
+} from "../../utils";
+import { InsightCasesModal } from "../InsightCasesModal";
 
 /**
  * O tom vira cor em três pontos do cartão — faixa, ícone e número —, sempre o
@@ -82,12 +91,23 @@ function SampleChip({ sample }: { sample: InsightSample }) {
  * decisão. "23 clientes atrasados" não move ninguém; "cada um já deveria ter
  * comprado, e quem repõe a prateleira dele é o concorrente" move.
  */
-export function InsightCard({ insight }: { insight: Insight }) {
+export function InsightCard({
+  insight,
+  sellerId,
+}: {
+  insight: Insight;
+  /** O vendedor escolhido no topo — o modal precisa do mesmo recorte. */
+  sellerId: string | null;
+}) {
   const copy = INSIGHT_COPY[insight.kind];
-  const skin = TONE[copy.tone];
+  const skin = TONE[toneOf(insight)];
   const Icon = copy.icon;
   const { navigateTo, isPending } = useNavigation();
   const money = Number(insight.amount ?? 0);
+  const big = cardCount(insight);
+  const total = caseTotal(insight);
+  const hidden = total - insight.samples.length;
+  const [showCases, setShowCases] = useState(false);
 
   return (
     <Card.Root className="relative h-full overflow-hidden">
@@ -123,10 +143,10 @@ export function InsightCard({ insight }: { insight: Insight }) {
               className={cn("text-[27px]", skin.value)}
               aria-hidden
             >
-              {insight.count}
+              {big.value}
             </Title>
             <Title variant="micro" color="muted">
-              {insight.count === 1 ? "caso" : "casos"}
+              {big.label}
             </Title>
           </div>
         </div>
@@ -141,13 +161,30 @@ export function InsightCard({ insight }: { insight: Insight }) {
 
         {insight.samples.length > 0 && (
           <div className="flex flex-wrap items-center gap-6">
-            {insight.samples.map((sample) => (
-              <SampleChip key={sample.id} sample={sample} />
+            {/* A chave leva o ÍNDICE porque `sample.id` não é único, e não
+                por acidente: ele é o id do registro que o caso aponta (o
+                cliente, a fábrica, o pedido), e o mesmo registro aparece
+                legitimamente duas vezes — duas metas atrasadas da mesma
+                fábrica são de vendedores diferentes, e dois vínculos fora da
+                rotina podem ser do mesmo cliente em fábricas diferentes.
+                O índice é seguro aqui: a lista vem ordenada do servidor e é
+                substituída inteira a cada leitura, nunca reordenada no
+                cliente. */}
+            {insight.samples.map((sample, index) => (
+              <SampleChip key={`${sample.id}-${index}`} sample={sample} />
             ))}
-            {insight.count > insight.samples.length && (
-              <Title variant="micro" color="muted">
-                e mais {insight.count - insight.samples.length}
-              </Title>
+            {/* O "e mais N" era um beco: dizia que havia mais e não deixava
+                ver. Agora é o botão que abre a lista inteira. */}
+            {hidden > 0 && (
+              <Button.Root
+                appearance="ghost"
+                color="neutral"
+                size="xs"
+                noUppercase
+                onClick={() => setShowCases(true)}
+              >
+                <Button.Title>e mais {hidden}</Button.Title>
+              </Button.Root>
             )}
           </div>
         )}
@@ -158,19 +195,42 @@ export function InsightCard({ insight }: { insight: Insight }) {
           <Title variant="micro" color="muted">
             {money > 0 ? formatMoney(money) : " "}
           </Title>
-          <Button.Root
-            appearance="outline"
-            color="neutral"
-            size="sm"
-            noUppercase
-            disabled={isPending}
-            onClick={() => navigateTo(copy.href)}
-          >
-            <Button.Title>{copy.action}</Button.Title>
-            <Button.Icon icon={ArrowRight} />
-          </Button.Root>
+          <div className="flex flex-wrap items-center gap-8">
+            {/* Ver a lista completa vale mesmo quando ela cabe nas três
+                amostras: é onde está o MOTIVO de cada caso. */}
+            {total > 0 && (
+              <Button.Root
+                appearance="ghost"
+                color="neutral"
+                size="sm"
+                noUppercase
+                onClick={() => setShowCases(true)}
+              >
+                <Button.Icon icon={List} />
+                <Button.Title>Ver todos</Button.Title>
+              </Button.Root>
+            )}
+            <Button.Root
+              appearance="outline"
+              color="neutral"
+              size="sm"
+              noUppercase
+              disabled={isPending}
+              onClick={() => navigateTo(copy.href)}
+            >
+              <Button.Title>{copy.action}</Button.Title>
+              <Button.Icon icon={ArrowRight} />
+            </Button.Root>
+          </div>
         </div>
       </Card.Body>
+
+      <InsightCasesModal
+        insight={insight}
+        sellerId={sellerId}
+        open={showCases}
+        onOpenChange={setShowCases}
+      />
     </Card.Root>
   );
 }

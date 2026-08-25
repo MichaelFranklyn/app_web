@@ -2187,6 +2187,27 @@ enum InsightGroup {
   GOALS
 }
 
+"""
+Por que um cliente prioritário não entrou na rotina.
+
+Os quatro primeiros são exclusões DELIBERADAS do motor de rotina (ver
+`route_reasons`): o cliente não foi esquecido, foi descartado por uma regra — e
+o que destrava cada um é diferente. Só `NO_ROOM` representa uma decisão do
+vendedor a revisar, e por isso é o único que entra na contagem do cartão.
+"""
+enum InsightCaseReason {
+  """Tem pedido em aberto nessa fábrica — o motor não recomenda visita até a entrega."""
+  ORDER_OPEN
+  """Já tem visita presencial marcada em alguma rotina."""
+  VISIT_PENDING
+  """O cliente pediu para não ser procurado agora."""
+  DEFERRED
+  """Sem coordenada no mapa: sem endereço geocodificado não se monta rota."""
+  NO_GEOCODE
+  """Nenhuma regra o excluiu — não coube na semana."""
+  NO_ROOM
+}
+
 """Um caso concreto do insight — o que a pessoa vai abrir para resolver."""
 type InsightSampleType {
   id: UUID!
@@ -2195,19 +2216,47 @@ type InsightSampleType {
   detail: String
   """Rota do registro, quando ele tem tela própria."""
   link: String
+  """
+  Por que o sistema já explica este caso. Nulo quando não há explicação — aí o
+  caso depende de uma decisão de quem lê.
+  """
+  reason: InsightCaseReason
 }
 
 type InsightType {
   kind: InsightKind!
   group: InsightGroup!
-  """Quantos casos existem no recorte."""
+  """
+  Quantos casos dependem de uma decisão de quem lê. NÃO é o total: os casos que
+  o próprio sistema explica ficam em `blockedCount`.
+  """
   count: Int!
+  """
+  Casos que existem mas cuja ausência o sistema já justifica (ver
+  `InsightCaseReason`). Somados a `count`, dão o total da lista completa.
+  """
+  blockedCount: Int!
   """Dinheiro envolvido, quando a pendência tem valor (nulo quando não tem)."""
   amount: Decimal
   """Dias úteis que ainda restam no mês — só faz sentido em GOAL_BEHIND."""
   daysLeft: Int
   """Até três exemplos, para a tela mostrar de quem está falando."""
   samples: [InsightSampleType!]!
+}
+
+"""Uma página da lista completa de um insight — o que há por trás do "e mais N"."""
+type InsightCasesType {
+  kind: InsightKind!
+  """Total de casos da pendência (`count` + `blockedCount` do cartão)."""
+  totalCount: Int!
+  cases: [InsightSampleType!]!
+}
+
+type InsightCasesDataResponse {
+  status: Boolean!
+  code: Int!
+  message: String!
+  data: InsightCasesType
 }
 
 type InsightsOverviewType {
@@ -2230,6 +2279,18 @@ extend type Query {
   gestor vê a empresa inteira, ou um vendedor com `sellerId`.
   """
   myInsights(sellerId: UUID = null): InsightsOverviewDataResponse!
+
+  """
+  Todos os casos de UMA pendência, paginados — o cartão mostra três, isto mostra
+  o resto. Mesmo escopo de `myInsights`: o vendedor vê os seus, o gestor
+  escolhe. Recalculado na hora, como a tela.
+  """
+  myInsightCases(
+    kind: InsightKind!
+    sellerId: UUID = null
+    offset: Int! = 0
+    limit: Int! = 20
+  ): InsightCasesDataResponse!
 }
 
 enum NotificationSeverity {
@@ -4524,8 +4585,20 @@ type VisitAccuracyReportType {
   orderAmount: Decimal!
   "Chance de um cliente da carteira comprar numa janela igual, sem recomendação."
   baselineRate: Float!
+  "Fração das recomendações que o vendedor de fato trabalhou."
+  executionRate: Float!
   "Razão entre a taxa do motor e a linha de base. Nulo quando não há base medida."
   lift: Float
+  """
+  O `lift` pode ser lido como julgamento do motor?
+
+  Falso quando a rotina quase não foi executada (ver `MIN_EXECUTION_FOR_LIFT`).
+  Aí o número compara compra espontânea de quem foi apontado contra a de quem
+  não foi — e como o motor aponta justamente quem PAROU de comprar, ele sai
+  abaixo de 1 por acerto do score, não por erro. Com isto falso, a leitura certa
+  é "a rotina não está sendo executada", nunca "o score está errado".
+  """
+  isLiftReliable: Boolean!
 }
 
 extend type Query {

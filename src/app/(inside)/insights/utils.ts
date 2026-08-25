@@ -2,17 +2,26 @@ import { formatMoney } from "@/utils/format/masks";
 import {
   Banknote,
   CalendarClock,
+  CalendarOff,
   ClipboardList,
   LucideIcon,
   MapPin,
+  MapPinOff,
   PackageCheck,
   Receipt,
+  Search,
   Target,
+  Truck,
   UserMinus,
   Users,
 } from "lucide-react";
 
-import { Insight, InsightGroup, InsightKind } from "./interface";
+import {
+  Insight,
+  InsightCaseReason,
+  InsightGroup,
+  InsightKind,
+} from "./interface";
 
 /**
  * O TOM de cada pendência: o que custa dinheiro agora é urgente; o que trava o
@@ -88,10 +97,23 @@ export const INSIGHT_COPY: Record<InsightKind, InsightCopy> = {
   PRIORITY_OFF_ROUTE: {
     icon: MapPin,
     tone: "attention",
-    title: ({ count }) =>
-      `${count} ${plural(count, "cliente prioritário ficou", "clientes prioritários ficaram")} fora da rotina desta semana`,
-    why: () =>
-      "O sistema pontuou esses clientes como os mais urgentes da semana e nenhum deles entrou no roteiro. A pontuação já pesa quanto tempo faz que compraram, o quanto costumam comprar e o que deve estar acabando na loja — ignorá-la é escolher visitar quem estava no caminho, não quem estava pronto para comprar.",
+    title: ({ count, blockedCount }) =>
+      count > 0
+        ? `${count} ${plural(count, "cliente prioritário ficou", "clientes prioritários ficaram")} fora da rotina desta semana`
+        : `${blockedCount} ${plural(blockedCount, "cliente prioritário está travado", "clientes prioritários estão travados")} por uma pendência`,
+    /**
+     * Duas histórias diferentes, e é o motivo que separa as duas.
+     *
+     * Quando há caso sem explicação, o assunto é a rotina. Quando TODOS têm
+     * explicação, o assunto é a pendência que os prende — e mandar rever a
+     * rotina seria mandar o vendedor procurar um erro que não existe. Era o que
+     * o cartão fazia: numa base real, os nove "prioritários ignorados" eram
+     * nove descartes deliberados do próprio motor.
+     */
+    why: ({ count, blockedCount }) =>
+      count > 0
+        ? `O sistema pontuou esses clientes como os mais urgentes da semana e eles não entraram no roteiro. A pontuação já pesa quanto tempo faz que compraram, o quanto costumam comprar e o que deve estar acabando na loja — ignorá-la é escolher visitar quem estava no caminho, não quem estava pronto para comprar.${blockedCount > 0 ? ` Outros ${blockedCount} estão de fora por um motivo do sistema; abra a lista para ver qual.` : ""}`
+        : "Nenhum deles foi esquecido: o sistema os tirou da rotina de propósito, cada um por um motivo — quase sempre um pedido em aberto naquela fábrica, que não recomenda visita até a entrega ser confirmada. Enquanto o pedido não anda, o cliente não volta ao roteiro por mais alto que fique a pontuação dele. Abra a lista para ver o motivo de cada um.",
     action: "Ajustar a rotina",
     href: "/routines",
   },
@@ -165,6 +187,19 @@ const KIND_ORDER: InsightKind[] = [
   "NO_VISIT_30D",
 ];
 
+/**
+ * O TOM de uma pendência já medida.
+ *
+ * Vem do tipo, com uma exceção: a pendência cujos casos o sistema TODOS explica
+ * cai para "de olho". Ela não pede decisão de ninguém hoje — pede que uma outra
+ * pendência (o pedido parado) seja resolvida —, e deixá-la em âmbar competindo
+ * com o que precisa de ação treina a pessoa a ignorar o âmbar.
+ */
+export const toneOf = (insight: Insight): InsightTone =>
+  insight.count === 0 && insight.blockedCount > 0
+    ? "info"
+    : INSIGHT_COPY[insight.kind].tone;
+
 export const sortInsights = (insights: Insight[]): Insight[] =>
   [...insights].sort(
     (a, b) => KIND_ORDER.indexOf(a.kind) - KIND_ORDER.indexOf(b.kind)
@@ -199,9 +234,7 @@ export const insightsByTone = (
   insights: Insight[],
   tone: InsightTone
 ): Insight[] =>
-  sortInsights(insights).filter(
-    (insight) => INSIGHT_COPY[insight.kind].tone === tone
-  );
+  sortInsights(insights).filter((insight) => toneOf(insight) === tone);
 
 /** O dinheiro parado somado — boleto vencido, pedido sem faturar, meta a fazer. */
 export const totalAmount = (insights: Insight[]): number =>
@@ -209,9 +242,82 @@ export const totalAmount = (insights: Insight[]): number =>
 
 /** Quantos casos existem ao todo — a frase do topo da tela. */
 export const totalCases = (insights: Insight[]): number =>
-  insights.reduce((sum, insight) => sum + insight.count, 0);
+  insights.reduce(
+    (sum, insight) => sum + insight.count + insight.blockedCount,
+    0
+  );
 
 /** Quantas pendências urgentes — é o que decide o tom do resumo. */
 export const urgentCount = (insights: Insight[]): number =>
-  insights.filter((insight) => INSIGHT_COPY[insight.kind].tone === "urgent")
-    .length;
+  insights.filter((insight) => toneOf(insight) === "urgent").length;
+
+/**
+ * Quantos casos o cartão mostra no número grande, e como se chamam.
+ *
+ * Um "0" enorme e vermelho num cartão que existe justamente porque há cinco
+ * clientes travados seria a leitura errada de relance. Quando não há nada a
+ * decidir, o número passa a ser o dos travados e o rótulo muda junto.
+ */
+export const cardCount = (
+  insight: Insight
+): { value: number; label: string } => {
+  const onlyBlocked = insight.count === 0 && insight.blockedCount > 0;
+  const value = onlyBlocked ? insight.blockedCount : insight.count;
+  return {
+    value,
+    label: onlyBlocked
+      ? value === 1
+        ? "travado"
+        : "travados"
+      : value === 1
+        ? "caso"
+        : "casos",
+  };
+};
+
+/** Total de casos por trás do cartão — é o tamanho da lista do "ver todos". */
+export const caseTotal = (insight: Insight): number =>
+  insight.count + insight.blockedCount;
+
+interface ReasonCopy {
+  icon: LucideIcon;
+  /** Rótulo curto, na etiqueta ao lado do nome do cliente. */
+  label: string;
+  /** O que fazer para destravar — a frase que transforma motivo em tarefa. */
+  hint: string;
+}
+
+/**
+ * O motivo de o motor não ter recomendado o cliente, em português de quem vende.
+ *
+ * Mora aqui pela mesma razão que o resto da copy: o backend responde qual regra
+ * excluiu o cliente; como se explica isso a quem está no carro entre duas
+ * visitas é decisão de produto, e muda muito mais vezes que a regra.
+ */
+export const REASON_COPY: Record<InsightCaseReason, ReasonCopy> = {
+  ORDER_OPEN: {
+    icon: Truck,
+    label: "Pedido em aberto",
+    hint: "O sistema não manda visitar uma fábrica de que o cliente acabou de comprar. Fature o pedido e confirme a entrega — aí ele volta para a rotina.",
+  },
+  VISIT_PENDING: {
+    icon: CalendarClock,
+    label: "Visita já marcada",
+    hint: "Ele já está na agenda, em outra rotina. Não é ausência: é compromisso que ainda não aconteceu.",
+  },
+  DEFERRED: {
+    icon: CalendarOff,
+    label: "Cliente pediu para adiar",
+    hint: "Ele mesmo disse para não passar agora. O sistema respeita a data que ele deu.",
+  },
+  NO_GEOCODE: {
+    icon: MapPinOff,
+    label: "Endereço não localizado",
+    hint: "Sem o endereço no mapa não dá para montar rota até ele. Corrija o endereço no cadastro do cliente.",
+  },
+  NO_ROOM: {
+    icon: Search,
+    label: "Não coube na semana",
+    hint: "Nenhuma regra o excluiu — a semana fechou antes de chegar nele. É este que vale rever na rotina.",
+  },
+};
