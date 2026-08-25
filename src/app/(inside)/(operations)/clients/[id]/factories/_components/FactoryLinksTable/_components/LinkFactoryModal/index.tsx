@@ -26,6 +26,7 @@ export function LinkFactoryModal(props: LinkFactoryModalProps) {
     confirmOpen,
     closeConfirm,
     confirmTransfer,
+    initialData,
   } = useLinkFactory(props);
 
   const blocked = isTakeover && !canTransfer;
@@ -61,7 +62,7 @@ export function LinkFactoryModal(props: LinkFactoryModalProps) {
                     <Alert.Description>
                       {blocked
                         ? "Peça a um gestor para transferir o atendimento para você."
-                        : "Ao salvar, você transfere o atendimento. Vamos pedir sua confirmação antes."}
+                        : "Ao salvar, este formulário sai e pedimos sua confirmação antes de transferir."}
                     </Alert.Description>
                   </Alert.Content>
                 </Alert.Root>
@@ -69,6 +70,10 @@ export function LinkFactoryModal(props: LinkFactoryModalProps) {
 
               <FormBuilder
                 ref={formRef}
+                // Volta preenchido quando o usuário cancela a confirmação: o
+                // Modal desmonta o corpo ao fechar, então sem isto o formulário
+                // reabriria em branco.
+                initialData={initialData}
                 steps={formSteps}
                 onSubmit={handleSubmit}
                 loading={isLoading}

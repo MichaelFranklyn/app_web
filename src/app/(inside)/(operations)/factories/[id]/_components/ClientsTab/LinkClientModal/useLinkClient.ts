@@ -3,6 +3,7 @@ import { useQueryErrorToast } from "@/hooks/useQueryErrorToast";
 import { useAllPages } from "@/hooks/useAllPages";
 import { useAsyncAction } from "@/hooks/useAsyncAction";
 import { useAsyncSelectOptions } from "@/hooks/useAsyncSelectOptions";
+import { useTakeoverConfirmation } from "@/hooks/useTakeoverConfirmation";
 import { useInvalidateQueriesClient } from "@/hooks/useInvalidateQueries";
 import { useUserData } from "@/hooks/useUserData";
 import { extractSelectValue } from "@/utils/form";
@@ -48,11 +49,15 @@ export function useLinkClient({
   const [open, setOpen] = useState(false);
   const [selectedClientId, setSelectedClientId] = useState<string | null>(null);
   const [selectedSellerId, setSelectedSellerId] = useState<string | null>(null);
-  // Dados do formulário guardados enquanto o usuário confirma a transferência.
-  const [pendingTransfer, setPendingTransfer] = useState<Record<
-    string,
-    unknown
-  > | null>(null);
+  // O formulário sai de cena enquanto a confirmação está na tela (nunca os dois
+  // juntos) e volta com o que estava preenchido se o usuário desistir.
+  const {
+    draft,
+    confirmOpen,
+    requestConfirmation,
+    cancelConfirmation,
+    reset: resetConfirmation,
+  } = useTakeoverConfirmation({ setFormOpen: setOpen });
   const formRef = useRef<FormBuilderRef>(null);
   const invalidateClient = useInvalidateQueriesClient();
   const { execute, isLoading } = useAsyncAction();
@@ -303,7 +308,7 @@ export function useLinkClient({
   };
 
   const finishLink = async () => {
-    setPendingTransfer(null);
+    resetConfirmation();
     setSelectedClientId(null);
     setSelectedSellerId(null);
     setOpen(false);
@@ -314,7 +319,7 @@ export function useLinkClient({
   const handleSubmit = async (data: Record<string, unknown>) => {
     if (isTakeover) {
       if (!canTransfer) return;
-      setPendingTransfer(data);
+      requestConfirmation(data);
       return;
     }
     await execute(() => runLink(data, false), {
@@ -329,8 +334,8 @@ export function useLinkClient({
    * dois engoliria o erro, fechando a confirmação como se tivesse dado certo.
    */
   const confirmTransfer = async () => {
-    if (!pendingTransfer) return;
-    await runLink(pendingTransfer, true);
+    if (!draft) return;
+    await runLink(draft, true);
     await finishLink();
   };
 
@@ -346,7 +351,7 @@ export function useLinkClient({
       if (!v) {
         setSelectedClientId(null);
         setSelectedSellerId(null);
-        setPendingTransfer(null);
+        resetConfirmation();
       }
     },
     formRef,
@@ -360,9 +365,11 @@ export function useLinkClient({
     newSellerName:
       sellerOptions.find((opt) => opt.value === selectedSellerId)?.label ??
       null,
-    /** Confirmação da transferência aberta (usuário mandou salvar). */
-    confirmOpen: pendingTransfer !== null,
-    closeConfirm: () => setPendingTransfer(null),
+    /** Confirmação da transferência aberta (o formulário está fechado). */
+    confirmOpen,
+    closeConfirm: cancelConfirmation,
     confirmTransfer,
+    /** Rascunho devolvido ao formulário quando ele reabre após um cancelamento. */
+    initialData: draft ?? undefined,
   };
 }

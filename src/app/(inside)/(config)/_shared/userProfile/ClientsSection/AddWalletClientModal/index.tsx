@@ -24,6 +24,7 @@ export function AddWalletClientModal(props: AddWalletClientProps) {
     confirmOpen,
     closeConfirm,
     confirmTransfer,
+    initialData,
   } = useAddWalletClient(props);
 
   const blocked = isTakeover && !canTransfer;
@@ -59,7 +60,7 @@ export function AddWalletClientModal(props: AddWalletClientProps) {
                     <Alert.Description>
                       {blocked
                         ? "Peça a um gestor para transferir o atendimento."
-                        : "Ao salvar, você transfere o atendimento. Vamos pedir sua confirmação antes."}
+                        : "Ao salvar, este formulário sai e pedimos sua confirmação antes de transferir."}
                     </Alert.Description>
                   </Alert.Content>
                 </Alert.Root>
@@ -67,6 +68,10 @@ export function AddWalletClientModal(props: AddWalletClientProps) {
 
               <FormBuilder
                 ref={formRef}
+                // Volta preenchido quando o usuário cancela a confirmação: o
+                // Modal desmonta o corpo ao fechar, então sem isto o formulário
+                // reabriria em branco.
+                initialData={initialData}
                 steps={steps}
                 onSubmit={handleSubmit}
                 loading={isLoading}

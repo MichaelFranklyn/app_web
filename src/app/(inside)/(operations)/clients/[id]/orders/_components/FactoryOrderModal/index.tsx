@@ -45,11 +45,13 @@ interface Props {
 }
 
 /**
- * Pedidos do cliente NAQUELA fábrica, para aquele vendedor.
+ * Pedidos do cliente NAQUELA fábrica — todos, independente de quem vendeu.
  *
- * O recorte é o vínculo (vendedor × cliente × fábrica), o mesmo que sustenta o
- * card: um gestor que vê dois vendedores atendendo a mesma fábrica vê dois cards,
- * e cada um abre só os seus pedidos.
+ * O recorte é cliente × fábrica, não o vendedor do vínculo: o histórico de
+ * compra é do cliente naquela fábrica e continua valendo quando a carteira
+ * troca de dono. Filtrar pelo vendedor do vínculo escondia tudo o que o
+ * vendedor anterior tinha vendido (o card zerava depois da transferência).
+ * A coluna "Vendedor" da tabela mostra de quem é cada pedido.
  */
 export function FactoryOrderModal({
   summary,
@@ -62,7 +64,6 @@ export function FactoryOrderModal({
   const [page, setPage] = useState(1);
 
   const factoryId = summary?.factory?.id ?? null;
-  const sellerId = summary?.sellerId ?? null;
 
   const variables = useMemo(
     () => ({
@@ -73,7 +74,6 @@ export function FactoryOrderModal({
         filters: [
           { field: "client_id", operator: "eq", value: clientId },
           { field: "factory_id", operator: "eq", value: factoryId },
-          { field: "seller_id", operator: "eq", value: sellerId },
           ...(statusFilter
             ? [{ field: "status", operator: "eq", value: statusFilter.value }]
             : []),
@@ -83,7 +83,7 @@ export function FactoryOrderModal({
         ],
       },
     }),
-    [clientId, factoryId, sellerId, page, search, statusFilter]
+    [clientId, factoryId, page, search, statusFilter]
   );
 
   // Só busca quando o modal abre: um cliente tem dezenas de fábricas e carregar

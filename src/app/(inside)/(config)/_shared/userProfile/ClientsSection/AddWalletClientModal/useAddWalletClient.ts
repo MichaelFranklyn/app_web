@@ -1,5 +1,6 @@
 import { FormBuilderRef, FormStepSchema } from "@/components/FormBuilder";
 import { useClientFactoryAssignment } from "@/hooks/useClientFactoryAssignment";
+import { useTakeoverConfirmation } from "@/hooks/useTakeoverConfirmation";
 import { useQueryErrorToast } from "@/hooks/useQueryErrorToast";
 import { useUserData } from "@/hooks/useUserData";
 import { useAsyncAction } from "@/hooks/useAsyncAction";
@@ -53,11 +54,15 @@ export function useAddWalletClient({
   const formRef = useRef<FormBuilderRef>(null);
   const [selectedFactoryId, setSelectedFactoryId] = useState("");
   const [selectedClientId, setSelectedClientId] = useState("");
-  // Dados do formulário guardados enquanto o usuário confirma a transferência.
-  const [pendingTransfer, setPendingTransfer] = useState<Record<
-    string,
-    unknown
-  > | null>(null);
+  // O formulário sai de cena enquanto a confirmação está na tela (nunca os dois
+  // juntos) e volta com o que estava preenchido se o usuário desistir.
+  const {
+    draft,
+    confirmOpen,
+    requestConfirmation,
+    cancelConfirmation,
+    reset: resetConfirmation,
+  } = useTakeoverConfirmation({ setFormOpen: setOpen });
   const { isSeller } = useUserData();
 
   const bySeller = useMemo(
@@ -264,7 +269,7 @@ export function useAddWalletClient({
       formRef.current?.resetForm();
       setSelectedFactoryId("");
       setSelectedClientId("");
-      setPendingTransfer(null);
+      resetConfirmation();
     }
   };
 
@@ -274,7 +279,9 @@ export function useAddWalletClient({
     clientId: selectedClientId || null,
     factoryId: selectedFactoryId || null,
     sellerId,
-    enabled: open,
+    // Continua valendo com o formulário fechado: a confirmação em cena precisa
+    // do nome de quem atende hoje para a mensagem não virar "outro vendedor".
+    enabled: open || confirmOpen,
   });
   // Tomar a carteira de um colega é decisão de gestor (o backend também barra).
   const canTransfer = !isSeller;
@@ -315,7 +322,7 @@ export function useAddWalletClient({
   const handleSubmit = async (data: Record<string, unknown>) => {
     if (isTakeover) {
       if (!canTransfer) return;
-      setPendingTransfer(data);
+      requestConfirmation(data);
       return;
     }
     await execute(() => runLink(data, false), {
@@ -333,8 +340,8 @@ export function useAddWalletClient({
    * dois engoliria o erro, fechando a confirmação como se tivesse dado certo.
    */
   const confirmTransfer = async () => {
-    if (!pendingTransfer) return;
-    await runLink(pendingTransfer, true);
+    if (!draft) return;
+    await runLink(draft, true);
     onAdded();
     handleClose(false);
   };
@@ -355,9 +362,11 @@ export function useAddWalletClient({
     isTakeover,
     canTransfer,
     currentSellerName,
-    /** Confirmação da transferência aberta (usuário mandou salvar). */
-    confirmOpen: pendingTransfer !== null,
-    closeConfirm: () => setPendingTransfer(null),
+    /** Confirmação da transferência aberta (o formulário está fechado). */
+    confirmOpen,
+    closeConfirm: cancelConfirmation,
     confirmTransfer,
+    /** Rascunho devolvido ao formulário quando ele reabre após um cancelamento. */
+    initialData: draft ?? undefined,
   };
 }
