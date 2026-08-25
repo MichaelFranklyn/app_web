@@ -145,6 +145,7 @@ export default function InsightsContent({
                 key={tone}
                 tone={tone}
                 insights={insightsByTone(insights, tone)}
+                sellerId={sellerId}
               />
             ))}
           </div>

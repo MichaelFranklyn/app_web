@@ -18,6 +18,7 @@ export const MY_INSIGHTS_QUERY = gql`
           kind
           group
           count
+          blockedCount
           amount
           daysLeft
           samples {
@@ -25,6 +26,7 @@ export const MY_INSIGHTS_QUERY = gql`
             label
             detail
             link
+            reason
           }
         }
       }
@@ -44,6 +46,43 @@ export const INSIGHTS_SELLERS_QUERY = gql`
         }
       }
       totalCount
+    }
+  }
+`;
+
+/**
+ * A lista COMPLETA de uma pendência — o que há por trás do "e mais 174".
+ *
+ * Consulta à parte, e só quando alguém pede: a tela abre com nove cartões, e
+ * carregar as centenas de casos de todos eles para mostrar três de cada
+ * pagaria o preço da lista inteira sem ninguém tê-la pedido.
+ */
+export const INSIGHT_CASES_QUERY = gql`
+  query MyInsightCases(
+    $kind: InsightKind!
+    $sellerId: UUID
+    $offset: Int!
+    $limit: Int!
+  ) {
+    myInsightCases(
+      kind: $kind
+      sellerId: $sellerId
+      offset: $offset
+      limit: $limit
+    ) {
+      status
+      message
+      data {
+        kind
+        totalCount
+        cases {
+          id
+          label
+          detail
+          link
+          reason
+        }
+      }
     }
   }
 `;
