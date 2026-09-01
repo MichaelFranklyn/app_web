@@ -56,6 +56,8 @@ export interface VisitItem {
   status: VisitStatus;
   outcome: VisitOutcome | null;
   notes: string | null;
+  /** A visita tomou a jornada inteira — as outras paradas do dia saíram. */
+  isWholeDay: boolean;
   focusFactories: VisitFocusFactory[];
   treatedFactories: VisitFactory[];
   /**

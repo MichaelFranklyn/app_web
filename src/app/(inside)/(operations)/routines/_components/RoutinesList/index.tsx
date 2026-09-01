@@ -25,6 +25,8 @@ interface Props {
   effectiveSellerId?: string | null;
   capacity: RoutineCapacity;
   periodDays: number;
+  /** Datas ISO que o vendedor marcou como não trabalhadas. */
+  dayOffDates: Set<string>;
   onChanged: () => void;
 }
 
@@ -38,6 +40,7 @@ export function RoutinesList({
   sellerId,
   effectiveSellerId,
   capacity,
+  dayOffDates,
   periodDays,
   onChanged,
 }: Props) {
@@ -162,13 +165,19 @@ export function RoutinesList({
                   </div>
                 )}
 
-                {/* Dia sem visitas / folga. */}
+                {/* Dia sem visitas, sem rota ou não trabalhado. A marcação
+                    vem da mesma fonte do kanban: o dia pode estar marcado sem
+                    nunca ter tido rotina. */}
                 {items.length === 0 && (
                   <div className="flex flex-wrap items-center gap-12 px-16 py-12">
                     <Title variant="body-sm" color="muted">
-                      {cell.day ? "Sem visitas" : "Folga"}
+                      {dayOffDates.has(cell.date)
+                        ? "Você não trabalha neste dia"
+                        : cell.day
+                          ? "Sem visitas"
+                          : "Sem rota"}
                     </Title>
-                    {!cell.day && (
+                    {!cell.day && !dayOffDates.has(cell.date) && (
                       <GenerateDayButton
                         date={cell.date}
                         sellerId={addSellerId}
@@ -178,19 +187,23 @@ export function RoutinesList({
                   </div>
                 )}
 
-                {/* Rodapé: adicionar visita neste dia (também cria o dia numa
-                    folga). O atalho para a rota fica no cabeçalho. */}
-                <div className="border-t border-(--border) p-16">
-                  <AddVisitCard
-                    day={cell.day}
-                    date={cell.date}
-                    scheduleId={scheduleId}
-                    nextDay={nextDay}
-                    sellerId={addSellerId}
-                    capacity={capacity}
-                    onChanged={onChanged}
-                  />
-                </div>
+                {/* Rodapé: adicionar visita neste dia (cria o dia quando ele
+                    ainda não tem rota). O atalho para a rota fica no cabeçalho.
+                    Some no dia não trabalhado: o backend recusa a visita, e
+                    oferecer um botão que só devolve erro é pior que não tê-lo. */}
+                {!dayOffDates.has(cell.date) && (
+                  <div className="border-t border-(--border) p-16">
+                    <AddVisitCard
+                      day={cell.day}
+                      date={cell.date}
+                      scheduleId={scheduleId}
+                      nextDay={nextDay}
+                      sellerId={addSellerId}
+                      capacity={capacity}
+                      onChanged={onChanged}
+                    />
+                  </div>
+                )}
               </div>
             )}
           </Card.Root>

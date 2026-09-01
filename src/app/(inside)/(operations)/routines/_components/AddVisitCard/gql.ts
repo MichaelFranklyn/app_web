@@ -25,7 +25,7 @@ export const SELLER_CLIENT_LINKS_QUERY = gql`
   }
 `;
 
-// Cria um dia de rotina vazio (usado ao agendar manualmente num dia de folga).
+// Cria um dia de rotina vazio (usado ao agendar manualmente num dia sem rota).
 export const CREATE_VISIT_DAY_MUTATION = gql`
   mutation CreateVisitScheduleDay($input: CreateVisitScheduleDayInput!) {
     createVisitScheduleDay(input: $input) {

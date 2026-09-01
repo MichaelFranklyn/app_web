@@ -6,6 +6,7 @@ import { clientDisplayName } from "@/utils/client";
 import { contactLabel, contactNoun } from "@/utils/visit";
 import { useMutation } from "@apollo/client/react";
 import {
+  CalendarCheck,
   CalendarClock,
   Eye,
   MapPin,
@@ -24,6 +25,7 @@ import { PromoteContactModal } from "./_components/PromoteContactModal";
 import { RescheduleVisitModal } from "./_components/VisitActions/RescheduleVisitModal";
 import { VisitStockModal } from "@/components/VisitStockModal";
 import { VisitDetailPanel } from "./_components/VisitActions/VisitDetailPanel";
+import { WholeDayModal } from "./_components/VisitActions/WholeDayModal";
 
 type ActiveModal =
   | "view"
@@ -32,6 +34,7 @@ type ActiveModal =
   | "reschedule"
   | "completed"
   | "promote"
+  | "wholeDay"
   | null;
 
 interface Args {
@@ -200,6 +203,20 @@ export function useVisitActions({
               },
             ]
           : []),
+        // Só para visita presencial que aconteceu (ou está para acontecer): uma
+        // ligação não toma o dia, e uma parada já remarcada não tem dia para
+        // tomar. Some depois de marcada — repetir a ação não faria nada.
+        ...(!isRemote &&
+        !item.isWholeDay &&
+        (item.status === "PENDING" || item.status === "COMPLETED")
+          ? [
+              {
+                label: "Tomou o dia todo",
+                icon: CalendarCheck,
+                onClick: () => setActive("wholeDay"),
+              },
+            ]
+          : []),
         {
           label: `Remarcar ${noun}`,
           icon: CalendarClock,
@@ -251,6 +268,15 @@ export function useVisitActions({
       <RescheduleVisitModal
         item={item}
         open={active === "reschedule"}
+        onOpenChange={(o) => !o && close()}
+        onDone={onChanged}
+      />
+
+      <WholeDayModal
+        itemId={item.id}
+        clientName={clientName}
+        isPending={item.status === "PENDING"}
+        open={active === "wholeDay"}
         onOpenChange={(o) => !o && close()}
         onDone={onChanged}
       />

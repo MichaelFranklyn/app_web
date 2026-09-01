@@ -43,6 +43,7 @@ const stop = (over: Partial<VisitItem> = {}): VisitItem => ({
   plannedEndTime: "10:10",
   visitDurationMin: 30,
   status: "PENDING",
+  isWholeDay: false,
   // Sem mínimo cadastrado na fábrica — o estado de todo vínculo até o gestor
   // preencher, e o único em que o PDF da rota não fala de pedido mínimo.
   viability: null,

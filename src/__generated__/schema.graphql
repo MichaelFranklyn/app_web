@@ -1,6 +1,6 @@
 # AUTO-GERADO por scripts/pull-schema.mjs — NÃO editar à mão.
 # Snapshot do schema do backend (app_user). Atualize com: npm run schema:pull
-# Fonte: 49 arquivos .graphql merge-ados (mesma regra do Ariadne).
+# Fonte: 50 arquivos .graphql merge-ados (mesma regra do Ariadne).
 
 input BaseListInput {
   filters: [FieldFilterInput!] = null
@@ -4776,6 +4776,69 @@ extend type Mutation {
   deleteSellerClientFactory(id: UUID!): BaseResponse!
 }
 
+"""
+Um dia em que o vendedor avisou que não vai trabalhar.
+
+Para o motor de rotina é o mesmo que um feriado da praça: o dia não vira rota.
+A diferença é de quem: o feriado fecha o comércio para todo mundo, a folga é
+deste vendedor.
+"""
+type SellerDayOffType {
+  id: UUID!
+  companyId: UUID!
+  sellerId: UUID!
+  date: Date!
+  """Recado curto para quem abrir a semana e perguntar por que o dia está vazio ("médico", "viagem")."""
+  reason: String
+  createdAt: DateTime!
+  seller: SellerType
+}
+
+"""O que aconteceu com a rotina que já estava no dia marcado."""
+type MarkSellerDayOffResultType {
+  dayOff: SellerDayOffType!
+  """Paradas que ganharam data nova, pelo mesmo caminho do botão "Reagendar"."""
+  rescheduled: Int!
+  """Paradas que saíram do dia sem encaixe na semana — o cliente volta ao plano pelo score."""
+  released: Int!
+}
+
+type MarkSellerDayOffResultTypeDataResponse {
+  status: Boolean!
+  code: Int!
+  message: String!
+  data: MarkSellerDayOffResultType
+}
+
+type SellerDayOffTypeDataResponse {
+  status: Boolean!
+  code: Int!
+  message: String!
+  data: SellerDayOffType
+}
+
+extend type Query {
+  """
+  Dias não trabalhados do vendedor no intervalo (inclusive nas pontas).
+  Sem `sellerId`, responde pelo vendedor logado.
+  """
+  sellerDayOffs(sellerId: UUID = null, from: Date!, to: Date!): [SellerDayOffType!]!
+}
+
+extend type Mutation {
+  """
+  Marca que o vendedor não trabalha nesta data e realoca o que já estava
+  planejado nela. Só de hoje em diante. Repetir a marcação é inofensivo.
+  """
+  markSellerDayOff(sellerId: UUID = null, date: Date!, reason: String = null): MarkSellerDayOffResultTypeDataResponse!
+  """
+  Desfaz a marcação e devolve o dia ao planejamento. As visitas que saíram NÃO
+  voltam sozinhas: elas já têm data nova, e trazê-las de volta desmarcaria um
+  compromisso que o vendedor pode já ter combinado com o cliente.
+  """
+  unmarkSellerDayOff(sellerId: UUID = null, date: Date!): SellerDayOffTypeDataResponse!
+}
+
 input CreateSellerFactoryAccessInput {
   sellerId: UUID!
   factoryId: UUID!
@@ -5370,6 +5433,10 @@ enum RescheduleReason {
   NO_TIME
   RESCHEDULED
   CANCELLED
+  """O dia inteiro saiu: o vendedor marcou que não trabalharia nele."""
+  DAY_OFF
+  """A visita que tomou a jornada inteira empurrou as outras paradas do dia."""
+  WHOLE_DAY_VISIT
 }
 
 input CreateVisitScheduleConfigInput {
@@ -5526,6 +5593,8 @@ enum DayStatus {
   PLANNED
   IN_PROGRESS
   DONE
+  """Dia que o vendedor marcou como não trabalhado: não recebe parada nova nem é replanejado."""
+  OFF
 }
 
 input CreateVisitScheduleItemInput {
@@ -5610,6 +5679,8 @@ type VisitScheduleItemType {
   actualVisitAt: DateTime
   nextVisitSuggestion: Date
   notes: String
+  """Esta visita tomou a jornada inteira: as outras paradas do dia saíram por causa dela."""
+  isWholeDay: Boolean!
   createdAt: DateTime!
   updatedAt: DateTime!
   day: VisitScheduleDayType
@@ -5814,6 +5885,28 @@ extend type Mutation {
   marcado. `includeLinkIds` marca junto os vizinhos da região.
   """
   promoteContactToVisit(input: PromoteContactToVisitInput!): BaseResponse!
+  """
+  Registra que esta visita tomou o dia inteiro: conclui a visita e realoca as
+  outras paradas pendentes do mesmo dia. Só vale para visita pendente ou já
+  realizada.
+  """
+  markVisitWholeDay(itemId: UUID!): MarkVisitWholeDayResultTypeDataResponse!
+}
+
+"""O que aconteceu com o resto do dia."""
+type MarkVisitWholeDayResultType {
+  item: VisitScheduleItemType!
+  """Paradas do mesmo dia que ganharam data nova."""
+  rescheduled: Int!
+  """Paradas que saíram do dia sem encaixe na semana."""
+  released: Int!
+}
+
+type MarkVisitWholeDayResultTypeDataResponse {
+  status: Boolean!
+  code: Int!
+  message: String!
+  data: MarkVisitWholeDayResultType
 }
 enum StockObservation {
   OUT_OF_STOCK

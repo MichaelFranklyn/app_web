@@ -43,7 +43,7 @@ export function AddVisitModal({
     isContactTypeEnabled,
     typeLimit,
     confirmingOverLimit,
-    isFolga,
+    isDayWithoutRoute,
     isDayFull,
     nextDayHasRoom,
     isLoading,
@@ -74,8 +74,8 @@ export function AddVisitModal({
         <Modal.Header
           title={`Adicionar ${contactNoun(contactType)}`}
           description={
-            isFolga
-              ? "Este dia está de folga. Escolha o cliente para começar a trabalhar neste dia."
+            isDayWithoutRoute
+              ? "Este dia ainda não tem rota. Escolha o cliente para começar a trabalhar nele."
               : "Escolha o cliente para agendar neste dia."
           }
         />

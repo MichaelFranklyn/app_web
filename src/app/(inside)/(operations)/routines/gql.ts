@@ -93,6 +93,7 @@ export const VISIT_SCHEDULES_QUERY = gql`
               status
               outcome
               notes
+              isWholeDay
               focusFactories {
                 scoreTotal
                 factory {
@@ -180,6 +181,53 @@ export const UPDATE_VISIT_ITEM_MUTATION = gql`
         outcome
         notes
         nextVisitSuggestion
+      }
+    }
+  }
+`;
+
+// Dias que o vendedor marcou como não trabalhados na semana em tela. Consulta
+// própria (e não um campo da rotina) porque a folga existe mesmo quando a
+// semana ainda não foi planejada — é o caso de marcá-la com antecedência.
+export const SELLER_DAY_OFFS_QUERY = gql`
+  query SellerDayOffs($sellerId: UUID, $from: Date!, $to: Date!) {
+    seller_day_offs: sellerDayOffs(sellerId: $sellerId, from: $from, to: $to) {
+      id
+      date
+      reason
+    }
+  }
+`;
+
+// Marca o dia e realoca o que já estava planejado nele. A mensagem do backend
+// diz quantas paradas foram remarcadas e quantas ficaram sem vaga — é ela que
+// vai ao toast, não um texto fixo daqui.
+export const MARK_SELLER_DAY_OFF_MUTATION = gql`
+  mutation MarkSellerDayOff($sellerId: UUID, $date: Date!, $reason: String) {
+    markSellerDayOff(sellerId: $sellerId, date: $date, reason: $reason) {
+      status
+      message
+      data {
+        rescheduled
+        released
+        dayOff {
+          id
+          date
+          reason
+        }
+      }
+    }
+  }
+`;
+
+export const UNMARK_SELLER_DAY_OFF_MUTATION = gql`
+  mutation UnmarkSellerDayOff($sellerId: UUID, $date: Date!) {
+    unmarkSellerDayOff(sellerId: $sellerId, date: $date) {
+      status
+      message
+      data {
+        id
+        date
       }
     }
   }

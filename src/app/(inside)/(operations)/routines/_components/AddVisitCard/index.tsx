@@ -8,13 +8,13 @@ import { RoutineCapacity, VisitScheduleDay } from "../../interface";
 import { AddVisitModal } from "./AddVisitModal";
 
 interface Props {
-  /** Dia existente na rotina; null quando é uma folga (dia ainda não criado). */
+  /** Dia existente na rotina; null quando o dia ainda não tem rota. */
   day: VisitScheduleDay | null;
-  /** Data ISO do dia (para criar o dia quando é folga). */
+  /** Data ISO do dia (para criá-lo quando ainda não existe). */
   date: string;
-  /** VisitSchedule da semana (para criar o dia quando é folga). */
+  /** VisitSchedule da semana (para criar o dia quando ainda não existe). */
   scheduleId: string;
-  /** Próximo dia útil da semana (para "agendar no dia seguinte"); null se folga. */
+  /** Próximo dia útil da semana (para "agendar no dia seguinte"); null se ele não tiver rota. */
   nextDay: VisitScheduleDay | null;
   sellerId: string | null;
   capacity: RoutineCapacity;
@@ -22,7 +22,7 @@ interface Props {
 }
 
 // Card com "+" ao centro para agendar manualmente uma visita neste dia. Também
-// funciona em dias de folga: cria o dia e adiciona a primeira visita.
+// funciona em dias sem rota: cria o dia e adiciona a primeira visita.
 export function AddVisitCard({
   day,
   date,

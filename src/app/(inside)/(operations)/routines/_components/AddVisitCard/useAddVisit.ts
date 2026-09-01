@@ -103,8 +103,10 @@ export function useAddVisit({
     setConfirmingOverLimit(false);
   }, [contactType]);
 
-  // Folga: o dia ainda não existe na rotina; será criado antes de agendar.
-  const isFolga = !day;
+  // O dia ainda não existe na rotina (nunca teve rota): será criado antes de
+  // agendar. Não confundir com o dia NÃO TRABALHADO, que o vendedor marcou e
+  // que não aceita visita nenhuma — ver `DayOffButton`.
+  const isDayWithoutRoute = !day;
 
   // Vínculos já agendados neste dia não podem ser adicionados de novo.
   const scheduledLinkIds = useMemo(
@@ -133,7 +135,7 @@ export function useAddVisit({
     nextDay && countByType(nextDay, contactType) < typeLimit
   );
 
-  // Cria o item numa das opções: um dia existente, ou uma folga (cria o dia antes).
+  // Cria o item numa das opções: um dia existente, ou um dia sem rota (cria o dia antes).
   const runCreate = (target: "current" | "next") =>
     execute(
       async () => {
@@ -147,7 +149,7 @@ export function useAddVisit({
           scheduleDayId = day.id;
           plannedOrder = day.items.length + 1;
         } else {
-          // Folga: cria o dia vazio (partida = casa, igual à geração automática).
+          // Dia sem rota: cria o dia vazio (partida = casa, igual à geração automática).
           const dayRes = await createVisitDay({
             variables: {
               input: { scheduleId, date, departureType: "HOME" },
@@ -220,7 +222,7 @@ export function useAddVisit({
     isContactTypeEnabled: capacity.isRemoteContactEnabled,
     typeLimit,
     confirmingOverLimit,
-    isFolga,
+    isDayWithoutRoute,
     isDayFull,
     nextDay,
     nextDayHasRoom,
