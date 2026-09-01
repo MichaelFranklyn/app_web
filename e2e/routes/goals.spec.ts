@@ -13,11 +13,18 @@ import { grantRole } from "../support/role";
  * modal dentro de modal é proibido no projeto. Enquanto o detalhe era um modal
  * sobre a lista, o botão de ajustar abria o segundo.
  */
+/**
+ * O mês do cenário. Fixo de propósito (os números do mock são deste mês), e por
+ * isso precisa ir na URL de toda navegação do arquivo: a tela sem `?month=` abre
+ * no mês corrente e o cenário deixa de casar quando o calendário vira.
+ */
+const PERIOD_MONTH = "2026-08-01";
+
 const goalRow = (overrides: Record<string, unknown> = {}) => ({
   goalId: "goal-1",
   sellerId: "seller-1",
   factoryId: "factory-1",
-  periodMonth: "2026-08-01",
+  periodMonth: PERIOD_MONTH,
   seller: { id: "seller-1", name: "Rafael Vendas" },
   factory: {
     id: "factory-1",
@@ -70,7 +77,7 @@ const OPTIONS = {
 };
 
 const overview = () => ({
-  sellerGoals: { periodMonth: "2026-08-01", rows: [goalRow(), semMeta()] },
+  sellerGoals: { periodMonth: PERIOD_MONTH, rows: [goalRow(), semMeta()] },
 });
 
 test("metas: KPIs do mês e uma linha por vendedor", async ({ page }) => {
@@ -99,12 +106,17 @@ test("metas: clicar no vendedor abre a página dele, um cartão por fábrica", a
 }) => {
   await mockGraphql(page, { ...OPTIONS, SellerGoals: overview });
 
-  await page.goto("/goals");
+  // O mês vai na URL de entrada, e não é detalhe do teste: sem ele a tela abre
+  // no mês CORRENTE (`getTodayIso`), o link do vendedor herda esse mês e a
+  // asserção abaixo passa a depender da data em que a suíte roda. Foi o que
+  // aconteceu na virada de agosto para setembro de 2026 — o teste quebrou
+  // sozinho, sem ninguém tocar em nada.
+  await page.goto(`/goals?month=${PERIOD_MONTH}`);
   await page.getByRole("row", { name: /Rafael Vendas/ }).click();
 
   // Página própria, com o mês na URL: o link pode ser mandado para alguém, e a
   // volta cai no mesmo mês de onde se saiu.
-  await expect(page).toHaveURL(/\/goals\/seller-1\?month=2026-08-01$/);
+  await expect(page).toHaveURL(`/goals/seller-1?month=${PERIOD_MONTH}`);
 
   await expect(
     page.getByRole("heading", { name: "Rafael Vendas", level: 1 })
@@ -127,7 +139,7 @@ test("metas: gestor ajusta a cota de uma fábrica pelo cartão", async ({
   await grantRole(page, "OWNER");
   await mockGraphql(page, { ...OPTIONS, SellerGoals: overview });
 
-  await page.goto("/goals/seller-1?month=2026-08-01");
+  await page.goto(`/goals/seller-1?month=${PERIOD_MONTH}`);
 
   // O lápis do cartão abre o ÚNICO modal da tela, a partir da página.
   await page.getByRole("button", { name: "Ajustar meta" }).first().click();
