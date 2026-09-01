@@ -40,13 +40,13 @@ export interface CreateVisitDayResponse {
 export interface AddVisitModalProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
-  /** Dia já existente na rotina; null quando é uma folga (dia ainda não criado). */
+  /** Dia já existente na rotina; null quando o dia ainda não tem rota. */
   day: VisitScheduleDay | null;
-  /** Data ISO do dia (necessária para criar o dia quando é folga). */
+  /** Data ISO do dia (necessária para criá-lo quando ainda não existe). */
   date: string;
-  /** VisitSchedule da semana (para criar o dia quando é folga). */
+  /** VisitSchedule da semana (para criar o dia quando ainda não existe). */
   scheduleId: string;
-  /** Próximo dia útil da semana (para "agendar no dia seguinte"); null se folga. */
+  /** Próximo dia útil da semana (para "agendar no dia seguinte"); null se ele não tiver rota. */
   nextDay: VisitScheduleDay | null;
   sellerId: string;
   capacity: RoutineCapacity;

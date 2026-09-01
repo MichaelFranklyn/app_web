@@ -1,26 +1,12 @@
 "use client";
 
-import { Badge } from "@/components/Badges";
-import { getButtonClasses } from "@/components/Button/Root/style";
-import { Card } from "@/components/Card";
-import { Title } from "@/components/Title";
-import { ArrowUpRight, Route } from "lucide-react";
-import Link from "next/link";
 import { RoutineCapacity, VisitScheduleDay } from "../../interface";
-import {
-  buildWeekDays,
-  getTodayIso,
-  getVisibleCells,
-  isPastDay,
-  sortVisitsByRoute,
-} from "../../utils";
-import { GenerateDayButton } from "./GenerateDayButton";
-import { AddVisitCard } from "../AddVisitCard";
-import { VisitCard } from "../VisitCard";
+import { buildWeekDays, getTodayIso, getVisibleCells } from "../../utils";
+import { DayCell } from "./DayCell";
 
 interface Props {
   weekStart: string;
-  /** VisitSchedule da semana exibida (para criar dias em folgas). */
+  /** VisitSchedule da semana exibida (para criar os dias que faltarem). */
   scheduleId: string;
   days: VisitScheduleDay[];
   sellerId?: string | null;
@@ -30,20 +16,12 @@ interface Props {
   capacity: RoutineCapacity;
   /** Quantos dias exibir a rotina, a partir de hoje (7 = semana toda). */
   periodDays: number;
+  /** Datas ISO que o vendedor marcou como não trabalhadas. */
+  dayOffDates: Set<string>;
+  onMarkDayOff: (date: string) => Promise<void>;
+  onUnmarkDayOff: (date: string) => Promise<void>;
   onChanged: () => void;
 }
-
-// Botão âmbar "Ver rota do dia" (link → /routines/[date]).
-const routeButtonClass = getButtonClasses({
-  appearance: "tinted",
-  color: "amber",
-  size: "sm",
-  isIconOnly: false,
-  fullWidth: true,
-  active: false,
-  noPadding: false,
-  noUppercase: true,
-});
 
 export function RoutinesWeekGrid({
   weekStart,
@@ -53,6 +31,9 @@ export function RoutinesWeekGrid({
   effectiveSellerId,
   capacity,
   periodDays,
+  dayOffDates,
+  onMarkDayOff,
+  onUnmarkDayOff,
   onChanged,
 }: Props) {
   const cells = buildWeekDays(weekStart, days);
@@ -61,177 +42,33 @@ export function RoutinesWeekGrid({
   const visibleCells = getVisibleCells(cells, periodDays, todayIso);
 
   // items-stretch (e não items-start): num kanban as colunas têm de terminar na
-  // mesma linha. O dia de folga tem pouco conteúdo, mas acompanha a altura do
+  // mesma linha. O dia sem rota tem pouco conteúdo, mas acompanha a altura do
   // dia mais cheio e completa o resto com espaço em branco.
   return (
     <div className="flex items-stretch gap-8 overflow-x-auto pb-8">
       {visibleCells.map((cell) => {
-        const items = sortVisitsByRoute(cell.day?.items ?? []);
-        const isToday = cell.date === todayIso;
-        // Quantas já foram concluídas — alimenta o badge de progresso do dia.
-        const doneCount = items.filter((i) => i.status === "COMPLETED").length;
-        const allDone = items.length > 0 && doneCount === items.length;
         // "Dia seguinte" = próximo dia da semana; só serve como alternativa de
-        // agendamento se for um dia útil (tem rotina), não uma folga.
+        // agendamento se for um dia útil (tem rotina), não um dia vazio.
         const globalIndex = cells.indexOf(cell);
         const nextDay = cells[globalIndex + 1]?.day ?? null;
         return (
           // Largura travada em 290px (mínimo = máximo): a coluna do dia não
           // estica quando há poucos dias em tela nem comprime quando há muitos
           // — quando as 7 não cabem, a faixa rola na horizontal.
-          <div key={cell.date} className="max-w-[290px] min-w-[290px] shrink-0">
-            <Card.Root
-              className={`h-full ${
-                isToday ? "ring-1 ring-(--amber) ring-inset" : ""
-              }`}
-            >
-              <Card.Header bg="bg3">
-                {cell.day ? (
-                  <Link
-                    href={`/routines/${cell.date}${
-                      sellerId ? `?seller=${sellerId}` : ""
-                    }`}
-                    className="group flex min-w-0 flex-col"
-                    title="Ver rota deste dia"
-                  >
-                    <Title
-                      variant="heading-sm"
-                      className="inline-flex items-center gap-3 transition-colors group-hover:text-(--amber)"
-                    >
-                      {cell.dayLabel}
-                      <ArrowUpRight
-                        size={12}
-                        className="opacity-0 transition-opacity group-hover:opacity-100"
-                      />
-                    </Title>
-                    <Title variant="micro" color="muted">
-                      {cell.weekdayLabel}
-                    </Title>
-                  </Link>
-                ) : (
-                  <div className="flex flex-col">
-                    <Title variant="heading-sm">{cell.dayLabel}</Title>
-                    <Title variant="micro" color="muted">
-                      {cell.weekdayLabel}
-                    </Title>
-                  </div>
-                )}
-                <div className="flex items-center gap-6">
-                  {isToday && (
-                    <Badge.Root color="amber" appearance="tinted">
-                      <Badge.Text>Hoje</Badge.Text>
-                    </Badge.Root>
-                  )}
-                  <Badge.Root
-                    color={allDone ? "green" : "neutral"}
-                    appearance="tinted"
-                    title={
-                      items.length > 0
-                        ? `${doneCount} de ${items.length} concluída(s)`
-                        : undefined
-                    }
-                  >
-                    <Badge.Text>
-                      {doneCount > 0
-                        ? `${doneCount}/${items.length}`
-                        : items.length}
-                    </Badge.Text>
-                  </Badge.Root>
-                </div>
-              </Card.Header>
-              {/* Sem padding no Body: a lista rola (área central) e as ações
-                  ficam fixas num rodapé próprio, separadas por um divisor. */}
-              <Card.Body padding="none">
-                {!cell.day ? (
-                  // Folga: mesma anatomia dos dias úteis — o aviso ocupa a área
-                  // central (é dela que vem o espaço em branco que iguala a
-                  // altura) e as ações ficam no rodapé, após o divisor.
-                  <>
-                    <div className="flex flex-1 flex-col items-center p-16">
-                      <Title variant="body-sm" color="muted">
-                        Folga
-                      </Title>
-                    </div>
-
-                    {/* O usuário ainda pode querer trabalhar neste dia: gerar a
-                        rota automática (pela carteira) ou agendar uma visita
-                        manual (cria o dia com essa primeira visita). */}
-                    <div className="flex flex-col gap-8 border-t border-(--border) p-16">
-                      {/* Dia vencido não recebe rota nova: a visita já não pode
-                          acontecer, e recomendá-la só consumiria o cliente da
-                          semana. O backend recusa; aqui o botão nem aparece. */}
-                      {!isPastDay(cell.date, todayIso) && (
-                        <GenerateDayButton
-                          date={cell.date}
-                          sellerId={addSellerId}
-                          onGenerated={onChanged}
-                        />
-                      )}
-                      <AddVisitCard
-                        day={null}
-                        date={cell.date}
-                        scheduleId={scheduleId}
-                        nextDay={nextDay}
-                        sellerId={addSellerId}
-                        capacity={capacity}
-                        onChanged={onChanged}
-                      />
-                    </div>
-                  </>
-                ) : (
-                  <>
-                    {/* Área rolável: cresce até um teto e então rola por dentro,
-                        em vez de esticar a coluna para baixo. */}
-                    <div className="max-h-[calc(100dvh-340px)] min-h-[64px] flex-1 overflow-y-auto p-16">
-                      {items.length === 0 ? (
-                        <Title
-                          variant="body-sm"
-                          color="muted"
-                          className="py-8 text-center"
-                        >
-                          Sem visitas
-                        </Title>
-                      ) : (
-                        <div className="flex flex-col gap-6">
-                          {items.map((item) => (
-                            <VisitCard
-                              key={item.id}
-                              item={item}
-                              dayDate={cell.date}
-                              onChanged={onChanged}
-                            />
-                          ))}
-                        </div>
-                      )}
-                    </div>
-
-                    {/* Rodapé fixo do dia: adicionar visita + abrir a rota. */}
-                    <div className="flex flex-col gap-8 border-t border-(--border) p-16">
-                      <AddVisitCard
-                        day={cell.day}
-                        date={cell.date}
-                        scheduleId={scheduleId}
-                        nextDay={nextDay}
-                        sellerId={addSellerId}
-                        capacity={capacity}
-                        onChanged={onChanged}
-                      />
-                      <Link
-                        href={`/routines/${cell.date}${
-                          sellerId ? `?seller=${sellerId}` : ""
-                        }`}
-                        className={routeButtonClass}
-                        title="Abrir a rota deste dia no mapa"
-                      >
-                        <Route size={14} />
-                        Ver rota do dia
-                      </Link>
-                    </div>
-                  </>
-                )}
-              </Card.Body>
-            </Card.Root>
-          </div>
+          <DayCell
+            key={cell.date}
+            cell={cell}
+            todayIso={todayIso}
+            scheduleId={scheduleId}
+            sellerId={sellerId}
+            addSellerId={addSellerId}
+            capacity={capacity}
+            nextDay={nextDay}
+            isDayOff={dayOffDates.has(cell.date)}
+            onMarkDayOff={onMarkDayOff}
+            onUnmarkDayOff={onUnmarkDayOff}
+            onChanged={onChanged}
+          />
         );
       })}
     </div>

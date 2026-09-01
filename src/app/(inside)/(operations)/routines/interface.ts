@@ -12,7 +12,23 @@ export type { VisitContactType, VisitOutcome, VisitStatus };
 
 export type ScheduleStatus = "DRAFT" | "CONFIRMED";
 
-export type DayStatus = "PLANNED" | "IN_PROGRESS" | "DONE";
+/**
+ * `OFF` é o único escolhido por alguém: o vendedor marcou que não trabalha
+ * naquele dia. Os outros três são derivados das visitas (ver `_advance_day_status`
+ * no backend).
+ */
+export type DayStatus = "PLANNED" | "IN_PROGRESS" | "DONE" | "OFF";
+
+/** Um dia que o vendedor marcou como não trabalhado. */
+export interface SellerDayOff {
+  id: string;
+  date: string;
+  reason: string | null;
+}
+
+export interface SellerDayOffsQueryData {
+  seller_day_offs: SellerDayOff[];
+}
 
 export type DepartureType = "HOME" | "CUSTOM" | "GPS";
 
@@ -82,6 +98,11 @@ export interface VisitScheduleItem {
   status: VisitStatus;
   outcome: VisitOutcome | null;
   notes: string | null;
+  /**
+   * A visita consumiu a jornada inteira: as outras paradas daquele dia saíram
+   * por causa dela. Marcado pelo vendedor, não calculado por duração.
+   */
+  isWholeDay: boolean;
   /** O que motivou a visita (sugestão do sistema). */
   focusFactories: VisitFocusFactory[];
   /** O que o vendedor de fato tratou, derivado das observações de estoque. */

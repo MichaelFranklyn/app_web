@@ -216,3 +216,68 @@ test("rotina (lista): dias colapsam, só hoje abre sozinho", async ({
   await page.getByRole("button", { expanded: true }).first().click();
   await expect(doneChecks).toHaveCount(0);
 });
+
+/**
+ * Marcar um dia como não trabalhado.
+ *
+ * O que este teste protege é a promessa feita ANTES do clique: a confirmação
+ * precisa dizer quantas paradas vão sair do dia. Foi por não dizer isso que a
+ * ação nasceu com modal em vez de um clique direto — descobrir pelo toast que
+ * três visitas mudaram de data é descobrir tarde demais.
+ *
+ * O dia é o de HOJE, e não a segunda da semana: quando a semana já virou, o dia
+ * passado não oferece a ação (marcar ontem não muda nada) e o teste clicaria no
+ * botão de outra coluna.
+ */
+test("rotina: marca um dia como não trabalhado", async ({ page }) => {
+  const today = getTodayIso();
+  const todaySchedule = {
+    ...schedule,
+    days: [{ ...schedule.days[0], id: "d-hoje", date: today }],
+  };
+
+  const spy = await mockGraphql(page, {
+    RoutineSellersOptions: () => ({ routine_sellers: { edges: [] } }),
+    VisitScheduleConfig: scheduleConfig,
+    VisitSchedules: () => ({
+      visit_schedules: {
+        edges: [{ node: todaySchedule }],
+        pageInfo: { hasNextPage: false, endCursor: null },
+        totalCount: 1,
+      },
+    }),
+    SellerDayOffs: () => ({ seller_day_offs: [] }),
+    MarkSellerDayOff: () => ({
+      markSellerDayOff: {
+        status: true,
+        message: "Dia marcado: 1 parada(s) remarcada(s).",
+        data: {
+          rescheduled: 1,
+          released: 0,
+          dayOff: { id: "off-1", date: today, reason: null },
+        },
+      },
+    }),
+  });
+
+  await page.goto("/routines");
+
+  // A coluna de hoje é a única com visita marcada — e é dela que sai o número
+  // que a confirmação precisa mostrar.
+  const card = page.getByRole("button", { name: /Cliente LTDA/ });
+  await expect(card).toBeVisible();
+
+  // A grade começa em HOJE (`getVisibleCells`), então a primeira coluna é a do
+  // dia com a visita mockada.
+  await page.getByRole("button", { name: "Não vou trabalhar" }).first().click();
+
+  await expect(page.getByText(/1 parada marcada/)).toBeVisible();
+
+  await page
+    .getByRole("dialog")
+    .getByRole("button", { name: "Não vou trabalhar" })
+    .click();
+
+  const variables = await spy.waitForCall("MarkSellerDayOff");
+  expect(variables.date).toBe(today);
+});

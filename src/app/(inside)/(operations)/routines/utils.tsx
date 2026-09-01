@@ -222,6 +222,17 @@ export const isoToLocalDate = (isoDate: string): Date | null => {
   return new Date(year, month - 1, day);
 };
 
+/** ISO deslocado em N dias — UTC de propósito, como o resto dos cálculos de
+ * data desta tela: somar dias em horário local erra na virada do horário de
+ * verão. */
+export const shiftDayIso = (isoDate: string, days: number): string => {
+  const [year, month, day] = isoDate.split("-").map(Number);
+  if (!year || !month || !day) return isoDate;
+  const date = new Date(Date.UTC(year, month - 1, day));
+  date.setUTCDate(date.getUTCDate() + days);
+  return toIsoDate(date);
+};
+
 export const shiftWeekIso = (isoDate: string, weeks: number): string => {
   const [year, month, day] = isoDate.split("-").map(Number);
   if (!year || !month || !day) return isoDate;
@@ -274,7 +285,7 @@ export interface WeekDayCell {
 }
 
 // Monta os 7 dias (Seg→Dom) a partir do início da semana, mapeando os dias já
-// persistidos no schedule; dias sem rotina (folga) vêm com `day: null`.
+// persistidos no schedule; dias que ainda não têm rota vêm com `day: null`.
 export const buildWeekDays = (
   weekStartIso: string,
   days: VisitScheduleDay[]

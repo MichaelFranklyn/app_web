@@ -16,6 +16,7 @@ import { RoutinesSkeleton } from "./_components/RoutinesSkeleton";
 import { RoutinesSummary } from "./_components/RoutinesSummary";
 import { RoutinesViewToggle } from "./_components/RoutinesViewToggle";
 import { RoutinesWeekGrid } from "./_components/RoutinesWeekGrid";
+import { useDayOffs } from "./useDayOffs";
 import { useRoutines } from "./useRoutines";
 import { canGenerateWeek, formatWeekRange } from "./utils";
 
@@ -51,6 +52,15 @@ export default function RoutinesContent() {
     handleCurrentWeek,
     refetch,
   } = useRoutines();
+
+  // Os dias não trabalhados da semana em tela. Vivem fora da rotina de
+  // propósito: a folga pode ser marcada antes de a semana existir, e é assim
+  // que o job de segunda já a encontra.
+  const { dayOffDates, mark, unmark } = useDayOffs({
+    weekStart,
+    sellerId: effectiveSellerId,
+    onChanged: () => refetch(),
+  });
 
   return (
     <PageContent>
@@ -176,6 +186,7 @@ export default function RoutinesContent() {
                 effectiveSellerId={effectiveSellerId}
                 capacity={capacity}
                 periodDays={periodDays}
+                dayOffDates={dayOffDates}
                 onChanged={() => refetch()}
               />
             ) : (
@@ -187,6 +198,9 @@ export default function RoutinesContent() {
                 effectiveSellerId={effectiveSellerId}
                 capacity={capacity}
                 periodDays={periodDays}
+                dayOffDates={dayOffDates}
+                onMarkDayOff={mark}
+                onUnmarkDayOff={unmark}
                 onChanged={() => refetch()}
               />
             )}

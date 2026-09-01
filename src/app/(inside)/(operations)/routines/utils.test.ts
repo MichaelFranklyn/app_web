@@ -10,6 +10,7 @@ import {
   getVisitScoreReasons,
   getVisitScoreTotal,
   isPastDay,
+  shiftDayIso,
 } from "./utils";
 
 const factory = (id: string) => ({
@@ -43,6 +44,7 @@ const item = (over: Partial<VisitScheduleItem> = {}): VisitScheduleItem => ({
   plannedEndTime: null,
   visitDurationMin: null,
   status: "PENDING",
+  isWholeDay: false,
   outcome: null,
   notes: null,
   focusFactories: [],
@@ -359,5 +361,28 @@ describe("formatTravelToStop", () => {
   it("primeira parada do dia (ou sem trajeto) não vira linha vazia", () => {
     expect(formatTravelToStop(0)).toBeNull();
     expect(formatTravelToStop(null)).toBeNull();
+  });
+});
+
+/**
+ * O deslocamento de dias é UTC, como o resto dos cálculos de data desta tela.
+ * Em horário local, somar 24h na virada do horário de verão devolve o MESMO
+ * dia — e a semana da folga apareceria com seis dias.
+ */
+describe("shiftDayIso", () => {
+  it("anda para frente dentro do mês", () => {
+    expect(shiftDayIso("2026-09-07", 6)).toBe("2026-09-13");
+  });
+
+  it("atravessa a virada do mês", () => {
+    expect(shiftDayIso("2026-09-28", 6)).toBe("2026-10-04");
+  });
+
+  it("anda para trás", () => {
+    expect(shiftDayIso("2026-03-01", -1)).toBe("2026-02-28");
+  });
+
+  it("data inválida volta como veio", () => {
+    expect(shiftDayIso("", 3)).toBe("");
   });
 });
