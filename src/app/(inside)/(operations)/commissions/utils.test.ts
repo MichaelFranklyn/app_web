@@ -178,6 +178,75 @@ describe("factoryHighlights", () => {
 describe("monthReport", () => {
   const march = { year: 2026, month: 3 };
 
+  describe("prévia do mês seguinte", () => {
+    /**
+     * A pergunta que vem logo depois de "quanto entra neste mês". O dado já
+     * existe: a comissão nasce com data de recebimento no faturamento, então
+     * boa parte do mês que vem já está lançada quando este fecha.
+     */
+    it("soma o que já está lançado para o mês seguinte", () => {
+      const report = monthReport(
+        [
+          row({ installmentId: "a", amount: "10", receiveDate: "2026-03-10" }),
+          row({ installmentId: "b", amount: "40", receiveDate: "2026-04-10" }),
+          row({
+            installmentId: "c",
+            amount: "6",
+            status: "pending",
+            receiveDate: "2026-04-20",
+          }),
+          // Maio não é "o próximo mês" de março.
+          row({ installmentId: "d", amount: "99", receiveDate: "2026-05-10" }),
+        ],
+        march
+      );
+
+      expect(report.next.month).toEqual({ year: 2026, month: 4 });
+      expect(report.next.receivable).toBe(40);
+      // Previsto fica FORA do firme, como no total do mês.
+      expect(report.next.pending).toBe(6);
+      expect(report.next.count).toBe(2);
+    });
+
+    it("vira o ano em dezembro", () => {
+      const report = monthReport(
+        [row({ installmentId: "a", amount: "30", receiveDate: "2027-01-10" })],
+        { year: 2026, month: 12 }
+      );
+
+      expect(report.next.month).toEqual({ year: 2027, month: 1 });
+      expect(report.next.receivable).toBe(30);
+    });
+
+    it("estorno agendado para o mês seguinte entra no líquido", () => {
+      // É o mesmo bolso: prometer o bruto faria o vendedor cobrar a diferença.
+      const report = monthReport(
+        [
+          row({ installmentId: "a", amount: "50", receiveDate: "2026-04-10" }),
+          row({
+            installmentId: "b",
+            amount: "-20",
+            status: "chargeback",
+            receiveDate: "2026-04-10",
+          }),
+        ],
+        march
+      );
+
+      expect(report.next.receivable).toBe(30);
+    });
+
+    it("mês seguinte vazio não é erro: é um mês ainda não faturado", () => {
+      const report = monthReport(
+        [row({ installmentId: "a", amount: "10", receiveDate: "2026-03-10" })],
+        march
+      );
+
+      expect(report.next.receivable).toBe(0);
+      expect(report.next.count).toBe(0);
+    });
+  });
+
   it("separa as três seções de comissão pelo mês em que a comissão cai", () => {
     const report = monthReport(
       [

@@ -46,6 +46,13 @@ export const addMonths = (
 export const monthLabel = ({ year, month }: YearMonth): string =>
   `${MONTHS_PT[month - 1]} de ${year}`;
 
+/**
+ * True quando `a` é um mês anterior a `b` — a ordem no calendário, não a
+ * comparação campo a campo (dezembro de 2026 vem ANTES de janeiro de 2027).
+ */
+export const isBeforeMonth = (a: YearMonth, b: YearMonth): boolean =>
+  a.year * 12 + a.month < b.year * 12 + b.month;
+
 /** True se a data ISO cai no mês/ano informado. */
 export const isInMonth = (
   iso: string | null | undefined,

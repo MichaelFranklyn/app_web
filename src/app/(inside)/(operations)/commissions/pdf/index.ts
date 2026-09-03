@@ -146,6 +146,7 @@ export const exportCommissionsPdf = async (
       receivable: report.receivable.total,
       received: report.received.total,
       pending: report.pending.total,
+      next: report.next,
     },
     y,
     startNewPage

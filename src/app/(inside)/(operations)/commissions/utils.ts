@@ -1,6 +1,6 @@
 import { clientName } from "@/utils/company";
 import { formatDateDMY } from "@/utils/format/masks";
-import { isInMonth, type YearMonth } from "@/utils/format/month";
+import { addMonths, isInMonth, type YearMonth } from "@/utils/format/month";
 import { CommissionRow, CommissionStatus } from "./interface";
 
 // O vocabulário da situação e o agrupamento por fábrica subiram para
@@ -89,6 +89,7 @@ export const filterByMonth = (
 // por este arquivo — o importante é existir uma implementação só.
 export {
   addMonths,
+  isBeforeMonth,
   isInMonth,
   monthEndIso,
   monthLabel,
@@ -162,6 +163,28 @@ export interface CommissionSection {
   count: number;
 }
 
+/**
+ * O que já está marcado para cair no mês SEGUINTE.
+ *
+ * O fechamento responde "quanto entra neste mês", e quem vive de comissão faz a
+ * pergunta seguinte na mesma hora: e no mês que vem? O dado já existe — as
+ * comissões nascem com data de recebimento no faturamento, então boa parte do
+ * próximo mês já está lançada quando este fecha. Sem isto, o vendedor só
+ * descobre o tamanho do mês quando ele chega.
+ *
+ * `receivable` é o que a fábrica já deve; `pending` continua fora dele, pela
+ * mesma razão do total do mês (depende de faturar ou de o cliente pagar).
+ */
+export interface NextMonthPreview {
+  month: YearMonth;
+  /** Firme: a fábrica já deve, é só a data chegar. */
+  receivable: number;
+  /** Ainda depende de alguém fazer alguma coisa — não soma com o firme. */
+  pending: number;
+  /** Quantas parcelas compõem as duas pontas. */
+  count: number;
+}
+
 export interface MonthReport {
   /** O que a fábrica ainda deve no mês, já líquido de estorno e devolução. */
   receivable: CommissionSection;
@@ -181,6 +204,8 @@ export interface MonthReport {
   total: number;
   /** Quantas parcelas de comissão o papel lista nas três primeiras seções. */
   count: number;
+  /** Prévia do próximo fechamento — ver `NextMonthPreview`. */
+  next: NextMonthPreview;
 }
 
 /**
@@ -255,6 +280,34 @@ export const monthReport = (
     // faria o papel prometer um mês maior do que o que a fábrica vai pagar.
     total: receivable.total + received.total,
     count: receivable.count + received.count + pending.count,
+    next: nextMonthPreview(rows, month),
+  };
+};
+
+/**
+ * O que as MESMAS linhas já prometem para o mês seguinte.
+ *
+ * Sai das linhas inteiras, e não das do mês: o papel busca a carteira toda do
+ * vendedor (ver `COMMISSIONS_PDF_QUERY`), então o próximo fechamento já está
+ * ali dentro. "Recebido" não entra — comissão recebida num mês que ainda nem
+ * começou seria erro de lançamento, não previsão.
+ */
+export const nextMonthPreview = (
+  rows: CommissionRow[],
+  month: YearMonth
+): NextMonthPreview => {
+  const next = addMonths(month, 1);
+  const inNext = rows.filter((row) => isInMonth(row.receiveDate, next));
+  const receivable = inNext.filter(isReceivableStatus);
+  const pending = inNext.filter((row) => row.status === "pending");
+  const sum = (list: CommissionRow[]) =>
+    list.reduce((total, row) => total + Number(row.amount), 0);
+
+  return {
+    month: next,
+    receivable: sum(receivable),
+    pending: sum(pending),
+    count: receivable.length + pending.length,
   };
 };
 

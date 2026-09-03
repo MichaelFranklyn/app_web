@@ -17,6 +17,35 @@ import { grantRole } from "../support/role";
 
 const AGOSTO = { from: "2026-08-01", to: "2026-08-31" };
 
+/** Primeiro dia do mês, `delta` meses a partir de hoje, em ISO. */
+const monthStart = (delta: number): string => {
+  const now = new Date();
+  const d = new Date(now.getFullYear(), now.getMonth() + delta, 1);
+  return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}-01`;
+};
+
+const MONTHS_PT = [
+  "janeiro",
+  "fevereiro",
+  "março",
+  "abril",
+  "maio",
+  "junho",
+  "julho",
+  "agosto",
+  "setembro",
+  "outubro",
+  "novembro",
+  "dezembro",
+];
+
+/** "setembro de 2026" — o rótulo do mês, `delta` meses a partir de hoje. */
+const monthName = (delta: number): string => {
+  const now = new Date();
+  const d = new Date(now.getFullYear(), now.getMonth() + delta, 1);
+  return `${MONTHS_PT[d.getMonth()]} de ${d.getFullYear()}`;
+};
+
 /** Uma linha de comissão como o backend a devolve. */
 function row(overrides: Record<string, unknown> = {}) {
   return {
@@ -141,6 +170,47 @@ test("comissões: a tela pede o mês ao backend, não a carteira inteira", async
       exact: false,
     })
   ).toBeVisible();
+});
+
+test("comissões: comissão lançada para o futuro não tira a tela do mês de hoje", async ({
+  page,
+}) => {
+  // O defeito: `latestReceiveDate` é a data MAIS DISTANTE, e a comissão nasce
+  // com data de recebimento no faturamento — há sempre um mês à frente já
+  // lançado. A tela saltava para lá e abria em novembro para quem veio ver
+  // setembro, inclusive num simples F5.
+  const spy = await mockGraphql(page, {
+    Commissions: () => ({
+      commissions: {
+        ...summary([row({ receiveDate: monthStart(0) })]).commissions,
+        latestReceiveDate: monthStart(2),
+      },
+    }),
+  });
+
+  await page.goto("/commissions");
+
+  await expect(
+    page.getByText(`Resumo de ${monthName(0)}`, { exact: false })
+  ).toBeVisible();
+  await expect
+    .poll(() => JSON.stringify(spy.lastVariables("Commissions") ?? {}))
+    .toContain(`"from":"${monthStart(0)}"`);
+});
+
+test("comissões: mês de hoje vazio recua para o último com movimento", async ({
+  page,
+}) => {
+  // O motivo de o salto existir: carteira sem nada no mês corrente abria uma
+  // tela vazia, e quem tinha movimento em agosto concluía que não havia nada.
+  // Para trás continua valendo — é só para frente que ele deixou de valer.
+  await mockGraphql(page, {
+    Commissions: () => summary([row()]),
+  });
+
+  await page.goto("/commissions");
+
+  await expect(page.getByText("Resumo de agosto de 2026")).toBeVisible();
 });
 
 test("comissões: trocar de mês refaz a consulta com o novo período", async ({
