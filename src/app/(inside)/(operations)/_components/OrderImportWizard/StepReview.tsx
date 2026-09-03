@@ -15,6 +15,12 @@ import { UnreadableAlert } from "./UnreadableAlert";
 import { confidenceHelp, confidenceTone, tierPriceDiffers } from "./utils";
 
 interface StepReviewProps {
+  /**
+   * Posição do passo no caminho INTEIRO (a importação começa antes deste
+   * componente): é o "Passo 3 de 6" da caixa de explicação.
+   */
+  step: number;
+  total: number;
   reviewRows: ReviewRow[];
   updateRow: (index: number, patch: Partial<ReviewRow>) => void;
   confirmableCount: number;
@@ -27,6 +33,8 @@ interface StepReviewProps {
 }
 
 export function StepReview({
+  step,
+  total,
   reviewRows,
   updateRow,
   confirmableCount,
@@ -37,8 +45,8 @@ export function StepReview({
   return (
     <div className="flex flex-col gap-12">
       <Stepper.Intro
-        step={3}
-        total={4}
+        step={step}
+        total={total}
         title="Confira os itens antes de gravar"
       >
         Casamos cada código do produto com o catálogo da fábrica. Confira o

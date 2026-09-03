@@ -11,8 +11,9 @@ import { mockGraphql, orderDetailData } from "../support/graphql";
  *   3) OrderItemProducts          → o nó completo do produto escolhido (por id)
  *   4) OrderItemPriceLists        → acha a tabela de preço ATIVA
  *   5) OrderItemPriceListItems    → preço do produto escolhido, por nível
- * Selecionar o produto reseta o nível; selecionar o nível preenche o preço
- * (campo disabled, derivado do priceMap). O preço vai no input da mutation.
+ * Selecionar o produto RESOLVE o nível (o último usado, o acordado com o
+ * cliente, ou o único com preço) e o nível preenche o preço (campo disabled,
+ * derivado do priceMap). O preço vai no input da mutation.
  */
 const URL = "/orders/order-1";
 
@@ -153,15 +154,15 @@ test("pedido detalhe: adiciona um item (cascata produto/nível/preço)", async (
     .getByText("SKU-1 — Produto X", { exact: true })
     .click();
 
+  // O nível NÃO é digitado: ele se preenche sozinho ao escolher o produto (o do
+  // último item do pedido, o acordado com o cliente, ou o único com preço — ver
+  // `resolveTierForProduct`). Este `expect` é o que prende esse preenchimento:
+  // quando ele deixava o campo vazio, o preço aparecia sugerido e o nível, em
+  // branco, e o vendedor gravava um item sem nível sem perceber.
   const nivel = dialog.getByRole("textbox", {
     name: "Nível comercial (opcional)",
   });
-  await nivel.click();
-  await nivel.pressSequentially("Varejo");
-  await page
-    .locator("[data-select-dropdown]")
-    .getByText("Varejo", { exact: true })
-    .click();
+  await expect(nivel).toHaveValue("Varejo");
 
   await dialog.locator('input[name="quantity"]').fill("10");
   await dialog.getByRole("button", { name: "Adicionar" }).click();

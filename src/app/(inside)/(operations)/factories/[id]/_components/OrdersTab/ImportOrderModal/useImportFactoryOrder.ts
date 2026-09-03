@@ -59,6 +59,9 @@ export function useImportFactoryOrder({
   const [open, setOpen] = useState(false);
   const [isBusy, setIsBusy] = useState(false);
   const [pending, setPending] = useState<PendingOrder | null>(null);
+  // O que o formulário mostrava ao avançar: voltar do wizard o remonta, e sem o
+  // rascunho ele voltaria vazio.
+  const [detailsDraft, setDetailsDraft] = useState<Record<string, unknown>>();
   // O vínculo escolhido também vira estado: é dele que sai a sugestão de
   // "dura quantos dias na loja?".
   const [assignmentId, setAssignmentId] = useState("");
@@ -197,6 +200,7 @@ export function useImportFactoryOrder({
       setPending(null);
       createdOrderIdRef.current = null;
       setAssignmentId("");
+      setDetailsDraft(undefined);
       formRef.current?.resetForm();
     }
   };
@@ -206,6 +210,7 @@ export function useImportFactoryOrder({
     const assignmentId = extractSelectValue(data.assignment);
     const assignment = assignments.find((a) => a.id === assignmentId);
     if (!assignment) return;
+    setDetailsDraft(data);
     setPending({
       sellerId: assignment.sellerId,
       clientId: assignment.clientId,
@@ -217,6 +222,12 @@ export function useImportFactoryOrder({
       coverageDays: parseCoverageDays(data.coverageDays),
     });
   };
+
+  /**
+   * Volta ao passo do modal, saindo do wizard. Zerar o `pending` é o que
+   * devolve a tela — e nada foi gravado até aqui, então voltar não deixa rastro.
+   */
+  const goToLeadingStep = () => setPending(null);
 
   // Alvo adiado do wizard: o pedido nasce na confirmação final da importação.
   const deferred: DeferredOrderTarget | null = useMemo(() => {
@@ -254,5 +265,8 @@ export function useImportFactoryOrder({
     formRef,
     formSteps,
     handleDetailsValid,
+    goToLeadingStep,
+    /** O que o formulário tinha ao avançar — para ele voltar preenchido. */
+    detailsDraft,
   };
 }

@@ -97,4 +97,9 @@ export interface ReviewRow {
   unitPrice: string;
   /** Alíquota de IPI (%) do item; "" quando a fábrica não cobra IPI no pedido. */
   ipiRate: string;
+  /**
+   * Desconto combinado na ficha, em %. Vira reais na confirmação — antes disso
+   * não dá: o preço só é conhecido depois de o backend recalcular o item.
+   */
+  discountPercent?: number;
 }

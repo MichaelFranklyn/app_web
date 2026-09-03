@@ -6,7 +6,7 @@ import type { LoadedImage } from "@/utils/media";
 import { drawFooters, loadGirusLogo } from "@/utils/pdf/footer";
 import { PAGE } from "@/utils/pdf/theme";
 import { OrderDetail, OrderItem } from "../interface";
-import { paymentTermLabel } from "../utils";
+import { paymentTermLabel } from "../../../_shared/orderPaymentTerms";
 import { clientCard, factoryCard } from "./cards";
 import { drawHeader } from "./header";
 import { drawItemsTable } from "./itemsTable";

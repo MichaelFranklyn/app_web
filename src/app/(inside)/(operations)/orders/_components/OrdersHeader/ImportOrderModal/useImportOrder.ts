@@ -1,11 +1,20 @@
 import { useMutation, useQuery } from "@apollo/client/react";
-import { useMemo, useRef, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 
 import { FormBuilderRef, FormStepSchema } from "@/components/FormBuilder";
+import { useToast } from "@/components/Toast";
 import { useRefetchQueriesClient } from "@/hooks/useInvalidateQueries";
 import { extractSelectValue } from "@/utils/form";
+import { getTodayIso } from "@/utils/format/date";
+import { readWorkbook } from "@/utils/import/reader";
+import {
+  isOrderSheet,
+  readOrderSheet,
+  type OrderSheetRead,
+} from "@/utils/orderSheet/read";
 
 import { DeferredOrderTarget } from "../../../../_components/OrderImportWizard";
+import type { ImportRow } from "../../../../_components/OrderImportWizard/utils";
 import {
   coverageHint,
   useCoverageSuggestion,
@@ -22,6 +31,7 @@ import {
 import { useOrderClientOptions } from "../useOrderClientOptions";
 import { CreateOrderInput, CreateOrderResponse } from "../interface";
 import { normalizeInput } from "../utils";
+import { type ImportMode, sheetSummary, sheetToOrderInput } from "./utils";
 
 interface SellersOptionsData {
   order_sellers_options: { edges: { node: { id: string; name: string } }[] };
@@ -58,6 +68,17 @@ export function useImportOrder({
 }: ImportOrderModalProps) {
   const [open, setOpen] = useState(false);
   const [isBusy, setIsBusy] = useState(false);
+  // Qual caminho de importação: a ficha do sistema (que se lê sozinha) ou um
+  // arquivo de fábrica (que precisa dos dados do pedido antes).
+  const [mode, setMode] = useState<ImportMode | null>(null);
+  // A ficha inteira, quando o caminho é o dela: é ela que vira o pedido, sem
+  // passar pelos campos.
+  const [sheetRead, setSheetRead] = useState<OrderSheetRead | null>(null);
+  // O que o formulário mostrava quando a pessoa avançou. Voltar do wizard
+  // REMONTA o formulário (ele sai da árvore enquanto o wizard ocupa a tela), e
+  // sem o rascunho ele voltaria vazio: quem clica em "Informações" para trocar
+  // o cliente perderia o vendedor e a fábrica junto.
+  const [detailsDraft, setDetailsDraft] = useState<Record<string, unknown>>();
   // Dados validados do formulário — o pedido em si SÓ é criado na confirmação
   // final do wizard (desistir no meio não deixa pedido vazio para trás).
   const [pending, setPending] = useState<CreateOrderInput | null>(null);
@@ -65,6 +86,12 @@ export function useImportOrder({
     canSelectSeller ? "" : (ownSellerId ?? "")
   );
   const [factoryId, setFactoryId] = useState("");
+  // Itens lidos de uma ficha nossa. Quando existem, o wizard abre na revisão.
+  const [sheetRows, setSheetRows] = useState<ImportRow[] | null>(null);
+  // O prazo vem da ficha pelo NOME; o id só dá para resolver depois que as
+  // condições da fábrica chegam do servidor (ver o efeito abaixo).
+  const [sheetTermName, setSheetTermName] = useState("");
+  const [readingSheet, setReadingSheet] = useState(false);
   // O cliente também vira estado (e não só campo do form) para a sugestão de
   // cobertura saber de qual prateleira está falando.
   const [clientId, setClientId] = useState("");
@@ -73,15 +100,17 @@ export function useImportOrder({
   const createdOrderIdRef = useRef<string | null>(null);
 
   const formRef = useRef<FormBuilderRef>(null);
+  const { toast } = useToast();
   const refetchClient = useRefetchQueriesClient();
   const [createOrder] = useMutation<CreateOrderResponse>(CREATE_ORDER_MUTATION);
 
   // Só as opções: a importação não monta itens na tela (o wizard traz os do
   // arquivo), então o piso aparece apenas no rótulo da condição.
-  const { options: paymentTermOptions } = usePaymentTermOptions(
-    open,
-    factoryId || null
-  );
+  const {
+    options: paymentTermOptions,
+    idByName: paymentTermIdByName,
+    loading: loadingTerms,
+  } = usePaymentTermOptions(open, factoryId || null);
   const ipiInOrder =
     useCompanyFactoryNode(open, factoryId || null)?.ipiInOrder ?? false;
 
@@ -239,6 +268,14 @@ export function useImportOrder({
                 placeholder: "Ex: 30",
                 hint: coverageHint(cadenceByClient.get(clientId)),
               },
+              {
+                name: "notes",
+                type: "textarea",
+                label: "Observações",
+                placeholder: "Observações adicionais...",
+                rows: 3,
+                hint: "A ficha de pedido traz o que você anotou nela.",
+              },
             ],
           },
         ],
@@ -259,6 +296,134 @@ export function useImportOrder({
     ]
   );
 
+  /**
+   * Lê uma ficha de pedido preenchida e responde o formulário com ela.
+   *
+   * O vendedor já disse tudo na planilha, offline: para quem é o pedido, de que
+   * fábrica, com que prazo e o que ele comprou. Então aqui não há campo a
+   * preencher — o arquivo vira o pedido direto e ele cai na conferência dos
+   * itens. O pedido ainda NÃO é gravado: quem sobe (às vezes o escritório, não
+   * quem vendeu) confirma na última etapa do wizard.
+   */
+  const handleSheetFile = async (files: File[]) => {
+    const selected = files[0];
+    if (!selected) return;
+
+    setReadingSheet(true);
+    try {
+      const workbook = await readWorkbook(selected);
+      if (!isOrderSheet(workbook)) {
+        toast({
+          variant: "error",
+          title: "Este arquivo não é uma ficha de pedido",
+          description:
+            "Esta é a ficha .xlsx que você baixa do sistema. Para o arquivo da " +
+            'fábrica, volte e escolha "Gerar pedido com outra importação".',
+        });
+        return;
+      }
+
+      const sheet = readOrderSheet(workbook);
+
+      // Vendedor não sobe a ficha de um colega: a carteira e os níveis dentro
+      // dela são de outra pessoa. O backend também recusaria (o cliente não
+      // está designado a ele), mas com uma mensagem que não explica nada.
+      if (
+        !canSelectSeller &&
+        ownSellerId &&
+        sheet.meta.sellerId !== ownSellerId
+      ) {
+        toast({
+          variant: "error",
+          title: `Esta ficha é do vendedor ${sheet.meta.sellerName}`,
+          description: "Peça para ele subir, ou para um gestor fazer isso.",
+        });
+        return;
+      }
+
+      if (!sheet.factoryId || !sheet.clientId) {
+        toast({
+          variant: "warning",
+          title: "Ficha incompleta",
+          description: !sheet.factoryId
+            ? "Escolha a fábrica na ficha antes de subir."
+            : "O CNPJ preenchido não é de um cliente da carteira desta ficha.",
+        });
+        return;
+      }
+
+      if (sheet.items.length === 0) {
+        toast({
+          variant: "warning",
+          title: "Ficha sem itens",
+          description: "Preencha o código e a quantidade de embalagens.",
+        });
+        return;
+      }
+
+      // Nada de preencher campo: a ficha responde tudo o que o formulário
+      // perguntaria, e quem a preencheu já respondeu isso na loja. O que ele
+      // tem a conferir são os itens, onde o catálogo de hoje pode discordar do
+      // que ele anotou. Os estados abaixo existem porque o wizard depende
+      // deles: catálogo da fábrica, cobertura do cliente, condições da fábrica.
+      setSellerId(sheet.meta.sellerId);
+      setFactoryId(sheet.factoryId);
+      setClientId(sheet.clientId);
+      setSheetTermName(sheet.paymentTermName);
+      setSheetRead(sheet);
+      setSheetRows(
+        sheet.items.map((item) => ({
+          sku: item.sku,
+          quantity: item.quantity,
+          // A ficha não traz preço: o dela é fórmula, e o que vale é o catálogo
+          // de hoje. O backend resolve pelo nível acordado do vínculo.
+          unitPrice: null,
+          ipiRate: 0,
+          discountPercent: item.discountPercent,
+        }))
+      );
+
+      toast({
+        variant: "success",
+        title: "Ficha lida",
+        description: `${sheet.items.length} item(ns). Agora confira o que casou com o catálogo.`,
+      });
+    } catch {
+      toast({
+        variant: "error",
+        title: "Não foi possível ler a ficha",
+        description: "Confira se o arquivo é a planilha .xlsx preenchida.",
+      });
+    } finally {
+      setReadingSheet(false);
+    }
+  };
+
+  /**
+   * A condição da ficha, resolvida — ela guarda o NOME ("45/60/90") e o id só
+   * existe depois que as condições da fábrica voltam do servidor.
+   */
+  const sheetTerm = useMemo(() => {
+    if (!sheetTermName || loadingTerms) return null;
+    const id = paymentTermIdByName(sheetTermName);
+    return paymentTermOptions.find((option) => option.value === id) ?? null;
+  }, [sheetTermName, loadingTerms, paymentTermIdByName, paymentTermOptions]);
+
+  /**
+   * Ficha lida → pedido montado, sem passo intermediário.
+   *
+   * Espera só as condições de pagamento: elas dependem da fábrica, que só se
+   * conhece depois de ler o arquivo. `loadingTerms` é o que distingue "ainda
+   * não chegou" de "esta fábrica não tem condição cadastrada" — sem isso, uma
+   * fábrica sem condições travaria a importação para sempre.
+   */
+  useEffect(() => {
+    if (!sheetRead || pending || loadingTerms) return;
+    setPending(
+      sheetToOrderInput(sheetRead, sheetTerm?.value ?? null, getTodayIso())
+    );
+  }, [sheetRead, pending, loadingTerms, sheetTerm]);
+
   const refetchList = () => {
     refetchClient(["Orders", "OrderStats"]);
   };
@@ -273,13 +438,35 @@ export function useImportOrder({
       setSellerId(canSelectSeller ? "" : (ownSellerId ?? ""));
       setFactoryId("");
       setClientId("");
+      setSheetRows(null);
+      setSheetTermName("");
+      setSheetRead(null);
+      setMode(null);
+      setDetailsDraft(undefined);
       formRef.current?.resetForm();
     }
   };
 
   // Formulário válido: guarda os dados e avança para o wizard — SEM criar nada.
   const handleDetailsValid = (data: Record<string, unknown>) => {
+    setDetailsDraft(data);
     setPending(normalizeInput(data, sellerId));
+  };
+
+  /**
+   * Volta para um passo que é do modal, saindo do wizard.
+   *
+   * Zerar o `pending` é o que devolve a tela: sem ele não há alvo adiado, e o
+   * modal volta a mostrar o passo dele. Nada foi gravado até aqui — o pedido só
+   * nasce na confirmação —, então voltar não deixa rastro no banco.
+   */
+  const goToLeadingStep = (index: number) => {
+    setPending(null);
+    if (index > 0) return; // "Informações": o formulário volta com o rascunho.
+    setMode(null);
+    setSheetRead(null);
+    setSheetRows(null);
+    setSheetTermName("");
   };
 
   // Alvo adiado do wizard: o pedido nasce na confirmação final da importação.
@@ -314,5 +501,19 @@ export function useImportOrder({
     formRef,
     formSteps,
     handleDetailsValid,
+    /** Itens da ficha: quando existem, o wizard pula arquivo e colunas. */
+    sheetRows,
+    handleSheetFile,
+    /** Lendo o arquivo, ou esperando as condições da fábrica para montar o pedido. */
+    readingSheet: readingSheet || (!!sheetRead && !pending),
+    mode,
+    setMode,
+    goToLeadingStep,
+    /** O que o formulário tinha quando avançou — para ele voltar preenchido. */
+    detailsDraft,
+    /** O que a ficha disse — o resumo que substitui os campos preenchidos. */
+    sheetSummary: sheetRead
+      ? sheetSummary(sheetRead, sheetTerm?.label ?? null)
+      : "",
   };
 }

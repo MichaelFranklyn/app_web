@@ -1,6 +1,6 @@
 import { FormBuilderRef, FormStepSchema } from "@/components/FormBuilder";
 import { useAsyncAction } from "@/hooks/useAsyncAction";
-import { extractSelectValue } from "@/utils/form";
+import { extractSelectValue, selectOption } from "@/utils/form";
 import { maskCurrency, parseMoneyToNumber } from "@/utils/format/masks";
 import { useMutation } from "@apollo/client/react";
 import { useEffect, useMemo, useRef, useState } from "react";
@@ -124,8 +124,16 @@ export function useAddOrderItem({
     );
     if (next === tierId) return;
     setSelection((s) => ({ ...s, tierId: next }));
-    formRef.current?.setValue("tierId", next);
-  }, [selection, pricedTiersByProduct, linkedTierId, lastTierId]);
+    // Par {value,label}: id solto entra no formulário mas o select mostra o
+    // campo vazio — o preço aparecia sugerido e o nível, em branco.
+    formRef.current?.setValue(
+      "tierId",
+      selectOption(next, tierOptions.find((o) => o.value === next)?.label)
+    );
+    // `tierOptions` entra só como fonte do rótulo: o efeito é guardado pelo
+    // `tierResolvedForRef`, então rodar de novo quando a lista chega não
+    // reescreve nível nenhum.
+  }, [selection, pricedTiersByProduct, linkedTierId, lastTierId, tierOptions]);
 
   // Sugere o preço da tabela ativa de forma REATIVA: dispara quando o nível é
   // escolhido e também quando a tabela de preços termina de carregar (as 5

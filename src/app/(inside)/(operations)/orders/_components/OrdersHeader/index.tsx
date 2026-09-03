@@ -14,6 +14,7 @@ import { AddOrderModal } from "./AddOrderModal";
 import { ExportOrdersButton, QueryFilter } from "./ExportOrdersButton";
 import { ImportOrderModal } from "./ImportOrderModal";
 import { FeatureGate } from "@/components/FeatureGate";
+import { OrderSheetButton } from "../../../_components/OrderSheetButton";
 
 interface Props {
   stats?: OrdersStats;
@@ -62,6 +63,9 @@ export function OrdersHeader({
               Gestão de pedidos por fábrica e vendedor.
             </PanelHeader.Description>
             <PanelHeader.Actions className="mt-6" data-tour="orders-actions">
+              {/* A ficha offline sai daqui em branco; da tela do cliente ela já
+                  vem com o cabeçalho preenchido. */}
+              <OrderSheetButton canSelectSeller={canSelectSeller} />
               <ExportOrdersButton
                 filters={exportFilters}
                 filterFields={filterFields}

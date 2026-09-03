@@ -9,6 +9,7 @@ import {
   PREVIEW_ORDER_IMPORT_MUTATION,
 } from "./gql";
 import { useOrderImportWizard } from "./useOrderImportWizard";
+import type { ImportRow } from "./utils";
 
 // useToast lança fora de um Provider e é chamado tanto pelo wizard quanto pelo
 // useAsyncAction. Mocamos o módulo → ambos recebem o mesmo spy, e conseguimos
@@ -144,16 +145,19 @@ type Api = ReturnType<typeof useOrderImportWizard>;
 let api: Api;
 const onImported = vi.fn();
 
-function Harness() {
-  api = useOrderImportWizard({ orderId: "order-1", onImported });
+function Harness({ initialRows }: { initialRows?: ImportRow[] }) {
+  api = useOrderImportWizard({ orderId: "order-1", onImported, initialRows });
   return null;
 }
 
-function renderWizard(mocks: MockLink.MockedResponse[]) {
+function renderWizard(
+  mocks: MockLink.MockedResponse[],
+  initialRows?: ImportRow[]
+) {
   onImported.mockClear();
   render(
     <MockedProvider mocks={mocks}>
-      <Harness />
+      <Harness initialRows={initialRows} />
     </MockedProvider>
   );
 }
@@ -467,5 +471,98 @@ describe("useOrderImportWizard — máquina de estado", () => {
     // Só o casado (com produto + nível) conta como confirmável.
     expect(api.confirmableCount).toBe(1);
     expect(api.reviewRows[1].include).toBe(false);
+  });
+});
+
+describe("useOrderImportWizard — ficha de pedido", () => {
+  const sheetRow = (overrides: Partial<ImportRow> = {}): ImportRow => ({
+    sku: "SKU-001",
+    quantity: 120,
+    unitPrice: null,
+    ipiRate: 0,
+    discountPercent: 0,
+    ...overrides,
+  });
+
+  it("abre na conferência, sem arquivo nem colunas", async () => {
+    // A ficha se identifica sozinha: não há arquivo a perguntar nem coluna a
+    // mapear. O que resta é ela dizer o que leu e esperar a confirmação de quem
+    // sobe — às vezes o escritório, não quem vendeu.
+    renderWizard([previewMock([matchedCandidate()])], [sheetRow()]);
+
+    await waitFor(() => expect(api.reviewRows).toHaveLength(1));
+    expect(api.step).toBe(2);
+    expect(api.fromSheet).toBe(true);
+    expect(api.result).toBeNull(); // nada é gravado antes de confirmar
+  });
+
+  it("ficha sem nenhum código no catálogo: não há o que confirmar", async () => {
+    // Produto que saiu de linha depois que a ficha foi baixada: gravar seria
+    // criar um pedido vazio, e o botão de confirmar fica desabilitado.
+    renderWizard(
+      [
+        previewMock([
+          matchedCandidate({
+            matched: false,
+            productId: null,
+            tierId: null,
+            tierName: null,
+            confidence: "0",
+          }),
+        ]),
+      ],
+      [sheetRow()]
+    );
+
+    await waitFor(() => expect(api.reviewRows).toHaveLength(1));
+    expect(api.confirmableCount).toBe(0);
+    expect(api.skippedItems).toHaveLength(1);
+    expect(api.result).toBeNull();
+  });
+
+  it("converte o desconto em % da ficha para reais do preço recalculado", async () => {
+    // O banco guarda desconto em reais, e o preço que vale é o que o backend
+    // acabou de devolver — não o que estava impresso na planilha.
+    const capture: { variables?: Record<string, unknown> } = {};
+    renderWizard(
+      [
+        previewMock([matchedCandidate({ quantity: "120" })]),
+        confirmMock({ created: 1, failed: 0 }, capture),
+      ],
+      [sheetRow({ discountPercent: 10 })]
+    );
+
+    await waitFor(() => expect(api.reviewRows).toHaveLength(1));
+    await act(async () => {
+      await api.runConfirm();
+    });
+
+    const [item] = (
+      capture.variables?.input as { items: Record<string, unknown>[] }
+    ).items;
+    // 120 × 100,00 × 10% = 1.200,00
+    expect(item.discount).toBe(1200);
+    expect(item.quantity).toBe(120);
+  });
+
+  it("sem desconto na ficha, não desconta nada", async () => {
+    const capture: { variables?: Record<string, unknown> } = {};
+    renderWizard(
+      [
+        previewMock([matchedCandidate({ quantity: "120" })]),
+        confirmMock({ created: 1, failed: 0 }, capture),
+      ],
+      [sheetRow()]
+    );
+
+    await waitFor(() => expect(api.reviewRows).toHaveLength(1));
+    await act(async () => {
+      await api.runConfirm();
+    });
+
+    const [item] = (
+      capture.variables?.input as { items: Record<string, unknown>[] }
+    ).items;
+    expect(item.discount).toBe(0);
   });
 });

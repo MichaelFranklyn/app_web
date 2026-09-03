@@ -3,7 +3,9 @@ import { formatAmount, formatDateDMY, maskCNPJ } from "@/utils/format/masks";
 import { downloadSheet } from "@/utils/import/writer";
 import { orderStatusLabel } from "../utils";
 import { OrderDetail, OrderItem } from "./interface";
-import { INSTALLMENT_STATUS_LABEL, paymentTermLabel } from "./utils";
+import { paymentTermLabel } from "../../_shared/orderPaymentTerms";
+
+import { INSTALLMENT_STATUS_LABEL } from "./utils";
 
 const ITEM_HEADERS = [
   "Código",

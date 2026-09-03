@@ -161,16 +161,3 @@ export const INSTALLMENT_STATUS_TONE: Record<
   CANCELLED: "red",
   DEFAULTED: "red",
 };
-
-/**
- * Rótulo de uma condição de pagamento: o PRAZO é o que interessa a quem lê
- * ("30/60 dias"), não o apelido interno da condição. O nome só aparece quando
- * não há dias cadastrados — caso de "À vista", em que o nome já é o prazo.
- */
-export const paymentTermLabel = (
-  term: { name: string; installmentsDays?: number[] | null } | null | undefined
-): string => {
-  if (!term) return "—";
-  const days = term.installmentsDays ?? [];
-  return days.length ? `${days.join("/")} dias` : term.name;
-};

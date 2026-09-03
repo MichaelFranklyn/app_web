@@ -26,7 +26,14 @@ export function StepperTrail({
   const isVertical = orientation === "vertical";
 
   return (
-    <div className={cn(!isVertical && "overflow-x-auto", className)}>
+    // `shrink-0`: dentro de uma coluna flex com altura limitada — o corpo de um
+    // modal, por exemplo —, os itens encolhem para caber. A faixa, que é baixa
+    // e tem `overflow` próprio, era achatada até a altura ZERO: os marcos
+    // continuavam no DOM, pintados e com tamanho certo, e o que aparecia na
+    // tela era um espaço em branco.
+    <div
+      className={cn("shrink-0", !isVertical && "overflow-x-auto", className)}
+    >
       <div
         className={cn(
           isVertical

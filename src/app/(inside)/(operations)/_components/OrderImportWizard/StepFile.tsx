@@ -4,15 +4,25 @@ import { Stepper } from "@/components/Stepper";
 import { CheckCircle2 } from "lucide-react";
 
 interface StepFileProps {
+  /**
+   * Posição do passo no caminho INTEIRO (a importação começa antes deste
+   * componente): é o "Passo 3 de 6" da caixa de explicação.
+   */
+  step: number;
+  total: number;
   file: File[];
   onFiles: (files: File[]) => void;
   ready: boolean;
 }
 
-export function StepFile({ file, onFiles, ready }: StepFileProps) {
+export function StepFile({ step, total, file, onFiles, ready }: StepFileProps) {
   return (
     <div className="flex flex-col gap-12">
-      <Stepper.Intro step={1} total={4} title="Envie o pedido da fábrica">
+      <Stepper.Intro
+        step={step}
+        total={total}
+        title="Envie o pedido da fábrica"
+      >
         Arraste o arquivo do pedido (PDF ou Excel) para o quadro abaixo. PDFs
         são lidos automaticamente; se for um PDF escaneado (imagem), peça a
         versão em Excel para a fábrica.
