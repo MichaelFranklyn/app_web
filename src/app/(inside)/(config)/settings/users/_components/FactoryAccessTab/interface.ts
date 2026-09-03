@@ -44,9 +44,6 @@ export interface AccessFactoryRate {
   commissionRate: number;
 }
 
-export interface AccessFactoryRatesResponse {
-  access_factory_rates: {
-    edges: { node: AccessFactoryRate }[];
-    totalCount: number;
-  };
+export interface AccessFactoryRateResponse {
+  access_factory_rate: { edges: { node: AccessFactoryRate }[] };
 }

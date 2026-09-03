@@ -5,12 +5,16 @@ import { Input, SelectOption } from "@/components/Input";
 import { Modal } from "@/components/Modal";
 import { Title } from "@/components/Title";
 import { useAsyncAction } from "@/hooks/useAsyncAction";
-import { useMutation } from "@apollo/client/react";
+import { useMutation, useQuery } from "@apollo/client/react";
 import { useEffect, useState } from "react";
 
+import { AccessFactoryRateResponse } from "../interface";
 import { SELLER_BASIS_OPTIONS } from "../utils";
 import { AgreementPreview } from "./AgreementPreview";
-import { UPDATE_SELLER_COMMISSION_AGREEMENT_MUTATION } from "./gql";
+import {
+  ACCESS_FACTORY_RATE_QUERY,
+  UPDATE_SELLER_COMMISSION_AGREEMENT_MUTATION,
+} from "./gql";
 import {
   CommissionAgreementModalProps,
   UpdateAgreementResponse,
@@ -37,7 +41,7 @@ export function CommissionAgreementModal({
   id,
   sellerName,
   factoryName,
-  factoryCommissionRate,
+  factoryId,
   sellerCommissionShare,
   sellerCommissionBasis,
   open,
@@ -46,6 +50,26 @@ export function CommissionAgreementModal({
 }: CommissionAgreementModalProps) {
   const [share, setShare] = useState("");
   const [basis, setBasis] = useState<SelectOption | null>(null);
+
+  // A comissão da fábrica mora no vínculo empresa×fábrica, não no acesso do
+  // vendedor — e é ela que traduz a fatia em dinheiro. A consulta é do MODAL, e
+  // não da tabela: fora daqui ninguém precisa dela, e a lista de pessoas não
+  // pode depender de uma resposta que ela não usa para desenhar as linhas.
+  const { data: rateData } = useQuery<AccessFactoryRateResponse>(
+    ACCESS_FACTORY_RATE_QUERY,
+    {
+      variables: {
+        input: {
+          filters: [{ field: "factory_id", operator: "eq", value: factoryId }],
+          first: 1,
+        },
+      },
+      skip: !open || !factoryId,
+    }
+  );
+  const factoryRate = Number(
+    rateData?.access_factory_rate?.edges?.[0]?.node.commissionRate ?? 0
+  );
 
   const [updateAgreement] = useMutation<UpdateAgreementResponse>(
     UPDATE_SELLER_COMMISSION_AGREEMENT_MUTATION
@@ -126,7 +150,7 @@ export function CommissionAgreementModal({
 
           <AgreementPreview
             share={parseShare(share)}
-            factoryRate={factoryCommissionRate}
+            factoryRate={factoryRate}
           />
 
           <Input.Select

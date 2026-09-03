@@ -12,8 +12,8 @@ interface AccessRowActionsProps {
   sellerName: string;
   sellerIsActive: boolean;
   factoryName: string;
-  /** Comissão da fábrica em %: a prévia do acordo traduz a fatia com ela. */
-  factoryCommissionRate: number;
+  /** A prévia do acordo busca a comissão desta fábrica quando o modal abre. */
+  factoryId: string;
   isActive: boolean;
   sellerCommissionShare: string | number | null;
   sellerCommissionBasis: string | null;
@@ -30,7 +30,7 @@ export function AccessRowActions({
   sellerName,
   sellerIsActive,
   factoryName,
-  factoryCommissionRate,
+  factoryId,
   isActive,
   sellerCommissionShare,
   sellerCommissionBasis,
@@ -88,7 +88,7 @@ export function AccessRowActions({
         id={id}
         sellerName={sellerName}
         factoryName={factoryName}
-        factoryCommissionRate={factoryCommissionRate}
+        factoryId={factoryId}
         sellerCommissionShare={sellerCommissionShare}
         sellerCommissionBasis={sellerCommissionBasis}
         open={agreementOpen}
