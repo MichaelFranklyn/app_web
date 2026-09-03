@@ -44,6 +44,8 @@ import { useCommissionsTable } from "./useCommissionsTable";
 import {
   addMonths,
   CommissionTab,
+  isBeforeMonth,
+  isInMonth,
   monthEndIso,
   monthStartIso,
   filterByMonth,
@@ -102,9 +104,10 @@ export default function CommissionsContent({
   const [tab, setTab] = useState<CommissionTab>("receivable");
 
   // ── Navegador de mês global (pela data em que a comissão cai) ───────────────
-  // Abre no mês corrente e, quando a resposta traz uma data mais recente, salta
-  // para lá (é onde está o movimento). Depois disso respeita a navegação — ao
-  // trocar de vendedor, mantém o mês para comparar "agosto de um" vs "de outro".
+  // Abre no MÊS CORRENTE — é o mês que a pessoa veio ver — e só recua quando
+  // ele está vazio (ver o efeito do `latestReceiveDate`). Depois disso respeita
+  // a navegação: ao trocar de vendedor, mantém o mês para comparar "agosto de
+  // um" vs "agosto de outro".
   const [month, setMonth] = useState(() => yearMonthFromIso(getTodayIso()));
   const [monthPinned, setMonthPinned] = useState(false);
 
@@ -136,16 +139,27 @@ export default function CommissionsContent({
   const visibleRows = table.displayedData;
   const isFiltered = table.totalItems < table.totalUnfiltered;
 
-  // O salto inicial para o mês com movimento: a data mais recente vem do
-  // servidor (medida antes do recorte), então descobri-la não custa mais baixar
-  // o histórico inteiro. Uma vez saltado, quem manda é a navegação.
+  // O recuo para o último mês com movimento, quando o mês corrente não tem
+  // nenhum. `latestReceiveDate` vem do servidor medida antes do recorte, então
+  // descobri-la não custa baixar o histórico.
+  //
+  // Ela é a data mais DISTANTE, e comissão nasce com data de recebimento no
+  // faturamento: há sempre um mês à frente já lançado. Saltar para ela abria a
+  // tela em novembro para quem veio ver setembro — por isso o movimento é só
+  // para TRÁS, e só quando não há o que ver no mês de hoje. Uma vez decidido,
+  // quem manda é a navegação.
   const latestReceiveDate = summary?.latestReceiveDate ?? null;
   useEffect(() => {
-    if (!monthPinned && latestReceiveDate) {
-      setMonth(yearMonthFromIso(latestReceiveDate));
-      setMonthPinned(true);
-    }
-  }, [monthPinned, latestReceiveDate]);
+    if (monthPinned || !latestReceiveDate) return;
+    setMonthPinned(true);
+
+    // As linhas da resposta trazem também o que foge do recorte (estorno do
+    // vendedor, boleto travado): quem diz se o mês tem movimento é a data de
+    // recebimento, a mesma régua do resto da tela.
+    const hasMovement = rows.some((row) => isInMonth(row.receiveDate, month));
+    const latest = yearMonthFromIso(latestReceiveDate);
+    if (!hasMovement && isBeforeMonth(latest, month)) setMonth(latest);
+  }, [monthPinned, latestReceiveDate, rows, month]);
 
   const monthTotals = useMemo(
     () => summarizeMonth(visibleRows, month),
