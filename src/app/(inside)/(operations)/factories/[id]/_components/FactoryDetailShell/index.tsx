@@ -1,7 +1,7 @@
 "use client";
 
 import { useOptimisticObject } from "@/hooks/useOptimisticObject";
-import { ReactNode } from "react";
+import { ReactNode, useState } from "react";
 import { FactoryDetailProvider } from "../../context";
 import { CompanyFactoryDetail } from "../../interface";
 import { FactoryChrome } from "../FactoryChrome";
@@ -29,11 +29,14 @@ export function FactoryDetailShell({
   const optimistic = useOptimisticObject<CompanyFactoryDetail>({
     initialData: companyFactory,
   });
+  const [applyRatePrompt, setApplyRatePrompt] = useState(false);
 
   return (
     <FactoryDetailProvider
       value={{
         companyFactory: optimistic.data,
+        applyRatePrompt,
+        setApplyRatePrompt,
         updateOptimistic: optimistic.updateOptimistic,
         commit: optimistic.commit,
         rollback: optimistic.rollback,

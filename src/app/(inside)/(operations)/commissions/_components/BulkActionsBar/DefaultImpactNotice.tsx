@@ -35,7 +35,7 @@ export function DefaultImpactNotice({ impact, month }: Props) {
   }
 
   return (
-    <div className="rounded-8 flex flex-col gap-12 bg-(--bg3) p-16">
+    <div className="flex flex-col gap-12 rounded-(--r-md) bg-(--bg3) p-16">
       <Title variant="label">O que volta</Title>
 
       {impact.factoryChargeback > 0 && (

@@ -100,6 +100,69 @@ export const COMMISSIONS_QUERY = gql`
 `;
 
 /**
+ * As linhas do mês INTEIRO, para o PDF do fechamento.
+ *
+ * A tela pede um mês ao servidor; o papel não pode. Ele tem duas seções que
+ * seguem a data do BOLETO (o que o cliente pagou no mês, o que ele não pagou em
+ * vencimento nenhum), e essas linhas simplesmente não estão no recorte da tela:
+ * a comissão de um boleto pago em agosto costuma cair em setembro, e um calote
+ * de março continua travado sem pertencer a mês algum.
+ *
+ * Por isso o PDF busca a carteira inteira — e só quando alguém clica no botão.
+ * É a mesma leitura que a aba de relatórios faz.
+ */
+export const COMMISSIONS_PDF_QUERY = gql`
+  query CommissionsForPdf($sellerId: UUID) {
+    commissions_pdf: commissions(sellerId: $sellerId) {
+      rows {
+        orderId
+        installmentId
+        sequence
+        orderDate
+        invoicedAt
+        invoiceNumber
+        dueDate
+        paidAt
+        installmentAmount
+        amount
+        status
+        receiveDate
+        isReceivable
+        isReceived
+        isReconciled
+        reconciledAt
+        isOverdue
+        defaultedAt
+        isChargebackSettled
+        chargebackSettledAt
+        sellerAmount
+        sellerStatus
+        sellerReceiveDate
+        isSellerPaid
+        sellerChargebackMonth
+        isSellerChargebackSettled
+        sellerChargebackSettledAt
+        client {
+          id
+          razaoSocial
+          nomeFantasia
+        }
+        factory {
+          id
+          nomeFantasia
+          nickname
+          razaoSocial
+        }
+        seller {
+          id
+          name
+        }
+      }
+    }
+  }
+`;
+
+/**
  * Fábricas do vínculo da empresa, para o recorte opcional da baixa em lote.
  *
  * Não sai das linhas da tela de propósito: a tela mostra UM mês, e a baixa

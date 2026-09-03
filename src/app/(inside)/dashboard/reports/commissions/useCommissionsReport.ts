@@ -17,9 +17,11 @@ import {
 import {
   COMMISSIONS_SORT_COLUMNS,
   buildFactoryOption,
+  buildSplitOption,
   byFactory,
   filterByPeriod,
   sortForReport,
+  splitTotals,
   summarize,
 } from "./utils";
 
@@ -36,7 +38,14 @@ export const COMMISSIONS_PER_PAGE = 20;
  * Filtro e ordenação seguem o mesmo caminho, e é a lista JÁ filtrada e ordenada
  * que vai para o XLSX/PDF.
  */
-export const useCommissionsReport = (filters: ReportFilters) => {
+export const useCommissionsReport = (
+  filters: ReportFilters,
+  /**
+   * Quem gerencia vê a comissão repartida (empresa × vendedor). O vendedor não:
+   * para ele `amount` JÁ é a fatia dele, e a diferença daria zero.
+   */
+  withOffice: boolean
+) => {
   const { data, loading, error, refetch } = useQuery<CommissionsReportResponse>(
     COMMISSIONS_REPORT_QUERY,
     { variables: { sellerId: filters.sellerId } }
@@ -65,6 +74,7 @@ export const useCommissionsReport = (filters: ReportFilters) => {
   // tabela, e o topo tem de continuar dizendo quanto o mês vale.
   const totals = useMemo(() => summarize(periodRows), [periodRows]);
   const groups = useMemo(() => byFactory(periodRows), [periodRows]);
+  const split = useMemo(() => splitTotals(periodRows), [periodRows]);
 
   const kpis: ReportKpi[] = useMemo(
     () => [
@@ -88,15 +98,33 @@ export const useCommissionsReport = (filters: ReportFilters) => {
         status: "neutral",
       },
       {
-        label: "Total do período",
+        // Para quem gerencia, este total é a comissão da EMPRESA — os dois
+        // cartões seguintes o repartem.
+        label: withOffice ? "Comissão da empresa" : "Total do período",
         value: formatMoney(
           totals.receivable + totals.received + totals.pending
         ),
         hint: `${totals.count} parcela(s)`,
         status: "neutral",
       },
+      ...(withOffice
+        ? [
+            {
+              label: "Repasse aos vendedores",
+              value: formatMoney(split.seller),
+              hint: "sai do escritório",
+              status: "atencao" as const,
+            },
+            {
+              label: "Fica no escritório",
+              value: formatMoney(split.office),
+              hint: `${Math.round(split.margin * 100)}% da comissão das fábricas`,
+              status: "ok" as const,
+            },
+          ]
+        : []),
     ],
-    [totals]
+    [totals, split, withOffice]
   );
 
   const { currentPage, setCurrentPage, totalPages, pageRows } =
@@ -119,6 +147,16 @@ export const useCommissionsReport = (filters: ReportFilters) => {
       error,
       refetch: () => void refetch(),
     },
+    splitChart: {
+      option: buildSplitOption(groups),
+      // Sem repasse configurado a barra seria uma cor só, repetindo o gráfico
+      // de cima: o cartão só aparece quando há repartição para mostrar.
+      hasData: groups.length > 0 && split.seller !== 0,
+      loading,
+      error,
+      refetch: () => void refetch(),
+    },
+    split,
     filterFields,
     inputValues: table.inputValues,
     setFilter: table.setFilter,

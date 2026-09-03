@@ -21,16 +21,19 @@ export interface HeaderData {
   /** Mês do documento por extenso ("agosto de 2026"). */
   monthLabel: string;
   sellerName: string | null;
-  /** Quantas parcelas o documento lista. */
+  /** Quantas parcelas de comissão o documento lista. */
   count: number;
+  /** Boletos em calote confirmado listados no fim do papel. */
+  defaultedCount: number;
+  /** Boletos que o cliente pagou dentro do mês. */
+  settledCount: number;
   issuedAt: string;
 }
 
 /**
  * Topo do relatório: quem emite (a representação), a faixa com o título e o mês
- * e, abaixo, de quem são as comissões e quantas parcelas o papel cobre — a
- * primeira coisa que se confere ao pôr o documento ao lado da planilha da
- * fábrica.
+ * e, abaixo, de quem são as comissões e o que o papel cobre — a primeira coisa
+ * que se confere ao pôr o documento ao lado da planilha da fábrica.
  *
  * Devolve o `y` onde a primeira fábrica pode começar.
  */
@@ -79,7 +82,7 @@ export const drawHeader = (pdf: Pdf, data: HeaderData): number => {
   pdf.setFont("helvetica", "bold");
   pdf.setFontSize(14);
   setText(pdf, COLOR.brand);
-  pdf.text("COMISSÕES A RECEBER", PAGE.margin + 12, y + 7);
+  pdf.text("COMISSÕES DO MÊS", PAGE.margin + 12, y + 7);
 
   pdf.setFont("helvetica", "bold");
   pdf.setFontSize(10);
@@ -93,9 +96,14 @@ export const drawHeader = (pdf: Pdf, data: HeaderData): number => {
   pdf.setFont("helvetica", "normal");
   pdf.setFontSize(9);
   setText(pdf, COLOR.muted);
+  // O que o papel cobre, em uma linha: de quem é, quantas parcelas de comissão
+  // e o que há de boleto — o inadimplente sai junto porque é a primeira coisa
+  // que o gestor procura quando o mês não fecha.
   const parts = [
     data.sellerName ? `Vendedor: ${data.sellerName}` : null,
-    `${data.count} parcela(s) a receber`,
+    `${data.count} parcela(s) de comissão`,
+    `${data.settledCount} boleto(s) liquidado(s) no mês`,
+    `${data.defaultedCount} inadimplente(s)`,
   ].filter(Boolean);
   pdf.text(parts.join("  ·  "), PAGE.margin, y);
 

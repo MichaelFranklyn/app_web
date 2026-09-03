@@ -29,6 +29,12 @@ export interface CommissionRow {
   isOverdue: boolean;
   /** Quando o boleto virou calote; null = não é inadimplente. */
   defaultedAt: string | null;
+  /** Fatia do vendedor nesta parcela (negativa em estorno). */
+  sellerAmount: string;
+  sellerStatus: CommissionStatus;
+  sellerReceiveDate: string | null;
+  /** O escritório já repassou a fatia ao vendedor. */
+  isSellerPaid: boolean;
   client: {
     id: string;
     razaoSocial: string;
@@ -66,6 +72,24 @@ export interface CommissionsTotals {
   countOverdue: number;
 }
 
+/**
+ * A repartição da comissão do período entre a empresa e os vendedores.
+ *
+ * São dois acordos empilhados: a fábrica paga o escritório, o escritório
+ * repassa uma fatia ao vendedor. Só faz sentido para quem vê o nível do
+ * escritório (gestor) — na visão do vendedor `amount` já é a fatia dele.
+ */
+export interface CommissionsSplit {
+  /** O que as fábricas pagam ao escritório. */
+  company: number;
+  /** O que o escritório repassa aos vendedores dessas mesmas parcelas. */
+  seller: number;
+  /** O que sobra para o escritório. */
+  office: number;
+  /** Fatia do escritório sobre a comissão das fábricas (0 a 1). */
+  margin: number;
+}
+
 /** Uma barra do gráfico: a comissão do período naquela fábrica. */
 export interface CommissionsByFactory {
   factoryId: string;
@@ -74,4 +98,6 @@ export interface CommissionsByFactory {
   received: number;
   pending: number;
   count: number;
+  /** Repartição da comissão daquela fábrica entre escritório e vendedor. */
+  split: CommissionsSplit;
 }

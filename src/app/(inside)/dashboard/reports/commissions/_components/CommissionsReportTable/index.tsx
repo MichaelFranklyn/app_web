@@ -31,6 +31,11 @@ interface Props {
   setCurrentPage: (page: number) => void;
   totalPages: number;
   totalItems: number;
+  /**
+   * Gestor: a comissão se abre em duas colunas — o que vai para o vendedor e o
+   * que fica na empresa. Para o vendedor, "Comissão" já é a fatia dele.
+   */
+  withOffice: boolean;
 }
 
 /**
@@ -52,8 +57,10 @@ export function CommissionsReportTable({
   setCurrentPage,
   totalPages,
   totalItems,
+  withOffice,
 }: Props) {
   const page = summarize(items);
+  const columns = withOffice ? 13 : 11;
   const isNarrowed = Object.values(inputValues).some(Boolean);
 
   return (
@@ -89,8 +96,18 @@ export function CommissionsReportTable({
               Valor da parcela
             </Table.Head>
             <Table.Head sortKey="amount" sortFirst="desc">
-              Comissão
+              {withOffice ? "Comissão da empresa" : "Comissão"}
             </Table.Head>
+            {withOffice && (
+              <Table.Head sortKey="sellerAmount" sortFirst="desc">
+                Repasse ao vendedor
+              </Table.Head>
+            )}
+            {withOffice && (
+              <Table.Head sortKey="officeAmount" sortFirst="desc">
+                Fica no escritório
+              </Table.Head>
+            )}
             <Table.Head sortKey="status">Situação</Table.Head>
             <Table.Head>Boleto</Table.Head>
             <Table.Head sortKey="isReconciled" sortFirst="desc">
@@ -101,10 +118,10 @@ export function CommissionsReportTable({
 
         <Table.Body>
           {loading && items.length === 0 ? (
-            <Table.Skeleton columns={11} rows={8} />
+            <Table.Skeleton columns={columns} rows={8} />
           ) : items.length === 0 ? (
             <Table.Row>
-              <Table.Cell colSpan={11}>
+              <Table.Cell colSpan={columns}>
                 <EmptyState.Root>
                   <EmptyState.Icon>
                     <Coins size={32} />
@@ -148,6 +165,16 @@ export function CommissionsReportTable({
                 <Table.Cell variant="strong" className="whitespace-nowrap">
                   {formatMoney(row.amount)}
                 </Table.Cell>
+                {withOffice && (
+                  <Table.Cell variant="dim" className="whitespace-nowrap">
+                    {formatMoney(row.sellerAmount)}
+                  </Table.Cell>
+                )}
+                {withOffice && (
+                  <Table.Cell variant="strong" className="whitespace-nowrap">
+                    {formatMoney(Number(row.amount) - Number(row.sellerAmount))}
+                  </Table.Cell>
+                )}
                 <Table.Cell>
                   <Badge.Root
                     color={COMMISSION_STATUS_TONE[row.status]}

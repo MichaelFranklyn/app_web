@@ -10,12 +10,13 @@ import { useReportContext } from "../useReportContext";
 import { useReportExport } from "../useReportExport";
 import { useReportFilters } from "../useReportFilters";
 import { CommissionsReportTable } from "./_components/CommissionsReportTable";
-import { COMMISSIONS_PDF_COLUMNS } from "./pdfColumns";
+import { commissionsPdfColumns } from "./pdfColumns";
 import { useCommissionsReport } from "./useCommissionsReport";
 import {
   buildCommissionsExportRows,
-  COMMISSIONS_EXPORT_HEADERS,
+  commissionsExportHeaders,
   COMMISSIONS_SORT_LABELS,
+  splitTotals,
   summarize,
 } from "./utils";
 
@@ -25,7 +26,10 @@ interface Props {
 
 export default function CommissionsReportContent({ canSelectSeller }: Props) {
   const { filters, setRange, setSellerId } = useReportFilters();
-  const report = useCommissionsReport(filters);
+  // Quem escolhe vendedor é quem gerencia — e é para ele que a comissão se
+  // reparte em duas (o que a fábrica paga à empresa, o que vai ao vendedor).
+  const withOffice = canSelectSeller;
+  const report = useCommissionsReport(filters, withOffice);
   const { context } = useReportContext(filters);
 
   const { exportSheet, exportPdf } = useReportExport({
@@ -47,21 +51,32 @@ export default function CommissionsReportContent({ canSelectSeller }: Props) {
       }),
     ],
     fetchRows: report.fetchAllRows,
-    sheetHeaders: COMMISSIONS_EXPORT_HEADERS,
-    buildSheetRows: buildCommissionsExportRows,
-    pdfColumns: COMMISSIONS_PDF_COLUMNS,
+    sheetHeaders: commissionsExportHeaders(withOffice),
+    buildSheetRows: (rows) => buildCommissionsExportRows(rows, withOffice),
+    pdfColumns: commissionsPdfColumns(withOffice),
     buildKpis: (rows) => {
       const totals = summarize(rows);
+      const split = splitTotals(rows);
       return [
         { label: "A receber", value: formatMoney(totals.receivable) },
         { label: "Já recebido", value: formatMoney(totals.received) },
         { label: "Previsto", value: formatMoney(totals.pending) },
         {
-          label: "Total do período",
+          label: withOffice ? "Comissão da empresa" : "Total do período",
           value: formatMoney(
             totals.receivable + totals.received + totals.pending
           ),
         },
+        // O papel do gestor fecha na pergunta dele: quanto sobrou.
+        ...(withOffice
+          ? [
+              {
+                label: "Repasse aos vendedores",
+                value: formatMoney(split.seller),
+              },
+              { label: "Fica no escritório", value: formatMoney(split.office) },
+            ]
+          : []),
       ];
     },
     buildHighlight: (rows) => {
@@ -70,11 +85,19 @@ export default function CommissionsReportContent({ canSelectSeller }: Props) {
     },
     buildTotals: (rows) => {
       const totals = summarize(rows);
+      const split = splitTotals(rows);
+      const total = totals.receivable + totals.received + totals.pending;
       return {
         label: "TOTAL",
-        byColumn: {
-          6: formatMoney(totals.receivable + totals.received + totals.pending),
-        },
+        // Os índices são os das colunas do PDF (ver `commissionsPdfColumns`): o
+        // total cai debaixo do valor que ele soma.
+        byColumn: withOffice
+          ? {
+              7: formatMoney(total),
+              8: formatMoney(split.seller),
+              9: formatMoney(split.office),
+            }
+          : { 7: formatMoney(total) },
       };
     },
   });
@@ -103,6 +126,18 @@ export default function CommissionsReportContent({ canSelectSeller }: Props) {
         onRetry={report.chart.refetch}
       />
 
+      {withOffice && report.splitChart.hasData && (
+        <ReportChartCard
+          title="Quanto fica no escritório"
+          description="A barra inteira é a comissão que a fábrica paga à empresa; o verde é o que sobra depois do repasse ao vendedor."
+          option={report.splitChart.option}
+          hasData={report.splitChart.hasData}
+          loading={report.splitChart.loading}
+          error={report.splitChart.error}
+          onRetry={report.splitChart.refetch}
+        />
+      )}
+
       <CommissionsReportTable
         items={report.pageRows}
         loading={report.loading}
@@ -115,6 +150,7 @@ export default function CommissionsReportContent({ canSelectSeller }: Props) {
         setCurrentPage={report.setCurrentPage}
         totalPages={report.totalPages}
         totalItems={report.rows.length}
+        withOffice={withOffice}
       />
     </div>
   );

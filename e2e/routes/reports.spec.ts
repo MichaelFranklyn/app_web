@@ -138,53 +138,69 @@ test("pedidos enviados: recorta pela data do pedido e mostra o que espera fatura
   expect(sent).not.toContain("invoiced_at");
 });
 
+/**
+ * Uma parcela de comissão como o backend a devolve.
+ *
+ * Os campos `seller*` vêm sempre: a comissão tem dois níveis (o que a fábrica
+ * paga à empresa e o que a empresa repassa ao vendedor), e um mock sem eles
+ * faria as colunas do gestor saírem com "NaN" sem ninguém notar.
+ */
+const commissionRow = () => ({
+  orderId: "order-1",
+  installmentId: "inst-1",
+  sequence: 1,
+  orderDate: "2026-06-10",
+  invoicedAt: "2026-06-20",
+  invoiceNumber: "12345",
+  dueDate: "2026-07-20",
+  paidAt: null,
+  installmentAmount: "4820.00",
+  amount: "144.60",
+  status: "receivable",
+  // Dentro do mês corrente do E2E? Não: a data é fixa, então os testes navegam
+  // com o período explícito na URL.
+  receiveDate: "2026-07-20",
+  isReceivable: true,
+  isReceived: false,
+  isReconciled: false,
+  reconciledAt: null,
+  isOverdue: false,
+  defaultedAt: null,
+  // A fábrica paga 144,60 ao escritório, que repassa 57,84 ao vendedor.
+  sellerAmount: "57.84",
+  sellerStatus: "receivable",
+  sellerReceiveDate: "2026-07-20",
+  isSellerPaid: false,
+  client: {
+    id: "client-1",
+    razaoSocial: "CASA DO SONO LTDA",
+    nomeFantasia: "Casa do Sono",
+  },
+  factory: {
+    id: "factory-1",
+    nomeFantasia: "Herc",
+    nickname: null,
+    razaoSocial: "INDUSTRIA HERC LTDA",
+  },
+  seller: { id: "seller-1", name: "Rafael Vendas" },
+});
+
+const commissionsReport = () => ({
+  commissions_report: {
+    totalReceivable: "144.60",
+    totalReceived: "0",
+    totalPending: "0",
+    countReceivable: 1,
+    rows: [commissionRow()],
+  },
+});
+
 test("comissões: recorta as parcelas pelo período em que a comissão cai", async ({
   page,
 }) => {
   await mockGraphql(page, {
     DashboardSellers: () => ({ dashboard_sellers: sellers() }),
-    CommissionsReport: () => ({
-      commissions_report: {
-        totalReceivable: "144.60",
-        totalReceived: "0",
-        totalPending: "0",
-        countReceivable: 1,
-        rows: [
-          {
-            orderId: "order-1",
-            installmentId: "inst-1",
-            sequence: 1,
-            orderDate: "2026-06-10",
-            invoicedAt: "2026-06-20",
-            invoiceNumber: "12345",
-            dueDate: "2026-07-20",
-            paidAt: null,
-            installmentAmount: "4820.00",
-            amount: "144.60",
-            status: "receivable",
-            // Dentro do mês corrente do E2E? Não: a data é fixa, então o teste
-            // navega com o período explícito na URL.
-            receiveDate: "2026-07-20",
-            isReceivable: true,
-            isReceived: false,
-            isReconciled: false,
-            reconciledAt: null,
-            client: {
-              id: "client-1",
-              razaoSocial: "CASA DO SONO LTDA",
-              nomeFantasia: "Casa do Sono",
-            },
-            factory: {
-              id: "factory-1",
-              nomeFantasia: "Herc",
-              nickname: null,
-              razaoSocial: "INDUSTRIA HERC LTDA",
-            },
-            seller: { id: "seller-1", name: "Rafael Vendas" },
-          },
-        ],
-      },
-    }),
+    CommissionsReport: () => commissionsReport(),
   });
 
   await page.goto(
@@ -194,6 +210,10 @@ test("comissões: recorta as parcelas pelo período em que a comissão cai", asy
   await expect(page.getByText("Parcelas de comissão").first()).toBeVisible();
   await expect(page.getByText("CASA DO SONO LTDA")).toBeVisible();
 
+  // O vendedor NÃO vê a repartição: para ele a comissão já é a fatia dele, e
+  // uma coluna "fica no escritório" ao lado seria a conta de outra pessoa.
+  await expect(page.getByText("Fica no escritório")).toHaveCount(0);
+
   // Fora do período, a mesma parcela não pode aparecer.
   await page.goto(
     "/dashboard/reports/commissions?from=2026-09-01&to=2026-09-30"
@@ -202,6 +222,29 @@ test("comissões: recorta as parcelas pelo período em que a comissão cai", asy
     page.getByRole("heading", { name: "Nenhuma comissão no período" })
   ).toBeVisible();
   await expect(page.getByText("CASA DO SONO LTDA")).toHaveCount(0);
+});
+
+test("comissões: o gestor vê a comissão repartida entre empresa e vendedor", async ({
+  page,
+}) => {
+  // São dois acordos empilhados — a fábrica paga a empresa, a empresa repassa
+  // ao vendedor —, e é a diferença que diz quanto o escritório ganhou. Só quem
+  // gerencia enxerga esse nível (o teste acima prende o outro lado da regra).
+  await grantRole(page, "OWNER");
+  await mockGraphql(page, {
+    DashboardSellers: () => ({ dashboard_sellers: sellers() }),
+    CommissionsReport: () => commissionsReport(),
+  });
+
+  await page.goto(
+    "/dashboard/reports/commissions?from=2026-07-01&to=2026-07-31"
+  );
+
+  await expect(page.getByText("Fica no escritório").first()).toBeVisible();
+  // 144,60 da fábrica − 57,84 do vendedor = 86,76 no escritório. O mock sem
+  // `sellerAmount` fazia essas colunas saírem com "NaN" sem ninguém notar.
+  await expect(page.getByText("R$ 57,84").first()).toBeVisible();
+  await expect(page.getByText("R$ 86,76").first()).toBeVisible();
 });
 
 test("positivação: matriz cliente × fábrica e o recorte de zerados", async ({

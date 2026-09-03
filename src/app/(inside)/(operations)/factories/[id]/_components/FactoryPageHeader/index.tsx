@@ -9,6 +9,7 @@ import { maskCNPJ } from "@/utils/format/masks";
 import { mediaUrl } from "@/utils/media";
 import { CompanyFactoryDetail } from "../../interface";
 import { isContractExpired } from "../../../utils";
+import { ApplyCommissionRateModal } from "../ApplyCommissionRateModal";
 import { DeleteCompanyFactoryModal } from "./DeleteCompanyFactoryModal";
 import { EditCompanyFactoryModal } from "./EditCompanyFactoryModal";
 
@@ -79,6 +80,12 @@ export function FactoryPageHeader({ companyFactory }: Props) {
           </PanelHeader.Left>
         </PanelHeader.Top>
       </PanelHeader.Root>
+
+      {/* Montado uma vez, aqui: ele é aberto de duas portas (o botão ao lado da
+          comissão, na Visão geral, e o salvamento de uma taxa diferente, de
+          qualquer aba) e o cabeçalho é a única parte da página que está sempre
+          na tela. Sem gatilho próprio — quem abre é o contexto. */}
+      <ApplyCommissionRateModal />
     </div>
   );
 }

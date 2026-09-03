@@ -1,5 +1,6 @@
 import { expect, test } from "../support/fixtures";
 import { mockGraphql } from "../support/graphql";
+import { grantRole } from "../support/role";
 
 /**
  * A tela de comissões pede ao backend UM MÊS por vez.
@@ -82,6 +83,34 @@ function summary(rows: ReturnType<typeof row>[]) {
   };
 }
 
+test("comissões: o gestor vê quanto da comissão fica no escritório", async ({
+  page,
+}) => {
+  // São dois acordos empilhados: a fábrica paga 50,00 ao escritório, que
+  // repassa 30,00 ao vendedor — sobram 20,00. O vendedor não vê essa conta (é
+  // a fatia dele que aparece como comissão), e por isso o painel é de gestão.
+  await grantRole(page, "OWNER");
+  await mockGraphql(page, {
+    CommissionsSellers: () => ({
+      commissions_sellers: {
+        edges: [{ node: { id: "seller-1", name: "Vendedor Teste" } }],
+        totalCount: 1,
+      },
+    }),
+    Commissions: () => summary([row({ sellerAmount: "30.00" })]),
+  });
+
+  await page.goto("/commissions");
+
+  await expect(
+    page.getByText("Do que cai em agosto de 2026", { exact: false })
+  ).toBeVisible();
+  await expect(page.getByText("das fábricas", { exact: true })).toBeVisible();
+  await expect(page.getByText("R$ 30,00").first()).toBeVisible();
+  await expect(page.getByText("R$ 20,00").first()).toBeVisible();
+  await expect(page.getByText("no escritório (40%)")).toBeVisible();
+});
+
 test("comissões: a tela pede o mês ao backend, não a carteira inteira", async ({
   page,
 }) => {
@@ -100,6 +129,18 @@ test("comissões: a tela pede o mês ao backend, não a carteira inteira", async
 
   await expect(page.getByText("Resumo de agosto de 2026")).toBeVisible();
   await expect(page.getByText("CASA DO SONO LTDA").first()).toBeVisible();
+
+  // O vendedor não vê a repartição com o escritório: a comissão que ele lê JÁ
+  // é a fatia dele, e a conta seria a de outra pessoa.
+  await expect(page.getByText("de repasse", { exact: true })).toHaveCount(0);
+
+  // E vê, como todo mundo, o que a lista está somando — a frase é a resposta
+  // para os dois recortes da tela (mês e situação) governarem coisas diferentes.
+  await expect(
+    page.getByText("Mostrando o que há a receber em agosto de 2026", {
+      exact: false,
+    })
+  ).toBeVisible();
 });
 
 test("comissões: trocar de mês refaz a consulta com o novo período", async ({
@@ -138,8 +179,10 @@ test("comissões: a aba de boletos travados pede os de todos os vencimentos", as
     .poll(() => JSON.stringify(spy.lastVariables("Commissions") ?? {}))
     .toContain('"includeOverdue":true');
 
-  // E a tela avisa que ali o mês não vale — o mesmo que o backend fez.
+  // E a tela avisa que ali o mês não vale — o mesmo que o backend fez. O aviso
+  // deixou de ser um alerta exclusivo desta aba: virou a frase de escopo, que
+  // aparece em TODAS elas dizendo o que a lista está somando.
   await expect(
-    page.getByText("Esta aba não segue o mês escolhido")
+    page.getByText("esta aba não segue o mês", { exact: false })
   ).toBeVisible();
 });

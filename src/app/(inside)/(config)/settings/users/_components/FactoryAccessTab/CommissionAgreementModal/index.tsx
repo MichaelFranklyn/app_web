@@ -1,90 +1,74 @@
 "use client";
 
 import { Button } from "@/components/Button";
-import {
-  FormBuilder,
-  FormBuilderRef,
-  FormStepSchema,
-} from "@/components/FormBuilder";
+import { Input, SelectOption } from "@/components/Input";
 import { Modal } from "@/components/Modal";
 import { Title } from "@/components/Title";
 import { useAsyncAction } from "@/hooks/useAsyncAction";
 import { useMutation } from "@apollo/client/react";
-import { useMemo, useRef } from "react";
+import { useEffect, useState } from "react";
+
 import { SELLER_BASIS_OPTIONS } from "../utils";
+import { AgreementPreview } from "./AgreementPreview";
 import { UPDATE_SELLER_COMMISSION_AGREEMENT_MUTATION } from "./gql";
 import {
   CommissionAgreementModalProps,
   UpdateAgreementResponse,
 } from "./interface";
 
+/** O texto do campo vira número; vazio é nulo, que significa "comissão inteira". */
+const parseShare = (value: string): number | null =>
+  value.trim() === "" ? null : Number(value);
+
+/**
+ * O acordo do escritório com o vendedor numa fábrica.
+ *
+ * Fica com `Input` direto, e não com o `FormBuilder`, porque tem conteúdo
+ * reativo ENTRE os campos: a prévia muda a cada tecla, e `section.description`
+ * do FormBuilder é `string`. É a mesma exceção do SettlePeriodModal e do
+ * TenantPlanModal.
+ *
+ * A prévia não é enfeite. O campo pergunta a fatia DA COMISSÃO e é natural
+ * digitar ali a taxa do vendedor sobre o PEDIDO — aconteceu na carteira real,
+ * apesar de o rótulo e a dica dizerem o contrário. Números em reais resolvem o
+ * que a frase não resolveu.
+ */
 export function CommissionAgreementModal({
   id,
   sellerName,
   factoryName,
+  factoryCommissionRate,
   sellerCommissionShare,
   sellerCommissionBasis,
   open,
   onOpenChange,
   onSaved,
 }: CommissionAgreementModalProps) {
-  const formRef = useRef<FormBuilderRef>(null);
+  const [share, setShare] = useState("");
+  const [basis, setBasis] = useState<SelectOption | null>(null);
+
   const [updateAgreement] = useMutation<UpdateAgreementResponse>(
     UPDATE_SELLER_COMMISSION_AGREEMENT_MUTATION
   );
   const { execute, isLoading } = useAsyncAction();
 
-  const steps = useMemo<FormStepSchema[]>(
-    () => [
-      {
-        id: "agreement",
-        sections: [
-          {
-            id: "seller-commission",
-            fields: [
-              {
-                name: "share",
-                type: "number",
-                label: "Quanto da comissão fica com o vendedor (%)",
-                placeholder: "Ex: 50",
-                hint: "Percentual DA COMISSÃO da fábrica, não do valor do pedido. Em branco, o vendedor recebe a comissão inteira.",
-              },
-              {
-                name: "basis",
-                type: "select-single",
-                label: "Quando o escritório repassa",
-                options: SELLER_BASIS_OPTIONS,
-                placeholder: "Igual à fábrica",
-                hint: "A fábrica pode pagar no faturamento e o escritório só repassar quando o cliente pagar o boleto.",
-              },
-            ],
-          },
-        ],
-      },
-    ],
-    []
-  );
+  // Reabrir mostra o que está salvo, não o rascunho da vez anterior.
+  useEffect(() => {
+    if (!open) return;
+    setShare(
+      sellerCommissionShare === null || sellerCommissionShare === undefined
+        ? ""
+        : String(Number(sellerCommissionShare))
+    );
+    setBasis(
+      SELLER_BASIS_OPTIONS.find((o) => o.value === sellerCommissionBasis) ??
+        null
+    );
+  }, [open, sellerCommissionShare, sellerCommissionBasis]);
 
-  const initialData = useMemo(
-    () => ({
-      share: sellerCommissionShare ?? "",
-      basis: sellerCommissionBasis
-        ? (SELLER_BASIS_OPTIONS.find(
-            (o) => o.value === sellerCommissionBasis
-          ) ?? null)
-        : null,
-    }),
-    [sellerCommissionShare, sellerCommissionBasis]
-  );
-
-  const handleSubmit = async (data: Record<string, unknown>) => {
-    const rawShare = data.share;
-    const share =
-      rawShare === "" || rawShare === null || rawShare === undefined
-        ? null
-        : Number(rawShare);
-    const basisOption = data.basis as { value: string } | null;
-    const basis = basisOption?.value ? basisOption.value : null;
+  const handleSave = async () => {
+    const shareValue = parseShare(share);
+    const basisValue = basis?.value ? basis.value : null;
 
     await execute(
       async () => {
@@ -94,10 +78,10 @@ export function CommissionAgreementModal({
             input: {
               // Nulo já significa "não mexer" no update genérico, então limpar
               // o acordo precisa das flags próprias.
-              sellerCommissionShare: share,
-              sellerCommissionBasis: basis,
-              clearSellerCommissionShare: share === null,
-              clearSellerCommissionBasis: basis === null,
+              sellerCommissionShare: shareValue,
+              sellerCommissionBasis: basisValue,
+              clearSellerCommissionShare: shareValue === null,
+              clearSellerCommissionBasis: basisValue === null,
             },
           },
         });
@@ -127,18 +111,39 @@ export function CommissionAgreementModal({
           description={`Quanto ${sellerName} recebe da comissão que a fábrica ${factoryName} paga ao escritório.`}
         />
 
-        <Modal.Body>
-          <FormBuilder
-            ref={formRef}
-            steps={steps}
-            initialData={initialData}
-            onSubmit={handleSubmit}
-            loading={isLoading}
-            unstyled
+        <Modal.Body className="flex flex-col gap-16 py-24">
+          <Input.Number
+            label="Quanto da comissão fica com o vendedor (%)"
+            placeholder="Ex: 50"
+            min={0}
+            max={100}
+            step="0.01"
+            addon="%"
+            value={share}
+            onChange={(e) => setShare(e.target.value)}
+            hint="Percentual DA COMISSÃO da fábrica, não do valor do pedido. Em branco, o vendedor recebe a comissão inteira."
           />
-          <Title variant="body-sm" color="muted" className="mt-12 block">
-            Vale para os pedidos deste vendedor nesta fábrica. Comissões já
-            recebidas não são recalculadas.
+
+          <AgreementPreview
+            share={parseShare(share)}
+            factoryRate={factoryCommissionRate}
+          />
+
+          <Input.Select
+            label="Quando o escritório repassa"
+            options={SELLER_BASIS_OPTIONS}
+            value={basis}
+            variant="single"
+            placeholder="Igual à fábrica"
+            onChange={(val: SelectOption | SelectOption[] | null) =>
+              setBasis(Array.isArray(val) ? (val[0] ?? null) : val)
+            }
+            hint="A fábrica pode pagar no faturamento e o escritório só repassar quando o cliente pagar o boleto."
+          />
+
+          <Title variant="body-sm" color="muted">
+            Vale para os pedidos deste vendedor nesta fábrica. Repasses já
+            lançados mantêm o valor que foi pago no dia.
           </Title>
         </Modal.Body>
 
@@ -162,7 +167,7 @@ export function CommissionAgreementModal({
             size="md"
             noUppercase
             loading={isLoading}
-            onClick={() => formRef.current?.submitForm()}
+            onClick={handleSave}
           >
             <Button.Title>Salvar acordo</Button.Title>
           </Button.Root>

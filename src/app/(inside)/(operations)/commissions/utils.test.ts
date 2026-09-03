@@ -7,7 +7,9 @@ import {
   filterByTab,
   groupByFactory,
   isInMonth,
-  receivableReport,
+  boletoLabel,
+  monthReport,
+  officeSplit,
   summarizeRows,
   yearMonthFromIso,
   defaultImpact,
@@ -173,49 +175,209 @@ describe("factoryHighlights", () => {
   });
 });
 
-describe("receivableReport", () => {
+describe("monthReport", () => {
   const march = { year: 2026, month: 3 };
 
-  it("leva só o que há a receber no mês, com subtotal por fábrica e total", () => {
-    const report = receivableReport(
+  it("separa as três seções de comissão pelo mês em que a comissão cai", () => {
+    const report = monthReport(
       [
         row({ installmentId: "a", amount: "10", receiveDate: "2026-03-10" }),
         row({ installmentId: "b", amount: "7.5", receiveDate: "2026-03-20" }),
-        // Fora: outro mês, previsto e já recebido.
-        row({ installmentId: "c", amount: "99", receiveDate: "2026-04-01" }),
-        row({ installmentId: "d", amount: "99", status: "pending" }),
-        row({ installmentId: "e", amount: "99", status: "received" }),
+        row({
+          installmentId: "c",
+          amount: "5",
+          status: "received",
+          receiveDate: "2026-03-05",
+        }),
+        row({
+          installmentId: "d",
+          amount: "3",
+          status: "pending",
+          receiveDate: "2026-03-28",
+        }),
+        // Fora: cai em abril.
+        row({ installmentId: "e", amount: "99", receiveDate: "2026-04-01" }),
       ],
       march
     );
 
-    expect(report.count).toBe(2);
-    expect(report.total).toBe(17.5);
-    expect(report.groups).toHaveLength(1);
-    expect(report.groups[0].subtotal).toBe(17.5);
-    expect(report.groups[0].rows.map((r) => r.installmentId)).toEqual([
-      "a",
-      "b",
-    ]);
+    expect(report.receivable.total).toBe(17.5);
+    expect(report.received.total).toBe(5);
+    expect(report.pending.total).toBe(3);
+    // O previsto NÃO entra no total: ainda não é dinheiro de ninguém.
+    expect(report.total).toBe(22.5);
+    expect(report.count).toBe(4);
   });
 
-  it("ordena as parcelas da fábrica pela data de recebimento", () => {
-    const report = receivableReport(
+  it("leva estorno e devolução para o a receber, que fecha no líquido", () => {
+    // É o mesmo bolso e o mesmo mês: separá-los faria o gestor somar de cabeça.
+    const report = monthReport(
       [
-        row({ installmentId: "tarde", receiveDate: "2026-03-28" }),
-        row({ installmentId: "cedo", receiveDate: "2026-03-02" }),
+        row({ installmentId: "a", amount: "10" }),
+        row({ installmentId: "b", amount: "-4", status: "chargeback" }),
+        row({ installmentId: "c", amount: "2", status: "refund" }),
       ],
       march
     );
-    expect(report.groups[0].rows.map((r) => r.installmentId)).toEqual([
-      "cedo",
-      "tarde",
-    ]);
+
+    expect(report.receivable.count).toBe(3);
+    expect(report.receivable.total).toBe(8);
   });
 
-  it("devolve relatório vazio quando nada há a receber no mês", () => {
-    const report = receivableReport([row({ status: "received" })], march);
-    expect(report).toEqual({ groups: [], total: 0, count: 0 });
+  it("agrupa cada seção por fábrica e ordena por data de recebimento", () => {
+    const report = monthReport(
+      [
+        row({
+          installmentId: "tarde",
+          receiveDate: "2026-03-28",
+          factory: { id: "f1", nomeFantasia: "Alfa", razaoSocial: "A" },
+        }),
+        row({
+          installmentId: "cedo",
+          receiveDate: "2026-03-02",
+          factory: { id: "f1", nomeFantasia: "Alfa", razaoSocial: "A" },
+        }),
+        row({
+          installmentId: "outra",
+          receiveDate: "2026-03-15",
+          factory: { id: "f2", nomeFantasia: "Zeta", razaoSocial: "Z" },
+        }),
+      ],
+      march
+    );
+
+    expect(report.receivable.groups.map((g) => g.name)).toEqual([
+      "Alfa",
+      "Zeta",
+    ]);
+    expect(
+      report.receivable.groups[0].rows.map((r) => r.installmentId)
+    ).toEqual(["cedo", "tarde"]);
+  });
+
+  it("lista os boletos liquidados pelo mês do PAGAMENTO, não do da comissão", () => {
+    // O cliente pagou em março; a comissão desse boleto só cai em abril. Se a
+    // seção seguisse a data da comissão, o pagamento sumiria do papel do mês.
+    const report = monthReport(
+      [
+        row({
+          installmentId: "pago",
+          paidAt: "2026-03-12",
+          receiveDate: "2026-04-10",
+        }),
+        row({ installmentId: "aberto", paidAt: null }),
+      ],
+      march
+    );
+
+    expect(report.settled.map((r) => r.installmentId)).toEqual(["pago"]);
+  });
+
+  it("traz os inadimplentes de todos os vencimentos, não só do mês", () => {
+    // Calote não é evento de mês: ele fica travado até ser resolvido, e a
+    // planilha da fábrica vem com vencimentos misturados.
+    const report = monthReport(
+      [
+        row({
+          installmentId: "velho",
+          defaultedAt: "2025-11-02",
+          dueDate: "2025-10-30",
+          receiveDate: "2025-11-10",
+        }),
+        row({ installmentId: "ok" }),
+      ],
+      march
+    );
+
+    expect(report.defaulted.map((r) => r.installmentId)).toEqual(["velho"]);
+  });
+
+  it("devolve tudo vazio quando o mês não tem nada", () => {
+    const report = monthReport([row({ receiveDate: "2026-04-01" })], march);
+
+    expect(report.count).toBe(0);
+    expect(report.total).toBe(0);
+    expect(report.defaulted).toEqual([]);
+    expect(report.settled).toEqual([]);
+  });
+});
+
+describe("boletoLabel", () => {
+  it("o calote manda, mesmo com vencimento no futuro", () => {
+    expect(
+      boletoLabel(row({ defaultedAt: "2026-03-12", dueDate: "2026-09-01" }))
+    ).toBe("Não pagou 12/03/2026");
+  });
+
+  it("diz quando o cliente pagou, venceu ou ainda vai vencer", () => {
+    expect(boletoLabel(row({ paidAt: "2026-03-02" }))).toBe("Pago 02/03/2026");
+    expect(boletoLabel(row({ isOverdue: true, dueDate: "2026-02-10" }))).toBe(
+      "Vencido 10/02/2026"
+    );
+    expect(boletoLabel(row({ dueDate: "2026-05-10" }))).toBe(
+      "Vence 10/05/2026"
+    );
+    expect(boletoLabel(row({ dueDate: null }))).toBe("—");
+  });
+});
+
+describe("officeSplit", () => {
+  const march = { year: 2026, month: 3 };
+
+  it("mede as duas pontas sobre as mesmas parcelas", () => {
+    // A fábrica paga 100 ao escritório, que repassa 60 ao vendedor: sobram 40.
+    const split = officeSplit(
+      [
+        row({ installmentId: "a", amount: "100", sellerAmount: "60" }),
+        // Fora do mês: nem a comissão nem o repasse entram.
+        row({
+          installmentId: "b",
+          amount: "500",
+          sellerAmount: "300",
+          receiveDate: "2026-04-10",
+        }),
+      ],
+      march
+    );
+
+    expect(split.company).toBe(100);
+    expect(split.seller).toBe(60);
+    expect(split.office).toBe(40);
+    expect(split.margin).toBeCloseTo(0.4);
+    expect(split.count).toBe(1);
+  });
+
+  it("soma o que já foi recebido junto com o que há a receber", () => {
+    // A pergunta é "quanto a fábrica paga neste mês", e o que já entrou é parte
+    // disso — só o previsto fica de fora, porque ainda depende de acontecer.
+    const split = officeSplit(
+      [
+        row({ installmentId: "a", amount: "10", sellerAmount: "5" }),
+        row({
+          installmentId: "b",
+          amount: "20",
+          sellerAmount: "8",
+          status: "received",
+        }),
+        row({
+          installmentId: "c",
+          amount: "50",
+          sellerAmount: "25",
+          status: "pending",
+        }),
+      ],
+      march
+    );
+
+    expect(split.company).toBe(30);
+    expect(split.office).toBe(17);
+  });
+
+  it("não divide por zero num mês sem comissão", () => {
+    const split = officeSplit([row({ status: "pending" })], march);
+
+    expect(split.margin).toBe(0);
+    expect(split.count).toBe(0);
   });
 });
 

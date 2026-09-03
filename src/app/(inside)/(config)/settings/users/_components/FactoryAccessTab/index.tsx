@@ -10,22 +10,37 @@ import { Pagination } from "@/components/Pagination";
 import { QueryError } from "@/components/QueryError";
 import { Table } from "@/components/Table";
 import { Tabs } from "@/components/Tabs";
+import { useCompleteList } from "@/hooks/useCompleteList";
 import { useOptimisticList } from "@/hooks/useOptimisticList";
 import { useTableData } from "@/hooks/useTableData";
 import { formatDateDMY } from "@/utils/format/masks";
 import { Building2 } from "lucide-react";
+import { useMemo } from "react";
 import { ACCESS_COLUMN_HELP, ACCESS_HELP } from "../../help";
 import { AccessRowActions } from "./AccessRowActions";
 import { sellerAgreementLabel } from "./utils";
 import { AddAccessModal } from "./AddAccessModal";
-import { SELLER_FACTORY_ACCESS_LIST_QUERY } from "./gql";
-import { QueryData, SellerFactoryAccess } from "./interface";
+import {
+  ACCESS_FACTORY_RATES_QUERY,
+  SELLER_FACTORY_ACCESS_LIST_QUERY,
+} from "./gql";
+import {
+  AccessFactoryRatesResponse,
+  QueryData,
+  SellerFactoryAccess,
+} from "./interface";
 import {
   ACCESS_SORTABLE_FIELDS,
   ACCESS_TABLE_FIELDS,
   useAccessFilters,
 } from "./useAccessFilters";
 import { factoryName } from "@/utils/company";
+
+// Catálogo pequeno (o plano limita as fábricas): `useCompleteList` rebusca pelo
+// total se um dia passar da primeira página, em vez de truncar calado.
+const EMPTY_INPUT = {};
+const getFactoryRates = (d: AccessFactoryRatesResponse) =>
+  d.access_factory_rates;
 
 export function FactoryAccessTab() {
   const tableData = useTableData<QueryData, SellerFactoryAccess>({
@@ -39,6 +54,22 @@ export function FactoryAccessTab() {
   });
 
   const filterFields = useAccessFilters();
+
+  // A comissão da fábrica é o que traduz a fatia do acordo em dinheiro (ver
+  // `AgreementPreview`). Ela mora no vínculo empresa×fábrica, não no acesso do
+  // vendedor, então vem de uma consulta própria — uma só para a tabela inteira.
+  const ratesQuery = useCompleteList<AccessFactoryRatesResponse>(
+    ACCESS_FACTORY_RATES_QUERY,
+    EMPTY_INPUT,
+    getFactoryRates
+  );
+  const rateByFactoryId = useMemo(() => {
+    const map = new Map<string, number>();
+    for (const edge of ratesQuery.data?.access_factory_rates.edges ?? []) {
+      map.set(edge.node.factoryId, Number(edge.node.commissionRate));
+    }
+    return map;
+  }, [ratesQuery.data]);
 
   const optimistic = useOptimisticList<SellerFactoryAccess>({
     initialData: tableData.displayedData,
@@ -189,6 +220,9 @@ export function FactoryAccessTab() {
                         sellerName={node.seller?.name ?? ""}
                         sellerIsActive={node.seller?.isActive ?? true}
                         factoryName={factoryName(node.factory) ?? ""}
+                        factoryCommissionRate={
+                          rateByFactoryId.get(node.factory?.id ?? "") ?? 0
+                        }
                         isActive={node.isActive}
                         sellerCommissionShare={node.sellerCommissionShare}
                         sellerCommissionBasis={node.sellerCommissionBasis}

@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 
-import { ignoresMonth } from "./help";
+import { ignoresMonth, scopeSentence } from "./help";
 import { CommissionRow } from "./interface";
 import { COMMISSION_TABS, filterByMonth } from "./utils";
 
@@ -33,4 +33,25 @@ describe("ignoresMonth", () => {
     expect(ignoresMonth("receivable")).toBe(false);
     expect(ignoresMonth("all")).toBe(false);
   });
+});
+
+/**
+ * A frase de escopo é a única coisa na tela que diz o que a lista está somando.
+ * Ela e o recorte real não podem divergir: a aba que ignora o mês tem de dizer
+ * isso na frase, e as que o seguem têm de nomeá-lo.
+ */
+describe("scopeSentence", () => {
+  it.each(COMMISSION_TABS.map((tab) => tab.id))(
+    "a frase da aba %s combina com o recorte que ela faz",
+    (tab) => {
+      const frase = scopeSentence(tab, "agosto de 2026");
+
+      if (ignoresMonth(tab)) {
+        expect(frase).toContain("não segue o mês");
+      } else {
+        expect(frase).toContain("agosto de 2026");
+        expect(frase).not.toContain("não segue o mês");
+      }
+    }
+  );
 });

@@ -5,6 +5,17 @@ import { CompanyFactoryDetail } from "./interface";
 
 interface FactoryDetailContextValue {
   companyFactory: CompanyFactoryDetail;
+  /**
+   * Há um pedido pendente de aplicar a taxa de comissão aos pedidos já
+   * faturados (ver `ApplyCommissionRateModal`).
+   *
+   * Mora no contexto porque quem PEDE e quem MOSTRA estão em subárvores
+   * diferentes: o pedido nasce ao salvar o vínculo (modal do cabeçalho, visível
+   * em qualquer aba) ou no botão ao lado da comissão (aba Visão geral), e o
+   * modal é montado uma vez só, no cabeçalho.
+   */
+  applyRatePrompt: boolean;
+  setApplyRatePrompt: (open: boolean) => void;
   updateOptimistic: (updates: Partial<CompanyFactoryDetail>) => void;
   commit: () => void;
   rollback: () => void;
