@@ -94,14 +94,15 @@ export const summarize = (rows: CommissionRow[]): CommissionsTotals => {
  * Quanto da comissão do período fica com a EMPRESA.
  *
  * A comissão tem dois donos em sequência: a fábrica paga o escritório, e o
- * escritório repassa uma fatia ao vendedor — combinada por vendedor E por
- * fábrica, então não é uma porcentagem que se aplique de cabeça. Sem esta conta
- * o relatório mostra só o número de cima, e o repasse parece não existir.
+ * vendedor tem a taxa dele sobre o pedido — combinada por vendedor E por
+ * fábrica, então não é uma porcentagem que se aplique de cabeça sobre o total.
+ * Sem esta conta o relatório mostra só o número de cima, e o repasse parece não
+ * existir.
  *
  * As duas pontas saem das MESMAS parcelas, e não cada uma pelo seu calendário:
  * o vendedor pode ser pago num mês diferente, e comparar dois conjuntos daria
  * uma sobra que não é de ninguém. Vale só para quem enxerga o nível do
- * escritório (gestor); na visão do vendedor `amount` já É a fatia dele.
+ * escritório (gestor); na visão do vendedor `amount` já É a comissão dele.
  *
  * Estorno entra naturalmente: ele é negativo nos dois níveis, e o líquido cai
  * dos dois lados.
@@ -281,7 +282,7 @@ export const COMMISSIONS_SORT_LABELS: Record<string, SortLabel> = {
  * Cabeçalhos da planilha.
  *
  * `withOffice` acrescenta a repartição entre a empresa e o vendedor. Ela sai
- * para quem gerencia; para o vendedor, `Comissão` JÁ é a fatia dele e as duas
+ * para quem gerencia; para o vendedor, `Comissão` JÁ é a dele e as duas
  * colunas extras seriam uma repetição e um zero.
  */
 export const commissionsExportHeaders = (withOffice: boolean): string[] => [

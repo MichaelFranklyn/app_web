@@ -225,7 +225,7 @@ export function CommissionRowActions({
         open={openModal === "sellerPaid"}
         onOpenChange={(v) => setOpenModal(v ? "sellerPaid" : null)}
         title="Registrar repasse ao vendedor"
-        description="Registra que o escritório pagou ao vendedor a fatia dele desta parcela."
+        description="Registra que o escritório pagou ao vendedor a comissão dele desta parcela."
         dateLabel="Data do repasse"
         dateHint="Dia em que o vendedor recebeu."
         confirmLabel="Confirmar repasse"
@@ -265,7 +265,7 @@ export function CommissionRowActions({
         open={confirm === "unpaid"}
         onOpenChange={(v) => setConfirm(v ? "unpaid" : null)}
         title="Desfazer o repasse ao vendedor"
-        description="A fatia volta a constar como não repassada. Um estorno agendado nesta parcela é cancelado junto."
+        description="A comissão do vendedor volta a constar como não repassada. Um estorno agendado nesta parcela é cancelado junto."
         confirmLabel="Desfazer repasse"
         successMessage="Repasse desfeito"
         onConfirm={() =>

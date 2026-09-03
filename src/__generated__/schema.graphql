@@ -5015,8 +5015,8 @@ extend type Mutation {
 input CreateSellerFactoryAccessInput {
   sellerId: UUID!
   factoryId: UUID!
-  """Percentual DA COMISSÃO da fábrica que fica com o vendedor. Nulo = 100%."""
-  sellerCommissionShare: Decimal
+  """Percentual DO PEDIDO que fica com o vendedor, na mesma base da comissão da fábrica. Nulo = a comissão inteira."""
+  sellerCommissionRate: Decimal
   """Quando o escritório repassa: "Faturamento" ou "Pagamento". Nulo = igual à fábrica."""
   sellerCommissionBasis: String
 }
@@ -5028,8 +5028,8 @@ type SellerFactoryAccessType {
   companyId: UUID!
   grantedBy: UUID!
   isActive: Boolean!
-  """Percentual DA COMISSÃO da fábrica que fica com o vendedor. Nulo = 100%."""
-  sellerCommissionShare: Decimal
+  """Percentual DO PEDIDO que fica com o vendedor, na mesma base da comissão da fábrica. Nulo = a comissão inteira."""
+  sellerCommissionRate: Decimal
   """Quando o escritório repassa: "Faturamento" ou "Pagamento". Nulo = igual à fábrica."""
   sellerCommissionBasis: String
   createdAt: DateTime!
@@ -5069,10 +5069,10 @@ fábrica, revogue este acesso e conceda outro.
 """
 input UpdateSellerFactoryAccessInput {
   isActive: Boolean = null
-  sellerCommissionShare: Decimal = null
+  sellerCommissionRate: Decimal = null
   sellerCommissionBasis: String = null
-  """Volta o vendedor para 100% da comissão (nulo significa "não mexer")."""
-  clearSellerCommissionShare: Boolean = false
+  """Volta o vendedor a receber a comissão inteira (nulo significa "não mexer")."""
+  clearSellerCommissionRate: Boolean = false
   """Volta o repasse a seguir a base da fábrica."""
   clearSellerCommissionBasis: Boolean = false
 }

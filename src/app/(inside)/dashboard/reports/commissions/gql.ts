@@ -4,7 +4,7 @@ import { gql } from "@apollo/client";
  * Todas as parcelas de comissão do vendedor/empresa — a query não recebe período.
  *
  * Os campos `seller*` vêm junto porque a comissão tem DOIS níveis: o que a
- * fábrica paga ao escritório (`amount`, para quem gerencia) e a fatia que o
+ * fábrica paga ao escritório (`amount`, para quem gerencia) e o que o
  * escritório repassa ao vendedor. A diferença entre eles é o que sobra para a
  * empresa — e é a pergunta que o relatório passou a responder.
  *

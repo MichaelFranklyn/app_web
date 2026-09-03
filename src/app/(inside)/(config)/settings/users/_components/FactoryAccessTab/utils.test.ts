@@ -5,61 +5,57 @@ import { agreementPreview, percentText, sellerAgreementLabel } from "./utils";
 /**
  * A prévia do acordo com o vendedor.
  *
- * O campo pergunta a fatia DA COMISSÃO e é natural digitar ali a taxa do
- * vendedor sobre o PEDIDO — foi o que aconteceu na carteira real: 3 numa
- * fábrica que paga 7%, e o vendedor virou dono de 0,21% do pedido em vez de
- * ~43% da comissão. O rótulo já avisava; o que faltava era mostrar o dinheiro.
+ * O campo pergunta a taxa do vendedor sobre o PEDIDO — o número que se combina
+ * na rua, e o único percentual que o sistema mostra: falar também em "% da
+ * comissão" é o que fazia digitar um no lugar do outro. Percentual sozinho não
+ * se confere ("3%" e "30%" ocupam o mesmo espaço na tela): o que denuncia o
+ * engano é ver o dinheiro dos dois lados, o do vendedor e o do escritório.
  */
 describe("agreementPreview", () => {
   it("mostra quanto cada um leva num pedido de dez mil", () => {
-    // Fábrica paga 7% (R$ 700) e o vendedor fica com metade disso.
-    const preview = agreementPreview(50, 7);
+    // Fábrica paga 7% (R$ 700) e o vendedor ganha 3,5% do pedido (R$ 350).
+    const preview = agreementPreview(3.5, 7);
 
     expect(preview.orderAmount).toBe(10000);
     expect(preview.factoryCommission).toBe(700);
     expect(preview.sellerAmount).toBe(350);
     expect(preview.officeAmount).toBe(350);
-    expect(preview.suggestedShare).toBeNull();
   });
 
   it("em branco, o vendedor leva a comissão inteira", () => {
-    // Nulo = 100%, que é como o sistema se comportava antes do acordo existir.
+    // Nulo = a comissão da fábrica, seja qual for — é como o sistema se
+    // comportava antes do acordo existir.
     const preview = agreementPreview(null, 7);
 
     expect(preview.sellerAmount).toBe(700);
     expect(preview.officeAmount).toBe(0);
-    expect(preview.suggestedShare).toBeNull();
   });
 
-  it("converte quando o número parece ser a taxa sobre o pedido", () => {
-    // O caso real: 3 numa fábrica de 7%. R$ 21,00 para o vendedor é o número
-    // que denuncia o engano — e 42,9% é o que ele queria ter digitado.
-    const preview = agreementPreview(3, 7);
+  it("acima da taxa da fábrica, o escritório fica negativo", () => {
+    // Não é bloqueado: pode ser um acerto real, e o número negativo é o aviso.
+    const preview = agreementPreview(10, 7);
 
-    expect(preview.sellerAmount).toBe(21);
-    expect(preview.suggestedShare).toBe(42.9);
+    expect(preview.sellerAmount).toBe(1000);
+    expect(preview.officeAmount).toBe(-300);
   });
 
-  it("uma fatia de verdade não vira sugestão", () => {
-    // 40% de comissão é um acordo comum; sugerir conversão aqui seria ruído.
-    expect(agreementPreview(40, 7).suggestedShare).toBeNull();
-    // No limite (fatia igual à taxa da fábrica) ainda vale suspeitar.
-    expect(agreementPreview(7, 7).suggestedShare).toBe(100);
-  });
-
-  it("fábrica sem comissão não sugere nada nem divide por zero", () => {
+  it("fábrica sem comissão não divide por zero", () => {
     const preview = agreementPreview(3, 0);
 
     expect(preview.factoryCommission).toBe(0);
-    expect(preview.sellerAmount).toBe(0);
-    expect(preview.suggestedShare).toBeNull();
+    expect(preview.sellerAmount).toBe(300);
+    expect(preview.officeAmount).toBe(-300);
   });
 });
 
 describe("sellerAgreementLabel", () => {
   it("resume o acordo da linha da tabela", () => {
-    expect(sellerAgreementLabel(50, "Pagamento")).toBe("50% · no boleto");
-    expect(sellerAgreementLabel(null, null)).toBe("100% · igual à fábrica");
+    expect(sellerAgreementLabel(3, "Pagamento")).toBe(
+      "3% do pedido · no boleto"
+    );
+    expect(sellerAgreementLabel(null, null)).toBe(
+      "comissão inteira · igual à fábrica"
+    );
   });
 });
 

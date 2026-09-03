@@ -165,9 +165,9 @@ export const OFFICE_SPLIT_HELP: ReactNode = (
   <>
     <p>
       São dois acordos empilhados: a <b>fábrica</b> paga uma comissão ao
-      escritório, e o <b>escritório</b> repassa uma fatia dela ao vendedor. A
-      fatia é combinada por vendedor e por fábrica — o mesmo vendedor pode ficar
-      com metade numa e com menos em outra.
+      escritório, e o <b>vendedor</b> tem a taxa dele sobre o pedido, que sai de
+      dentro dessa comissão. A taxa é combinada por vendedor e por fábrica — o
+      mesmo vendedor pode ganhar 3% numa e 2% em outra.
     </p>
     <p>
       Os três números saem das <b>mesmas parcelas</b>: as que a fábrica paga

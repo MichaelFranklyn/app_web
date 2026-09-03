@@ -159,7 +159,7 @@ export function FactoryAccessTab() {
                     <Table.Cell>
                       <Table.CellText variant="dim">
                         {sellerAgreementLabel(
-                          node.sellerCommissionShare,
+                          node.sellerCommissionRate,
                           node.sellerCommissionBasis
                         )}
                       </Table.CellText>
@@ -191,7 +191,7 @@ export function FactoryAccessTab() {
                         factoryName={factoryName(node.factory) ?? ""}
                         factoryId={node.factory?.id ?? ""}
                         isActive={node.isActive}
-                        sellerCommissionShare={node.sellerCommissionShare}
+                        sellerCommissionRate={node.sellerCommissionRate}
                         sellerCommissionBasis={node.sellerCommissionBasis}
                         onAgreementSaved={() => tableData.refetch()}
                         onRevoke={() =>

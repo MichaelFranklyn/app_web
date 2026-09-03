@@ -2,6 +2,12 @@
  * Acordo do ESCRITÓRIO com o vendedor numa fábrica — outro nível de comissão,
  * independente do que a fábrica paga ao escritório.
  *
+ * O percentual do vendedor é sobre o PEDIDO ("o vendedor ganha 3%"), na mesma
+ * base da comissão da fábrica: é o número que se combina na rua e o que o
+ * escritório confere no dia a dia. O sistema não fala mais em percentual DA
+ * COMISSÃO em lugar nenhum — decisão do usuário: dois percentuais para a mesma
+ * coisa é o que fazia digitar um no campo do outro.
+ *
  * Os dois campos têm nulo com significado: sem percentual o vendedor fica com a
  * comissão inteira (é como o sistema se comportava antes do acordo existir), e
  * sem base o repasse segue a mesma regra da fábrica.
@@ -20,19 +26,21 @@ export const SELLER_BASIS_OPTIONS = [
   },
 ];
 
-export const sellerShareLabel = (share: string | number | null): string =>
-  share === null || share === "" ? "100%" : `${Number(share)}%`;
+export const sellerRateLabel = (rate: string | number | null): string =>
+  rate === null || rate === ""
+    ? "comissão inteira"
+    : `${percentText(Number(rate))}% do pedido`;
 
 export const sellerBasisLabel = (basis: string | null): string => {
   if (!basis) return "igual à fábrica";
   return basis.toLowerCase().startsWith("pag") ? "no boleto" : "no faturamento";
 };
 
-/** Resumo de uma linha da tabela: "50% · no boleto". */
+/** Resumo de uma linha da tabela: "3% do pedido · no boleto". */
 export const sellerAgreementLabel = (
-  share: string | number | null,
+  rate: string | number | null,
   basis: string | null
-): string => `${sellerShareLabel(share)} · ${sellerBasisLabel(basis)}`;
+): string => `${sellerRateLabel(rate)} · ${sellerBasisLabel(basis)}`;
 
 // ── Prévia do acordo ─────────────────────────────────────────────────────────
 
@@ -50,49 +58,36 @@ export interface AgreementPreview {
   factoryCommission: number;
   /** O que o vendedor recebe com o percentual digitado. */
   sellerAmount: number;
-  /** O que sobra para o escritório. */
+  /** O que sobra para o escritório — negativo quando o acordo passa da fábrica. */
   officeAmount: number;
-  /**
-   * O percentual a digitar se o número informado for, na verdade, a taxa do
-   * vendedor SOBRE O PEDIDO — nulo quando não há motivo para suspeitar.
-   */
-  suggestedShare: number | null;
 }
 
 /**
  * Quanto cada um leva num pedido de R$ 10.000, com o percentual digitado.
  *
- * Existe porque o campo pergunta uma coisa que se confunde com outra: ele quer
- * a fatia DA COMISSÃO (metade dela = 50), e é natural digitar ali a taxa do
- * vendedor sobre o pedido (3, quando a fábrica paga 7). O rótulo e a dica já
- * avisavam e o engano aconteceu assim mesmo — dizer "R$ 21,00 para o vendedor"
- * é o que torna o erro visível, porque ninguém combina isso com um vendedor.
+ * Existe porque percentual sozinho não se confere: "3%" e "30%" ocupam o mesmo
+ * espaço na tela e só o dinheiro denuncia qual dos dois foi digitado. Dizer
+ * "R$ 300 para o vendedor, R$ 400 para o escritório" é o que faz o engano
+ * aparecer antes de virar repasse.
  *
- * `suggestedShare` faz a conversão: percentual digitado ÷ taxa da fábrica. Ele
- * só aparece quando o número digitado é menor ou igual à taxa da fábrica —
- * abaixo disso a fatia seria uma migalha da comissão, o que na prática não é
- * acordo nenhum, e acima disso não há nada a suspeitar.
+ * O escritório NO PREJUÍZO (taxa do vendedor acima da que a fábrica paga) não é
+ * bloqueado: pode ser um acerto real, e quem decide é o escritório. A prévia
+ * mostra o número negativo, que é o aviso mais claro que existe.
  */
 export const agreementPreview = (
-  share: number | null,
+  rate: number | null,
   factoryRate: number
 ): AgreementPreview => {
   const orderAmount = PREVIEW_ORDER_AMOUNT;
   const factoryCommission = (orderAmount * factoryRate) / 100;
-  // Nulo = 100%: o vendedor fica com a comissão inteira.
+  // Nulo = o vendedor fica com a comissão inteira, seja ela qual for.
   const sellerAmount =
-    share === null ? factoryCommission : (factoryCommission * share) / 100;
-
-  const suspeito =
-    share !== null && share > 0 && factoryRate > 0 && share <= factoryRate;
+    rate === null ? factoryCommission : (orderAmount * rate) / 100;
 
   return {
     orderAmount,
     factoryCommission,
     sellerAmount,
     officeAmount: factoryCommission - sellerAmount,
-    suggestedShare: suspeito
-      ? Math.round((share / factoryRate) * 1000) / 10
-      : null,
   };
 };

@@ -33,7 +33,7 @@ export interface CommissionRow {
   sellerAmount: string;
   sellerStatus: CommissionStatus;
   sellerReceiveDate: string | null;
-  /** O escritório já repassou a fatia ao vendedor. */
+  /** O escritório já repassou a comissão ao vendedor. */
   isSellerPaid: boolean;
   client: {
     id: string;
@@ -75,9 +75,9 @@ export interface CommissionsTotals {
 /**
  * A repartição da comissão do período entre a empresa e os vendedores.
  *
- * São dois acordos empilhados: a fábrica paga o escritório, o escritório
- * repassa uma fatia ao vendedor. Só faz sentido para quem vê o nível do
- * escritório (gestor) — na visão do vendedor `amount` já é a fatia dele.
+ * São dois acordos empilhados: a fábrica paga o escritório, e o vendedor tem a
+ * taxa dele sobre o pedido. Só faz sentido para quem vê o nível do escritório
+ * (gestor) — na visão do vendedor `amount` já é a comissão dele.
  */
 export interface CommissionsSplit {
   /** O que as fábricas pagam ao escritório. */
