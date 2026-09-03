@@ -12,6 +12,8 @@ export type NotificationCategory =
   | "IMPORT"
   | "SCHEDULE"
   | "INSIGHT"
+  /** Tratativa de problema do cliente — aponta para o caso em /support. */
+  | "SUPPORT"
   | "SYSTEM";
 
 export interface Notification {

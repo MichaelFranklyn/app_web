@@ -282,6 +282,12 @@ export default function ClientLayout({
           <Tabs.NavItem href={`${basePath}/overview`}>Visão Geral</Tabs.NavItem>
           <Tabs.NavItem href={`${basePath}/factories`}>Fábricas</Tabs.NavItem>
           <Tabs.NavItem href={`${basePath}/orders`}>Pedidos</Tabs.NavItem>
+          {/* Fora do FeatureGate de propósito: a leitura sai dos PEDIDOS, não
+              do motor de rotina — quem só vende e fatura precisa dela igual. */}
+          <Tabs.NavItem href={`${basePath}/products`}>Produtos</Tabs.NavItem>
+          {/* Tratativas de problema (mercadoria, pagamento, entrega) — também
+              fora do gate: reclamação de cliente é operação básica. */}
+          <Tabs.NavItem href={`${basePath}/support`}>Atendimentos</Tabs.NavItem>
           {/* Visita, estoque estimado e score são o motor de rotina: um
               recurso só, e um plano que não o tem não tem nenhum dos três. */}
           <FeatureGate feature="ROUTINES">

@@ -7,6 +7,7 @@ import { PanelHeader } from "@/components/PanelHeader";
 import { CalendarDays, ChevronLeft, ChevronRight } from "lucide-react";
 import { RoutineSellerOption } from "../../interface";
 import { getCurrentWeekMondayIso } from "@/utils/format/date";
+import { ScheduleVisitButton } from "../ScheduleVisitButton";
 import {
   formatWeekRange,
   getIsoWeekNumber,
@@ -18,6 +19,10 @@ interface Props {
   weekStart: string;
   sellers?: RoutineSellerOption[];
   selectedSellerId?: string | null;
+  /** Vendedor de fato em tela (o logado, quando não há seletor de vendedor). */
+  effectiveSellerId?: string | null;
+  /** Recarrega a semana depois de uma visita marcada à mão. */
+  onVisitScheduled?: () => void;
   onSelectSeller?: (id: string) => void;
   onSelectDate: (weekStartIso: string) => void;
   onPrevWeek: () => void;
@@ -29,6 +34,8 @@ export function RoutinesHeader({
   weekStart,
   sellers,
   selectedSellerId,
+  effectiveSellerId,
+  onVisitScheduled,
   onSelectSeller,
   onSelectDate,
   onPrevWeek,
@@ -127,6 +134,12 @@ export function RoutinesHeader({
                 <Button.Icon icon={ChevronRight} />
               </Button.Root>
             </div>
+            {/* Fica no cabeçalho, e não na barra de ações da grade, porque a
+                semana SEM rotina é justamente quando mais se precisa dele. */}
+            <ScheduleVisitButton
+              sellerId={effectiveSellerId ?? selectedSellerId ?? null}
+              onScheduled={() => onVisitScheduled?.()}
+            />
           </PanelHeader.Actions>
         </PanelHeader.Left>
       </PanelHeader.Top>

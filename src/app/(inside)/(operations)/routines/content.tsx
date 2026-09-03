@@ -68,6 +68,8 @@ export default function RoutinesContent() {
         weekStart={weekStart}
         sellers={canSelectSeller ? sellers : undefined}
         selectedSellerId={selectedSellerId}
+        effectiveSellerId={effectiveSellerId}
+        onVisitScheduled={() => refetch()}
         onSelectSeller={setSelectedSellerId}
         onSelectDate={setWeekStart}
         onPrevWeek={handlePrevWeek}
