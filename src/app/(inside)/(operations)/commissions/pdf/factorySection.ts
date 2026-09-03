@@ -9,7 +9,7 @@ import {
   setText,
   truncate,
 } from "@/utils/pdf/theme";
-import { ReceivableFactoryGroup } from "../utils";
+import { boletoLabel, CommissionFactoryGroup } from "../utils";
 
 const ROW_H = 18;
 const HEAD_H = 20;
@@ -23,25 +23,33 @@ export interface Columns {
   invoice: number;
   invoiceMax: number;
   sequence: number;
+  boleto: number;
+  boletoMax: number;
   date: number;
   amount: number;
 }
 
 /**
- * Colunas do A4 retrato: cliente à esquerda, dinheiro colado na direita. Os
- * vãos são medidos pelo pior caso de cada coluna (valor na casa dos milhares,
- * data completa) — com folga menor, o valor encostava na data.
+ * Colunas da tabela de comissões: cliente à esquerda, dinheiro colado na
+ * direita. Os vãos são medidos pelo pior caso de cada coluna (valor na casa dos
+ * milhares, data completa) — com folga menor, o valor encostava na data.
  *
  * A nota fica entre o pedido e a parcela porque é por ela que a fábrica
  * identifica o repasse na planilha dela: quem confere lê "cliente, nota,
- * quanto". O espaço dela saiu do nome do cliente, que tinha folga de sobra.
+ * quanto". A do boleto veio depois, entre a parcela e a data da comissão: é
+ * onde se responde "esse o cliente pagou?" sem sair da linha.
+ *
+ * As posições são ancoradas na borda direita, então a mesma conta serve para
+ * qualquer largura de página — o documento é paisagem justamente para caber a
+ * coluna do boleto sem espremer o nome do cliente.
  */
 export const columnsOf = (pageW: number): Columns => {
   const amount = pageW - PAGE.margin - 10;
   const date = amount - 120;
-  const sequence = date - 20;
-  const invoice = sequence - 72;
-  const order = invoice - 62;
+  const boleto = date - 112;
+  const sequence = boleto - 15;
+  const invoice = sequence - 75;
+  const order = invoice - 70;
   const client = PAGE.margin + 10;
   return {
     client,
@@ -50,12 +58,20 @@ export const columnsOf = (pageW: number): Columns => {
     invoice,
     invoiceMax: sequence - invoice - 14,
     sequence,
+    boleto,
+    boletoMax: date - boleto - 12,
     date,
     amount,
   };
 };
 
-const drawHead = (pdf: Pdf, cols: Columns, y: number): number => {
+/** Cabeçalho da tabela; `dateHeader` muda com a seção ("RECEBER EM"/"RECEBIDO EM"). */
+const drawHead = (
+  pdf: Pdf,
+  cols: Columns,
+  y: number,
+  dateHeader: string
+): number => {
   const pageW = pdf.internal.pageSize.getWidth();
   setFill(pdf, COLOR.ink);
   pdf.rect(PAGE.margin, y, pageW - PAGE.margin * 2, HEAD_H, "F");
@@ -68,25 +84,32 @@ const drawHead = (pdf: Pdf, cols: Columns, y: number): number => {
   pdf.text("PEDIDO", cols.order, textY);
   pdf.text("NOTA", cols.invoice, textY);
   pdf.text("PARC.", cols.sequence, textY, { align: "right" });
-  pdf.text("RECEBER EM", cols.date, textY);
+  pdf.text("BOLETO DO CLIENTE", cols.boleto, textY);
+  pdf.text(dateHeader, cols.date, textY);
   pdf.text("COMISSÃO", cols.amount, textY, { align: "right" });
 
   return y + HEAD_H;
 };
 
+export interface FactorySectionOptions {
+  /** Cabeçalho da coluna de data — cada seção fala de um momento diferente. */
+  dateHeader: string;
+}
+
 /**
- * Bloco de uma fábrica: nome, tabela das parcelas a receber e o subtotal dela.
- * A fábrica é a unidade de cobrança — cada uma manda a sua planilha e paga
- * separado, então o subtotal por fábrica é o número que o gestor compara.
+ * Bloco de uma fábrica: nome, tabela das parcelas e o subtotal dela. A fábrica é
+ * a unidade de cobrança — cada uma manda a sua planilha e paga separado, então o
+ * subtotal por fábrica é o número que o gestor compara.
  *
  * Quebra de página repete o cabeçalho da tabela; `onNewPage` devolve o `y` do
  * topo da página nova.
  */
 export const drawFactorySection = (
   pdf: Pdf,
-  group: ReceivableFactoryGroup,
+  group: CommissionFactoryGroup,
   startY: number,
-  onNewPage: () => number
+  onNewPage: () => number,
+  options: FactorySectionOptions
 ): number => {
   const pageW = pdf.internal.pageSize.getWidth();
   const pageH = pdf.internal.pageSize.getHeight();
@@ -104,7 +127,7 @@ export const drawFactorySection = (
       ? `${group.name.toUpperCase()} (continuação)`
       : group.name.toUpperCase();
     pdf.text(truncate(pdf, title, 380), PAGE.margin, top);
-    return drawHead(pdf, cols, top + 8);
+    return drawHead(pdf, cols, top + 8, options.dateHeader);
   };
 
   let y = startY;
@@ -143,6 +166,18 @@ export const drawFactorySection = (
       textY
     );
     pdf.text(String(row.sequence), cols.sequence, textY, { align: "right" });
+
+    // Boleto não pago sai em vermelho: é a linha que trava o dinheiro, e a cor
+    // é o que faz o gestor achá-la sem ler a coluna inteira.
+    const unpaid = row.defaultedAt !== null || row.isOverdue;
+    setText(pdf, unpaid ? COLOR.brand : COLOR.muted);
+    pdf.text(
+      truncate(pdf, boletoLabel(row), cols.boletoMax),
+      cols.boleto,
+      textY
+    );
+
+    setText(pdf, COLOR.muted);
     pdf.text(
       formatDateDMY(row.receiveDate ?? undefined) || "—",
       cols.date,

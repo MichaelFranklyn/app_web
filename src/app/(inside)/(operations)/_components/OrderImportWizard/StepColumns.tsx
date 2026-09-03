@@ -12,6 +12,12 @@ import { UnreadableAlert } from "./UnreadableAlert";
 type SheetData = ComponentProps<typeof SheetPreview>["data"];
 
 interface StepColumnsProps {
+  /**
+   * Posição do passo no caminho INTEIRO (a importação começa antes deste
+   * componente): é o "Passo 3 de 6" da caixa de explicação.
+   */
+  step: number;
+  total: number;
   data: SheetData;
   headerOptions: SelectOption[];
   headerIndex: number;
@@ -30,6 +36,8 @@ interface StepColumnsProps {
 }
 
 export function StepColumns({
+  step,
+  total,
   data,
   headerOptions,
   headerIndex,
@@ -45,7 +53,11 @@ export function StepColumns({
 }: StepColumnsProps) {
   return (
     <div className="flex flex-col gap-12">
-      <Stepper.Intro step={2} total={4} title="Aponte as colunas do pedido">
+      <Stepper.Intro
+        step={step}
+        total={total}
+        title="Aponte as colunas do pedido"
+      >
         Diga em qual coluna está o código do produto, a quantidade e — se houver
         — o preço. Confira a amostra abaixo; se as colunas estiverem deslocadas,
         ajuste a aba ou a linha do cabeçalho.

@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { extractSelectValue, parseDeliveryDays } from "./form";
+import { extractSelectValue, parseDeliveryDays, selectOption } from "./form";
 
 describe("extractSelectValue", () => {
   it("extrai o `value` de um option de select", () => {
@@ -39,5 +39,25 @@ describe("parseDeliveryDays", () => {
   it("negativo ou lixo → null", () => {
     expect(parseDeliveryDays("-3")).toBeNull();
     expect(parseDeliveryDays("abc")).toBeNull();
+  });
+});
+
+describe("selectOption", () => {
+  it("monta o par que o select mostra preenchido", () => {
+    expect(selectOption("f-1", "HERC")).toEqual({
+      value: "f-1",
+      label: "HERC",
+    });
+  });
+
+  it("mostra o próprio valor quando não há rótulo", () => {
+    // Melhor o id à vista do que um campo em branco com valor por dentro.
+    expect(selectOption("f-1", "")).toEqual({ value: "f-1", label: "f-1" });
+    expect(selectOption("f-1")).toEqual({ value: "f-1", label: "f-1" });
+  });
+
+  it("vira vazio quando não há valor — é assim que o select limpa", () => {
+    expect(selectOption("")).toBe("");
+    expect(selectOption(null)).toBe("");
   });
 });

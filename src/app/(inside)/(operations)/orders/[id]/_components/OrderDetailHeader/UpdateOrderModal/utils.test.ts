@@ -1,7 +1,7 @@
 import { describe, expect, it } from "vitest";
 
 import { PaymentTermRef } from "../../../interface";
-import { paymentTermLabel } from "../../../utils";
+import { paymentTermLabel } from "../../../../../_shared/orderPaymentTerms";
 import { buildUpdateOrderSteps, normalizeUpdateInput } from "./utils";
 
 const TERM_30_60: PaymentTermRef = {

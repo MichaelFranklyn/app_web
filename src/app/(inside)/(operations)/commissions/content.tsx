@@ -24,9 +24,10 @@ import { BulkActionsBar } from "./_components/BulkActionsBar";
 import { CommissionsPdfButton } from "./_components/CommissionsPdfButton";
 import { CommissionTabsBar } from "./_components/CommissionTabsBar";
 import { FactoryCommissionGroup } from "./_components/FactoryCommissionGroup";
+import { ListScopeLine } from "./_components/ListScopeLine";
+import { OfficeSplitPanel } from "./_components/OfficeSplitPanel";
 import { SellerChargebackPanel } from "./_components/SellerChargebackPanel";
 import { SettlePeriodModal } from "./_components/SettlePeriodModal";
-import { TabScopeAlert } from "./_components/TabScopeAlert";
 import { COMMISSIONS_QUERY, COMMISSIONS_SELLERS_QUERY } from "./gql";
 import {
   FILTERS_HELP,
@@ -164,6 +165,15 @@ export default function CommissionsContent({
     [visibleRows, tab, month]
   );
 
+  // Quantas parcelas o mês e a situação deixam passar ANTES do painel de
+  // filtros: é com este número que a frase de escopo compara o que sobrou.
+  // `totalUnfiltered` não serve — ele conta a resposta inteira do servidor, que
+  // inclui outros meses (estorno do vendedor, boleto travado).
+  const scopeTotal = useMemo(
+    () => filterByTab(filterByMonth(rows, month, tab), tab).length,
+    [rows, tab, month]
+  );
+
   // Agrupado por fábrica trabalhada — é assim que a fábrica manda a planilha.
   const groups = useMemo(() => groupByFactory(filteredRows), [filteredRows]);
 
@@ -272,7 +282,7 @@ export default function CommissionsContent({
               )}
               <div className="flex items-center gap-2">
                 <CommissionsPdfButton
-                  rows={visibleRows}
+                  sellerId={selectedSellerId}
                   month={month}
                   sellerName={sellerName}
                   disabled={showSkeleton}
@@ -391,17 +401,22 @@ export default function CommissionsContent({
             )}
           </Grid.Root>
 
+          {/* Detalha os mesmos três cartões acima — é o mês, e não a aba —, e
+              por isso fica colado neles, numa linha só. Como três cartões
+              empilhados, competia com os KPIs e virava paredão de número. Só
+              para gestão: na visão do vendedor a comissão já É a fatia dele. */}
+          {!showSkeleton && canManage && (
+            <OfficeSplitPanel
+              rows={visibleRows}
+              month={month}
+              sellerName={sellerName}
+            />
+          )}
+
           {/* Filtro por situação. Abaixo, um cartão por fábrica com o seu mês. */}
           <div className="flex flex-wrap items-center justify-between gap-8">
             <CommissionTabsBar tab={tab} onChange={setTab} />
             <div className="flex flex-wrap items-center gap-8">
-              {/* Quantas linhas o filtro deixou passar: sem isto, um recorte
-                  esquecido no painel explicaria sozinho um total menor. */}
-              {isFiltered && (
-                <Title variant="caption" color="muted">
-                  {table.totalItems} de {table.totalUnfiltered} parcela(s)
-                </Title>
-              )}
               <div className="flex items-center gap-2">
                 <Filters
                   fields={table.filterFields}
@@ -417,8 +432,17 @@ export default function CommissionsContent({
             </div>
           </div>
 
-          {/* O aviso aparece só na aba que foge do mês (ver TabScopeAlert). */}
-          <TabScopeAlert tab={tab} month={month} />
+          {/* O que a lista abaixo está somando, sempre escrito: são dois
+              recortes (mês e situação) que não governam as mesmas coisas, e
+              deixar isso implícito era a maior fonte de confusão da tela. */}
+          {!showSkeleton && (
+            <ListScopeLine
+              tab={tab}
+              month={month}
+              shown={filteredRows.length}
+              total={scopeTotal}
+            />
+          )}
 
           {/* O vendedor vê o mesmo painel sem os botões: a fila não cai em
               fechamento nenhum enquanto não tem mês, e ele precisa saber do

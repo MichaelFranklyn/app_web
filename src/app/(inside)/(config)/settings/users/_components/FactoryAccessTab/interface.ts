@@ -36,3 +36,14 @@ export interface SellerFactoryAccess {
     name: string;
   } | null;
 }
+
+/** Taxa de comissão de uma fábrica vinculada (alimenta a prévia do acordo). */
+export interface AccessFactoryRate {
+  id: string;
+  factoryId: string;
+  commissionRate: number;
+}
+
+export interface AccessFactoryRateResponse {
+  access_factory_rate: { edges: { node: AccessFactoryRate }[] };
+}

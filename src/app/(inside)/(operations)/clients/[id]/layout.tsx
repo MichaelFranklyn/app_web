@@ -11,6 +11,8 @@ import { PanelHeader } from "@/components/PanelHeader";
 import { QueryError } from "@/components/QueryError";
 import { Tabs } from "@/components/Tabs";
 import { useOptimisticObject } from "@/hooks/useOptimisticObject";
+import { useUserData } from "@/hooks/useUserData";
+import { isAdminRole } from "@/utils/auth/roles";
 import { useQuery } from "@apollo/client/react";
 import { UserX } from "lucide-react";
 import { useParams, useRouter } from "next/navigation";
@@ -18,6 +20,7 @@ import React, { useMemo } from "react";
 import { ClientDetailSkeleton } from "./_components/ClientDetailSkeleton";
 import { DeleteClientModal } from "./_components/DeleteClientModal";
 import { EditClientModal } from "./_components/EditClientModal";
+import { OrderSheetButton } from "../../_components/OrderSheetButton";
 import { ScoreTag } from "./_components/ScoreTag";
 import { SharePortalModal } from "./_components/SharePortalModal";
 import { ClientRouteProvider } from "./context";
@@ -33,6 +36,7 @@ export default function ClientLayout({
   const params = useParams();
   const router = useRouter();
   const companyClientId = params.id as string;
+  const { userData } = useUserData();
 
   const { data, loading, error, refetch } =
     useQuery<CompanyClientDetailQueryResponse>(COMPANY_CLIENT_QUERY, {
@@ -235,6 +239,18 @@ export default function ClientLayout({
                         onUpdateOptimistic={optimisticClient.updateOptimistic}
                         onCommit={optimisticClient.commit}
                         onRollback={optimisticClient.rollback}
+                      />
+                    )}
+                    {clientData && (
+                      /* A ficha sai daqui com o cabeçalho deste cliente já
+                         preenchido — é a tela de onde o vendedor sai para
+                         visitá-lo. */
+                      <OrderSheetButton
+                        canSelectSeller={isAdminRole(userData?.role)}
+                        cnpjDigits={clientData.cnpj.replace(/\D/g, "")}
+                        clientName={
+                          clientData.nomeFantasia ?? clientData.razaoSocial
+                        }
                       />
                     )}
                     {clientData?.companyClient && (

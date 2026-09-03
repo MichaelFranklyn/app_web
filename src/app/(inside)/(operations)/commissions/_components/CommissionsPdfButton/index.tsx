@@ -3,15 +3,22 @@
 import { Button } from "@/components/Button";
 import { useToast } from "@/components/Toast";
 import { useCompanyBranding } from "@/hooks/useCompanyBranding";
+import { useLazyQuery } from "@apollo/client/react";
 import { FileText } from "lucide-react";
 import { useState } from "react";
+
+import { COMMISSIONS_PDF_QUERY } from "../../gql";
 import { CommissionRow } from "../../interface";
 import { exportCommissionsPdf } from "../../pdf";
-import { monthLabel, receivableReport, YearMonth } from "../../utils";
+import { monthLabel, monthReport, YearMonth } from "../../utils";
+
+interface CommissionsPdfResponse {
+  commissions_pdf: { rows: CommissionRow[] };
+}
 
 interface Props {
-  /** Todas as linhas do vendedor; o recorte do mês é feito aqui. */
-  rows: CommissionRow[];
+  /** Vendedor de quem é o papel; `null` quando é o próprio (vendedor logado). */
+  sellerId: string | null;
   month: YearMonth;
   sellerName: string | null;
   /** Enquanto as comissões carregam, não há o que exportar. */
@@ -19,12 +26,18 @@ interface Props {
 }
 
 /**
- * Baixa o relatório das comissões A RECEBER no mês exibido, agrupadas por
- * fábrica. Monta o PDF no próprio navegador (jsPDF), sem tráfego extra para o
- * backend — os dados já estão na tela.
+ * Baixa o fechamento de comissões do mês exibido: o que há a receber, o que já
+ * entrou, o previsto e — em seções próprias — os boletos que o cliente pagou no
+ * mês e os que viraram calote.
+ *
+ * As linhas são buscadas no clique, e são TODAS as do vendedor, não as da tela.
+ * A tela mostra um mês; as duas seções de boleto seguem a data do boleto, que
+ * quase nunca coincide com o mês em que a comissão cai (ver
+ * `COMMISSIONS_PDF_QUERY`). Por isso o papel também ignora o painel de filtros:
+ * ele é o fechamento do mês inteiro, não um retrato do que está na tela.
  */
 export function CommissionsPdfButton({
-  rows,
+  sellerId,
   month,
   sellerName,
   disabled = false,
@@ -33,22 +46,32 @@ export function CommissionsPdfButton({
   const { toast } = useToast();
   // Logo e nome da representação no cabeçalho do documento.
   const { name: companyName, logoUrl: companyLogoUrl } = useCompanyBranding();
+  const [fetchRows] = useLazyQuery<CommissionsPdfResponse>(
+    COMMISSIONS_PDF_QUERY,
+    { fetchPolicy: "network-only" }
+  );
 
   const handleClick = async () => {
-    const report = receivableReport(rows, month);
-
-    // Sem nada a receber, um PDF só com o cabeçalho não serve a ninguém.
-    if (report.count === 0) {
-      toast({
-        variant: "warning",
-        title: "Nada a receber neste mês",
-        description: `Não há comissões a receber em ${monthLabel(month)}. Use as setas para escolher outro mês.`,
-      });
-      return;
-    }
-
     setBusy(true);
     try {
+      const { data } = await fetchRows({ variables: { sellerId } });
+      const report = monthReport(data?.commissions_pdf.rows ?? [], month);
+
+      // Um PDF só com o cabeçalho não serve a ninguém — e some com o mês em que
+      // havia movimento, que é onde o gestor queria estar.
+      if (
+        report.count === 0 &&
+        report.defaulted.length === 0 &&
+        report.settled.length === 0
+      ) {
+        toast({
+          variant: "warning",
+          title: "Nada a listar neste mês",
+          description: `Não há comissões nem boletos em ${monthLabel(month)}. Use as setas para escolher outro mês.`,
+        });
+        return;
+      }
+
       await exportCommissionsPdf(report, {
         month,
         sellerName,

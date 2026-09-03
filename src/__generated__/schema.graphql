@@ -1,6 +1,6 @@
 # AUTO-GERADO por scripts/pull-schema.mjs — NÃO editar à mão.
 # Snapshot do schema do backend (app_user). Atualize com: npm run schema:pull
-# Fonte: 50 arquivos .graphql merge-ados (mesma regra do Ariadne).
+# Fonte: 51 arquivos .graphql merge-ados (mesma regra do Ariadne).
 
 input BaseListInput {
   filters: [FieldFilterInput!] = null
@@ -2490,6 +2490,149 @@ extend type Mutation {
   deleteOrderItem(id: UUID!): BaseResponse!
 }
 
+"""
+Vendedor dono da ficha. Vai no cabeçalho da folha (para quem abre o arquivo) e
+no `_META` (para o importador saber de quem é o pedido, independente de quem
+subiu a planilha).
+"""
+type OrderSheetSellerType {
+  id: UUID!
+  name: String!
+}
+
+type OrderSheetPaymentTermType {
+  id: UUID!
+  name: String!
+  """Dias de cada parcela, na ordem (ex.: [28, 42, 56])."""
+  installmentsDays: JSON!
+  """Valor mínimo do pedido para este prazo, quando a fábrica exige."""
+  minOrderAmount: Decimal
+}
+
+type OrderSheetTierType {
+  id: UUID!
+  name: String!
+}
+
+"""Uma fábrica que o vendedor atende, com o que a folha pergunta no cabeçalho."""
+type OrderSheetFactoryType {
+  id: UUID!
+  companyFactoryId: UUID!
+  """Apelido do vínculo quando existe; senão o nome fantasia da fábrica."""
+  name: String!
+  """
+  O IPI é cobrado por item no pedido (não está no preço da tabela). Quando true,
+  o `ipiRate` do produto vem preenchido e a folha soma o IPI por fora.
+  """
+  ipiInOrder: Boolean!
+  deliveryEstimateDays: Int
+  minOrderAmount: Decimal
+  freeFreightCifAmount: Decimal
+  paymentTerms: [OrderSheetPaymentTermType!]!
+  tiers: [OrderSheetTierType!]!
+  """
+  Tabelas de preço ativas que alimentaram este pacote. Vão para o `_META`: é
+  como a revisão descobre que a ficha foi preenchida sobre uma tabela que já não
+  é a vigente.
+  """
+  priceListIds: [UUID!]!
+}
+
+"""Cliente da carteira do vendedor, encontrado na folha pelo CNPJ."""
+type OrderSheetClientType {
+  id: UUID!
+  cnpj: String!
+  """
+  O mesmo CNPJ só com dígitos. É por esta coluna que a planilha casa: o vendedor
+  digita com ou sem máscara, e no Excel `12345678000199` vira número enquanto
+  `12.345.678/0001-99` fica texto.
+  """
+  cnpjDigits: String!
+  razaoSocial: String!
+  nomeFantasia: String
+  addressStreet: String
+  addressNumber: String
+  addressNeighborhood: String
+  addressZip: String
+  addressCity: String
+  addressState: String
+}
+
+"""Nível acordado deste cliente nesta fábrica."""
+type OrderSheetLinkType {
+  clientId: UUID!
+  factoryId: UUID!
+  tierId: UUID
+  tierName: String
+}
+
+type OrderSheetPriceType {
+  tierId: UUID!
+  tierName: String
+  """
+  Preço da EMBALAGEM fechada — o número que vai na folha. Sob promoção relâmpago
+  vigente, é o preço promocional.
+  """
+  packPrice: Decimal!
+  """O mesmo preço por UNIDADE (peça), que é a base do pedido no sistema."""
+  unitPrice: Decimal!
+  isPromo: Boolean!
+  """
+  Último dia da promoção, para a folha avisar na tela. Promoção nova pede ficha
+  nova: a janela costuma ser mais curta que a semana que o arquivo passa na
+  mochila do vendedor.
+  """
+  promoEndsOn: Date
+}
+
+type OrderSheetProductType {
+  id: UUID!
+  factoryId: UUID!
+  sku: String!
+  name: String!
+  unitLabel: String
+  unitPerPack: Decimal!
+  saleMultiple: Decimal
+  ncm: String
+  """
+  Percentual de imposto que a folha soma por cima do preço: o ST, e o IPI junto
+  quando a fábrica embute o IPI na tabela. É constante por produto porque o ST é
+  linear no preço — por isso a planilha só multiplica, sem MVA em fórmula.
+  """
+  taxRate: Decimal!
+  """IPI cobrado à parte no pedido. 0 quando já está dentro de `taxRate`."""
+  ipiRate: Decimal!
+  prices: [OrderSheetPriceType!]!
+}
+
+"""
+Tudo o que a ficha de pedido offline precisa para funcionar sem internet:
+carteira, vínculos, fábricas com prazos e níveis, e o catálogo com preço por
+nível e imposto já resolvido.
+"""
+type OrderSheetPackageType {
+  generatedAt: Date!
+  """Versão do formato do pacote, gravada no `_META` e lida pelo importador."""
+  formatVersion: Int!
+  companyId: UUID!
+  seller: OrderSheetSellerType!
+  factories: [OrderSheetFactoryType!]!
+  clients: [OrderSheetClientType!]!
+  links: [OrderSheetLinkType!]!
+  products: [OrderSheetProductType!]!
+}
+
+extend type Query {
+  """
+  Pacote da ficha de pedido offline, em uma ida ao servidor.
+
+  `sellerId` é opcional para o vendedor (é sempre a ficha dele) e obrigatório
+  para o gestor, que baixa a ficha de um vendedor para enviar. Vendedor pedindo
+  a ficha de outro leva recusa.
+  """
+  orderSheetPackage(sellerId: UUID = null): OrderSheetPackageType!
+}
+
 # Importação de pedido por arquivo (PDF/Excel) — fluxo determinístico v1:
 # extrair grade → mapear colunas (front) → preview/casamento → revisar → confirmar.
 
@@ -2918,6 +3061,27 @@ type CommissionSummaryType {
   totalSellerRefund: Decimal!
 }
 
+"""O efeito de aplicar a taxa de comissão ATUAL da fábrica aos pedidos já faturados.
+
+A comissão é congelada no faturamento, então mudar a taxa no vínculo não mexe
+sozinha no que já foi lançado. Este tipo é a prévia dessa correção: o que muda,
+quanto muda, e quanto fica de fora por já ter sido acertado.
+"""
+type CommissionRateChangeType {
+  """A taxa vigente no vínculo, que será aplicada."""
+  rate: Decimal!
+  """Pedidos faturados cuja comissão muda."""
+  orders: Int!
+  """Parcelas cuja comissão muda."""
+  installments: Int!
+  """Soma da comissão dessas parcelas hoje."""
+  currentTotal: Decimal!
+  """Soma que elas passam a ter."""
+  newTotal: Decimal!
+  """Parcelas intocadas porque o acerto já aconteceu (recebida da fábrica, conferida, repassada ao vendedor ou com estorno descontado)."""
+  skipped: Int!
+}
+
 """Quanto uma baixa em lote por período pegaria (sem gravar nada)."""
 type SettleInstallmentsPreviewType {
   count: Int!
@@ -2933,6 +3097,8 @@ extend type Query {
     factoryId: UUID = null
     sellerId: UUID = null
   ): SettleInstallmentsPreviewType!
+  """Prévia da correção da comissão: o que muda se a taxa atual da fábrica for aplicada aos pedidos já faturados."""
+  applyCommissionRatePreview(factoryId: UUID!): CommissionRateChangeType!
   order(id: UUID!): OrderTypeDataResponse!
   """Resumo dos pedidos. Aceita os MESMOS filtros da query `orders` (a paginação é ignorada); sem `input`, resume a empresa inteira."""
   orderStats(input: BaseListInput = null): OrderStatsType!
@@ -2982,6 +3148,13 @@ extend type Mutation {
     sellerId: UUID = null
     paidAt: Date = null
   ): BaseResponse!
+  """
+  Aplica a taxa de comissão ATUAL da fábrica aos pedidos já faturados dela,
+  recalculando a comissão de cada parcela pela mesma régua do faturamento.
+  Não toca em parcela já acertada — comissão recebida da fábrica, conferida
+  contra a planilha, repassada ao vendedor ou com estorno descontado.
+  """
+  applyCommissionRate(factoryId: UUID!): BaseResponse!
   cancelOrderInstallment(id: UUID!): OrderInstallmentTypeDataResponse!
   """Calote: o cliente não pagou. Se a comissão já tinha sido paga, vira estorno."""
   markOrderInstallmentsDefaulted(installmentIds: [UUID!]!, defaultedAt: Date!): BaseResponse!

@@ -1,4 +1,23 @@
 /**
+ * O par que um select do FormBuilder aceita como PREENCHIDO.
+ *
+ * O `Input.Select` só considera selecionado um `{ value, label }` de verdade —
+ * uma string solta é descartada, porque não há rótulo para exibir. Então
+ * `setValue("factoryId", "57573182-…")` deixa o formulário com o id certo por
+ * dentro e o campo VAZIO na tela, que é o pior dos dois mundos: o vendedor
+ * escolhe de novo achando que esqueceu, ou manda sem conferir.
+ *
+ * Quem preenche select por código — a ficha de pedido lida de um arquivo, o
+ * nível sugerido pelo catálogo — passa por aqui. `label` vazio cai no próprio
+ * valor: melhor mostrar o id do que um campo em branco.
+ */
+export const selectOption = (
+  value: string | null | undefined,
+  label?: string | null
+): { value: string; label: string } | "" =>
+  value ? { value, label: label?.trim() || value } : "";
+
+/**
  * Extrai o valor de um campo do FormBuilder.
  *
  * Selects retornam `{ label, value }`; demais campos retornam o valor direto.

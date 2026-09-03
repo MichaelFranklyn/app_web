@@ -2,7 +2,7 @@ import { describe, expect, it } from "vitest";
 
 import { WorkbookData } from "@/utils/import/reader";
 
-import { guessMapping, guessOrderSheet } from "./utils";
+import { guessMapping, guessOrderSheet, percentToAmount } from "./utils";
 
 const wb = (sheets: Record<string, number>): WorkbookData => ({
   sheetNames: Object.keys(sheets),
@@ -65,5 +65,26 @@ describe("guessMapping", () => {
   it("cai para o palpite genérico quando não há coluna 'total'", () => {
     const m = guessMapping(["Código", "Qtde", "Preço"]);
     expect(m.quantity).toEqual({ kind: "column", index: 1 });
+  });
+});
+
+describe("percentToAmount", () => {
+  it("converte o desconto combinado em reais da linha", () => {
+    expect(percentToAmount(10, 120, 100)).toBe(1200);
+  });
+
+  it("sem percentual, não desconta", () => {
+    expect(percentToAmount(0, 120, 100)).toBe(0);
+    expect(percentToAmount(undefined, 120, 100)).toBe(0);
+  });
+
+  it("ignora percentual negativo — desconto não aumenta preço", () => {
+    expect(percentToAmount(-5, 120, 100)).toBe(0);
+  });
+
+  it("arredonda na casa que o banco guarda", () => {
+    // `discount` é NUMERIC(12,4): mais casas seriam truncadas no servidor.
+    // 7 × 12,34 × 3,33% = 2,876454 → 2,8765
+    expect(percentToAmount(3.33, 7, 12.34)).toBe(2.8765);
   });
 });

@@ -189,6 +189,7 @@ export function FactoryAccessTab() {
                         sellerName={node.seller?.name ?? ""}
                         sellerIsActive={node.seller?.isActive ?? true}
                         factoryName={factoryName(node.factory) ?? ""}
+                        factoryId={node.factory?.id ?? ""}
                         isActive={node.isActive}
                         sellerCommissionShare={node.sellerCommissionShare}
                         sellerCommissionBasis={node.sellerCommissionBasis}

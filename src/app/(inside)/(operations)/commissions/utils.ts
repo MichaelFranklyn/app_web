@@ -1,4 +1,5 @@
 import { clientName } from "@/utils/company";
+import { formatDateDMY } from "@/utils/format/masks";
 import { isInMonth, type YearMonth } from "@/utils/format/month";
 import { CommissionRow, CommissionStatus } from "./interface";
 
@@ -143,54 +144,188 @@ export const summarizeMonth = (
   return summary;
 };
 
-// ── Relatório do que a fábrica tem a pagar no mês (PDF) ──────────────────────
-export interface ReceivableFactoryGroup {
+// ── Relatório do mês (PDF) ───────────────────────────────────────────────────
+
+/** Parcelas de uma fábrica numa seção do papel, com o subtotal dela. */
+export interface CommissionFactoryGroup {
   factoryId: string;
   name: string;
-  /** Parcelas a receber da fábrica no mês, da mais próxima para a mais distante. */
+  /** Da mais próxima para a mais distante; no empate, por cliente. */
   rows: CommissionRow[];
   subtotal: number;
 }
 
-export interface ReceivableReport {
-  groups: ReceivableFactoryGroup[];
+/** Uma seção do relatório (a receber, recebido, previsto). */
+export interface CommissionSection {
+  groups: CommissionFactoryGroup[];
   total: number;
   count: number;
 }
 
+export interface MonthReport {
+  /** O que a fábrica ainda deve no mês, já líquido de estorno e devolução. */
+  receivable: CommissionSection;
+  /** O que a fábrica já repassou no mês. */
+  received: CommissionSection;
+  /** O que ainda depende de faturamento ou de o cliente pagar. */
+  pending: CommissionSection;
+  /**
+   * Boletos em calote confirmado — de TODOS os vencimentos, não só do mês.
+   * Calote não é evento de mês: ele fica travado até ser resolvido, e a
+   * conferência é feita contra um relatório da fábrica que mistura vencimentos.
+   */
+  defaulted: CommissionRow[];
+  /** Boletos que o cliente pagou DENTRO do mês (o que foi liquidado). */
+  settled: CommissionRow[];
+  /** A receber + recebido: o que o mês vale. Previsto fica de fora. */
+  total: number;
+  /** Quantas parcelas de comissão o papel lista nas três primeiras seções. */
+  count: number;
+}
+
 /**
- * Recorta apenas o que há A RECEBER no mês (pela data em que a comissão cai),
- * agrupado por fábrica e com subtotal de cada uma — é o documento que o gestor
- * leva para cobrar/conferir o repasse. Previsto e recebido ficam de fora de
- * propósito: o papel responde "quanto ainda tenho para receber neste mês".
- *
- * Dentro da fábrica, as parcelas saem por data de recebimento (as sem data por
+ * Ordena para a conferência: pela data em que a comissão cai (as sem data por
  * último) e, no empate, por cliente — a mesma leitura da planilha da fábrica.
  */
-export const receivableReport = (
-  rows: CommissionRow[],
-  month: YearMonth
-): ReceivableReport => {
-  const receivable = rows.filter(
-    (row) => row.status === "receivable" && isInMonth(row.receiveDate, month)
-  );
+const byReceiveDate = (a: CommissionRow, b: CommissionRow): number =>
+  (a.receiveDate ?? "9999-12-31").localeCompare(
+    b.receiveDate ?? "9999-12-31"
+  ) || clientName(a.client).localeCompare(clientName(b.client), "pt-BR");
 
-  const groups = groupByFactory(receivable).map((group) => ({
+/** Agrupa por fábrica e soma cada grupo — a fábrica é a unidade de cobrança. */
+const sectionOf = (rows: CommissionRow[]): CommissionSection => {
+  const groups = groupByFactory(rows).map((group) => ({
     factoryId: group.factoryId,
     name: group.name,
-    rows: [...group.rows].sort(
-      (a, b) =>
-        (a.receiveDate ?? "9999-12-31").localeCompare(
-          b.receiveDate ?? "9999-12-31"
-        ) || clientName(a.client).localeCompare(clientName(b.client), "pt-BR")
-    ),
+    rows: [...group.rows].sort(byReceiveDate),
     subtotal: group.rows.reduce((sum, row) => sum + Number(row.amount), 0),
   }));
 
   return {
     groups,
     total: groups.reduce((sum, group) => sum + group.subtotal, 0),
-    count: receivable.length,
+    count: rows.length,
+  };
+};
+
+/** Situações que compõem o "a receber" do mês (entradas e saídas, no líquido). */
+const isReceivableStatus = (row: CommissionRow): boolean =>
+  RECEIVABLE_STATUSES.includes(row.status);
+
+/**
+ * O fechamento do mês em cinco seções — é o papel que se põe ao lado da
+ * planilha da fábrica.
+ *
+ * As três primeiras são de COMISSÃO e seguem a data em que ela cai: o que há a
+ * receber, o que já entrou e o que ainda depende de alguém fazer alguma coisa.
+ * As duas últimas são do BOLETO DO CLIENTE, que é outra pergunta — quem pagou e
+ * quem não pagou —, e é por isso que elas têm recorte próprio: os liquidados
+ * são os pagos DENTRO do mês; os inadimplentes vêm de todos os vencimentos,
+ * porque calote não vence e nem se resolve dentro de um mês.
+ */
+export const monthReport = (
+  rows: CommissionRow[],
+  month: YearMonth
+): MonthReport => {
+  const inMonth = rows.filter((row) => isInMonth(row.receiveDate, month));
+
+  const receivable = sectionOf(inMonth.filter(isReceivableStatus));
+  const received = sectionOf(
+    inMonth.filter((row) => row.status === "received")
+  );
+  const pending = sectionOf(inMonth.filter((row) => row.status === "pending"));
+
+  const defaulted = rows
+    .filter((row) => row.defaultedAt !== null)
+    .sort((a, b) =>
+      (a.dueDate ?? "9999-12-31").localeCompare(b.dueDate ?? "9999-12-31")
+    );
+
+  const settled = rows
+    .filter((row) => isInMonth(row.paidAt, month))
+    .sort((a, b) => (a.paidAt ?? "").localeCompare(b.paidAt ?? ""));
+
+  return {
+    receivable,
+    received,
+    pending,
+    defaulted,
+    settled,
+    // Previsto não entra: ele ainda não é dinheiro de ninguém, e somá-lo aqui
+    // faria o papel prometer um mês maior do que o que a fábrica vai pagar.
+    total: receivable.total + received.total,
+    count: receivable.count + received.count + pending.count,
+  };
+};
+
+// ── Situação do boleto do cliente ────────────────────────────────────────────
+
+/**
+ * O que aconteceu com o boleto, em uma linha.
+ *
+ * É outra pergunta que a situação da COMISSÃO: um boleto vencido pode ter
+ * comissão a receber (modo Faturamento) e um boleto pago pode ter comissão
+ * ainda prevista. O calote vem primeiro porque é o estado que manda — e a data
+ * anda junto do rótulo porque quem confere precisa saber *quando*, não só *o
+ * quê*.
+ */
+export const boletoLabel = (row: CommissionRow): string => {
+  if (row.defaultedAt) return `Não pagou ${formatDateDMY(row.defaultedAt)}`;
+  if (row.paidAt) return `Pago ${formatDateDMY(row.paidAt)}`;
+  if (row.isOverdue && row.dueDate)
+    return `Vencido ${formatDateDMY(row.dueDate)}`;
+  return row.dueDate ? `Vence ${formatDateDMY(row.dueDate)}` : "—";
+};
+
+// ── Repartição da comissão entre escritório e vendedor ───────────────────────
+
+export interface OfficeSplit {
+  /** O que a FÁBRICA paga ao escritório no mês. */
+  company: number;
+  /** A fatia que o escritório repassa ao vendedor dessas mesmas parcelas. */
+  seller: number;
+  /** O que sobra para o escritório. */
+  office: number;
+  /** Fatia do escritório sobre a comissão da fábrica (0 a 1). */
+  margin: number;
+  count: number;
+}
+
+/**
+ * Quanto da comissão do mês fica com o escritório.
+ *
+ * São dois acordos empilhados: a fábrica paga uma comissão ao escritório, e o
+ * escritório repassa uma fatia dela ao vendedor (ver `seller_commission_share`).
+ * Sem esta conta o gestor só enxerga o número de cima e trata o repasse como se
+ * não existisse.
+ *
+ * Mede as duas pontas sobre as MESMAS parcelas — as cujo repasse da fábrica cai
+ * no mês —, e não cada uma pelo seu próprio calendário: o vendedor pode ser
+ * pago num mês diferente, e comparar dois conjuntos daria uma sobra que não é
+ * de ninguém. Só vale para quem vê o nível do escritório (gestor); na visão do
+ * vendedor `amount` JÁ é a fatia dele, e a diferença daria zero.
+ */
+export const officeSplit = (
+  rows: CommissionRow[],
+  month: YearMonth
+): OfficeSplit => {
+  const scope = rows.filter(
+    (row) =>
+      isInMonth(row.receiveDate, month) &&
+      (isReceivableStatus(row) || row.status === "received")
+  );
+
+  const company = scope.reduce((sum, row) => sum + Number(row.amount), 0);
+  const seller = scope.reduce((sum, row) => sum + Number(row.sellerAmount), 0);
+
+  return {
+    company,
+    seller,
+    office: company - seller,
+    // Mês sem comissão nenhuma não tem margem: 0 é melhor que uma divisão por
+    // zero virando "Infinity%" na tela.
+    margin: company !== 0 ? (company - seller) / company : 0,
+    count: scope.length,
   };
 };
 

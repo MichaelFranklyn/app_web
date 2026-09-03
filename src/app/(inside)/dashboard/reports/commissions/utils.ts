@@ -1,5 +1,6 @@
 import {
   COMMISSION_STATUS_LABEL,
+  type CommissionStatus,
   groupByFactory,
 } from "@/app/(inside)/_shared/commissions";
 import {
@@ -16,6 +17,7 @@ import { buildHorizontalBarOption, mutedLine } from "../../chartBuilders";
 import {
   CommissionRow,
   CommissionsByFactory,
+  CommissionsSplit,
   CommissionsTotals,
 } from "./interface";
 
@@ -37,6 +39,15 @@ export const filterByPeriod = (
     (row) =>
       !!row.receiveDate && row.receiveDate >= from && row.receiveDate <= to
   );
+
+/** As situações que somam no relatório — as outras não são dinheiro de ninguém. */
+const COUNTED_STATUSES: CommissionStatus[] = [
+  "receivable",
+  "received",
+  "pending",
+  "chargeback",
+  "refund",
+];
 
 /**
  * Fecha o conjunto de parcelas nas situações que importam.
@@ -68,11 +79,49 @@ export const summarize = (rows: CommissionRow[]): CommissionsTotals => {
     } else if (row.status === "chargeback") {
       totals.chargeback += amount;
       totals.receivable += amount;
+    } else if (row.status === "refund") {
+      // Devolução é positiva: o cliente pagou depois de o desconto ter saído, e
+      // o valor volta pelo mesmo fechamento. Fora daqui, ela sumia do total.
+      totals.receivable += amount;
     }
     if (row.isOverdue || row.defaultedAt) totals.countOverdue += 1;
   }
 
   return totals;
+};
+
+/**
+ * Quanto da comissão do período fica com a EMPRESA.
+ *
+ * A comissão tem dois donos em sequência: a fábrica paga o escritório, e o
+ * escritório repassa uma fatia ao vendedor — combinada por vendedor E por
+ * fábrica, então não é uma porcentagem que se aplique de cabeça. Sem esta conta
+ * o relatório mostra só o número de cima, e o repasse parece não existir.
+ *
+ * As duas pontas saem das MESMAS parcelas, e não cada uma pelo seu calendário:
+ * o vendedor pode ser pago num mês diferente, e comparar dois conjuntos daria
+ * uma sobra que não é de ninguém. Vale só para quem enxerga o nível do
+ * escritório (gestor); na visão do vendedor `amount` já É a fatia dele.
+ *
+ * Estorno entra naturalmente: ele é negativo nos dois níveis, e o líquido cai
+ * dos dois lados.
+ */
+export const splitTotals = (rows: CommissionRow[]): CommissionsSplit => {
+  // As mesmas situações que o `summarize` conta: cancelada nunca gerou comissão
+  // e estorno já descontado virou histórico. Somá-las aqui faria a repartição
+  // não fechar com o total do período logo ao lado.
+  const scope = rows.filter((row) => COUNTED_STATUSES.includes(row.status));
+  const company = scope.reduce((sum, row) => sum + Number(row.amount), 0);
+  const seller = scope.reduce((sum, row) => sum + Number(row.sellerAmount), 0);
+
+  return {
+    company,
+    seller,
+    office: company - seller,
+    // Período sem comissão nenhuma não tem margem: 0 é melhor do que uma
+    // divisão por zero virando "Infinity%" na tela.
+    margin: company !== 0 ? (company - seller) / company : 0,
+  };
 };
 
 /**
@@ -91,6 +140,7 @@ export const byFactory = (rows: CommissionRow[]): CommissionsByFactory[] =>
         received: totals.received,
         pending: totals.pending,
         count: group.rows.length,
+        split: splitTotals(group.rows),
       };
     })
     .sort(
@@ -146,6 +196,47 @@ export const buildFactoryOption = (
   );
 
 /**
+ * A repartição da comissão por fábrica: o que fica no escritório e o que vai
+ * para o vendedor.
+ *
+ * Empilhado porque as duas partes SOMAM a comissão daquela fábrica — a barra
+ * inteira é o que a fábrica paga, e a divisão mostra de onde vem (ou não vem) a
+ * margem. É o gráfico que responde "qual fábrica me dá dinheiro depois do
+ * repasse", que a comissão bruta sozinha esconde.
+ */
+export const buildSplitOption = (
+  groups: CommissionsByFactory[]
+): EChartsCoreOption =>
+  buildHorizontalBarOption(
+    groups.map((group) => group.name),
+    [
+      {
+        name: "Fica no escritório",
+        color: SERIES_GREEN,
+        data: groups.map((group) => group.split.office),
+      },
+      {
+        name: "Repasse ao vendedor",
+        color: SERIES_ORANGE,
+        data: groups.map((group) => group.split.seller),
+      },
+    ],
+    (value) => formatMoney(value),
+    (index) => {
+      const group = groups[index];
+      if (!group) return [];
+      return [
+        group.name,
+        `Comissão da fábrica: <b>${formatMoney(group.split.company)}</b>`,
+        `Fica no escritório: <b>${formatMoney(group.split.office)}</b>`,
+        `Repasse ao vendedor: <b>${formatMoney(group.split.seller)}</b>`,
+        mutedLine(`${Math.round(group.split.margin * 100)}% de margem`),
+      ];
+    },
+    { stacked: true }
+  );
+
+/**
  * Colunas por onde as parcelas de comissão podem ser ordenadas.
  *
  * A ordem natural é a da conferência (data em que a comissão cai, ver
@@ -162,6 +253,11 @@ export const COMMISSIONS_SORT_COLUMNS = {
   invoiceNumber: (row: CommissionRow) => row.invoiceNumber ?? "zzzz",
   installmentAmount: (row: CommissionRow) => Number(row.installmentAmount || 0),
   amount: (row: CommissionRow) => Number(row.amount || 0),
+  sellerAmount: (row: CommissionRow) => Number(row.sellerAmount || 0),
+  // O que sobra para a empresa nesta parcela — é por ela que se acha o pedido
+  // que dá volume e não dá margem.
+  officeAmount: (row: CommissionRow) =>
+    Number(row.amount || 0) - Number(row.sellerAmount || 0),
   status: (row: CommissionRow) => COMMISSION_STATUS_LABEL[row.status],
   isReconciled: (row: CommissionRow) => (row.isReconciled ? 1 : 0),
 };
@@ -175,11 +271,20 @@ export const COMMISSIONS_SORT_LABELS: Record<string, SortLabel> = {
   invoiceNumber: { label: "Nota fiscal", kind: "text" },
   installmentAmount: { label: "Valor da parcela", kind: "number" },
   amount: { label: "Comissão", kind: "number" },
+  sellerAmount: { label: "Repasse ao vendedor", kind: "number" },
+  officeAmount: { label: "Fica no escritório", kind: "number" },
   status: { label: "Situação", kind: "text" },
   isReconciled: { label: "Conferida", kind: "number" },
 };
 
-export const COMMISSIONS_EXPORT_HEADERS = [
+/**
+ * Cabeçalhos da planilha.
+ *
+ * `withOffice` acrescenta a repartição entre a empresa e o vendedor. Ela sai
+ * para quem gerencia; para o vendedor, `Comissão` JÁ é a fatia dele e as duas
+ * colunas extras seriam uma repetição e um zero.
+ */
+export const commissionsExportHeaders = (withOffice: boolean): string[] => [
   "Recebimento",
   "Cliente",
   "Fábrica",
@@ -187,13 +292,15 @@ export const COMMISSIONS_EXPORT_HEADERS = [
   "Nota fiscal",
   "Parcela",
   "Valor da parcela",
-  "Comissão",
+  withOffice ? "Comissão da empresa" : "Comissão",
+  ...(withOffice ? ["Repasse ao vendedor", "Fica no escritório"] : []),
   "Situação",
   "Conferida",
 ];
 
 export const buildCommissionsExportRows = (
-  rows: CommissionRow[]
+  rows: CommissionRow[],
+  withOffice: boolean
 ): (string | number)[][] =>
   rows.map((row) => [
     row.receiveDate ? formatDateDMY(row.receiveDate) : "—",
@@ -204,6 +311,12 @@ export const buildCommissionsExportRows = (
     String(row.sequence),
     Number(row.installmentAmount),
     Number(row.amount),
+    ...(withOffice
+      ? [
+          Number(row.sellerAmount),
+          Number(row.amount) - Number(row.sellerAmount),
+        ]
+      : []),
     COMMISSION_STATUS_LABEL[row.status],
     row.isReconciled ? "Sim" : "Não",
   ]);

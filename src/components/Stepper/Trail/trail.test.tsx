@@ -84,6 +84,18 @@ describe("Stepper.Trail", () => {
     expect(formBox.querySelector(".w-max")?.className).toContain("mx-auto");
   });
 
+  it("não encolhe: dentro de uma coluna flex ela seria achatada a zero", () => {
+    // Foi o que aconteceu no modal de importar pedido: `Modal.Body` é uma
+    // coluna flex com altura limitada, os itens encolhem para caber e a faixa
+    // — baixa e com overflow próprio — foi para altura ZERO. Os marcos
+    // continuavam no DOM, pintados e do tamanho certo, e o que aparecia era um
+    // espaço em branco. Nenhum teste em jsdom mede layout; o que dá para
+    // guardar é o `shrink-0`.
+    const { container } = render(<Stepper.Trail steps={STEPS} current={0} />);
+
+    expect(container.firstElementChild?.className).toContain("shrink-0");
+  });
+
   it("FormBuilder.Stepper usa a mesma trilha e some com um passo só", () => {
     const steps = [
       { id: "a", title: "Dados", sections: [] },

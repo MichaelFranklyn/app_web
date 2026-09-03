@@ -335,7 +335,12 @@ describe("useAddOrderItem — sugestão de preço", () => {
     act(() => findField("productId").onChange!({ value: "prod-1" }, setValue));
 
     await waitFor(() => {
-      expect(api.formRef.current!.getValues().tierId).toBe("tier-1");
+      // Com rótulo: o select do FormBuilder descarta id solto e mostraria o
+      // campo vazio — o preço sugerido e o nível em branco.
+      expect(api.formRef.current!.getValues().tierId).toEqual({
+        value: "tier-1",
+        label: "Varejo",
+      });
       expect(api.formRef.current!.getValues().unitPrice).toContain("6,50");
     });
   });

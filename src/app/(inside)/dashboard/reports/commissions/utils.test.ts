@@ -4,14 +4,20 @@ import { CommissionRow } from "./interface";
 import {
   buildCommissionsExportRows,
   byFactory,
-  COMMISSIONS_EXPORT_HEADERS,
+  commissionsExportHeaders,
   filterByPeriod,
   sortForReport,
+  splitTotals,
   summarize,
 } from "./utils";
 
 /** A coluna pelo cabeçalho: inserir uma coluna no meio não quebra a asserção. */
-const col = (header: string) => COMMISSIONS_EXPORT_HEADERS.indexOf(header);
+const col = (header: string, withOffice = false) =>
+  commissionsExportHeaders(withOffice).indexOf(header);
+
+/** A planilha do vendedor: sem a repartição, que é coisa de quem gerencia. */
+const exportRows = (rows: CommissionRow[]) =>
+  buildCommissionsExportRows(rows, false);
 
 const row = (over: Partial<CommissionRow> = {}): CommissionRow => ({
   orderId: "o1",
@@ -32,6 +38,10 @@ const row = (over: Partial<CommissionRow> = {}): CommissionRow => ({
   reconciledAt: null,
   isOverdue: false,
   defaultedAt: null,
+  sellerAmount: "18.00",
+  sellerStatus: "receivable",
+  sellerReceiveDate: "2026-07-20",
+  isSellerPaid: false,
   client: {
     id: "c1",
     razaoSocial: "CASA DO SONO LTDA",
@@ -168,23 +178,19 @@ describe("sortForReport", () => {
 
 describe("buildCommissionsExportRows", () => {
   it("grava valor da parcela e comissão como número", () => {
-    const [line] = buildCommissionsExportRows([row()]);
+    const [line] = exportRows([row()]);
     expect(line[col("Valor da parcela")]).toBe(1000);
     expect(line[col("Comissão")]).toBe(30);
   });
 
   it("traduz a situação para o rótulo do sistema", () => {
-    const [line] = buildCommissionsExportRows([row({ status: "received" })]);
+    const [line] = exportRows([row({ status: "received" })]);
     expect(line[col("Situação")]).toBe("Recebido");
   });
 
   it("marca a conferência com sim/não", () => {
-    const [conferida] = buildCommissionsExportRows([
-      row({ isReconciled: true }),
-    ]);
-    const [pendente] = buildCommissionsExportRows([
-      row({ isReconciled: false }),
-    ]);
+    const [conferida] = exportRows([row({ isReconciled: true })]);
+    const [pendente] = exportRows([row({ isReconciled: false })]);
     expect(conferida[col("Conferida")]).toBe("Sim");
     expect(pendente[col("Conferida")]).toBe("Não");
   });
@@ -192,13 +198,74 @@ describe("buildCommissionsExportRows", () => {
   it("leva a nota fiscal, e marca com traço o pedido que ainda não tem", () => {
     // A planilha da fábrica vem pela nota: sem ela na exportação, conferir o
     // repasse volta a ser casar cliente + valor no olho.
-    const [comNota] = buildCommissionsExportRows([
-      row({ invoiceNumber: "88" }),
-    ]);
-    const [semNota] = buildCommissionsExportRows([
-      row({ invoiceNumber: null }),
-    ]);
+    const [comNota] = exportRows([row({ invoiceNumber: "88" })]);
+    const [semNota] = exportRows([row({ invoiceNumber: null })]);
     expect(comNota[col("Nota fiscal")]).toBe("88");
     expect(semNota[col("Nota fiscal")]).toBe("—");
+  });
+});
+
+describe("repartição entre a empresa e o vendedor", () => {
+  it("mede as duas pontas sobre as mesmas parcelas", () => {
+    // A fábrica paga 30 ao escritório, que repassa 18 ao vendedor: sobram 12.
+    const split = splitTotals([row()]);
+
+    expect(split.company).toBe(30);
+    expect(split.seller).toBe(18);
+    expect(split.office).toBe(12);
+    expect(split.margin).toBeCloseTo(0.4);
+  });
+
+  it("ignora as situações que o relatório não conta", () => {
+    // Cancelada nunca gerou comissão e estorno já descontado virou histórico:
+    // somá-las faria a repartição não fechar com o total do período ao lado.
+    const split = splitTotals([
+      row({ status: "cancelled", amount: "99", sellerAmount: "50" }),
+      row({ status: "chargeback_settled", amount: "-99", sellerAmount: "-50" }),
+      row(),
+    ]);
+
+    expect(split.company).toBe(30);
+    expect(split.office).toBe(12);
+  });
+
+  it("desconta o estorno dos dois lados", () => {
+    // O calote volta para a fábrica E é recuperado do vendedor: o líquido cai
+    // nas duas pontas, senão a margem apareceria maior do que é.
+    const split = splitTotals([
+      row(),
+      row({ status: "chargeback", amount: "-10", sellerAmount: "-6" }),
+    ]);
+
+    expect(split.company).toBe(20);
+    expect(split.seller).toBe(12);
+    expect(split.office).toBe(8);
+  });
+
+  it("não divide por zero num período sem comissão", () => {
+    expect(splitTotals([]).margin).toBe(0);
+  });
+
+  it("a planilha do gestor abre a comissão em três colunas", () => {
+    const [line] = buildCommissionsExportRows([row()], true);
+
+    expect(line[col("Comissão da empresa", true)]).toBe(30);
+    expect(line[col("Repasse ao vendedor", true)]).toBe(18);
+    expect(line[col("Fica no escritório", true)]).toBe(12);
+    // O vendedor continua vendo uma coluna só, com o nome antigo.
+    expect(col("Repasse ao vendedor")).toBe(-1);
+  });
+});
+
+describe("devolução no total do período", () => {
+  it("soma a devolução ao que há a receber", () => {
+    // O cliente pagou depois de o desconto ter saído: o valor volta pelo mesmo
+    // fechamento. Fora daqui, ele sumia do total.
+    const totals = summarize([
+      row({ amount: "10" }),
+      row({ status: "refund", amount: "4" }),
+    ]);
+
+    expect(totals.receivable).toBe(14);
   });
 });

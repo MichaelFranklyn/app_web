@@ -5,17 +5,27 @@ import { Upload } from "lucide-react";
 import { Button } from "@/components/Button";
 import { FormBuilder } from "@/components/FormBuilder";
 import { Modal } from "@/components/Modal";
+import { Stepper } from "@/components/Stepper";
 
 import { OrderImportWizard } from "../../../../../_components/OrderImportWizard";
+import { FILE_STEPS } from "../../../../../_components/OrderImportWizard/steps";
 import {
   ImportFactoryOrderProps,
   useImportFactoryOrder,
 } from "./useImportFactoryOrder";
 
+/** A trilha daqui: sem "Escolha" — esta entrada é só de arquivo de fábrica. */
+const TRAIL = ["Informações", ...FILE_STEPS];
+
 /**
  * "Importar pedido" da aba de pedidos da fábrica — MESMO fluxo da lista
  * /orders, com a fábrica fixa: escolhe o vínculo vendedor→cliente e sobe o
  * arquivo; o pedido SÓ é criado na confirmação final, junto com os itens.
+ *
+ * A faixa de passos é a mesma da lista, atravessando este modal e o wizard: o
+ * "Informações" daqui entra como cumprido e o wizard continua a contagem, para
+ * quem está importando ver quanto falta até o fim — e não até o fim de um
+ * componente que ele não sabe que existe.
  */
 export function ImportOrderModal(props: ImportFactoryOrderProps) {
   const {
@@ -27,6 +37,8 @@ export function ImportOrderModal(props: ImportFactoryOrderProps) {
     formRef,
     formSteps,
     handleDetailsValid,
+    goToLeadingStep,
+    detailsDraft,
   } = useImportFactoryOrder(props);
 
   return (
@@ -55,13 +67,21 @@ export function ImportOrderModal(props: ImportFactoryOrderProps) {
             onImported={props.onChanged}
             onBusyChange={setIsBusy}
             onClose={() => handleClose(false)}
+            leadingSteps={TRAIL.slice(0, 1)}
+            onLeadingStep={goToLeadingStep}
           />
         ) : (
           <>
-            <Modal.Body>
+            <Modal.Body className="flex flex-col gap-16 py-24">
+              <Stepper.Trail
+                steps={TRAIL.map((label) => ({ label }))}
+                current={0}
+                centered
+              />
               <FormBuilder
                 ref={formRef}
                 steps={formSteps}
+                initialData={detailsDraft}
                 onSubmit={handleDetailsValid}
                 unstyled
               />

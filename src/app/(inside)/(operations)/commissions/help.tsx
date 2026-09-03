@@ -65,13 +65,34 @@ export const TAB_HELP: Record<CommissionTab, ReactNode> = {
   ),
 };
 
-/** Aviso que aparece na tela (não só no “?”) quando a aba foge do mês. */
-export const monthIgnoredNotice = (monthName: string): ReactNode => (
-  <>
-    Esta aba mostra boletos travados de <b>todos os vencimentos</b>, não só de{" "}
-    {monthName}. Os três cartões lá em cima continuam somando {monthName}.
-  </>
-);
+/**
+ * O que a lista logo abaixo está mostrando, escrito.
+ *
+ * A tela tem DOIS recortes que não governam as mesmas coisas — o mês, lá em
+ * cima, e a situação, nas abas — e é essa combinação que faz o gestor achar que
+ * o sistema está somando errado. Um "?" não resolve: ninguém abre um tooltip
+ * para conferir uma soma. A frase fica sempre visível, e muda com o recorte.
+ *
+ * A aba de boletos travados é a exceção que precisa ser dita em voz alta: ela
+ * ignora o mês, e sem isso escrito a lista maior que os cartões parece um erro.
+ */
+export const scopeSentence = (
+  tab: CommissionTab,
+  monthName: string
+): string => {
+  switch (tab) {
+    case "overdue":
+      return `Mostrando os boletos travados de todos os vencimentos — esta aba não segue o mês; os cartões acima continuam somando ${monthName}`;
+    case "receivable":
+      return `Mostrando o que há a receber em ${monthName}, já líquido de estorno`;
+    case "pending":
+      return `Mostrando o que está previsto para ${monthName}`;
+    case "received":
+      return `Mostrando o que foi recebido em ${monthName}`;
+    default:
+      return `Mostrando tudo o que cai em ${monthName}, em qualquer situação`;
+  }
+};
 
 export const MONTH_HELP: ReactNode = (
   <>
@@ -121,11 +142,40 @@ export const FILTERS_HELP: ReactNode = (
 );
 
 export const PDF_HELP: ReactNode = (
-  <p>
-    O PDF traz só o que há <b>a receber</b> no mês escolhido, agrupado por
-    fábrica: é o papel de cobrar o repasse. Ele não segue a aba, e não lista o
-    que já foi recebido nem o que está previsto.
-  </p>
+  <>
+    <p>
+      O fechamento do mês em cinco seções: o que há <b>a receber</b>, o que já
+      foi <b>recebido</b> e o que está <b>previsto</b> — cada linha com a
+      situação do boleto do cliente ao lado —, mais os <b>boletos liquidados</b>{" "}
+      (pagos no mês) e os <b>inadimplentes</b>.
+    </p>
+    <p>
+      As três primeiras seguem o mês escolhido. Os <b>inadimplentes</b>, não:
+      calote fica travado até ser resolvido, e a fábrica manda o relatório dela
+      com vencimentos de meses diferentes na mesma folha.
+    </p>
+    <p>
+      O papel <b>não segue a aba nem os filtros da tela</b>: ele é o fechamento
+      do mês inteiro.
+    </p>
+  </>
+);
+
+export const OFFICE_SPLIT_HELP: ReactNode = (
+  <>
+    <p>
+      São dois acordos empilhados: a <b>fábrica</b> paga uma comissão ao
+      escritório, e o <b>escritório</b> repassa uma fatia dela ao vendedor. A
+      fatia é combinada por vendedor e por fábrica — o mesmo vendedor pode ficar
+      com metade numa e com menos em outra.
+    </p>
+    <p>
+      Os três números saem das <b>mesmas parcelas</b>: as que a fábrica paga
+      neste mês. O repasse ao vendedor pode cair num mês diferente do dele; aqui
+      ele aparece junto da comissão que o originou, senão a sobra não seria de
+      ninguém.
+    </p>
+  </>
 );
 
 export const SELLER_SELECT_HELP: ReactNode = (

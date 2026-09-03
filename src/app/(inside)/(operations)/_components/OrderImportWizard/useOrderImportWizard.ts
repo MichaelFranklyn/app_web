@@ -1,5 +1,5 @@
 import { useMutation } from "@apollo/client/react";
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 
 import { SelectOption } from "@/components/Input";
 import { useToast } from "@/components/Toast";
@@ -36,6 +36,7 @@ import {
   guessOrderSheet,
   ImportRow,
   NONE,
+  percentToAmount,
   rowsFromItems,
   rowsFromSheet,
   toMoneyMask,
@@ -45,6 +46,9 @@ import {
 // cobrir o alcance do palpite (guessHeaderRow varre 15) com folga para o usuário
 // apontar um cabeçalho mais fundo em planilhas-formulário.
 const HEADER_OPTION_ROWS = 20;
+
+/** Índice do passo de revisão no wizard (Arquivo → Colunas → Revisão → Resultado). */
+export const REVIEW_STEP = 2;
 
 /** Fluxo em que o pedido ainda NÃO existe: só é criado na confirmação final. */
 export interface DeferredOrderTarget {
@@ -61,6 +65,14 @@ interface UseOrderImportWizardArgs {
   /** Pedido existente (detalhe do pedido). Ausente → use `deferred`. */
   orderId?: string | null;
   deferred?: DeferredOrderTarget;
+  /**
+   * Itens que já vieram prontos de uma ficha de pedido nossa.
+   *
+   * A ficha se identifica sozinha (aba `_META`) e já traz código, quantidade e
+   * desconto nas colunas certas — não há arquivo para escolher nem coluna para
+   * mapear. O wizard abre direto na revisão.
+   */
+  initialRows?: ImportRow[];
   /** Fábrica cobra IPI no pedido: habilita mapear/editar a alíquota por item. */
   ipiInOrder?: boolean;
   onImported: () => void;
@@ -70,11 +82,15 @@ interface UseOrderImportWizardArgs {
 export function useOrderImportWizard({
   orderId,
   deferred,
+  initialRows,
   ipiInOrder = false,
   onImported,
   onBusyChange,
 }: UseOrderImportWizardArgs) {
-  const [step, setStep] = useState(0);
+  const fromSheet = Boolean(initialRows?.length);
+  // Com a ficha o fluxo começa na revisão — os dois primeiros passos existem
+  // para descobrir o que o arquivo tem, e a ficha já disse.
+  const [step, setStep] = useState(fromSheet ? REVIEW_STEP : 0);
   const [file, setFile] = useState<File[]>([]);
   // Excel com várias abas: guardamos o workbook e a aba escolhida para o
   // seletor de aba (a "PEDIDO" costuma não ser a maior — essa é o catálogo).
@@ -292,6 +308,7 @@ export function useOrderImportWizard({
                 ipiInOrder && rows[c.rowIndex - 1]?.ipiRate
                   ? String(rows[c.rowIndex - 1].ipiRate)
                   : "",
+              discountPercent: rows[c.rowIndex - 1]?.discountPercent ?? 0,
             }))
           );
           setStep(2);
@@ -302,6 +319,16 @@ export function useOrderImportWizard({
 
   const previewItems = (items: ExtractedItem[]) =>
     runPreviewRows(rowsFromItems(items));
+
+  // Uma vez só: um segundo preview sobrescreveria as correções que o usuário já
+  // tivesse feito na revisão.
+  const sheetPreviewed = useRef(false);
+  useEffect(() => {
+    if (!initialRows?.length || sheetPreviewed.current) return;
+    sheetPreviewed.current = true;
+    void runPreviewRows(initialRows);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [initialRows]);
 
   const runPreview = () => runPreviewRows(rowsFromSheet(parsedSheet, mapping));
 
@@ -331,13 +358,15 @@ export function useOrderImportWizard({
         tierId: r.tierId,
         quantity: parseNumber(r.quantity),
         unitPrice: parseNumber(r.unitPrice),
-        // Sempre 0, de propósito: no import o preço vem do arquivo da fábrica,
-        // que já é o preço negociado — o desconto costuma estar embutido nele, e
-        // aplicar outro por cima descontaria duas vezes. A revisão não pede
-        // desconto; quem precisar ajusta no item, no detalhe do pedido (lá o
-        // desconto aceita % ou R$). O input do backend aceita `discount`, então
-        // a coluna existe se um dia a planilha trouxer o desconto separado.
-        discount: 0,
+        // No arquivo da FÁBRICA o desconto já vem embutido no preço, e aplicar
+        // outro por cima descontaria duas vezes — por isso 0. A FICHA é o caso
+        // em que ele vem separado, em %, e só aqui pode virar reais: o preço da
+        // linha é o que o backend acabou de recalcular, não o da planilha.
+        discount: percentToAmount(
+          r.discountPercent,
+          parseNumber(r.quantity),
+          parseNumber(r.unitPrice)
+        ),
         ipiRate: ipiInOrder ? parseNumber(r.ipiRate) || 0 : 0,
         sku: r.candidate.rawSku,
       }));
@@ -401,6 +430,8 @@ export function useOrderImportWizard({
   return {
     step,
     setStep,
+    /** Veio de uma ficha nossa: sem passo de arquivo nem de colunas. */
+    fromSheet,
     file,
     matrix,
     data: parsedSheet,

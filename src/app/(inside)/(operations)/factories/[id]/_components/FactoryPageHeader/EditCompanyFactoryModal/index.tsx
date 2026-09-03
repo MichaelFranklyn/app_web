@@ -39,8 +39,14 @@ const STEP_DESCRIPTIONS = [
 ];
 
 export function EditCompanyFactoryModal() {
-  const { companyFactory, updateOptimistic, commit, rollback, refetch } =
-    useFactoryDetail();
+  const {
+    companyFactory,
+    updateOptimistic,
+    commit,
+    rollback,
+    refetch,
+    setApplyRatePrompt,
+  } = useFactoryDetail();
   const { factory } = companyFactory;
   const [open, setOpen] = useState(false);
   // 0 = identidade (custom); 1 e 2 = passos do FormBuilder.
@@ -87,6 +93,13 @@ export function EditCompanyFactoryModal() {
 
   const handleSubmit = async (data: Record<string, unknown>) => {
     const commercial = normalizeInput(data, companyFactory);
+    // A comissão de um pedido é congelada no faturamento: a taxa nova não
+    // corrige sozinha o que já foi lançado. Quem acabou de mudá-la é quem
+    // precisa saber disso — e decidir na hora se aplica ao histórico.
+    const rateChanged =
+      commercial.commissionRate !== undefined &&
+      Number(commercial.commissionRate) !==
+        Number(companyFactory.commissionRate);
 
     const branding: UpdateCompanyFactoryInput = await toLogoInput();
     const trimmedNickname = nickname.trim();
@@ -141,6 +154,7 @@ export function EditCompanyFactoryModal() {
           resetLogo();
           commit();
           refetch();
+          if (rateChanged) setApplyRatePrompt(true);
         },
         onError: () => {
           rollback();

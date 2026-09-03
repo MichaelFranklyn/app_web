@@ -2,7 +2,7 @@ import { FormStepSchema } from "@/components/FormBuilder";
 import { toIsoDate } from "@/utils/format/date";
 import { extractSelectValue } from "@/utils/form";
 
-import { paymentTermLabel } from "../../../utils";
+import { paymentTermLabel } from "../../../../../_shared/orderPaymentTerms";
 
 import { OrderStatus } from "../../../../interface";
 // Os rótulos de status são compartilhados com a lista de pedidos → moram no pai.

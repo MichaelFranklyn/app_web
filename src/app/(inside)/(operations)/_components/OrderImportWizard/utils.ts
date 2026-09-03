@@ -47,6 +47,12 @@ export interface ImportRow {
   unitPrice: number | null;
   /** Alíquota de IPI (%) lida da coluna mapeada; 0 quando não há coluna/valor. */
   ipiRate: number;
+  /**
+   * Desconto combinado, em %. Só a ficha de pedido traz — o arquivo da fábrica
+   * já vem com o desconto embutido no preço. Vira reais na confirmação, quando
+   * o preço do item já foi recalculado pelo catálogo do dia.
+   */
+  discountPercent?: number;
 }
 
 // "3,25%" / "3.25" / "---" → número (0 quando não numérico). O parseNumber já
@@ -166,4 +172,21 @@ export const tierPriceDiffers = (
   const table = parseNumber(String(tierPrice));
   if (!Number.isFinite(typed) || !Number.isFinite(table)) return false;
   return Math.abs(typed - table) > 0.01;
+};
+
+/**
+ * Desconto combinado em % → valor em reais da linha inteira.
+ *
+ * O banco guarda o desconto em REAIS (`subtotal = quantidade × preço −
+ * desconto`), e o vendedor negocia em porcentagem. A conversão só pode
+ * acontecer depois de o preço ser recalculado: aplicar o percentual sobre o
+ * preço da planilha daria um desconto que não corresponde ao item gravado.
+ */
+export const percentToAmount = (
+  percent: number | undefined,
+  quantity: number,
+  unitPrice: number
+): number => {
+  if (!percent || percent <= 0) return 0;
+  return Number(((quantity * unitPrice * percent) / 100).toFixed(4));
 };
