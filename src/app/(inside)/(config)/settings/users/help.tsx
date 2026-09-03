@@ -71,33 +71,3 @@ export const USER_COLUMN_HELP = {
   badges:
     "À direita: se o login está ativo, o perfil de acesso (o que a pessoa pode fazer no sistema) e a tarja “Vende em campo”, que aparece só para quem tem perfil de vendedor. Login ativo e perfil de campo são coisas separadas — dá para ter um sem o outro.",
 } as const;
-
-// ── Colunas: acessos por fábrica ─────────────────────────────────────────────
-
-export const ACCESS_HELP: ReactNode = (
-  <>
-    <p>
-      Quem pode vender cada fábrica. É a mesma permissão da aba
-      &quot;Vendedores&quot; dentro da fábrica, vista pelo outro lado: aqui a
-      empresa inteira de uma vez.
-    </p>
-    <p>
-      Sem acesso, o vendedor não vê a fábrica na lista dele, não lança pedido e
-      não vincula cliente a ela.
-    </p>
-  </>
-);
-
-export const ACCESS_COLUMN_HELP = {
-  seller:
-    "Vendedor que recebeu a permissão. Use o filtro acima para ver tudo de uma pessoa — a coluna não ordena porque o nome vem de outra tabela.",
-  factory:
-    "Fábrica que ele pode vender. O nome mostrado é o apelido que a sua empresa deu a ela, quando existe.",
-  grantedBy: "Quem concedeu o acesso — fica registrado para conferência.",
-  commission:
-    "Quanto ESTE vendedor ganha por pedido nesta fábrica, em % do valor do pedido. O que sobrar da comissão que a fábrica paga fica no escritório.",
-  date: "Quando o acesso foi concedido.",
-  status:
-    "Se a permissão está valendo. Suspender tira a fábrica da vista do vendedor sem apagar nada do que já foi feito.",
-  actions: "Ajustar a comissão do vendedor, suspender ou remover o acesso.",
-} as const;

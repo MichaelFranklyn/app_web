@@ -1,3 +1,9 @@
+/**
+ * Prioridade do vínculo cliente × fábrica: opções, rótulo/cor e as grafias
+ * legadas. Mora em `utils` porque duas telas de grupos diferentes a leem — a
+ * aba de clientes da fábrica e a carteira no perfil da pessoa.
+ */
+
 // Valores no vocabulário canônico do backend (enum ClientPriority: alta/media/
 // baixa). O score só pontua a prioridade nesses termos — mandar "high"/"medium"/
 // "low" fazia a dimensão priority cair sempre em 0 e o score não mexer.

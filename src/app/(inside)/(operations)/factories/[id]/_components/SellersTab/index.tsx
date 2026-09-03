@@ -5,22 +5,29 @@ import { Badge } from "@/components/Badges";
 import { EmptyState } from "@/components/EmptyState";
 import { QueryError } from "@/components/QueryError";
 import { HelpTooltip } from "@/components/HelpTooltip";
+import {
+  AccessRowActions,
+  sellerAgreementLabel,
+} from "@/components/SellerFactoryAccess";
 import { Table } from "@/components/Table";
 import { Title } from "@/components/Title";
 import { FACTORY_SELLER_COLUMN_HELP } from "../../../help";
 import { useCompleteList } from "@/hooks/useCompleteList";
 import { useOptimisticList } from "@/hooks/useOptimisticList";
+import { formatDateDMY } from "@/utils/format/masks";
 import { Users } from "lucide-react";
 import { useMemo } from "react";
 import { AddSellerAccessModal } from "./AddSellerAccessModal";
-import { DeleteSellerAccessModal } from "./DeleteSellerAccessModal";
-import { EditSellerAccessModal } from "./EditSellerAccessModal";
 import { FACTORY_SELLER_ACCESSES_QUERY } from "./gql";
 
 interface SellerAccess {
   id: string;
   isActive: boolean;
   createdAt: string;
+  /** Percentual do PEDIDO que fica com o vendedor; nulo = a comissão inteira. */
+  sellerCommissionRate: string | number | null;
+  /** Quando o escritório repassa; nulo = mesma base da fábrica. */
+  sellerCommissionBasis: string | null;
   seller: {
     id: string;
     name: string;
@@ -38,13 +45,19 @@ interface SellersQueryData {
 
 interface Props {
   factoryId: string;
+  /**
+   * Nome da fábrica como a empresa a chama. Os modais do vínculo perguntam
+   * "revogar o acesso de Fulano à fábrica X?" — sem o nome, a confirmação fala
+   * de um vínculo que a pessoa não consegue identificar.
+   */
+  factoryName: string;
   /** Abre o modal de vínculo automaticamente (fluxo pós-criação da fábrica). */
   autoOpenLink?: boolean;
 }
 
 const getAccesses = (d: SellersQueryData) => d.factory_seller_accesses;
 
-export function SellersTab({ factoryId, autoOpenLink }: Props) {
+export function SellersTab({ factoryId, factoryName, autoOpenLink }: Props) {
   // Sem teto fixo: o `first: 50` cobria a equipe comum e, passando dele,
   // esconderia um vendedor com acesso sem nada na tela dizer.
   const listInput = useMemo(
@@ -87,6 +100,11 @@ export function SellersTab({ factoryId, autoOpenLink }: Props) {
                   Só vendedores com acesso <b>ativo</b> aparecem na hora de
                   vincular clientes e registrar pedidos dela.
                 </Title>
+                <Title variant="body-sm">
+                  É aqui também que se combina <b>a comissão de cada um</b>
+                  nesta fábrica: o percentual que ele ganha por pedido e quando
+                  o escritório repassa.
+                </Title>
                 <Title variant="body-sm" color="muted">
                   <b>Desativar</b> pausa as vendas e pode ser desfeito quando
                   quiser. <b>Excluir</b> tira o vendedor desta lista. Nos dois
@@ -110,6 +128,15 @@ export function SellersTab({ factoryId, autoOpenLink }: Props) {
             <Table.Head title={FACTORY_SELLER_COLUMN_HELP.access}>
               Acesso
             </Table.Head>
+            <Table.Head title={FACTORY_SELLER_COLUMN_HELP.commission}>
+              Comissão do vendedor
+            </Table.Head>
+            <Table.Head title={FACTORY_SELLER_COLUMN_HELP.grantedBy}>
+              Concedido por
+            </Table.Head>
+            <Table.Head title={FACTORY_SELLER_COLUMN_HELP.date}>
+              Data
+            </Table.Head>
             <Table.Head
               className="text-right"
               title={FACTORY_SELLER_COLUMN_HELP.actions}
@@ -120,16 +147,16 @@ export function SellersTab({ factoryId, autoOpenLink }: Props) {
         </Table.Header>
         <Table.Body>
           {loading && accesses.length === 0 ? (
-            <Table.Skeleton columns={3} rows={5} />
+            <Table.Skeleton columns={6} rows={5} />
           ) : error && accesses.length === 0 ? (
             <Table.Row>
-              <Table.Cell colSpan={3}>
+              <Table.Cell colSpan={6}>
                 <QueryError flat onRetry={() => refetch()} />
               </Table.Cell>
             </Table.Row>
           ) : accesses.length === 0 ? (
             <Table.Row>
-              <Table.Cell colSpan={3}>
+              <Table.Cell colSpan={6}>
                 <EmptyState.Root>
                   <EmptyState.Icon>
                     <Users size={32} />
@@ -166,26 +193,43 @@ export function SellersTab({ factoryId, autoOpenLink }: Props) {
                   </Badge.Root>
                 </Table.Cell>
                 <Table.Cell>
-                  <div className="flex items-center justify-end gap-4">
-                    {a.seller && (
-                      <EditSellerAccessModal
-                        accessId={a.id}
-                        sellerName={a.seller.name}
-                        isActive={a.isActive}
-                        sellerIsActive={a.seller.isActive}
-                        onUpdateOptimistic={optimistic.updateOptimistic}
-                        onCommit={optimistic.commit}
-                        onRollback={optimistic.rollback}
-                      />
+                  <Table.CellText variant="dim">
+                    {sellerAgreementLabel(
+                      a.sellerCommissionRate,
+                      a.sellerCommissionBasis
                     )}
-                    <DeleteSellerAccessModal
-                      accessId={a.id}
-                      sellerName={a.seller?.name ?? "este vendedor"}
-                      onRemoveOptimistic={optimistic.removeOptimistic}
-                      onCommit={optimistic.commit}
-                      onRollback={optimistic.rollback}
-                    />
-                  </div>
+                  </Table.CellText>
+                </Table.Cell>
+                <Table.Cell>
+                  <Table.CellText variant="dim">
+                    {a.grantedByUser?.name ?? "—"}
+                  </Table.CellText>
+                </Table.Cell>
+                <Table.Cell>
+                  <Table.CellText variant="dim">
+                    {formatDateDMY(a.createdAt)}
+                  </Table.CellText>
+                </Table.Cell>
+                <Table.Cell flex className="justify-end">
+                  <AccessRowActions
+                    id={a.id}
+                    sellerName={a.seller?.name ?? "este vendedor"}
+                    sellerIsActive={a.seller?.isActive ?? true}
+                    factoryName={factoryName}
+                    factoryId={factoryId}
+                    isActive={a.isActive}
+                    sellerCommissionRate={a.sellerCommissionRate}
+                    sellerCommissionBasis={a.sellerCommissionBasis}
+                    onAgreementSaved={() => refetch()}
+                    onRevoke={() =>
+                      optimistic.updateOptimistic(a.id, {
+                        isActive: !a.isActive,
+                      })
+                    }
+                    onCommit={optimistic.commit}
+                    onRollback={optimistic.rollback}
+                    onRemove={() => optimistic.removeOptimistic(a.id)}
+                  />
                 </Table.Cell>
               </Table.Row>
             ))

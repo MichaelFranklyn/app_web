@@ -84,7 +84,12 @@ export const FACTORY_SELLER_COLUMN_HELP = {
   seller: "Vendedor da sua empresa.",
   access:
     "Se o acesso está ligado. Desligado, a fábrica some da lista dele e ele não pode mais lançar pedidos dela.",
-  actions: "Ligar/desligar o acesso ou removê-lo.",
+  commission:
+    "Quanto ESTE vendedor ganha por pedido nesta fábrica, em % do valor do pedido, e quando o escritório repassa. O que sobrar da comissão que a fábrica paga fica no escritório.",
+  grantedBy: "Quem concedeu o acesso — fica registrado para conferência.",
+  date: "Quando o acesso foi concedido.",
+  actions:
+    "Ajustar a comissão do vendedor, ligar/desligar o acesso ou removê-lo.",
 } as const;
 
 // ── Aba: níveis de preço ─────────────────────────────────────────────────────

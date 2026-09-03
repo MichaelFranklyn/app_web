@@ -31,3 +31,29 @@ export const SELLER_CLIENTS_QUERY = gql`
     }
   }
 `;
+
+/** Um vínculo cliente × fábrica da carteira, como a tabela o lê. */
+export interface ClientNode {
+  id: string;
+  priority: string | null;
+  visitFrequencyDays: number | null;
+  lastVisitDate: string | null;
+  createdAt: string;
+  client: {
+    id: string;
+    razaoSocial: string;
+    nomeFantasia: string | null;
+  } | null;
+  factory: {
+    id: string;
+    nomeFantasia: string | null;
+    razaoSocial: string;
+  } | null;
+}
+
+export interface SellerClientsData {
+  seller_clients: {
+    edges: { node: ClientNode }[];
+    totalCount: number;
+  };
+}

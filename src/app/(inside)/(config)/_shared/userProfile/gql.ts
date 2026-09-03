@@ -59,3 +59,42 @@ export const USER_DETAIL_QUERY = gql`
     }
   }
 `;
+
+/**
+ * Os vínculos do vendedor com as fábricas — a seção "Fábricas com acesso" e,
+ * no filtro da carteira, a lista de fábricas que a pessoa atende.
+ *
+ * Subiu para cá quando o segundo irmão passou a lê-la: uma query que dois
+ * componentes-irmãos usam é código compartilhado, e código compartilhado mora
+ * no pai do grupo.
+ */
+export const SELLER_FACTORY_ACCESSES_QUERY = gql`
+  query SellerFactoryAccesses($input: BaseListInput!) {
+    seller_accesses: sellerFactoryAccessList(input: $input) {
+      edges {
+        node {
+          id
+          isActive
+          createdAt
+          sellerCommissionRate
+          sellerCommissionBasis
+          factory {
+            id
+            nomeFantasia
+            nickname
+            razaoSocial
+          }
+          grantedByUser {
+            id
+            name
+          }
+        }
+      }
+      pageInfo {
+        hasNextPage
+        endCursor
+      }
+      totalCount
+    }
+  }
+`;

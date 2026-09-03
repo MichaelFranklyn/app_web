@@ -1,68 +1,48 @@
 "use client";
 
 import { Badge } from "@/components/Badges";
+import { EmptyState } from "@/components/EmptyState";
+import { Filters } from "@/components/Filters";
+import { Loading } from "@/components/Loading";
+import { Pagination } from "@/components/Pagination";
 import { QueryError } from "@/components/QueryError";
 import { Table } from "@/components/Table";
-import { Title } from "@/components/Title";
+import { priorityMeta } from "@/utils/clientPriority";
+import { clientName, factoryName } from "@/utils/company";
 import { formatDateDMY } from "@/utils/format/masks";
-import { useQuery } from "@apollo/client/react";
+import { Users } from "lucide-react";
+
 import { AddWalletClientModal } from "./AddWalletClientModal";
-import { SELLER_CLIENTS_QUERY } from "./gql";
-import { factoryName } from "@/utils/company";
-
-interface ClientNode {
-  id: string;
-  priority: string | null;
-  visitFrequencyDays: number | null;
-  lastVisitDate: string | null;
-  createdAt: string;
-  client: {
-    id: string;
-    razaoSocial: string;
-    nomeFantasia: string | null;
-  } | null;
-  factory: {
-    id: string;
-    nomeFantasia: string | null;
-    razaoSocial: string;
-  } | null;
-}
-
-interface QueryResponse {
-  seller_clients: {
-    edges: { node: ClientNode }[];
-    totalCount: number;
-  };
-}
+import { WALLET_COLUMN_HELP } from "./help";
+import { useWalletTable } from "./useWalletTable";
 
 interface Props {
   sellerId: string;
 }
 
+/**
+ * A carteira da pessoa: página, ordem e filtros resolvidos no BANCO.
+ *
+ * Mostrava 50 vínculos numa tabela sem fim nem busca — numa carteira real (as
+ * de produção passam de 50) o que ficasse fora dessas linhas não tinha como ser
+ * alcançado. Ver `useWalletTable`.
+ */
 export function ClientsSection({ sellerId }: Props) {
-  const { data, loading, error, refetch } = useQuery<QueryResponse>(
-    SELLER_CLIENTS_QUERY,
-    {
-      variables: {
-        input: {
-          first: 50,
-          filters: [{ field: "seller_id", operator: "eq", value: sellerId }],
-        },
-      },
-    }
-  );
-
-  const items = data?.seller_clients?.edges?.map((e) => e.node) ?? [];
-  const total = data?.seller_clients?.totalCount ?? 0;
+  const table = useWalletTable(sellerId);
+  const { displayedData: items, loading, error, refetch } = table;
+  const isNarrowed = Object.values(table.inputValues).some(Boolean);
 
   return (
-    <Table.Root>
+    <Table.Root sort={table.sort}>
       <Table.CardHead>
         <Table.CardHead.Title>Carteira de clientes</Table.CardHead.Title>
         <Table.CardHead.Actions>
-          <Badge.Root color="neutral" appearance="tinted">
-            <Badge.Text>{total} clientes</Badge.Text>
-          </Badge.Root>
+          <Filters
+            fields={table.filterFields}
+            values={table.inputValues}
+            onChange={table.setFilters}
+            onTextChange={table.setFilter}
+          />
           <AddWalletClientModal sellerId={sellerId} onAdded={() => refetch()} />
         </Table.CardHead.Actions>
       </Table.CardHead>
@@ -70,11 +50,26 @@ export function ClientsSection({ sellerId }: Props) {
       <Table.Table>
         <Table.Header>
           <Table.Row>
-            <Table.Head>Cliente</Table.Head>
-            <Table.Head>Fábrica</Table.Head>
-            <Table.Head>Prioridade</Table.Head>
-            <Table.Head>Frequência de visita</Table.Head>
-            <Table.Head>Última visita</Table.Head>
+            <Table.Head sortKey="client_name" title={WALLET_COLUMN_HELP.client}>
+              Cliente
+            </Table.Head>
+            <Table.Head title={WALLET_COLUMN_HELP.factory}>Fábrica</Table.Head>
+            <Table.Head title={WALLET_COLUMN_HELP.priority}>
+              Prioridade
+            </Table.Head>
+            <Table.Head
+              sortKey="visit_frequency_days"
+              title={WALLET_COLUMN_HELP.frequency}
+            >
+              Frequência de visita
+            </Table.Head>
+            <Table.Head
+              sortKey="last_visit_date"
+              sortFirst="desc"
+              title={WALLET_COLUMN_HELP.lastVisit}
+            >
+              Última visita
+            </Table.Head>
           </Table.Row>
         </Table.Header>
         <Table.Body>
@@ -89,54 +84,87 @@ export function ClientsSection({ sellerId }: Props) {
           ) : items.length === 0 ? (
             <Table.Row>
               <Table.Cell colSpan={5}>
-                <Title
-                  variant="body-sm"
-                  color="muted"
-                  className="py-16 text-center"
-                >
-                  Nenhum cliente atribuído
-                </Title>
+                <EmptyState.Root>
+                  <EmptyState.Icon>
+                    <Users size={32} />
+                  </EmptyState.Icon>
+                  {/* "Não tem cliente" e "o filtro não achou" pedem saídas
+                      diferentes: uma manda cadastrar, a outra manda afrouxar. */}
+                  <EmptyState.Title>
+                    {isNarrowed
+                      ? "Nenhum cliente encontrado"
+                      : "Nenhum cliente atribuído"}
+                  </EmptyState.Title>
+                  <EmptyState.Description>
+                    {isNarrowed
+                      ? "Ajuste os filtros para encontrar o cliente."
+                      : 'Use "Adicionar cliente" para montar a carteira desta pessoa.'}
+                  </EmptyState.Description>
+                </EmptyState.Root>
               </Table.Cell>
             </Table.Row>
           ) : (
-            items.map((node) => (
-              <Table.Row key={node.id}>
-                <Table.Cell>
-                  <Table.CellText variant="strong">
-                    {factoryName(node.client)}
-                  </Table.CellText>
-                </Table.Cell>
-                <Table.Cell>
-                  <Table.CellText variant="dim">
-                    {factoryName(node.factory)}
-                  </Table.CellText>
-                </Table.Cell>
-                <Table.Cell>
-                  {node.priority ? (
-                    <Badge.Root color="neutral" appearance="tinted">
-                      <Badge.Text>{node.priority}</Badge.Text>
-                    </Badge.Root>
-                  ) : (
-                    <Table.CellText variant="dim">—</Table.CellText>
-                  )}
-                </Table.Cell>
-                <Table.Cell>
-                  <Table.CellText variant="dim">
-                    {node.visitFrequencyDays
-                      ? `A cada ${node.visitFrequencyDays} dias`
-                      : "—"}
-                  </Table.CellText>
-                </Table.Cell>
-                <Table.Cell>
-                  <Table.CellText variant="dim">
-                    {formatDateDMY(node.lastVisitDate ?? undefined)}
-                  </Table.CellText>
-                </Table.Cell>
-              </Table.Row>
-            ))
+            items.map((node) => {
+              const priority = priorityMeta(node.priority);
+              return (
+                <Table.Row key={node.id}>
+                  <Table.Cell>
+                    <Table.CellText variant="strong">
+                      {clientName(node.client)}
+                    </Table.CellText>
+                  </Table.Cell>
+                  <Table.Cell>
+                    <Table.CellText variant="dim">
+                      {factoryName(node.factory)}
+                    </Table.CellText>
+                  </Table.Cell>
+                  <Table.Cell>
+                    {/* Vínculo sem prioridade é o caso comum (o motor decide
+                        pelo comportamento de compra): um travessão solto lê
+                        melhor do que uma etiqueta vazia repetida linha a linha. */}
+                    {node.priority ? (
+                      <Badge.Root color={priority.color} appearance="tinted">
+                        <Badge.Text>{priority.label}</Badge.Text>
+                      </Badge.Root>
+                    ) : (
+                      <Table.CellText variant="dim">—</Table.CellText>
+                    )}
+                  </Table.Cell>
+                  <Table.Cell>
+                    <Table.CellText variant="dim">
+                      {node.visitFrequencyDays
+                        ? `A cada ${node.visitFrequencyDays} dias`
+                        : "—"}
+                    </Table.CellText>
+                  </Table.Cell>
+                  <Table.Cell>
+                    <Table.CellText variant="dim">
+                      {formatDateDMY(node.lastVisitDate ?? undefined)}
+                    </Table.CellText>
+                  </Table.Cell>
+                </Table.Row>
+              );
+            })
           )}
         </Table.Body>
       </Table.Table>
+
+      <Table.Footer>
+        <Table.Footer.Info>
+          {loading && items.length > 0 && (
+            <Loading.Spinner size="sm" className="mr-6 inline-block" />
+          )}
+          {table.totalItems > 0
+            ? `${table.totalItems} cliente(s) · página ${table.currentPage} de ${table.totalPages}`
+            : "Nenhum cliente encontrado"}
+        </Table.Footer.Info>
+
+        <Pagination.Smart
+          currentPage={table.currentPage}
+          totalPages={table.totalPages}
+          onPageChange={table.setCurrentPage}
+        />
+      </Table.Footer>
     </Table.Root>
   );
 }

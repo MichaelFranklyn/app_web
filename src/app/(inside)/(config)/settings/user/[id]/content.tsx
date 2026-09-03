@@ -82,7 +82,14 @@ export default function MyProfileContent({ userId, canEnableSeller }: Props) {
           {seller && <RoutineSection seller={seller} onRefetch={refetch} />}
           {seller && <FixedSchedulesSection sellerId={seller.id} />}
         </FeatureGate>
-        {seller && <FactoriesSection sellerId={seller.id} />}
+        {/* Sem ações: a comissão e o acesso são combinados por quem gerencia. */}
+        {seller && (
+          <FactoriesSection
+            sellerId={seller.id}
+            sellerName={seller.name}
+            sellerIsActive={seller.isActive}
+          />
+        )}
         {seller && <ClientsSection sellerId={seller.id} />}
       </div>
     </PageContent>

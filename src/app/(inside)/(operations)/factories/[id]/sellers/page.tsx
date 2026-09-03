@@ -3,6 +3,8 @@
 import { usePathname, useRouter, useSearchParams } from "next/navigation";
 import { useEffect, useState } from "react";
 
+import { factoryName } from "@/utils/company";
+
 import { SellersTab } from "../_components/SellersTab";
 import { useFactoryDetail } from "../context";
 
@@ -25,6 +27,7 @@ export default function FactorySellersPage() {
   return (
     <SellersTab
       factoryId={companyFactory.factory.id}
+      factoryName={factoryName(companyFactory.factory) ?? ""}
       autoOpenLink={autoOpenLink}
     />
   );

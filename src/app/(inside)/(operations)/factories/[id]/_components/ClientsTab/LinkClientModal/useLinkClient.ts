@@ -12,7 +12,7 @@ import { useCompleteList } from "@/hooks/useCompleteList";
 import { useMemo, useRef, useState } from "react";
 
 import { PRICE_TIERS_FOR_LINK_QUERY, TiersData } from "../gql";
-import { PRIORITY_OPTIONS } from "../utils";
+import { PRIORITY_OPTIONS } from "@/utils/clientPriority";
 import {
   COMPANY_CLIENTS_FOR_LINK_QUERY,
   CREATE_SELLER_CLIENT_FACTORY_MUTATION,

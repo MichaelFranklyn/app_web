@@ -64,3 +64,30 @@ export interface UserDetailQueryResponse {
     data: UserDetail | null;
   };
 }
+
+/** Um vínculo do vendedor com uma fábrica, como as tabelas do perfil o leem. */
+export interface FactoryAccessNode {
+  id: string;
+  isActive: boolean;
+  createdAt: string;
+  /** Percentual do PEDIDO que fica com o vendedor; nulo = a comissão inteira. */
+  sellerCommissionRate: string | number | null;
+  /** Quando o escritório repassa; nulo = mesma base da fábrica. */
+  sellerCommissionBasis: string | null;
+  factory: {
+    id: string;
+    nomeFantasia: string | null;
+    razaoSocial: string;
+  } | null;
+  grantedByUser: {
+    id: string;
+    name: string;
+  } | null;
+}
+
+export interface SellerAccessesQueryResponse {
+  seller_accesses: {
+    edges: { node: FactoryAccessNode }[];
+    totalCount: number;
+  };
+}
