@@ -295,7 +295,8 @@ export interface OfficeSplit {
  * Quanto da comissão do mês fica com o escritório.
  *
  * São dois acordos empilhados: a fábrica paga uma comissão ao escritório, e o
- * escritório repassa uma fatia dela ao vendedor (ver `seller_commission_share`).
+ * vendedor tem a taxa dele sobre o pedido (ver `seller_commission_rate`), que
+ * sai de dentro dessa comissão.
  * Sem esta conta o gestor só enxerga o número de cima e trata o repasse como se
  * não existisse.
  *

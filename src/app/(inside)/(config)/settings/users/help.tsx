@@ -95,7 +95,7 @@ export const ACCESS_COLUMN_HELP = {
     "Fábrica que ele pode vender. O nome mostrado é o apelido que a sua empresa deu a ela, quando existe.",
   grantedBy: "Quem concedeu o acesso — fica registrado para conferência.",
   commission:
-    "Quanto DESTE vendedor sai da comissão da fábrica, quando o acordo dele é diferente do padrão da empresa. Vazio significa que vale o padrão.",
+    "Quanto ESTE vendedor ganha por pedido nesta fábrica, em % do valor do pedido. O que sobrar da comissão que a fábrica paga fica no escritório.",
   date: "Quando o acesso foi concedido.",
   status:
     "Se a permissão está valendo. Suspender tira a fábrica da vista do vendedor sem apagar nada do que já foi feito.",

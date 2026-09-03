@@ -15,7 +15,7 @@ interface AccessRowActionsProps {
   /** A prévia do acordo busca a comissão desta fábrica quando o modal abre. */
   factoryId: string;
   isActive: boolean;
-  sellerCommissionShare: string | number | null;
+  sellerCommissionRate: string | number | null;
   sellerCommissionBasis: string | null;
   /** Recarrega a lista depois de salvar o acordo de comissão. */
   onAgreementSaved: () => void;
@@ -32,7 +32,7 @@ export function AccessRowActions({
   factoryName,
   factoryId,
   isActive,
-  sellerCommissionShare,
+  sellerCommissionRate,
   sellerCommissionBasis,
   onAgreementSaved,
   onRevoke,
@@ -89,7 +89,7 @@ export function AccessRowActions({
         sellerName={sellerName}
         factoryName={factoryName}
         factoryId={factoryId}
-        sellerCommissionShare={sellerCommissionShare}
+        sellerCommissionRate={sellerCommissionRate}
         sellerCommissionBasis={sellerCommissionBasis}
         open={agreementOpen}
         onOpenChange={setAgreementOpen}

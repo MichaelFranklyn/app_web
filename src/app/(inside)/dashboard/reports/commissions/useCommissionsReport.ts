@@ -42,7 +42,7 @@ export const useCommissionsReport = (
   filters: ReportFilters,
   /**
    * Quem gerencia vê a comissão repartida (empresa × vendedor). O vendedor não:
-   * para ele `amount` JÁ é a fatia dele, e a diferença daria zero.
+   * para ele `amount` JÁ é a comissão dele, e a diferença daria zero.
    */
   withOffice: boolean
 ) => {
@@ -118,7 +118,7 @@ export const useCommissionsReport = (
             {
               label: "Fica no escritório",
               value: formatMoney(split.office),
-              hint: `${Math.round(split.margin * 100)}% da comissão das fábricas`,
+              hint: `${Math.round(split.margin * 100)}% do que veio das fábricas`,
               status: "ok" as const,
             },
           ]

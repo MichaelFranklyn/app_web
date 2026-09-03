@@ -156,11 +156,11 @@ export function AddAccessModal({
               "Opcional. Em branco, o vendedor fica com a comissão inteira, na mesma base da fábrica.",
             fields: [
               {
-                name: "sellerShare",
+                name: "sellerRate",
                 type: "number",
-                label: "Quanto da comissão fica com o vendedor (%)",
-                placeholder: "Ex: 50",
-                hint: "Percentual DA COMISSÃO da fábrica, não do valor do pedido.",
+                label: "Quanto o vendedor ganha por pedido (%)",
+                placeholder: "Ex: 3",
+                hint: "Percentual sobre o valor do pedido, na mesma base da comissão da fábrica. O que sobrar fica no escritório.",
               },
               {
                 name: "sellerBasis",
@@ -187,11 +187,11 @@ export function AddAccessModal({
     const factory = data.factory as { value: string; label: string } | null;
     const sellerId = seller?.value;
     const factoryId = factory?.value;
-    const rawShare = data.sellerShare;
-    const sellerCommissionShare =
-      rawShare === "" || rawShare === null || rawShare === undefined
+    const rawRate = data.sellerRate;
+    const sellerCommissionRate =
+      rawRate === "" || rawRate === null || rawRate === undefined
         ? null
-        : Number(rawShare);
+        : Number(rawRate);
     const sellerCommissionBasis =
       (data.sellerBasis as { value: string } | null)?.value || null;
 
@@ -202,7 +202,7 @@ export function AddAccessModal({
             input: {
               sellerId,
               factoryId,
-              sellerCommissionShare,
+              sellerCommissionRate,
               sellerCommissionBasis,
             },
           },
@@ -232,7 +232,7 @@ export function AddAccessModal({
               id: created.data.id,
               isActive: created.data.isActive,
               createdAt: created.data.createdAt,
-              sellerCommissionShare,
+              sellerCommissionRate,
               sellerCommissionBasis,
               seller: {
                 id: sellerId,

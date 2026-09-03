@@ -21,7 +21,7 @@ import {
 } from "./interface";
 
 /** O texto do campo vira número; vazio é nulo, que significa "comissão inteira". */
-const parseShare = (value: string): number | null =>
+const parseRate = (value: string): number | null =>
   value.trim() === "" ? null : Number(value);
 
 /**
@@ -32,27 +32,26 @@ const parseShare = (value: string): number | null =>
  * do FormBuilder é `string`. É a mesma exceção do SettlePeriodModal e do
  * TenantPlanModal.
  *
- * A prévia não é enfeite. O campo pergunta a fatia DA COMISSÃO e é natural
- * digitar ali a taxa do vendedor sobre o PEDIDO — aconteceu na carteira real,
- * apesar de o rótulo e a dica dizerem o contrário. Números em reais resolvem o
- * que a frase não resolveu.
+ * A prévia não é enfeite. O campo pergunta a taxa do vendedor sobre o PEDIDO —
+ * o número que se combina na rua —, e "3%" e "30%" ocupam o mesmo espaço na
+ * tela: só o dinheiro denuncia qual dos dois foi digitado.
  */
 export function CommissionAgreementModal({
   id,
   sellerName,
   factoryName,
   factoryId,
-  sellerCommissionShare,
+  sellerCommissionRate,
   sellerCommissionBasis,
   open,
   onOpenChange,
   onSaved,
 }: CommissionAgreementModalProps) {
-  const [share, setShare] = useState("");
+  const [rate, setRate] = useState("");
   const [basis, setBasis] = useState<SelectOption | null>(null);
 
   // A comissão da fábrica mora no vínculo empresa×fábrica, não no acesso do
-  // vendedor — e é ela que traduz a fatia em dinheiro. A consulta é do MODAL, e
+  // vendedor — e é ela que diz quanto sobra para o escritório. A consulta é do MODAL, e
   // não da tabela: fora daqui ninguém precisa dela, e a lista de pessoas não
   // pode depender de uma resposta que ela não usa para desenhar as linhas.
   const { data: rateData } = useQuery<AccessFactoryRateResponse>(
@@ -79,19 +78,19 @@ export function CommissionAgreementModal({
   // Reabrir mostra o que está salvo, não o rascunho da vez anterior.
   useEffect(() => {
     if (!open) return;
-    setShare(
-      sellerCommissionShare === null || sellerCommissionShare === undefined
+    setRate(
+      sellerCommissionRate === null || sellerCommissionRate === undefined
         ? ""
-        : String(Number(sellerCommissionShare))
+        : String(Number(sellerCommissionRate))
     );
     setBasis(
       SELLER_BASIS_OPTIONS.find((o) => o.value === sellerCommissionBasis) ??
         null
     );
-  }, [open, sellerCommissionShare, sellerCommissionBasis]);
+  }, [open, sellerCommissionRate, sellerCommissionBasis]);
 
   const handleSave = async () => {
-    const shareValue = parseShare(share);
+    const rateValue = parseRate(rate);
     const basisValue = basis?.value ? basis.value : null;
 
     await execute(
@@ -102,9 +101,9 @@ export function CommissionAgreementModal({
             input: {
               // Nulo já significa "não mexer" no update genérico, então limpar
               // o acordo precisa das flags próprias.
-              sellerCommissionShare: shareValue,
+              sellerCommissionRate: rateValue,
               sellerCommissionBasis: basisValue,
-              clearSellerCommissionShare: shareValue === null,
+              clearSellerCommissionRate: rateValue === null,
               clearSellerCommissionBasis: basisValue === null,
             },
           },
@@ -132,26 +131,23 @@ export function CommissionAgreementModal({
       <Modal.Content size="md">
         <Modal.Header
           title="Comissão do vendedor"
-          description={`Quanto ${sellerName} recebe da comissão que a fábrica ${factoryName} paga ao escritório.`}
+          description={`Quanto ${sellerName} ganha por pedido na fábrica ${factoryName}. O que sobrar da comissão fica no escritório.`}
         />
 
         <Modal.Body className="flex flex-col gap-16 py-24">
           <Input.Number
-            label="Quanto da comissão fica com o vendedor (%)"
-            placeholder="Ex: 50"
+            label="Quanto o vendedor ganha por pedido (%)"
+            placeholder="Ex: 3"
             min={0}
             max={100}
             step="0.01"
             addon="%"
-            value={share}
-            onChange={(e) => setShare(e.target.value)}
-            hint="Percentual DA COMISSÃO da fábrica, não do valor do pedido. Em branco, o vendedor recebe a comissão inteira."
+            value={rate}
+            onChange={(e) => setRate(e.target.value)}
+            hint="Percentual sobre o valor do pedido, na mesma base da comissão da fábrica. Em branco, o vendedor recebe a comissão inteira."
           />
 
-          <AgreementPreview
-            share={parseShare(share)}
-            factoryRate={factoryRate}
-          />
+          <AgreementPreview rate={parseRate(rate)} factoryRate={factoryRate} />
 
           <Input.Select
             label="Quando o escritório repassa"

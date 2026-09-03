@@ -178,7 +178,7 @@ export function BulkActionsBar({
         icon={HandCoins}
         color="neutral"
         title={`Registrar repasse de ${count} comissão(ões)`}
-        description="Registra que o escritório pagou ao vendedor a fatia dele destas parcelas."
+        description="Registra que o escritório pagou ao vendedor a comissão dele destas parcelas."
         dateLabel="Data do repasse"
         dateHint="Dia em que o vendedor recebeu."
         confirmLabel="Confirmar repasse"
