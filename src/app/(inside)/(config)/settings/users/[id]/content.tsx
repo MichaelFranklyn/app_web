@@ -83,7 +83,14 @@ export default function UserProfileContent({ userId }: Props) {
           {seller && <RoutineSection seller={seller} onRefetch={refetch} />}
           {seller && <FixedSchedulesSection sellerId={seller.id} />}
         </FeatureGate>
-        {seller && <FactoriesSection sellerId={seller.id} />}
+        {seller && (
+          <FactoriesSection
+            sellerId={seller.id}
+            sellerName={seller.name}
+            sellerIsActive={seller.isActive}
+            canManage
+          />
+        )}
         {seller && <ClientsSection sellerId={seller.id} />}
       </div>
     </PageContent>

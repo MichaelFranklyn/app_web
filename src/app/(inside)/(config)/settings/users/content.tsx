@@ -2,10 +2,8 @@
 
 import { PageContent } from "@/components/PageContent";
 import { QueryError } from "@/components/QueryError";
-import { Tabs } from "@/components/Tabs";
 import { useOptimisticList } from "@/hooks/useOptimisticList";
 import { useTableData } from "@/hooks/useTableData";
-import { FactoryAccessTab } from "./_components/FactoryAccessTab";
 import { UsersHeader } from "./_components/UsersHeader";
 import { UsersTable } from "./_components/UsersTable";
 import { USERS_QUERY } from "./gql";
@@ -19,8 +17,13 @@ interface Props {
 
 /**
  * Tela única de pessoas: usuário e vendedor são a mesma coisa (a diferença é ter
- * ou não perfil de campo), então a lista é uma só. A aba de acessos por fábrica
- * veio de /sellers — é a visão cruzada que não cabe no perfil de uma pessoa.
+ * ou não perfil de campo), então a lista é uma só.
+ *
+ * Houve aqui uma aba "Acessos por Fábrica" — a tabela cruzada de todos os
+ * vínculos. Ela saiu: vínculo se edita pelas PONTAS, no perfil da pessoa
+ * ("Fábricas com acesso") e na aba de vendedores da fábrica, que é onde a
+ * pessoa já está quando quer mexer nele. A visão cruzada obrigava a procurar a
+ * linha certa entre todos os pares vendedor × fábrica da empresa.
  */
 export default function UsersContent({ initialData, stats }: Props) {
   const tableData = useTableData<QueryData, User>({
@@ -50,31 +53,18 @@ export default function UsersContent({ initialData, stats }: Props) {
         totalItems={tableData.totalItems}
       />
 
-      <Tabs.Root defaultValue="pessoas">
-        <Tabs.List data-tour="users-tabs">
-          <Tabs.Item value="pessoas">Pessoas</Tabs.Item>
-          <Tabs.Item value="acessos">Acessos por Fábrica</Tabs.Item>
-        </Tabs.List>
-
-        {tableData.error && optimistic.items.length === 0 ? (
-          <Tabs.Content value="pessoas">
-            <div className="mt-16">
-              <QueryError onRetry={() => tableData.refetch()} />
-            </div>
-          </Tabs.Content>
-        ) : (
-          <UsersTable
-            {...tableData}
-            items={optimistic.items}
-            onUpdateOptimistic={optimistic.updateOptimistic}
-            onRemoveOptimistic={optimistic.removeOptimistic}
-            onRollback={optimistic.rollback}
-            onCommit={optimistic.commit}
-          />
-        )}
-
-        <FactoryAccessTab />
-      </Tabs.Root>
+      {tableData.error && optimistic.items.length === 0 ? (
+        <QueryError onRetry={() => tableData.refetch()} />
+      ) : (
+        <UsersTable
+          {...tableData}
+          items={optimistic.items}
+          onUpdateOptimistic={optimistic.updateOptimistic}
+          onRemoveOptimistic={optimistic.removeOptimistic}
+          onRollback={optimistic.rollback}
+          onCommit={optimistic.commit}
+        />
+      )}
     </PageContent>
   );
 }

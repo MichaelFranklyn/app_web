@@ -4,7 +4,8 @@ import { mockGraphql } from "../support/graphql";
 /**
  * Lote 3 — abas do detalhe da fábrica (factories/[id]/{sellers,clients,import-template}).
  * Página SSR (CompanyFactoryDetail via stub). Cada aba dispara sua query client-side.
- * Linhas têm ícones de ação (Editar=Power/Pencil 1º, Excluir=Trash último).
+ * Linhas têm ícones de ação (Editar=Power/Pencil 1º, Excluir=Trash último) —
+ * menos a de vendedores, onde as ações do vínculo ficam num menu "Mais ações".
  */
 const base = "/factories/factory-1";
 const conn = (nodes: Array<Record<string, unknown>>) => ({
@@ -19,6 +20,8 @@ test("fábrica/vendedores: exclui um vínculo de acesso", async ({ page }) => {
       id: "acc-1",
       isActive: true,
       createdAt: "2025-01-01T00:00:00Z",
+      sellerCommissionRate: "3",
+      sellerCommissionBasis: null,
       seller: {
         id: "seller-1",
         name: "Vendedor Vinculado",
@@ -39,11 +42,13 @@ test("fábrica/vendedores: exclui um vínculo de acesso", async ({ page }) => {
   });
 
   await page.goto(`${base}/sellers`);
+  // As três ações do vínculo (comissão, suspender, excluir) moram num menu só —
+  // o mesmo que o perfil da pessoa usa do outro lado do vínculo.
   await page
     .getByRole("row", { name: /Vendedor Vinculado/ })
-    .getByRole("button")
-    .last()
+    .getByRole("button", { name: "Mais ações" })
     .click();
+  await page.getByRole("menuitem", { name: "Excluir vínculo" }).click();
   await page
     .getByRole("dialog")
     .getByRole("button", { name: "Excluir vínculo" })

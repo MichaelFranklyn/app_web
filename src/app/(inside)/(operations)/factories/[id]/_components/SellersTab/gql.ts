@@ -8,6 +8,8 @@ export const FACTORY_SELLER_ACCESSES_QUERY = gql`
           id
           isActive
           createdAt
+          sellerCommissionRate
+          sellerCommissionBasis
           seller {
             id
             name

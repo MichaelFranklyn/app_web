@@ -19,7 +19,7 @@ import {
   PRICE_TIERS_FOR_LINK_QUERY,
   TiersData,
 } from "../gql";
-import { PRIORITY_OPTIONS } from "../utils";
+import { PRIORITY_OPTIONS } from "@/utils/clientPriority";
 import { UPDATE_SELLER_CLIENT_FACTORY_MUTATION } from "./gql";
 import { extractSelectValue } from "@/utils/form";
 

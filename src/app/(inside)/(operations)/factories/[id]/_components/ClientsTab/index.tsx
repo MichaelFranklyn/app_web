@@ -18,7 +18,7 @@ import { EditClientLinkModal } from "./EditClientLinkModal";
 import { FactoryClientLink } from "./gql";
 import { LinkClientModal } from "./LinkClientModal";
 import { useFactoryClientsTable } from "./useFactoryClientsTable";
-import { priorityMeta } from "./utils";
+import { priorityMeta } from "@/utils/clientPriority";
 import { clientName } from "@/utils/company";
 import { formatDate } from "@/utils/format/date";
 

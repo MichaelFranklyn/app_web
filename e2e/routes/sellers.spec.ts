@@ -8,26 +8,25 @@ import { emptyConnection, mockGraphql } from "../support/graphql";
 test("sellers: a rota antiga cai na lista de pessoas", async ({ page }) => {
   await mockGraphql(page, {
     Users: () => ({ users_list: emptyConnection() }),
-    SellerFactoryAccessList: () => ({
-      seller_factory_access_list: emptyConnection(),
-    }),
   });
 
   await page.goto("/sellers");
 
   await expect(page).toHaveURL(/\/settings\/users$/);
 
-  // O skeleton do loading.tsx repete o título e as abas da lista (ListPageSkeleton
-  // com tabs={["Pessoas", …]} e listTitle="Pessoas da empresa"), então durante a
-  // transição os dois convivem no DOM e um getByText casa DUAS vezes. Esperar por
-  // algo que só a lista pronta tem — o cabeçalho da coluna — resolve a corrida.
+  // O skeleton do loading.tsx repete o título da lista (ListPageSkeleton com
+  // listTitle="Pessoas da empresa"), então durante a transição os dois convivem
+  // no DOM e um getByText casa DUAS vezes. Esperar por algo que só a lista
+  // pronta tem — o cabeçalho da coluna — resolve a corrida.
   await expect(
     page.getByRole("columnheader", { name: "Pessoa" })
   ).toBeVisible();
   await expect(page.getByText("Pessoas da empresa").first()).toBeVisible();
+  // A tela é uma lista só: o acesso por fábrica se edita no perfil da pessoa e
+  // na aba de vendedores da fábrica, não numa tabela cruzada aqui.
   await expect(
-    page.getByRole("tab", { name: "Acessos por Fábrica" }).first()
-  ).toBeVisible();
+    page.getByRole("tab", { name: "Acessos por Fábrica" })
+  ).toHaveCount(0);
 });
 
 test("users: a rota antiga cai na lista sob configurações", async ({

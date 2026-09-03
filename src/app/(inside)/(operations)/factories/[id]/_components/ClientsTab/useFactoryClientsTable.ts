@@ -17,7 +17,7 @@ import {
   FACTORY_ORDER_SELLERS_QUERY,
   FactoryOrderSellersData,
 } from "../OrdersTab/gql";
-import { PRIORITY_ALIASES, PRIORITY_OPTIONS } from "./utils";
+import { PRIORITY_ALIASES, PRIORITY_OPTIONS } from "@/utils/clientPriority";
 
 export const ITEMS_PER_PAGE = 10;
 
