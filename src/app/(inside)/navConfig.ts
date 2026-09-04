@@ -6,6 +6,7 @@ import {
   CalendarDays,
   ClipboardList,
   Coins,
+  Headset,
   LayoutDashboard,
   Lightbulb,
   Route,
@@ -86,6 +87,15 @@ export const NAV = [
     href: "/clients",
     label: "Clientes",
     icon: Users,
+  },
+  {
+    // Sem `feature` e sem `access`: reclamação de cliente é operação básica, e
+    // o vendedor entra para ver os casos dos clientes DELE (o recorte é no
+    // resolver, não no menu).
+    href: "/support",
+    matchPrefix: "/support",
+    label: "Atendimentos",
+    icon: Headset,
   },
   {
     href: "/factories",

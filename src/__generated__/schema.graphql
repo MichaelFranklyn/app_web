@@ -1,6 +1,6 @@
 # AUTO-GERADO por scripts/pull-schema.mjs — NÃO editar à mão.
 # Snapshot do schema do backend (app_user). Atualize com: npm run schema:pull
-# Fonte: 51 arquivos .graphql merge-ados (mesma regra do Ariadne).
+# Fonte: 52 arquivos .graphql merge-ados (mesma regra do Ariadne).
 
 input BaseListInput {
   filters: [FieldFilterInput!] = null
@@ -586,6 +586,199 @@ extend type Mutation {
   deleteClientSegment(id: UUID!): BaseResponse!
 }
 
+"""Sobre o que é a reclamação que o cliente trouxe."""
+enum SupportCategory {
+  """Mercadoria: veio errada, veio quebrada, faltou."""
+  MERCHANDISE
+  """Pagamento: boleto errado, cobrança em duplicidade, prazo não respeitado."""
+  PAYMENT
+  """Entrega: não chegou, chegou atrasada."""
+  DELIVERY
+  """Preço/tabela: cobrado diferente do combinado."""
+  PRICE
+  OTHER
+}
+
+"""
+Em que ponto está a tratativa. Os dois "aguardando" são separados porque quem
+eles esperam muda o que fazer: a fábrica quem cobra é o escritório, o cliente
+quem cobra é o vendedor.
+"""
+enum SupportStatus {
+  OPEN
+  IN_PROGRESS
+  WAITING_FACTORY
+  WAITING_CLIENT
+  RESOLVED
+  CANCELLED
+}
+
+enum SupportPriority {
+  LOW
+  NORMAL
+  HIGH
+}
+
+"""O que foi este andamento."""
+enum SupportUpdateKind {
+  NOTE
+  CONTACT_CLIENT
+  CONTACT_FACTORY
+  """Gravado pelo sistema quando a situação do caso muda."""
+  STATUS_CHANGE
+}
+
+"""Um andamento do caso: o que aconteceu, quando e por quem."""
+type ClientSupportUpdateType {
+  id: UUID!
+  caseId: UUID!
+  kind: SupportUpdateKind!
+  body: String!
+  """De-para da situação; preenchidos só no andamento de mudança de status."""
+  statusFrom: SupportStatus
+  statusTo: SupportStatus
+  authorUserId: UUID
+  author: UserType
+  createdAt: DateTime!
+}
+
+"""Um problema que o cliente relatou e que o escritório está tratando."""
+type ClientSupportCaseType {
+  id: UUID!
+  companyId: UUID!
+  clientId: UUID!
+  client: ClientType
+  factoryId: UUID
+  factory: FactoryType
+  orderId: UUID
+  order: OrderType
+  sellerId: UUID
+  seller: SellerType
+  title: String!
+  description: String
+  category: SupportCategory!
+  status: SupportStatus!
+  priority: SupportPriority!
+  """Valor em discussão (mercadoria devolvida, boleto contestado)."""
+  amount: Decimal
+  openedByUserId: UUID
+  openedBy: UserType
+  assignedToUserId: UUID
+  assignedTo: UserType
+  """Quando o CLIENTE relatou — pode ser anterior ao registro no sistema."""
+  reportedAt: Date!
+  resolvedAt: DateTime
+  resolution: String
+  createdAt: DateTime!
+  updatedAt: DateTime!
+  """A linha do tempo do caso, do mais antigo ao mais recente."""
+  updates: [ClientSupportUpdateType!]!
+  """Último andamento — é o que a fila mostra em cada linha."""
+  lastUpdate: ClientSupportUpdateType
+  """O caso ainda pede trabalho de alguém (não resolvido nem cancelado)."""
+  isOpen: Boolean!
+  """Dias desde que o cliente relatou; conta até a resolução, quando resolvido."""
+  ageDays: Int!
+}
+
+type ClientSupportCaseTypeConnectionResponse {
+  edges: [ClientSupportCaseTypeEdge!]!
+  pageInfo: PageInfo!
+  totalCount: Int!
+}
+
+type ClientSupportCaseTypeDataResponse {
+  status: Boolean!
+  code: Int!
+  message: String!
+  data: ClientSupportCaseType
+}
+
+type ClientSupportCaseTypeEdge {
+  node: ClientSupportCaseType!
+  cursor: String!
+}
+
+type ClientSupportUpdateTypeDataResponse {
+  status: Boolean!
+  code: Int!
+  message: String!
+  data: ClientSupportUpdateType
+}
+
+"""Quantos casos em cada situação — os números do topo da fila."""
+type SupportStatusCountType {
+  status: SupportStatus!
+  count: Int!
+}
+
+input CreateClientSupportCaseInput {
+  clientId: UUID!
+  title: String!
+  description: String = null
+  category: SupportCategory = OTHER
+  priority: SupportPriority = NORMAL
+  factoryId: UUID = null
+  orderId: UUID = null
+  """Vendedor do caso. Ausente = o da carteira daquele cliente."""
+  sellerId: UUID = null
+  assignedToUserId: UUID = null
+  amount: Decimal = null
+  """Quando o cliente relatou. Ausente = hoje."""
+  reportedAt: Date = null
+}
+
+"""
+A ficha do caso. A SITUAÇÃO não se muda por aqui: ela exige o andamento que a
+explica (ver `addClientSupportUpdate`).
+"""
+input UpdateClientSupportCaseInput {
+  title: String = null
+  description: String = null
+  category: SupportCategory = null
+  priority: SupportPriority = null
+  factoryId: UUID = null
+  orderId: UUID = null
+  sellerId: UUID = null
+  assignedToUserId: UUID = null
+  amount: Decimal = null
+  reportedAt: Date = null
+  resolution: String = null
+}
+
+input AddClientSupportUpdateInput {
+  caseId: UUID!
+  body: String!
+  kind: SupportUpdateKind = NOTE
+  """Situação nova. Ausente = o caso continua onde está."""
+  status: SupportStatus = null
+  """O que ficou combinado no fim — só faz sentido ao resolver."""
+  resolution: String = null
+}
+
+extend type Query {
+  clientSupportCase(id: UUID!): ClientSupportCaseTypeDataResponse!
+  """
+  A fila de atendimentos da empresa. Vendedor vê só os casos dos clientes dele.
+  Filtros úteis: `status`, `category`, `priority`, `client_id`, `factory_id`,
+  `assigned_to_user_id`.
+  """
+  clientSupportCases(input: BaseListInput!): ClientSupportCaseTypeConnectionResponse!
+  """Contagem por situação, no mesmo escopo da fila."""
+  clientSupportCounts: [SupportStatusCountType!]!
+}
+
+extend type Mutation {
+  createClientSupportCase(input: CreateClientSupportCaseInput!): ClientSupportCaseTypeDataResponse!
+  updateClientSupportCase(id: UUID!, input: UpdateClientSupportCaseInput!): ClientSupportCaseTypeDataResponse!
+  deleteClientSupportCase(id: UUID!): BaseResponse!
+  """
+  Registra um andamento e, quando `status` vem preenchido, muda a situação do
+  caso na mesma operação — a mudança entra na linha do tempo com o de-para.
+  """
+  addClientSupportUpdate(input: AddClientSupportUpdateInput!): ClientSupportUpdateTypeDataResponse!
+}
+
 type ClientVisitScoreType {
   id: UUID!
   sellerClientFactoryId: UUID!
@@ -982,6 +1175,51 @@ type FactoryOrderSummaryType {
   lastOrderDate: Date
 }
 
+"""
+Situação de um produto na cesta deste cliente. O ciclo de referência é o DELE:
+dois clientes que compram o mesmo produto a cada 20 e a cada 90 dias não estão
+atrasados pelo mesmo número de dias.
+"""
+enum ProductPurchaseStatus {
+  """Comprou dentro do ciclo dele."""
+  ON_TRACK
+  """Está na janela de repor — é a hora de oferecer."""
+  DUE
+  """Passou do ciclo; ainda dá para recuperar."""
+  LATE
+  """Sumiu da cesta: parou de comprar este produto."""
+  STOPPED
+  """Comprou uma única vez, ainda recente — não há ciclo para julgar."""
+  SINGLE
+}
+
+"""A leitura de UM produto no histórico de compras do cliente."""
+type ClientProductAnalysisRowType {
+  productId: UUID!
+  product: ProductType
+  factoryId: UUID!
+  factory: FactoryType
+  """Em quantos pedidos este produto apareceu."""
+  orderCount: Int!
+  """Quantos pedidos o cliente fez nesta fábrica — o denominador de "8 de 10"."""
+  factoryOrderCount: Int!
+  firstPurchaseDate: Date!
+  lastPurchaseDate: Date!
+  daysSinceLast: Int!
+  """Unidades somadas de todas as compras."""
+  totalUnits: Decimal!
+  avgUnits: Decimal!
+  lastUnits: Decimal!
+  totalAmount: Decimal!
+  """Intervalo médio entre as compras DESTE produto. Nulo com uma compra só."""
+  avgIntervalDays: Int
+  """Quando a próxima compra era esperada. Nulo sem ciclo."""
+  expectedNextDate: Date
+  """Dias além do ciclo. Negativo = ainda dentro dele. Nulo sem ciclo."""
+  overdueDays: Int
+  status: ProductPurchaseStatus!
+}
+
 type CompanyClientTypeConnectionResponse {
   edges: [CompanyClientTypeEdge!]!
   pageInfo: PageInfo!
@@ -1019,6 +1257,20 @@ input UpdateCompanyClientInput {
 extend type Query {
   companyClient(id: UUID!): CompanyClientTypeDataResponse!
   companyClients(input: BaseListInput!): CompanyClientTypeConnectionResponse!
+  """
+  O histórico de compras do cliente lido POR PRODUTO: o que ele sempre pede, o
+  que está na hora de repor e o que ele parou de comprar. Sai dos pedidos
+  FEITOS (orçamento e cancelado ficam de fora), pelas fábricas que o vendedor
+  logado atende. Ordenado do mais urgente ao mais tranquilo.
+
+  `months` recorta o período (0 = histórico inteiro); `factoryId` restringe a
+  uma fábrica.
+  """
+  clientProductAnalysis(
+    companyClientId: UUID!
+    factoryId: UUID = null
+    months: Int = 24
+  ): [ClientProductAnalysisRowType!]!
 }
 
 extend type Mutation {
@@ -2306,6 +2558,8 @@ enum NotificationCategory {
   IMPORT
   SCHEDULE
   INSIGHT
+  """Tratativa de problema do cliente (mercadoria, pagamento, entrega)."""
+  SUPPORT
   SYSTEM
 }
 
@@ -5807,6 +6061,24 @@ input InsertUrgentVisitInput {
   notes: String = null
 }
 
+"""
+Marcar uma visita à mão a partir do que a pessoa tem na mão: o cliente e a data.
+A rotina da semana e o dia são criados se não existirem.
+"""
+input ScheduleManualVisitInput {
+  """Cliente (id global) — a visita é do cliente, não do vínculo."""
+  clientId: UUID!
+  date: Date!
+  """Só o gestor informa; para o vendedor logado é sempre ele."""
+  sellerId: UUID = null
+  """Fábrica que motiva a visita. Ausente = a de maior score do cliente."""
+  factoryId: UUID = null
+  contactType: VisitContactType = IN_PERSON
+  notes: String = null
+  """Confirmação de "o dia está cheio, marque mesmo assim"."""
+  allowOverCapacity: Boolean = false
+}
+
 type RescheduleVisitResult {
   originalItem: VisitScheduleItemType
   newItem: VisitScheduleItemType
@@ -6052,6 +6324,13 @@ extend type Mutation {
   deleteVisitScheduleItem(id: UUID!): BaseResponse!
   rescheduleVisit(input: RescheduleVisitInput!): RescheduleVisitResponse!
   insertUrgentVisit(input: InsertUrgentVisitInput!): VisitScheduleItemTypeDataResponse!
+  """
+  Marca uma visita escolhendo cliente e dia. Cria a rotina da semana e o dia
+  quando não existem, resolve a fábrica principal pelo score e recusa data
+  passada, dia não trabalhado e cliente já agendado naquele dia. Dia cheio volta
+  como conflito: repetir com `allowOverCapacity` marca mesmo assim.
+  """
+  scheduleManualVisit(input: ScheduleManualVisitInput!): VisitScheduleItemTypeDataResponse!
   """
   Transforma o contato remoto em visita presencial. Quando a viagem ocupa o dia
   inteiro, exige `confirmWholeDay` e aplica `displacedStrategy` no que já estava

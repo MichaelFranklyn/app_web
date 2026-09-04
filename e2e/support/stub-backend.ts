@@ -21,6 +21,8 @@ const SSR_RESPONSES: Record<string, unknown> = {
   ClientNetworks: { client_networks: emptyConnection() },
   CompanyFactories: { company_factories_list: emptyConnection() },
   Orders: { orders_list: emptyConnection() },
+  // A fila de atendimentos segue o mesmo SSR-seed das listas de topo.
+  ClientSupportCases: { support_cases: emptyConnection() },
 
   // O DASHBOARD passou a buscar no servidor: os vendedores (para já abrir com
   // um escolhido, em vez de esperar a lista para só então perguntar os números)

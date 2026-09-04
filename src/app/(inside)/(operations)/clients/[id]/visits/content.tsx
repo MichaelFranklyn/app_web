@@ -1,17 +1,19 @@
 "use client";
 
 import { Badge } from "@/components/Badges";
+import { Button } from "@/components/Button";
 import { ContactTypeTag } from "@/components/ContactTypeTag";
 import { Title } from "@/components/Title";
 import { EmptyState } from "@/components/EmptyState";
 import { Filters } from "@/components/Filters";
 import { Loading } from "@/components/Loading";
 import { Pagination } from "@/components/Pagination";
+import { ScheduleVisitModal } from "@/components/ScheduleVisitModal";
 import { CLIENT_VISIT_COLUMN_HELP } from "../../help";
 import { Table } from "@/components/Table";
 import { useOptimisticList } from "@/hooks/useOptimisticList";
 import { useQuery } from "@apollo/client/react";
-import { CalendarCheck } from "lucide-react";
+import { CalendarCheck, CalendarPlus } from "lucide-react";
 import { useMemo, useState } from "react";
 import { useClientRoute } from "../context";
 import { CLIENT_VISITS_QUERY } from "../gql";
@@ -80,8 +82,9 @@ const clientLabel = (visit: ClientVisit): string =>
   clientDisplayName(visit.clientFactoryLink?.client, "Cliente");
 
 export default function VisitsContent() {
-  const { companyClientId } = useClientRoute();
+  const { companyClientId, clientId, client } = useClientRoute();
   const [page, setPage] = useState(1);
+  const [scheduling, setScheduling] = useState(false);
 
   const variables = useMemo(
     () => ({
@@ -147,6 +150,19 @@ export default function VisitsContent() {
             values={table.inputValues}
             onChange={table.setFilters}
           />
+          {/* A visita é marcada de onde o vendedor está olhando o cliente: a
+              rotina da semana escolhida é criada no backend se não existir. */}
+          <Button.Root
+            type="button"
+            appearance="solid"
+            color="amber"
+            size="sm"
+            noUppercase
+            onClick={() => setScheduling(true)}
+          >
+            <Button.Icon icon={CalendarPlus} />
+            <Button.Title>Marcar visita</Button.Title>
+          </Button.Root>
         </Table.CardHead.Actions>
       </Table.CardHead>
 
@@ -335,6 +351,14 @@ export default function VisitsContent() {
           onPageChange={setPage}
         />
       </Table.Footer>
+
+      <ScheduleVisitModal
+        open={scheduling}
+        onOpenChange={setScheduling}
+        clientId={clientId}
+        clientName={client.nomeFantasia ?? client.razaoSocial}
+        onScheduled={() => refetch()}
+      />
     </Table.Root>
   );
 }
