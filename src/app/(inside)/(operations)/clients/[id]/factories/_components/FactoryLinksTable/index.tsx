@@ -1,6 +1,10 @@
 "use client";
 
 import { Badge } from "@/components/Badges";
+import {
+  NegativeLinkAction,
+  NegativeTag,
+} from "@/components/ClientFactoryNegative";
 import { EmptyState } from "@/components/EmptyState";
 import { HelpTooltip } from "@/components/HelpTooltip";
 import { CLIENT_FACTORY_COLUMN_HELP } from "../../../../help";
@@ -131,12 +135,31 @@ export function FactoryLinksTable({
                 </Table.CellText>
               </Table.Cell>
               <Table.Cell>
-                <Badge.Root color="green" appearance="tinted">
-                  <Badge.Text>Ativo</Badge.Text>
-                </Badge.Root>
+                {/* A coluna era um "Ativo" fixo. Negativado é o único estado que
+                    o vínculo tem além de ativo, e é o que muda o que o vendedor
+                    pode fazer: sai da rotina desta fábrica e não recebe pedido
+                    dela. O porquê e o desde quando ficam no tooltip da tarja. */}
+                <NegativeTag
+                  isNegative={c.isNegative}
+                  negativeSince={c.negativeSince}
+                  negativeReason={c.negativeReason}
+                />
               </Table.Cell>
               <Table.Cell>
                 <div className="flex items-center justify-end gap-2">
+                  <NegativeLinkAction
+                    linkId={c.id}
+                    factoryName={factoryName(c.factory)}
+                    isNegative={c.isNegative}
+                    negativeSince={c.negativeSince}
+                    // Repinta a linha com o que o servidor confirmou (a
+                    // mutation já devolve o vínculo inteiro), e fecha o ciclo
+                    // otimista para o próximo rollback partir daqui.
+                    onSaved={(state) => {
+                      onUpdateOptimistic(c.id, state);
+                      onCommit();
+                    }}
+                  />
                   <EditFactoryLinkModal
                     link={c}
                     onSaved={onChanged}

@@ -1,3 +1,4 @@
+import { NegativeTag } from "@/components/ClientFactoryNegative";
 import { FixedVisitTag } from "@/components/FixedVisitTag";
 import { Badge } from "@/components/Badges";
 import { Title } from "@/components/Title";
@@ -62,8 +63,9 @@ export function RouteStopsCard({
           // 260px é o que o bloco precisa para o nome da loja não truncar.
           <div className="grid [grid-template-columns:repeat(auto-fill,minmax(260px,1fr))] gap-8">
             {stops.map((stop) => {
-              const client = stop.clientFactoryLink?.client ?? null;
-              const factory = stop.clientFactoryLink?.factory ?? null;
+              const link = stop.clientFactoryLink ?? null;
+              const client = link?.client ?? null;
+              const factory = link?.factory ?? null;
               const travel = stop.estimatedTravelMin;
               return (
                 <div
@@ -109,6 +111,15 @@ export function RouteStopsCard({
                       </Title>
                     )}
                     <div className="mt-4 flex flex-wrap items-center gap-6">
+                      {/* A parada continua de pé — negativar não desmarca o que
+                          já estava agendado —, mas quem vai precisa saber que
+                          esta fábrica não fecha pedido hoje. */}
+                      <NegativeTag
+                        isNegative={Boolean(link?.isNegative)}
+                        negativeSince={null}
+                        negativeReason={link?.negativeReason ?? null}
+                        activeLabel={null}
+                      />
                       <FixedVisitTag fixedScheduleId={stop.fixedScheduleId} />
                       {/* Era aqui que o deslocamento se disfarçava de duração:
                           "~7 min de visita" eram 7 minutos DE CARRO até a loja.

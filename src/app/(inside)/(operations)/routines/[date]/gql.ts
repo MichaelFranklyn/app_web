@@ -98,6 +98,11 @@ export const WEEK_SCHEDULE_QUERY = gql`
               }
               clientFactoryLink {
                 id
+                # A negativação pode ter chegado DEPOIS de a rotina ser montada:
+                # marcá-la não mexe no que já está agendado, então é aqui que o
+                # vendedor descobre que aquela fábrica não vai aceitar pedido.
+                isNegative
+                negativeReason
                 client {
                   id
                   razaoSocial

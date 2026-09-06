@@ -38,6 +38,12 @@ export interface VisitClientFactoryLink {
   client: VisitClient | null;
   factory: VisitFactory | null;
   latestVisitScore: ScoreDimensions | null;
+  /**
+   * Cliente negativado nesta fábrica. A visita segue na agenda (negativar não
+   * apaga o que já foi planejado), mas a fábrica não aceita pedido novo dele.
+   */
+  isNegative?: boolean;
+  negativeReason?: string | null;
 }
 
 export interface VisitItem {

@@ -1,3 +1,4 @@
+import { negativeOrderHint } from "@/components/ClientFactoryNegative";
 import { FormBuilderRef, FormStepSchema } from "@/components/FormBuilder";
 import { useToast } from "@/components/Toast";
 import { useAsyncAction } from "@/hooks/useAsyncAction";
@@ -164,6 +165,11 @@ export function useAddOrder({
 
   const clientOptions = clients.options;
   const cadenceByClient = clients.cadenceByClient;
+  // Motivo da negativação do cliente escolhido nesta fábrica, quando há. É o
+  // que a dica do campo mostra — e o mesmo que o backend responderia na recusa,
+  // só que antes de o vendedor digitar o pedido inteiro.
+  const negativeReason = clients.negativeByClient.get(clientId);
+  const isClientNegative = clients.negativeByClient.has(clientId);
 
   useCoverageSuggestion(formRef, cadenceByClient.get(clientId), open);
 
@@ -245,6 +251,9 @@ export function useAddOrder({
                 onSearch: clients.onSearch,
                 loading: clients.loading,
                 onChange: (value) => setClientId(extractSelectValue(value)),
+                hint: isClientNegative
+                  ? negativeOrderHint(negativeReason)
+                  : undefined,
               },
               {
                 name: "orderDate",
@@ -311,6 +320,10 @@ export function useAddOrder({
       // onde veio o número sugerido, e é isso que faz o vendedor corrigi-lo.
       cadenceByClient,
       clientId,
+      // A dica da negativação é do cliente escolhido: sem estas duas, o campo
+      // ficaria com o aviso do cliente anterior.
+      isClientNegative,
+      negativeReason,
     ]
   );
 

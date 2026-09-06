@@ -100,6 +100,14 @@ export interface SellerClientFactory {
    */
   cadence: Cadence | null;
   lastVisitDate: string | null;
+  /**
+   * Cliente negativado NESTA fábrica: o crédito dele está suspenso lá. Enquanto
+   * for `true`, o motor não recomenda o vínculo na rotina e a fábrica não aceita
+   * pedido novo — as outras fábricas do cliente seguem normais.
+   */
+  isNegative: boolean;
+  negativeSince: string | null;
+  negativeReason: string | null;
   factory: {
     id: string;
     nomeFantasia: string | null;

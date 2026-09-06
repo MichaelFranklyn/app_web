@@ -7,6 +7,7 @@ import {
   buildStopColumns,
   focusLabel,
   hasProgress,
+  negativeNote,
   REMOTE_CONTACT_COLUMNS,
   ROUTE_STOP_COLUMNS,
   stopReason,
@@ -88,6 +89,38 @@ describe("focusLabel", () => {
     });
 
     expect(focusLabel(item)).toBe("Fábrica z");
+  });
+});
+
+describe("negativeNote", () => {
+  const linked = (isNegative: boolean) => ({
+    id: "cfl-1",
+    client: null,
+    factory: factory("z"),
+    latestVisitScore: null,
+    isNegative,
+  });
+
+  it("avisa na folha que a fábrica não fecha pedido", () => {
+    // A parada continua impressa — negativar não desmarca a visita. O que a
+    // folha precisa dizer é que a conversa não termina em pedido.
+    expect(negativeNote(stop({ clientFactoryLink: linked(true) }))).toBe(
+      "NEGATIVADO — sem pedido novo"
+    );
+  });
+
+  it("some quando o vínculo está normal", () => {
+    expect(negativeNote(stop({ clientFactoryLink: linked(false) }))).toBeNull();
+    // Visita antiga, sem vínculo carregado: nada a dizer, e nada quebra.
+    expect(negativeNote(stop())).toBeNull();
+  });
+
+  it("é a segunda linha da coluna de fábricas nas duas listas", () => {
+    const factories = ROUTE_STOP_COLUMNS.find((c) => c.header === "FÁBRICAS");
+    const remote = REMOTE_CONTACT_COLUMNS.find((c) => c.header === "FÁBRICAS");
+
+    expect(factories?.sub).toBe(negativeNote);
+    expect(remote?.sub).toBe(negativeNote);
   });
 });
 

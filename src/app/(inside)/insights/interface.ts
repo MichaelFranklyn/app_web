@@ -14,12 +14,13 @@ export type InsightGroup = "WALLET" | "ORDERS" | "MONEY" | "GOALS";
 /**
  * Por que o sistema já explica este caso.
  *
- * Só `PRIORITY_OFF_ROUTE` preenche hoje: os quatro primeiros são exclusões
+ * Só `PRIORITY_OFF_ROUTE` preenche hoje: os cinco primeiros são exclusões
  * DELIBERADAS do motor de rotina, e o cliente não foi esquecido — foi
  * descartado por uma regra. `NO_ROOM` é a ausência sem explicação, a única que
  * depende de uma decisão de quem lê.
  */
 export type InsightCaseReason =
+  | "CLIENT_NEGATIVE"
   | "ORDER_OPEN"
   | "VISIT_PENDING"
   | "DEFERRED"

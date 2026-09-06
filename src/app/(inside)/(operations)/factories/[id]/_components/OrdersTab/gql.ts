@@ -36,6 +36,9 @@ export const FACTORY_ASSIGNMENTS_QUERY = gql`
           id
           sellerId
           clientId
+          # Negativado nesta fábrica: ela não aceita pedido novo deste cliente.
+          isNegative
+          negativeReason
           seller {
             id
             name

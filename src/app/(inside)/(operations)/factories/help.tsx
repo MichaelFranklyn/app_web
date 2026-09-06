@@ -61,7 +61,10 @@ export const FACTORY_CLIENT_COLUMN_HELP = {
     "Peso que este cliente tem na rota de visita desta fábrica. Prioridade alta puxa o cliente para cima no score.",
   lastInvoice:
     "Dia da nota mais recente deste vínculo — deste vendedor, nesta fábrica. Vazio significa que ainda não houve faturamento, mesmo que exista pedido em aberto.",
-  actions: "Trocar o nível ou a prioridade do vínculo, ou desfazê-lo.",
+  status:
+    "Cliente negativado nesta fábrica está com o crédito suspenso aqui: ele sai das recomendações de visita desta fábrica e não pode receber pedido novo dela. As outras fábricas dele continuam normais.",
+  actions:
+    "Trocar o nível ou a prioridade do vínculo, marcar o cliente como negativado nesta fábrica, ou desfazer o vínculo.",
 } as const;
 
 // ── Aba: vendedores com acesso ───────────────────────────────────────────────

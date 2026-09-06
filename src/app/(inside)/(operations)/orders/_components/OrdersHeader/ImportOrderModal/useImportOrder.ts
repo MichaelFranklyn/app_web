@@ -1,3 +1,4 @@
+import { negativeOrderHint } from "@/components/ClientFactoryNegative";
 import { useMutation, useQuery } from "@apollo/client/react";
 import { useEffect, useMemo, useRef, useState } from "react";
 
@@ -160,6 +161,10 @@ export function useImportOrder({
   }, [factoriesData]);
   const clientOptions = clients.options;
   const cadenceByClient = clients.cadenceByClient;
+  // A ficha importada também vira pedido: o mesmo aviso, na mesma frase, para o
+  // vendedor não descobrir a recusa depois de conferir a planilha inteira.
+  const negativeReason = clients.negativeByClient.get(clientId);
+  const isClientNegative = clients.negativeByClient.has(clientId);
 
   useCoverageSuggestion(formRef, cadenceByClient.get(clientId), open);
 
@@ -228,6 +233,9 @@ export function useImportOrder({
                 onSearch: clients.onSearch,
                 loading: clients.loading,
                 onChange: (value) => setClientId(extractSelectValue(value)),
+                hint: isClientNegative
+                  ? negativeOrderHint(negativeReason)
+                  : undefined,
               },
               {
                 name: "orderDate",
@@ -293,6 +301,8 @@ export function useImportOrder({
       paymentTermOptions,
       cadenceByClient,
       clientId,
+      isClientNegative,
+      negativeReason,
     ]
   );
 

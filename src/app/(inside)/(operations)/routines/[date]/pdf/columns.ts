@@ -42,6 +42,17 @@ export const cityRow = (stop: VisitItem): string | null => {
   return [client.addressNeighborhood, city].filter(Boolean).join(" — ") || null;
 };
 
+/**
+ * "NEGATIVADO — sem pedido novo", sob as fábricas da parada.
+ *
+ * A visita continua na folha: negativar não desmarca o que já estava agendado
+ * (ver `SetClientFactoryNegativeUseCase`). Mas quem sai com o papel na mão não
+ * tem a tela ao lado para descobrir que aquela fábrica não vai aceitar o pedido
+ * — e é justamente essa a informação que muda a conversa da visita.
+ */
+export const negativeNote = (stop: VisitItem): string | null =>
+  stop.clientFactoryLink?.isNegative ? "NEGATIVADO — sem pedido novo" : null;
+
 /** Fábricas que motivaram a parada, na mesma leitura do card da tela. */
 export const focusLabel = (stop: VisitItem): string => {
   const names = (stop.focusFactories ?? [])
@@ -86,7 +97,7 @@ export const ROUTE_STOP_COLUMNS: ReportColumn<VisitItem>[] = [
   { header: "CLIENTE", width: 23, value: clientRow, sub: clientAliasRow },
   { header: "TELEFONE", width: 11, value: phoneLabel },
   { header: "ENDEREÇO", width: 25, value: streetRow, sub: cityRow },
-  { header: "FÁBRICAS", width: 18, value: focusLabel },
+  { header: "FÁBRICAS", width: 18, value: focusLabel, sub: negativeNote },
   { header: "MOTIVO", width: 14, value: stopReason, sub: stopUrgency },
 ];
 
@@ -98,7 +109,7 @@ export const REMOTE_CONTACT_COLUMNS: ReportColumn<VisitItem>[] = [
   { header: "#", width: 3, value: (stop) => String(stop.plannedOrder) },
   { header: "CLIENTE", width: 30, value: clientRow, sub: clientAliasRow },
   { header: "TELEFONE", width: 14, value: phoneLabel },
-  { header: "FÁBRICAS", width: 22, value: focusLabel },
+  { header: "FÁBRICAS", width: 22, value: focusLabel, sub: negativeNote },
   { header: "MOTIVO", width: 18, value: stopReason, sub: stopUrgency },
 ];
 
