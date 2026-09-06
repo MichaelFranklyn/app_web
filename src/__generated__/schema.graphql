@@ -2442,12 +2442,17 @@ enum InsightGroup {
 """
 Por que um cliente prioritário não entrou na rotina.
 
-Os quatro primeiros são exclusões DELIBERADAS do motor de rotina (ver
+Os cinco primeiros são exclusões DELIBERADAS do motor de rotina (ver
 `route_reasons`): o cliente não foi esquecido, foi descartado por uma regra — e
 o que destrava cada um é diferente. Só `NO_ROOM` representa uma decisão do
 vendedor a revisar, e por isso é o único que entra na contagem do cartão.
 """
 enum InsightCaseReason {
+  """
+  O cliente está negativado nessa fábrica: enquanto o crédito não voltar, nada do
+  que o vendedor fizer coloca esse vínculo na rotina.
+  """
+  CLIENT_NEGATIVE
   """Tem pedido em aberto nessa fábrica — o motor não recomenda visita até a entrega."""
   ORDER_OPEN
   """Já tem visita presencial marcada em alguma rotina."""
@@ -5115,6 +5120,16 @@ type SellerClientFactoryType {
   """Último toque de qualquer tipo — visita presencial OU contato remoto."""
   lastContactDate: Date
   """
+  O cliente está NEGATIVADO nesta fábrica — crédito suspenso lá. Enquanto for
+  `true`, o motor de rotina não recomenda este vínculo (semana e dia) e pedido
+  novo desta fábrica é recusado. As outras fábricas do cliente seguem normais.
+  """
+  isNegative: Boolean!
+  """Desde quando está negativado. Nulo quando não está."""
+  negativeSince: Date
+  """O que a fábrica informou — é o que diz ao vendedor o que destrava."""
+  negativeReason: String
+  """
   Faturamento mais recente deste vínculo — só os pedidos deste vendedor para
   este cliente nesta fábrica. Nulo enquanto nenhum pedido do vínculo foi faturado.
   """
@@ -5197,7 +5212,34 @@ extend type Query {
   clientFactoryAssignment(clientId: UUID!, factoryId: UUID!): SellerClientFactoryTypeDataResponse!
 }
 
+"""
+Negativar é suspender o cliente NUMA fábrica, não na empresa: quem decide isso é
+a fábrica (boleto protestado, limite estourado), e o cliente continua comprando
+das outras. Marcar tira o vínculo das recomendações de rotina e barra pedido novo
+daquela fábrica; desmarcar (`isNegative: false`) devolve tudo e limpa data e
+motivo.
+"""
+input SetSellerClientFactoryNegativeInput {
+  isNegative: Boolean!
+  """
+  O que a fábrica informou. Opcional, mas é o que o vendedor lê na tarja para
+  saber o que precisa acontecer. Ignorado ao desnegativar.
+  """
+  reason: String = null
+  """Desde quando. Padrão: hoje. Ignorada ao desnegativar."""
+  since: Date = null
+}
+
 extend type Mutation {
+  """
+  Marca/desmarca o cliente como negativado nesta fábrica. O vendedor pode fazê-lo
+  nos vínculos da PRÓPRIA carteira — é ele quem recebe o aviso da fábrica; gestor
+  faz em qualquer um. O que já está agendado continua na agenda.
+  """
+  setSellerClientFactoryNegative(
+    id: UUID!
+    input: SetSellerClientFactoryNegativeInput!
+  ): SellerClientFactoryTypeDataResponse!
   createSellerClientFactory(input: CreateSellerClientFactoryInput!): SellerClientFactoryTypeDataResponse!
   updateSellerClientFactory(id: UUID!, input: UpdateSellerClientFactoryInput!): SellerClientFactoryTypeDataResponse!
   deleteSellerClientFactory(id: UUID!): BaseResponse!

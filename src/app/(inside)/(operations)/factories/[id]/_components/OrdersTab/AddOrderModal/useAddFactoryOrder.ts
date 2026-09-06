@@ -2,6 +2,7 @@ import { useMutation } from "@apollo/client/react";
 import { useCompleteList } from "@/hooks/useCompleteList";
 import { useMemo, useRef, useState } from "react";
 
+import { negativeOrderHint } from "@/components/ClientFactoryNegative";
 import { FormBuilderRef, FormStepSchema } from "@/components/FormBuilder";
 import { useToast } from "@/components/Toast";
 import { useAsyncAction } from "@/hooks/useAsyncAction";
@@ -132,12 +133,20 @@ export function useAddFactoryOrder({ factoryId }: AddFactoryOrderProps) {
   const assignmentOptions = useMemo(
     () =>
       assignments.map((a) => ({
-        label: `${a.seller!.name} → ${clientOptionLabel(a.client!)}`,
+        // Marcado, não escondido: o cliente sumido da lista viraria "o sistema
+        // perdeu meu vínculo", e não "a fábrica travou o crédito dele".
+        label: `${a.seller!.name} → ${clientOptionLabel(a.client!)}${
+          a.isNegative ? " · NEGATIVADO" : ""
+        }`,
         value: a.id,
         searchText: clientOptionSearchText(a.client!),
       })),
     [assignments]
   );
+
+  const negativeHint = selectedAssignment?.isNegative
+    ? negativeOrderHint(selectedAssignment.negativeReason)
+    : undefined;
 
   const formSteps = useMemo<FormStepSchema[]>(
     () => [
@@ -168,6 +177,7 @@ export function useAddFactoryOrder({ factoryId }: AddFactoryOrderProps) {
                     : "Selecione o vínculo",
                 required: true,
                 options: assignmentOptions,
+                hint: negativeHint,
                 onChange: (value) => {
                   const id = extractSelectValue(value);
                   const assignment = assignments.find((a) => a.id === id);
@@ -228,6 +238,7 @@ export function useAddFactoryOrder({ factoryId }: AddFactoryOrderProps) {
     [
       assignments,
       assignmentOptions,
+      negativeHint,
       paymentTermOptions,
       // A dica do campo de cobertura diz de onde veio o número sugerido, e isso
       // muda com o vínculo escolhido.

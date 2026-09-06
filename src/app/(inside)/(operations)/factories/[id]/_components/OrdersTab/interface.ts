@@ -35,6 +35,9 @@ export interface FactoryAssignment {
   } | null;
   /** Ritmo de compra do vínculo — sugere a cobertura no fechamento do pedido. */
   cadence: CoverageCadence | null;
+  /** Negativado nesta fábrica: ela não aceita pedido novo deste cliente. */
+  isNegative: boolean;
+  negativeReason: string | null;
 }
 
 export interface FactoryAssignmentsData {

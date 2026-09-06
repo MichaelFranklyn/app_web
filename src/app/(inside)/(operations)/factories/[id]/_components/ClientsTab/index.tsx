@@ -2,6 +2,10 @@
 
 import { Avatar } from "@/components/Avatar";
 import { Badge } from "@/components/Badges";
+import {
+  NegativeLinkAction,
+  NegativeTag,
+} from "@/components/ClientFactoryNegative";
 import { EmptyState } from "@/components/EmptyState";
 import { Filters } from "@/components/Filters";
 import { QueryError } from "@/components/QueryError";
@@ -25,9 +29,15 @@ import { formatDate } from "@/utils/format/date";
 interface Props {
   factoryId: string;
   companyFactoryId: string;
+  /** Nome da fábrica como o usuário a chama (apelido, quando há). */
+  factoryLabel: string;
 }
 
-export function ClientsTab({ factoryId, companyFactoryId }: Props) {
+export function ClientsTab({
+  factoryId,
+  companyFactoryId,
+  factoryLabel,
+}: Props) {
   // Página, ordem e filtros resolvidos no BANCO — ver `useFactoryClientsTable`.
   const table = useFactoryClientsTable(factoryId, companyFactoryId);
 
@@ -106,6 +116,9 @@ export function ClientsTab({ factoryId, companyFactoryId }: Props) {
             >
               Faturamento
             </Table.Head>
+            <Table.Head title={FACTORY_CLIENT_COLUMN_HELP.status}>
+              Situação
+            </Table.Head>
             <Table.Head
               className="text-right"
               title={FACTORY_CLIENT_COLUMN_HELP.actions}
@@ -116,16 +129,16 @@ export function ClientsTab({ factoryId, companyFactoryId }: Props) {
         </Table.Header>
         <Table.Body>
           {loading && links.length === 0 ? (
-            <Table.Skeleton columns={6} rows={5} />
+            <Table.Skeleton columns={7} rows={5} />
           ) : error && links.length === 0 ? (
             <Table.Row>
-              <Table.Cell colSpan={6}>
+              <Table.Cell colSpan={7}>
                 <QueryError flat onRetry={() => refetch()} />
               </Table.Cell>
             </Table.Row>
           ) : links.length === 0 ? (
             <Table.Row>
-              <Table.Cell colSpan={6}>
+              <Table.Cell colSpan={7}>
                 <EmptyState.Root>
                   <EmptyState.Icon>
                     <Users size={32} />
@@ -180,7 +193,28 @@ export function ClientsTab({ factoryId, companyFactoryId }: Props) {
                     {formatDate(link.lastInvoiceDate)}
                   </Table.Cell>
                   <Table.Cell>
+                    {/* Só a negativação aparece: "Ativo" em toda linha seria uma
+                        coluna inteira repetindo o que já é o normal. */}
+                    <NegativeTag
+                      isNegative={link.isNegative}
+                      negativeSince={link.negativeSince}
+                      negativeReason={link.negativeReason}
+                      activeLabel={null}
+                    />
+                  </Table.Cell>
+                  <Table.Cell>
                     <div className="flex items-center justify-end gap-4">
+                      <NegativeLinkAction
+                        linkId={link.id}
+                        factoryName={factoryLabel}
+                        clientName={name}
+                        isNegative={link.isNegative}
+                        negativeSince={link.negativeSince}
+                        onSaved={(state) => {
+                          optimistic.updateOptimistic(link.id, state);
+                          optimistic.commit();
+                        }}
+                      />
                       <EditClientLinkModal
                         link={link}
                         companyFactoryId={companyFactoryId}

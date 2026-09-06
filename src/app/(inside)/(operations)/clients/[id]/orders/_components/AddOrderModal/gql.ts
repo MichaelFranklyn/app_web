@@ -21,6 +21,11 @@ export const CLIENT_ASSIGNMENTS_QUERY = gql`
           id
           sellerId
           factoryId
+          # Negativado nesta fábrica: o vínculo aparece marcado e o backend
+          # recusa o pedido — o vendedor precisa ver isso ao escolher, não
+          # depois de montar o pedido.
+          isNegative
+          negativeReason
           seller {
             id
             name

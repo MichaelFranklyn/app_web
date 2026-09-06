@@ -10,6 +10,9 @@ export const SELLER_CLIENT_FACTORIES_QUERY = gql`
           visitFrequencyDays
           orderIntervalDays
           lastVisitDate
+          isNegative
+          negativeSince
+          negativeReason
           cadence {
             days
             source

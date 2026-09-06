@@ -117,6 +117,7 @@ describe("copy do prioritário fora da rotina", () => {
 describe("REASON_COPY", () => {
   it("todo motivo do backend tem texto — sem isso a etiqueta some da lista", () => {
     const doBackend = [
+      "CLIENT_NEGATIVE",
       "ORDER_OPEN",
       "VISIT_PENDING",
       "DEFERRED",

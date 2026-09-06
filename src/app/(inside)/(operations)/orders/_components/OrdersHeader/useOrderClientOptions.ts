@@ -22,6 +22,9 @@ export interface SellerClientNode {
     cnpj: string | null;
   } | null;
   cadence: CoverageCadence | null;
+  /** Negativado NESTA fábrica: o backend recusa pedido novo dele aqui. */
+  isNegative: boolean;
+  negativeReason: string | null;
 }
 
 export interface SellerClientsData {
@@ -46,7 +49,12 @@ const getConnection = (data: SellerClientsData) => {
 
 const toOption = (node: SellerClientNode) => ({
   value: node.clientId,
-  label: clientOptionLabel(node.client!),
+  // O negativado continua na lista, marcado. Escondê-lo faria o cliente
+  // desaparecer sem explicação — e quem não acha o nome conclui que o vínculo
+  // sumiu, não que a fábrica travou o crédito.
+  label: node.isNegative
+    ? `${clientOptionLabel(node.client!)} · NEGATIVADO`
+    : clientOptionLabel(node.client!),
   searchText: clientOptionSearchText(node.client!),
 });
 
@@ -93,11 +101,24 @@ export function useOrderClientOptions(
     [clients.nodes]
   );
 
+  // Quem está negativado, e por quê — para o formulário explicar a recusa antes
+  // de ela acontecer, em vez de deixar o vendedor descobrir no fim do pedido.
+  const negativeByClient = useMemo(
+    () =>
+      new Map(
+        clients.nodes
+          .filter((node) => node.isNegative)
+          .map((node) => [node.clientId, node.negativeReason])
+      ),
+    [clients.nodes]
+  );
+
   return {
     options: clients.options,
     /** `undefined` quando a carteira inteira já está na mão (filtro local). */
     onSearch: clients.onSearch,
     loading: clients.loading,
     cadenceByClient,
+    negativeByClient,
   };
 }

@@ -1,5 +1,6 @@
 import { formatMoney } from "@/utils/format/masks";
 import {
+  Ban,
   Banknote,
   CalendarClock,
   CalendarOff,
@@ -295,6 +296,11 @@ interface ReasonCopy {
  * visitas é decisão de produto, e muda muito mais vezes que a regra.
  */
 export const REASON_COPY: Record<InsightCaseReason, ReasonCopy> = {
+  CLIENT_NEGATIVE: {
+    icon: Ban,
+    label: "Negativado na fábrica",
+    hint: "A fábrica suspendeu o crédito dele. Enquanto isso valer, visitar não adianta: ela não aceita pedido novo desse cliente. Quem destrava é a fábrica — depois, retire a negativação no vínculo.",
+  },
   ORDER_OPEN: {
     icon: Truck,
     label: "Pedido em aberto",

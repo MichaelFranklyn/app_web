@@ -1,3 +1,4 @@
+import { negativeOrderHint } from "@/components/ClientFactoryNegative";
 import { FormBuilderRef, FormStepSchema } from "@/components/FormBuilder";
 import { useToast } from "@/components/Toast";
 import { useAsyncAction } from "@/hooks/useAsyncAction";
@@ -32,6 +33,9 @@ interface AssignmentNode {
   id: string;
   sellerId: string;
   factoryId: string;
+  /** Negativado nesta fábrica: ela não aceita pedido novo deste cliente. */
+  isNegative: boolean;
+  negativeReason: string | null;
   seller: { id: string; name: string } | null;
   factory: {
     id: string;
@@ -124,13 +128,20 @@ export function useAddClientOrder(clientId: string) {
   const assignmentOptions = useMemo(
     () =>
       assignments.map((a) => ({
+        // O vínculo negativado continua na lista, marcado: escondê-lo faria a
+        // fábrica sumir sem explicação para quem não sabe da negativação.
         label: `${a.seller!.name} → ${
           a.factory!.nomeFantasia ?? a.factory!.razaoSocial
-        }`,
+        }${a.isNegative ? " · NEGATIVADO" : ""}`,
         value: a.id,
       })),
     [assignments]
   );
+
+  const chosen = assignments.find((a) => a.factoryId === factoryId);
+  const negativeHint = chosen?.isNegative
+    ? negativeOrderHint(chosen.negativeReason)
+    : undefined;
 
   const formSteps: FormStepSchema[] = useMemo(
     () => [
@@ -161,6 +172,7 @@ export function useAddClientOrder(clientId: string) {
                     : "Selecione o vínculo",
                 required: true,
                 options: assignmentOptions,
+                hint: negativeHint,
                 // Ao escolher o vínculo já sabemos a fábrica: o passo de itens
                 // pode carregar o catálogo dela enquanto o usuário preenche o resto.
                 onChange: (value, setValue) => {
@@ -223,7 +235,13 @@ export function useAddClientOrder(clientId: string) {
         ],
       },
     ],
-    [assignmentOptions, assignments, factoryId, paymentTermOptions]
+    [
+      assignmentOptions,
+      assignments,
+      factoryId,
+      negativeHint,
+      paymentTermOptions,
+    ]
   );
 
   const [createOrder] = useMutation<CreateOrderResponse>(

@@ -94,6 +94,11 @@ export const ORDER_SELLER_CLIENTS_QUERY = gql`
             days
             source
           }
+          # Cliente negativado nesta fábrica não pode receber pedido novo — o
+          # backend recusa. Vem junto para o select AVISAR antes de o vendedor
+          # digitar o pedido inteiro e só então levar a recusa.
+          isNegative
+          negativeReason
         }
       }
     }

@@ -139,9 +139,10 @@ export const CLIENT_FACTORY_COLUMN_HELP = {
     "De quantos em quantos dias este cliente costuma comprar desta fábrica, e de onde esse número saiu (o que foi declarado ou o que os pedidos mostram). O triângulo âmbar aparece quando os dois discordam — passe o mouse nele para ver os dois números.",
   lastVisit:
     "Dia da visita mais recente registrada para este vínculo. Registro de visita nasce na rota do dia.",
-  status: "Se o vínculo está valendo. Vínculo desfeito some da lista.",
+  status:
+    "Ativo é o normal. Negativado quer dizer que ESTA fábrica suspendeu o crédito do cliente: ele sai das recomendações de visita dela e não pode receber pedido novo dela — as outras fábricas continuam normais. Passe o mouse na tarja para ver desde quando e por quê.",
   actions:
-    "Trocar o nível, a prioridade e a frequência, ou desfazer o vínculo.",
+    "Trocar o nível, a prioridade e a frequência, marcar o cliente como negativado nesta fábrica, ou desfazer o vínculo.",
 } as const;
 
 // ── Aba: visitas ─────────────────────────────────────────────────────────────
