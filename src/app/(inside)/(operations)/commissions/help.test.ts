@@ -44,14 +44,42 @@ describe("scopeSentence", () => {
   it.each(COMMISSION_TABS.map((tab) => tab.id))(
     "a frase da aba %s combina com o recorte que ela faz",
     (tab) => {
-      const frase = scopeSentence(tab, "agosto de 2026");
+      for (const audience of ["office", "seller"] as const) {
+        const frase = scopeSentence(tab, "agosto de 2026", audience);
 
-      if (ignoresMonth(tab)) {
-        expect(frase).toContain("não segue o mês");
-      } else {
-        expect(frase).toContain("agosto de 2026");
-        expect(frase).not.toContain("não segue o mês");
+        if (ignoresMonth(tab)) {
+          expect(frase).toContain("não segue o mês");
+        } else {
+          expect(frase).toContain("agosto de 2026");
+          expect(frase).not.toContain("não segue o mês");
+        }
       }
     }
   );
+
+  it("diz de quem é o dinheiro quando a ótica é a do vendedor", () => {
+    // Trocar a ótica refaz todos os números da tela; a frase que os explica não
+    // pode continuar a mesma, senão a única pista visível vira o próprio valor.
+    const escritorio = scopeSentence("receivable", "agosto de 2026", "office");
+    const vendedor = scopeSentence("receivable", "agosto de 2026", "seller");
+
+    expect(escritorio).toContain("fábricas");
+    expect(vendedor).toContain("vendedor");
+    expect(vendedor).not.toBe(escritorio);
+    // "Recebido" muda de dono: quem repassa ao vendedor é o escritório.
+    expect(scopeSentence("received", "agosto de 2026", "seller")).toContain(
+      "escritório"
+    );
+  });
+
+  it("sem ótica escolhida, a frase é neutra — é a tela do vendedor", () => {
+    // O vendedor não escolhe ótica nenhuma: para ele "a comissão" é a dele, e
+    // qualificá-la ("as fábricas devem") explicaria uma distinção que a tela
+    // dele não tem.
+    const neutra = scopeSentence("receivable", "agosto de 2026");
+
+    expect(neutra).toContain("o que há a receber em agosto de 2026");
+    expect(neutra).not.toContain("fábricas");
+    expect(neutra).not.toContain("vendedor");
+  });
 });

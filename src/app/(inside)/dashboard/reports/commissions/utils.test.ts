@@ -1,5 +1,12 @@
 import { describe, expect, it } from "vitest";
 
+import {
+  OFFICE_LENS,
+  OWN_SELLER_LENS,
+  SELLER_LENS,
+  type CommissionLens,
+} from "@/app/(inside)/_shared/commissions";
+
 import { CommissionRow } from "./interface";
 import {
   buildCommissionsExportRows,
@@ -12,12 +19,12 @@ import {
 } from "./utils";
 
 /** A coluna pelo cabeçalho: inserir uma coluna no meio não quebra a asserção. */
-const col = (header: string, withOffice = false) =>
-  commissionsExportHeaders(withOffice).indexOf(header);
+const col = (header: string, lens: CommissionLens = OWN_SELLER_LENS) =>
+  commissionsExportHeaders(lens).indexOf(header);
 
-/** A planilha do vendedor: sem a repartição, que é coisa de quem gerencia. */
+/** A planilha do vendedor logado: sem a repartição, que é coisa de gestão. */
 const exportRows = (rows: CommissionRow[]) =>
-  buildCommissionsExportRows(rows, false);
+  buildCommissionsExportRows(rows, OWN_SELLER_LENS);
 
 const row = (over: Partial<CommissionRow> = {}): CommissionRow => ({
   orderId: "o1",
@@ -247,13 +254,24 @@ describe("repartição entre a empresa e o vendedor", () => {
   });
 
   it("a planilha do gestor abre a comissão em três colunas", () => {
-    const [line] = buildCommissionsExportRows([row()], true);
+    const [line] = buildCommissionsExportRows([row()], OFFICE_LENS);
 
-    expect(line[col("Comissão da empresa", true)]).toBe(30);
-    expect(line[col("Repasse ao vendedor", true)]).toBe(18);
-    expect(line[col("Fica no escritório", true)]).toBe(12);
+    expect(line[col("Comissão da empresa", OFFICE_LENS)]).toBe(30);
+    expect(line[col("Repasse ao vendedor", OFFICE_LENS)]).toBe(18);
+    expect(line[col("Fica no escritório", OFFICE_LENS)]).toBe(12);
     // O vendedor continua vendo uma coluna só, com o nome antigo.
     expect(col("Repasse ao vendedor")).toBe(-1);
+  });
+
+  it("a cópia do vendedor leva a fatia DELE, e nenhuma coluna da empresa", () => {
+    // É a folha que o gestor entrega ao vendedor. Sair com o valor da empresa
+    // sob o cabeçalho "Comissão" foi o defeito que originou a revisão: o nome
+    // dele no papel e o dinheiro do escritório na coluna.
+    const [line] = buildCommissionsExportRows([row()], SELLER_LENS);
+
+    expect(line[col("Comissão", SELLER_LENS)]).toBe(18);
+    expect(col("Repasse ao vendedor", SELLER_LENS)).toBe(-1);
+    expect(col("Fica no escritório", SELLER_LENS)).toBe(-1);
   });
 });
 

@@ -20,6 +20,7 @@ import { useScopedSelection } from "@/hooks/useScopedSelection";
 import { useQuery } from "@apollo/client/react";
 import { CalendarDays, ChevronLeft, ChevronRight, Coins } from "lucide-react";
 import { useEffect, useMemo, useState } from "react";
+import { AudienceSwitch } from "./_components/AudienceSwitch";
 import { BulkActionsBar } from "./_components/BulkActionsBar";
 import { CommissionsPdfButton } from "./_components/CommissionsPdfButton";
 import { CommissionTabsBar } from "./_components/CommissionTabsBar";
@@ -43,7 +44,9 @@ import { CommissionsResponse, CommissionsSellersResponse } from "./interface";
 import { useCommissionsTable } from "./useCommissionsTable";
 import {
   addMonths,
+  type CommissionAudience,
   CommissionTab,
+  lensFor,
   isBeforeMonth,
   isInMonth,
   monthEndIso,
@@ -103,6 +106,21 @@ export default function CommissionsContent({
 
   const [tab, setTab] = useState<CommissionTab>("receivable");
 
+  // ── De quem é o dinheiro da tela ───────────────────────────────────────────
+  // Abre no ESCRITÓRIO: é o trabalho diário de quem gerencia (conferir o que a
+  // fábrica pagou). A ótica do vendedor responde outra pergunta — "o que eu
+  // devo a ele" — e o vendedor logado só tem essa, com os campos principais já
+  // no nível dele (ver `lensFor`).
+  const [audience, setAudience] = useState<CommissionAudience>("office");
+  const lens = useMemo(
+    () => lensFor(audience, canManage),
+    [audience, canManage]
+  );
+  // Os rótulos da tela só se especializam quando existem DUAS óticas para
+  // escolher: para o vendedor, "a comissão" é a dele e chamá-la de "repasse ao
+  // vendedor" seria explicar-lhe uma distinção que não existe na tela dele.
+  const isSellerView = canManage && lens.audience === "seller";
+
   // ── Navegador de mês global (pela data em que a comissão cai) ───────────────
   // Abre no MÊS CORRENTE — é o mês que a pessoa veio ver — e só recua quando
   // ele está vazio (ver o efeito do `latestReceiveDate`). Depois disso respeita
@@ -135,7 +153,7 @@ export default function CommissionsContent({
   // Filtro e ordenação valem para a tela toda: os KPIs, os cartões das fábricas
   // e o painel de estorno leem as MESMAS linhas. Um filtro que valesse só dentro
   // de um cartão faria o total lá em cima contradizer a tabela logo abaixo dele.
-  const table = useCommissionsTable(rows, canManage);
+  const table = useCommissionsTable(rows, canManage, lens);
   const visibleRows = table.displayedData;
   const isFiltered = table.totalItems < table.totalUnfiltered;
 
@@ -162,8 +180,8 @@ export default function CommissionsContent({
   }, [monthPinned, latestReceiveDate, rows, month]);
 
   const monthTotals = useMemo(
-    () => summarizeMonth(visibleRows, month),
-    [visibleRows, month]
+    () => summarizeMonth(visibleRows, month, lens),
+    [visibleRows, month, lens]
   );
   const isCurrentMonth = useMemo(() => {
     const now = yearMonthFromIso(getTodayIso());
@@ -175,8 +193,8 @@ export default function CommissionsContent({
   // próprio seletor de mês e o de cima só mexia nos totais: dois lugares para
   // escolher a mesma coisa, mostrando meses diferentes na mesma tela.
   const filteredRows = useMemo(
-    () => filterByTab(filterByMonth(visibleRows, month, tab), tab),
-    [visibleRows, tab, month]
+    () => filterByTab(filterByMonth(visibleRows, month, tab, lens), tab, lens),
+    [visibleRows, tab, month, lens]
   );
 
   // Quantas parcelas o mês e a situação deixam passar ANTES do painel de
@@ -184,8 +202,8 @@ export default function CommissionsContent({
   // `totalUnfiltered` não serve — ele conta a resposta inteira do servidor, que
   // inclui outros meses (estorno do vendedor, boleto travado).
   const scopeTotal = useMemo(
-    () => filterByTab(filterByMonth(rows, month, tab), tab).length,
-    [rows, tab, month]
+    () => filterByTab(filterByMonth(rows, month, tab, lens), tab, lens).length,
+    [rows, tab, month, lens]
   );
 
   // Agrupado por fábrica trabalhada — é assim que a fábrica manda a planilha.
@@ -197,11 +215,11 @@ export default function CommissionsContent({
   const selection = useScopedSelection();
   const { clear: clearSelection } = selection;
 
-  // Trocar de mês, de situação ou de vendedor troca as linhas debaixo do lote —
-  // manter a seleção marcaria parcelas que saíram da tela.
+  // Trocar de mês, de situação, de vendedor ou de ótica troca as linhas debaixo
+  // do lote — manter a seleção marcaria parcelas que saíram da tela.
   useEffect(() => {
     clearSelection();
-  }, [month, tab, selectedSellerId, clearSelection]);
+  }, [month, tab, selectedSellerId, audience, clearSelection]);
 
   const selectedRows = useMemo(() => {
     if (selection.count === 0) return [];
@@ -237,7 +255,7 @@ export default function CommissionsContent({
             <PanelHeader.Title>Comissões</PanelHeader.Title>
             <PanelHeader.Description>
               {canManage
-                ? "O que cada vendedor tem para receber das fábricas. Escolha o vendedor e o mês para ver quanto ele vai ganhar."
+                ? "O que as fábricas devem ao escritório pelos pedidos de cada vendedor. Escolha o vendedor e o mês; o repasse que sai para ele aparece na linha abaixo dos cartões."
                 : "Quanto você tem para ganhar de comissão, por fábrica e por mês."}
             </PanelHeader.Description>
             {canSelectSeller && (
@@ -261,6 +279,9 @@ export default function CommissionsContent({
                     label="Sobre o seletor de vendedor"
                     content={SELLER_SELECT_HELP}
                   />
+                  {/* Duas perguntas que andam juntas: de QUEM são as comissões
+                      e DE QUEM é o dinheiro que a tela conta. */}
+                  <AudienceSwitch value={audience} onChange={setAudience} />
                 </div>
               </PanelHeader.Actions>
             )}
@@ -299,6 +320,7 @@ export default function CommissionsContent({
                   sellerId={selectedSellerId}
                   month={month}
                   sellerName={sellerName}
+                  canManage={canManage}
                   disabled={showSkeleton}
                 />
                 <HelpTooltip label="O que sai no PDF" content={PDF_HELP} />
@@ -353,7 +375,8 @@ export default function CommissionsContent({
                 <Grid.Item>
                   <Card.Kpi>
                     <Card.Kpi.Label className="inline-flex items-center gap-2">
-                      A receber em {monthLabel(month)}
+                      {isSellerView ? "Repasse a receber em " : "A receber em "}
+                      {monthLabel(month)}
                       <HelpTooltip
                         label="Sobre o valor a receber no mês"
                         content={KPI_RECEIVABLE_HELP}
@@ -372,7 +395,8 @@ export default function CommissionsContent({
                 <Grid.Item>
                   <Card.Kpi>
                     <Card.Kpi.Label className="inline-flex items-center gap-2">
-                      Previsto em {monthLabel(month)}
+                      {isSellerView ? "Repasse previsto em " : "Previsto em "}
+                      {monthLabel(month)}
                       <HelpTooltip
                         label="Sobre o valor previsto no mês"
                         content={KPI_PENDING_HELP}
@@ -389,7 +413,8 @@ export default function CommissionsContent({
                 <Grid.Item>
                   <Card.Kpi>
                     <Card.Kpi.Label className="inline-flex items-center gap-2">
-                      Recebido em {monthLabel(month)}
+                      {isSellerView ? "Repassado em " : "Recebido em "}
+                      {monthLabel(month)}
                       <HelpTooltip
                         label="Sobre o valor recebido no mês"
                         content={KPI_RECEIVED_HELP}
@@ -398,7 +423,11 @@ export default function CommissionsContent({
                     <Card.Kpi.Value status="ok">
                       {formatMoney(monthTotals.received)}
                     </Card.Kpi.Value>
-                    <Card.Kpi.Delta>Já repassado pelas fábricas</Card.Kpi.Delta>
+                    <Card.Kpi.Delta>
+                      {isSellerView
+                        ? "Já pago pelo escritório ao vendedor"
+                        : "Já repassado pelas fábricas"}
+                    </Card.Kpi.Delta>
                   </Card.Kpi>
                 </Grid.Item>
               </>
@@ -419,7 +448,11 @@ export default function CommissionsContent({
               por isso fica colado neles, numa linha só. Como três cartões
               empilhados, competia com os KPIs e virava paredão de número. Só
               para gestão: na visão do vendedor a comissão já É a fatia dele. */}
-          {!showSkeleton && canManage && (
+          {/* Fora da ótica do escritório ele sai: a repartição é medida no
+              calendário da fábrica (ver `officeSplit`), e ao lado de cartões
+              que estão somando o ciclo do vendedor os três números não
+              fechariam com nada visível na tela. */}
+          {!showSkeleton && canManage && !isSellerView && (
             <OfficeSplitPanel
               rows={visibleRows}
               month={month}
@@ -453,6 +486,7 @@ export default function CommissionsContent({
             <ListScopeLine
               tab={tab}
               month={month}
+              audience={canManage ? lens.audience : undefined}
               shown={filteredRows.length}
               total={scopeTotal}
             />
@@ -512,6 +546,7 @@ export default function CommissionsContent({
                   tab={tab}
                   defaultOpen={i === 0}
                   canManage={canManage}
+                  lens={lens}
                   sort={table.sort}
                   selectedIds={
                     canManage

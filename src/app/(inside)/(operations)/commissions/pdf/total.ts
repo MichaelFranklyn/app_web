@@ -2,7 +2,7 @@ import { monthLabel } from "@/utils/format/month";
 import { formatMoney } from "@/utils/format/masks";
 import { COLOR, PAGE, Pdf, setDraw, setFill, setText } from "@/utils/pdf/theme";
 
-import { NextMonthPreview } from "../utils";
+import { CommissionLens, NextMonthPreview, OFFICE_LENS } from "../utils";
 
 const TOTAL_H = 34;
 const TOTAL_W = 300;
@@ -30,6 +30,10 @@ export interface MonthTotals {
  * da conta: ele não é dinheiro de ninguém ainda, e somá-lo faria o papel
  * prometer um mês maior do que o que a fábrica vai pagar.
  *
+ * Quem paga muda com a ótica — a fábrica paga o escritório, o escritório
+ * repassa o vendedor —, então os dois rótulos vêm da lente. No extrato do
+ * vendedor, "a receber das fábricas" apontaria para quem não lhe deve nada.
+ *
  * Por último vem o MÊS SEGUINTE, que é a pergunta que se faz assim que o mês
  * fecha. Ele fecha o documento com a mesma disciplina do total: o firme em
  * destaque, o previsto ao lado e escrito que ainda pode crescer — a comissão
@@ -40,7 +44,9 @@ export const drawMonthTotal = (
   pdf: Pdf,
   totals: MonthTotals,
   startY: number,
-  onNewPage: () => number
+  onNewPage: () => number,
+  // A ótica do papel: ela nomeia quem deve e quem já pagou.
+  lens: CommissionLens = OFFICE_LENS
 ): number => {
   const pageW = pdf.internal.pageSize.getWidth();
   const pageH = pdf.internal.pageSize.getHeight();
@@ -62,8 +68,8 @@ export const drawMonthTotal = (
     y += LINE_H;
   };
 
-  line("A receber das fábricas", totals.receivable);
-  line("Já recebido no mês", totals.received);
+  line(lens.receivableLabel, totals.receivable);
+  line(lens.receivedLabel, totals.received);
 
   setDraw(pdf, COLOR.line);
   pdf.line(left, y, right, y);

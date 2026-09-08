@@ -5,12 +5,14 @@ import {
   factoryHighlights,
   filterByMonth,
   filterByTab,
+  summarizeMonth,
   groupByFactory,
   isInMonth,
   boletoLabel,
   lensFor,
   monthReport,
   OFFICE_LENS,
+  OWN_SELLER_LENS,
   SELLER_LENS,
   type YearMonth,
   officeSplit,
@@ -643,6 +645,93 @@ describe("defaultImpact", () => {
   });
 });
 
+describe("a ótica governa a tela inteira", () => {
+  /**
+   * O seletor "Valores de: escritório / vendedor" refaz os números da tela toda.
+   * Sem isto, os cartões diziam "A receber em setembro" com o dinheiro da
+   * empresa enquanto o extrato do vendedor trazia outro número e outro mês — e
+   * quem lia concluía que um dos dois estava errado.
+   */
+  const setembro: YearMonth = { year: 2026, month: 9 };
+
+  /** A fábrica paga o escritório em setembro; o escritório paga o vendedor em outubro. */
+  const parcela = row({
+    installmentId: "p1",
+    amount: "1000",
+    status: "receivable",
+    receiveDate: "2026-09-15",
+    sellerAmount: "430",
+    sellerStatus: "receivable",
+    sellerReceiveDate: "2026-10-05",
+  });
+
+  it("o mês da lista é o do calendário da ótica", () => {
+    expect(
+      filterByMonth([parcela], setembro, "receivable", OFFICE_LENS)
+    ).toHaveLength(1);
+    expect(
+      filterByMonth([parcela], setembro, "receivable", SELLER_LENS)
+    ).toHaveLength(0);
+    expect(
+      filterByMonth(
+        [parcela],
+        { year: 2026, month: 10 },
+        "receivable",
+        SELLER_LENS
+      )
+    ).toHaveLength(1);
+  });
+
+  it("a aba recorta pela situação da ótica", () => {
+    // A fábrica já pagou o escritório, que ainda não repassou: "recebida" para
+    // um, "a receber" para o outro. A mesma aba mostra listas diferentes.
+    const meioCaminho = [
+      row({ status: "received", sellerStatus: "receivable" }),
+    ];
+    expect(filterByTab(meioCaminho, "received", OFFICE_LENS)).toHaveLength(1);
+    expect(filterByTab(meioCaminho, "received", SELLER_LENS)).toHaveLength(0);
+    expect(filterByTab(meioCaminho, "receivable", SELLER_LENS)).toHaveLength(1);
+  });
+
+  it("a aba de boleto travado não muda de ótica — o boleto é do cliente", () => {
+    const travada = [
+      row({ isOverdue: true, status: "pending", sellerStatus: "pending" }),
+    ];
+    expect(filterByTab(travada, "overdue", OFFICE_LENS)).toHaveLength(1);
+    expect(filterByTab(travada, "overdue", SELLER_LENS)).toHaveLength(1);
+  });
+
+  it("os cartões do mês somam o dinheiro da ótica", () => {
+    expect(summarizeMonth([parcela], setembro, OFFICE_LENS).receivable).toBe(
+      1000
+    );
+    expect(summarizeMonth([parcela], setembro, SELLER_LENS).receivable).toBe(0);
+    expect(
+      summarizeMonth([parcela], { year: 2026, month: 10 }, SELLER_LENS)
+        .receivable
+    ).toBe(430);
+  });
+
+  it("o cartão da fábrica destaca o valor da ótica", () => {
+    expect(summarizeRows([parcela], OFFICE_LENS).receivable).toBe(1000);
+    expect(summarizeRows([parcela], SELLER_LENS).receivable).toBe(430);
+  });
+
+  it('"Receber tudo desta fábrica" ignora a ótica: o botão é do escritório', () => {
+    // O lote marca que a FÁBRICA pagou. Se os ids seguissem a ótica do
+    // vendedor, o botão marcaria as parcelas que o ESCRITÓRIO ainda deve a ele
+    // — outra pergunta, outra data, e um recebimento lançado onde não houve.
+    const jaRecebida = row({
+      installmentId: "p2",
+      status: "received",
+      sellerStatus: "receivable",
+    });
+
+    expect(summarizeRows([jaRecebida], SELLER_LENS).receivableIds).toEqual([]);
+    expect(summarizeRows([parcela], SELLER_LENS).receivableIds).toEqual(["p1"]);
+  });
+});
+
 describe("as duas óticas do fechamento", () => {
   /**
    * Cada parcela carrega duas comissões: a do escritório (o que a fábrica
@@ -739,14 +828,34 @@ describe("as duas óticas do fechamento", () => {
   });
 
   describe("lensFor", () => {
-    it("com vendedor escolhido, usa a ótica dele", () => {
-      expect(lensFor("seller-1")).toBe(SELLER_LENS);
+    it("o gestor escolhe de quem é o papel", () => {
+      expect(lensFor("seller", true)).toBe(SELLER_LENS);
+      expect(lensFor("office", true)).toBe(OFFICE_LENS);
     });
 
-    it("sem vendedor, é o consolidado do escritório", () => {
-      // Vale também quando o próprio vendedor abre a tela: ali ele não pediu o
-      // papel de ninguém, e a query já traz só o que é dele.
-      expect(lensFor(null)).toBe(OFFICE_LENS);
+    it("o vendedor logado só tem a ótica dele, e lê os campos principais", () => {
+      // O backend monta a lista no nível de quem pergunta: para o vendedor,
+      // `amount` JÁ é a fatia dele e `sellerAmount` repete o mesmo número.
+      // Se a lista um dia passar a vir sempre no nível do escritório, é ESTA
+      // lente que muda — e o papel dele não pode virar o da empresa calado.
+      const lente = lensFor("office", false);
+      expect(lente).toBe(OWN_SELLER_LENS);
+      expect(lensFor("seller", false)).toBe(OWN_SELLER_LENS);
+
+      const linha = row({ amount: "40", sellerAmount: "40" });
+      expect(lente.amount(linha)).toBe(40);
+      expect(lente.audience).toBe("seller");
+    });
+
+    it("cada ótica nomeia quem paga", () => {
+      // O extrato do vendedor não pode dizer "a receber das fábricas": quem
+      // deve a ele é o escritório, e o papel impresso não tem outra pista.
+      expect(OFFICE_LENS.receivableLabel).toContain("fábricas");
+      expect(SELLER_LENS.receivableLabel).toContain("escritório");
+      expect(SELLER_LENS.receivedLabel).toContain("repassado");
+      expect(OFFICE_LENS.title).not.toBe(SELLER_LENS.title);
+      // Os dois papéis do mesmo mês convivem na pasta de downloads.
+      expect(OFFICE_LENS.fileTag).not.toBe(SELLER_LENS.fileTag);
     });
   });
 

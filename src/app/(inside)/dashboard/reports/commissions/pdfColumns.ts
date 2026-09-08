@@ -1,4 +1,7 @@
-import { COMMISSION_STATUS_LABEL } from "@/app/(inside)/_shared/commissions";
+import {
+  COMMISSION_STATUS_LABEL,
+  type CommissionLens,
+} from "@/app/(inside)/_shared/commissions";
 import { clientName, factoryName } from "@/utils/company";
 import { formatDateDMY, formatMoney } from "@/utils/format/masks";
 import { ReportColumn } from "@/utils/pdf/table";
@@ -35,22 +38,32 @@ const WIDTH = {
  * Colunas do PDF de comissões — a ordem em que se confere contra a planilha da
  * fábrica: quando cai, de quem, de qual fábrica, e quanto.
  *
- * Para quem gerencia, o papel abre a comissão em duas: o que a fábrica paga à
- * empresa e o que dela vai para o vendedor.
+ * A LENTE decide de quem é o dinheiro (ver `_shared/commissions/lens`). No
+ * fechamento do escritório o papel abre a comissão em duas — o que a fábrica
+ * paga à empresa e o que dela vai ao vendedor. No extrato do vendedor não há o
+ * que repartir: a coluna de comissão passa a ser a fatia DELE, na data DELE e
+ * na situação DELE, e as duas colunas da repartição somem. Imprimir o valor da
+ * empresa numa folha entregue ao vendedor foi o defeito que originou tudo isto.
  *
  * A parcela leva o valor do boleto ao lado da comissão porque é o par que se
  * checa: a fábrica manda o valor faturado, e a comissão é o percentual dele.
  */
 export const commissionsPdfColumns = (
-  withOffice: boolean
+  lens: CommissionLens
 ): ReportColumn<CommissionRow>[] => {
+  const withOffice = lens.audience === "office";
   const w = (key: keyof typeof WIDTH) => WIDTH[key][withOffice ? 1 : 0];
 
   return [
     {
       header: "RECEBIMENTO",
       width: w("receiveDate"),
-      value: (row) => (row.receiveDate ? formatDateDMY(row.receiveDate) : "—"),
+      value: (row) => {
+        // A data é a da ótica: o vendedor é pago no ciclo dele, e uma folha com
+        // a fatia dele na data da fábrica poria o dinheiro no mês errado.
+        const date = lens.receiveDate(row);
+        return date ? formatDateDMY(date) : "—";
+      },
     },
     {
       header: "CLIENTE",
@@ -90,11 +103,11 @@ export const commissionsPdfColumns = (
       // "COMISSÃO" e não "COMISSÃO DA EMPRESA": o cabeçalho maior não cabe na
       // coluna, e as duas colunas seguintes já dizem de quem é cada fatia — a
       // faixa de números no topo do papel soletra "Comissão da empresa".
-      header: "COMISSÃO",
+      header: lens.amountHeader,
       width: w("amount"),
       align: "right",
       bold: true,
-      value: (row) => formatMoney(row.amount),
+      value: (row) => formatMoney(lens.amount(row)),
     },
     // A repartição só faz sentido para quem enxerga o nível do escritório: na
     // visão do vendedor, a comissão acima JÁ é a fatia dele.
@@ -119,7 +132,9 @@ export const commissionsPdfColumns = (
     {
       header: "SITUAÇÃO",
       width: w("status"),
-      value: (row) => COMMISSION_STATUS_LABEL[row.status],
+      // A mesma parcela pode estar "recebida" para o escritório e "a receber"
+      // para o vendedor: cada papel mostra a situação da sua ótica.
+      value: (row) => COMMISSION_STATUS_LABEL[lens.status(row)],
     },
     {
       header: "CONF.",

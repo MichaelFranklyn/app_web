@@ -6,7 +6,11 @@ import { LocalField, useLocalTable } from "@/hooks/useLocalTable";
 import { clientName, factoryName } from "@/utils/company";
 import { useMemo } from "react";
 import { CommissionRow } from "./interface";
-import { COMMISSION_STATUS_LABEL } from "./utils";
+import {
+  COMMISSION_STATUS_LABEL,
+  type CommissionLens,
+  OFFICE_LENS,
+} from "./utils";
 
 /**
  * Situação do BOLETO — a coluna "Boleto" da tabela, que não se confunde com a
@@ -34,8 +38,14 @@ const RECONCILED_OPTIONS: SelectOption[] = [
 /**
  * Os filtros do painel. As opções de fábrica e situação saem das PRÓPRIAS
  * linhas (ver `optionsFrom`), então nenhuma escolha devolve lista vazia.
+ *
+ * Função da lente porque a situação da comissão é diferente nos dois níveis:
+ * filtrar por "Recebido" na ótica do vendedor tem de trazer o que o ESCRITÓRIO
+ * repassou a ele, não o que a fábrica pagou à empresa.
  */
-const FIELDS: Record<string, LocalField<CommissionRow>> = {
+const fieldsFor = (
+  lens: CommissionLens
+): Record<string, LocalField<CommissionRow>> => ({
   search: {
     type: "text",
     // Cliente e pedido no mesmo campo: quem confere a planilha da fábrica tem
@@ -57,7 +67,7 @@ const FIELDS: Record<string, LocalField<CommissionRow>> = {
   },
   status: {
     type: "select",
-    match: (row, value) => row.status === value,
+    match: (row, value) => lens.status(row) === value,
   },
   installmentState: {
     type: "select",
@@ -67,13 +77,13 @@ const FIELDS: Record<string, LocalField<CommissionRow>> = {
     type: "select",
     match: (row, value) => row.isReconciled === (value === "yes"),
   },
-};
+});
 
 /**
  * O que cada coluna ordenável compara. A chave é o `sortKey` do `Table.Head` —
  * livre, porque quem ordena é o navegador (a lista inteira já está em memória).
  */
-const COLUMNS = {
+const columnsFor = (lens: CommissionLens) => ({
   client: (row: CommissionRow) => clientName(row.client),
   order: (row: CommissionRow) => row.orderId,
   // Sem nota vai para o fim em ordem crescente: a lista abre pelo que dá para
@@ -81,11 +91,14 @@ const COLUMNS = {
   invoiceNumber: (row: CommissionRow) => row.invoiceNumber ?? "zzzz",
   sequence: (row: CommissionRow) => row.sequence,
   dueDate: (row: CommissionRow) => row.dueDate,
-  receiveDate: (row: CommissionRow) => row.receiveDate,
-  amount: (row: CommissionRow) => Number(row.amount),
-  status: (row: CommissionRow) => COMMISSION_STATUS_LABEL[row.status],
+  // Data, valor e situação são os três campos que mudam com a ótica: ordenar
+  // pelos do escritório enquanto a coluna mostra os do vendedor deixaria a
+  // lista fora de ordem aos olhos de quem a lê.
+  receiveDate: (row: CommissionRow) => lens.receiveDate(row),
+  amount: (row: CommissionRow) => lens.amount(row),
+  status: (row: CommissionRow) => COMMISSION_STATUS_LABEL[lens.status(row)],
   reconciled: (row: CommissionRow) => (row.isReconciled ? 1 : 0),
-};
+});
 
 const optionsFrom = (
   rows: CommissionRow[],
@@ -115,12 +128,16 @@ const optionsFrom = (
  */
 export const useCommissionsTable = (
   rows: CommissionRow[],
-  canManage: boolean
+  canManage: boolean,
+  lens: CommissionLens = OFFICE_LENS
 ) => {
+  const columns = useMemo(() => columnsFor(lens), [lens]);
+  const fields = useMemo(() => fieldsFor(lens), [lens]);
+
   const table = useLocalTable<CommissionRow>({
     items: rows,
-    columns: COLUMNS,
-    fields: FIELDS,
+    columns,
+    fields,
   });
 
   const filterFields = useMemo<FilterField[]>(
@@ -148,8 +165,8 @@ export const useCommissionsTable = (
         label: "Situação da comissão",
         placeholder: "Todas as situações",
         options: optionsFrom(rows, (row) => ({
-          value: row.status,
-          label: COMMISSION_STATUS_LABEL[row.status],
+          value: lens.status(row),
+          label: COMMISSION_STATUS_LABEL[lens.status(row)],
         })),
       },
       {
@@ -170,7 +187,7 @@ export const useCommissionsTable = (
         hidden: !canManage,
       },
     ],
-    [rows, canManage]
+    [rows, canManage, lens]
   );
 
   return { ...table, filterFields };

@@ -1,5 +1,6 @@
 import {
   COMMISSION_STATUS_LABEL,
+  type CommissionLens,
   type CommissionStatus,
   groupByFactory,
 } from "@/app/(inside)/_shared/commissions";
@@ -281,44 +282,49 @@ export const COMMISSIONS_SORT_LABELS: Record<string, SortLabel> = {
 /**
  * Cabeçalhos da planilha.
  *
- * `withOffice` acrescenta a repartição entre a empresa e o vendedor. Ela sai
- * para quem gerencia; para o vendedor, `Comissão` JÁ é a dele e as duas
- * colunas extras seriam uma repetição e um zero.
+ * A ótica do escritório acrescenta a repartição entre a empresa e o vendedor.
+ * No extrato do vendedor ela não sai: `Comissão` ali JÁ é a fatia dele, e as
+ * duas colunas extras seriam o dinheiro da empresa numa folha que é dele.
  */
-export const commissionsExportHeaders = (withOffice: boolean): string[] => [
-  "Recebimento",
-  "Cliente",
-  "Fábrica",
-  "Vendedor",
-  "Nota fiscal",
-  "Parcela",
-  "Valor da parcela",
-  withOffice ? "Comissão da empresa" : "Comissão",
-  ...(withOffice ? ["Repasse ao vendedor", "Fica no escritório"] : []),
-  "Situação",
-  "Conferida",
-];
+export const commissionsExportHeaders = (lens: CommissionLens): string[] => {
+  const withOffice = lens.audience === "office";
+  return [
+    "Recebimento",
+    "Cliente",
+    "Fábrica",
+    "Vendedor",
+    "Nota fiscal",
+    "Parcela",
+    "Valor da parcela",
+    withOffice ? "Comissão da empresa" : "Comissão",
+    ...(withOffice ? ["Repasse ao vendedor", "Fica no escritório"] : []),
+    "Situação",
+    "Conferida",
+  ];
+};
 
 export const buildCommissionsExportRows = (
   rows: CommissionRow[],
-  withOffice: boolean
+  lens: CommissionLens
 ): (string | number)[][] =>
   rows.map((row) => [
-    row.receiveDate ? formatDateDMY(row.receiveDate) : "—",
+    lens.receiveDate(row)
+      ? formatDateDMY(lens.receiveDate(row) as string)
+      : "—",
     clientName(row.client),
     factoryName(row.factory),
     row.seller?.name ?? "—",
     row.invoiceNumber ?? "—",
     String(row.sequence),
     Number(row.installmentAmount),
-    Number(row.amount),
-    ...(withOffice
+    lens.amount(row),
+    ...(lens.audience === "office"
       ? [
           Number(row.sellerAmount),
           Number(row.amount) - Number(row.sellerAmount),
         ]
       : []),
-    COMMISSION_STATUS_LABEL[row.status],
+    COMMISSION_STATUS_LABEL[lens.status(row)],
     row.isReconciled ? "Sim" : "Não",
   ]);
 

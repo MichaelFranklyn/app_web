@@ -7,10 +7,12 @@ import { formatMoney } from "@/utils/format/masks";
 import { ChevronDown } from "lucide-react";
 import { useEffect, useMemo, useState } from "react";
 import {
+  type CommissionLens,
   CommissionTab,
   factoryHighlights,
   FactoryGroup,
   monthLabel,
+  OFFICE_LENS,
   summarizeRows,
   YearMonth,
 } from "../../utils";
@@ -31,6 +33,8 @@ interface Props {
   defaultOpen?: boolean;
   /** Gestor (admin/owner): mostra conferência e repasse. Vendedor: só visualiza. */
   canManage: boolean;
+  /** De quem é o dinheiro que o cartão destaca e a tabela imprime. */
+  lens?: CommissionLens;
   /**
    * Ordenação da tela, publicada para os cabeçalhos desta tabela. É a MESMA de
    * todos os cartões: escolhida uma vez, as fábricas ficam comparáveis entre si.
@@ -66,6 +70,7 @@ export function FactoryCommissionGroup({
   tab,
   defaultOpen = false,
   canManage,
+  lens = OFFICE_LENS,
   sort,
   selectedIds,
   onToggleRow,
@@ -81,7 +86,10 @@ export function FactoryCommissionGroup({
     if (selectedCount > 0) setOpen(true);
   }, [selectedCount]);
 
-  const summary = useMemo(() => summarizeRows(group.rows), [group.rows]);
+  const summary = useMemo(
+    () => summarizeRows(group.rows, lens),
+    [group.rows, lens]
+  );
   const highlights = useMemo(
     () => factoryHighlights(summary, tab),
     [summary, tab]
@@ -146,13 +154,19 @@ export function FactoryCommissionGroup({
               </Title>
             </div>
           ))}
-          {canManage && summary.receivableIds.length > 0 && (
-            <MarkReceivedModal
-              installmentIds={summary.receivableIds}
-              label={`Receber tudo desta fábrica (${summary.receivableIds.length})`}
-              onSuccess={onChanged}
-            />
-          )}
+          {/* "Receber tudo" marca que a FÁBRICA pagou — é sempre o nível do
+              escritório. Na ótica do vendedor ele ficaria ao lado de valores
+              que não são os que o botão movimenta; a ação continua disponível
+              trocando a ótica lá em cima (e uma a uma, na linha). */}
+          {canManage &&
+            lens.audience === "office" &&
+            summary.receivableIds.length > 0 && (
+              <MarkReceivedModal
+                installmentIds={summary.receivableIds}
+                label={`Receber tudo desta fábrica (${summary.receivableIds.length})`}
+                onSuccess={onChanged}
+              />
+            )}
         </div>
       </div>
 
@@ -162,6 +176,7 @@ export function FactoryCommissionGroup({
             rows={group.rows}
             loading={false}
             canManage={canManage}
+            lens={lens}
             selectedIds={selectedIds ?? EMPTY_SELECTION}
             onToggleRow={onToggleRow}
             onToggleAll={
