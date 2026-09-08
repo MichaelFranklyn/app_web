@@ -9,12 +9,14 @@ export const REVENUE_BY_SELLER_MONTH_QUERY = gql`
     $from: Date
     $to: Date
     $sellerId: UUID
+    $factoryId: UUID
     $limit: Int
   ) {
     revenueBySellerMonth(
       from: $from
       to: $to
       sellerId: $sellerId
+      factoryId: $factoryId
       limit: $limit
     ) {
       month
@@ -31,12 +33,14 @@ export const REVENUE_BY_FACTORY_MONTH_QUERY = gql`
     $from: Date
     $to: Date
     $sellerId: UUID
+    $factoryId: UUID
     $limit: Int
   ) {
     revenueByFactoryMonth(
       from: $from
       to: $to
       sellerId: $sellerId
+      factoryId: $factoryId
       limit: $limit
     ) {
       month

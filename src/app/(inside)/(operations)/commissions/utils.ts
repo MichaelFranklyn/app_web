@@ -256,6 +256,10 @@ export const lensFor = (sellerId: string | null): CommissionLens =>
 /**
  * Ordena para a conferência: pela data em que a comissão cai (as sem data por
  * último) e, no empate, por cliente — a mesma leitura da planilha da fábrica.
+ *
+ * Recebe a lente porque a data que ordena é a da ótica: no papel do vendedor as
+ * linhas seguem o calendário DELE, senão a ordem não bate com os valores da
+ * coluna ao lado.
  */
 const byReceiveDateWith =
   (lens: CommissionLens) =>
@@ -263,11 +267,6 @@ const byReceiveDateWith =
     (lens.receiveDate(a) ?? "9999-12-31").localeCompare(
       lens.receiveDate(b) ?? "9999-12-31"
     ) || clientName(a.client).localeCompare(clientName(b.client), "pt-BR");
-
-const byReceiveDate = (a: CommissionRow, b: CommissionRow): number =>
-  (a.receiveDate ?? "9999-12-31").localeCompare(
-    b.receiveDate ?? "9999-12-31"
-  ) || clientName(a.client).localeCompare(clientName(b.client), "pt-BR");
 
 /** Agrupa por fábrica e soma cada grupo — a fábrica é a unidade de cobrança. */
 const sectionOf = (

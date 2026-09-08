@@ -3,6 +3,15 @@ export interface ChartFilters {
   from: string;
   to: string;
   sellerId: string | null;
+  /**
+   * Recorte por representada. Nulo = todas.
+   *
+   * Vai em TODAS as queries da aba menos uma: a conversão de visita não aceita
+   * o filtro, porque a visita é do cliente e cobre várias fábricas de uma vez
+   * (ver o schema de `visitConversionByMonth`). O gráfico dela avisa isso na
+   * tela em vez de mostrar um número que não responde à pergunta filtrada.
+   */
+  factoryId: string | null;
 }
 
 /**

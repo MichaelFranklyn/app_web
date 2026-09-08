@@ -6,10 +6,12 @@ import { getCookie } from "@/utils/cookies/clientCookie";
 import { useQuery } from "@apollo/client/react";
 import { useEffect, useMemo, useState } from "react";
 
-import { DASHBOARD_SELLERS_QUERY } from "../gql";
+import { DASHBOARD_FACTORIES_QUERY, DASHBOARD_SELLERS_QUERY } from "../gql";
 import {
+  DashboardFactoriesResponse,
   DashboardSellersResponse,
   DateRangeIso,
+  FactoryOption,
   SellerOption,
 } from "../interface";
 import { formatDateRangeLabel } from "../utils";
@@ -42,6 +44,9 @@ export default function AnalyticsContent() {
   const initialRange = useMemo(getLast12MonthsRangeIso, []);
   const [range, setRange] = useState<DateRangeIso>(initialRange);
   const [selectedSellerId, setSelectedSellerId] = useState<string | null>(null);
+  const [selectedFactoryId, setSelectedFactoryId] = useState<string | null>(
+    null
+  );
 
   // Cookie é client-only: lido após o mount para evitar mismatch de hidratação.
   const [canSelectSeller, setCanSelectSeller] = useState(false);
@@ -67,11 +72,47 @@ export default function AnalyticsContent() {
     [sellersQuery.data]
   );
 
+  // As representadas da empresa, para o recorte por fábrica. Sem `skip`, ao
+  // contrário da lista de vendedores: o seletor de fábrica vale para o vendedor
+  // também, e a query é `@is_authenticated` (não admin-only).
+  const factoriesQuery = useQuery<DashboardFactoriesResponse>(
+    DASHBOARD_FACTORIES_QUERY,
+    {
+      variables: { input: { first: 200 } },
+      fetchPolicy: "cache-and-network",
+    }
+  );
+  useQueryErrorToast(
+    factoriesQuery.error,
+    "Não foi possível carregar a lista de fábricas."
+  );
+  const factories: FactoryOption[] = useMemo(
+    () =>
+      (factoriesQuery.data?.dashboard_factories?.edges ?? [])
+        .map((e) => e.node)
+        // Vínculo sem fábrica é dado inconsistente (ou erro parcial da query):
+        // entraria no seletor como uma opção sem nome e sem id utilizável.
+        .filter((node) => node.factory !== null)
+        .map((node) => ({
+          // O id da FÁBRICA, não o do vínculo: é ele que `orders.factory_id`
+          // referencia, e mandar o do vínculo filtraria por nada.
+          id: node.factory!.id,
+          // O apelido do vínculo tem prioridade: é como a casa chama a fábrica.
+          name:
+            node.nickname ||
+            node.factory!.nomeFantasia ||
+            node.factory!.razaoSocial,
+        }))
+        .sort((a, b) => a.name.localeCompare(b.name, "pt-BR")),
+    [factoriesQuery.data]
+  );
+
   // Gestor começa vendo a empresa toda (sellerId null); vendedor é escopado pelo backend.
   const filters: ChartFilters = {
     from: range.from,
     to: range.to,
     sellerId: selectedSellerId,
+    factoryId: selectedFactoryId,
   };
 
   const { contextValue, downloadPdf, isExporting, listCharts } =
@@ -128,6 +169,9 @@ export default function AnalyticsContent() {
           sellers={sellers}
           selectedSellerId={selectedSellerId}
           onSelectSeller={setSelectedSellerId}
+          factories={factories}
+          selectedFactoryId={selectedFactoryId}
+          onSelectFactory={setSelectedFactoryId}
           onDownloadPdf={openPrintOptions}
           exportingPdf={isExporting}
         />

@@ -11,8 +11,18 @@ import { gql } from "@apollo/client";
  * e a operação estoura em 500 (`IllegalStateChangeError`).
  */
 export const ORDERS_AND_TICKET_BY_MONTH_QUERY = gql`
-  query OrdersAndTicketByMonth($from: Date, $to: Date, $sellerId: UUID) {
-    avgTicketByMonth(from: $from, to: $to, sellerId: $sellerId) {
+  query OrdersAndTicketByMonth(
+    $from: Date
+    $to: Date
+    $sellerId: UUID
+    $factoryId: UUID
+  ) {
+    avgTicketByMonth(
+      from: $from
+      to: $to
+      sellerId: $sellerId
+      factoryId: $factoryId
+    ) {
       month
       avgTicket
       orderCount

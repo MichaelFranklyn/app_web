@@ -38,6 +38,7 @@ describe("buildSalesFilters", () => {
       from: "2026-07-01",
       to: "2026-07-31",
       sellerId: null,
+      factoryId: null,
     });
 
     const dateFields = filters
@@ -56,6 +57,7 @@ describe("buildSalesFilters", () => {
       from: "2026-07-01",
       to: "2026-07-31",
       sellerId: null,
+      factoryId: null,
     });
 
     expect(filters).toContainEqual({
@@ -70,6 +72,7 @@ describe("buildSalesFilters", () => {
       from: "2026-07-01",
       to: "2026-07-31",
       sellerId: null,
+      factoryId: null,
     });
     expect(semVendedor).not.toContainEqual(
       expect.objectContaining({ field: "seller_id" })
@@ -79,6 +82,7 @@ describe("buildSalesFilters", () => {
       from: "2026-07-01",
       to: "2026-07-31",
       sellerId: "s1",
+      factoryId: null,
     });
     expect(comVendedor).toContainEqual({
       field: "seller_id",

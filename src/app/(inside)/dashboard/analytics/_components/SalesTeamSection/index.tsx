@@ -49,7 +49,15 @@ export function SalesTeamSection({ filters, canCompareSellers }: Props) {
         <Grid.Item>
           <LazyChartCard
             title="Visitas que viraram pedido"
-            description="Quantas visitas foram feitas e quanto delas rendeu venda."
+            // O que o filtro NÃO governa vai escrito: com uma fábrica
+            // escolhida, este é o único gráfico da tela que continua mostrando
+            // todas. Sem a frase, o número pareceria filtrado e seria lido como
+            // se fosse — o pior tipo de erro num painel.
+            description={
+              filters.factoryId
+                ? "Quantas visitas foram feitas e quanto delas rendeu venda. Este gráfico ignora o filtro de fábrica: a visita é do cliente e cobre várias representadas de uma vez."
+                : "Quantas visitas foram feitas e quanto delas rendeu venda."
+            }
             help={CHART_HELP.visitConversion}
           >
             <VisitConversionChart filters={filters} />

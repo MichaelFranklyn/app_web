@@ -26,7 +26,7 @@ interface Props {
 }
 
 export default function AbcReportContent({ canSelectSeller }: Props) {
-  const { filters, setRange, setSellerId } = useReportFilters();
+  const { filters, setRange, setSellerId, setFactoryId } = useReportFilters();
   const report = useAbcReport(filters);
   const { context } = useReportContext(filters);
 
@@ -81,6 +81,7 @@ export default function AbcReportContent({ canSelectSeller }: Props) {
         filters={filters}
         onRangeChange={setRange}
         onSellerChange={setSellerId}
+        onFactoryChange={setFactoryId}
         canSelectSeller={canSelectSeller}
         onExportSheet={exportSheet}
         onExportPdf={exportPdf}

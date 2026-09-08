@@ -9,12 +9,14 @@ export const AVG_TICKET_BY_SELLER_QUERY = gql`
     $from: Date
     $to: Date
     $sellerId: UUID
+    $factoryId: UUID
     $limit: Int
   ) {
     avgTicketBySeller(
       from: $from
       to: $to
       sellerId: $sellerId
+      factoryId: $factoryId
       limit: $limit
     ) {
       entityId
@@ -30,12 +32,14 @@ export const AVG_TICKET_BY_FACTORY_QUERY = gql`
     $from: Date
     $to: Date
     $sellerId: UUID
+    $factoryId: UUID
     $limit: Int
   ) {
     avgTicketByFactory(
       from: $from
       to: $to
       sellerId: $sellerId
+      factoryId: $factoryId
       limit: $limit
     ) {
       entityId
@@ -51,12 +55,14 @@ export const AVG_TICKET_BY_CLIENT_QUERY = gql`
     $from: Date
     $to: Date
     $sellerId: UUID
+    $factoryId: UUID
     $limit: Int
   ) {
     avgTicketByClient(
       from: $from
       to: $to
       sellerId: $sellerId
+      factoryId: $factoryId
       limit: $limit
     ) {
       entityId
@@ -72,12 +78,14 @@ export const ORDER_INTERVAL_BY_FACTORY_QUERY = gql`
     $from: Date
     $to: Date
     $sellerId: UUID
+    $factoryId: UUID
     $limit: Int
   ) {
     orderIntervalByFactory(
       from: $from
       to: $to
       sellerId: $sellerId
+      factoryId: $factoryId
       limit: $limit
     ) {
       entityId
@@ -93,12 +101,14 @@ export const ORDER_INTERVAL_BY_CLIENT_QUERY = gql`
     $from: Date
     $to: Date
     $sellerId: UUID
+    $factoryId: UUID
     $limit: Int
   ) {
     orderIntervalByClient(
       from: $from
       to: $to
       sellerId: $sellerId
+      factoryId: $factoryId
       limit: $limit
     ) {
       entityId

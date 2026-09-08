@@ -1749,61 +1749,69 @@ type PositivationReportType {
 }
 
 extend type Query {
-  dashboardSummary(from: Date = null, to: Date = null, sellerId: UUID = null): DashboardSummary!
+  dashboardSummary(from: Date = null, to: Date = null, sellerId: UUID = null, factoryId: UUID = null): DashboardSummary!
 
 
-  revenueByMonth(from: Date = null, to: Date = null, sellerId: UUID = null): [RevenueByMonthPoint!]!
-  ordersByMonth(from: Date = null, to: Date = null, sellerId: UUID = null): [OrdersByMonthPoint!]!
-  revenueByFactory(from: Date = null, to: Date = null, sellerId: UUID = null, limit: Int = 8): [RevenueByFactoryPoint!]!
+  revenueByMonth(from: Date = null, to: Date = null, sellerId: UUID = null, factoryId: UUID = null): [RevenueByMonthPoint!]!
+  ordersByMonth(from: Date = null, to: Date = null, sellerId: UUID = null, factoryId: UUID = null): [OrdersByMonthPoint!]!
+  revenueByFactory(from: Date = null, to: Date = null, sellerId: UUID = null, factoryId: UUID = null, limit: Int = 8): [RevenueByFactoryPoint!]!
 
-  ordersByFactory(from: Date = null, to: Date = null, sellerId: UUID = null, limit: Int = 8): [OrderCountPoint!]!
-  ordersByClient(from: Date = null, to: Date = null, sellerId: UUID = null, limit: Int = 8): [OrderCountPoint!]!
-  ordersBySeller(from: Date = null, to: Date = null, sellerId: UUID = null, limit: Int = 8): [OrderCountPoint!]!
+  ordersByFactory(from: Date = null, to: Date = null, sellerId: UUID = null, factoryId: UUID = null, limit: Int = 8): [OrderCountPoint!]!
+  ordersByClient(from: Date = null, to: Date = null, sellerId: UUID = null, factoryId: UUID = null, limit: Int = 8): [OrderCountPoint!]!
+  ordersBySeller(from: Date = null, to: Date = null, sellerId: UUID = null, factoryId: UUID = null, limit: Int = 8): [OrderCountPoint!]!
 
   """Quantos pedidos caíram em cada faixa de valor. Devolve SEMPRE as cinco faixas, da menor para a maior (faixa sem pedido vem zerada)."""
-  orderSizeDistribution(from: Date = null, to: Date = null, sellerId: UUID = null): [OrderSizeBandPoint!]!
+  orderSizeDistribution(from: Date = null, to: Date = null, sellerId: UUID = null, factoryId: UUID = null): [OrderSizeBandPoint!]!
   """Pedidos por dia da semana (data do pedido). Devolve SEMPRE os sete dias, de segunda a domingo."""
-  ordersByWeekday(from: Date = null, to: Date = null, sellerId: UUID = null): [WeekdayVolumePoint!]!
+  ordersByWeekday(from: Date = null, to: Date = null, sellerId: UUID = null, factoryId: UUID = null): [WeekdayVolumePoint!]!
   """Quanto do volume de cada mês é sobra (backorder) de faturamento parcial, e não venda nova."""
-  backorderByMonth(from: Date = null, to: Date = null, sellerId: UUID = null): [BackorderByMonthPoint!]!
+  backorderByMonth(from: Date = null, to: Date = null, sellerId: UUID = null, factoryId: UUID = null): [BackorderByMonthPoint!]!
   """Itens diferentes e peças do pedido médio de cada fábrica, das mais profundas para as mais rasas."""
-  itemsPerOrderByFactory(from: Date = null, to: Date = null, sellerId: UUID = null, limit: Int = 8): [ItemsPerOrderPoint!]!
+  itemsPerOrderByFactory(from: Date = null, to: Date = null, sellerId: UUID = null, factoryId: UUID = null, limit: Int = 8): [ItemsPerOrderPoint!]!
 
-  avgTicketBySeller(from: Date = null, to: Date = null, sellerId: UUID = null, limit: Int = 8): [AvgTicketPoint!]!
-  avgTicketByFactory(from: Date = null, to: Date = null, sellerId: UUID = null, limit: Int = 8): [AvgTicketPoint!]!
-  avgTicketByClient(from: Date = null, to: Date = null, sellerId: UUID = null, limit: Int = 8): [AvgTicketPoint!]!
+  avgTicketBySeller(from: Date = null, to: Date = null, sellerId: UUID = null, factoryId: UUID = null, limit: Int = 8): [AvgTicketPoint!]!
+  avgTicketByFactory(from: Date = null, to: Date = null, sellerId: UUID = null, factoryId: UUID = null, limit: Int = 8): [AvgTicketPoint!]!
+  avgTicketByClient(from: Date = null, to: Date = null, sellerId: UUID = null, factoryId: UUID = null, limit: Int = 8): [AvgTicketPoint!]!
 
-  orderIntervalByFactory(from: Date = null, to: Date = null, sellerId: UUID = null, limit: Int = 8): [OrderIntervalPoint!]!
-  orderIntervalByClient(from: Date = null, to: Date = null, sellerId: UUID = null, limit: Int = 8): [OrderIntervalPoint!]!
+  orderIntervalByFactory(from: Date = null, to: Date = null, sellerId: UUID = null, factoryId: UUID = null, limit: Int = 8): [OrderIntervalPoint!]!
+  orderIntervalByClient(from: Date = null, to: Date = null, sellerId: UUID = null, factoryId: UUID = null, limit: Int = 8): [OrderIntervalPoint!]!
 
-  avgTicketByMonth(from: Date = null, to: Date = null, sellerId: UUID = null): [AvgTicketByMonthPoint!]!
-  newVsReturningClientsByMonth(from: Date = null, to: Date = null, sellerId: UUID = null): [NewVsReturningPoint!]!
-  orderStatusByMonth(from: Date = null, to: Date = null, sellerId: UUID = null): [OrderStatusByMonthPoint!]!
-  revenueConcentrationByClient(from: Date = null, to: Date = null, sellerId: UUID = null, limit: Int = 10): [RevenueSharePoint!]!
+  avgTicketByMonth(from: Date = null, to: Date = null, sellerId: UUID = null, factoryId: UUID = null): [AvgTicketByMonthPoint!]!
+  newVsReturningClientsByMonth(from: Date = null, to: Date = null, sellerId: UUID = null, factoryId: UUID = null): [NewVsReturningPoint!]!
+  orderStatusByMonth(from: Date = null, to: Date = null, sellerId: UUID = null, factoryId: UUID = null): [OrderStatusByMonthPoint!]!
+  revenueConcentrationByClient(from: Date = null, to: Date = null, sellerId: UUID = null, factoryId: UUID = null, limit: Int = 10): [RevenueSharePoint!]!
 
-  revenueBySellerMonth(from: Date = null, to: Date = null, sellerId: UUID = null, limit: Int = 5): [EntityMonthPoint!]!
+  revenueBySellerMonth(from: Date = null, to: Date = null, sellerId: UUID = null, factoryId: UUID = null, limit: Int = 5): [EntityMonthPoint!]!
+  """
+  Quantas visitas realizadas viraram pedido, mês a mês.
+
+  **Não aceita `factoryId`**, ao contrário das outras da aba: a visita é do
+  CLIENTE, não da fábrica — uma visita cobre várias representadas de uma vez.
+  Recortar o numerador por fábrica e deixar o denominador com todas as visitas
+  daria uma taxa que não é de ninguém.
+  """
   visitConversionByMonth(from: Date = null, to: Date = null, sellerId: UUID = null): [VisitConversionPoint!]!
-  walletCoverageBySeller(from: Date = null, to: Date = null, sellerId: UUID = null, limit: Int = 8): [WalletCoveragePoint!]!
+  walletCoverageBySeller(from: Date = null, to: Date = null, sellerId: UUID = null, factoryId: UUID = null, limit: Int = 8): [WalletCoveragePoint!]!
 
-  revenueByFactoryMonth(from: Date = null, to: Date = null, sellerId: UUID = null, limit: Int = 5): [EntityMonthPoint!]!
-  deliveryPerformanceByFactory(from: Date = null, to: Date = null, sellerId: UUID = null, limit: Int = 8): [DeliveryPerformancePoint!]!
+  revenueByFactoryMonth(from: Date = null, to: Date = null, sellerId: UUID = null, factoryId: UUID = null, limit: Int = 5): [EntityMonthPoint!]!
+  deliveryPerformanceByFactory(from: Date = null, to: Date = null, sellerId: UUID = null, factoryId: UUID = null, limit: Int = 8): [DeliveryPerformancePoint!]!
 
-  clientsAtRisk(from: Date = null, to: Date = null, sellerId: UUID = null, limit: Int = 10): [ClientRiskPoint!]!
-  clientRetentionByMonth(from: Date = null, to: Date = null, sellerId: UUID = null): [RetentionPoint!]!
+  clientsAtRisk(from: Date = null, to: Date = null, sellerId: UUID = null, factoryId: UUID = null, limit: Int = 10): [ClientRiskPoint!]!
+  clientRetentionByMonth(from: Date = null, to: Date = null, sellerId: UUID = null, factoryId: UUID = null): [RetentionPoint!]!
 
   """
   Positivação da carteira no período: uma linha por cliente com vínculo ativo e
   uma célula por fábrica, incluindo as em que ele NÃO comprou — que é o conteúdo
   do relatório. Sem corte de top-N: é um documento de conferência.
   """
-  positivationReport(from: Date = null, to: Date = null, sellerId: UUID = null): PositivationReportType!
+  positivationReport(from: Date = null, to: Date = null, sellerId: UUID = null, factoryId: UUID = null): PositivationReportType!
 
   """Faturamento por mês DE FATURAMENTO (não pela data do pedido)."""
-  invoicedRevenueByMonth(from: Date = null, to: Date = null, sellerId: UUID = null): [InvoicedByMonthPoint!]!
+  invoicedRevenueByMonth(from: Date = null, to: Date = null, sellerId: UUID = null, factoryId: UUID = null): [InvoicedByMonthPoint!]!
   """Faturamento por fábrica no período DE FATURAMENTO, maiores primeiro."""
-  invoicedRevenueByFactory(from: Date = null, to: Date = null, sellerId: UUID = null, limit: Int = 8): [InvoicedByFactoryPoint!]!
+  invoicedRevenueByFactory(from: Date = null, to: Date = null, sellerId: UUID = null, factoryId: UUID = null, limit: Int = 8): [InvoicedByFactoryPoint!]!
   """Pedidos colocados por fábrica no período (data do pedido), com a parte já faturada."""
-  placedOrdersByFactory(from: Date = null, to: Date = null, sellerId: UUID = null, limit: Int = 8): [PlacedByFactoryPoint!]!
+  placedOrdersByFactory(from: Date = null, to: Date = null, sellerId: UUID = null, factoryId: UUID = null, limit: Int = 8): [PlacedByFactoryPoint!]!
 }
 
 input CreateFactoryInput {
@@ -5093,8 +5101,12 @@ extend type Query {
   """
   Curva ABC dos clientes pelo FATURADO no período (mesma base da aba Vendas),
   com a fatia de cada um e a acumulada.
+
+  Com `factoryId`, as classes são recalculadas SÓ sobre os pedidos daquela
+  fábrica — é a resposta para "quem mais compra nesta representada", e o mesmo
+  cliente pode ser A numa e C na outra.
   """
-  clientAbcCurve(from: Date = null, to: Date = null, sellerId: UUID = null): [ClientAbcRow!]!
+  clientAbcCurve(from: Date = null, to: Date = null, sellerId: UUID = null, factoryId: UUID = null): [ClientAbcRow!]!
 
   """
   A última compra de cada cliente EM CADA FÁBRICA, uma linha por par. A situação

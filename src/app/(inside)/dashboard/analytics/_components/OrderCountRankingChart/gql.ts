@@ -5,8 +5,20 @@ import { gql } from "@apollo/client";
 // o gráfico é parametrizado por query/dataKey em vez de duplicado.
 
 export const ORDERS_BY_CLIENT_QUERY = gql`
-  query OrdersByClient($from: Date, $to: Date, $sellerId: UUID, $limit: Int) {
-    ordersByClient(from: $from, to: $to, sellerId: $sellerId, limit: $limit) {
+  query OrdersByClient(
+    $from: Date
+    $to: Date
+    $sellerId: UUID
+    $factoryId: UUID
+    $limit: Int
+  ) {
+    ordersByClient(
+      from: $from
+      to: $to
+      sellerId: $sellerId
+      factoryId: $factoryId
+      limit: $limit
+    ) {
       entityId
       entityName
       orderCount
@@ -15,8 +27,20 @@ export const ORDERS_BY_CLIENT_QUERY = gql`
 `;
 
 export const ORDERS_BY_SELLER_QUERY = gql`
-  query OrdersBySeller($from: Date, $to: Date, $sellerId: UUID, $limit: Int) {
-    ordersBySeller(from: $from, to: $to, sellerId: $sellerId, limit: $limit) {
+  query OrdersBySeller(
+    $from: Date
+    $to: Date
+    $sellerId: UUID
+    $factoryId: UUID
+    $limit: Int
+  ) {
+    ordersBySeller(
+      from: $from
+      to: $to
+      sellerId: $sellerId
+      factoryId: $factoryId
+      limit: $limit
+    ) {
       entityId
       entityName
       orderCount

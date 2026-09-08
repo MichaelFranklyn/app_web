@@ -8,8 +8,18 @@ import { gql } from "@apollo/client";
  * classe C), e um ranking dos 10 maiores responderia outra pergunta.
  */
 export const CLIENT_ABC_CURVE_QUERY = gql`
-  query ClientAbcCurve($from: Date, $to: Date, $sellerId: UUID) {
-    clientAbcCurve(from: $from, to: $to, sellerId: $sellerId) {
+  query ClientAbcCurve(
+    $from: Date
+    $to: Date
+    $sellerId: UUID
+    $factoryId: UUID
+  ) {
+    clientAbcCurve(
+      from: $from
+      to: $to
+      sellerId: $sellerId
+      factoryId: $factoryId
+    ) {
       clientId
       clientName
       rank

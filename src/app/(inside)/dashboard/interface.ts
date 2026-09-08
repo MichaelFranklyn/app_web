@@ -43,6 +43,29 @@ export interface DashboardSellersResponse {
   };
 }
 
+/** Uma fábrica no seletor de recorte. `id` é o da FÁBRICA, não o do vínculo. */
+export interface FactoryOption {
+  id: string;
+  name: string;
+}
+
+export interface DashboardFactoriesResponse {
+  dashboard_factories: {
+    edges: {
+      node: {
+        id: string;
+        nickname: string | null;
+        factory: {
+          id: string;
+          nomeFantasia: string | null;
+          razaoSocial: string;
+        } | null;
+      };
+    }[];
+    totalCount: number;
+  };
+}
+
 export type OrderStatus =
   | "DRAFT"
   | "SENT"
