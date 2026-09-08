@@ -10,7 +10,12 @@ import { formatDateDMY, formatMoney } from "@/utils/format/masks";
 import { Coins } from "lucide-react";
 import Link from "next/link";
 import { CommissionRow } from "../../interface";
-import { COMMISSION_STATUS_LABEL, COMMISSION_STATUS_TONE } from "../../utils";
+import {
+  COMMISSION_STATUS_LABEL,
+  COMMISSION_STATUS_TONE,
+  type CommissionLens,
+  OFFICE_LENS,
+} from "../../utils";
 import { ReconcileToggle } from "../ReconcileToggle";
 import { CommissionRowActions } from "./CommissionRowActions";
 import { InstallmentStateCell } from "./InstallmentStateCell";
@@ -20,6 +25,11 @@ interface Props {
   loading: boolean;
   /** Gestor vê as colunas de conferência e repasse; vendedor só visualiza. */
   canManage: boolean;
+  /**
+   * De quem é o dinheiro das colunas "Quando", "Comissão" e "Situação". As
+   * demais (cliente, pedido, nota, boleto) são da parcela e não mudam de ótica.
+   */
+  lens?: CommissionLens;
   /** Parcelas marcadas para as ações em lote (só gestão). */
   selectedIds?: Set<string>;
   onToggleRow?: (installmentId: string) => void;
@@ -28,19 +38,17 @@ interface Props {
 }
 
 /** Quando a comissão cai (ou caiu), na linguagem de cada situação. */
-const whenLabel = (row: CommissionRow): string => {
-  if (row.status === "received")
-    return `Recebido em ${formatDateDMY(row.receiveDate ?? undefined)}`;
-  if (row.status === "receivable")
-    return `Receber em ${formatDateDMY(row.receiveDate ?? undefined)}`;
-  if (row.status === "chargeback")
-    return row.receiveDate
-      ? `Desconto em ${formatDateDMY(row.receiveDate)}`
-      : "Desconto a agendar";
-  if (row.status === "pending")
-    return row.receiveDate
-      ? `Previsto p/ ${formatDateDMY(row.receiveDate)}`
-      : "Aguardando pagamento";
+const whenLabel = (row: CommissionRow, lens: CommissionLens): string => {
+  const status = lens.status(row);
+  const date = lens.receiveDate(row);
+  if (status === "received")
+    return `Recebido em ${formatDateDMY(date ?? undefined)}`;
+  if (status === "receivable")
+    return `Receber em ${formatDateDMY(date ?? undefined)}`;
+  if (status === "chargeback")
+    return date ? `Desconto em ${formatDateDMY(date)}` : "Desconto a agendar";
+  if (status === "pending")
+    return date ? `Previsto p/ ${formatDateDMY(date)}` : "Aguardando pagamento";
   return "—";
 };
 
@@ -48,6 +56,7 @@ export function CommissionsTable({
   rows,
   loading,
   canManage,
+  lens = OFFICE_LENS,
   selectedIds,
   onToggleRow,
   onToggleAll,
@@ -113,7 +122,11 @@ export function CommissionsTable({
           <Table.Head
             sortKey="receiveDate"
             sortFirst="desc"
-            title="Data em que a comissão cai (ou caiu). É por esta data que o mês lá em cima recorta a tela."
+            title={
+              lens.audience === "seller"
+                ? "Data em que o escritório repassa a comissão ao vendedor — o ciclo dele, que costuma ser diferente do da fábrica. É por esta data que o mês lá em cima recorta a tela."
+                : "Data em que a comissão cai (ou caiu). É por esta data que o mês lá em cima recorta a tela."
+            }
           >
             Quando
           </Table.Head>
@@ -121,13 +134,21 @@ export function CommissionsTable({
             sortKey="amount"
             sortFirst="desc"
             align="right"
-            title="Valor da comissão desta parcela. Estorno aparece em vermelho e com sinal negativo: é comissão que volta."
+            title={
+              lens.audience === "seller"
+                ? "A fatia do vendedor nesta parcela — o que o escritório repassa a ele. Estorno aparece em vermelho e com sinal negativo: é comissão que volta."
+                : "Valor da comissão que a fábrica paga ao escritório nesta parcela. Estorno aparece em vermelho e com sinal negativo: é comissão que volta."
+            }
           >
             Comissão
           </Table.Head>
           <Table.Head
             sortKey="status"
-            title="Situação da COMISSÃO: prevista, a receber, recebida, estorno ou devolução."
+            title={
+              lens.audience === "seller"
+                ? "Situação da comissão DO VENDEDOR: prevista, a receber, repassada, estorno ou devolução. Ela não acompanha a da fábrica — o escritório pode já ter recebido e ainda não ter repassado."
+                : "Situação da COMISSÃO: prevista, a receber, recebida, estorno ou devolução."
+            }
           >
             Situação
           </Table.Head>
@@ -204,23 +225,27 @@ export function CommissionsTable({
               <Table.Cell>
                 <InstallmentStateCell row={row} />
               </Table.Cell>
-              <Table.Cell>{whenLabel(row)}</Table.Cell>
+              <Table.Cell>{whenLabel(row, lens)}</Table.Cell>
               <Table.Cell className="text-right">
                 {/* Estorno vem negativo: sai em vermelho para não ser lido como ganho. */}
                 <Title
                   variant="body-sm"
-                  color={row.status === "chargeback" ? "red" : undefined}
-                  weight={row.status === "chargeback" ? "bold" : undefined}
+                  color={lens.status(row) === "chargeback" ? "red" : undefined}
+                  weight={
+                    lens.status(row) === "chargeback" ? "bold" : undefined
+                  }
                 >
-                  {formatMoney(row.amount)}
+                  {formatMoney(lens.amount(row))}
                 </Title>
               </Table.Cell>
               <Table.Cell>
                 <Badge.Root
-                  color={COMMISSION_STATUS_TONE[row.status]}
+                  color={COMMISSION_STATUS_TONE[lens.status(row)]}
                   appearance="tinted"
                 >
-                  <Badge.Text>{COMMISSION_STATUS_LABEL[row.status]}</Badge.Text>
+                  <Badge.Text>
+                    {COMMISSION_STATUS_LABEL[lens.status(row)]}
+                  </Badge.Text>
                 </Badge.Root>
               </Table.Cell>
               {canManage && (

@@ -1,6 +1,12 @@
 import { jsPDF } from "jspdf";
 import { describe, expect, it } from "vitest";
 
+import {
+  OFFICE_LENS,
+  OWN_SELLER_LENS,
+  SELLER_LENS,
+  type CommissionLens,
+} from "@/app/(inside)/_shared/commissions";
 import { layoutColumns } from "@/utils/pdf/table";
 
 import { commissionsPdfColumns } from "./pdfColumns";
@@ -18,9 +24,9 @@ const PAGE_W = 842;
  * serve para conferir nada. Aqui a largura é medida de verdade — este teste é o
  * que impede o próximo ajuste de peso de estourar em silêncio.
  */
-const measure = (withOffice: boolean) => {
+const measure = (lens: CommissionLens) => {
   const pdf = new jsPDF({ orientation: "landscape", unit: "pt", format: "a4" });
-  const columns = commissionsPdfColumns(withOffice);
+  const columns = commissionsPdfColumns(lens);
   const boxes = layoutColumns(columns, PAGE_W);
 
   return columns.map((column, index) => {
@@ -45,9 +51,9 @@ const moneyWidth = (text: string): number => {
 
 describe("commissionsPdfColumns", () => {
   it("nenhum cabeçalho é cortado, nas duas versões do papel", () => {
-    for (const withOffice of [false, true]) {
-      for (const column of measure(withOffice)) {
-        const quem = withOffice ? "gestor" : "vendedor";
+    for (const lens of [OWN_SELLER_LENS, SELLER_LENS, OFFICE_LENS]) {
+      for (const column of measure(lens)) {
+        const quem = lens.audience === "office" ? "gestor" : "vendedor";
         expect(
           column.width,
           `${column.header} (${quem}) precisa de ${column.width.toFixed(0)}pt e tem ${column.maxWidth.toFixed(0)}pt`
@@ -61,7 +67,7 @@ describe("commissionsPdfColumns", () => {
     // um percentual dela, então o pior caso é uma ordem de grandeza menor.
     // Perder um dígito aqui é pior do que não imprimir — o número sai plausível
     // e errado.
-    const gestor = measure(true);
+    const gestor = measure(OFFICE_LENS);
     const cabe = (header: string, pior: string) => {
       const column = gestor.find((c) => c.header === header);
       expect(column, header).toBeDefined();
@@ -80,7 +86,7 @@ describe("commissionsPdfColumns", () => {
   it("não corta a nota fiscal, que é a chave da conferência", () => {
     // A planilha da fábrica casa com a parcela PELA NOTA: meia nota não casa
     // com nada, e a conferência volta a ser cliente + valor no olho.
-    const nota = measure(true).find((c) => c.header === "NOTA")!;
+    const nota = measure(OFFICE_LENS).find((c) => c.header === "NOTA")!;
     const pdf = new jsPDF({
       orientation: "landscape",
       unit: "pt",
@@ -95,7 +101,7 @@ describe("commissionsPdfColumns", () => {
   it("a repartição entra depois da comissão da empresa, na ordem da leitura", () => {
     // Os totais do papel são endereçados por ÍNDICE (ver `buildTotals`, no
     // content): trocar a ordem aqui põe o total debaixo da coluna errada.
-    const headers = commissionsPdfColumns(true).map((c) => c.header);
+    const headers = commissionsPdfColumns(OFFICE_LENS).map((c) => c.header);
 
     expect(headers.slice(6, 10)).toEqual([
       "VALOR PARCELA",
@@ -103,7 +109,9 @@ describe("commissionsPdfColumns", () => {
       "AO VENDEDOR",
       "ESCRITÓRIO",
     ]);
-    // Sem a repartição, a comissão continua sendo a coluna 7.
-    expect(commissionsPdfColumns(false)[7].header).toBe("COMISSÃO");
+    // Sem a repartição, a comissão continua sendo a coluna 7 — o índice que o
+    // total do papel do vendedor endereça.
+    expect(commissionsPdfColumns(SELLER_LENS)[7].header).toBe("COMISSÃO");
+    expect(commissionsPdfColumns(SELLER_LENS)).toHaveLength(10);
   });
 });

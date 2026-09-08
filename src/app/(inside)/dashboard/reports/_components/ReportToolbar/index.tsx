@@ -1,6 +1,6 @@
 "use client";
 
-import { ExportMenu } from "@/components/ExportMenu";
+import { ExportMenu, ExportMenuAction } from "@/components/ExportMenu";
 import { Input, SelectOption } from "@/components/Input";
 import { useCompleteList } from "@/hooks/useCompleteList";
 import { useQueryErrorToast } from "@/hooks/useQueryErrorToast";
@@ -41,6 +41,16 @@ interface Props {
   canSelectSeller: boolean;
   onExportSheet: () => Promise<void> | void;
   onExportPdf: () => Promise<void> | void;
+  /**
+   * Saídas a mais no menu "Exportar", quando a aba tem duas versões do mesmo
+   * papel. É o caso das comissões com um vendedor filtrado: a folha do
+   * escritório traz a repartição, a do vendedor traz a fatia dele — e a
+   * diferença é dinheiro, não formatação.
+   */
+  extraExportActions?: ExportMenuAction[];
+  /** Renomeia as duas saídas padrão quando existe mais de uma versão do papel. */
+  sheetLabel?: string;
+  pdfLabel?: string;
   /** Desliga o exportar quando o relatório está vazio ou ainda carregando. */
   exportDisabled?: boolean;
 }
@@ -62,6 +72,9 @@ export function ReportToolbar({
   canSelectSeller,
   onExportSheet,
   onExportPdf,
+  extraExportActions,
+  sheetLabel,
+  pdfLabel,
   exportDisabled,
 }: Props) {
   const sellersQuery = useCompleteList<DashboardSellersResponse>(
@@ -184,6 +197,9 @@ export function ReportToolbar({
         <ExportMenu
           onExportSheet={onExportSheet}
           onExportPdf={onExportPdf}
+          extraActions={extraExportActions}
+          sheetLabel={sheetLabel}
+          pdfLabel={pdfLabel}
           disabled={exportDisabled}
         />
       </div>

@@ -27,9 +27,15 @@ export interface CommissionsPdfMeta {
   companyLogoUrl?: string | null;
 }
 
-/** Nome do arquivo: "comissoes-2026-08.pdf". */
-const filename = ({ year, month }: YearMonth): string =>
-  `comissoes-${year}-${String(month).padStart(2, "0")}.pdf`;
+/**
+ * Nome do arquivo: "comissoes-vendedor-2026-08.pdf".
+ *
+ * A ótica entra no nome porque os dois papéis do mesmo mês convivem na pasta de
+ * downloads — sem ela, gerar o segundo sobrescreve o primeiro e quem entrega ao
+ * vendedor não tem como saber qual dos dois está anexando.
+ */
+const filename = ({ year, month }: YearMonth, lens: CommissionLens): string =>
+  `comissoes-${lens.fileTag}-${year}-${String(month).padStart(2, "0")}.pdf`;
 
 /**
  * Gera e baixa o fechamento de comissões de um mês.
@@ -68,6 +74,8 @@ export const exportCommissionsPdf = async (
     companyName: meta.companyName ?? null,
     companyLogo,
     monthLabel: monthLabel(meta.month),
+    title: lens.title,
+    caption: lens.caption,
     sellerName: meta.sellerName,
     count: report.count,
     defaultedCount: report.defaulted.length,
@@ -103,11 +111,18 @@ export const exportCommissionsPdf = async (
     }
   };
 
+  // O mês das seções de comissão é o da ÓTICA: o do repasse da fábrica no
+  // fechamento do escritório, o do pagamento ao vendedor no extrato dele. São
+  // calendários diferentes, e a mesma parcela pode cair em meses distintos nos
+  // dois papéis — dizê-lo na faixa evita a conclusão de que um deles errou.
+  const cai =
+    lens.audience === "seller" ? `é repassado em ${name}` : `cai em ${name}`;
+
   commissionSection(
     "A RECEBER",
     report.receivable,
     "RECEBER EM",
-    `cai em ${name}, já líquido de estorno`
+    `${cai}, já líquido de estorno`
   );
   commissionSection("RECEBIDO", report.received, "RECEBIDO EM", `em ${name}`);
   commissionSection(
@@ -155,9 +170,10 @@ export const exportCommissionsPdf = async (
       next: report.next,
     },
     y,
-    startNewPage
+    startNewPage,
+    lens
   );
 
   drawFooters(pdf, girusLogo);
-  pdf.save(filename(meta.month));
+  pdf.save(filename(meta.month, lens));
 };

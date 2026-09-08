@@ -20,6 +20,17 @@ export interface HeaderData {
   companyLogo: LoadedImage | null;
   /** Mês do documento por extenso ("agosto de 2026"). */
   monthLabel: string;
+  /** O que o papel é: fechamento do escritório ou extrato do vendedor. */
+  title: string;
+  /**
+   * De quem é o dinheiro das colunas, escrito por extenso.
+   *
+   * O mesmo mês vale dois números — o que a fábrica paga ao escritório e o que
+   * o escritório repassa ao vendedor —, e quem recebe a folha impressa não tem
+   * como saber qual dos dois está lendo. Sem esta linha, o papel do vendedor e
+   * o do escritório são visualmente idênticos e só diferem nos valores.
+   */
+  caption: string;
   sellerName: string | null;
   /** Quantas parcelas de comissão o documento lista. */
   count: number;
@@ -82,7 +93,7 @@ export const drawHeader = (pdf: Pdf, data: HeaderData): number => {
   pdf.setFont("helvetica", "bold");
   pdf.setFontSize(14);
   setText(pdf, COLOR.brand);
-  pdf.text("COMISSÕES DO MÊS", PAGE.margin + 12, y + 7);
+  pdf.text(data.title, PAGE.margin + 12, y + 7);
 
   pdf.setFont("helvetica", "bold");
   pdf.setFontSize(10);
@@ -106,6 +117,18 @@ export const drawHeader = (pdf: Pdf, data: HeaderData): number => {
     `${data.defaultedCount} inadimplente(s)`,
   ].filter(Boolean);
   pdf.text(parts.join("  ·  "), PAGE.margin, y);
+
+  // De quem é o dinheiro, logo abaixo e em destaque: é a linha que impede o
+  // papel do vendedor de ser lido como o do escritório (e vice-versa).
+  y += 14;
+  pdf.setFont("helvetica", "bold");
+  pdf.setFontSize(8.5);
+  setText(pdf, COLOR.brand);
+  pdf.text(
+    truncate(pdf, data.caption, pageW - PAGE.margin * 2),
+    PAGE.margin,
+    y
+  );
 
   return y + 20;
 };

@@ -1,5 +1,6 @@
 import { ReactNode } from "react";
 
+import type { CommissionAudience } from "./utils";
 import { CommissionTab } from "./utils";
 
 /**
@@ -78,17 +79,35 @@ export const TAB_HELP: Record<CommissionTab, ReactNode> = {
  */
 export const scopeSentence = (
   tab: CommissionTab,
-  monthName: string
+  monthName: string,
+  /**
+   * De quem é o dinheiro da lista — passado só quando a tela oferece as DUAS
+   * óticas (gestor). Trocar a ótica refaz todos os números, e a frase que os
+   * explica não pode continuar a mesma.
+   *
+   * Sem ele, a frase é a neutra: é o caso do vendedor, que não escolhe nada e
+   * para quem "a comissão" é a dele, sem qualificativo.
+   */
+  audience?: CommissionAudience
 ): string => {
+  const seller = audience === "seller";
+  const quem =
+    audience === undefined
+      ? "há a receber"
+      : seller
+        ? "o vendedor tem a receber"
+        : "as fábricas devem";
   switch (tab) {
     case "overdue":
       return `Mostrando os boletos travados de todos os vencimentos — esta aba não segue o mês; os cartões acima continuam somando ${monthName}`;
     case "receivable":
-      return `Mostrando o que há a receber em ${monthName}, já líquido de estorno`;
+      return `Mostrando o que ${quem} em ${monthName}, já líquido de estorno`;
     case "pending":
-      return `Mostrando o que está previsto para ${monthName}`;
+      return `Mostrando o que está previsto para ${monthName}${seller ? " no ciclo do vendedor" : ""}`;
     case "received":
-      return `Mostrando o que foi recebido em ${monthName}`;
+      return seller
+        ? `Mostrando o que o escritório repassou ao vendedor em ${monthName}`
+        : `Mostrando o que foi recebido em ${monthName}`;
     default:
       return `Mostrando tudo o que cai em ${monthName}, em qualquer situação`;
   }
@@ -104,14 +123,27 @@ export const MONTH_HELP: ReactNode = (
       O mês é o da data em que a comissão <b>cai</b> — não a do pedido. Um
       pedido faturado em junho, com prazo de 30 dias, aparece em julho.
     </p>
+    <p>
+      Nesta tela, a data é a do repasse <b>da fábrica ao escritório</b>. No{" "}
+      <b>extrato do vendedor</b> (uma das saídas do PDF) o mês é o do pagamento
+      a ele, que costuma ser outro — a mesma parcela pode aparecer em meses
+      diferentes nos dois papéis.
+    </p>
   </>
 );
 
 export const KPI_RECEIVABLE_HELP: ReactNode = (
-  <p>
-    Soma do que há a receber no mês escolhido, já descontados os estornos. Segue
-    o mês e os filtros; <b>não muda com a aba</b> que você escolher abaixo.
-  </p>
+  <>
+    <p>
+      Soma do que há a receber no mês escolhido, já descontados os estornos.
+      Segue o mês e os filtros; <b>não muda com a aba</b> que você escolher
+      abaixo.
+    </p>
+    <p>
+      Para quem gerencia, é o que a <b>fábrica paga ao escritório</b>. Quanto
+      disso sai de repasse ao vendedor está na linha logo abaixo dos cartões.
+    </p>
+  </>
 );
 
 export const KPI_PENDING_HELP: ReactNode = (
@@ -144,15 +176,26 @@ export const FILTERS_HELP: ReactNode = (
 export const PDF_HELP: ReactNode = (
   <>
     <p>
-      O fechamento do mês em cinco seções: o que há <b>a receber</b>, o que já
-      foi <b>recebido</b> e o que está <b>previsto</b> — cada linha com a
-      situação do boleto do cliente ao lado —, mais os <b>boletos liquidados</b>{" "}
-      (pagos no mês) e os <b>inadimplentes</b>.
+      São <b>dois papéis</b>, e o botão pergunta qual. O{" "}
+      <b>fechamento do escritório</b> traz a comissão que as fábricas pagam — é
+      o que se põe ao lado da planilha da fábrica, com os blocos por fábrica e a
+      nota fiscal. O <b>extrato do vendedor</b> traz a fatia dele, no ciclo de
+      pagamento dele — é o que se entrega ao vendedor. O papel diz, no
+      cabeçalho, qual dos dois é.
     </p>
     <p>
-      As três primeiras seguem o mês escolhido. Os <b>inadimplentes</b>, não:
-      calote fica travado até ser resolvido, e a fábrica manda o relatório dela
-      com vencimentos de meses diferentes na mesma folha.
+      Os valores <b>não coincidem</b>, e o mês também não: o extrato segue a
+      data em que o escritório repassa ao vendedor, e os cartões desta tela
+      seguem a data em que a fábrica paga o escritório.
+    </p>
+    <p>
+      Nos dois, o mês em cinco seções: o que há <b>a receber</b>, o que já foi{" "}
+      <b>recebido</b> e o que está <b>previsto</b> — cada linha com a situação
+      do boleto do cliente ao lado —, mais os <b>boletos liquidados</b> (pagos
+      no mês) e os <b>inadimplentes</b>. As três primeiras seguem o mês
+      escolhido. Os <b>inadimplentes</b>, não: calote fica travado até ser
+      resolvido, e a fábrica manda o relatório dela com vencimentos de meses
+      diferentes na mesma folha.
     </p>
     <p>
       O papel <b>não segue a aba nem os filtros da tela</b>: ele é o fechamento
@@ -174,6 +217,27 @@ export const OFFICE_SPLIT_HELP: ReactNode = (
       neste mês. O repasse ao vendedor pode cair num mês diferente do dele; aqui
       ele aparece junto da comissão que o originou, senão a sobra não seria de
       ninguém.
+    </p>
+  </>
+);
+
+export const AUDIENCE_HELP: ReactNode = (
+  <>
+    <p>
+      A mesma parcela vale <b>dois números</b>: o que a fábrica paga ao
+      escritório e a fatia que o escritório repassa ao vendedor. Este botão diz
+      qual dos dois a tela inteira está mostrando — os cartões do mês, os
+      cartões de cada fábrica e as colunas <b>Quando</b>, <b>Comissão</b> e{" "}
+      <b>Situação</b>.
+    </p>
+    <p>
+      O <b>mês também muda</b>: o vendedor é pago no ciclo dele, então a mesma
+      parcela pode aparecer em meses diferentes nas duas óticas.
+    </p>
+    <p>
+      As <b>ações continuam sendo do escritório</b> — conferir contra a
+      planilha, registrar o que a fábrica pagou, repassar ao vendedor. Elas não
+      mudam de significado com a ótica; só os números mudam.
     </p>
   </>
 );

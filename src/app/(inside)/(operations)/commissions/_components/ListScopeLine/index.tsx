@@ -4,11 +4,22 @@ import { Title } from "@/components/Title";
 import { Info } from "lucide-react";
 
 import { ignoresMonth, scopeSentence } from "../../help";
-import { CommissionTab, monthLabel, YearMonth } from "../../utils";
+import {
+  type CommissionAudience,
+  CommissionTab,
+  monthLabel,
+  YearMonth,
+} from "../../utils";
 
 interface Props {
   tab: CommissionTab;
   month: YearMonth;
+  /**
+   * De quem é o dinheiro que a lista soma. Só vem quando a tela oferece as duas
+   * óticas (gestor) — para o vendedor a frase é a neutra, porque a comissão
+   * dele não precisa de qualificativo.
+   */
+  audience?: CommissionAudience;
   /** Parcelas que a lista abaixo mostra, depois de mês, situação e filtros. */
   shown: number;
   /** Total do mês antes do painel de filtros — some quando nada foi filtrado. */
@@ -27,7 +38,7 @@ interface Props {
  * A aba que ignora o mês continua se destacando (âmbar), porque ali a lista
  * realmente não bate com os cartões de cima e isso precisa saltar.
  */
-export function ListScopeLine({ tab, month, shown, total }: Props) {
+export function ListScopeLine({ tab, month, audience, shown, total }: Props) {
   const foraDoMes = ignoresMonth(tab);
   const filtrado = total !== undefined && total !== shown;
 
@@ -38,7 +49,7 @@ export function ListScopeLine({ tab, month, shown, total }: Props) {
         className={foraDoMes ? "text-(--amber)" : "text-(--fg-muted)"}
       />
       <Title variant="caption" color={foraDoMes ? "amber" : "muted"}>
-        {scopeSentence(tab, monthLabel(month))}
+        {scopeSentence(tab, monthLabel(month), audience)}
       </Title>
       <Title variant="caption" color="muted">
         ·{" "}

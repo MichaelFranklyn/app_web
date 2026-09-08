@@ -7,7 +7,11 @@ import { CommissionRow, CommissionStatus } from "./interface";
 // `(inside)/_shared/commissions` quando o relatório de comissões passou a
 // precisar deles — o papel e a tela têm de chamar a mesma coisa pelo mesmo nome.
 // Re-exportados aqui porque a página inteira já os consome por este arquivo.
-import { groupByFactory } from "../../_shared/commissions";
+import {
+  groupByFactory,
+  OFFICE_LENS,
+  type CommissionLens,
+} from "../../_shared/commissions";
 
 export {
   COMMISSION_STATUS_LABEL,
@@ -53,14 +57,18 @@ const RECEIVABLE_STATUSES: CommissionStatus[] = [
  */
 export const filterByTab = (
   rows: CommissionRow[],
-  tab: CommissionTab
+  tab: CommissionTab,
+  lens: CommissionLens = OFFICE_LENS
 ): CommissionRow[] => {
   if (tab === "all") return rows;
+  // O boleto é do CLIENTE: ele não muda com a ótica. As demais abas falam da
+  // situação da comissão, que é diferente nos dois níveis — a mesma parcela
+  // pode estar recebida para o escritório e a receber para o vendedor.
   if (tab === "overdue")
     return rows.filter((row) => row.isOverdue || row.defaultedAt !== null);
   if (tab === "receivable")
-    return rows.filter((row) => RECEIVABLE_STATUSES.includes(row.status));
-  return rows.filter((row) => row.status === tab);
+    return rows.filter((row) => RECEIVABLE_STATUSES.includes(lens.status(row)));
+  return rows.filter((row) => lens.status(row) === tab);
 };
 
 /**
@@ -78,11 +86,12 @@ export const filterByTab = (
 export const filterByMonth = (
   rows: CommissionRow[],
   month: YearMonth,
-  tab: CommissionTab
+  tab: CommissionTab,
+  lens: CommissionLens = OFFICE_LENS
 ): CommissionRow[] =>
   tab === "overdue"
     ? rows
-    : rows.filter((row) => isInMonth(row.receiveDate, month));
+    : rows.filter((row) => isInMonth(lens.receiveDate(row), month));
 
 // A navegação por mês virou coisa de duas telas (comissões e metas) e mora em
 // @/utils/format/month. Re-exportado aqui porque a página inteira já a consome
@@ -108,13 +117,18 @@ export interface MonthSummary {
 }
 
 /**
- * Consolida as comissões de UM mês (pela data em que a comissão cai,
- * `receiveDate`) somando todas as fábricas — é o "quanto o vendedor vai receber
- * em agosto". Linhas previstas sem data de recebimento entram como previsto.
+ * Consolida as comissões de UM mês (pela data em que a comissão cai) somando
+ * todas as fábricas — é o "quanto entra em agosto". Linhas previstas sem data
+ * de recebimento entram como previsto.
+ *
+ * A LENTE decide de quem é esse dinheiro e por qual calendário ele é medido: o
+ * repasse da fábrica ao escritório, ou a fatia do vendedor no ciclo dele. Os
+ * dois números existem ao mesmo tempo na mesma parcela.
  */
 export const summarizeMonth = (
   rows: CommissionRow[],
-  month: YearMonth
+  month: YearMonth,
+  lens: CommissionLens = OFFICE_LENS
 ): MonthSummary => {
   const summary: MonthSummary = {
     receivable: 0,
@@ -125,21 +139,23 @@ export const summarizeMonth = (
     refund: 0,
   };
   for (const row of rows) {
-    if (!isInMonth(row.receiveDate, month)) continue;
-    if (row.status === "receivable") {
-      summary.receivable += Number(row.amount);
+    if (!isInMonth(lens.receiveDate(row), month)) continue;
+    const status = lens.status(row);
+    const amount = lens.amount(row);
+    if (status === "receivable") {
+      summary.receivable += amount;
       summary.countReceivable += 1;
-    } else if (row.status === "received") {
-      summary.received += Number(row.amount);
-    } else if (row.status === "pending") {
-      summary.pending += Number(row.amount);
-    } else if (row.status === "chargeback") {
+    } else if (status === "received") {
+      summary.received += amount;
+    } else if (status === "pending") {
+      summary.pending += amount;
+    } else if (status === "chargeback") {
       // Estorno já vem negativo: entra no a receber para o mês fechar líquido.
-      summary.chargeback += Number(row.amount);
-      summary.receivable += Number(row.amount);
-    } else if (row.status === "refund") {
-      summary.refund += Number(row.amount);
-      summary.receivable += Number(row.amount);
+      summary.chargeback += amount;
+      summary.receivable += amount;
+    } else if (status === "refund") {
+      summary.refund += amount;
+      summary.receivable += amount;
     }
   }
   return summary;
@@ -208,50 +224,19 @@ export interface MonthReport {
   next: NextMonthPreview;
 }
 
-/**
- * De quem é o dinheiro que o relatório conta.
- *
- * Cada parcela carrega DUAS comissões, com valores, datas e situações próprios:
- * a do escritório (`amount`/`receiveDate`/`status`, o que a fábrica repassa) e a
- * do vendedor (`sellerAmount`/`sellerReceiveDate`/`sellerStatus`, a fatia que o
- * escritório repassa depois). Elas não coincidem — nem no valor nem no mês, já
- * que o vendedor recebe no ciclo dele.
- *
- * O fechamento em PDF ignorava isso e somava sempre os campos do escritório.
- * O papel de um vendedor específico saía com o valor cheio da comissão: ele lia
- * o próprio nome no cabeçalho e o dinheiro do escritório na coluna.
- *
- * A lente resolve isso num lugar só. Quem monta o relatório escolhe a ótica, e
- * todo o resto — filtro do mês, subtotal por fábrica, total, prévia do mês
- * seguinte, linha impressa — passa a ler pelos mesmos três campos.
- */
-export interface CommissionLens {
-  amount: (row: CommissionRow) => number;
-  receiveDate: (row: CommissionRow) => string | null;
-  status: (row: CommissionRow) => CommissionStatus;
-}
-
-/** A ótica do escritório: o que a fábrica repassa. */
-export const OFFICE_LENS: CommissionLens = {
-  amount: (row) => Number(row.amount),
-  receiveDate: (row) => row.receiveDate,
-  status: (row) => row.status,
-};
-
-/** A ótica do vendedor: a fatia dele, no ciclo dele. */
-export const SELLER_LENS: CommissionLens = {
-  amount: (row) => Number(row.sellerAmount),
-  receiveDate: (row) => row.sellerReceiveDate,
-  status: (row) => row.sellerStatus,
-};
-
-/**
- * A lente de um relatório. `sellerId` nulo é o consolidado do escritório —
- * inclusive quando o próprio vendedor abre a tela, porque aí ele não pediu o
- * papel de ninguém.
- */
-export const lensFor = (sellerId: string | null): CommissionLens =>
-  sellerId ? SELLER_LENS : OFFICE_LENS;
+// A ótica do papel (escritório × vendedor) subiu para
+// `(inside)/_shared/commissions` quando o relatório do período passou a emitir
+// os mesmos dois papéis: o gestor põe as duas folhas lado a lado, e uma ótica
+// definida duas vezes é uma ótica que diverge. Re-exportada aqui porque a
+// página inteira já a consome por este arquivo.
+export {
+  lensFor,
+  OFFICE_LENS,
+  OWN_SELLER_LENS,
+  SELLER_LENS,
+  type CommissionAudience,
+  type CommissionLens,
+} from "../../_shared/commissions";
 
 /**
  * Ordena para a conferência: pela data em que a comissão cai (as sem data por
@@ -467,8 +452,15 @@ export interface RowsSummary {
  * Subtotais de um conjunto de linhas (já recortado por fábrica e pelos filtros):
  * o que há a receber, o que já veio, quantas foram conferidas e os ids a receber
  * para o repasse em massa.
+ *
+ * Os VALORES seguem a lente (de quem é o dinheiro que o cartão da fábrica
+ * destaca); os IDS, não — eles alimentam uma ação do escritório. Ver o
+ * comentário no laço.
  */
-export const summarizeRows = (rows: CommissionRow[]): RowsSummary => {
+export const summarizeRows = (
+  rows: CommissionRow[],
+  lens: CommissionLens = OFFICE_LENS
+): RowsSummary => {
   const summary: RowsSummary = {
     receivable: 0,
     received: 0,
@@ -480,24 +472,28 @@ export const summarizeRows = (rows: CommissionRow[]): RowsSummary => {
     overdueCount: 0,
   };
   for (const row of rows) {
-    if (row.status === "receivable") {
-      summary.receivable += Number(row.amount);
-      summary.receivableIds.push(row.installmentId);
-    }
-    if (row.status === "received") summary.received += Number(row.amount);
-    if (row.status === "pending") summary.pending += Number(row.amount);
-    if (row.status === "chargeback") {
-      summary.chargeback += Number(row.amount);
-      summary.receivable += Number(row.amount);
+    const status = lens.status(row);
+    const amount = lens.amount(row);
+    if (status === "receivable") summary.receivable += amount;
+    if (status === "received") summary.received += amount;
+    if (status === "pending") summary.pending += amount;
+    if (status === "chargeback") {
+      summary.chargeback += amount;
+      summary.receivable += amount;
     }
     // Devolução é positiva: o cliente pagou depois de o desconto ter saído, e o
     // valor volta pelo mesmo fechamento. Estorno JÁ descontado não entra em
     // conta nenhuma — ele pesou no mês em que saiu e virou histórico.
-    if (row.status === "refund") {
-      summary.refund += Number(row.amount);
-      summary.receivable += Number(row.amount);
-      summary.receivableIds.push(row.installmentId);
+    if (status === "refund") {
+      summary.refund += amount;
+      summary.receivable += amount;
     }
+    // Os ids do "Receber tudo desta fábrica" NÃO seguem a lente: o botão marca
+    // que a FÁBRICA pagou, e isso é sempre o nível do escritório. Lidos pela
+    // ótica do vendedor, o lote sairia com as parcelas erradas — as que o
+    // escritório ainda deve a ele, que é outra pergunta e outra data.
+    if (row.status === "receivable" || row.status === "refund")
+      summary.receivableIds.push(row.installmentId);
     if (row.isReconciled) summary.reconciledCount += 1;
     if (row.isOverdue || row.defaultedAt) summary.overdueCount += 1;
   }

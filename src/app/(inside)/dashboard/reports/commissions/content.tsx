@@ -1,7 +1,13 @@
 "use client";
 
+import {
+  lensFor,
+  type CommissionLens,
+} from "@/app/(inside)/_shared/commissions";
 import { formatMoney } from "@/utils/format/masks";
 import { buildReportContext } from "@/utils/pdf/context";
+import { FileSpreadsheet, FileText } from "lucide-react";
+import { useMemo } from "react";
 
 import { ReportChartCard } from "../_components/ReportChartCard";
 import { ReportKpis } from "../_components/ReportKpis";
@@ -10,6 +16,7 @@ import { useReportContext } from "../useReportContext";
 import { useReportExport } from "../useReportExport";
 import { useReportFilters } from "../useReportFilters";
 import { CommissionsReportTable } from "./_components/CommissionsReportTable";
+import { CommissionRow } from "./interface";
 import { commissionsPdfColumns } from "./pdfColumns";
 import { useCommissionsReport } from "./useCommissionsReport";
 import {
@@ -32,15 +39,32 @@ export default function CommissionsReportContent({ canSelectSeller }: Props) {
   const report = useCommissionsReport(filters, withOffice);
   const { context } = useReportContext(filters);
 
-  const { exportSheet, exportPdf } = useReportExport({
-    slug: "comissoes",
-    title: "Comissões do período",
+  // A tela é sempre a do nível de quem olha: o gestor confere o que as fábricas
+  // devem, o vendedor vê a fatia dele. A ESCOLHA existe só na exportação, que é
+  // o papel que sai da tela e vai para a mão de outra pessoa.
+  const officeLens = lensFor("office", canSelectSeller);
+  const sellerLens = lensFor("seller", canSelectSeller);
+
+  /**
+   * A descrição de uma das versões do papel.
+   *
+   * Duas folhas, o mesmo desenho e valores diferentes: a linha da ótica entra
+   * no contexto do PDF (junto com período e vendedor) porque, impressa, é a
+   * única coisa que distingue uma da outra.
+   */
+  const specFor = (lens: CommissionLens) => ({
+    slug: lens.audience === "seller" ? "comissoes-vendedor" : "comissoes",
+    title:
+      lens.audience === "seller"
+        ? "Comissões do período — extrato do vendedor"
+        : "Comissões do período",
     from: filters.from,
     // O recorte inteiro no papel: período e vendedor, os filtros do painel e a
     // ordem da tabela — um papel só das parcelas não conferidas tem de dizer que
     // é isso, senão o fechamento do mês parece menor do que é.
     context: [
       ...context,
+      lens.caption,
       ...buildReportContext({
         fields: report.filterFields,
         values: report.inputValues,
@@ -51,24 +75,35 @@ export default function CommissionsReportContent({ canSelectSeller }: Props) {
       }),
     ],
     fetchRows: report.fetchAllRows,
-    sheetHeaders: commissionsExportHeaders(withOffice),
-    buildSheetRows: (rows) => buildCommissionsExportRows(rows, withOffice),
-    pdfColumns: commissionsPdfColumns(withOffice),
-    buildKpis: (rows) => {
+    sheetHeaders: commissionsExportHeaders(lens),
+    buildSheetRows: (rows: CommissionRow[]) =>
+      buildCommissionsExportRows(rows, lens),
+    pdfColumns: commissionsPdfColumns(lens),
+    buildKpis: (rows: CommissionRow[]) => {
       const totals = summarize(rows);
       const split = splitTotals(rows);
+      const isOffice = lens.audience === "office";
+      // No extrato, os números de fechamento são os DO VENDEDOR: repetir aqui
+      // os totais da empresa seria pôr de volta, no topo do papel, justamente
+      // o dinheiro que a folha dele não deve mostrar.
+      if (!isOffice && withOffice) {
+        return [
+          { label: "Repasse do período", value: formatMoney(split.seller) },
+          { label: "Parcelas", value: String(rows.length) },
+        ];
+      }
       return [
         { label: "A receber", value: formatMoney(totals.receivable) },
         { label: "Já recebido", value: formatMoney(totals.received) },
         { label: "Previsto", value: formatMoney(totals.pending) },
         {
-          label: withOffice ? "Comissão da empresa" : "Total do período",
+          label: isOffice ? "Comissão da empresa" : "Total do período",
           value: formatMoney(
             totals.receivable + totals.received + totals.pending
           ),
         },
         // O papel do gestor fecha na pergunta dele: quanto sobrou.
-        ...(withOffice
+        ...(isOffice
           ? [
               {
                 label: "Repasse aos vendedores",
@@ -79,28 +114,65 @@ export default function CommissionsReportContent({ canSelectSeller }: Props) {
           : []),
       ];
     },
-    buildHighlight: (rows) => {
+    buildHighlight: (rows: CommissionRow[]) => {
       const totals = summarize(rows);
+      if (lens.audience === "seller" && withOffice) {
+        const split = splitTotals(rows);
+        return `${rows.length} parcela(s) · repasse ${formatMoney(split.seller)}`;
+      }
       return `${rows.length} parcela(s) · a receber ${formatMoney(totals.receivable)}`;
     },
-    buildTotals: (rows) => {
+    buildTotals: (rows: CommissionRow[]) => {
       const totals = summarize(rows);
       const split = splitTotals(rows);
       const total = totals.receivable + totals.received + totals.pending;
+      // Os índices são os das colunas do PDF (ver `commissionsPdfColumns`): o
+      // total cai debaixo do valor que ele soma.
+      if (lens.audience === "seller") {
+        return {
+          label: "TOTAL",
+          byColumn: {
+            7: formatMoney(withOffice ? split.seller : total),
+          },
+        };
+      }
       return {
         label: "TOTAL",
-        // Os índices são os das colunas do PDF (ver `commissionsPdfColumns`): o
-        // total cai debaixo do valor que ele soma.
-        byColumn: withOffice
-          ? {
-              7: formatMoney(total),
-              8: formatMoney(split.seller),
-              9: formatMoney(split.office),
-            }
-          : { 7: formatMoney(total) },
+        byColumn: {
+          7: formatMoney(total),
+          8: formatMoney(split.seller),
+          9: formatMoney(split.office),
+        },
       };
     },
   });
+
+  const officeExport = useReportExport(specFor(officeLens));
+  const sellerExport = useReportExport(specFor(sellerLens));
+
+  // A folha do vendedor só é oferecida com UM vendedor filtrado: um extrato de
+  // "todos" misturaria as fatias de pessoas diferentes na mesma soma, que é o
+  // oposto do que ele serve para responder.
+  const canExportSellerCopy = withOffice && filters.sellerId !== null;
+
+  const extraExportActions = useMemo(
+    () =>
+      canExportSellerCopy
+        ? [
+            {
+              label: "PDF do vendedor (só a fatia dele)",
+              icon: FileText,
+              onSelect: sellerExport.exportPdf,
+            },
+            {
+              label: "Planilha do vendedor (.xlsx)",
+              icon: FileSpreadsheet,
+              onSelect: sellerExport.exportSheet,
+            },
+          ]
+        : [],
+    [canExportSellerCopy, sellerExport]
+  );
 
   return (
     <div className="flex flex-col gap-12">
@@ -109,8 +181,17 @@ export default function CommissionsReportContent({ canSelectSeller }: Props) {
         onRangeChange={setRange}
         onSellerChange={setSellerId}
         canSelectSeller={canSelectSeller}
-        onExportSheet={exportSheet}
-        onExportPdf={exportPdf}
+        onExportSheet={officeExport.exportSheet}
+        onExportPdf={officeExport.exportPdf}
+        extraExportActions={extraExportActions}
+        sheetLabel={
+          canExportSellerCopy ? "Planilha do escritório (.xlsx)" : undefined
+        }
+        pdfLabel={
+          canExportSellerCopy
+            ? "PDF do escritório (com a repartição)"
+            : undefined
+        }
         exportDisabled={!report.hasRows}
       />
 

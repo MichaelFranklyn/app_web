@@ -140,6 +140,65 @@ test("comissões: o gestor vê quanto da comissão fica no escritório", async (
   await expect(page.getByText("no escritório (40%)")).toBeVisible();
 });
 
+test("comissões: trocar a ótica refaz os números da tela inteira", async ({
+  page,
+}) => {
+  // A mesma parcela vale dois números em meses diferentes: a fábrica paga
+  // 50,00 ao escritório em agosto, e o escritório repassa 30,00 ao vendedor em
+  // setembro. A tela mostrava só o primeiro par, com rótulos que não diziam
+  // isso — e o extrato em PDF trazia o segundo, o que fazia um dos dois
+  // parecer errado.
+  await grantRole(page, "OWNER");
+  await mockGraphql(page, {
+    CommissionsSellers: () => ({
+      commissions_sellers: {
+        edges: [{ node: { id: "seller-1", name: "Vendedor Teste" } }],
+        totalCount: 1,
+      },
+    }),
+    Commissions: () =>
+      summary([
+        row({
+          sellerAmount: "30.00",
+          sellerReceiveDate: "2026-09-14",
+        }),
+      ]),
+  });
+
+  await page.goto("/commissions");
+
+  // Ótica do escritório (a que a tela abre): o dinheiro da fábrica, em agosto.
+  await expect(page.getByText("A receber em agosto de 2026")).toBeVisible();
+  await expect(page.getByText("R$ 50,00").first()).toBeVisible();
+  await expect(
+    page.getByText("Mostrando o que as fábricas devem em agosto de 2026", {
+      exact: false,
+    })
+  ).toBeVisible();
+
+  await page.getByRole("button", { name: "Vendedor", exact: true }).click();
+
+  // Ótica do vendedor: a fatia dele — e ela cai em SETEMBRO, então agosto fica
+  // zerado. É o ponto do seletor: o mês também muda de significado.
+  await expect(
+    page.getByText("Repasse a receber em agosto de 2026")
+  ).toBeVisible();
+  await expect(
+    page.getByText(
+      "Mostrando o que o vendedor tem a receber em agosto de 2026",
+      {
+        exact: false,
+      }
+    )
+  ).toBeVisible();
+  // A repartição sai da tela: ela é medida no calendário da fábrica.
+  await expect(page.getByText("de repasse", { exact: true })).toHaveCount(0);
+
+  await page.getByRole("button", { name: "Próximo mês" }).click();
+
+  await expect(page.getByText("R$ 30,00").first()).toBeVisible();
+});
+
 test("comissões: a tela pede o mês ao backend, não a carteira inteira", async ({
   page,
 }) => {
