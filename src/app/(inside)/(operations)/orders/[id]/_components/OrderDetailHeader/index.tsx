@@ -9,6 +9,7 @@ import { OrderDetail } from "../../interface";
 import { EditInvoiceModal } from "../EditInvoiceModal";
 import { InvoiceOrderModal } from "../InvoiceOrderModal";
 import { MarkDeliveredModal } from "../MarkDeliveredModal";
+import { SendToFactoryModal } from "../SendToFactoryModal";
 import { ConvertToOrderModal } from "./ConvertToOrderModal";
 import { DeleteOrderModal } from "./DeleteOrderModal";
 import { OrderExportMenu } from "./OrderExportMenu";
@@ -68,6 +69,46 @@ export function OrderDetailHeader({ order, onRefetch }: Props) {
               </div>
             )}
 
+            {/* Enviado: quando e por quem. A tarja existe porque a pergunta
+                aparece do outro lado — a fábrica dizendo que não recebeu. */}
+            {order.sentAt && (
+              <div className="mt-4">
+                <Badge.Root
+                  appearance="tinted"
+                  color="green"
+                  title={
+                    order.sentNote
+                      ? `Observação de quem enviou: ${order.sentNote}`
+                      : "Registro do envio do pedido para a fábrica. O envio em si sai pelo WhatsApp; aqui fica a data, o autor e o canal."
+                  }
+                >
+                  <Badge.Text>
+                    Enviado à fábrica em {formatDateDMY(order.sentAt)}
+                    {order.sentByName ? ` por ${order.sentByName}` : ""}
+                  </Badge.Text>
+                </Badge.Root>
+              </div>
+            )}
+
+            {/* Fechado com o cliente e NÃO mandado para a fábrica: é a
+                pendência mais cara da operação, porque o pedido existe só aqui
+                dentro. Só aparece em pedido de fato (orçamento ainda não tem o
+                que mandar) e antes do faturamento. */}
+            {!order.sentAt &&
+              !isQuote &&
+              !order.invoicedAt &&
+              order.status !== "CANCELLED" && (
+                <div className="mt-4">
+                  <Badge.Root
+                    appearance="tinted"
+                    color="red"
+                    title="O cliente fechou, mas o pedido não foi mandado para a fábrica — ou foi mandado por fora e ninguém registrou. Use “Enviar à fábrica”."
+                  >
+                    <Badge.Text>Não enviado à fábrica</Badge.Text>
+                  </Badge.Root>
+                </div>
+              )}
+
             {order.deliveredAt && (
               <div className="mt-4">
                 <Badge.Root
@@ -106,6 +147,11 @@ export function OrderDetailHeader({ order, onRefetch }: Props) {
             <PanelHeader.Actions className="mt-6">
               <div className="print-hide flex items-center gap-8">
                 <OrderExportMenu order={order} />
+                {/* Só até o faturamento: se a fábrica emitiu a nota, ela
+                    recebeu o pedido — mandar de novo não faz sentido. */}
+                {!order.invoicedAt && order.status !== "CANCELLED" && (
+                  <SendToFactoryModal order={order} onSuccess={onRefetch} />
+                )}
                 {isQuote && (
                   <ConvertToOrderModal
                     orderId={order.id}

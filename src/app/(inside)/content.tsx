@@ -11,6 +11,7 @@ import { CompanyBadge } from "./_components/CompanyBadge";
 import { DevRoleSwitch } from "./_components/DevRoleSwitch";
 import { ImpersonationBanner } from "./_components/ImpersonationBanner";
 import { NotificationCenter } from "./_components/NotificationCenter";
+import { OfflineBanner } from "./_components/OfflineBanner";
 import { UserMenu } from "./_components/UserMenu";
 import { useInsideLayout } from "./useInsideLayout";
 
@@ -196,6 +197,7 @@ export default function InsideShell({
           {/* Acima da topbar de propósito: numa sessão emprestada, o aviso não
               pode competir por atenção com o resto do cabeçalho. Em sessão
               comum não renderiza nada. */}
+          <OfflineBanner />
           <ImpersonationBanner />
 
           <Topbar.Root>

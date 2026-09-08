@@ -93,6 +93,12 @@ export default defineConfig({
     env: {
       NEXT_DIST_DIR: ".next-e2e",
       NEXT_PUBLIC_GRAPHQL_API_HOST: `http://localhost:${STUB_BACKEND_PORT}/graphql`,
+      // Desliga o service worker na suíte. O E2E roda em build de PRODUÇÃO, e
+      // sem isto o SW registra: ele passaria a servir asset e página do cache
+      // entre specs, e um teste veria o estado deixado pelo anterior. A
+      // variável é lida no build (o Next inlina NEXT_PUBLIC_* no bundle), por
+      // isso vive aqui, onde o `e2e:build` também a recebe.
+      NEXT_PUBLIC_DISABLE_SW: "1",
       ...(process.env.COVERAGE
         ? { COVERAGE: "1", NODE_V8_COVERAGE: "coverage/e2e-server" }
         : {}),

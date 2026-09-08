@@ -1,7 +1,8 @@
+import { ServiceWorker } from "@/components/ServiceWorker";
 import { getSiteUrl } from "@/utils/site";
 import { Analytics } from "@vercel/analytics/next";
 import { SpeedInsights } from "@vercel/speed-insights/next";
-import type { Metadata } from "next";
+import type { Metadata, Viewport } from "next";
 import { Nunito, Oswald } from "next/font/google";
 import { Suspense } from "react";
 import "../styles/globals.css";
@@ -51,7 +52,22 @@ export const metadata: Metadata = {
     template: "%s | Girus",
   },
   description,
-  icons: "/favicon.ico",
+  // A rota que serve o JSON (src/app/manifest.webmanifest/route.ts) — sem esta
+  // linha o navegador não oferece "instalar aplicativo".
+  manifest: "/manifest.webmanifest",
+  icons: {
+    icon: "/favicon.ico",
+    // iOS ignora o manifesto para o ícone da tela inicial e usa só esta tag.
+    // Sem ela, o atalho salvo no iPhone sai com um print da página.
+    apple: "/apple-touch-icon.png",
+  },
+  appleWebApp: {
+    capable: true,
+    title: "Girus",
+    // "default" mantém a barra de status legível sobre o fundo claro do app;
+    // "black-translucent" faria o conteúdo passar por baixo dela.
+    statusBarStyle: "default",
+  },
   openGraph: {
     type: "website",
     locale: "pt_BR",
@@ -65,6 +81,22 @@ export const metadata: Metadata = {
     title: "Girus — Plataforma de Gestão Comercial",
     description,
   },
+};
+
+/**
+ * `themeColor` pinta a barra do navegador no Android e a moldura do app
+ * instalado — é o que faz a janela parecer parte do produto em vez de uma aba.
+ * Vive em `viewport` e não em `metadata`: o App Router move estas chaves para
+ * cá e avisa no build quando ficam no objeto errado.
+ *
+ * `maximumScale` fica FORA de propósito. Travar o zoom é a receita de bolo do
+ * app mobile, e aqui o público é idoso: quem precisa aproximar para ler um
+ * preço tem de conseguir.
+ */
+export const viewport: Viewport = {
+  themeColor: "#c97f0a",
+  width: "device-width",
+  initialScale: 1,
 };
 
 export default function RootLayout({
@@ -90,6 +122,8 @@ export default function RootLayout({
             quando servido pela Vercel — em dev e no E2E ficam inertes. */}
         <SpeedInsights />
         <Analytics />
+        {/* Registra o service worker depois do `load`, só em produção. */}
+        <ServiceWorker />
       </body>
     </html>
   );

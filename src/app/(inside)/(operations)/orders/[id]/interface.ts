@@ -71,6 +71,14 @@ export interface OrderDetail {
   invoiceNumber: string | null;
   /** Data em que a mercadoria chegou na loja; nulo até confirmar a entrega. */
   deliveredAt: string | null;
+  /**
+   * Quando o pedido foi mandado para a fábrica. Nulo = nunca foi — e num pedido
+   * CONFIRMADO esse nulo é pendência, não ausência de dado.
+   */
+  sentAt: string | null;
+  sentChannel: "WHATSAPP" | "EMAIL" | "PHONE" | "OTHER" | null;
+  sentByName: string | null;
+  sentNote: string | null;
   /** Prazo de entrega estimado (dias), contado do faturamento. */
   deliveryEstimateDays: number | null;
   /** Dias que o vendedor estima que este pedido dura na loja do cliente. */

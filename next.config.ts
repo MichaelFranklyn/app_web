@@ -51,6 +51,12 @@ const csp = [
   `font-src 'self' data: https://fonts.gstatic.com`,
   `connect-src 'self'${backendOrigin ? ` ${backendOrigin}` : ""}${supabaseOrigin ? ` ${supabaseOrigin}` : ""} https://maps.googleapis.com https://viacep.com.br`,
   `frame-src https://www.google.com`,
+  // O service worker e o manifesto são da nossa origem e já cairiam no
+  // `default-src 'self'` por fallback. Explícitos porque `worker-src` tem uma
+  // cadeia de fallback longa (worker-src → child-src → default-src) e um
+  // navegador que pare em `child-src` bloquearia o registro do SW em silêncio.
+  `worker-src 'self'`,
+  `manifest-src 'self'`,
   `object-src 'none'`,
   `base-uri 'self'`,
   `form-action 'self'`,

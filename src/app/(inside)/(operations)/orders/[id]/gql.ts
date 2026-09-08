@@ -23,6 +23,10 @@ export const ORDER_DETAIL_QUERY = gql`
         invoicedAt
         invoiceNumber
         deliveredAt
+        sentAt
+        sentChannel
+        sentByName
+        sentNote
         deliveryEstimateDays
         coverageDays
         estimatedDeliveryDate
@@ -153,6 +157,46 @@ export const INVOICE_ORDER_MUTATION = gql`
         backorderChildren {
           id
         }
+      }
+    }
+  }
+`;
+
+/**
+ * Contatos da fábrica — buscados só quando o modal de envio abre.
+ *
+ * Query à parte, e não um campo aninhado no detalhe do pedido: o telefone da
+ * fábrica só interessa a quem vai mandar o pedido, e embuti-lo na query da tela
+ * faria todo mundo pagar a consulta para ver um pedido já entregue.
+ */
+export const FACTORY_CONTACTS_QUERY = gql`
+  query FactoryContactsForSend($factoryId: UUID!) {
+    factoryContacts(factoryId: $factoryId, input: { first: 50 }) {
+      edges {
+        node {
+          id
+          name
+          role
+          phone
+          isPrimary
+        }
+      }
+    }
+  }
+`;
+
+export const MARK_ORDER_SENT_MUTATION = gql`
+  mutation MarkOrderSent($id: UUID!, $input: MarkOrderSentInput!) {
+    markOrderSent(id: $id, input: $input) {
+      status
+      message
+      data {
+        id
+        status
+        sentAt
+        sentChannel
+        sentByName
+        sentNote
       }
     }
   }
