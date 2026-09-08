@@ -149,11 +149,20 @@ export default function AnalyticsContent() {
     const sellerName = selectedSellerId
       ? (sellers.find((s) => s.id === selectedSellerId)?.name ?? "Vendedor")
       : "Todos os vendedores";
+    // Com recorte de fábrica o papel TEM de dizer qual: os números impressos são
+    // os de uma representada só, e sem a linha o PDF é lido como a empresa
+    // inteira — o mesmo motivo pelo qual os relatórios escrevem o recorte no
+    // cabeçalho. Sem recorte a linha não entra: "todas as fábricas" seria ruído.
+    const factoryName = selectedFactoryId
+      ? (factories.find((f) => f.id === selectedFactoryId)?.name ?? "—")
+      : null;
+    const context = [
+      formatDateRangeLabel(range.from, range.to),
+      sellerName,
+      factoryName && `Fábrica: ${factoryName}`,
+    ].filter(Boolean);
     await downloadPdf(
-      {
-        title: "Análises",
-        subtitle: `${formatDateRangeLabel(range.from, range.to)} · ${sellerName}`,
-      },
+      { title: "Análises", subtitle: context.join(" · ") },
       selection
     );
     setPrintOpen(false);
