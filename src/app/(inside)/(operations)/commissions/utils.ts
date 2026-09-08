@@ -209,21 +209,76 @@ export interface MonthReport {
 }
 
 /**
+ * De quem é o dinheiro que o relatório conta.
+ *
+ * Cada parcela carrega DUAS comissões, com valores, datas e situações próprios:
+ * a do escritório (`amount`/`receiveDate`/`status`, o que a fábrica repassa) e a
+ * do vendedor (`sellerAmount`/`sellerReceiveDate`/`sellerStatus`, a fatia que o
+ * escritório repassa depois). Elas não coincidem — nem no valor nem no mês, já
+ * que o vendedor recebe no ciclo dele.
+ *
+ * O fechamento em PDF ignorava isso e somava sempre os campos do escritório.
+ * O papel de um vendedor específico saía com o valor cheio da comissão: ele lia
+ * o próprio nome no cabeçalho e o dinheiro do escritório na coluna.
+ *
+ * A lente resolve isso num lugar só. Quem monta o relatório escolhe a ótica, e
+ * todo o resto — filtro do mês, subtotal por fábrica, total, prévia do mês
+ * seguinte, linha impressa — passa a ler pelos mesmos três campos.
+ */
+export interface CommissionLens {
+  amount: (row: CommissionRow) => number;
+  receiveDate: (row: CommissionRow) => string | null;
+  status: (row: CommissionRow) => CommissionStatus;
+}
+
+/** A ótica do escritório: o que a fábrica repassa. */
+export const OFFICE_LENS: CommissionLens = {
+  amount: (row) => Number(row.amount),
+  receiveDate: (row) => row.receiveDate,
+  status: (row) => row.status,
+};
+
+/** A ótica do vendedor: a fatia dele, no ciclo dele. */
+export const SELLER_LENS: CommissionLens = {
+  amount: (row) => Number(row.sellerAmount),
+  receiveDate: (row) => row.sellerReceiveDate,
+  status: (row) => row.sellerStatus,
+};
+
+/**
+ * A lente de um relatório. `sellerId` nulo é o consolidado do escritório —
+ * inclusive quando o próprio vendedor abre a tela, porque aí ele não pediu o
+ * papel de ninguém.
+ */
+export const lensFor = (sellerId: string | null): CommissionLens =>
+  sellerId ? SELLER_LENS : OFFICE_LENS;
+
+/**
  * Ordena para a conferência: pela data em que a comissão cai (as sem data por
  * último) e, no empate, por cliente — a mesma leitura da planilha da fábrica.
  */
+const byReceiveDateWith =
+  (lens: CommissionLens) =>
+  (a: CommissionRow, b: CommissionRow): number =>
+    (lens.receiveDate(a) ?? "9999-12-31").localeCompare(
+      lens.receiveDate(b) ?? "9999-12-31"
+    ) || clientName(a.client).localeCompare(clientName(b.client), "pt-BR");
+
 const byReceiveDate = (a: CommissionRow, b: CommissionRow): number =>
   (a.receiveDate ?? "9999-12-31").localeCompare(
     b.receiveDate ?? "9999-12-31"
   ) || clientName(a.client).localeCompare(clientName(b.client), "pt-BR");
 
 /** Agrupa por fábrica e soma cada grupo — a fábrica é a unidade de cobrança. */
-const sectionOf = (rows: CommissionRow[]): CommissionSection => {
+const sectionOf = (
+  rows: CommissionRow[],
+  lens: CommissionLens
+): CommissionSection => {
   const groups = groupByFactory(rows).map((group) => ({
     factoryId: group.factoryId,
     name: group.name,
-    rows: [...group.rows].sort(byReceiveDate),
-    subtotal: group.rows.reduce((sum, row) => sum + Number(row.amount), 0),
+    rows: [...group.rows].sort(byReceiveDateWith(lens)),
+    subtotal: group.rows.reduce((sum, row) => sum + lens.amount(row), 0),
   }));
 
   return {
@@ -234,8 +289,10 @@ const sectionOf = (rows: CommissionRow[]): CommissionSection => {
 };
 
 /** Situações que compõem o "a receber" do mês (entradas e saídas, no líquido). */
-const isReceivableStatus = (row: CommissionRow): boolean =>
-  RECEIVABLE_STATUSES.includes(row.status);
+const isReceivableStatus = (
+  row: CommissionRow,
+  lens: CommissionLens
+): boolean => RECEIVABLE_STATUSES.includes(lens.status(row));
 
 /**
  * O fechamento do mês em cinco seções — é o papel que se põe ao lado da
@@ -250,15 +307,23 @@ const isReceivableStatus = (row: CommissionRow): boolean =>
  */
 export const monthReport = (
   rows: CommissionRow[],
-  month: YearMonth
+  month: YearMonth,
+  lens: CommissionLens = OFFICE_LENS
 ): MonthReport => {
-  const inMonth = rows.filter((row) => isInMonth(row.receiveDate, month));
+  const inMonth = rows.filter((row) => isInMonth(lens.receiveDate(row), month));
 
-  const receivable = sectionOf(inMonth.filter(isReceivableStatus));
-  const received = sectionOf(
-    inMonth.filter((row) => row.status === "received")
+  const receivable = sectionOf(
+    inMonth.filter((row) => isReceivableStatus(row, lens)),
+    lens
   );
-  const pending = sectionOf(inMonth.filter((row) => row.status === "pending"));
+  const received = sectionOf(
+    inMonth.filter((row) => lens.status(row) === "received"),
+    lens
+  );
+  const pending = sectionOf(
+    inMonth.filter((row) => lens.status(row) === "pending"),
+    lens
+  );
 
   const defaulted = rows
     .filter((row) => row.defaultedAt !== null)
@@ -280,7 +345,7 @@ export const monthReport = (
     // faria o papel prometer um mês maior do que o que a fábrica vai pagar.
     total: receivable.total + received.total,
     count: receivable.count + received.count + pending.count,
-    next: nextMonthPreview(rows, month),
+    next: nextMonthPreview(rows, month, lens),
   };
 };
 
@@ -294,14 +359,15 @@ export const monthReport = (
  */
 export const nextMonthPreview = (
   rows: CommissionRow[],
-  month: YearMonth
+  month: YearMonth,
+  lens: CommissionLens = OFFICE_LENS
 ): NextMonthPreview => {
   const next = addMonths(month, 1);
-  const inNext = rows.filter((row) => isInMonth(row.receiveDate, next));
-  const receivable = inNext.filter(isReceivableStatus);
-  const pending = inNext.filter((row) => row.status === "pending");
+  const inNext = rows.filter((row) => isInMonth(lens.receiveDate(row), next));
+  const receivable = inNext.filter((row) => isReceivableStatus(row, lens));
+  const pending = inNext.filter((row) => lens.status(row) === "pending");
   const sum = (list: CommissionRow[]) =>
-    list.reduce((total, row) => total + Number(row.amount), 0);
+    list.reduce((total, row) => total + lens.amount(row), 0);
 
   return {
     month: next,
@@ -363,10 +429,14 @@ export const officeSplit = (
   rows: CommissionRow[],
   month: YearMonth
 ): OfficeSplit => {
+  // `OFFICE_LENS` explícita, e é o ponto da função: o recorte é o calendário
+  // do ESCRITÓRIO nas duas pontas (ver o parágrafo acima). Ler a fatia do
+  // vendedor pelo calendário dele aqui compararia dois conjuntos diferentes de
+  // parcelas e produziria uma sobra que não é de ninguém.
   const scope = rows.filter(
     (row) =>
       isInMonth(row.receiveDate, month) &&
-      (isReceivableStatus(row) || row.status === "received")
+      (isReceivableStatus(row, OFFICE_LENS) || row.status === "received")
   );
 
   const company = scope.reduce((sum, row) => sum + Number(row.amount), 0);

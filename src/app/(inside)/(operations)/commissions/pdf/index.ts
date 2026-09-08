@@ -10,6 +10,8 @@ import {
   CommissionSection,
   monthLabel,
   MonthReport,
+  CommissionLens,
+  OFFICE_LENS,
   YearMonth,
 } from "../utils";
 import { drawBoletoSection } from "./boletoSection";
@@ -44,7 +46,11 @@ const filename = ({ year, month }: YearMonth): string =>
  */
 export const exportCommissionsPdf = async (
   report: MonthReport,
-  meta: CommissionsPdfMeta
+  meta: CommissionsPdfMeta,
+  // A ótica do papel. Sem ela as linhas sairiam com o valor e a data do
+  // escritório mesmo num relatório de vendedor — que era o defeito: o nome da
+  // pessoa no cabeçalho e o dinheiro da empresa na coluna.
+  lens: CommissionLens = OFFICE_LENS
 ): Promise<void> => {
   // Import dinâmico: jspdf é client-only e pesado; fora do bundle inicial/SSR.
   const { jsPDF } = await import("jspdf");
@@ -93,7 +99,7 @@ export const exportCommissionsPdf = async (
       startNewPage
     );
     for (const group of section.groups) {
-      y = drawFactorySection(pdf, group, y, startNewPage, { dateHeader });
+      y = drawFactorySection(pdf, group, y, startNewPage, { dateHeader, lens });
     }
   };
 
@@ -124,7 +130,7 @@ export const exportCommissionsPdf = async (
       y,
       startNewPage
     );
-    y = drawBoletoSection(pdf, rows, y, startNewPage);
+    y = drawBoletoSection(pdf, rows, y, startNewPage, lens);
   };
 
   boletoSection(
