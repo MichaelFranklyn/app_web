@@ -9,7 +9,7 @@ import {
   setText,
   truncate,
 } from "@/utils/pdf/theme";
-import { boletoLabel, CommissionFactoryGroup } from "../utils";
+import { boletoLabel, CommissionFactoryGroup, CommissionLens } from "../utils";
 
 const ROW_H = 18;
 const HEAD_H = 20;
@@ -94,6 +94,12 @@ const drawHead = (
 export interface FactorySectionOptions {
   /** Cabeçalho da coluna de data — cada seção fala de um momento diferente. */
   dateHeader: string;
+  /**
+   * De quem é o dinheiro da coluna. Num papel de vendedor a linha tem de
+   * mostrar a fatia DELE, na data DELE — antes saía sempre o valor do
+   * escritório, que é outro número e outro mês.
+   */
+  lens: CommissionLens;
 }
 
 /**
@@ -179,14 +185,16 @@ export const drawFactorySection = (
 
     setText(pdf, COLOR.muted);
     pdf.text(
-      formatDateDMY(row.receiveDate ?? undefined) || "—",
+      formatDateDMY(options.lens.receiveDate(row) ?? undefined) || "—",
       cols.date,
       textY
     );
 
     pdf.setFont("helvetica", "bold");
     setText(pdf, COLOR.ink);
-    pdf.text(formatMoney(row.amount), cols.amount, textY, { align: "right" });
+    pdf.text(formatMoney(options.lens.amount(row)), cols.amount, textY, {
+      align: "right",
+    });
 
     y += ROW_H;
   });

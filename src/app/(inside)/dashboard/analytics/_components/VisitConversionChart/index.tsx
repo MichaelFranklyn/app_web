@@ -9,10 +9,29 @@ import { VISIT_CONVERSION_QUERY } from "./gql";
 import { VisitConversionResponse } from "./interface";
 import { buildVisitConversionOption } from "./utils";
 
+/**
+ * O único gráfico da aba que NÃO aceita o recorte por fábrica.
+ *
+ * A visita é do CLIENTE, não da representada: uma visita cobre várias fábricas
+ * de uma vez (ver `visit_item_factories`). Filtrar o numerador (pedidos daquela
+ * fábrica) e deixar o denominador com todas as visitas produziria uma taxa de
+ * conversão que não é de ninguém — e o servidor nem aceita o argumento, de
+ * propósito.
+ *
+ * Por isso as variáveis são montadas campo a campo em vez de espalhar
+ * `filters`: mandar `factoryId` numa operação que não o declara é lixo na
+ * requisição, e no dia em que alguém adicionasse a variável à query sem pensar,
+ * o número mudaria calado. Quem avisa que o filtro não vale aqui é a descrição
+ * do card (ver `SalesTeamSection`).
+ */
 export function VisitConversionChart({ filters }: { filters: ChartFilters }) {
+  const variables = useMemo(
+    () => ({ from: filters.from, to: filters.to, sellerId: filters.sellerId }),
+    [filters.from, filters.to, filters.sellerId]
+  );
   const { data, loading, error, refetch } =
     useAsyncQuery<VisitConversionResponse>(VISIT_CONVERSION_QUERY, {
-      variables: filters,
+      variables,
       skip: false,
       autoFetch: true,
     });

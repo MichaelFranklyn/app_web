@@ -18,6 +18,10 @@ import { getCurrentMonthRangeIso } from "./utils";
  * `sellerId` ausente = a empresa toda. Para um vendedor o parâmetro é
  * irrelevante: o backend escopa pelo token, e mexer nele não abre a carteira do
  * colega.
+ *
+ * `factory` ausente = todas as representadas. Ao contrário do vendedor, este é
+ * recorte de leitura e não de permissão: o vendedor também escolhe, porque a
+ * carteira dele não tem o mesmo peso em cada fábrica.
  */
 export const useReportFilters = () => {
   const router = useRouter();
@@ -31,6 +35,7 @@ export const useReportFilters = () => {
       from: searchParams.get("from") ?? defaults.from,
       to: searchParams.get("to") ?? defaults.to,
       sellerId: searchParams.get("seller"),
+      factoryId: searchParams.get("factory"),
     }),
     [searchParams, defaults]
   );
@@ -61,6 +66,11 @@ export const useReportFilters = () => {
     [push]
   );
 
+  const setFactoryId = useCallback(
+    (factoryId: string | null) => push({ factory: factoryId }),
+    [push]
+  );
+
   /** Querystring atual, para as abas navegarem sem perder o recorte. */
   const query = searchParams.toString();
 
@@ -68,6 +78,7 @@ export const useReportFilters = () => {
     filters,
     setRange,
     setSellerId,
+    setFactoryId,
     query,
     rangeLabel: formatDateRangeLabel(filters.from, filters.to),
   };

@@ -22,7 +22,12 @@ const row = (over: Partial<CommissionChartRow> = {}): CommissionChartRow => ({
   ...over,
 });
 
-const FILTERS = { from: "2026-01-01", to: "2026-12-31", sellerId: null };
+const FILTERS = {
+  from: "2026-01-01",
+  to: "2026-12-31",
+  sellerId: null,
+  factoryId: null,
+};
 
 describe("scopeCommissionRows", () => {
   it("normaliza a linha com mês, valores numéricos e nomes de exibição", () => {
@@ -62,7 +67,7 @@ describe("scopeCommissionRows", () => {
         row({ receiveDate: "2026-06-01", amount: "3" }), // fora (> to)
         row({ receiveDate: "2026-01-31", amount: "4" }), // fora (< from)
       ],
-      { from: "2026-02-01", to: "2026-05-31", sellerId: null }
+      { from: "2026-02-01", to: "2026-05-31", sellerId: null, factoryId: null }
     );
 
     expect(result.map((r) => r.amount)).toEqual([1, 2]);
@@ -75,7 +80,7 @@ describe("scopeCommissionRows", () => {
         row({ amount: "200", seller: { id: "s2", name: "Bruno" } }),
         row({ amount: "300", seller: null }),
       ],
-      { ...FILTERS, sellerId: "s1" }
+      { ...FILTERS, sellerId: "s1", factoryId: null }
     );
 
     expect(result.map((r) => r.amount)).toEqual([100]);

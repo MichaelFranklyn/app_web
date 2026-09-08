@@ -39,6 +39,7 @@ describe("buildSentOrdersFilters", () => {
       from: "2026-07-01",
       to: "2026-07-31",
       sellerId: null,
+      factoryId: null,
     });
 
     const dateFields = filters
@@ -55,6 +56,7 @@ describe("buildSentOrdersFilters", () => {
       from: "2026-07-01",
       to: "2026-07-31",
       sellerId: null,
+      factoryId: null,
     });
 
     expect(filters).toContainEqual({

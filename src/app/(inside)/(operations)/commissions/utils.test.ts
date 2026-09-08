@@ -8,7 +8,11 @@ import {
   groupByFactory,
   isInMonth,
   boletoLabel,
+  lensFor,
   monthReport,
+  OFFICE_LENS,
+  SELLER_LENS,
+  type YearMonth,
   officeSplit,
   summarizeRows,
   yearMonthFromIso,
@@ -636,5 +640,120 @@ describe("defaultImpact", () => {
 
     expect(impacto.sellers[0].monthCommission).toBe(0);
     expect(impacto.sellers[0].share).toBe(1);
+  });
+});
+
+describe("as duas óticas do fechamento", () => {
+  /**
+   * Cada parcela carrega duas comissões: a do escritório (o que a fábrica
+   * repassa) e a do vendedor (a fatia dele, no ciclo dele). O PDF somava sempre
+   * a primeira, então o papel de um vendedor específico saía com o nome dele no
+   * cabeçalho e o dinheiro da empresa nas colunas.
+   */
+  const marco: YearMonth = { year: 2026, month: 3 };
+
+  const parcelas = [
+    row({
+      installmentId: "a",
+      amount: "100",
+      sellerAmount: "40",
+      receiveDate: "2026-03-10",
+      sellerReceiveDate: "2026-03-10",
+    }),
+    row({
+      installmentId: "b",
+      amount: "200",
+      sellerAmount: "80",
+      receiveDate: "2026-03-20",
+      sellerReceiveDate: "2026-03-20",
+    }),
+  ];
+
+  it("o escritório soma o que a fábrica repassa", () => {
+    expect(monthReport(parcelas, marco, OFFICE_LENS).total).toBe(300);
+  });
+
+  it("o vendedor soma só a fatia dele", () => {
+    expect(monthReport(parcelas, marco, SELLER_LENS).total).toBe(120);
+  });
+
+  it("o subtotal por fábrica também muda de ótica", () => {
+    // O subtotal é o número que se compara com a planilha; se ele ficasse na
+    // ótica do escritório, o papel do vendedor não fecharia com o próprio total.
+    const office = monthReport(parcelas, marco, OFFICE_LENS);
+    const seller = monthReport(parcelas, marco, SELLER_LENS);
+    expect(office.receivable.groups[0].subtotal).toBe(300);
+    expect(seller.receivable.groups[0].subtotal).toBe(120);
+  });
+
+  it("o vendedor é lido pelo calendário DELE", () => {
+    // A fatia do vendedor cai num mês diferente do repasse da fábrica: é o
+    // caso comum, porque o escritório paga no ciclo dele. Ler a fatia pela data
+    // do escritório poria o dinheiro no mês errado.
+    const atrasada = [
+      row({
+        amount: "100",
+        sellerAmount: "40",
+        receiveDate: "2026-03-10",
+        sellerReceiveDate: "2026-04-05",
+      }),
+    ];
+    expect(monthReport(atrasada, marco, OFFICE_LENS).total).toBe(100);
+    expect(monthReport(atrasada, marco, SELLER_LENS).total).toBe(0);
+    expect(
+      monthReport(atrasada, { year: 2026, month: 4 }, SELLER_LENS).total
+    ).toBe(40);
+  });
+
+  it("a situação também é a do vendedor", () => {
+    // A fábrica já repassou ao escritório, mas o escritório ainda não repassou
+    // ao vendedor: a mesma parcela é "recebida" numa ótica e "a receber" na
+    // outra, e cada papel tem de mostrar a sua.
+    const meioCaminho = [
+      row({
+        amount: "100",
+        sellerAmount: "40",
+        status: "received",
+        sellerStatus: "receivable",
+      }),
+    ];
+    const office = monthReport(meioCaminho, marco, OFFICE_LENS);
+    const seller = monthReport(meioCaminho, marco, SELLER_LENS);
+    expect(office.received.total).toBe(100);
+    expect(office.receivable.total).toBe(0);
+    expect(seller.received.total).toBe(0);
+    expect(seller.receivable.total).toBe(40);
+  });
+
+  it("a prévia do mês seguinte segue a mesma ótica", () => {
+    const abril = [
+      row({
+        amount: "500",
+        sellerAmount: "200",
+        receiveDate: "2026-04-10",
+        sellerReceiveDate: "2026-04-10",
+      }),
+    ];
+    expect(monthReport(abril, marco, OFFICE_LENS).next.receivable).toBe(500);
+    expect(monthReport(abril, marco, SELLER_LENS).next.receivable).toBe(200);
+  });
+
+  describe("lensFor", () => {
+    it("com vendedor escolhido, usa a ótica dele", () => {
+      expect(lensFor("seller-1")).toBe(SELLER_LENS);
+    });
+
+    it("sem vendedor, é o consolidado do escritório", () => {
+      // Vale também quando o próprio vendedor abre a tela: ali ele não pediu o
+      // papel de ninguém, e a query já traz só o que é dele.
+      expect(lensFor(null)).toBe(OFFICE_LENS);
+    });
+  });
+
+  it("o padrão do monthReport continua o do escritório", () => {
+    // Compatibilidade: a tela e os outros consumidores chamam sem lente.
+    expect(monthReport(parcelas, marco).total).toBe(
+      monthReport(parcelas, marco, OFFICE_LENS).total
+    );
   });
 });

@@ -10,6 +10,16 @@ export interface ReportFilters {
   to: string;
   /** `null` = a empresa toda. Vendedor é escopado pelo backend, não por aqui. */
   sellerId: string | null;
+  /**
+   * `null` = todas as representadas.
+   *
+   * Só a curva ABC usa hoje: é lá que a pergunta "quem mais compra NESTA
+   * fábrica" tem a melhor resposta (lista completa, ordenada por valor e
+   * exportável). Vive no recorte compartilhado porque mora na URL como os
+   * outros — trocar de aba não deve perder o filtro, e a aba que não o consome
+   * simplesmente o ignora.
+   */
+  factoryId: string | null;
 }
 
 /** Um número da faixa de resumo do relatório. */

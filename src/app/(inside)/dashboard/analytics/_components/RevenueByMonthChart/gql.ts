@@ -1,8 +1,18 @@
 import { gql } from "@apollo/client";
 
 export const REVENUE_BY_MONTH_QUERY = gql`
-  query RevenueByMonth($from: Date, $to: Date, $sellerId: UUID) {
-    revenueByMonth(from: $from, to: $to, sellerId: $sellerId) {
+  query RevenueByMonth(
+    $from: Date
+    $to: Date
+    $sellerId: UUID
+    $factoryId: UUID
+  ) {
+    revenueByMonth(
+      from: $from
+      to: $to
+      sellerId: $sellerId
+      factoryId: $factoryId
+    ) {
       month
       total
     }

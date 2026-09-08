@@ -6,7 +6,7 @@ import { Input } from "@/components/Input";
 import { SelectOption } from "@/components/Input";
 import { PanelHeader } from "@/components/PanelHeader";
 import { FileDown } from "lucide-react";
-import { DateRangeIso, SellerOption } from "../../../interface";
+import { DateRangeIso, FactoryOption, SellerOption } from "../../../interface";
 import { formatDateRangeLabel } from "../../../utils";
 import { DashboardDateFilter } from "../../../_components/DashboardDateFilter";
 
@@ -17,11 +17,15 @@ interface Props {
   sellers: SellerOption[];
   selectedSellerId: string | null;
   onSelectSeller: (id: string | null) => void;
+  factories: FactoryOption[];
+  selectedFactoryId: string | null;
+  onSelectFactory: (id: string | null) => void;
   onDownloadPdf: () => void;
   exportingPdf: boolean;
 }
 
 const ALL_SELLERS = "__all__";
+const ALL_FACTORIES = "__all_factories__";
 
 export function AnalyticsHeader({
   range,
@@ -30,6 +34,9 @@ export function AnalyticsHeader({
   sellers,
   selectedSellerId,
   onSelectSeller,
+  factories,
+  selectedFactoryId,
+  onSelectFactory,
   onDownloadPdf,
   exportingPdf,
 }: Props) {
@@ -40,6 +47,18 @@ export function AnalyticsHeader({
   const sellerValue =
     sellerOptions.find((o) => o.value === (selectedSellerId ?? ALL_SELLERS)) ??
     sellerOptions[0];
+
+  // O seletor de fábrica aparece para todo mundo, inclusive o vendedor: a
+  // carteira dele não tem o mesmo peso em cada representada, e "como vou na
+  // fábrica X" é pergunta dele também. O de vendedor continua só para gestor.
+  const factoryOptions: SelectOption[] = [
+    { value: ALL_FACTORIES, label: "Todas as fábricas" },
+    ...factories.map((f) => ({ value: f.id, label: f.name })),
+  ];
+  const factoryValue =
+    factoryOptions.find(
+      (o) => o.value === (selectedFactoryId ?? ALL_FACTORIES)
+    ) ?? factoryOptions[0];
 
   return (
     <div className="flex flex-col gap-8">
@@ -72,6 +91,27 @@ export function AnalyticsHeader({
                       if (!opt) return;
                       onSelectSeller(
                         opt.value === ALL_SELLERS ? null : opt.value
+                      );
+                    }}
+                  />
+                </div>
+              )}
+              {/* Só com mais de uma representada: com uma só, o seletor
+                  ocuparia espaço para oferecer uma escolha que não existe. */}
+              {factories.length > 1 && (
+                <div className="desktop:w-[220px] w-full">
+                  <Input.Select
+                    size="sm"
+                    options={factoryOptions}
+                    value={factoryValue}
+                    variant="single"
+                    disabledClear
+                    placeholder="Fábrica"
+                    onChange={(val: SelectOption | SelectOption[] | null) => {
+                      const opt = Array.isArray(val) ? val[0] : val;
+                      if (!opt) return;
+                      onSelectFactory(
+                        opt.value === ALL_FACTORIES ? null : opt.value
                       );
                     }}
                   />

@@ -43,6 +43,10 @@ export const useAbcReport = (filters: ReportFilters) => {
         from: filters.from,
         to: filters.to,
         sellerId: filters.sellerId,
+        // Com fábrica escolhida, as classes A/B/C são recalculadas SÓ sobre os
+        // pedidos dela: o cliente grande numa representada pode ser pequeno na
+        // outra, e é essa a pergunta que o filtro responde.
+        factoryId: filters.factoryId,
       },
     }
   );

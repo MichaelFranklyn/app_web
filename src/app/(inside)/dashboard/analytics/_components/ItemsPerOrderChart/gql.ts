@@ -6,12 +6,14 @@ export const ITEMS_PER_ORDER_BY_FACTORY_QUERY = gql`
     $from: Date
     $to: Date
     $sellerId: UUID
+    $factoryId: UUID
     $limit: Int
   ) {
     itemsPerOrderByFactory(
       from: $from
       to: $to
       sellerId: $sellerId
+      factoryId: $factoryId
       limit: $limit
     ) {
       entityId

@@ -4,7 +4,7 @@ import { drawReportTable, ReportColumn } from "@/utils/pdf/table";
 import { Pdf } from "@/utils/pdf/theme";
 
 import { CommissionRow } from "../interface";
-import { boletoLabel } from "../utils";
+import { boletoLabel, CommissionLens, OFFICE_LENS } from "../utils";
 
 /**
  * Colunas das seções de BOLETO (inadimplentes e liquidados).
@@ -15,8 +15,14 @@ import { boletoLabel } from "../utils";
  *
  * O valor do boleto vem ao lado da comissão porque é o par que se confere: a
  * fábrica manda o valor faturado, e a comissão é o percentual dele.
+ *
+ * Função e não constante porque a coluna de COMISSÃO depende da ótica: no papel
+ * de um vendedor ela mostra a fatia dele, não o que a fábrica repassa ao
+ * escritório. O resto das colunas é igual nas duas — o boleto é o mesmo boleto.
  */
-export const BOLETO_COLUMNS: ReportColumn<CommissionRow>[] = [
+export const boletoColumns = (
+  lens: CommissionLens
+): ReportColumn<CommissionRow>[] => [
   { header: "CLIENTE", width: 24, value: (row) => clientName(row.client) },
   { header: "FÁBRICA", width: 11, value: (row) => factoryName(row.factory) },
   {
@@ -50,14 +56,18 @@ export const BOLETO_COLUMNS: ReportColumn<CommissionRow>[] = [
     width: 10,
     align: "right",
     bold: true,
-    value: (row) => formatMoney(row.amount),
+    value: (row) => formatMoney(lens.amount(row)),
   },
 ];
 
-/** Soma uma coluna de dinheiro das linhas, para a faixa de totais. */
+/** Soma uma coluna de dinheiro das linhas, para a faixa de totais.
+ *
+ * Aceita `string | number` porque as duas fontes convivem: o valor do boleto
+ * vem do GraphQL como string (scalar Decimal) e o da comissão sai da lente já
+ * como número. */
 const sum = (
   rows: CommissionRow[],
-  of: (row: CommissionRow) => string
+  of: (row: CommissionRow) => string | number
 ): number => rows.reduce((total, row) => total + Number(of(row)), 0);
 
 /**
@@ -68,16 +78,19 @@ export const drawBoletoSection = (
   pdf: Pdf,
   rows: CommissionRow[],
   startY: number,
-  onNewPage: () => number
+  onNewPage: () => number,
+  // A coluna de comissão destas seções segue a mesma ótica do resto do papel:
+  // no relatório do vendedor é a fatia dele que está travada no boleto.
+  lens: CommissionLens = OFFICE_LENS
 ): number =>
   drawReportTable(pdf, {
-    columns: BOLETO_COLUMNS,
+    columns: boletoColumns(lens),
     rows,
     startY,
     onNewPage,
     totalsLabel: "TOTAL",
     totals: {
       7: formatMoney(sum(rows, (row) => row.installmentAmount)),
-      8: formatMoney(sum(rows, (row) => row.amount)),
+      8: formatMoney(sum(rows, (row) => lens.amount(row))),
     },
   });

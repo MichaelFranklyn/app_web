@@ -10,7 +10,7 @@ import { useState } from "react";
 import { COMMISSIONS_PDF_QUERY } from "../../gql";
 import { CommissionRow } from "../../interface";
 import { exportCommissionsPdf } from "../../pdf";
-import { monthLabel, monthReport, YearMonth } from "../../utils";
+import { lensFor, monthLabel, monthReport, YearMonth } from "../../utils";
 
 interface CommissionsPdfResponse {
   commissions_pdf: { rows: CommissionRow[] };
@@ -55,7 +55,12 @@ export function CommissionsPdfButton({
     setBusy(true);
     try {
       const { data } = await fetchRows({ variables: { sellerId } });
-      const report = monthReport(data?.commissions_pdf.rows ?? [], month);
+      // A ótica do papel: com `sellerId`, tudo é lido pela fatia e pelo
+      // calendário DO VENDEDOR. Antes o relatório de um vendedor específico
+      // somava a comissão do escritório — o nome da pessoa no cabeçalho e o
+      // dinheiro da empresa nas colunas.
+      const lens = lensFor(sellerId);
+      const report = monthReport(data?.commissions_pdf.rows ?? [], month, lens);
 
       // Um PDF só com o cabeçalho não serve a ninguém — e some com o mês em que
       // havia movimento, que é onde o gestor queria estar.
@@ -72,12 +77,11 @@ export function CommissionsPdfButton({
         return;
       }
 
-      await exportCommissionsPdf(report, {
-        month,
-        sellerName,
-        companyName,
-        companyLogoUrl,
-      });
+      await exportCommissionsPdf(
+        report,
+        { month, sellerName, companyName, companyLogoUrl },
+        lens
+      );
     } catch {
       toast({
         variant: "error",

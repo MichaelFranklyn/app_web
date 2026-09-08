@@ -5,12 +5,14 @@ export const DELIVERY_PERFORMANCE_QUERY = gql`
     $from: Date
     $to: Date
     $sellerId: UUID
+    $factoryId: UUID
     $limit: Int
   ) {
     deliveryPerformanceByFactory(
       from: $from
       to: $to
       sellerId: $sellerId
+      factoryId: $factoryId
       limit: $limit
     ) {
       entityId
