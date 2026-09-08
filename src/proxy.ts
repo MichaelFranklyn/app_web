@@ -18,6 +18,12 @@ const PUBLIC_ROUTES = [
   "/signup",
   "/forgot-password",
   "/change-password",
+  // A tela que o service worker guarda para servir sem rede. Precisa ser
+  // pública porque quem a busca é o `install` do SW, que pode rodar antes de
+  // haver sessão: com o proxy no caminho, o que iria para o cache seria o HTML
+  // do LOGIN, e o aparelho passaria a mostrar "entre na sua conta" toda vez que
+  // o sinal caísse.
+  "/offline",
 ];
 
 /** Rota de entrada do sistema — o mesmo destino do login bem-sucedido. */
@@ -127,9 +133,14 @@ function forceLogout(request: NextRequest) {
  * arquivo — sitemap inválido para o buscador e card de link sem imagem no
  * WhatsApp. As extensões da lista antiga (`.svg`, `.png`, …) não cobriam nem
  * `.txt`/`.xml` nem o nome com hash que o Next dá à imagem de OG.
+ *
+ * `manifest.webmanifest` e `sw.js` entram pela MESMA razão, e o sintoma é pior
+ * porque é silencioso: o navegador busca os dois sem passar por tela nenhuma,
+ * recebe 307 para o login, e conclui que o site não é instalável. Não há erro
+ * em lugar nenhum — o botão "instalar aplicativo" simplesmente não aparece.
  */
 export const config = {
   matcher: [
-    "/((?!api|_next/static|_next/image|favicon.ico|.well-known|robots.txt|sitemap.xml|opengraph-image|.*\\.(?:svg|png|jpg|jpeg|gif|webp|ico|bmp|tiff|ttf|woff|woff2)$).*)",
+    "/((?!api|_next/static|_next/image|favicon.ico|.well-known|robots.txt|sitemap.xml|manifest.webmanifest|sw.js|opengraph-image|.*\\.(?:svg|png|jpg|jpeg|gif|webp|ico|bmp|tiff|ttf|woff|woff2)$).*)",
   ],
 };

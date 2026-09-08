@@ -3088,6 +3088,14 @@ enum OrderStatus {
   CANCELLED
 }
 
+"""Por onde o pedido foi mandado para a fábrica."""
+enum OrderSentChannel {
+  WHATSAPP
+  EMAIL
+  PHONE
+  OTHER
+}
+
 type OrderType {
   id: UUID!
   companyId: UUID!
@@ -3108,6 +3116,18 @@ type OrderType {
   invoiceNumber: String
   """Data em que a mercadoria chegou na loja do cliente. Nulo até confirmar a entrega; é quando o estoque do cliente é reabastecido."""
   deliveredAt: Date
+  """
+  Quando o pedido foi mandado para a fábrica. Nulo = nunca foi mandado — e num
+  pedido já CONFIRMADO esse nulo é a pendência que a operação precisa ver:
+  fechado com o cliente e não enviado.
+  """
+  sentAt: DateTime
+  """Por onde saiu. É a primeira pergunta quando a fábrica diz que não recebeu."""
+  sentChannel: OrderSentChannel
+  """Quem mandou. Nulo se o usuário foi removido depois (o envio continua registrado)."""
+  sentByName: String
+  """Observação de quem enviou (ex.: "mandei para o Carlos, o Rogério está de férias")."""
+  sentNote: String
   """Prazo de entrega estimado em dias (herda o padrão da fábrica). Nulo = sem previsão."""
   deliveryEstimateDays: Int
   """
@@ -3390,6 +3410,18 @@ extend type Mutation {
   uninvoiceOrder(id: UUID!, force: Boolean = false): OrderTypeDataResponse!
   """Confirma a entrega de um pedido faturado: status → DELIVERED e reabastece o estoque do cliente usando a data real de chegada."""
   markOrderDelivered(id: UUID!, deliveredAt: Date!): OrderTypeDataResponse!
+  """
+  Carimba que o pedido saiu para a fábrica: grava quando, por quem e por onde, e
+  avança DRAFT → SENT (pedido já CONFIRMADO mantém o status — reenviar não
+  desfaz o fechamento do cliente).
+
+  O envio em si acontece FORA do sistema: a API oficial do WhatsApp cobra por
+  conversa e exige aprovação de modelo, e é no WhatsApp que a representação fala
+  com a fábrica. O produto prepara (PDF e mensagem prontos) e registra.
+
+  Reenvio é permitido e esperado — a fábrica perder a mensagem é comum.
+  """
+  markOrderSent(id: UUID!, input: MarkOrderSentInput!): OrderTypeDataResponse!
   payOrderInstallment(id: UUID!, paidAt: Date!): OrderInstallmentTypeDataResponse!
   """Marca vários boletos como pagos de uma vez, conferindo o relatório da fábrica."""
   payOrderInstallments(installmentIds: [UUID!]!, paidAt: Date!): BaseResponse!
@@ -3436,6 +3468,13 @@ extend type Mutation {
   """Encerra a devolução ao vendedor: o valor descontado dele voltou."""
   markSellerChargebackRefunded(installmentIds: [UUID!]!): BaseResponse!
   setCommissionReconciled(installmentIds: [UUID!]!, reconciled: Boolean!): BaseResponse!
+}
+
+input MarkOrderSentInput {
+  """Por onde o pedido foi mandado."""
+  channel: OrderSentChannel!
+  """Observação livre de quem enviou. Opcional."""
+  note: String = null
 }
 
 # Console da plataforma — tudo aqui é exclusivo do super usuário (SU).
