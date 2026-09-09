@@ -44,7 +44,14 @@ const RECONCILED_OPTIONS: SelectOption[] = [
  * repassou a ele, não o que a fábrica pagou à empresa.
  */
 const fieldsFor = (
-  lens: CommissionLens
+  lens: CommissionLens,
+  /**
+   * A tela está somando TODOS os vendedores? Só então existe o filtro por
+   * vendedor — e só então ele é aplicado: fora daí o campo nem entra no mapa,
+   * senão um recorte esquecido na URL continuaria valendo, invisível, numa
+   * tela que já mostra uma pessoa só.
+   */
+  showSeller: boolean
 ): Record<string, LocalField<CommissionRow>> => ({
   search: {
     type: "text",
@@ -77,6 +84,15 @@ const fieldsFor = (
     type: "select",
     match: (row, value) => row.isReconciled === (value === "yes"),
   },
+  ...(showSeller
+    ? {
+        sellerId: {
+          type: "select" as const,
+          match: (row: CommissionRow, value: string) =>
+            row.seller?.id === value,
+        },
+      }
+    : {}),
 });
 
 /**
@@ -85,6 +101,7 @@ const fieldsFor = (
  */
 const columnsFor = (lens: CommissionLens) => ({
   client: (row: CommissionRow) => clientName(row.client),
+  seller: (row: CommissionRow) => row.seller?.name ?? null,
   order: (row: CommissionRow) => row.orderId,
   // Sem nota vai para o fim em ordem crescente: a lista abre pelo que dá para
   // conferir, e o que falta preencher fica junto, no fim.
@@ -129,10 +146,12 @@ const optionsFrom = (
 export const useCommissionsTable = (
   rows: CommissionRow[],
   canManage: boolean,
-  lens: CommissionLens = OFFICE_LENS
+  lens: CommissionLens = OFFICE_LENS,
+  /** A tela soma todos os vendedores (ótica do escritório, para o gestor). */
+  showSeller = false
 ) => {
   const columns = useMemo(() => columnsFor(lens), [lens]);
-  const fields = useMemo(() => fieldsFor(lens), [lens]);
+  const fields = useMemo(() => fieldsFor(lens, showSeller), [lens, showSeller]);
 
   const table = useLocalTable<CommissionRow>({
     items: rows,
@@ -147,6 +166,20 @@ export const useCommissionsTable = (
         key: "search",
         label: "Cliente, pedido ou nota",
         placeholder: "Nome do cliente, código do pedido ou número da nota",
+      },
+      {
+        type: "select",
+        key: "sellerId",
+        label: "Vendedor",
+        placeholder: "Todos os vendedores",
+        options: optionsFrom(rows, (row) =>
+          row.seller ? { value: row.seller.id, label: row.seller.name } : null
+        ),
+        // Só quando a tela soma a empresa inteira: na ótica do vendedor a lista
+        // já é de uma pessoa, e o filtro ofereceria um nome só. Diferente do
+        // seletor lá em cima, este RECORTA a tela toda — os cartões do mês
+        // inclusive —, e a linha de escopo diz quantas parcelas sobraram.
+        hidden: !showSeller,
       },
       {
         type: "select",
@@ -187,7 +220,7 @@ export const useCommissionsTable = (
         hidden: !canManage,
       },
     ],
-    [rows, canManage, lens]
+    [rows, canManage, lens, showSeller]
   );
 
   return { ...table, filterFields };

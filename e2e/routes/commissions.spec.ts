@@ -176,7 +176,7 @@ test("comissões: trocar a ótica refaz os números da tela inteira", async ({
     })
   ).toBeVisible();
 
-  await page.getByRole("button", { name: "Vendedor", exact: true }).click();
+  await page.getByRole("button", { name: "Valores de Vendedor" }).click();
 
   // Ótica do vendedor: a fatia dele — e ela cai em SETEMBRO, então agosto fica
   // zerado. É o ponto do seletor: o mês também muda de significado.
@@ -314,4 +314,112 @@ test("comissões: a aba de boletos travados pede os de todos os vencimentos", as
   await expect(
     page.getByText("esta aba não segue o mês", { exact: false })
   ).toBeVisible();
+});
+
+test("comissões: no escritório a tela soma todos os vendedores", async ({
+  page,
+}) => {
+  // A ótica do escritório é a conta da CASA: é ela que se põe ao lado da
+  // planilha da fábrica, e a planilha vem por fábrica, com os pedidos de todo
+  // mundo dentro. Recortada por vendedor, ela dava um total que não existe em
+  // papel nenhum — e o campo continuava clicável, prometendo um filtro que a
+  // ótica ignora. Aqui o seletor fica travado em "Todos os vendedores"; é na
+  // ótica do vendedor que ele volta a valer.
+  await grantRole(page, "OWNER");
+  const spy = await mockGraphql(page, {
+    CommissionsSellers: () => ({
+      commissions_sellers: {
+        edges: [{ node: { id: "seller-1", name: "Vendedor Teste" } }],
+        totalCount: 1,
+      },
+    }),
+    Commissions: () => summary([row()]),
+  });
+
+  await page.goto("/commissions");
+  await expect(page.getByText("Resumo de agosto de 2026")).toBeVisible();
+
+  // Sem vendedor na consulta: o backend devolve a empresa inteira.
+  await expect
+    .poll(() => JSON.stringify(spy.lastVariables("Commissions") ?? {}))
+    .toContain('"sellerId":null');
+  await expect(page.getByPlaceholder("Todos os vendedores")).toBeDisabled();
+  // E a lista diz de quem são as parcelas, lá embaixo, longe do seletor.
+  await expect(page.getByText("· Todos os vendedores")).toBeVisible();
+
+  await page.getByRole("button", { name: "Valores de Vendedor" }).click();
+
+  // A ótica do vendedor destrava o seletor e recorta a consulta.
+  await expect
+    .poll(() => JSON.stringify(spy.lastVariables("Commissions") ?? {}))
+    .toContain('"sellerId":"seller-1"');
+  await expect(page.getByPlaceholder("Selecionar vendedor")).toBeEnabled();
+});
+
+test("comissões: somando todos, a lista diz de quem é cada parcela", async ({
+  page,
+}) => {
+  // No escritório as linhas de várias pessoas se misturam dentro do mesmo
+  // cartão de fábrica — é assim que a planilha da fábrica vem. Sem a coluna,
+  // "de quem é esta parcela" só se descobria abrindo o pedido; e o filtro do
+  // painel é o recorte de leitura dentro da conta da casa, diferente do seletor
+  // lá em cima, que troca a pergunta para o ciclo de pagamento do vendedor.
+  await grantRole(page, "OWNER");
+  await mockGraphql(page, {
+    CommissionsSellers: () => ({
+      commissions_sellers: {
+        edges: [
+          { node: { id: "seller-1", name: "Vendedor Teste" } },
+          { node: { id: "seller-2", name: "Mariana Souza" } },
+        ],
+        totalCount: 2,
+      },
+    }),
+    Commissions: () =>
+      summary([
+        row(),
+        row({
+          orderId: "order-2",
+          installmentId: "inst-2",
+          client: {
+            id: "client-2",
+            razaoSocial: "MOVEIS AURORA LTDA",
+            nomeFantasia: "Aurora",
+          },
+          seller: { id: "seller-2", name: "Mariana Souza" },
+        }),
+      ]),
+  });
+
+  await page.goto("/commissions");
+  await expect(page.getByText("Resumo de agosto de 2026")).toBeVisible();
+
+  await expect(
+    page.getByRole("columnheader", { name: "Vendedor" })
+  ).toBeVisible();
+  await expect(
+    page.getByRole("row").filter({ hasText: "MOVEIS AURORA LTDA" })
+  ).toContainText("Mariana Souza");
+
+  // O filtro recorta a tela inteira — e a frase de escopo deixa de dizer
+  // "Todos os vendedores", que ao lado de uma lista de uma pessoa só seria a
+  // contradição que ela existe para evitar.
+  await page.getByRole("button", { name: "Filtros", exact: true }).click();
+  await page
+    .locator("[data-filters-panel]")
+    .getByPlaceholder("Todos os vendedores")
+    .click();
+  await page
+    .locator("[data-select-dropdown]")
+    .getByText("Mariana Souza", { exact: true })
+    .click();
+
+  await expect(page.getByText("CASA DO SONO LTDA")).toHaveCount(0);
+  await expect(page.getByText("· Mariana Souza")).toBeVisible();
+
+  // Na ótica do vendedor a coluna sai: repetiria o mesmo nome em toda linha.
+  await page.getByRole("button", { name: "Valores de Vendedor" }).click();
+  await expect(
+    page.getByRole("columnheader", { name: "Vendedor" })
+  ).toHaveCount(0);
 });

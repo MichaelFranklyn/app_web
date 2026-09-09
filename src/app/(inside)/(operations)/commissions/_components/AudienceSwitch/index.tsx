@@ -50,6 +50,13 @@ export function AudienceSwitch({ value, onChange }: Props) {
             color={value === option.id ? "amber" : "neutral"}
             size="sm"
             noUppercase
+            // O nome completo ("Valores de Escritório") sai do rótulo visível
+            // com o "Valores de" que está ao lado: sozinho, "Vendedor" repete
+            // o nome da coluna da tabela e da opção do painel de filtros, e
+            // nem o leitor de tela nem um teste sabem qual dos três é.
+            // `aria-pressed` é o que diz que estas duas são um interruptor.
+            label={`Valores de ${option.label}`}
+            aria-pressed={value === option.id}
             onClick={() => onChange(option.id)}
           >
             <Button.Icon icon={option.icon} />

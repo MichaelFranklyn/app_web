@@ -30,6 +30,15 @@ interface Props {
    * demais (cliente, pedido, nota, boleto) são da parcela e não mudam de ótica.
    */
   lens?: CommissionLens;
+  /**
+   * Mostra de QUEM é a parcela.
+   *
+   * Só quando a tela soma todos os vendedores (ótica do escritório): ali as
+   * linhas de várias pessoas se misturam dentro do mesmo cartão de fábrica, e
+   * sem esta coluna não há como saber a quem uma parcela pertence. Recortada por
+   * um vendedor, ela repetiria o mesmo nome em todas as linhas.
+   */
+  showSeller?: boolean;
   /** Parcelas marcadas para as ações em lote (só gestão). */
   selectedIds?: Set<string>;
   onToggleRow?: (installmentId: string) => void;
@@ -57,6 +66,7 @@ export function CommissionsTable({
   loading,
   canManage,
   lens = OFFICE_LENS,
+  showSeller = false,
   selectedIds,
   onToggleRow,
   onToggleAll,
@@ -64,7 +74,8 @@ export function CommissionsTable({
 }: Props) {
   const selectable = canManage && !!onToggleRow;
   // Seleção + boleto + conferência/repasse: as colunas de gestão.
-  const columns = 8 + (selectable ? 1 : 0) + (canManage ? 2 : 0);
+  const columns =
+    8 + (showSeller ? 1 : 0) + (selectable ? 1 : 0) + (canManage ? 2 : 0);
   const allSelected =
     rows.length > 0 && rows.every((row) => selectedIds?.has(row.installmentId));
 
@@ -91,6 +102,16 @@ export function CommissionsTable({
           <Table.Head sortKey="client" title="Cliente que comprou o pedido.">
             Cliente
           </Table.Head>
+          {/* As duas colunas de "quem" ficam juntas, antes do bloco que
+              identifica o documento (pedido, nota, parcela). */}
+          {showSeller && (
+            <Table.Head
+              sortKey="seller"
+              title="Vendedor que fez o pedido. A coluna aparece porque a tela está somando todos os vendedores; para ver um de cada vez, troque “Valores de” para Vendedor lá em cima — ou use o filtro Vendedor."
+            >
+              Vendedor
+            </Table.Head>
+          )}
           <Table.Head
             sortKey="order"
             title="Código curto do pedido. Clique para abrir o pedido inteiro."
@@ -204,6 +225,15 @@ export function CommissionsTable({
                 </Table.Cell>
               )}
               <Table.Cell variant="strong">{clientName(row.client)}</Table.Cell>
+              {showSeller && (
+                <Table.Cell>
+                  {row.seller?.name ?? (
+                    <Title variant="body-sm" color="muted">
+                      —
+                    </Title>
+                  )}
+                </Table.Cell>
+              )}
               <Table.Cell>
                 <Link
                   href={`/orders/${row.orderId}`}

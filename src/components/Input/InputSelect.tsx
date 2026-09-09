@@ -229,6 +229,10 @@ const InputSelectControl = ({
     inputSizePadding[size],
     !inGroup && inputSizeMinHeight[size],
     "flex items-center gap-[8px] cursor-text",
+    // Travado tem de PARECER travado: o clique já era ignorado, mas o campo
+    // continuava com a mesma cara de um editável, e quem tentava escolher não
+    // entendia por que nada acontecia.
+    disabled && "cursor-not-allowed opacity-60",
     inGroup ? inputStyles.controlGrouped : inputStyles.controlBordered,
     !inGroup && isError && inputStyles.error,
     !inGroup && isSuccess && inputStyles.success,
