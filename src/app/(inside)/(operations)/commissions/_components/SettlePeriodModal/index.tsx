@@ -11,7 +11,7 @@ import { formatMoney } from "@/utils/format/masks";
 import { useCompleteList } from "@/hooks/useCompleteList";
 import { factoryName } from "@/utils/company";
 import { useLazyQuery, useMutation } from "@apollo/client/react";
-import { CheckCheck, Info } from "lucide-react";
+import { CheckCheck, Info, Users } from "lucide-react";
 import { useEffect, useMemo, useState } from "react";
 import {
   COMMISSIONS_FACTORIES_QUERY,
@@ -24,6 +24,7 @@ import {
   SettlePreviewResponse,
   SettleResponse,
 } from "./interface";
+import { outOfScopeCount, settleScopeLabel } from "./utils";
 
 // Catálogo pequeno (dezenas por empresa): `useCompleteList` rebusca pelo total
 // se um dia passar da primeira página, em vez de truncar calado.
@@ -90,6 +91,16 @@ export function SettlePeriodModal({
     SETTLE_PREVIEW_QUERY,
     { fetchPolicy: "network-only" }
   );
+  // A MESMA prévia sem recorte de vendedor. Existe para poder dizer o que a
+  // baixa vai DEIXAR de fora: quem abre a tela na ótica do vendedor cai no
+  // próprio perfil por padrão, dá a baixa achando que fechou o período e os
+  // boletos dos colegas continuam vencidos — foi o que aconteceu em produção,
+  // onde 410 baixas saíram de uma carteira só e 674 boletos de outras três
+  // ficaram para trás.
+  const [loadPreviewAll, previewAll] = useLazyQuery<SettlePreviewResponse>(
+    SETTLE_PREVIEW_QUERY,
+    { fetchPolicy: "network-only" }
+  );
   const [settle] = useMutation<SettleResponse>(
     SETTLE_INSTALLMENTS_IN_PERIOD_MUTATION
   );
@@ -106,11 +117,33 @@ export function SettlePeriodModal({
     loadPreview({
       variables: { dueFrom, dueTo, factoryId, sellerId: scopedSellerId },
     });
-  }, [open, dueFrom, dueTo, factoryId, scopedSellerId, loadPreview]);
+    if (scopedSellerId) {
+      loadPreviewAll({
+        variables: { dueFrom, dueTo, factoryId, sellerId: null },
+      });
+    }
+  }, [
+    open,
+    dueFrom,
+    dueTo,
+    factoryId,
+    scopedSellerId,
+    loadPreview,
+    loadPreviewAll,
+  ]);
 
   const result = preview.data?.settleInstallmentsPreview;
   const count = result?.count ?? 0;
+  const foraDoRecorte = outOfScopeCount(
+    count,
+    previewAll.data?.settleInstallmentsPreview?.count,
+    scopedSellerId
+  );
   const canSubmit = !!dueFrom && !!dueTo && count > 0 && !isLoading;
+
+  // De quem é a baixa, em português — a prévia sem isto dizia "99 boletos" e
+  // quem lia entendia "todos os 99 do período".
+  const escopo = settleScopeLabel(scopedSellerId, sellerName ?? null);
 
   const handleClose = (v: boolean) => {
     setOpen(v);
@@ -233,8 +266,22 @@ export function SettlePeriodModal({
                     {preview.loading
                       ? "Contando os boletos do período…"
                       : count > 0
-                        ? `${count} boleto(s) em aberto vencem neste período, somando ${formatMoney(result?.amount ?? 0)}.`
-                        : "Nenhum boleto em aberto vence neste período."}
+                        ? `${count} boleto(s) ${escopo} vencem neste período, somando ${formatMoney(result?.amount ?? 0)}.`
+                        : `Nenhum boleto em aberto ${escopo} vence neste período.`}
+                  </Alert.Description>
+                </Alert.Content>
+              </Alert.Root>
+            )}
+
+            {foraDoRecorte > 0 && !preview.loading && (
+              <Alert.Root variant="warning">
+                <Alert.Icon icon={Users} />
+                <Alert.Content>
+                  <Alert.Description>
+                    Outros {foraDoRecorte} boleto(s) vencem neste período na
+                    carteira dos demais vendedores e <b>não</b> entram nesta
+                    baixa. Marque “Aplicar a todos os vendedores” para
+                    incluí-los.
                   </Alert.Description>
                 </Alert.Content>
               </Alert.Root>
