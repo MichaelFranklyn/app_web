@@ -5,6 +5,7 @@ import { useAsyncAction } from "@/hooks/useAsyncAction";
 import { useInvalidateQueriesClient } from "@/hooks/useInvalidateQueries";
 import { useRedirectTransition } from "@/hooks/useRedirectTransition";
 import { extractSelectValue } from "@/utils/form";
+import { ORDER_CACHE_FIELDS } from "@/utils/cacheFields";
 import { useMutation, useQuery } from "@apollo/client/react";
 import { useMemo, useRef, useState } from "react";
 
@@ -381,7 +382,7 @@ export function useAddOrder({
         successMessage: "Pedido criado com sucesso",
         onSuccess: ({ order, failed }) => {
           onAddOptimistic(order);
-          invalidateClient(["orders", "orderStats"]);
+          invalidateClient(ORDER_CACHE_FIELDS);
           if (failed.length) {
             toast({
               variant: "error",

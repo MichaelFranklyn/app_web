@@ -57,6 +57,23 @@ const operationNames = new Set(
 const literals = (list: string) =>
   [...list.matchAll(/["'](\w+)["']/g)].map((m) => m[1]);
 
+/**
+ * Arrays de strings declarados como constante E entregues a `invalidateClient`
+ * no mesmo arquivo (ou exportados por um módulo de campos de cache).
+ */
+function constantLists() {
+  return files.flatMap(({ path, code }) =>
+    [...code.matchAll(/const (\w+) = \[([^\]]*)\]/g)]
+      .filter(
+        ([, name]) =>
+          /^[A-Z0-9_]+$/.test(name) &&
+          (code.includes(`invalidateClient(${name})`) ||
+            path.endsWith("cacheFields.ts"))
+      )
+      .flatMap(([, , list]) => literals(list).map((name) => ({ path, name })))
+  );
+}
+
 function collect(pattern: RegExp) {
   return files.flatMap(({ path, code }) =>
     [...code.matchAll(pattern)].flatMap((m) =>
@@ -65,9 +82,13 @@ function collect(pattern: RegExp) {
   );
 }
 
-const invalidated = collect(/invalidateClient\(\s*\[([^\]]*)\]/g).concat(
-  collect(/invalidateKeys[=:]\s*\{?\s*\[([^\]]*)\]/g)
-);
+const invalidated = collect(/invalidateClient\(\s*\[([^\]]*)\]/g)
+  .concat(collect(/invalidateKeys[=:]\s*\{?\s*\[([^\]]*)\]/g))
+  // Listas passadas por CONSTANTE (ORDER_CACHE_FIELDS, STALE_AFTER_SAVE…) não
+  // aparecem como literal na chamada. Sem lê-las aqui, o contrato deixaria de
+  // cobrir justamente os nomes usados em mais pontos: uma lista compartilhada
+  // com um alias dentro quebra todas as telas que a usam de uma vez.
+  .concat(constantLists());
 const refetched = collect(/refetchClient\(\s*\[([^\]]*)\]/g);
 
 describe("contrato dos hooks de invalidação de cache", () => {

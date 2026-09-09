@@ -15,6 +15,7 @@ import {
   parseCoverageDays,
 } from "@/utils/form";
 import { toIsoDate } from "@/utils/format/date";
+import { ORDER_CACHE_FIELDS } from "@/utils/cacheFields";
 
 import {
   CREATE_ORDER_ITEM_MUTATION,
@@ -319,7 +320,7 @@ export function useAddFactoryOrder({ factoryId }: AddFactoryOrderProps) {
               description: `${failed.join(", ")} — adicione no detalhe do pedido.`,
             });
           }
-          await invalidateClient(["orders"]);
+          await invalidateClient(ORDER_CACHE_FIELDS);
           // Como nas outras entradas, criar leva PARA DENTRO do pedido. O modal
           // não se fecha: quem o desmonta é a navegação, e é ela que segura o
           // loading do botão até a tela do pedido carregar.

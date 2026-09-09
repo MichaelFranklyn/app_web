@@ -4,10 +4,14 @@ import { useEffect, useMemo, useRef, useState } from "react";
 
 import { FormBuilderRef, FormStepSchema } from "@/components/FormBuilder";
 import { useToast } from "@/components/Toast";
-import { useRefetchQueriesClient } from "@/hooks/useInvalidateQueries";
+import {
+  useInvalidateQueriesClient,
+  useRefetchQueriesClient,
+} from "@/hooks/useInvalidateQueries";
 import { extractSelectValue } from "@/utils/form";
 import { getTodayIso } from "@/utils/format/date";
 import { readWorkbook } from "@/utils/import/reader";
+import { ORDER_CACHE_FIELDS } from "@/utils/cacheFields";
 import {
   isOrderSheet,
   readOrderSheet,
@@ -103,6 +107,7 @@ export function useImportOrder({
   const formRef = useRef<FormBuilderRef>(null);
   const { toast } = useToast();
   const refetchClient = useRefetchQueriesClient();
+  const invalidateClient = useInvalidateQueriesClient();
   const [createOrder] = useMutation<CreateOrderResponse>(CREATE_ORDER_MUTATION);
 
   // Só as opções: a importação não monta itens na tela (o wizard traz os do
@@ -435,7 +440,10 @@ export function useImportOrder({
   }, [sheetRead, pending, loadingTerms, sheetTerm]);
 
   const refetchList = () => {
+    // Refetch para o que está na tela (sem flicker) e evict para as telas que o
+    // pedido novo também desatualiza — ficha do cliente, lista de clientes.
     refetchClient(["Orders", "OrderStats"]);
+    void invalidateClient(ORDER_CACHE_FIELDS);
   };
 
   const handleClose = (value: boolean) => {

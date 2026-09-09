@@ -6,6 +6,7 @@ import { useInvalidateQueriesClient } from "@/hooks/useInvalidateQueries";
 import { useMutation } from "@apollo/client/react";
 import { Trash2 } from "lucide-react";
 import { DELETE_ORDER_MUTATION } from "@/graphql/orders";
+import { ORDER_CACHE_FIELDS } from "@/utils/cacheFields";
 import { DeleteOrderModalProps, DeleteOrderResponse } from "./interface";
 
 export function DeleteOrderModal({
@@ -47,7 +48,7 @@ export function DeleteOrderModal({
       }}
       onSuccess={() => {
         onCommit();
-        void invalidateClient(["orders"]);
+        void invalidateClient(ORDER_CACHE_FIELDS);
       }}
       onError={onRollback}
     />

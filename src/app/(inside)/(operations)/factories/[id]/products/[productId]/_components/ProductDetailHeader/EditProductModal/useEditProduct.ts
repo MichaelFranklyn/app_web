@@ -21,6 +21,11 @@ import {
 } from "./interface";
 
 // Catálogos da empresa carregados por inteiro (ver useCompleteList).
+//
+// `cache-and-network`, como no modal de CRIAR produto: a categoria, a unidade
+// ou o rótulo podem ter nascido em /settings/catalog (ou no próprio modal de
+// criar, que cria inline) depois de esta tela ter carregado. Com `cache-first`
+// o select mostrava o catálogo de antes e a opção nova só aparecia com F5.
 const COMPANY_CATALOG_INPUT = {};
 const getCategories = (d: ProductCategoriesOptionsData) =>
   d.product_categories_options;
@@ -41,7 +46,7 @@ export function useEditProduct({ product, onSuccess }: EditProductModalProps) {
       PRODUCT_CATEGORIES_OPTIONS_QUERY,
       COMPANY_CATALOG_INPUT,
       getCategories,
-      { skip: !open }
+      { skip: !open, fetchPolicy: "cache-and-network" }
     );
 
   const { data: unitsData, error: unitsError } =
@@ -49,7 +54,7 @@ export function useEditProduct({ product, onSuccess }: EditProductModalProps) {
       PRODUCT_UNITS_OPTIONS_QUERY,
       COMPANY_CATALOG_INPUT,
       getUnits,
-      { skip: !open }
+      { skip: !open, fetchPolicy: "cache-and-network" }
     );
 
   const { data: labelsData, error: labelsError } =
@@ -57,7 +62,7 @@ export function useEditProduct({ product, onSuccess }: EditProductModalProps) {
       PRODUCT_UNIT_LABELS_OPTIONS_QUERY,
       COMPANY_CATALOG_INPUT,
       getLabels,
-      { skip: !open }
+      { skip: !open, fetchPolicy: "cache-and-network" }
     );
 
   const categoryOptions = useMemo(
