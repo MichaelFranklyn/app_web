@@ -41,6 +41,10 @@ const getFactories = (d: CommissionsFactoriesResponse) =>
  *
  * A data padrão é o VENCIMENTO de cada boleto, não hoje: é o que preserva a
  * cronologia e mantém coerente o mês em que cada comissão caiu.
+ *
+ * A baixa quita as DUAS pontas do período — o cliente pagou o boleto e a
+ * fábrica repassou a comissão dele —, porque é isso que "dar baixa num período
+ * inteiro" significa para quem coloca o histórico em dia.
  */
 export function SettlePeriodModal({
   sellerId,
@@ -161,7 +165,7 @@ export function SettlePeriodModal({
       <Modal.Content size="md">
         <Modal.Header
           title="Dar baixa nos boletos de um período"
-          description="Marca como pagos todos os boletos em aberto que vencem no período escolhido. Serve para colocar o histórico em dia de uma vez."
+          description="Marca como pagos todos os boletos em aberto que vencem no período escolhido e dá por recebida a comissão deles. Serve para colocar o histórico em dia de uma vez."
         />
 
         <Modal.Body>
@@ -237,9 +241,10 @@ export function SettlePeriodModal({
             )}
 
             <Title variant="body-sm" color="muted">
-              Boleto já pago, cancelado, marcado como inadimplente ou com
-              comissão já recebida da fábrica não é tocado. Para desfazer, é
-              preciso reverter parcela a parcela — confira o período antes.
+              Boleto já pago, cancelado ou marcado como inadimplente não é
+              tocado. A comissão de quem já estava marcada como recebida mantém
+              a data original. Para desfazer, é preciso reverter parcela a
+              parcela — confira o período antes.
             </Title>
           </div>
         </Modal.Body>
