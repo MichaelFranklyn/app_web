@@ -23,7 +23,10 @@ import {
 import { extractSelectValue } from "@/utils/form";
 import { CreateItemResponse, PriceListsData, TiersData } from "./interface";
 
-// Catálogos pequenos carregados por inteiro (ver useCompleteList).
+// Catálogos pequenos carregados por inteiro (ver useCompleteList). Buscados com
+// `cache-and-network`: a tabela de preço e o nível podem ter nascido nas abas da
+// fábrica depois de esta tela ter carregado, e com `cache-first` o select
+// mostrava o catálogo de antes — a tabela nova só aparecia com F5.
 const getPriceLists = (d: PriceListsData) => d.factoryPriceLists;
 const getTiers = (d: TiersData) => d.priceTiers;
 
@@ -62,14 +65,14 @@ export function AddPriceItemModal({
       FACTORY_PRICE_LISTS_OPTIONS_QUERY,
       byCompanyFactory,
       getPriceLists,
-      { skip: !open || !companyFactoryId }
+      { skip: !open || !companyFactoryId, fetchPolicy: "cache-and-network" }
     );
 
   const { data: tiersData, error: tiersError } = useCompleteList<TiersData>(
     PRICE_TIERS_OPTIONS_QUERY,
     byCompanyFactory,
     getTiers,
-    { skip: !open || !companyFactoryId }
+    { skip: !open || !companyFactoryId, fetchPolicy: "cache-and-network" }
   );
 
   const [createItem] = useMutation<CreateItemResponse>(

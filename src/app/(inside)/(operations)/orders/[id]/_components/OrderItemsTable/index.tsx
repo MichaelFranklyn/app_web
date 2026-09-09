@@ -23,6 +23,7 @@ import { DeleteOrderItemModal } from "./DeleteOrderItemModal";
 import { EditOrderItemModal } from "./EditOrderItemModal";
 import { ImportOrderModal } from "./ImportOrderModal";
 import { FeatureGate } from "@/components/FeatureGate";
+import { ORDER_CACHE_FIELDS } from "@/utils/cacheFields";
 import { ORDER_ITEMS_QUERY } from "./gql";
 
 /**
@@ -170,7 +171,7 @@ export function OrderItemsTable({
     onOrderChanged?.();
     // Invalida os KPIs (query client-side) para que /orders mostre os novos
     // totais ao voltar para a listagem.
-    void invalidateClient(["orderStats"]);
+    void invalidateClient(ORDER_CACHE_FIELDS);
   };
 
   return (

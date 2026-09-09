@@ -304,7 +304,7 @@ export const REASON_COPY: Record<InsightCaseReason, ReasonCopy> = {
   ORDER_OPEN: {
     icon: Truck,
     label: "Pedido em aberto",
-    hint: "O sistema não manda visitar uma fábrica de que o cliente acabou de comprar. Fature o pedido e confirme a entrega — aí ele volta para a rotina.",
+    hint: "O sistema não manda visitar uma fábrica de que o cliente acabou de comprar. Clique na linha para abrir o pedido: fature e confirme a entrega — aí o cliente volta para a rotina.",
   },
   VISIT_PENDING: {
     icon: CalendarClock,

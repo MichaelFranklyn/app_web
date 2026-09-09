@@ -9,6 +9,7 @@ import { useMutation } from "@apollo/client/react";
 import { Trash2 } from "lucide-react";
 import { useState } from "react";
 import { DELETE_ORDER_MUTATION } from "@/graphql/orders";
+import { ORDER_CACHE_FIELDS } from "@/utils/cacheFields";
 import { DeleteOrderModalProps, DeleteOrderResponse } from "./interface";
 
 export function DeleteOrderModal({ orderId }: DeleteOrderModalProps) {
@@ -42,7 +43,7 @@ export function DeleteOrderModal({ orderId }: DeleteOrderModalProps) {
           // refaz o fetch sem o pedido excluído ao voltar). Não removemos a
           // entidade OrderType: isso dispararia um refetch do detalhe (order(id))
           // ainda montado, que retornaria NotFound.
-          await invalidateClient(["orders", "orderStats"]);
+          await invalidateClient(ORDER_CACHE_FIELDS);
           // Não fecha o modal: a navegação desmonta o detalhe quando /orders
           // carrega, mantendo o loading até lá.
           redirect("/orders");

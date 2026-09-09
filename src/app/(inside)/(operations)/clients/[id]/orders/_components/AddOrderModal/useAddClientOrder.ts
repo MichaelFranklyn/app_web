@@ -2,12 +2,14 @@ import { negativeOrderHint } from "@/components/ClientFactoryNegative";
 import { FormBuilderRef, FormStepSchema } from "@/components/FormBuilder";
 import { useToast } from "@/components/Toast";
 import { useAsyncAction } from "@/hooks/useAsyncAction";
+import { useInvalidateQueriesClient } from "@/hooks/useInvalidateQueries";
 import { useRedirectTransition } from "@/hooks/useRedirectTransition";
 import {
   extractSelectValue,
   parseDeliveryDays,
   parseCoverageDays,
 } from "@/utils/form";
+import { ORDER_CACHE_FIELDS } from "@/utils/cacheFields";
 import { toIsoDate } from "@/utils/format/date";
 import { useCompleteList } from "@/hooks/useCompleteList";
 import { useMutation } from "@apollo/client/react";
@@ -81,6 +83,7 @@ export function useAddClientOrder(clientId: string) {
   const [step, setStep] = useState(0);
   const formRef = useRef<FormBuilderRef>(null);
   const { redirect, isRedirecting } = useRedirectTransition();
+  const invalidateClient = useInvalidateQueriesClient();
   const { toast } = useToast();
 
   // Fábrica do vínculo escolhido no passo 1 — alimenta o catálogo do passo 2.
@@ -309,7 +312,7 @@ export function useAddClientOrder(clientId: string) {
       },
       {
         successMessage: "Pedido criado com sucesso",
-        onSuccess: ({ order, failed }) => {
+        onSuccess: async ({ order, failed }) => {
           if (failed.length) {
             toast({
               variant: "error",
@@ -317,6 +320,10 @@ export function useAddClientOrder(clientId: string) {
               description: `${failed.join(", ")} — adicione no detalhe do pedido.`,
             });
           }
+          // A ficha do cliente fica no cache enquanto o pedido novo abre. Sem
+          // invalidar, voltar para a aba mostrava o resumo por fábrica de antes
+          // — o pedido só aparecia depois de um F5.
+          await invalidateClient(ORDER_CACHE_FIELDS);
           // Não fecha o modal: o botão segue em loading até o pedido recém-criado
           // carregar; a navegação desmonta esta página (e o modal) ao entrar.
           redirect(`/orders/${order.id}`);

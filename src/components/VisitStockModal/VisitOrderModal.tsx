@@ -13,6 +13,7 @@ import { useRedirectTransition } from "@/hooks/useRedirectTransition";
 import { useMutation } from "@apollo/client/react";
 import { useRef } from "react";
 import { toIsoDate } from "@/utils/format/date";
+import { ORDER_CACHE_FIELDS } from "@/utils/cacheFields";
 
 import { factoryLabel } from "./FactoryCard";
 import { CREATE_VISIT_ORDER_MUTATION } from "./gql";
@@ -111,7 +112,7 @@ export function VisitOrderModal({ group, itemId, open, onClose }: Props) {
       {
         successMessage: "Pedido criado — adicione os itens",
         onSuccess: async (order) => {
-          await invalidateClient(["orders", "companyClient"]);
+          await invalidateClient(ORDER_CACHE_FIELDS);
           // Não fecha o fluxo aqui: quem desmonta a visita (e estes modais) é a
           // navegação. Fechar antes devolveria a rotina por baixo enquanto o
           // pedido ainda carrega — o mesmo flash que o loading existe para evitar.
