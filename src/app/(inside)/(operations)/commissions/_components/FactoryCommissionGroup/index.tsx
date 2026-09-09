@@ -36,6 +36,11 @@ interface Props {
   /** De quem é o dinheiro que o cartão destaca e a tabela imprime. */
   lens?: CommissionLens;
   /**
+   * Mostra a coluna "Vendedor" na tabela: as linhas de várias pessoas se
+   * misturam dentro do cartão quando a tela soma a empresa inteira.
+   */
+  showSeller?: boolean;
+  /**
    * Ordenação da tela, publicada para os cabeçalhos desta tabela. É a MESMA de
    * todos os cartões: escolhida uma vez, as fábricas ficam comparáveis entre si.
    */
@@ -71,6 +76,7 @@ export function FactoryCommissionGroup({
   defaultOpen = false,
   canManage,
   lens = OFFICE_LENS,
+  showSeller = false,
   sort,
   selectedIds,
   onToggleRow,
@@ -177,6 +183,7 @@ export function FactoryCommissionGroup({
             loading={false}
             canManage={canManage}
             lens={lens}
+            showSeller={showSeller}
             selectedIds={selectedIds ?? EMPTY_SELECTION}
             onToggleRow={onToggleRow}
             onToggleAll={

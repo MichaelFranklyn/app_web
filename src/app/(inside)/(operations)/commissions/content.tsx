@@ -79,6 +79,31 @@ export default function CommissionsContent({
   // repasse ("bater valores") é tarefa de gestão (gestor = quem pode escolher vendedor).
   const canManage = canSelectSeller;
 
+  // ── De quem é o dinheiro da tela ───────────────────────────────────────────
+  // Abre no ESCRITÓRIO: é o trabalho diário de quem gerencia (conferir o que a
+  // fábrica pagou). A ótica do vendedor responde outra pergunta — "o que eu
+  // devo a ele" — e o vendedor logado só tem essa, com os campos principais já
+  // no nível dele (ver `lensFor`).
+  //
+  // A ótica governa também o ESCOPO da tela, e não só a leitura dos campos: o
+  // que as fábricas devem ao escritório é uma conta da CASA INTEIRA, e mostrá-la
+  // um vendedor de cada vez nunca dava o número que se confere contra a planilha
+  // da fábrica — a planilha vem por fábrica, com os pedidos de todo mundo
+  // dentro. Por isso, no escritório, o seletor de vendedor sai de cena (travado
+  // em "Todos os vendedores"); ele volta a valer quando a pergunta passa a ser
+  // "quanto eu devo a fulano".
+  const [audience, setAudience] = useState<CommissionAudience>("office");
+  const lens = useMemo(
+    () => lensFor(audience, canManage),
+    [audience, canManage]
+  );
+  // Os rótulos da tela só se especializam quando existem DUAS óticas para
+  // escolher: para o vendedor, "a comissão" é a dele e chamá-la de "repasse ao
+  // vendedor" seria explicar-lhe uma distinção que não existe na tela dele.
+  const isSellerView = canManage && lens.audience === "seller";
+  /** No escritório a tela soma a empresa inteira — sem recorte de vendedor. */
+  const isOfficeScope = canManage && !isSellerView;
+
   // ── Seletor de vendedor (só gestor) ────────────────────────────────────────
   const sellersQuery = useCompleteList<CommissionsSellersResponse>(
     COMMISSIONS_SELLERS_QUERY,
@@ -101,25 +126,17 @@ export default function CommissionsContent({
     }
   }, [canSelectSeller, selectedSellerId, sellers, ownSellerId]);
 
-  // Gestor sem vendedor escolhido ainda não busca (evita query sem escopo).
-  const dataSkip = canSelectSeller && !selectedSellerId;
+  // De quem a consulta pede as comissões: ninguém em especial no escritório (a
+  // empresa inteira), o vendedor escolhido na ótica dele. O vendedor logado não
+  // escolhe — o backend já recorta a lista pelo dono da sessão.
+  const scopedSellerId = isOfficeScope ? null : selectedSellerId;
+
+  // Na ótica do vendedor, gestor sem vendedor escolhido ainda não busca (evita
+  // query sem escopo). No escritório não há o que esperar: a tela já sabe o que
+  // pedir antes de o catálogo de vendedores chegar.
+  const dataSkip = canSelectSeller && !isOfficeScope && !selectedSellerId;
 
   const [tab, setTab] = useState<CommissionTab>("receivable");
-
-  // ── De quem é o dinheiro da tela ───────────────────────────────────────────
-  // Abre no ESCRITÓRIO: é o trabalho diário de quem gerencia (conferir o que a
-  // fábrica pagou). A ótica do vendedor responde outra pergunta — "o que eu
-  // devo a ele" — e o vendedor logado só tem essa, com os campos principais já
-  // no nível dele (ver `lensFor`).
-  const [audience, setAudience] = useState<CommissionAudience>("office");
-  const lens = useMemo(
-    () => lensFor(audience, canManage),
-    [audience, canManage]
-  );
-  // Os rótulos da tela só se especializam quando existem DUAS óticas para
-  // escolher: para o vendedor, "a comissão" é a dele e chamá-la de "repasse ao
-  // vendedor" seria explicar-lhe uma distinção que não existe na tela dele.
-  const isSellerView = canManage && lens.audience === "seller";
 
   // ── Navegador de mês global (pela data em que a comissão cai) ───────────────
   // Abre no MÊS CORRENTE — é o mês que a pessoa veio ver — e só recua quando
@@ -137,7 +154,7 @@ export default function CommissionsContent({
     COMMISSIONS_QUERY,
     {
       variables: {
-        sellerId: selectedSellerId,
+        sellerId: scopedSellerId,
         from: monthStartIso(month),
         to: monthEndIso(month),
         includeOverdue: ignoresMonth(tab),
@@ -153,7 +170,9 @@ export default function CommissionsContent({
   // Filtro e ordenação valem para a tela toda: os KPIs, os cartões das fábricas
   // e o painel de estorno leem as MESMAS linhas. Um filtro que valesse só dentro
   // de um cartão faria o total lá em cima contradizer a tabela logo abaixo dele.
-  const table = useCommissionsTable(rows, canManage, lens);
+  // O último argumento liga o que só existe quando a tela soma a empresa
+  // inteira: a coluna "Vendedor" e o filtro por vendedor no painel.
+  const table = useCommissionsTable(rows, canManage, lens, isOfficeScope);
   const visibleRows = table.displayedData;
   const isFiltered = table.totalItems < table.totalUnfiltered;
 
@@ -219,7 +238,7 @@ export default function CommissionsContent({
   // do lote — manter a seleção marcaria parcelas que saíram da tela.
   useEffect(() => {
     clearSelection();
-  }, [month, tab, selectedSellerId, audience, clearSelection]);
+  }, [month, tab, scopedSellerId, audience, clearSelection]);
 
   const selectedRows = useMemo(() => {
     if (selection.count === 0) return [];
@@ -241,9 +260,27 @@ export default function CommissionsContent({
   const sellerValue =
     sellerOptions.find((o) => o.value === selectedSellerId) ?? null;
 
-  // Nome que assina o PDF: o do seletor (gestor) ou o das próprias linhas
-  // (vendedor, que não escolhe ninguém).
-  const sellerName = sellerValue?.label ?? rows[0]?.seller?.name ?? null;
+  // De quem são as parcelas que a lista mostra, para a frase de escopo. No
+  // escritório são todos — a menos que o painel de filtros recorte um, e aí a
+  // frase tem de dizer o nome dele: "Todos os vendedores" ao lado de uma lista
+  // de uma pessoa só seria a própria contradição que a frase existe para evitar.
+  const listScopeLabel = useMemo(() => {
+    if (!canManage) return undefined;
+    if (!isOfficeScope) return sellerValue?.label ?? null;
+    const filtered = table.inputValues.sellerId;
+    if (!filtered) return "Todos os vendedores";
+    return (
+      rows.find((row) => row.seller?.id === filtered)?.seller?.name ??
+      "Um vendedor"
+    );
+  }, [canManage, isOfficeScope, sellerValue, table.inputValues.sellerId, rows]);
+
+  // Nome que assina o PDF: o do seletor (gestor na ótica do vendedor) ou o das
+  // próprias linhas (vendedor, que não escolhe ninguém). No escritório não há
+  // nome — o papel é da casa, com todos os vendedores dentro dele.
+  const sellerName = isOfficeScope
+    ? null
+    : (sellerValue?.label ?? rows[0]?.seller?.name ?? null);
 
   const showSkeleton = loading && !summary;
 
@@ -255,20 +292,30 @@ export default function CommissionsContent({
             <PanelHeader.Title>Comissões</PanelHeader.Title>
             <PanelHeader.Description>
               {canManage
-                ? "O que as fábricas devem ao escritório pelos pedidos de cada vendedor. Escolha o vendedor e o mês; o repasse que sai para ele aparece na linha abaixo dos cartões."
+                ? "O que as fábricas devem ao escritório, mês a mês. Em “Valores de: Escritório” a tela soma todos os vendedores — é o número que se confere contra a planilha da fábrica; troque para “Vendedor” para ver, e escolher, um de cada vez."
                 : "Quanto você tem para ganhar de comissão, por fábrica e por mês."}
             </PanelHeader.Description>
             {canSelectSeller && (
               <PanelHeader.Actions className="mt-6">
                 <div className="flex items-center gap-4">
+                  {/* Travado na ótica do escritório, e mostrando o que a
+                      tela está de fato somando ("Todos os vendedores"): o
+                      recorte por vendedor não existe nessa conta, e um campo
+                      que continuasse clicável prometeria um filtro que a tela
+                      ia ignorar. */}
                   <div className="desktop:w-[220px] w-full">
                     <Input.Select
                       size="sm"
                       options={sellerOptions}
-                      value={sellerValue}
+                      value={isOfficeScope ? null : sellerValue}
                       variant="single"
+                      disabled={isOfficeScope}
                       disabledClear
-                      placeholder="Selecionar vendedor"
+                      placeholder={
+                        isOfficeScope
+                          ? "Todos os vendedores"
+                          : "Selecionar vendedor"
+                      }
                       onChange={(val: SelectOption | SelectOption[] | null) => {
                         const opt = Array.isArray(val) ? val[0] : val;
                         if (opt) setSelectedSellerId(opt.value);
@@ -310,14 +357,14 @@ export default function CommissionsContent({
             <div className="flex flex-wrap items-center gap-8">
               {canManage && (
                 <SettlePeriodModal
-                  sellerId={selectedSellerId}
+                  sellerId={scopedSellerId}
                   sellerName={sellerName}
                   onSettled={handleChanged}
                 />
               )}
               <div className="flex items-center gap-2">
                 <CommissionsPdfButton
-                  sellerId={selectedSellerId}
+                  sellerId={scopedSellerId}
                   month={month}
                   sellerName={sellerName}
                   canManage={canManage}
@@ -487,6 +534,7 @@ export default function CommissionsContent({
               tab={tab}
               month={month}
               audience={canManage ? lens.audience : undefined}
+              scopeLabel={listScopeLabel}
               shown={filteredRows.length}
               total={scopeTotal}
             />
@@ -547,6 +595,7 @@ export default function CommissionsContent({
                   defaultOpen={i === 0}
                   canManage={canManage}
                   lens={lens}
+                  showSeller={isOfficeScope}
                   sort={table.sort}
                   selectedIds={
                     canManage

@@ -170,6 +170,13 @@ export const FILTERS_HELP: ReactNode = (
       Com algum filtro ligado, aparece aqui do lado quantas parcelas passaram —
       assim um recorte esquecido não explica sozinho um total menor.
     </p>
+    <p>
+      O filtro <b>Vendedor</b> só existe quando a tela está somando todos eles
+      (ótica do escritório). Ele é diferente do seletor lá em cima: aqui é um{" "}
+      <b>recorte de leitura</b> dentro da conta da casa — os cartões do mês
+      passam a somar só o que sobrou —, enquanto o seletor de cima troca a
+      pergunta para “quanto eu devo a esta pessoa”, no ciclo de pagamento dela.
+    </p>
   </>
 );
 
@@ -235,6 +242,12 @@ export const AUDIENCE_HELP: ReactNode = (
       parcela pode aparecer em meses diferentes nas duas óticas.
     </p>
     <p>
+      A ótica muda também <b>de quem</b> são as parcelas. <b>Escritório</b> é a
+      empresa inteira, com todos os vendedores somados — o seletor ao lado fica
+      travado em “Todos os vendedores”. <b>Vendedor</b> destrava o seletor e a
+      tela passa a mostrar um de cada vez.
+    </p>
+    <p>
       As <b>ações continuam sendo do escritório</b> — conferir contra a
       planilha, registrar o que a fábrica pagou, repassar ao vendedor. Elas não
       mudam de significado com a ótica; só os números mudam.
@@ -243,10 +256,18 @@ export const AUDIENCE_HELP: ReactNode = (
 );
 
 export const SELLER_SELECT_HELP: ReactNode = (
-  <p>
-    Escolha de quem você quer ver as comissões. Ao trocar de vendedor o mês
-    continua o mesmo, para comparar o mesmo fechamento entre eles.
-  </p>
+  <>
+    <p>
+      Escolha de quem você quer ver as comissões. Ao trocar de vendedor o mês
+      continua o mesmo, para comparar o mesmo fechamento entre eles.
+    </p>
+    <p>
+      Ele só vale na ótica do <b>vendedor</b>. Em <b>Escritório</b> a tela soma{" "}
+      <b>todos os vendedores</b> — é a conta da casa, a que se confere contra a
+      planilha da fábrica, que também vem com os pedidos de todos —, e por isso
+      o campo fica travado em “Todos os vendedores”.
+    </p>
+  </>
 );
 
 export const CHARGEBACK_PANEL_HELP: ReactNode = (

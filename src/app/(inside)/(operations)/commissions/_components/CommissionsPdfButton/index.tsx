@@ -24,7 +24,12 @@ interface CommissionsPdfResponse {
 }
 
 interface Props {
-  /** Vendedor de quem é o papel; `null` quando é o próprio (vendedor logado). */
+  /**
+   * Vendedor de quem é o papel. `null` em dois casos: o vendedor logado (o
+   * papel é o dele, e o backend já recorta) e o gestor na ótica do escritório,
+   * em que a tela soma a empresa inteira — ali o fechamento é da casa, e o
+   * extrato individual não tem a quem ser entregue.
+   */
   sellerId: string | null;
   month: YearMonth;
   sellerName: string | null;
@@ -159,8 +164,18 @@ export function CommissionsPdfButton({
         <Dropdown.Item icon={Building2} onSelect={() => generate("office")}>
           Fechamento do escritório — conferir com a fábrica
         </Dropdown.Item>
-        <Dropdown.Item icon={UserRound} onSelect={() => generate("seller")}>
-          Extrato do vendedor — a fatia dele, no ciclo dele
+        {/* Sem vendedor escolhido não há extrato: o papel leva o nome de uma
+            pessoa no cabeçalho e é entregue a ela. Somar a fatia de todos sob
+            o título "extrato do vendedor" seria um documento que não é de
+            ninguém — por isso a opção fica travada, dizendo o que fazer. */}
+        <Dropdown.Item
+          icon={UserRound}
+          disabled={!sellerId}
+          onSelect={() => generate("seller")}
+        >
+          {sellerId
+            ? "Extrato do vendedor — a fatia dele, no ciclo dele"
+            : "Extrato do vendedor — troque “Valores de” para Vendedor e escolha um"}
         </Dropdown.Item>
       </Dropdown.Content>
     </Dropdown.Root>
