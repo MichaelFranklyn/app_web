@@ -53,6 +53,9 @@ export default function SentOrdersReportContent({ canSelectSeller }: Props) {
       }),
     ],
     fetchRows: fetchAllRows,
+    // A varredura para no teto de páginas; com o total da tela ao lado, o
+    // export avisa quando o arquivo não fecha com ela.
+    totalRows: tableData.totalItems,
     sheetHeaders: SENT_ORDERS_EXPORT_HEADERS,
     buildSheetRows: (rows) => buildSentOrdersExportRows(rows, orderStatusLabel),
     pdfColumns: SENT_ORDERS_PDF_COLUMNS,

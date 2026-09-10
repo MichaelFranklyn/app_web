@@ -9,6 +9,7 @@ import { Title } from "@/components/Title";
 import { useToast } from "@/components/Toast";
 import { useAsyncAction } from "@/hooks/useAsyncAction";
 import { formatMoney, maskCurrency } from "@/utils/format/masks";
+import { isTruncated, MAX_SCAN_PAGES } from "@/utils/pagination";
 import { parseLocalDate, toIsoDate } from "@/utils/format/date";
 import { useApolloClient, useMutation } from "@apollo/client/react";
 import { Tags, Zap } from "lucide-react";
@@ -37,8 +38,6 @@ interface Props {
   priceList: PriceListDetail;
   onChanged: () => void;
 }
-
-const MAX_PAGES = 50;
 
 export function PromotionModal({ priceList, onChanged }: Props) {
   const [open, setOpen] = useState(false);
@@ -85,8 +84,10 @@ export function PromotionModal({ priceList, onChanged }: Props) {
     setLoadingItems(true);
     const all: PromotionItemNode[] = [];
     let after: string | null = null;
+    let pagesRead = 0;
+    let hasMore = false;
     try {
-      for (let page = 0; page < MAX_PAGES; page++) {
+      for (let page = 0; page < MAX_SCAN_PAGES; page++) {
         const result: { data?: PromotionItemsData } = await client.query({
           query: PROMOTION_ITEMS_QUERY,
           variables: {
@@ -103,11 +104,25 @@ export function PromotionModal({ priceList, onChanged }: Props) {
         const conn = result.data?.priceListItems;
         if (!conn) break;
         all.push(...conn.edges.map((e) => e.node));
-        if (!conn.pageInfo.hasNextPage || !conn.pageInfo.endCursor) break;
+        pagesRead += 1;
+        hasMore = Boolean(conn.pageInfo.hasNextPage && conn.pageInfo.endCursor);
+        if (!hasMore) break;
         after = conn.pageInfo.endCursor;
       }
       setNodes(all);
       setPromoByItem(seedPromoByItem(all));
+
+      // A promoção é aplicada item a item sobre o que ESTÁ nesta lista: se a
+      // varredura parou no teto, o que não chegou fica fora do preço
+      // promocional sem ninguém saber. O aviso separa "não quis promover" de
+      // "não vi que existia".
+      if (isTruncated(pagesRead, hasMore)) {
+        toast({
+          variant: "warning",
+          title: "Tabela grande demais",
+          description: `Foram carregados ${all.length} itens desta tabela. O que não apareceu aqui não entra na promoção.`,
+        });
+      }
     } catch {
       // Falha ao carregar não pode deixar o modal num limbo silencioso.
       toast({
