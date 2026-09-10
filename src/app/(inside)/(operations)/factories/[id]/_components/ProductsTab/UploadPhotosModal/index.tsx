@@ -6,6 +6,7 @@ import { useState } from "react";
 import { Button } from "@/components/Button";
 import { Input } from "@/components/Input";
 import { Modal } from "@/components/Modal";
+import { QueryError } from "@/components/QueryError";
 import { Title } from "@/components/Title";
 
 import { PhotoReviewList } from "./PhotoReviewList";
@@ -67,11 +68,25 @@ export function UploadPhotosModal({ companyFactoryId, onChanged }: Props) {
               hint="PNG, JPG ou WEBP. As fotos são reduzidas no seu navegador antes do envio."
             />
 
-            {!upload.hasProducts && !upload.productsLoading && (
-              <Title variant="body-sm" color="muted">
-                Esta fábrica ainda não tem produtos cadastrados. Cadastre o
-                catálogo primeiro — as fotos são anexadas aos produtos.
-              </Title>
+            {upload.productsError ? (
+              /* Sem esta ponta, a falha na busca do catálogo saía como
+                 "a fábrica não tem produtos" — e o usuário iria cadastrar
+                 produto que já existe. */
+              <QueryError
+                flat
+                onRetry={upload.reloadProducts}
+                retrying={upload.productsLoading}
+                title="Não foi possível carregar o catálogo"
+                description="As fotos são anexadas aos produtos, e a lista deles não chegou. Tente novamente."
+              />
+            ) : (
+              !upload.hasProducts &&
+              !upload.productsLoading && (
+                <Title variant="body-sm" color="muted">
+                  Esta fábrica ainda não tem produtos cadastrados. Cadastre o
+                  catálogo primeiro — as fotos são anexadas aos produtos.
+                </Title>
+              )
             )}
 
             <UploadSummary

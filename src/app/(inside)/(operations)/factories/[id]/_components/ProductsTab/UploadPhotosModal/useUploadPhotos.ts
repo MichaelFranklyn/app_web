@@ -73,10 +73,16 @@ export function useUploadPhotos({
     [open, companyFactoryId]
   );
 
-  const { nodes: products, loading: productsLoading } = useAllPages<
-    PhotoProduct,
-    UploadPhotosProductsData
-  >(UPLOAD_PHOTOS_PRODUCTS_QUERY, productsInput, selectProducts);
+  const {
+    nodes: products,
+    loading: productsLoading,
+    error: productsError,
+    reload: reloadProducts,
+  } = useAllPages<PhotoProduct, UploadPhotosProductsData>(
+    UPLOAD_PHOTOS_PRODUCTS_QUERY,
+    productsInput,
+    selectProducts
+  );
 
   const productOptions = useMemo<SelectOption[]>(
     () =>
@@ -209,6 +215,11 @@ export function useUploadPhotos({
     productOptions,
     productById,
     productsLoading,
+    // Erro e catálogo vazio chegam os dois como `products: []`, e a mensagem
+    // que o modal escreve é diferente: um manda cadastrar produto, o outro
+    // manda tentar de novo.
+    productsError,
+    reloadProducts,
     hasProducts: products.length > 0,
     addFiles,
     assignProduct,

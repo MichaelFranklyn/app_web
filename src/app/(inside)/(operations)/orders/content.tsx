@@ -1,6 +1,7 @@
 "use client";
 
 import { PageContent } from "@/components/PageContent";
+import { QueryError } from "@/components/QueryError";
 import { Tabs } from "@/components/Tabs";
 import { useOptimisticList } from "@/hooks/useOptimisticList";
 import { buildQueryFilters, useTableData } from "@/hooks/useTableData";
@@ -99,28 +100,37 @@ export default function OrdersContent({
     initialData: tableData.displayedData,
   });
 
-  const table = (
-    <OrdersTable
-      items={optimistic.items}
-      loading={tableData.loading}
-      currentPage={tableData.currentPage}
-      setCurrentPage={tableData.setCurrentPage}
-      totalPages={tableData.totalPages}
-      totalItems={tableData.totalItems}
-      inputValues={tableData.inputValues}
-      setFilters={tableData.setFilters}
-      setFilter={tableData.setFilter}
-      sort={tableData.sort}
-      filterFields={filterFields}
-      title={isPending ? "Pedidos a faturar" : "Lista de pedidos"}
-      emptyTitle={isPending ? "Nenhum pedido esperando faturamento" : undefined}
-      emptyDescription={
-        isPending
-          ? "Todo pedido confirmado já foi faturado. Os que ainda não foram aparecem aqui."
-          : undefined
-      }
-    />
-  );
+  // Falha na busca não pode sair como "Nenhum pedido encontrado": a lista vazia
+  // é uma afirmação sobre a empresa, e o EmptyState a faria sem ter o dado. Só
+  // vale quando não há nada em tela — com a lista já carregada, um refetch que
+  // falha não apaga o que o usuário está lendo.
+  const table =
+    tableData.error && optimistic.items.length === 0 ? (
+      <QueryError onRetry={() => tableData.refetch()} />
+    ) : (
+      <OrdersTable
+        items={optimistic.items}
+        loading={tableData.loading}
+        currentPage={tableData.currentPage}
+        setCurrentPage={tableData.setCurrentPage}
+        totalPages={tableData.totalPages}
+        totalItems={tableData.totalItems}
+        inputValues={tableData.inputValues}
+        setFilters={tableData.setFilters}
+        setFilter={tableData.setFilter}
+        sort={tableData.sort}
+        filterFields={filterFields}
+        title={isPending ? "Pedidos a faturar" : "Lista de pedidos"}
+        emptyTitle={
+          isPending ? "Nenhum pedido esperando faturamento" : undefined
+        }
+        emptyDescription={
+          isPending
+            ? "Todo pedido confirmado já foi faturado. Os que ainda não foram aparecem aqui."
+            : undefined
+        }
+      />
+    );
 
   return (
     <PageContent>

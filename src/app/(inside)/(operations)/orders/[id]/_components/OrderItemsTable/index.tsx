@@ -2,6 +2,7 @@
 
 import { Badge } from "@/components/Badges";
 import { EmptyState } from "@/components/EmptyState";
+import { QueryError } from "@/components/QueryError";
 import { Filters, FilterField } from "@/components/Filters";
 import { Table } from "@/components/Table";
 import { useInvalidateQueriesClient } from "@/hooks/useInvalidateQueries";
@@ -77,7 +78,7 @@ export function OrderItemsTable({
   onOrderChanged,
 }: Props) {
   const invalidateClient = useInvalidateQueriesClient();
-  const { data, loading, refetch } = useQuery<OrderItemsResponse>(
+  const { data, loading, error, refetch } = useQuery<OrderItemsResponse>(
     ORDER_ITEMS_QUERY,
     { variables: { orderId } }
   );
@@ -294,6 +295,22 @@ export function OrderItemsTable({
         <Table.Body>
           {loading && items.length === 0 ? (
             <Table.Skeleton columns={columns} rows={5} />
+          ) : error && items.length === 0 ? (
+            /* Antes do vazio, e de propósito: "Pedido sem itens" é uma
+               afirmação sobre o PEDIDO, e a query que falhou não sabe nada
+               sobre ele. Esta tela tem botão de faturar ao lado — quem lesse o
+               vazio concluiria que o pedido está zerado. */
+            <Table.Row>
+              <Table.Cell colSpan={columns}>
+                <QueryError
+                  flat
+                  onRetry={() => refetch()}
+                  retrying={loading}
+                  title="Não foi possível carregar os itens"
+                  description="Houve um problema ao buscar os itens deste pedido. Nada foi perdido — tente novamente."
+                />
+              </Table.Cell>
+            </Table.Row>
           ) : items.length === 0 ? (
             <Table.Row>
               <Table.Cell colSpan={columns}>
