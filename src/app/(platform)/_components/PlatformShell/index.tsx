@@ -1,5 +1,6 @@
 "use client";
 
+import { Title } from "@/components/Title";
 import { Button } from "@/components/Button";
 import { Sidebar } from "@/components/Sidebar";
 import { Topbar } from "@/components/Topbar";
@@ -50,9 +51,9 @@ export function PlatformShell({ children }: { children: React.ReactNode }) {
         <Sidebar.Brand>
           <div className="flex items-center gap-[8px]">
             <ShieldCheck size={20} className="text-(--purple)" />
-            <span className="text-[15px] font-(--weight-semibold) text-(--text)">
+            <Title variant="body-md" weight="semibold">
               Plataforma
-            </span>
+            </Title>
           </div>
         </Sidebar.Brand>
 
@@ -103,9 +104,9 @@ export function PlatformShell({ children }: { children: React.ReactNode }) {
             >
               <Menu size={20} strokeWidth={2} />
             </button>
-            <span className="text-[13px] tracking-[0.12em] text-(--muted2) uppercase">
+            <Title variant="label" color="muted2">
               Console da plataforma
-            </span>
+            </Title>
           </Topbar.Breadcrumb>
 
           <Topbar.Actions>

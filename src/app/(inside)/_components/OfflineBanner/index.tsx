@@ -1,5 +1,6 @@
 "use client";
 
+import { Title } from "@/components/Title";
 import { WifiOff } from "lucide-react";
 import { useEffect, useState } from "react";
 
@@ -52,11 +53,11 @@ export function OfflineBanner() {
       className="flex flex-wrap items-center gap-8 bg-(--red) px-16 py-8 text-white"
     >
       <WifiOff size={16} className="shrink-0" />
-      <span className="text-[13px]">
+      <Title variant="body-xs" color="inverse">
         Sem internet agora. Você continua vendo o que já estava na tela, mas{" "}
         <strong>não salve nada</strong> até o sinal voltar — a faixa desaparece
         sozinha.
-      </span>
+      </Title>
     </div>
   );
 }

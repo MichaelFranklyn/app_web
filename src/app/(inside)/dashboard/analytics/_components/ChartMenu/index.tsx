@@ -1,5 +1,6 @@
 "use client";
 
+import { Title } from "@/components/Title";
 import { Button } from "@/components/Button";
 import { Dropdown } from "@/components/Dropdown";
 import {
@@ -41,8 +42,10 @@ const variantIcon = (label: string) => {
 /** Rótulo de seção do menu (não-interativo). */
 function SectionLabel({ children }: { children: ReactNode }) {
   return (
-    <div className="px-[14px] pt-[8px] pb-[4px] font-mono text-[11px] tracking-wide text-(--muted) uppercase">
-      {children}
+    <div className="px-[14px] pt-[8px] pb-[4px]">
+      <Title variant="label" color="muted">
+        {children}
+      </Title>
     </div>
   );
 }

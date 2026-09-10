@@ -76,7 +76,9 @@ export const SelectDropdown = ({
               readOnly
               tabIndex={-1}
             />
-            <span className="font-medium">Selecionar todos</span>
+            <Title variant="body-xs" weight="medium">
+              Selecionar todos
+            </Title>
           </div>
         </div>
       )}

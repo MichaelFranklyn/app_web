@@ -1,3 +1,4 @@
+import { Title } from "@/components/Title";
 import React from "react";
 import { cn } from "@/lib/utils";
 
@@ -70,9 +71,11 @@ export const DividerRoot = React.forwardRef<HTMLDivElement, DividerProps>(
           {...props}
         >
           <div className="h-px flex-1 bg-(--border)" />
-          <span className="font-mono text-[13px] tracking-[0.08em] text-(--muted2) uppercase">
+          {/* `tracking` mais fechado que o do `label`: aqui a legenda divide
+              espaço com as duas linhas do separador. */}
+          <Title variant="label" color="muted2" className="tracking-[0.08em]">
             {children}
-          </span>
+          </Title>
           <div className="h-px flex-1 bg-(--border)" />
         </div>
       );

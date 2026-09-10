@@ -1,5 +1,6 @@
 "use client";
 
+import { Title } from "@/components/Title";
 import { UserData } from "@/app/(auth)/login/interface";
 import {
   getCookie,
@@ -76,9 +77,9 @@ export function DevRoleSwitch() {
       className="flex items-center gap-4 rounded-(--radius-md) border border-dashed border-(--amber)/50 bg-(--bg3) px-6 py-2"
     >
       <FlaskConical size={13} className="text-(--amber)" />
-      <span className="text-[10px] font-(--weight-bold) tracking-wide text-(--amber)">
+      <Title variant="label" weight="bold" color="amber">
         DEV
-      </span>
+      </Title>
       <div className="flex items-center">
         {segment("Owner", !isSeller, () => applyRole("OWNER" as Role))}
         {segment("Vendedor", isSeller, () => applyRole("SELLER" as Role))}

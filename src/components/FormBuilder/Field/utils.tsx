@@ -220,10 +220,10 @@ const renderSwitch: FieldRenderer = ({ field, controllerField, error }) => {
   return (
     <div className="flex flex-col gap-2">
       {f.label && (
-        <label className="text-[13px] font-medium text-(--text2)">
+        <Title as="label" variant="body-sm" weight="medium" color="secondary">
           {f.label}
           {f.required && <RequiredMark />}
-        </label>
+        </Title>
       )}
       <div className="flex flex-wrap gap-4">
         {f.options?.map((opt) => (
@@ -303,7 +303,11 @@ const RENDERERS: Record<FieldType, FieldRenderer> = {
 export const renderInput = (props: RenderInputProps) => {
   const renderer = RENDERERS[props.field.type];
   if (!renderer) {
-    return <div className="text-[13px] text-(--red)">Tipo não suportado</div>;
+    return (
+      <Title variant="body-sm" color="red">
+        Tipo não suportado
+      </Title>
+    );
   }
   return renderer(props, getCommonProps(props));
 };

@@ -1,5 +1,6 @@
 "use client";
 
+import { Title } from "@/components/Title";
 import { Badge } from "@/components/Badges";
 import { Button } from "@/components/Button";
 import { FormBuilder } from "@/components/FormBuilder";
@@ -50,9 +51,9 @@ export function AddOrderItemModal(props: AddOrderItemModalProps) {
                 </Badge.Icon>
                 <Badge.Text>Promoção relâmpago</Badge.Text>
               </Badge.Root>
-              <span className="text-[13px] text-(--orange)">
+              <Title variant="body-xs" color="orange">
                 Preço promocional aplicado a este produto.
-              </span>
+              </Title>
             </div>
           )}
           <FormBuilder

@@ -39,10 +39,12 @@ export function ProductDaysRow({ product, days, onChange }: Props) {
     <div className="flex flex-col gap-8 rounded-(--r-md) border border-(--border) bg-(--bg3) px-12 py-10">
       <div className="flex items-baseline justify-between gap-8">
         <div className="min-w-0">
-          <div className="truncate text-[13px] font-medium text-(--text)">
+          <Title variant="body-sm" weight="medium" className="truncate">
             {product.name}
-          </div>
-          <div className="text-[13px] text-(--muted)">{product.sku}</div>
+          </Title>
+          <Title variant="body-sm" color="muted">
+            {product.sku}
+          </Title>
         </div>
         {marked ? (
           <Title variant="micro" color="secondary" className="shrink-0">
