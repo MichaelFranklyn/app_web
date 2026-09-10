@@ -1,5 +1,6 @@
 "use client";
 
+import { isQuoteStatus } from "@/app/(inside)/_shared/orderStatus";
 import { Badge } from "@/components/Badges";
 import { Breadcrumb } from "@/components/Breadcrumb";
 import { PanelHeader } from "@/components/PanelHeader";
@@ -23,7 +24,7 @@ interface Props {
 export function OrderDetailHeader({ order, onRefetch }: Props) {
   // Orçamento (rascunho/enviado): ainda não é pedido de fato — não fatura, mas
   // pode ser convertido em pedido.
-  const isQuote = order.status === "DRAFT" || order.status === "SENT";
+  const isQuote = isQuoteStatus(order.status);
 
   return (
     <div className="flex flex-col gap-8">
