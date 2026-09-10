@@ -5,6 +5,7 @@ import { useApolloClient } from "@apollo/client/react";
 import { FilterField } from "@/components/Filters";
 import { ExportMenu } from "@/components/ExportMenu";
 import { useToast } from "@/components/Toast";
+import { isTruncated, MAX_SCAN_PAGES } from "@/utils/pagination";
 import { useCompanyBranding } from "@/hooks/useCompanyBranding";
 import { downloadSheet } from "@/utils/import/writer";
 import type { QueryFilter } from "@/hooks/useTableData";
@@ -39,9 +40,10 @@ interface Props {
   disabled?: boolean;
 }
 
-/** Página do backend na varredura e teto de segurança contra cursor quebrado. */
+/** Página do backend na varredura. O teto de páginas é o do app inteiro
+ * (`MAX_SCAN_PAGES`), para a mesma lista não sair completa aqui e cortada na
+ * tela vizinha. */
 const PAGE_SIZE = 100;
-const MAX_PAGES = 100;
 
 /**
  * Baixa os pedidos do recorte à vista em planilha (.xlsx) — para somar e cruzar
@@ -65,11 +67,17 @@ export function ExportOrdersButton({
   // Logo e nome da representação no cabeçalho do documento impresso.
   const { name: companyName, logoUrl: companyLogoUrl } = useCompanyBranding();
 
-  const fetchAllOrders = async (): Promise<Order[]> => {
+  /** A lista inteira do recorte e se a varredura parou no teto de páginas. */
+  const fetchAllOrders = async (): Promise<{
+    all: Order[];
+    truncated: boolean;
+  }> => {
     const all: Order[] = [];
     let after: string | null = null;
+    let pagesRead = 0;
+    let hasMore = false;
 
-    for (let page = 0; page < MAX_PAGES; page++) {
+    for (let page = 0; page < MAX_SCAN_PAGES; page++) {
       const result: { data?: QueryData } = await apollo.query<QueryData>({
         query: ORDERS_QUERY,
         variables: {
@@ -86,19 +94,21 @@ export function ExportOrdersButton({
       const connection = result.data?.orders_list;
       if (!connection) break;
       all.push(...connection.edges.map((edge) => edge.node));
+      pagesRead += 1;
 
       const { hasNextPage, endCursor } = connection.pageInfo ?? {};
-      if (!hasNextPage || !endCursor) break;
-      after = endCursor;
+      hasMore = Boolean(hasNextPage && endCursor);
+      if (!hasMore) break;
+      after = endCursor!;
     }
 
-    return all;
+    return { all, truncated: isTruncated(pagesRead, hasMore) };
   };
 
   /** Varre a lista e entrega ao formato pedido; nada baixa se vier vazia. */
   const runExport = async (write: (orders: Order[]) => Promise<void>) => {
     try {
-      const orders = await fetchAllOrders();
+      const { all: orders, truncated } = await fetchAllOrders();
       if (orders.length === 0) {
         toast({
           variant: "error",
@@ -108,6 +118,18 @@ export function ExportOrdersButton({
         return;
       }
       await write(orders);
+
+      // Depois de escrever: o arquivo cortado ainda serve, o que não pode
+      // faltar é o aviso de que ele não é a lista inteira. Sem isto, quem soma
+      // a coluna no Excel fecha um número menor do que o da tela e não tem como
+      // desconfiar.
+      if (truncated) {
+        toast({
+          variant: "warning",
+          title: "Arquivo incompleto",
+          description: `O arquivo saiu com ${orders.length} pedido(s) — o recorte é grande demais para uma exportação só. Filtre um período menor para levar o resto.`,
+        });
+      }
     } catch {
       toast({
         variant: "error",

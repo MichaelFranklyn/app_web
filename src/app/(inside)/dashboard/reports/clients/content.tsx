@@ -53,6 +53,9 @@ export default function ClientsReportContent({ canSelectSeller }: Props) {
       }),
     ],
     fetchRows: fetchAllRows,
+    // A varredura para no teto de páginas; com o total da tela ao lado, o
+    // export avisa quando o arquivo não fecha com ela.
+    totalRows: tableData.totalItems,
     sheetHeaders: CLIENTS_EXPORT_HEADERS,
     buildSheetRows: buildClientsExportRows,
     pdfColumns: CLIENTS_PDF_COLUMNS,

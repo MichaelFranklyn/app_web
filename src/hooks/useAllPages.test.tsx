@@ -124,4 +124,40 @@ describe("useAllPages", () => {
     await waitFor(() => expect(result.current.loading).toBe(false));
     expect(result.current.nodes).toEqual([]);
   });
+
+  it("expõe o erro junto da lista vazia", async () => {
+    // A lista vazia sozinha é indistinguível de "não há registro": era assim
+    // que a falha de rede saía na tela como "nenhum vendedor com acesso".
+    const { result } = renderHook(
+      () => useAllPages<{ id: string }, ThingsData>(QUERY, INPUT, select),
+      {
+        wrapper: wrap([
+          {
+            request: {
+              query: QUERY,
+              variables: { input: { first: 2, after: null } },
+            },
+            error: new Error("rede caiu"),
+          },
+        ]),
+      }
+    );
+
+    await waitFor(() => expect(result.current.loading).toBe(false));
+    expect(result.current.nodes).toEqual([]);
+    expect(result.current.error).toBeInstanceOf(Error);
+  });
+
+  it("varredura que termina sozinha não é truncada", async () => {
+    const { result } = renderHook(
+      () => useAllPages<{ id: string }, ThingsData>(QUERY, INPUT, select),
+      {
+        wrapper: wrap([page(["a", "b"], null, "c1"), page(["c"], "c1", null)]),
+      }
+    );
+
+    await waitFor(() => expect(result.current.loading).toBe(false));
+    expect(result.current.truncated).toBe(false);
+    expect(result.current.error).toBeNull();
+  });
 });

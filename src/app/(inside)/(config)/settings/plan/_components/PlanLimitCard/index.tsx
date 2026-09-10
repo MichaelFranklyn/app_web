@@ -72,9 +72,9 @@ export function PlanLimitCard({ usage }: { usage: PlanLimitUsage }) {
         {!unlimited && (
           <>
             {" "}
-            <span className="font-mono text-[14px] font-medium text-(--muted)">
+            <Title variant="body" weight="medium" color="muted">
               de {usage.limit}
-            </span>
+            </Title>
           </>
         )}
       </Card.Kpi.Value>

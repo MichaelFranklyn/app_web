@@ -63,3 +63,18 @@ export const orderStatusLabel = (status: string): string =>
 
 export const orderStatusTone = (status: string) =>
   ORDER_STATUS_TONE[status as OrderStatus] ?? "neutral";
+
+/**
+ * O pedido ainda é um ORÇAMENTO?
+ *
+ * Orçamento não é um status próprio: é o pedido em `DRAFT` ou `SENT` — ele
+ * reusa os dois primeiros degraus da esteira e passa a ser pedido ao ser
+ * confirmado. A regra vivia escrita à mão em três telas (cabeçalho do detalhe,
+ * ficha em PDF e a barra do valor mínimo); no dia em que ela mudar, três
+ * lugares divergem e a mesma tela chama a mesma coisa por dois nomes. Aqui é o
+ * lugar: quem já é dono do vocabulário do status é dono também de quem é quem.
+ *
+ * Aceita `string` porque o campo chega solto da query em quase todo consumidor.
+ */
+export const isQuoteStatus = (status: string): boolean =>
+  status === "DRAFT" || status === "SENT";

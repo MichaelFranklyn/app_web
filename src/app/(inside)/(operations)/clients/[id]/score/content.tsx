@@ -1,6 +1,7 @@
 "use client";
 
 import { HelpTooltip } from "@/components/HelpTooltip";
+import { QueryError } from "@/components/QueryError";
 import { Title } from "@/components/Title";
 import { useQuery } from "@apollo/client/react";
 import { useState } from "react";
@@ -21,14 +22,30 @@ export default function ScoreContent() {
   // O cliente tem um score por fábrica, porque estoque e histórico de compra são
   // diferentes em cada uma. O backend já devolve a lista da mais quente para a
   // mais fria — o número do header é o topo dela.
-  const { data, loading } = useQuery<ClientFactoryScoresQueryResponse>(
-    CLIENT_FACTORY_SCORES_QUERY,
-    { variables: { id: companyClientId }, skip: !companyClientId }
-  );
+  const { data, loading, error, refetch } =
+    useQuery<ClientFactoryScoresQueryResponse>(CLIENT_FACTORY_SCORES_QUERY, {
+      variables: { id: companyClientId },
+      skip: !companyClientId,
+    });
 
   const scores = data?.companyClient.data?.factoryVisitScores ?? [];
 
   if (loading && scores.length === 0) return <ScoreSkeleton />;
+
+  // Sem isto, a query que falha cai no vazio do grid ("Nenhuma fábrica deste
+  // cliente tem score calculado ainda") — e esta é a tela que diz ao vendedor
+  // se o cliente precisa de visita. Silêncio de rede não pode virar "não há
+  // urgência".
+  if (error && scores.length === 0) {
+    return (
+      <QueryError
+        onRetry={() => refetch()}
+        retrying={loading}
+        title="Não foi possível carregar o score"
+        description="Houve um problema ao buscar o score deste cliente por fábrica. Tente novamente."
+      />
+    );
+  }
 
   return (
     <div className="flex flex-col gap-16" data-tour="client-score">

@@ -1,5 +1,6 @@
 "use client";
 
+import { Title } from "@/components/Title";
 import { Button } from "@/components/Button";
 import { useAsyncAction } from "@/hooks/useAsyncAction";
 import { postSession } from "@/utils/auth/session";
@@ -57,7 +58,7 @@ export function ImpersonationBanner() {
     <div className="flex flex-wrap items-center justify-between gap-8 bg-(--purple) px-16 py-8 text-white">
       <div className="flex min-w-0 items-center gap-8">
         <ShieldAlert size={16} className="shrink-0" />
-        <span className="truncate text-[13px]">
+        <Title variant="body-xs" color="inverse" className="truncate">
           Você está como <strong>{data.userName}</strong>
           {data.companyName && (
             <>
@@ -66,7 +67,7 @@ export function ImpersonationBanner() {
             </>
           )}
           . Tudo que fizer aqui fica registrado como ação dessa pessoa.
-        </span>
+        </Title>
       </div>
 
       <Button.Root

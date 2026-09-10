@@ -1,3 +1,4 @@
+import { isQuoteStatus } from "@/app/(inside)/_shared/orderStatus";
 import { Alert } from "@/components/Alert";
 import { formatMoney } from "@/utils/format/masks";
 import { AlertTriangle } from "lucide-react";
@@ -20,7 +21,7 @@ interface Props {
  * escrita, com os prazos que este valor alcança.
  */
 export function PaymentMinimumBanner({ order }: Props) {
-  const isQuote = order.status === "DRAFT" || order.status === "SENT";
+  const isQuote = isQuoteStatus(order.status);
   const minimum = order.paymentTerm?.minOrderAmount ?? null;
   if (!isQuote || !minimum) return null;
 

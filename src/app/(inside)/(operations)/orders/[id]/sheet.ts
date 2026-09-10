@@ -1,3 +1,4 @@
+import { isQuoteStatus } from "@/app/(inside)/_shared/orderStatus";
 import { clientName, factoryName } from "@/utils/company";
 import { formatAmount, formatDateDMY, maskCNPJ } from "@/utils/format/masks";
 import { downloadSheet } from "@/utils/import/writer";
@@ -20,7 +21,6 @@ const ITEM_HEADERS = [
 ];
 
 /** Rascunho/enviado ainda é orçamento — o arquivo não pode se chamar "pedido". */
-const isQuote = (status: string) => status === "DRAFT" || status === "SENT";
 
 /**
  * Monta a planilha de um pedido: uma ficha com os dados do negócio no topo, os
@@ -43,7 +43,7 @@ export const buildOrderSheetRows = (
   const total = subtotalWithTax + Number(order.ipiAmount || 0);
 
   const rows: string[][] = [
-    [isQuote(order.status) ? "Orçamento" : "Pedido", number],
+    [isQuoteStatus(order.status) ? "Orçamento" : "Pedido", number],
     ["Data", formatDateDMY(order.orderDate)],
     ["Situação", orderStatusLabel(order.status)],
     ["Cliente", order.client ? clientName(order.client) : ""],
@@ -106,7 +106,7 @@ export const exportOrderSheet = async (
   order: OrderDetail,
   items: OrderItem[]
 ): Promise<void> => {
-  const kind = isQuote(order.status) ? "orcamento" : "pedido";
+  const kind = isQuoteStatus(order.status) ? "orcamento" : "pedido";
   const number = order.id.slice(0, 8).toUpperCase();
   await downloadSheet(
     `${kind}-${number}.xlsx`,

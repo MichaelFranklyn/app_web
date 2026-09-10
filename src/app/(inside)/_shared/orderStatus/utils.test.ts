@@ -3,6 +3,7 @@ import { describe, expect, it } from "vitest";
 import {
   ORDER_STATUS_LABELS,
   ORDER_STATUS_OPTIONS,
+  isQuoteStatus,
   orderStatusLabel,
   orderStatusTone,
 } from "./utils";
@@ -52,5 +53,24 @@ describe("ORDER_STATUS_OPTIONS", () => {
     ORDER_STATUS_OPTIONS.forEach((option) => {
       expect(option.label).toBe(ORDER_STATUS_LABELS[option.value]);
     });
+  });
+});
+
+describe("isQuoteStatus", () => {
+  it("trata DRAFT e SENT como orçamento", () => {
+    expect(isQuoteStatus("DRAFT")).toBe(true);
+    expect(isQuoteStatus("SENT")).toBe(true);
+  });
+
+  it("do CONFIRMED para frente já é pedido", () => {
+    ["CONFIRMED", "INVOICED", "DELIVERED", "CANCELLED"].forEach((status) => {
+      expect(isQuoteStatus(status)).toBe(false);
+    });
+  });
+
+  it("status desconhecido não é orçamento", () => {
+    // O padrão seguro é o pedido: um status novo no backend não deve fazer a
+    // ficha sair intitulada "Orçamento" nem liberar as ações de rascunho.
+    expect(isQuoteStatus("WHATEVER")).toBe(false);
   });
 });

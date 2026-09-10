@@ -19,9 +19,9 @@ import { SellersStats, User, UsersQueryResponse } from "../../interface";
 import { ROLE_LABEL, UserRole } from "../../utils";
 import { AddUserModal } from "./AddUserModal";
 
-// Página larga e teto de segurança: o mesmo par do export da carteira.
+// Página larga; o teto de páginas é o do app inteiro (`MAX_SCAN_PAGES`).
 const EXPORT_PAGE_SIZE = 100;
-const MAX_PAGES = 100;
+import { MAX_SCAN_PAGES } from "@/utils/pagination";
 import { buildKpis } from "./utils";
 
 interface Props {
@@ -59,7 +59,7 @@ export function UsersHeader({
     const all: User[] = [];
     let after: string | null = null;
 
-    for (let page = 0; page < MAX_PAGES; page++) {
+    for (let page = 0; page < MAX_SCAN_PAGES; page++) {
       const result: { data?: UsersQueryResponse } =
         await apollo.query<UsersQueryResponse>({
           query: USERS_QUERY,
@@ -106,6 +106,17 @@ export function UsersHeader({
         formatDateDMY(u.createdAt),
       ]);
       downloadCSV("pessoas.csv", [headers, ...rows]);
+
+      // A tela já sabe quantas pessoas o recorte tem: se o arquivo saiu com
+      // menos, a varredura parou no teto e o silêncio faria a equipe parecer
+      // menor do que é — que é o mesmo engano que este export veio corrigir.
+      if (people.length < totalItems) {
+        toast({
+          variant: "warning",
+          title: "Arquivo incompleto",
+          description: `O arquivo saiu com ${people.length} de ${totalItems} pessoa(s). Use a busca para levar o resto.`,
+        });
+      }
     } catch {
       toast({
         variant: "error",

@@ -82,6 +82,11 @@ export const variantConfig: Record<
 
 export const colorClasses: Record<TitleColor, string> = {
   default: "text-(--text)",
+  // As faixas de aviso pintam o fundo de vermelho ou roxo e o texto de branco.
+  // Sem uma cor para isso na escala, essas faixas escreviam o tamanho da fonte
+  // à mão só para não herdar `--text` — e escapavam do Title inteiro por causa
+  // de uma cor.
+  inverse: "text-white",
   secondary: "text-(--text2)",
   muted: "text-(--muted)",
   muted2: "text-(--muted2)",

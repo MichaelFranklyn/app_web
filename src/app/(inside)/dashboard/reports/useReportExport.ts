@@ -21,6 +21,15 @@ export interface ReportExportSpec<T> {
   context: string[];
   /** Busca TODAS as linhas do recorte (a tela só tem a página atual). */
   fetchRows: () => Promise<T[]>;
+  /**
+   * Quantas linhas o recorte tem, segundo a própria tela (`totalItems`).
+   *
+   * Serve para saber se a varredura trouxe tudo: ela para no teto de páginas
+   * (ver `MAX_SCAN_PAGES`), e sem esta conferência o arquivo sairia cortado com
+   * cara de completo — quem soma a coluna no Excel fecha um número menor do que
+   * o KPI da tela e não tem como desconfiar.
+   */
+  totalRows?: number;
   sheetHeaders: string[];
   buildSheetRows: (rows: T[]) => (string | number)[][];
   pdfColumns: ReportColumn<T>[];
@@ -59,6 +68,17 @@ export const useReportExport = <T>(spec: ReportExportSpec<T>) => {
           return;
         }
         await write(rows);
+
+        // Depois de escrever, não antes: o arquivo incompleto ainda é útil
+        // (metade dos pedidos é melhor do que nenhum), o que não pode faltar é
+        // o aviso de que ele não fecha com a tela.
+        if (spec.totalRows !== undefined && rows.length < spec.totalRows) {
+          toast({
+            variant: "warning",
+            title: "Arquivo incompleto",
+            description: `O arquivo saiu com ${rows.length} de ${spec.totalRows} linha(s) — o recorte é grande demais para uma exportação só. Filtre um período menor para levar o resto.`,
+          });
+        }
       } catch {
         toast({
           variant: "error",

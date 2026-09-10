@@ -5,6 +5,7 @@ import { useApolloClient } from "@apollo/client/react";
 import { ExportMenu } from "@/components/ExportMenu";
 import { FilterField } from "@/components/Filters";
 import { useToast } from "@/components/Toast";
+import { isTruncated, MAX_SCAN_PAGES } from "@/utils/pagination";
 import { useCompanyBranding } from "@/hooks/useCompanyBranding";
 import { buildQueryFilters } from "@/hooks/useTableData";
 import { downloadSheet } from "@/utils/import/writer";
@@ -26,9 +27,10 @@ interface Props {
   disabled?: boolean;
 }
 
-/** Página do backend na varredura e teto de segurança contra cursor quebrado. */
+/** Página do backend na varredura. O teto de páginas é o do app inteiro
+ * (`MAX_SCAN_PAGES`), para a mesma lista não sair completa aqui e cortada na
+ * tela vizinha. */
 const PAGE_SIZE = 100;
-const MAX_PAGES = 100;
 
 /**
  * Baixa a carteira em planilha (.xlsx) — para trabalhar os dados — ou em PDF —
@@ -50,12 +52,18 @@ export function ExportClientsButton({
   // Logo e nome da representação no cabeçalho do documento impresso.
   const { name: companyName, logoUrl: companyLogoUrl } = useCompanyBranding();
 
-  const fetchAllClients = async (): Promise<Client[]> => {
+  /** A carteira inteira do recorte e se a varredura parou no teto de páginas. */
+  const fetchAllClients = async (): Promise<{
+    all: Client[];
+    truncated: boolean;
+  }> => {
     const filters = buildQueryFilters(TABLE_FIELDS, inputValues);
     const all: Client[] = [];
     let after: string | null = null;
+    let pagesRead = 0;
+    let hasMore = false;
 
-    for (let page = 0; page < MAX_PAGES; page++) {
+    for (let page = 0; page < MAX_SCAN_PAGES; page++) {
       const result: { data?: ClientsQueryResponse } =
         await apollo.query<ClientsQueryResponse>({
           query: CLIENTS_QUERY,
@@ -73,19 +81,21 @@ export function ExportClientsButton({
       const connection = result.data?.clients_list;
       if (!connection) break;
       all.push(...connection.edges.map((edge) => edge.node));
+      pagesRead += 1;
 
       const { hasNextPage, endCursor } = connection.pageInfo ?? {};
-      if (!hasNextPage || !endCursor) break;
-      after = endCursor;
+      hasMore = Boolean(hasNextPage && endCursor);
+      if (!hasMore) break;
+      after = endCursor!;
     }
 
-    return all;
+    return { all, truncated: isTruncated(pagesRead, hasMore) };
   };
 
   /** Varre a carteira e entrega ao formato pedido; nada baixa se vier vazia. */
   const runExport = async (write: (clients: Client[]) => Promise<void>) => {
     try {
-      const clients = await fetchAllClients();
+      const { all: clients, truncated } = await fetchAllClients();
       if (clients.length === 0) {
         toast({
           variant: "error",
@@ -95,6 +105,16 @@ export function ExportClientsButton({
         return;
       }
       await write(clients);
+
+      // O arquivo cortado ainda serve; o aviso é o que não pode faltar, senão
+      // a carteira parece menor do que é.
+      if (truncated) {
+        toast({
+          variant: "warning",
+          title: "Arquivo incompleto",
+          description: `O arquivo saiu com ${clients.length} cliente(s) — o recorte é grande demais para uma exportação só. Filtre um pedaço da carteira para levar o resto.`,
+        });
+      }
     } catch {
       toast({
         variant: "error",

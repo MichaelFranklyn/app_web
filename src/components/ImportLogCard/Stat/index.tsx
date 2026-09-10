@@ -20,12 +20,13 @@ export const Stat = React.forwardRef<HTMLDivElement, ImportLogCardStatProps>(
       )}
       {...props}
     >
-      <span
-        className="font-head text-[19px] leading-none font-bold"
+      <Title
+        as="span"
+        variant="heading-md"
         style={{ color: color ? COLOR_TOKENS.text[color] : "var(--text)" }}
       >
         {value}
-      </span>
+      </Title>
       <Title variant="micro" color="muted">
         {label}
       </Title>

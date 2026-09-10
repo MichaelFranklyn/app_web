@@ -53,6 +53,9 @@ export default function SalesReportContent({ canSelectSeller }: Props) {
       }),
     ],
     fetchRows: fetchAllRows,
+    // A varredura para no teto de páginas; com o total da tela ao lado, o
+    // export avisa quando o arquivo não fecha com ela.
+    totalRows: tableData.totalItems,
     sheetHeaders: SALES_EXPORT_HEADERS,
     buildSheetRows: (rows) => buildSalesExportRows(rows, orderStatusLabel),
     pdfColumns: SALES_PDF_COLUMNS,

@@ -1,3 +1,4 @@
+import { Title } from "@/components/Title";
 import { portalFetch } from "@/services/graphql/portalFetch";
 import { PortalExpired } from "./_components/PortalExpired";
 import { PortalHeader } from "./_components/PortalHeader";
@@ -40,9 +41,9 @@ export default async function PortalTokenLayout({
 
       <footer className="border-t border-(--border) px-[16px] py-[24px]">
         <div className="mx-auto max-w-[1120px]">
-          <p className="text-[12px] leading-relaxed text-(--muted)">
+          <Title variant="body-sm" color="muted">
             Dúvida sobre algum pedido? Fale com o seu representante.
-          </p>
+          </Title>
         </div>
       </footer>
     </div>

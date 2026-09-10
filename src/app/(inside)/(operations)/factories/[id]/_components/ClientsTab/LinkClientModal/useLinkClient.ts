@@ -105,7 +105,7 @@ export function useLinkClient({
 
   // Acesso e vínculo não têm coluna de texto para buscar: aqui a saída é
   // percorrer TODAS as páginas, em vez de torcer para caber numa só.
-  const { nodes: accessNodes } = useAllPages<
+  const { nodes: accessNodes, error: accessError } = useAllPages<
     SellerAccessNode,
     SellersAccessData
   >(SELLERS_WITH_ACCESS_QUERY, byFactory, selectAccesses);
@@ -133,7 +133,10 @@ export function useLinkClient({
     { skip: !open }
   );
 
-  const { nodes: existingLinks } = useAllPages<
+  // O vínculo existente decide se o cliente aparece como livre ou "atendido
+  // por X" — varredura que falha em silêncio ofereceria como livre o cliente
+  // que já é de outro vendedor, e a transferência sairia sem o aviso.
+  const { nodes: existingLinks, error: linksError } = useAllPages<
     ExistingLinkNode,
     ExistingLinksData
   >(EXISTING_LINKS_QUERY, byFactory, selectExistingLinks);
@@ -222,8 +225,12 @@ export function useLinkClient({
                 name: "sellerId",
                 type: "select-single",
                 label: "Vendedor",
-                placeholder:
-                  sellerOptions.length === 0
+                // "Nenhum vendedor com acesso" é uma afirmação sobre o
+                // cadastro: com a varredura falhada a lista também vem vazia, e
+                // aí o que houve foi erro de rede.
+                placeholder: accessError
+                  ? "Não foi possível carregar os vendedores"
+                  : sellerOptions.length === 0
                     ? "Nenhum vendedor com acesso a esta fábrica"
                     : "Selecione o vendedor",
                 required: true,
@@ -257,7 +264,14 @@ export function useLinkClient({
         ],
       },
     ],
-    [clientOptions, onClientSearch, loadingClients, sellerOptions, tierOptions]
+    [
+      clientOptions,
+      onClientSearch,
+      loadingClients,
+      sellerOptions,
+      tierOptions,
+      accessError,
+    ]
   );
 
   const [linkClient] = useMutation<CreateResponse>(
@@ -342,6 +356,17 @@ export function useLinkClient({
   useQueryErrorToast(
     tiersError,
     "Não foi possível carregar as opções. Tente novamente."
+  );
+
+  // As duas varreduras alimentam decisão de negócio (quem tem acesso, quem já
+  // atende o cliente), e nenhuma tem estado de erro em tela: o aviso é o toast.
+  useQueryErrorToast(
+    accessError,
+    "Não foi possível carregar os vendedores com acesso a esta fábrica. Tente novamente."
+  );
+  useQueryErrorToast(
+    linksError,
+    "Não foi possível conferir quem já atende estes clientes — o aviso de transferência pode não aparecer. Feche e abra o modal para tentar de novo."
   );
 
   return {

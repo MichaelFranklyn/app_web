@@ -1,3 +1,4 @@
+import { Title } from "@/components/Title";
 import { cn } from "@/lib/utils";
 import React from "react";
 import { tableCellBase } from "../Cell/style";
@@ -24,12 +25,13 @@ export const ScoreCell = React.forwardRef<
             />
           </div>
         )}
-        <span
-          className="font-head text-right text-[13px] font-bold"
+        <Title
+          variant="value"
+          className="text-right"
           style={{ color: cssColor }}
         >
           {label ?? score}
-        </span>
+        </Title>
       </div>
     </td>
   );
