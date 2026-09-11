@@ -2,14 +2,21 @@ import { FlowDefinition } from "../../../interface";
 import { CLIENTS_FLOW } from "../../keys";
 import { FLOW_ROUTES } from "../../routes";
 
-// Tour da listagem de Clientes. Dispara sozinho na 1ª visita.
+/**
+ * Tour da listagem de Clientes. Dispara sozinho na 1ª visita.
+ *
+ * Version 2: o passo da carteira descrevia quatro colunas e a tabela tem seis.
+ * Faltavam justamente as duas de comportamento — última compra e última visita
+ * —, que são as que fazem a lista valer como leitura de carteira e as únicas
+ * pelas quais se ordena para achar cliente parado.
+ */
 export const clientsFlow: FlowDefinition = {
   key: CLIENTS_FLOW,
   label: "Tour dos Clientes",
   description: "Conheça a carteira de clientes e como abrir um cliente.",
   group: "Primeiros passos",
   route: FLOW_ROUTES.clients,
-  version: 1,
+  version: 2,
   autoStart: true,
   steps: [
     {
@@ -33,7 +40,7 @@ export const clientsFlow: FlowDefinition = {
       requireSelector: '[data-tour="clients-row"]',
       title: "Sua carteira",
       description:
-        "Esta é a lista dos seus clientes, com CNPJ, cidade, vendedor e score de cada um.",
+        "Esta é a lista dos seus clientes: nome e CNPJ, cidade, vendedor, a última compra, a última visita e o score de cada um. Clique no título de uma coluna para ordenar por ela — é assim que se acha quem está parado há mais tempo.",
       side: "top",
       align: "start",
     },
