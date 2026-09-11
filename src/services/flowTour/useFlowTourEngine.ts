@@ -248,6 +248,17 @@ export function useFlowTourEngine() {
   );
 
   // Auto-start dos fluxos com autoStart na rota atual (uma vez por rota).
+  //
+  // A rota só é marcada como "já tentada" no MOMENTO EM QUE O TOUR ABRE, e não
+  // ao entrar no efeito. A marca antecipada custava o auto-start inteiro: o
+  // efeito depende de `role` (que chega do cookie depois do mount) e de
+  // `progressByKey` (que muda quando a resposta do back chega), então uma
+  // dessas mudanças caía dentro dos 400ms de espera, o cleanup cancelava o
+  // timer — e a rota já estava marcada, então ninguém reagendava. O tutorial
+  // de boas-vindas simplesmente não aparecia, e nada no console dizia isso.
+  // Marcando só no disparo, uma mudança de dependência reagenda em vez de
+  // cancelar, e a proteção contra abrir duas vezes continua de pé (a marca é
+  // gravada antes do `startFlow`).
   const autoStartedRoutesRef = useRef<Set<string>>(new Set());
   useEffect(() => {
     if (loading || autoStartedRoutesRef.current.has(pathname)) return;
@@ -255,7 +266,6 @@ export function useFlowTourEngine() {
     const candidates = getFlowsForRoute(pathname, role).filter(
       (flow) => flow.autoStart
     );
-    autoStartedRoutesRef.current.add(pathname);
     if (candidates.length === 0) return;
 
     // Auto-start dispara só na 1ª vez por versão. Suprime se houver QUALQUER registro
@@ -268,6 +278,7 @@ export function useFlowTourEngine() {
     if (!toRun) return;
 
     const timeout = setTimeout(() => {
+      autoStartedRoutesRef.current.add(pathname);
       markAutoShown(toRun.key, toRun.version);
       persist(toRun.key, toRun.version, "pending", 0);
       startFlow(toRun.key, 0);
