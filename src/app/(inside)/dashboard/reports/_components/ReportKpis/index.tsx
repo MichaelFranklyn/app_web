@@ -19,7 +19,11 @@ interface Props {
 export function ReportKpis({ items, loading }: Props) {
   if (loading) {
     return (
-      <Grid.Root cols={{ base: 1, tablet: 2, "desktop-xl": 4 }} gap={12}>
+      <Grid.Root
+        cols={{ base: 1, tablet: 2, "desktop-xl": 4 }}
+        gap={12}
+        data-tour="reports-kpis"
+      >
         {items.map((item) => (
           <Grid.Item key={item.label}>
             <Loading.Skeleton className="h-[104px] w-full" />
@@ -30,7 +34,11 @@ export function ReportKpis({ items, loading }: Props) {
   }
 
   return (
-    <Grid.Root cols={{ base: 1, tablet: 2, "desktop-xl": 4 }} gap={12}>
+    <Grid.Root
+      cols={{ base: 1, tablet: 2, "desktop-xl": 4 }}
+      gap={12}
+      data-tour="reports-kpis"
+    >
       {items.map((item) => (
         <Grid.Item key={item.label}>
           <Card.Kpi>

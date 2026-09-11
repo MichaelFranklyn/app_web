@@ -27,4 +27,12 @@ export const FLOW_ROUTES = {
   userProfile: "/settings/users/[id]",
   myProfile: "/settings/user/[id]",
   settingsCatalog: "/settings/catalog",
+  insights: "/insights",
+  commissions: "/commissions",
+  goals: "/goals",
+  support: "/support",
+  analytics: "/dashboard/analytics",
+  // A raiz de /dashboard/reports REDIRECIONA para a primeira aba, então um
+  // fluxo apontado para ela nunca rodaria: é em Vendas que se cai.
+  reports: "/dashboard/reports/sales",
 } as const;

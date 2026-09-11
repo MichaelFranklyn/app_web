@@ -97,7 +97,7 @@ export default function InsightsContent({
               lista.
             </PanelHeader.Description>
             {canSelectSeller && (
-              <PanelHeader.Actions className="mt-6">
+              <PanelHeader.Actions className="mt-6" data-tour="insights-seller">
                 <div className="desktop:w-[220px] w-full">
                   <Input.Select
                     size="sm"
@@ -139,7 +139,7 @@ export default function InsightsContent({
         <>
           <InsightsSummary insights={insights} />
 
-          <div className="flex flex-col gap-24">
+          <div className="flex flex-col gap-24" data-tour="insights-sections">
             {TONE_ORDER.map((tone) => (
               <InsightSection
                 key={tone}
@@ -151,7 +151,10 @@ export default function InsightsContent({
           </div>
 
           {readAt && (
-            <div className="flex flex-wrap items-center justify-center gap-8">
+            <div
+              className="flex flex-wrap items-center justify-center gap-8"
+              data-tour="insights-refresh"
+            >
               <Title variant="micro" color="muted">
                 Leitura das {readAt}
               </Title>

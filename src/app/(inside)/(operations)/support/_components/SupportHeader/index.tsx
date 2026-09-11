@@ -37,7 +37,7 @@ export function SupportHeader({ onSaved }: Props) {
             Os problemas que os clientes relatam e o que já foi feito sobre cada
             um — mercadoria, pagamento, entrega.
           </PanelHeader.Description>
-          <PanelHeader.Actions className="mt-6">
+          <PanelHeader.Actions className="mt-6" data-tour="support-actions">
             <Button.Root
               type="button"
               appearance="solid"

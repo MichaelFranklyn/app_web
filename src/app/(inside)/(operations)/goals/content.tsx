@@ -134,7 +134,7 @@ export default function GoalsContent({ canManage }: Props) {
                 : "Suas metas do mês e o quanto você já fez, fábrica por fábrica."}
             </PanelHeader.Description>
             {canManage && (
-              <PanelHeader.Actions className="mt-6">
+              <PanelHeader.Actions className="mt-6" data-tour="goals-seller">
                 <div className="desktop:w-[220px] w-full">
                   <Input.Select
                     size="sm"
@@ -159,11 +159,14 @@ export default function GoalsContent({ canManage }: Props) {
       ) : (
         <>
           {/* Navegador de mês: manda em tudo o que vem abaixo. */}
-          <div className="flex flex-wrap items-center justify-between gap-16">
+          <div
+            className="flex flex-wrap items-center justify-between gap-16"
+            data-tour="goals-month"
+          >
             <Title variant="heading-sm">Metas de {monthLabel(month)}</Title>
             <div className="flex flex-wrap items-center gap-8">
               {canManage && (
-                <>
+                <span className="flex gap-8" data-tour="goals-actions">
                   <CopyGoalsModal
                     month={month}
                     sellerId={selectedSellerId}
@@ -176,7 +179,7 @@ export default function GoalsContent({ canManage }: Props) {
                     factoryOptions={factoryOptions}
                     onSaved={() => refetch()}
                   />
-                </>
+                </span>
               )}
               <div className="flex items-center gap-4">
                 <Button.Root
@@ -220,7 +223,11 @@ export default function GoalsContent({ canManage }: Props) {
             </div>
           ) : (
             <>
-              <Grid.Root cols={{ base: 1, tablet: 2, desktop: 4 }} gap={20}>
+              <Grid.Root
+                cols={{ base: 1, tablet: 2, desktop: 4 }}
+                gap={20}
+                data-tour="goals-kpis"
+              >
                 {/* Os quatro cartões somam o recorte da tela (o vendedor
                     escolhido, ou a empresa toda). A explicação de cada um vem
                     de GOAL_METRICS — a mesma das barras, para o indicador não

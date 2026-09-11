@@ -22,7 +22,11 @@ export function InsightsSummary({ insights }: { insights: Insight[] }) {
   const cases = totalCases(insights);
 
   return (
-    <Grid.Root cols={{ base: 2, "desktop-xl": 4 }} gap={12}>
+    <Grid.Root
+      cols={{ base: 2, "desktop-xl": 4 }}
+      gap={12}
+      data-tour="insights-summary"
+    >
       <Grid.Item>
         <Card.Kpi>
           <Card.Kpi.Label>Pendências</Card.Kpi.Label>
