@@ -9,7 +9,22 @@
  * Os shapes seguem os dos specs de cada área; o que muda aqui é o volume (o
  * suficiente para renderizar, não para exercitar regra de negócio).
  */
+import { getTodayIso } from "@/utils/format/date";
+
 import { orderDetailData } from "./graphql";
+
+/**
+ * Datas ancoradas no MÊS CORRENTE.
+ *
+ * A tela de comissões filtra as linhas pelo mês que está aberto — e ela abre no
+ * mês de hoje. Com datas fixas (julho/agosto de 2026, como estava aqui), a
+ * linha caía fora do recorte, os cartões zeravam e a tela mostrava "Nenhuma
+ * comissão": o mock envelhecia sozinho com a passagem do tempo, sem ninguém
+ * mexer nele. Ancorado em `getTodayIso`, o dado entra no mês qualquer dia que
+ * a suíte rode.
+ */
+const noMesCorrente = (dia: number): string =>
+  `${getTodayIso().slice(0, 7)}-${String(dia).padStart(2, "0")}`;
 
 type Handlers = Record<string, () => unknown>;
 
@@ -42,15 +57,15 @@ const commissionRow = () => ({
   orderId: "order-1",
   installmentId: "inst-1",
   sequence: 1,
-  orderDate: "2026-07-02",
-  invoicedAt: "2026-07-10",
+  orderDate: noMesCorrente(2),
+  invoicedAt: noMesCorrente(4),
   invoiceNumber: "12345",
-  dueDate: "2026-08-09",
+  dueDate: noMesCorrente(9),
   paidAt: null,
   installmentAmount: "12500.00",
   amount: "625.00",
   status: "receivable",
-  receiveDate: "2026-08-09",
+  receiveDate: noMesCorrente(9),
   isReceivable: true,
   isReceived: false,
   isReconciled: false,
@@ -61,7 +76,7 @@ const commissionRow = () => ({
   chargebackSettledAt: null,
   sellerAmount: "312.50",
   sellerStatus: "receivable",
-  sellerReceiveDate: "2026-08-09",
+  sellerReceiveDate: noMesCorrente(9),
   isSellerPaid: false,
   sellerChargebackMonth: null,
   isSellerChargebackSettled: false,
@@ -220,31 +235,46 @@ export const PAGE_DATA: Record<string, Handlers> = {
     }),
   },
 
+  // `data` é um OBJETO com `generatedAt` e `insights`, não a lista solta: a
+  // tela lê `myInsights.data.insights` (ver a query MyInsights). Enquanto aqui
+  // vinha o array direto, `data.insights` era undefined, a rota caía no estado
+  // vazio ("Nada pendente") e a medição de largura olhava para um lugar onde
+  // não havia cartão nenhum — justamente o que esta lista existe para evitar.
   "/insights": {
     MyInsights: () => ({
       myInsights: {
         status: true,
         message: "ok",
-        data: [
-          {
-            kind: "CLIENT_OVERDUE",
-            group: "WALLET",
-            count: 23,
-            blockedCount: 0,
-            amount: null,
-            daysLeft: null,
-            samples: [
-              {
-                id: "c-1",
-                label: "DECORE CASA & CONSTRUCAO LTDA ME",
-                detail: "348 dias sem comprar",
-                link: null,
-                reason: null,
-              },
-            ],
-          },
-        ],
+        data: {
+          generatedAt: "2026-09-11T09:00:00Z",
+          insights: [
+            {
+              kind: "CLIENT_OVERDUE",
+              group: "WALLET",
+              count: 23,
+              blockedCount: 0,
+              amount: null,
+              daysLeft: null,
+              samples: [
+                {
+                  id: "c-1",
+                  label: "DECORE CASA & CONSTRUCAO LTDA ME",
+                  detail: "348 dias sem comprar",
+                  link: null,
+                  reason: null,
+                },
+              ],
+            },
+          ],
+        },
       },
+    }),
+    // Só o gestor pede esta; com o papel padrão (vendedor) ela é pulada. Fica
+    // registrada para a rota não depender de quem está logado.
+    InsightsSellers: () => ({
+      insights_sellers: conn([
+        { id: "seller-1", name: "Rafael Vendas", isActive: true },
+      ]),
     }),
   },
 
@@ -279,18 +309,29 @@ export const PAGE_DATA: Record<string, Handlers> = {
 
   "/clients/cc-1/orders": {
     ...clientShell,
+    // Shape da CLIENT_FACTORY_ORDERS_QUERY: a fábrica vem aninhada (o cartão
+    // resolve o nome por `factoryName(summary.factory)`) e a contagem é
+    // `totalOrders`. Vinha aqui o formato antigo — `factoryName`/`orderCount`
+    // soltos —, e o cartão desenhava a fábrica como "—" e a contagem vazia.
     ClientFactoryOrders: () => ({
       companyClient: {
         data: {
           id: "cc-1",
           factoryOrderSummaries: [
             {
-              factoryId: "factory-1",
-              factoryName: "Industria Herc Colchoes",
-              nickname: null,
-              orderCount: 4,
+              sellerClientFactoryId: "scf-1",
+              sellerId: "seller-1",
+              totalOrders: 4,
               totalAmount: "48200.00",
               lastOrderDate: "2026-07-02",
+              // Nome longo de propósito: é com ele que a largura aperta, e o
+              // `factoryRef` curto ("Herc") não exercitaria nada.
+              factory: {
+                id: "factory-1",
+                nomeFantasia: "Industria Herc Colchoes",
+                nickname: null,
+                razaoSocial: "INDUSTRIA HERC COLCHOES LTDA",
+              },
             },
           ],
         },
@@ -571,21 +612,25 @@ export const PAGE_DATA: Record<string, Handlers> = {
 
 /** Texto que só aparece com a tela montada (evita medir uma tela de erro). */
 export const PAGE_READY: Record<string, RegExp> = {
-  "/commissions": /Resumo de/i,
-  "/goals": /Metas de/i,
-  "/insights": /sem comprar|Tudo em dia|Insights/i,
-  "/orders/order-1": /Pedido|Itens/i,
+  // Texto de CONTEÚDO, não de moldura: "Resumo de setembro", "Metas de
+  // setembro" e o próprio "Insights" são desenhados com ou sem dado, então
+  // casavam numa tela vazia e deixavam a medição passar no lugar errado — foi
+  // assim que o shape velho do /insights ficou meses sem ninguém notar.
+  "/commissions": /Industria Herc Colchoes|Herc/i,
+  "/goals": /Rafael Vendas/i,
+  "/insights": /348 dias sem comprar/i,
+  "/orders/order-1": /Colchão Ortopédico Premium/i,
   "/clients/cc-1/overview": /Casa do Sono/i,
-  "/clients/cc-1/orders": /Industria Herc Colchoes|Pedidos por fábrica/i,
+  "/clients/cc-1/orders": /Industria Herc Colchoes/i,
   "/factories/factory-1/contacts": /Central de Vendas Nordeste/i,
   "/factories/factory-1/payment-terms": /30\/60\/90/i,
   "/factories/factory-1/products": /Colchão Ortopédico Premium/i,
   "/factories/factory-1/price-lists": /Tabela Nordeste 2026/i,
   "/platform/companies": /Representações Nordeste/i,
-  "/dashboard/reports/billing": /12\.500|Faturamento/i,
+  "/dashboard/reports/billing": /12\.500/,
   "/dashboard/reports/factories": /Industria Herc Colchoes/i,
   "/dashboard/reports/wallet": /MÓVEIS NORTE/i,
   "/dashboard/reports/abc": /TENDTUDO VALERIA/i,
-  "/dashboard/reports/positivation": /Positivação por fábrica/i,
+  "/dashboard/reports/positivation": /Industria Herc Colchoes/i,
   "/dashboard/reports/purchases": /Casa do Sono|CASA DO SONO/i,
 };
