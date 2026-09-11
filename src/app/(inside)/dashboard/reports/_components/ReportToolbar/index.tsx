@@ -150,7 +150,10 @@ export function ReportToolbar({
     ) ?? factoryOptions[0];
 
   return (
-    <div className="tablet:flex-row tablet:items-center flex flex-col gap-8">
+    <div
+      className="tablet:flex-row tablet:items-center flex flex-col gap-8"
+      data-tour="reports-toolbar"
+    >
       {canSelectSeller && (
         <div className="desktop:w-[220px] w-full">
           <Input.Select
@@ -193,7 +196,7 @@ export function ReportToolbar({
         onChange={onRangeChange}
       />
 
-      <div className="tablet:ml-auto">
+      <div className="tablet:ml-auto" data-tour="reports-export">
         <ExportMenu
           onExportSheet={onExportSheet}
           onExportPdf={onExportPdf}

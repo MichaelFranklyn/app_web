@@ -1,20 +1,26 @@
 import { FlowDefinition, FlowStep } from "../interface";
+import { analyticsFlows } from "./definitions/analytics";
 import { clientDetailFlows } from "./definitions/clientDetail";
 import { clientTabsFlows } from "./definitions/clientTabs";
 import { clientsFlows } from "./definitions/clients";
+import { commissionsFlows } from "./definitions/commissions";
 import { factoriesFlows } from "./definitions/factories";
 import { factoryDetailFlows } from "./definitions/factoryDetail";
 import { factoryPricesFlows } from "./definitions/factoryPrices";
 import { factoryProductsFlows } from "./definitions/factoryProducts";
 import { factoryTabsFlows } from "./definitions/factoryTabs";
+import { goalsFlows } from "./definitions/goals";
+import { insightsFlows } from "./definitions/insights";
 import { orderDetailFlows } from "./definitions/orderDetail";
 import { ordersFlows } from "./definitions/orders";
 import { priceListDetailFlows } from "./definitions/priceListDetail";
 import { productDetailFlows } from "./definitions/productDetail";
 import { profileFlows } from "./definitions/profile";
+import { reportsFlows } from "./definitions/reports";
 import { routineDayFlows } from "./definitions/routineDay";
 import { routinesFlows } from "./definitions/routines";
 import { settingsCatalogFlows } from "./definitions/settingsCatalog";
+import { supportFlows } from "./definitions/support";
 import { systemFlows } from "./definitions/system";
 import { usersFlows } from "./definitions/users";
 
@@ -25,13 +31,17 @@ export { FLOW_ROUTES } from "./routes";
 // biblioteca do lançador (o agrupamento preserva a 1ª aparição de cada grupo).
 const FLOW_LIST: FlowDefinition[] = [
   ...systemFlows,
+  ...insightsFlows,
   ...routinesFlows,
   ...routineDayFlows,
+  ...ordersFlows,
+  ...orderDetailFlows,
+  ...commissionsFlows,
+  ...goalsFlows,
   ...clientsFlows,
   ...clientDetailFlows,
   ...clientTabsFlows,
-  ...ordersFlows,
-  ...orderDetailFlows,
+  ...supportFlows,
   ...factoriesFlows,
   ...factoryDetailFlows,
   ...factoryProductsFlows,
@@ -39,6 +49,8 @@ const FLOW_LIST: FlowDefinition[] = [
   ...factoryPricesFlows,
   ...priceListDetailFlows,
   ...factoryTabsFlows,
+  ...analyticsFlows,
+  ...reportsFlows,
   ...usersFlows,
   ...settingsCatalogFlows,
   ...profileFlows,

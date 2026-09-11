@@ -1,3 +1,4 @@
+import { FLOWS } from "@/services/flowTour/flows";
 import { test as base, expect, type Page } from "@playwright/test";
 import { mkdirSync, writeFileSync } from "node:fs";
 import { randomUUID } from "node:crypto";
@@ -14,40 +15,13 @@ const OUT_DIR = "coverage/e2e-v8";
 // Suprime o auto-start do tour guiado (flowTour) nos testes: o overlay do tour
 // cobriria a tela e interceptaria cliques (modais, edição). Marca todos os flow
 // keys como "já vistos" no localStorage antes de cada navegação. Determinístico.
+//
+// A lista sai do PRÓPRIO catálogo, e não escrita à mão: era uma cópia, e toda
+// vez que um tutorial novo nasceu a cópia ficou para trás — a chave nova não
+// entrava, o tour abria em cima do teste e o clique caía no overlay. Vale
+// também para as chaves que já saíram do catálogo: sobrar não faz mal.
 const FLOW_TOUR_SEEN = JSON.stringify(
-  Object.fromEntries(
-    [
-      "system-overview",
-      "routines",
-      "routine-day",
-      "clients",
-      "client-detail",
-      "client-visits",
-      "client-stock",
-      "client-score",
-      "client-factories",
-      "client-orders",
-      "orders",
-      "order-detail",
-      "factories",
-      "factory-detail",
-      "factory-products",
-      "factory-prices",
-      "price-list-detail",
-      "product-detail",
-      "factory-sellers",
-      "factory-clients",
-      "factory-orders",
-      "factory-import-template",
-      "users",
-      "sellers",
-      "seller-detail",
-      "settings-hub",
-      "settings-catalog",
-      "settings-routine",
-      "profile",
-    ].map((k) => [k, 99])
-  )
+  Object.fromEntries(Object.keys(FLOWS).map((key) => [key, 99]))
 );
 
 /**

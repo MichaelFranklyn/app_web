@@ -13,7 +13,7 @@ type GraphqlBody = {
   variables?: Record<string, unknown>;
 };
 type Variables = Record<string, unknown>;
-type Handler = (variables: Variables) => unknown;
+export type Handler = (variables: Variables) => unknown;
 
 /**
  * Espião das operações interceptadas. Como o mock casa por `operationName` e

@@ -308,7 +308,10 @@ export default function CommissionsContent({
                 : "Quanto você tem para ganhar de comissão, por fábrica e por mês."}
             </PanelHeader.Description>
             {canSelectSeller && (
-              <PanelHeader.Actions className="mt-6">
+              <PanelHeader.Actions
+                className="mt-6"
+                data-tour="commissions-lens"
+              >
                 <div className="flex items-center gap-4">
                   {/* Travado na ótica do escritório, e mostrando o que a
                       tela está de fato somando ("Todos os vendedores"): o
@@ -353,7 +356,10 @@ export default function CommissionsContent({
       ) : (
         <>
           {/* Navegador de mês: controla os totais logo abaixo e o PDF do mês. */}
-          <div className="flex flex-wrap items-center justify-between gap-16">
+          <div
+            className="flex flex-wrap items-center justify-between gap-16"
+            data-tour="commissions-month"
+          >
             <div className="flex items-center gap-4">
               <Title variant="heading-sm">
                 {tab === "overdue"
@@ -374,7 +380,10 @@ export default function CommissionsContent({
                   onSettled={handleChanged}
                 />
               )}
-              <div className="flex items-center gap-2">
+              <div
+                className="flex items-center gap-2"
+                data-tour="commissions-pdf"
+              >
                 <CommissionsPdfButton
                   sellerId={scopedSellerId}
                   month={month}
@@ -428,7 +437,11 @@ export default function CommissionsContent({
             </div>
           </div>
 
-          <Grid.Root cols={{ base: 1, tablet: 3 }} gap={20}>
+          <Grid.Root
+            cols={{ base: 1, tablet: 3 }}
+            gap={20}
+            data-tour="commissions-kpis"
+          >
             {!showSkeleton ? (
               <>
                 <Grid.Item>
@@ -520,7 +533,10 @@ export default function CommissionsContent({
           )}
 
           {/* Filtro por situação. Abaixo, um cartão por fábrica com o seu mês. */}
-          <div className="flex flex-wrap items-center justify-between gap-8">
+          <div
+            className="flex flex-wrap items-center justify-between gap-8"
+            data-tour="commissions-tabs"
+          >
             <CommissionTabsBar tab={tab} onChange={setTab} />
             <div className="flex flex-wrap items-center gap-8">
               <div className="flex items-center gap-2">

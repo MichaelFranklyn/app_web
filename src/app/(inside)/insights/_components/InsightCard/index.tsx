@@ -110,7 +110,10 @@ export function InsightCard({
   const [showCases, setShowCases] = useState(false);
 
   return (
-    <Card.Root className="relative h-full overflow-hidden">
+    <Card.Root
+      className="relative h-full overflow-hidden"
+      data-tour="insights-card"
+    >
       <span
         aria-hidden
         className={cn("absolute inset-y-0 left-0 w-[3px]", skin.rail)}
