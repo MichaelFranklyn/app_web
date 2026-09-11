@@ -8,7 +8,10 @@ export const Actions = React.forwardRef<
   <div
     ref={ref}
     className={cn(
-      "mt-[8px] flex items-center justify-center gap-[8px]",
+      // `flex-wrap`: com dois botões ("Tentar novamente" + "Ir para o início")
+      // a linha não cabia em 320px e o card, que é `overflow-hidden`, cortava o
+      // segundo pela metade. Quebrar a linha é o que mantém os dois clicáveis.
+      "mt-[8px] flex flex-wrap items-center justify-center gap-[8px]",
       className
     )}
     {...props}

@@ -60,7 +60,9 @@ export function CommercialCard({ companyFactory }: Props) {
       <Card.Body padding="compact">
         <Card.Item variant="stat">
           <Card.Item.Label>Comissão</Card.Item.Label>
-          <div className="flex items-center gap-12">
+          {/* O rótulo do botão é longo ("Aplicar aos pedidos faturados"):
+              sem quebrar, ele e o percentual não cabem em 320px. */}
+          <div className="flex flex-wrap items-center justify-end gap-x-12 gap-y-4">
             <Button.Root
               appearance="ghost"
               color="neutral"
