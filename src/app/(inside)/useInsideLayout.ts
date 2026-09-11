@@ -1,18 +1,19 @@
 "use client";
 
+import { UserData } from "@/app/(auth)/login/interface";
 import { usePlan } from "@/services/plan";
 import { isOwnerRole } from "@/utils/auth/roles";
-import { getCookie } from "@/utils/cookies/clientCookie";
+import { setCookie } from "@/utils/cookies/clientCookie";
 import { getTodayIso } from "@/utils/format/date";
 import { usePathname } from "next/navigation";
 import { useEffect, useState } from "react";
-import { ROLE_LABEL, visibleNav } from "./navConfig";
+import { ROLE_LABEL, SIDEBAR_COLLAPSED_COOKIE, visibleNav } from "./navConfig";
 
-interface UserData {
-  userId: string;
-  userName: string;
-  companyName: string;
-  role: string;
+interface UseInsideLayoutParams {
+  /** Quem está logado, lido do cookie NO SERVIDOR (ver `layout.tsx`). */
+  userData: UserData | null;
+  /** Preferência de sidebar recolhida, também vinda do servidor. */
+  initialCollapsed: boolean;
 }
 
 const getUserInitials = (name: string): string =>
@@ -28,38 +29,41 @@ const getUserInitials = (name: string): string =>
  * `layout.tsx` — dados/derivados do usuário, rótulo da página, estado do drawer
  * (mobile) e do collapse da sidebar (desktop, persistido). O `layout.tsx` fica
  * só com o render.
+ *
+ * Quem está logado e se a sidebar está recolhida chegam PRONTOS do servidor, e
+ * não de um efeito pós-mount. Era daí que vinha o tranco visível em toda tela
+ * de dentro: o primeiro render saía sem papel (menu curto) e com a sidebar
+ * larga (232px), e um instante depois o efeito trocava as duas coisas — o menu
+ * ganhava itens e o conteúdo escorregava 160px para a esquerda. O Speed
+ * Insights conta isso como CLS em cada visita, em todas as rotas de dentro.
  */
-export function useInsideLayout() {
+export function useInsideLayout({
+  userData,
+  initialCollapsed,
+}: UseInsideLayoutParams) {
   const pathname = usePathname();
 
   // Rota de um dia específico (/routines/<data>), distinta da grade semanal.
   const isDayRoute = /^\/routines\/[^/]+/.test(pathname);
 
-  const [userData, setUserData] = useState<UserData | null>(null);
   // Data de hoje resolvida só no cliente (evita mismatch de hidratação).
   const [todayIso, setTodayIso] = useState<string | null>(null);
   // Drawer do menu lateral no mobile/tablet (no desktop a sidebar é fixa).
   const [drawerOpen, setDrawerOpen] = useState(false);
-  // Sidebar recolhida (só ícones) — comportamento exclusivo do desktop,
-  // persistido em localStorage para sobreviver à navegação. Começa `false` no
-  // primeiro render para casar com o servidor; o padrão real (recolhida) entra
-  // no efeito, junto com a preferência salva.
-  const [isCollapsed, setIsCollapsed] = useState(false);
+  // Sidebar recolhida (só ícones) — comportamento exclusivo do desktop. O valor
+  // inicial é o do cookie, então servidor e cliente pintam a MESMA largura.
+  const [isCollapsed, setIsCollapsed] = useState(initialCollapsed);
 
   useEffect(() => {
-    const storedUser = getCookie<UserData>("userData");
-    setUserData(storedUser);
     setTodayIso(getTodayIso());
-    // Padrão recolhido: quem nunca mexeu entra com o menu fechado, e a tela
-    // inteira fica para o conteúdo. Só a escolha explícita de expandir ("0")
-    // sobrevive — sem valor salvo, recolhe.
-    setIsCollapsed(localStorage.getItem("sidebarCollapsed") !== "0");
   }, []);
 
   const toggleCollapsed = () => {
     setIsCollapsed((prev) => {
       const next = !prev;
-      localStorage.setItem("sidebarCollapsed", next ? "1" : "0");
+      // Cookie, e não localStorage: o servidor precisa ler a preferência para
+      // renderizar a largura certa de primeira.
+      setCookie(SIDEBAR_COLLAPSED_COOKIE, next);
       return next;
     });
   };

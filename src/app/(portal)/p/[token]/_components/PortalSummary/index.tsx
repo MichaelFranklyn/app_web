@@ -21,7 +21,10 @@ export function PortalSummary({ summary }: PortalSummaryProps) {
 
   return (
     <section className="flex flex-col gap-[16px]">
-      <div className="grid grid-cols-3 gap-[8px]">
+      {/* Três colunas só a partir do tablet: em 320px cada cartão ficava com
+          ~90px e o rótulo "TOTAL COMPRADO" (caixa alta, com tracking) saía
+          cortado pela borda do card. */}
+      <div className="tablet:grid-cols-3 grid grid-cols-2 gap-[8px]">
         <Kpi label="Total comprado" value={formatMoney(summary.totalAmount)} />
         <Kpi label="Pedidos" value={String(summary.orderCount)} />
         <Kpi

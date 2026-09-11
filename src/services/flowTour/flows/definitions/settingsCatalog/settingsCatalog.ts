@@ -2,9 +2,11 @@ import { FlowDefinition } from "../../../interface";
 import { SETTINGS_CATALOG_FLOW } from "../../keys";
 import { FLOW_ROUTES } from "../../routes";
 
-// Tour dos catálogos da empresa. A apresentação das Configurações como um todo
-// vive no fluxo do índice (settingsHub, na rota /settings); aqui o foco são as
-// listas em si. Version 2: o passo das abas saiu quando /settings virou hub.
+// Tour dos catálogos da empresa. Aqui o foco são as listas em si; quem
+// apresenta a área de Configurações como um todo é o "Tour do sistema", no
+// passo do menu lateral — o comentário anterior mandava para um fluxo
+// `settingsHub` em /settings que nunca existiu.
+// Version 2: o passo das abas saiu quando /settings virou hub.
 export const settingsCatalogFlow: FlowDefinition = {
   key: SETTINGS_CATALOG_FLOW,
   label: "Tour dos catálogos",

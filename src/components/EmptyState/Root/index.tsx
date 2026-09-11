@@ -12,7 +12,12 @@ interface EmptyStateRootProps extends React.HTMLAttributes<HTMLDivElement> {
 
 export const Root = React.forwardRef<HTMLDivElement, EmptyStateRootProps>(
   ({ className, children, flat = false, ...props }, ref) => {
-    const layout = "flex w-full flex-col items-center gap-[10px] text-center";
+    // `whitespace-normal` porque o lugar mais comum de um estado vazio é dentro
+    // de uma célula de tabela, e a célula é `whitespace-nowrap` de propósito
+    // (uma linha por célula, a tabela rola). Sem reverter aqui, a descrição
+    // virava uma linha só de ~680px e o card a cortava no meio da frase.
+    const layout =
+      "flex w-full flex-col items-center gap-[10px] text-center whitespace-normal";
 
     if (flat) {
       return (

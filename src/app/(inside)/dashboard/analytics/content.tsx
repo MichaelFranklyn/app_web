@@ -2,9 +2,8 @@
 
 import { PageContent } from "@/components/PageContent";
 import { useQueryErrorToast } from "@/hooks/useQueryErrorToast";
-import { getCookie } from "@/utils/cookies/clientCookie";
 import { useQuery } from "@apollo/client/react";
-import { useEffect, useMemo, useState } from "react";
+import { useMemo, useState } from "react";
 
 import { DASHBOARD_FACTORIES_QUERY, DASHBOARD_SELLERS_QUERY } from "../gql";
 import {
@@ -37,23 +36,18 @@ import { SalesTeamSection } from "./_components/SalesTeamSection";
 import { ChartFilters } from "./interface";
 import { getLast12MonthsRangeIso } from "./utils";
 
-// Papéis que enxergam dados de qualquer vendedor e escolhem de quem ver.
-const MANAGER_ROLES = ["OWNER", "ADMIN", "SU"];
+interface Props {
+  /** Se o papel escolhe de qual vendedor ver — resolvido no `page.tsx`. */
+  canSelectSeller: boolean;
+}
 
-export default function AnalyticsContent() {
+export default function AnalyticsContent({ canSelectSeller }: Props) {
   const initialRange = useMemo(getLast12MonthsRangeIso, []);
   const [range, setRange] = useState<DateRangeIso>(initialRange);
   const [selectedSellerId, setSelectedSellerId] = useState<string | null>(null);
   const [selectedFactoryId, setSelectedFactoryId] = useState<string | null>(
     null
   );
-
-  // Cookie é client-only: lido após o mount para evitar mismatch de hidratação.
-  const [canSelectSeller, setCanSelectSeller] = useState(false);
-  useEffect(() => {
-    const userData = getCookie<{ role?: string }>("userData");
-    setCanSelectSeller(MANAGER_ROLES.includes(userData?.role ?? ""));
-  }, []);
 
   const sellersQuery = useQuery<DashboardSellersResponse>(
     DASHBOARD_SELLERS_QUERY,

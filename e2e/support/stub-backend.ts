@@ -10,6 +10,14 @@ import { emptyConnection, FAKE_JWT, loginSuccess } from "./graphql";
  * As chamadas do browser continuam controladas por `mockGraphql` em cada teste;
  * este servidor responde apenas ao que o servidor Next busca ao renderizar.
  */
+/** Envelope padrão das respostas do backend (status/code/message/data). */
+const dataResponse = (data: unknown) => ({
+  status: true,
+  code: 200,
+  message: "ok",
+  data,
+});
+
 const SSR_RESPONSES: Record<string, unknown> = {
   // Listas de topo agora buscam a 1ª página no SERVIDOR (SSR-seed do useTableData,
   // ver [[project_ssr_list_apollo_cache_seed]]). O stub devolve connection VAZIO:
@@ -327,6 +335,102 @@ const SSR_RESPONSES: Record<string, unknown> = {
       },
     },
   },
+
+  // Console da plataforma (grupo `(platform)`): todas as telas buscam no
+  // SERVIDOR. Vazias de propósito — como as listas acima, quem manda no que a
+  // tela mostra é o `page.route` de cada spec. O que estas entradas garantem é
+  // que o console não fique fora do stub (o teardown falha a suíte se uma
+  // query SSR chegar sem resposta).
+  PlatformOverview: {
+    platformOverview: dataResponse({
+      totalCompanies: 0,
+      activeCompanies: 0,
+      suspendedCompanies: 0,
+      trialCompanies: 0,
+      newCompaniesInPeriod: 0,
+      totalUsers: 0,
+      activeUsersInPeriod: 0,
+      neverLoggedUsers: 0,
+      engagedCompanies: 0,
+      totalSellers: 0,
+      totalClients: 0,
+      totalFactoryLinks: 0,
+      totalOrders: 0,
+      ordersInPeriod: 0,
+      gmvInPeriod: "0",
+    }),
+  },
+  PlatformAttention: { platformAttention: dataResponse([]) },
+  PlatformOperation: {
+    platformOperation: dataResponse({
+      activeClients: 0,
+      positivatedClients: 0,
+      visitsPlanned: 0,
+      visitsDone: 0,
+      averageTicket: "0",
+      activeSellers: 0,
+      ordersPerSeller: 0,
+    }),
+  },
+  PlatformTenantHealth: { platformTenantHealth: dataResponse([]) },
+  PlatformFeatureAdoption: { platformFeatureAdoption: dataResponse([]) },
+  PlatformGrowth: { platformGrowth: dataResponse([]) },
+  PlatformRetention: {
+    platformRetention: dataResponse({
+      currentMonth: "2026-09",
+      months: [],
+      overall: 0,
+      cohorts: [],
+    }),
+  },
+  PlatformEngagement: {
+    platformEngagement: dataResponse({
+      dailyAverage: 0,
+      weeklyActive: 0,
+      monthlyActive: 0,
+      activeCompanies: 0,
+      stickiness: 0,
+      peakUsers: 0,
+    }),
+  },
+  PlatformActivitySummary: {
+    platformActivitySummary: dataResponse({
+      totalActions: 0,
+      totalErrors: 0,
+      byAction: [],
+      byCompany: [],
+    }),
+  },
+  PlatformOperationHealth: {
+    platformOperationHealth: dataResponse({
+      failing: 0,
+      slow: 0,
+      operations: [],
+    }),
+  },
+  PlatformOperationTrend: {
+    platformOperationTrend: dataResponse({
+      newOperations: [],
+      vanishedOperations: [],
+      daily: [],
+      regressions: [],
+    }),
+  },
+  PlatformHealth: {
+    platformHealth: dataResponse({
+      databaseRevision: "abc123",
+      codeRevision: "abc123",
+      hasPendingMigration: false,
+      expiredTrials: 0,
+      jobs: [],
+    }),
+  },
+  PlatformJobHistory: { platformJobHistory: dataResponse([]) },
+  PlatformTenants: { platform_tenants: emptyConnection() },
+  PlatformUsersList: { platform_users: emptyConnection() },
+  PlatformActivityList: { platform_activity: emptyConnection() },
+  PlatformAuditList: { platform_audit: emptyConnection() },
+  PlatformStaff: { platformStaff: dataResponse([]) },
 };
 
 // Operações SSR que chegaram sem resposta canned durante a suíte. O stub segue
