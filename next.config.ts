@@ -1,5 +1,20 @@
 import type { NextConfig } from "next";
 
+/**
+ * A REGIÃO das funções não se configura aqui, e sim em `vercel.json`
+ * (`regions: ["gru1"]`) — fica anotado neste arquivo porque é aqui que se
+ * procura configuração de build.
+ *
+ * São Paulo, e não a Virgínia (`iad1`, o padrão que estava valendo): todo o
+ * tráfego é BR e o backend é Cloud Run em `sa-east1`. Com a renderização na
+ * Virgínia, cada consulta SSR atravessava Virgínia↔São Paulo — e o dashboard
+ * faz duas ou três em sequência. Medido em produção no p75 de 04–11/09/2026,
+ * antes da troca: TTFB de 1,61s no `/dashboard`, 1,47s no `/clients` e 1,90s
+ * no `/dashboard/analytics`, com LCP ≈ FCP ≈ TTFB + ~300ms nas três — ou seja,
+ * a tela pintava assim que o servidor respondia, e o que demorava era o
+ * servidor. O plano hobby dá UMA região; esta é a que faz sentido.
+ */
+
 // Origem do backend GraphQL (para o connect-src). Pós-BFF o client é same-origin,
 // mas mantemos aqui como rede de segurança (belt-and-suspenders).
 const backendOrigin = (() => {
