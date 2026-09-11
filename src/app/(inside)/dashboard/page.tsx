@@ -27,6 +27,50 @@ import {
 // Papéis que enxergam os dados de qualquer vendedor e escolhem de quem ver.
 const MANAGER_ROLES = ["OWNER", "ADMIN", "SU"];
 
+type DashboardData = Partial<
+  OrdersByPeriodResponse &
+    RecentOrdersResponse &
+    CompanyClientsCountResponse &
+    SchedulesByPeriodResponse
+>;
+
+/**
+ * As quatro consultas do painel, para um recorte. Saem juntas; o que derruba
+ * uma derruba o seed inteiro, e aí a tela busca do navegador como sempre fez
+ * (backend fora, sessão caindo).
+ */
+const fetchDashboardData = async (
+  range: ReturnType<typeof getCurrentWeekRangeIso>,
+  sellerId: string | null,
+  hasRoutines: boolean
+): Promise<DashboardData> => {
+  const variables = dashboardVariables(range, sellerId);
+  try {
+    return await executeServerQueries<DashboardData>({
+      orders_by_period: {
+        query: ORDERS_BY_PERIOD_QUERY,
+        variables: variables.orders,
+      },
+      recent_orders: {
+        query: RECENT_ORDERS_QUERY,
+        variables: variables.recentOrders,
+      },
+      company_clients_count: {
+        query: COMPANY_CLIENTS_COUNT_QUERY,
+        variables: variables.clientsCount,
+      },
+      ...(hasRoutines && {
+        schedules_by_period: {
+          query: SCHEDULES_BY_PERIOD_QUERY,
+          variables: variables.schedules,
+        },
+      }),
+    });
+  } catch {
+    return {};
+  }
+};
+
 /**
  * A tela mais aberta do sistema, buscada no SERVIDOR.
  *
@@ -39,6 +83,12 @@ const MANAGER_ROLES = ["OWNER", "ADMIN", "SU"];
  * Aqui as mesmas consultas saem do servidor, que fala com o backend por uma
  * rede curta, e chegam prontas no HTML. O `loading.tsx` ao lado é o que segura
  * essa espera: sem ele o navegador não receberia nada enquanto isso acontece.
+ *
+ * A fila sobrou uma vez: a lista de vendedores continuava vindo ANTES dos
+ * números, porque é dela que sai o recorte. Como o vendedor default do gestor
+ * que também vende já está no cookie `userData`, as duas saem juntas — e só
+ * quando a aposta erra (perfil inativo, gestor que não vende) é que a segunda
+ * espera pela primeira.
  */
 const Page = async () => {
   // Papel resolvido no servidor, a partir do mesmo cookie `userData` gravado no
@@ -50,31 +100,40 @@ const Page = async () => {
   // recusa aqui derrubaria a página inteira por causa de um cartão.
   const hasRoutines = await hasFeatureServer("ROUTINES");
   const range = getCurrentWeekRangeIso();
+  const ownSellerId = userData?.sellerId ?? null;
 
-  // Os vendedores vêm primeiro porque é deles que sai o recorte de tudo o mais:
-  // é esta consulta que estava presa atrás do JS do navegador.
-  let sellers: DashboardSellersResponse | null = null;
-  if (canSelectSeller) {
-    try {
-      sellers = await executeServerQueries<DashboardSellersResponse>({
-        dashboard_sellers: {
-          query: DASHBOARD_SELLERS_QUERY,
-          variables: SELLERS_VARIABLES,
-        },
-      });
-    } catch {
-      sellers = null;
-    }
-  }
+  // A lista de vendedores sai JÁ, sem `await`: é dela que sai o recorte, mas
+  // esperá-la antes de pedir os números somava uma segunda ida ao backend em
+  // fila, e as duas juntas eram o tempo em branco antes do painel aparecer.
+  const sellersPromise: Promise<DashboardSellersResponse | null> =
+    canSelectSeller
+      ? executeServerQueries<DashboardSellersResponse>({
+          dashboard_sellers: {
+            query: DASHBOARD_SELLERS_QUERY,
+            variables: SELLERS_VARIABLES,
+          },
+        }).catch(() => null)
+      : Promise.resolve(null);
+
+  // A aposta: o gestor que também vende abre vendo "os meus", e esse id já veio
+  // no cookie — dá para pedir os números ao mesmo tempo que a lista. Quem não
+  // escolhe vendedor (o próprio vendedor) não tem recorte nenhum e também pode
+  // pedir de imediato.
+  const optimisticSellerId = canSelectSeller ? ownSellerId : null;
+  const canFetchNow = !canSelectSeller || Boolean(optimisticSellerId);
+  const optimisticData = canFetchNow
+    ? fetchDashboardData(range, optimisticSellerId, hasRoutines)
+    : null;
+
+  const sellers = await sellersPromise;
 
   // Default: o próprio perfil do gestor quando ele também é vendedor (abre
-  // vendo "os meus"), senão o primeiro da lista. Mesma regra de antes — só que
-  // decidida aqui, e não depois de um round-trip.
+  // vendo "os meus"), senão o primeiro da lista.
   const sellerIds =
     sellers?.dashboard_sellers?.edges.map(({ node }) => node.id) ?? [];
   const initialSellerId = canSelectSeller
-    ? ((userData?.sellerId && sellerIds.includes(userData.sellerId)
-        ? userData.sellerId
+    ? ((ownSellerId && sellerIds.includes(ownSellerId)
+        ? ownSellerId
         : sellerIds[0]) ?? null)
     : null;
 
@@ -82,40 +141,15 @@ const Page = async () => {
   // recorte: buscar sem escopo traria a empresa inteira, que não é o que a tela
   // mostra. O cliente resolve quando a lista chegar.
   const canSeed = !canSelectSeller || Boolean(initialSellerId);
-  const variables = dashboardVariables(range, initialSellerId);
 
-  let data: Partial<
-    OrdersByPeriodResponse &
-      RecentOrdersResponse &
-      CompanyClientsCountResponse &
-      SchedulesByPeriodResponse
-  > = {};
-  if (canSeed) {
-    try {
-      data = await executeServerQueries({
-        orders_by_period: {
-          query: ORDERS_BY_PERIOD_QUERY,
-          variables: variables.orders,
-        },
-        recent_orders: {
-          query: RECENT_ORDERS_QUERY,
-          variables: variables.recentOrders,
-        },
-        company_clients_count: {
-          query: COMPANY_CLIENTS_COUNT_QUERY,
-          variables: variables.clientsCount,
-        },
-        ...(hasRoutines && {
-          schedules_by_period: {
-            query: SCHEDULES_BY_PERIOD_QUERY,
-            variables: variables.schedules,
-          },
-        }),
-      });
-    } catch {
-      // Backend fora, sessão caindo: a tela busca do navegador como sempre fez.
-      data = {};
-    }
+  let data: DashboardData = {};
+  if (optimisticData && initialSellerId === optimisticSellerId) {
+    // Aposta certa: os números já estavam voltando.
+    data = await optimisticData;
+  } else if (canSeed) {
+    // Aposta errada (perfil de vendedor do gestor inativo, por exemplo) ou
+    // gestor que não vende: aí não teve jeito, vai em fila mesmo.
+    data = await fetchDashboardData(range, initialSellerId, hasRoutines);
   }
 
   const seed: DashboardSeed = {

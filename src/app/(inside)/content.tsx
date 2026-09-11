@@ -1,5 +1,6 @@
 "use client";
 
+import { UserData } from "@/app/(auth)/login/interface";
 import { Sidebar } from "@/components/Sidebar";
 import { FeatureGate } from "@/components/FeatureGate";
 import { Topbar } from "@/components/Topbar";
@@ -22,8 +23,14 @@ import { useInsideLayout } from "./useInsideLayout";
  */
 export default function InsideShell({
   children,
+  userData,
+  initialCollapsed,
 }: {
   children: React.ReactNode;
+  /** Quem está logado e a preferência da sidebar, resolvidos no `layout.tsx`
+   *  a partir dos cookies — para o primeiro render já sair no formato final. */
+  userData: UserData | null;
+  initialCollapsed: boolean;
 }) {
   const {
     pathname,
@@ -38,7 +45,7 @@ export default function InsideShell({
     userRole,
     userInitials,
     canManageCompany,
-  } = useInsideLayout();
+  } = useInsideLayout({ userData, initialCollapsed });
 
   return (
     <FlowTourProvider>
@@ -92,6 +99,11 @@ export default function InsideShell({
             )}
           </button>
 
+          {/* As duas marcas ficam no DOM porque quem escolhe entre elas é o
+              breakpoint (no mobile a sidebar é drawer e mostra sempre a
+              completa), mas só a que o desktop vai mostrar é pré-carregada:
+              `priority` mandava as DUAS na frente do conteúdo real, em toda
+              tela de dentro. */}
           <Sidebar.Brand collapsed={isCollapsed}>
             {/* Logo completa (expandida e sempre no drawer mobile). */}
             <Image
@@ -99,18 +111,22 @@ export default function InsideShell({
               alt="Girus"
               width={1059}
               height={247}
-              priority
+              priority={!isCollapsed}
+              sizes="232px"
               className={cn("h-auto w-full", isCollapsed && "desktop:hidden")}
             />
-            {/* Só o ícone quando recolhida no desktop. `unoptimized` evita o
-              otimizador do next/image, que recusa SVG sem dangerouslyAllowSVG. */}
+            {/* Só o ícone quando recolhida no desktop. Era um .svg de 148 KB
+              com um PNG embutido em base64, servido `unoptimized` (o otimizador
+              recusa SVG sem dangerouslyAllowSVG) para aparecer com 28px de
+              altura. Como PNG de verdade ele passa pelo otimizador e chega ao
+              navegador no tamanho em que é exibido. */}
             <Image
-              src="/logo.svg"
+              src="/logo.png"
               alt="Girus"
-              width={1500}
-              height={907}
-              priority
-              unoptimized
+              width={528}
+              height={288}
+              priority={isCollapsed}
+              sizes="52px"
               className={cn(
                 "hidden h-[28px] w-auto",
                 isCollapsed && "desktop:block"

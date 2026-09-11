@@ -1,8 +1,11 @@
+import { UserData } from "@/app/(auth)/login/interface";
 import { AppProviders } from "@/components/AppProviders";
 import { PlanProvider } from "@/services/plan";
 import type { Metadata } from "next";
 import { getPlanContract } from "@/services/plan/server";
+import { getServerCookie } from "@/utils/cookies/serverCookie";
 import InsideShell from "./content";
+import { SIDEBAR_COLLAPSED_COOKIE } from "./navConfig";
 
 /**
  * Carrega o que a empresa contratou ANTES de a casca renderizar.
@@ -29,12 +32,25 @@ export default async function InsideLayout({
 }: {
   children: React.ReactNode;
 }) {
-  const plan = await getPlanContract();
+  // Os três em paralelo: o plano é uma ida ao backend, os cookies são locais, e
+  // encadeá-los somaria latência ao tempo até a primeira pintura de TODA tela
+  // de dentro — o layout roda antes de a página começar a renderizar.
+  const [plan, userData, collapsedPreference] = await Promise.all([
+    getPlanContract(),
+    getServerCookie<UserData>("userData"),
+    getServerCookie<boolean>(SIDEBAR_COLLAPSED_COOKIE),
+  ]);
+
+  // Sem preferência salva, recolhida: é o padrão do produto (a tela inteira
+  // para o conteúdo). Só a escolha explícita de expandir sobrevive.
+  const initialCollapsed = collapsedPreference !== false;
 
   return (
     <AppProviders>
       <PlanProvider plan={plan}>
-        <InsideShell>{children}</InsideShell>
+        <InsideShell userData={userData} initialCollapsed={initialCollapsed}>
+          {children}
+        </InsideShell>
       </PlanProvider>
     </AppProviders>
   );

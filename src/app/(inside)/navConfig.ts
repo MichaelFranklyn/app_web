@@ -16,6 +16,14 @@ import {
   Users,
 } from "lucide-react";
 
+/**
+ * Preferência de sidebar recolhida. Vive em COOKIE, e não em localStorage, para
+ * o servidor conseguir ler e já renderizar a largura certa: com localStorage o
+ * primeiro render saía sempre expandido (232px) e recolhia logo depois, jogando
+ * o conteúdo 160px para o lado em toda tela de dentro.
+ */
+export const SIDEBAR_COLLAPSED_COOKIE = "sidebarCollapsed";
+
 /** Quem vê o item — espelha o guard da rota de destino. */
 export type NavAccess = "all" | "admin" | "owner";
 
