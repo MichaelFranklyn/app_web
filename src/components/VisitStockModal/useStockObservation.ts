@@ -2,6 +2,7 @@
 
 import { useAsyncAction } from "@/hooks/useAsyncAction";
 import { useInvalidateQueriesClient } from "@/hooks/useInvalidateQueries";
+import { CLIENT_STOCK_CACHE_FIELDS } from "@/utils/cacheFields";
 import { useMutation, useQuery } from "@apollo/client/react";
 import { useEffect, useMemo, useState } from "react";
 
@@ -58,19 +59,6 @@ interface ObsData {
     }[];
   };
 }
-
-/**
- * Queries que dependem da previsão de esgotamento e ficam desatualizadas depois
- * de registrar o estoque. Elas vivem em OUTRAS abas (Estoque, Score) e não estão
- * montadas agora, então evict é o certo — refazem o fetch ao remontar.
- * Ver a convenção em `useInvalidateQueries`.
- */
-const STALE_AFTER_SAVE = [
-  "clientProductInsights", // aba Estoque: tabela de produtos da fábrica
-  "companyClient", // factoryStockSummaries (cards de estoque) e topVisitScore
-  "clientVisitScores", // histórico de score no modal da aba Score
-  "clients", // lista de clientes: coluna de score (visitScoreTotal)
-];
 
 /**
  * Observação de estoque de uma visita, para TODAS as fábricas do cliente.
@@ -156,7 +144,7 @@ export function useStockObservation(itemId: string, onSaved?: () => void) {
           refetchObs();
           // O backend acabou de corrigir a previsão de esgotamento: as abas
           // Estoque e Score mostrariam o valor antigo do cache.
-          await invalidateClient(STALE_AFTER_SAVE);
+          await invalidateClient(CLIENT_STOCK_CACHE_FIELDS);
           onSaved?.();
         },
       }

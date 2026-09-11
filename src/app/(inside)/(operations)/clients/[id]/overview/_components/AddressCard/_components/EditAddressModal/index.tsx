@@ -4,6 +4,7 @@ import { Button } from "@/components/Button";
 import { FormBuilder, FormBuilderRef } from "@/components/FormBuilder";
 import { Modal } from "@/components/Modal";
 import { useAsyncAction } from "@/hooks/useAsyncAction";
+import { useInvalidateQueriesClient } from "@/hooks/useInvalidateQueries";
 import { useMutation } from "@apollo/client/react";
 import { Pencil } from "lucide-react";
 import { useRef, useState } from "react";
@@ -27,6 +28,7 @@ export function EditAddressModal({
   const [open, setOpen] = useState(false);
   const formRef = useRef<FormBuilderRef>(null);
   const { execute, isLoading } = useAsyncAction();
+  const invalidateClient = useInvalidateQueriesClient();
 
   const [updateAddress] = useMutation<UpdateAddressResponse>(
     UPDATE_ADDRESS_MUTATION
@@ -55,10 +57,13 @@ export function EditAddressModal({
       },
       {
         successMessage: "Endereço atualizado com sucesso",
-        onSuccess: () => {
+        onSuccess: async () => {
           formRef.current?.resetForm();
           onCommit();
           onSuccess?.();
+          // "Cidade" é coluna da lista de clientes: sem isto, ela segue
+          // mostrando a cidade antiga.
+          await invalidateClient(["client", "clients"]);
         },
         onError: () => {
           onRollback();

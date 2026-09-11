@@ -4,10 +4,12 @@ import { useTakeoverConfirmation } from "@/hooks/useTakeoverConfirmation";
 import { useQueryErrorToast } from "@/hooks/useQueryErrorToast";
 import { useUserData } from "@/hooks/useUserData";
 import { useAsyncAction } from "@/hooks/useAsyncAction";
+import { useInvalidateQueriesClient } from "@/hooks/useInvalidateQueries";
 import { clientName, factoryName } from "@/utils/company";
 import { extractSelectValue } from "@/utils/form";
 import { useAsyncSelectOptions } from "@/hooks/useAsyncSelectOptions";
 import { useCompleteList } from "@/hooks/useCompleteList";
+import { CLIENT_FACTORY_LINK_CACHE_FIELDS } from "@/utils/cacheFields";
 import { useMutation } from "@apollo/client/react";
 import { useMemo, useRef, useState } from "react";
 
@@ -262,6 +264,7 @@ export function useAddWalletClient({
     CREATE_SELLER_CLIENT_FACTORY_MUTATION
   );
   const { execute, isLoading } = useAsyncAction();
+  const invalidateClient = useInvalidateQueriesClient();
 
   const handleClose = (v: boolean) => {
     setOpen(v);
@@ -319,6 +322,17 @@ export function useAddWalletClient({
     return res.data.createSellerClientFactory;
   };
 
+  /**
+   * Fim comum dos dois caminhos (cliente novo na carteira e transferência).
+   * O vínculo aparece também na aba "Clientes" da fábrica e nos selects de
+   * vínculo do pedido — por isso o invalidate, e não só o refetch da seção.
+   */
+  const finishAdd = () => {
+    onAdded();
+    handleClose(false);
+    void invalidateClient(CLIENT_FACTORY_LINK_CACHE_FIELDS);
+  };
+
   const handleSubmit = async (data: Record<string, unknown>) => {
     if (isTakeover) {
       if (!canTransfer) return;
@@ -328,8 +342,7 @@ export function useAddWalletClient({
     await execute(() => runLink(data, false), {
       successMessage: "Cliente adicionado à carteira",
       onSuccess: () => {
-        onAdded();
-        handleClose(false);
+        finishAdd();
       },
     });
   };
@@ -342,8 +355,7 @@ export function useAddWalletClient({
   const confirmTransfer = async () => {
     if (!draft) return;
     await runLink(draft, true);
-    onAdded();
-    handleClose(false);
+    finishAdd();
   };
 
   useQueryErrorToast(

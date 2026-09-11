@@ -48,7 +48,10 @@ export const useCommissionsReport = (
 ) => {
   const { data, loading, error, refetch } = useQuery<CommissionsReportResponse>(
     COMMISSIONS_REPORT_QUERY,
-    { variables: { sellerId: filters.sellerId } }
+    {
+      fetchPolicy: "cache-and-network",
+      variables: { sellerId: filters.sellerId },
+    }
   );
   useQueryErrorToast(error, "Não foi possível carregar as comissões.");
 

@@ -3,6 +3,7 @@
 import { Button } from "@/components/Button";
 import { ConfirmModal } from "@/components/ConfirmModal";
 import { useInvalidateQueriesClient } from "@/hooks/useInvalidateQueries";
+import { CLIENT_FACTORY_LINK_CACHE_FIELDS } from "@/utils/cacheFields";
 import { useMutation } from "@apollo/client/react";
 import { Trash2 } from "lucide-react";
 import { DELETE_SELLER_CLIENT_FACTORY_MUTATION } from "./gql";
@@ -64,7 +65,7 @@ export function DeleteClientLinkModal({
       }}
       onSuccess={() => {
         onCommit();
-        void invalidateClient(["sellerClientFactoryList"]);
+        void invalidateClient(CLIENT_FACTORY_LINK_CACHE_FIELDS);
       }}
       onError={onRollback}
     />

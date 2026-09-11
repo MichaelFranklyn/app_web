@@ -46,6 +46,7 @@ const EMPTY_REPORT = {
 export const usePositivationReport = (filters: ReportFilters) => {
   const { data, loading, error, refetch } =
     useQuery<PositivationReportResponse>(POSITIVATION_REPORT_QUERY, {
+      fetchPolicy: "cache-and-network",
       variables: {
         from: filters.from,
         to: filters.to,

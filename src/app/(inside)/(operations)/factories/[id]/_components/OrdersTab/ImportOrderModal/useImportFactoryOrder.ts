@@ -3,7 +3,9 @@ import { useCompleteList } from "@/hooks/useCompleteList";
 import { useMemo, useRef, useState } from "react";
 
 import { FormBuilderRef, FormStepSchema } from "@/components/FormBuilder";
+import { useInvalidateQueriesClient } from "@/hooks/useInvalidateQueries";
 import { useQueryErrorToast } from "@/hooks/useQueryErrorToast";
+import { ORDER_CACHE_FIELDS } from "@/utils/cacheFields";
 import {
   extractSelectValue,
   parseDeliveryDays,
@@ -26,6 +28,7 @@ import { FREIGHT_OPTIONS } from "../../../../../_shared/orderFreight";
 import {
   CREATE_ORDER_FROM_FACTORY_MUTATION,
   FACTORY_ASSIGNMENTS_QUERY,
+  FactoryOrder,
 } from "../gql";
 import { CreateOrderResponse, FactoryAssignmentsData } from "../interface";
 
@@ -33,6 +36,8 @@ export interface ImportFactoryOrderProps {
   factoryId: string;
   /** Recarrega a lista de pedidos da fábrica após criar/importar. */
   onChanged: () => void;
+  /** Insere a linha na aba assim que o pedido nasce, antes do refetch. */
+  onAddOptimistic: (order: FactoryOrder) => void;
 }
 
 interface PendingOrder {
@@ -55,6 +60,7 @@ const getAssignments = (d: FactoryAssignmentsData) => d.sellerClientFactoryList;
 export function useImportFactoryOrder({
   factoryId,
   onChanged,
+  onAddOptimistic,
 }: ImportFactoryOrderProps) {
   const [open, setOpen] = useState(false);
   const [isBusy, setIsBusy] = useState(false);
@@ -191,12 +197,25 @@ export function useImportFactoryOrder({
   const [createOrder] = useMutation<CreateOrderResponse>(
     CREATE_ORDER_FROM_FACTORY_MUTATION
   );
+  const invalidateClient = useInvalidateQueriesClient();
+
+  /**
+   * Como no "Importar pedido" da lista /orders: a aba refaz o fetch (é ela que
+   * está na tela) e o evict cuida das telas que o pedido novo também
+   * desatualiza — /orders e seus KPIs, a ficha do cliente e a lista de
+   * clientes. Sem a segunda metade, o pedido importado por aqui só aparecia
+   * nelas depois de um F5.
+   */
+  const refetchList = () => {
+    onChanged();
+    void invalidateClient(ORDER_CACHE_FIELDS);
+  };
 
   const handleClose = (value: boolean) => {
     if (!value && isBusy) return; // Não fecha durante a importação.
     setOpen(value);
     if (!value) {
-      if (createdOrderIdRef.current) onChanged(); // Pedido criado: lista reflete.
+      if (createdOrderIdRef.current) refetchList(); // Pedido criado: lista reflete.
       setPending(null);
       createdOrderIdRef.current = null;
       setAssignmentId("");
@@ -245,11 +264,16 @@ export function useImportFactoryOrder({
             res.data?.createOrder?.message ?? "Erro ao criar pedido"
           );
         }
-        createdOrderIdRef.current = res.data.createOrder.data.id;
+        const order = res.data.createOrder.data;
+        createdOrderIdRef.current = order.id;
+        // A linha entra na aba já com o que a mutation devolve; o refetch do
+        // fechamento substitui pela do servidor. `notes` não vem no retorno e
+        // nasce vazio de qualquer forma.
+        onAddOptimistic({ ...order, notes: null });
         return createdOrderIdRef.current;
       },
     };
-  }, [pending, factoryId, createOrder]);
+  }, [pending, factoryId, createOrder, onAddOptimistic]);
 
   useQueryErrorToast(
     assignmentsError,
@@ -262,6 +286,7 @@ export function useImportFactoryOrder({
     deferred,
     ipiInOrder,
     setIsBusy,
+    refetchList,
     formRef,
     formSteps,
     handleDetailsValid,

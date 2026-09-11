@@ -5,6 +5,7 @@ import { FormBuilder, FormBuilderRef } from "@/components/FormBuilder";
 import { Modal } from "@/components/Modal";
 import { useAsyncAction } from "@/hooks/useAsyncAction";
 import { useInvalidateQueriesClient } from "@/hooks/useInvalidateQueries";
+import { USER_CACHE_FIELDS } from "@/utils/cacheFields";
 import { useMutation } from "@apollo/client/react";
 import { useRef } from "react";
 import { UPDATE_USER_MUTATION } from "./gql";
@@ -60,7 +61,9 @@ export function EditUserModal({
           onOpenChange(false);
           formRef.current?.resetForm();
           onCommit();
-          await invalidateClient(["users"]);
+          // A lista, a ficha da pessoa e o cadastro de vendedor mostram os
+          // mesmos dados por caminhos diferentes.
+          await invalidateClient(USER_CACHE_FIELDS);
         },
         onError: () => {
           onRollback();

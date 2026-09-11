@@ -2,6 +2,8 @@
 
 import { Button } from "@/components/Button";
 import { ConfirmModal } from "@/components/ConfirmModal";
+import { useInvalidateQueriesClient } from "@/hooks/useInvalidateQueries";
+import { CLIENT_FACTORY_LINK_CACHE_FIELDS } from "@/utils/cacheFields";
 import { useMutation } from "@apollo/client/react";
 import { Trash2 } from "lucide-react";
 import { DELETE_SELLER_CLIENT_FACTORY_MUTATION } from "./gql";
@@ -34,6 +36,7 @@ export function DeleteFactoryLinkModal({
   const [deleteLink] = useMutation<DeleteSellerClientFactoryResponse>(
     DELETE_SELLER_CLIENT_FACTORY_MUTATION
   );
+  const invalidateClient = useInvalidateQueriesClient();
 
   return (
     <ConfirmModal
@@ -64,6 +67,9 @@ export function DeleteFactoryLinkModal({
       onSuccess={() => {
         onCommit();
         onRemoved();
+        // Igual ao desvínculo pela aba da fábrica: a outra ponta lê a mesma
+        // lista de vínculos.
+        void invalidateClient(CLIENT_FACTORY_LINK_CACHE_FIELDS);
       }}
       onError={onRollback}
     />

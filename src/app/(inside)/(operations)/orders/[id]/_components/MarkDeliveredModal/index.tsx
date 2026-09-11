@@ -8,6 +8,8 @@ import {
 } from "@/components/FormBuilder";
 import { Modal } from "@/components/Modal";
 import { useAsyncAction } from "@/hooks/useAsyncAction";
+import { useInvalidateQueriesClient } from "@/hooks/useInvalidateQueries";
+import { ORDER_CACHE_FIELDS } from "@/utils/cacheFields";
 import { getTodayIso, toIsoDate } from "@/utils/format/date";
 import { useMutation } from "@apollo/client/react";
 import { PackageCheck } from "lucide-react";
@@ -35,6 +37,7 @@ export function MarkDeliveredModal({ order, onSuccess }: Props) {
     MARK_ORDER_DELIVERED_MUTATION
   );
   const { execute, isLoading } = useAsyncAction();
+  const invalidateClient = useInvalidateQueriesClient();
 
   const steps: FormStepSchema[] = useMemo(
     () => [
@@ -90,6 +93,10 @@ export function MarkDeliveredModal({ order, onSuccess }: Props) {
         onSuccess: () => {
           handleClose(false);
           onSuccess();
+          // A mutation devolve só o `id`: sem invalidar, a lista de pedidos
+          // segue mostrando o status antigo, e a entrega ainda abastece o
+          // estoque estimado que a ficha do cliente exibe.
+          void invalidateClient(ORDER_CACHE_FIELDS);
         },
       }
     );

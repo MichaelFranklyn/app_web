@@ -17,6 +17,8 @@ export function OrdersAndTicketByMonthChart({
 }) {
   const { data, loading, error, refetch } =
     useAsyncQuery<OrdersAndTicketResponse>(ORDERS_AND_TICKET_BY_MONTH_QUERY, {
+      // Leitura derivada: ninguém invalida este campo ao lançar pedido/visita.
+      revalidate: true,
       variables: filters,
       skip: false,
       autoFetch: true,

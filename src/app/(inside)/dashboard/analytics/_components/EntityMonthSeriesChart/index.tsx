@@ -30,6 +30,8 @@ export function EntityMonthSeriesChart({
       variables,
       skip: false,
       autoFetch: true,
+      // Leitura derivada: ninguém invalida este campo ao lançar pedido/visita.
+      revalidate: true,
     });
 
   const pivoted = useMemo(

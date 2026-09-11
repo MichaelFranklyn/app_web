@@ -8,6 +8,8 @@ import {
 } from "@/components/FormBuilder";
 import { Modal } from "@/components/Modal";
 import { useAsyncAction } from "@/hooks/useAsyncAction";
+import { useInvalidateQueriesClient } from "@/hooks/useInvalidateQueries";
+import { PRICE_TIER_CACHE_FIELDS } from "@/utils/cacheFields";
 import { useMutation } from "@apollo/client/react";
 import { Pencil } from "lucide-react";
 import { useMemo, useRef, useState } from "react";
@@ -45,6 +47,7 @@ export function EditTierModal({
     UPDATE_PRICE_TIER_MUTATION
   );
   const { execute, isLoading } = useAsyncAction();
+  const invalidateClient = useInvalidateQueriesClient();
 
   const steps: FormStepSchema[] = useMemo(
     () => [
@@ -101,6 +104,8 @@ export function EditTierModal({
         onSuccess: () => {
           onCommit();
           onChanged();
+          // O nível é escolhido nos preços, no item de pedido e no vínculo.
+          void invalidateClient(PRICE_TIER_CACHE_FIELDS);
         },
         onError: () => {
           onRollback();

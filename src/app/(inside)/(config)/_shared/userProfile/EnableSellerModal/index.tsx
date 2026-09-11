@@ -6,6 +6,7 @@ import { Modal } from "@/components/Modal";
 import { Title } from "@/components/Title";
 import { useAsyncAction } from "@/hooks/useAsyncAction";
 import { useInvalidateQueriesClient } from "@/hooks/useInvalidateQueries";
+import { USER_CACHE_FIELDS } from "@/utils/cacheFields";
 import { useMutation } from "@apollo/client/react";
 import { useRef } from "react";
 import { UserDetail } from "../interface";
@@ -69,7 +70,7 @@ export function EnableSellerModal({
           onDone();
           // Nasceu um vendedor: os selects que o listam estão em OUTRAS telas
           // (pedido, rotina, metas), cada uma com sua entrada de cache.
-          await invalidateClient(["sellers"]);
+          await invalidateClient(USER_CACHE_FIELDS);
         },
       }
     );

@@ -12,6 +12,8 @@ import { Modal } from "@/components/Modal";
 import { useAsyncAction } from "@/hooks/useAsyncAction";
 import { parseMoneyToNumber } from "@/utils/format/masks";
 import { useCompleteList } from "@/hooks/useCompleteList";
+import { useInvalidateQueriesClient } from "@/hooks/useInvalidateQueries";
+import { PRICE_ITEM_CACHE_FIELDS } from "@/utils/cacheFields";
 import { useMutation } from "@apollo/client/react";
 import { Plus } from "lucide-react";
 import { useMemo, useRef, useState } from "react";
@@ -79,6 +81,7 @@ export function AddPriceItemModal({
     CREATE_PRICE_LIST_ITEM_MUTATION
   );
   const { execute, isLoading } = useAsyncAction();
+  const invalidateClient = useInvalidateQueriesClient();
 
   const listOptions: SelectOption[] = useMemo(
     () =>
@@ -173,6 +176,9 @@ export function AddPriceItemModal({
         onSuccess: () => {
           handleClose(false);
           onAdded();
+          // O mesmo preço aparece na tabela de preço e na ficha do produto,
+          // por caminhos de cache diferentes.
+          void invalidateClient(PRICE_ITEM_CACHE_FIELDS);
         },
       }
     );

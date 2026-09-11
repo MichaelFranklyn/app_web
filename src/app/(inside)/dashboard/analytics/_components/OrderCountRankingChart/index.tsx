@@ -19,7 +19,8 @@ export function OrderCountRankingChart({
 
   const { data, loading, error, refetch } = useAsyncQuery<OrderCountResponse>(
     query,
-    { variables, skip: false, autoFetch: true }
+    // Leitura derivada: ninguém invalida este campo ao lançar pedido/visita.
+    { variables, skip: false, autoFetch: true, revalidate: true }
   );
 
   const points = useMemo(() => data?.[dataKey] ?? [], [data, dataKey]);

@@ -6,6 +6,8 @@ import { Modal } from "@/components/Modal";
 import { Title } from "@/components/Title";
 import { useAsyncAction } from "@/hooks/useAsyncAction";
 import { useCompanyBranding } from "@/hooks/useCompanyBranding";
+import { useInvalidateQueriesClient } from "@/hooks/useInvalidateQueries";
+import { ORDER_CACHE_FIELDS } from "@/utils/cacheFields";
 import { clientName, factoryName } from "@/utils/company";
 import { useLazyQuery, useMutation } from "@apollo/client/react";
 import { Send } from "lucide-react";
@@ -80,6 +82,7 @@ export function SendToFactoryModal({ order, onSuccess }: Props) {
   const [fetchItems] = useLazyQuery<OrderItemsResponse>(ORDER_ITEMS_QUERY);
   const [markSent] = useMutation<MarkSentResponse>(MARK_ORDER_SENT_MUTATION);
   const { execute, isLoading } = useAsyncAction();
+  const invalidateClient = useInvalidateQueriesClient();
 
   // `factory` e `client` são opcionais no tipo porque um erro parcial da query
   // derruba o campo sem derrubar a resposta. Sem fábrica não há para quem
@@ -156,6 +159,9 @@ export function SendToFactoryModal({ order, onSuccess }: Props) {
           setOpen(false);
           setNote("");
           onSuccess();
+          // O carimbo de envio é o que apaga a tarja "não enviado" na lista, e
+          // a mutation devolve só o `id`.
+          void invalidateClient(ORDER_CACHE_FIELDS);
         },
       }
     );

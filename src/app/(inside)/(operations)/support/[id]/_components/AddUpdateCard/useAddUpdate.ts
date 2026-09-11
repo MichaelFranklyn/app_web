@@ -3,6 +3,8 @@
 import { ADD_SUPPORT_UPDATE_MUTATION } from "@/graphql/support";
 import { useAsyncAction } from "@/hooks/useAsyncAction";
 import { SupportStatus, SupportUpdateKind } from "@/utils/support";
+import { useInvalidateQueriesClient } from "@/hooks/useInvalidateQueries";
+import { SUPPORT_CACHE_FIELDS } from "@/utils/cacheFields";
 import { useMutation } from "@apollo/client/react";
 import { useState } from "react";
 
@@ -29,6 +31,7 @@ export function useAddUpdate({ caseId, onSaved }: Params) {
     ADD_SUPPORT_UPDATE_MUTATION
   );
   const { execute, isLoading } = useAsyncAction();
+  const invalidateClient = useInvalidateQueriesClient();
 
   const isClosing = isClosingStatus(status);
   const isValid = body.trim().length > 0;
@@ -63,6 +66,9 @@ export function useAddUpdate({ caseId, onSaved }: Params) {
           setResolution("");
           setKind("NOTE");
           onSaved();
+          // O andamento pode mudar a situação do caso — e é ela que a fila
+          // ordena e os cartões contam.
+          void invalidateClient(SUPPORT_CACHE_FIELDS);
         },
       }
     );

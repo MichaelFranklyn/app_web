@@ -28,12 +28,26 @@ export function SharePortalModal({
   clientName,
 }: SharePortalModalProps) {
   const [isOpen, setIsOpen] = useState(false);
+  // Cancelar derruba o acesso do cliente na hora, então o botão pergunta antes.
+  // A confirmação é no próprio botão, e não num ConfirmModal, porque isto já é
+  // um modal — e modal sobre modal é proibido no projeto.
+  const [confirmRevoke, setConfirmRevoke] = useState(false);
   const { activeLink, issuedUrl, isFetching, isLoading, load, issue, revoke } =
     useClientPortalLink(companyClientId);
 
   const handleOpenChange = (open: boolean) => {
     setIsOpen(open);
+    setConfirmRevoke(false);
     if (open) load();
+  };
+
+  const handleRevoke = async () => {
+    if (!confirmRevoke) {
+      setConfirmRevoke(true);
+      return;
+    }
+    setConfirmRevoke(false);
+    await revoke();
   };
 
   return (
@@ -88,14 +102,18 @@ export function SharePortalModal({
         <Modal.Footer>
           {activeLink ? (
             <Button.Root
-              appearance="outline"
+              appearance={confirmRevoke ? "solid" : "outline"}
               color="red"
               size="sm"
               noUppercase
               loading={isLoading}
-              onClick={() => void revoke()}
+              onClick={() => void handleRevoke()}
             >
-              <Button.Title>Cancelar link</Button.Title>
+              <Button.Title>
+                {confirmRevoke
+                  ? "Confirmar: o cliente perde o acesso"
+                  : "Cancelar link"}
+              </Button.Title>
             </Button.Root>
           ) : null}
 

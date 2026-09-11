@@ -54,6 +54,7 @@ export const usePurchasesReport = (filters: ReportFilters) => {
   const { data, loading, error, refetch } = useQuery<PurchasesReportResponse>(
     CLIENT_FACTORY_PURCHASES_QUERY,
     {
+      fetchPolicy: "cache-and-network",
       variables: {
         from: filters.from,
         to: filters.to,

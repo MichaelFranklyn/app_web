@@ -3,6 +3,8 @@
 import { Button } from "@/components/Button";
 import { Modal } from "@/components/Modal";
 import { useAsyncAction } from "@/hooks/useAsyncAction";
+import { useInvalidateQueriesClient } from "@/hooks/useInvalidateQueries";
+import { PRODUCT_CACHE_FIELDS } from "@/utils/cacheFields";
 import { useMutation } from "@apollo/client/react";
 import { getProductErrorMessage } from "../errors";
 import { FactoryProduct, UPDATE_PRODUCT_MUTATION } from "../gql";
@@ -39,6 +41,7 @@ export function ToggleProductModal({
     UPDATE_PRODUCT_MUTATION
   );
   const { execute, isLoading } = useAsyncAction();
+  const invalidateClient = useInvalidateQueriesClient();
 
   const next = !product.isActive;
 
@@ -80,6 +83,8 @@ export function ToggleProductModal({
         onSuccess: () => {
           onCommit();
           onChanged();
+          // Ativo/inativo aparece também na ficha do produto.
+          void invalidateClient(PRODUCT_CACHE_FIELDS);
         },
         onError: () => {
           onRollback();

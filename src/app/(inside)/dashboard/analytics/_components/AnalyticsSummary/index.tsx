@@ -22,6 +22,8 @@ export function AnalyticsSummary({ filters }: { filters: ChartFilters }) {
   const { setKpis } = useAnalyticsPrint();
   const { data, loading, error, refetch } =
     useAsyncQuery<DashboardSummaryResponse>(DASHBOARD_SUMMARY_QUERY, {
+      // Leitura derivada: ninguém invalida este campo ao lançar pedido/visita.
+      revalidate: true,
       variables: filters,
       skip: false,
       autoFetch: true,

@@ -8,6 +8,8 @@ import {
 } from "@/components/FormBuilder";
 import { Modal } from "@/components/Modal";
 import { useAsyncAction } from "@/hooks/useAsyncAction";
+import { useInvalidateQueriesClient } from "@/hooks/useInvalidateQueries";
+import { CLIENT_FACTORY_LINK_CACHE_FIELDS } from "@/utils/cacheFields";
 import { useMutation } from "@apollo/client/react";
 import { Pencil } from "lucide-react";
 import { useMemo, useRef, useState } from "react";
@@ -61,19 +63,12 @@ export function EditFactoryLinkModal({
   const [open, setOpen] = useState(false);
   const formRef = useRef<FormBuilderRef>(null);
   const { execute, isLoading } = useAsyncAction();
+  const invalidateClient = useInvalidateQueriesClient();
+  // O score que a prioridade e a frequência alimentam entra na lista do
+  // assunto (ver CLIENT_FACTORY_LINK_CACHE_FIELDS) — antes ele era invalidado
+  // por um `cache.evict` dentro da mutation, fora da convenção e só nesta ponta.
   const [updateLink] = useMutation<UpdateSellerClientFactoryResponse>(
-    UPDATE_SELLER_CLIENT_FACTORY_MUTATION,
-    {
-      // Prioridade/frequência entram no score: o backend recalcula o do vínculo.
-      // Invalida os campos que o exibem (aba de score e header vivem sob
-      // `companyClient`; o histórico sob `clientVisitScores`) para não mostrar o
-      // número antigo ao abrir a aba de score depois da edição.
-      update(cache) {
-        cache.evict({ id: "ROOT_QUERY", fieldName: "companyClient" });
-        cache.evict({ id: "ROOT_QUERY", fieldName: "clientVisitScores" });
-        cache.gc();
-      },
-    }
+    UPDATE_SELLER_CLIENT_FACTORY_MUTATION
   );
 
   const formSteps = useMemo<FormStepSchema[]>(
@@ -148,9 +143,13 @@ export function EditFactoryLinkModal({
       },
       {
         successMessage: "Vínculo atualizado",
-        onSuccess: () => {
+        onSuccess: async () => {
           onCommit();
           onSaved();
+          // O vínculo se edita pelas duas pontas: a aba "Clientes" da fábrica,
+          // a carteira do vendedor e os selects de vínculo do pedido leem a
+          // mesma lista.
+          await invalidateClient(CLIENT_FACTORY_LINK_CACHE_FIELDS);
         },
         onError: () => {
           onRollback();

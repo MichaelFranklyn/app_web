@@ -1,6 +1,8 @@
 import { FormBuilderRef, FormStepSchema } from "@/components/FormBuilder";
 import { useAsyncAction } from "@/hooks/useAsyncAction";
 import { useClientFactoryAssignment } from "@/hooks/useClientFactoryAssignment";
+import { useInvalidateQueriesClient } from "@/hooks/useInvalidateQueries";
+import { CLIENT_FACTORY_LINK_CACHE_FIELDS } from "@/utils/cacheFields";
 import { useTakeoverConfirmation } from "@/hooks/useTakeoverConfirmation";
 import { useUserData } from "@/hooks/useUserData";
 import { useMutation } from "@apollo/client/react";
@@ -26,6 +28,7 @@ export function useLinkFactory({
   );
   const formRef = useRef<FormBuilderRef>(null);
   const { execute, isLoading } = useAsyncAction();
+  const invalidateClient = useInvalidateQueriesClient();
 
   useEffect(() => {
     if (autoOpen) setOpen(true);
@@ -203,6 +206,9 @@ export function useLinkFactory({
     setSelectedFactoryId(null);
     formRef.current?.resetForm();
     onSuccess?.();
+    // Vale para os dois caminhos (vínculo novo e transferência): a aba
+    // "Clientes" da fábrica e a carteira do vendedor leem a mesma lista.
+    void invalidateClient(CLIENT_FACTORY_LINK_CACHE_FIELDS);
   };
 
   // Tomar a carteira de um colega é decisão de gestor (o backend também barra).

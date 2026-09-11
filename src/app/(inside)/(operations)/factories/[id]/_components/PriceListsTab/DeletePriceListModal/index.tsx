@@ -2,6 +2,8 @@
 
 import { Button } from "@/components/Button";
 import { ConfirmModal } from "@/components/ConfirmModal";
+import { useInvalidateQueriesClient } from "@/hooks/useInvalidateQueries";
+import { PRICE_LIST_CACHE_FIELDS } from "@/utils/cacheFields";
 import { useMutation } from "@apollo/client/react";
 import { Trash2 } from "lucide-react";
 import { DELETE_FACTORY_PRICE_LIST_MUTATION } from "../gql";
@@ -34,6 +36,7 @@ export function DeletePriceListModal({
   const [deletePriceList] = useMutation<DeletePriceListResponse>(
     DELETE_FACTORY_PRICE_LIST_MUTATION
   );
+  const invalidateClient = useInvalidateQueriesClient();
 
   return (
     <ConfirmModal
@@ -65,6 +68,9 @@ export function DeletePriceListModal({
       onSuccess={() => {
         onCommit();
         onRemoved();
+        // A tabela leva os preços lançados nela (ver
+        // delete_factory_price_list.py), que a ficha do produto também lista.
+        void invalidateClient(PRICE_LIST_CACHE_FIELDS);
       }}
       onError={onRollback}
     />

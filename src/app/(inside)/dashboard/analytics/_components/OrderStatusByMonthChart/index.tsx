@@ -16,6 +16,8 @@ export function OrderStatusByMonthChart({
 }) {
   const { data, loading, error, refetch } =
     useAsyncQuery<OrderStatusByMonthResponse>(ORDER_STATUS_BY_MONTH_QUERY, {
+      // Leitura derivada: ninguém invalida este campo ao lançar pedido/visita.
+      revalidate: true,
       variables: filters,
       skip: false,
       autoFetch: true,

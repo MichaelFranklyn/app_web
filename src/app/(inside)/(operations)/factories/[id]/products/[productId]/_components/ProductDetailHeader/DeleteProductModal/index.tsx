@@ -2,6 +2,8 @@
 
 import { Button } from "@/components/Button";
 import { ConfirmModal } from "@/components/ConfirmModal";
+import { useInvalidateQueriesClient } from "@/hooks/useInvalidateQueries";
+import { PRODUCT_CACHE_FIELDS } from "@/utils/cacheFields";
 import { useMutation } from "@apollo/client/react";
 import { Trash2 } from "lucide-react";
 import { DELETE_PRODUCT_MUTATION } from "./gql";
@@ -24,6 +26,7 @@ export function DeleteProductModal({
   const [deleteProduct] = useMutation<DeleteProductResponse>(
     DELETE_PRODUCT_MUTATION
   );
+  const invalidateClient = useInvalidateQueriesClient();
 
   return (
     <ConfirmModal
@@ -38,6 +41,11 @@ export function DeleteProductModal({
       confirmLabel="Excluir"
       successMessage="Produto removido com sucesso"
       redirectTo={productsHref}
+      onSuccess={() => {
+        // Sai do detalhe para a lista de produtos, que é cache-first: sem
+        // invalidar, o produto excluído continua na tabela de destino.
+        void invalidateClient(PRODUCT_CACHE_FIELDS);
+      }}
       onConfirm={async () => {
         const res = await deleteProduct({ variables: { id: productId } });
         if (!res.data?.deleteProduct?.status) {

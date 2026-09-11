@@ -34,6 +34,7 @@ export function ImportOrderModal(props: ImportFactoryOrderProps) {
     deferred,
     ipiInOrder,
     setIsBusy,
+    refetchList,
     formRef,
     formSteps,
     handleDetailsValid,
@@ -64,7 +65,7 @@ export function ImportOrderModal(props: ImportFactoryOrderProps) {
           <OrderImportWizard
             deferred={deferred}
             ipiInOrder={ipiInOrder}
-            onImported={props.onChanged}
+            onImported={refetchList}
             onBusyChange={setIsBusy}
             onClose={() => handleClose(false)}
             leadingSteps={TRAIL.slice(0, 1)}

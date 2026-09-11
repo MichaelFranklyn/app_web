@@ -2,6 +2,8 @@
 
 import { Button } from "@/components/Button";
 import { ConfirmModal } from "@/components/ConfirmModal";
+import { useInvalidateQueriesClient } from "@/hooks/useInvalidateQueries";
+import { PRICE_TIER_CACHE_FIELDS } from "@/utils/cacheFields";
 import { useMutation } from "@apollo/client/react";
 import { Trash2 } from "lucide-react";
 import { DELETE_PRICE_TIER_MUTATION } from "../gql";
@@ -34,6 +36,7 @@ export function RemoveTierModal({
   const [deleteTier] = useMutation<DeleteTierResponse>(
     DELETE_PRICE_TIER_MUTATION
   );
+  const invalidateClient = useInvalidateQueriesClient();
 
   return (
     <ConfirmModal
@@ -64,6 +67,8 @@ export function RemoveTierModal({
       onSuccess={() => {
         onCommit();
         onRemoved();
+        // O nível sai também dos selects de preço, pedido e vínculo.
+        void invalidateClient(PRICE_TIER_CACHE_FIELDS);
       }}
       onError={onRollback}
     />

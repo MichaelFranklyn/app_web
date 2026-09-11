@@ -9,6 +9,8 @@ import {
 import { Modal } from "@/components/Modal";
 import { useAsyncAction } from "@/hooks/useAsyncAction";
 import { maskCurrency, parseMoneyToNumber } from "@/utils/format/masks";
+import { useInvalidateQueriesClient } from "@/hooks/useInvalidateQueries";
+import { PRICE_ITEM_CACHE_FIELDS } from "@/utils/cacheFields";
 import { useMutation } from "@apollo/client/react";
 import { useMemo, useRef } from "react";
 import { UPDATE_PRICE_LIST_ITEM_MUTATION } from "../gql";
@@ -49,6 +51,7 @@ export function EditPriceItemModal({
     UPDATE_PRICE_LIST_ITEM_MUTATION
   );
   const { execute, isLoading } = useAsyncAction();
+  const invalidateClient = useInvalidateQueriesClient();
 
   const steps: FormStepSchema[] = useMemo(
     () => [
@@ -105,6 +108,9 @@ export function EditPriceItemModal({
         onSuccess: () => {
           onOpenChange(false);
           onChanged();
+          // O mesmo preço aparece na tabela de preço e na ficha do produto,
+          // por caminhos de cache diferentes.
+          void invalidateClient(PRICE_ITEM_CACHE_FIELDS);
         },
       }
     );

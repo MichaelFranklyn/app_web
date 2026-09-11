@@ -12,6 +12,17 @@ export interface UseAsyncQueryOptions<
   skip?: boolean;
   cache?: boolean;
   autoFetch?: boolean;
+  /**
+   * Pinta com o cache e revalida por baixo (`cache-and-network`).
+   *
+   * É o certo para LEITURA DERIVADA — gráficos, relatórios e o console da
+   * plataforma —, que resume o que outras telas escrevem: ninguém invalida
+   * `revenueByMonth` ao faturar um pedido, e com `cache-first` o número ficava
+   * o do primeiro acesso até um F5. Diferente de `cache: false`
+   * (`network-only`), aqui a tela não pisca: o valor anterior fica à vista
+   * enquanto o novo chega.
+   */
+  revalidate?: boolean;
 }
 
 export interface UseAsyncQueryReturn<
@@ -42,7 +53,12 @@ export const useAsyncQuery = <
   } = useQuery(query, {
     variables: options?.variables,
     skip: options?.skip ?? true,
-    fetchPolicy: options?.cache === false ? "network-only" : "cache-first",
+    fetchPolicy:
+      options?.cache === false
+        ? "network-only"
+        : options?.revalidate
+          ? "cache-and-network"
+          : "cache-first",
     errorPolicy: "all",
   });
 
@@ -70,7 +86,13 @@ export const useAsyncQuery = <
         refetch(options?.variables);
       }
     }
-  }, [variablesString, options?.autoFetch, options?.skip, refetch, options?.variables]);
+  }, [
+    variablesString,
+    options?.autoFetch,
+    options?.skip,
+    refetch,
+    options?.variables,
+  ]);
 
   return {
     data: data as T,

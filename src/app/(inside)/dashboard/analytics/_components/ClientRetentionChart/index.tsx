@@ -12,6 +12,8 @@ import { buildClientRetentionOption } from "./utils";
 export function ClientRetentionChart({ filters }: { filters: ChartFilters }) {
   const { data, loading, error, refetch } =
     useAsyncQuery<ClientRetentionResponse>(CLIENT_RETENTION_QUERY, {
+      // Leitura derivada: ninguém invalida este campo ao lançar pedido/visita.
+      revalidate: true,
       variables: filters,
       skip: false,
       autoFetch: true,

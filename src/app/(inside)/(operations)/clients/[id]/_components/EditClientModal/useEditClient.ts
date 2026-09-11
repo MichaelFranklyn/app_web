@@ -194,7 +194,9 @@ export function useEditClient({
         successMessage: "Cliente atualizado com sucesso",
         onSuccess: async () => {
           onCommit();
-          await invalidateClient(["client"]);
+          // `clients` junto: a lista filtra por rede e por segmento, que é o
+          // que este formulário edita.
+          await invalidateClient(["client", "clients"]);
         },
         onError: () => onRollback(),
       }

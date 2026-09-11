@@ -27,6 +27,9 @@ export default function PlatformAuditContent({
   initialData,
 }: AuditContentProps) {
   const tableData = useTableData<AuditQueryData, AuditRow>({
+    // Console: nenhuma escrita do app invalida estas listas — pinta com o
+    // cache e revalida por baixo ao abrir.
+    revalidate: true,
     query: PLATFORM_AUDIT_QUERY,
     fields: TABLE_FIELDS,
     getConnection: (data) => data.platform_audit,

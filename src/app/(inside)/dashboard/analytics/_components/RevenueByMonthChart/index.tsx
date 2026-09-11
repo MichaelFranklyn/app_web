@@ -12,6 +12,8 @@ import { buildRevenueByMonthOption } from "./utils";
 export function RevenueByMonthChart({ filters }: { filters: ChartFilters }) {
   const { data, loading, error, refetch } =
     useAsyncQuery<RevenueByMonthResponse>(REVENUE_BY_MONTH_QUERY, {
+      // Leitura derivada: ninguém invalida este campo ao lançar pedido/visita.
+      revalidate: true,
       variables: filters,
       skip: false,
       autoFetch: true,

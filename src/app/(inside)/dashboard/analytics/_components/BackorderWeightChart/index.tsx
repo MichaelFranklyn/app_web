@@ -13,6 +13,8 @@ import { buildBackorderWeightOption, hasBackorders } from "./utils";
 export function BackorderWeightChart({ filters }: { filters: ChartFilters }) {
   const { data, loading, error, refetch } =
     useAsyncQuery<BackorderByMonthResponse>(BACKORDER_BY_MONTH_QUERY, {
+      // Leitura derivada: ninguém invalida este campo ao lançar pedido/visita.
+      revalidate: true,
       variables: filters,
       skip: false,
       autoFetch: true,

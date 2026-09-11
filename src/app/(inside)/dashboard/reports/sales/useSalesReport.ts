@@ -53,6 +53,8 @@ export const useSalesReport = (filters: ReportFilters) => {
   const showMonthly = monthsInRange(filters.from, filters.to) > 1;
 
   const tableData = useTableData<SalesReportOrdersResponse, SalesReportOrder>({
+    // Relatório é leitura derivada: revalida ao abrir (ver derivedReads).
+    revalidate: true,
     query: SALES_REPORT_ORDERS_QUERY,
     fields: SALES_TABLE_FIELDS,
     getConnection: (data) => data.sales_report_orders,
@@ -78,7 +80,10 @@ export const useSalesReport = (filters: ReportFilters) => {
   // inteiro — dois números para a mesma pergunta na mesma tela.
   const statsQuery = useQuery<SalesReportStatsResponse>(
     SALES_REPORT_STATS_QUERY,
-    { variables: { input: { first: SALES_PER_PAGE, filters: exportFilters } } }
+    {
+      fetchPolicy: "cache-and-network",
+      variables: { input: { first: SALES_PER_PAGE, filters: exportFilters } },
+    }
   );
   useQueryErrorToast(
     statsQuery.error,
@@ -93,11 +98,16 @@ export const useSalesReport = (filters: ReportFilters) => {
 
   const factoryQuery = useQuery<InvoicedByFactoryResponse>(
     INVOICED_BY_FACTORY_QUERY,
-    { variables: { ...chartVariables, limit: 8 }, skip: showMonthly }
+    {
+      fetchPolicy: "cache-and-network",
+      variables: { ...chartVariables, limit: 8 },
+      skip: showMonthly,
+    }
   );
   const monthQuery = useQuery<InvoicedByMonthResponse>(
     INVOICED_BY_MONTH_QUERY,
     {
+      fetchPolicy: "cache-and-network",
       variables: chartVariables,
       skip: !showMonthly,
     }

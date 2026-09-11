@@ -12,6 +12,8 @@ import { Modal } from "@/components/Modal";
 import { useAsyncAction } from "@/hooks/useAsyncAction";
 import { useAsyncSelectOptions } from "@/hooks/useAsyncSelectOptions";
 import { parseMoneyToNumber } from "@/utils/format/masks";
+import { useInvalidateQueriesClient } from "@/hooks/useInvalidateQueries";
+import { PRICE_ITEM_CACHE_FIELDS } from "@/utils/cacheFields";
 import { useMutation } from "@apollo/client/react";
 import { useCompleteList } from "@/hooks/useCompleteList";
 import { Plus } from "lucide-react";
@@ -113,6 +115,7 @@ export function AddItemModal({
     CREATE_PRICE_LIST_ITEM_MUTATION
   );
   const { execute, isLoading } = useAsyncAction();
+  const invalidateClient = useInvalidateQueriesClient();
 
   // Só a página atual da busca; basta, porque o rótulo é lido no clique — o
   // produto escolhido está sempre entre os que estão à vista.
@@ -230,6 +233,9 @@ export function AddItemModal({
         onSuccess: async () => {
           handleClose(false);
           onAdded();
+          // O mesmo preço aparece na tabela de preço e na ficha do produto,
+          // por caminhos de cache diferentes.
+          await invalidateClient(PRICE_ITEM_CACHE_FIELDS);
         },
       }
     );

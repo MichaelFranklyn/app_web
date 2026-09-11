@@ -44,6 +44,7 @@ export const useBillingReport = (filters: ReportFilters) => {
   const { data, loading, error, refetch } = useQuery<BillingReportResponse>(
     BILLING_REPORT_QUERY,
     {
+      fetchPolicy: "cache-and-network",
       variables: {
         from: filters.from,
         to: filters.to,

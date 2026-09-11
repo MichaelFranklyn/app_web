@@ -3,6 +3,7 @@
 import { Button } from "@/components/Button";
 import { ConfirmModal } from "@/components/ConfirmModal";
 import { useInvalidateQueriesClient } from "@/hooks/useInvalidateQueries";
+import { FACTORY_CACHE_FIELDS } from "@/utils/cacheFields";
 import { useMutation } from "@apollo/client/react";
 import { Trash2 } from "lucide-react";
 import { DELETE_COMPANY_FACTORY_MUTATION } from "./gql";
@@ -49,7 +50,9 @@ export function DeleteCompanyFactoryModal({
           );
         }
       }}
-      onSuccess={() => invalidateClient(["companyFactories"])}
+      // A exclusão cascateia acessos, carteira e catálogo inteiro no backend:
+      // a lista do assunto reflete isso (ver FACTORY_CACHE_FIELDS).
+      onSuccess={() => invalidateClient(FACTORY_CACHE_FIELDS)}
     />
   );
 }

@@ -10,6 +10,7 @@ import {
 import { Modal } from "@/components/Modal";
 import { useAsyncAction } from "@/hooks/useAsyncAction";
 import { useInvalidateQueriesClient } from "@/hooks/useInvalidateQueries";
+import { CLIENT_FACTORY_LINK_CACHE_FIELDS } from "@/utils/cacheFields";
 import { useCompleteList } from "@/hooks/useCompleteList";
 import { useMutation } from "@apollo/client/react";
 import { Pencil } from "lucide-react";
@@ -172,7 +173,7 @@ export function EditClientLinkModal({
         successMessage: "Vínculo atualizado com sucesso",
         onSuccess: async () => {
           onCommit();
-          await invalidateClient(["sellerClientFactoryList"]);
+          await invalidateClient(CLIENT_FACTORY_LINK_CACHE_FIELDS);
         },
         onError: () => onRollback(),
       }

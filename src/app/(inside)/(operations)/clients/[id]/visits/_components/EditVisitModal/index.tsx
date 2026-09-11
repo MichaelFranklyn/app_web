@@ -5,6 +5,7 @@ import { FormBuilder, FormBuilderRef } from "@/components/FormBuilder";
 import { Modal } from "@/components/Modal";
 import { useAsyncAction } from "@/hooks/useAsyncAction";
 import { useInvalidateQueriesClient } from "@/hooks/useInvalidateQueries";
+import { VISIT_CACHE_FIELDS } from "@/utils/cacheFields";
 import { useMutation } from "@apollo/client/react";
 import { Pencil } from "lucide-react";
 import { useRef, useState } from "react";
@@ -62,7 +63,7 @@ export function EditVisitModal({
           // `visitSchedules` alimenta a rotina da semana: o mesmo item aparece lá
           // como card. Sem invalidar, voltar para /routines pode servir o status
           // antigo do cache.
-          await invalidateClient(["visitsByCompanyClient", "visitSchedules"]);
+          await invalidateClient(VISIT_CACHE_FIELDS);
         },
         onError: () => {
           onRollback();

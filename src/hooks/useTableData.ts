@@ -84,6 +84,12 @@ export interface UseTableDataOptions<TData, TItem> {
    * Busca/paginação/mutations seguem client normalmente.
    */
   initialData?: TData;
+  /**
+   * Repassa `revalidate` ao `useAsyncQuery`: a lista pinta com o cache e
+   * revalida por baixo. Para listas de LEITURA DERIVADA (console da
+   * plataforma), que nenhuma mutation do app invalida.
+   */
+  revalidate?: boolean;
 }
 
 export interface UseTableDataReturn<TItem> {
@@ -158,6 +164,7 @@ export const useTableData = <TData, TItem extends object>(
     extraVariables,
     baseFilters,
     initialData,
+    revalidate,
   } = options;
 
   const searchParams = useSearchParams();
@@ -275,6 +282,7 @@ export const useTableData = <TData, TItem extends object>(
   const { data, loading, error, refetch } = useAsyncQuery<TData>(query, {
     variables,
     skip: false,
+    revalidate,
   });
 
   const connection = data ? getConnection(data) : null;

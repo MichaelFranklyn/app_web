@@ -28,6 +28,8 @@ export const useCommissionRows = (
 ): UseCommissionRowsReturn => {
   const { data, loading, error, refetch } =
     useAsyncQuery<CommissionRowsResponse>(COMMISSION_ROWS_QUERY, {
+      // Leitura derivada: ninguém invalida este campo ao lançar pedido/visita.
+      revalidate: true,
       skip: false,
     });
 

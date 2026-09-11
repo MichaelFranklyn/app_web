@@ -9,6 +9,8 @@ import {
 import { Modal } from "@/components/Modal";
 import { useAsyncAction } from "@/hooks/useAsyncAction";
 import { toIsoDate } from "@/utils/format/date";
+import { useInvalidateQueriesClient } from "@/hooks/useInvalidateQueries";
+import { PRICE_LIST_CACHE_FIELDS } from "@/utils/cacheFields";
 import { useMutation } from "@apollo/client/react";
 import { Plus } from "lucide-react";
 import { useMemo, useRef, useState } from "react";
@@ -41,6 +43,7 @@ export function AddPriceListModal({
     CREATE_FACTORY_PRICE_LIST_MUTATION
   );
   const { execute, isLoading } = useAsyncAction();
+  const invalidateClient = useInvalidateQueriesClient();
 
   const steps: FormStepSchema[] = useMemo(
     () => [
@@ -125,6 +128,8 @@ export function AddPriceListModal({
           handleClose(false);
           onAddOptimistic(created);
           onAdded();
+          // A ficha do produto lista os preços de todas as tabelas.
+          await invalidateClient(PRICE_LIST_CACHE_FIELDS);
         },
       }
     );

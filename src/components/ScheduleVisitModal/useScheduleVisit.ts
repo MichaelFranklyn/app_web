@@ -2,12 +2,14 @@
 
 import { SelectOption } from "@/components/Input";
 import { useAsyncAction } from "@/hooks/useAsyncAction";
+import { useInvalidateQueriesClient } from "@/hooks/useInvalidateQueries";
 import { useCompleteList } from "@/hooks/useCompleteList";
 import { useQueryErrorToast } from "@/hooks/useQueryErrorToast";
 import { clientDisplayName } from "@/utils/client";
 import { factoryName } from "@/utils/company";
 import { toIsoDate } from "@/utils/format/date";
 import { CombinedGraphQLErrors } from "@apollo/client";
+import { VISIT_CACHE_FIELDS } from "@/utils/cacheFields";
 import { useMutation } from "@apollo/client/react";
 import { useEffect, useMemo, useState } from "react";
 
@@ -185,6 +187,7 @@ export function useScheduleVisit({
     SCHEDULE_MANUAL_VISIT_MUTATION
   );
   const { execute, isLoading } = useAsyncAction();
+  const invalidateClient = useInvalidateQueriesClient();
 
   const isValid = Boolean(selectedClientId && date);
 
@@ -216,6 +219,9 @@ export function useScheduleVisit({
         onSuccess: () => {
           onOpenChange(false);
           onScheduled?.();
+          // Marcada pela rotina ou pela ficha do cliente, a visita aparece nas
+          // duas telas.
+          void invalidateClient(VISIT_CACHE_FIELDS);
         },
         onError: (error) => {
           // Guardado ANTES do toast do hook: é este texto que vira o aviso com

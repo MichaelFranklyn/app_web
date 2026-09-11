@@ -28,9 +28,11 @@ export function useUserDetail({
   );
 
   const userQuery = useQuery<UserQueryData>(PLATFORM_USER_QUERY, {
+    fetchPolicy: "cache-and-network",
     variables: { id },
   });
   const activityQuery = useQuery<UserActivityQueryData>(USER_ACTIVITY_QUERY, {
+    fetchPolicy: "cache-and-network",
     variables: activityVariables(id),
   });
 

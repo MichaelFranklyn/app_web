@@ -90,23 +90,30 @@ export function useTenantDetail({
   );
 
   const tenantQuery = useQuery<TenantQueryData>(PLATFORM_TENANT_QUERY, {
+    fetchPolicy: "cache-and-network",
     variables: { id },
   });
   const usersQuery = useQuery<TenantUsersQueryData>(TENANT_USERS_QUERY, {
+    fetchPolicy: "cache-and-network",
     variables: usersVariables(id),
   });
   const auditQuery = useQuery<TenantAuditQueryData>(TENANT_AUDIT_QUERY, {
+    fetchPolicy: "cache-and-network",
     variables: auditVariables(id),
   });
   const activityQuery = useQuery<TenantActivityQueryData>(
     TENANT_ACTIVITY_QUERY,
     {
+      fetchPolicy: "cache-and-network",
       variables: activityVariables(id),
     }
   );
   const summaryQuery = useQuery<TenantActivitySummaryQueryData>(
     TENANT_ACTIVITY_SUMMARY_QUERY,
-    { variables: { companyId: id } }
+    {
+      fetchPolicy: "cache-and-network",
+      variables: { companyId: id },
+    }
   );
 
   const [statusModalOpen, setStatusModalOpen] = useState(false);

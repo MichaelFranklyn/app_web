@@ -14,6 +14,8 @@ export function ClientsAtRiskChart({ filters }: { filters: ChartFilters }) {
 
   const { data, loading, error, refetch } =
     useAsyncQuery<ClientsAtRiskResponse>(CLIENTS_AT_RISK_QUERY, {
+      // Leitura derivada: ninguém invalida este campo ao lançar pedido/visita.
+      revalidate: true,
       variables,
       skip: false,
       autoFetch: true,

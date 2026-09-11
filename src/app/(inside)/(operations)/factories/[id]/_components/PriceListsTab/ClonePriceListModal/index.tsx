@@ -12,6 +12,8 @@ import { useAsyncAction } from "@/hooks/useAsyncAction";
 import { useCompleteList } from "@/hooks/useCompleteList";
 import { useQueryErrorToast } from "@/hooks/useQueryErrorToast";
 import { toIsoDate } from "@/utils/format/date";
+import { useInvalidateQueriesClient } from "@/hooks/useInvalidateQueries";
+import { PRICE_LIST_CACHE_FIELDS } from "@/utils/cacheFields";
 import { useMutation } from "@apollo/client/react";
 import { Copy } from "lucide-react";
 import { useMemo, useRef, useState } from "react";
@@ -81,6 +83,7 @@ export function ClonePriceListModal({
     CLONE_FACTORY_PRICE_LIST_MUTATION
   );
   const { execute, isLoading } = useAsyncAction();
+  const invalidateClient = useInvalidateQueriesClient();
 
   const sourceOptions: SelectOption[] = useMemo(
     () =>
@@ -182,6 +185,8 @@ export function ClonePriceListModal({
           handleClose(false);
           onAddOptimistic(created);
           onCloned();
+          // A cópia nasce com os preços da original.
+          void invalidateClient(PRICE_LIST_CACHE_FIELDS);
         },
       }
     );

@@ -3,6 +3,8 @@ import { labelWithHelp } from "@/components/HelpTooltip";
 import { useLogoUpload } from "@/components/LogoUpload";
 import { useAsyncAction } from "@/hooks/useAsyncAction";
 import { extractSelectValue } from "@/utils/form";
+import { useInvalidateQueriesClient } from "@/hooks/useInvalidateQueries";
+import { PRODUCT_CACHE_FIELDS } from "@/utils/cacheFields";
 import { useMutation } from "@apollo/client/react";
 import { useMemo } from "react";
 
@@ -58,6 +60,7 @@ export function useEditProduct({
     UPDATE_PRODUCT_MUTATION
   );
   const { execute, isLoading } = useAsyncAction();
+  const invalidateClient = useInvalidateQueriesClient();
 
   // Motivos da tag "Precisa de atenção" (vindos da importação). Usados para
   // sinalizar o campo problemático no formulário e avisar no topo do modal.
@@ -289,6 +292,8 @@ export function useEditProduct({
           onCommit();
           onChanged();
           photo.reset();
+          // A ficha do produto mostra os mesmos dados por outra query.
+          void invalidateClient(PRODUCT_CACHE_FIELDS);
         },
         onError: () => {
           onRollback();

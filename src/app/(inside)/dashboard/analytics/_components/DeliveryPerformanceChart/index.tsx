@@ -18,6 +18,8 @@ export function DeliveryPerformanceChart({
 
   const { data, loading, error, refetch } =
     useAsyncQuery<DeliveryPerformanceResponse>(DELIVERY_PERFORMANCE_QUERY, {
+      // Leitura derivada: ninguém invalida este campo ao lançar pedido/visita.
+      revalidate: true,
       variables,
       skip: false,
       autoFetch: true,

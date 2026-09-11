@@ -1,21 +1,11 @@
+import { SellerAccess } from "../gql";
+
 export interface CreateAccessResponse {
   createSellerFactoryAccess: {
     status: boolean;
     message: string;
-    data: {
-      id: string;
-      isActive: boolean;
-      createdAt: string;
-      seller: {
-        id: string;
-        name: string;
-        region: string | null;
-        clientCount: number;
-        factoryCount: number;
-        totalRevenue: string;
-      } | null;
-      grantedByUser: { id: string; name: string } | null;
-    } | null;
+    /** A linha pronta para a tabela — ver o `data` da mutation. */
+    data: SellerAccess | null;
   };
 }
 

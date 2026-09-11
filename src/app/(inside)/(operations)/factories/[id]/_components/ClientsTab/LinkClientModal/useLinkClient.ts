@@ -5,6 +5,7 @@ import { useAsyncAction } from "@/hooks/useAsyncAction";
 import { useAsyncSelectOptions } from "@/hooks/useAsyncSelectOptions";
 import { useTakeoverConfirmation } from "@/hooks/useTakeoverConfirmation";
 import { useInvalidateQueriesClient } from "@/hooks/useInvalidateQueries";
+import { CLIENT_FACTORY_LINK_CACHE_FIELDS } from "@/utils/cacheFields";
 import { useUserData } from "@/hooks/useUserData";
 import { extractSelectValue } from "@/utils/form";
 import { useMutation } from "@apollo/client/react";
@@ -327,7 +328,7 @@ export function useLinkClient({
     setSelectedSellerId(null);
     setOpen(false);
     formRef.current?.resetForm();
-    await invalidateClient(["sellerClientFactoryList"]);
+    await invalidateClient(CLIENT_FACTORY_LINK_CACHE_FIELDS);
   };
 
   const handleSubmit = async (data: Record<string, unknown>) => {

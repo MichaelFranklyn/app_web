@@ -2,6 +2,8 @@
 
 import { FormBuilderRef, FormStepSchema } from "@/components/FormBuilder";
 import { useAsyncAction } from "@/hooks/useAsyncAction";
+import { useInvalidateQueriesClient } from "@/hooks/useInvalidateQueries";
+import { ORDER_CACHE_FIELDS } from "@/utils/cacheFields";
 import { toIsoDate } from "@/utils/format/date";
 import { useMutation } from "@apollo/client/react";
 import { useMemo, useRef, useState } from "react";
@@ -34,6 +36,7 @@ export function useEditInvoice(order: OrderDetail, onSuccess: () => void) {
   const [termId, setTermId] = useState<string | null>(order.paymentTermId);
   const formRef = useRef<FormBuilderRef>(null);
   const { execute, isLoading } = useAsyncAction();
+  const invalidateClient = useInvalidateQueriesClient();
 
   const [reviseInvoice] = useMutation<ReviseResponse>(
     REVISE_ORDER_INVOICE_MUTATION
@@ -151,6 +154,18 @@ export function useEditInvoice(order: OrderDetail, onSuccess: () => void) {
     }
   };
 
+  /**
+   * Fim comum das três operações. Corrigir, desfazer a entrega e refazer o
+   * faturamento mudam status, datas e parcelas do pedido — só recarregar o
+   * detalhe deixaria a lista, os KPIs e a ficha do cliente com o estado
+   * anterior.
+   */
+  const finish = () => {
+    handleClose(false);
+    onSuccess();
+    void invalidateClient(ORDER_CACHE_FIELDS);
+  };
+
   const runRevise = async (
     input: Record<string, unknown>,
     successFallback: string
@@ -195,10 +210,7 @@ export function useEditInvoice(order: OrderDetail, onSuccess: () => void) {
 
     await execute(() => runRevise(input, "Faturamento corrigido."), {
       successMessage: (message) => message,
-      onSuccess: () => {
-        handleClose(false);
-        onSuccess();
-      },
+      onSuccess: finish,
     });
   };
 
@@ -207,10 +219,7 @@ export function useEditInvoice(order: OrderDetail, onSuccess: () => void) {
       () => runRevise({ clearDelivery: true }, "Entrega desfeita."),
       {
         successMessage: (message) => message,
-        onSuccess: () => {
-          handleClose(false);
-          onSuccess();
-        },
+        onSuccess: finish,
       }
     );
   };
@@ -231,10 +240,7 @@ export function useEditInvoice(order: OrderDetail, onSuccess: () => void) {
       },
       {
         successMessage: (message) => message,
-        onSuccess: () => {
-          handleClose(false);
-          onSuccess();
-        },
+        onSuccess: finish,
       }
     );
   };
