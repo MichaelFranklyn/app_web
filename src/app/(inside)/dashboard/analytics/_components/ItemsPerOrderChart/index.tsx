@@ -15,6 +15,8 @@ export function ItemsPerOrderChart({ filters }: { filters: ChartFilters }) {
 
   const { data, loading, error, refetch } =
     useAsyncQuery<ItemsPerOrderResponse>(ITEMS_PER_ORDER_BY_FACTORY_QUERY, {
+      // Leitura derivada: ninguém invalida este campo ao lançar pedido/visita.
+      revalidate: true,
       variables,
       skip: false,
       autoFetch: true,

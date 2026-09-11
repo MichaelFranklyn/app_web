@@ -7,6 +7,11 @@ import { useToast } from "@/components/Toast";
 import { toIsoDate } from "@/utils/format/date";
 import { useAsyncAction } from "@/hooks/useAsyncAction";
 import { useInvalidateQueriesClient } from "@/hooks/useInvalidateQueries";
+import {
+  PRICE_ITEM_CACHE_FIELDS,
+  PRICE_TIER_CACHE_FIELDS,
+  PRODUCT_CACHE_FIELDS,
+} from "@/utils/cacheFields";
 import { distinctValues } from "@/utils/import/columns";
 import {
   guessBestSheet,
@@ -408,8 +413,13 @@ export function useImportPriceListWizard({
           setStep(6);
           onImported();
           // A importação também cria níveis comerciais e produtos — sem isso,
-          // as abas Níveis e Produtos continuam mostrando o cache antigo.
-          invalidateClient(["priceTiers", "products"]);
+          // as abas Níveis e Produtos continuam mostrando o cache antigo. E os
+          // preços importados são lidos também pela ficha do produto.
+          invalidateClient([
+            ...PRICE_ITEM_CACHE_FIELDS,
+            ...PRODUCT_CACHE_FIELDS,
+            ...PRICE_TIER_CACHE_FIELDS,
+          ]);
           toast({
             variant: r.failed > 0 ? "warning" : "success",
             title: r.failed > 0 ? "Importação parcial" : "Tabela importada",

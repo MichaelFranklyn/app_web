@@ -4,6 +4,7 @@ import { Button } from "@/components/Button";
 import { Modal } from "@/components/Modal";
 import { useAsyncAction } from "@/hooks/useAsyncAction";
 import { useInvalidateQueriesClient } from "@/hooks/useInvalidateQueries";
+import { VISIT_CACHE_FIELDS } from "@/utils/cacheFields";
 import { useMutation } from "@apollo/client/react";
 import { Trash2 } from "lucide-react";
 import { useState } from "react";
@@ -60,7 +61,7 @@ export function DeleteVisitModal({
         successMessage: "Visita removida",
         onSuccess: async () => {
           onCommit();
-          await invalidateClient(["visitsByCompanyClient", "visitSchedules"]);
+          await invalidateClient(VISIT_CACHE_FIELDS);
           onDeleted?.();
         },
         onError: () => {

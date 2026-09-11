@@ -14,6 +14,8 @@ export function RevenueByFactoryChart({ filters }: { filters: ChartFilters }) {
 
   const { data, loading, error, refetch } =
     useAsyncQuery<RevenueByFactoryResponse>(REVENUE_BY_FACTORY_QUERY, {
+      // Leitura derivada: ninguém invalida este campo ao lançar pedido/visita.
+      revalidate: true,
       variables,
       skip: false,
       autoFetch: true,

@@ -9,6 +9,8 @@ import {
 import { Modal } from "@/components/Modal";
 import { useToast } from "@/components/Toast";
 import { useAsyncAction } from "@/hooks/useAsyncAction";
+import { useInvalidateQueriesClient } from "@/hooks/useInvalidateQueries";
+import { ORDER_CACHE_FIELDS } from "@/utils/cacheFields";
 import { getTodayIso, toIsoDate } from "@/utils/format/date";
 import { useMutation } from "@apollo/client/react";
 import { FileCheck2 } from "lucide-react";
@@ -37,6 +39,7 @@ export function InvoiceOrderModal({ order, onSuccess }: Props) {
   const formRef = useRef<FormBuilderRef>(null);
   const [invoiceOrder] = useMutation<InvoiceResponse>(INVOICE_ORDER_MUTATION);
   const { execute, isLoading } = useAsyncAction();
+  const invalidateClient = useInvalidateQueriesClient();
   const { toast } = useToast();
   const partialApi = usePartialInvoice(order.id, open);
 
@@ -167,6 +170,10 @@ export function InvoiceOrderModal({ order, onSuccess }: Props) {
         onSuccess: (res) => {
           handleClose(false);
           onSuccess();
+          // Faturar muda o status, a data da compra e pode criar o pedido de
+          // backorder: as telas de lista, os KPIs e a ficha do cliente ficam
+          // velhos se só o detalhe recarregar.
+          void invalidateClient(ORDER_CACHE_FIELDS);
           if (res?.data?.backorderChildren?.length) {
             toast({
               variant: "info",

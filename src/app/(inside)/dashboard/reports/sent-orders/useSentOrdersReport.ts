@@ -45,6 +45,8 @@ export const useSentOrdersReport = (filters: ReportFilters) => {
   );
 
   const tableData = useTableData<SentOrdersResponse, SentOrder>({
+    // Relatório é leitura derivada: revalida ao abrir (ver derivedReads).
+    revalidate: true,
     query: SENT_ORDERS_QUERY,
     fields: SENT_ORDERS_TABLE_FIELDS,
     getConnection: (data) => data.sent_orders_report,
@@ -70,6 +72,7 @@ export const useSentOrdersReport = (filters: ReportFilters) => {
   const statsQuery = useQuery<SentOrdersStatsResponse>(
     SENT_ORDERS_STATS_QUERY,
     {
+      fetchPolicy: "cache-and-network",
       variables: {
         input: { first: SENT_ORDERS_PER_PAGE, filters: exportFilters },
       },
@@ -83,6 +86,7 @@ export const useSentOrdersReport = (filters: ReportFilters) => {
   const chartQuery = useQuery<PlacedByFactoryResponse>(
     PLACED_BY_FACTORY_QUERY,
     {
+      fetchPolicy: "cache-and-network",
       variables: {
         from: filters.from,
         to: filters.to,

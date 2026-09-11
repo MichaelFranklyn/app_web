@@ -8,6 +8,8 @@ import {
 } from "@/components/FormBuilder";
 import { Modal } from "@/components/Modal";
 import { useAsyncAction } from "@/hooks/useAsyncAction";
+import { useInvalidateQueriesClient } from "@/hooks/useInvalidateQueries";
+import { PRICE_TIER_CACHE_FIELDS } from "@/utils/cacheFields";
 import { useMutation } from "@apollo/client/react";
 import { Plus } from "lucide-react";
 import { useMemo, useRef, useState } from "react";
@@ -39,6 +41,7 @@ export function AddTierModal({
     CREATE_PRICE_TIER_MUTATION
   );
   const { execute, isLoading } = useAsyncAction();
+  const invalidateClient = useInvalidateQueriesClient();
 
   const steps: FormStepSchema[] = useMemo(
     () => [
@@ -75,9 +78,13 @@ export function AddTierModal({
         const res = await createTier({
           variables: { input: { companyFactoryId, name } },
         });
-        if (!res.data?.createPriceTier?.status || !res.data.createPriceTier.data) {
+        if (
+          !res.data?.createPriceTier?.status ||
+          !res.data.createPriceTier.data
+        ) {
           throw new Error(
-            res.data?.createPriceTier?.message ?? "Erro ao criar nível comercial"
+            res.data?.createPriceTier?.message ??
+              "Erro ao criar nível comercial"
           );
         }
         return res.data.createPriceTier.data;
@@ -88,6 +95,8 @@ export function AddTierModal({
           handleClose(false);
           onAddOptimistic({ id: created.id, name: created.name });
           onAdded();
+          // O nível é escolhido nos preços, no item de pedido e no vínculo.
+          await invalidateClient(PRICE_TIER_CACHE_FIELDS);
         },
       }
     );

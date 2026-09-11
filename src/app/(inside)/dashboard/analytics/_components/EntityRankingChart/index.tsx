@@ -28,6 +28,8 @@ export function EntityRankingChart({
       variables,
       skip: false,
       autoFetch: true,
+      // Leitura derivada: ninguém invalida este campo ao lançar pedido/visita.
+      revalidate: true,
     });
 
   const points = useMemo(

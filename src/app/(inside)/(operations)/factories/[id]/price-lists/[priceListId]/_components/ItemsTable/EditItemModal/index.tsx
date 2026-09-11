@@ -9,6 +9,8 @@ import {
 import { Modal } from "@/components/Modal";
 import { useAsyncAction } from "@/hooks/useAsyncAction";
 import { maskCurrency, parseMoneyToNumber } from "@/utils/format/masks";
+import { useInvalidateQueriesClient } from "@/hooks/useInvalidateQueries";
+import { PRICE_ITEM_CACHE_FIELDS } from "@/utils/cacheFields";
 import { useMutation } from "@apollo/client/react";
 import { useMemo, useRef } from "react";
 import { PriceListItemRow } from "../interface";
@@ -31,6 +33,7 @@ export function EditItemModal({ item, open, onOpenChange, onUpdated }: Props) {
     UPDATE_PRICE_LIST_ITEM_MUTATION
   );
   const { execute, isLoading } = useAsyncAction();
+  const invalidateClient = useInvalidateQueriesClient();
 
   const packLabel = item.product?.unitLabel?.label ?? "embalagem";
 
@@ -91,6 +94,9 @@ export function EditItemModal({ item, open, onOpenChange, onUpdated }: Props) {
         onSuccess: async () => {
           onOpenChange(false);
           onUpdated();
+          // O mesmo preço aparece na tabela de preço e na ficha do produto,
+          // por caminhos de cache diferentes.
+          await invalidateClient(PRICE_ITEM_CACHE_FIELDS);
         },
       }
     );

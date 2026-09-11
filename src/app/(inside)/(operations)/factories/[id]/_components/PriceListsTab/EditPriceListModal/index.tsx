@@ -9,6 +9,8 @@ import {
 import { Modal } from "@/components/Modal";
 import { useAsyncAction } from "@/hooks/useAsyncAction";
 import { parseLocalDate, toIsoDate } from "@/utils/format/date";
+import { useInvalidateQueriesClient } from "@/hooks/useInvalidateQueries";
+import { PRICE_LIST_CACHE_FIELDS } from "@/utils/cacheFields";
 import { useMutation } from "@apollo/client/react";
 import { Pencil } from "lucide-react";
 import { useMemo, useRef, useState } from "react";
@@ -60,6 +62,7 @@ export function EditPriceListModal({
     UPDATE_FACTORY_PRICE_LIST_MUTATION
   );
   const { execute, isLoading } = useAsyncAction();
+  const invalidateClient = useInvalidateQueriesClient();
 
   const steps: FormStepSchema[] = useMemo(
     () => [
@@ -186,6 +189,8 @@ export function EditPriceListModal({
         onSuccess: () => {
           onCommit();
           onChanged();
+          // O nome/vigência da tabela aparece também no detalhe dela.
+          void invalidateClient(PRICE_LIST_CACHE_FIELDS);
         },
         onError: () => {
           onRollback();

@@ -47,6 +47,7 @@ export const useWalletReport = (filters: ReportFilters) => {
   const { data, loading, error, refetch } = useQuery<WalletReportResponse>(
     WALLET_STATUS_REPORT_QUERY,
     {
+      fetchPolicy: "cache-and-network",
       variables: {
         from: filters.from,
         to: filters.to,

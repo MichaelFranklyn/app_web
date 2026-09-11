@@ -13,6 +13,8 @@ import { buildOrdersByWeekdayOption, hasWeekdayData } from "./utils";
 export function OrdersByWeekdayChart({ filters }: { filters: ChartFilters }) {
   const { data, loading, error, refetch } =
     useAsyncQuery<OrdersByWeekdayResponse>(ORDERS_BY_WEEKDAY_QUERY, {
+      // Leitura derivada: ninguém invalida este campo ao lançar pedido/visita.
+      revalidate: true,
       variables: filters,
       skip: false,
       autoFetch: true,

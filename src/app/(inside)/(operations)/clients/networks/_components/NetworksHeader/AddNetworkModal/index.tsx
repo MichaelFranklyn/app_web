@@ -8,6 +8,8 @@ import {
 } from "@/components/FormBuilder";
 import { Modal } from "@/components/Modal";
 import { useAsyncAction } from "@/hooks/useAsyncAction";
+import { useInvalidateQueriesClient } from "@/hooks/useInvalidateQueries";
+import { CLIENT_NETWORK_CACHE_FIELDS } from "@/utils/cacheFields";
 import { useMutation } from "@apollo/client/react";
 import { Plus } from "lucide-react";
 import { useMemo, useRef, useState } from "react";
@@ -27,6 +29,7 @@ export function AddNetworkModal({ onAddOptimistic, onChanged }: Props) {
     CREATE_CLIENT_NETWORK_MUTATION
   );
   const { execute, isLoading } = useAsyncAction();
+  const invalidateClient = useInvalidateQueriesClient();
 
   const steps: FormStepSchema[] = useMemo(
     () => [
@@ -90,6 +93,9 @@ export function AddNetworkModal({ onAddOptimistic, onChanged }: Props) {
           handleClose(false);
           onAddOptimistic(created);
           onChanged();
+          // A ficha da rede e o filtro por rede da lista de clientes leem o
+          // mesmo catálogo.
+          void invalidateClient(CLIENT_NETWORK_CACHE_FIELDS);
         },
       }
     );

@@ -12,6 +12,8 @@ import { buildOrdersByMonthOption } from "./utils";
 export function OrdersByMonthChart({ filters }: { filters: ChartFilters }) {
   const { data, loading, error, refetch } =
     useAsyncQuery<OrdersByMonthResponse>(ORDERS_BY_MONTH_QUERY, {
+      // Leitura derivada: ninguém invalida este campo ao lançar pedido/visita.
+      revalidate: true,
       variables: filters,
       skip: false,
       autoFetch: true,

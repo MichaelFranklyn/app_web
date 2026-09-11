@@ -2,6 +2,7 @@
 
 import { ConfirmModal } from "@/components/ConfirmModal";
 import { useInvalidateQueriesClient } from "@/hooks/useInvalidateQueries";
+import { USER_CACHE_FIELDS } from "@/utils/cacheFields";
 import { useMutation } from "@apollo/client/react";
 import { DELETE_USER_MUTATION } from "./gql";
 
@@ -47,7 +48,7 @@ export function DeleteUserModal({
         }
       }}
       onSuccess={() => {
-        void invalidateClient(["users", "sellers"]);
+        void invalidateClient(USER_CACHE_FIELDS);
       }}
       onError={onRollback}
     />

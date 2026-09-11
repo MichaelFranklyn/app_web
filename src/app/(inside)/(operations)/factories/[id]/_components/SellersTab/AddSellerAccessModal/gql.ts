@@ -7,17 +7,18 @@ export const CREATE_SELLER_FACTORY_ACCESS_MUTATION = gql`
     createSellerFactoryAccess(input: $input) {
       status
       message
+      # Os campos são os da LINHA da tabela (ver SellerAccess no gql do pai): é
+      # com este retorno que o acesso novo entra na lista sem esperar o refetch.
       data {
         id
         isActive
         createdAt
+        sellerCommissionRate
+        sellerCommissionBasis
         seller {
           id
           name
-          region
-          clientCount
-          factoryCount
-          totalRevenue
+          isActive
         }
         grantedByUser {
           id

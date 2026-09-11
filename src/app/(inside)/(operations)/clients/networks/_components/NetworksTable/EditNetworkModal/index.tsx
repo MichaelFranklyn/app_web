@@ -8,6 +8,8 @@ import {
 } from "@/components/FormBuilder";
 import { Modal } from "@/components/Modal";
 import { useAsyncAction } from "@/hooks/useAsyncAction";
+import { useInvalidateQueriesClient } from "@/hooks/useInvalidateQueries";
+import { CLIENT_NETWORK_CACHE_FIELDS } from "@/utils/cacheFields";
 import { useMutation } from "@apollo/client/react";
 import { Pencil } from "lucide-react";
 import { useMemo, useRef, useState } from "react";
@@ -36,6 +38,7 @@ export function EditNetworkModal({
     UPDATE_CLIENT_NETWORK_MUTATION
   );
   const { execute, isLoading } = useAsyncAction();
+  const invalidateClient = useInvalidateQueriesClient();
 
   const steps: FormStepSchema[] = useMemo(
     () => [
@@ -103,6 +106,8 @@ export function EditNetworkModal({
         onSuccess: () => {
           onCommit();
           onChanged();
+          // A ficha da rede mostra o mesmo nome por outra query.
+          void invalidateClient(CLIENT_NETWORK_CACHE_FIELDS);
         },
         onError: onRollback,
       }

@@ -3,6 +3,8 @@ import { useQueryErrorToast } from "@/hooks/useQueryErrorToast";
 import { useAsyncAction } from "@/hooks/useAsyncAction";
 import { extractSelectValue } from "@/utils/form";
 import { useCompleteList } from "@/hooks/useCompleteList";
+import { useInvalidateQueriesClient } from "@/hooks/useInvalidateQueries";
+import { PRODUCT_CACHE_FIELDS } from "@/utils/cacheFields";
 import { useMutation } from "@apollo/client/react";
 import { useMemo, useRef, useState } from "react";
 
@@ -206,6 +208,7 @@ export function useEditProduct({ product, onSuccess }: EditProductModalProps) {
     UPDATE_PRODUCT_MUTATION
   );
   const { execute, isLoading } = useAsyncAction();
+  const invalidateClient = useInvalidateQueriesClient();
 
   const handleSubmit = async (data: Record<string, unknown>) => {
     const input: Record<string, unknown> = {};
@@ -268,6 +271,8 @@ export function useEditProduct({ product, onSuccess }: EditProductModalProps) {
           setOpen(false);
           formRef.current?.resetForm();
           onSuccess();
+          // Editado no detalhe, o produto continua velho na aba de produtos.
+          void invalidateClient(PRODUCT_CACHE_FIELDS);
         },
       }
     );

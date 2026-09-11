@@ -1,7 +1,9 @@
 "use client";
 
 import { useAsyncAction } from "@/hooks/useAsyncAction";
+import { useInvalidateQueriesClient } from "@/hooks/useInvalidateQueries";
 import { useOptimisticList } from "@/hooks/useOptimisticList";
+import { VISIT_CACHE_FIELDS } from "@/utils/cacheFields";
 import { useMutation, useQuery } from "@apollo/client/react";
 import { useMemo, useState } from "react";
 import { UPDATE_VISIT_ITEM_MUTATION } from "../../gql";
@@ -38,6 +40,7 @@ export function useOverdueVisits(sellerId?: string | null) {
     UPDATE_VISIT_ITEM_MUTATION
   );
   const { execute } = useAsyncAction();
+  const invalidateClient = useInvalidateQueriesClient();
   // Qual visita está sendo respondida: trava só a linha clicada, não a lista.
   const [answeringId, setAnsweringId] = useState<string | null>(null);
 
@@ -75,6 +78,9 @@ export function useOverdueVisits(sellerId?: string | null) {
           optimistic.commit();
           setAnsweringId(null);
           refetch();
+          // A resposta fecha a visita: o histórico da ficha do cliente mostra a
+          // mesma linha.
+          void invalidateClient(VISIT_CACHE_FIELDS);
         },
         onError: () => {
           optimistic.rollback();

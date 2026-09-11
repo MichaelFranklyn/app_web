@@ -18,23 +18,7 @@ import { formatDateDMY } from "@/utils/format/masks";
 import { Users } from "lucide-react";
 import { useMemo } from "react";
 import { AddSellerAccessModal } from "./AddSellerAccessModal";
-import { FACTORY_SELLER_ACCESSES_QUERY } from "./gql";
-
-interface SellerAccess {
-  id: string;
-  isActive: boolean;
-  createdAt: string;
-  /** Percentual do PEDIDO que fica com o vendedor; nulo = a comissão inteira. */
-  sellerCommissionRate: string | number | null;
-  /** Quando o escritório repassa; nulo = mesma base da fábrica. */
-  sellerCommissionBasis: string | null;
-  seller: {
-    id: string;
-    name: string;
-    isActive: boolean;
-  } | null;
-  grantedByUser: { id: string; name: string } | null;
-}
+import { FACTORY_SELLER_ACCESSES_QUERY, SellerAccess } from "./gql";
 
 interface SellersQueryData {
   factory_seller_accesses: {
@@ -115,7 +99,11 @@ export function SellersTab({ factoryId, factoryName, autoOpenLink }: Props) {
           />
         </Table.CardHead.Title>
         <Table.CardHead.Actions data-tour="factory-sellers-actions">
-          <AddSellerAccessModal factoryId={factoryId} autoOpen={autoOpenLink} />
+          <AddSellerAccessModal
+            factoryId={factoryId}
+            autoOpen={autoOpenLink}
+            onAddOptimistic={optimistic.addOptimistic}
+          />
         </Table.CardHead.Actions>
       </Table.CardHead>
 

@@ -16,6 +16,7 @@ import { useCompleteList } from "@/hooks/useCompleteList";
 import { useMutation } from "@apollo/client/react";
 import { Plus } from "lucide-react";
 import { useEffect, useMemo, useRef, useState } from "react";
+import { SellerAccess } from "../gql";
 import {
   CREATE_SELLER_FACTORY_ACCESS_MUTATION,
   FACTORY_LINKED_ACCESSES_QUERY,
@@ -36,9 +37,18 @@ interface Props {
   factoryId: string;
   /** Abre o modal automaticamente ao montar (fluxo pós-criação da fábrica). */
   autoOpen?: boolean;
+  /**
+   * Insere a linha na tabela assim que o acesso é concedido. A tabela está na
+   * tela: sem isto o vendedor só aparecia quando o refetch do evict voltasse.
+   */
+  onAddOptimistic: (access: SellerAccess) => void;
 }
 
-export function AddSellerAccessModal({ factoryId, autoOpen }: Props) {
+export function AddSellerAccessModal({
+  factoryId,
+  autoOpen,
+  onAddOptimistic,
+}: Props) {
   const [open, setOpen] = useState(false);
   const formRef = useRef<FormBuilderRef>(null);
   const invalidateClient = useInvalidateQueriesClient();
@@ -155,9 +165,13 @@ export function AddSellerAccessModal({ factoryId, autoOpen }: Props) {
           })
         );
 
-        const successCount = results.filter(
-          (r) => r.status === "fulfilled"
-        ).length;
+        const created = results
+          .filter(
+            (r): r is PromiseFulfilledResult<SellerAccess> =>
+              r.status === "fulfilled"
+          )
+          .map((r) => r.value);
+        const successCount = created.length;
         const failCount = results.length - successCount;
 
         // Todos falharam → lança para o toast de erro do execute.
@@ -171,12 +185,13 @@ export function AddSellerAccessModal({ factoryId, autoOpen }: Props) {
           );
         }
 
-        return { successCount, failCount };
+        return { created, successCount, failCount };
       },
       {
-        onSuccess: async ({ successCount, failCount }) => {
+        onSuccess: async ({ created, successCount, failCount }) => {
           setOpen(false);
           formRef.current?.resetForm();
+          created.forEach(onAddOptimistic);
           toast({
             variant: "success",
             title: "Sucesso",

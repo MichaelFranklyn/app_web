@@ -2,6 +2,8 @@
 
 import { Button } from "@/components/Button";
 import { ConfirmModal } from "@/components/ConfirmModal";
+import { useInvalidateQueriesClient } from "@/hooks/useInvalidateQueries";
+import { ORDER_CACHE_FIELDS } from "@/utils/cacheFields";
 import { gql } from "@apollo/client";
 import { useMutation } from "@apollo/client/react";
 import { ArrowRightLeft } from "lucide-react";
@@ -36,6 +38,7 @@ interface Props {
 
 export function ConvertToOrderModal({ orderId, onSuccess }: Props) {
   const [convert] = useMutation<ConvertResponse>(CONVERT_QUOTE_MUTATION);
+  const invalidateClient = useInvalidateQueriesClient();
 
   return (
     <ConfirmModal
@@ -44,7 +47,12 @@ export function ConvertToOrderModal({ orderId, onSuccess }: Props) {
       confirmLabel="Converter em pedido"
       confirmColor="amber"
       successMessage="Orçamento convertido em pedido"
-      onSuccess={onSuccess}
+      onSuccess={() => {
+        onSuccess();
+        // Aqui nasce um pedido de fato: os KPIs de /orders contam só pedido
+        // feito, e a ficha do cliente passa a ter uma compra a mais.
+        void invalidateClient(ORDER_CACHE_FIELDS);
+      }}
       onConfirm={async () => {
         const res = await convert({
           variables: { id: orderId, input: { status: "CONFIRMED" } },

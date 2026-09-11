@@ -1,6 +1,8 @@
 "use client";
 
 import { useAsyncAction } from "@/hooks/useAsyncAction";
+import { useInvalidateQueriesClient } from "@/hooks/useInvalidateQueries";
+import { USER_CACHE_FIELDS } from "@/utils/cacheFields";
 import { useMutation } from "@apollo/client/react";
 import {
   PersonDataInput,
@@ -32,6 +34,7 @@ export function EditPersonDataModal({
     UPDATE_PERSON_DATA_MUTATION
   );
   const { execute, isLoading } = useAsyncAction();
+  const invalidateClient = useInvalidateQueriesClient();
 
   const handleSubmit = async (input: PersonDataInput) => {
     await execute(
@@ -50,9 +53,12 @@ export function EditPersonDataModal({
       },
       {
         successMessage: "Dados atualizados com sucesso",
-        onSuccess: () => {
+        onSuccess: async () => {
           onOpenChange(false);
           onDone();
+          // A lista de pessoas e o cadastro de vendedor (de onde sai o
+          // endereço que abre a rota do dia) leem os mesmos dados.
+          await invalidateClient(USER_CACHE_FIELDS);
         },
       }
     );

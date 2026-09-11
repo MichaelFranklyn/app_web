@@ -3,6 +3,8 @@
 import { Button } from "@/components/Button";
 import { Modal } from "@/components/Modal";
 import { useAsyncAction } from "@/hooks/useAsyncAction";
+import { useInvalidateQueriesClient } from "@/hooks/useInvalidateQueries";
+import { ORDER_CACHE_FIELDS } from "@/utils/cacheFields";
 import { useMutation } from "@apollo/client/react";
 import { Trash2 } from "lucide-react";
 import { useState } from "react";
@@ -36,6 +38,7 @@ export function DeleteOrderModal({
   const [open, setOpen] = useState(false);
   const [deleteOrder] = useMutation<DeleteOrderResponse>(DELETE_ORDER_MUTATION);
   const { execute, isLoading } = useAsyncAction();
+  const invalidateClient = useInvalidateQueriesClient();
 
   const handleConfirm = async () => {
     setOpen(false);
@@ -56,6 +59,9 @@ export function DeleteOrderModal({
         onSuccess: () => {
           onCommit();
           onDeleted?.();
+          // Como nos outros dois pontos de exclusão: o pedido some da lista
+          // /orders, dos KPIs e da última compra do cliente.
+          void invalidateClient(ORDER_CACHE_FIELDS);
         },
         onError: () => {
           onRollback();

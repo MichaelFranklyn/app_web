@@ -2,6 +2,8 @@
 
 import { Button } from "@/components/Button";
 import { ConfirmModal } from "@/components/ConfirmModal";
+import { useInvalidateQueriesClient } from "@/hooks/useInvalidateQueries";
+import { SUPPORT_CACHE_FIELDS } from "@/utils/cacheFields";
 import { DELETE_SUPPORT_CASE_MUTATION } from "@/graphql/support";
 import { useMutation } from "@apollo/client/react";
 import { Trash2 } from "lucide-react";
@@ -25,6 +27,7 @@ export function DeleteCaseModal({ caseId, caseTitle }: Props) {
   const [deleteCase] = useMutation<DeleteSupportCaseResponse>(
     DELETE_SUPPORT_CASE_MUTATION
   );
+  const invalidateClient = useInvalidateQueriesClient();
 
   return (
     <>
@@ -48,6 +51,11 @@ export function DeleteCaseModal({ caseId, caseTitle }: Props) {
         confirmLabel="Excluir"
         successMessage="Atendimento removido"
         redirectTo="/support"
+        onSuccess={() => {
+          // A fila e os cartões de contagem do topo são do servidor: só o
+          // redirect deixaria o caso excluído na lista de destino.
+          void invalidateClient(SUPPORT_CACHE_FIELDS);
+        }}
         onConfirm={async () => {
           const res = await deleteCase({ variables: { id: caseId } });
           const payload = res.data?.deleteClientSupportCase;

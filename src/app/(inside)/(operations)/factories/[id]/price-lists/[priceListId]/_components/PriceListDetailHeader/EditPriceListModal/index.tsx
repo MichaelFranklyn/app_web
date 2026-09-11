@@ -9,6 +9,8 @@ import {
 import { Modal } from "@/components/Modal";
 import { useAsyncAction } from "@/hooks/useAsyncAction";
 import { parseLocalDate, toIsoDate } from "@/utils/format/date";
+import { useInvalidateQueriesClient } from "@/hooks/useInvalidateQueries";
+import { PRICE_LIST_CACHE_FIELDS } from "@/utils/cacheFields";
 import { useMutation } from "@apollo/client/react";
 import { Pencil } from "lucide-react";
 import { useMemo, useRef, useState } from "react";
@@ -42,6 +44,7 @@ export function EditPriceListModal({ priceList, onChanged }: Props) {
     UPDATE_FACTORY_PRICE_LIST_MUTATION
   );
   const { execute, isLoading } = useAsyncAction();
+  const invalidateClient = useInvalidateQueriesClient();
 
   const steps: FormStepSchema[] = useMemo(
     () => [
@@ -141,6 +144,8 @@ export function EditPriceListModal({ priceList, onChanged }: Props) {
         onSuccess: () => {
           setOpen(false);
           onChanged();
+          // A aba de tabelas da fábrica lista a mesma tabela.
+          void invalidateClient(PRICE_LIST_CACHE_FIELDS);
         },
       }
     );

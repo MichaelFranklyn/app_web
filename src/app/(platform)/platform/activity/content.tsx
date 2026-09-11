@@ -56,11 +56,17 @@ export default function ActivityContent({
 
   const summaryQuery = useQuery<ActivitySummaryQueryData>(
     ACTIVITY_SUMMARY_QUERY,
-    { variables: summaryVariables(companyId) }
+    {
+      fetchPolicy: "cache-and-network",
+      variables: summaryVariables(companyId),
+    }
   );
   const summary = summaryQuery.data?.platformActivitySummary?.data ?? null;
 
   const tableData = useTableData<ActivityQueryData, ActivityRow>({
+    // Console: nenhuma escrita do app invalida estas listas — pinta com o
+    // cache e revalida por baixo ao abrir.
+    revalidate: true,
     query: PLATFORM_ACTIVITY_QUERY,
     fields: TABLE_FIELDS,
     getConnection: (data) => data.platform_activity,

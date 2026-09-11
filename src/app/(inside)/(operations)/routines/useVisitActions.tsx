@@ -2,6 +2,8 @@
 
 import { MoreOptions } from "@/components/MoreOptions";
 import { useAsyncAction } from "@/hooks/useAsyncAction";
+import { useInvalidateQueriesClient } from "@/hooks/useInvalidateQueries";
+import { VISIT_CACHE_FIELDS } from "@/utils/cacheFields";
 import { clientDisplayName } from "@/utils/client";
 import { contactLabel, contactNoun } from "@/utils/visit";
 import { useMutation } from "@apollo/client/react";
@@ -86,6 +88,18 @@ export function useVisitActions({
     UPDATE_VISIT_ITEM_MUTATION
   );
   const { execute, isLoading: isToggling } = useAsyncAction();
+  const invalidateClient = useInvalidateQueriesClient();
+
+  /**
+   * A visita mudou: recarrega a semana (é a tela) e invalida o assunto, porque
+   * o MESMO item aparece no histórico da ficha do cliente. Passa também aos
+   * modais filhos — concluir, remarcar, editar, fechar o dia e promover contato
+   * desatualizam as duas telas do mesmo jeito.
+   */
+  const syncVisit = () => {
+    onChanged();
+    void invalidateClient(VISIT_CACHE_FIELDS);
+  };
 
   // Concluir/reabrir a visita. Ao concluir, oferece registrar o pedido ou o
   // estoque do cliente (o mesmo prompt em qualquer visualização).
@@ -109,7 +123,7 @@ export function useVisitActions({
           ? `${capitalized} concluíd${doneSuffix}`
           : `${capitalized} reabert${doneSuffix}`,
         onSuccess: () => {
-          onChanged();
+          syncVisit();
           if (checked) setActive("completed");
         },
       }
@@ -138,7 +152,7 @@ export function useVisitActions({
       },
       {
         successMessage: `${capitalized} concluíd${doneSuffix}`,
-        onSuccess: onChanged,
+        onSuccess: syncVisit,
       }
     );
   };
@@ -242,7 +256,7 @@ export function useVisitActions({
         item={item}
         open={active === "edit"}
         onOpenChange={(o) => !o && close()}
-        onDone={onChanged}
+        onDone={syncVisit}
         onCompleted={() => setActive("completed")}
       />
 
@@ -261,7 +275,7 @@ export function useVisitActions({
           currentDate={dayDate}
           open={active === "promote"}
           onOpenChange={(o) => !o && close()}
-          onDone={onChanged}
+          onDone={syncVisit}
         />
       )}
 
@@ -269,7 +283,7 @@ export function useVisitActions({
         item={item}
         open={active === "reschedule"}
         onOpenChange={(o) => !o && close()}
-        onDone={onChanged}
+        onDone={syncVisit}
       />
 
       <WholeDayModal
@@ -278,7 +292,7 @@ export function useVisitActions({
         isPending={item.status === "PENDING"}
         open={active === "wholeDay"}
         onOpenChange={(o) => !o && close()}
-        onDone={onChanged}
+        onDone={syncVisit}
       />
 
       <CompletionPromptModal

@@ -19,6 +19,8 @@ export function OrderSizeDistributionChart({
     useAsyncQuery<OrderSizeDistributionResponse>(
       ORDER_SIZE_DISTRIBUTION_QUERY,
       {
+        // Leitura derivada: ninguém invalida este campo ao lançar pedido/visita.
+        revalidate: true,
         variables: filters,
         skip: false,
         autoFetch: true,

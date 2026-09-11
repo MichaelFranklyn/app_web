@@ -39,6 +39,7 @@ export const useAbcReport = (filters: ReportFilters) => {
   const { data, loading, error, refetch } = useQuery<AbcCurveResponse>(
     CLIENT_ABC_CURVE_QUERY,
     {
+      fetchPolicy: "cache-and-network",
       variables: {
         from: filters.from,
         to: filters.to,

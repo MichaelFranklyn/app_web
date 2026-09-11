@@ -41,6 +41,7 @@ export const useFactoriesReport = (filters: ReportFilters) => {
   const { data, loading, error, refetch } = useQuery<FactoryOrdersResponse>(
     FACTORY_ORDERS_REPORT_QUERY,
     {
+      fetchPolicy: "cache-and-network",
       variables: {
         from: filters.from,
         to: filters.to,

@@ -3,6 +3,8 @@
 import { Button } from "@/components/Button";
 import { ConfirmModal } from "@/components/ConfirmModal";
 import { Table } from "@/components/Table";
+import { useInvalidateQueriesClient } from "@/hooks/useInvalidateQueries";
+import { COMMISSION_CACHE_FIELDS } from "@/utils/cacheFields";
 import { getTodayIso } from "@/utils/format/date";
 import { useMutation } from "@apollo/client/react";
 import { Ban, RotateCcw, XCircle } from "lucide-react";
@@ -34,6 +36,17 @@ export function InstallmentRowActions({ installment, onChanged }: Props) {
   const [markDefaulted] = useMutation<{
     markOrderInstallmentsDefaulted: StatusResponse;
   }>(MARK_ORDER_INSTALLMENTS_DEFAULTED_MUTATION);
+  const invalidateClient = useInvalidateQueriesClient();
+
+  /**
+   * A parcela é o elo entre o pedido e a comissão: pagar, cancelar, reverter ou
+   * marcar inadimplente aqui muda a linha que /commissions e o relatório
+   * mostram. Antes do `invalidate`, a tela de comissões só via a mudança com F5.
+   */
+  const syncInstallment = () => {
+    onChanged();
+    void invalidateClient(COMMISSION_CACHE_FIELDS);
+  };
 
   // Comissão recebida sem calote é estado fechado: nada a fazer na linha.
   if (installment.isCommissionReceived && installment.status !== "DEFAULTED") {
@@ -49,7 +62,7 @@ export function InstallmentRowActions({ installment, onChanged }: Props) {
         <PayInstallmentModal
           installmentId={installment.id}
           sequence={installment.sequence}
-          onSuccess={onChanged}
+          onSuccess={syncInstallment}
         />
       )}
 
@@ -81,7 +94,7 @@ export function InstallmentRowActions({ installment, onChanged }: Props) {
                 );
               }
             }}
-            onSuccess={onChanged}
+            onSuccess={syncInstallment}
           />
 
           <ConfirmModal
@@ -106,7 +119,7 @@ export function InstallmentRowActions({ installment, onChanged }: Props) {
                 );
               }
             }}
-            onSuccess={onChanged}
+            onSuccess={syncInstallment}
           />
         </>
       )}
@@ -134,7 +147,7 @@ export function InstallmentRowActions({ installment, onChanged }: Props) {
               );
             }
           }}
-          onSuccess={onChanged}
+          onSuccess={syncInstallment}
         />
       )}
     </div>

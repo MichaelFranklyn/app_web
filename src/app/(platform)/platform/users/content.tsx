@@ -33,6 +33,9 @@ export default function PlatformUsersContent({
   initialData,
 }: UsersContentProps) {
   const tableData = useTableData<UsersQueryData, PlatformUserRow>({
+    // Console: nenhuma escrita do app invalida estas listas — pinta com o
+    // cache e revalida por baixo ao abrir.
+    revalidate: true,
     query: PLATFORM_USERS_QUERY,
     fields: TABLE_FIELDS,
     getConnection: (data) => data.platform_users,

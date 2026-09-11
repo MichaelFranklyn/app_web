@@ -6,6 +6,7 @@ import { FormBuilder, FormBuilderRef } from "@/components/FormBuilder";
 import { Modal } from "@/components/Modal";
 import { useAsyncAction } from "@/hooks/useAsyncAction";
 import { useInvalidateQueriesClient } from "@/hooks/useInvalidateQueries";
+import { USER_CACHE_FIELDS } from "@/utils/cacheFields";
 import { useMutation } from "@apollo/client/react";
 import { Plus } from "lucide-react";
 import { useRef, useState } from "react";
@@ -59,7 +60,9 @@ export function AddUserModal({
             phone: null,
             seller: null,
           });
-          await invalidateClient(["users"]);
+          // Uma pessoa nova entra na lista, na ficha e — se for vendedor —
+          // no cadastro que os selects leem.
+          await invalidateClient(USER_CACHE_FIELDS);
           if (normalized.role.toUpperCase() === "SELLER") {
             setPendingSeller(newUser.id);
           }

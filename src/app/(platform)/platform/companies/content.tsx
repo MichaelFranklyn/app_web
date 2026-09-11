@@ -16,6 +16,9 @@ import { ITEMS_PER_PAGE, SORTABLE_FIELDS, TABLE_FIELDS } from "./utils";
 
 export default function TenantsContent({ initialData }: TenantsContentProps) {
   const tableData = useTableData<QueryData, PlatformTenant>({
+    // Console: nenhuma escrita do app invalida estas listas — pinta com o
+    // cache e revalida por baixo ao abrir.
+    revalidate: true,
     query: PLATFORM_TENANTS_QUERY,
     fields: TABLE_FIELDS,
     getConnection: (data) => data.platform_tenants,

@@ -4,6 +4,7 @@ import { Button } from "@/components/Button";
 import { Modal } from "@/components/Modal";
 import { useAsyncAction } from "@/hooks/useAsyncAction";
 import { useInvalidateQueriesClient } from "@/hooks/useInvalidateQueries";
+import { USER_CACHE_FIELDS } from "@/utils/cacheFields";
 import { useMutation } from "@apollo/client/react";
 import { TOGGLE_USER_MUTATION } from "./gql";
 
@@ -60,7 +61,7 @@ export function ToggleUserModal({
         onSuccess: async () => {
           onCommit();
           onOpenChange(false);
-          await invalidateClient(["users", "sellers"]);
+          await invalidateClient(USER_CACHE_FIELDS);
         },
         onError: () => {
           onRollback();

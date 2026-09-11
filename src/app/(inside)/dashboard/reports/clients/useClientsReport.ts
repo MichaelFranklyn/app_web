@@ -44,6 +44,8 @@ export const useClientsReport = (filters: ReportFilters) => {
   );
 
   const tableData = useTableData<ClientsReportResponse, ClientReportRow>({
+    // Relatório é leitura derivada: revalida ao abrir (ver derivedReads).
+    revalidate: true,
     query: CLIENTS_REPORT_QUERY,
     fields: CLIENTS_REPORT_TABLE_FIELDS,
     getConnection: (data) => data.clients_report,
@@ -66,7 +68,10 @@ export const useClientsReport = (filters: ReportFilters) => {
 
   const statsQuery = useQuery<ClientsReportStatsResponse>(
     CLIENTS_REPORT_STATS_QUERY,
-    { variables: { sellerId: filters.sellerId } }
+    {
+      fetchPolicy: "cache-and-network",
+      variables: { sellerId: filters.sellerId },
+    }
   );
   useQueryErrorToast(
     statsQuery.error,
@@ -74,6 +79,7 @@ export const useClientsReport = (filters: ReportFilters) => {
   );
 
   const riskQuery = useQuery<ClientsAtRiskResponse>(CLIENTS_AT_RISK_QUERY, {
+    fetchPolicy: "cache-and-network",
     variables: {
       from: filters.from,
       to: filters.to,

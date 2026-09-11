@@ -1,6 +1,8 @@
 "use client";
 
 import { ConfirmModal } from "@/components/ConfirmModal";
+import { useInvalidateQueriesClient } from "@/hooks/useInvalidateQueries";
+import { PRODUCT_CACHE_FIELDS } from "@/utils/cacheFields";
 import { useMutation } from "@apollo/client/react";
 import { getProductErrorMessage } from "../errors";
 import { DELETE_PRODUCT_MUTATION } from "./gql";
@@ -37,6 +39,7 @@ export function DeleteProductModal({
   const [deleteProduct] = useMutation<DeleteProductResponse>(
     DELETE_PRODUCT_MUTATION
   );
+  const invalidateClient = useInvalidateQueriesClient();
 
   return (
     <ConfirmModal
@@ -68,6 +71,9 @@ export function DeleteProductModal({
       onSuccess={() => {
         onCommit();
         onChanged();
+        // O produto leva junto preços, impostos e composições (ver
+        // delete_product.py) — e a ficha dele pode estar no cache.
+        void invalidateClient(PRODUCT_CACHE_FIELDS);
       }}
       onError={onRollback}
     />

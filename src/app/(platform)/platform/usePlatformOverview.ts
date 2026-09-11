@@ -65,24 +65,46 @@ export function usePlatformOverview({
     },
   ]);
 
-  const overviewQuery = useQuery<OverviewQueryData>(PLATFORM_OVERVIEW_QUERY);
-  const attentionQuery = useQuery<AttentionQueryData>(PLATFORM_ATTENTION_QUERY);
-  const operationQuery = useQuery<OperationQueryData>(PLATFORM_OPERATION_QUERY);
-  const healthQuery = useQuery<TenantHealthQueryData>(
-    PLATFORM_TENANT_HEALTH_QUERY
+  const overviewQuery = useQuery<OverviewQueryData>(PLATFORM_OVERVIEW_QUERY, {
+    fetchPolicy: "cache-and-network",
+  });
+  const attentionQuery = useQuery<AttentionQueryData>(
+    PLATFORM_ATTENTION_QUERY,
+    {
+      fetchPolicy: "cache-and-network",
+    }
   );
-  const adoptionQuery = useQuery<AdoptionQueryData>(PLATFORM_ADOPTION_QUERY);
+  const operationQuery = useQuery<OperationQueryData>(
+    PLATFORM_OPERATION_QUERY,
+    {
+      fetchPolicy: "cache-and-network",
+    }
+  );
+  const healthQuery = useQuery<TenantHealthQueryData>(
+    PLATFORM_TENANT_HEALTH_QUERY,
+    {
+      fetchPolicy: "cache-and-network",
+    }
+  );
+  const adoptionQuery = useQuery<AdoptionQueryData>(PLATFORM_ADOPTION_QUERY, {
+    fetchPolicy: "cache-and-network",
+  });
   const growthQuery = useQuery<GrowthQueryData>(PLATFORM_GROWTH_QUERY, {
+    fetchPolicy: "cache-and-network",
     variables: { months: GROWTH_MONTHS },
   });
   const retentionQuery = useQuery<RetentionQueryData>(
     PLATFORM_RETENTION_QUERY,
     {
+      fetchPolicy: "cache-and-network",
       variables: { months: GROWTH_MONTHS },
     }
   );
   const engagementQuery = useQuery<EngagementQueryData>(
-    PLATFORM_ENGAGEMENT_QUERY
+    PLATFORM_ENGAGEMENT_QUERY,
+    {
+      fetchPolicy: "cache-and-network",
+    }
   );
 
   return {

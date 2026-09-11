@@ -2,6 +2,8 @@
 
 import { Button } from "@/components/Button";
 import { ConfirmModal } from "@/components/ConfirmModal";
+import { useInvalidateQueriesClient } from "@/hooks/useInvalidateQueries";
+import { PRICE_LIST_CACHE_FIELDS } from "@/utils/cacheFields";
 import { useMutation } from "@apollo/client/react";
 import { Trash2 } from "lucide-react";
 import { DELETE_FACTORY_PRICE_LIST_MUTATION } from "../gql";
@@ -24,6 +26,7 @@ export function DeletePriceListModal({
   const [deletePriceList] = useMutation<DeletePriceListResponse>(
     DELETE_FACTORY_PRICE_LIST_MUTATION
   );
+  const invalidateClient = useInvalidateQueriesClient();
 
   return (
     <ConfirmModal
@@ -38,6 +41,11 @@ export function DeletePriceListModal({
       confirmLabel="Excluir"
       successMessage="Tabela de preço removida"
       redirectTo={priceListsHref}
+      onSuccess={() => {
+        // Volta para a aba de tabelas, que é cache-first — e os preços da
+        // tabela somem junto na ficha do produto.
+        void invalidateClient(PRICE_LIST_CACHE_FIELDS);
+      }}
       onConfirm={async () => {
         const res = await deletePriceList({ variables: { id: priceListId } });
         if (!res.data?.deleteFactoryPriceList?.status) {

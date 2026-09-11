@@ -2,6 +2,8 @@ import { FormBuilderRef } from "@/components/FormBuilder";
 import { useToast } from "@/components/Toast";
 import { useLogoUpload } from "@/components/LogoUpload";
 import { useAsyncAction } from "@/hooks/useAsyncAction";
+import { useInvalidateQueriesClient } from "@/hooks/useInvalidateQueries";
+import { PRICE_ITEM_CACHE_FIELDS } from "@/utils/cacheFields";
 import { extractSelectValue } from "@/utils/form";
 import { useMutation } from "@apollo/client/react";
 import { useCallback, useMemo, useRef, useState } from "react";
@@ -67,6 +69,7 @@ export function useAddProduct({
     CREATE_PRICE_LIST_ITEM_MUTATION
   );
   const { execute, isLoading } = useAsyncAction();
+  const invalidateClient = useInvalidateQueriesClient();
   const photo = useLogoUpload("image");
 
   const steps = useMemo(
@@ -239,6 +242,9 @@ export function useAddProduct({
           handleClose(false);
           onAddOptimistic(product);
           onChanged();
+          // O passo "Preços" cria itens de tabela, que a tabela de preço lista
+          // por outro caminho de cache.
+          void invalidateClient(PRICE_ITEM_CACHE_FIELDS);
 
           if (extras.failures.length > 0) {
             toast({

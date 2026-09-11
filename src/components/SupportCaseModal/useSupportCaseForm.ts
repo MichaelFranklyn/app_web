@@ -10,6 +10,8 @@ import { useAsyncAction } from "@/hooks/useAsyncAction";
 import { useAsyncSelectOptions } from "@/hooks/useAsyncSelectOptions";
 import { useCompleteList } from "@/hooks/useCompleteList";
 import { useQuery } from "@apollo/client/react";
+import { useInvalidateQueriesClient } from "@/hooks/useInvalidateQueries";
+import { SUPPORT_CACHE_FIELDS } from "@/utils/cacheFields";
 import { useMutation } from "@apollo/client/react";
 import { clientDisplayName } from "@/utils/client";
 import { factoryName } from "@/utils/company";
@@ -326,6 +328,7 @@ export function useSupportCaseForm({
     UPDATE_SUPPORT_CASE_MUTATION
   );
   const { execute, isLoading } = useAsyncAction();
+  const invalidateClient = useInvalidateQueriesClient();
 
   const submit = (data: Record<string, unknown>) =>
     execute(
@@ -379,6 +382,9 @@ export function useSupportCaseForm({
         onSuccess: () => {
           onOpenChange(false);
           onSaved?.();
+          // Criado pela ficha do cliente ou editado no detalhe, o caso entra na
+          // fila de /support e nos cartões de contagem dela.
+          void invalidateClient(SUPPORT_CACHE_FIELDS);
         },
       }
     );

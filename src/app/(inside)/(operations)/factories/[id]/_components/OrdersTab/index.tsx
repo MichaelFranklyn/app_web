@@ -79,6 +79,7 @@ export function OrdersTab({ factoryId }: Props) {
             <ImportOrderModal
               factoryId={factoryId}
               onChanged={() => refetch()}
+              onAddOptimistic={optimistic.addOptimistic}
             />
           </FeatureGate>
           <AddOrderModal factoryId={factoryId} />

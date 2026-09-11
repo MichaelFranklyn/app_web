@@ -27,6 +27,9 @@ export function FactoryNavList({ basePath }: Props) {
       <Tabs.NavItem href={`${basePath}/sellers`}>Vendedores</Tabs.NavItem>
       <Tabs.NavItem href={`${basePath}/clients`}>Clientes</Tabs.NavItem>
       <Tabs.NavItem href={`${basePath}/orders`}>Pedidos</Tabs.NavItem>
+      {/* Quem atende do lado da fábrica. É daqui que sai o telefone do
+          "Enviar à fábrica" — a aba que aquela tela já mandava procurar. */}
+      <Tabs.NavItem href={`${basePath}/contacts`}>Contatos</Tabs.NavItem>
       {/* Modelo de importação só serve a quem pode importar. */}
       <FeatureGate feature="BULK_IMPORT">
         <Tabs.NavItem href={`${basePath}/import-template`}>

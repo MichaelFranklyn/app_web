@@ -18,6 +18,8 @@ export function RevenueConcentrationChart({
 
   const { data, loading, error, refetch } =
     useAsyncQuery<RevenueConcentrationResponse>(REVENUE_CONCENTRATION_QUERY, {
+      // Leitura derivada: ninguém invalida este campo ao lançar pedido/visita.
+      revalidate: true,
       variables,
       skip: false,
       autoFetch: true,

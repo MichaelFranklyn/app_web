@@ -12,6 +12,8 @@ import { buildNewVsReturningOption } from "./utils";
 export function NewVsReturningChart({ filters }: { filters: ChartFilters }) {
   const { data, loading, error, refetch } =
     useAsyncQuery<NewVsReturningResponse>(NEW_VS_RETURNING_QUERY, {
+      // Leitura derivada: ninguém invalida este campo ao lançar pedido/visita.
+      revalidate: true,
       variables: filters,
       skip: false,
       autoFetch: true,

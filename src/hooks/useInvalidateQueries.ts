@@ -17,17 +17,24 @@ import { useCallback } from "react";
  *    Use quando a lista afetada NÃO está visível agora — ex.: você navega para
  *    outra rota logo após a ação (deletar no detalhe e voltar para a lista), ou
  *    está mexendo em dados de background (KPIs de outra tela).
- *    ⚠️ Em uma lista visível, evict causa flicker (some e recarrega).
+ *    ℹ️ Numa lista visível o evict não apaga a tela: a query ativa refaz o
+ *    fetch e o Apollo mantém os dados anteriores até o novo resultado (medido
+ *    no Apollo 4). O que falta é o feedback imediato — daí o item 3.
  *
  * 2. useRefetchQueriesClient → REFETCH (refetch ativo, sem flicker)
  *    Refaz o fetch das queries ativas mantendo os dados antigos na tela até o
  *    novo resultado chegar. Use quando a lista/KPI afetado ESTÁ visível agora
  *    (ex.: criar um pedido na própria tela de pedidos).
  *
- * Para inserção/remoção instantânea (otimista) numa lista visível, prefira
- * `optimisticResponse` + `cache.updateQuery` na própria mutation, com um
- * refetch como rede de segurança. Esse é o único caso em que o cache é tocado
- * fora destes hooks.
+ * 3. Inserção/remoção instantânea numa lista visível → HOOK OTIMISTA
+ *    O dono da lista segura `useOptimisticList`/`useOptimisticObject` e injeta
+ *    os handlers nos modais; a reconciliação continua sendo 1 ou 2. Nada de
+ *    `optimisticResponse`, `cache.updateQuery` ou `cache.modify` do Apollo — o
+ *    cache não é tocado fora destes hooks.
+ *
+ * O que invalidar não é escolha de cada tela: quem mexe em pedido usa
+ * `ORDER_CACHE_FIELDS` (`@/utils/cacheFields`), e `cacheFields.test.ts` reprova
+ * tanto a lista artesanal quanto o ponto que não invalida nada.
  */
 
 /**

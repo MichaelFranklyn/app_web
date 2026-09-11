@@ -4,6 +4,8 @@ import { Button } from "@/components/Button";
 import { FormBuilder, FormBuilderRef } from "@/components/FormBuilder";
 import { Modal } from "@/components/Modal";
 import { useAsyncAction } from "@/hooks/useAsyncAction";
+import { useInvalidateQueriesClient } from "@/hooks/useInvalidateQueries";
+import { ORDER_CACHE_FIELDS } from "@/utils/cacheFields";
 import { useMutation } from "@apollo/client/react";
 import { Pencil } from "lucide-react";
 import { useRef, useState } from "react";
@@ -32,6 +34,7 @@ export function UpdateOrderModal({
 
   const [updateOrder] = useMutation<UpdateOrderResponse>(UPDATE_ORDER_MUTATION);
   const { execute, isLoading } = useAsyncAction();
+  const invalidateClient = useInvalidateQueriesClient();
 
   const handleSubmit = async (data: Record<string, unknown>) => {
     const normalized = normalizeUpdateInput(
@@ -70,6 +73,9 @@ export function UpdateOrderModal({
           setOpen(false);
           formRef.current?.resetForm();
           onSuccess();
+          // Aqui se muda status, data e prazo — o que a lista de pedidos
+          // ordena, filtra e soma nos KPIs.
+          void invalidateClient(ORDER_CACHE_FIELDS);
         },
       }
     );

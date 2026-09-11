@@ -17,6 +17,8 @@ import { getTodayIso } from "@/utils/format/date";
 import { formatMoney } from "@/utils/format/masks";
 import { useCompleteList } from "@/hooks/useCompleteList";
 import { useScopedSelection } from "@/hooks/useScopedSelection";
+import { useInvalidateQueriesClient } from "@/hooks/useInvalidateQueries";
+import { COMMISSION_CACHE_FIELDS } from "@/utils/cacheFields";
 import { useQuery } from "@apollo/client/react";
 import { CalendarDays, ChevronLeft, ChevronRight, Coins } from "lucide-react";
 import { useEffect, useMemo, useState } from "react";
@@ -150,6 +152,7 @@ export default function CommissionsContent({
   // carteira inteira para exibir cinquenta linhas piorava a cada mês de
   // histórico. `includeOverdue` é o pedido da aba que junta todos os
   // vencimentos — só ela precisa das linhas de fora do mês.
+  const invalidateClient = useInvalidateQueriesClient();
   const { data, loading, error, refetch } = useQuery<CommissionsResponse>(
     COMMISSIONS_QUERY,
     {
@@ -251,7 +254,16 @@ export default function CommissionsContent({
     return group ? `${group.name} · ${monthLabel(month)}` : monthLabel(month);
   }, [groups, selection.scopeId, month]);
 
-  const handleChanged = () => refetch();
+  /**
+   * Toda escrita desta tela (receber, pagar, conferir, estornar, dar baixa no
+   * período, marcar inadimplente) passa por aqui. O refetch cuida da tela; o
+   * invalidate cuida do relatório de comissões — que lê o MESMO campo com
+   * outras variáveis — e do detalhe do pedido, onde a parcela também aparece.
+   */
+  const handleChanged = () => {
+    refetch();
+    void invalidateClient(COMMISSION_CACHE_FIELDS);
+  };
 
   const sellerOptions: SelectOption[] = sellers.map((s) => ({
     value: s.id,

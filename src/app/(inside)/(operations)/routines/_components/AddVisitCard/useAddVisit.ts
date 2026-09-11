@@ -1,8 +1,10 @@
 import { SelectOption } from "@/components/Input";
 import { useAsyncAction } from "@/hooks/useAsyncAction";
+import { useInvalidateQueriesClient } from "@/hooks/useInvalidateQueries";
 import { useQueryErrorToast } from "@/hooks/useQueryErrorToast";
 import { clientDisplayName } from "@/utils/client";
 import { useCompleteList } from "@/hooks/useCompleteList";
+import { VISIT_CACHE_FIELDS } from "@/utils/cacheFields";
 import { useMutation } from "@apollo/client/react";
 import { useEffect, useMemo, useState } from "react";
 
@@ -87,6 +89,7 @@ export function useAddVisit({
     CREATE_VISIT_DAY_MUTATION
   );
   const { execute, isLoading } = useAsyncAction();
+  const invalidateClient = useInvalidateQueriesClient();
 
   // Reseta o estado sempre que o modal abre.
   useEffect(() => {
@@ -188,6 +191,8 @@ export function useAddVisit({
         onSuccess: () => {
           onOpenChange(false);
           onDone();
+          // A visita nova entra também no histórico da ficha do cliente.
+          void invalidateClient(VISIT_CACHE_FIELDS);
         },
       }
     );

@@ -2,6 +2,8 @@
 
 import { Button } from "@/components/Button";
 import { ConfirmModal } from "@/components/ConfirmModal";
+import { useInvalidateQueriesClient } from "@/hooks/useInvalidateQueries";
+import { CLIENT_NETWORK_CACHE_FIELDS } from "@/utils/cacheFields";
 import { useMutation } from "@apollo/client/react";
 import { Trash2 } from "lucide-react";
 
@@ -26,6 +28,7 @@ export function DeleteNetworkModal({
   const [deleteNetwork] = useMutation<DeleteClientNetworkResponse>(
     DELETE_CLIENT_NETWORK_MUTATION
   );
+  const invalidateClient = useInvalidateQueriesClient();
 
   // Dizer quantas lojas perdem a classificação é o que torna a decisão
   // informada — remover uma rede de 14 lojas não é o mesmo que remover uma vazia.
@@ -63,6 +66,8 @@ export function DeleteNetworkModal({
       onSuccess={() => {
         onCommit();
         onChanged();
+        // A ficha da rede deixa de existir junto com a linha.
+        void invalidateClient(CLIENT_NETWORK_CACHE_FIELDS);
       }}
       onError={onRollback}
     />

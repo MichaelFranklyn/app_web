@@ -11,6 +11,8 @@ import { useAsyncAction } from "@/hooks/useAsyncAction";
 import { formatMoney, maskCurrency } from "@/utils/format/masks";
 import { isTruncated, MAX_SCAN_PAGES } from "@/utils/pagination";
 import { parseLocalDate, toIsoDate } from "@/utils/format/date";
+import { useInvalidateQueriesClient } from "@/hooks/useInvalidateQueries";
+import { PRICE_ITEM_CACHE_FIELDS } from "@/utils/cacheFields";
 import { useApolloClient, useMutation } from "@apollo/client/react";
 import { Tags, Zap } from "lucide-react";
 import { useCallback, useEffect, useMemo, useState } from "react";
@@ -42,6 +44,7 @@ interface Props {
 export function PromotionModal({ priceList, onChanged }: Props) {
   const [open, setOpen] = useState(false);
   const client = useApolloClient();
+  const invalidateClient = useInvalidateQueriesClient();
 
   const [loadingItems, setLoadingItems] = useState(false);
   const [nodes, setNodes] = useState<PromotionItemNode[]>([]);
@@ -194,6 +197,9 @@ export function PromotionModal({ priceList, onChanged }: Props) {
         onSuccess: () => {
           setOpen(false);
           onChanged();
+          // A promoção mexe no preço dos itens, que a ficha do produto lê por
+          // outro caminho de cache.
+          void invalidateClient(PRICE_ITEM_CACHE_FIELDS);
         },
       }
     );
@@ -222,6 +228,7 @@ export function PromotionModal({ priceList, onChanged }: Props) {
         onSuccess: () => {
           setOpen(false);
           onChanged();
+          void invalidateClient(PRICE_ITEM_CACHE_FIELDS);
         },
       }
     );

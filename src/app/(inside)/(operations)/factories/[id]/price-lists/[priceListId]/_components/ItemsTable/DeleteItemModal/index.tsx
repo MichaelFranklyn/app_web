@@ -1,6 +1,8 @@
 "use client";
 
 import { ConfirmModal } from "@/components/ConfirmModal";
+import { useInvalidateQueriesClient } from "@/hooks/useInvalidateQueries";
+import { PRICE_ITEM_CACHE_FIELDS } from "@/utils/cacheFields";
 import { useMutation } from "@apollo/client/react";
 import { DELETE_PRICE_LIST_ITEM_MUTATION } from "./gql";
 
@@ -32,6 +34,7 @@ export function DeleteItemModal({
   const [deleteItem] = useMutation<DeleteResponse>(
     DELETE_PRICE_LIST_ITEM_MUTATION
   );
+  const invalidateClient = useInvalidateQueriesClient();
 
   return (
     <ConfirmModal
@@ -53,6 +56,8 @@ export function DeleteItemModal({
       onSuccess={() => {
         onCommit();
         onDeleted();
+        // A ficha do produto lista o mesmo preço por outro caminho de cache.
+        void invalidateClient(PRICE_ITEM_CACHE_FIELDS);
       }}
       onError={onRollback}
     />
