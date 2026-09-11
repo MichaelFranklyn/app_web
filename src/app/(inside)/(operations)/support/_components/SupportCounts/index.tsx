@@ -30,7 +30,10 @@ export function SupportCounts({ data }: Props) {
   );
 
   return (
-    <div className="tablet:grid-cols-4 grid grid-cols-2 gap-8">
+    <div
+      className="tablet:grid-cols-4 grid grid-cols-2 gap-8"
+      data-tour="support-counts"
+    >
       {SHOWN.map(({ status, tone }) => (
         <StatCard
           key={status}

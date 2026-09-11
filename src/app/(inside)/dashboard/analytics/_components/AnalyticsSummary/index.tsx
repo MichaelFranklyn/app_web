@@ -65,7 +65,11 @@ export function AnalyticsSummary({ filters }: { filters: ChartFilters }) {
   }
 
   return (
-    <Grid.Root cols={{ base: 1, tablet: 2, "desktop-xl": 4 }} gap={12}>
+    <Grid.Root
+      cols={{ base: 1, tablet: 2, "desktop-xl": 4 }}
+      gap={12}
+      data-tour="analytics-summary"
+    >
       <Grid.Item>
         <Card.Kpi>
           <Card.Kpi.Label>Pedidos no período</Card.Kpi.Label>

@@ -76,7 +76,7 @@ export function AnalyticsHeader({
               Como a empresa vem indo ·{" "}
               {formatDateRangeLabel(range.from, range.to)}
             </PanelHeader.Description>
-            <PanelHeader.Actions className="mt-6">
+            <PanelHeader.Actions className="mt-6" data-tour="analytics-filters">
               {canSelectSeller && (
                 <div className="desktop:w-[220px] w-full">
                   <Input.Select
@@ -118,16 +118,18 @@ export function AnalyticsHeader({
                 </div>
               )}
               <DashboardDateFilter value={range} onChange={onRangeChange} />
-              <Button.Root
-                appearance="outline"
-                color="neutral"
-                size="sm"
-                loading={exportingPdf}
-                onClick={onDownloadPdf}
-              >
-                <Button.Icon icon={FileDown} />
-                <Button.Title>Baixar PDF</Button.Title>
-              </Button.Root>
+              <span data-tour="analytics-pdf">
+                <Button.Root
+                  appearance="outline"
+                  color="neutral"
+                  size="sm"
+                  loading={exportingPdf}
+                  onClick={onDownloadPdf}
+                >
+                  <Button.Icon icon={FileDown} />
+                  <Button.Title>Baixar PDF</Button.Title>
+                </Button.Root>
+              </span>
             </PanelHeader.Actions>
           </PanelHeader.Left>
         </PanelHeader.Top>

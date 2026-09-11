@@ -55,7 +55,7 @@ export function SupportTable({
   setCurrentPage,
 }: Props) {
   return (
-    <Table.Root sort={sort}>
+    <Table.Root sort={sort} data-tour="support-table">
       <Table.CardHead>
         <Table.CardHead.Title>Atendimentos</Table.CardHead.Title>
         <Table.CardHead.Actions>

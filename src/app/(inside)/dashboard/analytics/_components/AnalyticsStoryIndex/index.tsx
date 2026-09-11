@@ -15,7 +15,7 @@ import { ANALYTICS_STORY } from "../../storyParts";
  */
 export function AnalyticsStoryIndex() {
   return (
-    <Card.Root>
+    <Card.Root data-tour="analytics-story">
       <Card.Header>
         <Card.Header.Title size="sm" weight="semibold">
           O que você vai ver, nesta ordem

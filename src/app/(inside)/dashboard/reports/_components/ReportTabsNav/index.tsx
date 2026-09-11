@@ -19,7 +19,7 @@ export function ReportTabsNav() {
   const suffix = query ? `?${query}` : "";
 
   return (
-    <Tabs.NavList>
+    <Tabs.NavList data-tour="reports-tabs">
       {REPORT_TABS.map((tab) => (
         <Tabs.NavItem
           key={tab.slug}

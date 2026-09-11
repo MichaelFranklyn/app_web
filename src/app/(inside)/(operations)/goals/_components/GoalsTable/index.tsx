@@ -30,7 +30,7 @@ interface Props {
  */
 export function GoalsTable({ groups, onOpen }: Props) {
   return (
-    <Table.Root>
+    <Table.Root data-tour="goals-table">
       <Table.Table>
         <Table.Header>
           <Table.Row>
