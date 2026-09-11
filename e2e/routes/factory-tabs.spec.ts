@@ -305,3 +305,95 @@ test("fábrica/pedidos: pedido faturado aparece por extenso, em português", asy
   await expect(page.getByText("Faturado")).toBeVisible();
   await expect(page.getByText("INVOICED")).toHaveCount(0);
 });
+
+/**
+ * Aba Contatos — a tela que faltava.
+ *
+ * O backend já tinha o CRUD de `factoryContacts` e o "Enviar à fábrica" do
+ * pedido mandava cadastrar o telefone "na aba Contatos da fábrica" — que não
+ * existia. Sem contato com telefone, o envio não tem para onde abrir.
+ */
+test("fábrica/contatos: cadastra um contato e a linha aparece", async ({
+  page,
+}) => {
+  const spy = await mockGraphql(page, {
+    FactoryContacts: () => ({ factoryContacts: conn([]) }),
+    CreateFactoryContact: () => ({
+      createFactoryContact: {
+        status: true,
+        message: "ok",
+        data: {
+          id: "fc-1",
+          name: "Central de Vendas",
+          role: "Televendas",
+          phone: "11988887777",
+          email: null,
+          isPrimary: true,
+          isActive: true,
+        },
+      },
+    }),
+  });
+
+  await page.goto(`${base}/contacts`);
+  await expect(
+    page.getByText("Nenhum contato cadastrado", { exact: false })
+  ).toBeVisible();
+
+  await page.getByRole("button", { name: "Adicionar contato" }).click();
+  const dialog = page.getByRole("dialog");
+  await dialog.getByLabel("Nome").fill("Central de Vendas");
+  await dialog.getByLabel("Cargo").fill("Televendas");
+  await dialog.getByLabel("Telefone").fill("11988887777");
+  await dialog.getByRole("button", { name: "Adicionar" }).click();
+
+  const variables = await spy.waitForCall("CreateFactoryContact");
+  expect(variables.input).toMatchObject({
+    factoryId: "factory-1",
+    name: "Central de Vendas",
+    role: "Televendas",
+    // Sai só com dígitos: é assim que o wa.me monta o link do envio.
+    phone: "11988887777",
+  });
+
+  // A linha entra pelo retorno da mutation, sem esperar o refetch.
+  await expect(
+    page.getByRole("row", { name: /Central de Vendas/ })
+  ).toBeVisible();
+});
+
+test("fábrica/contatos: remove um contato", async ({ page }) => {
+  await mockGraphql(page, {
+    FactoryContacts: () => ({
+      factoryContacts: conn([
+        {
+          id: "fc-1",
+          name: "Contato Antigo",
+          role: null,
+          phone: "11988887777",
+          email: null,
+          isPrimary: false,
+          isActive: true,
+        },
+      ]),
+    }),
+    DeleteFactoryContact: () => ({
+      deleteFactoryContact: { status: true, message: "ok" },
+    }),
+  });
+
+  await page.goto(`${base}/contacts`);
+  await page
+    .getByRole("row", { name: /Contato Antigo/ })
+    .getByRole("button", { name: "Remover contato" })
+    .click();
+  await page
+    .getByRole("dialog")
+    .getByRole("button", { name: "Remover" })
+    .click();
+
+  await expect(page.getByText("Contato removido")).toBeVisible();
+  await expect(page.getByRole("row", { name: /Contato Antigo/ })).toHaveCount(
+    0
+  );
+});

@@ -9,6 +9,7 @@ import {
   CLIENT_STOCK_CACHE_FIELDS,
   COMMISSION_CACHE_FIELDS,
   FACTORY_CACHE_FIELDS,
+  FACTORY_CONTACT_CACHE_FIELDS,
   ORDER_CACHE_FIELDS,
   PRICE_ITEM_CACHE_FIELDS,
   PRICE_LIST_CACHE_FIELDS,
@@ -229,6 +230,17 @@ const ASSUNTOS: Assunto[] = [
     delegacoes: {},
   },
   {
+    nome: "contato da fábrica",
+    constante: "FACTORY_CONTACT_CACHE_FIELDS",
+    campos: FACTORY_CONTACT_CACHE_FIELDS,
+    mutations: [
+      "createFactoryContact",
+      "updateFactoryContact",
+      "deleteFactoryContact",
+    ],
+    delegacoes: {},
+  },
+  {
     nome: "pessoa",
     constante: "USER_CACHE_FIELDS",
     campos: USER_CACHE_FIELDS,
@@ -385,6 +397,10 @@ describe("as listas por assunto", () => {
       "clientSupportCases",
       "clientSupportCounts",
     ]);
+  });
+
+  it("cobrem, no contato da fábrica, a lista que o envio do pedido também lê", () => {
+    expect(FACTORY_CONTACT_CACHE_FIELDS).toEqual(["factoryContacts"]);
   });
 
   it("cobrem, na pessoa, a lista, a ficha e o cadastro de vendedor", () => {

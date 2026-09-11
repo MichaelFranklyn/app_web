@@ -181,3 +181,12 @@ export const USER_CACHE_FIELDS = ["users", "user", "sellers"];
  * de clientes lê o mesmo catálogo.
  */
 export const CLIENT_NETWORK_CACHE_FIELDS = ["clientNetworks", "clientNetwork"];
+
+/**
+ * Um contato da fábrica nasceu, mudou ou saiu.
+ *
+ * Fora da aba, quem lê a mesma lista é o envio do pedido (Enviar à fábrica):
+ * ele escolhe o telefone do contato principal, e um contato cadastrado agora
+ * precisa aparecer lá sem recarregar a página.
+ */
+export const FACTORY_CONTACT_CACHE_FIELDS = ["factoryContacts"];
