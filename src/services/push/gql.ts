@@ -36,3 +36,19 @@ export const REMOVE_PUSH_SUBSCRIPTION_MUTATION = gql`
     }
   }
 `;
+
+/**
+ * O aviso que a pessoa manda para si mesma logo depois de ativar.
+ *
+ * Inscrever o aparelho não prova que o aviso chega: a permissão do sistema pode
+ * estar desligada, o celular em "Não perturbe", o iPhone fora da tela de início.
+ * Só a notificação aparecendo na barra responde a pergunta que ela tem.
+ */
+export const SEND_TEST_PUSH_MUTATION = gql`
+  mutation SendTestPush {
+    sendTestPush {
+      status
+      message
+    }
+  }
+`;

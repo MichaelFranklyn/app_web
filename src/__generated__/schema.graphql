@@ -4831,6 +4831,15 @@ extend type Query {
 extend type Mutation {
   registerPushSubscription(input: PushSubscriptionInput!): BaseResponse!
   removePushSubscription(endpoint: String!): BaseResponse!
+  """
+  Manda um aviso de teste para os aparelhos de quem chamou.
+
+  Existe porque a inscrição "dar certo" não prova nada: o aparelho pode estar
+  registrado e o aviso não chegar (permissão do sistema desligada no Android,
+  foco/Não perturbe, app fechado no iOS sem estar na tela de início). Só a
+  notificação aparecendo na barra responde a pergunta que a pessoa tem.
+  """
+  sendTestPush: BaseResponse!
 }
 
 # ── Faturamento: as duplicatas do período ───────────────────────────────

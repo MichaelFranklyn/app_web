@@ -115,20 +115,25 @@ export default function InsideShell({
               sizes="232px"
               className={cn("h-auto w-full", isCollapsed && "desktop:hidden")}
             />
-            {/* Só o ícone quando recolhida no desktop. Era um .svg de 148 KB
-              com um PNG embutido em base64, servido `unoptimized` (o otimizador
-              recusa SVG sem dangerouslyAllowSVG) para aparecer com 28px de
-              altura. Como PNG de verdade ele passa pelo otimizador e chega ao
-              navegador no tamanho em que é exibido. */}
+            {/* Só o SÍMBOLO quando recolhida no desktop.
+              Era `/logo.png`, que apesar do nome é a marca INTEIRA (símbolo +
+              "GIRUS SALES CRM SOFTWARE") numa proporção mais quadrada — dentro
+              dos 72px da barra recolhida ela virava um borrão ilegível de 51px
+              de largura. `/icon-192.png` é o símbolo puro, quadrado, e já vem
+              no precache do service worker.
+              (Antes do `/logo.png` era um .svg de 148 KB com um PNG embutido em
+              base64, servido `unoptimized` porque o otimizador recusa SVG sem
+              `dangerouslyAllowSVG`. Como PNG de verdade ele passa pelo
+              otimizador e chega no tamanho em que é exibido.) */}
             <Image
-              src="/logo.png"
+              src="/icon-192.png"
               alt="Girus"
-              width={528}
-              height={288}
+              width={192}
+              height={192}
               priority={isCollapsed}
-              sizes="52px"
+              sizes="32px"
               className={cn(
-                "hidden h-[28px] w-auto",
+                "hidden h-[28px] w-[28px]",
                 isCollapsed && "desktop:block"
               )}
             />

@@ -25,6 +25,7 @@ import {
   PUSH_PUBLIC_KEY_QUERY,
   REGISTER_PUSH_SUBSCRIPTION_MUTATION,
   REMOVE_PUSH_SUBSCRIPTION_MUTATION,
+  SEND_TEST_PUSH_MUTATION,
 } from "./gql";
 import { usePushNotifications } from "./usePushNotifications";
 
@@ -59,6 +60,20 @@ const registerMock = (deviceLabel: string) => ({
         __typename: "BaseResponse",
         status: true,
         message: "ok",
+      },
+    },
+  },
+});
+
+const testPushMock = (status = true) => ({
+  request: { query: SEND_TEST_PUSH_MUTATION },
+  maxUsageCount: 5,
+  result: {
+    data: {
+      sendTestPush: {
+        __typename: "BaseResponse",
+        status,
+        message: "Aviso de teste enviado para 1 aparelho(s)",
       },
     },
   },
@@ -149,7 +164,11 @@ describe("usePushNotifications", () => {
   it("ativar inscreve o aparelho e registra no backend", async () => {
     subscribe.mockResolvedValue(INSCRICAO);
     const { result } = renderHook(() => usePushNotifications(), {
-      wrapper: wrapper([keyMock("chave"), registerMock("Chrome no Android")]),
+      wrapper: wrapper([
+        keyMock("chave"),
+        registerMock("Chrome no Android"),
+        testPushMock(),
+      ]),
     });
     await waitFor(() => expect(result.current.status).toBe("off"));
 
@@ -158,6 +177,29 @@ describe("usePushNotifications", () => {
     });
 
     expect(subscribe).toHaveBeenCalledWith("chave");
+    await waitFor(() => expect(result.current.status).toBe("on"));
+  });
+
+  it("o aviso de teste que não sai não reprova a ativação", async () => {
+    // Estar inscrito não prova que o aviso chega; mas se o teste falhar, quem
+    // acabou de ativar não pode ver "erro ao ativar" — a ativação deu certo.
+    subscribe.mockResolvedValue(INSCRICAO);
+    const { result } = renderHook(() => usePushNotifications(), {
+      wrapper: wrapper([
+        keyMock("chave"),
+        registerMock("Chrome no Android"),
+        {
+          request: { query: SEND_TEST_PUSH_MUTATION },
+          error: new Error("backend fora"),
+        },
+      ]),
+    });
+    await waitFor(() => expect(result.current.status).toBe("off"));
+
+    await act(async () => {
+      await result.current.enable();
+    });
+
     await waitFor(() => expect(result.current.status).toBe("on"));
   });
 
@@ -183,7 +225,13 @@ describe("usePushNotifications", () => {
   it("desligar descarta a inscrição dos dois lados", async () => {
     permitir("granted");
     getSubscription.mockResolvedValue({ endpoint: INSCRICAO.endpoint });
-    unsubscribe.mockResolvedValue(INSCRICAO.endpoint);
+    // Desinscrever muda o que o NAVEGADOR responde daí em diante — o mock
+    // precisa acompanhar, senão a remedição (que existe para o caso do service
+    // worker registrar tarde) acha a inscrição de novo e devolve "ligado".
+    unsubscribe.mockImplementation(async () => {
+      getSubscription.mockResolvedValue(null);
+      return INSCRICAO.endpoint;
+    });
     const { result } = renderHook(() => usePushNotifications(), {
       wrapper: wrapper([keyMock("chave"), removeMock()]),
     });
@@ -201,7 +249,10 @@ describe("usePushNotifications", () => {
     // Acontece com quem limpou os dados do site e volta aqui para desligar.
     permitir("granted");
     getSubscription.mockResolvedValue({ endpoint: INSCRICAO.endpoint });
-    unsubscribe.mockResolvedValue(null);
+    unsubscribe.mockImplementation(async () => {
+      getSubscription.mockResolvedValue(null);
+      return null;
+    });
     const { result } = renderHook(() => usePushNotifications(), {
       wrapper: wrapper([keyMock("chave")]),
     });

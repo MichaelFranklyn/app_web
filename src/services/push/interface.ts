@@ -20,6 +20,13 @@ export interface RemovePushSubscriptionResponse {
   };
 }
 
+export interface SendTestPushResponse {
+  sendTestPush: {
+    status: boolean;
+    message: string;
+  };
+}
+
 /**
  * Em que pé está o aviso NESTE aparelho. A permissão é do navegador e some do
  * nosso alcance: o usuário pode tê-la negado uma vez e nunca mais ser
