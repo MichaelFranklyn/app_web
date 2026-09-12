@@ -1,6 +1,6 @@
 # AUTO-GERADO por scripts/pull-schema.mjs — NÃO editar à mão.
 # Snapshot do schema do backend (app_user). Atualize com: npm run schema:pull
-# Fonte: 52 arquivos .graphql merge-ados (mesma regra do Ariadne).
+# Fonte: 53 arquivos .graphql merge-ados (mesma regra do Ariadne).
 
 input BaseListInput {
   filters: [FieldFilterInput!] = null
@@ -4801,6 +4801,36 @@ extend type Mutation {
   setProductImages(input: SetProductImagesInput!): SetProductImagesResultDataResponse!
   updateProduct(id: UUID!, input: UpdateProductInput!): ProductTypeDataResponse!
   deleteProduct(id: UUID!): BaseResponse!
+}
+
+"""A inscrição que o navegador devolve em `pushManager.subscribe`."""
+input PushSubscriptionInput {
+  endpoint: String!
+  p256dh: String!
+  auth: String!
+  """Como o usuário reconhece o aparelho na tela ("Chrome no Android")."""
+  deviceLabel: String
+}
+
+"""
+Chave pública VAPID do servidor. Vazia = push desligado neste ambiente, e o
+front esconde o botão de ativar em vez de inscrever um aparelho que nunca
+receberia nada.
+"""
+type PushPublicKeyResponse {
+  status: Boolean!
+  code: Int!
+  message: String!
+  data: String!
+}
+
+extend type Query {
+  pushPublicKey: PushPublicKeyResponse!
+}
+
+extend type Mutation {
+  registerPushSubscription(input: PushSubscriptionInput!): BaseResponse!
+  removePushSubscription(endpoint: String!): BaseResponse!
 }
 
 # ── Faturamento: as duplicatas do período ───────────────────────────────

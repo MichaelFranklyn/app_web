@@ -155,3 +155,84 @@ self.addEventListener("fetch", (event) => {
     );
   }
 });
+
+/**
+ * ─────────────────────────────────────────────────────────────────────────────
+ * AVISO NO APARELHO (Web Push)
+ * ─────────────────────────────────────────────────────────────────────────────
+ * Isto é o que só o service worker sabe fazer: o app está FECHADO e o serviço de
+ * push do navegador acorda este arquivo para desenhar a notificação. Nada aqui
+ * fala com o backend nem lê sessão — o conteúdo inteiro vem cifrado no evento
+ * (`event.data`), e é o backend que decide o que cada usuário recebe.
+ *
+ * A regra de segurança do topo continua valendo: não guardamos nada em cache e
+ * não buscamos dado de usuário aqui.
+ */
+
+const NOTIFICATION_ICON = "/icon-192.png";
+
+/** Aviso mínimo para o caso de o payload vir vazio ou ilegível. */
+const FALLBACK_PUSH = { title: "Girus", body: "Você tem um aviso novo." };
+
+function parsePush(event) {
+  if (!event.data) return FALLBACK_PUSH;
+  try {
+    const dados = event.data.json();
+    // Sem título não há notificação: alguns navegadores mostram "Site atualizado
+    // em segundo plano" por conta própria se o SW não chamar showNotification.
+    if (!dados || !dados.title) return FALLBACK_PUSH;
+    return dados;
+  } catch {
+    return FALLBACK_PUSH;
+  }
+}
+
+self.addEventListener("push", (event) => {
+  const dados = parsePush(event);
+
+  event.waitUntil(
+    self.registration.showNotification(dados.title, {
+      body: dados.body,
+      icon: NOTIFICATION_ICON,
+      badge: NOTIFICATION_ICON,
+      // Agrupa por assunto: cinco pedidos faturados na mesma manhã trocam o
+      // aviso anterior em vez de empilhar cinco iguais na barra.
+      tag: dados.tag,
+      // `renotify` sem `tag` é erro em alguns navegadores — daí o duplo teste.
+      renotify: Boolean(dados.tag),
+      // O destino viaja no `data` porque o clique acontece noutro evento, e lá
+      // o payload original já não existe.
+      data: { url: dados.url || "/dashboard" },
+    }),
+  );
+});
+
+self.addEventListener("notificationclick", (event) => {
+  event.notification.close();
+
+  const destino = new URL(
+    (event.notification.data && event.notification.data.url) || "/dashboard",
+    self.location.origin,
+  ).href;
+
+  event.waitUntil(
+    (async () => {
+      const abas = await self.clients.matchAll({
+        type: "window",
+        includeUncontrolled: true,
+      });
+
+      // Reaproveitar a aba aberta em vez de abrir outra: o vendedor trabalha no
+      // celular, e cada clique num aviso abrindo uma janela nova deixaria cinco
+      // cópias do app disputando a mesma sessão.
+      for (const aba of abas) {
+        if (new URL(aba.url).origin !== self.location.origin) continue;
+        await aba.focus();
+        if ("navigate" in aba) await aba.navigate(destino);
+        return;
+      }
+
+      await self.clients.openWindow(destino);
+    })(),
+  );
+});

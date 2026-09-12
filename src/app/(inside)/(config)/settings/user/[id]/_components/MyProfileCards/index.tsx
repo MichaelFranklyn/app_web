@@ -15,6 +15,7 @@ import {
 import { ChangePasswordModal } from "../ChangePasswordModal";
 import { EditMyProfileModal } from "../EditMyProfileModal";
 import { PasswordCard } from "../PasswordCard";
+import { PushNotificationsCard } from "../PushNotificationsCard";
 
 interface Props {
   user: UserDetail;
@@ -72,6 +73,10 @@ export function MyProfileCards({ user, canEnableSeller, onRefetch }: Props) {
           onChangePassword={() => setChangePasswordOpen(true)}
           dataTour="profile-password"
         />
+
+        {/* Só no próprio perfil: a autorização é do aparelho de quem está
+            usando, e o gestor não tem como ligá-la no celular de outra pessoa. */}
+        <PushNotificationsCard />
       </Grid.Root>
 
       <EditMyProfileModal
