@@ -5,6 +5,7 @@ import { useRouter } from "next/navigation";
 import React, { useMemo, useState } from "react";
 
 import { useAsyncAction } from "@/hooks/useAsyncAction";
+import { usePushNotifications } from "@/services/push";
 import { useInvalidateQueriesClient } from "@/hooks/useInvalidateQueries";
 import { useQueryErrorToast } from "@/hooks/useQueryErrorToast";
 import { useOptimisticList } from "@/hooks/useOptimisticList";
@@ -78,6 +79,16 @@ export function useNotificationCenter() {
 
   const unreadCount = unread.data.count;
   const items = list.items;
+
+  // O aviso no aparelho é medido só com o sino ABERTO (`skip: !open`): o sino
+  // vive na topbar de todas as páginas, e perguntar antes custaria uma query e
+  // uma espera pelo service worker a cada troca de rota.
+  const push = usePushNotifications({ skip: !open });
+
+  // O convite só existe para quem PODE ativar aqui: quem já ativou, quem
+  // bloqueou (só o navegador desfaz) e quem está num aparelho sem suporte não
+  // veem nada. Desligar continua sendo no perfil — o sino só convida.
+  const canInvitePush = push.status === "off";
 
   // `cache-and-network` revalida em TODA abertura: se mostrássemos o esqueleto
   // sempre que `loading` fosse true, a segunda abertura piscaria por cima de uma
@@ -172,5 +183,8 @@ export function useNotificationCenter() {
     isLoading,
     handleItemClick,
     handleMarkAllRead,
+    canInvitePush,
+    enablePush: push.enable,
+    isEnablingPush: push.isLoading,
   };
 }

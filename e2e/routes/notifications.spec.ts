@@ -75,3 +75,62 @@ test("notificações: o sino aponta para os insights", async ({ page }) => {
     page.getByRole("heading", { name: "Insights", level: 1 })
   ).toBeVisible();
 });
+
+/**
+ * O convite para receber os avisos no aparelho mora no rodapé do sino — é onde
+ * a pessoa já está pensando em notificação. Ele existe só para quem PODE ativar:
+ * sem chave VAPID no servidor, o sino não convida ninguém.
+ */
+test("notificações: o sino convida a receber os avisos no aparelho", async ({
+  page,
+}) => {
+  // O Chromium headless nasce com as notificações negadas (e nem
+  // `grantPermissions` muda isso) — o convite não apareceria para um navegador
+  // que já bloqueou. Fingir a resposta põe a tela no estado de quem pode ativar.
+  await page.addInitScript(() => {
+    Object.defineProperty(Notification, "permission", {
+      configurable: true,
+      get: () => "default",
+    });
+  });
+
+  await mockGraphql(page, {
+    ...emptyDashboardQueries,
+    MyUnreadNotificationsCount: () => ({
+      myUnreadNotificationsCount: { status: true, data: 1 },
+    }),
+    MyNotifications: () => ({ my_notifications: conn([notification()]) }),
+    PushPublicKey: () => ({
+      pushPublicKey: { status: true, data: "BEl62iUYgUivxIkv69yViEuiBIa40HI" },
+    }),
+  });
+
+  await page.goto("/dashboard");
+  await page.getByRole("button", { name: "Notificações" }).click();
+
+  await expect(page.getByText("Receber estes avisos no aparelho")).toBeVisible({
+    timeout: 15000,
+  });
+});
+
+test("notificações: sem chave no servidor, o sino não convida", async ({
+  page,
+}) => {
+  await mockGraphql(page, {
+    ...emptyDashboardQueries,
+    MyUnreadNotificationsCount: () => ({
+      myUnreadNotificationsCount: { status: true, data: 1 },
+    }),
+    MyNotifications: () => ({ my_notifications: conn([notification()]) }),
+    PushPublicKey: () => ({ pushPublicKey: { status: true, data: "" } }),
+  });
+
+  await page.goto("/dashboard");
+  await page.getByRole("button", { name: "Notificações" }).click();
+
+  // A notificação na lista prova que o dropdown abriu antes da negativa.
+  await expect(page.getByText("Nova visita agendada")).toBeVisible();
+  await expect(page.getByText("Receber estes avisos no aparelho")).toHaveCount(
+    0
+  );
+});

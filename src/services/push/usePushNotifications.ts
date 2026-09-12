@@ -29,6 +29,17 @@ import {
   resolvePushStatus,
 } from "./utils";
 
+interface Options {
+  /**
+   * Adia a medição (e a query da chave) até a tela precisar dela.
+   *
+   * Existe por causa do sino: ele vive na topbar de TODAS as páginas, e sem
+   * isto cada troca de rota pagaria uma query e uma espera pelo service worker
+   * para responder a uma pergunta que só interessa com o dropdown aberto.
+   */
+  skip?: boolean;
+}
+
 /**
  * Motor do aviso no aparelho: mede em que pé está ESTE navegador e liga/desliga.
  *
@@ -36,12 +47,22 @@ import {
  * aparelho. O backend guarda a inscrição para poder enviar; quem manda é sempre
  * o que o navegador responde aqui.
  */
-export function usePushNotifications() {
+export function usePushNotifications({ skip = false }: Options = {}) {
   const [status, setStatus] = useState<PushStatus>("loading");
   const { execute, isLoading } = useAsyncAction();
 
-  const { data } = useQuery<PushPublicKeyResponse>(PUSH_PUBLIC_KEY_QUERY);
+  const { data, error } = useQuery<PushPublicKeyResponse>(
+    PUSH_PUBLIC_KEY_QUERY,
+    { skip }
+  );
   const publicKey = data?.pushPublicKey?.data ?? "";
+
+  // Uma resposta é uma resposta — inclusive a que não veio. Enquanto a medição
+  // dependia só de `data`, a query falhando (API fora do ar, ou um backend mais
+  // velho que ainda não conhece `pushPublicKey`) deixava a tela no esqueleto
+  // PARA SEMPRE. Erro aqui significa a mesma coisa que chave vazia: não há push
+  // neste ambiente, então o card some em vez de ficar carregando.
+  const answered = Boolean(data) || Boolean(error);
 
   const [registerSubscription] = useMutation<RegisterPushSubscriptionResponse>(
     REGISTER_PUSH_SUBSCRIPTION_MUTATION
@@ -53,7 +74,7 @@ export function usePushNotifications() {
   // Enquanto a chave não chega, `publicKey` é "" — e "" é o mesmo que push
   // desligado. Por isso a medição espera a query terminar antes de concluir.
   useEffect(() => {
-    if (!data) return;
+    if (!answered) return;
     let ativo = true;
 
     (async () => {
@@ -74,7 +95,7 @@ export function usePushNotifications() {
     return () => {
       ativo = false;
     };
-  }, [data, publicKey]);
+  }, [answered, publicKey]);
 
   const enable = useCallback(async () => {
     await execute(

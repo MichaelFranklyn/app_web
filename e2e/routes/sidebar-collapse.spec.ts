@@ -53,3 +53,38 @@ test("sidebar: Relatórios não é mais um item do menu", async ({ page }) => {
   await page.goto("/dashboard/reports/sales");
   await expect(page.getByRole("heading", { name: "Relatórios" })).toBeVisible();
 });
+
+/**
+ * Recolhida, a marca é só o ÍCONE — a logo horizontal não cabe nos 72px e
+ * vazaria por cima do conteúdo. As duas imagens ficam no DOM (quem escolhe é o
+ * breakpoint: no drawer do celular a completa é a certa), então o que precisa de
+ * guarda é qual delas está VISÍVEL.
+ */
+test("sidebar: recolhida mostra o ícone, não a logo inteira", async ({
+  page,
+}) => {
+  await mockGraphql(page, {});
+  await grantRole(page, "OWNER");
+  await page.setViewportSize({ width: 1440, height: 900 });
+  await page.goto("/orders");
+
+  // As imagens passam pelo otimizador do Next, então o `src` é
+  // `/_next/image?url=%2Flogo.png...` — daí o `%2F` no seletor do ícone, que
+  // também o separa de `horizontal_logo.png`.
+  const logoInteira = nav(page).locator("img[src*='horizontal_logo']");
+  const soOIcone = nav(page).locator("img[src*='%2Flogo.png']");
+
+  await expect(
+    page.getByRole("button", { name: "Expandir menu" })
+  ).toBeVisible();
+  await expect(logoInteira).toBeHidden();
+  await expect(soOIcone).toBeVisible();
+
+  // Ida e volta pelo clique, que é como o usuário faz.
+  await page.getByRole("button", { name: "Expandir menu" }).click();
+  await expect(logoInteira).toBeVisible();
+
+  await page.getByRole("button", { name: "Recolher menu" }).click();
+  await expect(logoInteira).toBeHidden();
+  await expect(soOIcone).toBeVisible();
+});
