@@ -1,6 +1,13 @@
 import { describe, expect, it } from "vitest";
 
-import { addMonths, isBeforeMonth, isInMonth, monthEndIso } from "./month";
+import {
+  addMonths,
+  isBeforeMonth,
+  isInMonth,
+  monthEndIso,
+  monthLabel,
+  monthStartIso,
+} from "./month";
 
 describe("isBeforeMonth", () => {
   it("compara na ordem do calendário, e não campo a campo", () => {
@@ -43,5 +50,19 @@ describe("isInMonth", () => {
 describe("monthEndIso", () => {
   it("fevereiro de ano bissexto termina no dia 29", () => {
     expect(monthEndIso({ year: 2028, month: 2 })).toBe("2028-02-29");
+  });
+});
+
+describe("monthLabel", () => {
+  it("escreve o mês por extenso, como o documento o mostra", () => {
+    expect(monthLabel({ year: 2026, month: 7 })).toBe("julho de 2026");
+    expect(monthLabel({ year: 2026, month: 12 })).toBe("dezembro de 2026");
+  });
+});
+
+describe("monthStartIso", () => {
+  it("devolve o dia 1º com dois dígitos — é como as metas gravam o período", () => {
+    expect(monthStartIso({ year: 2026, month: 9 })).toBe("2026-09-01");
+    expect(monthStartIso({ year: 2026, month: 12 })).toBe("2026-12-01");
   });
 });

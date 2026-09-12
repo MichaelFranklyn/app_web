@@ -5,6 +5,7 @@ import {
   scoreBarColor,
   scoreLevel,
   ScoreDimensions,
+  visitPriority,
   URGENT_THRESHOLD,
 } from "./score";
 
@@ -216,5 +217,18 @@ describe("explainScore com peso adaptativo (lastro do estoque)", () => {
       stockConfidence: undefined,
     });
     expect(reasons.map((r) => r.key)).toEqual(["scoreRecency"]);
+  });
+});
+
+describe("visitPriority", () => {
+  it("dá ao card de visita o mesmo nome e a mesma cor da tag do score", () => {
+    // Card, tag e barra leem a MESMA escala: divergir faria a visita parecer
+    // menos (ou mais) urgente do que o cliente na lista.
+    const urgente = visitPriority(90);
+    const tranquilo = visitPriority(5);
+
+    expect(urgente).toEqual({ label: "Urgente", tone: "red" });
+    expect(tranquilo.label).toBe(scoreLevel(5).label);
+    expect(tranquilo.tone).toBe(scoreLevel(5).tone);
   });
 });

@@ -4,6 +4,7 @@ import * as XLSX from "xlsx";
 
 import { buildOrderSheetFile } from "./build";
 import { sheetPackageFixture } from "./fixture";
+import type { OrderSheetBrand } from "./interface";
 import {
   CLIENT_NOTE_ROW,
   COL,
@@ -276,5 +277,99 @@ describe("ficha de pedido", () => {
     expect(workbook.getWorksheet("_META")!.getCell("B2").value).toBe(
       "girus-order-sheet"
     );
+  });
+});
+
+describe("marca da ficha", () => {
+  /** Um PNG de 1px: o teste olha onde a imagem entra, não o que ela mostra. */
+  const PNG =
+    "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mP8z8BQDwAEhQGAhKmMIQAAAABJRU5ErkJggg==";
+
+  const reopenWithBrand = async (brand: OrderSheetBrand) => {
+    const file = await buildOrderSheetFile(
+      sheetPackageFixture(),
+      undefined,
+      brand
+    );
+    const workbook = new ExcelJS.Workbook();
+    await workbook.xlsx.load(file);
+    return workbook;
+  };
+
+  it("põe a representação à esquerda e o sistema à direita", async () => {
+    // A ficha é documento que o cliente vê: quem assina é a representação, e a
+    // marca do sistema fica do outro lado, discreta, como no rodapé dos PDFs.
+    const workbook = await reopenWithBrand({
+      companyLogo: { dataUrl: PNG, width: 200, height: 100 },
+      companyName: "Contato Rep.",
+      girusLogo: { dataUrl: PNG, width: 100, height: 100 },
+    });
+    const form = workbook.getWorksheet("FICHA DE PEDIDO")!;
+    const images = form.getImages();
+
+    expect(images).toHaveLength(2);
+    expect(images[0].range.tl.nativeCol).toBe(0);
+    expect(images[1].range.tl.nativeCol).toBe(7);
+    // Com logo, o nome da empresa não é escrito — seria a marca duas vezes.
+    expect(form.getCell(`A${HEAD.logos}`).value).toBeNull();
+  });
+
+  it("respeita a proporção da logo na altura da faixa", async () => {
+    const workbook = await reopenWithBrand({
+      companyLogo: { dataUrl: PNG, width: 300, height: 100 },
+    });
+    const [image] = workbook.getWorksheet("FICHA DE PEDIDO")!.getImages();
+
+    // `ext` sai no arquivo mas não está no tipo público do ExcelJS.
+    const { ext } = image.range as unknown as {
+      ext: { width: number; height: number };
+    };
+    expect(ext).toMatchObject({ width: 102, height: 34 });
+  });
+
+  it("sem logo, escreve o nome da empresa — a ficha tem de dizer quem emite", async () => {
+    const workbook = await reopenWithBrand({ companyName: "Contato Rep." });
+    const form = workbook.getWorksheet("FICHA DE PEDIDO")!;
+
+    expect(form.getImages()).toHaveLength(0);
+    expect(form.getCell(`A${HEAD.logos}`).value).toBe("Contato Rep.");
+    expect(form.getCell(`A${HEAD.logos}`).font).toMatchObject({ bold: true });
+  });
+
+  it("sem marca nenhuma, a ficha sai assim mesmo", async () => {
+    // Logo que não carregou não pode impedir o vendedor de levar a ficha.
+    const workbook = await reopenWithBrand({});
+    const form = workbook.getWorksheet("FICHA DE PEDIDO")!;
+
+    expect(form.getImages()).toHaveLength(0);
+    expect(form.getCell(`A${HEAD.logos}`).value).toBeNull();
+  });
+
+  it("guarda a logo no formato em que ela veio", async () => {
+    const workbook = await reopenWithBrand({
+      companyLogo: {
+        dataUrl: "data:image/jpeg;base64,/9j/4AAQSkZJRg==",
+        width: 100,
+        height: 100,
+      },
+    });
+    const [image] = workbook.getWorksheet("FICHA DE PEDIDO")!.getImages();
+
+    expect(workbook.getImage(Number(image.imageId)).extension).toBe("jpeg");
+  });
+});
+
+describe("fábrica sem prazo cadastrado", () => {
+  it("não nomeia intervalo vazio", async () => {
+    // Um nome definido apontando para intervalo inexistente faz o Excel abrir
+    // a ficha com aviso de erro; sem prazos, simplesmente não há nome.
+    const pkg = sheetPackageFixture();
+    pkg.factories[1].paymentTerms = [];
+    const file = await buildOrderSheetFile(pkg);
+    const parsed = XLSX.read(file, { type: "array", bookFiles: true });
+    const names = (parsed.Workbook?.Names ?? []).map((name) => name.Name);
+
+    expect(names).toContain("PRAZOS_2");
+    expect(names).not.toContain("PRAZOS_3");
   });
 });
