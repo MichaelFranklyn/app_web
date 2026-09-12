@@ -10,9 +10,9 @@ import { subscriptionToInput, urlBase64ToUint8Array } from "./utils";
 
 /**
  * O service worker pode ainda não ter sido registrado quando a tela monta — ele
- * entra depois do `load`, para não competir com o JS da página. Esperamos por
- * ele um tempo curto, e desistimos: em desenvolvimento o SW nem é registrado, e
- * um `await navigator.serviceWorker.ready` ali ficaria pendurado para sempre.
+ * entra depois do `load`, para não competir com o JS da página. Quem PRECISA
+ * dele (inscrever o aparelho) espera esse tempo; quem só está medindo, não —
+ * ver `getRegistration`.
  */
 const REGISTRATION_TIMEOUT_MS = 4000;
 
@@ -44,11 +44,19 @@ export function isInstalledApp(): boolean {
   );
 }
 
-export async function getRegistration(): Promise<ServiceWorkerRegistration | null> {
+export async function getRegistration({
+  /**
+   * `false` responde com o que já existe, na hora. É o que a MEDIÇÃO usa: em
+   * desenvolvimento o SW nem é registrado, e esperar por ele deixava o card do
+   * perfil quatro segundos no esqueleto para concluir o óbvio. Quem vai
+   * inscrever o aparelho continua esperando — aí o registro é indispensável.
+   */
+  wait = true,
+}: { wait?: boolean } = {}): Promise<ServiceWorkerRegistration | null> {
   if (!isPushSupported()) return null;
 
   const existente = await navigator.serviceWorker.getRegistration();
-  if (existente) return existente;
+  if (existente || !wait) return existente ?? null;
 
   const espera = new Promise<null>((resolve) =>
     window.setTimeout(() => resolve(null), REGISTRATION_TIMEOUT_MS)
@@ -56,8 +64,10 @@ export async function getRegistration(): Promise<ServiceWorkerRegistration | nul
   return Promise.race([navigator.serviceWorker.ready, espera]);
 }
 
-export async function getSubscription(): Promise<PushSubscription | null> {
-  const registration = await getRegistration();
+export async function getSubscription(
+  options: { wait?: boolean } = {}
+): Promise<PushSubscription | null> {
+  const registration = await getRegistration(options);
   if (!registration) return null;
   return registration.pushManager.getSubscription();
 }
@@ -74,7 +84,7 @@ export async function subscribe(publicKey: string) {
   const permissao = await Notification.requestPermission();
   if (permissao !== "granted") return null;
 
-  const registration = await getRegistration();
+  const registration = await getRegistration({ wait: true });
   if (!registration) return null;
 
   const subscription = await registration.pushManager.subscribe({

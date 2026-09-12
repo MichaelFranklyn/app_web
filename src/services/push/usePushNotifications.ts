@@ -16,12 +16,14 @@ import {
   PUSH_PUBLIC_KEY_QUERY,
   REGISTER_PUSH_SUBSCRIPTION_MUTATION,
   REMOVE_PUSH_SUBSCRIPTION_MUTATION,
+  SEND_TEST_PUSH_MUTATION,
 } from "./gql";
 import {
   PushPublicKeyResponse,
   PushStatus,
   RegisterPushSubscriptionResponse,
   RemovePushSubscriptionResponse,
+  SendTestPushResponse,
 } from "./interface";
 import {
   describeDevice,
@@ -70,6 +72,9 @@ export function usePushNotifications({ skip = false }: Options = {}) {
   const [removeSubscription] = useMutation<RemovePushSubscriptionResponse>(
     REMOVE_PUSH_SUBSCRIPTION_MUTATION
   );
+  const [sendTestPush] = useMutation<SendTestPushResponse>(
+    SEND_TEST_PUSH_MUTATION
+  );
 
   // Enquanto a chave não chega, `publicKey` é "" — e "" é o mesmo que push
   // desligado. Por isso a medição espera a query terminar antes de concluir.
@@ -79,7 +84,14 @@ export function usePushNotifications({ skip = false }: Options = {}) {
 
     (async () => {
       const isSupported = isPushSupported();
-      const subscription = isSupported ? await getSubscription() : null;
+      // `wait: false`: a medição responde com o que já existe. O service worker
+      // entra depois do `load` da página, e esperar por ele deixava o card
+      // quatro segundos no esqueleto — em desenvolvimento, onde o SW nem é
+      // registrado, os quatro segundos eram certos. Se ele chegar depois e
+      // houver inscrição, o efeito seguinte corrige.
+      const subscription = isSupported
+        ? await getSubscription({ wait: false })
+        : null;
       if (!ativo) return;
 
       setStatus(
@@ -96,6 +108,24 @@ export function usePushNotifications({ skip = false }: Options = {}) {
       ativo = false;
     };
   }, [answered, publicKey]);
+
+  // Rede de segurança do `wait: false` acima: em produção o service worker pode
+  // registrar DEPOIS de a tela montar, e um aparelho já inscrito apareceria como
+  // "pode ativar". Quando ele chega, remedimos uma vez — só para corrigir para
+  // "ligado", nunca para o contrário.
+  useEffect(() => {
+    if (status !== "off") return;
+    let ativo = true;
+
+    (async () => {
+      const subscription = await getSubscription({ wait: true });
+      if (ativo && subscription) setStatus("on");
+    })();
+
+    return () => {
+      ativo = false;
+    };
+  }, [status]);
 
   const enable = useCallback(async () => {
     await execute(
@@ -126,10 +156,19 @@ export function usePushNotifications({ skip = false }: Options = {}) {
             payload?.message ?? "Não foi possível ativar os avisos"
           );
         }
+
+        // Um aviso de teste logo em seguida: estar inscrito NÃO prova que ele
+        // chega — a permissão do sistema pode estar desligada, o celular em
+        // "Não perturbe", o iPhone fora da tela de início. Falha aqui não
+        // reprova a ativação, que já deu certo; por isso o erro é engolido em
+        // vez de derrubar a ação inteira.
+        await sendTestPush().catch(() => undefined);
+
         return payload;
       },
       {
-        successMessage: "Pronto: os avisos vão chegar neste aparelho.",
+        successMessage:
+          "Pronto! Mandamos um aviso de teste — ele deve aparecer neste aparelho em instantes.",
         onSuccess: () => setStatus("on"),
         onError: () => {
           // A permissão pode ter sido negada agora: relê do navegador em vez de
@@ -140,7 +179,7 @@ export function usePushNotifications({ skip = false }: Options = {}) {
         },
       }
     );
-  }, [execute, publicKey, registerSubscription]);
+  }, [execute, publicKey, registerSubscription, sendTestPush]);
 
   const disable = useCallback(async () => {
     await execute(
