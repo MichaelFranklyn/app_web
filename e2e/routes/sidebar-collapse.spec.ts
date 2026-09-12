@@ -55,12 +55,16 @@ test("sidebar: Relatórios não é mais um item do menu", async ({ page }) => {
 });
 
 /**
- * Recolhida, a marca é só o ÍCONE — a logo horizontal não cabe nos 72px e
- * vazaria por cima do conteúdo. As duas imagens ficam no DOM (quem escolhe é o
- * breakpoint: no drawer do celular a completa é a certa), então o que precisa de
- * guarda é qual delas está VISÍVEL.
+ * Recolhida, a marca é só o SÍMBOLO — nos 72px da barra, qualquer versão com
+ * texto vira um borrão. Já aconteceu: a barra usava `/logo.png`, que apesar do
+ * nome é a marca inteira ("GIRUS SALES CRM SOFTWARE") em proporção quadrada, e
+ * ela aparecia espremida em 51px de largura.
+ *
+ * As três imagens ficam no DOM (quem escolhe é o breakpoint: no drawer do
+ * celular a horizontal é a certa), então o que precisa de guarda é qual delas
+ * está VISÍVEL.
  */
-test("sidebar: recolhida mostra o ícone, não a logo inteira", async ({
+test("sidebar: recolhida mostra o símbolo, não a marca inteira", async ({
   page,
 }) => {
   await mockGraphql(page, {});
@@ -68,17 +72,18 @@ test("sidebar: recolhida mostra o ícone, não a logo inteira", async ({
   await page.setViewportSize({ width: 1440, height: 900 });
   await page.goto("/orders");
 
-  // As imagens passam pelo otimizador do Next, então o `src` é
-  // `/_next/image?url=%2Flogo.png...` — daí o `%2F` no seletor do ícone, que
-  // também o separa de `horizontal_logo.png`.
+  // O símbolo é o `icon-192.png` — `/logo.png`, apesar do nome, é a marca
+  // inteira em proporção quadrada, e era ela que aparecia espremida em 51px na
+  // barra recolhida. As imagens passam pelo otimizador do Next, então o `src`
+  // vem como `/_next/image?url=%2Ficon-192.png...`.
   const logoInteira = nav(page).locator("img[src*='horizontal_logo']");
-  const soOIcone = nav(page).locator("img[src*='%2Flogo.png']");
+  const soOSimbolo = nav(page).locator("img[src*='icon-192']");
 
   await expect(
     page.getByRole("button", { name: "Expandir menu" })
   ).toBeVisible();
   await expect(logoInteira).toBeHidden();
-  await expect(soOIcone).toBeVisible();
+  await expect(soOSimbolo).toBeVisible();
 
   // Ida e volta pelo clique, que é como o usuário faz.
   await page.getByRole("button", { name: "Expandir menu" }).click();
@@ -86,5 +91,5 @@ test("sidebar: recolhida mostra o ícone, não a logo inteira", async ({
 
   await page.getByRole("button", { name: "Recolher menu" }).click();
   await expect(logoInteira).toBeHidden();
-  await expect(soOIcone).toBeVisible();
+  await expect(soOSimbolo).toBeVisible();
 });
