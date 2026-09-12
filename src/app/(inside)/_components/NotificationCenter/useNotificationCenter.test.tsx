@@ -146,6 +146,17 @@ describe("useNotificationCenter", () => {
     await waitFor(() => expect(result.current.items).toHaveLength(1));
   });
 
+  it("enquanto a lista não chega, o sino diz que está carregando", async () => {
+    // Sem isso o dropdown abria afirmando "Sem notificações por enquanto."
+    // antes mesmo de ter perguntado ao backend.
+    const result = await run([countMock(1), listMock([notification("n1")])]);
+
+    expect(result.current.isLoading).toBe(true);
+
+    await waitFor(() => expect(result.current.items).toHaveLength(1));
+    expect(result.current.isLoading).toBe(false);
+  });
+
   it("clicar marca como lida e baixa o contador na hora", async () => {
     // Otimista primeiro: a linha e o badge reagem antes do backend responder.
     const result = await run([

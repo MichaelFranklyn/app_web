@@ -14,6 +14,7 @@ import {
   SEVERITY_DOT,
   timeAgo,
 } from "../../_shared/notifications/utils";
+import { NotificationSkeleton } from "./NotificationSkeleton";
 import { useNotificationCenter } from "./useNotificationCenter";
 
 export function NotificationCenter() {
@@ -22,6 +23,7 @@ export function NotificationCenter() {
     setOpen,
     unreadCount,
     items,
+    isLoading,
     handleItemClick,
     handleMarkAllRead,
   } = useNotificationCenter();
@@ -75,7 +77,9 @@ export function NotificationCenter() {
           </div>
 
           <div className="flex max-h-[420px] flex-col overflow-y-auto">
-            {items.length === 0 ? (
+            {isLoading ? (
+              <NotificationSkeleton />
+            ) : items.length === 0 ? (
               <div className="flex flex-col items-center gap-6 px-16 py-24 text-center">
                 <Bell size={20} className="text-(--muted2)" />
                 <Title variant="body-sm" color="muted">

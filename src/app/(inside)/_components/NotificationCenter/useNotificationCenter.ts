@@ -43,6 +43,7 @@ export function useNotificationCenter() {
   const {
     data: listData,
     error: listError,
+    loading: listLoading,
     refetch,
   } = useQuery<MyNotificationsResponse>(MY_NOTIFICATIONS_QUERY, {
     variables: { input: { first: 20 } },
@@ -77,6 +78,11 @@ export function useNotificationCenter() {
 
   const unreadCount = unread.data.count;
   const items = list.items;
+
+  // `cache-and-network` revalida em TODA abertura: se mostrássemos o esqueleto
+  // sempre que `loading` fosse true, a segunda abertura piscaria por cima de uma
+  // lista que já está na tela. Esqueleto só quando ainda não há o que mostrar.
+  const isLoading = listLoading && items.length === 0;
 
   const refreshCounts = async () => {
     await invalidateClient(["myUnreadNotificationsCount", "myNotifications"]);
@@ -163,6 +169,7 @@ export function useNotificationCenter() {
     setOpen,
     unreadCount,
     items,
+    isLoading,
     handleItemClick,
     handleMarkAllRead,
   };
