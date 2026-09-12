@@ -42,13 +42,16 @@ describe("lastAccessLabel", () => {
     expect(lastAccessLabel(member({ lastLoginAt: null }))).toBe("Nunca entrou");
   });
 
-  it("mostra o dia e a hora do último acesso", () => {
+  it("mostra o dia E a hora do último acesso", () => {
+    // Duas ações do mesmo dia se distinguem pela hora, e é a sequência do dia
+    // que se reconstrói ao investigar — por isso o rótulo traz as duas partes.
+    // O instante é meio-dia UTC e a hora é conferida pelo FORMATO: a máquina
+    // que roda o teste (CI em UTC, dev em BRT) não pode mudar o resultado.
     const label = lastAccessLabel(
-      member({ lastLoginAt: "2026-09-12T14:30:00-03:00" })
+      member({ lastLoginAt: "2026-09-12T12:00:00Z" })
     );
 
-    expect(label).toMatch(/12\/09\/26/);
-    expect(label).toMatch(/14:30/);
+    expect(label).toMatch(/^12\/09\/26, \d{2}:\d{2}$/);
   });
 
   it("data quebrada vira traço, não 'Invalid Date'", () => {
