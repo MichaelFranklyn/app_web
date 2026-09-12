@@ -18,7 +18,17 @@ const dataResponse = (data: unknown) => ({
   data,
 });
 
-const SSR_RESPONSES: Record<string, unknown> = {
+/**
+ * Resposta canned: o objeto `data` direto ou uma função das variables.
+ *
+ * A forma em função existe para as telas cujo CAMINHO DE ERRO é server-side e,
+ * portanto, fora do alcance do `page.route` — o pedido do portal, por exemplo,
+ * decide entre a ficha e o "não encontrado" ainda no servidor. Sem variar a
+ * resposta por id, esse segundo caminho não teria como ser exercitado.
+ */
+type SsrResponse = unknown | ((variables: Record<string, unknown>) => unknown);
+
+const SSR_RESPONSES: Record<string, SsrResponse> = {
   // Listas de topo agora buscam a 1ª página no SERVIDOR (SSR-seed do useTableData,
   // ver [[project_ssr_list_apollo_cache_seed]]). O stub devolve connection VAZIO:
   // o seed só semeia com linhas de verdade, então com vazio o cliente busca e os
@@ -96,6 +106,25 @@ const SSR_RESPONSES: Record<string, unknown> = {
         userName: "Vendedor Teste",
         companyName: "Empresa Teste",
         role: "SELLER",
+      },
+    },
+  },
+  // Cadastro da empresa. Como o login, roda no SERVIDOR (rota /api/session) e
+  // abre a sessão pelo mesmo caminho — por isso a resposta vive aqui, e não no
+  // `page.route` do spec. O nome da operação é `registerCompany` (minúsculo),
+  // como está escrito no documento.
+  registerCompany: {
+    registerCompany: {
+      status: true,
+      code: 200,
+      message: "ok",
+      data: {
+        accessToken: FAKE_JWT,
+        refreshToken: FAKE_JWT,
+        userId: "user-novo-1",
+        userName: "Dono Novo",
+        companyName: "Empresa Nova",
+        role: "OWNER",
       },
     },
   },
@@ -195,52 +224,65 @@ const SSR_RESPONSES: Record<string, unknown> = {
       ],
     },
   },
-  PortalOrder: {
-    portalOrder: {
-      status: true,
-      code: 200,
-      message: "ok",
-      data: {
-        id: "order-portal-1",
-        orderDate: "2026-08-01",
-        factoryName: "Fábrica Alfa",
-        totalAmount: "3000.0000",
-        ipiAmount: "0.0000",
-        status: "DELIVERED",
-        invoicedAt: "2026-08-05",
-        deliveredAt: "2026-08-10",
-        estimatedDeliveryDate: null,
-        paymentTermName: "30/60",
-        items: [
-          {
-            id: "item-1",
-            productName: "Torneira Teste",
-            sku: "SKU-1",
-            quantity: "12.0000",
-            unitPrice: "250.0000",
-            subtotal: "3000.0000",
-            ipiAmount: "0.0000",
+  // Único por VARIÁVEIS: o portal decide entre a ficha e o "não encontrado"
+  // ainda no servidor, e pedido de outro cliente chega aqui igual a pedido
+  // inexistente (o backend responde 404 para os dois de propósito).
+  PortalOrder: (variables: Record<string, unknown>) =>
+    variables.id !== "order-portal-1"
+      ? {
+          portalOrder: {
+            status: false,
+            code: 404,
+            message: "não encontrado",
+            data: null,
           },
-        ],
-        installments: [
-          {
-            sequence: 1,
-            amount: "1500.0000",
-            dueDate: "2026-09-05",
-            status: "PENDING",
-            paidAt: null,
+        }
+      : {
+          portalOrder: {
+            status: true,
+            code: 200,
+            message: "ok",
+            data: {
+              id: "order-portal-1",
+              orderDate: "2026-08-01",
+              factoryName: "Fábrica Alfa",
+              totalAmount: "3000.0000",
+              ipiAmount: "0.0000",
+              status: "DELIVERED",
+              invoicedAt: "2026-08-05",
+              deliveredAt: "2026-08-10",
+              estimatedDeliveryDate: null,
+              paymentTermName: "30/60",
+              items: [
+                {
+                  id: "item-1",
+                  productName: "Torneira Teste",
+                  sku: "SKU-1",
+                  quantity: "12.0000",
+                  unitPrice: "250.0000",
+                  subtotal: "3000.0000",
+                  ipiAmount: "0.0000",
+                },
+              ],
+              installments: [
+                {
+                  sequence: 1,
+                  amount: "1500.0000",
+                  dueDate: "2026-09-05",
+                  status: "PENDING",
+                  paidAt: null,
+                },
+                {
+                  sequence: 2,
+                  amount: "1500.0000",
+                  dueDate: "2026-10-05",
+                  status: "PAID",
+                  paidAt: "2026-10-01",
+                },
+              ],
+            },
           },
-          {
-            sequence: 2,
-            amount: "1500.0000",
-            dueDate: "2026-10-05",
-            status: "PAID",
-            paidAt: "2026-10-01",
-          },
-        ],
-      },
-    },
-  },
+        },
   PortalStock: {
     portalStock: {
       status: true,
@@ -431,6 +473,65 @@ const SSR_RESPONSES: Record<string, unknown> = {
   PlatformActivityList: { platform_activity: emptyConnection() },
   PlatformAuditList: { platform_audit: emptyConnection() },
   PlatformStaff: { platformStaff: dataResponse([]) },
+
+  // As FICHAS do console (empresa e pessoa) buscam no servidor, como as listas.
+  // A diferença é que estas duas dão `notFound()` quando a query volta com
+  // `data: null`: uma ficha vazia seria mentira, então a página é 404 de
+  // verdade. Por isso o stub responde com um registro — sem ele, todo spec da
+  // ficha abriria na tela de 404. Os valores que a tela mostra continuam vindo
+  // do `page.route` de cada spec.
+  PlatformTenant: {
+    platformTenant: dataResponse({
+      id: "tenant-1",
+      cnpj: "11222333000181",
+      razaoSocial: "Empresa Console LTDA",
+      nomeFantasia: "Empresa Console",
+      segment: "Metais",
+      plan: "pro",
+      logoUrl: null,
+      isActive: true,
+      suspendedAt: null,
+      suspensionReason: null,
+      trialEndsAt: null,
+      maxUsers: null,
+      maxSellers: null,
+      createdAt: "2026-01-10T00:00:00Z",
+      usersCount: 0,
+      sellersCount: 0,
+      clientsCount: 0,
+      factoriesCount: 0,
+      ordersCount: 0,
+      ordersInPeriod: 0,
+      gmvInPeriod: "0",
+      lastLoginAt: null,
+      lastOrderDate: null,
+    }),
+  },
+  PlatformTenantUsers: { tenant_users: emptyConnection() },
+  PlatformTenantAudit: { tenant_audit: emptyConnection() },
+  PlatformTenantActivity: { tenant_activity: emptyConnection() },
+  PlatformTenantActivitySummary: {
+    platformActivitySummary: dataResponse({
+      totalActions: 0,
+      totalErrors: 0,
+      byOperation: [],
+      byDay: [],
+    }),
+  },
+  PlatformUser: {
+    platformUser: dataResponse({
+      id: "puser-1",
+      name: "Pessoa Console",
+      email: "pessoa@console.test",
+      role: "OWNER",
+      isActive: true,
+      lastLoginAt: null,
+      createdAt: "2026-01-10T00:00:00Z",
+      companyId: "tenant-1",
+      companyName: "Empresa Console",
+    }),
+  },
+  PlatformUserActivity: { user_activity: emptyConnection() },
 };
 
 // Operações SSR que chegaram sem resposta canned durante a suíte. O stub segue
@@ -454,8 +555,11 @@ export function startStubBackend(port: number): Promise<void> {
       req.on("data", (chunk) => (body += chunk));
       req.on("end", () => {
         let operationName = "";
+        let variables: Record<string, unknown> = {};
         try {
-          operationName = JSON.parse(body || "{}").operationName ?? "";
+          const parsed = JSON.parse(body || "{}");
+          operationName = parsed.operationName ?? "";
+          variables = parsed.variables ?? {};
         } catch {
           // corpo não-JSON: responde data vazio
         }
@@ -474,7 +578,11 @@ export function startStubBackend(port: number): Promise<void> {
               `Adicione-a em SSR_RESPONSES (e2e/support/stub-backend.ts) — a página faz esse fetch no servidor.`
           );
         }
-        const data = SSR_RESPONSES[operationName] ?? {};
+        const canned = SSR_RESPONSES[operationName] ?? {};
+        const data =
+          typeof canned === "function"
+            ? (canned as (v: Record<string, unknown>) => unknown)(variables)
+            : canned;
         res.writeHead(200, { "content-type": "application/json" });
         res.end(JSON.stringify({ data }));
       });
