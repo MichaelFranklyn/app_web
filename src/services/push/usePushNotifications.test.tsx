@@ -113,6 +113,22 @@ describe("usePushNotifications", () => {
     await waitFor(() => expect(result.current.status).toBe("disabled"));
   });
 
+  it("query que falha não deixa a tela carregando para sempre", async () => {
+    // Aconteceu de verdade: com a API fora do ar (e aconteceria igual com um
+    // backend mais velho, que ainda não conhece `pushPublicKey`), o card ficava
+    // no esqueleto sem fim. Sem resposta não há push neste ambiente.
+    const { result } = renderHook(() => usePushNotifications(), {
+      wrapper: wrapper([
+        {
+          request: { query: PUSH_PUBLIC_KEY_QUERY },
+          error: new Error("Failed to fetch"),
+        },
+      ]),
+    });
+
+    await waitFor(() => expect(result.current.status).toBe("disabled"));
+  });
+
   it("navegador sem suporte não vira botão", async () => {
     isPushSupported.mockReturnValue(false);
     const { result } = renderHook(() => usePushNotifications(), {

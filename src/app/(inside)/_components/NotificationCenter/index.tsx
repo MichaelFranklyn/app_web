@@ -15,6 +15,7 @@ import {
   timeAgo,
 } from "../../_shared/notifications/utils";
 import { NotificationSkeleton } from "./NotificationSkeleton";
+import { PushInviteRow } from "./PushInviteRow";
 import { useNotificationCenter } from "./useNotificationCenter";
 
 export function NotificationCenter() {
@@ -26,6 +27,9 @@ export function NotificationCenter() {
     isLoading,
     handleItemClick,
     handleMarkAllRead,
+    canInvitePush,
+    enablePush,
+    isEnablingPush,
   } = useNotificationCenter();
 
   return (
@@ -137,6 +141,10 @@ export function NotificationCenter() {
               ))
             )}
           </div>
+
+          {canInvitePush && (
+            <PushInviteRow onEnable={enablePush} isLoading={isEnablingPush} />
+          )}
 
           {/* A saída do sino é a AÇÃO, não mais avisos: aqui os itens são o que
               já aconteceu; lá está o que ainda precisa ser feito, com o motivo. */}

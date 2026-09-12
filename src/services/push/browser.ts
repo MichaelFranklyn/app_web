@@ -28,12 +28,19 @@ export function isPushSupported(): boolean {
 /** `standalone`: o app foi aberto pelo ícone da tela de início, não pelo navegador. */
 export function isInstalledApp(): boolean {
   if (typeof window === "undefined") return false;
+
+  // O Safari do iPhone responde por `navigator.standalone`; os demais, pelo
+  // display-mode. `matchMedia` é checado antes de ser chamado porque nem todo
+  // ambiente o tem (o jsdom dos testes, por exemplo) — e isto roda no caminho
+  // de uma tela, não pode derrubá-la.
   const iosStandalone = (
     window.navigator as Navigator & { standalone?: boolean }
   ).standalone;
+  if (iosStandalone === true) return true;
+
   return (
-    window.matchMedia("(display-mode: standalone)").matches ||
-    iosStandalone === true
+    typeof window.matchMedia === "function" &&
+    window.matchMedia("(display-mode: standalone)").matches
   );
 }
 

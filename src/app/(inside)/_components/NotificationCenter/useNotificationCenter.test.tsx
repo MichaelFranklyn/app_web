@@ -6,6 +6,22 @@ import { beforeEach, describe, expect, it, vi } from "vitest";
 const { push } = vi.hoisted(() => ({ push: vi.fn() }));
 vi.mock("next/navigation", () => ({ useRouter: () => ({ push }) }));
 
+// O convite de push no rodapé do sino depende do NAVEGADOR (service worker,
+// permissão, inscrição). O jsdom não tem nada disso: sem este mock a medição
+// responde "unsupported" e o convite nunca apareceria em teste nenhum.
+const { getSubscription } = vi.hoisted(() => ({
+  getSubscription: vi.fn<() => Promise<{ endpoint: string } | null>>(
+    async () => null
+  ),
+}));
+vi.mock("@/services/push/browser", () => ({
+  getSubscription,
+  subscribe: vi.fn(),
+  unsubscribe: vi.fn(),
+  isPushSupported: () => true,
+  isInstalledApp: () => false,
+}));
+
 import { Toast } from "@/components/Toast";
 import {
   MARK_ALL_NOTIFICATIONS_AS_READ_MUTATION,
@@ -14,6 +30,7 @@ import {
   MY_UNREAD_NOTIFICATIONS_COUNT_QUERY,
 } from "../../_shared/notifications/gql";
 import { Notification } from "../../_shared/notifications/interface";
+import { PUSH_PUBLIC_KEY_QUERY } from "@/services/push/gql";
 import { useNotificationCenter } from "./useNotificationCenter";
 
 const notification = (
@@ -35,6 +52,20 @@ const notification = (
     createdAt: "2026-09-12T10:00:00Z",
     ...overrides,
   }) as Notification;
+
+const pushKeyMock = (key: string) => ({
+  request: { query: PUSH_PUBLIC_KEY_QUERY },
+  maxUsageCount: 10,
+  result: {
+    data: {
+      pushPublicKey: {
+        __typename: "PushPublicKeyResponse",
+        status: true,
+        data: key,
+      },
+    },
+  },
+});
 
 const countMock = (count: number) => ({
   request: { query: MY_UNREAD_NOTIFICATIONS_COUNT_QUERY },
@@ -119,10 +150,15 @@ const wrapper = (mocks: unknown[]) => {
   return Wrapper;
 };
 
-/** O sino só busca a lista depois de aberto (`skip: !open`). */
+/**
+ * O sino só busca a lista depois de aberto (`skip: !open`) — e, junto com ela, a
+ * chave do push. O mock de chave VAZIA entra no fim da lista para os testes que
+ * não falam de push não precisarem declará-lo: quem quer o convite passa o seu
+ * próprio, e o MockLink usa o primeiro que casar.
+ */
 const run = async (mocks: unknown[]) => {
   const { result } = renderHook(() => useNotificationCenter(), {
-    wrapper: wrapper(mocks),
+    wrapper: wrapper([...mocks, pushKeyMock("")]),
   });
   act(() => result.current.setOpen(true));
   return result;
@@ -136,6 +172,8 @@ const clickEvent = () =>
 
 beforeEach(() => {
   vi.clearAllMocks();
+  getSubscription.mockResolvedValue(null);
+  vi.stubGlobal("Notification", { permission: "default" });
 });
 
 describe("useNotificationCenter", () => {
@@ -155,6 +193,44 @@ describe("useNotificationCenter", () => {
 
     await waitFor(() => expect(result.current.items).toHaveLength(1));
     expect(result.current.isLoading).toBe(false);
+  });
+
+  it("o sino convida a receber os avisos no aparelho", async () => {
+    // O convite mora aqui porque é onde a pessoa JÁ está pensando em
+    // notificação; o perfil continua sendo o lugar de desligar.
+    const result = await run([
+      countMock(1),
+      listMock([notification("n1")]),
+      pushKeyMock("chave-vapid"),
+    ]);
+
+    await waitFor(() => expect(result.current.canInvitePush).toBe(true));
+  });
+
+  it("sem chave no servidor, o sino não convida", async () => {
+    // Inscrever um aparelho que nunca receberia nada é pior que não convidar.
+    const result = await run([
+      countMock(1),
+      listMock([notification("n1")]),
+      pushKeyMock(""),
+    ]);
+
+    await waitFor(() => expect(result.current.items).toHaveLength(1));
+    expect(result.current.canInvitePush).toBe(false);
+  });
+
+  it("aparelho já inscrito não recebe convite", async () => {
+    getSubscription.mockResolvedValue({ endpoint: "https://fcm/abc" });
+    vi.stubGlobal("Notification", { permission: "granted" });
+
+    const result = await run([
+      countMock(1),
+      listMock([notification("n1")]),
+      pushKeyMock("chave-vapid"),
+    ]);
+
+    await waitFor(() => expect(result.current.items).toHaveLength(1));
+    expect(result.current.canInvitePush).toBe(false);
   });
 
   it("clicar marca como lida e baixa o contador na hora", async () => {
