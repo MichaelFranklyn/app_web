@@ -14,6 +14,10 @@ export const priorityColor = (
     case "alta":
     case "high":
       return "red";
+    // "media" sem acento é o valor CANÔNICO gravado pelo backend; "média" e
+    // "medium" são as grafias legadas. Faltando o canônico aqui, a prioridade
+    // média do vínculo saía azul, como se não tivesse prioridade nenhuma.
+    case "media":
     case "média":
     case "medium":
       return "amber";
