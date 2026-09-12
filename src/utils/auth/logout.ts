@@ -1,3 +1,4 @@
+import { forgetDeviceOnLogout } from "@/services/push";
 import { removeCookie } from "../cookies/clientCookie";
 import { deleteSession } from "./session";
 
@@ -6,6 +7,10 @@ import { deleteSession } from "./session";
 const CLIENT_AUTH_COOKIES = ["remember", "userData"];
 
 export const logout = async () => {
+  // Antes de tudo: solta o aviso no aparelho enquanto a sessão ainda existe. O
+  // celular pode ser compartilhado, e a inscrição é do navegador — deixá-la
+  // viva entregaria aviso de quem saiu para quem entrar depois.
+  await forgetDeviceOnLogout();
   // Limpa o token httpOnly no servidor…
   await deleteSession();
   // …e os cookies legíveis por JS (best-effort; a rota também os apaga).

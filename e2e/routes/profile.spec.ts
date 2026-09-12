@@ -182,3 +182,60 @@ test("profile: altera a senha pelo modal do card", async ({ page }) => {
 
   await expect(page.getByText("Senha atualizada com sucesso")).toBeVisible();
 });
+
+/**
+ * Aviso no aparelho (Web Push). O card é o único lugar onde o usuário autoriza,
+ * e ele existe SÓ quando o servidor tem chave VAPID — um botão que inscreve o
+ * aparelho e nunca entrega nada é pior que não ter botão.
+ */
+test("profile: o card de avisos aparece quando o servidor tem chave", async ({
+  page,
+}) => {
+  // O Chromium headless não tem notificação de sistema: `Notification.permission`
+  // nasce "denied" ali, e nem `grantPermissions` muda isso — o card mostraria
+  // (corretamente) como desbloquear. Fingir a resposta do navegador é o que põe
+  // a tela no estado de quem AINDA PODE ativar, que é o que este teste cobre.
+  await page.addInitScript(() => {
+    Object.defineProperty(Notification, "permission", {
+      configurable: true,
+      get: () => "default",
+    });
+  });
+
+  await mockGraphql(page, {
+    UserDetail: () => userDetailData(),
+    PushPublicKey: () => ({
+      pushPublicKey: { status: true, data: "BEl62iUYgUivxIkv69yViEuiBIa40HI" },
+    }),
+  });
+
+  await page.goto("/profile");
+
+  await expect(
+    page.getByRole("heading", { name: "Avisos neste aparelho" })
+  ).toBeVisible();
+  // O service worker fica desligado no E2E, então a medição do navegador espera
+  // o registro e desiste — o timeout maior cobre essa espera de propósito.
+  await expect(
+    page.getByRole("button", { name: "Ativar avisos neste aparelho" })
+  ).toBeVisible({ timeout: 15000 });
+});
+
+test("profile: sem chave no servidor, o card de avisos nem existe", async ({
+  page,
+}) => {
+  await mockGraphql(page, {
+    UserDetail: () => userDetailData(),
+    PushPublicKey: () => ({ pushPublicKey: { status: true, data: "" } }),
+  });
+
+  await page.goto("/profile");
+
+  // O card de senha prova que a página terminou de montar antes da negativa.
+  await expect(
+    page.getByRole("heading", { name: "Senha de acesso" })
+  ).toBeVisible();
+  await expect(
+    page.getByRole("heading", { name: "Avisos neste aparelho" })
+  ).toHaveCount(0);
+});
