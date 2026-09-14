@@ -3,7 +3,7 @@ import { Divider } from "@/components/Divider";
 import { HelpTooltip } from "@/components/HelpTooltip";
 import { Title } from "@/components/Title";
 import { formatMoney } from "@/utils/format/masks";
-import { ReactNode } from "react";
+import { Fragment, ReactNode } from "react";
 import { SUMMARY_HELP } from "../../../help";
 import { OrderDetail } from "../../interface";
 
@@ -25,18 +25,99 @@ const LabelWithHelp = ({
   </Card.Item.Label>
 );
 
+interface SummaryRow {
+  key: string;
+  label: string;
+  help: ReactNode;
+  value: ReactNode;
+  color?: "amber";
+}
+
 interface Props {
   order: OrderDetail;
 }
 
 export function OrderSummaryCard({ order }: Props) {
   const ipi = Number(order.ipiAmount);
+  const tax = Number(order.taxAmount);
   const hasIpi = ipi > 0;
+  const hasTax = tax > 0;
   // A coluna Subtotal da tabela já soma o imposto embutido da linha; o resumo
   // acompanha para o subtotal e o total baterem com a tabela. O IPI, quando a
   // fábrica cobra no pedido, continua somado à parte (tem colunas próprias).
-  const subtotalWithTax = Number(order.totalAmount) + Number(order.taxAmount);
+  const subtotalWithTax = Number(order.totalAmount) + tax;
   const grandTotal = subtotalWithTax + ipi;
+
+  // Mercadoria e impostos só aparecem quando há imposto embutido: sem ST, a
+  // mercadoria é o próprio subtotal e as duas linhas seriam ruído.
+  const rows: SummaryRow[] = [
+    ...(hasTax
+      ? [
+          {
+            key: "merchandise",
+            label: "Mercadoria (sem impostos)",
+            help: SUMMARY_HELP.merchandise,
+            value: formatMoney(order.totalAmount),
+          },
+          {
+            key: "tax",
+            label: "Impostos no preço",
+            help: SUMMARY_HELP.tax,
+            value: formatMoney(order.taxAmount),
+          },
+        ]
+      : []),
+    ...(hasIpi
+      ? [
+          {
+            key: "subtotal",
+            label: "Subtotal (sem IPI)",
+            help: SUMMARY_HELP.subtotal,
+            value: formatMoney(subtotalWithTax.toFixed(2)),
+          },
+          {
+            key: "ipi",
+            label: "IPI",
+            help: SUMMARY_HELP.ipi,
+            value: formatMoney(order.ipiAmount),
+          },
+        ]
+      : []),
+    {
+      key: "total",
+      label: "Total do pedido",
+      help: SUMMARY_HELP.total,
+      value: (
+        <Title variant="body" weight="bold" className="text-[15px]">
+          {formatMoney(grandTotal.toFixed(2))}
+        </Title>
+      ),
+    },
+    {
+      key: "commission",
+      label: "Comissão",
+      help: SUMMARY_HELP.commission,
+      value: formatMoney(order.commissionAmount),
+      color: "amber" as const,
+    },
+    {
+      key: "paymentTerm",
+      label: "Prazo de pagamento",
+      help: SUMMARY_HELP.paymentTerm,
+      value: order.paymentTerm?.name ?? "—",
+    },
+    {
+      key: "freight",
+      label: "Frete",
+      help: SUMMARY_HELP.freight,
+      value:
+        order.freightType === "FOB"
+          ? "FOB — por conta do cliente"
+          : order.freightType === "CIF"
+            ? "CIF — entrega pela fábrica"
+            : "—",
+    },
+  ];
 
   return (
     <Card.Root>
@@ -46,59 +127,15 @@ export function OrderSummaryCard({ order }: Props) {
         </Card.Header.Title>
       </Card.Header>
       <Card.Body padding="compact">
-        {hasIpi && (
-          <>
+        {rows.map((row, index) => (
+          <Fragment key={row.key}>
+            {index > 0 && <Divider.Root className="my-2" />}
             <Card.Item variant="stat">
-              <LabelWithHelp help={SUMMARY_HELP.subtotal}>
-                Subtotal (sem IPI)
-              </LabelWithHelp>
-              <Card.Item.Value>
-                {formatMoney(subtotalWithTax.toFixed(2))}
-              </Card.Item.Value>
+              <LabelWithHelp help={row.help}>{row.label}</LabelWithHelp>
+              <Card.Item.Value color={row.color}>{row.value}</Card.Item.Value>
             </Card.Item>
-            <Divider.Root className="my-2" />
-            <Card.Item variant="stat">
-              <LabelWithHelp help={SUMMARY_HELP.ipi}>IPI</LabelWithHelp>
-              <Card.Item.Value>{formatMoney(order.ipiAmount)}</Card.Item.Value>
-            </Card.Item>
-            <Divider.Root className="my-2" />
-          </>
-        )}
-        <Card.Item variant="stat">
-          <LabelWithHelp help={SUMMARY_HELP.total}>
-            Total do pedido
-          </LabelWithHelp>
-          <Card.Item.Value>
-            <Title variant="body" weight="bold" className="text-[15px]">
-              {formatMoney(grandTotal.toFixed(2))}
-            </Title>
-          </Card.Item.Value>
-        </Card.Item>
-        <Divider.Root className="my-2" />
-        <Card.Item variant="stat">
-          <LabelWithHelp help={SUMMARY_HELP.commission}>Comissão</LabelWithHelp>
-          <Card.Item.Value color="amber">
-            {formatMoney(order.commissionAmount)}
-          </Card.Item.Value>
-        </Card.Item>
-        <Divider.Root className="my-2" />
-        <Card.Item variant="stat">
-          <LabelWithHelp help={SUMMARY_HELP.paymentTerm}>
-            Prazo de pagamento
-          </LabelWithHelp>
-          <Card.Item.Value>{order.paymentTerm?.name ?? "—"}</Card.Item.Value>
-        </Card.Item>
-        <Divider.Root className="my-2" />
-        <Card.Item variant="stat">
-          <LabelWithHelp help={SUMMARY_HELP.freight}>Frete</LabelWithHelp>
-          <Card.Item.Value>
-            {order.freightType === "FOB"
-              ? "FOB — por conta do cliente"
-              : order.freightType === "CIF"
-                ? "CIF — entrega pela fábrica"
-                : "—"}
-          </Card.Item.Value>
-        </Card.Item>
+          </Fragment>
+        ))}
       </Card.Body>
     </Card.Root>
   );

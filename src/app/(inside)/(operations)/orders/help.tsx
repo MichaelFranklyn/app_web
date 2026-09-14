@@ -120,6 +120,19 @@ export const INSTALLMENT_COLUMN_HELP = {
 
 /** Resumo financeiro do pedido, linha a linha. */
 export const SUMMARY_HELP: Record<string, ReactNode> = {
+  merchandise: (
+    <p>
+      Só a mercadoria: quantidade × preço dos itens, menos os descontos, e{" "}
+      <b>sem</b> nenhum imposto.
+    </p>
+  ),
+  tax: (
+    <p>
+      Quanto deste pedido é imposto que já vem <b>dentro</b> do preço (ST e
+      afins). Não é uma cobrança a mais: somado à mercadoria, dá o subtotal. O
+      valor de cada item está na coluna &quot;Impostos&quot; da tabela.
+    </p>
+  ),
   subtotal: (
     <p>
       Soma dos itens com o imposto embutido, <b>sem</b> o IPI. É esta a base
