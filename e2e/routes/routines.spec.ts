@@ -281,3 +281,45 @@ test("rotina: marca um dia como não trabalhado", async ({ page }) => {
   const variables = await spy.waitForCall("MarkSellerDayOff");
   expect(variables.date).toBe(today);
 });
+
+/**
+ * O painel de detalhe fica MONTADO fora da tela quando fechado — é o que dá a
+ * animação de sair deslizando. Com a sombra ligada nesse estado, ela não é
+ * cortada pela borda da janela: vaza para dentro e pinta uma faixa escura
+ * colada na lateral direita. E como a rotina monta um painel POR VISITA, as
+ * sombras se somam — num dia de 9 paradas, nove no mesmo lugar.
+ *
+ * Relatado pelo usuário em 14/09/2026 como "uma sombra preta do lado", nas duas
+ * telas que montam vários painéis: a rotina da semana e a rota do dia.
+ */
+test("rotina: painel fechado não projeta sombra na lateral", async ({
+  page,
+}) => {
+  await mockGraphql(page, {
+    RoutineSellersOptions: () => ({ routine_sellers: { edges: [] } }),
+    VisitScheduleConfig: scheduleConfig,
+    VisitSchedules: () => ({
+      visit_schedules: {
+        edges: [{ node: schedule }],
+        pageInfo: { hasNextPage: false, endCursor: null },
+        totalCount: 1,
+      },
+    }),
+  });
+
+  await page.goto("/routines");
+  await expect(
+    page.getByRole("button", { name: /Cliente LTDA/ })
+  ).toBeVisible();
+
+  const painel = page.locator('aside[role="dialog"]').first();
+  await expect(painel).toHaveCount(1);
+
+  // Fechado: nenhuma sombra. `box-shadow: none` é o que a borda da janela
+  // precisa para não receber o vazamento.
+  await expect(painel).toHaveCSS("box-shadow", "none");
+
+  // Aberto: a sombra volta — ela é o que separa o painel do conteúdo atrás.
+  await page.getByRole("button", { name: /Cliente LTDA/ }).click();
+  await expect(painel).not.toHaveCSS("box-shadow", "none");
+});

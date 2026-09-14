@@ -89,8 +89,14 @@ export function VisitDetailPanel({
       <aside
         role="dialog"
         aria-label={`Detalhes d${isRemote ? "o" : "a"} ${noun}`}
-        className={`fixed top-0 right-0 z-[60] flex h-full w-[400px] max-w-[calc(100vw-32px)] flex-col border-l border-(--border) bg-(--bg) shadow-xl transition-transform duration-200 ${
-          open ? "translate-x-0" : "translate-x-full"
+        // A SOMBRA SÓ EXISTE COM O PAINEL ABERTO. Fechado, ele continua montado
+        // fora da tela (é o que dá a animação de sair deslizando), e o `shadow-xl`
+        // ficava ligado o tempo todo: a sombra não é cortada pela borda da
+        // janela, então vazava para dentro e desenhava uma faixa escura colada
+        // na lateral direita. Como a rota do dia monta um painel POR PARADA, as
+        // sombras se somavam — num dia de 9 paradas, nove delas no mesmo lugar.
+        className={`fixed top-0 right-0 z-[60] flex h-full w-[400px] max-w-[calc(100vw-32px)] flex-col border-l border-(--border) bg-(--bg) transition-transform duration-200 ${
+          open ? "translate-x-0 shadow-xl" : "translate-x-full"
         }`}
       >
         {/* Cabeçalho */}
