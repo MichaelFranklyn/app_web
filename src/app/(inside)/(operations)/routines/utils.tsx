@@ -357,10 +357,20 @@ export const formatVisitSlot = (item: {
   visitDurationMin: number | null;
 }): string => {
   if (!item.plannedStartTime) return "";
+  // Em horas, não em minutos: a visita padrão passou a durar 2h, e "120 min"
+  // obriga o vendedor a fazer a conta de cabeça para ler a própria agenda.
   const duration = item.visitDurationMin
-    ? ` · ${item.visitDurationMin} min`
+    ? ` · ${formatMinutes(item.visitDurationMin)}`
     : "";
   return ` · ${item.plannedStartTime}${duration}`;
+};
+
+/** Duração legível: 45 → "45 min", 120 → "2h", 150 → "2h 30m". */
+export const formatMinutes = (mins: number): string => {
+  if (mins < 60) return `${mins} min`;
+  const hours = Math.floor(mins / 60);
+  const remainder = mins % 60;
+  return remainder === 0 ? `${hours}h` : `${hours}h ${remainder}m`;
 };
 
 /** "20 min até aqui" — o deslocamento, dito com todas as letras. */

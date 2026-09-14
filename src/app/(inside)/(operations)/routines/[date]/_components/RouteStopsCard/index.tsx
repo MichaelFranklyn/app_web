@@ -10,12 +10,13 @@ import { ContactLinks } from "../../../_components/ContactLinks";
 import { VisitActions } from "../../../_components/VisitActions";
 import { ViabilityNote } from "../../../_components/ViabilityNote";
 import { VisitItem } from "../../interface";
+import { StopFactoryScores } from "./StopFactoryScores";
 import {
   STOP_STATUS_COLOR,
   STOP_STATUS_LABEL,
   clientAddress,
   clientLabel,
-  factoryLabel,
+  formatMinutes,
 } from "../../utils";
 
 interface Props {
@@ -65,7 +66,6 @@ export function RouteStopsCard({
             {stops.map((stop) => {
               const link = stop.clientFactoryLink ?? null;
               const client = link?.client ?? null;
-              const factory = link?.factory ?? null;
               const travel = stop.estimatedTravelMin;
               return (
                 <div
@@ -89,9 +89,10 @@ export function RouteStopsCard({
                     <Title variant="body-sm" weight="medium">
                       {clientLabel(client)}
                     </Title>
-                    <Title variant="body-sm" color="muted" className="mt-[2px]">
-                      {factoryLabel(factory)}
-                    </Title>
+                    {/* Uma linha por empresa, com o score de cada uma: é o que
+                        diz POR QUE esta parada existe e qual fábrica levar
+                        primeiro na conversa. */}
+                    <StopFactoryScores stop={stop} />
                     {/* No contato, o endereço não serve para nada — o que o
                         vendedor precisa é do telefone. */}
                     {isRemote ? (
@@ -130,7 +131,7 @@ export function RouteStopsCard({
                           {stop.plannedStartTime}
                           {stop.plannedEndTime ? `–${stop.plannedEndTime}` : ""}
                           {stop.visitDurationMin
-                            ? ` · ${stop.visitDurationMin} min de visita`
+                            ? ` · ${formatMinutes(stop.visitDurationMin)} de visita`
                             : ""}
                         </Title>
                       )}

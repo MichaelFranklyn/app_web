@@ -4,16 +4,20 @@ import {
   SettingsFormState,
 } from "./interface";
 
-// Valores padrão de uma nova configuração de rotina (espelham o seed do backend).
+// Valores padrão de uma nova configuração de rotina. Espelham
+// DEFAULT_MAX_VISITS_PER_DAY e DEFAULT_VISIT_DURATION_MIN do backend
+// (visit_schedule_configs/defaults.py): 3 visitas de 2h por dia é o que cabe na
+// jornada de 8h–18h com o deslocamento por cima. Ficaram para trás em 8 × 30min
+// — quem criasse a configuração por esta tela nascia com um dia impossível.
 export const DEFAULT_CONFIG_FORM: SettingsFormState = {
-  maxVisitsPerDay: 8,
+  maxVisitsPerDay: 3,
   workDays: [1, 2, 3, 4, 5],
   workStartTime: "08:00:00",
   workEndTime: "18:00:00",
   isRemoteContactEnabled: true,
   maxRemoteContactsPerDay: 5,
   remoteContactIntervalPct: 50,
-  avgVisitDurationMin: 30,
+  avgVisitDurationMin: 120,
   isRescheduleSameWeek: true,
   maxRescheduleAttempts: 3,
   penaltyScorePerMiss: "1.0",
