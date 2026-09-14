@@ -179,22 +179,43 @@
     height: 4px;
   }
 
-  /* Trilho transparente: pintado de `--bg3` ele desenhava uma faixa cinza da
-     altura inteira da área rolável — na rotina da semana e na rota do dia, que
-     rolam sempre, a coluna parecia uma sombra colada na borda direita. A barra
-     continua existindo; só o polegar é que aparece. */
+  /* A barra de rolagem não desenha faixa nenhuma em repouso.
+     
+     Eram duas, uma sobre a outra: o trilho pintado de `--bg3` e o polegar de
+     `--muted2`, ambos da altura da área rolável. Na rotina da semana (cada
+     coluna do kanban rola por dentro) e na rota do dia isso virava um risco
+     cinza permanente colado na borda direita — e, no kanban, um por coluna.
+
+     Agora as duas peças nascem transparentes e o polegar aparece quando o
+     ponteiro entra na área rolável: some o risco parado na tela, sem tirar do
+     usuário a indicação de onde ele está na página. `scrollbar-color` repete a
+     regra na propriedade padronizada, que é a que o Firefox lê — o bloco
+     `::-webkit-` inteiro não existe para ele. */
   ::-webkit-scrollbar-track {
     background: transparent;
   }
 
   ::-webkit-scrollbar-thumb {
-    background: var(--muted2);
+    background: transparent;
     border-radius: 2px;
     transition: background 0.3s ease;
   }
 
-  ::-webkit-scrollbar-thumb:hover {
+  *:hover::-webkit-scrollbar-thumb {
+    background: var(--muted2);
+  }
+
+  *:hover::-webkit-scrollbar-thumb:hover {
     background: var(--muted);
+  }
+
+  * {
+    scrollbar-width: thin;
+    scrollbar-color: transparent transparent;
+  }
+
+  *:hover {
+    scrollbar-color: var(--muted2) transparent;
   }
 
   ::-webkit-scrollbar-button {
