@@ -18,6 +18,10 @@ export type StopStatusColor = VisitStatusColor;
 export const STOP_STATUS_COLOR = VISIT_STATUS_COLOR;
 export const STOP_STATUS_LABEL = VISIT_STATUS_LABEL;
 
+// Duração legível ("2h", "1h 30m") — mora no pai porque a grade da semana
+// também escreve a duração da parada no card.
+export { formatMinutes } from "../utils";
+
 // Desloca uma data ISO em N dias (para navegar dia anterior/seguinte).
 export const shiftDateIso = (isoDate: string, days: number): string => {
   const [year, month, day] = isoDate.split("-").map(Number);
@@ -57,13 +61,6 @@ export const formatDateLong = (isoDate: string): string => {
   const dd = String(day).padStart(2, "0");
   const mm = String(month).padStart(2, "0");
   return `${dd}/${mm}/${year} · ${weekday}`;
-};
-
-export const formatMinutes = (mins: number): string => {
-  if (mins < 60) return `${mins} min`;
-  const hours = Math.floor(mins / 60);
-  const remainder = mins % 60;
-  return remainder === 0 ? `${hours}h` : `${hours}h ${remainder}m`;
 };
 
 export const formatDistanceKm = (rawKm: string): string => {
