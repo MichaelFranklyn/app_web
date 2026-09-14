@@ -158,6 +158,16 @@ export const INSIGHT_COPY: Record<InsightKind, InsightCopy> = {
     action: "Conferir as entregas",
     href: "/orders",
   },
+  LOCATION_UNRELIABLE: {
+    icon: MapPinOff,
+    tone: "info",
+    title: ({ count }) =>
+      `${count} ${plural(count, "cliente está", "clientes estão")} sem endereço exato no mapa`,
+    why: () =>
+      "O mapa achou a região desses clientes, não a porta da loja — ou não achou nada. Quem está assim nunca ABRE um dia de rota: ele só entra de carona num dia montado em volta de outro cliente, e numa semana cheia acaba não entrando. Corrigir rua, número e CEP no cadastro devolve esses clientes à rotina.",
+    action: "Ver na carteira",
+    href: "/clients",
+  },
   NO_VISIT_30D: {
     icon: Users,
     tone: "info",
@@ -186,6 +196,10 @@ const KIND_ORDER: InsightKind[] = [
   "DRAFT_STALE",
   "DELIVERY_UNCONFIRMED",
   "NO_VISIT_30D",
+  // Por último de propósito: é a pendência de CADASTRO da lista. Não é o
+  // trabalho do dia, mas é a que destrava as outras — enquanto o cliente não
+  // tem endereço exato, ele não disputa vaga na rotina em pé de igualdade.
+  "LOCATION_UNRELIABLE",
 ];
 
 /**
