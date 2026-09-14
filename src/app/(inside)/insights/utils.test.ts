@@ -43,6 +43,13 @@ describe("toneOf", () => {
     expect(toneOf(insight("PRIORITY_OFF_ROUTE", 1, 5))).toBe("attention");
   });
 
+  it("cobra a localização fraca na mesma faixa do trabalho da semana", () => {
+    // Endereço sem precisão não é pano de fundo: é o que decide quem entra na
+    // rotina. O cliente assim nunca abre um dia de rota e perde a vaga por mais
+    // urgente que esteja — 32 dos 43 urgentes do Calazans estavam nesse estado.
+    expect(toneOf(insight("LOCATION_UNRELIABLE", 63))).toBe("attention");
+  });
+
   it("a seção usa o tom calculado, não o do tipo", () => {
     const travado = insight("PRIORITY_OFF_ROUTE", 0, 5);
     expect(insightsByTone([travado], "attention")).toEqual([]);
