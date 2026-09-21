@@ -24,7 +24,10 @@ import { DeleteOrderItemModal } from "./DeleteOrderItemModal";
 import { EditOrderItemModal } from "./EditOrderItemModal";
 import { ImportOrderModal } from "./ImportOrderModal";
 import { FeatureGate } from "@/components/FeatureGate";
-import { ORDER_CACHE_FIELDS } from "@/utils/cacheFields";
+import {
+  ORDER_CACHE_FIELDS,
+  ORDER_ITEM_EVIDENCE_CACHE_FIELDS,
+} from "@/utils/cacheFields";
 import { ORDER_ITEMS_QUERY } from "./gql";
 
 /**
@@ -167,13 +170,21 @@ export function OrderItemsTable({
     return null;
   }, [displayedItems]);
 
-  const handleRefetch = () => {
+  const handleRefetch = (itemEntrou = false) => {
     refetch();
     onOrderChanged?.();
     // Invalida os KPIs (query client-side) para que /orders mostre os novos
-    // totais ao voltar para a listagem.
-    void invalidateClient(ORDER_CACHE_FIELDS);
+    // totais ao voltar para a listagem. Item que ENTRA no pedido vale mais:
+    // `createOrderItem`/`importOrderItems` concluem a visita pendente daquele
+    // cliente no backend (ver `visit_evidence.py`), e a ficha dele — aba
+    // Visitas, "última visita" do vínculo e score — é toda cache-first.
+    void invalidateClient(
+      itemEntrou ? ORDER_ITEM_EVIDENCE_CACHE_FIELDS : ORDER_CACHE_FIELDS
+    );
   };
+
+  /** Item adicionado à mão ou importado: também é prova da visita. */
+  const handleItemAdded = () => handleRefetch(true);
 
   return (
     <Table.Root sort={table.sort}>
@@ -198,7 +209,7 @@ export function OrderItemsTable({
             <ImportOrderModal
               orderId={orderId}
               ipiInOrder={ipiInOrder}
-              onImported={handleRefetch}
+              onImported={handleItemAdded}
             />
           </FeatureGate>
           <AddOrderItemModal
@@ -209,7 +220,7 @@ export function OrderItemsTable({
             existingProductIds={existingProductIds}
             lastTierId={lastTierId}
             onAdded={addOptimistic}
-            onRefetch={handleRefetch}
+            onRefetch={handleItemAdded}
           />
         </Table.CardHead.Actions>
       </Table.CardHead>

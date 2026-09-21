@@ -11,6 +11,11 @@
  * esquecia a ficha do cliente.
  */
 
+/** Junta assuntos sem repetir campo (a ordem do primeiro vencedor se mantém). */
+function merge(...listas: string[][]): string[] {
+  return [...new Set(listas.flat())];
+}
+
 /**
  * Um pedido nasceu, mudou de valor ou deixou de existir.
  *
@@ -32,6 +37,20 @@ export const ORDER_CACHE_FIELDS = [
 ];
 
 /**
+ * O pedido foi refeito ITEM A ITEM: faturamento parcial (a sobra vira um
+ * pedido-filho e o pai fica só com o que a fábrica faturou) e o "refazer
+ * faturamento", que reabsorve o filho e devolve as quantidades.
+ *
+ * `partial_invoice_order.py` reduz a quantidade do item no pai, soft-deleta a
+ * linha faturada em zero e cria a sobra no filho; `uninvoice_order.py` faz o
+ * caminho de volta. A tabela de itens do detalhe lê `orderItems` numa query
+ * PRÓPRIA, que nenhum desses pontos tocava: o resumo financeiro já mostrava o
+ * total novo enquanto as linhas seguiam com as quantidades antigas — a soma da
+ * tabela não fechava com o total do pedido até um reload.
+ */
+export const ORDER_SPLIT_CACHE_FIELDS = [...ORDER_CACHE_FIELDS, "orderItems"];
+
+/**
  * Uma parcela mudou de estado: recebida, paga ao vendedor, conferida,
  * inadimplente, estornada, revertida ou baixada em lote.
  *
@@ -51,7 +70,19 @@ export const COMMISSION_CACHE_FIELDS = ["commissions", "order"];
  * (`visitsByCompanyClient`). Quem mexe pela rotina precisa da ficha, e
  * vice-versa.
  */
-export const VISIT_CACHE_FIELDS = ["visitsByCompanyClient", "visitSchedules"];
+export const VISIT_CACHE_FIELDS = [
+  "visitsByCompanyClient",
+  "visitSchedules",
+  // Concluir a visita carimba `last_visit_date`/`last_contact_date` no VÍNCULO
+  // e chama `recalculate_scores_for_link_ids` (ver
+  // `update_visit_schedule_item.py`): a coluna "última visita" da aba Fábricas
+  // do cliente, o score da ficha e a coluna de score da lista de clientes leem
+  // esses três campos, e nenhum deles sabia da visita.
+  "sellerClientFactoryList",
+  "clientVisitScores",
+  "companyClient",
+  "clients",
+];
 
 /**
  * O vínculo vendedor→cliente→fábrica nasceu, mudou ou foi desfeito.
@@ -175,6 +206,22 @@ export const PRICE_TIER_CACHE_FIELDS = ["priceTiers"];
 export const USER_CACHE_FIELDS = ["users", "user", "sellers"];
 
 /**
+ * Um cliente entrou na carteira da empresa, veio por importação ou saiu dela.
+ *
+ * - `clients` / `clientStats`: a lista e os cartões dela.
+ * - `companyClients`: a MESMA carteira lida por outro campo — é o que alimenta
+ *   os selects de "vincular cliente" (aba Clientes da fábrica, carteira do
+ *   vendedor, abertura de atendimento). Ninguém o invalidava: quem cadastrava o
+ *   cliente e ia vinculá-lo em seguida abria o select com a lista anterior.
+ *
+ * Os três pontos montavam a lista à mão e ainda chamavam
+ * `invalidateCacheMany(["clients_stats"])` — que não fazia nada por dois
+ * motivos somados: `gqlFetch` manda `cache: "no-store"` e nunca grava tag no
+ * Data Cache, e `clients_stats` é o ALIAS do documento, não o campo do schema.
+ */
+export const CLIENT_CACHE_FIELDS = ["clients", "clientStats", "companyClients"];
+
+/**
  * Uma rede de clientes nasceu, mudou de nome ou saiu.
  *
  * A lista e a ficha da rede são campos distintos, e o filtro por rede da lista
@@ -190,3 +237,49 @@ export const CLIENT_NETWORK_CACHE_FIELDS = ["clientNetworks", "clientNetwork"];
  * precisa aparecer lá sem recarregar a página.
  */
 export const FACTORY_CONTACT_CACHE_FIELDS = ["factoryContacts"];
+
+/**
+ * Um item ENTROU no pedido — à mão ou por importação.
+ *
+ * O item lançado é a prova de que o vendedor esteve na loja: `createOrderItem`
+ * e `importOrderItems` chamam `close_visit_for_order`, que conclui a visita
+ * pendente daquele cliente, carimba `last_visit_date` no vínculo e recalcula o
+ * score (ver `visit_evidence.py` → `update_visit_schedule_item.py`).
+ *
+ * A rotina (`/routines`) se salvava por ler em `cache-and-network`. Quem ficava
+ * no estado anterior era a FICHA DO CLIENTE, toda `cache-first`: a aba Visitas
+ * com a visita ainda pendente, a coluna "última visita" da aba Fábricas e o
+ * score — inclusive a coluna de score da lista de clientes.
+ *
+ * Editar e excluir item NÃO entram: só a entrada de item é prova de visita.
+ */
+export const ORDER_ITEM_EVIDENCE_CACHE_FIELDS = merge(
+  ORDER_CACHE_FIELDS,
+  VISIT_CACHE_FIELDS
+);
+
+/**
+ * A entrega foi confirmada.
+ *
+ * `mark_order_delivered.py` não muda só o status: abastece
+ * `client_product_insights` com o que foi entregue (é por aí que o estoque
+ * estimado do cliente entra no motor) e mexe no score. A aba Estoque da ficha,
+ * os cards de estoque e a coluna de score ficavam no número anterior.
+ */
+export const ORDER_DELIVERY_CACHE_FIELDS = merge(
+  ORDER_CACHE_FIELDS,
+  CLIENT_STOCK_CACHE_FIELDS
+);
+
+/**
+ * Um preço NOVO entrou na tabela.
+ *
+ * `create_price_list_item.py` reativa o produto inativo ao lançar preço para
+ * ele ("voltou a ser vendável"). A aba Produtos da fábrica e a ficha do produto
+ * seguiam mostrando o produto como inativo até um reload. Editar e excluir
+ * preço não mexem no produto.
+ */
+export const PRICE_ITEM_CREATE_CACHE_FIELDS = merge(PRICE_ITEM_CACHE_FIELDS, [
+  "products",
+  "product",
+]);

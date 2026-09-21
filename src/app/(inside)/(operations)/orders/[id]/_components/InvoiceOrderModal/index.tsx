@@ -10,7 +10,7 @@ import { Modal } from "@/components/Modal";
 import { useToast } from "@/components/Toast";
 import { useAsyncAction } from "@/hooks/useAsyncAction";
 import { useInvalidateQueriesClient } from "@/hooks/useInvalidateQueries";
-import { ORDER_CACHE_FIELDS } from "@/utils/cacheFields";
+import { ORDER_SPLIT_CACHE_FIELDS } from "@/utils/cacheFields";
 import { getTodayIso, toIsoDate } from "@/utils/format/date";
 import { useMutation } from "@apollo/client/react";
 import { FileCheck2 } from "lucide-react";
@@ -172,8 +172,9 @@ export function InvoiceOrderModal({ order, onSuccess }: Props) {
           onSuccess();
           // Faturar muda o status, a data da compra e pode criar o pedido de
           // backorder: as telas de lista, os KPIs e a ficha do cliente ficam
-          // velhos se só o detalhe recarregar.
-          void invalidateClient(ORDER_CACHE_FIELDS);
+          // velhos se só o detalhe recarregar. No parcial os próprios ITENS do
+          // pedido são reescritos — daí a lista do assunto incluir `orderItems`.
+          void invalidateClient(ORDER_SPLIT_CACHE_FIELDS);
           if (res?.data?.backorderChildren?.length) {
             toast({
               variant: "info",

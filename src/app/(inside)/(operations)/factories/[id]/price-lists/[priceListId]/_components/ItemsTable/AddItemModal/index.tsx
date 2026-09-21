@@ -13,7 +13,7 @@ import { useAsyncAction } from "@/hooks/useAsyncAction";
 import { useAsyncSelectOptions } from "@/hooks/useAsyncSelectOptions";
 import { parseMoneyToNumber } from "@/utils/format/masks";
 import { useInvalidateQueriesClient } from "@/hooks/useInvalidateQueries";
-import { PRICE_ITEM_CACHE_FIELDS } from "@/utils/cacheFields";
+import { PRICE_ITEM_CREATE_CACHE_FIELDS } from "@/utils/cacheFields";
 import { useMutation } from "@apollo/client/react";
 import { useCompleteList } from "@/hooks/useCompleteList";
 import { Plus } from "lucide-react";
@@ -235,7 +235,7 @@ export function AddItemModal({
           onAdded();
           // O mesmo preço aparece na tabela de preço e na ficha do produto,
           // por caminhos de cache diferentes.
-          await invalidateClient(PRICE_ITEM_CACHE_FIELDS);
+          await invalidateClient(PRICE_ITEM_CREATE_CACHE_FIELDS);
         },
       }
     );
