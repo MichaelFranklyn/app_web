@@ -2424,6 +2424,13 @@ enum InsightKind {
   VISIT_OVERDUE
   """Clientes na carteira sem nenhuma visita nos últimos 30 dias."""
   NO_VISIT_30D
+  """
+  Cliente cuja localização o motor de rotina não pode usar: sem coordenada, ou
+  com uma grosseira demais (o município, não a loja). Ele nunca ABRE um dia de
+  rota — só entra de carona num dia que já existe —, e quando a carteira tem
+  mais urgente do que vaga, não entra.
+  """
+  LOCATION_UNRELIABLE
   """Rascunho ou orçamento parado há dias, sem virar pedido."""
   DRAFT_STALE
   """Pedido confirmado que a fábrica ainda não faturou."""
@@ -5082,6 +5089,16 @@ type VisitAccuracyRow {
   planned: Int!
   "Quantas o vendedor de fato trabalhou (qualquer desfecho)."
   worked: Int!
+  """
+  Quantas das `worked` foram concluídas pela DEDUÇÃO a partir do pedido, e não
+  por alguém marcando.
+
+  Contam como execução porque a visita aconteceu — ninguém emite pedido para um
+  cliente sem ter falado com ele. Ficam separadas para que a subida da taxa seja
+  legível: parte é comportamento novo, parte é a medição passando a enxergar o
+  que já acontecia e não era registrado.
+  """
+  workedInferred: Int!
   "Quantas viraram pedido do cliente dentro da janela de conversão."
   converted: Int!
   executionRate: Float!
@@ -5098,6 +5115,16 @@ type VisitAccuracyReportType {
   rows: [VisitAccuracyRow!]!
   planned: Int!
   worked: Int!
+  """
+  Quantas das `worked` foram concluídas pela DEDUÇÃO a partir do pedido, e não
+  por alguém marcando.
+
+  Contam como execução porque a visita aconteceu — ninguém emite pedido para um
+  cliente sem ter falado com ele. Ficam separadas para que a subida da taxa seja
+  legível: parte é comportamento novo, parte é a medição passando a enxergar o
+  que já acontecia e não era registrado.
+  """
+  workedInferred: Int!
   converted: Int!
   conversionRate: Float!
   orderAmount: Decimal!
