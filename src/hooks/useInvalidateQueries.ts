@@ -1,5 +1,6 @@
 "use client";
 
+import { markFieldsInvalidated } from "@/utils/cacheSeed";
 import { DocumentNode } from "@apollo/client";
 import { useApolloClient } from "@apollo/client/react";
 import { useCallback } from "react";
@@ -60,6 +61,10 @@ export const useInvalidateQueriesClient = () => {
   return useCallback(
     async (fieldNames: string[]) => {
       if (fieldNames.length > 0) {
+        // O seed do SSR não pode reescrever por cima depois disto: o payload
+        // RSC que o Next guarda é anterior à mutation, e em produção era ele
+        // que devolvia o dado velho à tela (ver `@/utils/cacheSeed`).
+        markFieldsInvalidated(fieldNames);
         fieldNames.forEach((fieldName) => {
           if (fieldName) {
             apolloClient.cache.evict({ fieldName });

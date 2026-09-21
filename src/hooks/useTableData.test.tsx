@@ -13,6 +13,10 @@ vi.mock("next/navigation", () => ({
   usePathname: () => "/test",
 }));
 
+import {
+  markFieldsInvalidated,
+  resetInvalidatedFields,
+} from "@/utils/cacheSeed";
 import { pageToAfter } from "@/utils/pagination";
 import { ActiveSort, useTableData } from "./useTableData";
 
@@ -378,6 +382,55 @@ describe("useTableData — initialData (SSR seed)", () => {
     );
 
     expect(result.current.displayedData[0]?.name).toBe("Novo");
+  });
+
+  // O "só reflete com F5" que só aparecia em PRODUÇÃO. Depois de uma mutation,
+  // o campo fica invalidado (cache frio) — e numa volta de navegação o Next
+  // serve o payload RSC do router cache, prefetchado ANTES dela. Semear esse
+  // payload deixava o `cache-first` acertar o dado velho e a query nunca ia à
+  // rede: medido em /orders, onde `orderStats` (sem seed) atualizava e a lista
+  // não. Em `next dev` não aparece porque lá o payload RSC é sempre refeito.
+  it("depois de uma mutation invalidar o campo, ignora o seed e busca na rede", async () => {
+    state.sp = new URLSearchParams();
+    resetInvalidatedFields();
+    markFieldsInvalidated(["items"]);
+
+    const staleSeed = {
+      items: {
+        __typename: "ItemConnection",
+        totalCount: 1,
+        edges: [
+          {
+            __typename: "ItemEdge",
+            node: {
+              __typename: "Item",
+              id: "9",
+              name: "Velho",
+              priority: "high",
+              factory: { __typename: "Factory", name: "F" },
+            },
+          },
+        ],
+      },
+    } as unknown as ItemsData;
+
+    const { result } = renderHook(
+      () =>
+        useTableData<ItemsData, Item>({
+          query: QUERY,
+          fields: {},
+          getConnection: (d) => d.items,
+          itemsPerPage: 10,
+          initialData: staleSeed,
+        }),
+      { wrapper: makeWrapper(DATA) }
+    );
+
+    await waitFor(() => expect(result.current.loading).toBe(false));
+    // Veio da REDE: o seed velho não entrou no cache.
+    expect(result.current.displayedData).toHaveLength(DATA.length);
+    expect(ids(result.current.displayedData)).not.toContain("9");
+    resetInvalidatedFields();
   });
 
   it("com initialData de connection VAZIO, não semeia — busca no cliente", async () => {

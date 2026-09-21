@@ -2,8 +2,8 @@
 
 import { Button } from "@/components/Button";
 import { ConfirmModal } from "@/components/ConfirmModal";
+import { CLIENT_CACHE_FIELDS } from "@/utils/cacheFields";
 import { useInvalidateQueriesClient } from "@/hooks/useInvalidateQueries";
-import { invalidateCacheMany } from "@/services/graphql/actions";
 import { useMutation } from "@apollo/client/react";
 import { Trash2 } from "lucide-react";
 import { DELETE_COMPANY_CLIENT_MUTATION } from "./gql";
@@ -52,8 +52,7 @@ export function DeleteClientModal({ companyClientId, clientName }: Props) {
         }
       }}
       onSuccess={async () => {
-        await invalidateClient(["clients", "clientStats"]);
-        await invalidateCacheMany(["clients_stats"]);
+        await invalidateClient(CLIENT_CACHE_FIELDS);
       }}
     />
   );

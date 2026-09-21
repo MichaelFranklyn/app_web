@@ -4,6 +4,7 @@ import { join, resolve } from "node:path";
 import { describe, expect, it } from "vitest";
 
 import {
+  CLIENT_CACHE_FIELDS,
   CLIENT_FACTORY_LINK_CACHE_FIELDS,
   CLIENT_NETWORK_CACHE_FIELDS,
   CLIENT_STOCK_CACHE_FIELDS,
@@ -11,7 +12,11 @@ import {
   FACTORY_CACHE_FIELDS,
   FACTORY_CONTACT_CACHE_FIELDS,
   ORDER_CACHE_FIELDS,
+  ORDER_DELIVERY_CACHE_FIELDS,
+  ORDER_ITEM_EVIDENCE_CACHE_FIELDS,
+  ORDER_SPLIT_CACHE_FIELDS,
   PRICE_ITEM_CACHE_FIELDS,
+  PRICE_ITEM_CREATE_CACHE_FIELDS,
   PRICE_LIST_CACHE_FIELDS,
   PRICE_TIER_CACHE_FIELDS,
   PRODUCT_CACHE_FIELDS,
@@ -65,6 +70,12 @@ interface Assunto {
    */
   mutations: string[];
   /**
+   * Constantes que VALEM pela do assunto por serem um superconjunto dela
+   * (ex.: `ORDER_SPLIT_CACHE_FIELDS` = pedido + `orderItems`). Sem isto, quem
+   * invalida MAIS do que o assunto pede seria acusado de não invalidar nada.
+   */
+  variantes?: string[];
+  /**
    * Quem dispara sem invalidar porque outro faz por ele: o caminho do escritor
    * aponta o DONO que invalida. O dono é conferido junto (tem de existir e tem
    * de citar a constante) — senão bastaria alguém apagar o invalidate do dono
@@ -91,6 +102,11 @@ const ASSUNTOS: Assunto[] = [
       "markOrderSent",
       "confirmOrderImport",
       "ConvertQuoteToOrder",
+    ],
+    variantes: [
+      "ORDER_SPLIT_CACHE_FIELDS",
+      "ORDER_ITEM_EVIDENCE_CACHE_FIELDS",
+      "ORDER_DELIVERY_CACHE_FIELDS",
     ],
     delegacoes: {
       // helper puro e wizard: quem CRIA o pedido invalida depois de gravar.
@@ -179,6 +195,7 @@ const ASSUNTOS: Assunto[] = [
     nome: "preço lançado",
     constante: "PRICE_ITEM_CACHE_FIELDS",
     campos: PRICE_ITEM_CACHE_FIELDS,
+    variantes: ["PRICE_ITEM_CREATE_CACHE_FIELDS"],
     mutations: [
       "createPriceListItem",
       "updatePriceListItem",
@@ -248,6 +265,13 @@ const ASSUNTOS: Assunto[] = [
     delegacoes: {},
   },
   {
+    nome: "cliente",
+    constante: "CLIENT_CACHE_FIELDS",
+    campos: CLIENT_CACHE_FIELDS,
+    mutations: ["addClientToCompany", "importClients", "deleteCompanyClient"],
+    delegacoes: {},
+  },
+  {
     nome: "rede de clientes",
     constante: "CLIENT_NETWORK_CACHE_FIELDS",
     campos: CLIENT_NETWORK_CACHE_FIELDS,
@@ -300,7 +324,8 @@ describe.each(ASSUNTOS)("campos de cache de $nome", (assunto) => {
     const omissos = writers
       .filter(({ path, code }) => {
         if (path in assunto.delegacoes) return false;
-        return !code.includes(assunto.constante);
+        const aceitas = [assunto.constante, ...(assunto.variantes ?? [])];
+        return !aceitas.some((nome) => code.includes(nome));
       })
       .map(({ path }) => path);
     expect(omissos).toEqual([]);
@@ -329,10 +354,113 @@ describe.each(ASSUNTOS)("campos de cache de $nome", (assunto) => {
     const donosQuebrados = Object.entries(assunto.delegacoes)
       .filter(([, dono]) => {
         const arquivo = files.find(({ path }) => path === dono);
-        return !arquivo || !arquivo.code.includes(assunto.constante);
+        const aceitas = [assunto.constante, ...(assunto.variantes ?? [])];
+        return !arquivo || !aceitas.some((nome) => arquivo.code.includes(nome));
       })
       .map(([escritor, dono]) => `${escritor} → ${dono}`);
     expect(donosQuebrados).toEqual([]);
+  });
+});
+
+/**
+ * O pedido refeito item a item. `partial_invoice_order.py` reduz a quantidade
+ * do item no pai, soft-deleta a linha faturada em zero e joga a sobra num
+ * pedido-filho; `uninvoice_order.py` faz o caminho de volta. A tabela de itens
+ * do detalhe lê `orderItems` numa query PRÓPRIA — e nenhum dos dois a tocava:
+ * o resumo financeiro mostrava o total novo com as linhas antigas do lado, e a
+ * soma da tabela não fechava com o total até um reload.
+ */
+describe("faturar parcial e refazer o faturamento reescrevem os itens", () => {
+  const PONTOS = [
+    "app/(inside)/(operations)/orders/[id]/_components/InvoiceOrderModal/index.tsx",
+    "app/(inside)/(operations)/orders/[id]/_components/EditInvoiceModal/useEditInvoice.ts",
+  ];
+
+  it("a constante do split é o assunto pedido MAIS os itens", () => {
+    expect(ORDER_SPLIT_CACHE_FIELDS).toEqual([
+      ...ORDER_CACHE_FIELDS,
+      "orderItems",
+    ]);
+  });
+
+  it.each(PONTOS)("%s invalida pela constante do split", (caminho) => {
+    const arquivo = files.find(({ path }) => path === caminho);
+    expect(arquivo, `arquivo não encontrado: ${caminho}`).toBeDefined();
+    expect(arquivo!.code).toContain("ORDER_SPLIT_CACHE_FIELDS");
+  });
+});
+
+/**
+ * Efeito no backend que o front não via. Cada um destes pontos escreve numa
+ * tabela de OUTRO assunto, e a tela que lê essa tabela ficava no estado
+ * anterior até um reload.
+ */
+/**
+ * A carteira é lida por DOIS campos: `clients` (a lista, com os KPIs) e
+ * `companyClients` (os selects de "vincular cliente" — aba Clientes da fábrica,
+ * carteira do vendedor, abertura de atendimento). Quem cadastrava o cliente e
+ * ia vinculá-lo em seguida abria o select com a lista anterior.
+ */
+describe("a carteira de clientes é lida por dois campos", () => {
+  it("a constante cobre a lista, os KPIs e os selects", () => {
+    expect(CLIENT_CACHE_FIELDS).toEqual([
+      "clients",
+      "clientStats",
+      "companyClients",
+    ]);
+  });
+
+  it("nenhum ponto de cliente invalida por tag de servidor (letra morta)", () => {
+    // `gqlFetch` manda `cache: "no-store"` e não repassa `next: { tags }`:
+    // `invalidateCacheMany` não tinha o que invalidar, e ainda era chamada com
+    // o ALIAS (`clients_stats`) em vez do campo do schema.
+    const semComentarios = (code: string) =>
+      code.replace(/\/\*[\s\S]*?\*\//g, "").replace(/^\s*\/\/.*$/gm, "");
+    const usam = files
+      // o próprio módulo que as define não conta
+      .filter(({ path }) => path !== "services/graphql/actions.ts")
+      .filter(({ code }) =>
+        /invalidateCacheMany\s*\(/.test(semComentarios(code))
+      )
+      .map(({ path }) => path);
+    expect(usam).toEqual([]);
+  });
+});
+
+describe("mutations com efeito colateral em outro assunto", () => {
+  it("item que entra no pedido é prova de visita (close_visit_for_order)", () => {
+    expect(ORDER_ITEM_EVIDENCE_CACHE_FIELDS).toEqual(
+      expect.arrayContaining([...ORDER_CACHE_FIELDS, ...VISIT_CACHE_FIELDS])
+    );
+    const tabela = files.find(({ path }) =>
+      path.endsWith("orders/[id]/_components/OrderItemsTable/index.tsx")
+    );
+    expect(tabela!.code).toContain("ORDER_ITEM_EVIDENCE_CACHE_FIELDS");
+  });
+
+  it("entrega abastece o estoque estimado do cliente (mark_order_delivered)", () => {
+    expect(ORDER_DELIVERY_CACHE_FIELDS).toEqual(
+      expect.arrayContaining([
+        ...ORDER_CACHE_FIELDS,
+        ...CLIENT_STOCK_CACHE_FIELDS,
+      ])
+    );
+    const modal = files.find(({ path }) =>
+      path.endsWith("MarkDeliveredModal/index.tsx")
+    );
+    expect(modal!.code).toContain("ORDER_DELIVERY_CACHE_FIELDS");
+  });
+
+  it("preço novo reativa o produto inativo (create_price_list_item)", () => {
+    expect(PRICE_ITEM_CREATE_CACHE_FIELDS).toEqual([
+      ...PRICE_ITEM_CACHE_FIELDS,
+      "products",
+      "product",
+    ]);
+    const modal = files.find(({ path }) =>
+      path.endsWith("ItemsTable/AddItemModal/index.tsx")
+    );
+    expect(modal!.code).toContain("PRICE_ITEM_CREATE_CACHE_FIELDS");
   });
 });
 
@@ -356,6 +484,13 @@ describe("as listas por assunto", () => {
     expect(VISIT_CACHE_FIELDS).toEqual([
       "visitsByCompanyClient",
       "visitSchedules",
+      // Concluir a visita carimba o vínculo e recalcula o score dele
+      // (`update_visit_schedule_item.py`): a coluna "última visita", o score da
+      // ficha e a coluna de score da lista de clientes vêm daqui.
+      "sellerClientFactoryList",
+      "clientVisitScores",
+      "companyClient",
+      "clients",
     ]);
   });
 

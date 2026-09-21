@@ -1,6 +1,7 @@
 "use client";
 
 import { TableSort, TableSortDirection } from "@/components/Table";
+import { hasInvalidatedField, rootFieldNames } from "@/utils/cacheSeed";
 import { pageToAfter } from "@/utils/pagination";
 import { DocumentNode } from "@apollo/client";
 import { useApolloClient } from "@apollo/client/react";
@@ -253,7 +254,12 @@ export const useTableData = <TData, TItem extends object>(
   const apollo = useApolloClient();
   useState(() => {
     const seedEdges = initialData ? getConnection(initialData)?.edges : null;
-    if (initialData && seedEdges && seedEdges.length > 0) {
+    // Campo que uma mutation já invalidou não aceita mais o seed: o payload RSC
+    // pode ser anterior a ela (o Router Cache do Next guarda o prefetch), e
+    // reescrevê-lo devolvia o dado velho à lista até um reload — só em
+    // produção, onde esse payload é reaproveitado. Ver `@/utils/cacheSeed`.
+    const stale = hasInvalidatedField(rootFieldNames(query));
+    if (!stale && initialData && seedEdges && seedEdges.length > 0) {
       try {
         // Só semeia em cache FRIO. O `initialData` vem do payload RSC, que numa
         // volta de navegação pode ser mais VELHO do que o cache: o Next serve o

@@ -37,7 +37,13 @@ export class GqlNotFoundError extends Error {
 }
 
 export interface CacheOptions {
-  /** Rótulos para invalidar a entrada via `invalidateCache` (server action). */
+  /**
+   * Rótulos para invalidar a entrada via `invalidateCache` (server action).
+   *
+   * ⚠️ Hoje não têm efeito: a chamada abaixo manda `cache: "no-store"` e não
+   * repassa `next: { tags }`, então nada entra no Data Cache. É decisão, não
+   * esquecimento — ver o comentário de `services/graphql/actions.ts`.
+   */
   tags?: string[];
   /**
    * Segundos de validade da entrada no Data Cache. Omitido = 1s, que na prática

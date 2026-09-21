@@ -3,7 +3,10 @@
 import { FormBuilderRef, FormStepSchema } from "@/components/FormBuilder";
 import { useAsyncAction } from "@/hooks/useAsyncAction";
 import { useInvalidateQueriesClient } from "@/hooks/useInvalidateQueries";
-import { ORDER_CACHE_FIELDS } from "@/utils/cacheFields";
+import {
+  ORDER_CACHE_FIELDS,
+  ORDER_SPLIT_CACHE_FIELDS,
+} from "@/utils/cacheFields";
 import { toIsoDate } from "@/utils/format/date";
 import { useMutation } from "@apollo/client/react";
 import { useMemo, useRef, useState } from "react";
@@ -160,10 +163,16 @@ export function useEditInvoice(order: OrderDetail, onSuccess: () => void) {
    * detalhe deixaria a lista, os KPIs e a ficha do cliente com o estado
    * anterior.
    */
-  const finish = () => {
+  const finish = (rewroteItems = false) => {
     handleClose(false);
     onSuccess();
-    void invalidateClient(ORDER_CACHE_FIELDS);
+    // Refazer o faturamento reabsorve o pedido-filho e devolve as quantidades
+    // ao pai (ver `uninvoice_order.py`): aí a tabela de itens, que lê
+    // `orderItems` numa query própria, também está velha. Corrigir datas e
+    // desfazer a entrega não encostam nos itens.
+    void invalidateClient(
+      rewroteItems ? ORDER_SPLIT_CACHE_FIELDS : ORDER_CACHE_FIELDS
+    );
   };
 
   const runRevise = async (
@@ -210,7 +219,7 @@ export function useEditInvoice(order: OrderDetail, onSuccess: () => void) {
 
     await execute(() => runRevise(input, "Faturamento corrigido."), {
       successMessage: (message) => message,
-      onSuccess: finish,
+      onSuccess: () => finish(),
     });
   };
 
@@ -219,7 +228,7 @@ export function useEditInvoice(order: OrderDetail, onSuccess: () => void) {
       () => runRevise({ clearDelivery: true }, "Entrega desfeita."),
       {
         successMessage: (message) => message,
-        onSuccess: finish,
+        onSuccess: () => finish(),
       }
     );
   };
@@ -240,7 +249,7 @@ export function useEditInvoice(order: OrderDetail, onSuccess: () => void) {
       },
       {
         successMessage: (message) => message,
-        onSuccess: finish,
+        onSuccess: () => finish(true),
       }
     );
   };

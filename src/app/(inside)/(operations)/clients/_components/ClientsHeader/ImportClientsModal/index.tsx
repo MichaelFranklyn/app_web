@@ -10,8 +10,8 @@ import { Modal } from "@/components/Modal";
 import { Title } from "@/components/Title";
 import { useToast } from "@/components/Toast";
 import { useAsyncAction } from "@/hooks/useAsyncAction";
+import { CLIENT_CACHE_FIELDS } from "@/utils/cacheFields";
 import { useInvalidateQueriesClient } from "@/hooks/useInvalidateQueries";
-import { invalidateCacheMany } from "@/services/graphql/actions";
 
 import { readSpreadsheet } from "@/utils/import/reader";
 
@@ -58,8 +58,7 @@ export function ImportClientsModal() {
         onSuccess: async ({ data, message }) => {
           setResult(data);
           if (data.created > 0) {
-            await invalidateClient(["clients", "clientStats"]);
-            await invalidateCacheMany(["clients_stats"]);
+            await invalidateClient(CLIENT_CACHE_FIELDS);
           }
 
           const allFailed = data.created === 0 && data.skipped === 0;

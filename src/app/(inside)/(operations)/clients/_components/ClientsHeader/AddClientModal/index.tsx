@@ -5,8 +5,8 @@ import { ConfirmModal } from "@/components/ConfirmModal";
 import { FormBuilder, FormBuilderRef } from "@/components/FormBuilder";
 import { Modal } from "@/components/Modal";
 import { useAsyncAction } from "@/hooks/useAsyncAction";
+import { CLIENT_CACHE_FIELDS } from "@/utils/cacheFields";
 import { useInvalidateQueriesClient } from "@/hooks/useInvalidateQueries";
-import { invalidateCacheMany } from "@/services/graphql/actions";
 import { useMutation } from "@apollo/client/react";
 import { Plus } from "lucide-react";
 import { useRef, useState } from "react";
@@ -71,8 +71,7 @@ export function AddClientModal({ onAddOptimistic }: AddClientModalProps) {
               sellers: [],
             },
           });
-          await invalidateClient(["clients", "clientStats"]);
-          await invalidateCacheMany(["clients_stats"]);
+          await invalidateClient(CLIENT_CACHE_FIELDS);
           setCreatedCompanyClientId(created.id);
         },
       }
