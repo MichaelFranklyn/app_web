@@ -4,6 +4,10 @@ import { renderHook } from "@testing-library/react";
 import { ReactNode } from "react";
 import { describe, expect, it } from "vitest";
 
+import {
+  markFieldsInvalidated,
+  resetInvalidatedFields,
+} from "@/utils/cacheSeed";
 import { useSeedQuery } from "./useSeedQuery";
 
 // `order(id: $id)` e não `order`: é o argumento que separa as entradas do cache
@@ -164,6 +168,25 @@ describe("useSeedQuery", () => {
     expect(
       client.readQuery({ query: ORDER_QUERY, variables: { id: "o1" } })
     ).toMatchObject({ order: { data: { code: "NOVO" } } });
+  });
+
+  // Irmão do caso acima para o cenário que o cache quente não cobre: depois da
+  // invalidação o cache fica FRIO, e numa volta de navegação o Next serve o
+  // payload RSC prefetchado antes da mutation. Semeá-lo devolvia o dado velho
+  // à tela até um reload — só em produção, onde esse payload é reaproveitado.
+  it("não semeia campo que uma mutation já invalidou", () => {
+    resetInvalidatedFields();
+    markFieldsInvalidated(["order"]);
+    const client = makeClient();
+
+    renderSeed(client, [
+      { query: ORDER_QUERY, variables: { id: "o1" }, data: orderData("VELHO") },
+    ]);
+
+    expect(
+      client.readQuery({ query: ORDER_QUERY, variables: { id: "o1" } })
+    ).toBeNull();
+    resetInvalidatedFields();
   });
 
   it("não repete a escrita enquanto a chave não muda", () => {

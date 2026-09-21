@@ -1,5 +1,6 @@
 "use client";
 
+import { hasInvalidatedField, rootFieldNames } from "@/utils/cacheSeed";
 import { useApolloClient } from "@apollo/client/react";
 import { DocumentNode } from "graphql";
 import { useRef } from "react";
@@ -51,6 +52,9 @@ export function useSeedQuery(entries: SeedEntry[], seedKey?: string): void {
 
     for (const { query, variables, data } of entries) {
       if (!data) continue;
+      // Campo já invalidado por uma mutation não volta a ser semeado: o payload
+      // RSC pode ser anterior a ela. Ver `@/utils/cacheSeed`.
+      if (hasInvalidatedField(rootFieldNames(query))) continue;
       try {
         // Cache FRIO só. O `data` vem do payload RSC, que numa volta de
         // navegação pode ser mais velho que o cache — ver o comentário longo
