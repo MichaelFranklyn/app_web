@@ -45,15 +45,31 @@ describe("drawTotals", () => {
     // linha "Impostos" no bloco de totais contaria o mesmo dinheiro duas vezes.
     const { pdf, texts } = fakePdf();
 
-    drawTotals(pdf, { subtotal: "1000.00", ipiAmount: "0", total: 1000 }, 100);
+    drawTotals(
+      pdf,
+      { subtotal: "1000.00", ipiAmount: "75.00", total: 1075 },
+      100
+    );
 
-    expect(texts).toContain("Subtotal");
     expect(texts).toContain("TOTAL");
     expect(texts.join(" ")).not.toContain("Impostos");
+  });
+
+  it("sem nada somado por cima, só o TOTAL aparece", () => {
+    // Subtotal e total iguais é o caso comum (fábrica sem IPI). Repetir o
+    // mesmo número em duas linhas com nomes diferentes faz quem lê procurar
+    // uma diferença que não existe.
+    const { pdf, texts } = fakePdf();
+
+    drawTotals(pdf, { subtotal: "1000.00", ipiAmount: "0", total: 1000 }, 100);
+
+    expect(texts).toContain("TOTAL");
+    expect(texts).not.toContain("Subtotal");
     expect(texts).not.toContain("IPI");
   });
 
   it("mostra o IPI à parte quando a fábrica o cobra", () => {
+    // Aqui o subtotal volta: ele é o que explica de onde veio o TOTAL.
     const { pdf, texts } = fakePdf();
 
     drawTotals(
@@ -62,7 +78,22 @@ describe("drawTotals", () => {
       100
     );
 
+    expect(texts).toContain("Subtotal");
     expect(texts).toContain("IPI");
+  });
+
+  it("centavo de diferença ainda é diferença", () => {
+    // Arredondamento de ST pode deixar o total um centavo acima do subtotal.
+    // Esconder a decomposição aí faria o documento não fechar na conferência.
+    const { pdf, texts } = fakePdf();
+
+    drawTotals(
+      pdf,
+      { subtotal: "1000.00", ipiAmount: "0", total: 1000.01 },
+      100
+    );
+
+    expect(texts).toContain("Subtotal");
   });
 
   it("devolve o fim do bloco para quem desenha embaixo", () => {

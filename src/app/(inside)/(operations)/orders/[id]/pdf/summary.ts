@@ -29,6 +29,11 @@ export const drawTotals = (
   const right = pageW - PAGE.margin;
   const left = right - BLOCK_W;
   const hasIpi = Number(data.ipiAmount) > 0;
+  // O subtotal só se justifica quando o TOTAL é outro número: ele existe para
+  // mostrar de onde veio a diferença (hoje, o IPI). Sem nada somado por cima,
+  // "Subtotal R$ X" em cima de "TOTAL R$ X" é a mesma linha duas vezes, e quem
+  // lê o documento para de confiar no que está vendo.
+  const hasBreakdown = Math.abs(Number(data.subtotal) - data.total) >= 0.005;
   let y = startY + 10;
 
   const line = (label: string, value: string) => {
@@ -43,8 +48,10 @@ export const drawTotals = (
 
   // O imposto já está dentro do subtotal (e detalhado por linha na tabela); uma
   // linha "Impostos" aqui contaria em dobro. IPI, quando existe, é à parte.
-  line("Subtotal", formatMoney(data.subtotal));
-  if (hasIpi) line("IPI", formatMoney(data.ipiAmount));
+  if (hasBreakdown) {
+    line("Subtotal", formatMoney(data.subtotal));
+    if (hasIpi) line("IPI", formatMoney(data.ipiAmount));
+  }
 
   setFill(pdf, COLOR.brand);
   pdf.roundedRect(left, y - 4, BLOCK_W, 30, 4, 4, "F");
