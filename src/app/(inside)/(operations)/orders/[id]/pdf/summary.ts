@@ -13,8 +13,10 @@ import {
 const BLOCK_W = 230;
 
 export interface TotalsData {
-  /** Subtotal COM o imposto embutido (ST) — soma da coluna Subtotal dos itens. */
-  subtotal: string;
+  /** Mercadoria SEM imposto nenhum — o `totalAmount` do pedido. */
+  merchandise: string;
+  /** Imposto embutido no preço (ST), agregado do pedido. */
+  taxAmount: string;
   ipiAmount: string;
   total: number;
 }
@@ -28,12 +30,8 @@ export const drawTotals = (
   const pageW = pdf.internal.pageSize.getWidth();
   const right = pageW - PAGE.margin;
   const left = right - BLOCK_W;
+  const hasTax = Number(data.taxAmount) > 0;
   const hasIpi = Number(data.ipiAmount) > 0;
-  // O subtotal só se justifica quando o TOTAL é outro número: ele existe para
-  // mostrar de onde veio a diferença (hoje, o IPI). Sem nada somado por cima,
-  // "Subtotal R$ X" em cima de "TOTAL R$ X" é a mesma linha duas vezes, e quem
-  // lê o documento para de confiar no que está vendo.
-  const hasBreakdown = Math.abs(Number(data.subtotal) - data.total) >= 0.005;
   let y = startY + 10;
 
   const line = (label: string, value: string) => {
@@ -46,10 +44,21 @@ export const drawTotals = (
     y += 16;
   };
 
-  // O imposto já está dentro do subtotal (e detalhado por linha na tabela); uma
-  // linha "Impostos" aqui contaria em dobro. IPI, quando existe, é à parte.
-  if (hasBreakdown) {
-    line("Subtotal", formatMoney(data.subtotal));
+  // Os mesmos rótulos do resumo financeiro da tela (`OrderSummaryCard`): quem
+  // confere o PDF contra o sistema lê a mesma decomposição nos dois lugares.
+  //
+  // A palavra "Subtotal" NÃO aparece aqui de propósito. A coluna SUBTOTAL da
+  // tabela de itens é a linha COM o imposto embutido (a coluna IMPOSTO ao lado
+  // o detalha), e usar o mesmo nome para um número menor faria a folha se
+  // contradizer — a soma da coluna não fecharia com o bloco.
+  //
+  // Sem imposto nenhum, a decomposição não sai: a mercadoria seria o próprio
+  // TOTAL, e o mesmo número escrito duas vezes com nomes diferentes faz quem lê
+  // procurar uma diferença que não existe. Cada linha de imposto aparece só
+  // quando há o que mostrar, e a mercadoria só quando algo é somado por cima.
+  if (hasTax || hasIpi) {
+    line("Mercadoria (sem impostos)", formatMoney(data.merchandise));
+    if (hasTax) line("Impostos no preço", formatMoney(data.taxAmount));
     if (hasIpi) line("IPI", formatMoney(data.ipiAmount));
   }
 
