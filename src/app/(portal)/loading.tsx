@@ -1,0 +1,31 @@
+import { Loading } from "@/components/Loading";
+
+/**
+ * Limite de Suspense do grupo inteiro — e o único que cobre o fetch do
+ * `p/[token]/layout.tsx`.
+ *
+ * O `loading.tsx` de um segmento envolve a PÁGINA daquele segmento, não o
+ * `layout.tsx` dele: enquanto o layout do portal busca o perfil do cliente,
+ * nenhum limite lá de dentro chegou a existir ainda, e o navegador não recebe
+ * nada. Quem abre o link no 4G da loja olha uma tela branca até o Cloud Run
+ * responder. Ver [[feedback_nextjs_layout_loading_suspense]].
+ *
+ * Por isso este é deliberadamente genérico: ele aparece ANTES de o sistema
+ * saber de quem é a página. Os esqueletos com a cara de cada tela ficam nos
+ * `loading.tsx` de dentro, que entram assim que o perfil resolve.
+ */
+export default function PortalGroupLoading() {
+  return (
+    <div className="flex min-h-screen flex-col">
+      <header className="border-b border-(--border) px-[16px] py-[16px]">
+        <div className="mx-auto flex max-w-[1120px] flex-col gap-[6px]">
+          <Loading.Skeleton className="h-[20px] w-[200px]" />
+          <Loading.Skeleton className="h-[14px] w-[140px]" />
+        </div>
+      </header>
+      <main className="mx-auto w-full max-w-[1120px] flex-1 px-[16px] py-[24px]">
+        <Loading.Skeleton className="h-[180px] w-full" />
+      </main>
+    </div>
+  );
+}

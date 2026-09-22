@@ -8,43 +8,24 @@ import type {
 export type { VisitContactType, VisitOutcome, VisitStatus };
 
 // Tipos compartilhados com a grade semanal (nível-pai da rota).
-import { VisitFocusFactory, VisitPrimaryContact } from "../interface";
-import type { ScoreDimensions } from "@/utils/score";
+//
+// Cliente, fábrica e vínculo são os MESMOS da semana e vivem lá: a folha
+// impressa da rotina semanal passou a precisar de endereço e de negativado,
+// que só o dia trazia. Duas declarações do mesmo nó divergem na primeira vez
+// que alguém acrescenta um campo em uma só.
+import { VisitFocusFactory } from "../interface";
 import type { Viability } from "@/utils/viability";
 
+export type {
+  VisitClient,
+  VisitClientFactoryLink,
+  VisitFactory,
+  VisitPrimaryContact,
+} from "../interface";
+
+import type { VisitClientFactoryLink, VisitFactory } from "../interface";
+
 export type DayStatus = "PLANNED" | "IN_PROGRESS" | "DONE";
-
-export interface VisitClient {
-  id: string;
-  razaoSocial: string;
-  nomeFantasia: string | null;
-  companyClient: { id: string } | null;
-  addressStreet: string | null;
-  addressNumber: string | null;
-  addressNeighborhood: string | null;
-  addressCity: string | null;
-  addressState: string | null;
-  primaryContact: VisitPrimaryContact | null;
-}
-
-export interface VisitFactory {
-  id: string;
-  razaoSocial: string;
-  nomeFantasia: string | null;
-}
-
-export interface VisitClientFactoryLink {
-  id: string;
-  client: VisitClient | null;
-  factory: VisitFactory | null;
-  latestVisitScore: ScoreDimensions | null;
-  /**
-   * Cliente negativado nesta fábrica. A visita segue na agenda (negativar não
-   * apaga o que já foi planejado), mas a fábrica não aceita pedido novo dele.
-   */
-  isNegative?: boolean;
-  negativeReason?: string | null;
-}
 
 export interface VisitItem {
   id: string;

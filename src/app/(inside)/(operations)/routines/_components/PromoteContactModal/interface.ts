@@ -1,4 +1,19 @@
-import { VisitClient, VisitFactory } from "../../interface";
+import { VisitFactory } from "../../interface";
+
+/**
+ * O cliente vizinho como a query o traz — nome e praça, nada mais.
+ *
+ * Não é o `VisitClient` da rotina: `visitPromotionPreview` não seleciona
+ * contato, vínculo da carteira nem o endereço completo, e emprestar o tipo
+ * maior faria o editor prometer campos que chegam `undefined` na tela.
+ */
+export interface NearbyClient {
+  id: string;
+  razaoSocial: string;
+  nomeFantasia: string | null;
+  addressCity: string | null;
+  addressState: string | null;
+}
 
 /** Cliente da região que pode entrar na mesma viagem. */
 export interface NearbyCandidate {
@@ -6,12 +21,7 @@ export interface NearbyCandidate {
   distanceKm: number;
   scoreTotal: string;
   isUrgent: boolean;
-  client:
-    | (VisitClient & {
-        addressCity: string | null;
-        addressState: string | null;
-      })
-    | null;
+  client: NearbyClient | null;
   factory: VisitFactory | null;
 }
 

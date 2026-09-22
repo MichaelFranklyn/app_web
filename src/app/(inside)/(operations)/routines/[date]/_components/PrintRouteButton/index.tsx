@@ -3,12 +3,24 @@
 import { Button } from "@/components/Button";
 import { useToast } from "@/components/Toast";
 import { useCompanyBranding } from "@/hooks/useCompanyBranding";
+import { useMutation } from "@apollo/client/react";
 import { Printer } from "lucide-react";
 import { useState } from "react";
+import { ISSUE_VISIT_RESPONSE_LINK_MUTATION } from "../../gql";
 import { VisitItem } from "../../interface";
 import { DayRoutePdfMeta } from "../../pdf";
 
+interface IssueLinkResponse {
+  issueVisitResponseLink: {
+    status: boolean;
+    message: string;
+    data: { url: string; expiresAt: string } | null;
+  } | null;
+}
+
 interface Props {
+  /** Dia da rotina — é dele que o link de resposta é emitido. */
+  scheduleDayId: string;
   date: string;
   /** Paradas presenciais, já na ordem da rota. */
   stops: VisitItem[];
@@ -23,10 +35,20 @@ interface Props {
 /**
  * Baixa a rota do dia em PDF para imprimir e levar na rua.
  *
+ * A folha sai com o QR do formulário de resposta: é assim que o papel volta
+ * para o sistema no fim do dia. O link é emitido NO CLIQUE, e cada impressão
+ * gera um endereço novo — só o hash fica no banco, então não há como reimprimir
+ * o anterior.
+ *
+ * Falha na emissão não cancela a impressão: a folha sai sem o bloco de
+ * resposta, que é como ela saía antes desta funcionalidade existir. Quem clicou
+ * quer a rota na mão; o QR é o que a devolve, não o que a justifica.
+ *
  * O gerador entra por import dinâmico no clique: jsPDF pesa mais que a página
  * inteira e quase ninguém imprime toda vez que abre o dia.
  */
 export function PrintRouteButton({
+  scheduleDayId,
   date,
   stops,
   remoteStops,
@@ -37,9 +59,21 @@ export function PrintRouteButton({
 }: Props) {
   const { toast } = useToast();
   const { name: companyName, logoUrl: companyLogoUrl } = useCompanyBranding();
+  const [issueLink] = useMutation<IssueLinkResponse>(
+    ISSUE_VISIT_RESPONSE_LINK_MUTATION
+  );
   const [isBusy, setIsBusy] = useState(false);
 
   const isEmpty = stops.length === 0 && remoteStops.length === 0;
+
+  const responseUrl = async (): Promise<string | null> => {
+    try {
+      const res = await issueLink({ variables: { scheduleDayId } });
+      return res.data?.issueVisitResponseLink?.data?.url ?? null;
+    } catch {
+      return null;
+    }
+  };
 
   const handlePrint = async () => {
     setIsBusy(true);
@@ -52,6 +86,7 @@ export function PrintRouteButton({
         routeDurationMin,
         companyName,
         companyLogoUrl,
+        responseUrl: await responseUrl(),
       };
       const { exportDayRoutePdf } = await import("../../pdf");
       await exportDayRoutePdf(stops, remoteStops, meta);

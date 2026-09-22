@@ -1,6 +1,6 @@
 # AUTO-GERADO por scripts/pull-schema.mjs — NÃO editar à mão.
 # Snapshot do schema do backend (app_user). Atualize com: npm run schema:pull
-# Fonte: 53 arquivos .graphql merge-ados (mesma regra do Ariadne).
+# Fonte: 54 arquivos .graphql merge-ados (mesma regra do Ariadne).
 
 input BaseListInput {
   filters: [FieldFilterInput!] = null
@@ -6023,6 +6023,130 @@ enum RescheduleReason {
   DAY_OFF
   """A visita que tomou a jornada inteira empurrou as outras paradas do dia."""
   WHOLE_DAY_VISIT
+}
+
+"""
+Uma parada da folha do dia, como o VENDEDOR a responde.
+
+Deliberadamente mais pobre que `VisitScheduleItemType`: não há score, nem
+viabilidade, nem sugestão de produto. Quem abre este link não está planejando o
+dia — ele já aconteceu. O que sai daqui é o necessário para reconhecer a parada
+e dizer o que houve nela.
+"""
+type VisitResponseStopType {
+  id: UUID!
+  """Sequência da parada na rota do dia — a mesma numeração da folha impressa."""
+  plannedOrder: Int!
+  contactType: VisitContactType!
+  """Nome fantasia do cliente; a razão social quando não houver."""
+  clientName: String!
+  """Razão social, quando ela é diferente do nome acima."""
+  clientAlias: String
+  clientCity: String
+  clientState: String
+  """Fábricas que motivaram a parada — é por elas que o vendedor a reconhece."""
+  factoryNames: [String!]!
+  """Situação ATUAL, para o formulário abrir com o que já está gravado."""
+  status: VisitStatus!
+  outcome: VisitOutcome
+  notes: String
+  """
+  Já há pedido deste cliente amarrado a esta visita.
+
+  O formulário usa isto para abrir com a caixa "rendeu pedido" já marcada —
+  quando o vendedor lançou o pedido antes de responder a folha, o sistema já
+  sabe, e perguntar de novo faria a resposta parecer não ter sido registrada.
+  """
+  hasLinkedOrder: Boolean!
+}
+
+"""
+A folha do dia inteira, como ela chega ao vendedor pelo link.
+
+O cabeçalho (empresa, logo, vendedor, data) existe por uma razão prática: um
+link recebido no WhatsApp, sem nada que o identifique, é indistinguível de
+golpe — e este pede para a pessoa digitar o que aconteceu no dia de trabalho
+dela.
+"""
+type VisitResponseFormType {
+  date: Date!
+  sellerName: String!
+  companyName: String!
+  companyLogoUrl: String
+  """Quando o vendedor enviou respostas pela última vez. Nulo = ainda não mexeu."""
+  submittedAt: DateTime
+  stops: [VisitResponseStopType!]!
+}
+
+type VisitResponseFormTypeDataResponse {
+  status: Boolean!
+  code: Int!
+  message: String!
+  data: VisitResponseFormType
+}
+
+input VisitAnswerInput {
+  itemId: UUID!
+  status: VisitStatus!
+  outcome: VisitOutcome
+  notes: String
+  """
+  A parada rendeu pedido.
+
+  NÃO cria pedido: amarra à visita o pedido que o vendedor já lançou entre o dia
+  da visita e agora, preenchendo `orders.visitScheduleItemId` — a ligação que o
+  relatório de conversão lê. Marcar isto também define o resultado como "vendeu".
+  """
+  hadOrder: Boolean
+}
+
+input SubmitVisitResponsesInput {
+  answers: [VisitAnswerInput!]!
+}
+
+"""
+Link ativo de resposta de um dia. Lado do ESCRITÓRIO — quem lê isto é quem
+imprime a folha, não o vendedor.
+"""
+type VisitResponseLinkType {
+  """
+  A URL completa. Só existe no retorno da emissão: o que fica guardado é o hash.
+  Emitir de novo sorteia outro endereço e derruba o anterior.
+  """
+  url: String!
+  expiresAt: DateTime!
+}
+
+type VisitResponseLinkTypeDataResponse {
+  status: Boolean!
+  code: Int!
+  message: String!
+  data: VisitResponseLinkType
+}
+
+extend type Query {
+  """
+  A folha do dia do link. Autenticada pelo header `X-Visit-Token`, não por
+  sessão: quem chama aqui não tem conta aberta no navegador.
+  """
+  visitResponseForm: VisitResponseFormTypeDataResponse!
+}
+
+extend type Mutation {
+  """
+  O vendedor envia as respostas do dia.
+
+  Cada parada é gravada pelo mesmo caminho do app (`updateVisitScheduleItem`),
+  então tudo que concluir uma visita provoca ali — data em todos os vínculos do
+  cliente, recálculo de score, reagendamento automático — acontece aqui também.
+  Uma parada que falhe não derruba as outras.
+  """
+  submitVisitResponses(input: SubmitVisitResponsesInput!): BaseResponse!
+  """
+  Emite o link de resposta de um dia de rotina, para ir impresso na folha.
+  Substitui qualquer link anterior daquele dia.
+  """
+  issueVisitResponseLink(scheduleDayId: UUID!): VisitResponseLinkTypeDataResponse!
 }
 
 input CreateVisitScheduleConfigInput {

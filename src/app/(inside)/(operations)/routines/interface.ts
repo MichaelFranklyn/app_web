@@ -44,6 +44,16 @@ export interface VisitClient {
   razaoSocial: string;
   nomeFantasia: string | null;
   companyClient: { id: string } | null;
+  /**
+   * O endereço vem junto da semana — não só do dia. É ele que a folha impressa
+   * da rotina semanal usa para situar cada loja, e quem dirige não tem a tela
+   * ao lado para descobrir o bairro.
+   */
+  addressStreet: string | null;
+  addressNumber: string | null;
+  addressNeighborhood: string | null;
+  addressCity: string | null;
+  addressState: string | null;
   primaryContact: VisitPrimaryContact | null;
 }
 
@@ -58,6 +68,12 @@ export interface VisitClientFactoryLink {
   client: VisitClient | null;
   factory: VisitFactory | null;
   latestVisitScore: ScoreDimensions | null;
+  /**
+   * Cliente negativado nesta fábrica. A visita segue na agenda (negativar não
+   * apaga o que já foi planejado), mas a fábrica não aceita pedido novo dele.
+   */
+  isNegative?: boolean;
+  negativeReason?: string | null;
 }
 
 // Fábrica que esta visita vai tratar. A visita é ao CLIENTE: quando ele tem mais

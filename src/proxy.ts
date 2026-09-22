@@ -32,11 +32,17 @@ const SYSTEM_ROOT = "/dashboard";
 /** Raiz do console da plataforma. */
 const PLATFORM_ROOT = "/platform";
 
-/** Raiz do portal do cliente — páginas abertas por link, sem sessão. */
-const PORTAL_ROOT = "/p";
+/**
+ * Raízes abertas por link, sem sessão: o portal do cliente (`/p`) e a folha de
+ * resposta da rota do dia (`/r`). Cada uma tem o seu token e o seu header; o
+ * que elas têm em comum é não dependerem de cookie nenhum.
+ */
+const TOKEN_LINK_ROOTS = ["/p", "/r"];
 
-const isPortalRoute = (pathname: string): boolean =>
-  pathname === PORTAL_ROOT || pathname.startsWith(`${PORTAL_ROOT}/`);
+const isTokenLinkRoute = (pathname: string): boolean =>
+  TOKEN_LINK_ROOTS.some(
+    (root) => pathname === root || pathname.startsWith(`${root}/`)
+  );
 
 export async function proxy(request: NextRequest) {
   const { pathname } = request.nextUrl;
@@ -51,12 +57,13 @@ export async function proxy(request: NextRequest) {
     return NextResponse.next();
   }
 
-  // Portal do cliente. Aqui o match é por PREFIXO, e não exato como o de cima,
-  // porque o token faz parte do caminho (`/p/<token>`) — não há lista de
-  // endereços a declarar. O prefixo é seguro justamente por ser um: `/p/` não é
-  // raiz de nenhuma tela privada, e quem entra sem token válido não vê nada,
-  // porque a autorização é do backend, não daqui.
-  if (isPortalRoute(pathname)) {
+  // Páginas de link (portal do cliente, resposta da rota). Aqui o match é por
+  // PREFIXO, e não exato como o de cima, porque o token faz parte do caminho
+  // (`/p/<token>`, `/r/<token>`) — não há lista de endereços a declarar. O
+  // prefixo é seguro justamente por ser um: nem `/p/` nem `/r/` são raiz de
+  // alguma tela privada, e quem entra sem token válido não vê nada, porque a
+  // autorização é do backend, não daqui.
+  if (isTokenLinkRoute(pathname)) {
     return NextResponse.next();
   }
 

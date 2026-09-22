@@ -14,6 +14,11 @@ const CLIENT = {
   razaoSocial: "Joni Materiais de Construção LTDA",
   nomeFantasia: "Joni Materiais",
   companyClient: null,
+  addressStreet: null,
+  addressNumber: null,
+  addressNeighborhood: null,
+  addressCity: null,
+  addressState: null,
   primaryContact: null,
 };
 
