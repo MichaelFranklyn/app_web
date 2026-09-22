@@ -366,6 +366,13 @@ export const formatVisitSlot = (item: {
 };
 
 /** Duração legível: 45 → "45 min", 120 → "2h", 150 → "2h 30m". */
+/** Distância em km com uma casa e vírgula decimal ("12,4 km"). */
+export const formatDistanceKm = (rawKm: string): string => {
+  const km = Number(rawKm);
+  if (!isFinite(km)) return `${rawKm} km`;
+  return `${km.toFixed(1).replace(".", ",")} km`;
+};
+
 export const formatMinutes = (mins: number): string => {
   if (mins < 60) return `${mins} min`;
   const hours = Math.floor(mins / 60);

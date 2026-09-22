@@ -5,13 +5,14 @@ import { Link2Off } from "lucide-react";
 /**
  * O que quem abre um link morto vê.
  *
- * Uma mensagem só, para os quatro motivos possíveis (vencido, cancelado,
- * endereço errado, cliente desvinculado): quem está do outro lado não tem como
- * agir sobre a diferença entre eles, e a saída é sempre a mesma — falar com o
- * vendedor. Detalhar o motivo também entregaria, a quem estivesse tentando
- * adivinhar um endereço, a informação de que chegou perto.
+ * Uma mensagem só, para os motivos possíveis (vencido, substituído por uma
+ * reimpressão da folha, endereço errado, rotina refeita): quem está do outro
+ * lado não tem como agir sobre a diferença entre eles, e a saída é sempre a
+ * mesma — pedir outro ao escritório. Detalhar o motivo também entregaria, a
+ * quem estivesse tentando adivinhar um endereço, a informação de que chegou
+ * perto.
  */
-export function PortalExpired() {
+export function VisitResponseExpired() {
   return (
     <div className="flex min-h-screen items-center justify-center px-[16px]">
       <EmptyState.Root className="max-w-[420px]">
@@ -27,8 +28,8 @@ export function PortalExpired() {
           </Title>
         </EmptyState.Title>
         <EmptyState.Description className="max-w-[320px]">
-          Peça um link novo ao seu representante — ele consegue gerar outro na
-          hora.
+          Peça um link novo ao escritório — ele sai junto com a folha da rota do
+          dia.
         </EmptyState.Description>
       </EmptyState.Root>
     </div>

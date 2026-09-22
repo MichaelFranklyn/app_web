@@ -109,17 +109,18 @@ export const exportOrderPdf = async (
 
   y = drawItemsTable(pdf, items, y, startNewPage, photos).y;
 
-  // Mesma conta do resumo financeiro na tela (OrderSummaryCard): o subtotal já
-  // embute o imposto (ST) — como a coluna Subtotal dos itens — e o total final
-  // soma o IPI por cima. O cliente quer o valor a pagar.
-  const subtotalWithTax =
-    Number(order.totalAmount) + Number(order.taxAmount ?? 0);
+  // Mesma decomposição do resumo financeiro na tela (OrderSummaryCard):
+  // `totalAmount` é a mercadoria NUA, `taxAmount` é o ST que o preço embute e o
+  // IPI vem por cima. O TOTAL é o valor a pagar, que é o que o cliente procura.
+  const taxAmount = Number(order.taxAmount ?? 0);
+  const ipiAmount = Number(order.ipiAmount || 0);
   y = drawTotals(
     pdf,
     {
-      subtotal: subtotalWithTax.toFixed(2),
-      ipiAmount: order.ipiAmount,
-      total: subtotalWithTax + Number(order.ipiAmount || 0),
+      merchandise: order.totalAmount,
+      taxAmount: taxAmount.toFixed(2),
+      ipiAmount: ipiAmount.toFixed(2),
+      total: Number(order.totalAmount) + taxAmount + ipiAmount,
     },
     y
   );

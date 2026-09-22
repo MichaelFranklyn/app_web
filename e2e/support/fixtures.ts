@@ -49,6 +49,12 @@ const FLOW_TOUR_SEEN = JSON.stringify(
  * exigi-lo deixava a espera presa até o timeout numa página que estava pronta.
  * `fill` também não depende de hidratação: escreve no DOM, e o `<form>` do
  * portal é nativo.
+ *
+ * **Página sem NADA clicável** (link inválido, offline) cai no `readyState`.
+ * A espera exigia pelo menos um `button`/`a[href]` — o que nessas telas nunca
+ * aparece —, então `goto` estourava 15s e o spec falhava por uma tela que já
+ * estava pronta. São telas terminais: não há clique a proteger, e o que o teste
+ * faz nelas é ler texto.
  */
 async function waitForHydration(page: Page) {
   await page.waitForFunction(
@@ -57,11 +63,11 @@ async function waitForHydration(page: Page) {
         document.body.querySelectorAll("button, a[href]")
       );
 
-      return (
-        nodes.length > 0 &&
-        nodes.every((node) =>
-          Object.keys(node).some((key) => key.startsWith("__reactFiber$"))
-        )
+      // Nada a hidratar: basta a página ter terminado de chegar.
+      if (nodes.length === 0) return document.readyState === "complete";
+
+      return nodes.every((node) =>
+        Object.keys(node).some((key) => key.startsWith("__reactFiber$"))
       );
     },
     undefined,

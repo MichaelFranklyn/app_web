@@ -199,6 +199,7 @@ export default function DayRouteContent({ date, sellerId }: Props) {
           <>
             {dayNav}
             <PrintRouteButton
+              scheduleDayId={day.id}
               date={day.date}
               stops={drivingStops}
               remoteStops={remoteStops}

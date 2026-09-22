@@ -144,3 +144,19 @@ export const WEEK_SCHEDULE_QUERY = gql`
     }
   }
 `;
+
+// Emite o link com que o vendedor responde ESTA rota, para ir impresso na
+// folha (QR + endereço). Cada emissão sorteia um endereço novo e derruba o
+// anterior — o token em claro só existe no retorno desta chamada.
+export const ISSUE_VISIT_RESPONSE_LINK_MUTATION = gql`
+  mutation IssueVisitResponseLink($scheduleDayId: UUID!) {
+    issueVisitResponseLink(scheduleDayId: $scheduleDayId) {
+      status
+      message
+      data {
+        url
+        expiresAt
+      }
+    }
+  }
+`;

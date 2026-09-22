@@ -122,6 +122,7 @@ export const VISIT_SCHEDULES_QUERY = gql`
               }
               clientFactoryLink {
                 id
+                isNegative
                 client {
                   id
                   razaoSocial
@@ -129,6 +130,11 @@ export const VISIT_SCHEDULES_QUERY = gql`
                   companyClient {
                     id
                   }
+                  addressStreet
+                  addressNumber
+                  addressNeighborhood
+                  addressCity
+                  addressState
                   primaryContact {
                     id
                     name

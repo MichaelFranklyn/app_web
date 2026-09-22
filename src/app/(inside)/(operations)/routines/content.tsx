@@ -8,6 +8,7 @@ import { Title } from "@/components/Title";
 import { CalendarOff, Users } from "lucide-react";
 
 import { GenerateWeekButton } from "./_components/GenerateWeekButton";
+import { PrintWeekButton } from "./_components/PrintWeekButton";
 import { RadarMap } from "./_components/RadarMap";
 import { RegenerateWeekButton } from "./_components/RegenerateWeekButton";
 import { RoutinesHeader } from "./_components/RoutinesHeader";
@@ -172,6 +173,16 @@ export default function RoutinesContent() {
                   onRegenerated={() => refetch()}
                 />
               )}
+              {/* A folha sai com a SEMANA inteira, não com o recorte do
+                  seletor de período ao lado: "Hoje/3 dias" é conveniência de
+                  leitura na grade, e um papel intitulado "rotina da semana"
+                  com três dias seria arquivado como se fosse a semana toda. */}
+              <PrintWeekButton
+                weekStart={weekStart}
+                days={schedule.days}
+                sellerName={schedule.seller?.user?.name ?? null}
+                dayOffDates={[...dayOffDates]}
+              />
               <RoutinesViewToggle value={viewMode} onChange={setViewMode} />
             </div>
           </div>

@@ -14,6 +14,7 @@ import {
   REMOTE_CONTACT_COLUMNS,
   ROUTE_STOP_COLUMNS,
 } from "./columns";
+import { buildQrDataUrl, drawResponseBlock } from "./responseBlock";
 
 export interface DayRoutePdfMeta {
   date: string;
@@ -23,6 +24,12 @@ export interface DayRoutePdfMeta {
   routeDurationMin: number;
   companyName?: string | null;
   companyLogoUrl?: string | null;
+  /**
+   * Endereço do formulário em que o vendedor responde esta rota. Quando vem,
+   * a folha ganha o bloco com o QR no fim — é o que liga o papel de volta ao
+   * sistema. Sem ele, a folha sai como sempre saiu.
+   */
+  responseUrl?: string | null;
 }
 
 /** Título de uma seção entre tabelas ("LIGAÇÕES DO DIA"). Devolve o `y` livre. */
@@ -101,12 +108,17 @@ export const buildDayRoutePdf = async (
     if (y > limit) y = newPage();
 
     y = drawSectionTitle(pdf, "Ligações do dia", y + 10);
-    drawReportTable(pdf, {
+    y = drawReportTable(pdf, {
       columns: buildStopColumns(remoteStops, REMOTE_CONTACT_COLUMNS),
       rows: remoteStops,
       startY: y,
       onNewPage: newPage,
     });
+  }
+
+  if (meta.responseUrl) {
+    const qr = await buildQrDataUrl(meta.responseUrl);
+    drawResponseBlock(pdf, qr, meta.responseUrl, y, newPage);
   }
 
   drawFooters(pdf, girusLogo);

@@ -13,8 +13,10 @@ import {
 const BLOCK_W = 230;
 
 export interface TotalsData {
-  /** Subtotal COM o imposto embutido (ST) — soma da coluna Subtotal dos itens. */
-  subtotal: string;
+  /** Mercadoria SEM imposto nenhum — o `totalAmount` do pedido. */
+  merchandise: string;
+  /** Imposto embutido no preço (ST), agregado do pedido. */
+  taxAmount: string;
   ipiAmount: string;
   total: number;
 }
@@ -28,6 +30,7 @@ export const drawTotals = (
   const pageW = pdf.internal.pageSize.getWidth();
   const right = pageW - PAGE.margin;
   const left = right - BLOCK_W;
+  const hasTax = Number(data.taxAmount) > 0;
   const hasIpi = Number(data.ipiAmount) > 0;
   let y = startY + 10;
 
@@ -41,10 +44,23 @@ export const drawTotals = (
     y += 16;
   };
 
-  // O imposto já está dentro do subtotal (e detalhado por linha na tabela); uma
-  // linha "Impostos" aqui contaria em dobro. IPI, quando existe, é à parte.
-  line("Subtotal", formatMoney(data.subtotal));
-  if (hasIpi) line("IPI", formatMoney(data.ipiAmount));
+  // Os mesmos rótulos do resumo financeiro da tela (`OrderSummaryCard`): quem
+  // confere o PDF contra o sistema lê a mesma decomposição nos dois lugares.
+  //
+  // A palavra "Subtotal" NÃO aparece aqui de propósito. A coluna SUBTOTAL da
+  // tabela de itens é a linha COM o imposto embutido (a coluna IMPOSTO ao lado
+  // o detalha), e usar o mesmo nome para um número menor faria a folha se
+  // contradizer — a soma da coluna não fecharia com o bloco.
+  //
+  // Sem imposto nenhum, a decomposição não sai: a mercadoria seria o próprio
+  // TOTAL, e o mesmo número escrito duas vezes com nomes diferentes faz quem lê
+  // procurar uma diferença que não existe. Cada linha de imposto aparece só
+  // quando há o que mostrar, e a mercadoria só quando algo é somado por cima.
+  if (hasTax || hasIpi) {
+    line("Mercadoria (sem impostos)", formatMoney(data.merchandise));
+    if (hasTax) line("Impostos no preço", formatMoney(data.taxAmount));
+    if (hasIpi) line("IPI", formatMoney(data.ipiAmount));
+  }
 
   setFill(pdf, COLOR.brand);
   pdf.roundedRect(left, y - 4, BLOCK_W, 30, 4, 4, "F");

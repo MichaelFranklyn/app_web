@@ -26,7 +26,18 @@ const dataResponse = (data: unknown) => ({
  * decide entre a ficha e o "não encontrado" ainda no servidor. Sem variar a
  * resposta por id, esse segundo caminho não teria como ser exercitado.
  */
-type SsrResponse = unknown | ((variables: Record<string, unknown>) => unknown);
+type SsrHeaders = Record<string, string | string[] | undefined>;
+
+type SsrResponse =
+  | unknown
+  | ((variables: Record<string, unknown>, headers: SsrHeaders) => unknown);
+
+/** Token do link de resposta da rota, como ele chega ao backend. */
+const visitToken = (headers: SsrHeaders): string =>
+  String(headers["x-visit-token"] ?? "");
+
+/** O endereço que o spec usa para provar a tela de link morto. */
+export const EXPIRED_VISIT_TOKEN = "token-de-resposta-expirado";
 
 const SSR_RESPONSES: Record<string, SsrResponse> = {
   // Listas de topo agora buscam a 1ª página no SERVIDOR (SSR-seed do useTableData,
@@ -319,6 +330,75 @@ const SSR_RESPONSES: Record<string, SsrResponse> = {
       message: "Obrigado! Seu representante já vê essa informação.",
     },
   },
+  // Folha de resposta da rota do dia (`/r/[token]`): SSR puro, como o portal.
+  // Responde pelo TOKEN, e não por variável, porque é assim que a página
+  // autentica — é o que permite o spec provar a tela de link morto.
+  VisitResponseForm: (
+    _variables: Record<string, unknown>,
+    headers: SsrHeaders
+  ) =>
+    visitToken(headers) === EXPIRED_VISIT_TOKEN
+      ? {
+          visitResponseForm: {
+            status: false,
+            code: 401,
+            message: "Este link não é mais válido.",
+            data: null,
+          },
+        }
+      : {
+          visitResponseForm: {
+            status: true,
+            code: 200,
+            message: "ok",
+            data: {
+              date: "2026-09-21",
+              sellerName: "Orlando Vendedor",
+              companyName: "Empresa Teste",
+              companyLogoUrl: null,
+              submittedAt: null,
+              stops: [
+                {
+                  id: "stop-1",
+                  plannedOrder: 1,
+                  contactType: "IN_PERSON",
+                  clientName: "Depósito Central",
+                  clientAlias: "DEPOSITO CENTRAL LTDA",
+                  clientCity: "Feira de Santana",
+                  clientState: "BA",
+                  factoryNames: ["Fábrica Alfa", "Fábrica Beta"],
+                  status: "PENDING",
+                  outcome: null,
+                  notes: null,
+                  hasLinkedOrder: false,
+                },
+                {
+                  id: "stop-2",
+                  plannedOrder: 2,
+                  contactType: "REMOTE",
+                  clientName: "Casa do Construtor",
+                  clientAlias: null,
+                  clientCity: "Salvador",
+                  clientState: "BA",
+                  factoryNames: ["Fábrica Alfa"],
+                  // Já respondida e com pedido amarrado: a tela tem de abrir
+                  // com o que está gravado, senão o vendedor acha que se perdeu.
+                  status: "COMPLETED",
+                  outcome: "SOLD",
+                  notes: "cliente pediu para voltar dia 5",
+                  hasLinkedOrder: true,
+                },
+              ],
+            },
+          },
+        },
+  SubmitVisitResponses: {
+    submitVisitResponses: {
+      status: true,
+      code: 200,
+      message: "1 visita registrada. 1 pedido vinculado.",
+    },
+  },
   CompanyBranding: {
     company_branding: {
       status: true,
@@ -579,9 +659,20 @@ export function startStubBackend(port: number): Promise<void> {
           );
         }
         const canned = SSR_RESPONSES[operationName] ?? {};
+        // Os CABEÇALHOS vão junto das variáveis: as páginas por link (portal do
+        // cliente, folha de resposta) não mandam o token nas variáveis — ele
+        // viaja em `X-Portal-Token`/`X-Visit-Token`. Sem isto não há como um
+        // stub distinguir link válido de link morto, e a tela de "link
+        // inválido" ficaria sem teste justamente por ser a única defesa de uma
+        // página que abre sem sessão.
         const data =
           typeof canned === "function"
-            ? (canned as (v: Record<string, unknown>) => unknown)(variables)
+            ? (
+                canned as (
+                  v: Record<string, unknown>,
+                  h: Record<string, string | string[] | undefined>
+                ) => unknown
+              )(variables, req.headers)
             : canned;
         res.writeHead(200, { "content-type": "application/json" });
         res.end(JSON.stringify({ data }));

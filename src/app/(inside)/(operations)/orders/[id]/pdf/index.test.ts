@@ -6,11 +6,12 @@ import { exportOrderPdf } from "./index";
 /**
  * O PDF do pedido é COMPOSIÇÃO: cada bloco (cabeçalho, partes, itens, resumo)
  * tem módulo próprio. O que se prende aqui é a montagem — sobretudo a CONTA do
- * rodapé financeiro, que precisa bater com o resumo da tela: o subtotal já
- * embute o imposto e o IPI entra por cima.
+ * rodapé financeiro, que precisa bater com o resumo da tela: mercadoria nua,
+ * imposto embutido e IPI, cada um na sua linha, somando o valor a pagar.
  */
 interface TotaisArg {
-  subtotal: string;
+  merchandise: string;
+  taxAmount: string;
   ipiAmount: string;
   total: number;
 }
@@ -143,12 +144,13 @@ const exportar = async (...args: Parameters<typeof exportOrderPdf>) => {
 };
 
 describe("exportOrderPdf", () => {
-  it("o total soma o IPI por cima do subtotal, que já embute o imposto", () => {
+  it("o total soma mercadoria, imposto embutido e IPI", () => {
     // Mesma conta do OrderSummaryCard na tela: 1000 de mercadoria + 100 de ST
-    // = 1100 de subtotal; com 50 de IPI, 1150 a pagar.
+    // + 50 de IPI = 1150 a pagar. Cada parcela vai para o bloco na sua linha.
     return exportar(pedido(), []).then(() => {
       expect(totais()).toEqual({
-        subtotal: "1100.00",
+        merchandise: "1000.00",
+        taxAmount: "100.00",
         ipiAmount: "50.00",
         total: 1150,
       });
@@ -165,8 +167,9 @@ describe("exportOrderPdf", () => {
     );
 
     expect(totais()).toEqual({
-      subtotal: "1000.00",
-      ipiAmount: "0",
+      merchandise: "1000.00",
+      taxAmount: "0.00",
+      ipiAmount: "0.00",
       total: 1000,
     });
   });

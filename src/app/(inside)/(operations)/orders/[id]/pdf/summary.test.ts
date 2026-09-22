@@ -40,36 +40,115 @@ const installment = (sequence: number): OrderInstallment =>
   }) as OrderInstallment;
 
 describe("drawTotals", () => {
-  it("não repete o imposto: o subtotal já o embute", () => {
-    // O ST está dentro do subtotal (e detalhado linha a linha na tabela); uma
-    // linha "Impostos" no bloco de totais contaria o mesmo dinheiro duas vezes.
-    const { pdf, texts } = fakePdf();
-
-    drawTotals(pdf, { subtotal: "1000.00", ipiAmount: "0", total: 1000 }, 100);
-
-    expect(texts).toContain("Subtotal");
-    expect(texts).toContain("TOTAL");
-    expect(texts.join(" ")).not.toContain("Impostos");
-    expect(texts).not.toContain("IPI");
-  });
-
-  it("mostra o IPI à parte quando a fábrica o cobra", () => {
+  it("decompõe em mercadoria, imposto no preço e IPI", () => {
+    // Os mesmos rótulos do resumo da tela: quem confere o PDF contra o sistema
+    // lê a mesma decomposição nos dois lugares.
     const { pdf, texts } = fakePdf();
 
     drawTotals(
       pdf,
-      { subtotal: "1000.00", ipiAmount: "75.00", total: 1075 },
+      {
+        merchandise: "1000.00",
+        taxAmount: "180.00",
+        ipiAmount: "50.00",
+        total: 1230,
+      },
       100
     );
 
+    expect(texts).toContain("Mercadoria (sem impostos)");
+    expect(texts).toContain("Impostos no preço");
     expect(texts).toContain("IPI");
+    expect(texts).toContain("TOTAL");
+    expect(texts.join(" ")).toContain("1.230,00");
+  });
+
+  it("não chama de Subtotal o que a tabela chama de outra coisa", () => {
+    // A coluna SUBTOTAL dos itens é a linha COM o imposto embutido. Usar a
+    // mesma palavra aqui para um número menor faria a folha se contradizer:
+    // a soma da coluna não fecharia com o bloco.
+    const { pdf, texts } = fakePdf();
+
+    drawTotals(
+      pdf,
+      {
+        merchandise: "1000.00",
+        taxAmount: "180.00",
+        ipiAmount: "0",
+        total: 1180,
+      },
+      100
+    );
+
+    expect(texts.join(" ")).not.toContain("Subtotal");
+  });
+
+  it("sem imposto nenhum, só o TOTAL aparece", () => {
+    // Mercadoria e total seriam o mesmo número. Repetir o valor em duas linhas
+    // com nomes diferentes faz quem lê procurar uma diferença que não existe.
+    const { pdf, texts } = fakePdf();
+
+    drawTotals(
+      pdf,
+      { merchandise: "1000.00", taxAmount: "0", ipiAmount: "0", total: 1000 },
+      100
+    );
+
+    expect(texts).toContain("TOTAL");
+    expect(texts).not.toContain("Mercadoria (sem impostos)");
+    expect(texts).not.toContain("Impostos no preço");
+    expect(texts).not.toContain("IPI");
+  });
+
+  it("imposto sem IPI não escreve uma linha de IPI zerada", () => {
+    // O caso comum da fábrica com ST e sem IPI no pedido. Uma linha "IPI
+    // R$ 0,00" só ocupa espaço com o que não aconteceu.
+    const { pdf, texts } = fakePdf();
+
+    drawTotals(
+      pdf,
+      {
+        merchandise: "1000.00",
+        taxAmount: "180.00",
+        ipiAmount: "0",
+        total: 1180,
+      },
+      100
+    );
+
+    expect(texts).toContain("Mercadoria (sem impostos)");
+    expect(texts).toContain("Impostos no preço");
+    expect(texts).not.toContain("IPI");
+  });
+
+  it("IPI sem ST mostra a mercadoria e o IPI, sem linha de imposto no preço", () => {
+    const { pdf, texts } = fakePdf();
+
+    drawTotals(
+      pdf,
+      {
+        merchandise: "1000.00",
+        taxAmount: "0",
+        ipiAmount: "75.00",
+        total: 1075,
+      },
+      100
+    );
+
+    expect(texts).toContain("Mercadoria (sem impostos)");
+    expect(texts).toContain("IPI");
+    expect(texts).not.toContain("Impostos no preço");
   });
 
   it("devolve o fim do bloco para quem desenha embaixo", () => {
     const { pdf } = fakePdf();
 
     expect(
-      drawTotals(pdf, { subtotal: "10.00", ipiAmount: "0", total: 10 }, 100)
+      drawTotals(
+        pdf,
+        { merchandise: "10.00", taxAmount: "0", ipiAmount: "0", total: 10 },
+        100
+      )
     ).toBeGreaterThan(100);
   });
 });
