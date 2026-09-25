@@ -1,4 +1,4 @@
-import { FormFieldSchema } from "@/components/FormBuilder";
+import { FormFieldSchema, GridConfig } from "@/components/FormBuilder";
 import { SelectOption } from "@/components/Input";
 import { extractSelectValue } from "@/utils/form";
 
@@ -10,7 +10,15 @@ import { FREIGHT_OPTIONS } from "../../_shared/orderFreight";
  * para não divergir.
  */
 
+/**
+ * Um campo por linha só no celular: no tablet vão dois lado a lado e no
+ * computador três — a página tem largura, e empilhar tudo numa coluna estreita
+ * empurrava os itens para longe do fim da tela.
+ */
+export const FIELD_GRID: GridConfig = { tablet: 6, desktop: 4 };
+
 export const orderKindField: FormFieldSchema = {
+  grid: FIELD_GRID,
   name: "orderKind",
   type: "radio",
   label: "Tipo",
@@ -23,6 +31,7 @@ export const orderKindField: FormFieldSchema = {
 };
 
 export const orderDateField: FormFieldSchema = {
+  grid: FIELD_GRID,
   name: "orderDate",
   type: "date",
   label: "Data do pedido",
@@ -42,6 +51,7 @@ export const paymentTermField = ({
   onChange,
 }: PaymentTermFieldArgs): FormFieldSchema => ({
   name: "paymentTermId",
+  grid: FIELD_GRID,
   type: "select-single",
   label: "Condição de pagamento (opcional)",
   placeholder:
@@ -60,6 +70,7 @@ export const freightField = (
   onChange: (freightType: string) => void
 ): FormFieldSchema => ({
   name: "freightType",
+  grid: FIELD_GRID,
   type: "select-single",
   label: "Frete (opcional)",
   placeholder: "FOB ou CIF",
@@ -68,6 +79,7 @@ export const freightField = (
 });
 
 export const deliveryField: FormFieldSchema = {
+  grid: FIELD_GRID,
   name: "deliveryEstimateDays",
   type: "number",
   label: "Prazo de entrega (dias)",
@@ -77,6 +89,7 @@ export const deliveryField: FormFieldSchema = {
 
 export const coverageField = (hint: string): FormFieldSchema => ({
   name: "coverageDays",
+  grid: FIELD_GRID,
   type: "number",
   label: "Dura quantos dias na loja?",
   placeholder: "Ex: 30",

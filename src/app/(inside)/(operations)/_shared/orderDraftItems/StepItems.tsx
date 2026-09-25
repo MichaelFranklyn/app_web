@@ -48,8 +48,10 @@ export function StepItems({ draft, minimum, freeFreight }: Props) {
           {isEditing ? "Editar item" : "Adicionar item"}
         </Title>
 
-        <div className="grid grid-cols-12 gap-x-8 gap-y-12">
-          <div className="col-span-12">
+        {/* Lado a lado a partir do tablet: produto, nível e preço numa linha;
+            quantidade e desconto na outra. Empilhado só no celular. */}
+        <div className="grid grid-cols-12 gap-x-16 gap-y-12">
+          <div className="desktop:col-span-6 col-span-12">
             <Input.Select
               label="Produto (nome ou código)"
               placeholder="Digite o nome ou o código do produto"
@@ -63,7 +65,7 @@ export function StepItems({ draft, minimum, freeFreight }: Props) {
             />
           </div>
 
-          <div className="col-span-12">
+          <div className="tablet:col-span-6 desktop:col-span-3 col-span-12">
             <Input.Select
               label="Nível comercial (opcional)"
               placeholder="Selecione o nível para sugerir o preço"
@@ -73,7 +75,7 @@ export function StepItems({ draft, minimum, freeFreight }: Props) {
             />
           </div>
 
-          <div className="col-span-12">
+          <div className="tablet:col-span-6 desktop:col-span-3 col-span-12">
             <Input.Text
               label={
                 draft.unitName
@@ -93,7 +95,7 @@ export function StepItems({ draft, minimum, freeFreight }: Props) {
             />
           </div>
 
-          <div className="tablet:col-span-6 col-span-12">
+          <div className="tablet:col-span-6 desktop:col-span-3 col-span-12">
             <Input.Number
               label="Quantidade"
               placeholder="0"
@@ -134,7 +136,7 @@ export function StepItems({ draft, minimum, freeFreight }: Props) {
           </div>
 
           {draft.ipiInOrder && (
-            <div className="tablet:col-span-6 col-span-12">
+            <div className="tablet:col-span-6 desktop:col-span-3 col-span-12">
               <Input.Number
                 label="Alíq. IPI (%)"
                 placeholder="0"

@@ -15,6 +15,7 @@ import {
   useCoverageSuggestion,
 } from "../../_shared/orderCoverage";
 import {
+  FIELD_GRID,
   coverageField,
   deliveryField,
   freightField,
@@ -142,6 +143,7 @@ export function useCascadeDetails(
           ? [
               {
                 name: "sellerId",
+                grid: FIELD_GRID,
                 type: "select-single" as const,
                 label: "Vendedor",
                 placeholder: "Selecione o vendedor",
@@ -163,6 +165,7 @@ export function useCascadeDetails(
           : []),
         {
           name: "factoryId",
+          grid: FIELD_GRID,
           type: "select-single",
           label: "Fábrica",
           placeholder: sellerId
@@ -184,6 +187,7 @@ export function useCascadeDetails(
         },
         {
           name: "clientId",
+          grid: FIELD_GRID,
           type: "select-single",
           label: "Cliente",
           placeholder: factoryId
