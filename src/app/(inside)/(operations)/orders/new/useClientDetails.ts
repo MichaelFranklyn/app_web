@@ -12,6 +12,7 @@ import {
   useCoverageSuggestion,
 } from "../../_shared/orderCoverage";
 import {
+  FIELD_GRID,
   coverageField,
   deliveryField,
   freightField,
@@ -91,6 +92,7 @@ export function useClientDetails(
         orderKindField,
         {
           name: "assignment",
+          grid: FIELD_GRID,
           type: "select-single",
           label: "Vendedor → Fábrica",
           placeholder:

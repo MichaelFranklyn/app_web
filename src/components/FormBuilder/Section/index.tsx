@@ -46,7 +46,7 @@ export const Section = ({ section }: SectionProps) => {
       )}
 
       {/* Tailwind handles responsive columns */}
-      <div className="grid grid-cols-12 gap-x-4 gap-y-16">
+      <div className="grid grid-cols-12 gap-x-16 gap-y-16">
         {section.fields.map((field) => (
           <Field key={field.name} field={field} />
         ))}

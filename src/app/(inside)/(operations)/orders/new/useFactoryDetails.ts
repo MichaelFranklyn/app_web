@@ -19,6 +19,7 @@ import {
   FactoryAssignmentsData,
 } from "../../_shared/orderAssignments";
 import {
+  FIELD_GRID,
   coverageField,
   deliveryField,
   freightField,
@@ -101,6 +102,7 @@ export function useFactoryDetails(
         orderKindField,
         {
           name: "assignment",
+          grid: FIELD_GRID,
           type: "select-single",
           label: "Vendedor → Cliente",
           placeholder:
