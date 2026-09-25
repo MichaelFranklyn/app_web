@@ -33,6 +33,9 @@ const {
   drawTotals,
   drawPayment,
   drawNotes,
+  totalsHeight,
+  paymentHeight,
+  notesHeight,
   drawFooters,
   loadGirusLogo,
   loadImage,
@@ -56,6 +59,9 @@ const {
   drawPayment:
     vi.fn<(pdf: unknown, installments: unknown[], y: number) => number>(),
   drawNotes: vi.fn(),
+  totalsHeight: vi.fn<(totais: TotaisArg) => number>(),
+  paymentHeight: vi.fn<(installments: unknown[]) => number>(),
+  notesHeight: vi.fn<(pdf: unknown, notes: string | null) => number>(),
   drawFooters: vi.fn(),
   loadGirusLogo: vi.fn(),
   loadImage: vi.fn(),
@@ -67,9 +73,22 @@ const {
 vi.mock("./header", () => ({ drawHeader }));
 vi.mock("./parties", () => ({ drawParties }));
 vi.mock("./itemsTable", () => ({ drawItemsTable }));
-vi.mock("./summary", () => ({ drawTotals, drawPayment, drawNotes }));
+vi.mock("./summary", () => ({
+  drawTotals,
+  drawPayment,
+  drawNotes,
+  totalsHeight,
+  paymentHeight,
+  notesHeight,
+}));
 vi.mock("./cards", () => ({ factoryCard, clientCard }));
-vi.mock("@/utils/pdf/footer", () => ({ drawFooters, loadGirusLogo }));
+// O limite real da folha A4 em paisagem (595 - 40 - 8): a decisão de quebrar
+// página depende dele.
+vi.mock("@/utils/pdf/footer", () => ({
+  drawFooters,
+  loadGirusLogo,
+  contentBottom: () => 547,
+}));
 vi.mock("@/utils/media", () => ({ loadImage }));
 vi.mock("@/utils/image", () => ({ trimTransparent }));
 
@@ -131,6 +150,9 @@ beforeEach(() => {
   drawTotals.mockReset().mockReturnValue(360);
   drawPayment.mockReset().mockReturnValue(400);
   drawNotes.mockReset();
+  totalsHeight.mockReset().mockReturnValue(36);
+  paymentHeight.mockReset().mockReturnValue(0);
+  notesHeight.mockReset().mockReturnValue(0);
   drawFooters.mockReset();
   loadGirusLogo.mockReset().mockResolvedValue(marca);
   loadImage.mockReset().mockResolvedValue(marca);
@@ -295,6 +317,38 @@ describe("exportOrderPdf", () => {
     expect(drawTotals.mock.calls[0]![2]).toBe(300);
     expect(drawPayment.mock.calls[0]![2]).toBe(360);
     expect(drawNotes.mock.calls[0]![2]).toBe(400);
+  });
+
+  it("o total que não cabe no pé da folha vai inteiro para a página seguinte", async () => {
+    // Regressão: na versão com fotos a tabela terminava colada no rodapé e o
+    // TOTAL era desenhado por cima dele e das últimas linhas de itens.
+    drawItemsTable.mockReturnValue({ y: 530 });
+    totalsHeight.mockReturnValue(36);
+
+    await exportar(pedido(), []);
+
+    expect(drawTotals.mock.calls[0]![2]).toBe(40);
+  });
+
+  it("o total que cabe fica logo abaixo da tabela", async () => {
+    drawItemsTable.mockReturnValue({ y: 500 });
+    totalsHeight.mockReturnValue(36);
+
+    await exportar(pedido(), []);
+
+    expect(drawTotals.mock.calls[0]![2]).toBe(500);
+  });
+
+  it("parcelas e observações também não se dividem entre páginas", async () => {
+    drawTotals.mockReturnValue(420);
+    paymentHeight.mockReturnValue(140);
+    drawPayment.mockReturnValue(180);
+    notesHeight.mockReturnValue(400);
+
+    await exportar(pedido(), []);
+
+    expect(drawPayment.mock.calls[0]![2]).toBe(40);
+    expect(drawNotes.mock.calls[0]![2]).toBe(40);
   });
 
   it("pedido sem parcelas ainda passa pelo bloco de pagamento", async () => {

@@ -15,6 +15,17 @@ const GIRUS_MAX_H = 18;
 const GIRUS_MAX_W = 80;
 
 /**
+ * Até onde o conteúdo de uma página pode descer sem invadir o rodapé.
+ *
+ * O filete do rodapé fica em `altura - margem - 2`; o limite deixa 6pt de folga
+ * acima dele. Quem desenha um bloco inteiro (totais, parcelas) mede a altura
+ * dele contra este número ANTES de desenhar — senão o bloco sai cortado no pé
+ * da folha, por cima do rodapé.
+ */
+export const contentBottom = (pdf: Pdf): number =>
+  pdf.internal.pageSize.getHeight() - PAGE.margin - 8;
+
+/**
  * Rodapé de todas as páginas: marca do sistema à esquerda e paginação à
  * direita. Desenhado no fim, quando o total de páginas já é conhecido — daí
  * percorrer as páginas em vez de escrever durante o fluxo.

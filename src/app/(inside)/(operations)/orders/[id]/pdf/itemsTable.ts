@@ -1,4 +1,5 @@
 import { formatMoney, formatNumber } from "@/utils/format/masks";
+import { contentBottom } from "@/utils/pdf/footer";
 import type { LoadedImage } from "@/utils/media";
 import { OrderItem } from "../interface";
 import { taxRatesLabel } from "../utils";
@@ -143,7 +144,6 @@ export const drawItemsTable = (
   photos?: Map<string, LoadedImage>
 ): ItemsTableResult => {
   const pageW = pdf.internal.pageSize.getWidth();
-  const pageH = pdf.internal.pageSize.getHeight();
   // Sem nenhuma foto carregada a coluna não abre: reservar a faixa e deixá-la
   // vazia só espremeria o nome do produto.
   const withPhotos = Boolean(photos && photos.size > 0);
@@ -155,14 +155,8 @@ export const drawItemsTable = (
   pdf.text("ITENS", PAGE.margin, startY);
   let y = drawHead(pdf, cols, startY + 8, withPhotos);
 
-  pdf.setFontSize(9);
+  const bottom = contentBottom(pdf);
   items.forEach((item, index) => {
-    if (y > pageH - PAGE.margin - 90) {
-      y = onNewPage();
-      y = drawHead(pdf, cols, y, withPhotos);
-      pdf.setFontSize(9);
-    }
-
     // Baseline da linha: fonte normal 9 (a coluna de imposto muda e restaura).
     // Vem antes de medir o nome: `wrapLines` mede na fonte CORRENTE.
     pdf.setFont("helvetica", "normal");
@@ -175,6 +169,16 @@ export const drawItemsTable = (
     const rowH = withPhotos
       ? PHOTO_ROW_H
       : Math.max(ROW_H, nameLines.length * NAME_LINE_H + 10);
+
+    // A quebra mede a linha INTEIRA contra o pé da página. A régua antiga (uma
+    // folga fixa de 90pt) não conhecia a altura da linha: a de foto (80pt)
+    // passava raspando pelo rodapé.
+    if (y + rowH > bottom) {
+      y = onNewPage();
+      y = drawHead(pdf, cols, y, withPhotos);
+      pdf.setFont("helvetica", "normal");
+      pdf.setFontSize(9);
+    }
 
     if (index % 2 === 1) {
       setFill(pdf, COLOR.zebra);

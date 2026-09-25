@@ -3,7 +3,7 @@ import { formatDateDMY } from "@/utils/format/masks";
 import { trimTransparent } from "@/utils/image";
 import { loadImage } from "@/utils/media";
 import type { LoadedImage } from "@/utils/media";
-import { drawFooters, loadGirusLogo } from "@/utils/pdf/footer";
+import { contentBottom, drawFooters, loadGirusLogo } from "@/utils/pdf/footer";
 import { PAGE } from "@/utils/pdf/theme";
 import { OrderDetail, OrderItem } from "../interface";
 import { paymentTermLabel } from "../../../_shared/orderPaymentTerms";
@@ -11,7 +11,14 @@ import { clientCard, factoryCard } from "./cards";
 import { drawHeader } from "./header";
 import { drawItemsTable } from "./itemsTable";
 import { drawParties } from "./parties";
-import { drawNotes, drawPayment, drawTotals } from "./summary";
+import {
+  drawNotes,
+  drawPayment,
+  drawTotals,
+  notesHeight,
+  paymentHeight,
+  totalsHeight,
+} from "./summary";
 
 export interface PdfBranding {
   companyLogoUrl?: string | null;
@@ -109,24 +116,32 @@ export const exportOrderPdf = async (
 
   y = drawItemsTable(pdf, items, y, startNewPage, photos).y;
 
+  // Cada bloco depois da tabela sai INTEIRO na página: se não cabe no que
+  // sobrou, vai para a próxima. Sem isto, com os itens terminando no pé da
+  // folha (o caso comum da versão com fotos, de linhas altas), o TOTAL era
+  // desenhado por cima do rodapé e das últimas linhas.
+  const fit = (height: number) =>
+    height > 0 && y + height > contentBottom(pdf) ? startNewPage() : y;
+
   // Mesma decomposição do resumo financeiro na tela (OrderSummaryCard):
   // `totalAmount` é a mercadoria NUA, `taxAmount` é o ST que o preço embute e o
   // IPI vem por cima. O TOTAL é o valor a pagar, que é o que o cliente procura.
   const taxAmount = Number(order.taxAmount ?? 0);
   const ipiAmount = Number(order.ipiAmount || 0);
-  y = drawTotals(
-    pdf,
-    {
-      merchandise: order.totalAmount,
-      taxAmount: taxAmount.toFixed(2),
-      ipiAmount: ipiAmount.toFixed(2),
-      total: Number(order.totalAmount) + taxAmount + ipiAmount,
-    },
-    y
-  );
+  const totals = {
+    merchandise: order.totalAmount,
+    taxAmount: taxAmount.toFixed(2),
+    ipiAmount: ipiAmount.toFixed(2),
+    total: Number(order.totalAmount) + taxAmount + ipiAmount,
+  };
+  y = fit(totalsHeight(totals));
+  y = drawTotals(pdf, totals, y);
 
-  y = drawPayment(pdf, order.installments ?? [], y);
+  const installments = order.installments ?? [];
+  y = fit(paymentHeight(installments));
+  y = drawPayment(pdf, installments, y);
 
+  y = fit(notesHeight(pdf, order.notes));
   drawNotes(pdf, order.notes, y);
 
   drawFooters(pdf, girusLogo);
