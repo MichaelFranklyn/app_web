@@ -119,6 +119,12 @@ export interface VisitScheduleItem {
    * por causa dela. Marcado pelo vendedor, não calculado por duração.
    */
   isWholeDay: boolean;
+  /**
+   * Marcada por uma pessoa (combinada com o cliente), não recomendada pelo
+   * motor. Nenhuma geração automática a reescreve, e ela ancora a região do
+   * dia — ver `canCompleteDay`.
+   */
+  isManual: boolean;
   /** O que motivou a visita (sugestão do sistema). */
   focusFactories: VisitFocusFactory[];
   /** O que o vendedor de fato tratou, derivado das observações de estoque. */

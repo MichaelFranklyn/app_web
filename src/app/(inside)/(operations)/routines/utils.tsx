@@ -264,6 +264,25 @@ export const canGenerateWeek = (weekStartIso: string): boolean =>
 export const isPastDay = (dateIso: string, todayIso: string): boolean =>
   dateIso < todayIso;
 
+/**
+ * O dia já existe mas dá para o sistema COMPLETÁ-LO com a carteira?
+ *
+ * É o dia que nasceu de uma visita marcada à mão (marcar cria o dia). Ali a
+ * visita foi combinada com o cliente: o sistema não a reescreve, só preenche as
+ * vagas que sobraram com clientes perto dela. Com plano do motor dentro, o dia
+ * já foi gerado (o backend recusa gerar de novo); dia começado está na mão do
+ * vendedor.
+ */
+export const canCompleteDay = (
+  day: { status: string; items: { isManual: boolean }[] },
+  dateIso: string,
+  todayIso: string
+): boolean =>
+  !isPastDay(dateIso, todayIso) &&
+  day.status === "PLANNED" &&
+  day.items.length > 0 &&
+  day.items.every((item) => item.isManual);
+
 export const getIsoWeekNumber = (isoDate: string): number => {
   const [year, month, day] = isoDate.split("-").map(Number);
   if (!year || !month || !day) return 0;

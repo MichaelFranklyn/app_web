@@ -9,6 +9,7 @@ import { useState } from "react";
 import { RoutineCapacity, VisitScheduleDay } from "../../interface";
 import {
   buildWeekDays,
+  canCompleteDay,
   getTodayIso,
   getVisibleCells,
   sortVisitsByRoute,
@@ -164,6 +165,21 @@ export function RoutinesList({
                     ))}
                   </div>
                 )}
+
+                {/* Dia que só tem visita marcada à mão: completar as vagas em
+                    volta dela, sem reescrevê-la. */}
+                {cell.day &&
+                  !dayOffDates.has(cell.date) &&
+                  canCompleteDay(cell.day, cell.date, todayIso) && (
+                    <div className="px-16 py-12">
+                      <GenerateDayButton
+                        date={cell.date}
+                        sellerId={addSellerId}
+                        onGenerated={onChanged}
+                        complete
+                      />
+                    </div>
+                  )}
 
                 {/* Dia sem visitas, sem rota ou não trabalhado. A marcação
                     vem da mesma fonte do kanban: o dia pode estar marcado sem

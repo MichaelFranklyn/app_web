@@ -20,7 +20,7 @@ import { RouteSummary } from "./_components/RouteSummary";
 import { VisitsHeader } from "./_components/VisitsHeader";
 import { VisitsSkeleton } from "./_components/VisitsSkeleton";
 import { GENERATE_DAY_ROUTE_MUTATION } from "../gql";
-import { getTodayIso, isPastDay } from "../utils";
+import { canCompleteDay, getTodayIso, isPastDay } from "../utils";
 import { WEEK_SCHEDULE_QUERY } from "./gql";
 import { VisitsWeekScheduleResponse } from "./interface";
 
@@ -101,6 +101,11 @@ export default function DayRouteContent({ date, sellerId }: Props) {
 
   const schedule = data?.week_schedule.edges[0]?.node;
   const day = schedule?.days.find((d) => d.date === date);
+  // Dia que só tem visita marcada à mão: o vendedor pode pedir ao sistema que
+  // complete as vagas em volta dela, sem reescrevê-la.
+  const canComplete = Boolean(
+    isSeller && day && canCompleteDay(day, date, todayIso)
+  );
   const sortedStops = useMemo(
     () =>
       day ? [...day.items].sort((a, b) => a.plannedOrder - b.plannedOrder) : [],
@@ -198,6 +203,20 @@ export default function DayRouteContent({ date, sellerId }: Props) {
         actions={
           <>
             {dayNav}
+            {canComplete && (
+              <Button.Root
+                appearance="tinted"
+                color="amber"
+                size="sm"
+                noUppercase
+                loading={isGenerating}
+                onClick={handleGenerateDay}
+                title="As visitas que você marcou ficam. O sistema completa o dia com clientes perto delas."
+              >
+                <Button.Icon icon={CalendarPlus} />
+                <Button.Title>Completar o dia</Button.Title>
+              </Button.Root>
+            )}
             <PrintRouteButton
               scheduleDayId={day.id}
               date={day.date}

@@ -8,7 +8,12 @@ import { ArrowUpRight, Route } from "lucide-react";
 import Link from "next/link";
 
 import { RoutineCapacity, VisitScheduleDay } from "../../interface";
-import { WeekDayCell, isPastDay, sortVisitsByRoute } from "../../utils";
+import {
+  WeekDayCell,
+  canCompleteDay,
+  isPastDay,
+  sortVisitsByRoute,
+} from "../../utils";
 import { AddVisitCard } from "../AddVisitCard";
 import { DayOffButton } from "../DayOffButton";
 import { VisitCard } from "../VisitCard";
@@ -235,6 +240,16 @@ export function DayCell({
 
               {/* Rodapé fixo do dia: adicionar visita + abrir a rota. */}
               <div className="flex flex-col gap-8 border-t border-(--border) p-16">
+                {/* Dia que só tem visita marcada à mão: o sistema completa as
+                    vagas em volta dela, sem reescrevê-la. */}
+                {canCompleteDay(cell.day, cell.date, todayIso) && (
+                  <GenerateDayButton
+                    date={cell.date}
+                    sellerId={addSellerId}
+                    onGenerated={onChanged}
+                    complete
+                  />
+                )}
                 <AddVisitCard
                   day={cell.day}
                   date={cell.date}

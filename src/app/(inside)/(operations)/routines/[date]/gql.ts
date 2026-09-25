@@ -55,6 +55,7 @@ export const WEEK_SCHEDULE_QUERY = gql`
               outcome
               notes
               isWholeDay
+              isManual
               focusFactories {
                 scoreTotal
                 factory {

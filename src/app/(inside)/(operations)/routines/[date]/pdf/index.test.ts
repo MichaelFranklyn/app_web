@@ -62,6 +62,7 @@ const stop = (over: Partial<VisitItem> = {}): VisitItem =>
     visitDurationMin: 30,
     status: "PENDING",
     isWholeDay: false,
+    isManual: false,
     viability: null,
     outcome: null,
     notes: null,

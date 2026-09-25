@@ -6412,6 +6412,10 @@ type VisitScheduleItemType {
   notes: String
   """Esta visita tomou a jornada inteira: as outras paradas do dia saíram por causa dela."""
   isWholeDay: Boolean!
+  """
+  Marcada por uma pessoa (combinada com o cliente), não recomendada pelo motor. Nenhuma geração automática a reescreve, e ela ancora a região do dia.
+  """
+  isManual: Boolean!
   createdAt: DateTime!
   updatedAt: DateTime!
   day: VisitScheduleDayType
