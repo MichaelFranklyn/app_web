@@ -288,6 +288,26 @@ export const COMPANY_CLIENT_QUERY = gql`
         id
         notes
         isActive
+        status
+        statusReason
+        statusChangedAt
+        nickname
+        succeededBy {
+          id
+          client {
+            id
+            cnpj
+            razaoSocial
+          }
+        }
+        succeededFrom {
+          id
+          client {
+            id
+            cnpj
+            razaoSocial
+          }
+        }
         networkId
         segmentId
         network {
@@ -339,6 +359,8 @@ export const COMPANY_CLIENT_QUERY = gql`
           addressZip
           addressCity
           addressState
+          receitaStatus
+          receitaCheckedAt
           createdAt
           updatedAt
         }

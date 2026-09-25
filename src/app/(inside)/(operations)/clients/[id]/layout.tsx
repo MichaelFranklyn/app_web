@@ -17,7 +17,16 @@ import { useQuery } from "@apollo/client/react";
 import { UserX } from "lucide-react";
 import { useParams, useRouter } from "next/navigation";
 import React, { useMemo } from "react";
+import { useInvalidateQueriesClient } from "@/hooks/useInvalidateQueries";
+import { CLIENT_CACHE_FIELDS } from "@/utils/cacheFields";
+import { HygieneActions } from "../_shared/hygiene/HygieneActions";
+import {
+  WALLET_STATUS_COLOR,
+  isWalletActive,
+  walletStatusLabel,
+} from "../_shared/hygiene/utils";
 import { ClientDetailSkeleton } from "./_components/ClientDetailSkeleton";
+import { WalletStatusBanner } from "./_components/WalletStatusBanner";
 import { DeleteClientModal } from "./_components/DeleteClientModal";
 import { EditClientModal } from "./_components/EditClientModal";
 import { OrderSheetButton } from "../../_components/OrderSheetButton";
@@ -37,6 +46,7 @@ export default function ClientLayout({
   const router = useRouter();
   const companyClientId = params.id as string;
   const { userData } = useUserData();
+  const invalidateClient = useInvalidateQueriesClient();
 
   const { data, loading, error, refetch } =
     useQuery<CompanyClientDetailQueryResponse>(COMPANY_CLIENT_QUERY, {
@@ -59,6 +69,12 @@ export default function ClientLayout({
               id: cc.id,
               notes: cc.notes,
               isActive: cc.isActive,
+              status: cc.status,
+              statusReason: cc.statusReason,
+              statusChangedAt: cc.statusChangedAt,
+              nickname: cc.nickname,
+              succeededBy: cc.succeededBy,
+              succeededFrom: cc.succeededFrom,
               networkId: cc.networkId,
               segmentId: cc.segmentId,
               network: cc.network,
@@ -106,9 +122,23 @@ export default function ClientLayout({
 
   const basePath = `/clients/${companyClientId}`;
 
-  const name = clientData?.razaoSocial ?? "";
-  const nameHighlight =
-    clientData?.nomeFantasia ?? name.split(" ").slice(1).join(" ");
+  // O apelido da empresa, quando existe, é o título: é por ele que o
+  // vendedor conhece o cliente. O nome oficial desce para a descrição.
+  const nickname = companyClientView?.nickname ?? null;
+  const name = nickname ?? clientData?.razaoSocial ?? "";
+  const nameHighlight = nickname
+    ? null
+    : (clientData?.nomeFantasia ?? name.split(" ").slice(1).join(" "));
+  const walletStatus = companyClientView?.status ?? "ACTIVE";
+  const walletActive = isWalletActive(walletStatus);
+  const canManage = isAdminRole(userData?.role);
+
+  // Mudou a situação: a ficha relê o vínculo e as listas esquecem o que
+  // tinham (o cliente entra ou sai delas).
+  const handleSituationChanged = () => {
+    void refetch();
+    void invalidateClient(CLIENT_CACHE_FIELDS);
+  };
   const cnae =
     clientData?.cnae && clientData?.cnaeDescription
       ? `${clientData.cnae} - ${clientData.cnaeDescription}`
@@ -212,18 +242,18 @@ export default function ClientLayout({
                     )}
                   </PanelHeader.Title>
                   <PanelHeader.Description>
-                    {`${cnae} · ${city} · CNPJ ${cnpj}`}
+                    {`${nickname ? `${clientData?.razaoSocial} · ` : ""}${cnae} · ${city} · CNPJ ${cnpj}`}
                   </PanelHeader.Description>
 
                   <PanelHeader.Actions data-tour="client-detail-actions">
                     {companyClientView && (
                       <Badge.Root
-                        color={companyClientView.isActive ? "green" : "neutral"}
+                        color={WALLET_STATUS_COLOR[walletStatus]}
                         appearance="tinted"
                         size="sm"
                       >
                         <Badge.Text>
-                          {companyClientView.isActive ? "Ativo" : "Inativo"}
+                          {walletStatusLabel(walletStatus)}
                         </Badge.Text>
                       </Badge.Root>
                     )}
@@ -241,7 +271,21 @@ export default function ClientLayout({
                         onRollback={optimisticClient.rollback}
                       />
                     )}
-                    {clientData && (
+                    {canManage && clientData?.companyClient && (
+                      <HygieneActions
+                        companyClientId={clientData.companyClient.id}
+                        clientName={name}
+                        status={walletStatus}
+                        onChanged={handleSituationChanged}
+                        onTransferred={(newId) =>
+                          router.push(`/clients/${newId}/overview`)
+                        }
+                      />
+                    )}
+                    {/* Cliente encerrado não recebe pedido: a ficha de
+                        pedido e o link do portal (onde ele pede sozinho) não
+                        têm para onde levar. */}
+                    {clientData && walletActive && (
                       /* A ficha sai daqui com o cabeçalho deste cliente já
                          preenchido — é a tela de onde o vendedor sai para
                          visitá-lo. */
@@ -253,7 +297,7 @@ export default function ClientLayout({
                         }
                       />
                     )}
-                    {clientData?.companyClient && (
+                    {clientData?.companyClient && walletActive && (
                       <SharePortalModal
                         companyClientId={clientData.companyClient.id}
                         clientName={
@@ -275,6 +319,10 @@ export default function ClientLayout({
             </PanelHeader.Left>
           </PanelHeader.Top>
         </PanelHeader.Root>
+
+        {companyClientView && (
+          <WalletStatusBanner situation={companyClientView} />
+        )}
       </div>
 
       <div>

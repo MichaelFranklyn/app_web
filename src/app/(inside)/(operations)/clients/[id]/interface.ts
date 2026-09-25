@@ -3,10 +3,29 @@ import type { VisitContactType, VisitOutcome } from "@/utils/visit";
 
 export type { VisitContactType, VisitOutcome };
 
+import type { WalletStatus } from "../_shared/hygiene/interface";
+
 import { ScoreDimensions, StockConfidence } from "@/utils/score";
 import type { Cadence } from "@/utils/cadence";
 
-export interface CompanyClientLink {
+/** O outro lado de uma troca de CNPJ (o vínculo antigo ou o novo). */
+export interface SuccessionLink {
+  id: string;
+  client: { id: string; cnpj: string; razaoSocial: string } | null;
+}
+
+/** Situação na carteira e o que a acompanha — ver `_shared/hygiene`. */
+export interface WalletSituation {
+  status: WalletStatus;
+  statusReason: string | null;
+  statusChangedAt: string | null;
+  /** Como a empresa chama o cliente; nulo = vale o nome oficial. */
+  nickname: string | null;
+  succeededBy: SuccessionLink | null;
+  succeededFrom: SuccessionLink | null;
+}
+
+export interface CompanyClientLink extends WalletSituation {
   id: string;
   notes: string | null;
   isActive: boolean;
@@ -31,6 +50,9 @@ export interface ClientDetail {
   addressZip: string | null;
   addressCity: string | null;
   addressState: string | null;
+  /** Situação na Receita (ATIVA, BAIXADA…); nula = nunca conferida. */
+  receitaStatus?: string | null;
+  receitaCheckedAt?: string | null;
   createdAt: string;
   updatedAt: string;
   companyClient: CompanyClientLink | null;
@@ -48,7 +70,7 @@ export interface FactoryVisitScore extends ScoreDimensions {
 
 // Resposta de companyClient(id): a rota de detalhe é chaveada pelo id da carteira
 // (company_client), então resolvemos o vínculo e lemos o cliente global aninhado.
-export interface CompanyClientDetail {
+export interface CompanyClientDetail extends WalletSituation {
   id: string;
   notes: string | null;
   isActive: boolean;

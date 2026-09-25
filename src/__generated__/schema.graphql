@@ -840,6 +840,14 @@ type ClientType {
   longitude: Decimal
   isNeedsAttention: Boolean!
   attentionReason: String
+  """
+  Como a empresa do usuário chama o cliente (apelido do vínculo da carteira).
+  Nulo quando não há apelido — aí vale o nome oficial.
+  """
+  nickname: String
+  """Situação cadastral na Receita (ATIVA, BAIXADA, INAPTA…); nula = nunca conferida."""
+  receitaStatus: String
+  receitaCheckedAt: DateTime
   createdAt: DateTime!
   updatedAt: DateTime!
   deletedAt: DateTime
@@ -1117,12 +1125,37 @@ extend type Mutation {
   deleteCompany(id: UUID!): BaseResponse!
 }
 
+"""
+Situação do cliente NA CARTEIRA da empresa. Qualquer uma diferente de ACTIVE
+tira o cliente da rotina, das listas padrão e dos pedidos novos.
+"""
+enum WalletStatus {
+  ACTIVE
+  "Não existe mais (fechou, CNPJ baixado)."
+  CLOSED
+  "Existe, mas a empresa não trabalha mais com ele."
+  ENDED
+  "Mudou de CNPJ: a relação continua no vínculo do CNPJ novo (`succeededBy`)."
+  SUCCEEDED
+}
+
 type CompanyClientType {
   id: UUID!
   companyId: UUID!
   clientId: UUID!
   notes: String
+  """Espelha `status == ACTIVE` (mantido para as telas antigas)."""
   isActive: Boolean!
+  status: WalletStatus!
+  """Por que saiu, nas palavras de quem encerrou."""
+  statusReason: String
+  statusChangedAt: DateTime
+  """Mudou de CNPJ: o vínculo do CNPJ novo, que herdou a relação."""
+  succeededBy: CompanyClientType
+  """O vínculo do CNPJ ANTIGO, quando este cliente veio de uma troca de CNPJ."""
+  succeededFrom: CompanyClientType
+  """Como esta empresa chama o cliente (o nome oficial só muda pela Receita)."""
+  nickname: String
   createdAt: DateTime!
   updatedAt: DateTime!
   deletedAt: DateTime
@@ -1246,6 +1279,8 @@ input CreateCompanyClientInput {
 input UpdateCompanyClientInput {
   notes: String = null
   isActive: Boolean = null
+  """Apelido da empresa para o cliente. String vazia remove o apelido."""
+  nickname: String = null
   """
   Rede e segmento do cliente. `null` EXPLÍCITO desvincula (o cliente saiu da
   rede); omitir o campo mantém o que está gravado.
@@ -1271,12 +1306,131 @@ extend type Query {
     factoryId: UUID = null
     months: Int = 24
   ): [ClientProductAnalysisRowType!]!
+  """
+  Higienização: clientes ATIVOS da carteira com sinal de cadastro envelhecido
+  (Receita fora de ATIVA, sem compra há mais de um ano, nunca comprou em seis
+  meses de carteira). Só gestor.
+  """
+  clientHygiene: ClientHygieneType!
+}
+
+enum ClientHygieneReason {
+  "A Receita diz que o CNPJ não está ATIVO (baixado, inapto, suspenso, nulo ou inexistente)."
+  RECEITA_INACTIVE
+  "Comprou, mas o último pedido tem mais de um ano."
+  NO_RECENT_PURCHASE
+  "Está na carteira há mais de seis meses e nunca comprou."
+  NEVER_BOUGHT
+}
+
+type ClientHygieneItemType {
+  companyClient: CompanyClientType!
+  receitaStatus: String
+  lastOrderDate: Date
+  reasons: [ClientHygieneReason!]!
+}
+
+type ClientHygieneType {
+  items: [ClientHygieneItemType!]!
+  """Clientes ativos nunca conferidos na Receita (ou conferidos há mais de 30 dias)."""
+  receitaPending: Int!
+}
+
+input EndCompanyClientInput {
+  "CLOSED (não existe mais) ou ENDED (não trabalham mais com ele)."
+  status: WalletStatus!
+  reason: String = null
+}
+
+type EndCompanyClientResultType {
+  companyClient: CompanyClientType!
+  """Visitas e ligações por fazer que foram canceladas."""
+  cancelledVisits: Int!
+}
+
+type EndCompanyClientResultDataResponse {
+  status: Boolean!
+  code: Int!
+  message: String!
+  data: EndCompanyClientResultType
+}
+
+input TransferCompanyClientCnpjInput {
+  newCnpj: String!
+  reason: String = null
+}
+
+type TransferCompanyClientCnpjResultType {
+  oldCompanyClient: CompanyClientType!
+  newCompanyClient: CompanyClientType!
+  """Vínculos por fábrica (vendedor e nível) levados ao CNPJ novo."""
+  movedLinks: Int!
+  movedContacts: Int!
+}
+
+type TransferCompanyClientCnpjResultDataResponse {
+  status: Boolean!
+  code: Int!
+  message: String!
+  data: TransferCompanyClientCnpjResultType
+}
+
+type ReceitaChangeType {
+  "razaoSocial ou nomeFantasia"
+  field: String!
+  before: String
+  after: String
+}
+
+type RefreshClientFromReceitaResultType {
+  client: ClientType!
+  """O que a Receita trouxe de diferente. Vazio = já estava igual."""
+  changes: [ReceitaChangeType!]!
+}
+
+type RefreshClientFromReceitaResultDataResponse {
+  status: Boolean!
+  code: Int!
+  message: String!
+  data: RefreshClientFromReceitaResultType
+}
+
+type CheckWalletReceitaResultType {
+  checked: Int!
+  inactiveFound: Int!
+  """As fontes públicas limitam consultas por minuto: o lote parou no limite."""
+  stoppedByLimit: Boolean!
+  remaining: Int!
+}
+
+type CheckWalletReceitaResultDataResponse {
+  status: Boolean!
+  code: Int!
+  message: String!
+  data: CheckWalletReceitaResultType
 }
 
 extend type Mutation {
   createCompanyClient(input: CreateCompanyClientInput!): CompanyClientTypeDataResponse!
   updateCompanyClient(id: UUID!, input: UpdateCompanyClientInput!): CompanyClientTypeDataResponse!
   deleteCompanyClient(id: UUID!): BaseResponse!
+  """
+  Tira o cliente da carteira ativa: não existe mais (CLOSED) ou não trabalham
+  mais com ele (ENDED). Mantém o histórico; cancela visitas por fazer e o link
+  do portal. Reversível com `reactivateCompanyClient`.
+  """
+  endCompanyClient(id: UUID!, input: EndCompanyClientInput!): EndCompanyClientResultDataResponse!
+  reactivateCompanyClient(id: UUID!): CompanyClientTypeDataResponse!
+  """
+  O cliente mudou de CNPJ: leva vendedor e nível em cada fábrica, contatos,
+  rotas fixas, apelido, rede, segmento e anotações para o CNPJ novo. Os pedidos
+  antigos ficam no CNPJ antigo, que passa a SUCCEEDED.
+  """
+  transferCompanyClientCnpj(id: UUID!, input: TransferCompanyClientCnpjInput!): TransferCompanyClientCnpjResultDataResponse!
+  """Atualiza nome oficial e situação cadastral do cliente pela Receita."""
+  refreshClientFromReceita(companyClientId: UUID!): RefreshClientFromReceitaResultDataResponse!
+  """Confere um lote da carteira ativa na Receita (poucos por vez: as fontes limitam por minuto)."""
+  checkWalletReceita(limit: Int = 10): CheckWalletReceitaResultDataResponse!
   importCompanyClients(input: ImportCompanyClientsInput!): ImportCompanyClientsResultDataResponse!
 }
 input AddClientToCompanyInput {
@@ -1319,9 +1473,7 @@ type CompanyFactoryType {
   id: UUID!
   companyId: UUID!
   factoryId: UUID!
-  """
-  Percentual que a FÁBRICA paga à empresa. Nulo para vendedor: ele nunca vê este número — o dele é `sellerFactoryAccess.sellerCommissionRate`.
-  """
+  """Percentual que a FÁBRICA paga à empresa. Nulo para vendedor: ele nunca vê este número — o dele é `sellerFactoryAccess.sellerCommissionRate`."""
   commissionRate: Float
   commissionCalcBasis: String!
   paymentTermDays: Int!
@@ -6412,9 +6564,7 @@ type VisitScheduleItemType {
   notes: String
   """Esta visita tomou a jornada inteira: as outras paradas do dia saíram por causa dela."""
   isWholeDay: Boolean!
-  """
-  Marcada por uma pessoa (combinada com o cliente), não recomendada pelo motor. Nenhuma geração automática a reescreve, e ela ancora a região do dia.
-  """
+  """Marcada por uma pessoa (combinada com o cliente), não recomendada pelo motor. Nenhuma geração automática a reescreve, e ela ancora a região do dia."""
   isManual: Boolean!
   createdAt: DateTime!
   updatedAt: DateTime!

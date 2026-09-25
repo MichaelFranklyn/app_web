@@ -30,6 +30,7 @@ const client = (
         : {
             id: "cc1",
             isActive: true,
+            nickname: null,
             networkId: null,
             segmentId: null,
             network: null,
@@ -53,7 +54,8 @@ const updateMock = (input: Record<string, unknown>, ok = true) => ({
           ? {
               __typename: "CompanyClientType",
               id: "cc1",
-              isActive: input.isActive,
+              isActive: true,
+              nickname: input.nickname || null,
               networkId: input.networkId ?? null,
               segmentId: input.segmentId ?? null,
               network: null,
@@ -66,7 +68,7 @@ const updateMock = (input: Record<string, unknown>, ok = true) => ({
 });
 
 const form = (extra: Record<string, unknown> = {}) => ({
-  isActive: ["true"],
+  nickname: "",
   networkId: null,
   segmentId: null,
   ...extra,
@@ -101,7 +103,7 @@ beforeEach(() => {
 });
 
 describe("useEditClient — abrir", () => {
-  it("abre com a situação e a classificação de hoje", () => {
+  it("abre com o apelido e a classificação de hoje", () => {
     const { result } = run(
       [],
       client({
@@ -112,16 +114,16 @@ describe("useEditClient — abrir", () => {
 
     expect(result.current.initialData).toMatchObject({
       razaoSocial: "ALTO CONSTRUCAO LTDA",
-      isActive: ["true"],
+      nickname: "",
       networkId: { value: "net1", label: "Rede Alfa" },
       segmentId: null,
     });
   });
 
-  it("cliente inativo abre com a caixa desmarcada", () => {
-    const { result } = run([], client({ isActive: false }));
+  it("abre com o apelido que a empresa já deu", () => {
+    const { result } = run([], client({ nickname: "Mercadinho do Zé" }));
 
-    expect(result.current.initialData.isActive).toEqual([]);
+    expect(result.current.initialData.nickname).toBe("Mercadinho do Zé");
   });
 });
 
@@ -129,7 +131,7 @@ describe("useEditClient — salvar", () => {
   it("a linha muda na hora e o servidor confirma depois", async () => {
     // Padrão otimista do app: a tela reage antes, e só depois o commit.
     const { result, onUpdateOptimistic, onCommit, onClose } = run([
-      updateMock({ isActive: true, networkId: "net1", segmentId: null }),
+      updateMock({ nickname: "", networkId: "net1", segmentId: null }),
     ]);
 
     await act(() =>
@@ -148,12 +150,33 @@ describe("useEditClient — salvar", () => {
     await waitFor(() => expect(onCommit).toHaveBeenCalledOnce());
   });
 
+  it("apelido em branco volta ao nome oficial", async () => {
+    const { result, onUpdateOptimistic, onCommit } = run(
+      [updateMock({ nickname: "", networkId: null, segmentId: null })],
+      client({ nickname: "Mercadinho do Zé" })
+    );
+
+    await act(() => result.current.handleSubmit(form({ nickname: "   " })));
+
+    expect(onUpdateOptimistic).toHaveBeenCalledWith(
+      expect.objectContaining({
+        companyClient: expect.objectContaining({ nickname: null }),
+      })
+    );
+    await waitFor(() => expect(onCommit).toHaveBeenCalledOnce());
+  });
+
   it("recusa do servidor devolve a linha ao que era", async () => {
     const { result, onCommit, onRollback } = run([
-      updateMock({ isActive: false, networkId: null, segmentId: null }, false),
+      updateMock(
+        { nickname: "Mercadinho do Zé", networkId: null, segmentId: null },
+        false
+      ),
     ]);
 
-    await act(() => result.current.handleSubmit(form({ isActive: [] })));
+    await act(() =>
+      result.current.handleSubmit(form({ nickname: " Mercadinho do Zé " }))
+    );
 
     await waitFor(() => expect(onRollback).toHaveBeenCalledOnce());
     expect(onCommit).not.toHaveBeenCalled();
@@ -162,7 +185,7 @@ describe("useEditClient — salvar", () => {
   it("select limpo é 'saiu da rede', e não 'não mexi nisso'", async () => {
     // É o único campo em que o nulo explícito tem significado próprio.
     const { result, onCommit } = run(
-      [updateMock({ isActive: true, networkId: null, segmentId: null })],
+      [updateMock({ nickname: "", networkId: null, segmentId: null })],
       client({ networkId: "net1", network: { id: "net1", name: "Rede Alfa" } })
     );
 
@@ -181,7 +204,7 @@ describe("useEditClient — salvar", () => {
   });
 
   it("cliente que não está na carteira não tem o que editar aqui", async () => {
-    // Sem `companyClient` não há situação nem classificação da empresa.
+    // Sem `companyClient` não há apelido nem classificação da empresa.
     const { result, onClose, onUpdateOptimistic } = run([], client(null));
 
     await act(() => result.current.handleSubmit(form()));

@@ -23,11 +23,14 @@ interface Params {
 }
 
 /**
- * Edição do que a empresa controla no cliente: situação na carteira e
- * classificação (rede e segmento).
+ * Edição do que a empresa controla no cliente: o apelido (como vocês o
+ * chamam) e a classificação (rede e segmento).
  *
  * Razão social e nome fantasia vêm da Receita e ficam desabilitados — aparecem
- * só para quem edita ter certeza de que está no cliente certo.
+ * só para quem edita ter certeza de que está no cliente certo. Nome oficial
+ * mudou? "Situação do cliente" → "atualizar pela Receita". E a situação na
+ * carteira (encerrar, reativar) saiu daqui: tirar da carteira pede o motivo e
+ * cancela visitas, e uma caixa de marcar escondia tudo isso.
  */
 export function useEditClient({
   client,
@@ -68,13 +71,15 @@ export function useEditClient({
                 type: "text",
                 label: "Nome fantasia",
                 disabled: true,
-                hint: "Dado vindo da Receita Federal — não pode ser alterado.",
+                hint: "Dado vindo da Receita Federal. Mudou? Use “Situação do cliente” → “atualizar pela Receita”.",
               },
               {
-                name: "isActive",
-                type: "switch",
-                label: "Situação na carteira",
-                options: [{ value: "true", label: "Cliente ativo" }],
+                name: "nickname",
+                type: "text",
+                label: "Como vocês chamam o cliente (opcional)",
+                placeholder: "Ex: Mercadinho do Zé",
+                maxLength: 255,
+                hint: "Aparece no lugar do nome oficial nas telas da sua empresa. Deixe em branco para usar o nome da Receita.",
               },
             ],
           },
@@ -120,7 +125,7 @@ export function useEditClient({
     () => ({
       razaoSocial: client.razaoSocial,
       nomeFantasia: client.nomeFantasia ?? "",
-      isActive: companyClient?.isActive ? ["true"] : [],
+      nickname: companyClient?.nickname ?? "",
       networkId: companyClient?.network
         ? {
             value: companyClient.network.id,
@@ -143,15 +148,16 @@ export function useEditClient({
       return;
     }
 
-    const isActive =
-      Array.isArray(data.isActive) && data.isActive.includes("true");
+    // Em branco = sem apelido (volta o nome oficial). O backend recebe a
+    // string vazia e grava nulo.
+    const nickname = String(data.nickname ?? "").trim();
     // Select limpo devolve "": vira null, que o backend lê como "saiu da rede"
     // (é o único campo em que null explícito não significa "não enviado").
     const networkId = extractSelectValue(data.networkId) || null;
     const segmentId = extractSelectValue(data.segmentId) || null;
 
     const unchanged =
-      isActive === companyClient.isActive &&
+      nickname === (companyClient.nickname ?? "") &&
       networkId === (companyClient.networkId ?? null) &&
       segmentId === (companyClient.segmentId ?? null);
     if (unchanged) {
@@ -166,7 +172,7 @@ export function useEditClient({
     onUpdateOptimistic({
       companyClient: {
         ...companyClient,
-        isActive,
+        nickname: nickname || null,
         networkId,
         segmentId,
         network: network ? { id: network.value, name: network.label } : null,
@@ -179,7 +185,7 @@ export function useEditClient({
         const res = await updateCompanyClient({
           variables: {
             id: companyClient.id,
-            input: { isActive, networkId, segmentId },
+            input: { nickname, networkId, segmentId },
           },
         });
         if (!res.data?.updateCompanyClient?.status) {
@@ -194,8 +200,8 @@ export function useEditClient({
         successMessage: "Cliente atualizado com sucesso",
         onSuccess: async () => {
           onCommit();
-          // `clients` junto: a lista filtra por rede e por segmento, que é o
-          // que este formulário edita.
+          // `clients` junto: a lista filtra por rede e por segmento e mostra
+          // o apelido, que é o que este formulário edita.
           await invalidateClient(["client", "clients"]);
         },
         onError: () => onRollback(),

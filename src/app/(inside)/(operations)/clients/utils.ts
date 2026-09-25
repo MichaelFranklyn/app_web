@@ -38,6 +38,9 @@ export const TABLE_FIELDS: Record<string, FieldConfig> = {
   // backend as retira dos filtros e transforma em recorte do join.
   networkId: { type: "select", queryField: "network_id" },
   segmentId: { type: "select", queryField: "segment_id" },
+  // Situação na carteira — também do VÍNCULO. Vazio = só os ativos (padrão do
+  // backend); "INACTIVE" = os que saíram; "ALL" = todos.
+  walletStatus: { type: "select", queryField: "wallet_status" },
 };
 
 export const buildKpis = (stats: ClientsStats): KpiItem[] => {

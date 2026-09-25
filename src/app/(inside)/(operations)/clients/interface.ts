@@ -1,3 +1,4 @@
+import type { WalletStatus } from "./_shared/hygiene/interface";
 export interface ClientsStats {
   clientStats: {
     totalClients: number;
@@ -37,11 +38,15 @@ export interface Client {
   // coordenada (some da rota/radar). attentionReason traz o motivo p/ o tooltip.
   isNeedsAttention: boolean;
   attentionReason: string | null;
+  /** Como a empresa chama o cliente; nulo = vale o nome oficial. */
+  nickname?: string | null;
   // Vínculo com a empresa logada: o id da carteira é o que chaveia a rota de
   // detalhe (/clients/[companyClientId]), pois o mesmo cliente global pode
   // pertencer a outras empresas e as abas são company-scoped.
   companyClient: {
     id: string;
+    /** Situação na carteira; a lista padrão só traz ACTIVE. */
+    status?: WalletStatus;
     visitScoreTotal: string | null;
     // Últimas compra/visita e vendedores vêm do vínculo com a empresa: para um
     // vendedor logado o backend já devolve só o que é dele.
