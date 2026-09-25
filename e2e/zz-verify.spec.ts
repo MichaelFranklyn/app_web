@@ -16,10 +16,11 @@ test("HERC: produto 1000001106 traz o preço ao ser adicionado num pedido", asyn
   await page.waitForURL(/dashboard/, { timeout: 30000 });
   console.log("LOGIN OK");
 
-  await page.goto("http://localhost:3000/orders");
-  await page.getByRole("button", { name: "Novo pedido" }).first().click();
-  const dialog = page.getByRole("dialog");
-  await expect(dialog).toBeVisible({ timeout: 15000 });
+  // Novo pedido digitado tem página própria (não é mais modal).
+  await page.goto("http://localhost:3000/orders/new");
+  await expect(page.getByText("Dados do pedido")).toBeVisible({
+    timeout: 15000,
+  });
   await page.waitForTimeout(4000);
   console.log("ERROS DE RUNTIME:", JSON.stringify(erros));
 });

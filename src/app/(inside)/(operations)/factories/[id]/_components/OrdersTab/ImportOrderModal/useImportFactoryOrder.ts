@@ -25,12 +25,12 @@ import {
 import { useCompanyFactoryNode } from "../../../../../_shared/orderItemCatalog";
 import { usePaymentTermOptions } from "../../../../../_shared/orderPaymentTerms";
 import { FREIGHT_OPTIONS } from "../../../../../_shared/orderFreight";
+import { CREATE_ORDER_FROM_FACTORY_MUTATION, FactoryOrder } from "../gql";
+import { CreateOrderResponse } from "../interface";
 import {
-  CREATE_ORDER_FROM_FACTORY_MUTATION,
   FACTORY_ASSIGNMENTS_QUERY,
-  FactoryOrder,
-} from "../gql";
-import { CreateOrderResponse, FactoryAssignmentsData } from "../interface";
+  FactoryAssignmentsData,
+} from "../../../../../_shared/orderAssignments";
 
 export interface ImportFactoryOrderProps {
   factoryId: string;

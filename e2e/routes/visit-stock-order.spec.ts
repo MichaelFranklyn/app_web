@@ -124,6 +124,22 @@ const candidates = () => ({
   ],
 });
 
+/**
+ * O que a página de novo pedido consulta ao abrir: o vínculo da visita (nomes
+ * do cabeçalho) e o catálogo dos itens. Respostas vazias e bem-formadas — sem
+ * elas o fallback `{}` faz o Apollo refazer a consulta em loop.
+ */
+const newOrderPageMocks = () => ({
+  ClientAssignments: () => ({
+    sellerClientFactoryList: { edges: [], totalCount: 0 },
+  }),
+  OrderItemCompanyFactories: () => ({ companyFactories: { edges: [] } }),
+  OrderItemProducts: () => ({ products: { edges: [] } }),
+  OrderItemTiers: () => ({ priceTiers: { edges: [] } }),
+  OrderItemPriceLists: () => ({ factoryPriceLists: { edges: [] } }),
+  OrderItemPriceListItems: () => ({ priceListItems: { edges: [] } }),
+});
+
 async function openStockModal(page: import("@playwright/test").Page) {
   await page.goto("/routines");
 
@@ -199,13 +215,34 @@ test("visita/estoque: o pedido lançado carrega a fábrica e a visita de origem"
     VisitScheduleConfig: scheduleConfig,
     VisitStockCandidates: candidates,
     VisitStockObservations: () => ({ visitStockObservations: { edges: [] } }),
-    CreateVisitOrder: (variables) => {
+    ...newOrderPageMocks(),
+    CreateOrder: (variables) => {
       orderInput = variables.input as Record<string, unknown>;
       return {
         createOrder: {
           status: true,
+          code: 200,
           message: "ok",
-          data: { id: "order-novo" },
+          data: {
+            id: "order-novo",
+            orderDate: "2026-09-25",
+            invoicedAt: null,
+            totalAmount: "0",
+            commissionAmount: "0",
+            status: "CONFIRMED",
+            seller: { id: "s-1", name: "Vendedor" },
+            client: {
+              id: "c-1",
+              razaoSocial: "Cliente LTDA",
+              nomeFantasia: null,
+            },
+            factory: {
+              id: "f-2",
+              nomeFantasia: "Fábrica Beta",
+              nickname: null,
+              razaoSocial: "Beta LTDA",
+            },
+          },
         },
       };
     },
@@ -221,13 +258,12 @@ test("visita/estoque: o pedido lançado carrega a fábrica e a visita de origem"
     .click();
   await stockModal.getByRole("button", { name: "Lançar pedido" }).click();
 
-  // Um modal de cada vez: o estoque some para o pedido aparecer.
-  await expect(
-    page.getByRole("heading", { name: "Novo pedido" })
-  ).toBeVisible();
+  // O pedido tem página própria, com vendedor, cliente e fábrica decididos.
+  await expect(page).toHaveURL(/\/orders\/new\?visitItemId=it-1/);
   await expect(stockModal).toHaveCount(0);
 
-  await page.getByRole("button", { name: "Criar pedido" }).click();
+  // A data já vem com hoje (o pedido nasce na visita): é só criar.
+  await page.getByRole("button", { name: "Criar pedido", exact: true }).click();
 
   await expect.poll(() => orderInput).not.toBeNull();
 
@@ -374,10 +410,11 @@ test("visita/estoque: salvar o estoque conclui a visita", async ({ page }) => {
   await expect.poll(() => updateInput).toMatchObject({ status: "COMPLETED" });
 });
 
-test("visita/estoque: cancelar o pedido devolve o vendedor ao estoque", async ({
+test("visita/estoque: cancelar o pedido volta para a rotina", async ({
   page,
 }) => {
   await mockGraphql(page, {
+    ...newOrderPageMocks(),
     RoutineSellersOptions: () => ({ routine_sellers: { edges: [] } }),
     VisitSchedules: schedules,
     VisitScheduleConfig: scheduleConfig,
@@ -389,14 +426,13 @@ test("visita/estoque: cancelar o pedido devolve o vendedor ao estoque", async ({
   const stockModal = page.getByLabel("Estoque · Cliente LTDA");
 
   await stockModal.getByRole("button", { name: "Lançar pedido" }).click();
-  await expect(
-    page.getByRole("heading", { name: "Novo pedido" })
-  ).toBeVisible();
+  await expect(page).toHaveURL(/\/orders\/new\?/);
 
   await page.getByRole("button", { name: "Cancelar" }).click();
 
-  await expect(stockModal).toBeVisible();
-  await expect(page.getByRole("heading", { name: "Novo pedido" })).toHaveCount(
+  // Volta para a tela de onde a visita foi aberta.
+  await expect(page).toHaveURL(/\/routines/);
+  await expect(page.getByRole("button", { name: "Criar pedido" })).toHaveCount(
     0
   );
 });

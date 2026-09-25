@@ -46,20 +46,6 @@ export const VISIT_STOCK_OBSERVATIONS_QUERY = gql`
   }
 `;
 
-// Pedido lançado de dentro da visita. `visitScheduleItemId` amarra o pedido à ida
-// que o originou: é o que responde depois se a visita sugerida pelo score vendeu.
-export const CREATE_VISIT_ORDER_MUTATION = gql`
-  mutation CreateVisitOrder($input: CreateOrderInput!) {
-    createOrder(input: $input) {
-      status
-      message
-      data {
-        id
-      }
-    }
-  }
-`;
-
 // Salvar as observações corrige a previsão de esgotamento de cada produto no
 // backend (FeedStockObservationsUseCase), que é a fonte da urgência do próximo
 // score — por isso o cliente refetcha o score depois de salvar.

@@ -69,6 +69,14 @@ interface ObsData {
  * O que ele marca aqui corrige, no backend, a data estimada de esgotamento de
  * cada produto — que é a fonte da urgência do próximo score.
  */
+/** As respostas dadas (sem os não-respondidos), em forma comparável. */
+const answersOf = (map: Record<string, number | null>) =>
+  JSON.stringify(
+    Object.entries(map)
+      .filter(([, days]) => days !== null && days !== undefined)
+      .sort(([a], [b]) => a.localeCompare(b))
+  );
+
 export function useStockObservation(itemId: string, onSaved?: () => void) {
   const { data: candidatesData, loading: loadingCandidates } =
     useQuery<CandidatesData>(VISIT_STOCK_CANDIDATES_QUERY, {
@@ -98,12 +106,15 @@ export function useStockObservation(itemId: string, onSaved?: () => void) {
   // productId → dias que o produto ainda dura, segundo o cliente. `null` = não
   // perguntado. Observações antigas (sem o número) entram como `null`.
   const [daysMap, setDaysMap] = useState<Record<string, number | null>>({});
+  // O que já está gravado: é contra ele que se sabe se há resposta nova.
+  const [savedMap, setSavedMap] = useState<Record<string, number | null>>({});
   useEffect(() => {
     const init: Record<string, number | null> = {};
     for (const edge of obsData?.visitStockObservations.edges ?? []) {
       init[edge.node.productId] = edge.node.daysRemaining;
     }
     setDaysMap(init);
+    setSavedMap(init);
   }, [obsData]);
 
   const [save] = useMutation(SAVE_VISIT_STOCK_OBSERVATIONS_MUTATION);
@@ -119,13 +130,18 @@ export function useStockObservation(itemId: string, onSaved?: () => void) {
   };
 
   const selectedCount = Object.values(daysMap).filter((d) => d !== null).length;
+  const isDirty = answersOf(daysMap) !== answersOf(savedMap);
 
-  const handleSave = async () => {
+  /**
+   * Grava as respostas e, gravado, chama `afterSave`. `true` = gravou; a falha
+   * já avisou por toast.
+   */
+  const persist = async (afterSave?: () => void): Promise<boolean> => {
     const observations = allProducts
       .filter((p) => daysMap[p.id] !== null && daysMap[p.id] !== undefined)
       .map((p) => ({ productId: p.id, daysRemaining: daysMap[p.id] }));
 
-    await execute(
+    const saved = await execute(
       async () => {
         const res = await save({ variables: { itemId, observations } });
         const payload = (
@@ -145,11 +161,26 @@ export function useStockObservation(itemId: string, onSaved?: () => void) {
           // O backend acabou de corrigir a previsão de esgotamento: as abas
           // Estoque e Score mostrariam o valor antigo do cache.
           await invalidateClient(CLIENT_STOCK_CACHE_FIELDS);
-          onSaved?.();
+          afterSave?.();
         },
       }
     );
+    return saved !== undefined;
   };
+
+  const handleSave = () => persist(onSaved);
+
+  /**
+   * Antes de sair da visita para lançar o pedido: grava o que foi respondido e
+   * ainda não estava salvo. O pedido é uma PÁGINA — sair do modal sem gravar
+   * perderia as respostas. Sem nada novo, segue direto. `false` = a gravação
+   * falhou, e o vendedor fica aqui para não perder o que respondeu.
+   *
+   * `afterSave` no lugar do `onSaved`: gravar o estoque ainda conclui a visita,
+   * mas o modal não se fecha — quem o tira de cena é a navegação.
+   */
+  const saveBeforeLeaving = async (afterSave?: () => void) =>
+    isDirty ? persist(afterSave) : true;
 
   return {
     loading: loadingCandidates || loadingObs,
@@ -159,6 +190,7 @@ export function useStockObservation(itemId: string, onSaved?: () => void) {
     setDays,
     selectedCount,
     handleSave,
+    saveBeforeLeaving,
     isLoading,
   };
 }

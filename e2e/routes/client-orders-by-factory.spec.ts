@@ -88,15 +88,14 @@ const orderNode = {
   seller: { id: "s-1", name: "Vendedor Teste" },
 };
 
-// Escolhe uma opção num Input.Select custom (dropdown em portal, fora do dialog).
+// Escolhe uma opção num Input.Select custom (dropdown em portal).
 async function pickOption(
-  dialog: import("@playwright/test").Locator,
   page: import("@playwright/test").Page,
   fieldLabel: string,
   typeText: string,
   optionText: string
 ) {
-  const select = dialog.getByRole("textbox", { name: fieldLabel });
+  const select = page.getByRole("textbox", { name: fieldLabel });
   await expect(select).toBeEnabled();
   await select.click();
   await select.pressSequentially(typeText);
@@ -106,7 +105,7 @@ async function pickOption(
     .click();
 }
 
-test("cliente/pedidos: criar pedido usa o wizard e redireciona ao pedido novo", async ({
+test("cliente/pedidos: criar pedido abre a página com o cliente decidido e entra no pedido novo", async ({
   page,
 }) => {
   let createVars: Record<string, unknown> | null = null;
@@ -114,7 +113,7 @@ test("cliente/pedidos: criar pedido usa o wizard e redireciona ao pedido novo", 
   await mockGraphql(page, {
     ...clientLayout(),
     ClientFactoryOrders: summaries,
-    // Vínculos vendedor→fábrica do cliente (passo 1 do wizard).
+    // Vínculos vendedor→fábrica do cliente (quem vende e por qual fábrica).
     ClientAssignments: () => ({
       sellerClientFactoryList: {
         edges: [
@@ -134,21 +133,40 @@ test("cliente/pedidos: criar pedido usa o wizard e redireciona ao pedido novo", 
         ],
       },
     }),
-    // Escolher o vínculo monta o catálogo do passo 2 (respostas vazias encerram
+    // Escolher o vínculo monta o catálogo dos itens (respostas vazias encerram
     // o carregamento sem exercer os itens).
     OrderItemCompanyFactories: () => ({ companyFactories: { edges: [] } }),
     OrderItemProducts: () => ({ products: { edges: [] } }),
     OrderItemTiers: () => ({ priceTiers: { edges: [] } }),
     OrderItemPriceLists: () => ({ factoryPriceLists: { edges: [] } }),
     OrderItemPriceListItems: () => ({ priceListItems: { edges: [] } }),
-    CreateOrderFromClient: (variables) => {
+    CreateOrder: (variables) => {
       createVars = variables.input as Record<string, unknown>;
       return {
         createOrder: {
           status: true,
           code: 200,
           message: "ok",
-          data: { id: "order-novo" },
+          data: {
+            id: "order-novo",
+            orderDate: "2026-09-25",
+            invoicedAt: null,
+            totalAmount: "0",
+            commissionAmount: "0",
+            status: "CONFIRMED",
+            seller: { id: "s-1", name: "Vendedor A" },
+            client: {
+              id: "client-1",
+              razaoSocial: "Cliente LTDA",
+              nomeFantasia: "Meu Cliente",
+            },
+            factory: {
+              id: "f-1",
+              nomeFantasia: "Fábrica Alfa",
+              nickname: null,
+              razaoSocial: "Alfa LTDA",
+            },
+          },
         },
       };
     },
@@ -157,26 +175,25 @@ test("cliente/pedidos: criar pedido usa o wizard e redireciona ao pedido novo", 
   await page.goto("/clients/cc-1/orders");
   await page.getByRole("button", { name: "Pedido", exact: true }).click();
 
-  const dialog = page.getByRole("dialog");
-  await expect(dialog).toBeVisible();
+  // Página própria, com o cliente já decidido e a volta para a aba dele.
+  await expect(page).toHaveURL(/\/orders\/new\?clientId=client-1&from=/);
+  await expect(
+    page.getByRole("link", { name: "Cliente", exact: true })
+  ).toHaveAttribute("href", "/clients/cc-1/orders");
 
   await pickOption(
-    dialog,
     page,
     "Vendedor → Fábrica",
     "Vendedor",
     "Vendedor A → Fábrica Alfa"
   );
-  await dialog
+  await page
     .getByRole("textbox", { name: "Data do pedido" })
     .click({ force: true });
   await page.getByRole("button", { name: "Hoje" }).click();
 
-  // Passo 1 (Dados) → passo 2 (Itens, opcional) → criar sem itens.
-  await dialog.getByRole("button", { name: "Avançar" }).click();
-  await dialog
-    .getByRole("button", { name: "Criar pedido", exact: true })
-    .click();
+  // Criar sem itens (eles são opcionais).
+  await page.getByRole("button", { name: "Criar pedido", exact: true }).click();
 
   // Redireciona para o pedido recém-criado.
   await page.waitForURL(/\/orders\/order-novo/);

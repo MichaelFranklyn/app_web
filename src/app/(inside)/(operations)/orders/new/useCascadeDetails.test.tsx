@@ -1,13 +1,11 @@
-import { MockedProvider } from "@apollo/client/testing/react";
 import { act, renderHook, waitFor } from "@testing-library/react";
-import { ReactNode } from "react";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 
 /**
- * Os pedaços compartilhados do wizard (rascunho de itens, condições, frete,
+ * Os pedaços compartilhados da página (rascunho de itens, condições, frete,
  * cobertura, carteira) têm testes próprios: aqui eles entram como dublês, para
- * o que se prende ser o wizard — a cascata, o que vai na mutation e o que
- * acontece quando um item falha.
+ * o que se prende ser a página de novo pedido — a cascata, o que vai na
+ * mutation e o que acontece quando um item falha.
  */
 const {
   createDraftItems,
@@ -34,7 +32,7 @@ const {
   },
 }));
 
-vi.mock("../../../../_shared/orderDraftItems", async () => {
+vi.mock("../../_shared/orderDraftItems", async () => {
   const { gql } = await import("@apollo/client");
   return {
     createDraftItems,
@@ -48,31 +46,33 @@ vi.mock("../../../../_shared/orderDraftItems", async () => {
     `,
   };
 });
-vi.mock("../../../../_shared/orderPaymentTerms", () => ({
+vi.mock("../../_shared/orderPaymentTerms", () => ({
   usePaymentTermOptions: () => paymentTerms,
 }));
-vi.mock("../../../../_shared/orderFreight", () => ({
+vi.mock("../../_shared/orderFreight", () => ({
   FREIGHT_OPTIONS: [{ label: "FOB", value: "FOB" }],
   useFreeFreightTarget: () => freeFreight,
 }));
-vi.mock("../../../../_shared/orderCoverage", () => ({
+vi.mock("../../_shared/orderCoverage", () => ({
   coverageHint: () => "dica",
   useCoverageSuggestion: () => {},
 }));
-vi.mock("../useOrderClientOptions", () => ({
+vi.mock("../_shared/orderCreate", async (importOriginal) => ({
+  ...(await importOriginal<object>()),
   useOrderClientOptions: () => clientOptions,
 }));
 vi.mock("@/hooks/useRedirectTransition", () => ({
   useRedirectTransition: () => ({ redirect, isRedirecting: false }),
 }));
 
-import { Toast } from "@/components/Toast";
 import {
   CREATE_ORDER_MUTATION,
   ORDER_SELLER_FACTORIES_QUERY,
   ORDER_SELLERS_OPTIONS_QUERY,
-} from "../gql";
-import { useAddOrder } from "./useAddOrder";
+} from "../_shared/orderCreate";
+import { withProviders } from "./testSupport";
+import { useCascadeDetails } from "./useCascadeDetails";
+import { useNewOrderCore } from "./useNewOrderCore";
 
 const LIST_INPUT = { first: 200 };
 
@@ -172,7 +172,7 @@ const createMock = (input: Record<string, unknown>, ok = true) => ({
   },
 });
 
-/** O passo 1 preenchido como o formulário o entrega. */
+/** Os dados do pedido como o formulário os entrega. */
 const details = (extra: Record<string, unknown> = {}) => ({
   orderKind: "order",
   sellerId: { value: "s1" },
@@ -200,44 +200,43 @@ const expectedInput = {
   isQuote: false,
 };
 
-const wrapper = (mocks: unknown[]) => {
-  const Wrapper = ({ children }: { children: ReactNode }) => (
-    <Toast.ToastProvider>
-      {/* eslint-disable-next-line @typescript-eslint/no-explicit-any -- mocks do MockLink */}
-      <MockedProvider mocks={mocks as any}>{children}</MockedProvider>
-    </Toast.ToastProvider>
-  );
-  return Wrapper;
-};
+const wrapper = withProviders;
 
 const run = (
   mocks: unknown[] = [],
   props: { canSelectSeller?: boolean; ownSellerId?: string | null } = {}
 ) => {
-  const onAddOptimistic = vi.fn();
   const { result } = renderHook(
-    () =>
-      useAddOrder({
-        onAddOptimistic,
+    () => {
+      const core = useNewOrderCore();
+      const details = useCascadeDetails(core, {
         canSelectSeller: props.canSelectSeller ?? true,
         ownSellerId: props.ownSellerId ?? null,
-      }),
+      });
+      return { core, details };
+    },
     { wrapper: wrapper(mocks) }
   );
-  return { result, onAddOptimistic };
+  return { result };
 };
 
 const fieldsOf = (result: ReturnType<typeof run>["result"]) =>
-  result.current.formSteps[0].sections[0].fields;
+  result.current.details.formSteps[0].sections[0].fields;
 
 const field = (result: ReturnType<typeof run>["result"], name: string) =>
   fieldsOf(result).find((f) => f.name === name)!;
+
+/** "Criar pedido" com o formulário válido: a origem monta o input, o núcleo grava. */
+const create = (
+  result: ReturnType<typeof run>["result"],
+  data: Record<string, unknown>
+) => result.current.core.create(result.current.details.toInput(data)!);
 
 beforeEach(() => {
   vi.clearAllMocks();
 });
 
-describe("useAddOrder — a cascata do passo 1", () => {
+describe("useCascadeDetails — a cascata dos dados", () => {
   it("vendedor não escolhe de quem é o pedido: já é dele", async () => {
     // A query `sellers` é admin-only (403 para o vendedor) e o backend força o
     // vendedor do token — o campo existir só o travaria num select vazio.
@@ -305,25 +304,41 @@ describe("useAddOrder — a cascata do passo 1", () => {
   });
 });
 
-describe("useAddOrder — criar", () => {
-  it("guarda o passo 1 e só grava no fim do passo 2", async () => {
-    const { result, onAddOptimistic } = run([
-      sellersMock,
-      createMock(expectedInput),
-    ]);
+describe("useNewOrderCore — itens na mesma tela", () => {
+  it("trocar de fábrica descarta o rascunho de itens", () => {
+    // Os itens são produtos DA fábrica: com outra fábrica eles não existem.
+    const { result } = run([sellersMock]);
 
-    act(() => result.current.handleDetailsValid(details()));
-    expect(result.current.step).toBe(1);
-    expect(onAddOptimistic).not.toHaveBeenCalled();
+    act(() => {
+      field(result, "factoryId").onChange?.({ value: "f1" }, vi.fn());
+    });
 
-    await act(() => result.current.handleCreate());
+    expect(draft.reset).toHaveBeenCalled();
+    expect(result.current.core.factoryId).toBe("f1");
+  });
+
+  it("a condição escolhida já avisa o mínimo junto dos itens", () => {
+    // Na página os itens estão à vista antes de o formulário ser enviado: o
+    // piso tem de vir da escolha, não dos dados validados.
+    const { result } = run([sellersMock]);
+
+    act(() => {
+      field(result, "paymentTermId").onChange?.({ value: "t1" }, vi.fn());
+    });
+
+    expect(paymentTerms.minimumOf).toHaveBeenLastCalledWith("t1");
+  });
+});
+
+describe("useNewOrderCore — criar", () => {
+  it("cria o pedido com os dados do formulário e entra nele", async () => {
+    const { result } = run([sellersMock, createMock(expectedInput)]);
+
+    await act(() => create(result, details()));
 
     await waitFor(() =>
-      expect(onAddOptimistic).toHaveBeenCalledWith(
-        expect.objectContaining({ id: "o-novo" })
-      )
+      expect(redirect).toHaveBeenCalledWith("/orders/o-novo")
     );
-    expect(redirect).toHaveBeenCalledWith("/orders/o-novo");
   });
 
   it("orçamento nasce marcado como orçamento", async () => {
@@ -333,10 +348,7 @@ describe("useAddOrder — criar", () => {
       createMock({ ...expectedInput, isQuote: true }),
     ]);
 
-    act(() =>
-      result.current.handleDetailsValid(details({ orderKind: "quote" }))
-    );
-    await act(() => result.current.handleCreate());
+    await act(() => create(result, details({ orderKind: "quote" })));
 
     await waitFor(() => expect(redirect).toHaveBeenCalled());
   });
@@ -345,8 +357,7 @@ describe("useAddOrder — criar", () => {
     // O backend não aceita itens no CreateOrderInput.
     const { result } = run([sellersMock, createMock(expectedInput)]);
 
-    act(() => result.current.handleDetailsValid(details()));
-    await act(() => result.current.handleCreate());
+    await act(() => create(result, details()));
 
     await waitFor(() => expect(createDraftItems).toHaveBeenCalledOnce());
     const [, orderId] = createDraftItems.mock.calls[0] as unknown as [
@@ -358,47 +369,22 @@ describe("useAddOrder — criar", () => {
 
   it("item que falhou não desfaz o pedido — ele avisa e segue", async () => {
     createDraftItems.mockResolvedValueOnce(["Produto 1"]);
-    const { result, onAddOptimistic } = run([
-      sellersMock,
-      createMock(expectedInput),
-    ]);
+    const { result } = run([sellersMock, createMock(expectedInput)]);
 
-    act(() => result.current.handleDetailsValid(details()));
-    await act(() => result.current.handleCreate());
+    await act(() => create(result, details()));
 
-    await waitFor(() => expect(onAddOptimistic).toHaveBeenCalledOnce());
-    expect(redirect).toHaveBeenCalledWith("/orders/o-novo");
+    await waitFor(() =>
+      expect(redirect).toHaveBeenCalledWith("/orders/o-novo")
+    );
   });
 
-  it("recusa do backend não insere pedido nenhum na lista", async () => {
-    const { result, onAddOptimistic } = run([
-      sellersMock,
-      createMock(expectedInput, false),
-    ]);
+  it("recusa do backend não sai da página", async () => {
+    const { result } = run([sellersMock, createMock(expectedInput, false)]);
 
-    act(() => result.current.handleDetailsValid(details()));
-    await act(() => result.current.handleCreate());
+    await act(() => create(result, details()));
 
-    await waitFor(() => expect(result.current.isLoading).toBe(false));
-    expect(onAddOptimistic).not.toHaveBeenCalled();
+    await waitFor(() => expect(result.current.core.isLoading).toBe(false));
+    expect(createDraftItems).not.toHaveBeenCalled();
     expect(redirect).not.toHaveBeenCalled();
-  });
-
-  it("sem o passo 1 validado, o passo 2 não grava nada", async () => {
-    const { result, onAddOptimistic } = run([sellersMock]);
-
-    await act(() => result.current.handleCreate());
-
-    expect(onAddOptimistic).not.toHaveBeenCalled();
-  });
-
-  it("fechar o modal devolve o wizard ao início", () => {
-    const { result } = run([sellersMock]);
-
-    act(() => result.current.handleDetailsValid(details()));
-    act(() => result.current.handleClose(false));
-
-    expect(result.current.step).toBe(0);
-    expect(draft.reset).toHaveBeenCalled();
   });
 });

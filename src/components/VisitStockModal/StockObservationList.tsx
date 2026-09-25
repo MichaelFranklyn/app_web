@@ -20,6 +20,10 @@ interface Props {
   onSaved?: () => void;
   /** Sobe para o modal: ele fecha o estoque e abre o pedido. Nunca empilhar modais. */
   onOrder: (group: StockCandidateGroup) => void;
+  /** Já saindo para o pedido: os botões seguram o loading até a página abrir. */
+  isLeaving?: boolean;
+  /** Estoque gravado a caminho do pedido (conclui a visita, sem fechar nada). */
+  onSavedBeforeOrder?: () => void;
 }
 
 /**
@@ -33,7 +37,13 @@ interface Props {
  * O que ele marca aqui vira insumo do próximo score: cada observação corrige a
  * data estimada de esgotamento daquele produto naquela fábrica.
  */
-export function StockObservationList({ itemId, onSaved, onOrder }: Props) {
+export function StockObservationList({
+  itemId,
+  onSaved,
+  onOrder,
+  isLeaving = false,
+  onSavedBeforeOrder,
+}: Props) {
   const {
     loading,
     groups,
@@ -42,8 +52,19 @@ export function StockObservationList({ itemId, onSaved, onOrder }: Props) {
     setDays,
     selectedCount,
     handleSave,
+    saveBeforeLeaving,
     isLoading,
   } = useStockObservation(itemId, onSaved);
+
+  // O pedido abre noutra tela: o que foi respondido aqui é gravado antes.
+  // Qual "Lançar pedido" foi tocado — só ele mostra o loading.
+  const [orderingId, setOrderingId] = useState<string | null>(null);
+  const handleOrder = async (group: StockCandidateGroup) => {
+    setOrderingId(group.sellerClientFactoryId);
+    if (await saveBeforeLeaving(onSavedBeforeOrder)) onOrder(group);
+    else setOrderingId(null);
+  };
+  const isBusy = isLoading || isLeaving;
 
   // Abas abertas, na ordem em que o vendedor tocou nos cards.
   const [openTabs, setOpenTabs] = useState<string[]>([]);
@@ -160,8 +181,11 @@ export function StockObservationList({ itemId, onSaved, onOrder }: Props) {
                     color="neutral"
                     size="sm"
                     noUppercase
-                    disabled={!group.factory}
-                    onClick={() => onOrder(group)}
+                    disabled={!group.factory || isBusy}
+                    loading={
+                      isBusy && orderingId === group.sellerClientFactoryId
+                    }
+                    onClick={() => handleOrder(group)}
                   >
                     <Button.Icon icon={ReceiptText} />
                     <Button.Title>Lançar pedido</Button.Title>
@@ -205,6 +229,7 @@ export function StockObservationList({ itemId, onSaved, onOrder }: Props) {
           size="md"
           noUppercase
           loading={isLoading}
+          disabled={isLeaving}
           onClick={handleSave}
         >
           <Button.Title>Salvar estoque</Button.Title>

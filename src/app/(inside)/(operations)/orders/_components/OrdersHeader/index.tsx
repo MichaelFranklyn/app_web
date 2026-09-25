@@ -10,11 +10,11 @@ import { FilterField } from "@/components/Filters";
 import { ReportOrder } from "@/utils/pdf/context";
 import { Order, OrdersStats } from "../../interface";
 import { buildOrderKpis } from "../../utils";
-import { AddOrderModal } from "./AddOrderModal";
 import { ExportOrdersButton, QueryFilter } from "./ExportOrdersButton";
 import { ImportOrderModal } from "./ImportOrderModal";
 import { FeatureGate } from "@/components/FeatureGate";
 import { OrderSheetButton } from "../../../_components/OrderSheetButton";
+import { NewOrderButton } from "../../../_components/NewOrderButton";
 
 interface Props {
   stats?: OrdersStats;
@@ -82,11 +82,7 @@ export function OrdersHeader({
                   ownSellerId={ownSellerId}
                 />
               </FeatureGate>
-              <AddOrderModal
-                onAddOptimistic={onAddOptimistic}
-                canSelectSeller={canSelectSeller}
-                ownSellerId={ownSellerId}
-              />
+              <NewOrderButton />
             </PanelHeader.Actions>
           </PanelHeader.Left>
         </PanelHeader.Top>
