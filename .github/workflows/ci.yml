@@ -74,8 +74,17 @@ jobs:
             echo "e2e=true" >> "$GITHUB_OUTPUT"
             exit 0
           fi
-          changed=$(git diff --name-only "origin/${{ github.base_ref }}...HEAD")
+          # Os SHAs do EVENTO, e não `origin/main...HEAD`: a main de agora pode
+          # já conter este PR (merge feito com o CI ainda rodando), e aí a
+          # comparação dava vazia e o E2E era dispensado sem motivo.
+          changed=$(git diff --name-only \
+            "${{ github.event.pull_request.base.sha }}...${{ github.event.pull_request.head.sha }}")
           echo "$changed"
+          if [ -z "$changed" ]; then
+            # Nada a comparar não é "só .md": na dúvida, roda.
+            echo "e2e=true" >> "$GITHUB_OUTPUT"
+            exit 0
+          fi
           relevant=$(echo "$changed" | grep -vE '\.md$|^src/.*\.test\.tsx?$' || true)
           if [ -n "$relevant" ]; then
             echo "e2e=true" >> "$GITHUB_OUTPUT"
