@@ -22,11 +22,54 @@ jobs:
           cache: npm
       - run: npm ci
       - run: npm run lint
+      # A suíte INTEIRA, sempre. Ela roda em paralelo com o E2E e termina antes
+      # dele, então filtrar aqui não encurtaria o PR — e o filtro por import não
+      # enxerga o que não é import (o contrato com o schema GraphQL, por exemplo).
       - run: npm test
 
-  e2e:
-    name: E2E (Playwright)
+  # O PR precisa de E2E? Não precisa quando TUDO o que mudou é texto (.md) ou
+  # teste unitário (*.test.ts[x] em src/): nenhum dos dois entra no build que o
+  # Playwright testa. Qualquer outra coisa — inclusive os próprios specs em e2e/
+  # — roda a suíte. No push da main roda sempre.
+  changes:
+    name: Detectar mudanças
     runs-on: ubuntu-latest
+    outputs:
+      e2e: ${{ steps.decide.outputs.e2e }}
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - id: decide
+        run: |
+          if [ "${{ github.event_name }}" != "pull_request" ]; then
+            echo "e2e=true" >> "$GITHUB_OUTPUT"
+            exit 0
+          fi
+          changed=$(git diff --name-only "origin/${{ github.base_ref }}...HEAD")
+          echo "$changed"
+          relevant=$(echo "$changed" | grep -vE '\.md$|^src/.*\.test\.tsx?$' || true)
+          if [ -n "$relevant" ]; then
+            echo "e2e=true" >> "$GITHUB_OUTPUT"
+          else
+            echo "Só .md e testes unitários mudaram: E2E dispensado."
+            echo "e2e=false" >> "$GITHUB_OUTPUT"
+          fi
+
+  # A suíte dividida em 3 máquinas em paralelo (`--shard`). Cada uma faz o
+  # próprio build (o webServer do Playwright), por isso o cache do Next abaixo
+  # importa: sem ele, dividir economizava só o tempo dos testes.
+  e2e-shard:
+    name: E2E shard ${{ matrix.shard }}/3
+    needs: changes
+    if: needs.changes.outputs.e2e == 'true'
+    runs-on: ubuntu-latest
+    strategy:
+      # Um shard falhar não cancela os outros: o relatório de cada um é o que
+      # mostra se a falha é uma só ou se espalhou.
+      fail-fast: false
+      matrix:
+        shard: [1, 2, 3]
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-node@v4
@@ -49,12 +92,43 @@ jobs:
       - if: steps.playwright-cache.outputs.cache-hit != 'true'
         run: npx playwright install --with-deps chromium
 
+      # Cache incremental do `next build` (o E2E builda em .next-e2e). A chave
+      # exata muda a cada mudança de código; o `restore-keys` recupera o cache
+      # mais recente das mesmas dependências, e o Next reaproveita o que não
+      # mudou — é assim que ele recomenda cachear em CI.
+      - uses: actions/cache@v4
+        with:
+          path: .next-e2e/cache
+          key: next-e2e-${{ runner.os }}-${{ hashFiles('package-lock.json') }}-${{ hashFiles('src/**', 'public/**', 'next.config.ts') }}
+          restore-keys: |
+            next-e2e-${{ runner.os }}-${{ hashFiles('package-lock.json') }}-
+
       # webServer faz o build de produção isolado e sobe o app; globalSetup sobe
       # o stub GraphQL. CI=true (automático) força reuseExistingServer:false.
-      - run: npm run e2e
+      # O projeto `setup` (login) roda em cada shard: é dependência dos specs.
+      - run: npm run e2e -- --shard=${{ matrix.shard }}/3
       - uses: actions/upload-artifact@v4
         if: ${{ !cancelled() }}
         with:
-          name: playwright-report
+          name: playwright-report-${{ matrix.shard }}
           path: playwright-report/
           retention-days: 7
+
+  # O NOME que a proteção da main exige. Os shards têm nomes próprios, então é
+  # este job que responde por eles: verde quando todos passaram, ou quando o E2E
+  # foi dispensado (PR só de .md/teste unitário). Sem ele, a mudança para shards
+  # deixaria o check obrigatório "E2E (Playwright)" pendente para sempre e
+  # nenhum PR poderia ser mergeado.
+  e2e:
+    name: E2E (Playwright)
+    needs: [changes, e2e-shard]
+    if: ${{ always() }}
+    runs-on: ubuntu-latest
+    steps:
+      - run: |
+          echo "detecção: ${{ needs.changes.result }} · shards: ${{ needs.e2e-shard.result }}"
+          if [ "${{ needs.changes.result }}" != "success" ]; then exit 1; fi
+          case "${{ needs.e2e-shard.result }}" in
+            success|skipped) exit 0 ;;
+            *) exit 1 ;;
+          esac
