@@ -7,19 +7,27 @@ import { useToast } from "@/components/Toast";
 import { Check, Copy, MessageCircle } from "lucide-react";
 import { useState } from "react";
 
-interface LinkBoxProps {
+interface ShareLinkBoxProps {
   url: string;
-  clientName: string;
+  /** Rótulo acima do endereço ("Endereço do portal", "Link de resposta"). */
+  label: string;
+  /** Mensagem do WhatsApp; o endereço é anexado no fim. */
+  whatsappMessage: string;
 }
 
 /**
- * A URL recém-emitida, com as duas saídas que o vendedor de fato usa.
+ * Link recém-emitido por token (portal do cliente, resposta da rota), com as
+ * duas saídas que o vendedor de fato usa: copiar e mandar pelo WhatsApp.
  *
  * O aviso não é decorativo: o backend guarda só o hash, então esta é a única
  * vez que o endereço existe em texto. Fechar o modal sem copiar significa
  * emitir outro — e o anterior, que talvez já tenha sido mandado, morre junto.
  */
-export function LinkBox({ url, clientName }: LinkBoxProps) {
+export function ShareLinkBox({
+  url,
+  label,
+  whatsappMessage,
+}: ShareLinkBoxProps) {
   const { toast } = useToast();
   const [isCopied, setIsCopied] = useState(false);
 
@@ -39,15 +47,13 @@ export function LinkBox({ url, clientName }: LinkBoxProps) {
     }
   };
 
-  const whatsappText = encodeURIComponent(
-    `Olá! Aqui você acompanha as compras da ${clientName}: ${url}`
-  );
+  const whatsappText = encodeURIComponent(`${whatsappMessage} ${url}`);
 
   return (
     <div className="flex flex-col gap-12">
       <div className="flex flex-col gap-6">
         <Title variant="label" color="muted">
-          Endereço do portal
+          {label}
         </Title>
         <div className="rounded-(--r-sm) border border-(--border) bg-(--bg3) px-12 py-10">
           <Title variant="body-sm" className="break-all">
