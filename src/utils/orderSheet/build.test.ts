@@ -109,7 +109,7 @@ describe("ficha de pedido", () => {
     };
 
     // MATCH pelo nome do nível: trocar o cliente troca a coluna de preço inteira.
-    // O nível é lido da coluna extra ($N$8), fora da área de impressão.
+    // O nível é lido da coluna extra ($O$8), fora da área de impressão.
     expect(preco.formula).toContain(
       `MATCH($${EXTRA_COL.value}$${EXTRA.tier},CATALOGO!$A$1:$K$1,0)`
     );
@@ -126,7 +126,24 @@ describe("ficha de pedido", () => {
     };
 
     expect(total.formula).toBe(
-      'IF(OR(E16="",G16=""),"",E16*G16*(1-IF(H16="",0,H16)/100)*(1+IF(I16="",0,I16)/100))'
+      'IF(OR(E16="",G16=""),"",E16*G16*(1-IF(I16="",0,I16)/100)*(1+IF(J16="",0,J16)/100))'
+    );
+  });
+
+  it("mostra o preço da unidade: o da embalagem dividido pelo quanto vem nela", async () => {
+    // A tabela vem por embalagem; sem esta coluna o vendedor fazia a conta de
+    // cabeça na frente do cliente para dizer quanto sai cada peça.
+    const workbook = await reopen();
+    const form = workbook.getWorksheet("FICHA DE PEDIDO")!;
+    const header = form.getCell(`${COL.unitPrice}${ITEMS.header}`).value;
+    const unit = form.getCell(`${COL.unitPrice}${ITEMS.first}`);
+
+    expect(header).toBe("PREÇO UN.");
+    expect((unit.value as { formula: string }).formula).toBe(
+      'IF(G16="","",G16/IFERROR(VLOOKUP($H$7&"|"&A16,CATALOGO!$A:$K,6,FALSE),1))'
+    );
+    expect(unit.numFmt).toBe(
+      form.getCell(`${COL.packPrice}${ITEMS.first}`).numFmt
     );
   });
 
@@ -139,6 +156,7 @@ describe("ficha de pedido", () => {
     const comResultado = [
       `${HEAD_COL.leftValue}${HEAD.razaoSocial}`,
       `${COL.packPrice}${ITEMS.first}`,
+      `${COL.unitPrice}${ITEMS.first}`,
       `${COL.total}${ITEMS.first}`,
     ].filter((address) => "result" in (form.getCell(address).value as object));
     expect(comResultado).toEqual([]);
@@ -204,7 +222,7 @@ describe("ficha de pedido", () => {
     const workbook = await reopen();
     const form = workbook.getWorksheet("FICHA DE PEDIDO")!;
 
-    expect(form.pageSetup.printArea).toBe(`A1:J${CLIENT_NOTE_ROW}`);
+    expect(form.pageSetup.printArea).toBe(`A1:K${CLIENT_NOTE_ROW}`);
     expect(EXTRA_COL.label > COL.total).toBe(true);
     expect(form.getCell(`${EXTRA_COL.label}${EXTRA.tier}`).value).toBe(
       "NÍVEL ACORDADO"
@@ -229,7 +247,7 @@ describe("ficha de pedido", () => {
     const names = await definedNames();
 
     expect(names["_xlnm.Print_Area"]).toBe(
-      `'FICHA DE PEDIDO'!$A$1:$J$${CLIENT_NOTE_ROW}`
+      `'FICHA DE PEDIDO'!$A$1:$K$${CLIENT_NOTE_ROW}`
     );
   });
 
@@ -309,7 +327,7 @@ describe("marca da ficha", () => {
 
     expect(images).toHaveLength(2);
     expect(images[0].range.tl.nativeCol).toBe(0);
-    expect(images[1].range.tl.nativeCol).toBe(7);
+    expect(images[1].range.tl.nativeCol).toBe(8);
     // Com logo, o nome da empresa não é escrito — seria a marca duas vezes.
     expect(form.getCell(`A${HEAD.logos}`).value).toBeNull();
   });

@@ -24,6 +24,7 @@ import {
   isContractExpired,
 } from "../../utils";
 import { FactoriesGridSkeleton } from "../FactoriesGridSkeleton";
+import { useSellerCommissionTerms } from "./useSellerCommissionTerms";
 
 interface Props {
   items: CompanyFactory[];
@@ -61,6 +62,12 @@ export function FactoriesGrid({
   // até saber o papel, para o vendedor nunca ver o botão piscar.
   const { userData, isSeller } = useUserData();
   const canSeeDetails = userData ? !isSeller : false;
+  // Vendedor vê a comissão DELE (o repasse do acesso), não a que a fábrica paga
+  // à empresa.
+  const commissionTermsOf = useSellerCommissionTerms({
+    roleKnown: Boolean(userData),
+    isSeller,
+  });
 
   useEffect(() => {
     if (!isPending) setPendingId(null);
@@ -103,6 +110,7 @@ export function FactoriesGrid({
           const contract = getContractStatus(cf.contractEnd);
           const isActive = !cf.factory.deletedAt;
           const isExpired = isContractExpired(cf.contractEnd);
+          const commission = commissionTermsOf(cf);
 
           return (
             <Grid.Item key={cf.id}>
@@ -163,14 +171,20 @@ export function FactoriesGrid({
                       explicação ao lado, "Faturamento" e "Dia 10" parecem dizer
                       a mesma coisa. */}
                   <Card.Item variant="stat">
-                    <StatLabel label="Comissão" />
+                    <StatLabel label={isSeller ? "Sua comissão" : "Comissão"} />
                     <Card.Item.Value color="amber">
-                      {formatCommissionRate(cf.commissionRate)}
+                      {commission.rate != null
+                        ? formatCommissionRate(commission.rate)
+                        : "—"}
                     </Card.Item.Value>
                   </Card.Item>
                   <Card.Item variant="stat">
-                    <StatLabel label="Base de cálculo" />
-                    <Card.Item.Value>{cf.commissionCalcBasis}</Card.Item.Value>
+                    <StatLabel
+                      label={
+                        isSeller ? "Quando você recebe" : "Base de cálculo"
+                      }
+                    />
+                    <Card.Item.Value>{commission.basis}</Card.Item.Value>
                   </Card.Item>
                   <Card.Item variant="stat">
                     <StatLabel label="Dia de pagamento da fábrica" />

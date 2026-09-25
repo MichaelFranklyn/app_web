@@ -21,6 +21,24 @@ export interface TotalsData {
   total: number;
 }
 
+/** Linhas de decomposição que saem acima do TOTAL (ver `drawTotals`). */
+const breakdownLines = (data: TotalsData): number => {
+  const hasTax = Number(data.taxAmount) > 0;
+  const hasIpi = Number(data.ipiAmount) > 0;
+  if (!hasTax && !hasIpi) return 0;
+  return 1 + Number(hasTax) + Number(hasIpi);
+};
+
+/**
+ * Quanto papel o bloco de totais ocupa, do `startY` até o pé da faixa âmbar.
+ *
+ * Existe para o chamador decidir ANTES de desenhar se o bloco cabe na página:
+ * a tabela de itens pode terminar colada no rodapé, e o total desenhado ali
+ * saía por cima dele e das últimas linhas.
+ */
+export const totalsHeight = (data: TotalsData): number =>
+  10 + breakdownLines(data) * 16 + 26;
+
 /** Bloco de totais alinhado à direita, com o total final destacado na marca. */
 export const drawTotals = (
   pdf: Pdf,
@@ -74,6 +92,14 @@ export const drawTotals = (
   return y + 44;
 };
 
+const PAYMENT_PER_ROW = 3;
+
+/** Altura do bloco de parcelas (zero sem parcelas — ele nem sai). */
+export const paymentHeight = (installments: OrderInstallment[]): number =>
+  installments.length === 0
+    ? 0
+    : 12 + Math.ceil(installments.length / PAYMENT_PER_ROW) * 40;
+
 /**
  * Parcelas do pedido.
  *
@@ -97,7 +123,7 @@ export const drawPayment = (
   y += 12;
 
   const pageW = pdf.internal.pageSize.getWidth();
-  const perRow = 3;
+  const perRow = PAYMENT_PER_ROW;
   const gap = 10;
   const cellW = (pageW - PAGE.margin * 2 - gap * (perRow - 1)) / perRow;
 
@@ -133,6 +159,15 @@ export const drawPayment = (
 
   const rows = Math.ceil(installments.length / perRow);
   return y + rows * 40 + 12;
+};
+
+/** Altura das observações: título mais uma linha de 12pt por linha do texto. */
+export const notesHeight = (pdf: Pdf, notes: string | null): number => {
+  if (!notes) return 0;
+  const pageW = pdf.internal.pageSize.getWidth();
+  pdf.setFont("helvetica", "normal");
+  pdf.setFontSize(9.5);
+  return 14 + pdf.splitTextToSize(notes, pageW - PAGE.margin * 2).length * 12;
 };
 
 /** Observações digitadas no pedido, quando houver. */

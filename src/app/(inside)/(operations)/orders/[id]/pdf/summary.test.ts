@@ -2,7 +2,13 @@ import { describe, expect, it } from "vitest";
 
 import { OrderInstallment } from "../interface";
 import { Pdf } from "@/utils/pdf/theme";
-import { drawNotes, drawPayment, drawTotals } from "./summary";
+import {
+  drawNotes,
+  drawPayment,
+  drawTotals,
+  paymentHeight,
+  totalsHeight,
+} from "./summary";
 
 /**
  * Uma folha de papel de mentira: guarda o que foi escrito e quantas caixas
@@ -215,5 +221,46 @@ describe("drawNotes", () => {
     expect(texts).toContain("Entregar pela manhã");
     expect(texts).toContain("Falar com o Zé");
     expect(end).toBeGreaterThan(300);
+  });
+});
+
+describe("alturas dos blocos", () => {
+  // A altura medida é o que decide se o bloco ainda cabe na página. Medir menos
+  // do que se desenha devolve o bug do total por cima do rodapé.
+  it("o total mede exatamente o que desenha, até o pé da faixa âmbar", () => {
+    const { pdf, boxes } = fakePdf();
+    const data = {
+      merchandise: "1000.00",
+      taxAmount: "180.00",
+      ipiAmount: "50.00",
+      total: 1230,
+    };
+
+    drawTotals(pdf, data, 100);
+
+    const [, boxY, , boxH] = boxes[0]!;
+    expect(100 + totalsHeight(data)).toBe(boxY! + boxH!);
+  });
+
+  it("sem imposto o bloco encolhe: só a faixa do TOTAL", () => {
+    const semImposto = {
+      merchandise: "100.00",
+      taxAmount: "0.00",
+      ipiAmount: "0.00",
+      total: 100,
+    };
+    const comImposto = { ...semImposto, taxAmount: "10.00", total: 110 };
+
+    expect(totalsHeight(comImposto) - totalsHeight(semImposto)).toBe(32);
+  });
+
+  it("parcelas: zero sem parcela, uma fileira a cada três", () => {
+    expect(paymentHeight([])).toBe(0);
+    expect(paymentHeight([installment(1)])).toBe(
+      paymentHeight([installment(1), installment(2), installment(3)])
+    );
+    expect(paymentHeight([1, 2, 3, 4].map(installment))).toBe(
+      paymentHeight([installment(1)]) + 40
+    );
   });
 });

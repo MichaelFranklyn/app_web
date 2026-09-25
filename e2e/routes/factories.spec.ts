@@ -6,6 +6,8 @@ test("factories: lista vazia carrega e renderiza o cabeçalho", async ({
 }) => {
   await mockGraphql(page, {
     CompanyFactories: () => ({ company_factories_list: emptyConnection() }),
+    // O usuário do E2E é vendedor: a grade busca a comissão DELE por fábrica.
+    MyFactoryAccesses: () => ({ my_factory_accesses: emptyConnection() }),
   });
 
   await page.goto("/factories");

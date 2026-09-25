@@ -55,7 +55,7 @@ export const HEAD = {
 /**
  * Colunas do cabeçalho: rótulo e valor de cada lado.
  *
- * O rótulo ocupa duas colunas e o valor três — as dez colunas da tabela de
+ * O rótulo ocupa duas colunas e o valor três — as onze colunas da tabela de
  * itens são estreitas demais para um rótulo caber sozinho em qualquer uma
  * delas. A leitura de volta não depende disso (ela procura o texto do rótulo e
  * pega o primeiro valor à direita), mas as FÓRMULAS apontam para cá.
@@ -68,7 +68,7 @@ export const HEAD_COL = {
   rightLabel: "F",
   rightLabelEnd: "G",
   rightValue: "H",
-  rightValueEnd: "J",
+  rightValueEnd: "K",
 } as const;
 
 /** A tabela de itens: cabeçalho, primeira linha preenchível e quantas linhas. */
@@ -95,29 +95,29 @@ export const CLIENT_NOTE_ROW = TOTAL_ROW + 2;
  * O que entra no papel: da marca até o aviso de validade.
  *
  * O `$` nas LINHAS não é enfeite. O ExcelJS monta o `_xlnm.Print_Area`
- * concatenando um `$` na frente de cada ponta do intervalo — dar "A1:J58" a ele
- * produz `$A1:$J58`, com a coluna absoluta e a linha relativa. O Excel tolera;
+ * concatenando um `$` na frente de cada ponta do intervalo — dar "A1:K58" a ele
+ * produz `$A1:$K58`, com a coluna absoluta e a linha relativa. O Excel tolera;
  * o LibreOffice ignora a área e imprime a folha inteira, inclusive o recado que
- * era só do vendedor. Escrito assim, o que sai no arquivo é `$A$1:$J$58`.
+ * era só do vendedor. Escrito assim, o que sai no arquivo é `$A$1:$K$58`.
  */
-export const PRINT_AREA = `A$1:J$${CLIENT_NOTE_ROW}`;
+export const PRINT_AREA = `A$1:K$${CLIENT_NOTE_ROW}`;
 
 /**
  * A coluna de informações extras — à DIREITA da área de impressão.
  *
  * A ficha é entregue ao cliente, e nem tudo o que ela precisa saber é para ele
  * ver: o nível acordado é o desconto negociado com a fábrica, e as observações
- * são anotação de quem vende. Como a área de impressão termina na coluna J,
+ * são anotação de quem vende. Como a área de impressão termina na coluna K,
  * tudo o que mora daqui para a direita existe na tela e some no papel — sem
  * depender de o vendedor lembrar de esconder nada.
  *
  * É um bloco para crescer: cada campo novo é uma linha a mais em `EXTRA`.
  */
 export const EXTRA_COL = {
-  label: "L",
-  labelEnd: "M",
-  value: "N",
-  valueEnd: "Q",
+  label: "M",
+  labelEnd: "N",
+  value: "O",
+  valueEnd: "R",
 } as const;
 
 export const EXTRA = {
@@ -134,7 +134,14 @@ export const EXTRA = {
   howToEnd: HEAD.sectionTitle + 8,
 } as const;
 
-/** Colunas da tabela de itens, na ordem em que aparecem. */
+/**
+ * Colunas da tabela de itens, na ordem em que aparecem.
+ *
+ * `unitPrice` entrou ao lado do preço da embalagem (set/2026): a tabela da
+ * fábrica vem por embalagem, e o vendedor fazia a divisão de cabeça na frente
+ * do cliente para dizer quanto sai cada peça. Fichas antigas, sem a coluna,
+ * continuam sendo lidas — a leitura acha as colunas pelo texto do cabeçalho.
+ */
 export const COL = {
   sku: "A",
   description: "B",
@@ -143,9 +150,10 @@ export const COL = {
   packQty: "E",
   unitsTotal: "F",
   packPrice: "G",
-  discount: "H",
-  taxes: "I",
-  total: "J",
+  unitPrice: "H",
+  discount: "I",
+  taxes: "J",
+  total: "K",
 } as const;
 
 /** Colunas fixas do CATALOGO (as de preço vêm depois, uma por nível). */

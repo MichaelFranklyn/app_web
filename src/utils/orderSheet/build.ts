@@ -132,8 +132,8 @@ const writeBrandImages = (
     };
   }
 
-  // Encostada na direita: a folha tem dez colunas e a última é a do total.
-  if (brand?.girusLogo) place(brand.girusLogo, 7.9);
+  // Encostada na direita: a folha tem onze colunas e a última é a do total.
+  if (brand?.girusLogo) place(brand.girusLogo, 8.9);
 };
 
 /**

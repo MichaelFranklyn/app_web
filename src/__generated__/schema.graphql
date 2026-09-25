@@ -1319,7 +1319,10 @@ type CompanyFactoryType {
   id: UUID!
   companyId: UUID!
   factoryId: UUID!
-  commissionRate: Float!
+  """
+  Percentual que a FÁBRICA paga à empresa. Nulo para vendedor: ele nunca vê este número — o dele é `sellerFactoryAccess.sellerCommissionRate`.
+  """
+  commissionRate: Float
   commissionCalcBasis: String!
   paymentTermDays: Int!
   commissionPaymentDays: [Int!]

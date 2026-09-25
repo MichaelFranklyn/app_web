@@ -239,6 +239,22 @@ export const FACTORY_CARD_HELP: Record<string, ReactNode> = {
       a base ao lado — não sobre o total que o cliente paga, que tem IPI dentro.
     </p>
   ),
+  // As duas entradas abaixo são as mesmas perguntas, feitas pelo VENDEDOR: o
+  // card dele mostra o acordo dele com a empresa, não o da empresa com a fábrica.
+  "Sua comissão": (
+    <p>
+      Quanto você ganha nos pedidos desta fábrica, em % do valor do pedido
+      (mercadoria sem IPI). É o combinado com a sua empresa — não o que a
+      fábrica paga para a representação. Em branco quer dizer que o seu
+      percentual ainda não foi cadastrado: fale com o seu gestor.
+    </p>
+  ),
+  "Quando você recebe": (
+    <p>
+      <b>Faturamento</b>: a sua comissão conta assim que a fábrica emite a nota.{" "}
+      <b>Pagamento</b>: conforme o cliente vai pagando os boletos.
+    </p>
+  ),
   "Base de cálculo": (
     <>
       <p>
