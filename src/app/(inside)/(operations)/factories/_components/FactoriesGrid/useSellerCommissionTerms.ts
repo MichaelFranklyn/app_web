@@ -18,7 +18,8 @@ export interface CommissionTerms {
 }
 
 const EMPTY_INPUT = {};
-const getAccesses = (data: MyFactoryAccessesData) => data.my_factory_accesses;
+const getAccesses = (data: MyFactoryAccessesData) =>
+  data?.my_factory_accesses ?? undefined;
 
 /**
  * O que o card de comissão mostra ao VENDEDOR para um vínculo.
@@ -70,7 +71,9 @@ export function useSellerCommissionTerms({
   const accessByFactory = useMemo(
     () =>
       new Map(
-        (data?.my_factory_accesses.edges ?? [])
+        // `?.` no campo da conexão também: resposta parcial (erro no campo)
+        // chega com `data` e sem ele — derrubava a tela inteira de fábricas.
+        (data?.my_factory_accesses?.edges ?? [])
           .map((edge) => edge.node)
           .filter((access) => access.isActive)
           .map((access) => [access.factoryId, access])
