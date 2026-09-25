@@ -125,6 +125,21 @@ export const priceFormula = (row: number, priceColumns: number): string => {
 };
 
 /**
+ * O preço de UMA unidade: o da embalagem dividido pelo quanto vem nela.
+ *
+ * Mesma base do preço da embalagem ao lado (sem desconto e sem imposto): é o
+ * número da tabela, só que por peça — o que o cliente pergunta ("quanto sai
+ * cada um?"). Embalagem sem quantidade cadastrada conta como 1, e aí os dois
+ * preços coincidem, que é a verdade para o item vendido avulso.
+ */
+export const unitPriceFormula = (row: number, priceColumns: number): string =>
+  `IF(${COL.packPrice}${row}="","",${COL.packPrice}${row}/IFERROR(VLOOKUP(${productKey(
+    row
+  )},${CATALOG_SHEET}!$A:$${catalogLastColumn(priceColumns)},${
+    CATALOG_COL.unitsPerPack
+  },FALSE),1))`;
+
+/**
  * O total da linha, como o cliente vai ouvir: mercadoria com o desconto
  * combinado, mais os impostos que a fábrica cobra por fora.
  */

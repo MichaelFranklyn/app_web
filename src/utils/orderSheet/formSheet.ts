@@ -29,6 +29,7 @@ import {
   priceFormula,
   productField,
   tierFormula,
+  unitPriceFormula,
   unitsTotalFormula,
 } from "./formulas";
 import type { OrderSheetPackage, OrderSheetPreset } from "./interface";
@@ -369,6 +370,12 @@ const writeItemRows = (sheet: Worksheet, priceColumns: number) => {
 
     computed(
       sheet,
+      `${COL.unitPrice}${row}`,
+      unitPriceFormula(row, priceColumns)
+    ).numFmt = MONEY_FORMAT;
+
+    computed(
+      sheet,
       `${COL.taxes}${row}`,
       productField(row, CATALOG_COL.taxes, priceColumns)
     ).alignment = { horizontal: "center", vertical: "middle" };
@@ -430,7 +437,7 @@ const writeClientNote = (sheet: Worksheet, pkg: OrderSheetPackage) => {
  *
  * Aqui vai o que a ficha precisa saber mas o cliente não precisa ver: o nível
  * acordado, que escolhe a coluna de preço da folha inteira, e as observações do
- * vendedor, que sobem junto com o pedido. Como a impressão para na coluna J,
+ * vendedor, que sobem junto com o pedido. Como a impressão para na coluna K,
  * nada disso chega ao papel.
  */
 const writeExtraColumn = (sheet: Worksheet) => {
@@ -575,9 +582,9 @@ const setUpPrinting = (sheet: Worksheet, pkg: OrderSheetPackage) => {
   };
 };
 
-// A..J é a ficha (o que imprime); K é a calha; L..Q é o bloco de extras.
+// A..K é a ficha (o que imprime); L é a calha; M..R é o bloco de extras.
 const COLUMN_WIDTHS = [
-  14, 40, 13, 8, 10, 10, 13, 9, 11, 15, 3, 16, 8, 14, 10, 10, 10,
+  14, 40, 13, 8, 10, 10, 13, 13, 9, 11, 15, 3, 16, 8, 14, 10, 10, 10,
 ];
 
 /** Desenha a folha inteira. */
