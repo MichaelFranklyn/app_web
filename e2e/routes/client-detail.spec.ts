@@ -71,8 +71,10 @@ const seedContact = () => ({
   isActive: true,
 });
 
-test("cliente detalhe: edita a situação na carteira", async ({ page }) => {
-  await mockGraphql(page, {
+test("cliente detalhe: dá um apelido ao cliente", async ({ page }) => {
+  // A situação na carteira saiu deste formulário (tem fluxo próprio, em
+  // "Situação do cliente"); o que a empresa edita aqui é como chama o cliente.
+  const spy = await mockGraphql(page, {
     ...renderMock(),
     UpdateCompanyClient: (v) => ({
       updateCompanyClient: {
@@ -80,7 +82,8 @@ test("cliente detalhe: edita a situação na carteira", async ({ page }) => {
         message: "ok",
         data: {
           id: "cc-1",
-          isActive: (v.input as { isActive: boolean }).isActive,
+          isActive: true,
+          nickname: (v.input as { nickname: string }).nickname || null,
         },
       },
     }),
@@ -92,10 +95,12 @@ test("cliente detalhe: edita a situação na carteira", async ({ page }) => {
   const dialog = page.getByRole("dialog");
   await expect(dialog.getByText("Editar cliente")).toBeVisible();
 
-  await dialog.getByText("Cliente ativo").click(); // alterna o switch
+  await dialog.locator('input[name="nickname"]').fill("Mercadinho do Zé");
   await dialog.getByRole("button", { name: "Salvar" }).click();
 
   await expect(page.getByText("Cliente atualizado com sucesso")).toBeVisible();
+  const variables = await spy.waitForCall("UpdateCompanyClient");
+  expect(variables).toMatchObject({ input: { nickname: "Mercadinho do Zé" } });
 });
 
 test("cliente detalhe: remove o cliente da carteira", async ({ page }) => {

@@ -7,7 +7,9 @@ import { Grid } from "@/components/Grid";
 import { HelpTooltip } from "@/components/HelpTooltip";
 import { PanelHeader } from "@/components/PanelHeader";
 import { ReportOrder } from "@/utils/pdf/context";
-import { Info, Network, TrendingDown, TrendingUp } from "lucide-react";
+import { useUserData } from "@/hooks/useUserData";
+import { isAdminRole } from "@/utils/auth/roles";
+import { Eraser, Info, Network, TrendingDown, TrendingUp } from "lucide-react";
 import Link from "next/link";
 
 import { getButtonClasses } from "@/components/Button/Root/style";
@@ -56,6 +58,9 @@ export function ClientsHeader({
   // Os nomes, e não as chaves: o aviso repete o rótulo que a pessoa acabou de
   // usar no painel ("Rede", "Estado"), senão ela não liga um ao outro.
   const ignoredFilters = KPI_IGNORED_FILTERS(filterFields, inputValues);
+  // A higienização mexe no que a empresa atende: é decisão de gestor.
+  const { userData } = useUserData();
+  const canClean = isAdminRole(userData?.role);
 
   return (
     <>
@@ -83,6 +88,18 @@ export function ClientsHeader({
                   Redes
                 </Title>
               </Link>
+              {canClean && (
+                <Link
+                  href="/clients/hygiene"
+                  className={networksLinkClass}
+                  title="Revisar clientes que fecharam, pararam de comprar ou mudaram de nome"
+                >
+                  <Eraser size={16} />
+                  <Title variant="label" weight="bold">
+                    Higienizar carteira
+                  </Title>
+                </Link>
+              )}
               {/* Importação em massa é recurso de plano. */}
               <FeatureGate feature="BULK_IMPORT">
                 <ImportClientsModal />

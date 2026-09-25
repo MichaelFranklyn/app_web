@@ -39,8 +39,10 @@ export const CLIENTS_QUERY = gql`
           addressState
           isNeedsAttention
           attentionReason
+          nickname
           companyClient {
             id
+            status
             visitScoreTotal
             lastOrderDate
             lastInvoiceDate

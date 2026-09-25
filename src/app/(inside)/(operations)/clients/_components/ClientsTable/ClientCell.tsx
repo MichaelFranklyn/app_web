@@ -5,6 +5,11 @@ import { Table } from "@/components/Table";
 import { Title } from "@/components/Title";
 import { Tooltip } from "@/components/Tooltip";
 import { maskCNPJ } from "@/utils/format/masks";
+import {
+  WALLET_STATUS_COLOR,
+  isWalletActive,
+  walletStatusLabel,
+} from "../../_shared/hygiene/utils";
 import { Client } from "../../interface";
 
 interface ClientCellProps {
@@ -12,7 +17,8 @@ interface ClientCellProps {
 }
 
 /**
- * Identificação do cliente em uma coluna só: nome, nome fantasia e o CNPJ.
+ * Identificação do cliente em uma coluna só: nome (o apelido da empresa, se
+ * houver), nome fantasia ou oficial e o CNPJ.
  *
  * Fica só o que a pessoa usa para reconhecer o cliente. O código interno, o
  * CNAE e a descrição do ramo saíram daqui: eram três informações que ninguém
@@ -29,8 +35,22 @@ export function ClientCell({ client }: ClientCellProps) {
           {/* Nome em uma linha só e por extenso — o `nowrap` vem da própria
               `Table.Cell`. */}
           <Table.CellText variant="strong" className="block">
-            {client.razaoSocial}
+            {client.nickname ?? client.razaoSocial}
           </Table.CellText>
+          {/* Só aparece quando a lista mostra quem saiu da carteira (filtro
+              "Situação"): na lista padrão todos são ativos. */}
+          {!isWalletActive(client.companyClient?.status) && (
+            <Badge.Root
+              color={
+                WALLET_STATUS_COLOR[client.companyClient?.status ?? "ACTIVE"]
+              }
+              appearance="tinted"
+            >
+              <Badge.Text>
+                {walletStatusLabel(client.companyClient?.status)}
+              </Badge.Text>
+            </Badge.Root>
+          )}
           {client.isNeedsAttention && (
             <Tooltip
               className="max-w-100 whitespace-normal"
@@ -52,9 +72,11 @@ export function ClientCell({ client }: ClientCellProps) {
           )}
         </div>
 
-        {client.nomeFantasia && (
+        {/* Com apelido, o nome oficial desce para cá — é ele que está na
+            nota e no cadastro da Receita. */}
+        {(client.nickname ? client.razaoSocial : client.nomeFantasia) && (
           <Table.CellText variant="dim" className="block">
-            {client.nomeFantasia}
+            {client.nickname ? client.razaoSocial : client.nomeFantasia}
           </Table.CellText>
         )}
 

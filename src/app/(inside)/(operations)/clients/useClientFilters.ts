@@ -80,6 +80,19 @@ export function useClientFilters({
       },
       {
         type: "select",
+        key: "walletStatus",
+        label: "Situação",
+        placeholder: "Só os ativos",
+        options: [
+          { value: "INACTIVE", label: "Fora da carteira (encerrados)" },
+          { value: "ALL", label: "Todos" },
+        ],
+        // Quem saiu da carteira (não existe mais, não trabalham mais, mudou
+        // de CNPJ) não aparece por padrão: não recebe visita nem pedido. O
+        // filtro existe para achá-lo e, se for o caso, reativar.
+      },
+      {
+        type: "select",
         key: "needsAttention",
         label: "Cadastro",
         placeholder: "Todos os cadastros",
