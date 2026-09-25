@@ -4,7 +4,8 @@ export const ITEMS_PER_PAGE = 12;
 
 export interface CompanyFactory {
   id: string;
-  commissionRate: number;
+  /** Nulo para vendedor: o backend não entrega o acordo da empresa a ele. */
+  commissionRate: number | null;
   commissionCalcBasis: string;
   paymentTermDays: number;
   contractStart: string | null;
