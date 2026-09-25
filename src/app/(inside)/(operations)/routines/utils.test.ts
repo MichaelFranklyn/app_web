@@ -11,6 +11,7 @@ import {
   getVisitScoreTotal,
   isPastDay,
   shiftDayIso,
+  canCompleteDay,
 } from "./utils";
 
 const factory = (id: string) => ({
@@ -45,6 +46,7 @@ const item = (over: Partial<VisitScheduleItem> = {}): VisitScheduleItem => ({
   visitDurationMin: null,
   status: "PENDING",
   isWholeDay: false,
+  isManual: false,
   outcome: null,
   notes: null,
   focusFactories: [],
@@ -384,5 +386,34 @@ describe("shiftDayIso", () => {
 
   it("data inválida volta como veio", () => {
     expect(shiftDayIso("", 3)).toBe("");
+  });
+});
+
+describe("canCompleteDay", () => {
+  // A visita marcada à mão foi combinada com o cliente: o dia que só tem ela
+  // pode ser COMPLETADO pelo sistema, nunca reescrito.
+  const dia = (isManual: boolean[], status = "PLANNED") => ({
+    status,
+    items: isManual.map((value) => ({ isManual: value })),
+  });
+  const HOJE = "2026-09-25";
+
+  it("dia só com visitas marcadas à mão pode ser completado", () => {
+    expect(canCompleteDay(dia([true, true]), "2026-09-26", HOJE)).toBe(true);
+  });
+
+  it("dia com plano do motor já foi gerado", () => {
+    expect(canCompleteDay(dia([true, false]), "2026-09-26", HOJE)).toBe(false);
+  });
+
+  it("dia vazio usa o botão de gerar, não o de completar", () => {
+    expect(canCompleteDay(dia([]), "2026-09-26", HOJE)).toBe(false);
+  });
+
+  it("dia começado ou vencido não recebe parada nova", () => {
+    expect(canCompleteDay(dia([true], "IN_PROGRESS"), "2026-09-26", HOJE)).toBe(
+      false
+    );
+    expect(canCompleteDay(dia([true]), "2026-09-24", HOJE)).toBe(false);
   });
 });

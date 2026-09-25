@@ -21,6 +21,7 @@ const stop = (over: Partial<VisitScheduleItem> = {}): VisitScheduleItem =>
     visitDurationMin: 30,
     status: "PENDING",
     isWholeDay: false,
+    isManual: false,
     outcome: null,
     notes: null,
     focusFactories: [],

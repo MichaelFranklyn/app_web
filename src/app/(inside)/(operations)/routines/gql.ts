@@ -94,6 +94,7 @@ export const VISIT_SCHEDULES_QUERY = gql`
               outcome
               notes
               isWholeDay
+              isManual
               focusFactories {
                 scoreTotal
                 factory {

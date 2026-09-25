@@ -45,6 +45,8 @@ export interface VisitItem {
   notes: string | null;
   /** A visita tomou a jornada inteira — as outras paradas do dia saíram. */
   isWholeDay: boolean;
+  /** Marcada por uma pessoa: a geração automática não a reescreve. */
+  isManual: boolean;
   focusFactories: VisitFocusFactory[];
   treatedFactories: VisitFactory[];
   /**
