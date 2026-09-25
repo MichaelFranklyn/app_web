@@ -3,11 +3,11 @@
 import { Button } from "@/components/Button";
 import { Loading } from "@/components/Loading";
 import { Modal } from "@/components/Modal";
+import { ShareLinkBox } from "@/components/ShareLinkBox";
 import { Title } from "@/components/Title";
 import { formatDate } from "@/utils/format/date";
 import { Share2 } from "lucide-react";
 import { useState } from "react";
-import { LinkBox } from "./LinkBox";
 import { useClientPortalLink } from "./useClientPortalLink";
 
 interface SharePortalModalProps {
@@ -69,7 +69,11 @@ export function SharePortalModal({
           {isFetching ? (
             <Loading.Skeleton className="h-[80px] w-full" />
           ) : issuedUrl ? (
-            <LinkBox url={issuedUrl} clientName={clientName} />
+            <ShareLinkBox
+              url={issuedUrl}
+              label="Endereço do portal"
+              whatsappMessage={`Olá! Aqui você acompanha as compras da ${clientName}:`}
+            />
           ) : activeLink ? (
             <div className="flex flex-col gap-12">
               <div className="flex flex-col gap-6">

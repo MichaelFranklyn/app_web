@@ -7,16 +7,8 @@ import { useMutation } from "@apollo/client/react";
 import { Printer } from "lucide-react";
 import { useState } from "react";
 import { ISSUE_VISIT_RESPONSE_LINK_MUTATION } from "../../gql";
-import { VisitItem } from "../../interface";
+import { IssueVisitResponseLinkResponse, VisitItem } from "../../interface";
 import { DayRoutePdfMeta } from "../../pdf";
-
-interface IssueLinkResponse {
-  issueVisitResponseLink: {
-    status: boolean;
-    message: string;
-    data: { url: string; expiresAt: string } | null;
-  } | null;
-}
 
 interface Props {
   /** Dia da rotina — é dele que o link de resposta é emitido. */
@@ -59,7 +51,7 @@ export function PrintRouteButton({
 }: Props) {
   const { toast } = useToast();
   const { name: companyName, logoUrl: companyLogoUrl } = useCompanyBranding();
-  const [issueLink] = useMutation<IssueLinkResponse>(
+  const [issueLink] = useMutation<IssueVisitResponseLinkResponse>(
     ISSUE_VISIT_RESPONSE_LINK_MUTATION
   );
   const [isBusy, setIsBusy] = useState(false);

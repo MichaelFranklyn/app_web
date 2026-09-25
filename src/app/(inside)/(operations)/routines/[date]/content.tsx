@@ -14,6 +14,7 @@ import { OverdueVisits } from "../_components/OverdueVisits";
 import { DayNavActions } from "./_components/DayNavActions";
 import { DepartureCard } from "./_components/DepartureCard";
 import { PrintRouteButton } from "./_components/PrintRouteButton";
+import { ResponseLinkModal } from "./_components/ResponseLinkModal";
 import { RouteMap } from "./_components/RouteMap";
 import { RouteStopsCard } from "./_components/RouteStopsCard";
 import { RouteSummary } from "./_components/RouteSummary";
@@ -226,6 +227,11 @@ export default function DayRouteContent({ date, sellerId }: Props) {
               departureAddress={day.departureAddress}
               routeDistanceKm={day.routeDistanceKm}
               routeDurationMin={day.routeDurationMin}
+            />
+            <ResponseLinkModal
+              scheduleDayId={day.id}
+              dateLabel={formatDateLong(day.date)}
+              isEmpty={drivingStops.length === 0 && remoteStops.length === 0}
             />
           </>
         }
