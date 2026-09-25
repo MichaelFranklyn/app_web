@@ -1,4 +1,18 @@
-# Gate local: roda a suíte unitária (vitest) antes do push.
-# E2E (Playwright) NÃO roda aqui — o build de produção é lento demais p/ pre-push;
-# fica no CI (.github/workflows/ci.yml).
-npm test
+# Gate local: roda os testes unitários (vitest) LIGADOS ao que mudou em relação
+# à main, antes do push. O `--changed` segue o grafo de imports: mexeu em
+# `FactoriesGrid`, roda os testes que importam `FactoriesGrid` (direta ou
+# indiretamente) — segundos em vez dos minutos da suíte inteira. Mudança em
+# vitest.config/package.json faz o vitest rodar tudo por conta própria.
+#
+# A suíte COMPLETA continua no CI (.github/workflows/ci.yml): é lá o gate de
+# verdade. Isto aqui só pega cedo o que obviamente quebrou.
+#
+# E2E (Playwright) NÃO roda aqui — o build de produção é lento demais p/
+# pre-push; fica no CI.
+git fetch --quiet origin main 2>/dev/null || true
+if git rev-parse --quiet --verify origin/main >/dev/null; then
+  npx vitest run --changed origin/main --passWithNoTests
+else
+  # Sem a main remota (clone sem origin, offline na 1ª vez): suíte inteira.
+  npm test
+fi

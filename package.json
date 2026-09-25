@@ -19,6 +19,7 @@
     "format": "prettier --write .",
     "test": "vitest run",
     "test:watch": "vitest",
+    "test:changed": "vitest run --changed origin/main --passWithNoTests",
     "coverage": "vitest run --coverage",
     "coverage:vitest-full": "vitest run --coverage --coverage.provider=v8 --coverage.include='src/**/*.{ts,tsx}' --coverage.exclude='src/**/*.{test,spec}.*' --coverage.exclude='src/**/interface.ts' --coverage.exclude='src/**/gql.ts' --coverage.exclude='src/**/__generated__/**' --coverage.reporter=json-summary --coverage.reportsDirectory=coverage/vitest-raw",
     "coverage:e2e": "COVERAGE=1 playwright test",
