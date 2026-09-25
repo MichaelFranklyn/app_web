@@ -1,7 +1,6 @@
 import { gql } from "@apollo/client";
 
-// Compartilhados entre AddOrderModal (criação manual) e ImportOrderModal
-// (criação + importação de arquivo) — por isso vivem no pai OrdersTab.
+// Mutation de criação usada pelo ImportOrderModal da aba.
 export const CREATE_ORDER_FROM_FACTORY_MUTATION = gql`
   mutation CreateOrderFromFactory($input: CreateOrderInput!) {
     createOrder(input: $input) {
@@ -24,42 +23,6 @@ export const CREATE_ORDER_FROM_FACTORY_MUTATION = gql`
           nomeFantasia
         }
       }
-    }
-  }
-`;
-
-export const FACTORY_ASSIGNMENTS_QUERY = gql`
-  query FactoryAssignments($input: BaseListInput!) {
-    sellerClientFactoryList(input: $input) {
-      edges {
-        node {
-          id
-          sellerId
-          clientId
-          # Negativado nesta fábrica: ela não aceita pedido novo deste cliente.
-          isNegative
-          negativeReason
-          seller {
-            id
-            name
-          }
-          client {
-            id
-            razaoSocial
-            nomeFantasia
-            cnpj
-          }
-          # Alimenta a sugestão de "dura quantos dias na loja?" no fechamento.
-          cadence {
-            days
-            source
-          }
-        }
-      }
-      # O total é o que denuncia o truncamento: sem ele, o select de cliente
-      # não teria como saber que a fábrica tem mais vínculos do que coube na
-      # resposta (ver useCompleteList).
-      totalCount
     }
   }
 `;

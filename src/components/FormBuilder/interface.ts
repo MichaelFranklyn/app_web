@@ -149,6 +149,12 @@ export interface FormBuilderProps {
   nextLabel?: string;
   prevLabel?: string;
   unstyled?: boolean;
+  /**
+   * Avisa quando o formulário passa a ter (ou deixa de ter) algo mexido pelo
+   * usuário em relação ao `initialData` — para a tela perguntar antes de sair.
+   * Valor posto pelo código (`setValue`) não conta: sugestão não é trabalho.
+   */
+  onDirtyChange?: (isDirty: boolean) => void;
 }
 
 export interface RenderInputProps {

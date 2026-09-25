@@ -1,7 +1,7 @@
 import { Title } from "@/components/Title";
 import { cn } from "@/lib/utils";
 import { yupResolver } from "@hookform/resolvers/yup";
-import { forwardRef, useImperativeHandle, useState } from "react";
+import { forwardRef, useEffect, useImperativeHandle, useState } from "react";
 import { FieldValues, FormProvider, Path, useForm } from "react-hook-form";
 import { FormBuilderProps, FormBuilderRef } from "../interface";
 import { Navigation } from "../Navigation";
@@ -10,7 +10,10 @@ import { Stepper } from "../Stepper";
 import { buildYupSchema } from "../utils/schema";
 
 export const Root = forwardRef<FormBuilderRef, FormBuilderProps>(
-  ({ steps, onSubmit, initialData, unstyled = false, ...props }, ref) => {
+  (
+    { steps, onSubmit, initialData, unstyled = false, onDirtyChange, ...props },
+    ref
+  ) => {
     const [currentStepIndex, setCurrentStepIndex] = useState(0);
     const [schema] = useState(() => buildYupSchema(steps));
 
@@ -19,6 +22,12 @@ export const Root = forwardRef<FormBuilderRef, FormBuilderProps>(
       defaultValues: (initialData || {}) as FieldValues,
       mode: "onTouched",
     });
+
+    // Ler `isDirty` assina o formulário a ele (proxy do react-hook-form).
+    const { isDirty } = methods.formState;
+    useEffect(() => {
+      onDirtyChange?.(isDirty);
+    }, [isDirty, onDirtyChange]);
 
     const isLastStep = currentStepIndex === steps.length - 1;
     const isFirstStep = currentStepIndex === 0;

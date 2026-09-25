@@ -1,18 +1,9 @@
 import { gql } from "@apollo/client";
 
-export const CREATE_ORDER_FROM_CLIENT_MUTATION = gql`
-  mutation CreateOrderFromClient($input: CreateOrderInput!) {
-    createOrder(input: $input) {
-      status
-      code
-      message
-      data {
-        id
-      }
-    }
-  }
-`;
-
+/**
+ * Vínculos vendedor→fábrica do cliente, para o novo pedido aberto a partir da
+ * tela dele (`?clientId=`): o pedido nasce de um vínculo, não de uma cascata.
+ */
 export const CLIENT_ASSIGNMENTS_QUERY = gql`
   query ClientAssignments($input: BaseListInput!) {
     sellerClientFactoryList(input: $input) {
@@ -35,6 +26,17 @@ export const CLIENT_ASSIGNMENTS_QUERY = gql`
             nomeFantasia
             nickname
             razaoSocial
+          }
+          # O nome do cliente vai no cabeçalho da página.
+          client {
+            id
+            razaoSocial
+            nomeFantasia
+          }
+          # Sugere "dura quantos dias na loja?" já preenchido.
+          cadence {
+            days
+            source
           }
         }
       }

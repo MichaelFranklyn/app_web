@@ -467,4 +467,22 @@ describe("useOrderDraftItems", () => {
     expect(result.current.items[0].productId).toBe("prod-2");
     expect(result.current.items[1].productId).toBe("prod-1");
   });
+
+  it("item começado conta como trabalho a perder até ser adicionado", async () => {
+    // É o que a página de novo pedido usa para perguntar antes de sair.
+    const { result } = renderDraft();
+    await waitFor(() => expect(result.current.productOptions.length).toBe(2));
+    expect(result.current.hasPendingItem).toBe(false);
+
+    selectProd1(result);
+    expect(result.current.hasPendingItem).toBe(true);
+
+    act(() => result.current.setUnitPrice("6,50"));
+    act(() => result.current.setQuantity("10"));
+    act(() => result.current.submitItem());
+
+    // Adicionado: vira item da lista, e o formulário de item volta vazio.
+    expect(result.current.items).toHaveLength(1);
+    expect(result.current.hasPendingItem).toBe(false);
+  });
 });

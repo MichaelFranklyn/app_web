@@ -13,6 +13,8 @@ export interface CreateOrderInput {
   coverageDays?: number | null;
   // Quando true, o pedido nasce como ORÇAMENTO (rascunho) até ser convertido.
   isQuote?: boolean;
+  // Visita de onde o pedido saiu (lançado de dentro da visita).
+  visitScheduleItemId?: string | null;
 }
 
 export interface CreateOrderResponse {

@@ -2,7 +2,7 @@ import { maskCNPJ } from "@/utils/format/masks";
 import type { OrderSheetRead } from "@/utils/orderSheet/read";
 
 import { clientOptionLabel } from "../../../../_shared/clientOption";
-import type { CreateOrderInput } from "../interface";
+import type { CreateOrderInput } from "../../../_shared/orderCreate";
 
 /**
  * Como chamar o cliente da ficha enquanto a carteira não carregou.

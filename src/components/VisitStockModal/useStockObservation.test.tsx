@@ -214,4 +214,63 @@ describe("useStockObservation", () => {
     await waitFor(() => expect(result.current.isLoading).toBe(false));
     expect(onSaved).not.toHaveBeenCalled();
   });
+
+  describe("antes de sair para lançar o pedido", () => {
+    // O pedido é uma página: sair do modal sem gravar perderia as respostas.
+    it("sem resposta nova, segue direto — nada é gravado", async () => {
+      const { result, onSaved } = run([
+        candidatesMock([group("f1", [product("p1")])]),
+        observationsMock([{ productId: "p1", daysRemaining: 15 }]),
+      ]);
+      await waitFor(() => expect(result.current.daysMap.p1).toBe(15));
+
+      let canLeave = false;
+      await act(async () => {
+        canLeave = await result.current.saveBeforeLeaving();
+      });
+
+      // Sem mock de gravação: se tentasse gravar, o MockLink recusaria.
+      expect(canLeave).toBe(true);
+      expect(onSaved).not.toHaveBeenCalled();
+    });
+
+    it("com resposta nova, grava e segue — sem fechar o modal", async () => {
+      const { result, onSaved } = run([
+        candidatesMock([group("f1", [product("p1")])]),
+        observationsMock([]),
+        saveMock([{ productId: "p1", daysRemaining: 15 }]),
+      ]);
+      await waitFor(() => expect(result.current.loading).toBe(false));
+
+      act(() => result.current.setDays("p1", 15));
+      const concludeVisit = vi.fn();
+      let canLeave = false;
+      await act(async () => {
+        canLeave = await result.current.saveBeforeLeaving(concludeVisit);
+      });
+
+      expect(canLeave).toBe(true);
+      // Gravar estoque ainda conclui a visita...
+      expect(concludeVisit).toHaveBeenCalledOnce();
+      // ...mas `onSaved` fecha o modal; quem o tira de cena é a navegação.
+      expect(onSaved).not.toHaveBeenCalled();
+    });
+
+    it("gravação recusada segura o vendedor aqui", async () => {
+      const { result } = run([
+        candidatesMock([group("f1", [product("p1")])]),
+        observationsMock([]),
+        saveMock([{ productId: "p1", daysRemaining: 15 }], false),
+      ]);
+      await waitFor(() => expect(result.current.loading).toBe(false));
+
+      act(() => result.current.setDays("p1", 15));
+      let canLeave = true;
+      await act(async () => {
+        canLeave = await result.current.saveBeforeLeaving();
+      });
+
+      expect(canLeave).toBe(false);
+    });
+  });
 });

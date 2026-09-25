@@ -20,7 +20,7 @@ import { Receipt } from "lucide-react";
 import { FACTORY_ORDER_COLUMN_HELP } from "../../../help";
 import { EditOrderModal } from "../../../../_components/EditOrderModal";
 import { UPDATE_ORDER_FROM_FACTORY_MUTATION } from "../../../../_components/EditOrderModal";
-import { AddOrderModal } from "./AddOrderModal";
+import { NewOrderButton } from "../../../../_components/NewOrderButton";
 import { DeleteOrderModal } from "./DeleteOrderModal";
 import { ImportOrderModal } from "./ImportOrderModal";
 import { FeatureGate } from "@/components/FeatureGate";
@@ -82,7 +82,7 @@ export function OrdersTab({ factoryId }: Props) {
               onAddOptimistic={optimistic.addOptimistic}
             />
           </FeatureGate>
-          <AddOrderModal factoryId={factoryId} />
+          <NewOrderButton from={{ factoryId }} label="Novo pedido" />
         </Table.CardHead.Actions>
       </Table.CardHead>
 

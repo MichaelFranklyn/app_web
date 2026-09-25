@@ -275,6 +275,13 @@ export function useOrderDraftItems(
     setError(null);
   };
 
+  // Um item começado e ainda não adicionado à lista: o que o vendedor já
+  // digitou nele se perde ao sair da tela. O preço sugerido não conta sozinho —
+  // ele só aparece depois de escolher o produto, que já conta.
+  const hasPendingItem = Boolean(
+    productId || quantity || unitPrice || discount
+  );
+
   return {
     productOptions,
     onProductSearch,
@@ -297,6 +304,7 @@ export function useOrderDraftItems(
     ipiRate,
     error,
     editingIndex,
+    hasPendingItem,
     selectProduct,
     selectTier,
     selectDiscountType,

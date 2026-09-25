@@ -71,8 +71,9 @@ const CLIENTS_PAGE = 50;
  * faltava não tinha como ser encontrado; carteira pequena continua filtrando em
  * memória, sem latência (ver `useAsyncSelectOptions`).
  *
- * Mora no pai porque os DOIS modais do cabeçalho — novo pedido e importar
- * pedido — pedem exatamente a mesma lista, com a mesma cadência ao lado.
+ * Mora no pai porque as DUAS entradas de pedido de /orders — a página de novo
+ * pedido e o modal de importar — pedem exatamente a mesma lista, com a mesma
+ * cadência ao lado.
  */
 export function useOrderClientOptions(
   open: boolean,

@@ -11,6 +11,7 @@ import {
   EditOrderModal,
   UPDATE_ORDER_FROM_CLIENT_MUTATION,
 } from "../../../_components/EditOrderModal";
+import { NewOrderButton } from "../../../_components/NewOrderButton";
 import { useClientRoute } from "../context";
 import { CLIENT_FACTORY_ORDERS_QUERY } from "../gql";
 import {
@@ -18,7 +19,6 @@ import {
   ClientOrder,
   FactoryOrderSummary,
 } from "../interface";
-import { AddOrderModal } from "./_components/AddOrderModal";
 import { FactoryOrderCard } from "./_components/FactoryOrderCard";
 import { FactoryOrderModal } from "./_components/FactoryOrderModal";
 
@@ -75,9 +75,9 @@ export default function OrdersContent() {
           />
         </div>
         <div data-tour="client-orders-actions">
-          {/* Ao criar, o modal redireciona para o pedido novo (não recarrega
-              esta lista). */}
-          <AddOrderModal clientId={clientId} />
+          {/* Abre a página de novo pedido com este cliente decidido; ao
+              criar, ela entra no pedido novo. */}
+          <NewOrderButton from={{ clientId }} label="Pedido" />
         </div>
       </div>
 

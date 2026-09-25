@@ -20,10 +20,16 @@ export function useRedirectTransition() {
   const router = useRouter();
   const [isRedirecting, startTransition] = useTransition();
 
+  /**
+   * `replace` troca a entrada atual do histórico em vez de empilhar uma nova —
+   * para quem não deve ser o destino do "Voltar" (ex.: a sentinela de
+   * `useLeaveGuard`).
+   */
   const redirect = useCallback(
-    (url: string) => {
+    (url: string, options?: { replace?: boolean }) => {
       startTransition(() => {
-        router.push(url);
+        if (options?.replace) router.replace(url);
+        else router.push(url);
       });
     },
     [router]

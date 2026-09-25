@@ -109,9 +109,9 @@ const ASSUNTOS: Assunto[] = [
       "ORDER_DELIVERY_CACHE_FIELDS",
     ],
     delegacoes: {
-      // helper puro e wizard: quem CRIA o pedido invalida depois de gravar.
+      // helper puro e página de novo pedido: quem CRIA o pedido invalida depois de gravar.
       "app/(inside)/(operations)/_shared/orderDraftItems/createDraftItems.ts":
-        "app/(inside)/(operations)/orders/_components/OrdersHeader/AddOrderModal/useAddOrder.ts",
+        "app/(inside)/(operations)/orders/new/useNewOrderCore.ts",
       "app/(inside)/(operations)/_components/OrderImportWizard/useOrderImportWizard.ts":
         "app/(inside)/(operations)/orders/_components/OrdersHeader/ImportOrderModal/useImportOrder.ts",
       // itens do pedido: o handleRefetch da tabela invalida.
