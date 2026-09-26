@@ -1,5 +1,6 @@
 import { Badge } from "@/components/Badges";
 import { Card } from "@/components/Card";
+import { RowList } from "@/components/RowList";
 import { Title } from "@/components/Title";
 import { CheckCircle2 } from "lucide-react";
 import Link from "next/link";
@@ -50,7 +51,7 @@ export function AttentionQueue({ items }: { items: AttentionItem[] }) {
       </Card.Header>
 
       <Card.Body>
-        <ul className="flex flex-col gap-8">
+        <RowList.Root>
           {items.map((item, index) => {
             const row = (
               <div className="flex flex-wrap items-baseline gap-8">
@@ -71,10 +72,7 @@ export function AttentionQueue({ items }: { items: AttentionItem[] }) {
             );
 
             return (
-              <li
-                key={`${item.kind}-${item.companyId ?? index}`}
-                className="border-b border-(--border) pb-8 last:border-0 last:pb-0"
-              >
+              <RowList.Item key={`${item.kind}-${item.companyId ?? index}`}>
                 {/* Cada item leva à ficha onde a decisão é tomada. Sem empresa
                     (pendência da própria plataforma), fica sem link. */}
                 {item.companyId ? (
@@ -87,10 +85,10 @@ export function AttentionQueue({ items }: { items: AttentionItem[] }) {
                 ) : (
                   row
                 )}
-              </li>
+              </RowList.Item>
             );
           })}
-        </ul>
+        </RowList.Root>
       </Card.Body>
     </Card.Root>
   );

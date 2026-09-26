@@ -1,15 +1,15 @@
 import { Card } from "@/components/Card";
 import { Title } from "@/components/Title";
-import { cn } from "@/lib/utils";
+import { Progress } from "@/components/Progress";
 import { FeatureAdoption } from "../../interface";
 import { adoptionRate } from "../../utils";
 
 /** Faixa de cor por nível de adoção. O vermelho é o achado que interessa:
  * funcionalidade construída que ninguém usa. */
-const barColor = (percent: number): string => {
-  if (percent >= 70) return "bg-(--green)";
-  if (percent >= 35) return "bg-(--amber)";
-  return "bg-(--red)";
+const barColor = (percent: number): "green" | "amber" | "red" => {
+  if (percent >= 70) return "green";
+  if (percent >= 35) return "amber";
+  return "red";
 };
 
 /**
@@ -49,18 +49,11 @@ export function AdoptionCard({ features }: { features: FeatureAdoption[] }) {
                     %
                   </Title>
                 </div>
-                <div
-                  className="h-[6px] w-full overflow-hidden rounded-full bg-(--bg3)"
-                  role="presentation"
-                >
-                  <div
-                    className={cn(
-                      "h-full rounded-full transition-all",
-                      barColor(percent)
-                    )}
-                    style={{ width: `${percent}%` }}
-                  />
-                </div>
+                <Progress.Bar
+                  value={percent}
+                  color={barColor(percent)}
+                  aria-label={`Adoção de ${feature.label}`}
+                />
               </li>
             );
           })}

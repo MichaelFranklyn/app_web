@@ -3,6 +3,7 @@
 import { Alert } from "@/components/Alert";
 import { Button } from "@/components/Button";
 import { Title } from "@/components/Title";
+import { UrlBox } from "@/components/UrlBox";
 import { useToast } from "@/components/Toast";
 import { Check, Copy, MessageCircle } from "lucide-react";
 import { useState } from "react";
@@ -55,11 +56,7 @@ export function ShareLinkBox({
         <Title variant="label" color="muted">
           {label}
         </Title>
-        <div className="rounded-(--r-sm) border border-(--border) bg-(--bg3) px-12 py-10">
-          <Title variant="body-sm" className="break-all">
-            {url}
-          </Title>
-        </div>
+        <UrlBox>{url}</UrlBox>
       </div>
 
       <div className="flex flex-wrap gap-8">

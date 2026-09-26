@@ -1,14 +1,15 @@
 "use client";
 
-import { cn } from "@/lib/utils";
+import { Dot } from "@/components/Dot";
+import { ThemeColor } from "@/lib/theme";
 import { JobRunPoint } from "../../interface";
 import { JOB_STATUS_LABEL, formatDuration, formatMoment } from "../../utils";
 
-const STATUS_CLASS: Record<string, string> = {
-  SUCCESS: "bg-(--green)",
-  FAILED: "bg-(--red)",
-  SKIPPED: "bg-(--amber)",
-  RUNNING: "bg-(--blue)",
+const STATUS_COLOR: Record<string, ThemeColor> = {
+  SUCCESS: "green",
+  FAILED: "red",
+  SKIPPED: "amber",
+  RUNNING: "blue",
 };
 
 /**
@@ -24,12 +25,11 @@ export function RunStrip({ runs }: { runs: JobRunPoint[] }) {
   return (
     <div className="flex flex-wrap items-center gap-[3px]">
       {runs.map((run, index) => (
-        <span
+        <Dot.Root
           key={`${run.startedAt}-${index}`}
-          className={cn(
-            "h-[18px] w-[10px] rounded-[2px]",
-            STATUS_CLASS[run.status] ?? "bg-(--bg3)"
-          )}
+          shape="bar"
+          pulse={false}
+          color={STATUS_COLOR[run.status] ?? "subtle"}
           title={`${formatMoment(run.startedAt)} · ${
             JOB_STATUS_LABEL[run.status] ?? run.status
           } · ${formatDuration(run.durationMs)}`}

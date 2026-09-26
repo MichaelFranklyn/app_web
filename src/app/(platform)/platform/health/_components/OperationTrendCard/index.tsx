@@ -2,8 +2,10 @@
 
 import { Badge } from "@/components/Badges";
 import { Card } from "@/components/Card";
+import { Divider } from "@/components/Divider";
 import { EmptyState } from "@/components/EmptyState";
 import { Loading } from "@/components/Loading";
+import { RowList } from "@/components/RowList";
 import { Title } from "@/components/Title";
 import { CheckCircle2 } from "lucide-react";
 import dynamic from "next/dynamic";
@@ -83,58 +85,61 @@ export function OperationTrendCard({
               pequena qualquer variação é acaso.
             </Title>
           ) : (
-            <ul className="flex flex-col gap-8">
+            <RowList.Root>
               {report.regressions.map((regression) => (
                 <RegressionRow
                   key={regression.operation}
                   regression={regression}
                 />
               ))}
-            </ul>
+            </RowList.Root>
           )}
         </div>
 
         {(report.newOperations.length > 0 ||
           report.vanishedOperations.length > 0) && (
-          <div className="flex flex-col gap-8 border-t border-(--border) pt-12">
-            {report.newOperations.length > 0 && (
-              <div className="flex flex-wrap items-center gap-8">
-                <Title variant="micro" color="muted">
-                  Novas no período:
-                </Title>
-                {report.newOperations.map((operation) => (
-                  <Badge.Root
-                    key={operation}
-                    color="blue"
-                    appearance="tinted"
-                    size="xs"
-                  >
-                    <Badge.Text>{operationLabel(operation)}</Badge.Text>
-                  </Badge.Root>
-                ))}
-              </div>
-            )}
+          <div className="flex flex-col gap-12">
+            <Divider.Root />
+            <div className="flex flex-col gap-8">
+              {report.newOperations.length > 0 && (
+                <div className="flex flex-wrap items-center gap-8">
+                  <Title variant="micro" color="muted">
+                    Novas no período:
+                  </Title>
+                  {report.newOperations.map((operation) => (
+                    <Badge.Root
+                      key={operation}
+                      color="blue"
+                      appearance="tinted"
+                      size="xs"
+                    >
+                      <Badge.Text>{operationLabel(operation)}</Badge.Text>
+                    </Badge.Root>
+                  ))}
+                </div>
+              )}
 
-            {report.vanishedOperations.length > 0 && (
-              <div className="flex flex-wrap items-center gap-8">
-                {/* Sumir não é necessariamente ruim, mas é sempre uma pergunta:
+              {report.vanishedOperations.length > 0 && (
+                <div className="flex flex-wrap items-center gap-8">
+                  {/* Sumir não é necessariamente ruim, mas é sempre uma pergunta:
                     ou a funcionalidade foi abandonada, ou a tela quebrou tão
                     cedo que ninguém chegou a executar a ação. */}
-                <Title variant="micro" color="muted">
-                  Deixaram de ser usadas:
-                </Title>
-                {report.vanishedOperations.map((operation) => (
-                  <Badge.Root
-                    key={operation}
-                    color="neutral"
-                    appearance="tinted"
-                    size="xs"
-                  >
-                    <Badge.Text>{operationLabel(operation)}</Badge.Text>
-                  </Badge.Root>
-                ))}
-              </div>
-            )}
+                  <Title variant="micro" color="muted">
+                    Deixaram de ser usadas:
+                  </Title>
+                  {report.vanishedOperations.map((operation) => (
+                    <Badge.Root
+                      key={operation}
+                      color="neutral"
+                      appearance="tinted"
+                      size="xs"
+                    >
+                      <Badge.Text>{operationLabel(operation)}</Badge.Text>
+                    </Badge.Root>
+                  ))}
+                </div>
+              )}
+            </div>
           </div>
         )}
       </Card.Body>

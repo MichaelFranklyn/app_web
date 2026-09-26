@@ -5,6 +5,7 @@ import { Alert } from "@/components/Alert";
 import { Button } from "@/components/Button";
 import { Modal } from "@/components/Modal";
 import { Title } from "@/components/Title";
+import { UrlBox } from "@/components/UrlBox";
 import { useToast } from "@/components/Toast";
 import { useAsyncAction } from "@/hooks/useAsyncAction";
 import { useMutation } from "@apollo/client/react";
@@ -110,9 +111,7 @@ export function AccessLinkModal({ user, onOpenChange }: Props) {
                 Link para <Emphasis>{result.userEmail}</Emphasis>. Copie agora —
                 depois de fechar, só emitindo outro.
               </Title>
-              <div className="rounded-md border border-(--border) bg-(--bg3) p-12 break-all">
-                <Title variant="micro">{result.link}</Title>
-              </div>
+              <UrlBox size="sm">{result.link}</UrlBox>
             </>
           )}
         </Modal.Body>

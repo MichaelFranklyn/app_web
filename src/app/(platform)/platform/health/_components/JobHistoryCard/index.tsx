@@ -3,6 +3,7 @@
 import { Badge } from "@/components/Badges";
 import { Card } from "@/components/Card";
 import { EmptyState } from "@/components/EmptyState";
+import { RowList } from "@/components/RowList";
 import { Title } from "@/components/Title";
 import { History } from "lucide-react";
 import { JobHistory } from "../../interface";
@@ -59,16 +60,13 @@ export function JobHistoryCard({ history }: { history: JobHistory[] }) {
             </EmptyState.Description>
           </EmptyState.Root>
         ) : (
-          <ul className="flex flex-col gap-16">
+          <RowList.Root spacing="md">
             {history.map((job) => {
               const tone = historyTone(job);
               const slower = (job.durationChange ?? 0) >= SLOWER_JOB_PERCENT;
 
               return (
-                <li
-                  key={job.jobName}
-                  className="flex flex-col gap-8 border-b border-(--border) pb-16 last:border-0 last:pb-0"
-                >
+                <RowList.Item key={job.jobName} className="flex flex-col gap-8">
                   <div className="flex flex-wrap items-baseline justify-between gap-8">
                     <div className="flex flex-wrap items-center gap-8">
                       <Title variant="body-sm" weight="semibold">
@@ -125,10 +123,10 @@ export function JobHistoryCard({ history }: { history: JobHistory[] }) {
                       </Title>
                     )}
                   </div>
-                </li>
+                </RowList.Item>
               );
             })}
-          </ul>
+          </RowList.Root>
         )}
       </Card.Body>
     </Card.Root>

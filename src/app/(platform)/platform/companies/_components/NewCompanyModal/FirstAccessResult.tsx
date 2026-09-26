@@ -3,6 +3,7 @@
 import { Button } from "@/components/Button";
 import { Divider } from "@/components/Divider";
 import { Title } from "@/components/Title";
+import { UrlBox } from "@/components/UrlBox";
 import { useToast } from "@/components/Toast";
 import { CheckCircle2, Copy, KeyRound } from "lucide-react";
 import { ProvisionCompanyPayload } from "./interface";
@@ -85,11 +86,9 @@ export function FirstAccessResult({ data }: Props) {
             exibido apenas agora e vale por tempo limitado.
           </Title>
           <div className="tablet:flex-row tablet:items-center flex flex-col gap-8">
-            <div className="flex-1 overflow-x-auto rounded-(--r-md) border border-(--border) bg-(--bg2) px-12 py-8">
-              <Title variant="micro" className="whitespace-nowrap">
-                {firstAccessLink}
-              </Title>
-            </div>
+            <UrlBox size="sm" singleLine className="flex-1">
+              {firstAccessLink}
+            </UrlBox>
             <Button.Root
               type="button"
               appearance="outline"

@@ -1,6 +1,7 @@
 "use client";
 
 import { Badge } from "@/components/Badges";
+import { RowList } from "@/components/RowList";
 import { Title } from "@/components/Title";
 import { operationLabel } from "../../../utils";
 import { OperationRegression } from "../../interface";
@@ -25,7 +26,7 @@ export function RegressionRow({
   const failing = regression.kind !== "SLOWER";
 
   return (
-    <li className="flex flex-wrap items-baseline justify-between gap-8 border-b border-(--border) pb-8 last:border-0">
+    <RowList.Item className="flex flex-wrap items-baseline justify-between gap-8">
       <div className="flex min-w-0 flex-col gap-[2px]">
         <div className="flex flex-wrap items-center gap-8">
           <Title variant="body-sm" weight="semibold">
@@ -78,6 +79,6 @@ export function RegressionRow({
           </div>
         </div>
       </div>
-    </li>
+    </RowList.Item>
   );
 }

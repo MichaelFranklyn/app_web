@@ -8,6 +8,11 @@ export interface DotProps extends React.HTMLAttributes<HTMLDivElement> {
   color?: ThemeColor;
   size?: DotSize;
   pulse?: boolean;
+  /**
+   * `bar`: traço vertical, cheio, para uma faixa de ocorrências lado a lado
+   * (uma execução por traço) — o padrão se lê na faixa inteira de uma vez.
+   */
+  shape?: "circle" | "bar";
 }
 
 const colorClasses: Record<ThemeColor, string> = {
@@ -35,16 +40,25 @@ const sizeClasses: Record<DotSize, string> = {
 
 export const DotRoot = React.forwardRef<HTMLDivElement, DotProps>(
   (
-    { color = "amber", size = "sm", pulse = true, className, ...props },
+    {
+      color = "amber",
+      size = "sm",
+      pulse = true,
+      shape = "circle",
+      className,
+      ...props
+    },
     ref
   ) => {
     return (
       <div
         ref={ref}
         className={cn(
-          "shrink-0 rounded-full opacity-60",
+          "shrink-0",
+          shape === "bar"
+            ? "h-[18px] w-[10px] rounded-[2px]"
+            : cn("rounded-full opacity-60", sizeClasses[size]),
           colorClasses[color],
-          sizeClasses[size],
           pulse && "animate-pulse-soft",
           className
         )}

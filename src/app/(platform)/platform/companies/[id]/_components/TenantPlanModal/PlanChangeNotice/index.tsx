@@ -1,3 +1,4 @@
+import { Card } from "@/components/Card";
 import { Title } from "@/components/Title";
 import { FEATURE_LABEL } from "@/services/plan";
 import { AlertTriangle, ArrowRight, Plus } from "lucide-react";
@@ -21,55 +22,63 @@ export function PlanChangeNotice({ change }: { change: PlanChange }) {
   if (!hasChange) return null;
 
   return (
-    <div className="flex flex-col gap-8 rounded-(--radius-md) border border-(--border) bg-(--bg2) p-12">
-      <Title variant="micro" color="muted">
-        O que muda para esta empresa
-      </Title>
+    <Card.Root inset>
+      <Card.Body padding="sm" className="gap-8">
+        <Title variant="micro" color="muted">
+          O que muda para esta empresa
+        </Title>
 
-      {change.lost.length > 0 && (
-        <div className="flex items-start gap-6">
-          <span className="mt-[2px] text-(--red)" aria-hidden>
-            <AlertTriangle size={14} />
-          </span>
-          <Title variant="caption" color="red">
-            Perde: {change.lost.map((f) => FEATURE_LABEL[f]).join(", ")}. Quem
-            estiver usando essas telas deixa de abri-las.
-          </Title>
-        </div>
-      )}
+        {change.lost.length > 0 && (
+          <div className="flex items-start gap-6">
+            <AlertTriangle
+              aria-hidden
+              size={14}
+              className="mt-[2px] shrink-0 text-(--red)"
+            />
+            <Title variant="caption" color="red">
+              Perde: {change.lost.map((f) => FEATURE_LABEL[f]).join(", ")}. Quem
+              estiver usando essas telas deixa de abri-las.
+            </Title>
+          </div>
+        )}
 
-      {change.gained.length > 0 && (
-        <div className="flex items-start gap-6">
-          <span className="mt-[2px] text-(--green)" aria-hidden>
-            <Plus size={14} />
-          </span>
-          <Title variant="caption">
-            Ganha: {change.gained.map((f) => FEATURE_LABEL[f]).join(", ")}.
-          </Title>
-        </div>
-      )}
+        {change.gained.length > 0 && (
+          <div className="flex items-start gap-6">
+            <Plus
+              aria-hidden
+              size={14}
+              className="mt-[2px] shrink-0 text-(--green)"
+            />
+            <Title variant="caption">
+              Ganha: {change.gained.map((f) => FEATURE_LABEL[f]).join(", ")}.
+            </Title>
+          </div>
+        )}
 
-      {change.limitChanges.length > 0 && (
-        <div className="flex flex-col gap-4">
-          {change.limitChanges.map((limit) => (
-            <div key={limit.key} className="flex items-center gap-6">
-              <Title variant="caption" className="capitalize">
-                {limit.label}
-              </Title>
-              <span className="text-(--muted)" aria-hidden>
-                <ArrowRight size={12} />
-              </span>
-              <Title
-                variant="caption"
-                weight="semibold"
-                color={limit.isTighter ? "red" : undefined}
-              >
-                {limitText(limit.from)} → {limitText(limit.to)}
-              </Title>
-            </div>
-          ))}
-        </div>
-      )}
-    </div>
+        {change.limitChanges.length > 0 && (
+          <div className="flex flex-col gap-4">
+            {change.limitChanges.map((limit) => (
+              <div key={limit.key} className="flex items-center gap-6">
+                <Title variant="caption" className="capitalize">
+                  {limit.label}
+                </Title>
+                <ArrowRight
+                  aria-hidden
+                  size={12}
+                  className="shrink-0 text-(--muted)"
+                />
+                <Title
+                  variant="caption"
+                  weight="semibold"
+                  color={limit.isTighter ? "red" : undefined}
+                >
+                  {limitText(limit.from)} → {limitText(limit.to)}
+                </Title>
+              </div>
+            ))}
+          </div>
+        )}
+      </Card.Body>
+    </Card.Root>
   );
 }
