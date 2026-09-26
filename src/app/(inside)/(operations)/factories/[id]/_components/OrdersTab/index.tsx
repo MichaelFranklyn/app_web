@@ -82,7 +82,7 @@ export function OrdersTab({ factoryId }: Props) {
               onAddOptimistic={optimistic.addOptimistic}
             />
           </FeatureGate>
-          <NewOrderButton from={{ factoryId }} label="Novo pedido" />
+          <NewOrderButton from={{ factoryId }} />
         </Table.CardHead.Actions>
       </Table.CardHead>
 

@@ -190,7 +190,7 @@ test("orders: cria um pedido pela cascata vendedor→fábrica→cliente", async 
 
   await page.goto("/orders");
   // Pedido digitado tem página própria: o botão leva para ela, não abre modal.
-  await page.getByRole("button", { name: "Novo Pedido" }).click();
+  await page.getByRole("button", { name: "Novo pedido" }).click();
   await expect(page).toHaveURL(/\/orders\/new$/);
 
   // Vendedor logado não escolhe vendedor: o campo nem existe para ele.
@@ -477,7 +477,7 @@ test("orders/new: sair com algo não gravado pergunta antes (dados, item, itens)
 
   // Entra pela lista: é para ela que o Voltar tem de levar no fim.
   await page.goto("/orders");
-  await page.getByRole("button", { name: "Novo Pedido" }).click();
+  await page.getByRole("button", { name: "Novo pedido" }).click();
   await expect(page).toHaveURL(/\/orders\/new$/);
 
   // 0) Página intocada: sair é livre, sem pergunta.
@@ -487,7 +487,7 @@ test("orders/new: sair com algo não gravado pergunta antes (dados, item, itens)
     .click();
   await expect(page).toHaveURL(/\/orders$/);
   await expect(leaveDialog).toHaveCount(0);
-  await page.getByRole("button", { name: "Novo Pedido" }).click();
+  await page.getByRole("button", { name: "Novo pedido" }).click();
   await expect(page).toHaveURL(/\/orders\/new$/);
 
   // 1) Só os dados mexidos (nenhum item ainda) já contam: Voltar pergunta.

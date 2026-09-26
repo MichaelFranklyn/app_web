@@ -77,7 +77,7 @@ export default function OrdersContent() {
         <div data-tour="client-orders-actions">
           {/* Abre a página de novo pedido com este cliente decidido; ao
               criar, ela entra no pedido novo. */}
-          <NewOrderButton from={{ clientId }} label="Pedido" />
+          <NewOrderButton from={{ clientId }} />
         </div>
       </div>
 
