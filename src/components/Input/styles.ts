@@ -20,6 +20,16 @@ export const inputSizeMinHeight: Record<InputSize, string> = {
   xs: "min-h-[28.8px]",
 };
 
+// `lg` é o tamanho de TOQUE: além dos ~44px de altura, 16px de texto. Abaixo
+// disso o Safari do iPhone dá zoom automático ao focar o campo — e é nas telas
+// abertas no celular (portal do cliente, folha de resposta da rota) que ele vive.
+export const inputSizeText: Record<InputSize, string> = {
+  lg: "text-[16px]",
+  md: "",
+  sm: "",
+  xs: "",
+};
+
 export const inputStyles = {
   // max-desktop:w-full → no mobile/tablet todo input ocupa a largura total
   // (inclusive em modais e qualquer lugar), sobrepondo larguras fixas; no

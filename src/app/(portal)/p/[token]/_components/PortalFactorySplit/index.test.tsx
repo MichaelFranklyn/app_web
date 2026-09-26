@@ -19,7 +19,7 @@ const renderizar = (
 
 /** A barra de proporção de cada fábrica, na ordem em que aparecem. */
 const barras = () =>
-  Array.from(document.querySelectorAll('[role="presentation"] > div')).map(
+  Array.from(document.querySelectorAll('[role="progressbar"] > div')).map(
     (el) => (el as HTMLElement).style.width
   );
 

@@ -207,3 +207,47 @@ describe("InputSelect (criação)", () => {
     expect(onCreateOption).toHaveBeenCalledWith("Inédito");
   });
 });
+
+describe("InputSelect em formulário nativo", () => {
+  const submitted = (form: HTMLFormElement) =>
+    new FormData(form).getAll("nivel");
+
+  it("envia o VALOR da opção inicial, não o rótulo", () => {
+    const { container } = render(
+      <form>
+        <InputSelect name="nivel" options={OPTIONS} defaultValue={OPTIONS[1]} />
+      </form>
+    );
+    expect(submitted(container.querySelector("form")!)).toEqual(["2"]);
+  });
+
+  it("sem escolha, envia vazio — e a caixa de busca não entra no FormData", () => {
+    const { container } = render(
+      <form>
+        <InputSelect name="nivel" options={OPTIONS} placeholder="Nível" />
+      </form>
+    );
+    expect(submitted(container.querySelector("form")!)).toEqual([""]);
+    expect(
+      Array.from(new FormData(container.querySelector("form")!).keys())
+    ).toEqual(["nivel"]);
+  });
+
+  it("acompanha a escolha feita na tela sem precisar de value controlado", async () => {
+    const onChange = vi.fn();
+    const { container } = render(
+      <form>
+        <InputSelect
+          name="nivel"
+          options={OPTIONS}
+          placeholder="Nível"
+          onChange={onChange}
+        />
+      </form>
+    );
+    await userEvent.click(screen.getByPlaceholderText("Nível"));
+    await userEvent.click(within(dropdown()).getByText("Bronze"));
+    expect(submitted(container.querySelector("form")!)).toEqual(["3"]);
+    expect(onChange).toHaveBeenCalledWith(OPTIONS[2]);
+  });
+});

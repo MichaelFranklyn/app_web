@@ -1,4 +1,5 @@
 import { Avatar } from "@/components/Avatar";
+import { PublicPage } from "@/components/PublicPage";
 import { Title } from "@/components/Title";
 import { companyInitials } from "@/utils/company";
 import { mediaUrl } from "@/utils/media";
@@ -22,31 +23,29 @@ export function PortalHeader({ profile }: PortalHeaderProps) {
     .join(" - ");
 
   return (
-    <header className="border-b border-(--border) bg-(--bg2)">
-      <div className="mx-auto flex max-w-[1120px] flex-col gap-[16px] px-[16px] py-[24px]">
-        <div className="flex items-center gap-8">
-          <Avatar
-            size="sm"
-            color="amber"
-            src={mediaUrl(profile.companyLogoUrl)}
-            alt={profile.companyName}
-            initials={companyInitials(profile.companyName)}
-            className="shrink-0"
-          />
-          <Title variant="body-sm" color="muted">
-            {profile.companyName}
-          </Title>
-        </div>
-
-        <div className="flex flex-col gap-[4px]">
-          <Title variant="heading-lg">{profile.clientName}</Title>
-          {city ? (
-            <Title variant="body-sm" color="muted">
-              {city}
-            </Title>
-          ) : null}
-        </div>
+    <PublicPage.Header raised className="py-[24px]">
+      <div className="flex items-center gap-8">
+        <Avatar
+          size="sm"
+          color="amber"
+          src={mediaUrl(profile.companyLogoUrl)}
+          alt={profile.companyName}
+          initials={companyInitials(profile.companyName)}
+          className="shrink-0"
+        />
+        <Title variant="body-sm" color="muted">
+          {profile.companyName}
+        </Title>
       </div>
-    </header>
+
+      <div className="flex flex-col gap-[4px]">
+        <Title variant="heading-lg">{profile.clientName}</Title>
+        {city ? (
+          <Title variant="body-sm" color="muted">
+            {city}
+          </Title>
+        ) : null}
+      </div>
+    </PublicPage.Header>
   );
 }

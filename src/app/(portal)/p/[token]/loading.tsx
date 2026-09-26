@@ -1,3 +1,4 @@
+import { Grid } from "@/components/Grid";
 import { Loading } from "@/components/Loading";
 import { Title } from "@/components/Title";
 
@@ -20,11 +21,11 @@ export default function PortalPurchasesLoading() {
         <Title variant="eyebrow" color="muted">
           Seus pedidos
         </Title>
-        <div className="desktop:grid-cols-2 grid grid-cols-1 gap-[12px]">
+        <Grid.Root cols={{ base: 1, desktop: 2 }} gap={12}>
           {Array.from({ length: 6 }).map((_, index) => (
             <Loading.Skeleton key={index} className="h-[104px] w-full" />
           ))}
-        </div>
+        </Grid.Root>
       </section>
     </div>
   );

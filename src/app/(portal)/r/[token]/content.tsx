@@ -3,6 +3,8 @@
 import { Alert } from "@/components/Alert";
 import { Button } from "@/components/Button";
 import { EmptyState } from "@/components/EmptyState";
+import { Grid } from "@/components/Grid";
+import { PublicPage } from "@/components/PublicPage";
 import { Title } from "@/components/Title";
 import { CalendarCheck } from "lucide-react";
 import { useActionState } from "react";
@@ -96,9 +98,7 @@ export function VisitResponseContent({ form, token }: Props) {
         <StopGrid stops={form.stops} />
       )}
 
-      {/* Fixo no rodapé: com oito paradas o botão só no fim obrigaria a rolar
-          tudo de volta depois de responder duas. */}
-      <div className="sticky bottom-0 -mx-[16px] border-t border-(--border) bg-(--bg) px-[16px] py-[12px]">
+      <PublicPage.ActionBar>
         <Button.Root
           type="submit"
           appearance="solid"
@@ -110,17 +110,17 @@ export function VisitResponseContent({ form, token }: Props) {
         >
           <Button.Title>Enviar respostas</Button.Title>
         </Button.Root>
-      </div>
+      </PublicPage.ActionBar>
     </form>
   );
 }
 
 function StopGrid({ stops }: { stops: VisitResponseForm["stops"] }) {
   return (
-    <div className="tablet:grid-cols-2 desktop:grid-cols-3 grid grid-cols-1 gap-[12px]">
+    <Grid.Root cols={{ base: 1, tablet: 2, desktop: 3 }} gap={12}>
       {stops.map((stop) => (
         <VisitAnswerRow key={stop.id} stop={stop} />
       ))}
-    </div>
+    </Grid.Root>
   );
 }

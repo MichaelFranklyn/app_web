@@ -3,6 +3,8 @@
 import { Alert } from "@/components/Alert";
 import { Button } from "@/components/Button";
 import { EmptyState } from "@/components/EmptyState";
+import { Grid } from "@/components/Grid";
+import { PublicPage } from "@/components/PublicPage";
 import { Title } from "@/components/Title";
 import { Package } from "lucide-react";
 import { useActionState } from "react";
@@ -75,15 +77,13 @@ export function PortalStockContent({ items, token }: PortalStockContentProps) {
           cliente rola quatro telas para chegar ao fim. Uma coluna no celular
           (onde o card já ocupa a largura toda), duas no tablet e quatro no
           desktop. */}
-      <div className="tablet:grid-cols-2 desktop:grid-cols-4 grid grid-cols-1 gap-[12px]">
+      <Grid.Root cols={{ base: 1, tablet: 2, desktop: 4 }} gap={12}>
         {rows.map((item) => (
           <PortalStockRow key={item.productId} item={item} />
         ))}
-      </div>
+      </Grid.Root>
 
-      {/* Fixo no rodapé: a lista costuma passar de 40 produtos, e um botão só
-          no fim obrigaria a rolar tudo de volta depois de preencher dois. */}
-      <div className="sticky bottom-0 -mx-[16px] border-t border-(--border) bg-(--bg) px-[16px] py-[12px]">
+      <PublicPage.ActionBar>
         <Button.Root
           type="submit"
           appearance="solid"
@@ -95,7 +95,7 @@ export function PortalStockContent({ items, token }: PortalStockContentProps) {
         >
           <Button.Title>Enviar para o meu representante</Button.Title>
         </Button.Root>
-      </div>
+      </PublicPage.ActionBar>
     </form>
   );
 }

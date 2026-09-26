@@ -1,5 +1,6 @@
 import { Badge } from "@/components/Badges";
 import { Card } from "@/components/Card";
+import { Divider } from "@/components/Divider";
 import { Title } from "@/components/Title";
 import { formatMoney } from "@/utils/format/masks";
 import { ArrowLeft } from "lucide-react";
@@ -32,39 +33,44 @@ export function PortalOrderContent({ order, token }: PortalOrderContentProps) {
         <Title variant="body-sm">Minhas compras</Title>
       </Link>
 
-      <Card.Root className="h-auto p-[16px]">
-        <div className="flex flex-col gap-[12px]">
-          <div className="flex items-start justify-between gap-[12px]">
-            <Title variant="heading-md" className="min-w-0 break-words">
-              {order.factoryName}
-            </Title>
-            <Badge color={portalStatusTone(order.status)} size="sm">
-              <Badge.Text>{portalStatusLabel(order.status)}</Badge.Text>
-            </Badge>
-          </div>
-
-          <div className="flex flex-col gap-[2px]">
-            <Title variant="kpi">{formatMoney(portalOrderTotal(order))}</Title>
-            {hasIpi(order) ? (
-              <Title variant="body-xs" color="muted">
-                {formatMoney(order.totalAmount)} em mercadoria +{" "}
-                {formatMoney(order.ipiAmount)} de IPI
+      <Card.Root className="h-auto">
+        <Card.Body padding="compact">
+          <div className="flex flex-col gap-[12px]">
+            <div className="flex items-start justify-between gap-[12px]">
+              <Title variant="heading-md" className="min-w-0 break-words">
+                {order.factoryName}
               </Title>
-            ) : null}
-          </div>
+              <Badge color={portalStatusTone(order.status)} size="sm">
+                <Badge.Text>{portalStatusLabel(order.status)}</Badge.Text>
+              </Badge>
+            </div>
 
-          <div className="flex flex-col gap-[4px] border-t border-(--border) pt-[12px]">
-            <Title variant="body-sm">{portalOrderDateLine(order)}</Title>
-            <Title variant="body-xs" color="muted">
-              {portalStatusHint(order.status)}
-            </Title>
-            {order.paymentTermName ? (
-              <Title variant="body-xs" color="muted">
-                Condição de pagamento: {order.paymentTermName}
+            <div className="flex flex-col gap-[2px]">
+              <Title variant="kpi">
+                {formatMoney(portalOrderTotal(order))}
               </Title>
-            ) : null}
+              {hasIpi(order) ? (
+                <Title variant="body-xs" color="muted">
+                  {formatMoney(order.totalAmount)} em mercadoria +{" "}
+                  {formatMoney(order.ipiAmount)} de IPI
+                </Title>
+              ) : null}
+            </div>
+
+            <Divider.Root />
+            <div className="flex flex-col gap-[4px]">
+              <Title variant="body-sm">{portalOrderDateLine(order)}</Title>
+              <Title variant="body-xs" color="muted">
+                {portalStatusHint(order.status)}
+              </Title>
+              {order.paymentTermName ? (
+                <Title variant="body-xs" color="muted">
+                  Condição de pagamento: {order.paymentTermName}
+                </Title>
+              ) : null}
+            </div>
           </div>
-        </div>
+        </Card.Body>
       </Card.Root>
 
       <PortalOrderItems items={order.items} />
