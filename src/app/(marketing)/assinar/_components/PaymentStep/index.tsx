@@ -46,6 +46,7 @@ export function PaymentStep({
       </div>
 
       <Input.Mask
+        placeholder="0000 0000 0000 0000"
         label="Número do cartão"
         required
         mask="0000 0000 0000 0000"
@@ -56,6 +57,7 @@ export function PaymentStep({
       />
 
       <Input.Text
+        placeholder="Como está no cartão"
         label="Nome impresso no cartão"
         required
         value={data.holder}
@@ -77,6 +79,7 @@ export function PaymentStep({
         />
 
         <Input.Mask
+          placeholder="000"
           label="Código de segurança"
           required
           mask="000"

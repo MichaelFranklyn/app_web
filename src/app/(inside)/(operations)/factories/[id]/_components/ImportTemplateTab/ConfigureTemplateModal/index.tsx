@@ -112,6 +112,7 @@ export function ConfigureTemplateModal(props: ConfigureTemplateModalProps) {
                   Linha do cabeçalho
                 </Title>
                 <Input.Select
+                  placeholder="Escolha a linha do cabeçalho"
                   options={headerOptions}
                   value={
                     headerOptions.find(
@@ -179,6 +180,7 @@ export function ConfigureTemplateModal(props: ConfigureTemplateModalProps) {
                     Qual valor é o preço unitário?
                   </Title>
                   <Input.Select
+                    placeholder="Escolha a coluna do preço"
                     options={priceOptions}
                     value={
                       priceOptions.find(

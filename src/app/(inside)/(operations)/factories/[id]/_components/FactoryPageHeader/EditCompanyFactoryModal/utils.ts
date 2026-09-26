@@ -47,6 +47,7 @@ export const FORM_STEPS: FormStepSchema[] = [
           {
             name: "commissionCalcBasis",
             label: "Base de cálculo",
+            placeholder: "Escolha a base de cálculo",
             type: "select-single",
             required: true,
             options: COMMISSION_BASIS_OPTIONS,
@@ -70,6 +71,7 @@ export const FORM_STEPS: FormStepSchema[] = [
           {
             name: "installmentDueBasis",
             label: "Os dias do boleto contam de quando?",
+            placeholder: "Escolha de onde contam os dias",
             type: "select-single",
             required: false,
             options: INSTALLMENT_DUE_BASIS_OPTIONS,

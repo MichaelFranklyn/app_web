@@ -93,6 +93,7 @@ export function PartialItemsSection({
                   </div>
                   <div className="w-[110px]">
                     <Input.Number
+                      placeholder="Qtd."
                       size="sm"
                       min={0}
                       max={ordered}

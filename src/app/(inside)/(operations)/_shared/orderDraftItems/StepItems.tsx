@@ -111,6 +111,7 @@ export function StepItems({ draft, minimum, freeFreight }: Props) {
 
           <div className="tablet:col-span-3 col-span-6">
             <Input.Select
+              placeholder="Escolha o tipo de desconto"
               label="Tipo de desconto"
               options={DISCOUNT_TYPE_OPTIONS}
               value={
