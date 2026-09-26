@@ -1,17 +1,18 @@
 "use client";
+import { ThemeColor } from "@/lib/theme";
+import { Dot } from "@/components/Dot";
 
 import { Grid } from "@/components/Grid";
 import { Title } from "@/components/Title";
-import { cn } from "@/lib/utils";
 
 import { Insight } from "../../interface";
 import { InsightTone, TONE_SECTION } from "../../utils";
 import { InsightCard } from "../InsightCard";
 
-const DOT: Record<InsightTone, string> = {
-  urgent: "bg-(--red)",
-  attention: "bg-(--amber)",
-  info: "bg-(--blue)",
+const DOT: Record<InsightTone, ThemeColor> = {
+  urgent: "red",
+  attention: "amber",
+  info: "blue",
 };
 
 interface Props {
@@ -37,9 +38,11 @@ export function InsightSection({ tone, insights, sellerId }: Props) {
   return (
     <section className="flex flex-col gap-12">
       <div className="flex flex-wrap items-baseline gap-8">
-        <span
-          aria-hidden
-          className={cn("size-8 shrink-0 rounded-full", DOT[tone])}
+        <Dot.Root
+          color={DOT[tone]}
+          size="md"
+          pulse={false}
+          className="opacity-100"
         />
         <Title variant="heading-sm">{section.title}</Title>
         <Title variant="micro" color="muted">
