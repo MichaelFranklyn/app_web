@@ -9,7 +9,7 @@ interface Props {
   imageUrl: string | null;
   /** Nome do produto — vira o texto alternativo da imagem. */
   name: string;
-  size?: "xs" | "sm" | "lg";
+  size?: "xs" | "sm" | "md" | "lg";
 }
 
 const BOX = {
@@ -21,10 +21,12 @@ const BOX = {
    */
   xs: "size-24",
   sm: "size-40",
+  /** Fora da escala do tema: por isso o valor entre colchetes. */
+  md: "size-[56px]",
   lg: "aspect-square w-full",
 } as const;
 
-const ICON = { xs: 12, sm: 16, lg: 28 } as const;
+const ICON = { xs: 12, sm: 16, md: 20, lg: 28 } as const;
 
 /**
  * Miniatura do produto, com o mesmo enquadramento em qualquer lugar que ela

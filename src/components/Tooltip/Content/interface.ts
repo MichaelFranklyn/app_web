@@ -9,4 +9,6 @@ export interface TooltipProps extends React.ComponentPropsWithoutRef<
   delay?: number;
   position?: "top" | "bottom" | "left" | "right";
   className?: string;
+  /** Conteúdo em `TooltipPanel`: sem respiro nem largura máxima na caixa. */
+  panel?: boolean;
 }

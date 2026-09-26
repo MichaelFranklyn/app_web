@@ -33,14 +33,16 @@ export function PortalSummary({ summary }: PortalSummaryProps) {
         />
       </div>
 
-      <Card.Root className="h-auto p-[16px]">
-        <div className="mb-[8px] flex flex-col gap-[2px]">
-          <Title variant="heading-sm">Compras por mês</Title>
-          <Title variant="body-xs" color="muted">
-            Últimos 12 meses, incluindo os meses sem compra.
-          </Title>
-        </div>
-        <PortalPurchaseChart months={summary.months} />
+      <Card.Root className="h-auto">
+        <Card.Body padding="compact">
+          <div className="mb-[8px] flex flex-col gap-[2px]">
+            <Title variant="heading-sm">Compras por mês</Title>
+            <Title variant="body-xs" color="muted">
+              Últimos 12 meses, incluindo os meses sem compra.
+            </Title>
+          </div>
+          <PortalPurchaseChart months={summary.months} />
+        </Card.Body>
       </Card.Root>
 
       <PortalFactorySplit
@@ -53,17 +55,19 @@ export function PortalSummary({ summary }: PortalSummaryProps) {
 
 function Kpi({ label, value }: { label: string; value: string }) {
   return (
-    <Card.Root className="h-auto p-[12px]">
-      <div className="flex flex-col gap-[4px]">
-        <Title variant="label" color="muted">
-          {label}
-        </Title>
-        {/* `value` e não `kpi`: três valores de moeda lado a lado no celular
+    <Card.Root className="h-auto">
+      <Card.Body padding="compact">
+        <div className="flex flex-col gap-[4px]">
+          <Title variant="label" color="muted">
+            {label}
+          </Title>
+          {/* `value` e não `kpi`: três valores de moeda lado a lado no celular
             estouram a coluna no tamanho maior. */}
-        <Title variant="value" className="break-words">
-          {value}
-        </Title>
-      </div>
+          <Title variant="value" className="break-words">
+            {value}
+          </Title>
+        </div>
+      </Card.Body>
     </Card.Root>
   );
 }

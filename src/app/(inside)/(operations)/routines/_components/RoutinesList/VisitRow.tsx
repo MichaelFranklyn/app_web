@@ -1,4 +1,5 @@
 "use client";
+import { Card } from "@/components/Card";
 
 import { Badge } from "@/components/Badges";
 import { factoryName } from "@/utils/company";
@@ -60,7 +61,8 @@ export function VisitRow({ item, dayDate, onChanged }: Props) {
   return (
     <>
       {overlays}
-      <div
+      <Card.Row
+        interactive
         role="button"
         tabIndex={0}
         onClick={openView}
@@ -71,7 +73,6 @@ export function VisitRow({ item, dayDate, onChanged }: Props) {
           }
         }}
         title={`Visualizar ${noun}`}
-        className="flex cursor-pointer items-center gap-12 border-t border-(--border) px-16 py-12 transition-colors hover:bg-(--bg3) focus:outline-none focus-visible:ring-1 focus-visible:ring-(--amber)"
       >
         <div
           className="shrink-0"
@@ -170,7 +171,7 @@ export function VisitRow({ item, dayDate, onChanged }: Props) {
         <div className="shrink-0" onClick={(e) => e.stopPropagation()}>
           {menu}
         </div>
-      </div>
+      </Card.Row>
     </>
   );
 }

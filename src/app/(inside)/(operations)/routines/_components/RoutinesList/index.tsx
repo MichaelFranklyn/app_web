@@ -1,10 +1,12 @@
 "use client";
+import { Button } from "@/components/Button";
+import { Divider } from "@/components/Divider";
+import { Collapse } from "@/components/Collapse";
 
 import { Badge } from "@/components/Badges";
 import { Card } from "@/components/Card";
 import { Title } from "@/components/Title";
-import { ChevronRight, Route } from "lucide-react";
-import Link from "next/link";
+import { Route } from "lucide-react";
 import { useState } from "react";
 import { RoutineCapacity, VisitScheduleDay } from "../../interface";
 import {
@@ -90,19 +92,12 @@ export function RoutinesList({
             {/* Cabeçalho do dia: botão de abrir/fechar + atalho para a rota do
                 dia (sempre visível, mesmo com o dia fechado). O link fica FORA do
                 botão — <a> dentro de <button> é HTML inválido. */}
-            <div className="flex items-stretch bg-(--bg3)">
-              <button
-                type="button"
-                onClick={() => toggleDate(cell.date)}
-                aria-expanded={isOpen}
-                className="flex min-w-0 flex-1 cursor-pointer items-center gap-12 px-16 py-12 text-left transition-colors hover:bg-(--bg2)"
+            <Collapse.Header>
+              <Collapse.Trigger
+                open={isOpen}
+                onToggle={() => toggleDate(cell.date)}
+                variant="bar"
               >
-                <ChevronRight
-                  size={16}
-                  className={`shrink-0 text-(--muted) transition-transform ${
-                    isOpen ? "rotate-90" : ""
-                  }`}
-                />
                 <div className="flex min-w-0 flex-1 flex-wrap items-center gap-8">
                   <Title variant="heading-sm">{cell.dayLabel}</Title>
                   <Title variant="micro" color="muted">
@@ -129,26 +124,29 @@ export function RoutinesList({
                     </Badge.Text>
                   </Badge.Root>
                 </div>
-              </button>
+              </Collapse.Trigger>
               {cell.day && (
-                <Link
-                  href={`/routines/${cell.date}${
-                    sellerId ? `?seller=${sellerId}` : ""
-                  }`}
-                  className="flex shrink-0 items-center gap-4 border-l border-(--border) px-16 text-(--muted) transition-colors hover:text-(--amber)"
-                  title="Abrir a rota deste dia no mapa"
-                >
-                  <Route size={14} />
-                  <Title
-                    variant="micro"
-                    weight="medium"
-                    className="tablet:inline hidden text-inherit"
+                <>
+                  <Divider.Root orientation="vertical" />
+                  <Button.Link
+                    href={`/routines/${cell.date}${
+                      sellerId ? `?seller=${sellerId}` : ""
+                    }`}
+                    appearance="ghost"
+                    color="neutral"
+                    size="sm"
+                    noUppercase
+                    className="h-auto self-center"
+                    title="Abrir a rota deste dia no mapa"
                   >
-                    Ver rota
-                  </Title>
-                </Link>
+                    <Button.Icon icon={Route} />
+                    <Button.Title className="tablet:inline hidden">
+                      Ver rota
+                    </Button.Title>
+                  </Button.Link>
+                </>
               )}
-            </div>
+            </Collapse.Header>
 
             {isOpen && (
               <div className="flex flex-col">
@@ -208,7 +206,7 @@ export function RoutinesList({
                     Some no dia não trabalhado: o backend recusa a visita, e
                     oferecer um botão que só devolve erro é pior que não tê-lo. */}
                 {!dayOffDates.has(cell.date) && (
-                  <div className="border-t border-(--border) p-16">
+                  <Card.Section divided>
                     <AddVisitCard
                       day={cell.day}
                       date={cell.date}
@@ -218,7 +216,7 @@ export function RoutinesList({
                       capacity={capacity}
                       onChanged={onChanged}
                     />
-                  </div>
+                  </Card.Section>
                 )}
               </div>
             )}

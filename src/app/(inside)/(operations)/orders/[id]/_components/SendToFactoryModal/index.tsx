@@ -1,4 +1,6 @@
 "use client";
+import { Alert } from "@/components/Alert";
+import { Card } from "@/components/Card";
 
 import { Button } from "@/components/Button";
 import { Input } from "@/components/Input";
@@ -203,46 +205,50 @@ export function SendToFactoryModal({ order, onSuccess }: Props) {
             {!loadingContacts && !destino && (
               // Sem telefone não há o que abrir. A saída é concreta: onde
               // cadastrar, em vez de "contato inválido".
-              <div className="rounded-(--radius) border border-(--red-bd) bg-(--red-bg) p-12">
-                <Title variant="body-sm" color="red" weight="semibold">
-                  Esta fábrica não tem telefone cadastrado
-                </Title>
-                <Title variant="body-sm" color="secondary" className="mt-4">
-                  Cadastre um contato com telefone (com DDD) na aba Contatos da
-                  fábrica e volte aqui. Você também pode exportar o PDF em
-                  “Exportar” e mandar por fora — mas aí o envio não fica
-                  registrado.
-                </Title>
-              </div>
+              <Alert.Root variant="error">
+                <Alert.Content>
+                  <Alert.Title>
+                    Esta fábrica não tem telefone cadastrado
+                  </Alert.Title>
+                  <Alert.Description>
+                    Cadastre um contato com telefone (com DDD) na aba Contatos
+                    da fábrica e volte aqui. Você também pode exportar o PDF em
+                    “Exportar” e mandar por fora — mas aí o envio não fica
+                    registrado.
+                  </Alert.Description>
+                </Alert.Content>
+              </Alert.Root>
             )}
 
             {destino && (
               <>
-                <div className="rounded-(--radius) bg-(--bg3) p-12">
-                  <Title variant="eyebrow" color="muted">
-                    Vai para
-                  </Title>
-                  <Title variant="body-md" weight="semibold" className="mt-2">
-                    {destino.contact.name}
-                    {destino.contact.isPrimary && " · principal"}
-                  </Title>
-                  <Title variant="body-sm" color="secondary">
-                    {destino.contact.phone}
-                  </Title>
-                </div>
+                <Card.Root inset tone="muted">
+                  <Card.Body padding="sm">
+                    <Title variant="eyebrow" color="muted">
+                      Vai para
+                    </Title>
+                    <Title variant="body-md" weight="semibold" className="mt-2">
+                      {destino.contact.name}
+                      {destino.contact.isPrimary && " · principal"}
+                    </Title>
+                    <Title variant="body-sm" color="secondary">
+                      {destino.contact.phone}
+                    </Title>
+                  </Card.Body>
+                </Card.Root>
 
                 {/* O aviso do anexo é a parte que não pode ser discreta: é o
                     único passo que continua na mão da pessoa. */}
-                <div className="rounded-(--radius) border border-(--amber-bd) bg-(--amber-bg) p-12">
-                  <Title variant="body-sm" color="amber" weight="semibold">
-                    Anexe o PDF na conversa
-                  </Title>
-                  <Title variant="body-sm" color="secondary" className="mt-4">
-                    O arquivo baixa no seu aparelho e a mensagem abre pronta,
-                    mas o WhatsApp não deixa anexar automaticamente. Toque no
-                    clipe e escolha o PDF do pedido.
-                  </Title>
-                </div>
+                <Alert.Root variant="warning">
+                  <Alert.Content>
+                    <Alert.Title>Anexe o PDF na conversa</Alert.Title>
+                    <Alert.Description>
+                      O arquivo baixa no seu aparelho e a mensagem abre pronta,
+                      mas o WhatsApp não deixa anexar automaticamente. Toque no
+                      clipe e escolha o PDF do pedido.
+                    </Alert.Description>
+                  </Alert.Content>
+                </Alert.Root>
 
                 <Input.Text
                   label="Observação (opcional)"

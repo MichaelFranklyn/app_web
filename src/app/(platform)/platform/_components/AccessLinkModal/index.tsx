@@ -1,9 +1,11 @@
 "use client";
+import { Emphasis } from "@/components/Emphasis";
 
 import { Alert } from "@/components/Alert";
 import { Button } from "@/components/Button";
 import { Modal } from "@/components/Modal";
 import { Title } from "@/components/Title";
+import { UrlBox } from "@/components/UrlBox";
 import { useToast } from "@/components/Toast";
 import { useAsyncAction } from "@/hooks/useAsyncAction";
 import { useMutation } from "@apollo/client/react";
@@ -90,7 +92,7 @@ export function AccessLinkModal({ user, onOpenChange }: Props) {
           {!result ? (
             <>
               <Title variant="body-sm" color="muted">
-                Emitir um link novo <strong>invalida os anteriores</strong>{" "}
+                Emitir um link novo <Emphasis>invalida os anteriores</Emphasis>{" "}
                 desta pessoa. O link vale por 15 minutos.
               </Title>
               <Alert.Root variant="info">
@@ -106,12 +108,10 @@ export function AccessLinkModal({ user, onOpenChange }: Props) {
           ) : (
             <>
               <Title variant="body-sm" color="muted">
-                Link para <strong>{result.userEmail}</strong>. Copie agora —
+                Link para <Emphasis>{result.userEmail}</Emphasis>. Copie agora —
                 depois de fechar, só emitindo outro.
               </Title>
-              <div className="rounded-md border border-(--border) bg-(--bg3) p-12 break-all">
-                <Title variant="micro">{result.link}</Title>
-              </div>
+              <UrlBox size="sm">{result.link}</UrlBox>
             </>
           )}
         </Modal.Body>

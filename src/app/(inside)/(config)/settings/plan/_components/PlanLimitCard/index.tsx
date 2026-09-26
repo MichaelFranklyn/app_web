@@ -48,9 +48,7 @@ export function PlanLimitCard({ usage }: { usage: PlanLimitUsage }) {
     <Card.Kpi>
       <Card.Kpi.Label>
         {Icon && (
-          <span aria-hidden className="shrink-0 text-(--muted2)">
-            <Icon size={13} />
-          </span>
+          <Icon aria-hidden size={13} className="shrink-0 text-(--muted2)" />
         )}
         <span className="truncate capitalize">{usage.label}</span>
       </Card.Kpi.Label>

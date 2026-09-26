@@ -1,6 +1,6 @@
 "use client";
 
-import { Button } from "@/components/Button";
+import { ToggleGroup, ToggleOption } from "@/components/ToggleGroup";
 import { LayoutGrid, List, Radar } from "lucide-react";
 import { RoutineViewMode } from "../../useRoutines";
 
@@ -9,39 +9,21 @@ interface Props {
   onChange: (mode: RoutineViewMode) => void;
 }
 
-const OPTIONS: {
-  value: RoutineViewMode;
-  label: string;
-  icon: typeof LayoutGrid;
-}[] = [
+const OPTIONS: ToggleOption<RoutineViewMode>[] = [
   { value: "kanban", label: "Kanban", icon: LayoutGrid },
   { value: "list", label: "Lista", icon: List },
   { value: "radar", label: "Radar", icon: Radar },
 ];
 
-// Alterna entre a grade por dia (kanban) e a lista de visitas. Espelha o
-// visual dos botões de período: o modo ativo fica âmbar/tinted, o outro outline.
+// Alterna entre a grade por dia (kanban), a lista de visitas e o radar.
 export function RoutinesViewToggle({ value, onChange }: Props) {
   return (
-    <div className="flex items-center gap-4" data-tour="routines-view-toggle">
-      {OPTIONS.map((opt) => {
-        const active = value === opt.value;
-        return (
-          <Button.Root
-            key={opt.value}
-            type="button"
-            appearance={active ? "tinted" : "outline"}
-            color={active ? "amber" : "neutral"}
-            size="sm"
-            noUppercase
-            aria-pressed={active}
-            onClick={() => onChange(opt.value)}
-          >
-            <Button.Icon icon={opt.icon} />
-            <Button.Title>{opt.label}</Button.Title>
-          </Button.Root>
-        );
-      })}
-    </div>
+    <ToggleGroup
+      aria-label="Modo de exibição"
+      data-tour="routines-view-toggle"
+      options={OPTIONS}
+      value={value}
+      onChange={onChange}
+    />
   );
 }

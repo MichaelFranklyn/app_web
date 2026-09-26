@@ -1,4 +1,5 @@
 "use client";
+import { Alert } from "@/components/Alert";
 
 import { Button } from "@/components/Button";
 import { Input } from "@/components/Input";
@@ -130,17 +131,19 @@ export function AddVisitModal({
             {/* Aviso de limite: aparece só quando o dia está cheio e o usuário
                 confirmou a intenção de adicionar mesmo assim. */}
             {confirmingOverLimit && isDayFull && (
-              <div className="flex flex-col gap-8 rounded-(--radius-md) border border-(--amber-bd) bg-(--amber-bg) p-12">
-                <Title variant="body-xs" weight="semibold" color="amber">
-                  Este dia já atingiu o limite de {typeLimit}{" "}
-                  {isRemote ? "contatos" : "visitas"}.
-                </Title>
-                <Title variant="micro" color="muted">
-                  {nextDayHasRoom && nextDayLabel
-                    ? `Você pode adicionar mesmo assim ou agendar no dia seguinte (${nextDayLabel}).`
-                    : "Você pode adicionar mesmo assim. O dia seguinte não tem espaço."}
-                </Title>
-              </div>
+              <Alert.Root variant="warning">
+                <Alert.Content>
+                  <Alert.Title>
+                    Este dia já atingiu o limite de {typeLimit}{" "}
+                    {isRemote ? "contatos" : "visitas"}.
+                  </Alert.Title>
+                  <Alert.Description>
+                    {nextDayHasRoom && nextDayLabel
+                      ? `Você pode adicionar mesmo assim ou agendar no dia seguinte (${nextDayLabel}).`
+                      : "Você pode adicionar mesmo assim. O dia seguinte não tem espaço."}
+                  </Alert.Description>
+                </Alert.Content>
+              </Alert.Root>
             )}
           </div>
         </Modal.Body>

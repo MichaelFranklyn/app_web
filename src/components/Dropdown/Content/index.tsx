@@ -8,19 +8,22 @@ interface DropdownContentProps extends React.ComponentPropsWithoutRef<
   typeof DropdownMenuPrimitive.Content
 > {
   sideOffset?: number;
+  /** Painel (notificações): sem o respiro vertical de menu, em coluna. */
+  panel?: boolean;
 }
 
 export const Content = React.forwardRef<
   React.ComponentRef<typeof DropdownMenuPrimitive.Content>,
   DropdownContentProps
->(({ className, sideOffset = 6, ...props }, ref) => (
+>(({ className, sideOffset = 6, panel = false, ...props }, ref) => (
   <DropdownMenuPrimitive.Portal>
     <DropdownMenuPrimitive.Content
       ref={ref}
       sideOffset={sideOffset}
       className={cn(
         "z-50 min-w-[160px] border border-(--border) bg-(--bg2)",
-        "rounded-(--r-lg) py-4 shadow-(--shadow-md)",
+        "rounded-(--r-lg) shadow-(--shadow-md)",
+        panel ? "flex flex-col" : "py-4",
         "animate-in fade-in zoom-in-95 data-[state=closed]:animate-out data-[state=closed]:fade-out data-[state=closed]:zoom-out-95 duration-200",
         className
       )}

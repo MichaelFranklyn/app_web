@@ -7,5 +7,27 @@ export const rootStyle = cva(cardBaseStyle, {
     isCompact: {
       true: "px-4 py-[14px]",
     },
+    /** Fundo: `muted` (bg3) é a caixa DENTRO de um card, modal ou painel. */
+    tone: {
+      default: "",
+      muted: "bg-(--bg3)",
+      /** O que está incluído / deu certo: fundo e borda verdes. */
+      success: "border-(--green-bd) bg-(--green-bg)",
+      transparent: "bg-transparent",
+    },
+    /**
+     * Caixa interna — um bloco dentro de modal/card, não um card de página:
+     * raio menor e altura do conteúdo (o card de página estica na grade).
+     */
+    inset: {
+      true: "h-auto rounded-(--r-md)",
+    },
+    dashed: {
+      true: "border-dashed",
+    },
+    /** Clicável: realce âmbar na borda ao passar o mouse. */
+    interactive: {
+      true: "cursor-pointer transition-colors hover:border-(--amber) focus:outline-none focus-visible:ring-1 focus-visible:ring-(--amber)",
+    },
   },
 });

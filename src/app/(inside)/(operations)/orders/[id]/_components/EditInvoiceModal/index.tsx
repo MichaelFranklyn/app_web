@@ -1,4 +1,5 @@
 "use client";
+import { Card } from "@/components/Card";
 
 import { Alert } from "@/components/Alert";
 import { Button } from "@/components/Button";
@@ -213,39 +214,41 @@ function ConfirmBlock({
   onConfirm,
 }: ConfirmBlockProps) {
   return (
-    <div className="flex flex-col gap-12 rounded-(--r-md) border border-(--border) bg-(--bg2) p-16">
-      <div className="flex flex-col gap-4">
-        <Title variant="body-sm" weight="medium">
-          {title}
-        </Title>
-        <Title variant="body-xs" color="muted">
-          {description}
-        </Title>
-      </div>
-      <div className="flex gap-8">
-        <Button.Root
-          type="button"
-          appearance="ghost"
-          color="neutral"
-          size="sm"
-          noUppercase
-          disabled={isLoading}
-          onClick={onCancel}
-        >
-          <Button.Title>Cancelar</Button.Title>
-        </Button.Root>
-        <Button.Root
-          type="button"
-          appearance="solid"
-          color={color}
-          size="sm"
-          noUppercase
-          loading={isLoading}
-          onClick={onConfirm}
-        >
-          <Button.Title>{confirmLabel}</Button.Title>
-        </Button.Root>
-      </div>
-    </div>
+    <Card.Root inset>
+      <Card.Body padding="compact" className="flex flex-col gap-12">
+        <div className="flex flex-col gap-4">
+          <Title variant="body-sm" weight="medium">
+            {title}
+          </Title>
+          <Title variant="body-xs" color="muted">
+            {description}
+          </Title>
+        </div>
+        <div className="flex gap-8">
+          <Button.Root
+            type="button"
+            appearance="ghost"
+            color="neutral"
+            size="sm"
+            noUppercase
+            disabled={isLoading}
+            onClick={onCancel}
+          >
+            <Button.Title>Cancelar</Button.Title>
+          </Button.Root>
+          <Button.Root
+            type="button"
+            appearance="solid"
+            color={color}
+            size="sm"
+            noUppercase
+            loading={isLoading}
+            onClick={onConfirm}
+          >
+            <Button.Title>{confirmLabel}</Button.Title>
+          </Button.Root>
+        </div>
+      </Card.Body>
+    </Card.Root>
   );
 }

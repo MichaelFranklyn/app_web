@@ -15,6 +15,7 @@ import { useInputContext } from "./context";
 import {
   inputSizeMinHeight,
   inputSizePadding,
+  inputSizeText,
   inputStyles,
   selectStyles,
 } from "./styles";
@@ -52,6 +53,20 @@ export interface InputSelectProps extends Omit<
   onSearch?: (term: string) => void;
   /** Indicador de carregamento das opções (usado no modo assíncrono). */
   loading?: boolean;
+  /**
+   * Formulário nativo (Server Action / `FormData`): envia o VALOR da opção num
+   * campo oculto com este nome. Sem isso, o `name` cairia na caixa de busca e o
+   * formulário mandaria o rótulo digitado ("Visitei"), não o valor ("VISITED").
+   */
+  name?: string;
+  /**
+   * `false` para listas curtas: a caixa vira só leitura e tocar nela abre a
+   * lista SEM abrir o teclado do celular — que, para escolher entre cinco
+   * opções, só cobriria metade da tela.
+   */
+  searchable?: boolean;
+  /** Valor inicial quando o campo não é controlado (sem `value`). */
+  defaultValue?: SelectOption | SelectOption[] | null;
 }
 
 export const InputSelect = ({
@@ -73,8 +88,23 @@ export const InputSelect = ({
   required,
   onSearch,
   loading,
+  name,
+  defaultValue,
   ...props
 }: InputSelectProps) => {
+  const [uncontrolled, setUncontrolled] = useState<InputSelectProps["value"]>(
+    defaultValue ?? null
+  );
+  const isControlled = value !== undefined;
+  const currentValue = isControlled ? value : uncontrolled;
+  const handleChange: InputSelectProps["onChange"] = (next) => {
+    if (!isControlled) setUncontrolled(next);
+    onChange?.(next);
+  };
+  const submittedValues = (
+    Array.isArray(currentValue) ? currentValue : [currentValue]
+  ).filter((option): option is SelectOption => !!option);
+
   const isError = !!error;
   const hintMessage = typeof error === "string" ? error : hint;
 
@@ -96,8 +126,8 @@ export const InputSelect = ({
           <InputSelectControl
             className={className}
             options={options}
-            value={value}
-            onChange={onChange}
+            value={currentValue}
+            onChange={handleChange}
             variant={variant}
             onCreateOption={onCreateOption}
             disabledClear={disabledClear}
@@ -112,8 +142,8 @@ export const InputSelect = ({
           <InputSelectControl
             className={className}
             options={options}
-            value={value}
-            onChange={onChange}
+            value={currentValue}
+            onChange={handleChange}
             variant={variant}
             onCreateOption={onCreateOption}
             disabledClear={disabledClear}
@@ -124,6 +154,19 @@ export const InputSelect = ({
           />
         </div>
       )}
+
+      {name
+        ? (submittedValues.length > 0 ? submittedValues : [null]).map(
+            (option, index) => (
+              <input
+                key={option?.value ?? index}
+                type="hidden"
+                name={name}
+                value={option?.value ?? ""}
+              />
+            )
+          )
+        : null}
 
       {hintMessage && <InputHint>{hintMessage}</InputHint>}
     </InputRoot>
@@ -145,8 +188,9 @@ const InputSelectControl = ({
   placeholder,
   onSearch,
   loading,
+  searchable = true,
   ...props
-}: Omit<InputSelectProps, "size">) => {
+}: Omit<InputSelectProps, "size" | "name" | "defaultValue">) => {
   const context = useInputContext();
   const {
     containerRef,
@@ -227,8 +271,10 @@ const InputSelectControl = ({
   const computedClasses = cn(
     inputStyles.controlBase,
     inputSizePadding[size],
+    inputSizeText[size],
     !inGroup && inputSizeMinHeight[size],
-    "flex items-center gap-[8px] cursor-text",
+    "flex items-center gap-[8px]",
+    searchable ? "cursor-text" : "cursor-pointer",
     // Travado tem de PARECER travado: o clique já era ignorado, mas o campo
     // continuava com a mesma cara de um editável, e quem tentava escolher não
     // entendia por que nada acontecia.
@@ -272,6 +318,8 @@ const InputSelectControl = ({
           ref={inputRef}
           type="text"
           disabled={disabled}
+          readOnly={!searchable}
+          inputMode={searchable ? undefined : "none"}
           placeholder={
             variant === "multi" && select.multiValue.length > 0
               ? ""
@@ -284,13 +332,17 @@ const InputSelectControl = ({
             if (!select.isSearching) select.setIsSearching(true);
             if (!open) setOpen(true);
           }}
-          className="min-w-[50px] flex-1 bg-transparent outline-none disabled:cursor-not-allowed"
+          className={cn(
+            "min-w-[50px] flex-1 bg-transparent outline-none disabled:cursor-not-allowed",
+            !searchable && "cursor-pointer caret-transparent"
+          )}
         />
       </div>
 
       {!disabledClear && select.hasValue && (
         <button
           type="button"
+          aria-label="Limpar"
           className={selectStyles.clearIcon}
           onClick={select.handleClear}
           disabled={disabled}

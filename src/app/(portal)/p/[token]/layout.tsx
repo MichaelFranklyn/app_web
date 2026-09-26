@@ -1,6 +1,7 @@
+import { LinkExpired } from "@/components/LinkExpired";
+import { PublicPage } from "@/components/PublicPage";
 import { Title } from "@/components/Title";
 import { portalFetch } from "@/services/graphql/portalFetch";
-import { PortalExpired } from "./_components/PortalExpired";
 import { PortalHeader } from "./_components/PortalHeader";
 import { PortalNav } from "./_components/PortalNav";
 import { PORTAL_PROFILE } from "./gql";
@@ -28,24 +29,31 @@ export default async function PortalTokenLayout({
   const data = await portalFetch<PortalProfileData>(PORTAL_PROFILE, token);
   const profile = data?.portalProfile?.data ?? null;
 
-  if (!profile) return <PortalExpired />;
+  if (!profile) {
+    return (
+      <LinkExpired>
+        Peça um link novo ao seu representante — ele consegue gerar outro na
+        hora.
+      </LinkExpired>
+    );
+  }
 
   return (
-    <div className="flex min-h-screen flex-col">
+    <PublicPage.Root>
       <PortalHeader profile={profile} />
-      <PortalNav token={token} />
 
-      <main className="mx-auto w-full max-w-[1120px] flex-1 px-[16px] py-[24px]">
-        {children}
-      </main>
+      <PublicPage.Nav aria-label="Seções do portal">
+        <PortalNav token={token} />
+      </PublicPage.Nav>
 
-      <footer className="border-t border-(--border) px-[16px] py-[24px]">
-        <div className="mx-auto max-w-[1120px]">
-          <Title variant="body-sm" color="muted">
-            Dúvida sobre algum pedido? Fale com o seu representante.
-          </Title>
-        </div>
-      </footer>
-    </div>
+      {/* Sem respiro em cima: a margem das abas já separa. */}
+      <PublicPage.Main className="pt-0">{children}</PublicPage.Main>
+
+      <PublicPage.Footer>
+        <Title variant="body-sm" color="muted">
+          Dúvida sobre algum pedido? Fale com o seu representante.
+        </Title>
+      </PublicPage.Footer>
+    </PublicPage.Root>
   );
 }

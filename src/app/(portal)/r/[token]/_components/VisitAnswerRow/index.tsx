@@ -1,5 +1,7 @@
 import { Badge } from "@/components/Badges";
 import { Card } from "@/components/Card";
+import { Grid } from "@/components/Grid";
+import { Input } from "@/components/Input";
 import { Title } from "@/components/Title";
 import {
   CONTACT_TYPE_LABEL,
@@ -12,10 +14,9 @@ interface Props {
   stop: VisitResponseStop;
 }
 
-/** Mesma altura de toque do formulário de estoque do portal: 44px, 16px de texto
- *  (abaixo disso o Safari do iPhone dá zoom automático ao focar o campo). */
-const FIELD =
-  "h-[44px] w-full rounded-[8px] border border-(--border) bg-(--bg2) px-[8px] text-[16px] text-(--text)";
+const STATUS_OPTIONS = VISIT_STATUS_OPTIONS.filter(
+  (option) => option.value !== "PENDING"
+);
 
 /**
  * Uma parada do dia e o que houve nela.
@@ -29,15 +30,17 @@ const FIELD =
  * coisas são independentes na cabeça de quem responde: "visitei" é a situação e
  * "saiu pedido" é a consequência. A caixa já vem marcada quando o sistema achou
  * o pedido sozinho — perguntar de novo faria o registro parecer perdido.
+ *
+ * Campos em `size="lg"`: é o tamanho de toque do DS (44px, 16px de texto — sem
+ * o zoom automático do Safari do iPhone ao focar).
  */
 export function VisitAnswerRow({ stop }: Props) {
-  const isAnswered = stop.status !== "PENDING";
   const outcomeOptions = outcomeOptionsFor(stop.contactType);
   const place = [stop.clientCity, stop.clientState].filter(Boolean).join("/");
 
   return (
-    <Card.Root className="p-[12px]">
-      <div className="flex flex-col gap-[10px]">
+    <Card.Root>
+      <Card.Body padding="compact" className="gap-[12px]">
         <div className="flex flex-col gap-[4px]">
           <div className="flex flex-wrap items-center gap-[8px]">
             <Badge color="neutral" size="xs">
@@ -62,69 +65,50 @@ export function VisitAnswerRow({ stop }: Props) {
           </Title>
         </div>
 
-        <div className="tablet:grid-cols-2 grid grid-cols-1 gap-[8px]">
-          <label className="flex flex-col gap-[4px]">
-            <Title variant="body-xs" color="muted">
-              O que aconteceu
-            </Title>
-            <select
-              name={`status__${stop.id}`}
-              defaultValue={isAnswered ? stop.status : ""}
-              className={FIELD}
-            >
-              <option value="">Ainda não respondi</option>
-              {VISIT_STATUS_OPTIONS.filter(
-                (option) => option.value !== "PENDING"
-              ).map((option) => (
-                <option key={option.value} value={option.value}>
-                  {option.label}
-                </option>
-              ))}
-            </select>
-          </label>
-
-          <label className="flex flex-col gap-[4px]">
-            <Title variant="body-xs" color="muted">
-              Resultado
-            </Title>
-            <select
-              name={`outcome__${stop.id}`}
-              defaultValue={stop.outcome ?? ""}
-              className={FIELD}
-            >
-              <option value="">—</option>
-              {outcomeOptions.map((option) => (
-                <option key={option.value} value={option.value}>
-                  {option.label}
-                </option>
-              ))}
-            </select>
-          </label>
-        </div>
-
-        <label className="flex items-center gap-[8px]">
-          <input
-            type="checkbox"
-            name={`order__${stop.id}`}
-            defaultChecked={stop.hasLinkedOrder}
-            className="size-[20px] accent-(--amber)"
+        {/* Uma coluna sempre: o card vive numa grade de até três, e com os dois
+            seletores lado a lado "Ainda não respondi" virava "Ainda não re". */}
+        <Grid.Root cols={{ base: 1 }} gap={12}>
+          <Input.Select
+            name={`status__${stop.id}`}
+            label="O que aconteceu"
+            placeholder="Ainda não respondi"
+            size="lg"
+            searchable={false}
+            options={STATUS_OPTIONS}
+            defaultValue={
+              STATUS_OPTIONS.find((option) => option.value === stop.status) ??
+              null
+            }
           />
-          <Title variant="body-sm">Rendeu pedido</Title>
-        </label>
-
-        <label className="flex flex-col gap-[4px]">
-          <Title variant="body-xs" color="muted">
-            Observação
-          </Title>
-          <textarea
-            name={`notes__${stop.id}`}
-            defaultValue={stop.notes ?? ""}
-            rows={2}
+          <Input.Select
+            name={`outcome__${stop.id}`}
+            label="Resultado"
             placeholder="Opcional"
-            className="w-full rounded-[8px] border border-(--border) bg-(--bg2) p-[8px] text-[16px] text-(--text)"
+            size="lg"
+            searchable={false}
+            options={outcomeOptions}
+            defaultValue={
+              outcomeOptions.find((option) => option.value === stop.outcome) ??
+              null
+            }
           />
-        </label>
-      </div>
+        </Grid.Root>
+
+        <Input.Checkbox
+          name={`order__${stop.id}`}
+          defaultChecked={stop.hasLinkedOrder}
+          label="Rendeu pedido"
+        />
+
+        <Input.Textarea
+          name={`notes__${stop.id}`}
+          label="Observação"
+          placeholder="Opcional"
+          size="lg"
+          rows={2}
+          defaultValue={stop.notes ?? ""}
+        />
+      </Card.Body>
     </Card.Root>
   );
 }

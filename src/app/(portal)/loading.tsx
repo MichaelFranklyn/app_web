@@ -1,4 +1,5 @@
 import { Loading } from "@/components/Loading";
+import { PublicPage } from "@/components/PublicPage";
 
 /**
  * Limite de Suspense do grupo inteiro — e o único que cobre o fetch do
@@ -16,16 +17,14 @@ import { Loading } from "@/components/Loading";
  */
 export default function PortalGroupLoading() {
   return (
-    <div className="flex min-h-screen flex-col">
-      <header className="border-b border-(--border) px-[16px] py-[16px]">
-        <div className="mx-auto flex max-w-[1120px] flex-col gap-[6px]">
-          <Loading.Skeleton className="h-[20px] w-[200px]" />
-          <Loading.Skeleton className="h-[14px] w-[140px]" />
-        </div>
-      </header>
-      <main className="mx-auto w-full max-w-[1120px] flex-1 px-[16px] py-[24px]">
+    <PublicPage.Root>
+      <PublicPage.Header className="gap-[6px]">
+        <Loading.Skeleton className="h-[20px] w-[200px]" />
+        <Loading.Skeleton className="h-[14px] w-[140px]" />
+      </PublicPage.Header>
+      <PublicPage.Main>
         <Loading.Skeleton className="h-[180px] w-full" />
-      </main>
-    </div>
+      </PublicPage.Main>
+    </PublicPage.Root>
   );
 }

@@ -5,6 +5,7 @@ import { Content } from "./Content";
 import { Item } from "./Item";
 import { Label } from "./Label";
 import { Separator } from "./Separator";
+import { PanelFooter, PanelHeader, PanelRow, PanelRowSkeleton } from "./Panel";
 
 export const Dropdown = {
   Root: DropdownMenuPrimitive.Root,
@@ -15,4 +16,8 @@ export const Dropdown = {
   Item,
   Label,
   Separator,
+  PanelHeader,
+  PanelRow,
+  PanelRowSkeleton,
+  PanelFooter,
 };

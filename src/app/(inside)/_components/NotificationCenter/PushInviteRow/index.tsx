@@ -1,8 +1,8 @@
 "use client";
+import { Dropdown } from "@/components/Dropdown";
 
 import { Loading } from "@/components/Loading";
 import { Title } from "@/components/Title";
-import { cn } from "@/lib/utils";
 import { BellRing } from "lucide-react";
 
 interface Props {
@@ -24,15 +24,11 @@ interface Props {
  */
 export function PushInviteRow({ onEnable, isLoading }: Props) {
   return (
-    <button
-      type="button"
+    <Dropdown.PanelRow
+      tone="amber"
       onClick={onEnable}
       disabled={isLoading}
-      className={cn(
-        "flex items-center gap-8 border-t border-(--border) px-12 py-10 text-left",
-        "bg-(--amber-bg)/40 transition-colors hover:bg-(--amber-bg)",
-        "disabled:cursor-default disabled:opacity-60"
-      )}
+      className="items-center gap-8 border-t"
     >
       {isLoading ? (
         <Loading.Spinner size="sm" colorClass="amber" />
@@ -50,6 +46,6 @@ export function PushInviteRow({ onEnable, isLoading }: Props) {
           Toque e responda “Permitir” quando o navegador perguntar.
         </Title>
       </div>
-    </button>
+    </Dropdown.PanelRow>
   );
 }

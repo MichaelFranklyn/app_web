@@ -1,8 +1,10 @@
 "use client";
+import { Divider } from "@/components/Divider";
+import { Collapse } from "@/components/Collapse";
 
 import { Title } from "@/components/Title";
 import { formatDate } from "@/utils/format/date";
-import { ChevronDown, ShoppingCart } from "lucide-react";
+import { ShoppingCart } from "lucide-react";
 import { useState } from "react";
 import { ProductPurchase } from "../../../interface";
 import { formatCurrency } from "../../../utils";
@@ -48,24 +50,18 @@ export function RecentPurchases({ purchases, unitLabel }: Props) {
   }`;
 
   return (
-    <div className="flex flex-col gap-8 border-t border-(--border) pt-12">
-      <button
-        type="button"
-        onClick={() => setIsOpen((open) => !open)}
-        aria-expanded={isOpen}
-        className="flex cursor-pointer items-center gap-6 text-left"
+    <div className="flex flex-col gap-8">
+      <Divider.Root className="mb-4" />
+      <Collapse.Trigger
+        open={isOpen}
+        onToggle={() => setIsOpen((open) => !open)}
+        size="sm"
       >
-        <ChevronDown
-          size={14}
-          className={`text-(--muted) transition-transform ${
-            isOpen ? "" : "-rotate-90"
-          }`}
-        />
         <ShoppingCart size={13} className="text-(--muted)" />
         <Title variant="micro" color="secondary">
           {label}
         </Title>
-      </button>
+      </Collapse.Trigger>
 
       {isOpen && (
         <ul className="flex flex-col gap-6 pl-20">

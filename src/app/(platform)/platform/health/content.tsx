@@ -1,4 +1,5 @@
 "use client";
+import { Emphasis } from "@/components/Emphasis";
 
 import { Alert } from "@/components/Alert";
 import { Card } from "@/components/Card";
@@ -8,6 +9,7 @@ import { Loading } from "@/components/Loading";
 import { PageContent } from "@/components/PageContent";
 import { PanelHeader } from "@/components/PanelHeader";
 import { QueryError } from "@/components/QueryError";
+import { RowList } from "@/components/RowList";
 import { Title } from "@/components/Title";
 import { useSeedQuery } from "@/hooks/useSeedQuery";
 import { useQuery } from "@apollo/client/react";
@@ -102,9 +104,9 @@ export default function PlatformHealthContent({
               <Alert.Content>
                 <Alert.Title>Migration pendente</Alert.Title>
                 <Alert.Description>
-                  O banco está em <strong>{health.databaseRevision}</strong> e o
-                  código em <strong>{health.codeRevision}</strong>. É a causa
-                  clássica de erro de coluna inexistente logo depois de um
+                  O banco está em <Emphasis>{health.databaseRevision}</Emphasis>{" "}
+                  e o código em <Emphasis>{health.codeRevision}</Emphasis>. É a
+                  causa clássica de erro de coluna inexistente logo depois de um
                   deploy — rode <code>alembic upgrade head</code>.
                 </Alert.Description>
               </Alert.Content>
@@ -218,13 +220,13 @@ export default function PlatformHealthContent({
                   </EmptyState.Description>
                 </EmptyState.Root>
               ) : (
-                <ul className="flex flex-col gap-8">
+                <RowList.Root>
                   {health.jobs.map((job) => {
                     const tone = jobTone(job);
                     return (
-                      <li
+                      <RowList.Item
                         key={job.jobName}
-                        className="flex flex-wrap items-baseline justify-between gap-8 border-b border-(--border) pb-8 last:border-0"
+                        className="flex flex-wrap items-baseline justify-between gap-8"
                       >
                         <div className="flex flex-col gap-[2px]">
                           <Title variant="body-sm" weight="semibold">
@@ -248,10 +250,10 @@ export default function PlatformHealthContent({
                             {JOB_STATUS_LABEL[job.status] ?? job.status}
                           </Title>
                         </div>
-                      </li>
+                      </RowList.Item>
                     );
                   })}
-                </ul>
+                </RowList.Root>
               )}
             </Card.Body>
           </Card.Root>

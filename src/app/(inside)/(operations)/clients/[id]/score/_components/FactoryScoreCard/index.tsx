@@ -1,9 +1,9 @@
 "use client";
+import { Card } from "@/components/Card";
 
 import { Badge } from "@/components/Badges";
 import { factoryName } from "@/utils/company";
 import { Title } from "@/components/Title";
-import { cn } from "@/lib/utils";
 import { formatDate } from "@/utils/format/date";
 import { scoreBarColor, scoreLevel } from "@/utils/score";
 import { ChevronRight } from "lucide-react";
@@ -21,15 +21,9 @@ export function FactoryScoreCard({ score, onSelect }: Props) {
   const factoryLabel = factoryName(score.clientFactoryLink?.factory);
 
   return (
-    <button
-      type="button"
+    <Card.Button
       onClick={() => onSelect(score)}
       aria-label={`Ver por que ${factoryLabel} tem score ${total.toFixed(0)}`}
-      className={cn(
-        "flex w-full cursor-pointer flex-col gap-10 rounded-(--r-md) border border-(--border)",
-        "bg-(--bg2) p-16 text-left transition-colors hover:bg-(--bg3)",
-        "focus-visible:outline-2 focus-visible:outline-(--amber)"
-      )}
     >
       <div className="flex items-start justify-between gap-8">
         <div className="flex min-w-0 flex-col gap-2">
@@ -60,6 +54,6 @@ export function FactoryScoreCard({ score, onSelect }: Props) {
           <ChevronRight size={14} className="text-(--muted)" />
         </div>
       </div>
-    </button>
+    </Card.Button>
   );
 }

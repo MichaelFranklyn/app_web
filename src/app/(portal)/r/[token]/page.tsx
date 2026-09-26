@@ -1,8 +1,9 @@
+import { LinkExpired } from "@/components/LinkExpired";
+import { PublicPage } from "@/components/PublicPage";
 import { Title } from "@/components/Title";
 import { visitResponseFetch } from "@/services/graphql/visitResponseFetch";
 import { formatDate } from "@/utils/format/date";
 import { VisitResponseContent } from "./content";
-import { VisitResponseExpired } from "./_components/VisitResponseExpired";
 import { VISIT_RESPONSE_FORM } from "./gql";
 import { VisitResponseFormData } from "./interface";
 import { formPeriodLabel } from "./utils";
@@ -35,30 +36,35 @@ export default async function VisitResponsePage({ params }: PageProps) {
   );
   const form = data?.visitResponseForm?.data ?? null;
 
-  if (!form) return <VisitResponseExpired />;
+  if (!form) {
+    return (
+      <LinkExpired>
+        Peça um link novo ao escritório — ele sai junto com a folha da rota do
+        dia.
+      </LinkExpired>
+    );
+  }
 
   return (
-    <div className="flex min-h-screen flex-col">
-      <header className="border-b border-(--border) px-[16px] py-[16px]">
-        <div className="mx-auto flex max-w-[1120px] flex-col gap-[2px]">
-          <Title variant="heading-sm">{form.companyName}</Title>
+    <PublicPage.Root>
+      <PublicPage.Header className="gap-[2px]">
+        <Title variant="heading-sm">{form.companyName}</Title>
+        <Title variant="body-xs" color="muted">
+          {form.sellerName} ·{" "}
+          {form.isWeek ? formPeriodLabel(form) : formatDate(form.date)}
+        </Title>
+        {form.submittedAt ? (
           <Title variant="body-xs" color="muted">
-            {form.sellerName} ·{" "}
-            {form.isWeek ? formPeriodLabel(form) : formatDate(form.date)}
+            Você já enviou respostas{" "}
+            {form.isWeek ? "desta semana" : "deste dia"}. Pode ajustar e enviar
+            de novo.
           </Title>
-          {form.submittedAt ? (
-            <Title variant="body-xs" color="muted">
-              Você já enviou respostas{" "}
-              {form.isWeek ? "desta semana" : "deste dia"}. Pode ajustar e
-              enviar de novo.
-            </Title>
-          ) : null}
-        </div>
-      </header>
+        ) : null}
+      </PublicPage.Header>
 
-      <main className="mx-auto w-full max-w-[1120px] flex-1 px-[16px] py-[24px]">
+      <PublicPage.Main>
         <VisitResponseContent form={form} token={token} />
-      </main>
-    </div>
+      </PublicPage.Main>
+    </PublicPage.Root>
   );
 }

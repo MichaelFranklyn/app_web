@@ -18,9 +18,14 @@ import {
  * mostra o toast contextual e avisa a lista para atualizar. Compartilhado pelos
  * dois modos (modelo pronto e mapeamento da planilha da fábrica).
  */
-export const useProductImport = (companyFactoryId: string, onChanged: () => void) => {
+export const useProductImport = (
+  companyFactoryId: string,
+  onChanged: () => void
+) => {
   const { toast } = useToast();
-  const [importProducts] = useMutation<ImportProductsResponse>(IMPORT_PRODUCTS_MUTATION);
+  const [importProducts] = useMutation<ImportProductsResponse>(
+    IMPORT_PRODUCTS_MUTATION
+  );
   const { execute, isLoading } = useAsyncAction();
   const [result, setResult] = useState<ImportResult | null>(null);
 

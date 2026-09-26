@@ -1,3 +1,5 @@
+import { Emphasis } from "@/components/Emphasis";
+import { Title } from "@/components/Title";
 import { ReactNode } from "react";
 
 /**
@@ -38,15 +40,15 @@ export const FACTORY_ORDER_COLUMN_HELP = {
 
 export const FACTORY_CLIENTS_HELP: ReactNode = (
   <>
-    <p>
-      Os clientes que compram <b>desta fábrica</b>, e por qual vendedor. Cada
-      linha é um vínculo — o mesmo cliente pode ser atendido por vendedores
-      diferentes em fábricas diferentes.
-    </p>
-    <p>
-      É o vínculo que decide o <b>nível de preço</b> do cliente nesta fábrica e
-      o que entra na rota de visita do vendedor.
-    </p>
+    <Title variant="body-sm">
+      Os clientes que compram <Emphasis>desta fábrica</Emphasis>, e por qual
+      vendedor. Cada linha é um vínculo — o mesmo cliente pode ser atendido por
+      vendedores diferentes em fábricas diferentes.
+    </Title>
+    <Title variant="body-sm">
+      É o vínculo que decide o <Emphasis>nível de preço</Emphasis> do cliente
+      nesta fábrica e o que entra na rota de visita do vendedor.
+    </Title>
   </>
 );
 
@@ -71,15 +73,15 @@ export const FACTORY_CLIENT_COLUMN_HELP = {
 
 export const FACTORY_SELLERS_HELP: ReactNode = (
   <>
-    <p>
+    <Title variant="body-sm">
       Quem pode vender esta fábrica. Sem acesso aqui, o vendedor não vê a
       fábrica na lista dele e não consegue lançar pedido nem vincular cliente a
       ela.
-    </p>
-    <p>
+    </Title>
+    <Title variant="body-sm">
       Tirar o acesso não apaga nada do que já foi feito: os pedidos e os
       vínculos antigos continuam onde estão.
-    </p>
+    </Title>
   </>
 );
 
@@ -99,14 +101,14 @@ export const FACTORY_SELLER_COLUMN_HELP = {
 
 export const FACTORY_TIERS_HELP: ReactNode = (
   <>
-    <p>
-      Nível é o <b>degrau de preço</b> acordado com o cliente — o que a fábrica
-      costuma chamar de tabela A, B, C ou de faixa de desconto.
-    </p>
-    <p>
+    <Title variant="body-sm">
+      Nível é o <Emphasis>degrau de preço</Emphasis> acordado com o cliente — o
+      que a fábrica costuma chamar de tabela A, B, C ou de faixa de desconto.
+    </Title>
+    <Title variant="body-sm">
       Cada tabela de preços tem um preço por nível; o nível do cliente fica no
       vínculo dele (aba Clientes) e é o que o pedido usa sozinho.
-    </p>
+    </Title>
   </>
 );
 
@@ -119,14 +121,15 @@ export const FACTORY_TIER_COLUMN_HELP = {
 
 export const FACTORY_PAYMENT_TERMS_HELP: ReactNode = (
   <>
-    <p>
+    <Title variant="body-sm">
       Os prazos que esta fábrica aceita. É o prazo escolhido no pedido que gera
-      os <b>boletos</b> do cliente no faturamento: 30/60/90 vira três parcelas.
-    </p>
-    <p>
+      os <Emphasis>boletos</Emphasis> do cliente no faturamento: 30/60/90 vira
+      três parcelas.
+    </Title>
+    <Title variant="body-sm">
       Algumas fábricas só liberam o prazo mais longo acima de um valor — é o
       &quot;valor mínimo&quot; da última coluna.
-    </p>
+    </Title>
   </>
 );
 
@@ -143,14 +146,14 @@ export const FACTORY_PAYMENT_TERM_COLUMN_HELP = {
 
 export const FACTORY_PRICE_LISTS_HELP: ReactNode = (
   <>
-    <p>
+    <Title variant="body-sm">
       Tabela de preços é a lista que a fábrica publica: um preço por produto,
-      por <b>nível</b>, valendo num período.
-    </p>
-    <p>
+      por <Emphasis>nível</Emphasis>, valendo num período.
+    </Title>
+    <Title variant="body-sm">
       Uma fábrica pode ter mais de uma ao mesmo tempo — por região, por exemplo,
       porque o imposto muda de estado para estado.
-    </p>
+    </Title>
   </>
 );
 
@@ -234,51 +237,52 @@ export const PRODUCT_TAX_COLUMN_HELP = {
  */
 export const FACTORY_CARD_HELP: Record<string, ReactNode> = {
   Comissão: (
-    <p>
+    <Title variant="body-sm">
       Percentual que a representação recebe desta fábrica. Ele é aplicado sobre
       a base ao lado — não sobre o total que o cliente paga, que tem IPI dentro.
-    </p>
+    </Title>
   ),
   // As duas entradas abaixo são as mesmas perguntas, feitas pelo VENDEDOR: o
   // card dele mostra o acordo dele com a empresa, não o da empresa com a fábrica.
   "Sua comissão": (
-    <p>
+    <Title variant="body-sm">
       Quanto você ganha nos pedidos desta fábrica, em % do valor do pedido
       (mercadoria sem IPI). É o combinado com a sua empresa — não o que a
       fábrica paga para a representação. Em branco quer dizer que o seu
       percentual ainda não foi cadastrado: fale com o seu gestor.
-    </p>
+    </Title>
   ),
   "Quando você recebe": (
-    <p>
-      <b>Faturamento</b>: a sua comissão conta assim que a fábrica emite a nota.{" "}
-      <b>Pagamento</b>: conforme o cliente vai pagando os boletos.
-    </p>
+    <Title variant="body-sm">
+      <Emphasis>Faturamento</Emphasis>: a sua comissão conta assim que a fábrica
+      emite a nota. <Emphasis>Pagamento</Emphasis>: conforme o cliente vai
+      pagando os boletos.
+    </Title>
   ),
   "Base de cálculo": (
     <>
-      <p>
-        Quando a comissão passa a existir. <b>Faturamento</b>: assim que a
-        fábrica emite a nota. <b>Pagamento</b>: conforme o cliente vai pagando
-        os boletos.
-      </p>
-      <p>
+      <Title variant="body-sm">
+        Quando a comissão passa a existir. <Emphasis>Faturamento</Emphasis>:
+        assim que a fábrica emite a nota. <Emphasis>Pagamento</Emphasis>:
+        conforme o cliente vai pagando os boletos.
+      </Title>
+      <Title variant="body-sm">
         É a diferença entre ter a comissão inteira na nota ou recebê-la em
         pedaços, junto com as parcelas.
-      </p>
+      </Title>
     </>
   ),
   "Dia de pagamento da fábrica": (
-    <p>
+    <Title variant="body-sm">
       Dia do mês em que esta fábrica repassa a comissão. É por ele que a tela de
       Comissões sabe em qual mês cada valor cai.
-    </p>
+    </Title>
   ),
   Contrato: (
-    <p>
+    <Title variant="body-sm">
       Até quando o contrato de representação vale. &quot;A renovar&quot; avisa
       com 90 dias de antecedência; expirado não bloqueia nada no sistema, mas é
       um acordo vencido.
-    </p>
+    </Title>
   ),
 };

@@ -194,9 +194,9 @@ export function PurchasesReportTable({
                 <Table.Cell variant="strong" className="whitespace-nowrap">
                   {formatMoney(row.periodAmount)}
                   {row.periodOrderCount > 0 && (
-                    <span className="ml-4 text-(--muted)">
+                    <Table.CellText variant="dim" className="ml-4">
                       {row.periodOrderCount} ped.
-                    </span>
+                    </Table.CellText>
                   )}
                 </Table.Cell>
               </Table.Row>

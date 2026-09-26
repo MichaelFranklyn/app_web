@@ -1,3 +1,5 @@
+import { Emphasis } from "@/components/Emphasis";
+import { Title } from "@/components/Title";
 import { ReactNode } from "react";
 
 /**
@@ -21,35 +23,35 @@ import { ReactNode } from "react";
 export const USERS_KPI_HELP: Record<string, ReactNode> = {
   "Vendem em campo": (
     <>
-      <p>
-        Quantas pessoas têm <b>perfil de vendedor ativo</b> — as que aparecem na
-        rota do dia, recebem carteira e ganham comissão.
-      </p>
-      <p>
+      <Title variant="body-sm">
+        Quantas pessoas têm <Emphasis>perfil de vendedor ativo</Emphasis> — as
+        que aparecem na rota do dia, recebem carteira e ganham comissão.
+      </Title>
+      <Title variant="body-sm">
         Não é o mesmo que ter login: um gestor entra no sistema sem vender, e um
         vendedor afastado continua com login enquanto o perfil de campo está
         desligado.
-      </p>
+      </Title>
     </>
   ),
   "Acessos a fábricas": (
     <>
-      <p>
-        Quantas permissões de <b>vendedor × fábrica</b> estão ativas na empresa.
-        Cada linha da aba ao lado conta uma.
-      </p>
-      <p>
+      <Title variant="body-sm">
+        Quantas permissões de <Emphasis>vendedor × fábrica</Emphasis> estão
+        ativas na empresa. Cada linha da aba ao lado conta uma.
+      </Title>
+      <Title variant="body-sm">
         Um vendedor que atende três fábricas conta três — por isso este número é
         normalmente maior que o de pessoas.
-      </p>
+      </Title>
     </>
   ),
   "Acessos suspensos": (
-    <p>
+    <Title variant="body-sm">
       Permissões que existem mas estão desligadas. O vendedor não vê aquela
       fábrica nem lança pedido dela, mas o histórico e os vínculos com clientes
       continuam de pé — religar devolve tudo.
-    </p>
+    </Title>
   ),
 };
 

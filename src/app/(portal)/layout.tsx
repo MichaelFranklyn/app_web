@@ -1,3 +1,4 @@
+import { RootPage } from "@/components/RootPage";
 import type { Metadata } from "next";
 
 /**
@@ -21,5 +22,5 @@ export default function PortalLayout({
 }: {
   children: React.ReactNode;
 }) {
-  return <div className="min-h-screen bg-(--bg)">{children}</div>;
+  return <RootPage.Root>{children}</RootPage.Root>;
 }

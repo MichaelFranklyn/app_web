@@ -1,3 +1,4 @@
+import { Timeline } from "@/components/Timeline";
 import { Badge } from "@/components/Badges";
 import { Card } from "@/components/Card";
 import { EmptyState } from "@/components/EmptyState";
@@ -70,12 +71,9 @@ export function TenantActivityCard({
           </EmptyState.Root>
         ) : (
           <div className="flex flex-col gap-16">
-            <ol className="flex flex-col gap-12">
+            <Timeline.Root>
               {entries.map((entry) => (
-                <li
-                  key={entry.id}
-                  className="flex flex-col gap-[2px] border-l-2 border-(--border) pl-12"
-                >
+                <Timeline.Item key={entry.id}>
                   <div className="flex flex-wrap items-baseline gap-8">
                     <Title variant="caption" weight="semibold">
                       {operationLabel(entry.operation)}
@@ -90,9 +88,9 @@ export function TenantActivityCard({
                     {formatMoment(entry.createdAt)}
                     {entry.userEmail ? ` · ${entry.userEmail}` : ""}
                   </Title>
-                </li>
+                </Timeline.Item>
               ))}
-            </ol>
+            </Timeline.Root>
 
             {/* O total precisa aparecer junto do link: sem ele, uma lista de
                 doze linhas passa por "foi só isso que aconteceu". */}

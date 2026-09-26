@@ -1,4 +1,6 @@
 "use client";
+import { Emphasis } from "@/components/Emphasis";
+import { Banner } from "@/components/Banner";
 
 import { Title } from "@/components/Title";
 import { WifiOff } from "lucide-react";
@@ -45,19 +47,19 @@ export function OfflineBanner() {
   if (!offline) return null;
 
   return (
-    <div
+    <Banner
+      tone="red"
+      icon={WifiOff}
       // `role="status"` e não `alert`: leitor de tela anuncia sem interromper o
       // que a pessoa está fazendo, que é o certo para uma condição contínua.
       role="status"
       data-testid="offline-banner"
-      className="flex flex-wrap items-center gap-8 bg-(--red) px-16 py-8 text-white"
     >
-      <WifiOff size={16} className="shrink-0" />
       <Title variant="body-xs" color="inverse">
         Sem internet agora. Você continua vendo o que já estava na tela, mas{" "}
-        <strong>não salve nada</strong> até o sinal voltar — a faixa desaparece
-        sozinha.
+        <Emphasis>não salve nada</Emphasis> até o sinal voltar — a faixa
+        desaparece sozinha.
       </Title>
-    </div>
+    </Banner>
   );
 }

@@ -1,8 +1,10 @@
 "use client";
+import { ToggleGroup, ToggleOption } from "@/components/ToggleGroup";
+import { Input } from "@/components/Input";
+import { Card } from "@/components/Card";
 
 import { Button } from "@/components/Button";
 import { Title } from "@/components/Title";
-import { cn } from "@/lib/utils";
 import { Check, X } from "lucide-react";
 import { useState } from "react";
 
@@ -14,6 +16,11 @@ const SHORTCUTS: { label: string; days: number }[] = [
   { label: "15 dias", days: 15 },
   { label: "1 mês", days: 30 },
   { label: "45 dias", days: 45 },
+];
+
+const CHOICES: ToggleOption<number | "custom">[] = [
+  ...SHORTCUTS.map(({ label, days }) => ({ label, value: days })),
+  { label: "Outro", value: "custom" },
 ];
 
 const isShortcut = (days: number | null): boolean =>
@@ -41,96 +48,77 @@ export function StockDaysEditor({
   );
 
   return (
-    <div className="flex flex-col gap-8 rounded-(--r-md) border border-(--border) bg-(--bg3) px-12 py-10">
-      <Title variant="body-sm" color="muted">
-        Quantos dias o estoque de{" "}
-        <Title variant="body-xs" weight="medium">
-          {productName}
-        </Title>{" "}
-        ainda dura, segundo o cliente?
-      </Title>
+    <Card.Root inset tone="muted">
+      <Card.Body padding="sm" className="gap-8">
+        <Title variant="body-sm" color="muted">
+          Quantos dias o estoque de{" "}
+          <Title variant="body-xs" weight="medium">
+            {productName}
+          </Title>{" "}
+          ainda dura, segundo o cliente?
+        </Title>
 
-      <div className="flex flex-wrap items-center gap-4">
-        {SHORTCUTS.map((shortcut) => {
-          const active = days === shortcut.days;
-          return (
-            <button
-              key={shortcut.days}
-              type="button"
-              onClick={() => {
-                setShowCustom(false);
-                setDays(shortcut.days);
-              }}
-              className={cn(
-                "rounded-(--r-sm) border px-8 py-4 text-[13px] transition-colors",
-                active
-                  ? "border-(--amber) bg-(--amber) text-black"
-                  : "border-(--border) text-(--muted) hover:border-(--border2)"
-              )}
-            >
-              {shortcut.label}
-            </button>
-          );
-        })}
-
-        <button
-          type="button"
-          onClick={() => setShowCustom((v) => !v)}
-          className={cn(
-            "rounded-(--r-sm) border px-8 py-4 text-[13px] transition-colors",
-            showCustom
-              ? "border-(--amber) text-(--amber)"
-              : "border-(--border) text-(--muted) hover:border-(--border2)"
-          )}
-        >
-          Outro
-        </button>
-
-        {showCustom && (
-          <input
-            type="number"
-            min={0}
-            max={365}
-            inputMode="numeric"
-            aria-label={`Dias de estoque de ${productName}`}
-            value={days ?? ""}
-            onChange={(e) => {
-              const raw = e.target.value;
-              setDays(raw === "" ? null : Number(raw));
+        <div className="flex flex-wrap items-center gap-4">
+          <ToggleGroup<number | "custom">
+            aria-label="Dias de estoque"
+            options={CHOICES}
+            value={showCustom ? "custom" : days}
+            onChange={(choice) => {
+              if (choice === "custom") {
+                setShowCustom((v) => !v);
+                return;
+              }
+              setShowCustom(false);
+              setDays(choice);
             }}
-            placeholder="dias"
-            className="w-[80px] rounded-(--r-sm) border border-(--border) bg-(--bg2) px-8 py-4 text-[13px] text-(--text)"
           />
-        )}
 
-        <div className="ml-auto flex items-center gap-4">
-          <Button.Root
-            type="button"
-            appearance="ghost"
-            color="neutral"
-            size="sm"
-            noUppercase
-            disabled={isLoading}
-            onClick={onCancel}
-          >
-            <Button.Icon icon={X} />
-            <Button.Title>Cancelar</Button.Title>
-          </Button.Root>
-          <Button.Root
-            type="button"
-            appearance="solid"
-            color="amber"
-            size="sm"
-            noUppercase
-            loading={isLoading}
-            disabled={days == null}
-            onClick={() => days != null && onSave(days)}
-          >
-            <Button.Icon icon={Check} />
-            <Button.Title>Salvar</Button.Title>
-          </Button.Root>
+          {showCustom && (
+            <Input.Number
+              min={0}
+              max={365}
+              inputMode="numeric"
+              size="sm"
+              aria-label={`Dias de estoque de ${productName}`}
+              value={days ?? ""}
+              onChange={(e) => {
+                const raw = e.target.value;
+                setDays(raw === "" ? null : Number(raw));
+              }}
+              placeholder="dias"
+              containerClassName="w-[80px]"
+            />
+          )}
+
+          <div className="ml-auto flex items-center gap-4">
+            <Button.Root
+              type="button"
+              appearance="ghost"
+              color="neutral"
+              size="sm"
+              noUppercase
+              disabled={isLoading}
+              onClick={onCancel}
+            >
+              <Button.Icon icon={X} />
+              <Button.Title>Cancelar</Button.Title>
+            </Button.Root>
+            <Button.Root
+              type="button"
+              appearance="solid"
+              color="amber"
+              size="sm"
+              noUppercase
+              loading={isLoading}
+              disabled={days == null}
+              onClick={() => days != null && onSave(days)}
+            >
+              <Button.Icon icon={Check} />
+              <Button.Title>Salvar</Button.Title>
+            </Button.Root>
+          </div>
         </div>
-      </div>
-    </div>
+      </Card.Body>
+    </Card.Root>
   );
 }

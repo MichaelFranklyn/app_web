@@ -1,3 +1,4 @@
+import type { HeatLevel } from "@/components/HeatGrid";
 import { PlanFeature, PlanLimitKey } from "@/services/plan";
 
 import {
@@ -79,25 +80,12 @@ export const retentionPercent = (active: number, cohortSize: number): number =>
  * sumida é o achado que a grade existe para mostrar. Os cortes são largos de
  * propósito — a grade se lê pelo formato da mancha, não célula a célula.
  */
-export const retentionTone = (
-  percent: number
-): "strong" | "good" | "weak" | "bad" | "empty" => {
+export const retentionTone = (percent: number): HeatLevel => {
   if (percent === 0) return "empty";
   if (percent >= 75) return "strong";
   if (percent >= 50) return "good";
   if (percent >= 25) return "weak";
   return "bad";
-};
-
-export const RETENTION_TONE_CLASS: Record<
-  ReturnType<typeof retentionTone>,
-  string
-> = {
-  strong: "bg-(--green)/85 text-white",
-  good: "bg-(--green)/45",
-  weak: "bg-(--amber)/40",
-  bad: "bg-(--red)/35",
-  empty: "bg-(--bg3) text-(--muted)",
 };
 
 /**

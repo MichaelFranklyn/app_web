@@ -1,3 +1,4 @@
+import { ThemeColor } from "@/lib/theme";
 import { Notification, NotificationSeverity } from "./interface";
 
 /**
@@ -9,11 +10,11 @@ import { Notification, NotificationSeverity } from "./interface";
  */
 export const INSIGHTS_ROUTE = "/insights";
 
-export const SEVERITY_DOT: Record<NotificationSeverity, string> = {
-  INFO: "bg-(--blue)",
-  SUCCESS: "bg-(--green)",
-  WARNING: "bg-(--amber)",
-  ERROR: "bg-(--red)",
+export const SEVERITY_COLOR: Record<NotificationSeverity, ThemeColor> = {
+  INFO: "blue",
+  SUCCESS: "green",
+  WARNING: "amber",
+  ERROR: "red",
 };
 
 /** Insight é conclusão do sistema, não registro: o aviso é o próprio conteúdo. */

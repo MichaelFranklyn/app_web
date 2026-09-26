@@ -1,4 +1,6 @@
 "use client";
+import { ToggleGroup } from "@/components/ToggleGroup";
+import { Card } from "@/components/Card";
 
 import { Button } from "@/components/Button";
 import { FormBuilder } from "@/components/FormBuilder";
@@ -26,29 +28,6 @@ export function DepartureModal({
     onChanged,
   });
 
-  const toggleBtn = (
-    target: "home" | "custom",
-    label: string,
-    Icon: typeof House
-  ) => {
-    const active = mode === target;
-    return (
-      <Button.Root
-        type="button"
-        appearance={active ? "solid" : "outline"}
-        color={active ? "amber" : "neutral"}
-        size="md"
-        noUppercase
-        disabled={isLoading}
-        onClick={() => setMode(target)}
-        className="flex-1"
-      >
-        <Button.Icon icon={Icon} />
-        <Button.Title>{label}</Button.Title>
-      </Button.Root>
-    );
-  };
-
   return (
     <Modal.Root open={open} onOpenChange={onOpenChange}>
       <Modal.Content size="sm">
@@ -58,19 +37,29 @@ export function DepartureModal({
         />
         <Modal.Body>
           <div className="flex flex-col gap-16">
-            <div className="flex items-center gap-8">
-              {toggleBtn("home", "Minha casa", House)}
-              {toggleBtn("custom", "Outro endereço", MapPin)}
-            </div>
+            <ToggleGroup
+              aria-label="Ponto de partida"
+              size="md"
+              fullWidth
+              disabled={isLoading}
+              options={[
+                { value: "home", label: "Minha casa", icon: House },
+                { value: "custom", label: "Outro endereço", icon: MapPin },
+              ]}
+              value={mode}
+              onChange={setMode}
+            />
 
             {mode === "home" ? (
-              <div className="rounded-(--r-md) border border-(--border) bg-(--bg3) p-12">
-                <Title variant="body-sm" color="muted">
-                  A rota começa no endereço de casa cadastrado no seu perfil de
-                  vendedor. Se ele estiver em branco, o dia parte da primeira
-                  visita mais urgente.
-                </Title>
-              </div>
+              <Card.Root inset tone="muted">
+                <Card.Body padding="sm">
+                  <Title variant="body-sm" color="muted">
+                    A rota começa no endereço de casa cadastrado no seu perfil
+                    de vendedor. Se ele estiver em branco, o dia parte da
+                    primeira visita mais urgente.
+                  </Title>
+                </Card.Body>
+              </Card.Root>
             ) : (
               <div className="flex flex-col gap-12">
                 {departureType === "CUSTOM" && departureAddress && (

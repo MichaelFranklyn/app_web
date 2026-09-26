@@ -5,6 +5,7 @@ import { Card } from "@/components/Card";
 import { Grid } from "@/components/Grid";
 import { Title } from "@/components/Title";
 import { companyInitials } from "@/utils/company";
+import { MediaImage } from "@/components/MediaImage";
 import { mediaUrl } from "@/utils/media";
 import { EditCardAction } from "../../../../_shared/dataCards";
 import { MyCompany } from "../../interface";
@@ -49,11 +50,10 @@ export function CompanyBrandCard({ company, onEdit }: Props) {
             {company.logoUrl ? (
               // O backend devolve caminho relativo (/media/...); quem prefixa com
               // a origem da API é o front. Sem isso a imagem não carrega.
-              // eslint-disable-next-line @next/next/no-img-element
-              <img
+              <MediaImage
+                fit="logo"
                 src={mediaUrl(company.logoUrl)}
                 alt={`Logo de ${company.nomeFantasia ?? company.razaoSocial}`}
-                className="h-[56px] max-w-full self-start object-contain"
               />
             ) : (
               <Title variant="body" color="muted">

@@ -1,4 +1,6 @@
 "use client";
+import { ProductThumb } from "@/components/ProductThumb";
+import { Card } from "@/components/Card";
 
 import { AlertTriangle, Trash } from "lucide-react";
 
@@ -36,66 +38,67 @@ export function PhotoReviewRow({
     productOptions.find((option) => option.value === photo.productId) ?? null;
 
   return (
-    <div className="flex items-start gap-12 rounded-(--r-md) border border-(--border) bg-(--bg2) p-12">
-      {/* eslint-disable-next-line @next/next/no-img-element */}
-      <img
-        src={photo.previewUrl}
-        alt={photo.file.name}
-        className="size-56 shrink-0 rounded-(--r-sm) border border-(--border) object-cover"
-      />
-
-      <div className="flex min-w-0 flex-1 flex-col gap-6">
-        <Title variant="caption" color="muted" className="truncate">
-          {photo.file.name}
-        </Title>
-
-        <Input.Select
-          placeholder="Escolha o produto desta foto"
-          options={productOptions}
-          value={selected}
-          onChange={(option) =>
-            onAssign(Array.isArray(option) ? "" : (option?.value ?? ""))
-          }
+    <Card.Root inset>
+      <Card.Body padding="sm" className="flex flex-row items-start gap-12">
+        <ProductThumb
+          imageUrl={photo.previewUrl}
+          name={photo.file.name}
+          size="md"
         />
 
-        {!photo.productId && (
-          <Title variant="caption" color="amber">
-            O nome do arquivo não bateu com nenhum código de produto. Escolha o
-            produto acima ou remova esta foto.
+        <div className="flex min-w-0 flex-1 flex-col gap-6">
+          <Title variant="caption" color="muted" className="truncate">
+            {photo.file.name}
           </Title>
-        )}
 
-        {isDuplicated && (
-          <Title
-            variant="caption"
-            color="amber"
-            className="inline-flex items-center gap-4"
-          >
-            <AlertTriangle size={13} />
-            Outra foto desta leva também aponta para este produto — só a última
-            fica.
-          </Title>
-        )}
+          <Input.Select
+            placeholder="Escolha o produto desta foto"
+            options={productOptions}
+            value={selected}
+            onChange={(option) =>
+              onAssign(Array.isArray(option) ? "" : (option?.value ?? ""))
+            }
+          />
 
-        {product?.imageUrl && (
-          <Title variant="caption" color="muted">
-            Este produto já tem foto: a atual será substituída.
-          </Title>
-        )}
-      </div>
+          {!photo.productId && (
+            <Title variant="caption" color="amber">
+              O nome do arquivo não bateu com nenhum código de produto. Escolha
+              o produto acima ou remova esta foto.
+            </Title>
+          )}
 
-      <Button.Root
-        type="button"
-        appearance="ghost"
-        color="red"
-        size="sm"
-        isIconOnly
-        noUppercase
-        label="Remover esta foto"
-        onClick={onRemove}
-      >
-        <Button.Icon icon={Trash} />
-      </Button.Root>
-    </div>
+          {isDuplicated && (
+            <Title
+              variant="caption"
+              color="amber"
+              className="inline-flex items-center gap-4"
+            >
+              <AlertTriangle size={13} />
+              Outra foto desta leva também aponta para este produto — só a
+              última fica.
+            </Title>
+          )}
+
+          {product?.imageUrl && (
+            <Title variant="caption" color="muted">
+              Este produto já tem foto: a atual será substituída.
+            </Title>
+          )}
+        </div>
+
+        <Button.Root
+          type="button"
+          appearance="ghost"
+          color="red"
+          size="sm"
+          isIconOnly
+          noUppercase
+          label="Remover esta foto"
+          onClick={onRemove}
+        >
+          <Button.Icon icon={Trash} />
+        </Button.Root>
+      </Card.Body>
+    </Card.Root>
   );
 }

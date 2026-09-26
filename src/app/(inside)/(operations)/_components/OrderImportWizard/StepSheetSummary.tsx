@@ -1,3 +1,4 @@
+import { Card } from "@/components/Card";
 import { Alert } from "@/components/Alert";
 import { Stepper } from "@/components/Stepper";
 import { Title } from "@/components/Title";
@@ -44,24 +45,28 @@ export function StepSheetSummary({
       </Stepper.Intro>
 
       {summary && (
-        <div className="flex flex-col gap-4 rounded-(--r-md) border border-(--border) bg-(--bg2) px-12 py-10">
-          <Title variant="caption" color="muted" weight="medium">
-            A ficha diz
-          </Title>
-          <Title variant="body-sm" weight="medium">
-            {summary}
-          </Title>
-        </div>
+        <Card.Root inset>
+          <Card.Body padding="sm" className="flex flex-col gap-4">
+            <Title variant="caption" color="muted" weight="medium">
+              A ficha diz
+            </Title>
+            <Title variant="body-sm" weight="medium">
+              {summary}
+            </Title>
+          </Card.Body>
+        </Card.Root>
       )}
 
-      <div className="flex flex-col gap-4 rounded-(--r-md) border border-(--border) bg-(--bg2) px-12 py-10">
-        <Title variant="caption" color="muted" weight="medium">
-          Itens
-        </Title>
-        <Title variant="body-sm" weight="medium">
-          {confirmableCount} de {reviewRows.length} entram no pedido
-        </Title>
-      </div>
+      <Card.Root inset>
+        <Card.Body padding="sm" className="flex flex-col gap-4">
+          <Title variant="caption" color="muted" weight="medium">
+            Itens
+          </Title>
+          <Title variant="body-sm" weight="medium">
+            {confirmableCount} de {reviewRows.length} entram no pedido
+          </Title>
+        </Card.Body>
+      </Card.Root>
 
       {skippedItems.length > 0 && (
         <Alert.Root variant="warning">

@@ -1,3 +1,5 @@
+import { Emphasis } from "@/components/Emphasis";
+import { Title } from "@/components/Title";
 import { ReactNode } from "react";
 
 /**
@@ -21,53 +23,53 @@ import { ReactNode } from "react";
 export const CLIENT_KPI_HELP: Record<string, ReactNode> = {
   "Total de clientes": (
     <>
-      <p>
-        Quantos clientes existem na sua carteira, <b>ativos ou não</b>. É o
-        tamanho da carteira da empresa.
-      </p>
-      <p>
+      <Title variant="body-sm">
+        Quantos clientes existem na sua carteira,{" "}
+        <Emphasis>ativos ou não</Emphasis>. É o tamanho da carteira da empresa.
+      </Title>
+      <Title variant="body-sm">
         Cliente excluído não entra. Escolhendo um vendedor no filtro, o cartão
         passa a contar só a carteira dele.
-      </p>
+      </Title>
     </>
   ),
   "Clientes ativos": (
     <>
-      <p>
-        Quantos estão marcados como <b>ativos na ficha</b> — a chave que se liga
-        e desliga ao editar o cliente.
-      </p>
-      <p>
+      <Title variant="body-sm">
+        Quantos estão marcados como <Emphasis>ativos na ficha</Emphasis> — a
+        chave que se liga e desliga ao editar o cliente.
+      </Title>
+      <Title variant="body-sm">
         É cadastro, não movimento: um cliente que parou de comprar continua
         contando aqui até alguém desmarcá-lo. Quem parou de comprar está no
         cartão ao lado.
-      </p>
+      </Title>
     </>
   ),
   "Atrasados para comprar": (
     <>
-      <p>
-        Clientes que passaram do <b>próprio ritmo</b> de compra: quem costuma
-        comprar a cada 20 dias e sumiu há 60 está atrasado; quem compra a cada
-        90 e sumiu há 60, não.
-      </p>
-      <p>
-        Só entram os que já têm <b>dois pedidos ou mais</b> — sem um segundo
-        pedido não existe ritmo para comparar. É a mesma conta do gráfico
-        &quot;clientes em risco&quot; no Desempenho.
-      </p>
+      <Title variant="body-sm">
+        Clientes que passaram do <Emphasis>próprio ritmo</Emphasis> de compra:
+        quem costuma comprar a cada 20 dias e sumiu há 60 está atrasado; quem
+        compra a cada 90 e sumiu há 60, não.
+      </Title>
+      <Title variant="body-sm">
+        Só entram os que já têm <Emphasis>dois pedidos ou mais</Emphasis> — sem
+        um segundo pedido não existe ritmo para comparar. É a mesma conta do
+        gráfico &quot;clientes em risco&quot; no Desempenho.
+      </Title>
     </>
   ),
   "Sem visita há 30d+": (
     <>
-      <p>
-        Clientes sem <b>nenhuma visita registrada</b> nos últimos 30 dias, em
-        nenhuma das fábricas que você atende.
-      </p>
-      <p>
+      <Title variant="body-sm">
+        Clientes sem <Emphasis>nenhuma visita registrada</Emphasis> nos últimos
+        30 dias, em nenhuma das fábricas que você atende.
+      </Title>
+      <Title variant="body-sm">
         Não é o mesmo que atrasado para comprar: dá para estar em dia com a
         compra e há tempos sem receber visita.
-      </p>
+      </Title>
     </>
   ),
 };
@@ -92,14 +94,14 @@ export const CLIENT_COLUMN_HELP = {
 
 export const NETWORK_HELP: ReactNode = (
   <>
-    <p>
-      Rede é o <b>grupo</b> a que várias lojas pertencem — a matriz e as filiais
-      de um mesmo dono, com CNPJ diferente cada uma.
-    </p>
-    <p>
+    <Title variant="body-sm">
+      Rede é o <Emphasis>grupo</Emphasis> a que várias lojas pertencem — a
+      matriz e as filiais de um mesmo dono, com CNPJ diferente cada uma.
+    </Title>
+    <Title variant="body-sm">
       Reunindo as lojas numa rede, você vê quanto o grupo inteiro comprou sem
       somar loja por loja, e pode filtrar a carteira por ela.
-    </p>
+    </Title>
   </>
 );
 

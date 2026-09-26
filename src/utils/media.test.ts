@@ -45,6 +45,17 @@ describe("mediaUrl", () => {
     );
   });
 
+  it("deixa a prévia local de um arquivo escolhido como está", () => {
+    // A foto ainda não subiu: a miniatura mostra o `blob:` do navegador, e
+    // prefixá-lo com a API quebraria a imagem.
+    expect(mediaUrl("blob:http://localhost:3000/abc")).toBe(
+      "blob:http://localhost:3000/abc"
+    );
+    expect(mediaUrl("data:image/png;base64,AAAA")).toBe(
+      "data:image/png;base64,AAAA"
+    );
+  });
+
   it("sem caminho, não inventa URL", () => {
     expect(mediaUrl(null)).toBeUndefined();
     expect(mediaUrl(undefined)).toBeUndefined();

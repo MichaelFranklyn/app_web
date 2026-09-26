@@ -14,6 +14,11 @@ export interface ButtonProps extends ButtonHTMLAttributes<HTMLButtonElement> {
   noPadding?: boolean;
   noUppercase?: boolean;
   /**
+   * Borda tracejada que acende em âmbar no hover: o "adicionar" que ocupa o
+   * lugar do item que ainda não existe (fim de lista, célula vazia).
+   */
+  dashed?: boolean;
+  /**
    * Nome acessível + tooltip nativo do botão. Obrigatório na prática para
    * botões `isIconOnly` (ações de linha), onde não há texto visível: alimenta
    * `aria-label` (leitor de tela) e `title` (tooltip on-hover). Um `aria-label`

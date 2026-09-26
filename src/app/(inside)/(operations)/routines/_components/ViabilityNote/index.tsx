@@ -1,5 +1,5 @@
+import { Alert } from "@/components/Alert";
 import { Title } from "@/components/Title";
-import { cn } from "@/lib/utils";
 import { Viability, stockTiming, viabilityNote } from "@/utils/viability";
 import { formatMoney } from "@/utils/format/masks";
 
@@ -9,10 +9,10 @@ interface Props {
   compact?: boolean;
 }
 
-const TONE_CLASS = {
-  amber: "border-(--amber) bg-(--amber)/8",
-  red: "border-(--red) bg-(--red)/8",
-  green: "border-(--green) bg-(--green)/8",
+const TONE_VARIANT = {
+  amber: "warning",
+  red: "error",
+  green: "success",
 } as const;
 
 /**
@@ -34,38 +34,43 @@ export function ViabilityNote({ viability, compact = false }: Props) {
   const suggestions = compact ? [] : viability.suggestions;
 
   return (
-    <div
-      className={cn("mt-6 rounded-(--r-sm) border p-8", TONE_CLASS[note.tone])}
+    <Alert.Root
+      variant={TONE_VARIANT[note.tone]}
+      size="sm"
+      role="note"
+      className="mt-6"
     >
-      <Title variant="micro" weight="bold">
-        {note.label}
-      </Title>
-      <Title variant="body-sm" className="mt-[2px]">
-        {note.message}
-      </Title>
-      {note.action && (
-        <Title variant="body-sm" color="muted" className="mt-4">
-          {note.action}
+      <Alert.Content className="gap-0">
+        <Title variant="micro" weight="bold">
+          {note.label}
         </Title>
-      )}
-      {suggestions.length > 0 && (
-        <ul className="mt-6 flex flex-col gap-4">
-          {suggestions.map((suggestion) => {
-            const timing = stockTiming(suggestion.daysUntilOut);
-            return (
-              <li key={suggestion.productId} className="flex flex-wrap gap-6">
-                <Title variant="body-sm" weight="medium">
-                  {suggestion.productName ?? suggestion.sku ?? "Produto"}
-                </Title>
-                <Title variant="body-sm" color="muted2">
-                  {suggestion.quantity} un · {formatMoney(suggestion.value)}
-                  {timing ? ` · ${timing}` : ""}
-                </Title>
-              </li>
-            );
-          })}
-        </ul>
-      )}
-    </div>
+        <Title variant="body-sm" className="mt-[2px]">
+          {note.message}
+        </Title>
+        {note.action && (
+          <Title variant="body-sm" color="muted" className="mt-4">
+            {note.action}
+          </Title>
+        )}
+        {suggestions.length > 0 && (
+          <ul className="mt-6 flex flex-col gap-4">
+            {suggestions.map((suggestion) => {
+              const timing = stockTiming(suggestion.daysUntilOut);
+              return (
+                <li key={suggestion.productId} className="flex flex-wrap gap-6">
+                  <Title variant="body-sm" weight="medium">
+                    {suggestion.productName ?? suggestion.sku ?? "Produto"}
+                  </Title>
+                  <Title variant="body-sm" color="muted2">
+                    {suggestion.quantity} un · {formatMoney(suggestion.value)}
+                    {timing ? ` · ${timing}` : ""}
+                  </Title>
+                </li>
+              );
+            })}
+          </ul>
+        )}
+      </Alert.Content>
+    </Alert.Root>
   );
 }

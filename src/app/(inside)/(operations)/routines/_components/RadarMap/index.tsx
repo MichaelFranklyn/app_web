@@ -1,4 +1,5 @@
 "use client";
+import { MapFrame } from "@/components/MapFrame";
 
 import { Badge } from "@/components/Badges";
 import { Button } from "@/components/Button";
@@ -153,30 +154,26 @@ export function RadarMap({ sellerId }: Props) {
       className="desktop:flex-row flex flex-col gap-16"
       data-tour="routines-radar"
     >
-      <div className="relative min-h-[520px] flex-1 overflow-hidden rounded-(--r-xl) border border-(--border) bg-(--bg3)">
+      <MapFrame.Root className="min-h-[520px] flex-1">
         <div ref={mapDivRef} className="h-full min-h-[520px] w-full" />
         {(!ready || loading) && !mapError && (
-          <div className="absolute inset-0 flex items-center justify-center bg-(--bg3)/60">
+          <MapFrame.Message dim>
             <Loading.Spinner />
-          </div>
+          </MapFrame.Message>
         )}
         {mapError && (
-          <div className="absolute inset-0 flex items-center justify-center px-24 text-center">
-            <Title variant="body-sm" color="muted">
-              Não foi possível carregar o mapa. Verifique a conexão e as
-              restrições da chave do Google Maps.
-            </Title>
-          </div>
+          <MapFrame.Message>
+            Não foi possível carregar o mapa. Verifique a conexão e as
+            restrições da chave do Google Maps.
+          </MapFrame.Message>
         )}
         {showEmpty && (
-          <div className="absolute inset-0 flex items-center justify-center px-24 text-center">
-            <Title variant="body-sm" color="muted">
-              Nenhum cliente com endereço localizável na carteira ainda. Os
-              clientes ganham posição no mapa conforme são geocodificados.
-            </Title>
-          </div>
+          <MapFrame.Message>
+            Nenhum cliente com endereço localizável na carteira ainda. Os
+            clientes ganham posição no mapa conforme são geocodificados.
+          </MapFrame.Message>
         )}
-      </div>
+      </MapFrame.Root>
 
       <div className="desktop:w-[320px]">
         <Card.Root>

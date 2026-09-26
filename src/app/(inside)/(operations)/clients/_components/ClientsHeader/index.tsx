@@ -1,4 +1,5 @@
 "use client";
+import { Button } from "@/components/Button";
 
 import { Alert } from "@/components/Alert";
 import { Card } from "@/components/Card";
@@ -10,29 +11,14 @@ import { ReportOrder } from "@/utils/pdf/context";
 import { useUserData } from "@/hooks/useUserData";
 import { isAdminRole } from "@/utils/auth/roles";
 import { Eraser, Info, Network, TrendingDown, TrendingUp } from "lucide-react";
-import Link from "next/link";
 
-import { getButtonClasses } from "@/components/Button/Root/style";
 import { PlanLimitGate } from "@/components/PlanLimitGate";
 import { FeatureGate } from "@/components/FeatureGate";
-import { Title } from "@/components/Title";
 import { Client, ClientsStats } from "../../interface";
 import { KPI_IGNORED_FILTERS, buildKpis, listFilters } from "../../utils";
 import { AddClientModal } from "./AddClientModal";
 import { ExportClientsButton } from "./ExportClientsButton";
 import { ImportClientsModal } from "./ImportClientsModal";
-
-// Link com aparência de botão secundário (o mesmo do "Importar" ao lado).
-const networksLinkClass = getButtonClasses({
-  appearance: "outline",
-  color: "neutral",
-  size: "sm",
-  isIconOnly: false,
-  fullWidth: false,
-  active: false,
-  noPadding: false,
-  noUppercase: true,
-});
 
 interface ClientsHeaderProps {
   stats: ClientsStats;
@@ -82,23 +68,28 @@ export function ClientsHeader({
               {/* Redes não têm item próprio na sidebar: são um recorte da
                   carteira, e é daqui que se chega nelas. Link precisa ser <a>,
                   não <button> — mesma solução do ContactLinks. */}
-              <Link href="/clients/networks" className={networksLinkClass}>
-                <Network size={16} />
-                <Title variant="label" weight="bold">
-                  Redes
-                </Title>
-              </Link>
+              <Button.Link
+                href="/clients/networks"
+                appearance="outline"
+                color="neutral"
+                size="sm"
+                noUppercase
+              >
+                <Button.Icon icon={Network} />
+                <Button.Title>Redes</Button.Title>
+              </Button.Link>
               {canClean && (
-                <Link
+                <Button.Link
                   href="/clients/hygiene"
-                  className={networksLinkClass}
+                  appearance="outline"
+                  color="neutral"
+                  size="sm"
+                  noUppercase
                   title="Revisar clientes que fecharam, pararam de comprar ou mudaram de nome"
                 >
-                  <Eraser size={16} />
-                  <Title variant="label" weight="bold">
-                    Higienizar carteira
-                  </Title>
-                </Link>
+                  <Button.Icon icon={Eraser} />
+                  <Button.Title>Higienizar carteira</Button.Title>
+                </Button.Link>
               )}
               {/* Importação em massa é recurso de plano. */}
               <FeatureGate feature="BULK_IMPORT">

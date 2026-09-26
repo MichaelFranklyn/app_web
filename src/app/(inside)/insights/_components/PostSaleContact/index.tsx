@@ -1,24 +1,12 @@
 "use client";
+import { Button } from "@/components/Button";
 
-import { getButtonClasses } from "@/components/Button/Root/style";
 import { Tooltip } from "@/components/Tooltip";
 import { whatsappHref } from "@/utils/phone";
 import { MessageCircle, UserPlus } from "lucide-react";
-import Link from "next/link";
 
 import { InsightSample } from "../../interface";
 import { postSaleMessage } from "../../utils";
-
-const buttonClass = getButtonClasses({
-  appearance: "outline",
-  color: "neutral",
-  size: "xs",
-  isIconOnly: false,
-  fullWidth: false,
-  active: false,
-  noPadding: false,
-  noUppercase: true,
-});
 
 /**
  * O contato do pós-venda: WhatsApp com a mensagem pronta ("Olá, bom dia! ...
@@ -33,16 +21,18 @@ export function PostSaleContact({ sample }: { sample: InsightSample }) {
 
   if (href) {
     return (
-      <a
+      <Button.Link
         href={href}
-        target="_blank"
-        rel="noopener noreferrer"
-        className={buttonClass}
+        external
+        appearance="outline"
+        color="neutral"
+        size="xs"
+        noUppercase
         aria-label={`Perguntar pelo WhatsApp se o pedido de ${sample.label} foi entregue`}
       >
-        <MessageCircle size={14} />
-        WhatsApp
-      </a>
+        <Button.Icon icon={MessageCircle} />
+        <Button.Title>WhatsApp</Button.Title>
+      </Button.Link>
     );
   }
 
@@ -50,10 +40,16 @@ export function PostSaleContact({ sample }: { sample: InsightSample }) {
 
   return (
     <Tooltip content="Este cliente não tem celular cadastrado. Cadastre um contato para mandar a mensagem de pós-venda pelo WhatsApp.">
-      <Link href={sample.clientLink} className={buttonClass}>
-        <UserPlus size={14} />
-        Cadastrar contato
-      </Link>
+      <Button.Link
+        href={sample.clientLink}
+        appearance="outline"
+        color="neutral"
+        size="xs"
+        noUppercase
+      >
+        <Button.Icon icon={UserPlus} />
+        <Button.Title>Cadastrar contato</Button.Title>
+      </Button.Link>
     </Tooltip>
   );
 }

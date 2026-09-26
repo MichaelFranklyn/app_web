@@ -5,7 +5,11 @@ import { bodyStyle } from "./style";
 
 export const Body = React.forwardRef<HTMLDivElement, CardBodyProps>(
   ({ padding, className, ...props }, ref) => (
-    <div ref={ref} className={cn(bodyStyle({ padding }), className)} {...props} />
+    <div
+      ref={ref}
+      className={cn(bodyStyle({ padding }), className)}
+      {...props}
+    />
   )
 );
 

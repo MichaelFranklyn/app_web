@@ -1,3 +1,4 @@
+import { Grid } from "@/components/Grid";
 import { Loading } from "@/components/Loading";
 import { Title } from "@/components/Title";
 
@@ -17,11 +18,11 @@ export default function PortalStockLoading() {
         </Title>
         <Loading.Skeleton className="h-[14px] w-[280px]" />
       </div>
-      <div className="tablet:grid-cols-2 desktop:grid-cols-4 grid grid-cols-1 gap-[12px]">
+      <Grid.Root cols={{ base: 1, tablet: 2, desktop: 4 }} gap={12}>
         {Array.from({ length: 12 }).map((_, index) => (
           <Loading.Skeleton key={index} className="h-[160px] w-full" />
         ))}
-      </div>
+      </Grid.Root>
     </div>
   );
 }

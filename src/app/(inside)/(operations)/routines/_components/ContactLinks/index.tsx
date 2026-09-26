@@ -3,7 +3,6 @@
 import { MessageCircle, Phone, PhoneOff, UserPlus } from "lucide-react";
 import { useApolloClient } from "@apollo/client/react";
 import { Button } from "@/components/Button";
-import { getButtonClasses } from "@/components/Button/Root/style";
 import { Title } from "@/components/Title";
 import { useUserData } from "@/hooks/useUserData";
 import { maskPhoneBR } from "@/utils/format/masks";
@@ -21,18 +20,6 @@ interface Props {
    */
   clientId?: string | null;
 }
-
-// Link externo precisa ser <a>, não <button> — mesma solução do RouteMap.
-const linkClass = getButtonClasses({
-  appearance: "tinted",
-  color: "amber",
-  size: "sm",
-  isIconOnly: false,
-  fullWidth: false,
-  active: false,
-  noPadding: false,
-  noUppercase: true,
-});
 
 /**
  * Botões "Ligar" e "WhatsApp" do contato principal do cliente.
@@ -74,7 +61,11 @@ export function ContactLinks({ contact, clientName, clientId }: Props) {
         onKeyDown={stop}
       >
         <span className="inline-flex items-center gap-6">
-          <PhoneOff size={14} aria-hidden className="shrink-0 text-(--fg3)" />
+          <PhoneOff
+            size={14}
+            aria-hidden
+            className="shrink-0 text-(--muted2)"
+          />
           <Title variant="micro" color="muted">
             Sem telefone cadastrado
           </Title>
@@ -108,21 +99,28 @@ export function ContactLinks({ contact, clientName, clientId }: Props) {
 
   return (
     <div className="flex flex-wrap items-center gap-8">
-      <a href={tel} className={linkClass} title={`Ligar para ${clientName}`}>
-        <Phone size={14} aria-hidden />
-        Ligar
-      </a>
+      <Button.Link
+        href={tel}
+        appearance="tinted"
+        size="sm"
+        noUppercase
+        title={`Ligar para ${clientName}`}
+      >
+        <Button.Icon icon={Phone} />
+        <Button.Title>Ligar</Button.Title>
+      </Button.Link>
       {zap && (
-        <a
+        <Button.Link
           href={zap}
-          target="_blank"
-          rel="noopener noreferrer"
-          className={linkClass}
+          external
+          appearance="tinted"
+          size="sm"
+          noUppercase
           title={`Abrir WhatsApp de ${clientName} com a mensagem pronta`}
         >
-          <MessageCircle size={14} aria-hidden />
-          WhatsApp
-        </a>
+          <Button.Icon icon={MessageCircle} />
+          <Button.Title>WhatsApp</Button.Title>
+        </Button.Link>
       )}
       {contact?.phone && (
         <Title variant="micro" color="muted">

@@ -1,7 +1,7 @@
 "use client";
+import { Alert } from "@/components/Alert";
 
 import { Button } from "@/components/Button";
-import { Title } from "@/components/Title";
 import { CalendarClock, ChevronRight } from "lucide-react";
 
 interface Props {
@@ -23,32 +23,32 @@ export function OverdueVisitsBanner({ count, canAnswer, onOpen }: Props) {
   const label = count === 1 ? "1 visita" : `${count} visitas`;
 
   return (
-    <div className="flex flex-wrap items-center justify-between gap-12 rounded-(--r-md) border border-(--amber) bg-(--amber-bg) px-16 py-12">
-      <div className="flex min-w-0 items-center gap-10">
-        <CalendarClock size={18} className="shrink-0 text-(--amber)" />
-        <div className="min-w-0">
-          <Title variant="body-sm" weight="bold" className="text-(--amber)">
-            {label} de dias que já passaram {count === 1 ? "está" : "estão"} sem
-            resposta
-          </Title>
-          <Title variant="micro" color="muted">
-            {canAnswer
-              ? "Diga o que houve em cada uma — é assim que o sistema sabe quando voltar a esse cliente."
-              : "Só o vendedor pode registrar o que aconteceu."}
-          </Title>
-        </div>
-      </div>
+    <Alert.Root variant="warning" className="flex-wrap">
+      <Alert.Icon icon={CalendarClock} />
+      <Alert.Content className="min-w-[200px]">
+        <Alert.Title>
+          {label} de dias que já passaram {count === 1 ? "está" : "estão"} sem
+          resposta
+        </Alert.Title>
+        <Alert.Description>
+          {canAnswer
+            ? "Diga o que houve em cada uma — é assim que o sistema sabe quando voltar a esse cliente."
+            : "Só o vendedor pode registrar o que aconteceu."}
+        </Alert.Description>
+      </Alert.Content>
 
-      <Button.Root
-        appearance="solid"
-        color="amber"
-        size="sm"
-        noUppercase
-        onClick={onOpen}
-      >
-        <Button.Title>{canAnswer ? "Responder" : "Ver visitas"}</Button.Title>
-        <Button.Icon icon={ChevronRight} />
-      </Button.Root>
-    </div>
+      <Alert.Actions>
+        <Button.Root
+          appearance="solid"
+          color="amber"
+          size="sm"
+          noUppercase
+          onClick={onOpen}
+        >
+          <Button.Title>{canAnswer ? "Responder" : "Ver visitas"}</Button.Title>
+          <Button.Icon icon={ChevronRight} />
+        </Button.Root>
+      </Alert.Actions>
+    </Alert.Root>
   );
 }

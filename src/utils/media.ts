@@ -59,7 +59,9 @@ export const loadImage = async (
 
 export const mediaUrl = (path?: string | null): string | undefined => {
   if (!path) return undefined;
-  if (/^https?:\/\//.test(path)) return path;
+  // Absoluto, ou a prévia local de um arquivo escolhido (`blob:`/`data:`),
+  // que não passa pela API.
+  if (/^(https?:\/\/|blob:|data:)/.test(path)) return path;
   try {
     const origin = new URL(process.env.NEXT_PUBLIC_GRAPHQL_API_HOST ?? "")
       .origin;

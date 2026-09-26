@@ -1,11 +1,10 @@
 "use client";
 
-import { Download } from "lucide-react";
+import { Import } from "@/components/Import";
+
 import { useState } from "react";
 
-import { Button } from "@/components/Button";
 import { Input } from "@/components/Input";
-import { Title } from "@/components/Title";
 import { useToast } from "@/components/Toast";
 
 import {
@@ -55,27 +54,7 @@ export function TemplateMode({ onRowsChange, onResetResult }: Props) {
 
   return (
     <div className="flex flex-col gap-16">
-      <div className="flex items-center justify-between gap-12 rounded-(--r-lg) border border-(--border) bg-(--bg2) px-12 py-10">
-        <div className="flex flex-col gap-2">
-          <Title variant="body-sm" weight="medium">
-            Não tem o modelo?
-          </Title>
-          <Title variant="caption" color="muted">
-            Baixe a planilha de exemplo, preencha e envie de volta.
-          </Title>
-        </div>
-        <Button.Root
-          type="button"
-          appearance="ghost"
-          color="neutral"
-          size="sm"
-          noUppercase
-          onClick={downloadExampleSheet}
-        >
-          <Button.Icon icon={Download} />
-          <Button.Title>Baixar modelo</Button.Title>
-        </Button.Root>
-      </div>
+      <Import.TemplateDownload onDownload={downloadExampleSheet} />
 
       <Input.Archive
         variant="single"

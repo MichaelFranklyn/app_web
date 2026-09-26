@@ -1,4 +1,5 @@
 "use client";
+import { Emphasis } from "@/components/Emphasis";
 
 import { EmptyState } from "@/components/EmptyState";
 import { QueryError } from "@/components/QueryError";
@@ -86,7 +87,7 @@ export function TaxesTable({ productId, onChanged }: Props) {
                 <Title variant="body-sm">
                   Adicionar, editar a alíquota ou remover um imposto recalcula
                   automaticamente o &quot;preço c/ imposto&quot; deste produto
-                  em todas as tabelas de preço <b>ativas</b>.
+                  em todas as tabelas de preço <Emphasis>ativas</Emphasis>.
                 </Title>
                 <Title variant="body-sm" color="muted">
                   Tabelas inativas (histórico) mantêm os valores da época, e

@@ -1,3 +1,4 @@
+import { BulletList } from "@/components/BulletList";
 import { Alert } from "@/components/Alert";
 import { FileWarning } from "lucide-react";
 
@@ -24,11 +25,11 @@ export function UnreadableAlert({ rows }: Props) {
           O código destes itens saiu embaralhado no PDF (texto sobreposto) e
           eles NÃO entram na importação. Confira a descrição, ache o código no
           PDF e adicione o item manualmente:
-          <ul className="mt-4 list-disc pl-16">
+          <BulletList.Root className="mt-4">
             {rows.map((desc, i) => (
-              <li key={`${desc}-${i}`}>{desc}</li>
+              <BulletList.Item key={`${desc}-${i}`}>{desc}</BulletList.Item>
             ))}
-          </ul>
+          </BulletList.Root>
         </Alert.Description>
       </Alert.Content>
     </Alert.Root>

@@ -1,8 +1,9 @@
 "use client";
 
+import { HeatGrid } from "@/components/HeatGrid";
 import { Title } from "@/components/Title";
 import { PlatformRetention } from "../../interface";
-import { RETENTION_TONE_CLASS, retentionTone } from "../../utils";
+import { retentionTone } from "../../utils";
 
 /**
  * A curva média, antes da grade.
@@ -42,17 +43,12 @@ export function RetentionSummary({
       </Title>
       <div className="flex flex-wrap gap-8">
         {points.map((percent, index) => (
-          <div
-            key={index}
-            className={`flex min-w-[76px] flex-col gap-[2px] rounded-[6px] px-12 py-8 ${
-              RETENTION_TONE_CLASS[retentionTone(Math.round(percent))]
-            }`}
-          >
+          <HeatGrid.Tile key={index} level={retentionTone(Math.round(percent))}>
             <Title variant="micro">{index + 1}º mês</Title>
             <Title variant="body-sm" weight="semibold">
               {Math.round(percent)}%
             </Title>
-          </div>
+          </HeatGrid.Tile>
         ))}
       </div>
     </div>

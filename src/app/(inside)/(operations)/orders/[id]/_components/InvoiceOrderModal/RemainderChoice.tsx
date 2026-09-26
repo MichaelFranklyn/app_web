@@ -1,3 +1,4 @@
+import { Card } from "@/components/Card";
 import { Alert } from "@/components/Alert";
 import { Input } from "@/components/Input";
 import { Title } from "@/components/Title";
@@ -22,26 +23,28 @@ export function RemainderChoice({ count, mode, onChange }: Props) {
 
   return (
     <div className="flex flex-col gap-12">
-      <div className="flex flex-col gap-8 rounded-(--r-md) border border-(--border) bg-(--bg2) px-12 py-12">
-        <Title variant="body-sm" weight="medium">
-          O que fazer com o que faltou?
-        </Title>
+      <Card.Root inset>
+        <Card.Body padding="sm" className="flex flex-col gap-8">
+          <Title variant="body-sm" weight="medium">
+            O que fazer com o que faltou?
+          </Title>
 
-        <Input.Radio
-          name="remainderMode"
-          value="backorder"
-          checked={mode === "backorder"}
-          onChange={() => onChange("backorder")}
-          label="Gerar um novo pedido com o restante (a fábrica ainda vai entregar)"
-        />
-        <Input.Radio
-          name="remainderMode"
-          value="cancel"
-          checked={mode === "cancel"}
-          onChange={() => onChange("cancel")}
-          label="Cancelar o saldo (o restante não será entregue)"
-        />
-      </div>
+          <Input.Radio
+            name="remainderMode"
+            value="backorder"
+            checked={mode === "backorder"}
+            onChange={() => onChange("backorder")}
+            label="Gerar um novo pedido com o restante (a fábrica ainda vai entregar)"
+          />
+          <Input.Radio
+            name="remainderMode"
+            value="cancel"
+            checked={mode === "cancel"}
+            onChange={() => onChange("cancel")}
+            label="Cancelar o saldo (o restante não será entregue)"
+          />
+        </Card.Body>
+      </Card.Root>
 
       {mode === "cancel" ? (
         <Alert.Root variant="warning">

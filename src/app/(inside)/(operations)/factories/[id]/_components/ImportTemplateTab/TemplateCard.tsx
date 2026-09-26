@@ -1,4 +1,5 @@
 "use client";
+import { Divider } from "@/components/Divider";
 
 import { ReactNode } from "react";
 import { Download, FileSpreadsheet, FileText } from "lucide-react";
@@ -61,9 +62,14 @@ export function TemplateCard({
       <Table.CardHead>
         <Table.CardHead.Title className="inline-flex items-center gap-6">
           {title}
-          <HelpTooltip label={`O que é o ${title.toLowerCase()}?`} content={help} />
+          <HelpTooltip
+            label={`O que é o ${title.toLowerCase()}?`}
+            content={help}
+          />
         </Table.CardHead.Title>
-        {headerAction && <Table.CardHead.Actions>{headerAction}</Table.CardHead.Actions>}
+        {headerAction && (
+          <Table.CardHead.Actions>{headerAction}</Table.CardHead.Actions>
+        )}
       </Table.CardHead>
 
       {loading ? (
@@ -73,7 +79,11 @@ export function TemplateCard({
         </div>
       ) : !template ? (
         <div className="flex flex-col gap-4 p-24">
-          <Title variant="body-md" weight="semibold" className="inline-flex items-center gap-6">
+          <Title
+            variant="body-md"
+            weight="semibold"
+            className="inline-flex items-center gap-6"
+          >
             <FileText size={16} className="shrink-0 text-(--muted2)" />
             Nenhum modelo configurado
           </Title>
@@ -100,24 +110,29 @@ export function TemplateCard({
             </Title>
           </div>
 
-          <div className="flex flex-wrap items-center justify-between gap-8 border-t border-(--border) pt-12">
+          <Divider.Root />
+          <div className="flex flex-wrap items-center justify-between gap-8">
             {template.sampleFileUrl ? (
-              <a
+              <Button.Link
                 href={`${apiOrigin()}${template.sampleFileUrl}`}
-                target="_blank"
-                rel="noreferrer"
-                className="w-fit"
+                external
+                appearance="ghost"
+                color="neutral"
+                size="sm"
+                noUppercase
               >
-                <Button.Root type="button" appearance="ghost" color="neutral" size="sm" noUppercase>
-                  <Button.Icon icon={Download} />
-                  <Button.Title>{downloadLabel}</Button.Title>
-                </Button.Root>
-              </a>
+                <Button.Icon icon={Download} />
+                <Button.Title>{downloadLabel}</Button.Title>
+              </Button.Link>
             ) : (
               <span />
             )}
 
-            <RemoveTemplateModal templateId={template.id} label={removeLabel} onRemoved={onChanged} />
+            <RemoveTemplateModal
+              templateId={template.id}
+              label={removeLabel}
+              onRemoved={onChanged}
+            />
           </div>
         </div>
       )}

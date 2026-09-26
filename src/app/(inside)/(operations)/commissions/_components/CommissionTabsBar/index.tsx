@@ -1,4 +1,6 @@
 "use client";
+import { Emphasis } from "@/components/Emphasis";
+import { Title } from "@/components/Title";
 
 import { Button } from "@/components/Button";
 import { HelpTooltip } from "@/components/HelpTooltip";
@@ -54,14 +56,15 @@ export function CommissionTabsBar({ tab, onChange }: Props) {
         position="bottom"
         content={
           <>
-            <p>
+            <Title variant="body-sm">
               Cada botão mostra as parcelas em uma situação. Passe o mouse por
               cima de um deles para ler o que ele traz.
-            </p>
-            <p>
-              A aba marcada com <b>*</b> não segue o mês escolhido lá em cima —
-              ela mostra os boletos travados de todos os vencimentos.
-            </p>
+            </Title>
+            <Title variant="body-sm">
+              A aba marcada com <Emphasis>*</Emphasis> não segue o mês escolhido
+              lá em cima — ela mostra os boletos travados de todos os
+              vencimentos.
+            </Title>
           </>
         }
       />

@@ -1,4 +1,5 @@
 "use client";
+import { Emphasis } from "@/components/Emphasis";
 
 import { Button } from "@/components/Button";
 import { FormBuilder, FormBuilderRef } from "@/components/FormBuilder";
@@ -79,7 +80,7 @@ export function RevokeAccessModal({ member, onOpenChange, onDone }: Props) {
             {isRevoking ? (
               <>
                 A conta deixa de entrar no sistema imediatamente — não no
-                próximo login. Ela <strong>não é apagada</strong>: continua
+                próximo login. Ela <Emphasis>não é apagada</Emphasis>: continua
                 nesta lista como revogada, para a trilha de auditoria seguir
                 apontando para um nome.
               </>

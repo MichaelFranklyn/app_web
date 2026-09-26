@@ -1,19 +1,19 @@
 "use client";
 
+import { Import } from "@/components/Import";
+
 import { useMutation } from "@apollo/client/react";
-import { Download, Upload } from "lucide-react";
+import { Upload } from "lucide-react";
 import { useState } from "react";
 
 import { Button } from "@/components/Button";
 import { Input } from "@/components/Input";
 import { Modal } from "@/components/Modal";
-import { Title } from "@/components/Title";
 import { useToast } from "@/components/Toast";
 import { useAsyncAction } from "@/hooks/useAsyncAction";
 import { useInvalidateQueriesClient } from "@/hooks/useInvalidateQueries";
 
 import { IMPORT_COMPANY_FACTORIES_MUTATION } from "./gql";
-import { ImportSummary } from "./ImportSummary";
 import { ImportCompanyFactoriesResponse, ImportResult } from "./interface";
 import { readSpreadsheet } from "@/utils/import/reader";
 
@@ -89,27 +89,7 @@ export function ImportFactoriesModal() {
         />
 
         <Modal.Body className="flex flex-col gap-16">
-          <div className="flex items-center justify-between gap-12 rounded-lg border border-(--border) px-12 py-10">
-            <div className="flex flex-col">
-              <Title variant="body" weight="medium">
-                Não tem o modelo?
-              </Title>
-              <Title variant="body-xs" color="muted">
-                Baixe a planilha de exemplo, preencha e envie de volta.
-              </Title>
-            </div>
-            <Button.Root
-              type="button"
-              appearance="ghost"
-              color="neutral"
-              size="sm"
-              noUppercase
-              onClick={downloadExampleSheet}
-            >
-              <Button.Icon icon={Download} />
-              <Button.Title>Baixar modelo</Button.Title>
-            </Button.Root>
-          </div>
+          <Import.TemplateDownload onDownload={downloadExampleSheet} />
 
           <Input.Archive
             variant="single"
@@ -122,7 +102,13 @@ export function ImportFactoriesModal() {
             }}
           />
 
-          {result && <ImportSummary result={result} />}
+          {result && (
+            <Import.Summary
+              result={result}
+              identify={(detail) => detail.cnpj}
+              feminine
+            />
+          )}
         </Modal.Body>
 
         <Modal.Footer>

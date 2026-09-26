@@ -1,4 +1,6 @@
 "use client";
+import { Badge } from "@/components/Badges";
+import { Card } from "@/components/Card";
 
 import { Check, Pencil, Plus, Trash, X, Zap } from "lucide-react";
 
@@ -43,148 +45,152 @@ export function StepItems({ draft, minimum, freeFreight }: Props) {
   return (
     <div className="flex flex-col gap-16">
       {/* Formulário de adição (ou edição) de um item */}
-      <div className="flex flex-col gap-8 rounded-(--r-md) border border-(--border) bg-(--bg2) p-16">
-        <Title variant="label" weight="bold" className="tracking-normal">
-          {isEditing ? "Editar item" : "Adicionar item"}
-        </Title>
+      <Card.Root inset>
+        <Card.Body padding="compact" className="flex flex-col gap-8">
+          <Title variant="label" weight="bold" className="tracking-normal">
+            {isEditing ? "Editar item" : "Adicionar item"}
+          </Title>
 
-        {/* Lado a lado a partir do tablet: produto, nível e preço numa linha;
+          {/* Lado a lado a partir do tablet: produto, nível e preço numa linha;
             quantidade e desconto na outra. Empilhado só no celular. */}
-        <div className="grid grid-cols-12 gap-x-16 gap-y-12">
-          <div className="desktop:col-span-6 col-span-12">
-            <Input.Select
-              label="Produto (nome ou código)"
-              placeholder="Digite o nome ou o código do produto"
-              options={draft.productOptions}
-              value={draft.selectedProduct}
-              onChange={draft.selectProduct}
-              // Busca no servidor: o catálogo de uma fábrica real não cabe em
-              // memória, e digitar é como o vendedor acha o produto.
-              onSearch={draft.onProductSearch}
-              loading={draft.isLoadingProducts}
-            />
-          </div>
-
-          <div className="tablet:col-span-6 desktop:col-span-3 col-span-12">
-            <Input.Select
-              label="Nível comercial (opcional)"
-              placeholder="Selecione o nível para sugerir o preço"
-              options={draft.tierOptions}
-              value={draft.selectedTier}
-              onChange={draft.selectTier}
-            />
-          </div>
-
-          <div className="tablet:col-span-6 desktop:col-span-3 col-span-12">
-            <Input.Text
-              label={
-                draft.unitName
-                  ? `Preço por ${draft.unitName.toLowerCase()}`
-                  : "Preço por unidade"
-              }
-              addon="R$"
-              inputMode="numeric"
-              placeholder="0,00"
-              value={draft.unitPrice}
-              onChange={(e) => draft.setUnitPrice(maskCurrency(e.target.value))}
-              hint={
-                draft.priceMissing
-                  ? "Este produto não tem preço neste nível na tabela ativa. Digite o preço."
-                  : "Preço de uma unidade, sugerido pela tabela ativa. Você pode ajustar."
-              }
-            />
-          </div>
-
-          <div className="tablet:col-span-6 desktop:col-span-3 col-span-12">
-            <Input.Number
-              label="Quantidade"
-              placeholder="0"
-              value={draft.quantity}
-              onChange={(e) => draft.setQuantity(e.target.value)}
-              hint={
-                draft.saleMultiple
-                  ? `Em unidades. Vendido em múltiplos de ${draft.saleMultiple}.`
-                  : "Em unidades (peças), não em embalagens."
-              }
-            />
-          </div>
-
-          <div className="tablet:col-span-3 col-span-6">
-            <Input.Select
-              placeholder="Escolha o tipo de desconto"
-              label="Tipo de desconto"
-              options={DISCOUNT_TYPE_OPTIONS}
-              value={
-                DISCOUNT_TYPE_OPTIONS.find(
-                  (o) => o.value === draft.discountType
-                ) ?? null
-              }
-              onChange={draft.selectDiscountType}
-            />
-          </div>
-
-          <div className="tablet:col-span-3 col-span-6">
-            <Input.Number
-              label={
-                draft.discountType === "PERCENT"
-                  ? "Desconto (%)"
-                  : "Desconto (R$)"
-              }
-              placeholder="0"
-              value={draft.discount}
-              onChange={(e) => draft.setDiscount(e.target.value)}
-            />
-          </div>
-
-          {draft.ipiInOrder && (
-            <div className="tablet:col-span-6 desktop:col-span-3 col-span-12">
-              <Input.Number
-                label="Alíq. IPI (%)"
-                placeholder="0"
-                value={draft.ipiRate}
-                onChange={(e) => draft.setIpiRate(e.target.value)}
-                hint="Vem do IPI cadastrado no produto e é somado por cima do subtotal. Você pode ajustar."
+          <div className="grid grid-cols-12 gap-x-16 gap-y-12">
+            <div className="desktop:col-span-6 col-span-12">
+              <Input.Select
+                label="Produto (nome ou código)"
+                placeholder="Digite o nome ou o código do produto"
+                options={draft.productOptions}
+                value={draft.selectedProduct}
+                onChange={draft.selectProduct}
+                // Busca no servidor: o catálogo de uma fábrica real não cabe em
+                // memória, e digitar é como o vendedor acha o produto.
+                onSearch={draft.onProductSearch}
+                loading={draft.isLoadingProducts}
               />
             </div>
+
+            <div className="tablet:col-span-6 desktop:col-span-3 col-span-12">
+              <Input.Select
+                label="Nível comercial (opcional)"
+                placeholder="Selecione o nível para sugerir o preço"
+                options={draft.tierOptions}
+                value={draft.selectedTier}
+                onChange={draft.selectTier}
+              />
+            </div>
+
+            <div className="tablet:col-span-6 desktop:col-span-3 col-span-12">
+              <Input.Text
+                label={
+                  draft.unitName
+                    ? `Preço por ${draft.unitName.toLowerCase()}`
+                    : "Preço por unidade"
+                }
+                addon="R$"
+                inputMode="numeric"
+                placeholder="0,00"
+                value={draft.unitPrice}
+                onChange={(e) =>
+                  draft.setUnitPrice(maskCurrency(e.target.value))
+                }
+                hint={
+                  draft.priceMissing
+                    ? "Este produto não tem preço neste nível na tabela ativa. Digite o preço."
+                    : "Preço de uma unidade, sugerido pela tabela ativa. Você pode ajustar."
+                }
+              />
+            </div>
+
+            <div className="tablet:col-span-6 desktop:col-span-3 col-span-12">
+              <Input.Number
+                label="Quantidade"
+                placeholder="0"
+                value={draft.quantity}
+                onChange={(e) => draft.setQuantity(e.target.value)}
+                hint={
+                  draft.saleMultiple
+                    ? `Em unidades. Vendido em múltiplos de ${draft.saleMultiple}.`
+                    : "Em unidades (peças), não em embalagens."
+                }
+              />
+            </div>
+
+            <div className="tablet:col-span-3 col-span-6">
+              <Input.Select
+                placeholder="Escolha o tipo de desconto"
+                label="Tipo de desconto"
+                options={DISCOUNT_TYPE_OPTIONS}
+                value={
+                  DISCOUNT_TYPE_OPTIONS.find(
+                    (o) => o.value === draft.discountType
+                  ) ?? null
+                }
+                onChange={draft.selectDiscountType}
+              />
+            </div>
+
+            <div className="tablet:col-span-3 col-span-6">
+              <Input.Number
+                label={
+                  draft.discountType === "PERCENT"
+                    ? "Desconto (%)"
+                    : "Desconto (R$)"
+                }
+                placeholder="0"
+                value={draft.discount}
+                onChange={(e) => draft.setDiscount(e.target.value)}
+              />
+            </div>
+
+            {draft.ipiInOrder && (
+              <div className="tablet:col-span-6 desktop:col-span-3 col-span-12">
+                <Input.Number
+                  label="Alíq. IPI (%)"
+                  placeholder="0"
+                  value={draft.ipiRate}
+                  onChange={(e) => draft.setIpiRate(e.target.value)}
+                  hint="Vem do IPI cadastrado no produto e é somado por cima do subtotal. Você pode ajustar."
+                />
+              </div>
+            )}
+          </div>
+
+          {draft.error && (
+            <Title variant="caption" color="red">
+              {draft.error}
+            </Title>
           )}
-        </div>
 
-        {draft.error && (
-          <Title variant="caption" color="red">
-            {draft.error}
-          </Title>
-        )}
-
-        <div className="flex gap-8">
-          <Button.Root
-            type="button"
-            appearance="solid"
-            color="amber"
-            size="sm"
-            noUppercase
-            onClick={draft.submitItem}
-          >
-            <Button.Icon icon={isEditing ? Check : Plus} />
-            <Button.Title>
-              {isEditing ? "Salvar item" : "Adicionar item"}
-            </Button.Title>
-          </Button.Root>
-
-          {isEditing && (
+          <div className="flex gap-8">
             <Button.Root
               type="button"
-              appearance="ghost"
-              color="neutral"
+              appearance="solid"
+              color="amber"
               size="sm"
               noUppercase
-              onClick={draft.cancelEdit}
+              onClick={draft.submitItem}
             >
-              <Button.Icon icon={X} />
-              <Button.Title>Cancelar</Button.Title>
+              <Button.Icon icon={isEditing ? Check : Plus} />
+              <Button.Title>
+                {isEditing ? "Salvar item" : "Adicionar item"}
+              </Button.Title>
             </Button.Root>
-          )}
-        </div>
-      </div>
+
+            {isEditing && (
+              <Button.Root
+                type="button"
+                appearance="ghost"
+                color="neutral"
+                size="sm"
+                noUppercase
+                onClick={draft.cancelEdit}
+              >
+                <Button.Icon icon={X} />
+                <Button.Title>Cancelar</Button.Title>
+              </Button.Root>
+            )}
+          </div>
+        </Card.Body>
+      </Card.Root>
 
       {/* Itens já adicionados ao rascunho */}
       {draft.items.length > 0 && (
@@ -211,12 +217,16 @@ export function StepItems({ draft, minimum, freeFreight }: Props) {
                     <span className="inline-flex items-center gap-6">
                       {item.productLabel}
                       {item.isPromo && (
-                        <span
-                          className="inline-flex items-center gap-2 text-(--orange)"
+                        <Badge.Root
+                          color="orange"
+                          appearance="tinted"
+                          size="xs"
                           title="Promoção relâmpago"
                         >
-                          <Zap size={13} />
-                        </span>
+                          <Badge.Icon>
+                            <Zap />
+                          </Badge.Icon>
+                        </Badge.Root>
                       )}
                     </span>
                   </Table.Cell>

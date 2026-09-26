@@ -1,4 +1,5 @@
 "use client";
+import { Emphasis } from "@/components/Emphasis";
 
 import { EmptyState } from "@/components/EmptyState";
 import { HelpTooltip } from "@/components/HelpTooltip";
@@ -82,9 +83,10 @@ export function PricesTable({
                   Preço por embalagem
                 </Title>
                 <Title variant="body-sm">
-                  O preço cadastrado é sempre o da <b>embalagem fechada</b>{" "}
-                  (caixa, saco, fardo). O preço por unidade é calculado
-                  automaticamente dividindo pelas unidades da embalagem.
+                  O preço cadastrado é sempre o da{" "}
+                  <Emphasis>embalagem fechada</Emphasis> (caixa, saco, fardo). O
+                  preço por unidade é calculado automaticamente dividindo pelas
+                  unidades da embalagem.
                 </Title>
                 <Title variant="body-sm" color="muted">
                   O &quot;preço c/ imposto&quot; é recalculado sozinho nas

@@ -1,3 +1,4 @@
+import { Emphasis } from "@/components/Emphasis";
 import { Alert } from "@/components/Alert";
 import { Input } from "@/components/Input";
 import { Stepper } from "@/components/Stepper";
@@ -42,7 +43,8 @@ export function StepDetails({
       >
         Escreva um nome para essa tabela de preços — pode usar o mesmo nome que
         está na planilha (ex.: LISTA 39). Confira a data de início e, se estiver
-        tudo certo, clique no botão <b>Importar tabela</b> aqui embaixo.
+        tudo certo, clique no botão <Emphasis>Importar tabela</Emphasis> aqui
+        embaixo.
       </Stepper.Intro>
       <Input.Text
         label="Nome da tabela"

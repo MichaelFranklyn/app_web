@@ -1,6 +1,8 @@
 "use client";
 
 import { Card } from "@/components/Card";
+import { Divider } from "@/components/Divider";
+import { IconTile } from "@/components/IconTile";
 import { Title } from "@/components/Title";
 import { cn } from "@/lib/utils";
 import { ArrowRight } from "lucide-react";
@@ -39,15 +41,17 @@ export function CatalogNavCard({ link, count }: Props) {
       >
         <Card.Body className="flex h-full flex-col gap-12">
           <div className="flex items-start gap-12">
-            <span
+            <IconTile
               aria-hidden
+              shape="square"
+              size="lg"
               className={cn(
-                "flex size-40 shrink-0 items-center justify-center rounded-(--r-md) transition-transform duration-200 group-hover:scale-105",
+                "transition-transform duration-200 group-hover:scale-105",
                 skin.chip
               )}
             >
-              <Icon size={19} />
-            </span>
+              <Icon />
+            </IconTile>
 
             <div className="flex min-w-0 flex-1 flex-col gap-3">
               <Title variant="heading-sm">{label}</Title>
@@ -60,23 +64,25 @@ export function CatalogNavCard({ link, count }: Props) {
           {/* O rodapé ancora no fim do card: a fileira só se lê de um golpe se
               as contagens ficarem na mesma linha, e as descrições têm alturas
               diferentes. */}
-          <div className="mt-auto flex items-center justify-between gap-8 border-t border-(--border) pt-12">
-            <Title
-              variant="micro"
-              color={isEmpty ? "muted" : undefined}
-              weight={isEmpty ? "regular" : "semibold"}
-            >
-              {countLabel(count, noun)}
-            </Title>
-            <span
-              aria-hidden
-              className={cn(
-                "shrink-0 transition-transform duration-200 group-hover:translate-x-[3px]",
-                skin.icon
-              )}
-            >
-              <ArrowRight size={16} />
-            </span>
+          <div className="mt-auto flex flex-col gap-12">
+            <Divider.Root />
+            <div className="flex items-center justify-between gap-8">
+              <Title
+                variant="micro"
+                color={isEmpty ? "muted" : undefined}
+                weight={isEmpty ? "regular" : "semibold"}
+              >
+                {countLabel(count, noun)}
+              </Title>
+              <ArrowRight
+                aria-hidden
+                size={16}
+                className={cn(
+                  "shrink-0 transition-transform duration-200 group-hover:translate-x-[3px]",
+                  skin.icon
+                )}
+              />
+            </div>
           </div>
         </Card.Body>
       </Card.Root>

@@ -1,4 +1,5 @@
 import { Card } from "@/components/Card";
+import { Divider } from "@/components/Divider";
 import { Grid } from "@/components/Grid";
 import { Title } from "@/components/Title";
 import { formatDate } from "@/utils/format/date";
@@ -100,7 +101,8 @@ export function TenantUsageCard({ tenant }: { tenant: TenantDetail }) {
           </Grid.Item>
         </Grid.Root>
 
-        <div className="mt-16 flex flex-wrap gap-24 border-t border-(--border) pt-12">
+        <Divider.Root className="mt-16" />
+        <div className="flex flex-wrap gap-24">
           <div className="flex flex-col gap-[2px]">
             <Title variant="micro" color="muted">
               Último acesso

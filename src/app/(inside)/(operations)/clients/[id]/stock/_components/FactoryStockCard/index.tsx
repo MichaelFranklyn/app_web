@@ -1,8 +1,8 @@
 "use client";
+import { Card } from "@/components/Card";
 
 import { Badge } from "@/components/Badges";
 import { Title } from "@/components/Title";
-import { cn } from "@/lib/utils";
 import { ChevronRight } from "lucide-react";
 import { FactoryStockSummary } from "../../../interface";
 import { factoryName } from "@/utils/company";
@@ -34,15 +34,9 @@ export function FactoryStockCard({ summary, onSelect }: Props) {
   const plural = summary.totalProducts !== 1 ? "s" : "";
 
   return (
-    <button
-      type="button"
+    <Card.Button
       onClick={() => onSelect(summary)}
       aria-label={`Ver os produtos de ${name}`}
-      className={cn(
-        "flex w-full cursor-pointer flex-col gap-10 rounded-(--r-md) border border-(--border)",
-        "bg-(--bg2) p-16 text-left transition-colors hover:bg-(--bg3)",
-        "focus-visible:outline-2 focus-visible:outline-(--amber)"
-      )}
     >
       <div className="flex items-start justify-between gap-8">
         <Title variant="body" weight="semibold" className="truncate">
@@ -64,6 +58,6 @@ export function FactoryStockCard({ summary, onSelect }: Props) {
           <ChevronRight size={14} className="text-(--muted)" />
         </div>
       </div>
-    </button>
+    </Card.Button>
   );
 }

@@ -1,10 +1,11 @@
 "use client";
+import { Divider } from "@/components/Divider";
+import { Collapse } from "@/components/Collapse";
 
 import { Badge } from "@/components/Badges";
 import { Table, TableSort } from "@/components/Table";
 import { Title } from "@/components/Title";
 import { formatMoney } from "@/utils/format/masks";
-import { ChevronDown } from "lucide-react";
 import { useEffect, useMemo, useState } from "react";
 import {
   type CommissionLens,
@@ -112,17 +113,11 @@ export function FactoryCommissionGroup({
   return (
     <Table.Root sort={sort}>
       <div className="flex flex-wrap items-center gap-16 p-16">
-        <button
-          type="button"
-          onClick={() => setOpen((v) => !v)}
-          className="flex flex-1 items-center gap-12 text-left"
+        <Collapse.Trigger
+          open={open}
+          onToggle={() => setOpen((v) => !v)}
+          className="flex-1"
         >
-          <ChevronDown
-            size={20}
-            className={`text-(--fg-muted) transition-transform ${
-              open ? "" : "-rotate-90"
-            }`}
-          />
           <div className="flex flex-col gap-2">
             <div className="flex flex-wrap items-center gap-8">
               <Title variant="heading-sm">{group.name}</Title>
@@ -143,7 +138,7 @@ export function FactoryCommissionGroup({
                 : `${total} parcela(s) ${scopeLabel}`}
             </Title>
           </div>
-        </button>
+        </Collapse.Trigger>
 
         <div className="flex flex-wrap items-center gap-16">
           {highlights.map((highlight) => (
@@ -177,7 +172,8 @@ export function FactoryCommissionGroup({
       </div>
 
       {open && (
-        <div className="border-t border-(--border)">
+        <div>
+          <Divider.Root />
           <CommissionsTable
             rows={group.rows}
             loading={false}

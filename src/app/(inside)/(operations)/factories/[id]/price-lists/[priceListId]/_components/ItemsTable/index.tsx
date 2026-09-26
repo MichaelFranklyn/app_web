@@ -1,4 +1,5 @@
 "use client";
+import { Emphasis } from "@/components/Emphasis";
 
 import { Badge } from "@/components/Badges";
 import { EmptyState } from "@/components/EmptyState";
@@ -74,8 +75,8 @@ export function ItemsTable({
             label="Por que alguns produtos não aparecem?"
             content={
               <Title variant="body-sm">
-                Em uma tabela <b>ativa</b>, produtos desativados não aparecem —
-                eles não estão disponíveis para venda.
+                Em uma tabela <Emphasis>ativa</Emphasis>, produtos desativados
+                não aparecem — eles não estão disponíveis para venda.
               </Title>
             }
           />

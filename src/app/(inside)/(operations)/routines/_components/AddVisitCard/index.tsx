@@ -1,6 +1,6 @@
 "use client";
+import { Button } from "@/components/Button";
 
-import { Title } from "@/components/Title";
 import { Plus } from "lucide-react";
 import { useState } from "react";
 
@@ -41,18 +41,21 @@ export function AddVisitCard({
 
   return (
     <>
-      <button
+      <Button.Root
         type="button"
+        appearance="ghost"
+        color="neutral"
+        size="sm"
+        noUppercase
+        fullWidth
+        dashed
+        label={label}
+        className="mt-6"
         onClick={() => setOpen(true)}
-        title={label}
-        aria-label={label}
-        className="mt-6 flex w-full cursor-pointer items-center justify-center gap-4 rounded-(--radius-md) border border-dashed border-(--border2) py-10 text-(--muted) transition-colors hover:border-(--amber) hover:text-(--amber)"
       >
-        <Plus size={16} strokeWidth={2.5} />
-        <Title variant="micro" weight="medium" className="text-inherit">
-          {label}
-        </Title>
-      </button>
+        <Button.Icon icon={Plus} />
+        <Button.Title>{label}</Button.Title>
+      </Button.Root>
 
       <AddVisitModal
         open={open}

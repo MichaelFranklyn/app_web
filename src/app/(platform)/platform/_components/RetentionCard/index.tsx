@@ -2,12 +2,11 @@
 
 import { Card } from "@/components/Card";
 import { EmptyState } from "@/components/EmptyState";
+import { HeatGrid } from "@/components/HeatGrid";
 import { Title } from "@/components/Title";
-import { cn } from "@/lib/utils";
 import { Users } from "lucide-react";
 import { PlatformRetention } from "../../interface";
 import {
-  RETENTION_TONE_CLASS,
   cohortLabel,
   isPartialCell,
   retentionPercent,
@@ -63,87 +62,83 @@ export function RetentionCard({ retention }: { retention: PlatformRetention }) {
         ) : (
           <>
             <RetentionSummary retention={retention} />
-
-            <div className="overflow-x-auto">
-              {/* Largura pelo conteúdo, não pela tela: com uma turma só, o
+            {/* Largura pelo conteúdo, não pela tela: com uma turma só, o
                   `w-full` esticava a única célula por toda a linha e a grade
                   perdia a forma que a torna legível. */}
-              <table className="w-auto border-separate border-spacing-[3px] text-left">
-                <thead>
-                  <tr>
-                    <th className="sticky left-0 bg-(--bg2) pr-8">
+            <HeatGrid.Root>
+              <thead>
+                <tr>
+                  <HeatGrid.HeadCell sticky>
+                    <Title variant="micro" color="muted">
+                      Turma
+                    </Title>
+                  </HeatGrid.HeadCell>
+                  <HeatGrid.HeadCell>
+                    <Title variant="micro" color="muted">
+                      Empresas
+                    </Title>
+                  </HeatGrid.HeadCell>
+                  {Array.from({ length: longest }, (_, index) => (
+                    <HeatGrid.HeadCell
+                      key={index}
+                      className="min-w-[52px] pr-0 text-center"
+                    >
                       <Title variant="micro" color="muted">
-                        Turma
+                        {index === 0 ? "Entrada" : `${index}º mês`}
                       </Title>
-                    </th>
-                    <th className="pr-8">
-                      <Title variant="micro" color="muted">
-                        Empresas
-                      </Title>
-                    </th>
-                    {Array.from({ length: longest }, (_, index) => (
-                      <th key={index} className="min-w-[52px] text-center">
-                        <Title variant="micro" color="muted">
-                          {index === 0 ? "Entrada" : `${index}º mês`}
-                        </Title>
-                      </th>
-                    ))}
-                  </tr>
-                </thead>
-
-                <tbody>
-                  {cohorts.map((cohort) => (
-                    <tr key={cohort.cohort}>
-                      <th className="sticky left-0 bg-(--bg2) pr-8 text-left">
-                        <Title variant="body-sm" weight="semibold">
-                          {cohortLabel(cohort.cohort)}
-                        </Title>
-                      </th>
-                      <td className="pr-8">
-                        <Title variant="body-sm" color="muted">
-                          {cohort.companies}
-                        </Title>
-                      </td>
-
-                      {cohort.values.map((active, offset) => {
-                        const percent = retentionPercent(
-                          active,
-                          cohort.companies
-                        );
-                        const partial = isPartialCell(
-                          cohort.cohort,
-                          offset,
-                          currentMonth
-                        );
-                        return (
-                          <td
-                            key={offset}
-                            className={cn(
-                              "rounded-[4px] px-8 py-[6px] text-center",
-                              RETENTION_TONE_CLASS[retentionTone(percent)],
-                              // O mês corrente está pela metade: sem a marca, a
-                              // diagonal final da grade se leria como queda
-                              // geral em vez de mês inacabado.
-                              partial &&
-                                "opacity-55 outline-1 outline-(--border) outline-dashed"
-                            )}
-                            title={
-                              partial
-                                ? `${active} de ${cohort.companies} — mês em andamento`
-                                : `${active} de ${cohort.companies}`
-                            }
-                          >
-                            <Title variant="caption" weight="semibold">
-                              {percent}%
-                            </Title>
-                          </td>
-                        );
-                      })}
-                    </tr>
+                    </HeatGrid.HeadCell>
                   ))}
-                </tbody>
-              </table>
-            </div>
+                </tr>
+              </thead>
+
+              <tbody>
+                {cohorts.map((cohort) => (
+                  <tr key={cohort.cohort}>
+                    <HeatGrid.HeadCell sticky scope="row">
+                      <Title variant="body-sm" weight="semibold">
+                        {cohortLabel(cohort.cohort)}
+                      </Title>
+                    </HeatGrid.HeadCell>
+                    <HeatGrid.Cell>
+                      <Title variant="body-sm" color="muted">
+                        {cohort.companies}
+                      </Title>
+                    </HeatGrid.Cell>
+
+                    {cohort.values.map((active, offset) => {
+                      const percent = retentionPercent(
+                        active,
+                        cohort.companies
+                      );
+                      const partial = isPartialCell(
+                        cohort.cohort,
+                        offset,
+                        currentMonth
+                      );
+                      return (
+                        // O mês corrente está pela metade: sem a marca, a
+                        // diagonal final da grade se leria como queda geral
+                        // em vez de mês inacabado.
+                        <HeatGrid.HeatCell
+                          key={offset}
+                          level={retentionTone(percent)}
+                          partial={partial}
+                          title={
+                            partial
+                              ? `${active} de ${cohort.companies} — mês em andamento`
+                              : `${active} de ${cohort.companies}`
+                          }
+                        >
+                          <Title variant="caption" weight="semibold">
+                            {percent}%
+                          </Title>
+                        </HeatGrid.HeatCell>
+                      );
+                    })}
+                  </tr>
+                ))}
+              </tbody>
+            </HeatGrid.Root>
 
             <Title variant="micro" color="muted">
               Célula tracejada = mês ainda em andamento, contagem incompleta.

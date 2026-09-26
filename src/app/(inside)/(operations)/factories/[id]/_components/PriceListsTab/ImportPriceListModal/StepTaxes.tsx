@@ -80,14 +80,16 @@ export function StepTaxes({
         </Card.Header>
         <Card.Body padding="compact" className="flex flex-col gap-12">
           {ipiInOrder && (
-            <div className="rounded-md border border-(--border) bg-(--bg2) p-12">
-              <Title variant="caption" color="secondary">
-                Esta fábrica cobra o IPI no pedido, não na tabela. Mapeie a
-                coluna assim mesmo: o IPI fica guardado em cada produto e é
-                trazido sozinho ao montar o pedido. O preço da tabela continua
-                sem IPI.
-              </Title>
-            </div>
+            <Card.Root inset>
+              <Card.Body padding="sm">
+                <Title variant="caption" color="secondary">
+                  Esta fábrica cobra o IPI no pedido, não na tabela. Mapeie a
+                  coluna assim mesmo: o IPI fica guardado em cada produto e é
+                  trazido sozinho ao montar o pedido. O preço da tabela continua
+                  sem IPI.
+                </Title>
+              </Card.Body>
+            </Card.Root>
           )}
           <FieldMapper
             label="Coluna do IPI"
@@ -101,23 +103,25 @@ export function StepTaxes({
             onChange={onIpiChoice}
           />
           {ipiChoice.kind !== "none" && (
-            <div className="flex flex-col gap-8 rounded-md border border-(--border) bg-(--bg2) p-12">
-              <Title variant="caption" color="muted">
-                O IPI da planilha está em:
-              </Title>
-              <Input.Radio
-                name="ipiSemantics"
-                checked={!ipiAsFraction}
-                onChange={() => setIpiAsFraction(false)}
-                label="Percentual (ex.: 3,25 = 3,25%) — usado como está"
-              />
-              <Input.Radio
-                name="ipiSemantics"
-                checked={ipiAsFraction}
-                onChange={() => setIpiAsFraction(true)}
-                label="Fração decimal (ex.: 0,0325 = 3,25%) — convertemos multiplicando por 100"
-              />
-            </div>
+            <Card.Root inset>
+              <Card.Body padding="sm" className="flex flex-col gap-8">
+                <Title variant="caption" color="muted">
+                  O IPI da planilha está em:
+                </Title>
+                <Input.Radio
+                  name="ipiSemantics"
+                  checked={!ipiAsFraction}
+                  onChange={() => setIpiAsFraction(false)}
+                  label="Percentual (ex.: 3,25 = 3,25%) — usado como está"
+                />
+                <Input.Radio
+                  name="ipiSemantics"
+                  checked={ipiAsFraction}
+                  onChange={() => setIpiAsFraction(true)}
+                  label="Fração decimal (ex.: 0,0325 = 3,25%) — convertemos multiplicando por 100"
+                />
+              </Card.Body>
+            </Card.Root>
           )}
         </Card.Body>
       </Card.Root>

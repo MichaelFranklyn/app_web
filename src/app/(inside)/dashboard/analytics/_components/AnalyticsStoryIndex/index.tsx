@@ -1,6 +1,7 @@
 "use client";
 
 import { Card } from "@/components/Card";
+import { LinkTile } from "@/components/LinkTile";
 import { Title } from "@/components/Title";
 
 import { ANALYTICS_STORY } from "../../storyParts";
@@ -29,10 +30,7 @@ export function AnalyticsStoryIndex() {
         <ol className="desktop:grid-cols-2 grid gap-8">
           {ANALYTICS_STORY.map((part, index) => (
             <li key={part.id}>
-              <a
-                href={`#${part.id}`}
-                className="flex gap-8 rounded p-8 transition-colors hover:bg-(--bg3)"
-              >
+              <LinkTile href={`#${part.id}`}>
                 <Title
                   variant="body-sm"
                   weight="semibold"
@@ -49,7 +47,7 @@ export function AnalyticsStoryIndex() {
                     {part.question}
                   </Title>
                 </span>
-              </a>
+              </LinkTile>
             </li>
           ))}
         </ol>

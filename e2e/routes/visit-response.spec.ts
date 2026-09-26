@@ -1,4 +1,5 @@
 import { EXPIRED_VISIT_TOKEN, WEEK_VISIT_TOKEN } from "../support/stub-backend";
+import type { Page } from "@playwright/test";
 import { expect, test } from "../support/fixtures";
 
 /**
@@ -25,6 +26,24 @@ import { expect, test } from "../support/fixtures";
 test.use({ storageState: { cookies: [], origins: [] } });
 
 const TOKEN = "token-de-resposta-do-dia";
+
+/**
+ * Os campos são o `Input.Select` do DS: o valor viaja num campo oculto com o
+ * `name`, e a escolha é feita na lista que abre ao tocar na caixa.
+ */
+const field = (page: Page, name: string) =>
+  page.locator(`[data-input-root]:has(input[type="hidden"][name="${name}"])`);
+
+async function choose(page: Page, name: string, optionText: string) {
+  await field(page, name).getByRole("textbox").click();
+  await page
+    .locator("[data-select-dropdown]")
+    .getByText(optionText, { exact: true })
+    .click();
+}
+
+const checkboxLabel = (page: Page, name: string) =>
+  page.locator(`label:has(input[name="${name}"])`);
 
 test.describe("Folha de resposta da rota", () => {
   test("abre sem sessão e lista as paradas do dia", async ({ page }) => {
@@ -57,13 +76,13 @@ test.describe("Folha de resposta da rota", () => {
 
     // Em branco é o que separa "não respondi" de "respondi": um seletor já
     // marcado gravaria um desfecho que o vendedor não deu.
-    await expect(page.locator('select[name="status__stop-1"]')).toHaveValue("");
+    await expect(page.locator('input[name="status__stop-1"]')).toHaveValue("");
     await expect(page.locator('input[name="order__stop-1"]')).not.toBeChecked();
 
-    await expect(page.locator('select[name="status__stop-2"]')).toHaveValue(
+    await expect(page.locator('input[name="status__stop-2"]')).toHaveValue(
       "COMPLETED"
     );
-    await expect(page.locator('select[name="outcome__stop-2"]')).toHaveValue(
+    await expect(page.locator('input[name="outcome__stop-2"]')).toHaveValue(
       "SOLD"
     );
     await expect(page.locator('textarea[name="notes__stop-2"]')).toHaveValue(
@@ -79,10 +98,9 @@ test.describe("Folha de resposta da rota", () => {
   }) => {
     await page.goto(`/r/${TOKEN}`);
 
-    await page
-      .locator('select[name="status__stop-1"]')
-      .selectOption("COMPLETED");
-    await page.locator('input[name="order__stop-1"]').check();
+    await choose(page, "status__stop-1", "Realizada");
+    await checkboxLabel(page, "order__stop-1").click();
+    await expect(page.locator('input[name="order__stop-1"]')).toBeChecked();
     await page.locator('textarea[name="notes__stop-1"]').fill("levou 3 caixas");
 
     await page.getByRole("button", { name: /enviar respostas/i }).click();
@@ -100,7 +118,8 @@ test.describe("Folha de resposta da rota", () => {
     // A parada 2 já vem respondida, então o formulário NÃO está vazio: o que se
     // prende aqui é o caso do vendedor que só escreveu observação, sem dizer o
     // que aconteceu. Limpar a situação dela deixa o envio de fato vazio.
-    await page.locator('select[name="status__stop-2"]').selectOption("");
+    await field(page, "status__stop-2").getByRole("button").click();
+    await expect(page.locator('input[name="status__stop-2"]')).toHaveValue("");
     await page.locator('textarea[name="notes__stop-1"]').fill("passei lá");
 
     await page.getByRole("button", { name: /enviar respostas/i }).click();

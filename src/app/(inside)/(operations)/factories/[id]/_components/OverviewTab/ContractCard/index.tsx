@@ -45,7 +45,9 @@ export function ContractCard({ companyFactory }: Props) {
       <Card.Body padding="compact">
         <Card.Item variant="stat">
           <Card.Item.Label>Situação</Card.Item.Label>
-          <Card.Item.Value color={contract.color}>{contract.label}</Card.Item.Value>
+          <Card.Item.Value color={contract.color}>
+            {contract.label}
+          </Card.Item.Value>
         </Card.Item>
         {companyFactory.contractStart && (
           <Card.Item variant="stat">

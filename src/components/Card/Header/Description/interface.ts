@@ -1,3 +1,4 @@
 import React from "react";
 
-export type CardHeaderDescriptionProps = React.HTMLAttributes<HTMLParagraphElement>;
+export type CardHeaderDescriptionProps =
+  React.HTMLAttributes<HTMLParagraphElement>;

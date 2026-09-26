@@ -1,3 +1,4 @@
+import { Timeline } from "@/components/Timeline";
 import { Card } from "@/components/Card";
 import { EmptyState } from "@/components/EmptyState";
 import { Title } from "@/components/Title";
@@ -44,12 +45,9 @@ export function TenantAuditCard({ entries }: { entries: TenantAuditEntry[] }) {
             </EmptyState.Description>
           </EmptyState.Root>
         ) : (
-          <ol className="flex flex-col gap-12">
+          <Timeline.Root>
             {entries.map((entry) => (
-              <li
-                key={entry.id}
-                className="flex flex-col gap-[2px] border-l-2 border-(--border) pl-12"
-              >
+              <Timeline.Item key={entry.id}>
                 <div className="flex flex-wrap items-baseline gap-8">
                   <Title variant="caption" weight="semibold">
                     {AUDIT_LABEL[entry.action] ?? entry.action}
@@ -63,9 +61,9 @@ export function TenantAuditCard({ entries }: { entries: TenantAuditEntry[] }) {
                     {entry.reason}
                   </Title>
                 )}
-              </li>
+              </Timeline.Item>
             ))}
-          </ol>
+          </Timeline.Root>
         )}
       </Card.Body>
     </Card.Root>

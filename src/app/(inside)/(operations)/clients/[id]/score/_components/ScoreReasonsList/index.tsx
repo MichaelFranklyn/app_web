@@ -1,4 +1,5 @@
 "use client";
+import { Card } from "@/components/Card";
 
 import { Badge } from "@/components/Badges";
 import { EmptyState } from "@/components/EmptyState";
@@ -29,31 +30,30 @@ export function ScoreReasonsList({ reasons }: { reasons: ScoreReason[] }) {
   return (
     <div className="flex flex-col gap-10">
       {reasons.map((reason) => (
-        <div
-          key={reason.key}
-          className="flex flex-col gap-4 rounded-(--r-md) border border-(--border) bg-(--bg3) p-[10px]"
-        >
-          <div className="flex items-center justify-between gap-6">
-            <Badge.Root color={reason.tone} appearance="tinted">
-              <Badge.Text>{reason.label}</Badge.Text>
-            </Badge.Root>
-            <Title variant="micro" color="muted">
-              +{reason.contribution.toFixed(0)} pts no total
-            </Title>
-          </div>
-          <Title variant="body-sm">{reason.why}</Title>
-          {reason.tip && (
-            <div className="flex items-start gap-6">
-              <Lightbulb
-                size={14}
-                className="mt-[2px] shrink-0 text-(--amber)"
-              />
-              <Title variant="body-sm" color="secondary">
-                {reason.tip}
+        <Card.Root key={reason.key} inset tone="muted">
+          <Card.Body padding="sm" className="gap-4">
+            <div className="flex items-center justify-between gap-6">
+              <Badge.Root color={reason.tone} appearance="tinted">
+                <Badge.Text>{reason.label}</Badge.Text>
+              </Badge.Root>
+              <Title variant="micro" color="muted">
+                +{reason.contribution.toFixed(0)} pts no total
               </Title>
             </div>
-          )}
-        </div>
+            <Title variant="body-sm">{reason.why}</Title>
+            {reason.tip && (
+              <div className="flex items-start gap-6">
+                <Lightbulb
+                  size={14}
+                  className="mt-[2px] shrink-0 text-(--amber)"
+                />
+                <Title variant="body-sm" color="secondary">
+                  {reason.tip}
+                </Title>
+              </div>
+            )}
+          </Card.Body>
+        </Card.Root>
       ))}
     </div>
   );

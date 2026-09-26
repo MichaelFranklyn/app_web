@@ -3,12 +3,13 @@
 import { Badge } from "@/components/Badges";
 import { Button } from "@/components/Button";
 import { Card } from "@/components/Card";
+import { Chip } from "@/components/Chip";
+import { Divider } from "@/components/Divider";
+import { IconTile } from "@/components/IconTile";
 import { Title } from "@/components/Title";
 import { useNavigation } from "@/hooks/useNavigation";
-import { cn } from "@/lib/utils";
 import { formatMoney } from "@/utils/format/masks";
 import { ArrowRight, List } from "lucide-react";
-import Link from "next/link";
 import { useState } from "react";
 
 import { Insight, InsightSample } from "../../interface";
@@ -28,59 +29,19 @@ import { PostSaleContact } from "../PostSaleContact";
  * mesmo. É o que deixa a tela ser lida na diagonal: vermelho custa dinheiro
  * hoje, âmbar trava o mês, azul é o pano de fundo.
  */
-const TONE: Record<InsightTone, { rail: string; chip: string; value: string }> =
-  {
-    urgent: {
-      rail: "bg-(--red)",
-      chip: "bg-(--red-bg) text-(--red)",
-      value: "text-(--red)",
-    },
-    attention: {
-      rail: "bg-(--amber)",
-      chip: "bg-(--amber-bg2) text-(--amber)",
-      value: "text-(--amber)",
-    },
-    info: {
-      rail: "bg-(--blue)",
-      chip: "bg-(--blue-bg) text-(--blue)",
-      value: "text-(--blue)",
-    },
-  };
+const TONE: Record<InsightTone, "red" | "amber" | "blue"> = {
+  urgent: "red",
+  attention: "amber",
+  info: "blue",
+};
 
 /** Um exemplo do insight: vira link quando o registro tem tela própria. */
 function SampleChip({ sample }: { sample: InsightSample }) {
-  const body = (
-    <>
+  return (
+    <Chip href={sample.link ?? undefined}>
       {sample.label}
-      {sample.detail && (
-        <span className="font-(--weight-regular) text-(--muted)">
-          {" "}
-          · {sample.detail}
-        </span>
-      )}
-    </>
-  );
-  const className =
-    "rounded-(--r-sm) border border-(--border) bg-(--bg3) px-8 py-[3px]";
-
-  return sample.link ? (
-    <Link
-      href={sample.link}
-      className={cn(
-        className,
-        "transition-colors hover:border-(--border2) hover:bg-(--bg4)"
-      )}
-    >
-      <Title variant="micro" weight="semibold">
-        {body}
-      </Title>
-    </Link>
-  ) : (
-    <span className={className}>
-      <Title variant="micro" weight="semibold">
-        {body}
-      </Title>
-    </span>
+      {sample.detail && <Chip.Detail>{sample.detail}</Chip.Detail>}
+    </Chip>
   );
 }
 
@@ -101,7 +62,7 @@ export function InsightCard({
   sellerId: string | null;
 }) {
   const copy = INSIGHT_COPY[insight.kind];
-  const skin = TONE[toneOf(insight)];
+  const tone = TONE[toneOf(insight)];
   const Icon = copy.icon;
   const { navigateTo, isPending } = useNavigation();
   const money = Number(insight.amount ?? 0);
@@ -112,27 +73,13 @@ export function InsightCard({
   const isPostSale = insight.kind === "DELIVERY_UNCONFIRMED";
 
   return (
-    <Card.Root
-      className="relative h-full overflow-hidden"
-      data-tour="insights-card"
-    >
-      <span
-        aria-hidden
-        className={cn("absolute inset-y-0 left-0 w-[3px]", skin.rail)}
-      />
-
+    <Card.Root accent={tone} data-tour="insights-card">
       <Card.Body className="flex h-full flex-col gap-12">
         <div className="flex items-start justify-between gap-12">
           <div className="flex items-start gap-10">
-            <span
-              aria-hidden
-              className={cn(
-                "flex size-32 shrink-0 items-center justify-center rounded-(--r-md)",
-                skin.chip
-              )}
-            >
-              <Icon size={16} />
-            </span>
+            <IconTile aria-hidden color={tone} shape="square" size="sm">
+              <Icon />
+            </IconTile>
             <div className="flex flex-col gap-4">
               <Badge.Root appearance="tinted" color="neutral" size="xs">
                 <Badge.Text>{GROUP_LABEL[insight.group]}</Badge.Text>
@@ -145,7 +92,8 @@ export function InsightCard({
           <div className="flex shrink-0 flex-col items-end">
             <Title
               variant="kpi"
-              className={cn("text-[27px]", skin.value)}
+              color={tone}
+              className="text-[27px]"
               aria-hidden
             >
               {big.value}
@@ -208,36 +156,39 @@ export function InsightCard({
 
         {/* `mt-auto`: a ação encosta no rodapé do cartão, então os botões da
             fileira ficam na mesma linha mesmo com textos de alturas diferentes. */}
-        <div className="mt-auto flex flex-wrap items-center justify-between gap-8 border-t border-(--border) pt-12">
-          <Title variant="micro" color="muted">
-            {money > 0 ? formatMoney(money) : " "}
-          </Title>
-          <div className="flex flex-wrap items-center gap-8">
-            {/* Ver a lista completa vale mesmo quando ela cabe nas três
+        <div className="mt-auto flex flex-col gap-12">
+          <Divider.Root />
+          <div className="flex flex-wrap items-center justify-between gap-8">
+            <Title variant="micro" color="muted">
+              {money > 0 ? formatMoney(money) : " "}
+            </Title>
+            <div className="flex flex-wrap items-center gap-8">
+              {/* Ver a lista completa vale mesmo quando ela cabe nas três
                 amostras: é onde está o MOTIVO de cada caso. */}
-            {total > 0 && (
+              {total > 0 && (
+                <Button.Root
+                  appearance="ghost"
+                  color="neutral"
+                  size="sm"
+                  noUppercase
+                  onClick={() => setShowCases(true)}
+                >
+                  <Button.Icon icon={List} />
+                  <Button.Title>Ver todos</Button.Title>
+                </Button.Root>
+              )}
               <Button.Root
-                appearance="ghost"
+                appearance="outline"
                 color="neutral"
                 size="sm"
                 noUppercase
-                onClick={() => setShowCases(true)}
+                disabled={isPending}
+                onClick={() => navigateTo(copy.href)}
               >
-                <Button.Icon icon={List} />
-                <Button.Title>Ver todos</Button.Title>
+                <Button.Title>{copy.action}</Button.Title>
+                <Button.Icon icon={ArrowRight} />
               </Button.Root>
-            )}
-            <Button.Root
-              appearance="outline"
-              color="neutral"
-              size="sm"
-              noUppercase
-              disabled={isPending}
-              onClick={() => navigateTo(copy.href)}
-            >
-              <Button.Title>{copy.action}</Button.Title>
-              <Button.Icon icon={ArrowRight} />
-            </Button.Root>
+            </div>
           </div>
         </div>
       </Card.Body>
