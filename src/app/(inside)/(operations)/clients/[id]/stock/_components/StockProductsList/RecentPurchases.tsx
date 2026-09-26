@@ -1,4 +1,5 @@
 "use client";
+import { Divider } from "@/components/Divider";
 import { Collapse } from "@/components/Collapse";
 
 import { Title } from "@/components/Title";
@@ -49,7 +50,8 @@ export function RecentPurchases({ purchases, unitLabel }: Props) {
   }`;
 
   return (
-    <div className="flex flex-col gap-8 border-t border-(--border) pt-12">
+    <div className="flex flex-col gap-8">
+      <Divider.Root className="mb-4" />
       <Collapse.Trigger
         open={isOpen}
         onToggle={() => setIsOpen((open) => !open)}

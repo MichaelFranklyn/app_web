@@ -1,3 +1,4 @@
+import { Title } from "@/components/Title";
 import { ReactNode } from "react";
 
 /**
@@ -18,42 +19,42 @@ import { ReactNode } from "react";
 export const ORDER_KPI_HELP: Record<string, ReactNode> = {
   Pedidos: (
     <>
-      <p>
+      <Title variant="body-sm">
         Quantos <b>pedidos feitos</b> há no recorte da tela: confirmados,
         faturados e entregues.
-      </p>
-      <p>
+      </Title>
+      <Title variant="body-sm">
         Orçamento e cancelado não entram nestes quatro cartões — eles aparecem
         na lista abaixo, mas não são venda. Se você filtrar por uma dessas
         situações, os cartões passam a contá-la.
-      </p>
+      </Title>
     </>
   ),
   "Valor total": (
     <>
-      <p>
+      <Title variant="body-sm">
         Soma da <b>mercadoria</b> dos pedidos feitos: sem IPI e sem frete. É a
         mesma base sobre a qual a fábrica calcula a comissão.
-      </p>
-      <p>
+      </Title>
+      <Title variant="body-sm">
         No detalhe de um pedido, o &quot;Total do pedido&quot; é maior: lá entra
         o que o cliente paga de verdade, com IPI e imposto embutido.
-      </p>
+      </Title>
     </>
   ),
   Faturado: (
-    <p>
+    <Title variant="body-sm">
       Quanto, dos pedidos feitos deste recorte, a fábrica já faturou (emitiu
       nota). É o marco que libera a comissão — pedido ainda não faturado não
       conta aqui.
-    </p>
+    </Title>
   ),
   "Comissão do faturado": (
-    <p>
+    <Title variant="body-sm">
       Comissão gerada pelos pedidos já faturados deste recorte. Quando ela cai
       no seu bolso é outra conta, que depende do prazo da fábrica — veja a tela
       de Comissões.
-    </p>
+    </Title>
   ),
 };
 
@@ -121,54 +122,54 @@ export const INSTALLMENT_COLUMN_HELP = {
 /** Resumo financeiro do pedido, linha a linha. */
 export const SUMMARY_HELP: Record<string, ReactNode> = {
   merchandise: (
-    <p>
+    <Title variant="body-sm">
       Só a mercadoria: quantidade × preço dos itens, menos os descontos, e{" "}
       <b>sem</b> nenhum imposto.
-    </p>
+    </Title>
   ),
   tax: (
-    <p>
+    <Title variant="body-sm">
       Quanto deste pedido é imposto que já vem <b>dentro</b> do preço (ST e
       afins). Não é uma cobrança a mais: somado à mercadoria, dá o subtotal. O
       valor de cada item está na coluna &quot;Impostos&quot; da tabela.
-    </p>
+    </Title>
   ),
   subtotal: (
-    <p>
+    <Title variant="body-sm">
       Soma dos itens com o imposto embutido, <b>sem</b> o IPI. É esta a base
       sobre a qual a fábrica calcula a comissão.
-    </p>
+    </Title>
   ),
   ipi: (
-    <p>
+    <Title variant="body-sm">
       IPI somado dos itens. Ele é cobrado por fora do preço: entra no total que
       o cliente paga, mas não na base da comissão.
-    </p>
+    </Title>
   ),
   total: (
-    <p>
+    <Title variant="body-sm">
       O que o cliente paga por este pedido: os itens mais o IPI. Na lista de
       pedidos, a coluna &quot;Valor&quot; mostra só a mercadoria e por isso é
       menor.
-    </p>
+    </Title>
   ),
   commission: (
-    <p>
+    <Title variant="body-sm">
       Comissão da representação neste pedido. Ela só é calculada no faturamento
       — antes disso aparece zerada.
-    </p>
+    </Title>
   ),
   paymentTerm: (
-    <p>
+    <Title variant="body-sm">
       Prazo combinado com o cliente: é ele que gera os boletos no faturamento
       (30/60/90 = três parcelas). Algumas fábricas exigem um valor mínimo por
       prazo.
-    </p>
+    </Title>
   ),
   freight: (
-    <p>
+    <Title variant="body-sm">
       Quem paga o transporte. <b>FOB</b>: por conta do cliente. <b>CIF</b>: a
       fábrica entrega. Algumas fábricas dão frete grátis acima de um valor.
-    </p>
+    </Title>
   ),
 };

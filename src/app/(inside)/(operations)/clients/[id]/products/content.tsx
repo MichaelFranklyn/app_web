@@ -1,7 +1,7 @@
 "use client";
+import { ToggleGroup } from "@/components/ToggleGroup";
 
 import { Alert } from "@/components/Alert";
-import { Button } from "@/components/Button";
 import { HelpTooltip } from "@/components/HelpTooltip";
 import { QueryError } from "@/components/QueryError";
 import { Title } from "@/components/Title";
@@ -87,22 +87,12 @@ export default function ProductsContent() {
           <Title variant="body-xs" color="muted" weight="medium">
             Período:
           </Title>
-          {PERIOD_OPTIONS.map((opt) => {
-            const active = months === opt.value;
-            return (
-              <Button.Root
-                key={opt.value}
-                type="button"
-                appearance={active ? "tinted" : "outline"}
-                color={active ? "amber" : "neutral"}
-                size="sm"
-                noUppercase
-                onClick={() => setMonths(opt.value)}
-              >
-                <Button.Title>{opt.label}</Button.Title>
-              </Button.Root>
-            );
-          })}
+          <ToggleGroup
+            aria-label="Período"
+            options={PERIOD_OPTIONS}
+            value={months}
+            onChange={setMonths}
+          />
         </div>
       </div>
 

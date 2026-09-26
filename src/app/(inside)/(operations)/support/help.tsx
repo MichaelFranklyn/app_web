@@ -1,3 +1,4 @@
+import { Title } from "@/components/Title";
 import { ReactNode } from "react";
 
 /**
@@ -9,15 +10,15 @@ import { ReactNode } from "react";
  */
 export const SUPPORT_HELP: ReactNode = (
   <>
-    <p>
+    <Title variant="body-sm">
       Aqui ficam os <b>problemas que os clientes relatam</b>: mercadoria
       quebrada ou trocada, boleto errado, entrega que não chegou.
-    </p>
-    <p>
+    </Title>
+    <Title variant="body-sm">
       Cada caso guarda a <b>conversa inteira</b> — cada vez que alguém falou com
       o cliente ou com a fábrica. É o que se mostra quando a fábrica diz que não
       prometeu o que prometeu.
-    </p>
+    </Title>
   </>
 );
 

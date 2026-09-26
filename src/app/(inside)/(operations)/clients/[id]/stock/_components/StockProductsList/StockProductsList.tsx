@@ -1,11 +1,12 @@
 "use client";
+import { Divider } from "@/components/Divider";
+import { Card } from "@/components/Card";
 
 import { Badge } from "@/components/Badges";
 import { Button } from "@/components/Button";
 import { EmptyState } from "@/components/EmptyState";
 import { HelpTooltip } from "@/components/HelpTooltip";
 import { Title } from "@/components/Title";
-import { cn } from "@/lib/utils";
 import { formatDate } from "@/utils/format/date";
 import { PackageSearch, Pencil } from "lucide-react";
 import { useState } from "react";
@@ -82,104 +83,107 @@ function ProductStockCard({
     : parseFloat(insight.lastQuantity).toFixed(0);
 
   return (
-    <div
-      className={cn(
-        "flex flex-col gap-12 rounded-(--r-md) border border-(--border) bg-(--bg2) p-16",
-        isEditing && "outline-2 outline-(--amber)"
-      )}
+    <Card.Root
+      inset
+      className={isEditing ? "outline-2 outline-(--amber)" : undefined}
     >
-      <div className="flex items-start justify-between gap-8">
-        <Title variant="body" weight="semibold" className="min-w-0 truncate">
-          {productName}
-        </Title>
-        <Badge.Root color={sit.color} appearance="tinted">
-          <Badge.Text>{sit.label}</Badge.Text>
-        </Badge.Root>
-      </div>
-
-      <div className="flex items-end gap-6">
-        <Title
-          variant="kpi"
-          color={sit.color}
-          className="text-[32px] leading-none"
-        >
-          {daysLabel}
-        </Title>
-        <span className="inline-flex items-center gap-3 pb-1">
-          <Title variant="micro" color="secondary">
-            {daysCaption}
+      <Card.Body padding="compact" className="gap-12">
+        <div className="flex items-start justify-between gap-8">
+          <Title variant="body" weight="semibold" className="min-w-0 truncate">
+            {productName}
           </Title>
-          <HelpTooltip
-            label="O que significam os dias até esgotar?"
-            content={
-              <Title variant="body-sm">
-                Dias restantes até a data estimada de esgotamento. Quando o
-                estoque provavelmente já zerou, mostramos há quantos dias ele
-                está em falta.
-              </Title>
-            }
+          <Badge.Root color={sit.color} appearance="tinted">
+            <Badge.Text>{sit.label}</Badge.Text>
+          </Badge.Root>
+        </div>
+
+        <div className="flex items-end gap-6">
+          <Title
+            variant="kpi"
+            color={sit.color}
+            className="text-[32px] leading-none"
+          >
+            {daysLabel}
+          </Title>
+          <span className="inline-flex items-center gap-3 pb-1">
+            <Title variant="micro" color="secondary">
+              {daysCaption}
+            </Title>
+            <HelpTooltip
+              label="O que significam os dias até esgotar?"
+              content={
+                <Title variant="body-sm">
+                  Dias restantes até a data estimada de esgotamento. Quando o
+                  estoque provavelmente já zerou, mostramos há quantos dias ele
+                  está em falta.
+                </Title>
+              }
+            />
+          </span>
+        </div>
+
+        <Divider.Root />
+        <div className="grid grid-cols-2 gap-x-12 gap-y-10">
+          <Detail
+            label="Última compra"
+            value={formatDate(insight.lastPurchaseDate)}
           />
-        </span>
-      </div>
+          <Detail label="Qtd. comprada" value={qty} />
+          <Detail
+            label="Duração média"
+            value={
+              insight.avgShelfDays != null
+                ? `${insight.avgShelfDays} dias`
+                : "—"
+            }
+            help={{
+              title: "O que é a duração média?",
+              content: insight.shelfDaysObservedAt
+                ? `Tempo médio, em dias, que a quantidade comprada costuma durar no cliente. Este valor veio do estoque observado em ${formatDate(insight.shelfDaysObservedAt)} — o que o vendedor viu vale mais que a estimativa.`
+                : "Tempo médio, em dias, que a quantidade comprada costuma durar no cliente — calculado pelo intervalo entre as últimas compras. Abra 'últimas compras' abaixo para ver a conta.",
+            }}
+          />
+          <Detail
+            label="Esgotamento est."
+            value={formatDate(insight.estimatedStockoutDate)}
+            help={{
+              title: "Como é estimado o esgotamento?",
+              content:
+                "Data estimada em que o estoque do cliente deve zerar, projetada a partir da última compra somada à duração média do produto.",
+            }}
+          />
+        </div>
 
-      <div className="grid grid-cols-2 gap-x-12 gap-y-10 border-t border-(--border) pt-12">
-        <Detail
-          label="Última compra"
-          value={formatDate(insight.lastPurchaseDate)}
+        <RecentPurchases
+          purchases={insight.recentPurchases ?? []}
+          unitLabel={insight.product?.unit?.label ?? ""}
         />
-        <Detail label="Qtd. comprada" value={qty} />
-        <Detail
-          label="Duração média"
-          value={
-            insight.avgShelfDays != null ? `${insight.avgShelfDays} dias` : "—"
-          }
-          help={{
-            title: "O que é a duração média?",
-            content: insight.shelfDaysObservedAt
-              ? `Tempo médio, em dias, que a quantidade comprada costuma durar no cliente. Este valor veio do estoque observado em ${formatDate(insight.shelfDaysObservedAt)} — o que o vendedor viu vale mais que a estimativa.`
-              : "Tempo médio, em dias, que a quantidade comprada costuma durar no cliente — calculado pelo intervalo entre as últimas compras. Abra 'últimas compras' abaixo para ver a conta.",
-          }}
-        />
-        <Detail
-          label="Esgotamento est."
-          value={formatDate(insight.estimatedStockoutDate)}
-          help={{
-            title: "Como é estimado o esgotamento?",
-            content:
-              "Data estimada em que o estoque do cliente deve zerar, projetada a partir da última compra somada à duração média do produto.",
-          }}
-        />
-      </div>
 
-      <RecentPurchases
-        purchases={insight.recentPurchases ?? []}
-        unitLabel={insight.product?.unit?.label ?? ""}
-      />
+        <div className="flex justify-end">
+          <Button.Root
+            appearance="ghost"
+            color="neutral"
+            size="sm"
+            noUppercase
+            disabled={!canEdit}
+            onClick={onToggleEdit}
+          >
+            <Button.Icon icon={Pencil} />
+            <Button.Title>Atualizar estoque</Button.Title>
+          </Button.Root>
+        </div>
 
-      <div className="flex justify-end">
-        <Button.Root
-          appearance="ghost"
-          color="neutral"
-          size="sm"
-          noUppercase
-          disabled={!canEdit}
-          onClick={onToggleEdit}
-        >
-          <Button.Icon icon={Pencil} />
-          <Button.Title>Atualizar estoque</Button.Title>
-        </Button.Root>
-      </div>
-
-      {isEditing && (
-        <StockDaysEditor
-          productName={productName}
-          initialDays={null}
-          isLoading={isLoading}
-          onSave={onSave}
-          onCancel={onCancel}
-        />
-      )}
-    </div>
+        {isEditing && (
+          <StockDaysEditor
+            productName={productName}
+            initialDays={null}
+            isLoading={isLoading}
+            onSave={onSave}
+            onCancel={onCancel}
+          />
+        )}
+      </Card.Body>
+    </Card.Root>
   );
 }
 

@@ -1,4 +1,5 @@
 "use client";
+import { ToggleGroup } from "@/components/ToggleGroup";
 
 import { Button } from "@/components/Button";
 import { EmptyState } from "@/components/EmptyState";
@@ -143,24 +144,12 @@ export default function RoutinesContent() {
               <Title variant="body-xs" color="muted" weight="medium">
                 Período:
               </Title>
-              <div className="flex items-center gap-4">
-                {PERIOD_OPTIONS.map((opt) => {
-                  const active = periodDays === opt.value;
-                  return (
-                    <Button.Root
-                      key={opt.value}
-                      type="button"
-                      appearance={active ? "tinted" : "outline"}
-                      color={active ? "amber" : "neutral"}
-                      size="sm"
-                      noUppercase
-                      onClick={() => setPeriodDays(opt.value)}
-                    >
-                      <Button.Title>{opt.label}</Button.Title>
-                    </Button.Root>
-                  );
-                })}
-              </div>
+              <ToggleGroup
+                aria-label="Período"
+                options={PERIOD_OPTIONS}
+                value={periodDays}
+                onChange={setPeriodDays}
+              />
             </div>
 
             <div className="flex flex-wrap items-center gap-8">

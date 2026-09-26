@@ -1,7 +1,7 @@
 "use client";
+import { Button } from "@/components/Button";
 
 import { EmptyState } from "@/components/EmptyState";
-import { Title } from "@/components/Title";
 import { isUrgent } from "@/utils/score";
 import { Factory } from "lucide-react";
 import { useState } from "react";
@@ -53,15 +53,18 @@ export function FactoryScoreGrid({ scores, onSelect }: Props) {
       </div>
 
       {hidden > 0 && (
-        <button
-          type="button"
+        <Button.Root
+          appearance="ghost"
+          color="neutral"
+          size="sm"
+          noUppercase
+          className="self-center"
           onClick={() => setExpanded(true)}
-          className="cursor-pointer self-center py-8"
         >
-          <Title variant="body-sm" color="secondary">
+          <Button.Title>
             Ver todas as fábricas ({hidden} sem urgência)
-          </Title>
-        </button>
+          </Button.Title>
+        </Button.Root>
       )}
     </div>
   );

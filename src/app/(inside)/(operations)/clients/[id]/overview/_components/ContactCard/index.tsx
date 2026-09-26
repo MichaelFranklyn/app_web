@@ -1,4 +1,6 @@
 "use client";
+import { Fragment } from "react";
+import { Divider } from "@/components/Divider";
 
 import { Badge } from "@/components/Badges";
 import { Card } from "@/components/Card";
@@ -88,69 +90,65 @@ export function ContactCard({ clientId }: ContactCardProps) {
           </EmptyState.Root>
         ) : (
           contacts.map((contact, idx) => (
-            <div
-              key={contact.id}
-              className={
-                idx < contacts.length - 1
-                  ? "border-b border-(--border) py-8"
-                  : "py-8"
-              }
-            >
-              <div className="flex items-start justify-between gap-8">
-                <div className="flex min-w-0 flex-col gap-2">
-                  <div className="flex items-center gap-6">
-                    <Title
-                      variant="body-sm"
-                      weight="semibold"
-                      className="truncate"
-                    >
-                      {contact.name}
-                    </Title>
-                    {contact.isPrimary && (
-                      <Badge.Root color="amber" appearance="tinted">
-                        <Badge.Text>Principal</Badge.Text>
-                      </Badge.Root>
+            <Fragment key={contact.id}>
+              {idx > 0 && <Divider.Root />}
+              <div className="py-8">
+                <div className="flex items-start justify-between gap-8">
+                  <div className="flex min-w-0 flex-col gap-2">
+                    <div className="flex items-center gap-6">
+                      <Title
+                        variant="body-sm"
+                        weight="semibold"
+                        className="truncate"
+                      >
+                        {contact.name}
+                      </Title>
+                      {contact.isPrimary && (
+                        <Badge.Root color="amber" appearance="tinted">
+                          <Badge.Text>Principal</Badge.Text>
+                        </Badge.Root>
+                      )}
+                    </div>
+                    {contact.role && (
+                      <Title variant="micro" color="muted">
+                        {contact.role}
+                      </Title>
+                    )}
+                    {contact.phone && (
+                      <Title variant="body-xs" color="secondary">
+                        {maskPhoneBR(contact.phone)}
+                      </Title>
+                    )}
+                    {contact.email && (
+                      <Title
+                        variant="body-xs"
+                        color="secondary"
+                        className="truncate"
+                      >
+                        {contact.email}
+                      </Title>
                     )}
                   </div>
-                  {contact.role && (
-                    <Title variant="micro" color="muted">
-                      {contact.role}
-                    </Title>
-                  )}
-                  {contact.phone && (
-                    <Title variant="body-xs" color="secondary">
-                      {maskPhoneBR(contact.phone)}
-                    </Title>
-                  )}
-                  {contact.email && (
-                    <Title
-                      variant="body-xs"
-                      color="secondary"
-                      className="truncate"
-                    >
-                      {contact.email}
-                    </Title>
-                  )}
-                </div>
-                <div className="flex items-center gap-2">
-                  <EditContactModal
-                    clientId={clientId}
-                    contact={contact}
-                    onUpdateOptimistic={optimistic.updateOptimistic}
-                    onCommit={optimistic.commit}
-                    onRollback={optimistic.rollback}
-                  />
-                  <DeleteContactModal
-                    clientId={clientId}
-                    contactId={contact.id}
-                    contactName={contact.name}
-                    onRemoveOptimistic={optimistic.removeOptimistic}
-                    onCommit={optimistic.commit}
-                    onRollback={optimistic.rollback}
-                  />
+                  <div className="flex items-center gap-2">
+                    <EditContactModal
+                      clientId={clientId}
+                      contact={contact}
+                      onUpdateOptimistic={optimistic.updateOptimistic}
+                      onCommit={optimistic.commit}
+                      onRollback={optimistic.rollback}
+                    />
+                    <DeleteContactModal
+                      clientId={clientId}
+                      contactId={contact.id}
+                      contactName={contact.name}
+                      onRemoveOptimistic={optimistic.removeOptimistic}
+                      onCommit={optimistic.commit}
+                      onRollback={optimistic.rollback}
+                    />
+                  </div>
                 </div>
               </div>
-            </div>
+            </Fragment>
           ))
         )}
       </Card.Body>

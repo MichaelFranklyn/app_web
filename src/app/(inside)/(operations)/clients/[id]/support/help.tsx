@@ -1,3 +1,4 @@
+import { Title } from "@/components/Title";
 import { ReactNode } from "react";
 
 /**
@@ -7,13 +8,13 @@ import { ReactNode } from "react";
  */
 export const CLIENT_SUPPORT_HELP: ReactNode = (
   <>
-    <p>
+    <Title variant="body-sm">
       Os <b>problemas que este cliente relatou</b>: mercadoria quebrada ou
       trocada, boleto errado, entrega que não chegou.
-    </p>
-    <p>
+    </Title>
+    <Title variant="body-sm">
       Cada caso guarda a conversa inteira — com o cliente e com a fábrica.
       Abrindo um deles você vê o que já foi feito e registra o próximo passo.
-    </p>
+    </Title>
   </>
 );

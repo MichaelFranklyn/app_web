@@ -1,6 +1,6 @@
 "use client";
 
-import { Button } from "@/components/Button";
+import { ToggleGroup, ToggleOption } from "@/components/ToggleGroup";
 import { HelpTooltip } from "@/components/HelpTooltip";
 import { Title } from "@/components/Title";
 import { Building2, UserRound } from "lucide-react";
@@ -13,13 +13,22 @@ interface Props {
   onChange: (audience: CommissionAudience) => void;
 }
 
-const OPTIONS: {
-  id: CommissionAudience;
-  label: string;
-  icon: typeof Building2;
-}[] = [
-  { id: "office", label: "Escritório", icon: Building2 },
-  { id: "seller", label: "Vendedor", icon: UserRound },
+// O nome completo ("Valores de Escritório") vai no `ariaLabel`: sozinho,
+// "Vendedor" repete o nome da coluna da tabela e da opção do painel de filtros,
+// e nem o leitor de tela nem um teste sabem qual dos três é.
+const OPTIONS: ToggleOption<CommissionAudience>[] = [
+  {
+    value: "office",
+    label: "Escritório",
+    icon: Building2,
+    ariaLabel: "Valores de Escritório",
+  },
+  {
+    value: "seller",
+    label: "Vendedor",
+    icon: UserRound,
+    ariaLabel: "Valores de Vendedor",
+  },
 ];
 
 /**
@@ -42,28 +51,7 @@ export function AudienceSwitch({ value, onChange }: Props) {
       <Title variant="caption" color="muted">
         Valores de
       </Title>
-      <div className="flex items-center gap-2">
-        {OPTIONS.map((option) => (
-          <Button.Root
-            key={option.id}
-            appearance={value === option.id ? "solid" : "ghost"}
-            color={value === option.id ? "amber" : "neutral"}
-            size="sm"
-            noUppercase
-            // O nome completo ("Valores de Escritório") sai do rótulo visível
-            // com o "Valores de" que está ao lado: sozinho, "Vendedor" repete
-            // o nome da coluna da tabela e da opção do painel de filtros, e
-            // nem o leitor de tela nem um teste sabem qual dos três é.
-            // `aria-pressed` é o que diz que estas duas são um interruptor.
-            label={`Valores de ${option.label}`}
-            aria-pressed={value === option.id}
-            onClick={() => onChange(option.id)}
-          >
-            <Button.Icon icon={option.icon} />
-            <Button.Title>{option.label}</Button.Title>
-          </Button.Root>
-        ))}
-      </div>
+      <ToggleGroup options={OPTIONS} value={value} onChange={onChange} />
       <HelpTooltip
         label="De quem são os valores da tela"
         content={AUDIENCE_HELP}

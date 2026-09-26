@@ -1,4 +1,5 @@
 "use client";
+import { ToggleGroup } from "@/components/ToggleGroup";
 import { Card } from "@/components/Card";
 
 import { Button } from "@/components/Button";
@@ -27,29 +28,6 @@ export function DepartureModal({
     onChanged,
   });
 
-  const toggleBtn = (
-    target: "home" | "custom",
-    label: string,
-    Icon: typeof House
-  ) => {
-    const active = mode === target;
-    return (
-      <Button.Root
-        type="button"
-        appearance={active ? "solid" : "outline"}
-        color={active ? "amber" : "neutral"}
-        size="md"
-        noUppercase
-        disabled={isLoading}
-        onClick={() => setMode(target)}
-        className="flex-1"
-      >
-        <Button.Icon icon={Icon} />
-        <Button.Title>{label}</Button.Title>
-      </Button.Root>
-    );
-  };
-
   return (
     <Modal.Root open={open} onOpenChange={onOpenChange}>
       <Modal.Content size="sm">
@@ -59,10 +37,18 @@ export function DepartureModal({
         />
         <Modal.Body>
           <div className="flex flex-col gap-16">
-            <div className="flex items-center gap-8">
-              {toggleBtn("home", "Minha casa", House)}
-              {toggleBtn("custom", "Outro endereço", MapPin)}
-            </div>
+            <ToggleGroup
+              aria-label="Ponto de partida"
+              size="md"
+              fullWidth
+              disabled={isLoading}
+              options={[
+                { value: "home", label: "Minha casa", icon: House },
+                { value: "custom", label: "Outro endereço", icon: MapPin },
+              ]}
+              value={mode}
+              onChange={setMode}
+            />
 
             {mode === "home" ? (
               <Card.Root inset tone="muted">
