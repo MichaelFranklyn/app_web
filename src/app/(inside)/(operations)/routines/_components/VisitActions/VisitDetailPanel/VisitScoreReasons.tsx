@@ -1,4 +1,5 @@
 "use client";
+import { Emphasis } from "@/components/Emphasis";
 import { Dot } from "@/components/Dot";
 import { Card } from "@/components/Card";
 
@@ -66,7 +67,7 @@ export function VisitScoreReasons({ reasons }: Props) {
                         className="mt-[6px] opacity-100"
                       />
                       <Title variant="body-xs" color="secondary">
-                        <b>{reason.label}</b> — {reason.why}
+                        <Emphasis>{reason.label}</Emphasis> — {reason.why}
                       </Title>
                     </div>
                   ))}

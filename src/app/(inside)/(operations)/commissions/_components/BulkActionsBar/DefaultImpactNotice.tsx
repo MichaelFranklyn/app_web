@@ -1,4 +1,5 @@
 "use client";
+import { Emphasis } from "@/components/Emphasis";
 import { Card } from "@/components/Card";
 
 import { Title } from "@/components/Title";
@@ -42,7 +43,8 @@ export function DefaultImpactNotice({ impact, month }: Props) {
 
         {impact.factoryChargeback > 0 && (
           <Title variant="body-sm">
-            A fábrica desconta <b>{formatMoney(impact.factoryChargeback)}</b> do
+            A fábrica desconta{" "}
+            <Emphasis>{formatMoney(impact.factoryChargeback)}</Emphasis> do
             escritório no fechamento seguinte.
           </Title>
         )}
@@ -52,8 +54,8 @@ export function DefaultImpactNotice({ impact, month }: Props) {
           return (
             <div key={seller.sellerId} className="flex flex-col gap-2">
               <Title variant="body-sm">
-                De <b>{seller.name}</b> há {formatMoney(seller.amount)} a
-                recuperar
+                De <Emphasis>{seller.name}</Emphasis> há{" "}
+                {formatMoney(seller.amount)} a recuperar
                 {seller.monthCommission > 0 && (
                   <>
                     {" "}

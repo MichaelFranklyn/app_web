@@ -1,4 +1,6 @@
 "use client";
+import { Emphasis } from "@/components/Emphasis";
+import { Banner } from "@/components/Banner";
 
 import { Title } from "@/components/Title";
 import { Button } from "@/components/Button";
@@ -55,30 +57,31 @@ export function ImpersonationBanner() {
   };
 
   return (
-    <div className="flex flex-wrap items-center justify-between gap-8 bg-(--purple) px-16 py-8 text-white">
-      <div className="flex min-w-0 items-center gap-8">
-        <ShieldAlert size={16} className="shrink-0" />
-        <Title variant="body-xs" color="inverse" className="truncate">
-          Você está como <strong>{data.userName}</strong>
-          {data.companyName && (
-            <>
-              {" "}
-              em <strong>{data.companyName}</strong>
-            </>
-          )}
-          . Tudo que fizer aqui fica registrado como ação dessa pessoa.
-        </Title>
-      </div>
-
-      <Button.Root
-        appearance="solid"
-        color="neutral"
-        size="xs"
-        loading={isLoading}
-        onClick={handleExit}
-      >
-        <Button.Title>Voltar ao console</Button.Title>
-      </Button.Root>
-    </div>
+    <Banner
+      tone="purple"
+      icon={ShieldAlert}
+      action={
+        <Button.Root
+          appearance="solid"
+          color="neutral"
+          size="xs"
+          loading={isLoading}
+          onClick={handleExit}
+        >
+          <Button.Title>Voltar ao console</Button.Title>
+        </Button.Root>
+      }
+    >
+      <Title variant="body-xs" color="inverse" className="truncate">
+        Você está como <Emphasis>{data.userName}</Emphasis>
+        {data.companyName && (
+          <>
+            {" "}
+            em <Emphasis>{data.companyName}</Emphasis>
+          </>
+        )}
+        . Tudo que fizer aqui fica registrado como ação dessa pessoa.
+      </Title>
+    </Banner>
   );
 }

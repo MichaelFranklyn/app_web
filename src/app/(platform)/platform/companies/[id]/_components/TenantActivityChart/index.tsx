@@ -1,4 +1,5 @@
 "use client";
+import { Emphasis } from "@/components/Emphasis";
 
 import { Card } from "@/components/Card";
 import { EmptyState } from "@/components/EmptyState";
@@ -49,15 +50,11 @@ export function TenantActivityChart({
           <>
             <div className="flex flex-wrap items-baseline gap-16">
               <Title variant="body-sm" color="muted">
-                <strong className="text-(--text)">
-                  {summary.totalActions}
-                </strong>{" "}
+                <Emphasis tone="strong">{summary.totalActions}</Emphasis>{" "}
                 {summary.totalActions === 1 ? "ação" : "ações"} no período
               </Title>
               <Title variant="body-sm" color="muted">
-                <strong className="text-(--text)">
-                  {summary.byOperation.length}
-                </strong>{" "}
+                <Emphasis tone="strong">{summary.byOperation.length}</Emphasis>{" "}
                 {summary.byOperation.length === 1 ? "tipo" : "tipos"} de ação
               </Title>
             </div>

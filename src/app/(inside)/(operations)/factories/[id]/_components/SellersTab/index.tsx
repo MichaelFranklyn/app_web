@@ -1,4 +1,5 @@
 "use client";
+import { Emphasis } from "@/components/Emphasis";
 
 import { Avatar } from "@/components/Avatar";
 import { Badge } from "@/components/Badges";
@@ -81,18 +82,20 @@ export function SellersTab({ factoryId, factoryName, autoOpenLink }: Props) {
                 </Title>
                 <Title variant="body-sm">
                   Diz quais vendedores podem vender os produtos desta fábrica.
-                  Só vendedores com acesso <b>ativo</b> aparecem na hora de
-                  vincular clientes e registrar pedidos dela.
+                  Só vendedores com acesso <Emphasis>ativo</Emphasis> aparecem
+                  na hora de vincular clientes e registrar pedidos dela.
                 </Title>
                 <Title variant="body-sm">
-                  É aqui também que se combina <b>a comissão de cada um</b>
+                  É aqui também que se combina{" "}
+                  <Emphasis>a comissão de cada um</Emphasis>
                   nesta fábrica: o percentual que ele ganha por pedido e quando
                   o escritório repassa.
                 </Title>
                 <Title variant="body-sm" color="muted">
-                  <b>Desativar</b> pausa as vendas e pode ser desfeito quando
-                  quiser. <b>Excluir</b> tira o vendedor desta lista. Nos dois
-                  casos os pedidos já feitos continuam guardados.
+                  <Emphasis>Desativar</Emphasis> pausa as vendas e pode ser
+                  desfeito quando quiser. <Emphasis>Excluir</Emphasis> tira o
+                  vendedor desta lista. Nos dois casos os pedidos já feitos
+                  continuam guardados.
                 </Title>
               </div>
             }

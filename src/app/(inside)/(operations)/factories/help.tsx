@@ -1,3 +1,4 @@
+import { Emphasis } from "@/components/Emphasis";
 import { Title } from "@/components/Title";
 import { ReactNode } from "react";
 
@@ -40,13 +41,13 @@ export const FACTORY_ORDER_COLUMN_HELP = {
 export const FACTORY_CLIENTS_HELP: ReactNode = (
   <>
     <Title variant="body-sm">
-      Os clientes que compram <b>desta fábrica</b>, e por qual vendedor. Cada
-      linha é um vínculo — o mesmo cliente pode ser atendido por vendedores
-      diferentes em fábricas diferentes.
+      Os clientes que compram <Emphasis>desta fábrica</Emphasis>, e por qual
+      vendedor. Cada linha é um vínculo — o mesmo cliente pode ser atendido por
+      vendedores diferentes em fábricas diferentes.
     </Title>
     <Title variant="body-sm">
-      É o vínculo que decide o <b>nível de preço</b> do cliente nesta fábrica e
-      o que entra na rota de visita do vendedor.
+      É o vínculo que decide o <Emphasis>nível de preço</Emphasis> do cliente
+      nesta fábrica e o que entra na rota de visita do vendedor.
     </Title>
   </>
 );
@@ -101,8 +102,8 @@ export const FACTORY_SELLER_COLUMN_HELP = {
 export const FACTORY_TIERS_HELP: ReactNode = (
   <>
     <Title variant="body-sm">
-      Nível é o <b>degrau de preço</b> acordado com o cliente — o que a fábrica
-      costuma chamar de tabela A, B, C ou de faixa de desconto.
+      Nível é o <Emphasis>degrau de preço</Emphasis> acordado com o cliente — o
+      que a fábrica costuma chamar de tabela A, B, C ou de faixa de desconto.
     </Title>
     <Title variant="body-sm">
       Cada tabela de preços tem um preço por nível; o nível do cliente fica no
@@ -122,7 +123,8 @@ export const FACTORY_PAYMENT_TERMS_HELP: ReactNode = (
   <>
     <Title variant="body-sm">
       Os prazos que esta fábrica aceita. É o prazo escolhido no pedido que gera
-      os <b>boletos</b> do cliente no faturamento: 30/60/90 vira três parcelas.
+      os <Emphasis>boletos</Emphasis> do cliente no faturamento: 30/60/90 vira
+      três parcelas.
     </Title>
     <Title variant="body-sm">
       Algumas fábricas só liberam o prazo mais longo acima de um valor — é o
@@ -146,7 +148,7 @@ export const FACTORY_PRICE_LISTS_HELP: ReactNode = (
   <>
     <Title variant="body-sm">
       Tabela de preços é a lista que a fábrica publica: um preço por produto,
-      por <b>nível</b>, valendo num período.
+      por <Emphasis>nível</Emphasis>, valendo num período.
     </Title>
     <Title variant="body-sm">
       Uma fábrica pode ter mais de uma ao mesmo tempo — por região, por exemplo,
@@ -252,16 +254,17 @@ export const FACTORY_CARD_HELP: Record<string, ReactNode> = {
   ),
   "Quando você recebe": (
     <Title variant="body-sm">
-      <b>Faturamento</b>: a sua comissão conta assim que a fábrica emite a nota.{" "}
-      <b>Pagamento</b>: conforme o cliente vai pagando os boletos.
+      <Emphasis>Faturamento</Emphasis>: a sua comissão conta assim que a fábrica
+      emite a nota. <Emphasis>Pagamento</Emphasis>: conforme o cliente vai
+      pagando os boletos.
     </Title>
   ),
   "Base de cálculo": (
     <>
       <Title variant="body-sm">
-        Quando a comissão passa a existir. <b>Faturamento</b>: assim que a
-        fábrica emite a nota. <b>Pagamento</b>: conforme o cliente vai pagando
-        os boletos.
+        Quando a comissão passa a existir. <Emphasis>Faturamento</Emphasis>:
+        assim que a fábrica emite a nota. <Emphasis>Pagamento</Emphasis>:
+        conforme o cliente vai pagando os boletos.
       </Title>
       <Title variant="body-sm">
         É a diferença entre ter a comissão inteira na nota ou recebê-la em

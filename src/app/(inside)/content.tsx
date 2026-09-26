@@ -1,4 +1,5 @@
 "use client";
+import { AppFrame } from "@/components/AppFrame";
 
 import { UserData } from "@/app/(auth)/login/interface";
 import { Sidebar } from "@/components/Sidebar";
@@ -6,7 +7,6 @@ import { FeatureGate } from "@/components/FeatureGate";
 import { Topbar } from "@/components/Topbar";
 import { cn } from "@/lib/utils";
 import { FlowTourProvider } from "@/services/flowTour";
-import { ChevronLeft, ChevronRight, Menu } from "lucide-react";
 import Image from "next/image";
 import { CompanyBadge } from "./_components/CompanyBadge";
 import { DevRoleSwitch } from "./_components/DevRoleSwitch";
@@ -53,51 +53,18 @@ export default function InsideShell({
           painel de conteúdo aparecerem, em vez de as duas colarem na janela.
           Só no desktop — no mobile a sidebar é drawer e o conteúdo usa a tela
           inteira. */}
-      <div className="desktop:gap-16 desktop:p-12 flex h-screen overflow-hidden bg-(--bg3)">
-        {/* Backdrop do drawer (só mobile/tablet, quando aberto) */}
-        {drawerOpen && (
-          <div
-            data-testid="drawer-backdrop"
-            className="desktop:hidden fixed inset-0 z-[80] bg-black/40"
-            onClick={() => setDrawerOpen(false)}
-            aria-hidden
-          />
-        )}
+      <AppFrame.Root>
+        <AppFrame.Backdrop
+          open={drawerOpen}
+          onClose={() => setDrawerOpen(false)}
+          data-testid="drawer-backdrop"
+        />
 
-        <Sidebar.Root
-          className={cn(
-            "z-[90] w-[232px] shrink-0",
-            // Mobile/tablet: drawer fixo que desliza da esquerda — colado na
-            // janela, então sem cantos arredondados.
-            "fixed inset-y-0 left-0 rounded-none transition-[transform,width] duration-200 ease-out",
-            "desktop:rounded-(--radius-lg)",
-            drawerOpen ? "translate-x-0" : "-translate-x-full",
-            // Desktop: volta a ser fixa em fluxo; largura varia se recolhida.
-            "desktop:static desktop:z-auto desktop:translate-x-0",
-            isCollapsed ? "desktop:w-[72px]" : "desktop:w-[232px]",
-            // Âncora para o botão flutuante de recolher (borda direita).
-            "desktop:relative"
-          )}
-        >
-          {/* Recolher/expandir — botão flutuante na borda direita (só desktop;
-            no mobile a sidebar é drawer). */}
-          <button
-            type="button"
-            onClick={toggleCollapsed}
-            aria-label={isCollapsed ? "Expandir menu" : "Recolher menu"}
-            title={isCollapsed ? "Expandir menu" : "Recolher menu"}
-            className={cn(
-              "absolute top-[74px] right-0 z-[95] hidden h-[24px] w-[24px] translate-x-1/2 items-center justify-center",
-              "rounded-full border border-(--border) bg-(--bg2) text-(--muted) shadow-(--shadow-sm)",
-              "desktop:flex cursor-pointer transition-colors hover:border-(--border2) hover:text-(--text)"
-            )}
-          >
-            {isCollapsed ? (
-              <ChevronRight size={14} strokeWidth={2.5} />
-            ) : (
-              <ChevronLeft size={14} strokeWidth={2.5} />
-            )}
-          </button>
+        <AppFrame.Sidebar drawerOpen={drawerOpen} collapsed={isCollapsed}>
+          <AppFrame.CollapseToggle
+            collapsed={isCollapsed}
+            onToggle={toggleCollapsed}
+          />
 
           {/* As duas marcas ficam no DOM porque quem escolhe entre elas é o
               breakpoint (no mobile a sidebar é drawer e mostra sempre a
@@ -209,12 +176,9 @@ export default function InsideShell({
             initials={userInitials}
             collapsed={isCollapsed}
           />
-        </Sidebar.Root>
+        </AppFrame.Sidebar>
 
-        {/* O conteúdo também é um painel cercado: mesma borda e mesmo raio da
-            sidebar. `overflow-hidden` para a topbar e o `main` não vazarem por
-            cima dos cantos arredondados. */}
-        <div className="desktop:rounded-(--radius-lg) desktop:border desktop:border-(--border) flex flex-1 flex-col overflow-hidden bg-(--bg)">
+        <AppFrame.Panel>
           {/* Acima da topbar de propósito: numa sessão emprestada, o aviso não
               pode competir por atenção com o resto do cabeçalho. Em sessão
               comum não renderiza nada. */}
@@ -223,15 +187,7 @@ export default function InsideShell({
 
           <Topbar.Root>
             <Topbar.Breadcrumb>
-              {/* Hambúrguer: abre o drawer no mobile/tablet; some no desktop. */}
-              <button
-                type="button"
-                aria-label="Abrir menu"
-                onClick={() => setDrawerOpen(true)}
-                className="desktop:hidden mr-4 -ml-4 inline-flex cursor-pointer items-center justify-center rounded p-4 text-(--text) transition-colors hover:bg-(--bg3)"
-              >
-                <Menu size={20} strokeWidth={2} />
-              </button>
+              <AppFrame.MenuButton onClick={() => setDrawerOpen(true)} />
               {/* Quem está logado, não onde está: o título da página já aparece
                   logo abaixo, no header, e repetir o rótulo aqui era ler a mesma
                   palavra duas vezes. */}
@@ -259,11 +215,11 @@ export default function InsideShell({
               última linha de uma lista longa termina embaixo dele — visível,
               mas fora de alcance do clique. Em página curta não muda nada: o
               conteúdo não chega ao fim do scroll. */}
-          <main className="desktop:pb-[72px] flex-1 overflow-y-auto">
+          <AppFrame.Main className="desktop:pb-[72px]">
             {children}
-          </main>
-        </div>
-      </div>
+          </AppFrame.Main>
+        </AppFrame.Panel>
+      </AppFrame.Root>
     </FlowTourProvider>
   );
 }

@@ -1,4 +1,5 @@
 "use client";
+import { Emphasis } from "@/components/Emphasis";
 
 import { Badge } from "@/components/Badges";
 import { EmptyState } from "@/components/EmptyState";
@@ -61,12 +62,12 @@ export function ContactsTab({ factoryId }: Props) {
                 <Title variant="body-sm">
                   Quem atende do lado da fábrica: representante, televendas,
                   financeiro. É daqui que sai o número usado em{" "}
-                  <b>Enviar à fábrica</b>, no pedido.
+                  <Emphasis>Enviar à fábrica</Emphasis>, no pedido.
                 </Title>
                 <Title variant="body-sm" color="muted">
-                  Marque um como <b>principal</b> para ele ser o escolhido no
-                  envio. Sem nenhum marcado, o pedido vai para o primeiro
-                  contato que tiver telefone.
+                  Marque um como <Emphasis>principal</Emphasis> para ele ser o
+                  escolhido no envio. Sem nenhum marcado, o pedido vai para o
+                  primeiro contato que tiver telefone.
                 </Title>
               </div>
             }

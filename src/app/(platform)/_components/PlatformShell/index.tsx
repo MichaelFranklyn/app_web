@@ -1,12 +1,12 @@
 "use client";
+import { AppFrame } from "@/components/AppFrame";
 
 import { Title } from "@/components/Title";
 import { Button } from "@/components/Button";
 import { Sidebar } from "@/components/Sidebar";
 import { Topbar } from "@/components/Topbar";
-import { cn } from "@/lib/utils";
 import { logout } from "@/utils/auth/logout";
-import { LogOut, Menu, ShieldCheck } from "lucide-react";
+import { LogOut, ShieldCheck } from "lucide-react";
 import { usePlatformShell } from "./usePlatformShell";
 
 /**
@@ -29,25 +29,14 @@ export function PlatformShell({ children }: { children: React.ReactNode }) {
   } = usePlatformShell();
 
   return (
-    <div className="desktop:gap-16 desktop:p-12 flex h-screen overflow-hidden bg-(--bg3)">
-      {drawerOpen && (
-        <div
-          data-testid="platform-drawer-backdrop"
-          className="desktop:hidden fixed inset-0 z-[80] bg-black/40"
-          onClick={() => setDrawerOpen(false)}
-          aria-hidden
-        />
-      )}
+    <AppFrame.Root>
+      <AppFrame.Backdrop
+        open={drawerOpen}
+        onClose={() => setDrawerOpen(false)}
+        data-testid="platform-drawer-backdrop"
+      />
 
-      <Sidebar.Root
-        className={cn(
-          "z-[90] w-[232px] shrink-0",
-          "fixed inset-y-0 left-0 rounded-none transition-transform duration-200 ease-out",
-          "desktop:rounded-(--radius-lg)",
-          drawerOpen ? "translate-x-0" : "-translate-x-full",
-          "desktop:static desktop:z-auto desktop:translate-x-0"
-        )}
-      >
+      <AppFrame.Sidebar drawerOpen={drawerOpen}>
         <Sidebar.Brand>
           <div className="flex items-center gap-[8px]">
             <ShieldCheck size={20} className="text-(--purple)" />
@@ -91,19 +80,12 @@ export function PlatformShell({ children }: { children: React.ReactNode }) {
           role={isSu ? "Super Admin" : "Suporte"}
           initials={userInitials}
         />
-      </Sidebar.Root>
+      </AppFrame.Sidebar>
 
-      <div className="desktop:rounded-(--radius-lg) desktop:border desktop:border-(--border) flex flex-1 flex-col overflow-hidden bg-(--bg)">
+      <AppFrame.Panel>
         <Topbar.Root>
           <Topbar.Breadcrumb>
-            <button
-              type="button"
-              aria-label="Abrir menu"
-              onClick={() => setDrawerOpen(true)}
-              className="desktop:hidden mr-4 -ml-4 inline-flex cursor-pointer items-center justify-center rounded p-4 text-(--text) transition-colors hover:bg-(--bg3)"
-            >
-              <Menu size={20} strokeWidth={2} />
-            </button>
+            <AppFrame.MenuButton onClick={() => setDrawerOpen(true)} />
             <Title variant="label" color="muted2">
               Console da plataforma
             </Title>
@@ -121,8 +103,8 @@ export function PlatformShell({ children }: { children: React.ReactNode }) {
           </Topbar.Actions>
         </Topbar.Root>
 
-        <main className="flex-1 overflow-y-auto">{children}</main>
-      </div>
-    </div>
+        <AppFrame.Main>{children}</AppFrame.Main>
+      </AppFrame.Panel>
+    </AppFrame.Root>
   );
 }

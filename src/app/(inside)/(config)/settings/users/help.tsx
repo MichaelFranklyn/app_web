@@ -1,3 +1,4 @@
+import { Emphasis } from "@/components/Emphasis";
 import { Title } from "@/components/Title";
 import { ReactNode } from "react";
 
@@ -23,8 +24,8 @@ export const USERS_KPI_HELP: Record<string, ReactNode> = {
   "Vendem em campo": (
     <>
       <Title variant="body-sm">
-        Quantas pessoas têm <b>perfil de vendedor ativo</b> — as que aparecem na
-        rota do dia, recebem carteira e ganham comissão.
+        Quantas pessoas têm <Emphasis>perfil de vendedor ativo</Emphasis> — as
+        que aparecem na rota do dia, recebem carteira e ganham comissão.
       </Title>
       <Title variant="body-sm">
         Não é o mesmo que ter login: um gestor entra no sistema sem vender, e um
@@ -36,8 +37,8 @@ export const USERS_KPI_HELP: Record<string, ReactNode> = {
   "Acessos a fábricas": (
     <>
       <Title variant="body-sm">
-        Quantas permissões de <b>vendedor × fábrica</b> estão ativas na empresa.
-        Cada linha da aba ao lado conta uma.
+        Quantas permissões de <Emphasis>vendedor × fábrica</Emphasis> estão
+        ativas na empresa. Cada linha da aba ao lado conta uma.
       </Title>
       <Title variant="body-sm">
         Um vendedor que atende três fábricas conta três — por isso este número é

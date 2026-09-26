@@ -1,4 +1,5 @@
 "use client";
+import { Emphasis } from "@/components/Emphasis";
 import { Card } from "@/components/Card";
 
 import { Button } from "@/components/Button";
@@ -114,13 +115,15 @@ export function ApplyCommissionRateModal() {
           ) : nothingToDo ? (
             <Title variant="body-sm">
               Nada a corrigir: os pedidos faturados desta fábrica já estão na
-              taxa de <b>{formatCommissionRate(Number(change.rate))}</b>.
+              taxa de{" "}
+              <Emphasis>{formatCommissionRate(Number(change.rate))}</Emphasis>.
             </Title>
           ) : (
             <>
               <Title variant="body-sm">
                 Recalcular pela taxa de{" "}
-                <b>{formatCommissionRate(Number(change.rate))}</b>?
+                <Emphasis>{formatCommissionRate(Number(change.rate))}</Emphasis>
+                ?
               </Title>
 
               <Card.Root inset tone="muted">

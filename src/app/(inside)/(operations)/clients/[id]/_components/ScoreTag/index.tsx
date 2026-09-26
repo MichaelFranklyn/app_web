@@ -1,4 +1,5 @@
 "use client";
+import { Emphasis } from "@/components/Emphasis";
 import { Dot } from "@/components/Dot";
 import { TooltipPanel } from "@/components/TooltipPanel";
 
@@ -83,7 +84,7 @@ export function ScoreTag({ score, factoryScores = [] }: Props) {
               />
               <div className="flex flex-col gap-1">
                 <Title variant="body-sm">
-                  <b>{reason.label}</b> — {reason.why}
+                  <Emphasis>{reason.label}</Emphasis> — {reason.why}
                 </Title>
                 {reason.tip && (
                   <Title variant="micro" color="muted">

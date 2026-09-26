@@ -1,4 +1,5 @@
 "use client";
+import { Emphasis } from "@/components/Emphasis";
 
 import { Alert } from "@/components/Alert";
 import { Button } from "@/components/Button";
@@ -70,7 +71,7 @@ export default function PlatformTeamContent({ seed }: TeamContentProps) {
           <Alert.Description>
             Tudo o que você faz no console — inclusive suspender empresa, trocar
             plano e entrar como usuário de um cliente. O que ela{" "}
-            <strong>não</strong> faz é mexer nesta lista: criar ou revogar
+            <Emphasis>não</Emphasis> faz é mexer nesta lista: criar ou revogar
             contas da equipe é só seu. Contas de Super Admin continuam saindo
             apenas do comando no servidor.
           </Alert.Description>

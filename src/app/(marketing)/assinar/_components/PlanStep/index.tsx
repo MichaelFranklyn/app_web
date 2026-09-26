@@ -1,4 +1,5 @@
 "use client";
+import { Emphasis } from "@/components/Emphasis";
 
 import { Button } from "@/components/Button";
 import { Title } from "@/components/Title";
@@ -95,7 +96,7 @@ export function PlanStep({
 
       <Title variant="body-sm" color="secondary">
         Total de hoje:{" "}
-        <strong>{formatMoney(totalForCycle(plan, cycle) ?? 0)}</strong>. A
+        <Emphasis>{formatMoney(totalForCycle(plan, cycle) ?? 0)}</Emphasis>. A
         renovação é automática e pode ser cancelada a qualquer momento.
       </Title>
 

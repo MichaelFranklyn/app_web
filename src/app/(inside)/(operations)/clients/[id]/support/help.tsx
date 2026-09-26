@@ -1,3 +1,4 @@
+import { Emphasis } from "@/components/Emphasis";
 import { Title } from "@/components/Title";
 import { ReactNode } from "react";
 
@@ -9,8 +10,8 @@ import { ReactNode } from "react";
 export const CLIENT_SUPPORT_HELP: ReactNode = (
   <>
     <Title variant="body-sm">
-      Os <b>problemas que este cliente relatou</b>: mercadoria quebrada ou
-      trocada, boleto errado, entrega que não chegou.
+      Os <Emphasis>problemas que este cliente relatou</Emphasis>: mercadoria
+      quebrada ou trocada, boleto errado, entrega que não chegou.
     </Title>
     <Title variant="body-sm">
       Cada caso guarda a conversa inteira — com o cliente e com a fábrica.

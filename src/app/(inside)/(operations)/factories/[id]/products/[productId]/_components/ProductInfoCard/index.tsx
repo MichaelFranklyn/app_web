@@ -1,3 +1,4 @@
+import { Emphasis } from "@/components/Emphasis";
 import { Card } from "@/components/Card";
 import { HelpTooltip } from "@/components/HelpTooltip";
 import { Title } from "@/components/Title";
@@ -24,9 +25,10 @@ export function ProductInfoCard({ product }: Props) {
                       Campos do produto
                     </Title>
                     <Title variant="body-sm">
-                      <b>Embalagem</b>: quantas unidades vêm na embalagem
-                      fechada (ex.: caixa com 12). <b>NCM</b>: código fiscal
-                      usado na nota. <b>Múltiplo de venda</b>: a fábrica só
+                      <Emphasis>Embalagem</Emphasis>: quantas unidades vêm na
+                      embalagem fechada (ex.: caixa com 12).{" "}
+                      <Emphasis>NCM</Emphasis>: código fiscal usado na nota.{" "}
+                      <Emphasis>Múltiplo de venda</Emphasis>: a fábrica só
                       aceita quantidades múltiplas desse número —
                       &quot;Livre&quot; significa qualquer quantidade.
                     </Title>

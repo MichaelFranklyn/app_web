@@ -1,3 +1,4 @@
+import { Emphasis } from "@/components/Emphasis";
 import { Title } from "@/components/Title";
 import { ReactNode } from "react";
 
@@ -11,13 +12,13 @@ import { ReactNode } from "react";
 export const SUPPORT_HELP: ReactNode = (
   <>
     <Title variant="body-sm">
-      Aqui ficam os <b>problemas que os clientes relatam</b>: mercadoria
-      quebrada ou trocada, boleto errado, entrega que não chegou.
+      Aqui ficam os <Emphasis>problemas que os clientes relatam</Emphasis>:
+      mercadoria quebrada ou trocada, boleto errado, entrega que não chegou.
     </Title>
     <Title variant="body-sm">
-      Cada caso guarda a <b>conversa inteira</b> — cada vez que alguém falou com
-      o cliente ou com a fábrica. É o que se mostra quando a fábrica diz que não
-      prometeu o que prometeu.
+      Cada caso guarda a <Emphasis>conversa inteira</Emphasis> — cada vez que
+      alguém falou com o cliente ou com a fábrica. É o que se mostra quando a
+      fábrica diz que não prometeu o que prometeu.
     </Title>
   </>
 );

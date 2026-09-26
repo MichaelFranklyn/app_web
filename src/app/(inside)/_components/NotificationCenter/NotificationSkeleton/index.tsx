@@ -15,7 +15,7 @@ export function NotificationSkeleton() {
           key={row}
           className="flex items-start gap-10 border-b border-(--border) px-12 py-10 last:border-b-0"
         >
-          <Loading.Skeleton className="mt-[6px] h-[8px] w-[8px] shrink-0 rounded-full" />
+          <Loading.Skeleton className="mt-[6px] size-8 shrink-0 rounded-full" />
           <div className="flex min-w-0 flex-1 flex-col gap-6">
             <div className="flex items-center justify-between gap-8">
               <Loading.Skeleton className="h-[12px] w-[55%]" />

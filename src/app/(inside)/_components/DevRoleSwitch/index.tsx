@@ -1,4 +1,7 @@
 "use client";
+import { ToggleGroup } from "@/components/ToggleGroup";
+import { Button } from "@/components/Button";
+import { Card } from "@/components/Card";
 
 import { Title } from "@/components/Title";
 import { UserData } from "@/app/(auth)/login/interface";
@@ -56,45 +59,45 @@ export function DevRoleSwitch() {
 
   const isSeller = role === "SELLER";
 
-  const segment = (label: string, active: boolean, onClick: () => void) => (
-    <button
-      type="button"
-      onClick={onClick}
-      aria-pressed={active}
-      className={`cursor-pointer rounded-(--radius-sm) px-8 py-2 text-[11px] font-(--weight-semibold) transition-colors ${
-        active
-          ? "bg-(--amber) text-black"
-          : "text-(--muted) hover:text-(--text)"
-      }`}
-    >
-      {label}
-    </button>
-  );
-
   return (
-    <div
+    <Card.Root
+      inset
+      tone="muted"
+      dashed
       title="Somente em dev: pré-visualiza a UI como admin/owner ou vendedor (não muda os dados do backend)."
-      className="flex items-center gap-4 rounded-(--radius-md) border border-dashed border-(--amber)/50 bg-(--bg3) px-6 py-2"
+      className="w-auto border-(--amber)/50"
     >
-      <FlaskConical size={13} className="text-(--amber)" />
-      <Title variant="label" weight="bold" color="amber">
-        DEV
-      </Title>
-      <div className="flex items-center">
-        {segment("Owner", !isSeller, () => applyRole("OWNER" as Role))}
-        {segment("Vendedor", isSeller, () => applyRole("SELLER" as Role))}
-      </div>
-      {overriding && (
-        <button
-          type="button"
-          onClick={reset}
-          title="Voltar ao papel real da conta"
-          aria-label="Voltar ao papel real da conta"
-          className="ml-2 cursor-pointer text-(--muted) transition-colors hover:text-(--red)"
-        >
-          <X size={13} />
-        </button>
-      )}
-    </div>
+      <Card.Body
+        padding="none"
+        className="flex-row items-center gap-4 px-6 py-2"
+      >
+        <FlaskConical size={13} className="text-(--amber)" />
+        <Title variant="label" weight="bold" color="amber">
+          DEV
+        </Title>
+        <ToggleGroup
+          size="xs"
+          aria-label="Papel da pré-visualização"
+          options={[
+            { value: "OWNER", label: "Owner" },
+            { value: "SELLER", label: "Vendedor" },
+          ]}
+          value={isSeller ? "SELLER" : "OWNER"}
+          onChange={(target) => applyRole(target as Role)}
+        />
+        {overriding && (
+          <Button.Root
+            appearance="ghost"
+            color="neutral"
+            size="xs"
+            isIconOnly
+            label="Voltar ao papel real da conta"
+            onClick={reset}
+          >
+            <Button.Icon icon={X} />
+          </Button.Root>
+        )}
+      </Card.Body>
+    </Card.Root>
   );
 }

@@ -1,4 +1,5 @@
 "use client";
+import { Emphasis } from "@/components/Emphasis";
 
 import { Alert } from "@/components/Alert";
 import { Card } from "@/components/Card";
@@ -102,9 +103,9 @@ export default function PlatformHealthContent({
               <Alert.Content>
                 <Alert.Title>Migration pendente</Alert.Title>
                 <Alert.Description>
-                  O banco está em <strong>{health.databaseRevision}</strong> e o
-                  código em <strong>{health.codeRevision}</strong>. É a causa
-                  clássica de erro de coluna inexistente logo depois de um
+                  O banco está em <Emphasis>{health.databaseRevision}</Emphasis>{" "}
+                  e o código em <Emphasis>{health.codeRevision}</Emphasis>. É a
+                  causa clássica de erro de coluna inexistente logo depois de um
                   deploy — rode <code>alembic upgrade head</code>.
                 </Alert.Description>
               </Alert.Content>

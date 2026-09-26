@@ -1,4 +1,5 @@
 "use client";
+import { Emphasis } from "@/components/Emphasis";
 
 import { Alert } from "@/components/Alert";
 import { Button } from "@/components/Button";
@@ -279,9 +280,9 @@ export function SettlePeriodModal({
                 <Alert.Content>
                   <Alert.Description>
                     Outros {foraDoRecorte} boleto(s) vencem neste período na
-                    carteira dos demais vendedores e <b>não</b> entram nesta
-                    baixa. Marque “Aplicar a todos os vendedores” para
-                    incluí-los.
+                    carteira dos demais vendedores e <Emphasis>não</Emphasis>{" "}
+                    entram nesta baixa. Marque “Aplicar a todos os vendedores”
+                    para incluí-los.
                   </Alert.Description>
                 </Alert.Content>
               </Alert.Root>

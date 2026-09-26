@@ -1,4 +1,5 @@
 "use client";
+import { Emphasis } from "@/components/Emphasis";
 
 import { Button } from "@/components/Button";
 import { Card } from "@/components/Card";
@@ -33,23 +34,24 @@ export function CommercialCard({ companyFactory }: Props) {
                     Condições comerciais
                   </Title>
                   <Title variant="body-sm">
-                    <b>Comissão</b> é o percentual que a sua empresa recebe
-                    sobre as vendas desta fábrica. A <b>base de cálculo</b> diz
-                    sobre qual valor esse percentual é aplicado.
+                    <Emphasis>Comissão</Emphasis> é o percentual que a sua
+                    empresa recebe sobre as vendas desta fábrica. A{" "}
+                    <Emphasis>base de cálculo</Emphasis> diz sobre qual valor
+                    esse percentual é aplicado.
                   </Title>
                   <Title variant="body-sm" color="muted">
                     O dia de pagamento é quando a fábrica costuma pagar a
-                    comissão. O <b>corte do faturamento</b> é o último dia do
-                    mês que ainda entra nesse pagamento: o pedido faturado
-                    depois dele só é pago no mês seguinte. Para alterar, use o
-                    botão Editar no topo da página.
+                    comissão. O <Emphasis>corte do faturamento</Emphasis> é o
+                    último dia do mês que ainda entra nesse pagamento: o pedido
+                    faturado depois dele só é pago no mês seguinte. Para
+                    alterar, use o botão Editar no topo da página.
                   </Title>
                   <Title variant="body-sm" color="muted">
                     A comissão de cada pedido é calculada{" "}
-                    <b>no dia do faturamento</b> e fica gravada nele. Mudar o
-                    percentual aqui vale para os próximos faturamentos; para
-                    corrigir os pedidos que já foram lançados, use “Aplicar aos
-                    pedidos faturados”.
+                    <Emphasis>no dia do faturamento</Emphasis> e fica gravada
+                    nele. Mudar o percentual aqui vale para os próximos
+                    faturamentos; para corrigir os pedidos que já foram
+                    lançados, use “Aplicar aos pedidos faturados”.
                   </Title>
                 </div>
               }

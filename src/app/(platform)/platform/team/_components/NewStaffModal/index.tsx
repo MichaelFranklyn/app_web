@@ -1,4 +1,5 @@
 "use client";
+import { Emphasis } from "@/components/Emphasis";
 
 import { Alert } from "@/components/Alert";
 import { Button } from "@/components/Button";
@@ -133,9 +134,9 @@ export function NewStaffModal({ open, onOpenChange, onCreated }: Props) {
           ) : (
             <>
               <Title variant="body-sm" color="muted">
-                Conta criada para <strong>{result.email}</strong>. Copie o link
-                de primeiro acesso agora — depois de fechar, só emitindo outro
-                pela ficha da pessoa.
+                Conta criada para <Emphasis>{result.email}</Emphasis>. Copie o
+                link de primeiro acesso agora — depois de fechar, só emitindo
+                outro pela ficha da pessoa.
               </Title>
               <div className="rounded-md border border-(--border) bg-(--bg3) p-12 break-all">
                 <Title variant="micro">{result.link}</Title>

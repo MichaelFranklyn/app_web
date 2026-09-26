@@ -1,3 +1,4 @@
+import { Emphasis } from "@/components/Emphasis";
 import { Title } from "@/components/Title";
 import { ReactNode } from "react";
 
@@ -20,8 +21,8 @@ export const ORDER_KPI_HELP: Record<string, ReactNode> = {
   Pedidos: (
     <>
       <Title variant="body-sm">
-        Quantos <b>pedidos feitos</b> há no recorte da tela: confirmados,
-        faturados e entregues.
+        Quantos <Emphasis>pedidos feitos</Emphasis> há no recorte da tela:
+        confirmados, faturados e entregues.
       </Title>
       <Title variant="body-sm">
         Orçamento e cancelado não entram nestes quatro cartões — eles aparecem
@@ -33,8 +34,8 @@ export const ORDER_KPI_HELP: Record<string, ReactNode> = {
   "Valor total": (
     <>
       <Title variant="body-sm">
-        Soma da <b>mercadoria</b> dos pedidos feitos: sem IPI e sem frete. É a
-        mesma base sobre a qual a fábrica calcula a comissão.
+        Soma da <Emphasis>mercadoria</Emphasis> dos pedidos feitos: sem IPI e
+        sem frete. É a mesma base sobre a qual a fábrica calcula a comissão.
       </Title>
       <Title variant="body-sm">
         No detalhe de um pedido, o &quot;Total do pedido&quot; é maior: lá entra
@@ -124,20 +125,21 @@ export const SUMMARY_HELP: Record<string, ReactNode> = {
   merchandise: (
     <Title variant="body-sm">
       Só a mercadoria: quantidade × preço dos itens, menos os descontos, e{" "}
-      <b>sem</b> nenhum imposto.
+      <Emphasis>sem</Emphasis> nenhum imposto.
     </Title>
   ),
   tax: (
     <Title variant="body-sm">
-      Quanto deste pedido é imposto que já vem <b>dentro</b> do preço (ST e
-      afins). Não é uma cobrança a mais: somado à mercadoria, dá o subtotal. O
-      valor de cada item está na coluna &quot;Impostos&quot; da tabela.
+      Quanto deste pedido é imposto que já vem <Emphasis>dentro</Emphasis> do
+      preço (ST e afins). Não é uma cobrança a mais: somado à mercadoria, dá o
+      subtotal. O valor de cada item está na coluna &quot;Impostos&quot; da
+      tabela.
     </Title>
   ),
   subtotal: (
     <Title variant="body-sm">
-      Soma dos itens com o imposto embutido, <b>sem</b> o IPI. É esta a base
-      sobre a qual a fábrica calcula a comissão.
+      Soma dos itens com o imposto embutido, <Emphasis>sem</Emphasis> o IPI. É
+      esta a base sobre a qual a fábrica calcula a comissão.
     </Title>
   ),
   ipi: (
@@ -168,8 +170,9 @@ export const SUMMARY_HELP: Record<string, ReactNode> = {
   ),
   freight: (
     <Title variant="body-sm">
-      Quem paga o transporte. <b>FOB</b>: por conta do cliente. <b>CIF</b>: a
-      fábrica entrega. Algumas fábricas dão frete grátis acima de um valor.
+      Quem paga o transporte. <Emphasis>FOB</Emphasis>: por conta do cliente.{" "}
+      <Emphasis>CIF</Emphasis>: a fábrica entrega. Algumas fábricas dão frete
+      grátis acima de um valor.
     </Title>
   ),
 };
