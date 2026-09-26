@@ -1,7 +1,7 @@
 "use client";
+import { MapFrame } from "@/components/MapFrame";
 
 import { getButtonClasses } from "@/components/Button/Root/style";
-import { Title } from "@/components/Title";
 import { ExternalLink, MapPin } from "lucide-react";
 
 interface Props {
@@ -33,13 +33,12 @@ const linkClass = getButtonClasses({
 export function AddressMap({ query }: Props) {
   if (!query) {
     return (
-      <div className="flex h-50 flex-col items-center justify-center gap-8 rounded-(--r-lg) border border-(--border) bg-(--bg3) px-16 text-center">
-        <MapPin size={24} strokeWidth={1.5} className="text-(--muted2)" />
-        <Title variant="body-xs" color="muted2">
+      <MapFrame.Root className="h-[200px]">
+        <MapFrame.Message icon={MapPin}>
           Sem endereço para mostrar no mapa. Preencha rua ou cidade em
           &quot;Editar&quot;.
-        </Title>
-      </div>
+        </MapFrame.Message>
+      </MapFrame.Root>
     );
   }
 
@@ -48,26 +47,18 @@ export function AddressMap({ query }: Props) {
 
   return (
     <div className="flex flex-col gap-8">
-      <div className="h-[220px] overflow-hidden rounded-(--r-lg) border border-(--border) bg-(--bg3)">
+      <MapFrame.Root className="h-[220px]">
         {MAPS_KEY ? (
-          <iframe
+          <MapFrame.Embed
             title="Mapa do endereço do cliente"
             src={`https://www.google.com/maps/embed/v1/place?key=${MAPS_KEY}&q=${q}`}
-            className="h-full w-full"
-            style={{ border: 0 }}
-            loading="lazy"
-            referrerPolicy="no-referrer-when-downgrade"
-            allowFullScreen
           />
         ) : (
-          <div className="flex h-full flex-col items-center justify-center gap-8 px-16 text-center">
-            <MapPin size={24} strokeWidth={1.5} className="text-(--muted2)" />
-            <Title variant="body-xs" color="muted2">
-              Mapa embutido indisponível (chave do Google Maps não configurada).
-            </Title>
-          </div>
+          <MapFrame.Message icon={MapPin}>
+            Mapa embutido indisponível (chave do Google Maps não configurada).
+          </MapFrame.Message>
         )}
-      </div>
+      </MapFrame.Root>
       <a
         href={externalUrl}
         target="_blank"

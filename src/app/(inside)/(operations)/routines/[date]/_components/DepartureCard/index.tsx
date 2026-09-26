@@ -1,4 +1,5 @@
 "use client";
+import { IconTile } from "@/components/IconTile";
 
 import { Button } from "@/components/Button";
 import { Card } from "@/components/Card";
@@ -29,9 +30,9 @@ export function DepartureCard({
     <Card.Root>
       <Card.Body padding="compact">
         <div className="flex items-center gap-12">
-          <div className="flex h-[36px] w-[36px] shrink-0 items-center justify-center rounded-full bg-(--bg3) text-(--muted)">
-            <Icon size={18} />
-          </div>
+          <IconTile>
+            <Icon />
+          </IconTile>
           <div className="min-w-0 flex-1">
             <Title variant="micro" color="muted2">
               Ponto de partida

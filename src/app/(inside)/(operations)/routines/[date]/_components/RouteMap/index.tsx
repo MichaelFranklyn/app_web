@@ -1,4 +1,5 @@
 "use client";
+import { MapFrame } from "@/components/MapFrame";
 
 import { Badge } from "@/components/Badges";
 import { getButtonClasses } from "@/components/Button/Root/style";
@@ -69,20 +70,11 @@ export function RouteMap({ stops, distanceKm, departureAddress }: Props) {
 
   return (
     <div className="flex flex-col gap-10">
-      <div className="relative h-[360px] overflow-hidden rounded-(--r-xl) border border-(--border) bg-(--bg3)">
+      <MapFrame.Root className="h-[360px]">
         {embedUrl ? (
-          <iframe
-            title="Mapa da rota"
-            src={embedUrl}
-            className="h-full w-full"
-            style={{ border: 0 }}
-            loading="lazy"
-            referrerPolicy="no-referrer-when-downgrade"
-            allowFullScreen
-          />
+          <MapFrame.Embed title="Mapa da rota" src={embedUrl} />
         ) : (
-          <div className="flex h-full flex-col items-center justify-center gap-10 px-24 text-center">
-            <MapPin size={32} className="text-(--muted2)" />
+          <MapFrame.Message icon={MapPin}>
             <Title variant="body-sm" color="muted">
               {!hasPoints
                 ? "As paradas deste dia ainda não têm endereço cadastrado para traçar a rota."
@@ -101,9 +93,9 @@ export function RouteMap({ stops, distanceKm, departureAddress }: Props) {
                 Abrir rota no Google Maps
               </a>
             )}
-          </div>
+          </MapFrame.Message>
         )}
-      </div>
+      </MapFrame.Root>
 
       <div className="flex flex-wrap items-center justify-between gap-8">
         <Badge.Root color="neutral" appearance="tinted">

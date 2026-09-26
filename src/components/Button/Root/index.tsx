@@ -17,6 +17,7 @@ export const ButtonRoot = forwardRef<HTMLButtonElement, ButtonProps>(
       active = false,
       noPadding = false,
       noUppercase = false,
+      dashed = false,
       children,
       disabled,
       label,
@@ -38,6 +39,7 @@ export const ButtonRoot = forwardRef<HTMLButtonElement, ButtonProps>(
           active,
           noPadding,
           noUppercase,
+          dashed,
           className,
         })}
         disabled={loading || disabled}

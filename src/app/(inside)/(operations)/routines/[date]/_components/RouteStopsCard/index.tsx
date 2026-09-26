@@ -1,3 +1,4 @@
+import { IconTile } from "@/components/IconTile";
 import { NegativeTag } from "@/components/ClientFactoryNegative";
 import { FixedVisitTag } from "@/components/FixedVisitTag";
 import { Badge } from "@/components/Badges";
@@ -5,7 +6,6 @@ import { Title } from "@/components/Title";
 import { Card } from "@/components/Card";
 import { EmptyState } from "@/components/EmptyState";
 import { MapPin, Phone } from "lucide-react";
-import { cn } from "@/lib/utils";
 import { ContactLinks } from "../../../_components/ContactLinks";
 import { VisitActions } from "../../../_components/VisitActions";
 import { ViabilityNote } from "../../../_components/ViabilityNote";
@@ -68,101 +68,101 @@ export function RouteStopsCard({
               const client = link?.client ?? null;
               const travel = stop.estimatedTravelMin;
               return (
-                <div
-                  key={stop.id}
-                  className="flex items-start gap-10 rounded-(--r-md) border border-(--border) p-10"
-                >
-                  <div
-                    className={cn(
-                      "font-head mt-[2px] flex h-[22px] w-[22px] shrink-0 items-center justify-center rounded-full text-[13px] font-bold text-white",
-                      isRemote ? "bg-(--blue)" : "bg-(--amber)"
-                    )}
+                <Card.Root key={stop.id} inset tone="transparent">
+                  <Card.Body
+                    padding="sm"
+                    className="flex-row items-start gap-10"
                   >
-                    {isRemote ? (
-                      <Phone size={12} aria-hidden />
-                    ) : (
-                      stop.plannedOrder
-                    )}
-                  </div>
+                    <IconTile
+                      appearance="solid"
+                      color={isRemote ? "blue" : "amber"}
+                      size="xs"
+                      className="mt-[2px]"
+                    >
+                      {isRemote ? <Phone aria-hidden /> : stop.plannedOrder}
+                    </IconTile>
 
-                  <div className="min-w-0 flex-1">
-                    <Title variant="body-sm" weight="medium">
-                      {clientLabel(client)}
-                    </Title>
-                    {/* Uma linha por empresa, com o score de cada uma: é o que
+                    <div className="min-w-0 flex-1">
+                      <Title variant="body-sm" weight="medium">
+                        {clientLabel(client)}
+                      </Title>
+                      {/* Uma linha por empresa, com o score de cada uma: é o que
                         diz POR QUE esta parada existe e qual fábrica levar
                         primeiro na conversa. */}
-                    <StopFactoryScores stop={stop} />
-                    {/* No contato, o endereço não serve para nada — o que o
+                      <StopFactoryScores stop={stop} />
+                      {/* No contato, o endereço não serve para nada — o que o
                         vendedor precisa é do telefone. */}
-                    {isRemote ? (
-                      <div className="mt-6">
-                        <ContactLinks
-                          contact={client?.primaryContact ?? null}
-                          clientName={clientLabel(client)}
-                          clientId={client?.id ?? null}
-                        />
-                      </div>
-                    ) : (
-                      <Title
-                        variant="body-sm"
-                        color="muted2"
-                        className="mt-[2px]"
-                      >
-                        {clientAddress(client)}
-                      </Title>
-                    )}
-                    <div className="mt-4 flex flex-wrap items-center gap-6">
-                      {/* A parada continua de pé — negativar não desmarca o que
+                      {isRemote ? (
+                        <div className="mt-6">
+                          <ContactLinks
+                            contact={client?.primaryContact ?? null}
+                            clientName={clientLabel(client)}
+                            clientId={client?.id ?? null}
+                          />
+                        </div>
+                      ) : (
+                        <Title
+                          variant="body-sm"
+                          color="muted2"
+                          className="mt-[2px]"
+                        >
+                          {clientAddress(client)}
+                        </Title>
+                      )}
+                      <div className="mt-4 flex flex-wrap items-center gap-6">
+                        {/* A parada continua de pé — negativar não desmarca o que
                           já estava agendado —, mas quem vai precisa saber que
                           esta fábrica não fecha pedido hoje. */}
-                      <NegativeTag
-                        isNegative={Boolean(link?.isNegative)}
-                        negativeSince={null}
-                        negativeReason={link?.negativeReason ?? null}
-                        activeLabel={null}
-                      />
-                      <FixedVisitTag fixedScheduleId={stop.fixedScheduleId} />
-                      {/* Era aqui que o deslocamento se disfarçava de duração:
+                        <NegativeTag
+                          isNegative={Boolean(link?.isNegative)}
+                          negativeSince={null}
+                          negativeReason={link?.negativeReason ?? null}
+                          activeLabel={null}
+                        />
+                        <FixedVisitTag fixedScheduleId={stop.fixedScheduleId} />
+                        {/* Era aqui que o deslocamento se disfarçava de duração:
                           "~7 min de visita" eram 7 minutos DE CARRO até a loja.
                           Agora o horário e a duração vêm da agenda, e o
                           deslocamento aparece com o nome dele. */}
-                      {!isRemote && stop.plannedStartTime && (
-                        <Title variant="micro" color="muted">
-                          {stop.plannedStartTime}
-                          {stop.plannedEndTime ? `–${stop.plannedEndTime}` : ""}
-                          {stop.visitDurationMin
-                            ? ` · ${formatMinutes(stop.visitDurationMin)} de visita`
-                            : ""}
-                        </Title>
-                      )}
-                      {travel != null && travel > 0 && !isRemote && (
-                        <Title variant="micro" color="muted2">
-                          {travel} min até aqui
-                        </Title>
-                      )}
-                      <Badge.Root
-                        color={STOP_STATUS_COLOR[stop.status]}
-                        appearance="tinted"
-                      >
-                        <Badge.Text>
-                          {STOP_STATUS_LABEL[stop.status]}
-                        </Badge.Text>
-                      </Badge.Root>
-                    </div>
-                    {/* "Dá pedido nesse cliente hoje?" — a pergunta que o
+                        {!isRemote && stop.plannedStartTime && (
+                          <Title variant="micro" color="muted">
+                            {stop.plannedStartTime}
+                            {stop.plannedEndTime
+                              ? `–${stop.plannedEndTime}`
+                              : ""}
+                            {stop.visitDurationMin
+                              ? ` · ${formatMinutes(stop.visitDurationMin)} de visita`
+                              : ""}
+                          </Title>
+                        )}
+                        {travel != null && travel > 0 && !isRemote && (
+                          <Title variant="micro" color="muted2">
+                            {travel} min até aqui
+                          </Title>
+                        )}
+                        <Badge.Root
+                          color={STOP_STATUS_COLOR[stop.status]}
+                          appearance="tinted"
+                        >
+                          <Badge.Text>
+                            {STOP_STATUS_LABEL[stop.status]}
+                          </Badge.Text>
+                        </Badge.Root>
+                      </div>
+                      {/* "Dá pedido nesse cliente hoje?" — a pergunta que o
                         vendedor só conseguia fazer no balcão, tarde. */}
-                    <ViabilityNote viability={stop.viability} />
-                  </div>
+                      <ViabilityNote viability={stop.viability} />
+                    </div>
 
-                  <div className="-mr-[4px] shrink-0">
-                    <VisitActions
-                      item={stop}
-                      dayDate={dayDate}
-                      onChanged={onChanged}
-                    />
-                  </div>
-                </div>
+                    <div className="-mr-[4px] shrink-0">
+                      <VisitActions
+                        item={stop}
+                        dayDate={dayDate}
+                        onChanged={onChanged}
+                      />
+                    </div>
+                  </Card.Body>
+                </Card.Root>
               );
             })}
           </div>

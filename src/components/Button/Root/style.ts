@@ -71,6 +71,7 @@ export interface GetButtonClassesProps {
   active: boolean;
   noPadding: boolean;
   noUppercase: boolean;
+  dashed?: boolean;
   className?: string;
 }
 
@@ -83,6 +84,7 @@ export const getButtonClasses = ({
   active,
   noPadding,
   noUppercase,
+  dashed = false,
   className,
 }: GetButtonClassesProps): string =>
   cn(
@@ -97,5 +99,7 @@ export const getButtonClasses = ({
     focusClasses,
     active && isIconOnly && activeIconOnlyClasses,
     fullWidth && "w-full",
+    dashed &&
+      "border-dashed border-(--border2) hover:border-(--amber) hover:text-(--amber) hover:opacity-100",
     className
   );

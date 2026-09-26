@@ -1,4 +1,5 @@
 "use client";
+import { Card } from "@/components/Card";
 
 import { Button } from "@/components/Button";
 import { FormBuilder } from "@/components/FormBuilder";
@@ -64,13 +65,15 @@ export function DepartureModal({
             </div>
 
             {mode === "home" ? (
-              <div className="rounded-(--r-md) border border-(--border) bg-(--bg3) p-12">
-                <Title variant="body-sm" color="muted">
-                  A rota começa no endereço de casa cadastrado no seu perfil de
-                  vendedor. Se ele estiver em branco, o dia parte da primeira
-                  visita mais urgente.
-                </Title>
-              </div>
+              <Card.Root inset tone="muted">
+                <Card.Body padding="sm">
+                  <Title variant="body-sm" color="muted">
+                    A rota começa no endereço de casa cadastrado no seu perfil
+                    de vendedor. Se ele estiver em branco, o dia parte da
+                    primeira visita mais urgente.
+                  </Title>
+                </Card.Body>
+              </Card.Root>
             ) : (
               <div className="flex flex-col gap-12">
                 {departureType === "CUSTOM" && departureAddress && (

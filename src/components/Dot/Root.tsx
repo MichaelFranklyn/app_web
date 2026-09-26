@@ -24,10 +24,13 @@ const colorClasses: Record<ThemeColor, string> = {
 };
 
 const sizeClasses: Record<DotSize, string> = {
-  xs: "h-1 w-1",
-  sm: "h-1.5 w-1.5",
-  md: "h-2 w-2",
-  lg: "h-2.5 w-2.5",
+  // Em px explícito: a escala de spacing do projeto é em pixels (`h-2` = 2px),
+  // e as classes herdadas do Tailwind padrão saíam com 1-2px — um ponto
+  // invisível.
+  xs: "size-[4px]",
+  sm: "size-[6px]",
+  md: "size-[8px]",
+  lg: "size-[10px]",
 };
 
 export const DotRoot = React.forwardRef<HTMLDivElement, DotProps>(

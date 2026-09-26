@@ -1,3 +1,4 @@
+import { AlertActions } from "./Actions";
 import { AlertContent } from "./Content";
 import { AlertDescription } from "./Description";
 import { AlertIcon } from "./Icon";
@@ -10,4 +11,5 @@ export const Alert = {
   Content: AlertContent,
   Title: AlertTitle,
   Description: AlertDescription,
+  Actions: AlertActions,
 };

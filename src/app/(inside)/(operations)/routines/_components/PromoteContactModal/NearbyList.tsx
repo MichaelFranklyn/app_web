@@ -1,4 +1,5 @@
 "use client";
+import { Card } from "@/components/Card";
 
 import { Badge } from "@/components/Badges";
 import { Input } from "@/components/Input";
@@ -44,41 +45,44 @@ export function NearbyList({ candidates, selected, onToggle }: Props) {
           return (
             // Sem <label> por fora: o próprio Input.Checkbox já traz o seu, e
             // aninhar dois deixa o clique ambíguo e o campo sem nome acessível.
-            <div
+            <Card.Root
               key={candidate.sellerClientFactoryId}
-              className="flex items-start gap-10 rounded-(--r-md) border border-(--border) p-10 transition-colors hover:border-(--border2)"
+              inset
+              tone="transparent"
             >
-              <Input.Checkbox
-                aria-label={`Visitar também ${clientDisplayName(
-                  candidate.client,
-                  "este cliente"
-                )}`}
-                checked={selected.includes(candidate.sellerClientFactoryId)}
-                onChange={() => onToggle(candidate.sellerClientFactoryId)}
-              />
-              <div className="min-w-0 flex-1">
-                <Title variant="body-sm" weight="medium" className="truncate">
-                  {clientDisplayName(candidate.client, "Cliente")}
-                </Title>
-                <Title variant="micro" color="muted" className="truncate">
-                  {factoryName(candidate.factory)}
-                </Title>
-                <div className="mt-4 flex flex-wrap items-center gap-6">
-                  <Badge.Root
-                    color={candidate.isUrgent ? "red" : "amber"}
-                    appearance="tinted"
-                  >
-                    <Badge.Text>
-                      {candidate.isUrgent ? "Urgente" : "Atenção"}
-                    </Badge.Text>
-                  </Badge.Root>
-                  <Title variant="micro" color="muted2">
-                    {candidate.distanceKm.toFixed(0)} km daqui
-                    {city ? ` · ${city}${state ? `/${state}` : ""}` : ""}
+              <Card.Body padding="sm" className="flex-row items-start gap-10">
+                <Input.Checkbox
+                  aria-label={`Visitar também ${clientDisplayName(
+                    candidate.client,
+                    "este cliente"
+                  )}`}
+                  checked={selected.includes(candidate.sellerClientFactoryId)}
+                  onChange={() => onToggle(candidate.sellerClientFactoryId)}
+                />
+                <div className="min-w-0 flex-1">
+                  <Title variant="body-sm" weight="medium" className="truncate">
+                    {clientDisplayName(candidate.client, "Cliente")}
                   </Title>
+                  <Title variant="micro" color="muted" className="truncate">
+                    {factoryName(candidate.factory)}
+                  </Title>
+                  <div className="mt-4 flex flex-wrap items-center gap-6">
+                    <Badge.Root
+                      color={candidate.isUrgent ? "red" : "amber"}
+                      appearance="tinted"
+                    >
+                      <Badge.Text>
+                        {candidate.isUrgent ? "Urgente" : "Atenção"}
+                      </Badge.Text>
+                    </Badge.Root>
+                    <Title variant="micro" color="muted2">
+                      {candidate.distanceKm.toFixed(0)} km daqui
+                      {city ? ` · ${city}${state ? `/${state}` : ""}` : ""}
+                    </Title>
+                  </div>
                 </div>
-              </div>
-            </div>
+              </Card.Body>
+            </Card.Root>
           );
         })}
       </div>

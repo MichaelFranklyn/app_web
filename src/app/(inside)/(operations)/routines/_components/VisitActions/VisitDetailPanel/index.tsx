@@ -1,4 +1,6 @@
 "use client";
+import { Alert } from "@/components/Alert";
+import { Drawer } from "@/components/Drawer";
 
 import { Badge } from "@/components/Badges";
 import { factoryName } from "@/utils/company";
@@ -12,7 +14,6 @@ import {
   ReceiptText,
   TriangleAlert,
   UserRound,
-  X,
 } from "lucide-react";
 import { VisitScheduleItem } from "../../../interface";
 import {
@@ -79,219 +80,182 @@ export function VisitDetailPanel({
   const scoreReasons = getVisitScoreReasons(item);
 
   return (
-    <>
-      {/* Backdrop — clicar fora fecha. Acima do conteúdo, abaixo dos modais (z-50). */}
-      <div
-        className={`fixed inset-0 z-[55] bg-black/30 transition-opacity duration-200 ${
-          open ? "opacity-100" : "pointer-events-none opacity-0"
-        }`}
-        onClick={onClose}
-        data-testid="visit-panel-backdrop"
-        aria-hidden
-      />
-
-      <aside
-        role="dialog"
-        aria-label={`Detalhes d${isRemote ? "o" : "a"} ${noun}`}
-        // A SOMBRA SÓ EXISTE COM O PAINEL ABERTO. Fechado, ele continua montado
-        // fora da tela (é o que dá a animação de sair deslizando), e o `shadow-xl`
-        // ficava ligado o tempo todo: a sombra não é cortada pela borda da
-        // janela, então vazava para dentro e desenhava uma faixa escura colada
-        // na lateral direita. Como a rota do dia monta um painel POR PARADA, as
-        // sombras se somavam — num dia de 9 paradas, nove delas no mesmo lugar.
-        className={`fixed top-0 right-0 z-[60] flex h-full w-[400px] max-w-[calc(100vw-32px)] flex-col border-l border-(--border) bg-(--bg) transition-transform duration-200 ${
-          open ? "translate-x-0 shadow-xl" : "translate-x-full"
-        }`}
-      >
-        {/* Cabeçalho */}
-        <div className="flex items-start justify-between gap-8 border-b border-(--border) px-20 py-16">
-          <div className="min-w-0">
-            <Title variant="micro" color="muted">
-              Parada #{item.plannedOrder} · {typeLabel}
-            </Title>
-            <Title variant="heading-sm" className="mt-2 truncate">
-              {clientName}
-            </Title>
-            <Title variant="body-xs" color="muted" className="mt-2 truncate">
-              {factoryLabel}
-            </Title>
-            {/* Atalho para a ficha: é o caminho mais pedido a partir da visita
+    <Drawer.Root
+      open={open}
+      onClose={onClose}
+      label={`Detalhes d${isRemote ? "o" : "a"} ${noun}`}
+      width={400}
+    >
+      <Drawer.Header>
+        <Title variant="micro" color="muted">
+          Parada #{item.plannedOrder} · {typeLabel}
+        </Title>
+        <Title variant="heading-sm" className="mt-2 truncate">
+          {clientName}
+        </Title>
+        <Title variant="body-xs" color="muted" className="mt-2 truncate">
+          {factoryLabel}
+        </Title>
+        {/* Atalho para a ficha: é o caminho mais pedido a partir da visita
                 (histórico de pedidos, estoque, contatos do cliente). */}
-            {onClient && (
-              <Button.Root
-                appearance="outline"
-                color="neutral"
-                size="sm"
-                noUppercase
-                className="mt-8"
-                onClick={onClient}
-              >
-                <Button.Icon icon={UserRound} />
-                <Button.Title>Ver cliente</Button.Title>
-              </Button.Root>
-            )}
-          </div>
+        {onClient && (
           <Button.Root
-            appearance="ghost"
+            appearance="outline"
             color="neutral"
             size="sm"
-            isIconOnly
-            onClick={onClose}
-            aria-label="Fechar"
+            noUppercase
+            className="mt-8"
+            onClick={onClient}
           >
-            <Button.Icon icon={X} />
+            <Button.Icon icon={UserRound} />
+            <Button.Title>Ver cliente</Button.Title>
           </Button.Root>
+        )}
+      </Drawer.Header>
+
+      <Drawer.Body>
+        {warning && (
+          <Alert.Root variant="warning">
+            <Alert.Icon icon={TriangleAlert} />
+            <Alert.Content>
+              <Alert.Description>{warning.message}</Alert.Description>
+            </Alert.Content>
+          </Alert.Root>
+        )}
+
+        <div>
+          <Title variant="micro" color="muted">
+            Situação
+          </Title>
+          <div className="mt-4">
+            <Badge.Root
+              color={VISIT_STATUS_COLOR[item.status]}
+              appearance="tinted"
+            >
+              <Badge.Text>{VISIT_STATUS_LABEL[item.status]}</Badge.Text>
+            </Badge.Root>
+          </div>
         </div>
 
-        {/* Conteúdo */}
-        <div className="flex flex-1 flex-col gap-16 overflow-y-auto px-20 py-16">
-          {warning && (
-            <div className="flex items-start gap-8 rounded-(--r-md) border border-(--amber) bg-(--amber-bg) px-12 py-10">
-              <TriangleAlert
-                size={16}
-                className="mt-[1px] shrink-0 text-(--amber)"
-              />
-              <Title variant="body-xs" className="text-(--amber)">
-                {warning.message}
-              </Title>
-            </div>
-          )}
-
-          <div>
-            <Title variant="micro" color="muted">
-              Situação
-            </Title>
-            <div className="mt-4">
-              <Badge.Root
-                color={VISIT_STATUS_COLOR[item.status]}
-                appearance="tinted"
-              >
-                <Badge.Text>{VISIT_STATUS_LABEL[item.status]}</Badge.Text>
-              </Badge.Root>
-            </div>
-          </div>
-
-          {/* O porquê vem antes dos detalhes de execução (horário, duração,
+        {/* O porquê vem antes dos detalhes de execução (horário, duração,
               deslocamento): é a informação que faz o vendedor entender a
               sugestão do sistema em vez de só cumpri-la. */}
-          <VisitScoreReasons reasons={scoreReasons} />
+        <VisitScoreReasons reasons={scoreReasons} />
 
-          {/* Como falar com o cliente — só faz sentido no contato remoto; na
+        {/* Como falar com o cliente — só faz sentido no contato remoto; na
               visita o que importa é o endereço, que já está no mapa do dia. */}
-          {isRemote && (
-            <div className="flex flex-col gap-6">
-              <Title variant="micro" color="muted">
-                Como falar
-              </Title>
-              <ContactLinks
-                contact={client?.primaryContact ?? null}
-                clientName={clientName}
-                clientId={client?.id ?? null}
-              />
-            </div>
-          )}
-
-          <div className="grid grid-cols-2 gap-16">
-            <Field label="Ordem na rota" value={`#${item.plannedOrder}`} />
-            {!isRemote && (
-              <Field
-                label="Horário previsto"
-                value={
-                  item.plannedStartTime
-                    ? `${item.plannedStartTime} – ${item.plannedEndTime ?? ""}`
-                    : "—"
-                }
-              />
-            )}
-            {!isRemote && (
-              <Field
-                label="Duração da visita"
-                value={
-                  item.visitDurationMin != null
-                    ? `${item.visitDurationMin} min`
-                    : "—"
-                }
-              />
-            )}
-            {!isRemote && (
-              <Field
-                label="Deslocamento até aqui"
-                value={
-                  item.estimatedTravelMin != null
-                    ? `${item.estimatedTravelMin} min`
-                    : "—"
-                }
-              />
-            )}
-            <Field label="Resultado" value={outcomeLabel ?? "—"} />
-            <Field label="Fábricas tratadas" value={treatedLabel ?? "—"} />
-          </div>
-
-          <div className="flex flex-col gap-2">
+        {isRemote && (
+          <div className="flex flex-col gap-6">
             <Title variant="micro" color="muted">
-              Observações
+              Como falar
             </Title>
-            <Title variant="body-sm" color={item.notes ? "default" : "muted"}>
-              {item.notes || "Sem observações registradas."}
-            </Title>
+            <ContactLinks
+              contact={client?.primaryContact ?? null}
+              clientName={clientName}
+              clientId={client?.id ?? null}
+            />
           </div>
+        )}
+
+        <div className="grid grid-cols-2 gap-16">
+          <Field label="Ordem na rota" value={`#${item.plannedOrder}`} />
+          {!isRemote && (
+            <Field
+              label="Horário previsto"
+              value={
+                item.plannedStartTime
+                  ? `${item.plannedStartTime} – ${item.plannedEndTime ?? ""}`
+                  : "—"
+              }
+            />
+          )}
+          {!isRemote && (
+            <Field
+              label="Duração da visita"
+              value={
+                item.visitDurationMin != null
+                  ? `${item.visitDurationMin} min`
+                  : "—"
+              }
+            />
+          )}
+          {!isRemote && (
+            <Field
+              label="Deslocamento até aqui"
+              value={
+                item.estimatedTravelMin != null
+                  ? `${item.estimatedTravelMin} min`
+                  : "—"
+              }
+            />
+          )}
+          <Field label="Resultado" value={outcomeLabel ?? "—"} />
+          <Field label="Fábricas tratadas" value={treatedLabel ?? "—"} />
         </div>
 
-        {/* Ações */}
-        <div className="flex flex-col gap-8 border-t border-(--border) px-20 py-16">
+        <div className="flex flex-col gap-2">
           <Title variant="micro" color="muted">
-            Alterar {noun}
+            Observações
           </Title>
-          <div className="flex flex-col gap-8">
-            <Button.Root
-              appearance="outline"
-              color="neutral"
-              size="sm"
-              noUppercase
-              fullWidth
-              onClick={onEdit}
-            >
-              <Button.Icon icon={Pencil} />
-              <Button.Title>Editar {noun}</Button.Title>
-            </Button.Root>
-            <Button.Root
-              appearance="outline"
-              color="neutral"
-              size="sm"
-              noUppercase
-              fullWidth
-              onClick={onStock}
-            >
-              <Button.Icon icon={PackageSearch} />
-              <Button.Title>Estoque do cliente</Button.Title>
-            </Button.Root>
-            {onOrder && (
-              <Button.Root
-                appearance="outline"
-                color="neutral"
-                size="sm"
-                noUppercase
-                fullWidth
-                onClick={onOrder}
-              >
-                <Button.Icon icon={ReceiptText} />
-                <Button.Title>Novo pedido</Button.Title>
-              </Button.Root>
-            )}
-            <Button.Root
-              appearance="outline"
-              color="neutral"
-              size="sm"
-              noUppercase
-              fullWidth
-              onClick={onReschedule}
-            >
-              <Button.Icon icon={CalendarClock} />
-              <Button.Title>Remarcar {noun}</Button.Title>
-            </Button.Root>
-          </div>
+          <Title variant="body-sm" color={item.notes ? "default" : "muted"}>
+            {item.notes || "Sem observações registradas."}
+          </Title>
         </div>
-      </aside>
-    </>
+      </Drawer.Body>
+
+      <Drawer.Footer>
+        <Title variant="micro" color="muted">
+          Alterar {noun}
+        </Title>
+        <div className="flex flex-col gap-8">
+          <Button.Root
+            appearance="outline"
+            color="neutral"
+            size="sm"
+            noUppercase
+            fullWidth
+            onClick={onEdit}
+          >
+            <Button.Icon icon={Pencil} />
+            <Button.Title>Editar {noun}</Button.Title>
+          </Button.Root>
+          <Button.Root
+            appearance="outline"
+            color="neutral"
+            size="sm"
+            noUppercase
+            fullWidth
+            onClick={onStock}
+          >
+            <Button.Icon icon={PackageSearch} />
+            <Button.Title>Estoque do cliente</Button.Title>
+          </Button.Root>
+          {onOrder && (
+            <Button.Root
+              appearance="outline"
+              color="neutral"
+              size="sm"
+              noUppercase
+              fullWidth
+              onClick={onOrder}
+            >
+              <Button.Icon icon={ReceiptText} />
+              <Button.Title>Novo pedido</Button.Title>
+            </Button.Root>
+          )}
+          <Button.Root
+            appearance="outline"
+            color="neutral"
+            size="sm"
+            noUppercase
+            fullWidth
+            onClick={onReschedule}
+          >
+            <Button.Icon icon={CalendarClock} />
+            <Button.Title>Remarcar {noun}</Button.Title>
+          </Button.Root>
+        </div>
+      </Drawer.Footer>
+    </Drawer.Root>
   );
 }
