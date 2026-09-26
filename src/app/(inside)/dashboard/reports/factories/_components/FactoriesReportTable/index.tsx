@@ -133,18 +133,18 @@ export function FactoriesReportTable({
                 <Table.Cell variant="dim">{row.clientCount}</Table.Cell>
                 <Table.Cell variant="strong" className="whitespace-nowrap">
                   {formatMoney(row.totalAmount)}
-                  <span className="ml-4 text-(--muted)">
+                  <Table.CellText variant="dim" className="ml-4">
                     {formatPercent(row.share)}
-                  </span>
+                  </Table.CellText>
                 </Table.Cell>
                 <Table.Cell variant="dim" className="whitespace-nowrap">
                   {formatMoney(row.avgTicket)}
                 </Table.Cell>
                 <Table.Cell variant="dim" className="whitespace-nowrap">
                   {formatMoney(row.invoicedAmount)}
-                  <span className="ml-4 text-(--muted)">
+                  <Table.CellText variant="dim" className="ml-4">
                     {formatPercent(invoicedRate(row))}
-                  </span>
+                  </Table.CellText>
                 </Table.Cell>
                 <Table.Cell variant="dim" className="whitespace-nowrap">
                   {formatMoney(row.commissionAmount)}

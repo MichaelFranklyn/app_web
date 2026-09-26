@@ -13,8 +13,12 @@ const SIZE: Record<IconTileSize, string> = {
 
 interface IconTileProps extends React.HTMLAttributes<HTMLSpanElement> {
   color?: ThemeColor;
-  /** `solid` para o número da parada; `tinted` para o ícone que ilustra. */
-  appearance?: "tinted" | "solid";
+  /**
+   * `solid` para o número da parada; `tinted` para o ícone que ilustra;
+   * `raised` para o ícone sobre uma caixa já colorida (fundo do card, cor no
+   * ícone), onde o `tinted` sumiria no fundo igual.
+   */
+  appearance?: "tinted" | "solid" | "raised";
   size?: IconTileSize;
   shape?: "circle" | "square";
   children: React.ReactNode;
@@ -40,7 +44,9 @@ export const IconTile = React.forwardRef<HTMLSpanElement, IconTileProps>(
       ref={ref}
       className={cn(
         "font-head inline-flex shrink-0 items-center justify-center border-0 leading-none font-bold",
-        getThemeClasses(appearance, color),
+        appearance === "raised"
+          ? cn(getThemeClasses("ghost", color), "bg-(--bg2)")
+          : getThemeClasses(appearance, color),
         SIZE[size],
         shape === "circle" ? "rounded-full" : "rounded-(--r-sm)",
         className

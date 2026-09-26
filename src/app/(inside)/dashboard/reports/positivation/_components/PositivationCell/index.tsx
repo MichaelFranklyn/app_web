@@ -29,12 +29,12 @@ export function PositivationCellMark({ cell }: { cell: Cell }) {
   if (!cell.isPositivated) {
     return (
       <Tooltip content={`${cell.factoryName}: nenhuma compra no período`}>
-        <span
-          className="inline-flex text-(--amber)"
+        <Minus
+          size={16}
+          role="img"
           aria-label={`${cell.factoryName}: não comprou no período`}
-        >
-          <Minus size={16} />
-        </span>
+          className="text-(--amber)"
+        />
       </Tooltip>
     );
   }
@@ -47,12 +47,12 @@ export function PositivationCellMark({ cell }: { cell: Cell }) {
           : ""
       }`}
     >
-      <span
-        className="inline-flex text-(--green)"
+      <Check
+        size={16}
+        role="img"
         aria-label={`${cell.factoryName}: comprou no período`}
-      >
-        <Check size={16} />
-      </span>
+        className="text-(--green)"
+      />
     </Tooltip>
   );
 }

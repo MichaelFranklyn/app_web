@@ -11,6 +11,8 @@ export const rootStyle = cva(cardBaseStyle, {
     tone: {
       default: "",
       muted: "bg-(--bg3)",
+      /** O que está incluído / deu certo: fundo e borda verdes. */
+      success: "border-(--green-bd) bg-(--green-bg)",
       transparent: "bg-transparent",
     },
     /**

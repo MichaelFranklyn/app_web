@@ -1,3 +1,4 @@
+import { Dropdown } from "@/components/Dropdown";
 import { Loading } from "@/components/Loading";
 
 /**
@@ -11,10 +12,7 @@ export function NotificationSkeleton() {
     <div className="flex flex-col" aria-busy="true" aria-live="polite">
       <span className="sr-only">Carregando notificações…</span>
       {[0, 1, 2].map((row) => (
-        <div
-          key={row}
-          className="flex items-start gap-10 border-b border-(--border) px-12 py-10 last:border-b-0"
-        >
+        <Dropdown.PanelRowSkeleton key={row}>
           <Loading.Skeleton className="mt-[6px] size-8 shrink-0 rounded-full" />
           <div className="flex min-w-0 flex-1 flex-col gap-6">
             <div className="flex items-center justify-between gap-8">
@@ -23,7 +21,7 @@ export function NotificationSkeleton() {
             </div>
             <Loading.Skeleton className="h-[10px] w-[85%]" />
           </div>
-        </div>
+        </Dropdown.PanelRowSkeleton>
       ))}
     </div>
   );

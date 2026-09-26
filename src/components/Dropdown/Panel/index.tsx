@@ -38,6 +38,9 @@ interface PanelRowProps extends React.ButtonHTMLAttributes<HTMLButtonElement> {
   tone?: keyof typeof ROW_TONE;
 }
 
+const ROW_BASE =
+  "flex items-start gap-10 border-b border-(--border) px-12 py-10 text-left last:border-b-0";
+
 /** Uma linha clicável do painel; o traço entre linhas some na última. */
 export const PanelRow = ({
   tone = "default",
@@ -48,13 +51,25 @@ export const PanelRow = ({
   <button
     type={type}
     className={cn(
-      "flex items-start gap-10 border-b border-(--border) px-12 py-10 text-left transition-colors last:border-b-0 hover:bg-(--bg3)",
+      ROW_BASE,
+      "transition-colors hover:bg-(--bg3)",
       "disabled:cursor-default disabled:opacity-60",
       ROW_TONE[tone],
       className
     )}
     {...props}
   />
+);
+
+/**
+ * A linha enquanto a lista carrega: mesma caixa da `PanelRow`, sem clique, para
+ * a altura não saltar quando os itens chegam.
+ */
+export const PanelRowSkeleton = ({
+  className,
+  ...props
+}: React.HTMLAttributes<HTMLDivElement>) => (
+  <div className={cn(ROW_BASE, className)} {...props} />
 );
 
 /** "Ver tudo": o link para a tela completa, no pé do painel. */

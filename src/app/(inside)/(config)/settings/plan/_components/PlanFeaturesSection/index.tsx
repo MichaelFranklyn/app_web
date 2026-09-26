@@ -1,9 +1,10 @@
 "use client";
 
+import { Card } from "@/components/Card";
 import { Grid } from "@/components/Grid";
 import { HelpTooltip } from "@/components/HelpTooltip";
+import { IconTile } from "@/components/IconTile";
 import { Title } from "@/components/Title";
-import { cn } from "@/lib/utils";
 import {
   FEATURE_DESCRIPTION,
   FEATURE_ICON,
@@ -24,45 +25,39 @@ function FeatureCard({
   const Icon = FEATURE_ICON[feature];
 
   return (
-    <div
-      className={cn(
-        "flex h-full items-start gap-12 rounded-(--r-lg) border p-16 transition-colors",
-        included
-          ? "border-(--green-bd) bg-(--green-bg)"
-          : "border-(--border) bg-(--bg3)"
-      )}
-    >
-      <span
-        aria-hidden
-        className={cn(
-          "flex size-32 shrink-0 items-center justify-center rounded-(--r-md)",
-          included ? "bg-(--bg2) text-(--green)" : "bg-(--bg4) text-(--muted2)"
-        )}
-      >
-        <Icon size={16} />
-      </span>
+    <Card.Root tone={included ? "success" : "muted"}>
+      <Card.Body padding="compact" className="flex-row items-start gap-12">
+        <IconTile
+          aria-hidden
+          appearance="raised"
+          color={included ? "green" : "subtle"}
+          shape="square"
+          size="sm"
+        >
+          <Icon />
+        </IconTile>
 
-      <div className="flex min-w-0 flex-1 flex-col gap-3">
-        <div className="flex items-center gap-6">
-          <Title
-            variant="caption"
-            weight="semibold"
-            color={included ? undefined : "muted"}
-          >
-            {FEATURE_LABEL[feature]}
+        <div className="flex min-w-0 flex-1 flex-col gap-3">
+          <div className="flex items-center gap-6">
+            <Title
+              variant="caption"
+              weight="semibold"
+              color={included ? undefined : "muted"}
+            >
+              {FEATURE_LABEL[feature]}
+            </Title>
+            {included ? (
+              <Check aria-hidden size={13} className="text-(--green)" />
+            ) : (
+              <Lock aria-hidden size={12} className="text-(--muted2)" />
+            )}
+          </div>
+          <Title variant="micro" color="muted">
+            {FEATURE_DESCRIPTION[feature]}
           </Title>
-          <span
-            aria-hidden
-            className={included ? "text-(--green)" : "text-(--muted2)"}
-          >
-            {included ? <Check size={13} /> : <Lock size={12} />}
-          </span>
         </div>
-        <Title variant="micro" color="muted">
-          {FEATURE_DESCRIPTION[feature]}
-        </Title>
-      </div>
-    </div>
+      </Card.Body>
+    </Card.Root>
   );
 }
 

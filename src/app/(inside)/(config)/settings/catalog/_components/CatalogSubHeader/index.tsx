@@ -2,7 +2,7 @@
 
 import { Breadcrumb } from "@/components/Breadcrumb";
 import { PanelHeader } from "@/components/PanelHeader";
-import { cn } from "@/lib/utils";
+import { IconTile } from "@/components/IconTile";
 
 import { CATALOG_GROUPS, CATALOG_TONE } from "../../utils";
 
@@ -48,15 +48,14 @@ export function CatalogSubHeader({ href, title, description }: Props) {
             )}
             <div className="flex items-center gap-10">
               {Icon && skin && (
-                <span
+                <IconTile
                   aria-hidden
-                  className={cn(
-                    "flex size-32 shrink-0 items-center justify-center rounded-(--r-md)",
-                    skin.chip
-                  )}
+                  shape="square"
+                  size="sm"
+                  className={skin.chip}
                 >
-                  <Icon size={17} />
-                </span>
+                  <Icon />
+                </IconTile>
               )}
               <PanelHeader.Title>{title}</PanelHeader.Title>
             </div>
