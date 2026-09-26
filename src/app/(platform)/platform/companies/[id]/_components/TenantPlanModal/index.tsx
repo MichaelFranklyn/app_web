@@ -115,7 +115,7 @@ export function TenantPlanModal({ open, onOpenChange, tenant, onDone }: Props) {
           />
 
           {/* O que o plano escolhido entrega — a resposta que faltava para
-              "basic" e "pro" significarem alguma coisa nesta tela. */}
+              "basic" e "corporate" significarem alguma coisa nesta tela. */}
           {selectedPlan && <PlanSummary plan={selectedPlan} showMissing />}
 
           <PlanChangeNotice change={change} />

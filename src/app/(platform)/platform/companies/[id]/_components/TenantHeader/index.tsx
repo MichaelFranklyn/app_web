@@ -6,6 +6,7 @@ import { PanelHeader } from "@/components/PanelHeader";
 import { Title } from "@/components/Title";
 import { Ban, RotateCcw, SlidersHorizontal } from "lucide-react";
 import { TenantDetail } from "../../interface";
+import { planLabel } from "../../../utils";
 import { tenantSituation } from "../../utils";
 
 interface Props {
@@ -39,7 +40,7 @@ export function TenantHeader({ tenant, onToggleStatus, onEditPlan }: Props) {
             </Badge.Root>
           </div>
           <PanelHeader.Description>
-            {tenant.cnpj} · {tenant.segment} · plano {tenant.plan}
+            {tenant.cnpj} · {tenant.segment} · plano {planLabel(tenant.plan)}
           </PanelHeader.Description>
           {/* O detalhe da situação é o que diz o que FAZER — o motivo da
               suspensão ou quantos dias faltam de teste. Sem ele o selo é só

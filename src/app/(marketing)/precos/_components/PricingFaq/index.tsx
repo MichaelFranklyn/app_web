@@ -33,7 +33,7 @@ const PRICING_FAQ = [
       "Não trabalhamos com carência. Se decidir sair, você exporta suas listas em XLSX e PDF antes de encerrar.",
   },
   {
-    question: "E se minha operação for maior que o Pro?",
+    question: "E se minha operação for maior que o Corporativo?",
     answer:
       "É o caso do Enterprise: mesma matriz de recursos, sem teto de volume, com as condições combinadas caso a caso. Comece pelo teste e converse com a gente durante ele.",
   },

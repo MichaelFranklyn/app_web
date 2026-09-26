@@ -16,7 +16,7 @@ export function EnterpriseNotice({ plan }: { plan: MarketingPlan }) {
       <Title variant="heading-md">Plano {plan.label}</Title>
 
       <Title variant="body-md" color="secondary">
-        Este plano tem a mesma matriz de recursos do Pro, sem teto de
+        Este plano tem a mesma matriz de recursos do Corporativo, sem teto de
         vendedores, fábricas ou clientes. O valor depende do tamanho da operação
         e das condições combinadas, então ele é fechado em conversa e não passa
         por esta tela de pagamento.

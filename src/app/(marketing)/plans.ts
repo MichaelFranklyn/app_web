@@ -49,30 +49,42 @@ export const PLANS: MarketingPlan[] = [
   {
     code: "basic",
     label: "Básico",
-    pitch: "Para quem quer tirar o pedido e a comissão da planilha.",
-    limits: "Até 3 vendedores, 5 fábricas e 300 clientes.",
-    demoMonthlyPrice: 249,
+    pitch:
+      "Para o representante sozinho: pedido, comissão e a rotina que diz quem visitar.",
+    limits: "1 vendedor, 5 fábricas e 300 clientes.",
+    demoMonthlyPrice: 50,
     features: [
       "Pedidos, orçamentos e faturamento",
       "Carteira de clientes e catálogo",
       "Tabelas de preço com ST, IPI e níveis",
       "Comissões apuradas por faturamento",
-      "Avisos automáticos",
+      "Rotina de visitas e rota do dia",
+      "Relatórios e curva ABC",
     ],
   },
   {
-    code: "pro",
-    label: "Pro",
-    pitch: "O sistema inteiro, incluindo o motor de visita.",
-    limits: "Até 15 vendedores, 30 fábricas e 3.000 clientes.",
-    demoMonthlyPrice: 549,
+    code: "intermediate",
+    label: "Intermediário",
+    pitch: "Para o escritório com equipe: metas e importação de planilha.",
+    limits: "Até 3 vendedores, 10 fábricas e 1.000 clientes.",
+    demoMonthlyPrice: 100,
     isHighlighted: true,
     features: [
       "Tudo do Básico",
-      "Rotina de visitas e rota do dia",
-      "Desempenho, rankings e relatórios",
-      "Importação de planilha e de pedido em PDF",
       "Metas por vendedor, fábrica e mês",
+      "Importação de planilha e de pedido em PDF",
+    ],
+  },
+  {
+    code: "corporate",
+    label: "Corporativo",
+    pitch: "O sistema inteiro, com a análise de desempenho da equipe.",
+    limits: "Até 5 vendedores, 30 fábricas e 3.000 clientes.",
+    demoMonthlyPrice: 200,
+    features: [
+      "Tudo do Intermediário",
+      "Desempenho e rankings",
+      "Mais vendedores, fábricas e clientes",
     ],
   },
   {
@@ -82,7 +94,7 @@ export const PLANS: MarketingPlan[] = [
     limits: "Sem teto de vendedores, fábricas ou clientes.",
     demoMonthlyPrice: null,
     features: [
-      "Tudo do Pro",
+      "Tudo do Corporativo",
       "Volume ilimitado",
       "Condições combinadas caso a caso",
     ],
@@ -96,7 +108,8 @@ export const PLANS: MarketingPlan[] = [
 export interface PlanMatrixRow {
   label: string;
   basic: boolean | string;
-  pro: boolean | string;
+  intermediate: boolean | string;
+  corporate: boolean | string;
   enterprise: boolean | string;
 }
 
@@ -105,80 +118,52 @@ export interface PlanMatrixGroup {
   rows: PlanMatrixRow[];
 }
 
+/** Linha incluída em todos os planos. */
+const everyPlan = (label: string): PlanMatrixRow => ({
+  label,
+  basic: true,
+  intermediate: true,
+  corporate: true,
+  enterprise: true,
+});
+
 export const PLAN_MATRIX: PlanMatrixGroup[] = [
   {
     title: "Vender e receber",
     rows: [
-      {
-        label: "Pedidos, orçamentos e faturamento",
-        basic: true,
-        pro: true,
-        enterprise: true,
-      },
-      {
-        label: "Carteira de clientes por fábrica",
-        basic: true,
-        pro: true,
-        enterprise: true,
-      },
-      {
-        label: "Catálogo, tabelas de preço, ST e IPI",
-        basic: true,
-        pro: true,
-        enterprise: true,
-      },
-      {
-        label: "PDF do pedido e exportação em XLSX",
-        basic: true,
-        pro: true,
-        enterprise: true,
-      },
-      {
-        label: "Comissões, recebimento e conciliação",
-        basic: true,
-        pro: true,
-        enterprise: true,
-      },
-      { label: "Avisos automáticos", basic: true, pro: true, enterprise: true },
+      everyPlan("Pedidos, orçamentos e faturamento"),
+      everyPlan("Carteira de clientes por fábrica"),
+      everyPlan("Catálogo, tabelas de preço, ST e IPI"),
+      everyPlan("PDF do pedido e exportação em XLSX"),
+      everyPlan("Comissões, recebimento e conciliação"),
+      everyPlan("Avisos automáticos"),
     ],
   },
   {
     title: "Saber o que fazer amanhã",
     rows: [
+      everyPlan("Rotina semanal e rota do dia no mapa"),
+      everyPlan("Prioridade de visita e registro de estoque"),
+      everyPlan("Relatórios de conferência e curva ABC"),
       {
-        label: "Rotina semanal e rota do dia no mapa",
+        label: "Metas por vendedor, fábrica e mês",
         basic: false,
-        pro: true,
-        enterprise: true,
-      },
-      {
-        label: "Prioridade de visita e registro de estoque",
-        basic: false,
-        pro: true,
-        enterprise: true,
-      },
-      {
-        label: "Desempenho, rankings e curva ABC",
-        basic: false,
-        pro: true,
-        enterprise: true,
-      },
-      {
-        label: "Relatórios de conferência",
-        basic: false,
-        pro: true,
+        intermediate: true,
+        corporate: true,
         enterprise: true,
       },
       {
         label: "Importação de planilha e de pedido em PDF",
         basic: false,
-        pro: true,
+        intermediate: true,
+        corporate: true,
         enterprise: true,
       },
       {
-        label: "Metas por vendedor, fábrica e mês",
+        label: "Desempenho e rankings",
         basic: false,
-        pro: true,
+        intermediate: false,
+        corporate: true,
         enterprise: true,
       },
     ],
@@ -186,23 +171,32 @@ export const PLAN_MATRIX: PlanMatrixGroup[] = [
   {
     title: "Tamanho da operação",
     rows: [
-      { label: "Vendedores", basic: "3", pro: "15", enterprise: "Sem teto" },
+      {
+        label: "Vendedores",
+        basic: "1",
+        intermediate: "3",
+        corporate: "5",
+        enterprise: "Sem teto",
+      },
       {
         label: "Usuários com login",
-        basic: "8",
-        pro: "40",
+        basic: "3",
+        intermediate: "6",
+        corporate: "10",
         enterprise: "Sem teto",
       },
       {
         label: "Fábricas representadas",
         basic: "5",
-        pro: "30",
+        intermediate: "10",
+        corporate: "30",
         enterprise: "Sem teto",
       },
       {
         label: "Clientes na carteira",
         basic: "300",
-        pro: "3.000",
+        intermediate: "1.000",
+        corporate: "3.000",
         enterprise: "Sem teto",
       },
     ],

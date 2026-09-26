@@ -22,7 +22,7 @@ const card = (overrides: Partial<CardData> = {}): CardData => ({
 
 describe("findPlanByCode", () => {
   it("acha o plano pelo código da URL", () => {
-    expect(findPlanByCode("pro")?.label).toBe("Pro");
+    expect(findPlanByCode("corporate")?.label).toBe("Corporativo");
   });
 
   it("devolve nulo para código ausente ou desconhecido", () => {

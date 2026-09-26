@@ -42,7 +42,7 @@ export function PlansSection({
         </Title>
       </div>
 
-      <div className="desktop:grid-cols-3 mt-32 grid gap-16">
+      <div className="tablet:grid-cols-2 desktop-xl:grid-cols-4 mt-32 grid gap-16">
         {PLANS.map((plan) => (
           <PlanCard
             key={plan.code}

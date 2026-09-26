@@ -185,8 +185,8 @@ const SSR_RESPONSES: Record<string, SsrResponse> = {
       code: 200,
       message: "ok",
       data: {
-        code: "pro",
-        label: "Pro",
+        code: "corporate",
+        label: "Corporativo",
         features: [
           "ROUTINES",
           "ANALYTICS",
@@ -609,7 +609,7 @@ const SSR_RESPONSES: Record<string, SsrResponse> = {
       razaoSocial: "Empresa Console LTDA",
       nomeFantasia: "Empresa Console",
       segment: "Metais",
-      plan: "pro",
+      plan: "corporate",
       logoUrl: null,
       isActive: true,
       suspendedAt: null,

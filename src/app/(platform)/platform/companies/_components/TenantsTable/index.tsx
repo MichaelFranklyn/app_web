@@ -11,6 +11,7 @@ import { Building2 } from "lucide-react";
 import { ActivityCell } from "./ActivityCell";
 import { TenantsTableProps } from "./interface";
 import { TenantCell } from "./TenantCell";
+import { planLabel } from "../../utils";
 
 const COLUMN_COUNT = 6;
 
@@ -101,7 +102,7 @@ export function TenantsTable({
                 <TenantCell tenant={tenant} />
 
                 <Table.Cell variant="dim" className="whitespace-nowrap">
-                  {tenant.plan}
+                  {planLabel(tenant.plan)}
                 </Table.Cell>
 
                 <Table.Cell variant="dim">{tenant.usersCount}</Table.Cell>
