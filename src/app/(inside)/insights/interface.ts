@@ -34,6 +34,14 @@ export interface InsightSample {
   detail: string | null;
   link: string | null;
   reason: InsightCaseReason | null;
+  /** Pós-venda: telefone do contato do cliente (nulo sem contato). */
+  contactPhone?: string | null;
+  /** Pós-venda: como a empresa chama a fábrica do pedido. */
+  factoryName?: string | null;
+  /** Pós-venda: data do pedido (ISO). */
+  orderDate?: string | null;
+  /** Pós-venda: ficha do cliente — onde se cadastra o contato que faltar. */
+  clientLink?: string | null;
 }
 
 export interface Insight {

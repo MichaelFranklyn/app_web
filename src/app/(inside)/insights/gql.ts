@@ -27,6 +27,10 @@ export const MY_INSIGHTS_QUERY = gql`
             detail
             link
             reason
+            contactPhone
+            factoryName
+            orderDate
+            clientLink
           }
         }
       }
@@ -80,6 +84,10 @@ export const INSIGHT_CASES_QUERY = gql`
           label
           detail
           link
+          contactPhone
+          factoryName
+          orderDate
+          clientLink
           reason
         }
       }

@@ -34,7 +34,8 @@ interface Props {
  * podia conferir nem usar.
  *
  * A lista vem do servidor, uma página por vez, e é a MESMA consulta que produziu
- * as três amostras — mesma ordem, mesma régua. Só é pedida quando alguém abre o
+ * as três amostras — mesma régua, mas em ORDEM ALFABÉTICA: o cartão mostra os
+ * mais urgentes, e aqui a pessoa procura um cliente pelo nome. Só é pedida quando alguém abre o
  * modal: a tela tem nove cartões, e baixar as centenas de casos de todos eles
  * para mostrar três de cada pagaria a lista inteira sem ninguém tê-la pedido.
  */
@@ -105,7 +106,11 @@ export function InsightCasesModal({
                   não bastava — dois vínculos do mesmo cliente têm id E rótulo
                   iguais, e diferem só na fábrica do detalhe. */}
               {cases.map((item, index) => (
-                <CaseRow key={`${item.id}-${index}`} item={item} />
+                <CaseRow
+                  key={`${item.id}-${index}`}
+                  item={item}
+                  postSale={insight.kind === "DELIVERY_UNCONFIRMED"}
+                />
               ))}
             </ul>
           )}

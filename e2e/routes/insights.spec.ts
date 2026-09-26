@@ -255,3 +255,63 @@ test("insights: dois casos do mesmo registro aparecem os dois", async ({
   await expect(page.getByText("HERC · Celso")).toBeVisible();
   await expect(page.getByText("HERC · Lacerda")).toBeVisible();
 });
+
+test("insights: pós-venda abre o WhatsApp com a mensagem pronta", async ({
+  page,
+}) => {
+  await mockGraphql(page, {
+    MyInsights: () =>
+      overview([
+        insight({
+          kind: "DELIVERY_UNCONFIRMED",
+          group: "ORDERS",
+          count: 2,
+          amount: "1500.00",
+          samples: [
+            {
+              id: "o-1",
+              label: "DECORE CASA & CONSTRUCAO",
+              detail: "Herc de 30/07/2026 · previsto há 27 dia(s)",
+              link: "/orders/o-1",
+              reason: null,
+              contactPhone: "(71) 99999-8888",
+              factoryName: "Herc",
+              orderDate: "2026-07-30",
+              clientLink: "/clients/cc-1",
+            },
+            {
+              id: "o-2",
+              label: "ACO CURVADO",
+              detail: "Lukma de 23/07/2026 · previsto há 34 dia(s)",
+              link: "/orders/o-2",
+              reason: null,
+              contactPhone: null,
+              factoryName: "Lukma",
+              orderDate: "2026-07-23",
+              clientLink: "/clients/cc-2",
+            },
+          ],
+        }),
+      ]),
+  });
+
+  await page.goto("/insights");
+
+  await expect(
+    page.getByText("2 pedidos provavelmente já foram entregues")
+  ).toBeVisible();
+
+  const whatsapp = page.getByRole("link", {
+    name: /Perguntar pelo WhatsApp se o pedido de DECORE/,
+  });
+  const href = await whatsapp.getAttribute("href");
+  expect(href).toContain("https://wa.me/5571999998888?text=");
+  expect(decodeURIComponent(href!.split("text=")[1])).toContain(
+    "o pedido da Herc feito em 30/07/2026 já foi entregue"
+  );
+
+  // Sem celular não há WhatsApp: o caminho é cadastrar o contato.
+  await expect(
+    page.getByRole("link", { name: "Cadastrar contato" })
+  ).toHaveAttribute("href", "/clients/cc-2");
+});

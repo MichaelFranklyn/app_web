@@ -10,6 +10,8 @@ import {
   toneOf,
   totalCases,
   urgentCount,
+  greetingFor,
+  postSaleMessage,
 } from "./utils";
 
 const insight = (
@@ -135,5 +137,26 @@ describe("REASON_COPY", () => {
       expect(REASON_COPY[reason].label.length).toBeGreaterThan(0);
       expect(REASON_COPY[reason].hint.length).toBeGreaterThan(0);
     }
+  });
+});
+
+describe("mensagem de pós-venda", () => {
+  it("cita a fábrica e a data para o cliente reconhecer o pedido", () => {
+    expect(
+      postSaleMessage({ factoryName: "Herc", orderDate: "2026-07-30" }, 9)
+    ).toBe(
+      "Olá, bom dia! Tudo bem? Passando para saber se o pedido da Herc feito em 30/07/2026 já foi entregue e se chegou tudo certo. Qualquer coisa, estou à disposição."
+    );
+  });
+
+  it("cumprimenta pela hora", () => {
+    expect(greetingFor(14)).toBe("boa tarde");
+    expect(greetingFor(19)).toBe("boa noite");
+  });
+
+  it("sem fábrica nem data, fala do pedido sem inventar", () => {
+    expect(
+      postSaleMessage({ factoryName: null, orderDate: null }, 9)
+    ).toContain("se o pedido já foi entregue");
   });
 });

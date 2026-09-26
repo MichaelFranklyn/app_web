@@ -21,6 +21,7 @@ import {
   toneOf,
 } from "../../utils";
 import { InsightCasesModal } from "../InsightCasesModal";
+import { PostSaleContact } from "../PostSaleContact";
 
 /**
  * O tom vira cor em três pontos do cartão — faixa, ícone e número —, sempre o
@@ -108,6 +109,7 @@ export function InsightCard({
   const total = caseTotal(insight);
   const hidden = total - insight.samples.length;
   const [showCases, setShowCases] = useState(false);
+  const isPostSale = insight.kind === "DELIVERY_UNCONFIRMED";
 
   return (
     <Card.Root
@@ -173,9 +175,21 @@ export function InsightCard({
                 O índice é seguro aqui: a lista vem ordenada do servidor e é
                 substituída inteira a cada leitura, nunca reordenada no
                 cliente. */}
-            {insight.samples.map((sample, index) => (
-              <SampleChip key={`${sample.id}-${index}`} sample={sample} />
-            ))}
+            {insight.samples.map((sample, index) =>
+              isPostSale ? (
+                // Pós-venda: cada exemplo com o contato ao lado — é o botão
+                // que faz o trabalho deste cartão.
+                <span
+                  key={`${sample.id}-${index}`}
+                  className="inline-flex items-center gap-4"
+                >
+                  <SampleChip sample={sample} />
+                  <PostSaleContact sample={sample} />
+                </span>
+              ) : (
+                <SampleChip key={`${sample.id}-${index}`} sample={sample} />
+              )
+            )}
             {/* O "e mais N" era um beco: dizia que havia mais e não deixava
                 ver. Agora é o botão que abre a lista inteira. */}
             {hidden > 0 && (
