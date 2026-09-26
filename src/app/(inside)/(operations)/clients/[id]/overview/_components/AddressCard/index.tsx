@@ -3,8 +3,9 @@
 import { Card } from "@/components/Card";
 import { HelpTooltip } from "@/components/HelpTooltip";
 import { Title } from "@/components/Title";
-import { MapPin } from "lucide-react";
+import { mapsAddressQuery } from "../../../utils";
 import { AddressCardProps } from "./interface";
+import { AddressMap } from "./_components/AddressMap";
 import { EditAddressModal } from "./_components/EditAddressModal";
 
 export function AddressCard({
@@ -43,12 +44,9 @@ export function AddressCard({
         <Title variant="body-sm" color="secondary" className="mb-12">
           {address}
         </Title>
-        <div className="flex h-50 flex-col items-center justify-center gap-8 rounded-(--r-lg) border border-(--border) bg-(--bg3) text-(--muted2)">
-          <MapPin size={24} strokeWidth={1.5} />
-          <Title variant="body-xs" color="muted2">
-            Mapa Google Maps
-          </Title>
-        </div>
+        <AddressMap
+          query={currentAddress ? mapsAddressQuery(currentAddress) : null}
+        />
       </Card.Body>
     </Card.Root>
   );

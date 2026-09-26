@@ -71,3 +71,30 @@ export function buildAddress(data: {
   ].filter(Boolean);
   return parts.join(", ") || "—";
 }
+
+/**
+ * O endereço como o Google Maps entende melhor: sem complemento ("sala 3" não
+ * localiza nada) e sem os rótulos "Bairro"/"CEP" do texto de exibição. Null
+ * quando não há o mínimo para achar o lugar (rua ou cidade).
+ */
+export function mapsAddressQuery(data: {
+  addressStreet: string | null;
+  addressNumber: string | null;
+  addressNeighborhood: string | null;
+  addressCity: string | null;
+  addressState: string | null;
+  addressZip: string | null;
+}): string | null {
+  if (!data.addressStreet && !data.addressCity) return null;
+  const street = data.addressStreet
+    ? [data.addressStreet, data.addressNumber].filter(Boolean).join(", ")
+    : null;
+  const city = [data.addressCity, data.addressState]
+    .filter(Boolean)
+    .join(" - ");
+  return (
+    [street, data.addressNeighborhood, city || null, data.addressZip]
+      .filter(Boolean)
+      .join(", ") || null
+  );
+}
