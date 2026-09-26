@@ -4,6 +4,7 @@ export const bodyStyle = cva("relative flex flex-1 flex-col", {
   variants: {
     padding: {
       none: "p-0",
+      sm: "p-12",
       compact: "p-16",
       default: "p-24 gap-12",
     },

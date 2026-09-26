@@ -61,9 +61,14 @@ export function TemplateCard({
       <Table.CardHead>
         <Table.CardHead.Title className="inline-flex items-center gap-6">
           {title}
-          <HelpTooltip label={`O que é o ${title.toLowerCase()}?`} content={help} />
+          <HelpTooltip
+            label={`O que é o ${title.toLowerCase()}?`}
+            content={help}
+          />
         </Table.CardHead.Title>
-        {headerAction && <Table.CardHead.Actions>{headerAction}</Table.CardHead.Actions>}
+        {headerAction && (
+          <Table.CardHead.Actions>{headerAction}</Table.CardHead.Actions>
+        )}
       </Table.CardHead>
 
       {loading ? (
@@ -73,7 +78,11 @@ export function TemplateCard({
         </div>
       ) : !template ? (
         <div className="flex flex-col gap-4 p-24">
-          <Title variant="body-md" weight="semibold" className="inline-flex items-center gap-6">
+          <Title
+            variant="body-md"
+            weight="semibold"
+            className="inline-flex items-center gap-6"
+          >
             <FileText size={16} className="shrink-0 text-(--muted2)" />
             Nenhum modelo configurado
           </Title>
@@ -108,7 +117,13 @@ export function TemplateCard({
                 rel="noreferrer"
                 className="w-fit"
               >
-                <Button.Root type="button" appearance="ghost" color="neutral" size="sm" noUppercase>
+                <Button.Root
+                  type="button"
+                  appearance="ghost"
+                  color="neutral"
+                  size="sm"
+                  noUppercase
+                >
                   <Button.Icon icon={Download} />
                   <Button.Title>{downloadLabel}</Button.Title>
                 </Button.Root>
@@ -117,7 +132,11 @@ export function TemplateCard({
               <span />
             )}
 
-            <RemoveTemplateModal templateId={template.id} label={removeLabel} onRemoved={onChanged} />
+            <RemoveTemplateModal
+              templateId={template.id}
+              label={removeLabel}
+              onRemoved={onChanged}
+            />
           </div>
         </div>
       )}

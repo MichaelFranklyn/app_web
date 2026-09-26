@@ -4,10 +4,25 @@ import { CardRootProps } from "./interface";
 import { rootStyle } from "./style";
 
 export const Root = React.forwardRef<HTMLDivElement, CardRootProps>(
-  ({ accent, isCompact, className, ...props }, ref) => (
+  (
+    {
+      accent,
+      isCompact,
+      tone,
+      inset,
+      dashed,
+      interactive,
+      className,
+      ...props
+    },
+    ref
+  ) => (
     <div
       ref={ref}
-      className={cn(rootStyle({ accent, isCompact }), className)}
+      className={cn(
+        rootStyle({ accent, isCompact, tone, inset, dashed, interactive }),
+        className
+      )}
       {...props}
     />
   )

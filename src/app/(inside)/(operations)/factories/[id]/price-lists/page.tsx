@@ -13,7 +13,10 @@ export default function FactoryPriceListsPage() {
   return (
     <Grid.Root cols={{ base: 1, desktop: 12 }} gap={16} className="items-start">
       <Grid.Item span={{ base: 1, desktop: 7 }}>
-        <PriceListsTab companyFactoryId={companyFactoryId} factoryId={factoryId} />
+        <PriceListsTab
+          companyFactoryId={companyFactoryId}
+          factoryId={factoryId}
+        />
       </Grid.Item>
       <Grid.Item span={{ base: 1, desktop: 5 }}>
         <TiersTab companyFactoryId={companyFactoryId} />

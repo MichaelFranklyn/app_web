@@ -56,7 +56,10 @@ export const ADD_COMPONENT_TO_PRODUCT_MUTATION = gql`
 `;
 
 export const UPDATE_PRODUCT_COMPONENT_MUTATION = gql`
-  mutation UpdateProductComponent($id: UUID!, $input: UpdateProductComponentInput!) {
+  mutation UpdateProductComponent(
+    $id: UUID!
+    $input: UpdateProductComponentInput!
+  ) {
     updateProductComponent(id: $id, input: $input) {
       status
       message

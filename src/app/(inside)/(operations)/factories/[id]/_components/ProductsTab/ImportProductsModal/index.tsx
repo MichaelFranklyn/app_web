@@ -1,5 +1,7 @@
 "use client";
 
+import { Import } from "@/components/Import";
+
 import { ArrowRight, Info, Upload } from "lucide-react";
 import { useEffect, useState } from "react";
 
@@ -11,7 +13,6 @@ import { useRedirectTransition } from "@/hooks/useRedirectTransition";
 
 import { useProductImport } from "./hook";
 import { ImportProductRow } from "./interface";
-import { ImportSummary } from "./ImportSummary";
 import { ReviewRows } from "./ReviewRows";
 import { TemplateMode } from "./TemplateMode";
 
@@ -132,7 +133,12 @@ export function ImportProductsModal({ companyFactoryId, onChanged }: Props) {
             </Stepper.Item>
 
             <Stepper.Item label="Resultado">
-              {result && <ImportSummary result={result} />}
+              {result && (
+                <Import.Summary
+                  result={result}
+                  identify={(detail) => detail.sku}
+                />
+              )}
             </Stepper.Item>
           </Stepper.Root>
         </Modal.Body>
