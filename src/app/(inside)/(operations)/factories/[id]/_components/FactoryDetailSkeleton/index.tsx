@@ -1,3 +1,4 @@
+import { Divider } from "@/components/Divider";
 import { Loading } from "@/components/Loading";
 import { PageContent } from "@/components/PageContent";
 import { PanelHeader } from "@/components/PanelHeader";
@@ -31,10 +32,13 @@ export function FactoryDetailSkeleton() {
         </PanelHeader.Root>
       </div>
 
-      <div className="flex gap-16 border-b border-(--border) pb-[10px]">
-        {Array.from({ length: TAB_COUNT }).map((_, i) => (
-          <Loading.Skeleton key={i} className="h-[14px] w-24" />
-        ))}
+      <div className="flex flex-col gap-[10px]">
+        <div className="flex gap-16">
+          {Array.from({ length: TAB_COUNT }).map((_, i) => (
+            <Loading.Skeleton key={i} className="h-[14px] w-24" />
+          ))}
+        </div>
+        <Divider.Root />
       </div>
     </PageContent>
   );

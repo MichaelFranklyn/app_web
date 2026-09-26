@@ -1,4 +1,5 @@
 "use client";
+import { Timeline } from "@/components/Timeline";
 
 import { Badge } from "@/components/Badges";
 import { Card } from "@/components/Card";
@@ -28,37 +29,32 @@ interface Props {
 export function CaseTimeline({ updates }: Props) {
   if (updates.length === 0) {
     return (
-      <Card.Root>
-        <EmptyState.Root>
-          <EmptyState.Icon>
-            <MessageSquare size={32} />
-          </EmptyState.Icon>
-          <EmptyState.Title>Nenhum andamento ainda</EmptyState.Title>
-          <EmptyState.Description>
-            Registre cada conversa com o cliente e com a fábrica. É esse
-            histórico que sustenta a cobrança depois.
-          </EmptyState.Description>
-        </EmptyState.Root>
-      </Card.Root>
+      <EmptyState.Root>
+        <EmptyState.Icon>
+          <MessageSquare size={32} />
+        </EmptyState.Icon>
+        <EmptyState.Title>Nenhum andamento ainda</EmptyState.Title>
+        <EmptyState.Description>
+          Registre cada conversa com o cliente e com a fábrica. É esse histórico
+          que sustenta a cobrança depois.
+        </EmptyState.Description>
+      </EmptyState.Root>
     );
   }
 
   return (
     <Card.Root>
-      <div className="flex flex-col gap-16">
+      <Card.Body padding="compact" className="gap-16">
         <Title variant="heading-sm">O que já foi feito</Title>
 
-        <ol className="flex flex-col gap-16">
+        <Timeline.Root className="gap-16">
           {updates.map((update) => {
             const change = statusChangeLabel(
               update.statusFrom,
               update.statusTo
             );
             return (
-              <li
-                key={update.id}
-                className="border-l-2 border-(--border) pl-12"
-              >
+              <Timeline.Item key={update.id}>
                 <div className="flex flex-wrap items-center gap-8">
                   <Title variant="body-xs" weight="semibold">
                     {update.author?.name ?? "Sistema"}
@@ -85,11 +81,11 @@ export function CaseTimeline({ updates }: Props) {
                 <Title variant="body-sm" className="mt-4 whitespace-pre-line">
                   {update.body}
                 </Title>
-              </li>
+              </Timeline.Item>
             );
           })}
-        </ol>
-      </div>
+        </Timeline.Root>
+      </Card.Body>
     </Card.Root>
   );
 }

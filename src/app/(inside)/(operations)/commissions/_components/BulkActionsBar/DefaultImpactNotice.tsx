@@ -1,4 +1,5 @@
 "use client";
+import { Card } from "@/components/Card";
 
 import { Title } from "@/components/Title";
 import { formatMoney } from "@/utils/format/masks";
@@ -35,54 +36,56 @@ export function DefaultImpactNotice({ impact, month }: Props) {
   }
 
   return (
-    <div className="flex flex-col gap-12 rounded-(--r-md) bg-(--bg3) p-16">
-      <Title variant="label">O que volta</Title>
+    <Card.Root inset tone="muted">
+      <Card.Body padding="compact" className="flex flex-col gap-12">
+        <Title variant="label">O que volta</Title>
 
-      {impact.factoryChargeback > 0 && (
-        <Title variant="body-sm">
-          A fábrica desconta <b>{formatMoney(impact.factoryChargeback)}</b> do
-          escritório no fechamento seguinte.
-        </Title>
-      )}
+        {impact.factoryChargeback > 0 && (
+          <Title variant="body-sm">
+            A fábrica desconta <b>{formatMoney(impact.factoryChargeback)}</b> do
+            escritório no fechamento seguinte.
+          </Title>
+        )}
 
-      {impact.sellers.map((seller) => {
-        const estoura = seller.share > 0.5;
-        return (
-          <div key={seller.sellerId} className="flex flex-col gap-2">
-            <Title variant="body-sm">
-              De <b>{seller.name}</b> há {formatMoney(seller.amount)} a
-              recuperar
-              {seller.monthCommission > 0 && (
-                <>
-                  {" "}
-                  — {percent(seller.share)} da comissão dele em{" "}
-                  {monthLabel(month)}
-                </>
+        {impact.sellers.map((seller) => {
+          const estoura = seller.share > 0.5;
+          return (
+            <div key={seller.sellerId} className="flex flex-col gap-2">
+              <Title variant="body-sm">
+                De <b>{seller.name}</b> há {formatMoney(seller.amount)} a
+                recuperar
+                {seller.monthCommission > 0 && (
+                  <>
+                    {" "}
+                    — {percent(seller.share)} da comissão dele em{" "}
+                    {monthLabel(month)}
+                  </>
+                )}
+                .
+              </Title>
+              {estoura && (
+                <span className="inline-flex items-center gap-6">
+                  <AlertTriangle size={14} className="text-(--amber)" />
+                  <Title variant="caption" color="amber">
+                    {seller.share >= 1
+                      ? "Passa da comissão inteira do mês dele."
+                      : "Come mais da metade do mês dele."}{" "}
+                    Depois de confirmar, dá para dividir o desconto em vários
+                    meses no painel de estornos.
+                  </Title>
+                </span>
               )}
-              .
-            </Title>
-            {estoura && (
-              <span className="inline-flex items-center gap-6">
-                <AlertTriangle size={14} className="text-(--amber)" />
-                <Title variant="caption" color="amber">
-                  {seller.share >= 1
-                    ? "Passa da comissão inteira do mês dele."
-                    : "Come mais da metade do mês dele."}{" "}
-                  Depois de confirmar, dá para dividir o desconto em vários
-                  meses no painel de estornos.
-                </Title>
-              </span>
-            )}
-          </div>
-        );
-      })}
+            </div>
+          );
+        })}
 
-      {semDivida > 0 && (
-        <Title variant="caption" color="muted">
-          Outras {semDivida} parcela(s) ainda não tinham comissão paga: nelas o
-          calote só cancela o previsto.
-        </Title>
-      )}
-    </div>
+        {semDivida > 0 && (
+          <Title variant="caption" color="muted">
+            Outras {semDivida} parcela(s) ainda não tinham comissão paga: nelas
+            o calote só cancela o previsto.
+          </Title>
+        )}
+      </Card.Body>
+    </Card.Root>
   );
 }

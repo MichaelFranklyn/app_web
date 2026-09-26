@@ -1,3 +1,4 @@
+import { Card } from "@/components/Card";
 import { Import } from "@/components/Import";
 import { Alert } from "@/components/Alert";
 import { Input } from "@/components/Input";
@@ -49,13 +50,15 @@ export function StepSheet({
         onChange={onFiles}
       />
       {extracting && (
-        <div className="flex items-center gap-8 rounded-lg border border-(--border) bg-(--bg2) px-12 py-10">
-          <Loading.Spinner size="sm" colorClass="amber" />
-          <Title variant="body" color="muted">
-            Lendo o arquivo e procurando as colunas… Em tabelas grandes (PDF)
-            isso pode levar alguns segundos.
-          </Title>
-        </div>
+        <Card.Root inset>
+          <Card.Body padding="sm" className="flex flex-row items-center gap-8">
+            <Loading.Spinner size="sm" colorClass="amber" />
+            <Title variant="body" color="muted">
+              Lendo o arquivo e procurando as colunas… Em tabelas grandes (PDF)
+              isso pode levar alguns segundos.
+            </Title>
+          </Card.Body>
+        </Card.Root>
       )}
       {!extracting && ready && (
         <Alert.Root variant="success">

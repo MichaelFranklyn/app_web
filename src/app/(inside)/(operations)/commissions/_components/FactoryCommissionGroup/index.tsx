@@ -1,4 +1,5 @@
 "use client";
+import { Divider } from "@/components/Divider";
 import { Collapse } from "@/components/Collapse";
 
 import { Badge } from "@/components/Badges";
@@ -171,7 +172,8 @@ export function FactoryCommissionGroup({
       </div>
 
       {open && (
-        <div className="border-t border-(--border)">
+        <div>
+          <Divider.Root />
           <CommissionsTable
             rows={group.rows}
             loading={false}

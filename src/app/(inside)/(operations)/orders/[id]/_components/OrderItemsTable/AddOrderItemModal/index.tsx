@@ -1,7 +1,7 @@
 "use client";
-
-import { Title } from "@/components/Title";
 import { Badge } from "@/components/Badges";
+import { Alert } from "@/components/Alert";
+
 import { Button } from "@/components/Button";
 import { FormBuilder } from "@/components/FormBuilder";
 import { Modal } from "@/components/Modal";
@@ -44,17 +44,19 @@ export function AddOrderItemModal(props: AddOrderItemModalProps) {
 
         <Modal.Body>
           {isPromoSelected && (
-            <div className="mb-12 flex items-center gap-8 rounded-(--r-md) bg-(--orange-bg) px-12 py-8">
+            <Alert.Root variant="neutral" className="mb-12 items-center">
               <Badge.Root color="orange" appearance="tinted" size="xs">
                 <Badge.Icon>
                   <Zap />
                 </Badge.Icon>
                 <Badge.Text>Promoção relâmpago</Badge.Text>
               </Badge.Root>
-              <Title variant="body-xs" color="orange">
-                Preço promocional aplicado a este produto.
-              </Title>
-            </div>
+              <Alert.Content>
+                <Alert.Description>
+                  Preço promocional aplicado a este produto.
+                </Alert.Description>
+              </Alert.Content>
+            </Alert.Root>
           )}
           <FormBuilder
             ref={formRef}

@@ -1,4 +1,5 @@
 "use client";
+import { Card } from "@/components/Card";
 
 import { HelpTooltip } from "@/components/HelpTooltip";
 import { Title } from "@/components/Title";
@@ -46,53 +47,58 @@ export function OfficeSplitPanel({ rows, month, sellerName }: Props) {
   const semDivisao = split.office === 0 && split.company !== 0;
 
   return (
-    <div className="flex flex-wrap items-center gap-x-8 gap-y-4 rounded-(--r-md) bg-(--bg3) px-16 py-12">
-      <Building2 size={14} className="shrink-0 text-(--fg-muted)" />
-
-      <Title variant="body-sm" color="muted">
-        Do que cai em {monthLabel(month)}
-        {sellerName ? ` com ${sellerName}` : ""}:
-      </Title>
-
-      <Title variant="body-sm" weight="semibold">
-        {formatMoney(split.company)}
-      </Title>
-      <Title variant="body-sm" color="muted">
-        das fábricas
-      </Title>
-
-      <Title variant="body-sm" color="muted">
-        ·
-      </Title>
-
-      <Title variant="body-sm" weight="semibold" color="amber">
-        {formatMoney(split.seller)}
-      </Title>
-      <Title variant="body-sm" color="muted">
-        de repasse
-      </Title>
-
-      <Title variant="body-sm" color="muted">
-        ·
-      </Title>
-
-      <Title
-        variant="body-sm"
-        weight="semibold"
-        color={semDivisao ? undefined : "green"}
+    <Card.Root inset tone="muted">
+      <Card.Body
+        padding="sm"
+        className="flex flex-row flex-wrap items-center gap-x-8 gap-y-4"
       >
-        {formatMoney(split.office)}
-      </Title>
-      <Title variant="body-sm" color="muted">
-        {semDivisao
-          ? "no escritório (o vendedor leva a comissão inteira — defina a taxa dele no vínculo com a fábrica)"
-          : `no escritório (${Math.round(split.margin * 100)}%)`}
-      </Title>
+        <Building2 size={14} className="shrink-0 text-(--fg-muted)" />
 
-      <HelpTooltip
-        label="Como a repartição é calculada"
-        content={OFFICE_SPLIT_HELP}
-      />
-    </div>
+        <Title variant="body-sm" color="muted">
+          Do que cai em {monthLabel(month)}
+          {sellerName ? ` com ${sellerName}` : ""}:
+        </Title>
+
+        <Title variant="body-sm" weight="semibold">
+          {formatMoney(split.company)}
+        </Title>
+        <Title variant="body-sm" color="muted">
+          das fábricas
+        </Title>
+
+        <Title variant="body-sm" color="muted">
+          ·
+        </Title>
+
+        <Title variant="body-sm" weight="semibold" color="amber">
+          {formatMoney(split.seller)}
+        </Title>
+        <Title variant="body-sm" color="muted">
+          de repasse
+        </Title>
+
+        <Title variant="body-sm" color="muted">
+          ·
+        </Title>
+
+        <Title
+          variant="body-sm"
+          weight="semibold"
+          color={semDivisao ? undefined : "green"}
+        >
+          {formatMoney(split.office)}
+        </Title>
+        <Title variant="body-sm" color="muted">
+          {semDivisao
+            ? "no escritório (o vendedor leva a comissão inteira — defina a taxa dele no vínculo com a fábrica)"
+            : `no escritório (${Math.round(split.margin * 100)}%)`}
+        </Title>
+
+        <HelpTooltip
+          label="Como a repartição é calculada"
+          content={OFFICE_SPLIT_HELP}
+        />
+      </Card.Body>
+    </Card.Root>
   );
 }

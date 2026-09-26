@@ -1,4 +1,5 @@
 "use client";
+import { Card } from "@/components/Card";
 
 import { Button } from "@/components/Button";
 import { Loading } from "@/components/Loading";
@@ -122,31 +123,34 @@ export function ApplyCommissionRateModal() {
                 <b>{formatCommissionRate(Number(change.rate))}</b>?
               </Title>
 
-              <div className="flex flex-col gap-12 rounded-(--r-md) bg-(--bg3) p-16">
-                <Title variant="label">
-                  {change.installments} parcela(s) em {change.orders} pedido(s)
-                </Title>
+              <Card.Root inset tone="muted">
+                <Card.Body padding="compact" className="flex flex-col gap-12">
+                  <Title variant="label">
+                    {change.installments} parcela(s) em {change.orders}{" "}
+                    pedido(s)
+                  </Title>
 
-                <div className="flex flex-wrap items-center gap-12">
-                  <Title variant="heading-sm" color="muted">
-                    {formatMoney(change.currentTotal)}
-                  </Title>
-                  <ArrowRight size={16} className="text-(--fg-muted)" />
-                  <Title variant="heading-sm" weight="bold">
-                    {formatMoney(change.newTotal)}
-                  </Title>
-                  {/* O sinal é o que se olha primeiro: a correção pode DIMINUIR
+                  <div className="flex flex-wrap items-center gap-12">
+                    <Title variant="heading-sm" color="muted">
+                      {formatMoney(change.currentTotal)}
+                    </Title>
+                    <ArrowRight size={16} className="text-(--fg-muted)" />
+                    <Title variant="heading-sm" weight="bold">
+                      {formatMoney(change.newTotal)}
+                    </Title>
+                    {/* O sinal é o que se olha primeiro: a correção pode DIMINUIR
                       a comissão, e isso não pode passar despercebido. */}
-                  <Title
-                    variant="body-sm"
-                    weight="semibold"
-                    color={difference >= 0 ? "green" : "red"}
-                  >
-                    {difference >= 0 ? "+" : "−"}
-                    {formatMoney(Math.abs(difference))}
-                  </Title>
-                </div>
-              </div>
+                    <Title
+                      variant="body-sm"
+                      weight="semibold"
+                      color={difference >= 0 ? "green" : "red"}
+                    >
+                      {difference >= 0 ? "+" : "−"}
+                      {formatMoney(Math.abs(difference))}
+                    </Title>
+                  </div>
+                </Card.Body>
+              </Card.Root>
 
               {change.skipped > 0 && (
                 <Title variant="body-sm" color="muted">

@@ -1,4 +1,5 @@
 "use client";
+import { Divider } from "@/components/Divider";
 
 import { ReactNode } from "react";
 import { Download, FileSpreadsheet, FileText } from "lucide-react";
@@ -109,25 +110,20 @@ export function TemplateCard({
             </Title>
           </div>
 
-          <div className="flex flex-wrap items-center justify-between gap-8 border-t border-(--border) pt-12">
+          <Divider.Root />
+          <div className="flex flex-wrap items-center justify-between gap-8">
             {template.sampleFileUrl ? (
-              <a
+              <Button.Link
                 href={`${apiOrigin()}${template.sampleFileUrl}`}
-                target="_blank"
-                rel="noreferrer"
-                className="w-fit"
+                external
+                appearance="ghost"
+                color="neutral"
+                size="sm"
+                noUppercase
               >
-                <Button.Root
-                  type="button"
-                  appearance="ghost"
-                  color="neutral"
-                  size="sm"
-                  noUppercase
-                >
-                  <Button.Icon icon={Download} />
-                  <Button.Title>{downloadLabel}</Button.Title>
-                </Button.Root>
-              </a>
+                <Button.Icon icon={Download} />
+                <Button.Title>{downloadLabel}</Button.Title>
+              </Button.Link>
             ) : (
               <span />
             )}

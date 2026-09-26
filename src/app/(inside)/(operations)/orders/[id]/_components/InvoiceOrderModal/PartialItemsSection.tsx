@@ -1,3 +1,5 @@
+import { Divider } from "@/components/Divider";
+import { Card } from "@/components/Card";
 import { Input } from "@/components/Input";
 import { Title } from "@/components/Title";
 import { formatNumber } from "@/utils/format/masks";
@@ -34,7 +36,8 @@ export function PartialItemsSection({
   onRemainderModeChange,
 }: Props) {
   return (
-    <div className="flex flex-col gap-12 border-t border-(--border) pt-16">
+    <div className="flex flex-col gap-12">
+      <Divider.Root className="mb-4" />
       <Input.Toggle
         checked={!partial}
         onChange={(e) => onPartialChange(!e.target.checked)}
@@ -60,49 +63,53 @@ export function PartialItemsSection({
                   ? ordered - invoiced
                   : 0;
               return (
-                <div
-                  key={it.id}
-                  className="grid grid-cols-[1fr_auto] items-center gap-8 rounded-(--r-md) border border-(--border) bg-(--bg2) px-12 py-8"
-                >
-                  <div className="flex min-w-0 flex-col">
-                    <Title
-                      variant="body-sm"
-                      weight="medium"
-                      className="truncate"
-                    >
-                      {it.product?.name ?? "—"}
-                    </Title>
-                    {/* O código vem antes da quantidade: é por ele que o vendedor
-                        acha a linha na nota da fábrica. */}
-                    {it.product?.sku && (
-                      <Title variant="body-xs" color="muted">
-                        Código {it.product.sku}
+                <Card.Root key={it.id} inset>
+                  <Card.Body
+                    padding="sm"
+                    className="grid grid-cols-[1fr_auto] items-center gap-8"
+                  >
+                    <div className="flex min-w-0 flex-col">
+                      <Title
+                        variant="body-sm"
+                        weight="medium"
+                        className="truncate"
+                      >
+                        {it.product?.name ?? "—"}
                       </Title>
-                    )}
-                    <Title variant="body-xs" color="muted">
-                      Pedido: {formatNumber(ordered)} un
-                      {missing > 0 && (
-                        <>
-                          {" · "}
-                          <span className="text-(--amber)">
-                            faltam {formatNumber(missing)}
-                          </span>
-                        </>
+                      {/* O código vem antes da quantidade: é por ele que o vendedor
+                        acha a linha na nota da fábrica. */}
+                      {it.product?.sku && (
+                        <Title variant="body-xs" color="muted">
+                          Código {it.product.sku}
+                        </Title>
                       )}
-                    </Title>
-                  </div>
-                  <div className="w-[110px]">
-                    <Input.Number
-                      placeholder="Qtd."
-                      size="sm"
-                      min={0}
-                      max={ordered}
-                      step="any"
-                      value={quantities[it.id] ?? ""}
-                      onChange={(e) => onQuantityChange(it.id, e.target.value)}
-                    />
-                  </div>
-                </div>
+                      <Title variant="body-xs" color="muted">
+                        Pedido: {formatNumber(ordered)} un
+                        {missing > 0 && (
+                          <>
+                            {" · "}
+                            <span className="text-(--amber)">
+                              faltam {formatNumber(missing)}
+                            </span>
+                          </>
+                        )}
+                      </Title>
+                    </div>
+                    <div className="w-[110px]">
+                      <Input.Number
+                        placeholder="Qtd."
+                        size="sm"
+                        min={0}
+                        max={ordered}
+                        step="any"
+                        value={quantities[it.id] ?? ""}
+                        onChange={(e) =>
+                          onQuantityChange(it.id, e.target.value)
+                        }
+                      />
+                    </div>
+                  </Card.Body>
+                </Card.Root>
               );
             })}
           </div>
