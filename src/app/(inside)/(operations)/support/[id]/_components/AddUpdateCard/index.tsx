@@ -59,6 +59,7 @@ export function AddUpdateCard({ caseId, currentStatus, onSaved }: Props) {
 
         <div className="tablet:grid-cols-2 grid grid-cols-1 gap-12">
           <Input.Select
+            placeholder="Escolha o tipo"
             label="Tipo"
             options={kindOptions}
             value={

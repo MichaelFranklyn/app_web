@@ -1,6 +1,6 @@
 import { gql } from "@apollo/client";
 
-// A folha do dia, como o vendedor a responde. Sem score, sem viabilidade: o dia
+// A folha do dia (ou da semana), como o vendedor a responde. Sem score, sem viabilidade: o dia
 // já aconteceu, e o que se pede aqui é o que houve nele.
 export const VISIT_RESPONSE_FORM = gql`
   query VisitResponseForm {
@@ -9,12 +9,15 @@ export const VISIT_RESPONSE_FORM = gql`
       message
       data {
         date
+        endDate
+        isWeek
         sellerName
         companyName
         companyLogoUrl
         submittedAt
         stops {
           id
+          date
           plannedOrder
           contactType
           clientName

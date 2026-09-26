@@ -101,6 +101,7 @@ export function TenantPlanModal({ open, onOpenChange, tenant, onDone }: Props) {
 
         <Modal.Body className="flex flex-col gap-12">
           <Input.Select
+            placeholder="Escolha o plano"
             label="Plano"
             variant="single"
             options={PLAN_OPTIONS}

@@ -1,4 +1,4 @@
-import { EXPIRED_VISIT_TOKEN } from "../support/stub-backend";
+import { EXPIRED_VISIT_TOKEN, WEEK_VISIT_TOKEN } from "../support/stub-backend";
 import { expect, test } from "../support/fixtures";
 
 /**
@@ -123,5 +123,22 @@ test.describe("Folha de resposta da rota", () => {
     await expect(
       page.getByRole("button", { name: /enviar respostas/i })
     ).toHaveCount(0);
+  });
+});
+
+test.describe("Folha de resposta da semana", () => {
+  test("mostra o intervalo e separa as paradas por dia", async ({ page }) => {
+    const response = await page.goto(`/r/${WEEK_VISIT_TOKEN}`);
+    expect(response?.status()).toBe(200);
+
+    await expect(
+      page.getByText("Orlando Vendedor · Semana de 21/09/2026 a 27/09/2026")
+    ).toBeVisible();
+    // Uma folha, vários dias: sem o título do dia, duas paradas de dias
+    // diferentes seriam indistinguíveis.
+    await expect(page.getByText("segunda-feira, 21/09/2026")).toBeVisible();
+    await expect(page.getByText("quarta-feira, 23/09/2026")).toBeVisible();
+    await expect(page.getByText("Depósito Central")).toBeVisible();
+    await expect(page.getByText("Casa do Construtor")).toBeVisible();
   });
 });

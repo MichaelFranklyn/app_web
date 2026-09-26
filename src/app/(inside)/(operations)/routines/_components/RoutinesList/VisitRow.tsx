@@ -125,6 +125,7 @@ export function VisitRow({ item, dayDate, onChanged }: Props) {
               <ContactLinks
                 contact={client?.primaryContact ?? null}
                 clientName={clientName}
+                clientId={client?.id ?? null}
               />
             </div>
           )}

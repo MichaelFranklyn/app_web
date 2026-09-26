@@ -9,6 +9,7 @@ import { CalendarOff, Users } from "lucide-react";
 
 import { GenerateWeekButton } from "./_components/GenerateWeekButton";
 import { PrintWeekButton } from "./_components/PrintWeekButton";
+import { ResponseLinkModal } from "./_components/ResponseLinkModal";
 import { RadarMap } from "./_components/RadarMap";
 import { RegenerateWeekButton } from "./_components/RegenerateWeekButton";
 import { RoutinesHeader } from "./_components/RoutinesHeader";
@@ -178,10 +179,16 @@ export default function RoutinesContent() {
                   leitura na grade, e um papel intitulado "rotina da semana"
                   com três dias seria arquivado como se fosse a semana toda. */}
               <PrintWeekButton
+                scheduleId={schedule.id}
                 weekStart={weekStart}
                 days={schedule.days}
                 sellerName={schedule.seller?.user?.name ?? null}
                 dayOffDates={[...dayOffDates]}
+              />
+              <ResponseLinkModal
+                scope={{ kind: "week", scheduleId: schedule.id }}
+                dateLabel={`semana de ${formatWeekRange(weekStart)}`}
+                isEmpty={schedule.days.every((day) => day.items.length === 0)}
               />
               <RoutinesViewToggle value={viewMode} onChange={setViewMode} />
             </div>

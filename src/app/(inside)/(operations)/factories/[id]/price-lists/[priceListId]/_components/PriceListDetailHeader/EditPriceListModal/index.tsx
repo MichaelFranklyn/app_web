@@ -77,6 +77,7 @@ export function EditPriceListModal({ priceList, onChanged }: Props) {
                 name: "isActive",
                 type: "select-single",
                 label: "Status",
+                placeholder: "Escolha o status",
                 required: true,
                 options: ACTIVE_OPTIONS,
               },

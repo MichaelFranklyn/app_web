@@ -103,6 +103,7 @@ export function EditPriceListModal({
                 name: "isActive",
                 type: "select-single",
                 label: "Status",
+                placeholder: "Escolha o status",
                 required: true,
                 options: ACTIVE_OPTIONS,
               },

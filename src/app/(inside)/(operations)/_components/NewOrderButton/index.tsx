@@ -8,7 +8,6 @@ import { NewOrderFrom, newOrderUrl } from "@/utils/newOrderUrl";
 
 interface Props {
   from?: Exclude<NewOrderFrom, { visitItemId: string }>;
-  label?: string;
 }
 
 /**
@@ -17,9 +16,10 @@ interface Props {
  * cancelar.
  *
  * Pedido digitado item a item tem página própria: os dados e a lista de itens
- * precisam de espaço, e um modal apertava os dois.
+ * precisam de espaço, e um modal apertava os dois. O rótulo é o mesmo em
+ * todas as telas — ícone + "Novo pedido".
  */
-export function NewOrderButton({ from, label = "Novo Pedido" }: Props) {
+export function NewOrderButton({ from }: Props) {
   const router = useRouter();
   const pathname = usePathname();
 
@@ -31,7 +31,7 @@ export function NewOrderButton({ from, label = "Novo Pedido" }: Props) {
       onClick={() => router.push(newOrderUrl(from, pathname))}
     >
       <Button.Icon icon={Plus} />
-      <Button.Title>{label}</Button.Title>
+      <Button.Title>Novo pedido</Button.Title>
     </Button.Root>
   );
 }

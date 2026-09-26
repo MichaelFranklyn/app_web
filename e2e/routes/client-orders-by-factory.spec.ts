@@ -173,7 +173,7 @@ test("cliente/pedidos: criar pedido abre a página com o cliente decidido e entr
   });
 
   await page.goto("/clients/cc-1/orders");
-  await page.getByRole("button", { name: "Pedido", exact: true }).click();
+  await page.getByRole("button", { name: "Novo pedido", exact: true }).click();
 
   // Página própria, com o cliente já decidido e a volta para a aba dele.
   await expect(page).toHaveURL(/\/orders\/new\?clientId=client-1&from=/);

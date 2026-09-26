@@ -2590,7 +2590,11 @@ enum InsightKind {
   DRAFT_STALE
   """Pedido confirmado que a fábrica ainda não faturou."""
   PENDING_INVOICE
-  """Pedido faturado cujo prazo de entrega venceu sem confirmação."""
+  """
+  Pedido faturado cujo prazo de entrega venceu sem confirmação — o que
+  provavelmente já chegou. É o cartão de PÓS-VENDA: cada caso traz o contato
+  para perguntar ao cliente se recebeu.
+  """
   DELIVERY_UNCONFIRMED
   """Boleto vencido e não pago."""
   INSTALLMENT_OVERDUE
@@ -2648,6 +2652,17 @@ type InsightSampleType {
   caso depende de uma decisão de quem lê.
   """
   reason: InsightCaseReason
+  """
+  Pós-venda (`DELIVERY_UNCONFIRMED`): telefone de quem falar no cliente — o
+  contato principal, senão o primeiro ativo com telefone. Nulo sem contato.
+  """
+  contactPhone: String
+  """Pós-venda: a fábrica do pedido — é por ela que o cliente o reconhece."""
+  factoryName: String
+  """Pós-venda: a data do pedido."""
+  orderDate: Date
+  """Pós-venda: a ficha do cliente (onde se cadastra o contato que faltar)."""
+  clientLink: String
 }
 
 type InsightType {
@@ -6190,6 +6205,8 @@ e dizer o que houve nela.
 """
 type VisitResponseStopType {
   id: UUID!
+  """Dia da parada. Na folha da semana é o que separa as paradas por dia."""
+  date: Date!
   """Sequência da parada na rota do dia — a mesma numeração da folha impressa."""
   plannedOrder: Int!
   contactType: VisitContactType!
@@ -6224,7 +6241,15 @@ golpe — e este pede para a pessoa digitar o que aconteceu no dia de trabalho
 dela.
 """
 type VisitResponseFormType {
+  """O dia do link — ou, na folha da semana, a segunda-feira dela."""
   date: Date!
+  """Último dia da semana (domingo). Nulo no link de um dia só."""
+  endDate: Date
+  """
+  A folha é da semana: traz as paradas dos dias que JÁ CHEGARAM (os seguintes
+  aparecem quando chegarem), agrupadas por `stop.date`.
+  """
+  isWeek: Boolean!
   sellerName: String!
   companyName: String!
   companyLogoUrl: String
@@ -6302,6 +6327,11 @@ extend type Mutation {
   Substitui qualquer link anterior daquele dia.
   """
   issueVisitResponseLink(scheduleDayId: UUID!): VisitResponseLinkTypeDataResponse!
+  """
+  Emite o link de resposta da SEMANA (rotina inteira), para a folha semanal.
+  Substitui o link anterior da semana; os links dos dias seguem valendo.
+  """
+  issueWeekResponseLink(scheduleId: UUID!): VisitResponseLinkTypeDataResponse!
 }
 
 input CreateVisitScheduleConfigInput {

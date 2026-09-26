@@ -33,6 +33,7 @@ const FORM_STEPS: FormStepSchema[] = [
             name: "newCnpj",
             type: "cnpj",
             label: "CNPJ novo",
+            placeholder: "00.000.000/0000-00",
             required: true,
             hint: "Os dados do CNPJ novo vêm da Receita Federal.",
           },

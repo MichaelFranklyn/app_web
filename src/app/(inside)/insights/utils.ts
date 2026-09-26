@@ -1,3 +1,5 @@
+import { formatDate } from "@/utils/format/date";
+import { greetingFor } from "@/utils/greeting";
 import { formatMoney } from "@/utils/format/masks";
 import {
   Ban,
@@ -22,6 +24,7 @@ import {
   InsightCaseReason,
   InsightGroup,
   InsightKind,
+  InsightSample,
 } from "./interface";
 
 /**
@@ -150,11 +153,14 @@ export const INSIGHT_COPY: Record<InsightKind, InsightCopy> = {
   },
   DELIVERY_UNCONFIRMED: {
     icon: PackageCheck,
-    tone: "info",
+    // Pós-venda é trabalho da semana, não pano de fundo: é a conversa que
+    // confirma a entrega, pega o problema antes da reclamação e já abre a
+    // próxima venda.
+    tone: "attention",
     title: ({ count }) =>
-      `${count} ${plural(count, "pedido faturado está", "pedidos faturados estão")} sem a entrega confirmada`,
+      `${count} ${plural(count, "pedido provavelmente já foi entregue", "pedidos provavelmente já foram entregues")}`,
     why: () =>
-      "O prazo de entrega venceu e ninguém confirmou o recebimento. Além de ser a hora de conferir se a mercadoria chegou mesmo, é a confirmação que abastece o estoque estimado do cliente — sem ela o sistema calcula a próxima visita com uma prateleira que não existe mais.",
+      "O prazo de entrega já passou e ninguém confirmou o recebimento. É a hora do pós-venda: uma mensagem ao cliente confirma se chegou tudo certo, resolve um problema antes de virar reclamação e abre a conversa do próximo pedido. Confirmar a entrega no pedido também atualiza o estoque estimado do cliente.",
     action: "Conferir as entregas",
     href: "/orders",
   },
@@ -346,4 +352,23 @@ export const REASON_COPY: Record<InsightCaseReason, ReasonCopy> = {
     label: "Não coube na semana",
     hint: "Nenhuma regra o excluiu — a semana fechou antes de chegar nele. É este que vale rever na rotina.",
   },
+};
+
+export { greetingFor } from "@/utils/greeting";
+
+/**
+ * A mensagem pronta do pós-venda: o cliente reconhece o pedido pela fábrica e
+ * pela data, e a pergunta é aberta o bastante para ele contar um problema.
+ */
+export const postSaleMessage = (
+  sample: Pick<InsightSample, "factoryName" | "orderDate">,
+  hour: number = new Date().getHours()
+): string => {
+  const pedido = sample.factoryName
+    ? `o pedido da ${sample.factoryName}`
+    : "o pedido";
+  const quando = sample.orderDate
+    ? ` feito em ${formatDate(sample.orderDate)}`
+    : "";
+  return `Olá, ${greetingFor(hour)}! Tudo bem? Passando para saber se ${pedido}${quando} já foi entregue e se chegou tudo certo. Qualquer coisa, estou à disposição.`;
 };

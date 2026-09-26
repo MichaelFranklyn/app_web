@@ -12,7 +12,7 @@ import { useOptimisticList } from "@/hooks/useOptimisticList";
 import { maskPhoneBR } from "@/utils/format/masks";
 import { Users } from "lucide-react";
 import { useMemo } from "react";
-import { AddContactModal } from "./_components/AddContactModal";
+import { AddClientContactModal } from "../../../../../_components/AddClientContactModal";
 import { DeleteContactModal } from "./_components/DeleteContactModal";
 import { EditContactModal } from "./_components/EditContactModal";
 import { CLIENT_CONTACTS_QUERY } from "./gql";
@@ -62,9 +62,9 @@ export function ContactCard({ clientId }: ContactCardProps) {
           />
         </Card.Header.Title>
         <Card.Header.Actions>
-          <AddContactModal
+          <AddClientContactModal
             clientId={clientId}
-            onAddOptimistic={optimistic.addOptimistic}
+            onAdded={optimistic.addOptimistic}
           />
         </Card.Header.Actions>
       </Card.Header>

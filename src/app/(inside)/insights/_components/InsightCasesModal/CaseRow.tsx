@@ -8,6 +8,7 @@ import Link from "next/link";
 
 import { InsightSample } from "../../interface";
 import { REASON_COPY } from "../../utils";
+import { PostSaleContact } from "../PostSaleContact";
 
 /**
  * Uma linha da lista completa: de quem se trata, o dado que o coloca ali e —
@@ -18,7 +19,14 @@ import { REASON_COPY } from "../../utils";
  * acabou de comprar" cem vezes transformaria a explicação em ruído. A etiqueta
  * nomeia; a dica, ao passar o mouse, ensina o que fazer.
  */
-export function CaseRow({ item }: { item: InsightSample }) {
+export function CaseRow({
+  item,
+  postSale = false,
+}: {
+  item: InsightSample;
+  /** Pós-venda: a linha ganha o contato com o cliente (WhatsApp). */
+  postSale?: boolean;
+}) {
   const reason = item.reason ? REASON_COPY[item.reason] : null;
   const ReasonIcon = reason?.icon;
 
@@ -56,15 +64,20 @@ export function CaseRow({ item }: { item: InsightSample }) {
   const className =
     "flex items-center justify-between gap-12 rounded-(--r-sm) border border-transparent px-10 py-8 hover:border-(--border) hover:bg-(--bg3)";
 
+  const row = item.link ? (
+    <Link href={item.link} className={`${className} transition-colors`}>
+      {body}
+    </Link>
+  ) : (
+    <div className={className}>{body}</div>
+  );
+
+  // O botão fica AO LADO do link da linha, nunca dentro: link dentro de link
+  // é HTML inválido, e o clique no WhatsApp abriria o pedido junto.
   return (
-    <li>
-      {item.link ? (
-        <Link href={item.link} className={`${className} transition-colors`}>
-          {body}
-        </Link>
-      ) : (
-        <div className={className}>{body}</div>
-      )}
+    <li className={postSale ? "flex items-center gap-8" : undefined}>
+      {postSale ? <div className="min-w-0 flex-1">{row}</div> : row}
+      {postSale && <PostSaleContact sample={item} />}
     </li>
   );
 }

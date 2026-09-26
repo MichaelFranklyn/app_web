@@ -39,6 +39,26 @@ const visitToken = (headers: SsrHeaders): string =>
 /** O endereço que o spec usa para provar a tela de link morto. */
 export const EXPIRED_VISIT_TOKEN = "token-de-resposta-expirado";
 
+/** O endereço que o spec usa para a folha da SEMANA (paradas de dois dias). */
+export const WEEK_VISIT_TOKEN = "token-de-resposta-da-semana";
+
+const WEEK_STOPS = [
+  { id: "wk-1", date: "2026-09-21", clientName: "Depósito Central" },
+  { id: "wk-2", date: "2026-09-23", clientName: "Casa do Construtor" },
+].map((stop, index) => ({
+  ...stop,
+  plannedOrder: index + 1,
+  contactType: "IN_PERSON",
+  clientAlias: null,
+  clientCity: "Salvador",
+  clientState: "BA",
+  factoryNames: ["Fábrica Alfa"],
+  status: "PENDING",
+  outcome: null,
+  notes: null,
+  hasLinkedOrder: false,
+}));
+
 const SSR_RESPONSES: Record<string, SsrResponse> = {
   // Listas de topo agora buscam a 1ª página no SERVIDOR (SSR-seed do useTableData,
   // ver [[project_ssr_list_apollo_cache_seed]]). O stub devolve connection VAZIO:
@@ -346,52 +366,74 @@ const SSR_RESPONSES: Record<string, SsrResponse> = {
             data: null,
           },
         }
-      : {
-          visitResponseForm: {
-            status: true,
-            code: 200,
-            message: "ok",
-            data: {
-              date: "2026-09-21",
-              sellerName: "Orlando Vendedor",
-              companyName: "Empresa Teste",
-              companyLogoUrl: null,
-              submittedAt: null,
-              stops: [
-                {
-                  id: "stop-1",
-                  plannedOrder: 1,
-                  contactType: "IN_PERSON",
-                  clientName: "Depósito Central",
-                  clientAlias: "DEPOSITO CENTRAL LTDA",
-                  clientCity: "Feira de Santana",
-                  clientState: "BA",
-                  factoryNames: ["Fábrica Alfa", "Fábrica Beta"],
-                  status: "PENDING",
-                  outcome: null,
-                  notes: null,
-                  hasLinkedOrder: false,
-                },
-                {
-                  id: "stop-2",
-                  plannedOrder: 2,
-                  contactType: "REMOTE",
-                  clientName: "Casa do Construtor",
-                  clientAlias: null,
-                  clientCity: "Salvador",
-                  clientState: "BA",
-                  factoryNames: ["Fábrica Alfa"],
-                  // Já respondida e com pedido amarrado: a tela tem de abrir
-                  // com o que está gravado, senão o vendedor acha que se perdeu.
-                  status: "COMPLETED",
-                  outcome: "SOLD",
-                  notes: "cliente pediu para voltar dia 5",
-                  hasLinkedOrder: true,
-                },
-              ],
+      : visitToken(headers) === WEEK_VISIT_TOKEN
+        ? {
+            visitResponseForm: {
+              status: true,
+              code: 200,
+              message: "ok",
+              data: {
+                date: "2026-09-21",
+                endDate: "2026-09-27",
+                isWeek: true,
+                sellerName: "Orlando Vendedor",
+                companyName: "Empresa Teste",
+                companyLogoUrl: null,
+                submittedAt: null,
+                stops: WEEK_STOPS,
+              },
+            },
+          }
+        : {
+            visitResponseForm: {
+              status: true,
+              code: 200,
+              message: "ok",
+              data: {
+                date: "2026-09-21",
+                endDate: null,
+                isWeek: false,
+                sellerName: "Orlando Vendedor",
+                companyName: "Empresa Teste",
+                companyLogoUrl: null,
+                submittedAt: null,
+                stops: [
+                  {
+                    id: "stop-1",
+                    date: "2026-09-21",
+                    plannedOrder: 1,
+                    contactType: "IN_PERSON",
+                    clientName: "Depósito Central",
+                    clientAlias: "DEPOSITO CENTRAL LTDA",
+                    clientCity: "Feira de Santana",
+                    clientState: "BA",
+                    factoryNames: ["Fábrica Alfa", "Fábrica Beta"],
+                    status: "PENDING",
+                    outcome: null,
+                    notes: null,
+                    hasLinkedOrder: false,
+                  },
+                  {
+                    id: "stop-2",
+                    date: "2026-09-21",
+                    plannedOrder: 2,
+                    contactType: "REMOTE",
+                    clientName: "Casa do Construtor",
+                    clientAlias: null,
+                    clientCity: "Salvador",
+                    clientState: "BA",
+                    factoryNames: ["Fábrica Alfa"],
+                    // Já respondida e com pedido amarrado: a tela tem de abrir
+                    // com o que está gravado, senão o vendedor acha que se perdeu.
+                    status: "COMPLETED",
+                    outcome: "SOLD",
+                    notes: "cliente pediu para voltar dia 5",
+                    hasLinkedOrder: true,
+                  },
+                ],
+              },
             },
           },
-        },
   SubmitVisitResponses: {
     submitVisitResponses: {
       status: true,

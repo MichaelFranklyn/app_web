@@ -76,6 +76,7 @@ export function StepColumns({
             />
           </span>
           <Input.Select
+            placeholder="Escolha a aba da planilha"
             options={sheetOptions}
             value={sheetOptions.find((o) => o.value === sheetName) ?? null}
             variant="single"
@@ -92,6 +93,7 @@ export function StepColumns({
           Linha do cabeçalho
         </Title>
         <Input.Select
+          placeholder="Escolha a linha do cabeçalho"
           options={headerOptions}
           value={
             headerOptions.find((o) => o.value === String(headerIndex)) ?? null

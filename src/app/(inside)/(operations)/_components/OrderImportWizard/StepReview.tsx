@@ -157,6 +157,7 @@ export function StepReview({
                     ) : tierOpts.length > 0 ? (
                       <div className="min-w-[160px]">
                         <Input.Select
+                          placeholder="Escolha o nível"
                           options={tierOpts}
                           value={tierValue}
                           variant="single"
@@ -179,6 +180,7 @@ export function StepReview({
                   </Table.Cell>
                   <Table.Cell>
                     <Input.Text
+                      placeholder="Ex: 12"
                       value={row.quantity}
                       disabled={blocked}
                       onChange={(e: ChangeEvent<HTMLInputElement>) =>
@@ -189,6 +191,7 @@ export function StepReview({
                   <Table.Cell>
                     <div className="flex flex-col gap-2">
                       <Input.Text
+                        placeholder="Ex: 10,50"
                         inputMode="decimal"
                         value={row.unitPrice}
                         disabled={blocked}

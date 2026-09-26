@@ -5,6 +5,7 @@ import { useAsyncAction } from "@/hooks/useAsyncAction";
 import { useInvalidateQueriesClient } from "@/hooks/useInvalidateQueries";
 import { VISIT_CACHE_FIELDS } from "@/utils/cacheFields";
 import { clientDisplayName } from "@/utils/client";
+import { newOrderUrl } from "@/utils/newOrderUrl";
 import { contactLabel, contactNoun } from "@/utils/visit";
 import { useMutation } from "@apollo/client/react";
 import {
@@ -17,7 +18,7 @@ import {
   ReceiptText,
   UserRound,
 } from "lucide-react";
-import { useRouter } from "next/navigation";
+import { usePathname, useRouter } from "next/navigation";
 import { ReactNode, useState } from "react";
 import { UPDATE_VISIT_ITEM_MUTATION } from "./gql";
 import { VisitScheduleItem } from "./interface";
@@ -74,6 +75,7 @@ export function useVisitActions({
   onChanged,
 }: Args): Result {
   const router = useRouter();
+  const pathname = usePathname();
   const [active, setActive] = useState<ActiveModal>(null);
   const close = () => setActive(null);
 
@@ -157,10 +159,12 @@ export function useVisitActions({
     );
   };
 
-  // Atalho para lançar/subir o pedido desta visita: leva à página de pedidos do
-  // cliente, onde o vendedor cadastra ou importa o pedido. Só existe quando há
-  // cliente vinculado.
-  const client = item.clientFactoryLink?.client ?? null;
+  // "Novo pedido" desta visita: abre direto a página de novo pedido já no
+  // vínculo da visita (vendedor → cliente → fábrica), com o pedido amarrado a
+  // ela. Sem o vínculo inteiro, abre pelo cliente — escolhe-se o vínculo lá.
+  // "Cancelar" volta para esta tela. Só existe quando há cliente vinculado.
+  const link = item.clientFactoryLink;
+  const client = link?.client ?? null;
   // A rota /clients/[id] é chaveada pelo id da carteira (company_client), não
   // pelo id global do cliente.
   const companyClientId = client?.companyClient?.id ?? null;
@@ -168,8 +172,21 @@ export function useVisitActions({
   const openClient = companyClientId
     ? () => router.push(`/clients/${companyClientId}/overview`)
     : undefined;
-  const openOrder = companyClientId
-    ? () => router.push(`/clients/${companyClientId}/orders`)
+  const openOrder = client
+    ? () =>
+        router.push(
+          newOrderUrl(
+            link?.sellerId && link.factory
+              ? {
+                  visitItemId: item.id,
+                  sellerId: link.sellerId,
+                  clientId: client.id,
+                  factoryId: link.factory.id,
+                }
+              : { clientId: client.id },
+            pathname
+          )
+        )
     : undefined;
 
   const menu = (
@@ -202,7 +219,7 @@ export function useVisitActions({
         ...(openOrder
           ? [
               {
-                label: "Lançar pedido",
+                label: "Novo pedido",
                 icon: ReceiptText,
                 onClick: openOrder,
               },
@@ -250,6 +267,7 @@ export function useVisitActions({
         onStock={() => setActive("stock")}
         onReschedule={() => setActive("reschedule")}
         onOrder={openOrder}
+        onClient={openClient}
       />
 
       <EditVisitModal

@@ -57,7 +57,7 @@ export function StockObservationList({
   } = useStockObservation(itemId, onSaved);
 
   // O pedido abre noutra tela: o que foi respondido aqui é gravado antes.
-  // Qual "Lançar pedido" foi tocado — só ele mostra o loading.
+  // Qual "Novo pedido" foi tocado — só ele mostra o loading.
   const [orderingId, setOrderingId] = useState<string | null>(null);
   const handleOrder = async (group: StockCandidateGroup) => {
     setOrderingId(group.sellerClientFactoryId);
@@ -188,7 +188,7 @@ export function StockObservationList({
                     onClick={() => handleOrder(group)}
                   >
                     <Button.Icon icon={ReceiptText} />
-                    <Button.Title>Lançar pedido</Button.Title>
+                    <Button.Title>Novo pedido</Button.Title>
                   </Button.Root>
                 </div>
 

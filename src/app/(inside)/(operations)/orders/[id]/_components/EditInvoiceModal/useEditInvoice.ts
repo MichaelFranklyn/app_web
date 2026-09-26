@@ -112,6 +112,7 @@ export function useEditInvoice(order: OrderDetail, onSuccess: () => void) {
                 name: "deliveryEstimateDays",
                 type: "number",
                 label: "Previsão de entrega (dias)",
+                placeholder: "Ex: 15",
                 hint: "Quantos dias a fábrica leva para entregar, contados do faturamento.",
               },
               // Só aparece com a entrega já confirmada: informar a data num

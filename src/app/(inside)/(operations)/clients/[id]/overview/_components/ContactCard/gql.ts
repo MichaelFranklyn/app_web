@@ -19,24 +19,6 @@ export const CLIENT_CONTACTS_QUERY = gql`
   }
 `;
 
-export const CREATE_CLIENT_CONTACT_MUTATION = gql`
-  mutation CreateClientContact($input: CreateClientContactInput!) {
-    createClientContact(input: $input) {
-      status
-      message
-      data {
-        id
-        name
-        role
-        phone
-        email
-        isPrimary
-        isActive
-      }
-    }
-  }
-`;
-
 export const UPDATE_CLIENT_CONTACT_MUTATION = gql`
   mutation UpdateClientContact($id: UUID!, $input: UpdateClientContactInput!) {
     updateClientContact(id: $id, input: $input) {

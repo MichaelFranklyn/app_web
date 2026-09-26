@@ -3,11 +3,10 @@
 import { Button } from "@/components/Button";
 import { useToast } from "@/components/Toast";
 import { useCompanyBranding } from "@/hooks/useCompanyBranding";
-import { useMutation } from "@apollo/client/react";
 import { Printer } from "lucide-react";
 import { useState } from "react";
-import { ISSUE_VISIT_RESPONSE_LINK_MUTATION } from "../../gql";
-import { IssueVisitResponseLinkResponse, VisitItem } from "../../interface";
+import { useIssueResponseLink } from "../../../_shared/responseLink";
+import { VisitItem } from "../../interface";
 import { DayRoutePdfMeta } from "../../pdf";
 
 interface Props {
@@ -51,17 +50,14 @@ export function PrintRouteButton({
 }: Props) {
   const { toast } = useToast();
   const { name: companyName, logoUrl: companyLogoUrl } = useCompanyBranding();
-  const [issueLink] = useMutation<IssueVisitResponseLinkResponse>(
-    ISSUE_VISIT_RESPONSE_LINK_MUTATION
-  );
+  const issueLink = useIssueResponseLink({ kind: "day", scheduleDayId });
   const [isBusy, setIsBusy] = useState(false);
 
   const isEmpty = stops.length === 0 && remoteStops.length === 0;
 
   const responseUrl = async (): Promise<string | null> => {
     try {
-      const res = await issueLink({ variables: { scheduleDayId } });
-      return res.data?.issueVisitResponseLink?.data?.url ?? null;
+      return (await issueLink()).url;
     } catch {
       return null;
     }

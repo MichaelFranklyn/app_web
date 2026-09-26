@@ -148,6 +148,7 @@ export function ScheduleVisitModal({
 
             {form.factoryOptions.length > 2 && (
               <Input.Select
+                placeholder="Escolha a fábrica principal"
                 label="Fábrica principal"
                 hint="Serve para registrar o motivo da visita. As outras fábricas do cliente podem ser tratadas na mesma ida."
                 options={form.factoryOptions}

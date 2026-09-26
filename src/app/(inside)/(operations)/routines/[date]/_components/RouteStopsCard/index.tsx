@@ -100,6 +100,7 @@ export function RouteStopsCard({
                         <ContactLinks
                           contact={client?.primaryContact ?? null}
                           clientName={clientLabel(client)}
+                          clientId={client?.id ?? null}
                         />
                       </div>
                     ) : (
