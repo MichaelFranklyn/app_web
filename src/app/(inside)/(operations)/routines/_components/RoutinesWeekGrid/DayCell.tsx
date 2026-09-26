@@ -1,7 +1,7 @@
 "use client";
+import { Button } from "@/components/Button";
 
 import { Badge } from "@/components/Badges";
-import { getButtonClasses } from "@/components/Button/Root/style";
 import { Card } from "@/components/Card";
 import { Title } from "@/components/Title";
 import { ArrowUpRight, Route } from "lucide-react";
@@ -18,18 +18,6 @@ import { AddVisitCard } from "../AddVisitCard";
 import { DayOffButton } from "../DayOffButton";
 import { VisitCard } from "../VisitCard";
 import { GenerateDayButton } from "./GenerateDayButton";
-
-// Botão âmbar "Ver rota do dia" (link → /routines/[date]).
-const routeButtonClass = getButtonClasses({
-  appearance: "tinted",
-  color: "amber",
-  size: "sm",
-  isIconOnly: false,
-  fullWidth: true,
-  active: false,
-  noPadding: false,
-  noUppercase: true,
-});
 
 interface Props {
   cell: WeekDayCell;
@@ -156,7 +144,7 @@ export function DayCell({
                   O sistema não vai planejar visitas para ele.
                 </Title>
               </div>
-              <div className="flex flex-col gap-8 border-t border-(--border) p-16">
+              <Card.Section divided>
                 <DayOffButton
                   date={cell.date}
                   isDayOff
@@ -164,7 +152,7 @@ export function DayCell({
                   onMark={onMarkDayOff}
                   onUnmark={onUnmarkDayOff}
                 />
-              </div>
+              </Card.Section>
             </>
           ) : !cell.day ? (
             // Dia útil ainda sem rotina: mesma anatomia dos demais — o aviso
@@ -180,7 +168,7 @@ export function DayCell({
               {/* O usuário ainda pode querer trabalhar neste dia: gerar a rota
                   automática (pela carteira) ou agendar uma visita manual (cria
                   o dia com essa primeira visita). */}
-              <div className="flex flex-col gap-8 border-t border-(--border) p-16">
+              <Card.Section divided>
                 {/* Dia vencido não recebe rota nova: a visita já não pode
                     acontecer, e recomendá-la só consumiria o cliente da semana.
                     O backend recusa; aqui o botão nem aparece. */}
@@ -209,7 +197,7 @@ export function DayCell({
                     onUnmark={onUnmarkDayOff}
                   />
                 )}
-              </div>
+              </Card.Section>
             </>
           ) : (
             <>
@@ -239,7 +227,7 @@ export function DayCell({
               </div>
 
               {/* Rodapé fixo do dia: adicionar visita + abrir a rota. */}
-              <div className="flex flex-col gap-8 border-t border-(--border) p-16">
+              <Card.Section divided>
                 {/* Dia que só tem visita marcada à mão: o sistema completa as
                     vagas em volta dela, sem reescrevê-la. */}
                 {canCompleteDay(cell.day, cell.date, todayIso) && (
@@ -259,14 +247,17 @@ export function DayCell({
                   capacity={capacity}
                   onChanged={onChanged}
                 />
-                <Link
+                <Button.Link
                   href={dayHref}
-                  className={routeButtonClass}
+                  appearance="tinted"
+                  size="sm"
+                  noUppercase
+                  fullWidth
                   title="Abrir a rota deste dia no mapa"
                 >
-                  <Route size={14} />
-                  Ver rota do dia
-                </Link>
+                  <Button.Icon icon={Route} />
+                  <Button.Title>Ver rota do dia</Button.Title>
+                </Button.Link>
                 {/* Só para frente: marcar um dia que já passou não muda nada e o
                     backend recusa. */}
                 {!isPast && (
@@ -278,7 +269,7 @@ export function DayCell({
                     onUnmark={onUnmarkDayOff}
                   />
                 )}
-              </div>
+              </Card.Section>
             </>
           )}
         </Card.Body>

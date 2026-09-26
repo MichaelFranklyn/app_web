@@ -3,4 +3,5 @@ import { alertRootStyles } from "./style";
 
 export interface AlertRootProps extends React.HTMLAttributes<HTMLDivElement> {
   variant?: keyof typeof alertRootStyles.variants;
+  size?: keyof typeof alertRootStyles.sizes;
 }

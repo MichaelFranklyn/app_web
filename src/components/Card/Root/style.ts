@@ -25,7 +25,7 @@ export const rootStyle = cva(cardBaseStyle, {
     },
     /** Clicável: realce âmbar na borda ao passar o mouse. */
     interactive: {
-      true: "cursor-pointer transition-colors hover:border-(--amber)",
+      true: "cursor-pointer transition-colors hover:border-(--amber) focus:outline-none focus-visible:ring-1 focus-visible:ring-(--amber)",
     },
   },
 });

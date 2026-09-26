@@ -1,15 +1,11 @@
 "use client";
+import { Dot } from "@/components/Dot";
+import { TooltipPanel } from "@/components/TooltipPanel";
 
 import { Badge } from "@/components/Badges";
 import { Title } from "@/components/Title";
 import { Tooltip } from "@/components/Tooltip";
-import { cn } from "@/lib/utils";
-import {
-  explainScore,
-  isUrgent,
-  SCORE_TONE_BG,
-  ScoreDimensions,
-} from "@/utils/score";
+import { explainScore, isUrgent, ScoreDimensions } from "@/utils/score";
 import { FactoryVisitScore } from "../../interface";
 
 interface Props {
@@ -44,23 +40,26 @@ export function ScoreTag({ score, factoryScores = [] }: Props) {
     .join(" ");
 
   const tooltip = (
-    <div className="flex w-[280px] flex-col">
-      <div className="flex items-center justify-between gap-8 border-b border-(--border) px-[12px] py-[10px]">
+    <TooltipPanel.Root width={280}>
+      <TooltipPanel.Header
+        aside={
+          <Title variant="label" color="amber">
+            {total.toFixed(0)}
+          </Title>
+        }
+      >
         <div className="flex items-center gap-6">
-          <span
-            className={cn(
-              "h-[8px] w-[8px] rounded-full",
-              SCORE_TONE_BG[level.tone]
-            )}
+          <Dot.Root
+            color={level.tone}
+            size="md"
+            pulse={false}
+            className="opacity-100"
           />
           <Title variant="label">{level.label}</Title>
         </div>
-        <Title variant="label" color="amber">
-          {total.toFixed(0)}
-        </Title>
-      </div>
+      </TooltipPanel.Header>
 
-      <div className="flex flex-col gap-4 px-[12px] py-[8px]">
+      <TooltipPanel.Section className="gap-4">
         <Title variant="body-sm" color="secondary">
           {level.summary}
         </Title>
@@ -71,17 +70,16 @@ export function ScoreTag({ score, factoryScores = [] }: Props) {
               ` Outras ${otherUrgent} fábricas também estão urgentes.`}
           </Title>
         )}
-      </div>
+      </TooltipPanel.Section>
 
       {reasons.length > 0 && (
-        <div className="flex flex-col gap-8 border-t border-(--border) px-[12px] py-[10px]">
+        <TooltipPanel.Section>
           {reasons.map((reason) => (
             <div key={reason.key} className="flex gap-6">
-              <span
-                className={cn(
-                  "mt-[5px] h-[6px] w-[6px] shrink-0 rounded-full",
-                  SCORE_TONE_BG[reason.tone]
-                )}
+              <Dot.Root
+                color={reason.tone}
+                pulse={false}
+                className="mt-[5px] opacity-100"
               />
               <div className="flex flex-col gap-1">
                 <Title variant="body-sm">
@@ -95,13 +93,13 @@ export function ScoreTag({ score, factoryScores = [] }: Props) {
               </div>
             </div>
           ))}
-        </div>
+        </TooltipPanel.Section>
       )}
-    </div>
+    </TooltipPanel.Root>
   );
 
   return (
-    <Tooltip content={tooltip} className="max-w-none p-0 whitespace-normal">
+    <Tooltip content={tooltip} panel>
       <span className="inline-flex cursor-help">
         <Badge.Root color={level.tone} appearance="tinted" size="sm">
           <Badge.Text>{label}</Badge.Text>

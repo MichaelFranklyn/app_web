@@ -1,9 +1,9 @@
 "use client";
+import { OptionCard } from "@/components/OptionCard";
 
 import { Button } from "@/components/Button";
 import { Modal } from "@/components/Modal";
-import { Title } from "@/components/Title";
-import { ChevronRight, PackageSearch, ReceiptText } from "lucide-react";
+import { PackageSearch, ReceiptText } from "lucide-react";
 import {
   contactLabel,
   contactArticle,
@@ -20,38 +20,6 @@ interface Props {
   onStock: () => void;
   /** Abre a página de novo pedido desta visita (ausente quando não há cliente). */
   onOrder?: () => void;
-}
-
-interface OptionProps {
-  icon: typeof PackageSearch;
-  title: string;
-  description: string;
-  onClick: () => void;
-}
-
-// Opção grande e clicável (alvo generoso, uma ação por linha) para o público
-// da rota, que decide na hora o próximo passo após concluir a visita.
-function Option({ icon: Icon, title, description, onClick }: OptionProps) {
-  return (
-    <button
-      type="button"
-      onClick={onClick}
-      className="flex w-full items-center gap-12 rounded-(--r-md) border border-(--border) bg-(--bg3) px-16 py-12 text-left transition-colors hover:border-(--amber) focus:outline-none focus-visible:ring-1 focus-visible:ring-(--amber)"
-    >
-      <span className="flex h-[36px] w-[36px] shrink-0 items-center justify-center rounded-full bg-(--amber-bg) text-(--amber)">
-        <Icon size={18} />
-      </span>
-      <span className="min-w-0 flex-1">
-        <Title variant="body-sm" className="font-medium">
-          {title}
-        </Title>
-        <Title variant="body-xs" color="muted">
-          {description}
-        </Title>
-      </span>
-      <ChevronRight size={16} className="shrink-0 text-(--muted)" />
-    </button>
-  );
 }
 
 // Aparece logo após o vendedor concluir a parada, oferecendo os dois
@@ -80,7 +48,7 @@ export function CompletionPromptModal({
         <Modal.Body>
           <div className="flex flex-col gap-8">
             {onOrder && (
-              <Option
+              <OptionCard
                 icon={ReceiptText}
                 title="Novo pedido"
                 description={`Registrar um pedido feito ${isRemote ? "neste contato" : "nesta visita"}.`}
@@ -90,7 +58,7 @@ export function CompletionPromptModal({
                 }}
               />
             )}
-            <Option
+            <OptionCard
               icon={PackageSearch}
               title="Atualizar estoque do cliente"
               description="Anotar como está o estoque dos produtos."

@@ -1,4 +1,6 @@
 "use client";
+import { Button } from "@/components/Button";
+import { TooltipPanel } from "@/components/TooltipPanel";
 
 import { Title } from "@/components/Title";
 import { Tooltip } from "@/components/Tooltip";
@@ -34,15 +36,13 @@ export function ChartHelpTip({ title, help, insight }: Props) {
   const [open, setOpen] = useState(false);
 
   const content = (
-    <div className="flex w-[300px] flex-col">
-      <div className="border-b border-(--border) px-[12px] py-[10px]">
-        <Title variant="label">{title}</Title>
-      </div>
+    <TooltipPanel.Root>
+      <TooltipPanel.Header>{title}</TooltipPanel.Header>
 
       {/* A leitura dos números vem antes da explicação: quem abre o "?" quer
           primeiro saber o que ESTE gráfico está dizendo hoje. */}
       {insight && (
-        <div className="flex flex-col gap-4 border-b border-(--border) bg-(--bg3) px-[12px] py-[10px]">
+        <TooltipPanel.Section muted className="gap-4">
           <Title variant="micro" color="muted">
             O que esses números dizem
           </Title>
@@ -52,10 +52,10 @@ export function ChartHelpTip({ title, help, insight }: Props) {
               {insight.note}
             </Title>
           )}
-        </div>
+        </TooltipPanel.Section>
       )}
 
-      <div className="flex flex-col gap-10 px-[12px] py-[10px]">
+      <TooltipPanel.Section className="gap-10">
         {BLOCKS.map((block) => (
           <div key={block.key} className="flex flex-col gap-2">
             <Title variant="micro" color="muted">
@@ -66,25 +66,23 @@ export function ChartHelpTip({ title, help, insight }: Props) {
             </Title>
           </div>
         ))}
-      </div>
-    </div>
+      </TooltipPanel.Section>
+    </TooltipPanel.Root>
   );
 
   return (
-    <Tooltip
-      open={open}
-      onOpenChange={setOpen}
-      content={content}
-      className="max-w-none p-0 whitespace-normal"
-    >
-      <button
-        type="button"
+    <Tooltip open={open} onOpenChange={setOpen} content={content} panel>
+      <Button.Root
+        appearance="ghost"
+        color="neutral"
+        size="xs"
+        isIconOnly
+        label={`O que o gráfico "${title}" está mostrando`}
+        className="cursor-help rounded-full text-(--muted) hover:text-(--text)"
         onClick={() => setOpen(true)}
-        aria-label={`O que o gráfico "${title}" está mostrando`}
-        className="flex size-24 shrink-0 cursor-help items-center justify-center rounded-full text-(--muted) transition-colors hover:bg-(--bg3) hover:text-(--text) focus-visible:ring-2 focus-visible:ring-(--border2) focus-visible:outline-none"
       >
-        <Info size={15} aria-hidden />
-      </button>
+        <Button.Icon icon={Info} />
+      </Button.Root>
     </Tooltip>
   );
 }

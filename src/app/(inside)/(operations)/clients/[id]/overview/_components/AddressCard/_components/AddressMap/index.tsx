@@ -1,7 +1,7 @@
 "use client";
+import { Button } from "@/components/Button";
 import { MapFrame } from "@/components/MapFrame";
 
-import { getButtonClasses } from "@/components/Button/Root/style";
 import { ExternalLink, MapPin } from "lucide-react";
 
 interface Props {
@@ -12,18 +12,6 @@ interface Props {
 // A chave vai no bundle (inerente à Maps Embed API client-side) — a mesma do
 // mapa da rota do dia, restrita por referrer no Google Cloud Console.
 const MAPS_KEY = process.env.NEXT_PUBLIC_GOOGLE_MAPS_API_KEY;
-
-// Link externo precisa ser <a>, não <button>: usa só a classe do botão.
-const linkClass = getButtonClasses({
-  appearance: "outline",
-  color: "neutral",
-  size: "sm",
-  isIconOnly: false,
-  fullWidth: false,
-  active: false,
-  noPadding: false,
-  noUppercase: true,
-});
 
 /**
  * O endereço do cliente no mapa. Embutido quando há chave do Google Maps; o
@@ -59,15 +47,18 @@ export function AddressMap({ query }: Props) {
           </MapFrame.Message>
         )}
       </MapFrame.Root>
-      <a
+      <Button.Link
         href={externalUrl}
-        target="_blank"
-        rel="noopener noreferrer"
-        className={`${linkClass} self-start`}
+        external
+        appearance="outline"
+        color="neutral"
+        size="sm"
+        noUppercase
+        className="self-start"
       >
-        <ExternalLink size={14} />
-        Abrir no Google Maps
-      </a>
+        <Button.Icon icon={ExternalLink} />
+        <Button.Title>Abrir no Google Maps</Button.Title>
+      </Button.Link>
     </div>
   );
 }

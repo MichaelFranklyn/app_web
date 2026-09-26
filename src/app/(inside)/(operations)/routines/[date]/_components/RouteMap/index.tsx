@@ -1,8 +1,8 @@
 "use client";
+import { Button } from "@/components/Button";
 import { MapFrame } from "@/components/MapFrame";
 
 import { Badge } from "@/components/Badges";
-import { getButtonClasses } from "@/components/Button/Root/style";
 import { Title } from "@/components/Title";
 import { ExternalLink, MapPin } from "lucide-react";
 import { VisitItem } from "../../interface";
@@ -18,18 +18,6 @@ interface Props {
 // abuso de billing, restrinja-a por referrer HTTP no Google Cloud Console
 // (Credenciais → restrições de aplicativo → sites) aos domínios do app.
 const MAPS_KEY = process.env.NEXT_PUBLIC_GOOGLE_MAPS_API_KEY;
-
-// Classe de botão âmbar (link externo precisa ser <a>, não <button>).
-const ctaClass = getButtonClasses({
-  appearance: "tinted",
-  color: "amber",
-  size: "sm",
-  isIconOnly: false,
-  fullWidth: false,
-  active: false,
-  noPadding: false,
-  noUppercase: true,
-});
 
 export function RouteMap({ stops, distanceKm, departureAddress }: Props) {
   // Endereços utilizáveis das paradas, na ordem da rota.
@@ -83,15 +71,16 @@ export function RouteMap({ stops, distanceKm, departureAddress }: Props) {
                   : "Mapa interativo indisponível (configure a chave do Google Maps). Você ainda pode abrir a rota completa no app do Google Maps."}
             </Title>
             {externalUrl && (
-              <a
+              <Button.Link
                 href={externalUrl}
-                target="_blank"
-                rel="noopener noreferrer"
-                className={ctaClass}
+                external
+                appearance="tinted"
+                size="sm"
+                noUppercase
               >
-                <ExternalLink size={14} />
-                Abrir rota no Google Maps
-              </a>
+                <Button.Icon icon={ExternalLink} />
+                <Button.Title>Abrir rota no Google Maps</Button.Title>
+              </Button.Link>
             )}
           </MapFrame.Message>
         )}
@@ -105,15 +94,16 @@ export function RouteMap({ stops, distanceKm, departureAddress }: Props) {
         </Badge.Root>
         {/* Botão sempre disponível quando o mapa embutido está visível. */}
         {embedUrl && externalUrl && (
-          <a
+          <Button.Link
             href={externalUrl}
-            target="_blank"
-            rel="noopener noreferrer"
-            className={ctaClass}
+            external
+            appearance="tinted"
+            size="sm"
+            noUppercase
           >
-            <ExternalLink size={14} />
-            Abrir no Google Maps
-          </a>
+            <Button.Icon icon={ExternalLink} />
+            <Button.Title>Abrir no Google Maps</Button.Title>
+          </Button.Link>
         )}
       </div>
     </div>

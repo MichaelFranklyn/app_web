@@ -1,24 +1,10 @@
 "use client";
+import { Button } from "@/components/Button";
 
 import { Alert } from "@/components/Alert";
-import { getButtonClasses } from "@/components/Button/Root/style";
 import { PanelHeader } from "@/components/PanelHeader";
 import { MyPlan } from "@/services/plan";
 import { ArrowUpRight, Sparkles } from "lucide-react";
-
-// Comparar planos é a vitrine pública, fora do sistema: link de verdade (<a>),
-// não um botão que empurra o roteador — e em outra aba, porque quem está
-// conferindo o teto de vendedores não quer perder a tela.
-const compareClass = getButtonClasses({
-  appearance: "outline",
-  color: "neutral",
-  size: "sm",
-  isIconOnly: false,
-  fullWidth: false,
-  active: false,
-  noPadding: false,
-  noUppercase: true,
-});
 
 /**
  * O contrato em uma linha: qual plano, e o que fazer para mudar.
@@ -50,15 +36,21 @@ export function PlanHeader({ plan }: { plan: MyPlan }) {
             Para mudar de plano, fale com o suporte.
           </Alert.Description>
         </Alert.Content>
-        <a
+        {/* Comparar planos é a vitrine pública, fora do sistema: em outra aba,
+            porque quem está conferindo o teto de vendedores não quer perder a
+            tela. */}
+        <Button.Link
           href="/precos"
-          target="_blank"
-          rel="noopener noreferrer"
-          className={`${compareClass} shrink-0`}
+          external
+          appearance="outline"
+          color="neutral"
+          size="sm"
+          noUppercase
+          className="shrink-0"
         >
-          Comparar planos
-          <ArrowUpRight size={14} />
-        </a>
+          <Button.Title>Comparar planos</Button.Title>
+          <Button.Icon icon={ArrowUpRight} />
+        </Button.Link>
       </Alert.Root>
     </div>
   );

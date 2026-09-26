@@ -2,6 +2,7 @@ import { ActionBar } from "./ActionBar";
 import { Footer } from "./Footer";
 import { Header } from "./Header";
 import { Main } from "./Main";
+import { Nav } from "./Nav";
 import { Root } from "./Root";
 
 /**
@@ -12,6 +13,7 @@ import { Root } from "./Root";
 export const PublicPage = Object.assign(Root, {
   Root,
   Header,
+  Nav,
   Main,
   Footer,
   ActionBar,

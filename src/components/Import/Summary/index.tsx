@@ -19,8 +19,10 @@ interface ImportSummaryProps<T extends ImportSummaryDetail> {
   result: ImportSummaryResult<T>;
   /** O que identifica a linha para quem conferir a planilha (CNPJ, SKU). */
   identify: (detail: T) => string;
-  /** Concordância com o que foi importado: "fábricas" pede "Criadas". */
+  /** Concordância com o que foi importado: "fábricas" pede "Ignoradas". */
   feminine?: boolean;
+  /** O verbo de quem entrou: cliente é "Adicionado" à carteira, não criado. */
+  createdLabel?: string;
 }
 
 /**
@@ -31,6 +33,7 @@ export function Summary<T extends ImportSummaryDetail>({
   result,
   identify,
   feminine = false,
+  createdLabel,
 }: ImportSummaryProps<T>) {
   const hasDetails = result.errors.length > 0 || result.ignored.length > 0;
   const ignoredLabel = feminine ? "Ignorada" : "Ignorado";
@@ -39,7 +42,7 @@ export function Summary<T extends ImportSummaryDetail>({
     <div className="flex flex-col gap-10">
       <div className="grid grid-cols-3 gap-8">
         <StatCard
-          label={feminine ? "Criadas" : "Criados"}
+          label={createdLabel ?? (feminine ? "Criadas" : "Criados")}
           value={result.created}
           tone="green"
         />

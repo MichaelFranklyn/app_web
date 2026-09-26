@@ -1,4 +1,6 @@
 "use client";
+import { Divider } from "@/components/Divider";
+import { Card } from "@/components/Card";
 
 import { Badge } from "@/components/Badges";
 import { InputCheckbox } from "@/components/Input/InputCheckbox";
@@ -82,7 +84,10 @@ export function VisitCard({ item, dayDate, onChanged }: Props) {
   return (
     <>
       {overlays}
-      <div
+      <Card.Root
+        inset
+        tone="muted"
+        interactive
         role="button"
         tabIndex={0}
         onClick={openView}
@@ -93,34 +98,34 @@ export function VisitCard({ item, dayDate, onChanged }: Props) {
           }
         }}
         title={`Visualizar ${noun}`}
-        className="cursor-pointer rounded-(--r-md) border border-(--border) bg-(--bg3) p-12 transition-colors hover:border-(--amber) focus:outline-none focus-visible:ring-1 focus-visible:ring-(--amber)"
       >
-        <div className="flex items-start justify-between gap-8">
-          <div className="flex min-w-0 items-start gap-8">
-            <div
-              className="mt-1 shrink-0"
-              onClick={(e) => e.stopPropagation()}
-              onKeyDown={(e) => e.stopPropagation()}
-            >
-              <InputCheckbox
-                tone="green"
-                checked={isCompleted}
-                disabled={isToggling}
-                onChange={(e) => toggleCompleted(e.target.checked)}
-                title={
-                  isCompleted
-                    ? `Reabrir ${noun}`
-                    : `Marcar ${noun} como concluíd${isRemote ? "o" : "a"}`
-                }
-                aria-label={
-                  isCompleted
-                    ? `Reabrir ${noun}`
-                    : `Marcar ${noun} como concluíd${isRemote ? "o" : "a"}`
-                }
-              />
-            </div>
-            <div className="min-w-0">
-              {/* Identidade do compromisso numa linha só: se é visita ou
+        <Card.Body padding="sm">
+          <div className="flex items-start justify-between gap-8">
+            <div className="flex min-w-0 items-start gap-8">
+              <div
+                className="mt-1 shrink-0"
+                onClick={(e) => e.stopPropagation()}
+                onKeyDown={(e) => e.stopPropagation()}
+              >
+                <InputCheckbox
+                  tone="green"
+                  checked={isCompleted}
+                  disabled={isToggling}
+                  onChange={(e) => toggleCompleted(e.target.checked)}
+                  title={
+                    isCompleted
+                      ? `Reabrir ${noun}`
+                      : `Marcar ${noun} como concluíd${isRemote ? "o" : "a"}`
+                  }
+                  aria-label={
+                    isCompleted
+                      ? `Reabrir ${noun}`
+                      : `Marcar ${noun} como concluíd${isRemote ? "o" : "a"}`
+                  }
+                />
+              </div>
+              <div className="min-w-0">
+                {/* Identidade do compromisso numa linha só: se é visita ou
                   contato, a posição na rota e QUANDO ela acontece. O alerta de
                   acompanhamento entra aqui porque qualifica esse mesmo
                   compromisso.
@@ -128,112 +133,114 @@ export function VisitCard({ item, dayDate, onChanged }: Props) {
                   O horário vem antes do deslocamento de propósito: o número
                   solto de minutos era lido como "visita de 7 minutos", que é o
                   contrário do que ele significa. */}
-              <div className="mb-4 flex flex-wrap items-center gap-x-8 gap-y-2">
-                <ContactTypeTag contactType={item.contactType} />
-                <FixedVisitTag fixedScheduleId={item.fixedScheduleId} />
-                <Title variant="micro" color="muted">
-                  #{item.plannedOrder}
-                  {formatVisitSlot(item)}
-                </Title>
-                {warning && (
-                  <TriangleAlert
-                    size={14}
-                    className="shrink-0 text-(--amber)"
-                    aria-label={warning.message}
-                  >
-                    <title>{warning.message}</title>
-                  </TriangleAlert>
-                )}
-              </div>
-              {/* Nome quebra em várias linhas em vez de truncar: numa coluna de
+                <div className="mb-4 flex flex-wrap items-center gap-x-8 gap-y-2">
+                  <ContactTypeTag contactType={item.contactType} />
+                  <FixedVisitTag fixedScheduleId={item.fixedScheduleId} />
+                  <Title variant="micro" color="muted">
+                    #{item.plannedOrder}
+                    {formatVisitSlot(item)}
+                  </Title>
+                  {warning && (
+                    <TriangleAlert
+                      size={14}
+                      className="shrink-0 text-(--amber)"
+                      aria-label={warning.message}
+                    >
+                      <title>{warning.message}</title>
+                    </TriangleAlert>
+                  )}
+                </div>
+                {/* Nome quebra em várias linhas em vez de truncar: numa coluna de
                   240px o "…" escondia justamente o que identifica a loja.
                   `break-words` cobre razão social longa sem espaços. */}
-              <Title
-                variant="value"
-                color={isCompleted ? "muted" : "default"}
-                className={cn(
-                  "block break-words",
-                  isCompleted && "line-through"
-                )}
-              >
-                {clientName}
-              </Title>
-              <Title
-                variant="body-xs"
-                color="muted"
-                className="mt-2 block truncate"
-              >
-                {getFocusLabel(item)}
-              </Title>
-              {/* O deslocamento sai do lugar do horário e vem com nome: é o
-                  tempo ATÉ a parada, não a duração dela. */}
-              {formatTravelToStop(item.estimatedTravelMin) && (
-                <Title variant="micro" color="muted" className="mt-2 block">
-                  {formatTravelToStop(item.estimatedTravelMin)}
+                <Title
+                  variant="value"
+                  color={isCompleted ? "muted" : "default"}
+                  className={cn(
+                    "block break-words",
+                    isCompleted && "line-through"
+                  )}
+                >
+                  {clientName}
                 </Title>
-              )}
+                <Title
+                  variant="body-xs"
+                  color="muted"
+                  className="mt-2 block truncate"
+                >
+                  {getFocusLabel(item)}
+                </Title>
+                {/* O deslocamento sai do lugar do horário e vem com nome: é o
+                  tempo ATÉ a parada, não a duração dela. */}
+                {formatTravelToStop(item.estimatedTravelMin) && (
+                  <Title variant="micro" color="muted" className="mt-2 block">
+                    {formatTravelToStop(item.estimatedTravelMin)}
+                  </Title>
+                )}
+              </div>
+            </div>
+            <div
+              className="-mt-2 -mr-4 shrink-0"
+              onClick={(e) => e.stopPropagation()}
+            >
+              {menu}
             </div>
           </div>
-          <div
-            className="-mt-2 -mr-4 shrink-0"
-            onClick={(e) => e.stopPropagation()}
-          >
-            {menu}
-          </div>
-        </div>
 
-        {/* Ligar/WhatsApp direto do card: o contato remoto só é executável se o
+          {/* Ligar/WhatsApp direto do card: o contato remoto só é executável se o
             vendedor tiver o número à mão. Some quando já foi concluído. */}
-        {isRemote && !isCompleted && (
-          <div
-            className="mt-8"
-            onClick={(e) => e.stopPropagation()}
-            onKeyDown={(e) => e.stopPropagation()}
-          >
-            <ContactLinks
-              contact={client?.primaryContact ?? null}
-              clientName={clientName}
-              clientId={client?.id ?? null}
-            />
-          </div>
-        )}
+          {isRemote && !isCompleted && (
+            <div
+              className="mt-8"
+              onClick={(e) => e.stopPropagation()}
+              onKeyDown={(e) => e.stopPropagation()}
+            >
+              <ContactLinks
+                contact={client?.primaryContact ?? null}
+                clientName={clientName}
+                clientId={client?.id ?? null}
+              />
+            </div>
+          )}
 
-        {/* Rodapé único: urgência, posição na rota e estado numa só linha — é o
+          {/* Rodapé único: urgência, posição na rota e estado numa só linha — é o
             que mantém o card baixo, já que a coluna do kanban acompanha a altura
             do dia mais cheio. `flex-wrap` é a válvula de escape: em coluna
             estreita a linha quebra em vez de estourar a largura. */}
-        {/* Urgência e estado em largura total, empilhados: badge de largura
+          {/* Urgência e estado em largura total, empilhados: badge de largura
             própria numa coluna de 240px ficava perdido e podia estourar a linha
             — ocupando a faixa inteira, cada um se lê de relance. O bloco todo
             desaparece quando não há nem score nem estado a mostrar, para não
             sobrar um divisor solto. */}
-        {(showPriority || showStatusBadge) && (
-          <div className="mt-8 flex flex-col gap-4 border-t border-(--border) pt-8">
-            {showPriority && priority && (
-              <Badge.Root
-                fullWidth
-                color={priority.tone}
-                appearance="tinted"
-                title={`Score ${scoreValue?.toFixed(0)}`}
-              >
-                <Badge.Dot />
-                <Badge.Text>
-                  {priority.label} · {scoreValue?.toFixed(0)}
-                </Badge.Text>
-              </Badge.Root>
-            )}
-            {showStatusBadge && (
-              <Badge.Root
-                fullWidth
-                color={VISIT_STATUS_COLOR[item.status]}
-                appearance="tinted"
-              >
-                <Badge.Text>{VISIT_STATUS_LABEL[item.status]}</Badge.Text>
-              </Badge.Root>
-            )}
-          </div>
-        )}
-      </div>
+          {(showPriority || showStatusBadge) && (
+            <div className="mt-8 flex flex-col gap-4">
+              <Divider.Root className="mb-4" />
+              {showPriority && priority && (
+                <Badge.Root
+                  fullWidth
+                  color={priority.tone}
+                  appearance="tinted"
+                  title={`Score ${scoreValue?.toFixed(0)}`}
+                >
+                  <Badge.Dot />
+                  <Badge.Text>
+                    {priority.label} · {scoreValue?.toFixed(0)}
+                  </Badge.Text>
+                </Badge.Root>
+              )}
+              {showStatusBadge && (
+                <Badge.Root
+                  fullWidth
+                  color={VISIT_STATUS_COLOR[item.status]}
+                  appearance="tinted"
+                >
+                  <Badge.Text>{VISIT_STATUS_LABEL[item.status]}</Badge.Text>
+                </Badge.Root>
+              )}
+            </div>
+          )}
+        </Card.Body>
+      </Card.Root>
     </>
   );
 }

@@ -1,5 +1,11 @@
 export const alertRootStyles = {
-  root: "p-12 px-16 rounded-(--r-md) flex items-start gap-10 border",
+  root: "rounded-(--r-md) flex items-start border",
+
+  sizes: {
+    md: "p-12 px-16 gap-10",
+    /** Dentro de um card de lista, onde o aviso divide espaço com a linha. */
+    sm: "p-8 gap-8",
+  },
 
   variants: {
     info: "bg-(--blue-bg)  border-(--blue-bd)  text-(--blue)",

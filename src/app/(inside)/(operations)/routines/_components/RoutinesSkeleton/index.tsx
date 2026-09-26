@@ -20,14 +20,16 @@ function KpiCardSkeleton() {
 /** Placeholder de um item de visita dentro da coluna do dia. */
 function VisitItemSkeleton() {
   return (
-    <div className="rounded-(--r-md) border border-(--border) bg-(--bg3) p-[10px]">
-      <Loading.Skeleton className="mb-[6px] h-[11px] w-3/4" />
-      <Loading.Skeleton className="mb-[8px] h-[9px] w-1/2" />
-      <div className="flex items-center justify-between">
-        <Loading.Skeleton className="h-[10px] w-12" />
-        <Loading.Skeleton className="h-[18px] w-14 rounded-full" />
-      </div>
-    </div>
+    <Card.Root inset tone="muted">
+      <Card.Body padding="sm">
+        <Loading.Skeleton className="mb-[6px] h-[11px] w-3/4" />
+        <Loading.Skeleton className="mb-[8px] h-[9px] w-1/2" />
+        <div className="flex items-center justify-between">
+          <Loading.Skeleton className="h-[10px] w-12" />
+          <Loading.Skeleton className="h-[18px] w-14 rounded-full" />
+        </div>
+      </Card.Body>
+    </Card.Root>
   );
 }
 

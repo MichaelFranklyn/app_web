@@ -1,9 +1,9 @@
 "use client";
+import { Dot } from "@/components/Dot";
+import { Card } from "@/components/Card";
 
 import { Badge } from "@/components/Badges";
 import { Title } from "@/components/Title";
-import { cn } from "@/lib/utils";
-import { SCORE_TONE_BG } from "@/utils/score";
 import { VisitScoreReason } from "../../../utils";
 
 interface Props {
@@ -34,48 +34,46 @@ export function VisitScoreReasons({ reasons }: Props) {
 
       <div className="flex flex-col gap-10">
         {reasons.map(({ key, factoryLabel, explanation }) => (
-          <div
-            key={key}
-            className="flex flex-col gap-6 rounded-(--r-md) border border-(--border) px-12 py-10"
-          >
-            <div className="flex items-start justify-between gap-8">
-              <Title variant="body-sm" className="min-w-0 truncate">
-                {factoryLabel}
-              </Title>
-              <Badge.Root
-                color={explanation.level.tone}
-                appearance="tinted"
-                size="sm"
-              >
-                <Badge.Dot />
-                <Badge.Text>
-                  {explanation.level.label} · {explanation.total.toFixed(0)}
-                </Badge.Text>
-              </Badge.Root>
-            </div>
-
-            {explanation.reasons.length === 0 ? (
-              <Title variant="body-xs" color="muted">
-                {explanation.level.summary}
-              </Title>
-            ) : (
-              <div className="flex flex-col gap-6">
-                {explanation.reasons.slice(0, REASONS_SHOWN).map((reason) => (
-                  <div key={reason.key} className="flex gap-6">
-                    <span
-                      className={cn(
-                        "mt-[6px] h-[6px] w-[6px] shrink-0 rounded-full",
-                        SCORE_TONE_BG[reason.tone]
-                      )}
-                    />
-                    <Title variant="body-xs" color="secondary">
-                      <b>{reason.label}</b> — {reason.why}
-                    </Title>
-                  </div>
-                ))}
+          <Card.Root key={key} inset tone="transparent">
+            <Card.Body padding="sm" className="gap-6">
+              <div className="flex items-start justify-between gap-8">
+                <Title variant="body-sm" className="min-w-0 truncate">
+                  {factoryLabel}
+                </Title>
+                <Badge.Root
+                  color={explanation.level.tone}
+                  appearance="tinted"
+                  size="sm"
+                >
+                  <Badge.Dot />
+                  <Badge.Text>
+                    {explanation.level.label} · {explanation.total.toFixed(0)}
+                  </Badge.Text>
+                </Badge.Root>
               </div>
-            )}
-          </div>
+
+              {explanation.reasons.length === 0 ? (
+                <Title variant="body-xs" color="muted">
+                  {explanation.level.summary}
+                </Title>
+              ) : (
+                <div className="flex flex-col gap-6">
+                  {explanation.reasons.slice(0, REASONS_SHOWN).map((reason) => (
+                    <div key={reason.key} className="flex gap-6">
+                      <Dot.Root
+                        color={reason.tone}
+                        pulse={false}
+                        className="mt-[6px] opacity-100"
+                      />
+                      <Title variant="body-xs" color="secondary">
+                        <b>{reason.label}</b> — {reason.why}
+                      </Title>
+                    </div>
+                  ))}
+                </div>
+              )}
+            </Card.Body>
+          </Card.Root>
         ))}
       </div>
     </div>

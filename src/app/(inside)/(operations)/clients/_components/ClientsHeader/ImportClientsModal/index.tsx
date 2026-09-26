@@ -109,6 +109,7 @@ export function ImportClientsModal() {
             <Import.Summary
               result={result}
               identify={(detail) => detail.cnpj}
+              createdLabel="Adicionados"
             />
           )}
         </Modal.Body>

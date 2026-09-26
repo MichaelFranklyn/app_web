@@ -11,6 +11,7 @@ export const Tooltip = ({
   delay = 200,
   position = "top",
   className,
+  panel = false,
   ...props
 }: TooltipProps) => {
   return (
@@ -22,7 +23,11 @@ export const Tooltip = ({
             side={position}
             sideOffset={6}
             collisionPadding={10}
-            className={cn(tooltipContentStyles.content, className)}
+            className={cn(
+              tooltipContentStyles.content,
+              panel && "max-w-none p-0 whitespace-normal",
+              className
+            )}
           >
             {content}
             <TooltipPrimitive.Arrow className={tooltipContentStyles.arrow} />

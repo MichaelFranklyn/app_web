@@ -4,12 +4,13 @@ import { AlertRootProps } from "./interface";
 import { alertRootStyles } from "./style";
 
 export const AlertRoot = React.forwardRef<HTMLDivElement, AlertRootProps>(
-  ({ variant = "info", className, children, ...props }, ref) => (
+  ({ variant = "info", size = "md", className, children, ...props }, ref) => (
     <div
       ref={ref}
       role="alert"
       className={cn(
         alertRootStyles.root,
+        alertRootStyles.sizes[size],
         alertRootStyles.variants[variant],
         className
       )}

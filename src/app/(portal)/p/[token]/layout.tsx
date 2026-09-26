@@ -42,10 +42,12 @@ export default async function PortalTokenLayout({
     <PublicPage.Root>
       <PortalHeader profile={profile} />
 
-      <PublicPage.Main>
+      <PublicPage.Nav aria-label="Seções do portal">
         <PortalNav token={token} />
-        {children}
-      </PublicPage.Main>
+      </PublicPage.Nav>
+
+      {/* Sem respiro em cima: a margem das abas já separa. */}
+      <PublicPage.Main className="pt-0">{children}</PublicPage.Main>
 
       <PublicPage.Footer>
         <Title variant="body-sm" color="muted">
