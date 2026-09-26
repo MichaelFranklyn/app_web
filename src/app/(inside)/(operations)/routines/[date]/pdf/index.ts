@@ -14,7 +14,7 @@ import {
   REMOTE_CONTACT_COLUMNS,
   ROUTE_STOP_COLUMNS,
 } from "./columns";
-import { buildQrDataUrl, drawResponseBlock } from "./responseBlock";
+import { buildQrDataUrl, drawResponseBlock } from "../../pdf/responseBlock";
 
 export interface DayRoutePdfMeta {
   date: string;

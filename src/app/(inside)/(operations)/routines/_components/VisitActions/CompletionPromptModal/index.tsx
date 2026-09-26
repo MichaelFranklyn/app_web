@@ -18,7 +18,7 @@ interface Props {
   onOpenChange: (open: boolean) => void;
   /** Abre o registro de estoque do cliente. */
   onStock: () => void;
-  /** Leva à tela de pedidos do cliente (ausente quando não há cliente). */
+  /** Abre a página de novo pedido desta visita (ausente quando não há cliente). */
   onOrder?: () => void;
 }
 
@@ -82,7 +82,7 @@ export function CompletionPromptModal({
             {onOrder && (
               <Option
                 icon={ReceiptText}
-                title="Lançar novo pedido"
+                title="Novo pedido"
                 description={`Registrar um pedido feito ${isRemote ? "neste contato" : "nesta visita"}.`}
                 onClick={() => {
                   onOpenChange(false);

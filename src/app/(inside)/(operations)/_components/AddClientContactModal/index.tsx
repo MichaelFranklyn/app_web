@@ -12,15 +12,15 @@ import { useInvalidateQueriesClient } from "@/hooks/useInvalidateQueries";
 import { onlyDigits } from "@/utils/format/masks";
 import { useMutation } from "@apollo/client/react";
 import { Plus } from "lucide-react";
-import { useRef, useState } from "react";
-import { CREATE_CLIENT_CONTACT_MUTATION } from "../../gql";
+import { ReactNode, useMemo, useRef, useState } from "react";
+import { CREATE_CLIENT_CONTACT_MUTATION } from "./gql";
 import {
-  ClientContact,
   CreateClientContactInput,
   CreateClientContactResponse,
-} from "../../interface";
+  NewClientContact,
+} from "./interface";
 
-const FORM_STEPS: FormStepSchema[] = [
+const buildFormSteps = (phoneRequired: boolean): FormStepSchema[] => [
   {
     id: "contact",
     sections: [
@@ -45,6 +45,10 @@ const FORM_STEPS: FormStepSchema[] = [
             type: "phone",
             label: "Telefone",
             placeholder: "(00) 00000-0000",
+            required: phoneRequired,
+            hint: phoneRequired
+              ? "Celular com DDD — é por ele que sai a ligação e o WhatsApp."
+              : undefined,
           },
           {
             name: "email",
@@ -82,12 +86,34 @@ function normalizeInput(
 }
 
 interface Props {
+  /** Id GLOBAL do cliente (`clients.id`), não o da carteira. */
   clientId: string;
-  onAddOptimistic: (contact: ClientContact) => void;
+  onAdded: (contact: NewClientContact) => void | Promise<void>;
+  /** Botão que abre o modal. Padrão: "Adicionar" âmbar, o da ficha do cliente. */
+  trigger?: ReactNode;
+  /**
+   * Telefone obrigatório — quando o contato está sendo cadastrado PARA ligar
+   * (card da ligação na rotina). Na ficha do cliente ele é opcional.
+   */
+  phoneRequired?: boolean;
 }
 
-export function AddContactModal({ clientId, onAddOptimistic }: Props) {
+/**
+ * Cadastro de um contato do cliente. Compartilhado pela ficha do cliente e pela
+ * rotina: o card de ligação sem telefone abre este mesmo modal, para o
+ * vendedor não precisar sair da rotina, achar o cliente e voltar.
+ */
+export function AddClientContactModal({
+  clientId,
+  onAdded,
+  trigger,
+  phoneRequired = false,
+}: Props) {
   const [open, setOpen] = useState(false);
+  const formSteps = useMemo(
+    () => buildFormSteps(phoneRequired),
+    [phoneRequired]
+  );
   const formRef = useRef<FormBuilderRef>(null);
   const { execute, isLoading } = useAsyncAction();
   const invalidateClient = useInvalidateQueriesClient();
@@ -118,7 +144,7 @@ export function AddContactModal({ clientId, onAddOptimistic }: Props) {
         onSuccess: async (newContact) => {
           setOpen(false);
           formRef.current?.resetForm();
-          onAddOptimistic(newContact);
+          await onAdded(newContact);
           await invalidateClient(["clientContacts"]);
         },
       }
@@ -128,10 +154,12 @@ export function AddContactModal({ clientId, onAddOptimistic }: Props) {
   return (
     <Modal.Root open={open} onOpenChange={setOpen}>
       <Modal.Trigger asChild>
-        <Button.Root appearance="solid" color="amber" size="sm" noUppercase>
-          <Button.Icon icon={Plus} />
-          <Button.Title>Adicionar</Button.Title>
-        </Button.Root>
+        {trigger ?? (
+          <Button.Root appearance="solid" color="amber" size="sm" noUppercase>
+            <Button.Icon icon={Plus} />
+            <Button.Title>Adicionar</Button.Title>
+          </Button.Root>
+        )}
       </Modal.Trigger>
 
       <Modal.Content size="md">
@@ -142,7 +170,7 @@ export function AddContactModal({ clientId, onAddOptimistic }: Props) {
         <Modal.Body>
           <FormBuilder
             ref={formRef}
-            steps={FORM_STEPS}
+            steps={formSteps}
             onSubmit={handleSubmit}
             loading={isLoading}
             unstyled

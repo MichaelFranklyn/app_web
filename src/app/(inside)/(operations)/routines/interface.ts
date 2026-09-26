@@ -65,6 +65,8 @@ export interface VisitFactory {
 
 export interface VisitClientFactoryLink {
   id: string;
+  /** Vendedor do vínculo — o dono do pedido que nasce desta visita. */
+  sellerId?: string;
   client: VisitClient | null;
   factory: VisitFactory | null;
   latestVisitScore: ScoreDimensions | null;

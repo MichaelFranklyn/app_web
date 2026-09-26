@@ -46,7 +46,9 @@ export const drawResponseBlock = (
   qrDataUrl: string | null,
   url: string,
   startY: number,
-  onNewPage: () => number
+  onNewPage: () => number,
+  /** Folha do dia ou da semana — muda o título e a validade escrita. */
+  scope: "day" | "week" = "day"
 ): number => {
   const pageW = pdf.internal.pageSize.getWidth();
   const pageH = pdf.internal.pageSize.getHeight();
@@ -67,7 +69,11 @@ export const drawResponseBlock = (
   pdf.setFont("helvetica", "bold");
   pdf.setFontSize(12);
   setText(pdf, COLOR.brand);
-  pdf.text("RESPONDA ESTA ROTA", textX, textY);
+  pdf.text(
+    scope === "week" ? "RESPONDA AS VISITAS DA SEMANA" : "RESPONDA ESTA ROTA",
+    textX,
+    textY
+  );
 
   textY += 18;
   pdf.setFont("helvetica", "normal");
@@ -90,7 +96,9 @@ export const drawResponseBlock = (
   pdf.setFontSize(8.5);
   setText(pdf, COLOR.muted);
   pdf.text(
-    "O link vale 7 dias e é só desta rota. Reimprimir a folha gera um endereço novo e cancela este.",
+    scope === "week"
+      ? "Vale até 7 dias depois do fim da semana. Reimprimir a folha gera um endereço novo e cancela este."
+      : "O link vale 7 dias e é só desta rota. Reimprimir a folha gera um endereço novo e cancela este.",
     textX,
     textY
   );

@@ -1,6 +1,12 @@
 import { describe, expect, it } from "vitest";
 
-import { buildAnswers } from "./utils";
+import { VisitResponseStop } from "./interface";
+import {
+  buildAnswers,
+  dayHeading,
+  formPeriodLabel,
+  groupStopsByDate,
+} from "./utils";
 
 /**
  * O que se prende aqui é o que SAI do formulário para o backend.
@@ -84,5 +90,38 @@ describe("buildAnswers", () => {
     const answers = buildAnswers(form({ status__a_b__c: "COMPLETED" }));
 
     expect(answers[0].itemId).toBe("a_b__c");
+  });
+});
+
+describe("folha da semana", () => {
+  it("o título diz o intervalo na semana e o dia no link diário", () => {
+    expect(
+      formPeriodLabel({
+        date: "2026-09-21",
+        endDate: "2026-09-27",
+        isWeek: true,
+      })
+    ).toBe("Semana de 21/09/2026 a 27/09/2026");
+    expect(
+      formPeriodLabel({ date: "2026-09-21", endDate: null, isWeek: false })
+    ).toBe("Rota de 21/09/2026");
+  });
+
+  it("o dia não escorrega no fuso do navegador", () => {
+    expect(dayHeading("2026-09-21")).toBe("segunda-feira, 21/09/2026");
+  });
+
+  it("agrupa as paradas por dia, na ordem recebida", () => {
+    const stop = (id: string, date: string) =>
+      ({ id, date }) as VisitResponseStop;
+    const groups = groupStopsByDate([
+      stop("a", "2026-09-21"),
+      stop("b", "2026-09-21"),
+      stop("c", "2026-09-23"),
+    ]);
+    expect(groups.map((g) => [g.date, g.stops.map((s) => s.id)])).toEqual([
+      ["2026-09-21", ["a", "b"]],
+      ["2026-09-23", ["c"]],
+    ]);
   });
 });

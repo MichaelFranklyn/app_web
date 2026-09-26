@@ -13,6 +13,7 @@ import {
   formatWeekRange,
 } from "../utils";
 import { DaySection, drawDaySection } from "./daySection";
+import { buildQrDataUrl, drawResponseBlock } from "./responseBlock";
 
 export interface WeekRoutinePdfMeta {
   weekStart: string;
@@ -21,6 +22,11 @@ export interface WeekRoutinePdfMeta {
   dayOffDates?: string[];
   companyName?: string | null;
   companyLogoUrl?: string | null;
+  /**
+   * Endereço do formulário de resposta da semana. Presente → a folha fecha
+   * com o QR; ausente (emissão falhou) → sai sem o bloco.
+   */
+  responseUrl?: string | null;
 }
 
 /**
@@ -130,6 +136,11 @@ export const buildWeekRoutinePdf = async (
   sections.forEach((section) => {
     y = drawDaySection(pdf, section, y, newPage);
   });
+
+  if (meta.responseUrl) {
+    const qr = await buildQrDataUrl(meta.responseUrl);
+    drawResponseBlock(pdf, qr, meta.responseUrl, y, newPage, "week");
+  }
 
   drawFooters(pdf, girusLogo);
   return pdf;

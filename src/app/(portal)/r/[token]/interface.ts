@@ -6,6 +6,8 @@ import type {
 
 export interface VisitResponseStop {
   id: string;
+  /** Dia da parada — separa as paradas na folha da semana. */
+  date: string;
   plannedOrder: number;
   contactType: VisitContactType;
   clientName: string;
@@ -21,7 +23,12 @@ export interface VisitResponseStop {
 }
 
 export interface VisitResponseForm {
+  /** O dia do link; na folha da semana, a segunda-feira. */
   date: string;
+  /** Domingo da semana; nulo no link de um dia. */
+  endDate: string | null;
+  /** Folha da semana: só os dias que já chegaram, agrupados por data. */
+  isWeek: boolean;
   sellerName: string;
   companyName: string;
   companyLogoUrl: string | null;

@@ -24,7 +24,7 @@ interface Props {
  * do cliente (`/clients/[id]/visits`) — de onde o vendedor também pode registrar
  * o que viu, depois da visita.
  *
- * "Lançar pedido" leva à página de novo pedido (`/orders/new`) com vendedor,
+ * "Novo pedido" leva à página de novo pedido (`/orders/new`) com vendedor,
  * cliente e fábrica decididos e o pedido amarrado a esta visita. Antes de sair,
  * o que foi respondido do estoque é gravado — a página não tem como devolver o
  * formulário. "Cancelar" lá volta para a tela de onde a visita foi aberta.

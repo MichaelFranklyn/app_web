@@ -15,23 +15,6 @@ export interface ClientContactsQueryResponse {
   };
 }
 
-export interface CreateClientContactInput {
-  clientId: string;
-  name: string;
-  role?: string;
-  phone?: string;
-  email?: string;
-  isPrimary?: boolean;
-}
-
-export interface CreateClientContactResponse {
-  createClientContact: {
-    status: boolean;
-    message: string;
-    data: ClientContact | null;
-  };
-}
-
 export interface UpdateClientContactInput {
   name?: string;
   role?: string | null;

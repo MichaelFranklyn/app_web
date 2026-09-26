@@ -11,6 +11,7 @@ import {
   Pencil,
   ReceiptText,
   TriangleAlert,
+  UserRound,
   X,
 } from "lucide-react";
 import { VisitScheduleItem } from "../../../interface";
@@ -32,6 +33,8 @@ interface Props {
   onStock: () => void;
   onReschedule: () => void;
   onOrder?: () => void;
+  /** Abre a ficha do cliente (ausente quando a visita não tem cliente). */
+  onClient?: () => void;
 }
 
 function Field({ label, value }: { label: string; value: string }) {
@@ -53,6 +56,7 @@ export function VisitDetailPanel({
   onStock,
   onReschedule,
   onOrder,
+  onClient,
 }: Props) {
   const warning = getVisitFollowupWarning(item);
   const client = item.clientFactoryLink?.client ?? null;
@@ -111,6 +115,21 @@ export function VisitDetailPanel({
             <Title variant="body-xs" color="muted" className="mt-2 truncate">
               {factoryLabel}
             </Title>
+            {/* Atalho para a ficha: é o caminho mais pedido a partir da visita
+                (histórico de pedidos, estoque, contatos do cliente). */}
+            {onClient && (
+              <Button.Root
+                appearance="outline"
+                color="neutral"
+                size="sm"
+                noUppercase
+                className="mt-8"
+                onClick={onClient}
+              >
+                <Button.Icon icon={UserRound} />
+                <Button.Title>Ver cliente</Button.Title>
+              </Button.Root>
+            )}
           </div>
           <Button.Root
             appearance="ghost"
@@ -167,6 +186,7 @@ export function VisitDetailPanel({
               <ContactLinks
                 contact={client?.primaryContact ?? null}
                 clientName={clientName}
+                clientId={client?.id ?? null}
               />
             </div>
           )}
@@ -255,7 +275,7 @@ export function VisitDetailPanel({
                 onClick={onOrder}
               >
                 <Button.Icon icon={ReceiptText} />
-                <Button.Title>Lançar pedido</Button.Title>
+                <Button.Title>Novo pedido</Button.Title>
               </Button.Root>
             )}
             <Button.Root

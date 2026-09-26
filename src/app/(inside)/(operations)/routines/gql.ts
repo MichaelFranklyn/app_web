@@ -123,6 +123,8 @@ export const VISIT_SCHEDULES_QUERY = gql`
               }
               clientFactoryLink {
                 id
+                # Dono da visita: o "Novo pedido" do card abre já no vínculo.
+                sellerId
                 isNegative
                 client {
                   id

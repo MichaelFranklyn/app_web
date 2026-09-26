@@ -5,6 +5,7 @@ import { VisitResponseContent } from "./content";
 import { VisitResponseExpired } from "./_components/VisitResponseExpired";
 import { VISIT_RESPONSE_FORM } from "./gql";
 import { VisitResponseFormData } from "./interface";
+import { formPeriodLabel } from "./utils";
 
 interface PageProps {
   params: Promise<{ token: string }>;
@@ -18,7 +19,7 @@ interface PageProps {
 export const metadata = { title: "Respostas da rota" };
 
 /**
- * Formulário de resposta da rota de um dia, aberto por link.
+ * Formulário de resposta da rota de um dia (ou da semana), aberto por link.
  *
  * O cabeçalho traz a empresa e o nome do vendedor por uma razão prática: um
  * link recebido no WhatsApp, sem nada que o identifique, é indistinguível de
@@ -42,11 +43,14 @@ export default async function VisitResponsePage({ params }: PageProps) {
         <div className="mx-auto flex max-w-[1120px] flex-col gap-[2px]">
           <Title variant="heading-sm">{form.companyName}</Title>
           <Title variant="body-xs" color="muted">
-            {form.sellerName} · {formatDate(form.date)}
+            {form.sellerName} ·{" "}
+            {form.isWeek ? formPeriodLabel(form) : formatDate(form.date)}
           </Title>
           {form.submittedAt ? (
             <Title variant="body-xs" color="muted">
-              Você já enviou respostas deste dia. Pode ajustar e enviar de novo.
+              Você já enviou respostas{" "}
+              {form.isWeek ? "desta semana" : "deste dia"}. Pode ajustar e
+              enviar de novo.
             </Title>
           ) : null}
         </div>

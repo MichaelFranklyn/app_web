@@ -256,7 +256,7 @@ test("visita/estoque: o pedido lançado carrega a fábrica e a visita de origem"
   await stockModal
     .getByRole("button", { name: /produtos de Fábrica Beta/ })
     .click();
-  await stockModal.getByRole("button", { name: "Lançar pedido" }).click();
+  await stockModal.getByRole("button", { name: "Novo pedido" }).click();
 
   // O pedido tem página própria, com vendedor, cliente e fábrica decididos.
   await expect(page).toHaveURL(/\/orders\/new\?visitItemId=it-1/);
@@ -425,7 +425,7 @@ test("visita/estoque: cancelar o pedido volta para a rotina", async ({
   await openStockModal(page);
   const stockModal = page.getByLabel("Estoque · Cliente LTDA");
 
-  await stockModal.getByRole("button", { name: "Lançar pedido" }).click();
+  await stockModal.getByRole("button", { name: "Novo pedido" }).click();
   await expect(page).toHaveURL(/\/orders\/new\?/);
 
   await page.getByRole("button", { name: "Cancelar" }).click();

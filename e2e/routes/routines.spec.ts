@@ -323,3 +323,108 @@ test("rotina: painel fechado não projeta sombra na lateral", async ({
   await page.getByRole("button", { name: /Cliente LTDA/ }).click();
   await expect(painel).not.toHaveCSS("box-shadow", "none");
 });
+
+/**
+ * Ligação na rotina: sem telefone, o vendedor cadastra o contato ali mesmo; com
+ * celular, o WhatsApp abre com a mensagem pronta.
+ */
+const remoteItem = (
+  id: string,
+  clientName: string,
+  primaryContact: { id: string; name: string; phone: string } | null
+) => ({
+  ...visitItem(id, clientName),
+  contactType: "REMOTE",
+  clientFactoryLink: {
+    ...visitItem(id, clientName).clientFactoryLink,
+    client: {
+      ...visitItem(id, clientName).clientFactoryLink.client,
+      primaryContact,
+    },
+  },
+});
+
+test("rotina: ligação sem contato cadastra ali; com celular, WhatsApp com mensagem", async ({
+  page,
+}) => {
+  const spy = await mockGraphql(page, {
+    RoutineSellersOptions: () => ({ routine_sellers: { edges: [] } }),
+    VisitScheduleConfig: scheduleConfig,
+    SellerDayOffs: () => ({ seller_day_offs: [] }),
+    VisitSchedules: () => ({
+      visit_schedules: {
+        edges: [
+          {
+            node: {
+              ...schedule,
+              days: [
+                {
+                  ...day("today", TODAY, "x"),
+                  items: [
+                    remoteItem("sem", "Cliente Sem Telefone", null),
+                    {
+                      ...remoteItem("com", "Cliente Com Celular", {
+                        id: "ct-1",
+                        name: "João da Silva",
+                        phone: "71999998888",
+                      }),
+                      plannedOrder: 2,
+                    },
+                  ],
+                },
+              ],
+            },
+          },
+        ],
+        pageInfo: { hasNextPage: false, endCursor: null },
+        totalCount: 1,
+      },
+    }),
+    CreateClientContact: () => ({
+      createClientContact: {
+        status: true,
+        message: "ok",
+        data: {
+          id: "ct-2",
+          name: "Maria",
+          role: null,
+          phone: "71988887777",
+          email: null,
+          isPrimary: false,
+          isActive: true,
+        },
+      },
+    }),
+  });
+
+  await page.goto("/routines?view=list");
+
+  // Com celular: o link já leva a mensagem, chamando o contato pelo nome.
+  // O painel lateral de cada visita fica montado FORA da tela (aside) com os
+  // mesmos botões; o que interessa é o da linha.
+  const outsidePanel = page.locator(":not(aside *)");
+  const zap = page.getByRole("link", { name: "WhatsApp" }).and(outsidePanel);
+  const href = await zap.getAttribute("href");
+  expect(href).toContain("https://wa.me/5571999998888?text=");
+  const texto = decodeURIComponent(href!.split("text=")[1]);
+  expect(texto).toMatch(
+    /^Olá, João, (bom dia|boa tarde|boa noite)! Tudo bem\?/
+  );
+  expect(texto).toContain("como está o estoque");
+
+  // Sem telefone: cadastra ali mesmo, sem abrir o painel da visita por trás.
+  await page
+    .getByRole("button", { name: "Cadastrar contato", exact: true })
+    .and(outsidePanel)
+    .click();
+  const dialog = page.getByRole("dialog");
+  await expect(dialog.getByText("Adicionar contato")).toBeVisible();
+  await dialog.getByLabel(/Nome/).fill("Maria");
+  await dialog.getByLabel(/Telefone/).fill("71988887777");
+  await dialog.getByRole("button", { name: "Adicionar" }).click();
+
+  const input = await spy.waitForCall("CreateClientContact");
+  expect(input).toMatchObject({
+    input: { clientId: "c-sem", name: "Maria", phone: "71988887777" },
+  });
+});

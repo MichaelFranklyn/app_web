@@ -88,13 +88,3 @@ export interface VisitsWeekScheduleResponse {
     edges: { node: VisitWeekSchedule }[];
   };
 }
-
-// Emissão do link de resposta — usada pela impressão (QR na folha) e pelo
-// botão que manda o link direto, sem imprimir.
-export interface IssueVisitResponseLinkResponse {
-  issueVisitResponseLink: {
-    status: boolean;
-    message: string;
-    data: { url: string; expiresAt: string } | null;
-  } | null;
-}

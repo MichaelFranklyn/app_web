@@ -4,12 +4,12 @@ import { Alert } from "@/components/Alert";
 import { Button } from "@/components/Button";
 import { EmptyState } from "@/components/EmptyState";
 import { Title } from "@/components/Title";
-import { formatDate } from "@/utils/format/date";
 import { CalendarCheck } from "lucide-react";
 import { useActionState } from "react";
 import { VisitAnswerRow } from "./_components/VisitAnswerRow";
 import { VisitFormState, submitVisitResponsesAction } from "./actions";
 import { VisitResponseForm } from "./interface";
+import { dayHeading, formPeriodLabel, groupStopsByDate } from "./utils";
 
 interface Props {
   form: VisitResponseForm;
@@ -25,6 +25,9 @@ const INITIAL_STATE: VisitFormState = { status: "idle", message: "" };
  * o endereço desta página, e o que ele responde aqui entra na rotina pelo mesmo
  * caminho do app — data da visita em todos os vínculos do cliente, recálculo do
  * score, avanço do dia.
+ *
+ * Na folha da SEMANA as paradas vêm separadas por dia, e só dos dias que já
+ * chegaram — os seguintes aparecem neste mesmo link quando chegarem.
  *
  * Nada é obrigatório. Quem souber dizer de cinco paradas manda cinco e volta
  * depois: a adoção é o gargalo do motor (1 recomendação trabalhada em 94), e um
@@ -43,9 +46,15 @@ export function VisitResponseContent({ form, token }: Props) {
         <EmptyState.Icon>
           <CalendarCheck size={36} />
         </EmptyState.Icon>
-        <EmptyState.Title>Nenhuma visita neste dia</EmptyState.Title>
+        <EmptyState.Title>
+          {form.isWeek
+            ? "Nenhuma visita para responder ainda"
+            : "Nenhuma visita neste dia"}
+        </EmptyState.Title>
         <EmptyState.Description>
-          A rota de {formatDate(form.date)} não tem paradas planejadas.
+          {form.isWeek
+            ? "Os dias desta semana aparecem aqui quando chegarem. Volte a este mesmo link depois da primeira visita."
+            : `A ${formPeriodLabel(form).toLowerCase()} não tem paradas planejadas.`}
         </EmptyState.Description>
       </EmptyState.Root>
     );
@@ -57,11 +66,14 @@ export function VisitResponseContent({ form, token }: Props) {
 
       <div className="flex flex-col gap-[4px]">
         <Title variant="eyebrow" color="muted">
-          Rota de {formatDate(form.date)}
+          {formPeriodLabel(form)}
         </Title>
         <Title variant="body-sm" color="muted">
           Marque o que aconteceu em cada cliente. Responda só o que você souber
           agora — dá para voltar neste mesmo link depois.
+          {form.isWeek
+            ? " Os dias que ainda não chegaram aparecem aqui quando chegarem."
+            : ""}
         </Title>
       </div>
 
@@ -71,11 +83,18 @@ export function VisitResponseContent({ form, token }: Props) {
         </Alert.Root>
       ) : null}
 
-      <div className="tablet:grid-cols-2 desktop:grid-cols-3 grid grid-cols-1 gap-[12px]">
-        {form.stops.map((stop) => (
-          <VisitAnswerRow key={stop.id} stop={stop} />
-        ))}
-      </div>
+      {form.isWeek ? (
+        groupStopsByDate(form.stops).map((group) => (
+          <section key={group.date} className="flex flex-col gap-[8px]">
+            <Title variant="body-md" weight="semibold" className="capitalize">
+              {dayHeading(group.date)}
+            </Title>
+            <StopGrid stops={group.stops} />
+          </section>
+        ))
+      ) : (
+        <StopGrid stops={form.stops} />
+      )}
 
       {/* Fixo no rodapé: com oito paradas o botão só no fim obrigaria a rolar
           tudo de volta depois de responder duas. */}
@@ -93,5 +112,15 @@ export function VisitResponseContent({ form, token }: Props) {
         </Button.Root>
       </div>
     </form>
+  );
+}
+
+function StopGrid({ stops }: { stops: VisitResponseForm["stops"] }) {
+  return (
+    <div className="tablet:grid-cols-2 desktop:grid-cols-3 grid grid-cols-1 gap-[12px]">
+      {stops.map((stop) => (
+        <VisitAnswerRow key={stop.id} stop={stop} />
+      ))}
+    </div>
   );
 }
