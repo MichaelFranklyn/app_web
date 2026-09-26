@@ -3553,6 +3553,8 @@ type SettleInstallmentsPreviewType {
 }
 
 extend type Query {
+  "Pedidos parados: faturados com a entrega vencida e confirmados sem faturar."
+  stalledOrders(sellerId: UUID = null): StalledOrdersType!
   orders(input: BaseListInput!): OrderTypeConnectionResponse!
   """Prévia da baixa em lote: quantos boletos em aberto vencem no período e quanto somam."""
   settleInstallmentsPreview(
@@ -3595,6 +3597,14 @@ extend type Mutation {
   uninvoiceOrder(id: UUID!, force: Boolean = false): OrderTypeDataResponse!
   """Confirma a entrega de um pedido faturado: status → DELIVERED e reabastece o estoque do cliente usando a data real de chegada."""
   markOrderDelivered(id: UUID!, deliveredAt: Date!): OrderTypeDataResponse!
+  """
+  Confirma a entrega de vários pedidos faturados de uma vez (conferência dos
+  pedidos parados). Sem `deliveredAt`, cada pedido recebe a PRÓPRIA previsão
+  (faturamento + prazo, ou o prazo padrão, nunca depois de hoje) — os pedidos
+  do lote costumam ser de meses diferentes. Um pedido recusado não impede os
+  outros: ele volta em `failures`.
+  """
+  markOrdersDelivered(ids: [UUID!]!, deliveredAt: Date = null): MarkOrdersDeliveredResult!
   """
   Carimba que o pedido saiu para a fábrica: grava quando, por quem e por onde, e
   avança DRAFT → SENT (pedido já CONFIRMADO mantém o status — reenviar não
@@ -3660,6 +3670,34 @@ input MarkOrderSentInput {
   channel: OrderSentChannel!
   """Observação livre de quem enviou. Opcional."""
   note: String = null
+}
+
+
+"""Um pedido do lote que não pôde ser entregue, e por quê."""
+type OrderDeliveryFailure {
+  orderId: UUID!
+  message: String!
+}
+
+type MarkOrdersDeliveredResult {
+  delivered: Int!
+  "Quantos produtos tiveram o estoque do cliente abastecido."
+  stockedProducts: Int!
+  failures: [OrderDeliveryFailure!]!
+}
+
+"""
+Os pedidos parados — o mesmo recorte dos cartões de /insights ("entrega não
+confirmada" e "confirmado sem faturar"). Pedido nessa situação segura o cliente
+fora da rotina naquela fábrica e congela o estoque estimado dele.
+"""
+type StalledOrdersType {
+  "Faturados, com a entrega prevista já vencida e sem confirmação."
+  awaitingDelivery: [OrderType!]!
+  "Confirmados com o cliente e ainda não faturados pela fábrica."
+  awaitingInvoice: [OrderType!]!
+  "Prazo de entrega assumido quando o pedido não tem `deliveryEstimateDays`."
+  defaultDeliveryDays: Int!
 }
 
 # Console da plataforma — tudo aqui é exclusivo do super usuário (SU).
@@ -5277,12 +5315,36 @@ type VisitAccuracyRow {
 }
 
 """
+A execução da rotina de um vendedor no período. O total da empresa esconde a
+leitura que o gestor precisa: quem está registrando e quem não está.
+"""
+type VisitExecutionSellerRow {
+  sellerId: UUID!
+  sellerName: String!
+  planned: Int!
+  "Respondidas por alguém (qualquer desfecho) ou provadas por pedido."
+  worked: Int!
+  "Das `worked`, quantas foram concluídas pelo pedido e não por alguém marcando."
+  workedInferred: Int!
+  "Fechadas pelo sistema após 7 dias sem resposta. Não contam como execução."
+  autoClosed: Int!
+  "Ainda sem resposta e dentro do prazo — dá para registrar."
+  pending: Int!
+  converted: Int!
+  executionRate: Float!
+  conversionRate: Float!
+  orderAmount: Decimal!
+}
+
+"""
 Se as recomendações do motor viram pedido — a única leitura que diz se a
 priorização está funcionando. `lift` compara a taxa do motor com a linha de base
 da carteira: 1.0 significa que priorizar não mudou nada em relação ao acaso.
 """
 type VisitAccuracyReportType {
   rows: [VisitAccuracyRow!]!
+  "Uma linha por vendedor, do maior volume planejado para o menor."
+  sellers: [VisitExecutionSellerRow!]!
   planned: Int!
   worked: Int!
   """
@@ -5295,6 +5357,10 @@ type VisitAccuracyReportType {
   que já acontecia e não era registrado.
   """
   workedInferred: Int!
+  "Fechadas pelo sistema após 7 dias sem resposta. Não contam como execução."
+  autoClosed: Int!
+  "Ainda sem resposta e dentro do prazo — dá para registrar."
+  pending: Int!
   converted: Int!
   conversionRate: Float!
   orderAmount: Decimal!

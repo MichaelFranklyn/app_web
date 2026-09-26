@@ -20,7 +20,7 @@ const tenant = (overrides: Record<string, unknown> = {}) => ({
   razaoSocial: "Metais Horizonte LTDA",
   nomeFantasia: "Metais Horizonte",
   segment: "Metais",
-  plan: "pro",
+  plan: "corporate",
   logoUrl: null,
   isActive: true,
   suspendedAt: null,
@@ -102,7 +102,7 @@ test("ficha da empresa: identifica a conta e lista as pessoas", async ({
 
   await expect(page.getByText("Metais Horizonte").first()).toBeVisible();
   await expect(
-    page.getByText("11.222.333/0001-81 · Metais · plano pro")
+    page.getByText("11.222.333/0001-81 · Metais · plano Corporativo")
   ).toBeVisible();
   await expect(page.getByText("Ana Ribeiro")).toBeVisible();
   await expect(page.getByText("ana@metais.test")).toBeVisible();
@@ -223,8 +223,8 @@ test("ficha da empresa: muda o teto de pessoas do contrato", async ({
         message: "ok",
         data: [
           {
-            code: "pro",
-            label: "Pro",
+            code: "corporate",
+            label: "Corporativo",
             features: ["ROUTINES", "ANALYTICS"],
             limits: [
               { key: "USERS", label: "Pessoas", limit: 10 },
@@ -240,7 +240,7 @@ test("ficha da empresa: muda o teto de pessoas do contrato", async ({
         message: "ok",
         data: {
           id: "tenant-1",
-          plan: "pro",
+          plan: "corporate",
           trialEndsAt: null,
           maxUsers: 25,
           maxSellers: null,
@@ -263,7 +263,7 @@ test("ficha da empresa: muda o teto de pessoas do contrato", async ({
   expect(variables).toEqual({
     companyId: "tenant-1",
     input: {
-      plan: "pro",
+      plan: "corporate",
       trialEndsAt: null,
       maxUsers: 25,
       maxSellers: null,

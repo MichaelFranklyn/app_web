@@ -5,13 +5,13 @@ import { MatrixRow } from "./_components/MatrixRow";
 
 /**
  * O comparativo linha a linha. Uma tabela de verdade (`<table>`), não uma grade
- * de `div`s: leitor de tela anuncia "coluna Pro" ao ler a célula, e é isso que
+ * de `div`s: leitor de tela anuncia "coluna Corporativo" ao ler a célula, e é isso que
  * torna a comparação utilizável sem enxergar o cabeçalho.
  *
  * Em telas estreitas ela rola dentro do próprio contêiner — a página nunca
  * ganha barra horizontal.
  */
-const COLUMNS = ["Básico", "Pro", "Enterprise"];
+const COLUMNS = ["Básico", "Intermediário", "Corporativo", "Enterprise"];
 
 export function PlanMatrix() {
   return (
@@ -25,10 +25,10 @@ export function PlanMatrix() {
       </div>
 
       <div className="mt-32 overflow-x-auto">
-        <table className="w-full min-w-[640px] border-collapse">
+        <table className="w-full min-w-[720px] border-collapse">
           <thead>
             <tr className="border-b border-(--border2)">
-              <th className="w-[40%] px-12 py-12 text-left">
+              <th className="w-[36%] px-12 py-12 text-left">
                 <Title variant="label" color="muted">
                   Recurso
                 </Title>
@@ -45,7 +45,10 @@ export function PlanMatrix() {
           {PLAN_MATRIX.map((group) => (
             <tbody key={group.title}>
               <tr className="bg-(--bg3)">
-                <th colSpan={4} className="px-12 py-8 text-left">
+                <th
+                  colSpan={COLUMNS.length + 1}
+                  className="px-12 py-8 text-left"
+                >
                   <Title variant="label" color="amber">
                     {group.title}
                   </Title>

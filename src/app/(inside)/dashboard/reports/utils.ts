@@ -25,6 +25,9 @@ export const REPORT_TABS: ReportTab[] = [
   { slug: "clients", label: "Clientes" },
   { slug: "wallet", label: "Situação da carteira" },
   { slug: "abc", label: "Curva ABC" },
+  // Por último: não é papel de venda, é o termômetro da rotina — sem visita
+  // registrada o motor não aprende, e esta é a única tela que mostra isso.
+  { slug: "execution", label: "Execução da rotina" },
 ];
 
 export const REPORTS_BASE_PATH = "/dashboard/reports";

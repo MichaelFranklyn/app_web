@@ -30,7 +30,7 @@ export interface PlanLimitUsage {
 
 export interface MyPlan {
   code: string;
-  /** Nome comercial ("Básico", "Pro"). */
+  /** Nome comercial ("Básico", "Corporativo"). */
   label: string;
   features: PlanFeature[];
   limits: PlanLimitUsage[];

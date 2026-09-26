@@ -14,8 +14,8 @@ const plan = (over: Record<string, unknown> = {}) => ({
     code: 200,
     message: "ok",
     data: {
-      code: "pro",
-      label: "Pro",
+      code: "corporate",
+      label: "Corporativo",
       features: ["ROUTINES", "REPORTS"],
       limits: [
         {
@@ -50,7 +50,7 @@ test("plano: mostra o uso de cada teto", async ({ page }) => {
 
   await page.goto("/settings/plan");
 
-  await expect(page.getByText("Pro").first()).toBeVisible();
+  await expect(page.getByText("Corporativo").first()).toBeVisible();
   await expect(page.getByText("4 de 10")).toBeVisible();
   // Teto ausente não vira "0 de 0": o número aparece sozinho, sem barra, e o
   // rodapé do cartão diz por quê.

@@ -10,7 +10,7 @@ import { TenantDetail } from "../../interface";
 /**
  * O que o plano DESTA empresa entrega, na ficha dela.
  *
- * O rótulo no cabeçalho ("Pro") responde qual plano é; esta carta responde o que
+ * O rótulo no cabeçalho ("Corporativo") responde qual plano é; esta carta responde o que
  * isso significa — que é a pergunta de quem atende um chamado do tipo "sumiu a
  * tela de relatórios". Sem ela, a resposta exigiria abrir o código.
  */

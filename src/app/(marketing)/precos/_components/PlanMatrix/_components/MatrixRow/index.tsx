@@ -34,7 +34,13 @@ function MatrixCell({ value }: { value: boolean | string }) {
   );
 }
 
-export function MatrixRow({ label, basic, pro, enterprise }: PlanMatrixRow) {
+export function MatrixRow({
+  label,
+  basic,
+  intermediate,
+  corporate,
+  enterprise,
+}: PlanMatrixRow) {
   return (
     <tr className="border-b border-(--border)">
       <th className="px-12 py-12 text-left font-(--weight-regular)">
@@ -44,7 +50,8 @@ export function MatrixRow({ label, basic, pro, enterprise }: PlanMatrixRow) {
       </th>
 
       <MatrixCell value={basic} />
-      <MatrixCell value={pro} />
+      <MatrixCell value={intermediate} />
+      <MatrixCell value={corporate} />
       <MatrixCell value={enterprise} />
     </tr>
   );

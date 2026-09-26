@@ -35,9 +35,15 @@ export const SORTABLE_FIELDS = [
 export const PLAN_OPTIONS = [
   { value: "trial", label: "Teste" },
   { value: "basic", label: "Básico" },
-  { value: "pro", label: "Pro" },
+  { value: "intermediate", label: "Intermediário" },
+  { value: "corporate", label: "Corporativo" },
   { value: "enterprise", label: "Enterprise" },
 ];
+
+/** Nome comercial do plano ("corporate" → "Corporativo"); código fora do
+ * catálogo aparece como está, para o SU enxergar o dado torto. */
+export const planLabel = (code: string | null | undefined): string =>
+  PLAN_OPTIONS.find((option) => option.value === code)?.label ?? code ?? "—";
 
 export const STATUS_OPTIONS = [
   { value: "true", label: "Ativas" },

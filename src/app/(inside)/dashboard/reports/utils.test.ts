@@ -9,7 +9,7 @@ import {
 } from "./utils";
 
 describe("REPORT_TABS", () => {
-  it("tem as dez abas, na ordem da operação e com slugs únicos", () => {
+  it("tem as onze abas, na ordem da operação e com slugs únicos", () => {
     const slugs = REPORT_TABS.map((tab) => tab.slug);
     expect(slugs).toEqual([
       "sales",
@@ -22,6 +22,7 @@ describe("REPORT_TABS", () => {
       "clients",
       "wallet",
       "abc",
+      "execution",
     ]);
     // Slug repetido apontaria duas abas para a mesma rota, e a barra ficaria
     // com dois itens acesos ao mesmo tempo.

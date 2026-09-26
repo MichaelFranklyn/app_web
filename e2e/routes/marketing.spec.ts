@@ -101,9 +101,9 @@ test.describe("Páginas públicas de marketing", () => {
 
   test("o checkout simulado vai do plano ao resultado", async ({ page }) => {
     await page.goto("/precos");
-    await page.getByRole("link", { name: "Assinar o Pro" }).click();
+    await page.getByRole("link", { name: "Assinar o Corporativo" }).click();
 
-    await expect(page).toHaveURL(/\/assinar\?plano=pro$/);
+    await expect(page).toHaveURL(/\/assinar\?plano=corporate$/);
     // O aviso de simulação não é decoração: é o que impede alguém de achar que
     // está pagando de verdade. Se sumir da tela, este teste cai.
     await expect(
