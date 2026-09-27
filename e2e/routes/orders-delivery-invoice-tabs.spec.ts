@@ -123,6 +123,9 @@ test("pedidos parados: fatura pelo XML só a nota pronta", async ({ page }) => {
           netProductsTotal: "2090.16",
           invoiceTotal: "2300.00",
           installments: [],
+          usesInvoiceBills: false,
+          billsNote:
+            "A nota não traz boletos: as parcelas seguem o prazo do pedido.",
         },
         {
           fileName: "nota_2.xml",
@@ -139,6 +142,9 @@ test("pedidos parados: fatura pelo XML só a nota pronta", async ({ page }) => {
           netProductsTotal: "10.00",
           invoiceTotal: "10.00",
           installments: [],
+          usesInvoiceBills: false,
+          billsNote:
+            "A nota não traz boletos: as parcelas seguem o prazo do pedido.",
         },
       ],
     }),

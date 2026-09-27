@@ -21,6 +21,10 @@ export interface NfePreviewRow {
   netProductsTotal: string | null;
   invoiceTotal: string | null;
   installments: { number: string | null; dueDate: string; amount: string }[];
+  /** As parcelas vão seguir os boletos da nota (senão, o prazo do pedido). */
+  usesInvoiceBills: boolean;
+  /** De onde saem as parcelas, por extenso. */
+  billsNote: string | null;
 }
 
 export interface PreviewNfeImportResponse {

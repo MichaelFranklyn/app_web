@@ -3863,6 +3863,10 @@ type NfePreviewRow {
   netProductsTotal: Decimal
   invoiceTotal: Decimal
   installments: [NfeInstallmentType!]!
+  "As parcelas vão seguir os boletos da nota (senão, o prazo do pedido)."
+  usesInvoiceBills: Boolean!
+  "De onde saem as parcelas, por extenso."
+  billsNote: String
 }
 
 type NfeInvoiceOutcome {

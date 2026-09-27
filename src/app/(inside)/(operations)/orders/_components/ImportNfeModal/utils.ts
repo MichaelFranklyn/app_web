@@ -1,6 +1,8 @@
 import { ThemeColor } from "@/lib/theme";
 
-import { NfeImportStatus } from "./interface";
+import { formatDateDMY, formatMoney } from "@/utils/format/masks";
+
+import { NfeImportStatus, NfePreviewRow } from "./interface";
 
 /** Quantos arquivos por envio — o mesmo teto do backend (`MAX_FILES`). */
 export const MAX_NFE_FILES = 50;
@@ -39,3 +41,18 @@ export const orderLinkFor = (
   orderId && (status === "NEEDS_REVIEW" || status === "ALREADY_IMPORTED")
     ? `/orders/${orderId}`
     : null;
+
+/**
+ * Os boletos que viram parcelas, em uma linha: "10/10 R$ 550,00 · 09/11 R$ 550,00".
+ * Vazio quando as parcelas seguem o prazo do pedido — aí a frase do
+ * `billsNote` já diz por quê.
+ */
+export const billsSummary = (row: NfePreviewRow): string =>
+  row.usesInvoiceBills
+    ? row.installments
+        .map(
+          (inst) =>
+            `${formatDateDMY(inst.dueDate).slice(0, 5)} ${formatMoney(inst.amount)}`
+        )
+        .join(" · ")
+    : "";

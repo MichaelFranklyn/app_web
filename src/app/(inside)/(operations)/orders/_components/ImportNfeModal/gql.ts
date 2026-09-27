@@ -19,6 +19,8 @@ export const PREVIEW_NFE_IMPORT_MUTATION = gql`
         dueDate
         amount
       }
+      usesInvoiceBills
+      billsNote
     }
   }
 `;
