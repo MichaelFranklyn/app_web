@@ -3,14 +3,15 @@
 import { Alert } from "@/components/Alert";
 import { Button } from "@/components/Button";
 import { EmptyState } from "@/components/EmptyState";
-import { Grid } from "@/components/Grid";
 import { PublicPage } from "@/components/PublicPage";
 import { Title } from "@/components/Title";
+import { ToggleGroup } from "@/components/ToggleGroup";
 import { PackageCheck } from "lucide-react";
-import { useActionState } from "react";
+import { useActionState, useState } from "react";
 import { PortalReplenishmentItem } from "../interface";
-import { PortalReplenishRow } from "./_components/PortalReplenishRow";
+import { ReplenishGroupSection } from "./_components/ReplenishGroupSection";
 import { ReplenishFormState, requestReplenishmentAction } from "./actions";
+import { groupByFactory } from "./utils";
 
 interface PortalReplenishContentProps {
   token: string;
@@ -41,6 +42,12 @@ export function PortalReplenishContent({
     INITIAL_STATE
   );
   const rows = state.items ?? items;
+  const [onlyRunOut, setOnlyRunOut] = useState(false);
+  const groups = groupByFactory(rows);
+  const runOutCount = groups.reduce((total, group) => total + group.runOut, 0);
+  // O atalho só aparece quando separa alguma coisa: com tudo acabado (ou nada),
+  // ele não mudaria a lista.
+  const showFilter = runOutCount > 0 && runOutCount < rows.length;
 
   if (!available) {
     return (
@@ -90,24 +97,37 @@ export function PortalReplenishContent({
           Repor
         </Title>
         <Title variant="body-sm" color="muted">
-          Estes produtos devem acabar nos próximos {horizonDays} dias. Marque o
-          que quer pedir — a quantidade já vem com a da sua última compra.
+          Estes produtos devem acabar nos próximos {horizonDays} dias, separados
+          por fábrica e com o que já acabou primeiro. Marque o que quer pedir —
+          a quantidade já vem com a da sua última compra.
         </Title>
       </div>
 
       {feedback}
 
-      {/* `key` muda a cada envio que deu certo: a grade remonta e as marcas
+      {showFilter && (
+        <ToggleGroup
+          aria-label="Quais produtos mostrar"
+          options={[
+            { value: "all", label: `Tudo (${rows.length})` },
+            { value: "runOut", label: `Só o que já acabou (${runOutCount})` },
+          ]}
+          value={onlyRunOut ? "runOut" : "all"}
+          onChange={(value) => setOnlyRunOut(value === "runOut")}
+        />
+      )}
+
+      {/* `key` muda a cada envio que deu certo: as seções remontam e as marcas
           somem — o que foi pedido passa a aparecer como "já pedido". */}
-      <Grid.Root
-        key={state.submission ?? 0}
-        cols={{ base: 1, tablet: 2, desktop: 4 }}
-        gap={12}
-      >
-        {rows.map((item) => (
-          <PortalReplenishRow key={item.productId} item={item} />
+      <div key={state.submission ?? 0} className="flex flex-col gap-[20px]">
+        {groups.map((group) => (
+          <ReplenishGroupSection
+            key={group.factoryName}
+            group={group}
+            onlyRunOut={onlyRunOut}
+          />
         ))}
-      </Grid.Root>
+      </div>
 
       <PublicPage.ActionBar>
         <div className="flex w-full flex-col gap-[8px]">

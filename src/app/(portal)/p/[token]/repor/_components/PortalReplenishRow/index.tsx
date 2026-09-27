@@ -34,9 +34,6 @@ export function PortalReplenishRow({ item }: PortalReplenishRowProps) {
             <Title variant="body-sm" weight="semibold" className="break-words">
               {item.productName}
             </Title>
-            <Title variant="body-xs" color="muted">
-              {item.factoryName}
-            </Title>
             {item.lastPurchaseDate ? (
               <Title variant="body-xs" color="muted">
                 Última compra em {formatDate(item.lastPurchaseDate)}

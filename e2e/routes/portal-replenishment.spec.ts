@@ -27,7 +27,9 @@ test("mostra o que está acabando, com a última compra e o que já foi pedido",
   await page.goto(`/p/${TOKEN}/repor`);
 
   await expect(page.getByText("Acaba em ~3 dias")).toBeVisible();
-  await expect(page.getByText("Deve ter acabado")).toBeVisible();
+  await expect(
+    page.getByText("Deve ter acabado", { exact: true })
+  ).toBeVisible();
   // A quantidade vem com a última compra, e o múltiplo da fábrica é dito.
   await expect(page.locator("#qty__prod-repor-1")).toHaveValue("24");
   await expect(page.getByText("A fábrica vende de 12 em 12.")).toBeVisible();
@@ -45,14 +47,14 @@ test("só o produto marcado é pedido", async ({ page }) => {
   await page.goto(`/p/${TOKEN}/repor`);
 
   await page.locator("#qty__prod-repor-1").fill("36");
-  await page.getByLabel("Pedir este produto").first().check({ force: true });
+  await page.locator("#pick__prod-repor-1").check({ force: true });
   await page
     .getByRole("button", { name: "Pedir ao meu representante" })
     .click();
 
   await expect(page.getByText("Recebido: prod-repor-1=36")).toBeVisible();
   // A grade remonta: nada fica marcado depois do envio.
-  await expect(page.getByLabel("Pedir este produto").first()).not.toBeChecked();
+  await expect(page.locator("#pick__prod-repor-1")).not.toBeChecked();
 });
 
 test("sem nada marcado, avisa e não envia", async ({ page }) => {
@@ -65,4 +67,27 @@ test("sem nada marcado, avisa e não envia", async ({ page }) => {
   await expect(
     page.getByText("Marque pelo menos um produto e diga quanto quer.")
   ).toBeVisible();
+});
+
+test("separa por fábrica, o que acabou primeiro, e o atalho não perde a marca", async ({
+  page,
+}) => {
+  await page.goto(`/p/${TOKEN}/repor`);
+
+  // A fábrica com produto já acabado abre a lista.
+  const headings = page.getByRole("heading", { name: /Fábrica (Alfa|Beta)/ });
+  await expect(headings.first()).toHaveText("Fábrica Beta");
+  await expect(
+    page.getByText("1 produto, 1 já deve ter acabado")
+  ).toBeVisible();
+
+  // Marca o que ainda não acabou e filtra: ele some da vista...
+  await page.locator("#pick__prod-repor-1").check({ force: true });
+  await page.getByRole("button", { name: /Só o que já acabou/ }).click();
+  await expect(page.getByText("Torneira Teste")).toBeHidden();
+  await expect(page.getByText("Sifão Teste")).toBeVisible();
+
+  // ...e volta marcado.
+  await page.getByRole("button", { name: /Tudo/ }).click();
+  await expect(page.locator("#pick__prod-repor-1")).toBeChecked();
 });

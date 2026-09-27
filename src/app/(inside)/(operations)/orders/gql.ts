@@ -15,6 +15,18 @@ export const ORDER_STATS_QUERY = gql`
   }
 `;
 
+// Quantos pedidos há em cada fila, para o nome da aba: as duas numa ida só.
+export const ORDER_TAB_COUNTS_QUERY = gql`
+  query OrderTabCounts($pending: BaseListInput, $delivery: BaseListInput) {
+    pending: orderStats(input: $pending) {
+      totalOrders
+    }
+    delivery: orderStats(input: $delivery) {
+      totalOrders
+    }
+  }
+`;
+
 // Opções dos filtros. Vendedores e fábricas são poucos por empresa: uma página
 // só resolve. Clientes podem ser milhares — aquele select busca no servidor.
 export const ORDER_FILTER_SELLERS_QUERY = gql`

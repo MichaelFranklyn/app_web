@@ -211,3 +211,35 @@ test("pedidos parados: o endereço antigo cai na aba certa de Pedidos", async ({
     page.getByRole("tab", { name: "Esperando entrega" })
   ).toHaveAttribute("data-state", "active");
 });
+
+test("abas de pedidos: o nome traz quantos esperam, com os filtros da tela", async ({
+  page,
+}) => {
+  const counts: Record<string, unknown>[] = [];
+  await mockGraphql(page, {
+    ...stalled(),
+    OrderTabCounts: (variables: Record<string, unknown>) => {
+      counts.push(variables);
+      return {
+        pending: { totalOrders: 3 },
+        delivery: { totalOrders: 59 },
+      };
+    },
+  });
+  await page.goto("/orders");
+
+  await expect(
+    page.getByRole("tab", { name: "Esperando faturamento (3)" })
+  ).toBeVisible();
+  await expect(
+    page.getByRole("tab", { name: "Esperando entrega (59)" })
+  ).toBeVisible();
+  // "Todos" lista orçamento e cancelado: um número ali contaria outra coisa.
+  await expect(page.getByRole("tab", { name: "Todos os pedidos" })).toHaveText(
+    "Todos os pedidos"
+  );
+
+  const text = JSON.stringify(counts[0]);
+  expect(text).toContain("pending_invoice");
+  expect(text).toContain("awaiting_delivery");
+});
