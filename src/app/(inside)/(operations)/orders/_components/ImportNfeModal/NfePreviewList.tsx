@@ -10,6 +10,7 @@ import { NfePreviewRow } from "./interface";
 import {
   NFE_STATUS_COLOR,
   NFE_STATUS_LABEL,
+  billsSummary,
   isInvoiceable,
   orderLinkFor,
 } from "./utils";
@@ -94,6 +95,15 @@ export function NfePreviewList({ rows, selected, onToggle }: Props) {
                         {reason}
                       </Table.CellText>
                     ))}
+                    {/* De onde saem os boletos: é o que vira parcela e, no modo
+                        Pagamento, o que libera a comissão. Só importa em
+                        quem vai ser faturado. */}
+                    {isInvoiceable(row.status) && row.billsNote && (
+                      <Table.CellText variant="dim">
+                        {row.billsNote}
+                        {row.usesInvoiceBills && ` ${billsSummary(row)}`}
+                      </Table.CellText>
+                    )}
                     {link && (
                       <Link href={link} target="_blank" rel="noreferrer">
                         <Table.CellText variant="dim" className="underline">

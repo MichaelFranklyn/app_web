@@ -1,6 +1,11 @@
 import { describe, expect, it } from "vitest";
 
-import { NFE_STATUS_LABEL, isInvoiceable, orderLinkFor } from "./utils";
+import {
+  NFE_STATUS_LABEL,
+  billsSummary,
+  isInvoiceable,
+  orderLinkFor,
+} from "./utils";
 
 describe("isInvoiceable", () => {
   it("só a nota pronta fatura daqui", () => {
@@ -25,5 +30,27 @@ describe("orderLinkFor", () => {
 describe("NFE_STATUS_LABEL", () => {
   it("toda situação do backend tem rótulo", () => {
     expect(Object.keys(NFE_STATUS_LABEL)).toHaveLength(8);
+  });
+});
+
+describe("billsSummary", () => {
+  const row = (usesInvoiceBills: boolean) =>
+    ({
+      usesInvoiceBills,
+      installments: [
+        { number: "001", dueDate: "2026-10-10", amount: "550.00" },
+        { number: "002", dueDate: "2026-11-09", amount: "550.00" },
+      ],
+    }) as unknown as import("./interface").NfePreviewRow;
+
+  it("lista vencimento e valor de cada boleto que vira parcela", () => {
+    const text = billsSummary(row(true));
+    expect(text).toContain("10/10");
+    expect(text).toContain("09/11");
+    expect(text).toContain("550,00");
+  });
+
+  it("vazio quando as parcelas seguem o prazo do pedido", () => {
+    expect(billsSummary(row(false))).toBe("");
   });
 });
