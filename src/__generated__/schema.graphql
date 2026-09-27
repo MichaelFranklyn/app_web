@@ -1,6 +1,6 @@
 # AUTO-GERADO por scripts/pull-schema.mjs — NÃO editar à mão.
 # Snapshot do schema do backend (app_user). Atualize com: npm run schema:pull
-# Fonte: 54 arquivos .graphql merge-ados (mesma regra do Ariadne).
+# Fonte: 55 arquivos .graphql merge-ados (mesma regra do Ariadne).
 
 input BaseListInput {
   filters: [FieldFilterInput!] = null
@@ -246,6 +246,11 @@ type PortalProfileType {
   """Nome do escritório que atende o cliente."""
   companyName: String!
   companyLogoUrl: String
+  """
+  Se o cliente pode pedir reposição por aqui (aba "Repor"). Depende do plano
+  do escritório — o portal de consulta vale para todos.
+  """
+  canRequestReplenishment: Boolean!
 }
 
 """
@@ -384,6 +389,51 @@ type PortalStockItemTypeListResponse {
   data: [PortalStockItemType!]!
 }
 
+"""
+Um produto que está acabando, pronto para o cliente pedir.
+
+Sem preço de propósito: o pedido nasce ORÇAMENTO e quem fecha preço, condição
+e frete é o vendedor. O cliente diz o que precisa e quanto.
+"""
+type PortalReplenishmentItemType {
+  productId: UUID!
+  productName: String!
+  sku: String
+  factoryName: String!
+  """Dias até acabar, pela estimativa. Negativo = já acabou."""
+  daysRemaining: Int!
+  lastPurchaseDate: Date
+  """Quantidade que vem preenchida: a da última compra, no múltiplo de venda."""
+  suggestedQuantity: Decimal!
+  """De quantas em quantas unidades a fábrica vende. Nulo = venda livre."""
+  saleMultiple: Decimal
+  """Quanto já está pedido e esperando o vendedor confirmar. Nulo = nada."""
+  pendingQuantity: Decimal
+}
+
+type PortalReplenishmentType {
+  """Até quantos dias de estoque o produto entra na lista."""
+  horizonDays: Int!
+  items: [PortalReplenishmentItemType!]!
+}
+
+type PortalReplenishmentTypeDataResponse {
+  status: Boolean!
+  code: Int!
+  message: String!
+  data: PortalReplenishmentType
+}
+
+input PortalReplenishmentEntryInput {
+  productId: UUID!
+  """Unidades. Zero ou vazio = não quero este."""
+  quantity: Decimal!
+}
+
+input RequestPortalReplenishmentInput {
+  items: [PortalReplenishmentEntryInput!]!
+}
+
 input PortalStockEntryInput {
   productId: UUID!
   """Quantos dias aquele produto ainda dura na loja. 0 = acabou."""
@@ -458,6 +508,11 @@ extend type Query {
   portalPurchaseSummary(months: Int = 12): PortalPurchaseSummaryTypeDataResponse!
   """Os produtos que o cliente acompanha, com a estimativa de estoque atual."""
   portalStock: PortalStockItemTypeListResponse!
+  """
+  O que está acabando na loja do cliente, para ele pedir reposição. Vazio (com
+  `status=false`) quando o plano do escritório não inclui o pedido pelo portal.
+  """
+  portalReplenishment: PortalReplenishmentTypeDataResponse!
   """Link ativo do cliente, para o escritório. Nulo se não houver nenhum vivo."""
   clientPortalLink(companyClientId: UUID!): ClientPortalLinkTypeDataResponse!
 }
@@ -471,6 +526,12 @@ extend type Mutation {
   fica marcada com origem CLIENTE, para o vendedor saber de onde veio.
   """
   submitPortalStock(input: SubmitPortalStockInput!): BaseResponse!
+  """
+  O cliente pede reposição. Cada fábrica vira um ORÇAMENTO na carteira do
+  vendedor do vínculo, que confere e confirma; um segundo pedido entra no
+  orçamento de reposição ainda aberto em vez de abrir outro.
+  """
+  requestPortalReplenishment(input: RequestPortalReplenishmentInput!): BaseResponse!
   """Emite um link novo e derruba o anterior. Devolve a URL — única vez em que ela existe."""
   issueClientPortalLink(companyClientId: UUID!): ClientPortalLinkTypeDataResponse!
   """Corta o link ativo. Use quando ele tiver ido parar onde não devia."""
@@ -979,6 +1040,7 @@ enum PlanFeature {
   GOALS
   COMMISSIONS
   NOTIFICATIONS
+  PORTAL_ORDERS
 }
 
 """Teto de volume que um plano impõe."""
@@ -2130,6 +2192,8 @@ input CreateImportTemplateInput {
   sampleFileUrl: String = null
   # Arquivo-modelo em base64 (o backend grava e preenche sampleFileUrl).
   sampleFileBase64: String = null
+  # Referência de `createUploadTicket` (envio direto, arquivo grande).
+  sampleFileRef: String = null
   sampleFileName: String = null
 }
 
@@ -2139,6 +2203,8 @@ input UpdateImportTemplateInput {
   config: JSON = null
   sampleFileUrl: String = null
   sampleFileBase64: String = null
+  # Referência de `createUploadTicket` (envio direto, arquivo grande).
+  sampleFileRef: String = null
   sampleFileName: String = null
   isActive: Boolean = null
 }
@@ -2395,7 +2461,10 @@ extend type Query {
 
 input ExtractPriceListFileInput {
   fileName: String!
-  fileBase64: String!
+  """Arquivo em base64 — só para arquivo pequeno; o grande vai por `fileRef`."""
+  fileBase64: String = null
+  """Referência de `createUploadTicket` (envio direto, até 15 MB)."""
+  fileRef: String = null
 }
 
 extend type Mutation {
@@ -2862,6 +2931,10 @@ input CreateOrderItemInput {
 enum OrderItemSource {
   MANUAL
   FILE_IMPORT
+  """Pedido de reposição que o próprio cliente fez no portal."""
+  PORTAL
+  """Histórico trazido de outro sistema na migração."""
+  HISTORY_IMPORT
 }
 
 type OrderItemType {
@@ -3090,7 +3163,10 @@ input ExtractOrderFileInput {
   # modelo da fábrica, quando ainda não há template salvo.
   recipe: JSON = null
   fileName: String!
-  fileBase64: String!
+  """Arquivo em base64 — só para arquivo pequeno; o grande vai por `fileRef`."""
+  fileBase64: String = null
+  """Referência de `createUploadTicket` (envio direto, até 15 MB)."""
+  fileRef: String = null
 }
 
 # Item já estruturado por uma receita determinística (quando há template/recipe).
@@ -3325,6 +3401,12 @@ type OrderType {
   coverageDays: Int
   """Data prevista de entrega = invoicedAt + deliveryEstimateDays. Nulo se não faturado ou sem estimativa."""
   estimatedDeliveryDate: Date
+  """
+  Data que a entrega recebe se alguém confirmar sem informar outra: faturamento
+  + prazo do pedido (ou o padrão de 30 dias), nunca depois de hoje. Nula sem
+  faturamento. Difere de `estimatedDeliveryDate`, que é nula sem prazo.
+  """
+  expectedDeliveryDate: Date
   """Faturado, prazo previsto vencido e ainda não entregue — precisa confirmar a entrega para atualizar o estoque."""
   isDeliveryOverdue: Boolean!
   """Visita que originou o pedido; nulo quando lançado fora de uma visita."""
@@ -3341,6 +3423,18 @@ type OrderType {
   fileUrl: String
   isFileParsed: Boolean!
   notes: String
+  """
+  Histórico trazido de outro sistema na migração: conta como compra
+  do cliente, mas não gera comissão nem boleto.
+  """
+  isImported: Boolean!
+  """Número do pedido no sistema de origem. Nulo nos pedidos nascidos aqui."""
+  externalRef: String
+  """
+  O cliente pediu este pedido pelo portal (aba "Repor"). Nasce orçamento na
+  carteira do vendedor, que confere preço, condição e frete antes de confirmar.
+  """
+  isFromPortal: Boolean!
   createdAt: DateTime!
   updatedAt: DateTime!
   deletedAt: DateTime
@@ -3587,6 +3681,13 @@ extend type Query {
 }
 
 extend type Mutation {
+  """
+  Traz o histórico de pedidos de outro sistema na migração. As linhas
+  vêm item por item, já mapeadas pela tela. Cada pedido nasce ENTREGUE, sem
+  parcelas: conta para estoque, ritmo e relatórios, e não gera comissão nem
+  boleto. Com `dryRun`, só confere e diz o que aconteceria. Só gestor.
+  """
+  importOrderHistory(input: ImportOrderHistoryInput!): ImportOrderHistoryResultDataResponse!
   createOrder(input: CreateOrderInput!): OrderTypeDataResponse!
   updateOrder(id: UUID!, input: UpdateOrderInput!): OrderTypeDataResponse!
   deleteOrder(id: UUID!): BaseResponse!
@@ -3605,6 +3706,18 @@ extend type Mutation {
   outros: ele volta em `failures`.
   """
   markOrdersDelivered(ids: [UUID!]!, deliveredAt: Date = null): MarkOrdersDeliveredResult!
+  """
+  Lê os XMLs de NF-e e diz, arquivo por arquivo, qual pedido cada nota fatura e
+  se dá para faturar sem conferência. Não grava nada. Mutation (e não query)
+  porque carrega o conteúdo dos arquivos.
+  """
+  previewNfeImport(files: [NfeFileInput!]!): [NfePreviewRow!]!
+  """
+  Fatura os pedidos pelas notas: data de emissão e número da nota, pelo mesmo
+  faturamento da tela do pedido. A avaliação é refeita aqui — só fatura a nota
+  que continua pronta para o MESMO pedido da prévia.
+  """
+  invoiceOrdersFromNfe(files: [NfeInvoiceFileInput!]!): [NfeInvoiceOutcome!]!
   """
   Carimba que o pedido saiu para a fábrica: grava quando, por quem e por onde, e
   avança DRAFT → SENT (pedido já CONFIRMADO mantém o status — reenviar não
@@ -3698,6 +3811,141 @@ type StalledOrdersType {
   awaitingInvoice: [OrderType!]!
   "Prazo de entrega assumido quando o pedido não tem `deliveryEstimateDays`."
   defaultDeliveryDays: Int!
+}
+
+
+input NfeFileInput {
+  fileName: String!
+  contentBase64: String!
+}
+
+input NfeInvoiceFileInput {
+  fileName: String!
+  contentBase64: String!
+  "O pedido que a prévia escolheu. Conferido de novo no servidor."
+  orderId: UUID!
+}
+
+"""
+O que a nota permite fazer. Só READY fatura sem conferência; NEEDS_REVIEW leva
+ao pedido (faturamento parcial, valor diferente, dois pedidos iguais).
+"""
+enum NfeImportStatus {
+  READY
+  NEEDS_REVIEW
+  ALREADY_IMPORTED
+  NOT_AUTHORIZED
+  UNKNOWN_FACTORY
+  UNKNOWN_CLIENT
+  NO_OPEN_ORDER
+  INVALID
+}
+
+"Uma duplicata (boleto) da nota."
+type NfeInstallmentType {
+  number: String
+  dueDate: Date!
+  amount: Decimal!
+}
+
+type NfePreviewRow {
+  fileName: String!
+  status: NfeImportStatus!
+  "Por extenso, para a tela."
+  reasons: [String!]!
+  orderId: UUID
+  orderTotal: Decimal
+  invoiceNumber: String
+  issuedAt: Date
+  emitterName: String
+  recipientName: String
+  "Mercadoria líquida de desconto, sem IPI e ST — a base do valor do pedido."
+  netProductsTotal: Decimal
+  invoiceTotal: Decimal
+  installments: [NfeInstallmentType!]!
+}
+
+type NfeInvoiceOutcome {
+  fileName: String!
+  orderId: UUID
+  isInvoiced: Boolean!
+  message: String!
+}
+
+"""Em que a quantidade da planilha de histórico está contada."""
+enum HistoryQuantityUnit {
+  """Unidades, como o pedido daqui."""
+  UNITS
+  """Embalagens (caixa, fardo): vira unidades pelo `unitPerPack` do produto."""
+  PACKS
+}
+
+input ImportOrderHistoryRowInput {
+  """Linha da planilha (para o resumo apontar onde está o problema)."""
+  row: Int!
+  """Número do pedido no sistema de origem. Sem ele, o pedido é o cliente × fábrica × vendedor × dia."""
+  externalRef: String = null
+  """CNPJ ou CPF do cliente, com ou sem pontuação."""
+  clientDocument: String!
+  factoryId: UUID!
+  sellerId: UUID!
+  orderDate: Date!
+  productCode: String = null
+  productName: String = null
+  quantity: Decimal!
+  unitPrice: Decimal = null
+  """Valor total da linha (com desconto). Vence o preço unitário quando os dois vêm."""
+  total: Decimal = null
+}
+
+input ImportOrderHistoryInput {
+  rows: [ImportOrderHistoryRowInput!]!
+  quantityUnit: HistoryQuantityUnit! = UNITS
+  dryRun: Boolean! = false
+}
+
+type ImportHistoryIssue {
+  row: Int!
+  message: String!
+}
+
+type ImportHistoryMissingProduct {
+  factoryId: UUID!
+  factory: FactoryType
+  code: String
+  name: String
+  """Quantas linhas citam este produto."""
+  rows: Int!
+}
+
+type ImportHistoryMissingClient {
+  document: String!
+  rows: Int!
+}
+
+type ImportOrderHistoryResult {
+  dryRun: Boolean!
+  totalRows: Int!
+  ordersCreated: Int!
+  """Pedidos cujo número de origem já tinha sido importado."""
+  ordersAlreadyImported: Int!
+  ordersSkipped: Int!
+  itemsImported: Int!
+  itemsSkipped: Int!
+  """Vínculos vendedor × cliente × fábrica criados para o histórico entrar na rotina."""
+  linksCreated: Int!
+  issues: [ImportHistoryIssue!]!
+  """Produtos da planilha que não existem no catálogo (os mais citados primeiro)."""
+  missingProducts: [ImportHistoryMissingProduct!]!
+  """Clientes que não estão na carteira — importe os clientes antes."""
+  missingClients: [ImportHistoryMissingClient!]!
+}
+
+type ImportOrderHistoryResultDataResponse {
+  status: Boolean!
+  code: Int!
+  message: String!
+  data: ImportOrderHistoryResult
 }
 
 # Console da plataforma — tudo aqui é exclusivo do super usuário (SU).
@@ -6017,6 +6265,44 @@ extend type Mutation {
   removeTaxFromProduct(id: UUID!): BaseResponse!
 }
 
+"""Autorização para enviar UM arquivo direto à API (fora do BFF)."""
+type UploadTicketType {
+  """Caminho relativo na API (`/uploads/<tíquete>`): o navegador faz PUT nele com o arquivo cru."""
+  uploadPath: String!
+  """Referência do arquivo, a passar para a mutation que o usa (`fileRef`)."""
+  fileRef: String!
+}
+
+type UploadTicketDataResponse {
+  status: Boolean!
+  code: Int!
+  message: String!
+  data: UploadTicketType
+}
+
+"""Leitura que o próprio envio já faz (o resultado fica pronto para a mutation)."""
+enum UploadPurpose {
+  """Só guardar o arquivo."""
+  RAW
+  """PDF de tabela de preço: o envio já extrai a grade (1 a 3 min em PDF grande)."""
+  PRICE_LIST_PDF
+}
+
+input CreateUploadTicketInput {
+  fileName: String!
+  purpose: UploadPurpose = RAW
+  """Tamanho em bytes: o tíquete não aceita arquivo maior que isto."""
+  size: Int!
+}
+
+extend type Mutation {
+  """
+  Autoriza o envio de um PDF, planilha ou XML (até 15 MB) direto à API. A
+  Vercel corta o corpo do BFF em 4,5 MB; o arquivo grande vai por aqui.
+  """
+  createUploadTicket(input: CreateUploadTicketInput!): UploadTicketDataResponse!
+}
+
 type UserFlowLayoutType {
   id: UUID!
   userId: UUID!
@@ -6184,7 +6470,24 @@ extend type Mutation {
     deleteUser(id: UUID!): BaseResponse!
     updatePassword(input: UpdateUserPasswordInput!): BaseResponse!
     updateMyProfile(input: UpdateMyProfileInput!): UserTypeDataResponse!
-    updateMyPassword(input: UpdateMyPasswordInput!): BaseResponse!
+    """
+    Troca a própria senha e encerra as sessões dos OUTROS aparelhos. Devolve o
+    token novo desta sessão, que o BFF grava no cookie.
+    """
+    updateMyPassword(input: UpdateMyPasswordInput!): SessionTokenDataResponse!
+}
+
+"""Token de uma sessão renovada (troca da própria senha)."""
+type SessionTokenType {
+  accessToken: String!
+  refreshToken: String!
+}
+
+type SessionTokenDataResponse {
+  status: Boolean!
+  code: Int!
+  message: String!
+  data: SessionTokenType
 }
 
 """Fábrica em foco numa visita: o vínculo, a fábrica e o score no momento em que
@@ -6806,6 +7109,78 @@ extend type Query {
   viagem cabe no dia e quem mais está naquela região merecendo visita.
   """
   visitPromotionPreview(itemId: UUID!, targetDate: Date = null): VisitPromotionPreviewType!
+  """
+  Roteiro da visita: o que oferecer (produtos que o cliente parou de comprar
+  ou que está na hora de repor), a promoção relâmpago no ar e o pedido do
+  portal esperando confirmação — por fábrica que o vendedor atende no cliente,
+  as do foco primeiro.
+  """
+  visitPlaybook(itemId: UUID!): VisitPlaybookType!
+}
+
+"""O roteiro de uma visita. O "por que ir" vem do score de cada vínculo."""
+type VisitPlaybookType {
+  """Id da carteira do cliente — o link para a análise completa por produto."""
+  companyClientId: UUID
+  factories: [VisitPlaybookFactoryType!]!
+}
+
+"""O que conversar sobre UMA fábrica nesta visita."""
+type VisitPlaybookFactoryType {
+  sellerClientFactoryId: UUID!
+  factory: FactoryType
+  """A fábrica motivou a visita."""
+  isFocus: Boolean!
+  """A fábrica suspendeu o crédito do cliente: sem sugestão de venda."""
+  isNegative: Boolean!
+  """Até 5 produtos, na ordem da conversa: hora de repor, atrasado, parou."""
+  offers: [VisitPlaybookOfferType!]!
+  """Quantos produtos com assunto ficaram fora da lista curta."""
+  moreOffersCount: Int!
+  """Promoção relâmpago valendo hoje. Nulo sem promoção."""
+  promotion: VisitPlaybookPromotionType
+  """Reposição pedida pelo cliente no portal, ainda sem confirmação."""
+  portalRequest: VisitPlaybookPortalRequestType
+}
+
+type VisitPlaybookOfferType {
+  productId: UUID!
+  product: ProductType
+  status: ProductPurchaseStatus!
+  """Em quantos pedidos da fábrica o produto apareceu."""
+  orderCount: Int!
+  """Quantos pedidos o cliente fez na fábrica — o "de 10" em "8 de 10"."""
+  factoryOrderCount: Int!
+  lastPurchaseDate: Date!
+  daysSinceLast: Int!
+  """Unidades da última compra — a quantidade para sugerir."""
+  lastUnits: Decimal!
+  avgIntervalDays: Int
+  """O produto está em promoção relâmpago hoje."""
+  isPromo: Boolean!
+}
+
+type VisitPlaybookPromotionType {
+  """Último dia da promoção."""
+  endsOn: Date!
+  """Quantos produtos da fábrica estão em promoção."""
+  productCount: Int!
+  """Até 5: os que o cliente já compra primeiro, depois o maior desconto."""
+  products: [VisitPlaybookPromoProductType!]!
+}
+
+type VisitPlaybookPromoProductType {
+  productId: UUID!
+  product: ProductType
+  """Desconto sobre o preço normal, em % inteiro."""
+  discountPercent: Int!
+  """O cliente já comprou este produto."""
+  isBoughtByClient: Boolean!
+}
+
+type VisitPlaybookPortalRequestType {
+  orderId: UUID!
+  requestedOn: Date!
 }
 
 """Origem da lista de produtos de uma fábrica na visita."""
@@ -7069,6 +7444,12 @@ extend type Mutation {
   saveVisitStockObservations(
     itemId: UUID!
     observations: [UpsertStockObservationInput!]!
+    """
+    Dia em que o vendedor viu a prateleira. Vem preenchido quando a resposta
+    ficou guardada no aparelho sem sinal e só foi enviada depois; o "ainda dura
+    N dias" conta a partir dele. Futuro ou mais velho que 7 dias vira hoje.
+    """
+    observedOn: Date = null
   ): VisitStockObservationListResponse!
   """
   Registra o estoque de um produto fora de uma visita (telefonema). Corrige a

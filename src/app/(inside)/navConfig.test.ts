@@ -12,6 +12,7 @@ const ALL: PlanFeature[] = [
   "GOALS",
   "COMMISSIONS",
   "NOTIFICATIONS",
+  "PORTAL_ORDERS",
 ];
 
 const hrefs = (role?: string, features: PlanFeature[] = ALL) =>

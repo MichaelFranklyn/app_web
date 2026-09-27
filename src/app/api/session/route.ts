@@ -2,6 +2,7 @@ import { RESET_PASSWORD_MUTATION } from "@/app/(auth)/change-password/gql";
 import { LOGIN_MUTATION } from "@/app/(auth)/login/gql";
 import { IMPERSONATE_USER_MUTATION } from "@/app/(platform)/platform/companies/[id]/gql";
 import { REGISTER_COMPANY_MUTATION } from "@/app/(auth)/signup/gql";
+import { UPDATE_MY_PASSWORD_MUTATION } from "@/app/(inside)/(config)/settings/user/[id]/_components/ChangePasswordModal/gql";
 import { gqlFetch } from "@/services/graphql/gqlFetch";
 import {
   getServerCookie,
@@ -57,6 +58,7 @@ export async function POST(req: NextRequest) {
   // não contaminar o caminho do login com condicionais.
   if (action === "impersonate") return startImpersonation(input);
   if (action === "stopImpersonation") return stopImpersonation();
+  if (action === "changeMyPassword") return changeMyPassword(input);
 
   const entry = action ? MUTATIONS[action] : undefined;
   if (!entry) {
@@ -191,6 +193,61 @@ async function startImpersonation(input?: Record<string, unknown>) {
   );
 
   return NextResponse.json({ status: true });
+}
+
+/**
+ * Troca a própria senha e renova o token DESTA sessão.
+ *
+ * Trocar a senha encerra todas as sessões abertas com a senha antiga — é o
+ * que tira um invasor da conta. O backend devolve um token novo para quem
+ * trocou; ele precisa ir para o cookie httpOnly aqui no servidor, senão a
+ * própria pessoa cairia na próxima requisição junto com os outros aparelhos.
+ */
+async function changeMyPassword(input?: Record<string, unknown>) {
+  const token = await getServerCookie<string>("token");
+  if (!token) {
+    return NextResponse.json(
+      { status: false, message: "Sessão expirada. Entre novamente." },
+      { status: 401 }
+    );
+  }
+
+  let payload:
+    | { status: boolean; message: string; data: { accessToken: string } | null }
+    | undefined;
+  try {
+    const res = await gqlFetch<{
+      updateMyPassword: NonNullable<typeof payload>;
+    }>({ query: UPDATE_MY_PASSWORD_MUTATION, variables: { input } }, token);
+    payload = res.data?.updateMyPassword;
+  } catch (e) {
+    return NextResponse.json(
+      {
+        status: false,
+        message: e instanceof Error ? e.message : "Erro ao atualizar senha.",
+      },
+      { status: 400 }
+    );
+  }
+
+  if (!payload?.status || !payload.data?.accessToken) {
+    return NextResponse.json(
+      {
+        status: false,
+        message: payload?.message ?? "Erro ao atualizar senha.",
+      },
+      { status: 400 }
+    );
+  }
+
+  // Mantém o prazo que a sessão já tinha (lembrar = 30 dias).
+  const remember = (await getServerCookie<string>("remember")) === "true";
+  await setServerCookie("token", payload.data.accessToken, {
+    httpOnly: true,
+    ...cookieBase(),
+    ...(remember ? { expires: 30 } : {}),
+  });
+  return NextResponse.json({ status: true, message: payload.message });
 }
 
 /** Devolve a sessão do SU e descarta a emprestada. */

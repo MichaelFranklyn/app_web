@@ -9,6 +9,7 @@ import { useState } from "react";
 import { NewOrderDetails } from "../../interface";
 import { NewOrderCore } from "../../useNewOrderCore";
 import { BackLink } from "../../utils";
+import { DraftBackupNotice } from "../DraftBackupNotice";
 import { LeaveOrderModal } from "../LeaveOrderModal";
 import { NewOrderFooter } from "../NewOrderFooter";
 import { OrderDetailsCard } from "../OrderDetailsCard";
@@ -75,6 +76,8 @@ export function NewOrderForm({
         initialData={details.initialData}
         onDirtyChange={setDetailsDirty}
       />
+
+      <DraftBackupNotice backup={core.backup} />
 
       <OrderItemsCard
         draft={core.draft}

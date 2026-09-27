@@ -15,6 +15,11 @@ import { useImportPriceListWizard } from "./useImportPriceListWizard";
 // Mocamos o módulo → todos compartilham o mesmo spy e conseguimos assertar os
 // toasts de sucesso/parcial/erro.
 const toastSpy = vi.fn();
+// O arquivo sobe direto à API (tíquete + PUT); aqui só interessa a referência.
+vi.mock("@/services/upload", () => ({
+  useFileUpload: () => async () => "uploads/empresa/arquivo.pdf",
+}));
+
 vi.mock("@/components/Toast", () => ({
   useToast: () => ({ toast: toastSpy }),
 }));

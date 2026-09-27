@@ -11,7 +11,10 @@ export interface SessionBody {
     // autenticação: rodam com o token atual e mexem nos cookies da sessão
     // guardada. Ver `startImpersonation` na rota.
     | "impersonate"
-    | "stopImpersonation";
+    | "stopImpersonation"
+    // Troca da própria senha: roda com o token atual e grava o token novo
+    // (os outros aparelhos caem). Ver `changeMyPassword` na rota.
+    | "changeMyPassword";
   // `object` (não Record) para aceitar tanto literais quanto os inputs tipados
   // (ex.: RegisterCompanyInput) sem cast; é só payload de transporte serializado.
   // Ausente em `stopImpersonation`, que não recebe nada.

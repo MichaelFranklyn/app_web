@@ -59,14 +59,19 @@ export const ORDER_KPI_HELP: Record<string, ReactNode> = {
   ),
 };
 
-export const ORDER_TAB_HELP: Record<"all" | "pending", string> = {
+export const ORDER_TAB_HELP: Record<"all" | "pending" | "delivery", string> = {
   all: "Todos os pedidos da empresa, em qualquer situação: orçamentos, confirmados, faturados, entregues e cancelados.",
   pending:
-    "Só os pedidos confirmados que a fábrica ainda não faturou — a fila de cobrança da nota. Orçamento não entra: ele ainda não é pedido.",
+    "Pedidos fechados com o cliente que a fábrica ainda não faturou. Orçamento não entra: ele ainda não é pedido.",
+  delivery:
+    "Pedidos que a fábrica já faturou, com o prazo de entrega vencido e sem a entrega confirmada. Enquanto isso, o sistema não sugere visita a esse cliente por essa fábrica.",
 };
 
 /** Explicação de cada coluna da lista (vai no `title` do cabeçalho). */
 export const ORDER_COLUMN_HELP = {
+  invoicedAt: "Dia em que a fábrica faturou o pedido (a data da nota fiscal).",
+  expectedDelivery:
+    "Data de faturamento mais o prazo de entrega do pedido. Ao confirmar sem informar outra data, é esta que fica gravada como o dia em que chegou.",
   code: "Código curto do pedido — os 8 primeiros caracteres do identificador. É por ele que o pedido é procurado no filtro e o que sai impresso no PDF.",
   sortHint:
     "Cliente, fábrica e vendedor ordenam pelo nome que você vê na coluna.",

@@ -10,6 +10,11 @@ const { readWorkbook, fileToBase64 } = vi.hoisted(() => ({
 }));
 
 vi.mock("@/utils/file", () => ({ fileToBase64 }));
+// O arquivo sobe direto à API (tíquete + PUT); aqui só interessa a referência.
+vi.mock("@/services/upload", () => ({
+  useFileUpload: () => async () => "uploads/empresa/arquivo.pdf",
+}));
+
 vi.mock("@/utils/import/reader", async (importOriginal) => {
   const actual = await importOriginal<Record<string, unknown>>();
   return { ...actual, readWorkbook };
@@ -43,7 +48,7 @@ const extractMock = (
     variables: {
       input: {
         fileName: "pedido-modelo.pdf",
-        fileBase64: "BASE64",
+        fileRef: "uploads/empresa/arquivo.pdf",
         recipe,
       },
     },
@@ -255,7 +260,7 @@ describe("useConfigureTemplate — salvar a receita", () => {
     fileType: "PDF",
     parserStrategy: "FIXED_LAYOUT",
     config: { preset, priceIndex },
-    sampleFileBase64: "BASE64",
+    sampleFileRef: "uploads/empresa/arquivo.pdf",
     sampleFileName: "pedido-modelo.pdf",
   });
 
@@ -329,7 +334,7 @@ describe("useConfigureTemplate — salvar a receita", () => {
             unitPrice: { kind: "none" },
           },
         },
-        sampleFileBase64: "BASE64",
+        sampleFileRef: "uploads/empresa/arquivo.pdf",
         sampleFileName: "pedido-modelo.xlsx",
       }),
     ]);
@@ -362,7 +367,7 @@ describe("useConfigureTemplate — salvar a receita", () => {
           fileType: "PDF",
           parserStrategy: "FIXED_LAYOUT",
           config: { preset: "prefix_dash", priceIndex: 0 },
-          sampleFileBase64: "BASE64",
+          sampleFileRef: "uploads/empresa/arquivo.pdf",
           sampleFileName: "pedido-modelo.pdf",
         }),
       ],

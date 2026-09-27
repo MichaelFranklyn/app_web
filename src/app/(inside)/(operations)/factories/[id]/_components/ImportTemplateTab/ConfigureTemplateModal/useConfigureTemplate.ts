@@ -1,9 +1,9 @@
 import { useMutation } from "@apollo/client/react";
+import { useFileUpload } from "@/services/upload";
 import { useMemo, useState } from "react";
 
 import { SelectOption } from "@/components/Input";
 import { useAsyncAction } from "@/hooks/useAsyncAction";
-import { fileToBase64 } from "@/utils/file";
 import { ColumnChoice } from "@/utils/import/columns";
 import {
   guessBestSheet,
@@ -54,6 +54,7 @@ export function useConfigureTemplate({
   current,
   onSaved,
 }: ConfigureTemplateModalProps) {
+  const uploadFile = useFileUpload();
   const [open, setOpen] = useState(false);
   const [file, setFile] = useState<File[]>([]);
   const [isPdf, setIsPdf] = useState(false);
@@ -184,12 +185,12 @@ export function useConfigureTemplate({
     if (!selected || !presetId) return;
     await execute(
       async () => {
-        const base64 = await fileToBase64(selected);
+        const fileRef = await uploadFile(selected);
         const res = await extractPreview({
           variables: {
             input: {
               fileName: selected.name,
-              fileBase64: base64,
+              fileRef,
               recipe: {
                 preset: presetId,
                 priceIndex: idx === "none" ? null : idx,
@@ -261,13 +262,13 @@ export function useConfigureTemplate({
     if (!selected) return;
     await execute(
       async () => {
-        const base64 = await fileToBase64(selected);
+        const fileRef = await uploadFile(selected);
         const config = buildConfig();
         const shared = {
           fileType: fileTypeOf(selected.name),
           parserStrategy: isPdf ? "FIXED_LAYOUT" : "COLUMN_MAPPING",
           config,
-          sampleFileBase64: base64,
+          sampleFileRef: fileRef,
           sampleFileName: selected.name,
         };
         if (current) {

@@ -1,7 +1,12 @@
 import { MockedProvider } from "@apollo/client/testing/react";
 import { act, renderHook, waitFor } from "@testing-library/react";
 import { ReactNode } from "react";
-import { describe, expect, it, vi } from "vitest";
+import { afterEach, describe, expect, it, vi } from "vitest";
+
+import {
+  getQueueState,
+  resetQueueForTests,
+} from "@/services/offlineQueue/store";
 
 import { Toast } from "@/components/Toast";
 import {
@@ -12,6 +17,10 @@ import {
 import { useStockObservation } from "./useStockObservation";
 
 const ITEM = "item-1";
+
+// Sem usuário no cookie, a fila offline fica de fora (o caminho de sempre).
+const { getCookie } = vi.hoisted(() => ({ getCookie: vi.fn(() => null) }));
+vi.mock("@/utils/cookies/clientCookie", () => ({ getCookie }));
 
 const product = (
   id: string,
@@ -271,6 +280,60 @@ describe("useStockObservation", () => {
       });
 
       expect(canLeave).toBe(false);
+    });
+  });
+
+  describe("sem sinal", () => {
+    afterEach(() => {
+      resetQueueForTests();
+      getCookie.mockReturnValue(null);
+    });
+
+    it("lista de produtos que não veio NÃO vira 'cliente sem fábrica'", async () => {
+      const { result } = run([
+        {
+          request: {
+            query: VISIT_STOCK_CANDIDATES_QUERY,
+            variables: { itemId: ITEM },
+          },
+          error: new TypeError("Failed to fetch"),
+        },
+        observationsMock([]),
+      ]);
+
+      await waitFor(() => expect(result.current.loading).toBe(false));
+      expect(result.current.unavailable).toBe(true);
+    });
+
+    it("a gravação fica guardada no aparelho e a visita segue como concluída", async () => {
+      getCookie.mockReturnValue({ userId: "u1" } as never);
+      const { result, onSaved } = run([
+        candidatesMock([group("f1", [product("p1")])]),
+        observationsMock([]),
+        {
+          request: {
+            query: SAVE_VISIT_STOCK_OBSERVATIONS_MUTATION,
+            variables: {
+              itemId: ITEM,
+              observations: [{ productId: "p1", daysRemaining: 0 }],
+            },
+          },
+          error: new TypeError("Failed to fetch"),
+        },
+      ]);
+      await waitFor(() => expect(result.current.loading).toBe(false));
+
+      act(() => result.current.setDays("p1", 0));
+      await act(() => result.current.handleSave());
+
+      await waitFor(() => expect(onSaved).toHaveBeenCalledOnce());
+      expect(getQueueState().entries).toEqual([
+        expect.objectContaining({
+          kind: "stockObservations",
+          key: `stock:${ITEM}`,
+          userId: "u1",
+        }),
+      ]);
     });
   });
 });

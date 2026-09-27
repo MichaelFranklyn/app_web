@@ -14,6 +14,7 @@ export const PORTAL_PROFILE = gql`
         clientState
         companyName
         companyLogoUrl
+        canRequestReplenishment
       }
     }
   }
@@ -116,6 +117,38 @@ export const PORTAL_STOCK = gql`
 export const SUBMIT_PORTAL_STOCK = gql`
   mutation SubmitPortalStock($input: SubmitPortalStockInput!) {
     submitPortalStock(input: $input) {
+      status
+      message
+    }
+  }
+`;
+
+export const PORTAL_REPLENISHMENT = gql`
+  query PortalReplenishment {
+    portalReplenishment {
+      data {
+        horizonDays
+        items {
+          productId
+          productName
+          sku
+          factoryName
+          daysRemaining
+          lastPurchaseDate
+          suggestedQuantity
+          saleMultiple
+          pendingQuantity
+        }
+      }
+    }
+  }
+`;
+
+export const REQUEST_PORTAL_REPLENISHMENT = gql`
+  mutation RequestPortalReplenishment(
+    $input: RequestPortalReplenishmentInput!
+  ) {
+    requestPortalReplenishment(input: $input) {
       status
       message
     }

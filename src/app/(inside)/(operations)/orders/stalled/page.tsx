@@ -1,10 +1,19 @@
-import StalledOrdersContent from "./content";
+import { redirect } from "next/navigation";
 
 /**
- * Pedidos parados — a conferência dos pedidos que seguram o cliente fora da
- * rotina: faturados com a entrega vencida e confirmados sem faturar. Chega-se
- * pelos cartões de /insights e pelo botão da lista de pedidos.
+ * A antiga página "Pedidos parados" virou duas abas de Pedidos: era a mesma
+ * lista da aba de faturamento, mais as entregas a confirmar. O endereço segue
+ * vivo para favoritos e links antigos, e cai na aba correspondente.
  */
-const Page = async () => <StalledOrdersContent />;
+const Page = async ({
+  searchParams,
+}: {
+  searchParams: Promise<{ tab?: string }>;
+}) => {
+  const { tab } = await searchParams;
+  redirect(
+    tab === "faturamento" ? "/orders?tab=pending" : "/orders?tab=delivery"
+  );
+};
 
 export default Page;

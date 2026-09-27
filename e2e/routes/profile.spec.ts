@@ -161,12 +161,9 @@ test("profile: o CPF fica no card de dados pessoais, do usuário", async ({
 });
 
 test("profile: altera a senha pelo modal do card", async ({ page }) => {
-  await mockGraphql(page, {
-    UserDetail: () => userDetailData(),
-    UpdateMyPassword: () => ({
-      updateMyPassword: { status: true, code: 200, message: "ok" },
-    }),
-  });
+  // A troca roda no SERVIDOR (rota /api/session) e é respondida pelo
+  // stub-backend: o token novo desta sessão vai para o cookie httpOnly.
+  await mockGraphql(page, { UserDetail: () => userDetailData() });
 
   await page.goto("/profile");
 
@@ -180,7 +177,13 @@ test("profile: altera a senha pelo modal do card", async ({ page }) => {
   await dialog.locator('input[name="confirmPassword"]').fill("SenhaNova1!");
   await dialog.getByRole("button", { name: "Atualizar senha" }).click();
 
-  await expect(page.getByText("Senha atualizada com sucesso")).toBeVisible();
+  await expect(
+    page.getByText(
+      "Senha atualizada. Em outros aparelhos, será preciso entrar de novo."
+    )
+  ).toBeVisible();
+  // Quem trocou continua logado: segue na tela do perfil, sem ir para o login.
+  await expect(page).toHaveURL(/\/settings\/user\//);
 });
 
 /**

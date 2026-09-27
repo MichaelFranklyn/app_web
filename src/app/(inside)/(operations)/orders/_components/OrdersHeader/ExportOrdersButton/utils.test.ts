@@ -11,6 +11,7 @@ const order: Order = {
   commissionAmount: "61.73",
   status: "INVOICED",
   isDeliveryOverdue: false,
+  expectedDeliveryDate: null,
   seller: { id: "s1", name: "Ana" },
   client: {
     id: "c1",

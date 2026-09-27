@@ -2,6 +2,7 @@ import { FormBuilderRef } from "@/components/FormBuilder";
 import { useToast } from "@/components/Toast";
 import { useAsyncAction } from "@/hooks/useAsyncAction";
 import { useInvalidateQueriesClient } from "@/hooks/useInvalidateQueries";
+import { isConnectivityError } from "@/services/offlineQueue";
 import { isOnLeaveSentinel } from "@/hooks/useLeaveGuard";
 import { useRedirectTransition } from "@/hooks/useRedirectTransition";
 import {
@@ -24,6 +25,7 @@ import {
 } from "../../_shared/orderDraftItems";
 import { usePaymentTermOptions } from "../../_shared/orderPaymentTerms";
 import { useFreeFreightTarget } from "../../_shared/orderFreight";
+import { useDraftBackup } from "./useDraftBackup";
 
 /**
  * O que a página de novo pedido faz igual em qualquer origem (lista, cliente,
@@ -59,6 +61,9 @@ export function useNewOrderCore(fixed: Fixed = {}) {
   const [freightType, setFreightType] = useState("");
 
   const draft = useOrderDraftItems(true, factoryId, clientId);
+  // Os itens também ficam no aparelho até o pedido ser criado: sem sinal, o
+  // pedido não é criado (nem guardado para depois), mas o trabalho não se perde.
+  const backup = useDraftBackup(draft, factoryId, clientId);
   const { options: paymentTermOptions, minimumOf } = usePaymentTermOptions(
     true,
     factoryId || null
@@ -91,7 +96,19 @@ export function useNewOrderCore(fixed: Fixed = {}) {
   const create = async (input: CreateOrderInput) => {
     await execute(
       async () => {
-        const res = await createOrder({ variables: { input } });
+        const res = await createOrder({ variables: { input } }).catch(
+          (error: unknown) => {
+            // Sem sinal o toast cru seria "Failed to fetch". O pedido NÃO vai
+            // para a fila (preço e piso seriam gravados sem conferência), mas
+            // a tela e a cópia no aparelho seguram o que foi digitado.
+            if (isConnectivityError(error)) {
+              throw new Error(
+                "Sem sinal: o pedido não foi criado. O que você preencheu continua aqui e guardado no aparelho — toque em “Criar pedido” quando o sinal voltar."
+              );
+            }
+            throw error;
+          }
+        );
         if (!res.data?.createOrder?.status || !res.data.createOrder.data) {
           throw new Error(
             res.data?.createOrder?.message ?? "Erro ao criar pedido"
@@ -111,6 +128,7 @@ export function useNewOrderCore(fixed: Fixed = {}) {
       {
         successMessage: "Pedido criado com sucesso",
         onSuccess: async ({ order, failed }) => {
+          backup.clear();
           // Item gravado é a prova de que a visita aconteceu: o backend fecha
           // a visita pendente do cliente no primeiro item. Sem itens, só o
           // pedido mudou.
@@ -155,6 +173,7 @@ export function useNewOrderCore(fixed: Fixed = {}) {
     setPaymentTermId,
     setFreightType,
     draft,
+    backup,
     paymentMinimum,
     freeFreight,
     create,

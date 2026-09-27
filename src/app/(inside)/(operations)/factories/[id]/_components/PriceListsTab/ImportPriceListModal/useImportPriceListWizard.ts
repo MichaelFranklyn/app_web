@@ -1,4 +1,5 @@
 import { useMutation } from "@apollo/client/react";
+import { useFileUpload } from "@/services/upload";
 import { usePathname, useRouter, useSearchParams } from "next/navigation";
 import { useMemo, useState } from "react";
 
@@ -29,7 +30,6 @@ import { useCompanyFactoryNode } from "../../../../../_shared/orderItemCatalog";
 import { buildImportInput, canImport, PRICE_REQUIRED_FIELDS } from "./build";
 import {
   EXTRACT_PRICE_LIST_FILE_MUTATION,
-  fileToBase64,
   IMPORT_PRICE_LIST_MUTATION,
 } from "./gql";
 import { ImportPriceListResponse, ImportPriceListResult } from "./interface";
@@ -59,6 +59,7 @@ export function useImportPriceListWizard({
   const router = useRouter();
   const pathname = usePathname();
   // Aberto direto pelo CTA do modal de importar produtos (?import=price-list)
+  const uploadFile = useFileUpload();
   const [open, setOpen] = useState(searchParams.get("import") === "price-list");
   const [step, setStep] = useState(0);
 
@@ -321,9 +322,11 @@ export function useImportPriceListWizard({
       if (isPdf) {
         // PDF: a grade é extraída no backend (pdfplumber) e embrulhada como uma
         // "planilha" de aba única — o resto do fluxo (cabeçalho/colunas) é igual.
-        const base64 = await fileToBase64(selected);
+        // Envio direto à API, que já lê a grade durante o envio: o PDF de
+        // tabela passa fácil do limite de corpo e de tempo do BFF.
+        const fileRef = await uploadFile(selected, "PRICE_LIST_PDF");
         const res = await extractPdf({
-          variables: { input: { fileName: selected.name, fileBase64: base64 } },
+          variables: { input: { fileName: selected.name, fileRef } },
         });
         const payload = res.data?.extractPriceListFile;
         if (!payload?.status || !payload.data) {

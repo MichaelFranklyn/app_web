@@ -24,6 +24,7 @@ import {
 } from "../../../utils";
 import { ALL_OUTCOME_LABEL, contactLabel, contactNoun } from "@/utils/visit";
 import { ContactLinks } from "../../ContactLinks";
+import { VisitPlaybook } from "./VisitPlaybook";
 import { VisitScoreReasons } from "./VisitScoreReasons";
 
 interface Props {
@@ -141,6 +142,10 @@ export function VisitDetailPanel({
               deslocamento): é a informação que faz o vendedor entender a
               sugestão do sistema em vez de só cumpri-la. */}
         <VisitScoreReasons reasons={scoreReasons} />
+
+        {/* Depois do porquê, o que falar: é a ordem em que o vendedor pensa
+              a visita no carro, antes de entrar na loja. */}
+        <VisitPlaybook itemId={item.id} open={open} />
 
         {/* Como falar com o cliente — só faz sentido no contato remoto; na
               visita o que importa é o endereço, que já está no mapa do dia. */}

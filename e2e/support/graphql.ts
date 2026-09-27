@@ -30,12 +30,39 @@ export interface GraphqlSpy {
   waitForCall(op: string, timeoutMs?: number): Promise<Variables>;
 }
 
+/** Respostas-padrão do envio direto de arquivo (ver `@/services/upload`). */
+const UPLOAD_DEFAULTS: Record<string, Handler> = {
+  CreateUploadTicket: (variables) => ({
+    createUploadTicket: {
+      status: true,
+      message: "OK",
+      data: {
+        uploadPath: "/uploads/tiquete-e2e",
+        fileRef: `uploads/e2e/${String(
+          (variables.input as { fileName?: string } | undefined)?.fileName ??
+            "arquivo"
+        )}`,
+      },
+    },
+  }),
+};
+
 export async function mockGraphql(
   page: Page,
   handlers: Record<string, Handler>,
   fallback: Handler = () => ({})
 ): Promise<GraphqlSpy> {
   const recorded = new Map<string, Variables[]>();
+
+  // Envio direto de arquivo (tíquete + PUT na API, fora do BFF): responde como
+  // o backend para todo spec que sobe PDF ou planilha, sem cada um repetir.
+  await page.route("**/uploads/**", (route: Route) =>
+    route.fulfill({
+      status: 200,
+      contentType: "application/json",
+      body: JSON.stringify({ status: true }),
+    })
+  );
 
   await page.route("**/graphql", async (route: Route) => {
     const body = route.request().postDataJSON() as GraphqlBody | null;
@@ -46,7 +73,7 @@ export async function mockGraphql(
     list.push(variables);
     recorded.set(op, list);
 
-    const handler = handlers[op] ?? fallback;
+    const handler = handlers[op] ?? UPLOAD_DEFAULTS[op] ?? fallback;
     const data = handler(variables);
 
     await route.fulfill({

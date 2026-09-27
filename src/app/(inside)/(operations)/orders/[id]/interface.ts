@@ -64,6 +64,12 @@ export interface OrderDetail {
   fileUrl: string | null;
   isFileParsed: boolean;
   notes: string | null;
+  /** O cliente pediu pelo portal (aba "Repor"): orçamento a conferir. */
+  isFromPortal: boolean;
+  /** Histórico trazido de outro sistema: entregue, sem comissão nem boleto. */
+  isImported: boolean;
+  /** Número do pedido no sistema de origem. */
+  externalRef: string | null;
   freightType: "FOB" | "CIF" | null;
   createdAt: string;
   invoicedAt: string | null;

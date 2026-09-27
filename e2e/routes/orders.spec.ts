@@ -26,7 +26,7 @@ test("orders: lista vazia carrega e renderiza o cabeçalho", async ({
   ).toBeVisible();
 });
 
-test("orders: a aba 'Ainda não faturados' consulta com o filtro pendente", async ({
+test("orders: a aba 'Esperando faturamento' consulta com o filtro pendente", async ({
   page,
 }) => {
   const spy = await mockGraphql(page, {
@@ -44,11 +44,11 @@ test("orders: a aba 'Ainda não faturados' consulta com o filtro pendente", asyn
   });
 
   await page.goto("/orders");
-  await page.getByRole("tab", { name: "Ainda não faturados" }).click();
+  await page.getByRole("tab", { name: "Esperando faturamento" }).click();
 
   await expect(page).toHaveURL(/tab=pending/);
   await expect(
-    page.getByRole("heading", { name: "Pedidos a faturar" })
+    page.getByRole("heading", { name: "Pedidos esperando faturamento" })
   ).toBeVisible();
 
   // O que importa não é a aba pintada, é a consulta ter saído filtrada.

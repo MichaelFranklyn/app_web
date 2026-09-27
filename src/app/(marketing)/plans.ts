@@ -84,6 +84,7 @@ export const PLANS: MarketingPlan[] = [
     features: [
       "Tudo do Intermediário",
       "Desempenho e rankings",
+      "Cliente pede a reposição pelo portal",
       "Mais vendedores, fábricas e clientes",
     ],
   },
@@ -161,6 +162,13 @@ export const PLAN_MATRIX: PlanMatrixGroup[] = [
       },
       {
         label: "Desempenho e rankings",
+        basic: false,
+        intermediate: false,
+        corporate: true,
+        enterprise: true,
+      },
+      {
+        label: "Cliente pede a reposição pelo portal",
         basic: false,
         intermediate: false,
         corporate: true,

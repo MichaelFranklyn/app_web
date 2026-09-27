@@ -7,7 +7,8 @@ import { factoryName } from "@/utils/company";
 import { useMemo } from "react";
 
 import { ClientProductAnalysisRow } from "./interface";
-import { presenceShare, STATUS_LABEL } from "./utils";
+import { PURCHASE_STATUS_LABEL } from "@/utils/productPurchase";
+import { presenceShare } from "./utils";
 
 /** Opções tiradas das próprias linhas — nenhuma escolha devolve lista vazia. */
 const optionsFrom = (
@@ -48,7 +49,7 @@ const COLUMNS = {
   lastPurchase: (row: ClientProductAnalysisRow) => row.lastPurchaseDate,
   cycle: (row: ClientProductAnalysisRow) => row.avgIntervalDays,
   expected: (row: ClientProductAnalysisRow) => row.expectedNextDate,
-  status: (row: ClientProductAnalysisRow) => STATUS_LABEL[row.status],
+  status: (row: ClientProductAnalysisRow) => PURCHASE_STATUS_LABEL[row.status],
   amount: (row: ClientProductAnalysisRow) => Number(row.totalAmount),
 };
 
@@ -79,7 +80,7 @@ export const useProductAnalysisTable = (rows: ClientProductAnalysisRow[]) => {
         placeholder: "Todas as situações",
         options: optionsFrom(rows, (row) => ({
           value: row.status,
-          label: STATUS_LABEL[row.status],
+          label: PURCHASE_STATUS_LABEL[row.status],
         })),
       },
       {

@@ -5,7 +5,7 @@ import { EmptyState } from "@/components/EmptyState";
 import { Title } from "@/components/Title";
 import { WifiOff } from "lucide-react";
 import { useEffect, useState } from "react";
-import { sondarServidor } from "./utils";
+import { sondarServidor } from "@/utils/connectivity";
 
 /**
  * Cliente porque a página tem uma coisa a fazer: descobrir quando dá para voltar.

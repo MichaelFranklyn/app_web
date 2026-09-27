@@ -90,7 +90,7 @@ export interface ReportContextParams {
   /** Os mesmos campos do painel de filtros da tela. */
   fields: FilterField[];
   values: Record<string, string>;
-  /** Recorte que não vem do painel (a aba corrente, "Ainda não faturados"). */
+  /** Recorte que não vem do painel (a aba corrente, "Esperando faturamento"). */
   scopeLabel?: string | null;
   /** Ordenação ativa na tabela, se houver. */
   order?: ReportOrder | null;

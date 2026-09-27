@@ -275,6 +275,13 @@ export function useOrderDraftItems(
     setError(null);
   };
 
+  /** Devolve à lista os itens guardados no aparelho (pedido que não chegou). */
+  const restore = (saved: DraftItem[]) => {
+    resetNewItem();
+    setError(null);
+    setItems(saved);
+  };
+
   // Um item começado e ainda não adicionado à lista: o que o vendedor já
   // digitou nele se perde ao sair da tela. O preço sugerido não conta sozinho —
   // ele só aparece depois de escolher o produto, que já conta.
@@ -317,6 +324,7 @@ export function useOrderDraftItems(
     cancelEdit,
     removeItem,
     reset,
+    restore,
   };
 }
 

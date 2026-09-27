@@ -54,6 +54,38 @@ export function OrderDetailHeader({ order, onRefetch }: Props) {
             {/* As tarjas dizem em que pé está o pedido; o `title` explica o
                 que cada estado significa para quem ainda não domina o fluxo
                 (orçamento → confirmado → faturado → entregue). */}
+            {/* O cliente pediu pelo portal: ninguém do escritório digitou
+                nada — preço, condição e frete precisam ser conferidos antes
+                de converter. */}
+            {/* Histórico da migração: o número é o do sistema antigo, e a
+                falta de comissão e boleto é esperada, não defeito. */}
+            {order.isImported && (
+              <div className="mt-4">
+                <Badge.Root
+                  appearance="tinted"
+                  color="neutral"
+                  title="Pedido trazido do sistema antigo na migração. Entrou como entregue e não gera comissão nem boleto aqui."
+                >
+                  <Badge.Text>
+                    Histórico importado
+                    {order.externalRef ? ` · nº ${order.externalRef}` : ""}
+                  </Badge.Text>
+                </Badge.Root>
+              </div>
+            )}
+
+            {order.isFromPortal && (
+              <div className="mt-4">
+                <Badge.Root
+                  appearance="tinted"
+                  color="purple"
+                  title="O próprio cliente pediu estes produtos pelo portal. O preço veio da tabela no nível dele (ou da última compra); confira preço, condição de pagamento e frete antes de converter em pedido."
+                >
+                  <Badge.Text>Pedido do cliente pelo portal</Badge.Text>
+                </Badge.Root>
+              </div>
+            )}
+
             {isQuote && (
               <div className="mt-4">
                 <Badge.Root

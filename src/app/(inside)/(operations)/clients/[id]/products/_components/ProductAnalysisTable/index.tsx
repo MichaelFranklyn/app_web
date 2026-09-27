@@ -6,19 +6,18 @@ import { Filters } from "@/components/Filters";
 import { Table } from "@/components/Table";
 import { factoryName } from "@/utils/company";
 import { formatDate } from "@/utils/format/date";
+import {
+  daysAgoLabel,
+  PURCHASE_STATUS_COLOR,
+  PURCHASE_STATUS_HINT,
+  PURCHASE_STATUS_LABEL,
+  unitsLabel,
+} from "@/utils/productPurchase";
 import { PackageSearch } from "lucide-react";
 
 import { PRODUCT_COLUMN_HELP } from "../../help";
 import { ClientProductAnalysisRow } from "../../interface";
-import {
-  cycleLabel,
-  daysAgoLabel,
-  isStaple,
-  STATUS_COLOR,
-  STATUS_HINT,
-  STATUS_LABEL,
-  unitsLabel,
-} from "../../utils";
+import { cycleLabel, isStaple } from "../../utils";
 import { useProductAnalysisTable } from "../../useProductAnalysisTable";
 
 interface Props {
@@ -166,11 +165,11 @@ export function ProductAnalysisTable({ table, rows }: Props) {
                 </Table.Cell>
                 <Table.Cell>
                   <Badge.Root
-                    color={STATUS_COLOR[row.status]}
+                    color={PURCHASE_STATUS_COLOR[row.status]}
                     appearance="tinted"
-                    title={STATUS_HINT[row.status]}
+                    title={PURCHASE_STATUS_HINT[row.status]}
                   >
-                    <Badge.Text>{STATUS_LABEL[row.status]}</Badge.Text>
+                    <Badge.Text>{PURCHASE_STATUS_LABEL[row.status]}</Badge.Text>
                   </Badge.Root>
                 </Table.Cell>
               </Table.Row>

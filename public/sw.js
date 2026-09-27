@@ -17,6 +17,12 @@
  * O que ele faz é menor e seguro: o app ABRE offline (shell + assets), e o que
  * depende da rede mostra "sem conexão" em vez de erro do navegador.
  *
+ * A fila que EXISTE não mora aqui: `@/services/offlineQueue` guarda, no app, só
+ * gravações que podem ser repetidas sem estrago (concluir visita, estoque da
+ * visita) e as envia quando o servidor volta a responder. Pedido continua fora
+ * dela pelo motivo acima — o rascunho dele fica no aparelho, e quem cria é a
+ * pessoa, com sinal.
+ *
  * ─────────────────────────────────────────────────────────────────────────────
  * REGRA DE SEGURANÇA QUE GOVERNA O ARQUIVO INTEIRO
  * ─────────────────────────────────────────────────────────────────────────────

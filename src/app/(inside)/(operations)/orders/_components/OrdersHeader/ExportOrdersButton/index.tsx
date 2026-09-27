@@ -35,7 +35,7 @@ interface Props {
   inputValues: Record<string, string>;
   /** Ordenação à vista na tabela; o arquivo sai na MESMA ordem. */
   order?: ReportOrder | null;
-  /** Aba corrente, quando ela restringe a lista ("Ainda não faturados"). */
+  /** Aba corrente, quando ela restringe a lista ("Esperando faturamento"). */
   scopeLabel?: string | null;
   disabled?: boolean;
 }

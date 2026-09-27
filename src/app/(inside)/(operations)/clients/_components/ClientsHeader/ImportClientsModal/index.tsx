@@ -88,7 +88,7 @@ export function ImportClientsModal() {
       <Modal.Content size="md">
         <Modal.Header
           title="Importar clientes"
-          description="Envie uma planilha do Excel com os CNPJs para adicionar vários clientes de uma vez. Os demais dados são preenchidos automaticamente via Receita Federal."
+          description="Envie uma planilha do Excel com os CNPJs para adicionar vários clientes de uma vez. Serve a lista exportada de outro sistema: o sistema acha a coluna do CNPJ sozinho. Os demais dados vêm da Receita Federal."
         />
 
         <Modal.Body className="flex flex-col gap-16">

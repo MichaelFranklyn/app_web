@@ -19,6 +19,9 @@ export const ORDER_DETAIL_QUERY = gql`
         fileUrl
         isFileParsed
         notes
+        isFromPortal
+        isImported
+        externalRef
         createdAt
         invoicedAt
         invoiceNumber

@@ -1,4 +1,5 @@
 import { useMutation } from "@apollo/client/react";
+import { useFileUpload } from "@/services/upload";
 import { useEffect, useMemo, useRef, useState } from "react";
 
 import { SelectOption } from "@/components/Input";
@@ -31,7 +32,6 @@ import {
   SkippedImportItem,
 } from "./interface";
 import {
-  fileToBase64,
   guessMapping,
   guessOrderSheet,
   ImportRow,
@@ -90,6 +90,7 @@ export function useOrderImportWizard({
   const fromSheet = Boolean(initialRows?.length);
   // Com a ficha o fluxo começa na revisão — os dois primeiros passos existem
   // para descobrir o que o arquivo tem, e a ficha já disse.
+  const uploadFile = useFileUpload();
   const [step, setStep] = useState(fromSheet ? REVIEW_STEP : 0);
   const [file, setFile] = useState<File[]>([]);
   // Excel com várias abas: guardamos o workbook e a aba escolhida para o
@@ -198,13 +199,13 @@ export function useOrderImportWizard({
         | { workbook: WorkbookData; sheet: string }
       > => {
         if (isPdf) {
-          const base64 = await fileToBase64(selected);
+          const fileRef = await uploadFile(selected);
           const target = orderId
             ? { orderId }
             : { factoryId: deferred?.factoryId };
           const res = await extractFile({
             variables: {
-              input: { ...target, fileName: selected.name, fileBase64: base64 },
+              input: { ...target, fileName: selected.name, fileRef },
             },
           });
           const payload = res.data?.extractOrderFile;

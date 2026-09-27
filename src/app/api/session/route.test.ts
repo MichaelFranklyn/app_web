@@ -340,3 +340,62 @@ describe("DELETE — sair", () => {
     ]);
   });
 });
+
+describe("POST — trocar a própria senha", () => {
+  const respondeTroca = (payload: unknown) =>
+    gqlFetch.mockResolvedValue({ data: { updateMyPassword: payload } });
+
+  it("roda com o token atual e grava o token novo desta sessão", async () => {
+    getServerCookie.mockImplementation(async (name: string) =>
+      name === "token" ? "token-antigo" : name === "remember" ? "true" : null
+    );
+    respondeTroca({
+      status: true,
+      message: "Senha atualizada.",
+      data: { accessToken: "token-novo" },
+    });
+
+    const res = await POST(
+      req({
+        action: "changeMyPassword",
+        input: { currentPassword: "a", newPassword: "b" },
+      })
+    );
+    const json = await res.json();
+
+    expect(json.status).toBe(true);
+    expect(JSON.stringify(json)).not.toContain("token-novo");
+    expect(gqlFetch.mock.calls[0][1]).toBe("token-antigo");
+    expect(cookie("token")?.[1]).toBe("token-novo");
+    // Mantém o "lembrar" que a sessão já tinha.
+    expect(cookie("token")?.[2]).toEqual(
+      expect.objectContaining({ httpOnly: true, expires: 30 })
+    );
+  });
+
+  it("senha atual errada não mexe no cookie", async () => {
+    getServerCookie.mockResolvedValue("token-antigo");
+    respondeTroca({
+      status: false,
+      message: "Senha atual incorreta",
+      data: null,
+    });
+
+    const res = await POST(
+      req({ action: "changeMyPassword", input: { currentPassword: "x" } })
+    );
+
+    expect(res.status).toBe(400);
+    expect((await res.json()).message).toBe("Senha atual incorreta");
+    expect(setServerCookie).not.toHaveBeenCalled();
+  });
+
+  it("sem sessão, recusa antes de ir ao backend", async () => {
+    getServerCookie.mockResolvedValue(null);
+
+    const res = await POST(req({ action: "changeMyPassword", input: {} }));
+
+    expect(res.status).toBe(401);
+    expect(gqlFetch).not.toHaveBeenCalled();
+  });
+});

@@ -3,6 +3,11 @@
 import { MoreOptions } from "@/components/MoreOptions";
 import { useAsyncAction } from "@/hooks/useAsyncAction";
 import { useInvalidateQueriesClient } from "@/hooks/useInvalidateQueries";
+import {
+  useOfflineEntry,
+  useSendOrQueue,
+  visitStatusDraft,
+} from "@/services/offlineQueue";
 import { VISIT_CACHE_FIELDS } from "@/utils/cacheFields";
 import { clientDisplayName } from "@/utils/client";
 import { newOrderUrl } from "@/utils/newOrderUrl";
@@ -26,7 +31,11 @@ import { CompletionPromptModal } from "./_components/VisitActions/CompletionProm
 import { EditVisitModal } from "./_components/VisitActions/EditVisitModal";
 import { PromoteContactModal } from "./_components/PromoteContactModal";
 import { RescheduleVisitModal } from "./_components/VisitActions/RescheduleVisitModal";
-import { VisitStockModal } from "@/components/VisitStockModal";
+import {
+  usePrefetchStockCandidates,
+  VisitStockModal,
+} from "@/components/VisitStockModal";
+import { getTodayIso } from "@/utils/format/date";
 import { VisitDetailPanel } from "./_components/VisitActions/VisitDetailPanel";
 import { WholeDayModal } from "./_components/VisitActions/WholeDayModal";
 
@@ -52,6 +61,13 @@ interface UpdateItemResponse {
 }
 
 interface Result {
+  /**
+   * Status a mostrar: o guardado no aparelho (sem sinal) ganha do que veio do
+   * servidor, porque é a resposta mais nova que a pessoa deu.
+   */
+  status: VisitScheduleItem["status"];
+  /** A resposta desta visita está guardada esperando o sinal. */
+  isAwaitingSignal: boolean;
   /** Abre o painel lateral de detalhes da visita. */
   openView: () => void;
   /** Pergunta o próximo passo (pedido/estoque) após concluir a visita. */
@@ -91,6 +107,48 @@ export function useVisitActions({
   );
   const { execute, isLoading: isToggling } = useAsyncAction();
   const invalidateClient = useInvalidateQueriesClient();
+  const sendOrQueue = useSendOrQueue();
+  // Visita de hoje ainda aberta: os produtos do estoque ficam no cache para o
+  // modal abrir mesmo quando o sinal cair dentro da loja.
+  usePrefetchStockCandidates(
+    item.id,
+    dayDate === getTodayIso() && item.status === "PENDING"
+  );
+  const queued = useOfflineEntry(`visit:${item.id}`);
+  const status =
+    queued?.kind === "visitStatus"
+      ? (queued.variables.status as VisitScheduleItem["status"])
+      : item.status;
+
+  const link = item.clientFactoryLink;
+  const client = link?.client ?? null;
+  const clientName = clientDisplayName(client, "Cliente");
+
+  /**
+   * Grava o status da visita — ou, sem sinal, guarda no aparelho. `queued` no
+   * retorno diz qual dos dois aconteceu; a recusa do servidor lança como antes.
+   */
+  const saveStatus = (next: string, failMessage: string) =>
+    sendOrQueue(
+      visitStatusDraft(
+        { id: item.id, status: next, label: clientName },
+        new Date()
+      ),
+      async (context) => {
+        const res = await updateItem({
+          variables: { id: item.id, input: { status: next } },
+          context,
+        });
+        const payload = res.data?.updateVisitScheduleItem;
+        if (!payload?.status) {
+          throw new Error(payload?.message ?? failMessage);
+        }
+        return payload;
+      }
+    );
+
+  /** Toast de quando a resposta ficou no aparelho. */
+  const queuedMessage = `Sem sinal: ${noun} guardad${doneSuffix} no aparelho. Vai sozinh${doneSuffix} quando o sinal voltar.`;
 
   /**
    * A visita mudou: recarrega a semana (é a tela) e invalida o assunto, porque
@@ -107,25 +165,22 @@ export function useVisitActions({
   // estoque do cliente (o mesmo prompt em qualquer visualização).
   const toggleCompleted = (checked: boolean) => {
     execute(
-      async () => {
-        const res = await updateItem({
-          variables: {
-            id: item.id,
-            input: { status: checked ? "COMPLETED" : "PENDING" },
-          },
-        });
-        const payload = res.data?.updateVisitScheduleItem;
-        if (!payload?.status) {
-          throw new Error(payload?.message ?? `Erro ao atualizar ${noun}`);
-        }
-        return payload;
-      },
+      () =>
+        saveStatus(
+          checked ? "COMPLETED" : "PENDING",
+          `Erro ao atualizar ${noun}`
+        ),
       {
-        successMessage: checked
-          ? `${capitalized} concluíd${doneSuffix}`
-          : `${capitalized} reabert${doneSuffix}`,
-        onSuccess: () => {
-          syncVisit();
+        successMessage: (outcome) =>
+          outcome.queued
+            ? queuedMessage
+            : checked
+              ? `${capitalized} concluíd${doneSuffix}`
+              : `${capitalized} reabert${doneSuffix}`,
+        onSuccess: (outcome) => {
+          // Guardado no aparelho: recarregar a semana falharia sem sinal, e o
+          // card já mostra a resposta guardada. A fila recarrega ao enviar.
+          if (!outcome.queued) syncVisit();
           if (checked) setActive("completed");
         },
       }
@@ -137,38 +192,26 @@ export function useVisitActions({
   // estoque já foi o passo) e sem toast redundante quando ela já estava
   // concluída — o modal de estoque já avisa "Estoque registrado".
   const completeFromStock = () => {
-    if (item.status === "COMPLETED") {
-      onChanged();
+    if (status === "COMPLETED") {
+      if (!queued) onChanged();
       return;
     }
-    execute(
-      async () => {
-        const res = await updateItem({
-          variables: { id: item.id, input: { status: "COMPLETED" } },
-        });
-        const payload = res.data?.updateVisitScheduleItem;
-        if (!payload?.status) {
-          throw new Error(payload?.message ?? `Erro ao concluir ${noun}`);
-        }
-        return payload;
+    execute(() => saveStatus("COMPLETED", `Erro ao concluir ${noun}`), {
+      successMessage: (outcome) =>
+        outcome.queued ? queuedMessage : `${capitalized} concluíd${doneSuffix}`,
+      onSuccess: (outcome) => {
+        if (!outcome.queued) syncVisit();
       },
-      {
-        successMessage: `${capitalized} concluíd${doneSuffix}`,
-        onSuccess: syncVisit,
-      }
-    );
+    });
   };
 
   // "Novo pedido" desta visita: abre direto a página de novo pedido já no
   // vínculo da visita (vendedor → cliente → fábrica), com o pedido amarrado a
   // ela. Sem o vínculo inteiro, abre pelo cliente — escolhe-se o vínculo lá.
   // "Cancelar" volta para esta tela. Só existe quando há cliente vinculado.
-  const link = item.clientFactoryLink;
-  const client = link?.client ?? null;
   // A rota /clients/[id] é chaveada pelo id da carteira (company_client), não
   // pelo id global do cliente.
   const companyClientId = client?.companyClient?.id ?? null;
-  const clientName = clientDisplayName(client, "Cliente");
   const openClient = companyClientId
     ? () => router.push(`/clients/${companyClientId}/overview`)
     : undefined;
@@ -225,7 +268,7 @@ export function useVisitActions({
               },
             ]
           : []),
-        ...(isRemote && item.status === "PENDING"
+        ...(isRemote && status === "PENDING"
           ? [
               {
                 label: "Ir visitar",
@@ -239,7 +282,7 @@ export function useVisitActions({
         // tomar. Some depois de marcada — repetir a ação não faria nada.
         ...(!isRemote &&
         !item.isWholeDay &&
-        (item.status === "PENDING" || item.status === "COMPLETED")
+        (status === "PENDING" || status === "COMPLETED")
           ? [
               {
                 label: "Tomou o dia todo",
@@ -307,7 +350,7 @@ export function useVisitActions({
       <WholeDayModal
         itemId={item.id}
         clientName={clientName}
-        isPending={item.status === "PENDING"}
+        isPending={status === "PENDING"}
         open={active === "wholeDay"}
         onOpenChange={(o) => !o && close()}
         onDone={syncVisit}
@@ -325,6 +368,8 @@ export function useVisitActions({
   );
 
   return {
+    status,
+    isAwaitingSignal: Boolean(queued),
     openView: () => setActive("view"),
     promptAfterComplete: () => setActive("completed"),
     toggleCompleted,
