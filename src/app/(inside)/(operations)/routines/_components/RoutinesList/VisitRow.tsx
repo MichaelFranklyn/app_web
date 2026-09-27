@@ -8,12 +8,13 @@ import { Title } from "@/components/Title";
 import { cn } from "@/lib/utils";
 import { clientDisplayName } from "@/utils/client";
 import { visitPriority } from "@/utils/score";
-import { TriangleAlert } from "lucide-react";
+import { CloudUpload, TriangleAlert } from "lucide-react";
 import { VisitScheduleItem } from "../../interface";
 import { useVisitActions } from "../../useVisitActions";
 import {
   VISIT_STATUS_COLOR,
   VISIT_STATUS_LABEL,
+  AWAITING_SIGNAL_HINT,
   getVisitFollowupWarning,
   getVisitScoreTotal,
 } from "../../utils";
@@ -45,10 +46,17 @@ const getFocusLabel = (item: VisitScheduleItem): string => {
 // (fixed) — como no card do kanban — para não sair do container rolável da
 // página.
 export function VisitRow({ item, dayDate, onChanged }: Props) {
-  const { openView, toggleCompleted, isToggling, menu, overlays } =
-    useVisitActions({ item, dayDate, onChanged });
+  const {
+    status,
+    isAwaitingSignal,
+    openView,
+    toggleCompleted,
+    isToggling,
+    menu,
+    overlays,
+  } = useVisitActions({ item, dayDate, onChanged });
 
-  const isCompleted = item.status === "COMPLETED";
+  const isCompleted = status === "COMPLETED";
   const isRemote = item.contactType === "REMOTE";
   const noun = contactNoun(item.contactType);
   const client = item.clientFactoryLink?.client ?? null;
@@ -56,7 +64,7 @@ export function VisitRow({ item, dayDate, onChanged }: Props) {
   const warning = getVisitFollowupWarning(item);
   const scoreValue = getVisitScoreTotal(item);
   const priority = scoreValue != null ? visitPriority(scoreValue) : null;
-  const showStatusBadge = item.status !== "PENDING";
+  const showStatusBadge = status !== "PENDING" || isAwaitingSignal;
 
   return (
     <>
@@ -160,10 +168,19 @@ export function VisitRow({ item, dayDate, onChanged }: Props) {
           )}
           {showStatusBadge && (
             <Badge.Root
-              color={VISIT_STATUS_COLOR[item.status]}
+              color={VISIT_STATUS_COLOR[status]}
               appearance="tinted"
+              title={isAwaitingSignal ? AWAITING_SIGNAL_HINT : undefined}
             >
-              <Badge.Text>{VISIT_STATUS_LABEL[item.status]}</Badge.Text>
+              {isAwaitingSignal && (
+                <Badge.Icon>
+                  <CloudUpload />
+                </Badge.Icon>
+              )}
+              <Badge.Text>
+                {VISIT_STATUS_LABEL[status]}
+                {isAwaitingSignal ? " · aguardando sinal" : ""}
+              </Badge.Text>
             </Badge.Root>
           )}
         </div>

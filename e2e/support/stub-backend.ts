@@ -140,6 +140,16 @@ const SSR_RESPONSES: Record<string, SsrResponse> = {
       },
     },
   },
+  // Troca da própria senha: também passa pela rota /api/session, porque o
+  // token novo desta sessão vai para o cookie httpOnly no servidor.
+  UpdateMyPassword: {
+    updateMyPassword: {
+      status: true,
+      code: 200,
+      message: "Senha atualizada.",
+      data: { accessToken: FAKE_JWT },
+    },
+  },
   // Cadastro da empresa. Como o login, roda no SERVIDOR (rota /api/session) e
   // abre a sessão pelo mesmo caminho — por isso a resposta vive aqui, e não no
   // `page.route` do spec. O nome da operação é `registerCompany` (minúsculo),
@@ -213,6 +223,7 @@ const SSR_RESPONSES: Record<string, SsrResponse> = {
         clientState: "BA",
         companyName: "Empresa Teste",
         companyLogoUrl: null,
+        canRequestReplenishment: true,
       },
     },
   },
@@ -349,6 +360,58 @@ const SSR_RESPONSES: Record<string, SsrResponse> = {
       code: 200,
       message: "Obrigado! Seu representante já vê essa informação.",
     },
+  },
+  PortalReplenishment: {
+    portalReplenishment: {
+      status: true,
+      code: 200,
+      message: "ok",
+      data: {
+        horizonDays: 15,
+        items: [
+          {
+            productId: "prod-repor-1",
+            productName: "Torneira Teste",
+            sku: "SKU-1",
+            factoryName: "Fábrica Alfa",
+            daysRemaining: 3,
+            lastPurchaseDate: "2026-08-01",
+            suggestedQuantity: "24.0000",
+            saleMultiple: "12.0000",
+            pendingQuantity: null,
+          },
+          {
+            productId: "prod-repor-2",
+            productName: "Sifão Teste",
+            sku: "SKU-2",
+            factoryName: "Fábrica Beta",
+            daysRemaining: -2,
+            lastPurchaseDate: "2026-07-10",
+            suggestedQuantity: "6.0000",
+            saleMultiple: null,
+            pendingQuantity: "6.0000",
+          },
+        ],
+      },
+    },
+  },
+  // Ecoa o que chegou: a Server Action sai do servidor do Next, e o spec não
+  // tem como espiar a requisição. A mensagem diz QUAIS produtos vieram e com
+  // que quantidade — é o que prova que só o marcado foi enviado.
+  RequestPortalReplenishment: (variables: Record<string, unknown>) => {
+    const items =
+      ((variables.input as { items?: unknown[] } | undefined)?.items as
+        | Array<{ productId: string; quantity: string }>
+        | undefined) ?? [];
+    return {
+      requestPortalReplenishment: {
+        status: true,
+        code: 200,
+        message: `Recebido: ${items
+          .map((item) => `${item.productId}=${item.quantity}`)
+          .join(", ")}`,
+      },
+    };
   },
   // Folha de resposta da rota do dia (`/r/[token]`): SSR puro, como o portal.
   // Responde pelo TOKEN, e não por variável, porque é assim que a página

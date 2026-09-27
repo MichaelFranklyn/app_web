@@ -20,6 +20,24 @@ import { grantRole } from "../support/role";
  */
 
 // Escolhe uma opção num Input.Select custom (dropdown em portal).
+/**
+ * Espera a guarda de saída armar a sentinela no histórico. Ela é posta num
+ * efeito, logo depois de a tela ficar "mexida": um `goBack()` antes disso sai
+ * da página sem perguntar — foi assim que o teste falhava só sob a carga da
+ * suíte inteira.
+ */
+async function waitLeaveGuardArmed(page: import("@playwright/test").Page) {
+  await expect
+    .poll(() =>
+      page.evaluate(() =>
+        Boolean(
+          (window.history.state as Record<string, unknown> | null)?.__leaveGuard
+        )
+      )
+    )
+    .toBe(true);
+}
+
 async function pickOption(
   page: import("@playwright/test").Page,
   fieldLabel: string,
@@ -492,6 +510,7 @@ test("orders/new: sair com algo não gravado pergunta antes (dados, item, itens)
 
   // 1) Só os dados mexidos (nenhum item ainda) já contam: Voltar pergunta.
   await pickOption(page, "Fábrica", "Fábrica", "Fábrica Modelo");
+  await waitLeaveGuardArmed(page);
   await page.goBack();
   await expect(leaveDialog).toBeVisible();
   await leaveDialog
@@ -530,6 +549,7 @@ test("orders/new: sair com algo não gravado pergunta antes (dados, item, itens)
   await expect(page.getByText("Produto X")).toBeVisible();
 
   // 3) Voltar do navegador: pergunta; confirmado, volta para a lista.
+  await waitLeaveGuardArmed(page);
   await page.goBack();
   await expect(leaveDialog).toBeVisible();
   await expect(page).toHaveURL(/\/orders\/new$/);

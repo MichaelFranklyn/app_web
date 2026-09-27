@@ -12,7 +12,6 @@ import { Order, OrdersStats } from "../../interface";
 import { buildOrderKpis } from "../../utils";
 import { ExportOrdersButton, QueryFilter } from "./ExportOrdersButton";
 import { ImportOrderModal } from "./ImportOrderModal";
-import { StalledOrdersButton } from "./StalledOrdersButton";
 import { FeatureGate } from "@/components/FeatureGate";
 import { OrderSheetButton } from "../../../_components/OrderSheetButton";
 import { NewOrderButton } from "../../../_components/NewOrderButton";
@@ -32,7 +31,7 @@ interface Props {
   inputValues: Record<string, string>;
   /** Ordenação à vista na tabela — o arquivo sai na mesma ordem. */
   order?: ReportOrder | null;
-  /** Aba corrente, quando ela restringe a lista ("Ainda não faturados"). */
+  /** Aba corrente, quando ela restringe a lista ("Esperando faturamento"). */
   scopeLabel?: string | null;
   hasOrders: boolean;
 }
@@ -66,7 +65,6 @@ export function OrdersHeader({
             <PanelHeader.Actions className="mt-6" data-tour="orders-actions">
               {/* A ficha offline sai daqui em branco; da tela do cliente ela já
                   vem com o cabeçalho preenchido. */}
-              <StalledOrdersButton />
               <OrderSheetButton canSelectSeller={canSelectSeller} />
               <ExportOrdersButton
                 filters={exportFilters}

@@ -14,6 +14,8 @@ export interface Order {
   status: OrderStatus;
   /** Faturado, prazo de entrega vencido e não entregue — pede confirmação. */
   isDeliveryOverdue: boolean;
+  /** Data gravada se a entrega for confirmada sem outra (faturamento + prazo). */
+  expectedDeliveryDate: string | null;
   seller: { id: string; name: string } | null;
   client: {
     id: string;

@@ -3,6 +3,7 @@ import {
   ChartLine,
   FileText,
   HandCoins,
+  PackageCheck,
   LucideIcon,
   Route,
   Target,
@@ -26,6 +27,7 @@ export const FEATURE_LABEL: Record<PlanFeature, string> = {
   GOALS: "Metas",
   COMMISSIONS: "Comissões",
   NOTIFICATIONS: "Notificações",
+  PORTAL_ORDERS: "Pedido pelo portal do cliente",
 };
 
 export const FEATURE_DESCRIPTION: Record<PlanFeature, string> = {
@@ -39,6 +41,8 @@ export const FEATURE_DESCRIPTION: Record<PlanFeature, string> = {
   GOALS: "Metas por vendedor e fábrica, com o realizado ao lado.",
   COMMISSIONS: "Apuração, recebimento e conciliação das comissões.",
   NOTIFICATIONS: "Avisos automáticos do que precisa de atenção.",
+  PORTAL_ORDERS:
+    "O cliente vê o que está acabando na loja dele e pede a reposição pelo link; vira orçamento para o vendedor confirmar.",
 };
 
 /** Ordem de exibição — a mesma do enum no backend, para as duas telas contarem
@@ -51,6 +55,7 @@ export const FEATURE_ORDER: PlanFeature[] = [
   "GOALS",
   "COMMISSIONS",
   "NOTIFICATIONS",
+  "PORTAL_ORDERS",
 ];
 
 /**
@@ -66,4 +71,5 @@ export const FEATURE_ICON: Record<PlanFeature, LucideIcon> = {
   GOALS: Target,
   COMMISSIONS: HandCoins,
   NOTIFICATIONS: Bell,
+  PORTAL_ORDERS: PackageCheck,
 };

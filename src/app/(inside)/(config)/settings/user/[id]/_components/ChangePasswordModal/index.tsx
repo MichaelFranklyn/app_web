@@ -4,10 +4,8 @@ import { Button } from "@/components/Button";
 import { FormBuilder, FormBuilderRef } from "@/components/FormBuilder";
 import { Modal } from "@/components/Modal";
 import { useAsyncAction } from "@/hooks/useAsyncAction";
-import { useMutation } from "@apollo/client/react";
 import { useRef } from "react";
-import { UPDATE_MY_PASSWORD_MUTATION } from "./gql";
-import { UpdateMyPasswordResponse } from "./interface";
+import { postSession } from "@/utils/auth/session";
 import { PASSWORD_FORM_STEPS } from "./utils";
 
 interface Props {
@@ -18,9 +16,6 @@ interface Props {
 export function ChangePasswordModal({ open, onOpenChange }: Props) {
   const formRef = useRef<FormBuilderRef>(null);
 
-  const [updatePassword] = useMutation<UpdateMyPasswordResponse>(
-    UPDATE_MY_PASSWORD_MUTATION
-  );
   const { execute, isLoading } = useAsyncAction();
 
   const handleSubmit = async (data: Record<string, unknown>) => {
@@ -38,20 +33,19 @@ export function ChangePasswordModal({ open, onOpenChange }: Props) {
           throw new Error("A confirmação não confere com a nova senha");
         }
 
-        const res = await updatePassword({
-          variables: { input: { currentPassword, newPassword } },
-        });
-
-        if (!res.data?.updateMyPassword?.status) {
-          throw new Error(
-            res.data?.updateMyPassword?.message ?? "Erro ao atualizar senha"
-          );
-        }
-
-        return res.data.updateMyPassword;
+        // Pelo BFF: a troca encerra as sessões antigas, e o token novo desta
+        // precisa ir para o cookie httpOnly no servidor.
+        return postSession(
+          {
+            action: "changeMyPassword",
+            input: { currentPassword, newPassword },
+          },
+          "Erro ao atualizar senha"
+        );
       },
       {
-        successMessage: "Senha atualizada com sucesso",
+        successMessage:
+          "Senha atualizada. Em outros aparelhos, será preciso entrar de novo.",
         onSuccess: () => {
           onOpenChange(false);
           formRef.current?.resetForm();

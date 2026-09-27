@@ -1,9 +1,4 @@
-export type ProductPurchaseStatus =
-  | "ON_TRACK"
-  | "DUE"
-  | "LATE"
-  | "STOPPED"
-  | "SINGLE";
+import { ProductPurchaseStatus } from "@/utils/productPurchase";
 
 export interface ClientProductAnalysisRow {
   productId: string;

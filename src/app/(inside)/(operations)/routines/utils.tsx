@@ -10,6 +10,10 @@ import { VisitScheduleDay, VisitScheduleItem, VisitStatus } from "./interface";
 export { VISIT_STATUS_COLOR, VISIT_STATUS_LABEL } from "@/utils/visit";
 export { getTodayIso };
 
+/** Dica do badge da visita respondida sem sinal (guardada no aparelho). */
+export const AWAITING_SIGNAL_HINT =
+  "Resposta guardada neste aparelho. Vai sozinha para o sistema quando o sinal voltar.";
+
 export interface VisitFollowupWarning {
   needsStock: boolean;
   needsOrder: boolean;

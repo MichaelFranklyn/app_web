@@ -37,7 +37,7 @@ export const ORDER_TABLE_FIELDS: Record<string, FieldConfig> = {
 };
 
 /**
- * Os mesmos campos, menos a situação, para a aba "Ainda não faturados".
+ * Os mesmos campos, menos a situação, para a aba "Esperando faturamento".
  *
  * Tirar o campo da lista (em vez de só escondê-lo) é o que impede um filtro
  * invisível: `useTableFilters` só lê da URL as chaves que estão aqui, então um
@@ -60,6 +60,7 @@ export const PENDING_ORDER_TABLE_FIELDS: Record<string, FieldConfig> =
  */
 export const ORDER_SORTABLE_FIELDS = [
   "order_date",
+  "invoiced_at",
   "status",
   "total_amount",
   "commission_amount",
@@ -77,6 +78,7 @@ export const ORDER_SORTABLE_FIELDS = [
  */
 export const ORDER_SORT_LABELS: Record<string, SortLabel> = {
   order_date: { label: "Data", kind: "date" },
+  invoiced_at: { label: "Faturado em", kind: "date" },
   client_name: { label: "Cliente", kind: "text" },
   factory_name: { label: "Fábrica", kind: "text" },
   seller_name: { label: "Vendedor", kind: "text" },
@@ -165,3 +167,13 @@ export const buildOrderKpis = (
     },
   ];
 };
+
+const DAY_MS = 24 * 60 * 60 * 1000;
+
+/** Dias corridos de uma data ISO até hoje ("há 12 dias"). */
+export const daysSince = (fromIso: string, todayIso: string): number =>
+  Math.round(
+    (Date.parse(`${todayIso}T00:00:00Z`) -
+      Date.parse(`${fromIso.slice(0, 10)}T00:00:00Z`)) /
+      DAY_MS
+  );

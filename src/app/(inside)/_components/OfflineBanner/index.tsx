@@ -15,10 +15,12 @@ import { useEffect, useState } from "react";
  * responde, o toast de erro fala de "falha ao carregar", e a conclusão natural
  * é que o sistema está com defeito. A faixa nomeia a causa.
  *
- * O texto diz o que NÃO fazer, e isso é deliberado: sem fila offline (ver o
- * cabeçalho de `public/sw.js`), um pedido preenchido agora se perde ao enviar.
- * Avisar antes é mais honesto que deixar a pessoa digitar trinta itens para
- * descobrir no fim.
+ * O texto separa o que se pode e o que não se pode fazer, e isso é deliberado:
+ * visita e estoque ficam guardados no aparelho e vão sozinhos quando o sinal
+ * volta (`@/services/offlineQueue`); pedido NÃO — enviado mais tarde ele teria
+ * de reconferir preço e piso contra um catálogo que pode ter mudado (ver o
+ * cabeçalho de `public/sw.js`). Avisar antes é mais honesto que deixar a pessoa
+ * digitar trinta itens para descobrir no fim.
  *
  * `navigator.onLine` é otimista — ele diz que há uma interface de rede, não que
  * a internet responde —, então um wi-fi de loja conectado e sem saída aparece
@@ -56,9 +58,9 @@ export function OfflineBanner() {
       data-testid="offline-banner"
     >
       <Title variant="body-xs" color="inverse">
-        Sem internet agora. Você continua vendo o que já estava na tela, mas{" "}
-        <Emphasis>não salve nada</Emphasis> até o sinal voltar — a faixa
-        desaparece sozinha.
+        Sem internet agora. Visita e estoque que você marcar ficam guardados e
+        vão sozinhos quando o sinal voltar. <Emphasis>Pedido, não</Emphasis>:
+        para criar, espere o sinal — a faixa desaparece sozinha.
       </Title>
     </Banner>
   );

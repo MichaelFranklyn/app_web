@@ -18,7 +18,7 @@ export interface OrdersPdfMeta {
   /** Campos e valores do painel de filtros — viram o recorte escrito no topo. */
   filterFields: FilterField[];
   inputValues: Record<string, string>;
-  /** Aba corrente, quando ela restringe a lista ("Ainda não faturados"). */
+  /** Aba corrente, quando ela restringe a lista ("Esperando faturamento"). */
   scopeLabel?: string | null;
   /** Ordenação à vista na tabela, para o papel dizer em que ordem ele está. */
   order?: ReportOrder | null;

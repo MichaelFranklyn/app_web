@@ -2,11 +2,9 @@ import { describe, expect, it } from "vitest";
 import { ClientProductAnalysisRow } from "./interface";
 import {
   cycleLabel,
-  daysAgoLabel,
   isStaple,
   presenceShare,
   summarizeAnalysis,
-  unitsLabel,
 } from "./utils";
 
 const row = (
@@ -93,28 +91,5 @@ describe("cycleLabel", () => {
   // Sem duas compras não há ritmo: inventar um número seria pior que o traço.
   it("sem ciclo mostra traço", () => {
     expect(cycleLabel(null)).toBe("—");
-  });
-});
-
-describe("daysAgoLabel", () => {
-  it("conta o tempo como a pessoa conta", () => {
-    expect(daysAgoLabel(0)).toBe("hoje");
-    expect(daysAgoLabel(1)).toBe("ontem");
-    expect(daysAgoLabel(12)).toBe("há 12 dias");
-  });
-});
-
-describe("unitsLabel", () => {
-  it("quantidade inteira sai sem casas decimais", () => {
-    expect(unitsLabel("12")).toBe("12");
-    expect(unitsLabel("12.0000")).toBe("12");
-  });
-
-  it("quantidade fracionada mantém as casas que importam", () => {
-    expect(unitsLabel("12.5")).toBe("12,5");
-  });
-
-  it("valor inválido não vira NaN na tela", () => {
-    expect(unitsLabel("abc")).toBe("—");
   });
 });

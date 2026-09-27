@@ -8,6 +8,8 @@ import { usePathname } from "next/navigation";
 import { StockObservationList } from "./StockObservationList";
 import { StockCandidateGroup } from "./useStockObservation";
 
+export { usePrefetchStockCandidates } from "./usePrefetchStockCandidates";
+
 interface Props {
   /** Id da visita (visit_schedule_item). */
   itemId: string;
@@ -67,6 +69,7 @@ export function VisitStockModal({
         <Modal.Body>
           <StockObservationList
             itemId={itemId}
+            clientName={clientName}
             // Salvou: o trabalho acabou. Deixar o modal aberto obriga o vendedor
             // a fechá-lo à mão para ver o efeito nas abas de estoque e score.
             onSaved={() => {

@@ -49,3 +49,26 @@ describe("parseClientsRows", () => {
     );
   });
 });
+
+describe("parseClientsRows — lista exportada de outro sistema", () => {
+  it("acha o CNPJ pelo título, em qualquer coluna", () => {
+    const rows = parseClientsRows([
+      ["Razão social", "Nome fantasia", "CPF/CNPJ", "Cidade"],
+      ["Loja A LTDA", "Loja A", "11.222.333/0001-81", "Salvador"],
+    ]);
+    expect(rows).toEqual([{ cnpj: "11222333000181", notes: null }]);
+  });
+
+  it("sem título conhecido, acha a coluna com cara de CNPJ", () => {
+    const rows = parseClientsRows([
+      ["Cliente", "Doc", "UF"],
+      ["Loja A", "11.222.333/0001-81", "BA"],
+      ["Loja B", "00.000.000/0001-91", "BA"],
+    ]);
+    expect(rows.map((r) => r.cnpj)).toEqual([
+      "11222333000181",
+      "00000000000191",
+    ]);
+    expect(rows[0].notes).toBeNull();
+  });
+});

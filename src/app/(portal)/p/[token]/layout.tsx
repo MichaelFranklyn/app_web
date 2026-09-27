@@ -43,7 +43,10 @@ export default async function PortalTokenLayout({
       <PortalHeader profile={profile} />
 
       <PublicPage.Nav aria-label="Seções do portal">
-        <PortalNav token={token} />
+        <PortalNav
+          token={token}
+          canRequestReplenishment={profile.canRequestReplenishment}
+        />
       </PublicPage.Nav>
 
       {/* Sem respiro em cima: a margem das abas já separa. */}

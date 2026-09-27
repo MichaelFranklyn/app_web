@@ -7,6 +7,7 @@ import {
   ClipboardList,
   Coins,
   Headset,
+  Import,
   LayoutDashboard,
   Lightbulb,
   Route,
@@ -142,6 +143,15 @@ export const NAV = [
     matchPrefix: "/settings/catalog",
     label: "Catálogos",
     icon: Tags,
+    access: "admin",
+  },
+  {
+    // A migração de quem chega de outro sistema (clientes → produtos →
+    // histórico de pedidos). Gestão: mexe na carteira inteira.
+    href: "/settings/import",
+    matchPrefix: "/settings/import",
+    label: "Trazer dados",
+    icon: Import,
     access: "admin",
   },
 ];

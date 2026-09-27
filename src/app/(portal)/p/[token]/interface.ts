@@ -7,6 +7,8 @@ export interface PortalProfile {
   clientState: string | null;
   companyName: string;
   companyLogoUrl: string | null;
+  /** O plano do escritório inclui o pedido de reposição pelo portal. */
+  canRequestReplenishment: boolean;
 }
 
 export interface PortalOrder {
@@ -97,4 +99,26 @@ export interface PortalOrderData {
 
 export interface PortalStockData {
   portalStock: { data: PortalStockItem[] } | null;
+}
+
+/** Produto acabando, pronto para o cliente pedir. Sem preço: nasce orçamento. */
+export interface PortalReplenishmentItem {
+  productId: string;
+  productName: string;
+  sku: string | null;
+  factoryName: string;
+  daysRemaining: number;
+  lastPurchaseDate: string | null;
+  /** Decimal em string (unidades). */
+  suggestedQuantity: string;
+  /** De quantas em quantas unidades a fábrica vende. Nulo = venda livre. */
+  saleMultiple: string | null;
+  /** Já pedido e esperando o representante confirmar. */
+  pendingQuantity: string | null;
+}
+
+export interface PortalReplenishmentData {
+  portalReplenishment: {
+    data: { horizonDays: number; items: PortalReplenishmentItem[] } | null;
+  } | null;
 }

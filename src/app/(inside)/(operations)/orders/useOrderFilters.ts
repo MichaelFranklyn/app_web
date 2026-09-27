@@ -29,7 +29,7 @@ interface Params {
   /** Só gestor escolhe o vendedor — o vendedor logado já vê apenas os seus. */
   canFilterBySeller: boolean;
   /**
-   * Esconde o filtro de situação. A aba "Ainda não faturados" já É um recorte
+   * Esconde o filtro de situação. A aba "Esperando faturamento" já É um recorte
    * por situação (confirmado e sem faturamento): deixar o campo ali só
    * permitiria pedir "entregues que ainda não foram faturados" e receber vazio.
    */

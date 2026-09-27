@@ -15,6 +15,11 @@ import type { ImportRow } from "./utils";
 // useAsyncAction. Mocamos o módulo → ambos recebem o mesmo spy, e conseguimos
 // assertar variant/title/description de cada toast (sucesso, parcial, erro).
 const toastSpy = vi.fn();
+// O arquivo sobe direto à API (tíquete + PUT); aqui só interessa a referência.
+vi.mock("@/services/upload", () => ({
+  useFileUpload: () => async () => "uploads/empresa/arquivo.pdf",
+}));
+
 vi.mock("@/components/Toast", () => ({
   useToast: () => ({ toast: toastSpy }),
 }));

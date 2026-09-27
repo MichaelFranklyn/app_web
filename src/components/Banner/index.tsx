@@ -5,10 +5,14 @@ import React from "react";
 const TONES = {
   red: "bg-(--red)",
   purple: "bg-(--purple)",
+  blue: "bg-(--blue)",
 } as const;
 
 interface BannerProps extends React.HTMLAttributes<HTMLDivElement> {
-  /** red: condição que impede o trabalho (offline); purple: sessão emprestada. */
+  /**
+   * red: condição que impede o trabalho (offline); purple: sessão emprestada;
+   * blue: trabalho guardado no aparelho esperando o sinal (informa, não trava).
+   */
   tone: keyof typeof TONES;
   icon: LucideIcon;
   /** Ação à direita (ex.: "Voltar ao console"). */

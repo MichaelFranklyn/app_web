@@ -13,6 +13,7 @@ import { DevRoleSwitch } from "./_components/DevRoleSwitch";
 import { ImpersonationBanner } from "./_components/ImpersonationBanner";
 import { NotificationCenter } from "./_components/NotificationCenter";
 import { OfflineBanner } from "./_components/OfflineBanner";
+import { OfflineSync } from "./_components/OfflineSync";
 import { UserMenu } from "./_components/UserMenu";
 import { useInsideLayout } from "./useInsideLayout";
 
@@ -183,6 +184,7 @@ export default function InsideShell({
               pode competir por atenção com o resto do cabeçalho. Em sessão
               comum não renderiza nada. */}
           <OfflineBanner />
+          <OfflineSync />
           <ImpersonationBanner />
 
           <Topbar.Root>

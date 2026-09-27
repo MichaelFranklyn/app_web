@@ -3,6 +3,8 @@
 import { useAsyncAction } from "@/hooks/useAsyncAction";
 import { useInvalidateQueriesClient } from "@/hooks/useInvalidateQueries";
 import { useOptimisticList } from "@/hooks/useOptimisticList";
+import { useSendOrQueue, visitStatusDraft } from "@/services/offlineQueue";
+import { clientDisplayName } from "@/utils/client";
 import { VISIT_CACHE_FIELDS } from "@/utils/cacheFields";
 import { useMutation, useQuery } from "@apollo/client/react";
 import { useMemo, useState } from "react";
@@ -40,6 +42,7 @@ export function useOverdueVisits(sellerId?: string | null) {
     UPDATE_VISIT_ITEM_MUTATION
   );
   const { execute } = useAsyncAction();
+  const sendOrQueue = useSendOrQueue();
   const invalidateClient = useInvalidateQueriesClient();
   // Qual visita está sendo respondida: trava só a linha clicada, não a lista.
   const [answeringId, setAnsweringId] = useState<string | null>(null);
@@ -52,31 +55,51 @@ export function useOverdueVisits(sellerId?: string | null) {
     setAnsweringId(visit.id);
     // Some da fila na hora — a resposta é o que tira a visita da dívida.
     optimistic.removeOptimistic(visit.id);
+    const actualVisitAt = visit.day ? plannedMoment(visit.day.date) : null;
+    const input = {
+      status: outcome,
+      ...(outcome === "COMPLETED" && actualVisitAt ? { actualVisitAt } : {}),
+    };
     return execute(
-      async () => {
-        const actualVisitAt = visit.day ? plannedMoment(visit.day.date) : null;
-        const res = await updateItem({
-          variables: {
-            id: visit.id,
-            input: {
-              status: outcome,
-              ...(outcome === "COMPLETED" && actualVisitAt
-                ? { actualVisitAt }
-                : {}),
+      () =>
+        sendOrQueue(
+          visitStatusDraft(
+            {
+              id: visit.id,
+              label: clientDisplayName(
+                visit.clientFactoryLink?.client ?? null,
+                "Cliente"
+              ),
+              ...input,
             },
-          },
-        });
-        const payload = res.data?.updateVisitScheduleItem;
-        if (!payload?.status) {
-          throw new Error(payload?.message ?? "Erro ao registrar a resposta");
-        }
-        return payload;
-      },
+            new Date()
+          ),
+          async (context) => {
+            const res = await updateItem({
+              variables: { id: visit.id, input },
+              context,
+            });
+            const payload = res.data?.updateVisitScheduleItem;
+            if (!payload?.status) {
+              throw new Error(
+                payload?.message ?? "Erro ao registrar a resposta"
+              );
+            }
+            return payload;
+          }
+        ),
       {
-        successMessage,
-        onSuccess: () => {
+        successMessage: (result) =>
+          result.queued
+            ? "Sem sinal: resposta guardada no aparelho. Vai sozinha quando o sinal voltar."
+            : successMessage,
+        onSuccess: (result) => {
           optimistic.commit();
           setAnsweringId(null);
+          // Guardada no aparelho: reler a fila de vencidas falharia sem sinal,
+          // e a resposta a tiraria de lá de qualquer jeito. A fila recarrega
+          // as telas de visita quando enviar.
+          if (result.queued) return;
           refetch();
           // A resposta fecha a visita: o histórico da ficha do cliente mostra a
           // mesma linha.

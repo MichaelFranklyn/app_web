@@ -2,6 +2,11 @@
 
 import { useAsyncAction } from "@/hooks/useAsyncAction";
 import { useInvalidateQueriesClient } from "@/hooks/useInvalidateQueries";
+import {
+  stockObservationsDraft,
+  useOfflineEntry,
+  useSendOrQueue,
+} from "@/services/offlineQueue";
 import { CLIENT_STOCK_CACHE_FIELDS } from "@/utils/cacheFields";
 import { useMutation, useQuery } from "@apollo/client/react";
 import { useEffect, useMemo, useState } from "react";
@@ -77,12 +82,20 @@ const answersOf = (map: Record<string, number | null>) =>
       .sort(([a], [b]) => a.localeCompare(b))
   );
 
-export function useStockObservation(itemId: string, onSaved?: () => void) {
-  const { data: candidatesData, loading: loadingCandidates } =
-    useQuery<CandidatesData>(VISIT_STOCK_CANDIDATES_QUERY, {
-      variables: { itemId },
-      skip: !itemId,
-    });
+export function useStockObservation(
+  itemId: string,
+  onSaved?: () => void,
+  /** Nome do cliente — é como a pessoa reconhece o registro guardado sem sinal. */
+  clientName = "Cliente"
+) {
+  const {
+    data: candidatesData,
+    loading: loadingCandidates,
+    error: candidatesError,
+  } = useQuery<CandidatesData>(VISIT_STOCK_CANDIDATES_QUERY, {
+    variables: { itemId },
+    skip: !itemId,
+  });
 
   const {
     data: obsData,
@@ -108,18 +121,33 @@ export function useStockObservation(itemId: string, onSaved?: () => void) {
   const [daysMap, setDaysMap] = useState<Record<string, number | null>>({});
   // O que já está gravado: é contra ele que se sabe se há resposta nova.
   const [savedMap, setSavedMap] = useState<Record<string, number | null>>({});
+  // Respostas guardadas no aparelho (sem sinal) são mais novas que as do
+  // servidor: reabrir o modal antes do envio mostra o que a pessoa respondeu,
+  // não o que havia antes.
+  const queued = useOfflineEntry(`stock:${itemId}`);
+  // Pela data do toque, não pelo objeto: reler a fila (outra aba) recria o
+  // objeto, e isso não pode apagar o que a pessoa está marcando agora.
+  const queuedAt = queued?.createdAt;
   useEffect(() => {
     const init: Record<string, number | null> = {};
-    for (const edge of obsData?.visitStockObservations.edges ?? []) {
-      init[edge.node.productId] = edge.node.daysRemaining;
+    if (queued?.kind === "stockObservations") {
+      for (const obs of queued.variables.observations) {
+        init[obs.productId] = obs.daysRemaining;
+      }
+    } else {
+      for (const edge of obsData?.visitStockObservations.edges ?? []) {
+        init[edge.node.productId] = edge.node.daysRemaining;
+      }
     }
     setDaysMap(init);
     setSavedMap(init);
-  }, [obsData]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps -- `queuedAt` identifica a entrada
+  }, [obsData, queuedAt]);
 
   const [save] = useMutation(SAVE_VISIT_STOCK_OBSERVATIONS_MUTATION);
   const invalidateClient = useInvalidateQueriesClient();
   const { execute, isLoading } = useAsyncAction();
+  const sendOrQueue = useSendOrQueue();
 
   /** Tocar de novo no mesmo atalho desmarca o produto. */
   const setDays = (productId: string, days: number | null) => {
@@ -142,21 +170,44 @@ export function useStockObservation(itemId: string, onSaved?: () => void) {
       .map((p) => ({ productId: p.id, daysRemaining: daysMap[p.id] }));
 
     const saved = await execute(
-      async () => {
-        const res = await save({ variables: { itemId, observations } });
-        const payload = (
-          res.data as {
-            saveVisitStockObservations?: { status: boolean; message: string };
+      () =>
+        sendOrQueue(
+          stockObservationsDraft(
+            { itemId, label: clientName, observations },
+            new Date()
+          ),
+          async (context) => {
+            const res = await save({
+              variables: { itemId, observations },
+              context,
+            });
+            const payload = (
+              res.data as {
+                saveVisitStockObservations?: {
+                  status: boolean;
+                  message: string;
+                };
+              }
+            )?.saveVisitStockObservations;
+            if (!payload?.status) {
+              throw new Error(payload?.message ?? "Erro ao salvar observações");
+            }
+            return payload;
           }
-        )?.saveVisitStockObservations;
-        if (!payload?.status) {
-          throw new Error(payload?.message ?? "Erro ao salvar observações");
-        }
-        return payload;
-      },
+        ),
       {
-        successMessage: "Estoque registrado",
-        onSuccess: async () => {
+        successMessage: (outcome) =>
+          outcome.queued
+            ? "Sem sinal: estoque guardado no aparelho. Vai sozinho quando o sinal voltar."
+            : "Estoque registrado",
+        onSuccess: async (outcome) => {
+          // Guardado no aparelho: nada a reler (sem sinal falharia); a fila
+          // invalida as mesmas telas quando enviar.
+          if (outcome.queued) {
+            setSavedMap(daysMap);
+            afterSave?.();
+            return;
+          }
           refetchObs();
           // O backend acabou de corrigir a previsão de esgotamento: as abas
           // Estoque e Score mostrariam o valor antigo do cache.
@@ -184,6 +235,11 @@ export function useStockObservation(itemId: string, onSaved?: () => void) {
 
   return {
     loading: loadingCandidates || loadingObs,
+    /**
+     * A lista de produtos não veio (quase sempre: sem sinal e sem cópia no
+     * cache). NÃO é "cliente sem fábrica" — dizer isso seria mentir.
+     */
+    unavailable: Boolean(candidatesError) && !candidatesData,
     groups,
     totalProducts: allProducts.length,
     daysMap,

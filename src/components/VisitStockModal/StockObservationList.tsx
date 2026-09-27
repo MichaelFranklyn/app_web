@@ -5,7 +5,7 @@ import { EmptyState } from "@/components/EmptyState";
 import { Loading } from "@/components/Loading";
 import { Tabs } from "@/components/Tabs";
 import { Title } from "@/components/Title";
-import { PackageSearch, ReceiptText } from "lucide-react";
+import { PackageSearch, ReceiptText, WifiOff } from "lucide-react";
 import { useEffect, useMemo, useState } from "react";
 
 import { FactoryCard, factoryLabel, sourceLabel } from "./FactoryCard";
@@ -17,6 +17,7 @@ import {
 
 interface Props {
   itemId: string;
+  clientName: string;
   onSaved?: () => void;
   /** Sobe para o modal: ele fecha o estoque e abre o pedido. Nunca empilhar modais. */
   onOrder: (group: StockCandidateGroup) => void;
@@ -39,6 +40,7 @@ interface Props {
  */
 export function StockObservationList({
   itemId,
+  clientName,
   onSaved,
   onOrder,
   isLeaving = false,
@@ -46,6 +48,7 @@ export function StockObservationList({
 }: Props) {
   const {
     loading,
+    unavailable,
     groups,
     totalProducts,
     daysMap,
@@ -54,7 +57,7 @@ export function StockObservationList({
     handleSave,
     saveBeforeLeaving,
     isLoading,
-  } = useStockObservation(itemId, onSaved);
+  } = useStockObservation(itemId, onSaved, clientName);
 
   // O pedido abre noutra tela: o que foi respondido aqui é gravado antes.
   // Qual "Novo pedido" foi tocado — só ele mostra o loading.
@@ -112,6 +115,23 @@ export function StockObservationList({
       <div className="flex justify-center py-24">
         <Loading.Spinner />
       </div>
+    );
+  }
+
+  if (unavailable) {
+    return (
+      <EmptyState.Root>
+        <EmptyState.Icon>
+          <WifiOff />
+        </EmptyState.Icon>
+        <EmptyState.Title>Sem sinal para carregar os produtos</EmptyState.Title>
+        <EmptyState.Description>
+          A lista de produtos deste cliente não chegou a ser carregada. Anote o
+          estoque e registre aqui quando o sinal voltar. Dica: com a rotina do
+          dia aberta enquanto há sinal, os produtos das visitas de hoje ficam
+          guardados no aparelho.
+        </EmptyState.Description>
+      </EmptyState.Root>
     );
   }
 

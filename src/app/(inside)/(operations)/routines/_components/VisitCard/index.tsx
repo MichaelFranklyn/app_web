@@ -5,7 +5,7 @@ import { Card } from "@/components/Card";
 import { Badge } from "@/components/Badges";
 import { InputCheckbox } from "@/components/Input/InputCheckbox";
 import { Title } from "@/components/Title";
-import { TriangleAlert } from "lucide-react";
+import { CloudUpload, TriangleAlert } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { clientDisplayName } from "@/utils/client";
 import { visitPriority } from "@/utils/score";
@@ -13,6 +13,7 @@ import { VisitScheduleItem } from "../../interface";
 import {
   VISIT_STATUS_COLOR,
   VISIT_STATUS_LABEL,
+  AWAITING_SIGNAL_HINT,
   formatTravelToStop,
   formatVisitSlot,
   getVisitFollowupWarning,
@@ -62,10 +63,17 @@ const getFocusLabel = (item: VisitScheduleItem): string => {
 // visita e o menu de três pontos cobre as demais ações. Os controles têm o
 // clique isolado (stopPropagation) para não dispararem o painel.
 export function VisitCard({ item, dayDate, onChanged }: Props) {
-  const { openView, toggleCompleted, isToggling, menu, overlays } =
-    useVisitActions({ item, dayDate, onChanged });
+  const {
+    status,
+    isAwaitingSignal,
+    openView,
+    toggleCompleted,
+    isToggling,
+    menu,
+    overlays,
+  } = useVisitActions({ item, dayDate, onChanged });
 
-  const isCompleted = item.status === "COMPLETED";
+  const isCompleted = status === "COMPLETED";
   const isRemote = item.contactType === "REMOTE";
   const noun = contactNoun(item.contactType);
   const client = item.clientFactoryLink?.client ?? null;
@@ -77,7 +85,7 @@ export function VisitCard({ item, dayDate, onChanged }: Props) {
   // "Pendente" é o estado esperado de toda visita futura — mostrar o badge em
   // cada card só polui a coluna. Ele aparece quando a visita saiu do previsto
   // (realizada, ausente, remarcada…), que é a informação que vale destacar.
-  const showStatusBadge = item.status !== "PENDING";
+  const showStatusBadge = status !== "PENDING" || isAwaitingSignal;
   // Score não se aplica a visita concluída: o que importa passa a ser o estado.
   const showPriority = Boolean(priority) && !isCompleted;
 
@@ -231,10 +239,19 @@ export function VisitCard({ item, dayDate, onChanged }: Props) {
               {showStatusBadge && (
                 <Badge.Root
                   fullWidth
-                  color={VISIT_STATUS_COLOR[item.status]}
+                  color={VISIT_STATUS_COLOR[status]}
                   appearance="tinted"
+                  title={isAwaitingSignal ? AWAITING_SIGNAL_HINT : undefined}
                 >
-                  <Badge.Text>{VISIT_STATUS_LABEL[item.status]}</Badge.Text>
+                  {isAwaitingSignal && (
+                    <Badge.Icon>
+                      <CloudUpload />
+                    </Badge.Icon>
+                  )}
+                  <Badge.Text>
+                    {VISIT_STATUS_LABEL[status]}
+                    {isAwaitingSignal ? " · aguardando sinal" : ""}
+                  </Badge.Text>
                 </Badge.Root>
               )}
             </div>

@@ -10,7 +10,8 @@ export type PlanFeature =
   | "BULK_IMPORT"
   | "GOALS"
   | "COMMISSIONS"
-  | "NOTIFICATIONS";
+  | "NOTIFICATIONS"
+  | "PORTAL_ORDERS";
 
 export type PlanLimitKey = "USERS" | "SELLERS" | "CLIENTS" | "FACTORIES";
 

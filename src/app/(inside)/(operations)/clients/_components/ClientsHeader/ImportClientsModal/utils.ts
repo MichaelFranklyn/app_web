@@ -1,3 +1,4 @@
+import { normalizeLabel } from "@/utils/import/similarity";
 import { downloadSheet } from "@/utils/import/writer";
 
 import { ImportClientRow } from "./interface";
@@ -25,11 +26,49 @@ export const downloadExampleSheet = (): Promise<void> =>
     "Clientes"
   );
 
-const rowToInput = (cells: string[]): ImportClientRow => {
-  const notes = (cells[1] ?? "").trim();
+const CNPJ_HEADERS = [
+  "cnpj",
+  "cpf/cnpj",
+  "cnpj/cpf",
+  "cnpj do cliente",
+  "documento",
+];
+const NOTES_HEADERS = ["observacoes", "observacao", "obs"];
+
+const looksLikeDocument = (value: string): boolean =>
+  [11, 14].includes(value.replace(/\D/g, "").length);
+
+/**
+ * Onde está o CNPJ. No modelo daqui é a primeira coluna; na lista exportada de
+ * outro sistema (a Mercos traz razão social, fantasia, endereço…) pode estar
+ * em qualquer lugar. Vale o título da coluna; sem título conhecido, a coluna
+ * em que a maioria das linhas tem cara de CNPJ/CPF; sem nada disso, a primeira.
+ */
+export const findColumns = (
+  matrix: string[][]
+): { cnpj: number; notes: number | null } => {
+  const headers = (matrix[0] ?? []).map((h) => normalizeLabel(h));
+  const notesIndex = headers.findIndex((h) => NOTES_HEADERS.includes(h));
+  const notes = notesIndex >= 0 ? notesIndex : null;
+
+  const byHeader = headers.findIndex((h) => CNPJ_HEADERS.includes(h));
+  if (byHeader >= 0) return { cnpj: byHeader, notes };
+
+  const sample = matrix.slice(1, 51);
+  let best = 0;
+  let bestHits = 0;
+  headers.forEach((_, index) => {
+    const hits = sample.filter((row) =>
+      looksLikeDocument(row[index] ?? "")
+    ).length;
+    if (hits > bestHits) {
+      bestHits = hits;
+      best = index;
+    }
+  });
   return {
-    cnpj: (cells[0] ?? "").replace(/\D/g, ""),
-    notes: notes || null,
+    cnpj: bestHits > sample.length / 2 ? best : 0,
+    notes,
   };
 };
 
@@ -45,5 +84,12 @@ export const parseClientsRows = (matrix: string[][]): ImportClientRow[] => {
     throw new Error("A planilha não contém linhas de dados.");
   }
 
-  return dataRows.map(rowToInput);
+  const { cnpj, notes } = findColumns(matrix);
+  return dataRows.map((cells) => {
+    const note = notes === null ? "" : (cells[notes] ?? "").trim();
+    return {
+      cnpj: (cells[cnpj] ?? "").replace(/\D/g, ""),
+      notes: note || null,
+    };
+  });
 };

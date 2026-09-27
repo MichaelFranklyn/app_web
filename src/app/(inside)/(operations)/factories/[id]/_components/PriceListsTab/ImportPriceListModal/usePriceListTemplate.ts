@@ -1,4 +1,5 @@
 import { useMutation } from "@apollo/client/react";
+import { useFileUpload } from "@/services/upload";
 import { useMemo } from "react";
 
 import { useToast } from "@/components/Toast";
@@ -13,7 +14,6 @@ import {
 } from "../../ImportTemplateTab/gql";
 import { ImportTemplatesData } from "../../ImportTemplateTab/interface";
 import { canSaveTemplate } from "./build";
-import { fileToBase64 } from "./gql";
 import { PriceListTemplateConfig } from "./templateConfig";
 
 type ExecuteFn = ReturnType<typeof useAsyncAction>["execute"];
@@ -69,6 +69,7 @@ export function usePriceListTemplate({
         .find((n) => n.isActive && n.target === "PRICE_LIST") ?? null,
     [tplData]
   );
+  const uploadFile = useFileUpload();
   const [createTemplate] = useMutation<{
     createImportTemplate: { status: boolean; message: string };
   }>(CREATE_IMPORT_TEMPLATE_MUTATION);
@@ -87,14 +88,14 @@ export function usePriceListTemplate({
           ? "CSV"
           : "XLSX"
       : "XLSX";
-    const base64 = selected ? await fileToBase64(selected) : null;
+    const fileRef = selected ? await uploadFile(selected) : null;
     return {
       target: "PRICE_LIST",
       fileType,
       parserStrategy: "COLUMN_MAPPING",
       config,
-      ...(base64
-        ? { sampleFileBase64: base64, sampleFileName: selected!.name }
+      ...(fileRef
+        ? { sampleFileRef: fileRef, sampleFileName: selected!.name }
         : {}),
     };
   };

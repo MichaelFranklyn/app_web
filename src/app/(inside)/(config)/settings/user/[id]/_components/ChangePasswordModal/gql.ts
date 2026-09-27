@@ -6,6 +6,9 @@ export const UPDATE_MY_PASSWORD_MUTATION = gql`
       status
       code
       message
+      data {
+        accessToken
+      }
     }
   }
 `;

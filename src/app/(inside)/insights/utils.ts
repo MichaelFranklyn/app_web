@@ -139,7 +139,7 @@ export const INSIGHT_COPY: Record<InsightKind, InsightCopy> = {
     why: ({ amount }) =>
       `São ${formatMoney(Number(amount ?? 0))} em mercadoria que a fábrica ainda não faturou. A comissão só começa a contar a partir do faturamento, então cada dia parado aqui é um dia a mais para o dinheiro chegar — e é a você que o cliente vai cobrar o prazo.`,
     action: "Ver o que falta faturar",
-    href: "/orders/stalled",
+    href: "/orders?tab=pending",
   },
   DRAFT_STALE: {
     icon: ClipboardList,
@@ -162,7 +162,7 @@ export const INSIGHT_COPY: Record<InsightKind, InsightCopy> = {
     why: () =>
       "O prazo de entrega já passou e ninguém confirmou o recebimento. É a hora do pós-venda: uma mensagem ao cliente confirma se chegou tudo certo, resolve um problema antes de virar reclamação e abre a conversa do próximo pedido. Confirmar a entrega no pedido também atualiza o estoque estimado do cliente.",
     action: "Conferir as entregas",
-    href: "/orders/stalled",
+    href: "/orders?tab=delivery",
   },
   LOCATION_UNRELIABLE: {
     icon: MapPinOff,

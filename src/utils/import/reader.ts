@@ -43,6 +43,10 @@ export const readWorkbook = async (file: File): Promise<WorkbookData> => {
         blankrows: false,
         raw: false,
         defval: "",
+        // Data sem formato próprio sai em ISO, e não no "m/d/yy" americano
+        // padrão do SheetJS — em planilha brasileira, "5/4/26" seria lido
+        // como 4 de maio por uns e 5 de abril por outros.
+        dateNF: "yyyy-mm-dd",
       }
     );
     sheets[sheetName] = dropEmptyRows(
