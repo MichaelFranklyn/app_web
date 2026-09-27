@@ -24,6 +24,7 @@ import { ORDER_STATS_QUERY, ORDERS_QUERY } from "./gql";
 import { ORDER_TAB_HELP } from "./help";
 import { ITEMS_PER_PAGE, Order, OrdersStats, QueryData } from "./interface";
 import { useOrderFilters } from "./useOrderFilters";
+import { useOrderTabCounts, withCount } from "./useOrderTabCounts";
 import { useOrdersTab } from "./useOrdersTab";
 import { ORDER_DEFAULT_SORT, ORDER_SORTABLE_FIELDS } from "./utils";
 
@@ -88,6 +89,8 @@ export default function OrdersContent({
     { variables: { input: { first: ITEMS_PER_PAGE, filters: statsFilters } } }
   );
 
+  const tabCounts = useOrderTabCounts(tableData.inputValues);
+
   const optimistic = useOptimisticList<Order>({
     initialData: tableData.displayedData,
   });
@@ -96,6 +99,7 @@ export default function OrdersContent({
   const handleChanged = () => {
     void tableData.refetch();
     void refetchStats();
+    void tabCounts.refetch();
     void invalidateClient(ORDER_DELIVERY_CACHE_FIELDS);
   };
 
@@ -145,10 +149,10 @@ export default function OrdersContent({
             Todos os pedidos
           </Tabs.Item>
           <Tabs.Item value="pending" title={ORDER_TAB_HELP.pending}>
-            Esperando faturamento
+            {withCount("Esperando faturamento", tabCounts.pending)}
           </Tabs.Item>
           <Tabs.Item value="delivery" title={ORDER_TAB_HELP.delivery}>
-            Esperando entrega
+            {withCount("Esperando entrega", tabCounts.delivery)}
           </Tabs.Item>
         </Tabs.List>
 
