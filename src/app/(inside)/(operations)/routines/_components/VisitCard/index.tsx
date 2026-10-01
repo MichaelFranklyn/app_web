@@ -25,6 +25,7 @@ import { contactNoun } from "@/utils/visit";
 import { ContactLinks } from "../ContactLinks";
 import { ContactTypeTag } from "@/components/ContactTypeTag";
 import { FixedVisitTag } from "@/components/FixedVisitTag";
+import { TripVisitTag } from "@/components/TripVisitTag";
 
 interface Props {
   item: VisitScheduleItem;
@@ -144,6 +145,7 @@ export function VisitCard({ item, dayDate, onChanged }: Props) {
                 <div className="mb-4 flex flex-wrap items-center gap-x-8 gap-y-2">
                   <ContactTypeTag contactType={item.contactType} />
                   <FixedVisitTag fixedScheduleId={item.fixedScheduleId} />
+                  <TripVisitTag tripId={item.tripId} />
                   <Title variant="micro" color="muted">
                     #{item.plannedOrder}
                     {formatVisitSlot(item)}

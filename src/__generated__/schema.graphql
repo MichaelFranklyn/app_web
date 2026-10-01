@@ -1,6 +1,6 @@
 # AUTO-GERADO por scripts/pull-schema.mjs — NÃO editar à mão.
 # Snapshot do schema do backend (app_user). Atualize com: npm run schema:pull
-# Fonte: 55 arquivos .graphql merge-ados (mesma regra do Ariadne).
+# Fonte: 56 arquivos .graphql merge-ados (mesma regra do Ariadne).
 
 input BaseListInput {
   filters: [FieldFilterInput!] = null
@@ -3389,6 +3389,12 @@ type OrderType {
   sentByName: String
   """Observação de quem enviou (ex.: "mandei para o Carlos, o Rogério está de férias")."""
   sentNote: String
+  """Quando o pedido foi cancelado. Nulo em pedido não cancelado (e nos cancelados antes de existir o registro)."""
+  cancelledAt: DateTime
+  """Quem cancelou. Nulo se o usuário foi removido depois (o cancelamento continua registrado)."""
+  cancelledByName: String
+  """Motivo do cancelamento, como foi escrito por quem cancelou. Opcional."""
+  cancelReason: String
   """Prazo de entrega estimado em dias (herda o padrão da fábrica). Nulo = sem previsão."""
   deliveryEstimateDays: Int
   """
@@ -3482,6 +3488,13 @@ type OrderStatsType {
   invoicedAmount: Decimal!
   """Comissão somada dos pedidos já faturados no recorte."""
   commissionAmount: Decimal!
+  """
+  Saldos de faturamento parcial no recorte. Não entram em `totalOrders` nem em
+  `invoicedOrders` — são a continuação de uma venda já contada —, mas o valor
+  deles soma em `totalAmount`/`invoicedAmount` (o pai foi reduzido na mesma hora,
+  então nada duplica).
+  """
+  backorderCount: Int!
 }
 
 input UpdateOrderInput {
@@ -3730,6 +3743,13 @@ extend type Mutation {
   Reenvio é permitido e esperado — a fábrica perder a mensagem é comum.
   """
   markOrderSent(id: UUID!, input: MarkOrderSentInput!): OrderTypeDataResponse!
+  """
+  Cancela o pedido SEM excluí-lo: ele continua na lista, com quando, quem e o
+  motivo, e para de contar nos números de venda. Vale para orçamento e pedido
+  confirmado ainda não faturado — faturado precisa desfazer o faturamento antes
+  (`uninvoiceOrder`), senão boletos e comissão ficariam vivos.
+  """
+  cancelOrder(id: UUID!, input: CancelOrderInput = null): OrderTypeDataResponse!
   payOrderInstallment(id: UUID!, paidAt: Date!): OrderInstallmentTypeDataResponse!
   """Marca vários boletos como pagos de uma vez, conferindo o relatório da fábrica."""
   payOrderInstallments(installmentIds: [UUID!]!, paidAt: Date!): BaseResponse!
@@ -3776,6 +3796,11 @@ extend type Mutation {
   """Encerra a devolução ao vendedor: o valor descontado dele voltou."""
   markSellerChargebackRefunded(installmentIds: [UUID!]!): BaseResponse!
   setCommissionReconciled(installmentIds: [UUID!]!, reconciled: Boolean!): BaseResponse!
+}
+
+input CancelOrderInput {
+  """Motivo livre ("cliente desistiu", "fábrica sem o produto"). Opcional, até 500 caracteres."""
+  reason: String = null
 }
 
 input MarkOrderSentInput {
@@ -6080,6 +6105,130 @@ extend type Mutation {
   copySellerGoals(fromMonth: Date!, toMonth: Date!, sellerId: UUID = null, overwrite: Boolean = false): BaseResponse!
 }
 
+"""
+Viagem do vendedor para atender uma região longe de casa.
+
+A rotina semanal é montada a partir da casa do vendedor, e o cliente que não
+cabe num dia de ida e volta vira ligação. A viagem diz ao motor "nestes dias eu
+estou lá": as paradas são montadas com os clientes da carteira nas cidades
+escolhidas, todos eles, do mais urgente ao menos urgente.
+"""
+type SellerTripType {
+  id: UUID!
+  sellerId: UUID!
+  startDate: Date!
+  endDate: Date!
+  cities: [TripCityType!]!
+  """Nome curto para cartões: "Feira de Santana e Serrinha"."""
+  title: String!
+  note: String
+  """Visitas da viagem na rotina (feitas e por fazer)."""
+  plannedVisits: Int!
+  """Visitas da viagem que já foram trabalhadas."""
+  doneVisits: Int!
+  createdAt: DateTime!
+}
+
+type TripCityType {
+  city: String!
+  state: String!
+}
+
+"""Uma cidade onde o vendedor tem clientes — opção da viagem."""
+type TripRegionOptionType {
+  key: String!
+  city: String!
+  state: String!
+  """Clientes ativos da carteira do vendedor nesta cidade."""
+  clientCount: Int!
+  """Destes, quantos têm endereço localizado no mapa (sem ele não há rota)."""
+  locatedCount: Int!
+}
+
+type TripVisitType {
+  clientId: UUID!
+  clientName: String!
+  """Cidade do cliente, como "Feira de Santana - BA"."""
+  city: String!
+  score: Float!
+}
+
+type TripDayPlanType {
+  date: Date!
+  """Cidade da maioria das paradas — de onde o dia sai."""
+  city: String
+  visits: [TripVisitType!]!
+}
+
+"""O plano da viagem: o que vai para cada dia e o que ficou de fora (e por quê)."""
+type TripPlanType {
+  """Nulo na prévia (dryRun): nada foi gravado."""
+  trip: SellerTripType
+  days: [TripDayPlanType!]!
+  """Clientes da região que não couberam nos dias (vagas ou horário)."""
+  leftOut: [TripVisitType!]!
+  """Clientes da região sem endereço localizado no mapa — sem rota até eles."""
+  ungeocoded: [TripVisitType!]!
+  """Clientes da região que já têm visita marcada em outro dia."""
+  alreadyScheduled: [TripVisitType!]!
+  """Visitas marcadas à mão que continuam nos dias da viagem (confira se ainda fazem sentido)."""
+  manualConflicts: Int!
+  """Dias do período que ficaram de fora por já terem começado ou sido encerrados."""
+  skippedDates: [Date!]!
+  """Clientes ativos da carteira nas cidades escolhidas."""
+  regionClientCount: Int!
+  """
+  Clientes da região que não entraram por regra da rotina: pedido em aberto
+  naquela fábrica, negativado, pediu para não ser visitado agora ou saiu da carteira.
+  """
+  unavailableCount: Int!
+}
+
+type TripPlanTypeDataResponse {
+  status: Boolean!
+  code: Int!
+  message: String!
+  data: TripPlanType
+}
+
+input TripCityInput {
+  city: String!
+  state: String!
+}
+
+input PlanSellerTripInput {
+  """Sem ele, a viagem é do vendedor logado. O gestor informa de quem é."""
+  sellerId: UUID = null
+  cities: [TripCityInput!]!
+  """Primeiro dia de atendimento na região."""
+  startDate: Date!
+  """Último dia de atendimento na região (inclusive)."""
+  endDate: Date!
+  """Recado livre ("feira em Vitória da Conquista"). Opcional."""
+  note: String = null
+  """Só calcula e devolve o plano, sem gravar nada — é a prévia da tela."""
+  dryRun: Boolean = false
+}
+
+extend type Query {
+  """Cidades onde o vendedor tem clientes ativos, com a contagem. Sem `sellerId`, do vendedor logado."""
+  tripRegionOptions(sellerId: UUID = null): [TripRegionOptionType!]!
+  """Viagens que ainda não terminaram. Sem `sellerId`, do vendedor logado."""
+  sellerTrips(sellerId: UUID = null): [SellerTripType!]!
+}
+
+extend type Mutation {
+  """
+  Monta a rotina da viagem: todos os clientes da carteira nas cidades escolhidas,
+  do mais urgente ao menos urgente, nos dias de trabalho do período. Nesses dias
+  as visitas da região de casa que o sistema tinha planejado saem; ligações e
+  visitas marcadas à mão ficam. Com `dryRun`, só devolve a prévia.
+  """
+  planSellerTrip(input: PlanSellerTripInput!): TripPlanTypeDataResponse!
+  """Cancela a viagem: as visitas dela que ainda não aconteceram saem da rotina."""
+  cancelSellerTrip(id: UUID!): BaseResponse!
+}
+
 input CreateSellerInput {
   name: String!
   email: String!
@@ -6969,6 +7118,8 @@ type VisitScheduleItemType {
   isWholeDay: Boolean!
   """Marcada por uma pessoa (combinada com o cliente), não recomendada pelo motor. Nenhuma geração automática a reescreve, e ela ancora a região do dia."""
   isManual: Boolean!
+  """Viagem que criou esta parada (ver `planSellerTrip`). Nulo nas paradas da rotina de casa."""
+  tripId: UUID
   createdAt: DateTime!
   updatedAt: DateTime!
   day: VisitScheduleDayType

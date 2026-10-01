@@ -121,12 +121,22 @@ export const buildOrderKpis = (
     invoicedOrders = 0,
     invoicedAmount = "0",
     commissionAmount = "0",
+    backorderCount = 0,
   } = stats.orderStats ?? {};
 
   // Os cartões contam só PEDIDO FEITO (confirmado, faturado, entregue) — ver
   // `_apply_placed_only`, no backend. A legenda diz isso: sem ela, o número
   // menor que o da lista (que mostra orçamento e cancelado) parece erro.
   const scope = isFiltered ? "no filtro atual" : "da empresa";
+  // O saldo de faturamento parcial é a mesma venda entregue em partes: fica
+  // fora da contagem, mas aparece na lista — a legenda conta quantos são para
+  // a diferença não parecer erro.
+  const backorders =
+    backorderCount === 1
+      ? " · 1 saldo à parte"
+      : backorderCount > 1
+        ? ` · ${backorderCount} saldos à parte`
+        : "";
 
   // O texto de cada cartão vem de `help.tsx`, indexado pelo rótulo: os quatro
   // somam coisas diferentes (todos os pedidos × só a mercadoria × só o
@@ -136,7 +146,7 @@ export const buildOrderKpis = (
     {
       label: "Pedidos",
       value: String(totalOrders),
-      delta: `pedidos feitos ${scope}`,
+      delta: `pedidos feitos ${scope}${backorders}`,
       status: "atencao",
       help: ORDER_KPI_HELP["Pedidos"],
     },

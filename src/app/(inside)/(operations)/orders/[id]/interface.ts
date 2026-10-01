@@ -85,6 +85,11 @@ export interface OrderDetail {
   sentChannel: "WHATSAPP" | "EMAIL" | "PHONE" | "OTHER" | null;
   sentByName: string | null;
   sentNote: string | null;
+  /** Quando foi cancelado. Nulo em pedido ativo e nos cancelados antes do registro existir. */
+  cancelledAt: string | null;
+  cancelledByName: string | null;
+  /** Motivo escrito por quem cancelou (opcional). */
+  cancelReason: string | null;
   /** Prazo de entrega estimado (dias), contado do faturamento. */
   deliveryEstimateDays: number | null;
   /** Dias que o vendedor estima que este pedido dura na loja do cliente. */

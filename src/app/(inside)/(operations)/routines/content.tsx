@@ -19,8 +19,10 @@ import { RoutinesSkeleton } from "./_components/RoutinesSkeleton";
 import { RoutinesSummary } from "./_components/RoutinesSummary";
 import { RoutinesViewToggle } from "./_components/RoutinesViewToggle";
 import { RoutinesWeekGrid } from "./_components/RoutinesWeekGrid";
+import { UpcomingTrips } from "./_components/UpcomingTrips";
 import { useDayOffs } from "./useDayOffs";
 import { useRoutines } from "./useRoutines";
+import { useSellerTrips } from "./useSellerTrips";
 import { canGenerateWeek, formatWeekRange } from "./utils";
 
 // Quantos dias da rotina exibir (a partir de hoje); 7 = semana inteira.
@@ -65,6 +67,9 @@ export default function RoutinesContent() {
     onChanged: () => refetch(),
   });
 
+  // As viagens atravessam semanas: a lista é do vendedor, não da semana em tela.
+  const trips = useSellerTrips({ sellerId: effectiveSellerId });
+
   return (
     <PageContent>
       <RoutinesHeader
@@ -73,11 +78,24 @@ export default function RoutinesContent() {
         selectedSellerId={selectedSellerId}
         effectiveSellerId={effectiveSellerId}
         onVisitScheduled={() => refetch()}
+        onTripPlanned={() => {
+          refetch();
+          trips.refetch();
+        }}
         onSelectSeller={setSelectedSellerId}
         onSelectDate={setWeekStart}
         onPrevWeek={handlePrevWeek}
         onNextWeek={handleNextWeek}
         onCurrentWeek={handleCurrentWeek}
+      />
+
+      <UpcomingTrips
+        trips={trips.trips}
+        onCancel={trips.cancel}
+        onCancelled={() => {
+          refetch();
+          trips.refetch();
+        }}
       />
 
       {showSkeleton ? (

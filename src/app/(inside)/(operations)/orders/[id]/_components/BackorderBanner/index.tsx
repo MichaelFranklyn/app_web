@@ -26,14 +26,16 @@ export function BackorderBanner({ order }: Props) {
           <Alert.Icon icon={GitBranch} />
           <Alert.Content>
             <Alert.Description>
-              Este pedido é o restante (backorder) de um faturamento parcial do{" "}
+              Este é o <strong>saldo</strong> do{" "}
               <Link
                 href={`/orders/${order.parentOrder.id}`}
                 className={linkClass}
               >
                 pedido de {formatDate(order.parentOrder.orderDate)}
               </Link>
-              . Fature-o quando a fábrica repuser o estoque.
+              : o que a fábrica não conseguiu entregar de uma vez. É a mesma
+              venda — não conta como pedido novo nem muda a frequência de compra
+              do cliente. Fature quando a fábrica mandar o restante.
             </Alert.Description>
           </Alert.Content>
         </Alert.Root>
@@ -44,14 +46,14 @@ export function BackorderBanner({ order }: Props) {
           <Alert.Icon icon={PackageX} />
           <Alert.Content>
             <Alert.Description>
-              Faturado parcial — o que faltou foi para{" "}
-              {children.length === 1 ? "um novo pedido" : "novos pedidos"} de
-              backorder:{" "}
+              Faturado parcial — o que faltou ficou como{" "}
+              {children.length === 1 ? "saldo" : "saldos"} deste pedido (a mesma
+              venda, entregue em partes):{" "}
               {children.map((child, i) => (
                 <span key={child.id}>
                   {i > 0 && ", "}
                   <Link href={`/orders/${child.id}`} className={linkClass}>
-                    ver restante
+                    ver saldo
                   </Link>
                 </span>
               ))}

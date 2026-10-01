@@ -20,6 +20,7 @@ const stats = (over: Partial<OrdersStats["orderStats"]> = {}): OrdersStats => ({
     invoicedOrders: 4,
     invoicedAmount: "400",
     commissionAmount: "20",
+    backorderCount: 0,
     ...over,
   },
 });
@@ -151,6 +152,18 @@ describe("buildOrderKpis", () => {
     expect(buildOrderKpis(stats(), true)[0].delta).toBe(
       "pedidos feitos no filtro atual"
     );
+  });
+
+  it("conta os saldos à parte, sem somá-los nos pedidos", () => {
+    // O saldo é a mesma venda entregue em partes: fica fora de totalOrders,
+    // mas aparece na lista — a legenda explica a diferença.
+    expect(buildOrderKpis(stats({ backorderCount: 1 }))[0].delta).toBe(
+      "pedidos feitos da empresa · 1 saldo à parte"
+    );
+    expect(buildOrderKpis(stats({ backorderCount: 3 }), true)[0].delta).toBe(
+      "pedidos feitos no filtro atual · 3 saldos à parte"
+    );
+    expect(buildOrderKpis(stats())[0].value).toBe("10");
   });
 
   it("degrada para zeros quando o backend não devolve orderStats", () => {

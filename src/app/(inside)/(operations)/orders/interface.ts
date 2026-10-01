@@ -12,6 +12,11 @@ export interface Order {
   totalAmount: string;
   commissionAmount: string;
   status: OrderStatus;
+  /**
+   * Saldo de um faturamento parcial: o resto de um pedido que a fábrica não
+   * entregou inteiro. É a mesma venda — não conta como pedido novo.
+   */
+  isBackorder: boolean;
   /** Faturado, prazo de entrega vencido e não entregue — pede confirmação. */
   isDeliveryOverdue: boolean;
   /** Data gravada se a entrega for confirmada sem outra (faturamento + prazo). */
@@ -39,6 +44,11 @@ export interface OrdersStats {
     invoicedAmount: string;
     /** Comissão gerada pelo que já foi faturado no recorte. */
     commissionAmount: string;
+    /**
+     * Saldos de faturamento parcial no recorte. Fora de `totalOrders` (são a
+     * mesma venda), mas o valor deles soma nos totais.
+     */
+    backorderCount: number;
   };
 }
 

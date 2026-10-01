@@ -7,6 +7,7 @@ import { PanelHeader } from "@/components/PanelHeader";
 import { CalendarDays, ChevronLeft, ChevronRight } from "lucide-react";
 import { RoutineSellerOption } from "../../interface";
 import { getCurrentWeekMondayIso } from "@/utils/format/date";
+import { PlanTripButton } from "../PlanTripButton";
 import { ScheduleVisitButton } from "../ScheduleVisitButton";
 import {
   formatWeekRange,
@@ -23,6 +24,8 @@ interface Props {
   effectiveSellerId?: string | null;
   /** Recarrega a semana depois de uma visita marcada à mão. */
   onVisitScheduled?: () => void;
+  /** Recarrega a semana e as viagens depois de planejar uma viagem. */
+  onTripPlanned?: () => void;
   onSelectSeller?: (id: string) => void;
   onSelectDate: (weekStartIso: string) => void;
   onPrevWeek: () => void;
@@ -36,6 +39,7 @@ export function RoutinesHeader({
   selectedSellerId,
   effectiveSellerId,
   onVisitScheduled,
+  onTripPlanned,
   onSelectSeller,
   onSelectDate,
   onPrevWeek,
@@ -139,6 +143,12 @@ export function RoutinesHeader({
             <ScheduleVisitButton
               sellerId={effectiveSellerId ?? selectedSellerId ?? null}
               onScheduled={() => onVisitScheduled?.()}
+            />
+            {/* A viagem também nasce aqui: ela costuma cair numa semana que
+                ainda não tem rotina. */}
+            <PlanTripButton
+              sellerId={effectiveSellerId ?? selectedSellerId ?? null}
+              onPlanned={() => onTripPlanned?.()}
             />
           </PanelHeader.Actions>
         </PanelHeader.Left>
