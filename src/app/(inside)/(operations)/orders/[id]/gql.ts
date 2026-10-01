@@ -30,6 +30,9 @@ export const ORDER_DETAIL_QUERY = gql`
         sentChannel
         sentByName
         sentNote
+        cancelledAt
+        cancelledByName
+        cancelReason
         deliveryEstimateDays
         coverageDays
         estimatedDeliveryDate

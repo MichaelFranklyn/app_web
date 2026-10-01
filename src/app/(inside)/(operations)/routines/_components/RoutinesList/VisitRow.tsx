@@ -22,6 +22,7 @@ import { contactNoun } from "@/utils/visit";
 import { ContactLinks } from "../ContactLinks";
 import { ContactTypeTag } from "@/components/ContactTypeTag";
 import { FixedVisitTag } from "@/components/FixedVisitTag";
+import { TripVisitTag } from "@/components/TripVisitTag";
 
 interface Props {
   item: VisitScheduleItem;
@@ -110,6 +111,7 @@ export function VisitRow({ item, dayDate, onChanged }: Props) {
           <div className="mb-2 flex flex-wrap items-center gap-x-8">
             <ContactTypeTag contactType={item.contactType} />
             <FixedVisitTag fixedScheduleId={item.fixedScheduleId} />
+            <TripVisitTag tripId={item.tripId} />
           </div>
           <Title
             variant="value"

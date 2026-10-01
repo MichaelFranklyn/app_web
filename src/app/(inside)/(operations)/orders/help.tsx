@@ -29,6 +29,11 @@ export const ORDER_KPI_HELP: Record<string, ReactNode> = {
         na lista abaixo, mas não são venda. Se você filtrar por uma dessas
         situações, os cartões passam a contá-la.
       </Title>
+      <Title variant="body-sm">
+        O <Emphasis>saldo</Emphasis> — o resto que a fábrica não entregou de uma
+        vez — não conta como pedido novo: é a mesma venda. O valor dele soma no
+        total; a contagem fica com o pedido original.
+      </Title>
     </>
   ),
   "Valor total": (
@@ -73,6 +78,8 @@ export const ORDER_COLUMN_HELP = {
   expectedDelivery:
     "Data de faturamento mais o prazo de entrega do pedido. Ao confirmar sem informar outra data, é esta que fica gravada como o dia em que chegou.",
   code: "Código curto do pedido — os 8 primeiros caracteres do identificador. É por ele que o pedido é procurado no filtro e o que sai impresso no PDF.",
+  backorder:
+    "Saldo: o resto de um pedido que a fábrica não conseguiu entregar inteiro. É a mesma venda — não conta como pedido novo nem muda a frequência de compra do cliente. Fature quando a fábrica mandar o restante.",
   sortHint:
     "Cliente, fábrica e vendedor ordenam pelo nome que você vê na coluna.",
   client:

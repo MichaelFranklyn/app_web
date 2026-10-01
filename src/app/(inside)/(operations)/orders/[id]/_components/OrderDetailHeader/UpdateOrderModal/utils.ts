@@ -13,16 +13,11 @@ import { PaymentTermRef } from "../../../interface";
 const isInvoiced = (status: OrderStatus) =>
   status === "INVOICED" || status === "DELIVERED";
 
-// Faturar e Entregar têm fluxo próprio (faturar gera parcelas/comissão; entregar
-// grava a data e alimenta o estoque via botão "Confirmar entrega"), então
-// INVOICED e DELIVERED não são opções manuais — só aparecem se o pedido já
-// estiver nesse status (para exibição).
-const MANUAL_STATUSES: OrderStatus[] = [
-  "DRAFT",
-  "SENT",
-  "CONFIRMED",
-  "CANCELLED",
-];
+// Faturar, Entregar e Cancelar têm fluxo próprio (faturar gera parcelas/comissão;
+// entregar grava a data e alimenta o estoque; cancelar registra o motivo e só vale
+// antes do faturamento), então INVOICED, DELIVERED e CANCELLED não são opções
+// manuais — só aparecem se o pedido já estiver nesse status (para exibição).
+const MANUAL_STATUSES: OrderStatus[] = ["DRAFT", "SENT", "CONFIRMED"];
 
 export const buildUpdateOrderSteps = (
   currentStatus: OrderStatus,
@@ -58,7 +53,7 @@ export const buildUpdateOrderSteps = (
               type: "select-single",
               label: "Status",
               placeholder: "Selecione o status",
-              hint: "Para faturar o pedido, use o botão Faturar (gera as parcelas).",
+              hint: "Para faturar ou cancelar o pedido, use os botões Faturar e Cancelar pedido.",
               options: statuses.map((s) => ({
                 value: s,
                 label: ORDER_STATUS_LABELS[s],

@@ -152,11 +152,24 @@ export function OrdersTable({
                 className="group"
               >
                 <Table.Cell>
-                  <Badge.Root color="subtle" appearance="tinted">
-                    <Badge.Text>
-                      {order.id.slice(0, 8).toUpperCase()}
-                    </Badge.Text>
-                  </Badge.Root>
+                  <span className="inline-flex items-center gap-6">
+                    <Badge.Root color="subtle" appearance="tinted">
+                      <Badge.Text>
+                        {order.id.slice(0, 8).toUpperCase()}
+                      </Badge.Text>
+                    </Badge.Root>
+                    {/* O saldo aparece na lista (precisa ser faturado), mas
+                        não é pedido novo — a tarja diz o que ele é. */}
+                    {order.isBackorder && (
+                      <Badge.Root
+                        color="purple"
+                        appearance="tinted"
+                        title={ORDER_COLUMN_HELP.backorder}
+                      >
+                        <Badge.Text>Saldo</Badge.Text>
+                      </Badge.Root>
+                    )}
+                  </span>
                 </Table.Cell>
 
                 <Table.Cell variant="strong">

@@ -10,6 +10,7 @@ const order: Order = {
   totalAmount: "1234.5",
   commissionAmount: "61.73",
   status: "INVOICED",
+  isBackorder: false,
   isDeliveryOverdue: false,
   expectedDeliveryDate: null,
   seller: { id: "s1", name: "Ana" },

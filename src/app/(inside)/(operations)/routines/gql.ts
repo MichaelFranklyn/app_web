@@ -95,6 +95,7 @@ export const VISIT_SCHEDULES_QUERY = gql`
               notes
               isWholeDay
               isManual
+              tripId
               focusFactories {
                 scoreTotal
                 factory {
@@ -238,6 +239,36 @@ export const UNMARK_SELLER_DAY_OFF_MUTATION = gql`
         id
         date
       }
+    }
+  }
+`;
+
+// Viagens que ainda não terminaram. Mora aqui (e não no botão de planejar)
+// porque duas peças da página leem a mesma lista: o cartão das viagens e o
+// planejador, que a recarrega depois de criar uma.
+export const SELLER_TRIPS_QUERY = gql`
+  query SellerTrips($sellerId: UUID) {
+    seller_trips: sellerTrips(sellerId: $sellerId) {
+      id
+      startDate
+      endDate
+      title
+      note
+      plannedVisits
+      doneVisits
+      cities {
+        city
+        state
+      }
+    }
+  }
+`;
+
+export const CANCEL_SELLER_TRIP_MUTATION = gql`
+  mutation CancelSellerTrip($id: UUID!) {
+    cancelSellerTrip(id: $id) {
+      status
+      message
     }
   }
 `;

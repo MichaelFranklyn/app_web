@@ -11,6 +11,7 @@ import { EditInvoiceModal } from "../EditInvoiceModal";
 import { InvoiceOrderModal } from "../InvoiceOrderModal";
 import { MarkDeliveredModal } from "../MarkDeliveredModal";
 import { SendToFactoryModal } from "../SendToFactoryModal";
+import { CancelOrderModal } from "./CancelOrderModal";
 import { ConvertToOrderModal } from "./ConvertToOrderModal";
 import { DeleteOrderModal } from "./DeleteOrderModal";
 import { OrderExportMenu } from "./OrderExportMenu";
@@ -82,6 +83,33 @@ export function OrderDetailHeader({ order, onRefetch }: Props) {
                   title="O próprio cliente pediu estes produtos pelo portal. O preço veio da tabela no nível dele (ou da última compra); confira preço, condição de pagamento e frete antes de converter em pedido."
                 >
                   <Badge.Text>Pedido do cliente pelo portal</Badge.Text>
+                </Badge.Root>
+              </div>
+            )}
+
+            {/* Cancelado continua na lista de propósito; a tarja diz quando,
+                quem e por quê — é a pergunta de quem acha o pedido depois. */}
+            {order.status === "CANCELLED" && (
+              <div className="mt-4">
+                <Badge.Root
+                  appearance="tinted"
+                  color="red"
+                  title={
+                    order.cancelReason
+                      ? `Motivo: ${order.cancelReason}`
+                      : "Pedido cancelado: não conta nas vendas, nas metas nem nos relatórios."
+                  }
+                >
+                  <Badge.Text>
+                    Cancelado
+                    {order.cancelledAt
+                      ? ` em ${formatDateDMY(order.cancelledAt)}`
+                      : ""}
+                    {order.cancelledByName
+                      ? ` por ${order.cancelledByName}`
+                      : ""}
+                    {order.cancelReason ? ` · ${order.cancelReason}` : ""}
+                  </Badge.Text>
                 </Badge.Root>
               </div>
             )}
@@ -222,6 +250,17 @@ export function OrderDetailHeader({ order, onRefetch }: Props) {
                   paymentTerms={order.availablePaymentTerms}
                   onSuccess={onRefetch}
                 />
+                {/* Só antes do faturamento: faturado tem boletos e comissão,
+                    e o caminho é desfazer o faturamento primeiro. */}
+                {!order.invoicedAt &&
+                  order.status !== "CANCELLED" &&
+                  order.status !== "DELIVERED" && (
+                    <CancelOrderModal
+                      orderId={order.id}
+                      isQuote={isQuote}
+                      onSuccess={onRefetch}
+                    />
+                  )}
                 <DeleteOrderModal orderId={order.id} />
               </div>
             </PanelHeader.Actions>
