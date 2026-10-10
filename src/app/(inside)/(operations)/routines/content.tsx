@@ -9,9 +9,9 @@ import { Title } from "@/components/Title";
 import { CalendarOff, Users } from "lucide-react";
 
 import { GenerateWeekButton } from "./_components/GenerateWeekButton";
+import { NextWeekPrompt } from "./_components/NextWeekPrompt";
 import { PrintWeekButton } from "./_components/PrintWeekButton";
 import { ResponseLinkModal } from "./_components/ResponseLinkModal";
-import { RadarMap } from "./_components/RadarMap";
 import { RegenerateWeekButton } from "./_components/RegenerateWeekButton";
 import { RoutinesHeader } from "./_components/RoutinesHeader";
 import { RoutinesList } from "./_components/RoutinesList";
@@ -23,7 +23,7 @@ import { UpcomingTrips } from "./_components/UpcomingTrips";
 import { useDayOffs } from "./useDayOffs";
 import { useRoutines } from "./useRoutines";
 import { useSellerTrips } from "./useSellerTrips";
-import { canGenerateWeek, formatWeekRange } from "./utils";
+import { canGenerateWeek, formatWeekRange, weekPhrase } from "./utils";
 
 // Quantos dias da rotina exibir (a partir de hoje); 7 = semana inteira.
 const PERIOD_OPTIONS = [
@@ -98,6 +98,16 @@ export default function RoutinesContent() {
         }}
       />
 
+      {/* Sábado e domingo: a semana que vem já pode ser gerada, e a tela abre
+          na semana atual — o convite fica onde a pessoa está. */}
+      {isCurrentWeek && !showSkeleton && !hasNoSellers && (
+        <NextWeekPrompt
+          sellerId={selectedSellerId}
+          isSellerPending={canSelectSeller && !selectedSellerId}
+          onShowNextWeek={setWeekStart}
+        />
+      )}
+
       {showSkeleton ? (
         <RoutinesSkeleton />
       ) : error ? (
@@ -122,13 +132,14 @@ export default function RoutinesContent() {
           <EmptyState.Description>
             Não há rotina cadastrada para {formatWeekRange(weekStart)}.
             {canGenerateWeek(weekStart)
-              ? " Gere a rotina desta semana ou navegue entre as semanas."
-              : " A rotina é gerada uma semana por vez, na semana em que ela" +
-                " começa. Volte para a semana atual para gerá-la."}
+              ? ` Gere a rotina ${weekPhrase(weekStart)} ou navegue entre as semanas.`
+              : " A rotina é montada uma semana por vez: a da semana seguinte" +
+                " sai sozinha no domingo ao meio-dia, e no sábado e no domingo" +
+                " você também pode gerá-la por aqui."}
           </EmptyState.Description>
           <EmptyState.Actions>
-            {/* Gerar rotina só na semana atual: o plano é feito para a semana
-                que já começou, senão nasce com o score defasado. */}
+            {/* Gerar só a semana atual — e, no fim de semana, a seguinte: com
+                mais antecedência o plano nasce com o score defasado. */}
             {canGenerateWeek(weekStart) && (
               <GenerateWeekButton
                 weekStart={weekStart}
@@ -171,14 +182,20 @@ export default function RoutinesContent() {
             </div>
 
             <div className="flex flex-wrap items-center gap-8">
-              {/* Refazer só na semana atual — o mesmo recorte do botão de
-                  gerar, e o backend recusa dias que já passaram. */}
+              {/* Refazer segue o recorte do botão de gerar (semana atual e,
+                  no fim de semana, a seguinte); o backend recusa dias que já
+                  passaram. */}
               {canGenerateWeek(weekStart) && (
                 <RegenerateWeekButton
                   weekStart={weekStart}
                   sellerId={selectedSellerId}
+                  tripSellerId={effectiveSellerId}
                   isConfirmed={schedule.status === "CONFIRMED"}
                   onRegenerated={() => refetch()}
+                  onTripPlanned={() => {
+                    refetch();
+                    trips.refetch();
+                  }}
                 />
               )}
               {/* A folha sai com a SEMANA inteira, não com o recorte do
@@ -202,9 +219,7 @@ export default function RoutinesContent() {
           </div>
 
           <div data-tour="routines-grid">
-            {viewMode === "radar" ? (
-              <RadarMap sellerId={effectiveSellerId} />
-            ) : viewMode === "list" ? (
+            {viewMode === "list" ? (
               <RoutinesList
                 weekStart={weekStart}
                 scheduleId={schedule.id}

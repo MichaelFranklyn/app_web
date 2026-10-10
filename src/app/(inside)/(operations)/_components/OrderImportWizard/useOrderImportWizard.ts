@@ -16,6 +16,7 @@ import {
   WorkbookData,
 } from "@/utils/import/reader";
 
+import { buildImportSource, ReadingGuess, ReadingKind } from "./diagnostics";
 import {
   CONFIRM_ORDER_IMPORT_MUTATION,
   EXTRACT_ORDER_FILE_MUTATION,
@@ -113,6 +114,16 @@ export function useOrderImportWizard({
   // Pedido em que os itens foram gravados — é para a página dele que o fluxo
   // termina indo (o wizard só sabe o id depois de confirmar, no caso `deferred`).
   const [savedOrderId, setSavedOrderId] = useState<string | null>(null);
+  // Diagnóstico (ver `diagnostics.ts`): a referência do arquivo no storage, o
+  // que o sistema sugeriu ao abri-lo e por qual caminho ele virou linhas. Refs,
+  // e não estado: nada disso aparece na tela.
+  const fileRefPromise = useRef<Promise<string | null> | null>(null);
+  // O nome também vai em ref: o preview dos itens prontos roda no `onSuccess`
+  // do próprio envio, com o estado `file` ainda do render anterior.
+  const fileName = useRef<string | null>(null);
+  const guess = useRef<ReadingGuess | null>(null);
+  const guessedSheet = useRef<string | null>(null);
+  const readingKind = useRef<ReadingKind>("sheet");
 
   const { toast } = useToast();
   const { execute, isLoading } = useAsyncAction();
@@ -172,9 +183,15 @@ export function useOrderImportWizard({
 
   const applyMatrix = (parsed: SheetMatrix) => {
     const guessed = guessHeaderRow(parsed);
+    const guessedMapping = guessMapping(splitAt(parsed, guessed).headers);
+    guess.current = {
+      sheet: guessedSheet.current,
+      headerIndex: guessed,
+      mapping: guessedMapping,
+    };
     setMatrix(parsed);
     setHeaderIndex(guessed);
-    setMapping(guessMapping(splitAt(parsed, guessed).headers));
+    setMapping(guessedMapping);
     setStep(1);
   };
 
@@ -186,7 +203,11 @@ export function useOrderImportWizard({
     setWorkbook(null);
     setSheetName(null);
     setFile(files);
+    fileRefPromise.current = null;
+    guess.current = null;
+    guessedSheet.current = null;
     const selected = files[0];
+    fileName.current = selected?.name ?? null;
     if (!selected) {
       setMatrix(null);
       return;
@@ -200,6 +221,7 @@ export function useOrderImportWizard({
       > => {
         if (isPdf) {
           const fileRef = await uploadFile(selected);
+          fileRefPromise.current = Promise.resolve(fileRef);
           const target = orderId
             ? { orderId }
             : { factoryId: deferred?.factoryId };
@@ -216,10 +238,17 @@ export function useOrderImportWizard({
           // Fábrica com modelo de pedido: os itens já vêm prontos do backend →
           // pula o mapeamento de colunas e vai direto para a revisão.
           if (payload.data.items && payload.data.items.length > 0) {
+            readingKind.current = "items";
             return { items: payload.data.items };
           }
+          readingKind.current = "grid";
           return { matrix: payload.data.rows };
         }
+        readingKind.current = "sheet";
+        // A planilha é lida aqui, mas uma cópia sobe em segundo plano: se o
+        // sistema não a ler sozinho, é com o arquivo que o leitor é corrigido.
+        // Falha no envio não atrapalha a importação — só fica sem o arquivo.
+        fileRefPromise.current = uploadFile(selected).catch(() => null);
         const parsed = await readWorkbook(selected);
         // Prefere a aba do PEDIDO; o usuário troca no seletor se errarmos.
         const sheet = guessOrderSheet(parsed) ?? guessBestSheet(parsed);
@@ -230,6 +259,7 @@ export function useOrderImportWizard({
         onSuccess: (out) => {
           if ("items" in out) void previewItems(out.items);
           else if ("workbook" in out) {
+            guessedSheet.current = out.sheet;
             setWorkbook(out.workbook);
             setSheetName(out.sheet);
             applyMatrix(out.workbook.sheets[out.sheet] ?? []);
@@ -284,8 +314,24 @@ export function useOrderImportWizard({
           quantity,
           unitPrice,
         }));
+        // Ficha de pedido nossa (`initialRows`): não há arquivo de fábrica.
+        const source = fileName.current
+          ? buildImportSource({
+              kind: readingKind.current,
+              fileName: fileName.current,
+              fileRef: await (fileRefPromise.current ?? null),
+              guess: guess.current,
+              sheetNames: workbook?.sheetNames ?? [],
+              sheet: sheetName,
+              headerIndex,
+              headers: parsedSheet?.headers ?? [],
+              mapping,
+              matrix,
+              rowsRead: rows.length,
+            })
+          : undefined;
         const res = await previewImport({
-          variables: { input: { ...target, rows: previewRows } },
+          variables: { input: { ...target, rows: previewRows, source } },
         });
         const payload = res.data?.previewOrderImport;
         if (!payload?.status || !payload.data) {
@@ -377,8 +423,9 @@ export function useOrderImportWizard({
         // Fluxo sem pedido prévio: o pedido nasce AQUI, junto com os itens —
         // desistir antes da confirmação não deixa pedido vazio para trás.
         const targetOrderId = orderId ?? (await deferred!.createOrder());
+        const fileRef = await (fileRefPromise.current ?? null);
         const res = await confirmImport({
-          variables: { input: { orderId: targetOrderId, items } },
+          variables: { input: { orderId: targetOrderId, items, fileRef } },
         });
         const payload = res.data?.confirmOrderImport;
         if (!payload?.status || !payload.data) {
@@ -422,7 +469,12 @@ export function useOrderImportWizard({
   const onHeaderChange = (index: number) => {
     if (!matrix) return;
     setHeaderIndex(index);
-    setMapping(guessMapping(splitAt(matrix, index).headers));
+    const guessedMapping = guessMapping(splitAt(matrix, index).headers);
+    // A sugestão de colunas é refeita para o cabeçalho que a pessoa apontou; a
+    // linha de cabeçalho sugerida continua a original.
+    if (guess.current)
+      guess.current = { ...guess.current, mapping: guessedMapping };
+    setMapping(guessedMapping);
   };
 
   const canMap =

@@ -571,3 +571,62 @@ describe("useOrderImportWizard — ficha de pedido", () => {
     expect(item.discount).toBe(0);
   });
 });
+
+// O que o sistema não lê sozinho vira registro no backend (import_diagnostics).
+// O wizard só precisa CONTAR de que arquivo vieram as linhas.
+describe("useOrderImportWizard — relato para o diagnóstico", () => {
+  function capturingPreview(capture: { input?: Record<string, unknown> }) {
+    return {
+      request: {
+        query: PREVIEW_ORDER_IMPORT_MUTATION,
+        variables: (variables: Record<string, unknown>) => {
+          capture.input = variables.input as Record<string, unknown>;
+          return true;
+        },
+      },
+      result: {
+        data: {
+          previewOrderImport: {
+            status: true,
+            message: "ok",
+            data: {
+              matchedCount: 1,
+              unmatchedCount: 0,
+              candidates: [matchedCandidate()],
+            },
+          },
+        },
+      },
+    } as MockLink.MockedResponse;
+  }
+
+  it("PDF lido por formato conhecido: o preview leva o arquivo e a referência", async () => {
+    const capture: { input?: Record<string, unknown> } = {};
+    renderWizard([
+      extractItemsMock([
+        { sku: "SKU-001", name: "Produto", quantity: "10", unitPrice: "100" },
+      ]),
+      capturingPreview(capture),
+    ]);
+
+    await uploadPdf();
+    await waitFor(() => expect(api.step).toBe(2));
+
+    expect(capture.input?.source).toEqual({
+      fileName: "pedido.pdf",
+      fileRef: "uploads/empresa/arquivo.pdf",
+      reading: { kind: "items", rowsRead: 1 },
+    });
+  });
+
+  it("ficha de pedido nossa não tem arquivo de fábrica: preview sem source", async () => {
+    const capture: { input?: Record<string, unknown> } = {};
+    renderWizard(
+      [capturingPreview(capture)],
+      [{ sku: "SKU-001", quantity: 10, unitPrice: 100, ipiRate: 0 }]
+    );
+
+    await waitFor(() => expect(api.reviewRows).toHaveLength(1));
+    expect(capture.input?.source).toBeUndefined();
+  });
+});

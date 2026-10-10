@@ -12,6 +12,7 @@ import {
   isPastDay,
   shiftDayIso,
   canCompleteDay,
+  weekPhrase,
 } from "./utils";
 
 const factory = (id: string) => ({
@@ -294,11 +295,25 @@ describe("canGenerateWeek", () => {
   });
 
   // O plano de uma semana que ainda não começou nasceria com o score de hoje e
-  // chegaria desatualizado — quem gera a semana que vem é o job da segunda.
-  it("a próxima semana não pode ser gerada", () => {
+  // chegaria desatualizado — no meio da semana, a seguinte fica para o job de
+  // domingo.
+  it("no meio da semana, a próxima semana não pode ser gerada", () => {
     congelaQuarta();
     expect(canGenerateWeek("2026-08-03")).toBe(false);
   });
+
+  // Sábado 01/08 e domingo 02/08: a semana de 03/08 começa em um ou dois dias.
+  it.each([1, 2])(
+    "no fim de semana (dia %i/08), a próxima semana pode ser gerada",
+    (dia) => {
+      vi.useFakeTimers();
+      vi.setSystemTime(new Date(2026, 7, dia, 10, 0, 0));
+      expect(canGenerateWeek("2026-08-03")).toBe(true);
+      // A que está acabando continua liberada; duas à frente, não.
+      expect(canGenerateWeek("2026-07-27")).toBe(true);
+      expect(canGenerateWeek("2026-08-10")).toBe(false);
+    }
+  );
 
   it("semana passada não pode ser gerada", () => {
     congelaQuarta();
@@ -310,6 +325,19 @@ describe("canGenerateWeek", () => {
     vi.useFakeTimers();
     vi.setSystemTime(new Date(2026, 6, 27, 3, 30, 0));
     expect(canGenerateWeek("2026-07-27")).toBe(true);
+  });
+});
+
+describe("weekPhrase", () => {
+  afterEach(() => {
+    vi.useRealTimers();
+  });
+
+  it("distingue a semana em tela da semana que vem", () => {
+    vi.useFakeTimers();
+    vi.setSystemTime(new Date(2026, 7, 1, 10, 0, 0)); // sábado
+    expect(weekPhrase("2026-07-27")).toBe("desta semana");
+    expect(weekPhrase("2026-08-03")).toBe("da semana que vem");
   });
 });
 

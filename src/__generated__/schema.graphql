@@ -3209,6 +3209,17 @@ input OrderImportRowInput {
   unitPrice: Decimal = null
 }
 
+# De que arquivo vieram as linhas do preview. Serve só ao diagnóstico: quando o
+# sistema não lê o arquivo sozinho (código sem produto, colunas apontadas à
+# mão), o caso fica registrado com o arquivo para o leitor ser corrigido.
+input OrderImportSourceInput {
+  fileName: String!
+  """Referência de `createUploadTicket` — o arquivo a guardar com o diagnóstico."""
+  fileRef: String = null
+  """Como o arquivo foi lido: o que o sistema sugeriu e o que a pessoa usou."""
+  reading: JSON = null
+}
+
 input PreviewOrderImportInput {
   # orderId OU factoryId+clientId: o segundo par serve ao fluxo em que o pedido
   # só é criado na confirmação final.
@@ -3216,6 +3227,7 @@ input PreviewOrderImportInput {
   factoryId: UUID = null
   clientId: UUID = null
   rows: [OrderImportRowInput!]!
+  source: OrderImportSourceInput = null
 }
 
 type OrderImportTierOptionType {
@@ -3268,6 +3280,8 @@ input ConfirmOrderItemInput {
 input ConfirmOrderImportInput {
   orderId: UUID!
   items: [ConfirmOrderItemInput!]!
+  """O arquivo de onde os itens vieram (fecha o diagnóstico, se houver um)."""
+  fileRef: String = null
 }
 
 type OrderImportRowErrorType {
@@ -7471,6 +7485,9 @@ input CreateVisitScheduleInput {
 input GenerateWeeklyScheduleInput {
   sellerId: UUID = null
   weekStart: Date!
+  # Só ao REFAZER uma rotina que já existe: a tela pergunta o motivo antes.
+  reason: RegenerateReason = null
+  reasonNote: String = null
 }
 
 input GenerateDayRouteInput {
@@ -7490,6 +7507,8 @@ type VisitScheduleType {
   generatedAt: DateTime!
   status: ScheduleStatus!
   origin: ScheduleOrigin!
+  regenerateReason: RegenerateReason
+  regenerateNote: String
   createdAt: DateTime!
   updatedAt: DateTime!
   seller: SellerType
@@ -7535,6 +7554,13 @@ enum ScheduleStatus {
 enum ScheduleOrigin {
   MANUAL
   SYSTEM
+}
+
+enum RegenerateReason {
+  DATA_CHANGED
+  UNFORESEEN
+  BAD_PLAN
+  OTHER
 }
 
 input UpsertStockObservationInput {

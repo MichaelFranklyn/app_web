@@ -203,8 +203,8 @@ describe("useRoutines — o que a tela lembra", () => {
     const result = run([scheduleMock(null)]);
 
     expect(result.current.viewMode).toBe("kanban");
-    act(() => result.current.setViewMode("radar"));
-    expect(lastParams().get("view")).toBe("radar");
+    act(() => result.current.setViewMode("list"));
+    expect(lastParams().get("view")).toBe("list");
   });
 
   it("visualização desconhecida na URL não quebra a tela", async () => {
