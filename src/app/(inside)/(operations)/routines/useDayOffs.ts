@@ -44,7 +44,7 @@ export interface DayOffsResult {
 /**
  * Os dias não trabalhados da semana em tela — leitura e escrita.
  *
- * Fica no nível da página porque a grade, a lista e o radar mostram a mesma
+ * Fica no nível da página porque a grade e a lista mostram a mesma
  * semana: se cada visualização buscasse as próprias folgas, elas divergiriam
  * durante a mesma sessão.
  *

@@ -245,18 +245,36 @@ export const shiftWeekIso = (isoDate: string, weeks: number): string => {
   return toIsoDate(date);
 };
 
+/** Segunda-feira da semana que vem (ISO). */
+export const getNextWeekMondayIso = (): string =>
+  shiftWeekIso(getCurrentWeekMondayIso(), 1);
+
+/** Hoje é sábado ou domingo — os dias em que a semana seguinte já se planeja. */
+export const isWeekendToday = (): boolean => {
+  const weekday = new Date().getDay();
+  return weekday === 0 || weekday === 6;
+};
+
 /**
- * Só a SEMANA ATUAL pode ser gerada.
+ * A semana ATUAL pode ser gerada sempre; a SEGUINTE, só no sábado e no domingo.
  *
  * A rotina montada com antecedência congela o score do dia em que foi feita, e o
  * score continua andando: quando a semana chegava, boa parte das visitas já não
  * se justificava e os clientes que ficaram urgentes no caminho não estavam no
  * plano. Por isso o sistema planeja uma semana de cada vez — o job automático
- * roda na madrugada de segunda, e aqui o vendedor gera a semana em que já está.
- * Semanas futuras (ou passadas) não exibem o botão.
+ * roda no domingo ao meio-dia, para a semana que começa na segunda, e quem
+ * quiser se adiantar gera à mão no fim de semana. Um dia de antecedência é o
+ * teto; é a mesma régua do backend (`planning_week_start`).
  */
 export const canGenerateWeek = (weekStartIso: string): boolean =>
-  weekStartIso === getCurrentWeekMondayIso();
+  weekStartIso === getCurrentWeekMondayIso() ||
+  (isWeekendToday() && weekStartIso === getNextWeekMondayIso());
+
+/** "desta semana" × "da semana que vem" — o rótulo dos botões de gerar/refazer. */
+export const weekPhrase = (weekStartIso: string): string =>
+  weekStartIso === getNextWeekMondayIso()
+    ? "da semana que vem"
+    : "desta semana";
 
 /**
  * O dia já passou — não há rota a gerar para ele.

@@ -5,6 +5,7 @@ import { useAsyncAction } from "@/hooks/useAsyncAction";
 import { useMutation } from "@apollo/client/react";
 import { CalendarPlus } from "lucide-react";
 import { GENERATE_WEEKLY_SCHEDULE_MUTATION } from "../../gql";
+import { weekPhrase } from "../../utils";
 
 interface GenerateWeeklyScheduleResponse {
   generateWeeklySchedule?: {
@@ -21,7 +22,9 @@ interface Props {
 }
 
 // Gera a rotina da semana inteira quando ela ainda não existe. O backend resolve
-// o seller_id para o vendedor logado; gestores mandam o sellerId escolhido.
+// o seller_id para o vendedor logado; gestores mandam o sellerId escolhido. O
+// rótulo diz de QUAL semana: no sábado e no domingo o mesmo botão gera a
+// semana que vem.
 export function GenerateWeekButton({
   weekStart,
   sellerId,
@@ -47,7 +50,7 @@ export function GenerateWeekButton({
         return payload;
       },
       {
-        successMessage: "Rotina da semana gerada",
+        successMessage: `Rotina ${weekPhrase(weekStart)} gerada`,
         onSuccess: onGenerated,
       }
     );
@@ -62,7 +65,7 @@ export function GenerateWeekButton({
       onClick={handleGenerate}
     >
       <Button.Icon icon={CalendarPlus} />
-      <Button.Title>Gerar rotina desta semana</Button.Title>
+      <Button.Title>Gerar rotina {weekPhrase(weekStart)}</Button.Title>
     </Button.Root>
   );
 }
