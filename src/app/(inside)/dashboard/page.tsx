@@ -99,6 +99,8 @@ const Page = async () => {
   // Sem o motor de rotina no plano o backend recusa `visitSchedules`, e uma
   // recusa aqui derrubaria a página inteira por causa de um cartão.
   const hasRoutines = await hasFeatureServer("ROUTINES");
+  // Metas fora do plano: o cartão do mês não aparece (o backend recusaria).
+  const hasGoals = await hasFeatureServer("GOALS");
   const range = getCurrentWeekRangeIso();
   const ownSellerId = userData?.sellerId ?? null;
 
@@ -171,6 +173,7 @@ const Page = async () => {
   return (
     <DashboardContent
       canSelectSeller={canSelectSeller}
+      hasGoals={hasGoals}
       ownSellerId={userData?.sellerId ?? null}
       initialRange={range}
       initialSellerId={initialSellerId}

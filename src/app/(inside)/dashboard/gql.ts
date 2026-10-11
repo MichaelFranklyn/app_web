@@ -141,3 +141,29 @@ export const SCHEDULES_BY_PERIOD_QUERY = gql`
     }
   }
 `;
+
+/**
+ * O acompanhamento das metas do mês, para o cartão do dashboard. A mesma
+ * consulta da tela de metas, só com os números — quem e qual fábrica ficam lá.
+ */
+export const DASHBOARD_GOALS_QUERY = gql`
+  query DashboardGoals($periodMonth: Date!, $sellerId: UUID) {
+    dashboard_goals: sellerGoals(
+      periodMonth: $periodMonth
+      sellerId: $sellerId
+    ) {
+      periodMonth
+      rows {
+        goalId
+        targetInvoicedAmount
+        targetOrderedAmount
+        targetPositivations
+        targetVisits
+        invoicedAmount
+        orderedAmount
+        positivations
+        visits
+      }
+    }
+  }
+`;

@@ -17,7 +17,7 @@ import { grantRole } from "../support/role";
  * Aqui a conta é a que interessa: o contador do card ("X de N") tem de dizer o
  * MESMO N que `getVisibleSteps` promete para o papel logado. Passo pulado por
  * alvo ausente derruba o N, e o teste acusa. Rodar nos DOIS papéis é o que
- * prende o gating: no Insights o gestor vê cinco passos e o vendedor quatro, e
+ * prende o gating: nas Oportunidades o gestor vê quatro passos e o vendedor três, e
  * um `roles` errado apareceria como número trocado em um dos dois.
  *
  * O tour é aberto pelo LANÇADOR, e não pelo auto-start: é o caminho de quem
@@ -49,8 +49,8 @@ const TOUR_HANDLERS: Record<string, Handler> = {
  * que importa aqui é outra coisa — cada alvo do tour presente uma vez.
  */
 const DADOS: Record<string, Record<string, Handler>> = {
-  "/insights": {
-    MyInsights: () => ({
+  "/opportunities": {
+    MyOpportunities: () => ({
       myInsights: {
         status: true,
         message: "ok",
@@ -59,11 +59,8 @@ const DADOS: Record<string, Record<string, Handler>> = {
           insights: [
             {
               kind: "CLIENT_OVERDUE",
-              group: "WALLET",
               count: 23,
               blockedCount: 0,
-              amount: null,
-              daysLeft: null,
               samples: [
                 {
                   id: "c-1",
@@ -71,6 +68,9 @@ const DADOS: Record<string, Record<string, Handler>> = {
                   detail: "348 dias sem comprar",
                   link: null,
                   reason: null,
+                  clientId: "c-1",
+                  nextFollowUpDate: null,
+                  nextVisitDate: null,
                 },
               ],
             },
@@ -81,8 +81,61 @@ const DADOS: Record<string, Record<string, Handler>> = {
     // Só o gestor pede esta (o vendedor já vê a própria carteira): sem ela, a
     // resposta vazia do fallback derruba a tela para o gestor e todos os
     // passos de conteúdo somem.
-    InsightsSellers: () => ({
-      insights_sellers: {
+    OpportunitiesSellers: () => ({
+      opportunities_sellers: {
+        edges: [
+          { node: { id: "seller-1", name: "Rafael Vendas", isActive: true } },
+        ],
+        pageInfo: { hasNextPage: false, endCursor: null },
+        totalCount: 1,
+      },
+    }),
+  },
+  "/pending": {
+    MyPendingItems: () => ({
+      myPendingItems: {
+        status: true,
+        message: "ok",
+        data: {
+          generatedAt: "2026-10-11T10:00:00Z",
+          totalCount: 1,
+          counts: [{ type: "ORDER_STALLED", count: 1, highCount: 0 }],
+          whenCounts: [{ when: "OVERDUE", count: 1, highCount: 0 }],
+          items: [
+            {
+              id: "PENDING_INVOICE:o-1:seller-1",
+              entityId: "o-1",
+              clientId: "client-1",
+              type: "ORDER_STALLED",
+              reason: "PENDING_INVOICE",
+              priority: "MEDIUM",
+              dueDate: "2026-10-09",
+              daysLate: 2,
+              clientName: "Decore Casa",
+              link: "/orders/o-1",
+              clientLink: "/clients/cc-1",
+              factoryName: "Herc",
+              sellerId: "seller-1",
+              sellerName: "Rafael Vendas",
+              amount: "1500.00",
+              referenceDate: "2026-10-02",
+              isRemote: false,
+              allowanceDays: 7,
+              isEstimated: false,
+              highAfterDays: 15,
+              scheduledDate: null,
+              note: null,
+              orderId: "o-1",
+              orderDate: "2026-10-02",
+              contactPhone: null,
+              installmentCount: null,
+            },
+          ],
+        },
+      },
+    }),
+    PendingSellers: () => ({
+      pending_sellers: {
         edges: [
           { node: { id: "seller-1", name: "Rafael Vendas", isActive: true } },
         ],
@@ -131,7 +184,10 @@ for (const rota of Object.keys(DADOS)) {
 
       // Caminha até o fim: cada "Próximo" tem de achar o alvo do passo seguinte.
       for (let passo = 2; passo <= esperados; passo += 1) {
-        await page.getByRole("button", { name: "Próximo" }).click();
+        // `exact`: "Próximo" também casa com "Próximos 7 dias" (Pendências).
+        await page
+          .getByRole("button", { name: "Próximo", exact: true })
+          .click();
         await expect(contador).toHaveText(`${passo} de ${esperados}`);
       }
 

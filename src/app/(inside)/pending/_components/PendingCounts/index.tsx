@@ -1,37 +1,56 @@
 "use client";
 
 import { StatCard } from "@/components/StatCard";
+import { cn } from "@/lib/utils";
 
-import { PendingTypeCount } from "../../interface";
-import { countTone, PENDING_TYPE_LABEL, PENDING_TYPE_ORDER } from "../../utils";
+import { PendingWhen, PendingWhenCount } from "../../interface";
+import {
+  countTone,
+  PENDING_WHEN_HINT,
+  PENDING_WHEN_LABEL,
+  PENDING_WHEN_ORDER,
+} from "../../utils";
 
 interface Props {
-  counts: PendingTypeCount[];
+  counts: PendingWhenCount[];
+  active: PendingWhen | null;
+  onToggle: (when: PendingWhen) => void;
 }
 
 /**
- * Quantas pendências de cada tipo, no recorte de vendedor e período.
+ * Atrasadas · Hoje · Próximos 7 dias · Sem prazo — e cada número é um filtro.
  *
- * Os contadores aparecem sempre, mesmo zerados, e NÃO mudam com o filtro
- * de tipo: eles dizem o que existe para filtrar. Vermelho quando alguma é de
- * prioridade alta.
+ * Contam no recorte de tipo, vendedor e período, mas NÃO mudam com a faixa
+ * escolhida: dizem o que existe para clicar. Vermelho quando alguma é de
+ * prioridade alta. "Sem prazo" só aparece quando há cadastro a corrigir — um
+ * zero eterno ali ensinaria a ignorar a fileira.
  */
-export function PendingCounts({ counts }: Props) {
-  const byType = new Map(counts.map((row) => [row.type, row]));
+export function PendingCounts({ counts, active, onToggle }: Props) {
+  const byWhen = new Map(counts.map((row) => [row.when, row]));
+  const shown = PENDING_WHEN_ORDER.filter(
+    (when) =>
+      when !== "NO_DUE" || active === when || (byWhen.get(when)?.count ?? 0) > 0
+  );
 
   return (
     <div
-      className="tablet:grid-cols-3 desktop:grid-cols-5 grid grid-cols-2 gap-8"
+      className={cn(
+        "grid grid-cols-2 gap-8",
+        shown.length === 4 ? "tablet:grid-cols-4" : "tablet:grid-cols-3"
+      )}
       data-tour="pending-counts"
     >
-      {PENDING_TYPE_ORDER.map((type) => {
-        const row = byType.get(type);
+      {shown.map((when) => {
+        const row = byWhen.get(when);
         return (
           <StatCard
-            key={type}
-            label={PENDING_TYPE_LABEL[type]}
+            key={when}
+            label={PENDING_WHEN_LABEL[when]}
             value={row?.count ?? 0}
             tone={countTone(row?.count ?? 0, row?.highCount ?? 0)}
+            hint={PENDING_WHEN_HINT[when]}
+            active={active === when}
+            onClick={() => onToggle(when)}
           />
         );
       })}

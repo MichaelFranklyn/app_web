@@ -1,7 +1,12 @@
 import { afterEach, describe, expect, it, vi } from "vitest";
 
 import { Notification } from "./interface";
-import { INSIGHTS_ROUTE, isInsight, notificationHref, timeAgo } from "./utils";
+import {
+  isInsight,
+  notificationHref,
+  OPPORTUNITIES_ROUTE,
+  timeAgo,
+} from "./utils";
 
 const notification = (overrides: Partial<Notification> = {}): Notification => ({
   id: "n1",
@@ -23,13 +28,31 @@ describe("para onde o aviso leva", () => {
     expect(notificationHref(notification())).toBe("/orders/123");
   });
 
-  it("insight vai para a tela de insights, não para um registro", () => {
-    // O aviso do sino é a foto do dia em que o job rodou; em /insights o mesmo
-    // assunto aparece com o número de hoje e o botão que resolve.
-    const insight = notification({ category: "INSIGHT", link: "/clients/9" });
+  it("insight vai para a lista de referência do assunto, já filtrada", () => {
+    // O aviso do sino é a foto do dia em que o job rodou; na lista o mesmo
+    // assunto aparece com o número de hoje e o caminho que resolve. Pelo tipo
+    // do aviso, e não pelo link gravado: os antigos guardaram "/routines".
+    const frequency = notification({
+      category: "INSIGHT",
+      link: "/routines",
+      relatedEntityType: "visit_overdue",
+    });
+    const offRoute = notification({
+      category: "INSIGHT",
+      link: "/routines",
+      relatedEntityType: "unplanned_priority",
+    });
 
-    expect(isInsight(insight)).toBe(true);
-    expect(notificationHref(insight)).toBe(INSIGHTS_ROUTE);
+    expect(isInsight(frequency)).toBe(true);
+    expect(notificationHref(frequency)).toBe("/pending?type=VISIT_FREQUENCY");
+    expect(notificationHref(offRoute)).toBe(
+      "/opportunities?open=PRIORITY_OFF_ROUTE"
+    );
+  });
+
+  it("insight de tipo desconhecido cai nas oportunidades", () => {
+    const insight = notification({ category: "INSIGHT", link: "/clients/9" });
+    expect(notificationHref(insight)).toBe(OPPORTUNITIES_ROUTE);
   });
 
   it("aviso sem registro não leva a lugar nenhum", () => {

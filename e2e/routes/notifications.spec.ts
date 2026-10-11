@@ -5,7 +5,7 @@ import { emptyDashboardQueries, mockGraphql } from "../support/graphql";
  * O sino da topbar, presente em toda página interna.
  *
  * Ele guarda o que já aconteceu; o que ainda precisa ser feito mora em
- * /insights, e é para lá que o rodapé do sino aponta.
+ * /pending, e é para lá que o rodapé do sino aponta.
  */
 const notification = (over: Record<string, unknown> = {}) => ({
   id: "notif-1",
@@ -50,18 +50,24 @@ test("notificações: marca todas como lidas", async ({ page }) => {
   ).toBeVisible();
 });
 
-test("notificações: o sino aponta para os insights", async ({ page }) => {
+test("notificações: o sino aponta para as pendências", async ({ page }) => {
   await mockGraphql(page, {
     ...emptyDashboardQueries,
     MyUnreadNotificationsCount: () => ({
       myUnreadNotificationsCount: { status: true, data: 1 },
     }),
     MyNotifications: () => ({ my_notifications: conn([notification()]) }),
-    MyInsights: () => ({
-      myInsights: {
+    MyPendingItems: () => ({
+      myPendingItems: {
         status: true,
         message: "ok",
-        data: { generatedAt: "2026-08-24T10:00:00Z", insights: [] },
+        data: {
+          generatedAt: "2026-10-11T10:00:00Z",
+          totalCount: 0,
+          counts: [],
+          whenCounts: [],
+          items: [],
+        },
       },
     }),
   });
@@ -71,8 +77,9 @@ test("notificações: o sino aponta para os insights", async ({ page }) => {
   // A saída do sino é a AÇÃO: o histórico fica ali mesmo, a pendência tem tela.
   await page.getByRole("link", { name: "Ver o que está pendente" }).click();
 
+  await expect(page).toHaveURL(/\/pending$/);
   await expect(
-    page.getByRole("heading", { name: "Insights", level: 1 })
+    page.getByRole("heading", { name: /Pendências/, level: 1 })
   ).toBeVisible();
 });
 

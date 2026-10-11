@@ -24,7 +24,9 @@ export const USERS_FLOW = "users";
 export const ROUTINES_FLOW = "routines";
 export const ROUTINE_DAY_FLOW = "routine-day";
 export const SETTINGS_CATALOG_FLOW = "settings-catalog";
-export const INSIGHTS_FLOW = "insights";
+// "insights" saiu: a tela virou Oportunidades, com tour e chave novos.
+export const PENDING_FLOW = "pending";
+export const OPPORTUNITIES_FLOW = "opportunities";
 export const COMMISSIONS_FLOW = "commissions";
 export const GOALS_FLOW = "goals";
 export const SUPPORT_FLOW = "support";

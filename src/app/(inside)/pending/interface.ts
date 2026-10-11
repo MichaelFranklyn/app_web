@@ -1,9 +1,31 @@
+/**
+ * `VISIT_OVERDUE` é a visita SEM RESPOSTA (o nome do enum é histórico); a
+ * frequência vencida é `VISIT_FREQUENCY`. Os dois não se confundem na tela.
+ */
 export type PendingType =
   | "VISIT_OVERDUE"
   | "FOLLOW_UP"
   | "RETURN_SCHEDULED"
+  | "VISIT_FREQUENCY"
   | "ORDER_STALLED"
-  | "CLIENT_NO_CONTACT";
+  | "INSTALLMENT_OVERDUE"
+  | "CLIENT_NO_CONTACT"
+  | "ADDRESS_ISSUE";
+
+/**
+ * As duas seções da lista: compromissos (visitas, contatos, pedidos, carteira,
+ * cadastro) e cobranças (boletos vencidos). A seção equilibra o volume sem
+ * mexer na prioridade de nada.
+ */
+export type PendingSection = "commitments" | "charges";
+
+/** A faixa do prazo — os contadores clicáveis do topo. */
+export type PendingWhen =
+  | "OVERDUE"
+  | "TODAY"
+  | "NEXT_7_DAYS"
+  | "LATER"
+  | "NO_DUE";
 
 /** Por que a pendência existe — é o que `reasonText` traduz em frase. */
 export type PendingReason =
@@ -15,7 +37,11 @@ export type PendingReason =
   | "PENDING_INVOICE"
   | "DELIVERY_UNCONFIRMED"
   | "NO_CONTACT"
-  | "NEVER_CONTACTED";
+  | "NEVER_CONTACTED"
+  | "FREQUENCY_DUE"
+  | "INSTALLMENT_UNPAID"
+  | "LOCATION_MISSING"
+  | "LOCATION_APPROXIMATE";
 
 export type PendingPriority = "HIGH" | "MEDIUM" | "LOW";
 
@@ -28,10 +54,13 @@ export interface PendingItem {
   type: PendingType;
   reason: PendingReason;
   priority: PendingPriority;
-  /** O prazo (ISO): o dia em que devia ter sido feito, ou o dia combinado. */
-  dueDate: string;
-  /** Dias de atraso; negativo = ainda faltam dias. */
-  daysLate: number;
+  /**
+   * O prazo (ISO): o dia em que devia ter sido feito, ou o dia combinado.
+   * Nulo = sem prazo (endereço).
+   */
+  dueDate: string | null;
+  /** Dias de atraso; negativo = ainda faltam dias. Nulo sem prazo. */
+  daysLate: number | null;
   clientName: string;
   /** Onde se resolve: a rota do dia, o pedido ou a ficha do cliente. */
   link: string | null;
@@ -39,7 +68,7 @@ export interface PendingItem {
   factoryName: string | null;
   sellerId: string | null;
   sellerName: string | null;
-  /** Valor do pedido — string decimal do backend; só em pedido parado. */
+  /** Valor do pedido (pedido parado) ou das parcelas vencidas (boleto). */
   amount: string | null;
   /**
    * O fato de onde o prazo conta (ISO): dia da visita, do pedido, do
@@ -61,6 +90,14 @@ export interface PendingItem {
   scheduledDate: string | null;
   /** O motivo escrito por quem agendou o contato (só em `FOLLOW_UP`). */
   note: string | null;
+  /** O pedido de onde vem (pedido parado, boleto vencido). */
+  orderId: string | null;
+  /** Pós-venda: data do pedido (ISO) — é por ela que o cliente o reconhece. */
+  orderDate: string | null;
+  /** Pós-venda: telefone de quem falar no cliente (nulo sem contato). */
+  contactPhone: string | null;
+  /** Boleto vencido: quantas parcelas do pedido estão vencidas. */
+  installmentCount: number | null;
 }
 
 export interface PendingTypeCount {
@@ -69,10 +106,17 @@ export interface PendingTypeCount {
   highCount: number;
 }
 
+export interface PendingWhenCount {
+  when: PendingWhen;
+  count: number;
+  highCount: number;
+}
+
 export interface PendingItemsData {
   generatedAt: string;
   totalCount: number;
   counts: PendingTypeCount[];
+  whenCounts: PendingWhenCount[];
   items: PendingItem[];
 }
 

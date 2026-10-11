@@ -6,21 +6,25 @@ import { EmptyState } from "@/components/EmptyState";
 import { FilterField, Filters } from "@/components/Filters";
 import { Loading } from "@/components/Loading";
 import { Pagination } from "@/components/Pagination";
+import { Responsive } from "@/components/Responsive";
+import { RowList } from "@/components/RowList";
 import { Table } from "@/components/Table";
-import { formatDate, getBrtTodayIso } from "@/utils/format/date";
+import { formatDate } from "@/utils/format/date";
 import { CheckCircle2, RefreshCw } from "lucide-react";
 import { useState } from "react";
 
 import { PENDING_COLUMN_HELP } from "../../help";
-import { PendingItem } from "../../interface";
-import { hasActiveFilter } from "../../utils";
+import { PendingItem, PendingSection } from "../../interface";
+import { followUpDefaultDate, hasActiveFilter } from "../../utils";
+import { PendingCard } from "../PendingCard";
 import { PendingRow } from "./PendingRow";
 
 interface Props {
   items: PendingItem[];
   loading: boolean;
-  /** Gestor: mostra a coluna de quem é a pendência. */
+  /** Gestor: mostra de quem é a pendência. */
   showSeller: boolean;
+  section: PendingSection;
   filterFields: FilterField[];
   filterValues: Record<string, string>;
   setFilters: (patch: Record<string, string | undefined>) => void;
@@ -37,6 +41,7 @@ export function PendingTable({
   items,
   loading,
   showSeller,
+  section,
   filterFields,
   filterValues,
   setFilters,
@@ -47,7 +52,6 @@ export function PendingTable({
   totalItems,
   setCurrentPage,
 }: Props) {
-  const columns = showSeller ? 6 : 5;
   // Um modal só, fora das linhas: evento de dentro do modal (portal) subiria
   // até a linha e a faria navegar.
   const [scheduling, setScheduling] = useState<PendingItem | null>(null);
@@ -79,60 +83,75 @@ export function PendingTable({
         </Table.CardHead.Actions>
       </Table.CardHead>
 
-      <Table.Table>
-        <Table.Header>
-          <Table.Row>
-            <Table.Head title={PENDING_COLUMN_HELP.priority}>
-              Prioridade
-            </Table.Head>
-            <Table.Head title={PENDING_COLUMN_HELP.pending}>
-              Pendência
-            </Table.Head>
-            <Table.Head title={PENDING_COLUMN_HELP.client}>Cliente</Table.Head>
-            <Table.Head title={PENDING_COLUMN_HELP.due}>Prazo</Table.Head>
-            {showSeller && (
-              <Table.Head title={PENDING_COLUMN_HELP.seller}>
-                Vendedor
-              </Table.Head>
-            )}
-            <Table.Head title={PENDING_COLUMN_HELP.where}>
-              Onde resolver
-            </Table.Head>
-          </Table.Row>
-        </Table.Header>
-        <Table.Body>
-          {items.length === 0 ? (
-            <Table.Row>
-              <Table.Cell colSpan={columns}>
-                <EmptyState.Root>
-                  <EmptyState.Icon>
-                    <CheckCircle2 size={32} />
-                  </EmptyState.Icon>
-                  <EmptyState.Title>
-                    {filtered
-                      ? "Nenhuma pendência neste filtro"
-                      : "Nada pendente"}
-                  </EmptyState.Title>
-                  <EmptyState.Description>
-                    {filtered
-                      ? "Não há pendência com o tipo, o período e o vendedor escolhidos. Limpe os filtros para ver a lista inteira."
-                      : "Nenhuma visita sem resposta, nenhum retorno vencendo, nenhum pedido parado e nenhum cliente esquecido. Quando algo aparecer, é aqui que vai estar."}
-                  </EmptyState.Description>
-                </EmptyState.Root>
-              </Table.Cell>
-            </Table.Row>
-          ) : (
-            items.map((item) => (
-              <PendingRow
-                key={item.id}
-                item={item}
-                showSeller={showSeller}
-                onScheduleReturn={setScheduling}
-              />
-            ))
-          )}
-        </Table.Body>
-      </Table.Table>
+      {items.length === 0 ? (
+        <EmptyState.Root>
+          <EmptyState.Icon>
+            <CheckCircle2 size={32} />
+          </EmptyState.Icon>
+          <EmptyState.Title>
+            {filtered
+              ? "Nenhuma pendência neste filtro"
+              : section === "charges"
+                ? "Nenhum boleto vencido"
+                : "Nada pendente"}
+          </EmptyState.Title>
+          <EmptyState.Description>
+            {filtered
+              ? "Não há pendência com o prazo, o tipo e o responsável escolhidos. Limpe os filtros para ver a lista inteira."
+              : section === "charges"
+                ? "Nenhuma parcela vencida em aberto: todas foram pagas, canceladas ou marcadas como não pagas."
+                : "Nenhuma visita sem resposta, nenhum retorno vencendo, nenhum pedido parado e nenhum cliente esquecido. Quando algo aparecer, é aqui que vai estar."}
+          </EmptyState.Description>
+        </EmptyState.Root>
+      ) : (
+        <>
+          {/* No celular, a linha vira cartão compacto — prazo e ação à vista. */}
+          <Responsive.Show until="tablet" className="px-16 py-12">
+            <RowList.Root spacing="md">
+              {items.map((item) => (
+                <RowList.Item key={item.id}>
+                  <PendingCard
+                    item={item}
+                    showSeller={showSeller}
+                    onScheduleReturn={setScheduling}
+                  />
+                </RowList.Item>
+              ))}
+            </RowList.Root>
+          </Responsive.Show>
+          <Responsive.Show from="tablet">
+            <Table.Table>
+              <Table.Header>
+                <Table.Row>
+                  <Table.Head title={PENDING_COLUMN_HELP.priority}>
+                    Prioridade
+                  </Table.Head>
+                  <Table.Head title={PENDING_COLUMN_HELP.pending}>
+                    O que resolver
+                  </Table.Head>
+                  <Table.Head title={PENDING_COLUMN_HELP.client}>
+                    {showSeller ? "Cliente / responsável" : "Cliente"}
+                  </Table.Head>
+                  <Table.Head title={PENDING_COLUMN_HELP.due}>Prazo</Table.Head>
+                  <Table.Head title={PENDING_COLUMN_HELP.action}>
+                    Ação
+                  </Table.Head>
+                </Table.Row>
+              </Table.Header>
+              <Table.Body>
+                {items.map((item) => (
+                  <PendingRow
+                    key={item.id}
+                    item={item}
+                    showSeller={showSeller}
+                    onScheduleReturn={setScheduling}
+                  />
+                ))}
+              </Table.Body>
+            </Table.Table>
+          </Responsive.Show>
+        </>
+      )}
       <Table.Footer>
         <Table.Footer.Info>
           {loading && items.length > 0 && (
@@ -157,12 +176,7 @@ export function PendingTable({
           clientName={scheduling.clientName}
           returnItemId={scheduling.entityId}
           returnLabel={formatDate(scheduling.dueDate)}
-          // O dia combinado; se já passou, hoje (agendar no passado é recusado).
-          defaultDueDate={
-            scheduling.dueDate >= getBrtTodayIso()
-              ? scheduling.dueDate
-              : getBrtTodayIso()
-          }
+          defaultDueDate={followUpDefaultDate(scheduling.dueDate)}
           onSaved={onRefresh}
         />
       )}

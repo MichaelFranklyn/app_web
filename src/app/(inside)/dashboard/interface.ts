@@ -1,7 +1,17 @@
+import { GoalAmounts } from "@/utils/goals";
+export interface DashboardGoalsResponse {
+  dashboard_goals: {
+    periodMonth: string;
+    rows: (GoalAmounts & { goalId: string | null })[];
+  };
+}
+
 export interface DashboardContentProps {
   // Se o usuário logado é gestor (OWNER/ADMIN/SU) e pode escolher o vendedor.
   // Resolvido no servidor (page.tsx) a partir do token.
   canSelectSeller: boolean;
+  // A empresa tem metas no plano: o dashboard mostra o acompanhamento do mês.
+  hasGoals?: boolean;
   // Perfil de vendedor do PRÓPRIO gestor, se ele também vende — vira o default
   // do seletor (abre vendo os dados dele, podendo trocar). Null: sem perfil.
   ownSellerId?: string | null;

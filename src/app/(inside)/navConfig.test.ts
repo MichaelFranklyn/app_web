@@ -61,11 +61,17 @@ describe("visibleNav — papel", () => {
     }
   });
 
-  it("dá os insights a todos os papéis", () => {
-    // A leitura é de QUEM ABRE (o backend prende as pendências ao token), então
+  it("dá as oportunidades a todos os papéis", () => {
+    // A leitura é de QUEM ABRE (o backend prende a carteira ao token), então
     // não há papel a esconder — o vendedor é justamente quem mais precisa dela.
     for (const role of ["OWNER", "ADMIN", "SELLER"]) {
-      expect(hrefs(role)).toContain("/insights");
+      expect(hrefs(role)).toContain("/opportunities");
+    }
+  });
+
+  it("não aponta mais para /insights (ela redireciona)", () => {
+    for (const role of ["OWNER", "ADMIN", "SELLER"]) {
+      expect(hrefs(role)).not.toContain("/insights");
     }
   });
 
@@ -95,10 +101,10 @@ describe("visibleNav — plano", () => {
     expect(semRotina).toContain("/goals");
   });
 
-  it("mantém os insights em qualquer plano", () => {
-    // A leitura é calculada na hora a partir de carteira, pedidos e boletos —
-    // não depende do módulo de avisos automáticos, que é o sino.
-    expect(hrefs("OWNER", [])).toContain("/insights");
+  it("mantém as oportunidades em qualquer plano", () => {
+    // A leitura é calculada na hora a partir da carteira — não depende do
+    // módulo de avisos automáticos, que é o sino.
+    expect(hrefs("OWNER", [])).toContain("/opportunities");
   });
 
   it("corta antes do papel: nem o dono vê o que não foi contratado", () => {

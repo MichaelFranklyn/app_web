@@ -2847,43 +2847,19 @@ enum ImportStatus {
 }
 
 """
-O que está pendente e por quê — a leitura do sistema sobre o que fazer para
-vender mais.
+Oportunidades comerciais — onde vale concentrar as próximas ações de venda (a
+tela /opportunities, que já se chamou /insights; a API manteve o nome).
 
-Cada insight é uma PENDÊNCIA contável, não um texto: o backend responde quantos
-casos existem, quanto dinheiro está envolvido e alguns exemplos; o rótulo, a
-explicação e a ação ficam do lado da tela (mesma divisão de `FEATURE_LABEL`).
+Só escolha comercial mora aqui. O que é trabalho a resolver (pedido parado,
+boleto vencido, visita vencida, endereço) está em `myPendingItems`, e as metas
+no dashboard. O backend responde quantos casos existem e quais; o rótulo, a
+explicação e a ação ficam do lado da tela.
 """
 enum InsightKind {
-  """Clientes que passaram do PRÓPRIO ritmo de compra."""
+  """Clientes que passaram do PRÓPRIO ritmo de compra — o momento de recomprar."""
   CLIENT_OVERDUE
   """Cliente com score alto que ficou fora da rotina da semana."""
   PRIORITY_OFF_ROUTE
-  """Vínculo cuja visita venceu a frequência combinada."""
-  VISIT_OVERDUE
-  """Clientes na carteira sem nenhuma visita nos últimos 30 dias."""
-  NO_VISIT_30D
-  """
-  Cliente cuja localização o motor de rotina não pode usar: sem coordenada, ou
-  com uma grosseira demais (o município, não a loja). Ele nunca ABRE um dia de
-  rota — só entra de carona num dia que já existe —, e quando a carteira tem
-  mais urgente do que vaga, não entra.
-  """
-  LOCATION_UNRELIABLE
-  """Rascunho ou orçamento parado há dias, sem virar pedido."""
-  DRAFT_STALE
-  """Pedido confirmado que a fábrica ainda não faturou."""
-  PENDING_INVOICE
-  """
-  Pedido faturado cujo prazo de entrega venceu sem confirmação — o que
-  provavelmente já chegou. É o cartão de PÓS-VENDA: cada caso traz o contato
-  para perguntar ao cliente se recebeu.
-  """
-  DELIVERY_UNCONFIRMED
-  """Boleto vencido e não pago."""
-  INSTALLMENT_OVERDUE
-  """Meta do mês cujo realizado está atrás do ritmo necessário."""
-  GOAL_BEHIND
 }
 
 enum InsightGroup {
@@ -2947,6 +2923,15 @@ type InsightSampleType {
   orderDate: Date
   """Pós-venda: a ficha do cliente (onde se cadastra o contato que faltar)."""
   clientLink: String
+  """O cliente (id global) — para agendar o contato ou planejar a visita."""
+  clientId: UUID
+  """
+  O próximo contato agendado em aberto para o cliente, de qualquer pessoa da
+  empresa — a tela avisa "contato agendado para X" para ninguém repetir a ação.
+  """
+  nextFollowUpDate: Date
+  """A próxima visita (ou ligação) marcada na rotina, de hoje em diante."""
+  nextVisitDate: Date
 }
 
 type InsightType {
@@ -2964,7 +2949,7 @@ type InsightType {
   blockedCount: Int!
   """Dinheiro envolvido, quando a pendência tem valor (nulo quando não tem)."""
   amount: Decimal
-  """Dias úteis que ainda restam no mês — só faz sentido em GOAL_BEHIND."""
+  """Sem uso desde que as metas foram para o dashboard; sempre nulo."""
   daysLeft: Int
   """Até três exemplos, para a tela mostrar de quem está falando."""
   samples: [InsightSampleType!]!
@@ -3001,13 +2986,13 @@ type InsightsOverviewDataResponse {
 
 extend type Query {
   """
-  As pendências de quem consulta. Vendedor vê as suas (escopo do token);
+  As oportunidades de quem consulta. Vendedor vê as suas (escopo do token);
   gestor vê a empresa inteira, ou um vendedor com `sellerId`.
   """
   myInsights(sellerId: UUID = null): InsightsOverviewDataResponse!
 
   """
-  Todos os casos de UMA pendência, paginados — o cartão mostra três, isto mostra
+  Todos os casos de UMA oportunidade, paginados — o cartão mostra três, isto mostra
   o resto. Mesmo escopo de `myInsights`: o vendedor vê os seus, o gestor
   escolhe. Recalculado na hora, como a tela.
   """
@@ -4255,25 +4240,51 @@ type ImportOrderHistoryResultDataResponse {
 }
 
 """
-Central de pendências: uma lista só com tudo o que pede atenção — visita sem
-resposta, contato agendado, retorno combinado, pedido parado e cliente sem
-contato.
+Central de pendências: a ÚNICA lista de trabalho — visita sem resposta, contato
+agendado, retorno combinado, frequência de visita vencida, pedido parado, boleto
+vencido, cliente sem contato e endereço que o mapa não acha.
 
 Nada disto é guardado: cada pendência é derivada do estado de agora, então a
 que foi resolvida some da lista sozinha. O texto de cada motivo mora na tela;
 daqui saem o motivo, as datas e os nomes.
 """
 enum PendingType {
-  """Visita ou ligação planejada cujo dia passou sem ninguém dizer o que houve."""
+  """
+  Visita SEM RESPOSTA: estava na rotina, o dia passou e ninguém disse o que
+  houve. (O nome é histórico; não é a frequência vencida.)
+  """
   VISIT_OVERDUE
   """Contato agendado com o cliente (follow-up) que vence no período."""
   FOLLOW_UP
   """Retorno combinado com o cliente ("volte dia 20", "pode vir") e não cumprido."""
   RETURN_SCHEDULED
+  """
+  Frequência de visita vencida: o ciclo do vínculo passou desde a última visita,
+  e não há visita presencial marcada nesta semana.
+  """
+  VISIT_FREQUENCY
   """Pedido parado: orçamento sem resposta, sem faturar ou sem confirmar a entrega."""
   ORDER_STALLED
+  """Boleto vencido e não pago — uma linha por pedido."""
+  INSTALLMENT_OVERDUE
   """Cliente da carteira sem visita, ligação nem pedido há 30 dias ou mais."""
   CLIENT_NO_CONTACT
+  """Cliente que o motor de rotina não consegue pôr no mapa. Sem prazo."""
+  ADDRESS_ISSUE
+}
+
+"""A faixa do prazo — os contadores clicáveis do topo da tela."""
+enum PendingWhen {
+  """Prazo antes de hoje."""
+  OVERDUE
+  """Prazo hoje."""
+  TODAY
+  """Prazo de amanhã até daqui a 7 dias."""
+  NEXT_7_DAYS
+  """Prazo depois dos próximos 7 dias (só aparece com um período escolhido)."""
+  LATER
+  """Sem prazo (cadastro)."""
+  NO_DUE
 }
 
 """Por que a pendência existe — é o que a tela traduz em frase."""
@@ -4299,6 +4310,24 @@ enum PendingReason {
   pedido registrado.
   """
   NEVER_CONTACTED
+  """
+  A última visita (`referenceDate`) mais o ciclo (`allowanceDays`) já passou.
+  """
+  FREQUENCY_DUE
+  """
+  Parcela(s) pendente(s) vencida(s) há até 30 dias — ainda é cobrança. O prazo
+  é o vencimento mais antigo do pedido.
+  """
+  INSTALLMENT_UNPAID
+  """
+  Parcela vencida há mais de 30 dias: passou da cobrança de rotina, é
+  conciliação (foi pago e não baixado? virou inadimplência?).
+  """
+  INSTALLMENT_STALE
+  """O mapa não achou o endereço do cliente."""
+  LOCATION_MISSING
+  """O mapa achou só a região (bairro, cidade), não a porta da loja."""
+  LOCATION_APPROXIMATE
 }
 
 enum PendingPriority {
@@ -4319,21 +4348,24 @@ type PendingItemType {
   type: PendingType!
   reason: PendingReason!
   priority: PendingPriority!
-  """O prazo: o dia em que aquilo devia ter sido feito, ou o dia combinado."""
-  dueDate: Date!
-  """Dias de atraso em relação ao prazo. Negativo = ainda faltam dias."""
-  daysLate: Int!
+  """
+  O prazo: o dia em que aquilo devia ter sido feito, ou o dia combinado. Nulo =
+  sem prazo (`ADDRESS_ISSUE`).
+  """
+  dueDate: Date
+  """Dias de atraso em relação ao prazo. Negativo = ainda faltam dias. Nulo sem prazo."""
+  daysLate: Int
   clientName: String!
   """Onde se resolve: a rota do dia, o pedido ou a ficha do cliente."""
   link: String
   """A ficha do cliente, mesmo quando `link` leva a outro lugar."""
   clientLink: String
-  """A fábrica do pedido (só em `ORDER_STALLED`)."""
+  """A fábrica do pedido (em `ORDER_STALLED` e `INSTALLMENT_OVERDUE`)."""
   factoryName: String
   sellerId: UUID
   """O vendedor — ou, no contato agendado, o responsável (pode ser o escritório)."""
   sellerName: String
-  """O valor do pedido (só em `ORDER_STALLED`)."""
+  """O valor do pedido (`ORDER_STALLED`) ou da parcela (`INSTALLMENT_OVERDUE`)."""
   amount: Decimal
   """
   O fato de onde o prazo conta: o dia planejado da visita, a data do pedido (a
@@ -4362,10 +4394,28 @@ type PendingItemType {
   scheduledDate: Date
   """O motivo escrito por quem agendou o contato (só em `FOLLOW_UP`)."""
   note: String
+  """O pedido de onde vem (`ORDER_STALLED`, `INSTALLMENT_OVERDUE`)."""
+  orderId: UUID
+  """Quantas parcelas vencidas o pedido tem (só em `INSTALLMENT_OVERDUE`)."""
+  installmentCount: Int
+  """Pós-venda (`DELIVERY_UNCONFIRMED`): a data do pedido."""
+  orderDate: Date
+  """
+  Pós-venda (`DELIVERY_UNCONFIRMED`): telefone de quem falar no cliente — o
+  contato principal, senão o primeiro ativo com telefone. Nulo sem contato.
+  """
+  contactPhone: String
 }
 
 type PendingTypeCountType {
   type: PendingType!
+  count: Int!
+  """Quantas delas são de prioridade alta."""
+  highCount: Int!
+}
+
+type PendingWhenCountType {
+  when: PendingWhen!
   count: Int!
   """Quantas delas são de prioridade alta."""
   highCount: Int!
@@ -4377,10 +4427,15 @@ type PendingItemsType {
   """Total da lista com TODOS os filtros aplicados — é o que a paginação usa."""
   totalCount: Int!
   """
-  Quantas pendências de cada tipo, no recorte de vendedor e período mas SEM o
-  filtro de tipo. Sempre todos os tipos, mesmo os zerados.
+  Quantas pendências de cada tipo, no recorte de vendedor, período e faixa mas
+  SEM o filtro de tipo. Sempre todos os tipos, mesmo os zerados.
   """
   counts: [PendingTypeCountType!]!
+  """
+  Quantas pendências em cada faixa de prazo, no recorte de vendedor, período e
+  tipo mas SEM o filtro de faixa. Sempre todas as faixas.
+  """
+  whenCounts: [PendingWhenCountType!]!
   """
   Da prioridade mais alta para a mais baixa; dentro dela, pelo prazo mais
   antigo; no mesmo prazo, por tipo (visita, contato agendado, retorno, pedido,
@@ -4402,13 +4457,15 @@ extend type Query {
   vê a empresa inteira, ou um vendedor com `sellerId`.
 
   `dueFrom`/`dueTo` cortam pelo PRAZO. Sem nenhum dos dois vale o horizonte
-  padrão: o que já venceu e o que vence nos próximos 7 dias.
+  padrão: o que já venceu, o que vence nos próximos 7 dias e o sem prazo.
+  `when` corta pela faixa do prazo (os contadores do topo).
   """
   myPendingItems(
     types: [PendingType!] = null
     sellerId: UUID = null
     dueFrom: Date = null
     dueTo: Date = null
+    when: PendingWhen = null
     offset: Int! = 0
     limit: Int! = 20
   ): PendingItemsDataResponse!

@@ -8,9 +8,10 @@ import {
   GOAL_METRICS,
   overallPercent,
   percentTone,
-  SellerGroup,
   sumRows,
-} from "../../utils";
+} from "@/utils/goals";
+
+import { SellerGroup } from "../../utils";
 import { GoalMetricCells } from "../GoalMetricCells";
 
 interface Props {

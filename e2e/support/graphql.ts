@@ -162,6 +162,9 @@ export const emptyDashboardQueries: Record<string, Handler> = {
   OrdersByPeriod: () => ({ orders_by_period: { edges: [], totalCount: 0 } }),
   CompanyClientsCount: () => ({ company_clients_count: { totalCount: 0 } }),
   SchedulesByPeriod: () => ({ schedules_by_period: { edges: [] } }),
+  DashboardGoals: () => ({
+    dashboard_goals: { periodMonth: "2026-10-01", rows: [] },
+  }),
 };
 
 /**

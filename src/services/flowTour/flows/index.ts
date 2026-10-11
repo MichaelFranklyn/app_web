@@ -10,9 +10,10 @@ import { factoryPricesFlows } from "./definitions/factoryPrices";
 import { factoryProductsFlows } from "./definitions/factoryProducts";
 import { factoryTabsFlows } from "./definitions/factoryTabs";
 import { goalsFlows } from "./definitions/goals";
-import { insightsFlows } from "./definitions/insights";
+import { opportunitiesFlows } from "./definitions/opportunities";
 import { orderDetailFlows } from "./definitions/orderDetail";
 import { ordersFlows } from "./definitions/orders";
+import { pendingFlows } from "./definitions/pending";
 import { priceListDetailFlows } from "./definitions/priceListDetail";
 import { productDetailFlows } from "./definitions/productDetail";
 import { profileFlows } from "./definitions/profile";
@@ -31,7 +32,8 @@ export { FLOW_ROUTES } from "./routes";
 // biblioteca do lançador (o agrupamento preserva a 1ª aparição de cada grupo).
 const FLOW_LIST: FlowDefinition[] = [
   ...systemFlows,
-  ...insightsFlows,
+  ...pendingFlows,
+  ...opportunitiesFlows,
   ...routinesFlows,
   ...routineDayFlows,
   ...ordersFlows,

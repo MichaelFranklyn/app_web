@@ -181,14 +181,14 @@ const SSR_RESPONSES: Record<string, SsrResponse> = {
   // O sino busca a lista pelo BFF (browser), mas a resposta precisa existir
   // aqui para os specs que não a declaram.
   MyNotifications: { my_notifications: emptyConnection() },
-  // A tela de insights faz a leitura inteira no SERVIDOR. `data: null` porque o
+  // A tela de oportunidades faz a leitura inteira no SERVIDOR. `data: null` porque o
   // seed só semeia com conteúdo: o cliente busca e o `page.route` de cada spec
   // manda no que a tela mostra.
-  MyInsights: {
+  MyOpportunities: {
     myInsights: { status: true, code: 200, message: "ok", data: null },
   },
-  // A central de pendências lê a 1ª página no SERVIDOR. Mesma regra dos
-  // insights: `data: null` não semeia, e quem manda na tela é o spec.
+  // A central de pendências lê a 1ª página no SERVIDOR. Mesma regra das
+  // oportunidades: `data: null` não semeia, e quem manda na tela é o spec.
   MyPendingItems: {
     myPendingItems: { status: true, code: 200, message: "ok", data: null },
   },

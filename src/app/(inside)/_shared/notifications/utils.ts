@@ -2,13 +2,27 @@ import { ThemeColor } from "@/lib/theme";
 import { Notification, NotificationSeverity } from "./interface";
 
 /**
- * A tela que mostra o que está pendente e por quê.
- *
- * O sino avisa; os insights explicam e apontam a saída. Notificação de insight
- * não tem registro para abrir — a conclusão É o conteúdo —, então ela leva para
- * cá, onde o mesmo assunto aparece com o número de hoje e o motivo por extenso.
+ * A lista de trabalho — a saída do sino. O sino mostra o que já aconteceu;
+ * Pendências, o que ainda precisa ser feito, com o motivo.
  */
-export const INSIGHTS_ROUTE = "/insights";
+export const PENDING_ROUTE = "/pending";
+
+/** As oportunidades comerciais (a antiga /insights). */
+export const OPPORTUNITIES_ROUTE = "/opportunities";
+
+/**
+ * Para onde cada aviso CONCLUÍDO pelo sistema (categoria INSIGHT) leva — a
+ * lista de referência do assunto, já filtrada. Pelo `relatedEntityType`, e não
+ * pelo `link` gravado: os avisos antigos guardaram "/routines", e o clique
+ * neles também tem de cair na lista certa.
+ *
+ * - frequência de visita vencida → Pendências, no tipo;
+ * - prioritário fora da rotina → Oportunidades, com o cartão aberto.
+ */
+const INSIGHT_ROUTES: Record<string, string> = {
+  visit_overdue: `${PENDING_ROUTE}?type=VISIT_FREQUENCY`,
+  unplanned_priority: `${OPPORTUNITIES_ROUTE}?open=PRIORITY_OFF_ROUTE`,
+};
 
 export const SEVERITY_COLOR: Record<NotificationSeverity, ThemeColor> = {
   INFO: "blue",
@@ -24,13 +38,19 @@ export const isInsight = (n: Pick<Notification, "category">): boolean =>
 /**
  * Para onde o clique na notificação leva.
  *
- * Insight vai para a tela de insights: lá o mesmo assunto aparece com o número
- * de HOJE, o motivo por extenso e o botão que resolve — o aviso do sino é só a
- * foto do dia em que o job rodou. As demais continuam indo direto ao registro:
- * ali o aviso é só o aviso, e quem interessa é o pedido que mudou de estado.
+ * Insight vai para a lista de referência do assunto: lá ele aparece com o
+ * número de HOJE, o motivo por extenso e o caminho que resolve — o aviso do
+ * sino é só a foto do dia em que o job rodou. As demais continuam indo direto
+ * ao registro: ali o aviso é só o aviso, e quem interessa é o pedido que mudou
+ * de estado.
  */
 export const notificationHref = (n: Notification): string | null => {
-  if (isInsight(n)) return INSIGHTS_ROUTE;
+  if (isInsight(n)) {
+    return (
+      (n.relatedEntityType && INSIGHT_ROUTES[n.relatedEntityType]) ??
+      OPPORTUNITIES_ROUTE
+    );
+  }
   return n.link;
 };
 

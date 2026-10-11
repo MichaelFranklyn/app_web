@@ -46,10 +46,18 @@ export const systemOverviewFlow: FlowDefinition = {
       align: "center",
     },
     {
-      element: '[data-tour-route="/insights"]',
-      title: "Insights",
+      element: '[data-tour-route="/pending"]',
+      title: "Pendências",
       description:
-        "O que precisa da sua atenção hoje e por quê: cliente sumido, boleto vencendo, meta atrasada. É por aqui que muita gente começa o dia.",
+        "Os seus compromissos numa lista só: visita sem resposta, pedido parado, boleto vencido, cliente sem contato. É por aqui que muita gente começa o dia.",
+      side: "right",
+      align: "center",
+    },
+    {
+      element: '[data-tour-route="/opportunities"]',
+      title: "Oportunidades",
+      description:
+        "Onde vale agir para vender mais: quem está no momento de recomprar e quem ficou fora da rotina.",
       side: "right",
       align: "center",
     },

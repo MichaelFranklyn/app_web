@@ -1,15 +1,15 @@
 import { describe, expect, it } from "vitest";
 
-import { GoalRow } from "./interface";
 import {
-  copySourceMonths,
-  groupBySeller,
   metricValues,
   overallPercent,
   percentOf,
   percentTone,
   sumRows,
-} from "./utils";
+} from "@/utils/goals";
+
+import { GoalRow } from "./interface";
+import { copySourceMonths, groupBySeller } from "./utils";
 
 const row = (overrides: Partial<GoalRow> = {}): GoalRow => ({
   goalId: "g1",

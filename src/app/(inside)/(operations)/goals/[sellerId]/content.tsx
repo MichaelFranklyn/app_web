@@ -20,6 +20,7 @@ import {
   monthStartIso,
   yearMonthFromIso,
 } from "@/utils/format/month";
+import { overallPercent, percentTone, sumRows } from "@/utils/goals";
 import { useMutation, useQuery } from "@apollo/client/react";
 import { CalendarDays, ChevronLeft, ChevronRight, Target } from "lucide-react";
 import { useRouter } from "next/navigation";
@@ -40,7 +41,6 @@ import {
   GoalsSellersResponse,
   SellerGoalsResponse,
 } from "../interface";
-import { overallPercent, percentTone, sumRows } from "../utils";
 import { FactoryGoalCard } from "./_components/FactoryGoalCard";
 
 interface Props {

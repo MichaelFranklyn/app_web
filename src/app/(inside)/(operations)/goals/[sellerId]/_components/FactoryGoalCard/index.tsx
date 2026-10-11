@@ -9,16 +9,17 @@ import { Progress } from "@/components/Progress";
 import { Title } from "@/components/Title";
 import { factoryName } from "@/utils/company";
 import { formatMoney, formatNumber } from "@/utils/format/masks";
-import { Pencil, Trash2 } from "lucide-react";
-
-import { GoalRow } from "../../../interface";
 import {
   GOAL_METRICS,
   metricValues,
   overallPercent,
   percentOf,
   percentTone,
-} from "../../../utils";
+} from "@/utils/goals";
+import { Pencil, Trash2 } from "lucide-react";
+
+import { GoalRow } from "../../../interface";
+
 import { SetGoalModal } from "../../../_components/SetGoalModal";
 
 interface Props {
