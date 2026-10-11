@@ -69,6 +69,15 @@ describe("visibleNav — papel", () => {
     }
   });
 
+  it("dá a central de pendências a todos os papéis e planos", () => {
+    // É a lista de trabalho de quem abre — o vendedor vê as dele, o gestor as
+    // da empresa — e nenhuma das quatro leituras depende de recurso de plano.
+    for (const role of ["OWNER", "ADMIN", "SELLER"]) {
+      expect(hrefs(role)).toContain("/pending");
+      expect(hrefs(role, [])).toContain("/pending");
+    }
+  });
+
   it("mantém as operações para todo mundo", () => {
     for (const role of ["OWNER", "ADMIN", "SELLER"]) {
       expect(hrefs(role)).toEqual(
