@@ -236,12 +236,11 @@ export const PAGE_DATA: Record<string, Handlers> = {
   },
 
   // `data` é um OBJETO com `generatedAt` e `insights`, não a lista solta: a
-  // tela lê `myInsights.data.insights` (ver a query MyInsights). Enquanto aqui
-  // vinha o array direto, `data.insights` era undefined, a rota caía no estado
-  // vazio ("Nada pendente") e a medição de largura olhava para um lugar onde
-  // não havia cartão nenhum — justamente o que esta lista existe para evitar.
-  "/insights": {
-    MyInsights: () => ({
+  // tela lê `myInsights.data.insights` (a API manteve o nome de quando a tela
+  // era /insights). Com o array direto a rota caía no estado vazio e a medição
+  // de largura olhava para um lugar onde não havia cartão nenhum.
+  "/opportunities": {
+    MyOpportunities: () => ({
       myInsights: {
         status: true,
         message: "ok",
@@ -250,11 +249,8 @@ export const PAGE_DATA: Record<string, Handlers> = {
           insights: [
             {
               kind: "CLIENT_OVERDUE",
-              group: "WALLET",
               count: 23,
               blockedCount: 0,
-              amount: null,
-              daysLeft: null,
               samples: [
                 {
                   id: "c-1",
@@ -262,6 +258,9 @@ export const PAGE_DATA: Record<string, Handlers> = {
                   detail: "348 dias sem comprar",
                   link: null,
                   reason: null,
+                  clientId: "c-1",
+                  nextFollowUpDate: null,
+                  nextVisitDate: null,
                 },
               ],
             },
@@ -271,8 +270,8 @@ export const PAGE_DATA: Record<string, Handlers> = {
     }),
     // Só o gestor pede esta; com o papel padrão (vendedor) ela é pulada. Fica
     // registrada para a rota não depender de quem está logado.
-    InsightsSellers: () => ({
-      insights_sellers: conn([
+    OpportunitiesSellers: () => ({
+      opportunities_sellers: conn([
         { id: "seller-1", name: "Rafael Vendas", isActive: true },
       ]),
     }),
@@ -613,12 +612,12 @@ export const PAGE_DATA: Record<string, Handlers> = {
 /** Texto que só aparece com a tela montada (evita medir uma tela de erro). */
 export const PAGE_READY: Record<string, RegExp> = {
   // Texto de CONTEÚDO, não de moldura: "Resumo de setembro", "Metas de
-  // setembro" e o próprio "Insights" são desenhados com ou sem dado, então
-  // casavam numa tela vazia e deixavam a medição passar no lugar errado — foi
-  // assim que o shape velho do /insights ficou meses sem ninguém notar.
+  // setembro" e o próprio "Oportunidades" são desenhados com ou sem dado,
+  // então casavam numa tela vazia e deixavam a medição passar no lugar errado
+  // — foi assim que o shape velho do /insights ficou meses sem ninguém notar.
   "/commissions": /Industria Herc Colchoes|Herc/i,
   "/goals": /Rafael Vendas/i,
-  "/insights": /348 dias sem comprar/i,
+  "/opportunities": /348 dias sem comprar/i,
   "/orders/order-1": /Colchão Ortopédico Premium/i,
   "/clients/cc-1/overview": /Casa do Sono/i,
   "/clients/cc-1/orders": /Industria Herc Colchoes/i,

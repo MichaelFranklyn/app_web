@@ -18,6 +18,7 @@ import {
   yearMonthFromIso,
 } from "@/utils/format/month";
 import { useCompleteList } from "@/hooks/useCompleteList";
+import { GOAL_METRICS, sumRows } from "@/utils/goals";
 import { useQuery } from "@apollo/client/react";
 import { CalendarDays, ChevronLeft, ChevronRight, Target } from "lucide-react";
 import { useRouter, useSearchParams } from "next/navigation";
@@ -37,7 +38,7 @@ import {
   GoalsSellersResponse,
   SellerGoalsResponse,
 } from "./interface";
-import { GOAL_METRICS, groupBySeller, SellerGroup, sumRows } from "./utils";
+import { groupBySeller, SellerGroup } from "./utils";
 
 interface Props {
   /** Gestor (owner/admin/su): define metas e escolhe de quem ver. */

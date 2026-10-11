@@ -13,6 +13,7 @@ export const MY_PENDING_ITEMS_QUERY = gql`
     $sellerId: UUID
     $dueFrom: Date
     $dueTo: Date
+    $when: PendingWhen
     $offset: Int!
     $limit: Int!
   ) {
@@ -21,6 +22,7 @@ export const MY_PENDING_ITEMS_QUERY = gql`
       sellerId: $sellerId
       dueFrom: $dueFrom
       dueTo: $dueTo
+      when: $when
       offset: $offset
       limit: $limit
     ) {
@@ -31,6 +33,11 @@ export const MY_PENDING_ITEMS_QUERY = gql`
         totalCount
         counts {
           type
+          count
+          highCount
+        }
+        whenCounts {
+          when
           count
           highCount
         }
@@ -57,13 +64,17 @@ export const MY_PENDING_ITEMS_QUERY = gql`
           highAfterDays
           scheduledDate
           note
+          orderId
+          orderDate
+          contactPhone
+          installmentCount
         }
       }
     }
   }
 `;
 
-/** Vendedores para o filtro do gestor — o mesmo catálogo curto de /insights. */
+/** Vendedores para o filtro do gestor — o mesmo catálogo curto de /opportunities. */
 export const PENDING_SELLERS_QUERY = gql`
   query PendingSellers($input: BaseListInput!) {
     pending_sellers: sellers(input: $input) {

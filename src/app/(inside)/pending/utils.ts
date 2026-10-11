@@ -2,14 +2,18 @@ import { SelectOption } from "@/components/Input";
 import { TitleColor } from "@/components/Title";
 import { FieldConfig } from "@/hooks/useTableFilters";
 import { ThemeColor } from "@/lib/theme";
-import { formatDate } from "@/utils/format/date";
+import { formatDate, getBrtTodayIso } from "@/utils/format/date";
 import { formatMoney } from "@/utils/format/masks";
+import { greetingFor } from "@/utils/greeting";
 
 import {
   PendingItem,
   PendingPriority,
   PendingReason,
   PendingType,
+  PendingSection,
+  PendingTypeCount,
+  PendingWhen,
 } from "./interface";
 
 export const ITEMS_PER_PAGE = 20;
@@ -30,6 +34,12 @@ export const DEFAULT_HORIZON_DAYS = 7;
  */
 export const PENDING_FILTER_FIELDS: Record<string, FieldConfig> = {
   type: { type: "select", queryField: "type" },
+  // Compromissos × cobranças — na URL para o link do aviso (e quem volta de um
+  // pedido) cair na seção certa.
+  section: { type: "select", queryField: "section" },
+  // A faixa de prazo dos contadores do topo — vai na URL como os filtros, para
+  // "Atrasadas" sobreviver à ida a um pedido e à volta.
+  when: { type: "select", queryField: "when" },
   seller: { type: "select", queryField: "seller" },
   dueFrom: { type: "select", queryField: "dueFrom" },
   dueTo: { type: "select", queryField: "dueTo" },
@@ -40,25 +50,98 @@ export const PENDING_TYPE_ORDER: PendingType[] = [
   "VISIT_OVERDUE",
   "FOLLOW_UP",
   "RETURN_SCHEDULED",
+  "VISIT_FREQUENCY",
   "ORDER_STALLED",
+  "INSTALLMENT_OVERDUE",
   "CLIENT_NO_CONTACT",
+  "ADDRESS_ISSUE",
 ];
 
+/**
+ * Três assuntos de visita, três nomes que não se confundem: a visita marcada
+ * que ficou SEM RESPOSTA, a FREQUÊNCIA do cliente que venceu (ninguém marcou
+ * nada) e o cliente SEM CONTATO nenhum há 30 dias.
+ */
 export const PENDING_TYPE_LABEL: Record<PendingType, string> = {
-  VISIT_OVERDUE: "Visitas atrasadas",
+  VISIT_OVERDUE: "Visitas sem resposta",
   FOLLOW_UP: "Contatos agendados",
   RETURN_SCHEDULED: "Retornos combinados",
+  VISIT_FREQUENCY: "Frequência de visita vencida",
   ORDER_STALLED: "Pedidos parados",
+  INSTALLMENT_OVERDUE: "Boletos vencidos",
   CLIENT_NO_CONTACT: "Clientes sem contato",
+  ADDRESS_ISSUE: "Endereços a corrigir",
 };
 
 /** O nome de UMA pendência do tipo — o que vai na linha da tabela. */
 export const PENDING_TYPE_SINGULAR: Record<PendingType, string> = {
-  VISIT_OVERDUE: "Visita atrasada",
+  VISIT_OVERDUE: "Visita sem resposta",
   FOLLOW_UP: "Contato agendado",
   RETURN_SCHEDULED: "Retorno combinado",
+  VISIT_FREQUENCY: "Frequência de visita vencida",
   ORDER_STALLED: "Pedido parado",
+  INSTALLMENT_OVERDUE: "Boleto vencido",
   CLIENT_NO_CONTACT: "Cliente sem contato",
+  ADDRESS_ISSUE: "Endereço a corrigir",
+};
+
+/**
+ * Os tipos de cada seção. Cobrança é a única de DINHEIRO a receber: numa base
+ * real eram 278 pedidos com boleto vencido, que na mesma lista empurravam
+ * visitas e retornos para a página 10. A seção separa sem rebaixar.
+ */
+export const CHARGE_TYPES: PendingType[] = ["INSTALLMENT_OVERDUE"];
+
+export const COMMITMENT_TYPES: PendingType[] = PENDING_TYPE_ORDER.filter(
+  (type) => !CHARGE_TYPES.includes(type)
+);
+
+/**
+ * A seção aberta. O link com `type=INSTALLMENT_OVERDUE` (aviso antigo, filtro
+ * guardado) cai em Cobranças mesmo sem `section` na URL.
+ */
+export const sectionOf = (values: Record<string, string>): PendingSection =>
+  values.section === "charges" ||
+  CHARGE_TYPES.includes(values.type as PendingType)
+    ? "charges"
+    : "commitments";
+
+/** Quantas pendências em cada seção — vai no rótulo do botão da seção. */
+export const sectionCounts = (
+  counts: PendingTypeCount[]
+): Record<PendingSection, number> => {
+  const sum = (types: PendingType[]) =>
+    counts
+      .filter((row) => types.includes(row.type))
+      .reduce((total, row) => total + row.count, 0);
+  return { commitments: sum(COMMITMENT_TYPES), charges: sum(CHARGE_TYPES) };
+};
+
+/** Os contadores do topo, na ordem da leitura: o que venceu, hoje, a semana. */
+export const PENDING_WHEN_ORDER: PendingWhen[] = [
+  "OVERDUE",
+  "TODAY",
+  "NEXT_7_DAYS",
+  "NO_DUE",
+];
+
+export const PENDING_WHEN_LABEL: Record<PendingWhen, string> = {
+  OVERDUE: "Atrasadas",
+  TODAY: "Hoje",
+  NEXT_7_DAYS: "Próximos 7 dias",
+  LATER: "Mais adiante",
+  NO_DUE: "Sem prazo",
+};
+
+/** O que cada contador conta — vai no `title` do cartão. */
+export const PENDING_WHEN_HINT: Record<PendingWhen, string> = {
+  OVERDUE: "O prazo já passou. Clique para ver só estas.",
+  TODAY: "O prazo é hoje. Clique para ver só estas.",
+  NEXT_7_DAYS:
+    "O prazo cai de amanhã até daqui a 7 dias. Clique para ver só estas.",
+  LATER: "O prazo é depois dos próximos 7 dias.",
+  NO_DUE:
+    "Cadastro a corrigir: não vence, mas trava a rotina enquanto estiver errado. Clique para ver só estas.",
 };
 
 export const PENDING_PRIORITY_LABEL: Record<PendingPriority, string> = {
@@ -80,11 +163,19 @@ export const PENDING_PRIORITY_HINT: Record<PendingPriority, string> = {
   LOW: "Pode esperar: ainda está no prazo, ou não trava ninguém.",
 };
 
-export const pendingTypeOptions = (): SelectOption[] =>
-  PENDING_TYPE_ORDER.map((type) => ({
+/** As opções do filtro de tipo, com quantas há de cada no recorte atual. */
+export const pendingTypeOptions = (
+  counts: PendingTypeCount[] = [],
+  types: PendingType[] = COMMITMENT_TYPES
+): SelectOption[] => {
+  const byType = new Map(counts.map((row) => [row.type, row.count]));
+  return types.map((type) => ({
     value: type,
-    label: PENDING_TYPE_LABEL[type],
+    label: byType.has(type)
+      ? `${PENDING_TYPE_LABEL[type]} (${byType.get(type)})`
+      : PENDING_TYPE_LABEL[type],
   }));
+};
 
 const days = (n: number): string => (n === 1 ? "1 dia" : `${n} dias`);
 
@@ -99,6 +190,8 @@ type ReasonInput = Pick<
   | "daysLate"
   | "scheduledDate"
   | "note"
+  | "installmentCount"
+  | "amount"
 >;
 
 /**
@@ -109,14 +202,14 @@ type ReasonInput = Pick<
  * dias". Régua que não aparece vira "o sistema acha que está atrasado", e
  * ninguém confia numa lista que não sabe explicar.
  *
- * O texto mora aqui, e não no backend (mesma divisão de /insights): de lá vêm o
+ * O texto mora aqui, e não no backend (mesma divisão de /opportunities): de lá vêm o
  * motivo, as datas e a régua; a frase é decisão de tela.
  */
 export const reasonText = (item: ReasonInput): string => {
   const when = formatDate(item.referenceDate, "");
   const rule = item.allowanceDays ?? 0;
   // Dias desde o fato = a folga da régua + o atraso sobre o prazo.
-  const ago = days(Math.max(0, rule + item.daysLate));
+  const ago = days(Math.max(0, rule + (item.daysLate ?? 0)));
   const byReason: Record<PendingReason, string> = {
     VISIT_UNANSWERED: `${
       item.isRemote ? "A ligação" : "A visita"
@@ -131,9 +224,19 @@ export const reasonText = (item: ReasonInput): string => {
     DELIVERY_UNCONFIRMED: `Faturado em ${when}, há ${ago}. Prazo de entrega considerado: ${days(rule)} — pergunte ao cliente se a mercadoria chegou.`,
     NO_CONTACT: `Último contato (visita, ligação ou pedido) em ${when}, há ${ago}. Régua: ${days(rule)} sem contato.`,
     NEVER_CONTACTED: `Na carteira desde ${when} e nunca teve visita, ligação nem pedido registrado. Régua: ${days(rule)} sem contato.`,
+    FREQUENCY_DUE: `Última visita em ${when}, há ${ago}. Frequência de visita deste cliente: a cada ${days(rule)} — e não há visita marcada nesta semana.`,
+    INSTALLMENT_UNPAID: `${parcels(item.installmentCount)}${item.amount ? `, ${formatMoney(item.amount)} em aberto` : ""}. ${item.installmentCount && item.installmentCount > 1 ? "A mais antiga venceu" : "Venceu"} em ${when}, há ${days(Math.max(0, item.daysLate ?? 0))}. Fica aqui até o pagamento ser baixado no pedido — conferir a comissão não tira o boleto da lista.`,
+    LOCATION_MISSING:
+      "O mapa não encontrou o endereço deste cliente. Sem ele, o cliente não entra na rota — corrija rua, número e CEP no cadastro.",
+    LOCATION_APPROXIMATE:
+      "O mapa achou só a região, não a porta da loja. Assim o cliente nunca abre um dia de rota — corrija rua, número e CEP no cadastro.",
   };
   return byReason[item.reason] + scheduledNote(item.scheduledDate);
 };
+
+/** "1 parcela vencida" · "3 parcelas vencidas". */
+const parcels = (count: number | null): string =>
+  count && count > 1 ? `${count} parcelas vencidas` : "1 parcela vencida";
 
 /**
  * A agenda que NÃO dispensou a pendência: o contato está marcado, mas depois
@@ -158,25 +261,39 @@ export const priorityHint = (
   return `${hint} Vira Alta com ${days(item.highAfterDays)} de atraso.`;
 };
 
-/** "venceu há 3 dias" · "vence hoje" · "vence em 2 dias". */
-export const dueLabel = (daysLate: number): string => {
+/** "venceu há 3 dias" · "vence hoje" · "vence em 2 dias" · "sem prazo". */
+export const dueLabel = (daysLate: number | null): string => {
+  if (daysLate === null) return "sem prazo";
   if (daysLate === 0) return "vence hoje";
   if (daysLate > 0) return `venceu há ${days(daysLate)}`;
   return daysLate === -1 ? "vence amanhã" : `vence em ${days(-daysLate)}`;
 };
 
-/** Vencido em vermelho, hoje em âmbar, no prazo sem cor. */
-export const dueTone = (daysLate: number): TitleColor => {
+/** Vencido em vermelho, hoje em âmbar, no prazo (ou sem prazo) sem cor. */
+export const dueTone = (daysLate: number | null): TitleColor => {
+  if (daysLate === null) return "muted";
   if (daysLate > 0) return "red";
   return daysLate === 0 ? "amber" : "muted";
 };
 
-/** Para onde a linha leva — escrito, para ninguém clicar no escuro. */
-export const destinationLabel = (type: PendingType): string => {
-  if (type === "VISIT_OVERDUE") return "Responder na rota do dia";
-  if (type === "FOLLOW_UP") return "Abrir o contato agendado";
-  return type === "ORDER_STALLED" ? "Abrir o pedido" : "Abrir o cliente";
+/**
+ * A AÇÃO da linha — escrita, para ninguém clicar no escuro. É para onde a
+ * linha leva: a conclusão acontece lá (no pedido, no contato, no cadastro),
+ * nunca aqui.
+ */
+const ACTION_LABEL: Record<PendingType, string> = {
+  VISIT_OVERDUE: "Responder na rota",
+  FOLLOW_UP: "Abrir contato",
+  RETURN_SCHEDULED: "Abrir cliente",
+  VISIT_FREQUENCY: "Abrir cliente",
+  ORDER_STALLED: "Abrir pedido",
+  INSTALLMENT_OVERDUE: "Abrir pedido",
+  CLIENT_NO_CONTACT: "Abrir cliente",
+  ADDRESS_ISSUE: "Corrigir cadastro",
 };
+
+export const destinationLabel = (type: PendingType): string =>
+  ACTION_LABEL[type];
 
 /** O complemento sob o nome do cliente: a fábrica e o valor do pedido. */
 export const clientDetail = (
@@ -210,10 +327,18 @@ export const pendingVariables = (
   page: number,
   canSelectSeller = true
 ) => ({
-  types: values.type ? [values.type] : null,
+  // Sempre uma lista de tipos: a seção é um recorte por tipo, feito no
+  // backend (os contadores de prazo acompanham a seção).
+  types:
+    sectionOf(values) === "charges"
+      ? CHARGE_TYPES
+      : values.type
+        ? [values.type]
+        : COMMITMENT_TYPES,
   sellerId: canSelectSeller && values.seller ? values.seller : null,
   dueFrom: values.dueFrom || null,
   dueTo: values.dueTo || null,
+  when: values.when || null,
   offset: (Math.max(1, page) - 1) * ITEMS_PER_PAGE,
   limit: ITEMS_PER_PAGE,
 });
@@ -231,9 +356,38 @@ export const scopeNote = (values: Record<string, string>): string => {
   if (from && to) return `Mostrando o que tem prazo de ${from} a ${to}.`;
   if (from) return `Mostrando o que tem prazo a partir de ${from}.`;
   if (to) return `Mostrando o que tem prazo até ${to}.`;
-  return `Mostrando o que já venceu e o que vence nos próximos ${DEFAULT_HORIZON_DAYS} dias. Para ver mais adiante, escolha um período em Filtros.`;
+  return `Mostrando o que já venceu, o que vence nos próximos ${DEFAULT_HORIZON_DAYS} dias e o cadastro a corrigir (sem prazo). Para ver mais adiante, escolha um período em Filtros.`;
+};
+
+/**
+ * A mensagem pronta do pós-venda: o cliente reconhece o pedido pela fábrica e
+ * pela data, e a pergunta é aberta o bastante para ele contar um problema.
+ */
+export const postSaleMessage = (
+  item: Pick<PendingItem, "factoryName" | "orderDate">,
+  hour: number = new Date().getHours()
+): string => {
+  const pedido = item.factoryName
+    ? `o pedido da ${item.factoryName}`
+    : "o pedido";
+  const quando = item.orderDate
+    ? ` feito em ${formatDate(item.orderDate)}`
+    : "";
+  return `Olá, ${greetingFor(hour)}! Tudo bem? Passando para saber se ${pedido}${quando} já foi entregue e se chegou tudo certo. Qualquer coisa, estou à disposição.`;
+};
+
+/**
+ * O dia sugerido ao agendar o contato de um retorno: o combinado; se já
+ * passou (ou não há), hoje — agendar no passado é recusado.
+ */
+export const followUpDefaultDate = (dueDate: string | null): string => {
+  const today = getBrtTodayIso();
+  return dueDate && dueDate >= today ? dueDate : today;
 };
 
 /** Há algum filtro valendo? Muda a mensagem de lista vazia. */
+/** Há algum filtro valendo? (a seção não conta: ela é onde se está) */
 export const hasActiveFilter = (values: Record<string, string>): boolean =>
-  Object.keys(PENDING_FILTER_FIELDS).some((key) => !!values[key]);
+  Object.keys(PENDING_FILTER_FIELDS).some(
+    (key) => key !== "section" && !!values[key]
+  );

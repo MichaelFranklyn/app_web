@@ -9,10 +9,10 @@ import {
   Headset,
   Import,
   LayoutDashboard,
-  Lightbulb,
   ListChecks,
   PhoneCall,
   Route,
+  Sparkles,
   Tags,
   Target,
   UserCog,
@@ -60,7 +60,7 @@ export const NAV = [
     feature: "ROUTINES" as NavFeature,
   },
   {
-    // A lista de trabalho do dia: uma linha por coisa a fazer, com prioridade,
+    // A ÚNICA lista de trabalho: uma linha por compromisso, com prioridade,
     // prazo e o caminho até onde se resolve. Sem `feature` e sem `access`: o
     // recorte (as minhas / as da empresa) é no resolver, e o que o plano não
     // tem (rotina) simplesmente não gera pendência.
@@ -69,12 +69,11 @@ export const NAV = [
     icon: ListChecks,
   },
   {
-    // O que está pendente HOJE e por quê. Sem `feature`: a leitura é calculada
-    // na hora a partir de carteira, pedidos, boletos e metas — não depende do
-    // módulo de avisos automáticos, que é outra coisa (o sino).
-    href: "/insights",
-    label: "Insights",
-    icon: Lightbulb,
+    // Onde vale agir para vender mais (a antiga /insights, que redireciona
+    // para cá). Sem `feature`: a leitura é da carteira, calculada na hora.
+    href: "/opportunities",
+    label: "Oportunidades",
+    icon: Sparkles,
   },
   { divider: true },
   { section: "Operações" },

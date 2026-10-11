@@ -1,23 +1,26 @@
 "use client";
-import { Button } from "@/components/Button";
 
+import { Button } from "@/components/Button";
 import { Tooltip } from "@/components/Tooltip";
 import { whatsappHref } from "@/utils/phone";
 import { MessageCircle, UserPlus } from "lucide-react";
 
-import { InsightSample } from "../../interface";
+import { PendingItem } from "../../interface";
 import { postSaleMessage } from "../../utils";
 
 /**
  * O contato do pós-venda: WhatsApp com a mensagem pronta ("Olá, bom dia! ...
  * o pedido da Herc feito em 30/07/2026 já foi entregue?").
  *
+ * Veio do antigo cartão de entregas de /insights: o pedido parado mora só aqui
+ * agora, e a ação de pós-venda veio junto.
+ *
  * Sem celular cadastrado não há link de WhatsApp — o `wa.me` com número fixo
  * cai numa tela de erro. Em vez de um botão morto, o caminho para resolver:
  * cadastrar o contato na ficha do cliente.
  */
-export function PostSaleContact({ sample }: { sample: InsightSample }) {
-  const href = whatsappHref(sample.contactPhone, postSaleMessage(sample));
+export function PostSaleContact({ item }: { item: PendingItem }) {
+  const href = whatsappHref(item.contactPhone, postSaleMessage(item));
 
   if (href) {
     return (
@@ -28,7 +31,7 @@ export function PostSaleContact({ sample }: { sample: InsightSample }) {
         color="neutral"
         size="xs"
         noUppercase
-        aria-label={`Perguntar pelo WhatsApp se o pedido de ${sample.label} foi entregue`}
+        aria-label={`Perguntar pelo WhatsApp se o pedido de ${item.clientName} foi entregue`}
       >
         <Button.Icon icon={MessageCircle} />
         <Button.Title>WhatsApp</Button.Title>
@@ -36,12 +39,12 @@ export function PostSaleContact({ sample }: { sample: InsightSample }) {
     );
   }
 
-  if (!sample.clientLink) return null;
+  if (!item.clientLink) return null;
 
   return (
     <Tooltip content="Este cliente não tem celular cadastrado. Cadastre um contato para mandar a mensagem de pós-venda pelo WhatsApp.">
       <Button.Link
-        href={sample.clientLink}
+        href={item.clientLink}
         appearance="outline"
         color="neutral"
         size="xs"

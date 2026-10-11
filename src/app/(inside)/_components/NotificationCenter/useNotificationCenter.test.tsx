@@ -279,12 +279,16 @@ describe("useNotificationCenter", () => {
     expect(push).toHaveBeenCalledWith("/orders/n1");
   });
 
-  it("insight leva para a central, onde o número é o de hoje", async () => {
+  it("insight leva para a lista de referência, onde o número é o de hoje", async () => {
     // O aviso do sino é a foto do dia em que o job rodou.
     const result = await run([
       countMock(1),
       listMock([
-        notification("n1", { category: "INSIGHT", link: "/clients/9" }),
+        notification("n1", {
+          category: "INSIGHT",
+          link: "/routines",
+          relatedEntityType: "visit_overdue",
+        }),
       ]),
       readMock("n1"),
     ]);
@@ -292,7 +296,7 @@ describe("useNotificationCenter", () => {
 
     act(() => result.current.handleItemClick(result.current.items[0]));
 
-    expect(push).toHaveBeenCalledWith("/insights");
+    expect(push).toHaveBeenCalledWith("/pending?type=VISIT_FREQUENCY");
   });
 
   it("aviso sem destino não navega para lugar nenhum", async () => {

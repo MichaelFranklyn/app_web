@@ -34,6 +34,10 @@ const item = (over: Record<string, unknown> = {}) => ({
   highAfterDays: 3,
   scheduledDate: null,
   note: null,
+  orderId: null,
+  orderDate: null,
+  contactPhone: null,
+  installmentCount: null,
   ...over,
 });
 
@@ -52,6 +56,8 @@ const order = (over: Record<string, unknown> = {}) =>
     referenceDate: "2026-10-02",
     allowanceDays: 7,
     highAfterDays: 15,
+    orderId: "o-1",
+    orderDate: "2026-10-02",
     ...over,
   });
 
@@ -72,13 +78,47 @@ const comeBack = (over: Record<string, unknown> = {}) =>
     ...over,
   });
 
-const response = (items: Array<Record<string, unknown>>) => {
+const TODAY = "2026-10-11";
+
+/** A faixa do prazo, como o backend calcula (o mock fixa "hoje"). */
+const whenOf = (i: Record<string, unknown>) => {
+  const due = i.dueDate as string | null;
+  if (!due) return "NO_DUE";
+  if (due < TODAY) return "OVERDUE";
+  if (due === TODAY) return "TODAY";
+  return due <= "2026-10-18" ? "NEXT_7_DAYS" : "LATER";
+};
+
+/**
+ * A resposta como o backend monta: `items` com tipo E faixa, `counts` por tipo
+ * só com a faixa, `whenCounts` por faixa só com o tipo. Sem `variables`, devolve
+ * tudo (os specs que não filtram nada).
+ */
+const response = (
+  all: Array<Record<string, unknown>>,
+  variables: Record<string, unknown> = {}
+) => {
+  const types = variables.types as string[] | null | undefined;
+  const when = variables.when as string | null | undefined;
+  const byWhen = when ? all.filter((i) => whenOf(i) === when) : all;
+  const byType = types
+    ? all.filter((i) => types.includes(i.type as string))
+    : all;
+  const items = byWhen.filter((i) => byType.includes(i));
   const count = (type: string) => ({
     __typename: "PendingTypeCountType",
     type,
-    count: items.filter((i) => i.type === type).length,
-    highCount: items.filter((i) => i.type === type && i.priority === "HIGH")
+    count: byWhen.filter((i) => i.type === type).length,
+    highCount: byWhen.filter((i) => i.type === type && i.priority === "HIGH")
       .length,
+  });
+  const whenCount = (bucket: string) => ({
+    __typename: "PendingWhenCountType",
+    when: bucket,
+    count: byType.filter((i) => whenOf(i) === bucket).length,
+    highCount: byType.filter(
+      (i) => whenOf(i) === bucket && i.priority === "HIGH"
+    ).length,
   });
   return {
     myPendingItems: {
@@ -93,9 +133,15 @@ const response = (items: Array<Record<string, unknown>>) => {
           "VISIT_OVERDUE",
           "FOLLOW_UP",
           "RETURN_SCHEDULED",
+          "VISIT_FREQUENCY",
           "ORDER_STALLED",
+          "INSTALLMENT_OVERDUE",
           "CLIENT_NO_CONTACT",
+          "ADDRESS_ISSUE",
         ].map(count),
+        whenCounts: ["OVERDUE", "TODAY", "NEXT_7_DAYS", "LATER", "NO_DUE"].map(
+          whenCount
+        ),
         items,
       },
     },
@@ -113,13 +159,14 @@ test("pendências: cada linha traz prioridade, prazo e motivo", async ({
 
   const visit = page.getByRole("row").filter({ hasText: "Mercadinho do Zé" });
   await expect(visit).toContainText("Alta");
-  await expect(visit).toContainText("Visita atrasada");
+  // "Sem resposta", e não "atrasada": a frequência vencida é outra coisa.
+  await expect(visit).toContainText("Visita sem resposta");
   // O motivo por extenso, com a data do fato.
   await expect(visit).toContainText(
     "A visita de 07/10/2026 ficou sem resposta"
   );
   await expect(visit).toContainText("venceu há 4 dias");
-  await expect(visit).toContainText("Responder na rota do dia");
+  await expect(visit).toContainText("Responder na rota");
 
   const stalled = page.getByRole("row").filter({ hasText: "Decore Casa" });
   await expect(stalled).toContainText("Média");
@@ -171,9 +218,9 @@ test("pendências: contato agendado traz o motivo e abre o agendamento", async (
     "Retornar sobre o orçamento — agendado em 01/10/2026"
   );
   await expect(row).toContainText("vence hoje");
-  await expect(row).toContainText("Abrir o contato agendado");
+  await expect(row).toContainText("Abrir contato");
   // O destino não é a ficha do cliente, então o atalho para ela aparece.
-  await expect(row.getByRole("button", { name: "Ver cliente" })).toBeVisible();
+  await expect(row.getByRole("link", { name: "Ver cliente" })).toBeVisible();
 });
 
 test("pendências: o contato agendado do retorno nasce vinculado a ele", async ({
@@ -235,10 +282,11 @@ test("pendências: pedido parado também abre a ficha do cliente", async ({
 
   // Quando a linha JÁ leva ao cliente, um segundo botão para o mesmo lugar
   // seria ruído: só a linha do pedido tem "Ver cliente".
-  await expect(page.getByRole("button", { name: "Ver cliente" })).toHaveCount(
-    1
-  );
-  await page.getByRole("button", { name: "Ver cliente" }).click();
+  const verCliente = page
+    .getByRole("row")
+    .getByRole("link", { name: "Ver cliente" });
+  await expect(verCliente).toHaveCount(1);
+  await verCliente.click();
 
   await expect(page).toHaveURL(/\/clients\/cc-1/);
 });
@@ -248,11 +296,13 @@ test("pendências: filtrar por tipo vai ao backend e fica na URL", async ({
 }) => {
   const spy = await mockGraphql(page, {
     MyPendingItems: (variables) =>
-      response(variables.types ? [order()] : [item(), order(), comeBack()]),
+      response([item(), order(), comeBack()], variables),
   });
 
   await page.goto("/pending");
-  await expect(page.getByText("Mercadinho do Zé")).toBeVisible();
+  await expect(
+    page.getByRole("row").filter({ hasText: "Mercadinho do Zé" })
+  ).toBeVisible();
 
   await page.getByRole("button", { name: "Filtros" }).click();
   const tipo = page
@@ -261,7 +311,7 @@ test("pendências: filtrar por tipo vai ao backend e fica na URL", async ({
   await tipo.click();
   await page
     .locator("[data-select-dropdown]")
-    .getByText("Pedidos parados", { exact: true })
+    .getByText("Pedidos parados (1)", { exact: true })
     .click();
 
   await expect
@@ -281,10 +331,12 @@ test("pendências: vendedor não filtra por vendedor nem vê a coluna", async ({
   });
 
   await page.goto("/pending");
-  await expect(page.getByText("Mercadinho do Zé")).toBeVisible();
+  await expect(
+    page.getByRole("row").filter({ hasText: "Mercadinho do Zé" })
+  ).toBeVisible();
 
   await expect(
-    page.getByRole("columnheader", { name: "Vendedor" })
+    page.getByRole("columnheader", { name: "Cliente / responsável" })
   ).toHaveCount(0);
   await page.getByRole("button", { name: "Filtros" }).click();
   const panel = page.locator("[data-filters-panel]");
@@ -337,6 +389,275 @@ test("pendências: lista vazia é boa notícia, não erro", async ({ page }) => 
 
   await expect(page.getByText("Nada pendente")).toBeVisible();
   // Os contadores continuam lá, zerados: sumir pareceria defeito.
-  await expect(page.getByText("Visitas atrasadas")).toBeVisible();
-  await expect(page.getByText("Clientes sem contato")).toBeVisible();
+  const counters = page.locator('[data-tour="pending-counts"]');
+  await expect(counters.getByText("Atrasadas")).toBeVisible();
+  await expect(counters.getByText("Hoje")).toBeVisible();
+  await expect(counters.getByText("Próximos 7 dias")).toBeVisible();
+  // "Sem prazo" só aparece quando há cadastro a corrigir.
+  await expect(counters.getByText("Sem prazo")).toHaveCount(0);
+});
+
+test("pendências: o contador filtra a lista pelo prazo e fica na URL", async ({
+  page,
+}) => {
+  const spy = await mockGraphql(page, {
+    MyPendingItems: (variables) =>
+      response([item(), order(), comeBack()], variables),
+  });
+
+  await page.goto("/pending");
+  const counters = page.locator('[data-tour="pending-counts"]');
+  // Visita e pedido venceram; o retorno é da semana que vem.
+  await expect(
+    counters.getByRole("button", { name: /2\s*Atrasadas/ })
+  ).toBeVisible();
+
+  await counters.getByRole("button", { name: /Próximos 7 dias/ }).click();
+
+  await expect
+    .poll(() => spy.lastVariables("MyPendingItems")?.when)
+    .toBe("NEXT_7_DAYS");
+  await expect(page).toHaveURL(/when=NEXT_7_DAYS/);
+  await expect(
+    page.getByRole("row").filter({ hasText: "Mercadinho do Zé" })
+  ).toHaveCount(0);
+  await expect(
+    counters.getByRole("button", { name: /Próximos 7 dias/ })
+  ).toHaveAttribute("aria-pressed", "true");
+
+  // O mesmo clique desfaz.
+  await counters.getByRole("button", { name: /Próximos 7 dias/ }).click();
+  await expect.poll(() => spy.lastVariables("MyPendingItems")?.when).toBeNull();
+});
+
+const boleto = (over: Record<string, unknown> = {}) =>
+  item({
+    id: "INSTALLMENT_UNPAID:o-7:seller-1",
+    entityId: "o-7",
+    type: "INSTALLMENT_OVERDUE",
+    reason: "INSTALLMENT_UNPAID",
+    priority: "HIGH",
+    // Mais de um ano vencido: continua ALTA — a idade não rebaixa a dívida.
+    dueDate: "2025-08-27",
+    daysLate: 410,
+    clientName: "Armazém Bahia",
+    link: "/orders/o-7",
+    factoryName: "Lukma",
+    amount: "806.00",
+    referenceDate: "2025-08-27",
+    allowanceDays: 0,
+    highAfterDays: 7,
+    orderId: "o-7",
+    installmentCount: 2,
+    ...over,
+  });
+
+const address = () =>
+  item({
+    id: "LOCATION_MISSING:c-8:",
+    entityId: "c-8",
+    type: "ADDRESS_ISSUE",
+    reason: "LOCATION_MISSING",
+    priority: "MEDIUM",
+    dueDate: null,
+    daysLate: null,
+    clientName: "Comercial Souza",
+    link: "/clients/cc-8",
+    clientLink: "/clients/cc-8",
+    referenceDate: null,
+    allowanceDays: null,
+    highAfterDays: null,
+  });
+
+test("pendências: boleto vencido tem seção própria, sem perder a prioridade", async ({
+  page,
+}) => {
+  const spy = await mockGraphql(page, {
+    MyPendingItems: (variables) =>
+      response([item(), boleto(), address()], variables),
+  });
+
+  await page.goto("/pending");
+
+  // Na seção de compromissos o boleto não empurra a visita — mas a cobrança
+  // fica à vista, com a contagem no botão.
+  await expect(
+    page.getByRole("row").filter({ hasText: "Mercadinho do Zé" })
+  ).toBeVisible();
+  await expect(
+    page.getByRole("row").filter({ hasText: "Armazém Bahia" })
+  ).toHaveCount(0);
+  const sections = page.locator('[data-tour="pending-sections"]');
+  await expect(
+    sections.getByRole("button", { name: "Compromissos (2)" })
+  ).toHaveAttribute("aria-pressed", "true");
+
+  await sections.getByRole("button", { name: "Cobranças (1)" }).click();
+
+  await expect
+    .poll(() => spy.lastVariables("MyPendingItems")?.types)
+    .toEqual(["INSTALLMENT_OVERDUE"]);
+  await expect(page).toHaveURL(/section=charges/);
+
+  const row = page.getByRole("row").filter({ hasText: "Armazém Bahia" });
+  await expect(row).toContainText("Boleto vencido");
+  await expect(row).toContainText("Alta");
+  // Quantidade, valor em aberto e vencimento mais antigo — e o detalhe a um
+  // clique.
+  await expect(row).toContainText("2 parcelas vencidas");
+  await expect(row).toContainText(/806,00 em aberto/);
+  await expect(row).toContainText("A mais antiga venceu em 27/08/2025");
+  await expect(row.getByRole("link", { name: "Abrir pedido" })).toHaveAttribute(
+    "href",
+    "/orders/o-7"
+  );
+  await expect(
+    page.getByRole("row").filter({ hasText: "Mercadinho do Zé" })
+  ).toHaveCount(0);
+});
+
+test("pendências: link de boleto (type=INSTALLMENT_OVERDUE) abre em Cobranças", async ({
+  page,
+}) => {
+  await mockGraphql(page, {
+    MyPendingItems: (variables) => response([item(), boleto()], variables),
+  });
+
+  await page.goto("/pending?type=INSTALLMENT_OVERDUE");
+
+  await expect(
+    page
+      .locator('[data-tour="pending-sections"]')
+      .getByRole("button", { name: /Cobranças/ })
+  ).toHaveAttribute("aria-pressed", "true");
+  await expect(
+    page.getByRole("row").filter({ hasText: "Armazém Bahia" })
+  ).toBeVisible();
+});
+
+test("pendências: endereço a corrigir não tem prazo e leva ao cadastro", async ({
+  page,
+}) => {
+  await mockGraphql(page, {
+    MyPendingItems: (variables) => response([address()], variables),
+  });
+
+  await page.goto("/pending");
+
+  const row = page.getByRole("row").filter({ hasText: "Comercial Souza" });
+  await expect(row).toContainText("Endereço a corrigir");
+  await expect(row).toContainText("sem prazo");
+  await expect(
+    row.getByRole("link", { name: "Corrigir cadastro" })
+  ).toHaveAttribute("href", "/clients/cc-8");
+
+  // Há cadastro a corrigir: o contador "Sem prazo" aparece.
+  await expect(
+    page.locator('[data-tour="pending-counts"]').getByText("Sem prazo")
+  ).toBeVisible();
+});
+
+test("pendências: frequência vencida não se confunde com visita sem resposta", async ({
+  page,
+}) => {
+  await mockGraphql(page, {
+    MyPendingItems: () =>
+      response([
+        item(),
+        item({
+          id: "FREQUENCY_DUE:c-5:seller-1",
+          entityId: "c-5",
+          type: "VISIT_FREQUENCY",
+          reason: "FREQUENCY_DUE",
+          priority: "MEDIUM",
+          dueDate: "2026-10-01",
+          daysLate: 10,
+          clientName: "Loja Central",
+          link: "/clients/cc-5",
+          clientLink: "/clients/cc-5",
+          referenceDate: "2026-08-17",
+          allowanceDays: 45,
+          highAfterDays: null,
+        }),
+      ]),
+  });
+
+  await page.goto("/pending");
+
+  const frequency = page.getByRole("row").filter({ hasText: "Loja Central" });
+  await expect(frequency).toContainText("Frequência de visita vencida");
+  await expect(frequency).toContainText(
+    "Última visita em 17/08/2026, há 55 dias"
+  );
+  await expect(frequency).toContainText("a cada 45 dias");
+
+  const unanswered = page
+    .getByRole("row")
+    .filter({ hasText: "Mercadinho do Zé" });
+  await expect(unanswered).toContainText("Visita sem resposta");
+});
+
+test("pendências: entrega sem confirmar traz o WhatsApp do pós-venda", async ({
+  page,
+}) => {
+  await mockGraphql(page, {
+    MyPendingItems: () =>
+      response([
+        order({
+          id: "DELIVERY_UNCONFIRMED:o-1:seller-1",
+          reason: "DELIVERY_UNCONFIRMED",
+          referenceDate: "2026-08-20",
+          orderDate: "2026-07-30",
+          allowanceDays: 10,
+          daysLate: 42,
+          contactPhone: "(71) 99999-8888",
+        }),
+        order({
+          id: "DELIVERY_UNCONFIRMED:o-2:seller-1",
+          entityId: "o-2",
+          orderId: "o-2",
+          clientName: "Aço Curvado",
+          link: "/orders/o-2",
+          clientLink: "/clients/cc-2",
+          reason: "DELIVERY_UNCONFIRMED",
+          orderDate: "2026-07-23",
+          contactPhone: null,
+        }),
+      ]),
+  });
+
+  await page.goto("/pending");
+
+  const whatsapp = page.getByRole("row").getByRole("link", {
+    name: /Perguntar pelo WhatsApp se o pedido de Decore/,
+  });
+  const href = await whatsapp.getAttribute("href");
+  expect(href).toContain("https://wa.me/5571999998888?text=");
+  expect(decodeURIComponent(href!.split("text=")[1])).toContain(
+    "o pedido da Herc feito em 30/07/2026 já foi entregue"
+  );
+
+  // Sem celular não há WhatsApp: o caminho é cadastrar o contato.
+  await expect(
+    page.getByRole("row").getByRole("link", { name: "Cadastrar contato" })
+  ).toHaveAttribute("href", "/clients/cc-2");
+});
+
+test("pendências: no celular a linha vira cartão, com prazo e ação à vista", async ({
+  page,
+}) => {
+  await page.setViewportSize({ width: 390, height: 844 });
+  await mockGraphql(page, { MyPendingItems: () => response([order()]) });
+
+  await page.goto("/pending");
+
+  // A tabela some; o cartão mostra o mesmo — sem rolar para o lado.
+  await expect(page.getByRole("table")).toBeHidden();
+  const card = page.getByRole("listitem").filter({ hasText: "Decore Casa" });
+  await expect(card.getByText("venceu há 2 dias")).toBeVisible();
+  await expect(card.getByRole("link", { name: "Abrir pedido" })).toBeVisible();
+  const overflow = await page.evaluate(
+    () => document.documentElement.scrollWidth - window.innerWidth
+  );
+  expect(overflow).toBeLessThanOrEqual(0);
 });

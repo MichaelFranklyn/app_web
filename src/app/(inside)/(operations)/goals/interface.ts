@@ -1,5 +1,7 @@
+import { GoalAmounts } from "@/utils/goals";
+
 /** Uma linha do acompanhamento: a meta do mês (quando existe) e o realizado. */
-export interface GoalRow {
+export interface GoalRow extends GoalAmounts {
   /** Nulo = o vendedor movimentou a fábrica no mês, mas ninguém definiu meta. */
   goalId: string | null;
   sellerId: string;
@@ -12,14 +14,6 @@ export interface GoalRow {
     nickname: string | null;
     razaoSocial: string;
   } | null;
-  targetInvoicedAmount: string | null;
-  targetOrderedAmount: string | null;
-  targetPositivations: number | null;
-  targetVisits: number | null;
-  invoicedAmount: string;
-  orderedAmount: string;
-  positivations: number;
-  visits: number;
 }
 
 export interface SellerGoalsResponse {

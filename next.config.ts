@@ -127,6 +127,20 @@ const nextConfig: NextConfig = {
     formats: ["image/avif", "image/webp"],
   },
 
+  // Rotas renomeadas: o link antigo (favorito, aviso do sino guardado, e-mail)
+  // continua chegando. A query segue junto — o Next a repassa sozinho.
+  async redirects() {
+    return [
+      // Insights virou Oportunidades (o trabalho a resolver foi para Pendências).
+      // `:path*` casa também com "/insights" sozinho.
+      {
+        source: "/insights/:path*",
+        destination: "/opportunities",
+        permanent: true,
+      },
+    ];
+  },
+
   async headers() {
     return [
       {

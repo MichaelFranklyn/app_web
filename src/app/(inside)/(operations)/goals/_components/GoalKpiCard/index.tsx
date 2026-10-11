@@ -4,8 +4,7 @@ import { Card } from "@/components/Card";
 import { KpiStatus } from "@/components/Card/Kpi";
 import { HelpTooltip } from "@/components/HelpTooltip";
 import { formatMoney, formatNumber } from "@/utils/format/masks";
-
-import { MetricValues, percentOf } from "../../utils";
+import { MetricValues, percentOf } from "@/utils/goals";
 
 interface Props {
   label: string;

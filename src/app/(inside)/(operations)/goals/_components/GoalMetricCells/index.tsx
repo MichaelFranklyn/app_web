@@ -2,8 +2,7 @@
 
 import { Table } from "@/components/Table";
 import { formatMoney, formatNumber } from "@/utils/format/masks";
-
-import { GOAL_METRICS, MetricValues, percentOf } from "../../utils";
+import { GOAL_METRICS, MetricValues, percentOf } from "@/utils/goals";
 
 interface Props {
   /** Meta e realizado por indicador — de um vendedor ou de uma fábrica dele. */

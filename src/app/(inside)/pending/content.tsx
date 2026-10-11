@@ -6,6 +6,7 @@ import { Title } from "@/components/Title";
 
 import { PendingCounts } from "./_components/PendingCounts";
 import { PendingHeader } from "./_components/PendingHeader";
+import { PendingSections } from "./_components/PendingSections";
 import { PendingTable } from "./_components/PendingTable";
 import { PendingContentProps } from "./interface";
 import { PendingSkeleton } from "./skeleton";
@@ -15,9 +16,10 @@ import { scopeNote } from "./utils";
 /**
  * A central de pendências: o que fazer agora, e em que ordem.
  *
- * É a irmã de /insights. Lá a pergunta é "quantos casos, e por que isso custa
- * venda" (cartões por assunto); aqui é a lista de trabalho — uma linha por
- * coisa a fazer, com prioridade, prazo, motivo e o caminho até onde se resolve.
+ * É a irmã de /opportunities, e a diferença aparece no formato: lá são cartões
+ * de análise comercial ("onde vale agir para vender mais"); aqui é a lista de
+ * trabalho — uma linha por compromisso, com prioridade, prazo, motivo e o
+ * caminho até onde se resolve. Cada assunto operacional mora só aqui.
  */
 export default function PendingContent(props: PendingContentProps) {
   const pending = usePendingItems(props);
@@ -41,7 +43,16 @@ export default function PendingContent(props: PendingContentProps) {
         <PendingSkeleton />
       ) : (
         <>
-          <PendingCounts counts={pending.counts} />
+          <PendingSections
+            section={pending.section}
+            totals={pending.sectionTotals}
+            onChange={pending.changeSection}
+          />
+          <PendingCounts
+            counts={pending.whenCounts}
+            active={pending.activeWhen}
+            onToggle={pending.toggleWhen}
+          />
           <Title variant="body-sm" color="muted" data-tour="pending-scope">
             {scopeNote(pending.filterValues)}
           </Title>
@@ -49,6 +60,7 @@ export default function PendingContent(props: PendingContentProps) {
             items={pending.items}
             loading={pending.loading}
             showSeller={props.canSelectSeller}
+            section={pending.section}
             filterFields={pending.filterFields}
             filterValues={pending.filterValues}
             setFilters={pending.setFilters}

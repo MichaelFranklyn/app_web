@@ -4,6 +4,7 @@ import { Card } from "@/components/Card";
 import { Grid } from "@/components/Grid";
 import { PageContent } from "@/components/PageContent";
 import { QueryError } from "@/components/QueryError";
+import { DashboardGoalsCard } from "./_components/DashboardGoalsCard";
 import { DashboardHeader } from "./_components/DashboardHeader";
 import { DashboardKpis } from "./_components/DashboardKpis";
 import { DashboardSkeleton } from "./_components/DashboardSkeleton";
@@ -14,6 +15,7 @@ import { useDashboard } from "./useDashboard";
 
 export default function DashboardContent({
   canSelectSeller,
+  hasGoals = false,
   ownSellerId,
   initialRange,
   initialSellerId,
@@ -71,6 +73,12 @@ export default function DashboardContent({
             totalClients={totalClients}
             hasRoutines={hasRoutines}
           />
+
+          {/* O acompanhamento do mês — sem plano de metas, nem aparece. Para o
+              gestor, só com um vendedor escolhido: é o recorte do painel. */}
+          {hasGoals && (!canSelectSeller || selectedSellerId) && (
+            <DashboardGoalsCard sellerId={selectedSellerId} />
+          )}
 
           <Card.Header.Group>
             {/* Sem rotina no plano, os pedidos recentes ocupam a linha inteira —
