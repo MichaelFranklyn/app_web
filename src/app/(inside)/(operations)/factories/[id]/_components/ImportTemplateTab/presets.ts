@@ -49,6 +49,14 @@ export const PDF_PRESETS: PresetMeta[] = [
     fileKind: "pdf",
     parserStrategy: "FIXED_LAYOUT",
   },
+  {
+    id: "header_columns",
+    label: "Código entre parênteses no produto",
+    description:
+      "Tabela com Produto, Quantidade e Preço, mas sem coluna de código: o código vem entre parênteses no começo do produto, como “(96257) FECH. 925”. Ex.: pedidos Silvana (Sellentt).",
+    fileKind: "pdf",
+    parserStrategy: "FIXED_LAYOUT",
+  },
 ];
 
 /** Preset de planilha (Excel/CSV): mapeamento de colunas feito na tela. */
