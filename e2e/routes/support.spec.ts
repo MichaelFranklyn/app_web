@@ -28,6 +28,7 @@ const supportCase = (overrides: Record<string, unknown> = {}) => ({
   ageDays: 6,
   isOpen: true,
   clientId: "client-1",
+  companyClientId: "cc-1",
   client: {
     id: "client-1",
     razaoSocial: "ADILSON MATERIAIS LTDA",
@@ -186,6 +187,10 @@ test("support/caso: o andamento leva a mudança de situação junto", async ({
 
   // A linha do tempo mostra o de-para gravado, não o texto do andamento.
   await expect(page.getByText("ABERTO → AGUARDANDO A FÁBRICA")).toBeVisible();
+  // A ficha do cliente é pelo id da CARTEIRA, não pelo do cliente.
+  await expect(
+    page.getByRole("link", { name: "ADILSON MATERIAIS LTDA" })
+  ).toHaveAttribute("href", "/clients/cc-1/overview");
 
   await page.getByLabel(/o que aconteceu/i).fill("Fábrica autorizou a troca.");
   await page.getByRole("button", { name: "Registrar andamento" }).click();

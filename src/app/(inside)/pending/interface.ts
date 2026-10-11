@@ -1,5 +1,6 @@
 export type PendingType =
   | "VISIT_OVERDUE"
+  | "FOLLOW_UP"
   | "RETURN_SCHEDULED"
   | "ORDER_STALLED"
   | "CLIENT_NO_CONTACT";
@@ -9,6 +10,7 @@ export type PendingReason =
   | "VISIT_UNANSWERED"
   | "RETURN_DATE"
   | "WANTS_VISIT"
+  | "FOLLOW_UP_DUE"
   | "DRAFT_STALE"
   | "PENDING_INVOICE"
   | "DELIVERY_UNCONFIRMED"
@@ -20,6 +22,9 @@ export type PendingPriority = "HIGH" | "MEDIUM" | "LOW";
 export interface PendingItem {
   /** Identidade estável da linha (não é o id de um registro). */
   id: string;
+  /** O registro apontado: visita, pedido, cliente, retorno ou contato. */
+  entityId: string;
+  clientId: string;
   type: PendingType;
   reason: PendingReason;
   priority: PendingPriority;
@@ -54,6 +59,8 @@ export interface PendingItem {
   highAfterDays: number | null;
   /** Contato marcado depois desta semana — não dispensa a pendência (ISO). */
   scheduledDate: string | null;
+  /** O motivo escrito por quem agendou o contato (só em `FOLLOW_UP`). */
+  note: string | null;
 }
 
 export interface PendingTypeCount {

@@ -23,6 +23,7 @@ const SUPPORT_CASE_ROW = gql`
     ageDays
     isOpen
     clientId
+    companyClientId
     client {
       id
       razaoSocial

@@ -170,6 +170,21 @@ export const SUPPORT_CACHE_FIELDS = [
 ];
 
 /**
+ * Um contato agendado (follow-up) nasceu, mudou de dia ou foi encerrado.
+ *
+ * Os contadores são do servidor, e o agendamento também é uma linha da central
+ * de pendências (`myPendingItems`) — que, por ser calculada na hora, só sabe
+ * da mudança relendo.
+ */
+export const FOLLOW_UP_CACHE_FIELDS = [
+  "clientFollowUps",
+  "clientFollowUpCounts",
+  "clientFollowUpOrphanCount",
+  "clientFollowUp",
+  "myPendingItems",
+];
+
+/**
  * O vínculo com a fábrica foi desfeito.
  *
  * `delete_company_factory.py` cascateia sete coisas: acesso de vendedor,

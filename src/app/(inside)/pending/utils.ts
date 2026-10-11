@@ -38,6 +38,7 @@ export const PENDING_FILTER_FIELDS: Record<string, FieldConfig> = {
 /** A ordem dos contadores — a mesma em que os tipos desempatam na lista. */
 export const PENDING_TYPE_ORDER: PendingType[] = [
   "VISIT_OVERDUE",
+  "FOLLOW_UP",
   "RETURN_SCHEDULED",
   "ORDER_STALLED",
   "CLIENT_NO_CONTACT",
@@ -45,6 +46,7 @@ export const PENDING_TYPE_ORDER: PendingType[] = [
 
 export const PENDING_TYPE_LABEL: Record<PendingType, string> = {
   VISIT_OVERDUE: "Visitas atrasadas",
+  FOLLOW_UP: "Contatos agendados",
   RETURN_SCHEDULED: "Retornos combinados",
   ORDER_STALLED: "Pedidos parados",
   CLIENT_NO_CONTACT: "Clientes sem contato",
@@ -53,6 +55,7 @@ export const PENDING_TYPE_LABEL: Record<PendingType, string> = {
 /** O nome de UMA pendência do tipo — o que vai na linha da tabela. */
 export const PENDING_TYPE_SINGULAR: Record<PendingType, string> = {
   VISIT_OVERDUE: "Visita atrasada",
+  FOLLOW_UP: "Contato agendado",
   RETURN_SCHEDULED: "Retorno combinado",
   ORDER_STALLED: "Pedido parado",
   CLIENT_NO_CONTACT: "Cliente sem contato",
@@ -95,6 +98,7 @@ type ReasonInput = Pick<
   | "isEstimated"
   | "daysLate"
   | "scheduledDate"
+  | "note"
 >;
 
 /**
@@ -119,6 +123,7 @@ export const reasonText = (item: ReasonInput): string => {
     } de ${when} ficou sem resposta — diga o que aconteceu.`,
     RETURN_DATE: `O cliente pediu para voltar neste dia (combinado em ${when}).`,
     WANTS_VISIT: `O cliente pediu uma visita na ligação de ${when}.`,
+    FOLLOW_UP_DUE: `${item.note ?? "Contato agendado"} — agendado em ${when}.`,
     DRAFT_STALE: `Orçamento de ${when}, há ${ago} sem virar pedido. Prazo considerado: ${days(rule)}.`,
     PENDING_INVOICE: item.isEstimated
       ? `Pedido de ${when}, há ${ago}, e a fábrica ainda não faturou. Prazo considerado: ${days(rule)}, estimado — a data da confirmação não foi registrada, então contamos da data do pedido.`
@@ -169,6 +174,7 @@ export const dueTone = (daysLate: number): TitleColor => {
 /** Para onde a linha leva — escrito, para ninguém clicar no escuro. */
 export const destinationLabel = (type: PendingType): string => {
   if (type === "VISIT_OVERDUE") return "Responder na rota do dia";
+  if (type === "FOLLOW_UP") return "Abrir o contato agendado";
   return type === "ORDER_STALLED" ? "Abrir o pedido" : "Abrir o cliente";
 };
 

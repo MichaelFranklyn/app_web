@@ -19,7 +19,11 @@ export const PENDING_HELP: ReactNode = (
         Visitas e ligações que passaram do dia sem resposta.
       </BulletList.Item>
       <BulletList.Item>
-        Retornos que você combinou com o cliente.
+        Contatos agendados para hoje, atrasados ou da próxima semana. Some
+        quando você conclui, reagenda ou cancela o contato.
+      </BulletList.Item>
+      <BulletList.Item>
+        Retornos que você combinou com o cliente numa visita ou ligação.
       </BulletList.Item>
       <BulletList.Item>
         Pedidos parados: orçamento sem resposta, sem faturar ou sem confirmar a
@@ -27,9 +31,9 @@ export const PENDING_HELP: ReactNode = (
       </BulletList.Item>
       <BulletList.Item>
         Clientes sem visita, ligação nem pedido fechado há mais de 30 dias.
-        Orçamento não conta como contato. Se já houver visita marcada para esta
-        semana, o cliente não aparece; marcada para mais adiante, ele aparece
-        com a data da agenda.
+        Orçamento não conta como contato; contato agendado concluído conta. Se
+        já houver visita ou contato marcado para esta semana, o cliente não
+        aparece; marcado para mais adiante, ele aparece com a data da agenda.
       </BulletList.Item>
     </BulletList.Root>
     <Title variant="body-sm">
