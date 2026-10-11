@@ -8,7 +8,9 @@ import { visitStatusDraft } from "./utils";
 const { getCookie } = vi.hoisted(() => ({ getCookie: vi.fn() }));
 vi.mock("@/utils/cookies/clientCookie", () => ({ getCookie }));
 
-const NOW = new Date("2026-09-28T14:30:00Z");
+// A hora de agora, e não uma data fixa: a fila descarta o que passa de 7
+// dias ao reler o armazenamento, e data fixa no teste apodrece.
+const NOW = new Date();
 const draft = (id = "v1") =>
   visitStatusDraft({ id, status: "COMPLETED", label: "Loja" }, NOW);
 
@@ -71,7 +73,7 @@ describe("useSendOrQueue", () => {
   });
 
   it("com algo já esperando, entra atrás e pede a descarga", async () => {
-    enqueue({ ...draft("antiga"), userId: "u1" });
+    await enqueue({ ...draft("antiga"), userId: "u1" });
     const flush = vi.fn();
     window.addEventListener("girus:offline-queue:flush", flush);
     const { result } = renderHook(() => useSendOrQueue());
@@ -105,19 +107,19 @@ describe("useOfflineEntry", () => {
     getCookie.mockReturnValue({ userId: "u1" });
   });
 
-  it("não mostra o registro que outra pessoa guardou no mesmo aparelho", () => {
+  it("não mostra o registro que outra pessoa guardou no mesmo aparelho", async () => {
     const { result } = renderHook(() => useOfflineEntry("visit:v1"));
 
-    act(() => enqueue({ ...draft(), userId: "outra" }));
+    await act(() => enqueue({ ...draft(), userId: "outra" }));
 
     expect(result.current).toBeUndefined();
   });
 
-  it("a tela vê a resposta guardada assim que ela entra na fila", () => {
+  it("a tela vê a resposta guardada assim que ela entra na fila", async () => {
     const { result } = renderHook(() => useOfflineEntry("visit:v1"));
     expect(result.current).toBeUndefined();
 
-    act(() => enqueue({ ...draft(), userId: "u1" }));
+    await act(() => enqueue({ ...draft(), userId: "u1" }));
 
     expect(result.current).toMatchObject({
       variables: { status: "COMPLETED" },

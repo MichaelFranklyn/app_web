@@ -38,7 +38,9 @@ export function useOfflineQueue() {
       userId,
       entries: state.entries.filter((e) => e.userId === userId),
       failures: state.failures.filter((f) => f.userId === userId),
-      dismissFailures: () => userId && dismissFailures(userId),
+      dismissFailures: () => {
+        if (userId) void dismissFailures(userId);
+      },
     }),
     [state, userId]
   );
@@ -92,7 +94,7 @@ export function useSendOrQueue() {
 
       const entry = { ...draft, userId } as OfflineEntry;
       if (hasEntriesOf(userId) || !navigator.onLine) {
-        enqueue(entry);
+        await enqueue(entry);
         if (navigator.onLine) requestFlush();
         return { queued: true };
       }
@@ -101,7 +103,7 @@ export function useSendOrQueue() {
         return { queued: false, result: await send(timeoutContext()) };
       } catch (error) {
         if (!isConnectivityError(error)) throw error;
-        enqueue(entry);
+        await enqueue(entry);
         return { queued: true };
       }
     },

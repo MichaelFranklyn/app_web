@@ -9,6 +9,7 @@ import {
   baseMocks,
   concludeVisit,
   controlNetwork,
+  schedules,
   signalBack,
 } from "../support/routineOffline";
 
@@ -32,7 +33,7 @@ function sentCounter() {
       return {
         updateVisitScheduleItem: {
           ...OK,
-          data: { id: "it-1", status: "COMPLETED" },
+          data: { id: variables.id ?? "it-1", status: "COMPLETED" },
         },
       };
     },
@@ -122,13 +123,34 @@ const queued = (page: Page) =>
 const routineCard = (page: Page) =>
   page.getByRole("button", { name: /Cliente LTDA/ });
 
+/**
+ * A aba deixa de ouvir o aviso de que OUTRA aba mexeu na fila (o evento
+ * `storage`). No aparelho ele chega com atraso — ou não chega, com a aba em
+ * segundo plano — e é nessa janela que a cópia em memória fica velha. Sem
+ * isto o aviso chega em milissegundos e a corrida nunca acontece no teste.
+ */
+async function deafToOtherTabs(page: Page) {
+  await page.addInitScript(() => {
+    window.addEventListener(
+      "storage",
+      (event) => event.stopImmediatePropagation(),
+      true
+    );
+  });
+}
+
+/** A mesma rotina, mas com OUTRA visita — para cada aba registrar a sua. */
+const withVisit = (id: string) => () =>
+  JSON.parse(JSON.stringify(schedules()).replaceAll('"it-1"', `"${id}"`));
+
 /** Abre a rotina numa aba nova do mesmo navegador, com os mesmos mocks. */
 async function openRoutine(
   context: BrowserContext,
   handlers: Record<string, (v: Record<string, unknown>) => unknown>,
-  { down = false } = {}
+  { down = false, deaf = false } = {}
 ) {
   const page = await context.newPage();
+  if (deaf) await deafToOtherTabs(page);
   await mockGraphql(page, handlers);
   const network = await controlNetwork(page);
   // Antes de abrir: a tela descarrega a fila assim que monta, e uma aba que
@@ -229,6 +251,50 @@ test("duas abas abertas: o sinal volta para as duas e o registro vai uma vez só
   // Folga para um eventual segundo envio aparecer antes de afirmar que não houve.
   await page.waitForTimeout(3_000);
   expect(calls).toHaveLength(1);
+});
+
+test("duas abas sem sinal, cada uma registra uma visita: nenhuma se perde", async ({
+  page,
+  context,
+}) => {
+  const { calls, handlers } = sentCounter();
+  await mockGraphql(page, handlers);
+  const first = await controlNetwork(page);
+  await page.reload();
+  await expect(routineCard(page)).toBeVisible();
+
+  // A segunda aba abre com a fila VAZIA e não fica sabendo do que a primeira
+  // guardar: é a cópia velha que sobrescrevia a lista inteira.
+  const second = await openRoutine(
+    context,
+    { ...handlers, VisitSchedules: withVisit("it-2") },
+    { down: true, deaf: true }
+  );
+  first.down = true;
+
+  await concludeVisit(page, routineCard(page));
+  await expect.poll(() => queued(page)).toHaveLength(1);
+  await concludeVisit(second.page, routineCard(second.page));
+
+  // As duas ficaram no aparelho — antes, só a da segunda aba.
+  await expect
+    .poll(async () => (await queued(page)).map((e) => e.key).sort())
+    .toEqual(["visit:it-1", "visit:it-2"]);
+  await expect(second.page.getByTestId("offline-queue-banner")).toContainText(
+    "2 registros"
+  );
+
+  // O sinal volta: cada visita chega, uma vez.
+  first.down = false;
+  second.network.down = false;
+  await Promise.all([signalBack(page), signalBack(second.page)]);
+
+  await expect.poll(() => queued(page)).toHaveLength(0);
+  await page.waitForTimeout(3_000);
+  expect(calls.map((c) => (c as { id: string }).id).sort()).toEqual([
+    "it-1",
+    "it-2",
+  ]);
 });
 
 test("troca de usuário no aparelho: o registro não some nem vai pela mão de outra pessoa", async ({

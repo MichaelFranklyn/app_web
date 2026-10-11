@@ -41,7 +41,7 @@ describe("flushQueue", () => {
   });
 
   it("outra aba já está enviando: esta não manda nada", async () => {
-    enqueue(entry("a", "2026-09-28T10:00:00Z"));
+    await enqueue(entry("a", "2026-09-28T10:00:00Z"));
     const request = vi.fn(
       async (
         _name: string,
@@ -65,8 +65,8 @@ describe("flushQueue", () => {
   });
 
   it("não reenvia o que outra aba já mandou", async () => {
-    enqueue(entry("a", "2026-09-28T10:00:00Z"));
-    enqueue(entry("b", "2026-09-28T11:00:00Z"));
+    await enqueue(entry("a", "2026-09-28T10:00:00Z"));
+    await enqueue(entry("b", "2026-09-28T11:00:00Z"));
     // A outra aba enviou "a" e gravou a fila sem ela — esta só saberia pelo
     // evento `storage`, que não chega a quem não tem tela inscrita.
     window.localStorage.setItem(
@@ -85,7 +85,7 @@ describe("flushQueue", () => {
   });
 
   it("o backend fora do ar (503 do nosso caminho) espera, não descarta", async () => {
-    enqueue(entry("a", "2026-09-28T10:00:00Z"));
+    await enqueue(entry("a", "2026-09-28T10:00:00Z"));
     const mutate = vi.fn().mockRejectedValue(
       new ServerError("Service Unavailable", {
         response: new Response("{}", { status: 503 }),
@@ -101,8 +101,8 @@ describe("flushQueue", () => {
   });
 
   it("envia na ordem em que foi feito e esvazia a fila", async () => {
-    enqueue(entry("a", "2026-09-28T10:00:00Z"));
-    enqueue(entry("b", "2026-09-28T11:00:00Z"));
+    await enqueue(entry("a", "2026-09-28T10:00:00Z"));
+    await enqueue(entry("b", "2026-09-28T11:00:00Z"));
     const mutate = vi.fn().mockResolvedValue(ok);
 
     const result = await flushQueue(fakeClient(mutate), "u1");
@@ -118,8 +118,8 @@ describe("flushQueue", () => {
   });
 
   it("para no primeiro sinal de rede ruim e guarda o resto sem pular a vez", async () => {
-    enqueue(entry("a", "2026-09-28T10:00:00Z"));
-    enqueue(entry("b", "2026-09-28T11:00:00Z"));
+    await enqueue(entry("a", "2026-09-28T10:00:00Z"));
+    await enqueue(entry("b", "2026-09-28T11:00:00Z"));
     const mutate = vi
       .fn()
       .mockRejectedValueOnce(new TypeError("Failed to fetch"))
@@ -136,7 +136,7 @@ describe("flushQueue", () => {
   });
 
   it("sessão vencida também espera — o registro continua válido", async () => {
-    enqueue(entry("a", "2026-09-28T10:00:00Z"));
+    await enqueue(entry("a", "2026-09-28T10:00:00Z"));
     const mutate = vi.fn().mockRejectedValue(
       new CombinedGraphQLErrors({
         errors: [
@@ -152,8 +152,8 @@ describe("flushQueue", () => {
   });
 
   it("recusa do servidor sai da fila com o motivo, e as outras seguem", async () => {
-    enqueue(entry("a", "2026-09-28T10:00:00Z"));
-    enqueue(entry("b", "2026-09-28T11:00:00Z"));
+    await enqueue(entry("a", "2026-09-28T10:00:00Z"));
+    await enqueue(entry("b", "2026-09-28T11:00:00Z"));
     const mutate = vi
       .fn()
       .mockResolvedValueOnce({
@@ -182,7 +182,7 @@ describe("flushQueue", () => {
   });
 
   it("nunca envia o que outra pessoa guardou no mesmo aparelho", async () => {
-    enqueue(entry("a", "2026-09-28T10:00:00Z", "outra"));
+    await enqueue(entry("a", "2026-09-28T10:00:00Z", "outra"));
     const mutate = vi.fn().mockResolvedValue(ok);
 
     await flushQueue(fakeClient(mutate), "u1");
@@ -192,10 +192,10 @@ describe("flushQueue", () => {
   });
 
   it("resposta nova dada durante o envio fica para a próxima vez", async () => {
-    enqueue(entry("a", "2026-09-28T10:00:00Z"));
+    await enqueue(entry("a", "2026-09-28T10:00:00Z"));
     const mutate = vi.fn().mockImplementation(async () => {
       // Enquanto o "concluída" viaja, a pessoa reabre a visita.
-      enqueue({
+      await enqueue({
         ...entry("a", "2026-09-28T10:05:00Z"),
         variables: { id: "a", status: "PENDING" },
       });
@@ -209,7 +209,7 @@ describe("flushQueue", () => {
   });
 
   it("duas chamadas juntas fazem uma descarga só", async () => {
-    enqueue(entry("a", "2026-09-28T10:00:00Z"));
+    await enqueue(entry("a", "2026-09-28T10:00:00Z"));
     const mutate = vi.fn().mockResolvedValue(ok);
     const client = fakeClient(mutate);
 

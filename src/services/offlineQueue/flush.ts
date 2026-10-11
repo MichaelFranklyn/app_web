@@ -129,11 +129,11 @@ async function drain(
     }
     try {
       await sendEntry(client, entry, AbortSignal.timeout(SEND_TIMEOUT_MS));
-      settle(entry);
+      await settle(entry);
       result.sent.push(entry);
     } catch (error) {
       if (isConnectivityError(error) || isSessionError(error)) break;
-      settle(entry, {
+      await settle(entry, {
         key: entry.key,
         userId: entry.userId,
         label: entry.label,
