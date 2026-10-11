@@ -100,31 +100,63 @@ export function subscribeQueue(listener: Listener): () => void {
   };
 }
 
-export function enqueue(entry: OfflineEntry) {
-  const state = getQueueState();
-  write({
+/** Nome da trava de gravação entre abas (Web Locks). Não é a da descarga. */
+export const WRITE_LOCK = "girus:offline-queue:write";
+
+/**
+ * Toda alteração da fila passa por aqui, e parte do que está GRAVADO, nunca da
+ * cópia em memória da aba.
+ *
+ * Com o app em duas abas (ou aba + PWA instalado), cada uma tinha a sua cópia:
+ * uma guardava a visita A, a outra guardava a B por cima da lista que conhecia
+ * — e a A sumia sem aviso. Reler dentro de uma trava compartilhada faz a
+ * segunda gravação enxergar a primeira.
+ *
+ * A trava é própria, e não a da descarga: aquela fica presa durante o envio
+ * inteiro (rede incluída), e um toque não pode esperar por isso. Esta só dura
+ * o ler-alterar-gravar, que é síncrono.
+ */
+function mutate(
+  change: (state: OfflineQueueState) => OfflineQueueState
+): Promise<void> {
+  // Sem armazenamento, a memória desta aba é tudo o que existe.
+  const apply = () => write(change(memoryOnly ? getQueueState() : read()));
+  const locks = typeof navigator === "undefined" ? undefined : navigator.locks;
+  // Navegador sem Web Locks: ainda relê antes de gravar, que já fecha o caso
+  // da cópia velha; só não há fila de espera entre as abas.
+  if (!locks) {
+    apply();
+    return Promise.resolve();
+  }
+  return locks.request(WRITE_LOCK, apply);
+}
+
+export function enqueue(entry: OfflineEntry): Promise<void> {
+  return mutate((state) => ({
     entries: upsertEntry(state.entries, entry),
     // Uma resposta nova sobre o mesmo assunto torna a recusa antiga irrelevante.
     failures: state.failures.filter((f) => !sameSubject(f, entry)),
-  });
+  }));
 }
 
-/** Esta pessoa tem algo esperando o sinal? */
+/** Esta pessoa tem algo esperando o sinal? Confere o gravado: pode ser de outra aba. */
 export function hasEntriesOf(userId: string): boolean {
-  return getQueueState().entries.some((e) => e.userId === userId);
+  return refreshQueueState().entries.some((e) => e.userId === userId);
 }
 
 /** Tira a entrada da fila — enviada, ou recusada (aí com o motivo). */
-export function settle(entry: OfflineEntry, failure?: OfflineFailure) {
-  const state = getQueueState();
-  write({
+export function settle(
+  entry: OfflineEntry,
+  failure?: OfflineFailure
+): Promise<void> {
+  return mutate((state) => ({
     // Só sai se ainda for a MESMA entrada: se a pessoa respondeu de novo
     // enquanto esta estava a caminho, a resposta nova fica para o próximo envio.
     entries: state.entries.filter(
       (e) => !(sameSubject(e, entry) && e.createdAt === entry.createdAt)
     ),
     failures: failure ? [...state.failures, failure] : state.failures,
-  });
+  }));
 }
 
 /**
@@ -138,12 +170,11 @@ export function requestFlush() {
 }
 
 /** "Entendi": some com as recusas desta pessoa (as de outra ficam para ela). */
-export function dismissFailures(userId: string) {
-  const state = getQueueState();
-  write({
+export function dismissFailures(userId: string): Promise<void> {
+  return mutate((state) => ({
     ...state,
     failures: state.failures.filter((f) => f.userId !== userId),
-  });
+  }));
 }
 
 /** Só para testes: volta ao estado de fábrica. */
