@@ -185,6 +185,11 @@ const SSR_RESPONSES: Record<string, SsrResponse> = {
   MyInsights: {
     myInsights: { status: true, code: 200, message: "ok", data: null },
   },
+  // A central de pendências lê a 1ª página no SERVIDOR. Mesma regra dos
+  // insights: `data: null` não semeia, e quem manda na tela é o spec.
+  MyPendingItems: {
+    myPendingItems: { status: true, code: 200, message: "ok", data: null },
+  },
   // O plano da empresa é lido no SERVIDOR, no layout de `(inside)`: é ele que
   // decide quais itens a sidebar tem. Sem esta resposta, todo spec de tela
   // interna rodaria como se a empresa não tivesse contratado nada, e o menu

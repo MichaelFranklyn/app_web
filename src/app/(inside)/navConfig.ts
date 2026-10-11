@@ -10,6 +10,7 @@ import {
   Import,
   LayoutDashboard,
   Lightbulb,
+  ListChecks,
   Route,
   Tags,
   Target,
@@ -56,6 +57,15 @@ export const NAV = [
     label: "Rota do dia",
     icon: Route,
     feature: "ROUTINES" as NavFeature,
+  },
+  {
+    // A lista de trabalho do dia: uma linha por coisa a fazer, com prioridade,
+    // prazo e o caminho até onde se resolve. Sem `feature` e sem `access`: o
+    // recorte (as minhas / as da empresa) é no resolver, e o que o plano não
+    // tem (rotina) simplesmente não gera pendência.
+    href: "/pending",
+    label: "Pendências",
+    icon: ListChecks,
   },
   {
     // O que está pendente HOJE e por quê. Sem `feature`: a leitura é calculada

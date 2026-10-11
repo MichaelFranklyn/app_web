@@ -1,6 +1,6 @@
 # AUTO-GERADO por scripts/pull-schema.mjs — NÃO editar à mão.
 # Snapshot do schema do backend (app_user). Atualize com: npm run schema:pull
-# Fonte: 56 arquivos .graphql merge-ados (mesma regra do Ariadne).
+# Fonte: 57 arquivos .graphql merge-ados (mesma regra do Ariadne).
 
 input BaseListInput {
   filters: [FieldFilterInput!] = null
@@ -3421,6 +3421,11 @@ type OrderType {
   """Data em que a mercadoria chegou na loja do cliente. Nulo até confirmar a entrega; é quando o estoque do cliente é reabastecido."""
   deliveredAt: Date
   """
+  Quando o pedido foi confirmado (carimbo do servidor). Nulo em orçamento e em
+  pedido confirmado antes de existir o carimbo.
+  """
+  confirmedAt: DateTime
+  """
   Quando o pedido foi mandado para a fábrica. Nulo = nunca foi mandado — e num
   pedido já CONFIRMADO esse nulo é a pendência que a operação precisa ver:
   fechado com o cliente e não enviado.
@@ -4030,6 +4035,151 @@ type ImportOrderHistoryResultDataResponse {
   code: Int!
   message: String!
   data: ImportOrderHistoryResult
+}
+
+"""
+Central de pendências: uma lista só com tudo o que pede atenção — visita sem
+resposta, retorno combinado, pedido parado e cliente sem contato.
+
+Nada disto é guardado: cada pendência é derivada do estado de agora, então a
+que foi resolvida some da lista sozinha. O texto de cada motivo mora na tela;
+daqui saem o motivo, as datas e os nomes.
+"""
+enum PendingType {
+  """Visita ou ligação planejada cujo dia passou sem ninguém dizer o que houve."""
+  VISIT_OVERDUE
+  """Retorno combinado com o cliente ("volte dia 20", "pode vir") e não cumprido."""
+  RETURN_SCHEDULED
+  """Pedido parado: orçamento sem resposta, sem faturar ou sem confirmar a entrega."""
+  ORDER_STALLED
+  """Cliente da carteira sem visita, ligação nem pedido há 30 dias ou mais."""
+  CLIENT_NO_CONTACT
+}
+
+"""Por que a pendência existe — é o que a tela traduz em frase."""
+enum PendingReason {
+  """O dia da visita passou e ela segue sem desfecho."""
+  VISIT_UNANSWERED
+  """O cliente pediu para voltar numa data (`dueDate`)."""
+  RETURN_DATE
+  """Numa ligação, o cliente pediu a visita presencial."""
+  WANTS_VISIT
+  """Rascunho ou orçamento que não virou pedido."""
+  DRAFT_STALE
+  """Pedido confirmado que a fábrica ainda não faturou."""
+  PENDING_INVOICE
+  """Pedido faturado com o prazo de entrega vencido e sem confirmação."""
+  DELIVERY_UNCONFIRMED
+  """Houve contato, mas o último (`referenceDate`) já tem mais de 30 dias."""
+  NO_CONTACT
+  """
+  Está na carteira (desde `referenceDate`) e nunca teve visita, ligação nem
+  pedido registrado.
+  """
+  NEVER_CONTACTED
+}
+
+enum PendingPriority {
+  HIGH
+  MEDIUM
+  LOW
+}
+
+type PendingItemType {
+  """Identidade estável da linha (não é o id de um registro)."""
+  id: String!
+  type: PendingType!
+  reason: PendingReason!
+  priority: PendingPriority!
+  """O prazo: o dia em que aquilo devia ter sido feito, ou o dia combinado."""
+  dueDate: Date!
+  """Dias de atraso em relação ao prazo. Negativo = ainda faltam dias."""
+  daysLate: Int!
+  clientName: String!
+  """Onde se resolve: a rota do dia, o pedido ou a ficha do cliente."""
+  link: String
+  """A ficha do cliente, mesmo quando `link` leva a outro lugar."""
+  clientLink: String
+  """A fábrica do pedido (só em `ORDER_STALLED`)."""
+  factoryName: String
+  sellerId: UUID
+  sellerName: String
+  """O valor do pedido (só em `ORDER_STALLED`)."""
+  amount: Decimal
+  """
+  O fato de onde o prazo conta: o dia planejado da visita, a data do pedido (a
+  confirmação em `PENDING_INVOICE`; o faturamento em `DELIVERY_UNCONFIRMED`), o dia do último contato, a entrada na
+  carteira (`NEVER_CONTACTED`) ou o dia em que o retorno foi combinado.
+  """
+  referenceDate: Date
+  """Visita vencida: era uma ligação, e não uma ida ao cliente."""
+  isRemote: Boolean!
+  """
+  A régua: quantos dias o sistema dá entre `referenceDate` e o prazo ("prazo
+  considerado: 7 dias"). Nulo quando o prazo foi combinado com o cliente.
+  """
+  allowanceDays: Int
+  """
+  `referenceDate` é um substituto, não o fato: pedido confirmado antes de
+  existir o carimbo de confirmação conta da data do pedido — o prazo é estimado.
+  """
+  isEstimated: Boolean!
+  """A partir de quantos dias de atraso vira prioridade alta. Nulo = nunca."""
+  highAfterDays: Int
+  """
+  Próximo contato já marcado na agenda, quando está longe demais para dispensar
+  a pendência (depois da semana corrente e do prazo).
+  """
+  scheduledDate: Date
+}
+
+type PendingTypeCountType {
+  type: PendingType!
+  count: Int!
+  """Quantas delas são de prioridade alta."""
+  highCount: Int!
+}
+
+type PendingItemsType {
+  """Quando a leitura foi feita (a lista é calculada na hora)."""
+  generatedAt: DateTime!
+  """Total da lista com TODOS os filtros aplicados — é o que a paginação usa."""
+  totalCount: Int!
+  """
+  Quantas pendências de cada tipo, no recorte de vendedor e período mas SEM o
+  filtro de tipo. Sempre os quatro tipos, mesmo os zerados.
+  """
+  counts: [PendingTypeCountType!]!
+  """
+  Da prioridade mais alta para a mais baixa; dentro dela, pelo prazo mais
+  antigo; no mesmo prazo, por tipo (visita, retorno, pedido, carteira).
+  """
+  items: [PendingItemType!]!
+}
+
+type PendingItemsDataResponse {
+  status: Boolean!
+  code: Int!
+  message: String!
+  data: PendingItemsType
+}
+
+extend type Query {
+  """
+  As pendências de quem consulta. Vendedor vê as suas (escopo do token); gestor
+  vê a empresa inteira, ou um vendedor com `sellerId`.
+
+  `dueFrom`/`dueTo` cortam pelo PRAZO. Sem nenhum dos dois vale o horizonte
+  padrão: o que já venceu e o que vence nos próximos 7 dias.
+  """
+  myPendingItems(
+    types: [PendingType!] = null
+    sellerId: UUID = null
+    dueFrom: Date = null
+    dueTo: Date = null
+    offset: Int! = 0
+    limit: Int! = 20
+  ): PendingItemsDataResponse!
 }
 
 # Console da plataforma — tudo aqui é exclusivo do super usuário (SU).
