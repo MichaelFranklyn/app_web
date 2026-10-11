@@ -1,12 +1,15 @@
 "use client";
 
 import { Button } from "@/components/Button";
+import { FollowUpModal } from "@/components/FollowUpModal";
 import { EmptyState } from "@/components/EmptyState";
 import { FilterField, Filters } from "@/components/Filters";
 import { Loading } from "@/components/Loading";
 import { Pagination } from "@/components/Pagination";
 import { Table } from "@/components/Table";
+import { formatDate, getBrtTodayIso } from "@/utils/format/date";
 import { CheckCircle2, RefreshCw } from "lucide-react";
+import { useState } from "react";
 
 import { PENDING_COLUMN_HELP } from "../../help";
 import { PendingItem } from "../../interface";
@@ -45,6 +48,9 @@ export function PendingTable({
   setCurrentPage,
 }: Props) {
   const columns = showSeller ? 6 : 5;
+  // Um modal só, fora das linhas: evento de dentro do modal (portal) subiria
+  // até a linha e a faria navegar.
+  const [scheduling, setScheduling] = useState<PendingItem | null>(null);
   const filtered = hasActiveFilter(filterValues);
 
   return (
@@ -117,7 +123,12 @@ export function PendingTable({
             </Table.Row>
           ) : (
             items.map((item) => (
-              <PendingRow key={item.id} item={item} showSeller={showSeller} />
+              <PendingRow
+                key={item.id}
+                item={item}
+                showSeller={showSeller}
+                onScheduleReturn={setScheduling}
+              />
             ))
           )}
         </Table.Body>
@@ -138,6 +149,23 @@ export function PendingTable({
           onPageChange={setCurrentPage}
         />
       </Table.Footer>
+      {scheduling && (
+        <FollowUpModal
+          open
+          onOpenChange={(open) => !open && setScheduling(null)}
+          clientId={scheduling.clientId}
+          clientName={scheduling.clientName}
+          returnItemId={scheduling.entityId}
+          returnLabel={formatDate(scheduling.dueDate)}
+          // O dia combinado; se já passou, hoje (agendar no passado é recusado).
+          defaultDueDate={
+            scheduling.dueDate >= getBrtTodayIso()
+              ? scheduling.dueDate
+              : getBrtTodayIso()
+          }
+          onSaved={onRefresh}
+        />
+      )}
     </Table.Root>
   );
 }

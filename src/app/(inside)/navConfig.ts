@@ -11,6 +11,7 @@ import {
   LayoutDashboard,
   Lightbulb,
   ListChecks,
+  PhoneCall,
   Route,
   Tags,
   Target,
@@ -115,6 +116,14 @@ export const NAV = [
     matchPrefix: "/support",
     label: "Atendimentos",
     icon: Headset,
+  },
+  {
+    // Contatos agendados (follow-up). Sem `feature` e sem `access`: o vendedor
+    // vê os dele, o gestor os da empresa — o recorte é no resolver.
+    href: "/follow-ups",
+    matchPrefix: "/follow-ups",
+    label: "Contatos agendados",
+    icon: PhoneCall,
   },
   {
     href: "/factories",

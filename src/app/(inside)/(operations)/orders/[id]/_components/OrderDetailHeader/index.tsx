@@ -16,6 +16,7 @@ import { CancelOrderModal } from "./CancelOrderModal";
 import { ConvertToOrderModal } from "./ConvertToOrderModal";
 import { DeleteOrderModal } from "./DeleteOrderModal";
 import { OrderExportMenu } from "./OrderExportMenu";
+import { ScheduleFollowUpButton } from "./ScheduleFollowUpButton";
 import { UpdateOrderModal } from "./UpdateOrderModal";
 
 interface Props {
@@ -219,6 +220,11 @@ export function OrderDetailHeader({ order, onRefetch }: Props) {
                     orderId={order.id}
                     onSuccess={onRefetch}
                   />
+                )}
+                {/* Combinar de voltar ao cliente sobre o pedido (o orçamento
+                    sem resposta, a entrega a confirmar). */}
+                {order.status !== "CANCELLED" && (
+                  <ScheduleFollowUpButton order={order} />
                 )}
                 {!order.invoicedAt &&
                   order.status !== "CANCELLED" &&

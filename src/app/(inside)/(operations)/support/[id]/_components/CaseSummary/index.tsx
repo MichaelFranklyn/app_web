@@ -52,15 +52,22 @@ export function CaseSummary({ supportCase }: Props) {
       <div className="tablet:grid-cols-3 desktop:grid-cols-4 grid grid-cols-2 gap-16">
         <Field label="Cliente">
           {/* Leva à ficha do cliente: quem trata a reclamação quase sempre
-              precisa do histórico de pedidos dele na mesma conversa. */}
-          <Link
-            href={`/clients/${supportCase.clientId}/overview`}
-            className="text-(--amber) hover:underline"
-          >
-            <Title variant="body-sm" weight="medium" className="text-inherit">
+              precisa do histórico de pedidos dele na mesma conversa. A rota é
+              pelo id da CARTEIRA — com o `clientId` abria "não encontrado". */}
+          {supportCase.companyClientId ? (
+            <Link
+              href={`/clients/${supportCase.companyClientId}/overview`}
+              className="text-(--amber) hover:underline"
+            >
+              <Title variant="body-sm" weight="medium" className="text-inherit">
+                {client}
+              </Title>
+            </Link>
+          ) : (
+            <Title variant="body-sm" weight="medium">
               {client}
             </Title>
-          </Link>
+          )}
         </Field>
         <Field label="Vendedor">
           <Title variant="body-sm">{supportCase.seller?.name ?? "—"}</Title>

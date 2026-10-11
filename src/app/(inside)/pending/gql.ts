@@ -36,6 +36,8 @@ export const MY_PENDING_ITEMS_QUERY = gql`
         }
         items {
           id
+          entityId
+          clientId
           type
           reason
           priority
@@ -54,6 +56,7 @@ export const MY_PENDING_ITEMS_QUERY = gql`
           isEstimated
           highAfterDays
           scheduledDate
+          note
         }
       }
     }

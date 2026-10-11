@@ -13,6 +13,8 @@ import { grantRole } from "../support/role";
 const item = (over: Record<string, unknown> = {}) => ({
   __typename: "PendingItemType",
   id: "VISIT_UNANSWERED:v-1:seller-1",
+  entityId: "v-1",
+  clientId: "client-1",
   type: "VISIT_OVERDUE",
   reason: "VISIT_UNANSWERED",
   priority: "HIGH",
@@ -31,6 +33,7 @@ const item = (over: Record<string, unknown> = {}) => ({
   isEstimated: false,
   highAfterDays: 3,
   scheduledDate: null,
+  note: null,
   ...over,
 });
 
@@ -88,6 +91,7 @@ const response = (items: Array<Record<string, unknown>>) => {
         totalCount: items.length,
         counts: [
           "VISIT_OVERDUE",
+          "FOLLOW_UP",
           "RETURN_SCHEDULED",
           "ORDER_STALLED",
           "CLIENT_NO_CONTACT",
@@ -133,6 +137,80 @@ test("pendências: cada linha traz prioridade, prazo e motivo", async ({
   // O recorte padrão está escrito: sem isso, o retorno de daqui a dois meses
   // pareceria perdido.
   await expect(page.getByText(/vence nos próximos 7 dias/)).toBeVisible();
+});
+
+test("pendências: contato agendado traz o motivo e abre o agendamento", async ({
+  page,
+}) => {
+  await mockGraphql(page, {
+    MyPendingItems: () =>
+      response([
+        item({
+          id: "FOLLOW_UP_DUE:fu-1:seller-1",
+          type: "FOLLOW_UP",
+          reason: "FOLLOW_UP_DUE",
+          dueDate: "2026-10-11",
+          daysLate: 0,
+          clientName: "Armazém Central",
+          link: "/follow-ups/fu-1",
+          clientLink: "/clients/cc-7",
+          referenceDate: "2026-10-01",
+          allowanceDays: null,
+          highAfterDays: 0,
+          note: "Retornar sobre o orçamento",
+        }),
+      ]),
+  });
+
+  await page.goto("/pending");
+
+  const row = page.getByRole("row").filter({ hasText: "Armazém Central" });
+  await expect(row).toContainText("Contato agendado");
+  // O motivo é o que a pessoa escreveu ao agendar — não uma frase genérica.
+  await expect(row).toContainText(
+    "Retornar sobre o orçamento — agendado em 01/10/2026"
+  );
+  await expect(row).toContainText("vence hoje");
+  await expect(row).toContainText("Abrir o contato agendado");
+  // O destino não é a ficha do cliente, então o atalho para ela aparece.
+  await expect(row.getByRole("button", { name: "Ver cliente" })).toBeVisible();
+});
+
+test("pendências: o contato agendado do retorno nasce vinculado a ele", async ({
+  page,
+}) => {
+  const spy = await mockGraphql(page, {
+    MyPendingItems: () =>
+      response([comeBack({ entityId: "v-9", clientId: "client-3" })]),
+    CreateClientFollowUp: () => ({
+      createClientFollowUp: {
+        status: true,
+        message: "ok",
+        data: { id: "fu-9", status: "SCHEDULED", dueDate: "2026-10-16" },
+      },
+    }),
+  });
+  await page.goto("/pending");
+
+  const row = page.getByRole("row").filter({ hasText: "Casa Bahia Tintas" });
+  await row.getByRole("button", { name: "Agendar contato" }).click();
+
+  const dialog = page.getByRole("dialog");
+  await expect(dialog).toContainText(
+    "atende o retorno combinado para 16/10/2026"
+  );
+  await dialog.locator('input[name="reason"]').fill("Retornar como combinado");
+  await dialog.getByRole("button", { name: "Agendar" }).click();
+
+  const input = (await spy.waitForCall("CreateClientFollowUp")).input as {
+    clientId: string;
+    returnItemId: string;
+    dueDate: string;
+  };
+  expect(input.clientId).toBe("client-3");
+  expect(input.returnItemId).toBe("v-9");
+  // O dia já vem preenchido: o combinado (ou hoje, se ele já passou).
+  expect(input.dueDate).toMatch(/^\d{4}-\d{2}-\d{2}$/);
 });
 
 test("pendências: a linha leva direto aonde se resolve", async ({ page }) => {

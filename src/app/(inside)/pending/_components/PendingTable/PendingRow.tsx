@@ -23,6 +23,8 @@ import {
 interface Props {
   item: PendingItem;
   showSeller: boolean;
+  /** "Volte dia X": agendar o contato já vinculado a este retorno. */
+  onScheduleReturn?: (item: PendingItem) => void;
 }
 
 /**
@@ -30,7 +32,7 @@ interface Props {
  * botão "Ver cliente" só aparece quando esse destino NÃO é a ficha do cliente —
  * senão seriam dois caminhos para o mesmo lugar.
  */
-export function PendingRow({ item, showSeller }: Props) {
+export function PendingRow({ item, showSeller, onScheduleReturn }: Props) {
   const router = useRouter();
   const detail = clientDetail(item);
   const clientLink =
@@ -82,6 +84,20 @@ export function PendingRow({ item, showSeller }: Props) {
           <Table.CellText variant="dim">
             {destinationLabel(item.type)}
           </Table.CellText>
+          {/* O contato agendado daqui nasce vinculado ao retorno: concluí-lo
+              resolve o "volte dia X" (um contato qualquer não resolve). */}
+          {item.reason === "RETURN_DATE" && onScheduleReturn && (
+            <Button.Root
+              type="button"
+              appearance="ghost"
+              color="neutral"
+              size="xs"
+              noUppercase
+              onClick={() => onScheduleReturn(item)}
+            >
+              <Button.Title>Agendar contato</Button.Title>
+            </Button.Root>
+          )}
           {clientLink && (
             <Button.Root
               type="button"

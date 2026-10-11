@@ -1,6 +1,6 @@
 # AUTO-GERADO por scripts/pull-schema.mjs — NÃO editar à mão.
 # Snapshot do schema do backend (app_user). Atualize com: npm run schema:pull
-# Fonte: 57 arquivos .graphql merge-ados (mesma regra do Ariadne).
+# Fonte: 58 arquivos .graphql merge-ados (mesma regra do Ariadne).
 
 input BaseListInput {
   filters: [FieldFilterInput!] = null
@@ -172,6 +172,219 @@ extend type Mutation {
   createClientContact(input: CreateClientContactInput!): ClientContactTypeDataResponse!
   updateClientContact(id: UUID!, input: UpdateClientContactInput!): ClientContactTypeDataResponse!
   deleteClientContact(id: UUID!): BaseResponse!
+}
+
+"""
+Follow-up de clientes: o próximo contato combinado com o cliente — dia,
+responsável e motivo —, para a negociação não depender da memória de ninguém.
+"""
+enum FollowUpStatus {
+  SCHEDULED
+  """O contato aconteceu: alguém falou com o cliente (`outcome` diz o quê)."""
+  DONE
+  """Não vai mais acontecer (`outcome` diz por quê)."""
+  CANCELLED
+}
+
+"""
+O recorte da lista. "Atrasado", "hoje" e "próximos" não são guardados: são um
+agendado lido contra o dia de hoje (Brasília).
+"""
+enum FollowUpSituation {
+  OVERDUE
+  TODAY
+  UPCOMING
+  DONE
+  CANCELLED
+}
+
+enum FollowUpEventKind {
+  CREATED
+  """Mudou de dia — `dateFrom` → `dateTo`."""
+  RESCHEDULED
+  """Mudou de responsável — `userFrom` → `userTo`."""
+  REASSIGNED
+  """Motivo, observações ou pedido corrigidos (`note` diz quais)."""
+  EDITED
+  DONE
+  CANCELLED
+}
+
+"""Um acontecimento do agendamento, com quem fez e o de-para."""
+type ClientFollowUpEventType {
+  id: UUID!
+  followUpId: UUID!
+  kind: FollowUpEventKind!
+  note: String
+  dateFrom: Date
+  dateTo: Date
+  userFrom: UserType
+  userTo: UserType
+  author: UserType
+  createdAt: DateTime!
+}
+
+"""Um retorno combinado ("volte dia X") que um contato agendado atende."""
+type FollowUpReturnType {
+  itemId: UUID!
+  """O dia combinado para voltar."""
+  returnDate: Date!
+  """O dia em que foi combinado."""
+  agreedOn: Date!
+}
+
+"""O próximo contato agendado com um cliente."""
+type ClientFollowUpType {
+  id: UUID!
+  clientId: UUID!
+  client: ClientType
+  """O id da carteira — é o que a rota `/clients/[id]` usa."""
+  companyClientId: UUID
+  orderId: UUID
+  order: OrderType
+  responsibleUserId: UUID
+  responsible: UserType
+  createdBy: UserType
+  """O dia combinado para o contato."""
+  dueDate: Date!
+  reason: String!
+  notes: String
+  status: FollowUpStatus!
+  situation: FollowUpSituation!
+  """Dias de atraso em relação ao dia combinado. Negativo = ainda faltam dias."""
+  daysLate: Int!
+  closedAt: DateTime
+  """O que foi conversado (concluído) ou por que não aconteceu (cancelado)."""
+  outcome: String
+  """Quantas vezes já mudou de dia."""
+  rescheduleCount: Int!
+  """Concluído como contato COMERCIAL (conta como contato da carteira)."""
+  isCommercial: Boolean
+  """
+  O padrão da pergunta "houve contato comercial?" ao concluir: sim quando o
+  responsável tem perfil de vendedor, não para o escritório.
+  """
+  defaultCommercial: Boolean!
+  """O retorno combinado a que este contato está vinculado (resolve ao concluir)."""
+  linkedReturn: FollowUpReturnType
+  """
+  Agendamento em aberto e sem vínculo: o "volte dia X" ainda em aberto com o
+  cliente, que a pessoa pode confirmar ter atendido ao concluir.
+  """
+  openReturn: FollowUpReturnType
+  """O agendamento que este continua (concluído com "já marcar o próximo")."""
+  previousId: UUID
+  """O agendamento marcado ao concluir este, se houver."""
+  next: ClientFollowUpType
+  """A linha do tempo, do mais antigo ao mais recente."""
+  events: [ClientFollowUpEventType!]!
+  createdAt: DateTime!
+}
+
+type ClientFollowUpTypeEdge {
+  node: ClientFollowUpType!
+  cursor: String!
+}
+
+type ClientFollowUpTypeConnectionResponse {
+  edges: [ClientFollowUpTypeEdge!]!
+  pageInfo: PageInfo!
+  totalCount: Int!
+}
+
+type ClientFollowUpTypeDataResponse {
+  status: Boolean!
+  code: Int!
+  message: String!
+  data: ClientFollowUpType
+}
+
+type FollowUpSituationCountType {
+  situation: FollowUpSituation!
+  count: Int!
+}
+
+input CreateClientFollowUpInput {
+  clientId: UUID!
+  dueDate: Date!
+  reason: String!
+  notes: String = null
+  orderId: UUID = null
+  """Quem vai fazer o contato. Vendedor: sempre ele mesmo. Ausente = quem agenda."""
+  responsibleUserId: UUID = null
+  """O retorno combinado (item da rotina) que este contato vai atender."""
+  returnItemId: UUID = null
+}
+
+"""
+A ficha do agendamento em aberto. O DIA não muda por aqui — muda por
+`rescheduleClientFollowUp`, que guarda o de-para na linha do tempo.
+"""
+input UpdateClientFollowUpInput {
+  reason: String
+  notes: String
+  orderId: UUID
+  """Só o gestor transfere."""
+  responsibleUserId: UUID
+}
+
+input RescheduleClientFollowUpInput {
+  id: UUID!
+  dueDate: Date!
+  """Por que mudou de dia. Opcional."""
+  note: String = null
+}
+
+input CompleteClientFollowUpInput {
+  id: UUID!
+  """O que foi conversado. Obrigatório."""
+  outcome: String!
+  """Já marcar o próximo contato (encadeado a este)."""
+  nextDueDate: Date = null
+  """Motivo do próximo. Ausente = o mesmo deste."""
+  nextReason: String = null
+  """Houve contato comercial. Ausente = o padrão (`defaultCommercial`)."""
+  isCommercial: Boolean = null
+  """Confirma que atendeu o retorno em aberto (`openReturn`)."""
+  fulfillsReturn: Boolean = false
+}
+
+input CancelClientFollowUpInput {
+  id: UUID!
+  reason: String = null
+}
+
+extend type Query {
+  clientFollowUp(id: UUID!): ClientFollowUpTypeDataResponse!
+  """
+  Os contatos agendados. Vendedor vê só os dele (responsável); gestor vê a
+  empresa. Filtros: `situation` (um FollowUpSituation, `OPEN` = todos os
+  agendados, `ALL` = tudo; ausente = `OPEN`), `client_id`, `order_id`,
+  `responsible_user_id`, `orphaned` (`true` = o responsável foi desativado;
+  só gestor), `search` (no motivo). Sem ordem pedida: pelo dia
+  combinado, o mais antigo primeiro; concluídos e cancelados, pelo encerramento
+  mais recente.
+  """
+  clientFollowUps(input: BaseListInput!): ClientFollowUpTypeConnectionResponse!
+  """Quantos em cada recorte, no mesmo escopo da lista (sem o filtro de recorte)."""
+  clientFollowUpCounts(
+    clientId: UUID = null
+    responsibleUserId: UUID = null
+  ): [FollowUpSituationCountType!]!
+  """
+  Quantos contatos em aberto estão com alguém desativado ou removido.
+  Só gestor: é ele quem transfere — e sem isto ninguém mais seria lembrado.
+  """
+  clientFollowUpOrphanCount: Int!
+}
+
+extend type Mutation {
+  createClientFollowUp(input: CreateClientFollowUpInput!): ClientFollowUpTypeDataResponse!
+  updateClientFollowUp(id: UUID!, input: UpdateClientFollowUpInput!): ClientFollowUpTypeDataResponse!
+  rescheduleClientFollowUp(input: RescheduleClientFollowUpInput!): ClientFollowUpTypeDataResponse!
+  """Concluir = falei com o cliente. Quem não atendeu, reagenda."""
+  completeClientFollowUp(input: CompleteClientFollowUpInput!): ClientFollowUpTypeDataResponse!
+  cancelClientFollowUp(input: CancelClientFollowUpInput!): ClientFollowUpTypeDataResponse!
 }
 
 input CreateClientNetworkInput {
@@ -709,6 +922,8 @@ type ClientSupportCaseType {
   companyId: UUID!
   clientId: UUID!
   client: ClientType
+  """O id da carteira — é o que a rota `/clients/[id]` usa (não o `clientId`)."""
+  companyClientId: UUID
   factoryId: UUID
   factory: FactoryType
   orderId: UUID
@@ -2819,6 +3034,8 @@ enum NotificationCategory {
   INSIGHT
   """Tratativa de problema do cliente (mercadoria, pagamento, entrega)."""
   SUPPORT
+  """Próximo contato agendado com o cliente (follow-up)."""
+  FOLLOW_UP
   SYSTEM
 }
 
@@ -4039,7 +4256,8 @@ type ImportOrderHistoryResultDataResponse {
 
 """
 Central de pendências: uma lista só com tudo o que pede atenção — visita sem
-resposta, retorno combinado, pedido parado e cliente sem contato.
+resposta, contato agendado, retorno combinado, pedido parado e cliente sem
+contato.
 
 Nada disto é guardado: cada pendência é derivada do estado de agora, então a
 que foi resolvida some da lista sozinha. O texto de cada motivo mora na tela;
@@ -4048,6 +4266,8 @@ daqui saem o motivo, as datas e os nomes.
 enum PendingType {
   """Visita ou ligação planejada cujo dia passou sem ninguém dizer o que houve."""
   VISIT_OVERDUE
+  """Contato agendado com o cliente (follow-up) que vence no período."""
+  FOLLOW_UP
   """Retorno combinado com o cliente ("volte dia 20", "pode vir") e não cumprido."""
   RETURN_SCHEDULED
   """Pedido parado: orçamento sem resposta, sem faturar ou sem confirmar a entrega."""
@@ -4064,6 +4284,8 @@ enum PendingReason {
   RETURN_DATE
   """Numa ligação, o cliente pediu a visita presencial."""
   WANTS_VISIT
+  """O dia do contato agendado (`dueDate`); o motivo vem em `note`."""
+  FOLLOW_UP_DUE
   """Rascunho ou orçamento que não virou pedido."""
   DRAFT_STALE
   """Pedido confirmado que a fábrica ainda não faturou."""
@@ -4088,6 +4310,12 @@ enum PendingPriority {
 type PendingItemType {
   """Identidade estável da linha (não é o id de um registro)."""
   id: String!
+  """
+  O registro que a pendência aponta: a visita, o pedido, o cliente, o
+  retorno (item da rotina) ou o contato agendado.
+  """
+  entityId: UUID!
+  clientId: UUID!
   type: PendingType!
   reason: PendingReason!
   priority: PendingPriority!
@@ -4103,6 +4331,7 @@ type PendingItemType {
   """A fábrica do pedido (só em `ORDER_STALLED`)."""
   factoryName: String
   sellerId: UUID
+  """O vendedor — ou, no contato agendado, o responsável (pode ser o escritório)."""
   sellerName: String
   """O valor do pedido (só em `ORDER_STALLED`)."""
   amount: Decimal
@@ -4131,6 +4360,8 @@ type PendingItemType {
   a pendência (depois da semana corrente e do prazo).
   """
   scheduledDate: Date
+  """O motivo escrito por quem agendou o contato (só em `FOLLOW_UP`)."""
+  note: String
 }
 
 type PendingTypeCountType {
@@ -4147,12 +4378,13 @@ type PendingItemsType {
   totalCount: Int!
   """
   Quantas pendências de cada tipo, no recorte de vendedor e período mas SEM o
-  filtro de tipo. Sempre os quatro tipos, mesmo os zerados.
+  filtro de tipo. Sempre todos os tipos, mesmo os zerados.
   """
   counts: [PendingTypeCountType!]!
   """
   Da prioridade mais alta para a mais baixa; dentro dela, pelo prazo mais
-  antigo; no mesmo prazo, por tipo (visita, retorno, pedido, carteira).
+  antigo; no mesmo prazo, por tipo (visita, contato agendado, retorno, pedido,
+  carteira).
   """
   items: [PendingItemType!]!
 }

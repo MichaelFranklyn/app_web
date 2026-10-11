@@ -12,7 +12,7 @@ interface Props {
 /**
  * Quantas pendências de cada tipo, no recorte de vendedor e período.
  *
- * Os quatro contadores aparecem sempre, mesmo zerados, e NÃO mudam com o filtro
+ * Os contadores aparecem sempre, mesmo zerados, e NÃO mudam com o filtro
  * de tipo: eles dizem o que existe para filtrar. Vermelho quando alguma é de
  * prioridade alta.
  */
@@ -21,7 +21,7 @@ export function PendingCounts({ counts }: Props) {
 
   return (
     <div
-      className="tablet:grid-cols-4 grid grid-cols-2 gap-8"
+      className="tablet:grid-cols-3 desktop:grid-cols-5 grid grid-cols-2 gap-8"
       data-tour="pending-counts"
     >
       {PENDING_TYPE_ORDER.map((type) => {

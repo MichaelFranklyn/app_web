@@ -22,6 +22,7 @@ const REASONS: PendingReason[] = [
   "VISIT_UNANSWERED",
   "RETURN_DATE",
   "WANTS_VISIT",
+  "FOLLOW_UP_DUE",
   "DRAFT_STALE",
   "PENDING_INVOICE",
   "DELIVERY_UNCONFIRMED",
@@ -37,6 +38,7 @@ describe("reasonText", () => {
     isEstimated: false,
     daysLate: 2,
     scheduledDate: null,
+    note: null,
   };
 
   it("tem frase para todo motivo que o backend manda", () => {
@@ -45,6 +47,17 @@ describe("reasonText", () => {
       expect(text.length).toBeGreaterThan(10);
       expect(text).not.toContain("undefined");
     }
+  });
+
+  it("contato agendado diz o motivo que a pessoa escreveu", () => {
+    expect(
+      reasonText({
+        ...base,
+        reason: "FOLLOW_UP_DUE",
+        allowanceDays: null,
+        note: "Retornar sobre o orçamento",
+      })
+    ).toBe("Retornar sobre o orçamento — agendado em 05/10/2026.");
   });
 
   it("diz a data do fato, e distingue ligação de visita", () => {
@@ -142,8 +155,8 @@ describe("dueLabel / dueTone", () => {
 });
 
 describe("rótulos por tipo", () => {
-  it("cobre os quatro tipos no plural, no singular e no destino", () => {
-    expect(PENDING_TYPE_ORDER).toHaveLength(4);
+  it("cobre os cinco tipos no plural, no singular e no destino", () => {
+    expect(PENDING_TYPE_ORDER).toHaveLength(5);
     for (const type of PENDING_TYPE_ORDER) {
       expect(PENDING_TYPE_LABEL[type]).toBeTruthy();
       expect(PENDING_TYPE_SINGULAR[type]).toBeTruthy();
@@ -156,6 +169,7 @@ describe("rótulos por tipo", () => {
     expect(destinationLabel("ORDER_STALLED")).toContain("pedido");
     expect(destinationLabel("RETURN_SCHEDULED")).toContain("cliente");
     expect(destinationLabel("CLIENT_NO_CONTACT")).toContain("cliente");
+    expect(destinationLabel("FOLLOW_UP")).toContain("contato agendado");
   });
 });
 

@@ -1,7 +1,7 @@
 import { Loading } from "@/components/Loading";
 
 /**
- * Espelho do corpo da tela: os quatro contadores, a frase do recorte e a lista.
+ * Espelho do corpo da tela: os contadores, a frase do recorte e a lista.
  *
  * Num arquivo próprio porque o `loading.tsx` da rota desenha a MESMA coisa — a
  * espera do servidor e a da rede têm de parecer a mesma tela, senão o conteúdo
@@ -10,8 +10,8 @@ import { Loading } from "@/components/Loading";
 export function PendingSkeleton() {
   return (
     <>
-      <div className="tablet:grid-cols-4 grid grid-cols-2 gap-8">
-        {Array.from({ length: 4 }).map((_, i) => (
+      <div className="tablet:grid-cols-3 desktop:grid-cols-5 grid grid-cols-2 gap-8">
+        {Array.from({ length: 5 }).map((_, i) => (
           <Loading.Skeleton key={i} className="h-[76px] w-full" />
         ))}
       </div>

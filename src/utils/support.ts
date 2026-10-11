@@ -131,6 +131,8 @@ export interface SupportCase {
   ageDays: number;
   isOpen: boolean;
   clientId: string;
+  /** O id da carteira — é o que a rota `/clients/[id]` usa. */
+  companyClientId?: string | null;
   client: {
     id: string;
     razaoSocial: string;
