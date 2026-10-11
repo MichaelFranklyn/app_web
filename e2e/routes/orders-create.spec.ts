@@ -44,7 +44,7 @@ async function pickOption(
   typeText: string,
   optionText: string
 ) {
-  const select = page.getByRole("textbox", { name: fieldLabel });
+  const select = page.getByRole("combobox", { name: fieldLabel });
   await expect(select).toBeEnabled();
   await select.click();
   await select.pressSequentially(typeText);
@@ -212,8 +212,8 @@ test("orders: cria um pedido pela cascata vendedor→fábrica→cliente", async 
   await expect(page).toHaveURL(/\/orders\/new$/);
 
   // Vendedor logado não escolhe vendedor: o campo nem existe para ele.
-  await expect(page.getByRole("textbox", { name: "Fábrica" })).toBeEnabled();
-  await expect(page.getByRole("textbox", { name: "Vendedor" })).toHaveCount(0);
+  await expect(page.getByRole("combobox", { name: "Fábrica" })).toBeEnabled();
+  await expect(page.getByRole("combobox", { name: "Vendedor" })).toHaveCount(0);
   await pickOption(page, "Fábrica", "Fábrica", "Fábrica Modelo");
   await pickOption(page, "Cliente", "Cliente", "Cliente XYZ");
 
@@ -287,7 +287,7 @@ test("orders: gestor escolhe o vendedor do pedido", async ({ page }) => {
 
   await page.goto("/orders/new");
 
-  await expect(page.getByRole("textbox", { name: "Vendedor" })).toBeEnabled();
+  await expect(page.getByRole("combobox", { name: "Vendedor" })).toBeEnabled();
 });
 
 /**
@@ -364,7 +364,7 @@ test("orders/new: da fábrica, escolhe o vínculo e grava com a fábrica da tela
   await expect(
     page.getByRole("link", { name: "Fábrica", exact: true })
   ).toHaveAttribute("href", "/factories/cf-1/orders");
-  await expect(page.getByRole("textbox", { name: "Fábrica" })).toHaveCount(0);
+  await expect(page.getByRole("combobox", { name: "Fábrica" })).toHaveCount(0);
 
   await pickOption(
     page,
@@ -519,7 +519,7 @@ test("orders/new: sair com algo não gravado pergunta antes (dados, item, itens)
   await expect(page).toHaveURL(/\/orders\/new$/);
 
   // Um item no rascunho (sem nível e sem tabela: o preço é digitado).
-  const produto = page.getByRole("textbox", {
+  const produto = page.getByRole("combobox", {
     name: "Produto (nome ou código)",
   });
   await produto.click();

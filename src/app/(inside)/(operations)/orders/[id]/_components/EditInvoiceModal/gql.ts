@@ -17,8 +17,8 @@ export const REVISE_ORDER_INVOICE_MUTATION = gql`
 `;
 
 export const UNINVOICE_ORDER_MUTATION = gql`
-  mutation UninvoiceOrder($id: UUID!, $force: Boolean) {
-    uninvoiceOrder(id: $id, force: $force) {
+  mutation UninvoiceOrder($id: UUID!, $force: Boolean, $reason: String) {
+    uninvoiceOrder(id: $id, force: $force, reason: $reason) {
       status
       message
       data {

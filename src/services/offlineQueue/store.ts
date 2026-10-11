@@ -1,5 +1,5 @@
 import { OfflineEntry, OfflineFailure, OfflineQueueState } from "./interface";
-import { dropExpired, upsertEntry } from "./utils";
+import { dropExpired, sameSubject, upsertEntry } from "./utils";
 
 /**
  * A fila mora no `localStorage`, e não na memória, porque o caso real é o
@@ -21,6 +21,10 @@ const listeners = new Set<Listener>();
 // O snapshot precisa ser o MESMO objeto enquanto nada muda — é o contrato do
 // `useSyncExternalStore`, senão o React re-renderiza em laço.
 let cached: OfflineQueueState | null = null;
+
+// A última gravação não coube no armazenamento (bloqueado ou cheio): a fila
+// vive só na memória desta aba, e reler o disco a apagaria.
+let memoryOnly = false;
 
 function read(): OfflineQueueState {
   if (typeof window === "undefined") return EMPTY;
@@ -47,7 +51,9 @@ function write(next: OfflineQueueState) {
     } else {
       window.localStorage.setItem(STORAGE_KEY, JSON.stringify(next));
     }
+    memoryOnly = false;
   } catch {
+    memoryOnly = true;
     // Sem armazenamento a fila vive só nesta aba — melhor que perder o toque.
   }
   listeners.forEach((listener) => listener());
@@ -56,6 +62,22 @@ function write(next: OfflineQueueState) {
 export function getQueueState(): OfflineQueueState {
   if (cached === null) cached = read();
   return cached;
+}
+
+/**
+ * Relê o armazenamento, ignorando a cópia em memória. A descarga chama antes
+ * de enviar: outra aba pode ter mandado (ou trocado) entradas, e o evento
+ * `storage` só atualiza quem tem tela inscrita.
+ */
+export function refreshQueueState(): OfflineQueueState {
+  if (memoryOnly) return getQueueState();
+  const fresh = read();
+  const changed = JSON.stringify(fresh) !== JSON.stringify(cached);
+  if (changed) {
+    cached = fresh;
+    listeners.forEach((listener) => listener());
+  }
+  return getQueueState();
 }
 
 /** Estado vazio para o render do servidor (sem `localStorage`). */
@@ -83,7 +105,7 @@ export function enqueue(entry: OfflineEntry) {
   write({
     entries: upsertEntry(state.entries, entry),
     // Uma resposta nova sobre o mesmo assunto torna a recusa antiga irrelevante.
-    failures: state.failures.filter((f) => f.key !== entry.key),
+    failures: state.failures.filter((f) => !sameSubject(f, entry)),
   });
 }
 
@@ -99,7 +121,7 @@ export function settle(entry: OfflineEntry, failure?: OfflineFailure) {
     // Só sai se ainda for a MESMA entrada: se a pessoa respondeu de novo
     // enquanto esta estava a caminho, a resposta nova fica para o próximo envio.
     entries: state.entries.filter(
-      (e) => !(e.key === entry.key && e.createdAt === entry.createdAt)
+      (e) => !(sameSubject(e, entry) && e.createdAt === entry.createdAt)
     ),
     failures: failure ? [...state.failures, failure] : state.failures,
   });
@@ -127,6 +149,7 @@ export function dismissFailures(userId: string) {
 /** Só para testes: volta ao estado de fábrica. */
 export function resetQueueForTests() {
   cached = null;
+  memoryOnly = false;
   listeners.clear();
   try {
     window.localStorage.removeItem(STORAGE_KEY);

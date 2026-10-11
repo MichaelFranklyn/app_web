@@ -102,7 +102,7 @@ export const selectStyles = {
   overlay:
     "bg-(--bg2) border border-(--border) rounded-(--r-md) shadow-lg z-[9999] max-h-[240px] overflow-auto focus:outline-none flex flex-col p-[4px] gap-[2px]",
   optionBox:
-    "px-[12px] py-[8px] cursor-pointer hover:bg-(--bg3) rounded-(--r-sm) flex items-center gap-[8px] text-[13px] text-(--text) transition-colors data-[selected=true]:bg-(--amber-bg)",
+    "px-[12px] py-[8px] cursor-pointer hover:bg-(--bg3) rounded-(--r-sm) flex items-center gap-[8px] text-[13px] text-(--text) transition-colors data-[selected=true]:bg-(--amber-bg) data-[active=true]:bg-(--bg3) data-[active=true]:outline data-[active=true]:outline-2 data-[active=true]:-outline-offset-2 data-[active=true]:outline-(--amber)",
   optionCheckboxWrap: "flex items-center gap-[8px] w-full",
   warningText: "p-[8px] text-[13px] text-(--muted) text-center w-full",
   inputFlex: "flex flex-1 flex-wrap items-center gap-[4px] min-w-0",

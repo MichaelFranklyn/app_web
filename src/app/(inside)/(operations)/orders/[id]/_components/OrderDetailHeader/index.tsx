@@ -1,5 +1,6 @@
 "use client";
 
+import { canDeleteOrder } from "@/app/(inside)/_shared/orderStatus";
 import { isQuoteStatus } from "@/app/(inside)/_shared/orderStatus";
 import { Badge } from "@/components/Badges";
 import { Breadcrumb } from "@/components/Breadcrumb";
@@ -261,7 +262,9 @@ export function OrderDetailHeader({ order, onRefetch }: Props) {
                       onSuccess={onRefetch}
                     />
                   )}
-                <DeleteOrderModal orderId={order.id} />
+                {canDeleteOrder(order.status, order.invoicedAt) && (
+                  <DeleteOrderModal orderId={order.id} />
+                )}
               </div>
             </PanelHeader.Actions>
           </PanelHeader.Left>

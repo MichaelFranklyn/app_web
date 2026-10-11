@@ -41,6 +41,11 @@ describe("isConnectivityError", () => {
     expect(isConnectivityError(serverError(504))).toBe(true);
   });
 
+  it("408 e 429 — o servidor pedindo espera — também vão para a fila", () => {
+    expect(isConnectivityError(serverError(408))).toBe(true);
+    expect(isConnectivityError(serverError(429))).toBe(true);
+  });
+
   it("recusa do servidor NÃO vai: não melhora com o tempo", () => {
     expect(isConnectivityError(serverError(500))).toBe(false);
     expect(isConnectivityError(serverError(403))).toBe(false);
@@ -78,6 +83,15 @@ describe("upsertEntry", () => {
     const b = entry("visit:b", "2026-09-28T11:00:00Z");
     const a2 = entry("visit:a", "2026-09-28T12:00:00Z");
     expect(upsertEntry([a, b], a2)).toEqual([b, a2]);
+  });
+
+  it("a mesma visita respondida por OUTRA pessoa no aparelho não apaga a primeira", () => {
+    const vendedor = entry("visit:a", "2026-09-28T10:00:00Z");
+    const gestor = {
+      ...entry("visit:a", "2026-09-28T11:00:00Z"),
+      userId: "u2",
+    };
+    expect(upsertEntry([vendedor], gestor)).toEqual([vendedor, gestor]);
   });
 });
 

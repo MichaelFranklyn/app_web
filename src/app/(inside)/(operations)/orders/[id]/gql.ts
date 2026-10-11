@@ -82,6 +82,18 @@ export const ORDER_DETAIL_QUERY = gql`
           installmentsDays
           minOrderAmount
         }
+        invoiceReversals {
+          id
+          kind
+          createdAt
+          userEmail
+          reason
+          invoicedAt
+          invoiceNumber
+          totalAmount
+          installmentsCount
+          settlementsDropped
+        }
         installments {
           id
           sequence

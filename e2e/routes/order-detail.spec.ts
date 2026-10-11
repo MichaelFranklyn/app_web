@@ -209,6 +209,82 @@ test("pedido faturado: refaz o faturamento para lançar de novo", async ({
   await expect(page.getByText("Faturamento desfeito.")).toBeVisible();
 });
 
+test("pedido faturado com boleto pago: desfazer exige o motivo, e o histórico aparece", async ({
+  page,
+}) => {
+  const base = invoicedOrder();
+  const paid = {
+    ...base,
+    installments: base.installments.map(
+      (installment: Record<string, unknown>, index: number) =>
+        index === 0
+          ? { ...installment, status: "PAID", paidAt: "2026-08-09" }
+          : installment
+    ),
+    invoiceReversals: [
+      {
+        id: "rev-1",
+        kind: "uninvoice",
+        createdAt: "2026-07-01T12:00:00Z",
+        userEmail: "gestor@empresa.com.br",
+        reason: "Nota lançada no pedido errado",
+        invoicedAt: "2026-06-20",
+        invoiceNumber: "998",
+        totalAmount: "1500.00",
+        installmentsCount: 2,
+        settlementsDropped: 0,
+      },
+    ],
+  };
+  const spy = await mockGraphql(page, {
+    OrderDetail: () => ({
+      order: { status: true, code: 200, message: "ok", data: paid },
+    }),
+    OrderItems: () => ({
+      orderItems: {
+        edges: [],
+        pageInfo: { hasNextPage: false, endCursor: null },
+        totalCount: 0,
+      },
+    }),
+    UninvoiceOrder: () => ({
+      uninvoiceOrder: {
+        status: true,
+        message: "Faturamento desfeito. O pedido voltou para confirmado.",
+        data: { id: "order-1", status: "CONFIRMED", invoicedAt: null },
+      },
+    }),
+  });
+
+  await page.goto(URL);
+
+  // O que já foi desfeito antes fica à vista no pedido: quem, por quê, quanto.
+  await expect(page.getByText("Histórico do faturamento")).toBeVisible();
+  await expect(page.getByText("gestor@empresa.com.br")).toBeVisible();
+  await expect(page.getByText("Nota lançada no pedido errado")).toBeVisible();
+  await expect(page.getByText(/2 parcelas apagadas/)).toBeVisible();
+
+  await page.getByRole("button", { name: "Editar faturamento" }).click();
+  const dialog = page.getByRole("dialog");
+  await dialog.getByRole("button", { name: "Refazer faturamento" }).click();
+
+  // Há boleto pago: sem motivo o botão não sai do lugar.
+  const confirm = dialog
+    .getByRole("button", { name: "Refazer faturamento" })
+    .last();
+  await expect(confirm).toBeDisabled();
+  await dialog.getByLabel(/Motivo/).fill("A fábrica reemitiu a nota");
+  await expect(confirm).toBeEnabled();
+  await confirm.click();
+
+  await expect(page.getByText("Faturamento desfeito.")).toBeVisible();
+  expect(spy.lastVariables("UninvoiceOrder")).toEqual({
+    id: "order-1",
+    force: true,
+    reason: "A fábrica reemitiu a nota",
+  });
+});
+
 test("pedido detalhe: edita um item", async ({ page }) => {
   await mockGraphql(page, {
     ...renderMock([orderItem()]),

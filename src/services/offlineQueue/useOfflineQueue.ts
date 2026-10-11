@@ -50,7 +50,10 @@ export function useOfflineQueue() {
  */
 export function useOfflineEntry(key: string): OfflineEntry | undefined {
   const state = useQueueState();
-  return state.entries.find((e) => e.key === key);
+  const userId = currentUserId();
+  // Só o registro de quem está logado: o de outra pessoa no mesmo aparelho
+  // não é o que esta tela vai enviar.
+  return state.entries.find((e) => e.key === key && e.userId === userId);
 }
 
 /** Contexto do Apollo com o teto de espera da gravação. */

@@ -3371,6 +3371,35 @@ enum OrderSentChannel {
   OTHER
 }
 
+"""Uma parcela como estava quando o faturamento foi desfeito."""
+type ReversedInstallmentType {
+  sequence: Int
+  amount: Decimal
+  commissionAmount: Decimal
+  dueDate: Date
+  status: String
+  paidAt: Date
+  isCommissionReceived: Boolean!
+  isCommissionReconciled: Boolean!
+}
+
+"""Registro permanente de um faturamento desfeito (`UNINVOICE`) ou refeito (`REVISE`)."""
+type OrderInvoiceReversalType {
+  id: UUID!
+  kind: String!
+  createdAt: DateTime!
+  userEmail: String
+  reason: String
+  invoicedAt: Date
+  invoiceNumber: String
+  totalAmount: Decimal!
+  commissionAmount: Decimal!
+  installmentsCount: Int!
+  settlementsDropped: Int!
+  backordersAbsorbed: Int!
+  installments: [ReversedInstallmentType!]!
+}
+
 type OrderType {
   id: UUID!
   companyId: UUID!
@@ -3463,6 +3492,11 @@ type OrderType {
   factory: FactoryType
   paymentTerm: FactoryPaymentTermType
   installments: [OrderInstallmentType!]!
+  """
+  Vezes em que o faturamento deste pedido foi desfeito ou teve as parcelas
+  refeitas: quem, quando, por quê e como as parcelas estavam. Mais recente primeiro.
+  """
+  invoiceReversals: [OrderInvoiceReversalType!]!
   importLogs: [ImportLogType!]!
   """Base de cálculo da comissão da fábrica (Faturamento/Pagamento) para este pedido."""
   commissionCalcBasis: String
@@ -3567,6 +3601,8 @@ input ReviseOrderInvoiceInput {
   clearDelivery: Boolean = false
   """Autoriza refazer as parcelas mesmo apagando baixas de pagamento/comissão."""
   force: Boolean = false
+  """Por que as parcelas com baixa estão sendo refeitas. Obrigatório junto com `force`; fica no histórico do pedido."""
+  reason: String = null
 }
 
 input InvoiceOrderItemInput {
@@ -3722,7 +3758,12 @@ extend type Mutation {
   """Corrige os dados de um faturamento já lançado (data, prazo, previsão e data de entrega), refazendo as parcelas quando a data ou o prazo mudam."""
   reviseOrderInvoice(id: UUID!, input: ReviseOrderInvoiceInput!): OrderTypeDataResponse!
   """Desfaz o faturamento para lançá-lo de novo: apaga as parcelas, traz o restante (backorder) de volta ao pedido e devolve o status para CONFIRMADO. `force` autoriza apagar baixas de pagamento/comissão já lançadas."""
-  uninvoiceOrder(id: UUID!, force: Boolean = false): OrderTypeDataResponse!
+  uninvoiceOrder(
+    id: UUID!
+    force: Boolean = false
+    """Por que o faturamento está sendo desfeito. Obrigatório quando há baixa lançada (boleto pago, comissão recebida ou conferida); fica no histórico do pedido."""
+    reason: String = null
+  ): OrderTypeDataResponse!
   """Confirma a entrega de um pedido faturado: status → DELIVERED e reabastece o estoque do cliente usando a data real de chegada."""
   markOrderDelivered(id: UUID!, deliveredAt: Date!): OrderTypeDataResponse!
   """

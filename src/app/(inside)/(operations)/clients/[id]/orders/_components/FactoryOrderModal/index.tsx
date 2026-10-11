@@ -1,5 +1,6 @@
 "use client";
 
+import { canDeleteOrder } from "@/app/(inside)/_shared/orderStatus";
 import { Badge } from "@/components/Badges";
 import { Button } from "@/components/Button";
 import { EmptyState } from "@/components/EmptyState";
@@ -247,14 +248,16 @@ export function FactoryOrderModal({
                             <Button.Icon icon={Pencil} />
                             <Button.Title>Editar</Button.Title>
                           </Button.Root>
-                          <DeleteOrderModal
-                            orderId={p.id}
-                            orderCode={p.id.slice(0, 8).toUpperCase()}
-                            onDeleted={() => refetch()}
-                            onRemoveOptimistic={optimistic.removeOptimistic}
-                            onCommit={optimistic.commit}
-                            onRollback={optimistic.rollback}
-                          />
+                          {canDeleteOrder(p.status) && (
+                            <DeleteOrderModal
+                              orderId={p.id}
+                              orderCode={p.id.slice(0, 8).toUpperCase()}
+                              onDeleted={() => refetch()}
+                              onRemoveOptimistic={optimistic.removeOptimistic}
+                              onCommit={optimistic.commit}
+                              onRollback={optimistic.rollback}
+                            />
+                          )}
                         </div>
                       </Table.Cell>
                     </Table.Row>

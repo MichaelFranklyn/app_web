@@ -151,6 +151,46 @@ jobs:
           path: playwright-report/
           retention-days: 7
 
+  # O app como PWA: build COM service worker (a suíte acima o desliga), poucos
+  # specs, um por vez. Prova o que só o navegador mostra — abrir sem rede,
+  # fechar e reabrir a aba com a visita na fila, duas abas, troca de usuário.
+  e2e-sw:
+    name: E2E offline (service worker)
+    needs: changes
+    if: needs.changes.outputs.e2e == 'true'
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+      - run: npm ci
+
+      - uses: actions/cache@v4
+        id: playwright-cache
+        with:
+          path: ~/.cache/ms-playwright
+          key: playwright-${{ runner.os }}-${{ hashFiles('package-lock.json') }}
+
+      - if: steps.playwright-cache.outputs.cache-hit != 'true'
+        run: npx playwright install --with-deps chromium
+
+      - uses: actions/cache@v4
+        with:
+          path: .next-e2e-sw/cache
+          key: next-e2e-sw-${{ runner.os }}-${{ hashFiles('package-lock.json') }}-${{ hashFiles('src/**', 'public/**', 'next.config.ts') }}
+          restore-keys: |
+            next-e2e-sw-${{ runner.os }}-${{ hashFiles('package-lock.json') }}-
+
+      - run: npm run e2e:sw
+      - uses: actions/upload-artifact@v4
+        if: ${{ !cancelled() }}
+        with:
+          name: playwright-report-sw
+          path: playwright-report/
+          retention-days: 7
+
   # O NOME que a proteção da main exige. Os shards têm nomes próprios, então é
   # este job que responde por eles: verde quando todos passaram, ou quando o E2E
   # foi dispensado (PR só de .md/teste unitário). Sem ele, a mudança para shards
@@ -158,14 +198,16 @@ jobs:
   # nenhum PR poderia ser mergeado.
   e2e:
     name: E2E (Playwright)
-    needs: [changes, e2e-shard]
+    needs: [changes, e2e-shard, e2e-sw]
     if: ${{ always() }}
     runs-on: ubuntu-latest
     steps:
       - run: |
-          echo "detecção: ${{ needs.changes.result }} · shards: ${{ needs.e2e-shard.result }}"
+          echo "detecção: ${{ needs.changes.result }} · shards: ${{ needs.e2e-shard.result }} · service worker: ${{ needs.e2e-sw.result }}"
           if [ "${{ needs.changes.result }}" != "success" ]; then exit 1; fi
-          case "${{ needs.e2e-shard.result }}" in
-            success|skipped) exit 0 ;;
-            *) exit 1 ;;
-          esac
+          for result in "${{ needs.e2e-shard.result }}" "${{ needs.e2e-sw.result }}"; do
+            case "$result" in
+              success|skipped) ;;
+              *) exit 1 ;;
+            esac
+          done

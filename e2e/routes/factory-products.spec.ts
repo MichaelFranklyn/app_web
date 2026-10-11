@@ -134,7 +134,7 @@ test("fábrica/produtos: filtra o catálogo por categoria", async ({ page }) => 
 
   await page.goto(base);
   await page.getByRole("button", { name: "Filtros" }).click();
-  const categoria = page.getByRole("textbox", { name: "Categoria" });
+  const categoria = page.getByRole("combobox", { name: "Categoria" });
   await categoria.click();
   await page
     .locator("[data-select-dropdown]")

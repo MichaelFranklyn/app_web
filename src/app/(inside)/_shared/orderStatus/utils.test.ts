@@ -3,6 +3,7 @@ import { describe, expect, it } from "vitest";
 import {
   ORDER_STATUS_LABELS,
   ORDER_STATUS_OPTIONS,
+  canDeleteOrder,
   isQuoteStatus,
   orderStatusLabel,
   orderStatusTone,
@@ -72,5 +73,19 @@ describe("isQuoteStatus", () => {
     // O padrão seguro é o pedido: um status novo no backend não deve fazer a
     // ficha sair intitulada "Orçamento" nem liberar as ações de rascunho.
     expect(isQuoteStatus("WHATEVER")).toBe(false);
+  });
+});
+
+describe("canDeleteOrder", () => {
+  it("antes do faturamento (e o cancelado) o pedido pode sair", () => {
+    expect(canDeleteOrder("DRAFT")).toBe(true);
+    expect(canDeleteOrder("CONFIRMED", null)).toBe(true);
+    expect(canDeleteOrder("CANCELLED")).toBe(true);
+  });
+
+  it("faturado ou entregue não sai — há boleto, comissão e estoque", () => {
+    expect(canDeleteOrder("INVOICED")).toBe(false);
+    expect(canDeleteOrder("DELIVERED")).toBe(false);
+    expect(canDeleteOrder("CONFIRMED", "2026-10-01")).toBe(false);
   });
 });

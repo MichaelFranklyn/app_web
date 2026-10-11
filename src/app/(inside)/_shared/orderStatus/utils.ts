@@ -78,3 +78,16 @@ export const orderStatusTone = (status: string) =>
  */
 export const isQuoteStatus = (status: string): boolean =>
   status === "DRAFT" || status === "SENT";
+
+/**
+ * O pedido ainda pode ser EXCLUÍDO?
+ *
+ * Faturado tem boletos e comissão; entregue já abasteceu o estoque do cliente.
+ * Excluir deixaria esse dinheiro sem pedido — o servidor recusa
+ * (`deletion_refusal` em `orders/edit_policy.py`), e a tela não oferece um
+ * botão que ele vai negar. O caminho do faturado é desfazer o faturamento.
+ */
+export const canDeleteOrder = (
+  status: string,
+  invoicedAt?: string | null
+): boolean => !invoicedAt && status !== "INVOICED" && status !== "DELIVERED";

@@ -21,8 +21,16 @@ export const MAX_ENTRY_AGE_MS = 7 * 24 * 60 * 60 * 1000;
  */
 export const SEND_TIMEOUT_MS = 10_000;
 
-/** Respostas do nosso próprio caminho dizendo "não consegui chegar ao backend". */
-const UNREACHABLE_STATUS = new Set([502, 503, 504]);
+/**
+ * Respostas que dizem "tente de novo", e não "não aceito".
+ *
+ * 502/503/504 são do nosso próprio caminho sem chegar ao backend (a rota
+ * `/api/graphql` devolve 503/504 quando a chamada cai ou estoura o tempo); 408
+ * e 429 são o servidor pedindo espera. 500 fica DE FORA de propósito: é
+ * defeito ao processar aquele registro, e reenviá-lo travaria a fila inteira
+ * atrás dele até a validade vencer — a recusa aparece para a pessoa.
+ */
+export const TRANSIENT_STATUS = new Set([408, 429, 502, 503, 504]);
 
 /**
  * O erro diz que a gravação NÃO chegou (ou pode não ter chegado) ao servidor?
@@ -41,7 +49,7 @@ export function isConnectivityError(error: unknown): boolean {
   ) {
     return true;
   }
-  return ServerError.is(error) && UNREACHABLE_STATUS.has(error.statusCode);
+  return ServerError.is(error) && TRANSIENT_STATUS.has(error.statusCode);
 }
 
 /**
@@ -59,12 +67,24 @@ export function isSessionError(error: unknown): boolean {
   );
 }
 
+/**
+ * Mesmo assunto DA MESMA PESSOA. A `key` sozinha não identifica: gestor e
+ * vendedor que usam o mesmo aparelho podem responder à mesma visita, e a
+ * resposta de um apagava a do outro antes de qualquer envio.
+ */
+export function sameSubject(
+  a: { key: string; userId: string },
+  b: { key: string; userId: string }
+): boolean {
+  return a.key === b.key && a.userId === b.userId;
+}
+
 /** Troca a entrada do mesmo assunto; a nova vai para o fim da fila. */
 export function upsertEntry(
   entries: OfflineEntry[],
   entry: OfflineEntry
 ): OfflineEntry[] {
-  return [...entries.filter((e) => e.key !== entry.key), entry];
+  return [...entries.filter((e) => !sameSubject(e, entry)), entry];
 }
 
 /** Tira da fila o que passou da validade. */

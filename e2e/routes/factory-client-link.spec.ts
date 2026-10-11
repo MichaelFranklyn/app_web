@@ -74,7 +74,7 @@ test("fábrica/clientes: vincula um cliente (cliente + vendedor + nível)", asyn
   const dialog = page.getByRole("dialog");
   await expect(dialog).toBeVisible();
 
-  const cliente = dialog.getByRole("textbox", { name: "Cliente" });
+  const cliente = dialog.getByRole("combobox", { name: "Cliente" });
   await cliente.click();
   await cliente.pressSequentially("Cliente Alvo");
   await page
@@ -82,7 +82,7 @@ test("fábrica/clientes: vincula um cliente (cliente + vendedor + nível)", asyn
     .getByText("Cliente Alvo", { exact: true })
     .click();
 
-  const vendedor = dialog.getByRole("textbox", { name: "Vendedor" });
+  const vendedor = dialog.getByRole("combobox", { name: "Vendedor" });
   await vendedor.click();
   await vendedor.pressSequentially("Vendedor Acesso");
   await page
@@ -90,7 +90,7 @@ test("fábrica/clientes: vincula um cliente (cliente + vendedor + nível)", asyn
     .getByText("Vendedor Acesso", { exact: true })
     .click();
 
-  const nivel = dialog.getByRole("textbox", {
+  const nivel = dialog.getByRole("combobox", {
     name: "Nível da tabela de preço",
   });
   await nivel.click();
@@ -189,7 +189,7 @@ test("fábrica/clientes: a confirmação de transferência não empilha modal", 
   await page.getByRole("button", { name: "Vincular cliente" }).click();
 
   const dialog = page.getByRole("dialog");
-  const cliente = dialog.getByRole("textbox", { name: "Cliente" });
+  const cliente = dialog.getByRole("combobox", { name: "Cliente" });
   await cliente.click();
   await cliente.pressSequentially("Cliente Alvo");
   await page
@@ -197,7 +197,7 @@ test("fábrica/clientes: a confirmação de transferência não empilha modal", 
     .getByText("Cliente Alvo — atendido por Vendedor Antigo", { exact: true })
     .click();
 
-  const vendedor = dialog.getByRole("textbox", { name: "Vendedor" });
+  const vendedor = dialog.getByRole("combobox", { name: "Vendedor" });
   await vendedor.click();
   await vendedor.pressSequentially("Vendedor Novo");
   await page
@@ -205,7 +205,7 @@ test("fábrica/clientes: a confirmação de transferência não empilha modal", 
     .getByText("Vendedor Novo", { exact: true })
     .click();
 
-  const nivel = dialog.getByRole("textbox", {
+  const nivel = dialog.getByRole("combobox", {
     name: "Nível da tabela de preço",
   });
   await nivel.click();
@@ -237,11 +237,11 @@ test("fábrica/clientes: a confirmação de transferência não empilha modal", 
   await page.getByRole("button", { name: "Cancelar" }).click();
 
   await expect(dialogs).toHaveCount(1);
-  await expect(page.getByRole("textbox", { name: "Cliente" })).toHaveValue(
+  await expect(page.getByRole("combobox", { name: "Cliente" })).toHaveValue(
     "Cliente Alvo — atendido por Vendedor Antigo"
   );
   await expect(
-    page.getByRole("textbox", { name: "Nível da tabela de preço" })
+    page.getByRole("combobox", { name: "Nível da tabela de preço" })
   ).toHaveValue("Varejo");
 });
 
@@ -285,7 +285,7 @@ test("fábrica/clientes: edita o vínculo (nível/prioridade)", async ({
   // nível pré-preenchido do nó; mudamos só a prioridade.
   // GOTCHA: select prefilled traz o label atual ("Alta") no input — é preciso
   // LIMPAR antes de digitar, senão pressSequentially concatena ("AltaMédia").
-  const prioridade = dialog.getByRole("textbox", { name: "Prioridade" });
+  const prioridade = dialog.getByRole("combobox", { name: "Prioridade" });
   await prioridade.click();
   await prioridade.press("ControlOrMeta+a");
   await prioridade.press("Delete");
