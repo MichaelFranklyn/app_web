@@ -29,3 +29,10 @@ export function describeSettlements(installments: OrderInstallment[]) {
   if (parts.length === 0) return "";
   return parts.join(" e ");
 }
+
+/** Espelha `MIN_REASON_LENGTH` de `order_invoice_reversals/recorder.py`. */
+export const MIN_REVERSAL_REASON_LENGTH = 5;
+
+/** O motivo diz alguma coisa? ("ok" e espaços não explicam o que foi apagado.) */
+export const isValidReversalReason = (reason: string): boolean =>
+  reason.trim().replace(/\s+/g, " ").length >= MIN_REVERSAL_REASON_LENGTH;

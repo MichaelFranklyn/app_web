@@ -1,5 +1,6 @@
 "use client";
 
+import { canDeleteOrder } from "@/app/(inside)/_shared/orderStatus";
 import { Avatar } from "@/components/Avatar";
 import { Badge } from "@/components/Badges";
 import { EmptyState } from "@/components/EmptyState";
@@ -227,13 +228,15 @@ export function OrdersTab({ factoryId }: Props) {
                         invalidateKeys={["orders"]}
                         stopPropagationOnTrigger
                       />
-                      <DeleteOrderModal
-                        orderId={o.id}
-                        orderCode={`#${o.id.slice(-6).toUpperCase()}`}
-                        onRemoveOptimistic={optimistic.removeOptimistic}
-                        onCommit={optimistic.commit}
-                        onRollback={optimistic.rollback}
-                      />
+                      {canDeleteOrder(o.status) && (
+                        <DeleteOrderModal
+                          orderId={o.id}
+                          orderCode={`#${o.id.slice(-6).toUpperCase()}`}
+                          onRemoveOptimistic={optimistic.removeOptimistic}
+                          onCommit={optimistic.commit}
+                          onRollback={optimistic.rollback}
+                        />
+                      )}
                     </div>
                   </Table.Cell>
                 </Table.Row>

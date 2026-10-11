@@ -100,7 +100,18 @@ describe("useSendOrQueue", () => {
 });
 
 describe("useOfflineEntry", () => {
-  beforeEach(() => resetQueueForTests());
+  beforeEach(() => {
+    resetQueueForTests();
+    getCookie.mockReturnValue({ userId: "u1" });
+  });
+
+  it("não mostra o registro que outra pessoa guardou no mesmo aparelho", () => {
+    const { result } = renderHook(() => useOfflineEntry("visit:v1"));
+
+    act(() => enqueue({ ...draft(), userId: "outra" }));
+
+    expect(result.current).toBeUndefined();
+  });
 
   it("a tela vê a resposta guardada assim que ela entra na fila", () => {
     const { result } = renderHook(() => useOfflineEntry("visit:v1"));

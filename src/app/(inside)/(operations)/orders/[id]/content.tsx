@@ -9,6 +9,8 @@ import { useQuery } from "@apollo/client/react";
 import { PackageX } from "lucide-react";
 import { BackorderBanner } from "./_components/BackorderBanner";
 import { InstallmentsCard } from "./_components/InstallmentsCard";
+import { InvoiceReversalsCard } from "./_components/InvoiceReversalsCard";
+import { ItemsLockedBanner } from "./_components/ItemsLockedBanner";
 import { OrderDetailHeader } from "./_components/OrderDetailHeader";
 import { OrderDetailSkeleton } from "./_components/OrderDetailSkeleton";
 import { OrderItemsTable } from "./_components/OrderItemsTable";
@@ -16,6 +18,7 @@ import { OrderSummaryCard } from "./_components/OrderSummaryCard";
 import { PaymentMinimumBanner } from "./_components/PaymentMinimumBanner";
 import { ORDER_DETAIL_QUERY, ORDER_ITEMS_QUERY } from "./gql";
 import { OrderDetailResponse, OrderItemsResponse } from "./interface";
+import { itemsLockReason } from "./utils";
 
 interface Props {
   id: string;
@@ -69,6 +72,8 @@ export default function OrderDetailContent({
     );
   }
 
+  const itemsLock = itemsLockReason(order.status, order.invoicedAt);
+
   return (
     <PageContent className="print-area">
       <OrderDetailHeader order={order} onRefetch={refetch} />
@@ -83,8 +88,10 @@ export default function OrderDetailContent({
             className="flex min-w-0 flex-1 flex-col gap-12"
             data-tour="order-items"
           >
+            <ItemsLockedBanner reason={itemsLock} />
             <OrderItemsTable
               orderId={order.id}
+              isLocked={itemsLock !== null}
               factoryId={order.factory?.id ?? null}
               clientId={order.client?.id ?? null}
               ipiInOrder={order.ipiInOrder}
@@ -94,6 +101,8 @@ export default function OrderDetailContent({
             {order.invoicedAt && order.installments.length > 0 && (
               <InstallmentsCard order={order} onChanged={() => refetch()} />
             )}
+
+            <InvoiceReversalsCard reversals={order.invoiceReversals ?? []} />
 
             {order.notes && (
               <Card.Root>

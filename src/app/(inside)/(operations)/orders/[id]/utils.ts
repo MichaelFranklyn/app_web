@@ -1,5 +1,6 @@
 import { formatNumber } from "@/utils/format/masks";
 
+import { OrderStatus } from "../interface";
 import { InstallmentStatus, OrderItemProductTax } from "./interface";
 
 /** Item mínimo para o faturamento parcial (id, quantidade pedida, nome). */
@@ -160,4 +161,48 @@ export const INSTALLMENT_STATUS_TONE: Record<
   PAID: "green",
   CANCELLED: "red",
   DEFAULTED: "red",
+};
+
+/**
+ * Por que os itens do pedido não podem mais mudar — ou `null` se podem.
+ *
+ * Espelha `items_edit_refusal` do backend (`orders/edit_policy.py`): é o
+ * servidor quem recusa; aqui a tela só evita oferecer um botão que ele vai
+ * negar. Faturou, o valor virou boleto e comissão; entregou, virou estoque do
+ * cliente.
+ */
+export const itemsLockReason = (
+  status: OrderStatus,
+  invoicedAt: string | null
+): string | null => {
+  if (status === "CANCELLED") return "Este pedido está cancelado.";
+  if (status === "DELIVERED")
+    return "Este pedido já foi entregue ao cliente, e os itens já abasteceram o estoque dele.";
+  if (invoicedAt || status === "INVOICED")
+    return "Este pedido já foi faturado, e os itens entraram nos boletos e na comissão. Para corrigir um item, use Revisar faturamento, depois Desfazer faturamento, e fature de novo.";
+  return null;
+};
+
+/** "3 parcelas apagadas · 1 com baixa lançada · faturado em 10/07/2026 (NF 123)". */
+export const reversalSummary = (reversal: {
+  installmentsCount: number;
+  settlementsDropped: number;
+  invoicedAt: string | null;
+  invoiceNumber: string | null;
+}): string => {
+  const parts = [
+    reversal.installmentsCount === 1
+      ? "1 parcela apagada"
+      : `${reversal.installmentsCount} parcelas apagadas`,
+  ];
+  if (reversal.settlementsDropped > 0) {
+    parts.push(`${reversal.settlementsDropped} com baixa lançada`);
+  }
+  if (reversal.invoicedAt) {
+    const [year, month, day] = reversal.invoicedAt.slice(0, 10).split("-");
+    parts.push(
+      `faturado em ${day}/${month}/${year}${reversal.invoiceNumber ? ` (NF ${reversal.invoiceNumber})` : ""}`
+    );
+  }
+  return parts.join(" · ");
 };

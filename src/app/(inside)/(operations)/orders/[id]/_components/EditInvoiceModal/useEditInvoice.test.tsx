@@ -74,10 +74,10 @@ const reviseMock = (input: Record<string, unknown>, id = "o1") => ({
   },
 });
 
-const uninvoiceMock = (force: boolean) => ({
+const uninvoiceMock = (force: boolean, reason: string | null = null) => ({
   request: {
     query: UNINVOICE_ORDER_MUTATION,
-    variables: { id: "o1", force },
+    variables: { id: "o1", force, reason },
   },
   result: {
     data: {
@@ -298,9 +298,9 @@ describe("useEditInvoice — desfazer", () => {
     await waitFor(() => expect(onSuccess).toHaveBeenCalledOnce());
   });
 
-  it("com baixa lançada, refazer o faturamento vai com força", async () => {
+  it("com baixa lançada, refazer vai com força E com o motivo escrito", async () => {
     const { result, onSuccess } = run(
-      [uninvoiceMock(true)],
+      [uninvoiceMock(true, "A fábrica reemitiu a nota")],
       order({
         installments: [
           installment(1, { status: "PAID", paidAt: "2026-10-10" }),
@@ -308,9 +308,33 @@ describe("useEditInvoice — desfazer", () => {
       })
     );
 
+    // Há boleto pago: o motivo é obrigatório, e ainda não foi escrito.
+    expect(result.current.redoNeedsReason).toBe(true);
+    expect(result.current.hasValidReason).toBe(false);
+
+    act(() => result.current.setReason("  A fábrica reemitiu a nota  "));
+    expect(result.current.hasValidReason).toBe(true);
+
     await act(() => result.current.redoInvoice());
 
     await waitFor(() => expect(onSuccess).toHaveBeenCalledOnce());
+  });
+
+  it("sem baixa, o motivo é opcional — e o que for escrito vai junto", async () => {
+    const { result, onSuccess } = run([uninvoiceMock(false, "data errada")]);
+
+    expect(result.current.redoNeedsReason).toBe(false);
+    act(() => result.current.setReason("data errada"));
+    await act(() => result.current.redoInvoice());
+
+    await waitFor(() => expect(onSuccess).toHaveBeenCalledOnce());
+  });
+
+  it("'ok' e espaços não contam como motivo", () => {
+    const { result } = run([]);
+
+    act(() => result.current.setReason("  ok  "));
+    expect(result.current.hasValidReason).toBe(false);
   });
 
   it("fechar o modal esquece a ação destrutiva pendente", () => {

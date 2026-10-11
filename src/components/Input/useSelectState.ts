@@ -62,6 +62,10 @@ export function useSelectState({
   const [inputValue, setInputValue] = useState("");
   const [isSearching, setIsSearching] = useState(false);
   const [isCreating, setIsCreating] = useState(false);
+  // Opção sob o teclado (índice em `filteredOptions`; -1 = nenhuma). O foco
+  // continua no campo de texto: quem "anda" é só esta marca, anunciada ao
+  // leitor de tela por `aria-activedescendant`.
+  const [activeIndex, setActiveIndex] = useState(-1);
 
   const isAsync = !!onSearch;
 
@@ -94,6 +98,12 @@ export function useSelectState({
       }
     }
   }, [value, variant, isSearching]);
+
+  // A marca do teclado não sobrevive a uma lista que mudou: o índice apontaria
+  // para outra opção. Fechou ou filtrou, volta ao começo.
+  useEffect(() => {
+    setActiveIndex(-1);
+  }, [open, inputValue, options.length]);
 
   // Ao fechar, encerra a busca e restaura o texto para o rótulo selecionado.
   useEffect(() => {
@@ -223,11 +233,73 @@ export function useSelectState({
       (opt) => opt.label.toLowerCase() === inputValue.toLowerCase()
     );
 
+  const chooseOption = (option: SelectOption) => {
+    if (variant === "single") handleSelectSingle(option);
+    else handleToggleOption(option);
+  };
+
+  /** Anda a marca do teclado, dando a volta nas pontas. */
+  const moveActive = (step: 1 | -1) => {
+    const last = filteredOptions.length - 1;
+    if (last < 0) return;
+    setActiveIndex((current) => {
+      // Primeira seta numa lista recém-aberta: parte da opção já escolhida.
+      if (current < 0) {
+        const selected = filteredOptions.findIndex(isSelected);
+        if (selected >= 0) return selected;
+        return step === 1 ? 0 : last;
+      }
+      const next = current + step;
+      if (next > last) return 0;
+      if (next < 0) return last;
+      return next;
+    });
+  };
+
   const handleKeyDown = (e: React.KeyboardEvent<HTMLInputElement>) => {
+    if (e.key === "ArrowDown" || e.key === "ArrowUp") {
+      // Sem isto a seta move o cursor dentro do texto e a página rola.
+      e.preventDefault();
+      if (!open) {
+        setOpen(true);
+        return;
+      }
+      moveActive(e.key === "ArrowDown" ? 1 : -1);
+      return;
+    }
+    if (open && (e.key === "Home" || e.key === "End")) {
+      if (filteredOptions.length === 0) return;
+      e.preventDefault();
+      setActiveIndex(e.key === "Home" ? 0 : filteredOptions.length - 1);
+      return;
+    }
+    if (e.key === "Escape" && open) {
+      // Fecha SÓ a lista. Sem segurar o evento, o Escape subia até o Modal e
+      // fechava o formulário inteiro com o que a pessoa já tinha preenchido.
+      e.preventDefault();
+      e.stopPropagation();
+      setOpen(false);
+      return;
+    }
+    // Multi: com o campo vazio, Backspace tira a última escolha — o "x" de
+    // cada etiqueta só responde ao mouse.
+    if (
+      e.key === "Backspace" &&
+      variant === "multi" &&
+      !inputValue &&
+      multiValue.length > 0
+    ) {
+      const newValue = multiValue.slice(0, -1);
+      setMultiValue(newValue);
+      onChange?.(newValue);
+      return;
+    }
     if (e.key === "Enter") {
       e.preventDefault();
       e.stopPropagation();
-      if (inputValue.trim()) handleCreateNew();
+      const active = open ? filteredOptions[activeIndex] : undefined;
+      if (active) chooseOption(active);
+      else if (inputValue.trim()) handleCreateNew();
     }
     if (e.key === "Tab" && open && inputValue.trim()) {
       if (filteredOptions.length > 0) {
@@ -263,5 +335,7 @@ export function useSelectState({
     hasValue,
     showCreateOption,
     handleKeyDown,
+    activeIndex,
+    setActiveIndex,
   };
 }

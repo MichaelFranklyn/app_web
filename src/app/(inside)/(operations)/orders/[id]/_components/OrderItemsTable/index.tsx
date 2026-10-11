@@ -69,6 +69,8 @@ interface Props {
   clientId?: string | null;
   /** Fábrica cobra IPI no pedido: exibe a alíquota por item e o IPI nos totais. */
   ipiInOrder?: boolean;
+  /** Pedido faturado, entregue ou cancelado: os itens só são lidos. */
+  isLocked?: boolean;
   /** Atualiza o detalhe do pedido (totais) após mudanças nos itens. */
   onOrderChanged?: () => void;
 }
@@ -78,6 +80,7 @@ export function OrderItemsTable({
   factoryId,
   clientId,
   ipiInOrder = false,
+  isLocked = false,
   onOrderChanged,
 }: Props) {
   const invalidateClient = useInvalidateQueriesClient();
@@ -96,7 +99,7 @@ export function OrderItemsTable({
 
   // Produto, Tabela, Qtd, Preço sem imposto, Preço com imposto, Desconto,
   // Imposto, Subtotal, Ações — mais Alíq. IPI nas fábricas com IPI no pedido.
-  const columns = ipiInOrder ? 10 : 9;
+  const columns = (ipiInOrder ? 10 : 9) - (isLocked ? 1 : 0);
 
   // Ordem de criação, do mais antigo para o mais novo. A importação grava um
   // item por vez (commit por linha), então o created_at cresce na ordem da
@@ -204,24 +207,28 @@ export function OrderItemsTable({
               {items.length} {items.length === 1 ? "item" : "itens"}
             </Badge.Text>
           </Badge.Root>
-          {/* Importação em massa é recurso de plano. */}
-          <FeatureGate feature="BULK_IMPORT">
-            <ImportOrderModal
-              orderId={orderId}
-              ipiInOrder={ipiInOrder}
-              onImported={handleItemAdded}
-            />
-          </FeatureGate>
-          <AddOrderItemModal
-            orderId={orderId}
-            factoryId={factoryId}
-            clientId={clientId}
-            ipiInOrder={ipiInOrder}
-            existingProductIds={existingProductIds}
-            lastTierId={lastTierId}
-            onAdded={addOptimistic}
-            onRefetch={handleItemAdded}
-          />
+          {!isLocked && (
+            <>
+              {/* Importação em massa é recurso de plano. */}
+              <FeatureGate feature="BULK_IMPORT">
+                <ImportOrderModal
+                  orderId={orderId}
+                  ipiInOrder={ipiInOrder}
+                  onImported={handleItemAdded}
+                />
+              </FeatureGate>
+              <AddOrderItemModal
+                orderId={orderId}
+                factoryId={factoryId}
+                clientId={clientId}
+                ipiInOrder={ipiInOrder}
+                existingProductIds={existingProductIds}
+                lastTierId={lastTierId}
+                onAdded={addOptimistic}
+                onRefetch={handleItemAdded}
+              />
+            </>
+          )}
         </Table.CardHead.Actions>
       </Table.CardHead>
 
@@ -297,9 +304,14 @@ export function OrderItemsTable({
             >
               Subtotal{ipiInOrder ? " (sem IPI)" : ""}
             </Table.Head>
-            <Table.Head className="text-right" title={ITEM_COLUMN_HELP.actions}>
-              Ações
-            </Table.Head>
+            {!isLocked && (
+              <Table.Head
+                className="text-right"
+                title={ITEM_COLUMN_HELP.actions}
+              >
+                Ações
+              </Table.Head>
+            )}
           </Table.Row>
         </Table.Header>
 
@@ -331,8 +343,9 @@ export function OrderItemsTable({
                   </EmptyState.Icon>
                   <EmptyState.Title>Pedido sem itens</EmptyState.Title>
                   <EmptyState.Description>
-                    Use &quot;Adicionar item&quot; para incluir produtos neste
-                    pedido.
+                    {isLocked
+                      ? "Este pedido não tem produtos."
+                      : 'Use "Adicionar item" para incluir produtos neste pedido.'}
                   </EmptyState.Description>
                 </EmptyState.Root>
               </Table.Cell>
@@ -422,23 +435,25 @@ export function OrderItemsTable({
                 <Table.Cell variant="strong" align="right">
                   {formatMoney(Number(item.subtotal) + Number(item.taxAmount))}
                 </Table.Cell>
-                <Table.Cell>
-                  <div className="flex items-center justify-end gap-4">
-                    <EditOrderItemModal
-                      item={item}
-                      ipiInOrder={ipiInOrder}
-                      onOptimisticUpdate={updateOptimistic}
-                      onRollback={rollback}
-                      onRefetch={handleRefetch}
-                    />
-                    <DeleteOrderItemModal
-                      item={item}
-                      onOptimisticRemove={removeOptimistic}
-                      onRollback={rollback}
-                      onRefetch={handleRefetch}
-                    />
-                  </div>
-                </Table.Cell>
+                {!isLocked && (
+                  <Table.Cell>
+                    <div className="flex items-center justify-end gap-4">
+                      <EditOrderItemModal
+                        item={item}
+                        ipiInOrder={ipiInOrder}
+                        onOptimisticUpdate={updateOptimistic}
+                        onRollback={rollback}
+                        onRefetch={handleRefetch}
+                      />
+                      <DeleteOrderItemModal
+                        item={item}
+                        onOptimisticRemove={removeOptimistic}
+                        onRollback={rollback}
+                        onRefetch={handleRefetch}
+                      />
+                    </div>
+                  </Table.Cell>
+                )}
               </Table.Row>
             ))
           )}

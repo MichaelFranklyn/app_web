@@ -72,7 +72,7 @@ test("fábrica/produtos: cadastra um produto (categoria + unidade + rótulo)", a
   await dialog.locator('input[name="sku"]').fill("CIM-50");
   await dialog.locator('input[name="name"]').fill("Cimento CP-II 50kg");
 
-  const categoria = dialog.getByRole("textbox", { name: /^Categoria/ });
+  const categoria = dialog.getByRole("combobox", { name: /^Categoria/ });
   await categoria.click();
   await categoria.pressSequentially("Cimento");
   await page
@@ -80,7 +80,7 @@ test("fábrica/produtos: cadastra um produto (categoria + unidade + rótulo)", a
     .getByText("Cimento", { exact: true })
     .click();
 
-  const unidade = dialog.getByRole("textbox", { name: /^Unidade(?:\s|$)/ });
+  const unidade = dialog.getByRole("combobox", { name: /^Unidade(?:\s|$)/ });
   await unidade.click();
   await unidade.pressSequentially("KG");
   await page
@@ -88,7 +88,7 @@ test("fábrica/produtos: cadastra um produto (categoria + unidade + rótulo)", a
     .getByText("KG", { exact: true })
     .click();
 
-  const rotulo = dialog.getByRole("textbox", { name: /^Rótulo de embalagem/ });
+  const rotulo = dialog.getByRole("combobox", { name: /^Rótulo de embalagem/ });
   await rotulo.click();
   await rotulo.pressSequentially("Saco");
   await page

@@ -110,6 +110,9 @@ interface ContentProps extends React.ComponentPropsWithoutRef<
   size?: "sm" | "md" | "lg" | "xl" | "2xl" | "3xl" | "4xl" | "5xl";
 }
 
+/** Painéis que um campo abre dentro do modal (lista do select, calendário). */
+const OPEN_FIELD_PANELS = "[data-select-dropdown], [data-date-popup]";
+
 const sizeVariants: Record<NonNullable<ContentProps["size"]>, string> = {
   sm: "max-w-sm",
   md: "max-w-md",
@@ -124,8 +127,19 @@ const sizeVariants: Record<NonNullable<ContentProps["size"]>, string> = {
 const Content = React.forwardRef<
   React.ComponentRef<typeof Dialog.Content>,
   ContentProps
->(({ className, size = "md", children, ...props }, ref) => {
+>(({ className, size = "md", children, onEscapeKeyDown, ...props }, ref) => {
   const [portalEl, setPortalEl] = React.useState<HTMLDivElement | null>(null);
+
+  // O Radix escuta o Escape no DOCUMENTO, em captura — antes de a tecla chegar
+  // ao campo, então um `stopPropagation` no select não o alcança. Com uma
+  // lista (ou calendário) aberta dentro do modal, o Escape é dela: fecha a
+  // lista e o formulário fica. Sem lista aberta, fecha o modal como sempre.
+  const handleEscapeKeyDown: typeof onEscapeKeyDown = (event) => {
+    if (portalEl?.parentElement?.querySelector(OPEN_FIELD_PANELS)) {
+      event.preventDefault();
+    }
+    onEscapeKeyDown?.(event);
+  };
 
   return (
     <Dialog.Portal>
@@ -144,6 +158,7 @@ const Content = React.forwardRef<
           sizeVariants[size],
           className
         )}
+        onEscapeKeyDown={handleEscapeKeyDown}
         {...props}
       >
         <ModalPortalContext.Provider value={portalEl}>

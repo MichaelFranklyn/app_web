@@ -63,7 +63,7 @@ test("tabela de preço: adiciona um item (produto + nível + preço)", async ({
 
   const dialog = page.getByRole("dialog");
 
-  const produto = dialog.getByRole("textbox", { name: "Produto" });
+  const produto = dialog.getByRole("combobox", { name: "Produto" });
   await produto.click();
   await produto.pressSequentially("Produto A");
   await page
@@ -71,7 +71,7 @@ test("tabela de preço: adiciona um item (produto + nível + preço)", async ({
     .getByText("Produto A (SKU-001)", { exact: true })
     .click();
 
-  const nivel = dialog.getByRole("textbox", { name: "Nível comercial" });
+  const nivel = dialog.getByRole("combobox", { name: "Nível comercial" });
   await nivel.click();
   await nivel.pressSequentially("Varejo");
   await page

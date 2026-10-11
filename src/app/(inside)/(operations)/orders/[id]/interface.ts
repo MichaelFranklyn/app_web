@@ -127,6 +127,21 @@ export interface OrderDetail {
   paymentTerm: PaymentTermRef | null;
   availablePaymentTerms: PaymentTermRef[];
   installments: OrderInstallment[];
+  invoiceReversals: InvoiceReversal[];
+}
+
+/** Um faturamento desfeito (`uninvoice`) ou com as parcelas refeitas (`revise`). */
+export interface InvoiceReversal {
+  id: string;
+  kind: string;
+  createdAt: string;
+  userEmail: string | null;
+  reason: string | null;
+  invoicedAt: string | null;
+  invoiceNumber: string | null;
+  totalAmount: string;
+  installmentsCount: number;
+  settlementsDropped: number;
 }
 
 export interface OrderItemsResponse {

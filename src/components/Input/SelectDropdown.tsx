@@ -9,8 +9,16 @@ import type { SelectOption } from "./InputSelect";
 import { InputCheckbox } from "./InputCheckbox";
 import { selectStyles } from "./styles";
 
+/** Id de uma opção — o campo aponta para ele em `aria-activedescendant`. */
+export const selectOptionId = (listboxId: string, index: number) =>
+  `${listboxId}-option-${index}`;
+
 interface SelectDropdownProps {
   dropdownRef: RefObject<HTMLDivElement | null>;
+  listboxId: string;
+  /** Opção sob o teclado (-1 = nenhuma). */
+  activeIndex: number;
+  onActiveChange: (index: number) => void;
   position: "absolute" | "fixed";
   /** `openTop`: abre para CIMA do campo quando não há espaço abaixo. */
   pos: { top: number; left: number; width: number; openTop?: boolean };
@@ -31,6 +39,9 @@ interface SelectDropdownProps {
 /** Painel flutuante do InputSelect (opções, selecionar-todos e criar). */
 export const SelectDropdown = ({
   dropdownRef,
+  listboxId,
+  activeIndex,
+  onActiveChange,
   position,
   pos,
   portalTarget,
@@ -50,6 +61,9 @@ export const SelectDropdown = ({
     <div
       ref={dropdownRef}
       data-select-dropdown
+      id={listboxId}
+      role="listbox"
+      aria-multiselectable={variant === "multi" || undefined}
       className={selectStyles.overlay}
       style={{
         position,
@@ -83,11 +97,24 @@ export const SelectDropdown = ({
         </div>
       )}
 
-      {options.map((option) => (
+      {options.map((option, index) => (
         <div
           key={option.value}
+          id={selectOptionId(listboxId, index)}
+          role="option"
+          aria-selected={isSelected(option)}
           className={selectStyles.optionBox}
           data-selected={isSelected(option)}
+          data-active={index === activeIndex}
+          // A opção sob o teclado tem de estar à vista numa lista que rola.
+          ref={
+            index === activeIndex
+              ? (node) => node?.scrollIntoView?.({ block: "nearest" })
+              : undefined
+          }
+          // O mouse e o teclado movem a MESMA marca: sem isto ficavam duas
+          // opções destacadas, e o Enter escolhia a que não era a do ponteiro.
+          onMouseMove={() => index !== activeIndex && onActiveChange(index)}
           onClick={(e) => onSelectOption(option, e)}
         >
           <div className={selectStyles.optionCheckboxWrap}>

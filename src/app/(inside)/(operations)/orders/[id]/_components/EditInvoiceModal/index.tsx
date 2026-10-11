@@ -7,6 +7,7 @@ import { Divider } from "@/components/Divider";
 import { FormBuilder } from "@/components/FormBuilder";
 import { Modal } from "@/components/Modal";
 import { Title } from "@/components/Title";
+import { Input } from "@/components/Input";
 import { FileClock, RotateCcw, TriangleAlert } from "lucide-react";
 
 import { OrderDetail } from "../../interface";
@@ -34,6 +35,10 @@ export function EditInvoiceModal({ order, onSuccess }: Props) {
     isLoading,
     willDropSettlements,
     settlementSummary,
+    reason,
+    setReason,
+    redoNeedsReason,
+    hasValidReason,
     hasBackorder,
     pendingAction,
     setPendingAction,
@@ -71,6 +76,9 @@ export function EditInvoiceModal({ order, onSuccess }: Props) {
                   </Alert.Description>
                 </Alert.Content>
               </Alert.Root>
+            )}
+            {willDropSettlements && pendingAction === null && (
+              <ReasonField value={reason} onChange={setReason} required />
             )}
 
             <FormBuilder
@@ -153,9 +161,16 @@ export function EditInvoiceModal({ order, onSuccess }: Props) {
                 confirmLabel="Refazer faturamento"
                 color="red"
                 isLoading={isLoading}
+                confirmDisabled={redoNeedsReason && !hasValidReason}
                 onCancel={() => setPendingAction(null)}
                 onConfirm={redoInvoice}
-              />
+              >
+                <ReasonField
+                  value={reason}
+                  onChange={setReason}
+                  required={redoNeedsReason}
+                />
+              </ConfirmBlock>
             )}
           </div>
         </Modal.Body>
@@ -180,7 +195,9 @@ export function EditInvoiceModal({ order, onSuccess }: Props) {
             size="md"
             noUppercase
             loading={isLoading}
-            disabled={pendingAction !== null}
+            disabled={
+              pendingAction !== null || (willDropSettlements && !hasValidReason)
+            }
             onClick={() => formRef.current?.submitForm()}
           >
             <Button.Title>
@@ -201,6 +218,37 @@ interface ConfirmBlockProps {
   isLoading: boolean;
   onCancel: () => void;
   onConfirm: () => void;
+  confirmDisabled?: boolean;
+  children?: React.ReactNode;
+}
+
+interface ReasonFieldProps {
+  value: string;
+  onChange: (value: string) => void;
+  required: boolean;
+}
+
+/**
+ * Por que o faturamento está sendo desfeito. Fica no histórico do pedido, com
+ * quem fez e como as parcelas estavam — obrigatório quando há baixa lançada.
+ */
+function ReasonField({ value, onChange, required }: ReasonFieldProps) {
+  return (
+    <Input.Textarea
+      label="Motivo"
+      required={required}
+      rows={2}
+      maxLength={500}
+      placeholder="Ex: a fábrica cancelou a nota e emitiu outra"
+      hint={
+        required
+          ? "Obrigatório: há boleto pago ou comissão recebida neste faturamento. O motivo fica no histórico do pedido."
+          : "Opcional. Fica no histórico do pedido, com o seu nome e a data."
+      }
+      value={value}
+      onChange={(event) => onChange(event.target.value)}
+    />
+  );
 }
 
 /** Confirmação no corpo do modal — evita empilhar uma janela sobre a outra. */
@@ -212,6 +260,8 @@ function ConfirmBlock({
   isLoading,
   onCancel,
   onConfirm,
+  confirmDisabled = false,
+  children,
 }: ConfirmBlockProps) {
   return (
     <Card.Root inset>
@@ -224,6 +274,7 @@ function ConfirmBlock({
             {description}
           </Title>
         </div>
+        {children}
         <div className="flex gap-8">
           <Button.Root
             type="button"
@@ -243,6 +294,7 @@ function ConfirmBlock({
             size="sm"
             noUppercase
             loading={isLoading}
+            disabled={confirmDisabled}
             onClick={onConfirm}
           >
             <Button.Title>{confirmLabel}</Button.Title>

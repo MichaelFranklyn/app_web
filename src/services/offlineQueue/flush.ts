@@ -9,7 +9,7 @@ import {
   OFFLINE_VISIT_STATUS_MUTATION,
 } from "./gql";
 import { OfflineEntry } from "./interface";
-import { getQueueState, settle } from "./store";
+import { refreshQueueState, settle } from "./store";
 import { isConnectivityError, isSessionError, SEND_TIMEOUT_MS } from "./utils";
 
 interface Payload {
@@ -66,6 +66,32 @@ export interface FlushResult {
 // cair juntos, e duas descargas paralelas mandariam a mesma entrada duas vezes.
 let running: Promise<FlushResult> | null = null;
 
+/** Nome da trava entre abas (Web Locks) — uma por origem, vale para o PWA também. */
+export const FLUSH_LOCK = "girus:offline-queue:flush";
+
+const NOTHING: FlushResult = { sent: [], rejected: 0 };
+
+/**
+ * Uma descarga por vez no APARELHO, não só na aba. Com o app aberto em duas
+ * abas (ou aba + PWA instalado), o sinal volta para as duas ao mesmo tempo e
+ * cada uma mandava a fila inteira. O servidor aguenta a repetição — as duas
+ * gravações são repetíveis —, mas a segunda aba podia reenviar uma resposta
+ * ANTIGA por cima de uma nova que a primeira acabara de gravar.
+ *
+ * Quem não pega a trava não espera: a outra aba já está enviando, e o
+ * resultado chega a esta pelo evento `storage`.
+ */
+async function withFlushLock(
+  work: () => Promise<FlushResult>
+): Promise<FlushResult> {
+  const locks = typeof navigator === "undefined" ? undefined : navigator.locks;
+  // Navegador sem Web Locks: fica a trava da aba, como era antes.
+  if (!locks) return work();
+  return locks.request(FLUSH_LOCK, { ifAvailable: true }, (lock) =>
+    lock ? work() : NOTHING
+  );
+}
+
 /**
  * Envia o que está guardado, na ordem em que foi feito, e para no primeiro
  * sinal de rede ruim ou de sessão vencida — o resto espera a próxima
@@ -78,20 +104,29 @@ export function flushQueue(
   client: ApolloClient,
   userId: string
 ): Promise<FlushResult> {
-  running ??= drain(client, userId).finally(() => {
+  running ??= withFlushLock(() => drain(client, userId)).finally(() => {
     running = null;
   });
   return running;
 }
+
+const isSameEntry = (a: OfflineEntry, b: OfflineEntry) =>
+  a.key === b.key && a.userId === b.userId && a.createdAt === b.createdAt;
 
 async function drain(
   client: ApolloClient,
   userId: string
 ): Promise<FlushResult> {
   const result: FlushResult = { sent: [], rejected: 0 };
-  const mine = getQueueState().entries.filter((e) => e.userId === userId);
+  // Do armazenamento, não da memória: outra aba pode ter esvaziado a fila.
+  const mine = refreshQueueState().entries.filter((e) => e.userId === userId);
 
   for (const entry of mine) {
+    // Trocada ou enviada enquanto esperava a vez: a versão nova fica para a
+    // próxima descarga, e a antiga não vai por cima dela.
+    if (!refreshQueueState().entries.some((e) => isSameEntry(e, entry))) {
+      continue;
+    }
     try {
       await sendEntry(client, entry, AbortSignal.timeout(SEND_TIMEOUT_MS));
       settle(entry);

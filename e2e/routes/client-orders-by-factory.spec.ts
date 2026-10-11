@@ -95,7 +95,7 @@ async function pickOption(
   typeText: string,
   optionText: string
 ) {
-  const select = page.getByRole("textbox", { name: fieldLabel });
+  const select = page.getByRole("combobox", { name: fieldLabel });
   await expect(select).toBeEnabled();
   await select.click();
   await select.pressSequentially(typeText);

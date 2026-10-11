@@ -14,7 +14,7 @@ import { useMemo, useRef, useState } from "react";
 import { OrderDetail } from "../../interface";
 import { selectValue } from "../../utils";
 import { REVISE_ORDER_INVOICE_MUTATION, UNINVOICE_ORDER_MUTATION } from "./gql";
-import { describeSettlements, isSettled } from "./utils";
+import { describeSettlements, isSettled, isValidReversalReason } from "./utils";
 
 interface ReviseResponse {
   reviseOrderInvoice: { status: boolean; message: string };
@@ -37,6 +37,9 @@ export function useEditInvoice(order: OrderDetail, onSuccess: () => void) {
   const [open, setOpen] = useState(false);
   const [pendingAction, setPendingAction] = useState<PendingAction>(null);
   const [termId, setTermId] = useState<string | null>(order.paymentTermId);
+  // Por que o faturamento está sendo desfeito/refeito. Vai para o histórico do
+  // pedido; obrigatório quando há baixa lançada (o servidor confere também).
+  const [reason, setReason] = useState("");
   const formRef = useRef<FormBuilderRef>(null);
   const { execute, isLoading } = useAsyncAction();
   const invalidateClient = useInvalidateQueriesClient();
@@ -215,7 +218,7 @@ export function useEditInvoice(order: OrderDetail, onSuccess: () => void) {
         : { clearDeliveryEstimate: true }),
       ...(deliveredAt ? { deliveredAt } : {}),
       // O aviso das baixas já está na tela; o botão diz o que vai acontecer.
-      ...(willDropSettlements ? { force: true } : {}),
+      ...(willDropSettlements ? { force: true, reason: reason.trim() } : {}),
     };
 
     await execute(() => runRevise(input, "Faturamento corrigido."), {
@@ -238,7 +241,11 @@ export function useEditInvoice(order: OrderDetail, onSuccess: () => void) {
     await execute(
       async () => {
         const res = await uninvoiceOrder({
-          variables: { id: order.id, force: settled.length > 0 },
+          variables: {
+            id: order.id,
+            force: settled.length > 0,
+            reason: reason.trim() || null,
+          },
         });
         if (!res.data?.uninvoiceOrder?.status) {
           throw new Error(
@@ -266,6 +273,11 @@ export function useEditInvoice(order: OrderDetail, onSuccess: () => void) {
     /** Trocar o prazo apaga as baixas já lançadas. */
     willDropSettlements,
     settlementSummary,
+    reason,
+    setReason,
+    /** Desfazer apaga baixas já lançadas: o motivo passa a ser obrigatório. */
+    redoNeedsReason: settled.length > 0,
+    hasValidReason: isValidReversalReason(reason),
     /** Este pedido teve o restante mandado para um pedido-filho (backorder). */
     hasBackorder: order.backorderChildren.length > 0,
     pendingAction,

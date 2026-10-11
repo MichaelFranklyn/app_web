@@ -144,7 +144,7 @@ test("pedido detalhe: adiciona um item (cascata produto/nível/preço)", async (
   const dialog = page.getByRole("dialog");
   await expect(dialog).toBeVisible();
 
-  const produto = dialog.getByRole("textbox", {
+  const produto = dialog.getByRole("combobox", {
     name: "Produto (nome ou código)",
   });
   await produto.click();
@@ -159,7 +159,7 @@ test("pedido detalhe: adiciona um item (cascata produto/nível/preço)", async (
   // `resolveTierForProduct`). Este `expect` é o que prende esse preenchimento:
   // quando ele deixava o campo vazio, o preço aparecia sugerido e o nível, em
   // branco, e o vendedor gravava um item sem nível sem perceber.
-  const nivel = dialog.getByRole("textbox", {
+  const nivel = dialog.getByRole("combobox", {
     name: "Nível comercial (opcional)",
   });
   await expect(nivel).toHaveValue("Varejo");

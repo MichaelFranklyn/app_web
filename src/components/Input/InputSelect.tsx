@@ -3,14 +3,14 @@
 import { Badge } from "@/components/Badges";
 import { cn } from "@/lib/utils";
 import { ChevronDown, X } from "lucide-react";
-import React, { useEffect, useRef, useState } from "react";
+import React, { useEffect, useId, useRef, useState } from "react";
 import { InputAddon } from "./Addon";
 import { InputGroup } from "./Group";
 import { InputHint } from "./Hint";
 import { InputBaseProps } from "./InputText";
 import { InputLabel } from "./Label";
 import { InputRoot } from "./Root";
-import { SelectDropdown } from "./SelectDropdown";
+import { SelectDropdown, selectOptionId } from "./SelectDropdown";
 import { useInputContext } from "./context";
 import {
   inputSizeMinHeight,
@@ -201,6 +201,9 @@ const InputSelectControl = ({
     position,
   } = useAnchoredDropdown();
   const inputRef = useRef<HTMLInputElement>(null);
+  // Liga o campo à lista para o leitor de tela (`aria-controls` e
+  // `aria-activedescendant`): a lista mora num portal, longe do campo no DOM.
+  const listboxId = `${useId()}-listbox`;
   const [dropdownPos, setDropdownPos] = useState<{
     top: number;
     left: number;
@@ -326,6 +329,18 @@ const InputSelectControl = ({
               : placeholder
           }
           value={select.inputValue}
+          role="combobox"
+          aria-haspopup="listbox"
+          aria-expanded={open}
+          aria-controls={open ? listboxId : undefined}
+          aria-autocomplete={searchable ? "list" : "none"}
+          aria-activedescendant={
+            open && select.activeIndex >= 0
+              ? selectOptionId(listboxId, select.activeIndex)
+              : undefined
+          }
+          aria-invalid={isError || undefined}
+          autoComplete="off"
           onKeyDown={select.handleKeyDown}
           onChange={(e) => {
             select.setInputValue(e.target.value);
@@ -352,6 +367,7 @@ const InputSelectControl = ({
       )}
 
       <div
+        aria-hidden="true"
         className={cn(selectStyles.dropdownIcon, open && "rotate-180")}
         onClick={(e) => {
           e.stopPropagation();
@@ -367,6 +383,9 @@ const InputSelectControl = ({
       {open && dropdownPos && typeof window !== "undefined" && (
         <SelectDropdown
           dropdownRef={dropdownRef}
+          listboxId={listboxId}
+          activeIndex={select.activeIndex}
+          onActiveChange={select.setActiveIndex}
           position={position}
           pos={dropdownPos}
           portalTarget={modalPortal ?? document.body}

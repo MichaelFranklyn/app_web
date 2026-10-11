@@ -9,6 +9,8 @@ import {
   byCreatedAtAsc,
   commissionModeLabel,
   isPaymentBasis,
+  itemsLockReason,
+  reversalSummary,
   matchesProductSearch,
   taxRatesLabel,
   validatePartialInvoice,
@@ -166,5 +168,54 @@ describe("faturamento parcial (helpers)", () => {
   it("conta itens que vão para o backorder (faturado < pedido)", () => {
     expect(backorderItemCount(items, { a: "20", b: "29", c: "0" })).toBe(2);
     expect(backorderItemCount(items, { a: "39", b: "29", c: "16" })).toBe(0);
+  });
+});
+
+describe("itemsLockReason", () => {
+  it("libera os itens antes do faturamento", () => {
+    expect(itemsLockReason("DRAFT", null)).toBeNull();
+    expect(itemsLockReason("SENT", null)).toBeNull();
+    expect(itemsLockReason("CONFIRMED", null)).toBeNull();
+  });
+
+  it("trava no faturado e aponta a saída", () => {
+    expect(itemsLockReason("INVOICED", "2026-10-01")).toMatch(
+      /Desfazer faturamento/
+    );
+  });
+
+  it("vale a data de faturamento mesmo com o rótulo antigo", () => {
+    expect(itemsLockReason("CONFIRMED", "2026-10-01")).toMatch(/faturado/);
+  });
+
+  it("trava no entregue e no cancelado", () => {
+    expect(itemsLockReason("DELIVERED", "2026-10-01")).toMatch(/entregue/);
+    expect(itemsLockReason("CANCELLED", null)).toMatch(/cancelado/);
+  });
+});
+
+describe("reversalSummary", () => {
+  it("diz quantas parcelas saíram, quantas tinham baixa e como estava a nota", () => {
+    expect(
+      reversalSummary({
+        installmentsCount: 3,
+        settlementsDropped: 1,
+        invoicedAt: "2026-07-10",
+        invoiceNumber: "123",
+      })
+    ).toBe(
+      "3 parcelas apagadas · 1 com baixa lançada · faturado em 10/07/2026 (NF 123)"
+    );
+  });
+
+  it("sem baixa e sem nota, não inventa o que não havia", () => {
+    expect(
+      reversalSummary({
+        installmentsCount: 1,
+        settlementsDropped: 0,
+        invoicedAt: null,
+        invoiceNumber: null,
+      })
+    ).toBe("1 parcela apagada");
   });
 });

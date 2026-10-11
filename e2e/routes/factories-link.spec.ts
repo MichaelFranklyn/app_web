@@ -75,7 +75,7 @@ test("factories: vincula uma fábrica e o card aparece na grid", async ({
   // portal, fora do dialog); clicar a opção no portal.
   // O `value` da opção é o legado "Faturado", mas o LABEL exibido (e filtrado
   // ao digitar) é "Faturamento — comissão paga no faturamento".
-  const basis = dialog.getByRole("textbox", { name: "Base de cálculo" });
+  const basis = dialog.getByRole("combobox", { name: "Base de cálculo" });
   await basis.click();
   await basis.pressSequentially("Faturamento");
   await page

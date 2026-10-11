@@ -35,7 +35,7 @@ const field = (page: Page, name: string) =>
   page.locator(`[data-input-root]:has(input[type="hidden"][name="${name}"])`);
 
 async function choose(page: Page, name: string, optionText: string) {
-  await field(page, name).getByRole("textbox").click();
+  await field(page, name).getByRole("combobox").click();
   await page
     .locator("[data-select-dropdown]")
     .getByText(optionText, { exact: true })
