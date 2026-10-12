@@ -7,7 +7,6 @@ import { Dropdown } from "@/components/Dropdown";
 
 import { Title } from "@/components/Title";
 import { Topbar } from "@/components/Topbar";
-import * as DropdownMenuPrimitive from "@radix-ui/react-dropdown-menu";
 import { Bell, Check, CheckCheck } from "lucide-react";
 
 // O sino é a PRÉVIA; a lista inteira, com filtro e paginação, está na central.
