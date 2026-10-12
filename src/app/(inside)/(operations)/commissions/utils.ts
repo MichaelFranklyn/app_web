@@ -7,7 +7,12 @@ import {
   monthStartIso,
   type YearMonth,
 } from "@/utils/format/month";
-import { CommissionRow, CommissionStatus } from "./interface";
+import {
+  CommissionMonthData,
+  CommissionMonthGroupData,
+  CommissionRow,
+  CommissionStatus,
+} from "./interface";
 
 // O vocabulário da situação e o agrupamento por fábrica subiram para
 // `(inside)/_shared/commissions` quando o relatório de comissões passou a
@@ -25,9 +30,18 @@ export {
   groupByFactory,
 } from "../../_shared/commissions";
 
-/** O grupo desta página é sempre de linhas de comissão — o genérico fica no pai. */
-export type FactoryGroup =
-  import("../../_shared/commissions").FactoryGroup<CommissionRow>;
+/**
+ * O cartão de uma fábrica: o resumo de TODAS as parcelas dela no recorte, já
+ * somado no servidor. As linhas não moram aqui — o cartão pede as suas, uma
+ * página por vez (ver `useFactoryRows`).
+ */
+export interface FactoryGroup {
+  factoryId: string;
+  name: string;
+  /** Quantas parcelas a fábrica tem no recorte (todas as páginas). */
+  count: number;
+  summary: RowsSummary;
+}
 
 export type CommissionTab =
   | "receivable"
@@ -54,51 +68,6 @@ const RECEIVABLE_STATUSES: CommissionStatus[] = [
   "refund",
 ];
 
-/**
- * Recorta as linhas pela situação escolhida.
- *
- * "Boleto em atraso" não é um status de comissão e sim do BOLETO: junta o
- * vencido não pago com o calote confirmado, que é o que está travando o
- * dinheiro. As demais abas continuam filtrando pelo status da comissão.
- */
-export const filterByTab = (
-  rows: CommissionRow[],
-  tab: CommissionTab,
-  lens: CommissionLens = OFFICE_LENS
-): CommissionRow[] => {
-  if (tab === "all") return rows;
-  // O boleto é do CLIENTE: ele não muda com a ótica. As demais abas falam da
-  // situação da comissão, que é diferente nos dois níveis — a mesma parcela
-  // pode estar recebida para o escritório e a receber para o vendedor.
-  if (tab === "overdue")
-    return rows.filter((row) => row.isOverdue || row.defaultedAt !== null);
-  if (tab === "receivable")
-    return rows.filter((row) => RECEIVABLE_STATUSES.includes(lens.status(row)));
-  return rows.filter((row) => lens.status(row) === tab);
-};
-
-/**
- * Recorta pelo mês escolhido — exceto em "Boleto em atraso".
- *
- * Nas abas de comissão o mês É o assunto: elas respondem "quanto cai neste
- * fechamento", e a data que importa é a de recebimento.
- *
- * Atraso não é evento de mês, é acúmulo. E a conferência do que o cliente não
- * pagou é feita contra o relatório que a fábrica manda — que vem com boletos de
- * vencimentos espalhados, não de um mês só. Recortando por mês, o gestor teria
- * de descobrir os meses de vencimento um a um e marcar um lote em cada: quatro
- * navegações para um relatório só. Aqui a aba mostra tudo o que está travado.
- */
-export const filterByMonth = (
-  rows: CommissionRow[],
-  month: YearMonth,
-  tab: CommissionTab,
-  lens: CommissionLens = OFFICE_LENS
-): CommissionRow[] =>
-  tab === "overdue"
-    ? rows
-    : rows.filter((row) => isInMonth(lens.receiveDate(row), month));
-
 // A navegação por mês virou coisa de duas telas (comissões e metas) e mora em
 // @/utils/format/month. Re-exportado aqui porque a página inteira já a consome
 // por este arquivo — o importante é existir uma implementação só.
@@ -123,49 +92,22 @@ export interface MonthSummary {
 }
 
 /**
- * Consolida as comissões de UM mês (pela data em que a comissão cai) somando
- * todas as fábricas — é o "quanto entra em agosto". Linhas previstas sem data
- * de recebimento entram como previsto.
+ * Os três cartões do mês, como o servidor os somou (`commissionMonth`).
  *
- * A LENTE decide de quem é esse dinheiro e por qual calendário ele é medido: o
- * repasse da fábrica ao escritório, ou a fatia do vendedor no ciclo dele. Os
- * dois números existem ao mesmo tempo na mesma parcela.
+ * A soma é do recorte COMPLETO — mês, ótica e filtros do painel —, nunca da
+ * página aberta. O servidor manda decimais em texto; aqui viram número uma vez
+ * só, para o resto da tela não repetir a conversão.
  */
-export const summarizeMonth = (
-  rows: CommissionRow[],
-  month: YearMonth,
-  lens: CommissionLens = OFFICE_LENS
-): MonthSummary => {
-  const summary: MonthSummary = {
-    receivable: 0,
-    received: 0,
-    pending: 0,
-    countReceivable: 0,
-    chargeback: 0,
-    refund: 0,
-  };
-  for (const row of rows) {
-    if (!isInMonth(lens.receiveDate(row), month)) continue;
-    const status = lens.status(row);
-    const amount = lens.amount(row);
-    if (status === "receivable") {
-      summary.receivable += amount;
-      summary.countReceivable += 1;
-    } else if (status === "received") {
-      summary.received += amount;
-    } else if (status === "pending") {
-      summary.pending += amount;
-    } else if (status === "chargeback") {
-      // Estorno já vem negativo: entra no a receber para o mês fechar líquido.
-      summary.chargeback += amount;
-      summary.receivable += amount;
-    } else if (status === "refund") {
-      summary.refund += amount;
-      summary.receivable += amount;
-    }
-  }
-  return summary;
-};
+export const monthSummaryFromServer = (
+  totals?: CommissionMonthData["monthTotals"]
+): MonthSummary => ({
+  receivable: Number(totals?.receivable ?? 0),
+  received: Number(totals?.received ?? 0),
+  pending: Number(totals?.pending ?? 0),
+  countReceivable: totals?.countReceivable ?? 0,
+  chargeback: Number(totals?.chargeback ?? 0),
+  refund: Number(totals?.refund ?? 0),
+});
 
 // ── Relatório do mês (PDF) ───────────────────────────────────────────────────
 
@@ -415,47 +357,26 @@ export interface OfficeSplit {
 }
 
 /**
- * Quanto da comissão do mês fica com o escritório.
+ * Quanto da comissão do mês fica com o escritório, como o servidor mediu.
  *
  * São dois acordos empilhados: a fábrica paga uma comissão ao escritório, e o
  * vendedor tem a taxa dele sobre o pedido (ver `seller_commission_rate`), que
  * sai de dentro dessa comissão.
- * Sem esta conta o gestor só enxerga o número de cima e trata o repasse como se
- * não existisse.
  *
- * Mede as duas pontas sobre as MESMAS parcelas — as cujo repasse da fábrica cai
- * no mês —, e não cada uma pelo seu próprio calendário: o vendedor pode ser
- * pago num mês diferente, e comparar dois conjuntos daria uma sobra que não é
- * de ninguém. Só vale para quem vê o nível do escritório (gestor); na visão do
- * vendedor `amount` JÁ é a fatia dele, e a diferença daria zero.
+ * O servidor mede as duas pontas sobre as MESMAS parcelas — as cujo repasse da
+ * fábrica cai no mês, sempre no calendário do ESCRITÓRIO —, e não cada uma pelo
+ * seu próprio calendário: o vendedor pode ser pago num mês diferente, e
+ * comparar dois conjuntos daria uma sobra que não é de ninguém.
  */
-export const officeSplit = (
-  rows: CommissionRow[],
-  month: YearMonth
-): OfficeSplit => {
-  // `OFFICE_LENS` explícita, e é o ponto da função: o recorte é o calendário
-  // do ESCRITÓRIO nas duas pontas (ver o parágrafo acima). Ler a fatia do
-  // vendedor pelo calendário dele aqui compararia dois conjuntos diferentes de
-  // parcelas e produziria uma sobra que não é de ninguém.
-  const scope = rows.filter(
-    (row) =>
-      isInMonth(row.receiveDate, month) &&
-      (isReceivableStatus(row, OFFICE_LENS) || row.status === "received")
-  );
-
-  const company = scope.reduce((sum, row) => sum + Number(row.amount), 0);
-  const seller = scope.reduce((sum, row) => sum + Number(row.sellerAmount), 0);
-
-  return {
-    company,
-    seller,
-    office: company - seller,
-    // Mês sem comissão nenhuma não tem margem: 0 é melhor que uma divisão por
-    // zero virando "Infinity%" na tela.
-    margin: company !== 0 ? (company - seller) / company : 0,
-    count: scope.length,
-  };
-};
+export const officeSplitFromServer = (
+  split?: CommissionMonthData["split"]
+): OfficeSplit => ({
+  company: Number(split?.company ?? 0),
+  seller: Number(split?.seller ?? 0),
+  office: Number(split?.office ?? 0),
+  margin: split?.margin ?? 0,
+  count: split?.count ?? 0,
+});
 
 export interface RowsSummary {
   receivable: number; // soma a receber, JÁ LÍQUIDA dos estornos
@@ -469,56 +390,30 @@ export interface RowsSummary {
 }
 
 /**
- * Subtotais de um conjunto de linhas (já recortado por fábrica e pelos filtros):
- * o que há a receber, o que já veio, quantas foram conferidas e os ids a receber
- * para o repasse em massa.
+ * O cartão de uma fábrica, como o servidor o resumiu.
  *
- * Os VALORES seguem a lente (de quem é o dinheiro que o cartão da fábrica
- * destaca); os IDS, não — eles alimentam uma ação do escritório. Ver o
- * comentário no laço.
+ * Os VALORES seguem a ótica (de quem é o dinheiro que o cartão destaca); os
+ * IDS, não — eles alimentam "Receber tudo desta fábrica", que marca que a
+ * FÁBRICA pagou e é sempre do nível do escritório. E vêm de todas as parcelas
+ * da fábrica no recorte, não só das que estão na página aberta.
  */
-export const summarizeRows = (
-  rows: CommissionRow[],
-  lens: CommissionLens = OFFICE_LENS
-): RowsSummary => {
-  const summary: RowsSummary = {
-    receivable: 0,
-    received: 0,
-    pending: 0,
-    chargeback: 0,
-    refund: 0,
-    reconciledCount: 0,
-    receivableIds: [],
-    overdueCount: 0,
-  };
-  for (const row of rows) {
-    const status = lens.status(row);
-    const amount = lens.amount(row);
-    if (status === "receivable") summary.receivable += amount;
-    if (status === "received") summary.received += amount;
-    if (status === "pending") summary.pending += amount;
-    if (status === "chargeback") {
-      summary.chargeback += amount;
-      summary.receivable += amount;
-    }
-    // Devolução é positiva: o cliente pagou depois de o desconto ter saído, e o
-    // valor volta pelo mesmo fechamento. Estorno JÁ descontado não entra em
-    // conta nenhuma — ele pesou no mês em que saiu e virou histórico.
-    if (status === "refund") {
-      summary.refund += amount;
-      summary.receivable += amount;
-    }
-    // Os ids do "Receber tudo desta fábrica" NÃO seguem a lente: o botão marca
-    // que a FÁBRICA pagou, e isso é sempre o nível do escritório. Lidos pela
-    // ótica do vendedor, o lote sairia com as parcelas erradas — as que o
-    // escritório ainda deve a ele, que é outra pergunta e outra data.
-    if (row.status === "receivable" || row.status === "refund")
-      summary.receivableIds.push(row.installmentId);
-    if (row.isReconciled) summary.reconciledCount += 1;
-    if (row.isOverdue || row.defaultedAt) summary.overdueCount += 1;
-  }
-  return summary;
-};
+export const factoryGroupFromServer = (
+  group: CommissionMonthGroupData
+): FactoryGroup => ({
+  factoryId: group.factoryId,
+  name: group.name,
+  count: group.count,
+  summary: {
+    receivable: Number(group.receivable),
+    received: Number(group.received),
+    pending: Number(group.pending),
+    chargeback: Number(group.chargeback),
+    refund: Number(group.refund),
+    reconciledCount: group.reconciledCount,
+    receivableIds: group.receivableIds,
+    overdueCount: group.overdueCount,
+  },
+});
 
 export interface FactoryHighlight {
   label: string;
@@ -599,13 +494,13 @@ export interface DefaultImpact {
  * principalmente — que fatia do mês daquele vendedor o desconto consome. Um
  * calote de seis parcelas pode passar do mês inteiro dele.
  *
- * `allRows` é a lista completa (todos os meses, todas as fábricas): a comissão
- * do mês do vendedor não cabe no recorte da fábrica que está sendo conferida.
+ * `monthBySeller` é a comissão de cada vendedor no mês aberto, somada no
+ * servidor pelo calendário DELE (`sellerMonthCommissions`): ela não cabe nas
+ * linhas da fábrica que está sendo conferida, nem na página aberta.
  */
 export const defaultImpact = (
   selected: CommissionRow[],
-  allRows: CommissionRow[],
-  month: YearMonth
+  monthBySeller: Record<string, number>
 ): DefaultImpact => {
   const factoryChargeback = selected
     .filter((row) => row.isReceived)
@@ -622,19 +517,10 @@ export const defaultImpact = (
       atual.amount += amount;
       continue;
     }
-    // A comissão DO VENDEDOR no mês: soma `sellerAmount` pela data DELE
-    // (`sellerReceiveDate`). Usar os campos principais mediria o estorno do
-    // vendedor contra o fechamento do escritório — dois números diferentes.
-    const monthCommission = allRows
-      .filter(
-        (r) =>
-          r.seller?.id === row.seller!.id &&
-          isInMonth(r.sellerReceiveDate, month) &&
-          (r.sellerStatus === "receivable" ||
-            r.sellerStatus === "chargeback" ||
-            r.sellerStatus === "refund")
-      )
-      .reduce((sum, r) => sum + Number(r.sellerAmount), 0);
+    // A comissão DO VENDEDOR no mês, pela data DELE (`sellerReceiveDate`).
+    // Medir contra o fechamento do escritório compararia dois números
+    // diferentes.
+    const monthCommission = monthBySeller[row.seller.id] ?? 0;
     porVendedor.set(row.seller.id, {
       sellerId: row.seller.id,
       name: row.seller.name,
@@ -655,5 +541,60 @@ export const defaultImpact = (
     factoryChargeback: Math.abs(factoryChargeback),
     withoutDebt: selected.filter((row) => !row.isReceived).length,
     sellers,
+  };
+};
+
+// ── Alcance da seleção em lote ───────────────────────────────────────────────
+
+export interface SelectionScope {
+  /** Linha curta da barra de ações: de onde é o lote e quanto dele foi marcado. */
+  label: string;
+  /** Frase do modal de confirmação: o que a ação vai alcançar. */
+  sentence: string;
+}
+
+/**
+ * De onde é o lote marcado e até onde ele vai, por extenso.
+ *
+ * As parcelas de uma fábrica vêm em páginas, e a seleção ACUMULA entre elas: dá
+ * para ter 62 marcadas com 50 na tela. Antes de uma ação em lote o alcance
+ * precisa estar escrito — a fábrica, o recorte, quantas das parcelas dela
+ * entram e quantas delas não estão à vista.
+ */
+export const selectionScope = ({
+  factoryName,
+  periodLabel,
+  selected,
+  total,
+  offPage,
+}: {
+  factoryName: string | null;
+  /** "agosto de 2026" ou, na aba que ignora o mês, "todos os vencimentos". */
+  periodLabel: string;
+  selected: number;
+  /** Parcelas da fábrica no recorte (todas as páginas). */
+  total: number;
+  /** Quantas das marcadas estão em páginas que não a aberta. */
+  offPage: number;
+}): SelectionScope => {
+  if (!factoryName || selected === 0) {
+    return { label: periodLabel, sentence: "" };
+  }
+  const where = `${factoryName} · ${periodLabel}`;
+  const share =
+    total > selected
+      ? `${selected} de ${total} parcelas desta fábrica`
+      : "todas as parcelas desta fábrica";
+  const elsewhere =
+    offPage > 0
+      ? ` · ${offPage} ${offPage === 1 ? "está" : "estão"} em outra página`
+      : "";
+  return {
+    label: `${where} · ${share}${elsewhere}`,
+    sentence:
+      `Esta ação vale para ${selected === 1 ? "a parcela selecionada" : `as ${selected} parcelas selecionadas`} de ${factoryName} (${periodLabel})` +
+      (offPage > 0
+        ? ` — ${offPage} ${offPage === 1 ? "delas não está" : "delas não estão"} na página aberta.`
+        : "."),
   };
 };

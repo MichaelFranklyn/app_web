@@ -2,10 +2,8 @@ import { describe, expect, it } from "vitest";
 import { CommissionRow } from "./interface";
 import {
   addMonths,
+  factoryGroupFromServer,
   factoryHighlights,
-  filterByMonth,
-  filterByTab,
-  summarizeMonth,
   groupByFactory,
   isInMonth,
   boletoLabel,
@@ -14,9 +12,11 @@ import {
   OFFICE_LENS,
   OWN_SELLER_LENS,
   SELLER_LENS,
+  monthSummaryFromServer,
+  officeSplitFromServer,
+  selectionScope,
+  type RowsSummary,
   type YearMonth,
-  officeSplit,
-  summarizeRows,
   yearMonthFromIso,
   defaultImpact,
   pdfVariables,
@@ -111,56 +111,100 @@ describe("groupByFactory", () => {
   });
 });
 
-describe("summarizeRows", () => {
-  it("soma subtotais e conta conferidas", () => {
-    const summary = summarizeRows([
-      row({
-        installmentId: "a",
-        status: "receivable",
-        amount: "10",
-        isReconciled: true,
-      }),
-      row({
-        installmentId: "b",
-        status: "received",
-        amount: "5",
-        isReceivable: false,
-      }),
-      row({ installmentId: "c", status: "receivable", amount: "7" }),
-      row({
-        installmentId: "d",
-        status: "pending",
-        amount: "3",
-        isReceivable: false,
-      }),
-    ]);
-    expect(summary.receivable).toBe(17);
-    expect(summary.received).toBe(5);
-    expect(summary.pending).toBe(3);
-    expect(summary.reconciledCount).toBe(1);
-    expect(summary.receivableIds).toEqual(["a", "c"]);
+describe("factoryGroupFromServer", () => {
+  it("lê o cartão que o servidor somou, com decimais virando número", () => {
+    const group = factoryGroupFromServer({
+      factoryId: "f1",
+      name: "Alfa",
+      count: 4,
+      reconciledCount: 1,
+      receivable: "17.00",
+      received: "5.00",
+      pending: "3.00",
+      chargeback: "-2.50",
+      refund: "0",
+      overdueCount: 2,
+      receivableIds: ["a", "c"],
+    });
+
+    expect(group).toEqual({
+      factoryId: "f1",
+      name: "Alfa",
+      // O total é o da fábrica no recorte — não o da página aberta.
+      count: 4,
+      summary: {
+        receivable: 17,
+        received: 5,
+        pending: 3,
+        chargeback: -2.5,
+        refund: 0,
+        reconciledCount: 1,
+        receivableIds: ["a", "c"],
+        overdueCount: 2,
+      },
+    });
+  });
+});
+
+describe("monthSummaryFromServer e officeSplitFromServer", () => {
+  it("leem os cartões do mês e a repartição como o servidor mandou", () => {
+    expect(
+      monthSummaryFromServer({
+        receivable: "80.00",
+        received: "50.00",
+        pending: "5.00",
+        countReceivable: 1,
+        chargeback: "-30.00",
+        refund: "10.00",
+      })
+    ).toEqual({
+      receivable: 80,
+      received: 50,
+      pending: 5,
+      countReceivable: 1,
+      chargeback: -30,
+      refund: 10,
+    });
+    expect(
+      officeSplitFromServer({
+        company: "1300.00",
+        seller: "550.00",
+        office: "750.00",
+        margin: 0.5769,
+        count: 2,
+      })
+    ).toEqual({
+      company: 1300,
+      seller: 550,
+      office: 750,
+      margin: 0.5769,
+      count: 2,
+    });
   });
 
-  it("zera tudo para uma lista vazia", () => {
-    expect(summarizeRows([])).toEqual({
-      refund: 0,
-      receivable: 0,
-      received: 0,
-      pending: 0,
-      chargeback: 0,
-      reconciledCount: 0,
-      receivableIds: [],
-      overdueCount: 0,
+  it("sem resposta ainda, tudo é zero — e não NaN nos cartões", () => {
+    expect(monthSummaryFromServer(undefined).receivable).toBe(0);
+    expect(officeSplitFromServer(undefined)).toEqual({
+      company: 0,
+      seller: 0,
+      office: 0,
+      margin: 0,
+      count: 0,
     });
   });
 });
 
 describe("factoryHighlights", () => {
-  const summary = summarizeRows([
-    row({ installmentId: "a", status: "receivable", amount: "10" }),
-    row({ installmentId: "b", status: "received", amount: "5" }),
-    row({ installmentId: "c", status: "pending", amount: "3" }),
-  ]);
+  const summary: RowsSummary = {
+    receivable: 10,
+    received: 5,
+    pending: 3,
+    chargeback: 0,
+    refund: 0,
+    reconciledCount: 0,
+    receivableIds: ["a"],
+    overdueCount: 0,
+  };
 
   it("destaca só o valor da situação filtrada", () => {
     expect(factoryHighlights(summary, "receivable")).toEqual([
@@ -397,198 +441,7 @@ describe("boletoLabel", () => {
   });
 });
 
-describe("officeSplit", () => {
-  const march = { year: 2026, month: 3 };
-
-  it("mede as duas pontas sobre as mesmas parcelas", () => {
-    // A fábrica paga 100 ao escritório, que repassa 60 ao vendedor: sobram 40.
-    const split = officeSplit(
-      [
-        row({ installmentId: "a", amount: "100", sellerAmount: "60" }),
-        // Fora do mês: nem a comissão nem o repasse entram.
-        row({
-          installmentId: "b",
-          amount: "500",
-          sellerAmount: "300",
-          receiveDate: "2026-04-10",
-        }),
-      ],
-      march
-    );
-
-    expect(split.company).toBe(100);
-    expect(split.seller).toBe(60);
-    expect(split.office).toBe(40);
-    expect(split.margin).toBeCloseTo(0.4);
-    expect(split.count).toBe(1);
-  });
-
-  it("soma o que já foi recebido junto com o que há a receber", () => {
-    // A pergunta é "quanto a fábrica paga neste mês", e o que já entrou é parte
-    // disso — só o previsto fica de fora, porque ainda depende de acontecer.
-    const split = officeSplit(
-      [
-        row({ installmentId: "a", amount: "10", sellerAmount: "5" }),
-        row({
-          installmentId: "b",
-          amount: "20",
-          sellerAmount: "8",
-          status: "received",
-        }),
-        row({
-          installmentId: "c",
-          amount: "50",
-          sellerAmount: "25",
-          status: "pending",
-        }),
-      ],
-      march
-    );
-
-    expect(split.company).toBe(30);
-    expect(split.office).toBe(17);
-  });
-
-  it("não divide por zero num mês sem comissão", () => {
-    const split = officeSplit([row({ status: "pending" })], march);
-
-    expect(split.margin).toBe(0);
-    expect(split.count).toBe(0);
-  });
-});
-
-describe("estorno nos subtotais", () => {
-  it("desconta o estorno do que há a receber", () => {
-    // O cartão da fábrica precisa fechar no LÍQUIDO: a fábrica paga 10 e
-    // desconta 4 do calote, então o mês vale 6.
-    const summary = summarizeRows([
-      row({ installmentId: "a", status: "receivable", amount: "10" }),
-      row({ installmentId: "b", status: "chargeback", amount: "-4" }),
-    ]);
-    expect(summary.receivable).toBe(6);
-    expect(summary.chargeback).toBe(-4);
-    // O estorno não é uma parcela a receber: não entra no repasse em massa.
-    expect(summary.receivableIds).toEqual(["a"]);
-  });
-
-  it("conta boleto vencido e calote como atraso", () => {
-    const summary = summarizeRows([
-      row({ installmentId: "a", isOverdue: true }),
-      row({ installmentId: "b", defaultedAt: "2026-03-20" }),
-      row({ installmentId: "c" }),
-    ]);
-    expect(summary.overdueCount).toBe(2);
-  });
-});
-
-describe("filterByTab", () => {
-  const rows = [
-    row({ installmentId: "a", status: "receivable" }),
-    row({ installmentId: "b", status: "received" }),
-    row({ installmentId: "c", status: "receivable", isOverdue: true }),
-    row({ installmentId: "d", status: "cancelled", defaultedAt: "2026-03-20" }),
-  ];
-
-  it("filtra pelo status da comissão nas abas de comissão", () => {
-    expect(filterByTab(rows, "received").map((r) => r.installmentId)).toEqual([
-      "b",
-    ]);
-  });
-
-  it('junta vencido e calote em "Boleto em atraso"', () => {
-    // Vencido ainda tem comissão a receber (modo Faturamento) e calote já foi
-    // cancelado: a aba é do BOLETO, não do status da comissão.
-    expect(filterByTab(rows, "overdue").map((r) => r.installmentId)).toEqual([
-      "c",
-      "d",
-    ]);
-  });
-
-  it("não filtra nada em Todas", () => {
-    expect(filterByTab(rows, "all")).toHaveLength(4);
-  });
-});
-
-describe("filterByMonth", () => {
-  const rows = [
-    row({
-      installmentId: "a",
-      receiveDate: "2026-03-10",
-      dueDate: "2026-01-05",
-    }),
-    row({
-      installmentId: "b",
-      receiveDate: "2026-05-10",
-      dueDate: "2026-03-05",
-    }),
-  ];
-
-  it("usa a data do recebimento nas abas de comissão", () => {
-    expect(
-      filterByMonth(rows, { year: 2026, month: 3 }, "receivable").map(
-        (r) => r.installmentId
-      )
-    ).toEqual(["a"]);
-  });
-
-  it("não recorta a aba de boleto em atraso", () => {
-    // Atraso é acúmulo, não evento de mês: a conferência é feita contra o
-    // relatório da fábrica, que vem com vencimentos espalhados. Recortando,
-    // seria um lote por mês de vencimento para um relatório só.
-    expect(
-      filterByMonth(rows, { year: 2026, month: 3 }, "overdue").map(
-        (r) => r.installmentId
-      )
-    ).toEqual(["a", "b"]);
-  });
-});
-
-describe("estorno e devolução no fechamento", () => {
-  const estorno = row({
-    installmentId: "i-estorno",
-    status: "chargeback",
-    amount: "-30",
-    receiveDate: "2026-03-10",
-  });
-  const descontado = row({
-    installmentId: "i-descontado",
-    status: "chargeback_settled",
-    amount: "-30",
-    receiveDate: "2026-03-10",
-  });
-  const devolucao = row({
-    installmentId: "i-devolucao",
-    status: "refund",
-    amount: "30",
-    receiveDate: "2026-03-10",
-  });
-
-  it("a aba A receber mostra o que compõe o fechamento, não só o positivo", () => {
-    // Estorno e devolução caem no mesmo mês e no mesmo bolso: separá-los faria
-    // o gestor somar de cabeça para saber quanto entra.
-    const rows = [row({}), estorno, devolucao, descontado];
-    const ids = filterByTab(rows, "receivable").map((r) => r.installmentId);
-    expect(ids).toEqual(["i1", "i-estorno", "i-devolucao"]);
-  });
-
-  it("estorno já descontado não pesa mais no total", () => {
-    // Ele saiu no mês em que saiu; repetir a conta cobraria a dívida duas vezes.
-    const summary = summarizeRows([row({}), descontado]);
-    expect(summary.receivable).toBe(10);
-    expect(summary.chargeback).toBe(0);
-  });
-
-  it("devolução soma como dinheiro que volta", () => {
-    const summary = summarizeRows([estorno, devolucao]);
-    expect(summary.chargeback).toBe(-30);
-    expect(summary.refund).toBe(30);
-    // Um anula o outro: o mês fecha zerado, que é o certo.
-    expect(summary.receivable).toBe(0);
-  });
-});
-
 describe("defaultImpact", () => {
-  const julho = { year: 2026, month: 7 };
   const vendedor = { id: "s1", name: "Rafael" };
 
   const paga = (over: Partial<CommissionRow>) =>
@@ -606,30 +459,21 @@ describe("defaultImpact", () => {
   it("soma o que volta para a fábrica e o que há a recuperar do vendedor", () => {
     const a = paga({ installmentId: "a" });
     const b = paga({ installmentId: "b" });
-    const mes = row({
-      installmentId: "mes",
-      status: "receivable",
-      seller: vendedor,
-      sellerStatus: "receivable",
-      sellerAmount: "1000",
-      receiveDate: "2026-07-10",
-      sellerReceiveDate: "2026-07-10",
-    });
 
-    const impacto = defaultImpact([a, b], [a, b, mes], julho);
+    // A comissão do mês do vendedor vem somada do servidor, pelo calendário
+    // DELE — e não das linhas da página, que são de uma fábrica só.
+    const impacto = defaultImpact([a, b], { s1: 1000 });
 
     expect(impacto.factoryChargeback).toBe(800);
     expect(impacto.sellers).toHaveLength(1);
     expect(impacto.sellers[0].amount).toBe(400);
-    // Medido contra o fechamento DO VENDEDOR (sellerAmount pela data dele), e
-    // não contra o do escritório: são dois números diferentes.
     expect(impacto.sellers[0].monthCommission).toBe(1000);
     expect(impacto.sellers[0].share).toBeCloseTo(0.4);
   });
 
   it("parcela sem comissão paga não gera dívida para ninguém", () => {
     const prevista = row({ installmentId: "p", status: "receivable" });
-    const impacto = defaultImpact([prevista], [prevista], julho);
+    const impacto = defaultImpact([prevista], {});
 
     expect(impacto.factoryChargeback).toBe(0);
     expect(impacto.sellers).toHaveLength(0);
@@ -639,97 +483,10 @@ describe("defaultImpact", () => {
   it("mês sem comissão nenhuma conta como mês inteiro consumido", () => {
     // Dividir por zero mostraria "Infinity% do mês" na tela.
     const a = paga({ installmentId: "a" });
-    const impacto = defaultImpact([a], [a], { year: 2026, month: 12 });
+    const impacto = defaultImpact([a], {});
 
     expect(impacto.sellers[0].monthCommission).toBe(0);
     expect(impacto.sellers[0].share).toBe(1);
-  });
-});
-
-describe("a ótica governa a tela inteira", () => {
-  /**
-   * O seletor "Valores de: escritório / vendedor" refaz os números da tela toda.
-   * Sem isto, os cartões diziam "A receber em setembro" com o dinheiro da
-   * empresa enquanto o extrato do vendedor trazia outro número e outro mês — e
-   * quem lia concluía que um dos dois estava errado.
-   */
-  const setembro: YearMonth = { year: 2026, month: 9 };
-
-  /** A fábrica paga o escritório em setembro; o escritório paga o vendedor em outubro. */
-  const parcela = row({
-    installmentId: "p1",
-    amount: "1000",
-    status: "receivable",
-    receiveDate: "2026-09-15",
-    sellerAmount: "430",
-    sellerStatus: "receivable",
-    sellerReceiveDate: "2026-10-05",
-  });
-
-  it("o mês da lista é o do calendário da ótica", () => {
-    expect(
-      filterByMonth([parcela], setembro, "receivable", OFFICE_LENS)
-    ).toHaveLength(1);
-    expect(
-      filterByMonth([parcela], setembro, "receivable", SELLER_LENS)
-    ).toHaveLength(0);
-    expect(
-      filterByMonth(
-        [parcela],
-        { year: 2026, month: 10 },
-        "receivable",
-        SELLER_LENS
-      )
-    ).toHaveLength(1);
-  });
-
-  it("a aba recorta pela situação da ótica", () => {
-    // A fábrica já pagou o escritório, que ainda não repassou: "recebida" para
-    // um, "a receber" para o outro. A mesma aba mostra listas diferentes.
-    const meioCaminho = [
-      row({ status: "received", sellerStatus: "receivable" }),
-    ];
-    expect(filterByTab(meioCaminho, "received", OFFICE_LENS)).toHaveLength(1);
-    expect(filterByTab(meioCaminho, "received", SELLER_LENS)).toHaveLength(0);
-    expect(filterByTab(meioCaminho, "receivable", SELLER_LENS)).toHaveLength(1);
-  });
-
-  it("a aba de boleto travado não muda de ótica — o boleto é do cliente", () => {
-    const travada = [
-      row({ isOverdue: true, status: "pending", sellerStatus: "pending" }),
-    ];
-    expect(filterByTab(travada, "overdue", OFFICE_LENS)).toHaveLength(1);
-    expect(filterByTab(travada, "overdue", SELLER_LENS)).toHaveLength(1);
-  });
-
-  it("os cartões do mês somam o dinheiro da ótica", () => {
-    expect(summarizeMonth([parcela], setembro, OFFICE_LENS).receivable).toBe(
-      1000
-    );
-    expect(summarizeMonth([parcela], setembro, SELLER_LENS).receivable).toBe(0);
-    expect(
-      summarizeMonth([parcela], { year: 2026, month: 10 }, SELLER_LENS)
-        .receivable
-    ).toBe(430);
-  });
-
-  it("o cartão da fábrica destaca o valor da ótica", () => {
-    expect(summarizeRows([parcela], OFFICE_LENS).receivable).toBe(1000);
-    expect(summarizeRows([parcela], SELLER_LENS).receivable).toBe(430);
-  });
-
-  it('"Receber tudo desta fábrica" ignora a ótica: o botão é do escritório', () => {
-    // O lote marca que a FÁBRICA pagou. Se os ids seguissem a ótica do
-    // vendedor, o botão marcaria as parcelas que o ESCRITÓRIO ainda deve a ele
-    // — outra pergunta, outra data, e um recebimento lançado onde não houve.
-    const jaRecebida = row({
-      installmentId: "p2",
-      status: "received",
-      sellerStatus: "receivable",
-    });
-
-    expect(summarizeRows([jaRecebida], SELLER_LENS).receivableIds).toEqual([]);
-    expect(summarizeRows([parcela], SELLER_LENS).receivableIds).toEqual(["p1"]);
   });
 });
 
@@ -877,5 +634,48 @@ describe("pdfVariables", () => {
       paidFrom: "2026-12-01",
       paidTo: "2026-12-31",
     });
+  });
+});
+
+describe("selectionScope", () => {
+  const base = { factoryName: "Herc", periodLabel: "agosto de 2026" };
+
+  it("sem seleção, só o recorte", () => {
+    expect(
+      selectionScope({ ...base, selected: 0, total: 120, offPage: 0 })
+    ).toEqual({ label: "agosto de 2026", sentence: "" });
+  });
+
+  it("diz quanto da fábrica foi marcado", () => {
+    const scope = selectionScope({
+      ...base,
+      selected: 50,
+      total: 120,
+      offPage: 0,
+    });
+    expect(scope.label).toBe(
+      "Herc · agosto de 2026 · 50 de 120 parcelas desta fábrica"
+    );
+    expect(scope.sentence).toBe(
+      "Esta ação vale para as 50 parcelas selecionadas de Herc (agosto de 2026)."
+    );
+  });
+
+  it("seleção acumulada entre páginas é dita com todas as letras", () => {
+    const scope = selectionScope({
+      ...base,
+      selected: 62,
+      total: 120,
+      offPage: 12,
+    });
+    expect(scope.label).toContain("62 de 120 parcelas desta fábrica");
+    expect(scope.label).toContain("12 estão em outra página");
+    expect(scope.sentence).toContain("12 delas não estão na página aberta");
+  });
+
+  it("a fábrica inteira marcada não vira '120 de 120'", () => {
+    expect(
+      selectionScope({ ...base, selected: 120, total: 120, offPage: 70 }).label
+    ).toContain("todas as parcelas desta fábrica");
   });
 });

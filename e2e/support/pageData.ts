@@ -11,6 +11,7 @@
  */
 import { getTodayIso } from "@/utils/format/date";
 
+import { commissionsBackend } from "./commissionsServer";
 import { orderDetailData } from "./graphql";
 
 /**
@@ -84,23 +85,6 @@ const commissionRow = () => ({
   client: clientRef,
   factory: factoryRef,
   seller: { id: "seller-1", name: "Rafael Vendas" },
-});
-
-const commissions = () => ({
-  commissions: {
-    latestReceiveDate: null,
-    totalReceivable: "625.00",
-    totalReceived: "0",
-    totalPending: "0",
-    countReceivable: 1,
-    totalChargeback: "0",
-    totalSellerChargeback: "0",
-    totalSellerChargebackPending: "0",
-    totalRefund: "0",
-    totalSellerRefund: "0",
-    countOverdue: 0,
-    rows: [commissionRow()],
-  },
 });
 
 const billingInstallment = () => ({
@@ -194,7 +178,7 @@ const orderItem = () => ({
 export const PAGE_DATA: Record<string, Handlers> = {
   "/commissions": {
     ...reportSellers,
-    Commissions: commissions,
+    ...commissionsBackend([commissionRow()], { latestReceiveDate: null }),
     CommissionsSellers: () => ({ commissions_sellers: sellers() }),
     CommissionsFactories: () => ({
       commissions_factories: conn([

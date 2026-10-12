@@ -1,5 +1,6 @@
 "use client";
 
+import { Loading } from "@/components/Loading";
 import { Title } from "@/components/Title";
 import { Info } from "lucide-react";
 
@@ -33,6 +34,11 @@ interface Props {
   shown: number;
   /** Total do mês antes do painel de filtros — some quando nada foi filtrado. */
   total?: number;
+  /**
+   * A tela está buscando o recorte novo (aba, filtro ou ordem trocados) com o
+   * anterior ainda à vista: os números abaixo ainda são os de antes.
+   */
+  isRefreshing?: boolean;
 }
 
 /**
@@ -54,6 +60,7 @@ export function ListScopeLine({
   scopeLabel,
   shown,
   total,
+  isRefreshing = false,
 }: Props) {
   const foraDoMes = ignoresMonth(tab);
   const filtrado = total !== undefined && total !== shown;
@@ -78,6 +85,14 @@ export function ListScopeLine({
           ? `${shown} de ${total} parcela(s) após os filtros`
           : `${shown} parcela(s)`}
       </Title>
+      {isRefreshing && (
+        <>
+          <Loading.Spinner size="sm" />
+          <Title variant="caption" color="muted">
+            Atualizando…
+          </Title>
+        </>
+      )}
     </div>
   );
 }

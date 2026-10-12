@@ -56,6 +56,32 @@ describe("useScopedSelection", () => {
     expect(result.current.ids).toEqual(["x"]);
   });
 
+  it("togglePage soma as páginas do mesmo escopo e desmarca só a página", () => {
+    const { result } = renderHook(() => useScopedSelection());
+    act(() => result.current.togglePage("fabrica-1", ["a", "b"]));
+    act(() => result.current.togglePage("fabrica-1", ["c", "d"]));
+    expect(result.current.ids).toEqual(["a", "b", "c", "d"]);
+
+    // Página com uma linha já marcada à mão: o clique completa a página.
+    act(() => result.current.toggle("fabrica-1", "a"));
+    act(() => result.current.togglePage("fabrica-1", ["a", "b"]));
+    expect(result.current.count).toBe(4);
+
+    act(() => result.current.togglePage("fabrica-1", ["a", "b"]));
+    expect(result.current.ids).toEqual(["c", "d"]);
+  });
+
+  it("togglePage em outro escopo troca a seleção, e a última página zera", () => {
+    const { result } = renderHook(() => useScopedSelection());
+    act(() => result.current.togglePage("fabrica-1", ["a"]));
+    act(() => result.current.togglePage("fabrica-2", ["x", "y"]));
+    expect(result.current.scopeId).toBe("fabrica-2");
+    expect(result.current.ids).toEqual(["x", "y"]);
+
+    act(() => result.current.togglePage("fabrica-2", ["x", "y"]));
+    expect(result.current.scopeId).toBeNull();
+  });
+
   it("clear esvazia", () => {
     const { result } = renderHook(() => useScopedSelection());
     act(() => result.current.toggleAll("fabrica-1", ["a", "b"]));

@@ -39,6 +39,11 @@ interface Props {
    * um vendedor, ela repetiria o mesmo nome em todas as linhas.
    */
   showSeller?: boolean;
+  /**
+   * A fábrica tem mais de uma página: a caixa do cabeçalho marca as parcelas
+   * DESTA página, e o nome dela precisa dizer isso.
+   */
+  isPaged?: boolean;
   /** Parcelas marcadas para as ações em lote (só gestão). */
   selectedIds?: Set<string>;
   onToggleRow?: (installmentId: string) => void;
@@ -67,6 +72,7 @@ export function CommissionsTable({
   canManage,
   lens = OFFICE_LENS,
   showSeller = false,
+  isPaged = false,
   selectedIds,
   onToggleRow,
   onToggleAll,
@@ -90,7 +96,16 @@ export function CommissionsTable({
                   seleção" e nada mais. */}
               <Input.Checkbox
                 label=""
-                aria-label="Selecionar todas as parcelas desta fábrica"
+                aria-label={
+                  isPaged
+                    ? "Selecionar esta página"
+                    : "Selecionar todas as parcelas desta fábrica"
+                }
+                title={
+                  isPaged
+                    ? "Selecionar esta página — a seleção das outras páginas continua valendo"
+                    : "Selecionar todas as parcelas desta fábrica"
+                }
                 checked={allSelected}
                 onChange={() => onToggleAll?.()}
               />

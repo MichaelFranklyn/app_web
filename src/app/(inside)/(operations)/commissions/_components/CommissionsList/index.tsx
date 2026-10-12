@@ -5,6 +5,10 @@ import { Table, TableSort } from "@/components/Table";
 import { Coins } from "lucide-react";
 
 import { ignoresMonth } from "../../help";
+import {
+  CommissionFactoryRowsData,
+  CommissionMonthInput,
+} from "../../interface";
 import { type CommissionsSelection } from "../../useCommissionsSelection";
 import {
   type CommissionLens,
@@ -16,7 +20,12 @@ import {
 import { FactoryCommissionGroup } from "../FactoryCommissionGroup";
 
 interface Props {
+  /** Um resumo por fábrica, somado no servidor sobre o recorte completo. */
   groups: FactoryGroup[];
+  /** O recorte da tela: cada cartão pede as suas linhas com ele. */
+  input: CommissionMonthInput;
+  /** A primeira página do primeiro cartão, que já veio junto do resumo. */
+  firstCard?: CommissionFactoryRowsData;
   month: YearMonth;
   tab: CommissionTab;
   lens: CommissionLens;
@@ -36,6 +45,8 @@ interface Props {
 /** Um cartão por fábrica com o seu mês — ou o esqueleto, ou o vazio. */
 export function CommissionsList({
   groups,
+  input,
+  firstCard,
   month,
   tab,
   lens,
@@ -96,6 +107,8 @@ export function CommissionsList({
         <FactoryCommissionGroup
           key={group.factoryId}
           group={group}
+          input={input}
+          firstPage={i === 0 ? firstCard : undefined}
           month={month}
           tab={tab}
           defaultOpen={i === 0}
@@ -111,11 +124,12 @@ export function CommissionsList({
               ? (id) => selection.toggle(group.factoryId, id)
               : undefined
           }
-          onToggleAll={
+          onTogglePage={
             canManage
-              ? (ids) => selection.toggleAll(group.factoryId, ids)
+              ? (ids) => selection.togglePage(group.factoryId, ids)
               : undefined
           }
+          onRowsLoaded={selection.register}
           onChanged={onChanged}
         />
       ))}

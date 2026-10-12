@@ -25,6 +25,8 @@ interface Props {
   open?: boolean;
   onOpenChange?: (v: boolean) => void;
   onSuccess: () => void;
+  /** Bloco acima do campo de data — o alcance do lote, quando há um. */
+  children?: React.ReactNode;
 }
 
 export function MarkReceivedModal({
@@ -33,6 +35,7 @@ export function MarkReceivedModal({
   open: controlledOpen,
   onOpenChange,
   onSuccess,
+  children,
 }: Props) {
   const [uncontrolledOpen, setUncontrolledOpen] = useState(false);
   const isControlled = controlledOpen !== undefined;
@@ -120,6 +123,7 @@ export function MarkReceivedModal({
           }
         />
         <Modal.Body>
+          {children}
           <FormBuilder
             ref={formRef}
             steps={steps}

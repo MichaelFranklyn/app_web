@@ -13,6 +13,11 @@ export interface ScopedSelection {
   toggle: (scopeId: string, id: string) => void;
   /** Marca todos os ids do escopo; se já estavam todos marcados, desmarca. */
   toggleAll: (scopeId: string, ids: string[]) => void;
+  /**
+   * Como o `toggleAll`, para listas PAGINADAS: marca (ou desmarca) os ids da
+   * página aberta sem largar o que foi marcado nas outras páginas do escopo.
+   */
+  togglePage: (scopeId: string, ids: string[]) => void;
   clear: () => void;
 }
 
@@ -66,6 +71,23 @@ export const useScopedSelection = (): ScopedSelection => {
     });
   }, []);
 
+  const togglePage = useCallback((scopeId: string, pageIds: string[]) => {
+    setState((current) => {
+      if (pageIds.length === 0) return current;
+      if (current.scopeId !== scopeId)
+        return { scopeId, ids: new Set(pageIds) };
+
+      const ids = new Set(current.ids);
+      // A página inteira já estava marcada: o clique a desmarca — só ela.
+      if (pageIds.every((id) => ids.has(id))) {
+        pageIds.forEach((id) => ids.delete(id));
+      } else {
+        pageIds.forEach((id) => ids.add(id));
+      }
+      return ids.size === 0 ? EMPTY : { scopeId, ids };
+    });
+  }, []);
+
   const clear = useCallback(() => setState(EMPTY), []);
 
   const selectedIn = useCallback(
@@ -82,6 +104,7 @@ export const useScopedSelection = (): ScopedSelection => {
     selectedIn,
     toggle,
     toggleAll,
+    togglePage,
     clear,
   };
 };

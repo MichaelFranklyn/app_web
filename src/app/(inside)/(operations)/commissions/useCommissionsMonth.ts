@@ -2,11 +2,9 @@
 
 import { getTodayIso } from "@/utils/format/date";
 import { useCallback, useEffect, useMemo, useState } from "react";
-import { CommissionRow } from "./interface";
 import {
   addMonths,
   isBeforeMonth,
-  isInMonth,
   type YearMonth,
   yearMonthFromIso,
 } from "./utils";
@@ -75,18 +73,22 @@ export type CommissionsMonth = ReturnType<typeof useCommissionsMonth>;
  */
 export const useMonthFallback = (
   nav: CommissionsMonth,
-  rows: CommissionRow[],
+  /**
+   * Alguma comissão cai no mês aberto? Vem do servidor, sobre o recorte
+   * inteiro — e é `null` enquanto a resposta DESTE mês não chegou: decidir com
+   * a de outro mês recuaria (ou deixaria de recuar) pelo motivo errado.
+   */
+  hasMovement: boolean | null,
   latestReceiveDate: string | null
 ) => {
   const { isPinned, month, settle } = nav;
   useEffect(() => {
-    if (isPinned || !latestReceiveDate) return;
+    if (isPinned || !latestReceiveDate || hasMovement === null) return;
 
-    // As linhas da resposta trazem também o que foge do recorte (estorno do
-    // vendedor, boleto travado): quem diz se o mês tem movimento é a data de
-    // recebimento, a mesma régua do resto da tela.
-    const hasMovement = rows.some((row) => isInMonth(row.receiveDate, month));
+    // Quem diz se o mês tem movimento é a data de recebimento, a mesma régua
+    // do resto da tela — o que foge do recorte (estorno do vendedor, boleto
+    // travado) não conta.
     const latest = yearMonthFromIso(latestReceiveDate);
     settle(!hasMovement && isBeforeMonth(latest, month) ? latest : null);
-  }, [isPinned, latestReceiveDate, rows, month, settle]);
+  }, [isPinned, latestReceiveDate, hasMovement, month, settle]);
 };

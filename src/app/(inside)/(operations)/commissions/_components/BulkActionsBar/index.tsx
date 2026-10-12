@@ -2,6 +2,7 @@
 
 import { Button } from "@/components/Button";
 import { SelectionBar } from "@/components/SelectionBar";
+import { Title } from "@/components/Title";
 import { useAsyncAction } from "@/hooks/useAsyncAction";
 import { useMutation } from "@apollo/client/react";
 import { Ban, CircleDollarSign, HandCoins } from "lucide-react";
@@ -30,14 +31,30 @@ interface Props {
   /** Subconjunto que está a receber da fábrica (para "Recebi"). */
   receivableIds: string[];
   /**
-   * TODAS as linhas da tela (todos os meses e fábricas): é o que permite dizer,
-   * antes de confirmar o calote, que fatia do mês do vendedor o estorno consome.
+   * As parcelas marcadas, com o conteúdo de cada uma. Vêm da seleção, e não
+   * das linhas da tela: o lote pode ter parcela de uma página que já não está
+   * aberta.
    */
-  allRows: CommissionRow[];
+  selectedRows: CommissionRow[];
+  /**
+   * Comissão de cada vendedor no mês aberto (somada no servidor): é o que
+   * permite dizer, antes de confirmar o calote, que fatia do mês do vendedor o
+   * estorno consome.
+   */
+  monthBySeller: Record<string, number>;
   /** Mês aberto — a referência do "quanto sobra" mostrado no aviso. */
   month: YearMonth;
-  /** Onde a seleção vale, mostrado na barra: "Fábrica Alfa · agosto de 2026". */
+  /**
+   * Onde a seleção vale, mostrado na barra: "Fábrica Alfa · agosto de 2026 ·
+   * 62 de 120 parcelas desta fábrica · 12 estão em outra página".
+   */
   scopeLabel?: string;
+  /**
+   * O mesmo alcance em frase inteira, repetido DENTRO de cada modal de
+   * confirmação: a barra fica atrás do modal, e é na hora de confirmar que a
+   * pessoa precisa ler até onde a ação vai.
+   */
+  scopeSentence?: string;
   onClear: () => void;
   onChanged: () => void;
 }
@@ -56,9 +73,11 @@ interface Props {
 export function BulkActionsBar({
   selectedIds,
   receivableIds,
-  allRows,
+  selectedRows,
+  monthBySeller,
   month,
   scopeLabel,
+  scopeSentence,
   onClear,
   onChanged,
 }: Props) {
@@ -79,33 +98,43 @@ export function BulkActionsBar({
   }>(MARK_CHARGEBACK_REFUNDED_MUTATION);
   const { execute, isLoading } = useAsyncAction();
 
-  const impact = useMemo(() => {
-    const ids = new Set(selectedIds);
-    return defaultImpact(
-      allRows.filter((row) => ids.has(row.installmentId)),
-      allRows,
-      month
-    );
-  }, [selectedIds, allRows, month]);
+  const impact = useMemo(
+    () => defaultImpact(selectedRows, monthBySeller),
+    [selectedRows, monthBySeller]
+  );
 
   // Estorno e devolução da FÁBRICA: só aparecem quando há linhas nesses
   // estados no lote, para a barra não crescer com botão que não serve.
-  const { chargebackIds, refundIds } = useMemo(() => {
-    const ids = new Set(selectedIds);
-    const doLote = allRows.filter((row) => ids.has(row.installmentId));
-    return {
-      chargebackIds: doLote
+  const { chargebackIds, refundIds } = useMemo(
+    () => ({
+      chargebackIds: selectedRows
         .filter((row) => row.status === "chargeback")
         .map((row) => row.installmentId),
-      refundIds: doLote
+      refundIds: selectedRows
         .filter((row) => row.status === "refund")
         .map((row) => row.installmentId),
-    };
-  }, [selectedIds, allRows]);
+    }),
+    [selectedRows]
+  );
 
   if (selectedIds.length === 0) return null;
 
   const count = selectedIds.length;
+  const scopeNote = scopeSentence ? (
+    <Title variant="body-sm" weight="semibold">
+      {scopeSentence}
+    </Title>
+  ) : null;
+  // Algumas ações só alcançam PARTE do lote (as que estão a receber, os
+  // estornos): aí a frase do lote inteiro prometeria mais do que o botão faz.
+  const subsetNote = (reached: number, which: string) =>
+    reached === count ? (
+      scopeNote
+    ) : (
+      <Title variant="body-sm" weight="semibold">
+        {`Das ${count} parcelas selecionadas (${scopeLabel ?? "lote"}), esta ação alcança ${reached}: ${which}. As outras ficam como estão.`}
+      </Title>
+    );
 
   return (
     <SelectionBar
@@ -142,7 +171,9 @@ export function BulkActionsBar({
           onClear();
           onChanged();
         }}
-      />
+      >
+        {scopeNote}
+      </DateActionModal>
 
       <DateActionModal
         label="Não pagou"
@@ -170,6 +201,7 @@ export function BulkActionsBar({
           onChanged();
         }}
       >
+        {scopeNote}
         <DefaultImpactNotice impact={impact} month={month} />
       </DateActionModal>
 
@@ -198,7 +230,9 @@ export function BulkActionsBar({
           onClear();
           onChanged();
         }}
-      />
+      >
+        {scopeNote}
+      </DateActionModal>
 
       {chargebackIds.length > 0 && (
         <DateActionModal
@@ -226,7 +260,9 @@ export function BulkActionsBar({
             onClear();
             onChanged();
           }}
-        />
+        >
+          {subsetNote(chargebackIds.length, "as que estão em estorno")}
+        </DateActionModal>
       )}
 
       {refundIds.length > 0 && (
@@ -272,7 +308,12 @@ export function BulkActionsBar({
             onClear();
             onChanged();
           }}
-        />
+        >
+          {subsetNote(
+            receivableIds.length,
+            "as que estão a receber da fábrica"
+          )}
+        </MarkReceivedModal>
       )}
     </SelectionBar>
   );

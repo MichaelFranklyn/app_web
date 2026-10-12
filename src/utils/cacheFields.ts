@@ -54,13 +54,22 @@ export const ORDER_SPLIT_CACHE_FIELDS = [...ORDER_CACHE_FIELDS, "orderItems"];
  * Uma parcela mudou de estado: recebida, paga ao vendedor, conferida,
  * inadimplente, estornada, revertida ou baixada em lote.
  *
- * - `commissions`: a tela de comissões, o relatório de comissões e o PDF leem
- *   o MESMO campo com variáveis diferentes (com e sem período). São entradas de
- *   cache distintas, então o refetch de uma não alcança a outra.
+ * - `commissions`: o PDF do fechamento e quem ainda lê a lista inteira;
+ * - `commissionMonth` / `commissionMonthRows`: a tela mensal — o resumo somado
+ *   no servidor e as páginas de cada fábrica. São entradas de cache distintas
+ *   (uma por fábrica e por página): o refetch do resumo não alcança os cartões
+ *   abertos, e é o evict que os faz buscar de novo;
+ * - `commissionReport`: o relatório do período, paginado no servidor;
  * - `order`: as parcelas moram dentro do pedido, e o detalhe é `cache-first` —
  *   sem isto, o pedido aberto depois mostra a parcela no estado anterior.
  */
-export const COMMISSION_CACHE_FIELDS = ["commissions", "order"];
+export const COMMISSION_CACHE_FIELDS = [
+  "commissions",
+  "commissionMonth",
+  "commissionMonthRows",
+  "commissionReport",
+  "order",
+];
 
 /**
  * Uma visita foi criada, remarcada, concluída ou teve o resultado alterado.
