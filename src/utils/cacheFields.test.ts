@@ -478,7 +478,15 @@ describe("as listas por assunto", () => {
   });
 
   it("cobrem, na comissão, a tela/relatório e o pedido onde a parcela vive", () => {
-    expect(COMMISSION_CACHE_FIELDS).toEqual(["commissions", "order"]);
+    expect(COMMISSION_CACHE_FIELDS).toEqual([
+      "commissions",
+      // A tela mensal: o resumo e as páginas das fábricas são entradas de
+      // cache separadas — sem as duas, o cartão aberto fica com a parcela velha.
+      "commissionMonth",
+      "commissionMonthRows",
+      "commissionReport",
+      "order",
+    ]);
   });
 
   it("cobrem, na visita, a ficha do cliente e a rotina da semana", () => {

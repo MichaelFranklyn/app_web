@@ -22,15 +22,15 @@ interface Props {
 
 /**
  * A tela de comissões. Aqui só se MONTA a tela: de onde vêm os dados, os
- * filtros, as contas e a seleção está em `useCommissions`, e cada bloco visual
- * é um componente de `_components`.
+ * filtros, os números e a seleção está em `useCommissions`, e cada bloco visual
+ * é um componente de `_components`. As somas e as páginas são do servidor.
  */
 export default function CommissionsContent(props: Props) {
   const screen = useCommissions(props);
-  const { scope, monthNav, tab, query, table, view, selection } = screen;
+  const { scope, monthNav, tab, panel, query, view, selection } = screen;
   const { canManage, lens } = scope;
   const { month } = monthNav;
-  const { rows, showSkeleton, handleChanged } = query;
+  const { showSkeleton, handleChanged } = query;
 
   return (
     <PageContent>
@@ -62,12 +62,12 @@ export default function CommissionsContent(props: Props) {
               empilhados, competia com os KPIs e virava paredão de número. Só
               para gestão: na visão do vendedor a comissão já É a fatia dele. */}
           {/* Fora da ótica do escritório ele sai: a repartição é medida no
-              calendário da fábrica (ver `officeSplit`), e ao lado de cartões
-              que estão somando o ciclo do vendedor os três números não
+              calendário da fábrica (ver `officeSplitFromServer`), e ao lado de
+              cartões que estão somando o ciclo do vendedor os três números não
               fechariam com nada visível na tela. */}
           {!showSkeleton && canManage && !scope.isSellerView && (
             <OfficeSplitPanel
-              rows={screen.visibleRows}
+              split={view.split}
               month={month}
               sellerName={screen.sellerName}
             />
@@ -77,10 +77,10 @@ export default function CommissionsContent(props: Props) {
           <CommissionsFilterBar
             tab={tab}
             onTabChange={screen.setTab}
-            fields={table.filterFields}
-            values={table.inputValues}
-            onChange={table.setFilters}
-            onTextChange={table.setFilter}
+            fields={screen.filterFields}
+            values={panel.inputValues}
+            onChange={panel.setFilters}
+            onTextChange={panel.setFilter}
           />
 
           {/* O que a lista abaixo está somando, sempre escrito: são dois
@@ -92,8 +92,9 @@ export default function CommissionsContent(props: Props) {
               month={month}
               audience={canManage ? lens.audience : undefined}
               scopeLabel={screen.listScopeLabel}
-              shown={view.filteredRows.length}
+              shown={view.shown}
               total={view.scopeTotal}
+              isRefreshing={query.isRefreshing}
             />
           )}
 
@@ -102,7 +103,7 @@ export default function CommissionsContent(props: Props) {
               desconto antes de o dinheiro faltar. */}
           {!showSkeleton && (
             <SellerChargebackPanel
-              rows={screen.visibleRows}
+              rows={view.chargebacks}
               month={month}
               canManage={canManage}
               onChanged={handleChanged}
@@ -111,18 +112,18 @@ export default function CommissionsContent(props: Props) {
 
           <CommissionsList
             groups={view.groups}
+            input={query.input}
+            firstCard={query.firstCard}
             month={month}
             tab={tab}
             lens={lens}
-            sort={table.sort}
+            sort={panel.sort}
             canManage={canManage}
             showSeller={scope.isOfficeScope}
             selection={selection}
             isLoading={showSkeleton}
-            isFiltered={screen.isFiltered}
-            hasAnyCommission={
-              rows.length > 0 || Boolean(query.latestReceiveDate)
-            }
+            isFiltered={view.isFiltered}
+            hasAnyCommission={view.hasAnyCommission}
             onChanged={handleChanged}
           />
 
@@ -131,9 +132,11 @@ export default function CommissionsContent(props: Props) {
           {canManage && (
             <BulkActionsBar
               selectedIds={selection.ids}
-              allRows={rows}
+              selectedRows={selection.selectedRows}
+              monthBySeller={view.monthBySeller}
               month={month}
               scopeLabel={selection.scopeLabel}
+              scopeSentence={selection.scopeSentence}
               receivableIds={selection.receivableIds}
               onClear={selection.clear}
               onChanged={handleChanged}

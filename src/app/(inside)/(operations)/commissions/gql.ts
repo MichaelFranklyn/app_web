@@ -15,84 +15,164 @@ export const COMMISSIONS_SELLERS_QUERY = gql`
   }
 `;
 
+/** Os campos de uma parcela na tabela, no painel de estornos e no PDF. */
+const COMMISSION_ROW = gql`
+  fragment CommissionRowFields on CommissionRowType {
+    orderId
+    installmentId
+    sequence
+    orderDate
+    invoicedAt
+    invoiceNumber
+    dueDate
+    paidAt
+    installmentAmount
+    amount
+    status
+    receiveDate
+    isReceivable
+    isReceived
+    isReconciled
+    reconciledAt
+    isOverdue
+    defaultedAt
+    isChargebackSettled
+    chargebackSettledAt
+    sellerAmount
+    sellerStatus
+    sellerReceiveDate
+    isSellerPaid
+    sellerChargebackMonth
+    isSellerChargebackSettled
+    sellerChargebackSettledAt
+    client {
+      id
+      razaoSocial
+      nomeFantasia
+    }
+    factory {
+      id
+      nomeFantasia
+      nickname
+      razaoSocial
+    }
+    seller {
+      id
+      name
+    }
+  }
+`;
+
 /**
- * As linhas de comissão do MÊS aberto.
+ * O MÊS aberto, já somado no servidor.
  *
- * O período recorta no servidor (ver o resolver `commissions`): a tela mostra um
- * mês por vez, e baixar a carteira inteira para exibir cinquenta linhas ficava
- * mais caro a cada mês de histórico. O que a tela mostra fora do mês vem junto
- * — estorno do vendedor sempre, boleto travado quando a aba de atraso pede
- * (`includeOverdue`).
+ * Mês, situação, ótica, filtros do painel e ordenação vão na consulta (ver o
+ * resolver `commissionMonth`). Antes a tela baixava todas as parcelas do
+ * recorte e fazia as contas aqui; num mês com uma baixa em lote eram milhares
+ * de linhas e megabytes para mostrar três cartões.
  *
- * `latestReceiveDate` é medida antes do recorte: é por ela que a tela sabe em
- * que mês abrir sem precisar do histórico.
+ * - `commission_month`: os cartões do mês, a repartição do escritório, um
+ *   resumo por fábrica (com os ids do "Receber tudo"), o painel de estornos e as
+ *   opções do painel de filtros — tudo sobre o recorte COMPLETO, nunca sobre a
+ *   página aberta;
+ * - `first_card`: a primeira página do primeiro cartão, o que a tela abre
+ *   sozinha. Vem no MESMO documento porque o servidor calcula o recorte uma vez
+ *   por requisição — pedir à parte custaria a conta de novo.
  *
- * Os totais da carteira inteira (`totalReceivable`…) ficam de fora de
- * propósito: os cartões somam o MÊS a partir das linhas (`summarizeMonth`), e
- * pedir os totais obriga o servidor a calcular o histórico todo.
- *
- * `includeUndated: false`: nenhuma aba do mês exibe parcela sem data de
- * recebimento, então ela só vem quando tem repasse, recebimento, calote ou
- * estorno ligado (o painel de estornos e a aba de atraso usam essas).
+ * As outras fábricas pedem as suas linhas quando o cartão é aberto (ver
+ * `COMMISSIONS_FACTORY_ROWS_QUERY`). `latestReceiveDate` é medida antes do
+ * recorte: é por ela que a tela sabe para que mês recuar.
  */
 export const COMMISSIONS_QUERY = gql`
-  query Commissions(
-    $sellerId: UUID
-    $from: Date
-    $to: Date
-    $includeOverdue: Boolean
-  ) {
-    commissions(
-      sellerId: $sellerId
-      from: $from
-      to: $to
-      includeOverdue: $includeOverdue
-      includeUndated: false
-    ) {
+  ${COMMISSION_ROW}
+  query Commissions($input: CommissionMonthInput!, $first: Int!) {
+    commission_month: commissionMonth(input: $input) {
       latestReceiveDate
-      rows {
-        orderId
-        installmentId
-        sequence
-        orderDate
-        invoicedAt
-        invoiceNumber
-        dueDate
-        paidAt
-        installmentAmount
+      hasMovement
+      hasAnyCommission
+      isFiltered
+      scopeTotal
+      totalCount
+      monthTotals {
+        receivable
+        received
+        pending
+        countReceivable
+        chargeback
+        refund
+      }
+      split {
+        company
+        seller
+        office
+        margin
+        count
+      }
+      groups {
+        factoryId
+        name
+        count
+        reconciledCount
+        receivable
+        received
+        pending
+        chargeback
+        refund
+        overdueCount
+        receivableIds
+      }
+      chargebacks {
+        ...CommissionRowFields
+      }
+      sellerMonthCommissions {
+        sellerId
         amount
-        status
-        receiveDate
-        isReceivable
-        isReceived
-        isReconciled
-        reconciledAt
-        isOverdue
-        defaultedAt
-        isChargebackSettled
-        chargebackSettledAt
-        sellerAmount
-        sellerStatus
-        sellerReceiveDate
-        isSellerPaid
-        sellerChargebackMonth
-        isSellerChargebackSettled
-        sellerChargebackSettledAt
-        client {
-          id
-          razaoSocial
-          nomeFantasia
-        }
-        factory {
-          id
-          nomeFantasia
-          nickname
-          razaoSocial
-        }
-        seller {
-          id
-          name
-        }
+      }
+      factoryOptions {
+        value
+        label
+      }
+      sellerOptions {
+        value
+        label
+      }
+      statusOptions {
+        value
+        label
+      }
+    }
+    first_card: commissionMonthRows(input: $input, first: $first) {
+      factoryId
+      totalCount
+      rows {
+        ...CommissionRowFields
+      }
+    }
+  }
+`;
+
+/**
+ * Uma página das parcelas de UMA fábrica, no mesmo recorte de
+ * `COMMISSIONS_QUERY` (o `input` é o mesmo): filtradas e ordenadas no servidor.
+ */
+export const COMMISSIONS_FACTORY_ROWS_QUERY = gql`
+  ${COMMISSION_ROW}
+  query CommissionsFactoryRows(
+    $input: CommissionMonthInput!
+    $factoryId: UUID!
+    $first: Int!
+    $offset: Int!
+  ) {
+    commission_month_rows: commissionMonthRows(
+      input: $input
+      factoryId: $factoryId
+      first: $first
+      offset: $offset
+    ) {
+      factoryId
+      totalCount
+      rows {
+        ...CommissionRowFields
       }
     }
   }
@@ -114,6 +194,7 @@ export const COMMISSIONS_QUERY = gql`
  * histórico de anos para imprimir um mês.
  */
 export const COMMISSIONS_PDF_QUERY = gql`
+  ${COMMISSION_ROW}
   query CommissionsForPdf(
     $sellerId: UUID
     $from: Date
@@ -130,48 +211,7 @@ export const COMMISSIONS_PDF_QUERY = gql`
       includeDefaulted: true
     ) {
       rows {
-        orderId
-        installmentId
-        sequence
-        orderDate
-        invoicedAt
-        invoiceNumber
-        dueDate
-        paidAt
-        installmentAmount
-        amount
-        status
-        receiveDate
-        isReceivable
-        isReceived
-        isReconciled
-        reconciledAt
-        isOverdue
-        defaultedAt
-        isChargebackSettled
-        chargebackSettledAt
-        sellerAmount
-        sellerStatus
-        sellerReceiveDate
-        isSellerPaid
-        sellerChargebackMonth
-        isSellerChargebackSettled
-        sellerChargebackSettledAt
-        client {
-          id
-          razaoSocial
-          nomeFantasia
-        }
-        factory {
-          id
-          nomeFantasia
-          nickname
-          razaoSocial
-        }
-        seller {
-          id
-          name
-        }
+        ...CommissionRowFields
       }
     }
   }

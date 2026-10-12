@@ -1,15 +1,19 @@
+import { commissionsBackend } from "../support/commissionsServer";
 import { expect, test } from "../support/fixtures";
 import { mockGraphql } from "../support/graphql";
 import { grantRole } from "../support/role";
 
 /**
- * A tela de comissões pede ao backend UM MÊS por vez.
+ * A tela de comissões pede ao backend UM MÊS por vez — e recebe dele os números
+ * prontos: os cartões do mês, a repartição e um resumo por fábrica são somados
+ * no servidor sobre o recorte inteiro, e as parcelas vêm em páginas, uma
+ * fábrica por vez.
  *
- * Antes ela baixava a carteira inteira e recortava no cliente: numa carteira de
- * pouco mais de um ano, 84% do que trafegava era descartado, e a conta piorava a
- * cada mês de histórico. O que estes testes protegem é o contrato desse recorte
- * — o período que sai na consulta e as duas exceções que a tela mostra fora do
- * mês (a aba de boletos travados, e o painel de estorno do vendedor).
+ * Antes ela baixava todas as linhas e fazia as contas no navegador; num mês com
+ * uma baixa em lote eram milhares de parcelas para mostrar três cartões. O que
+ * estes testes protegem é o contrato do recorte — o período, a situação, a
+ * ótica e os filtros que saem na consulta — e a tela montada com a resposta.
+ * `commissionsBackend` faz o papel do servidor sobre as parcelas do cenário.
  *
  * O usuário do storageState é um VENDEDOR: sem seletor de vendedor e sem os
  * botões de gestão, o que sobra na tela é exatamente o recorte.
@@ -92,26 +96,6 @@ function row(overrides: Record<string, unknown> = {}) {
   };
 }
 
-function summary(rows: ReturnType<typeof row>[]) {
-  return {
-    commissions: {
-      // Medida ANTES do recorte: é por ela que a tela sabe em que mês abrir.
-      latestReceiveDate: "2026-08-09",
-      totalReceivable: "50.00",
-      totalReceived: "0",
-      totalPending: "0",
-      countReceivable: rows.length,
-      totalChargeback: "0",
-      totalSellerChargeback: "0",
-      totalSellerChargebackPending: "0",
-      totalRefund: "0",
-      totalSellerRefund: "0",
-      countOverdue: 0,
-      rows,
-    },
-  };
-}
-
 test("comissões: o gestor vê quanto da comissão fica no escritório", async ({
   page,
 }) => {
@@ -126,7 +110,7 @@ test("comissões: o gestor vê quanto da comissão fica no escritório", async (
         totalCount: 1,
       },
     }),
-    Commissions: () => summary([row({ sellerAmount: "30.00" })]),
+    ...commissionsBackend([row({ sellerAmount: "30.00" })], { manager: true }),
   });
 
   await page.goto("/commissions");
@@ -156,13 +140,15 @@ test("comissões: trocar a ótica refaz os números da tela inteira", async ({
         totalCount: 1,
       },
     }),
-    Commissions: () =>
-      summary([
+    ...commissionsBackend(
+      [
         row({
           sellerAmount: "30.00",
           sellerReceiveDate: "2026-09-14",
         }),
-      ]),
+      ],
+      { manager: true }
+    ),
   });
 
   await page.goto("/commissions");
@@ -203,7 +189,7 @@ test("comissões: a tela pede o mês ao backend, não a carteira inteira", async
   page,
 }) => {
   const spy = await mockGraphql(page, {
-    Commissions: () => summary([row()]),
+    ...commissionsBackend([row()]),
   });
 
   await page.goto("/commissions");
@@ -239,11 +225,8 @@ test("comissões: comissão lançada para o futuro não tira a tela do mês de h
   // lançado. A tela saltava para lá e abria em novembro para quem veio ver
   // setembro, inclusive num simples F5.
   const spy = await mockGraphql(page, {
-    Commissions: () => ({
-      commissions: {
-        ...summary([row({ receiveDate: monthStart(0) })]).commissions,
-        latestReceiveDate: monthStart(2),
-      },
+    ...commissionsBackend([row({ receiveDate: monthStart(0) })], {
+      latestReceiveDate: monthStart(2),
     }),
   });
 
@@ -264,7 +247,7 @@ test("comissões: mês de hoje vazio recua para o último com movimento", async 
   // tela vazia, e quem tinha movimento em agosto concluía que não havia nada.
   // Para trás continua valendo — é só para frente que ele deixou de valer.
   await mockGraphql(page, {
-    Commissions: () => summary([row()]),
+    ...commissionsBackend([row()]),
   });
 
   await page.goto("/commissions");
@@ -276,7 +259,7 @@ test("comissões: trocar de mês refaz a consulta com o novo período", async ({
   page,
 }) => {
   const spy = await mockGraphql(page, {
-    Commissions: () => summary([row()]),
+    ...commissionsBackend([row()]),
   });
 
   await page.goto("/commissions");
@@ -294,7 +277,7 @@ test("comissões: a aba de boletos travados pede os de todos os vencimentos", as
   page,
 }) => {
   const spy = await mockGraphql(page, {
-    Commissions: () => summary([row()]),
+    ...commissionsBackend([row()]),
   });
 
   await page.goto("/commissions");
@@ -302,11 +285,11 @@ test("comissões: a aba de boletos travados pede os de todos os vencimentos", as
 
   await page.getByRole("button", { name: /Boleto em atraso/ }).click();
 
-  // `includeOverdue` é o que traz as linhas de fora do mês. Elas não vêm nas
-  // outras abas de propósito: alimentavam uma tela que ninguém estava olhando.
+  // A aba vai na consulta: é o servidor que junta os boletos travados de todos
+  // os vencimentos (e só nela — nas outras eles não entram na conta).
   await expect
     .poll(() => JSON.stringify(spy.lastVariables("Commissions") ?? {}))
-    .toContain('"includeOverdue":true');
+    .toContain('"tab":"overdue"');
 
   // E a tela avisa que ali o mês não vale — o mesmo que o backend fez. O aviso
   // deixou de ser um alerta exclusivo desta aba: virou a frase de escopo, que
@@ -333,7 +316,7 @@ test("comissões: no escritório a tela soma todos os vendedores", async ({
         totalCount: 1,
       },
     }),
-    Commissions: () => summary([row()]),
+    ...commissionsBackend([row()], { manager: true }),
   });
 
   await page.goto("/commissions");
@@ -375,8 +358,8 @@ test("comissões: somando todos, a lista diz de quem é cada parcela", async ({
         totalCount: 2,
       },
     }),
-    Commissions: () =>
-      summary([
+    ...commissionsBackend(
+      [
         row(),
         row({
           orderId: "order-2",
@@ -388,7 +371,9 @@ test("comissões: somando todos, a lista diz de quem é cada parcela", async ({
           },
           seller: { id: "seller-2", name: "Mariana Souza" },
         }),
-      ]),
+      ],
+      { manager: true }
+    ),
   });
 
   await page.goto("/commissions");
@@ -424,6 +409,188 @@ test("comissões: somando todos, a lista diz de quem é cada parcela", async ({
   ).toHaveCount(0);
 });
 
+test.describe("comissões: mês com muitas parcelas", () => {
+  /**
+   * 120 parcelas da mesma fábrica no mesmo mês — o caso da baixa em lote. A
+   * tela recebe os números somados e UMA página de linhas; o resto fica no
+   * servidor até alguém pedir.
+   */
+  const MANY = Array.from({ length: 120 }, (_, i) =>
+    row({
+      orderId: `order-${i + 1}`,
+      installmentId: `inst-${i + 1}`,
+      client: {
+        id: `client-${i + 1}`,
+        razaoSocial: `CLIENTE ${String(i + 1).padStart(3, "0")} LTDA`,
+        nomeFantasia: null,
+      },
+    })
+  );
+
+  test("os cartões somam o mês inteiro e a tabela mostra uma página", async ({
+    page,
+  }) => {
+    const spy = await mockGraphql(page, { ...commissionsBackend(MANY) });
+
+    await page.goto("/commissions");
+    await expect(page.getByText("Resumo de agosto de 2026")).toBeVisible();
+
+    // 120 × R$ 50,00: o cartão é do recorte COMPLETO, não das 50 linhas na tela.
+    await expect(page.getByText("R$ 6.000,00").first()).toBeVisible();
+    await expect(page.getByText("120 parcela(s) a receber")).toBeVisible();
+    await expect(
+      page.getByText("120 parcelas · página 1 de 3", { exact: false })
+    ).toBeVisible();
+    await expect(
+      page.getByRole("cell", { name: "CLIENTE 001 LTDA", exact: true })
+    ).toBeVisible();
+    await expect(page.getByText("CLIENTE 051 LTDA")).toHaveCount(0);
+
+    // A abertura cabe numa requisição: a primeira página vem com o resumo.
+    expect(spy.calls("CommissionsFactoryRows")).toHaveLength(0);
+
+    await page.getByRole("button", { name: "Próxima página" }).click();
+
+    await expect(
+      page.getByRole("cell", { name: "CLIENTE 051 LTDA", exact: true })
+    ).toBeVisible();
+    await expect(page.getByText("CLIENTE 001 LTDA")).toHaveCount(0);
+    // Paginar é do servidor: o deslocamento sai na consulta, com o MESMO recorte.
+    const rowsCall = spy.lastVariables("CommissionsFactoryRows");
+    expect(rowsCall).toMatchObject({
+      factoryId: "factory-1",
+      first: 50,
+      offset: 50,
+      input: { from: AGOSTO.from, to: AGOSTO.to, tab: "receivable" },
+    });
+    // E os cartões continuam os do mês inteiro, na página que for.
+    await expect(page.getByText("R$ 6.000,00").first()).toBeVisible();
+  });
+
+  test("filtro e ordenação vão ao servidor, não reordenam só a página", async ({
+    page,
+  }) => {
+    const spy = await mockGraphql(page, { ...commissionsBackend(MANY) });
+
+    await page.goto("/commissions");
+    await expect(page.getByText("Resumo de agosto de 2026")).toBeVisible();
+
+    await page.getByRole("button", { name: /Comissão/ }).click();
+    await expect
+      .poll(() => JSON.stringify(spy.lastVariables("Commissions") ?? {}))
+      .toContain('"sortBy":"amount","sortDir":"desc"');
+
+    await page.getByRole("button", { name: "Filtros", exact: true }).click();
+    await page
+      .locator("[data-filters-panel]")
+      .getByPlaceholder("Nome do cliente, código do pedido ou número da nota")
+      .fill("CLIENTE 077");
+
+    await expect
+      .poll(() => JSON.stringify(spy.lastVariables("Commissions") ?? {}))
+      .toContain('"search":"CLIENTE 077"');
+    // Os cartões seguem o filtro: sobrou uma parcela de R$ 50,00.
+    await expect(
+      page.getByText("1 de 120 parcela(s) após os filtros")
+    ).toBeVisible();
+    await expect(page.getByText("1 parcela(s) a receber")).toBeVisible();
+    await expect(
+      page.getByRole("cell", { name: "CLIENTE 077 LTDA", exact: true })
+    ).toBeVisible();
+  });
+
+  test("a seleção em lote diz a página e o alcance antes de agir", async ({
+    page,
+  }) => {
+    await grantRole(page, "OWNER");
+    await mockGraphql(page, {
+      CommissionsSellers: () => ({
+        commissions_sellers: {
+          edges: [{ node: { id: "seller-1", name: "Vendedor Teste" } }],
+          totalCount: 1,
+        },
+      }),
+      ...commissionsBackend(MANY, { manager: true }),
+    });
+
+    await page.goto("/commissions");
+    await expect(page.getByText("Resumo de agosto de 2026")).toBeVisible();
+
+    // A caixa do cabeçalho é da PÁGINA, e isso está escrito.
+    await expect(
+      page.getByText("A caixa do cabeçalho marca", { exact: false })
+    ).toBeVisible();
+    await page
+      .getByRole("checkbox", { name: "Selecionar esta página" })
+      .check({ force: true });
+    await expect(page.getByText("50 parcelas selecionadas")).toBeVisible();
+    await expect(
+      page.getByText("50 de 120 parcelas desta fábrica", { exact: false })
+    ).toBeVisible();
+
+    // Trocar de página não larga o que foi marcado: o lote acumula.
+    await page.getByRole("button", { name: "Próxima página" }).click();
+    await expect(
+      page.getByRole("cell", { name: "CLIENTE 051 LTDA", exact: true })
+    ).toBeVisible();
+    await page
+      .getByRole("checkbox", {
+        name: "Selecionar a parcela 1 de CLIENTE 051 LTDA",
+      })
+      .check({ force: true });
+    await expect(page.getByText("51 parcelas selecionadas")).toBeVisible();
+    await expect(
+      page.getByText(
+        "51 selecionada(s) nesta fábrica — 1 nesta página e 50 em outra(s)"
+      )
+    ).toBeVisible();
+    await expect(
+      page.getByText("50 estão em outra página", { exact: false })
+    ).toBeVisible();
+
+    // E o alcance aparece DENTRO do modal, na hora de confirmar.
+    await page.getByRole("button", { name: "Cliente pagou" }).click();
+    await expect(
+      page
+        .getByRole("dialog")
+        .getByText(
+          "Esta ação vale para as 51 parcelas selecionadas de Herc (agosto de 2026) — 50 delas não estão na página aberta."
+        )
+    ).toBeVisible();
+  });
+
+  test("o PDF do mês não depende da página aberta", async ({ page }) => {
+    const spy = await mockGraphql(page, {
+      ...commissionsBackend(MANY),
+      CommissionsForPdf: () => ({ commissions_pdf: { rows: MANY } }),
+    });
+
+    await page.goto("/commissions");
+    await expect(page.getByText("Resumo de agosto de 2026")).toBeVisible();
+    await page.getByRole("button", { name: "Próxima página" }).click();
+    await expect(
+      page.getByText("página 2 de 3", { exact: false })
+    ).toBeVisible();
+    await page.getByRole("button", { name: "Próxima página" }).click();
+    await expect(
+      page.getByText("página 3 de 3", { exact: false })
+    ).toBeVisible();
+
+    await page.getByRole("button", { name: "Baixar PDF do mês" }).click();
+
+    // O papel busca as linhas dele: o mês e o seguinte inteiros, sem página e
+    // sem os filtros da tela — é o fechamento, não um retrato do que está aberto.
+    const variables = await spy.waitForCall("CommissionsForPdf");
+    expect(variables).toEqual({
+      sellerId: null,
+      from: "2026-08-01",
+      to: "2026-09-30",
+      paidFrom: "2026-08-01",
+      paidTo: "2026-08-31",
+    });
+  });
+});
+
 test.describe("comissões: nome comprido na tabela", () => {
   const LONG_NAME = "COMERCIAL DE MATERIAIS DE CONSTRUCAO SILVA E FILHOS LTDA";
 
@@ -435,16 +602,15 @@ test.describe("comissões: nome comprido na tabela", () => {
    */
   const openWithLongName = async (page: import("@playwright/test").Page) => {
     await mockGraphql(page, {
-      Commissions: () =>
-        summary([
-          row({
-            client: {
-              id: "client-1",
-              razaoSocial: LONG_NAME,
-              nomeFantasia: null,
-            },
-          }),
-        ]),
+      ...commissionsBackend([
+        row({
+          client: {
+            id: "client-1",
+            razaoSocial: LONG_NAME,
+            nomeFantasia: null,
+          },
+        }),
+      ]),
     });
     await page.goto("/commissions");
     return page.getByRole("cell", { name: LONG_NAME, exact: true });

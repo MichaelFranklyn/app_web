@@ -54,14 +54,106 @@ export interface CommissionRow {
   seller: { id: string; name: string } | null;
 }
 
-export interface CommissionsSummary {
+/** Um par valor/rótulo das opções do painel de filtros (vem do servidor). */
+export interface CommissionOption {
+  value: string;
+  label: string;
+}
+
+/** Os três cartões do mês, somados no servidor sobre o recorte COMPLETO. */
+export interface CommissionMonthTotalsData {
+  receivable: string;
+  received: string;
+  pending: string;
+  countReceivable: number;
+  chargeback: string;
+  refund: string;
+}
+
+export interface CommissionMonthSplitData {
+  company: string;
+  seller: string;
+  office: string;
+  margin: number;
+  count: number;
+}
+
+/** O resumo de uma fábrica no recorte — todas as parcelas dela, não só a página. */
+export interface CommissionMonthGroupData {
+  factoryId: string;
+  name: string;
+  count: number;
+  reconciledCount: number;
+  receivable: string;
+  received: string;
+  pending: string;
+  chargeback: string;
+  refund: string;
+  overdueCount: number;
+  /** Parcelas a receber da FÁBRICA — o lote do "Receber tudo desta fábrica". */
+  receivableIds: string[];
+}
+
+export interface CommissionMonthData {
   /** Data mais recente em que alguma comissão cai — medida antes do recorte. */
   latestReceiveDate: string | null;
+  /** Alguma comissão cai no mês pedido. */
+  hasMovement: boolean;
+  /** Existe comissão em algum mês, mesmo que não neste. */
+  hasAnyCommission: boolean;
+  /** O painel de filtros tirou linhas da tela. */
+  isFiltered: boolean;
+  /** Parcelas que mês e situação deixam passar, antes do painel de filtros. */
+  scopeTotal: number;
+  /** Depois do painel — a soma dos cartões das fábricas. */
+  totalCount: number;
+  monthTotals: CommissionMonthTotalsData;
+  split: CommissionMonthSplitData;
+  groups: CommissionMonthGroupData[];
+  /** Estornos do vendedor em qualquer fase (não seguem mês nem aba). */
+  chargebacks: CommissionRow[];
+  sellerMonthCommissions: { sellerId: string; amount: string }[];
+  factoryOptions: CommissionOption[];
+  sellerOptions: CommissionOption[];
+  statusOptions: CommissionOption[];
+}
+
+/** Uma página das parcelas de uma fábrica. */
+export interface CommissionFactoryRowsData {
+  /** De qual fábrica são as linhas; nulo quando o recorte está vazio. */
+  factoryId: string | null;
+  totalCount: number;
   rows: CommissionRow[];
 }
 
 export interface CommissionsResponse {
-  commissions: CommissionsSummary;
+  commission_month: CommissionMonthData;
+  /** A primeira página do primeiro cartão, no mesmo cálculo do resumo. */
+  first_card: CommissionFactoryRowsData;
+}
+
+export interface CommissionsFactoryRowsResponse {
+  commission_month_rows: CommissionFactoryRowsData;
+}
+
+/**
+ * O recorte da tela, como o servidor o recebe (`CommissionMonthInput`). É o
+ * MESMO objeto para o resumo e para as páginas das fábricas.
+ */
+export interface CommissionMonthInput {
+  from: string;
+  to: string;
+  sellerId: string | null;
+  audience: "office" | "seller";
+  tab: string;
+  search?: string;
+  factoryId?: string;
+  panelSellerId?: string;
+  status?: string;
+  installmentState?: string;
+  reconciled?: string;
+  sortBy?: string;
+  sortDir?: string;
 }
 
 export interface SellerOption {

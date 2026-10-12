@@ -3,10 +3,20 @@ import { Divider } from "@/components/Divider";
 import { Collapse } from "@/components/Collapse";
 
 import { Badge } from "@/components/Badges";
+import { Emphasis } from "@/components/Emphasis";
+import { Loading } from "@/components/Loading";
+import { Pagination } from "@/components/Pagination";
+import { QueryError } from "@/components/QueryError";
 import { Table, TableSort } from "@/components/Table";
 import { Title } from "@/components/Title";
 import { formatMoney } from "@/utils/format/masks";
 import { useEffect, useMemo, useState } from "react";
+import {
+  CommissionFactoryRowsData,
+  CommissionMonthInput,
+  CommissionRow,
+} from "../../interface";
+import { useFactoryRows } from "../../useFactoryRows";
 import {
   type CommissionLens,
   CommissionTab,
@@ -14,7 +24,6 @@ import {
   FactoryGroup,
   monthLabel,
   OFFICE_LENS,
-  summarizeRows,
   YearMonth,
 } from "../../utils";
 import { ignoresMonth } from "../../help";
@@ -25,8 +34,15 @@ import { MarkReceivedModal } from "../MarkReceivedModal";
 const EMPTY_SELECTION: Set<string> = new Set();
 
 interface Props {
-  /** Linhas da fábrica já recortadas pelos filtros da tela (mês e situação). */
+  /**
+   * O resumo da fábrica no recorte da tela (mês, situação, filtros), somado no
+   * servidor sobre TODAS as parcelas dela — não só as da página aberta.
+   */
   group: FactoryGroup;
+  /** O recorte da tela: é com ele que o cartão pede as suas linhas. */
+  input: CommissionMonthInput;
+  /** A primeira página, quando já veio junto do resumo (o cartão que abre só). */
+  firstPage?: CommissionFactoryRowsData;
   /** Mês escolhido lá em cima — aqui só rotula o que já veio filtrado. */
   month: YearMonth;
   /** Situação escolhida lá em cima — decide quais valores o cabeçalho destaca. */
@@ -52,7 +68,10 @@ interface Props {
    */
   selectedIds?: Set<string>;
   onToggleRow?: (installmentId: string) => void;
-  onToggleAll?: (installmentIds: string[]) => void;
+  /** Marca (ou desmarca) as parcelas da PÁGINA aberta, sem largar as outras. */
+  onTogglePage?: (installmentIds: string[]) => void;
+  /** Entrega à seleção o conteúdo das linhas exibidas (ver `useCommissionsSelection`). */
+  onRowsLoaded?: (factoryId: string, rows: CommissionRow[]) => void;
   onChanged: () => void;
 }
 
@@ -69,9 +88,15 @@ interface Props {
  * A seleção também vem de fora, e continua sendo POR FÁBRICA: a conferência
  * acontece contra a planilha de uma fábrica por vez, e um lote que misturasse
  * fábricas seria marcado com a data de repasse errada.
+ *
+ * As LINHAS são do cartão: ele as pede ao servidor quando é aberto, uma página
+ * por vez, já filtradas e ordenadas. Os números do cabeçalho e o lote do
+ * "Receber tudo" não dependem da página — vêm do resumo da fábrica inteira.
  */
 export function FactoryCommissionGroup({
   group,
+  input,
+  firstPage,
   month,
   tab,
   defaultOpen = false,
@@ -81,7 +106,8 @@ export function FactoryCommissionGroup({
   sort,
   selectedIds,
   onToggleRow,
-  onToggleAll,
+  onTogglePage,
+  onRowsLoaded,
   onChanged,
 }: Props) {
   const [open, setOpen] = useState(defaultOpen);
@@ -93,16 +119,33 @@ export function FactoryCommissionGroup({
     if (selectedCount > 0) setOpen(true);
   }, [selectedCount]);
 
-  const summary = useMemo(
-    () => summarizeRows(group.rows, lens),
-    [group.rows, lens]
-  );
+  const { summary } = group;
   const highlights = useMemo(
     () => factoryHighlights(summary, tab),
     [summary, tab]
   );
 
-  const total = group.rows.length;
+  const list = useFactoryRows({
+    input,
+    factoryId: group.factoryId,
+    enabled: open,
+    seed: firstPage,
+  });
+  const { rows } = list;
+  useEffect(() => {
+    if (rows) onRowsLoaded?.(group.factoryId, rows);
+  }, [rows, onRowsLoaded, group.factoryId]);
+
+  // Com a fábrica em mais de uma página, a caixa do cabeçalho marca só a
+  // página aberta — e a seleção acumula entre elas. As duas coisas ficam
+  // escritas acima da tabela: quem marca precisa saber até onde o lote vai.
+  const isPaged = list.totalPages > 1;
+  const selectedOnPage = rows
+    ? rows.filter((row) => selectedIds?.has(row.installmentId)).length
+    : 0;
+  const selectedElsewhere = selectedCount - selectedOnPage;
+
+  const total = group.count;
   const allReconciled = total > 0 && summary.reconciledCount === total;
   // A aba "Boleto em atraso" traz todos os vencimentos: dizer "em agosto" aqui
   // seria o rótulo contradizendo as linhas logo abaixo dele.
@@ -174,21 +217,66 @@ export function FactoryCommissionGroup({
       {open && (
         <div>
           <Divider.Root />
-          <CommissionsTable
-            rows={group.rows}
-            loading={false}
-            canManage={canManage}
-            lens={lens}
-            showSeller={showSeller}
-            selectedIds={selectedIds ?? EMPTY_SELECTION}
-            onToggleRow={onToggleRow}
-            onToggleAll={
-              onToggleAll
-                ? () => onToggleAll(group.rows.map((row) => row.installmentId))
-                : undefined
-            }
-            onChanged={onChanged}
-          />
+          {isPaged && onTogglePage && (
+            <div className="flex flex-wrap items-center gap-x-8 gap-y-2 px-16 pt-12">
+              <Title variant="caption" color="muted">
+                A caixa do cabeçalho marca <Emphasis>esta página</Emphasis> (
+                {rows?.length ?? 0} de {total} parcelas). Para marcar outras,
+                troque de página — o que já foi marcado continua marcado.
+              </Title>
+              {selectedCount > 0 && (
+                <Title variant="caption" color="amber" weight="semibold">
+                  {selectedCount} selecionada(s) nesta fábrica
+                  {selectedElsewhere > 0
+                    ? ` — ${selectedOnPage} nesta página e ${selectedElsewhere} em outra(s)`
+                    : ""}
+                </Title>
+              )}
+            </div>
+          )}
+          {list.hasFailed ? (
+            <div className="p-16">
+              <QueryError onRetry={list.retry} />
+            </div>
+          ) : (
+            <CommissionsTable
+              rows={rows ?? []}
+              loading={list.showSkeleton}
+              canManage={canManage}
+              lens={lens}
+              showSeller={showSeller}
+              isPaged={isPaged}
+              selectedIds={selectedIds ?? EMPTY_SELECTION}
+              onToggleRow={onToggleRow}
+              onToggleAll={
+                onTogglePage && rows
+                  ? () => onTogglePage(rows.map((row) => row.installmentId))
+                  : undefined
+              }
+              onChanged={onChanged}
+            />
+          )}
+
+          {/* Só quando a fábrica não cabe numa página: num mês comum o rodapé
+              seria uma linha a mais dizendo "página 1 de 1". */}
+          {list.totalPages > 1 && (
+            <Table.Footer>
+              <Table.Footer.Info>
+                {list.isRefreshing && (
+                  <Loading.Spinner size="sm" className="mr-6 inline-block" />
+                )}
+                {/* Os números lá em cima são da fábrica INTEIRA; a marcação em
+                    lote, da página — as duas coisas ditas, para o lote não
+                    parecer maior (nem menor) do que é. */}
+                {`${total} parcelas · página ${list.page} de ${list.totalPages} · os valores do cartão somam todas as páginas`}
+              </Table.Footer.Info>
+              <Pagination.Smart
+                currentPage={list.page}
+                totalPages={list.totalPages}
+                onPageChange={list.setPage}
+              />
+            </Table.Footer>
+          )}
         </div>
       )}
     </Table.Root>

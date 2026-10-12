@@ -3965,6 +3965,107 @@ type CommissionReportType {
   statusOptions: [CommissionReportOptionType!]!
 }
 
+input CommissionMonthInput {
+  """O mês aberto, pela data em que a comissão CAI (da ótica escolhida)."""
+  from: Date!
+  to: Date!
+  """Escopo do gestor: um vendedor. O vendedor logado vê sempre só o seu."""
+  sellerId: UUID = null
+  """office | seller — de quem é o dinheiro. Só o gestor escolhe; o vendedor logado vê sempre a fatia dele."""
+  audience: String = "office"
+  """receivable | pending | received | overdue | all. `overdue` junta os boletos travados de todos os vencimentos."""
+  tab: String = "receivable"
+  """Busca no nome do cliente, no código curto do pedido ou no número da nota."""
+  search: String = null
+  factoryId: UUID = null
+  """Filtro do painel por vendedor — só vale quando a tela soma a empresa inteira."""
+  panelSellerId: UUID = null
+  """Situação da comissão, na ótica escolhida."""
+  status: String = null
+  """Situação do BOLETO: open | overdue | paid | defaulted"""
+  installmentState: String = null
+  """yes | no"""
+  reconciled: String = null
+  """client | seller | order | invoiceNumber | sequence | dueDate | receiveDate | amount | status | reconciled"""
+  sortBy: String = null
+  """asc | desc"""
+  sortDir: String = null
+}
+
+"""Os três cartões do mês, somados sobre o recorte COMPLETO (não sobre a página)."""
+type CommissionMonthTotalsType {
+  """Já líquido de estorno e devolução."""
+  receivable: Decimal!
+  received: Decimal!
+  pending: Decimal!
+  countReceivable: Int!
+  chargeback: Decimal!
+  refund: Decimal!
+}
+
+"""Quanto do que cai no mês fica com o escritório — sempre no calendário da fábrica."""
+type CommissionMonthSplitType {
+  company: Decimal!
+  seller: Decimal!
+  office: Decimal!
+  margin: Float!
+  count: Int!
+}
+
+"""Um cartão de fábrica: os subtotais de TODAS as parcelas dela no recorte."""
+type CommissionMonthGroupType {
+  factoryId: UUID!
+  name: String!
+  count: Int!
+  reconciledCount: Int!
+  receivable: Decimal!
+  received: Decimal!
+  pending: Decimal!
+  chargeback: Decimal!
+  refund: Decimal!
+  overdueCount: Int!
+  """Parcelas a receber da FÁBRICA (nível escritório): o lote do "Receber tudo desta fábrica"."""
+  receivableIds: [UUID!]!
+}
+
+type CommissionSellerAmountType {
+  sellerId: UUID!
+  amount: Decimal!
+}
+
+type CommissionMonthType {
+  """Data mais recente em que alguma comissão cai, medida antes do recorte."""
+  latestReceiveDate: Date
+  """Alguma comissão cai no mês pedido."""
+  hasMovement: Boolean!
+  """Existe comissão em algum mês, mesmo que não neste."""
+  hasAnyCommission: Boolean!
+  """O painel de filtros tirou linhas da tela."""
+  isFiltered: Boolean!
+  monthTotals: CommissionMonthTotalsType!
+  split: CommissionMonthSplitType!
+  """Parcelas que mês e situação deixam passar, antes do painel de filtros."""
+  scopeTotal: Int!
+  """Parcelas depois do painel de filtros (a soma dos cartões)."""
+  totalCount: Int!
+  groups: [CommissionMonthGroupType!]!
+  """Estornos do vendedor em qualquer fase — o painel deles não segue o mês nem a aba."""
+  chargebacks: [CommissionRowType!]!
+  """Comissão de cada vendedor no mês, pelo calendário dele."""
+  sellerMonthCommissions: [CommissionSellerAmountType!]!
+  factoryOptions: [CommissionReportOptionType!]!
+  sellerOptions: [CommissionReportOptionType!]!
+  statusOptions: [CommissionReportOptionType!]!
+}
+
+type CommissionMonthRowsType {
+  """De qual fábrica são as linhas; nulo quando o recorte não tem nenhuma."""
+  factoryId: UUID
+  rows: [CommissionRowType!]!
+  """Quantas parcelas a fábrica tem no recorte (todas as páginas)."""
+  totalCount: Int!
+}
+
 type CommissionSummaryType {
   rows: [CommissionRowType!]!
   """Data mais recente em que alguma comissão cai, medida antes do recorte de período: é por ela que a tela sabe em que mês abrir."""
@@ -4065,6 +4166,25 @@ extend type Query {
   em sequência com o mesmo `input`.
   """
   commissionReport(input: CommissionReportInput!): CommissionReportType!
+  """
+  A tela mensal de comissões: cartões do mês, repartição do escritório, um
+  resumo por fábrica e o painel de estornos — tudo somado no servidor sobre o
+  recorte COMPLETO (mês, situação, ótica e filtros do painel). As linhas vêm à
+  parte, uma fábrica por vez (`commissionMonthRows`).
+  """
+  commissionMonth(input: CommissionMonthInput!): CommissionMonthType!
+  """
+  As parcelas de UMA fábrica no recorte de `commissionMonth` (mesmo `input`),
+  já filtradas e ordenadas, em páginas. Sem `factoryId`, a primeira fábrica do
+  recorte (o cartão que a tela abre sozinha): pedida no mesmo documento do
+  resumo, sai do mesmo cálculo.
+  """
+  commissionMonthRows(
+    input: CommissionMonthInput!
+    factoryId: UUID = null
+    first: Int = 50
+    offset: Int = 0
+  ): CommissionMonthRowsType!
 }
 
 extend type Mutation {

@@ -5,15 +5,16 @@ import { HelpTooltip } from "@/components/HelpTooltip";
 import { Title } from "@/components/Title";
 import { formatMoney } from "@/utils/format/masks";
 import { Building2 } from "lucide-react";
-import { useMemo } from "react";
 
 import { OFFICE_SPLIT_HELP } from "../../help";
-import { CommissionRow } from "../../interface";
-import { monthLabel, officeSplit, YearMonth } from "../../utils";
+import { monthLabel, type OfficeSplit, YearMonth } from "../../utils";
 
 interface Props {
-  /** Linhas do mês, do vendedor escolhido — a repartição é sobre elas. */
-  rows: CommissionRow[];
+  /**
+   * A repartição do mês, medida no servidor sobre TODAS as parcelas do recorte
+   * (e não sobre a página aberta de alguma fábrica).
+   */
+  split: OfficeSplit;
   month: YearMonth;
   /** Vendedor escolhido no seletor: a repartição é dele, não da empresa toda. */
   sellerName: string | null;
@@ -35,9 +36,7 @@ interface Props {
  * Só para gestão: na visão do vendedor, `amount` já É a parte dele e a
  * diferença daria zero.
  */
-export function OfficeSplitPanel({ rows, month, sellerName }: Props) {
-  const split = useMemo(() => officeSplit(rows, month), [rows, month]);
-
+export function OfficeSplitPanel({ split, month, sellerName }: Props) {
   // Mês sem nenhuma comissão do escritório: três zeros não dizem nada.
   if (split.count === 0) return null;
 
