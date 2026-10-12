@@ -1,22 +1,34 @@
-import { SelectOption } from "@/components/Input";
 import { TitleColor } from "@/components/Title";
 import { FieldConfig } from "@/hooks/useTableFilters";
 import { ThemeColor } from "@/lib/theme";
 import { formatDate, getBrtTodayIso } from "@/utils/format/date";
 import { formatMoney } from "@/utils/format/masks";
 import { greetingFor } from "@/utils/greeting";
+import {
+  CalendarClock,
+  ClipboardList,
+  MapPinOff,
+  PackageX,
+  PhoneCall,
+  Receipt,
+  Repeat,
+  UserX,
+  type LucideIcon,
+} from "lucide-react";
 
 import {
   PendingItem,
   PendingPriority,
   PendingReason,
   PendingType,
-  PendingSection,
   PendingTypeCount,
   PendingWhen,
 } from "./interface";
 
 export const ITEMS_PER_PAGE = 20;
+
+/** Quantas pendências o cartão mostra antes de abrir a lista do assunto. */
+export const SAMPLE_SIZE = 3;
 
 /**
  * Sem período escolhido, o backend mostra o que já venceu e o que vence nos
@@ -33,9 +45,11 @@ export const DEFAULT_HORIZON_DAYS = 7;
  * do período são datas prontas, não texto sendo digitado.
  */
 export const PENDING_FILTER_FIELDS: Record<string, FieldConfig> = {
+  // O assunto ABERTO: o cartão cuja lista está na página. Na URL para o link do
+  // aviso (`/pending?type=…`) e quem volta de um pedido caírem na mesma lista.
   type: { type: "select", queryField: "type" },
-  // Compromissos × cobranças — na URL para o link do aviso (e quem volta de um
-  // pedido) cair na seção certa.
+  // Herança da tela antiga, que separava compromissos de cobranças: o link
+  // guardado com `section=charges` abre o cartão dos boletos (ver `openTypeOf`).
   section: { type: "select", queryField: "section" },
   // A faixa de prazo dos contadores do topo — vai na URL como os filtros, para
   // "Atrasadas" sobreviver à ida a um pedido e à volta.
@@ -85,36 +99,105 @@ export const PENDING_TYPE_SINGULAR: Record<PendingType, string> = {
   ADDRESS_ISSUE: "Endereço a corrigir",
 };
 
-/**
- * Os tipos de cada seção. Cobrança é a única de DINHEIRO a receber: numa base
- * real eram 278 pedidos com boleto vencido, que na mesma lista empurravam
- * visitas e retornos para a página 10. A seção separa sem rebaixar.
- */
-export const CHARGE_TYPES: PendingType[] = ["INSTALLMENT_OVERDUE"];
-
-export const COMMITMENT_TYPES: PendingType[] = PENDING_TYPE_ORDER.filter(
-  (type) => !CHARGE_TYPES.includes(type)
-);
+/** É um tipo que esta tela conhece? (o `?type=` da URL vem de fora) */
+export const isPendingType = (
+  value: string | undefined
+): value is PendingType =>
+  !!value && PENDING_TYPE_ORDER.includes(value as PendingType);
 
 /**
- * A seção aberta. O link com `type=INSTALLMENT_OVERDUE` (aviso antigo, filtro
- * guardado) cai em Cobranças mesmo sem `section` na URL.
+ * O assunto cuja lista está aberta na página, ou `null` (só os cartões).
+ *
+ * `section=charges` é o link da tela antiga para os boletos: continua abrindo
+ * o que a pessoa procurava, agora como o cartão de boletos vencidos.
  */
-export const sectionOf = (values: Record<string, string>): PendingSection =>
-  values.section === "charges" ||
-  CHARGE_TYPES.includes(values.type as PendingType)
-    ? "charges"
-    : "commitments";
+export const openTypeOf = (
+  values: Record<string, string>
+): PendingType | null => {
+  if (isPendingType(values.type)) return values.type;
+  return values.section === "charges" ? "INSTALLMENT_OVERDUE" : null;
+};
 
-/** Quantas pendências em cada seção — vai no rótulo do botão da seção. */
-export const sectionCounts = (
-  counts: PendingTypeCount[]
-): Record<PendingSection, number> => {
-  const sum = (types: PendingType[]) =>
-    counts
-      .filter((row) => types.includes(row.type))
-      .reduce((total, row) => total + row.count, 0);
-  return { commitments: sum(COMMITMENT_TYPES), charges: sum(CHARGE_TYPES) };
+/**
+ * O que cada cartão diz do seu assunto: o ícone e POR QUE aquilo é pendência.
+ *
+ * A frase mora aqui, como em /opportunities: o backend manda o número e os
+ * casos; explicar o assunto na língua de quem vende é decisão de tela.
+ */
+export const PENDING_TYPE_COPY: Record<
+  PendingType,
+  { icon: LucideIcon; why: string; listAction: string }
+> = {
+  VISIT_OVERDUE: {
+    icon: ClipboardList,
+    why: "Estavam na rotina, o dia passou e ninguém disse o que houve. Responda na rota para o histórico do cliente ficar certo.",
+    listAction: "Ver as visitas",
+  },
+  FOLLOW_UP: {
+    icon: PhoneCall,
+    why: "Contatos que alguém combinou de fazer com o cliente e que vencem neste período.",
+    listAction: "Ver os contatos",
+  },
+  RETURN_SCHEDULED: {
+    icon: CalendarClock,
+    why: "O cliente pediu para voltar num dia, ou pediu uma visita, e isso ainda não foi cumprido.",
+    listAction: "Ver os retornos",
+  },
+  VISIT_FREQUENCY: {
+    icon: Repeat,
+    why: "O ciclo de visita do cliente já passou e não há visita marcada nesta semana.",
+    listAction: "Ver os clientes",
+  },
+  ORDER_STALLED: {
+    icon: PackageX,
+    why: "Orçamento sem resposta, pedido que a fábrica não faturou ou entrega sem confirmação.",
+    listAction: "Ver os pedidos",
+  },
+  INSTALLMENT_OVERDUE: {
+    icon: Receipt,
+    why: "Boletos vencidos, um por pedido. Ficam aqui até o pagamento ser baixado no pedido — conferir a comissão não é pagar.",
+    listAction: "Ver os boletos",
+  },
+  CLIENT_NO_CONTACT: {
+    icon: UserX,
+    why: "Clientes da carteira sem visita, ligação nem pedido fechado há mais de 30 dias.",
+    listAction: "Ver os clientes",
+  },
+  ADDRESS_ISSUE: {
+    icon: MapPinOff,
+    why: "O mapa não achou o endereço. Não têm prazo, mas ficam fora da rota até o cadastro ser corrigido.",
+    listAction: "Ver os endereços",
+  },
+};
+
+/**
+ * Os cartões da tela: um por assunto que TEM pendência, na ordem fixa dos
+ * tipos (e não pelo tamanho do número — o cartão não muda de lugar de um dia
+ * para o outro). O assunto aberto fica mesmo zerado: a lista dele está na
+ * página, e sumir com o cartão deixaria a lista sem dono.
+ */
+export const visibleTypeCounts = (
+  counts: PendingTypeCount[],
+  open: PendingType | null = null
+): PendingTypeCount[] => {
+  const byType = new Map(counts.map((row) => [row.type, row]));
+  return PENDING_TYPE_ORDER.flatMap((type) => {
+    const row = byType.get(type);
+    if (row && (row.count > 0 || type === open)) return [row];
+    return [];
+  });
+};
+
+/** A linha sob o título do cartão: quantas não podem esperar. */
+export const cardSubtitle = (
+  row: Pick<PendingTypeCount, "type" | "count" | "highCount">
+): string => {
+  if (row.type === "ADDRESS_ISSUE") return "sem prazo — trava a rotina";
+  if (row.highCount === 0) return "nenhuma de prioridade alta";
+  if (row.highCount === row.count) {
+    return row.count === 1 ? "de prioridade alta" : "todas de prioridade alta";
+  }
+  return `${row.highCount} de prioridade alta`;
 };
 
 /** Os contadores do topo, na ordem da leitura: o que venceu, hoje, a semana. */
@@ -161,20 +244,6 @@ export const PENDING_PRIORITY_HINT: Record<PendingPriority, string> = {
   HIGH: "Resolva hoje: o prazo já passou há tempo, ou o cliente está esperando.",
   MEDIUM: "Resolva nesta semana: o prazo acabou de vencer ou está chegando.",
   LOW: "Pode esperar: ainda está no prazo, ou não trava ninguém.",
-};
-
-/** As opções do filtro de tipo, com quantas há de cada no recorte atual. */
-export const pendingTypeOptions = (
-  counts: PendingTypeCount[] = [],
-  types: PendingType[] = COMMITMENT_TYPES
-): SelectOption[] => {
-  const byType = new Map(counts.map((row) => [row.type, row.count]));
-  return types.map((type) => ({
-    value: type,
-    label: byType.has(type)
-      ? `${PENDING_TYPE_LABEL[type]} (${byType.get(type)})`
-      : PENDING_TYPE_LABEL[type],
-  }));
 };
 
 const days = (n: number): string => (n === 1 ? "1 dia" : `${n} dias`);
@@ -312,33 +381,47 @@ export const countTone = (count: number, highCount: number): TitleColor => {
   return count > 0 ? "amber" : "muted";
 };
 
-/**
- * As variables da consulta a partir dos filtros da URL.
- *
- * Uma função só para o cliente e para o SSR (`page.tsx` chama com `{}` e página
- * 1): as variables precisam bater byte a byte, senão o cache semeado no
- * servidor nunca é aproveitado.
- *
- * `canSelectSeller` falso derruba o `seller` da URL: o backend já o ignora para
- * o vendedor, mas mandar faria a consulta dele divergir da semeada à toa.
- */
-export const pendingVariables = (
+/** O recorte que os cartões e a lista dividem: vendedor, período e faixa. */
+const scopeVariables = (
   values: Record<string, string>,
-  page: number,
-  canSelectSeller = true
+  canSelectSeller: boolean
 ) => ({
-  // Sempre uma lista de tipos: a seção é um recorte por tipo, feito no
-  // backend (os contadores de prazo acompanham a seção).
-  types:
-    sectionOf(values) === "charges"
-      ? CHARGE_TYPES
-      : values.type
-        ? [values.type]
-        : COMMITMENT_TYPES,
   sellerId: canSelectSeller && values.seller ? values.seller : null,
   dueFrom: values.dueFrom || null,
   dueTo: values.dueTo || null,
   when: values.when || null,
+});
+
+/**
+ * As variables do RESUMO (cartões + contadores) a partir dos filtros da URL.
+ *
+ * Uma função só para o cliente e para o SSR (`page.tsx` chama com `{}`): as
+ * variables precisam bater byte a byte, senão o cache semeado no servidor
+ * nunca é aproveitado.
+ *
+ * `canSelectSeller` falso derruba o `seller` da URL: o backend já o ignora para
+ * o vendedor, mas mandar faria a consulta dele divergir da semeada à toa.
+ *
+ * Sem `types`: os contadores por tipo já ignoram esse filtro, e os de prazo
+ * passam a contar a tela inteira — não mudam quando um cartão é aberto.
+ */
+export const pendingSummaryVariables = (
+  values: Record<string, string>,
+  canSelectSeller = true
+) => ({
+  ...scopeVariables(values, canSelectSeller),
+  sampleSize: SAMPLE_SIZE,
+});
+
+/** As variables da LISTA de um assunto: o mesmo recorte, um tipo, uma página. */
+export const pendingCasesVariables = (
+  values: Record<string, string>,
+  type: PendingType,
+  page: number,
+  canSelectSeller = true
+) => ({
+  ...scopeVariables(values, canSelectSeller),
+  types: [type],
   offset: (Math.max(1, page) - 1) * ITEMS_PER_PAGE,
   limit: ITEMS_PER_PAGE,
 });
@@ -353,10 +436,10 @@ export const pendingVariables = (
 export const scopeNote = (values: Record<string, string>): string => {
   const from = values.dueFrom ? formatDate(values.dueFrom) : null;
   const to = values.dueTo ? formatDate(values.dueTo) : null;
-  if (from && to) return `Mostrando o que tem prazo de ${from} a ${to}.`;
-  if (from) return `Mostrando o que tem prazo a partir de ${from}.`;
-  if (to) return `Mostrando o que tem prazo até ${to}.`;
-  return `Mostrando o que já venceu, o que vence nos próximos ${DEFAULT_HORIZON_DAYS} dias e o cadastro a corrigir (sem prazo). Para ver mais adiante, escolha um período em Filtros.`;
+  if (from && to) return `Contando o que tem prazo de ${from} a ${to}.`;
+  if (from) return `Contando o que tem prazo a partir de ${from}.`;
+  if (to) return `Contando o que tem prazo até ${to}.`;
+  return `Contando o que já venceu, o que vence nos próximos ${DEFAULT_HORIZON_DAYS} dias e o cadastro a corrigir (sem prazo). Para ver mais adiante, escolha um período em Filtros.`;
 };
 
 /**
@@ -385,9 +468,9 @@ export const followUpDefaultDate = (dueDate: string | null): string => {
   return dueDate && dueDate >= today ? dueDate : today;
 };
 
-/** Há algum filtro valendo? Muda a mensagem de lista vazia. */
-/** Há algum filtro valendo? (a seção não conta: ela é onde se está) */
+/**
+ * Há algum filtro valendo? Muda a mensagem de tela vazia. O assunto aberto não
+ * conta: ele escolhe qual lista se vê, não o que os cartões contam.
+ */
 export const hasActiveFilter = (values: Record<string, string>): boolean =>
-  Object.keys(PENDING_FILTER_FIELDS).some(
-    (key) => key !== "section" && !!values[key]
-  );
+  ["when", "seller", "dueFrom", "dueTo"].some((key) => !!values[key]);

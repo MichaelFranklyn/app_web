@@ -4524,6 +4524,12 @@ type PendingTypeCountType {
   count: Int!
   """Quantas delas são de prioridade alta."""
   highCount: Int!
+  """
+  As mais urgentes do tipo (prioridade, depois prazo), no mesmo recorte de
+  `count`. Vazio sem `sampleSize` — é o que o cartão do assunto mostra antes de
+  abrir a lista.
+  """
+  samples: [PendingItemType!]!
 }
 
 type PendingWhenCountType {
@@ -4571,6 +4577,7 @@ extend type Query {
   `dueFrom`/`dueTo` cortam pelo PRAZO. Sem nenhum dos dois vale o horizonte
   padrão: o que já venceu, o que vence nos próximos 7 dias e o sem prazo.
   `when` corta pela faixa do prazo (os contadores do topo).
+  `sampleSize` pede as N mais urgentes de cada tipo em `counts.samples` (teto 5).
   """
   myPendingItems(
     types: [PendingType!] = null
@@ -4580,6 +4587,7 @@ extend type Query {
     when: PendingWhen = null
     offset: Int! = 0
     limit: Int! = 20
+    sampleSize: Int! = 0
   ): PendingItemsDataResponse!
 }
 

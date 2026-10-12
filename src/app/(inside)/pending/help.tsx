@@ -12,9 +12,9 @@ import { ReactNode } from "react";
 export const PENDING_HELP: ReactNode = (
   <>
     <Title variant="body-sm">
-      Tudo o que está <Emphasis>esperando por você</Emphasis>, numa lista só. É
-      a única lista de trabalho do sistema — o que aparece resumido em outra
-      tela leva para cá.
+      Tudo o que está <Emphasis>esperando por você</Emphasis>, num lugar só. É a
+      única lista de trabalho do sistema — o que aparece resumido em outra tela
+      leva para cá.
     </Title>
     <BulletList.Root>
       <BulletList.Item>
@@ -41,8 +41,8 @@ export const PENDING_HELP: ReactNode = (
       </BulletList.Item>
       <BulletList.Item>
         <Emphasis>Cobranças:</Emphasis> boletos vencidos, um por pedido, com as
-        parcelas, o valor em aberto e o vencimento mais antigo. Ficam numa seção
-        própria e continuam vencidos até o pagamento ser baixado no pedido.
+        parcelas, o valor em aberto e o vencimento mais antigo. Têm cartão
+        próprio e continuam vencidos até o pagamento ser baixado no pedido.
         Conferir a comissão não é pagar: o boleto só sai daqui quando é pago,
         cancelado ou marcado como não pago — a idade da dívida não diminui a
         prioridade.
@@ -53,10 +53,13 @@ export const PENDING_HELP: ReactNode = (
       </BulletList.Item>
     </BulletList.Root>
     <Title variant="body-sm">
-      Os números do topo filtram a lista: <Emphasis>Atrasadas</Emphasis>,{" "}
-      <Emphasis>Hoje</Emphasis> e <Emphasis>Próximos 7 dias</Emphasis>. A lista
-      vem em ordem de prioridade e, dentro dela, do prazo mais antigo para o
-      mais novo. Cada linha diz a conta que fez dela uma pendência.
+      Cada <Emphasis>cartão</Emphasis> é um assunto: quantas pendências, as mais
+      urgentes e a lista completa, que abre na própria página. Os números do
+      topo filtram tudo pelo prazo: <Emphasis>Atrasadas</Emphasis>,{" "}
+      <Emphasis>Hoje</Emphasis> e <Emphasis>Próximos 7 dias</Emphasis>. Dentro
+      de cada assunto a ordem é a de trabalho: prioridade e, nela, do prazo mais
+      antigo para o mais novo. Cada linha diz a conta que fez dela uma
+      pendência.
     </Title>
     <Title variant="body-sm">
       <Emphasis>Não existe botão de baixa.</Emphasis> Quando você responde a
@@ -65,15 +68,3 @@ export const PENDING_HELP: ReactNode = (
     </Title>
   </>
 );
-
-/** Colunas: string porque o texto vai no `title` do `<th>`. */
-export const PENDING_COLUMN_HELP: Record<string, string> = {
-  priority:
-    "O quanto isto não pode esperar. Alta: resolva hoje. Média: nesta semana. Baixa: ainda está no prazo. Passe o mouse no selo para ver quando ele sobe para Alta.",
-  pending: "O que está pendente e por quê.",
-  client:
-    "De quem é a pendência. Em pedido e boleto aparecem também a fábrica e o valor; para o gestor, o responsável.",
-  due: "O dia em que isto devia ter sido feito, ou o dia combinado com o cliente — e há quanto tempo venceu. Endereço a corrigir não tem prazo.",
-  action:
-    "Para onde ir resolver. A linha inteira também leva até lá — resolveu, sai da lista sozinho.",
-};

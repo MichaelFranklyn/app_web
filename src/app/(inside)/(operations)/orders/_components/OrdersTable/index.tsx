@@ -172,7 +172,7 @@ export function OrdersTable({
                   </span>
                 </Table.Cell>
 
-                <Table.Cell variant="strong">
+                <Table.Cell variant="strong" wrap>
                   <span className="inline-flex items-center gap-6">
                     {clientName(order.client)}
                     {order.isDeliveryOverdue && (

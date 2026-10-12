@@ -135,7 +135,7 @@ export function ClientsReportTable({
                       : undefined
                   }
                 >
-                  <Table.Cell variant="strong" title={row.razaoSocial}>
+                  <Table.Cell variant="strong" title={row.razaoSocial} wrap>
                     <span className="inline-flex items-center gap-6">
                       {row.nomeFantasia ?? row.razaoSocial}
                       {row.isNeedsAttention && (

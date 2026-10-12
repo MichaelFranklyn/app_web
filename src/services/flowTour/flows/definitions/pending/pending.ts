@@ -14,49 +14,49 @@ export const pendingFlow: FlowDefinition = {
   description: "A lista de trabalho: o que resolver, em que ordem e onde.",
   group: "Primeiros passos",
   route: FLOW_ROUTES.pending,
-  version: 1,
+  version: 2,
   autoStart: true,
   steps: [
     {
-      title: "Seus compromissos, numa lista só",
+      title: "Seus compromissos, num lugar só",
       description:
         "Visita sem resposta, contato agendado, pedido parado, boleto vencido, cliente sem contato: tudo o que espera por você está aqui. Para achar onde vender mais, use Oportunidades.",
-    },
-    {
-      element: '[data-tour="pending-sections"]',
-      requireSelector: '[data-tour="pending-sections"]',
-      title: "Compromissos e cobranças",
-      description:
-        "Os boletos vencidos ficam numa seção própria, com a quantidade sempre à vista. Assim eles não empurram as visitas para o fim da lista — e continuam aqui até o pagamento ser baixado no pedido. Conferir não é pagar.",
-      side: "bottom",
-      align: "start",
     },
     {
       element: '[data-tour="pending-counts"]',
       requireSelector: '[data-tour="pending-counts"]',
       title: "Atrasadas, hoje e a semana",
       description:
-        "Clique num número para ver só aquelas pendências. Clique de novo para voltar à lista inteira.",
+        "Clique num número para contar só aquelas pendências nos cartões. Clique de novo para voltar a ver tudo.",
       side: "bottom",
       align: "start",
     },
     {
       element: '[data-tour="pending-filters"]',
       requireSelector: '[data-tour="pending-filters"]',
-      title: "Filtre por tipo, responsável e período",
+      title: "Filtre por responsável e período",
       description:
-        "O filtro fica guardado: abra um pedido, resolva e volte — a lista continua no mesmo recorte.",
+        "O filtro fica guardado: abra um pedido, resolva e volte — a tela continua no mesmo recorte.",
       side: "bottom",
       align: "end",
     },
     {
-      element: '[data-tour="pending-table"]',
-      requireSelector: '[data-tour="pending-table"]',
+      element: '[data-tour="pending-card"]',
+      requireSelector: '[data-tour="pending-card"]',
+      title: "Um cartão por assunto",
+      description:
+        "O número diz quantas pendências há e fica vermelho quando alguma é de prioridade alta. Logo abaixo, as mais urgentes. Os boletos vencidos têm o cartão deles e continuam ali até o pagamento ser baixado no pedido — conferir não é pagar.",
+      side: "bottom",
+      align: "start",
+    },
+    {
+      element: '[data-tour="pending-open"]',
+      requireSelector: '[data-tour="pending-open"]',
       title: "Resolveu, sai da lista",
       description:
-        "Cada linha explica o motivo e leva aonde se resolve — o pedido, o contato ou o cadastro. Não existe botão de baixa: quando você resolve, a pendência some sozinha.",
+        "Abra a lista do assunto: cada linha explica o motivo e leva aonde se resolve — o pedido, o contato ou o cadastro. Não existe botão de baixa: quando você resolve, a pendência some sozinha.",
       side: "top",
-      align: "start",
+      align: "end",
     },
   ],
 };

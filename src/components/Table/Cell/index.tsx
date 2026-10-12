@@ -1,5 +1,6 @@
 import { cn } from "@/lib/utils";
 import React from "react";
+import { isLongCellText, tableWrapStyle } from "../utils";
 import { TableCellProps } from "./interface";
 import {
   tableCellAlignStyle,
@@ -15,6 +16,7 @@ export const Cell = React.forwardRef<HTMLTableCellElement, TableCellProps>(
       variant = "default",
       align = "left",
       flex,
+      wrap,
       children,
       ...props
     },
@@ -26,6 +28,7 @@ export const Cell = React.forwardRef<HTMLTableCellElement, TableCellProps>(
         tableCellBase,
         tableCellVariants[variant],
         tableCellAlignStyle[align],
+        (wrap ?? isLongCellText(children)) && tableWrapStyle,
         className
       )}
       {...props}
