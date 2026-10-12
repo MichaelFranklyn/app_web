@@ -605,7 +605,9 @@ export default function CommissionsContent({
                   <EmptyState.Description>
                     {isFiltered
                       ? "Nenhuma parcela passou pelos filtros. Ajuste-os no botão “Filtros”, ao lado das situações."
-                      : rows.length > 0
+                      : // "Há comissão em algum mês": a data mais recente diz,
+                        // e não as linhas — elas são só as do mês aberto.
+                        rows.length > 0 || latestReceiveDate
                         ? "Use as setas ao lado do mês, lá em cima, para conferir outro mês, ou troque a situação nos botões acima."
                         : "As comissões aparecem quando os pedidos são faturados. Fature um pedido para gerar as parcelas e acompanhar o que há a receber."}
                   </EmptyState.Description>

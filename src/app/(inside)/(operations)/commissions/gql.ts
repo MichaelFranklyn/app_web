@@ -26,6 +26,14 @@ export const COMMISSIONS_SELLERS_QUERY = gql`
  *
  * `latestReceiveDate` é medida antes do recorte: é por ela que a tela sabe em
  * que mês abrir sem precisar do histórico.
+ *
+ * Os totais da carteira inteira (`totalReceivable`…) ficam de fora de
+ * propósito: os cartões somam o MÊS a partir das linhas (`summarizeMonth`), e
+ * pedir os totais obriga o servidor a calcular o histórico todo.
+ *
+ * `includeUndated: false`: nenhuma aba do mês exibe parcela sem data de
+ * recebimento, então ela só vem quando tem repasse, recebimento, calote ou
+ * estorno ligado (o painel de estornos e a aba de atraso usam essas).
  */
 export const COMMISSIONS_QUERY = gql`
   query Commissions(
@@ -39,18 +47,9 @@ export const COMMISSIONS_QUERY = gql`
       from: $from
       to: $to
       includeOverdue: $includeOverdue
+      includeUndated: false
     ) {
       latestReceiveDate
-      totalReceivable
-      totalReceived
-      totalPending
-      countReceivable
-      totalChargeback
-      totalSellerChargeback
-      totalSellerChargebackPending
-      totalRefund
-      totalSellerRefund
-      countOverdue
       rows {
         orderId
         installmentId
@@ -108,12 +107,28 @@ export const COMMISSIONS_QUERY = gql`
  * a comissão de um boleto pago em agosto costuma cair em setembro, e um calote
  * de março continua travado sem pertencer a mês algum.
  *
- * Por isso o PDF busca a carteira inteira — e só quando alguém clica no botão.
- * É a mesma leitura que a aba de relatórios faz.
+ * Por isso o papel pede ao servidor exatamente o que usa (ver `monthReport`):
+ * a comissão que cai no mês E no seguinte (a prévia do próximo fechamento),
+ * o boleto pago no mês (`paidFrom`/`paidTo`) e todo calote
+ * (`includeDefaulted`). Antes buscava a carteira inteira — dezenas de MB num
+ * histórico de anos para imprimir um mês.
  */
 export const COMMISSIONS_PDF_QUERY = gql`
-  query CommissionsForPdf($sellerId: UUID) {
-    commissions_pdf: commissions(sellerId: $sellerId) {
+  query CommissionsForPdf(
+    $sellerId: UUID
+    $from: Date
+    $to: Date
+    $paidFrom: Date
+    $paidTo: Date
+  ) {
+    commissions_pdf: commissions(
+      sellerId: $sellerId
+      from: $from
+      to: $to
+      paidFrom: $paidFrom
+      paidTo: $paidTo
+      includeDefaulted: true
+    ) {
       rows {
         orderId
         installmentId

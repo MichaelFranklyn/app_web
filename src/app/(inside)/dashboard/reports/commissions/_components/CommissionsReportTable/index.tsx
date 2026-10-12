@@ -15,8 +15,7 @@ import { clientName, factoryName } from "@/utils/company";
 import { formatDateDMY, formatMoney } from "@/utils/format/masks";
 import { Coins } from "lucide-react";
 
-import { CommissionRow } from "../../interface";
-import { summarize } from "../../utils";
+import { CommissionRow, CommissionsTotals } from "../../interface";
 
 interface Props {
   items: CommissionRow[];
@@ -31,6 +30,8 @@ interface Props {
   setCurrentPage: (page: number) => void;
   totalPages: number;
   totalItems: number;
+  /** Somas de TODAS as linhas que os filtros deixaram — não só desta página. */
+  filteredTotals: CommissionsTotals;
   /**
    * Gestor: a comissão se abre em duas colunas — o que vai para o vendedor e o
    * que fica na empresa. Para o vendedor, "Comissão" já é a fatia dele.
@@ -57,9 +58,9 @@ export function CommissionsReportTable({
   setCurrentPage,
   totalPages,
   totalItems,
+  filteredTotals,
   withOffice,
 }: Props) {
-  const page = summarize(items);
   const columns = withOffice ? 13 : 11;
   const isNarrowed = Object.values(inputValues).some(Boolean);
 
@@ -217,7 +218,7 @@ export function CommissionsReportTable({
           {/* Sem linhas o rodapé fica quieto: repetir aqui a frase do estado
               vazio dizia a mesma coisa duas vezes na mesma tela. */}
           {totalItems > 0 &&
-            `${totalItems} parcelas · página ${currentPage} de ${totalPages} · nesta página: a receber ${formatMoney(page.receivable)}, recebido ${formatMoney(page.received)}${page.countOverdue > 0 ? `, ${page.countOverdue} boleto(s) em atraso` : ""}`}
+            `${totalItems} parcelas · página ${currentPage} de ${totalPages} · ${isNarrowed ? "no filtro" : "no período"}: a receber ${formatMoney(filteredTotals.receivable)}, recebido ${formatMoney(filteredTotals.received)}${filteredTotals.countOverdue > 0 ? `, ${filteredTotals.countOverdue} boleto(s) em atraso` : ""}`}
         </Table.Footer.Info>
 
         <Pagination.Smart

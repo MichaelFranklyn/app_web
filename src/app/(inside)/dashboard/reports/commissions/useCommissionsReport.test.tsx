@@ -12,8 +12,14 @@ vi.mock("next/navigation", () => ({
 
 import { Toast } from "@/components/Toast";
 import { ReportFilters } from "../interface";
-import { COMMISSIONS_REPORT_QUERY } from "./gql";
-import { useCommissionsReport } from "./useCommissionsReport";
+import {
+  COMMISSIONS_REPORT_EXPORT_QUERY,
+  COMMISSIONS_REPORT_QUERY,
+} from "./gql";
+import {
+  COMMISSIONS_EXPORT_PAGE,
+  useCommissionsReport,
+} from "./useCommissionsReport";
 
 const money = (value: string) => value.replace(/\u00a0/g, " ");
 
@@ -31,7 +37,7 @@ const parcela = (
   receiveDate: string | null,
   extra: Partial<{ sellerAmount: string; factoryId: string }> = {}
 ) => ({
-  __typename: "CommissionRow",
+  __typename: "CommissionRowType",
   orderId: `o-${installmentId}`,
   installmentId,
   sequence: 1,
@@ -70,30 +76,110 @@ const parcela = (
   seller: { __typename: "UserType", id: "s1", name: "Rafael" },
 });
 
-/** Duas parcelas do mês e uma que cai no mês seguinte. */
-const ROWS = [
+const totals = (over: Record<string, unknown> = {}) => ({
+  __typename: "CommissionReportTotalsType",
+  receivable: "300.00",
+  received: "200.00",
+  pending: "0",
+  count: 2,
+  countReceivable: 1,
+  chargeback: "0",
+  countOverdue: 0,
+  company: "500.00",
+  seller: "180.00",
+  office: "320.00",
+  margin: 0.64,
+  ...over,
+});
+
+const PAGE = [
   parcela("i1", "receivable", "300.00", "2026-09-10"),
   parcela("i2", "received", "200.00", "2026-09-20", {
     sellerAmount: "80.00",
     factoryId: "f2",
   }),
-  parcela("i3", "receivable", "999.00", "2026-10-05"),
 ];
 
-const reportMock = (rows: unknown[] = ROWS) => ({
+const BASE_INPUT = { from: "2026-09-01", to: "2026-09-30", sellerId: null };
+
+const reportMock = ({
+  input = {},
+  rows = PAGE,
+  totalCount = 2,
+  period = totals(),
+  filtered = totals(),
+  byFactory = [
+    {
+      __typename: "CommissionReportFactoryType",
+      factoryId: "f1",
+      name: "HERC",
+      receivable: "300.00",
+      received: "0",
+      pending: "0",
+      count: 1,
+      company: "300.00",
+      seller: "100.00",
+      office: "200.00",
+      margin: 0.66,
+    },
+  ],
+}: {
+  input?: Record<string, unknown>;
+  rows?: unknown[];
+  totalCount?: number;
+  period?: unknown;
+  filtered?: unknown;
+  byFactory?: unknown[];
+} = {}) => ({
   request: {
     query: COMMISSIONS_REPORT_QUERY,
-    variables: { sellerId: null },
+    variables: {
+      input: { ...BASE_INPUT, first: 20, offset: 0, ...input },
+    },
   },
   maxUsageCount: 5,
   result: {
     data: {
       commissions_report: {
-        __typename: "CommissionsReportType",
-        totalReceivable: "300.00",
-        totalReceived: "200.00",
-        totalPending: "0",
-        countReceivable: 1,
+        __typename: "CommissionReportType",
+        totalCount,
+        periodCount: 2,
+        periodTotals: period,
+        filteredTotals: filtered,
+        byFactory,
+        factoryOptions: [
+          {
+            __typename: "CommissionReportOptionType",
+            value: "f1",
+            label: "HERC",
+          },
+        ],
+        sellerOptions: [],
+        statusOptions: [
+          {
+            __typename: "CommissionReportOptionType",
+            value: "receivable",
+            label: "A receber",
+          },
+        ],
+        rows,
+      },
+    },
+  },
+});
+
+const exportMock = (offset: number, rows: unknown[], totalCount: number) => ({
+  request: {
+    query: COMMISSIONS_REPORT_EXPORT_QUERY,
+    variables: {
+      input: { ...BASE_INPUT, first: COMMISSIONS_EXPORT_PAGE, offset },
+    },
+  },
+  result: {
+    data: {
+      commissions_report_export: {
+        __typename: "CommissionReportType",
+        totalCount,
         rows,
       },
     },
@@ -115,7 +201,7 @@ const run = async (withOffice = true, mocks: unknown[] = [reportMock()]) => {
     () => useCommissionsReport(FILTERS, withOffice),
     { wrapper: wrapper(mocks) }
   );
-  await waitFor(() => expect(result.current.loading).toBe(false));
+  await waitFor(() => expect(result.current.kpisLoading).toBe(false));
   return result;
 };
 
@@ -124,19 +210,28 @@ beforeEach(() => {
   vi.spyOn(window.history, "replaceState").mockImplementation(() => {});
 });
 
-describe("useCommissionsReport", () => {
-  it("recorta pela data em que a comissão CAI, não pela do pedido", async () => {
-    // A query traz todas as parcelas do vendedor; o mês é decidido aqui, pela
-    // `receiveDate` — é ela que responde "quanto entra em setembro".
+describe("useCommissionsReport — paginado no servidor", () => {
+  it("pede ao servidor o período e a página, e mostra só a página", async () => {
     const result = await run();
 
-    expect(result.current.rows.map((row) => row.installmentId)).toEqual([
+    expect(result.current.pageRows.map((row) => row.installmentId)).toEqual([
       "i1",
       "i2",
     ]);
+    expect(result.current.totalItems).toBe(2);
   });
 
-  it("o topo fecha o período: a receber, recebido e o total", async () => {
+  it("a página da URL vira o deslocamento da consulta", async () => {
+    state.sp = new URLSearchParams("page=3");
+    const result = await run(true, [
+      reportMock({ input: { offset: 40 }, totalCount: 45 }),
+    ]);
+
+    expect(result.current.currentPage).toBe(3);
+    expect(result.current.totalPages).toBe(3);
+  });
+
+  it("o topo fecha o período com os totais do servidor", async () => {
     const result = await run();
 
     expect(money(result.current.kpis[0].value)).toBe("R$ 300,00");
@@ -146,20 +241,16 @@ describe("useCommissionsReport", () => {
   });
 
   it("para quem gerencia, mostra o que fica e o que é repassado", async () => {
-    // A comissão tem dois níveis: a fábrica paga o escritório, o escritório
-    // repassa o vendedor. A diferença é o que sobra para a empresa.
     const result = await run(true);
     const labels = result.current.kpis.map((kpi) => kpi.label);
 
     expect(labels).toContain("Comissão da empresa");
-    expect(labels).toContain("Repasse aos vendedores");
     expect(money(result.current.kpis[4].value)).toBe("R$ 180,00");
     expect(money(result.current.kpis[5].value)).toBe("R$ 320,00");
     expect(result.current.split.margin).toBeCloseTo(0.64);
   });
 
   it("para o vendedor, não existe repartição — o valor já é o dele", async () => {
-    // Mostrar "repasse" no extrato dele daria zero e confundiria.
     const result = await run(false);
     const labels = result.current.kpis.map((kpi) => kpi.label);
 
@@ -168,47 +259,63 @@ describe("useCommissionsReport", () => {
     expect(result.current.kpis).toHaveLength(4);
   });
 
-  it("o estorno entra negativo no a receber — o papel mostra o líquido", async () => {
-    // Senão o relatório promete um valor que a fábrica desconta no mesmo
-    // fechamento.
+  it("filtrar vai ao servidor: muda a tabela e o rodapé, não o topo", async () => {
     const result = await run(true, [
-      reportMock([
-        parcela("i1", "receivable", "300.00", "2026-09-10"),
-        parcela("i2", "chargeback", "-100.00", "2026-09-15"),
-      ]),
+      reportMock(),
+      reportMock({
+        input: { factoryId: "f2" },
+        rows: [PAGE[1]],
+        totalCount: 1,
+        filtered: totals({ receivable: "0", received: "200.00" }),
+      }),
     ]);
-
-    expect(money(result.current.kpis[0].value)).toBe("R$ 200,00");
-  });
-
-  it("filtrar uma fábrica muda a tabela, não o fechamento do mês", async () => {
-    const result = await run();
 
     act(() => result.current.setFilter("factoryId", "f2"));
 
-    await waitFor(() => expect(result.current.rows).toHaveLength(1));
+    await waitFor(() => expect(result.current.pageRows).toHaveLength(1));
+    expect(result.current.filteredTotals.received).toBe(200);
+    expect(result.current.filteredTotals.receivable).toBe(0);
     expect(money(result.current.kpis[3].value)).toBe("R$ 500,00");
   });
 
-  it("sem repasse configurado, o gráfico da repartição não aparece", async () => {
-    // Uma barra de cor só repetiria o gráfico de cima.
+  it("o rodapé soma TODAS as linhas filtradas, não a página", async () => {
     const result = await run(true, [
-      reportMock([
-        parcela("i1", "receivable", "300.00", "2026-09-10", {
-          sellerAmount: "0",
-        }),
-      ]),
+      reportMock({
+        totalCount: 60,
+        filtered: totals({ receivable: "9000.00" }),
+      }),
+    ]);
+
+    expect(result.current.filteredTotals.receivable).toBe(9000);
+  });
+
+  it("sem repasse configurado, o gráfico da repartição não aparece", async () => {
+    const result = await run(true, [
+      reportMock({ period: totals({ seller: "0" }) }),
     ]);
 
     expect(result.current.chart.hasData).toBe(true);
     expect(result.current.splitChart.hasData).toBe(false);
   });
 
-  it("exportar não volta à rede: o conjunto já está em memória", async () => {
-    const result = await run();
+  it("exportar varre as páginas no servidor, qualquer que seja a página aberta", async () => {
+    state.sp = new URLSearchParams("page=2");
+    const full = Array.from({ length: COMMISSIONS_EXPORT_PAGE }, (_, i) =>
+      parcela(`e${i}`, "received", "1.00", "2026-09-10")
+    );
+    const result = await run(true, [
+      reportMock({ input: { offset: 20 }, totalCount: 501 }),
+      exportMock(0, full, 501),
+      exportMock(
+        COMMISSIONS_EXPORT_PAGE,
+        [parcela("ultima", "received", "1.00", "2026-09-30")],
+        501
+      ),
+    ]);
 
     const exported = await result.current.fetchAllRows();
 
-    expect(exported.map((row) => row.installmentId)).toEqual(["i1", "i2"]);
+    expect(exported).toHaveLength(501);
+    expect(exported.at(-1)?.installmentId).toBe("ultima");
   });
 });

@@ -33,6 +33,7 @@ const installment = (
   isSellerCommissionPaid: false,
   sellerCommissionPaidAt: null,
   sellerChargebackMonth: null,
+  hasSettlement: false,
   ...extra,
 });
 
@@ -47,6 +48,7 @@ const order = (overrides: Partial<OrderDetail> = {}): OrderDetail =>
     availablePaymentTerms: [term("t1", [30, 60, 90]), term("t2", [28])],
     installments: [installment(1), installment(2), installment(3)],
     backorderChildren: [],
+    settlementSummary: "",
     ...overrides,
   }) as OrderDetail;
 
@@ -236,10 +238,15 @@ describe("useEditInvoice — corrigir o lançamento", () => {
 describe("useEditInvoice — as baixas já lançadas", () => {
   const comBaixas = order({
     installments: [
-      installment(1, { paidAt: "2026-10-10", status: "PAID" }),
-      installment(2, { isCommissionReceived: true }),
+      installment(1, {
+        paidAt: "2026-10-10",
+        status: "PAID",
+        hasSettlement: true,
+      }),
+      installment(2, { isCommissionReceived: true, hasSettlement: true }),
       installment(3),
     ],
+    settlementSummary: "1 parcela paga e 1 comissão recebida",
   });
 
   it("trocar por um prazo com OUTRA quantidade de parcelas avisa e força", async () => {
@@ -303,7 +310,11 @@ describe("useEditInvoice — desfazer", () => {
       [uninvoiceMock(true, "A fábrica reemitiu a nota")],
       order({
         installments: [
-          installment(1, { status: "PAID", paidAt: "2026-10-10" }),
+          installment(1, {
+            status: "PAID",
+            paidAt: "2026-10-10",
+            hasSettlement: true,
+          }),
         ],
       })
     );
@@ -318,6 +329,40 @@ describe("useEditInvoice — desfazer", () => {
     await act(() => result.current.redoInvoice());
 
     await waitFor(() => expect(onSuccess).toHaveBeenCalledOnce());
+  });
+
+  it("só o repasse ao vendedor pago já exige força e motivo", async () => {
+    // O furo original: sem boleto pago nem comissão recebida, a tela mandava
+    // `force: false` e nenhum motivo — e o repasse sumia sem registro.
+    const { result, onSuccess } = run(
+      [uninvoiceMock(true, "Nota reemitida pela fábrica")],
+      order({
+        installments: [
+          installment(1, { isSellerCommissionPaid: true, hasSettlement: true }),
+          installment(2),
+        ],
+        settlementSummary: "1 repasse pago ao vendedor",
+      })
+    );
+
+    expect(result.current.redoNeedsReason).toBe(true);
+    expect(result.current.settlementSummary).toBe("1 repasse pago ao vendedor");
+    act(() => result.current.setReason("Nota reemitida pela fábrica"));
+    await act(() => result.current.redoInvoice());
+
+    await waitFor(() => expect(onSuccess).toHaveBeenCalledOnce());
+  });
+
+  it("parcela só conferida também pede o motivo (a tela deixava passar)", () => {
+    const { result } = run(
+      [],
+      order({
+        installments: [installment(1, { hasSettlement: true })],
+        settlementSummary: "1 parcela conferida",
+      })
+    );
+
+    expect(result.current.redoNeedsReason).toBe(true);
   });
 
   it("sem baixa, o motivo é opcional — e o que for escrito vai junto", async () => {

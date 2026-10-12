@@ -133,6 +133,7 @@ describe("buildOrderSheetRows", () => {
             isSellerCommissionPaid: false,
             sellerCommissionPaidAt: null,
             sellerChargebackMonth: null,
+            hasSettlement: false,
           },
         ],
       }),

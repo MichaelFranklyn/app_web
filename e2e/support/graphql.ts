@@ -205,6 +205,9 @@ export function orderDetailData(overrides: Record<string, unknown> = {}) {
     paymentTerm: null,
     availablePaymentTerms: [],
     installments: [],
+    invoiceReversals: [],
+    // Frase do servidor com as baixas das parcelas ("" = nenhuma).
+    settlementSummary: "",
     ...overrides,
   };
 }

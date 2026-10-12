@@ -4,6 +4,7 @@ import { FormBuilderRef, FormStepSchema } from "@/components/FormBuilder";
 import { useAsyncAction } from "@/hooks/useAsyncAction";
 import { useInvalidateQueriesClient } from "@/hooks/useInvalidateQueries";
 import {
+  COMMISSION_CACHE_FIELDS,
   ORDER_CACHE_FIELDS,
   ORDER_SPLIT_CACHE_FIELDS,
 } from "@/utils/cacheFields";
@@ -14,7 +15,7 @@ import { useMemo, useRef, useState } from "react";
 import { OrderDetail } from "../../interface";
 import { selectValue } from "../../utils";
 import { REVISE_ORDER_INVOICE_MUTATION, UNINVOICE_ORDER_MUTATION } from "./gql";
-import { describeSettlements, isSettled, isValidReversalReason } from "./utils";
+import { isSettled, isValidReversalReason } from "./utils";
 
 interface ReviseResponse {
   reviseOrderInvoice: { status: boolean; message: string };
@@ -55,7 +56,8 @@ export function useEditInvoice(order: OrderDetail, onSuccess: () => void) {
     () => order.installments.filter(isSettled),
     [order.installments]
   );
-  const settlementSummary = describeSettlements(settled);
+  // A frase vem do servidor: é a mesma que ele usa para recusar.
+  const settlementSummary = order.settlementSummary;
 
   const paymentTermOptions = useMemo(
     () =>
@@ -174,9 +176,12 @@ export function useEditInvoice(order: OrderDetail, onSuccess: () => void) {
     // ao pai (ver `uninvoice_order.py`): aí a tabela de itens, que lê
     // `orderItems` numa query própria, também está velha. Corrigir datas e
     // desfazer a entrega não encostam nos itens.
-    void invalidateClient(
-      rewroteItems ? ORDER_SPLIT_CACHE_FIELDS : ORDER_CACHE_FIELDS
-    );
+    // As parcelas mudaram (ou sumiram): a tela de comissões e o relatório
+    // seguiam mostrando a comissão e o repasse do faturamento desfeito.
+    void invalidateClient([
+      ...(rewroteItems ? ORDER_SPLIT_CACHE_FIELDS : ORDER_CACHE_FIELDS),
+      ...COMMISSION_CACHE_FIELDS,
+    ]);
   };
 
   const runRevise = async (

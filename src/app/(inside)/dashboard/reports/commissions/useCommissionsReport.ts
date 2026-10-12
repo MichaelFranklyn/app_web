@@ -1,42 +1,52 @@
 "use client";
 
-import { useLocalTable } from "@/hooks/useLocalTable";
 import { useQueryErrorToast } from "@/hooks/useQueryErrorToast";
+import { useTableFilters } from "@/hooks/useTableFilters";
+import { useUrlSort } from "@/hooks/useUrlSort";
 import { formatMoney } from "@/utils/format/masks";
-import { useQuery } from "@apollo/client/react";
+import { MAX_SCAN_PAGES } from "@/utils/pagination";
+import { useApolloClient, useQuery } from "@apollo/client/react";
+import { useSearchParams } from "next/navigation";
 import { useCallback, useMemo } from "react";
 
 import { ReportFilters, ReportKpi } from "../interface";
-import { useLocalReportPage } from "../useLocalReportPage";
-import { COMMISSIONS_REPORT_QUERY } from "./gql";
-import { CommissionRow, CommissionsReportResponse } from "./interface";
 import {
-  COMMISSIONS_FILTER_FIELDS,
+  COMMISSIONS_REPORT_EXPORT_QUERY,
+  COMMISSIONS_REPORT_QUERY,
+} from "./gql";
+import {
+  CommissionRow,
+  CommissionsReportExportResponse,
+  CommissionsReportResponse,
+} from "./interface";
+import {
+  COMMISSIONS_FILTER_CONFIG,
   useCommissionsFilters,
 } from "./useCommissionsFilters";
 import {
-  COMMISSIONS_SORT_COLUMNS,
   buildFactoryOption,
   buildSplitOption,
-  byFactory,
-  filterByPeriod,
-  sortForReport,
-  splitTotals,
-  summarize,
+  COMMISSIONS_SORT_KEYS,
+  factoriesFromServer,
+  totalsFromServer,
 } from "./utils";
 
 export const COMMISSIONS_PER_PAGE = 20;
+/** Página da varredura da exportação (o servidor aceita até 500). */
+export const COMMISSIONS_EXPORT_PAGE = 500;
 
 /**
  * Os dados do relatório de comissões.
  *
- * Ao contrário das outras abas, a query não pagina nem recebe período: a
- * `commissions` devolve todas as parcelas do vendedor/empresa de uma vez (é assim
- * que a tela de Comissões trabalha), e o recorte é feito aqui, pela data em que a
- * comissão CAI. Como o conjunto já está inteiro em memória, a paginação da tabela
- * também é local — e por isso o "Exportar" não precisa de uma segunda ida à rede.
- * Filtro e ordenação seguem o mesmo caminho, e é a lista JÁ filtrada e ordenada
- * que vai para o XLSX/PDF.
+ * Período, filtros do painel, ordenação e página vão ao SERVIDOR, que devolve
+ * só a página aberta e as somas prontas. Antes a query trazia a carteira
+ * inteira — todas as parcelas de todos os anos — e tudo era feito aqui; com o
+ * histórico crescendo, abrir a aba custava segundos e dezenas de MB.
+ *
+ * Os números não mudaram de régua: cartões e gráficos somam o PERÍODO inteiro
+ * (filtrar uma fábrica muda a tabela, e o topo tem de continuar dizendo quanto
+ * o mês vale); o rodapé da tabela soma TODAS as linhas que os filtros deixaram
+ * — antes falava só da página aberta.
  */
 export const useCommissionsReport = (
   filters: ReportFilters,
@@ -46,38 +56,66 @@ export const useCommissionsReport = (
    */
   withOffice: boolean
 ) => {
-  const { data, loading, error, refetch } = useQuery<CommissionsReportResponse>(
-    COMMISSIONS_REPORT_QUERY,
-    {
-      fetchPolicy: "cache-and-network",
-      variables: { sellerId: filters.sellerId },
+  const apollo = useApolloClient();
+  const searchParams = useSearchParams();
+  const table = useTableFilters(COMMISSIONS_FILTER_CONFIG);
+  const sort = useUrlSort(COMMISSIONS_SORT_KEYS, table.setParams);
+  const requestedPage = Math.max(1, Number(searchParams.get("page")) || 1);
+
+  // O recorte inteiro, sem a página: é o mesmo para a tela e para o arquivo.
+  const baseInput = useMemo(() => {
+    const panel: Record<string, string> = {};
+    for (const [key, value] of Object.entries(table.queryValues)) {
+      const config = COMMISSIONS_FILTER_CONFIG[key];
+      if (value && config) panel[config.queryField] = value;
     }
-  );
+    return {
+      from: filters.from,
+      to: filters.to,
+      sellerId: filters.sellerId,
+      ...panel,
+      ...(sort.key && { sortBy: sort.key, sortDir: sort.direction }),
+    };
+  }, [filters.from, filters.to, filters.sellerId, table.queryValues, sort]);
+
+  const { data, previousData, loading, error, refetch } =
+    useQuery<CommissionsReportResponse>(COMMISSIONS_REPORT_QUERY, {
+      fetchPolicy: "cache-and-network",
+      variables: {
+        input: {
+          ...baseInput,
+          first: COMMISSIONS_PER_PAGE,
+          offset: (requestedPage - 1) * COMMISSIONS_PER_PAGE,
+        },
+      },
+    });
   useQueryErrorToast(error, "Não foi possível carregar as comissões.");
 
-  const allRows = useMemo(() => data?.commissions_report.rows ?? [], [data]);
+  // Trocar de página ou de filtro mantém a resposta anterior na tela até a
+  // nova chegar — sem piscar o esqueleto a cada clique.
+  const report = (data ?? previousData)?.commissions_report;
+  const rows = useMemo(() => report?.rows ?? [], [report]);
+  const totalCount = report?.totalCount ?? 0;
+  const totalPages = Math.max(1, Math.ceil(totalCount / COMMISSIONS_PER_PAGE));
 
-  // As parcelas do período, na ordem da conferência — antes de qualquer filtro
-  // ou ordenação da tela.
-  const periodRows = useMemo(
-    () => sortForReport(filterByPeriod(allRows, filters.from, filters.to)),
-    [allRows, filters.from, filters.to]
-  );
-
-  const table = useLocalTable<CommissionRow>({
-    items: periodRows,
-    columns: COMMISSIONS_SORT_COLUMNS,
-    fields: COMMISSIONS_FILTER_FIELDS,
+  const filterFields = useCommissionsFilters({
+    factories: report?.factoryOptions ?? [],
+    sellers: report?.sellerOptions ?? [],
+    statuses: report?.statusOptions ?? [],
   });
 
-  const filterFields = useCommissionsFilters(periodRows);
-  const rows = table.displayedData;
-
-  // Cartões e gráfico falam do PERÍODO INTEIRO: filtrar por uma fábrica muda a
-  // tabela, e o topo tem de continuar dizendo quanto o mês vale.
-  const totals = useMemo(() => summarize(periodRows), [periodRows]);
-  const groups = useMemo(() => byFactory(periodRows), [periodRows]);
-  const split = useMemo(() => splitTotals(periodRows), [periodRows]);
+  const { totals, split } = useMemo(
+    () => totalsFromServer(report?.periodTotals),
+    [report]
+  );
+  const filtered = useMemo(
+    () => totalsFromServer(report?.filteredTotals).totals,
+    [report]
+  );
+  const groups = useMemo(
+    () => factoriesFromServer(report?.byFactory),
+    [report]
+  );
 
   const kpis: ReportKpi[] = useMemo(
     () => [
@@ -130,19 +168,41 @@ export const useCommissionsReport = (
     [totals, split, withOffice]
   );
 
-  const { currentPage, setCurrentPage, totalPages, pageRows } =
-    useLocalReportPage(rows, COMMISSIONS_PER_PAGE);
-
-  // O conjunto já está completo em memória: exportar é devolvê-lo, sem varrer
-  // páginas como nas abas que paginam no servidor.
-  const fetchAllRows = useCallback(
-    async (): Promise<CommissionRow[]> => rows,
-    [rows]
-  );
+  /**
+   * Todas as linhas do recorte, para o arquivo — página a página, no servidor,
+   * com o mesmo período, filtros e ordem da tela. Não depende da página aberta.
+   * `network-only`: o arquivo não pode sair de um cache antigo.
+   */
+  const fetchAllRows = useCallback(async (): Promise<CommissionRow[]> => {
+    const all: CommissionRow[] = [];
+    for (let page = 0; page < MAX_SCAN_PAGES; page += 1) {
+      const result = await apollo.query<CommissionsReportExportResponse>({
+        query: COMMISSIONS_REPORT_EXPORT_QUERY,
+        variables: {
+          input: {
+            ...baseInput,
+            first: COMMISSIONS_EXPORT_PAGE,
+            offset: page * COMMISSIONS_EXPORT_PAGE,
+          },
+        },
+        fetchPolicy: "network-only",
+      });
+      const chunk = result.data?.commissions_report_export;
+      if (!chunk) break;
+      all.push(...chunk.rows);
+      if (
+        chunk.rows.length < COMMISSIONS_EXPORT_PAGE ||
+        all.length >= chunk.totalCount
+      ) {
+        break;
+      }
+    }
+    return all;
+  }, [apollo, baseInput]);
 
   return {
     kpis,
-    kpisLoading: loading && allRows.length === 0,
+    kpisLoading: loading && !report,
     chart: {
       option: buildFactoryOption(groups),
       hasData: groups.length > 0,
@@ -164,15 +224,17 @@ export const useCommissionsReport = (
     inputValues: table.inputValues,
     setFilter: table.setFilter,
     setFilters: table.setFilters,
-    sort: table.sort,
-    rows,
-    pageRows,
-    currentPage,
-    setCurrentPage,
+    sort,
+    pageRows: rows,
+    currentPage: Math.min(requestedPage, totalPages),
+    setCurrentPage: table.setPage,
     totalPages,
+    totalItems: totalCount,
+    /** Somas de TODAS as linhas filtradas (rodapé), não só da página. */
+    filteredTotals: filtered,
     loading,
     totals,
     fetchAllRows,
-    hasRows: rows.length > 0,
+    hasRows: totalCount > 0,
   };
 };

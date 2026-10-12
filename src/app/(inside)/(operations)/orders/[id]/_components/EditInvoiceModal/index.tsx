@@ -242,7 +242,7 @@ function ReasonField({ value, onChange, required }: ReasonFieldProps) {
       placeholder="Ex: a fábrica cancelou a nota e emitiu outra"
       hint={
         required
-          ? "Obrigatório: há boleto pago ou comissão recebida neste faturamento. O motivo fica no histórico do pedido."
+          ? "Obrigatório: este faturamento tem baixa lançada (pagamento, comissão recebida ou conferida, repasse ao vendedor). O motivo fica no histórico do pedido."
           : "Opcional. Fica no histórico do pedido, com o seu nome e a data."
       }
       value={value}

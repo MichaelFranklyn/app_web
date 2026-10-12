@@ -43,19 +43,61 @@ export interface CommissionRow {
   factory: {
     id: string;
     nomeFantasia: string | null;
+    nickname?: string | null;
     razaoSocial: string;
   } | null;
   seller: { id: string; name: string } | null;
 }
 
+/** Totais que o servidor soma (decimais chegam como texto). */
+export interface CommissionReportTotalsRaw {
+  receivable: string;
+  received: string;
+  pending: string;
+  count: number;
+  countReceivable: number;
+  chargeback: string;
+  countOverdue: number;
+  company: string;
+  seller: string;
+  office: string;
+  margin: number;
+}
+
+export interface CommissionReportFactoryRaw {
+  factoryId: string;
+  name: string;
+  receivable: string;
+  received: string;
+  pending: string;
+  count: number;
+  company: string;
+  seller: string;
+  office: string;
+  margin: number;
+}
+
+export interface CommissionReportOption {
+  value: string;
+  label: string;
+}
+
 export interface CommissionsReportResponse {
   commissions_report: {
-    totalReceivable: string;
-    totalReceived: string;
-    totalPending: string;
-    countReceivable: number;
+    totalCount: number;
+    periodCount: number;
+    periodTotals: CommissionReportTotalsRaw;
+    filteredTotals: CommissionReportTotalsRaw;
+    byFactory: CommissionReportFactoryRaw[];
+    factoryOptions: CommissionReportOption[];
+    sellerOptions: CommissionReportOption[];
+    statusOptions: CommissionReportOption[];
     rows: CommissionRow[];
   };
+}
+
+export interface CommissionsReportExportResponse {
+  commissions_report_export: { totalCount: number; rows: CommissionRow[] };
 }
 
 /** Fechamento do período: o que entra, o que entrou e o que ainda depende da fábrica. */

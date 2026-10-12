@@ -16,6 +16,7 @@ import {
   lensFor,
   monthLabel,
   monthReport,
+  pdfVariables,
   YearMonth,
 } from "../../utils";
 
@@ -81,7 +82,9 @@ export function CommissionsPdfButton({
   const generate = async (audience: CommissionAudience) => {
     setBusy(true);
     try {
-      const { data } = await fetchRows({ variables: { sellerId } });
+      const { data } = await fetchRows({
+        variables: pdfVariables(sellerId, month),
+      });
       // A ótica do papel decide o valor, a data e a situação de cada linha —
       // e os rótulos do fechamento. Antes o relatório de um vendedor somava a
       // comissão do escritório: o nome da pessoa no cabeçalho e o dinheiro da

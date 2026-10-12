@@ -208,6 +208,18 @@ describe("reversalSummary", () => {
     );
   });
 
+  it("com a frase do servidor, diz QUE baixas foram apagadas", () => {
+    expect(
+      reversalSummary({
+        installmentsCount: 2,
+        settlementsDropped: 1,
+        settlementsSummary: "1 repasse pago ao vendedor",
+        invoicedAt: null,
+        invoiceNumber: null,
+      })
+    ).toBe("2 parcelas apagadas · baixas apagadas: 1 repasse pago ao vendedor");
+  });
+
   it("sem baixa e sem nota, não inventa o que não havia", () => {
     expect(
       reversalSummary({
