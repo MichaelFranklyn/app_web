@@ -300,6 +300,81 @@ test("follow-ups/contato: comercial vem marcado para vendedor; o retorno só com
   expect(input.fulfillsReturn).toBe(true);
 });
 
+test("follow-ups/contato: cancelar exige o motivo, e só espaço não vale", async ({
+  page,
+}) => {
+  const spy = await mockGraphql(page, {
+    ClientFollowUp: () => detail(),
+    CancelClientFollowUp: mutationOk("cancelClientFollowUp"),
+  });
+  await page.goto("/follow-ups/fu-1");
+
+  await page.getByRole("button", { name: "Cancelar contato" }).click();
+  const dialog = page.getByRole("dialog");
+  const confirm = dialog.getByRole("button", { name: "Cancelar contato" });
+  const reason = dialog.getByLabel(/por que não vai mais acontecer/i);
+  // Sem motivo o botão nem responde — e o campo não se diz mais opcional.
+  await expect(confirm).toBeDisabled();
+  await expect(dialog.getByText(/opcional/i)).toHaveCount(0);
+
+  await reason.fill("    ");
+  await expect(confirm).toBeDisabled();
+
+  await reason.fill("  Cliente fechou com outro fornecedor.  ");
+  await confirm.click();
+
+  const input = (await spy.waitForCall("CancelClientFollowUp")).input as {
+    id: string;
+    reason: string;
+  };
+  expect(input.id).toBe("fu-1");
+  // Vai aparado: é o texto que fica no histórico.
+  expect(input.reason).toBe("Cliente fechou com outro fornecedor.");
+});
+
+test("follow-ups/contato: cancelado antigo, sem motivo, abre e diz que não há", async ({
+  page,
+}) => {
+  await mockGraphql(page, {
+    ClientFollowUp: () =>
+      detail({
+        status: "CANCELLED",
+        situation: "CANCELLED",
+        daysLate: 0,
+        closedAt: "2026-10-05T12:00:00Z",
+        outcome: null,
+        openReturn: null,
+        events: [
+          {
+            __typename: "ClientFollowUpEventType",
+            id: "ev-9",
+            kind: "CANCELLED",
+            note: null,
+            dateFrom: null,
+            dateTo: null,
+            userFrom: null,
+            userTo: null,
+            author: { __typename: "UserType", id: "u-9", name: "Calazans" },
+            createdAt: "2026-10-05T12:00:00Z",
+          },
+        ],
+      }),
+  });
+  await page.goto("/follow-ups/fu-1");
+
+  await expect(
+    page.getByRole("heading", {
+      name: "Retornar sobre o orçamento de tintas",
+      level: 1,
+    })
+  ).toBeVisible();
+  await expect(page.getByText(/Motivo não registrado/)).toBeVisible();
+  // Encerrado não oferece mais ação nenhuma.
+  await expect(
+    page.getByRole("button", { name: "Cancelar contato" })
+  ).toHaveCount(0);
+});
+
 test("follow-ups: gestor vê os contatos de quem saiu e os filtra", async ({
   page,
 }) => {

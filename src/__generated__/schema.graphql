@@ -351,6 +351,12 @@ input CompleteClientFollowUpInput {
 
 input CancelClientFollowUpInput {
   id: UUID!
+  """
+  Por que não vai mais acontecer. OBRIGATÓRIO: vazio, só espaço ou ausente é
+  recusado pelo servidor com a mensagem para a pessoa. Fica `String` (e não
+  `String!`) para o front antigo — que manda `null` em branco — receber essa
+  mensagem em vez de um erro de validação do schema.
+  """
   reason: String = null
 }
 

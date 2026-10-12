@@ -14,11 +14,16 @@ import {
   CancelFollowUpResponse,
   FollowUpActionModalProps,
 } from "../../interface";
+import { hasCancelReason } from "../../utils";
 
 /**
  * Cancelar: o contato não vai mais acontecer. Não apaga nada — o agendamento
  * fica no histórico do cliente com o motivo, que é o que se relê quando a
  * negociação volta.
+ *
+ * O motivo é OBRIGATÓRIO (o servidor recusa sem ele): cancelar tira o contato
+ * das pendências sem ninguém ter falado com o cliente, e "cancelado" sozinho
+ * não diz se ele desistiu ou se alguém só limpou a fila.
  */
 export function CancelFollowUpModal({
   open,
@@ -32,13 +37,14 @@ export function CancelFollowUpModal({
   );
   const { execute, isLoading } = useAsyncAction();
   const invalidateClient = useInvalidateQueriesClient();
+  const isValid = hasCancelReason(reason);
 
   const submit = () =>
     execute(
       async () => {
         const res = await cancel({
           variables: {
-            input: { id: followUp.id, reason: reason.trim() || null },
+            input: { id: followUp.id, reason: reason.trim() },
           },
         });
         const payload = res.data?.cancelClientFollowUp;
@@ -66,9 +72,11 @@ export function CancelFollowUpModal({
         />
         <Modal.Body>
           <Input.Textarea
-            label="Por que não vai mais acontecer (opcional)"
+            label="Por que não vai mais acontecer"
+            required
             rows={3}
             placeholder="Ex: Cliente fechou com outro fornecedor."
+            hint="Fica no histórico do cliente. Sem o motivo o contato não é cancelado."
             value={reason}
             onChange={(e) => setReason(e.target.value)}
           />
@@ -93,6 +101,7 @@ export function CancelFollowUpModal({
             size="md"
             noUppercase
             loading={isLoading}
+            disabled={!isValid}
             onClick={() => submit()}
           >
             <Button.Title>Cancelar contato</Button.Title>

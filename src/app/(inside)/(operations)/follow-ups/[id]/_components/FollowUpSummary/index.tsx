@@ -132,6 +132,19 @@ export function FollowUpSummary({ followUp }: Props) {
           </Title>
         </div>
       )}
+      {/* Cancelado de antes de o motivo ser obrigatório: sem o aviso, o campo
+          simplesmente sumia e parecia que a ficha não tinha carregado. */}
+      {followUp.status === "CANCELLED" && !followUp.outcome && (
+        <div className="mt-16 flex flex-col gap-4">
+          <Title variant="label" color="muted">
+            Por que foi cancelado
+          </Title>
+          <Title variant="body-sm" color="muted">
+            Motivo não registrado — este contato foi cancelado antes de a
+            justificativa ser obrigatória.
+          </Title>
+        </div>
+      )}
     </Card.Root>
   );
 }
