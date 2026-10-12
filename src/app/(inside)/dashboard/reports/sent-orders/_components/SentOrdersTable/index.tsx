@@ -119,7 +119,11 @@ export function SentOrdersTable({
                 <Table.Cell variant="strong" className="whitespace-nowrap">
                   {formatDateDMY(order.orderDate)}
                 </Table.Cell>
-                <Table.Cell variant="strong" title={clientName(order.client)}>
+                <Table.Cell
+                  variant="strong"
+                  title={clientName(order.client)}
+                  wrap
+                >
                   <span className="inline-flex items-center gap-6">
                     {clientName(order.client)}
                     {order.isDeliveryOverdue && (

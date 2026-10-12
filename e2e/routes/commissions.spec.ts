@@ -423,3 +423,69 @@ test("comissões: somando todos, a lista diz de quem é cada parcela", async ({
     page.getByRole("columnheader", { name: "Vendedor" })
   ).toHaveCount(0);
 });
+
+test.describe("comissões: nome comprido na tabela", () => {
+  const LONG_NAME = "COMERCIAL DE MATERIAIS DE CONSTRUCAO SILVA E FILHOS LTDA";
+
+  /**
+   * A tela do VENDEDOR (o usuário padrão do storageState). A do gestor tem
+   * doze colunas — seleção, vendedor, conferência, ações — e continua rolando
+   * abaixo de 1600px mesmo com o nome quebrado: ali o que aperta é o número de
+   * colunas, não o texto.
+   */
+  const openWithLongName = async (page: import("@playwright/test").Page) => {
+    await mockGraphql(page, {
+      Commissions: () =>
+        summary([
+          row({
+            client: {
+              id: "client-1",
+              razaoSocial: LONG_NAME,
+              nomeFantasia: null,
+            },
+          }),
+        ]),
+    });
+    await page.goto("/commissions");
+    return page.getByRole("cell", { name: LONG_NAME, exact: true });
+  };
+
+  /** Quanto a tabela passa da largura do próprio contêiner rolável. */
+  const tableOverflow = (cell: import("@playwright/test").Locator) =>
+    cell.evaluate((el) => {
+      const wrapper = el.closest("table")!.parentElement!;
+      return wrapper.scrollWidth - wrapper.clientWidth;
+    });
+
+  test("no desktop o nome quebra linha e a tabela não rola para o lado", async ({
+    page,
+  }) => {
+    // Com o mouse, rolar a tabela obriga a ir até a barra lá embaixo: no
+    // desktop quem cede é o texto longo, que desce para a segunda linha.
+    await page.setViewportSize({ width: 1366, height: 800 });
+    const cell = await openWithLongName(page);
+    await expect(cell).toBeVisible();
+
+    expect(await tableOverflow(cell)).toBeLessThanOrEqual(1);
+    expect(await cell.evaluate((el) => getComputedStyle(el).whiteSpace)).toBe(
+      "normal"
+    );
+    // O nome continua inteiro — quebrado, nunca cortado.
+    await expect(cell).toHaveText(LONG_NAME);
+  });
+
+  test("no tablet o nome segue em uma linha e a tabela rola", async ({
+    page,
+  }) => {
+    // Abaixo do desktop nada mudou: rolar com o dedo é gesto natural, e a
+    // linha única mantém a leitura vertical da lista.
+    await page.setViewportSize({ width: 800, height: 1000 });
+    const cell = await openWithLongName(page);
+    await expect(cell).toBeVisible();
+
+    expect(await cell.evaluate((el) => getComputedStyle(el).whiteSpace)).toBe(
+      "nowrap"
+    );
+    expect(await tableOverflow(cell)).toBeGreaterThan(1);
+  });
+});

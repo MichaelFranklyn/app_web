@@ -12,30 +12,29 @@ import { MY_PENDING_ITEMS_QUERY, PENDING_SELLERS_QUERY } from "./gql";
 import {
   MyPendingItemsResponse,
   PendingContentProps,
-  PendingSection,
   PendingSellersResponse,
+  PendingType,
   PendingWhen,
 } from "./interface";
 import {
-  ITEMS_PER_PAGE,
+  openTypeOf,
   PENDING_FILTER_FIELDS,
-  pendingTypeOptions,
-  pendingVariables,
-  sectionCounts,
-  sectionOf,
+  pendingSummaryVariables,
+  visibleTypeCounts,
 } from "./utils";
 
 const EMPTY_INPUT = {};
 const getSellers = (d: PendingSellersResponse) => d.pending_sellers;
 
 /**
- * O estado da central: filtros e página na URL, lista e contadores do backend.
+ * O estado da central: filtros, assunto aberto e página na URL; cartões e
+ * contadores do backend.
  *
- * Na URL, e não em `useState`, porque esta é uma lista de TRABALHO: a pessoa
- * abre um pedido, resolve, e volta — e tem de cair no mesmo filtro e na mesma
- * página, agora com uma linha a menos.
+ * Na URL, e não em `useState`, porque esta é a tela de TRABALHO: a pessoa
+ * abre um pedido, resolve, e volta — e tem de cair no mesmo assunto, no mesmo
+ * filtro e na mesma página, agora com uma linha a menos.
  */
-export function usePendingItems({
+export function usePendingSummary({
   canSelectSeller,
   seed,
 }: PendingContentProps) {
@@ -46,27 +45,27 @@ export function usePendingItems({
   useSeedQuery([
     {
       query: MY_PENDING_ITEMS_QUERY,
-      variables: pendingVariables({}, 1, canSelectSeller),
+      variables: pendingSummaryVariables({}, canSelectSeller),
       data: seed,
     },
   ]);
 
   const variables = useMemo(
-    () => pendingVariables(filters.queryValues, currentPage, canSelectSeller),
-    [filters.queryValues, currentPage, canSelectSeller]
+    () => pendingSummaryVariables(filters.queryValues, canSelectSeller),
+    [filters.queryValues, canSelectSeller]
   );
 
   const { data, previousData, loading, error, refetch } =
     useQuery<MyPendingItemsResponse>(MY_PENDING_ITEMS_QUERY, {
       variables,
       // A leitura é do momento: quem resolveu uma pendência e voltou tem de ver
-      // a lista menor, não a foto de quando abriu a tela.
+      // o número menor, não a foto de quando abriu a tela.
       fetchPolicy: "cache-and-network",
     });
 
-  // Enquanto o filtro novo carrega, a lista anterior continua na tela — trocar
-  // tudo por esqueleto a cada clique faz a tabela piscar e perder a posição.
-  const page = (data ?? previousData)?.myPendingItems?.data ?? null;
+  // Enquanto o filtro novo carrega, os cartões anteriores continuam na tela —
+  // trocar tudo por esqueleto a cada clique faz a tela piscar.
+  const summary = (data ?? previousData)?.myPendingItems?.data ?? null;
 
   const sellersQuery = useCompleteList<PendingSellersResponse>(
     PENDING_SELLERS_QUERY,
@@ -75,20 +74,8 @@ export function usePendingItems({
     { skip: !canSelectSeller }
   );
 
-  const typeCounts = page?.counts;
-  const section = sectionOf(filters.inputValues);
   const filterFields: FilterField[] = useMemo(
     () => [
-      {
-        type: "select",
-        key: "type",
-        label: "Tipo de pendência",
-        placeholder: "Todos os tipos",
-        // Com a contagem no rótulo: "Pedidos parados (3)" diz antes do clique
-        // se vale a pena filtrar. Em Cobranças há um tipo só: some o campo.
-        hidden: section === "charges",
-        options: pendingTypeOptions(typeCounts),
-      },
       {
         type: "date-range",
         key: "dueFrom",
@@ -107,14 +94,19 @@ export function usePendingItems({
           .map(({ node }) => ({ value: node.id, label: node.name })),
       },
     ],
-    [canSelectSeller, sellersQuery.data, typeCounts, section]
+    [canSelectSeller, sellersQuery.data]
   );
 
-  /** Trocar de seção zera o tipo: o tipo de uma seção não existe na outra. */
-  const changeSection = (next: PendingSection) =>
+  const openType = openTypeOf(filters.inputValues);
+  /**
+   * Abre a lista de um assunto; clicar no aberto de novo fecha. `section` sai
+   * junto: é só a porta de entrada do link antigo, e deixá-la na URL reabriria
+   * os boletos depois de a pessoa fechar o cartão.
+   */
+  const toggleType = (type: PendingType) =>
     filters.setFilters({
-      section: next === "charges" ? "charges" : undefined,
-      type: undefined,
+      type: openType === type ? undefined : type,
+      section: undefined,
     });
 
   const activeWhen = (filters.inputValues.when || null) as PendingWhen | null;
@@ -122,29 +114,29 @@ export function usePendingItems({
   const toggleWhen = (when: PendingWhen) =>
     filters.setFilters({ when: activeWhen === when ? undefined : when });
 
-  const totalItems = page?.totalCount ?? 0;
+  const cards = useMemo(
+    () => visibleTypeCounts(summary?.counts ?? [], openType),
+    [summary, openType]
+  );
 
   return {
-    page,
-    items: page?.items ?? [],
-    counts: page?.counts ?? [],
-    whenCounts: page?.whenCounts ?? [],
-    section,
-    sectionTotals: sectionCounts(page?.counts ?? []),
-    changeSection,
+    summary,
+    cards,
+    whenCounts: summary?.whenCounts ?? [],
+    openType,
+    toggleType,
     activeWhen,
     toggleWhen,
     loading,
     /** Erro sem nada para mostrar — com dado em tela, a falha não o apaga. */
-    failed: !!error && !page,
-    showSkeleton: loading && !page,
+    failed: !!error && !summary,
+    showSkeleton: loading && !summary,
     refetch,
     filterFields,
     filterValues: filters.inputValues,
+    queryValues: filters.queryValues,
     setFilters: filters.setFilters,
     currentPage,
-    totalItems,
-    totalPages: Math.max(1, Math.ceil(totalItems / ITEMS_PER_PAGE)),
     setCurrentPage: filters.setPage,
   };
 }

@@ -11,4 +11,10 @@ export interface TableCellProps extends React.TdHTMLAttributes<HTMLTableCellElem
    * acompanha.
    */
   align?: TableHeadAlign;
+  /**
+   * Quebra de linha no desktop. Texto longo escrito direto na célula já quebra
+   * sozinho (ver `isLongCellText`); `true` força a quebra quando o texto vem
+   * dentro de outro componente, e `false` trava a célula em uma linha.
+   */
+  wrap?: boolean;
 }

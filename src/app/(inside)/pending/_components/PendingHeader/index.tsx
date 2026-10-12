@@ -20,9 +20,9 @@ export function PendingHeader() {
             />
           </div>
           <PanelHeader.Description>
-            Os compromissos que esperam por você, do mais urgente para o que
-            pode esperar. Clique na linha para ir direto aonde se resolve —
-            resolveu, sai da lista sozinho.
+            Os compromissos que esperam por você, um cartão por assunto, com os
+            mais urgentes à vista. Abra a lista do assunto para ir direto aonde
+            cada um se resolve — resolveu, sai daqui sozinho.
           </PanelHeader.Description>
         </PanelHeader.Left>
       </PanelHeader.Top>

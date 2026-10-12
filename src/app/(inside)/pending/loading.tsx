@@ -4,9 +4,9 @@ import { PageContent } from "@/components/PageContent";
 import { PendingSkeleton } from "./skeleton";
 
 /**
- * Espelha `content.tsx`: cabeçalho + contadores + lista.
+ * Espelha `content.tsx`: cabeçalho + contadores + cartões.
  *
- * A página lê a primeira página da lista no servidor antes de renderizar; sem
+ * A página lê o resumo no servidor antes de renderizar; sem
  * este limite de Suspense o navegador não receberia nada enquanto isso acontece.
  */
 export default function PendingLoading() {

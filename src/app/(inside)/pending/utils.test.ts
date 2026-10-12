@@ -13,15 +13,18 @@ import {
   PENDING_TYPE_LABEL,
   PENDING_TYPE_ORDER,
   PENDING_TYPE_SINGULAR,
-  COMMITMENT_TYPES,
-  pendingTypeOptions,
-  pendingVariables,
+  cardSubtitle,
+  isPendingType,
+  openTypeOf,
+  PENDING_TYPE_COPY,
+  pendingCasesVariables,
+  pendingSummaryVariables,
   postSaleMessage,
   priorityHint,
   reasonText,
+  SAMPLE_SIZE,
   scopeNote,
-  sectionCounts,
-  sectionOf,
+  visibleTypeCounts,
 } from "./utils";
 
 const REASONS: PendingReason[] = [
@@ -253,18 +256,13 @@ describe("rótulos por tipo", () => {
     expect(names.join(" ")).not.toMatch(/atrasad/i);
   });
 
-  it("o filtro de tipo traz a contagem no rótulo, só dos compromissos", () => {
-    const options = pendingTypeOptions([
-      { type: "ORDER_STALLED", count: 3, highCount: 1 },
-    ]);
-    expect(options.find((o) => o.value === "ORDER_STALLED")?.label).toBe(
-      "Pedidos parados (3)"
-    );
-    // Boleto tem seção própria: não é opção do filtro de compromissos.
-    expect(options.some((o) => o.value === "INSTALLMENT_OVERDUE")).toBe(false);
-    expect(options.find((o) => o.value === "FOLLOW_UP")?.label).toBe(
-      "Contatos agendados"
-    );
+  it("todo assunto tem ícone, o porquê e o nome da ação que abre a lista", () => {
+    for (const type of PENDING_TYPE_ORDER) {
+      const copy = PENDING_TYPE_COPY[type];
+      expect(copy.icon).toBeTruthy();
+      expect(copy.why.length).toBeGreaterThan(20);
+      expect(copy.listAction).toMatch(/^Ver /);
+    }
   });
 });
 
@@ -288,32 +286,35 @@ describe("countTone", () => {
   });
 });
 
-describe("pendingVariables", () => {
-  it("sem filtro nenhum, manda tudo nulo — é o que o SSR semeia", () => {
-    expect(pendingVariables({}, 1)).toEqual({
-      types: COMMITMENT_TYPES,
+describe("variables das consultas", () => {
+  it("o resumo sem filtro manda tudo nulo — é o que o SSR semeia", () => {
+    expect(pendingSummaryVariables({})).toEqual({
       sellerId: null,
       dueFrom: null,
       dueTo: null,
       when: null,
-      offset: 0,
-      limit: ITEMS_PER_PAGE,
+      sampleSize: SAMPLE_SIZE,
     });
   });
 
-  it("traduz filtros e página em argumentos da consulta", () => {
-    const variables = pendingVariables(
-      {
-        type: "ORDER_STALLED",
-        seller: "s-1",
-        dueFrom: "2026-10-01",
-        dueTo: "2026-10-31",
-        when: "OVERDUE",
-      },
-      3
-    );
+  it("o resumo não leva o assunto aberto: os cartões contam todos", () => {
+    const variables = pendingSummaryVariables({
+      type: "ORDER_STALLED",
+      section: "charges",
+      when: "OVERDUE",
+    });
+    expect(variables).not.toHaveProperty("types");
+    expect(variables.when).toBe("OVERDUE");
+  });
 
-    expect(variables).toEqual({
+  it("a lista leva o assunto, o mesmo recorte e a página", () => {
+    const filters = {
+      seller: "s-1",
+      dueFrom: "2026-10-01",
+      dueTo: "2026-10-31",
+      when: "OVERDUE",
+    };
+    expect(pendingCasesVariables(filters, "ORDER_STALLED", 3)).toEqual({
       types: ["ORDER_STALLED"],
       sellerId: "s-1",
       dueFrom: "2026-10-01",
@@ -322,23 +323,30 @@ describe("pendingVariables", () => {
       offset: 2 * ITEMS_PER_PAGE,
       limit: ITEMS_PER_PAGE,
     });
-  });
-
-  it("a seção de cobranças pede só os boletos", () => {
-    expect(pendingVariables({ section: "charges" }, 1).types).toEqual([
-      "INSTALLMENT_OVERDUE",
-    ]);
-    expect(COMMITMENT_TYPES).not.toContain("INSTALLMENT_OVERDUE");
+    // O recorte é o MESMO do resumo: a lista nunca tem mais nem menos linhas
+    // do que o número do cartão.
+    const summaryScope: Record<string, unknown> = {
+      ...pendingSummaryVariables(filters),
+    };
+    delete summaryScope.sampleSize;
+    expect(pendingCasesVariables(filters, "ORDER_STALLED", 1)).toMatchObject(
+      summaryScope
+    );
   });
 
   it("ignora o vendedor da URL para quem não é gestor", () => {
     // O backend já ignoraria; mandar só faria a consulta do vendedor divergir
     // da que o servidor semeou.
-    expect(pendingVariables({ seller: "s-1" }, 1, false).sellerId).toBeNull();
+    expect(
+      pendingSummaryVariables({ seller: "s-1" }, false).sellerId
+    ).toBeNull();
+    expect(
+      pendingCasesVariables({ seller: "s-1" }, "FOLLOW_UP", 1, false).sellerId
+    ).toBeNull();
   });
 
   it("página inválida cai na primeira", () => {
-    expect(pendingVariables({}, 0).offset).toBe(0);
+    expect(pendingCasesVariables({}, "FOLLOW_UP", 0).offset).toBe(0);
   });
 });
 
@@ -351,7 +359,7 @@ describe("scopeNote", () => {
 
   it("descreve o período escolhido, inteiro ou pela metade", () => {
     expect(scopeNote({ dueFrom: "2026-10-01", dueTo: "2026-10-31" })).toBe(
-      "Mostrando o que tem prazo de 01/10/2026 a 31/10/2026."
+      "Contando o que tem prazo de 01/10/2026 a 31/10/2026."
     );
     expect(scopeNote({ dueFrom: "2026-10-01" })).toContain("a partir de");
     expect(scopeNote({ dueTo: "2026-10-31" })).toContain("até 31/10/2026");
@@ -362,9 +370,11 @@ describe("hasActiveFilter", () => {
   it("só conta os filtros desta tela", () => {
     expect(hasActiveFilter({})).toBe(false);
     expect(hasActiveFilter({ page: "2" })).toBe(false);
-    expect(hasActiveFilter({ type: "VISIT_OVERDUE" })).toBe(true);
     expect(hasActiveFilter({ when: "TODAY" })).toBe(true);
-    // A seção é onde se está, não um filtro.
+    expect(hasActiveFilter({ seller: "s-1" })).toBe(true);
+    expect(hasActiveFilter({ dueFrom: "2026-10-01" })).toBe(true);
+    // O assunto aberto escolhe a lista que se vê, não o que os cartões contam.
+    expect(hasActiveFilter({ type: "VISIT_OVERDUE" })).toBe(false);
     expect(hasActiveFilter({ section: "charges" })).toBe(false);
   });
 });
@@ -395,21 +405,71 @@ describe("followUpDefaultDate", () => {
   });
 });
 
-describe("seções", () => {
-  it("link antigo com type=INSTALLMENT_OVERDUE cai em Cobranças", () => {
-    expect(sectionOf({ type: "INSTALLMENT_OVERDUE" })).toBe("charges");
-    expect(sectionOf({ section: "charges" })).toBe("charges");
-    expect(sectionOf({ type: "ORDER_STALLED" })).toBe("commitments");
-    expect(sectionOf({})).toBe("commitments");
+describe("assunto aberto", () => {
+  it("vem do `type` da URL, e ignora o que não é tipo", () => {
+    expect(openTypeOf({ type: "ORDER_STALLED" })).toBe("ORDER_STALLED");
+    expect(openTypeOf({ type: "QUALQUER_COISA" })).toBeNull();
+    expect(openTypeOf({})).toBeNull();
+    expect(isPendingType("ADDRESS_ISSUE")).toBe(true);
+    expect(isPendingType(undefined)).toBe(false);
   });
 
-  it("conta cada seção pelos tipos dela", () => {
+  it("o link antigo de Cobranças abre o cartão dos boletos", () => {
+    expect(openTypeOf({ section: "charges" })).toBe("INSTALLMENT_OVERDUE");
+    expect(openTypeOf({ type: "INSTALLMENT_OVERDUE" })).toBe(
+      "INSTALLMENT_OVERDUE"
+    );
+    // O tipo explícito vence a seção herdada.
+    expect(openTypeOf({ section: "charges", type: "FOLLOW_UP" })).toBe(
+      "FOLLOW_UP"
+    );
+  });
+});
+
+describe("cartões por assunto", () => {
+  const counts = [
+    { type: "CLIENT_NO_CONTACT" as const, count: 167, highCount: 0 },
+    { type: "VISIT_OVERDUE" as const, count: 0, highCount: 0 },
+    { type: "INSTALLMENT_OVERDUE" as const, count: 278, highCount: 250 },
+    { type: "ORDER_STALLED" as const, count: 86, highCount: 86 },
+  ];
+
+  it("só os assuntos com pendência, na ordem fixa dos tipos", () => {
+    expect(visibleTypeCounts(counts).map((row) => row.type)).toEqual([
+      "ORDER_STALLED",
+      "INSTALLMENT_OVERDUE",
+      "CLIENT_NO_CONTACT",
+    ]);
+  });
+
+  it("o assunto aberto fica mesmo zerado: a lista dele está na página", () => {
     expect(
-      sectionCounts([
-        { type: "INSTALLMENT_OVERDUE", count: 278, highCount: 250 },
-        { type: "ORDER_STALLED", count: 86, highCount: 0 },
-        { type: "CLIENT_NO_CONTACT", count: 167, highCount: 0 },
-      ])
-    ).toEqual({ commitments: 253, charges: 278 });
+      visibleTypeCounts(counts, "VISIT_OVERDUE").map((row) => row.type)
+    ).toEqual([
+      "VISIT_OVERDUE",
+      "ORDER_STALLED",
+      "INSTALLMENT_OVERDUE",
+      "CLIENT_NO_CONTACT",
+    ]);
+  });
+
+  it("sem pendência nenhuma não há cartão", () => {
+    expect(visibleTypeCounts([])).toEqual([]);
+    expect(
+      visibleTypeCounts([{ type: "FOLLOW_UP", count: 0, highCount: 0 }])
+    ).toEqual([]);
+  });
+
+  it("a linha sob o título diz quantas não podem esperar", () => {
+    expect(cardSubtitle(counts[2])).toBe("250 de prioridade alta");
+    expect(cardSubtitle(counts[3])).toBe("todas de prioridade alta");
+    expect(cardSubtitle(counts[0])).toBe("nenhuma de prioridade alta");
+    expect(cardSubtitle({ type: "FOLLOW_UP", count: 1, highCount: 1 })).toBe(
+      "de prioridade alta"
+    );
+    // Endereço não tem prazo nem chega a Alta: o que importa é o efeito.
+    expect(
+      cardSubtitle({ type: "ADDRESS_ISSUE", count: 150, highCount: 0 })
+    ).toBe("sem prazo — trava a rotina");
   });
 });

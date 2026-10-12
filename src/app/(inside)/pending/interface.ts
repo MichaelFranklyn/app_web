@@ -12,13 +12,6 @@ export type PendingType =
   | "CLIENT_NO_CONTACT"
   | "ADDRESS_ISSUE";
 
-/**
- * As duas seções da lista: compromissos (visitas, contatos, pedidos, carteira,
- * cadastro) e cobranças (boletos vencidos). A seção equilibra o volume sem
- * mexer na prioridade de nada.
- */
-export type PendingSection = "commitments" | "charges";
-
 /** A faixa do prazo — os contadores clicáveis do topo. */
 export type PendingWhen =
   | "OVERDUE"
@@ -104,6 +97,11 @@ export interface PendingTypeCount {
   type: PendingType;
   count: number;
   highCount: number;
+  /**
+   * As mais urgentes do assunto, para o cartão. Opcional: um backend anterior
+   * ao campo (deploy em andamento) não o manda, e o cartão sai sem a amostra.
+   */
+  samples?: PendingItem[];
 }
 
 export interface PendingWhenCount {
@@ -112,12 +110,21 @@ export interface PendingWhenCount {
   highCount: number;
 }
 
+/** O resumo da tela: os cartões por assunto e os contadores de prazo. */
 export interface PendingItemsData {
   generatedAt: string;
   totalCount: number;
   counts: PendingTypeCount[];
   whenCounts: PendingWhenCount[];
-  items: PendingItem[];
+}
+
+/** A lista de UM assunto, aberta na página. */
+export interface PendingCasesResponse {
+  myPendingItems: {
+    status: boolean;
+    message: string;
+    data: { totalCount: number; items: PendingItem[] } | null;
+  } | null;
 }
 
 export interface MyPendingItemsResponse {
@@ -138,6 +145,6 @@ export interface PendingSellersResponse {
 export interface PendingContentProps {
   /** Gestor (owner/admin): filtra por vendedor e vê a coluna de quem é. */
   canSelectSeller: boolean;
-  /** 1ª página já lida no servidor; null se o SSR falhou. */
+  /** O resumo (cartões e contadores) já lido no servidor; null se o SSR falhou. */
   seed: MyPendingItemsResponse | null;
 }

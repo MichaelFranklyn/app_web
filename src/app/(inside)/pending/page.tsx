@@ -6,7 +6,7 @@ import { getServerCookie } from "@/utils/cookies/serverCookie";
 import PendingContent from "./content";
 import { MY_PENDING_ITEMS_QUERY } from "./gql";
 import { MyPendingItemsResponse } from "./interface";
-import { pendingVariables } from "./utils";
+import { pendingSummaryVariables } from "./utils";
 
 /**
  * A lista é de QUEM ABRE: o backend prende as pendências ao vendedor do token
@@ -17,15 +17,16 @@ const Page = async () => {
   const userData = await getServerCookie<UserData>("userData");
   const canSelectSeller = isAdminRole(userData?.role);
 
-  // A primeira página (sem filtro) vem do servidor: a leitura varre visitas,
-  // carteira e pedidos, e pagá-la só depois de o navegador baixar o JS deixaria
-  // em esqueleto a tela que se abre para saber o que fazer agora. Quem chega com
-  // filtro na URL busca no cliente — as variables não batem com as daqui.
+  // O resumo (cartões e contadores, sem filtro) vem do servidor: a leitura
+  // varre visitas, carteira e pedidos, e pagá-la só depois de o navegador baixar
+  // o JS deixaria em esqueleto a tela que se abre para saber o que fazer agora.
+  // Quem chega com filtro na URL busca no cliente — as variables não batem com
+  // as daqui. A lista de um assunto aberto (`?type=`) é sempre do cliente.
   let seed: MyPendingItemsResponse | null = null;
   try {
     const { data } = await gqlFetch<MyPendingItemsResponse>({
       query: MY_PENDING_ITEMS_QUERY,
-      variables: pendingVariables({}, 1, canSelectSeller),
+      variables: pendingSummaryVariables({}, canSelectSeller),
     });
     // Só semeia com CONTEÚDO: um seed sem `data` faria o cache acertar um "hit"
     // vazio e a tela mostraria "nada pendente" sem ter perguntado.

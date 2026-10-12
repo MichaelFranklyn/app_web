@@ -6,8 +6,17 @@
 // horizontal — e não o nome do cliente, que virava duas ou três linhas e
 // desalinhava a leitura vertical da lista. Uma célula que precise mesmo quebrar
 // (texto livre) pede `whitespace-normal` na própria `Table.Cell`.
+//
+// NO DESKTOP a regra tem uma exceção: o texto LONGO quebra (`tableWrapStyle`,
+// em `../utils`), para a tabela caber na tela sem rolar para o lado. Rolar com
+// o dedo é natural; com o mouse, obriga a ir até a barra lá embaixo.
+//
+// `desktop:px-12`: entre 1024 e 1599px (notebook) o respiro lateral encolhe 4px
+// de cada lado. Numa tabela de oito colunas são 64px devolvidos ao dado — a
+// diferença entre a lista de pedidos caber ou rolar em 1280px. Em tela grande
+// volta ao normal.
 export const tableCellBase =
-  "px-16 py-12 align-middle whitespace-nowrap border-b border-(--border) group-last:border-b-0";
+  "px-16 desktop:px-12 desktop-xl:px-16 py-12 align-middle whitespace-nowrap border-b border-(--border) group-last:border-b-0";
 
 export const tableCellFlex = "flex items-center gap-8";
 
