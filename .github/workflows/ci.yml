@@ -13,10 +13,10 @@ env:
 jobs:
   lint:
     name: Lint
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-24.04
     steps:
-      - uses: actions/checkout@v4
-      - uses: actions/setup-node@v4
+      - uses: actions/checkout@v5
+      - uses: actions/setup-node@v5
         with:
           node-version: 22
           cache: npm
@@ -29,14 +29,14 @@ jobs:
   # import (o contrato com o schema GraphQL, por exemplo).
   unit-shard:
     name: Unit shard ${{ matrix.shard }}/2
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-24.04
     strategy:
       fail-fast: false
       matrix:
         shard: [1, 2]
     steps:
-      - uses: actions/checkout@v4
-      - uses: actions/setup-node@v4
+      - uses: actions/checkout@v5
+      - uses: actions/setup-node@v5
         with:
           node-version: 22
           cache: npm
@@ -48,7 +48,7 @@ jobs:
     name: Lint + Unit (vitest)
     needs: [lint, unit-shard]
     if: ${{ always() }}
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-24.04
     steps:
       - run: |
           echo "lint: ${{ needs.lint.result }} · unit: ${{ needs.unit-shard.result }}"
@@ -61,11 +61,11 @@ jobs:
   # — roda a suíte. No push da main roda sempre.
   changes:
     name: Detectar mudanças
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-24.04
     outputs:
       e2e: ${{ steps.decide.outputs.e2e }}
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v5
         with:
           fetch-depth: 0
       - id: decide
@@ -100,7 +100,7 @@ jobs:
     name: E2E shard ${{ matrix.shard }}/3
     needs: changes
     if: needs.changes.outputs.e2e == 'true'
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-24.04
     strategy:
       # Um shard falhar não cancela os outros: o relatório de cada um é o que
       # mostra se a falha é uma só ou se espalhou.
@@ -108,8 +108,8 @@ jobs:
       matrix:
         shard: [1, 2, 3]
     steps:
-      - uses: actions/checkout@v4
-      - uses: actions/setup-node@v4
+      - uses: actions/checkout@v5
+      - uses: actions/setup-node@v5
         with:
           node-version: 22
           cache: npm
@@ -120,7 +120,7 @@ jobs:
       # cache, nada disso precisa rodar de novo: a imagem do runner já traz as
       # libs de sistema do Chromium, e as fontes que o apt acrescenta (CJK,
       # emoji) nenhum teste usa.
-      - uses: actions/cache@v4
+      - uses: actions/cache@v5
         id: playwright-cache
         with:
           path: ~/.cache/ms-playwright
@@ -133,7 +133,7 @@ jobs:
       # exata muda a cada mudança de código; o `restore-keys` recupera o cache
       # mais recente das mesmas dependências, e o Next reaproveita o que não
       # mudou — é assim que ele recomenda cachear em CI.
-      - uses: actions/cache@v4
+      - uses: actions/cache@v5
         with:
           path: .next-e2e/cache
           key: next-e2e-${{ runner.os }}-${{ hashFiles('package-lock.json') }}-${{ hashFiles('src/**', 'public/**', 'next.config.ts') }}
@@ -144,7 +144,7 @@ jobs:
       # o stub GraphQL. CI=true (automático) força reuseExistingServer:false.
       # O projeto `setup` (login) roda em cada shard: é dependência dos specs.
       - run: npm run e2e -- --shard=${{ matrix.shard }}/3
-      - uses: actions/upload-artifact@v4
+      - uses: actions/upload-artifact@v6
         if: ${{ !cancelled() }}
         with:
           name: playwright-report-${{ matrix.shard }}
@@ -158,16 +158,16 @@ jobs:
     name: E2E offline (service worker)
     needs: changes
     if: needs.changes.outputs.e2e == 'true'
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-24.04
     steps:
-      - uses: actions/checkout@v4
-      - uses: actions/setup-node@v4
+      - uses: actions/checkout@v5
+      - uses: actions/setup-node@v5
         with:
           node-version: 22
           cache: npm
       - run: npm ci
 
-      - uses: actions/cache@v4
+      - uses: actions/cache@v5
         id: playwright-cache
         with:
           path: ~/.cache/ms-playwright
@@ -176,7 +176,7 @@ jobs:
       - if: steps.playwright-cache.outputs.cache-hit != 'true'
         run: npx playwright install --with-deps chromium
 
-      - uses: actions/cache@v4
+      - uses: actions/cache@v5
         with:
           path: .next-e2e-sw/cache
           key: next-e2e-sw-${{ runner.os }}-${{ hashFiles('package-lock.json') }}-${{ hashFiles('src/**', 'public/**', 'next.config.ts') }}
@@ -184,7 +184,7 @@ jobs:
             next-e2e-sw-${{ runner.os }}-${{ hashFiles('package-lock.json') }}-
 
       - run: npm run e2e:sw
-      - uses: actions/upload-artifact@v4
+      - uses: actions/upload-artifact@v6
         if: ${{ !cancelled() }}
         with:
           name: playwright-report-sw
@@ -200,7 +200,7 @@ jobs:
     name: E2E (Playwright)
     needs: [changes, e2e-shard, e2e-sw]
     if: ${{ always() }}
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-24.04
     steps:
       - run: |
           echo "detecção: ${{ needs.changes.result }} · shards: ${{ needs.e2e-shard.result }} · service worker: ${{ needs.e2e-sw.result }}"
