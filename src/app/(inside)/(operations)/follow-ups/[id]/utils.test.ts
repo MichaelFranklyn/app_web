@@ -1,6 +1,12 @@
 import { describe, expect, it } from "vitest";
 
-import { addDaysIso, isSchedulable, quickDates, weekdayName } from "./utils";
+import {
+  addDaysIso,
+  hasCancelReason,
+  isSchedulable,
+  quickDates,
+  weekdayName,
+} from "./utils";
 
 describe("datas do contato", () => {
   it("soma dias atravessando mês e ano sem escorregar de fuso", () => {
@@ -25,5 +31,18 @@ describe("datas do contato", () => {
     expect(isSchedulable("2026-10-11", "2026-10-11")).toBe(true);
     expect(isSchedulable("2026-10-10", "2026-10-11")).toBe(false);
     expect(isSchedulable("", "2026-10-11")).toBe(false);
+  });
+});
+
+describe("motivo do cancelamento", () => {
+  it("texto de verdade vale, com ou sem espaço em volta", () => {
+    expect(hasCancelReason("Fechou com outro fornecedor")).toBe(true);
+    expect(hasCancelReason("  ok  ")).toBe(true);
+  });
+
+  it("vazio e só espaço não são motivo", () => {
+    expect(hasCancelReason("")).toBe(false);
+    expect(hasCancelReason("   ")).toBe(false);
+    expect(hasCancelReason("\n\t ")).toBe(false);
   });
 });

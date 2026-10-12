@@ -145,19 +145,20 @@ const ASSUNTOS: Assunto[] = [
       "markSellerChargebackRefunded",
     ],
     delegacoes: {
-      // Toda escrita da tela passa pelo handleChanged do content.
+      // Toda escrita da tela passa pelo handleChanged de useCommissionsQuery
+      // (o content só o repassa aos componentes).
       "app/(inside)/(operations)/commissions/_components/CommissionsTable/CommissionRowActions.tsx":
-        "app/(inside)/(operations)/commissions/content.tsx",
+        "app/(inside)/(operations)/commissions/useCommissionsQuery.ts",
       "app/(inside)/(operations)/commissions/_components/BulkActionsBar/index.tsx":
-        "app/(inside)/(operations)/commissions/content.tsx",
+        "app/(inside)/(operations)/commissions/useCommissionsQuery.ts",
       "app/(inside)/(operations)/commissions/_components/MarkReceivedModal/index.tsx":
-        "app/(inside)/(operations)/commissions/content.tsx",
+        "app/(inside)/(operations)/commissions/useCommissionsQuery.ts",
       "app/(inside)/(operations)/commissions/_components/ReconcileToggle/index.tsx":
-        "app/(inside)/(operations)/commissions/content.tsx",
+        "app/(inside)/(operations)/commissions/useCommissionsQuery.ts",
       "app/(inside)/(operations)/commissions/_components/SettlePeriodModal/index.tsx":
-        "app/(inside)/(operations)/commissions/content.tsx",
+        "app/(inside)/(operations)/commissions/useCommissionsQuery.ts",
       "app/(inside)/(operations)/commissions/_components/SellerChargebackPanel/useChargebackActions.ts":
-        "app/(inside)/(operations)/commissions/content.tsx",
+        "app/(inside)/(operations)/commissions/useCommissionsQuery.ts",
     },
   },
   {

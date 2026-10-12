@@ -28,3 +28,10 @@ export const weekdayName = (iso: string): string => {
 /** O dia do contato a fazer: escolhido e não no passado (o backend recusaria). */
 export const isSchedulable = (iso: string, todayIso: string): boolean =>
   Boolean(iso) && iso >= todayIso;
+
+/**
+ * O motivo do cancelamento foi escrito? Só espaço não conta — é a mesma régua
+ * do servidor (`clean_cancel_reason`), que recusa o cancelamento sem ele.
+ */
+export const hasCancelReason = (reason: string): boolean =>
+  reason.trim().length > 0;
