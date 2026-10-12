@@ -2,7 +2,6 @@ import {
   COMMISSION_STATUS_LABEL,
   type CommissionLens,
   type CommissionStatus,
-  groupByFactory,
 } from "@/app/(inside)/_shared/commissions";
 import {
   SERIES_BLUE,
@@ -16,30 +15,13 @@ import type { EChartsCoreOption } from "echarts/core";
 
 import { buildHorizontalBarOption, mutedLine } from "../../chartBuilders";
 import {
+  CommissionReportFactoryRaw,
+  CommissionReportTotalsRaw,
   CommissionRow,
   CommissionsByFactory,
   CommissionsSplit,
   CommissionsTotals,
 } from "./interface";
-
-/**
- * Recorta as parcelas pelo período do relatório, pela data em que a comissão CAI
- * (`receiveDate`) — a mesma régua da tela de Comissões.
- *
- * Não é a data do pedido nem a do faturamento: a comissão de um pedido faturado em
- * junho com prazo de 30 dias cai em julho, e é em julho que ela entra no bolso.
- * Parcela sem data ainda não tem quando cair (depende do faturamento) e fica fora
- * de qualquer período — aparece na tela de Comissões como "previsto".
- */
-export const filterByPeriod = (
-  rows: CommissionRow[],
-  from: string,
-  to: string
-): CommissionRow[] =>
-  rows.filter(
-    (row) =>
-      !!row.receiveDate && row.receiveDate >= from && row.receiveDate <= to
-  );
 
 /** As situações que somam no relatório — as outras não são dinheiro de ninguém. */
 const COUNTED_STATUSES: CommissionStatus[] = [
@@ -126,32 +108,53 @@ export const splitTotals = (rows: CommissionRow[]): CommissionsSplit => {
   };
 };
 
+const num = (value: string | number | null | undefined) => Number(value ?? 0);
+
 /**
- * Agrupa por fábrica trabalhada — é assim que a fábrica manda a planilha, então
- * conferir fica direto. Reusa o `groupByFactory` da tela de Comissões para o
- * agrupamento e o nome da fábrica serem os mesmos nos dois lugares.
+ * Os totais que o servidor somou, no formato que a tela já desenhava.
+ *
+ * A soma é a MESMA de `summarize` + `splitTotals` (o servidor espelha as duas,
+ * ver `commission_report.py`); só deixou de ser feita aqui porque a tela não
+ * tem mais todas as linhas — tem uma página.
  */
-export const byFactory = (rows: CommissionRow[]): CommissionsByFactory[] =>
-  groupByFactory(rows)
-    .map((group) => {
-      const totals = summarize(group.rows);
-      return {
-        factoryId: group.factoryId,
-        name: group.name,
-        receivable: totals.receivable,
-        received: totals.received,
-        pending: totals.pending,
-        count: group.rows.length,
-        split: splitTotals(group.rows),
-      };
-    })
-    .sort(
-      (a, b) =>
-        b.receivable +
-        b.received +
-        b.pending -
-        (a.receivable + a.received + a.pending)
-    );
+export const totalsFromServer = (
+  raw: CommissionReportTotalsRaw | undefined
+): { totals: CommissionsTotals; split: CommissionsSplit } => ({
+  totals: {
+    receivable: num(raw?.receivable),
+    received: num(raw?.received),
+    pending: num(raw?.pending),
+    count: raw?.count ?? 0,
+    countReceivable: raw?.countReceivable ?? 0,
+    chargeback: num(raw?.chargeback),
+    countOverdue: raw?.countOverdue ?? 0,
+  },
+  split: {
+    company: num(raw?.company),
+    seller: num(raw?.seller),
+    office: num(raw?.office),
+    margin: raw?.margin ?? 0,
+  },
+});
+
+/** Comissão por fábrica do período — já agrupada e ordenada pelo servidor. */
+export const factoriesFromServer = (
+  raw: CommissionReportFactoryRaw[] | undefined
+): CommissionsByFactory[] =>
+  (raw ?? []).map((group) => ({
+    factoryId: group.factoryId,
+    name: group.name,
+    receivable: num(group.receivable),
+    received: num(group.received),
+    pending: num(group.pending),
+    count: group.count,
+    split: {
+      company: num(group.company),
+      seller: num(group.seller),
+      office: num(group.office),
+      margin: group.margin,
+    },
+  }));
 
 /**
  * Comissão por fábrica, empilhada nas três situações.
@@ -238,32 +241,6 @@ export const buildSplitOption = (
     { stacked: true }
   );
 
-/**
- * Colunas por onde as parcelas de comissão podem ser ordenadas.
- *
- * A ordem natural é a da conferência (data em que a comissão cai, ver
- * `sortForReport`); as outras respondem as perguntas do fechamento — "a maior
- * comissão do mês", "o que está previsto e ainda não caiu".
- */
-export const COMMISSIONS_SORT_COLUMNS = {
-  receiveDate: (row: CommissionRow) => row.receiveDate,
-  client: (row: CommissionRow) => clientName(row.client),
-  factory: (row: CommissionRow) => factoryName(row.factory),
-  seller: (row: CommissionRow) => row.seller?.name,
-  // Sem nota vai para o fim em ordem crescente: a leitura abre pelo que já dá
-  // para conferir contra a planilha da fábrica.
-  invoiceNumber: (row: CommissionRow) => row.invoiceNumber ?? "zzzz",
-  installmentAmount: (row: CommissionRow) => Number(row.installmentAmount || 0),
-  amount: (row: CommissionRow) => Number(row.amount || 0),
-  sellerAmount: (row: CommissionRow) => Number(row.sellerAmount || 0),
-  // O que sobra para a empresa nesta parcela — é por ela que se acha o pedido
-  // que dá volume e não dá margem.
-  officeAmount: (row: CommissionRow) =>
-    Number(row.amount || 0) - Number(row.sellerAmount || 0),
-  status: (row: CommissionRow) => COMMISSION_STATUS_LABEL[row.status],
-  isReconciled: (row: CommissionRow) => (row.isReconciled ? 1 : 0),
-};
-
 /** Como cada coluna ordenável se chama no papel, e em que sentido ela é lida. */
 export const COMMISSIONS_SORT_LABELS: Record<string, SortLabel> = {
   receiveDate: { label: "Recebimento", kind: "date" },
@@ -329,13 +306,8 @@ export const buildCommissionsExportRows = (
   ]);
 
 /**
- * Ordena para a conferência: pela data em que a comissão cai e, no empate, por
- * cliente — a mesma leitura da planilha da fábrica. Sem data vai para o fim.
+ * Colunas ordenáveis — quem ordena é o servidor (`sortBy` do
+ * `CommissionReportInput`); a ordem padrão é a da conferência: data em que a
+ * comissão cai e, no empate, cliente.
  */
-export const sortForReport = (rows: CommissionRow[]): CommissionRow[] =>
-  [...rows].sort(
-    (a, b) =>
-      (a.receiveDate ?? "9999-12-31").localeCompare(
-        b.receiveDate ?? "9999-12-31"
-      ) || clientName(a.client).localeCompare(clientName(b.client), "pt-BR")
-  );
+export const COMMISSIONS_SORT_KEYS = Object.keys(COMMISSIONS_SORT_LABELS);

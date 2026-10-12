@@ -1,6 +1,12 @@
 import { clientName } from "@/utils/company";
 import { formatDateDMY } from "@/utils/format/masks";
-import { addMonths, isInMonth, type YearMonth } from "@/utils/format/month";
+import {
+  addMonths,
+  isInMonth,
+  monthEndIso,
+  monthStartIso,
+  type YearMonth,
+} from "@/utils/format/month";
 import { CommissionRow, CommissionStatus } from "./interface";
 
 // O vocabulário da situação e o agrupamento por fábrica subiram para
@@ -341,6 +347,20 @@ export const monthReport = (
  * ali dentro. "Recebido" não entra — comissão recebida num mês que ainda nem
  * começou seria erro de lançamento, não previsão.
  */
+/**
+ * O recorte que o PDF do mês pede ao servidor — tudo o que `monthReport` lê, e
+ * nada além: a comissão que cai no mês ou no seguinte (pela data de quem olha
+ * OU do vendedor, o servidor traz as duas), o boleto pago no mês e o calote
+ * (sempre, via `includeDefaulted` na própria query).
+ */
+export const pdfVariables = (sellerId: string | null, month: YearMonth) => ({
+  sellerId,
+  from: monthStartIso(month),
+  to: monthEndIso(addMonths(month, 1)),
+  paidFrom: monthStartIso(month),
+  paidTo: monthEndIso(month),
+});
+
 export const nextMonthPreview = (
   rows: CommissionRow[],
   month: YearMonth,

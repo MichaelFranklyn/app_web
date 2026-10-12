@@ -75,6 +75,8 @@ export default function CommissionsReportContent({ canSelectSeller }: Props) {
       }),
     ],
     fetchRows: report.fetchAllRows,
+    // A varredura tem teto: o arquivo que não fecha com a tela avisa.
+    totalRows: report.totalItems,
     sheetHeaders: commissionsExportHeaders(lens),
     buildSheetRows: (rows: CommissionRow[]) =>
       buildCommissionsExportRows(rows, lens),
@@ -230,7 +232,8 @@ export default function CommissionsReportContent({ canSelectSeller }: Props) {
         currentPage={report.currentPage}
         setCurrentPage={report.setCurrentPage}
         totalPages={report.totalPages}
-        totalItems={report.rows.length}
+        totalItems={report.totalItems}
+        filteredTotals={report.filteredTotals}
         withOffice={withOffice}
       />
     </div>

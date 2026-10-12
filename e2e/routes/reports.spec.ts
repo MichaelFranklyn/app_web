@@ -185,22 +185,69 @@ const commissionRow = () => ({
   seller: { id: "seller-1", name: "Rafael Vendas" },
 });
 
-const commissionsReport = () => ({
-  commissions_report: {
-    totalReceivable: "144.60",
-    totalReceived: "0",
-    totalPending: "0",
-    countReceivable: 1,
-    rows: [commissionRow()],
-  },
-});
+/**
+ * O servidor recorta o período, filtra, soma e pagina (`commissionReport`). O
+ * mock faz o mesmo recorte de período para o teste provar que a tela manda o
+ * período escolhido — e só mostra o que voltou.
+ */
+const commissionsReport = (variables?: Record<string, unknown>) => {
+  const input = (variables?.input ?? {}) as { from?: string; to?: string };
+  const row = commissionRow();
+  const inPeriod =
+    !input.from ||
+    (row.receiveDate >= input.from && row.receiveDate <= (input.to ?? "9999"));
+  // `__typename`: tabela e rodapé leem por fragment, e o Apollo só casa o
+  // fragment com o tipo dito na resposta.
+  const totals = {
+    __typename: "CommissionReportTotalsType",
+    receivable: inPeriod ? "144.60" : "0",
+    received: "0",
+    pending: "0",
+    count: inPeriod ? 1 : 0,
+    countReceivable: inPeriod ? 1 : 0,
+    chargeback: "0",
+    countOverdue: 0,
+    company: inPeriod ? "144.60" : "0",
+    seller: inPeriod ? "57.84" : "0",
+    office: inPeriod ? "86.76" : "0",
+    margin: inPeriod ? 0.6 : 0,
+  };
+  return {
+    commissions_report: {
+      totalCount: inPeriod ? 1 : 0,
+      periodCount: inPeriod ? 1 : 0,
+      periodTotals: totals,
+      filteredTotals: totals,
+      byFactory: inPeriod
+        ? [
+            {
+              factoryId: "factory-1",
+              name: "Herc",
+              receivable: "144.60",
+              received: "0",
+              pending: "0",
+              count: 1,
+              company: "144.60",
+              seller: "57.84",
+              office: "86.76",
+              margin: 0.6,
+            },
+          ]
+        : [],
+      factoryOptions: [],
+      sellerOptions: [],
+      statusOptions: [],
+      rows: inPeriod ? [{ __typename: "CommissionRowType", ...row }] : [],
+    },
+  };
+};
 
 test("comissões: recorta as parcelas pelo período em que a comissão cai", async ({
   page,
 }) => {
   await mockGraphql(page, {
     DashboardSellers: () => ({ dashboard_sellers: sellers() }),
-    CommissionsReport: () => commissionsReport(),
+    CommissionsReport: (v) => commissionsReport(v),
   });
 
   await page.goto(
@@ -233,7 +280,7 @@ test("comissões: o gestor vê a comissão repartida entre empresa e vendedor", 
   await grantRole(page, "OWNER");
   await mockGraphql(page, {
     DashboardSellers: () => ({ dashboard_sellers: sellers() }),
-    CommissionsReport: () => commissionsReport(),
+    CommissionsReport: (v) => commissionsReport(v),
   });
 
   await page.goto(
@@ -245,6 +292,28 @@ test("comissões: o gestor vê a comissão repartida entre empresa e vendedor", 
   // `sellerAmount` fazia essas colunas saírem com "NaN" sem ninguém notar.
   await expect(page.getByText("R$ 57,84").first()).toBeVisible();
   await expect(page.getByText("R$ 86,76").first()).toBeVisible();
+});
+
+test("comissões: período, página e filtro vão ao servidor; o rodapé soma o filtro inteiro", async ({
+  page,
+}) => {
+  const spy = await mockGraphql(page, {
+    DashboardSellers: () => ({ dashboard_sellers: sellers() }),
+    CommissionsReport: (v) => commissionsReport(v),
+  });
+
+  await page.goto(
+    "/dashboard/reports/commissions?from=2026-07-01&to=2026-07-31&page=1"
+  );
+  await expect(page.getByText("CASA DO SONO LTDA")).toBeVisible();
+
+  expect(spy.lastVariables("CommissionsReport")).toMatchObject({
+    input: { from: "2026-07-01", to: "2026-07-31", first: 20, offset: 0 },
+  });
+  // O rodapé fala do resultado inteiro do recorte, não "desta página".
+  await expect(
+    page.getByText(/no período: a receber R\$\s144,60/)
+  ).toBeVisible();
 });
 
 test("positivação: matriz cliente × fábrica e o recorte de zerados", async ({

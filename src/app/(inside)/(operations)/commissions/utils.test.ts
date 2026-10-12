@@ -19,6 +19,7 @@ import {
   summarizeRows,
   yearMonthFromIso,
   defaultImpact,
+  pdfVariables,
 } from "./utils";
 
 const row = (over: Partial<CommissionRow>): CommissionRow => ({
@@ -864,5 +865,17 @@ describe("as duas óticas do fechamento", () => {
     expect(monthReport(parcelas, marco).total).toBe(
       monthReport(parcelas, marco, OFFICE_LENS).total
     );
+  });
+});
+
+describe("pdfVariables", () => {
+  it("pede o mês e o seguinte (prévia), o boleto pago no mês — e nada da carteira inteira", () => {
+    expect(pdfVariables("s1", { year: 2026, month: 12 })).toEqual({
+      sellerId: "s1",
+      from: "2026-12-01",
+      to: "2027-01-31",
+      paidFrom: "2026-12-01",
+      paidTo: "2026-12-31",
+    });
   });
 });

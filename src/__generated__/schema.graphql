@@ -3106,6 +3106,8 @@ type OrderInstallmentType {
   sellerCommissionPaidAt: Date
   """Mês em que o escritório vai descontar do vendedor o estorno deste calote; nulo = ainda não decidiu."""
   sellerChargebackMonth: Date
+  """Tem baixa lançada (pago, calote, comissão recebida/conferida, repasse ao vendedor ou estorno descontado): apagá-la exige confirmação e motivo."""
+  hasSettlement: Boolean!
   createdAt: DateTime!
 }
 
@@ -3583,6 +3585,16 @@ type ReversedInstallmentType {
   paidAt: Date
   isCommissionReceived: Boolean!
   isCommissionReconciled: Boolean!
+  commissionReceivedAt: Date
+  commissionReconciledAt: Date
+  isSellerCommissionPaid: Boolean
+  sellerCommissionPaidAt: Date
+  sellerCommissionPaidAmount: Decimal
+  defaultedAt: Date
+  isChargebackSettled: Boolean
+  isSellerChargebackSettled: Boolean
+  """A parcela tinha alguma baixa quando foi apagada (mesma régua que exigiu o motivo)."""
+  hasSettlement: Boolean!
 }
 
 """Registro permanente de um faturamento desfeito (`UNINVOICE`) ou refeito (`REVISE`)."""
@@ -3598,6 +3610,8 @@ type OrderInvoiceReversalType {
   commissionAmount: Decimal!
   installmentsCount: Int!
   settlementsDropped: Int!
+  """As baixas que havia nas parcelas apagadas, por tipo (ex.: "1 parcela paga e 1 repasse pago ao vendedor")."""
+  settlementsSummary: String!
   backordersAbsorbed: Int!
   installments: [ReversedInstallmentType!]!
 }
@@ -3704,6 +3718,12 @@ type OrderType {
   refeitas: quem, quando, por quê e como as parcelas estavam. Mais recente primeiro.
   """
   invoiceReversals: [OrderInvoiceReversalType!]!
+  """
+  Baixas lançadas nas parcelas deste pedido (pagamento, calote, comissão
+  recebida/conferida, repasse ao vendedor, estorno descontado), em frase. Vazio =
+  nenhuma. É o que desfazer/refazer o faturamento apagaria.
+  """
+  settlementSummary: String!
   importLogs: [ImportLogType!]!
   """Base de cálculo da comissão da fábrica (Faturamento/Pagamento) para este pedido."""
   commissionCalcBasis: String
@@ -3866,6 +3886,79 @@ type CommissionRowType {
   seller: SellerType
 }
 
+input CommissionReportInput {
+  """Período pela data em que a comissão CAI. Linha sem data fica de fora."""
+  from: Date!
+  to: Date!
+  """Escopo do gestor: um vendedor. O vendedor logado vê sempre só o seu."""
+  sellerId: UUID = null
+  """Busca no nome do cliente ou no número da nota."""
+  search: String = null
+  factoryId: UUID = null
+  """Filtro do painel por vendedor (dentro do escopo)."""
+  panelSellerId: UUID = null
+  status: String = null
+  """overdue (vencido e não pago) | defaulted (calote)"""
+  installment: String = null
+  """yes | no"""
+  reconciled: String = null
+  """receiveDate | client | factory | seller | invoiceNumber | installmentAmount | amount | sellerAmount | officeAmount | status | isReconciled"""
+  sortBy: String = null
+  """asc | desc"""
+  sortDir: String = null
+  first: Int = 20
+  offset: Int = 0
+}
+
+type CommissionReportTotalsType {
+  """Já líquido de estorno e devolução."""
+  receivable: Decimal!
+  received: Decimal!
+  pending: Decimal!
+  count: Int!
+  countReceivable: Int!
+  chargeback: Decimal!
+  countOverdue: Int!
+  """Comissão das fábricas, repasse aos vendedores e o que fica no escritório (situações que somam)."""
+  company: Decimal!
+  seller: Decimal!
+  office: Decimal!
+  margin: Float!
+}
+
+type CommissionReportFactoryType {
+  factoryId: UUID!
+  name: String!
+  receivable: Decimal!
+  received: Decimal!
+  pending: Decimal!
+  count: Int!
+  company: Decimal!
+  seller: Decimal!
+  office: Decimal!
+  margin: Float!
+}
+
+type CommissionReportOptionType {
+  value: String!
+  label: String!
+}
+
+type CommissionReportType {
+  """A página pedida, já filtrada e ordenada."""
+  rows: [CommissionRowType!]!
+  """Quantas linhas os filtros deixaram (todas as páginas)."""
+  totalCount: Int!
+  """Quantas linhas o período tem, antes dos filtros do painel."""
+  periodCount: Int!
+  periodTotals: CommissionReportTotalsType!
+  filteredTotals: CommissionReportTotalsType!
+  byFactory: [CommissionReportFactoryType!]!
+  factoryOptions: [CommissionReportOptionType!]!
+  sellerOptions: [CommissionReportOptionType!]!
+  statusOptions: [CommissionReportOptionType!]!
+}
+
 type CommissionSummaryType {
   rows: [CommissionRowType!]!
   """Data mais recente em que alguma comissão cai, medida antes do recorte de período: é por ela que a tela sabe em que mês abrir."""
@@ -3947,7 +4040,25 @@ extend type Query {
     from: Date = null
     to: Date = null
     includeOverdue: Boolean = false
+    """Também as parcelas com o boleto PAGO neste intervalo (seção do PDF do mês)."""
+    paidFrom: Date = null
+    paidTo: Date = null
+    """Também todo boleto com calote, de qualquer data (seção do PDF do mês)."""
+    includeDefaulted: Boolean = false
+    """
+    false = só o que a tela do mês usa: a parcela SEM data de recebimento só vem
+    com repasse, recebimento, calote ou estorno ligado. Padrão true (todas).
+    """
+    includeUndated: Boolean = true
   ): CommissionSummaryType!
+  """
+  Relatório de comissões do período, paginado no servidor: filtros do painel,
+  ordenação e totais calculados sobre o resultado COMPLETO (não só a página).
+  `periodTotals`/`byFactory` somam o período inteiro (cartões e gráficos);
+  `filteredTotals`, o que os filtros deixaram. Para exportar, peça as páginas
+  em sequência com o mesmo `input`.
+  """
+  commissionReport(input: CommissionReportInput!): CommissionReportType!
 }
 
 extend type Mutation {
@@ -3968,7 +4079,7 @@ extend type Mutation {
   uninvoiceOrder(
     id: UUID!
     force: Boolean = false
-    """Por que o faturamento está sendo desfeito. Obrigatório quando há baixa lançada (boleto pago, comissão recebida ou conferida); fica no histórico do pedido."""
+    """Por que o faturamento está sendo desfeito. Obrigatório quando há baixa lançada (boleto pago ou com calote, comissão recebida ou conferida, repasse ao vendedor, estorno descontado); fica no histórico do pedido."""
     reason: String = null
   ): OrderTypeDataResponse!
   """Confirma a entrega de um pedido faturado: status → DELIVERED e reabastece o estoque do cliente usando a data real de chegada."""
@@ -4315,15 +4426,10 @@ enum PendingReason {
   """
   FREQUENCY_DUE
   """
-  Parcela(s) pendente(s) vencida(s) há até 30 dias — ainda é cobrança. O prazo
-  é o vencimento mais antigo do pedido.
+  Parcela(s) pendente(s) vencida(s) do pedido. O prazo é o vencimento mais
+  antigo; a idade da dívida não muda o motivo nem rebaixa a prioridade.
   """
   INSTALLMENT_UNPAID
-  """
-  Parcela vencida há mais de 30 dias: passou da cobrança de rotina, é
-  conciliação (foi pago e não baixado? virou inadimplência?).
-  """
-  INSTALLMENT_STALE
   """O mapa não achou o endereço do cliente."""
   LOCATION_MISSING
   """O mapa achou só a região (bairro, cidade), não a porta da loja."""

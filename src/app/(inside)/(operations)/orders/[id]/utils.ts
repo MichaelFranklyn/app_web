@@ -187,6 +187,7 @@ export const itemsLockReason = (
 export const reversalSummary = (reversal: {
   installmentsCount: number;
   settlementsDropped: number;
+  settlementsSummary?: string;
   invoicedAt: string | null;
   invoiceNumber: string | null;
 }): string => {
@@ -195,7 +196,11 @@ export const reversalSummary = (reversal: {
       ? "1 parcela apagada"
       : `${reversal.installmentsCount} parcelas apagadas`,
   ];
-  if (reversal.settlementsDropped > 0) {
+  // A frase por tipo diz O QUE foi apagado (ex.: um repasse ao vendedor);
+  // a contagem fica para o caso de o servidor não mandá-la.
+  if (reversal.settlementsSummary) {
+    parts.push(`baixas apagadas: ${reversal.settlementsSummary}`);
+  } else if (reversal.settlementsDropped > 0) {
     parts.push(`${reversal.settlementsDropped} com baixa lançada`);
   }
   if (reversal.invoicedAt) {

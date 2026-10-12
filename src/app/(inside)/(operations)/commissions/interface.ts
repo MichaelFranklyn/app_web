@@ -57,19 +57,6 @@ export interface CommissionRow {
 export interface CommissionsSummary {
   /** Data mais recente em que alguma comissão cai — medida antes do recorte. */
   latestReceiveDate: string | null;
-  totalReceivable: string;
-  totalReceived: string;
-  totalPending: string;
-  countReceivable: number;
-  /** Total (negativo) a devolver às fábricas por calote do cliente. */
-  totalChargeback: string;
-  totalSellerChargeback: string;
-  /** Estornos do vendedor ainda sem mês de desconto escolhido. */
-  totalSellerChargebackPending: string;
-  countOverdue: number;
-  /** Devoluções a fazer (positivo): o cliente pagou depois do desconto. */
-  totalRefund: string;
-  totalSellerRefund: string;
   rows: CommissionRow[];
 }
 

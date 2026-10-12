@@ -93,7 +93,9 @@ export const ORDER_DETAIL_QUERY = gql`
           totalAmount
           installmentsCount
           settlementsDropped
+          settlementsSummary
         }
+        settlementSummary
         installments {
           id
           sequence
@@ -109,6 +111,7 @@ export const ORDER_DETAIL_QUERY = gql`
           isSellerCommissionPaid
           sellerCommissionPaidAt
           sellerChargebackMonth
+          hasSettlement
         }
       }
     }

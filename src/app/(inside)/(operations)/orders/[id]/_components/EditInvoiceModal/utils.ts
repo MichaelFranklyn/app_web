@@ -1,34 +1,14 @@
 import { OrderInstallment } from "../../interface";
 
-/** Parcela com alguma baixa: boleto pago ou comissão já recebida. */
-export const isSettled = (installment: OrderInstallment) =>
-  Boolean(
-    installment.paidAt ||
-    installment.status === "PAID" ||
-    installment.isCommissionReceived
-  );
-
 /**
- * Frase do aviso: o que exatamente se perde ao refazer as parcelas. Espelha a
- * contagem do backend para o usuário ver o mesmo número antes e depois.
+ * Parcela com alguma baixa — apagá-la exige confirmação e motivo.
+ *
+ * Não recalcula nada: lê `hasSettlement`, decidido no servidor. A régua que
+ * vivia aqui ignorava a conferência e o repasse ao vendedor, e a tela liberava
+ * o que o servidor recusava (ou o servidor deixava passar, no caso do repasse).
  */
-export function describeSettlements(installments: OrderInstallment[]) {
-  const paid = installments.filter(
-    (i) => i.paidAt || i.status === "PAID"
-  ).length;
-  const received = installments.filter((i) => i.isCommissionReceived).length;
-
-  const parts: string[] = [];
-  if (paid)
-    parts.push(paid === 1 ? "1 parcela paga" : `${paid} parcelas pagas`);
-  if (received) {
-    parts.push(
-      received === 1 ? "1 comissão recebida" : `${received} comissões recebidas`
-    );
-  }
-  if (parts.length === 0) return "";
-  return parts.join(" e ");
-}
+export const isSettled = (installment: OrderInstallment) =>
+  installment.hasSettlement;
 
 /** Espelha `MIN_REASON_LENGTH` de `order_invoice_reversals/recorder.py`. */
 export const MIN_REVERSAL_REASON_LENGTH = 5;

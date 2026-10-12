@@ -10,12 +10,11 @@ import {
 import { CommissionRow } from "./interface";
 import {
   buildCommissionsExportRows,
-  byFactory,
   commissionsExportHeaders,
-  filterByPeriod,
-  sortForReport,
   splitTotals,
   summarize,
+  factoriesFromServer,
+  totalsFromServer,
 } from "./utils";
 
 /** A coluna pelo cabeçalho: inserir uma coluna no meio não quebra a asserção. */
@@ -59,34 +58,6 @@ const row = (over: Partial<CommissionRow> = {}): CommissionRow => ({
   ...over,
 });
 
-describe("filterByPeriod", () => {
-  it("recorta pela data em que a comissão CAI, não pela do pedido", () => {
-    // Pedido de junho, faturado em junho, com prazo de 30 dias: a comissão é de
-    // julho, e é em julho que ela tem de aparecer.
-    const rows = [
-      row({ installmentId: "junho", receiveDate: "2026-06-15" }),
-      row({ installmentId: "julho", receiveDate: "2026-07-20" }),
-    ];
-
-    const julho = filterByPeriod(rows, "2026-07-01", "2026-07-31");
-    expect(julho.map((r) => r.installmentId)).toEqual(["julho"]);
-  });
-
-  it("inclui as duas pontas do período", () => {
-    const rows = [
-      row({ installmentId: "primeiro", receiveDate: "2026-07-01" }),
-      row({ installmentId: "ultimo", receiveDate: "2026-07-31" }),
-    ];
-    expect(filterByPeriod(rows, "2026-07-01", "2026-07-31")).toHaveLength(2);
-  });
-
-  it("parcela sem data de recebimento fica fora de qualquer período", () => {
-    // Ainda não tem quando cair: depende do faturamento da fábrica.
-    const rows = [row({ receiveDate: null })];
-    expect(filterByPeriod(rows, "2026-01-01", "2036-12-31")).toEqual([]);
-  });
-});
-
 describe("summarize", () => {
   it("separa a comissão nas três situações", () => {
     const totals = summarize([
@@ -107,79 +78,6 @@ describe("summarize", () => {
     const totals = summarize([row({ status: "cancelled", amount: "999" })]);
     expect(totals.receivable + totals.received + totals.pending).toBe(0);
     expect(totals.count).toBe(1);
-  });
-});
-
-describe("byFactory", () => {
-  it("agrupa por fábrica e ordena pela maior comissão do período", () => {
-    const groups = byFactory([
-      row({
-        factory: { id: "f1", razaoSocial: "HERC LTDA", nomeFantasia: "Herc" },
-        amount: "10",
-      }),
-      row({
-        factory: { id: "f2", razaoSocial: "DELTA LTDA", nomeFantasia: "Delta" },
-        amount: "100",
-      }),
-      row({
-        factory: { id: "f2", razaoSocial: "DELTA LTDA", nomeFantasia: "Delta" },
-        amount: "50",
-      }),
-    ]);
-
-    expect(groups.map((g) => g.name)).toEqual(["Delta", "Herc"]);
-    expect(groups[0].receivable).toBe(150);
-    expect(groups[0].count).toBe(2);
-  });
-
-  it("parcela sem fábrica não derruba o agrupamento", () => {
-    const groups = byFactory([row({ factory: null })]);
-    expect(groups).toHaveLength(1);
-    expect(groups[0].name).toBe("—");
-  });
-});
-
-describe("sortForReport", () => {
-  it("ordena pela data de recebimento e, no empate, por cliente", () => {
-    const rows = [
-      row({
-        installmentId: "b",
-        receiveDate: "2026-07-20",
-        client: { id: "c2", razaoSocial: "ZEBRA LTDA", nomeFantasia: null },
-      }),
-      row({
-        installmentId: "a",
-        receiveDate: "2026-07-20",
-        client: { id: "c1", razaoSocial: "ALFA LTDA", nomeFantasia: null },
-      }),
-      row({ installmentId: "antes", receiveDate: "2026-07-05" }),
-    ];
-
-    expect(sortForReport(rows).map((r) => r.installmentId)).toEqual([
-      "antes",
-      "a",
-      "b",
-    ]);
-  });
-
-  it("parcela sem data vai para o fim", () => {
-    const rows = [
-      row({ installmentId: "sem", receiveDate: null }),
-      row({ installmentId: "com", receiveDate: "2026-07-20" }),
-    ];
-    expect(sortForReport(rows).map((r) => r.installmentId)).toEqual([
-      "com",
-      "sem",
-    ]);
-  });
-
-  it("não altera o array recebido", () => {
-    const rows = [
-      row({ installmentId: "b", receiveDate: "2026-07-20" }),
-      row({ installmentId: "a", receiveDate: "2026-07-01" }),
-    ];
-    sortForReport(rows);
-    expect(rows.map((r) => r.installmentId)).toEqual(["b", "a"]);
   });
 });
 
@@ -285,5 +183,69 @@ describe("devolução no total do período", () => {
     ]);
 
     expect(totals.receivable).toBe(14);
+  });
+});
+
+describe("totais do servidor", () => {
+  it("convertem os decimais em número para a tela", () => {
+    const { totals, split } = totalsFromServer({
+      receivable: "300.50",
+      received: "200",
+      pending: "0",
+      count: 3,
+      countReceivable: 1,
+      chargeback: "-10",
+      countOverdue: 2,
+      company: "500.50",
+      seller: "180",
+      office: "320.50",
+      margin: 0.64,
+    });
+    expect(totals).toEqual({
+      receivable: 300.5,
+      received: 200,
+      pending: 0,
+      count: 3,
+      countReceivable: 1,
+      chargeback: -10,
+      countOverdue: 2,
+    });
+    expect(split).toEqual({
+      company: 500.5,
+      seller: 180,
+      office: 320.5,
+      margin: 0.64,
+    });
+  });
+
+  it("sem resposta ainda, zera em vez de quebrar", () => {
+    expect(totalsFromServer(undefined).totals.receivable).toBe(0);
+    expect(factoriesFromServer(undefined)).toEqual([]);
+  });
+
+  it("a fábrica chega agrupada, com a repartição", () => {
+    const [group] = factoriesFromServer([
+      {
+        factoryId: "f1",
+        name: "HERC",
+        receivable: "1",
+        received: "2",
+        pending: "3",
+        count: 4,
+        company: "6",
+        seller: "2",
+        office: "4",
+        margin: 0.66,
+      },
+    ]);
+    expect(group).toEqual({
+      factoryId: "f1",
+      name: "HERC",
+      receivable: 1,
+      received: 2,
+      pending: 3,
+      count: 4,
+      split: { company: 6, seller: 2, office: 4, margin: 0.66 },
+    });
   });
 });

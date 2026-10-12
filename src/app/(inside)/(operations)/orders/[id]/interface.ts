@@ -42,6 +42,12 @@ export interface OrderInstallment {
   sellerCommissionPaidAt: string | null;
   /** Mês em que o estorno será descontado do vendedor; null = ainda na fila. */
   sellerChargebackMonth: string | null;
+  /**
+   * Tem baixa lançada (pago, calote, comissão recebida/conferida, repasse ao
+   * vendedor, estorno descontado). Decidido no SERVIDOR — a mesma régua que
+   * recusa desfazer/refazer o faturamento sem confirmação e motivo.
+   */
+  hasSettlement: boolean;
 }
 
 /** Referência enxuta a um pedido de backorder (filho) para exibir o vínculo. */
@@ -128,6 +134,8 @@ export interface OrderDetail {
   availablePaymentTerms: PaymentTermRef[];
   installments: OrderInstallment[];
   invoiceReversals: InvoiceReversal[];
+  /** As baixas lançadas nas parcelas, em frase do servidor ("" = nenhuma). */
+  settlementSummary: string;
 }
 
 /** Um faturamento desfeito (`uninvoice`) ou com as parcelas refeitas (`revise`). */
@@ -142,6 +150,8 @@ export interface InvoiceReversal {
   totalAmount: string;
   installmentsCount: number;
   settlementsDropped: number;
+  /** As baixas que havia nas parcelas apagadas, por tipo. */
+  settlementsSummary: string;
 }
 
 export interface OrderItemsResponse {
