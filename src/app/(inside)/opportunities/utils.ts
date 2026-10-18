@@ -74,7 +74,7 @@ export const OPPORTUNITY_COPY: Record<OpportunityKind, OpportunityCopy> = {
         ? `O sistema pontuou estes clientes como os mais urgentes da semana e eles não entraram no roteiro.${blockedCount > 0 ? ` Outros ${blockedCount} estão de fora por um motivo do sistema — a lista diz qual.` : ""}`
         : "Nenhum foi esquecido: o sistema os tirou da rotina de propósito, quase sempre por um pedido em aberto naquela fábrica. A lista mostra o motivo de cada um.",
     listAction: "Ver quem ficou de fora",
-    planAction: { label: "Revisar planejamento", href: "/routines" },
+    planAction: { label: "Revisar planejamento", href: "/agenda" },
   },
 };
 

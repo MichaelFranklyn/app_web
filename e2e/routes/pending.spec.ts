@@ -23,7 +23,7 @@ const item = (over: Record<string, unknown> = {}) => ({
   dueDate: "2026-10-07",
   daysLate: 4,
   clientName: "Mercadinho do Zé",
-  link: "/routines/2026-10-11?seller=seller-1",
+  link: "/agenda/2026-10-11?seller=seller-1",
   clientLink: "/clients/cc-1",
   factoryName: null,
   sellerId: "seller-1",
@@ -308,7 +308,7 @@ test("pendências: visita sem resposta diz o que houve e leva à rota", async ({
   await expect(visit).toContainText("venceu há 4 dias");
   await expect(
     visit.getByRole("link", { name: "Responder na rota" })
-  ).toHaveAttribute("href", "/routines/2026-10-11?seller=seller-1");
+  ).toHaveAttribute("href", "/agenda/2026-10-11?seller=seller-1");
 });
 
 test("pendências: contato agendado traz o motivo e abre o agendamento", async ({

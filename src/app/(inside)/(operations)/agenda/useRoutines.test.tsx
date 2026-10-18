@@ -11,7 +11,7 @@ const { state, replace, getCookie } = vi.hoisted(() => ({
 
 vi.mock("next/navigation", () => ({
   useSearchParams: () => state.sp,
-  usePathname: () => "/routines",
+  usePathname: () => "/agenda",
   useRouter: () => ({ replace }),
 }));
 vi.mock("@/utils/cookies/clientCookie", () => ({ getCookie }));

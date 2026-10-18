@@ -43,8 +43,8 @@ export function useInsideLayout({
 }: UseInsideLayoutParams) {
   const pathname = usePathname();
 
-  // Rota de um dia específico (/routines/<data>), distinta da grade semanal.
-  const isDayRoute = /^\/routines\/[^/]+/.test(pathname);
+  // Rota de um dia específico (/agenda/<data>), distinta da grade semanal.
+  const isDayRoute = /^\/agenda\/[^/]+/.test(pathname);
 
   // Data de hoje resolvida só no cliente (evita mismatch de hidratação).
   const [todayIso, setTodayIso] = useState<string | null>(null);

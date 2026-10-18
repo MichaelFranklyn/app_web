@@ -75,7 +75,7 @@ export const NAV = [
   { divider: true },
   { section: "Operações" },
   {
-    href: "/routines",
+    href: "/agenda",
     label: "Agenda",
     icon: CalendarDays,
     feature: "ROUTINES" as NavFeature,

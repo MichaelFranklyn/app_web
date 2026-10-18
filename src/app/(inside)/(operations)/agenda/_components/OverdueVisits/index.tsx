@@ -26,7 +26,7 @@ interface Props {
  * resposta é encerrado como "não visitou" pelo job `close_stale_visits`.
  *
  * Na tela do dia, essa dívida NÃO pode competir com a rota: quem abre
- * `/routines/<dia>` quer ver por onde passar hoje. Por isso o que fica no fluxo
+ * `/agenda/<dia>` quer ver por onde passar hoje. Por isso o que fica no fluxo
  * da página é só um aviso de uma linha — a lista de pendências mora num painel
  * lateral, que o vendedor abre quando decide responder.
  */

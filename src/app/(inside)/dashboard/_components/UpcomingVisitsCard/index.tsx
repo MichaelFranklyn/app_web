@@ -33,7 +33,7 @@ export function UpcomingVisitsCard({ items }: Props) {
             size="sm"
             noUppercase
             disabled={isPending}
-            onClick={() => navigateTo("/routines")}
+            onClick={() => navigateTo("/agenda")}
           >
             <Button.Title>Ver rotina</Button.Title>
             <Button.Icon icon={ArrowRight} />

@@ -87,8 +87,8 @@ export default function DayRouteContent({ date, sellerId }: Props) {
 
   // Mantém o vendedor escolhido ao navegar entre os dias (gestor).
   const sellerQuery = sellerId ? `?seller=${sellerId}` : "";
-  const prevHref = `/routines/${shiftDateIso(date, -1)}${sellerQuery}`;
-  const nextHref = `/routines/${shiftDateIso(date, 1)}${sellerQuery}`;
+  const prevHref = `/agenda/${shiftDateIso(date, -1)}${sellerQuery}`;
+  const nextHref = `/agenda/${shiftDateIso(date, 1)}${sellerQuery}`;
 
   const dayNav = <DayNavActions prevHref={prevHref} nextHref={nextHref} />;
 

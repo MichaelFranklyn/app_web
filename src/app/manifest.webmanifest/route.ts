@@ -74,7 +74,7 @@ export function GET() {
           name: "Rota do dia",
           short_name: "Rota",
           description: "As visitas de hoje",
-          url: "/routines",
+          url: "/agenda",
         },
         {
           name: "Pedidos",

@@ -99,6 +99,6 @@ describe("manifest.webmanifest", () => {
     // wizard de criar pedido é modal, sem URL própria.
     const { shortcuts } = await manifesto();
 
-    expect(shortcuts.map((s) => s.url)).toEqual(["/routines", "/orders"]);
+    expect(shortcuts.map((s) => s.url)).toEqual(["/agenda", "/orders"]);
   });
 });

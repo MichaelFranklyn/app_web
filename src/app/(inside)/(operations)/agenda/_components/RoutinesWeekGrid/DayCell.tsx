@@ -57,7 +57,7 @@ export function DayCell({
   // O que a marcação vai realocar. Só o pendente: o que já tem desfecho é
   // história, e história não se remarca.
   const pendingCount = items.filter((i) => i.status === "PENDING").length;
-  const dayHref = `/routines/${cell.date}${sellerId ? `?seller=${sellerId}` : ""}`;
+  const dayHref = `/agenda/${cell.date}${sellerId ? `?seller=${sellerId}` : ""}`;
 
   return (
     <div className="max-w-[290px] min-w-[290px] shrink-0">

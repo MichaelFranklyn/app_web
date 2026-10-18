@@ -83,7 +83,7 @@ describe("visibleNav — papel", () => {
 describe("visibleNav — plano", () => {
   it("esconde o que a empresa não contratou", () => {
     const semRotina = hrefs("OWNER", ["COMMISSIONS", "GOALS"]);
-    expect(semRotina).not.toContain("/routines");
+    expect(semRotina).not.toContain("/agenda");
     expect(semRotina).toContain("/commissions");
     expect(semRotina).toContain("/goals");
   });

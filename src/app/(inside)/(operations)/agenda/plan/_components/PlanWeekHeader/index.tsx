@@ -14,7 +14,7 @@ interface Props {
  * clientes.
  */
 export function PlanWeekHeader({ sellerId }: Props) {
-  const backHref = `/routines${sellerId ? `?sellerId=${sellerId}` : ""}`;
+  const backHref = `/agenda${sellerId ? `?sellerId=${sellerId}` : ""}`;
 
   return (
     <div className="flex flex-col gap-8">

@@ -36,7 +36,7 @@ export default function PlanWeekContent() {
       week: weekStart,
     });
     page.clearSelection();
-    redirect(`/routines?${params.toString()}`);
+    redirect(`/agenda?${params.toString()}`);
   };
 
   const result = page.result;

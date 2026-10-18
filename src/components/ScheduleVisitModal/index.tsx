@@ -30,7 +30,7 @@ const single = (
 /**
  * Marcar uma visita à mão: escolher o cliente, escolher o dia, marcar.
  *
- * Compartilhado entre a rotina do vendedor (`/routines`, onde o cliente é
+ * Compartilhado entre a rotina do vendedor (`/agenda`, onde o cliente é
  * escolhido aqui) e a ficha do cliente (`/clients/[id]/visits`, onde ele já
  * vem definido) — as duas telas de onde alguém sai para agendar. Mora em
  * `components/` por isso: é a MESMA pergunta feita de dois lugares distantes.

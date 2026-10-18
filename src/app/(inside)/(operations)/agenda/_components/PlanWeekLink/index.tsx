@@ -21,7 +21,7 @@ export function PlanWeekLink({ weekStart, sellerId, className }: Props) {
   });
   return (
     <Button.Link
-      href={`/routines/plan?${params.toString()}`}
+      href={`/agenda/plan?${params.toString()}`}
       appearance="solid"
       color="amber"
       size="sm"

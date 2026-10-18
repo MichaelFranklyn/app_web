@@ -30,7 +30,7 @@ test("sem sinal, concluir a visita fica guardado e vai sozinho quando o sinal vo
   });
   const network = await controlNetwork(page);
 
-  await page.goto("/routines");
+  await page.goto("/agenda");
   const card = page.getByRole("button", { name: /Cliente LTDA/ });
   await expect(card).toBeVisible();
 
@@ -82,7 +82,7 @@ test("sem sinal, o estoque fica guardado e chega com o dia em que foi visto", as
   });
   const network = await controlNetwork(page);
 
-  await page.goto("/routines");
+  await page.goto("/agenda");
   const card = page.getByRole("button", { name: /Cliente LTDA/ });
   await card.locator('[aria-haspopup="menu"]').click();
   await page.getByRole("menuitem", { name: "Estoque do cliente" }).click();
@@ -127,7 +127,7 @@ test("o que o servidor recusa ao chegar fica avisado até a pessoa ler", async (
   });
   const network = await controlNetwork(page);
 
-  await page.goto("/routines");
+  await page.goto("/agenda");
   const card = page.getByRole("button", { name: /Cliente LTDA/ });
   await expect(card).toBeVisible();
 

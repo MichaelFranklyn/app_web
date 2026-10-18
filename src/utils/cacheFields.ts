@@ -270,7 +270,7 @@ export const FACTORY_CONTACT_CACHE_FIELDS = ["factoryContacts"];
  * pendente daquele cliente, carimba `last_visit_date` no vínculo e recalcula o
  * score (ver `visit_evidence.py` → `update_visit_schedule_item.py`).
  *
- * A rotina (`/routines`) se salvava por ler em `cache-and-network`. Quem ficava
+ * A rotina (`/agenda`) se salvava por ler em `cache-and-network`. Quem ficava
  * no estado anterior era a FICHA DO CLIENTE, toda `cache-first`: a aba Visitas
  * com a visita ainda pendente, a coluna "última visita" da aba Fábricas e o
  * score — inclusive a coluna de score da lista de clientes.

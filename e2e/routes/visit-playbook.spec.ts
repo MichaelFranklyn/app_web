@@ -136,7 +136,7 @@ const playbook = () => ({
 });
 
 async function openPanel(page: import("@playwright/test").Page) {
-  await page.goto("/routines");
+  await page.goto("/agenda");
   const card = page.getByRole("button", { name: /Cliente LTDA/ });
   await card.locator('[aria-haspopup="menu"]').click();
   await page.getByRole("menuitem", { name: "Visualizar visita" }).click();

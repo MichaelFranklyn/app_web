@@ -19,7 +19,7 @@ export function DayNavActions({ prevHref, nextHref }: Props) {
   return (
     <>
       <Link
-        href="/routines"
+        href="/agenda"
         className={`${BASE} min-h-[32.8px] px-[12px] py-[5px]`}
       >
         <ChevronLeft size={14} className="shrink-0" />

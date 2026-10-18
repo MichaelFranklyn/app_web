@@ -245,8 +245,10 @@ type ClientFollowUpType {
   responsibleUserId: UUID
   responsible: UserType
   createdBy: UserType
-  """O dia combinado para o contato."""
+  """O dia combinado para o contato — o dia da parada na agenda."""
   dueDate: Date!
+  """A parada da agenda em que o contato acontece (desde 18/10/2026 o contato mora na agenda)."""
+  itemId: UUID!
   reason: String!
   notes: String
   status: FollowUpStatus!
@@ -7871,7 +7873,10 @@ type RescheduleVisitResponse {
 type VisitScheduleItemType {
   id: UUID!
   scheduleDayId: UUID!
-  sellerClientFactoryId: UUID!
+  """Vínculo (vendedor × cliente × fábrica). Nulo na agenda de quem não vende (a ligação do escritório)."""
+  sellerClientFactoryId: UUID
+  """O cliente da parada — sempre preenchido, com ou sem vínculo."""
+  clientId: UUID!
   """Preenchido quando a parada veio de um compromisso de ROTA FIXA (contrato), não de uma escolha do motor."""
   fixedScheduleId: UUID
   plannedOrder: Int!
@@ -7907,6 +7912,11 @@ type VisitScheduleItemType {
   isManual: Boolean!
   """Viagem que criou esta parada (ver `planSellerTrip`). Nulo nas paradas da rotina de casa."""
   tripId: UUID
+  """Contato COMBINADO com o cliente (o antigo contato agendado): não se encerra sozinho e só sai da agenda cancelando, com o motivo."""
+  isFollowUp: Boolean!
+  """O combinado desta ligação (motivo, pedido, situação). Nulo nas paradas que não são combinadas."""
+  followUp: ClientFollowUpType
+  client: ClientType
   createdAt: DateTime!
   updatedAt: DateTime!
   day: VisitScheduleDayType

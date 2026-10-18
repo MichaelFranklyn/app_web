@@ -19,7 +19,7 @@ test("routines: a rotina da semana carrega sem agendamentos", async ({
     VisitScheduleConfig: scheduleConfig,
   });
 
-  await page.goto("/routines");
+  await page.goto("/agenda");
 
   await expect(
     page.getByRole("heading", { name: "Agenda", level: 1 })
@@ -27,7 +27,7 @@ test("routines: a rotina da semana carrega sem agendamentos", async ({
 });
 
 /**
- * Lote 5 — rotina da semana (/routines). Mock VisitSchedules com 1 visita
+ * Lote 5 — rotina da semana (/agenda). Mock VisitSchedules com 1 visita
  * acionável; o item tem um menu (MoreOptions) → "Editar visita". O EditVisitModal
  * tem status prefilled, então só alteramos as notas (evita o select de status).
  */
@@ -101,7 +101,7 @@ test("rotina: edita uma visita (notas)", async ({ page }) => {
     }),
   });
 
-  await page.goto("/routines");
+  await page.goto("/agenda");
 
   // Kebab DENTRO do card da visita. O `following::button[1]` era ambíguo: o
   // card virou role="button" e há outros botões depois dele no DOM.
@@ -194,7 +194,7 @@ test("rotina (lista): dias colapsam, só hoje abre sozinho", async ({
     }),
   });
 
-  await page.goto("/routines?view=list");
+  await page.goto("/agenda?view=list");
 
   // O checkbox de concluir só existe nas linhas de visita renderizadas (o painel
   // de detalhes repete o nome do cliente, então ancoramos no checkbox). Hoje vem
@@ -209,7 +209,7 @@ test("rotina (lista): dias colapsam, só hoje abre sozinho", async ({
   await expect(
     page
       .getByRole("link", { name: "Ver rota" })
-      .and(page.locator(`[href="/routines/${TODAY}"]`))
+      .and(page.locator(`[href="/agenda/${TODAY}"]`))
   ).toBeVisible();
 
   // Fechar o dia de hoje (único cabeçalho expandido) some com a linha da visita.
@@ -260,7 +260,7 @@ test("rotina: marca um dia como não trabalhado", async ({ page }) => {
     }),
   });
 
-  await page.goto("/routines");
+  await page.goto("/agenda");
 
   // A coluna de hoje é a única com visita marcada — e é dela que sai o número
   // que a confirmação precisa mostrar.
@@ -307,7 +307,7 @@ test("rotina: painel fechado não projeta sombra na lateral", async ({
     }),
   });
 
-  await page.goto("/routines");
+  await page.goto("/agenda");
   await expect(
     page.getByRole("button", { name: /Cliente LTDA/ })
   ).toBeVisible();
@@ -397,7 +397,7 @@ test("rotina: ligação sem contato cadastra ali; com celular, WhatsApp com mens
     }),
   });
 
-  await page.goto("/routines?view=list");
+  await page.goto("/agenda?view=list");
 
   // Com celular: o link já leva a mensagem, chamando o contato pelo nome.
   // O painel lateral de cada visita fica montado FORA da tela (aside) com os

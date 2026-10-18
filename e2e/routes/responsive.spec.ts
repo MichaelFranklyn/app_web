@@ -28,7 +28,7 @@ const ROUTE_MOCKS: Record<string, Record<string, () => unknown>> = {
     OrdersByPeriod: () => ({ orders_by_period: { edges: [], totalCount: 0 } }),
     CompanyClientsCount: () => ({ company_clients_count: { totalCount: 0 } }),
   },
-  "/routines": { VisitSchedules: () => ({ visit_schedules: conn() }) },
+  "/agenda": { VisitSchedules: () => ({ visit_schedules: conn() }) },
   "/clients": { Clients: () => ({ clients_list: conn() }) },
   "/orders": {
     Orders: () => ({ orders_list: conn() }),

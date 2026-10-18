@@ -123,7 +123,7 @@ export function RoutinesList({
                 <>
                   <Divider.Root orientation="vertical" />
                   <Button.Link
-                    href={`/routines/${cell.date}${
+                    href={`/agenda/${cell.date}${
                       sellerId ? `?seller=${sellerId}` : ""
                     }`}
                     appearance="ghost"

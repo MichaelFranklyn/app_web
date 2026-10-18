@@ -107,7 +107,7 @@ test("rotina por data: monta a semana", async ({ page }) => {
   await mockGraphql(page, {
     VisitsWeekSchedule: () => ({ week_schedule: conn([]) }),
   });
-  await page.goto("/routines/2026-06-22");
+  await page.goto("/agenda/2026-06-22");
   await expect(
     page.getByRole("heading", { name: "Rota do Dia", level: 1 })
   ).toBeVisible();
