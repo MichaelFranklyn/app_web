@@ -210,21 +210,3 @@ export interface VisitScheduleConfigQueryData {
     edges: { node: VisitScheduleConfigNode }[];
   };
 }
-
-/** Uma viagem do vendedor para atender uma região longe de casa. */
-export interface SellerTrip {
-  id: string;
-  startDate: string;
-  endDate: string;
-  /** "Feira de Santana e Serrinha" — curto, para o cartão. */
-  title: string;
-  note: string | null;
-  /** Visitas da viagem na rotina (feitas e por fazer). */
-  plannedVisits: number;
-  doneVisits: number;
-  cities: { city: string; state: string }[];
-}
-
-export interface SellerTripsQueryData {
-  seller_trips?: SellerTrip[];
-}

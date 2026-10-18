@@ -16,6 +16,7 @@ import { PlanWeekHeader } from "./_components/PlanWeekHeader";
 import { PlanSteps } from "./_components/PlanSteps";
 import { PriorityToolbar } from "./_components/PriorityToolbar";
 import { RegionGroupCard } from "./_components/RegionGroupCard";
+import { ScheduledVisits } from "./_components/ScheduledVisits";
 import { UnavailableClients } from "./_components/UnavailableClients";
 import { WeekSetupModal } from "./_components/WeekSetupModal";
 import { usePlanWeek } from "./usePlanWeek";
@@ -53,6 +54,12 @@ export default function PlanWeekContent() {
           onLetSystemChoose={() => setSetupOpen(true)}
         />
       )}
+
+      <ScheduledVisits
+        sellerId={page.sellerId}
+        scheduleSellerId={page.effectiveSellerId}
+        onScheduled={() => void page.refetch()}
+      />
 
       <PriorityToolbar
         scope={page.scope}

@@ -8532,12 +8532,31 @@ input PlanWeekInput {
   dryRun: Boolean = false
 }
 
+"""Uma visita (ou ligação) já marcada e ainda por fazer."""
+type ScheduledVisitType {
+  itemId: UUID!
+  clientId: UUID!
+  clientName: String!
+  """Como a cidade aparece: "Salvador - BA"."""
+  cityLabel: String!
+  neighborhood: String
+  date: Date!
+  contactType: VisitContactType!
+  """Marcada por uma pessoa (combinada com o cliente), e não pelo sistema."""
+  isManual: Boolean!
+}
+
 extend type Query {
   """
   Os clientes da carteira disponíveis na semana, do mais urgente ao menos, e os
   que não podem entrar (com o motivo). Sem `sellerId`, do vendedor logado.
   """
   priorityClients(weekStart: Date!, sellerId: UUID = null): PriorityClientsType
+  """
+  As visitas e ligações já marcadas, de hoje até as próximas 8 semanas, em
+  ordem de dia. Sem `sellerId`, do vendedor logado.
+  """
+  scheduledVisits(sellerId: UUID = null): [ScheduledVisitType!]!
 }
 
 extend type Mutation {

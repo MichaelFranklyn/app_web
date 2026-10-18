@@ -7,9 +7,7 @@ import { PanelHeader } from "@/components/PanelHeader";
 import { CalendarDays, ChevronLeft, ChevronRight } from "lucide-react";
 import { RoutineSellerOption } from "../../interface";
 import { getCurrentWeekMondayIso } from "@/utils/format/date";
-import { PlanTripButton } from "../PlanTripButton";
 import { PlanWeekLink } from "../PlanWeekLink";
-import { ScheduleVisitButton } from "../ScheduleVisitButton";
 import {
   formatWeekRange,
   getIsoWeekNumber,
@@ -21,12 +19,6 @@ interface Props {
   weekStart: string;
   sellers?: RoutineSellerOption[];
   selectedSellerId?: string | null;
-  /** Vendedor de fato em tela (o logado, quando não há seletor de vendedor). */
-  effectiveSellerId?: string | null;
-  /** Recarrega a semana depois de uma visita marcada à mão. */
-  onVisitScheduled?: () => void;
-  /** Recarrega a semana e as viagens depois de planejar uma viagem. */
-  onTripPlanned?: () => void;
   onSelectSeller?: (id: string) => void;
   onSelectDate: (weekStartIso: string) => void;
   onPrevWeek: () => void;
@@ -38,9 +30,6 @@ export function RoutinesHeader({
   weekStart,
   sellers,
   selectedSellerId,
-  effectiveSellerId,
-  onVisitScheduled,
-  onTripPlanned,
   onSelectSeller,
   onSelectDate,
   onPrevWeek,
@@ -146,18 +135,10 @@ export function RoutinesHeader({
               sellerId={selectedSellerId ?? null}
               className="desktop:w-auto w-full"
             />
-            {/* Fica no cabeçalho, e não na barra de ações da grade, porque a
-                semana SEM rotina é justamente quando mais se precisa dele. */}
-            <ScheduleVisitButton
-              sellerId={effectiveSellerId ?? selectedSellerId ?? null}
-              onScheduled={() => onVisitScheduled?.()}
-            />
-            {/* A viagem também nasce aqui: ela costuma cair numa semana que
-                ainda não tem rotina. */}
-            <PlanTripButton
-              sellerId={effectiveSellerId ?? selectedSellerId ?? null}
-              onPlanned={() => onTripPlanned?.()}
-            />
+            {/* "Marcar visita" e o planejador de viagem saíram daqui em
+                18/10/2026: marcar visita mora em Montar semana, junto das
+                visitas marcadas, e a viagem perdeu o sentido com o vendedor
+                montando a própria semana. */}
           </PanelHeader.Actions>
         </PanelHeader.Left>
       </PanelHeader.Top>

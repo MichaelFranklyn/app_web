@@ -118,8 +118,23 @@ const plan = (dryRun: boolean) => ({
   },
 });
 
+const scheduledVisits = () => ({
+  scheduledVisits: [
+    {
+      itemId: "it-9",
+      clientId: "c-9",
+      clientName: "Hiperferro",
+      cityLabel: "Salvador - BA",
+      neighborhood: "CALÇADA",
+      date: NEXT_WEEK,
+      contactType: "IN_PERSON",
+    },
+  ],
+});
+
 const mocks = () => ({
   PriorityClients: priorityClients,
+  ScheduledVisits: scheduledVisits,
   PlanWeek: (variables: Record<string, unknown>) =>
     plan(Boolean((variables.input as { dryRun?: boolean }).dryRun)),
   RoutineSellersOptions: () => ({ routine_sellers: { edges: [] } }),
@@ -232,4 +247,37 @@ test("organizar sem escolher ninguém: o sistema monta com os mais urgentes", as
 
   const call = await spy.waitForCall("PlanWeek");
   expect(call.input).toMatchObject({ stops: [], fillWithSuggestions: true });
+});
+
+test("visitas marcadas: o que já está combinado aparece, com Marcar visita", async ({
+  page,
+}) => {
+  await mockGraphql(page, mocks());
+
+  await page.goto(`/routines/plan?week=${WEEK}`);
+  await expect(page.getByText("Visitas marcadas (1)")).toBeVisible();
+  await expect(page.getByText("Hiperferro")).toBeVisible();
+  await expect(
+    page.getByRole("button", { name: "Marcar visita" })
+  ).toBeVisible();
+});
+
+test("agenda: sem marcar visita nem planejar viagem no cabeçalho", async ({
+  page,
+}) => {
+  await mockGraphql(page, mocks());
+
+  await page.goto("/routines");
+  await expect(
+    page.getByRole("heading", { name: "Agenda", level: 1 })
+  ).toBeVisible();
+  await expect(
+    page.getByRole("link", { name: "Montar semana" }).first()
+  ).toBeVisible();
+  await expect(page.getByRole("button", { name: "Marcar visita" })).toHaveCount(
+    0
+  );
+  await expect(
+    page.getByRole("button", { name: "Planejar viagem" })
+  ).toHaveCount(0);
 });

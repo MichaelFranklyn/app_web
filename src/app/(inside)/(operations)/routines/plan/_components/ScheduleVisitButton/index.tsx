@@ -6,18 +6,18 @@ import { CalendarPlus } from "lucide-react";
 import { useState } from "react";
 
 interface Props {
-  /** Vendedor da rotina em tela — a carteira de onde saem os clientes. */
+  /** Vendedor da agenda em tela — a carteira de onde saem os clientes. */
   sellerId: string | null;
-  /** Chamado depois de marcar, para a semana em tela recarregar. */
+  /** Chamado depois de marcar, para a lista de visitas marcadas recarregar. */
   onScheduled: () => void;
 }
 
 /**
- * "Marcar visita" no cabeçalho da rotina: cliente e dia escolhidos na hora.
+ * "Marcar visita" na seção de visitas marcadas de Montar semana: cliente e
+ * dia escolhidos na hora (morava no cabeçalho da Agenda até 18/10/2026).
  *
- * Diferente do "+" de cada card, que só alcança um dia que já está na tela —
- * aqui a data é livre, e é o caso do cliente que liga pedindo "passa aqui dia
- * 12" quando aquela semana ainda não tem rotina nenhuma.
+ * A data é livre — é o caso do cliente que liga pedindo "passa aqui dia 12"
+ * quando aquela semana ainda não tem nada marcado.
  */
 export function ScheduleVisitButton({ sellerId, onScheduled }: Props) {
   const [open, setOpen] = useState(false);

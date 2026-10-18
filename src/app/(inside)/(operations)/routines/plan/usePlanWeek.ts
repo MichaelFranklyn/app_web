@@ -1,3 +1,4 @@
+import type { UserData } from "@/app/(auth)/login/interface";
 import { getCookie } from "@/utils/cookies/clientCookie";
 import { useQuery } from "@apollo/client/react";
 import { usePathname, useRouter, useSearchParams } from "next/navigation";
@@ -26,9 +27,13 @@ export function usePlanWeek() {
   const searchParams = useSearchParams();
 
   const [canSelectSeller, setCanSelectSeller] = useState(false);
+  // O perfil de vendedor de quem está logado: é a agenda do vendedor quando a
+  // URL não diz de quem (o "Marcar visita" precisa saber a carteira).
+  const [ownSellerId, setOwnSellerId] = useState<string | null>(null);
   useEffect(() => {
-    const userData = getCookie<{ role?: string }>("userData");
+    const userData = getCookie<UserData>("userData");
     setCanSelectSeller(MANAGER_ROLES.includes(userData?.role ?? ""));
+    setOwnSellerId(userData?.sellerId ?? null);
   }, []);
 
   const { data: sellersData } = useQuery<RoutineSellersQueryData>(
@@ -86,6 +91,8 @@ export function usePlanWeek() {
     canSelectSeller,
     sellers,
     sellerId,
+    /** O vendedor da agenda em tela: o escolhido, ou o próprio logado. */
+    effectiveSellerId: sellerId ?? ownSellerId,
     setSellerId: (id: string) => setParam("sellerId", id),
     weekStart,
     result,
