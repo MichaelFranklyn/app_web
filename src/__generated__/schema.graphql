@@ -7799,7 +7799,7 @@ input ScheduleManualVisitInput {
   factoryId: UUID = null
   contactType: VisitContactType = IN_PERSON
   notes: String = null
-  """Confirmação de "o dia está cheio, marque mesmo assim"."""
+  """Sem efeito desde 18/10/2026: não há mais teto de visitas por dia."""
   allowOverCapacity: Boolean = false
 }
 
@@ -8127,8 +8127,8 @@ extend type Mutation {
   """
   Marca uma visita escolhendo cliente e dia. Cria a rotina da semana e o dia
   quando não existem, resolve a fábrica principal pelo score e recusa data
-  passada, dia não trabalhado e cliente já agendado naquele dia. Dia cheio volta
-  como conflito: repetir com `allowOverCapacity` marca mesmo assim.
+  passada, dia não trabalhado e cliente já agendado naquele dia. Não há teto de
+  visitas por dia: a quantidade é do vendedor.
   """
   scheduleManualVisit(input: ScheduleManualVisitInput!): VisitScheduleItemTypeDataResponse!
   """
