@@ -2,22 +2,23 @@ import { FlowDefinition } from "../../../interface";
 import { ROUTINES_FLOW } from "../../keys";
 import { FLOW_ROUTES } from "../../routes";
 
-// Tour da Rotina da Semana. Dispara sozinho na 1ª visita. Os passos de período/grade
+// Tour da Agenda. Dispara sozinho na 1ª visita (versão 3: a agenda deixou de vir
+// pronta em 18/10/2026 — quem já tinha visto o tour antigo vê o novo uma vez). Os passos de período/grade
 // usam requireSelector para serem pulados quando não há rotina na semana (empty state).
 export const routinesFlow: FlowDefinition = {
   key: ROUTINES_FLOW,
-  label: "Tour da Rotina da Semana",
-  description: "Acompanhe e organize as visitas planejadas da semana.",
+  label: "Tour da Agenda",
+  description: "Monte a sua semana e acompanhe as visitas de cada dia.",
   group: "Primeiros passos",
   route: FLOW_ROUTES.routines,
-  version: 2,
+  version: 3,
   autoStart: true,
   steps: [
     {
       element: '[data-tour="routines-header-actions"]',
-      title: "Semana e vendedor",
+      title: "Monte a sua semana",
       description:
-        "Navegue entre as semanas e volte para a semana atual. Como administrador, você também escolhe de qual vendedor quer ver a rotina.",
+        "Em Montar semana você escolhe quem quer visitar ou ligar, e o sistema separa por região e monta o caminho de cada dia. Aqui você também navega entre as semanas e, como administrador, escolhe o vendedor.",
       side: "bottom",
       align: "end",
     },

@@ -11,13 +11,11 @@ import { useState } from "react";
 import { RoutineCapacity, VisitScheduleDay } from "../../interface";
 import {
   buildWeekDays,
-  canCompleteDay,
   getTodayIso,
   getVisibleCells,
   sortVisitsByRoute,
 } from "../../utils";
 import { AddVisitCard } from "../AddVisitCard";
-import { GenerateDayButton } from "../RoutinesWeekGrid/GenerateDayButton";
 import { VisitRow } from "./VisitRow";
 
 interface Props {
@@ -79,10 +77,6 @@ export function RoutinesList({
         const isOpen = openDates.has(cell.date);
         const doneCount = items.filter((i) => i.status === "COMPLETED").length;
         const allDone = items.length > 0 && doneCount === items.length;
-        // nextDay usa o índice global (dia seguinte da semana), não o da janela
-        // visível, para "agendar no dia seguinte" funcionar igual ao kanban.
-        const globalIndex = cells.indexOf(cell);
-        const nextDay = cells[globalIndex + 1]?.day ?? null;
 
         return (
           <Card.Root
@@ -164,21 +158,6 @@ export function RoutinesList({
                   </div>
                 )}
 
-                {/* Dia que só tem visita marcada à mão: completar as vagas em
-                    volta dela, sem reescrevê-la. */}
-                {cell.day &&
-                  !dayOffDates.has(cell.date) &&
-                  canCompleteDay(cell.day, cell.date, todayIso) && (
-                    <div className="px-16 py-12">
-                      <GenerateDayButton
-                        date={cell.date}
-                        sellerId={addSellerId}
-                        onGenerated={onChanged}
-                        complete
-                      />
-                    </div>
-                  )}
-
                 {/* Dia sem visitas, sem rota ou não trabalhado. A marcação
                     vem da mesma fonte do kanban: o dia pode estar marcado sem
                     nunca ter tido rotina. */}
@@ -187,17 +166,8 @@ export function RoutinesList({
                     <Title variant="body-sm" color="muted">
                       {dayOffDates.has(cell.date)
                         ? "Você não trabalha neste dia"
-                        : cell.day
-                          ? "Sem visitas"
-                          : "Sem rota"}
+                        : "Nada marcado"}
                     </Title>
-                    {!cell.day && !dayOffDates.has(cell.date) && (
-                      <GenerateDayButton
-                        date={cell.date}
-                        sellerId={addSellerId}
-                        onGenerated={onChanged}
-                      />
-                    )}
                   </div>
                 )}
 
@@ -211,7 +181,6 @@ export function RoutinesList({
                       day={cell.day}
                       date={cell.date}
                       scheduleId={scheduleId}
-                      nextDay={nextDay}
                       sellerId={addSellerId}
                       capacity={capacity}
                       onChanged={onChanged}

@@ -47,7 +47,6 @@ export interface AddVisitModalProps {
   /** VisitSchedule da semana (para criar o dia quando ainda não existe). */
   scheduleId: string;
   /** Próximo dia útil da semana (para "agendar no dia seguinte"); null se ele não tiver rota. */
-  nextDay: VisitScheduleDay | null;
   sellerId: string;
   capacity: RoutineCapacity;
   onDone: () => void;

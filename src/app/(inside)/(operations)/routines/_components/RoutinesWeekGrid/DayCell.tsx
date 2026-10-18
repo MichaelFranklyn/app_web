@@ -7,17 +7,11 @@ import { Title } from "@/components/Title";
 import { ArrowUpRight, Route } from "lucide-react";
 import Link from "next/link";
 
-import { RoutineCapacity, VisitScheduleDay } from "../../interface";
-import {
-  WeekDayCell,
-  canCompleteDay,
-  isPastDay,
-  sortVisitsByRoute,
-} from "../../utils";
+import { RoutineCapacity } from "../../interface";
+import { WeekDayCell, isPastDay, sortVisitsByRoute } from "../../utils";
 import { AddVisitCard } from "../AddVisitCard";
 import { DayOffButton } from "../DayOffButton";
 import { VisitCard } from "../VisitCard";
-import { GenerateDayButton } from "./GenerateDayButton";
 
 interface Props {
   cell: WeekDayCell;
@@ -27,7 +21,6 @@ interface Props {
   addSellerId: string | null;
   capacity: RoutineCapacity;
   /** Próximo dia da semana — alternativa de agendamento no AddVisitCard. */
-  nextDay: VisitScheduleDay | null;
   /** O vendedor marcou este dia como não trabalhado. */
   isDayOff: boolean;
   onMarkDayOff: (date: string) => Promise<void>;
@@ -50,7 +43,6 @@ export function DayCell({
   sellerId,
   addSellerId,
   capacity,
-  nextDay,
   isDayOff,
   onMarkDayOff,
   onUnmarkDayOff,
@@ -165,25 +157,15 @@ export function DayCell({
                 </Title>
               </div>
 
-              {/* O usuário ainda pode querer trabalhar neste dia: gerar a rota
-                  automática (pela carteira) ou agendar uma visita manual (cria
-                  o dia com essa primeira visita). */}
+              {/* O dia ainda pode receber uma visita marcada à mão (cria o dia
+                  com essa primeira visita). A rota automática do dia saiu em
+                  18/10/2026: quem escolhe os clientes é o vendedor, em
+                  "Montar semana". */}
               <Card.Section divided>
-                {/* Dia vencido não recebe rota nova: a visita já não pode
-                    acontecer, e recomendá-la só consumiria o cliente da semana.
-                    O backend recusa; aqui o botão nem aparece. */}
-                {!isPast && (
-                  <GenerateDayButton
-                    date={cell.date}
-                    sellerId={addSellerId}
-                    onGenerated={onChanged}
-                  />
-                )}
                 <AddVisitCard
                   day={null}
                   date={cell.date}
                   scheduleId={scheduleId}
-                  nextDay={nextDay}
                   sellerId={addSellerId}
                   capacity={capacity}
                   onChanged={onChanged}
@@ -228,21 +210,10 @@ export function DayCell({
 
               {/* Rodapé fixo do dia: adicionar visita + abrir a rota. */}
               <Card.Section divided>
-                {/* Dia que só tem visita marcada à mão: o sistema completa as
-                    vagas em volta dela, sem reescrevê-la. */}
-                {canCompleteDay(cell.day, cell.date, todayIso) && (
-                  <GenerateDayButton
-                    date={cell.date}
-                    sellerId={addSellerId}
-                    onGenerated={onChanged}
-                    complete
-                  />
-                )}
                 <AddVisitCard
                   day={cell.day}
                   date={cell.date}
                   scheduleId={scheduleId}
-                  nextDay={nextDay}
                   sellerId={addSellerId}
                   capacity={capacity}
                   onChanged={onChanged}

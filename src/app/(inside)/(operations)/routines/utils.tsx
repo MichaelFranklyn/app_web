@@ -256,54 +256,11 @@ export const isWeekendToday = (): boolean => {
 };
 
 /**
- * A semana ATUAL pode ser gerada sempre; a SEGUINTE, só no sábado e no domingo.
- *
- * A rotina montada com antecedência congela o score do dia em que foi feita, e o
- * score continua andando: quando a semana chegava, boa parte das visitas já não
- * se justificava e os clientes que ficaram urgentes no caminho não estavam no
- * plano. Por isso o sistema planeja uma semana de cada vez — o job automático
- * roda no domingo ao meio-dia, para a semana que começa na segunda, e quem
- * quiser se adiantar gera à mão no fim de semana. Um dia de antecedência é o
- * teto; é a mesma régua do backend (`planning_week_start`).
- */
-export const canGenerateWeek = (weekStartIso: string): boolean =>
-  weekStartIso === getCurrentWeekMondayIso() ||
-  (isWeekendToday() && weekStartIso === getNextWeekMondayIso());
-
-/** "desta semana" × "da semana que vem" — o rótulo dos botões de gerar/refazer. */
-export const weekPhrase = (weekStartIso: string): string =>
-  weekStartIso === getNextWeekMondayIso()
-    ? "da semana que vem"
-    : "desta semana";
-
-/**
- * O dia já passou — não há rota a gerar para ele.
- *
- * O backend recusa gerar rota para trás (a visita seria impossível e ainda
- * "gastaria" o cliente, que só entra uma vez na semana). Aqui o botão some antes
- * de o vendedor tentar, para o erro nunca aparecer.
+ * O dia já passou — não recebe parada nova (a visita seria impossível). Aqui o
+ * botão some antes de o vendedor tentar, para o erro nunca aparecer.
  */
 export const isPastDay = (dateIso: string, todayIso: string): boolean =>
   dateIso < todayIso;
-
-/**
- * O dia já existe mas dá para o sistema COMPLETÁ-LO com a carteira?
- *
- * É o dia que nasceu de uma visita marcada à mão (marcar cria o dia). Ali a
- * visita foi combinada com o cliente: o sistema não a reescreve, só preenche as
- * vagas que sobraram com clientes perto dela. Com plano do motor dentro, o dia
- * já foi gerado (o backend recusa gerar de novo); dia começado está na mão do
- * vendedor.
- */
-export const canCompleteDay = (
-  day: { status: string; items: { isManual: boolean }[] },
-  dateIso: string,
-  todayIso: string
-): boolean =>
-  !isPastDay(dateIso, todayIso) &&
-  day.status === "PLANNED" &&
-  day.items.length > 0 &&
-  day.items.every((item) => item.isManual);
 
 export const getIsoWeekNumber = (isoDate: string): number => {
   const [year, month, day] = isoDate.split("-").map(Number);

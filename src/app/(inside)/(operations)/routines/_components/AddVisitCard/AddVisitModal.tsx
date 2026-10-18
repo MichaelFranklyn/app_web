@@ -1,5 +1,4 @@
 "use client";
-import { Alert } from "@/components/Alert";
 
 import { Button } from "@/components/Button";
 import { Input } from "@/components/Input";
@@ -10,7 +9,6 @@ import { Title } from "@/components/Title";
 import { Car, Phone } from "lucide-react";
 import { CONTACT_TYPE_LABEL, contactNoun } from "@/utils/visit";
 import { VisitContactType } from "../../interface";
-import { formatDayLabel, formatWeekdayLabel } from "../../utils";
 import { AddVisitModalProps } from "./interface";
 import { useAddVisit } from "./useAddVisit";
 
@@ -29,7 +27,6 @@ export function AddVisitModal({
   day,
   date,
   scheduleId,
-  nextDay,
   sellerId,
   capacity,
   onDone,
@@ -42,32 +39,21 @@ export function AddVisitModal({
     contactType,
     setContactType,
     isContactTypeEnabled,
-    typeLimit,
-    confirmingOverLimit,
     isDayWithoutRoute,
-    isDayFull,
-    nextDayHasRoom,
     isLoading,
     handlePrimary,
-    handleAddToNextDay,
   } = useAddVisit({
     open,
     onOpenChange,
     day,
     date,
     scheduleId,
-    nextDay,
     sellerId,
     capacity,
     onDone,
   });
 
-  const isRemote = contactType === "REMOTE";
-
   const selectValue = options.find((o) => o.value === selectedLinkId) ?? null;
-  const nextDayLabel = nextDay
-    ? `${formatWeekdayLabel(nextDay.date)}, ${formatDayLabel(nextDay.date)}`
-    : null;
 
   return (
     <Modal.Root open={open} onOpenChange={onOpenChange}>
@@ -127,24 +113,6 @@ export function AddVisitModal({
                 setSelectedLinkId(opt ? opt.value : null);
               }}
             />
-
-            {/* Aviso de limite: aparece só quando o dia está cheio e o usuário
-                confirmou a intenção de adicionar mesmo assim. */}
-            {confirmingOverLimit && isDayFull && (
-              <Alert.Root variant="warning">
-                <Alert.Content>
-                  <Alert.Title>
-                    Este dia já atingiu o limite de {typeLimit}{" "}
-                    {isRemote ? "contatos" : "visitas"}.
-                  </Alert.Title>
-                  <Alert.Description>
-                    {nextDayHasRoom && nextDayLabel
-                      ? `Você pode adicionar mesmo assim ou agendar no dia seguinte (${nextDayLabel}).`
-                      : "Você pode adicionar mesmo assim. O dia seguinte não tem espaço."}
-                  </Alert.Description>
-                </Alert.Content>
-              </Alert.Root>
-            )}
           </div>
         </Modal.Body>
         <Modal.Footer>
@@ -161,20 +129,6 @@ export function AddVisitModal({
             </Button.Root>
           </Modal.Close>
 
-          {confirmingOverLimit && isDayFull && nextDayHasRoom && (
-            <Button.Root
-              type="button"
-              appearance="outline"
-              color="neutral"
-              size="md"
-              noUppercase
-              disabled={isLoading || !selectedLinkId}
-              onClick={handleAddToNextDay}
-            >
-              <Button.Title>Agendar no dia seguinte</Button.Title>
-            </Button.Root>
-          )}
-
           <Button.Root
             type="button"
             appearance="solid"
@@ -186,9 +140,7 @@ export function AddVisitModal({
             onClick={handlePrimary}
           >
             <Button.Title>
-              {confirmingOverLimit && isDayFull
-                ? "Adicionar mesmo assim"
-                : `Adicionar ${contactNoun(contactType)}`}
+              {`Adicionar ${contactNoun(contactType)}`}
             </Button.Title>
           </Button.Root>
         </Modal.Footer>

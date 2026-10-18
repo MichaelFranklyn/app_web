@@ -123,7 +123,6 @@ const run = (
   mocks: unknown[],
   params: {
     day?: VisitScheduleDay | null;
-    nextDay?: VisitScheduleDay | null;
     capacity?: RoutineCapacity;
   } = {}
 ) => {
@@ -137,7 +136,6 @@ const run = (
         day: params.day ?? null,
         date: DATE,
         scheduleId: SCHEDULE,
-        nextDay: params.nextDay ?? null,
         sellerId: SELLER,
         capacity: params.capacity ?? CAPACITY,
         onDone,
@@ -164,67 +162,10 @@ describe("useAddVisit — a carteira oferecida", () => {
     );
   });
 
-  it("dia que nunca teve rota é diferente de dia lotado", async () => {
+  it("dia que nunca teve rota é sinalizado", async () => {
     const { result } = run([linksMock([["l1", "Alto"]])]);
 
     expect(result.current.isDayWithoutRoute).toBe(true);
-    expect(result.current.isDayFull).toBe(false);
-  });
-});
-
-describe("useAddVisit — o teto é por tipo", () => {
-  it("ligação não consome vaga de deslocamento", async () => {
-    // O dia está cheio de visitas presenciais, mas ainda cabe uma ligação.
-    const cheio = day("d1", [
-      item("i1", "IN_PERSON", "l1"),
-      item("i2", "IN_PERSON", "l2"),
-    ]);
-    const { result } = run([linksMock([["l3", "Novo"]])], { day: cheio });
-
-    expect(result.current.isDayFull).toBe(true);
-    expect(result.current.typeLimit).toBe(2);
-
-    act(() => result.current.setContactType("REMOTE"));
-
-    expect(result.current.isDayFull).toBe(false);
-    expect(result.current.typeLimit).toBe(1);
-  });
-
-  it("trocar o tipo refaz a confirmação — o aviso era do outro teto", async () => {
-    const cheio = day("d1", [
-      item("i1", "IN_PERSON", "l1"),
-      item("i2", "IN_PERSON", "l2"),
-    ]);
-    const { result } = run([linksMock([["l3", "Novo"]])], { day: cheio });
-    await waitFor(() => expect(result.current.options).toHaveLength(1));
-
-    act(() => result.current.setSelectedLinkId("l3"));
-    act(() => result.current.handlePrimary());
-    expect(result.current.confirmingOverLimit).toBe(true);
-
-    act(() => result.current.setContactType("REMOTE"));
-    expect(result.current.confirmingOverLimit).toBe(false);
-  });
-
-  it("o dia seguinte só é oferecido quando ele tem vaga do mesmo tipo", async () => {
-    const cheio = day("d1", [
-      item("i1", "IN_PERSON", "l1"),
-      item("i2", "IN_PERSON", "l2"),
-    ]);
-    const amanhaCheio = day("d2", [
-      item("i3", "IN_PERSON"),
-      item("i4", "IN_PERSON"),
-    ]);
-    const comVaga = day("d2", [item("i3", "IN_PERSON")]);
-
-    expect(
-      run([linksMock([])], { day: cheio, nextDay: amanhaCheio }).result.current
-        .nextDayHasRoom
-    ).toBe(false);
-    expect(
-      run([linksMock([])], { day: cheio, nextDay: comVaga }).result.current
-        .nextDayHasRoom
-    ).toBe(true);
   });
 });
 
@@ -275,7 +216,8 @@ describe("useAddVisit — agendar", () => {
     await waitFor(() => expect(onDone).toHaveBeenCalledOnce());
   });
 
-  it("dia cheio pede confirmação antes de furar o teto", async () => {
+  it("não há teto: o dia com muitas visitas agenda direto, sem confirmação", async () => {
+    // Decisão de 18/10/2026: a quantidade de visitas é do vendedor.
     const cheio = day("d1", [
       item("i1", "IN_PERSON", "l1"),
       item("i2", "IN_PERSON", "l2"),
@@ -295,42 +237,9 @@ describe("useAddVisit — agendar", () => {
     await waitFor(() => expect(result.current.options).toHaveLength(1));
 
     act(() => result.current.setSelectedLinkId("l3"));
-    act(() => result.current.handlePrimary());
-
-    expect(result.current.confirmingOverLimit).toBe(true);
-    expect(onDone).not.toHaveBeenCalled();
-
     await act(async () => {
       result.current.handlePrimary();
     });
-    await waitFor(() => expect(onDone).toHaveBeenCalledOnce());
-  });
-
-  it("empurrar para amanhã entra no fim da fila de amanhã", async () => {
-    const cheio = day("d1", [
-      item("i1", "IN_PERSON", "l1"),
-      item("i2", "IN_PERSON", "l2"),
-    ]);
-    const amanha = day("d2", [item("i3", "IN_PERSON")]);
-    const { result, onDone } = run(
-      [
-        linksMock([["l3", "Novo"]]),
-        createItemMock({
-          scheduleDayId: "d2",
-          sellerClientFactoryId: "l3",
-          plannedOrder: 2,
-          contactType: "IN_PERSON",
-        }),
-      ],
-      { day: cheio, nextDay: amanha }
-    );
-    await waitFor(() => expect(result.current.options).toHaveLength(1));
-
-    act(() => result.current.setSelectedLinkId("l3"));
-    await act(async () => {
-      result.current.handleAddToNextDay();
-    });
-
     await waitFor(() => expect(onDone).toHaveBeenCalledOnce());
   });
 

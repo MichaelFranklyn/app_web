@@ -1,11 +1,10 @@
 "use client";
 
-import { Alert } from "@/components/Alert";
 import { Button } from "@/components/Button";
 import { Input, SelectOption } from "@/components/Input";
 import { Modal } from "@/components/Modal";
 import { Title } from "@/components/Title";
-import { AlertTriangle, Car, Phone } from "lucide-react";
+import { Car, Phone } from "lucide-react";
 
 import { ScheduleVisitModalProps, VisitContactType } from "./interface";
 import { AUTO_FACTORY, useScheduleVisit } from "./useScheduleVisit";
@@ -168,18 +167,6 @@ export function ScheduleVisitModal({
               rows={3}
               onChange={(e) => form.setNotes(e.target.value)}
             />
-
-            {form.dayFullMessage && (
-              <Alert.Root variant="warning">
-                <AlertTriangle size={14} className="mt-[1px] shrink-0" />
-                <Alert.Content>
-                  <Alert.Description>
-                    {form.dayFullMessage} Você pode marcar mesmo assim ou
-                    escolher outro dia.
-                  </Alert.Description>
-                </Alert.Content>
-              </Alert.Root>
-            )}
           </div>
         </Modal.Body>
         <Modal.Footer>
@@ -203,14 +190,10 @@ export function ScheduleVisitModal({
             noUppercase
             loading={form.isLoading}
             disabled={!form.isValid}
-            onClick={() => form.submit(Boolean(form.dayFullMessage))}
+            onClick={() => form.submit()}
           >
             <Button.Title>
-              {form.dayFullMessage
-                ? "Marcar mesmo assim"
-                : isRemote
-                  ? "Marcar contato"
-                  : "Marcar visita"}
+              {isRemote ? "Marcar contato" : "Marcar visita"}
             </Button.Title>
           </Button.Root>
         </Modal.Footer>

@@ -15,7 +15,6 @@ interface Props {
   /** VisitSchedule da semana (para criar o dia quando ainda não existe). */
   scheduleId: string;
   /** Próximo dia útil da semana (para "agendar no dia seguinte"); null se ele não tiver rota. */
-  nextDay: VisitScheduleDay | null;
   sellerId: string | null;
   capacity: RoutineCapacity;
   onChanged: () => void;
@@ -27,7 +26,6 @@ export function AddVisitCard({
   day,
   date,
   scheduleId,
-  nextDay,
   sellerId,
   capacity,
   onChanged,
@@ -63,7 +61,6 @@ export function AddVisitCard({
         day={day}
         date={date}
         scheduleId={scheduleId}
-        nextDay={nextDay}
         sellerId={sellerId}
         capacity={capacity}
         onDone={onChanged}

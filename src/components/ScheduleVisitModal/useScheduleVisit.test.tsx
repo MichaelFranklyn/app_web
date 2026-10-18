@@ -1,4 +1,3 @@
-import { CombinedGraphQLErrors } from "@apollo/client";
 import { MockedProvider } from "@apollo/client/testing/react";
 import { act, renderHook, waitFor } from "@testing-library/react";
 import { ReactNode } from "react";
@@ -89,41 +88,28 @@ const walletMock = (sellerId: string, clients: [string, string][]) => ({
 
 const scheduleMock = (
   input: Record<string, unknown>,
-  outcome: "ok" | "dayFull" | "refused" = "ok"
+  outcome: "ok" | "refused" = "ok"
 ) => ({
   request: { query: SCHEDULE_MANUAL_VISIT_MUTATION, variables: { input } },
-  ...(outcome === "dayFull"
-    ? {
-        error: new CombinedGraphQLErrors({
-          errors: [
-            {
-              message: "O dia 15/09 já tem 10 visitas (o teto do vendedor).",
-              extensions: { error_type: "DAY_FULL" },
-            },
-          ],
-        }),
-      }
-    : {
-        result: {
-          data: {
-            scheduleManualVisit: {
-              __typename: "VisitResponse",
-              status: outcome === "ok",
-              message: outcome === "ok" ? "Visita marcada" : "Cliente inativo",
-              data:
-                outcome === "ok"
-                  ? {
-                      __typename: "VisitScheduleItemType",
-                      id: "v1",
-                      scheduleDayId: "d1",
-                      plannedOrder: 3,
-                      contactType: input.contactType,
-                    }
-                  : null,
-            },
-          },
-        },
-      }),
+  result: {
+    data: {
+      scheduleManualVisit: {
+        __typename: "VisitResponse",
+        status: outcome === "ok",
+        message: outcome === "ok" ? "Visita marcada" : "Cliente inativo",
+        data:
+          outcome === "ok"
+            ? {
+                __typename: "VisitScheduleItemType",
+                id: "v1",
+                scheduleDayId: "d1",
+                plannedOrder: 3,
+                contactType: input.contactType,
+              }
+            : null,
+      },
+    },
+  },
 });
 
 const wrapper = (mocks: unknown[]) => {
@@ -168,7 +154,6 @@ const baseInput = {
   factoryId: null,
   contactType: "IN_PERSON",
   notes: null,
-  allowOverCapacity: false,
 };
 
 describe("useScheduleVisit — quem e onde", () => {
@@ -269,7 +254,7 @@ describe("useScheduleVisit — marcar", () => {
     );
     await waitFor(() => expect(result.current.selectedSellerId).toBe("s1"));
 
-    await act(() => result.current.submit(false));
+    await act(() => result.current.submit());
 
     await waitFor(() => expect(onScheduled).toHaveBeenCalledOnce());
     expect(onOpenChange).toHaveBeenCalledWith(false);
@@ -286,7 +271,7 @@ describe("useScheduleVisit — marcar", () => {
     await waitFor(() => expect(result.current.selectedSellerId).toBe("s1"));
 
     act(() => result.current.setFactoryId("f1"));
-    await act(() => result.current.submit(false));
+    await act(() => result.current.submit());
 
     await waitFor(() => expect(onScheduled).toHaveBeenCalledOnce());
   });
@@ -309,63 +294,12 @@ describe("useScheduleVisit — marcar", () => {
       result.current.setContactType("REMOTE");
       result.current.setNotes("  ligar de manhã  ");
     });
-    await act(() => result.current.submit(false));
+    await act(() => result.current.submit());
 
     await waitFor(() => expect(onScheduled).toHaveBeenCalledOnce());
   });
 
-  it("dia cheio não é beco: a recusa vira o aviso de confirmar mesmo assim", async () => {
-    // Quem está com o cliente no telefone é quem decide furar o teto.
-    const { result, onScheduled } = run(
-      [
-        linksMock("c1", [link("s1", "f1", "Rafael")]),
-        scheduleMock(baseInput, "dayFull"),
-      ],
-      { clientId: "c1" }
-    );
-    await waitFor(() => expect(result.current.selectedSellerId).toBe("s1"));
-
-    await act(() => result.current.submit(false));
-
-    await waitFor(() =>
-      expect(result.current.dayFullMessage).toContain("já tem 10 visitas")
-    );
-    expect(onScheduled).not.toHaveBeenCalled();
-  });
-
-  it("trocar o dia apaga o aviso — ele falava do teto do outro", async () => {
-    const { result } = run(
-      [
-        linksMock("c1", [link("s1", "f1", "Rafael")]),
-        scheduleMock(baseInput, "dayFull"),
-      ],
-      { clientId: "c1" }
-    );
-    await waitFor(() => expect(result.current.selectedSellerId).toBe("s1"));
-    await act(() => result.current.submit(false));
-    await waitFor(() => expect(result.current.dayFullMessage).not.toBeNull());
-
-    act(() => result.current.setDate(new Date("2026-09-16T12:00:00")));
-
-    await waitFor(() => expect(result.current.dayFullMessage).toBeNull());
-  });
-
-  it("confirmando, a visita entra acima do teto", async () => {
-    const { result, onScheduled } = run(
-      [
-        linksMock("c1", [link("s1", "f1", "Rafael")]),
-        scheduleMock({ ...baseInput, allowOverCapacity: true }),
-      ],
-      { clientId: "c1" }
-    );
-    await waitFor(() => expect(result.current.selectedSellerId).toBe("s1"));
-
-    await act(() => result.current.submit(true));
-
-    await waitFor(() => expect(onScheduled).toHaveBeenCalledOnce());
-  });
-
-  it("recusa que não é de lotação não vira aviso de dia cheio", async () => {
+  it("recusa do backend não fecha o modal nem avisa que marcou", async () => {
     const { result, onScheduled } = run(
       [
         linksMock("c1", [link("s1", "f1", "Rafael")]),
@@ -375,10 +309,9 @@ describe("useScheduleVisit — marcar", () => {
     );
     await waitFor(() => expect(result.current.selectedSellerId).toBe("s1"));
 
-    await act(() => result.current.submit(false));
+    await act(() => result.current.submit());
 
     await waitFor(() => expect(result.current.isLoading).toBe(false));
-    expect(result.current.dayFullMessage).toBeNull();
     expect(onScheduled).not.toHaveBeenCalled();
   });
 });

@@ -8,7 +8,6 @@ import { useQueryErrorToast } from "@/hooks/useQueryErrorToast";
 import { clientDisplayName } from "@/utils/client";
 import { factoryName } from "@/utils/company";
 import { toIsoDate } from "@/utils/format/date";
-import { CombinedGraphQLErrors } from "@apollo/client";
 import { VISIT_CACHE_FIELDS } from "@/utils/cacheFields";
 import { useMutation } from "@apollo/client/react";
 import { useEffect, useMemo, useState } from "react";
@@ -31,20 +30,6 @@ export const AUTO_FACTORY = "__auto__";
 
 const getLinks = (d: ClientLinksQueryResponse) => d.sellerClientFactoryList;
 const getWallet = (d: WalletClientsQueryResponse) => d.sellerClientFactoryList;
-
-/** O backend distingue "dia cheio" dos outros conflitos pelo `error_type`. */
-const isDayFull = (error: unknown): boolean =>
-  CombinedGraphQLErrors.is(error) &&
-  error.errors.some(
-    (e) => (e.extensions as { error_type?: string })?.error_type === "DAY_FULL"
-  );
-
-const errorMessage = (error: unknown, fallback: string): string => {
-  if (CombinedGraphQLErrors.is(error)) {
-    return error.errors[0]?.message?.trim() || fallback;
-  }
-  return error instanceof Error && error.message ? error.message : fallback;
-};
 
 type Params = Pick<
   ScheduleVisitModalProps,
@@ -74,9 +59,6 @@ export function useScheduleVisit({
   );
   const [factoryId, setFactoryId] = useState<string>(AUTO_FACTORY);
   const [notes, setNotes] = useState("");
-  // O dia cheio não é um beco: o backend recusa dizendo o teto, e quem está com
-  // o cliente no telefone confirma. A mensagem dele é que aparece na tela.
-  const [dayFullMessage, setDayFullMessage] = useState<string | null>(null);
 
   const isClientFixed = Boolean(clientId);
 
@@ -88,13 +70,7 @@ export function useScheduleVisit({
     setContactType("IN_PERSON");
     setFactoryId(AUTO_FACTORY);
     setNotes("");
-    setDayFullMessage(null);
   }, [open, clientId, sellerId, defaultDate]);
-
-  // Trocar de dia ou de tipo refaz a pergunta: o aviso falava do teto do outro.
-  useEffect(() => {
-    setDayFullMessage(null);
-  }, [date, contactType, selectedClientId]);
 
   const linksInput = useMemo(
     () => ({
@@ -191,7 +167,9 @@ export function useScheduleVisit({
 
   const isValid = Boolean(selectedClientId && date);
 
-  const submit = (allowOverCapacity: boolean) =>
+  // Não há teto de visitas por dia desde 18/10/2026: a quantidade é do
+  // vendedor, e o backend não recusa mais o dia "cheio".
+  const submit = () =>
     execute(
       async () => {
         const res = await scheduleVisit({
@@ -203,7 +181,6 @@ export function useScheduleVisit({
               factoryId: factoryId === AUTO_FACTORY ? null : factoryId,
               contactType,
               notes: notes.trim() || null,
-              allowOverCapacity,
             },
           },
         });
@@ -222,15 +199,6 @@ export function useScheduleVisit({
           // Marcada pela rotina ou pela ficha do cliente, a visita aparece nas
           // duas telas.
           void invalidateClient(VISIT_CACHE_FIELDS);
-        },
-        onError: (error) => {
-          // Guardado ANTES do toast do hook: é este texto que vira o aviso com
-          // o botão "marcar mesmo assim".
-          setDayFullMessage(
-            isDayFull(error)
-              ? errorMessage(error, "Este dia já está cheio.")
-              : null
-          );
         },
       }
     );
@@ -259,7 +227,6 @@ export function useScheduleVisit({
     factoryOptions,
     notes,
     setNotes,
-    dayFullMessage,
     isValid,
     isLoading,
     submit,

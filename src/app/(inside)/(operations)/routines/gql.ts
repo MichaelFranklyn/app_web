@@ -1,33 +1,5 @@
 import { gql } from "@apollo/client";
 
-// Gera a rota de um único dia (usada na grade semanal e na tela do dia). O
-// backend resolve o seller_id para o vendedor logado; gestores mandam sellerId.
-export const GENERATE_DAY_ROUTE_MUTATION = gql`
-  mutation GenerateDayRoute($input: GenerateDayRouteInput!) {
-    generateDayRoute(input: $input) {
-      status
-      message
-      data {
-        id
-      }
-    }
-  }
-`;
-
-// Gera a rotina da semana inteira (usada quando a semana ainda não tem rotina).
-// O backend resolve o seller_id para o vendedor logado; gestores mandam sellerId.
-export const GENERATE_WEEKLY_SCHEDULE_MUTATION = gql`
-  mutation GenerateWeeklySchedule($input: GenerateWeeklyScheduleInput!) {
-    generateWeeklySchedule(input: $input) {
-      status
-      message
-      data {
-        id
-      }
-    }
-  }
-`;
-
 // Config da agenda do vendedor — usada para saber o limite de visitas por dia.
 export const VISIT_SCHEDULE_CONFIG_QUERY = gql`
   query VisitScheduleConfig($input: BaseListInput!) {

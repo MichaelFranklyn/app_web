@@ -1,13 +1,11 @@
 "use client";
 
-import { Button } from "@/components/Button";
 import { EmptyState } from "@/components/EmptyState";
 import { Grid } from "@/components/Grid";
 import { PageContent } from "@/components/PageContent";
 import { QueryError } from "@/components/QueryError";
-import { useAsyncAction } from "@/hooks/useAsyncAction";
-import { useMutation, useQuery } from "@apollo/client/react";
-import { CalendarOff, CalendarPlus } from "lucide-react";
+import { useQuery } from "@apollo/client/react";
+import { CalendarOff } from "lucide-react";
 import { useMemo } from "react";
 import { useUserRole } from "@/services/flowTour/useUserRole";
 import { OverdueVisits } from "../_components/OverdueVisits";
@@ -20,18 +18,11 @@ import { RouteStopsCard } from "./_components/RouteStopsCard";
 import { RouteSummary } from "./_components/RouteSummary";
 import { VisitsHeader } from "./_components/VisitsHeader";
 import { VisitsSkeleton } from "./_components/VisitsSkeleton";
-import { GENERATE_DAY_ROUTE_MUTATION } from "../gql";
-import { canCompleteDay, getTodayIso, isPastDay } from "../utils";
+import { PlanWeekLink } from "../_components/PlanWeekLink";
+import { getTodayIso, isPastDay } from "../utils";
 import { WEEK_SCHEDULE_QUERY } from "./gql";
 import { VisitsWeekScheduleResponse } from "./interface";
 
-interface GenerateDayRouteResponse {
-  generateDayRoute?: {
-    status: boolean;
-    message: string;
-    data?: { id: string } | null;
-  };
-}
 import { formatDateLong, getWeekMondayIso, shiftDateIso } from "./utils";
 
 interface Props {
@@ -43,8 +34,8 @@ interface Props {
 export default function DayRouteContent({ date, sellerId }: Props) {
   const weekStart = useMemo(() => getWeekMondayIso(date), [date]);
 
-  // Só o vendedor gera a própria rota; owner/admin apenas visualizam. Dia
-  // vencido também não gera: a visita já não pode acontecer e o backend recusa.
+  // Só o vendedor monta a própria semana; owner/admin apenas visualizam. Dia
+  // vencido não recebe parada nova: a visita já não pode acontecer.
   const isSeller = useUserRole() === "SELLER";
   const todayIso = getTodayIso();
   const canGenerate = isSeller && !isPastDay(date, todayIso);
@@ -75,38 +66,8 @@ export default function DayRouteContent({ date, sellerId }: Props) {
       fetchPolicy: "cache-and-network",
     });
 
-  const [generateDayRoute] = useMutation<GenerateDayRouteResponse>(
-    GENERATE_DAY_ROUTE_MUTATION
-  );
-  const { execute: generateRoute, isLoading: isGenerating } = useAsyncAction();
-
-  // Gera a rota do dia quando ele ainda não tem rota planejada. Sem sellerId: o
-  // backend resolve para o próprio usuário logado (mesma regra do escopo "me").
-  const handleGenerateDay = () =>
-    generateRoute(
-      async () => {
-        const res = await generateDayRoute({
-          variables: { input: { date } },
-        });
-        const payload = res.data?.generateDayRoute;
-        if (!payload?.status) {
-          throw new Error(payload?.message ?? "Erro ao gerar a rota do dia");
-        }
-        return payload;
-      },
-      {
-        successMessage: "Rota do dia gerada",
-        onSuccess: () => refetch(),
-      }
-    );
-
   const schedule = data?.week_schedule.edges[0]?.node;
   const day = schedule?.days.find((d) => d.date === date);
-  // Dia que só tem visita marcada à mão: o vendedor pode pedir ao sistema que
-  // complete as vagas em volta dela, sem reescrevê-la.
-  const canComplete = Boolean(
-    isSeller && day && canCompleteDay(day, date, todayIso)
-  );
   const sortedStops = useMemo(
     () =>
       day ? [...day.items].sort((a, b) => a.plannedOrder - b.plannedOrder) : [],
@@ -169,26 +130,16 @@ export default function DayRouteContent({ date, sellerId }: Props) {
           <EmptyState.Icon>
             <CalendarOff />
           </EmptyState.Icon>
-          <EmptyState.Title>Sem rota planejada para este dia</EmptyState.Title>
+          <EmptyState.Title>Nada marcado neste dia</EmptyState.Title>
           <EmptyState.Description>
-            Não há um dia de rotina registrado para {formatDateLong(date)}.{" "}
+            Nada marcado para {formatDateLong(date)}.{" "}
             {canGenerate
-              ? "Gere uma rota para este dia, use as setas para navegar entre os dias ou volte para a rotina semanal."
-              : "Use as setas para navegar entre os dias ou volte para a rotina semanal."}
+              ? "Escolha os clientes da semana em Montar semana, ou use as setas para navegar entre os dias."
+              : "Use as setas para navegar entre os dias ou volte para a agenda da semana."}
           </EmptyState.Description>
           {canGenerate && (
             <EmptyState.Actions>
-              <Button.Root
-                appearance="solid"
-                color="amber"
-                size="md"
-                noUppercase
-                loading={isGenerating}
-                onClick={handleGenerateDay}
-              >
-                <Button.Icon icon={CalendarPlus} />
-                <Button.Title>Gerar rota para este dia</Button.Title>
-              </Button.Root>
+              <PlanWeekLink weekStart={weekStart} sellerId={null} />
             </EmptyState.Actions>
           )}
         </EmptyState.Root>
@@ -204,20 +155,6 @@ export default function DayRouteContent({ date, sellerId }: Props) {
         actions={
           <>
             {dayNav}
-            {canComplete && (
-              <Button.Root
-                appearance="tinted"
-                color="amber"
-                size="sm"
-                noUppercase
-                loading={isGenerating}
-                onClick={handleGenerateDay}
-                title="As visitas que você marcou ficam. O sistema completa o dia com clientes perto delas."
-              >
-                <Button.Icon icon={CalendarPlus} />
-                <Button.Title>Completar o dia</Button.Title>
-              </Button.Root>
-            )}
             <PrintRouteButton
               scheduleDayId={day.id}
               date={day.date}

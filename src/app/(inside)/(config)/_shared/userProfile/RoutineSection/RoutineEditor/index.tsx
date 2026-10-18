@@ -81,24 +81,8 @@ export function RoutineEditor({ form, disabled, onChange }: Props) {
         </Card.Item.Actions>
       </Card.Item>
 
-      <Card.Item variant="stat">
-        <Card.Item.Label>Visitas por dia, no máximo</Card.Item.Label>
-        <Card.Item.Actions>
-          <InputNumber
-            value={form.maxVisitsPerDay}
-            disabled={disabled}
-            onChange={(e) =>
-              onChange({
-                maxVisitsPerDay: e.target.value ? Number(e.target.value) : 1,
-              })
-            }
-            min={1}
-            max={20}
-            containerClassName="w-[80px]"
-          />
-        </Card.Item.Actions>
-      </Card.Item>
-
+      {/* "Visitas por dia, no máximo" saiu em 18/10/2026: a quantidade de
+          visitas é do vendedor, que monta a própria semana. */}
       <Card.Item variant="stat">
         <Card.Item.Label>
           Ligar para o cliente entre uma visita e outra

@@ -8,12 +8,9 @@ import { QueryError } from "@/components/QueryError";
 import { Title } from "@/components/Title";
 import { CalendarOff, Users } from "lucide-react";
 
-import { GenerateWeekButton } from "./_components/GenerateWeekButton";
-import { NextWeekPrompt } from "./_components/NextWeekPrompt";
 import { PlanWeekLink } from "./_components/PlanWeekLink";
 import { PrintWeekButton } from "./_components/PrintWeekButton";
 import { ResponseLinkModal } from "./_components/ResponseLinkModal";
-import { RegenerateWeekButton } from "./_components/RegenerateWeekButton";
 import { RoutinesHeader } from "./_components/RoutinesHeader";
 import { RoutinesList } from "./_components/RoutinesList";
 import { RoutinesSkeleton } from "./_components/RoutinesSkeleton";
@@ -24,7 +21,7 @@ import { UpcomingTrips } from "./_components/UpcomingTrips";
 import { useDayOffs } from "./useDayOffs";
 import { useRoutines } from "./useRoutines";
 import { useSellerTrips } from "./useSellerTrips";
-import { canGenerateWeek, formatWeekRange, weekPhrase } from "./utils";
+import { formatWeekRange } from "./utils";
 
 // Quantos dias da rotina exibir (a partir de hoje); 7 = semana inteira.
 const PERIOD_OPTIONS = [
@@ -99,16 +96,6 @@ export default function RoutinesContent() {
         }}
       />
 
-      {/* Sábado e domingo: a semana que vem já pode ser gerada, e a tela abre
-          na semana atual — o convite fica onde a pessoa está. */}
-      {isCurrentWeek && !showSkeleton && !hasNoSellers && (
-        <NextWeekPrompt
-          sellerId={selectedSellerId}
-          isSellerPending={canSelectSeller && !selectedSellerId}
-          onShowNextWeek={setWeekStart}
-        />
-      )}
-
       {showSkeleton ? (
         <RoutinesSkeleton />
       ) : error ? (
@@ -120,8 +107,7 @@ export default function RoutinesContent() {
           </EmptyState.Icon>
           <EmptyState.Title>Nenhum vendedor cadastrado</EmptyState.Title>
           <EmptyState.Description>
-            Cadastre um vendedor para gerar e acompanhar a rotina semanal de
-            visitas.
+            Cadastre um vendedor para montar e acompanhar a agenda de visitas.
           </EmptyState.Description>
         </EmptyState.Root>
       ) : !schedule ? (
@@ -131,24 +117,11 @@ export default function RoutinesContent() {
           </EmptyState.Icon>
           <EmptyState.Title>Nada marcado nesta semana</EmptyState.Title>
           <EmptyState.Description>
-            Não há rotina cadastrada para {formatWeekRange(weekStart)}.
-            {canGenerateWeek(weekStart)
-              ? ` Gere a rotina ${weekPhrase(weekStart)} ou navegue entre as semanas.`
-              : " A rotina é montada uma semana por vez: a da semana seguinte" +
-                " sai sozinha no domingo ao meio-dia, e no sábado e no domingo" +
-                " você também pode gerá-la por aqui."}
+            Nada marcado para {formatWeekRange(weekStart)}. Escolha os clientes
+            que você quer ver e o sistema monta o caminho de cada dia.
           </EmptyState.Description>
           <EmptyState.Actions>
             <PlanWeekLink weekStart={weekStart} sellerId={selectedSellerId} />
-            {/* Gerar só a semana atual — e, no fim de semana, a seguinte: com
-                mais antecedência o plano nasce com o score defasado. */}
-            {canGenerateWeek(weekStart) && (
-              <GenerateWeekButton
-                weekStart={weekStart}
-                sellerId={selectedSellerId}
-                onGenerated={() => refetch()}
-              />
-            )}
             <Button.Root
               appearance="tinted"
               color="amber"
@@ -184,22 +157,6 @@ export default function RoutinesContent() {
             </div>
 
             <div className="flex flex-wrap items-center gap-8">
-              {/* Refazer segue o recorte do botão de gerar (semana atual e,
-                  no fim de semana, a seguinte); o backend recusa dias que já
-                  passaram. */}
-              {canGenerateWeek(weekStart) && (
-                <RegenerateWeekButton
-                  weekStart={weekStart}
-                  sellerId={selectedSellerId}
-                  tripSellerId={effectiveSellerId}
-                  isConfirmed={schedule.status === "CONFIRMED"}
-                  onRegenerated={() => refetch()}
-                  onTripPlanned={() => {
-                    refetch();
-                    trips.refetch();
-                  }}
-                />
-              )}
               {/* A folha sai com a SEMANA inteira, não com o recorte do
                   seletor de período ao lado: "Hoje/3 dias" é conveniência de
                   leitura na grade, e um papel intitulado "rotina da semana"

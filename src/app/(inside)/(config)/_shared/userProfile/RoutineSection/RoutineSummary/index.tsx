@@ -36,11 +36,6 @@ export function RoutineSummary({ config }: Props) {
       </Card.Item>
 
       <Card.Item variant="stat">
-        <Card.Item.Label>Visitas por dia</Card.Item.Label>
-        <Card.Item.Value>até {config.maxVisitsPerDay}</Card.Item.Value>
-      </Card.Item>
-
-      <Card.Item variant="stat">
         <Card.Item.Label>Ligar entre visitas</Card.Item.Label>
         <Card.Item.Value>
           {config.isRemoteContactEnabled ? "sim" : "não"}

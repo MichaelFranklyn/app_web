@@ -35,19 +35,10 @@ interface Params {
   day: VisitScheduleDay | null;
   date: string;
   scheduleId: string;
-  nextDay: VisitScheduleDay | null;
   sellerId: string;
   capacity: RoutineCapacity;
   onDone: () => void;
 }
-
-// Quantos itens do tipo escolhido o dia já tem — o teto é por tipo, porque
-// ligação não consome vaga de deslocamento.
-const countByType = (
-  day: VisitScheduleDay | null,
-  contactType: VisitContactType
-): number =>
-  (day?.items ?? []).filter((i) => i.contactType === contactType).length;
 
 // Carteira do vendedor carregada por inteiro (ver useCompleteList).
 const getLinks = (d: SellerClientLinksQueryData) => d.seller_client_links;
@@ -58,15 +49,12 @@ export function useAddVisit({
   day,
   date,
   scheduleId,
-  nextDay,
   sellerId,
   capacity,
   onDone,
 }: Params) {
   const [selectedLinkId, setSelectedLinkId] = useState<string | null>(null);
   const [contactType, setContactType] = useState<VisitContactType>("IN_PERSON");
-  // Passa para a etapa de confirmação quando o dia já está no limite.
-  const [confirmingOverLimit, setConfirmingOverLimit] = useState(false);
 
   const bySeller = useMemo(
     () => ({
@@ -96,15 +84,8 @@ export function useAddVisit({
     if (open) {
       setSelectedLinkId(null);
       setContactType("IN_PERSON");
-      setConfirmingOverLimit(false);
     }
   }, [open]);
-
-  // Mudar o tipo muda o teto: a confirmação de estouro precisa ser refeita
-  // contra a capacidade do novo tipo, senão o aviso fica falando do teto errado.
-  useEffect(() => {
-    setConfirmingOverLimit(false);
-  }, [contactType]);
 
   // O dia ainda não existe na rotina (nunca teve rota): será criado antes de
   // agendar. Não confundir com o dia NÃO TRABALHADO, que o vendedor marcou e
@@ -130,25 +111,16 @@ export function useAddVisit({
   }, [linksQuery.data, scheduledLinkIds]);
 
   const isRemote = contactType === "REMOTE";
-  const typeLimit = isRemote
-    ? capacity.maxRemoteContactsPerDay
-    : capacity.maxVisitsPerDay;
-  const isDayFull = day ? countByType(day, contactType) >= typeLimit : false;
-  const nextDayHasRoom = Boolean(
-    nextDay && countByType(nextDay, contactType) < typeLimit
-  );
 
-  // Cria o item numa das opções: um dia existente, ou um dia sem rota (cria o dia antes).
-  const runCreate = (target: "current" | "next") =>
+  // Cria o item no dia, ou num dia sem rota (cria o dia antes). Não há teto
+  // de visitas por dia desde 18/10/2026: a quantidade é do vendedor.
+  const runCreate = () =>
     execute(
       async () => {
         let scheduleDayId: string;
         let plannedOrder: number;
 
-        if (target === "next" && nextDay) {
-          scheduleDayId = nextDay.id;
-          plannedOrder = nextDay.items.length + 1;
-        } else if (day) {
+        if (day) {
           scheduleDayId = day.id;
           plannedOrder = day.items.length + 1;
         } else {
@@ -197,19 +169,9 @@ export function useAddVisit({
       }
     );
 
-  // Botão principal: se o dia estiver cheio, primeiro pede confirmação.
   const handlePrimary = () => {
     if (!selectedLinkId) return;
-    if (isDayFull && !confirmingOverLimit) {
-      setConfirmingOverLimit(true);
-      return;
-    }
-    runCreate("current");
-  };
-
-  const handleAddToNextDay = () => {
-    if (!selectedLinkId || !nextDay) return;
-    runCreate("next");
+    runCreate();
   };
 
   useQueryErrorToast(
@@ -225,14 +187,8 @@ export function useAddVisit({
     contactType,
     setContactType,
     isContactTypeEnabled: capacity.isRemoteContactEnabled,
-    typeLimit,
-    confirmingOverLimit,
     isDayWithoutRoute,
-    isDayFull,
-    nextDay,
-    nextDayHasRoom,
     isLoading,
     handlePrimary,
-    handleAddToNextDay,
   };
 }

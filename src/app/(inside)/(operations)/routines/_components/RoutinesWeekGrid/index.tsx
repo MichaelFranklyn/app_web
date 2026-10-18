@@ -47,10 +47,6 @@ export function RoutinesWeekGrid({
   return (
     <div className="flex items-stretch gap-8 overflow-x-auto pb-8">
       {visibleCells.map((cell) => {
-        // "Dia seguinte" = próximo dia da semana; só serve como alternativa de
-        // agendamento se for um dia útil (tem rotina), não um dia vazio.
-        const globalIndex = cells.indexOf(cell);
-        const nextDay = cells[globalIndex + 1]?.day ?? null;
         return (
           // Largura travada em 290px (mínimo = máximo): a coluna do dia não
           // estica quando há poucos dias em tela nem comprime quando há muitos
@@ -63,7 +59,6 @@ export function RoutinesWeekGrid({
             sellerId={sellerId}
             addSellerId={addSellerId}
             capacity={capacity}
-            nextDay={nextDay}
             isDayOff={dayOffDates.has(cell.date)}
             onMarkDayOff={onMarkDayOff}
             onUnmarkDayOff={onUnmarkDayOff}

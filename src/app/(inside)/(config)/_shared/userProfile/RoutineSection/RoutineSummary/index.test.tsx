@@ -27,7 +27,6 @@ const LINHAS_DO_EDITOR = [
   "Dias de trabalho",
   "Começa às",
   "Termina às",
-  "Visitas por dia",
   "Ligar entre visitas",
   "Ligações por dia",
   "Ligar a partir de",
@@ -49,7 +48,8 @@ describe("RoutineSummary", () => {
     expect(screen.getByText("Seg, Ter, Qua, Qui, Sex")).toBeInTheDocument();
     expect(screen.getByText("08:00")).toBeInTheDocument();
     expect(screen.getByText("18:00")).toBeInTheDocument();
-    expect(screen.getByText("até 8")).toBeInTheDocument();
+    // Sem teto de visitas por dia desde 18/10/2026: o número não aparece mais.
+    expect(screen.queryByText("até 8")).not.toBeInTheDocument();
     expect(screen.getByText("até 5")).toBeInTheDocument();
     expect(screen.getByText("50% do intervalo")).toBeInTheDocument();
     expect(screen.getByText("30 min")).toBeInTheDocument();

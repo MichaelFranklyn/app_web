@@ -1,9 +1,8 @@
-import { afterEach, describe, expect, it, vi } from "vitest";
+import { describe, expect, it } from "vitest";
 
 import type { ScoreDimensions } from "@/utils/score";
 import { VisitScheduleItem } from "./interface";
 import {
-  canGenerateWeek,
   formatTravelToStop,
   formatVisitSlot,
   getVisitFollowupWarning,
@@ -11,8 +10,6 @@ import {
   getVisitScoreTotal,
   isPastDay,
   shiftDayIso,
-  canCompleteDay,
-  weekPhrase,
 } from "./utils";
 
 const factory = (id: string) => ({
@@ -278,69 +275,6 @@ describe("getVisitFollowupWarning", () => {
   });
 });
 
-describe("canGenerateWeek", () => {
-  afterEach(() => {
-    vi.useRealTimers();
-  });
-
-  // Quarta-feira, 29/07/2026 — semana que começou em 27/07.
-  const congelaQuarta = () => {
-    vi.useFakeTimers();
-    vi.setSystemTime(new Date(2026, 6, 29, 10, 0, 0));
-  };
-
-  it("a semana atual pode ser gerada", () => {
-    congelaQuarta();
-    expect(canGenerateWeek("2026-07-27")).toBe(true);
-  });
-
-  // O plano de uma semana que ainda não começou nasceria com o score de hoje e
-  // chegaria desatualizado — no meio da semana, a seguinte fica para o job de
-  // domingo.
-  it("no meio da semana, a próxima semana não pode ser gerada", () => {
-    congelaQuarta();
-    expect(canGenerateWeek("2026-08-03")).toBe(false);
-  });
-
-  // Sábado 01/08 e domingo 02/08: a semana de 03/08 começa em um ou dois dias.
-  it.each([1, 2])(
-    "no fim de semana (dia %i/08), a próxima semana pode ser gerada",
-    (dia) => {
-      vi.useFakeTimers();
-      vi.setSystemTime(new Date(2026, 7, dia, 10, 0, 0));
-      expect(canGenerateWeek("2026-08-03")).toBe(true);
-      // A que está acabando continua liberada; duas à frente, não.
-      expect(canGenerateWeek("2026-07-27")).toBe(true);
-      expect(canGenerateWeek("2026-08-10")).toBe(false);
-    }
-  );
-
-  it("semana passada não pode ser gerada", () => {
-    congelaQuarta();
-    expect(canGenerateWeek("2026-07-20")).toBe(false);
-  });
-
-  // Na própria segunda a semana corrente já é a de hoje.
-  it("na segunda, a semana que começa hoje pode ser gerada", () => {
-    vi.useFakeTimers();
-    vi.setSystemTime(new Date(2026, 6, 27, 3, 30, 0));
-    expect(canGenerateWeek("2026-07-27")).toBe(true);
-  });
-});
-
-describe("weekPhrase", () => {
-  afterEach(() => {
-    vi.useRealTimers();
-  });
-
-  it("distingue a semana em tela da semana que vem", () => {
-    vi.useFakeTimers();
-    vi.setSystemTime(new Date(2026, 7, 1, 10, 0, 0)); // sábado
-    expect(weekPhrase("2026-07-27")).toBe("desta semana");
-    expect(weekPhrase("2026-08-03")).toBe("da semana que vem");
-  });
-});
-
 describe("isPastDay", () => {
   const HOJE = "2026-07-29";
 
@@ -414,34 +348,5 @@ describe("shiftDayIso", () => {
 
   it("data inválida volta como veio", () => {
     expect(shiftDayIso("", 3)).toBe("");
-  });
-});
-
-describe("canCompleteDay", () => {
-  // A visita marcada à mão foi combinada com o cliente: o dia que só tem ela
-  // pode ser COMPLETADO pelo sistema, nunca reescrito.
-  const dia = (isManual: boolean[], status = "PLANNED") => ({
-    status,
-    items: isManual.map((value) => ({ isManual: value })),
-  });
-  const HOJE = "2026-09-25";
-
-  it("dia só com visitas marcadas à mão pode ser completado", () => {
-    expect(canCompleteDay(dia([true, true]), "2026-09-26", HOJE)).toBe(true);
-  });
-
-  it("dia com plano do motor já foi gerado", () => {
-    expect(canCompleteDay(dia([true, false]), "2026-09-26", HOJE)).toBe(false);
-  });
-
-  it("dia vazio usa o botão de gerar, não o de completar", () => {
-    expect(canCompleteDay(dia([]), "2026-09-26", HOJE)).toBe(false);
-  });
-
-  it("dia começado ou vencido não recebe parada nova", () => {
-    expect(canCompleteDay(dia([true], "IN_PROGRESS"), "2026-09-26", HOJE)).toBe(
-      false
-    );
-    expect(canCompleteDay(dia([true]), "2026-09-24", HOJE)).toBe(false);
   });
 });
