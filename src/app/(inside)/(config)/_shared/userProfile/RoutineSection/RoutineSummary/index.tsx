@@ -42,17 +42,10 @@ export function RoutineSummary({ config }: Props) {
         </Card.Item.Value>
       </Card.Item>
 
-      {/* Desligado, os dois parâmetros não valem para nada — o editor também os
+      {/* Desligado, o parâmetro não vale para nada — o editor também o
           esconde, e mostrar número que não é usado faria a pessoa ajustá-lo. */}
       {config.isRemoteContactEnabled && (
         <>
-          <Card.Item variant="stat">
-            <Card.Item.Label>Ligações por dia</Card.Item.Label>
-            <Card.Item.Value>
-              até {config.maxRemoteContactsPerDay}
-            </Card.Item.Value>
-          </Card.Item>
-
           <Card.Item variant="stat">
             <Card.Item.Label>Ligar a partir de</Card.Item.Label>
             <Card.Item.Value>

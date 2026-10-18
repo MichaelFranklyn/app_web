@@ -6,7 +6,7 @@ import { Modal } from "@/components/Modal";
 
 import { PriorityClient, WeekSelection } from "../../interface";
 import { selectionPhrase } from "../../utils";
-import { DaysPicker } from "./DaysPicker";
+import { DaysPicker } from "../DaysPicker";
 import { PreviewDays } from "./PreviewDays";
 import { usePlanPreview } from "./usePlanPreview";
 

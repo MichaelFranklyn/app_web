@@ -170,3 +170,44 @@ test("montar semana: escolher, conferir a prévia e gravar", async ({
     page.getByRole("heading", { name: "Agenda", level: 1 })
   ).toBeVisible();
 });
+
+test("sugerir pra mim: pré-marca os sugeridos, cada um no seu dia", async ({
+  page,
+}) => {
+  const spy = await mockGraphql(page, {
+    PriorityClients: priorityClients,
+    SuggestWeekPlan: () => ({
+      suggestWeekPlan: {
+        weekStart: WEEK,
+        days: [day(0), day(1)],
+        stops: [
+          { clientId: "c-1", contactType: "IN_PERSON", date: day(1) },
+          { clientId: "c-3", contactType: "REMOTE", date: day(0) },
+        ],
+      },
+    }),
+  });
+
+  await page.goto(`/routines/plan?week=${WEEK}`);
+  await expect(
+    page.getByRole("heading", { name: "Montar semana" })
+  ).toBeVisible();
+
+  await page.getByRole("button", { name: "Sugerir pra mim" }).click();
+  const dialog = page.getByRole("dialog");
+  await dialog.getByLabel("Visitas por dia").fill("3");
+  await dialog.getByRole("button", { name: "Sugerir", exact: true }).click();
+
+  const call = await spy.waitForCall("SuggestWeekPlan");
+  expect(call.input).toMatchObject({
+    weekStart: WEEK,
+    visitsPerDay: 3,
+    callsPerDay: 2,
+  });
+  await expect(page.getByText("2 clientes escolhidos")).toBeVisible();
+  // O sugerido que "pode esperar" aparece mesmo no filtro Prioritários: o que
+  // está escolhido nunca some da tela.
+  await expect(
+    page.getByRole("checkbox", { name: "Escolher Casa Tranquila" })
+  ).toBeChecked();
+});

@@ -81,8 +81,8 @@ export function RoutineEditor({ form, disabled, onChange }: Props) {
         </Card.Item.Actions>
       </Card.Item>
 
-      {/* "Visitas por dia, no máximo" saiu em 18/10/2026: a quantidade de
-          visitas é do vendedor, que monta a própria semana. */}
+      {/* "Visitas por dia" e "Ligações por dia" saíram em 18/10/2026: a
+          quantidade é do vendedor, que monta a própria semana. */}
       <Card.Item variant="stat">
         <Card.Item.Label>
           Ligar para o cliente entre uma visita e outra
@@ -98,30 +98,10 @@ export function RoutineEditor({ form, disabled, onChange }: Props) {
         </Card.Item.Actions>
       </Card.Item>
 
-      {/* Os dois parâmetros só existem se o contato estiver ligado — mostrá-los
-          desligados faria a pessoa ajustar número que não é usado. */}
+      {/* O parâmetro só existe se o contato estiver ligado — mostrá-lo
+          desligado faria a pessoa ajustar número que não é usado. */}
       {form.isRemoteContactEnabled && (
         <>
-          <Card.Item variant="stat">
-            <Card.Item.Label>Ligações por dia, no máximo</Card.Item.Label>
-            <Card.Item.Actions>
-              <InputNumber
-                value={form.maxRemoteContactsPerDay}
-                disabled={disabled}
-                onChange={(e) =>
-                  onChange({
-                    maxRemoteContactsPerDay: e.target.value
-                      ? Number(e.target.value)
-                      : 0,
-                  })
-                }
-                min={0}
-                max={30}
-                containerClassName="w-[80px]"
-              />
-            </Card.Item.Actions>
-          </Card.Item>
-
           <Card.Item variant="stat">
             <Card.Item.Label>
               Ligar quando passar desta parte do intervalo (%)

@@ -3,6 +3,13 @@ import { useCallback, useEffect, useState } from "react";
 
 import { PriorityClient, StopChoice, WeekSelection } from "./interface";
 
+/** Uma parada sugerida pelo "Sugerir pra mim". */
+interface SuggestionStop {
+  clientId: string;
+  contactType: VisitContactType;
+  date: string;
+}
+
 const firstChoice = (client: PriorityClient): StopChoice => ({
   contactType: client.suggestedContactType,
   date: null,
@@ -48,10 +55,25 @@ export function useWeekSelection(resetKey: string) {
     );
   }, []);
 
+  /** Soma a sugestão à escolha: o que a pessoa já marcou fica como está. */
+  const applySuggestion = useCallback((stops: SuggestionStop[]) => {
+    setSelection((current) => {
+      const next = { ...current };
+      for (const stop of stops) {
+        next[stop.clientId] ??= {
+          contactType: stop.contactType,
+          date: stop.date,
+        };
+      }
+      return next;
+    });
+  }, []);
+
   return {
     selection,
     toggle,
     toggleMany,
+    applySuggestion,
     setContactType: (clientId: string, contactType: VisitContactType) =>
       update(clientId, { contactType }),
     setDate: (clientId: string, date: string | null) =>

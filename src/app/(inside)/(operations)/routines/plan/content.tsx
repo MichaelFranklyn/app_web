@@ -16,6 +16,7 @@ import { PlanWeekHeader } from "./_components/PlanWeekHeader";
 import { PlanWeekPreviewModal } from "./_components/PlanWeekPreviewModal";
 import { PriorityToolbar } from "./_components/PriorityToolbar";
 import { RegionGroupCard } from "./_components/RegionGroupCard";
+import { SuggestWeekModal } from "./_components/SuggestWeekModal";
 import { UnavailableClients } from "./_components/UnavailableClients";
 import { usePlanWeek } from "./usePlanWeek";
 import { selectionCounts, selectionPhrase } from "./utils";
@@ -49,12 +50,23 @@ export default function PlanWeekContent() {
         onSelectWeek={(iso) => leave.guard(() => page.setWeekStart(iso))}
       />
 
-      <PriorityToolbar
-        scope={page.scope}
-        onScopeChange={page.setScope}
-        search={page.search}
-        onSearchChange={page.setSearch}
-      />
+      <div className="flex flex-wrap items-center justify-between gap-12">
+        <PriorityToolbar
+          scope={page.scope}
+          onScopeChange={page.setScope}
+          search={page.search}
+          onSearchChange={page.setSearch}
+        />
+        {result && (
+          <SuggestWeekModal
+            sellerId={page.sellerId}
+            weekStart={page.weekStart}
+            openDates={result.openDates}
+            workDates={result.workDates}
+            onSuggested={page.applySuggestion}
+          />
+        )}
+      </div>
 
       {page.loading ? (
         <div className="flex flex-col gap-12" aria-busy="true">
