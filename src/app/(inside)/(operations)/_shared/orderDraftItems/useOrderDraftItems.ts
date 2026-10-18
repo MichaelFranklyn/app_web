@@ -9,6 +9,7 @@ import {
   resolveTierForProduct,
   useOrderItemCatalog,
 } from "../orderItemCatalog";
+import { useLastPurchasePrices } from "../lastPurchasePrices";
 import { DiscountType, DraftItem } from "./interface";
 import { discountToAmount, draftTotal } from "./utils";
 
@@ -76,6 +77,16 @@ export function useOrderDraftItems(
     promoActiveKeys,
     linkedTierId,
   } = useOrderItemCatalog(open, factoryId || null, clientId, catalogProductIds);
+
+  // O preço que o cliente pagou nas últimas compras: do produto no formulário
+  // (ao lado do campo de preço) e dos itens já no rascunho (na lista).
+  const { byProduct: lastPurchasesByProduct, loading: isLoadingLastPurchases } =
+    useLastPurchasePrices({
+      open,
+      clientId,
+      factoryId,
+      productIds: catalogProductIds,
+    });
 
   // Escolhe o nível assim que o produto é selecionado (herda do item anterior,
   // cai no nível do vínculo ou no único nível com preço). Reativo: o catálogo
@@ -325,6 +336,13 @@ export function useOrderDraftItems(
     removeItem,
     reset,
     restore,
+    lastPurchasesByProduct,
+    isLoadingLastPurchases,
+    /** Produto no formulário (vazio = nenhum). */
+    productId,
+    /** Preço da tabela ativa hoje (por unidade) — comparado com a última compra. */
+    tablePrice: priceMap.get(priceKey(productId, tierId)) ?? 0,
+    applyLastPrice: (price: number) => setUnitPrice(toCurrencyMask(price)),
   };
 }
 

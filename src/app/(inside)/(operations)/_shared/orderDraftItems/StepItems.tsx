@@ -14,6 +14,7 @@ import { DISCOUNT_TYPE_OPTIONS, discountLabel, itemSubtotal } from "./utils";
 import { OrderDraftItems } from "./useOrderDraftItems";
 import { DraftTotal } from "./DraftTotal";
 import { FreeFreightTarget } from "../orderFreight";
+import { LastPriceHint, LastPurchasePrices } from "../lastPurchasePrices";
 import { PaymentTermMinimum } from "./interface";
 
 interface Props {
@@ -154,6 +155,16 @@ export function StepItems({ draft, minimum, freeFreight }: Props) {
             )}
           </div>
 
+          {draft.productId && (
+            <LastPurchasePrices
+              purchases={draft.lastPurchasesByProduct.get(draft.productId)}
+              loading={draft.isLoadingLastPurchases}
+              tablePrice={draft.tablePrice}
+              unitName={draft.unitName}
+              onUsePrice={draft.applyLastPrice}
+            />
+          )}
+
           {draft.error && (
             <Title variant="caption" color="red">
               {draft.error}
@@ -233,7 +244,14 @@ export function StepItems({ draft, minimum, freeFreight }: Props) {
                   <Table.Cell variant="dim">{item.tierLabel || "—"}</Table.Cell>
                   <Table.Cell variant="strong">{item.quantity}</Table.Cell>
                   <Table.Cell variant="dim">
-                    {formatMoney(item.unitPrice)}
+                    <div className="flex flex-col">
+                      {formatMoney(item.unitPrice)}
+                      <LastPriceHint
+                        purchases={draft.lastPurchasesByProduct.get(
+                          item.productId
+                        )}
+                      />
+                    </div>
                   </Table.Cell>
                   <Table.Cell variant="dim">
                     {discountLabel(

@@ -3207,8 +3207,40 @@ input UpdateOrderItemInput {
   ipiRate: Decimal = null
 }
 
+"""Uma compra do produto pelo cliente: o preço que ele pagou daquela vez."""
+type ClientPurchasePriceType {
+  """A venda (o pedido original, quando a fábrica faturou em partes)."""
+  orderId: UUID!
+  orderDate: Date!
+  """Preço por unidade cobrado no item, antes do desconto."""
+  unitPrice: Decimal!
+  """Preço por unidade depois do desconto do item."""
+  netUnitPrice: Decimal!
+  units: Decimal!
+  isPromo: Boolean!
+  tierName: String
+}
+
+type ClientProductPurchasePricesType {
+  productId: UUID!
+  """Da compra mais nova para a mais antiga. Vazio = o cliente nunca comprou."""
+  purchases: [ClientPurchasePriceType!]!
+}
+
 extend type Query {
   orderItems(orderId: UUID!): OrderItemTypeConnectionResponse!
+  """
+  O preço das últimas compras destes produtos pelo cliente, nesta fábrica — só
+  pedido feito (confirmado, faturado ou entregue). `excludeOrderId` tira o
+  pedido em edição. `limit` é por produto (padrão 3, máximo 10).
+  """
+  clientProductPurchasePrices(
+    clientId: UUID!
+    factoryId: UUID!
+    productIds: [UUID!]!
+    excludeOrderId: UUID
+    limit: Int = 3
+  ): [ClientProductPurchasePricesType!]!
 }
 
 extend type Mutation {
@@ -5630,6 +5662,25 @@ type PriceListItemTypeEdge {
   cursor: String!
 }
 
+"""Uma mudança no preço de tabela do produto."""
+type ProductPriceChangeType {
+  id: UUID!
+  """Quando o preço foi gravado (criação, edição, importação ou cópia de tabela)."""
+  changedAt: DateTime!
+  """Preço da embalagem fechada, sem imposto — a mesma base de `unitPrice` do item."""
+  unitPrice: Decimal!
+  """Preço anterior no mesmo nível e região; null no primeiro preço."""
+  previousUnitPrice: Decimal
+  """Variação em % sobre o preço anterior; null no primeiro preço."""
+  variationPct: Decimal
+  tierId: UUID!
+  tierName: String!
+  priceListId: UUID!
+  priceListName: String!
+  region: String!
+  isPriceListActive: Boolean!
+}
+
 input UpdatePriceListItemInput {
   unitPrice: Decimal = null
 }
@@ -5637,6 +5688,8 @@ input UpdatePriceListItemInput {
 extend type Query {
   priceListItem(id: UUID!): PriceListItemTypeDataResponse!
   priceListItems(input: BaseListInput!): PriceListItemTypeConnectionResponse!
+  """Cada vez que o preço de tabela do produto mudou, da mais nova à mais antiga."""
+  productPriceHistory(productId: UUID!): [ProductPriceChangeType!]!
 }
 
 extend type Mutation {

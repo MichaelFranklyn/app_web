@@ -7,6 +7,7 @@ import { FormBuilder } from "@/components/FormBuilder";
 import { Modal } from "@/components/Modal";
 import { Plus, Zap } from "lucide-react";
 
+import { LastPurchasePrices } from "../../../../../_shared/lastPurchasePrices";
 import { AddOrderItemModalProps, useAddOrderItem } from "./useAddOrderItem";
 
 export function AddOrderItemModal(props: AddOrderItemModalProps) {
@@ -18,6 +19,12 @@ export function AddOrderItemModal(props: AddOrderItemModalProps) {
     handleSubmit,
     isLoading,
     isPromoSelected,
+    lastPurchases,
+    isLoadingLastPurchases,
+    hasSelectedProduct,
+    unitName,
+    tablePrice,
+    applyLastPrice,
   } = useAddOrderItem(props);
 
   return (
@@ -65,6 +72,17 @@ export function AddOrderItemModal(props: AddOrderItemModalProps) {
             loading={isLoading}
             unstyled
           />
+          {hasSelectedProduct && (
+            <div className="mt-12">
+              <LastPurchasePrices
+                purchases={lastPurchases}
+                loading={isLoadingLastPurchases}
+                tablePrice={tablePrice}
+                unitName={unitName}
+                onUsePrice={applyLastPrice}
+              />
+            </div>
+          )}
         </Modal.Body>
 
         <Modal.Footer>

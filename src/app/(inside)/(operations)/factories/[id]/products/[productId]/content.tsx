@@ -9,6 +9,8 @@ import { useQuery } from "@apollo/client/react";
 import { PackageX } from "lucide-react";
 import { useCallback } from "react";
 import { ComponentsTable } from "./_components/ComponentsTable";
+import { PriceHistoryTable } from "./_components/PriceHistoryTable";
+import { PRODUCT_PRICE_HISTORY_QUERY } from "./_components/PriceHistoryTable/gql";
 import { PricesTable } from "./_components/PricesTable";
 import { PRICE_LIST_ITEMS_QUERY } from "./_components/PricesTable/gql";
 import { ProductDetailHeader } from "./_components/ProductDetailHeader";
@@ -33,6 +35,11 @@ export default function ProductDetailContent({ id }: Props) {
   // ressincroniza a tabela de preços para refletir os novos valores.
   const handleTaxesChanged = useCallback(() => {
     refetchClient([PRICE_LIST_ITEMS_QUERY]);
+  }, [refetchClient]);
+
+  // Preço criado, editado ou removido → a mudança entra no histórico.
+  const handlePricesChanged = useCallback(() => {
+    refetchClient([PRODUCT_PRICE_HISTORY_QUERY]);
   }, [refetchClient]);
 
   const product = data?.product_detail?.data;
@@ -72,16 +79,25 @@ export default function ProductDetailContent({ id }: Props) {
       <Grid cols={{ base: 1, desktop: 3 }} gap={20}>
         <Grid.Item
           span={{ base: 1, desktop: 2 }}
-          className="min-w-0"
-          data-tour="product-prices"
+          className="flex min-w-0 flex-col gap-20"
         >
-          <PricesTable
-            productId={id}
-            companyFactoryId={product.companyFactory?.id ?? ""}
-            unitPerPack={product.unitPerPack}
-            baseUnitLabel={product.unit?.label ?? null}
-            packLabel={product.unitLabel?.label ?? null}
-          />
+          <div data-tour="product-prices">
+            <PricesTable
+              productId={id}
+              companyFactoryId={product.companyFactory?.id ?? ""}
+              unitPerPack={product.unitPerPack}
+              baseUnitLabel={product.unit?.label ?? null}
+              packLabel={product.unitLabel?.label ?? null}
+              onChanged={handlePricesChanged}
+            />
+          </div>
+          <div data-tour="product-price-history">
+            <PriceHistoryTable
+              productId={id}
+              unitPerPack={Number(product.unitPerPack) || 1}
+              baseUnitLabel={product.unit?.label ?? null}
+            />
+          </div>
         </Grid.Item>
 
         <Grid.Item
