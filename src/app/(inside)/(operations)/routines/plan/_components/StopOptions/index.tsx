@@ -53,14 +53,14 @@ export function StopOptions({
     ) ?? null;
 
   return (
-    <div className="flex flex-wrap items-center gap-8">
+    <div className="flex flex-wrap items-center gap-6">
       <ToggleGroup
         aria-label={`Como falar com ${clientName}`}
         options={CONTACT_OPTIONS}
         value={choice.contactType}
         onChange={onContactTypeChange}
       />
-      <div className="desktop:w-[240px] w-full">
+      <div className="desktop:w-[240px] desktop:flex-none min-w-[180px] flex-1">
         <Input.Select
           size="sm"
           variant="single"

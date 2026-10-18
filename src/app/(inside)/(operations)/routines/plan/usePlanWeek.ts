@@ -8,7 +8,12 @@ import { ROUTINE_SELLERS_QUERY } from "../gql";
 import { RoutineSellersQueryData } from "../interface";
 import { PRIORITY_CLIENTS_QUERY } from "./gql";
 import { PriorityClientsData, PriorityScope } from "./interface";
-import { defaultPlanWeek, groupByRegion } from "./utils";
+import {
+  ALL_CITIES,
+  defaultPlanWeek,
+  filterByCity,
+  groupByRegion,
+} from "./utils";
 import { useWeekSelection } from "./useWeekSelection";
 
 // Os mesmos papéis que escolhem de quem é a rotina na tela da semana.
@@ -86,6 +91,10 @@ export function usePlanWeek() {
     () => groupByRegion(result?.clients ?? [], scope, search, week.selection),
     [result, scope, search, week.selection]
   );
+  // A cidade filtra só a lista: os escolhidos de outras cidades seguem no
+  // painel "Sua semana".
+  const [city, setCity] = useState(ALL_CITIES);
+  const shown = useMemo(() => filterByCity(groups, city), [groups, city]);
 
   return {
     canSelectSeller,
@@ -96,7 +105,12 @@ export function usePlanWeek() {
     setSellerId: (id: string) => setParam("sellerId", id),
     weekStart,
     result,
+    /** Todas as cidades da lista (as opções do filtro). */
     groups,
+    /** As cidades em tela, depois do filtro de cidade. */
+    shownGroups: shown.groups,
+    city: shown.city,
+    setCity,
     loading: skip || (loading && !result),
     error,
     refetch,

@@ -16,4 +16,6 @@ export interface SelectionBarProps {
   children?: ReactNode;
   onClear: () => void;
   clearLabel?: string;
+  /** Classes do contêiner fixo — ex.: `desktop:hidden` quando a tela já tem as ações num painel. */
+  className?: string;
 }

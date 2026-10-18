@@ -1,19 +1,10 @@
 "use client";
 
-import { Button } from "@/components/Button";
-import { Input } from "@/components/Input";
-import { SelectOption } from "@/components/Input";
 import { PanelHeader } from "@/components/PanelHeader";
-import { CalendarDays, ChevronLeft, ChevronRight } from "lucide-react";
+
 import { RoutineSellerOption } from "../../interface";
-import { getCurrentWeekMondayIso } from "@/utils/format/date";
-import { PlanWeekLink } from "../PlanWeekLink";
-import {
-  formatWeekRange,
-  getIsoWeekNumber,
-  getWeekMondayIsoFromDate,
-  isoToLocalDate,
-} from "../../utils";
+import { formatWeekRange, getIsoWeekNumber } from "../../utils";
+import { WeekNavigator } from "../WeekNavigator";
 
 interface Props {
   weekStart: string;
@@ -26,122 +17,36 @@ interface Props {
   onCurrentWeek: () => void;
 }
 
+/**
+ * "Agenda": o título com a semana e, embaixo, de quem e qual semana — com a
+ * porta principal, "Montar semana", na mesma linha (ver `WeekNavigator`).
+ *
+ * "Marcar visita" e o planejador de viagem saíram daqui em 18/10/2026: marcar
+ * visita mora em Montar semana, junto das visitas marcadas, e a viagem perdeu
+ * o sentido com o vendedor montando a própria semana.
+ */
 export function RoutinesHeader({
   weekStart,
-  sellers,
   selectedSellerId,
-  onSelectSeller,
-  onSelectDate,
-  onPrevWeek,
-  onNextWeek,
-  onCurrentWeek,
+  ...navigation
 }: Props) {
-  const weekNumber = getIsoWeekNumber(weekStart);
-  const description = `Semana ${weekNumber} · ${formatWeekRange(weekStart)}`;
-  const isCurrentWeek = weekStart === getCurrentWeekMondayIso();
-  const canSelectSeller = Boolean(sellers);
-
-  const sellerOptions: SelectOption[] = (sellers ?? []).map((s) => ({
-    value: s.id,
-    label: s.name,
-  }));
-  const sellerValue =
-    sellerOptions.find((o) => o.value === selectedSellerId) ?? null;
+  const description = `Semana ${getIsoWeekNumber(weekStart)} · ${formatWeekRange(weekStart)}`;
 
   return (
-    <PanelHeader.Root>
-      <PanelHeader.Top>
-        <PanelHeader.Left>
-          <PanelHeader.Title>Agenda</PanelHeader.Title>
-          <PanelHeader.Description>{description}</PanelHeader.Description>
-          <PanelHeader.Actions
-            className="mt-6"
-            data-tour="routines-header-actions"
-          >
-            {canSelectSeller && (
-              <div className="desktop:w-[220px] w-full">
-                <Input.Select
-                  size="sm"
-                  options={sellerOptions}
-                  value={sellerValue}
-                  variant="single"
-                  disabledClear
-                  placeholder="Selecionar vendedor"
-                  onChange={(val: SelectOption | SelectOption[] | null) => {
-                    const opt = Array.isArray(val) ? val[0] : val;
-                    if (opt) onSelectSeller?.(opt.value);
-                  }}
-                />
-              </div>
-            )}
-            <div className="desktop:w-[180px] w-full">
-              <Input.Date
-                size="sm"
-                variant="single"
-                value={isoToLocalDate(weekStart)}
-                disabledClear
-                placeholder="Escolher período"
-                onChange={(date: unknown) => {
-                  if (date instanceof Date) {
-                    onSelectDate(getWeekMondayIsoFromDate(date));
-                  }
-                }}
-              />
-            </div>
-            {/* Navegação de semana: anterior + atual + próxima sempre juntos
-                (quebram em bloco, nunca separados em linhas diferentes). No
-                mobile/tablet o bloco ocupa a largura toda e o botão central
-                cresce; a partir de desktop volta ao tamanho natural. */}
-            <div className="desktop:w-auto flex w-full items-center gap-8">
-              <Button.Root
-                appearance="outline"
-                color="neutral"
-                size="sm"
-                isIconOnly
-                label="Semana anterior"
-                onClick={onPrevWeek}
-              >
-                <Button.Icon icon={ChevronLeft} />
-              </Button.Root>
-              <Button.Root
-                appearance="tinted"
-                color="amber"
-                size="sm"
-                noUppercase
-                disabled={isCurrentWeek}
-                onClick={onCurrentWeek}
-                className="desktop:flex-initial flex-1"
-              >
-                <Button.Icon icon={CalendarDays} />
-                <Button.Title>
-                  {isCurrentWeek ? "Semana atual" : "Voltar para atual"}
-                </Button.Title>
-              </Button.Root>
-              <Button.Root
-                appearance="outline"
-                color="neutral"
-                size="sm"
-                isIconOnly
-                label="Próxima semana"
-                onClick={onNextWeek}
-              >
-                <Button.Icon icon={ChevronRight} />
-              </Button.Root>
-            </div>
-            {/* A porta principal da agenda: o vendedor escolhe quem vai ver
-                e o sistema monta o caminho (decisão de 18/10/2026). */}
-            <PlanWeekLink
-              weekStart={weekStart}
-              sellerId={selectedSellerId ?? null}
-              className="desktop:w-auto w-full"
-            />
-            {/* "Marcar visita" e o planejador de viagem saíram daqui em
-                18/10/2026: marcar visita mora em Montar semana, junto das
-                visitas marcadas, e a viagem perdeu o sentido com o vendedor
-                montando a própria semana. */}
-          </PanelHeader.Actions>
-        </PanelHeader.Left>
-      </PanelHeader.Top>
-    </PanelHeader.Root>
+    <div className="flex flex-col gap-12">
+      <PanelHeader.Root>
+        <PanelHeader.Top>
+          <PanelHeader.Left>
+            <PanelHeader.Title>Agenda</PanelHeader.Title>
+            <PanelHeader.Description>{description}</PanelHeader.Description>
+          </PanelHeader.Left>
+        </PanelHeader.Top>
+      </PanelHeader.Root>
+      <WeekNavigator
+        weekStart={weekStart}
+        selectedSellerId={selectedSellerId}
+        {...navigation}
+      />
+    </div>
   );
 }

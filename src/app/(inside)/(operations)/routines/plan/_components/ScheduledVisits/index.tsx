@@ -1,13 +1,11 @@
 "use client";
 
-import { Card } from "@/components/Card";
-import { Collapse } from "@/components/Collapse";
 import { ContactTypeTag } from "@/components/ContactTypeTag";
 import { Title } from "@/components/Title";
 import { useQueryErrorToast } from "@/hooks/useQueryErrorToast";
 import { useQuery } from "@apollo/client/react";
 import Link from "next/link";
-import { useMemo, useState } from "react";
+import { useMemo } from "react";
 
 import { dayChipLabel } from "../../utils";
 import { ScheduleVisitButton } from "../ScheduleVisitButton";
@@ -24,7 +22,8 @@ interface Props {
 }
 
 /**
- * O que já está combinado daqui para a frente, e o "Marcar visita".
+ * O que já está combinado daqui para a frente, e o "Marcar visita" — um
+ * bloco do painel "Sua semana", sempre aberto.
  *
  * Mora em Montar semana (desde 18/10/2026) porque é aqui que o vendedor decide
  * a semana: antes de escolher quem visitar, ele vê o que já tem marcado — o
@@ -42,7 +41,6 @@ export function ScheduledVisits({
   );
   useQueryErrorToast(error, "Não foi possível carregar as visitas marcadas.");
   const visits = data?.scheduledVisits;
-  const [open, setOpen] = useState(true);
 
   const byDay = useMemo(() => {
     const days = new Map<string, ScheduledVisit[]>();
@@ -57,76 +55,57 @@ export function ScheduledVisits({
     `/routines/${date}${sellerId ? `?seller=${sellerId}` : ""}`;
 
   return (
-    <Card.Root>
-      <Collapse.Header>
-        <Collapse.Trigger
-          variant="bar"
-          open={open}
-          onToggle={() => setOpen((v) => !v)}
-        >
-          <div className="flex min-w-0 flex-col">
-            <Title variant="body-sm" weight="semibold">
-              Visitas marcadas{count > 0 ? ` (${count})` : ""}
-            </Title>
-            <Title variant="body-xs" color="muted">
-              O que já está combinado daqui para a frente.
-            </Title>
-          </div>
-        </Collapse.Trigger>
-        <div className="flex items-center pr-12">
-          <ScheduleVisitButton
-            sellerId={scheduleSellerId}
-            onScheduled={() => {
-              void refetch();
-              onScheduled();
-            }}
-          />
-        </div>
-      </Collapse.Header>
-      {open && (
-        <div className="flex flex-col divide-y divide-(--border)">
-          {loading && !visits ? (
-            <Title variant="body-sm" color="muted" className="px-16 py-12">
-              Carregando…
-            </Title>
-          ) : byDay.length === 0 ? (
-            <Title variant="body-sm" color="muted" className="px-16 py-12">
-              Nada marcado daqui para a frente. Quando um cliente pedir um dia,
-              use Marcar visita.
-            </Title>
-          ) : (
-            byDay.map(([date, dayVisits]) => (
-              <div key={date} className="flex flex-col gap-6 px-16 py-12">
-                <Link href={dayHref(date)} className="w-fit hover:underline">
-                  <Title variant="label" color="secondary">
-                    {dayChipLabel(date)}
+    <div className="flex flex-col gap-8">
+      <div className="flex items-center justify-between gap-8">
+        <Title variant="label" color="secondary">
+          Visitas marcadas{count > 0 ? ` (${count})` : ""}
+        </Title>
+        <ScheduleVisitButton
+          sellerId={scheduleSellerId}
+          onScheduled={() => {
+            void refetch();
+            onScheduled();
+          }}
+        />
+      </div>
+      {loading && !visits ? (
+        <Title variant="body-xs" color="muted">
+          Carregando…
+        </Title>
+      ) : byDay.length === 0 ? (
+        <Title variant="body-xs" color="muted">
+          Nada marcado daqui para a frente. Quando um cliente pedir um dia, use
+          Marcar visita.
+        </Title>
+      ) : (
+        byDay.map(([date, dayVisits]) => (
+          <div key={date} className="flex flex-col gap-4">
+            <Link href={dayHref(date)} className="w-fit hover:underline">
+              <Title variant="body-xs" weight="semibold" color="secondary">
+                {dayChipLabel(date)}
+              </Title>
+            </Link>
+            {dayVisits.map((visit) => (
+              <div
+                key={visit.itemId}
+                className="flex items-center justify-between gap-8"
+              >
+                <div className="flex min-w-0 flex-col">
+                  <Title variant="body-sm" weight="medium" className="truncate">
+                    {visit.clientName}
                   </Title>
-                </Link>
-                {dayVisits.map((visit) => (
-                  <div
-                    key={visit.itemId}
-                    className="flex items-center justify-between gap-8"
-                  >
-                    <div className="flex min-w-0 flex-col">
-                      <Title variant="body-sm" weight="medium">
-                        {visit.clientName}
-                      </Title>
-                      <Title variant="body-xs" color="muted">
-                        {[visit.neighborhood, visit.cityLabel]
-                          .filter(Boolean)
-                          .join(" · ")}
-                      </Title>
-                    </div>
-                    <div className="flex shrink-0 items-center gap-6">
-                      <ContactTypeTag contactType={visit.contactType} />
-                    </div>
-                  </div>
-                ))}
+                  <Title variant="body-xs" color="muted">
+                    {[visit.neighborhood, visit.cityLabel]
+                      .filter(Boolean)
+                      .join(" · ")}
+                  </Title>
+                </div>
+                <ContactTypeTag contactType={visit.contactType} />
               </div>
-            ))
-          )}
-        </div>
+            ))}
+          </div>
+        ))
       )}
-    </Card.Root>
+    </div>
   );
 }

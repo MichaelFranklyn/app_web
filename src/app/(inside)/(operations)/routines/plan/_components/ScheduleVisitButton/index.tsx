@@ -29,7 +29,8 @@ export function ScheduleVisitButton({ sellerId, onScheduled }: Props) {
     <>
       <Button.Root
         type="button"
-        appearance="solid"
+        // Contorno: no painel, o âmbar sólido é do "Organizar a semana".
+        appearance="outline"
         color="amber"
         size="sm"
         noUppercase

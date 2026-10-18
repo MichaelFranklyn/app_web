@@ -80,56 +80,56 @@ export function PriorityClientRow({
               {reason.reason.short} · {reason.factory}
             </Title>
           )}
-          <div className="flex flex-wrap items-center gap-6">
-            <Badge.Root
-              color={TIER_COLOR[client.tier]}
-              appearance="tinted"
-              title={TIER_HINT[client.tier]}
-            >
-              <Badge.Text>{TIER_LABEL[client.tier]}</Badge.Text>
-            </Badge.Root>
-            {client.isForced && (
-              <Badge.Root
-                color="blue"
-                appearance="tinted"
-                title="O cliente pediu visita num contato anterior."
-              >
-                <Badge.Text>Pediu visita</Badge.Text>
-              </Badge.Root>
-            )}
-            {client.availableFrom && (
-              <Badge.Root
-                color="neutral"
-                appearance="tinted"
-                title="O cliente pediu para ser procurado só a partir deste dia."
-              >
-                <Badge.Text>
-                  A partir de {dayChipLabel(client.availableFrom)}
-                </Badge.Text>
-              </Badge.Root>
-            )}
-            {already && (
-              <Badge.Root
-                color="green"
-                appearance="tinted"
-                title="Já está na sua agenda desta semana."
-              >
-                <Badge.Text>Já marcado: {already}</Badge.Text>
-              </Badge.Root>
-            )}
-          </div>
         </label>
       </div>
-      {choice && (
-        <div className="desktop:pl-28">
+      {/* Tags, visita × contato e dia numa linha só: empilhados, cada
+          cliente escolhido virava três linhas. */}
+      <div className="flex flex-wrap items-center gap-6 pl-[28px]">
+        <Badge.Root
+          color={TIER_COLOR[client.tier]}
+          appearance="tinted"
+          title={TIER_HINT[client.tier]}
+        >
+          <Badge.Text>{TIER_LABEL[client.tier]}</Badge.Text>
+        </Badge.Root>
+        {client.isForced && (
+          <Badge.Root
+            color="blue"
+            appearance="tinted"
+            title="O cliente pediu visita num contato anterior."
+          >
+            <Badge.Text>Pediu visita</Badge.Text>
+          </Badge.Root>
+        )}
+        {client.availableFrom && (
+          <Badge.Root
+            color="neutral"
+            appearance="tinted"
+            title="O cliente pediu para ser procurado só a partir deste dia."
+          >
+            <Badge.Text>
+              A partir de {dayChipLabel(client.availableFrom)}
+            </Badge.Text>
+          </Badge.Root>
+        )}
+        {already && (
+          <Badge.Root
+            color="green"
+            appearance="tinted"
+            title="Já está na sua agenda desta semana."
+          >
+            <Badge.Text>Já marcado: {already}</Badge.Text>
+          </Badge.Root>
+        )}
+        {choice && (
           <StopOptions
             clientName={client.name}
             choice={choice}
             onContactTypeChange={onContactTypeChange}
             onWeekdayChange={onWeekdayChange}
           />
-        </div>
-      )}
+        )}
+      </div>
     </div>
   );
 }

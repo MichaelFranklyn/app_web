@@ -22,8 +22,8 @@ interface Props {
  *
  * Enquanto ninguém diz o que houve, o sistema não sabe se a visita aconteceu —
  * `lastVisitDate` não anda, o cliente segue "atrasado" e volta ao plano como se
- * nunca tivesse sido agendado. O que ficar sem resposta por uma semana é
- * encerrado pelo job `close_stale_visits`.
+ * nunca tivesse sido agendado. O que passar do fim do dia seguinte sem
+ * resposta é encerrado como "não visitou" pelo job `close_stale_visits`.
  *
  * Na tela do dia, essa dívida NÃO pode competir com a rota: quem abre
  * `/routines/<dia>` quer ver por onde passar hoje. Por isso o que fica no fluxo

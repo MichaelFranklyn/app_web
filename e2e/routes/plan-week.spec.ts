@@ -178,16 +178,18 @@ test("montar semana: escolher, configurar a semana, organizar e confirmar", asyn
     .getByRole("group", { name: "Como falar com Lojão Barra" })
     .getByRole("button", { name: "Contato" })
     .click();
-  await expect(page.getByText("2 clientes escolhidos")).toBeVisible();
+  // O painel "Sua semana" junta os escolhidos de todas as cidades.
+  await expect(page.getByText("Escolhidos agora (2)")).toBeVisible();
   // O guia passa para o passo 2 e diz o que foi escolhido.
   await expect(
     page.getByText("Você escolheu 1 visita e 1 contato.")
   ).toBeVisible();
+  // No desktop as ações estão no painel: a barra fixa é do celular.
+  await expect(
+    page.getByRole("region", { name: "Ações da seleção" })
+  ).toBeHidden();
 
-  await page
-    .getByRole("region", { name: "Ações da seleção" })
-    .getByRole("button", { name: "Organizar a semana" })
-    .click();
+  await page.getByRole("button", { name: "Organizar a semana" }).click();
   const dialog = page.getByRole("dialog");
   await dialog.getByRole("button", { name: "Semana que vem" }).click();
   await dialog.getByLabel("Visitas por dia").fill("3");
@@ -247,6 +249,36 @@ test("organizar sem escolher ninguém: o sistema monta com os mais urgentes", as
 
   const call = await spy.waitForCall("PlanWeek");
   expect(call.input).toMatchObject({ stops: [], fillWithSuggestions: true });
+});
+
+test("cidades sempre abertas: o filtro de cidade e o painel dos escolhidos", async ({
+  page,
+}) => {
+  await mockGraphql(page, mocks());
+
+  await page.goto(`/routines/plan?week=${WEEK}`);
+  // Nenhuma cidade fechada: os clientes das duas aparecem de cara.
+  await expect(page.getByText("Del Atacadista", { exact: true })).toBeVisible();
+  await expect(page.getByText("Lojão Barra", { exact: true })).toBeVisible();
+
+  await page
+    .getByRole("checkbox", { name: "Escolher Del Atacadista" })
+    .check({ force: true });
+  const cities = page.getByRole("group", { name: "Cidade" });
+  await cities.getByRole("button", { name: "Salvador - BA (1)" }).click();
+  await expect(
+    page.getByRole("checkbox", { name: "Escolher Del Atacadista" })
+  ).toHaveCount(0);
+  // Fora da lista pelo filtro, mas segue escolhido no painel.
+  await expect(page.getByText("Escolhidos agora (1)")).toBeVisible();
+
+  await page.getByRole("button", { name: "Tirar Del Atacadista" }).click();
+  await expect(
+    page.getByText("Ninguém ainda. Toque nos clientes da lista.")
+  ).toBeVisible();
+
+  await cities.getByRole("button", { name: "Todas (2)" }).click();
+  await expect(page.getByText("Del Atacadista", { exact: true })).toBeVisible();
 });
 
 test("visitas marcadas: o que já está combinado aparece, com Marcar visita", async ({

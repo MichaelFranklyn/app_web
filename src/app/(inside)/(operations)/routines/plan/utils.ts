@@ -126,6 +126,37 @@ export const groupByRegion = (
   return ordered.sort((a, b) => a.clients[0].rank - b.clients[0].rank);
 };
 
+/** "Todas" no filtro de cidade. */
+export const ALL_CITIES = "all";
+
+/**
+ * As cidades que a lista mostra com o filtro de cidade. Cidade que sumiu (o
+ * vendedor trocou para Prioritários e ela ficou vazia) volta para todas: a
+ * tela nunca fica em branco por causa de um filtro esquecido.
+ */
+export const filterByCity = (
+  groups: RegionGroup[],
+  city: string
+): { groups: RegionGroup[]; city: string } => {
+  const match = groups.filter((g) => g.key === city);
+  return match.length > 0
+    ? { groups: match, city }
+    : { groups, city: ALL_CITIES };
+};
+
+/** Os clientes escolhidos, na ordem da fila — o painel "Sua semana". */
+export const chosenClients = (
+  selection: WeekSelection,
+  clients: PriorityClient[]
+): PriorityClient[] =>
+  clients.filter((c) => selection[c.clientId]).sort((a, b) => a.rank - b.rank);
+
+const WEEKDAY_SHORT = ["Seg", "Ter", "Qua", "Qui", "Sex", "Sáb", "Dom"];
+
+/** "Qua" — o dia da semana escolhido (ISO 1 = segunda). */
+export const weekdayShort = (weekday: number): string =>
+  WEEKDAY_SHORT[weekday - 1] ?? "";
+
 /** Quantas visitas e quantas ligações estão escolhidas. */
 export const selectionCounts = (selection: WeekSelection) => {
   const choices = Object.values(selection);
@@ -245,10 +276,7 @@ export const chosenNames = (
   clients: PriorityClient[],
   shown = 2
 ): string => {
-  const names = clients
-    .filter((c) => selection[c.clientId])
-    .sort((a, b) => a.rank - b.rank)
-    .map((c) => c.name);
+  const names = chosenClients(selection, clients).map((c) => c.name);
   if (names.length <= shown + 1) {
     return names.length > 1
       ? `${names.slice(0, -1).join(", ")} e ${names[names.length - 1]}`

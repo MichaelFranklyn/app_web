@@ -102,18 +102,17 @@ export default function RoutinesContent() {
           </EmptyState.Description>
           <EmptyState.Actions>
             <PlanWeekLink weekStart={weekStart} sellerId={selectedSellerId} />
-            <Button.Root
-              appearance="tinted"
-              color="amber"
-              size="sm"
-              noUppercase
-              disabled={isCurrentWeek}
-              onClick={handleCurrentWeek}
-            >
-              <Button.Title>
-                {isCurrentWeek ? "Semana atual" : "Voltar para semana atual"}
-              </Button.Title>
-            </Button.Root>
+            {!isCurrentWeek && (
+              <Button.Root
+                appearance="tinted"
+                color="neutral"
+                size="sm"
+                noUppercase
+                onClick={handleCurrentWeek}
+              >
+                <Button.Title>Voltar para esta semana</Button.Title>
+              </Button.Root>
+            )}
           </EmptyState.Actions>
         </EmptyState.Root>
       ) : (
@@ -134,6 +133,7 @@ export default function RoutinesContent() {
                 value={periodDays}
                 onChange={setPeriodDays}
               />
+              <RoutinesViewToggle value={viewMode} onChange={setViewMode} />
             </div>
 
             <div className="flex flex-wrap items-center gap-8">
@@ -153,7 +153,6 @@ export default function RoutinesContent() {
                 dateLabel={`semana de ${formatWeekRange(weekStart)}`}
                 isEmpty={schedule.days.every((day) => day.items.length === 0)}
               />
-              <RoutinesViewToggle value={viewMode} onChange={setViewMode} />
             </div>
           </div>
 

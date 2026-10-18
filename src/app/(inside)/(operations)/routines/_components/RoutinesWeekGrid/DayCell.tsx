@@ -153,7 +153,7 @@ export function DayCell({
             <>
               <div className="flex flex-1 flex-col items-center p-16">
                 <Title variant="body-sm" color="muted">
-                  Sem rota
+                  Nada marcado
                 </Title>
               </div>
 
