@@ -3,6 +3,7 @@ import { describe, expect, it } from "vitest";
 import { PriorityClient, WeekSelection } from "./interface";
 import {
   buildPlanWeekInput,
+  chosenNames,
   defaultWorkDays,
   groupByRegion,
   mainReason,
@@ -212,5 +213,27 @@ describe("mainReason", () => {
 
   it("sem score calculado não inventa motivo", () => {
     expect(mainReason(client({}))).toBeNull();
+  });
+});
+
+describe("chosenNames", () => {
+  const lista = ["A", "B", "C", "D"].map((name, i) =>
+    client({ clientId: name, name, rank: i + 1 })
+  );
+  const marca = (...ids: string[]): WeekSelection =>
+    Object.fromEntries(
+      ids.map((id) => [
+        id,
+        { contactType: "IN_PERSON" as const, weekday: null },
+      ])
+    );
+
+  it("cita os nomes na ordem da fila", () => {
+    expect(chosenNames(marca("C", "A"), lista)).toBe("A e C");
+    expect(chosenNames(marca("A", "B", "C"), lista)).toBe("A, B e C");
+  });
+
+  it("resume quando são muitos", () => {
+    expect(chosenNames(marca("A", "B", "C", "D"), lista)).toBe("A, B e mais 2");
   });
 });

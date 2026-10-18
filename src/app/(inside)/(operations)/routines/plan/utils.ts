@@ -234,3 +234,25 @@ export const mainReason = (
     ? { factory: top.factory, reason: top.explanation.reasons[0] }
     : null;
 };
+
+/**
+ * "Del Atacadista, Guerreiro Ferro e mais 3" — quem foi escolhido, na ordem
+ * da fila. O modal de organizar abre com isto: a pessoa confere que está
+ * organizando a semana DOS clientes que ela marcou.
+ */
+export const chosenNames = (
+  selection: WeekSelection,
+  clients: PriorityClient[],
+  shown = 2
+): string => {
+  const names = clients
+    .filter((c) => selection[c.clientId])
+    .sort((a, b) => a.rank - b.rank)
+    .map((c) => c.name);
+  if (names.length <= shown + 1) {
+    return names.length > 1
+      ? `${names.slice(0, -1).join(", ")} e ${names[names.length - 1]}`
+      : (names[0] ?? "");
+  }
+  return `${names.slice(0, shown).join(", ")} e mais ${names.length - shown}`;
+};

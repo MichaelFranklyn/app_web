@@ -5,7 +5,7 @@ import { Loading } from "@/components/Loading";
 import { Modal } from "@/components/Modal";
 
 import { PriorityClient, WeekSelection } from "../../interface";
-import { selectionPhrase } from "../../utils";
+import { chosenNames, selectionPhrase } from "../../utils";
 import { PreviewDays } from "./PreviewDays";
 import { useWeekSetup } from "./useWeekSetup";
 import { WeekSetupForm } from "./WeekSetupForm";
@@ -61,8 +61,8 @@ export function WeekSetupModal({
             isPreview
               ? "Confira dia a dia. Quem ficou sem dia foi posto onde você já vai estar perto."
               : chosen
-                ? `Você escolheu ${chosen}. Diga como vai ser a semana.`
-                : "Diga como vai ser a semana e o sistema escolhe os clientes."
+                ? `Você escolheu ${chosenNames(selection, clients)} (${chosen}). Responda as quatro perguntas e o sistema monta os dias.`
+                : "Você não escolheu ninguém. Responda as quatro perguntas e o sistema escolhe os clientes mais urgentes."
           }
         />
         <Modal.Body>

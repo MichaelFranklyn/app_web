@@ -13,6 +13,7 @@ import { CalendarCheck, Users } from "lucide-react";
 import { useState } from "react";
 
 import { PlanWeekHeader } from "./_components/PlanWeekHeader";
+import { PlanSteps } from "./_components/PlanSteps";
 import { PriorityToolbar } from "./_components/PriorityToolbar";
 import { RegionGroupCard } from "./_components/RegionGroupCard";
 import { UnavailableClients } from "./_components/UnavailableClients";
@@ -44,31 +45,24 @@ export default function PlanWeekContent() {
     <PageContent>
       <PlanWeekHeader sellerId={page.sellerId} />
 
-      <div className="flex flex-wrap items-center justify-between gap-12">
-        <PriorityToolbar
-          scope={page.scope}
-          onScopeChange={page.setScope}
-          search={page.search}
-          onSearchChange={page.setSearch}
-          sellers={page.canSelectSeller ? page.sellers : undefined}
-          sellerId={page.sellerId}
-          onSelectSeller={(id) => leave.guard(() => page.setSellerId(id))}
+      {result && (
+        <PlanSteps
+          chosen={total}
+          chosenPhrase={selectionPhrase(page.selection)}
+          onOrganize={() => setSetupOpen(true)}
+          onLetSystemChoose={() => setSetupOpen(true)}
         />
-        {/* Também sem ninguém escolhido: a configuração oferece completar a
-            semana com os clientes mais urgentes. */}
-        {result && (
-          <Button.Root
-            appearance="tinted"
-            color="amber"
-            size="sm"
-            noUppercase
-            onClick={() => setSetupOpen(true)}
-          >
-            <Button.Icon icon={CalendarCheck} />
-            <Button.Title>Organizar a semana</Button.Title>
-          </Button.Root>
-        )}
-      </div>
+      )}
+
+      <PriorityToolbar
+        scope={page.scope}
+        onScopeChange={page.setScope}
+        search={page.search}
+        onSearchChange={page.setSearch}
+        sellers={page.canSelectSeller ? page.sellers : undefined}
+        sellerId={page.sellerId}
+        onSelectSeller={(id) => leave.guard(() => page.setSellerId(id))}
+      />
 
       {page.loading ? (
         <div className="flex flex-col gap-12" aria-busy="true">

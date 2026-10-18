@@ -12,7 +12,8 @@ import {
 } from "../../../utils";
 import { WeekChoice } from "../../interface";
 import { weekDates } from "../../utils";
-import { DaysPicker } from "../DaysPicker";
+import { DaysPicker } from "./DaysPicker";
+import { SetupSection } from "./SetupSection";
 import { useWeekSetup } from "./useWeekSetup";
 
 const WEEK_OPTIONS: { value: WeekChoice; label: string }[] = [
@@ -29,9 +30,9 @@ interface Props {
 }
 
 /**
- * A configuração da semana: qual semana, que dias, quantas visitas e ligações
- * por dia, e se o sistema completa os dias com os mais urgentes. As
- * quantidades são o tamanho do dia que ele organiza — não um teto.
+ * A configuração da semana, em quatro perguntas numeradas: qual semana,
+ * quanto por dia, que dias, e se o sistema completa. As quantidades são o
+ * tamanho do dia que ele organiza — não um teto.
  */
 export function WeekSetupForm({ form }: Props) {
   const openDates = weekDates(form.weekStart).filter(
@@ -39,11 +40,8 @@ export function WeekSetupForm({ form }: Props) {
   );
 
   return (
-    <div className="flex flex-col gap-16">
-      <div className="flex flex-col gap-8">
-        <Title variant="label" color="secondary">
-          Qual semana
-        </Title>
+    <div className="flex flex-col gap-20">
+      <SetupSection number={1} title="Qual semana?">
         <ToggleGroup
           aria-label="Qual semana"
           options={WEEK_OPTIONS}
@@ -69,53 +67,64 @@ export function WeekSetupForm({ form }: Props) {
         <Title variant="body-xs" color="muted">
           {formatWeekRange(form.weekStart)}
         </Title>
-      </div>
+      </SetupSection>
 
-      <div className="flex flex-wrap gap-16">
-        <InputNumber
-          label="Visitas por dia"
-          placeholder="Ex: 4"
-          min={0}
-          max={20}
-          value={form.visitsPerDay}
-          onChange={(e) => form.setVisitsPerDay(toCount(e.target.value))}
-          containerClassName="w-[140px]"
-        />
-        <InputNumber
-          label="Ligações por dia"
-          placeholder="Ex: 2"
-          min={0}
-          max={20}
-          value={form.callsPerDay}
-          onChange={(e) => form.setCallsPerDay(toCount(e.target.value))}
-          containerClassName="w-[140px]"
-        />
-      </div>
+      <SetupSection
+        number={2}
+        title="Quanto por dia?"
+        hint="É o tamanho de cada dia que o sistema monta. Não é limite: dá para mudar depois."
+      >
+        <div className="flex flex-wrap gap-16">
+          <InputNumber
+            label="Visitas por dia"
+            placeholder="Ex: 4"
+            min={0}
+            max={20}
+            value={form.visitsPerDay}
+            onChange={(e) => form.setVisitsPerDay(toCount(e.target.value))}
+            containerClassName="w-[140px]"
+          />
+          <InputNumber
+            label="Ligações por dia"
+            placeholder="Ex: 2"
+            min={0}
+            max={20}
+            value={form.callsPerDay}
+            onChange={(e) => form.setCallsPerDay(toCount(e.target.value))}
+            containerClassName="w-[140px]"
+          />
+        </div>
+      </SetupSection>
 
-      {openDates.length === 0 ? (
-        <Title variant="body-sm" color="muted">
-          Essa semana já passou. Escolha outra.
-        </Title>
-      ) : (
-        <DaysPicker
-          openDates={openDates}
-          days={form.days}
-          onToggle={form.toggleDay}
-        />
-      )}
+      <SetupSection number={3} title="Em que dias você vai trabalhar?">
+        {openDates.length === 0 ? (
+          <Title variant="body-sm" color="muted">
+            Essa semana já passou. Escolha outra.
+          </Title>
+        ) : (
+          <DaysPicker
+            openDates={openDates}
+            days={form.days}
+            onToggle={form.toggleDay}
+          />
+        )}
+      </SetupSection>
 
-      <div className="flex flex-col gap-4">
+      <SetupSection
+        number={4}
+        title="Completar com os mais urgentes?"
+        hint={
+          form.hasSelection
+            ? "Os clientes que você escolheu entram primeiro. Ligado, o sistema completa o que faltar para chegar nas visitas e ligações por dia."
+            : "Você não escolheu ninguém: o sistema monta a semana com os clientes mais urgentes, e você confere antes de confirmar."
+        }
+      >
         <InputCheckbox
-          label="Completar os dias com os clientes mais urgentes"
+          label="Sim, completar os dias com os clientes mais urgentes"
           checked={form.fillWithSuggestions}
           onChange={(e) => form.setFill(e.target.checked)}
         />
-        <Title variant="body-xs" color="muted">
-          {form.hasSelection
-            ? "Os clientes que você escolheu entram primeiro; o que faltar para chegar nas visitas e ligações por dia é completado pela lista."
-            : "Você não escolheu ninguém: o sistema monta a semana com os clientes mais urgentes, e você confere antes de confirmar."}
-        </Title>
-      </div>
+      </SetupSection>
     </div>
   );
 }

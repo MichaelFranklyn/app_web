@@ -28,9 +28,9 @@ export function PlanWeekHeader({ sellerId }: Props) {
           <PanelHeader.Left>
             <PanelHeader.Title>Montar semana</PanelHeader.Title>
             <PanelHeader.Description>
-              Escolha quem você quer ver. Depois, em Organizar a semana, diga
-              qual semana e quantas visitas e ligações por dia — o sistema
-              separa por região e monta o caminho de cada dia.
+              Monte a sua agenda em dois passos: escolha os clientes e organize
+              a semana. O sistema separa por região e monta o caminho de cada
+              dia.
             </PanelHeader.Description>
           </PanelHeader.Left>
         </PanelHeader.Top>

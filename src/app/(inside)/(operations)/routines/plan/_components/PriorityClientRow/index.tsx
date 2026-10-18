@@ -3,7 +3,9 @@
 import { Badge } from "@/components/Badges";
 import { InputCheckbox } from "@/components/Input/InputCheckbox";
 import { Title } from "@/components/Title";
+import { cn } from "@/lib/utils";
 import type { VisitContactType } from "@/utils/visit";
+import { useId } from "react";
 
 import { PriorityClient, StopChoice } from "../../interface";
 import {
@@ -35,6 +37,7 @@ export function PriorityClientRow({
   onContactTypeChange,
   onWeekdayChange,
 }: Props) {
+  const checkboxId = useId();
   const reason = mainReason(client);
   const already = scheduledLabel(client.scheduled);
   const place = [client.neighborhood, client.cityLabel]
@@ -42,15 +45,26 @@ export function PriorityClientRow({
     .join(" · ");
 
   return (
-    <div className="flex flex-col gap-8 px-16 py-12">
+    <div
+      className={cn(
+        "flex flex-col gap-8 px-16 py-12 transition-colors",
+        choice ? "bg-(--amber-bg)" : "hover:bg-(--bg2)"
+      )}
+    >
       <div className="flex items-start gap-12">
         <InputCheckbox
+          id={checkboxId}
           checked={Boolean(choice)}
           onChange={onToggle}
           aria-label={`Escolher ${client.name}`}
           className="mt-[2px]"
         />
-        <div className="flex min-w-0 flex-1 flex-col gap-4">
+        {/* A linha inteira marca o cliente, não só a caixinha: ela é pequena
+            para quem tem a mão menos firme, e o nome é onde o olho está. */}
+        <label
+          htmlFor={checkboxId}
+          className="flex min-w-0 flex-1 cursor-pointer flex-col gap-4"
+        >
           <Title variant="body-sm" weight="medium">
             {client.name}
           </Title>
@@ -104,7 +118,7 @@ export function PriorityClientRow({
               </Badge.Root>
             )}
           </div>
-        </div>
+        </label>
       </div>
       {choice && (
         <div className="desktop:pl-28">

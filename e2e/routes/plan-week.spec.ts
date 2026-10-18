@@ -154,14 +154,20 @@ test("montar semana: escolher, configurar a semana, organizar e confirmar", asyn
   await page
     .getByRole("checkbox", { name: "Escolher Del Atacadista" })
     .check({ force: true });
-  await page
-    .getByRole("checkbox", { name: "Escolher Lojão Barra" })
-    .check({ force: true });
+  // A linha inteira marca o cliente, não só a caixinha.
+  await page.getByText("Lojão Barra", { exact: true }).click();
+  await expect(
+    page.getByRole("checkbox", { name: "Escolher Lojão Barra" })
+  ).toBeChecked();
   await page
     .getByRole("group", { name: "Como falar com Lojão Barra" })
     .getByRole("button", { name: "Contato" })
     .click();
   await expect(page.getByText("2 clientes escolhidos")).toBeVisible();
+  // O guia passa para o passo 2 e diz o que foi escolhido.
+  await expect(
+    page.getByText("Você escolheu 1 visita e 1 contato.")
+  ).toBeVisible();
 
   await page
     .getByRole("region", { name: "Ações da seleção" })
@@ -173,7 +179,7 @@ test("montar semana: escolher, configurar a semana, organizar e confirmar", asyn
   await dialog.getByLabel("Ligações por dia").fill("1");
   await dialog
     .getByRole("checkbox", {
-      name: "Completar os dias com os clientes mais urgentes",
+      name: "Sim, completar os dias com os clientes mais urgentes",
     })
     .check({ force: true });
   await dialog.getByRole("button", { name: "Organizar a semana" }).click();
@@ -208,12 +214,18 @@ test("organizar sem escolher ninguém: o sistema monta com os mais urgentes", as
   const spy = await mockGraphql(page, mocks());
 
   await page.goto(`/routines/plan?week=${WEEK}`);
-  await page.getByRole("button", { name: "Organizar a semana" }).click();
+  // Passo 1 do guia: sem ninguém escolhido, a saída é deixar o sistema escolher.
+  await expect(
+    page.getByText("Toque nos clientes que você quer ver nesta semana.")
+  ).toBeVisible();
+  await page
+    .getByRole("button", { name: "Ou deixe o sistema escolher" })
+    .click();
   const dialog = page.getByRole("dialog");
   // Sem ninguém escolhido, completar já vem ligado.
   await expect(
     dialog.getByRole("checkbox", {
-      name: "Completar os dias com os clientes mais urgentes",
+      name: "Sim, completar os dias com os clientes mais urgentes",
     })
   ).toBeChecked();
   await dialog.getByRole("button", { name: "Organizar a semana" }).click();
