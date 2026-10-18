@@ -13,26 +13,26 @@ import { CalendarCheck, Users } from "lucide-react";
 import { useState } from "react";
 
 import { PlanWeekHeader } from "./_components/PlanWeekHeader";
-import { PlanWeekPreviewModal } from "./_components/PlanWeekPreviewModal";
 import { PriorityToolbar } from "./_components/PriorityToolbar";
 import { RegionGroupCard } from "./_components/RegionGroupCard";
-import { SuggestWeekModal } from "./_components/SuggestWeekModal";
 import { UnavailableClients } from "./_components/UnavailableClients";
+import { WeekSetupModal } from "./_components/WeekSetupModal";
 import { usePlanWeek } from "./usePlanWeek";
 import { selectionCounts, selectionPhrase } from "./utils";
 
 export default function PlanWeekContent() {
   const page = usePlanWeek();
-  const [previewOpen, setPreviewOpen] = useState(false);
+  const [setupOpen, setSetupOpen] = useState(false);
   const { redirect, isRedirecting } = useRedirectTransition();
   const { total } = selectionCounts(page.selection);
   // Escolha sem gravar se perde ao sair: pergunta antes.
   const leave = useLeaveGuard(total > 0 && !isRedirecting);
 
-  const goToWeek = () => {
+  // Volta para a agenda NA semana que acabou de ser organizada.
+  const goToWeek = (weekStart: string) => {
     const params = new URLSearchParams({
       ...(page.sellerId ? { sellerId: page.sellerId } : {}),
-      week: page.weekStart,
+      week: weekStart,
     });
     page.clearSelection();
     redirect(`/routines?${params.toString()}`);
@@ -42,13 +42,7 @@ export default function PlanWeekContent() {
 
   return (
     <PageContent>
-      <PlanWeekHeader
-        weekStart={page.weekStart}
-        sellers={page.canSelectSeller ? page.sellers : undefined}
-        sellerId={page.sellerId}
-        onSelectSeller={(id) => leave.guard(() => page.setSellerId(id))}
-        onSelectWeek={(iso) => leave.guard(() => page.setWeekStart(iso))}
-      />
+      <PlanWeekHeader sellerId={page.sellerId} />
 
       <div className="flex flex-wrap items-center justify-between gap-12">
         <PriorityToolbar
@@ -56,15 +50,23 @@ export default function PlanWeekContent() {
           onScopeChange={page.setScope}
           search={page.search}
           onSearchChange={page.setSearch}
+          sellers={page.canSelectSeller ? page.sellers : undefined}
+          sellerId={page.sellerId}
+          onSelectSeller={(id) => leave.guard(() => page.setSellerId(id))}
         />
+        {/* Também sem ninguém escolhido: a configuração oferece completar a
+            semana com os clientes mais urgentes. */}
         {result && (
-          <SuggestWeekModal
-            sellerId={page.sellerId}
-            weekStart={page.weekStart}
-            openDates={result.openDates}
-            workDates={result.workDates}
-            onSuggested={page.applySuggestion}
-          />
+          <Button.Root
+            appearance="tinted"
+            color="amber"
+            size="sm"
+            noUppercase
+            onClick={() => setSetupOpen(true)}
+          >
+            <Button.Icon icon={CalendarCheck} />
+            <Button.Title>Organizar a semana</Button.Title>
+          </Button.Root>
         )}
       </div>
 
@@ -85,22 +87,21 @@ export default function PlanWeekContent() {
           <EmptyState.Description>
             {page.search
               ? "Nenhum cliente com esse nome, bairro ou cidade."
-              : "Não há clientes disponíveis nesta semana. Veja em Toda a carteira ou na lista de quem está fora."}
+              : "Não há clientes disponíveis agora. Veja em Toda a carteira ou na lista de quem está fora."}
           </EmptyState.Description>
         </EmptyState.Root>
       ) : (
         <div className="flex flex-col gap-12">
           {page.groups.map((group, index) => (
             <RegionGroupCard
-              key={`${page.weekStart}-${group.key}`}
+              key={group.key}
               group={group}
               selection={page.selection}
-              openDates={result.openDates}
               defaultOpen={index < 3 || group.topCount > 0}
               onToggle={page.toggle}
               onToggleMany={page.toggleMany}
               onContactTypeChange={page.setContactType}
-              onDateChange={page.setDate}
+              onWeekdayChange={page.setWeekday}
             />
           ))}
         </div>
@@ -122,23 +123,21 @@ export default function PlanWeekContent() {
           color="amber"
           size="sm"
           noUppercase
-          onClick={() => setPreviewOpen(true)}
+          onClick={() => setSetupOpen(true)}
         >
           <Button.Icon icon={CalendarCheck} />
-          <Button.Title>Ver como fica a semana</Button.Title>
+          <Button.Title>Organizar a semana</Button.Title>
         </Button.Root>
       </SelectionBar>
 
       {result && (
-        <PlanWeekPreviewModal
-          open={previewOpen}
-          onOpenChange={setPreviewOpen}
+        <WeekSetupModal
+          open={setupOpen}
+          onOpenChange={setSetupOpen}
           sellerId={page.sellerId}
-          weekStart={page.weekStart}
+          initialWeekStart={page.weekStart}
           selection={page.selection}
           clients={result.clients}
-          openDates={result.openDates}
-          workDates={result.workDates}
           onPlanned={goToWeek}
           isRedirecting={isRedirecting}
         />

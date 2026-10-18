@@ -13,26 +13,18 @@ describe("useWeekSelection", () => {
     act(() => result.current.toggle(client("a", "REMOTE")));
     expect(result.current.selection.a).toEqual({
       contactType: "REMOTE",
-      date: null,
+      weekday: null,
     });
   });
 
-  it("a sugestão soma à escolha sem trocar o que a pessoa já marcou", () => {
-    const { result } = renderHook(() => useWeekSelection("s|w"));
+  it("o dia escolhido é um dia da semana", () => {
+    const { result } = renderHook(() => useWeekSelection("s"));
     act(() => result.current.toggle(client("a", "IN_PERSON")));
-    act(() =>
-      result.current.applySuggestion([
-        { clientId: "a", contactType: "REMOTE", date: "2026-10-20" },
-        { clientId: "b", contactType: "IN_PERSON", date: "2026-10-21" },
-      ])
-    );
-    expect(result.current.selection).toEqual({
-      a: { contactType: "IN_PERSON", date: null },
-      b: { contactType: "IN_PERSON", date: "2026-10-21" },
-    });
+    act(() => result.current.setWeekday("a", 3));
+    expect(result.current.selection.a.weekday).toBe(3);
   });
 
-  it("trocar de vendedor ou de semana limpa a escolha", () => {
+  it("trocar de vendedor limpa a escolha", () => {
     const { result, rerender } = renderHook(
       ({ key }) => useWeekSelection(key),
       { initialProps: { key: "s1|w1" } }

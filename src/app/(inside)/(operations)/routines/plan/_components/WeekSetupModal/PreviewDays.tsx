@@ -20,9 +20,10 @@ interface Props {
 }
 
 /**
- * A semana como vai ficar, dia a dia: o que já estava (apagado) e o que entra
- * agora (com o selo "Novo"). A distância é a da estrada entre as visitas, para
- * a pessoa sentir o tamanho do dia — a rota de verdade sai depois de gravar.
+ * A semana como vai ficar, dia a dia: o que já estava (apagado), o que a
+ * pessoa escolheu ("Novo") e o que o sistema pôs para completar ("Sugerido").
+ * A distância é a da estrada entre as visitas, para a pessoa sentir o tamanho
+ * do dia — a rota de verdade sai depois de gravar.
  */
 export function PreviewDays({ plan }: Props) {
   // Dia sem nada vira uma linha só no fim: cinco cartões "nada marcado" só
@@ -31,6 +32,17 @@ export function PreviewDays({ plan }: Props) {
   const freeDays = plan.days.filter((day) => day.stops.length === 0);
   return (
     <div className="flex flex-col gap-12">
+      {plan.ignoredDays.length > 0 && (
+        <Alert.Root variant="warning">
+          <Alert.Content>
+            <Alert.Description>
+              {plan.ignoredDays.map(dayChipLabel).join(", ")}{" "}
+              {plan.ignoredDays.length === 1 ? "ficou" : "ficaram"} de fora: dia
+              de folga ou que já passou.
+            </Alert.Description>
+          </Alert.Content>
+        </Alert.Root>
+      )}
       {plan.skipped.length > 0 && (
         <Alert.Root variant="warning">
           <Alert.Content>
@@ -80,11 +92,20 @@ export function PreviewDays({ plan }: Props) {
                   </div>
                   <div className="flex shrink-0 items-center gap-6">
                     <ContactTypeTag contactType={stop.contactType} />
-                    {stop.isNew && (
-                      <Badge.Root color="amber" appearance="tinted">
-                        <Badge.Text>Novo</Badge.Text>
-                      </Badge.Root>
-                    )}
+                    {stop.isNew &&
+                      (stop.isSuggested ? (
+                        <Badge.Root
+                          color="blue"
+                          appearance="tinted"
+                          title="Entrou para completar o dia — dá para tirar voltando e mexendo."
+                        >
+                          <Badge.Text>Sugerido</Badge.Text>
+                        </Badge.Root>
+                      ) : (
+                        <Badge.Root color="amber" appearance="tinted">
+                          <Badge.Text>Novo</Badge.Text>
+                        </Badge.Root>
+                      ))}
                   </div>
                 </div>
               ))}

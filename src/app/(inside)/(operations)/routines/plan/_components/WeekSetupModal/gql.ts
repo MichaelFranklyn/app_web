@@ -10,6 +10,7 @@ export const PLAN_WEEK_MUTATION = gql`
       data {
         weekStart
         added
+        ignoredDays
         days {
           date
           visitCount
@@ -22,6 +23,7 @@ export const PLAN_WEEK_MUTATION = gql`
             neighborhood
             contactType
             isNew
+            isSuggested
           }
         }
         skipped {

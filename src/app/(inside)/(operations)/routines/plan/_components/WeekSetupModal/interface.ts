@@ -12,6 +12,7 @@ export interface PlannedStop {
   neighborhood: string | null;
   contactType: VisitContactType;
   isNew: boolean;
+  isSuggested: boolean;
 }
 
 export interface PlannedDay {
@@ -32,6 +33,7 @@ export interface SkippedStop {
 export interface WeekPlan {
   weekStart: string;
   added: number;
+  ignoredDays: string[];
   days: PlannedDay[];
   skipped: SkippedStop[];
 }

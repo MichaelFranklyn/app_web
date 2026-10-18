@@ -17,8 +17,8 @@ const MANAGER_ROLES = ["OWNER", "ADMIN", "SU"];
  * O estado da tela "Montar semana": de quem, qual semana, a lista de
  * prioritários e o que o vendedor já escolheu.
  *
- * Vendedor e semana vivem na URL (`?sellerId=&week=`): é por ela que a tela da
- * semana abre esta, e é para lá que a pessoa volta depois de gravar.
+ * Vendedor e semana vêm da URL (`?sellerId=&week=`): é por ela que a Agenda
+ * abre esta, e é para lá que a pessoa volta depois de gravar.
  */
 export function usePlanWeek() {
   const router = useRouter();
@@ -41,6 +41,9 @@ export function usePlanWeek() {
   );
 
   const sellerId = searchParams.get("sellerId");
+  // A lista não navega por semana (a semana se escolhe na configuração). Esta
+  // é a semana da LEITURA — o que já está marcado e quem pediu para esperar — e
+  // a que a configuração abre sugerindo; `?week=` vem da Agenda.
   const weekStart = searchParams.get("week") ?? defaultPlanWeek();
 
   const setParam = useCallback(
@@ -70,7 +73,7 @@ export function usePlanWeek() {
   );
   const result = data?.priority_clients ?? null;
 
-  const week = useWeekSelection(`${sellerId ?? "me"}|${weekStart}`);
+  const week = useWeekSelection(sellerId ?? "me");
 
   const [scope, setScope] = useState<PriorityScope>("priority");
   const [search, setSearch] = useState("");
@@ -85,7 +88,6 @@ export function usePlanWeek() {
     sellerId,
     setSellerId: (id: string) => setParam("sellerId", id),
     weekStart,
-    setWeekStart: (iso: string) => setParam("week", iso),
     result,
     groups,
     loading: skip || (loading && !result),

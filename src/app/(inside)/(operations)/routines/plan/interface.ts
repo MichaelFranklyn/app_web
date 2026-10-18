@@ -61,8 +61,26 @@ export interface PriorityClientsData {
 /** O que o vendedor escolheu para um cliente: como e (se quiser) quando. */
 export interface StopChoice {
   contactType: VisitContactType;
-  /** Nulo = o sistema escolhe o dia pela região. */
-  date: string | null;
+  /**
+   * Dia da semana (ISO: 1 = segunda … 7 = domingo). É o dia da semana, e não a
+   * data, porque a semana só é escolhida na configuração. Nulo = o sistema
+   * escolhe o dia pela região.
+   */
+  weekday: number | null;
+}
+
+/** "Qual semana": a atual, a que vem, ou outra escolhida no calendário. */
+export type WeekChoice = "current" | "next" | "other";
+
+/** A configuração completa da semana, feita no modal antes de organizar. */
+export interface WeekSetup {
+  weekStart: string;
+  /** Os dias em que o vendedor vai trabalhar (ISO). */
+  days: string[];
+  visitsPerDay: number;
+  callsPerDay: number;
+  /** Completar os dias até essas quantidades com os clientes mais urgentes. */
+  fillWithSuggestions: boolean;
 }
 
 /** Escolhas da semana, por cliente. */

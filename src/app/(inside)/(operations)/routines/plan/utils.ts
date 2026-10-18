@@ -9,6 +9,7 @@ import {
   formatWeekdayLabel,
   getNextWeekMondayIso,
   isWeekendToday,
+  shiftDayIso,
 } from "../utils";
 import {
   PriorityClient,
@@ -17,7 +18,9 @@ import {
   PriorityTier,
   PriorityUnavailableReason,
   RegionGroup,
+  WeekChoice,
   WeekSelection,
+  WeekSetup,
 } from "./interface";
 
 /**
@@ -139,28 +142,74 @@ export const selectionPhrase = (selection: WeekSelection): string => {
   return parts.join(" e ");
 };
 
-/** O input da `planWeek`, na ordem da fila (é ela que decide quem abre o dia). */
+/** A data daquele dia da semana (ISO 1 = segunda) dentro da semana. */
+export const dateOfWeekday = (weekStart: string, weekday: number): string =>
+  shiftDayIso(weekStart, weekday - 1);
+
+/** Os sete dias da semana que começa em `weekStart`. */
+export const weekDates = (weekStart: string): string[] =>
+  Array.from({ length: 7 }, (_, index) => shiftDayIso(weekStart, index));
+
+/**
+ * Os dias que a configuração oferece já marcados: segunda a sexta, menos os
+ * que já passaram. Fim de semana fica disponível, desmarcado.
+ */
+export const defaultWorkDays = (
+  weekStart: string,
+  todayIso: string
+): string[] =>
+  weekDates(weekStart)
+    .slice(0, 5)
+    .filter((iso) => iso >= todayIso);
+
+/** A segunda da semana escolhida no modal. */
+export const weekStartFor = (
+  choice: WeekChoice,
+  otherWeekStart: string
+): string =>
+  choice === "current"
+    ? getCurrentWeekMondayIso()
+    : choice === "next"
+      ? getNextWeekMondayIso()
+      : otherWeekStart;
+
+/**
+ * O input da `planWeek`, na ordem da fila (é ela que decide quem abre o dia).
+ *
+ * O dia escolhido por cliente é um dia da SEMANA; aqui vira a data da semana
+ * configurada. Dia que já passou volta para "o sistema escolhe" — não há como
+ * visitar para trás, e recusar a semana inteira por isso seria pior.
+ */
 export const buildPlanWeekInput = (
   sellerId: string | null,
-  weekStart: string,
+  setup: WeekSetup,
   selection: WeekSelection,
   clients: PriorityClient[],
-  days: string[],
+  todayIso: string,
   dryRun: boolean
 ) => {
   const rank = new Map(clients.map((c) => [c.clientId, c.rank]));
   const stops = Object.entries(selection)
     .sort(([a], [b]) => (rank.get(a) ?? 1e9) - (rank.get(b) ?? 1e9))
-    .map(([clientId, choice]) => ({
-      clientId,
-      contactType: choice.contactType,
-      date: choice.date,
-    }));
+    .map(([clientId, choice]) => {
+      const date =
+        choice.weekday == null
+          ? null
+          : dateOfWeekday(setup.weekStart, choice.weekday);
+      return {
+        clientId,
+        contactType: choice.contactType,
+        date: date && date >= todayIso ? date : null,
+      };
+    });
   return {
     ...(sellerId ? { sellerId } : {}),
-    weekStart,
+    weekStart: setup.weekStart,
     stops,
-    days,
+    days: setup.days,
+    visitsPerDay: setup.visitsPerDay,
+    callsPerDay: setup.callsPerDay,
+    fillWithSuggestions: setup.fillWithSuggestions,
     dryRun,
   };
 };

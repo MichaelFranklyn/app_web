@@ -19,10 +19,9 @@ import { StopOptions } from "../StopOptions";
 interface Props {
   client: PriorityClient;
   choice: StopChoice | undefined;
-  openDates: string[];
   onToggle: () => void;
   onContactTypeChange: (contactType: VisitContactType) => void;
-  onDateChange: (date: string | null) => void;
+  onWeekdayChange: (weekday: number | null) => void;
 }
 
 /**
@@ -32,10 +31,9 @@ interface Props {
 export function PriorityClientRow({
   client,
   choice,
-  openDates,
   onToggle,
   onContactTypeChange,
-  onDateChange,
+  onWeekdayChange,
 }: Props) {
   const reason = mainReason(client);
   const already = scheduledLabel(client.scheduled);
@@ -113,9 +111,8 @@ export function PriorityClientRow({
           <StopOptions
             clientName={client.name}
             choice={choice}
-            openDates={openDates}
             onContactTypeChange={onContactTypeChange}
-            onDateChange={onDateChange}
+            onWeekdayChange={onWeekdayChange}
           />
         </div>
       )}

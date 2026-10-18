@@ -8465,6 +8465,8 @@ type PlannedStopType {
   score: Float
   """A parada é desta montagem (as outras já estavam no dia)."""
   isNew: Boolean!
+  """Entrou para completar o dia, não pela escolha da pessoa."""
+  isSuggested: Boolean!
   latitude: Float
   longitude: Float
 }
@@ -8495,6 +8497,8 @@ type PlanWeekType {
   skipped: [SkippedStopType!]!
   """Quantas paradas esta montagem acrescenta."""
   added: Int!
+  """Dias escolhidos que não existem para o vendedor (folga, já passou) — ignorados."""
+  ignoredDays: [Date!]!
 }
 
 type PlanWeekTypeDataResponse {
@@ -8518,34 +8522,14 @@ input PlanWeekInput {
   stops: [PlanWeekStopInput!]!
   """Dias em que as paradas sem data podem cair. Vazio = os dias de trabalho."""
   days: [Date!] = null
+  """Quantas visitas por dia (0 a 20): o tamanho do dia na distribuição. Não é teto."""
+  visitsPerDay: Int = null
+  """Quantas ligações por dia (0 a 20): a meta da sugestão."""
+  callsPerDay: Int = null
+  """Completar os dias até essas quantidades com os clientes mais urgentes."""
+  fillWithSuggestions: Boolean = false
   """Só calcula e devolve a semana como ficaria, sem gravar — é a prévia."""
   dryRun: Boolean = false
-}
-
-"""Uma parada sugerida: quem, como e quando. Nada é gravado."""
-type SuggestedStopType {
-  clientId: UUID!
-  contactType: VisitContactType!
-  date: Date!
-}
-
-type SuggestedWeekType {
-  weekStart: Date!
-  """Os dias usados na sugestão."""
-  days: [Date!]!
-  stops: [SuggestedStopType!]!
-}
-
-input SuggestWeekInput {
-  """Sem ele, a agenda é do vendedor logado. O gestor informa de quem é."""
-  sellerId: UUID = null
-  weekStart: Date!
-  """Quantas visitas o vendedor quer por dia (0 a 20)."""
-  visitsPerDay: Int!
-  """Quantas ligações o vendedor quer por dia (0 a 20)."""
-  callsPerDay: Int = 0
-  """Dias em que ele vai trabalhar. Vazio = os dias de trabalho da configuração."""
-  days: [Date!] = null
 }
 
 extend type Query {
@@ -8554,12 +8538,6 @@ extend type Query {
   que não podem entrar (com o motivo). Sem `sellerId`, do vendedor logado.
   """
   priorityClients(weekStart: Date!, sellerId: UUID = null): PriorityClientsType
-  """
-  "Sugerir pra mim": o topo da fila de prioritários, na quantidade que o
-  vendedor pediu, cada um no dia da sua região. Só sugere — quem grava é o
-  `planWeek`, depois de o vendedor mexer à vontade.
-  """
-  suggestWeekPlan(input: SuggestWeekInput!): SuggestedWeekType
 }
 
 extend type Mutation {

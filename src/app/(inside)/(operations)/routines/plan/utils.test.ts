@@ -3,10 +3,12 @@ import { describe, expect, it } from "vitest";
 import { PriorityClient, WeekSelection } from "./interface";
 import {
   buildPlanWeekInput,
+  defaultWorkDays,
   groupByRegion,
   mainReason,
   scheduledLabel,
   selectionPhrase,
+  weekDates,
 } from "./utils";
 
 const client = (over: Partial<PriorityClient>): PriorityClient => ({
@@ -57,7 +59,7 @@ describe("groupByRegion", () => {
   it("Prioritários esconde quem pode esperar, mas nunca o que já foi escolhido", () => {
     expect(groupByRegion([calmo], "priority", "", {})).toEqual([]);
     const escolhido: WeekSelection = {
-      d: { contactType: "REMOTE", date: null },
+      d: { contactType: "REMOTE", weekday: null },
     };
     expect(groupByRegion([calmo], "priority", "", escolhido)).toHaveLength(1);
   });
@@ -76,48 +78,88 @@ describe("groupByRegion", () => {
 });
 
 describe("buildPlanWeekInput", () => {
-  it("manda as paradas na ordem da fila, com o vendedor só quando há", () => {
+  const setup = {
+    weekStart: "2026-10-19",
+    days: ["2026-10-19", "2026-10-20"],
+    visitsPerDay: 4,
+    callsPerDay: 2,
+    fillWithSuggestions: true,
+  };
+
+  it("manda a configuração inteira e as paradas na ordem da fila", () => {
     const clients = [
       client({ clientId: "x", rank: 2 }),
       client({ clientId: "y", rank: 1 }),
     ];
     const selection: WeekSelection = {
-      x: { contactType: "IN_PERSON", date: null },
-      y: { contactType: "REMOTE", date: "2026-10-21" },
+      x: { contactType: "IN_PERSON", weekday: null },
+      y: { contactType: "REMOTE", weekday: 3 },
     };
     const input = buildPlanWeekInput(
       null,
-      "2026-10-19",
+      setup,
       selection,
       clients,
-      ["2026-10-19"],
+      "2026-10-18",
       true
     );
     expect(input).toEqual({
       weekStart: "2026-10-19",
+      // Quarta (3) da semana configurada.
       stops: [
         { clientId: "y", contactType: "REMOTE", date: "2026-10-21" },
         { clientId: "x", contactType: "IN_PERSON", date: null },
       ],
-      days: ["2026-10-19"],
+      days: setup.days,
+      visitsPerDay: 4,
+      callsPerDay: 2,
+      fillWithSuggestions: true,
       dryRun: true,
     });
     expect(
-      buildPlanWeekInput("s1", "2026-10-19", {}, [], [], false).sellerId
+      buildPlanWeekInput("s1", setup, {}, [], "2026-10-18", false).sellerId
     ).toBe("s1");
+  });
+
+  it("dia da semana que já passou volta para o sistema escolher", () => {
+    const input = buildPlanWeekInput(
+      null,
+      setup,
+      { x: { contactType: "IN_PERSON", weekday: 1 } },
+      [client({ clientId: "x" })],
+      "2026-10-21",
+      true
+    );
+    expect(input.stops[0].date).toBeNull();
+  });
+});
+
+describe("semana", () => {
+  it("oferece segunda a sexta, menos o que já passou", () => {
+    expect(defaultWorkDays("2026-10-19", "2026-10-21")).toEqual([
+      "2026-10-21",
+      "2026-10-22",
+      "2026-10-23",
+    ]);
+  });
+
+  it("a semana tem sete dias a partir da segunda", () => {
+    const dias = weekDates("2026-10-19");
+    expect(dias).toHaveLength(7);
+    expect(dias[6]).toBe("2026-10-25");
   });
 });
 
 describe("frases", () => {
   it("resume a escolha sem a parte zerada", () => {
     expect(
-      selectionPhrase({ a: { contactType: "IN_PERSON", date: null } })
+      selectionPhrase({ a: { contactType: "IN_PERSON", weekday: null } })
     ).toBe("1 visita");
     expect(
       selectionPhrase({
-        a: { contactType: "IN_PERSON", date: null },
-        b: { contactType: "IN_PERSON", date: null },
-        c: { contactType: "REMOTE", date: null },
+        a: { contactType: "IN_PERSON", weekday: null },
+        b: { contactType: "IN_PERSON", weekday: null },
+        c: { contactType: "REMOTE", weekday: null },
       })
     ).toBe("2 visitas e 1 contato");
   });

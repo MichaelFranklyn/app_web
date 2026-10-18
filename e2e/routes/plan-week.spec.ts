@@ -9,6 +9,11 @@ import { emptyConnection, mockGraphql } from "../support/graphql";
  * (dryRun) e a gravação, que leva de volta para a Agenda na mesma semana.
  */
 const WEEK = getCurrentWeekMondayIso();
+const NEXT_WEEK = (() => {
+  const d = new Date(`${WEEK}T00:00:00Z`);
+  d.setUTCDate(d.getUTCDate() + 7);
+  return d.toISOString().slice(0, 10);
+})();
 const day = (offset: number) => {
   const d = new Date(`${WEEK}T00:00:00Z`);
   d.setUTCDate(d.getUTCDate() + offset);
@@ -65,16 +70,17 @@ const plan = (dryRun: boolean) => ({
   planWeek: {
     status: true,
     message: dryRun
-      ? "Prévia: 1 visita e 1 contato em 1 dia."
-      : "Semana montada: 1 visita e 1 contato em 1 dia.",
+      ? "Prévia: 2 visitas e 1 ligação em 1 dia."
+      : "Semana montada: 2 visitas e 1 ligação em 1 dia.",
     data: {
-      weekStart: WEEK,
-      added: 2,
+      weekStart: NEXT_WEEK,
+      added: 3,
+      ignoredDays: [],
       skipped: [],
       days: [
         {
-          date: day(0),
-          visitCount: 1,
+          date: NEXT_WEEK,
+          visitCount: 2,
           callCount: 1,
           estimatedKm: 0,
           stops: [
@@ -85,6 +91,7 @@ const plan = (dryRun: boolean) => ({
               neighborhood: "CENTRO",
               contactType: "IN_PERSON",
               isNew: true,
+              isSuggested: false,
             },
             {
               clientId: "c-2",
@@ -93,41 +100,50 @@ const plan = (dryRun: boolean) => ({
               neighborhood: "CENTRO",
               contactType: "REMOTE",
               isNew: true,
+              isSuggested: false,
+            },
+            {
+              clientId: "c-3",
+              name: "Casa Tranquila",
+              cityLabel: "Salvador - BA",
+              neighborhood: "CENTRO",
+              contactType: "IN_PERSON",
+              isNew: true,
+              isSuggested: true,
             },
           ],
-        },
-        {
-          date: day(1),
-          visitCount: 0,
-          callCount: 0,
-          estimatedKm: null,
-          stops: [],
         },
       ],
     },
   },
 });
 
-test("montar semana: escolher, conferir a prévia e gravar", async ({
+const mocks = () => ({
+  PriorityClients: priorityClients,
+  PlanWeek: (variables: Record<string, unknown>) =>
+    plan(Boolean((variables.input as { dryRun?: boolean }).dryRun)),
+  RoutineSellersOptions: () => ({ routine_sellers: { edges: [] } }),
+  VisitSchedules: () => ({ visit_schedules: emptyConnection() }),
+  VisitScheduleConfig: () => ({
+    visit_schedule_configs: {
+      edges: [{ node: { id: "cfg-1", sellerId: "s-1", maxVisitsPerDay: 4 } }],
+    },
+  }),
+});
+
+test("montar semana: escolher, configurar a semana, organizar e confirmar", async ({
   page,
 }) => {
-  const spy = await mockGraphql(page, {
-    PriorityClients: priorityClients,
-    PlanWeek: (variables) =>
-      plan(Boolean((variables.input as { dryRun?: boolean }).dryRun)),
-    RoutineSellersOptions: () => ({ routine_sellers: { edges: [] } }),
-    VisitSchedules: () => ({ visit_schedules: emptyConnection() }),
-    VisitScheduleConfig: () => ({
-      visit_schedule_configs: {
-        edges: [{ node: { id: "cfg-1", sellerId: "s-1", maxVisitsPerDay: 4 } }],
-      },
-    }),
-  });
+  const spy = await mockGraphql(page, mocks());
 
   await page.goto(`/routines/plan?week=${WEEK}`);
   await expect(
     page.getByRole("heading", { name: "Montar semana" })
   ).toBeVisible();
+  // A tela não navega por semana: a semana é da configuração.
+  await expect(
+    page.getByRole("button", { name: "Próxima semana" })
+  ).toHaveCount(0);
 
   // Agrupado por cidade; "Pode esperar" fica escondido em Prioritários.
   await expect(page.getByText("Camaçari - BA", { exact: true })).toBeVisible();
@@ -147,23 +163,38 @@ test("montar semana: escolher, conferir a prévia e gravar", async ({
     .click();
   await expect(page.getByText("2 clientes escolhidos")).toBeVisible();
 
-  await page.getByRole("button", { name: "Ver como fica a semana" }).click();
+  await page
+    .getByRole("region", { name: "Ações da seleção" })
+    .getByRole("button", { name: "Organizar a semana" })
+    .click();
+  const dialog = page.getByRole("dialog");
+  await dialog.getByRole("button", { name: "Semana que vem" }).click();
+  await dialog.getByLabel("Visitas por dia").fill("3");
+  await dialog.getByLabel("Ligações por dia").fill("1");
+  await dialog
+    .getByRole("checkbox", {
+      name: "Completar os dias com os clientes mais urgentes",
+    })
+    .check({ force: true });
+  await dialog.getByRole("button", { name: "Organizar a semana" }).click();
+
   const preview = await spy.waitForCall("PlanWeek");
   expect(preview.input).toMatchObject({
-    weekStart: WEEK,
+    weekStart: NEXT_WEEK,
     dryRun: true,
+    visitsPerDay: 3,
+    callsPerDay: 1,
+    fillWithSuggestions: true,
     stops: [
       { clientId: "c-1", contactType: "IN_PERSON", date: null },
       { clientId: "c-2", contactType: "REMOTE", date: null },
     ],
   });
-  const dialog = page.getByRole("dialog");
-  await expect(dialog.getByText("Del Atacadista")).toBeVisible();
-  // Dia sem nada não vira cartão: sai numa linha só.
-  await expect(dialog.getByText(/Dias livres:/)).toBeVisible();
+  await expect(dialog.getByText("Como fica a sua semana")).toBeVisible();
+  await expect(dialog.getByText("Sugerido")).toBeVisible();
 
   await dialog.getByRole("button", { name: "Confirmar semana" }).click();
-  await expect(page).toHaveURL(new RegExp(`/routines\\?week=${WEEK}$`));
+  await expect(page).toHaveURL(new RegExp(`/routines\\?week=${NEXT_WEEK}$`));
   const saved = spy.lastVariables("PlanWeek");
   expect((saved?.input as { dryRun: boolean }).dryRun).toBe(false);
   await expect(
@@ -171,43 +202,22 @@ test("montar semana: escolher, conferir a prévia e gravar", async ({
   ).toBeVisible();
 });
 
-test("sugerir pra mim: pré-marca os sugeridos, cada um no seu dia", async ({
+test("organizar sem escolher ninguém: o sistema monta com os mais urgentes", async ({
   page,
 }) => {
-  const spy = await mockGraphql(page, {
-    PriorityClients: priorityClients,
-    SuggestWeekPlan: () => ({
-      suggestWeekPlan: {
-        weekStart: WEEK,
-        days: [day(0), day(1)],
-        stops: [
-          { clientId: "c-1", contactType: "IN_PERSON", date: day(1) },
-          { clientId: "c-3", contactType: "REMOTE", date: day(0) },
-        ],
-      },
-    }),
-  });
+  const spy = await mockGraphql(page, mocks());
 
   await page.goto(`/routines/plan?week=${WEEK}`);
-  await expect(
-    page.getByRole("heading", { name: "Montar semana" })
-  ).toBeVisible();
-
-  await page.getByRole("button", { name: "Sugerir pra mim" }).click();
+  await page.getByRole("button", { name: "Organizar a semana" }).click();
   const dialog = page.getByRole("dialog");
-  await dialog.getByLabel("Visitas por dia").fill("3");
-  await dialog.getByRole("button", { name: "Sugerir", exact: true }).click();
-
-  const call = await spy.waitForCall("SuggestWeekPlan");
-  expect(call.input).toMatchObject({
-    weekStart: WEEK,
-    visitsPerDay: 3,
-    callsPerDay: 2,
-  });
-  await expect(page.getByText("2 clientes escolhidos")).toBeVisible();
-  // O sugerido que "pode esperar" aparece mesmo no filtro Prioritários: o que
-  // está escolhido nunca some da tela.
+  // Sem ninguém escolhido, completar já vem ligado.
   await expect(
-    page.getByRole("checkbox", { name: "Escolher Casa Tranquila" })
+    dialog.getByRole("checkbox", {
+      name: "Completar os dias com os clientes mais urgentes",
+    })
   ).toBeChecked();
+  await dialog.getByRole("button", { name: "Organizar a semana" }).click();
+
+  const call = await spy.waitForCall("PlanWeek");
+  expect(call.input).toMatchObject({ stops: [], fillWithSuggestions: true });
 });

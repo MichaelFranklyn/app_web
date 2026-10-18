@@ -13,7 +13,6 @@ import { PriorityClientRow } from "../PriorityClientRow";
 interface Props {
   group: RegionGroup;
   selection: WeekSelection;
-  openDates: string[];
   /** Abre já expandido (as cidades com cliente no topo da fila). */
   defaultOpen: boolean;
   onToggle: (client: PriorityClient) => void;
@@ -22,7 +21,7 @@ interface Props {
     clientId: string,
     contactType: VisitContactType
   ) => void;
-  onDateChange: (clientId: string, date: string | null) => void;
+  onWeekdayChange: (clientId: string, weekday: number | null) => void;
 }
 
 /**
@@ -32,12 +31,11 @@ interface Props {
 export function RegionGroupCard({
   group,
   selection,
-  openDates,
   defaultOpen,
   onToggle,
   onToggleMany,
   onContactTypeChange,
-  onDateChange,
+  onWeekdayChange,
 }: Props) {
   const [open, setOpen] = useState(defaultOpen);
   const chosen = group.clients.filter((c) => selection[c.clientId]).length;
@@ -85,12 +83,13 @@ export function RegionGroupCard({
               key={client.clientId}
               client={client}
               choice={selection[client.clientId]}
-              openDates={openDates}
               onToggle={() => onToggle(client)}
               onContactTypeChange={(type) =>
                 onContactTypeChange(client.clientId, type)
               }
-              onDateChange={(date) => onDateChange(client.clientId, date)}
+              onWeekdayChange={(weekday) =>
+                onWeekdayChange(client.clientId, weekday)
+              }
             />
           ))}
         </div>

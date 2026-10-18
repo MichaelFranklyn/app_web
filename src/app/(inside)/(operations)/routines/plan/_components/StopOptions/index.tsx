@@ -6,7 +6,6 @@ import { CONTACT_TYPE_LABEL, VisitContactType } from "@/utils/visit";
 import { Car, Phone } from "lucide-react";
 
 import { StopChoice } from "../../interface";
-import { dayChipLabel } from "../../utils";
 
 const ANY_DAY = "__any__";
 
@@ -19,31 +18,39 @@ const CONTACT_OPTIONS = [
   { value: "REMOTE" as const, label: CONTACT_TYPE_LABEL.REMOTE, icon: Phone },
 ];
 
+/** Dia da semana (ISO 1 = segunda). A data sai da semana configurada depois. */
+const DAY_OPTIONS: SelectOption[] = [
+  { value: ANY_DAY, label: "O sistema escolhe pela região" },
+  { value: "1", label: "Segunda" },
+  { value: "2", label: "Terça" },
+  { value: "3", label: "Quarta" },
+  { value: "4", label: "Quinta" },
+  { value: "5", label: "Sexta" },
+  { value: "6", label: "Sábado" },
+];
+
 interface Props {
   clientName: string;
   choice: StopChoice;
-  openDates: string[];
   onContactTypeChange: (contactType: VisitContactType) => void;
-  onDateChange: (date: string | null) => void;
+  onWeekdayChange: (weekday: number | null) => void;
 }
 
 /**
- * Como e quando, para um cliente escolhido. O dia é opcional: sem ele, o
+ * Como e quando, para um cliente escolhido. O dia é opcional e é um dia da
+ * SEMANA ("quarta"): a semana em si se escolhe na configuração. Sem dia, o
  * sistema põe o cliente no dia em que já vai estar perto dele.
  */
 export function StopOptions({
   clientName,
   choice,
-  openDates,
   onContactTypeChange,
-  onDateChange,
+  onWeekdayChange,
 }: Props) {
-  const dayOptions: SelectOption[] = [
-    { value: ANY_DAY, label: "O sistema escolhe pela região" },
-    ...openDates.map((iso) => ({ value: iso, label: dayChipLabel(iso) })),
-  ];
   const value =
-    dayOptions.find((o) => o.value === (choice.date ?? ANY_DAY)) ?? null;
+    DAY_OPTIONS.find(
+      (o) => o.value === (choice.weekday ? String(choice.weekday) : ANY_DAY)
+    ) ?? null;
 
   return (
     <div className="flex flex-wrap items-center gap-8">
@@ -60,11 +67,13 @@ export function StopOptions({
           disabledClear
           aria-label={`Dia de ${clientName}`}
           placeholder="Escolha o dia"
-          options={dayOptions}
+          options={DAY_OPTIONS}
           value={value}
           onChange={(val: SelectOption | SelectOption[] | null) => {
             const opt = Array.isArray(val) ? val[0] : val;
-            onDateChange(!opt || opt.value === ANY_DAY ? null : opt.value);
+            onWeekdayChange(
+              !opt || opt.value === ANY_DAY ? null : Number(opt.value)
+            );
           }}
         />
       </div>
