@@ -1,6 +1,6 @@
 # AUTO-GERADO por scripts/pull-schema.mjs — NÃO editar à mão.
 # Snapshot do schema do backend (app_user). Atualize com: npm run schema:pull
-# Fonte: 58 arquivos .graphql merge-ados (mesma regra do Ariadne).
+# Fonte: 59 arquivos .graphql merge-ados (mesma regra do Ariadne).
 
 input BaseListInput {
   filters: [FieldFilterInput!] = null
@@ -8363,4 +8363,178 @@ extend type Mutation {
     observation: StockObservation = null
     notes: String = null
   ): VisitStockObservationResponse!
+}
+
+"""
+A semana montada pelo vendedor (decisão de 18/10/2026).
+
+O sistema não entrega mais uma rotina pronta: mostra os clientes prioritários
+da carteira, agrupáveis por região, e o vendedor escolhe quem vai ver, como
+(visita ou ligação) e, se quiser, em que dia. Quem vem sem dia é distribuído
+pela região entre os dias escolhidos, e a rota de cada dia é ordenada pelo
+menor trajeto. Não há limite de visitas por dia.
+"""
+enum PriorityTier {
+  "O quinto mais urgente da carteira."
+  TOP
+  "Até a metade da fila."
+  HIGH
+  NORMAL
+}
+
+enum PriorityUnavailableReason {
+  "Toda fábrica do cliente tem pedido feito e ainda não entregue."
+  OPEN_ORDER
+  "Negativado em toda fábrica do vendedor."
+  NEGATIVE
+  "Pediu para não ser procurado até depois desta semana."
+  DEFERRED
+}
+
+enum PlanStopSkipReason {
+  NOT_IN_WALLET
+  ALREADY_SCHEDULED
+  DUPLICATE
+}
+
+"""Um toque que o cliente já tem nesta semana."""
+type PriorityScheduledTouchType {
+  itemId: UUID!
+  date: Date!
+  contactType: VisitContactType!
+  status: VisitStatus!
+}
+
+type PriorityClientType {
+  clientId: UUID!
+  client: ClientType
+  name: String!
+  city: String
+  state: String
+  neighborhood: String
+  """Chave da cidade (sem acento + UF) — agrupa "SALVADOR" e "Salvador"."""
+  regionKey: String!
+  """Como a cidade aparece: "Salvador - BA"."""
+  cityLabel: String!
+  latitude: Float
+  longitude: Float
+  score: Float!
+  """Posição na fila da carteira disponível (1 = o mais urgente)."""
+  rank: Int!
+  tier: PriorityTier!
+  """O toque que a tela deixa pré-marcado. O vendedor troca à vontade."""
+  suggestedContactType: VisitContactType!
+  """O cliente pediu visita num contato anterior."""
+  isForced: Boolean!
+  """O cliente pediu para ser procurado só a partir deste dia (dentro da semana)."""
+  availableFrom: Date
+  """A fábrica de maior score — a que motiva o toque."""
+  primaryLink: SellerClientFactoryType!
+  """As fábricas urgentes do cliente (ou só a principal), com o score de cada uma."""
+  focusLinks: [SellerClientFactoryType!]!
+  """Onde o cliente já está nesta semana (vazio = ainda não marcado)."""
+  scheduled: [PriorityScheduledTouchType!]!
+}
+
+type PriorityUnavailableClientType {
+  clientId: UUID!
+  name: String!
+  cityLabel: String!
+  reason: PriorityUnavailableReason!
+  """Até quando o cliente pediu para não ser procurado (só em DEFERRED)."""
+  until: Date
+}
+
+type PriorityClientsType {
+  weekStart: Date!
+  """Dias da semana que ainda aceitam parada: de hoje em diante, sem folga."""
+  openDates: [Date!]!
+  """Os dias de trabalho da configuração, sem feriado — o padrão da distribuição."""
+  workDates: [Date!]!
+  clients: [PriorityClientType!]!
+  unavailable: [PriorityUnavailableClientType!]!
+}
+
+type PlannedStopType {
+  clientId: UUID!
+  name: String!
+  cityLabel: String!
+  neighborhood: String
+  contactType: VisitContactType!
+  """Nulo nas paradas que já estavam no dia."""
+  score: Float
+  """A parada é desta montagem (as outras já estavam no dia)."""
+  isNew: Boolean!
+  latitude: Float
+  longitude: Float
+}
+
+type PlannedDayType {
+  date: Date!
+  stops: [PlannedStopType!]!
+  visitCount: Int!
+  callCount: Int!
+  """
+  Estrada entre as visitas do dia, em km de linha reta, sem a ida e a volta de
+  casa. Só a ordem de grandeza da prévia — a rota real sai depois de gravar.
+  """
+  estimatedKm: Float
+}
+
+type SkippedStopType {
+  clientId: UUID!
+  name: String!
+  reason: PlanStopSkipReason!
+  """Onde está o toque já marcado (só em ALREADY_SCHEDULED)."""
+  date: Date
+}
+
+type PlanWeekType {
+  weekStart: Date!
+  days: [PlannedDayType!]!
+  skipped: [SkippedStopType!]!
+  """Quantas paradas esta montagem acrescenta."""
+  added: Int!
+}
+
+type PlanWeekTypeDataResponse {
+  status: Boolean!
+  code: Int!
+  message: String!
+  data: PlanWeekType
+}
+
+input PlanWeekStopInput {
+  clientId: UUID!
+  contactType: VisitContactType = IN_PERSON
+  """Sem data, o dia sai da região do cliente entre os `days` da montagem."""
+  date: Date = null
+}
+
+input PlanWeekInput {
+  """Sem ele, a agenda é do vendedor logado. O gestor informa de quem é."""
+  sellerId: UUID = null
+  weekStart: Date!
+  stops: [PlanWeekStopInput!]!
+  """Dias em que as paradas sem data podem cair. Vazio = os dias de trabalho."""
+  days: [Date!] = null
+  """Só calcula e devolve a semana como ficaria, sem gravar — é a prévia."""
+  dryRun: Boolean = false
+}
+
+extend type Query {
+  """
+  Os clientes da carteira disponíveis na semana, do mais urgente ao menos, e os
+  que não podem entrar (com o motivo). Sem `sellerId`, do vendedor logado.
+  """
+  priorityClients(weekStart: Date!, sellerId: UUID = null): PriorityClientsType
+}
+
+extend type Mutation {
+  """
+  Acrescenta à semana os clientes que o vendedor escolheu. Quem vem sem dia é
+  distribuído pela região; a rota de cada dia é reordenada. Com `dryRun`, só
+  devolve a prévia.
+  """
+  planWeek(input: PlanWeekInput!): PlanWeekTypeDataResponse!
 }

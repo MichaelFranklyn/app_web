@@ -8,6 +8,7 @@ import { CalendarDays, ChevronLeft, ChevronRight } from "lucide-react";
 import { RoutineSellerOption } from "../../interface";
 import { getCurrentWeekMondayIso } from "@/utils/format/date";
 import { PlanTripButton } from "../PlanTripButton";
+import { PlanWeekLink } from "../PlanWeekLink";
 import { ScheduleVisitButton } from "../ScheduleVisitButton";
 import {
   formatWeekRange,
@@ -62,7 +63,7 @@ export function RoutinesHeader({
     <PanelHeader.Root>
       <PanelHeader.Top>
         <PanelHeader.Left>
-          <PanelHeader.Title>Rotina da Semana</PanelHeader.Title>
+          <PanelHeader.Title>Agenda</PanelHeader.Title>
           <PanelHeader.Description>{description}</PanelHeader.Description>
           <PanelHeader.Actions
             className="mt-6"
@@ -138,6 +139,13 @@ export function RoutinesHeader({
                 <Button.Icon icon={ChevronRight} />
               </Button.Root>
             </div>
+            {/* A porta principal da agenda: o vendedor escolhe quem vai ver
+                e o sistema monta o caminho (decisão de 18/10/2026). */}
+            <PlanWeekLink
+              weekStart={weekStart}
+              sellerId={selectedSellerId ?? null}
+              className="desktop:w-auto w-full"
+            />
             {/* Fica no cabeçalho, e não na barra de ações da grade, porque a
                 semana SEM rotina é justamente quando mais se precisa dele. */}
             <ScheduleVisitButton

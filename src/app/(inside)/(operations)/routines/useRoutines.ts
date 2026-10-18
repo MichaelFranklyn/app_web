@@ -25,12 +25,17 @@ export type RoutineViewMode = "kanban" | "list";
 const VIEW_MODES: RoutineViewMode[] = ["kanban", "list"];
 
 export function useRoutines() {
-  const [weekStart, setWeekStart] = useState<string>(getCurrentWeekMondayIso);
-  const [periodDays, setPeriodDays] = useState(7);
-
   const router = useRouter();
   const pathname = usePathname();
   const searchParams = useSearchParams();
+
+  // `?week=` abre a semana pedida — é por ele que "Montar semana" devolve a
+  // pessoa para a agenda que ela acabou de montar. Depois, a navegação entre
+  // semanas é estado da tela.
+  const [weekStart, setWeekStart] = useState<string>(
+    () => searchParams.get("week") ?? getCurrentWeekMondayIso()
+  );
+  const [periodDays, setPeriodDays] = useState(7);
 
   // Lido após o mount (cookie é client-only) para evitar mismatch de hidratação.
   const [canSelectSeller, setCanSelectSeller] = useState(false);

@@ -10,6 +10,7 @@ import { CalendarOff, Users } from "lucide-react";
 
 import { GenerateWeekButton } from "./_components/GenerateWeekButton";
 import { NextWeekPrompt } from "./_components/NextWeekPrompt";
+import { PlanWeekLink } from "./_components/PlanWeekLink";
 import { PrintWeekButton } from "./_components/PrintWeekButton";
 import { ResponseLinkModal } from "./_components/ResponseLinkModal";
 import { RegenerateWeekButton } from "./_components/RegenerateWeekButton";
@@ -128,7 +129,7 @@ export default function RoutinesContent() {
           <EmptyState.Icon>
             <CalendarOff />
           </EmptyState.Icon>
-          <EmptyState.Title>Nenhuma rotina nesta semana</EmptyState.Title>
+          <EmptyState.Title>Nada marcado nesta semana</EmptyState.Title>
           <EmptyState.Description>
             Não há rotina cadastrada para {formatWeekRange(weekStart)}.
             {canGenerateWeek(weekStart)
@@ -138,6 +139,7 @@ export default function RoutinesContent() {
                 " você também pode gerá-la por aqui."}
           </EmptyState.Description>
           <EmptyState.Actions>
+            <PlanWeekLink weekStart={weekStart} sellerId={selectedSellerId} />
             {/* Gerar só a semana atual — e, no fim de semana, a seguinte: com
                 mais antecedência o plano nasce com o score defasado. */}
             {canGenerateWeek(weekStart) && (

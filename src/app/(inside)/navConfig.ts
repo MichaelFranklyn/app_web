@@ -79,7 +79,7 @@ export const NAV = [
   { section: "Operações" },
   {
     href: "/routines",
-    label: "Rotina da Semana",
+    label: "Agenda",
     icon: CalendarDays,
     feature: "ROUTINES" as NavFeature,
   },

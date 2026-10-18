@@ -63,9 +63,9 @@ export const systemOverviewFlow: FlowDefinition = {
     },
     {
       element: '[data-tour-route="/routines"]',
-      title: "Rotina da Semana",
+      title: "Agenda",
       description:
-        "Aqui ficam suas visitas planejadas para a semana — quem visitar e quando.",
+        "Aqui você monta a sua semana: escolhe quem quer ver, e o sistema separa por região e monta o caminho de cada dia.",
       side: "right",
       align: "center",
     },

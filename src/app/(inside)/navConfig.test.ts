@@ -134,7 +134,7 @@ describe("visibleNav — plano", () => {
       .filter((item) => "label" in item)
       .map((item) => (item as { label: string }).label);
     expect(labels).not.toContain("Rota do dia");
-    expect(labels).not.toContain("Rotina da Semana");
+    expect(labels).not.toContain("Agenda");
   });
 
   it("não deixa seção órfã quando o plano esvazia o grupo", () => {
