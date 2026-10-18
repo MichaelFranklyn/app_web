@@ -48,8 +48,8 @@ export function ClientSupportList({ cases }: Props) {
       <Table.CardHead>
         <Table.CardHead.Title>
           {openCount > 0
-            ? `${openCount} atendimento(s) em aberto`
-            : "Atendimentos"}
+            ? `${openCount} reclamação(ões) em aberto`
+            : "Reclamações"}
         </Table.CardHead.Title>
       </Table.CardHead>
 
@@ -72,7 +72,7 @@ export function ClientSupportList({ cases }: Props) {
                     <Headset size={32} />
                   </EmptyState.Icon>
                   <EmptyState.Title>
-                    Nenhum atendimento registrado
+                    Nenhuma reclamação registrada
                   </EmptyState.Title>
                   <EmptyState.Description>
                     Quando este cliente reclamar de algo — mercadoria,

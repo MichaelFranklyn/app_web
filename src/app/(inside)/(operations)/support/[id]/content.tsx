@@ -65,7 +65,7 @@ export default function SupportCaseContent() {
           <EmptyState.Icon>
             <Headset size={32} />
           </EmptyState.Icon>
-          <EmptyState.Title>Atendimento não encontrado</EmptyState.Title>
+          <EmptyState.Title>Reclamação não encontrada</EmptyState.Title>
           <EmptyState.Description>
             Ele pode ter sido removido, ou o endereço está desatualizado.
           </EmptyState.Description>
@@ -77,7 +77,7 @@ export default function SupportCaseContent() {
               noUppercase
               onClick={() => router.push("/support")}
             >
-              <Button.Title>Voltar para Atendimentos</Button.Title>
+              <Button.Title>Voltar para Reclamações</Button.Title>
             </Button.Root>
           </EmptyState.Actions>
         </EmptyState.Root>
@@ -88,7 +88,7 @@ export default function SupportCaseContent() {
   return (
     <PageContent>
       <Breadcrumb.Root>
-        <Breadcrumb.Item href="/support">Atendimentos</Breadcrumb.Item>
+        <Breadcrumb.Item href="/support">Reclamações</Breadcrumb.Item>
         <Breadcrumb.Separator />
         <Breadcrumb.Item active>{supportCase.title}</Breadcrumb.Item>
       </Breadcrumb.Root>

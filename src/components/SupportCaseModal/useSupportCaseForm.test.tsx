@@ -97,7 +97,7 @@ const createMock = (input: Record<string, unknown>, ok = true) => ({
       createClientSupportCase: {
         __typename: "SupportCaseResponse",
         status: ok,
-        message: ok ? "Atendimento registrado" : "Cliente inativo",
+        message: ok ? "Reclamação registrada" : "Cliente inativo",
         data: ok
           ? {
               __typename: "SupportCaseType",
@@ -121,7 +121,7 @@ const updateMock = (input: Record<string, unknown>, ok = true) => ({
       updateClientSupportCase: {
         __typename: "SupportCaseResponse",
         status: ok,
-        message: ok ? "Atendimento atualizado" : "Caso já encerrado",
+        message: ok ? "Reclamação atualizada" : "Caso já encerrado",
         data: ok
           ? {
               __typename: "SupportCaseType",

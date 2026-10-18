@@ -26,10 +26,10 @@ export function SupportHeader({ onSaved }: Props) {
           </PanelHeader.Eyebrow>
           <div className="flex items-center gap-6">
             <PanelHeader.Title>
-              Atendimentos <span className="text-(--amber)">do cliente</span>
+              Reclamações <span className="text-(--amber)">de clientes</span>
             </PanelHeader.Title>
             <HelpTooltip
-              label="O que entra nos atendimentos?"
+              label="O que entra nas reclamações?"
               content={SUPPORT_HELP}
             />
           </div>
@@ -47,7 +47,7 @@ export function SupportHeader({ onSaved }: Props) {
               onClick={() => setCreating(true)}
             >
               <Button.Icon icon={Plus} />
-              <Button.Title>Registrar atendimento</Button.Title>
+              <Button.Title>Registrar reclamação</Button.Title>
             </Button.Root>
           </PanelHeader.Actions>
         </PanelHeader.Left>

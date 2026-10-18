@@ -57,7 +57,7 @@ export function SupportTable({
   return (
     <Table.Root sort={sort} data-tour="support-table">
       <Table.CardHead>
-        <Table.CardHead.Title>Atendimentos</Table.CardHead.Title>
+        <Table.CardHead.Title>Reclamações</Table.CardHead.Title>
         <Table.CardHead.Actions>
           <InputSearch
             size="sm"
@@ -106,7 +106,7 @@ export function SupportTable({
                   <EmptyState.Icon>
                     <Headset size={32} />
                   </EmptyState.Icon>
-                  <EmptyState.Title>Nenhum atendimento</EmptyState.Title>
+                  <EmptyState.Title>Nenhuma reclamação</EmptyState.Title>
                   <EmptyState.Description>
                     Quando um cliente relatar um problema, registre aqui para
                     acompanhar a tratativa com a fábrica.
@@ -201,8 +201,8 @@ export function SupportTable({
             <Loading.Spinner size="sm" className="mr-6 inline-block" />
           )}
           {totalItems > 0
-            ? `${totalItems} atendimento(s) · página ${currentPage} de ${totalPages}`
-            : "Nenhum atendimento"}
+            ? `${totalItems} reclamação(ões) · página ${currentPage} de ${totalPages}`
+            : "Nenhuma reclamação"}
         </Table.Footer.Info>
         <Pagination.Smart
           currentPage={currentPage}

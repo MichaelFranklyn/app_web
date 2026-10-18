@@ -59,7 +59,7 @@ export default function ClientSupportContent() {
     <div className="flex flex-col gap-16">
       <div className="flex flex-wrap items-center justify-between gap-16">
         <div className="flex items-center gap-6">
-          <Title variant="heading-md">Atendimentos deste cliente</Title>
+          <Title variant="heading-md">Reclamações deste cliente</Title>
           <HelpTooltip
             label="O que entra aqui?"
             content={CLIENT_SUPPORT_HELP}
@@ -74,7 +74,7 @@ export default function ClientSupportContent() {
           onClick={() => setCreating(true)}
         >
           <Button.Icon icon={Plus} />
-          <Button.Title>Registrar atendimento</Button.Title>
+          <Button.Title>Registrar reclamação</Button.Title>
         </Button.Root>
       </div>
 

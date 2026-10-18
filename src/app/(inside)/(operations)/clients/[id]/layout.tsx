@@ -335,7 +335,7 @@ export default function ClientLayout({
           <Tabs.NavItem href={`${basePath}/products`}>Produtos</Tabs.NavItem>
           {/* Tratativas de problema (mercadoria, pagamento, entrega) — também
               fora do gate: reclamação de cliente é operação básica. */}
-          <Tabs.NavItem href={`${basePath}/support`}>Atendimentos</Tabs.NavItem>
+          <Tabs.NavItem href={`${basePath}/support`}>Reclamações</Tabs.NavItem>
           {/* Próximos contatos combinados (follow-up) e o histórico deles. */}
           <Tabs.NavItem href={`${basePath}/follow-ups`}>Contatos</Tabs.NavItem>
           {/* Visita, estoque estimado e score são o motor de rotina: um

@@ -33,7 +33,7 @@ export const clientDetailFlow: FlowDefinition = {
       element: '[data-tour="client-tabs"]',
       title: "Seções do cliente",
       description:
-        "Cada aba mostra um lado do relacionamento: as Fábricas que ele compra, os Pedidos, os Produtos que ele leva e os Atendimentos abertos. Com o módulo de rotina, entram também Visitas, Estoque Estimado e Score.",
+        "Cada aba mostra um lado do relacionamento: as Fábricas que ele compra, os Pedidos, os Produtos que ele leva e as Reclamações abertas. Com o módulo de rotina, entram também Visitas, Estoque Estimado e Score.",
       side: "bottom",
       align: "start",
     },
