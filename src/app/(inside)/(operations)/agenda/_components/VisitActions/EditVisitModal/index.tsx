@@ -20,6 +20,7 @@ import {
   EditVisitModalProps,
   UpdateVisitScheduleItemResponse,
 } from "./interface";
+import { itemClient } from "../../../calendar";
 
 export function EditVisitModal({
   item,
@@ -34,7 +35,7 @@ export function EditVisitModal({
   );
   const { execute, isLoading } = useAsyncAction();
 
-  const client = item.clientFactoryLink?.client;
+  const client = itemClient(item);
   const factory = item.clientFactoryLink?.factory;
   const clientName = clientDisplayName(client, "Cliente");
   const factoryLabel = factoryName(factory);

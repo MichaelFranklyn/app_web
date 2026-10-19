@@ -61,6 +61,11 @@ export interface ScheduleVisitModalProps {
   sellerId?: string | null;
   /** Data sugerida (ISO yyyy-mm-dd) — o dia que a tela estava mostrando. */
   defaultDate?: string;
+  /**
+   * Tipo já decidido por quem abriu (a Agenda pergunta "contato ou visita"
+   * antes): o modal não repete a pergunta. Ausente = o modal pergunta.
+   */
+  contactType?: VisitContactType;
   /** Chamado depois de marcar, para a tela rebuscar o que mostra. */
   onScheduled?: () => void;
 }

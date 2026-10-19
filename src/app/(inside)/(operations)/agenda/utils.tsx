@@ -262,19 +262,6 @@ export const isWeekendToday = (): boolean => {
 export const isPastDay = (dateIso: string, todayIso: string): boolean =>
   dateIso < todayIso;
 
-export const getIsoWeekNumber = (isoDate: string): number => {
-  const [year, month, day] = isoDate.split("-").map(Number);
-  if (!year || !month || !day) return 0;
-  const date = new Date(Date.UTC(year, month - 1, day));
-  const dayOfWeek = (date.getUTCDay() + 6) % 7;
-  date.setUTCDate(date.getUTCDate() - dayOfWeek + 3);
-  const firstThursday = new Date(Date.UTC(date.getUTCFullYear(), 0, 4));
-  const diffDays = Math.round(
-    (date.getTime() - firstThursday.getTime()) / 86400000
-  );
-  return 1 + Math.floor(diffDays / 7);
-};
-
 export interface WeekDayCell {
   date: string;
   weekdayLabel: string;
@@ -313,21 +300,6 @@ export const sortVisitsByRoute = (
   items: VisitScheduleItem[]
 ): VisitScheduleItem[] =>
   [...items].sort((a, b) => a.plannedOrder - b.plannedOrder);
-
-// Janela do período: começa em hoje (se a semana exibida o contém) ou na
-// segunda-feira; cobre `periodDays` dias. `periodDays >= 7` mostra a semana
-// toda. Compartilhado pela grade (kanban) e pela lista para que os dois modos
-// exibam exatamente o mesmo recorte de dias.
-export const getVisibleCells = (
-  cells: WeekDayCell[],
-  periodDays: number,
-  todayIso: string
-): WeekDayCell[] => {
-  if (periodDays >= 7) return cells;
-  const todayIndex = cells.findIndex((c) => c.date === todayIso);
-  const anchor = todayIndex >= 0 ? todayIndex : 0;
-  return cells.slice(anchor, anchor + periodDays);
-};
 
 // Opções dos enums — value = NOME do membro GraphQL, label = PT.
 export { VISIT_STATUS_OPTIONS, VISIT_OUTCOME_OPTIONS } from "@/utils/visit";

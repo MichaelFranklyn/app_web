@@ -373,7 +373,7 @@ test("pendências: o contato agendado do retorno nasce vinculado a ele", async (
   await expect(dialog).toContainText(
     "atende o retorno combinado para 16/10/2026"
   );
-  await dialog.locator('input[name="reason"]').fill("Retornar como combinado");
+  // O motivo é opcional: agenda sem escolher.
   await dialog.getByRole("button", { name: "Agendar" }).click();
 
   const input = (await spy.waitForCall("CreateClientFollowUp")).input as {

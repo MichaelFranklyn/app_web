@@ -1,23 +1,6 @@
 import { gql } from "@apollo/client";
 
-// Config da agenda do vendedor — usada para saber o limite de visitas por dia.
-export const VISIT_SCHEDULE_CONFIG_QUERY = gql`
-  query VisitScheduleConfig($input: BaseListInput!) {
-    visit_schedule_configs: visitScheduleConfigs(input: $input) {
-      edges {
-        node {
-          id
-          sellerId
-          maxVisitsPerDay
-          maxRemoteContactsPerDay
-          isRemoteContactEnabled
-        }
-      }
-    }
-  }
-`;
-
-// Lista de vendedores para o seletor de rotina (owner/admin escolhe de quem ver).
+// Vendedores para o seletor do Montar semana: a rotina é de quem vende.
 export const ROUTINE_SELLERS_QUERY = gql`
   query RoutineSellersOptions($input: BaseListInput!) {
     routine_sellers: sellers(input: $input) {
@@ -31,7 +14,51 @@ export const ROUTINE_SELLERS_QUERY = gql`
   }
 `;
 
+// As pessoas da empresa, para o "Agenda de" do gestor. `users` é @is_admin:
+// o vendedor não escolhe — vê a própria agenda.
+export const AGENDA_PEOPLE_QUERY = gql`
+  query AgendaPeople($input: BaseListInput!) {
+    agenda_people: users(input: $input) {
+      edges {
+        node {
+          id
+          name
+          isActive
+          seller {
+            id
+          }
+        }
+      }
+    }
+  }
+`;
+
+// Os campos do cliente que o card e a folha impressa leem. Fragmento porque o
+// cliente vem por dois caminhos: o do vínculo e o da parada (a ligação do
+// escritório não tem vínculo).
+const AGENDA_CLIENT_FIELDS = gql`
+  fragment AgendaClientFields on ClientType {
+    id
+    razaoSocial
+    nomeFantasia
+    companyClient {
+      id
+    }
+    addressStreet
+    addressNumber
+    addressNeighborhood
+    addressCity
+    addressState
+    primaryContact {
+      id
+      name
+      phone
+    }
+  }
+`;
+
 export const VISIT_SCHEDULES_QUERY = gql`
+  ${AGENDA_CLIENT_FIELDS}
   query VisitSchedules($input: BaseListInput!) {
     visit_schedules: visitSchedules(input: $input) {
       edges {
@@ -40,6 +67,7 @@ export const VISIT_SCHEDULES_QUERY = gql`
           weekStart
           status
           generatedAt
+          ownerUserId
           seller {
             id
             user {
@@ -68,6 +96,15 @@ export const VISIT_SCHEDULES_QUERY = gql`
               isWholeDay
               isManual
               tripId
+              isFollowUp
+              followUp {
+                id
+                reason
+                status
+              }
+              client {
+                ...AgendaClientFields
+              }
               focusFactories {
                 scoreTotal
                 factory {
@@ -100,22 +137,7 @@ export const VISIT_SCHEDULES_QUERY = gql`
                 sellerId
                 isNegative
                 client {
-                  id
-                  razaoSocial
-                  nomeFantasia
-                  companyClient {
-                    id
-                  }
-                  addressStreet
-                  addressNumber
-                  addressNeighborhood
-                  addressCity
-                  addressState
-                  primaryContact {
-                    id
-                    name
-                    phone
-                  }
+                  ...AgendaClientFields
                 }
                 factory {
                   id
@@ -210,6 +232,27 @@ export const UNMARK_SELLER_DAY_OFF_MUTATION = gql`
       data {
         id
         date
+      }
+    }
+  }
+`;
+
+// Remarca a visita. Compartilhada pelo modal de remarcar e pelo arrastar entre
+// dias da folhinha, por isso vive no nível da página.
+export const RESCHEDULE_VISIT_MUTATION = gql`
+  # input.targetDate (Date) remarca para uma data livre; o backend cria o dia/semana se faltar.
+  mutation RescheduleVisit($input: RescheduleVisitInput!) {
+    rescheduleVisit(input: $input) {
+      status
+      message
+      data {
+        originalItem {
+          id
+          status
+        }
+        newItem {
+          id
+        }
       }
     }
   }

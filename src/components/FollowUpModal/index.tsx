@@ -28,6 +28,7 @@ export function FollowUpModal({
   returnItemId,
   returnLabel,
   defaultDueDate,
+  defaultResponsible,
   onSaved,
 }: FollowUpModalProps) {
   const formRef = useRef<FormBuilderRef>(null);
@@ -40,6 +41,7 @@ export function FollowUpModal({
     orderLabel,
     returnItemId,
     defaultDueDate,
+    defaultResponsible,
     onSaved,
   });
 

@@ -1,6 +1,12 @@
 import { describe, expect, it } from "vitest";
 
-import { createInput, orderLabel, updateInput } from "./utils";
+import {
+  createInput,
+  FOLLOW_UP_REASONS,
+  orderLabel,
+  reasonOptions,
+  updateInput,
+} from "./utils";
 
 describe("createInput", () => {
   const form = {
@@ -93,6 +99,33 @@ describe("orderLabel", () => {
     ).toBe("12/08/2026 · NF 1234 · Planalto");
     expect(orderLabel({ orderDate: "2026-08-12", invoiceNumber: null })).toBe(
       "12/08/2026"
+    );
+  });
+});
+
+describe("motivo do contato", () => {
+  it("é opcional: em branco vai nulo e o backend põe o padrão", () => {
+    const input = createInput(
+      { dueDate: "2026-10-20", reason: null },
+      { clientId: "c1", orderId: null, canAssign: false }
+    );
+    expect(input.reason).toBeNull();
+  });
+
+  it("vem do select", () => {
+    const input = createInput(
+      { reason: { value: "Cobrar pagamento", label: "Cobrar pagamento" } },
+      { clientId: "c1", orderId: null, canAssign: false }
+    );
+    expect(input.reason).toBe("Cobrar pagamento");
+  });
+
+  it("o motivo antigo escrito à mão continua entre as opções", () => {
+    expect(reasonOptions("Ligar para a Dona Maria")[0].value).toBe(
+      "Ligar para a Dona Maria"
+    );
+    expect(reasonOptions(FOLLOW_UP_REASONS[0])).toHaveLength(
+      FOLLOW_UP_REASONS.length
     );
   });
 });

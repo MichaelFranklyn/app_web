@@ -31,12 +31,7 @@ import {
   PeopleData,
   UpdateFollowUpResponse,
 } from "./interface";
-import {
-  createInput,
-  orderLabel,
-  REASON_MAX_LENGTH,
-  updateInput,
-} from "./utils";
+import { createInput, orderLabel, reasonOptions, updateInput } from "./utils";
 
 /** Quantos pedidos recentes entram no select. */
 const RECENT_ORDERS = 20;
@@ -57,6 +52,7 @@ export function useFollowUpForm({
   orderLabel: fixedOrderLabel,
   returnItemId,
   defaultDueDate,
+  defaultResponsible,
   onSaved,
 }: Params) {
   const isEditing = Boolean(followUp);
@@ -181,12 +177,11 @@ export function useFollowUpForm({
                 : []),
               {
                 name: "reason",
-                type: "text",
-                label: "Motivo do contato",
-                required: true,
-                maxLength: REASON_MAX_LENGTH,
-                placeholder: "Ex: Retornar sobre o orçamento de tintas",
-                hint: "Uma frase. É o que aparece na lista e no lembrete.",
+                type: "select-single" as const,
+                label: "Motivo do contato (opcional)",
+                placeholder: "Escolha o motivo, se quiser",
+                hint: 'Aparece na lista e no lembrete. Em branco fica "Contato com o cliente".',
+                options: reasonOptions(followUp?.reason),
                 grid: { mobile: 12 },
               },
               ...(fixedOrderId
@@ -232,14 +227,27 @@ export function useFollowUpForm({
       fixedOrderId,
       effectiveClientId,
       orderOptions,
+      followUp?.reason,
     ]
   );
 
   // Select do FormBuilder só exibe o par `{ value, label }` — ver `selectOption`.
   const initialValues = useMemo<Record<string, unknown>>(() => {
-    if (!followUp) return defaultDueDate ? { dueDate: defaultDueDate } : {};
+    if (!followUp) {
+      return {
+        ...(defaultDueDate ? { dueDate: defaultDueDate } : {}),
+        ...(canAssign && defaultResponsible
+          ? {
+              responsibleUserId: selectOption(
+                defaultResponsible.id,
+                defaultResponsible.name
+              ),
+            }
+          : {}),
+      };
+    }
     return {
-      reason: followUp.reason,
+      reason: selectOption(followUp.reason, followUp.reason),
       notes: followUp.notes ?? "",
       orderId: selectOption(
         followUp.order?.id,
@@ -250,7 +258,7 @@ export function useFollowUpForm({
         followUp.responsible?.name
       ),
     };
-  }, [followUp, defaultDueDate]);
+  }, [followUp, defaultDueDate, defaultResponsible, canAssign]);
 
   const [createFollowUp] = useMutation<CreateFollowUpResponse>(
     CREATE_FOLLOW_UP_MUTATION

@@ -4,6 +4,7 @@ import { clientDisplayName } from "@/utils/client";
 import { VISIT_STATUS_LABEL } from "@/utils/visit";
 import { getVisitScoreReasons } from "../utils";
 import { VisitScheduleItem } from "../interface";
+import { itemClient } from "../calendar";
 
 /**
  * Colunas das folhas de rota — a do dia (`[date]/pdf`) e a da semana
@@ -18,14 +19,14 @@ import { VisitScheduleItem } from "../interface";
 
 /** Telefone de quem atende no cliente — sem ele a parada não é remarcável na rua. */
 const phoneLabel = (stop: VisitScheduleItem): string =>
-  stop.clientFactoryLink?.client?.primaryContact?.phone ?? "—";
+  itemClient(stop)?.primaryContact?.phone ?? "—";
 
 const clientRow = (stop: VisitScheduleItem): string =>
-  clientDisplayName(stop.clientFactoryLink?.client ?? null);
+  clientDisplayName(itemClient(stop));
 
 /** Nome fantasia sob a razão social: é por ele que o vendedor reconhece a loja. */
 const clientAliasRow = (stop: VisitScheduleItem): string | null =>
-  stop.clientFactoryLink?.client?.nomeFantasia ?? null;
+  itemClient(stop)?.nomeFantasia ?? null;
 
 /**
  * O endereço quebrado em duas linhas — rua e número em cima, bairro e cidade
@@ -33,7 +34,7 @@ const clientAliasRow = (stop: VisitScheduleItem): string | null =>
  * situa a loja no mapa mental de quem dirige.
  */
 export const streetRow = (stop: VisitScheduleItem): string => {
-  const client = stop.clientFactoryLink?.client;
+  const client = itemClient(stop);
   if (!client?.addressStreet) return "Endereço não cadastrado";
   return client.addressNumber
     ? `${client.addressStreet}, ${client.addressNumber}`
@@ -41,7 +42,7 @@ export const streetRow = (stop: VisitScheduleItem): string => {
 };
 
 export const cityRow = (stop: VisitScheduleItem): string | null => {
-  const client = stop.clientFactoryLink?.client;
+  const client = itemClient(stop);
   if (!client) return null;
   const city = client.addressState
     ? [client.addressCity, client.addressState].filter(Boolean).join("/")

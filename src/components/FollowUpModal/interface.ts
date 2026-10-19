@@ -77,6 +77,11 @@ export interface FollowUpModalProps {
   returnLabel?: string;
   /** Dia já sugerido (ISO) — o do retorno combinado, quando vem dele. */
   defaultDueDate?: string;
+  /**
+   * Quem vai fazer, já sugerido — a pessoa cuja agenda está aberta. Só o
+   * gestor escolhe responsável; para o vendedor é sempre ele mesmo.
+   */
+  defaultResponsible?: { id: string; name: string } | null;
   /** Depois de salvar, com o id do agendamento. */
   onSaved?: (id: string) => void;
 }

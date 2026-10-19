@@ -14,11 +14,12 @@ import { toIsoDate } from "@/utils/format/date";
 import { useMutation } from "@apollo/client/react";
 import { useMemo, useRef } from "react";
 import { RESCHEDULE_REASON_OPTIONS } from "../../../utils";
-import { RESCHEDULE_VISIT_MUTATION } from "../gql";
+import { RESCHEDULE_VISIT_MUTATION } from "../../../gql";
 import {
   RescheduleVisitModalProps,
   RescheduleVisitResponse,
 } from "./interface";
+import { itemClient } from "../../../calendar";
 
 export function RescheduleVisitModal({
   item,
@@ -32,7 +33,7 @@ export function RescheduleVisitModal({
   );
   const { execute, isLoading } = useAsyncAction();
 
-  const client = item.clientFactoryLink?.client;
+  const client = itemClient(item);
   const clientName = clientDisplayName(client, "Cliente");
 
   const steps: FormStepSchema[] = useMemo(

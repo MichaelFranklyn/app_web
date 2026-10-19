@@ -38,6 +38,7 @@ type Params = Pick<
   | "clientId"
   | "sellerId"
   | "defaultDate"
+  | "contactType"
   | "onScheduled"
 >;
 
@@ -47,13 +48,16 @@ export function useScheduleVisit({
   clientId,
   sellerId,
   defaultDate,
+  contactType: fixedContactType,
   onScheduled,
 }: Params) {
   const [selectedClientId, setSelectedClientId] = useState<string | null>(
     clientId ?? null
   );
   const [date, setDate] = useState<Date | null>(null);
-  const [contactType, setContactType] = useState<VisitContactType>("IN_PERSON");
+  const [contactType, setContactType] = useState<VisitContactType>(
+    fixedContactType ?? "IN_PERSON"
+  );
   const [selectedSellerId, setSelectedSellerId] = useState<string | null>(
     sellerId ?? null
   );
@@ -67,10 +71,10 @@ export function useScheduleVisit({
     setSelectedClientId(clientId ?? null);
     setSelectedSellerId(sellerId ?? null);
     setDate(defaultDate ? new Date(`${defaultDate}T12:00:00`) : null);
-    setContactType("IN_PERSON");
+    setContactType(fixedContactType ?? "IN_PERSON");
     setFactoryId(AUTO_FACTORY);
     setNotes("");
-  }, [open, clientId, sellerId, defaultDate]);
+  }, [open, clientId, sellerId, defaultDate, fixedContactType]);
 
   const linksInput = useMemo(
     () => ({

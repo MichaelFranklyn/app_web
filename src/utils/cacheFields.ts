@@ -183,7 +183,9 @@ export const SUPPORT_CACHE_FIELDS = [
  *
  * Os contadores são do servidor, e o agendamento também é uma linha da central
  * de pendências (`myPendingItems`) — que, por ser calculada na hora, só sabe
- * da mudança relendo.
+ * da mudança relendo. Desde 18/10/2026 ele é também uma LIGAÇÃO na agenda
+ * (`visitSchedules`/`visitSchedule`): agendar, reagendar ou transferir muda a
+ * semana de alguém.
  */
 export const FOLLOW_UP_CACHE_FIELDS = [
   "clientFollowUps",
@@ -191,6 +193,8 @@ export const FOLLOW_UP_CACHE_FIELDS = [
   "clientFollowUpOrphanCount",
   "clientFollowUp",
   "myPendingItems",
+  "visitSchedules",
+  "visitSchedule",
 ];
 
 /**

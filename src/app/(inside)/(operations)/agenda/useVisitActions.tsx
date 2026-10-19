@@ -26,6 +26,7 @@ import {
 import { usePathname, useRouter } from "next/navigation";
 import { ReactNode, useState } from "react";
 import { UPDATE_VISIT_ITEM_MUTATION } from "./gql";
+import { itemClient } from "./calendar";
 import { VisitScheduleItem } from "./interface";
 import { CompletionPromptModal } from "./_components/VisitActions/CompletionPromptModal";
 import { EditVisitModal } from "./_components/VisitActions/EditVisitModal";
@@ -121,7 +122,7 @@ export function useVisitActions({
       : item.status;
 
   const link = item.clientFactoryLink;
-  const client = link?.client ?? null;
+  const client = itemClient(item);
   const clientName = clientDisplayName(client, "Cliente");
 
   /**

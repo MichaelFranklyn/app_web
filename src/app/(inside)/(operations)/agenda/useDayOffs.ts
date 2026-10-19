@@ -27,6 +27,13 @@ interface UnmarkResponse {
 interface Args {
   /** Segunda-feira da semana em tela (ISO). */
   weekStart: string;
+  /** Último dia em tela; ausente = o domingo da semana. O mês pede o dele. */
+  to?: string;
+  /**
+   * A agenda de quem não vende (escritório) não tem folga de vendedor: a
+   * consulta nem sai (sem vendedor, ela leria as do usuário LOGADO).
+   */
+  skip?: boolean;
   /** Vendedor dono da rotina exibida; nulo = o próprio usuário logado. */
   sellerId?: string | null;
   /** A semana muda em volta: paradas trocam de dia, o dia muda de status. */
@@ -55,6 +62,8 @@ export interface DayOffsResult {
  */
 export function useDayOffs({
   weekStart,
+  to,
+  skip = false,
   sellerId,
   onChanged,
 }: Args): DayOffsResult {
@@ -66,8 +75,9 @@ export function useDayOffs({
       variables: {
         sellerId: sellerId ?? null,
         from: weekStart,
-        to: shiftDayIso(weekStart, 6),
+        to: to ?? shiftDayIso(weekStart, 6),
       },
+      skip,
       // A folga pode ter sido marcada noutra aba (ou pelo gestor) desde a
       // última visita à tela.
       fetchPolicy: "cache-and-network",

@@ -56,6 +56,30 @@ export const WEEK_SCHEDULE_QUERY = gql`
               notes
               isWholeDay
               isManual
+              isFollowUp
+              followUp {
+                id
+                reason
+                status
+              }
+              client {
+                id
+                razaoSocial
+                nomeFantasia
+                companyClient {
+                  id
+                }
+                addressStreet
+                addressNumber
+                addressNeighborhood
+                addressCity
+                addressState
+                primaryContact {
+                  id
+                  name
+                  phone
+                }
+              }
               focusFactories {
                 scoreTotal
                 factory {

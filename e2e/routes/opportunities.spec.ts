@@ -151,14 +151,13 @@ test("oportunidades: agendar o contato sai com o cliente já escolhido", async (
   const dialog = page.getByRole("dialog");
   await expect(dialog).toContainText("DECORE CASA & CONSTRUCAO");
   // O dia já vem sugerido (hoje) — e À VISTA no campo, para a pessoa conferir
-  // antes de salvar. Só falta o motivo.
+  // antes de salvar. O motivo é opcional: dá para agendar direto.
   const today = new Intl.DateTimeFormat("pt-BR", {
     timeZone: "America/Sao_Paulo",
   }).format(new Date());
   await expect(
     dialog.getByRole("textbox", { name: /Dia do contato/ })
   ).toHaveValue(today);
-  await dialog.locator('input[name="reason"]').fill("Oferecer a reposição");
   await dialog.getByRole("button", { name: "Agendar" }).click();
 
   const input = (await spy.waitForCall("CreateClientFollowUp")).input as {

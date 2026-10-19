@@ -309,7 +309,8 @@ type FollowUpSituationCountType {
 input CreateClientFollowUpInput {
   clientId: UUID!
   dueDate: Date!
-  reason: String!
+  """Opcional: vazio = "Contato com o cliente"."""
+  reason: String = null
   notes: String = null
   orderId: UUID = null
   """Quem vai fazer o contato. Vendedor: sempre ele mesmo. Ausente = quem agenda."""
@@ -8284,7 +8285,10 @@ input UpdateVisitScheduleInput {
 
 type VisitScheduleType {
   id: UUID!
-  sellerId: UUID!
+  """Nulo na agenda de quem não vende (escritório): só ligações, sem motor de rotina."""
+  sellerId: UUID
+  """De quem é a agenda — a pessoa. Na do vendedor, o usuário dele."""
+  ownerUserId: UUID
   companyId: UUID!
   weekStart: Date!
   generatedAt: DateTime!
@@ -8295,6 +8299,7 @@ type VisitScheduleType {
   createdAt: DateTime!
   updatedAt: DateTime!
   seller: SellerType
+  owner: UserType
   company: CompanyType
   days: [VisitScheduleDayType!]!
 }

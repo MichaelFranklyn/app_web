@@ -3,6 +3,7 @@ import { Divider } from "@/components/Divider";
 import { Card } from "@/components/Card";
 
 import { Badge } from "@/components/Badges";
+import { EVENT_CHIP_BG } from "@/components/EventChip";
 import { InputCheckbox } from "@/components/Input/InputCheckbox";
 import { Title } from "@/components/Title";
 import { CloudUpload, TriangleAlert } from "lucide-react";
@@ -23,15 +24,31 @@ import { useVisitActions } from "../../useVisitActions";
 import { factoryName } from "@/utils/company";
 import { contactNoun } from "@/utils/visit";
 import { ContactLinks } from "../ContactLinks";
+import { chipAppearance } from "../../appearance";
 import { ContactTypeTag } from "@/components/ContactTypeTag";
 import { FixedVisitTag } from "@/components/FixedVisitTag";
 import { TripVisitTag } from "@/components/TripVisitTag";
+import { itemClient } from "../../calendar";
+import { canDragItem, writeDrag } from "../../dragItem";
 
 interface Props {
   item: VisitScheduleItem;
   dayDate?: string | null;
+  /**
+   * `compact` é o da semana em sete colunas: o mesmo cartão (concluir, tipo,
+   * menu, fábricas, urgência), sem os divisores e as faixas de largura total
+   * que o deixavam alto, e com o fundo na cor do tipo (visita × contato) no
+   * lugar da barra lateral. O WhatsApp fica no painel — numa coluna de 140px os
+   * botões não cabem. É o cartão que se arrasta para outro dia.
+   */
+  density?: "full" | "compact";
   onChanged: () => void;
 }
+
+const TONE_BAR = {
+  amber: "border-l-(--amber)",
+  blue: "border-l-(--blue)",
+} as const;
 
 const getFactoryName = (item: VisitScheduleItem): string => {
   const factory = item.clientFactoryLink?.factory;
@@ -63,7 +80,12 @@ const getFocusLabel = (item: VisitScheduleItem): string => {
 // painel lateral de detalhes; o checkbox é um atalho para concluir/reabrir a
 // visita e o menu de três pontos cobre as demais ações. Os controles têm o
 // clique isolado (stopPropagation) para não dispararem o painel.
-export function VisitCard({ item, dayDate, onChanged }: Props) {
+export function VisitCard({
+  item,
+  dayDate,
+  density = "full",
+  onChanged,
+}: Props) {
   const {
     status,
     isAwaitingSignal,
@@ -77,7 +99,7 @@ export function VisitCard({ item, dayDate, onChanged }: Props) {
   const isCompleted = status === "COMPLETED";
   const isRemote = item.contactType === "REMOTE";
   const noun = contactNoun(item.contactType);
-  const client = item.clientFactoryLink?.client ?? null;
+  const client = itemClient(item);
   const clientName = clientDisplayName(client);
   const warning = getVisitFollowupWarning(item);
   const scoreValue = getVisitScoreTotal(item);
@@ -89,6 +111,15 @@ export function VisitCard({ item, dayDate, onChanged }: Props) {
   const showStatusBadge = status !== "PENDING" || isAwaitingSignal;
   // Score não se aplica a visita concluída: o que importa passa a ser o estado.
   const showPriority = Boolean(priority) && !isCompleted;
+  const isCompact = density === "compact";
+  const look = chipAppearance(item);
+  const isDraggable =
+    isCompact && Boolean(dayDate) && canDragItem(item, isAwaitingSignal);
+  // A combinada diz o motivo no lugar das fábricas: é ele que explica a ligação.
+  const subtitle =
+    item.isFollowUp && item.followUp
+      ? item.followUp.reason
+      : getFocusLabel(item);
 
   return (
     <>
@@ -97,6 +128,19 @@ export function VisitCard({ item, dayDate, onChanged }: Props) {
         inset
         tone="muted"
         interactive
+        className={cn(
+          isCompact
+            ? EVENT_CHIP_BG[look.tone]
+            : ["border-l-[3px]", TONE_BAR[look.tone]],
+          isCompact && (isCompleted || look.isMuted) && "opacity-80",
+          isDraggable && "cursor-grab active:cursor-grabbing"
+        )}
+        draggable={isDraggable}
+        onDragStart={
+          isDraggable && dayDate
+            ? (e) => writeDrag(e, { itemId: item.id, fromDate: dayDate })
+            : undefined
+        }
         role="button"
         tabIndex={0}
         onClick={openView}
@@ -144,12 +188,16 @@ export function VisitCard({ item, dayDate, onChanged }: Props) {
                   contrário do que ele significa. */}
                 <div className="mb-4 flex flex-wrap items-center gap-x-8 gap-y-2">
                   <ContactTypeTag contactType={item.contactType} />
-                  <FixedVisitTag fixedScheduleId={item.fixedScheduleId} />
-                  <TripVisitTag tripId={item.tripId} />
-                  <Title variant="micro" color="muted">
-                    #{item.plannedOrder}
-                    {formatVisitSlot(item)}
-                  </Title>
+                  {!isCompact && (
+                    <>
+                      <FixedVisitTag fixedScheduleId={item.fixedScheduleId} />
+                      <TripVisitTag tripId={item.tripId} />
+                      <Title variant="micro" color="muted">
+                        #{item.plannedOrder}
+                        {formatVisitSlot(item)}
+                      </Title>
+                    </>
+                  )}
                   {warning && (
                     <TriangleAlert
                       size={14}
@@ -164,25 +212,28 @@ export function VisitCard({ item, dayDate, onChanged }: Props) {
                   240px o "…" escondia justamente o que identifica a loja.
                   `break-words` cobre razão social longa sem espaços. */}
                 <Title
-                  variant="value"
+                  variant={isCompact ? "body-xs" : "value"}
+                  weight={isCompact ? "semibold" : undefined}
                   color={isCompleted ? "muted" : "default"}
                   className={cn(
                     "block break-words",
+                    isCompact && "line-clamp-2",
                     isCompleted && "line-through"
                   )}
                 >
                   {clientName}
                 </Title>
                 <Title
-                  variant="body-xs"
+                  variant={isCompact ? "micro" : "body-xs"}
                   color="muted"
                   className="mt-2 block truncate"
+                  title={subtitle}
                 >
-                  {getFocusLabel(item)}
+                  {subtitle}
                 </Title>
                 {/* O deslocamento sai do lugar do horário e vem com nome: é o
                   tempo ATÉ a parada, não a duração dela. */}
-                {formatTravelToStop(item.estimatedTravelMin) && (
+                {!isCompact && formatTravelToStop(item.estimatedTravelMin) && (
                   <Title variant="micro" color="muted" className="mt-2 block">
                     {formatTravelToStop(item.estimatedTravelMin)}
                   </Title>
@@ -199,7 +250,7 @@ export function VisitCard({ item, dayDate, onChanged }: Props) {
 
           {/* Ligar/WhatsApp direto do card: o contato remoto só é executável se o
             vendedor tiver o número à mão. Some quando já foi concluído. */}
-          {isRemote && !isCompleted && (
+          {isRemote && !isCompleted && !isCompact && (
             <div
               className="mt-8"
               onClick={(e) => e.stopPropagation()}
@@ -222,7 +273,37 @@ export function VisitCard({ item, dayDate, onChanged }: Props) {
             — ocupando a faixa inteira, cada um se lê de relance. O bloco todo
             desaparece quando não há nem score nem estado a mostrar, para não
             sobrar um divisor solto. */}
-          {(showPriority || showStatusBadge) && (
+          {/* No compacto, a urgência e a situação viram etiquetas na mesma
+            linha, do tamanho do texto — a faixa inteira dobrava a altura. */}
+          {isCompact && (showPriority || showStatusBadge) && (
+            <div className="mt-6 flex flex-wrap gap-4">
+              {showStatusBadge ? (
+                <Badge.Root
+                  color={VISIT_STATUS_COLOR[status]}
+                  appearance="tinted"
+                  title={isAwaitingSignal ? AWAITING_SIGNAL_HINT : undefined}
+                >
+                  <Badge.Text>
+                    {VISIT_STATUS_LABEL[status]}
+                    {isAwaitingSignal ? " · sem sinal" : ""}
+                  </Badge.Text>
+                </Badge.Root>
+              ) : (
+                showPriority &&
+                priority && (
+                  <Badge.Root
+                    color={priority.tone}
+                    appearance="tinted"
+                    title={`${priority.label} · score ${scoreValue?.toFixed(0)}`}
+                  >
+                    <Badge.Dot />
+                    <Badge.Text>{priority.label}</Badge.Text>
+                  </Badge.Root>
+                )
+              )}
+            </div>
+          )}
+          {!isCompact && (showPriority || showStatusBadge) && (
             <div className="mt-8 flex flex-col gap-4">
               <Divider.Root className="mb-4" />
               {showPriority && priority && (

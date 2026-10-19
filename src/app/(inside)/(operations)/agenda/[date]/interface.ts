@@ -23,7 +23,12 @@ export type {
   VisitPrimaryContact,
 } from "../interface";
 
-import type { VisitClientFactoryLink, VisitFactory } from "../interface";
+import type {
+  VisitClient,
+  VisitClientFactoryLink,
+  VisitFactory,
+  VisitFollowUp,
+} from "../interface";
 
 export type DayStatus = "PLANNED" | "IN_PROGRESS" | "DONE";
 
@@ -55,6 +60,11 @@ export interface VisitItem {
    */
   viability: Viability | null;
   clientFactoryLink: VisitClientFactoryLink | null;
+  /** O cliente da parada (a do escritório não tem vínculo). */
+  client: VisitClient | null;
+  /** Ligação combinada com o cliente — ver `VisitScheduleItem.isFollowUp`. */
+  isFollowUp: boolean;
+  followUp: VisitFollowUp | null;
 }
 
 export interface VisitDay {

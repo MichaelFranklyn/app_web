@@ -1,187 +1,155 @@
 "use client";
-import { ToggleGroup } from "@/components/ToggleGroup";
 
-import { Button } from "@/components/Button";
 import { EmptyState } from "@/components/EmptyState";
 import { PageContent } from "@/components/PageContent";
 import { QueryError } from "@/components/QueryError";
-import { Title } from "@/components/Title";
-import { CalendarOff, Users } from "lucide-react";
+import { getTodayIso } from "@/utils/format/date";
+import { Users } from "lucide-react";
 
-import { PlanWeekLink } from "./_components/PlanWeekLink";
+import { AgendaDayView } from "./_components/AgendaDayView";
+import { AgendaMonthView } from "./_components/AgendaMonthView";
+import { AgendaToolbar } from "./_components/AgendaToolbar";
+import { AgendaWeekView } from "./_components/AgendaWeekView";
 import { PrintWeekButton } from "./_components/PrintWeekButton";
 import { ResponseLinkModal } from "./_components/ResponseLinkModal";
-import { RoutinesHeader } from "./_components/RoutinesHeader";
-import { RoutinesList } from "./_components/RoutinesList";
 import { RoutinesSkeleton } from "./_components/RoutinesSkeleton";
 import { RoutinesSummary } from "./_components/RoutinesSummary";
-import { RoutinesViewToggle } from "./_components/RoutinesViewToggle";
-import { RoutinesWeekGrid } from "./_components/RoutinesWeekGrid";
+import { monthGrid } from "./calendar";
+import { useAgenda } from "./useAgenda";
 import { useDayOffs } from "./useDayOffs";
-import { useRoutines } from "./useRoutines";
+import { useMoveItem } from "./useMoveItem";
 import { formatWeekRange } from "./utils";
 
-// Quantos dias da rotina exibir (a partir de hoje); 7 = semana inteira.
-const PERIOD_OPTIONS = [
-  { label: "Hoje", value: 1 },
-  { label: "3 dias", value: 3 },
-  { label: "5 dias", value: 5 },
-  { label: "Semana", value: 7 },
-];
-
-export default function RoutinesContent() {
+/**
+ * A Agenda da pessoa (desde 18/10/2026): as visitas e as ligações dela —
+ * inclusive as combinadas com o cliente, que antes eram uma tela à parte —
+ * num dia, numa semana ou num mês, como a folhinha do Google Agenda.
+ */
+export default function AgendaContent() {
+  const agenda = useAgenda();
   const {
+    view,
+    anchor,
     weekStart,
-    setWeekStart,
-    periodDays,
-    setPeriodDays,
-    viewMode,
-    setViewMode,
-    canSelectSeller,
-    sellers,
-    selectedSellerId,
-    setSelectedSellerId,
-    effectiveSellerId,
-    capacity,
+    dates,
+    days,
     schedule,
-    showSkeleton,
-    error,
-    hasNoSellers,
-    isCurrentWeek,
-    handlePrevWeek,
-    handleNextWeek,
-    handleCurrentWeek,
+    sellerId,
+    isSellerAgenda,
     refetch,
-  } = useRoutines();
+  } = agenda;
+  const todayIso = getTodayIso();
 
-  // Os dias não trabalhados da semana em tela. Vivem fora da rotina de
-  // propósito: a folga pode ser marcada antes de a semana existir, e é assim
-  // que o job de segunda já a encontra.
+  // As folgas do período em tela. Elas vivem fora da rotina de propósito: a
+  // folga pode ser marcada antes de a semana existir.
   const { dayOffDates, mark, unmark } = useDayOffs({
-    weekStart,
-    sellerId: effectiveSellerId,
+    weekStart: dates[0] ?? weekStart,
+    to: dates.at(-1),
+    skip: !isSellerAgenda || (agenda.canSelectPerson && !sellerId),
+    sellerId,
     onChanged: () => refetch(),
   });
 
+  const onChanged = () => {
+    void refetch();
+  };
+  const moveItem = useMoveItem(onChanged);
+
   return (
     <PageContent>
-      <RoutinesHeader
+      <AgendaToolbar
+        view={view}
+        anchor={anchor}
         weekStart={weekStart}
-        sellers={canSelectSeller ? sellers : undefined}
-        selectedSellerId={selectedSellerId}
-        onSelectSeller={setSelectedSellerId}
-        onSelectDate={setWeekStart}
-        onPrevWeek={handlePrevWeek}
-        onNextWeek={handleNextWeek}
-        onCurrentWeek={handleCurrentWeek}
+        isShowingToday={agenda.isShowingToday}
+        people={agenda.canSelectPerson ? agenda.people : undefined}
+        personId={agenda.personId}
+        onSelectPerson={agenda.setPersonId}
+        sellerId={sellerId}
+        isSellerAgenda={isSellerAgenda}
+        onView={agenda.setView}
+        onPrev={agenda.goPrev}
+        onNext={agenda.goNext}
+        onToday={agenda.goToday}
       />
 
-      {showSkeleton ? (
+      {agenda.showSkeleton ? (
         <RoutinesSkeleton />
-      ) : error ? (
+      ) : agenda.error ? (
         <QueryError onRetry={() => refetch()} />
-      ) : hasNoSellers ? (
+      ) : agenda.hasNoPeople ? (
         <EmptyState.Root>
           <EmptyState.Icon>
             <Users />
           </EmptyState.Icon>
-          <EmptyState.Title>Nenhum vendedor cadastrado</EmptyState.Title>
+          <EmptyState.Title>Ninguém cadastrado ainda</EmptyState.Title>
           <EmptyState.Description>
-            Cadastre um vendedor para montar e acompanhar a agenda de visitas.
+            Cadastre as pessoas da empresa para montar e acompanhar a agenda de
+            cada uma.
           </EmptyState.Description>
-        </EmptyState.Root>
-      ) : !schedule ? (
-        <EmptyState.Root>
-          <EmptyState.Icon>
-            <CalendarOff />
-          </EmptyState.Icon>
-          <EmptyState.Title>Nada marcado nesta semana</EmptyState.Title>
-          <EmptyState.Description>
-            Nada marcado para {formatWeekRange(weekStart)}. Escolha os clientes
-            que você quer ver e o sistema monta o caminho de cada dia.
-          </EmptyState.Description>
-          <EmptyState.Actions>
-            <PlanWeekLink weekStart={weekStart} sellerId={selectedSellerId} />
-            {!isCurrentWeek && (
-              <Button.Root
-                appearance="tinted"
-                color="neutral"
-                size="sm"
-                noUppercase
-                onClick={handleCurrentWeek}
-              >
-                <Button.Title>Voltar para esta semana</Button.Title>
-              </Button.Root>
-            )}
-          </EmptyState.Actions>
         </EmptyState.Root>
       ) : (
         <>
-          <RoutinesSummary days={schedule.days} />
-
-          <div className="flex flex-wrap items-center justify-between gap-16">
-            <div
-              className="flex flex-wrap items-center gap-8"
-              data-tour="routines-period"
-            >
-              <Title variant="body-xs" color="muted" weight="medium">
-                Período:
-              </Title>
-              <ToggleGroup
-                aria-label="Período"
-                options={PERIOD_OPTIONS}
-                value={periodDays}
-                onChange={setPeriodDays}
-              />
-              <RoutinesViewToggle value={viewMode} onChange={setViewMode} />
-            </div>
-
-            <div className="flex flex-wrap items-center gap-8">
-              {/* A folha sai com a SEMANA inteira, não com o recorte do
-                  seletor de período ao lado: "Hoje/3 dias" é conveniência de
-                  leitura na grade, e um papel intitulado "rotina da semana"
-                  com três dias seria arquivado como se fosse a semana toda. */}
-              <PrintWeekButton
-                scheduleId={schedule.id}
-                weekStart={weekStart}
-                days={schedule.days}
-                sellerName={schedule.seller?.user?.name ?? null}
-                dayOffDates={[...dayOffDates]}
-              />
-              <ResponseLinkModal
-                scope={{ kind: "week", scheduleId: schedule.id }}
-                dateLabel={`semana de ${formatWeekRange(weekStart)}`}
-                isEmpty={schedule.days.every((day) => day.items.length === 0)}
-              />
-            </div>
-          </div>
+          {/* O resumo e a folha impressa são da ROTINA de quem vende, e da
+              semana inteira. */}
+          {view === "week" && isSellerAgenda && schedule && (
+            <>
+              <RoutinesSummary days={schedule.days} />
+              <div className="flex flex-wrap items-center justify-end gap-8">
+                <PrintWeekButton
+                  scheduleId={schedule.id}
+                  weekStart={weekStart}
+                  days={schedule.days}
+                  sellerName={schedule.seller?.user?.name ?? null}
+                  dayOffDates={[...dayOffDates]}
+                />
+                <ResponseLinkModal
+                  scope={{ kind: "week", scheduleId: schedule.id }}
+                  dateLabel={`semana de ${formatWeekRange(weekStart)}`}
+                  isEmpty={schedule.days.every((day) => day.items.length === 0)}
+                />
+              </div>
+            </>
+          )}
 
           <div data-tour="routines-grid">
-            {viewMode === "list" ? (
-              <RoutinesList
-                weekStart={weekStart}
-                scheduleId={schedule.id}
-                days={schedule.days}
-                sellerId={selectedSellerId}
-                effectiveSellerId={effectiveSellerId}
-                capacity={capacity}
-                periodDays={periodDays}
+            {view === "month" ? (
+              <AgendaMonthView
+                weeks={monthGrid(anchor)}
+                anchor={anchor}
+                days={days}
+                todayIso={todayIso}
+                person={agenda.selectedPerson}
+                sellerId={sellerId}
                 dayOffDates={dayOffDates}
-                onChanged={() => refetch()}
+                onOpenDay={agenda.openDay}
+                onMove={moveItem}
+                onChanged={onChanged}
               />
-            ) : (
-              <RoutinesWeekGrid
-                weekStart={weekStart}
-                scheduleId={schedule.id}
-                days={schedule.days}
-                sellerId={selectedSellerId}
-                effectiveSellerId={effectiveSellerId}
-                capacity={capacity}
-                periodDays={periodDays}
-                dayOffDates={dayOffDates}
+            ) : view === "day" ? (
+              <AgendaDayView
+                date={anchor}
+                agendaDay={days.get(anchor)}
+                todayIso={todayIso}
+                person={agenda.selectedPerson}
+                sellerId={sellerId}
+                isSellerAgenda={isSellerAgenda}
+                isDayOff={dayOffDates.has(anchor)}
                 onMarkDayOff={mark}
                 onUnmarkDayOff={unmark}
-                onChanged={() => refetch()}
+                onChanged={onChanged}
+              />
+            ) : (
+              <AgendaWeekView
+                dates={dates}
+                days={days}
+                todayIso={todayIso}
+                person={agenda.selectedPerson}
+                sellerId={sellerId}
+                dayOffDates={dayOffDates}
+                onOpenDay={agenda.openDay}
+                onMove={moveItem}
+                onChanged={onChanged}
               />
             )}
           </div>

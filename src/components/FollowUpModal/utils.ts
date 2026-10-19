@@ -2,8 +2,32 @@ import { factoryName } from "@/utils/company";
 import { extractSelectValue } from "@/utils/form";
 import { formatDate, toIsoDate } from "@/utils/format/date";
 
-/** O mesmo teto do backend (`REASON_MAX_LENGTH`): uma frase. */
-export const REASON_MAX_LENGTH = 300;
+/**
+ * Os motivos de contato mais comuns do representante. O motivo é opcional:
+ * em branco, o backend grava "Contato com o cliente". O detalhe vai nas
+ * observações.
+ */
+export const FOLLOW_UP_REASONS = [
+  "Retornar sobre o orçamento",
+  "Oferecer reposição de estoque",
+  "Apresentar promoção ou lançamento",
+  "Confirmar a entrega",
+  "Pós-venda",
+  "Cobrar pagamento",
+  "Combinar uma visita",
+];
+
+/**
+ * As opções do select. O motivo já gravado que não está na lista (escrito à
+ * mão antes de virar lista) entra como opção, para a correção não apagá-lo.
+ */
+export const reasonOptions = (current?: string | null) => {
+  const reasons =
+    current && !FOLLOW_UP_REASONS.includes(current)
+      ? [current, ...FOLLOW_UP_REASONS]
+      : FOLLOW_UP_REASONS;
+  return reasons.map((reason) => ({ value: reason, label: reason }));
+};
 
 /** "12/08/2026 · NF 1234 · Planalto" — o pedido como quem procura o reconhece. */
 export const orderLabel = (order: {
@@ -51,7 +75,7 @@ export const createInput = (
   // `toIsoDate`: o campo de data do FormBuilder não devolve ISO, e cortar a
   // string do jeito errado tira um dia da data.
   dueDate: data.dueDate ? toIsoDate(data.dueDate) : null,
-  reason: text(data.reason),
+  reason: text(extractSelectValue(data.reason)) || null,
   notes: text(data.notes) || null,
   orderId: ctx.orderId ?? (extractSelectValue(data.orderId) || null),
   responsibleUserId: ctx.canAssign
@@ -74,7 +98,7 @@ export const updateInput = (
     ? extractSelectValue(data.responsibleUserId)
     : "";
   return {
-    reason: text(data.reason),
+    reason: text(extractSelectValue(data.reason)) || null,
     notes: text(data.notes) || null,
     orderId: extractSelectValue(data.orderId) || null,
     ...(responsible ? { responsibleUserId: responsible } : {}),

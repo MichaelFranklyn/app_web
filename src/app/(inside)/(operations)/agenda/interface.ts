@@ -133,7 +133,23 @@ export interface VisitScheduleItem {
   focusFactories: VisitFocusFactory[];
   /** O que o vendedor de fato tratou, derivado das observações de estoque. */
   treatedFactories: VisitFactory[];
+  /** Nulo só na agenda de quem não vende: a ligação do escritório. */
   clientFactoryLink: VisitClientFactoryLink | null;
+  /** O cliente da parada — sempre presente, com ou sem vínculo. */
+  client: VisitClient | null;
+  /**
+   * Ligação COMBINADA com o cliente (o antigo contato agendado). Não se
+   * encerra sozinha e só sai da agenda cancelando o contato, com o motivo.
+   */
+  isFollowUp: boolean;
+  /** O combinado da ligação: o motivo e a ficha do contato. */
+  followUp: VisitFollowUp | null;
+}
+
+export interface VisitFollowUp {
+  id: string;
+  reason: string;
+  status: "SCHEDULED" | "DONE" | "CANCELLED";
 }
 
 export interface VisitScheduleDay {
@@ -158,7 +174,10 @@ export interface VisitSchedule {
   weekStart: string;
   status: ScheduleStatus;
   generatedAt: string;
+  /** Nulo na agenda do escritório (só ligações, sem motor de rotina). */
   seller: VisitScheduleSeller | null;
+  /** De quem é a agenda. */
+  ownerUserId: string | null;
   days: VisitScheduleDay[];
 }
 
@@ -184,29 +203,30 @@ export interface RoutineSellersQueryData {
   };
 }
 
-export interface VisitScheduleConfigNode {
-  id: string;
-  sellerId: string;
-  maxVisitsPerDay: number;
-  maxRemoteContactsPerDay: number;
-  isRemoteContactEnabled: boolean;
-}
-
 /**
- * Tetos diários do vendedor, um por tipo de toque.
- *
- * Viaja junto porque a rotina agora tem duas capacidades independentes — três
- * props soltas atravessariam cinco níveis de componente até o modal de
- * adicionar, que é onde elas finalmente são lidas.
+ * Uma pessoa cuja agenda o gestor pode abrir. A agenda é de PESSOA (desde
+ * 18/10/2026): quem vende tem a rotina; quem não vende (o escritório), só as
+ * ligações que marcou.
  */
-export interface RoutineCapacity {
-  maxVisitsPerDay: number;
-  maxRemoteContactsPerDay: number;
-  isRemoteContactEnabled: boolean;
+export interface AgendaPerson {
+  id: string;
+  name: string;
+  /** Perfil de vendedor, se houver — é o que liga a rotina e o motor. */
+  sellerId: string | null;
 }
 
-export interface VisitScheduleConfigQueryData {
-  visit_schedule_configs: {
-    edges: { node: VisitScheduleConfigNode }[];
+export interface AgendaPeopleQueryData {
+  agenda_people: {
+    edges: {
+      node: {
+        id: string;
+        name: string;
+        isActive: boolean;
+        seller: { id: string } | null;
+      };
+    }[];
   };
 }
+
+/** Como a agenda se mostra: um dia, a semana ou o mês. */
+export type AgendaView = "day" | "week" | "month";

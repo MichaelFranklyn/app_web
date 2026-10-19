@@ -46,6 +46,7 @@ export function ScheduleVisitModal({
   clientName,
   sellerId,
   defaultDate,
+  contactType,
   onScheduled,
 }: ScheduleVisitModalProps) {
   const form = useScheduleVisit({
@@ -54,6 +55,7 @@ export function ScheduleVisitModal({
     clientId,
     sellerId,
     defaultDate,
+    contactType,
     onScheduled,
   });
 
@@ -72,32 +74,34 @@ export function ScheduleVisitModal({
         />
         <Modal.Body>
           <div className="flex flex-col gap-12">
-            <div className="flex flex-col gap-6">
-              <Title variant="label" color="muted">
-                O que você vai fazer?
-              </Title>
-              <div className="flex gap-8">
-                {CONTACT_CHOICES.map((choice) => (
-                  <Button.Root
-                    key={choice.value}
-                    type="button"
-                    appearance={
-                      form.contactType === choice.value ? "solid" : "outline"
-                    }
-                    color={
-                      form.contactType === choice.value ? "amber" : "neutral"
-                    }
-                    size="md"
-                    noUppercase
-                    fullWidth
-                    onClick={() => form.setContactType(choice.value)}
-                  >
-                    <Button.Icon icon={choice.icon} />
-                    <Button.Title>{choice.label}</Button.Title>
-                  </Button.Root>
-                ))}
+            {!contactType && (
+              <div className="flex flex-col gap-6">
+                <Title variant="label" color="muted">
+                  O que você vai fazer?
+                </Title>
+                <div className="flex gap-8">
+                  {CONTACT_CHOICES.map((choice) => (
+                    <Button.Root
+                      key={choice.value}
+                      type="button"
+                      appearance={
+                        form.contactType === choice.value ? "solid" : "outline"
+                      }
+                      color={
+                        form.contactType === choice.value ? "amber" : "neutral"
+                      }
+                      size="md"
+                      noUppercase
+                      fullWidth
+                      onClick={() => form.setContactType(choice.value)}
+                    >
+                      <Button.Icon icon={choice.icon} />
+                      <Button.Title>{choice.label}</Button.Title>
+                    </Button.Root>
+                  ))}
+                </div>
               </div>
-            </div>
+            )}
 
             {!form.isClientFixed && (
               <Input.Select

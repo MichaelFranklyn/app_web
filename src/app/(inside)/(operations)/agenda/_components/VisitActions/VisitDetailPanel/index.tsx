@@ -9,6 +9,7 @@ import { Title } from "@/components/Title";
 import { clientDisplayName } from "@/utils/client";
 import {
   CalendarClock,
+  Handshake,
   PackageSearch,
   Pencil,
   ReceiptText,
@@ -26,6 +27,7 @@ import { ALL_OUTCOME_LABEL, contactLabel, contactNoun } from "@/utils/visit";
 import { ContactLinks } from "../../ContactLinks";
 import { VisitPlaybook } from "./VisitPlaybook";
 import { VisitScoreReasons } from "./VisitScoreReasons";
+import { itemClient } from "../../../calendar";
 
 interface Props {
   item: VisitScheduleItem;
@@ -61,13 +63,18 @@ export function VisitDetailPanel({
   onClient,
 }: Props) {
   const warning = getVisitFollowupWarning(item);
-  const client = item.clientFactoryLink?.client ?? null;
+  const client = itemClient(item);
   const factory = item.clientFactoryLink?.factory ?? null;
   const clientName = clientDisplayName(client);
   const factoryLabel = factoryName(factory);
   const isRemote = item.contactType === "REMOTE";
   const noun = contactNoun(item.contactType);
-  const typeLabel = contactLabel(item.contactType);
+  const typeLabel = item.isFollowUp
+    ? "Ligação combinada"
+    : contactLabel(item.contactType);
+  // A ligação do escritório não tem vínculo: roteiro, score e estoque são da
+  // carteira de quem vende, e ali não há o que mostrar.
+  const hasLink = Boolean(item.clientFactoryLink);
 
   const outcomeLabel = item.outcome
     ? (ALL_OUTCOME_LABEL[item.outcome] ?? item.outcome)
@@ -138,14 +145,36 @@ export function VisitDetailPanel({
           </div>
         </div>
 
+        {/* O combinado vem antes de tudo: é o motivo desta ligação, e a ficha
+              dele é onde se conta o que foi conversado, se reagenda ou se
+              cancela dizendo o porquê. */}
+        {item.isFollowUp && item.followUp && (
+          <div className="flex flex-col gap-6">
+            <Title variant="micro" color="muted">
+              Combinado com o cliente
+            </Title>
+            <Title variant="body-sm">{item.followUp.reason}</Title>
+            <Button.Link
+              href={`/follow-ups/${item.followUp.id}`}
+              appearance="tinted"
+              size="sm"
+              noUppercase
+              fullWidth
+            >
+              <Button.Icon icon={Handshake} />
+              <Button.Title>Abrir o contato combinado</Button.Title>
+            </Button.Link>
+          </div>
+        )}
+
         {/* O porquê vem antes dos detalhes de execução (horário, duração,
               deslocamento): é a informação que faz o vendedor entender a
               sugestão do sistema em vez de só cumpri-la. */}
-        <VisitScoreReasons reasons={scoreReasons} />
+        {hasLink && <VisitScoreReasons reasons={scoreReasons} />}
 
         {/* Depois do porquê, o que falar: é a ordem em que o vendedor pensa
               a visita no carro, antes de entrar na loja. */}
-        <VisitPlaybook itemId={item.id} open={open} />
+        {hasLink && <VisitPlaybook itemId={item.id} open={open} />}
 
         {/* Como falar com o cliente — só faz sentido no contato remoto; na
               visita o que importa é o endereço, que já está no mapa do dia. */}
@@ -224,17 +253,19 @@ export function VisitDetailPanel({
             <Button.Icon icon={Pencil} />
             <Button.Title>Editar {noun}</Button.Title>
           </Button.Root>
-          <Button.Root
-            appearance="outline"
-            color="neutral"
-            size="sm"
-            noUppercase
-            fullWidth
-            onClick={onStock}
-          >
-            <Button.Icon icon={PackageSearch} />
-            <Button.Title>Estoque do cliente</Button.Title>
-          </Button.Root>
+          {hasLink && (
+            <Button.Root
+              appearance="outline"
+              color="neutral"
+              size="sm"
+              noUppercase
+              fullWidth
+              onClick={onStock}
+            >
+              <Button.Icon icon={PackageSearch} />
+              <Button.Title>Estoque do cliente</Button.Title>
+            </Button.Root>
+          )}
           {onOrder && (
             <Button.Root
               appearance="outline"
