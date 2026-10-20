@@ -147,6 +147,15 @@ const nextConfig: NextConfig = {
         destination: "/agenda/:path*",
         permanent: true,
       },
+      // A rota do dia virou a visão de dia da Agenda (19/10/2026). Era uma tela
+      // à parte que buscava a agenda por outro caminho e mostrava outra pessoa;
+      // os links antigos (sino, Pendências, favoritos) abrem o mesmo dia. O
+      // `?seller=` vai junto e a Agenda o converte na pessoa.
+      {
+        source: "/agenda/:date(\\d{4}-\\d{2}-\\d{2})",
+        destination: "/agenda?view=day&date=:date",
+        permanent: false,
+      },
     ];
   },
 
