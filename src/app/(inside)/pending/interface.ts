@@ -4,7 +4,6 @@
  */
 export type PendingType =
   | "VISIT_OVERDUE"
-  | "FOLLOW_UP"
   | "RETURN_SCHEDULED"
   | "VISIT_FREQUENCY"
   | "ORDER_STALLED"
@@ -25,7 +24,6 @@ export type PendingReason =
   | "VISIT_UNANSWERED"
   | "RETURN_DATE"
   | "WANTS_VISIT"
-  | "FOLLOW_UP_DUE"
   | "DRAFT_STALE"
   | "PENDING_INVOICE"
   | "DELIVERY_UNCONFIRMED"
@@ -81,7 +79,7 @@ export interface PendingItem {
   highAfterDays: number | null;
   /** Contato marcado depois desta semana — não dispensa a pendência (ISO). */
   scheduledDate: string | null;
-  /** O motivo escrito por quem agendou o contato (só em `FOLLOW_UP`). */
+  /** Uma nota escrita por alguém sobre a pendência, quando houver. */
   note: string | null;
   /** O pedido de onde vem (pedido parado, boleto vencido). */
   orderId: string | null;

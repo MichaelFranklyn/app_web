@@ -1,7 +1,6 @@
 "use client";
 
 import { Card } from "@/components/Card";
-import { FollowUpModal } from "@/components/FollowUpModal";
 import { Loading } from "@/components/Loading";
 import { Pagination } from "@/components/Pagination";
 import { QueryError } from "@/components/QueryError";
@@ -70,7 +69,7 @@ export function OpportunityCases({
   const cases = result?.cases ?? [];
   const totalPages = Math.max(1, Math.ceil(total / PAGE_SIZE));
 
-  // A ação muda o "contato agendado para X" desta linha e as amostras do
+  // A ação muda o "ligação marcada para X" desta linha e as amostras do
   // cartão: as duas leituras voltam a perguntar.
   const afterAction = () => {
     refetch();
@@ -124,15 +123,16 @@ export function OpportunityCases({
       </Card.Body>
 
       {contactFor?.clientId && (
-        <FollowUpModal
+        <ScheduleVisitModal
           open
           onOpenChange={(open) => !open && setContactFor(null)}
           clientId={contactFor.clientId}
           clientName={contactFor.label}
+          contactType="REMOTE"
           // Hoje já sugerido: a oportunidade é para agir agora — quem quiser
           // outro dia troca, mas ninguém precisa abrir o calendário para isso.
-          defaultDueDate={getBrtTodayIso()}
-          onSaved={afterAction}
+          defaultDate={getBrtTodayIso()}
+          onScheduled={afterAction}
         />
       )}
       {visitFor?.clientId && (

@@ -86,7 +86,7 @@ test("support: a fila mostra a situação e há quanto tempo o cliente espera", 
   await page.goto("/support");
 
   await expect(
-    page.getByRole("heading", { name: "Atendimentos do cliente", level: 1 })
+    page.getByRole("heading", { name: "Reclamações de clientes", level: 1 })
   ).toBeVisible();
   await expect(page.getByText("Chegaram 3 caixas quebradas")).toBeVisible();
   await expect(page.getByText("Aguardando a fábrica").first()).toBeVisible();
@@ -112,7 +112,7 @@ test("support: os cartões do topo vêm do servidor, não da página aberta", as
     page.getByRole("heading", { name: "2", level: 3 })
   ).toBeVisible();
   await expect(
-    page.getByText("1 atendimento(s) · página 1 de 1")
+    page.getByText("1 reclamação(ões) · página 1 de 1")
   ).toBeVisible();
 });
 

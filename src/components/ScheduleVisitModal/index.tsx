@@ -1,185 +1,179 @@
 "use client";
 
-import { Alert } from "@/components/Alert";
 import { Button } from "@/components/Button";
 import { Input, SelectOption } from "@/components/Input";
 import { Modal } from "@/components/Modal";
-import { Title } from "@/components/Title";
-import { AlertTriangle, Car, Phone } from "lucide-react";
 
-import { ScheduleVisitModalProps, VisitContactType } from "./interface";
+import { AgreementFields } from "./AgreementFields";
+import { ContactTypeChoice } from "./ContactTypeChoice";
+import { ScheduleVisitModalProps } from "./interface";
 import { AUTO_FACTORY, useScheduleVisit } from "./useScheduleVisit";
 
-const CONTACT_CHOICES: {
-  value: VisitContactType;
-  label: string;
-  icon: typeof Car;
-}[] = [
-  { value: "IN_PERSON", label: "Ir até o cliente", icon: Car },
-  { value: "REMOTE", label: "Ligar para o cliente", icon: Phone },
-];
+const pick = (options: SelectOption[], value: string | null) =>
+  options.find((o) => o.value === value) ?? null;
 
-const pick = (
-  options: SelectOption[],
-  value: string | null
-): SelectOption | null => options.find((o) => o.value === value) ?? null;
-
-const single = (
-  val: SelectOption | SelectOption[] | null
-): SelectOption | null => (Array.isArray(val) ? (val[0] ?? null) : val);
+const single = (val: SelectOption | SelectOption[] | null) =>
+  Array.isArray(val) ? (val[0] ?? null) : val;
 
 /**
- * Marcar uma visita à mão: escolher o cliente, escolher o dia, marcar.
+ * Marcar uma parada na agenda — visita ou ligação — com o combinado.
  *
- * Compartilhado entre a rotina do vendedor (`/routines`, onde o cliente é
- * escolhido aqui) e a ficha do cliente (`/clients/[id]/visits`, onde ele já
- * vem definido) — as duas telas de onde alguém sai para agendar. Mora em
- * `components/` por isso: é a MESMA pergunta feita de dois lugares distantes.
+ * É o único "marcar" do sistema (19/10/2026: visita e ligação são a mesma
+ * parada com tipos diferentes), aberto da agenda, da ficha do cliente, do
+ * pedido, das pendências e das oportunidades. Mora em `components/` por isso.
  *
- * O que o modal não decide: a fábrica que motiva a visita (o backend usa a de
- * maior score, salvo escolha explícita) e o dia cheio, que volta do servidor
- * como aviso e só é furado com a confirmação de quem está marcando.
+ * A ordem dos campos é a de quem decide: de quem é a agenda (o gestor
+ * escolhe; ela recorta os clientes), o cliente, o dia, e o combinado.
  */
-export function ScheduleVisitModal({
-  open,
-  onOpenChange,
-  clientId,
-  clientName,
-  sellerId,
-  defaultDate,
-  onScheduled,
-}: ScheduleVisitModalProps) {
-  const form = useScheduleVisit({
+export function ScheduleVisitModal(props: ScheduleVisitModalProps) {
+  const {
     open,
     onOpenChange,
-    clientId,
-    sellerId,
-    defaultDate,
-    onScheduled,
-  });
-
+    clientName,
+    contactType,
+    orderLabel,
+    returnLabel,
+  } = props;
+  const form = useScheduleVisit(props);
   const isRemote = form.contactType === "REMOTE";
+  const noun = isRemote ? "ligação" : "visita";
+  const subject = [clientName, orderLabel ? `pedido de ${orderLabel}` : null]
+    .filter(Boolean)
+    .join(", ");
 
   return (
     <Modal.Root open={open} onOpenChange={onOpenChange}>
-      <Modal.Content size="sm">
+      <Modal.Content size="lg">
         <Modal.Header
-          title={isRemote ? "Marcar contato" : "Marcar visita"}
+          title={isRemote ? "Marcar ligação" : "Marcar visita"}
           description={
-            clientName
-              ? `Escolha o dia em que você vai atender ${clientName}.`
-              : "Escolha o cliente e o dia. A rotina da semana é criada se ainda não existir."
+            (subject
+              ? `Quando falar com ${subject}, e por quê.`
+              : "Escolha o cliente e o dia. A agenda da semana é criada se ainda não existir.") +
+            // Veio de um "volte dia X": dizer que esta parada resolve aquele.
+            (returnLabel
+              ? ` Ela atende o retorno combinado para ${returnLabel}.`
+              : "")
           }
         />
         <Modal.Body>
-          <div className="flex flex-col gap-12">
-            <div className="flex flex-col gap-6">
-              <Title variant="label" color="muted">
-                O que você vai fazer?
-              </Title>
-              <div className="flex gap-8">
-                {CONTACT_CHOICES.map((choice) => (
-                  <Button.Root
-                    key={choice.value}
-                    type="button"
-                    appearance={
-                      form.contactType === choice.value ? "solid" : "outline"
-                    }
-                    color={
-                      form.contactType === choice.value ? "amber" : "neutral"
-                    }
-                    size="md"
-                    noUppercase
-                    fullWidth
-                    onClick={() => form.setContactType(choice.value)}
-                  >
-                    <Button.Icon icon={choice.icon} />
-                    <Button.Title>{choice.label}</Button.Title>
-                  </Button.Root>
-                ))}
+          <div className="grid grid-cols-12 gap-12">
+            {!contactType && !form.agenda.callsOnly && (
+              <div className="col-span-12">
+                <ContactTypeChoice
+                  value={form.contactType}
+                  onChange={form.setContactType}
+                />
               </div>
-            </div>
+            )}
+
+            {form.agenda.canChoose && (
+              <div className="col-span-12">
+                <Input.Select
+                  label="Agenda de quem"
+                  required
+                  hint="Escolha primeiro: os clientes da lista são os da carteira de quem vende. Quem não vende só recebe ligação."
+                  options={form.agenda.options}
+                  value={pick(
+                    form.agenda.options,
+                    form.agenda.owner?.id ?? null
+                  )}
+                  variant="single"
+                  loading={form.agenda.loading}
+                  placeholder="Escolher a pessoa"
+                  onChange={(val) => form.pickOwner(single(val)?.value ?? null)}
+                />
+              </div>
+            )}
 
             {!form.isClientFixed && (
-              <Input.Select
-                label="Cliente"
-                required
-                options={form.clientOptions}
-                value={pick(form.clientOptions, form.selectedClientId)}
-                variant="single"
-                loading={form.clientsLoading}
-                placeholder={
-                  form.clientsLoading
-                    ? "Carregando clientes…"
-                    : "Selecionar cliente"
-                }
-                onChange={(val) =>
-                  form.setSelectedClientId(single(val)?.value ?? null)
-                }
-              />
+              <div className="col-span-12">
+                <Input.Select
+                  label="Cliente"
+                  required
+                  options={form.clientOptions}
+                  value={pick(form.clientOptions, form.selectedClientId)}
+                  variant="single"
+                  loading={form.clientsLoading}
+                  onSearch={form.onSearchClients}
+                  disabled={!form.agenda.owner}
+                  placeholder={
+                    form.agenda.owner
+                      ? "Ex: digite o nome do cliente"
+                      : "Escolha de quem é a agenda primeiro"
+                  }
+                  onChange={(val) =>
+                    form.setSelectedClientId(single(val)?.value ?? null)
+                  }
+                />
+              </div>
             )}
 
-            <Input.Date
-              label="Dia da visita"
-              required
-              variant="single"
-              value={form.date}
-              placeholder="Escolher o dia"
-              hint="Pode ser hoje ou qualquer dia à frente."
-              onChange={(value) =>
-                form.setDate(value instanceof Date ? value : null)
+            <div
+              className={
+                orderLabel ? "col-span-12" : "desktop:col-span-6 col-span-12"
               }
-            />
-
-            {form.needsSellerChoice && (
-              <Input.Select
-                label="Vendedor"
+            >
+              <Input.Date
+                label={`Dia da ${noun}`}
                 required
-                hint="Este cliente é atendido por mais de um vendedor."
-                options={form.sellerOptions}
-                value={pick(form.sellerOptions, form.selectedSellerId)}
                 variant="single"
-                placeholder="Selecionar vendedor"
-                onChange={(val) =>
-                  form.setSelectedSellerId(single(val)?.value ?? null)
+                value={form.date}
+                placeholder="Escolher o dia"
+                hint="Pode ser hoje ou qualquer dia à frente."
+                onChange={(value) =>
+                  form.setDate(value instanceof Date ? value : null)
                 }
               />
+            </div>
+
+            {!orderLabel && (
+              <div className="desktop:col-span-6 col-span-12">
+                <Input.Select
+                  label="Pedido relacionado"
+                  hint="Os 20 pedidos mais recentes deste cliente."
+                  options={form.orderOptions}
+                  value={pick(form.orderOptions, form.orderId)}
+                  variant="single"
+                  disabled={!form.selectedClientId}
+                  placeholder={
+                    !form.selectedClientId
+                      ? "Escolha o cliente primeiro"
+                      : form.orderOptions.length === 0
+                        ? "Nenhum pedido recente"
+                        : "Escolha o pedido, se houver"
+                  }
+                  onChange={(val) =>
+                    form.setOrderId(single(val)?.value ?? null)
+                  }
+                />
+              </div>
             )}
 
-            {form.factoryOptions.length > 2 && (
-              <Input.Select
-                placeholder="Escolha a fábrica principal"
-                label="Fábrica principal"
-                hint="Serve para registrar o motivo da visita. As outras fábricas do cliente podem ser tratadas na mesma ida."
-                options={form.factoryOptions}
-                value={pick(form.factoryOptions, form.factoryId)}
-                variant="single"
-                disabledClear
-                onChange={(val) =>
-                  form.setFactoryId(single(val)?.value ?? AUTO_FACTORY)
-                }
+            {!isRemote && form.factoryOptions.length > 2 && (
+              <div className="col-span-12">
+                <Input.Select
+                  label="Fábrica principal"
+                  hint="Serve para registrar o motivo da visita. As outras fábricas do cliente podem ser tratadas na mesma ida."
+                  options={form.factoryOptions}
+                  value={pick(form.factoryOptions, form.factoryId)}
+                  variant="single"
+                  disabledClear
+                  onChange={(val) =>
+                    form.setFactoryId(single(val)?.value ?? AUTO_FACTORY)
+                  }
+                />
+              </div>
+            )}
+
+            <div className="col-span-12 flex flex-col gap-12">
+              <AgreementFields
+                reason={form.reason}
+                onReason={form.setReason}
+                notes={form.notes}
+                onNotes={form.setNotes}
               />
-            )}
-
-            <Input.Textarea
-              label="Observação"
-              placeholder="O que o cliente pediu, o que levar…"
-              value={form.notes}
-              rows={3}
-              onChange={(e) => form.setNotes(e.target.value)}
-            />
-
-            {form.dayFullMessage && (
-              <Alert.Root variant="warning">
-                <AlertTriangle size={14} className="mt-[1px] shrink-0" />
-                <Alert.Content>
-                  <Alert.Description>
-                    {form.dayFullMessage} Você pode marcar mesmo assim ou
-                    escolher outro dia.
-                  </Alert.Description>
-                </Alert.Content>
-              </Alert.Root>
-            )}
+            </div>
           </div>
         </Modal.Body>
         <Modal.Footer>
@@ -203,14 +197,10 @@ export function ScheduleVisitModal({
             noUppercase
             loading={form.isLoading}
             disabled={!form.isValid}
-            onClick={() => form.submit(Boolean(form.dayFullMessage))}
+            onClick={() => form.submit()}
           >
             <Button.Title>
-              {form.dayFullMessage
-                ? "Marcar mesmo assim"
-                : isRemote
-                  ? "Marcar contato"
-                  : "Marcar visita"}
+              {isRemote ? "Marcar ligação" : "Marcar visita"}
             </Button.Title>
           </Button.Root>
         </Modal.Footer>

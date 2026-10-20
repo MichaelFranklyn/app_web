@@ -440,6 +440,9 @@ export function OrderItemsTable({
                     <div className="flex items-center justify-end gap-4">
                       <EditOrderItemModal
                         item={item}
+                        orderId={orderId}
+                        clientId={clientId}
+                        factoryId={factoryId}
                         ipiInOrder={ipiInOrder}
                         onOptimisticUpdate={updateOptimistic}
                         onRollback={rollback}

@@ -26,30 +26,17 @@ const sections = (role?: string, features: PlanFeature[] = ALL) =>
     .map((item) => (item as { section: string }).section);
 
 describe("visibleNav — papel", () => {
-  it("dá ao dono os três destinos de configuração", () => {
-    expect(hrefs("OWNER")).toEqual(
-      expect.arrayContaining([
-        "/settings/company",
-        "/settings/users",
-        "/settings/catalog",
-      ])
-    );
-    expect(sections("OWNER")).toContain("Configurações");
+  it("configurações é UM item, para dono e administrador", () => {
+    // As telas da área se escolhem no menu interno (settings/navigation.ts).
+    for (const role of ["OWNER", "ADMIN"]) {
+      const settings = hrefs(role).filter((h) => h.startsWith("/settings"));
+      expect(settings).toEqual(["/settings"]);
+      expect(sections(role)).not.toContain("Configurações");
+    }
   });
 
-  it("esconde Empresa do admin, que não é dono da conta", () => {
-    // `updateCompany` é @is_owner no backend: o item levaria a um redirect.
-    expect(hrefs("ADMIN")).not.toContain("/settings/company");
-    expect(hrefs("ADMIN")).toEqual(
-      expect.arrayContaining(["/settings/users", "/settings/catalog"])
-    );
-  });
-
-  it("esconde a seção inteira do vendedor, sem deixar título solto", () => {
-    expect(hrefs("SELLER")).not.toContain("/settings/users");
-    expect(hrefs("SELLER")).not.toContain("/settings/catalog");
-    expect(hrefs("SELLER")).not.toContain("/settings/company");
-    expect(sections("SELLER")).not.toContain("Configurações");
+  it("esconde configurações do vendedor", () => {
+    expect(hrefs("SELLER").some((h) => h.startsWith("/settings"))).toBe(false);
   });
 
   it("não deixa divisor sobrando no fim da lista", () => {
@@ -96,7 +83,7 @@ describe("visibleNav — papel", () => {
 describe("visibleNav — plano", () => {
   it("esconde o que a empresa não contratou", () => {
     const semRotina = hrefs("OWNER", ["COMMISSIONS", "GOALS"]);
-    expect(semRotina).not.toContain("/routines");
+    expect(semRotina).not.toContain("/agenda");
     expect(semRotina).toContain("/commissions");
     expect(semRotina).toContain("/goals");
   });
@@ -134,7 +121,7 @@ describe("visibleNav — plano", () => {
       .filter((item) => "label" in item)
       .map((item) => (item as { label: string }).label);
     expect(labels).not.toContain("Rota do dia");
-    expect(labels).not.toContain("Rotina da Semana");
+    expect(labels).not.toContain("Agenda");
   });
 
   it("não deixa seção órfã quando o plano esvazia o grupo", () => {

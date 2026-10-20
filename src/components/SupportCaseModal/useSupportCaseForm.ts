@@ -354,7 +354,7 @@ export function useSupportCaseForm({
           });
           const payload = res.data?.updateClientSupportCase;
           if (!payload?.status) {
-            throw new Error(payload?.message ?? "Erro ao salvar o atendimento");
+            throw new Error(payload?.message ?? "Erro ao salvar a reclamação");
           }
           return payload;
         }
@@ -369,16 +369,14 @@ export function useSupportCaseForm({
         });
         const payload = res.data?.createClientSupportCase;
         if (!payload?.status) {
-          throw new Error(
-            payload?.message ?? "Erro ao registrar o atendimento"
-          );
+          throw new Error(payload?.message ?? "Erro ao registrar a reclamação");
         }
         return payload;
       },
       {
         successMessage: isEditing
-          ? "Atendimento atualizado"
-          : "Atendimento registrado",
+          ? "Reclamação atualizada"
+          : "Reclamação registrada",
         onSuccess: () => {
           onOpenChange(false);
           onSaved?.();

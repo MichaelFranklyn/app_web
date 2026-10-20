@@ -3,12 +3,9 @@ import { isAdminRole, isOwnerRole } from "@/utils/auth/roles";
 import { redirect } from "next/navigation";
 
 /**
- * O hub de configurações deixou de existir: cada assunto virou item na sidebar
- * (Empresa, Pessoas, Catálogos), então uma página só para listar atalhos era um
- * clique a mais para chegar no mesmo lugar.
- *
- * A rota continua porque os breadcrumbs das telas internas apontam "Configurações"
- * para cá — e manda para o primeiro assunto que o papel abre. Redirecionar todo
+ * A porta da área: o item "Configurações" da sidebar e os breadcrumbs das telas
+ * internas apontam para cá. Não há tela própria — o menu da área (`layout.tsx`)
+ * já lista as telas, então isto manda para a primeira que o papel abre. Redirecionar todo
  * mundo para `/settings/company` jogaria o admin em `requireOwnerPage`, e ele
  * cairia fora de novo.
  */

@@ -81,21 +81,21 @@ describe("a copy não fala em atraso", () => {
 });
 
 describe("scheduledNote", () => {
-  it("avisa o contato agendado e a visita marcada", () => {
+  it("avisa a ligação e a visita marcadas", () => {
     expect(
-      scheduledNote({ nextFollowUpDate: "2026-10-14", nextVisitDate: null })
-    ).toBe("Contato agendado para 14/10/2026");
+      scheduledNote({ nextCallDate: "2026-10-14", nextVisitDate: null })
+    ).toBe("Ligação marcada para 14/10/2026");
     expect(
       scheduledNote({
-        nextFollowUpDate: "2026-10-14",
+        nextCallDate: "2026-10-14",
         nextVisitDate: "2026-10-20",
       })
-    ).toBe("Contato agendado para 14/10/2026 · Visita marcada para 20/10/2026");
+    ).toBe("Ligação marcada para 14/10/2026 · Visita marcada para 20/10/2026");
   });
 
   it("nada marcado, nada a dizer", () => {
     expect(
-      scheduledNote({ nextFollowUpDate: null, nextVisitDate: null })
+      scheduledNote({ nextCallDate: null, nextVisitDate: null })
     ).toBeNull();
   });
 });

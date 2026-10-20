@@ -99,7 +99,7 @@ export function CaseRow({
             noUppercase
             onClick={() => onScheduleContact(item)}
           >
-            <Button.Title>Agendar contato</Button.Title>
+            <Button.Title>Marcar ligação</Button.Title>
           </Button.Root>
           {canPlanVisits && (
             <Button.Root

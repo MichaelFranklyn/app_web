@@ -124,7 +124,7 @@ export default function InsideShell({
                 };
                 // Antes de resolver a data no cliente, aponta para a grade semanal
                 // (evita divergência de hidratação com o horário do servidor).
-                const href = todayIso ? `/routines/${todayIso}` : "/routines";
+                const href = todayIso ? `/agenda/${todayIso}` : "/agenda";
                 return (
                   <Sidebar.Item
                     key="rota-do-dia"
@@ -132,7 +132,7 @@ export default function InsideShell({
                     icon={icon}
                     active={isDayRoute}
                     collapsed={isCollapsed}
-                    data-tour-route="/routines/today"
+                    data-tour-route="/agenda/today"
                   >
                     {label}
                   </Sidebar.Item>
@@ -151,8 +151,8 @@ export default function InsideShell({
               // aba padrão), mas que deve ficar ativo em todo o prefixo.
               const activeBase = matchPrefix ?? href;
               const isActive =
-                href === "/routines"
-                  ? pathname === "/routines"
+                href === "/agenda"
+                  ? pathname === "/agenda"
                   : pathname === activeBase ||
                     pathname.startsWith(`${activeBase}/`);
 

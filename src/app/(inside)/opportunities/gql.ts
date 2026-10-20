@@ -25,7 +25,7 @@ export const MY_OPPORTUNITIES_QUERY = gql`
             link
             reason
             clientId
-            nextFollowUpDate
+            nextCallDate
             nextVisitDate
           }
         }
@@ -79,7 +79,7 @@ export const OPPORTUNITY_CASES_QUERY = gql`
           link
           reason
           clientId
-          nextFollowUpDate
+          nextCallDate
           nextVisitDate
         }
       }

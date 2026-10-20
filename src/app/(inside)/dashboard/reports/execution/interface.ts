@@ -7,7 +7,7 @@ export interface ExecutionSellerRow {
   worked: number;
   /** Das `worked`, as concluídas pelo pedido, sem ninguém marcar. */
   workedInferred: number;
-  /** Fechadas pelo sistema após 7 dias sem resposta. Não são execução. */
+  /** Fechadas pelo sistema no fim do dia seguinte sem resposta. Não são execução. */
   autoClosed: number;
   /** Sem resposta e ainda dentro do prazo. */
   pending: number;

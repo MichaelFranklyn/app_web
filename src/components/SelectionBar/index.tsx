@@ -2,6 +2,7 @@
 
 import { Button } from "@/components/Button";
 import { Title } from "@/components/Title";
+import { cn } from "@/lib/utils";
 import { X } from "lucide-react";
 import { useEffect, useState } from "react";
 import { createPortal } from "react-dom";
@@ -38,6 +39,7 @@ export function SelectionBar({
   children,
   onClear,
   clearLabel = "Limpar seleção",
+  className,
 }: SelectionBarProps) {
   const [mounted, setMounted] = useState(false);
   useEffect(() => setMounted(true), []);
@@ -57,7 +59,7 @@ export function SelectionBar({
 
   return createPortal(
     <div
-      className={selectionBarStyles.container}
+      className={cn(selectionBarStyles.container, className)}
       role="region"
       aria-label="Ações da seleção"
     >

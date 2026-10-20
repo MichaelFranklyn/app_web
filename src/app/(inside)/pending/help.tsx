@@ -29,11 +29,12 @@ export const PENDING_HELP: ReactNode = (
       <BulletList.Item>
         <Emphasis>Cliente sem contato:</Emphasis> nem visita, nem ligação, nem
         pedido fechado há mais de 30 dias. Orçamento não conta como contato;
-        contato agendado concluído conta. Quem está aqui não aparece também em
+        ligação respondida na agenda conta. Quem está aqui não aparece também em
         &quot;frequência vencida&quot; — o problema é um só.
       </BulletList.Item>
       <BulletList.Item>
-        Contatos agendados e retornos que você combinou com o cliente.
+        Retornos que você combinou com o cliente (&quot;volte dia 20&quot;,
+        &quot;pode vir&quot;).
       </BulletList.Item>
       <BulletList.Item>
         Pedidos parados: orçamento sem resposta, sem faturar ou sem confirmar a

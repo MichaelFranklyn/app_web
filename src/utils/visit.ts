@@ -72,7 +72,10 @@ export type VisitContactType = "IN_PERSON" | "REMOTE";
 /** Rótulo do tipo de toque (fonte única entre routines e clients). */
 export const CONTACT_TYPE_LABEL: Record<VisitContactType, string> = {
   IN_PERSON: "Visita",
-  REMOTE: "Contato",
+  // "Ligação", e não "Contato" (19/10/2026): é a palavra de quem usa, e o
+  // tipo que vier depois (WhatsApp) também é contato. Os dois rótulos são
+  // femininos — as frases que concordam com eles usam "a".
+  REMOTE: "Ligação",
 };
 
 /**
@@ -97,11 +100,6 @@ export const contactLabel = (
 export const contactNoun = (
   contactType: VisitContactType | null | undefined
 ): string => contactLabel(contactType).toLowerCase();
-
-/** Concordância de gênero: "a visita" × "o contato". */
-export const contactArticle = (
-  contactType: VisitContactType | null | undefined
-): string => (asContactType(contactType) === "REMOTE" ? "o" : "a");
 
 const toOptions = (map: Record<string, string>) =>
   Object.entries(map).map(([value, label]) => ({ value, label }));

@@ -184,12 +184,17 @@ export const CLIENT_VISITS_QUERY = gql`
           outcomeReason
           actualVisitAt
           notes
+          reason
           day {
             id
             date
             schedule {
               id
               seller {
+                id
+                name
+              }
+              owner {
                 id
                 name
               }

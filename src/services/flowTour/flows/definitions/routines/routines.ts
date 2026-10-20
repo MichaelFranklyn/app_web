@@ -2,49 +2,52 @@ import { FlowDefinition } from "../../../interface";
 import { ROUTINES_FLOW } from "../../keys";
 import { FLOW_ROUTES } from "../../routes";
 
-// Tour da Rotina da Semana. Dispara sozinho na 1ª visita. Os passos de período/grade
-// usam requireSelector para serem pulados quando não há rotina na semana (empty state).
+// Tour da Agenda. Dispara sozinho na 1ª visita (versão 3: a agenda deixou de vir
+// pronta em 18/10/2026; versão 4: o cabeçalho separou "Montar semana" do
+// navegador; versão 5: a agenda virou folhinha — dia, semana e mês — e passou a
+// ter as ligações combinadas com o cliente). Montar semana só existe na agenda
+// de quem vende, por isso o passo dele pede o alvo.
 export const routinesFlow: FlowDefinition = {
   key: ROUTINES_FLOW,
-  label: "Tour da Rotina da Semana",
-  description: "Acompanhe e organize as visitas planejadas da semana.",
+  label: "Tour da Agenda",
+  description:
+    "Veja o seu dia, a semana ou o mês, e marque as ligações combinadas com o cliente.",
   group: "Primeiros passos",
   route: FLOW_ROUTES.routines,
-  version: 2,
+  version: 5,
   autoStart: true,
   steps: [
     {
-      element: '[data-tour="routines-header-actions"]',
-      title: "Semana e vendedor",
+      element: '[data-tour="routines-week-nav"]',
+      title: "Que dia, que semana",
       description:
-        "Navegue entre as semanas e volte para a semana atual. Como administrador, você também escolhe de qual vendedor quer ver a rotina.",
-      side: "bottom",
-      align: "end",
-    },
-    {
-      element: '[data-tour="routines-period"]',
-      requireSelector: '[data-tour="routines-period"]',
-      title: "Período exibido",
-      description:
-        "Escolha quanto da rotina ver de uma vez: só hoje, 3 dias, 5 dias ou a semana inteira.",
+        "Hoje volta para o dia de hoje; as setas andam para trás e para a frente. Como administrador, aqui você também escolhe de quem é a agenda.",
       side: "bottom",
       align: "start",
     },
     {
       element: '[data-tour="routines-view-toggle"]',
-      requireSelector: '[data-tour="routines-view-toggle"]',
-      title: "Kanban ou lista",
+      title: "Dia, semana ou mês",
       description:
-        "Escolha como ver a rotina: em quadro (Kanban), com uma coluna por dia, ou em lista, com as visitas de cada dia empilhadas.",
+        "Veja um dia com todos os detalhes, a semana inteira de uma vez ou o mês, como numa folhinha.",
+      side: "bottom",
+      align: "end",
+    },
+    {
+      element: '[data-tour="routines-header-actions"]',
+      requireSelector: '[data-tour="routines-header-actions"]',
+      title: "Monte a sua semana",
+      description:
+        "Em Montar semana você escolhe quem quer visitar ou ligar, e o sistema separa por região e monta o caminho de cada dia.",
       side: "bottom",
       align: "end",
     },
     {
       element: '[data-tour="routines-grid"]',
       requireSelector: '[data-tour="routines-grid"]',
-      title: "Suas visitas",
+      title: "Seus compromissos",
       description:
-        "Aqui ficam as visitas planejadas por dia. Você pode registrar o que aconteceu em cada visita.",
+        "Cada linha é um compromisso: visita, ligação ou, em roxo, a ligação combinada com o cliente. Clique para ver os detalhes e dizer o que aconteceu; em Agendar você marca uma ligação nova.",
       side: "top",
       align: "start",
     },

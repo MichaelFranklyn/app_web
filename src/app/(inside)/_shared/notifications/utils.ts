@@ -13,7 +13,7 @@ export const OPPORTUNITIES_ROUTE = "/opportunities";
 /**
  * Para onde cada aviso CONCLUÍDO pelo sistema (categoria INSIGHT) leva — a
  * lista de referência do assunto, já filtrada. Pelo `relatedEntityType`, e não
- * pelo `link` gravado: os avisos antigos guardaram "/routines", e o clique
+ * pelo `link` gravado: os avisos antigos guardaram "/agenda", e o clique
  * neles também tem de cair na lista certa.
  *
  * - frequência de visita vencida → Pendências, no tipo;

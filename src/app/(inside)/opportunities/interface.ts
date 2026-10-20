@@ -25,9 +25,9 @@ export interface OpportunityCase {
   reason: OpportunityCaseReason | null;
   /** O cliente (id global) — para agendar o contato ou planejar a visita. */
   clientId: string | null;
-  /** Contato agendado em aberto para o cliente (ISO), de qualquer pessoa. */
-  nextFollowUpDate: string | null;
-  /** Visita (ou ligação) já marcada na rotina, de hoje em diante (ISO). */
+  /** Ligação já marcada na agenda de qualquer pessoa, de hoje em diante (ISO). */
+  nextCallDate: string | null;
+  /** Visita já marcada na agenda, de hoje em diante (ISO). */
   nextVisitDate: string | null;
 }
 

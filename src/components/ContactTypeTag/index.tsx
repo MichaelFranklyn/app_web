@@ -26,7 +26,10 @@ export function ContactTypeTag({ contactType, className }: Props) {
       <Icon
         size={13}
         aria-hidden
-        className={cn("shrink-0", isRemote ? "text-(--blue)" : "text-(--fg3)")}
+        className={cn(
+          "shrink-0",
+          isRemote ? "text-(--blue)" : "text-(--amber)"
+        )}
       />
       <Title variant="micro" color={isRemote ? "default" : "muted"}>
         {contactLabel(contactType)}

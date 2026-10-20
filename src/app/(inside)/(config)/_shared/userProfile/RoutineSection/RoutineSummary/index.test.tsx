@@ -27,9 +27,7 @@ const LINHAS_DO_EDITOR = [
   "Dias de trabalho",
   "Começa às",
   "Termina às",
-  "Visitas por dia",
   "Ligar entre visitas",
-  "Ligações por dia",
   "Ligar a partir de",
   "Tempo médio de visita",
   "Ausência é remarcada",
@@ -49,15 +47,16 @@ describe("RoutineSummary", () => {
     expect(screen.getByText("Seg, Ter, Qua, Qui, Sex")).toBeInTheDocument();
     expect(screen.getByText("08:00")).toBeInTheDocument();
     expect(screen.getByText("18:00")).toBeInTheDocument();
-    expect(screen.getByText("até 8")).toBeInTheDocument();
-    expect(screen.getByText("até 5")).toBeInTheDocument();
+    // Sem teto de visitas por dia desde 18/10/2026: o número não aparece mais.
+    expect(screen.queryByText("até 8")).not.toBeInTheDocument();
+    expect(screen.queryByText("até 5")).not.toBeInTheDocument();
     expect(screen.getByText("50% do intervalo")).toBeInTheDocument();
     expect(screen.getByText("30 min")).toBeInTheDocument();
     expect(screen.getByText("na mesma semana")).toBeInTheDocument();
     expect(screen.getByText("3")).toBeInTheDocument();
   });
 
-  // O editor esconde os dois parâmetros quando o contato remoto está desligado;
+  // O editor esconde o parâmetro de ligação quando o contato está desligado;
   // o resumo faz o mesmo, senão mostraria número que não é usado.
   it("esconde os parâmetros de ligação quando o contato está desligado", () => {
     render(
@@ -65,7 +64,6 @@ describe("RoutineSummary", () => {
     );
     expect(screen.getByText("Ligar entre visitas")).toBeInTheDocument();
     expect(screen.getByText("não")).toBeInTheDocument();
-    expect(screen.queryByText("Ligações por dia")).toBeNull();
     expect(screen.queryByText("Ligar a partir de")).toBeNull();
   });
 

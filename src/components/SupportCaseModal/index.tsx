@@ -36,9 +36,7 @@ export function SupportCaseModal({
     onSaved,
   });
 
-  const title = form.isEditing
-    ? "Corrigir atendimento"
-    : "Registrar atendimento";
+  const title = form.isEditing ? "Corrigir reclamação" : "Registrar reclamação";
   const description = form.isEditing
     ? "Corrija o que se descobriu depois: a fábrica, a nota, o valor."
     : clientName

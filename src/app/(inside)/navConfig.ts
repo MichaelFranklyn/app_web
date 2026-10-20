@@ -1,21 +1,17 @@
 import { PlanFeature } from "@/services/plan";
 import { isAdminRole, isOwnerRole } from "@/utils/auth/roles";
 import {
-  BadgeCheck,
   Building2,
   CalendarDays,
   ClipboardList,
   Coins,
   Headset,
-  Import,
   LayoutDashboard,
   ListChecks,
-  PhoneCall,
   Route,
+  Settings,
   Sparkles,
-  Tags,
   Target,
-  UserCog,
   Users,
 } from "lucide-react";
 
@@ -78,8 +74,8 @@ export const NAV = [
   { divider: true },
   { section: "Operações" },
   {
-    href: "/routines",
-    label: "Rotina da Semana",
+    href: "/agenda",
+    label: "Agenda",
     icon: CalendarDays,
     feature: "ROUTINES" as NavFeature,
   },
@@ -113,16 +109,8 @@ export const NAV = [
     // resolver, não no menu).
     href: "/support",
     matchPrefix: "/support",
-    label: "Atendimentos",
+    label: "Reclamações",
     icon: Headset,
-  },
-  {
-    // Contatos agendados (follow-up). Sem `feature` e sem `access`: o vendedor
-    // vê os dele, o gestor os da empresa — o recorte é no resolver.
-    href: "/follow-ups",
-    matchPrefix: "/follow-ups",
-    label: "Contatos agendados",
-    icon: PhoneCall,
   },
   {
     href: "/factories",
@@ -130,46 +118,15 @@ export const NAV = [
     icon: Building2,
   },
   { divider: true },
-  // Configuração desdobrada: em vez de um item único levando ao hub, cada assunto
-  // é um destino na sidebar. Quem precisa mexer no catálogo chega em um clique, e
-  // não em três. `access` espelha o guard da rota — item que leva a um redirect é
-  // pior do que item ausente (mesma regra do hub, em settings/utils.ts).
-  { section: "Configurações" },
   {
-    href: "/settings/company",
-    label: "Empresa",
-    icon: Building2,
-    access: "owner",
-  },
-  {
-    href: "/settings/users",
-    matchPrefix: "/settings/users",
-    label: "Pessoas",
-    icon: UserCog,
-    access: "admin",
-  },
-  {
-    // Sem `feature`: a tela do plano existe em TODO plano — é onde se descobre
-    // por que um botão parou de funcionar.
-    href: "/settings/plan",
-    label: "Plano",
-    icon: BadgeCheck,
-    access: "owner",
-  },
-  {
-    href: "/settings/catalog",
-    matchPrefix: "/settings/catalog",
-    label: "Catálogos",
-    icon: Tags,
-    access: "admin",
-  },
-  {
-    // A migração de quem chega de outro sistema (clientes → produtos →
-    // histórico de pedidos). Gestão: mexe na carteira inteira.
-    href: "/settings/import",
-    matchPrefix: "/settings/import",
-    label: "Trazer dados",
-    icon: Import,
+    // Um item só: as telas (Empresa, Plano, Pessoas, Catálogos, Trazer dados)
+    // se escolhem no menu interno da área (`settings/navigation.ts`). Antes
+    // eram cinco itens soltos aqui. `access: "admin"` porque toda tela da
+    // área é de gestão — e o vendedor, em `/settings`, seria mandado ao perfil.
+    href: "/settings",
+    matchPrefix: "/settings",
+    label: "Configurações",
+    icon: Settings,
     access: "admin",
   },
 ];

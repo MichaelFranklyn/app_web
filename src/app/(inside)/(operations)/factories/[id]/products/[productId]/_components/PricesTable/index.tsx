@@ -31,6 +31,8 @@ interface Props {
   unitPerPack: string;
   baseUnitLabel: string | null;
   packLabel: string | null;
+  /** Disparado depois de criar, editar ou remover um preço (o histórico ressincroniza). */
+  onChanged?: () => void;
 }
 
 export function PricesTable({
@@ -39,6 +41,7 @@ export function PricesTable({
   unitPerPack,
   baseUnitLabel,
   packLabel,
+  onChanged,
 }: Props) {
   const pack: PackInfo = {
     unitPerPack: Number(unitPerPack) || 0,
@@ -68,6 +71,7 @@ export function PricesTable({
 
   const handleChanged = () => {
     table.refetch();
+    onChanged?.();
   };
 
   return (

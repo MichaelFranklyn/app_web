@@ -18,6 +18,10 @@ import {
   DiscountType,
   discountToAmount,
 } from "../../../../../_shared/orderDraftItems";
+import {
+  LastPurchasePrices,
+  useLastPurchasePrices,
+} from "../../../../../_shared/lastPurchasePrices";
 import { isQuantityMultiple } from "../../../../../_shared/orderItemCatalog";
 import { OrderItem } from "../../../interface";
 import { UPDATE_ORDER_ITEM_MUTATION } from "../gql";
@@ -32,6 +36,10 @@ interface UpdateOrderItemResponse {
 
 interface Props {
   item: OrderItem;
+  /** Pedido, cliente e fábrica: o que o cliente pagou nas compras anteriores. */
+  orderId: string;
+  clientId?: string | null;
+  factoryId: string | null;
   ipiInOrder?: boolean;
   onOptimisticUpdate: (id: string, updates: Partial<OrderItem>) => void;
   onRollback: () => void;
@@ -40,6 +48,9 @@ interface Props {
 
 export function EditOrderItemModal({
   item,
+  orderId,
+  clientId,
+  factoryId,
   ipiInOrder = false,
   onOptimisticUpdate,
   onRollback,
@@ -53,6 +64,21 @@ export function EditOrderItemModal({
     UPDATE_ORDER_ITEM_MUTATION
   );
   const { execute, isLoading } = useAsyncAction();
+
+  // As compras ANTERIORES deste produto pelo cliente — fora este pedido, que
+  // senão seria "a última compra" de si mesmo.
+  const productIds = useMemo(
+    () => (item.product?.id ? [item.product.id] : []),
+    [item.product?.id]
+  );
+  const { byProduct: lastPurchasesByProduct, loading: isLoadingLastPurchases } =
+    useLastPurchasePrices({
+      open,
+      clientId,
+      factoryId,
+      productIds,
+      excludeOrderId: orderId,
+    });
 
   // Múltiplo de venda em UNIDADES: o produto cadastra em embalagens, a
   // quantidade do item é em peças (saleMultiple × unitPerPack).
@@ -246,6 +272,22 @@ export function EditOrderItemModal({
             loading={isLoading}
             unstyled
           />
+          {item.product?.id && (
+            <div className="mt-12">
+              <LastPurchasePrices
+                purchases={lastPurchasesByProduct.get(item.product.id)}
+                loading={isLoadingLastPurchases}
+                tablePrice={Number(item.unitPrice)}
+                compareLabel="Preço do item"
+                onUsePrice={(price) =>
+                  formRef.current?.setValue(
+                    "unitPrice",
+                    maskCurrency(price.toFixed(2))
+                  )
+                }
+              />
+            </div>
+          )}
         </Modal.Body>
 
         <Modal.Footer>

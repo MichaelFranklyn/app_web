@@ -174,225 +174,6 @@ extend type Mutation {
   deleteClientContact(id: UUID!): BaseResponse!
 }
 
-"""
-Follow-up de clientes: o próximo contato combinado com o cliente — dia,
-responsável e motivo —, para a negociação não depender da memória de ninguém.
-"""
-enum FollowUpStatus {
-  SCHEDULED
-  """O contato aconteceu: alguém falou com o cliente (`outcome` diz o quê)."""
-  DONE
-  """Não vai mais acontecer (`outcome` diz por quê)."""
-  CANCELLED
-}
-
-"""
-O recorte da lista. "Atrasado", "hoje" e "próximos" não são guardados: são um
-agendado lido contra o dia de hoje (Brasília).
-"""
-enum FollowUpSituation {
-  OVERDUE
-  TODAY
-  UPCOMING
-  DONE
-  CANCELLED
-}
-
-enum FollowUpEventKind {
-  CREATED
-  """Mudou de dia — `dateFrom` → `dateTo`."""
-  RESCHEDULED
-  """Mudou de responsável — `userFrom` → `userTo`."""
-  REASSIGNED
-  """Motivo, observações ou pedido corrigidos (`note` diz quais)."""
-  EDITED
-  DONE
-  CANCELLED
-}
-
-"""Um acontecimento do agendamento, com quem fez e o de-para."""
-type ClientFollowUpEventType {
-  id: UUID!
-  followUpId: UUID!
-  kind: FollowUpEventKind!
-  note: String
-  dateFrom: Date
-  dateTo: Date
-  userFrom: UserType
-  userTo: UserType
-  author: UserType
-  createdAt: DateTime!
-}
-
-"""Um retorno combinado ("volte dia X") que um contato agendado atende."""
-type FollowUpReturnType {
-  itemId: UUID!
-  """O dia combinado para voltar."""
-  returnDate: Date!
-  """O dia em que foi combinado."""
-  agreedOn: Date!
-}
-
-"""O próximo contato agendado com um cliente."""
-type ClientFollowUpType {
-  id: UUID!
-  clientId: UUID!
-  client: ClientType
-  """O id da carteira — é o que a rota `/clients/[id]` usa."""
-  companyClientId: UUID
-  orderId: UUID
-  order: OrderType
-  responsibleUserId: UUID
-  responsible: UserType
-  createdBy: UserType
-  """O dia combinado para o contato."""
-  dueDate: Date!
-  reason: String!
-  notes: String
-  status: FollowUpStatus!
-  situation: FollowUpSituation!
-  """Dias de atraso em relação ao dia combinado. Negativo = ainda faltam dias."""
-  daysLate: Int!
-  closedAt: DateTime
-  """O que foi conversado (concluído) ou por que não aconteceu (cancelado)."""
-  outcome: String
-  """Quantas vezes já mudou de dia."""
-  rescheduleCount: Int!
-  """Concluído como contato COMERCIAL (conta como contato da carteira)."""
-  isCommercial: Boolean
-  """
-  O padrão da pergunta "houve contato comercial?" ao concluir: sim quando o
-  responsável tem perfil de vendedor, não para o escritório.
-  """
-  defaultCommercial: Boolean!
-  """O retorno combinado a que este contato está vinculado (resolve ao concluir)."""
-  linkedReturn: FollowUpReturnType
-  """
-  Agendamento em aberto e sem vínculo: o "volte dia X" ainda em aberto com o
-  cliente, que a pessoa pode confirmar ter atendido ao concluir.
-  """
-  openReturn: FollowUpReturnType
-  """O agendamento que este continua (concluído com "já marcar o próximo")."""
-  previousId: UUID
-  """O agendamento marcado ao concluir este, se houver."""
-  next: ClientFollowUpType
-  """A linha do tempo, do mais antigo ao mais recente."""
-  events: [ClientFollowUpEventType!]!
-  createdAt: DateTime!
-}
-
-type ClientFollowUpTypeEdge {
-  node: ClientFollowUpType!
-  cursor: String!
-}
-
-type ClientFollowUpTypeConnectionResponse {
-  edges: [ClientFollowUpTypeEdge!]!
-  pageInfo: PageInfo!
-  totalCount: Int!
-}
-
-type ClientFollowUpTypeDataResponse {
-  status: Boolean!
-  code: Int!
-  message: String!
-  data: ClientFollowUpType
-}
-
-type FollowUpSituationCountType {
-  situation: FollowUpSituation!
-  count: Int!
-}
-
-input CreateClientFollowUpInput {
-  clientId: UUID!
-  dueDate: Date!
-  reason: String!
-  notes: String = null
-  orderId: UUID = null
-  """Quem vai fazer o contato. Vendedor: sempre ele mesmo. Ausente = quem agenda."""
-  responsibleUserId: UUID = null
-  """O retorno combinado (item da rotina) que este contato vai atender."""
-  returnItemId: UUID = null
-}
-
-"""
-A ficha do agendamento em aberto. O DIA não muda por aqui — muda por
-`rescheduleClientFollowUp`, que guarda o de-para na linha do tempo.
-"""
-input UpdateClientFollowUpInput {
-  reason: String
-  notes: String
-  orderId: UUID
-  """Só o gestor transfere."""
-  responsibleUserId: UUID
-}
-
-input RescheduleClientFollowUpInput {
-  id: UUID!
-  dueDate: Date!
-  """Por que mudou de dia. Opcional."""
-  note: String = null
-}
-
-input CompleteClientFollowUpInput {
-  id: UUID!
-  """O que foi conversado. Obrigatório."""
-  outcome: String!
-  """Já marcar o próximo contato (encadeado a este)."""
-  nextDueDate: Date = null
-  """Motivo do próximo. Ausente = o mesmo deste."""
-  nextReason: String = null
-  """Houve contato comercial. Ausente = o padrão (`defaultCommercial`)."""
-  isCommercial: Boolean = null
-  """Confirma que atendeu o retorno em aberto (`openReturn`)."""
-  fulfillsReturn: Boolean = false
-}
-
-input CancelClientFollowUpInput {
-  id: UUID!
-  """
-  Por que não vai mais acontecer. OBRIGATÓRIO: vazio, só espaço ou ausente é
-  recusado pelo servidor com a mensagem para a pessoa. Fica `String` (e não
-  `String!`) para o front antigo — que manda `null` em branco — receber essa
-  mensagem em vez de um erro de validação do schema.
-  """
-  reason: String = null
-}
-
-extend type Query {
-  clientFollowUp(id: UUID!): ClientFollowUpTypeDataResponse!
-  """
-  Os contatos agendados. Vendedor vê só os dele (responsável); gestor vê a
-  empresa. Filtros: `situation` (um FollowUpSituation, `OPEN` = todos os
-  agendados, `ALL` = tudo; ausente = `OPEN`), `client_id`, `order_id`,
-  `responsible_user_id`, `orphaned` (`true` = o responsável foi desativado;
-  só gestor), `search` (no motivo). Sem ordem pedida: pelo dia
-  combinado, o mais antigo primeiro; concluídos e cancelados, pelo encerramento
-  mais recente.
-  """
-  clientFollowUps(input: BaseListInput!): ClientFollowUpTypeConnectionResponse!
-  """Quantos em cada recorte, no mesmo escopo da lista (sem o filtro de recorte)."""
-  clientFollowUpCounts(
-    clientId: UUID = null
-    responsibleUserId: UUID = null
-  ): [FollowUpSituationCountType!]!
-  """
-  Quantos contatos em aberto estão com alguém desativado ou removido.
-  Só gestor: é ele quem transfere — e sem isto ninguém mais seria lembrado.
-  """
-  clientFollowUpOrphanCount: Int!
-}
-
-extend type Mutation {
-  createClientFollowUp(input: CreateClientFollowUpInput!): ClientFollowUpTypeDataResponse!
-  updateClientFollowUp(id: UUID!, input: UpdateClientFollowUpInput!): ClientFollowUpTypeDataResponse!
-  rescheduleClientFollowUp(input: RescheduleClientFollowUpInput!): ClientFollowUpTypeDataResponse!
-  """Concluir = falei com o cliente. Quem não atendeu, reagenda."""
-  completeClientFollowUp(input: CompleteClientFollowUpInput!): ClientFollowUpTypeDataResponse!
-  cancelClientFollowUp(input: CancelClientFollowUpInput!): ClientFollowUpTypeDataResponse!
-}
-
 input CreateClientNetworkInput {
   name: String!
   notes: String = null
@@ -2932,11 +2713,11 @@ type InsightSampleType {
   """O cliente (id global) — para agendar o contato ou planejar a visita."""
   clientId: UUID
   """
-  O próximo contato agendado em aberto para o cliente, de qualquer pessoa da
-  empresa — a tela avisa "contato agendado para X" para ninguém repetir a ação.
+  A próxima LIGAÇÃO marcada na agenda de qualquer pessoa da empresa, de hoje em
+  diante — a tela avisa "ligação marcada para X" para ninguém repetir a ação.
   """
-  nextFollowUpDate: Date
-  """A próxima visita (ou ligação) marcada na rotina, de hoje em diante."""
+  nextCallDate: Date
+  """A próxima VISITA marcada na agenda, de hoje em diante."""
   nextVisitDate: Date
 }
 
@@ -3207,8 +2988,40 @@ input UpdateOrderItemInput {
   ipiRate: Decimal = null
 }
 
+"""Uma compra do produto pelo cliente: o preço que ele pagou daquela vez."""
+type ClientPurchasePriceType {
+  """A venda (o pedido original, quando a fábrica faturou em partes)."""
+  orderId: UUID!
+  orderDate: Date!
+  """Preço por unidade cobrado no item, antes do desconto."""
+  unitPrice: Decimal!
+  """Preço por unidade depois do desconto do item."""
+  netUnitPrice: Decimal!
+  units: Decimal!
+  isPromo: Boolean!
+  tierName: String
+}
+
+type ClientProductPurchasePricesType {
+  productId: UUID!
+  """Da compra mais nova para a mais antiga. Vazio = o cliente nunca comprou."""
+  purchases: [ClientPurchasePriceType!]!
+}
+
 extend type Query {
   orderItems(orderId: UUID!): OrderItemTypeConnectionResponse!
+  """
+  O preço das últimas compras destes produtos pelo cliente, nesta fábrica — só
+  pedido feito (confirmado, faturado ou entregue). `excludeOrderId` tira o
+  pedido em edição. `limit` é por produto (padrão 3, máximo 10).
+  """
+  clientProductPurchasePrices(
+    clientId: UUID!
+    factoryId: UUID!
+    productIds: [UUID!]!
+    excludeOrderId: UUID
+    limit: Int = 3
+  ): [ClientProductPurchasePricesType!]!
 }
 
 extend type Mutation {
@@ -4491,8 +4304,6 @@ enum PendingType {
   houve. (O nome é histórico; não é a frequência vencida.)
   """
   VISIT_OVERDUE
-  """Contato agendado com o cliente (follow-up) que vence no período."""
-  FOLLOW_UP
   """Retorno combinado com o cliente ("volte dia 20", "pode vir") e não cumprido."""
   RETURN_SCHEDULED
   """
@@ -4532,8 +4343,6 @@ enum PendingReason {
   RETURN_DATE
   """Numa ligação, o cliente pediu a visita presencial."""
   WANTS_VISIT
-  """O dia do contato agendado (`dueDate`); o motivo vem em `note`."""
-  FOLLOW_UP_DUE
   """Rascunho ou orçamento que não virou pedido."""
   DRAFT_STALE
   """Pedido confirmado que a fábrica ainda não faturou."""
@@ -4624,7 +4433,7 @@ type PendingItemType {
   a pendência (depois da semana corrente e do prazo).
   """
   scheduledDate: Date
-  """O motivo escrito por quem agendou o contato (só em `FOLLOW_UP`)."""
+  """Uma nota escrita por alguém sobre a pendência, quando houver."""
   note: String
   """O pedido de onde vem (`ORDER_STALLED`, `INSTALLMENT_OVERDUE`)."""
   orderId: UUID
@@ -5630,6 +5439,25 @@ type PriceListItemTypeEdge {
   cursor: String!
 }
 
+"""Uma mudança no preço de tabela do produto."""
+type ProductPriceChangeType {
+  id: UUID!
+  """Quando o preço foi gravado (criação, edição, importação ou cópia de tabela)."""
+  changedAt: DateTime!
+  """Preço da embalagem fechada, sem imposto — a mesma base de `unitPrice` do item."""
+  unitPrice: Decimal!
+  """Preço anterior no mesmo nível e região; null no primeiro preço."""
+  previousUnitPrice: Decimal
+  """Variação em % sobre o preço anterior; null no primeiro preço."""
+  variationPct: Decimal
+  tierId: UUID!
+  tierName: String!
+  priceListId: UUID!
+  priceListName: String!
+  region: String!
+  isPriceListActive: Boolean!
+}
+
 input UpdatePriceListItemInput {
   unitPrice: Decimal = null
 }
@@ -5637,6 +5465,8 @@ input UpdatePriceListItemInput {
 extend type Query {
   priceListItem(id: UUID!): PriceListItemTypeDataResponse!
   priceListItems(input: BaseListInput!): PriceListItemTypeConnectionResponse!
+  """Cada vez que o preço de tabela do produto mudou, da mais nova à mais antiga."""
+  productPriceHistory(productId: UUID!): [ProductPriceChangeType!]!
 }
 
 extend type Mutation {
@@ -7769,6 +7599,8 @@ input UpdateVisitScheduleItemInput {
   actualVisitAt: DateTime = null
   nextVisitSuggestion: Date = null
   notes: String = null
+  """Corrige o motivo combinado. Vazio limpa."""
+  reason: String = null
 }
 
 input RescheduleVisitInput {
@@ -7799,8 +7631,20 @@ input ScheduleManualVisitInput {
   factoryId: UUID = null
   contactType: VisitContactType = IN_PERSON
   notes: String = null
-  """Confirmação de "o dia está cheio, marque mesmo assim"."""
+  """Sem efeito desde 18/10/2026: não há mais teto de visitas por dia."""
   allowOverCapacity: Boolean = false
+  """
+  Agenda de quem — só o gestor informa. Um vendedor (vale o perfil dele) ou
+  alguém que não vende (agenda do escritório, só ligação). Ausente = `sellerId`,
+  ou quem está marcando.
+  """
+  ownerUserId: UUID = null
+  """Por que voltar ao cliente, em uma frase ("retornar sobre o orçamento")."""
+  reason: String = null
+  """O pedido de que esta parada trata."""
+  orderId: UUID = null
+  """O "volte dia X" (a parada que o ouviu) que esta parada atende."""
+  returnItemId: UUID = null
 }
 
 type RescheduleVisitResult {
@@ -7818,7 +7662,10 @@ type RescheduleVisitResponse {
 type VisitScheduleItemType {
   id: UUID!
   scheduleDayId: UUID!
-  sellerClientFactoryId: UUID!
+  """Vínculo (vendedor × cliente × fábrica). Nulo na agenda de quem não vende (a ligação do escritório)."""
+  sellerClientFactoryId: UUID
+  """O cliente da parada — sempre preenchido, com ou sem vínculo."""
+  clientId: UUID!
   """Preenchido quando a parada veio de um compromisso de ROTA FIXA (contrato), não de uma escolha do motor."""
   fixedScheduleId: UUID
   plannedOrder: Int!
@@ -7854,6 +7701,16 @@ type VisitScheduleItemType {
   isManual: Boolean!
   """Viagem que criou esta parada (ver `planSellerTrip`). Nulo nas paradas da rotina de casa."""
   tripId: UUID
+  """Por que voltar ao cliente, dito por quem marcou ("retornar sobre o orçamento"). Nulo na parada que o motor planejou."""
+  reason: String
+  """O pedido de que esta parada trata."""
+  orderId: UUID
+  order: OrderType
+  """Quem marcou a parada (nulo na do motor)."""
+  createdBy: UserType
+  """O "volte dia X" (a parada que o ouviu) que esta parada atende."""
+  returnItemId: UUID
+  client: ClientType
   createdAt: DateTime!
   updatedAt: DateTime!
   day: VisitScheduleDayType
@@ -8127,8 +7984,8 @@ extend type Mutation {
   """
   Marca uma visita escolhendo cliente e dia. Cria a rotina da semana e o dia
   quando não existem, resolve a fábrica principal pelo score e recusa data
-  passada, dia não trabalhado e cliente já agendado naquele dia. Dia cheio volta
-  como conflito: repetir com `allowOverCapacity` marca mesmo assim.
+  passada, dia não trabalhado e cliente já agendado naquele dia. Não há teto de
+  visitas por dia: a quantidade é do vendedor.
   """
   scheduleManualVisit(input: ScheduleManualVisitInput!): VisitScheduleItemTypeDataResponse!
   """
@@ -8221,7 +8078,10 @@ input UpdateVisitScheduleInput {
 
 type VisitScheduleType {
   id: UUID!
-  sellerId: UUID!
+  """Nulo na agenda de quem não vende (escritório): só ligações, sem motor de rotina."""
+  sellerId: UUID
+  """De quem é a agenda — a pessoa. Na do vendedor, o usuário dele."""
+  ownerUserId: UUID
   companyId: UUID!
   weekStart: Date!
   generatedAt: DateTime!
@@ -8232,6 +8092,7 @@ type VisitScheduleType {
   createdAt: DateTime!
   updatedAt: DateTime!
   seller: SellerType
+  owner: UserType
   company: CompanyType
   days: [VisitScheduleDayType!]!
 }
@@ -8363,4 +8224,207 @@ extend type Mutation {
     observation: StockObservation = null
     notes: String = null
   ): VisitStockObservationResponse!
+}
+
+"""
+A semana montada pelo vendedor (decisão de 18/10/2026).
+
+O sistema não entrega mais uma rotina pronta: mostra os clientes prioritários
+da carteira, agrupáveis por região, e o vendedor escolhe quem vai ver, como
+(visita ou ligação) e, se quiser, em que dia. Quem vem sem dia é distribuído
+pela região entre os dias escolhidos, e a rota de cada dia é ordenada pelo
+menor trajeto. Não há limite de visitas por dia.
+"""
+enum PriorityTier {
+  "O quinto mais urgente da carteira."
+  TOP
+  "Até a metade da fila."
+  HIGH
+  NORMAL
+}
+
+enum PriorityUnavailableReason {
+  "Toda fábrica do cliente tem pedido feito e ainda não entregue."
+  OPEN_ORDER
+  "Negativado em toda fábrica do vendedor."
+  NEGATIVE
+  "Pediu para não ser procurado até depois desta semana."
+  DEFERRED
+}
+
+enum PlanStopSkipReason {
+  NOT_IN_WALLET
+  ALREADY_SCHEDULED
+  DUPLICATE
+}
+
+"""Um toque que o cliente já tem nesta semana."""
+type PriorityScheduledTouchType {
+  itemId: UUID!
+  date: Date!
+  contactType: VisitContactType!
+  status: VisitStatus!
+}
+
+type PriorityClientType {
+  clientId: UUID!
+  client: ClientType
+  name: String!
+  city: String
+  state: String
+  neighborhood: String
+  """Chave da cidade (sem acento + UF) — agrupa "SALVADOR" e "Salvador"."""
+  regionKey: String!
+  """Como a cidade aparece: "Salvador - BA"."""
+  cityLabel: String!
+  latitude: Float
+  longitude: Float
+  score: Float!
+  """Posição na fila da carteira disponível (1 = o mais urgente)."""
+  rank: Int!
+  tier: PriorityTier!
+  """O toque que a tela deixa pré-marcado. O vendedor troca à vontade."""
+  suggestedContactType: VisitContactType!
+  """O cliente pediu visita num contato anterior."""
+  isForced: Boolean!
+  """O cliente pediu para ser procurado só a partir deste dia (dentro da semana)."""
+  availableFrom: Date
+  """A fábrica de maior score — a que motiva o toque."""
+  primaryLink: SellerClientFactoryType!
+  """As fábricas urgentes do cliente (ou só a principal), com o score de cada uma."""
+  focusLinks: [SellerClientFactoryType!]!
+  """Onde o cliente já está nesta semana (vazio = ainda não marcado)."""
+  scheduled: [PriorityScheduledTouchType!]!
+}
+
+type PriorityUnavailableClientType {
+  clientId: UUID!
+  name: String!
+  cityLabel: String!
+  reason: PriorityUnavailableReason!
+  """Até quando o cliente pediu para não ser procurado (só em DEFERRED)."""
+  until: Date
+}
+
+type PriorityClientsType {
+  weekStart: Date!
+  """Dias da semana que ainda aceitam parada: de hoje em diante, sem folga."""
+  openDates: [Date!]!
+  """Os dias de trabalho da configuração, sem feriado — o padrão da distribuição."""
+  workDates: [Date!]!
+  clients: [PriorityClientType!]!
+  unavailable: [PriorityUnavailableClientType!]!
+}
+
+type PlannedStopType {
+  clientId: UUID!
+  name: String!
+  cityLabel: String!
+  neighborhood: String
+  contactType: VisitContactType!
+  """Nulo nas paradas que já estavam no dia."""
+  score: Float
+  """A parada é desta montagem (as outras já estavam no dia)."""
+  isNew: Boolean!
+  """Entrou para completar o dia, não pela escolha da pessoa."""
+  isSuggested: Boolean!
+  latitude: Float
+  longitude: Float
+}
+
+type PlannedDayType {
+  date: Date!
+  stops: [PlannedStopType!]!
+  visitCount: Int!
+  callCount: Int!
+  """
+  Estrada entre as visitas do dia, em km de linha reta, sem a ida e a volta de
+  casa. Só a ordem de grandeza da prévia — a rota real sai depois de gravar.
+  """
+  estimatedKm: Float
+}
+
+type SkippedStopType {
+  clientId: UUID!
+  name: String!
+  reason: PlanStopSkipReason!
+  """Onde está o toque já marcado (só em ALREADY_SCHEDULED)."""
+  date: Date
+}
+
+type PlanWeekType {
+  weekStart: Date!
+  days: [PlannedDayType!]!
+  skipped: [SkippedStopType!]!
+  """Quantas paradas esta montagem acrescenta."""
+  added: Int!
+  """Dias escolhidos que não existem para o vendedor (folga, já passou) — ignorados."""
+  ignoredDays: [Date!]!
+}
+
+type PlanWeekTypeDataResponse {
+  status: Boolean!
+  code: Int!
+  message: String!
+  data: PlanWeekType
+}
+
+input PlanWeekStopInput {
+  clientId: UUID!
+  contactType: VisitContactType = IN_PERSON
+  """Sem data, o dia sai da região do cliente entre os `days` da montagem."""
+  date: Date = null
+}
+
+input PlanWeekInput {
+  """Sem ele, a agenda é do vendedor logado. O gestor informa de quem é."""
+  sellerId: UUID = null
+  weekStart: Date!
+  stops: [PlanWeekStopInput!]!
+  """Dias em que as paradas sem data podem cair. Vazio = os dias de trabalho."""
+  days: [Date!] = null
+  """Quantas visitas por dia (0 a 20): o tamanho do dia na distribuição. Não é teto."""
+  visitsPerDay: Int = null
+  """Quantas ligações por dia (0 a 20): a meta da sugestão."""
+  callsPerDay: Int = null
+  """Completar os dias até essas quantidades com os clientes mais urgentes."""
+  fillWithSuggestions: Boolean = false
+  """Só calcula e devolve a semana como ficaria, sem gravar — é a prévia."""
+  dryRun: Boolean = false
+}
+
+"""Uma visita (ou ligação) já marcada e ainda por fazer."""
+type ScheduledVisitType {
+  itemId: UUID!
+  clientId: UUID!
+  clientName: String!
+  """Como a cidade aparece: "Salvador - BA"."""
+  cityLabel: String!
+  neighborhood: String
+  date: Date!
+  contactType: VisitContactType!
+  """Marcada por uma pessoa (combinada com o cliente), e não pelo sistema."""
+  isManual: Boolean!
+}
+
+extend type Query {
+  """
+  Os clientes da carteira disponíveis na semana, do mais urgente ao menos, e os
+  que não podem entrar (com o motivo). Sem `sellerId`, do vendedor logado.
+  """
+  priorityClients(weekStart: Date!, sellerId: UUID = null): PriorityClientsType
+  """
+  As visitas e ligações já marcadas, de hoje até as próximas 8 semanas, em
+  ordem de dia. Sem `sellerId`, do vendedor logado.
+  """
+  scheduledVisits(sellerId: UUID = null): [ScheduledVisitType!]!
+}
+
+extend type Mutation {
+  """
+  Acrescenta à semana os clientes que o vendedor escolheu. Quem vem sem dia é
+  distribuído pela região; a rota de cada dia é reordenada. Com `dryRun`, só
+  devolve a prévia.
+  """
+  planWeek(input: PlanWeekInput!): PlanWeekTypeDataResponse!
 }

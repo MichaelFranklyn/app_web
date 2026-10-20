@@ -31,15 +31,15 @@ describe("para onde o aviso leva", () => {
   it("insight vai para a lista de referência do assunto, já filtrada", () => {
     // O aviso do sino é a foto do dia em que o job rodou; na lista o mesmo
     // assunto aparece com o número de hoje e o caminho que resolve. Pelo tipo
-    // do aviso, e não pelo link gravado: os antigos guardaram "/routines".
+    // do aviso, e não pelo link gravado: os antigos guardaram "/agenda".
     const frequency = notification({
       category: "INSIGHT",
-      link: "/routines",
+      link: "/agenda",
       relatedEntityType: "visit_overdue",
     });
     const offRoute = notification({
       category: "INSIGHT",
-      link: "/routines",
+      link: "/agenda",
       relatedEntityType: "unplanned_priority",
     });
 

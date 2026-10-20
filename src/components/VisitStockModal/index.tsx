@@ -22,7 +22,7 @@ interface Props {
 /**
  * Registro do estoque do cliente durante a visita, fábrica por fábrica.
  *
- * Compartilhado entre a rotina do vendedor (`/routines`) e o histórico de visitas
+ * Compartilhado entre a rotina do vendedor (`/agenda`) e o histórico de visitas
  * do cliente (`/clients/[id]/visits`) — de onde o vendedor também pode registrar
  * o que viu, depois da visita.
  *

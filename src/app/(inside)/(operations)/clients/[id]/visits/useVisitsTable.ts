@@ -15,7 +15,7 @@ export const visitDate = (visit: ClientVisit): string | null =>
   visit.day?.date ?? visit.actualVisitAt ?? null;
 
 const sellerName = (visit: ClientVisit): string | null =>
-  visit.day?.schedule?.seller?.name ?? null;
+  visit.day?.schedule?.seller?.name ?? visit.day?.schedule?.owner?.name ?? null;
 
 /** Opções tiradas das próprias visitas — nenhuma escolha devolve lista vazia. */
 const optionsFrom = (

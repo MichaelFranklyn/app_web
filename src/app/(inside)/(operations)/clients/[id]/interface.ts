@@ -284,6 +284,8 @@ export interface ClientVisit {
   outcomeReason: string | null;
   actualVisitAt: string | null;
   notes: string | null;
+  /** O motivo combinado por quem marcou ("retornar sobre o orçamento"). */
+  reason: string | null;
   /** O que motivou a visita (sugestão do sistema). */
   focusFactories: VisitFocusFactory[];
   /** O que o vendedor de fato tratou, derivado das observações de estoque. */
@@ -298,6 +300,8 @@ export interface ClientVisit {
     schedule: {
       id: string;
       seller: { id: string; name: string } | null;
+      /** O dono da agenda — o único nome na agenda de quem não vende. */
+      owner: { id: string; name: string } | null;
     } | null;
   } | null;
   clientFactoryLink: {

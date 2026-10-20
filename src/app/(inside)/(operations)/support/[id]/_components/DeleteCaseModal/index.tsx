@@ -46,10 +46,10 @@ export function DeleteCaseModal({ caseId, caseTitle }: Props) {
       <ConfirmModal
         open={open}
         onOpenChange={setOpen}
-        title="Excluir atendimento"
+        title="Excluir reclamação"
         description={`"${caseTitle}" e todo o histórico de andamentos saem do sistema. Se o caso não se resolveu, prefira encerrá-lo com um andamento — o histórico continua servindo.`}
         confirmLabel="Excluir"
-        successMessage="Atendimento removido"
+        successMessage="Reclamação removida"
         redirectTo="/support"
         onSuccess={() => {
           // A fila e os cartões de contagem do topo são do servidor: só o

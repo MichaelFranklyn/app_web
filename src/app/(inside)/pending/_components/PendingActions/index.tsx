@@ -42,8 +42,8 @@ export function PendingActions({ item, onScheduleReturn }: Props) {
       {item.reason === "DELIVERY_UNCONFIRMED" && (
         <PostSaleContact item={item} />
       )}
-      {/* O contato agendado daqui nasce vinculado ao retorno: concluí-lo
-          resolve o "volte dia X" (um contato qualquer não resolve). */}
+      {/* A parada marcada daqui nasce vinculada ao retorno: concluí-la
+          resolve o "volte dia X" (uma parada qualquer não resolve). */}
       {item.reason === "RETURN_DATE" && onScheduleReturn && (
         <Button.Root
           type="button"
@@ -53,7 +53,7 @@ export function PendingActions({ item, onScheduleReturn }: Props) {
           noUppercase
           onClick={() => onScheduleReturn(item)}
         >
-          <Button.Title>Agendar contato</Button.Title>
+          <Button.Title>Marcar na agenda</Button.Title>
         </Button.Root>
       )}
       {clientLink && (

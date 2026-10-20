@@ -1,6 +1,14 @@
 import { getCurrentWeekMondayIso, getTodayIso } from "@/utils/format/date";
 import { expect, test } from "../support/fixtures";
 import { emptyConnection, mockGraphql } from "../support/graphql";
+import { grantRole } from "../support/role";
+
+// A agenda decide no SERVIDOR, pelo token, se abre a de quem está logado ou o
+// "Agenda de" do gestor. O storageState tem JWT de owner; estes cenários são
+// os do vendedor, então o token também diz vendedor.
+test.beforeEach(async ({ page }) => {
+  await grantRole(page, "SELLER", { alsoJwt: true });
+});
 
 // `useRoutines` lê `visit_schedule_configs.edges[0]` — o campo é não-nulo no
 // schema, então sem handler o fallback `{}` derruba a página inteira.
@@ -19,15 +27,15 @@ test("routines: a rotina da semana carrega sem agendamentos", async ({
     VisitScheduleConfig: scheduleConfig,
   });
 
-  await page.goto("/routines");
+  await page.goto("/agenda");
 
   await expect(
-    page.getByRole("heading", { name: "Rotina da Semana", level: 1 })
+    page.getByRole("heading", { name: "Agenda", level: 1 })
   ).toBeVisible();
 });
 
 /**
- * Lote 5 — rotina da semana (/routines). Mock VisitSchedules com 1 visita
+ * Lote 5 — rotina da semana (/agenda). Mock VisitSchedules com 1 visita
  * acionável; o item tem um menu (MoreOptions) → "Editar visita". O EditVisitModal
  * tem status prefilled, então só alteramos as notas (evita o select de status).
  */
@@ -101,7 +109,7 @@ test("rotina: edita uma visita (notas)", async ({ page }) => {
     }),
   });
 
-  await page.goto("/routines");
+  await page.goto("/agenda");
 
   // Kebab DENTRO do card da visita. O `following::button[1]` era ambíguo: o
   // card virou role="button" e há outros botões depois dele no DOM.
@@ -117,10 +125,9 @@ test("rotina: edita uma visita (notas)", async ({ page }) => {
   await expect(page.getByText("Visita atualizada")).toBeVisible();
 });
 
-// Modo lista: os dias vêm colapsados, só o de hoje abre sozinho. Montamos hoje
-// (com uma visita) e outro dia da mesma semana (com outra visita) para provar
-// que o de hoje aparece aberto e o outro vem fechado — e que fechar hoje some
-// com sua visita.
+// Visão de dia: só as paradas daquele dia. Montamos hoje (com uma visita) e
+// outro dia da mesma semana (com outra visita) para provar que o outro não
+// aparece — e que o dia leva à rota dele no mapa.
 const addDaysIso = (iso: string, n: number): string => {
   const [y, m, d] = iso.split("-").map(Number);
   const dt = new Date(Date.UTC(y, m - 1, d));
@@ -129,7 +136,7 @@ const addDaysIso = (iso: string, n: number): string => {
 };
 
 const TODAY = getTodayIso();
-// Um dia da semana garantidamente diferente de hoje (para vir fechado).
+// Um dia da semana garantidamente diferente de hoje (para ficar de fora).
 const OTHER_DAY = TODAY === WEEK_START ? addDaysIso(WEEK_START, 1) : WEEK_START;
 
 const visitItem = (id: string, clientName: string) => ({
@@ -169,7 +176,7 @@ const day = (id: string, date: string, clientName: string) => ({
   items: [visitItem(`it-${id}`, clientName)],
 });
 
-test("rotina (lista): dias colapsam, só hoje abre sozinho", async ({
+test("agenda (dia): mostra só aquele dia e leva à rota dele", async ({
   page,
 }) => {
   await mockGraphql(page, {
@@ -194,27 +201,20 @@ test("rotina (lista): dias colapsam, só hoje abre sozinho", async ({
     }),
   });
 
-  await page.goto("/routines?view=list");
+  await page.goto(`/agenda?view=day&date=${TODAY}`);
 
-  // O checkbox de concluir só existe nas linhas de visita renderizadas (o painel
-  // de detalhes repete o nome do cliente, então ancoramos no checkbox). Hoje vem
-  // aberto → 1 linha; o outro dia vem fechado → nada dele no DOM.
+  // O checkbox de concluir só existe nos cards renderizados (o painel de
+  // detalhes repete o nome do cliente, então ancoramos no checkbox): o de
+  // hoje, e nada do outro dia.
   const doneChecks = page.getByLabel("Marcar visita como concluída");
   await expect(doneChecks).toHaveCount(1);
+  await expect(page.getByText("Cliente De Hoje").first()).toBeVisible();
   await expect(page.getByText("Cliente De Outro Dia")).toHaveCount(0);
 
-  // O cabeçalho do dia tem o atalho para a rota daquele dia (mesmo fechado).
-  // Ancorado no href do dia de hoje: com dias anteriores na semana, o PRIMEIRO
-  // link é o deles — `.first()` só funcionava quando hoje era segunda-feira.
+  // O cabeçalho do dia leva à rota daquele dia no mapa.
   await expect(
-    page
-      .getByRole("link", { name: "Ver rota" })
-      .and(page.locator(`[href="/routines/${TODAY}"]`))
-  ).toBeVisible();
-
-  // Fechar o dia de hoje (único cabeçalho expandido) some com a linha da visita.
-  await page.getByRole("button", { expanded: true }).first().click();
-  await expect(doneChecks).toHaveCount(0);
+    page.getByRole("link", { name: "Ver rota do dia" })
+  ).toHaveAttribute("href", new RegExp(`^/agenda/${TODAY}`));
 });
 
 /**
@@ -260,16 +260,14 @@ test("rotina: marca um dia como não trabalhado", async ({ page }) => {
     }),
   });
 
-  await page.goto("/routines");
+  // A folga se marca na visão de DIA — é lá que o dia inteiro está à vista.
+  await page.goto(`/agenda?view=day&date=${today}`);
 
-  // A coluna de hoje é a única com visita marcada — e é dela que sai o número
-  // que a confirmação precisa mostrar.
+  // A visita de hoje é a que a confirmação precisa contar.
   const card = page.getByRole("button", { name: /Cliente LTDA/ });
   await expect(card).toBeVisible();
 
-  // A grade começa em HOJE (`getVisibleCells`), então a primeira coluna é a do
-  // dia com a visita mockada.
-  await page.getByRole("button", { name: "Não vou trabalhar" }).first().click();
+  await page.getByRole("button", { name: "Não vou trabalhar" }).click();
 
   await expect(page.getByText(/1 parada marcada/)).toBeVisible();
 
@@ -307,7 +305,7 @@ test("rotina: painel fechado não projeta sombra na lateral", async ({
     }),
   });
 
-  await page.goto("/routines");
+  await page.goto("/agenda");
   await expect(
     page.getByRole("button", { name: /Cliente LTDA/ })
   ).toBeVisible();
@@ -397,7 +395,9 @@ test("rotina: ligação sem contato cadastra ali; com celular, WhatsApp com mens
     }),
   });
 
-  await page.goto("/routines?view=list");
+  // Os botões de ligar ficam no card completo, o da visão de dia (na semana o
+  // card é compacto e eles ficam no painel).
+  await page.goto(`/agenda?view=day&date=${TODAY}`);
 
   // Com celular: o link já leva a mensagem, chamando o contato pelo nome.
   // O painel lateral de cada visita fica montado FORA da tela (aside) com os

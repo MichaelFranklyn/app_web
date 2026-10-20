@@ -243,7 +243,7 @@ export const PAGE_DATA: Record<string, Handlers> = {
                   link: null,
                   reason: null,
                   clientId: "c-1",
-                  nextFollowUpDate: null,
+                  nextCallDate: null,
                   nextVisitDate: null,
                 },
               ],

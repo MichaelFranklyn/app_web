@@ -179,19 +179,18 @@ export const SUPPORT_CACHE_FIELDS = [
 ];
 
 /**
- * Um contato agendado (follow-up) nasceu, mudou de dia ou foi encerrado.
+ * Uma parada foi marcada na agenda — visita ou ligação, de qualquer tela.
  *
- * Os contadores são do servidor, e o agendamento também é uma linha da central
- * de pendências (`myPendingItems`) — que, por ser calculada na hora, só sabe
- * da mudança relendo.
+ * Além do que a visita já mexe (`VISIT_CACHE_FIELDS`), a parada marcada é
+ * AGENDA para a central de pendências (dispensa o "sem contato" e o "volte dia
+ * X") e para as oportunidades ("ligação marcada para X") — as duas calculadas
+ * na hora, que só sabem da mudança relendo.
  */
-export const FOLLOW_UP_CACHE_FIELDS = [
-  "clientFollowUps",
-  "clientFollowUpCounts",
-  "clientFollowUpOrphanCount",
-  "clientFollowUp",
+export const AGENDA_SCHEDULE_CACHE_FIELDS = merge(VISIT_CACHE_FIELDS, [
+  "visitSchedule",
   "myPendingItems",
-];
+  "myInsightCases",
+]);
 
 /**
  * O vínculo com a fábrica foi desfeito.
@@ -270,7 +269,7 @@ export const FACTORY_CONTACT_CACHE_FIELDS = ["factoryContacts"];
  * pendente daquele cliente, carimba `last_visit_date` no vínculo e recalcula o
  * score (ver `visit_evidence.py` → `update_visit_schedule_item.py`).
  *
- * A rotina (`/routines`) se salvava por ler em `cache-and-network`. Quem ficava
+ * A rotina (`/agenda`) se salvava por ler em `cache-and-network`. Quem ficava
  * no estado anterior era a FICHA DO CLIENTE, toda `cache-first`: a aba Visitas
  * com a visita ainda pendente, a coluna "última visita" da aba Fábricas e o
  * score — inclusive a coluna de score da lista de clientes.

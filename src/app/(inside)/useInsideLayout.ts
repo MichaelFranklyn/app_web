@@ -43,8 +43,8 @@ export function useInsideLayout({
 }: UseInsideLayoutParams) {
   const pathname = usePathname();
 
-  // Rota de um dia específico (/routines/<data>), distinta da grade semanal.
-  const isDayRoute = /^\/routines\/[^/]+/.test(pathname);
+  // Rota de um dia específico (/agenda/<data>), distinta da grade semanal.
+  const isDayRoute = /^\/agenda\/[^/]+/.test(pathname);
 
   // Data de hoje resolvida só no cliente (evita mismatch de hidratação).
   const [todayIso, setTodayIso] = useState<string | null>(null);
@@ -73,9 +73,8 @@ export function useInsideLayout({
     setDrawerOpen(false);
   }, [pathname]);
 
-  // Cada destino de configuração tem o seu `access`, que espelha o guard da rota:
-  // o vendedor não vê Empresa/Pessoas/Catálogos (e a seção inteira desaparece com
-  // eles). As rotas seguem protegidas server-side — aqui é só a UI do menu.
+  // Cada item tem o seu `access`, que espelha o guard da rota: o vendedor não
+  // vê "Configurações" (as telas da área se recortam no menu interno dela). As rotas seguem protegidas server-side — aqui é só a UI do menu.
   // SU enxerga também os itens de plataforma.
   //
   // O plano corta antes do papel: o que a empresa não contratou não aparece

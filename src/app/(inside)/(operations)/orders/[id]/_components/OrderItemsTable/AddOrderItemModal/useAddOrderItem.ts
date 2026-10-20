@@ -16,6 +16,7 @@ import {
   discountToAmount,
   DiscountType,
 } from "../../../../../_shared/orderDraftItems";
+import { useLastPurchasePrices } from "../../../../../_shared/lastPurchasePrices";
 import { OrderItem } from "../../../interface";
 import { CREATE_ORDER_ITEM_MUTATION } from "../gql";
 import { CreateOrderItemResponse } from "./interface";
@@ -89,6 +90,17 @@ export function useAddOrderItem({
     promoActiveKeys,
     linkedTierId,
   } = useOrderItemCatalog(open, factoryId, clientId, catalogProductIds);
+
+  // O que o cliente pagou nas últimas compras do produto escolhido — fora
+  // este pedido, que senão seria "a última compra" de si mesmo.
+  const { byProduct: lastPurchasesByProduct, loading: isLoadingLastPurchases } =
+    useLastPurchasePrices({
+      open,
+      clientId,
+      factoryId,
+      productIds: catalogProductIds,
+      excludeOrderId: orderId,
+    });
 
   const saleMultiple = saleMultipleByProduct.get(selection.productId);
   // Derivada, não guardada em estado: a unidade chega junto com o nó do produto
@@ -400,5 +412,15 @@ export function useAddOrderItem({
     handleSubmit,
     isLoading,
     isPromoSelected,
+    lastPurchases: selection.productId
+      ? lastPurchasesByProduct.get(selection.productId)
+      : undefined,
+    isLoadingLastPurchases,
+    hasSelectedProduct: !!selection.productId,
+    unitName,
+    tablePrice:
+      priceMap.get(priceKey(selection.productId, selection.tierId)) ?? 0,
+    applyLastPrice: (price: number) =>
+      formRef.current?.setValue("unitPrice", toCurrencyMask(price)),
   };
 }

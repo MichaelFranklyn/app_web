@@ -3,7 +3,7 @@ import { SUPPORT_FLOW } from "../../keys";
 import { FLOW_ROUTES } from "../../routes";
 
 /**
- * Tour dos Atendimentos. Dispara sozinho na 1ª visita.
+ * Tour das Reclamações. Dispara sozinho na 1ª visita.
  *
  * Sem gate de papel: reclamação de cliente é operação básica, e o vendedor
  * entra para ver os casos dos clientes DELE (o recorte é no resolver, não na
@@ -11,7 +11,7 @@ import { FLOW_ROUTES } from "../../routes";
  */
 export const supportFlow: FlowDefinition = {
   key: SUPPORT_FLOW,
-  label: "Tour dos Atendimentos",
+  label: "Tour das Reclamações",
   description: "A fila de problemas dos clientes e o andamento de cada um.",
   group: "Primeiros passos",
   route: FLOW_ROUTES.support,

@@ -1,0 +1,229 @@
+// Fonte única: o enum de resultado ganhou os valores exclusivos do contato remoto.
+import type {
+  VisitContactType,
+  VisitOutcome,
+  VisitStatus,
+} from "@/utils/visit";
+// As cinco dimensões do score chegam junto com o total: são elas que explicam,
+// no painel da visita, POR QUE aquela empresa está pedindo atenção.
+import type { ScoreDimensions } from "@/utils/score";
+
+export type { VisitContactType, VisitOutcome, VisitStatus };
+
+export type ScheduleStatus = "DRAFT" | "CONFIRMED";
+
+/**
+ * `OFF` é o único escolhido por alguém: o vendedor marcou que não trabalha
+ * naquele dia. Os outros três são derivados das visitas (ver `_advance_day_status`
+ * no backend).
+ */
+export type DayStatus = "PLANNED" | "IN_PROGRESS" | "DONE" | "OFF";
+
+/** Um dia que o vendedor marcou como não trabalhado. */
+export interface SellerDayOff {
+  id: string;
+  date: string;
+  reason: string | null;
+}
+
+export interface SellerDayOffsQueryData {
+  seller_day_offs: SellerDayOff[];
+}
+
+export type DepartureType = "HOME" | "CUSTOM" | "GPS";
+
+/** Com quem falar no cliente — alimenta os botões de ligar e WhatsApp. */
+export interface VisitPrimaryContact {
+  id: string;
+  name: string;
+  phone: string | null;
+}
+
+export interface VisitClient {
+  id: string;
+  razaoSocial: string;
+  nomeFantasia: string | null;
+  companyClient: { id: string } | null;
+  /**
+   * O endereço vem junto da semana — não só do dia. É ele que a folha impressa
+   * da rotina semanal usa para situar cada loja, e quem dirige não tem a tela
+   * ao lado para descobrir o bairro.
+   */
+  addressStreet: string | null;
+  addressNumber: string | null;
+  addressNeighborhood: string | null;
+  addressCity: string | null;
+  addressState: string | null;
+  primaryContact: VisitPrimaryContact | null;
+}
+
+export interface VisitFactory {
+  id: string;
+  razaoSocial: string;
+  nomeFantasia: string | null;
+}
+
+export interface VisitClientFactoryLink {
+  id: string;
+  /** Vendedor do vínculo — o dono do pedido que nasce desta visita. */
+  sellerId?: string;
+  client: VisitClient | null;
+  factory: VisitFactory | null;
+  latestVisitScore: ScoreDimensions | null;
+  /**
+   * Cliente negativado nesta fábrica. A visita segue na agenda (negativar não
+   * apaga o que já foi planejado), mas a fábrica não aceita pedido novo dele.
+   */
+  isNegative?: boolean;
+  negativeReason?: string | null;
+}
+
+// Fábrica que esta visita vai tratar. A visita é ao CLIENTE: quando ele tem mais
+// de uma fábrica urgente, o vendedor vai uma vez e conversa sobre todas elas.
+export interface VisitFocusFactory {
+  scoreTotal: string | null;
+  factory: VisitFactory | null;
+  /**
+   * Vínculo (vendedor × cliente × fábrica) que gerou o foco, com as dimensões
+   * do score ATUAL. `scoreTotal` acima é o número congelado na geração da
+   * rotina; o motivo exibido tem de ser o de hoje, senão o painel explicaria
+   * uma urgência que o cliente já resolveu.
+   */
+  clientFactoryLink: {
+    id: string;
+    latestVisitScore: ScoreDimensions | null;
+  } | null;
+}
+
+export interface VisitScheduleItem {
+  id: string;
+  /**
+   * Preenchido quando a parada veio de um DIA FIXO (compromisso do gestor com o
+   * cliente), e não de uma escolha do motor. O vendedor precisa saber a
+   * diferença: uma ele pode remarcar sem consequência, a outra é promessa.
+   */
+  fixedScheduleId: string | null;
+  plannedOrder: number;
+  /** Visita presencial ou contato remoto (ligação/WhatsApp). */
+  contactType: VisitContactType;
+  estimatedTravelMin: number | null;
+  /** Hora prevista de início da visita ("09:40"); nula em contato remoto. */
+  plannedStartTime: string | null;
+  /** Hora prevista de término da visita ("10:10"). */
+  plannedEndTime: string | null;
+  /** Minutos que a parada ocupa na agenda (config do vendedor). */
+  visitDurationMin: number | null;
+  status: VisitStatus;
+  outcome: VisitOutcome | null;
+  notes: string | null;
+  /**
+   * A visita consumiu a jornada inteira: as outras paradas daquele dia saíram
+   * por causa dela. Marcado pelo vendedor, não calculado por duração.
+   */
+  isWholeDay: boolean;
+  /**
+   * Marcada por uma pessoa (combinada com o cliente), não recomendada pelo
+   * motor. Nenhuma geração automática a reescreve, e ela ancora a região do
+   * dia — ver `canCompleteDay`.
+   */
+  isManual: boolean;
+  /** Viagem que criou a parada; nulo nas paradas da rotina de casa. */
+  tripId?: string | null;
+  /** O que motivou a visita (sugestão do sistema). */
+  focusFactories: VisitFocusFactory[];
+  /** O que o vendedor de fato tratou, derivado das observações de estoque. */
+  treatedFactories: VisitFactory[];
+  /** Nulo só na agenda de quem não vende: a ligação do escritório. */
+  clientFactoryLink: VisitClientFactoryLink | null;
+  /** O cliente da parada — sempre presente, com ou sem vínculo. */
+  client: VisitClient | null;
+  /** O motivo combinado por quem marcou ("retornar sobre o orçamento"). */
+  reason: string | null;
+  /** O pedido de que a parada trata, quando quem marcou disse qual. */
+  order: VisitOrderRef | null;
+}
+
+export interface VisitOrderRef {
+  id: string;
+  orderDate: string;
+  invoiceNumber: string | null;
+}
+
+export interface VisitScheduleDay {
+  id: string;
+  date: string;
+  status: DayStatus;
+  departureType: DepartureType;
+  routeDistanceKm: string;
+  routeDurationMin: number;
+  items: VisitScheduleItem[];
+}
+
+export interface VisitScheduleSeller {
+  id: string;
+  user: {
+    name: string;
+  } | null;
+}
+
+export interface VisitSchedule {
+  id: string;
+  weekStart: string;
+  status: ScheduleStatus;
+  generatedAt: string;
+  /** Nulo na agenda do escritório (só ligações, sem motor de rotina). */
+  seller: VisitScheduleSeller | null;
+  /** De quem é a agenda. */
+  ownerUserId: string | null;
+  days: VisitScheduleDay[];
+}
+
+export interface VisitSchedulesQueryData {
+  visit_schedules: {
+    edges: { node: VisitSchedule }[];
+    pageInfo: {
+      hasNextPage: boolean;
+      endCursor: string | null;
+    };
+    totalCount: number;
+  };
+}
+
+export interface RoutineSellerOption {
+  id: string;
+  name: string;
+}
+
+export interface RoutineSellersQueryData {
+  routine_sellers: {
+    edges: { node: RoutineSellerOption }[];
+  };
+}
+
+/**
+ * Uma pessoa cuja agenda o gestor pode abrir. A agenda é de PESSOA (desde
+ * 18/10/2026): quem vende tem a rotina; quem não vende (o escritório), só as
+ * ligações que marcou.
+ */
+export interface AgendaPerson {
+  id: string;
+  name: string;
+  /** Perfil de vendedor, se houver — é o que liga a rotina e o motor. */
+  sellerId: string | null;
+}
+
+export interface AgendaPeopleQueryData {
+  agenda_people: {
+    edges: {
+      node: {
+        id: string;
+        name: string;
+        isActive: boolean;
+        seller: { id: string } | null;
+      };
+    }[];
+  };
+}
+
+/** Como a agenda se mostra: um dia, a semana ou o mês. */
+export type AgendaView = "day" | "week" | "month";

@@ -1,6 +1,14 @@
 import { getCurrentWeekMondayIso } from "@/utils/format/date";
 import { expect, test } from "../support/fixtures";
 import { mockGraphql } from "../support/graphql";
+import { grantRole } from "../support/role";
+
+// A agenda decide no SERVIDOR, pelo token, se abre a de quem está logado ou o
+// "Agenda de" do gestor. O storageState tem JWT de owner; aqui quem usa é o
+// vendedor, então o token também diz vendedor.
+test.beforeEach(async ({ page }) => {
+  await grantRole(page, "SELLER", { alsoJwt: true });
+});
 
 /**
  * Estoque da visita → pedido. O vendedor pergunta o estoque fábrica por fábrica e,
@@ -141,7 +149,7 @@ const newOrderPageMocks = () => ({
 });
 
 async function openStockModal(page: import("@playwright/test").Page) {
-  await page.goto("/routines");
+  await page.goto("/agenda");
 
   // Kebab DENTRO do card da visita (mesmo padrão de `routines.spec.ts`).
   // O card exibe a RAZÃO SOCIAL (`clientDisplayName`), não o nome fantasia.
@@ -431,7 +439,7 @@ test("visita/estoque: cancelar o pedido volta para a rotina", async ({
   await page.getByRole("button", { name: "Cancelar" }).click();
 
   // Volta para a tela de onde a visita foi aberta.
-  await expect(page).toHaveURL(/\/routines/);
+  await expect(page).toHaveURL(/\/agenda/);
   await expect(page.getByRole("button", { name: "Criar pedido" })).toHaveCount(
     0
   );

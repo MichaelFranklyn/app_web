@@ -396,6 +396,51 @@ test("pedido detalhe: edita um item", async ({ page }) => {
   await expect(page.getByText("Item atualizado")).toBeVisible();
 });
 
+test("pedido detalhe: editar item mostra o que o cliente pagou antes", async ({
+  page,
+}) => {
+  let asked: Record<string, unknown> | null = null;
+  const item = orderItem();
+  await mockGraphql(page, {
+    ...renderMock([item]),
+    ClientProductPurchasePrices: (v) => {
+      asked = v;
+      return {
+        clientProductPurchasePrices: [
+          {
+            productId: (item.product as { id: string }).id,
+            purchases: [
+              {
+                orderId: "order-antigo-1",
+                orderDate: "2026-09-10",
+                unitPrice: "40.0000",
+                netUnitPrice: "40.0000",
+                units: "5.0000",
+                isPromo: false,
+                tierName: "Varejo",
+              },
+            ],
+          },
+        ],
+      };
+    },
+  });
+
+  await page.goto(URL);
+  await page.getByRole("button", { name: "Editar item" }).click();
+  const dialog = page.getByRole("dialog");
+
+  await expect(dialog.getByText("Últimas compras deste cliente")).toBeVisible();
+  await expect(
+    dialog.getByText(/10\/09\/2026 · 5 unidades · Varejo/)
+  ).toBeVisible();
+  // Este pedido não pode ser "a última compra" de si mesmo.
+  expect(asked).toMatchObject({ excludeOrderId: "order-1" });
+
+  await dialog.getByRole("button", { name: "Usar este preço" }).click();
+  await expect(dialog.locator('input[name="unitPrice"]')).toHaveValue(/40,00/);
+});
+
 test("pedido detalhe: remove um item", async ({ page }) => {
   await mockGraphql(page, {
     ...renderMock([orderItem()]),

@@ -286,7 +286,7 @@ describe("useNotificationCenter", () => {
       listMock([
         notification("n1", {
           category: "INSIGHT",
-          link: "/routines",
+          link: "/agenda",
           relatedEntityType: "visit_overdue",
         }),
       ]),

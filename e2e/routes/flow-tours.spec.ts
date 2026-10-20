@@ -69,7 +69,7 @@ const DADOS: Record<string, Record<string, Handler>> = {
                   link: null,
                   reason: null,
                   clientId: "c-1",
-                  nextFollowUpDate: null,
+                  nextCallDate: null,
                   nextVisitDate: null,
                 },
               ],

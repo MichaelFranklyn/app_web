@@ -23,6 +23,7 @@ import {
   SUPPORT_CACHE_FIELDS,
   USER_CACHE_FIELDS,
   VISIT_CACHE_FIELDS,
+  AGENDA_SCHEDULE_CACHE_FIELDS,
 } from "./cacheFields";
 
 /**
@@ -164,6 +165,9 @@ const ASSUNTOS: Assunto[] = [
   {
     nome: "visita",
     constante: "VISIT_CACHE_FIELDS",
+    // Marcar na agenda (visita ou ligação) mexe também nas pendências e nas
+    // oportunidades: o conjunto dele CONTÉM o da visita (ver o teste abaixo).
+    variantes: ["AGENDA_SCHEDULE_CACHE_FIELDS"],
     campos: VISIT_CACHE_FIELDS,
     mutations: [
       "createVisitScheduleItem",
@@ -175,14 +179,14 @@ const ASSUNTOS: Assunto[] = [
     ],
     delegacoes: {
       // Os modais da rotina recebem o syncVisit de useVisitActions como onDone.
-      "app/(inside)/(operations)/routines/_components/VisitActions/EditVisitModal/index.tsx":
-        "app/(inside)/(operations)/routines/useVisitActions.tsx",
-      "app/(inside)/(operations)/routines/_components/VisitActions/RescheduleVisitModal/index.tsx":
-        "app/(inside)/(operations)/routines/useVisitActions.tsx",
-      "app/(inside)/(operations)/routines/_components/VisitActions/WholeDayModal/index.tsx":
-        "app/(inside)/(operations)/routines/useVisitActions.tsx",
-      "app/(inside)/(operations)/routines/_components/PromoteContactModal/usePromoteContact.ts":
-        "app/(inside)/(operations)/routines/useVisitActions.tsx",
+      "app/(inside)/(operations)/agenda/_components/VisitActions/EditVisitModal/index.tsx":
+        "app/(inside)/(operations)/agenda/useVisitActions.tsx",
+      "app/(inside)/(operations)/agenda/_components/VisitActions/RescheduleVisitModal/index.tsx":
+        "app/(inside)/(operations)/agenda/useVisitActions.tsx",
+      "app/(inside)/(operations)/agenda/_components/VisitActions/WholeDayModal/index.tsx":
+        "app/(inside)/(operations)/agenda/useVisitActions.tsx",
+      "app/(inside)/(operations)/agenda/_components/PromoteContactModal/usePromoteContact.ts":
+        "app/(inside)/(operations)/agenda/useVisitActions.tsx",
     },
   },
   {
@@ -579,5 +583,17 @@ describe("as listas por assunto", () => {
       "clients",
       "clientProductAnalysis",
     ]);
+  });
+});
+
+describe("marcar na agenda", () => {
+  it("cobre o que a visita cobre, e as listas calculadas na hora", () => {
+    expect(AGENDA_SCHEDULE_CACHE_FIELDS).toEqual(
+      expect.arrayContaining([
+        ...VISIT_CACHE_FIELDS,
+        "myPendingItems",
+        "myInsightCases",
+      ])
+    );
   });
 });

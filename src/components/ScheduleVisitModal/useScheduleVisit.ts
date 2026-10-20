@@ -2,99 +2,83 @@
 
 import { SelectOption } from "@/components/Input";
 import { useAsyncAction } from "@/hooks/useAsyncAction";
-import { useInvalidateQueriesClient } from "@/hooks/useInvalidateQueries";
 import { useCompleteList } from "@/hooks/useCompleteList";
+import { useInvalidateQueriesClient } from "@/hooks/useInvalidateQueries";
 import { useQueryErrorToast } from "@/hooks/useQueryErrorToast";
-import { clientDisplayName } from "@/utils/client";
+import { AGENDA_SCHEDULE_CACHE_FIELDS } from "@/utils/cacheFields";
 import { factoryName } from "@/utils/company";
 import { toIsoDate } from "@/utils/format/date";
-import { CombinedGraphQLErrors } from "@apollo/client";
-import { VISIT_CACHE_FIELDS } from "@/utils/cacheFields";
 import { useMutation } from "@apollo/client/react";
 import { useEffect, useMemo, useState } from "react";
 
 import {
   CLIENT_LINKS_FOR_VISIT_QUERY,
   SCHEDULE_MANUAL_VISIT_MUTATION,
-  WALLET_CLIENTS_FOR_VISIT_QUERY,
 } from "./gql";
 import {
   ClientLinksQueryResponse,
   ScheduleManualVisitResponse,
   ScheduleVisitModalProps,
   VisitContactType,
-  WalletClientsQueryResponse,
 } from "./interface";
+import { useAgendaOwner } from "./useAgendaOwner";
+import { useClientChoices } from "./useClientChoices";
 
 /** Escolha automática da fábrica: quem manda é o score, no backend. */
 export const AUTO_FACTORY = "__auto__";
 
 const getLinks = (d: ClientLinksQueryResponse) => d.sellerClientFactoryList;
-const getWallet = (d: WalletClientsQueryResponse) => d.sellerClientFactoryList;
 
-/** O backend distingue "dia cheio" dos outros conflitos pelo `error_type`. */
-const isDayFull = (error: unknown): boolean =>
-  CombinedGraphQLErrors.is(error) &&
-  error.errors.some(
-    (e) => (e.extensions as { error_type?: string })?.error_type === "DAY_FULL"
-  );
-
-const errorMessage = (error: unknown, fallback: string): string => {
-  if (CombinedGraphQLErrors.is(error)) {
-    return error.errors[0]?.message?.trim() || fallback;
-  }
-  return error instanceof Error && error.message ? error.message : fallback;
-};
-
-type Params = Pick<
+type Params = Omit<
   ScheduleVisitModalProps,
-  | "open"
-  | "onOpenChange"
-  | "clientId"
-  | "sellerId"
-  | "defaultDate"
-  | "onScheduled"
+  "clientName" | "orderLabel" | "returnLabel"
 >;
 
+/**
+ * Marcar uma parada na agenda: de quem, qual cliente, qual dia, e o combinado.
+ *
+ * Visita e ligação são a mesma parada com tipos diferentes (19/10/2026): este
+ * é o único formulário de marcar — da agenda, da ficha do cliente, do pedido,
+ * das pendências e das oportunidades.
+ */
 export function useScheduleVisit({
   open,
   onOpenChange,
   clientId,
   sellerId,
+  owner: fixedOwner,
   defaultDate,
+  contactType: fixedContactType,
+  orderId: fixedOrderId,
+  returnItemId,
   onScheduled,
 }: Params) {
+  const [pickedOwnerId, setPickedOwnerId] = useState<string | null>(null);
   const [selectedClientId, setSelectedClientId] = useState<string | null>(
     clientId ?? null
   );
   const [date, setDate] = useState<Date | null>(null);
-  const [contactType, setContactType] = useState<VisitContactType>("IN_PERSON");
-  const [selectedSellerId, setSelectedSellerId] = useState<string | null>(
-    sellerId ?? null
+  const [contactType, setContactType] = useState<VisitContactType>(
+    fixedContactType ?? "IN_PERSON"
   );
   const [factoryId, setFactoryId] = useState<string>(AUTO_FACTORY);
+  const [orderId, setOrderId] = useState<string | null>(null);
+  const [reason, setReason] = useState<string | null>(null);
   const [notes, setNotes] = useState("");
-  // O dia cheio não é um beco: o backend recusa dizendo o teto, e quem está com
-  // o cliente no telefone confirma. A mensagem dele é que aparece na tela.
-  const [dayFullMessage, setDayFullMessage] = useState<string | null>(null);
 
   const isClientFixed = Boolean(clientId);
 
   useEffect(() => {
     if (!open) return;
+    setPickedOwnerId(null);
     setSelectedClientId(clientId ?? null);
-    setSelectedSellerId(sellerId ?? null);
     setDate(defaultDate ? new Date(`${defaultDate}T12:00:00`) : null);
-    setContactType("IN_PERSON");
+    setContactType(fixedContactType ?? "IN_PERSON");
     setFactoryId(AUTO_FACTORY);
+    setOrderId(null);
+    setReason(null);
     setNotes("");
-    setDayFullMessage(null);
-  }, [open, clientId, sellerId, defaultDate]);
-
-  // Trocar de dia ou de tipo refaz a pergunta: o aviso falava do teto do outro.
-  useEffect(() => {
-    setDayFullMessage(null);
-  }, [date, contactType, selectedClientId]);
+  }, [open, clientId, defaultDate, fixedContactType]);
 
   const linksInput = useMemo(
     () => ({
@@ -104,84 +88,65 @@ export function useScheduleVisit({
     }),
     [selectedClientId]
   );
-
   const linksQuery = useCompleteList<ClientLinksQueryResponse>(
     CLIENT_LINKS_FOR_VISIT_QUERY,
     linksInput,
     getLinks,
     { skip: !open || !selectedClientId }
   );
-
-  const walletInput = useMemo(
-    () => ({
-      filters: [{ field: "seller_id", operator: "eq", value: sellerId ?? "" }],
-    }),
-    [sellerId]
-  );
-
-  const walletQuery = useCompleteList<WalletClientsQueryResponse>(
-    WALLET_CLIENTS_FOR_VISIT_QUERY,
-    walletInput,
-    getWallet,
-    { skip: !open || isClientFixed || !sellerId }
-  );
-
   const links = useMemo(
     () =>
-      linksQuery.data?.sellerClientFactoryList.edges.map((e) => e.node) ?? [],
+      linksQuery.data?.sellerClientFactoryList?.edges?.map((e) => e.node) ?? [],
     [linksQuery.data]
   );
 
-  /** Vínculos do vendedor escolhido — as fábricas que ele atende no cliente. */
-  const ownedLinks = useMemo(
-    () =>
-      selectedSellerId
-        ? links.filter((l) => l.sellerId === selectedSellerId)
-        : links,
-    [links, selectedSellerId]
-  );
+  const agenda = useAgendaOwner({
+    open,
+    fixedOwner: fixedOwner ?? null,
+    fixedSellerId: sellerId ?? null,
+    pickedId: pickedOwnerId,
+    clientSellerIds:
+      isClientFixed && linksQuery.data
+        ? [...new Set(links.map((l) => l.sellerId))]
+        : null,
+  });
+  const ownerSellerId = agenda.owner?.sellerId ?? null;
+  // Quem não vende só recebe ligação.
+  const effectiveType: VisitContactType = agenda.callsOnly
+    ? "REMOTE"
+    : contactType;
 
-  const sellerOptions = useMemo<SelectOption[]>(() => {
-    const seen = new Map<string, string>();
-    links.forEach((l) => {
-      if (l.seller && !seen.has(l.seller.id))
-        seen.set(l.seller.id, l.seller.name);
-    });
-    return [...seen.entries()].map(([value, label]) => ({ value, label }));
-  }, [links]);
+  const choices = useClientChoices({
+    open,
+    isClientFixed,
+    sellerId: ownerSellerId,
+    hasOwner: Boolean(agenda.owner),
+    clientId: selectedClientId,
+    isOrderFixed: Boolean(fixedOrderId),
+  });
 
   const factoryOptions = useMemo<SelectOption[]>(
     () => [
       { value: AUTO_FACTORY, label: "Escolher pelo sistema (mais urgente)" },
-      ...ownedLinks.map((l) => ({
-        value: l.factoryId,
-        label: factoryName(l.factory) || "Fábrica",
-      })),
+      ...links
+        .filter((l) => l.sellerId === ownerSellerId)
+        .map((l) => ({
+          value: l.factoryId,
+          label: factoryName(l.factory) || "Fábrica",
+        })),
     ],
-    [ownedLinks]
+    [links, ownerSellerId]
   );
 
-  const clientOptions = useMemo<SelectOption[]>(() => {
-    const nodes = walletQuery.data?.sellerClientFactoryList.edges.map(
-      (e) => e.node
-    );
-    const seen = new Map<string, string>();
-    (nodes ?? []).forEach((n) => {
-      if (n.client && !seen.has(n.client.id)) {
-        seen.set(n.client.id, clientDisplayName(n.client));
-      }
-    });
-    return [...seen.entries()]
-      .map(([value, label]) => ({ value, label }))
-      .sort((a, b) => a.label.localeCompare(b.label, "pt-BR"));
-  }, [walletQuery.data]);
-
-  // Só pergunta o vendedor quando há mais de um atendendo o cliente: com um
-  // único possível, o select é uma pergunta de resposta obrigatória e única.
-  const needsSellerChoice = isClientFixed && sellerOptions.length > 1;
-  const effectiveSellerId =
-    selectedSellerId ??
-    (sellerOptions.length === 1 ? sellerOptions[0].value : null);
+  /** Trocar a agenda troca a carteira: o cliente e o pedido escolhidos saem. */
+  const pickOwner = (id: string | null) => {
+    setPickedOwnerId(id);
+    if (!isClientFixed) {
+      setSelectedClientId(null);
+      setOrderId(null);
+    }
+    setFactoryId(AUTO_FACTORY);
+  };
 
   const [scheduleVisit] = useMutation<ScheduleManualVisitResponse>(
     SCHEDULE_MANUAL_VISIT_MUTATION
@@ -189,9 +154,7 @@ export function useScheduleVisit({
   const { execute, isLoading } = useAsyncAction();
   const invalidateClient = useInvalidateQueriesClient();
 
-  const isValid = Boolean(selectedClientId && date);
-
-  const submit = (allowOverCapacity: boolean) =>
+  const submit = () =>
     execute(
       async () => {
         const res = await scheduleVisit({
@@ -199,68 +162,63 @@ export function useScheduleVisit({
             input: {
               clientId: selectedClientId,
               date: toIsoDate(date),
-              sellerId: effectiveSellerId,
+              contactType: effectiveType,
+              sellerId: ownerSellerId,
+              ownerUserId: agenda.canChoose
+                ? (agenda.owner?.id ?? null)
+                : (fixedOwner?.id ?? null),
               factoryId: factoryId === AUTO_FACTORY ? null : factoryId,
-              contactType,
+              reason: reason?.trim() || null,
+              orderId: fixedOrderId ?? orderId,
+              returnItemId: returnItemId ?? null,
               notes: notes.trim() || null,
-              allowOverCapacity,
             },
           },
         });
         const payload = res.data?.scheduleManualVisit;
-        if (!payload?.status) {
-          throw new Error(payload?.message ?? "Erro ao marcar a visita");
-        }
+        if (!payload?.status)
+          throw new Error(payload?.message ?? "Erro ao marcar");
         return payload;
       },
       {
         successMessage:
-          contactType === "REMOTE" ? "Contato marcado" : "Visita marcada",
+          effectiveType === "REMOTE" ? "Ligação marcada" : "Visita marcada",
         onSuccess: () => {
           onOpenChange(false);
           onScheduled?.();
-          // Marcada pela rotina ou pela ficha do cliente, a visita aparece nas
-          // duas telas.
-          void invalidateClient(VISIT_CACHE_FIELDS);
-        },
-        onError: (error) => {
-          // Guardado ANTES do toast do hook: é este texto que vira o aviso com
-          // o botão "marcar mesmo assim".
-          setDayFullMessage(
-            isDayFull(error)
-              ? errorMessage(error, "Este dia já está cheio.")
-              : null
-          );
+          // Entra na agenda, na ficha do cliente e — dispensando o "sem
+          // contato" — na central de pendências.
+          void invalidateClient(AGENDA_SCHEDULE_CACHE_FIELDS);
         },
       }
     );
 
   useQueryErrorToast(
-    linksQuery.error ?? walletQuery.error,
+    linksQuery.error ?? choices.clientsError,
     "Não foi possível carregar os clientes."
   );
 
   return {
+    agenda,
+    pickOwner,
+    isClientFixed,
     selectedClientId,
     setSelectedClientId,
-    clientOptions,
-    clientsLoading: walletQuery.loading,
-    isClientFixed,
+    ...choices,
     date,
     setDate,
-    contactType,
+    contactType: effectiveType,
     setContactType,
-    sellerOptions,
-    needsSellerChoice,
-    selectedSellerId: effectiveSellerId,
-    setSelectedSellerId,
     factoryId,
     setFactoryId,
     factoryOptions,
+    orderId,
+    setOrderId,
+    reason,
+    setReason,
     notes,
     setNotes,
-    dayFullMessage,
-    isValid,
+    isValid: Boolean(selectedClientId && date && agenda.owner),
     isLoading,
     submit,
   };

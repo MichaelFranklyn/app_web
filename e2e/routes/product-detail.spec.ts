@@ -213,3 +213,52 @@ test("produto detalhe: remove um componente", async ({ page }) => {
 
   await expect(page.getByText("Componente removido do kit")).toBeVisible();
 });
+
+test("produto detalhe: histórico de preços com a variação sobre o anterior", async ({
+  page,
+}) => {
+  const change = (over: Record<string, unknown>) => ({
+    tierName: "Ouro",
+    priceListId: "pl-2",
+    priceListName: "Lista Agosto",
+    region: "NORDESTE",
+    isPriceListActive: true,
+    previousUnitPrice: null,
+    variationPct: null,
+    ...over,
+  });
+  await mockGraphql(page, {
+    ...renderMock({}),
+    ProductPriceHistory: () => ({
+      productPriceHistory: [
+        change({
+          id: "ch-2",
+          changedAt: "2026-08-17T12:00:00Z",
+          unitPrice: "5.9900",
+          previousUnitPrice: "5.4700",
+          variationPct: "9.51",
+        }),
+        change({
+          id: "ch-1",
+          changedAt: "2026-07-24T12:00:00Z",
+          unitPrice: "5.4700",
+          priceListId: "pl-1",
+          priceListName: "Lista Julho",
+          isPriceListActive: false,
+        }),
+      ],
+    }),
+  });
+
+  await page.goto(URL);
+  const history = page.getByRole("row", { name: /Lista Agosto/ });
+  await expect(history).toContainText("R$ 5,99");
+  await expect(history).toContainText("antes R$ 5,47");
+  await expect(history).toContainText("+9,51%");
+  await expect(page.getByRole("row", { name: /Lista Julho/ })).toContainText(
+    "Primeiro preço"
+  );
+  await expect(page.getByRole("row", { name: /Lista Julho/ })).toContainText(
+    "NORDESTE · Inativa"
+  );
+});

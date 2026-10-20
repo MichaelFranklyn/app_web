@@ -138,6 +138,15 @@ const nextConfig: NextConfig = {
         destination: "/opportunities",
         permanent: true,
       },
+      // A rotina virou Agenda (18/10/2026): é de pessoa, e tem as ligações
+      // combinadas com o cliente. Os links antigos — notificações já
+      // entregues, atalhos instalados, o PDF impresso — continuam chegando.
+      // A query (?week=, ?seller=) vai junto.
+      {
+        source: "/routines/:path*",
+        destination: "/agenda/:path*",
+        permanent: true,
+      },
     ];
   },
 

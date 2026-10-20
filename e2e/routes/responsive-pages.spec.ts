@@ -51,7 +51,7 @@ const ROTAS_VAZIAS = [
   "/clients/cc-1/stock",
   "/clients/cc-1/products",
   "/clients/cc-1/support",
-  "/routines/2026-09-10",
+  "/agenda/2026-09-10",
   "/platform",
   "/platform/companies",
   "/platform/users",

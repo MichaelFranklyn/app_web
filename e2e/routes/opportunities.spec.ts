@@ -17,7 +17,7 @@ const sample = (over: Record<string, unknown> = {}) => ({
   link: "/clients/cc-1",
   reason: null,
   clientId: "c-1",
-  nextFollowUpDate: null,
+  nextCallDate: null,
   nextVisitDate: null,
   ...over,
 });
@@ -112,62 +112,66 @@ test("oportunidades: a lista abre na própria página, paginada no servidor", as
   });
 });
 
-test("oportunidades: o cliente avisa o contato já agendado", async ({
+test("oportunidades: o cliente avisa a ligação já marcada", async ({
   page,
 }) => {
   await mockGraphql(page, {
     MyOpportunities: () => overview([opportunity()]),
     MyOpportunityCases: () =>
-      casesPage("CLIENT_OVERDUE", 1, [
-        sample({ nextFollowUpDate: "2026-10-14" }),
-      ]),
+      casesPage("CLIENT_OVERDUE", 1, [sample({ nextCallDate: "2026-10-14" })]),
   });
 
   await page.goto("/opportunities?open=CLIENT_OVERDUE");
 
-  await expect(
-    page.getByText("Contato agendado para 14/10/2026")
-  ).toBeVisible();
+  await expect(page.getByText("Ligação marcada para 14/10/2026")).toBeVisible();
 });
 
-test("oportunidades: agendar o contato sai com o cliente já escolhido", async ({
+test("oportunidades: marcar a ligação sai com o cliente já escolhido", async ({
   page,
 }) => {
   const spy = await mockGraphql(page, {
     MyOpportunities: () => overview([opportunity()]),
     MyOpportunityCases: () => casesPage("CLIENT_OVERDUE", 1, [sample()]),
-    CreateClientFollowUp: () => ({
-      createClientFollowUp: {
+    ScheduleManualVisit: () => ({
+      scheduleManualVisit: {
         status: true,
-        message: "ok",
-        data: { id: "fu-1", status: "SCHEDULED", dueDate: "2026-10-14" },
+        message: "Ligação marcada com sucesso.",
+        data: {
+          id: "v-1",
+          scheduleDayId: "d-1",
+          plannedOrder: 1,
+          contactType: "REMOTE",
+        },
       },
     }),
   });
 
   await page.goto("/opportunities?open=CLIENT_OVERDUE");
-  await page.getByRole("button", { name: "Agendar contato" }).click();
+  await page.getByRole("button", { name: "Marcar ligação" }).click();
 
   const dialog = page.getByRole("dialog");
   await expect(dialog).toContainText("DECORE CASA & CONSTRUCAO");
   // O dia já vem sugerido (hoje) — e À VISTA no campo, para a pessoa conferir
-  // antes de salvar. Só falta o motivo.
+  // antes de salvar. O motivo é opcional: dá para marcar direto.
   const today = new Intl.DateTimeFormat("pt-BR", {
     timeZone: "America/Sao_Paulo",
   }).format(new Date());
   await expect(
-    dialog.getByRole("textbox", { name: /Dia do contato/ })
+    dialog.getByRole("textbox", { name: /Dia da ligação/ })
   ).toHaveValue(today);
-  await dialog.locator('input[name="reason"]').fill("Oferecer a reposição");
-  await dialog.getByRole("button", { name: "Agendar" }).click();
+  await dialog.getByRole("button", { name: "Marcar ligação" }).click();
 
-  const input = (await spy.waitForCall("CreateClientFollowUp")).input as {
+  // Uma estrutura só: a ligação é uma parada da agenda, marcada pela mesma
+  // porta da visita.
+  const input = (await spy.waitForCall("ScheduleManualVisit")).input as {
     clientId: string;
-    dueDate: string;
+    date: string;
+    contactType: string;
   };
   expect(input.clientId).toBe("c-1");
-  expect(input.dueDate).toMatch(/^\d{4}-\d{2}-\d{2}$/);
-  // Depois de agendar, a lista relê — é assim que o "contato agendado para X"
+  expect(input.contactType).toBe("REMOTE");
+  expect(input.date).toMatch(/^\d{4}-\d{2}-\d{2}$/);
+  // Depois de marcar, a lista relê — é assim que o "ligação marcada para X"
   // aparece sem recarregar a tela.
   await expect
     .poll(() => spy.calls("MyOpportunityCases").length)
@@ -242,6 +246,6 @@ test("oportunidades: o link antigo /insights redireciona com a query", async ({
 
   await expect(page).toHaveURL(/\/opportunities\?open=CLIENT_OVERDUE$/);
   await expect(
-    page.getByRole("button", { name: "Agendar contato" })
+    page.getByRole("button", { name: "Marcar ligação" })
   ).toBeVisible();
 });
