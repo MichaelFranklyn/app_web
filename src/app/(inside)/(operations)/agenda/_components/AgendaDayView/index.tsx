@@ -1,15 +1,17 @@
 "use client";
 
-import { Button } from "@/components/Button";
 import { Card } from "@/components/Card";
 import { Title } from "@/components/Title";
-import { Route } from "lucide-react";
+import { useUserRole } from "@/services/flowTour/useUserRole";
 
 import { AgendaDay, longDayLabel } from "../../calendar";
 import { AgendaPerson } from "../../interface";
 import { isPastDay, sortVisitsByRoute } from "../../utils";
 import { AgendaAddMenu } from "../AgendaAddMenu";
 import { DayOffButton } from "../DayOffButton";
+import { DayRoute } from "../DayRoute";
+import { DayRouteActions } from "../DayRouteActions";
+import { OverdueVisits } from "../OverdueVisits";
 import { VisitCard } from "../VisitCard";
 
 interface Props {
@@ -19,6 +21,8 @@ interface Props {
   person: AgendaPerson | null;
   sellerId: string | null;
   isSellerAgenda: boolean;
+  /** Quem vende — vai no cabeçalho da folha impressa. */
+  sellerName: string | null;
   isDayOff: boolean;
   onMarkDayOff: (date: string) => Promise<void>;
   onUnmarkDayOff: (date: string) => Promise<void>;
@@ -27,7 +31,9 @@ interface Props {
 
 /**
  * Um dia com espaço: os cartões completos (fábricas, score, WhatsApp), o
- * "+ Agendar" e, na rotina de quem vende, a rota no mapa e a folga.
+ * "+ Agendar" e, na rotina de quem vende, a folga e a rota — resumo, partida,
+ * mapa e folha impressa. A rota era uma tela à parte (`/agenda/<dia>`), que
+ * buscava a agenda por outro caminho e mostrava outra pessoa e outras paradas.
  */
 export function AgendaDayView({
   date,
@@ -36,72 +42,54 @@ export function AgendaDayView({
   person,
   sellerId,
   isSellerAgenda,
+  sellerName,
   isDayOff,
   onMarkDayOff,
   onUnmarkDayOff,
   onChanged,
 }: Props) {
-  const items = sortVisitsByRoute(agendaDay?.day?.items ?? []);
+  // Só o vendedor muda a própria partida e responde pelo que houve; o gestor
+  // acompanha.
+  const isSeller = useUserRole() === "SELLER";
+  const day = agendaDay?.day ?? null;
+  const items = sortVisitsByRoute(day?.items ?? []);
   const isPast = isPastDay(date, todayIso);
   const pendingCount = items.filter((i) => i.status === "PENDING").length;
-  const routeHref = `/agenda/${date}${sellerId ? `?seller=${sellerId}` : ""}`;
+  const routeDay = isSellerAgenda && !isDayOff && items.length > 0 ? day : null;
+  const hasDrivingStops = items.some((i) => i.contactType !== "REMOTE");
 
   return (
-    <Card.Root>
-      <Card.Header bg="bg3">
-        <Title variant="heading-sm" className="first-letter:uppercase">
-          {longDayLabel(date)}
-        </Title>
-        {isSellerAgenda && items.length > 0 && !isDayOff && (
-          <Button.Link
-            href={routeHref}
-            appearance="tinted"
-            size="sm"
-            noUppercase
-            title="Abrir a rota deste dia no mapa"
-          >
-            <Button.Icon icon={Route} />
-            <Button.Title>Ver rota do dia</Button.Title>
-          </Button.Link>
-        )}
-      </Card.Header>
-      <Card.Body>
-        {isDayOff ? (
-          <Title variant="body-sm" color="muted" className="text-center">
-            Você não trabalha neste dia. O sistema não vai planejar visitas para
-            ele.
+    <div className="flex flex-col gap-20">
+      {/* A dívida do passado só é cobrada HOJE: é a tela de trabalho. Sem
+          pessoa escolhida (o próprio vendedor), o backend escopa ao logado. */}
+      {date === todayIso && isSellerAgenda && (
+        <OverdueVisits
+          sellerId={person ? sellerId : null}
+          canAnswer={isSeller}
+          onAnswered={onChanged}
+        />
+      )}
+      <Card.Root>
+        <Card.Header bg="bg3">
+          <Title variant="heading-sm" className="first-letter:uppercase">
+            {longDayLabel(date)}
           </Title>
-        ) : items.length === 0 ? (
-          <Title variant="body-sm" color="muted" className="text-center">
-            Nada marcado neste dia.
-          </Title>
-        ) : (
-          <div className="tablet:grid-cols-2 desktop:grid-cols-3 grid grid-cols-1 gap-8">
-            {items.map((item) => (
-              <VisitCard
-                key={item.id}
-                item={item}
-                dayDate={date}
-                onChanged={onChanged}
-              />
-            ))}
-          </div>
-        )}
-      </Card.Body>
-      {!isPast && (
-        <Card.Section divided>
-          <div className="tablet:flex-row flex flex-col gap-8">
-            <div className="tablet:w-[240px]">
-              <AgendaAddMenu
-                date={date}
-                person={person}
-                sellerId={sellerId}
-                isDayOff={isDayOff}
-                onChanged={onChanged}
-              />
-            </div>
-            {isSellerAgenda && (
-              <div className="tablet:w-[240px]">
+          {(routeDay || !isPast) && (
+            <Card.Header.Actions>
+              {routeDay && (
+                <DayRouteActions day={routeDay} sellerName={sellerName} />
+              )}
+              {!isPast && (
+                <AgendaAddMenu
+                  variant="header"
+                  date={date}
+                  person={person}
+                  sellerId={sellerId}
+                  isDayOff={isDayOff}
+                  onChanged={onChanged}
+                />
+              )}
+              {!isPast && isSellerAgenda && (
                 <DayOffButton
                   date={date}
                   isDayOff={isDayOff}
@@ -109,11 +97,41 @@ export function AgendaDayView({
                   onMark={onMarkDayOff}
                   onUnmark={onUnmarkDayOff}
                 />
-              </div>
-            )}
-          </div>
-        </Card.Section>
+              )}
+            </Card.Header.Actions>
+          )}
+        </Card.Header>
+        <Card.Body>
+          {isDayOff ? (
+            <Title variant="body-sm" color="muted" className="text-center">
+              Você não trabalha neste dia. O sistema não vai planejar visitas
+              para ele.
+            </Title>
+          ) : items.length === 0 ? (
+            <Title variant="body-sm" color="muted" className="text-center">
+              Nada marcado neste dia.
+            </Title>
+          ) : (
+            <div className="tablet:grid-cols-2 desktop:grid-cols-3 grid grid-cols-1 gap-8">
+              {items.map((item) => (
+                <VisitCard
+                  key={item.id}
+                  item={item}
+                  dayDate={date}
+                  onChanged={onChanged}
+                />
+              ))}
+            </div>
+          )}
+        </Card.Body>
+      </Card.Root>
+      {routeDay && hasDrivingStops && (
+        <DayRoute
+          day={routeDay}
+          canEditDeparture={isSeller}
+          onChanged={onChanged}
+        />
       )}
-    </Card.Root>
+    </div>
   );
 }

@@ -7,6 +7,7 @@ import type {
 // As cinco dimensões do score chegam junto com o total: são elas que explicam,
 // no painel da visita, POR QUE aquela empresa está pedindo atenção.
 import type { ScoreDimensions } from "@/utils/score";
+import type { Viability } from "@/utils/viability";
 
 export type { VisitContactType, VisitOutcome, VisitStatus };
 
@@ -141,6 +142,11 @@ export interface VisitScheduleItem {
   reason: string | null;
   /** O pedido de que a parada trata, quando quem marcou disse qual. */
   order: VisitOrderRef | null;
+  /**
+   * O pedido possível contra o mínimo da fábrica, congelado no planejamento.
+   * Nulo quando a fábrica não tem mínimo cadastrado.
+   */
+  viability?: Viability | null;
 }
 
 export interface VisitOrderRef {
@@ -154,6 +160,8 @@ export interface VisitScheduleDay {
   date: string;
   status: DayStatus;
   departureType: DepartureType;
+  /** Endereço de onde a rota parte (a casa do vendedor, no modo HOME). */
+  departureAddress?: string | null;
   routeDistanceKm: string;
   routeDurationMin: number;
   items: VisitScheduleItem[];

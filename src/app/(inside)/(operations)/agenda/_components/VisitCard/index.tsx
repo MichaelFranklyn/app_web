@@ -24,9 +24,11 @@ import { useVisitActions } from "../../useVisitActions";
 import { factoryName } from "@/utils/company";
 import { contactNoun } from "@/utils/visit";
 import { ContactLinks } from "../ContactLinks";
+import { ViabilityNote } from "../ViabilityNote";
 import { chipAppearance } from "../../appearance";
 import { ContactTypeTag } from "@/components/ContactTypeTag";
 import { FixedVisitTag } from "@/components/FixedVisitTag";
+import { NegativeTag } from "@/components/ClientFactoryNegative";
 import { TripVisitTag } from "@/components/TripVisitTag";
 import { itemClient } from "../../calendar";
 import { canDragItem, writeDrag } from "../../dragItem";
@@ -183,6 +185,17 @@ export function VisitCard({
                     <>
                       <FixedVisitTag fixedScheduleId={item.fixedScheduleId} />
                       <TripVisitTag tripId={item.tripId} />
+                      {/* A parada continua de pé — negativar não desmarca o
+                        que já estava agendado —, mas quem vai precisa saber
+                        que esta fábrica não fecha pedido. */}
+                      <NegativeTag
+                        isNegative={Boolean(item.clientFactoryLink?.isNegative)}
+                        negativeSince={null}
+                        negativeReason={
+                          item.clientFactoryLink?.negativeReason ?? null
+                        }
+                        activeLabel={null}
+                      />
                       <Title variant="micro" color="muted">
                         #{item.plannedOrder}
                         {formatVisitSlot(item)}
@@ -229,6 +242,9 @@ export function VisitCard({
                     {formatTravelToStop(item.estimatedTravelMin)}
                   </Title>
                 )}
+                {/* "Dá pedido nesse cliente hoje?" — a pergunta que o
+                  vendedor só conseguia fazer no balcão, tarde. */}
+                {!isCompact && <ViabilityNote viability={item.viability} />}
               </div>
             </div>
             <div

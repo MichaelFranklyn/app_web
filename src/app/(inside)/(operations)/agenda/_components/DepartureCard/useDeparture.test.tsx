@@ -4,7 +4,7 @@ import { ReactNode } from "react";
 import { describe, expect, it, vi } from "vitest";
 
 import { Toast } from "@/components/Toast";
-import { UPDATE_DAY_DEPARTURE_MUTATION } from "../../gql";
+import { UPDATE_DAY_DEPARTURE_MUTATION } from "./gql";
 import { useDeparture } from "./useDeparture";
 
 const DAY_ID = "day-1";

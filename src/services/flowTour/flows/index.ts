@@ -18,7 +18,6 @@ import { priceListDetailFlows } from "./definitions/priceListDetail";
 import { productDetailFlows } from "./definitions/productDetail";
 import { profileFlows } from "./definitions/profile";
 import { reportsFlows } from "./definitions/reports";
-import { routineDayFlows } from "./definitions/routineDay";
 import { routinesFlows } from "./definitions/routines";
 import { settingsCatalogFlows } from "./definitions/settingsCatalog";
 import { supportFlows } from "./definitions/support";
@@ -35,7 +34,6 @@ const FLOW_LIST: FlowDefinition[] = [
   ...pendingFlows,
   ...opportunitiesFlows,
   ...routinesFlows,
-  ...routineDayFlows,
   ...ordersFlows,
   ...orderDetailFlows,
   ...commissionsFlows,

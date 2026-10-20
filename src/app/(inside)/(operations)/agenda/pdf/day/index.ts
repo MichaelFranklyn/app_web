@@ -6,15 +6,15 @@ import { drawFooters, loadGirusLogo } from "@/utils/pdf/footer";
 import { drawReportHeader } from "@/utils/pdf/reportHeader";
 import { drawReportTable } from "@/utils/pdf/table";
 import { COLOR, PAGE, Pdf, setText } from "@/utils/pdf/theme";
-import { VisitItem } from "../interface";
-import { formatDateLong } from "../utils";
+import { VisitScheduleItem as VisitItem } from "../../interface";
+import { formatDateLong } from "../../utils";
 import {
   buildRouteContext,
   buildStopColumns,
   REMOTE_CONTACT_COLUMNS,
   ROUTE_STOP_COLUMNS,
 } from "./columns";
-import { buildQrDataUrl, drawResponseBlock } from "../../pdf/responseBlock";
+import { buildQrDataUrl, drawResponseBlock } from "../responseBlock";
 
 export interface DayRoutePdfMeta {
   date: string;

@@ -52,7 +52,7 @@ export function ScheduledVisits({
 
   const count = visits?.length ?? 0;
   const dayHref = (date: string) =>
-    `/agenda/${date}${sellerId ? `?seller=${sellerId}` : ""}`;
+    `/agenda?view=day&date=${date}${sellerId ? `&seller=${sellerId}` : ""}`;
 
   return (
     <div className="flex flex-col gap-8">

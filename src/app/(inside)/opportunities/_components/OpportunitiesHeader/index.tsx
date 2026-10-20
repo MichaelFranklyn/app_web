@@ -22,10 +22,6 @@ export function OpportunitiesHeader({
     <PanelHeader.Root>
       <PanelHeader.Top>
         <PanelHeader.Left>
-          {/* Eyebrow verde: oportunidade é assunto de carteira (Clientes). */}
-          <PanelHeader.Eyebrow className="text-(--green)">
-            Clientes
-          </PanelHeader.Eyebrow>
           <PanelHeader.Title>Oportunidades</PanelHeader.Title>
           <PanelHeader.Description>
             {OPPORTUNITIES_TAGLINE} O que é compromisso a resolver — pedido

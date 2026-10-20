@@ -1,7 +1,7 @@
-import { formatDistanceKm, formatMinutes } from "../utils";
+import { formatDistanceKm, formatMinutes } from "../../utils";
 
 /**
- * As colunas da parada subiram para `routines/pdf/columns` quando a folha da
+ * As colunas da parada subiram para `agenda/pdf/columns` quando a folha da
  * semana passou a imprimir a mesma linha: são a mesma parada vista do mesmo
  * papel. Aqui fica só o que é do DIA — a linha de contexto do cabeçalho, que
  * fala de quilometragem e ponto de saída e não existe na visão semanal.
@@ -18,7 +18,7 @@ export {
   stopReason,
   stopUrgency,
   streetRow,
-} from "../../pdf/columns";
+} from "../columns";
 
 export interface RouteContextData {
   sellerName?: string | null;

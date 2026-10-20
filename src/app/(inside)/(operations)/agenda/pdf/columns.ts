@@ -7,7 +7,7 @@ import { VisitScheduleItem } from "../interface";
 import { itemClient } from "../calendar";
 
 /**
- * Colunas das folhas de rota — a do dia (`[date]/pdf`) e a da semana
+ * Colunas das folhas de rota — a do dia (`pdf/day`) e a da semana
  * (`pdf/index.ts`).
  *
  * Moram aqui, no nível da rotina, porque as duas folhas imprimem a MESMA

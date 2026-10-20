@@ -1,7 +1,7 @@
 import { describe, expect, it } from "vitest";
 
 import type { ScoreDimensions } from "@/utils/score";
-import { VisitItem } from "../interface";
+import { VisitScheduleItem as VisitItem } from "../../interface";
 import {
   buildRouteContext,
   buildStopColumns,

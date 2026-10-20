@@ -138,6 +138,7 @@ export default function AgendaContent({
                 person={agenda.selectedPerson}
                 sellerId={sellerId}
                 isSellerAgenda={isSellerAgenda}
+                sellerName={schedule?.seller?.user?.name ?? null}
                 isDayOff={dayOffDates.has(anchor)}
                 onMarkDayOff={mark}
                 onUnmarkDayOff={unmark}
