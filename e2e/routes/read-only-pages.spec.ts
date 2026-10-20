@@ -103,14 +103,11 @@ test("perfil do vendedor: cabeçalho e blocos de campo na mesma página", async 
   }
 });
 
-test("rotina por data: monta a semana", async ({ page }) => {
-  await mockGraphql(page, {
-    VisitsWeekSchedule: () => ({ week_schedule: conn([]) }),
-  });
+test("rotina por data: abre o dia na agenda", async ({ page }) => {
+  // A rota do dia virou a visão de dia da Agenda: o endereço antigo só
+  // redireciona, para links e favoritos continuarem valendo.
   await page.goto("/agenda/2026-06-22");
-  await expect(
-    page.getByRole("heading", { name: "Rota do Dia", level: 1 })
-  ).toBeVisible();
+  await expect(page).toHaveURL(/\/agenda\?view=day&date=2026-06-22$/);
 });
 
 test("fábrica/pedidos: monta a aba de pedidos", async ({ page }) => {
