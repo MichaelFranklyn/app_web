@@ -4,6 +4,7 @@ import type { BrowserContext, Page } from "@playwright/test";
 import { SW_BASE_URL } from "../../playwright.sw.config";
 import { expect, test } from "../support/fixtures";
 import { mockGraphql } from "../support/graphql";
+import { grantRole } from "../support/role";
 import {
   OK,
   baseMocks,
@@ -162,6 +163,10 @@ async function openRoutine(
 }
 
 test.beforeEach(async ({ page }) => {
+  // A agenda decide no SERVIDOR, pelo token, se abre a de quem está logado ou o
+  // "Agenda de" do gestor. O storageState tem JWT de owner; aqui quem usa é o
+  // vendedor, então o token também diz vendedor.
+  await grantRole(page, "SELLER", { alsoJwt: true });
   // Um contexto novo por teste, mas o registro do SW é assíncrono: a primeira
   // visita o instala, e só a partir daí ele responde pela origem.
   await mockGraphql(page, baseMocks);
