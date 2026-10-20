@@ -113,9 +113,13 @@ test("rotina por data: abre o dia na agenda", async ({ page }) => {
     { maxRedirects: 0 }
   );
   expect(response.status()).toBe(307);
-  expect(response.headers().location).toMatch(
-    /\/agenda\?view=day&date=2026-06-22&seller=seller-1$/
-  );
+  const target = new URL(response.headers().location, "http://x");
+  expect(target.pathname).toBe("/agenda");
+  expect(Object.fromEntries(target.searchParams)).toEqual({
+    view: "day",
+    date: "2026-06-22",
+    seller: "seller-1",
+  });
 });
 
 test("fábrica/pedidos: monta a aba de pedidos", async ({ page }) => {
