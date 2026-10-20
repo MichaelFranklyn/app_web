@@ -11,6 +11,8 @@ import { OverdueOutcome, OverdueVisit } from "./interface";
 
 interface Props {
   visit: OverdueVisit;
+  /** O gestor só lê a fila: sem os desfechos, que para ele não fariam nada. */
+  canAnswer: boolean;
   isAnswering: boolean;
   onAnswer: (outcome: OverdueOutcome) => void;
   onReschedule: () => void;
@@ -18,6 +20,7 @@ interface Props {
 
 export function OverdueVisitRow({
   visit,
+  canAnswer,
   isAnswering,
   onAnswer,
   onReschedule,
@@ -64,58 +67,60 @@ export function OverdueVisitRow({
 
         {/* Duas colunas iguais: os desfechos ficam do mesmo tamanho, sem uma
           linha órfã de botão quando o texto de um deles é mais longo. */}
-        <div className="grid grid-cols-2 gap-6">
-          <Button.Root
-            appearance="solid"
-            color="amber"
-            size="sm"
-            noUppercase
-            fullWidth
-            loading={isAnswering}
-            onClick={() => onAnswer("COMPLETED")}
-          >
-            <Button.Icon icon={Check} />
-            <Button.Title>{isRemote ? "Falei" : "Fui"}</Button.Title>
-          </Button.Root>
-          <Button.Root
-            appearance="outline"
-            color="neutral"
-            size="sm"
-            noUppercase
-            fullWidth
-            disabled={isAnswering}
-            onClick={() => onAnswer("CLIENT_ABSENT")}
-          >
-            <Button.Icon icon={UserX} />
-            <Button.Title>
-              {isRemote ? "Não atendeu" : "Não estava"}
-            </Button.Title>
-          </Button.Root>
-          <Button.Root
-            appearance="outline"
-            color="neutral"
-            size="sm"
-            noUppercase
-            fullWidth
-            disabled={isAnswering}
-            onClick={() => onAnswer("NO_TIME")}
-          >
-            <Button.Icon icon={Clock} />
-            <Button.Title>Não deu tempo</Button.Title>
-          </Button.Root>
-          <Button.Root
-            appearance="ghost"
-            color="neutral"
-            size="sm"
-            noUppercase
-            fullWidth
-            disabled={isAnswering}
-            onClick={onReschedule}
-          >
-            <Button.Icon icon={CalendarClock} />
-            <Button.Title>Remarcar</Button.Title>
-          </Button.Root>
-        </div>
+        {canAnswer && (
+          <div className="grid grid-cols-2 gap-6">
+            <Button.Root
+              appearance="solid"
+              color="amber"
+              size="sm"
+              noUppercase
+              fullWidth
+              loading={isAnswering}
+              onClick={() => onAnswer("COMPLETED")}
+            >
+              <Button.Icon icon={Check} />
+              <Button.Title>{isRemote ? "Falei" : "Fui"}</Button.Title>
+            </Button.Root>
+            <Button.Root
+              appearance="outline"
+              color="neutral"
+              size="sm"
+              noUppercase
+              fullWidth
+              disabled={isAnswering}
+              onClick={() => onAnswer("CLIENT_ABSENT")}
+            >
+              <Button.Icon icon={UserX} />
+              <Button.Title>
+                {isRemote ? "Não atendeu" : "Não estava"}
+              </Button.Title>
+            </Button.Root>
+            <Button.Root
+              appearance="outline"
+              color="neutral"
+              size="sm"
+              noUppercase
+              fullWidth
+              disabled={isAnswering}
+              onClick={() => onAnswer("NO_TIME")}
+            >
+              <Button.Icon icon={Clock} />
+              <Button.Title>Não deu tempo</Button.Title>
+            </Button.Root>
+            <Button.Root
+              appearance="ghost"
+              color="neutral"
+              size="sm"
+              noUppercase
+              fullWidth
+              disabled={isAnswering}
+              onClick={onReschedule}
+            >
+              <Button.Icon icon={CalendarClock} />
+              <Button.Title>Remarcar</Button.Title>
+            </Button.Root>
+          </div>
+        )}
       </Card.Body>
     </Card.Root>
   );

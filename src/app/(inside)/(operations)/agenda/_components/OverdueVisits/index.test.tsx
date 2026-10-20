@@ -154,5 +154,15 @@ describe("OverdueVisits", () => {
     expect(
       screen.getByRole("button", { name: /Ver visitas/ })
     ).toBeInTheDocument();
+
+    // No painel, a fila é só leitura: os desfechos não fariam nada para ele.
+    await userEvent.click(screen.getByRole("button", { name: /Ver visitas/ }));
+    expect(await screen.findByText("Padaria do Zé LTDA")).toBeInTheDocument();
+    expect(
+      screen.queryByRole("button", { name: /Fui/ })
+    ).not.toBeInTheDocument();
+    expect(
+      screen.queryByRole("button", { name: /Remarcar/ })
+    ).not.toBeInTheDocument();
   });
 });
