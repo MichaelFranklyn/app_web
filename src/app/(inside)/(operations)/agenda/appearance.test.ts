@@ -12,36 +12,25 @@ const item = (patch: Partial<VisitScheduleItem>): VisitScheduleItem =>
   ({
     contactType: "IN_PERSON",
     status: "PENDING",
-    isFollowUp: false,
-    followUp: null,
+    reason: null,
+    order: null,
     client,
     clientFactoryLink: null,
     ...patch,
   }) as VisitScheduleItem;
 
 describe("chipAppearance", () => {
-  it("visita e contato têm cores diferentes; o combinado é contato", () => {
+  it("visita e ligação têm cores diferentes", () => {
     expect(chipAppearance(item({})).tone).toBe("amber");
     expect(chipAppearance(item({ contactType: "REMOTE" })).tone).toBe("blue");
-    expect(
-      chipAppearance(item({ contactType: "REMOTE", isFollowUp: true })).tone
-    ).toBe("blue");
   });
 
-  it("a combinada mostra o motivo do combinado", () => {
+  it("a parada marcada à mão mostra o motivo de quem marcou", () => {
     const look = chipAppearance(
-      item({
-        contactType: "REMOTE",
-        isFollowUp: true,
-        followUp: {
-          id: "f1",
-          reason: "Retornar sobre o orçamento",
-          status: "SCHEDULED",
-        },
-      })
+      item({ contactType: "REMOTE", reason: "Retornar sobre o orçamento" })
     );
     expect(look.detail).toBe("Retornar sobre o orçamento");
-    expect(look.label).toMatch(/^Contato — /);
+    expect(look.label).toMatch(/^Ligação — /);
   });
 
   it("o que saiu do previsto diz o desfecho e fica esmaecido", () => {

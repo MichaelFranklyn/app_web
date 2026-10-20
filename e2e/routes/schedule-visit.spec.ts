@@ -89,7 +89,8 @@ test("cliente/visitas: marcar visita manda o cliente e a data escolhida", async 
   });
   await page.goto("/clients/cc-1/visits");
 
-  await page.getByRole("button", { name: "Marcar visita" }).click();
+  // A aba é a AGENDA do cliente: o botão marca visita ou ligação.
+  await page.getByRole("button", { name: "Marcar", exact: true }).click();
   await expect(
     page.getByRole("dialog", { name: "Marcar visita" })
   ).toBeVisible();
@@ -113,11 +114,11 @@ test("cliente/visitas: marcar visita manda o cliente e a data escolhida", async 
   expect(input.clientId).toBe("client-1");
   expect(input.date).toMatch(/^\d{4}-\d{2}-\d{2}$/);
   expect(input.contactType).toBe("IN_PERSON");
-  // Um vendedor só no cliente: o modal resolve sem perguntar.
+  // O vendedor logado marca na própria agenda: o modal não pergunta.
   expect(input.sellerId).toBe("seller-1");
 });
 
-test("cliente/visitas: ligar para o cliente marca contato remoto", async ({
+test("cliente/agenda: a ligação é a mesma parada, com o tipo remoto", async ({
   page,
 }) => {
   const spy = await mockGraphql(page, {
@@ -137,13 +138,13 @@ test("cliente/visitas: ligar para o cliente marca contato remoto", async ({
   });
   await page.goto("/clients/cc-1/visits");
 
-  await page.getByRole("button", { name: "Marcar visita" }).click();
-  await page.getByRole("button", { name: "Ligar para o cliente" }).click();
-  await page.getByLabel(/dia da visita/i).click({ force: true });
+  await page.getByRole("button", { name: "Marcar", exact: true }).click();
+  await page.getByRole("button", { name: "Ligação", exact: true }).click();
+  await page.getByLabel(/dia da ligação/i).click({ force: true });
   await page.getByRole("button", { name: "Hoje", exact: true }).click();
   await page
     .getByRole("dialog")
-    .getByRole("button", { name: "Marcar contato" })
+    .getByRole("button", { name: "Marcar ligação" })
     .click();
 
   const variables = await spy.waitForCall("ScheduleManualVisit");

@@ -8,7 +8,7 @@ import {
   dueLabel,
   dueTone,
   hasActiveFilter,
-  followUpDefaultDate,
+  returnDefaultDate,
   ITEMS_PER_PAGE,
   PENDING_TYPE_LABEL,
   PENDING_TYPE_ORDER,
@@ -31,7 +31,6 @@ const REASONS: PendingReason[] = [
   "VISIT_UNANSWERED",
   "RETURN_DATE",
   "WANTS_VISIT",
-  "FOLLOW_UP_DUE",
   "DRAFT_STALE",
   "PENDING_INVOICE",
   "DELIVERY_UNCONFIRMED",
@@ -62,17 +61,6 @@ describe("reasonText", () => {
       expect(text.length).toBeGreaterThan(10);
       expect(text).not.toContain("undefined");
     }
-  });
-
-  it("contato agendado diz o motivo que a pessoa escreveu", () => {
-    expect(
-      reasonText({
-        ...base,
-        reason: "FOLLOW_UP_DUE",
-        allowanceDays: null,
-        note: "Retornar sobre o orçamento",
-      })
-    ).toBe("Retornar sobre o orçamento — agendado em 05/10/2026.");
   });
 
   it("diz a data do fato, e distingue ligação de visita", () => {
@@ -224,8 +212,8 @@ describe("dueLabel / dueTone", () => {
 });
 
 describe("rótulos por tipo", () => {
-  it("cobre os oito tipos no plural, no singular e no destino", () => {
-    expect(PENDING_TYPE_ORDER).toHaveLength(8);
+  it("cobre os sete tipos no plural, no singular e no destino", () => {
+    expect(PENDING_TYPE_ORDER).toHaveLength(7);
     for (const type of PENDING_TYPE_ORDER) {
       expect(PENDING_TYPE_LABEL[type]).toBeTruthy();
       expect(PENDING_TYPE_SINGULAR[type]).toBeTruthy();
@@ -233,13 +221,12 @@ describe("rótulos por tipo", () => {
     }
   });
 
-  it("a ação diz para onde vai: rota, pedido, contato ou cadastro", () => {
+  it("a ação diz para onde vai: rota, pedido, cliente ou cadastro", () => {
     expect(destinationLabel("VISIT_OVERDUE")).toContain("rota");
     expect(destinationLabel("ORDER_STALLED")).toContain("pedido");
     expect(destinationLabel("INSTALLMENT_OVERDUE")).toContain("pedido");
     expect(destinationLabel("RETURN_SCHEDULED")).toContain("cliente");
     expect(destinationLabel("CLIENT_NO_CONTACT")).toContain("cliente");
-    expect(destinationLabel("FOLLOW_UP")).toContain("contato");
     expect(destinationLabel("ADDRESS_ISSUE")).toBe("Corrigir cadastro");
   });
 
@@ -250,7 +237,10 @@ describe("rótulos por tipo", () => {
       PENDING_TYPE_LABEL.CLIENT_NO_CONTACT,
     ];
     expect(new Set(names).size).toBe(3);
-    expect(PENDING_TYPE_LABEL.VISIT_OVERDUE).toBe("Visitas sem resposta");
+    // A ligação é parada da agenda como a visita: sem resposta, é o mesmo assunto.
+    expect(PENDING_TYPE_LABEL.VISIT_OVERDUE).toBe(
+      "Visitas e ligações sem resposta"
+    );
     expect(PENDING_TYPE_LABEL.VISIT_FREQUENCY).toContain("Frequência");
     // "atrasada" ficou ambíguo entre os dois primeiros — não volta.
     expect(names.join(" ")).not.toMatch(/atrasad/i);
@@ -341,12 +331,13 @@ describe("variables das consultas", () => {
       pendingSummaryVariables({ seller: "s-1" }, false).sellerId
     ).toBeNull();
     expect(
-      pendingCasesVariables({ seller: "s-1" }, "FOLLOW_UP", 1, false).sellerId
+      pendingCasesVariables({ seller: "s-1" }, "RETURN_SCHEDULED", 1, false)
+        .sellerId
     ).toBeNull();
   });
 
   it("página inválida cai na primeira", () => {
-    expect(pendingCasesVariables({}, "FOLLOW_UP", 0).offset).toBe(0);
+    expect(pendingCasesVariables({}, "RETURN_SCHEDULED", 0).offset).toBe(0);
   });
 });
 
@@ -397,11 +388,11 @@ describe("postSaleMessage", () => {
   });
 });
 
-describe("followUpDefaultDate", () => {
+describe("returnDefaultDate", () => {
   it("o dia combinado no futuro vale; passado ou sem dia vira hoje", () => {
-    expect(followUpDefaultDate("2999-01-01")).toBe("2999-01-01");
-    expect(followUpDefaultDate("2000-01-01")).not.toBe("2000-01-01");
-    expect(followUpDefaultDate(null)).toMatch(/^\d{4}-\d{2}-\d{2}$/);
+    expect(returnDefaultDate("2999-01-01")).toBe("2999-01-01");
+    expect(returnDefaultDate("2000-01-01")).not.toBe("2000-01-01");
+    expect(returnDefaultDate(null)).toMatch(/^\d{4}-\d{2}-\d{2}$/);
   });
 });
 
@@ -420,8 +411,8 @@ describe("assunto aberto", () => {
       "INSTALLMENT_OVERDUE"
     );
     // O tipo explícito vence a seção herdada.
-    expect(openTypeOf({ section: "charges", type: "FOLLOW_UP" })).toBe(
-      "FOLLOW_UP"
+    expect(openTypeOf({ section: "charges", type: "RETURN_SCHEDULED" })).toBe(
+      "RETURN_SCHEDULED"
     );
   });
 });
@@ -456,7 +447,7 @@ describe("cartões por assunto", () => {
   it("sem pendência nenhuma não há cartão", () => {
     expect(visibleTypeCounts([])).toEqual([]);
     expect(
-      visibleTypeCounts([{ type: "FOLLOW_UP", count: 0, highCount: 0 }])
+      visibleTypeCounts([{ type: "RETURN_SCHEDULED", count: 0, highCount: 0 }])
     ).toEqual([]);
   });
 
@@ -464,9 +455,9 @@ describe("cartões por assunto", () => {
     expect(cardSubtitle(counts[2])).toBe("250 de prioridade alta");
     expect(cardSubtitle(counts[3])).toBe("todas de prioridade alta");
     expect(cardSubtitle(counts[0])).toBe("nenhuma de prioridade alta");
-    expect(cardSubtitle({ type: "FOLLOW_UP", count: 1, highCount: 1 })).toBe(
-      "de prioridade alta"
-    );
+    expect(
+      cardSubtitle({ type: "RETURN_SCHEDULED", count: 1, highCount: 1 })
+    ).toBe("de prioridade alta");
     // Endereço não tem prazo nem chega a Alta: o que importa é o efeito.
     expect(
       cardSubtitle({ type: "ADDRESS_ISSUE", count: 150, highCount: 0 })

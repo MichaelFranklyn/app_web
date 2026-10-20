@@ -3,7 +3,6 @@
 import { Button } from "@/components/Button";
 import { Calendar } from "@/components/Calendar";
 import { Dropdown } from "@/components/Dropdown";
-import { FollowUpModal } from "@/components/FollowUpModal";
 import { ScheduleVisitModal } from "@/components/ScheduleVisitModal";
 import { Car, Phone, Plus } from "lucide-react";
 import { useState } from "react";
@@ -26,15 +25,13 @@ interface Props {
 }
 
 /**
- * Marcar algo num dia: um contato ou uma visita.
+ * Marcar algo num dia: uma ligação ou uma visita — a mesma parada da agenda,
+ * com tipos diferentes, pelo mesmo modal (chega com o tipo já decidido).
  *
- * O contato (ligação ou WhatsApp, com o motivo combinado) cabe em qualquer
- * agenda e em qualquer dia à frente — é o único caminho de marcar ligação
- * aqui, para "contato" e "ligar para o cliente" não parecerem coisas
- * diferentes; o modal de visita chega com o tipo já decidido.
- *
- * A visita é da rotina de quem vende, num dia que ele trabalha — a semana da
- * rotina nasce se ainda não existir. Com uma opção só, o gatilho abre direto.
+ * A ligação cabe em qualquer agenda (inclusive a de quem não vende) e em
+ * qualquer dia à frente. A visita é da rotina de quem vende, num dia que ele
+ * trabalha — a semana nasce se ainda não existir. Com uma opção só, o gatilho
+ * abre direto.
  */
 export function AgendaAddMenu({
   date,
@@ -75,7 +72,7 @@ export function AgendaAddMenu({
           <Dropdown.Trigger asChild>{trigger}</Dropdown.Trigger>
           <Dropdown.Content align="start">
             <Dropdown.Item icon={Phone} onSelect={() => setModal("contact")}>
-              Contato (ligação ou WhatsApp)
+              Ligação
             </Dropdown.Item>
             <Dropdown.Item icon={Car} onSelect={() => setModal("visit")}>
               Visita
@@ -86,23 +83,15 @@ export function AgendaAddMenu({
         trigger
       )}
 
-      <FollowUpModal
-        open={modal === "contact"}
-        onOpenChange={(open) => setModal(open ? "contact" : null)}
-        defaultDueDate={date}
-        defaultResponsible={person}
-        onSaved={onChanged}
+      <ScheduleVisitModal
+        open={modal !== null}
+        onOpenChange={(open) => !open && setModal(null)}
+        owner={person}
+        sellerId={sellerId}
+        defaultDate={date}
+        contactType={modal === "visit" ? "IN_PERSON" : "REMOTE"}
+        onScheduled={onChanged}
       />
-      {canVisit && sellerId && (
-        <ScheduleVisitModal
-          open={modal === "visit"}
-          onOpenChange={(open) => setModal(open ? "visit" : null)}
-          sellerId={sellerId}
-          defaultDate={date}
-          contactType="IN_PERSON"
-          onScheduled={onChanged}
-        />
-      )}
     </>
   );
 }

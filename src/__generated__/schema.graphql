@@ -1,6 +1,6 @@
 # AUTO-GERADO por scripts/pull-schema.mjs — NÃO editar à mão.
 # Snapshot do schema do backend (app_user). Atualize com: npm run schema:pull
-# Fonte: 59 arquivos .graphql merge-ados (mesma regra do Ariadne).
+# Fonte: 58 arquivos .graphql merge-ados (mesma regra do Ariadne).
 
 input BaseListInput {
   filters: [FieldFilterInput!] = null
@@ -172,228 +172,6 @@ extend type Mutation {
   createClientContact(input: CreateClientContactInput!): ClientContactTypeDataResponse!
   updateClientContact(id: UUID!, input: UpdateClientContactInput!): ClientContactTypeDataResponse!
   deleteClientContact(id: UUID!): BaseResponse!
-}
-
-"""
-Follow-up de clientes: o próximo contato combinado com o cliente — dia,
-responsável e motivo —, para a negociação não depender da memória de ninguém.
-"""
-enum FollowUpStatus {
-  SCHEDULED
-  """O contato aconteceu: alguém falou com o cliente (`outcome` diz o quê)."""
-  DONE
-  """Não vai mais acontecer (`outcome` diz por quê)."""
-  CANCELLED
-}
-
-"""
-O recorte da lista. "Atrasado", "hoje" e "próximos" não são guardados: são um
-agendado lido contra o dia de hoje (Brasília).
-"""
-enum FollowUpSituation {
-  OVERDUE
-  TODAY
-  UPCOMING
-  DONE
-  CANCELLED
-}
-
-enum FollowUpEventKind {
-  CREATED
-  """Mudou de dia — `dateFrom` → `dateTo`."""
-  RESCHEDULED
-  """Mudou de responsável — `userFrom` → `userTo`."""
-  REASSIGNED
-  """Motivo, observações ou pedido corrigidos (`note` diz quais)."""
-  EDITED
-  DONE
-  CANCELLED
-}
-
-"""Um acontecimento do agendamento, com quem fez e o de-para."""
-type ClientFollowUpEventType {
-  id: UUID!
-  followUpId: UUID!
-  kind: FollowUpEventKind!
-  note: String
-  dateFrom: Date
-  dateTo: Date
-  userFrom: UserType
-  userTo: UserType
-  author: UserType
-  createdAt: DateTime!
-}
-
-"""Um retorno combinado ("volte dia X") que um contato agendado atende."""
-type FollowUpReturnType {
-  itemId: UUID!
-  """O dia combinado para voltar."""
-  returnDate: Date!
-  """O dia em que foi combinado."""
-  agreedOn: Date!
-}
-
-"""O próximo contato agendado com um cliente."""
-type ClientFollowUpType {
-  id: UUID!
-  clientId: UUID!
-  client: ClientType
-  """O id da carteira — é o que a rota `/clients/[id]` usa."""
-  companyClientId: UUID
-  orderId: UUID
-  order: OrderType
-  responsibleUserId: UUID
-  responsible: UserType
-  createdBy: UserType
-  """O dia combinado para o contato — o dia da parada na agenda."""
-  dueDate: Date!
-  """A parada da agenda em que o contato acontece (desde 18/10/2026 o contato mora na agenda)."""
-  itemId: UUID!
-  reason: String!
-  notes: String
-  status: FollowUpStatus!
-  situation: FollowUpSituation!
-  """Dias de atraso em relação ao dia combinado. Negativo = ainda faltam dias."""
-  daysLate: Int!
-  closedAt: DateTime
-  """O que foi conversado (concluído) ou por que não aconteceu (cancelado)."""
-  outcome: String
-  """Quantas vezes já mudou de dia."""
-  rescheduleCount: Int!
-  """Concluído como contato COMERCIAL (conta como contato da carteira)."""
-  isCommercial: Boolean
-  """
-  O padrão da pergunta "houve contato comercial?" ao concluir: sim quando o
-  responsável tem perfil de vendedor, não para o escritório.
-  """
-  defaultCommercial: Boolean!
-  """O retorno combinado a que este contato está vinculado (resolve ao concluir)."""
-  linkedReturn: FollowUpReturnType
-  """
-  Agendamento em aberto e sem vínculo: o "volte dia X" ainda em aberto com o
-  cliente, que a pessoa pode confirmar ter atendido ao concluir.
-  """
-  openReturn: FollowUpReturnType
-  """O agendamento que este continua (concluído com "já marcar o próximo")."""
-  previousId: UUID
-  """O agendamento marcado ao concluir este, se houver."""
-  next: ClientFollowUpType
-  """A linha do tempo, do mais antigo ao mais recente."""
-  events: [ClientFollowUpEventType!]!
-  createdAt: DateTime!
-}
-
-type ClientFollowUpTypeEdge {
-  node: ClientFollowUpType!
-  cursor: String!
-}
-
-type ClientFollowUpTypeConnectionResponse {
-  edges: [ClientFollowUpTypeEdge!]!
-  pageInfo: PageInfo!
-  totalCount: Int!
-}
-
-type ClientFollowUpTypeDataResponse {
-  status: Boolean!
-  code: Int!
-  message: String!
-  data: ClientFollowUpType
-}
-
-type FollowUpSituationCountType {
-  situation: FollowUpSituation!
-  count: Int!
-}
-
-input CreateClientFollowUpInput {
-  clientId: UUID!
-  dueDate: Date!
-  """Opcional: vazio = "Contato com o cliente"."""
-  reason: String = null
-  notes: String = null
-  orderId: UUID = null
-  """Quem vai fazer o contato. Vendedor: sempre ele mesmo. Ausente = quem agenda."""
-  responsibleUserId: UUID = null
-  """O retorno combinado (item da rotina) que este contato vai atender."""
-  returnItemId: UUID = null
-}
-
-"""
-A ficha do agendamento em aberto. O DIA não muda por aqui — muda por
-`rescheduleClientFollowUp`, que guarda o de-para na linha do tempo.
-"""
-input UpdateClientFollowUpInput {
-  reason: String
-  notes: String
-  orderId: UUID
-  """Só o gestor transfere."""
-  responsibleUserId: UUID
-}
-
-input RescheduleClientFollowUpInput {
-  id: UUID!
-  dueDate: Date!
-  """Por que mudou de dia. Opcional."""
-  note: String = null
-}
-
-input CompleteClientFollowUpInput {
-  id: UUID!
-  """O que foi conversado. Obrigatório."""
-  outcome: String!
-  """Já marcar o próximo contato (encadeado a este)."""
-  nextDueDate: Date = null
-  """Motivo do próximo. Ausente = o mesmo deste."""
-  nextReason: String = null
-  """Houve contato comercial. Ausente = o padrão (`defaultCommercial`)."""
-  isCommercial: Boolean = null
-  """Confirma que atendeu o retorno em aberto (`openReturn`)."""
-  fulfillsReturn: Boolean = false
-}
-
-input CancelClientFollowUpInput {
-  id: UUID!
-  """
-  Por que não vai mais acontecer. OBRIGATÓRIO: vazio, só espaço ou ausente é
-  recusado pelo servidor com a mensagem para a pessoa. Fica `String` (e não
-  `String!`) para o front antigo — que manda `null` em branco — receber essa
-  mensagem em vez de um erro de validação do schema.
-  """
-  reason: String = null
-}
-
-extend type Query {
-  clientFollowUp(id: UUID!): ClientFollowUpTypeDataResponse!
-  """
-  Os contatos agendados. Vendedor vê só os dele (responsável); gestor vê a
-  empresa. Filtros: `situation` (um FollowUpSituation, `OPEN` = todos os
-  agendados, `ALL` = tudo; ausente = `OPEN`), `client_id`, `order_id`,
-  `responsible_user_id`, `orphaned` (`true` = o responsável foi desativado;
-  só gestor), `search` (no motivo). Sem ordem pedida: pelo dia
-  combinado, o mais antigo primeiro; concluídos e cancelados, pelo encerramento
-  mais recente.
-  """
-  clientFollowUps(input: BaseListInput!): ClientFollowUpTypeConnectionResponse!
-  """Quantos em cada recorte, no mesmo escopo da lista (sem o filtro de recorte)."""
-  clientFollowUpCounts(
-    clientId: UUID = null
-    responsibleUserId: UUID = null
-  ): [FollowUpSituationCountType!]!
-  """
-  Quantos contatos em aberto estão com alguém desativado ou removido.
-  Só gestor: é ele quem transfere — e sem isto ninguém mais seria lembrado.
-  """
-  clientFollowUpOrphanCount: Int!
-}
-
-extend type Mutation {
-  createClientFollowUp(input: CreateClientFollowUpInput!): ClientFollowUpTypeDataResponse!
-  updateClientFollowUp(id: UUID!, input: UpdateClientFollowUpInput!): ClientFollowUpTypeDataResponse!
-  rescheduleClientFollowUp(input: RescheduleClientFollowUpInput!): ClientFollowUpTypeDataResponse!
-  """Concluir = falei com o cliente. Quem não atendeu, reagenda."""
-  completeClientFollowUp(input: CompleteClientFollowUpInput!): ClientFollowUpTypeDataResponse!
-  cancelClientFollowUp(input: CancelClientFollowUpInput!): ClientFollowUpTypeDataResponse!
 }
 
 input CreateClientNetworkInput {
@@ -2935,11 +2713,11 @@ type InsightSampleType {
   """O cliente (id global) — para agendar o contato ou planejar a visita."""
   clientId: UUID
   """
-  O próximo contato agendado em aberto para o cliente, de qualquer pessoa da
-  empresa — a tela avisa "contato agendado para X" para ninguém repetir a ação.
+  A próxima LIGAÇÃO marcada na agenda de qualquer pessoa da empresa, de hoje em
+  diante — a tela avisa "ligação marcada para X" para ninguém repetir a ação.
   """
-  nextFollowUpDate: Date
-  """A próxima visita (ou ligação) marcada na rotina, de hoje em diante."""
+  nextCallDate: Date
+  """A próxima VISITA marcada na agenda, de hoje em diante."""
   nextVisitDate: Date
 }
 
@@ -4526,8 +4304,6 @@ enum PendingType {
   houve. (O nome é histórico; não é a frequência vencida.)
   """
   VISIT_OVERDUE
-  """Contato agendado com o cliente (follow-up) que vence no período."""
-  FOLLOW_UP
   """Retorno combinado com o cliente ("volte dia 20", "pode vir") e não cumprido."""
   RETURN_SCHEDULED
   """
@@ -4567,8 +4343,6 @@ enum PendingReason {
   RETURN_DATE
   """Numa ligação, o cliente pediu a visita presencial."""
   WANTS_VISIT
-  """O dia do contato agendado (`dueDate`); o motivo vem em `note`."""
-  FOLLOW_UP_DUE
   """Rascunho ou orçamento que não virou pedido."""
   DRAFT_STALE
   """Pedido confirmado que a fábrica ainda não faturou."""
@@ -4659,7 +4433,7 @@ type PendingItemType {
   a pendência (depois da semana corrente e do prazo).
   """
   scheduledDate: Date
-  """O motivo escrito por quem agendou o contato (só em `FOLLOW_UP`)."""
+  """Uma nota escrita por alguém sobre a pendência, quando houver."""
   note: String
   """O pedido de onde vem (`ORDER_STALLED`, `INSTALLMENT_OVERDUE`)."""
   orderId: UUID
@@ -7825,6 +7599,8 @@ input UpdateVisitScheduleItemInput {
   actualVisitAt: DateTime = null
   nextVisitSuggestion: Date = null
   notes: String = null
+  """Corrige o motivo combinado. Vazio limpa."""
+  reason: String = null
 }
 
 input RescheduleVisitInput {
@@ -7857,6 +7633,18 @@ input ScheduleManualVisitInput {
   notes: String = null
   """Sem efeito desde 18/10/2026: não há mais teto de visitas por dia."""
   allowOverCapacity: Boolean = false
+  """
+  Agenda de quem — só o gestor informa. Um vendedor (vale o perfil dele) ou
+  alguém que não vende (agenda do escritório, só ligação). Ausente = `sellerId`,
+  ou quem está marcando.
+  """
+  ownerUserId: UUID = null
+  """Por que voltar ao cliente, em uma frase ("retornar sobre o orçamento")."""
+  reason: String = null
+  """O pedido de que esta parada trata."""
+  orderId: UUID = null
+  """O "volte dia X" (a parada que o ouviu) que esta parada atende."""
+  returnItemId: UUID = null
 }
 
 type RescheduleVisitResult {
@@ -7913,10 +7701,15 @@ type VisitScheduleItemType {
   isManual: Boolean!
   """Viagem que criou esta parada (ver `planSellerTrip`). Nulo nas paradas da rotina de casa."""
   tripId: UUID
-  """Contato COMBINADO com o cliente (o antigo contato agendado): não se encerra sozinho e só sai da agenda cancelando, com o motivo."""
-  isFollowUp: Boolean!
-  """O combinado desta ligação (motivo, pedido, situação). Nulo nas paradas que não são combinadas."""
-  followUp: ClientFollowUpType
+  """Por que voltar ao cliente, dito por quem marcou ("retornar sobre o orçamento"). Nulo na parada que o motor planejou."""
+  reason: String
+  """O pedido de que esta parada trata."""
+  orderId: UUID
+  order: OrderType
+  """Quem marcou a parada (nulo na do motor)."""
+  createdBy: UserType
+  """O "volte dia X" (a parada que o ouviu) que esta parada atende."""
+  returnItemId: UUID
   client: ClientType
   createdAt: DateTime!
   updatedAt: DateTime!

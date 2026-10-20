@@ -1,18 +1,18 @@
 "use client";
 
 import { Card } from "@/components/Card";
-import { FollowUpModal } from "@/components/FollowUpModal";
 import { Loading } from "@/components/Loading";
 import { Pagination } from "@/components/Pagination";
 import { QueryError } from "@/components/QueryError";
 import { RowList } from "@/components/RowList";
+import { ScheduleVisitModal } from "@/components/ScheduleVisitModal";
 import { Title } from "@/components/Title";
 import { formatDate } from "@/utils/format/date";
 import { useEffect, useRef, useState } from "react";
 
 import { PendingItem, PendingType } from "../../interface";
 import { usePendingCases } from "../../usePendingCases";
-import { followUpDefaultDate, PENDING_TYPE_LABEL } from "../../utils";
+import { PENDING_TYPE_LABEL, returnDefaultDate } from "../../utils";
 import { CaseRow } from "./CaseRow";
 
 interface Props {
@@ -120,15 +120,17 @@ export function PendingCases({
       </Card.Body>
 
       {scheduling && (
-        <FollowUpModal
+        <ScheduleVisitModal
           open
           onOpenChange={(open) => !open && setScheduling(null)}
           clientId={scheduling.clientId}
           clientName={scheduling.clientName}
+          // O retorno é da carteira de quem o ouviu: a parada vai para ele.
+          sellerId={scheduling.sellerId}
           returnItemId={scheduling.entityId}
           returnLabel={formatDate(scheduling.dueDate)}
-          defaultDueDate={followUpDefaultDate(scheduling.dueDate)}
-          onSaved={afterAction}
+          defaultDate={returnDefaultDate(scheduling.dueDate)}
+          onScheduled={afterAction}
         />
       )}
     </Card.Root>

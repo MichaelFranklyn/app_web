@@ -1,6 +1,14 @@
 import { getCurrentWeekMondayIso } from "@/utils/format/date";
 import { expect, test } from "../support/fixtures";
 import { mockGraphql } from "../support/graphql";
+import { grantRole } from "../support/role";
+
+// A agenda decide no SERVIDOR, pelo token, se abre a de quem está logado ou o
+// "Agenda de" do gestor. O storageState tem JWT de owner; aqui quem usa é o
+// vendedor, então o token também diz vendedor.
+test.beforeEach(async ({ page }) => {
+  await grantRole(page, "SELLER", { alsoJwt: true });
+});
 
 /**
  * Estoque da visita → pedido. O vendedor pergunta o estoque fábrica por fábrica e,

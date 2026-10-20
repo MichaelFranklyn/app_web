@@ -3,7 +3,7 @@ import { Divider } from "@/components/Divider";
 import { Card } from "@/components/Card";
 
 import { Badge } from "@/components/Badges";
-import { EVENT_CHIP_BG } from "@/components/EventChip";
+import { EVENT_CHIP_STYLE } from "@/components/EventChip";
 import { InputCheckbox } from "@/components/Input/InputCheckbox";
 import { Title } from "@/components/Title";
 import { CloudUpload, TriangleAlert } from "lucide-react";
@@ -37,18 +37,12 @@ interface Props {
   /**
    * `compact` é o da semana em sete colunas: o mesmo cartão (concluir, tipo,
    * menu, fábricas, urgência), sem os divisores e as faixas de largura total
-   * que o deixavam alto, e com o fundo na cor do tipo (visita × contato) no
-   * lugar da barra lateral. O WhatsApp fica no painel — numa coluna de 140px os
+   * que o deixavam alto. O WhatsApp fica no painel — numa coluna de 140px os
    * botões não cabem. É o cartão que se arrasta para outro dia.
    */
   density?: "full" | "compact";
   onChanged: () => void;
 }
-
-const TONE_BAR = {
-  amber: "border-l-(--amber)",
-  blue: "border-l-(--blue)",
-} as const;
 
 const getFactoryName = (item: VisitScheduleItem): string => {
   const factory = item.clientFactoryLink?.factory;
@@ -115,11 +109,8 @@ export function VisitCard({
   const look = chipAppearance(item);
   const isDraggable =
     isCompact && Boolean(dayDate) && canDragItem(item, isAwaitingSignal);
-  // A combinada diz o motivo no lugar das fábricas: é ele que explica a ligação.
-  const subtitle =
-    item.isFollowUp && item.followUp
-      ? item.followUp.reason
-      : getFocusLabel(item);
+  // O motivo de quem marcou vem no lugar das fábricas: é ele que explica a parada.
+  const subtitle = item.reason ?? getFocusLabel(item);
 
   return (
     <>
@@ -129,10 +120,10 @@ export function VisitCard({
         tone="muted"
         interactive
         className={cn(
-          isCompact
-            ? EVENT_CHIP_BG[look.tone]
-            : ["border-l-[3px]", TONE_BAR[look.tone]],
-          isCompact && (isCompleted || look.isMuted) && "opacity-80",
+          // A borda esquerda na cor do tipo (visita × contato), nas duas
+          // densidades.
+          EVENT_CHIP_STYLE[look.tone],
+          (isCompleted || look.isMuted) && "opacity-80",
           isDraggable && "cursor-grab active:cursor-grabbing"
         )}
         draggable={isDraggable}
@@ -168,12 +159,12 @@ export function VisitCard({
                   title={
                     isCompleted
                       ? `Reabrir ${noun}`
-                      : `Marcar ${noun} como concluíd${isRemote ? "o" : "a"}`
+                      : `Marcar ${noun} como concluída`
                   }
                   aria-label={
                     isCompleted
                       ? `Reabrir ${noun}`
-                      : `Marcar ${noun} como concluíd${isRemote ? "o" : "a"}`
+                      : `Marcar ${noun} como concluída`
                   }
                 />
               </div>

@@ -96,11 +96,11 @@ export const VISIT_SCHEDULES_QUERY = gql`
               isWholeDay
               isManual
               tripId
-              isFollowUp
-              followUp {
+              reason
+              order {
                 id
-                reason
-                status
+                orderDate
+                invoiceNumber
               }
               client {
                 ...AgendaClientFields

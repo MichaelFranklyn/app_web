@@ -19,11 +19,10 @@ export interface ChipAppearance {
 /**
  * Como uma parada aparece numa linha da agenda.
  *
- * A COR diz o tipo — visita (âmbar) ou contato (azul), como na Rota do dia — porque é isso que a
- * pessoa procura ao bater o olho na semana. O contato combinado com o cliente
- * é contato como qualquer outro: mesma cor, mesmo nome. A linha de apoio diz o
- * que a cor não diz: o motivo do combinado, ou que o compromisso saiu do
- * previsto (ausente, remarcado…).
+ * A COR diz o tipo — visita (âmbar) ou ligação (azul) — porque é isso que a
+ * pessoa procura ao bater o olho na semana. A linha de apoio diz o que a cor
+ * não diz: o motivo de quem marcou, ou que o compromisso saiu do previsto
+ * (ausente, remarcado…).
  */
 export const chipAppearance = (item: VisitScheduleItem): ChipAppearance => {
   const isRemote = item.contactType === "REMOTE";
@@ -34,9 +33,7 @@ export const chipAppearance = (item: VisitScheduleItem): ChipAppearance => {
 
   const detail = isMuted
     ? VISIT_STATUS_LABEL[item.status]
-    : item.isFollowUp && item.followUp
-      ? item.followUp.reason
-      : null;
+    : (item.reason ?? null);
 
   return {
     icon: isRemote ? Phone : Car,

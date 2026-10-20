@@ -1,7 +1,6 @@
 "use client";
 
 import { Title } from "@/components/Title";
-import { getThemeClasses } from "@/lib/theme";
 import { cn } from "@/lib/utils";
 import { CircleCheck, LucideIcon } from "lucide-react";
 import { DragEvent } from "react";
@@ -10,12 +9,17 @@ import { DragEvent } from "react";
 export type EventChipTone = "amber" | "blue";
 
 /**
- * O FUNDO diz o tipo (sem barra lateral), no "tinted" da paleta do sistema —
- * o mesmo fundo e borda dos badges. Âmbar × azul é a convenção da Rota do dia.
+ * Fundo branco e a BORDA ESQUERDA na cor do tipo: visita âmbar, ligação azul,
+ * com o lado esquerdo quase reto, 3px (o `!` vence o `rounded-*` do card e do chip, que
+ * no CSS gerado viria depois). O hover e o foco seguem a cor do tipo: a borda
+ * inteira acende e o fundo ganha o tom claro dela.
+ * O fundo colorido (7%, 20%, 70%) foi tentado e recusado — tingia a semana
+ * inteira e brigava com o cinza do texto e as cores das etiquetas.
  */
-export const EVENT_CHIP_BG: Record<EventChipTone, string> = {
-  amber: cn("border", getThemeClasses("tinted", "amber")),
-  blue: cn("border", getThemeClasses("tinted", "blue")),
+export const EVENT_CHIP_STYLE: Record<EventChipTone, string> = {
+  amber:
+    "border border-l-5 border-l-(--amber) bg-(--bg2) rounded-l-[3px]! hover:border-(--amber) hover:bg-(--amber-bg) focus-visible:ring-(--amber)",
+  blue: "border border-l-5 border-l-(--blue) bg-(--bg2) rounded-l-[3px]! hover:border-(--blue) hover:bg-(--blue-bg) focus-visible:ring-(--blue)",
 };
 
 const ICON: Record<EventChipTone, string> = {
@@ -71,9 +75,9 @@ export function EventChip({
       title={label}
       aria-label={label}
       className={cn(
-        "flex w-full min-w-0 items-start gap-6 rounded-(--r-sm) text-left transition-[filter] hover:brightness-95 focus:outline-none focus-visible:ring-1 focus-visible:ring-(--amber)",
+        "flex w-full min-w-0 items-start gap-6 rounded-(--r-sm) text-left transition-colors focus:outline-none focus-visible:ring-1",
         size === "sm" ? "px-6 py-2" : "px-8 py-6",
-        EVENT_CHIP_BG[tone],
+        EVENT_CHIP_STYLE[tone],
         (isDone || isMuted) && "opacity-70",
         onDragStart && "cursor-grab active:cursor-grabbing"
       )}

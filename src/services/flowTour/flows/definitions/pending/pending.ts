@@ -20,7 +20,7 @@ export const pendingFlow: FlowDefinition = {
     {
       title: "Seus compromissos, num lugar só",
       description:
-        "Visita sem resposta, contato agendado, pedido parado, boleto vencido, cliente sem contato: tudo o que espera por você está aqui. Para achar onde vender mais, use Oportunidades.",
+        "Visita ou ligação sem resposta, retorno combinado, pedido parado, boleto vencido, cliente sem contato: tudo o que espera por você está aqui. Para achar onde vender mais, use Oportunidades.",
     },
     {
       element: '[data-tour="pending-counts"]',

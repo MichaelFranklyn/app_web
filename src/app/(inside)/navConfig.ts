@@ -8,7 +8,6 @@ import {
   Headset,
   LayoutDashboard,
   ListChecks,
-  PhoneCall,
   Route,
   Settings,
   Sparkles,
@@ -112,14 +111,6 @@ export const NAV = [
     matchPrefix: "/support",
     label: "Reclamações",
     icon: Headset,
-  },
-  {
-    // Contatos agendados (follow-up). Sem `feature` e sem `access`: o vendedor
-    // vê os dele, o gestor os da empresa — o recorte é no resolver.
-    href: "/follow-ups",
-    matchPrefix: "/follow-ups",
-    label: "Contatos agendados",
-    icon: PhoneCall,
   },
   {
     href: "/factories",

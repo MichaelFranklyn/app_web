@@ -48,7 +48,7 @@ export const opportunitiesFlow: FlowDefinition = {
       requireSelector: '[data-tour="opportunities-open"]',
       title: "Da oportunidade ao compromisso",
       description:
-        'A lista abre aqui mesmo, com o motivo de cada cliente. Dela você agenda o contato ou planeja a visita — o cliente passa a mostrar "contato agendado para…", e o compromisso aparece em Pendências quando chegar o dia.',
+        'A lista abre aqui mesmo, com o motivo de cada cliente. Dela você marca a ligação ou planeja a visita — o cliente passa a mostrar "ligação marcada para…", e o compromisso entra na sua Agenda.',
       side: "top",
       align: "end",
     },

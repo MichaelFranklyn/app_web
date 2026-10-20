@@ -162,7 +162,7 @@ describe("frases", () => {
         b: { contactType: "IN_PERSON", weekday: null },
         c: { contactType: "REMOTE", weekday: null },
       })
-    ).toBe("2 visitas e 1 contato");
+    ).toBe("2 visitas e 1 ligação");
   });
 
   it("diz onde o cliente já está na semana", () => {

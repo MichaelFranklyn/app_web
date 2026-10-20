@@ -1,6 +1,7 @@
 import { getCurrentWeekMondayIso } from "@/utils/format/date";
 import { expect, test } from "../support/fixtures";
 import { emptyConnection, mockGraphql } from "../support/graphql";
+import { grantRole } from "../support/role";
 
 /**
  * "Montar semana" (/agenda/plan) — o vendedor escolhe os clientes e o
@@ -176,13 +177,13 @@ test("montar semana: escolher, configurar a semana, organizar e confirmar", asyn
   ).toBeChecked();
   await page
     .getByRole("group", { name: "Como falar com Lojão Barra" })
-    .getByRole("button", { name: "Contato" })
+    .getByRole("button", { name: "Ligação" })
     .click();
   // O painel "Sua semana" junta os escolhidos de todas as cidades.
   await expect(page.getByText("Escolhidos agora (2)")).toBeVisible();
   // O guia passa para o passo 2 e diz o que foi escolhido.
   await expect(
-    page.getByText("Você escolheu 1 visita e 1 contato.")
+    page.getByText("Você escolheu 1 visita e 1 ligação.")
   ).toBeVisible();
   // No desktop as ações estão no painel: a barra fixa é do celular.
   await expect(
@@ -297,6 +298,9 @@ test("visitas marcadas: o que já está combinado aparece, com Marcar visita", a
 test("agenda: sem marcar visita nem planejar viagem no cabeçalho", async ({
   page,
 }) => {
+  // A agenda lê o papel do token (servidor); a do vendedor é a que tem o
+  // "Montar semana" sem escolher pessoa.
+  await grantRole(page, "SELLER", { alsoJwt: true });
   await mockGraphql(page, mocks());
 
   await page.goto("/agenda");

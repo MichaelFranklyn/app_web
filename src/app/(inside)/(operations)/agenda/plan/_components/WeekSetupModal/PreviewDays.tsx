@@ -66,7 +66,7 @@ export function PreviewDays({ plan }: Props) {
                 {dayChipLabel(day.date)} · {day.visitCount}{" "}
                 {day.visitCount === 1 ? "visita" : "visitas"}
                 {day.callCount > 0 &&
-                  ` e ${day.callCount} ${day.callCount === 1 ? "contato" : "contatos"}`}
+                  ` e ${day.callCount} ${day.callCount === 1 ? "ligação" : "ligações"}`}
                 {day.estimatedKm
                   ? ` · cerca de ${Math.round(day.estimatedKm)} km entre as visitas`
                   : ""}

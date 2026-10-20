@@ -164,12 +164,12 @@ export const selectionCounts = (selection: WeekSelection) => {
   return { visits, calls: choices.length - visits, total: choices.length };
 };
 
-/** "5 visitas e 2 contatos" — sem a parte zerada. */
+/** "5 visitas e 2 ligações" — sem a parte zerada. */
 export const selectionPhrase = (selection: WeekSelection): string => {
   const { visits, calls } = selectionCounts(selection);
   const parts = [];
   if (visits) parts.push(`${visits} ${visits === 1 ? "visita" : "visitas"}`);
-  if (calls) parts.push(`${calls} ${calls === 1 ? "contato" : "contatos"}`);
+  if (calls) parts.push(`${calls} ${calls === 1 ? "ligação" : "ligações"}`);
   return parts.join(" e ");
 };
 

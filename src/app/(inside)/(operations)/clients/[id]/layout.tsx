@@ -336,12 +336,11 @@ export default function ClientLayout({
           {/* Tratativas de problema (mercadoria, pagamento, entrega) — também
               fora do gate: reclamação de cliente é operação básica. */}
           <Tabs.NavItem href={`${basePath}/support`}>Reclamações</Tabs.NavItem>
-          {/* Próximos contatos combinados (follow-up) e o histórico deles. */}
-          <Tabs.NavItem href={`${basePath}/follow-ups`}>Contatos</Tabs.NavItem>
           {/* Visita, estoque estimado e score são o motor de rotina: um
               recurso só, e um plano que não o tem não tem nenhum dos três. */}
           <FeatureGate feature="ROUTINES">
-            <Tabs.NavItem href={`${basePath}/visits`}>Visitas</Tabs.NavItem>
+            {/* Visitas e ligações do cliente — a mesma parada da agenda. */}
+            <Tabs.NavItem href={`${basePath}/visits`}>Agenda</Tabs.NavItem>
             <Tabs.NavItem href={`${basePath}/stock`}>
               Estoque Estimado
             </Tabs.NavItem>

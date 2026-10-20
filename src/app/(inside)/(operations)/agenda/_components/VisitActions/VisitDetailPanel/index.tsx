@@ -7,6 +7,7 @@ import { factoryName } from "@/utils/company";
 import { Button } from "@/components/Button";
 import { Title } from "@/components/Title";
 import { clientDisplayName } from "@/utils/client";
+import { formatDate } from "@/utils/format/date";
 import {
   CalendarClock,
   Handshake,
@@ -69,9 +70,7 @@ export function VisitDetailPanel({
   const factoryLabel = factoryName(factory);
   const isRemote = item.contactType === "REMOTE";
   const noun = contactNoun(item.contactType);
-  const typeLabel = item.isFollowUp
-    ? "Ligação combinada"
-    : contactLabel(item.contactType);
+  const typeLabel = contactLabel(item.contactType);
   // A ligação do escritório não tem vínculo: roteiro, score e estoque são da
   // carteira de quem vende, e ali não há o que mostrar.
   const hasLink = Boolean(item.clientFactoryLink);
@@ -91,7 +90,7 @@ export function VisitDetailPanel({
     <Drawer.Root
       open={open}
       onClose={onClose}
-      label={`Detalhes d${isRemote ? "o" : "a"} ${noun}`}
+      label={`Detalhes da ${noun}`}
       width={400}
     >
       <Drawer.Header>
@@ -145,25 +144,31 @@ export function VisitDetailPanel({
           </div>
         </div>
 
-        {/* O combinado vem antes de tudo: é o motivo desta ligação, e a ficha
-              dele é onde se conta o que foi conversado, se reagenda ou se
-              cancela dizendo o porquê. */}
-        {item.isFollowUp && item.followUp && (
+        {/* O combinado vem antes de tudo: é o motivo desta parada, dito por
+              quem a marcou — e o pedido de que ela trata, a um toque. */}
+        {(item.reason || item.order) && (
           <div className="flex flex-col gap-6">
             <Title variant="micro" color="muted">
               Combinado com o cliente
             </Title>
-            <Title variant="body-sm">{item.followUp.reason}</Title>
-            <Button.Link
-              href={`/follow-ups/${item.followUp.id}`}
-              appearance="tinted"
-              size="sm"
-              noUppercase
-              fullWidth
-            >
-              <Button.Icon icon={Handshake} />
-              <Button.Title>Abrir o contato combinado</Button.Title>
-            </Button.Link>
+            {item.reason && <Title variant="body-sm">{item.reason}</Title>}
+            {item.order && (
+              <Button.Link
+                href={`/orders/${item.order.id}`}
+                appearance="tinted"
+                size="sm"
+                noUppercase
+                fullWidth
+              >
+                <Button.Icon icon={Handshake} />
+                <Button.Title>
+                  Abrir o pedido{" "}
+                  {item.order.invoiceNumber
+                    ? `NF ${item.order.invoiceNumber}`
+                    : `de ${formatDate(item.order.orderDate)}`}
+                </Button.Title>
+              </Button.Link>
+            )}
           </div>
         )}
 

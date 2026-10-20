@@ -27,7 +27,7 @@ import type {
   VisitClient,
   VisitClientFactoryLink,
   VisitFactory,
-  VisitFollowUp,
+  VisitOrderRef,
 } from "../interface";
 
 export type DayStatus = "PLANNED" | "IN_PROGRESS" | "DONE";
@@ -62,9 +62,9 @@ export interface VisitItem {
   clientFactoryLink: VisitClientFactoryLink | null;
   /** O cliente da parada (a do escritório não tem vínculo). */
   client: VisitClient | null;
-  /** Ligação combinada com o cliente — ver `VisitScheduleItem.isFollowUp`. */
-  isFollowUp: boolean;
-  followUp: VisitFollowUp | null;
+  /** O combinado de quem marcou — ver `VisitScheduleItem.reason`. */
+  reason: string | null;
+  order: VisitOrderRef | null;
 }
 
 export interface VisitDay {

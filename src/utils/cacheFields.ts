@@ -179,23 +179,18 @@ export const SUPPORT_CACHE_FIELDS = [
 ];
 
 /**
- * Um contato agendado (follow-up) nasceu, mudou de dia ou foi encerrado.
+ * Uma parada foi marcada na agenda — visita ou ligação, de qualquer tela.
  *
- * Os contadores são do servidor, e o agendamento também é uma linha da central
- * de pendências (`myPendingItems`) — que, por ser calculada na hora, só sabe
- * da mudança relendo. Desde 18/10/2026 ele é também uma LIGAÇÃO na agenda
- * (`visitSchedules`/`visitSchedule`): agendar, reagendar ou transferir muda a
- * semana de alguém.
+ * Além do que a visita já mexe (`VISIT_CACHE_FIELDS`), a parada marcada é
+ * AGENDA para a central de pendências (dispensa o "sem contato" e o "volte dia
+ * X") e para as oportunidades ("ligação marcada para X") — as duas calculadas
+ * na hora, que só sabem da mudança relendo.
  */
-export const FOLLOW_UP_CACHE_FIELDS = [
-  "clientFollowUps",
-  "clientFollowUpCounts",
-  "clientFollowUpOrphanCount",
-  "clientFollowUp",
-  "myPendingItems",
-  "visitSchedules",
+export const AGENDA_SCHEDULE_CACHE_FIELDS = merge(VISIT_CACHE_FIELDS, [
   "visitSchedule",
-];
+  "myPendingItems",
+  "myInsightCases",
+]);
 
 /**
  * O vínculo com a fábrica foi desfeito.

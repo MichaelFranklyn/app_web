@@ -1,7 +1,7 @@
 "use client";
 
 import { Button } from "@/components/Button";
-import { FollowUpModal } from "@/components/FollowUpModal";
+import { ScheduleVisitModal } from "@/components/ScheduleVisitModal";
 import { formatDate } from "@/utils/format/date";
 import { CalendarPlus } from "lucide-react";
 import { useState } from "react";
@@ -13,11 +13,11 @@ interface Props {
 }
 
 /**
- * "Retornar sobre este orçamento dia 15": o contato agendado já nasce
- * vinculado ao pedido e ao cliente dele — é daqui que a maioria dos retornos
- * de negociação sai.
+ * "Retornar sobre este orçamento dia 15": a ligação (ou visita) já nasce na
+ * agenda vinculada ao pedido e ao cliente dele — é daqui que a maioria dos
+ * retornos de negociação sai.
  */
-export function ScheduleFollowUpButton({ order }: Props) {
+export function ScheduleReturnButton({ order }: Props) {
   const [open, setOpen] = useState(false);
   const client = order.client;
   // Sem cliente não há com quem falar (pedido órfão de cadastro removido).
@@ -39,11 +39,12 @@ export function ScheduleFollowUpButton({ order }: Props) {
         <Button.Icon icon={CalendarPlus} />
         <Button.Title>Agendar retorno</Button.Title>
       </Button.Root>
-      <FollowUpModal
+      <ScheduleVisitModal
         open={open}
         onOpenChange={setOpen}
         clientId={client.id}
         clientName={client.nomeFantasia ?? client.razaoSocial}
+        contactType="REMOTE"
         orderId={order.id}
         orderLabel={label}
       />

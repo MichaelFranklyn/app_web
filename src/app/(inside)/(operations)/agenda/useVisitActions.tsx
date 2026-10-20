@@ -100,7 +100,8 @@ export function useVisitActions({
   // vendedor lê "Marcar visita como concluída" num card que é uma ligação.
   const isRemote = item.contactType === "REMOTE";
   const noun = contactNoun(item.contactType);
-  const doneSuffix = isRemote ? "o" : "a";
+  // "Visita" e "Ligação": os dois rótulos são femininos.
+  const doneSuffix = "a";
   const capitalized = contactLabel(item.contactType);
 
   const [updateItem] = useMutation<UpdateItemResponse>(

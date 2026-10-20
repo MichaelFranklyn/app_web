@@ -7,6 +7,14 @@ import {
   controlNetwork,
   signalBack,
 } from "../support/routineOffline";
+import { grantRole } from "../support/role";
+
+// A agenda decide no SERVIDOR, pelo token, se abre a de quem está logado ou o
+// "Agenda de" do gestor. O storageState tem JWT de owner; aqui quem usa é o
+// vendedor, então o token também diz vendedor.
+test.beforeEach(async ({ page }) => {
+  await grantRole(page, "SELLER", { alsoJwt: true });
+});
 
 /**
  * Visita e estoque registrados sem sinal (`@/services/offlineQueue`).
@@ -42,7 +50,8 @@ test("sem sinal, concluir a visita fica guardado e vai sozinho quando o sinal vo
   await expect(
     page.getByText(/Sem sinal: visita guardada no aparelho/)
   ).toBeVisible();
-  await expect(card.getByText("Realizada · aguardando sinal")).toBeVisible();
+  // No card compacto da semana, o estado curto.
+  await expect(card.getByText("Realizada · sem sinal")).toBeVisible();
   await expect(page.getByTestId("offline-queue-banner")).toContainText(
     "1 registro"
   );

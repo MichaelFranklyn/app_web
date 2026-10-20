@@ -23,6 +23,7 @@ import {
   SUPPORT_CACHE_FIELDS,
   USER_CACHE_FIELDS,
   VISIT_CACHE_FIELDS,
+  AGENDA_SCHEDULE_CACHE_FIELDS,
 } from "./cacheFields";
 
 /**
@@ -164,6 +165,9 @@ const ASSUNTOS: Assunto[] = [
   {
     nome: "visita",
     constante: "VISIT_CACHE_FIELDS",
+    // Marcar na agenda (visita ou ligação) mexe também nas pendências e nas
+    // oportunidades: o conjunto dele CONTÉM o da visita (ver o teste abaixo).
+    variantes: ["AGENDA_SCHEDULE_CACHE_FIELDS"],
     campos: VISIT_CACHE_FIELDS,
     mutations: [
       "createVisitScheduleItem",
@@ -579,5 +583,17 @@ describe("as listas por assunto", () => {
       "clients",
       "clientProductAnalysis",
     ]);
+  });
+});
+
+describe("marcar na agenda", () => {
+  it("cobre o que a visita cobre, e as listas calculadas na hora", () => {
+    expect(AGENDA_SCHEDULE_CACHE_FIELDS).toEqual(
+      expect.arrayContaining([
+        ...VISIT_CACHE_FIELDS,
+        "myPendingItems",
+        "myInsightCases",
+      ])
+    );
   });
 });

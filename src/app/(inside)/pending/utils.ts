@@ -9,7 +9,6 @@ import {
   ClipboardList,
   MapPinOff,
   PackageX,
-  PhoneCall,
   Receipt,
   Repeat,
   UserX,
@@ -62,7 +61,6 @@ export const PENDING_FILTER_FIELDS: Record<string, FieldConfig> = {
 /** A ordem dos contadores — a mesma em que os tipos desempatam na lista. */
 export const PENDING_TYPE_ORDER: PendingType[] = [
   "VISIT_OVERDUE",
-  "FOLLOW_UP",
   "RETURN_SCHEDULED",
   "VISIT_FREQUENCY",
   "ORDER_STALLED",
@@ -77,8 +75,7 @@ export const PENDING_TYPE_ORDER: PendingType[] = [
  * nada) e o cliente SEM CONTATO nenhum há 30 dias.
  */
 export const PENDING_TYPE_LABEL: Record<PendingType, string> = {
-  VISIT_OVERDUE: "Visitas sem resposta",
-  FOLLOW_UP: "Contatos agendados",
+  VISIT_OVERDUE: "Visitas e ligações sem resposta",
   RETURN_SCHEDULED: "Retornos combinados",
   VISIT_FREQUENCY: "Frequência de visita vencida",
   ORDER_STALLED: "Pedidos parados",
@@ -89,8 +86,7 @@ export const PENDING_TYPE_LABEL: Record<PendingType, string> = {
 
 /** O nome de UMA pendência do tipo — o que vai na linha da tabela. */
 export const PENDING_TYPE_SINGULAR: Record<PendingType, string> = {
-  VISIT_OVERDUE: "Visita sem resposta",
-  FOLLOW_UP: "Contato agendado",
+  VISIT_OVERDUE: "Visita ou ligação sem resposta",
   RETURN_SCHEDULED: "Retorno combinado",
   VISIT_FREQUENCY: "Frequência de visita vencida",
   ORDER_STALLED: "Pedido parado",
@@ -132,11 +128,6 @@ export const PENDING_TYPE_COPY: Record<
     icon: ClipboardList,
     why: "Estavam na rotina, o dia passou e ninguém disse o que houve. Responda na rota para o histórico do cliente ficar certo.",
     listAction: "Ver as visitas",
-  },
-  FOLLOW_UP: {
-    icon: PhoneCall,
-    why: "Contatos que alguém combinou de fazer com o cliente e que vencem neste período.",
-    listAction: "Ver os contatos",
   },
   RETURN_SCHEDULED: {
     icon: CalendarClock,
@@ -285,7 +276,6 @@ export const reasonText = (item: ReasonInput): string => {
     } de ${when} ficou sem resposta — diga o que aconteceu.`,
     RETURN_DATE: `O cliente pediu para voltar neste dia (combinado em ${when}).`,
     WANTS_VISIT: `O cliente pediu uma visita na ligação de ${when}.`,
-    FOLLOW_UP_DUE: `${item.note ?? "Contato agendado"} — agendado em ${when}.`,
     DRAFT_STALE: `Orçamento de ${when}, há ${ago} sem virar pedido. Prazo considerado: ${days(rule)}.`,
     PENDING_INVOICE: item.isEstimated
       ? `Pedido de ${when}, há ${ago}, e a fábrica ainda não faturou. Prazo considerado: ${days(rule)}, estimado — a data da confirmação não foi registrada, então contamos da data do pedido.`
@@ -352,7 +342,6 @@ export const dueTone = (daysLate: number | null): TitleColor => {
  */
 const ACTION_LABEL: Record<PendingType, string> = {
   VISIT_OVERDUE: "Responder na rota",
-  FOLLOW_UP: "Abrir contato",
   RETURN_SCHEDULED: "Abrir cliente",
   VISIT_FREQUENCY: "Abrir cliente",
   ORDER_STALLED: "Abrir pedido",
@@ -460,10 +449,10 @@ export const postSaleMessage = (
 };
 
 /**
- * O dia sugerido ao agendar o contato de um retorno: o combinado; se já
- * passou (ou não há), hoje — agendar no passado é recusado.
+ * O dia sugerido ao marcar a parada de um retorno: o combinado; se já passou
+ * (ou não há), hoje — marcar no passado é recusado.
  */
-export const followUpDefaultDate = (dueDate: string | null): string => {
+export const returnDefaultDate = (dueDate: string | null): string => {
   const today = getBrtTodayIso();
   return dueDate && dueDate >= today ? dueDate : today;
 };

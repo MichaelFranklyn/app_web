@@ -4,12 +4,7 @@ import { OptionCard } from "@/components/OptionCard";
 import { Button } from "@/components/Button";
 import { Modal } from "@/components/Modal";
 import { PackageSearch, ReceiptText } from "lucide-react";
-import {
-  contactLabel,
-  contactArticle,
-  contactNoun,
-  VisitContactType,
-} from "@/utils/visit";
+import { contactLabel, contactNoun, VisitContactType } from "@/utils/visit";
 
 interface Props {
   clientName: string;
@@ -36,14 +31,13 @@ export function CompletionPromptModal({
 }: Props) {
   const isRemote = contactType === "REMOTE";
   const noun = contactNoun(contactType);
-  const article = contactArticle(contactType);
 
   return (
     <Modal.Root open={open} onOpenChange={onOpenChange}>
       <Modal.Content size="sm">
         <Modal.Header
-          title={`${contactLabel(contactType)} concluíd${isRemote ? "o" : "a"}`}
-          description={`O que deseja registrar d${article} ${noun} com ${clientName}?`}
+          title={`${contactLabel(contactType)} concluída`}
+          description={`O que deseja registrar da ${noun} com ${clientName}?`}
         />
         <Modal.Body>
           <div className="flex flex-col gap-8">

@@ -137,19 +137,16 @@ export interface VisitScheduleItem {
   clientFactoryLink: VisitClientFactoryLink | null;
   /** O cliente da parada — sempre presente, com ou sem vínculo. */
   client: VisitClient | null;
-  /**
-   * Ligação COMBINADA com o cliente (o antigo contato agendado). Não se
-   * encerra sozinha e só sai da agenda cancelando o contato, com o motivo.
-   */
-  isFollowUp: boolean;
-  /** O combinado da ligação: o motivo e a ficha do contato. */
-  followUp: VisitFollowUp | null;
+  /** O motivo combinado por quem marcou ("retornar sobre o orçamento"). */
+  reason: string | null;
+  /** O pedido de que a parada trata, quando quem marcou disse qual. */
+  order: VisitOrderRef | null;
 }
 
-export interface VisitFollowUp {
+export interface VisitOrderRef {
   id: string;
-  reason: string;
-  status: "SCHEDULED" | "DONE" | "CANCELLED";
+  orderDate: string;
+  invoiceNumber: string | null;
 }
 
 export interface VisitScheduleDay {

@@ -1,17 +1,40 @@
 import { MockedProvider } from "@apollo/client/testing/react";
 import { act, renderHook, waitFor } from "@testing-library/react";
 import { ReactNode } from "react";
-import { describe, expect, it, vi } from "vitest";
+import { beforeEach, describe, expect, it, vi } from "vitest";
 
 import { Toast } from "@/components/Toast";
 import {
   CLIENT_LINKS_FOR_VISIT_QUERY,
+  COMPANY_CLIENTS_FOR_VISIT_QUERY,
   SCHEDULE_MANUAL_VISIT_MUTATION,
+  SCHEDULE_PEOPLE_QUERY,
   WALLET_CLIENTS_FOR_VISIT_QUERY,
 } from "./gql";
+import { ScheduleVisitModalProps } from "./interface";
 import { AUTO_FACTORY, useScheduleVisit } from "./useScheduleVisit";
 
+const user = vi.hoisted(() => ({
+  current: null as null | {
+    userId: string;
+    userName: string;
+    role: string;
+    sellerId: string | null;
+  },
+}));
+vi.mock("@/hooks/useUserData", () => ({
+  useUserData: () => ({ userData: user.current }),
+}));
+
 const DATE = "2026-09-15";
+
+const connection = (key: string, nodes: unknown[]) => ({
+  [key]: {
+    __typename: "Connection",
+    edges: nodes.map((node) => ({ __typename: "Edge", node })),
+    totalCount: nodes.length,
+  },
+});
 
 const link = (sellerId: string, factoryId: string, sellerName: string) => ({
   __typename: "SellerClientFactoryType",
@@ -27,60 +50,91 @@ const link = (sellerId: string, factoryId: string, sellerName: string) => ({
   },
 });
 
-const linksMock = (clientId: string, nodes: unknown[]) => ({
-  request: {
-    query: CLIENT_LINKS_FOR_VISIT_QUERY,
-    variables: {
-      input: {
-        filters: [{ field: "client_id", operator: "eq", value: clientId }],
-        first: 200,
-      },
-    },
-  },
-  maxUsageCount: 10,
-  result: {
-    data: {
-      sellerClientFactoryList: {
-        __typename: "SellerClientFactoryConnection",
-        edges: nodes.map((node) => ({
-          __typename: "SellerClientFactoryEdge",
-          node,
-        })),
-        totalCount: nodes.length,
-      },
-    },
+const clientNode = (id: string, name: string) => ({
+  __typename: "SellerClientFactoryType",
+  id: `scf-${id}`,
+  client: {
+    __typename: "ClientType",
+    id,
+    razaoSocial: name,
+    nomeFantasia: null,
   },
 });
 
-const walletMock = (sellerId: string, clients: [string, string][]) => ({
+const listMock = (
+  query: unknown,
+  field: string,
+  value: string,
+  key: string,
+  nodes: unknown[]
+) => ({
   request: {
-    query: WALLET_CLIENTS_FOR_VISIT_QUERY,
+    query,
     variables: {
-      input: {
-        filters: [{ field: "seller_id", operator: "eq", value: sellerId }],
-        first: 200,
-      },
+      input: { filters: [{ field, operator: "eq", value }], first: 200 },
     },
+  },
+  maxUsageCount: 10,
+  result: { data: connection(key, nodes) },
+});
+
+const linksMock = (clientId: string, nodes: unknown[]) =>
+  listMock(
+    CLIENT_LINKS_FOR_VISIT_QUERY,
+    "client_id",
+    clientId,
+    "sellerClientFactoryList",
+    nodes
+  );
+
+const walletMock = (sellerId: string, clients: [string, string][]) =>
+  listMock(
+    WALLET_CLIENTS_FOR_VISIT_QUERY,
+    "seller_id",
+    sellerId,
+    "sellerClientFactoryList",
+    clients.map(([id, name]) => clientNode(id, name))
+  );
+
+const companyClientsMock = (clients: [string, string][]) => ({
+  request: {
+    query: COMPANY_CLIENTS_FOR_VISIT_QUERY,
+    variables: { input: { first: 20 } },
+  },
+  maxUsageCount: 10,
+  result: {
+    data: connection(
+      "schedule_clients",
+      clients.map(([id, name]) => ({
+        ...clientNode(id, name),
+        __typename: "CompanyClientType",
+      }))
+    ),
+  },
+});
+
+const peopleMock = (people: [string, string, string | null][]) => ({
+  request: {
+    query: SCHEDULE_PEOPLE_QUERY,
+    variables: { input: { first: 200, order: { by: "name", dir: "asc" } } },
   },
   maxUsageCount: 10,
   result: {
     data: {
-      sellerClientFactoryList: {
-        __typename: "SellerClientFactoryConnection",
-        edges: clients.map(([id, name]) => ({
-          __typename: "SellerClientFactoryEdge",
+      schedule_people: {
+        __typename: "UserConnection",
+        edges: people.map(([id, name, sellerId]) => ({
+          __typename: "UserEdge",
           node: {
-            __typename: "SellerClientFactoryType",
-            id: `scf-${id}`,
-            client: {
-              __typename: "ClientType",
-              id,
-              razaoSocial: name,
-              nomeFantasia: null,
-            },
+            __typename: "UserType",
+            id,
+            name,
+            isActive: true,
+            seller: sellerId
+              ? { __typename: "SellerType", id: sellerId }
+              : null,
           },
         })),
-        totalCount: clients.length,
       },
     },
   },
@@ -96,7 +150,7 @@ const scheduleMock = (
       scheduleManualVisit: {
         __typename: "VisitResponse",
         status: outcome === "ok",
-        message: outcome === "ok" ? "Visita marcada" : "Cliente inativo",
+        message: outcome === "ok" ? "Marcada" : "Cliente inativo",
         data:
           outcome === "ok"
             ? {
@@ -124,11 +178,7 @@ const wrapper = (mocks: unknown[]) => {
 
 const run = (
   mocks: unknown[],
-  params: {
-    clientId?: string;
-    sellerId?: string;
-    defaultDate?: string;
-  } = {}
+  params: Partial<ScheduleVisitModalProps> = {}
 ) => {
   const onOpenChange = vi.fn();
   const onScheduled = vi.fn();
@@ -137,10 +187,9 @@ const run = (
       useScheduleVisit({
         open: true,
         onOpenChange,
-        clientId: params.clientId,
-        sellerId: params.sellerId,
-        defaultDate: params.defaultDate ?? DATE,
+        defaultDate: DATE,
         onScheduled,
+        ...params,
       }),
     { wrapper: wrapper(mocks) }
   );
@@ -150,15 +199,27 @@ const run = (
 const baseInput = {
   clientId: "c1",
   date: DATE,
-  sellerId: "s1",
-  factoryId: null,
   contactType: "IN_PERSON",
+  sellerId: "s1",
+  ownerUserId: null,
+  factoryId: null,
+  reason: null,
+  orderId: null,
+  returnItemId: null,
   notes: null,
 };
 
-describe("useScheduleVisit — quem e onde", () => {
-  it("abre no dia que a tela pediu, presencial e com a fábrica pelo sistema", async () => {
-    // Quem manda na fábrica é o score, no backend.
+beforeEach(() => {
+  user.current = {
+    userId: "u-seller",
+    userName: "Rafael",
+    role: "SELLER",
+    sellerId: "s1",
+  };
+});
+
+describe("useScheduleVisit — a rota de quem vende", () => {
+  it("abre no dia pedido, como visita, com a fábrica pelo sistema", () => {
     const { result } = run([linksMock("c1", [link("s1", "f1", "Rafael")])], {
       clientId: "c1",
     });
@@ -166,53 +227,6 @@ describe("useScheduleVisit — quem e onde", () => {
     expect(result.current.contactType).toBe("IN_PERSON");
     expect(result.current.factoryId).toBe(AUTO_FACTORY);
     expect(result.current.isValid).toBe(true);
-  });
-
-  it("um vendedor só no cliente não vira pergunta", async () => {
-    // Um select de resposta obrigatória e única é só um passo a mais.
-    const { result } = run([linksMock("c1", [link("s1", "f1", "Rafael")])], {
-      clientId: "c1",
-    });
-
-    await waitFor(() => expect(result.current.selectedSellerId).toBe("s1"));
-    expect(result.current.needsSellerChoice).toBe(false);
-  });
-
-  it("com dois vendedores no cliente, a tela pergunta de quem é a visita", async () => {
-    const { result } = run(
-      [
-        linksMock("c1", [
-          link("s1", "f1", "Rafael"),
-          link("s2", "f2", "Bruna"),
-        ]),
-      ],
-      { clientId: "c1" }
-    );
-
-    await waitFor(() => expect(result.current.needsSellerChoice).toBe(true));
-    expect(result.current.sellerOptions).toHaveLength(2);
-  });
-
-  it("as fábricas oferecidas são as que o vendedor escolhido atende", async () => {
-    const { result } = run(
-      [
-        linksMock("c1", [
-          link("s1", "f1", "Rafael"),
-          link("s2", "f2", "Bruna"),
-        ]),
-      ],
-      { clientId: "c1" }
-    );
-
-    await waitFor(() => expect(result.current.factoryOptions).toHaveLength(3));
-    act(() => result.current.setSelectedSellerId("s1"));
-
-    await waitFor(() =>
-      expect(result.current.factoryOptions.map((o) => o.value)).toEqual([
-        AUTO_FACTORY,
-        "f1",
-      ])
-    );
   });
 
   it("sem cliente definido, oferece a carteira do vendedor em ordem", async () => {
@@ -235,7 +249,26 @@ describe("useScheduleVisit — quem e onde", () => {
     expect(result.current.isClientFixed).toBe(false);
   });
 
-  it("sem cliente ou sem data, não dá para marcar", async () => {
+  it("as fábricas oferecidas são as que o dono da agenda atende", async () => {
+    const { result } = run(
+      [
+        linksMock("c1", [
+          link("s1", "f1", "Rafael"),
+          link("s2", "f2", "Bruna"),
+        ]),
+      ],
+      { clientId: "c1", sellerId: "s1" }
+    );
+
+    await waitFor(() =>
+      expect(result.current.factoryOptions.map((o) => o.value)).toEqual([
+        AUTO_FACTORY,
+        "f1",
+      ])
+    );
+  });
+
+  it("sem cliente ou sem data, não dá para marcar", () => {
     const { result } = run([walletMock("s1", [])], { sellerId: "s1" });
 
     expect(result.current.isValid).toBe(false);
@@ -246,57 +279,37 @@ describe("useScheduleVisit — quem e onde", () => {
   });
 });
 
-describe("useScheduleVisit — marcar", () => {
-  it("marca a visita com a fábrica decidida pelo sistema", async () => {
-    const { result, onOpenChange, onScheduled } = run(
-      [linksMock("c1", [link("s1", "f1", "Rafael")]), scheduleMock(baseInput)],
-      { clientId: "c1" }
-    );
-    await waitFor(() => expect(result.current.selectedSellerId).toBe("s1"));
-
-    await act(() => result.current.submit());
-
-    await waitFor(() => expect(onScheduled).toHaveBeenCalledOnce());
-    expect(onOpenChange).toHaveBeenCalledWith(false);
-  });
-
-  it("fábrica escolhida à mão viaja no lugar do automático", async () => {
-    const { result, onScheduled } = run(
-      [
-        linksMock("c1", [link("s1", "f1", "Rafael")]),
-        scheduleMock({ ...baseInput, factoryId: "f1" }),
-      ],
-      { clientId: "c1" }
-    );
-    await waitFor(() => expect(result.current.selectedSellerId).toBe("s1"));
-
-    act(() => result.current.setFactoryId("f1"));
-    await act(() => result.current.submit());
-
-    await waitFor(() => expect(onScheduled).toHaveBeenCalledOnce());
-  });
-
-  it("contato remoto é marcado como remoto, com a observação escrita", async () => {
-    const { result, onScheduled } = run(
+describe("useScheduleVisit — o combinado", () => {
+  it("ligação leva motivo, pedido e retorno, com o texto limpo", async () => {
+    const { result, onScheduled, onOpenChange } = run(
       [
         linksMock("c1", [link("s1", "f1", "Rafael")]),
         scheduleMock({
           ...baseInput,
           contactType: "REMOTE",
+          reason: "Retornar sobre o orçamento",
+          orderId: "o1",
+          returnItemId: "ret-1",
           notes: "ligar de manhã",
         }),
       ],
-      { clientId: "c1" }
+      {
+        clientId: "c1",
+        sellerId: "s1",
+        orderId: "o1",
+        returnItemId: "ret-1",
+        contactType: "REMOTE",
+      }
     );
-    await waitFor(() => expect(result.current.selectedSellerId).toBe("s1"));
 
     act(() => {
-      result.current.setContactType("REMOTE");
+      result.current.setReason(" Retornar sobre o orçamento ");
       result.current.setNotes("  ligar de manhã  ");
     });
     await act(() => result.current.submit());
 
     await waitFor(() => expect(onScheduled).toHaveBeenCalledOnce());
+    expect(onOpenChange).toHaveBeenCalledWith(false);
   });
 
   it("recusa do backend não fecha o modal nem avisa que marcou", async () => {
@@ -305,13 +318,113 @@ describe("useScheduleVisit — marcar", () => {
         linksMock("c1", [link("s1", "f1", "Rafael")]),
         scheduleMock(baseInput, "refused"),
       ],
-      { clientId: "c1" }
+      { clientId: "c1", sellerId: "s1" }
     );
-    await waitFor(() => expect(result.current.selectedSellerId).toBe("s1"));
 
     await act(() => result.current.submit());
 
     await waitFor(() => expect(result.current.isLoading).toBe(false));
     expect(onScheduled).not.toHaveBeenCalled();
+  });
+});
+
+describe("useScheduleVisit — a agenda de quem não vende", () => {
+  const office = { id: "u-office", name: "Bia", sellerId: null };
+
+  it("só recebe ligação, e os clientes são os da empresa", async () => {
+    const { result } = run([companyClientsMock([["c9", "LOJA DO BAIRRO"]])], {
+      owner: office,
+    });
+
+    expect(result.current.agenda.callsOnly).toBe(true);
+    expect(result.current.contactType).toBe("REMOTE");
+    await waitFor(() =>
+      expect(result.current.clientOptions.map((o) => o.label)).toEqual([
+        "LOJA DO BAIRRO",
+      ])
+    );
+  });
+
+  it("marca na agenda dela, sem vendedor", async () => {
+    const { result, onScheduled } = run(
+      [
+        linksMock("c1", []),
+        scheduleMock({
+          ...baseInput,
+          contactType: "REMOTE",
+          sellerId: null,
+          ownerUserId: "u-office",
+        }),
+      ],
+      { clientId: "c1", owner: office }
+    );
+
+    await act(() => result.current.submit());
+
+    await waitFor(() => expect(onScheduled).toHaveBeenCalledOnce());
+  });
+});
+
+describe("useScheduleVisit — o gestor escolhe a agenda", () => {
+  beforeEach(() => {
+    user.current = {
+      userId: "u-boss",
+      userName: "Dono",
+      role: "OWNER",
+      sellerId: null,
+    };
+  });
+
+  const people = peopleMock([
+    ["u-bia", "Bia", null],
+    ["u-rafa", "Rafael", "s1"],
+  ]);
+
+  it("quem vende vem antes, e quem não vende é marcado como escritório", async () => {
+    const { result } = run([people]);
+
+    await waitFor(() =>
+      expect(result.current.agenda.options.map((o) => o.label)).toEqual([
+        "Rafael",
+        "Bia (escritório)",
+      ])
+    );
+    expect(result.current.agenda.canChoose).toBe(true);
+  });
+
+  it("escolher a pessoa troca a carteira e limpa o cliente escolhido", async () => {
+    const { result } = run([
+      people,
+      walletMock("s1", [["c1", "ALTO CONSTRUCAO"]]),
+    ]);
+    await waitFor(() => expect(result.current.agenda.options).toHaveLength(2));
+
+    act(() => result.current.pickOwner("u-rafa"));
+    await waitFor(() => expect(result.current.clientOptions).toHaveLength(1));
+    act(() => result.current.setSelectedClientId("c1"));
+    act(() => result.current.pickOwner("u-bia"));
+
+    expect(result.current.selectedClientId).toBeNull();
+    expect(result.current.agenda.callsOnly).toBe(true);
+  });
+
+  it("com o cliente fixado, sugere quem o atende e esconde quem não atende", async () => {
+    const { result } = run(
+      [
+        peopleMock([
+          ["u-bia", "Bia", null],
+          ["u-rafa", "Rafael", "s1"],
+          ["u-bruna", "Bruna", "s2"],
+        ]),
+        linksMock("c1", [link("s1", "f1", "Rafael")]),
+      ],
+      { clientId: "c1" }
+    );
+
+    await waitFor(() => expect(result.current.agenda.owner?.id).toBe("u-rafa"));
+    expect(result.current.agenda.options.map((o) => o.value)).toEqual([
+      "u-rafa",
+      "u-bia",
+    ]);
   });
 });

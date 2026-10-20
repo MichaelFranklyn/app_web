@@ -123,16 +123,16 @@ export const caseTotal = (opportunity: Opportunity): number =>
   opportunity.count + opportunity.blockedCount;
 
 /**
- * O que já está marcado para o cliente — "Contato agendado para 14/10". É o
+ * O que já está marcado para o cliente — "Ligação marcada para 14/10". É o
  * que impede o vendedor de repetir a ação: a oportunidade virou compromisso, e
  * o compromisso aparece em Pendências quando chegar o dia.
  */
 export const scheduledNote = (
-  item: Pick<OpportunityCase, "nextFollowUpDate" | "nextVisitDate">
+  item: Pick<OpportunityCase, "nextCallDate" | "nextVisitDate">
 ): string | null => {
   const notes = [
-    item.nextFollowUpDate
-      ? `Contato agendado para ${formatDate(item.nextFollowUpDate)}`
+    item.nextCallDate
+      ? `Ligação marcada para ${formatDate(item.nextCallDate)}`
       : null,
     item.nextVisitDate
       ? `Visita marcada para ${formatDate(item.nextVisitDate)}`

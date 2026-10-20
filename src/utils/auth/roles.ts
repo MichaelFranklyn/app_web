@@ -58,3 +58,11 @@ export const isPlatformRole = (role?: string | null): boolean =>
  */
 export const isSuRole = (role?: string | null): boolean =>
   normalizeRole(role) === "SU";
+
+// Quem abre a agenda de QUALQUER pessoa da empresa (o "Agenda de"). É a lista
+// que a tela usava ao ler o cookie no cliente; sai daqui para o servidor
+// resolvê-la a partir do token, antes do primeiro render.
+const AGENDA_MANAGER_ROLES = ["OWNER", "ADMIN", "SU"];
+
+export const isAgendaManagerRole = (role?: string | null): boolean =>
+  AGENDA_MANAGER_ROLES.includes(normalizeRole(role));

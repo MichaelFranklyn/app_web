@@ -143,15 +143,15 @@ export default function VisitsContent() {
   return (
     <Table.Root sort={table.sort} data-tour="client-visits-table">
       <Table.CardHead>
-        <Table.CardHead.Title>Visitas do cliente</Table.CardHead.Title>
+        <Table.CardHead.Title>Agenda do cliente</Table.CardHead.Title>
         <Table.CardHead.Actions>
           <Filters
             fields={table.filterFields}
             values={table.inputValues}
             onChange={table.setFilters}
           />
-          {/* A visita é marcada de onde o vendedor está olhando o cliente: a
-              rotina da semana escolhida é criada no backend se não existir. */}
+          {/* Visita ou ligação, marcada de onde se está olhando o cliente: a
+              agenda da semana escolhida é criada no backend se não existir. */}
           <Button.Root
             type="button"
             appearance="solid"
@@ -161,7 +161,7 @@ export default function VisitsContent() {
             onClick={() => setScheduling(true)}
           >
             <Button.Icon icon={CalendarPlus} />
-            <Button.Title>Marcar visita</Button.Title>
+            <Button.Title>Marcar</Button.Title>
           </Button.Root>
         </Table.CardHead.Actions>
       </Table.CardHead>
@@ -179,7 +179,7 @@ export default function VisitsContent() {
             {/* Motivo e fábricas tratadas saem de listas de fábricas por visita:
                 não há um valor único por linha para comparar. */}
             <Table.Head title={CLIENT_VISIT_COLUMN_HELP.focus}>
-              Motivo da visita
+              Motivo
             </Table.Head>
             <Table.Head title={CLIENT_VISIT_COLUMN_HELP.treated}>
               Fábricas tratadas
@@ -188,7 +188,7 @@ export default function VisitsContent() {
               sortKey="seller"
               title={CLIENT_VISIT_COLUMN_HELP.seller}
             >
-              Vendedor
+              Responsável
             </Table.Head>
             <Table.Head
               sortKey="status"
@@ -226,13 +226,13 @@ export default function VisitsContent() {
                   </EmptyState.Icon>
                   <EmptyState.Title>
                     {table.totalUnfiltered > 0
-                      ? "Nenhuma visita encontrada"
-                      : "Nenhuma visita registrada"}
+                      ? "Nada encontrado"
+                      : "Nenhuma visita ou ligação na agenda"}
                   </EmptyState.Title>
                   <EmptyState.Description>
                     {table.totalUnfiltered > 0
-                      ? "Ajuste os filtros para encontrar a visita."
-                      : "As visitas deste cliente aparecem aqui conforme a rota do vendedor é executada."}
+                      ? "Ajuste os filtros para encontrar a visita ou a ligação."
+                      : "As visitas e ligações deste cliente aparecem aqui, de qualquer agenda da empresa."}
                   </EmptyState.Description>
                 </EmptyState.Root>
               </Table.Cell>
@@ -252,9 +252,16 @@ export default function VisitsContent() {
                   />
                 </Table.Cell>
                 <Table.Cell>
+                  {/* O motivo combinado por quem marcou vem primeiro; as
+                      fábricas do foco, quando houver, ficam como apoio. */}
                   <Table.CellText variant="strong">
-                    {focusLabel(v)}
+                    {v.reason ?? focusLabel(v)}
                   </Table.CellText>
+                  {v.reason && focusLabel(v) !== "—" && (
+                    <Table.CellText variant="dim">
+                      {focusLabel(v)}
+                    </Table.CellText>
+                  )}
                 </Table.Cell>
                 <Table.Cell>
                   <Table.CellText variant="dim">
@@ -263,7 +270,9 @@ export default function VisitsContent() {
                 </Table.Cell>
                 <Table.Cell>
                   <Table.CellText variant="dim">
-                    {v.day?.schedule?.seller?.name ?? "—"}
+                    {v.day?.schedule?.seller?.name ??
+                      v.day?.schedule?.owner?.name ??
+                      "—"}
                   </Table.CellText>
                 </Table.Cell>
                 <Table.Cell>
@@ -340,10 +349,10 @@ export default function VisitsContent() {
             <Loading.Spinner size="sm" className="mr-6 inline-block" />
           )}
           {table.totalItems > 0
-            ? `${table.totalItems} visita(s) · página ${currentPage} de ${totalPages}${
+            ? `${table.totalItems} na agenda · página ${currentPage} de ${totalPages}${
                 isTruncated ? ` · mostrando as ${MAX_VISITS} mais recentes` : ""
               }`
-            : "Nenhuma visita registrada"}
+            : "Nenhuma visita ou ligação na agenda"}
         </Table.Footer.Info>
         <Pagination.Smart
           currentPage={currentPage}

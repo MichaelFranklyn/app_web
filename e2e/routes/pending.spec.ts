@@ -83,7 +83,6 @@ const comeBack = (over: Record<string, unknown> = {}) =>
 const TODAY = "2026-10-11";
 const TYPES = [
   "VISIT_OVERDUE",
-  "FOLLOW_UP",
   "RETURN_SCHEDULED",
   "VISIT_FREQUENCY",
   "ORDER_STALLED",
@@ -220,7 +219,7 @@ test("pendências: cada assunto é um cartão com o número e os mais urgentes",
 
   await page.goto("/pending");
 
-  const visits = cardOf(page, "Visitas sem resposta");
+  const visits = cardOf(page, "Visitas e ligações sem resposta");
   await expect(visits).toContainText("de prioridade alta");
   // A amostra: de quem é e o prazo, sem abrir nada.
   await expect(visits).toContainText("Mercadinho do Zé");
@@ -311,54 +310,21 @@ test("pendências: visita sem resposta diz o que houve e leva à rota", async ({
   ).toHaveAttribute("href", "/agenda/2026-10-11?seller=seller-1");
 });
 
-test("pendências: contato agendado traz o motivo e abre o agendamento", async ({
-  page,
-}) => {
-  await mockGraphql(
-    page,
-    handlers([
-      item({
-        id: "FOLLOW_UP_DUE:fu-1:seller-1",
-        type: "FOLLOW_UP",
-        reason: "FOLLOW_UP_DUE",
-        dueDate: "2026-10-11",
-        daysLate: 0,
-        clientName: "Armazém Central",
-        link: "/follow-ups/fu-1",
-        clientLink: "/clients/cc-7",
-        referenceDate: "2026-10-01",
-        allowanceDays: null,
-        highAfterDays: 0,
-        note: "Retornar sobre o orçamento",
-      }),
-    ])
-  );
-
-  await page.goto("/pending");
-  await expect(cardOf(page, "Contatos agendados")).toContainText("vence hoje");
-  await openCard(page, "Contatos agendados");
-
-  const row = rowOf(page, "Armazém Central");
-  // O motivo é o que a pessoa escreveu ao agendar — não uma frase genérica.
-  await expect(row).toContainText(
-    "Retornar sobre o orçamento — agendado em 01/10/2026"
-  );
-  await expect(row).toContainText("vence hoje");
-  await expect(row.getByRole("link", { name: "Abrir contato" })).toBeVisible();
-  // O destino não é a ficha do cliente, então o atalho para ela aparece.
-  await expect(row.getByRole("link", { name: "Ver cliente" })).toBeVisible();
-});
-
-test("pendências: o contato agendado do retorno nasce vinculado a ele", async ({
+test("pendências: a parada marcada do retorno nasce vinculada a ele", async ({
   page,
 }) => {
   const spy = await mockGraphql(page, {
     ...handlers([comeBack({ entityId: "v-9", clientId: "client-3" })]),
-    CreateClientFollowUp: () => ({
-      createClientFollowUp: {
+    ScheduleManualVisit: () => ({
+      scheduleManualVisit: {
         status: true,
-        message: "ok",
-        data: { id: "fu-9", status: "SCHEDULED", dueDate: "2026-10-16" },
+        message: "Visita marcada com sucesso.",
+        data: {
+          id: "v-10",
+          scheduleDayId: "d-1",
+          plannedOrder: 1,
+          contactType: "IN_PERSON",
+        },
       },
     }),
   });
@@ -366,25 +332,25 @@ test("pendências: o contato agendado do retorno nasce vinculado a ele", async (
   await openCard(page, "Retornos combinados");
 
   await rowOf(page, "Casa Bahia Tintas")
-    .getByRole("button", { name: "Agendar contato" })
+    .getByRole("button", { name: "Marcar na agenda" })
     .click();
 
   const dialog = page.getByRole("dialog");
   await expect(dialog).toContainText(
     "atende o retorno combinado para 16/10/2026"
   );
-  // O motivo é opcional: agenda sem escolher.
-  await dialog.getByRole("button", { name: "Agendar" }).click();
+  // Visita ou ligação: a mesma parada. O motivo é opcional — marca direto.
+  await dialog.getByRole("button", { name: "Marcar visita" }).click();
 
-  const input = (await spy.waitForCall("CreateClientFollowUp")).input as {
+  const input = (await spy.waitForCall("ScheduleManualVisit")).input as {
     clientId: string;
     returnItemId: string;
-    dueDate: string;
+    date: string;
   };
   expect(input.clientId).toBe("client-3");
   expect(input.returnItemId).toBe("v-9");
   // O dia já vem preenchido: o combinado (ou hoje, se ele já passou).
-  expect(input.dueDate).toMatch(/^\d{4}-\d{2}-\d{2}$/);
+  expect(input.date).toMatch(/^\d{4}-\d{2}-\d{2}$/);
 });
 
 test("pendências: o mais urgente do cartão leva direto aonde se resolve", async ({
@@ -509,7 +475,7 @@ test("pendências: o contador filtra os cartões pelo prazo e fica na URL", asyn
   await expect(
     counters.getByRole("button", { name: /2\s*Atrasadas/ })
   ).toBeVisible();
-  await expect(cardOf(page, "Visitas sem resposta")).toBeVisible();
+  await expect(cardOf(page, "Visitas e ligações sem resposta")).toBeVisible();
 
   await counters.getByRole("button", { name: /Próximos 7 dias/ }).click();
 
@@ -518,7 +484,7 @@ test("pendências: o contador filtra os cartões pelo prazo e fica na URL", asyn
     .toBe("NEXT_7_DAYS");
   await expect(page).toHaveURL(/when=NEXT_7_DAYS/);
   // Só o assunto que tem algo nessa faixa continua com cartão.
-  await expect(cardOf(page, "Visitas sem resposta")).toHaveCount(0);
+  await expect(cardOf(page, "Visitas e ligações sem resposta")).toHaveCount(0);
   await expect(cardOf(page, "Retornos combinados")).toBeVisible();
   await expect(
     counters.getByRole("button", { name: /Próximos 7 dias/ })
@@ -531,7 +497,7 @@ test("pendências: o contador filtra os cartões pelo prazo e fica na URL", asyn
   // O mesmo clique desfaz.
   await counters.getByRole("button", { name: /Próximos 7 dias/ }).click();
   await expect.poll(() => spy.lastVariables("MyPendingItems")?.when).toBeNull();
-  await expect(cardOf(page, "Visitas sem resposta")).toBeVisible();
+  await expect(cardOf(page, "Visitas e ligações sem resposta")).toBeVisible();
 });
 
 const boleto = (over: Record<string, unknown> = {}) =>
@@ -582,7 +548,7 @@ test("pendências: boleto vencido tem cartão próprio, sem perder a prioridade"
 
   // O boleto não se mistura com a visita: cada assunto no seu cartão, e a
   // cobrança sempre à vista, com o número.
-  await expect(cardOf(page, "Visitas sem resposta")).toContainText(
+  await expect(cardOf(page, "Visitas e ligações sem resposta")).toContainText(
     "Mercadinho do Zé"
   );
   const charges = cardOf(page, "Boletos vencidos");
@@ -686,7 +652,7 @@ test("pendências: frequência vencida não se confunde com visita sem resposta"
   await page.goto("/pending");
 
   // Dois assuntos, dois cartões: cada cliente no seu.
-  await expect(cardOf(page, "Visitas sem resposta")).toContainText(
+  await expect(cardOf(page, "Visitas e ligações sem resposta")).toContainText(
     "Mercadinho do Zé"
   );
   const frequency = cardOf(page, "Frequência de visita vencida");

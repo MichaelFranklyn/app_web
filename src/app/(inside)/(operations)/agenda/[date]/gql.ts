@@ -56,11 +56,11 @@ export const WEEK_SCHEDULE_QUERY = gql`
               notes
               isWholeDay
               isManual
-              isFollowUp
-              followUp {
+              reason
+              order {
                 id
-                reason
-                status
+                orderDate
+                invoiceNumber
               }
               client {
                 id

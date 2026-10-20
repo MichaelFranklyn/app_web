@@ -75,7 +75,7 @@ export function EditVisitModal({
                 name: "notes",
                 type: "textarea",
                 label: "Observações",
-                placeholder: `Anotações sobre ${isRemote ? "o contato" : "a visita"}`,
+                placeholder: `Anotações sobre ${isRemote ? "a ligação" : "a visita"}`,
                 rows: 3,
               },
             ],
@@ -114,7 +114,7 @@ export function EditVisitModal({
         return payload;
       },
       {
-        successMessage: `${contactLabel(item.contactType)} atualizad${isRemote ? "o" : "a"}`,
+        successMessage: `${contactLabel(item.contactType)} atualizada`,
         onSuccess: () => {
           onOpenChange(false);
           onDone();

@@ -2,7 +2,6 @@ import { describe, expect, it } from "vitest";
 
 import {
   asContactType,
-  contactArticle,
   contactLabel,
   contactNoun,
   outcomeOptionsFor,
@@ -61,14 +60,12 @@ describe("tipo de toque tolera valor ausente", () => {
     expect(() => contactNoun(value)).not.toThrow();
     expect(contactNoun(value)).toBe("visita");
     expect(contactLabel(value)).toBe("Visita");
-    expect(contactArticle(value)).toBe("a");
     expect(outcomeOptionsFor(value)).toBe(VISIT_OUTCOME_OPTIONS);
   });
 
   it("preserva REMOTE quando ele vem de verdade", () => {
     expect(asContactType("REMOTE")).toBe("REMOTE");
-    expect(contactNoun("REMOTE")).toBe("contato");
-    expect(contactArticle("REMOTE")).toBe("o");
+    expect(contactNoun("REMOTE")).toBe("ligação");
     expect(outcomeOptionsFor("REMOTE").map((o) => o.value)).toContain(
       "WANTS_VISIT"
     );

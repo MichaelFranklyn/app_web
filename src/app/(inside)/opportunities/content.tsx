@@ -22,7 +22,7 @@ import { useOpportunities } from "./useOpportunities";
  * linha por compromisso; aqui são cartões de análise, cada um com o motivo e a
  * lista de clientes aberta na própria página. Uma oportunidade vira contato
  * agendado ou visita — e o compromisso aparece em Pendências quando chegar o
- * dia; aqui, o cliente passa a mostrar "contato agendado para X".
+ * dia; aqui, o cliente passa a mostrar "ligação marcada para X".
  *
  * Sem "potencial de venda" somado: não há estimativa confiável que some
  * clientes de ritmos diferentes num número só.

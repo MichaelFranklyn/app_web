@@ -25,8 +25,12 @@ import { formatWeekRange } from "./utils";
  * inclusive as combinadas com o cliente, que antes eram uma tela à parte —
  * num dia, numa semana ou num mês, como a folhinha do Google Agenda.
  */
-export default function AgendaContent() {
-  const agenda = useAgenda();
+export default function AgendaContent({
+  canSelectPerson,
+}: {
+  canSelectPerson: boolean;
+}) {
+  const agenda = useAgenda(canSelectPerson);
   const {
     view,
     anchor,

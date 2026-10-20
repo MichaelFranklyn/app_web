@@ -1,8 +1,7 @@
-import { getCookie } from "@/utils/cookies/clientCookie";
 import { getTodayIso } from "@/utils/format/date";
 import { useQuery } from "@apollo/client/react";
-import { usePathname, useRouter, useSearchParams } from "next/navigation";
-import { useCallback, useEffect, useMemo, useState } from "react";
+import { usePathname, useSearchParams } from "next/navigation";
+import { useCallback, useMemo } from "react";
 
 import {
   indexDays,
@@ -21,8 +20,6 @@ import {
   VisitSchedulesQueryData,
 } from "./interface";
 
-// Papéis que abrem a agenda de qualquer pessoa da empresa.
-const MANAGER_ROLES = ["OWNER", "ADMIN", "SU"];
 const VIEWS: AgendaView[] = ["day", "week", "month"];
 
 /**
@@ -32,8 +29,7 @@ const VIEWS: AgendaView[] = ["day", "week", "month"];
  * agenda que estava vendo, no mesmo dia e na mesma visão. `?week=` continua
  * valendo (é por ele que o Montar semana devolve a pessoa à semana que montou).
  */
-export function useAgenda() {
-  const router = useRouter();
+export function useAgenda(canSelectPerson: boolean) {
   const pathname = usePathname();
   const searchParams = useSearchParams();
 
@@ -55,17 +51,14 @@ export function useAgenda() {
         if (value === null) params.delete(key);
         else params.set(key, value);
       }
-      router.replace(`${pathname}?${params.toString()}`, { scroll: false });
+      // History API, não `router.replace`: a página é dinâmica, e o roteador
+      // voltaria ao servidor (guard de plano incluso) a cada semana virada —
+      // para uma tela que o Apollo repinta no cliente. `useSearchParams`
+      // continua refletindo a URL (ver `useTableFilters`).
+      window.history.replaceState(null, "", `${pathname}?${params.toString()}`);
     },
-    [pathname, router, searchParams]
+    [pathname, searchParams]
   );
-
-  // Lido após o mount (cookie é client-only) para evitar mismatch de hidratação.
-  const [canSelectPerson, setCanSelectPerson] = useState(false);
-  useEffect(() => {
-    const userData = getCookie<{ role?: string }>("userData");
-    setCanSelectPerson(MANAGER_ROLES.includes(userData?.role ?? ""));
-  }, []);
 
   const peopleQuery = useQuery<AgendaPeopleQueryData>(AGENDA_PEOPLE_QUERY, {
     variables: { input: { first: 200, order: { by: "name", dir: "asc" } } },
@@ -77,7 +70,7 @@ export function useAgenda() {
   // Quem vende primeiro (é quem tem rota), o escritório depois. Desativado não
   // tem agenda a abrir.
   const people = useMemo<AgendaPerson[]>(() => {
-    const active = (peopleQuery.data?.agenda_people.edges ?? [])
+    const active = (peopleQuery.data?.agenda_people?.edges ?? [])
       .map((edge) => edge.node)
       .filter((node) => node.isActive)
       .map((node) => ({
@@ -91,21 +84,18 @@ export function useAgenda() {
     ];
   }, [peopleQuery.data]);
 
-  const personId = searchParams.get("of");
+  // Sem escolha, abre a agenda do primeiro vendedor — é a que o gestor mais
+  // acompanha. Derivada, e não escrita na URL antes de buscar: esperar a
+  // navegação para só então disparar a agenda era um degrau a mais na carga.
+  const personId =
+    searchParams.get("of") ??
+    (canSelectPerson ? (people[0]?.id ?? null) : null);
   const selectedPerson =
     people.find((person) => person.id === personId) ?? null;
   const setPersonId = useCallback(
     (id: string) => writeParams({ of: id }),
     [writeParams]
   );
-
-  // Sem escolha, abre a agenda do primeiro vendedor — é a que o gestor mais
-  // acompanha.
-  useEffect(() => {
-    if (canSelectPerson && !personId && people.length > 0) {
-      setPersonId(people[0].id);
-    }
-  }, [canSelectPerson, personId, people, setPersonId]);
 
   const weekStarts = useMemo(() => weekStartsFor(view, anchor), [view, anchor]);
   const filters = useMemo(() => {
@@ -133,7 +123,7 @@ export function useAgenda() {
   );
 
   const schedules = useMemo<VisitSchedule[]>(
-    () => data?.visit_schedules?.edges.map((edge) => edge.node) ?? [],
+    () => data?.visit_schedules?.edges?.map((edge) => edge.node) ?? [],
     [data]
   );
 
@@ -167,10 +157,7 @@ export function useAgenda() {
     canSelectPerson && peopleQuery.loading && people.length === 0;
   const hasNoPeople =
     canSelectPerson && !peopleQuery.loading && people.length === 0;
-  // Pessoas chegaram, mas o padrão ainda não foi escolhido (evita piscar).
-  const awaitingPick = canSelectPerson && people.length > 0 && !personId;
-  const showSkeleton =
-    peoplePending || awaitingPick || (!scheduleSkip && loading && !data);
+  const showSkeleton = peoplePending || (!scheduleSkip && loading && !data);
 
   const today = getTodayIso();
   const isShowingToday =
