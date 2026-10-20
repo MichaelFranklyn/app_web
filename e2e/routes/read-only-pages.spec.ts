@@ -106,8 +106,15 @@ test("perfil do vendedor: cabeçalho e blocos de campo na mesma página", async 
 test("rotina por data: abre o dia na agenda", async ({ page }) => {
   // A rota do dia virou a visão de dia da Agenda: o endereço antigo só
   // redireciona, para links e favoritos continuarem valendo.
-  await page.goto("/agenda/2026-06-22");
-  await expect(page).toHaveURL(/\/agenda\?view=day&date=2026-06-22$/);
+  // Confere a resposta sem segui-la: abrir a Agenda aqui dispararia no SSR
+  // consultas que esta suíte não stuba.
+  const response = await page.request.get("/agenda/2026-06-22", {
+    maxRedirects: 0,
+  });
+  expect(response.status()).toBe(307);
+  expect(response.headers().location).toMatch(
+    /\/agenda\?view=day&date=2026-06-22$/
+  );
 });
 
 test("fábrica/pedidos: monta a aba de pedidos", async ({ page }) => {
