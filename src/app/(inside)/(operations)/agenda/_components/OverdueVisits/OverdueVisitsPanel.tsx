@@ -68,6 +68,7 @@ export function OverdueVisitsPanel({
           <OverdueVisitRow
             key={visit.id}
             visit={visit}
+            canAnswer={canAnswer}
             isAnswering={answeringId === visit.id}
             onAnswer={(outcome) => onAnswer(visit, outcome)}
             onReschedule={() => onReschedule(visit)}
