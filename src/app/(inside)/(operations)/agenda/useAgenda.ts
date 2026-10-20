@@ -87,13 +87,19 @@ export function useAgenda(canSelectPerson: boolean) {
   // Sem escolha, abre a agenda do primeiro vendedor — é a que o gestor mais
   // acompanha. Derivada, e não escrita na URL antes de buscar: esperar a
   // navegação para só então disparar a agenda era um degrau a mais na carga.
+  // `?seller=` é o de quem chega pelos links antigos da rota do dia e pelo
+  // Montar semana, que conhecem o vendedor e não a pessoa.
+  const sellerParam = searchParams.get("seller");
   const personId =
     searchParams.get("of") ??
+    (sellerParam
+      ? people.find((person) => person.sellerId === sellerParam)?.id
+      : undefined) ??
     (canSelectPerson ? (people[0]?.id ?? null) : null);
   const selectedPerson =
     people.find((person) => person.id === personId) ?? null;
   const setPersonId = useCallback(
-    (id: string) => writeParams({ of: id }),
+    (id: string) => writeParams({ of: id, seller: null }),
     [writeParams]
   );
 

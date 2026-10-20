@@ -38,7 +38,6 @@ export function DayOffButton({
         appearance="tinted"
         color="neutral"
         size="sm"
-        fullWidth
         noUppercase
         onClick={() => setIsOpen(true)}
       >

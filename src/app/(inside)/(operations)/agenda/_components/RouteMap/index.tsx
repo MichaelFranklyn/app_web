@@ -5,11 +5,12 @@ import { MapFrame } from "@/components/MapFrame";
 import { Badge } from "@/components/Badges";
 import { Title } from "@/components/Title";
 import { ExternalLink, MapPin } from "lucide-react";
-import { VisitItem } from "../../interface";
+import { itemClient } from "../../calendar";
+import { VisitScheduleItem } from "../../interface";
 import { formatDistanceKm, mapsQuery } from "../../utils";
 
 interface Props {
-  stops: VisitItem[];
+  stops: VisitScheduleItem[];
   distanceKm: string;
   departureAddress?: string | null;
 }
@@ -22,7 +23,7 @@ const MAPS_KEY = process.env.NEXT_PUBLIC_GOOGLE_MAPS_API_KEY;
 export function RouteMap({ stops, distanceKm, departureAddress }: Props) {
   // Endereços utilizáveis das paradas, na ordem da rota.
   const points = stops
-    .map((s) => mapsQuery(s.clientFactoryLink?.client ?? null))
+    .map((s) => mapsQuery(itemClient(s)))
     .filter((q): q is string => Boolean(q));
   const hasPoints = points.length > 0;
 

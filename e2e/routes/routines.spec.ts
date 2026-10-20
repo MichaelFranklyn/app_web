@@ -211,10 +211,10 @@ test("agenda (dia): mostra só aquele dia e leva à rota dele", async ({
   await expect(page.getByText("Cliente De Hoje").first()).toBeVisible();
   await expect(page.getByText("Cliente De Outro Dia")).toHaveCount(0);
 
-  // O cabeçalho do dia leva à rota daquele dia no mapa.
+  // A rota do dia mora no próprio dia: a folha impressa sai do cabeçalho.
   await expect(
-    page.getByRole("link", { name: "Ver rota do dia" })
-  ).toHaveAttribute("href", new RegExp(`^/agenda/${TODAY}`));
+    page.getByRole("button", { name: "Imprimir rota" })
+  ).toBeVisible();
 });
 
 /**

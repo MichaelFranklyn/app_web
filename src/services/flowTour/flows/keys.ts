@@ -22,7 +22,6 @@ export const FACTORY_ORDERS_FLOW = "factory-orders";
 export const FACTORY_IMPORT_TEMPLATE_FLOW = "factory-import-template";
 export const USERS_FLOW = "users";
 export const ROUTINES_FLOW = "routines";
-export const ROUTINE_DAY_FLOW = "routine-day";
 export const SETTINGS_CATALOG_FLOW = "settings-catalog";
 // "insights" saiu: a tela virou Oportunidades, com tour e chave novos.
 export const PENDING_FLOW = "pending";

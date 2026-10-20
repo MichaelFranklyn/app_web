@@ -79,6 +79,7 @@ export const VISIT_SCHEDULES_QUERY = gql`
             date
             status
             departureType
+            departureAddress
             routeDistanceKm
             routeDurationMin
             items {
@@ -101,6 +102,21 @@ export const VISIT_SCHEDULES_QUERY = gql`
                 id
                 orderDate
                 invoiceNumber
+              }
+              viability {
+                status
+                basketValue
+                minimumAmount
+                missingAmount
+                readyOn
+                suggestions {
+                  productId
+                  productName
+                  sku
+                  quantity
+                  value
+                  daysUntilOut
+                }
               }
               client {
                 ...AgendaClientFields
@@ -135,7 +151,10 @@ export const VISIT_SCHEDULES_QUERY = gql`
                 id
                 # Dono da visita: o "Novo pedido" do card abre já no vínculo.
                 sellerId
+                # A negativação pode ter chegado DEPOIS de a rotina ser montada:
+                # é no cartão que o vendedor descobre que a fábrica não aceita pedido.
                 isNegative
+                negativeReason
                 client {
                   ...AgendaClientFields
                 }

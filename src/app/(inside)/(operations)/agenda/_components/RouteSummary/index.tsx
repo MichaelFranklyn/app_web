@@ -1,10 +1,10 @@
 import { Card } from "@/components/Card";
 import { Grid } from "@/components/Grid";
-import { VisitDay } from "../../interface";
+import { VisitScheduleDay } from "../../interface";
 import { formatDistanceKm, formatMinutes } from "../../utils";
 
 interface Props {
-  day: VisitDay;
+  day: VisitScheduleDay;
 }
 
 export function RouteSummary({ day }: Props) {

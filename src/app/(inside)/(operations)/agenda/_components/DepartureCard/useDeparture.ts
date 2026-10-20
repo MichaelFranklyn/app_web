@@ -2,7 +2,7 @@ import { useAsyncAction } from "@/hooks/useAsyncAction";
 import { useMutation } from "@apollo/client/react";
 import { useEffect, useState } from "react";
 
-import { UPDATE_DAY_DEPARTURE_MUTATION } from "../../gql";
+import { UPDATE_DAY_DEPARTURE_MUTATION } from "./gql";
 import { buildDepartureAddress } from "./utils";
 import { DepartureMode, UpdateDayDepartureResponse } from "./interface";
 

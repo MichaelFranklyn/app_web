@@ -5,18 +5,18 @@ import { useToast } from "@/components/Toast";
 import { useCompanyBranding } from "@/hooks/useCompanyBranding";
 import { Printer } from "lucide-react";
 import { useState } from "react";
-import { useIssueResponseLink } from "../../../_shared/responseLink";
-import { VisitItem } from "../../interface";
-import { DayRoutePdfMeta } from "../../pdf";
+import { useIssueResponseLink } from "../../_shared/responseLink";
+import { VisitScheduleItem } from "../../interface";
+import { DayRoutePdfMeta } from "../../pdf/day";
 
 interface Props {
   /** Dia da rotina — é dele que o link de resposta é emitido. */
   scheduleDayId: string;
   date: string;
   /** Paradas presenciais, já na ordem da rota. */
-  stops: VisitItem[];
+  stops: VisitScheduleItem[];
   /** Ligações do dia — saem em bloco separado na folha. */
-  remoteStops: VisitItem[];
+  remoteStops: VisitScheduleItem[];
   sellerName: string | null;
   departureAddress: string | null;
   routeDistanceKm: string;
@@ -76,7 +76,7 @@ export function PrintRouteButton({
         companyLogoUrl,
         responseUrl: await responseUrl(),
       };
-      const { exportDayRoutePdf } = await import("../../pdf");
+      const { exportDayRoutePdf } = await import("../../pdf/day");
       await exportDayRoutePdf(stops, remoteStops, meta);
     } catch {
       toast({

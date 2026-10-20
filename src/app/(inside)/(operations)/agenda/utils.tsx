@@ -5,7 +5,12 @@ import {
 } from "@/utils/format/date";
 import { factoryName } from "@/utils/company";
 import { explainScore, ScoreExplanation } from "@/utils/score";
-import { VisitScheduleDay, VisitScheduleItem, VisitStatus } from "./interface";
+import {
+  VisitClient,
+  VisitScheduleDay,
+  VisitScheduleItem,
+  VisitStatus,
+} from "./interface";
 
 export { VISIT_STATUS_COLOR, VISIT_STATUS_LABEL } from "@/utils/visit";
 export { getTodayIso };
@@ -357,3 +362,48 @@ export const formatTravelToStop = (
   estimatedTravelMin == null || estimatedTravelMin <= 0
     ? null
     : `${estimatedTravelMin} min até aqui`;
+
+const WEEKDAY_LONG_LABELS = [
+  "Domingo",
+  "Segunda-feira",
+  "Terça-feira",
+  "Quarta-feira",
+  "Quinta-feira",
+  "Sexta-feira",
+  "Sábado",
+];
+
+/** "19/10/2026 · Segunda-feira" — a data por extenso da folha da rota do dia. */
+export const formatDateLong = (isoDate: string): string => {
+  const [year, month, day] = isoDate.split("-").map(Number);
+  if (!year || !month || !day) return isoDate;
+  const date = new Date(Date.UTC(year, month - 1, day));
+  const dd = String(day).padStart(2, "0");
+  const mm = String(month).padStart(2, "0");
+  return `${dd}/${mm}/${year} · ${WEEKDAY_LONG_LABELS[date.getUTCDay()]}`;
+};
+
+// Endereço em formato amigável ao Google Maps (vírgulas), ou null se não houver
+// dados suficientes para localizar — usado para origem/destino/waypoints da rota.
+export const mapsQuery = (client: VisitClient | null): string | null => {
+  if (!client) return null;
+  const parts: string[] = [];
+  if (client.addressStreet) {
+    parts.push(
+      client.addressNumber
+        ? `${client.addressStreet}, ${client.addressNumber}`
+        : client.addressStreet
+    );
+  }
+  if (client.addressNeighborhood) parts.push(client.addressNeighborhood);
+  if (client.addressCity) {
+    parts.push(
+      client.addressState
+        ? `${client.addressCity} - ${client.addressState}`
+        : client.addressCity
+    );
+  } else if (client.addressState) {
+    parts.push(client.addressState);
+  }
+  return parts.length > 0 ? parts.join(", ") : null;
+};

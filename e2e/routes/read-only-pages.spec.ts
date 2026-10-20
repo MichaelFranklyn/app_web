@@ -103,14 +103,23 @@ test("perfil do vendedor: cabeçalho e blocos de campo na mesma página", async 
   }
 });
 
-test("rotina por data: monta a semana", async ({ page }) => {
-  await mockGraphql(page, {
-    VisitsWeekSchedule: () => ({ week_schedule: conn([]) }),
+test("rotina por data: abre o dia na agenda", async ({ page }) => {
+  // A rota do dia virou a visão de dia da Agenda: o endereço antigo só
+  // redireciona, para links e favoritos continuarem valendo.
+  // Confere a resposta sem segui-la: abrir a Agenda aqui dispararia no SSR
+  // consultas que esta suíte não stuba. O `?seller=` dos links antigos segue.
+  const response = await page.request.get(
+    "/agenda/2026-06-22?seller=seller-1",
+    { maxRedirects: 0 }
+  );
+  expect(response.status()).toBe(307);
+  const target = new URL(response.headers().location, "http://x");
+  expect(target.pathname).toBe("/agenda");
+  expect(Object.fromEntries(target.searchParams)).toEqual({
+    view: "day",
+    date: "2026-06-22",
+    seller: "seller-1",
   });
-  await page.goto("/agenda/2026-06-22");
-  await expect(
-    page.getByRole("heading", { name: "Rota do Dia", level: 1 })
-  ).toBeVisible();
 });
 
 test("fábrica/pedidos: monta a aba de pedidos", async ({ page }) => {

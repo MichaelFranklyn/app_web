@@ -17,10 +17,11 @@ interface Props {
   sellerId: string | null;
   isDayOff: boolean;
   /**
-   * `button`: o "+ Agendar" no pé do dia (semana e dia). `cell`: a célula
+   * `button`: o "+ Agendar" no pé do dia da semana, na largura da coluna.
+   * `header`: no cabeçalho do dia, na largura do texto. `cell`: a célula
    * inteira do mês é o gatilho — clicar no vazio do dia, como no Google.
    */
-  variant?: "button" | "cell";
+  variant?: "button" | "header" | "cell";
   onChanged: () => void;
 }
 
@@ -55,7 +56,7 @@ export function AgendaAddMenu({
         color="neutral"
         size="sm"
         noUppercase
-        fullWidth
+        fullWidth={variant === "button"}
         dashed
         label="Agendar neste dia"
         onClick={openDirect}

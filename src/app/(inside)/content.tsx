@@ -124,7 +124,9 @@ export default function InsideShell({
                 };
                 // Antes de resolver a data no cliente, aponta para a grade semanal
                 // (evita divergência de hidratação com o horário do servidor).
-                const href = todayIso ? `/agenda/${todayIso}` : "/agenda";
+                const href = todayIso
+                  ? `/agenda?view=day&date=${todayIso}`
+                  : "/agenda";
                 return (
                   <Sidebar.Item
                     key="rota-do-dia"
@@ -152,7 +154,7 @@ export default function InsideShell({
               const activeBase = matchPrefix ?? href;
               const isActive =
                 href === "/agenda"
-                  ? pathname === "/agenda"
+                  ? pathname === "/agenda" && !isDayRoute
                   : pathname === activeBase ||
                     pathname.startsWith(`${activeBase}/`);
 

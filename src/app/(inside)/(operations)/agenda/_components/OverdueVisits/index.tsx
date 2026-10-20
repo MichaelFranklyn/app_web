@@ -25,8 +25,8 @@ interface Props {
  * nunca tivesse sido agendado. O que passar do fim do dia seguinte sem
  * resposta é encerrado como "não visitou" pelo job `close_stale_visits`.
  *
- * Na tela do dia, essa dívida NÃO pode competir com a rota: quem abre
- * `/agenda/<dia>` quer ver por onde passar hoje. Por isso o que fica no fluxo
+ * Na visão de dia, essa dívida NÃO pode competir com a rota: quem abre o dia
+ * na Agenda quer ver por onde passar hoje. Por isso o que fica no fluxo
  * da página é só um aviso de uma linha — a lista de pendências mora num painel
  * lateral, que o vendedor abre quando decide responder.
  */

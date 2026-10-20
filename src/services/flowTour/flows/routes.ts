@@ -3,7 +3,6 @@
 export const FLOW_ROUTES = {
   dashboard: "/dashboard",
   routines: "/agenda",
-  routineDay: "/agenda/[date]",
   orders: "/orders",
   orderDetail: "/orders/[id]",
   clients: "/clients",

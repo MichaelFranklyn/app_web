@@ -5,7 +5,7 @@ import { usePlan } from "@/services/plan";
 import { isOwnerRole } from "@/utils/auth/roles";
 import { setCookie } from "@/utils/cookies/clientCookie";
 import { getTodayIso } from "@/utils/format/date";
-import { usePathname } from "next/navigation";
+import { usePathname, useSearchParams } from "next/navigation";
 import { useEffect, useState } from "react";
 import { ROLE_LABEL, SIDEBAR_COLLAPSED_COOKIE, visibleNav } from "./navConfig";
 
@@ -42,9 +42,11 @@ export function useInsideLayout({
   initialCollapsed,
 }: UseInsideLayoutParams) {
   const pathname = usePathname();
+  const searchParams = useSearchParams();
 
-  // Rota de um dia específico (/agenda/<data>), distinta da grade semanal.
-  const isDayRoute = /^\/agenda\/[^/]+/.test(pathname);
+  // A Agenda na visão de dia ("Rota do dia"), distinta da semana e do mês.
+  const isDayRoute =
+    pathname === "/agenda" && searchParams.get("view") === "day";
 
   // Data de hoje resolvida só no cliente (evita mismatch de hidratação).
   const [todayIso, setTodayIso] = useState<string | null>(null);

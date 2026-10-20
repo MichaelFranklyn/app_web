@@ -1,6 +1,6 @@
 import { beforeEach, describe, expect, it, vi } from "vitest";
 
-import { VisitItem } from "../interface";
+import { VisitScheduleItem as VisitItem } from "../../interface";
 import { buildDayRoutePdf } from "./index";
 
 /**
