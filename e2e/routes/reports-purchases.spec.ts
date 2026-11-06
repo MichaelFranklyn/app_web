@@ -202,3 +202,65 @@ test("o recorte de período e vendedor chega na consulta", async ({ page }) => {
   expect(sent).toContain("2026-05-01");
   expect(sent).toContain("seller-1");
 });
+
+test("todos os clientes que compraram de uma fábrica, com quem vendeu", async ({
+  page,
+}) => {
+  await mockGraphql(page, {
+    DashboardSellers: () => ({ dashboard_sellers: sellers() }),
+    ClientFactoryPurchasesReport: () =>
+      report([
+        row({ clientName: "ALFA MATERIAIS" }),
+        row({
+          clientId: "client-2",
+          companyClientId: "cc-2",
+          clientName: "BETA TINTAS",
+          sellerName: "Carla Souza",
+        }),
+        // Vinculado à Herc, mas nunca comprou: é carteira, não comprador.
+        row({
+          clientId: "client-3",
+          companyClientId: "cc-3",
+          clientName: "GAMA FERRAGENS",
+          situation: "NEVER",
+          lastOrderId: null,
+          lastOrderDate: null,
+          daysSinceLastOrder: null,
+          avgIntervalDays: null,
+          orderCount: 0,
+        }),
+        // Comprou, mas de outra fábrica.
+        row({
+          clientId: "client-4",
+          companyClientId: "cc-4",
+          clientName: "DELTA PISOS",
+          factoryId: "factory-2",
+          factoryName: "Delta",
+        }),
+      ]),
+  });
+
+  await page.goto("/dashboard/reports/purchases");
+  await expect(page.getByText("ALFA MATERIAIS")).toBeVisible();
+  // O vendedor de cada linha está na tabela.
+  await expect(page.getByRole("cell", { name: "Carla Souza" })).toBeVisible();
+
+  await page.getByRole("button", { name: "Filtros" }).click();
+  const panel = page.locator("[data-filters-panel]");
+  await panel.getByPlaceholder("Todas as fábricas").click();
+  await page
+    .locator("[data-select-dropdown]")
+    .getByText("Herc", { exact: true })
+    .click();
+  await panel.getByPlaceholder("Todos os clientes").click();
+  await page
+    .locator("[data-select-dropdown]")
+    .getByText("Só quem já comprou", { exact: true })
+    .click();
+
+  await expect(page.getByText("ALFA MATERIAIS")).toBeVisible();
+  await expect(page.getByText("BETA TINTAS")).toBeVisible();
+  await expect(page.getByText("GAMA FERRAGENS")).toHaveCount(0);
+  await expect(page.getByText("DELTA PISOS")).toHaveCount(0);
+  await expect(page.getByRole("button", { name: "Filtros (2)" })).toBeVisible();
+});

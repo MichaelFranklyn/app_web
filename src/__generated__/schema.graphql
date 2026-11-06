@@ -1241,6 +1241,15 @@ type CompanyClientType {
   vendedor aparece uma única vez (deduplicado). Para um vendedor logado, só ele.
   """
   sellers: [SellerType!]!
+  """
+  Última compra do cliente em cada par fábrica × vendedor, da mais recente à
+  mais antiga. A tela agrupa por fábrica ("quando comprou desta fábrica, e com
+  quem") ou por vendedor ("quando comprou com este vendedor, e de qual
+  fábrica"). Orçamento, cancelado e saldo de faturamento parcial não são compra.
+  Para um vendedor logado, só as fábricas que ele atende — mas com os pedidos
+  de qualquer vendedor nelas.
+  """
+  lastPurchases: [ClientLastPurchaseType!]!
   """Data da última compra (pedido não cancelado) do cliente na empresa."""
   lastOrderDate: Date
   """Data do faturamento mais recente entre os pedidos do cliente na empresa."""
@@ -1256,6 +1265,26 @@ type FactoryStockSummaryType {
   totalProducts: Int!
   stockedOut: Int!
   critical: Int!
+}
+
+"""
+A última compra do cliente num par fábrica × vendedor. Só existe para o par
+com ao menos uma compra.
+"""
+type ClientLastPurchaseType {
+  factoryId: UUID!
+  factory: FactoryType
+  sellerId: UUID!
+  seller: SellerType
+  """O pedido da última compra — é nele que está o que foi comprado."""
+  lastOrderId: UUID!
+  lastOrderDate: Date!
+  lastOrderAmount: Decimal!
+  lastOrderStatus: OrderStatus!
+  """Compras do par (o saldo de faturamento parcial não conta como compra nova)."""
+  orderCount: Int!
+  """Valor de todas as compras do par, saldos incluídos."""
+  totalAmount: Decimal!
 }
 
 """

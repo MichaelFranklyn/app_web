@@ -89,6 +89,7 @@ export const rowHref = (row: PurchaseRow): string =>
 export const PURCHASE_SORT_COLUMNS = {
   client: (row: PurchaseRow) => row.clientName,
   factory: (row: PurchaseRow) => row.factoryName,
+  seller: (row: PurchaseRow) => row.sellerName,
   lastOrderDate: (row: PurchaseRow) => row.lastOrderDate,
   lastOrderAmount: (row: PurchaseRow) => Number(row.lastOrderAmount || 0),
   idle: (row: PurchaseRow) => row.daysSinceLastOrder,
@@ -99,6 +100,7 @@ export const PURCHASE_SORT_COLUMNS = {
 export const PURCHASE_SORT_LABELS: Record<string, SortLabel> = {
   client: { label: "Cliente", kind: "text" },
   factory: { label: "Fábrica", kind: "text" },
+  seller: { label: "Vendedor", kind: "text" },
   lastOrderDate: { label: "Última compra", kind: "date" },
   lastOrderAmount: { label: "Valor da última", kind: "number" },
   idle: { label: "Parado há", kind: "number" },

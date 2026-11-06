@@ -44,6 +44,16 @@ const row = (overrides: Partial<PurchaseRow> = {}): PurchaseRow => ({
 });
 
 describe("PURCHASE_FILTER_FIELDS", () => {
+  it("separa quem já comprou de quem só está vinculado", () => {
+    const bought = row({ orderCount: 3 });
+    const never = row({ orderCount: 0, situation: "NEVER" });
+    const { purchased } = PURCHASE_FILTER_FIELDS;
+    expect(purchased.match(bought, "yes")).toBe(true);
+    expect(purchased.match(never, "yes")).toBe(false);
+    expect(purchased.match(never, "no")).toBe(true);
+    expect(purchased.match(bought, "no")).toBe(false);
+  });
+
   it("recorta por situação", () => {
     expect(PURCHASE_FILTER_FIELDS.situation.match(row(), "ACTIVE")).toBe(true);
     expect(PURCHASE_FILTER_FIELDS.situation.match(row(), "INACTIVE")).toBe(
@@ -135,6 +145,7 @@ describe("PURCHASES_PDF_COLUMNS", () => {
     expect(PURCHASES_PDF_COLUMNS.map((column) => column.header)).toEqual([
       "CLIENTE",
       "FÁBRICA",
+      "VENDEDOR",
       "SITUAÇÃO",
       "ÚLT. COMPRA",
       "VALOR",

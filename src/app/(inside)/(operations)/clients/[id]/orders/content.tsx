@@ -21,6 +21,7 @@ import {
 } from "../interface";
 import { FactoryOrderCard } from "./_components/FactoryOrderCard";
 import { FactoryOrderModal } from "./_components/FactoryOrderModal";
+import { LastPurchasesTable } from "./_components/LastPurchasesTable";
 
 export default function OrdersContent() {
   const { clientId, companyClientId } = useClientRoute();
@@ -102,6 +103,10 @@ export default function OrdersContent() {
           ))}
         </div>
       )}
+
+      {/* Os cards respondem "o que há em cada fábrica"; a tabela responde
+          "quando ele comprou pela última vez, e com quem". */}
+      <LastPurchasesTable companyClientId={companyClientId} />
 
       <FactoryOrderModal
         summary={selected}

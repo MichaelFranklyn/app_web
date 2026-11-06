@@ -25,11 +25,28 @@ export const PURCHASE_FILTER_FIELDS: Record<string, LocalField<PurchaseRow>> = {
     type: "select",
     match: (row, value) => row.factoryId === value,
   },
+  purchased: {
+    type: "select",
+    match: (row, value) =>
+      value === PURCHASED_YES ? row.orderCount > 0 : row.orderCount === 0,
+  },
   situation: {
     type: "select",
     match: (row, value) => row.situation === value,
   },
 };
+
+const PURCHASED_YES = "yes";
+
+/**
+ * "Já comprou" separado da situação: a pergunta "quem compra desta fábrica?" não
+ * é sobre ritmo, e achá-la juntando quatro situações não é óbvio para ninguém. O
+ * vínculo sem pedido ("nunca comprou") é carteira, não cliente da fábrica.
+ */
+const PURCHASED_OPTIONS: SelectOption[] = [
+  { value: PURCHASED_YES, label: "Só quem já comprou" },
+  { value: "no", label: "Só quem nunca comprou" },
+];
 
 /**
  * As situações como opções do seletor, no vocabulário único dos relatórios.
@@ -44,9 +61,9 @@ const SITUATION_OPTIONS: SelectOption[] = SITUATION_ORDER.map((situation) => ({
 }));
 
 /**
- * Campos do painel de filtros da aba: cliente, fábrica e situação.
+ * Campos do painel de filtros da aba: cliente, fábrica, compras e situação.
  *
- * Painel, e não abas com seletor ao lado: são três recortes que se combinam
+ * Painel, e não abas com seletor ao lado: são recortes que se combinam
  * ("os atrasados da Delta"), e abas só sabem mostrar um de cada vez. É também o
  * mesmo controle das outras listas do sistema — ver
  * `@/components/Filters`.
@@ -71,6 +88,13 @@ export const usePurchaseFilters = (factories: SelectOption[]): FilterField[] =>
         options: factories,
         // Uma fábrica só: escolher a única não recorta nada.
         hidden: factories.length < 2,
+      },
+      {
+        type: "select",
+        key: "purchased",
+        label: "Compras",
+        placeholder: "Todos os clientes",
+        options: PURCHASED_OPTIONS,
       },
       {
         type: "select",

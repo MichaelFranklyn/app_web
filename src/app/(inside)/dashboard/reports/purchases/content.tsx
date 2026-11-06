@@ -53,7 +53,7 @@ export default function PurchasesReportContent({ canSelectSeller }: Props) {
     sheetHeaders: PURCHASES_EXPORT_HEADERS,
     buildSheetRows: buildPurchasesExportRows,
     pdfColumns: PURCHASES_PDF_COLUMNS,
-    // Paisagem: são oito colunas, e em retrato o nome do cliente viraria sigla.
+    // Paisagem: são nove colunas, e em retrato o nome do cliente viraria sigla.
     orientation: "landscape",
     // O fechamento sai das linhas IMPRESSAS, não dos cartões da tela: com um
     // filtro aplicado, o papel tem de fechar com o que está nele.
