@@ -267,3 +267,80 @@ test("cliente/pedidos: abrir o card carrega os pedidos daquela fábrica", async 
   // filtrar por `seller_id` sumia com tudo o que o vendedor anterior vendeu.
   expect(filters.map(([field]) => field)).not.toContain("seller_id");
 });
+
+const lastPurchases = () => ({
+  companyClient: {
+    data: {
+      id: "cc-1",
+      // Como o backend manda: um item por par fábrica × vendedor, do mais
+      // recente ao mais antigo.
+      lastPurchases: [
+        {
+          factoryId: "f-1",
+          factory: {
+            id: "f-1",
+            nickname: null,
+            nomeFantasia: "Fábrica Alfa",
+            razaoSocial: "Alfa LTDA",
+          },
+          sellerId: "s-2",
+          seller: { id: "s-2", name: "Vendedor B" },
+          lastOrderId: "order-alfa-b",
+          lastOrderDate: "2026-06-20",
+          lastOrderAmount: "1000.00",
+          lastOrderStatus: "DELIVERED",
+          orderCount: 1,
+          totalAmount: "1000.00",
+        },
+        {
+          factoryId: "f-1",
+          factory: {
+            id: "f-1",
+            nickname: null,
+            nomeFantasia: "Fábrica Alfa",
+            razaoSocial: "Alfa LTDA",
+          },
+          sellerId: "s-1",
+          seller: { id: "s-1", name: "Vendedor A" },
+          lastOrderId: "order-alfa-a",
+          lastOrderDate: "2026-03-10",
+          lastOrderAmount: "500.00",
+          lastOrderStatus: "INVOICED",
+          orderCount: 2,
+          totalAmount: "900.00",
+        },
+      ],
+    },
+  },
+});
+
+test("cliente/pedidos: últimas compras alternam entre fábrica e vendedor e levam ao pedido", async ({
+  page,
+}) => {
+  await mockGraphql(page, {
+    ...clientLayout(),
+    ClientFactoryOrders: summaries,
+    ClientLastPurchases: lastPurchases,
+  });
+
+  await page.goto("/clients/cc-1/orders");
+  const table = page.locator('[data-tour="client-last-purchases"]');
+
+  // Por fábrica: uma linha só para a Alfa, com quem vendeu por último e as
+  // compras dos dois vendedores somadas.
+  const alfa = table.getByRole("row", { name: /Fábrica Alfa/ });
+  await expect(alfa).toHaveCount(1);
+  await expect(alfa).toContainText("20/06/2026");
+  await expect(alfa).toContainText("Vendedor B");
+  await expect(alfa).toContainText("3 compras");
+
+  // Por vendedor: uma linha por vendedor, cada uma com a sua última compra.
+  await table.getByRole("button", { name: "Por vendedor" }).click();
+  const sellerA = table.getByRole("row", { name: /Vendedor A/ });
+  await expect(sellerA).toContainText("10/03/2026");
+  await expect(sellerA).toContainText("2 compras");
+  await expect(table.getByRole("row", { name: /Vendedor B/ })).toHaveCount(1);
+
+  await sellerA.click();
+  await page.waitForURL(/\/orders\/order-alfa-a/);
+});
