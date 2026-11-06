@@ -6,7 +6,7 @@ import { PurchaseRow } from "./interface";
 import { cadenceLabel, idleLabel, lastPurchaseLabel } from "./utils";
 
 /**
- * Colunas do PDF das últimas compras: as MESMAS oito da tela, na mesma ordem.
+ * Colunas do PDF das últimas compras: as MESMAS nove da tela, na mesma ordem.
  *
  * Quem imprime está conferindo contra a tabela, então nada de coluna extra no
  * papel — ela faz a conferência procurar na tela um dado que não está lá. O
@@ -21,19 +21,24 @@ import { cadenceLabel, idleLabel, lastPurchaseLabel } from "./utils";
 export const PURCHASES_PDF_COLUMNS: ReportColumn<PurchaseRow>[] = [
   {
     header: "CLIENTE",
-    width: 24,
+    width: 20,
     value: (row) => row.clientName,
   },
   {
     header: "FÁBRICA",
-    width: 15,
+    width: 13,
     value: (row) => row.factoryName,
     // O mesmo aviso da tela: vínculo desfeito, compra que ficou no histórico.
     sub: (row) => (row.isLinked ? null : "sem vínculo ativo"),
   },
   {
+    header: "VENDEDOR",
+    width: 12,
+    value: (row) => row.sellerName ?? "—",
+  },
+  {
     header: "SITUAÇÃO",
-    width: 10,
+    width: 9,
     bold: true,
     value: (row) => SITUATION_LABEL[row.situation],
   },
@@ -51,17 +56,17 @@ export const PURCHASES_PDF_COLUMNS: ReportColumn<PurchaseRow>[] = [
   },
   {
     header: "PARADO HÁ",
-    width: 11,
+    width: 10,
     value: (row) => idleLabel(row),
   },
   {
     header: "RITMO",
-    width: 10,
+    width: 8,
     value: (row) => cadenceLabel(row),
   },
   {
     header: "NO PERÍODO",
-    width: 11,
+    width: 9,
     align: "right",
     bold: true,
     value: (row) => formatMoney(row.periodAmount),

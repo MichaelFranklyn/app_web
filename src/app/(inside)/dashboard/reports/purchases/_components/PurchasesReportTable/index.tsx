@@ -28,7 +28,7 @@ import {
 interface Props {
   items: PurchaseRow[];
   loading: boolean;
-  /** Campos do painel: cliente, fábrica e situação. */
+  /** Campos do painel: cliente, fábrica, compras e situação. */
   filterFields: FilterField[];
   inputValues: Record<string, string>;
   setFilter: (key: string, value: string | undefined) => void;
@@ -79,7 +79,7 @@ export function PurchasesReportTable({
           Última compra por fábrica
           <HelpTooltip
             label="Sobre a última compra por fábrica"
-            content="Uma linha por cliente em cada fábrica. A situação e o ritmo são desta fábrica, não do cliente inteiro — quem está em dia numa pode estar parado há meses em outra. O período do filtro governa só a coluna 'no período'."
+            content="Uma linha por cliente em cada fábrica. Para ver todos os clientes que compraram de uma fábrica, escolha a fábrica e 'Só quem já comprou' em Filtros; o vendedor se escolhe na barra de cima. A situação e o ritmo são desta fábrica, não do cliente inteiro — quem está em dia numa pode estar parado há meses em outra. O período do filtro governa só a coluna 'no período'."
           />
         </Table.CardHead.Title>
         <Table.CardHead.Actions>
@@ -99,6 +99,7 @@ export function PurchasesReportTable({
           <Table.Row>
             <Table.Head sortKey="client">Cliente</Table.Head>
             <Table.Head sortKey="factory">Fábrica</Table.Head>
+            <Table.Head sortKey="seller">Vendedor</Table.Head>
             <Table.Head>Situação</Table.Head>
             <Table.Head sortKey="lastOrderDate" sortFirst="desc">
               Última compra
@@ -120,10 +121,10 @@ export function PurchasesReportTable({
 
         <Table.Body>
           {loading && items.length === 0 ? (
-            <Table.Skeleton columns={8} rows={8} />
+            <Table.Skeleton columns={9} rows={8} />
           ) : items.length === 0 ? (
             <Table.Row>
-              <Table.Cell colSpan={8}>
+              <Table.Cell colSpan={9}>
                 <EmptyState.Root>
                   <EmptyState.Icon>
                     <ShoppingBasket size={32} />
@@ -135,7 +136,7 @@ export function PurchasesReportTable({
                   </EmptyState.Title>
                   <EmptyState.Description>
                     {isNarrowed
-                      ? "Tente outra situação ou outra fábrica no painel de filtros."
+                      ? "Tente outra fábrica, outra situação ou outro vendedor."
                       : "As fábricas que cada cliente compra aparecem aqui, com a data da última compra em cada uma."}
                   </EmptyState.Description>
                 </EmptyState.Root>
@@ -159,6 +160,11 @@ export function PurchasesReportTable({
                       sem vínculo ativo
                     </Title>
                   )}
+                </Table.Cell>
+                {/* Quem atende o par hoje; sem vínculo, quem vendeu da última
+                    vez — é com essa pessoa que se fala sobre a linha. */}
+                <Table.Cell variant="dim" title={row.sellerName ?? undefined}>
+                  {row.sellerName ?? "—"}
                 </Table.Cell>
                 <Table.Cell>
                   <Badge.Root
