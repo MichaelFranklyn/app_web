@@ -4,6 +4,7 @@ import { Card } from "@/components/Card";
 import { Grid } from "@/components/Grid";
 import { formatDateDMY } from "@/utils/format/masks";
 import { DataField } from "../../dataCards";
+import { userAccessStatus } from "../accessStatus";
 import { UserDetail } from "../interface";
 
 interface Props {
@@ -29,10 +30,7 @@ export function SystemAccessCard({ user, isSelf }: Props) {
       <Card.Body>
         <Grid.Root cols={{ base: 1, desktop: 2 }} gap={16}>
           <DataField label="E-mail de acesso" value={user.email} />
-          <DataField
-            label="Situação"
-            value={user.isActive ? "Ativo" : "Inativo"}
-          />
+          <DataField label="Situação" value={userAccessStatus(user).label} />
           <DataField
             label="Empresa"
             value={

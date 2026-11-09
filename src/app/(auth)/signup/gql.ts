@@ -13,6 +13,9 @@ export const REGISTER_COMPANY_MUTATION = gql`
         userName
         companyName
         role
+        sellerId
+        companyId
+        isCompanyChoicePending
       }
     }
   }

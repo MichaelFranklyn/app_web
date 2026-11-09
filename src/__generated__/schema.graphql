@@ -84,6 +84,10 @@ type LoginPayload {
     role: UserRole!
     "Perfil de vendedor vinculado, se houver (owner/admin também podem vender)"
     sellerId: UUID
+    "Escritório em que esta sessão entrou"
+    companyId: UUID
+    "2+ escritórios e nenhum usado por último: o front leva à tela de escolha"
+    isCompanyChoicePending: Boolean!
 }
 
 type LoginPayloadDataResponse {
@@ -111,6 +115,39 @@ input RefreshTokenInput {
 
 input RequestPasswordResetInput {
     email: String!
+}
+
+"Um escritório da pessoa logada — o seletor de escritório (como projetos no Google Cloud)"
+type MyCompany {
+    companyId: UUID!
+    companyName: String!
+    "Papel da pessoa NESTE escritório"
+    role: UserRole!
+    "Convite ainda não respondido: aceitar ou recusar antes de entrar"
+    isInvitationPending: Boolean!
+    "Escritório da sessão atual"
+    isCurrent: Boolean!
+}
+
+type MyCompanyListDataResponse {
+    status: Boolean!
+    code: Int!
+    message: String!
+    data: [MyCompany!]!
+}
+
+extend type Query {
+    "Os escritórios em que a pessoa logada trabalha, inclusive convites pendentes"
+    myCompanies: MyCompanyListDataResponse!
+}
+
+extend type Mutation {
+    "Troca a sessão para o vínculo da pessoa em outro escritório"
+    switchCompany(companyId: UUID!): LoginPayloadDataResponse!
+    "Aceita o convite e já entra no escritório"
+    acceptInvitation(companyId: UUID!): LoginPayloadDataResponse!
+    "Recusa o convite: o vínculo é removido"
+    declineInvitation(companyId: UUID!): BaseResponse!
 }
 
 type ClientContactType {
@@ -7167,6 +7204,10 @@ type UserType {
     email: String!
     role: UserRole!
     isActive: Boolean!
+    """Convite ainda não respondido: a pessoa já trabalha em outro escritório e
+    precisa aceitar (no próximo login ou pelo seletor do topo) antes de entrar
+    neste. Enquanto isso, não acessa nada aqui."""
+    isInvitationPending: Boolean!
     """Dados pessoais de quem usa o sistema — não confundir com o contato da empresa (CompanyType)."""
     phone: String
     "CPF da pessoa — único por empresa. Veio de `sellers`: é dado de quem usa o sistema, não do perfil de vendedor."

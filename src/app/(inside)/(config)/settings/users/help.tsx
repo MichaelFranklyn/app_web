@@ -71,5 +71,5 @@ export const USER_COLUMN_HELP = {
   person:
     "Nome, e-mail e telefone de quem entra no sistema, com a data em que entrou. A linha de baixo, quando existe, resume a operação de campo da pessoa (fábricas e clientes que ela atende). Clique na linha para abrir o perfil completo.",
   badges:
-    "À direita: se o login está ativo, o perfil de acesso (o que a pessoa pode fazer no sistema) e a tarja “Vende em campo”, que aparece só para quem tem perfil de vendedor. Login ativo e perfil de campo são coisas separadas — dá para ter um sem o outro.",
+    "À direita: a situação do acesso (Ativo, Inativo ou Convite pendente — quando o e-mail já trabalha em outro escritório e a pessoa ainda não aceitou entrar neste), o perfil de acesso (o que a pessoa pode fazer no sistema) e a tarja “Vende em campo”, que aparece só para o proprietário ou administrador que também vende (para o vendedor, o perfil “Vendedor” já diz isso). Login ativo e perfil de campo são coisas separadas — dá para ter um sem o outro.",
 } as const;

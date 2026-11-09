@@ -117,6 +117,13 @@ const SSR_RESPONSES: Record<string, SsrResponse> = {
     myPlan: { status: true, code: 200, message: "ok", data: null },
   },
 
+  // O seletor de escritório da topbar (multi-escritório) roda a query também
+  // no servidor. Lista vazia = um escritório só, sem convites: a topbar mostra
+  // só o selo — o mesmo default do mock do cliente (`SHELL_DEFAULTS`).
+  MyCompanies: {
+    myCompanies: { status: true, message: "ok", data: [] },
+  },
+
   // Auth via BFF: login/change-password agora rodam a mutation no SERVIDOR
   // (rota /api/session), fora do alcance do page.route do browser — então o stub
   // precisa respondê-las como qualquer fetch SSR do Next.

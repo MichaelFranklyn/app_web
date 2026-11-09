@@ -33,6 +33,8 @@ const authData = (over: Record<string, unknown> = {}) => ({
   companyName: "Empresa Teste",
   role: "OWNER",
   sellerId: null,
+  companyId: "c-1",
+  isCompanyChoicePending: false,
   ...over,
 });
 
@@ -75,10 +77,22 @@ describe("POST — login", () => {
       companyName: "Empresa Teste",
       role: "OWNER",
       sellerId: "s-9",
+      companyId: "c-1",
     });
     expect(cookie("userData")?.[2]).not.toEqual(
       expect.objectContaining({ httpOnly: true })
     );
+  });
+
+  it("avisa quando a pessoa ainda precisa escolher o escritório", async () => {
+    respondeLogin({
+      status: true,
+      data: authData({ isCompanyChoicePending: true }),
+    });
+
+    const json = await (await POST(req({ action: "login", input: {} }))).json();
+
+    expect(json.isCompanyChoicePending).toBe(true);
   });
 
   it("lembrar da sessão estica os cookies para 30 dias", async () => {
@@ -394,6 +408,98 @@ describe("POST — trocar a própria senha", () => {
     getServerCookie.mockResolvedValue(null);
 
     const res = await POST(req({ action: "changeMyPassword", input: {} }));
+
+    expect(res.status).toBe(401);
+    expect(gqlFetch).not.toHaveBeenCalled();
+  });
+});
+
+describe("POST — trocar de escritório", () => {
+  const respondeTroca = (field: string, payload: unknown) =>
+    gqlFetch.mockResolvedValue({ data: { [field]: payload } });
+
+  it("roda com o token atual e grava a sessão do outro escritório", async () => {
+    getServerCookie.mockImplementation(async (name: string) =>
+      name === "token"
+        ? "token-escritorio-a"
+        : name === "remember"
+          ? "true"
+          : null
+    );
+    respondeTroca("switchCompany", {
+      status: true,
+      data: authData({
+        accessToken: "token-escritorio-b",
+        companyId: "c-2",
+        companyName: "Escritório B",
+        role: "SELLER",
+      }),
+    });
+
+    const res = await POST(
+      req({ action: "switchCompany", input: { companyId: "c-2" } })
+    );
+    const json = await res.json();
+
+    expect(json.status).toBe(true);
+    expect(JSON.stringify(json)).not.toContain("token-escritorio-b");
+    expect(gqlFetch).toHaveBeenCalledWith(
+      expect.objectContaining({ variables: { companyId: "c-2" } }),
+      "token-escritorio-a"
+    );
+    expect(cookie("token")?.[1]).toBe("token-escritorio-b");
+    // Mantém o "lembrar" que a sessão já tinha.
+    expect(cookie("token")?.[2]).toEqual(
+      expect.objectContaining({ httpOnly: true, expires: 30 })
+    );
+    expect(cookie("userData")?.[1]).toEqual(
+      expect.objectContaining({
+        companyId: "c-2",
+        companyName: "Escritório B",
+        role: "SELLER",
+      })
+    );
+  });
+
+  it("aceitar convite também troca a sessão para o escritório novo", async () => {
+    getServerCookie.mockResolvedValue("token-escritorio-a");
+    respondeTroca("acceptInvitation", {
+      status: true,
+      data: authData({ accessToken: "token-convite", companyId: "c-3" }),
+    });
+
+    await POST(
+      req({ action: "acceptInvitation", input: { companyId: "c-3" } })
+    );
+
+    expect(cookie("token")?.[1]).toBe("token-convite");
+  });
+
+  it("escritório recusado pelo backend não mexe no cookie", async () => {
+    getServerCookie.mockResolvedValue("token-escritorio-a");
+    respondeTroca("switchCompany", {
+      status: false,
+      message: "Você não tem acesso a este escritório.",
+      data: null,
+    });
+
+    const res = await POST(
+      req({ action: "switchCompany", input: { companyId: "c-9" } })
+    );
+
+    expect(res.status).toBe(400);
+    expect((await res.json()).message).toBe(
+      "Você não tem acesso a este escritório."
+    );
+    expect(setServerCookie).not.toHaveBeenCalled();
+  });
+
+  it("sem sessão, recusa antes de ir ao backend", async () => {
+    getServerCookie.mockResolvedValue(null);
+
+    const res = await POST(
+      req({ action: "switchCompany", input: { companyId: "c-2" } })
+    );
 
     expect(res.status).toBe(401);
     expect(gqlFetch).not.toHaveBeenCalled();

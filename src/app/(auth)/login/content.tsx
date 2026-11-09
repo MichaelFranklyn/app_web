@@ -9,6 +9,7 @@ import { Responsive } from "@/components/Responsive";
 import { RootPage } from "@/components/RootPage";
 import { Title } from "@/components/Title";
 import { useAsyncAction } from "@/hooks/useAsyncAction";
+import { CHOOSE_OFFICE_ROUTE } from "@/utils/auth/offices";
 import { postSession } from "@/utils/auth/session";
 import { TRIAL_DAYS } from "@/utils/trial";
 import { ArrowRight } from "lucide-react";
@@ -43,8 +44,12 @@ export default function LoginContent() {
         ),
       {
         successMessage: "Acesso autorizado. Bem-vindo ao Girus.",
-        onSuccess() {
-          router.push("/dashboard");
+        onSuccess(result) {
+          // Quem trabalha em 2+ escritórios e ainda não escolheu um escolhe
+          // antes de entrar — como o seletor de projeto do Google Cloud.
+          router.push(
+            result.isCompanyChoicePending ? CHOOSE_OFFICE_ROUTE : "/dashboard"
+          );
         },
       }
     );

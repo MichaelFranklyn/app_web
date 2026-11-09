@@ -3,6 +3,10 @@ import { LOGIN_MUTATION } from "@/app/(auth)/login/gql";
 import { IMPERSONATE_USER_MUTATION } from "@/app/(platform)/platform/companies/[id]/gql";
 import { REGISTER_COMPANY_MUTATION } from "@/app/(auth)/signup/gql";
 import { UPDATE_MY_PASSWORD_MUTATION } from "@/app/(inside)/(config)/settings/user/[id]/_components/ChangePasswordModal/gql";
+import {
+  OFFICE_SESSION_ACTIONS,
+  OfficeSessionAction,
+} from "@/utils/auth/offices";
 import { gqlFetch } from "@/services/graphql/gqlFetch";
 import {
   getServerCookie,
@@ -59,6 +63,9 @@ export async function POST(req: NextRequest) {
   if (action === "impersonate") return startImpersonation(input);
   if (action === "stopImpersonation") return stopImpersonation();
   if (action === "changeMyPassword") return changeMyPassword(input);
+  if (action === "switchCompany" || action === "acceptInvitation") {
+    return switchOffice(action, input);
+  }
 
   const entry = action ? MUTATIONS[action] : undefined;
   if (!entry) {
@@ -93,9 +100,8 @@ export async function POST(req: NextRequest) {
     );
   }
 
-  const { accessToken, userId, userName, companyName, role } = payload.data;
-  const sellerId = (payload.data.sellerId as string | null) ?? null;
-  const userData = { userId, userName, companyName, role, sellerId };
+  const { accessToken } = payload.data;
+  const userData = toUserData(payload.data);
 
   const common = cookieBase();
   // Lembrar por 30 dias; senão, cai no default do setServerCookie (5 dias).
@@ -113,6 +119,90 @@ export async function POST(req: NextRequest) {
       ...expires,
     });
   }
+
+  return NextResponse.json({
+    status: true,
+    userData,
+    isCompanyChoicePending: !!payload.data.isCompanyChoicePending,
+  });
+}
+
+/** O que vai no cookie legível `userData` — o que a UI exibe, nada secreto. */
+function toUserData(data: NonNullable<AuthPayload["data"]>) {
+  const { userId, userName, companyName, role } = data;
+  return {
+    userId,
+    userName,
+    companyName,
+    role,
+    sellerId: (data.sellerId as string | null) ?? null,
+    companyId: (data.companyId as string | null) ?? null,
+  };
+}
+
+/**
+ * Troca o escritório da sessão (ou aceita um convite e já entra nele).
+ *
+ * Como um projeto no Google Cloud: a pessoa é a mesma, mas cada escritório é
+ * uma sessão à parte, com o seu papel e os seus dados. O backend emite um token
+ * novo para o vínculo escolhido, e ele precisa ir para o cookie httpOnly aqui
+ * no servidor — o JS da tela nunca vê o token.
+ */
+async function switchOffice(
+  action: OfficeSessionAction,
+  input?: Record<string, unknown>
+) {
+  const token = await getServerCookie<string>("token");
+  if (!token) {
+    return NextResponse.json(
+      { status: false, message: "Sessão expirada. Entre novamente." },
+      { status: 401 }
+    );
+  }
+
+  const { doc, field } = OFFICE_SESSION_ACTIONS[action];
+  let payload: AuthPayload | undefined;
+  try {
+    const res = await gqlFetch<Record<string, AuthPayload>>(
+      { query: doc, variables: { companyId: input?.companyId } },
+      token
+    );
+    payload = res.data?.[field];
+  } catch (e) {
+    return NextResponse.json(
+      {
+        status: false,
+        message:
+          e instanceof Error
+            ? e.message
+            : "Não foi possível trocar de escritório.",
+      },
+      { status: 400 }
+    );
+  }
+
+  if (!payload?.status || !payload.data) {
+    return NextResponse.json(
+      {
+        status: false,
+        message: payload?.message ?? "Não foi possível trocar de escritório.",
+      },
+      { status: 400 }
+    );
+  }
+
+  // Mantém o prazo que a sessão já tinha (lembrar = 30 dias).
+  const remember = (await getServerCookie<string>("remember")) === "true";
+  const common = cookieBase();
+  const expires = remember ? { expires: 30 } : {};
+  const userData = toUserData(payload.data);
+
+  await setServerCookie("token", payload.data.accessToken, {
+    httpOnly: true,
+    ...common,
+    ...expires,
+  });
+  await setServerCookie("userData", userData, { ...common, ...expires });
 
   return NextResponse.json({ status: true, userData });
 }

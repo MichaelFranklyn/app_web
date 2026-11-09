@@ -38,6 +38,8 @@ export interface UserDetail {
   email: string;
   role: UserRole;
   isActive: boolean;
+  /** Cadastro virou convite (o email já trabalha em outro escritório). */
+  isInvitationPending: boolean;
   phone: string | null;
   cpf: string | null;
   birthDate: string | null;

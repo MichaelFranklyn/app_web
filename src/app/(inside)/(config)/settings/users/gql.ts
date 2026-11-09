@@ -15,6 +15,7 @@ export const USERS_QUERY = gql`
           email
           role
           isActive
+          isInvitationPending
           phone
           createdAt
           seller {

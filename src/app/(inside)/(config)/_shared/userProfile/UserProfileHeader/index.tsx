@@ -5,6 +5,7 @@ import { Badge } from "@/components/Badges";
 import { Breadcrumb } from "@/components/Breadcrumb";
 import { PanelHeader } from "@/components/PanelHeader";
 import React from "react";
+import { userAccessStatus } from "../accessStatus";
 import { ROLE_COLOR, ROLE_LABEL, UserRole } from "../roles";
 import { UserDetail } from "../interface";
 
@@ -25,6 +26,7 @@ const initials = (name: string): string =>
 
 export function UserProfileHeader({ user, isSelf, actions }: Props) {
   const role = user.role as UserRole;
+  const status = userAccessStatus(user);
 
   return (
     <div className="flex flex-col gap-8">
@@ -61,10 +63,11 @@ export function UserProfileHeader({ user, isSelf, actions }: Props) {
                 <Badge.Text>{ROLE_LABEL[role] ?? user.role}</Badge.Text>
               </Badge.Root>
               <Badge.Root
-                color={user.isActive ? "green" : "red"}
+                color={status.color}
                 appearance="tinted"
+                title={status.help}
               >
-                <Badge.Text>{user.isActive ? "Ativo" : "Inativo"}</Badge.Text>
+                <Badge.Text>{status.label}</Badge.Text>
               </Badge.Root>
               {/* "Vende em campo" saiu: os blocos de rotina, fábricas e carteira
                   na própria página já dizem isso, sem mais um badge para ler. */}
