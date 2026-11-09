@@ -6,10 +6,7 @@ import { extractSelectValue } from "@/utils/form";
 import { useMemo, useState } from "react";
 
 import { normalizeInput } from "../_shared/orderCreate";
-import {
-  clientOptionLabel,
-  clientOptionSearchText,
-} from "../../_shared/clientOption";
+import { clientOptionLabel, clientOptionSearchText } from "@/utils/client";
 import {
   coverageHint,
   useCoverageSuggestion,

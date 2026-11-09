@@ -14,10 +14,7 @@ import {
 import { toIsoDate } from "@/utils/format/date";
 
 import { DeferredOrderTarget } from "../../../../../_components/OrderImportWizard";
-import {
-  clientOptionLabel,
-  clientOptionSearchText,
-} from "../../../../../_shared/clientOption";
+import { clientOptionLabel, clientOptionSearchText } from "@/utils/client";
 import {
   coverageHint,
   useCoverageSuggestion,

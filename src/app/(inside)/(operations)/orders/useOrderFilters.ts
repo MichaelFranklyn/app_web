@@ -6,10 +6,7 @@ import { useAsyncSelectOptions } from "@/hooks/useAsyncSelectOptions";
 import { factoryName } from "@/utils/company";
 import { useQuery } from "@apollo/client/react";
 import { useCallback, useMemo } from "react";
-import {
-  clientOptionLabel,
-  clientOptionSearchText,
-} from "../_shared/clientOption";
+import { clientOptionLabel, clientOptionSearchText } from "@/utils/client";
 import {
   ORDER_FILTER_CLIENTS_QUERY,
   ORDER_FILTER_FACTORIES_QUERY,
@@ -88,7 +85,7 @@ export function useOrderFilters({
       }),
       []
     ),
-    searchField: "razao_social,nome_fantasia",
+    searchField: "search",
   });
 
   const sellerOptions: SelectOption[] = useMemo(

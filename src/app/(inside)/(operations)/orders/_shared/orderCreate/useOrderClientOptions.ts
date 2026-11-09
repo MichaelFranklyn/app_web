@@ -3,10 +3,7 @@
 import { useAsyncSelectOptions } from "@/hooks/useAsyncSelectOptions";
 import { useCallback, useMemo } from "react";
 
-import {
-  clientOptionLabel,
-  clientOptionSearchText,
-} from "../../../_shared/clientOption";
+import { clientOptionLabel, clientOptionSearchText } from "@/utils/client";
 import {
   CoverageCadence,
   cadenceByClientFrom,

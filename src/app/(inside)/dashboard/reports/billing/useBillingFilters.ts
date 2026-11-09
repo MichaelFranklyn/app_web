@@ -7,6 +7,7 @@ import { useMemo } from "react";
 import { optionsFromRows } from "../rowOptions";
 import { BillingRow } from "./interface";
 import { BILLING_SITUATION_OPTIONS } from "./utils";
+import { matchesClientSearch } from "@/utils/client";
 
 /**
  * O que cada campo do painel recorta nas duplicatas. A chave é a mesma do
@@ -18,8 +19,16 @@ import { BILLING_SITUATION_OPTIONS } from "./utils";
 export const BILLING_FILTER_FIELDS: Record<string, LocalField<BillingRow>> = {
   search: {
     type: "text",
+    // Nome, razão social ou CNPJ (com ou sem máscara), como na busca do servidor.
     match: (row, value) =>
-      row.clientName.toLowerCase().includes(value.toLowerCase()),
+      matchesClientSearch(
+        {
+          name: row.clientName,
+          razaoSocial: row.clientRazaoSocial,
+          cnpj: row.clientCnpj,
+        },
+        value
+      ),
   },
   situation: {
     type: "select",
@@ -52,7 +61,7 @@ export const useBillingFilters = (rows: BillingRow[]): FilterField[] =>
         type: "text",
         key: "search",
         label: "Cliente",
-        placeholder: "Nome do cliente",
+        placeholder: "Nome, razão social ou CNPJ",
       },
       {
         type: "select",

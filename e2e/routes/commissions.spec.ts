@@ -483,7 +483,7 @@ test.describe("comissões: mês com muitas parcelas", () => {
     await page.getByRole("button", { name: "Filtros", exact: true }).click();
     await page
       .locator("[data-filters-panel]")
-      .getByPlaceholder("Nome do cliente, código do pedido ou número da nota")
+      .getByPlaceholder("Cliente (nome ou CNPJ), código do pedido ou nota")
       .fill("CLIENTE 077");
 
     await expect

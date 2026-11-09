@@ -2004,6 +2004,9 @@ type PositivationRowType {
   """Id do vínculo na carteira (`company_clients`) — a chave da rota /clients/[id]."""
   companyClientId: UUID
   clientName: String!
+  """Razão social e CNPJ (só dígitos): a busca de cliente casa pelos três."""
+  clientRazaoSocial: String
+  clientCnpj: String
   sellerId: UUID!
   sellerName: String!
   """Uma célula por coluna, na mesma ordem de `factories`."""
@@ -5983,6 +5986,9 @@ type BillingInstallmentRow {
   sequence: Int!
   clientId: UUID!
   clientName: String!
+  "Razão social e CNPJ (só dígitos): a busca de cliente casa pelos três."
+  clientRazaoSocial: String
+  clientCnpj: String
   factoryId: UUID!
   factoryName: String!
   sellerId: UUID!
@@ -6058,6 +6064,9 @@ type WalletStatusRow {
   "Id do vínculo na carteira (`company_clients`) — a chave da rota /clients/[id]."
   companyClientId: UUID
   clientName: String!
+  "Razão social e CNPJ (só dígitos): a busca de cliente casa pelos três."
+  clientRazaoSocial: String
+  clientCnpj: String
   city: String
   state: String
   situation: ClientWalletSituation!
@@ -6100,6 +6109,9 @@ type ClientFactoryPurchaseRow {
   "Id do vínculo na carteira (`company_clients`) — a chave da rota /clients/[id]."
   companyClientId: UUID!
   clientName: String!
+  "Razão social e CNPJ (só dígitos): a busca de cliente casa pelos três."
+  clientRazaoSocial: String
+  clientCnpj: String
   city: String
   state: String
   factoryId: UUID!
@@ -6171,6 +6183,9 @@ enum AbcClass {
 type ClientAbcRow {
   clientId: UUID!
   clientName: String!
+  "Razão social e CNPJ (só dígitos): a busca de cliente casa pelos três."
+  clientRazaoSocial: String
+  clientCnpj: String
   rank: Int!
   totalAmount: Decimal!
   orderCount: Int!

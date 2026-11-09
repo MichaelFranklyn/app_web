@@ -107,11 +107,11 @@ test("carteira: buscar cliente vai ao banco como `client_name`", async ({
   await page.getByRole("button", { name: "Filtros" }).click();
   await page
     .locator("[data-filters-panel]")
-    .getByPlaceholder("Razão social ou nome fantasia")
+    .getByPlaceholder("Nome, razão social ou CNPJ")
     .fill("BETA");
 
   // `client_name` não é coluna do vínculo: o repositório o traduz num
-  // `client_id IN (SELECT ...)` sobre razão social e nome fantasia.
+  // `client_id IN (SELECT ...)` sobre razão social, nome fantasia e CNPJ.
   await expect
     .poll(() => JSON.stringify(spy.lastVariables("SellerClientLinks") ?? {}))
     .toContain('"field":"client_name"');

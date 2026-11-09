@@ -207,14 +207,14 @@ test("clients: a busca por nome mora no painel e vai como filtro da query", asyn
   await expect(page.getByText("Central Horizonte ME")).toBeVisible();
 
   // Fora do painel não sobrou campo de busca nenhum no cabeçalho da tabela.
-  await expect(
-    page.getByPlaceholder("Razão social ou nome fantasia")
-  ).toHaveCount(0);
+  await expect(page.getByPlaceholder("Nome, razão social ou CNPJ")).toHaveCount(
+    0
+  );
 
   await page.getByRole("button", { name: "Filtros" }).click();
   await page
     .locator("[data-filters-panel]")
-    .getByPlaceholder("Razão social ou nome fantasia")
+    .getByPlaceholder("Nome, razão social ou CNPJ")
     .fill("Horizonte");
 
   await expect
@@ -222,9 +222,7 @@ test("clients: a busca por nome mora no painel e vai como filtro da query", asyn
       const input = spy.lastVariables("Clients")?.input as
         | { filters?: { field: string; value: string }[] }
         | undefined;
-      return input?.filters?.find(
-        (f) => f.field === "razao_social,nome_fantasia"
-      )?.value;
+      return input?.filters?.find((f) => f.field === "search")?.value;
     })
     .toBe("Horizonte");
 

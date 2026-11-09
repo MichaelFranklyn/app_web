@@ -13,7 +13,7 @@ import { useQuery } from "@apollo/client/react";
 import { useInvalidateQueriesClient } from "@/hooks/useInvalidateQueries";
 import { SUPPORT_CACHE_FIELDS } from "@/utils/cacheFields";
 import { useMutation } from "@apollo/client/react";
-import { clientDisplayName } from "@/utils/client";
+import { clientDisplayName, clientOptionSearchText } from "@/utils/client";
 import { factoryName } from "@/utils/company";
 import { extractSelectValue, selectOption } from "@/utils/form";
 import { formatDate, toIsoDate } from "@/utils/format/date";
@@ -110,6 +110,7 @@ export function useSupportCaseForm({
     toOption: (node) => ({
       value: node.client?.id ?? node.id,
       label: clientDisplayName(node.client),
+      searchText: node.client ? clientOptionSearchText(node.client) : undefined,
     }),
     searchField: "search",
     skip: !open || Boolean(fixedClientId),

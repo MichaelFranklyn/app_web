@@ -7,6 +7,7 @@ import { useTakeoverConfirmation } from "@/hooks/useTakeoverConfirmation";
 import { useInvalidateQueriesClient } from "@/hooks/useInvalidateQueries";
 import { CLIENT_FACTORY_LINK_CACHE_FIELDS } from "@/utils/cacheFields";
 import { useUserData } from "@/hooks/useUserData";
+import { clientOptionSearchText } from "@/utils/client";
 import { extractSelectValue } from "@/utils/form";
 import { useMutation } from "@apollo/client/react";
 import { useCompleteList } from "@/hooks/useCompleteList";
@@ -96,6 +97,7 @@ export function useLinkClient({
     toOption: (node) => ({
       value: node.client?.id ?? node.id,
       label: node.client?.nomeFantasia || node.client?.razaoSocial || "Cliente",
+      searchText: node.client ? clientOptionSearchText(node.client) : undefined,
     }),
     searchField: "search",
     baseFilters: clientScope,
@@ -169,6 +171,7 @@ export function useLinkClient({
               ? `${name} — atendido por ${current.sellerName}`
               : name,
             value: node.client!.id,
+            searchText: clientOptionSearchText(node.client!),
           };
         }),
     [clientNodes, assignmentByClient]

@@ -3,7 +3,7 @@
 import { SelectOption } from "@/components/Input";
 import { useAsyncSelectOptions } from "@/hooks/useAsyncSelectOptions";
 import { useCompleteList } from "@/hooks/useCompleteList";
-import { clientDisplayName } from "@/utils/client";
+import { clientDisplayName, clientOptionSearchText } from "@/utils/client";
 import { useQuery } from "@apollo/client/react";
 import { useMemo } from "react";
 
@@ -26,9 +26,11 @@ const RECENT_ORDERS = 20;
 const getWallet = (d: WalletClientsQueryResponse) => d.sellerClientFactoryList;
 const getCompanyClients = (d: CompanyClientsQueryResponse) =>
   d.schedule_clients;
-const toCompanyOption = (node: CompanyClientNode): SelectOption => ({
+const toClientOption = (node: CompanyClientNode): SelectOption => ({
   value: node.client?.id ?? node.id,
   label: clientDisplayName(node.client),
+  // Acha também pelo nome fantasia e pelo CNPJ, que o rótulo não mostra.
+  searchText: node.client ? clientOptionSearchText(node.client) : undefined,
 });
 
 interface Params {
@@ -80,21 +82,22 @@ export function useClientChoices({
   >({
     query: COMPANY_CLIENTS_FOR_VISIT_QUERY,
     getConnection: getCompanyClients,
-    toOption: toCompanyOption,
+    toOption: toClientOption,
     searchField: "search",
     skip: !listClients || Boolean(sellerId),
   });
 
   const walletOptions = useMemo<SelectOption[]>(() => {
-    const seen = new Map<string, string>();
+    // Um cliente aparece uma vez, mesmo vinculado a várias fábricas.
+    const seen = new Map<string, SelectOption>();
     (wallet.data?.sellerClientFactoryList?.edges ?? []).forEach(({ node }) => {
       if (node.client && !seen.has(node.client.id)) {
-        seen.set(node.client.id, clientDisplayName(node.client));
+        seen.set(node.client.id, toClientOption(node));
       }
     });
-    return [...seen.entries()]
-      .map(([value, label]) => ({ value, label }))
-      .sort((a, b) => a.label.localeCompare(b.label, "pt-BR"));
+    return [...seen.values()].sort((a, b) =>
+      a.label.localeCompare(b.label, "pt-BR")
+    );
   }, [wallet.data]);
 
   const ordersQuery = useQuery<ClientOrdersQueryResponse>(

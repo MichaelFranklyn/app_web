@@ -8,6 +8,8 @@ export interface BillingRow {
   sequence: number;
   clientId: string;
   clientName: string;
+  clientRazaoSocial?: string | null;
+  clientCnpj?: string | null;
   factoryId: string;
   factoryName: string;
   sellerId: string;

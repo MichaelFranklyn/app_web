@@ -17,6 +17,8 @@ export const BILLING_REPORT_QUERY = gql`
         sequence
         clientId
         clientName
+        clientRazaoSocial
+        clientCnpj
         factoryId
         factoryName
         sellerId

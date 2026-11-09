@@ -22,6 +22,8 @@ export const CLIENT_ABC_CURVE_QUERY = gql`
     ) {
       clientId
       clientName
+      clientRazaoSocial
+      clientCnpj
       rank
       totalAmount
       orderCount

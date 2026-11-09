@@ -41,7 +41,7 @@ export function useClientFilters({
         type: "text",
         key: "search",
         label: "Buscar",
-        placeholder: "Razão social ou nome fantasia",
+        placeholder: "Nome, razão social ou CNPJ",
       },
       {
         type: "select",

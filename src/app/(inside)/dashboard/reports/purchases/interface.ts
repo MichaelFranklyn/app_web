@@ -13,6 +13,8 @@ export interface PurchaseRow {
   /** Chave da rota /clients/[id] — é o vínculo na carteira, não o cliente global. */
   companyClientId: string;
   clientName: string;
+  clientRazaoSocial?: string | null;
+  clientCnpj?: string | null;
   city: string | null;
   state: string | null;
   factoryId: string;

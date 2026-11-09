@@ -6,6 +6,7 @@ import { useMemo } from "react";
 
 import { optionsFromRows } from "../rowOptions";
 import { PositivationRow } from "./interface";
+import { matchesClientSearch } from "@/utils/client";
 
 /**
  * O que cada campo do painel recorta na matriz.
@@ -20,8 +21,16 @@ export const POSITIVATION_FILTER_FIELDS: Record<
 > = {
   search: {
     type: "text",
+    // Nome, razão social ou CNPJ (com ou sem máscara), como na busca do servidor.
     match: (row, value) =>
-      row.clientName.toLowerCase().includes(value.toLowerCase()),
+      matchesClientSearch(
+        {
+          name: row.clientName,
+          razaoSocial: row.clientRazaoSocial,
+          cnpj: row.clientCnpj,
+        },
+        value
+      ),
   },
   sellerId: {
     type: "select",
@@ -59,7 +68,7 @@ export const usePositivationFilters = (
         type: "text",
         key: "search",
         label: "Cliente",
-        placeholder: "Nome do cliente",
+        placeholder: "Nome, razão social ou CNPJ",
       },
       {
         type: "select",

@@ -62,7 +62,7 @@ export function PriorityToolbar({
       <div className="desktop:w-[280px] w-full">
         <InputSearch
           size="sm"
-          placeholder="Ex: nome do cliente, bairro ou cidade"
+          placeholder="Ex: nome, CNPJ, bairro ou cidade"
           value={search}
           onChange={(event) => onSearchChange(event.target.value)}
           aria-label="Buscar cliente"

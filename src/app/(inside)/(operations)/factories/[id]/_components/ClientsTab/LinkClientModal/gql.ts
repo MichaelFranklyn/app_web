@@ -25,6 +25,7 @@ export const COMPANY_CLIENTS_FOR_LINK_QUERY = gql`
             id
             razaoSocial
             nomeFantasia
+            cnpj
           }
         }
       }

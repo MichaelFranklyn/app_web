@@ -48,7 +48,7 @@ export const useCommissionsFilters = ({
         type: "text",
         key: "search",
         label: "Cliente ou nota",
-        placeholder: "Nome do cliente ou número da nota",
+        placeholder: "Cliente (nome ou CNPJ) ou número da nota",
       },
       {
         type: "select",

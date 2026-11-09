@@ -28,6 +28,8 @@ export interface PositivationRow {
   /** Id na carteira — a chave da rota /clients/[id]. Nulo se o vínculo saiu. */
   companyClientId: string | null;
   clientName: string;
+  clientRazaoSocial?: string | null;
+  clientCnpj?: string | null;
   sellerId: string;
   sellerName: string;
   linkedFactories: number;

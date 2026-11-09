@@ -29,7 +29,7 @@ describe("TABLE_FIELDS", () => {
   it("busca por razão social e nome fantasia com like (o backend combina com OR)", () => {
     expect(buildQueryFilters(TABLE_FIELDS, { search: "padaria" })).toEqual([
       {
-        field: "razao_social,nome_fantasia",
+        field: "search",
         operator: "like",
         value: "padaria",
       },

@@ -60,6 +60,7 @@ export const WALLET_CLIENTS_FOR_VISIT_QUERY = gql`
             id
             razaoSocial
             nomeFantasia
+            cnpj
           }
         }
       }
@@ -82,6 +83,7 @@ export const COMPANY_CLIENTS_FOR_VISIT_QUERY = gql`
             id
             razaoSocial
             nomeFantasia
+            cnpj
           }
         }
       }

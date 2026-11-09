@@ -29,6 +29,8 @@ export const POSITIVATION_REPORT_QUERY = gql`
         clientId
         companyClientId
         clientName
+        clientRazaoSocial
+        clientCnpj
         sellerId
         sellerName
         linkedFactories

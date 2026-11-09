@@ -6,6 +6,7 @@ import { useMemo } from "react";
 
 import { AbcRow } from "./interface";
 import { ABC_CLASS_OPTIONS } from "./utils";
+import { matchesClientSearch } from "@/utils/client";
 
 /**
  * O que cada campo do painel recorta na curva. A chave é a mesma do
@@ -18,8 +19,16 @@ import { ABC_CLASS_OPTIONS } from "./utils";
 export const ABC_FILTER_FIELDS: Record<string, LocalField<AbcRow>> = {
   search: {
     type: "text",
+    // Nome, razão social ou CNPJ (com ou sem máscara), como na busca do servidor.
     match: (row, value) =>
-      row.clientName.toLowerCase().includes(value.toLowerCase()),
+      matchesClientSearch(
+        {
+          name: row.clientName,
+          razaoSocial: row.clientRazaoSocial,
+          cnpj: row.clientCnpj,
+        },
+        value
+      ),
   },
   abcClass: {
     type: "select",
@@ -35,7 +44,7 @@ export const useAbcFilters = (): FilterField[] =>
         type: "text",
         key: "search",
         label: "Cliente",
-        placeholder: "Nome do cliente",
+        placeholder: "Nome, razão social ou CNPJ",
       },
       {
         type: "select",

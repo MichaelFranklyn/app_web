@@ -6,6 +6,7 @@ import { useUserData } from "@/hooks/useUserData";
 import { useAsyncAction } from "@/hooks/useAsyncAction";
 import { useInvalidateQueriesClient } from "@/hooks/useInvalidateQueries";
 import { clientName, factoryName } from "@/utils/company";
+import { clientOptionSearchText } from "@/utils/client";
 import { extractSelectValue } from "@/utils/form";
 import { useAsyncSelectOptions } from "@/hooks/useAsyncSelectOptions";
 import { useCompleteList } from "@/hooks/useCompleteList";
@@ -46,6 +47,7 @@ const getCompanyClients = (d: CompanyClientsData) => d.companyClients;
 const toClientOption = (node: WalletClientNode) => ({
   value: node.client?.id ?? node.id,
   label: clientName(node.client),
+  searchText: node.client ? clientOptionSearchText(node.client) : undefined,
 });
 
 export function useAddWalletClient({
@@ -176,6 +178,7 @@ export function useAddWalletClient({
         .map((node) => ({
           value: node.client!.id,
           label: clientName(node.client),
+          searchText: clientOptionSearchText(node.client!),
         })),
     [clientNodes, linkedClientIds]
   );

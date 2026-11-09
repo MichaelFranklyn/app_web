@@ -1,4 +1,5 @@
 import { FormBuilderRef, FormStepSchema } from "@/components/FormBuilder";
+import { clientOptionSearchText } from "@/utils/client";
 import { useAsyncAction } from "@/hooks/useAsyncAction";
 import { useQueryErrorToast } from "@/hooks/useQueryErrorToast";
 import { clientName } from "@/utils/company";
@@ -32,6 +33,7 @@ interface WalletData {
           id: string;
           razaoSocial: string;
           nomeFantasia: string | null;
+          cnpj?: string | null;
         } | null;
       };
     }[];
@@ -84,7 +86,13 @@ export function useFixedScheduleForm({
         if (!node.client || taken.has(node.clientId) || seen.has(node.clientId))
           return [];
         seen.add(node.clientId);
-        return [{ value: node.clientId, label: clientName(node.client) }];
+        return [
+          {
+            value: node.clientId,
+            label: clientName(node.client),
+            searchText: clientOptionSearchText(node.client),
+          },
+        ];
       })
       .sort((a, b) => a.label.localeCompare(b.label, "pt-BR"));
   }, [data, takenClientIds]);

@@ -25,6 +25,13 @@ export interface PriorityScheduledTouch {
 export interface PriorityClient {
   clientId: string;
   name: string;
+  /** Razão social, fantasia e CNPJ: a busca acha o cliente por eles também. */
+  client?: {
+    id: string;
+    razaoSocial: string;
+    nomeFantasia: string | null;
+    cnpj: string | null;
+  } | null;
   neighborhood: string | null;
   regionKey: string;
   cityLabel: string;
