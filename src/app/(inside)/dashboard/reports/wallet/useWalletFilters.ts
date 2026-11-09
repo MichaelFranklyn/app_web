@@ -7,6 +7,7 @@ import { useMemo } from "react";
 import { optionsFromRows } from "../rowOptions";
 import { SITUATION_LABEL, SITUATION_ORDER } from "../situation";
 import { WalletRow } from "./interface";
+import { matchesClientSearch } from "@/utils/client";
 
 /**
  * O que cada campo do painel recorta na carteira. A chave é a mesma do
@@ -18,8 +19,16 @@ import { WalletRow } from "./interface";
 export const WALLET_FILTER_FIELDS: Record<string, LocalField<WalletRow>> = {
   search: {
     type: "text",
+    // Nome, razão social ou CNPJ (com ou sem máscara), como na busca do servidor.
     match: (row, value) =>
-      row.clientName.toLowerCase().includes(value.toLowerCase()),
+      matchesClientSearch(
+        {
+          name: row.clientName,
+          razaoSocial: row.clientRazaoSocial,
+          cnpj: row.clientCnpj,
+        },
+        value
+      ),
   },
   situation: {
     type: "select",
@@ -39,7 +48,7 @@ export const useWalletFilters = (rows: WalletRow[]): FilterField[] =>
         type: "text",
         key: "search",
         label: "Cliente",
-        placeholder: "Nome do cliente",
+        placeholder: "Nome, razão social ou CNPJ",
       },
       {
         type: "select",

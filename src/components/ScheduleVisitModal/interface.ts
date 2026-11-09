@@ -25,6 +25,7 @@ interface ClientNameNode {
     id: string;
     razaoSocial: string;
     nomeFantasia: string | null;
+    cnpj: string | null;
   } | null;
 }
 

@@ -5,6 +5,7 @@ export interface CompanyClientNode {
     id: string;
     razaoSocial: string;
     nomeFantasia: string | null;
+    cnpj?: string | null;
   } | null;
 }
 

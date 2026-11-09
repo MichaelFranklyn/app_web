@@ -13,6 +13,8 @@ export const WALLET_STATUS_REPORT_QUERY = gql`
         clientId
         companyClientId
         clientName
+        clientRazaoSocial
+        clientCnpj
         city
         state
         situation

@@ -6,6 +6,8 @@ export interface WalletRow {
   /** Chave da rota /clients/[id] — é o vínculo, não o cliente global. */
   companyClientId: string | null;
   clientName: string;
+  clientRazaoSocial?: string | null;
+  clientCnpj?: string | null;
   city: string | null;
   state: string | null;
   situation: ClientSituation;

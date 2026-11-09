@@ -7,6 +7,7 @@ import { useMemo } from "react";
 
 import { SITUATION_LABEL, SITUATION_ORDER } from "../situation";
 import { PurchaseRow } from "./interface";
+import { matchesClientSearch } from "@/utils/client";
 
 /**
  * O que cada campo do painel recorta na lista.
@@ -18,8 +19,16 @@ import { PurchaseRow } from "./interface";
 export const PURCHASE_FILTER_FIELDS: Record<string, LocalField<PurchaseRow>> = {
   search: {
     type: "text",
+    // Nome, razão social ou CNPJ (com ou sem máscara), como na busca do servidor.
     match: (row, value) =>
-      row.clientName.toLowerCase().includes(value.toLowerCase()),
+      matchesClientSearch(
+        {
+          name: row.clientName,
+          razaoSocial: row.clientRazaoSocial,
+          cnpj: row.clientCnpj,
+        },
+        value
+      ),
   },
   factoryId: {
     type: "select",
@@ -78,7 +87,7 @@ export const usePurchaseFilters = (factories: SelectOption[]): FilterField[] =>
         type: "text",
         key: "search",
         label: "Cliente",
-        placeholder: "Razão social ou nome fantasia",
+        placeholder: "Nome, razão social ou CNPJ",
       },
       {
         type: "select",

@@ -15,6 +15,8 @@ export const CLIENT_FACTORY_PURCHASES_QUERY = gql`
         clientId
         companyClientId
         clientName
+        clientRazaoSocial
+        clientCnpj
         city
         state
         factoryId

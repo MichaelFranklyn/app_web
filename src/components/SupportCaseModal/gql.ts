@@ -11,6 +11,7 @@ export const SUPPORT_CLIENT_OPTIONS_QUERY = gql`
             id
             razaoSocial
             nomeFantasia
+            cnpj
           }
         }
       }

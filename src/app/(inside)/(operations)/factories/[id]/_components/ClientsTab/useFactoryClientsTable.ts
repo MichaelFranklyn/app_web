@@ -146,7 +146,7 @@ export function useFactoryClientsTable(
         type: "text",
         key: "search",
         label: "Cliente",
-        placeholder: "Razão social ou nome fantasia",
+        placeholder: "Nome, razão social ou CNPJ",
       },
       {
         type: "select",

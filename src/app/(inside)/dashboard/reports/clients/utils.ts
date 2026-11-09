@@ -26,7 +26,7 @@ export const buildClientsFilters = (sellerId: string | null): QueryFilter[] =>
  */
 export const CLIENTS_REPORT_TABLE_FIELDS: Record<string, FieldConfig> = {
   // Colunas separadas por vírgula: o backend combina o `like` de cada uma com OR.
-  search: { type: "text", queryField: "razao_social,nome_fantasia" },
+  search: { type: "text", queryField: "search" },
   state: { type: "select", queryField: "address_state" },
   // Vai como "true"/"false"; o `parse_value` do backend converte em booleano.
   needsAttention: { type: "select", queryField: "is_needs_attention" },

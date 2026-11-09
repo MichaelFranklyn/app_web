@@ -1,7 +1,7 @@
 import { maskCNPJ } from "@/utils/format/masks";
 import type { OrderSheetRead } from "@/utils/orderSheet/read";
 
-import { clientOptionLabel } from "../../../../_shared/clientOption";
+import { clientOptionLabel } from "@/utils/client";
 import type { CreateOrderInput } from "../../../_shared/orderCreate";
 
 /**

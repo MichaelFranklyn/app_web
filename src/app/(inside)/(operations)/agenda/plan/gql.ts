@@ -18,6 +18,12 @@ export const PRIORITY_CLIENTS_QUERY = gql`
         clientId
         name
         neighborhood
+        client {
+          id
+          razaoSocial
+          nomeFantasia
+          cnpj
+        }
         regionKey
         cityLabel
         latitude

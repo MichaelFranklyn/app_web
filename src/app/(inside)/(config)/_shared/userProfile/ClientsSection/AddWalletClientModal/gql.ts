@@ -48,6 +48,7 @@ export const COMPANY_CLIENTS_QUERY = gql`
             id
             razaoSocial
             nomeFantasia
+            cnpj
           }
         }
       }
@@ -129,6 +130,7 @@ export interface WalletClientNode {
     id: string;
     razaoSocial: string;
     nomeFantasia: string | null;
+    cnpj?: string | null;
   } | null;
 }
 

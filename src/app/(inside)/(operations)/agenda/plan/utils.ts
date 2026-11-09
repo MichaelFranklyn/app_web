@@ -1,4 +1,5 @@
 import type { BadgeColor } from "@/components/Badges/Root/interface";
+import { matchesClientSearch } from "@/utils/client";
 import { factoryName } from "@/utils/company";
 import { getCurrentWeekMondayIso } from "@/utils/format/date";
 import { explainScore, ScoreReason } from "@/utils/score";
@@ -86,9 +87,21 @@ const isVisible = (
   const term = normalize(search);
   if (term) {
     const text = normalize(
-      `${client.name} ${client.neighborhood ?? ""} ${client.cityLabel}`
+      [
+        client.name,
+        client.client?.razaoSocial,
+        client.client?.nomeFantasia,
+        client.neighborhood,
+        client.cityLabel,
+      ]
+        .filter(Boolean)
+        .join(" ")
     );
-    return text.includes(term);
+    // O CNPJ casa pelos dígitos, com ou sem máscara.
+    return (
+      text.includes(term) ||
+      matchesClientSearch({ cnpj: client.client?.cnpj }, search)
+    );
   }
   // O que já foi escolhido nunca some da tela ao trocar o filtro.
   if (scope === "all" || selection[client.clientId]) return true;

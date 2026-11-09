@@ -76,6 +76,26 @@ describe("groupByRegion", () => {
       "c",
     ]);
   });
+
+  it("a busca acha o cliente pela razão social e pelo CNPJ com ou sem máscara", () => {
+    const comDoc = client({
+      clientId: "e",
+      name: "Mercado Bom Preço",
+      client: {
+        id: "e",
+        razaoSocial: "Bom Preço Comércio LTDA",
+        nomeFantasia: "Mercado Bom Preço",
+        cnpj: "12345678000190",
+      },
+    });
+    const ids = (term: string) =>
+      groupByRegion([comDoc, ssa1], "all", term, {}).flatMap((g) =>
+        g.clients.map((c) => c.clientId)
+      );
+    expect(ids("comercio ltda")).toEqual(["e"]);
+    expect(ids("12.345.678/0001-90")).toEqual(["e"]);
+    expect(ids("12345678")).toEqual(["e"]);
+  });
 });
 
 describe("buildPlanWeekInput", () => {

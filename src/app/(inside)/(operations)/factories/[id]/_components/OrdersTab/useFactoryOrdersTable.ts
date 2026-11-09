@@ -8,10 +8,7 @@ import { useCompleteList } from "@/hooks/useCompleteList";
 import { useTableData } from "@/hooks/useTableData";
 import { ORDER_STATUS_OPTIONS } from "@/app/(inside)/_shared/orderStatus";
 import { useCallback, useMemo } from "react";
-import {
-  clientOptionLabel,
-  clientOptionSearchText,
-} from "../../../../_shared/clientOption";
+import { clientOptionLabel, clientOptionSearchText } from "@/utils/client";
 import {
   FACTORY_ORDERS_QUERY,
   FACTORY_ORDER_CLIENTS_QUERY,
@@ -122,7 +119,7 @@ export function useFactoryOrdersTable(factoryId: string) {
       }),
       []
     ),
-    searchField: "razao_social,nome_fantasia",
+    searchField: "search",
   });
 
   // Vendedores com acesso a ESTA fábrica: lista curta, vem inteira.

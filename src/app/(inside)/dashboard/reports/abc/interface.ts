@@ -5,6 +5,8 @@ export type AbcClass = "A" | "B" | "C";
 export interface AbcRow {
   clientId: string;
   clientName: string;
+  clientRazaoSocial?: string | null;
+  clientCnpj?: string | null;
   /** Posição na curva (1 = maior faturamento do período). */
   rank: number;
   totalAmount: string;

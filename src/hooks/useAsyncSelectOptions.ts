@@ -21,7 +21,7 @@ interface UseAsyncSelectOptionsArgs<TData, TNode> {
   };
   /** Converte um nó em opção do select. */
   toOption: (node: TNode) => SelectOption;
-  /** Campo do backend para o filtro `like` (ex.: "name", "razao_social,nome_fantasia"). */
+  /** Campo do backend para o filtro `like` (ex.: "name"; nas listas de cliente, "search" busca nome e CNPJ). */
   searchField: string;
   /**
    * Filtros que valem sempre, somados ao `like` da busca — o escopo do catálogo

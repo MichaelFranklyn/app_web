@@ -144,7 +144,7 @@ export const commissionFilterFields = ({
     type: "text",
     key: "search",
     label: "Cliente, pedido ou nota",
-    placeholder: "Nome do cliente, código do pedido ou número da nota",
+    placeholder: "Cliente (nome ou CNPJ), código do pedido ou nota",
   },
   {
     type: "select",
