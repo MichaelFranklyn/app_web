@@ -32,7 +32,7 @@ export const usersFlow: FlowDefinition = {
       element: '[data-tour="users-table"]',
       title: "Uma lista só",
       description:
-        'Quem vende em campo aparece com o selo "Vende em campo" e o resumo de fábricas e carteira. Clique na linha para abrir o perfil completo — é lá que se define quais fábricas a pessoa atende e quanto ela ganha em cada uma.',
+        'Quem vende em campo aparece com o resumo de fábricas e carteira (e, se for proprietário ou administrador que também vende, com o selo "Vende em campo"). Clique na linha para abrir o perfil completo — é lá que se define quais fábricas a pessoa atende e quanto ela ganha em cada uma.',
       side: "top",
       align: "start",
     },

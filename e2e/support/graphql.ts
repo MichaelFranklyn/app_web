@@ -47,6 +47,17 @@ const UPLOAD_DEFAULTS: Record<string, Handler> = {
   }),
 };
 
+/**
+ * Respostas-padrão da casca (topbar): toda tela interna pergunta os
+ * escritórios da pessoa. Lista vazia = só o selo da empresa, como antes do
+ * multi-escritório. O spec que testa o seletor sobrescreve pelo handler.
+ */
+const SHELL_DEFAULTS: Record<string, Handler> = {
+  MyCompanies: () => ({
+    myCompanies: { status: true, message: "OK", data: [] },
+  }),
+};
+
 export async function mockGraphql(
   page: Page,
   handlers: Record<string, Handler>,
@@ -73,7 +84,8 @@ export async function mockGraphql(
     list.push(variables);
     recorded.set(op, list);
 
-    const handler = handlers[op] ?? UPLOAD_DEFAULTS[op] ?? fallback;
+    const handler =
+      handlers[op] ?? UPLOAD_DEFAULTS[op] ?? SHELL_DEFAULTS[op] ?? fallback;
     const data = handler(variables);
 
     await route.fulfill({

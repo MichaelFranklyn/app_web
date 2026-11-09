@@ -30,6 +30,7 @@ export function UserDetailActions({ user, onRefetch }: Props) {
     email: user.email,
     role: user.role,
     isActive: user.isActive,
+    isInvitationPending: user.isInvitationPending,
     phone: user.phone,
     createdAt: user.createdAt,
     seller: user.seller

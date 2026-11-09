@@ -7,6 +7,9 @@ export interface UserData {
   role: UserRole;
   /** Perfil de vendedor vinculado, se houver — owner/admin também podem vender. */
   sellerId?: string | null;
+  /** Escritório desta sessão. A mesma pessoa pode trabalhar em vários (como
+   *  projetos no Google Cloud); trocar de escritório troca a sessão inteira. */
+  companyId?: string | null;
 }
 
 export interface LoginResponse {
@@ -18,6 +21,7 @@ export interface LoginResponse {
       | ({
           accessToken: string;
           refreshToken: string;
+          isCompanyChoicePending: boolean;
         } & UserData)
       | null;
   };

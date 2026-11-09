@@ -16,6 +16,7 @@ export const USER_DETAIL_QUERY = gql`
         email
         role
         isActive
+        isInvitationPending
         phone
         cpf
         birthDate

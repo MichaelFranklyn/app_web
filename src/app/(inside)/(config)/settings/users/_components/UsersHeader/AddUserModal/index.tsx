@@ -48,7 +48,13 @@ export function AddUserModal({
         return res.data.createUser.data;
       },
       {
-        successMessage: "Usuário adicionado com sucesso",
+        // Email que já trabalha em outro escritório vira CONVITE: o gestor
+        // precisa saber que a pessoa ainda não entrou — ela aceita no próximo
+        // login (e recebe um aviso no sino do outro escritório).
+        successMessage: (newUser) =>
+          newUser.isInvitationPending
+            ? `${newUser.name} já trabalha em outro escritório. Enviamos um convite: ela entra aqui depois de aceitar, no próximo login.`
+            : "Usuário adicionado com sucesso",
         onSuccess: async (newUser) => {
           setOpen(false);
           formRef.current?.resetForm();

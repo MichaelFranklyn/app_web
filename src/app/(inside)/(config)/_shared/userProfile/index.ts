@@ -13,6 +13,8 @@ export type {
   UserDetail,
   UserDetailQueryResponse,
 } from "./interface";
+export { userAccessStatus } from "./accessStatus";
+export type { AccessStatus } from "./accessStatus";
 export { ROLE_COLOR, ROLE_LABEL } from "./roles";
 export type { UserRole } from "./roles";
 export { formatAddressLine, formatTime, formatWorkDays } from "./utils";

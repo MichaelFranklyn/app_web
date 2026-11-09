@@ -14,7 +14,11 @@ export interface SessionBody {
     | "stopImpersonation"
     // Troca da própria senha: roda com o token atual e grava o token novo
     // (os outros aparelhos caem). Ver `changeMyPassword` na rota.
-    | "changeMyPassword";
+    | "changeMyPassword"
+    // Multi-escritório: rodam com o token atual e gravam o token do outro
+    // escritório. Ver `switchOffice` na rota.
+    | "switchCompany"
+    | "acceptInvitation";
   // `object` (não Record) para aceitar tanto literais quanto os inputs tipados
   // (ex.: RegisterCompanyInput) sem cast; é só payload de transporte serializado.
   // Ausente em `stopImpersonation`, que não recebe nada.
@@ -26,6 +30,9 @@ interface SessionResult {
   status: boolean;
   message?: string;
   userData?: Record<string, unknown>;
+  /** Login de quem tem 2+ escritórios e nenhum usado por último: a tela de
+   *  escolha vem antes do sistema. */
+  isCompanyChoicePending?: boolean;
 }
 
 /**

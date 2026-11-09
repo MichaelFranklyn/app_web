@@ -32,6 +32,9 @@ export interface User {
   email: string;
   role: string;
   isActive: boolean;
+  /** Cadastro virou convite: o email já trabalha em outro escritório e
+   *  ainda não aceitou entrar neste. */
+  isInvitationPending: boolean;
   phone: string | null;
   createdAt: string;
   seller: UserSellerProfile | null;

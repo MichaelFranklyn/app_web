@@ -14,6 +14,8 @@ export interface CreateUserResponse {
       name: string;
       email: string;
       role: string;
+      /** O email já trabalha em outro escritório: o cadastro virou convite. */
+      isInvitationPending: boolean;
       createdAt: string;
     } | null;
   };

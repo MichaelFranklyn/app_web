@@ -8,6 +8,7 @@ const profile: UserDetail = {
   email: "maria@empresa.com.br",
   role: "SELLER",
   isActive: true,
+  isInvitationPending: false,
   phone: "(71) 99999-0000",
   cpf: "11144477735",
   birthDate: "1958-03-12",

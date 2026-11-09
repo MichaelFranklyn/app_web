@@ -8,12 +8,12 @@ import { Topbar } from "@/components/Topbar";
 import { cn } from "@/lib/utils";
 import { FlowTourProvider } from "@/services/flowTour";
 import Image from "next/image";
-import { CompanyBadge } from "./_components/CompanyBadge";
 import { DevRoleSwitch } from "./_components/DevRoleSwitch";
 import { ImpersonationBanner } from "./_components/ImpersonationBanner";
 import { NotificationCenter } from "./_components/NotificationCenter";
 import { OfflineBanner } from "./_components/OfflineBanner";
 import { OfflineSync } from "./_components/OfflineSync";
+import { OfficeSwitcher } from "./_components/OfficeSwitcher";
 import { UserMenu } from "./_components/UserMenu";
 import { useInsideLayout } from "./useInsideLayout";
 
@@ -194,8 +194,9 @@ export default function InsideShell({
               <AppFrame.MenuButton onClick={() => setDrawerOpen(true)} />
               {/* Quem está logado, não onde está: o título da página já aparece
                   logo abaixo, no header, e repetir o rótulo aqui era ler a mesma
-                  palavra duas vezes. */}
-              <CompanyBadge />
+                  palavra duas vezes. Quem trabalha em mais de um escritório
+                  troca por aqui. */}
+              <OfficeSwitcher />
             </Topbar.Breadcrumb>
 
             <Topbar.Actions>

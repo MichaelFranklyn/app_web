@@ -14,6 +14,8 @@ export const LOGIN_MUTATION = gql`
         companyName
         role
         sellerId
+        companyId
+        isCompanyChoicePending
       }
     }
   }

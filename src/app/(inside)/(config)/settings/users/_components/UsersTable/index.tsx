@@ -12,6 +12,7 @@ import { Users } from "lucide-react";
 import { USER_COLUMN_HELP } from "../../help";
 import { User } from "../../interface";
 import { ROLE_COLOR, ROLE_LABEL, UserRole } from "../../utils";
+import { userAccessStatus } from "../../../../_shared/userProfile";
 import { fieldSummary } from "./utils";
 import { UserRowActions } from "./UserRowActions";
 
@@ -116,6 +117,7 @@ export function UsersTable({
             items.map((node) => {
               const role = node.role as UserRole;
               const summary = fieldSummary(node);
+              const status = userAccessStatus(node);
 
               return (
                 // A linha abre o perfil completo (dados, e — quando a pessoa
@@ -155,12 +157,11 @@ export function UsersTable({
 
                   <Table.Cell flex className="justify-end">
                     <Badge.Root
-                      color={node.isActive ? "green" : "neutral"}
+                      color={status.color}
                       appearance="tinted"
+                      title={status.help}
                     >
-                      <Badge.Text>
-                        {node.isActive ? "Ativo" : "Inativo"}
-                      </Badge.Text>
+                      <Badge.Text>{status.label}</Badge.Text>
                     </Badge.Root>
 
                     <Badge.Root
@@ -170,8 +171,14 @@ export function UsersTable({
                       <Badge.Text>{ROLE_LABEL[role] ?? node.role}</Badge.Text>
                     </Badge.Root>
 
-                    {node.seller && (
-                      <Badge.Root color="cyan" appearance="tinted">
+                    {/* Só para o GESTOR que também vende: para o vendedor, o
+                        papel "Vendedor" já diz isso, e repetir confundia. */}
+                    {node.seller && role !== "SELLER" && (
+                      <Badge.Root
+                        color="cyan"
+                        appearance="tinted"
+                        title="Além de gerir o escritório, esta pessoa também vende: tem rotina, fábricas e carteira de clientes."
+                      >
                         <Badge.Text>Vende em campo</Badge.Text>
                       </Badge.Root>
                     )}
