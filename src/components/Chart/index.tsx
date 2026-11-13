@@ -11,6 +11,7 @@ import {
 import * as echarts from "echarts/core";
 import type { EChartsCoreOption } from "echarts/core";
 import { CanvasRenderer } from "echarts/renderers";
+import { cn } from "@/lib/utils";
 
 // Registra só o necessário (tree-shaking): barras, linhas, rosca, grid, tooltip,
 // legenda.
@@ -41,6 +42,11 @@ interface ChartProps {
   className?: string;
   /** Recebe a instância ECharts quando pronta (ex.: para exportar imagem). */
   onInit?: (instance: ChartInstance) => void;
+  /**
+   * Esmaece o gráfico enquanto os dados novos chegam (troca de filtro): ele
+   * fica no lugar em vez de sumir — o flash de vazio-e-volta é lido como erro.
+   */
+  dimmed?: boolean;
 }
 
 /**
@@ -53,6 +59,7 @@ export default function Chart({
   height = 300,
   className,
   onInit,
+  dimmed = false,
 }: ChartProps) {
   const containerRef = useRef<HTMLDivElement>(null);
   const chartRef = useRef<echarts.ECharts | null>(null);
@@ -82,5 +89,15 @@ export default function Chart({
     chartRef.current?.setOption(option, { notMerge: true });
   }, [option]);
 
-  return <div ref={containerRef} className={className} style={{ height }} />;
+  return (
+    <div
+      ref={containerRef}
+      className={cn(
+        "transition-opacity duration-200",
+        dimmed && "opacity-60",
+        className
+      )}
+      style={{ height }}
+    />
+  );
 }

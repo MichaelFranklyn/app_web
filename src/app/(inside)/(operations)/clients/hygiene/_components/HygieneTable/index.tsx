@@ -5,10 +5,10 @@ import { EmptyState } from "@/components/EmptyState";
 import { QueryError } from "@/components/QueryError";
 import { Table } from "@/components/Table";
 import { Tooltip } from "@/components/Tooltip";
+import { TextLink } from "@/components/TextLink";
 import { formatDate } from "@/utils/format/date";
 import { maskCNPJ } from "@/utils/format/masks";
 import { CheckCircle2 } from "lucide-react";
-import Link from "next/link";
 import { HygieneActions } from "../../../_shared/hygiene/HygieneActions";
 import { HYGIENE_REASON } from "../../help";
 import { HygieneItem } from "../../interface";
@@ -102,14 +102,15 @@ export function HygieneTable({
                 <Table.Row key={item.companyClient.id}>
                   <Table.Cell>
                     <div className="flex flex-col gap-2">
-                      <Link
+                      <TextLink
                         href={`/clients/${item.companyClient.id}/overview`}
-                        className="hover:text-(--amber)"
+                        tone="inherit"
+                        underline="none"
                       >
                         <Table.CellText variant="strong" className="block">
                           {main}
                         </Table.CellText>
-                      </Link>
+                      </TextLink>
                       {sub && (
                         <Table.CellText variant="dim" className="block">
                           {sub}

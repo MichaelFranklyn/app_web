@@ -3,7 +3,6 @@ import { Divider } from "@/components/Divider";
 import { Card } from "@/components/Card";
 
 import { Badge } from "@/components/Badges";
-import { EVENT_CHIP_STYLE } from "@/components/EventChip";
 import { InputCheckbox } from "@/components/Input/InputCheckbox";
 import { Title } from "@/components/Title";
 import { CloudUpload, TriangleAlert } from "lucide-react";
@@ -121,13 +120,11 @@ export function VisitCard({
         inset
         tone="muted"
         interactive
-        className={cn(
-          // A borda esquerda na cor do tipo (visita × contato), nas duas
-          // densidades.
-          EVENT_CHIP_STYLE[look.tone],
-          (isCompleted || look.isMuted) && "opacity-80",
-          isDraggable && "cursor-grab active:cursor-grabbing"
-        )}
+        // A borda esquerda na cor do tipo (visita × contato), nas duas
+        // densidades.
+        event={look.tone}
+        faded={isCompleted || look.isMuted}
+        className={cn(isDraggable && "cursor-grab active:cursor-grabbing")}
         draggable={isDraggable}
         onDragStart={
           isDraggable && dayDate

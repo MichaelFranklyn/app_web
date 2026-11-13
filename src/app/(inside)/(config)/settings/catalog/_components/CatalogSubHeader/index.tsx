@@ -27,7 +27,7 @@ export function CatalogSubHeader({ href, title, description }: Props) {
     g.links.some((l) => l.href === href)
   );
   const link = group?.links.find((l) => l.href === href);
-  const skin = link ? CATALOG_TONE[link.tone] : null;
+  const color = link ? CATALOG_TONE[link.tone] : null;
   const Icon = link?.icon;
 
   return (
@@ -41,19 +41,14 @@ export function CatalogSubHeader({ href, title, description }: Props) {
       <PanelHeader.Root>
         <PanelHeader.Top>
           <PanelHeader.Left>
-            {group && skin && (
-              <PanelHeader.Eyebrow className={skin.icon}>
+            {group && color && (
+              <PanelHeader.Eyebrow color={color}>
                 {group.title}
               </PanelHeader.Eyebrow>
             )}
             <div className="flex items-center gap-10">
-              {Icon && skin && (
-                <IconTile
-                  aria-hidden
-                  shape="square"
-                  size="sm"
-                  className={skin.chip}
-                >
+              {Icon && color && (
+                <IconTile aria-hidden shape="square" size="sm" color={color}>
                   <Icon />
                 </IconTile>
               )}

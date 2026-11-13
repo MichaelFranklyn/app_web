@@ -11,10 +11,19 @@ export interface ProgressBarProps extends React.HTMLAttributes<HTMLDivElement> {
    * a cor de uma série de gráfico (`CHART_PALETTE`), fora dos tons do DS.
    */
   fillColor?: string;
+  /**
+   * `pill` (padrão): cantos de 6px. `square`: cantos de 2px — numa barra que
+   * compara fatias, a cápsula come as pontas e a fatia pequena vira um grão
+   * afilado que não dá para comparar com as outras.
+   */
+  shape?: "pill" | "square";
 }
 
 export const Bar = React.forwardRef<HTMLDivElement, ProgressBarProps>(
-  ({ value, color = "amber", fillColor, className, ...props }, ref) => {
+  (
+    { value, color = "amber", fillColor, shape = "pill", className, ...props },
+    ref
+  ) => {
     const pct = Math.min(100, Math.max(0, value));
     return (
       <div
@@ -24,13 +33,14 @@ export const Bar = React.forwardRef<HTMLDivElement, ProgressBarProps>(
         aria-valuemin={0}
         aria-valuemax={100}
         className={cn(
-          "h-[6px] w-full overflow-hidden rounded-[6px] bg-(--bg3)",
+          "h-[6px] w-full overflow-hidden bg-(--bg3)",
+          shape === "square" ? "rounded-[2px]" : "rounded-[6px]",
           className
         )}
         {...props}
       >
         <div
-          className="h-full rounded-[6px] transition-all duration-500 ease-out"
+          className="h-full transition-all duration-500 ease-out"
           style={{
             width: `${pct}%`,
             background: fillColor ?? PROGRESS_COLOR_TOKENS[color],

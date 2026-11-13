@@ -113,11 +113,12 @@ export function FactoryLinksTable({
                     </Table.CellText>
                     {c.cadence?.isDivergent && c.cadence.divergenceMessage && (
                       <Tooltip content={c.cadence.divergenceMessage}>
-                        <span
-                          className="text-(--amber)"
-                          aria-label={c.cadence.divergenceMessage}
-                        >
-                          <TriangleAlert size={13} aria-hidden />
+                        <span aria-label={c.cadence.divergenceMessage}>
+                          <TriangleAlert
+                            size={13}
+                            className="text-(--amber)"
+                            aria-hidden
+                          />
                         </span>
                       </Tooltip>
                     )}

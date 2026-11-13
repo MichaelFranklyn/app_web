@@ -35,17 +35,37 @@ const Root = ({
   </div>
 );
 
+const Head = (props: React.HTMLAttributes<HTMLTableSectionElement>) => (
+  <thead {...props} />
+);
+
+const Body = (props: React.HTMLAttributes<HTMLTableSectionElement>) => (
+  <tbody {...props} />
+);
+
+const Row = (props: React.HTMLAttributes<HTMLTableRowElement>) => (
+  <tr {...props} />
+);
+
 interface HeadCellProps extends React.ThHTMLAttributes<HTMLTableCellElement> {
   /** A coluna que dá nome às linhas: fica presa à esquerda ao rolar. */
   sticky?: boolean;
+  /** Cabeçalho de uma coluna da escala: centrado sobre as células de calor. */
+  scale?: boolean;
 }
 
 /** Cabeçalho de coluna, ou o rótulo da linha (`scope="row"`). */
-const HeadCell = ({ sticky = false, className, ...props }: HeadCellProps) => (
+const HeadCell = ({
+  sticky = false,
+  scale = false,
+  className,
+  ...props
+}: HeadCellProps) => (
   <th
     className={cn(
       "pr-8 text-left font-normal",
       sticky && "sticky left-0 bg-(--bg2)",
+      scale && "min-w-[52px] pr-0 text-center",
       className
     )}
     {...props}
@@ -97,4 +117,13 @@ const Tile = ({ level, className, ...props }: TileProps) => (
   />
 );
 
-export const HeatGrid = { Root, HeadCell, Cell, HeatCell, Tile };
+export const HeatGrid = {
+  Root,
+  Head,
+  Body,
+  Row,
+  HeadCell,
+  Cell,
+  HeatCell,
+  Tile,
+};

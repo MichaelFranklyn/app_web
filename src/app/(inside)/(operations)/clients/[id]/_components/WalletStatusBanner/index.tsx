@@ -1,9 +1,9 @@
 "use client";
 
 import { Alert } from "@/components/Alert";
+import { TextLink } from "@/components/TextLink";
 import { formatDateDMY } from "@/utils/format/masks";
 import { ArrowRightLeft, Info, UserMinus } from "lucide-react";
-import Link from "next/link";
 import { walletStatusLabel } from "../../../_shared/hygiene/utils";
 import { WalletSituation } from "../../interface";
 import { formatCnpj } from "../../utils";
@@ -40,12 +40,14 @@ export function WalletStatusBanner({ situation }: Props) {
               ? ` (${formatCnpj(succeededBy.client.cnpj)})`
               : ""}
             . Aqui ficam os pedidos antigos, feitos no CNPJ anterior.{reason}{" "}
-            <Link
+            <TextLink
               href={`/clients/${succeededBy.id}/overview`}
-              className="font-(--weight-medium) underline"
+              tone="inherit"
+              underline="always"
+              emphasis
             >
               Abrir o cadastro do CNPJ novo
-            </Link>
+            </TextLink>
           </Alert.Description>
         </Alert.Content>
       </Alert.Root>
@@ -84,12 +86,14 @@ export function WalletStatusBanner({ situation }: Props) {
               ? ` (${formatCnpj(succeededFrom.client.cnpj)})`
               : ""}{" "}
             estão no{" "}
-            <Link
+            <TextLink
               href={`/clients/${succeededFrom.id}/overview`}
-              className="font-(--weight-medium) underline"
+              tone="inherit"
+              underline="always"
+              emphasis
             >
               cadastro antigo
-            </Link>
+            </TextLink>
             .
           </Alert.Description>
         </Alert.Content>

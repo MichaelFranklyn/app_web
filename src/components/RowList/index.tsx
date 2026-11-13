@@ -1,4 +1,5 @@
 import { cn } from "@/lib/utils";
+import NextLink from "next/link";
 import React from "react";
 
 const SPACING = {
@@ -19,17 +20,33 @@ const Root = ({ spacing = "sm", className, ...props }: RowListRootProps) => (
   <ul className={cn("flex flex-col", SPACING[spacing], className)} {...props} />
 );
 
-const Item = ({
-  className,
-  ...props
-}: React.LiHTMLAttributes<HTMLLIElement>) => (
+interface RowListItemProps extends React.LiHTMLAttributes<HTMLLIElement> {
+  /**
+   * Linha inteira clicável: o conteúdo vai dentro de um link que ocupa a
+   * linha e esmaece no hover. Sem `href`, a linha é só leitura.
+   */
+  href?: string;
+}
+
+const Item = ({ href, className, children, ...props }: RowListItemProps) => (
   <li
     className={cn(
       "border-b border-(--border) last:border-0 last:pb-0",
       className
     )}
     {...props}
-  />
+  >
+    {href ? (
+      <NextLink
+        href={href}
+        className="block transition-opacity hover:opacity-70"
+      >
+        {children}
+      </NextLink>
+    ) : (
+      children
+    )}
+  </li>
 );
 
 export const RowList = { Root, Item };

@@ -2,8 +2,14 @@ import { cn } from "@/lib/utils";
 import React from "react";
 
 interface EmphasisProps extends React.HTMLAttributes<HTMLElement> {
-  /** `strong`: cor do texto principal, para destacar dentro de texto apagado. */
-  tone?: "inherit" | "strong";
+  /**
+   * `strong`: cor do texto principal, para destacar dentro de texto apagado.
+   * `accent`: só a cor âmbar, herdando o peso — a palavra em destaque de um
+   * título ("Pendências **do dia**") ou o aviso dentro de uma linha cinza.
+   * `promo`: o laranja da promoção relâmpago, herdando o peso — a janela da
+   * promoção dentro da linha de vigência.
+   */
+  tone?: "inherit" | "strong" | "accent" | "promo";
 }
 
 /**
@@ -18,7 +24,11 @@ export const Emphasis = ({
 }: EmphasisProps) => (
   <strong
     className={cn(
-      "font-(--weight-bold)",
+      tone === "accent" || tone === "promo"
+        ? "font-[inherit]"
+        : "font-(--weight-bold)",
+      tone === "accent" && "text-(--amber)",
+      tone === "promo" && "text-(--orange)",
       tone === "strong" && "text-(--text)",
       className
     )}

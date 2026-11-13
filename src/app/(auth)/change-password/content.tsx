@@ -63,7 +63,7 @@ function ChangePasswordForm() {
   return (
     <RootPage.Root className="relative flex min-h-screen items-center justify-center overflow-hidden">
       <Responsive.Box base="relative flex w-full justify-center flex-col items-center max-w-110">
-        <Card.Root className="w-full shadow-(--shadow-md)">
+        <Card.Root elevated className="w-full">
           <Card.Header bg="bg3">
             <Card.Header.Eyebrow>Recuperação de acesso</Card.Header.Eyebrow>
             <Card.Header.Title>Redefinir senha</Card.Header.Title>
@@ -104,7 +104,7 @@ function ChangePasswordForm() {
                         <Dot.Root
                           color={met ? "green" : "neutral"}
                           pulse={false}
-                          className={met ? "opacity-100" : "opacity-40"}
+                          intensity={met ? "solid" : "faint"}
                         />
                         <Title
                           variant="caption"

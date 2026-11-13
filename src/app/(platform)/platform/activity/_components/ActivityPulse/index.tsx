@@ -111,10 +111,10 @@ export function ActivityPulse({ summary }: { summary: ActivitySummary }) {
                     {/* Muito uso com muitos erros é defeito, não adoção — por
                         isso as falhas vêm coladas no total. */}
                     {item.errors > 0 && (
-                      <span className="text-(--red)">
+                      <Title as="span" variant="micro" color="red">
                         {" "}
                         · {item.errors} com erro
-                      </span>
+                      </Title>
                     )}
                   </Title>
                 </li>

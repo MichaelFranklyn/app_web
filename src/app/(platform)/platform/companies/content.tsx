@@ -36,9 +36,7 @@ export default function TenantsContent({ initialData }: TenantsContentProps) {
       <PanelHeader.Root>
         <PanelHeader.Top>
           <PanelHeader.Left>
-            <PanelHeader.Eyebrow className="text-(--purple)">
-              Console
-            </PanelHeader.Eyebrow>
+            <PanelHeader.Eyebrow color="purple">Console</PanelHeader.Eyebrow>
             <PanelHeader.Title>Empresas</PanelHeader.Title>
             <PanelHeader.Description>
               Todas as empresas da plataforma, com o uso de cada uma nos últimos

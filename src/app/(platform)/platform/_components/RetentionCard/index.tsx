@@ -66,8 +66,8 @@ export function RetentionCard({ retention }: { retention: PlatformRetention }) {
                   `w-full` esticava a única célula por toda a linha e a grade
                   perdia a forma que a torna legível. */}
             <HeatGrid.Root>
-              <thead>
-                <tr>
+              <HeatGrid.Head>
+                <HeatGrid.Row>
                   <HeatGrid.HeadCell sticky>
                     <Title variant="micro" color="muted">
                       Turma
@@ -79,21 +79,18 @@ export function RetentionCard({ retention }: { retention: PlatformRetention }) {
                     </Title>
                   </HeatGrid.HeadCell>
                   {Array.from({ length: longest }, (_, index) => (
-                    <HeatGrid.HeadCell
-                      key={index}
-                      className="min-w-[52px] pr-0 text-center"
-                    >
+                    <HeatGrid.HeadCell key={index} scale>
                       <Title variant="micro" color="muted">
                         {index === 0 ? "Entrada" : `${index}º mês`}
                       </Title>
                     </HeatGrid.HeadCell>
                   ))}
-                </tr>
-              </thead>
+                </HeatGrid.Row>
+              </HeatGrid.Head>
 
-              <tbody>
+              <HeatGrid.Body>
                 {cohorts.map((cohort) => (
-                  <tr key={cohort.cohort}>
+                  <HeatGrid.Row key={cohort.cohort}>
                     <HeatGrid.HeadCell sticky scope="row">
                       <Title variant="body-sm" weight="semibold">
                         {cohortLabel(cohort.cohort)}
@@ -135,9 +132,9 @@ export function RetentionCard({ retention }: { retention: PlatformRetention }) {
                         </HeatGrid.HeatCell>
                       );
                     })}
-                  </tr>
+                  </HeatGrid.Row>
                 ))}
-              </tbody>
+              </HeatGrid.Body>
             </HeatGrid.Root>
 
             <Title variant="micro" color="muted">

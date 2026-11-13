@@ -9,7 +9,7 @@ import { ArrowRight, ChevronDown, ChevronUp } from "lucide-react";
 
 import { Opportunity } from "../../interface";
 import { cardCount, caseTotal, OPPORTUNITY_COPY } from "../../utils";
-import { SampleRow } from "./SampleRow";
+import { OpportunitySampleRow } from "./SampleRow";
 
 interface Props {
   opportunity: Opportunity;
@@ -74,7 +74,7 @@ export function OpportunityCard({
                 cliente aparece legitimamente em duas fábricas. */}
             {opportunity.samples.map((sample, index) => (
               <RowList.Item key={`${sample.id}-${index}`}>
-                <SampleRow sample={sample} />
+                <OpportunitySampleRow sample={sample} />
               </RowList.Item>
             ))}
           </RowList.Root>

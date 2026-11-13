@@ -88,7 +88,7 @@ export function OrderSummaryCard({ order }: Props) {
       label: "Total do pedido",
       help: SUMMARY_HELP.total,
       value: (
-        <Title variant="body" weight="bold" className="text-[15px]">
+        <Title variant="body-md" as="span" weight="bold">
           {formatMoney(grandTotal.toFixed(2))}
         </Title>
       ),

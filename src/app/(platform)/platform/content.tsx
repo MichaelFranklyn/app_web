@@ -47,9 +47,7 @@ export default function PlatformHomeContent(props: PlatformHomeProps) {
       <PanelHeader.Root>
         <PanelHeader.Top>
           <PanelHeader.Left>
-            <PanelHeader.Eyebrow className="text-(--purple)">
-              Console
-            </PanelHeader.Eyebrow>
+            <PanelHeader.Eyebrow color="purple">Console</PanelHeader.Eyebrow>
             <PanelHeader.Title>Visão geral</PanelHeader.Title>
             <PanelHeader.Description>
               Números de toda a plataforma nos últimos 30 dias.

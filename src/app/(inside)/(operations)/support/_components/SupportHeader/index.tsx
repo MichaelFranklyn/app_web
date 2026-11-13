@@ -1,5 +1,6 @@
 "use client";
 
+import { Emphasis } from "@/components/Emphasis";
 import { Button } from "@/components/Button";
 import { HelpTooltip } from "@/components/HelpTooltip";
 import { PanelHeader } from "@/components/PanelHeader";
@@ -21,12 +22,10 @@ export function SupportHeader({ onSaved }: Props) {
       <PanelHeader.Top>
         <PanelHeader.Left>
           {/* Eyebrow verde: atendimento é assunto do módulo Clientes. */}
-          <PanelHeader.Eyebrow className="text-(--green)">
-            Clientes
-          </PanelHeader.Eyebrow>
+          <PanelHeader.Eyebrow color="green">Clientes</PanelHeader.Eyebrow>
           <div className="flex items-center gap-6">
             <PanelHeader.Title>
-              Reclamações <span className="text-(--amber)">de clientes</span>
+              Reclamações <Emphasis tone="accent">de clientes</Emphasis>
             </PanelHeader.Title>
             <HelpTooltip
               label="O que entra nas reclamações?"

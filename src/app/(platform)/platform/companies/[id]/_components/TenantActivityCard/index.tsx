@@ -4,8 +4,8 @@ import { Card } from "@/components/Card";
 import { EmptyState } from "@/components/EmptyState";
 import { Loading } from "@/components/Loading";
 import { Title } from "@/components/Title";
+import { TextLink } from "@/components/TextLink";
 import { Activity } from "lucide-react";
-import Link from "next/link";
 import { operationLabel } from "../../../../utils";
 import { TenantActivityEntry } from "../../interface";
 
@@ -94,18 +94,16 @@ export function TenantActivityCard({
 
             {/* O total precisa aparecer junto do link: sem ele, uma lista de
                 doze linhas passa por "foi só isso que aconteceu". */}
-            <Link
+            <TextLink
               href={`/platform/activity?company=${companyId}`}
+              tone="muted"
+              underline="always"
               className="w-fit"
             >
-              <Title
-                variant="body-sm"
-                color="muted"
-                className="underline underline-offset-2"
-              >
+              <Title variant="body-sm" color="inherit">
                 Ver as {total} ações do período
               </Title>
-            </Link>
+            </TextLink>
           </div>
         )}
       </Card.Body>

@@ -96,7 +96,8 @@ export function NotificationCenter() {
                   color={SEVERITY_COLOR[n.severity]}
                   size="md"
                   pulse={false}
-                  className="mt-[6px] opacity-100"
+                  intensity="solid"
+                  className="mt-[6px]"
                 />
                 <div className="flex min-w-0 flex-1 flex-col gap-2">
                   <div className="flex items-center justify-between gap-8">

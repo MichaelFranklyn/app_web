@@ -3,7 +3,6 @@ import { Card } from "@/components/Card";
 import { RowList } from "@/components/RowList";
 import { Title } from "@/components/Title";
 import { CheckCircle2 } from "lucide-react";
-import Link from "next/link";
 import { AttentionItem } from "../../interface";
 import { SEVERITY_COLOR, SEVERITY_LABEL } from "../../utils";
 
@@ -52,8 +51,17 @@ export function AttentionQueue({ items }: { items: AttentionItem[] }) {
 
       <Card.Body>
         <RowList.Root>
-          {items.map((item, index) => {
-            const row = (
+          {items.map((item, index) => (
+            // Cada item leva à ficha onde a decisão é tomada. Sem empresa
+            // (pendência da própria plataforma), fica sem link.
+            <RowList.Item
+              key={`${item.kind}-${item.companyId ?? index}`}
+              href={
+                item.companyId
+                  ? `/platform/companies/${item.companyId}`
+                  : undefined
+              }
+            >
               <div className="flex flex-wrap items-baseline gap-8">
                 <Badge.Root
                   color={SEVERITY_COLOR[item.severity]}
@@ -69,25 +77,8 @@ export function AttentionQueue({ items }: { items: AttentionItem[] }) {
                   {item.detail}
                 </Title>
               </div>
-            );
-
-            return (
-              <RowList.Item key={`${item.kind}-${item.companyId ?? index}`}>
-                {/* Cada item leva à ficha onde a decisão é tomada. Sem empresa
-                    (pendência da própria plataforma), fica sem link. */}
-                {item.companyId ? (
-                  <Link
-                    href={`/platform/companies/${item.companyId}`}
-                    className="block transition-opacity hover:opacity-70"
-                  >
-                    {row}
-                  </Link>
-                ) : (
-                  row
-                )}
-              </RowList.Item>
-            );
-          })}
+            </RowList.Item>
+          ))}
         </RowList.Root>
       </Card.Body>
     </Card.Root>

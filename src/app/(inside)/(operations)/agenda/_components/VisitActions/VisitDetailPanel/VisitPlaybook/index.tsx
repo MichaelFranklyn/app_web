@@ -19,12 +19,12 @@ interface Props {
 }
 
 const HELP = (
-  <p>
+  <Title variant="body-sm" color="inherit">
     Sai dos pedidos que o cliente fez nas fábricas que você atende nele.
     Aparecem o que está na hora de repor, o que atrasou e o que ele deixou de
     comprar neste último ano, além da promoção relâmpago que vale hoje. Produto
     que ele compra dentro do ritmo não aparece.
-  </p>
+  </Title>
 );
 
 /**

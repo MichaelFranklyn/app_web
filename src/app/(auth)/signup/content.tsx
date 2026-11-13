@@ -5,10 +5,10 @@ import { Card } from "@/components/Card";
 import { FormBuilder, FormBuilderRef } from "@/components/FormBuilder";
 import { RootPage } from "@/components/RootPage";
 import { Title } from "@/components/Title";
+import { TextLink } from "@/components/TextLink";
 import { useAsyncAction } from "@/hooks/useAsyncAction";
 import { postSession } from "@/utils/auth/session";
-import Image from "next/image";
-import Link from "next/link";
+import { BrandLogo } from "@/components/BrandLogo";
 import { useRouter } from "next/navigation";
 import { useRef } from "react";
 import { SignUpFormData } from "./interface";
@@ -51,16 +51,9 @@ export default function SignUpContent() {
   return (
     <RootPage.Root className="relative flex min-h-screen items-center justify-center overflow-hidden">
       <div className="flex w-full max-w-[560px] flex-col items-center gap-24">
-        <Image
-          src="/horizontal_logo.png"
-          alt="Itinus"
-          width={1023}
-          height={256}
-          priority
-          className="mx-auto h-auto w-[200px]"
-        />
+        <BrandLogo priority className="mx-auto w-[200px]" />
 
-        <Card.Root className="w-[480px] max-w-full shadow-(--shadow-md)">
+        <Card.Root elevated className="w-[480px] max-w-full">
           <Card.Header bg="bg3">
             <Card.Header.Eyebrow>Teste grátis</Card.Header.Eyebrow>
             <Card.Header.Title>Crie sua conta</Card.Header.Title>
@@ -89,13 +82,13 @@ export default function SignUpContent() {
               className="mt-16 block text-center"
             >
               Ao criar a conta você concorda com os{" "}
-              <Link href="/termos" className="underline hover:opacity-70">
+              <TextLink href="/termos" tone="inherit" underline="always">
                 Termos de uso
-              </Link>{" "}
+              </TextLink>{" "}
               e a{" "}
-              <Link href="/privacidade" className="underline hover:opacity-70">
+              <TextLink href="/privacidade" tone="inherit" underline="always">
                 Política de privacidade
-              </Link>
+              </TextLink>
               .
             </Title>
           </Card.Body>

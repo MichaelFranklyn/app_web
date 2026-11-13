@@ -98,11 +98,7 @@ function ProductStockCard({
         </div>
 
         <div className="flex items-end gap-6">
-          <Title
-            variant="kpi"
-            color={sit.color}
-            className="text-[32px] leading-none"
-          >
+          <Title variant="kpi" color={sit.color}>
             {daysLabel}
           </Title>
           <span className="inline-flex items-center gap-3 pb-1">

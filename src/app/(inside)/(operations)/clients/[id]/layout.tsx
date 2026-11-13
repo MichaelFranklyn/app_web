@@ -225,7 +225,10 @@ export default function ClientLayout({
                   <Loading.Skeleton className="h-[24px] w-72" />
                   <Loading.Skeleton className="mt-[6px] h-[14px] w-96" />
                   <PanelHeader.Actions className="mt-8">
-                    <Loading.Skeleton className="h-[20px] w-[72px] rounded-(--r-xs)" />
+                    <Loading.Skeleton
+                      shape="xs"
+                      className="h-[20px] w-[72px]"
+                    />
                     <Loading.Skeleton className="h-[32px] w-[100px]" />
                     <Loading.Skeleton className="h-[32px] w-[110px]" />
                   </PanelHeader.Actions>

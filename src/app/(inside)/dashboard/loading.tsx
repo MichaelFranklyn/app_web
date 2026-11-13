@@ -17,7 +17,7 @@ export default function DashboardLoading() {
       <div className="flex flex-col gap-8">
         <Loading.Skeleton className="h-24 w-40" />
         <Loading.Skeleton className="h-14 w-[280px]" />
-        <Loading.Skeleton className="mt-6 h-32 w-[220px] rounded-(--r-sm)" />
+        <Loading.Skeleton className="mt-6 h-32 w-[220px]" />
       </div>
 
       <DashboardSkeleton />

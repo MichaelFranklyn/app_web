@@ -59,7 +59,7 @@ export function ClientDetailSkeleton() {
           </Card.Header>
           <Card.Body>
             <Loading.Skeleton className="mb-12 h-[12px] w-3/4" />
-            <Loading.Skeleton className="h-50 w-full rounded-(--r-lg)" />
+            <Loading.Skeleton shape="lg" className="h-50 w-full" />
           </Card.Body>
         </Card.Root>
 

@@ -55,14 +55,13 @@ export function PortalFactorySplit({
                     {formatMoney(factory.amount)}
                   </Title>
                 </div>
-                {/* Cantos quase retos, e não `rounded-full`: numa barra de 8px de
-                  altura a cápsula come 4px de cada ponta, e uma fatia pequena
-                  vira um grão afilado que não dá para comparar com as outras. O
-                  raio de 2px arredonda sem tirar comprimento. */}
+                {/* Cantos quase retos (`square`): numa barra de 8px a cápsula
+                  come as pontas e uma fatia pequena vira um grão afilado. */}
                 <Progress.Bar
                   value={Math.max(share, 2)}
                   fillColor={CHART_PALETTE[index % CHART_PALETTE.length]}
-                  className="h-[8px] rounded-[2px]"
+                  shape="square"
+                  className="h-[8px]"
                   aria-label={`${factory.factoryName}: ${share.toFixed(0)}% das compras`}
                 />
                 <Title variant="body-xs" color="muted">

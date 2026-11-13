@@ -36,4 +36,6 @@ export const tableCellVariants = {
   mono: "font-mono text-(--text2)",
   dim: "text-(--muted) text-[13px]",
   dim2: "text-(--muted2) text-[13px]",
+  // Linha-título de um grupo (a tabela de preço sobre os seus itens).
+  group: "bg-(--bg3) text-(--text2)",
 } as const;

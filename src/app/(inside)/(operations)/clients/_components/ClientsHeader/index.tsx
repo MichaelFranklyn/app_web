@@ -105,16 +105,7 @@ export function ClientsHeader({
 
       <Grid.Root cols={{ base: 1, tablet: 2, "desktop-xl": 4 }} gap={20}>
         {kpis.map(
-          ({
-            label,
-            value,
-            delta,
-            positive,
-            negative,
-            status,
-            valueClassName,
-            help,
-          }) => (
+          ({ label, value, delta, positive, negative, status, help }) => (
             <Grid.Item key={label}>
               <Card.Kpi>
                 {/* Os quatro cartões medem coisas diferentes que soam iguais
@@ -126,9 +117,7 @@ export function ClientsHeader({
                     <HelpTooltip label={`Sobre ${label}`} content={help} />
                   )}
                 </Card.Kpi.Label>
-                <Card.Kpi.Value status={status} className={valueClassName}>
-                  {value}
-                </Card.Kpi.Value>
+                <Card.Kpi.Value status={status}>{value}</Card.Kpi.Value>
                 <Card.Kpi.Delta positive={positive} negative={negative}>
                   {positive && <TrendingUp size={12} />}
                   {negative && <TrendingDown size={12} />}

@@ -1,15 +1,14 @@
 import { Alert } from "@/components/Alert";
+import { Emphasis } from "@/components/Emphasis";
+import { TextLink } from "@/components/TextLink";
 import { formatDate } from "@/utils/format/date";
 import { GitBranch, PackageX } from "lucide-react";
-import Link from "next/link";
 
 import { OrderDetail } from "../../interface";
 
 interface Props {
   order: OrderDetail;
 }
-
-const linkClass = "font-medium text-(--amber) underline underline-offset-2";
 
 /**
  * Vínculo do faturamento parcial: quando ESTE pedido é o restante de outro
@@ -26,13 +25,14 @@ export function BackorderBanner({ order }: Props) {
           <Alert.Icon icon={GitBranch} />
           <Alert.Content>
             <Alert.Description>
-              Este é o <strong>saldo</strong> do{" "}
-              <Link
+              Este é o <Emphasis>saldo</Emphasis> do{" "}
+              <TextLink
                 href={`/orders/${order.parentOrder.id}`}
-                className={linkClass}
+                underline="always"
+                emphasis
               >
                 pedido de {formatDate(order.parentOrder.orderDate)}
-              </Link>
+              </TextLink>
               : o que a fábrica não conseguiu entregar de uma vez. É a mesma
               venda — não conta como pedido novo nem muda a frequência de compra
               do cliente. Fature quando a fábrica mandar o restante.
@@ -52,9 +52,13 @@ export function BackorderBanner({ order }: Props) {
               {children.map((child, i) => (
                 <span key={child.id}>
                   {i > 0 && ", "}
-                  <Link href={`/orders/${child.id}`} className={linkClass}>
+                  <TextLink
+                    href={`/orders/${child.id}`}
+                    underline="always"
+                    emphasis
+                  >
                     ver saldo
-                  </Link>
+                  </TextLink>
                 </span>
               ))}
               .

@@ -24,9 +24,7 @@ export function TenantHeader({ tenant, onToggleStatus, onEditPlan }: Props) {
     <PanelHeader.Root>
       <PanelHeader.Top>
         <PanelHeader.Left>
-          <PanelHeader.Eyebrow className="text-(--purple)">
-            Empresa
-          </PanelHeader.Eyebrow>
+          <PanelHeader.Eyebrow color="purple">Empresa</PanelHeader.Eyebrow>
           <div className="flex flex-wrap items-center gap-8">
             <PanelHeader.Title>
               {tenant.nomeFantasia || tenant.razaoSocial}

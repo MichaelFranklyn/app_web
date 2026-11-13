@@ -74,11 +74,12 @@ export function ChartHelpTip({ title, help, insight }: Props) {
     <Tooltip open={open} onOpenChange={setOpen} content={content} panel>
       <Button.Root
         appearance="ghost"
-        color="neutral"
+        color="subtle"
         size="xs"
+        shape="pill"
         isIconOnly
         label={`O que o gráfico "${title}" está mostrando`}
-        className="cursor-help rounded-full text-(--muted) hover:text-(--text)"
+        className="cursor-help"
         onClick={() => setOpen(true)}
       >
         <Button.Icon icon={Info} />

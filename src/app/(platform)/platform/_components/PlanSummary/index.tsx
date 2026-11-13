@@ -40,12 +40,11 @@ export function PlanSummary({ plan, showMissing = false }: Props) {
             const included = plan.features.includes(feature);
             return (
               <div key={feature} className="flex items-center gap-6">
-                <span
-                  className={included ? "text-(--green)" : "text-(--muted)"}
-                  aria-hidden
-                >
-                  {included ? <Check size={14} /> : <Minus size={14} />}
-                </span>
+                {included ? (
+                  <Check size={14} className="text-(--green)" aria-hidden />
+                ) : (
+                  <Minus size={14} className="text-(--muted)" aria-hidden />
+                )}
                 <Title variant="caption" color={included ? undefined : "muted"}>
                   {FEATURE_LABEL[feature]}
                 </Title>

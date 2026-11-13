@@ -65,7 +65,7 @@ export function DevRoleSwitch() {
       tone="muted"
       dashed
       title="Somente em dev: pré-visualiza a UI como admin/owner ou vendedor (não muda os dados do backend)."
-      className="w-auto border-(--amber)/50"
+      className="w-auto"
     >
       <Card.Body
         padding="none"

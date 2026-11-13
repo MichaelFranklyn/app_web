@@ -21,7 +21,7 @@ export function PriceListDetailSkeleton() {
               <Loading.Skeleton className="h-[22px] w-56" />
               <Loading.Skeleton className="mt-[6px] h-[12px] w-72 max-w-full" />
               <PanelHeader.Actions className="mt-6">
-                <Loading.Skeleton className="h-[22px] w-16 rounded-(--r-xs)" />
+                <Loading.Skeleton shape="xs" className="h-[22px] w-16" />
                 <Loading.Skeleton className="h-[36px] w-28" />
                 <Loading.Skeleton className="h-[36px] w-10" />
               </PanelHeader.Actions>

@@ -5,6 +5,7 @@ import { ToggleGroup } from "@/components/ToggleGroup";
 
 import { RegionGroup } from "../../interface";
 import { ALL_CITIES } from "../../utils";
+import { Title } from "@/components/Title";
 
 interface Props {
   /** Todas as cidades da lista, antes do filtro. */
@@ -41,11 +42,11 @@ export function CityFilter({ groups, city, onCityChange }: Props) {
       <HelpTooltip
         label="O que o filtro de cidade faz?"
         content={
-          <p>
+          <Title variant="body-sm" color="inherit">
             Mostra só os clientes daquela cidade. Quem você já escolheu em
             outras cidades continua no painel Sua semana e entra na semana do
             mesmo jeito.
-          </p>
+          </Title>
         }
       />
     </div>

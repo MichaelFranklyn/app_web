@@ -2,8 +2,8 @@
 
 import { Badge } from "@/components/Badges";
 import { InputCheckbox } from "@/components/Input/InputCheckbox";
+import { SelectableRow } from "@/components/SelectableRow";
 import { Title } from "@/components/Title";
-import { cn } from "@/lib/utils";
 import type { VisitContactType } from "@/utils/visit";
 import { useId } from "react";
 
@@ -45,12 +45,7 @@ export function PriorityClientRow({
     .join(" · ");
 
   return (
-    <div
-      className={cn(
-        "flex flex-col gap-8 px-16 py-12 transition-colors",
-        choice ? "bg-(--amber-bg)" : "hover:bg-(--bg2)"
-      )}
-    >
+    <SelectableRow selected={Boolean(choice)}>
       <div className="flex items-start gap-12">
         <InputCheckbox
           id={checkboxId}
@@ -61,10 +56,7 @@ export function PriorityClientRow({
         />
         {/* A linha inteira marca o cliente, não só a caixinha: ela é pequena
             para quem tem a mão menos firme, e o nome é onde o olho está. */}
-        <label
-          htmlFor={checkboxId}
-          className="flex min-w-0 flex-1 cursor-pointer flex-col gap-4"
-        >
+        <SelectableRow.Target htmlFor={checkboxId}>
           <Title variant="body-sm" weight="medium">
             {client.name}
           </Title>
@@ -80,7 +72,7 @@ export function PriorityClientRow({
               {reason.reason.short} · {reason.factory}
             </Title>
           )}
-        </label>
+        </SelectableRow.Target>
       </div>
       {/* Tags, visita × contato e dia numa linha só: empilhados, cada
           cliente escolhido virava três linhas. */}
@@ -130,6 +122,6 @@ export function PriorityClientRow({
           />
         )}
       </div>
-    </div>
+    </SelectableRow>
   );
 }

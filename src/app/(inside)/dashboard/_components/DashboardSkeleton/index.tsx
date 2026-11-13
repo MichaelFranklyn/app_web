@@ -27,7 +27,7 @@ function VisitRowSkeleton() {
       <Loading.Skeleton className="h-12 w-40" />
       <div className="flex items-center gap-8">
         <Loading.Skeleton className="h-12 w-24" />
-        <Loading.Skeleton className="h-4.5 w-10 rounded-full" />
+        <Loading.Skeleton shape="pill" className="h-4.5 w-10" />
       </div>
     </div>
   );
@@ -67,7 +67,7 @@ export function DashboardSkeleton() {
           <Card.Header className="min-h-13.75">
             <Loading.Skeleton className="h-16 w-36" />
             <div className="flex items-center gap-[6px]">
-              <Loading.Skeleton className="h-20 w-20 rounded-full" />
+              <Loading.Skeleton shape="pill" className="h-20 w-20" />
               <Loading.Skeleton className="h-7.5 w-28" />
             </div>
           </Card.Header>

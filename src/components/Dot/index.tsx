@@ -4,4 +4,4 @@ export const Dot = {
   Root: DotRoot,
 };
 
-export type { DotProps, DotSize } from "./Root";
+export type { DotIntensity, DotProps, DotSize } from "./Root";

@@ -1,5 +1,6 @@
 "use client";
 
+import { Emphasis } from "@/components/Emphasis";
 import { HelpTooltip } from "@/components/HelpTooltip";
 import { PanelHeader } from "@/components/PanelHeader";
 
@@ -12,7 +13,7 @@ export function PendingHeader() {
         <PanelHeader.Left>
           <div className="flex items-center gap-6">
             <PanelHeader.Title>
-              Pendências <span className="text-(--amber)">do dia</span>
+              Pendências <Emphasis tone="accent">do dia</Emphasis>
             </PanelHeader.Title>
             <HelpTooltip
               label="O que entra nas pendências?"

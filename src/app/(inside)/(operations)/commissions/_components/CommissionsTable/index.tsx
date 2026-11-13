@@ -5,10 +5,10 @@ import { EmptyState } from "@/components/EmptyState";
 import { Input } from "@/components/Input";
 import { Table } from "@/components/Table";
 import { Title } from "@/components/Title";
+import { TextLink } from "@/components/TextLink";
 import { clientName } from "@/utils/company";
 import { formatDateDMY, formatMoney } from "@/utils/format/masks";
 import { Coins } from "lucide-react";
-import Link from "next/link";
 import { CommissionRow } from "../../interface";
 import {
   COMMISSION_STATUS_LABEL,
@@ -250,12 +250,9 @@ export function CommissionsTable({
                 </Table.Cell>
               )}
               <Table.Cell>
-                <Link
-                  href={`/orders/${row.orderId}`}
-                  className="text-(--amber) hover:underline"
-                >
+                <TextLink href={`/orders/${row.orderId}`}>
                   {row.orderId.slice(0, 8).toUpperCase()}
-                </Link>
+                </TextLink>
               </Table.Cell>
               <Table.Cell>
                 {row.invoiceNumber ? (

@@ -1,5 +1,6 @@
 "use client";
 
+import { IconTile } from "@/components/IconTile";
 import { Title } from "@/components/Title";
 import { ReactNode } from "react";
 
@@ -17,14 +18,11 @@ interface Props {
 export function SetupSection({ number, title, hint, children }: Props) {
   return (
     <section className="flex gap-12">
-      <span
-        aria-hidden
-        className="flex h-[24px] w-[24px] shrink-0 items-center justify-center rounded-full bg-(--amber-bg) text-(--amber)"
-      >
-        <Title variant="body-xs" weight="semibold" as="span">
+      <IconTile color="amber" size="xs" aria-hidden>
+        <Title variant="body-xs" weight="semibold" color="inherit" as="span">
           {number}
         </Title>
-      </span>
+      </IconTile>
       <div className="flex min-w-0 flex-1 flex-col gap-8">
         <div className="flex flex-col gap-2">
           <Title variant="body-sm" weight="semibold">

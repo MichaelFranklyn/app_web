@@ -51,9 +51,7 @@ export function PlatformKpis({ overview }: { overview: PlatformOverview }) {
       <Grid.Item>
         <Card.Kpi>
           <Card.Kpi.Label>Pessoas</Card.Kpi.Label>
-          <Card.Kpi.Value status="neutral" className="text-(--blue)!">
-            {overview.totalUsers}
-          </Card.Kpi.Value>
+          <Card.Kpi.Value status="info">{overview.totalUsers}</Card.Kpi.Value>
           <Card.Kpi.Delta>
             {overview.activeUsersInPeriod} entraram no período
             {overview.neverLoggedUsers > 0 &&

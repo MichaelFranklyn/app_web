@@ -12,6 +12,10 @@ export const Root = React.forwardRef<HTMLDivElement, CardRootProps>(
       inset,
       dashed,
       interactive,
+      elevated,
+      lift,
+      event,
+      faded,
       className,
       ...props
     },
@@ -20,7 +24,18 @@ export const Root = React.forwardRef<HTMLDivElement, CardRootProps>(
     <div
       ref={ref}
       className={cn(
-        rootStyle({ accent, isCompact, tone, inset, dashed, interactive }),
+        rootStyle({
+          accent,
+          isCompact,
+          tone,
+          inset,
+          dashed,
+          interactive,
+          elevated,
+          lift,
+          event,
+          faded,
+        }),
         className
       )}
       {...props}

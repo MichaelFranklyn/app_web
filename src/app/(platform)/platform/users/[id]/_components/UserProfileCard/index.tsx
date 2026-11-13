@@ -6,8 +6,8 @@ import { Card } from "@/components/Card";
 import { Grid } from "@/components/Grid";
 import { PanelHeader } from "@/components/PanelHeader";
 import { Title } from "@/components/Title";
+import { TextLink } from "@/components/TextLink";
 import { Building2, KeyRound, LogIn } from "lucide-react";
-import Link from "next/link";
 import { useState } from "react";
 import { AccessLinkModal } from "../../../../_components/AccessLinkModal";
 import { useImpersonate } from "../../../../useImpersonate";
@@ -51,7 +51,7 @@ export function UserProfileCard({ user }: { user: PlatformUserDetail }) {
       <PanelHeader.Root>
         <PanelHeader.Top>
           <PanelHeader.Left>
-            <PanelHeader.Eyebrow className="text-(--purple)">
+            <PanelHeader.Eyebrow color="purple">
               Console · Pessoa
             </PanelHeader.Eyebrow>
             <PanelHeader.Title>{user.name}</PanelHeader.Title>
@@ -84,17 +84,19 @@ export function UserProfileCard({ user }: { user: PlatformUserDetail }) {
         <Grid.Item>
           <Card.Kpi>
             <Card.Kpi.Label>Empresa</Card.Kpi.Label>
-            <Card.Kpi.Value status="neutral" className="text-[16px]!">
+            <Card.Kpi.Value status="neutral" size="sm">
               {user.companyName}
             </Card.Kpi.Value>
             <Card.Kpi.Delta>
-              <Link
+              <TextLink
                 href={`/platform/companies/${user.companyId}`}
-                className="inline-flex items-center gap-4 underline underline-offset-2"
+                tone="inherit"
+                underline="always"
+                className="inline-flex items-center gap-4"
               >
                 <Building2 size={12} />
                 abrir a ficha
-              </Link>
+              </TextLink>
             </Card.Kpi.Delta>
           </Card.Kpi>
         </Grid.Item>
@@ -102,7 +104,7 @@ export function UserProfileCard({ user }: { user: PlatformUserDetail }) {
         <Grid.Item>
           <Card.Kpi>
             <Card.Kpi.Label>Papel</Card.Kpi.Label>
-            <Card.Kpi.Value status="neutral" className="text-[16px]!">
+            <Card.Kpi.Value status="neutral" size="sm">
               {ROLE_LABEL[user.role] ?? user.role}
             </Card.Kpi.Value>
             <Card.Kpi.Delta>define o que ela enxerga</Card.Kpi.Delta>
@@ -116,7 +118,7 @@ export function UserProfileCard({ user }: { user: PlatformUserDetail }) {
                 nunca começou, a outra é conta abandonada. */}
             <Card.Kpi.Value
               status={days === null ? "atencao" : days <= 30 ? "ok" : "atencao"}
-              className="text-[16px]!"
+              size="sm"
             >
               {activityLabel(days)}
             </Card.Kpi.Value>

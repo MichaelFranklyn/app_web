@@ -86,7 +86,7 @@ export default function ForgotPasswordContent() {
   return (
     <RootPage.Root className="relative flex min-h-screen items-center justify-center overflow-hidden">
       <Responsive.Box base="relative flex w-full justify-center flex-col items-center max-w-110">
-        <Card.Root className="w-full shadow-(--shadow-md)">
+        <Card.Root elevated className="w-full">
           <Card.Header bg="bg3">
             <Card.Header.Eyebrow>Recuperação de acesso</Card.Header.Eyebrow>
             <Card.Header.Title>Esqueci minha senha</Card.Header.Title>

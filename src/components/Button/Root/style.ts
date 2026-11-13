@@ -1,6 +1,6 @@
 import { getThemeClasses, ThemeAppearance, ThemeColor } from "@/lib/theme";
 import { cn } from "@/lib/utils";
-import { ButtonSize } from "../Root/interface";
+import { ButtonShape, ButtonSize } from "../Root/interface";
 
 export const iconPixelSizes: Record<ButtonSize, number> = {
   lg: 18,
@@ -72,6 +72,7 @@ export interface GetButtonClassesProps {
   noPadding: boolean;
   noUppercase: boolean;
   dashed?: boolean;
+  shape?: ButtonShape;
   className?: string;
 }
 
@@ -85,6 +86,7 @@ export const getButtonClasses = ({
   noPadding,
   noUppercase,
   dashed = false,
+  shape = "default",
   className,
 }: GetButtonClassesProps): string =>
   cn(
@@ -96,6 +98,7 @@ export const getButtonClasses = ({
     !noPadding && !isIconOnly && sizePaddingClasses[size],
     !noPadding && !isIconOnly && sizeMinHeightClasses[size],
     noPadding && "p-0",
+    shape === "pill" && "rounded-full",
     focusClasses,
     active && isIconOnly && activeIconOnlyClasses,
     fullWidth && "w-full",

@@ -7,7 +7,7 @@ import { FeatureGate } from "@/components/FeatureGate";
 import { Topbar } from "@/components/Topbar";
 import { cn } from "@/lib/utils";
 import { FlowTourProvider } from "@/services/flowTour";
-import Image from "next/image";
+import { BrandLogo } from "@/components/BrandLogo";
 import { DevRoleSwitch } from "./_components/DevRoleSwitch";
 import { ImpersonationBanner } from "./_components/ImpersonationBanner";
 import { NotificationCenter } from "./_components/NotificationCenter";
@@ -74,14 +74,10 @@ export default function InsideShell({
               tela de dentro. */}
           <Sidebar.Brand collapsed={isCollapsed}>
             {/* Logo completa (expandida e sempre no drawer mobile). */}
-            <Image
-              src="/horizontal_logo.png"
-              alt="Itinus"
-              width={1023}
-              height={256}
+            <BrandLogo
               priority={!isCollapsed}
               sizes="232px"
-              className={cn("h-auto w-full", isCollapsed && "desktop:hidden")}
+              className={cn("w-full", isCollapsed && "desktop:hidden")}
             />
             {/* Só o SÍMBOLO quando recolhida no desktop.
               Era `/logo.png`, que apesar do nome é a marca INTEIRA (símbolo +
@@ -93,11 +89,8 @@ export default function InsideShell({
               base64, servido `unoptimized` porque o otimizador recusa SVG sem
               `dangerouslyAllowSVG`. Como PNG de verdade ele passa pelo
               otimizador e chega no tamanho em que é exibido.) */}
-            <Image
-              src="/icon-192.png"
-              alt="Itinus"
-              width={192}
-              height={192}
+            <BrandLogo
+              variant="mark"
               priority={isCollapsed}
               sizes="32px"
               className={cn(

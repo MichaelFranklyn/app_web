@@ -78,9 +78,7 @@ export default function PlatformHealthContent({
       <PanelHeader.Root>
         <PanelHeader.Top>
           <PanelHeader.Left>
-            <PanelHeader.Eyebrow className="text-(--purple)">
-              Console
-            </PanelHeader.Eyebrow>
+            <PanelHeader.Eyebrow color="purple">Console</PanelHeader.Eyebrow>
             <PanelHeader.Title>Saúde</PanelHeader.Title>
             <PanelHeader.Description>
               Estado técnico da plataforma: banco, jobs agendados e pendências.
@@ -137,7 +135,7 @@ export default function PlatformHealthContent({
                 <Card.Kpi.Label>Revisão do banco</Card.Kpi.Label>
                 <Card.Kpi.Value
                   status={health.hasPendingMigration ? "urgente" : "ok"}
-                  className="text-[16px]!"
+                  size="sm"
                 >
                   {health.databaseRevision ?? "desconhecida"}
                 </Card.Kpi.Value>

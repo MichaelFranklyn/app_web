@@ -5,6 +5,7 @@ import { formatDateDMY, formatMoney } from "@/utils/format/masks";
 import { Check, Minus } from "lucide-react";
 
 import { PositivationCell as Cell } from "../../interface";
+import { Title } from "@/components/Title";
 
 /**
  * Uma célula da matriz. Três estados, e a diferença entre os dois últimos é o
@@ -20,9 +21,14 @@ import { PositivationCell as Cell } from "../../interface";
 export function PositivationCellMark({ cell }: { cell: Cell }) {
   if (!cell.isLinked) {
     return (
-      <span className="text-(--muted2)" aria-label="Sem vínculo nesta fábrica">
+      <Title
+        as="span"
+        variant="body"
+        color="muted2"
+        aria-label="Sem vínculo nesta fábrica"
+      >
         ·
-      </span>
+      </Title>
     );
   }
 

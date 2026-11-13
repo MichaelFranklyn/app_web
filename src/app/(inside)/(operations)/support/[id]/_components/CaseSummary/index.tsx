@@ -3,6 +3,7 @@
 import { Badge } from "@/components/Badges";
 import { Card } from "@/components/Card";
 import { Title } from "@/components/Title";
+import { TextLink } from "@/components/TextLink";
 import { clientDisplayName } from "@/utils/client";
 import { factoryName } from "@/utils/company";
 import { formatDate } from "@/utils/format/date";
@@ -14,7 +15,6 @@ import {
   SupportCase,
   supportAgeLabel,
 } from "@/utils/support";
-import Link from "next/link";
 
 interface Props {
   supportCase: SupportCase;
@@ -55,14 +55,11 @@ export function CaseSummary({ supportCase }: Props) {
               precisa do histórico de pedidos dele na mesma conversa. A rota é
               pelo id da CARTEIRA — com o `clientId` abria "não encontrado". */}
           {supportCase.companyClientId ? (
-            <Link
-              href={`/clients/${supportCase.companyClientId}/overview`}
-              className="text-(--amber) hover:underline"
-            >
-              <Title variant="body-sm" weight="medium" className="text-inherit">
+            <TextLink href={`/clients/${supportCase.companyClientId}/overview`}>
+              <Title variant="body-sm" weight="medium" color="inherit">
                 {client}
               </Title>
-            </Link>
+            </TextLink>
           ) : (
             <Title variant="body-sm" weight="medium">
               {client}
@@ -108,16 +105,13 @@ export function CaseSummary({ supportCase }: Props) {
         </Field>
         {supportCase.order && (
           <Field label="Pedido">
-            <Link
-              href={`/orders/${supportCase.order.id}`}
-              className="text-(--amber) hover:underline"
-            >
-              <Title variant="body-sm" className="text-inherit">
+            <TextLink href={`/orders/${supportCase.order.id}`}>
+              <Title variant="body-sm" color="inherit">
                 {supportCase.order.invoiceNumber
                   ? `NF ${supportCase.order.invoiceNumber}`
                   : formatDate(supportCase.order.orderDate)}
               </Title>
-            </Link>
+            </TextLink>
           </Field>
         )}
         <Field label="Registrado por">

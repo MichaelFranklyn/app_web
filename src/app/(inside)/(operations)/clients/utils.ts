@@ -86,8 +86,7 @@ export const buildKpis = (stats: ClientsStats): KpiItem[] => {
       value: String(noVisit30d),
       delta: "sem visita recente",
       negative: noVisit30d > 0,
-      status: noVisit30d > 0 ? "neutral" : "ok",
-      valueClassName: noVisit30d > 0 ? "text-(--blue)!" : undefined,
+      status: noVisit30d > 0 ? "info" : "ok",
       help: CLIENT_KPI_HELP["Sem visita há 30d+"],
     },
   ];

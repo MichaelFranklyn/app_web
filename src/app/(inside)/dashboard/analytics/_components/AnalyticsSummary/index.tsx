@@ -95,7 +95,7 @@ export function AnalyticsSummary({ filters }: { filters: ChartFilters }) {
       <Grid.Item>
         <Card.Kpi>
           <Card.Kpi.Label>Ticket médio</Card.Kpi.Label>
-          <Card.Kpi.Value status="neutral" className="text-(--blue)!">
+          <Card.Kpi.Value status="info">
             {formatMoney(avgTicket)}
           </Card.Kpi.Value>
           <Card.Kpi.Delta>valor médio por pedido</Card.Kpi.Delta>

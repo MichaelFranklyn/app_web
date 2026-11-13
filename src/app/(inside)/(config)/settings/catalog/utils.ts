@@ -93,20 +93,12 @@ export const CATALOG_LINKS: CatalogLinkWithCount[] = CATALOG_GROUPS.flatMap(
  * clica, e é por isso que os cinco cards deixaram de ser todos âmbar — a cor
  * dizia "aja aqui" cinco vezes e não distinguia nada.
  */
-export const CATALOG_TONE: Record<CatalogTone, { icon: string; chip: string }> =
+export const CATALOG_TONE: Record<CatalogTone, "purple" | "green" | "orange"> =
   {
-    products: {
-      icon: "text-(--mod-products)",
-      chip: "bg-(--purple-bg) text-(--mod-products)",
-    },
-    clients: {
-      icon: "text-(--mod-clients)",
-      chip: "bg-(--green-bg) text-(--mod-clients)",
-    },
-    tax: {
-      icon: "text-(--mod-factory)",
-      chip: "bg-(--orange-bg) text-(--mod-factory)",
-    },
+    // Mesmos hex de --mod-products / --mod-clients / --mod-factory.
+    products: "purple",
+    clients: "green",
+    tax: "orange",
   };
 
 /** "12 categorias" / "1 categoria" / "nada cadastrado ainda". */

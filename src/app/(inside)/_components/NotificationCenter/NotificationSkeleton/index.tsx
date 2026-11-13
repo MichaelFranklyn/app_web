@@ -13,7 +13,7 @@ export function NotificationSkeleton() {
       <span className="sr-only">Carregando notificações…</span>
       {[0, 1, 2].map((row) => (
         <Dropdown.PanelRowSkeleton key={row}>
-          <Loading.Skeleton className="mt-[6px] size-8 shrink-0 rounded-full" />
+          <Loading.Skeleton shape="pill" className="mt-[6px] size-8 shrink-0" />
           <div className="flex min-w-0 flex-1 flex-col gap-6">
             <div className="flex items-center justify-between gap-8">
               <Loading.Skeleton className="h-[12px] w-[55%]" />

@@ -36,6 +36,8 @@ const ROW_TONE = {
 
 interface PanelRowProps extends React.ButtonHTMLAttributes<HTMLButtonElement> {
   tone?: keyof typeof ROW_TONE;
+  /** Linha solta abaixo da lista (o convite do push): traço em cima. */
+  separated?: boolean;
 }
 
 const ROW_BASE =
@@ -44,6 +46,7 @@ const ROW_BASE =
 /** Uma linha clicável do painel; o traço entre linhas some na última. */
 export const PanelRow = ({
   tone = "default",
+  separated = false,
   className,
   type = "button",
   ...props
@@ -55,6 +58,7 @@ export const PanelRow = ({
       "transition-colors hover:bg-(--bg3)",
       "disabled:cursor-default disabled:opacity-60",
       ROW_TONE[tone],
+      separated && "border-t",
       className
     )}
     {...props}

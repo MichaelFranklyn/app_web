@@ -40,11 +40,7 @@ export function FactoryScoreCard({ score, onSelect }: Props) {
       </div>
 
       <div className="flex items-end justify-between gap-8">
-        <Title
-          variant="kpi"
-          color={scoreBarColor(total)}
-          className="text-[40px]"
-        >
+        <Title variant="display" color={scoreBarColor(total)}>
           {total.toFixed(0)}
         </Title>
         <div className="flex items-center gap-4 pb-4">

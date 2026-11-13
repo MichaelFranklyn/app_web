@@ -41,7 +41,7 @@ export function PriceListGroupRows({
   return (
     <>
       <Table.Row>
-        <Table.Cell colSpan={5} className="bg-(--bg3)">
+        <Table.Cell colSpan={5} variant="group">
           <div className="flex items-center justify-between gap-8">
             <div className="flex items-center gap-8">
               <Table.CellText variant="strong">

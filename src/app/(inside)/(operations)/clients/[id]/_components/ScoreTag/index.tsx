@@ -54,7 +54,7 @@ export function ScoreTag({ score, factoryScores = [] }: Props) {
             color={level.tone}
             size="md"
             pulse={false}
-            className="opacity-100"
+            intensity="solid"
           />
           <Title variant="label">{level.label}</Title>
         </div>
@@ -80,7 +80,8 @@ export function ScoreTag({ score, factoryScores = [] }: Props) {
               <Dot.Root
                 color={reason.tone}
                 pulse={false}
-                className="mt-[5px] opacity-100"
+                intensity="solid"
+                className="mt-[5px]"
               />
               <div className="flex flex-col gap-1">
                 <Title variant="body-sm">

@@ -164,16 +164,7 @@ export function UsersHeader({
       {/* KPIs da operação de campo: é o que muda no dia a dia. */}
       <Grid.Root cols={{ base: 1, tablet: 3 }} gap={20}>
         {kpis.map(
-          ({
-            label,
-            value,
-            delta,
-            positive,
-            negative,
-            status,
-            valueClassName,
-            help,
-          }) => (
+          ({ label, value, delta, positive, negative, status, help }) => (
             <Grid.Item key={label}>
               <Card.Kpi>
                 {/* Login e perfil de campo são coisas diferentes, e os três
@@ -185,9 +176,7 @@ export function UsersHeader({
                     <HelpTooltip label={`Sobre ${label}`} content={help} />
                   )}
                 </Card.Kpi.Label>
-                <Card.Kpi.Value status={status} className={valueClassName}>
-                  {value}
-                </Card.Kpi.Value>
+                <Card.Kpi.Value status={status}>{value}</Card.Kpi.Value>
                 <Card.Kpi.Delta positive={positive} negative={negative}>
                   {positive && <TrendingUp size={12} />}
                   {negative && <TrendingDown size={12} />}

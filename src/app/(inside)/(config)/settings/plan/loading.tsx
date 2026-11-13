@@ -17,7 +17,7 @@ export default function PlanLoading() {
           <Loading.Skeleton className="h-24 w-[200px]" />
           <Loading.Skeleton className="h-14 w-[420px]" />
         </div>
-        <Loading.Skeleton className="h-[58px] w-full rounded-(--r-md)" />
+        <Loading.Skeleton shape="md" className="h-[58px] w-full" />
       </div>
 
       <div className="flex flex-col gap-12">
