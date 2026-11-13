@@ -14,7 +14,7 @@ import {
   PENDING_TYPE_COPY,
   PENDING_TYPE_LABEL,
 } from "../../utils";
-import { SampleRow } from "./SampleRow";
+import { PendingSampleRow } from "./SampleRow";
 
 interface Props {
   row: PendingTypeCount;
@@ -74,7 +74,7 @@ export function PendingTypeCard({ row, open, onToggle }: Props) {
           <RowList.Root>
             {samples.map((sample) => (
               <RowList.Item key={sample.id}>
-                <SampleRow sample={sample} />
+                <PendingSampleRow sample={sample} />
               </RowList.Item>
             ))}
           </RowList.Root>

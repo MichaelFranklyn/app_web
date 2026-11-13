@@ -34,9 +34,7 @@ export function RouteSummary({ day }: Props) {
     <Grid.Root cols={{ base: 2, desktop: 4 }} gap={12}>
       <Card.Kpi>
         <Card.Kpi.Label>Paradas</Card.Kpi.Label>
-        <Card.Kpi.Value status="neutral" className="text-(--blue)!">
-          {drivingStops.length}
-        </Card.Kpi.Value>
+        <Card.Kpi.Value status="info">{drivingStops.length}</Card.Kpi.Value>
         <Card.Kpi.Delta>
           {remoteCount > 0
             ? `+ ${remoteCount} ${remoteCount === 1 ? "contato" : "contatos"}`

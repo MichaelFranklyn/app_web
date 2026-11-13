@@ -17,21 +17,13 @@ interface Props {
    */
   status: KpiStatus;
   /** Azul não é um `status` do Card.Kpi — entra por classe, como no dashboard. */
-  valueClassName?: string;
   /** O que este indicador mede — o mesmo texto das barras de cada fábrica. */
   help?: string;
   money?: boolean;
 }
 
 /** Um indicador somado do recorte: o realizado grande e a meta embaixo. */
-export function GoalKpiCard({
-  label,
-  values,
-  status,
-  valueClassName,
-  help,
-  money,
-}: Props) {
+export function GoalKpiCard({ label, values, status, help, money }: Props) {
   const percent = percentOf(values);
   const format = (value: number) =>
     money ? formatMoney(value) : formatNumber(value);
@@ -43,9 +35,7 @@ export function GoalKpiCard({
         {help && <HelpTooltip label={`Sobre ${label}`} content={help} />}
       </Card.Kpi.Label>
 
-      <Card.Kpi.Value status={status} className={valueClassName}>
-        {format(values.done)}
-      </Card.Kpi.Value>
+      <Card.Kpi.Value status={status}>{format(values.done)}</Card.Kpi.Value>
 
       <Card.Kpi.Delta>
         {/* Sem meta não vira "0%": leria como atraso de quem nunca teve alvo

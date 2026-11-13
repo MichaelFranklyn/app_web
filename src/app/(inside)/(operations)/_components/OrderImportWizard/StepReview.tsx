@@ -131,11 +131,13 @@ export function StepReview({
                           label="O que significa a confiança?"
                           content={
                             <div className="flex flex-col gap-4">
-                              <span>
+                              <Title variant="body-sm" color="inherit">
                                 {confidenceHelp(Number(c.confidence))}
-                              </span>
+                              </Title>
                               {c.message && (
-                                <span className="opacity-80">{c.message}</span>
+                                <Title variant="body-xs" color="inherit">
+                                  {c.message}
+                                </Title>
                               )}
                             </div>
                           }

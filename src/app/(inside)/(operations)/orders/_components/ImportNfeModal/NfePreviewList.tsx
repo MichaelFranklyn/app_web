@@ -3,8 +3,8 @@
 import { Badge } from "@/components/Badges";
 import { Input } from "@/components/Input";
 import { Table } from "@/components/Table";
+import { TextLink } from "@/components/TextLink";
 import { formatDateDMY, formatMoney } from "@/utils/format/masks";
-import Link from "next/link";
 
 import { NfePreviewRow } from "./interface";
 import {
@@ -105,11 +105,16 @@ export function NfePreviewList({ rows, selected, onToggle }: Props) {
                       </Table.CellText>
                     )}
                     {link && (
-                      <Link href={link} target="_blank" rel="noreferrer">
-                        <Table.CellText variant="dim" className="underline">
+                      <TextLink
+                        href={link}
+                        tone="inherit"
+                        underline="always"
+                        external
+                      >
+                        <Table.CellText variant="dim">
                           Abrir o pedido
                         </Table.CellText>
-                      </Link>
+                      </TextLink>
                     )}
                   </div>
                 </Table.Cell>

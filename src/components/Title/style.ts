@@ -8,6 +8,11 @@ export const variantConfig: Record<
     defaultWeight: TitleWeight;
   }
 > = {
+  display: {
+    element: "strong",
+    className: "font-head text-[44px] leading-none tracking-[-0.04em]",
+    defaultWeight: "bold",
+  },
   "heading-xl": {
     element: "h1",
     className: "font-head text-[41px] leading-none tracking-[-0.04em]",
@@ -90,6 +95,7 @@ export const colorClasses: Record<TitleColor, string> = {
   secondary: "text-(--text2)",
   muted: "text-(--muted)",
   muted2: "text-(--muted2)",
+  inherit: "text-inherit",
   amber: "text-(--amber)",
   red: "text-(--red)",
   green: "text-(--green)",

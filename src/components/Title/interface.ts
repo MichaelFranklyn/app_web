@@ -1,6 +1,8 @@
 import { HTMLAttributes, ReactNode } from "react";
 
 export type TitleVariant =
+  /** O número-herói de um cartão (o score do cliente): maior que o `kpi`. */
+  | "display"
   | "heading-xl"
   | "heading-lg"
   | "heading-md"
@@ -30,7 +32,9 @@ export type TitleColor =
   | "purple"
   | "cyan"
   | "pink"
-  | "orange";
+  | "orange"
+  /** Herda a cor do pai: o texto dentro de um `TextLink`. */
+  | "inherit";
 
 export type TitleWeight =
   | "regular"

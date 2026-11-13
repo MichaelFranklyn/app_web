@@ -254,8 +254,7 @@ export default function GoalsContent({ canManage }: Props) {
                 <Grid.Item>
                   <GoalKpiCard
                     label="Clientes que compraram"
-                    status="neutral"
-                    valueClassName="text-(--blue)!"
+                    status="info"
                     values={totals.positivations}
                     help={GOAL_METRICS[2].help}
                   />

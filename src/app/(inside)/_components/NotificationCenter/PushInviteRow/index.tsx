@@ -28,7 +28,8 @@ export function PushInviteRow({ onEnable, isLoading }: Props) {
       tone="amber"
       onClick={onEnable}
       disabled={isLoading}
-      className="items-center gap-8 border-t"
+      separated
+      className="items-center gap-8"
     >
       {isLoading ? (
         <Loading.Spinner size="sm" colorClass="amber" />

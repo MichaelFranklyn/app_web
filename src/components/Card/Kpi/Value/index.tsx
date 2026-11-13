@@ -4,10 +4,10 @@ import { CardKpiValueProps } from "./interface";
 import { kpiValueStyle } from "./style";
 
 export const KpiValue = React.forwardRef<HTMLDivElement, CardKpiValueProps>(
-  ({ status, className, ...props }, ref) => (
+  ({ status, size, className, ...props }, ref) => (
     <div
       ref={ref}
-      className={cn(kpiValueStyle({ status }), className)}
+      className={cn(kpiValueStyle({ status, size }), className)}
       {...props}
     />
   )

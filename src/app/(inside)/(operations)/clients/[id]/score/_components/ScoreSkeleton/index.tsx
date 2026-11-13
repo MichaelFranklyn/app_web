@@ -13,7 +13,7 @@ function ProgressBarSkeleton() {
         <Loading.Skeleton className="h-[10px] w-20" />
         <Loading.Skeleton className="h-[10px] w-8" />
       </div>
-      <Loading.Skeleton className="h-[6px] w-full rounded-full" />
+      <Loading.Skeleton shape="pill" className="h-[6px] w-full" />
     </div>
   );
 }
@@ -26,7 +26,7 @@ function ListItemSkeleton() {
         <Loading.Skeleton className="h-[11px] w-32" />
         <Loading.Skeleton className="h-[9px] w-24" />
       </div>
-      <Loading.Skeleton className="h-[18px] w-14 rounded-full" />
+      <Loading.Skeleton shape="pill" className="h-[18px] w-14" />
     </div>
   );
 }

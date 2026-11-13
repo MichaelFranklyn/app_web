@@ -4,7 +4,7 @@ import { ThemeAppearance, ThemeColor } from "@/lib/theme";
 import NextLink from "next/link";
 import React from "react";
 import { ButtonContext } from "../Root/context";
-import { ButtonSize } from "../Root/interface";
+import { ButtonShape, ButtonSize } from "../Root/interface";
 import { getButtonClasses } from "../Root/style";
 
 interface ButtonLinkProps extends Omit<
@@ -21,6 +21,7 @@ interface ButtonLinkProps extends Omit<
   isIconOnly?: boolean;
   noUppercase?: boolean;
   dashed?: boolean;
+  shape?: ButtonShape;
   /** Nome acessível + tooltip, como no `Button.Root`. */
   label?: string;
 }
@@ -44,6 +45,7 @@ export const ButtonLink = React.forwardRef<HTMLAnchorElement, ButtonLinkProps>(
       isIconOnly = false,
       noUppercase = false,
       dashed = false,
+      shape = "default",
       label,
       title,
       className,
@@ -62,6 +64,7 @@ export const ButtonLink = React.forwardRef<HTMLAnchorElement, ButtonLinkProps>(
       noPadding: false,
       noUppercase,
       dashed,
+      shape,
       className,
     });
     const common = {

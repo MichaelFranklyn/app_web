@@ -25,8 +25,8 @@ export function UserMenu({
           color="amber"
           isIconOnly
           noPadding
+          shape="pill"
           aria-label="Abrir menu do usuário"
-          className="rounded-full"
         >
           <Avatar size="sm" color="amber" initials={initials} alt={name} />
         </Button.Root>

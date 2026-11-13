@@ -2,9 +2,9 @@ import { Badge } from "@/components/Badges";
 import { Card } from "@/components/Card";
 import { Divider } from "@/components/Divider";
 import { Title } from "@/components/Title";
+import { TextLink } from "@/components/TextLink";
 import { formatMoney } from "@/utils/format/masks";
 import { ArrowLeft } from "lucide-react";
-import Link from "next/link";
 import { PortalOrderDetail } from "../../interface";
 import {
   hasIpi,
@@ -25,13 +25,17 @@ interface PortalOrderContentProps {
 export function PortalOrderContent({ order, token }: PortalOrderContentProps) {
   return (
     <div className="flex flex-col gap-[16px]">
-      <Link
+      <TextLink
         href={`/p/${token}`}
-        className="flex items-center gap-[6px] text-(--muted) hover:text-(--text2)"
+        tone="muted"
+        underline="none"
+        className="flex items-center gap-[6px]"
       >
         <ArrowLeft size={16} />
-        <Title variant="body-sm">Minhas compras</Title>
-      </Link>
+        <Title variant="body-sm" color="inherit">
+          Minhas compras
+        </Title>
+      </TextLink>
 
       <Card.Root className="h-auto">
         <Card.Body padding="compact">

@@ -11,6 +11,12 @@ import Link from "next/link";
 import { CatalogLinkWithCount } from "../../interface";
 import { CATALOG_TONE, countLabel } from "../../utils";
 
+const ICON_COLOR = {
+  purple: "text-(--purple)",
+  green: "text-(--green)",
+  orange: "text-(--orange)",
+} as const;
+
 interface Props {
   link: CatalogLinkWithCount;
   /** Quantos itens o catálogo tem. `null` quando a contagem não veio. */
@@ -27,28 +33,20 @@ interface Props {
  */
 export function CatalogNavCard({ link, count }: Props) {
   const { icon: Icon, label, description, href, tone, noun } = link;
-  const skin = CATALOG_TONE[tone];
+  const color = CATALOG_TONE[tone];
   const isEmpty = count === 0;
 
   return (
     <Link href={href} className="group block h-full focus-visible:outline-none">
-      <Card.Root
-        className={cn(
-          "h-full transition-all duration-200",
-          "group-hover:-translate-y-[2px] group-hover:border-(--border2) group-hover:shadow-(--shadow-md)",
-          "group-focus-visible:border-(--amber) group-focus-visible:shadow-(--shadow-md)"
-        )}
-      >
+      <Card.Root lift className="h-full">
         <Card.Body className="flex h-full flex-col gap-12">
           <div className="flex items-start gap-12">
             <IconTile
               aria-hidden
               shape="square"
               size="lg"
-              className={cn(
-                "transition-transform duration-200 group-hover:scale-105",
-                skin.chip
-              )}
+              color={color}
+              className="transition-transform duration-200 group-hover:scale-105"
             >
               <Icon />
             </IconTile>
@@ -79,7 +77,7 @@ export function CatalogNavCard({ link, count }: Props) {
                 size={16}
                 className={cn(
                   "shrink-0 transition-transform duration-200 group-hover:translate-x-[3px]",
-                  skin.icon
+                  ICON_COLOR[color]
                 )}
               />
             </div>

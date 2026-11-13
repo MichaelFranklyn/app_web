@@ -64,7 +64,8 @@ export function VisitScoreReasons({ reasons }: Props) {
                       <Dot.Root
                         color={reason.tone}
                         pulse={false}
-                        className="mt-[6px] opacity-100"
+                        intensity="solid"
+                        className="mt-[6px]"
                       />
                       <Title variant="body-xs" color="secondary">
                         <Emphasis>{reason.label}</Emphasis> — {reason.why}

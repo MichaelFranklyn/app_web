@@ -65,14 +65,7 @@ export function ReportChartCard({
     }
     // No refetch (troca de filtro) o gráfico anterior fica esmaecido em vez de
     // sumir: o flash de vazio-e-volta é lido como erro.
-    return (
-      <div
-        className="transition-opacity duration-200"
-        style={{ opacity: loading ? 0.6 : 1 }}
-      >
-        <Chart option={option} height={height} />
-      </div>
-    );
+    return <Chart option={option} height={height} dimmed={loading} />;
   };
 
   return (

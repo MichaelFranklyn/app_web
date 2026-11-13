@@ -2,9 +2,9 @@
 
 import { ContactTypeTag } from "@/components/ContactTypeTag";
 import { Title } from "@/components/Title";
+import { TextLink } from "@/components/TextLink";
 import { useQueryErrorToast } from "@/hooks/useQueryErrorToast";
 import { useQuery } from "@apollo/client/react";
-import Link from "next/link";
 import { useMemo } from "react";
 
 import { dayChipLabel } from "../../utils";
@@ -80,11 +80,11 @@ export function ScheduledVisits({
       ) : (
         byDay.map(([date, dayVisits]) => (
           <div key={date} className="flex flex-col gap-4">
-            <Link href={dayHref(date)} className="w-fit hover:underline">
+            <TextLink href={dayHref(date)} tone="inherit" className="w-fit">
               <Title variant="body-xs" weight="semibold" color="secondary">
                 {dayChipLabel(date)}
               </Title>
-            </Link>
+            </TextLink>
             {dayVisits.map((visit) => (
               <div
                 key={visit.itemId}

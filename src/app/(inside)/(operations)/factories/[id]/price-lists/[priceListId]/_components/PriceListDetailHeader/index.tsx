@@ -10,6 +10,7 @@ import { PriceListDetail } from "../../interface";
 import { DeletePriceListModal } from "./DeletePriceListModal";
 import { EditPriceListModal } from "./EditPriceListModal";
 import { PromotionModal } from "./PromotionModal";
+import { Emphasis } from "@/components/Emphasis";
 
 interface Props {
   priceList: PriceListDetail | null | undefined;
@@ -64,9 +65,9 @@ export function PriceListDetailHeader({
               {promoWindow && (
                 <>
                   {" · "}
-                  <span className="text-(--orange)">
+                  <Emphasis tone="promo">
                     Promoção relâmpago: {promoWindow}
-                  </span>
+                  </Emphasis>
                 </>
               )}
             </PanelHeader.Description>

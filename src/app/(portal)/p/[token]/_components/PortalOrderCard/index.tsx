@@ -33,7 +33,7 @@ interface PortalOrderCardProps {
 export function PortalOrderCard({ order, token }: PortalOrderCardProps) {
   return (
     <Link href={`/p/${token}/pedidos/${order.id}`} className="block">
-      <Card.Root className="h-auto transition-colors hover:bg-(--bg3)">
+      <Card.Root interactive className="h-auto">
         <Card.Body padding="compact">
           <div className="flex flex-col gap-[12px]">
             <div className="flex items-start justify-between gap-[12px]">

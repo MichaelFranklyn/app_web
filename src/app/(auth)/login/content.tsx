@@ -1,5 +1,6 @@
 "use client";
 
+import { Emphasis } from "@/components/Emphasis";
 import { Button } from "@/components/Button";
 import { Card } from "@/components/Card";
 import { Divider } from "@/components/Divider";
@@ -8,12 +9,13 @@ import { Input } from "@/components/Input";
 import { Responsive } from "@/components/Responsive";
 import { RootPage } from "@/components/RootPage";
 import { Title } from "@/components/Title";
+import { TextLink } from "@/components/TextLink";
 import { useAsyncAction } from "@/hooks/useAsyncAction";
 import { CHOOSE_OFFICE_ROUTE } from "@/utils/auth/offices";
 import { postSession } from "@/utils/auth/session";
 import { TRIAL_DAYS } from "@/utils/trial";
 import { ArrowRight } from "lucide-react";
-import Image from "next/image";
+import { BrandLogo } from "@/components/BrandLogo";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useRef, useState } from "react";
@@ -69,27 +71,21 @@ export default function LoginContent() {
           {/* A marca leva à vitrine: quem cai aqui por link direto e ainda
               não conhece o sistema precisa de um caminho de volta. */}
           <Link href="/" aria-label="Conhecer o Itinus">
-            <Image
-              src="/horizontal_logo.png"
-              alt="Itinus"
-              width={1023}
-              height={256}
-              priority
-              className="h-auto w-60"
-            />
+            <BrandLogo priority className="w-60" />
           </Link>
 
           <Title
-            variant="heading-lg"
+            variant="kpi"
+            as="h1"
             weight="extrabold"
-            className="pt-8 text-[32px]! uppercase"
+            className="pt-8 uppercase"
           >
             {HEADLINE.lead}
             <br />
-            <span className="text-(--amber)">{HEADLINE.highlight}</span>
+            <Emphasis tone="accent">{HEADLINE.highlight}</Emphasis>
           </Title>
 
-          <Title variant="caption" color="muted" className="leading-[1.6]!">
+          <Title variant="body" color="muted">
             {SUBTITLE}
           </Title>
 
@@ -119,18 +115,11 @@ export default function LoginContent() {
               entra todo dia. */}
           <Responsive.Hide from="desktop" className="flex justify-center">
             <Link href="/" aria-label="Conhecer o Itinus">
-              <Image
-                src="/horizontal_logo.png"
-                alt="Itinus"
-                width={1023}
-                height={256}
-                priority
-                className="h-auto w-[180px]"
-              />
+              <BrandLogo priority className="w-[180px]" />
             </Link>
           </Responsive.Hide>
 
-          <Card.Root className="w-full shadow-(--shadow-md)">
+          <Card.Root elevated className="w-full">
             <Card.Header bg="bg3">
               <Card.Header.Eyebrow>Autenticação</Card.Header.Eyebrow>
               <Card.Header.Title>Bem-vindo de volta</Card.Header.Title>
@@ -218,9 +207,7 @@ export default function LoginContent() {
           >
             <span>{TRIAL_DAYS} dias grátis · sem cartão</span>
             <span aria-hidden>·</span>
-            <Link href="/" className="text-(--amber) hover:underline">
-              Conhecer o Itinus
-            </Link>
+            <TextLink href="/">Conhecer o Itinus</TextLink>
           </Title>
         </div>
       </Responsive.Box>

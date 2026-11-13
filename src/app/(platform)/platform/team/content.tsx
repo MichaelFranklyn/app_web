@@ -41,9 +41,7 @@ export default function PlatformTeamContent({ seed }: TeamContentProps) {
       <PanelHeader.Root>
         <PanelHeader.Top>
           <PanelHeader.Left>
-            <PanelHeader.Eyebrow className="text-(--purple)">
-              Console
-            </PanelHeader.Eyebrow>
+            <PanelHeader.Eyebrow color="purple">Console</PanelHeader.Eyebrow>
             <PanelHeader.Title>Equipe da plataforma</PanelHeader.Title>
             <PanelHeader.Description>
               Quem enxerga todas as empresas. Contas de suporte são criadas e

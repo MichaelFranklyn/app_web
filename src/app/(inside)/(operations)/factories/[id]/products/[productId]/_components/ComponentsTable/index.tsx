@@ -6,11 +6,11 @@ import { HelpTooltip } from "@/components/HelpTooltip";
 import { PRODUCT_COMPONENT_COLUMN_HELP } from "../../../../../help";
 import { Table } from "@/components/Table";
 import { Title } from "@/components/Title";
+import { TextLink } from "@/components/TextLink";
 import { useOptimisticList } from "@/hooks/useOptimisticList";
 import { formatNumber } from "@/utils/format/masks";
 import { useQuery } from "@apollo/client/react";
 import { Boxes } from "lucide-react";
-import Link from "next/link";
 import { useMemo } from "react";
 import { AddComponentModal } from "./AddComponentModal";
 import { EditComponentModal } from "./EditComponentModal";
@@ -113,14 +113,14 @@ export function ComponentsTable({ productId, companyFactoryId }: Props) {
                 <Table.Cell>
                   <div className="flex flex-col">
                     {item.component ? (
-                      <Link
+                      <TextLink
                         href={`/factories/${companyFactoryId}/products/${item.component.id}`}
-                        className="hover:underline"
+                        tone="inherit"
                       >
                         <Table.CellText variant="strong">
                           {item.component.name}
                         </Table.CellText>
-                      </Link>
+                      </TextLink>
                     ) : (
                       <Table.CellText variant="strong">—</Table.CellText>
                     )}

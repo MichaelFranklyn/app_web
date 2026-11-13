@@ -81,7 +81,7 @@ export function UserProfileSkeleton({
           <PanelHeader.Top>
             <PanelHeader.Left>
               <div className="flex items-center gap-12">
-                <Loading.Skeleton className="h-[48px] w-[48px] rounded-full" />
+                <Loading.Skeleton shape="pill" className="h-[48px] w-[48px]" />
                 <div className="flex flex-col gap-[6px]">
                   <Loading.Skeleton className="h-[24px] w-56" />
                   <Loading.Skeleton className="h-[12px] w-72" />
@@ -89,8 +89,8 @@ export function UserProfileSkeleton({
               </div>
 
               <PanelHeader.Actions className="mt-12">
-                <Loading.Skeleton className="h-[24px] w-[88px] rounded-(--r-sm)" />
-                <Loading.Skeleton className="h-[24px] w-[64px] rounded-(--r-sm)" />
+                <Loading.Skeleton className="h-[24px] w-[88px]" />
+                <Loading.Skeleton className="h-[24px] w-[64px]" />
               </PanelHeader.Actions>
             </PanelHeader.Left>
           </PanelHeader.Top>

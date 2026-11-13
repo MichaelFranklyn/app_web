@@ -1,3 +1,4 @@
+import { Emphasis } from "@/components/Emphasis";
 import { Divider } from "@/components/Divider";
 import { Card } from "@/components/Card";
 import { Input } from "@/components/Input";
@@ -88,9 +89,9 @@ export function PartialItemsSection({
                         {missing > 0 && (
                           <>
                             {" · "}
-                            <span className="text-(--amber)">
+                            <Emphasis tone="accent">
                               faltam {formatNumber(missing)}
-                            </span>
+                            </Emphasis>
                           </>
                         )}
                       </Title>

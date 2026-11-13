@@ -1,4 +1,5 @@
 import React from "react";
+import type { KpiStatus } from "../Value/style";
 
 export interface CardKpiRootProps extends React.HTMLAttributes<HTMLDivElement> {
   children: React.ReactNode;
@@ -17,6 +18,5 @@ export interface KpiItem {
   help?: React.ReactNode;
   positive?: boolean;
   negative?: boolean;
-  status: "urgente" | "atencao" | "ok" | "neutral";
-  valueClassName?: string;
+  status: KpiStatus;
 }

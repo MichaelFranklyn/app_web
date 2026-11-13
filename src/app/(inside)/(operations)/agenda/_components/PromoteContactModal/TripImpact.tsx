@@ -38,7 +38,7 @@ export function TripImpact({
   return (
     <div className="flex flex-col gap-12">
       <Alert.Root variant="neutral" className="items-center">
-        <Alert.Icon icon={Car} className="text-(--muted)" />
+        <Alert.Icon icon={Car} muted />
         <Alert.Content>
           <Alert.Description>
             {preview.distanceKm.toFixed(0)} km de distância ·{" "}

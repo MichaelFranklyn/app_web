@@ -19,7 +19,7 @@ function FactoryCardSkeleton() {
               <Loading.Skeleton className="h-[10px] w-28" />
               <Loading.Skeleton className="h-[10px] w-20" />
             </div>
-            <Loading.Skeleton className="h-[20px] w-14 rounded-(--r-xs)" />
+            <Loading.Skeleton shape="xs" className="h-[20px] w-14" />
           </div>
 
           <div className="flex flex-col gap-[12px]">

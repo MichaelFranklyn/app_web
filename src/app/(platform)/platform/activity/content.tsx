@@ -10,11 +10,11 @@ import { PanelHeader } from "@/components/PanelHeader";
 import { QueryError } from "@/components/QueryError";
 import { Table } from "@/components/Table";
 import { Title } from "@/components/Title";
+import { TextLink } from "@/components/TextLink";
 import { useSeedQuery } from "@/hooks/useSeedQuery";
 import { useTableData } from "@/hooks/useTableData";
 import { useQuery } from "@apollo/client/react";
 import { Activity } from "lucide-react";
-import Link from "next/link";
 import { operationLabel } from "../utils";
 import { ActivityPulse } from "./_components/ActivityPulse";
 import { ACTIVITY_SUMMARY_QUERY, PLATFORM_ACTIVITY_QUERY } from "./gql";
@@ -82,9 +82,7 @@ export default function ActivityContent({
       <PanelHeader.Root>
         <PanelHeader.Top>
           <PanelHeader.Left>
-            <PanelHeader.Eyebrow className="text-(--purple)">
-              Console
-            </PanelHeader.Eyebrow>
+            <PanelHeader.Eyebrow color="purple">Console</PanelHeader.Eyebrow>
             <PanelHeader.Title>
               {companyName
                 ? `Histórico — ${companyName}`
@@ -98,15 +96,16 @@ export default function ActivityContent({
             {/* O recorte precisa ter volta visível: sem ela, o número menor na
                 tela filtrada passa por queda de uso da plataforma inteira. */}
             {companyId && (
-              <Link href="/platform/activity" className="w-fit">
-                <Title
-                  variant="body-sm"
-                  color="muted"
-                  className="underline underline-offset-2"
-                >
+              <TextLink
+                href="/platform/activity"
+                tone="muted"
+                underline="always"
+                className="w-fit"
+              >
+                <Title variant="body-sm" color="inherit">
                   Ver a plataforma inteira
                 </Title>
-              </Link>
+              </TextLink>
             )}
           </PanelHeader.Left>
         </PanelHeader.Top>
@@ -219,18 +218,16 @@ export default function ActivityContent({
                           {/* A empresa vira link: quase toda investigação
                               continua na ficha dela. */}
                           {row.companyId && (
-                            <Link
+                            <TextLink
                               href={`/platform/companies/${row.companyId}`}
+                              tone="muted"
+                              underline="always"
                               className="w-fit"
                             >
-                              <Title
-                                variant="micro"
-                                color="muted"
-                                className="underline underline-offset-2"
-                              >
+                              <Title variant="micro" color="inherit">
                                 ver empresa
                               </Title>
-                            </Link>
+                            </TextLink>
                           )}
                         </div>
                       ) : (

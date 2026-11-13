@@ -53,9 +53,7 @@ export default function PlatformEmailsContent({ seed }: EmailsContentProps) {
       <PanelHeader.Root>
         <PanelHeader.Top>
           <PanelHeader.Left>
-            <PanelHeader.Eyebrow className="text-(--purple)">
-              Console
-            </PanelHeader.Eyebrow>
+            <PanelHeader.Eyebrow color="purple">Console</PanelHeader.Eyebrow>
             <PanelHeader.Title>Emails</PanelHeader.Title>
             <PanelHeader.Description>
               O que saiu, o que chegou e quem está bloqueado. Busque pelo

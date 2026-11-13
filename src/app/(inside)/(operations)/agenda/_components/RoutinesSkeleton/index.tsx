@@ -26,7 +26,7 @@ function VisitItemSkeleton() {
         <Loading.Skeleton className="mb-[8px] h-[9px] w-1/2" />
         <div className="flex items-center justify-between">
           <Loading.Skeleton className="h-[10px] w-12" />
-          <Loading.Skeleton className="h-[18px] w-14 rounded-full" />
+          <Loading.Skeleton shape="pill" className="h-[18px] w-14" />
         </div>
       </Card.Body>
     </Card.Root>
@@ -43,7 +43,7 @@ function DayColumnSkeleton() {
             <Loading.Skeleton className="h-[13px] w-16" />
             <Loading.Skeleton className="h-[9px] w-20" />
           </div>
-          <Loading.Skeleton className="h-[18px] w-6 rounded-full" />
+          <Loading.Skeleton shape="pill" className="h-[18px] w-6" />
         </Card.Header>
         <Card.Body>
           <div className="flex flex-col gap-6">

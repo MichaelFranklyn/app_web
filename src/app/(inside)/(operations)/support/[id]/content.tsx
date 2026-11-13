@@ -96,7 +96,7 @@ export default function SupportCaseContent() {
       <PanelHeader.Root>
         <PanelHeader.Top>
           <PanelHeader.Left>
-            <PanelHeader.Eyebrow className="text-(--green)">
+            <PanelHeader.Eyebrow color="green">
               {clientDisplayName(supportCase.client)}
             </PanelHeader.Eyebrow>
             <PanelHeader.Title>{supportCase.title}</PanelHeader.Title>

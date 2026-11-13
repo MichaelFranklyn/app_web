@@ -35,7 +35,7 @@ export default function ChooseOfficeContent() {
 
   return (
     <RootPage.Root className="flex min-h-screen items-center justify-center px-16 py-40">
-      <Card.Root className="w-full max-w-120 shadow-(--shadow-md)">
+      <Card.Root elevated className="w-full max-w-120">
         <Card.Header bg="bg3">
           <Card.Header.Eyebrow>Escritórios</Card.Header.Eyebrow>
           <Card.Header.Title>

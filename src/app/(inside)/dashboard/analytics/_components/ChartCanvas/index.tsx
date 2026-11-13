@@ -81,15 +81,11 @@ export function ChartCanvas({
   }
 
   return (
-    <div
-      className="transition-opacity duration-200"
-      style={{ opacity: loading ? 0.6 : 1 }}
-    >
-      <Chart
-        option={customizeChart(option, prefs)}
-        height={height}
-        onInit={registerInstance}
-      />
-    </div>
+    <Chart
+      option={customizeChart(option, prefs)}
+      height={height}
+      onInit={registerInstance}
+      dimmed={loading}
+    />
   );
 }

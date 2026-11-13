@@ -44,9 +44,7 @@ export default function PlatformAuditContent({
       <PanelHeader.Root>
         <PanelHeader.Top>
           <PanelHeader.Left>
-            <PanelHeader.Eyebrow className="text-(--purple)">
-              Console
-            </PanelHeader.Eyebrow>
+            <PanelHeader.Eyebrow color="purple">Console</PanelHeader.Eyebrow>
             <PanelHeader.Title>Auditoria</PanelHeader.Title>
             <PanelHeader.Description>
               Tudo que a plataforma fez sobre as empresas. Não registra a

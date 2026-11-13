@@ -13,7 +13,21 @@ export interface DotProps extends React.HTMLAttributes<HTMLDivElement> {
    * (uma execução por traço) — o padrão se lê na faixa inteira de uma vez.
    */
   shape?: "circle" | "bar";
+  /**
+   * Força da cor. `soft` (padrão) é o ponto de status ao lado de texto;
+   * `solid` marca o item que pede o olho (motivo do score, não lida);
+   * `faint` é o "ainda não" (regra de senha não cumprida).
+   */
+  intensity?: DotIntensity;
 }
+
+export type DotIntensity = "soft" | "solid" | "faint";
+
+const intensityClasses: Record<DotIntensity, string> = {
+  soft: "opacity-60",
+  solid: "opacity-100",
+  faint: "opacity-40",
+};
 
 const colorClasses: Record<ThemeColor, string> = {
   amber: "bg-(--amber)",
@@ -45,6 +59,7 @@ export const DotRoot = React.forwardRef<HTMLDivElement, DotProps>(
       size = "sm",
       pulse = true,
       shape = "circle",
+      intensity = "soft",
       className,
       ...props
     },
@@ -57,7 +72,11 @@ export const DotRoot = React.forwardRef<HTMLDivElement, DotProps>(
           "shrink-0",
           shape === "bar"
             ? "h-[18px] w-[10px] rounded-[2px]"
-            : cn("rounded-full opacity-60", sizeClasses[size]),
+            : cn(
+                "rounded-full",
+                intensityClasses[intensity],
+                sizeClasses[size]
+              ),
           colorClasses[color],
           pulse && "animate-pulse-soft",
           className

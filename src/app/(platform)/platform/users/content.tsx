@@ -50,9 +50,7 @@ export default function PlatformUsersContent({
       <PanelHeader.Root>
         <PanelHeader.Top>
           <PanelHeader.Left>
-            <PanelHeader.Eyebrow className="text-(--purple)">
-              Console
-            </PanelHeader.Eyebrow>
+            <PanelHeader.Eyebrow color="purple">Console</PanelHeader.Eyebrow>
             <PanelHeader.Title>Pessoas</PanelHeader.Title>
             <PanelHeader.Description>
               Todas as contas da plataforma. Abra uma para liberar acesso,

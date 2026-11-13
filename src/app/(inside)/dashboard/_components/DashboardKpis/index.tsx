@@ -62,9 +62,7 @@ export function DashboardKpis({
         <Grid.Item>
           <Card.Kpi>
             <Card.Kpi.Label>Visitas realizadas</Card.Kpi.Label>
-            <Card.Kpi.Value status="neutral" className="text-(--blue)!">
-              {completedVisits}
-            </Card.Kpi.Value>
+            <Card.Kpi.Value status="info">{completedVisits}</Card.Kpi.Value>
             <Card.Kpi.Delta>
               {totalPlannedVisits > 0
                 ? `de ${totalPlannedVisits} planejadas · ${completionRate}%`

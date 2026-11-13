@@ -293,14 +293,11 @@ export function PromotionModal({ priceList, onChanged }: Props) {
                 {filteredProducts.map((p) => (
                   <div key={p.id} className="flex flex-col gap-8">
                     <div className="flex flex-col">
-                      <Title
-                        variant="body-sm"
-                        className="font-(--weight-medium)"
-                      >
+                      <Title variant="body-sm" weight="medium">
                         {p.name}
                       </Title>
                       {p.sku && (
-                        <Title variant="body-xs" className="text-(--text-dim)">
+                        <Title variant="body-xs" color="muted">
                           {p.sku}
                         </Title>
                       )}
@@ -314,10 +311,7 @@ export function PromotionModal({ priceList, onChanged }: Props) {
                           <Title variant="body-sm">
                             {item.tier?.name ?? "—"}
                           </Title>
-                          <Title
-                            variant="body-xs"
-                            className="text-(--text-dim)"
-                          >
+                          <Title variant="body-xs" color="muted">
                             Preço atual: {formatMoney(Number(item.unitPrice))}
                           </Title>
                         </div>
@@ -338,7 +332,8 @@ export function PromotionModal({ priceList, onChanged }: Props) {
                 {filteredProducts.length === 0 && (
                   <Title
                     variant="body-sm"
-                    className="py-12 text-center text-(--text-dim)"
+                    color="muted"
+                    className="py-12 text-center"
                   >
                     Nenhum produto encontrado para “{search}”.
                   </Title>
@@ -346,7 +341,7 @@ export function PromotionModal({ priceList, onChanged }: Props) {
               </div>
             )}
 
-            <Title variant="body-sm" className="text-(--text-dim)">
+            <Title variant="body-sm" color="muted">
               {promotedCount > 0
                 ? `${promotedCount} preço(s) em promoção.`
                 : "Nenhum preço em promoção — salvar assim encerra a promoção."}

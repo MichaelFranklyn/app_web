@@ -1,6 +1,6 @@
+import { Button } from "@/components/Button";
 import { EmptyState } from "@/components/EmptyState";
 import { FileQuestion } from "lucide-react";
-import Link from "next/link";
 
 interface PortalOrderNotFoundProps {
   token: string;
@@ -17,12 +17,14 @@ export function PortalOrderNotFound({ token }: PortalOrderNotFoundProps) {
         Ele pode ter sido removido, ou o endereço está incompleto.
       </EmptyState.Description>
       <EmptyState.Actions>
-        <Link
+        <Button.Link
           href={`/p/${token}`}
-          className="rounded-[8px] border border-(--border) px-[16px] py-[10px] text-[14px] text-(--text2) hover:bg-(--bg3)"
+          appearance="outline"
+          color="neutral"
+          noUppercase
         >
-          Voltar para as minhas compras
-        </Link>
+          <Button.Title>Voltar para as minhas compras</Button.Title>
+        </Button.Link>
       </EmptyState.Actions>
     </EmptyState.Root>
   );

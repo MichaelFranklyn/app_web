@@ -22,7 +22,7 @@ function HeaderSkeleton() {
             <Loading.Skeleton className="h-[20px] w-72" />
             <Loading.Skeleton className="mt-[6px] h-[12px] w-56" />
             <PanelHeader.Actions className="mt-6">
-              <Loading.Skeleton className="h-[22px] w-20 rounded-full" />
+              <Loading.Skeleton shape="pill" className="h-[22px] w-20" />
               <Loading.Skeleton className="h-[36px] w-28" />
               <Loading.Skeleton className="h-[36px] w-24" />
               <Loading.Skeleton className="h-[36px] w-24" />
@@ -40,7 +40,7 @@ function ItemsTableSkeleton() {
     <Table.Root>
       <Table.CardHead>
         <Loading.Skeleton className="h-[16px] w-32" />
-        <Loading.Skeleton className="h-[20px] w-16 rounded-full" />
+        <Loading.Skeleton shape="pill" className="h-[20px] w-16" />
       </Table.CardHead>
       <Table.Table>
         <Table.Header>

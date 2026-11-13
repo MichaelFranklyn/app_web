@@ -3,6 +3,9 @@ import { ThemeAppearance, ThemeColor } from "@/lib/theme";
 
 export type ButtonSize = "lg" | "md" | "sm" | "xs";
 
+/** `pill` arredonda por inteiro: avatar no topo, ícone de ajuda redondo. */
+export type ButtonShape = "default" | "pill";
+
 export interface ButtonProps extends ButtonHTMLAttributes<HTMLButtonElement> {
   appearance?: ThemeAppearance;
   color?: ThemeColor;
@@ -18,6 +21,7 @@ export interface ButtonProps extends ButtonHTMLAttributes<HTMLButtonElement> {
    * lugar do item que ainda não existe (fim de lista, célula vazia).
    */
   dashed?: boolean;
+  shape?: ButtonShape;
   /**
    * Nome acessível + tooltip nativo do botão. Obrigatório na prática para
    * botões `isIconOnly` (ações de linha), onde não há texto visível: alimenta

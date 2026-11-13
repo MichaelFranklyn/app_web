@@ -1,3 +1,4 @@
+import { Emphasis } from "@/components/Emphasis";
 import { FormStepSchema } from "@/components/FormBuilder";
 import { labelWithHelp } from "@/components/HelpTooltip";
 import { useLogoUpload } from "@/components/LogoUpload";
@@ -157,10 +158,10 @@ export function useEditProduct({
                 required: true,
                 placeholder: "Ex: 12",
                 hint: packNeedsReview ? (
-                  <span className="text-(--amber)">
+                  <Emphasis tone="accent">
                     Assumimos 1 na importação — confirme as unidades por
                     embalagem.
-                  </span>
+                  </Emphasis>
                 ) : undefined,
               },
               {

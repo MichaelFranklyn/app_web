@@ -65,11 +65,7 @@ export function FactoryScoreModal({ score, onClose }: Props) {
               <ScoreBars score={score} />
               <DividerRoot />
               <div className="flex items-center gap-10">
-                <Title
-                  variant="kpi"
-                  color={scoreBarColor(total)}
-                  className="text-[44px]"
-                >
+                <Title variant="display" color={scoreBarColor(total)}>
                   {total.toFixed(0)}
                 </Title>
                 <Title variant="caption">

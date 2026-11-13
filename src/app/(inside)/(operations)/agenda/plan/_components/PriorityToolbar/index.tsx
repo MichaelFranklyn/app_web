@@ -6,6 +6,7 @@ import { ToggleGroup } from "@/components/ToggleGroup";
 
 import { RoutineSellerOption } from "../../../interface";
 import { PriorityScope } from "../../interface";
+import { Title } from "@/components/Title";
 
 const SCOPE_OPTIONS: { value: PriorityScope; label: string }[] = [
   { value: "priority", label: "Prioritários" },
@@ -78,12 +79,12 @@ export function PriorityToolbar({
         <HelpTooltip
           label="O que entra em Prioritários?"
           content={
-            <p>
+            <Title variant="body-sm" color="inherit">
               Prioritários são a metade de cima da sua lista — quem mais precisa
               de você agora — e quem pediu visita. Em Toda a carteira aparecem
               também os que podem esperar. Quem já está escolhido nunca some da
               tela.
-            </p>
+            </Title>
           }
         />
       </div>
