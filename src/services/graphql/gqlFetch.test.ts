@@ -7,7 +7,7 @@ import { gqlFetch, GqlNotFoundError } from "./gqlFetch";
 // a env precisa estar de pé ANTES do import — e o `vi.hoisted` é justamente o
 // que roda antes deles.
 const { getServerCookie } = vi.hoisted(() => {
-  process.env.NEXT_PUBLIC_GRAPHQL_API_HOST = "https://api.girus.test/graphql";
+  process.env.NEXT_PUBLIC_GRAPHQL_API_HOST = "https://api.itinus.test/graphql";
   return { getServerCookie: vi.fn() };
 });
 vi.mock("@/utils/cookies/serverCookie", () => ({ getServerCookie }));
@@ -104,7 +104,7 @@ describe("gqlFetch", () => {
 
     await gqlFetch({ query: QUERY });
 
-    expect(enviado().uri).toBe("https://api.girus.test/graphql?op=Clients");
+    expect(enviado().uri).toBe("https://api.itinus.test/graphql?op=Clients");
     expect(enviado().body.operationName).toBe("Clients");
   });
 
@@ -123,7 +123,7 @@ describe("gqlFetch", () => {
 
     await gqlFetch({ query: "{ coisa { id } }" });
 
-    expect(enviado().uri).toBe("https://api.girus.test/graphql");
+    expect(enviado().uri).toBe("https://api.itinus.test/graphql");
   });
 
   it("autentica com o token do cookie", async () => {

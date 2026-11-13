@@ -37,3 +37,37 @@ export const REVOKE_CLIENT_PORTAL_LINK_MUTATION = gql`
     }
   }
 `;
+
+/** Só o que o seletor do email precisa. Nome de operação próprio para não
+ * colidir com o `ClientContacts` da ficha nos mocks do E2E. */
+export const PORTAL_LINK_CONTACTS_QUERY = gql`
+  query PortalLinkContacts($clientId: UUID!, $input: BaseListInput!) {
+    clientContacts(clientId: $clientId, input: $input) {
+      edges {
+        node {
+          id
+          name
+          email
+          isPrimary
+          isActive
+        }
+      }
+      totalCount
+    }
+  }
+`;
+
+export const SEND_CLIENT_PORTAL_LINK_EMAIL_MUTATION = gql`
+  mutation SendClientPortalLinkEmail(
+    $companyClientId: UUID!
+    $input: SendClientPortalLinkEmailInput!
+  ) {
+    sendClientPortalLinkEmail(
+      companyClientId: $companyClientId
+      input: $input
+    ) {
+      status
+      message
+    }
+  }
+`;

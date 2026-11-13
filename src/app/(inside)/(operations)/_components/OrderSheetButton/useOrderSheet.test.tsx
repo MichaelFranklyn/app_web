@@ -3,12 +3,12 @@ import { act, renderHook, waitFor } from "@testing-library/react";
 import { ReactNode } from "react";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 
-const { downloadOrderSheet, loadImage, loadGirusLogo, branding } = vi.hoisted(
+const { downloadOrderSheet, loadImage, loadBrandLogo, branding } = vi.hoisted(
   () => ({
     downloadOrderSheet: vi.fn(async () => {}),
     loadImage: vi.fn(async () => ({ dataUrl: "logo", width: 10, height: 10 })),
-    loadGirusLogo: vi.fn(async () => ({
-      dataUrl: "girus",
+    loadBrandLogo: vi.fn(async () => ({
+      dataUrl: "itinus",
       width: 10,
       height: 10,
     })),
@@ -18,7 +18,7 @@ const { downloadOrderSheet, loadImage, loadGirusLogo, branding } = vi.hoisted(
 
 vi.mock("@/utils/orderSheet", () => ({ downloadOrderSheet }));
 vi.mock("@/utils/media", () => ({ loadImage }));
-vi.mock("@/utils/pdf/footer", () => ({ loadGirusLogo }));
+vi.mock("@/utils/pdf/footer", () => ({ loadBrandLogo }));
 vi.mock("@/hooks/useCompanyBranding", () => ({
   useCompanyBranding: () => branding,
 }));
@@ -76,7 +76,7 @@ describe("useOrderSheet", () => {
     expect(options.brand).toMatchObject({
       companyName: "Contato Rep.",
       companyLogo: { dataUrl: "logo" },
-      girusLogo: { dataUrl: "girus" },
+      brandLogo: { dataUrl: "itinus" },
     });
   });
 

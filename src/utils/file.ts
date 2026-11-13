@@ -1,5 +1,8 @@
-/** Lê um arquivo e devolve o conteúdo em base64 (sem o prefixo data URL). */
-export const fileToBase64 = (file: File): Promise<string> =>
+/**
+ * Lê um arquivo (ou qualquer Blob, como um PDF gerado no navegador) e devolve
+ * o conteúdo em base64, sem o prefixo data URL.
+ */
+export const fileToBase64 = (file: Blob): Promise<string> =>
   new Promise((resolve, reject) => {
     const reader = new FileReader();
     reader.onload = () => resolve(String(reader.result).split(",", 2)[1] ?? "");

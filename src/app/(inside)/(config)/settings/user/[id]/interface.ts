@@ -1,4 +1,4 @@
-import { UserDetail } from "../../../../../_shared/userProfile";
+import { UserDetail } from "../../../_shared/userProfile";
 
 export interface UpdateMyProfileResponse {
   updateMyProfile: {

@@ -199,7 +199,9 @@ export const FACTORY_CONTACTS_QUERY = gql`
           name
           role
           phone
+          email
           isPrimary
+          isActive
         }
       }
     }
@@ -209,6 +211,26 @@ export const FACTORY_CONTACTS_QUERY = gql`
 export const MARK_ORDER_SENT_MUTATION = gql`
   mutation MarkOrderSent($id: UUID!, $input: MarkOrderSentInput!) {
     markOrderSent(id: $id, input: $input) {
+      status
+      message
+      data {
+        id
+        status
+        sentAt
+        sentChannel
+        sentByName
+        sentNote
+      }
+    }
+  }
+`;
+
+export const SEND_ORDER_TO_FACTORY_EMAIL_MUTATION = gql`
+  mutation SendOrderToFactoryEmail(
+    $id: UUID!
+    $input: SendOrderToFactoryEmailInput!
+  ) {
+    sendOrderToFactoryEmail(id: $id, input: $input) {
       status
       message
       data {

@@ -2,7 +2,7 @@ import { getTodayIso } from "@/utils/format/date";
 import { formatDateDMY } from "@/utils/format/masks";
 import { trimTransparent } from "@/utils/image";
 import { loadImage } from "@/utils/media";
-import { drawFooters, loadGirusLogo } from "@/utils/pdf/footer";
+import { drawFooters, loadBrandLogo } from "@/utils/pdf/footer";
 import { drawReportHeader } from "@/utils/pdf/reportHeader";
 import { drawReportTable, ReportColumn } from "@/utils/pdf/table";
 import { PAGE } from "@/utils/pdf/theme";
@@ -58,8 +58,8 @@ export const exportReportPdf = async <T>(
 
   // O recorte da moldura transparente mantém a marca do mesmo tamanho visual dos
   // outros documentos. Logo é enfeite: falhar em carregar não impede o PDF.
-  const [companyLogo, girusLogo] = await Promise.all(
-    [loadImage(meta.companyLogoUrl), loadGirusLogo()].map((pending) =>
+  const [companyLogo, brandLogo] = await Promise.all(
+    [loadImage(meta.companyLogoUrl), loadBrandLogo()].map((pending) =>
       pending.then(trimTransparent)
     )
   );
@@ -87,6 +87,6 @@ export const exportReportPdf = async <T>(
     totalsLabel: totals?.label,
   });
 
-  drawFooters(pdf, girusLogo);
+  drawFooters(pdf, brandLogo);
   pdf.save(reportFileName(meta.slug, meta.from, "pdf"));
 };

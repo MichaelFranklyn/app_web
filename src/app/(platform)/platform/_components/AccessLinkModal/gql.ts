@@ -10,6 +10,7 @@ export const ISSUE_ACCESS_LINK_MUTATION = gql`
         link
         userEmail
         userName
+        expiresInMinutes
       }
     }
   }

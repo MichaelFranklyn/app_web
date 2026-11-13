@@ -21,3 +21,22 @@ export interface IssueClientPortalLinkResponse {
 export interface RevokeClientPortalLinkResponse {
   revokeClientPortalLink: { status: boolean; message: string } | null;
 }
+
+export interface PortalContact {
+  id: string;
+  name: string;
+  email: string | null;
+  isPrimary: boolean;
+  isActive: boolean;
+}
+
+export interface PortalContactsResponse {
+  clientContacts: {
+    edges: { node: PortalContact }[];
+    totalCount: number;
+  };
+}
+
+export interface SendClientPortalLinkEmailResponse {
+  sendClientPortalLinkEmail: { status: boolean; message: string } | null;
+}

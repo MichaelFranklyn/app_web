@@ -12,6 +12,7 @@ const profile: UserDetail = {
   phone: "(71) 99999-0000",
   cpf: "11144477735",
   birthDate: "1958-03-12",
+  isEmailDigestEnabled: true,
   addressZip: "41820-000",
   addressStreet: "Rua das Acácias",
   addressNumber: "120",

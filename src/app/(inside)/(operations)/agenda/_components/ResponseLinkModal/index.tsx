@@ -14,6 +14,7 @@ import {
   ResponseLinkScope,
   useIssueResponseLink,
 } from "../../_shared/responseLink";
+import { EmailLinkButton } from "./EmailLinkButton";
 
 interface Props {
   /** Dia ou semana da rotina — o link responde o recorte, não o vendedor. */
@@ -102,6 +103,9 @@ export function ResponseLinkModal({ scope, dateLabel, isEmpty }: Props) {
                 label="Link de resposta"
                 whatsappMessage={`Olá! Conte aqui como foram as visitas de ${dateLabel}:`}
               />
+              <div>
+                <EmailLinkButton url={issued.url} />
+              </div>
               <Title variant="body-xs" color="muted">
                 Vale até {formatDate(issued.expiresAt)}.
               </Title>

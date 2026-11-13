@@ -7,7 +7,7 @@ import { useToast } from "@/components/Toast";
 import { useCompanyBranding } from "@/hooks/useCompanyBranding";
 import { loadImage } from "@/utils/media";
 import { downloadOrderSheet } from "@/utils/orderSheet";
-import { loadGirusLogo } from "@/utils/pdf/footer";
+import { loadBrandLogo } from "@/utils/pdf/footer";
 
 import { ORDER_SHEET_PACKAGE_QUERY } from "./gql";
 import type { OrderSheetPackageData } from "./interface";
@@ -60,9 +60,9 @@ export const useOrderSheet = ({ cnpjDigits, clientName }: Options = {}) => {
         // As marcas são as mesmas do PDF que vai ao cliente: a da representação
         // assina o documento, a do sistema fica do outro lado. Logo que não
         // carrega devolve `null` e a ficha sai sem ela.
-        const [companyLogo, girusLogo] = await Promise.all([
+        const [companyLogo, brandLogo] = await Promise.all([
           loadImage(logoUrl),
-          loadGirusLogo(),
+          loadBrandLogo(),
         ]);
 
         await downloadOrderSheet(pkg, {
@@ -70,7 +70,7 @@ export const useOrderSheet = ({ cnpjDigits, clientName }: Options = {}) => {
           clientName,
           brand: {
             companyLogo,
-            girusLogo,
+            brandLogo,
             companyName,
           },
         });

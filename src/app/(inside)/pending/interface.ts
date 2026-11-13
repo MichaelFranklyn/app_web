@@ -87,6 +87,8 @@ export interface PendingItem {
   orderDate: string | null;
   /** Pós-venda: telefone de quem falar no cliente (nulo sem contato). */
   contactPhone: string | null;
+  /** Pós-venda: email do contato do cliente (o principal primeiro; nulo sem). */
+  contactEmail: string | null;
   /** Boleto vencido: quantas parcelas do pedido estão vencidas. */
   installmentCount: number | null;
 }

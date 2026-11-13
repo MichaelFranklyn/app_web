@@ -1,6 +1,6 @@
 # AUTO-GERADO por scripts/pull-schema.mjs — NÃO editar à mão.
 # Snapshot do schema do backend (app_user). Atualize com: npm run schema:pull
-# Fonte: 58 arquivos .graphql merge-ados (mesma regra do Ariadne).
+# Fonte: 59 arquivos .graphql merge-ados (mesma regra do Ariadne).
 
 input BaseListInput {
   filters: [FieldFilterInput!] = null
@@ -522,6 +522,13 @@ type ClientPortalLinkTypeDataResponse {
   data: ClientPortalLinkType
 }
 
+input SendClientPortalLinkEmailInput {
+  """Contato do cliente que recebe (precisa ter email)."""
+  contactId: UUID!
+  """A URL devolvida por `issueClientPortalLink`."""
+  url: String!
+}
+
 extend type Query {
   """
   Dados do cliente do link. Autenticada pelo header `X-Portal-Token`, não por
@@ -571,6 +578,15 @@ extend type Mutation {
   requestPortalReplenishment(input: RequestPortalReplenishmentInput!): BaseResponse!
   """Emite um link novo e derruba o anterior. Devolve a URL — única vez em que ela existe."""
   issueClientPortalLink(companyClientId: UUID!): ClientPortalLinkTypeDataResponse!
+  """
+  Manda por email, a um contato do cliente, o link que ACABOU de ser emitido.
+  Não emite outro (isso derrubaria o que já foi pelo WhatsApp): recebe a URL da
+  emissão e confere que ela é o link vivo deste cliente.
+  """
+  sendClientPortalLinkEmail(
+    companyClientId: UUID!
+    input: SendClientPortalLinkEmailInput!
+  ): BaseResponse!
   """Corta o link ativo. Use quando ele tiver ido parar onde não devia."""
   revokeClientPortalLink(companyClientId: UUID!): BaseResponse!
 }
@@ -2100,6 +2116,11 @@ extend type Query {
   invoicedRevenueByFactory(from: Date = null, to: Date = null, sellerId: UUID = null, factoryId: UUID = null, limit: Int = 8): [InvoicedByFactoryPoint!]!
   """Pedidos colocados por fábrica no período (data do pedido), com a parte já faturada."""
   placedOrdersByFactory(from: Date = null, to: Date = null, sellerId: UUID = null, factoryId: UUID = null, limit: Int = 8): [PlacedByFactoryPoint!]!
+}
+
+extend type Mutation {
+    "Desliga os resumos por email pelo link do rodapé. Pública: o token assinado identifica o vínculo."
+    unsubscribeEmailDigest(token: String!): BaseResponse!
 }
 
 input CreateFactoryInput {
@@ -4125,6 +4146,26 @@ extend type Mutation {
   """
   markOrderSent(id: UUID!, input: MarkOrderSentInput!): OrderTypeDataResponse!
   """
+  Manda o PDF do pedido por EMAIL para um contato da fábrica e carimba o envio
+  (canal EMAIL). Diferente do WhatsApp, o envio acontece aqui: o front gera o PDF
+  e manda os bytes em base64 (até 3 MB). Se o provedor recusar, a mutation falha
+  e o pedido NÃO é carimbado. A resposta da fábrica vai para o email de quem
+  enviou.
+  """
+  sendOrderToFactoryEmail(id: UUID!, input: SendOrderToFactoryEmailInput!): OrderTypeDataResponse!
+  """
+  Pergunta ao cliente, por email, se o pedido faturado chegou bem (pós-venda de
+  /pending). Vai para o contato do cliente com email (o principal primeiro) e a
+  resposta vai para quem enviou. Só para pedido esperando entrega; nada é gravado.
+  """
+  sendPostSaleEmail(id: UUID!): BaseResponse!
+  """
+  Manda o fechamento de comissões do mês (PDF gerado no navegador, ótica do
+  vendedor) para o email do vendedor. Só gestor; a resposta vai para quem enviou.
+  Nada é gravado.
+  """
+  sendCommissionStatementEmail(input: SendCommissionStatementEmailInput!): BaseResponse!
+  """
   Cancela o pedido SEM excluí-lo: ele continua na lista, com quando, quem e o
   motivo, e para de contar nos números de venda. Vale para orçamento e pedido
   confirmado ainda não faturado — faturado precisa desfazer o faturamento antes
@@ -4188,6 +4229,15 @@ input MarkOrderSentInput {
   """Por onde o pedido foi mandado."""
   channel: OrderSentChannel!
   """Observação livre de quem enviou. Opcional."""
+  note: String = null
+}
+
+input SendOrderToFactoryEmailInput {
+  """Contato da fábrica do pedido, ativo e com email."""
+  contactId: UUID!
+  """O PDF do pedido, em base64 (sem o prefixo data:)."""
+  pdfBase64: String!
+  """Recado para a fábrica: vai no email e no carimbo do envio."""
   note: String = null
 }
 
@@ -4358,6 +4408,14 @@ type ImportOrderHistoryResultDataResponse {
   data: ImportOrderHistoryResult
 }
 
+input SendCommissionStatementEmailInput {
+  sellerId: UUID!
+  """Mês do fechamento, "AAAA-MM"."""
+  month: String!
+  """O PDF do fechamento em base64 (até 3 MB)."""
+  pdfBase64: String!
+}
+
 """
 Central de pendências: a ÚNICA lista de trabalho — visita sem resposta, contato
 agendado, retorno combinado, frequência de visita vencida, pedido parado, boleto
@@ -4515,6 +4573,12 @@ type PendingItemType {
   contato principal, senão o primeiro ativo com telefone. Nulo sem contato.
   """
   contactPhone: String
+  """
+  Pós-venda (`DELIVERY_UNCONFIRMED`): email de quem falar no cliente — o contato
+  principal, senão o primeiro ativo com email. É para ele que
+  `sendPostSaleEmail` escreve. Nulo sem contato com email.
+  """
+  contactEmail: String
 }
 
 type PendingTypeCountType {
@@ -4611,6 +4675,8 @@ enum PlatformAuditAction {
   as mais sensíveis da trilha: criam e revogam quem enxerga todas as empresas."""
   CREATE_PLATFORM_USER
   SET_PLATFORM_USER_STATUS
+  """Tirou um endereço da lista de bloqueio de email."""
+  RELEASE_EMAIL_SUPPRESSION
 }
 
 """Desfecho de uma execução de job agendado. `RUNNING` que não sai desse estado
@@ -5263,8 +5329,8 @@ input CreatePlatformUserInput {
   email: String!
 }
 
-"""Resultado da criação. O link aparece UMA vez, aqui: não há serviço de e-mail,
-então quem cria a conta precisa repassá-lo. Ele não entra na trilha — é a
+"""Resultado da criação. O link aparece UMA vez, aqui, e vale pelo mesmo prazo
+das boas-vindas; quem cria a conta precisa repassá-lo. Ele não entra na trilha — é a
 credencial em si."""
 type CreatePlatformUserPayload {
   userId: UUID!
@@ -5285,6 +5351,51 @@ type CreatePlatformUserPayloadDataResponse {
 input SetPlatformUserStatusInput {
   isActive: Boolean!
   reason: String = null
+}
+
+"""Uma mensagem que tentou sair pela Brevo."""
+type EmailLogEntryType {
+  id: UUID!
+  toEmail: String!
+  subject: String!
+  """SENT (a Brevo aceitou), FAILED (recusou ou caiu), SUPPRESSED (nem tentou:
+  endereço bloqueado)."""
+  status: String!
+  error: String
+  """Último evento do webhook: delivered, hard_bounce, spam..."""
+  lastEvent: String
+  lastEventAt: DateTime
+  createdAt: DateTime!
+}
+
+type EmailSuppressionInfoType {
+  email: String!
+  """O evento que bloqueou: hard_bounce, invalid_email, spam, unsubscribed."""
+  reason: String!
+  since: DateTime!
+}
+
+type EmailLogReportType {
+  """O endereço consultado; nulo = as últimas mensagens de todos."""
+  email: String
+  sentToday: Int!
+  dailyQuota: Int!
+  suppression: EmailSuppressionInfoType
+  messages: [EmailLogEntryType!]!
+}
+
+type EmailLogReportTypeDataResponse {
+  status: Boolean!
+  code: Int!
+  message: String!
+  data: EmailLogReportType
+}
+
+type ReleaseEmailSuppressionDataResponse {
+  status: Boolean!
+  code: Int!
+  message: String!
+  data: String
 }
 
 type PlatformStaffStatusPayload {
@@ -5361,6 +5472,8 @@ extend type Query {
   ): OperationTrendReportTypeDataResponse!
   """Histórico dos jobs agendados nos últimos `days` dias (padrão 14)."""
   platformJobHistory(days: Int = 14): PlatformJobHistoryListDataResponse!
+  """Histórico de envio de email (suporte). Sem `email`, as últimas de todos."""
+  platformEmailLog(email: String = null, limit: Int = 50): EmailLogReportTypeDataResponse!
   platformTenants(
     input: BaseListInput!
     period: PlatformPeriodInput = null
@@ -5434,6 +5547,8 @@ type AccessLinkPayload {
   link: String!
   userEmail: String!
   userName: String!
+  """Validade do link: longa no primeiro acesso, curta numa redefinição."""
+  expiresInMinutes: Int!
 }
 
 type AccessLinkPayloadDataResponse {
@@ -5460,6 +5575,8 @@ extend type Mutation {
     userId: UUID!
     input: SetPlatformUserStatusInput!
   ): PlatformStaffStatusPayloadDataResponse!
+  """Tira um endereço da lista de bloqueio de email. Fica na trilha."""
+  releaseEmailSuppression(email: String!, reason: String = null): ReleaseEmailSuppressionDataResponse!
 }
 
 input CreatePriceListItemInput {
@@ -7191,6 +7308,8 @@ input UpdateMyProfileInput {
     addressNeighborhood: String = null
     addressCity: String = null
     addressState: String = null
+    """Recebe os resumos por email (semana, pendências, datas). Os avisos de acesso não dependem disto."""
+    isEmailDigestEnabled: Boolean = null
 }
 
 input UpdateMyPasswordInput {
@@ -7235,6 +7354,8 @@ type UserType {
     addressNeighborhood: String
     addressCity: String
     addressState: String
+    """Recebe os resumos por email (semana, pendências, datas). Desligado aqui ou pelo link do rodapé."""
+    isEmailDigestEnabled: Boolean!
     createdAt: DateTime!
     updatedAt: DateTime!
     deletedAt: DateTime
@@ -7503,6 +7624,18 @@ extend type Mutation {
   Substitui o link anterior da semana; os links dos dias seguem valendo.
   """
   issueWeekResponseLink(scheduleId: UUID!): VisitResponseLinkTypeDataResponse!
+  """
+  Manda por email ao dono da rotina (o vendedor, ou quem a montou) o link que
+  acabou de ser emitido — dia ou semana. NÃO emite outro: confere que a URL é o
+  link vivo de uma rotina deste escritório (e do próprio vendedor, se quem pede
+  é vendedor). A resposta vai para quem enviou.
+  """
+  sendVisitResponseLinkEmail(input: SendVisitResponseLinkEmailInput!): BaseResponse!
+}
+
+input SendVisitResponseLinkEmailInput {
+  """A URL devolvida por issueVisitResponseLink/issueWeekResponseLink."""
+  url: String!
 }
 
 input CreateVisitScheduleConfigInput {

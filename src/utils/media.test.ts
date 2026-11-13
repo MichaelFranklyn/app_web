@@ -11,7 +11,7 @@ beforeEach(() => {
   decodeImage.mockReset();
   fetchMock.mockReset();
   vi.stubGlobal("fetch", fetchMock);
-  vi.stubEnv("NEXT_PUBLIC_GRAPHQL_API_HOST", "https://api.girus.app/graphql");
+  vi.stubEnv("NEXT_PUBLIC_GRAPHQL_API_HOST", "https://api.itinus.app/graphql");
 });
 
 afterEach(() => {
@@ -32,7 +32,7 @@ describe("mediaUrl", () => {
     // O backend devolve só o caminho: quem serve (disco em dev, Storage em
     // produção) é detalhe dele.
     expect(mediaUrl("/media/logo.png")).toBe(
-      "https://api.girus.app/media/logo.png"
+      "https://api.itinus.app/media/logo.png"
     );
   });
 
@@ -136,7 +136,7 @@ describe("loadImage", () => {
     await loadImage("/media/logo.png");
 
     expect(fetchMock).toHaveBeenCalledWith(
-      "https://api.girus.app/media/logo.png",
+      "https://api.itinus.app/media/logo.png",
       expect.anything()
     );
   });

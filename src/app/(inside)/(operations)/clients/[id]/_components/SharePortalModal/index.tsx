@@ -8,10 +8,13 @@ import { Title } from "@/components/Title";
 import { formatDate } from "@/utils/format/date";
 import { Share2 } from "lucide-react";
 import { useState } from "react";
+import { EmailLinkStep } from "./EmailLinkStep";
 import { useClientPortalLink } from "./useClientPortalLink";
 
 interface SharePortalModalProps {
   companyClientId: string;
+  /** Os contatos são do cliente (não do vínculo): é por ele que se buscam. */
+  clientId: string;
   clientName: string;
 }
 
@@ -25,6 +28,7 @@ interface SharePortalModalProps {
  */
 export function SharePortalModal({
   companyClientId,
+  clientId,
   clientName,
 }: SharePortalModalProps) {
   const [isOpen, setIsOpen] = useState(false);
@@ -69,11 +73,18 @@ export function SharePortalModal({
           {isFetching ? (
             <Loading.Skeleton className="h-[80px] w-full" />
           ) : issuedUrl ? (
-            <ShareLinkBox
-              url={issuedUrl}
-              label="Endereço do portal"
-              whatsappMessage={`Olá! Aqui você acompanha as compras da ${clientName}:`}
-            />
+            <div className="flex flex-col gap-16">
+              <ShareLinkBox
+                url={issuedUrl}
+                label="Endereço do portal"
+                whatsappMessage={`Olá! Aqui você acompanha as compras da ${clientName}:`}
+              />
+              <EmailLinkStep
+                companyClientId={companyClientId}
+                clientId={clientId}
+                url={issuedUrl}
+              />
+            </div>
           ) : activeLink ? (
             <div className="flex flex-col gap-12">
               <div className="flex flex-col gap-6">
@@ -97,8 +108,8 @@ export function SharePortalModal({
           ) : (
             <Title variant="body-sm">
               Ainda não há um link para este cliente. Ao gerar, você recebe um
-              endereço para mandar por WhatsApp — quem tiver esse endereço vê os
-              pedidos, os valores e a situação de cada entrega.
+              endereço para mandar por WhatsApp ou por email — quem tiver esse
+              endereço vê os pedidos, os valores e a situação de cada entrega.
             </Title>
           )}
         </Modal.Body>

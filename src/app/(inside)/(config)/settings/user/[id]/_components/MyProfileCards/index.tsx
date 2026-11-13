@@ -14,6 +14,7 @@ import {
 } from "../../../../../_shared/userProfile";
 import { ChangePasswordModal } from "../ChangePasswordModal";
 import { EditMyProfileModal } from "../EditMyProfileModal";
+import { EmailDigestCard } from "../EmailDigestCard";
 import { PasswordCard } from "../PasswordCard";
 import { PushNotificationsCard } from "../PushNotificationsCard";
 
@@ -72,6 +73,11 @@ export function MyProfileCards({ user, canEnableSeller, onRefetch }: Props) {
           email={user.email}
           onChangePassword={() => setChangePasswordOpen(true)}
           dataTour="profile-password"
+        />
+
+        <EmailDigestCard
+          isEnabled={user.isEmailDigestEnabled}
+          onDone={onRefetch}
         />
 
         {/* Só no próprio perfil: a autorização é do aparelho de quem está

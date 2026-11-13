@@ -282,7 +282,7 @@ test("ficha da empresa: libera acesso e mostra o link na tela", async ({
         status: true,
         message: "ok",
         data: {
-          link: "https://girus.app/change-password?token=abc123",
+          link: "https://itinus.app/change-password?token=abc123",
           userEmail: "ana@metais.test",
           userName: "Ana Ribeiro",
         },
@@ -300,7 +300,7 @@ test("ficha da empresa: libera acesso e mostra o link na tela", async ({
   await dialog.getByRole("button", { name: "Gerar link" }).click();
 
   await expect(
-    dialog.getByText("https://girus.app/change-password?token=abc123")
+    dialog.getByText("https://itinus.app/change-password?token=abc123")
   ).toBeVisible();
   await expect(
     dialog.getByRole("button", { name: "Copiar link" })
@@ -315,13 +315,13 @@ test("ficha da empresa: não oferece 'entrar como' para um SU", async ({
   await mockGraphql(
     page,
     fichaHandlers(tenant(), [
-      user({ id: "su-1", name: "Suporte Girus", role: "SU" }),
+      user({ id: "su-1", name: "Suporte Itinus", role: "SU" }),
       user({ id: "puser-2", name: "Bruno Alves", email: "bruno@metais.test" }),
     ])
   );
   await page.goto(URL);
 
-  const linhaSu = page.getByRole("row").filter({ hasText: "Suporte Girus" });
+  const linhaSu = page.getByRole("row").filter({ hasText: "Suporte Itinus" });
   await expect(
     linhaSu.getByRole("button", { name: "Entrar como" })
   ).toHaveCount(0);

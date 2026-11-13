@@ -168,7 +168,7 @@ function ChangePasswordForm() {
                 noPadding
                 noUppercase
               >
-                <Button.Title>suporte@girus.com.br</Button.Title>
+                <Button.Title>suporte@itinus.com.br</Button.Title>
               </Button.Root>
             </Title>
           </Card.Footer>

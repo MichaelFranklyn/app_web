@@ -33,11 +33,12 @@ const SYSTEM_ROOT = "/dashboard";
 const PLATFORM_ROOT = "/platform";
 
 /**
- * Raízes abertas por link, sem sessão: o portal do cliente (`/p`) e a folha de
- * resposta da rota do dia (`/r`). Cada uma tem o seu token e o seu header; o
- * que elas têm em comum é não dependerem de cookie nenhum.
+ * Raízes abertas por link, sem sessão: o portal do cliente (`/p`), a folha de
+ * resposta da rota do dia (`/r`) e o "não quero mais receber" do rodapé dos
+ * emails (`/email/unsubscribe`). Cada uma tem o seu token; o que elas têm em
+ * comum é não dependerem de cookie nenhum.
  */
-const TOKEN_LINK_ROOTS = ["/p", "/r"];
+const TOKEN_LINK_ROOTS = ["/p", "/r", "/email/unsubscribe"];
 
 const isTokenLinkRoute = (pathname: string): boolean =>
   TOKEN_LINK_ROOTS.some(

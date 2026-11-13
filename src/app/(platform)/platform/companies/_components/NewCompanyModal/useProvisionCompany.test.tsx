@@ -24,7 +24,7 @@ const payload = {
     email: "michael@alto.com",
     role: "OWNER",
   },
-  firstAccessLink: "https://girus.app/primeiro-acesso/token",
+  firstAccessLink: "https://itinus.app/primeiro-acesso/token",
 };
 
 const provisionMock = (
@@ -85,7 +85,7 @@ describe("useProvisionCompany", () => {
 
     await waitFor(() =>
       expect(result.current.result?.firstAccessLink).toBe(
-        "https://girus.app/primeiro-acesso/token"
+        "https://itinus.app/primeiro-acesso/token"
       )
     );
     expect(result.current.result?.company.razaoSocial).toBe(

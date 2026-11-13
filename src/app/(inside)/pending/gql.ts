@@ -28,6 +28,7 @@ const PENDING_ITEM_FIELDS = gql`
     orderId
     orderDate
     contactPhone
+    contactEmail
     installmentCount
   }
 `;

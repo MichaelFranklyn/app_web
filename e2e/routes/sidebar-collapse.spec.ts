@@ -57,7 +57,7 @@ test("sidebar: Relatórios não é mais um item do menu", async ({ page }) => {
 /**
  * Recolhida, a marca é só o SÍMBOLO — nos 72px da barra, qualquer versão com
  * texto vira um borrão. Já aconteceu: a barra usava `/logo.png`, que apesar do
- * nome é a marca inteira ("GIRUS SALES CRM SOFTWARE") em proporção quadrada, e
+ * nome é a marca inteira (com slogan, da marca anterior) em proporção quadrada, e
  * ela aparecia espremida em 51px de largura.
  *
  * As três imagens ficam no DOM (quem escolhe é o breakpoint: no drawer do

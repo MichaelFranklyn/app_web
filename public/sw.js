@@ -1,5 +1,5 @@
 /**
- * Service worker do Girus.
+ * Service worker do Itinus.
  *
  * O que ele resolve: o vendedor trabalha DENTRO da loja, no celular, com sinal
  * ruim. Sem service worker, uma oscilação de rede na hora de abrir a rota do dia
@@ -38,8 +38,8 @@
 // Trocar de versão descarta o cache antigo inteiro (ver `activate`). É o que
 // impede um asset velho de sobreviver a um deploy.
 const VERSION = "v1";
-const SHELL_CACHE = `girus-shell-${VERSION}`;
-const ASSET_CACHE = `girus-assets-${VERSION}`;
+const SHELL_CACHE = `itinus-shell-${VERSION}`;
+const ASSET_CACHE = `itinus-assets-${VERSION}`;
 
 const OFFLINE_URL = "/offline";
 
@@ -178,7 +178,7 @@ self.addEventListener("fetch", (event) => {
 const NOTIFICATION_ICON = "/icon-192.png";
 
 /** Aviso mínimo para o caso de o payload vir vazio ou ilegível. */
-const FALLBACK_PUSH = { title: "Girus", body: "Você tem um aviso novo." };
+const FALLBACK_PUSH = { title: "Itinus", body: "Você tem um aviso novo." };
 
 function parsePush(event) {
   if (!event.data) return FALLBACK_PUSH;

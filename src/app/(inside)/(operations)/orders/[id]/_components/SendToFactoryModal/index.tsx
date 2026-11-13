@@ -1,181 +1,78 @@
 "use client";
-import { Alert } from "@/components/Alert";
-import { Card } from "@/components/Card";
-
 import { Button } from "@/components/Button";
 import { Input } from "@/components/Input";
 import { Modal } from "@/components/Modal";
 import { Title } from "@/components/Title";
-import { useAsyncAction } from "@/hooks/useAsyncAction";
-import { useCompanyBranding } from "@/hooks/useCompanyBranding";
-import { useInvalidateQueriesClient } from "@/hooks/useInvalidateQueries";
-import { ORDER_CACHE_FIELDS } from "@/utils/cacheFields";
-import { clientName, factoryName } from "@/utils/company";
-import { useLazyQuery, useMutation } from "@apollo/client/react";
-import { Send } from "lucide-react";
-import { useEffect, useState } from "react";
-import {
-  FACTORY_CONTACTS_QUERY,
-  MARK_ORDER_SENT_MUTATION,
-  ORDER_ITEMS_QUERY,
-} from "../../gql";
-import { OrderDetail, OrderItem, OrderItemsResponse } from "../../interface";
-import { exportOrderPdf } from "../../pdf";
-import { byCreatedAtAsc } from "../../utils";
-import {
-  buildOrderMessage,
-  buildWhatsAppUrl,
-  pickFactoryContact,
-} from "./utils";
-
-interface FactoryContactsResponse {
-  factoryContacts: {
-    edges: {
-      node: {
-        id: string;
-        name: string;
-        role: string | null;
-        phone: string | null;
-        isPrimary: boolean;
-      };
-    }[];
-  };
-}
-
-interface MarkSentResponse {
-  markOrderSent: {
-    status: boolean;
-    message: string;
-    data: { id: string } | null;
-  };
-}
+import { ToggleGroup } from "@/components/ToggleGroup";
+import { Mail, MessageCircle, Send } from "lucide-react";
+import { useState } from "react";
+import { OrderDetail } from "../../interface";
+import { EmailStep } from "./EmailStep";
+import { SendChannel } from "./interface";
+import { useFactoryContacts } from "./useFactoryContacts";
+import { useSendToFactory } from "./useSendToFactory";
+import { WhatsAppStep } from "./WhatsAppStep";
 
 interface Props {
   order: OrderDetail;
   onSuccess: () => void;
 }
 
+const CHANNELS = [
+  { value: "WHATSAPP" as const, label: "WhatsApp", icon: MessageCircle },
+  { value: "EMAIL" as const, label: "Email", icon: Mail },
+];
+
 /**
- * Manda o pedido para a fábrica pelo WhatsApp e registra o envio.
+ * Manda o pedido para a fábrica, pelo WhatsApp ou por email, e registra o envio.
  *
- * Três passos numa ação: baixa o PDF, abre a conversa com a mensagem pronta, e
- * carimba `sentAt`/`sentBy`/`sentChannel` no pedido. Antes disso o vendedor
- * fazia os dois primeiros na mão, por fora, e o terceiro não existia — "enviado"
- * era um rótulo que ninguém sabia quando tinha sido posto.
- *
- * **O anexo continua manual, e a tela diz isso.** O `wa.me` não carrega arquivo;
- * quem carrega é a API oficial, que cobra por conversa e exige aprovação de
- * modelo de mensagem. Fingir que o PDF vai junto seria pior que não ter o botão:
- * a fábrica receberia um resumo sem o pedido e ninguém perceberia.
- *
- * O carimbo é gravado ANTES de abrir o WhatsApp. Se fosse depois, um bloqueador
- * de pop-up ou o app não instalado deixariam o pedido mandado e não registrado —
- * e o registro é o que a operação usa para achar o que ficou para trás. O
- * inverso (registrado e não mandado) é visível: a conversa não abriu, a pessoa
- * repete, e o reenvio é permitido de propósito.
+ * O canal começa no que a fábrica tem: telefone válido → WhatsApp; só email →
+ * email. A pessoa troca quando quiser. O "como" de cada porta está no
+ * `useSendToFactory`; aqui fica só a escolha.
  */
 export function SendToFactoryModal({ order, onSuccess }: Props) {
   const [open, setOpen] = useState(false);
   const [note, setNote] = useState("");
-  const { name: companyName, logoUrl: companyLogoUrl } = useCompanyBranding();
+  const [picked, setPicked] = useState<SendChannel | null>(null);
+  const [contactId, setContactId] = useState<string | null>(null);
 
-  const [fetchContacts, { data: contactsData, loading: loadingContacts }] =
-    useLazyQuery<FactoryContactsResponse>(FACTORY_CONTACTS_QUERY);
-  const [fetchItems] = useLazyQuery<OrderItemsResponse>(ORDER_ITEMS_QUERY);
-  const [markSent] = useMutation<MarkSentResponse>(MARK_ORDER_SENT_MUTATION);
-  const { execute, isLoading } = useAsyncAction();
-  const invalidateClient = useInvalidateQueriesClient();
-
-  // `factory` e `client` são opcionais no tipo porque um erro parcial da query
-  // derruba o campo sem derrubar a resposta. Sem fábrica não há para quem
-  // mandar, e sem cliente a mensagem sairia sem dizer de quem é o pedido.
-  const factoryId = order.factory?.id;
-
-  // Busca os contatos só quando o modal abre: o telefone da fábrica não
-  // interessa a quem está apenas olhando o pedido.
-  useEffect(() => {
-    if (open && factoryId) fetchContacts({ variables: { factoryId } });
-  }, [open, factoryId, fetchContacts]);
-
-  const contatos = (contactsData?.factoryContacts?.edges ?? []).map(
-    (e) => e.node
+  const { loading, whatsAppTarget, emailTargets } = useFactoryContacts(
+    order.factory?.id,
+    open
   );
-  const destino = pickFactoryContact(contatos);
-  const isResend = !!order.sentAt;
 
-  const handleSend = async () => {
-    if (!destino) return;
+  const reset = () => {
+    setNote("");
+    setPicked(null);
+    setContactId(null);
+  };
+  const { sendViaWhatsApp, sendViaEmail, isLoading, isResend } =
+    useSendToFactory(order, () => {
+      setOpen(false);
+      reset();
+      onSuccess();
+    });
 
-    await execute(
-      async () => {
-        // 1) Os itens, para o PDF e para a contagem da mensagem.
-        const res = await fetchItems({ variables: { orderId: order.id } });
-        if (res.error) throw res.error;
-        const items: OrderItem[] = (
-          res.data?.orderItems?.edges?.map((e) => e.node) ?? []
-        )
-          .slice()
-          .sort(byCreatedAtAsc);
+  const channel: SendChannel =
+    picked ?? (!whatsAppTarget && emailTargets.length ? "EMAIL" : "WHATSAPP");
+  const emailTo = contactId ?? emailTargets[0]?.id ?? null;
+  const canSend = channel === "WHATSAPP" ? !!whatsAppTarget : !!emailTo;
 
-        // 2) O PDF baixa antes de a conversa abrir: quando o WhatsApp assume a
-        // tela do celular, o arquivo já está lá para anexar.
-        await exportOrderPdf(order, items, { companyName, companyLogoUrl });
-
-        // 3) Carimba (ver o cabeçalho: antes de abrir a conversa, não depois).
-        const sent = await markSent({
-          variables: {
-            id: order.id,
-            input: { channel: "WHATSAPP", note: note.trim() || null },
-          },
-        });
-        if (!sent.data?.markOrderSent?.status) {
-          throw new Error(
-            sent.data?.markOrderSent?.message ??
-              "Não foi possível registrar o envio."
-          );
-        }
-
-        // 4) A conversa, com a mensagem escrita.
-        const mensagem = buildOrderMessage({
-          orderCode: order.id.slice(0, 8).toUpperCase(),
-          clientName: clientName(order.client) || "Cliente",
-          clientCity: order.client?.addressCity,
-          clientState: order.client?.addressState,
-          factoryName: factoryName(order.factory) || "Fábrica",
-          itemCount: items.length,
-          totalWithIpi: Number(order.totalAmount) + Number(order.ipiAmount),
-          paymentTermLabel: order.paymentTerm?.name ?? null,
-          isResend,
-        });
-        window.open(
-          buildWhatsAppUrl(destino.phone, mensagem),
-          "_blank",
-          "noopener,noreferrer"
-        );
-
-        return sent.data.markOrderSent;
-      },
-      {
-        successMessage: (r) => r?.message ?? "Envio registrado.",
-        onSuccess: () => {
-          setOpen(false);
-          setNote("");
-          onSuccess();
-          // O carimbo de envio é o que apaga a tarja "não enviado" na lista, e
-          // a mutation devolve só o `id`.
-          void invalidateClient(ORDER_CACHE_FIELDS);
-        },
-      }
-    );
+  const handleSend = () => {
+    if (channel === "WHATSAPP" && whatsAppTarget) {
+      void sendViaWhatsApp(whatsAppTarget.phone, note);
+    } else if (channel === "EMAIL" && emailTo) {
+      void sendViaEmail(emailTo, note);
+    }
   };
 
-  const handleClose = (v: boolean) => {
+  const handleOpenChange = (v: boolean) => {
     setOpen(v);
-    if (!v) setNote("");
+    if (!v) reset();
   };
 
   return (
-    <Modal.Root open={open} onOpenChange={handleClose}>
+    <Modal.Root open={open} onOpenChange={handleOpenChange}>
       <Modal.Trigger asChild>
         <Button.Root
           appearance={isResend ? "outline" : "solid"}
@@ -192,73 +89,46 @@ export function SendToFactoryModal({ order, onSuccess }: Props) {
       <Modal.Content size="md">
         <Modal.Header
           title={isResend ? "Reenviar para a fábrica" : "Enviar para a fábrica"}
-          description="Baixa o PDF do pedido, abre a conversa no WhatsApp com a mensagem já escrita e registra o envio."
+          description="Escolha por onde mandar o PDF do pedido. O envio fica registrado no pedido, com a data e o seu nome."
         />
         <Modal.Body>
           <div className="flex flex-col gap-16">
-            {loadingContacts && (
+            <ToggleGroup
+              aria-label="Por onde enviar"
+              options={CHANNELS}
+              value={channel}
+              onChange={setPicked}
+              fullWidth
+              disabled={isLoading}
+            />
+
+            {loading ? (
               <Title variant="body-sm" color="muted">
-                Buscando o contato da fábrica…
+                Buscando os contatos da fábrica…
               </Title>
+            ) : channel === "WHATSAPP" ? (
+              <WhatsAppStep target={whatsAppTarget} />
+            ) : (
+              <EmailStep
+                targets={emailTargets}
+                selectedId={emailTo}
+                onSelect={setContactId}
+              />
             )}
 
-            {!loadingContacts && !destino && (
-              // Sem telefone não há o que abrir. A saída é concreta: onde
-              // cadastrar, em vez de "contato inválido".
-              <Alert.Root variant="error">
-                <Alert.Content>
-                  <Alert.Title>
-                    Esta fábrica não tem telefone cadastrado
-                  </Alert.Title>
-                  <Alert.Description>
-                    Cadastre um contato com telefone (com DDD) na aba Contatos
-                    da fábrica e volte aqui. Você também pode exportar o PDF em
-                    “Exportar” e mandar por fora — mas aí o envio não fica
-                    registrado.
-                  </Alert.Description>
-                </Alert.Content>
-              </Alert.Root>
-            )}
-
-            {destino && (
-              <>
-                <Card.Root inset tone="muted">
-                  <Card.Body padding="sm">
-                    <Title variant="eyebrow" color="muted">
-                      Vai para
-                    </Title>
-                    <Title variant="body-md" weight="semibold" className="mt-2">
-                      {destino.contact.name}
-                      {destino.contact.isPrimary && " · principal"}
-                    </Title>
-                    <Title variant="body-sm" color="secondary">
-                      {destino.contact.phone}
-                    </Title>
-                  </Card.Body>
-                </Card.Root>
-
-                {/* O aviso do anexo é a parte que não pode ser discreta: é o
-                    único passo que continua na mão da pessoa. */}
-                <Alert.Root variant="warning">
-                  <Alert.Content>
-                    <Alert.Title>Anexe o PDF na conversa</Alert.Title>
-                    <Alert.Description>
-                      O arquivo baixa no seu aparelho e a mensagem abre pronta,
-                      mas o WhatsApp não deixa anexar automaticamente. Toque no
-                      clipe e escolha o PDF do pedido.
-                    </Alert.Description>
-                  </Alert.Content>
-                </Alert.Root>
-
-                <Input.Text
-                  label="Observação (opcional)"
-                  hint="Fica registrada no pedido, junto com a data e o seu nome."
-                  value={note}
-                  onChange={(e) => setNote(e.target.value)}
-                  placeholder="Ex.: mandei para o Carlos, o Rogério está de férias"
-                  maxLength={200}
-                />
-              </>
+            {!loading && canSend && (
+              <Input.Text
+                label="Observação (opcional)"
+                hint={
+                  channel === "EMAIL"
+                    ? "Vai no email para a fábrica e fica registrada no pedido."
+                    : "Fica registrada no pedido, junto com a data e o seu nome."
+                }
+                value={note}
+                onChange={(e) => setNote(e.target.value)}
+                placeholder="Ex.: cliente pediu entrega até sexta"
+                maxLength={200}
+              />
             )}
           </div>
         </Modal.Body>
@@ -282,11 +152,15 @@ export function SendToFactoryModal({ order, onSuccess }: Props) {
             size="md"
             noUppercase
             loading={isLoading}
-            disabled={!destino || isLoading}
+            disabled={!canSend || loading || isLoading}
             onClick={handleSend}
           >
             <Button.Title>
-              {isResend ? "Baixar e reenviar" : "Baixar PDF e abrir WhatsApp"}
+              {channel === "EMAIL"
+                ? "Enviar por email"
+                : isResend
+                  ? "Baixar e reenviar"
+                  : "Baixar PDF e abrir WhatsApp"}
             </Button.Title>
           </Button.Root>
         </Modal.Footer>

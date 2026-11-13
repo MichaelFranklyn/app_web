@@ -6,12 +6,12 @@ import PricingContent from "./content";
  * home e quer saber onde a operação dele se encaixa.
  *
  * Título e descrição próprios: esta é a segunda página mais buscada de um site
- * de software, e quem procura "girus preço" precisa cair aqui, não na home.
+ * de software, e quem procura "itinus preço" precisa cair aqui, não na home.
  */
 export const metadata: Metadata = {
   title: "Preços",
   description:
-    "Compare os planos do Girus linha a linha: pedidos, comissões, rotina de visita, relatórios e o tamanho de operação que cada um atende.",
+    "Compare os planos do Itinus linha a linha: pedidos, comissões, rotina de visita, relatórios e o tamanho de operação que cada um atende.",
   alternates: { canonical: "/precos" },
 };
 

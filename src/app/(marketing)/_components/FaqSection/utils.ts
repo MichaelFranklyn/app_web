@@ -7,7 +7,7 @@ export const FAQ = [
   {
     question: "Preciso instalar alguma coisa?",
     answer:
-      "Não. O Girus abre no navegador, no computador e no celular. O vendedor lança pedido e registra visita direto do telefone, em campo.",
+      "Não. O Itinus abre no navegador, no computador e no celular. O vendedor lança pedido e registra visita direto do telefone, em campo.",
   },
   {
     question: "Consigo trazer meus clientes e minhas tabelas de preço?",

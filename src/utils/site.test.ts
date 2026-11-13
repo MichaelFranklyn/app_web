@@ -44,17 +44,17 @@ describe("rotas públicas", () => {
 
 describe("getSiteUrl", () => {
   it("prefere o domínio próprio quando declarado", () => {
-    vi.stubEnv("NEXT_PUBLIC_SITE_URL", "https://girus.app");
+    vi.stubEnv("NEXT_PUBLIC_SITE_URL", "https://itinus.app");
     vi.stubEnv("VERCEL_PROJECT_PRODUCTION_URL", "projeto.vercel.app");
 
-    expect(getSiteUrl()).toBe("https://girus.app");
+    expect(getSiteUrl()).toBe("https://itinus.app");
   });
 
   it("tira a barra final do domínio declarado", () => {
-    // Ela viraria "https://girus.app//termos" nas tags OpenGraph.
-    vi.stubEnv("NEXT_PUBLIC_SITE_URL", "https://girus.app/");
+    // Ela viraria "https://itinus.app//termos" nas tags OpenGraph.
+    vi.stubEnv("NEXT_PUBLIC_SITE_URL", "https://itinus.app/");
 
-    expect(getSiteUrl()).toBe("https://girus.app");
+    expect(getSiteUrl()).toBe("https://itinus.app");
   });
 
   it("sem domínio próprio, usa o da Vercel e completa o esquema", () => {

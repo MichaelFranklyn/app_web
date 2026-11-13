@@ -76,16 +76,16 @@ export default function InsideShell({
             {/* Logo completa (expandida e sempre no drawer mobile). */}
             <Image
               src="/horizontal_logo.png"
-              alt="Girus"
-              width={1059}
-              height={247}
+              alt="Itinus"
+              width={1023}
+              height={256}
               priority={!isCollapsed}
               sizes="232px"
               className={cn("h-auto w-full", isCollapsed && "desktop:hidden")}
             />
             {/* Só o SÍMBOLO quando recolhida no desktop.
               Era `/logo.png`, que apesar do nome é a marca INTEIRA (símbolo +
-              "GIRUS SALES CRM SOFTWARE") numa proporção mais quadrada — dentro
+              slogan, da marca anterior) numa proporção mais quadrada — dentro
               dos 72px da barra recolhida ela virava um borrão ilegível de 51px
               de largura. `/icon-192.png` é o símbolo puro, quadrado, e já vem
               no precache do service worker.
@@ -95,7 +95,7 @@ export default function InsideShell({
               otimizador e chega no tamanho em que é exibido.) */}
             <Image
               src="/icon-192.png"
-              alt="Girus"
+              alt="Itinus"
               width={192}
               height={192}
               priority={isCollapsed}

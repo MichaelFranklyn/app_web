@@ -11,6 +11,8 @@ import { dropExpired, sameSubject, upsertEntry } from "./utils";
  * entrada tem dono (`userId`): outra pessoa que entre no mesmo aparelho não
  * envia o que não é dela, e o que passa de 7 dias é descartado.
  */
+// O prefixo "girus:" é do nome antigo da marca e fica: trocar a chave descartaria
+// a fila de quem tem envios pendentes no aparelho. O mesmo vale para os locks.
 const STORAGE_KEY = "girus:offline-queue:v1";
 
 const EMPTY: OfflineQueueState = { entries: [], failures: [] };

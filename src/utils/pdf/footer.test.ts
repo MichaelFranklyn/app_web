@@ -1,7 +1,7 @@
 import { jsPDF } from "jspdf";
 import { describe, expect, it, vi } from "vitest";
 
-import { drawFooters, loadGirusLogo } from "./footer";
+import { drawFooters, loadBrandLogo } from "./footer";
 import { PAGE } from "./theme";
 
 const { loadImageFromUrl } = vi.hoisted(() => ({
@@ -41,7 +41,7 @@ describe("drawFooters", () => {
     drawFooters(pdf, null);
 
     expect(
-      written().filter((t) => t === "Documento gerado pelo Girus")
+      written().filter((t) => t === "Documento gerado pelo Itinus")
     ).toHaveLength(2);
   });
 
@@ -55,7 +55,7 @@ describe("drawFooters", () => {
     const [, , , largura] = addImage.mock.calls[0] as unknown as number[];
 
     const assinatura = text.mock.calls.find(
-      (call) => String(call[0]) === "Documento gerado pelo Girus"
+      (call) => String(call[0]) === "Documento gerado pelo Itinus"
     );
     expect(Number(assinatura?.[1])).toBeCloseTo(PAGE.margin + largura + 8, 5);
   });
@@ -65,7 +65,7 @@ describe("drawFooters", () => {
     drawFooters(pdf, null);
 
     const assinatura = text.mock.calls.find(
-      (call) => String(call[0]) === "Documento gerado pelo Girus"
+      (call) => String(call[0]) === "Documento gerado pelo Itinus"
     );
     expect(Number(assinatura?.[1])).toBe(PAGE.margin);
   });
@@ -104,15 +104,15 @@ describe("drawFooters", () => {
   });
 });
 
-describe("loadGirusLogo", () => {
+describe("loadBrandLogo", () => {
   it("busca a marca servida pelo próprio front", async () => {
     loadImageFromUrl.mockResolvedValue(marca);
-    await expect(loadGirusLogo()).resolves.toBe(marca);
+    await expect(loadBrandLogo()).resolves.toBe(marca);
     expect(loadImageFromUrl).toHaveBeenCalledWith("/horizontal_logo.png");
   });
 
   it("falhando o carregamento, o PDF sai sem a marca em vez de não sair", async () => {
     loadImageFromUrl.mockResolvedValue(null);
-    await expect(loadGirusLogo()).resolves.toBeNull();
+    await expect(loadBrandLogo()).resolves.toBeNull();
   });
 });

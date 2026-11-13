@@ -94,7 +94,9 @@ export function buildWhatsAppUrl(phone: string, message: string): string {
 export interface FactoryContact {
   name: string;
   phone?: string | null;
+  email?: string | null;
   isPrimary?: boolean;
+  isActive?: boolean;
 }
 
 /**
@@ -114,3 +116,19 @@ export function pickFactoryContact(
   if (!utilizaveis.length) return null;
   return utilizaveis.find((c) => c.contact.isPrimary) ?? utilizaveis[0];
 }
+
+/**
+ * Quem pode receber o pedido por email: contatos ativos com email, o principal
+ * primeiro. A lista é a do seletor — contato sem email nem aparece, em vez de
+ * aparecer e falhar no envio.
+ */
+export function emailContacts<T extends FactoryContact>(
+  contacts: T[] | null | undefined
+): T[] {
+  return (contacts ?? [])
+    .filter((c) => c.isActive !== false && !!c.email?.trim())
+    .sort((a, b) => Number(!!b.isPrimary) - Number(!!a.isPrimary));
+}
+
+export const PDF_TOO_LARGE_MESSAGE =
+  "O PDF ficou grande demais para ir por email (passa de 3 MB). Envie pelo WhatsApp ou exporte e mande por fora.";

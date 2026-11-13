@@ -300,6 +300,7 @@ export default function ClientLayout({
                     {clientData?.companyClient && walletActive && (
                       <SharePortalModal
                         companyClientId={clientData.companyClient.id}
+                        clientId={clientData.id}
                         clientName={
                           clientData.nomeFantasia ?? clientData.razaoSocial
                         }

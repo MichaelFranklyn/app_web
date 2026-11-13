@@ -2,6 +2,8 @@ export interface AccessLinkResult {
   link: string;
   userEmail: string;
   userName: string;
+  /** Longa (3 dias) se a pessoa nunca entrou; curta numa redefinição. */
+  expiresInMinutes: number;
 }
 
 export interface IssueAccessLinkData {

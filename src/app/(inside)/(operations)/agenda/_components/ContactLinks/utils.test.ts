@@ -28,9 +28,9 @@ describe("pontuação", () => {
     expect(
       remoteContactMessage({
         sellerName: "Rafael",
-        companyName: "Girus",
+        companyName: "Itinus",
         hour: 9,
       })
-    ).toContain("Aqui é Rafael, da Girus. Passando");
+    ).toContain("Aqui é Rafael, da Itinus. Passando");
   });
 });

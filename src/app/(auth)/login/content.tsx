@@ -43,7 +43,7 @@ export default function LoginContent() {
           "Credenciais inválidas. Verifique seu e-mail e senha."
         ),
       {
-        successMessage: "Acesso autorizado. Bem-vindo ao Girus.",
+        successMessage: "Acesso autorizado. Bem-vindo ao Itinus.",
         onSuccess(result) {
           // Quem trabalha em 2+ escritórios e ainda não escolheu um escolhe
           // antes de entrar — como o seletor de projeto do Google Cloud.
@@ -68,12 +68,12 @@ export default function LoginContent() {
         >
           {/* A marca leva à vitrine: quem cai aqui por link direto e ainda
               não conhece o sistema precisa de um caminho de volta. */}
-          <Link href="/" aria-label="Conhecer o Girus">
+          <Link href="/" aria-label="Conhecer o Itinus">
             <Image
               src="/horizontal_logo.png"
-              alt="Girus"
-              width={1059}
-              height={247}
+              alt="Itinus"
+              width={1023}
+              height={256}
               priority
               className="h-auto w-60"
             />
@@ -118,12 +118,12 @@ export default function LoginContent() {
               entrada ficava sem marca nenhuma — justamente onde o vendedor
               entra todo dia. */}
           <Responsive.Hide from="desktop" className="flex justify-center">
-            <Link href="/" aria-label="Conhecer o Girus">
+            <Link href="/" aria-label="Conhecer o Itinus">
               <Image
                 src="/horizontal_logo.png"
-                alt="Girus"
-                width={1059}
-                height={247}
+                alt="Itinus"
+                width={1023}
+                height={256}
                 priority
                 className="h-auto w-[180px]"
               />
@@ -219,7 +219,7 @@ export default function LoginContent() {
             <span>{TRIAL_DAYS} dias grátis · sem cartão</span>
             <span aria-hidden>·</span>
             <Link href="/" className="text-(--amber) hover:underline">
-              Conhecer o Girus
+              Conhecer o Itinus
             </Link>
           </Title>
         </div>

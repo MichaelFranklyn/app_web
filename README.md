@@ -1,6 +1,6 @@
-# Girus Web
+# Itinus Web
 
-Front do Girus: **Next.js 16 (App Router) + React 19 + TypeScript + Apollo Client 4**,
+Front do Itinus: **Next.js 16 (App Router) + React 19 + TypeScript + Apollo Client 4**,
 falando com a API GraphQL do `app_user`. É também um PWA instalável, com fila offline
 limitada para o trabalho de campo.
 

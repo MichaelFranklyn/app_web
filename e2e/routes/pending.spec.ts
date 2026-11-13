@@ -39,6 +39,7 @@ const item = (over: Record<string, unknown> = {}) => ({
   orderId: null,
   orderDate: null,
   contactPhone: null,
+  contactEmail: null,
   installmentCount: null,
   ...over,
 });
@@ -679,6 +680,7 @@ test("pendências: entrega sem confirmar traz o WhatsApp do pós-venda", async (
         allowanceDays: 10,
         daysLate: 42,
         contactPhone: "(71) 99999-8888",
+        contactEmail: null,
       }),
       order({
         id: "DELIVERY_UNCONFIRMED:o-2:seller-1",
@@ -690,6 +692,7 @@ test("pendências: entrega sem confirmar traz o WhatsApp do pós-venda", async (
         reason: "DELIVERY_UNCONFIRMED",
         orderDate: "2026-07-23",
         contactPhone: null,
+        contactEmail: null,
       }),
     ])
   );

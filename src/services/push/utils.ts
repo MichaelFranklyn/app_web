@@ -46,7 +46,7 @@ export function pushUnsupportedHint(
     return (
       "No iPhone e no iPad, o aviso só funciona com o app instalado. " +
       "Toque em Compartilhar e depois em “Adicionar à Tela de Início”; " +
-      "abra o Girus por esse ícone e o botão aparece aqui."
+      "abra o Itinus por esse ícone e o botão aparece aqui."
     );
   }
   return "Este navegador não mostra avisos com o app fechado. Tente pelo Chrome no celular ou no computador.";

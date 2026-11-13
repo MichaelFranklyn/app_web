@@ -197,7 +197,7 @@ describe("POST — entrar como (suporte)", () => {
       name === "token"
         ? "token-do-su"
         : name === "userData"
-          ? { userId: "su-1", userName: "Suporte Girus" }
+          ? { userId: "su-1", userName: "Suporte Itinus" }
           : null
     );
 
@@ -234,7 +234,7 @@ describe("POST — entrar como (suporte)", () => {
     await POST(req({ action: "impersonate", input: { userId: "u-1" } }));
 
     expect(cookie("userData")?.[1]).toEqual(
-      expect.objectContaining({ impersonatedBy: "Suporte Girus" })
+      expect.objectContaining({ impersonatedBy: "Suporte Itinus" })
     );
   });
 
@@ -310,7 +310,7 @@ describe("POST — voltar a ser o SU", () => {
       name === "suToken"
         ? "token-do-su"
         : name === "suUserData"
-          ? { userId: "su-1", userName: "Suporte Girus" }
+          ? { userId: "su-1", userName: "Suporte Itinus" }
           : null
     );
 
@@ -319,7 +319,7 @@ describe("POST — voltar a ser o SU", () => {
     expect(res.status).toBe(200);
     expect(cookie("token")?.[1]).toBe("token-do-su");
     expect(cookie("userData")?.[1]).toEqual(
-      expect.objectContaining({ userName: "Suporte Girus" })
+      expect.objectContaining({ userName: "Suporte Itinus" })
     );
     expect(removeServerCookie).toHaveBeenCalledWith("suToken");
     expect(removeServerCookie).toHaveBeenCalledWith("suUserData");

@@ -4,25 +4,19 @@ import { Button } from "@/components/Button";
 import { Dropdown } from "@/components/Dropdown";
 import { useToast } from "@/components/Toast";
 import { useCompanyBranding } from "@/hooks/useCompanyBranding";
-import { useLazyQuery } from "@apollo/client/react";
-import { Building2, ChevronDown, FileText, UserRound } from "lucide-react";
+import {
+  Building2,
+  ChevronDown,
+  FileText,
+  Mail,
+  UserRound,
+} from "lucide-react";
 import { useState } from "react";
 
-import { COMMISSIONS_PDF_QUERY } from "../../gql";
-import { CommissionRow } from "../../interface";
 import { exportCommissionsPdf } from "../../pdf";
-import {
-  CommissionAudience,
-  lensFor,
-  monthLabel,
-  monthReport,
-  pdfVariables,
-  YearMonth,
-} from "../../utils";
-
-interface CommissionsPdfResponse {
-  commissions_pdf: { rows: CommissionRow[] };
-}
+import { CommissionAudience, YearMonth } from "../../utils";
+import { useMonthReport } from "./useMonthReport";
+import { useSendStatement } from "./useSendStatement";
 
 interface Props {
   /**
@@ -57,11 +51,9 @@ interface Props {
  * metade do trabalho sem papel — e, quando era o do vendedor, os subtotais por
  * fábrica não batiam com nada que a fábrica tivesse mandado.
  *
- * As linhas são buscadas no clique, e são TODAS as do vendedor, não as da tela.
- * A tela mostra um mês; as duas seções de boleto seguem a data do boleto, que
- * quase nunca coincide com o mês em que a comissão cai (ver
- * `COMMISSIONS_PDF_QUERY`). Por isso o papel também ignora o painel de filtros:
- * ele é o fechamento do mês inteiro, não um retrato do que está na tela.
+ * O papel ignora o painel de filtros: é o fechamento do mês inteiro, não um
+ * retrato do que está na tela (ver `useMonthReport`). O extrato também pode ir
+ * direto ao email do vendedor (`useSendStatement`), anexado.
  */
 export function CommissionsPdfButton({
   sellerId,
@@ -74,43 +66,23 @@ export function CommissionsPdfButton({
   const { toast } = useToast();
   // Logo e nome da representação no cabeçalho do documento.
   const { name: companyName, logoUrl: companyLogoUrl } = useCompanyBranding();
-  const [fetchRows] = useLazyQuery<CommissionsPdfResponse>(
-    COMMISSIONS_PDF_QUERY,
-    { fetchPolicy: "network-only" }
+  const buildReport = useMonthReport(sellerId, month, canManage);
+  const { sendStatement, isSending } = useSendStatement(
+    sellerId,
+    month,
+    sellerName
   );
+  const working = busy || isSending;
 
   const generate = async (audience: CommissionAudience) => {
     setBusy(true);
     try {
-      const { data } = await fetchRows({
-        variables: pdfVariables(sellerId, month),
-      });
-      // A ótica do papel decide o valor, a data e a situação de cada linha —
-      // e os rótulos do fechamento. Antes o relatório de um vendedor somava a
-      // comissão do escritório: o nome da pessoa no cabeçalho e o dinheiro da
-      // empresa nas colunas.
-      const lens = lensFor(audience, canManage);
-      const report = monthReport(data?.commissions_pdf.rows ?? [], month, lens);
-
-      // Um PDF só com o cabeçalho não serve a ninguém — e some com o mês em que
-      // havia movimento, que é onde o gestor queria estar.
-      if (
-        report.count === 0 &&
-        report.defaulted.length === 0 &&
-        report.settled.length === 0
-      ) {
-        toast({
-          variant: "warning",
-          title: "Nada a listar neste mês",
-          description: `Não há comissões nem boletos em ${monthLabel(month)}. Use as setas para escolher outro mês.`,
-        });
-        return;
-      }
-
+      const built = await buildReport(audience);
+      if (!built) return;
       await exportCommissionsPdf(
-        report,
+        built.report,
         { month, sellerName, companyName, companyLogoUrl },
-        lens
+        built.lens
       );
     } catch {
       toast({
@@ -144,13 +116,13 @@ export function CommissionsPdfButton({
 
   return (
     <Dropdown.Root>
-      <Dropdown.Trigger asChild disabled={disabled || busy}>
+      <Dropdown.Trigger asChild disabled={disabled || working}>
         <Button.Root
           appearance="outline"
           color="neutral"
           size="sm"
           noUppercase
-          loading={busy}
+          loading={working}
           disabled={disabled}
         >
           <Button.Icon icon={FileText} />
@@ -180,6 +152,13 @@ export function CommissionsPdfButton({
             ? "Extrato do vendedor — a fatia dele, no ciclo dele"
             : "Extrato do vendedor — troque “Valores de” para Vendedor e escolha um"}
         </Dropdown.Item>
+        {/* O mesmo extrato, anexado ao email de login do vendedor. A resposta
+            dele volta para quem enviou. */}
+        {sellerId && (
+          <Dropdown.Item icon={Mail} onSelect={() => void sendStatement()}>
+            Enviar o extrato ao vendedor por email
+          </Dropdown.Item>
+        )}
       </Dropdown.Content>
     </Dropdown.Root>
   );

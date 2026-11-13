@@ -42,8 +42,8 @@ interface CreateData {
  *   momento de decidir que está entregando acesso a todas as empresas — inclusive
  *   para entrar como usuário de um cliente.
  *
- * O link aparece uma vez, aqui: não há serviço de e-mail, e é por isso que a
- * mutation o devolve em vez de enviá-lo.
+ * O link aparece uma vez, aqui, com a validade das boas-vindas (3 dias): a
+ * mutation o devolve para quem cria repassar à pessoa contratada.
  */
 export function NewStaffModal({ open, onOpenChange, onCreated }: Props) {
   const [result, setResult] = useState<CreatedPlatformUser | null>(null);

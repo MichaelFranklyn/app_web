@@ -64,7 +64,7 @@ test.describe("Páginas públicas de marketing", () => {
       { path: "/precos", heading: /quanto custa organizar o comercial/i },
       { path: "/termos", heading: /termos de uso/i },
       { path: "/privacidade", heading: /política de privacidade/i },
-      { path: "/assinar", heading: /contratar o girus/i },
+      { path: "/assinar", heading: /contratar o itinus/i },
     ];
 
     for (const route of routes) {
