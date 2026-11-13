@@ -86,7 +86,7 @@ const nameFactoryTerms = (workbook: Workbook, pkg: OrderSheetPackage) => {
  * planilha" em um ato deliberado. Quem precisa (o suporte, resolvendo um caso)
  * sabe onde procurar; quem está com pressa na loja não desprotege sem querer.
  */
-const PROTECTION_PASSWORD = "girus";
+const PROTECTION_PASSWORD = "itinus";
 
 /** Altura da faixa de marca, em pixels — as duas logos se ajustam a ela. */
 const BRAND_HEIGHT = 34;
@@ -133,7 +133,7 @@ const writeBrandImages = (
   }
 
   // Encostada na direita: a folha tem onze colunas e a última é a do total.
-  if (brand?.girusLogo) place(brand.girusLogo, 8.9);
+  if (brand?.brandLogo) place(brand.brandLogo, 8.9);
 };
 
 /**
@@ -150,7 +150,7 @@ export const buildOrderSheetFile = async (
 ): Promise<ArrayBuffer> => {
   const ExcelJS = await import("exceljs");
   const workbook = new ExcelJS.Workbook();
-  workbook.creator = "Girus";
+  workbook.creator = "Itinus";
   workbook.created = new Date();
 
   const form = workbook.addWorksheet(FORM_SHEET);

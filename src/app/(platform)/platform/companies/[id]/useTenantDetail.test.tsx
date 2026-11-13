@@ -104,7 +104,7 @@ const auditMock = (actions: string[], usage = 5) => ({
             id: `au${index}`,
             createdAt: "2026-09-12",
             action,
-            actorEmail: "su@girus.app",
+            actorEmail: "su@itinus.app",
             targetLabel: "Alto",
             reason: null,
             payload: null,

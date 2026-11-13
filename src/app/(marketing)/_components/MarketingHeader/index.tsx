@@ -34,17 +34,17 @@ export function MarketingHeader() {
   return (
     <header className="sticky top-0 z-10 border-b border-(--border) bg-(--bg2)">
       <nav className="mx-auto flex max-w-[1200px] items-center justify-between gap-24 px-24 py-16">
-        <Link href="/" aria-label="Girus — página inicial">
+        <Link href="/" aria-label="Itinus — página inicial">
           <Image
             src="/horizontal_logo.svg"
-            alt="Girus"
-            width={124}
+            alt="Itinus"
+            width={128}
             height={32}
             priority
-            /* 124×32 é a proporção real do arquivo (1500×384). Com números
+            /* 128×32 é a proporção real do arquivo (viewBox 361×90). Com números
                fora da proporção, o `height: auto` do reset recalcula a altura,
                ela não bate com a declarada e o Next avisa no console. */
-            className="h-auto w-[124px]"
+            className="h-auto w-[128px]"
           />
         </Link>
 

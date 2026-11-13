@@ -16,7 +16,7 @@ export default function SubscribeContent() {
           Assinatura
         </Title>
 
-        <Title variant="heading-xl">Contratar o Girus</Title>
+        <Title variant="heading-xl">Contratar o Itinus</Title>
       </div>
 
       <Suspense fallback={null}>

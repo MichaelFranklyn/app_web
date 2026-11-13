@@ -6,7 +6,7 @@ import { config, proxy } from "./proxy";
 const { getServerCookie } = vi.hoisted(() => ({ getServerCookie: vi.fn() }));
 vi.mock("./utils/cookies/serverCookie", () => ({ getServerCookie }));
 
-const BASE = "https://app.girus.test";
+const BASE = "https://app.itinus.test";
 
 /** JWT de 3 segmentos com o `exp` pedido — a assinatura não é verificada aqui. */
 const jwt = (exp?: number): string => {

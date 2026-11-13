@@ -14,6 +14,7 @@ export const UPDATE_MY_PROFILE_MUTATION = gql`
         phone
         cpf
         birthDate
+        isEmailDigestEnabled
         addressZip
         addressStreet
         addressNumber

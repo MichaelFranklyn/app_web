@@ -30,21 +30,21 @@ const {
   drawReportHeader,
   drawReportTable,
   drawFooters,
-  loadGirusLogo,
+  loadBrandLogo,
   loadImage,
   trimTransparent,
 } = vi.hoisted(() => ({
   drawReportHeader: vi.fn<(pdf: unknown, data: CabecalhoArg) => number>(),
   drawReportTable: vi.fn<(pdf: unknown, options: TabelaArg) => number>(),
   drawFooters: vi.fn(),
-  loadGirusLogo: vi.fn(),
+  loadBrandLogo: vi.fn(),
   loadImage: vi.fn(),
   trimTransparent: vi.fn(),
 }));
 
 vi.mock("@/utils/pdf/reportHeader", () => ({ drawReportHeader }));
 vi.mock("@/utils/pdf/table", () => ({ drawReportTable }));
-vi.mock("@/utils/pdf/footer", () => ({ drawFooters, loadGirusLogo }));
+vi.mock("@/utils/pdf/footer", () => ({ drawFooters, loadBrandLogo }));
 vi.mock("@/utils/media", () => ({ loadImage }));
 vi.mock("@/utils/image", () => ({ trimTransparent }));
 
@@ -88,7 +88,7 @@ beforeEach(() => {
   drawReportHeader.mockClear().mockReturnValue(120);
   drawReportTable.mockClear().mockReturnValue(300);
   drawFooters.mockClear();
-  loadGirusLogo.mockReset().mockResolvedValue(marca);
+  loadBrandLogo.mockReset().mockResolvedValue(marca);
   loadImage.mockReset().mockResolvedValue(marca);
   trimTransparent.mockReset().mockImplementation(async (img: unknown) => img);
 });
@@ -133,7 +133,7 @@ describe("buildDayRoutePdf", () => {
 
   it("logo que não carrega não impede a folha de sair", async () => {
     loadImage.mockResolvedValue(null);
-    loadGirusLogo.mockResolvedValue(null);
+    loadBrandLogo.mockResolvedValue(null);
 
     const pdf = await buildDayRoutePdf([stop()], [], meta);
 

@@ -117,7 +117,7 @@ test("ficha da pessoa: libera acesso pelo mesmo caminho da ficha da empresa", as
         status: true,
         message: "ok",
         data: {
-          link: "https://girus.app/change-password?token=xyz789",
+          link: "https://itinus.app/change-password?token=xyz789",
           userEmail: "ana@metais.test",
           userName: "Ana Ribeiro",
         },
@@ -133,7 +133,7 @@ test("ficha da pessoa: libera acesso pelo mesmo caminho da ficha da empresa", as
   const variables = await spy.waitForCall("IssueTenantAccessLink");
   expect(variables).toEqual({ userId: "puser-1" });
   await expect(
-    dialog.getByText("https://girus.app/change-password?token=xyz789")
+    dialog.getByText("https://itinus.app/change-password?token=xyz789")
   ).toBeVisible();
 });
 

@@ -33,7 +33,7 @@ export function RoutineSection() {
         </Title>
 
         <Title variant="body-md" color="secondary" className="max-w-[52ch]">
-          O Girus acompanha o comportamento de compra da sua carteira e mostra,
+          O Itinus acompanha o comportamento de compra da sua carteira e mostra,
           todo dia, quais clientes merecem atenção agora — antes de a conta
           esfriar.
         </Title>

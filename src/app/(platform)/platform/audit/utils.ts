@@ -18,6 +18,9 @@ export const ACTION_OPTIONS = [
   { value: "update_plan", label: "Plano alterado" },
   { value: "issue_access_link", label: "Link de acesso emitido" },
   { value: "impersonate_user", label: "Sessão de suporte" },
+  { value: "create_platform_user", label: "Conta de suporte criada" },
+  { value: "set_platform_user_status", label: "Acesso de suporte alterado" },
+  { value: "release_email_suppression", label: "Email liberado do bloqueio" },
 ];
 
 /** Data e hora: duas ações do mesmo dia se distinguem pela hora, e é a

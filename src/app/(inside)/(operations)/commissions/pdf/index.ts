@@ -2,7 +2,7 @@ import { getTodayIso } from "@/utils/format/date";
 import { formatDateDMY } from "@/utils/format/masks";
 import { trimTransparent } from "@/utils/image";
 import { loadImage } from "@/utils/media";
-import { drawFooters, loadGirusLogo } from "@/utils/pdf/footer";
+import { drawFooters, loadBrandLogo } from "@/utils/pdf/footer";
 import { PAGE } from "@/utils/pdf/theme";
 
 import { CommissionRow } from "../interface";
@@ -38,7 +38,7 @@ const filename = ({ year, month }: YearMonth, lens: CommissionLens): string =>
   `comissoes-${lens.fileTag}-${year}-${String(month).padStart(2, "0")}.pdf`;
 
 /**
- * Gera e baixa o fechamento de comissões de um mês.
+ * Monta o fechamento de comissões de um mês (sem baixar nem anexar).
  *
  * São cinco seções, e elas respondem perguntas diferentes de propósito. As três
  * primeiras são de COMISSÃO, pela data em que ela cai: o que a fábrica ainda
@@ -50,22 +50,22 @@ const filename = ({ year, month }: YearMonth, lens: CommissionLens): string =>
  * em retrato, ou o nome do cliente ficava cortado ou a coluna do boleto não
  * cabia — e é justamente a leitura "cliente → pagou? → quanto" que o papel serve.
  */
-export const exportCommissionsPdf = async (
+const buildCommissionsPdf = async (
   report: MonthReport,
   meta: CommissionsPdfMeta,
   // A ótica do papel. Sem ela as linhas sairiam com o valor e a data do
   // escritório mesmo num relatório de vendedor — que era o defeito: o nome da
   // pessoa no cabeçalho e o dinheiro da empresa na coluna.
   lens: CommissionLens = OFFICE_LENS
-): Promise<void> => {
+) => {
   // Import dinâmico: jspdf é client-only e pesado; fora do bundle inicial/SSR.
   const { jsPDF } = await import("jspdf");
   const pdf = new jsPDF({ orientation: "landscape", unit: "pt", format: "a4" });
 
   // O recorte da moldura transparente deixa a marca do mesmo tamanho visual que
   // no PDF do pedido (ver trimTransparent). Logo é enfeite: falha não impede.
-  const [companyLogo, girusLogo] = await Promise.all(
-    [loadImage(meta.companyLogoUrl), loadGirusLogo()].map((pending) =>
+  const [companyLogo, brandLogo] = await Promise.all(
+    [loadImage(meta.companyLogoUrl), loadBrandLogo()].map((pending) =>
       pending.then(trimTransparent)
     )
   );
@@ -174,6 +174,22 @@ export const exportCommissionsPdf = async (
     lens
   );
 
-  drawFooters(pdf, girusLogo);
-  pdf.save(filename(meta.month, lens));
+  drawFooters(pdf, brandLogo);
+  return { pdf, fileName: filename(meta.month, lens) };
+};
+
+/** Gera e baixa o fechamento do mês. */
+export const exportCommissionsPdf = async (
+  ...args: Parameters<typeof buildCommissionsPdf>
+): Promise<void> => {
+  const { pdf, fileName } = await buildCommissionsPdf(...args);
+  pdf.save(fileName);
+};
+
+/** O fechamento como arquivo em memória, para anexar (envio por email). */
+export const commissionsPdfBlob = async (
+  ...args: Parameters<typeof buildCommissionsPdf>
+): Promise<Blob> => {
+  const { pdf } = await buildCommissionsPdf(...args);
+  return pdf.output("blob");
 };

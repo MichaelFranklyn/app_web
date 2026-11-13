@@ -20,6 +20,7 @@ export const USER_DETAIL_QUERY = gql`
         phone
         cpf
         birthDate
+        isEmailDigestEnabled
         addressZip
         addressStreet
         addressNumber

@@ -26,7 +26,7 @@ export const CONTACT_EMAIL: string | null = null;
 export const LEGAL_UPDATED_AT = "14 de agosto de 2026";
 
 /** Nome comercial do serviço, usado no corpo dos dois textos. */
-export const SERVICE_NAME = "Girus";
+export const SERVICE_NAME = "Itinus";
 
 /** Uma seção de um documento legal: um título e os parágrafos abaixo dele. */
 export interface LegalSection {

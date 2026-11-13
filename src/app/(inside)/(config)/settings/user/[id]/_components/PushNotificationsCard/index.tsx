@@ -32,7 +32,7 @@ export function PushNotificationsCard() {
         <Card.Header.Title>Avisos neste aparelho</Card.Header.Title>
         <Card.Header.Description>
           Receba um aviso na tela do celular quando algo acontecer — mesmo com o
-          Girus fechado.
+          Itinus fechado.
         </Card.Header.Description>
         <Card.Header.Actions>
           <HelpTooltip
@@ -48,7 +48,7 @@ export function PushNotificationsCard() {
                 </Title>
                 <Title variant="body-sm" color="muted">
                   A autorização vale só para o aparelho em que você ativar. Se
-                  usa o Girus no celular e no computador, ative nos dois.
+                  usa o Itinus no celular e no computador, ative nos dois.
                 </Title>
               </div>
             }

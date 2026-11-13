@@ -20,13 +20,17 @@ const GQL_URI = process.env.NEXT_PUBLIC_GRAPHQL_API_HOST || "";
  * cliente, `X-Visit-Token` para o vendedor que responde a rota). São audiências
  * com permissões diferentes — uma só lê, a outra escreve na rotina —, e um
  * header compartilhado faria o token de um lado ser tentado do outro.
+ *
+ * `auth: null` é para a mutation pública que leva o token como ARGUMENTO (o
+ * descadastro dos emails): nenhum header de credencial sai, e o cookie também
+ * não — é exatamente a garantia desta função.
  */
 export async function tokenFetch<
   TData = unknown,
   TVariables = Record<string, unknown>,
 >(
   query: DocumentNode | string,
-  auth: { header: string; token: string },
+  auth: { header: string; token: string } | null,
   variables?: TVariables
 ): Promise<TData | null> {
   const queryString = typeof query === "string" ? query : print(query);
@@ -45,7 +49,7 @@ export async function tokenFetch<
     method: "POST",
     headers: {
       "Content-Type": "application/json",
-      [auth.header]: auth.token,
+      ...(auth ? { [auth.header]: auth.token } : {}),
     },
     body: JSON.stringify({ query: queryString, variables, operationName }),
     cache: "no-store",

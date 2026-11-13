@@ -128,6 +128,7 @@ const DADOS: Record<string, Record<string, Handler>> = {
               orderId: "o-1",
               orderDate: "2026-10-02",
               contactPhone: null,
+              contactEmail: null,
               installmentCount: null,
             },
           ],

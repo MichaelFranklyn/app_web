@@ -9,7 +9,7 @@ const member = (
   ({
     id: "u1",
     name: "Suporte 1",
-    email: "suporte@girus.app",
+    email: "suporte@itinus.app",
     role: "SUPPORT",
     isActive: true,
     lastLoginAt: null,

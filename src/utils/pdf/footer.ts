@@ -2,17 +2,17 @@ import { loadImageFromUrl, LoadedImage } from "@/utils/media";
 import { COLOR, fitLogo, PAGE, Pdf, setDraw, setText } from "./theme";
 
 /** Marca do sistema, servida pelo próprio front (não passa pela API). */
-const GIRUS_LOGO_URL = "/horizontal_logo.png";
+const BRAND_LOGO_URL = "/horizontal_logo.png";
 
 /** Carrega a marca do sistema para o rodapé. `null` se falhar — o PDF sai sem. */
-export const loadGirusLogo = (): Promise<LoadedImage | null> =>
-  loadImageFromUrl(GIRUS_LOGO_URL);
+export const loadBrandLogo = (): Promise<LoadedImage | null> =>
+  loadImageFromUrl(BRAND_LOGO_URL);
 
 // Marca do sistema no rodapé (subiu de 12x54 em 2026-07-24). O teto de altura é
 // o que sobra entre a linha do rodapé e a borda da página: com o desenho abaixo
 // (`y - height + 6`), 18pt ficam centrados no texto sem cruzar a linha.
-const GIRUS_MAX_H = 18;
-const GIRUS_MAX_W = 80;
+const BRAND_MAX_H = 18;
+const BRAND_MAX_W = 80;
 
 /**
  * Até onde o conteúdo de uma página pode descer sem invadir o rodapé.
@@ -30,7 +30,7 @@ export const contentBottom = (pdf: Pdf): number =>
  * direita. Desenhado no fim, quando o total de páginas já é conhecido — daí
  * percorrer as páginas em vez de escrever durante o fluxo.
  */
-export const drawFooters = (pdf: Pdf, girusLogo: LoadedImage | null): void => {
+export const drawFooters = (pdf: Pdf, brandLogo: LoadedImage | null): void => {
   const pageW = pdf.internal.pageSize.getWidth();
   const pageH = pdf.internal.pageSize.getHeight();
   const total = pdf.getNumberOfPages();
@@ -43,10 +43,10 @@ export const drawFooters = (pdf: Pdf, girusLogo: LoadedImage | null): void => {
     pdf.line(PAGE.margin, y - 14, pageW - PAGE.margin, y - 14);
 
     let textX = PAGE.margin;
-    if (girusLogo) {
-      const box = fitLogo(girusLogo, GIRUS_MAX_W, GIRUS_MAX_H);
+    if (brandLogo) {
+      const box = fitLogo(brandLogo, BRAND_MAX_W, BRAND_MAX_H);
       pdf.addImage(
-        girusLogo.dataUrl,
+        brandLogo.dataUrl,
         PAGE.margin,
         y - box.height + 6,
         box.width,
@@ -58,7 +58,7 @@ export const drawFooters = (pdf: Pdf, girusLogo: LoadedImage | null): void => {
     pdf.setFont("helvetica", "normal");
     pdf.setFontSize(7.5);
     setText(pdf, COLOR.muted);
-    pdf.text("Documento gerado pelo Girus", textX, y);
+    pdf.text("Documento gerado pelo Itinus", textX, y);
     pdf.text(`Página ${page} de ${total}`, pageW - PAGE.margin, y, {
       align: "right",
     });

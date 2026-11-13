@@ -43,10 +43,10 @@ export function MarketingFooter() {
           <div className="flex flex-col gap-12">
             <Image
               src="/horizontal_logo.svg"
-              alt="Girus"
-              width={124}
+              alt="Itinus"
+              width={128}
               height={32}
-              className="h-auto w-[124px]"
+              className="h-auto w-[128px]"
             />
 
             <Title variant="body-sm" color="muted" className="max-w-[36ch]">
@@ -64,7 +64,7 @@ export function MarketingFooter() {
 
         <div className="mt-32 border-t border-(--border) pt-24">
           <Title variant="body-xs" color="muted">
-            © {year} Girus. Todos os direitos reservados.
+            © {year} Itinus. Todos os direitos reservados.
           </Title>
         </div>
       </div>

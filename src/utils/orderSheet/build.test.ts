@@ -320,7 +320,7 @@ describe("marca da ficha", () => {
     const workbook = await reopenWithBrand({
       companyLogo: { dataUrl: PNG, width: 200, height: 100 },
       companyName: "Contato Rep.",
-      girusLogo: { dataUrl: PNG, width: 100, height: 100 },
+      brandLogo: { dataUrl: PNG, width: 100, height: 100 },
     });
     const form = workbook.getWorksheet("FICHA DE PEDIDO")!;
     const images = form.getImages();

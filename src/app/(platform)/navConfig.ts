@@ -3,6 +3,7 @@ import {
   BadgeCheck,
   Building2,
   History,
+  Mail,
   LayoutDashboard,
   ScrollText,
   ShieldCheck,
@@ -64,6 +65,12 @@ export const PLATFORM_NAV = [
     href: "/platform/health",
     label: "Saúde",
     icon: Activity,
+  },
+  {
+    // Aberto ao suporte: é a tela do chamado "não recebi o email".
+    href: "/platform/emails",
+    label: "Emails",
+    icon: Mail,
   },
   { divider: true, suOnly: true },
   { section: "Governança", suOnly: true },

@@ -12,7 +12,7 @@ import SubscribeContent from "./content";
 export const metadata: Metadata = {
   title: "Assinatura",
   description:
-    "Fluxo de contratação do Girus. Simulação: nenhum pagamento é processado.",
+    "Fluxo de contratação do Itinus. Simulação: nenhum pagamento é processado.",
   robots: { index: false, follow: true },
 };
 

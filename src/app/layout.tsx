@@ -47,9 +47,9 @@ const description =
 export const metadata: Metadata = {
   metadataBase: new URL(getSiteUrl()),
   title: {
-    default: "Girus — Plataforma de Gestão Comercial",
+    default: "Itinus — Plataforma de Gestão Comercial",
     // As telas internas passam só o próprio nome; a marca entra aqui.
-    template: "%s | Girus",
+    template: "%s | Itinus",
   },
   description,
   // A rota que serve o JSON (src/app/manifest.webmanifest/route.ts) — sem esta
@@ -63,7 +63,7 @@ export const metadata: Metadata = {
   },
   appleWebApp: {
     capable: true,
-    title: "Girus",
+    title: "Itinus",
     // "default" mantém a barra de status legível sobre o fundo claro do app;
     // "black-translucent" faria o conteúdo passar por baixo dela.
     statusBarStyle: "default",
@@ -71,14 +71,14 @@ export const metadata: Metadata = {
   openGraph: {
     type: "website",
     locale: "pt_BR",
-    siteName: "Girus",
+    siteName: "Itinus",
     url: "/",
-    title: "Girus — Plataforma de Gestão Comercial",
+    title: "Itinus — Plataforma de Gestão Comercial",
     description,
   },
   twitter: {
     card: "summary_large_image",
-    title: "Girus — Plataforma de Gestão Comercial",
+    title: "Itinus — Plataforma de Gestão Comercial",
     description,
   },
 };

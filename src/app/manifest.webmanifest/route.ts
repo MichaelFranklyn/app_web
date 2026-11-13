@@ -22,10 +22,10 @@ export const dynamic = "force-static";
 export function GET() {
   return NextResponse.json(
     {
-      name: "Girus — Gestão Comercial",
+      name: "Itinus — Gestão Comercial",
       // Até 12 caracteres: é o que o Android mostra sob o ícone. Mais que isso
       // é truncado com reticências no meio do nome.
-      short_name: "Girus",
+      short_name: "Itinus",
       description:
         "Pedidos, carteira de clientes, comissões e a rota do dia do vendedor.",
       start_url: "/dashboard",

@@ -2,7 +2,7 @@ import { getTodayIso } from "@/utils/format/date";
 import { formatDateDMY } from "@/utils/format/masks";
 import { trimTransparent } from "@/utils/image";
 import { loadImage } from "@/utils/media";
-import { drawFooters, loadGirusLogo } from "@/utils/pdf/footer";
+import { drawFooters, loadBrandLogo } from "@/utils/pdf/footer";
 import { drawReportHeader } from "@/utils/pdf/reportHeader";
 import { drawReportTable } from "@/utils/pdf/table";
 import { COLOR, PAGE, Pdf, setText } from "@/utils/pdf/theme";
@@ -65,8 +65,8 @@ export const buildDayRoutePdf = async (
   const pdf = new jsPDF({ orientation: "landscape", unit: "pt", format: "a4" });
 
   // Logo é enfeite do documento: se falhar, o papel sai igual, sem a marca.
-  const [companyLogo, girusLogo] = await Promise.all(
-    [loadImage(meta.companyLogoUrl), loadGirusLogo()].map((pending) =>
+  const [companyLogo, brandLogo] = await Promise.all(
+    [loadImage(meta.companyLogoUrl), loadBrandLogo()].map((pending) =>
       pending.then(trimTransparent)
     )
   );
@@ -121,7 +121,7 @@ export const buildDayRoutePdf = async (
     drawResponseBlock(pdf, qr, meta.responseUrl, y, newPage);
   }
 
-  drawFooters(pdf, girusLogo);
+  drawFooters(pdf, brandLogo);
   return pdf;
 };
 

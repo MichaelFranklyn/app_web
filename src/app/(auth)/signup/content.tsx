@@ -40,7 +40,7 @@ export default function SignUpContent() {
           "Não foi possível criar a conta. Verifique os dados e tente novamente."
         ),
       {
-        successMessage: "Conta criada! Bem-vindo ao Girus.",
+        successMessage: "Conta criada! Bem-vindo ao Itinus.",
         onSuccess() {
           router.push("/dashboard");
         },
@@ -53,9 +53,9 @@ export default function SignUpContent() {
       <div className="flex w-full max-w-[560px] flex-col items-center gap-24">
         <Image
           src="/horizontal_logo.png"
-          alt="Girus"
-          width={1059}
-          height={247}
+          alt="Itinus"
+          width={1023}
+          height={256}
           priority
           className="mx-auto h-auto w-[200px]"
         />

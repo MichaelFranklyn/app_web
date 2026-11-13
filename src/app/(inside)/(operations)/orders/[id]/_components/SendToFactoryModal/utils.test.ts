@@ -1,5 +1,6 @@
 import { describe, expect, it } from "vitest";
 import {
+  emailContacts,
   buildOrderMessage,
   buildWhatsAppUrl,
   pickFactoryContact,
@@ -146,5 +147,22 @@ describe("pickFactoryContact", () => {
     expect(pickFactoryContact([])).toBeNull();
     expect(pickFactoryContact(null)).toBeNull();
     expect(pickFactoryContact(undefined)).toBeNull();
+  });
+});
+
+describe("emailContacts", () => {
+  it("só ativos com email, o principal primeiro", () => {
+    const lista = emailContacts([
+      { name: "Sem email", email: " " },
+      { name: "Inativo", email: "x@f.com", isActive: false },
+      { name: "Comum", email: "c@f.com", isActive: true },
+      { name: "Principal", email: "p@f.com", isPrimary: true, isActive: true },
+    ]);
+    expect(lista.map((c) => c.name)).toEqual(["Principal", "Comum"]);
+  });
+
+  it("lista vazia quando ninguém tem email", () => {
+    expect(emailContacts([{ name: "A", phone: "71987654321" }])).toEqual([]);
+    expect(emailContacts(null)).toEqual([]);
   });
 });

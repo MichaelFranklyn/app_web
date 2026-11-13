@@ -1,9 +1,10 @@
+import type { jsPDF as JsPdf } from "jspdf";
 import { factoryName } from "@/utils/company";
 import { formatDateDMY } from "@/utils/format/masks";
 import { trimTransparent } from "@/utils/image";
 import { loadImage } from "@/utils/media";
 import type { LoadedImage } from "@/utils/media";
-import { contentBottom, drawFooters, loadGirusLogo } from "@/utils/pdf/footer";
+import { contentBottom, drawFooters, loadBrandLogo } from "@/utils/pdf/footer";
 import { PAGE } from "@/utils/pdf/theme";
 import { OrderDetail, OrderItem } from "../interface";
 import { paymentTermLabel } from "../../../_shared/orderPaymentTerms";
@@ -51,31 +52,41 @@ const loadItemPhotos = async (
   );
 };
 
+/** O PDF montado e o nome com que ele é baixado ou anexado. */
+export interface BuiltOrderPdf {
+  pdf: JsPdf;
+  fileName: string;
+}
+
 /**
- * Gera e baixa o PDF de um pedido (ou orçamento) para o vendedor compartilhar
- * com o cliente.
+ * Monta o PDF de um pedido (ou orçamento), sem baixar.
+ *
+ * Separado do download porque o mesmo documento tem duas saídas: o botão
+ * "PDF" baixa (`exportOrderPdf`), e o envio por email à fábrica anexa
+ * (`orderPdfBlob`). Um gerador só garante que a fábrica recebe exatamente o
+ * papel que o vendedor vê.
  *
  * O documento é a cara da representação na mão do cliente: leva a logo da
  * empresa e a da fábrica no topo, os dados das duas partes, os itens, os
  * totais, as parcelas e a marca do sistema no rodapé. Cada logo é opcional —
  * falha de download não impede a emissão.
  */
-export const exportOrderPdf = async (
+export const buildOrderPdf = async (
   order: OrderDetail,
   items: OrderItem[],
   branding: PdfBranding = {}
-): Promise<void> => {
+): Promise<BuiltOrderPdf> => {
   // Import dinâmico: jspdf é client-only e pesado; fora do bundle inicial/SSR.
   const { jsPDF } = await import("jspdf");
   const pdf = new jsPDF({ orientation: "landscape", unit: "pt", format: "a4" });
 
   // O recorte da moldura transparente é o que faz as duas logos do topo
   // aparecerem do mesmo tamanho (ver trimTransparent).
-  const [companyLogo, factoryLogo, girusLogo] = await Promise.all(
+  const [companyLogo, factoryLogo, brandLogo] = await Promise.all(
     [
       loadImage(branding.companyLogoUrl),
       loadImage(order.factory?.logoUrl),
-      loadGirusLogo(),
+      loadBrandLogo(),
     ].map((pending) => pending.then(trimTransparent))
   );
 
@@ -144,7 +155,23 @@ export const exportOrderPdf = async (
   y = fit(notesHeight(pdf, order.notes));
   drawNotes(pdf, order.notes, y);
 
-  drawFooters(pdf, girusLogo);
+  drawFooters(pdf, brandLogo);
 
-  pdf.save(`${docKind.toLowerCase()}-${number}.pdf`);
+  return { pdf, fileName: `${docKind.toLowerCase()}-${number}.pdf` };
+};
+
+/** Gera e baixa o PDF do pedido para o vendedor compartilhar com o cliente. */
+export const exportOrderPdf = async (
+  ...args: Parameters<typeof buildOrderPdf>
+): Promise<void> => {
+  const { pdf, fileName } = await buildOrderPdf(...args);
+  pdf.save(fileName);
+};
+
+/** O PDF do pedido como arquivo em memória, para anexar (envio por email). */
+export const orderPdfBlob = async (
+  ...args: Parameters<typeof buildOrderPdf>
+): Promise<{ blob: Blob; fileName: string }> => {
+  const { pdf, fileName } = await buildOrderPdf(...args);
+  return { blob: pdf.output("blob"), fileName };
 };

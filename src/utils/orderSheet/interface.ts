@@ -100,5 +100,5 @@ export interface SheetImage {
 export interface OrderSheetBrand {
   companyLogo?: SheetImage | null;
   companyName?: string | null;
-  girusLogo?: SheetImage | null;
+  brandLogo?: SheetImage | null;
 }

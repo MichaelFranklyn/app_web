@@ -17,6 +17,9 @@ export const AUDIT_LABEL: Record<string, string> = {
   UPDATE_PLAN: "Plano alterado",
   ISSUE_ACCESS_LINK: "Link de acesso emitido",
   IMPERSONATE_USER: "Sessão de suporte iniciada",
+  CREATE_PLATFORM_USER: "Conta de suporte criada",
+  SET_PLATFORM_USER_STATUS: "Acesso de suporte alterado",
+  RELEASE_EMAIL_SUPPRESSION: "Email liberado do bloqueio",
 };
 
 /**

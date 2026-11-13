@@ -43,6 +43,8 @@ export interface UserDetail {
   phone: string | null;
   cpf: string | null;
   birthDate: string | null;
+  /** Resumos por email (semana, pendências, aniversários). Avisos de acesso não dependem disto. */
+  isEmailDigestEnabled: boolean;
   addressZip: string | null;
   addressStreet: string | null;
   addressNumber: string | null;

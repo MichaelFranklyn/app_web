@@ -26,7 +26,7 @@ export function HeroSection() {
 
         <Title variant="body-md" color="secondary" className="max-w-[56ch]">
           Pedido, carteira, tabela de preço e comissão deixam de morar em
-          planilha, WhatsApp e caderno. E, todo dia, o Girus diz quais clientes
+          planilha, WhatsApp e caderno. E, todo dia, o Itinus diz quais clientes
           precisam de você — antes de eles pararem de comprar.
         </Title>
 

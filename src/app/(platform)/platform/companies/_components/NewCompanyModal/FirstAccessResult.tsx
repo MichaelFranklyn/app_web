@@ -29,9 +29,10 @@ function Field({ label, value }: { label: string; value: string }) {
  * Confirmação do provisionamento: empresa e responsável criados e, quando
  * nenhuma senha foi definida, o link de primeiro acesso para copiar.
  *
- * O link aparece uma única vez — não há serviço de e-mail, e o token só existe
- * em claro nesta resposta. Fechar sem copiar obriga a emitir outro pela ficha
- * da empresa.
+ * O mesmo link já foi por e-mail ao responsável (boas-vindas do escritório),
+ * com validade de 3 dias. Aqui ele aparece uma única vez — o token só existe em
+ * claro nesta resposta — para o suporte mandar por outro canal se o e-mail não
+ * chegar. Emitir outro pela ficha da empresa derruba este.
  */
 export function FirstAccessResult({ data }: Props) {
   const { toast } = useToast();
@@ -82,8 +83,9 @@ export function FirstAccessResult({ data }: Props) {
             </Title>
           </div>
           <Title variant="micro" color="muted">
-            Envie este link ao responsável para ele criar a própria senha. É
-            exibido apenas agora e vale por tempo limitado.
+            Já enviamos este link para o e-mail acima, para o responsável criar
+            a própria senha. Vale por 3 dias e só aparece agora: copie se quiser
+            mandar também por outro canal.
           </Title>
           <div className="tablet:flex-row tablet:items-center flex flex-col gap-8">
             <UrlBox size="sm" singleLine className="flex-1">
@@ -112,7 +114,8 @@ export function FirstAccessResult({ data }: Props) {
           </div>
           <Title variant="micro" color="muted">
             O responsável já pode entrar com o e-mail acima e a senha que você
-            definiu. Oriente-o a trocá-la no primeiro acesso.
+            definiu — enviamos um e-mail de boas-vindas com o botão de entrar,
+            sem a senha. Oriente-o a trocá-la no primeiro acesso.
           </Title>
         </div>
       )}

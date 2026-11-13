@@ -52,7 +52,7 @@ const issueMock = (ok = true) => ({
         __typename: "ClientPortalLinkResponse",
         status: ok,
         message: ok ? "Link gerado" : "Cliente sem e-mail",
-        data: ok ? link("https://girus.app/p/token-novo") : null,
+        data: ok ? link("https://itinus.app/p/token-novo") : null,
       },
     },
   },
@@ -92,25 +92,25 @@ describe("useClientPortalLink", () => {
   it("só consulta quando alguém abre o compartilhamento", async () => {
     // Quase nenhuma abertura da ficha acaba em compartilhamento: uma query a
     // mais em toda visita pagaria por um botão que raramente é clicado.
-    const result = run([linkQueryMock("https://girus.app/p/antigo")]);
+    const result = run([linkQueryMock("https://itinus.app/p/antigo")]);
 
     expect(result.current.activeLink).toBeNull();
 
     act(() => result.current.load());
 
     await waitFor(() =>
-      expect(result.current.activeLink?.url).toBe("https://girus.app/p/antigo")
+      expect(result.current.activeLink?.url).toBe("https://itinus.app/p/antigo")
     );
   });
 
   it("gerar o link mostra a URL, que só existe nesta tela", async () => {
     // O backend guarda o hash e devolve a URL uma vez só, na emissão.
-    const result = run([issueMock(), linkQueryMock("https://girus.app/p/x")]);
+    const result = run([issueMock(), linkQueryMock("https://itinus.app/p/x")]);
 
     await act(() => result.current.issue());
 
     await waitFor(() =>
-      expect(result.current.issuedUrl).toBe("https://girus.app/p/token-novo")
+      expect(result.current.issuedUrl).toBe("https://itinus.app/p/token-novo")
     );
   });
 
@@ -119,8 +119,8 @@ describe("useClientPortalLink", () => {
     // que dá para copiar de novo mais tarde.
     const result = run([
       issueMock(),
-      linkQueryMock("https://girus.app/p/x"),
-      linkQueryMock("https://girus.app/p/x"),
+      linkQueryMock("https://itinus.app/p/x"),
+      linkQueryMock("https://itinus.app/p/x"),
     ]);
     await act(() => result.current.issue());
     await waitFor(() => expect(result.current.issuedUrl).not.toBeNull());
@@ -133,7 +133,7 @@ describe("useClientPortalLink", () => {
   it("cancelar o link apaga o que estava na tela", async () => {
     const result = run([
       issueMock(),
-      linkQueryMock("https://girus.app/p/x"),
+      linkQueryMock("https://itinus.app/p/x"),
       revokeMock(),
       linkQueryMock(null),
     ]);

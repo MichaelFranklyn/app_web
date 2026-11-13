@@ -4,7 +4,7 @@ import TermsContent from "./content";
 export const metadata: Metadata = {
   title: "Termos de uso",
   description:
-    "As regras de uso do Girus: conta, planos e limites, período de teste, propriedade dos dados, disponibilidade e encerramento.",
+    "As regras de uso do Itinus: conta, planos e limites, período de teste, propriedade dos dados, disponibilidade e encerramento.",
   alternates: { canonical: "/termos" },
 };
 

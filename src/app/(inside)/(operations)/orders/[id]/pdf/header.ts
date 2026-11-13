@@ -13,7 +13,7 @@ import {
 // Caixa das logos do topo. As imagens chegam recortadas (trimTransparent), sem
 // moldura vazia: a altura aqui é a altura VISÍVEL da marca. Subiu de 34x130 em
 // 2026-07-24 — no papel as marcas ficavam timidamente pequenas para quem é o
-// dono do documento. Marca em faixa esbarra na LARGURA (a Girus é 4,3:1), então
+// dono do documento. Marca em faixa esbarra na LARGURA (a Itinus é 4:1), então
 // é o teto de largura que manda no tamanho final dessas — daí os dois subirem.
 const LOGO_MAX_H = 50;
 const LOGO_MAX_W = 200;

@@ -7,8 +7,8 @@ import {
   PersonDataModal,
   UserDetail,
 } from "../../../../../_shared/userProfile";
-import { UPDATE_MY_PROFILE_MUTATION } from "./gql";
-import { UpdateMyProfileResponse } from "./interface";
+import { UPDATE_MY_PROFILE_MUTATION } from "../../gql";
+import { UpdateMyProfileResponse } from "../../interface";
 
 interface Props {
   profile: UserDetail;

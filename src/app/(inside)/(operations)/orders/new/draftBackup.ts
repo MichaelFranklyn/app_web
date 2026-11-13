@@ -19,6 +19,7 @@ export interface DraftBackup {
   savedAt: string;
 }
 
+// "girus:" é do nome antigo da marca; fica para não perder rascunhos já guardados.
 const PREFIX = "girus:order-draft:v1";
 
 /** Uma semana: depois disso o preço guardado já não diz nada. */

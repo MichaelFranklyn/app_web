@@ -26,14 +26,14 @@ import { FLOW_ROUTES } from "../../routes";
 export const systemOverviewFlow: FlowDefinition = {
   key: SYSTEM_OVERVIEW_FLOW,
   label: "Tour do sistema",
-  description: "Conheça o menu e as áreas principais do Girus.",
+  description: "Conheça o menu e as áreas principais do Itinus.",
   group: "Primeiros passos",
   route: FLOW_ROUTES.dashboard,
   version: 2,
   autoStart: true,
   steps: [
     {
-      title: "Bem-vindo ao Girus!",
+      title: "Bem-vindo ao Itinus!",
       description:
         "Vamos fazer um tour rápido pelas áreas principais do sistema. É curtinho — leva menos de um minuto.",
     },

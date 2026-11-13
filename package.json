@@ -1,5 +1,5 @@
 {
-  "name": "girus-web",
+  "name": "itinus-web",
   "version": "0.1.0",
   "browserslist": [
     "chrome >= 100",
@@ -31,7 +31,8 @@
     "e2e:report": "playwright show-report",
     "e2e:build": "next build",
     "e2e:start": "next start",
-    "prepare": "husky"
+    "prepare": "husky",
+    "brand:assets": "node scripts/brand-assets.mjs"
   },
   "lint-staged": {
     "*.{js,jsx,ts,tsx}": [

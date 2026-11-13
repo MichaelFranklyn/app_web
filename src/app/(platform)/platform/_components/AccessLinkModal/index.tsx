@@ -13,6 +13,7 @@ import { Copy, Info } from "lucide-react";
 import { useState } from "react";
 import { ISSUE_ACCESS_LINK_MUTATION } from "./gql";
 import { AccessLinkResult, IssueAccessLinkData, LinkTarget } from "./interface";
+import { validityLabel } from "./utils";
 
 interface Props {
   /** Nulo fecha a janela — quem abre é quem escolhe a pessoa. */
@@ -26,9 +27,12 @@ interface Props {
  * Vive no PAI do console porque duas telas o abrem: a ficha da empresa (pelo
  * card de pessoas) e a ficha da pessoa.
  *
- * O link aparece na TELA para o SU copiar porque não há serviço de e-mail no
- * sistema — é a razão de a mutation devolvê-lo em vez de enviá-lo. Enquanto
- * isso não mudar, esta janela é o único canal de entrega.
+ * O link aparece na TELA para o suporte copiar e repassar pelo canal que a
+ * pessoa usa (WhatsApp, telefone) — "não consigo entrar" chega por ali.
+ *
+ * A validade vem do backend e depende do caso: quem nunca entrou ganha o prazo
+ * das boas-vindas (3 dias); quem já entrou, o curto da redefinição — o link
+ * longo calaria o aviso de "senha alterada" numa conta em uso.
  */
 export function AccessLinkModal({ user, onOpenChange }: Props) {
   const [result, setResult] = useState<AccessLinkResult | null>(null);
@@ -93,14 +97,15 @@ export function AccessLinkModal({ user, onOpenChange }: Props) {
             <>
               <Title variant="body-sm" color="muted">
                 Emitir um link novo <Emphasis>invalida os anteriores</Emphasis>{" "}
-                desta pessoa. O link vale por 15 minutos.
+                desta pessoa. Se ela nunca entrou, o link vale por 3 dias; se já
+                entrou, é uma redefinição e vale por pouco tempo.
               </Title>
               <Alert.Root variant="info">
                 <Alert.Icon icon={Info} />
                 <Alert.Content>
                   <Alert.Description>
-                    O sistema não envia e-mails. Você vai copiar o link aqui e
-                    repassar por outro canal.
+                    Você vai copiar o link aqui e repassar à pessoa pelo canal
+                    que ela usa, como WhatsApp.
                   </Alert.Description>
                 </Alert.Content>
               </Alert.Root>
@@ -108,8 +113,9 @@ export function AccessLinkModal({ user, onOpenChange }: Props) {
           ) : (
             <>
               <Title variant="body-sm" color="muted">
-                Link para <Emphasis>{result.userEmail}</Emphasis>. Copie agora —
-                depois de fechar, só emitindo outro.
+                Link para <Emphasis>{result.userEmail}</Emphasis>, vale por{" "}
+                <Emphasis>{validityLabel(result.expiresInMinutes)}</Emphasis>.
+                Copie agora — depois de fechar, só emitindo outro.
               </Title>
               <UrlBox size="sm">{result.link}</UrlBox>
             </>

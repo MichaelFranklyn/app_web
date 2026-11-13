@@ -6,6 +6,7 @@ import { ArrowRight } from "lucide-react";
 import { PendingItem } from "../../interface";
 import { destinationLabel } from "../../utils";
 import { PostSaleContact } from "../PostSaleContact";
+import { PostSaleEmailButton } from "../PostSaleEmailButton";
 
 interface Props {
   item: PendingItem;
@@ -40,7 +41,10 @@ export function PendingActions({ item, onScheduleReturn }: Props) {
       )}
       {/* Pós-venda: a mensagem ao cliente é o trabalho desta pendência. */}
       {item.reason === "DELIVERY_UNCONFIRMED" && (
-        <PostSaleContact item={item} />
+        <>
+          <PostSaleContact item={item} />
+          <PostSaleEmailButton item={item} />
+        </>
       )}
       {/* A parada marcada daqui nasce vinculada ao retorno: concluí-la
           resolve o "volte dia X" (uma parada qualquer não resolve). */}

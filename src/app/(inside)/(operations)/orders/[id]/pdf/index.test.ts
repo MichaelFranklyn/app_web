@@ -37,7 +37,7 @@ const {
   paymentHeight,
   notesHeight,
   drawFooters,
-  loadGirusLogo,
+  loadBrandLogo,
   loadImage,
   trimTransparent,
   factoryCard,
@@ -63,7 +63,7 @@ const {
   paymentHeight: vi.fn<(installments: unknown[]) => number>(),
   notesHeight: vi.fn<(pdf: unknown, notes: string | null) => number>(),
   drawFooters: vi.fn(),
-  loadGirusLogo: vi.fn(),
+  loadBrandLogo: vi.fn(),
   loadImage: vi.fn(),
   trimTransparent: vi.fn(),
   factoryCard: vi.fn(() => ({ title: "Fábrica" })),
@@ -86,7 +86,7 @@ vi.mock("./cards", () => ({ factoryCard, clientCard }));
 // página depende dele.
 vi.mock("@/utils/pdf/footer", () => ({
   drawFooters,
-  loadGirusLogo,
+  loadBrandLogo,
   contentBottom: () => 547,
 }));
 vi.mock("@/utils/media", () => ({ loadImage }));
@@ -136,6 +136,8 @@ beforeEach(() => {
   vi.doMock("jspdf", () => ({
     jsPDF: class {
       save = save;
+      output = (kind: string) =>
+        kind === "blob" ? new Blob(["%PDF-1.7"]) : undefined;
       internal = { pageSize: { getWidth: () => 842, getHeight: () => 595 } };
       addPage() {}
       getNumberOfPages() {
@@ -154,9 +156,22 @@ beforeEach(() => {
   paymentHeight.mockReset().mockReturnValue(0);
   notesHeight.mockReset().mockReturnValue(0);
   drawFooters.mockReset();
-  loadGirusLogo.mockReset().mockResolvedValue(marca);
+  loadBrandLogo.mockReset().mockResolvedValue(marca);
   loadImage.mockReset().mockResolvedValue(marca);
   trimTransparent.mockReset().mockImplementation(async (img: unknown) => img);
+});
+
+describe("orderPdfBlob", () => {
+  it("devolve o mesmo documento em memória, com o nome do download, sem baixar", async () => {
+    const { orderPdfBlob } = await import("./index");
+    const { blob, fileName } = await orderPdfBlob(
+      pedido({ status: "DRAFT" }),
+      []
+    );
+    expect(fileName).toBe("orçamento-9F8E7D6C.pdf");
+    expect(blob.size).toBe("%PDF-1.7".length);
+    expect(save).not.toHaveBeenCalled();
+  });
 });
 
 /** Reimporta o módulo para pegar o `jspdf` trocado no `beforeEach`. */
@@ -238,7 +253,7 @@ describe("exportOrderPdf", () => {
 
   it("logo que não carrega não impede a emissão", async () => {
     loadImage.mockResolvedValue(null);
-    loadGirusLogo.mockResolvedValue(null);
+    loadBrandLogo.mockResolvedValue(null);
 
     await exportar(pedido(), []);
 
