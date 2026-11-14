@@ -24,7 +24,7 @@ export function FaqItem({
 
         <ChevronDown
           size={18}
-          className="shrink-0 text-(--muted) transition group-open:rotate-180"
+          className="shrink-0 text-(--color-text-muted) transition group-open:rotate-180"
         />
       </summary>
 

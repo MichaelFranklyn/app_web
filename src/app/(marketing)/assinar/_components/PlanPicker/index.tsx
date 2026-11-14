@@ -28,7 +28,10 @@ export function PlanPicker() {
               </Title>
             </span>
 
-            <ArrowRight size={18} className="shrink-0 text-(--muted)" />
+            <ArrowRight
+              size={18}
+              className="shrink-0 text-(--color-text-muted)"
+            />
           </Link>
         ))}
       </div>

@@ -1,5 +1,5 @@
+import { TextLink } from "@/components/TextLink";
 import { Title } from "@/components/Title";
-import Link from "next/link";
 
 /** Uma coluna de links do rodapé: um rótulo e a lista abaixo dele. */
 export function FooterColumn({
@@ -16,11 +16,17 @@ export function FooterColumn({
       </Title>
 
       {links.map((link) => (
-        <Link key={link.href} href={link.href} className="hover:opacity-70">
-          <Title variant="body-sm" color="secondary">
+        <TextLink
+          key={link.href}
+          href={link.href}
+          tone="inherit"
+          underline="none"
+          className="text-(--color-text-secondary)"
+        >
+          <Title variant="body-sm" color="inherit">
             {link.label}
           </Title>
-        </Link>
+        </TextLink>
       ))}
     </nav>
   );

@@ -1,8 +1,9 @@
 "use client";
 
+import { TextLink } from "@/components/TextLink";
 import { Title } from "@/components/Title";
-import Link from "next/link";
 import { useSearchParams } from "next/navigation";
+import { parseUsers } from "../../../pricing";
 import { findPlanByCode } from "../../utils";
 import { BillingStep } from "../BillingStep";
 import { DemoNotice } from "../DemoNotice";
@@ -22,11 +23,12 @@ import { useCheckout } from "./useCheckout";
  * componente que só recebe valores e callbacks. Quando o gateway real entrar,
  * este arquivo não muda.
  *
- * Lê `?plano=` com `useSearchParams`, o que exige `Suspense` no pai: sem ele o
+ * Lê `?plano=` e `?usuarios=` com `useSearchParams`, o que exige `Suspense` no pai: sem ele o
  * Next recusa a rota estática.
  */
 export function CheckoutFlow() {
-  const plan = findPlanByCode(useSearchParams().get("plano"));
+  const searchParams = useSearchParams();
+  const plan = findPlanByCode(searchParams.get("plano"));
   const checkout = useCheckout();
 
   // Sem plano na URL (ou com código que não existe), a decisão ainda não foi
@@ -36,6 +38,10 @@ export function CheckoutFlow() {
   // O Enterprise não tem preço de tabela — mandar esse caso para o formulário
   // de cartão seria inventar um valor que ninguém combinou.
   if (plan.demoMonthlyPrice === null) return <EnterpriseNotice plan={plan} />;
+
+  // `?usuarios=` vem da calculadora da vitrine. Sem ele, vale o que o plano
+  // inclui — o checkout nunca cobra abaixo da mensalidade cheia.
+  const users = parseUsers(searchParams.get("usuarios"), plan);
 
   return (
     <div className="desktop:grid-cols-[1.4fr_1fr] desktop:items-start grid gap-32">
@@ -47,6 +53,7 @@ export function CheckoutFlow() {
         {checkout.step === "plan" && (
           <PlanStep
             plan={plan}
+            users={users}
             cycle={checkout.cycle}
             onChangeCycle={checkout.setCycle}
             onContinue={checkout.goToBilling}
@@ -82,18 +89,18 @@ export function CheckoutFlow() {
 
         <Title variant="body-xs" color="muted">
           Ao assinar você concorda com os{" "}
-          <Link href="/termos" className="underline hover:opacity-70">
+          <TextLink href="/termos" tone="inherit" underline="always">
             Termos de uso
-          </Link>{" "}
+          </TextLink>{" "}
           e a{" "}
-          <Link href="/privacidade" className="underline hover:opacity-70">
+          <TextLink href="/privacidade" tone="inherit" underline="always">
             Política de privacidade
-          </Link>
+          </TextLink>
           . Nesta simulação nenhuma cobrança é feita.
         </Title>
       </div>
 
-      <OrderSummary plan={plan} cycle={checkout.cycle} />
+      <OrderSummary plan={plan} users={users} cycle={checkout.cycle} />
     </div>
   );
 }

@@ -91,7 +91,7 @@ export function PaymentStep({
       </div>
 
       <div className="flex items-center gap-8">
-        <Lock size={14} className="shrink-0 text-(--muted)" />
+        <Lock size={14} className="shrink-0 text-(--color-text-muted)" />
 
         <Title variant="body-xs" color="muted">
           Simulação: os dados não são enviados a lugar nenhum.

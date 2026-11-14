@@ -4,12 +4,12 @@ import { FeatureCard } from "./_components/FeatureCard";
 import { FEATURES } from "./utils";
 
 /**
- * A grade dos módulos. Âncora `#recursos` — é para cá que apontam o link do
- * topo e o segundo botão do hero.
+ * A grade dos módulos. Âncora `#recursos` — é para cá que aponta o link do
+ * topo e o do rodapé (o segundo botão do hero aponta para `#rotina`).
  */
 export function FeaturesSection() {
   return (
-    <Section id="recursos">
+    <Section id="recursos" tone="raised">
       <div className="flex max-w-[640px] flex-col gap-12">
         <Title variant="eyebrow" color="amber">
           Recursos

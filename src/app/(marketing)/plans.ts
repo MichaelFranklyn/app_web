@@ -25,6 +25,8 @@
 // já o consome por este arquivo.
 export { TRIAL_DAYS } from "@/utils/trial";
 
+import { formatMoney } from "@/utils/format/masks";
+
 /** Um plano na vitrine. `code` é o mesmo do catálogo do backend — serve de
  * chave de lista e de rastro para quem for conferir a matriz. */
 export interface MarketingPlan {
@@ -38,7 +40,25 @@ export interface MarketingPlan {
   /** Mensalidade de DEMONSTRAÇÃO, em reais. `null` no plano cujo valor é
    * fechado em conversa — ele não passa pelo checkout. */
   demoMonthlyPrice: number | null;
+  /** Logins que a mensalidade já cobre — o `USERS` do catálogo do backend.
+   * `null` = sem teto (Enterprise). Acima disso, cada login custa
+   * {@link EXTRA_USER_MONTHLY_PRICE}. */
+  includedUsers: number | null;
 }
+
+/**
+ * Quanto custa cada usuário além dos incluídos, por mês (14/11/2026).
+ *
+ * Confirmado pelo negócio em 14/11/2026. Sustenta a escada sozinho: o Básico com 4 usuários (R$ 104,70) já passa
+ * do Intermediário (R$ 99,90, com 5), e o Intermediário com 9 (R$ 199,50) passa
+ * do Corporativo (R$ 175,90, com 10). Assim a calculadora sempre tem um degrau
+ * melhor para sugerir, em vez de o extra virar o jeito barato de não subir de
+ * plano. Um valor só para os três planos porque é o que se explica em uma
+ * frase na vitrine. O mesmo valor mora no backend
+ * (`EXTRA_USER_MONTHLY_PRICE` em `core/domain/plans.py`), onde o extra é
+ * gravado por empresa em `companies.extra_users`.
+ */
+export const EXTRA_USER_MONTHLY_PRICE = 24.9;
 
 /** Quantos meses o ciclo anual cobra. Doze meses de uso por dez de conta é o
  * desconto mais comum do mercado, e o checkout simulado precisa de alguma
@@ -51,8 +71,9 @@ export const PLANS: MarketingPlan[] = [
     label: "Básico",
     pitch:
       "Para o representante sozinho: pedido, comissão e a rotina que diz quem visitar.",
-    limits: "1 vendedor, 5 fábricas e 300 clientes.",
-    demoMonthlyPrice: 50,
+    limits: "2 usuários, 5 fábricas e 300 clientes.",
+    demoMonthlyPrice: 54.9,
+    includedUsers: 2,
     features: [
       "Pedidos, orçamentos e faturamento",
       "Carteira de clientes e catálogo",
@@ -66,8 +87,9 @@ export const PLANS: MarketingPlan[] = [
     code: "intermediate",
     label: "Intermediário",
     pitch: "Para o escritório com equipe: metas e importação de planilha.",
-    limits: "Até 3 vendedores, 10 fábricas e 1.000 clientes.",
-    demoMonthlyPrice: 100,
+    limits: "5 usuários, 10 fábricas e 1.000 clientes.",
+    demoMonthlyPrice: 99.9,
+    includedUsers: 5,
     isHighlighted: true,
     features: [
       "Tudo do Básico",
@@ -79,8 +101,9 @@ export const PLANS: MarketingPlan[] = [
     code: "corporate",
     label: "Corporativo",
     pitch: "O sistema inteiro, com a análise de desempenho da equipe.",
-    limits: "Até 5 vendedores, 30 fábricas e 3.000 clientes.",
-    demoMonthlyPrice: 200,
+    limits: "10 usuários, 30 fábricas e 3.000 clientes.",
+    demoMonthlyPrice: 175.9,
+    includedUsers: 10,
     features: [
       "Tudo do Intermediário",
       "Desempenho e rankings",
@@ -92,8 +115,9 @@ export const PLANS: MarketingPlan[] = [
     code: "enterprise",
     label: "Enterprise",
     pitch: "Para operações grandes, com contrato conversado.",
-    limits: "Sem teto de vendedores, fábricas ou clientes.",
+    limits: "Sem teto de usuários, vendedores, fábricas ou clientes.",
     demoMonthlyPrice: null,
+    includedUsers: null,
     features: [
       "Tudo do Corporativo",
       "Volume ilimitado",
@@ -127,6 +151,9 @@ const everyPlan = (label: string): PlanMatrixRow => ({
   corporate: true,
   enterprise: true,
 });
+
+/** O preço do usuário extra como a tabela o escreve. */
+const extraUserPrice = formatMoney(EXTRA_USER_MONTHLY_PRICE);
 
 export const PLAN_MATRIX: PlanMatrixGroup[] = [
   {
@@ -179,19 +206,21 @@ export const PLAN_MATRIX: PlanMatrixGroup[] = [
   {
     title: "Tamanho da operação",
     rows: [
+      // Usuário e vendedor são a MESMA cota (14/11/2026): qualquer login pode
+      // vender, então uma linha só — duas com os mesmos números confundiriam.
       {
-        label: "Vendedores",
-        basic: "1",
-        intermediate: "3",
-        corporate: "5",
+        label: "Usuários com login, vendedores inclusos",
+        basic: "2",
+        intermediate: "5",
+        corporate: "10",
         enterprise: "Sem teto",
       },
       {
-        label: "Usuários com login",
-        basic: "3",
-        intermediate: "6",
-        corporate: "10",
-        enterprise: "Sem teto",
+        label: "Usuário a mais, por mês",
+        basic: extraUserPrice,
+        intermediate: extraUserPrice,
+        corporate: extraUserPrice,
+        enterprise: "Incluído",
       },
       {
         label: "Fábricas representadas",

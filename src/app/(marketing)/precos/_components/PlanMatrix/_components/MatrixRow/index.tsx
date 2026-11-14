@@ -25,9 +25,17 @@ function MatrixCell({ value }: { value: boolean | string }) {
     <td className="px-12 py-12">
       <div className="flex justify-center">
         {value ? (
-          <Check size={18} className="text-(--green)" aria-label="Incluído" />
+          <Check
+            size={18}
+            className="text-(--color-status-success)"
+            aria-label="Incluído"
+          />
         ) : (
-          <Minus size={18} className="text-(--dim)" aria-label="Não incluído" />
+          <Minus
+            size={18}
+            className="text-(--color-text-muted)"
+            aria-label="Não incluído"
+          />
         )}
       </div>
     </td>

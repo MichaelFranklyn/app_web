@@ -1,9 +1,10 @@
+import { TextLink } from "@/components/TextLink";
 import { Title } from "@/components/Title";
-import Link from "next/link";
 import { PLANS, TRIAL_DAYS } from "../../plans";
 import { CtaLink } from "../CtaLink";
 import { Section } from "../Section";
 import { PlanCard } from "./_components/PlanCard";
+import { SeatCalculator } from "./_components/SeatCalculator";
 
 /**
  * Os três planos, com DOIS caminhos distintos e propositalmente separados:
@@ -62,19 +63,26 @@ export function PlansSection({
         ))}
       </div>
 
+      <SeatCalculator />
+
       <div className="mt-24 flex flex-wrap items-center gap-x-24 gap-y-12">
-        <Link href="/signup" className="hover:opacity-70">
-          <Title variant="body-sm" color="amber" weight="semibold">
+        <TextLink href="/signup">
+          <Title variant="body-sm" color="inherit" weight="semibold">
             Prefere experimentar antes? Teste {TRIAL_DAYS} dias grátis →
           </Title>
-        </Link>
+        </TextLink>
 
         {showComparisonLink && (
-          <Link href="/precos" className="hover:opacity-70">
-            <Title variant="body-sm" color="secondary" weight="semibold">
+          <TextLink
+            href="/precos"
+            tone="inherit"
+            underline="none"
+            className="text-(--color-text-secondary)"
+          >
+            <Title variant="body-sm" color="inherit" weight="semibold">
               Ver o comparativo linha a linha →
             </Title>
-          </Link>
+          </TextLink>
         )}
       </div>
     </Section>

@@ -36,16 +36,21 @@ export function CtaLink({
         size === "lg" && "px-32 py-16",
         size === "md" && "px-24 py-12",
         size === "sm" && "px-16 py-8",
+        // Tokens de papel, os mesmos do `Button` (14/11/2026): o `--amber` cru
+        // dava 3,2:1 com o texto branco (falha AA) e a borda `--border2` é de
+        // divisória, não de controle.
         emphasis === "primary"
-          ? "bg-(--amber) hover:bg-(--amber2)"
-          : "border border-(--border2) bg-(--bg2) hover:bg-(--bg3)",
+          ? "bg-(--color-action) shadow-[0_1px_2px_rgba(0,0,0,0.12)] hover:brightness-[0.92]"
+          : "border border-(--color-border-control) bg-(--bg2) hover:bg-(--bg3)",
         className
       )}
     >
       <Title
         variant="body-sm"
         weight="semibold"
-        className={emphasis === "primary" ? "text-(--bg2)" : undefined}
+        className={
+          emphasis === "primary" ? "text-(--color-on-action)" : undefined
+        }
       >
         {children}
       </Title>
