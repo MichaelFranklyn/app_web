@@ -3,7 +3,6 @@
 import { Alert } from "@/components/Alert";
 import { Badge } from "@/components/Badges";
 import { Card } from "@/components/Card";
-import { ContactTypeTag } from "@/components/ContactTypeTag";
 import { Title } from "@/components/Title";
 
 import { dayChipLabel } from "../../utils";
@@ -91,7 +90,7 @@ export function PreviewDays({ plan }: Props) {
                     </Title>
                   </div>
                   <div className="flex shrink-0 items-center gap-6">
-                    <ContactTypeTag contactType={stop.contactType} />
+                    <Badge.ContactType contactType={stop.contactType} />
                     {stop.isNew &&
                       (stop.isSuggested ? (
                         <Badge.Root
@@ -102,7 +101,7 @@ export function PreviewDays({ plan }: Props) {
                           <Badge.Text>Sugerido</Badge.Text>
                         </Badge.Root>
                       ) : (
-                        <Badge.Root color="amber" appearance="tinted">
+                        <Badge.Root color="blue" appearance="tinted">
                           <Badge.Text>Novo</Badge.Text>
                         </Badge.Root>
                       ))}

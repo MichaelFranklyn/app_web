@@ -2,6 +2,7 @@
 
 import { usePathname, useRouter, useSearchParams } from "next/navigation";
 import { useCallback, useTransition } from "react";
+import { announceNavigation } from "@/components/AppFrame/navigationSignal";
 
 export function useNavigation() {
   const router = useRouter();
@@ -22,6 +23,7 @@ export function useNavigation() {
         sessionStorage.setItem(`back_url_${baseKey}`, currentFullUrl);
       }
 
+      announceNavigation(url);
       startTransition(() => {
         router.push(url);
       });
@@ -37,11 +39,13 @@ export function useNavigation() {
           const savedUrl = sessionStorage.getItem(`back_url_${baseKey}`);
 
           if (savedUrl) {
+            announceNavigation(savedUrl);
             router.push(savedUrl);
             return;
           }
         }
 
+        announceNavigation(fallbackBaseUrl);
         router.push(fallbackBaseUrl);
       });
     },

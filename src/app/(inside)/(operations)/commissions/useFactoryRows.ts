@@ -1,5 +1,6 @@
 "use client";
 
+import { useHeldResult } from "@/hooks/useHeldResult";
 import { useQuery } from "@apollo/client/react";
 import { useState } from "react";
 import { COMMISSIONS_FACTORY_ROWS_QUERY } from "./gql";
@@ -38,20 +39,26 @@ export const useFactoryRows = ({ input, factoryId, enabled, seed }: Params) => {
   const setPage = (next: number) => setPosition({ input, page: next });
 
   const usesSeed = page === 1 && seed?.factoryId === factoryId;
-  const { data, previousData, loading, error, refetch } =
-    useQuery<CommissionsFactoryRowsResponse>(COMMISSIONS_FACTORY_ROWS_QUERY, {
-      variables: {
-        input,
-        factoryId,
-        first: COMMISSIONS_PAGE_SIZE,
-        offset: (page - 1) * COMMISSIONS_PAGE_SIZE,
-      },
+  const variables = {
+    input,
+    factoryId,
+    first: COMMISSIONS_PAGE_SIZE,
+    offset: (page - 1) * COMMISSIONS_PAGE_SIZE,
+  };
+  const query = useQuery<CommissionsFactoryRowsResponse>(
+    COMMISSIONS_FACTORY_ROWS_QUERY,
+    {
+      variables,
       fetchPolicy: "cache-and-network",
       skip: !enabled || usesSeed,
-    });
+    }
+  );
+  const { loading, error, refetch } = query;
+  const held = useHeldResult(query, variables);
 
-  // Trocar de página mantém a anterior na tela até a nova chegar.
-  const fetched = (data ?? previousData)?.commission_month_rows;
+  // Trocar de página mantém a anterior na tela até a nova chegar (e a falha
+  // de uma página nova não deixa a anterior fingindo ser ela).
+  const fetched = held.shown?.commission_month_rows;
   const current = usesSeed ? seed : fetched;
   const totalCount = current?.totalCount ?? 0;
 
@@ -63,7 +70,7 @@ export const useFactoryRows = ({ input, factoryId, enabled, seed }: Params) => {
     totalPages: Math.max(1, Math.ceil(totalCount / COMMISSIONS_PAGE_SIZE)),
     showSkeleton: enabled && !current && !error,
     isRefreshing: loading && Boolean(current),
-    hasFailed: Boolean(error) && !current,
+    hasFailed: !usesSeed && held.failed,
     retry: () => void refetch(),
   };
 };

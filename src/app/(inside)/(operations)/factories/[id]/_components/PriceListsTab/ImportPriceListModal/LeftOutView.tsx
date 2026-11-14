@@ -15,7 +15,7 @@ export function LeftOutView({
   const noCode = skipped.length - named.length;
   return (
     <div className="flex flex-col gap-8">
-      <Title variant="body-sm" weight="medium" color="amber" className="pt-4">
+      <Title variant="body-sm" weight="medium" color="warning" className="pt-4">
         Linhas que ficaram de fora ({skipped.length + unreadable.length})
       </Title>
       {(named.length > 0 || unreadable.length > 0) && (
@@ -25,12 +25,7 @@ export function LeftOutView({
         >
           {named.map((s, i) => (
             <Title key={`named-${s.sku}-${i}`} variant="caption">
-              <Title
-                variant="caption"
-                color="amber"
-                weight="medium"
-                className="inline"
-              >
+              <Title variant="caption" weight="medium" className="inline">
                 {s.sku}
               </Title>
               {s.name ? ` ${s.name}` : ""} — {s.reason}
@@ -38,12 +33,7 @@ export function LeftOutView({
           ))}
           {unreadable.map((desc, i) => (
             <Title key={`unreadable-${i}`} variant="caption">
-              <Title
-                variant="caption"
-                color="amber"
-                weight="medium"
-                className="inline"
-              >
+              <Title variant="caption" weight="medium" className="inline">
                 {desc}
               </Title>{" "}
               — código ilegível no PDF (texto sobreposto); ache o código no

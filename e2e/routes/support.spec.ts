@@ -105,12 +105,9 @@ test("support: os cartões do topo vêm do servidor, não da página aberta", as
 
   // A fila trouxe UMA linha; os cartões mostram os números da empresa inteira.
   await expect(page.getByText("Aguardando a fábrica").first()).toBeVisible();
-  await expect(
-    page.getByRole("heading", { name: "3", level: 3 })
-  ).toBeVisible();
-  await expect(
-    page.getByRole("heading", { name: "2", level: 3 })
-  ).toBeVisible();
+  const cards = page.locator('[data-tour="support-counts"]');
+  await expect(cards.getByText("3", { exact: true })).toBeVisible();
+  await expect(cards.getByText("2", { exact: true })).toBeVisible();
   await expect(
     page.getByText("1 reclamação(ões) · página 1 de 1")
   ).toBeVisible();

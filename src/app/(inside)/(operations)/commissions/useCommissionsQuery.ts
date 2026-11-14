@@ -1,5 +1,6 @@
 "use client";
 
+import { useHeldResult } from "@/hooks/useHeldResult";
 import { useInvalidateQueriesClient } from "@/hooks/useInvalidateQueries";
 import { COMMISSION_CACHE_FIELDS } from "@/utils/cacheFields";
 import { useQuery } from "@apollo/client/react";
@@ -60,19 +61,25 @@ export const useCommissionsQuery = ({
     [month, sellerId, audience, tab, panelInput]
   );
 
-  const { data, previousData, loading, error, refetch } =
-    useQuery<CommissionsResponse>(COMMISSIONS_QUERY, {
-      variables: { input, first: COMMISSIONS_PAGE_SIZE },
-      fetchPolicy: "cache-and-network",
-      skip,
-    });
+  const variables = useMemo(
+    () => ({ input, first: COMMISSIONS_PAGE_SIZE }),
+    [input]
+  );
+  const query = useQuery<CommissionsResponse>(COMMISSIONS_QUERY, {
+    variables,
+    fetchPolicy: "cache-and-network",
+    skip,
+  });
+  const { data, loading, refetch } = query;
 
   // Trocar de aba, de filtro ou de ordem agora é uma ida ao servidor: a
   // resposta anterior fica na tela até a nova chegar, em vez de piscar o
   // esqueleto a cada clique. `fresh` é só a resposta do recorte PEDIDO — quem
   // decide com ela (o recuo de mês) não pode ler a de outro mês.
+  // Mas a anterior só segura o MESMO recorte: se o mês novo falhar, a tela
+  // mostra o erro, não os números do mês velho sob o rótulo novo.
   const fresh = data?.commission_month;
-  const shown = data ?? previousData;
+  const { shown, failed } = useHeldResult(query, variables);
 
   /**
    * Toda escrita desta tela (receber, pagar, conferir, estornar, dar baixa no
@@ -95,7 +102,7 @@ export const useCommissionsQuery = ({
     latestReceiveDate: fresh?.latestReceiveDate ?? null,
     hasMovement: fresh?.hasMovement ?? null,
     /** Erro sem nada para mostrar: a tela troca o conteúdo pelo aviso. */
-    hasFailed: Boolean(error) && !shown,
+    hasFailed: failed,
     showSkeleton: loading && !shown,
     /** Buscando de novo com a resposta anterior ainda na tela. */
     isRefreshing: loading && Boolean(shown),

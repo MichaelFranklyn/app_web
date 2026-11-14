@@ -17,11 +17,11 @@
 
 /** ARGB, como o Excel guarda. */
 export const COLOR = {
-  /** --text */
+  /** --color-text */
   ink: "FF1A1A16",
-  /** --text2 */
+  /** --color-text-secondary */
   ink2: "FF3D3D36",
-  /** --muted */
+  /** --color-text-muted */
   muted: "FF7A7A6E",
   /** --border */
   line: "FFE2E1D8",

@@ -53,6 +53,6 @@ describe("Title", () => {
     );
     const className = container.firstElementChild?.className ?? "";
     expect(className).toContain("text-(--red)");
-    expect(className).not.toContain("text-(--muted)");
+    expect(className).not.toContain("text-(--color-text-muted)");
   });
 });

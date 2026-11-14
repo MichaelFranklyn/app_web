@@ -76,7 +76,7 @@ export const useExecutionReport = (filters: ReportFilters) => {
         label: "Viraram pedido",
         value: String(report.converted),
         hint: `${formatPercent(report.conversionRate)} das planejadas`,
-        status: "ok",
+        status: "neutral",
       },
     ];
   }, [report]);

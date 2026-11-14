@@ -1,5 +1,6 @@
 "use client";
 
+import { DocumentNumber } from "@/components/DocumentNumber";
 import { Badge } from "@/components/Badges";
 import { EmptyState } from "@/components/EmptyState";
 import { Loading } from "@/components/Loading";
@@ -7,7 +8,7 @@ import { Pagination } from "@/components/Pagination";
 import { FilterField, Filters } from "@/components/Filters";
 import { HelpTooltip } from "@/components/HelpTooltip";
 import { Table, TableSort } from "@/components/Table";
-import { formatDateDMY, maskCNPJ } from "@/utils/format/masks";
+import { formatDateDMY } from "@/utils/format/masks";
 import { Users } from "lucide-react";
 
 import { ClientReportRow } from "../../interface";
@@ -64,6 +65,8 @@ export function ClientsReportTable({
         </Table.CardHead.Title>
         <Table.CardHead.Actions>
           <Filters
+            resultCount={totalItems}
+            resultLoading={loading}
             fields={filterFields}
             values={inputValues}
             onChange={setFilters}
@@ -104,7 +107,7 @@ export function ClientsReportTable({
           ) : items.length === 0 ? (
             <Table.Row>
               <Table.Cell colSpan={9}>
-                <EmptyState.Root>
+                <EmptyState.Root flat>
                   <EmptyState.Icon>
                     <Users size={32} />
                   </EmptyState.Icon>
@@ -139,14 +142,14 @@ export function ClientsReportTable({
                     <span className="inline-flex items-center gap-6">
                       {row.nomeFantasia ?? row.razaoSocial}
                       {row.isNeedsAttention && (
-                        <Badge.Root color="amber" appearance="tinted">
+                        <Badge.Root color="warning" appearance="tinted">
                           <Badge.Text>Precisa de atenção</Badge.Text>
                         </Badge.Root>
                       )}
                     </span>
                   </Table.Cell>
                   <Table.Cell variant="dim" className="whitespace-nowrap">
-                    {maskCNPJ(row.cnpj)}
+                    <DocumentNumber value={row.cnpj} />
                   </Table.Cell>
                   <Table.Cell variant="dim">{cityAndState(row)}</Table.Cell>
                   <Table.Cell variant="dim">

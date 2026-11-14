@@ -1,22 +1,32 @@
 import { cva } from "class-variance-authority";
 
-/** `info` é o azul do número que informa sem alarmar (sem visita há 30d). */
+/**
+ * `neutral` (padrão) é o azul de dado: o número grande em preto deixava a fileira
+ * de KPIs apagada (pedido do usuário, 14/11/2026). Azul é o tom neutro do DS —
+ * âmbar fica para o que é clicável; verde/âmbar-aviso/vermelho seguem com
+ * significado. `info` é o mesmo azul, mantido por quem já marca "informa sem
+ * alarmar" (sem visita há 30d).
+ */
 export type KpiStatus = "urgente" | "atencao" | "ok" | "info" | "neutral";
 
 export const kpiValueStyle = cva(
-  "font-bold text-(--text) leading-none tracking-[-0.04em] font-head",
+  "font-bold text-(--color-status-info) leading-none tracking-[-0.04em] font-head",
   {
     variants: {
       status: {
-        urgente: "text-(--red)",
-        atencao: "text-(--amber)",
-        ok: "text-(--green)",
-        info: "text-(--blue)",
-        neutral: "text-(--text)",
+        urgente: "text-(--color-status-danger)",
+        atencao: "text-(--color-status-warning)",
+        ok: "text-(--color-status-success)",
+        info: "text-(--color-status-info)",
+        neutral: "text-(--color-status-info)",
       },
       /** `sm` para valor que é TEXTO (data, revisão), não número. */
       size: {
-        md: "text-[25px]",
+        // Encolhe com o cartão (12% da largura, entre 16 e 25px): em 2
+        // colunas num celular de 375px sobram ~130px, e "R$ 12.345,67" a 25px
+        // seria cortado pelo `overflow-hidden` do cartão. `anywhere` é a rede
+        // para o valor que nem a 16px cabe — quebra em vez de sumir.
+        md: "text-[length:clamp(16px,12cqi,25px)] [overflow-wrap:anywhere]",
         sm: "text-[16px]",
       },
     },

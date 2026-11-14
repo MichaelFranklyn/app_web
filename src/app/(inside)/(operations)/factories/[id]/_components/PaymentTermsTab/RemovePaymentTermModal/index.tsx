@@ -14,6 +14,9 @@ interface DeleteResponse {
 }
 
 interface Props {
+  /** Controlado: o gatilho mora fora (o "⋯"/ícone da linha, em RowActions). */
+  open?: boolean;
+  onOpenChange?: (open: boolean) => void;
   termId: string;
   termName: string;
   onRemoved: () => void;
@@ -29,6 +32,8 @@ export function RemovePaymentTermModal({
   onRemoveOptimistic,
   onCommit,
   onRollback,
+  open,
+  onOpenChange,
 }: Props) {
   const [deleteTerm] = useMutation<DeleteResponse>(
     DELETE_FACTORY_PAYMENT_TERM_MUTATION
@@ -36,16 +41,20 @@ export function RemovePaymentTermModal({
 
   return (
     <ConfirmModal
+      open={open}
+      onOpenChange={onOpenChange}
       trigger={
-        <Button.Root
-          appearance="ghost"
-          color="red"
-          size="sm"
-          isIconOnly
-          label="Remover prazo"
-        >
-          <Button.Icon icon={Trash2} />
-        </Button.Root>
+        open === undefined && (
+          <Button.Root
+            appearance="ghost"
+            color="red"
+            size="sm"
+            isIconOnly
+            label="Remover prazo"
+          >
+            <Button.Icon icon={Trash2} />
+          </Button.Root>
+        )
       }
       title="Remover prazo"
       description={`Remover o prazo de pagamento "${termName}"? Pedidos já criados não são afetados.`}

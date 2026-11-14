@@ -24,8 +24,8 @@ export const SERIES_CYAN = "#0a7fa3";
 export const SERIES_RED = "#c0392b";
 
 // Chrome do gráfico (eixos, grid, texto, tooltip) a partir dos neutros da marca.
-export const CHART_INK = "#1a1a16"; // --text
-export const CHART_INK_MUTED = "#7a7a6e"; // --muted
+export const CHART_INK = "#1a1a16"; // --color-text
+export const CHART_INK_MUTED = "#7a7a6e"; // --color-text-muted
 export const CHART_GRID = "#e2e1d8"; // --border (hairline)
 export const CHART_SURFACE = "#ffffff"; // --bg2 (fundo do Card)
 

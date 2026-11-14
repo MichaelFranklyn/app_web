@@ -57,8 +57,20 @@ export interface FiltersProps {
    * Sem esta prop, o campo de texto cai no `onChange` mesmo.
    */
   onTextChange?: (key: string, value: string | undefined) => void;
+  /**
+   * Quantas linhas o filtro deixou, para o leitor de tela anunciar ("12
+   * resultados"). Sem a prop, nada é anunciado.
+   */
+  resultCount?: number;
+  /** Consulta em curso: segura o anúncio até o total novo chegar. */
+  resultLoading?: boolean;
   /** Texto do botão quando nenhum filtro está ativo. */
   label?: string;
   /** Âncora do tour guiado (o passo aponta para o botão). */
   "data-tour"?: string;
+  /**
+   * Abaixo do desktop o botão ocupa a linha inteira: numa faixa que empilha
+   * no celular, um botão curto deixaria a linha com sobra vazia ao lado.
+   */
+  fullWidthBelowDesktop?: boolean;
 }

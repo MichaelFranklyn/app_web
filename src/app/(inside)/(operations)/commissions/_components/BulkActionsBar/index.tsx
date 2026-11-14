@@ -270,7 +270,6 @@ export function BulkActionsBar({
           appearance="ghost"
           color="green"
           size="sm"
-          noUppercase
           loading={isLoading}
           onClick={() =>
             execute(

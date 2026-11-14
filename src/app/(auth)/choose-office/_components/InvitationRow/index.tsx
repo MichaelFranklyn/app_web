@@ -26,10 +26,10 @@ export function InvitationRow({
   onDecline,
 }: InvitationRowProps) {
   return (
-    <Card.Root tone="highlight" inset>
+    <Card.Root tone="muted" inset>
       <Card.Body padding="sm" className="gap-12">
         <div className="flex items-center gap-12">
-          <IconTile color="amber">
+          <IconTile>
             <MailPlus />
           </IconTile>
           <div className="flex min-w-0 flex-1 flex-col">
@@ -50,7 +50,6 @@ export function InvitationRow({
                 appearance="ghost"
                 color="red"
                 size="sm"
-                noUppercase
                 disabled={isEntering}
               >
                 <Button.Title>Recusar</Button.Title>
@@ -66,7 +65,6 @@ export function InvitationRow({
             appearance="solid"
             color="amber"
             size="sm"
-            noUppercase
             loading={isEntering}
             onClick={() => onAccept(office)}
           >

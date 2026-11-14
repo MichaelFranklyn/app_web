@@ -109,7 +109,6 @@ export function FixedScheduleModal(props: FixedScheduleFormProps) {
               appearance="ghost"
               color="neutral"
               size="md"
-              noUppercase
               disabled={isLoading}
             >
               <Button.Title>Cancelar</Button.Title>
@@ -120,7 +119,6 @@ export function FixedScheduleModal(props: FixedScheduleFormProps) {
             appearance="solid"
             color="amber"
             size="md"
-            noUppercase
             loading={isLoading}
             disabled={!hasClients}
             onClick={() => formRef.current?.submitForm()}

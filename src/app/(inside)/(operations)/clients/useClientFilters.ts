@@ -23,9 +23,11 @@ interface Params {
  * O mesmo painel dos pedidos, com o recorte que a carteira pede: qual empresa,
  * de quem é o cliente, onde ele fica e se o cadastro está pendente de revisão.
  *
- * A busca por nome abre a lista porque é por onde quase sempre se começa —
- * e, estando aqui, "Limpar filtros" a apaga junto com o resto, em vez de
- * deixar um texto valendo fora do painel sem ninguém ver.
+ * A busca por nome NÃO aparece no painel: ela mora à vista no cabeçalho da
+ * tabela (ClientsTable), porque é por onde quase sempre se começa. Fica aqui
+ * como campo escondido para o aviso dos KPIs (KPI_IGNORED_FILTERS) dizer
+ * "Busca" pelo nome — e, por ser escondida, não conta no "Filtros (n)" nem é
+ * apagada pelo "Limpar filtros", que só mexem no que o painel mostra.
  */
 export function useClientFilters({
   canFilterBySeller,
@@ -42,6 +44,7 @@ export function useClientFilters({
         key: "search",
         label: "Buscar",
         placeholder: "Nome, razão social ou CNPJ",
+        hidden: true,
       },
       {
         type: "select",

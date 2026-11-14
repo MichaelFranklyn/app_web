@@ -6,7 +6,7 @@ import { Sidebar } from "@/components/Sidebar";
 import { FeatureGate } from "@/components/FeatureGate";
 import { Topbar } from "@/components/Topbar";
 import { cn } from "@/lib/utils";
-import { FlowTourProvider } from "@/services/flowTour";
+import { FlowTourLauncher, FlowTourProvider } from "@/services/flowTour";
 import { BrandLogo } from "@/components/BrandLogo";
 import { DevRoleSwitch } from "./_components/DevRoleSwitch";
 import { ImpersonationBanner } from "./_components/ImpersonationBanner";
@@ -76,8 +76,10 @@ export default function InsideShell({
             {/* Logo completa (expandida e sempre no drawer mobile). */}
             <BrandLogo
               priority={!isCollapsed}
-              sizes="232px"
-              className={cn("w-full", isCollapsed && "desktop:hidden")}
+              sizes="160px"
+              // 148px, não a largura toda: esticada até as bordas (~192px)
+              // ela pesava mais que o menu (pedido do usuário, 13/11/2026).
+              className={cn("w-[148px]", isCollapsed && "desktop:hidden")}
             />
             {/* Só o SÍMBOLO quando recolhida no desktop.
               Era `/logo.png`, que apesar do nome é a marca INTEIRA (símbolo +
@@ -194,6 +196,8 @@ export default function InsideShell({
 
             <Topbar.Actions>
               <DevRoleSwitch />
+              {/* Tutoriais: na topbar, não flutuando sobre os CTAs. */}
+              <FlowTourLauncher />
               {/* Notificação automática é recurso de plano: sem ele o sino
                   ficaria sempre vazio (o backend recusa a consulta). */}
               <FeatureGate feature="NOTIFICATIONS">
@@ -208,14 +212,7 @@ export default function InsideShell({
             </Topbar.Actions>
           </Topbar.Root>
 
-          {/* `pb`: o lançador de tutoriais flutua no canto inferior direito
-              (fixo na janela). Sem esse respiro no fim da área rolável, a
-              última linha de uma lista longa termina embaixo dele — visível,
-              mas fora de alcance do clique. Em página curta não muda nada: o
-              conteúdo não chega ao fim do scroll. */}
-          <AppFrame.Main className="desktop:pb-[72px]">
-            {children}
-          </AppFrame.Main>
+          <AppFrame.Main>{children}</AppFrame.Main>
         </AppFrame.Panel>
       </AppFrame.Root>
     </FlowTourProvider>

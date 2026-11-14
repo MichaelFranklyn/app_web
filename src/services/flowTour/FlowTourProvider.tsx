@@ -2,7 +2,6 @@
 
 import { createContext, ReactNode, useContext } from "react";
 
-import { FlowTourLauncher } from "./components/FlowTourLauncher";
 import { TourLayer } from "./components/TourLayer";
 import { FlowDefinition, FlowProgressStatus } from "./interface";
 import { useFlowTourEngine } from "./useFlowTourEngine";
@@ -50,8 +49,6 @@ export const FlowTourProvider = ({ children }: { children: ReactNode }) => {
       value={{ startFlow, getFlowProgress, activeFlowKey }}
     >
       {children}
-
-      <FlowTourLauncher />
 
       {activeFlow && step && (
         <TourLayer

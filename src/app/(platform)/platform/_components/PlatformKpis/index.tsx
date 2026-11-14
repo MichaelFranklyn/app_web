@@ -16,7 +16,7 @@ export function PlatformKpis({ overview }: { overview: PlatformOverview }) {
   const dormant = dormantCompanies(overview);
 
   return (
-    <Grid.Root cols={{ base: 1, tablet: 2, "desktop-xl": 4 }} gap={12}>
+    <Grid.Root cols={{ base: 2, tablet: 2, "desktop-xl": 4 }} gap={12}>
       <Grid.Item>
         <Card.Kpi>
           <Card.Kpi.Label>Empresas</Card.Kpi.Label>
@@ -51,7 +51,7 @@ export function PlatformKpis({ overview }: { overview: PlatformOverview }) {
       <Grid.Item>
         <Card.Kpi>
           <Card.Kpi.Label>Pessoas</Card.Kpi.Label>
-          <Card.Kpi.Value status="info">{overview.totalUsers}</Card.Kpi.Value>
+          <Card.Kpi.Value>{overview.totalUsers}</Card.Kpi.Value>
           <Card.Kpi.Delta>
             {overview.activeUsersInPeriod} entraram no período
             {overview.neverLoggedUsers > 0 &&

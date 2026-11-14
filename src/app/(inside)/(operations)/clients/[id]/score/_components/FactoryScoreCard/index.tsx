@@ -47,7 +47,7 @@ export function FactoryScoreCard({ score, onSelect }: Props) {
           <Title variant="micro" color="secondary">
             Ver o porquê
           </Title>
-          <ChevronRight size={14} className="text-(--muted)" />
+          <ChevronRight size={14} className="text-(--color-text-muted)" />
         </div>
       </div>
     </Card.Button>

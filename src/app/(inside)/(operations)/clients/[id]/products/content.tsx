@@ -83,12 +83,16 @@ export default function ProductsContent() {
           />
         </div>
 
-        <div className="flex flex-wrap items-center gap-8">
+        {/* Abaixo do desktop o período toma a linha: rótulo à esquerda e as
+            opções dividindo o resto, sem sobra à direita. */}
+        <div className="max-desktop:w-full flex items-center gap-8">
           <Title variant="body-xs" color="muted" weight="medium">
             Período:
           </Title>
           <ToggleGroup
             aria-label="Período"
+            fullWidthBelowDesktop
+            className="max-desktop:flex-1"
             options={PERIOD_OPTIONS}
             value={months}
             onChange={setMonths}

@@ -5,6 +5,7 @@ import { ListPageSkeleton } from "@/components/ListPageSkeleton";
 export default function Loading() {
   return (
     <ListPageSkeleton
+      page="platformCompanies"
       title="Empresas"
       description="Todas as empresas da plataforma, com o uso de cada uma nos últimos 30 dias."
       actions={1}

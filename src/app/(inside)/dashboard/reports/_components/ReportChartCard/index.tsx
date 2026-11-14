@@ -54,7 +54,7 @@ export function ReportChartCard({
     if (error && !hasData) return <QueryError flat onRetry={onRetry} />;
     if (!hasData) {
       return (
-        <EmptyState.Root>
+        <EmptyState.Root flat>
           <EmptyState.Icon>
             <BarChart3 size={32} />
           </EmptyState.Icon>

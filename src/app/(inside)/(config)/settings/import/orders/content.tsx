@@ -4,6 +4,7 @@ import { Button } from "@/components/Button";
 import { Card } from "@/components/Card";
 import { PageContent } from "@/components/PageContent";
 import { PanelHeader } from "@/components/PanelHeader";
+import { PAGE_HEADING } from "@/utils/modules";
 import { Stepper } from "@/components/Stepper";
 import { ArrowLeft, ArrowRight, ClipboardList } from "lucide-react";
 
@@ -37,7 +38,9 @@ export default function OrderHistoryImportContent() {
       <PanelHeader.Root>
         <PanelHeader.Top>
           <PanelHeader.Left>
-            <PanelHeader.Title>Importar histórico de pedidos</PanelHeader.Title>
+            <PanelHeader.Heading {...PAGE_HEADING.import}>
+              Importar histórico de pedidos
+            </PanelHeader.Heading>
             <PanelHeader.Description>
               Os pedidos antigos entram como entregues, sem comissão nem boleto,
               e ensinam ao sistema o ritmo de compra de cada cliente.
@@ -112,7 +115,6 @@ export default function OrderHistoryImportContent() {
                 appearance="ghost"
                 color="neutral"
                 size="md"
-                noUppercase
                 disabled={run.running}
                 onClick={back}
               >
@@ -128,7 +130,6 @@ export default function OrderHistoryImportContent() {
                 appearance="solid"
                 color="amber"
                 size="md"
-                noUppercase
               >
                 <Button.Icon icon={ClipboardList} />
                 <Button.Title>Ver pedidos</Button.Title>
@@ -138,7 +139,6 @@ export default function OrderHistoryImportContent() {
                 appearance="solid"
                 color="amber"
                 size="md"
-                noUppercase
                 disabled={!canAdvance || run.running}
                 loading={run.running}
                 onClick={next}

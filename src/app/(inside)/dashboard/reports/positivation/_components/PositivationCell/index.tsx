@@ -39,7 +39,7 @@ export function PositivationCellMark({ cell }: { cell: Cell }) {
           size={16}
           role="img"
           aria-label={`${cell.factoryName}: não comprou no período`}
-          className="text-(--amber)"
+          className="text-(--color-action-text)"
         />
       </Tooltip>
     );
@@ -57,7 +57,7 @@ export function PositivationCellMark({ cell }: { cell: Cell }) {
         size={16}
         role="img"
         aria-label={`${cell.factoryName}: comprou no período`}
-        className="text-(--green)"
+        className="text-(--color-status-success)"
       />
     </Tooltip>
   );

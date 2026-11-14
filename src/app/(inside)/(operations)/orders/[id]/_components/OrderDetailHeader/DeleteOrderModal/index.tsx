@@ -7,13 +7,20 @@ import { useInvalidateQueriesClient } from "@/hooks/useInvalidateQueries";
 import { useRedirectTransition } from "@/hooks/useRedirectTransition";
 import { useMutation } from "@apollo/client/react";
 import { Trash2 } from "lucide-react";
-import { useState } from "react";
+import { useControlledOpen } from "@/hooks/useControlledOpen";
 import { DELETE_ORDER_MUTATION } from "@/graphql/orders";
 import { ORDER_CACHE_FIELDS } from "@/utils/cacheFields";
 import { DeleteOrderModalProps, DeleteOrderResponse } from "./interface";
 
-export function DeleteOrderModal({ orderId }: DeleteOrderModalProps) {
-  const [open, setOpen] = useState(false);
+export function DeleteOrderModal({
+  orderId,
+  open: openProp,
+  onOpenChange,
+}: DeleteOrderModalProps) {
+  const { open, setOpen, isControlled } = useControlledOpen(
+    openProp,
+    onOpenChange
+  );
   const { redirect, isRedirecting } = useRedirectTransition();
   const invalidateClient = useInvalidateQueriesClient();
   const { execute, isLoading } = useAsyncAction();
@@ -54,12 +61,14 @@ export function DeleteOrderModal({ orderId }: DeleteOrderModalProps) {
 
   return (
     <Modal.Root open={open} onOpenChange={setOpen}>
-      <Modal.Trigger asChild>
-        <Button.Root appearance="outline" color="red" size="sm">
-          <Button.Icon icon={Trash2} />
-          <Button.Title>Deletar pedido</Button.Title>
-        </Button.Root>
-      </Modal.Trigger>
+      {!isControlled && (
+        <Modal.Trigger asChild>
+          <Button.Root appearance="outline" color="red" size="sm">
+            <Button.Icon icon={Trash2} />
+            <Button.Title>Deletar pedido</Button.Title>
+          </Button.Root>
+        </Modal.Trigger>
+      )}
 
       <Modal.Content size="sm">
         <Modal.Header
@@ -74,7 +83,6 @@ export function DeleteOrderModal({ orderId }: DeleteOrderModalProps) {
               appearance="ghost"
               color="neutral"
               size="md"
-              noUppercase
               disabled={busy}
             >
               <Button.Title>Voltar</Button.Title>
@@ -85,7 +93,6 @@ export function DeleteOrderModal({ orderId }: DeleteOrderModalProps) {
             appearance="solid"
             color="red"
             size="md"
-            noUppercase
             loading={busy}
             onClick={handleConfirm}
           >

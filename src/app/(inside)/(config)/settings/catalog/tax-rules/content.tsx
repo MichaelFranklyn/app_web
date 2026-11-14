@@ -7,11 +7,7 @@ import { TaxRulesSection } from "../_components/TaxRulesSection";
 export default function TaxRulesContent() {
   return (
     <PageContent>
-      <CatalogSubHeader
-        href="/settings/catalog/tax-rules"
-        title="Regras de imposto"
-        description="O catálogo de impostos da empresa. A alíquota de cada produto é definida depois, na tabela de preços."
-      />
+      <CatalogSubHeader href="/settings/catalog/tax-rules" />
       <TaxRulesSection />
     </PageContent>
   );

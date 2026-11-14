@@ -143,7 +143,6 @@ export function EndClientModal({
               appearance="ghost"
               color="neutral"
               size="md"
-              noUppercase
               disabled={isLoading}
             >
               <Button.Title>Cancelar</Button.Title>
@@ -154,7 +153,6 @@ export function EndClientModal({
             appearance="solid"
             color="red"
             size="md"
-            noUppercase
             loading={isLoading}
             onClick={() => formRef.current?.submitForm()}
           >

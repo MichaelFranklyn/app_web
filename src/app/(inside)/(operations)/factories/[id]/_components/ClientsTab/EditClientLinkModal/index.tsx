@@ -36,6 +36,9 @@ interface UpdateResponse {
 const getTiers = (d: TiersData) => d.priceTiers;
 
 interface Props {
+  /** Controlado: o gatilho mora fora (o "⋯"/ícone da linha, em RowActions). */
+  open?: boolean;
+  onOpenChange?: (open: boolean) => void;
   link: FactoryClientLink;
   companyFactoryId: string;
   onUpdateOptimistic: (id: string, updates: Partial<FactoryClientLink>) => void;
@@ -49,8 +52,16 @@ export function EditClientLinkModal({
   onUpdateOptimistic,
   onCommit,
   onRollback,
+  open: controlledOpen,
+  onOpenChange,
 }: Props) {
-  const [open, setOpen] = useState(false);
+  const [uncontrolledOpen, setUncontrolledOpen] = useState(false);
+  const isControlled = controlledOpen !== undefined;
+  const open = isControlled ? controlledOpen : uncontrolledOpen;
+  const setOpen = (value: boolean) => {
+    if (isControlled) onOpenChange?.(value);
+    else setUncontrolledOpen(value);
+  };
   const formRef = useRef<FormBuilderRef>(null);
   const invalidateClient = useInvalidateQueriesClient();
   const { execute, isLoading } = useAsyncAction();
@@ -187,12 +198,14 @@ export function EditClientLinkModal({
 
   return (
     <Modal.Root open={open} onOpenChange={setOpen}>
-      <Modal.Trigger asChild>
-        <Button.Root appearance="ghost" color="neutral" size="sm" noUppercase>
-          <Button.Icon icon={Pencil} />
-          <Button.Title>Editar</Button.Title>
-        </Button.Root>
-      </Modal.Trigger>
+      {!isControlled && (
+        <Modal.Trigger asChild>
+          <Button.Root appearance="ghost" color="neutral" size="sm">
+            <Button.Icon icon={Pencil} />
+            <Button.Title>Editar</Button.Title>
+          </Button.Root>
+        </Modal.Trigger>
+      )}
 
       <Modal.Content size="md">
         <Modal.Header
@@ -218,7 +231,6 @@ export function EditClientLinkModal({
               appearance="ghost"
               color="neutral"
               size="md"
-              noUppercase
               disabled={isLoading}
             >
               <Button.Title>Cancelar</Button.Title>
@@ -229,7 +241,6 @@ export function EditClientLinkModal({
             appearance="solid"
             color="amber"
             size="md"
-            noUppercase
             loading={isLoading}
             onClick={() => formRef.current?.submitForm()}
           >

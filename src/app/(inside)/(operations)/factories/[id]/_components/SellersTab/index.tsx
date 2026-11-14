@@ -77,7 +77,7 @@ export function SellersTab({ factoryId, factoryName, autoOpenLink }: Props) {
             label="O que é o acesso de vendedor?"
             content={
               <div className="flex flex-col gap-2">
-                <Title variant="label" color="amber">
+                <Title variant="label" weight="semibold">
                   Acesso de vendedor
                 </Title>
                 <Title variant="body-sm">
@@ -110,7 +110,8 @@ export function SellersTab({ factoryId, factoryName, autoOpenLink }: Props) {
         </Table.CardHead.Actions>
       </Table.CardHead>
 
-      <Table.Table>
+      {/* Abaixo do desktop cada linha vira cartão, em vez de a tabela rolar de lado. */}
+      <Table.Table cards>
         <Table.Header>
           <Table.Row>
             <Table.Head title={FACTORY_SELLER_COLUMN_HELP.seller}>
@@ -165,7 +166,7 @@ export function SellersTab({ factoryId, factoryName, autoOpenLink }: Props) {
           ) : (
             accesses.map((a) => (
               <Table.Row key={a.id}>
-                <Table.Cell flex>
+                <Table.Cell card="title" flex>
                   <Avatar
                     size="sm"
                     color="neutral"
@@ -175,7 +176,7 @@ export function SellersTab({ factoryId, factoryName, autoOpenLink }: Props) {
                     {a.seller?.name ?? "—"}
                   </Table.CellText>
                 </Table.Cell>
-                <Table.Cell>
+                <Table.Cell card="status">
                   <Badge.Root
                     color={a.isActive ? "green" : "neutral"}
                     appearance="tinted"
@@ -183,7 +184,7 @@ export function SellersTab({ factoryId, factoryName, autoOpenLink }: Props) {
                     <Badge.Text>{a.isActive ? "Ativo" : "Inativo"}</Badge.Text>
                   </Badge.Root>
                 </Table.Cell>
-                <Table.Cell>
+                <Table.Cell label="Comissão">
                   <Table.CellText variant="dim">
                     {sellerAgreementLabel(
                       a.sellerCommissionRate,
@@ -191,17 +192,17 @@ export function SellersTab({ factoryId, factoryName, autoOpenLink }: Props) {
                     )}
                   </Table.CellText>
                 </Table.Cell>
-                <Table.Cell>
+                <Table.Cell label="Concedido por">
                   <Table.CellText variant="dim">
                     {a.grantedByUser?.name ?? "—"}
                   </Table.CellText>
                 </Table.Cell>
-                <Table.Cell>
+                <Table.Cell label="Desde">
                   <Table.CellText variant="dim">
                     {formatDateDMY(a.createdAt)}
                   </Table.CellText>
                 </Table.Cell>
-                <Table.Cell flex className="justify-end">
+                <Table.Cell card="actions" flex className="justify-end">
                   <AccessRowActions
                     id={a.id}
                     sellerName={a.seller?.name ?? "este vendedor"}

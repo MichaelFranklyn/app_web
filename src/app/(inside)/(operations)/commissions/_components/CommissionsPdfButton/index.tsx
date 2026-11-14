@@ -103,7 +103,7 @@ export function CommissionsPdfButton({
         appearance="outline"
         color="neutral"
         size="sm"
-        noUppercase
+        className="max-desktop:w-full"
         loading={busy}
         disabled={disabled}
         onClick={() => generate("seller")}
@@ -121,7 +121,7 @@ export function CommissionsPdfButton({
           appearance="outline"
           color="neutral"
           size="sm"
-          noUppercase
+          className="max-desktop:w-full"
           loading={working}
           disabled={disabled}
         >

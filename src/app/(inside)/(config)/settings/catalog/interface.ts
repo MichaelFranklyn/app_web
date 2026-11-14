@@ -46,3 +46,31 @@ export interface CatalogCountsData {
   segments: { totalCount: number } | null;
   taxRules: { totalCount: number } | null;
 }
+
+/**
+ * Estado de um modal de linha do catálogo. Os de editar e excluir são
+ * controlados porque quem os abre é a ação da linha (`CatalogRowActions`):
+ * ícone no desktop, item do "⋯" no cartão do celular.
+ */
+export interface CatalogModalControl {
+  open: boolean;
+  onOpenChange: (open: boolean) => void;
+}
+
+/** A rota de cada tela de catálogo — a chave de `CATALOG_PAGES`. */
+export type CatalogPageHref =
+  | "/settings/catalog/categories"
+  | "/settings/catalog/units"
+  | "/settings/catalog/labels"
+  | "/settings/catalog/segments"
+  | "/settings/catalog/tax-rules";
+
+/** O texto fixo de uma tela de catálogo: header e cabeçalho da tabela. */
+export interface CatalogPageCopy {
+  title: string;
+  description: string;
+  /** Nome da tabela ("Segmentos cadastrados"). */
+  listTitle: string;
+  /** Rótulos das colunas, na ordem da tabela. */
+  columns: string[];
+}

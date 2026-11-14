@@ -6,6 +6,7 @@ import { ListPageSkeleton } from "@/components/ListPageSkeleton";
 export default function Loading() {
   return (
     <ListPageSkeleton
+      page="orders"
       title="Pedidos"
       description="Gestão de pedidos por fábrica e vendedor."
       actions={2}

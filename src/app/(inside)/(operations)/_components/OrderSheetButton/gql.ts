@@ -94,3 +94,27 @@ export const ORDER_SHEET_SELLERS_QUERY = gql`
     }
   }
 `;
+
+/**
+ * Quem atende ESTE cliente (os vínculos cliente × fábrica × vendedor). Na tela
+ * do cliente a ficha é para visitá-lo, e listar a equipe inteira obrigava o
+ * gestor a lembrar quem cuida dele (pedido do usuário, 14/11/2026). Só o id e o
+ * nome do vendedor: a busca dos vínculos da tela do cliente é pesada (cadência,
+ * scores) e não precisa vir para isto.
+ */
+export const ORDER_SHEET_CLIENT_SELLERS_QUERY = gql`
+  query OrderSheetClientSellers($input: BaseListInput!) {
+    order_sheet_client_sellers: sellerClientFactoryList(input: $input) {
+      edges {
+        node {
+          id
+          seller {
+            id
+            name
+          }
+        }
+      }
+      totalCount
+    }
+  }
+`;

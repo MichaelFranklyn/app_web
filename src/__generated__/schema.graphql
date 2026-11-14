@@ -1076,6 +1076,7 @@ type CompanyType {
   """Tetos de contratação. Nulo = sem teto (não confundir com zero)."""
   maxUsers: Int
   maxSellers: Int
+  extraUsers: Int!
 
   createdAt: DateTime!
   updatedAt: DateTime!
@@ -3527,6 +3528,11 @@ type OrderInvoiceReversalType {
 
 type OrderType {
   id: UUID!
+  """
+  Número legível do pedido, sequencial por empresa ("#128"): é o que se dita
+  por telefone e se acha na lista. O `id` fica como detalhe técnico.
+  """
+  number: Int!
   companyId: UUID!
   sellerId: UUID!
   clientId: UUID!
@@ -3755,6 +3761,8 @@ vendedor, a fatia dele. Os campos `seller*` são sempre o nível do vendedor.
 """
 type CommissionRowType {
   orderId: UUID!
+  """Número legível do pedido na empresa ("#128")."""
+  orderNumber: Int!
   installmentId: UUID!
   sequence: Int!
   orderDate: Date!
@@ -4155,7 +4163,7 @@ extend type Mutation {
   sendOrderToFactoryEmail(id: UUID!, input: SendOrderToFactoryEmailInput!): OrderTypeDataResponse!
   """
   Pergunta ao cliente, por email, se o pedido faturado chegou bem (pós-venda de
-  /pending). Vai para o contato do cliente com email (o principal primeiro) e a
+  /priorities). Vai para o contato do cliente com email (o principal primeiro) e a
   resposta vai para quem enviou. Só para pedido esperando entrega; nada é gravado.
   """
   sendPostSaleEmail(id: UUID!): BaseResponse!
@@ -4766,6 +4774,7 @@ type PlatformTenantType {
   """Tetos de contratação. Nulo = sem teto (não é zero)."""
   maxUsers: Int
   maxSellers: Int
+  extraUsers: Int!
 
   usersCount: Int!
   sellersCount: Int!
@@ -5520,6 +5529,7 @@ input UpdateTenantPlanInput {
   trialEndsAt: Date
   maxUsers: Int
   maxSellers: Int
+  extraUsers: Int
 }
 
 """Sessão emprestada de um usuário, para suporte. Devolve apenas um token de

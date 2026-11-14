@@ -19,14 +19,14 @@ import {
 import { formatDateDMY, formatMoney } from "@/utils/format/masks";
 import { Receipt } from "lucide-react";
 import { FACTORY_ORDER_COLUMN_HELP } from "../../../help";
-import { EditOrderModal } from "../../../../_components/EditOrderModal";
 import { UPDATE_ORDER_FROM_FACTORY_MUTATION } from "../../../../_components/EditOrderModal";
 import { NewOrderButton } from "../../../../_components/NewOrderButton";
-import { DeleteOrderModal } from "./DeleteOrderModal";
+import { OrderRowActions } from "./OrderRowActions";
 import { ImportOrderModal } from "./ImportOrderModal";
 import { FeatureGate } from "@/components/FeatureGate";
 import { FactoryOrder } from "./gql";
 import { useFactoryOrdersTable } from "./useFactoryOrdersTable";
+import { formatOrderNumber } from "@/utils/orderNumber";
 
 interface Props {
   factoryId: string;
@@ -52,7 +52,7 @@ export function OrdersTab({ factoryId }: Props) {
             label="Como funcionam os pedidos aqui?"
             content={
               <div className="flex flex-col gap-2">
-                <Title variant="label" color="amber">
+                <Title variant="label" weight="semibold">
                   Pedidos da fábrica
                 </Title>
                 <Title variant="body-sm">
@@ -71,6 +71,8 @@ export function OrdersTab({ factoryId }: Props) {
         </Table.CardHead.Title>
         <Table.CardHead.Actions data-tour="factory-orders-actions">
           <Filters
+            resultCount={table.totalItems}
+            resultLoading={loading}
             fields={table.filterFields}
             values={table.inputValues}
             onChange={table.setFilters}
@@ -87,7 +89,8 @@ export function OrdersTab({ factoryId }: Props) {
         </Table.CardHead.Actions>
       </Table.CardHead>
 
-      <Table.Table>
+      {/* Abaixo do desktop cada linha vira cartão, em vez de a tabela rolar de lado. */}
+      <Table.Table cards>
         <Table.Header>
           <Table.Row>
             {/* Os `sortKey` são nomes de COLUNA no backend, não campos do
@@ -183,13 +186,15 @@ export function OrdersTab({ factoryId }: Props) {
 
               return (
                 <Table.Row key={o.id} href={`/orders/${o.id}`}>
-                  <Table.Cell>
+                  <Table.Cell label="Pedido">
                     <Badge.Root color="subtle" appearance="tinted">
-                      <Badge.Text>#{o.id.slice(-6).toUpperCase()}</Badge.Text>
+                      <Badge.Text>{formatOrderNumber(o.number)}</Badge.Text>
                     </Badge.Root>
                   </Table.Cell>
-                  <Table.Cell variant="strong">{clientName}</Table.Cell>
-                  <Table.Cell flex>
+                  <Table.Cell card="title" variant="strong">
+                    {clientName}
+                  </Table.Cell>
+                  <Table.Cell label="Vendedor" flex>
                     <Avatar
                       size="sm"
                       color="neutral"
@@ -199,16 +204,22 @@ export function OrdersTab({ factoryId }: Props) {
                       {o.seller?.name ?? "—"}
                     </Table.CellText>
                   </Table.Cell>
-                  <Table.Cell variant="dim">
+                  <Table.Cell label="Data" variant="dim">
                     {formatDateDMY(o.orderDate)}
                   </Table.Cell>
-                  <Table.Cell variant="strong" align="right">
+                  <Table.Cell
+                    card="amount"
+                    label="Valor"
+                    variant="strong"
+                    align="right"
+                  >
                     {formatMoney(o.totalAmount)}
                   </Table.Cell>
-                  <Table.Cell variant="dim" align="right">
+                  <Table.Cell label="Comissão" variant="dim" align="right">
                     {formatMoney(o.commissionAmount)}
                   </Table.Cell>
-                  <Table.Cell>
+                  {/* No cartão a situação divide a última linha com as ações. */}
+                  <Table.Cell card="aside">
                     {/* Vocabulário compartilhado: o mapa local desta pasta não
                         conhece INVOICED, e pedido faturado aparecia com a
                         palavra crua, em inglês, na cor de "sem situação". */}
@@ -219,25 +230,27 @@ export function OrdersTab({ factoryId }: Props) {
                       <Badge.Text>{orderStatusLabel(o.status)}</Badge.Text>
                     </Badge.Root>
                   </Table.Cell>
-                  <Table.Cell>
-                    <div className="flex items-center justify-end gap-4">
-                      <EditOrderModal
-                        orderId={o.id}
-                        initialNotes={o.notes}
-                        mutation={UPDATE_ORDER_FROM_FACTORY_MUTATION}
-                        invalidateKeys={["orders"]}
-                        stopPropagationOnTrigger
-                      />
-                      {canDeleteOrder(o.status) && (
-                        <DeleteOrderModal
-                          orderId={o.id}
-                          orderCode={`#${o.id.slice(-6).toUpperCase()}`}
-                          onRemoveOptimistic={optimistic.removeOptimistic}
-                          onCommit={optimistic.commit}
-                          onRollback={optimistic.rollback}
-                        />
-                      )}
-                    </div>
+                  <Table.Cell card="actions">
+                    <OrderRowActions
+                      orderCode={formatOrderNumber(o.number)}
+                      edit={{
+                        orderId: o.id,
+                        initialNotes: o.notes,
+                        mutation: UPDATE_ORDER_FROM_FACTORY_MUTATION,
+                        invalidateKeys: ["orders"],
+                      }}
+                      remove={
+                        canDeleteOrder(o.status)
+                          ? {
+                              orderId: o.id,
+                              orderCode: formatOrderNumber(o.number),
+                              onRemoveOptimistic: optimistic.removeOptimistic,
+                              onCommit: optimistic.commit,
+                              onRollback: optimistic.rollback,
+                            }
+                          : undefined
+                      }
+                    />
                   </Table.Cell>
                 </Table.Row>
               );

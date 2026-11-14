@@ -41,9 +41,17 @@ export function PlanSummary({ plan, showMissing = false }: Props) {
             return (
               <div key={feature} className="flex items-center gap-6">
                 {included ? (
-                  <Check size={14} className="text-(--green)" aria-hidden />
+                  <Check
+                    size={14}
+                    className="text-(--color-status-success)"
+                    aria-hidden
+                  />
                 ) : (
-                  <Minus size={14} className="text-(--muted)" aria-hidden />
+                  <Minus
+                    size={14}
+                    className="text-(--color-text-muted)"
+                    aria-hidden
+                  />
                 )}
                 <Title variant="caption" color={included ? undefined : "muted"}>
                   {FEATURE_LABEL[feature]}

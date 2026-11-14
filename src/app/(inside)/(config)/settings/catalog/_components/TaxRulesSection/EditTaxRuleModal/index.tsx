@@ -1,5 +1,6 @@
 "use client";
 
+import type { CatalogModalControl } from "../../../interface";
 import { Button } from "@/components/Button";
 import {
   FormBuilder,
@@ -9,8 +10,7 @@ import {
 import { Modal } from "@/components/Modal";
 import { useAsyncAction } from "@/hooks/useAsyncAction";
 import { useMutation } from "@apollo/client/react";
-import { Pencil } from "lucide-react";
-import { useMemo, useRef, useState } from "react";
+import { useMemo, useRef } from "react";
 import { UPDATE_TAX_RULE_MUTATION } from "../../../gql";
 import { EditTaxRuleModalProps, UpdateTaxRuleResponse } from "./interface";
 
@@ -20,8 +20,9 @@ export function EditTaxRuleModal({
   onCommit,
   onRollback,
   onDone,
-}: EditTaxRuleModalProps) {
-  const [open, setOpen] = useState(false);
+  open,
+  onOpenChange: setOpen,
+}: EditTaxRuleModalProps & CatalogModalControl) {
   const formRef = useRef<FormBuilderRef>(null);
   const [updateRule] = useMutation<UpdateTaxRuleResponse>(
     UPDATE_TAX_RULE_MUTATION
@@ -88,17 +89,6 @@ export function EditTaxRuleModal({
 
   return (
     <Modal.Root open={open} onOpenChange={setOpen}>
-      <Modal.Trigger asChild>
-        <Button.Root
-          appearance="ghost"
-          color="neutral"
-          size="sm"
-          isIconOnly
-          label="Editar regra de imposto"
-        >
-          <Button.Icon icon={Pencil} />
-        </Button.Root>
-      </Modal.Trigger>
       <Modal.Content size="sm">
         <Modal.Header
           title="Editar regra de imposto"
@@ -121,7 +111,6 @@ export function EditTaxRuleModal({
               appearance="ghost"
               color="neutral"
               size="md"
-              noUppercase
               disabled={isLoading}
             >
               <Button.Title>Cancelar</Button.Title>
@@ -132,7 +121,6 @@ export function EditTaxRuleModal({
             appearance="solid"
             color="amber"
             size="md"
-            noUppercase
             loading={isLoading}
             onClick={() => formRef.current?.submitForm()}
           >

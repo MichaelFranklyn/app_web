@@ -51,7 +51,6 @@ export function ReconcileToggle({
         appearance="tinted"
         color="green"
         size="sm"
-        noUppercase
         disabled
         title="Recebido já conta como conferido"
       >
@@ -90,7 +89,6 @@ export function ReconcileToggle({
       appearance={local ? "tinted" : "ghost"}
       color={local ? "green" : "neutral"}
       size="sm"
-      noUppercase
       loading={isLoading}
       onClick={handleClick}
     >

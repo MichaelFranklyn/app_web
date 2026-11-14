@@ -1,5 +1,6 @@
 "use client";
 
+import { DocumentNumber } from "@/components/DocumentNumber";
 import { Badge } from "@/components/Badges";
 import { Breadcrumb } from "@/components/Breadcrumb";
 import { Button } from "@/components/Button";
@@ -35,7 +36,6 @@ import { SharePortalModal } from "./_components/SharePortalModal";
 import { ClientRouteProvider } from "./context";
 import { COMPANY_CLIENT_QUERY } from "./gql";
 import { ClientDetail, CompanyClientDetailQueryResponse } from "./interface";
-import { formatCnpj } from "./utils";
 
 export default function ClientLayout({
   children,
@@ -147,7 +147,6 @@ export default function ClientLayout({
     [clientData?.addressCity, clientData?.addressState]
       .filter(Boolean)
       .join(", ") || "—";
-  const cnpj = clientData ? formatCnpj(clientData.cnpj) : "—";
 
   const isHeaderLoading = loading && !clientData;
 
@@ -191,7 +190,6 @@ export default function ClientLayout({
               appearance="solid"
               color="amber"
               size="md"
-              noUppercase
               onClick={() => router.push("/clients")}
             >
               <Button.Title>Voltar para Clientes</Button.Title>
@@ -245,10 +243,18 @@ export default function ClientLayout({
                     )}
                   </PanelHeader.Title>
                   <PanelHeader.Description>
-                    {`${nickname ? `${clientData?.razaoSocial} · ` : ""}${cnae} · ${city} · CNPJ ${cnpj}`}
+                    {`${nickname ? `${clientData?.razaoSocial} · ` : ""}${cnae} · ${city} · CNPJ `}
+                    {clientData ? (
+                      <DocumentNumber value={clientData.cnpj} />
+                    ) : (
+                      "—"
+                    )}
                   </PanelHeader.Description>
 
-                  <PanelHeader.Actions data-tour="client-detail-actions">
+                  <PanelHeader.Actions
+                    data-tour="client-detail-actions"
+                    className="max-tablet:mt-16"
+                  >
                     {companyClientView && (
                       <Badge.Root
                         color={WALLET_STATUS_COLOR[walletStatus]}
@@ -294,6 +300,7 @@ export default function ClientLayout({
                          visitá-lo. */
                       <OrderSheetButton
                         canSelectSeller={isAdminRole(userData?.role)}
+                        clientId={clientData.id}
                         cnpjDigits={clientData.cnpj.replace(/\D/g, "")}
                         clientName={
                           clientData.nomeFantasia ?? clientData.razaoSocial

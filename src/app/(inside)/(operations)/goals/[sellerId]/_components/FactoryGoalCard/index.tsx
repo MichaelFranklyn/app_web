@@ -130,6 +130,7 @@ export function FactoryGoalCard({
             <Progress.Bar
               value={Math.min(overall, 100)}
               color={percentTone(overall)}
+              label={`${factoryName(row.factory)}: ${overall.toFixed(0)}% da meta`}
             />
           </div>
         )}

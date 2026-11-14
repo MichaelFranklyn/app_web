@@ -1,7 +1,7 @@
 import { Card } from "@/components/Card";
 import { Grid } from "@/components/Grid";
 import { formatMoney } from "@/utils/format/masks";
-import { TrendingDown, TrendingUp } from "lucide-react";
+import { TrendingDown } from "lucide-react";
 
 interface Props {
   totalOrders: number;
@@ -14,6 +14,12 @@ interface Props {
   hasRoutines: boolean;
 }
 
+/**
+ * Cor no número só quando ela diz um ESTADO (auditoria UX, item 17): contar
+ * pedidos ou somar faturamento não é bom nem ruim, então sai em tinta neutra;
+ * vermelho fica para "nenhum cliente", que é um problema de verdade. A seta
+ * verde de "subiu" também saiu — não há período anterior para comparar.
+ */
 export function DashboardKpis({
   totalOrders,
   totalRevenue,
@@ -29,15 +35,14 @@ export function DashboardKpis({
 
   return (
     <Grid.Root
-      cols={{ base: 1, tablet: 2, "desktop-xl": hasRoutines ? 4 : 3 }}
+      cols={{ base: 2, tablet: 2, "desktop-xl": hasRoutines ? 4 : 3 }}
       gap={12}
     >
       <Grid.Item>
         <Card.Kpi>
           <Card.Kpi.Label>Pedidos no período</Card.Kpi.Label>
-          <Card.Kpi.Value status="atencao">{totalOrders}</Card.Kpi.Value>
-          <Card.Kpi.Delta positive={totalOrders > 0}>
-            {totalOrders > 0 && <TrendingUp size={12} />}
+          <Card.Kpi.Value>{totalOrders}</Card.Kpi.Value>
+          <Card.Kpi.Delta>
             {totalOrders > 0
               ? "pedidos cadastrados"
               : "nenhum pedido no período"}
@@ -48,13 +53,8 @@ export function DashboardKpis({
       <Grid.Item>
         <Card.Kpi>
           <Card.Kpi.Label>Faturamento</Card.Kpi.Label>
-          <Card.Kpi.Value status="ok">
-            {formatMoney(totalRevenue)}
-          </Card.Kpi.Value>
-          <Card.Kpi.Delta positive={totalRevenue > 0}>
-            {totalRevenue > 0 && <TrendingUp size={12} />}
-            soma dos pedidos do período
-          </Card.Kpi.Delta>
+          <Card.Kpi.Value>{formatMoney(totalRevenue)}</Card.Kpi.Value>
+          <Card.Kpi.Delta>soma dos pedidos do período</Card.Kpi.Delta>
         </Card.Kpi>
       </Grid.Item>
 
@@ -62,7 +62,7 @@ export function DashboardKpis({
         <Grid.Item>
           <Card.Kpi>
             <Card.Kpi.Label>Visitas realizadas</Card.Kpi.Label>
-            <Card.Kpi.Value status="info">{completedVisits}</Card.Kpi.Value>
+            <Card.Kpi.Value>{completedVisits}</Card.Kpi.Value>
             <Card.Kpi.Delta>
               {totalPlannedVisits > 0
                 ? `de ${totalPlannedVisits} planejadas · ${completionRate}%`
@@ -75,7 +75,7 @@ export function DashboardKpis({
       <Grid.Item>
         <Card.Kpi>
           <Card.Kpi.Label>Clientes ativos</Card.Kpi.Label>
-          <Card.Kpi.Value status={totalClients > 0 ? "ok" : "urgente"}>
+          <Card.Kpi.Value status={totalClients > 0 ? "neutral" : "urgente"}>
             {totalClients}
           </Card.Kpi.Value>
           <Card.Kpi.Delta negative={totalClients === 0}>

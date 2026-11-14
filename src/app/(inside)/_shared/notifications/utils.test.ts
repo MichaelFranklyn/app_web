@@ -44,9 +44,11 @@ describe("para onde o aviso leva", () => {
     });
 
     expect(isInsight(frequency)).toBe(true);
-    expect(notificationHref(frequency)).toBe("/pending?type=VISIT_FREQUENCY");
+    expect(notificationHref(frequency)).toBe(
+      "/priorities?type=VISIT_FREQUENCY"
+    );
     expect(notificationHref(offRoute)).toBe(
-      "/opportunities?open=PRIORITY_OFF_ROUTE"
+      "/priorities/opportunities?open=PRIORITY_OFF_ROUTE"
     );
   });
 

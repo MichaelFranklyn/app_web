@@ -105,7 +105,6 @@ export function ImportPriceListModal(props: ImportPriceListModalProps) {
                 appearance="solid"
                 color="amber"
                 size="md"
-                noUppercase
               >
                 <Button.Title>Fechar</Button.Title>
               </Button.Root>
@@ -118,7 +117,6 @@ export function ImportPriceListModal(props: ImportPriceListModalProps) {
                   appearance="ghost"
                   color="neutral"
                   size="md"
-                  noUppercase
                   disabled={isLoading}
                   onClick={() => setStep((s) => s - 1)}
                 >
@@ -134,7 +132,6 @@ export function ImportPriceListModal(props: ImportPriceListModalProps) {
                   appearance="ghost"
                   color="neutral"
                   size="md"
-                  noUppercase
                   loading={isLoading}
                   onClick={template.handleSaveTemplate}
                 >
@@ -151,7 +148,6 @@ export function ImportPriceListModal(props: ImportPriceListModalProps) {
                   appearance="solid"
                   color="amber"
                   size="md"
-                  noUppercase
                   disabled={!stepValid[step]}
                   onClick={() => setStep((s) => s + 1)}
                 >
@@ -163,7 +159,6 @@ export function ImportPriceListModal(props: ImportPriceListModalProps) {
                   appearance="solid"
                   color="amber"
                   size="md"
-                  noUppercase
                   loading={isLoading}
                   disabled={!stepValid[5]}
                   onClick={handleImport}

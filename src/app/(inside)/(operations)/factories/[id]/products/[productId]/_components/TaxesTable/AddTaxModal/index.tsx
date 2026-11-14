@@ -196,7 +196,6 @@ export function AddTaxModal({ productId, onAdded }: Props) {
                 appearance="ghost"
                 color="neutral"
                 size="md"
-                noUppercase
                 disabled={isLoading}
               >
                 <Button.Title>Cancelar</Button.Title>
@@ -207,7 +206,6 @@ export function AddTaxModal({ productId, onAdded }: Props) {
               appearance="solid"
               color="amber"
               size="md"
-              noUppercase
               loading={isLoading}
               onClick={() => formRef.current?.submitForm()}
             >

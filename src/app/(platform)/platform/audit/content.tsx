@@ -6,6 +6,7 @@ import { Loading } from "@/components/Loading";
 import { PageContent } from "@/components/PageContent";
 import { Pagination } from "@/components/Pagination";
 import { PanelHeader } from "@/components/PanelHeader";
+import { PAGE_HEADING } from "@/utils/modules";
 import { QueryError } from "@/components/QueryError";
 import { Table } from "@/components/Table";
 import { Title } from "@/components/Title";
@@ -44,8 +45,9 @@ export default function PlatformAuditContent({
       <PanelHeader.Root>
         <PanelHeader.Top>
           <PanelHeader.Left>
-            <PanelHeader.Eyebrow color="purple">Console</PanelHeader.Eyebrow>
-            <PanelHeader.Title>Auditoria</PanelHeader.Title>
+            <PanelHeader.Heading {...PAGE_HEADING.platformAudit}>
+              Auditoria
+            </PanelHeader.Heading>
             <PanelHeader.Description>
               Tudo que a plataforma fez sobre as empresas. Não registra a
               operação do dia a dia dos clientes.
@@ -62,6 +64,8 @@ export default function PlatformAuditContent({
             <Table.CardHead.Title>Ações registradas</Table.CardHead.Title>
             <Table.CardHead.Actions>
               <Filters
+                resultCount={tableData.totalItems}
+                resultLoading={tableData.loading}
                 fields={[
                   {
                     type: "select",
@@ -78,7 +82,7 @@ export default function PlatformAuditContent({
             </Table.CardHead.Actions>
           </Table.CardHead>
 
-          <Table.Table>
+          <Table.Table cards>
             <Table.Header>
               <Table.Row>
                 <Table.Head>Quando</Table.Head>
@@ -124,17 +128,21 @@ export default function PlatformAuditContent({
                         : undefined
                     }
                   >
-                    <Table.Cell variant="dim" className="whitespace-nowrap">
+                    <Table.Cell
+                      label="Quando"
+                      variant="dim"
+                      className="whitespace-nowrap"
+                    >
                       {formatMoment(row.createdAt)}
                     </Table.Cell>
 
-                    <Table.Cell className="whitespace-nowrap">
+                    <Table.Cell card="title" className="whitespace-nowrap">
                       <Title variant="body-sm" weight="semibold">
                         {AUDIT_LABEL[row.action.toUpperCase()] ?? row.action}
                       </Title>
                     </Table.Cell>
 
-                    <Table.Cell className="max-w-[280px]">
+                    <Table.Cell label="Alvo" className="max-w-[280px]">
                       <div className="flex min-w-0 flex-col gap-[2px]">
                         <Title variant="body-sm" className="truncate">
                           {row.targetLabel ?? "—"}
@@ -151,7 +159,11 @@ export default function PlatformAuditContent({
                       </div>
                     </Table.Cell>
 
-                    <Table.Cell variant="dim" className="max-w-[220px]">
+                    <Table.Cell
+                      label="Quem"
+                      variant="dim"
+                      className="max-w-[220px]"
+                    >
                       <span className="block truncate">{row.actorEmail}</span>
                     </Table.Cell>
                   </Table.Row>

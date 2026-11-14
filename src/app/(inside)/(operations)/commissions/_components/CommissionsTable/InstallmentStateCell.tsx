@@ -23,7 +23,7 @@ export function InstallmentStateCell({ row }: { row: CommissionRow }) {
 
   if (row.isOverdue) {
     return (
-      <Badge.Root color="amber" appearance="tinted">
+      <Badge.Root color="warning" appearance="tinted">
         <Badge.Text>
           Vencido em {formatDateDMY(row.dueDate ?? undefined)}
         </Badge.Text>

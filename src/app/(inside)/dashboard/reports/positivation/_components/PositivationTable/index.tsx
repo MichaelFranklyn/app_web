@@ -66,6 +66,8 @@ export function PositivationTable({
         </Table.CardHead.Title>
         <Table.CardHead.Actions>
           <Filters
+            resultCount={totalItems}
+            resultLoading={loading}
             fields={filterFields}
             values={inputValues}
             onChange={setFilters}
@@ -101,7 +103,7 @@ export function PositivationTable({
           ) : items.length === 0 ? (
             <Table.Row>
               <Table.Cell colSpan={columnCount}>
-                <EmptyState.Root>
+                <EmptyState.Root flat>
                   <EmptyState.Icon>
                     <Users size={32} />
                   </EmptyState.Icon>

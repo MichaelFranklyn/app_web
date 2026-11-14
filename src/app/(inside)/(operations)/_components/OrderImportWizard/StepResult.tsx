@@ -1,5 +1,5 @@
 import { Alert } from "@/components/Alert";
-import { StatCard } from "@/components/StatCard";
+import { Card } from "@/components/Card";
 import { Title } from "@/components/Title";
 import { CheckCircle2, Info } from "lucide-react";
 
@@ -34,14 +34,21 @@ export function StepResult({ result, skipped }: StepResultProps) {
       <div
         className={`grid gap-8 ${skipped.length > 0 ? "grid-cols-3" : "grid-cols-2"}`}
       >
-        <StatCard label="Gravados" value={result.created} tone="green" />
-        <StatCard label="Com erro" value={result.failed} tone="red" />
+        <Card.Kpi>
+          <Card.Kpi.Label>Gravados</Card.Kpi.Label>
+          <Card.Kpi.Value>{result.created}</Card.Kpi.Value>
+        </Card.Kpi>
+        <Card.Kpi>
+          <Card.Kpi.Label>Com erro</Card.Kpi.Label>
+          <Card.Kpi.Value status={result.failed > 0 ? "urgente" : "neutral"}>
+            {result.failed}
+          </Card.Kpi.Value>
+        </Card.Kpi>
         {skipped.length > 0 && (
-          <StatCard
-            label="Não importados"
-            value={skipped.length}
-            tone="amber"
-          />
+          <Card.Kpi>
+            <Card.Kpi.Label>Não importados</Card.Kpi.Label>
+            <Card.Kpi.Value status="atencao">{skipped.length}</Card.Kpi.Value>
+          </Card.Kpi>
         )}
       </div>
       {result.errors.length > 0 && (
@@ -69,12 +76,7 @@ export function StepResult({ result, skipped }: StepResultProps) {
           <div className="flex max-h-[260px] flex-col gap-4 overflow-y-auto">
             {skipped.map((item) => (
               <Title key={item.sku} variant="caption">
-                <Title
-                  variant="caption"
-                  color="amber"
-                  weight="medium"
-                  className="inline"
-                >
+                <Title variant="caption" weight="medium" className="inline">
                   {item.sku}
                 </Title>
                 {item.name ? ` (${item.name})` : ""} — {item.reason}

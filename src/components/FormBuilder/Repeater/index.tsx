@@ -25,13 +25,13 @@ export const Repeater = ({ section }: RepeaterProps) => {
           className="relative flex flex-col gap-4 rounded-(--r-md) border border-(--border) bg-(--bg2) p-6"
         >
           <div className="flex items-center justify-between">
-            <Title variant="label" weight="bold" className="tracking-normal">
+            <Title variant="label" weight="bold">
               {section.title} {index + 1}
             </Title>
             <button
               type="button"
               onClick={() => remove(index)}
-              className="cursor-pointer rounded-full bg-(--red-bg) p-2 text-(--red) transition-colors hover:bg-(--red) hover:text-white"
+              className="cursor-pointer rounded-full bg-(--color-status-danger-bg) p-2 text-(--color-status-danger) transition-colors hover:bg-(--color-status-danger) hover:text-white"
               title="Remover Item"
             >
               <Trash size={14} />

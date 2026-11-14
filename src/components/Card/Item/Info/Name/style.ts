@@ -1,1 +1,2 @@
-export const itemNameStyle = "text-[13px] font-medium text-(--text) truncate";
+export const itemNameStyle =
+  "text-body-sm font-medium text-(--color-text) truncate";

@@ -93,6 +93,7 @@ export default function PlanWeekContent() {
             onRemove={page.toggle}
             onOrganize={() => setSetupOpen(true)}
             sellerId={page.sellerId}
+            awaitingSeller={page.awaitingSeller}
             scheduleSellerId={page.effectiveSellerId}
             onScheduled={() => void page.refetch()}
           />
@@ -114,7 +115,6 @@ export default function PlanWeekContent() {
           appearance="solid"
           color="amber"
           size="sm"
-          noUppercase
           onClick={() => setSetupOpen(true)}
         >
           <Button.Icon icon={CalendarCheck} />

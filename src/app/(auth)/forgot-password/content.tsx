@@ -161,7 +161,7 @@ export default function ForgotPasswordContent() {
 
               <Stepper.Item label="Confirmação">
                 <div className="flex flex-col gap-12">
-                  <Badge.Root color="amber" appearance="solid" fullWidth>
+                  <Badge.Root color="green" appearance="tinted" fullWidth>
                     <Badge.Text>Link enviado com sucesso</Badge.Text>
                   </Badge.Root>
 
@@ -222,7 +222,6 @@ export default function ForgotPasswordContent() {
                 appearance="ghost"
                 size="sm"
                 noPadding
-                noUppercase
               >
                 <Button.Title>suporte@itinus.com.br</Button.Title>
               </Button.Root>

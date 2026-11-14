@@ -7,6 +7,7 @@ import { Input, SelectOption } from "@/components/Input";
 import { Loading } from "@/components/Loading";
 import { PageContent } from "@/components/PageContent";
 import { PanelHeader } from "@/components/PanelHeader";
+import { PAGE_HEADING } from "@/utils/modules";
 import { QueryError } from "@/components/QueryError";
 import { Title } from "@/components/Title";
 import { factoryName } from "@/utils/company";
@@ -128,7 +129,9 @@ export default function GoalsContent({ canManage }: Props) {
       <PanelHeader.Root>
         <PanelHeader.Top>
           <PanelHeader.Left>
-            <PanelHeader.Title>Metas</PanelHeader.Title>
+            <PanelHeader.Heading {...PAGE_HEADING.goals}>
+              Metas
+            </PanelHeader.Heading>
             <PanelHeader.Description>
               {canManage
                 ? "O combinado do mês e o quanto já foi feito, por vendedor e por fábrica."
@@ -165,9 +168,14 @@ export default function GoalsContent({ canManage }: Props) {
             data-tour="goals-month"
           >
             <Title variant="heading-sm">Metas de {monthLabel(month)}</Title>
-            <div className="flex flex-wrap items-center gap-8">
+            {/* Celular/tablet: "Repetir" e "Definir" dividem uma linha meio a
+                meio e o navegador de mês fica com a de baixo inteira. */}
+            <div className="desktop:flex desktop:flex-wrap desktop:items-center desktop:w-auto grid w-full grid-cols-2 gap-8 [&>*]:min-w-0">
               {canManage && (
-                <span className="flex gap-8" data-tour="goals-actions">
+                <span
+                  className="max-desktop:col-span-2 max-desktop:grid max-desktop:grid-cols-2 flex gap-8 [&>*]:min-w-0"
+                  data-tour="goals-actions"
+                >
                   <CopyGoalsModal
                     month={month}
                     sellerId={selectedSellerId}
@@ -182,7 +190,7 @@ export default function GoalsContent({ canManage }: Props) {
                   />
                 </span>
               )}
-              <div className="flex items-center gap-4">
+              <div className="max-desktop:col-span-2 flex items-center gap-4">
                 <Button.Root
                   appearance="outline"
                   color="neutral"
@@ -197,8 +205,8 @@ export default function GoalsContent({ canManage }: Props) {
                   appearance={isCurrentMonth ? "tinted" : "ghost"}
                   color={isCurrentMonth ? "amber" : "neutral"}
                   size="sm"
-                  noUppercase
                   onClick={() => setMonth(yearMonthFromIso(getTodayIso()))}
+                  className="max-desktop:flex-1"
                 >
                   <Button.Icon icon={CalendarDays} />
                   <Button.Title>{monthLabel(month)}</Button.Title>

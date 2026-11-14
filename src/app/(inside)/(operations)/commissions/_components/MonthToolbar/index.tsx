@@ -1,9 +1,7 @@
 "use client";
 
-import { HelpTooltip } from "@/components/HelpTooltip";
 import { Title } from "@/components/Title";
 
-import { MONTH_HELP, PDF_HELP } from "../../help";
 import { type CommissionsMonth } from "../../useCommissionsMonth";
 import { type CommissionTab, monthLabel } from "../../utils";
 import { CommissionsPdfButton } from "../CommissionsPdfButton";
@@ -36,19 +34,15 @@ export function MonthToolbar({
       className="flex flex-wrap items-center justify-between gap-16"
       data-tour="commissions-month"
     >
-      <div className="flex items-center gap-4">
-        <Title variant="heading-sm">
-          {tab === "overdue"
-            ? "Boletos travados, de todos os vencimentos"
-            : `Resumo de ${monthLabel(nav.month)}`}
-        </Title>
-        <HelpTooltip
-          label="Como o mês funciona nesta tela"
-          position="right"
-          content={MONTH_HELP}
-        />
-      </div>
-      <div className="flex flex-wrap items-center gap-8">
+      <Title variant="heading-sm">
+        {tab === "overdue"
+          ? "Boletos travados, de todos os vencimentos"
+          : `Resumo de ${monthLabel(nav.month)}`}
+      </Title>
+      {/* Celular/tablet: "Dar baixa" e "PDF" dividem uma linha meio a meio
+          e o navegador de mês fica com a linha de baixo inteira — em fila
+          corrida cada um deixava sobra vazia ao lado. */}
+      <div className="desktop:flex desktop:flex-wrap desktop:items-center desktop:w-auto grid w-full grid-cols-2 gap-8 [&>*]:min-w-0">
         {canManage && (
           <SettlePeriodModal
             sellerId={sellerId}
@@ -56,7 +50,10 @@ export function MonthToolbar({
             onSettled={onChanged}
           />
         )}
-        <div className="flex items-center gap-2" data-tour="commissions-pdf">
+        <div
+          data-tour="commissions-pdf"
+          className={canManage ? undefined : "max-desktop:col-span-2"}
+        >
           <CommissionsPdfButton
             sellerId={sellerId}
             month={nav.month}
@@ -64,9 +61,10 @@ export function MonthToolbar({
             canManage={canManage}
             disabled={isLoading}
           />
-          <HelpTooltip label="O que sai no PDF" content={PDF_HELP} />
         </div>
-        <MonthNavigator nav={nav} />
+        <div className="max-desktop:col-span-2">
+          <MonthNavigator nav={nav} />
+        </div>
       </div>
     </div>
   );

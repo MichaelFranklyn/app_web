@@ -38,7 +38,7 @@ const Group = ({ label, className, children, ...props }: GroupProps) => (
     <span
       className={cn(
         "desktop:block hidden",
-        "px-[12px] pb-[6px] text-[11px] font-(--weight-semibold) tracking-[0.06em] text-(--muted2) uppercase"
+        "px-[12px] pb-[6px] text-[12px] font-(--weight-semibold) text-(--color-text-muted)"
       )}
     >
       {label}
@@ -88,12 +88,11 @@ const Item = ({
       aria-current={isActive ? "page" : undefined}
       data-state={isActive ? "active" : "inactive"}
       className={cn(
-        "flex shrink-0 items-center gap-[8px] whitespace-nowrap text-(--muted) transition-all duration-150 outline-none",
-        "focus-visible:ring-2 focus-visible:ring-(--amber)",
-        "hover:text-(--text)",
+        "focus-ring flex shrink-0 items-center gap-[8px] whitespace-nowrap text-(--color-text-muted) transition-colors duration-150",
+        "hover:text-(--color-text)",
         // Celular/tablet: aba com traço embaixo.
-        "mb-[-1px] border-b-[2px] border-transparent px-[16px] py-[10px] text-[13px]",
-        "data-[state=active]:border-b-(--amber) data-[state=active]:font-(--weight-semibold) data-[state=active]:text-(--amber)",
+        "text-body-sm mb-[-1px] border-b-[2px] border-transparent px-[16px] py-[10px]",
+        "data-[state=active]:border-b-(--amber) data-[state=active]:font-(--weight-semibold) data-[state=active]:text-(--color-action-text-on-tint)",
         // Desktop: item de coluna com traço à esquerda, como a sidebar.
         "desktop:mb-0 desktop:rounded-r-[8px] desktop:border-b-0 desktop:border-l-[2px] desktop:px-[12px] desktop:py-[8px] desktop:text-[14px]",
         "desktop:hover:bg-(--bg3) desktop:data-[state=active]:border-l-(--amber) desktop:data-[state=active]:bg-(--amber-bg)",

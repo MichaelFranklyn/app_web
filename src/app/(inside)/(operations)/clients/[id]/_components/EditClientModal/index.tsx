@@ -29,7 +29,7 @@ export function EditClientModal(props: Props) {
   return (
     <Modal.Root open={open} onOpenChange={setOpen}>
       <Modal.Trigger asChild>
-        <Button.Root appearance="outline" color="neutral" size="sm" noUppercase>
+        <Button.Root appearance="outline" color="neutral" size="sm">
           <Button.Icon icon={Pencil} />
           <Button.Title>Editar</Button.Title>
         </Button.Root>
@@ -57,7 +57,6 @@ export function EditClientModal(props: Props) {
               appearance="ghost"
               color="neutral"
               size="md"
-              noUppercase
               disabled={isLoading}
             >
               <Button.Title>Cancelar</Button.Title>
@@ -68,7 +67,6 @@ export function EditClientModal(props: Props) {
             appearance="solid"
             color="amber"
             size="md"
-            noUppercase
             loading={isLoading}
             onClick={() => formRef.current?.submitForm()}
           >

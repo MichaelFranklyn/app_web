@@ -34,15 +34,27 @@ export type ScoreTone =
   | "cyan"
   | "neutral";
 
+/** Token CSS de cada tom de score — para o que é desenhado fora do CSS (o pino
+ * do mapa lê o valor com `getComputedStyle`). Espelha `SCORE_TONE_BG`. */
+export const SCORE_TONE_VAR: Record<ScoreTone, string> = {
+  red: "--color-status-danger",
+  orange: "--orange",
+  amber: "--amber",
+  blue: "--color-status-info",
+  green: "--color-status-success",
+  cyan: "--cyan",
+  neutral: "--color-text-muted",
+};
+
 /** Classe Tailwind de fundo (bolinha/indicador) por tom de score. */
 export const SCORE_TONE_BG: Record<ScoreTone, string> = {
-  red: "bg-(--red)",
+  red: "bg-(--color-status-danger)",
   orange: "bg-(--orange)",
   amber: "bg-(--amber)",
-  blue: "bg-(--blue)",
-  green: "bg-(--green)",
+  blue: "bg-(--color-status-info)",
+  green: "bg-(--color-status-success)",
   cyan: "bg-(--cyan)",
-  neutral: "bg-(--muted)",
+  neutral: "bg-(--color-text-muted)",
 };
 
 /**

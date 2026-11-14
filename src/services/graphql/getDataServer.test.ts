@@ -155,8 +155,25 @@ describe("executeServerQueries", () => {
     });
 
     const [, chave, opcoes] = registros()[0]!;
-    expect(chave).toEqual(["clients", "user-1", JSON.stringify({ page: 2 })]);
+    expect(chave).toEqual([
+      "clients",
+      "user-1",
+      JSON.stringify({ page: 2 }),
+      QUERY.query,
+    ]);
     expect(opcoes.tags).toEqual(["global", "user-user-1"]);
+  });
+
+  it("query que muda de campos não reaproveita a resposta do shape velho", async () => {
+    gqlFetch.mockResolvedValue({ data: { clients: null } });
+
+    await executeServerQueries({ clients: QUERY });
+    await executeServerQueries({
+      clients: { query: "query Clients { clients { id number } }" },
+    });
+
+    const [primeira, segunda] = registros().map(([, chave]) => chave);
+    expect(primeira).not.toEqual(segunda);
   });
 
   it("sem sessão, o cache é o do anônimo — e não o do último que passou", async () => {

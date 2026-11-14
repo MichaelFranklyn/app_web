@@ -106,7 +106,6 @@ export function TaxMapper({ headers, taxes, onChange }: Props) {
           appearance="outline"
           color="neutral"
           size="sm"
-          noUppercase
           onClick={add}
         >
           <Button.Icon icon={Plus} />

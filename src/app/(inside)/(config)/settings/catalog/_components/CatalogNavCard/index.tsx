@@ -11,10 +11,11 @@ import Link from "next/link";
 import { CatalogLinkWithCount } from "../../interface";
 import { CATALOG_TONE, countLabel } from "../../utils";
 
+/** A seta é ícone (3:1 basta): o traço leva a matiz viva, não o tom de texto. */
 const ICON_COLOR = {
-  purple: "text-(--purple)",
-  green: "text-(--green)",
-  orange: "text-(--orange)",
+  purple: "stroke-(--purple)",
+  green: "stroke-(--color-status-success)",
+  orange: "stroke-(--orange)",
 } as const;
 
 interface Props {

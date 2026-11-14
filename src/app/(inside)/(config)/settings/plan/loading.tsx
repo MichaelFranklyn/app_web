@@ -1,6 +1,8 @@
 import { Grid } from "@/components/Grid";
 import { Loading } from "@/components/Loading";
 import { PageContent } from "@/components/PageContent";
+import { PanelHeader } from "@/components/PanelHeader";
+import { PAGE_HEADING } from "@/utils/modules";
 
 /**
  * Espelha `content.tsx`: cabeçalho + a faixa do plano + os quatro tetos + a
@@ -14,8 +16,10 @@ export default function PlanLoading() {
     <PageContent>
       <div className="flex flex-col gap-12">
         <div className="flex flex-col gap-8">
-          <Loading.Skeleton className="h-24 w-[200px]" />
-          <Loading.Skeleton className="h-14 w-[420px]" />
+          <PanelHeader.Heading {...PAGE_HEADING.plan}>
+            Plano da empresa
+          </PanelHeader.Heading>
+          <Loading.Skeleton className="h-14 w-[420px] max-w-full" />
         </div>
         <Loading.Skeleton shape="md" className="h-[58px] w-full" />
       </div>

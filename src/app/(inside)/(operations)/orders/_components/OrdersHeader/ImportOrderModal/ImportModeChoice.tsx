@@ -28,7 +28,7 @@ export function ImportModeChoice({ onChoose }: Props) {
       <Card.Root inset tone="transparent">
         <Card.Body padding="compact" className="gap-8">
           <div className="flex items-center gap-8">
-            <FileSpreadsheet size={16} className="text-(--amber)" />
+            <FileSpreadsheet size={16} className="text-(--color-action-text)" />
             <Title variant="body-sm" weight="medium">
               Ficha de pedido do sistema
             </Title>
@@ -42,7 +42,6 @@ export function ImportModeChoice({ onChoose }: Props) {
             appearance="solid"
             color="amber"
             size="sm"
-            noUppercase
             onClick={() => onChoose("sheet")}
           >
             <Button.Icon icon={FileSpreadsheet} />
@@ -54,7 +53,7 @@ export function ImportModeChoice({ onChoose }: Props) {
       <Card.Root inset tone="transparent">
         <Card.Body padding="compact" className="gap-8">
           <div className="flex items-center gap-8">
-            <FileUp size={16} className="text-(--muted)" />
+            <FileUp size={16} className="text-(--color-text-muted)" />
             <Title variant="body-sm" weight="medium">
               Outro arquivo
             </Title>
@@ -68,7 +67,6 @@ export function ImportModeChoice({ onChoose }: Props) {
             appearance="outline"
             color="neutral"
             size="sm"
-            noUppercase
             onClick={() => onChoose("file")}
           >
             <Button.Icon icon={FileUp} />

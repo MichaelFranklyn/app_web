@@ -1,5 +1,7 @@
+"use client";
+
 import { cn } from "@/lib/utils";
-import { ImgHTMLAttributes } from "react";
+import { ImgHTMLAttributes, ReactNode, useState } from "react";
 
 type MediaImageFit = "cover" | "contain" | "logo";
 
@@ -13,6 +15,11 @@ interface MediaImageProps extends Omit<
    * completa solta no conteúdo — altura fixa e largura que a proporção pedir.
    */
   fit?: MediaImageFit;
+  /**
+   * O que mostrar se a imagem não carregar (arquivo apagado, mídia fora do ar).
+   * Sem ele fica o ícone de imagem quebrada do navegador.
+   */
+  fallback?: ReactNode;
 }
 
 const FITS: Record<MediaImageFit, string> = {
@@ -29,13 +36,29 @@ export const MediaImage = ({
   fit = "cover",
   className,
   alt,
+  fallback,
+  src,
+  onError,
   ...rest
-}: MediaImageProps) => (
-  // eslint-disable-next-line @next/next/no-img-element
-  <img
-    decoding="async"
-    alt={alt}
-    {...rest}
-    className={cn(FITS[fit], className)}
-  />
-);
+}: MediaImageProps) => {
+  // Guarda QUAL endereço falhou: trocar a imagem zera o erro sem efeito.
+  const [failedSrc, setFailedSrc] = useState<unknown>(null);
+
+  if (fallback !== undefined && src && failedSrc === src)
+    return <>{fallback}</>;
+
+  return (
+    // eslint-disable-next-line @next/next/no-img-element
+    <img
+      decoding="async"
+      alt={alt}
+      src={src}
+      {...rest}
+      onError={(event) => {
+        setFailedSrc(src);
+        onError?.(event);
+      }}
+      className={cn(FITS[fit], className)}
+    />
+  );
+};

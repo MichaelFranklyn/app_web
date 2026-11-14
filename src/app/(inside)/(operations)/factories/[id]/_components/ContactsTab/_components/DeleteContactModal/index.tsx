@@ -11,6 +11,9 @@ import { DELETE_FACTORY_CONTACT_MUTATION } from "../../gql";
 import { DeleteFactoryContactResponse } from "../../interface";
 
 interface Props {
+  /** Controlado: o gatilho mora fora (o "⋯"/ícone da linha, em RowActions). */
+  open?: boolean;
+  onOpenChange?: (open: boolean) => void;
   contactId: string;
   contactName: string;
   onRemoveOptimistic: (id: string) => void;
@@ -24,6 +27,8 @@ export function DeleteContactModal({
   onRemoveOptimistic,
   onCommit,
   onRollback,
+  open,
+  onOpenChange,
 }: Props) {
   const [deleteContact] = useMutation<DeleteFactoryContactResponse>(
     DELETE_FACTORY_CONTACT_MUTATION
@@ -32,16 +37,20 @@ export function DeleteContactModal({
 
   return (
     <ConfirmModal
+      open={open}
+      onOpenChange={onOpenChange}
       trigger={
-        <Button.Root
-          appearance="ghost"
-          color="red"
-          size="sm"
-          isIconOnly
-          label="Remover contato"
-        >
-          <Button.Icon icon={Trash2} />
-        </Button.Root>
+        open === undefined && (
+          <Button.Root
+            appearance="ghost"
+            color="red"
+            size="sm"
+            isIconOnly
+            label="Remover contato"
+          >
+            <Button.Icon icon={Trash2} />
+          </Button.Root>
+        )
       }
       title="Remover contato"
       description={`Remover ${contactName} dos contatos desta fábrica? Se for o contato usado no envio de pedidos, escolha outro depois.`}

@@ -48,7 +48,11 @@ export function PlanLimitCard({ usage }: { usage: PlanLimitUsage }) {
     <Card.Kpi>
       <Card.Kpi.Label>
         {Icon && (
-          <Icon aria-hidden size={13} className="shrink-0 text-(--muted2)" />
+          <Icon
+            aria-hidden
+            size={13}
+            className="shrink-0 text-(--color-text-disabled)"
+          />
         )}
         <span className="truncate capitalize">{usage.label}</span>
       </Card.Kpi.Label>
@@ -78,7 +82,12 @@ export function PlanLimitCard({ usage }: { usage: PlanLimitUsage }) {
       </Card.Kpi.Value>
 
       {!unlimited && (
-        <Progress.Bar value={percent} color={tone} className="h-[5px]" />
+        <Progress.Bar
+          value={percent}
+          color={tone}
+          className="h-[5px]"
+          label={`${usage.label}: ${usage.used} de ${usage.limit}`}
+        />
       )}
 
       <Card.Kpi.Delta>

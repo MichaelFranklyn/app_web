@@ -23,7 +23,7 @@ const Root = ({ spacing = "sm", className, ...props }: RowListRootProps) => (
 interface RowListItemProps extends React.LiHTMLAttributes<HTMLLIElement> {
   /**
    * Linha inteira clicável: o conteúdo vai dentro de um link que ocupa a
-   * linha e esmaece no hover. Sem `href`, a linha é só leitura.
+   * linha e ganha fundo no hover. Sem `href`, a linha é só leitura.
    */
   href?: string;
 }
@@ -39,7 +39,7 @@ const Item = ({ href, className, children, ...props }: RowListItemProps) => (
     {href ? (
       <NextLink
         href={href}
-        className="block transition-opacity hover:opacity-70"
+        className="-mx-8 block rounded-(--r-sm) px-8 transition-colors hover:bg-(--bg3)"
       >
         {children}
       </NextLink>

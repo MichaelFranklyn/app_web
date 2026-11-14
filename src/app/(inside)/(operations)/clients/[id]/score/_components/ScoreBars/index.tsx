@@ -55,7 +55,11 @@ export function ScoreBars({ score }: { score: ScoreDimensions }) {
               {bar.pct.toFixed(0)}
             </Progress.Value>
           </Progress.Header>
-          <Progress.Bar value={bar.pct} color={bar.color} />
+          <Progress.Bar
+            value={bar.pct}
+            color={bar.color}
+            label={`${bar.label}: ${bar.pct.toFixed(0)}`}
+          />
         </Progress.Root>
       ))}
     </div>

@@ -37,7 +37,6 @@ export function RoutineEditor({ form, disabled, onChange }: Props) {
                   size="sm"
                   appearance={active ? "solid" : "outline"}
                   color={active ? "amber" : "neutral"}
-                  noUppercase
                   disabled={disabled}
                   onClick={() =>
                     onChange({ workDays: toggleWorkDay(form.workDays, value) })

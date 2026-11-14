@@ -8,6 +8,7 @@ import { Grid } from "@/components/Grid";
 import { Loading } from "@/components/Loading";
 import { PageContent } from "@/components/PageContent";
 import { PanelHeader } from "@/components/PanelHeader";
+import { PAGE_HEADING } from "@/utils/modules";
 import { Progress } from "@/components/Progress";
 import { QueryError } from "@/components/QueryError";
 import { Title } from "@/components/Title";
@@ -166,7 +167,9 @@ export default function SellerGoalsContent({
         <PanelHeader.Root>
           <PanelHeader.Top>
             <PanelHeader.Left>
-              <PanelHeader.Title>{sellerName}</PanelHeader.Title>
+              <PanelHeader.Heading {...PAGE_HEADING.goals}>
+                {sellerName}
+              </PanelHeader.Heading>
               <PanelHeader.Description>
                 Metas de {monthLabel(month)}, fábrica por fábrica. A cota é
                 combinada em cada fábrica — é nela que se ajusta.
@@ -190,6 +193,7 @@ export default function SellerGoalsContent({
                         <Progress.Bar
                           value={Math.min(overall, 100)}
                           color={percentTone(overall)}
+                          label={`${sellerName}: ${overall.toFixed(0)}% da meta do mês`}
                         />
                       </>
                     )}
@@ -245,7 +249,6 @@ export default function SellerGoalsContent({
                   appearance={isCurrentMonth ? "tinted" : "ghost"}
                   color={isCurrentMonth ? "amber" : "neutral"}
                   size="sm"
-                  noUppercase
                   onClick={() => goToMonth(yearMonthFromIso(getTodayIso()))}
                 >
                   <Button.Icon icon={CalendarDays} />

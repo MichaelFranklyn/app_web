@@ -3,6 +3,7 @@
 import { Button } from "@/components/Button";
 import { Input, SelectOption } from "@/components/Input";
 import { PanelHeader } from "@/components/PanelHeader";
+import { PAGE_HEADING } from "@/utils/modules";
 import { Title } from "@/components/Title";
 import { ToggleGroup } from "@/components/ToggleGroup";
 import { ChevronLeft, ChevronRight } from "lucide-react";
@@ -72,7 +73,9 @@ export function AgendaToolbar({
       <PanelHeader.Root>
         <PanelHeader.Top>
           <PanelHeader.Left>
-            <PanelHeader.Title>Agenda</PanelHeader.Title>
+            <PanelHeader.Heading {...PAGE_HEADING.agenda}>
+              Agenda
+            </PanelHeader.Heading>
             <PanelHeader.Description>
               As visitas e as ligações de cada dia — inclusive as combinadas com
               o cliente.
@@ -85,12 +88,14 @@ export function AgendaToolbar({
         className="flex flex-wrap items-center gap-8"
         data-tour="routines-week-nav"
       >
+        {/* Com o hoje em tela, o botão ACENDE em vez de apagar: desabilitado
+            ele parecia quebrado ("por que não clica?"), e o aceso responde a
+            pergunta de quem procura — "estou no hoje". */}
         <Button.Root
-          appearance="outline"
-          color="neutral"
+          appearance={isShowingToday ? "tinted" : "outline"}
+          color={isShowingToday ? "amber" : "neutral"}
           size="sm"
-          noUppercase
-          disabled={isShowingToday}
+          aria-pressed={isShowingToday}
           onClick={onToday}
         >
           <Button.Title>Hoje</Button.Title>
@@ -148,10 +153,20 @@ export function AgendaToolbar({
             options={VIEW_OPTIONS}
             value={view}
             onChange={onView}
+            fullWidthBelowDesktop
           />
           {isSellerAgenda && (
-            <div data-tour="routines-header-actions">
-              <PlanWeekLink weekStart={weekStart} sellerId={sellerId} />
+            // Abaixo do desktop, "Montar semana" fica com a linha de baixo
+            // inteira (ao lado das visões sobrava meia linha).
+            <div
+              className="max-desktop:w-full"
+              data-tour="routines-header-actions"
+            >
+              <PlanWeekLink
+                weekStart={weekStart}
+                sellerId={sellerId}
+                className="max-desktop:w-full"
+              />
             </div>
           )}
         </div>

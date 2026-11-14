@@ -25,7 +25,6 @@ export function PlanWeekLink({ weekStart, sellerId, className }: Props) {
       appearance="solid"
       color="amber"
       size="sm"
-      noUppercase
       className={className}
     >
       <Button.Icon icon={ListChecks} />

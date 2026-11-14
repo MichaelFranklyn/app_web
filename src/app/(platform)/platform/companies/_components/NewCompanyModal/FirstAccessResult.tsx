@@ -60,7 +60,7 @@ export function FirstAccessResult({ data }: Props) {
   return (
     <div className="flex flex-col gap-20">
       <div className="flex items-center gap-8">
-        <CheckCircle2 size={20} className="text-(--green)" />
+        <CheckCircle2 size={20} className="text-(--color-status-success)" />
         <Title variant="body" weight="semibold" color="green">
           {company.nomeFantasia || company.razaoSocial} está no ar
         </Title>
@@ -77,7 +77,7 @@ export function FirstAccessResult({ data }: Props) {
       {firstAccessLink ? (
         <div className="flex flex-col gap-8">
           <div className="flex items-center gap-8">
-            <KeyRound size={16} className="text-(--muted)" />
+            <KeyRound size={16} className="text-(--color-text-muted)" />
             <Title variant="caption" weight="semibold">
               Link de primeiro acesso
             </Title>
@@ -96,7 +96,6 @@ export function FirstAccessResult({ data }: Props) {
               appearance="outline"
               color="neutral"
               size="sm"
-              noUppercase
               onClick={copyLink}
             >
               <Button.Icon icon={Copy} />
@@ -107,7 +106,7 @@ export function FirstAccessResult({ data }: Props) {
       ) : (
         <div className="flex flex-col gap-8">
           <div className="flex items-center gap-8">
-            <KeyRound size={16} className="text-(--muted)" />
+            <KeyRound size={16} className="text-(--color-text-muted)" />
             <Title variant="caption" weight="semibold">
               Senha inicial definida
             </Title>

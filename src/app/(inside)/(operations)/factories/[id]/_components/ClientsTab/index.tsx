@@ -2,10 +2,7 @@
 
 import { Avatar } from "@/components/Avatar";
 import { Badge } from "@/components/Badges";
-import {
-  NegativeLinkAction,
-  NegativeTag,
-} from "@/components/ClientFactoryNegative";
+import { NegativeTag } from "@/components/ClientFactoryNegative";
 import { EmptyState } from "@/components/EmptyState";
 import { Filters } from "@/components/Filters";
 import { QueryError } from "@/components/QueryError";
@@ -17,8 +14,7 @@ import { Pagination } from "@/components/Pagination";
 import { useOptimisticList } from "@/hooks/useOptimisticList";
 import { Users } from "lucide-react";
 import { FACTORY_CLIENT_COLUMN_HELP } from "../../../help";
-import { DeleteClientLinkModal } from "./DeleteClientLinkModal";
-import { EditClientLinkModal } from "./EditClientLinkModal";
+import { ClientLinkRowActions } from "./ClientLinkRowActions";
 import { FactoryClientLink } from "./gql";
 import { LinkClientModal } from "./LinkClientModal";
 import { useFactoryClientsTable } from "./useFactoryClientsTable";
@@ -57,7 +53,7 @@ export function ClientsTab({
             label="O que é vincular um cliente à fábrica?"
             content={
               <div className="flex flex-col gap-2">
-                <Title variant="label" color="amber">
+                <Title variant="label" weight="semibold">
                   Cliente da fábrica
                 </Title>
                 <Title variant="body-sm">
@@ -75,6 +71,8 @@ export function ClientsTab({
         </Table.CardHead.Title>
         <Table.CardHead.Actions data-tour="factory-clients-actions">
           <Filters
+            resultCount={table.totalItems}
+            resultLoading={loading}
             fields={table.filterFields}
             values={table.inputValues}
             onChange={table.setFilters}
@@ -87,7 +85,8 @@ export function ClientsTab({
         </Table.CardHead.Actions>
       </Table.CardHead>
 
-      <Table.Table>
+      {/* Abaixo do desktop cada linha vira cartão, em vez de a tabela rolar de lado. */}
+      <Table.Table cards>
         <Table.Header>
           <Table.Row>
             {/* Só duas colunas ordenam, e quem ordena é o banco. Vendedor e
@@ -164,7 +163,7 @@ export function ClientsTab({
               const name = clientName(link.client);
               return (
                 <Table.Row key={link.id}>
-                  <Table.Cell flex>
+                  <Table.Cell card="title" flex>
                     <Avatar
                       size="sm"
                       color="neutral"
@@ -172,10 +171,11 @@ export function ClientsTab({
                     />
                     <Table.CellText variant="strong">{name}</Table.CellText>
                   </Table.Cell>
-                  <Table.Cell variant="dim">
+                  <Table.Cell label="Vendedor" variant="dim">
                     {link.seller?.name ?? "—"}
                   </Table.Cell>
-                  <Table.Cell>
+                  {/* No cartão o nível vai junto da prioridade (célula abaixo). */}
+                  <Table.Cell label="Nível de preço" card="hidden">
                     {link.priceTier ? (
                       <Badge.Root color="subtle" appearance="tinted">
                         <Badge.Text>{link.priceTier.name}</Badge.Text>
@@ -184,15 +184,31 @@ export function ClientsTab({
                       <Table.CellText variant="dim">—</Table.CellText>
                     )}
                   </Table.Cell>
-                  <Table.Cell>
+                  {/* No cartão: nível + prioridade na linha das ações, sem
+                      rótulo — as tarjas se explicam sozinhas. O nível só
+                      aparece aqui abaixo do desktop (lá ele tem coluna). */}
+                  <Table.Cell card="aside">
+                    {link.priceTier && (
+                      <Badge.Root
+                        color="subtle"
+                        appearance="tinted"
+                        className="desktop:hidden"
+                      >
+                        <Badge.Text>{link.priceTier.name}</Badge.Text>
+                      </Badge.Root>
+                    )}
                     <Badge.Root color={priority.color} appearance="tinted">
                       <Badge.Text>{priority.label}</Badge.Text>
                     </Badge.Root>
                   </Table.Cell>
-                  <Table.Cell variant="dim" className="whitespace-nowrap">
+                  <Table.Cell
+                    label="Faturamento"
+                    variant="dim"
+                    className="whitespace-nowrap"
+                  >
                     {formatDate(link.lastInvoiceDate)}
                   </Table.Cell>
-                  <Table.Cell>
+                  <Table.Cell card="status">
                     {/* Só a negativação aparece: "Ativo" em toda linha seria uma
                         coluna inteira repetindo o que já é o normal. */}
                     <NegativeTag
@@ -202,34 +218,34 @@ export function ClientsTab({
                       activeLabel={null}
                     />
                   </Table.Cell>
-                  <Table.Cell>
-                    <div className="flex items-center justify-end gap-4">
-                      <NegativeLinkAction
-                        linkId={link.id}
-                        factoryName={factoryLabel}
-                        clientName={name}
-                        isNegative={link.isNegative}
-                        negativeSince={link.negativeSince}
-                        onSaved={(state) => {
+                  <Table.Cell card="actions">
+                    <ClientLinkRowActions
+                      negative={{
+                        linkId: link.id,
+                        factoryName: factoryLabel,
+                        clientName: name,
+                        isNegative: link.isNegative,
+                        negativeSince: link.negativeSince,
+                        onSaved: (state) => {
                           optimistic.updateOptimistic(link.id, state);
                           optimistic.commit();
-                        }}
-                      />
-                      <EditClientLinkModal
-                        link={link}
-                        companyFactoryId={companyFactoryId}
-                        onUpdateOptimistic={optimistic.updateOptimistic}
-                        onCommit={optimistic.commit}
-                        onRollback={optimistic.rollback}
-                      />
-                      <DeleteClientLinkModal
-                        linkId={link.id}
-                        clientName={name}
-                        onRemoveOptimistic={optimistic.removeOptimistic}
-                        onCommit={optimistic.commit}
-                        onRollback={optimistic.rollback}
-                      />
-                    </div>
+                        },
+                      }}
+                      edit={{
+                        link,
+                        companyFactoryId,
+                        onUpdateOptimistic: optimistic.updateOptimistic,
+                        onCommit: optimistic.commit,
+                        onRollback: optimistic.rollback,
+                      }}
+                      remove={{
+                        linkId: link.id,
+                        clientName: name,
+                        onRemoveOptimistic: optimistic.removeOptimistic,
+                        onCommit: optimistic.commit,
+                        onRollback: optimistic.rollback,
+                      }}
+                    />
                   </Table.Cell>
                 </Table.Row>
               );

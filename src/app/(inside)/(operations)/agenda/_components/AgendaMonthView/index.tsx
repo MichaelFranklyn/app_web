@@ -118,7 +118,6 @@ export function AgendaMonthView({
                     appearance="ghost"
                     color="neutral"
                     size="sm"
-                    noUppercase
                     label={
                       isExpanded
                         ? "Mostrar menos"
@@ -142,6 +141,15 @@ export function AgendaMonthView({
                 </Title>
               )}
             </Calendar.CellBody>
+            {/* No celular a célula é pequena demais para dois alvos (número
+                abre o dia, vazio agenda) e os compromissos nem aparecem: o
+                toque em qualquer ponto abre o dia, onde se vê e se agenda.
+                Vem por último para ficar por cima de tudo (14/11/2026). */}
+            <Calendar.CellHitArea
+              label="Abrir este dia"
+              onClick={() => onOpenDay(date)}
+              className="tablet:hidden"
+            />
           </Calendar.Cell>
         );
       })}

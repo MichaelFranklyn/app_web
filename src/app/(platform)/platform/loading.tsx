@@ -1,6 +1,8 @@
 import { Grid } from "@/components/Grid";
 import { Loading } from "@/components/Loading";
 import { PageContent } from "@/components/PageContent";
+import { PanelHeader } from "@/components/PanelHeader";
+import { PAGE_HEADING } from "@/utils/modules";
 
 /**
  * A `page.tsx` busca no servidor antes de renderizar; sem este limite a rota
@@ -10,11 +12,20 @@ import { PageContent } from "@/components/PageContent";
 export default function LoadingPlatformHome() {
   return (
     <PageContent>
-      <div className="flex flex-col gap-[6px]">
-        <Loading.Skeleton className="h-[12px] w-[80px]" />
-        <Loading.Skeleton className="h-[26px] w-[220px]" />
-        <Loading.Skeleton className="h-[14px] w-[340px]" />
-      </div>
+      {/* Título, ícone e descrição são fixos: aparecem de verdade, como no
+          content.tsx — antes eram três barras sem o ícone (14/11/2026). */}
+      <PanelHeader.Root>
+        <PanelHeader.Top>
+          <PanelHeader.Left>
+            <PanelHeader.Heading {...PAGE_HEADING.platformOverview}>
+              Visão geral
+            </PanelHeader.Heading>
+            <PanelHeader.Description>
+              Números de toda a plataforma nos últimos 30 dias.
+            </PanelHeader.Description>
+          </PanelHeader.Left>
+        </PanelHeader.Top>
+      </PanelHeader.Root>
 
       {/* A ordem espelha a da página: fila de atenção, KPIs, operação,
           crescimento, saúde da carteira e adoção. Um esqueleto com outra

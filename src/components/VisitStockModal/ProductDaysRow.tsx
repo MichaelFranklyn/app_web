@@ -75,10 +75,10 @@ export function ProductDaysRow({ product, days, onChange }: Props) {
                 onChange(product.id, shortcut.days);
               }}
               className={cn(
-                "rounded-(--r-sm) border px-8 py-4 text-[13px] transition-colors",
+                "text-body-sm rounded-(--r-sm) border px-8 py-4 transition-colors",
                 active
                   ? "border-(--amber) bg-(--amber) text-black"
-                  : "border-(--border) text-(--muted) hover:border-(--border2)"
+                  : "border-(--border) text-(--color-text-muted) hover:border-(--border2)"
               )}
             >
               {shortcut.label}
@@ -90,10 +90,10 @@ export function ProductDaysRow({ product, days, onChange }: Props) {
           type="button"
           onClick={() => setShowCustom((v) => !v)}
           className={cn(
-            "rounded-(--r-sm) border px-8 py-4 text-[13px] transition-colors",
+            "text-body-sm rounded-(--r-sm) border px-8 py-4 transition-colors",
             showCustom
-              ? "border-(--amber) text-(--amber)"
-              : "border-(--border) text-(--muted) hover:border-(--border2)"
+              ? "border-(--amber) text-(--color-action-text)"
+              : "border-(--border) text-(--color-text-muted) hover:border-(--border2)"
           )}
         >
           Outro
@@ -112,7 +112,7 @@ export function ProductDaysRow({ product, days, onChange }: Props) {
               onChange(product.id, raw === "" ? null : Number(raw));
             }}
             placeholder="dias"
-            className="w-[80px] rounded-(--r-sm) border border-(--border) bg-(--bg2) px-8 py-4 text-[13px] text-(--text)"
+            className="text-body-sm w-[80px] rounded-(--r-sm) border border-(--border) bg-(--bg2) px-8 py-4 text-(--color-text)"
           />
         )}
       </div>

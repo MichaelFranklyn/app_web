@@ -5,8 +5,9 @@ import { InputSearch } from "@/components/Input";
 import { Loading } from "@/components/Loading";
 import { PageContent } from "@/components/PageContent";
 import { PanelHeader } from "@/components/PanelHeader";
+import { PAGE_HEADING } from "@/utils/modules";
 import { QueryError } from "@/components/QueryError";
-import { StatCard } from "@/components/StatCard";
+import { Card } from "@/components/Card";
 import { useSeedQuery } from "@/hooks/useSeedQuery";
 import { useQuery } from "@apollo/client/react";
 import { FormEvent, useState } from "react";
@@ -53,8 +54,9 @@ export default function PlatformEmailsContent({ seed }: EmailsContentProps) {
       <PanelHeader.Root>
         <PanelHeader.Top>
           <PanelHeader.Left>
-            <PanelHeader.Eyebrow color="purple">Console</PanelHeader.Eyebrow>
-            <PanelHeader.Title>Emails</PanelHeader.Title>
+            <PanelHeader.Heading {...PAGE_HEADING.platformEmails}>
+              Emails
+            </PanelHeader.Heading>
             <PanelHeader.Description>
               O que saiu, o que chegou e quem está bloqueado. Busque pelo
               endereço de quem diz que não recebeu.
@@ -97,16 +99,16 @@ export default function PlatformEmailsContent({ seed }: EmailsContentProps) {
       ) : report ? (
         <>
           <div className="tablet:grid-cols-2 grid grid-cols-1 gap-12">
-            <StatCard
-              label="Enviados hoje"
-              value={`${report.sentToday} de ${report.dailyQuota}`}
-              tone={
-                quotaTone(report.sentToday, report.dailyQuota) === "atencao"
-                  ? "red"
-                  : "default"
-              }
-              hint="Contra a cota diária da Brevo. Acima de 80% o sistema avisa no log; ao estourar, a Brevo para de aceitar até a meia-noite."
-            />
+            <Card.Kpi title="Contra a cota diária da Brevo. Acima de 80% o sistema avisa no log; ao estourar, a Brevo para de aceitar até a meia-noite.">
+              <Card.Kpi.Label>Enviados hoje</Card.Kpi.Label>
+              <Card.Kpi.Value
+                status={
+                  quotaTone(report.sentToday, report.dailyQuota) === "atencao"
+                    ? "urgente"
+                    : "neutral"
+                }
+              >{`${report.sentToday} de ${report.dailyQuota}`}</Card.Kpi.Value>
+            </Card.Kpi>
           </div>
 
           {report.suppression && (

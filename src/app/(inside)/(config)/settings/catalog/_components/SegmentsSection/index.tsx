@@ -14,6 +14,7 @@ import { useMemo } from "react";
 
 import { CLIENT_SEGMENTS_QUERY } from "../../gql";
 import { AddSegmentModal } from "./AddSegmentModal";
+import { CatalogRowActions } from "../CatalogRowActions";
 import { DeleteSegmentModal } from "./DeleteSegmentModal";
 import { EditSegmentModal } from "./EditSegmentModal";
 import { SegmentNode } from "./interface";
@@ -46,13 +47,11 @@ export function SegmentsSection() {
   return (
     <Table.Root>
       <CatalogSectionHead
-        count={segments.length}
-        loading={loading && segments.length === 0}
-        noun={{ one: "segmento", many: "segmentos" }}
+        title="Segmentos cadastrados"
         helpLabel="O que é um segmento de cliente?"
         helpContent={
           <div className="flex flex-col gap-2">
-            <Title variant="label" color="amber">
+            <Title variant="label" weight="semibold">
               Segmento
             </Title>
             <Title variant="body-sm">
@@ -72,10 +71,11 @@ export function SegmentsSection() {
         />
       </CatalogSectionHead>
 
-      <Table.Table maxHeight={600}>
+      {/* Abaixo do desktop cada linha vira cartão, com editar/excluir no "⋯". */}
+      <Table.Table maxHeight={600} cards>
         <Table.Header>
           <Table.Row>
-            <Table.Head title={SEGMENT_COLUMN_HELP.name}>Segmento</Table.Head>
+            <Table.Head title={SEGMENT_COLUMN_HELP.name}>Nome</Table.Head>
             <Table.Head
               className="text-right"
               title={SEGMENT_COLUMN_HELP.actions}
@@ -85,7 +85,7 @@ export function SegmentsSection() {
           </Table.Row>
         </Table.Header>
         <Table.Body>
-          {loading ? (
+          {loading && segments.length === 0 ? (
             <Table.Skeleton columns={2} rows={3} />
           ) : error && segments.length === 0 ? (
             <Table.Row>
@@ -113,25 +113,36 @@ export function SegmentsSection() {
           ) : (
             segments.map((segment) => (
               <Table.Row key={segment.id}>
-                <Table.Cell variant="strong">{segment.name}</Table.Cell>
-                <Table.Cell>
-                  <div className="flex items-center justify-end gap-4">
-                    <EditSegmentModal
-                      segment={segment}
-                      onUpdateOptimistic={optimistic.updateOptimistic}
-                      onCommit={optimistic.commit}
-                      onRollback={optimistic.rollback}
-                      onDone={onChanged}
-                    />
-                    <DeleteSegmentModal
-                      segmentId={segment.id}
-                      segmentName={segment.name}
-                      onRemoveOptimistic={optimistic.removeOptimistic}
-                      onCommit={optimistic.commit}
-                      onRollback={optimistic.rollback}
-                      onDone={onChanged}
-                    />
-                  </div>
+                <Table.Cell card="title" variant="strong">
+                  {segment.name}
+                </Table.Cell>
+                <Table.Cell card="actions">
+                  <CatalogRowActions
+                    label={`Ações do segmento ${segment.name}`}
+                    editLabel="Editar segmento"
+                    deleteLabel="Remover segmento"
+                    renderEdit={(control) => (
+                      <EditSegmentModal
+                        {...control}
+                        segment={segment}
+                        onUpdateOptimistic={optimistic.updateOptimistic}
+                        onCommit={optimistic.commit}
+                        onRollback={optimistic.rollback}
+                        onDone={onChanged}
+                      />
+                    )}
+                    renderDelete={(control) => (
+                      <DeleteSegmentModal
+                        {...control}
+                        segmentId={segment.id}
+                        segmentName={segment.name}
+                        onRemoveOptimistic={optimistic.removeOptimistic}
+                        onCommit={optimistic.commit}
+                        onRollback={optimistic.rollback}
+                        onDone={onChanged}
+                      />
+                    )}
+                  />
                 </Table.Cell>
               </Table.Row>
             ))

@@ -174,7 +174,6 @@ export function ApplyCommissionRateModal() {
               appearance="ghost"
               color="neutral"
               size="md"
-              noUppercase
             >
               <Button.Title>
                 {nothingToDo ? "Fechar" : "Manter como está"}
@@ -187,7 +186,6 @@ export function ApplyCommissionRateModal() {
               appearance="solid"
               color="amber"
               size="md"
-              noUppercase
               loading={isLoading}
               disabled={loading || !change}
               onClick={handleApply}

@@ -355,7 +355,6 @@ export function PromotionModal({ priceList, onChanged }: Props) {
               appearance="ghost"
               color="red"
               size="md"
-              noUppercase
               disabled={isLoading}
               onClick={handleClear}
             >
@@ -370,7 +369,6 @@ export function PromotionModal({ priceList, onChanged }: Props) {
               appearance="ghost"
               color="neutral"
               size="md"
-              noUppercase
               disabled={isLoading}
             >
               <Button.Title>Cancelar</Button.Title>
@@ -381,7 +379,6 @@ export function PromotionModal({ priceList, onChanged }: Props) {
             appearance="solid"
             color="amber"
             size="md"
-            noUppercase
             loading={isLoading}
             disabled={loadingItems}
             onClick={handleSave}

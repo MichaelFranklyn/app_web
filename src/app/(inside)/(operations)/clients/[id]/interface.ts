@@ -147,6 +147,7 @@ export interface SellerClientFactoriesQueryResponse {
 
 export interface ClientOrder {
   id: string;
+  number: number;
   orderDate: string;
   totalAmount: string;
   status: string;

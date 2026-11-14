@@ -88,7 +88,7 @@ export function DeliverOrdersModal({ orderIds, onDone }: Props) {
   return (
     <Modal.Root open={open} onOpenChange={setOpen}>
       <Modal.Trigger asChild>
-        <Button.Root appearance="solid" color="amber" size="md" noUppercase>
+        <Button.Root appearance="solid" color="amber" size="md">
           <Button.Icon icon={PackageCheck} />
           <Button.Title>Confirmar entrega</Button.Title>
         </Button.Root>
@@ -119,7 +119,6 @@ export function DeliverOrdersModal({ orderIds, onDone }: Props) {
               appearance="ghost"
               color="neutral"
               size="md"
-              noUppercase
               disabled={isLoading}
             >
               <Button.Title>Cancelar</Button.Title>
@@ -130,7 +129,6 @@ export function DeliverOrdersModal({ orderIds, onDone }: Props) {
             appearance="solid"
             color="amber"
             size="md"
-            noUppercase
             loading={isLoading}
             onClick={() => formRef.current?.submitForm()}
           >

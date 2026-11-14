@@ -19,6 +19,11 @@ interface ToggleGroupProps<T extends string | number> {
   size?: ButtonSize;
   /** As opções dividem a largura toda (escolha dentro de modal). */
   fullWidth?: boolean;
+  /**
+   * Só abaixo do desktop: o grupo toma a linha e as opções a dividem — solto
+   * numa barra, ele deixava sobra vazia ao lado. No desktop, largura natural.
+   */
+  fullWidthBelowDesktop?: boolean;
   disabled?: boolean;
   className?: string;
   "aria-label"?: string;
@@ -37,6 +42,7 @@ export function ToggleGroup<T extends string | number>({
   onChange,
   size = "sm",
   fullWidth = false,
+  fullWidthBelowDesktop = false,
   disabled = false,
   className,
   "aria-label": ariaLabel,
@@ -47,7 +53,11 @@ export function ToggleGroup<T extends string | number>({
       role="group"
       aria-label={ariaLabel}
       data-tour={dataTour}
-      className={cn("flex flex-wrap items-center gap-4", className)}
+      className={cn(
+        "flex flex-wrap items-center gap-4",
+        fullWidthBelowDesktop && "max-desktop:w-full",
+        className
+      )}
     >
       {options.map((option) => {
         const active = value === option.value;
@@ -58,11 +68,13 @@ export function ToggleGroup<T extends string | number>({
             appearance={active ? "tinted" : "outline"}
             color={active ? "amber" : "neutral"}
             size={size}
-            noUppercase
             disabled={disabled}
             aria-pressed={active}
             label={option.ariaLabel}
-            className={fullWidth ? "flex-1" : undefined}
+            className={cn(
+              fullWidth && "flex-1",
+              fullWidthBelowDesktop && "max-desktop:flex-1"
+            )}
             onClick={() => onChange(option.value)}
           >
             {option.icon ? <Button.Icon icon={option.icon} /> : null}

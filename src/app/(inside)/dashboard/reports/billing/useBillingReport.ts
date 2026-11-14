@@ -91,13 +91,13 @@ export const useBillingReport = (filters: ReportFilters) => {
         label: "A vencer",
         value: formatMoney(report.dueAmount),
         hint: "ainda dentro do prazo",
-        status: "atencao",
+        status: "neutral",
       },
       {
         label: "Pago",
         value: formatMoney(report.paidAmount),
         hint: `comissão do período: ${formatMoney(report.commissionAmount)}`,
-        status: "ok",
+        status: "neutral",
       },
     ];
   }, [report]);

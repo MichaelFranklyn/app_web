@@ -6,6 +6,7 @@ import { Loading } from "@/components/Loading";
 import { PageContent } from "@/components/PageContent";
 import { Pagination } from "@/components/Pagination";
 import { PanelHeader } from "@/components/PanelHeader";
+import { PAGE_HEADING } from "@/utils/modules";
 import { QueryError } from "@/components/QueryError";
 import { Table } from "@/components/Table";
 import { Title } from "@/components/Title";
@@ -50,8 +51,9 @@ export default function PlatformUsersContent({
       <PanelHeader.Root>
         <PanelHeader.Top>
           <PanelHeader.Left>
-            <PanelHeader.Eyebrow color="purple">Console</PanelHeader.Eyebrow>
-            <PanelHeader.Title>Pessoas</PanelHeader.Title>
+            <PanelHeader.Heading {...PAGE_HEADING.platformUsers}>
+              Pessoas
+            </PanelHeader.Heading>
             <PanelHeader.Description>
               Todas as contas da plataforma. Abra uma para liberar acesso,
               entrar como ela e ver o que fez.
@@ -68,6 +70,8 @@ export default function PlatformUsersContent({
             <Table.CardHead.Title>Contas</Table.CardHead.Title>
             <Table.CardHead.Actions>
               <Filters
+                resultCount={tableData.totalItems}
+                resultLoading={tableData.loading}
                 fields={[
                   {
                     type: "text",
@@ -90,7 +94,7 @@ export default function PlatformUsersContent({
             </Table.CardHead.Actions>
           </Table.CardHead>
 
-          <Table.Table>
+          <Table.Table cards>
             <Table.Header>
               <Table.Row>
                 <Table.Head>Pessoa</Table.Head>
@@ -129,7 +133,7 @@ export default function PlatformUsersContent({
                   // achar alguém pelo e-mail, e o passo seguinte é agir sobre
                   // essa conta. A empresa fica a um clique, na ficha.
                   <Table.Row key={user.id} href={`/platform/users/${user.id}`}>
-                    <Table.Cell className="max-w-[260px]">
+                    <Table.Cell card="title" className="max-w-[260px]">
                       <div className="flex min-w-0 flex-col gap-[2px]">
                         <Title
                           variant="body-sm"
@@ -148,16 +152,28 @@ export default function PlatformUsersContent({
                       </div>
                     </Table.Cell>
 
-                    <Table.Cell variant="dim" className="max-w-[220px]">
+                    <Table.Cell
+                      label="Empresa"
+                      variant="dim"
+                      className="max-w-[220px]"
+                    >
                       <span className="block truncate">{user.companyName}</span>
                     </Table.Cell>
 
-                    <Table.Cell variant="dim" className="whitespace-nowrap">
+                    <Table.Cell
+                      label="Papel"
+                      variant="dim"
+                      className="whitespace-nowrap"
+                    >
                       {ROLE_LABEL[user.role] ?? user.role}
                       {!user.isActive && " · desativada"}
                     </Table.Cell>
 
-                    <Table.Cell variant="dim" className="whitespace-nowrap">
+                    <Table.Cell
+                      label="Último acesso"
+                      variant="dim"
+                      className="whitespace-nowrap"
+                    >
                       {activityLabel(daysSinceLogin(user.lastLoginAt))}
                     </Table.Cell>
                   </Table.Row>

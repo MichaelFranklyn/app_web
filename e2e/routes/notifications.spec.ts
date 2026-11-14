@@ -5,7 +5,7 @@ import { emptyDashboardQueries, mockGraphql } from "../support/graphql";
  * O sino da topbar, presente em toda página interna.
  *
  * Ele guarda o que já aconteceu; o que ainda precisa ser feito mora em
- * /pending, e é para lá que o rodapé do sino aponta.
+ * /priorities, e é para lá que o rodapé do sino aponta.
  */
 const notification = (over: Record<string, unknown> = {}) => ({
   id: "notif-1",
@@ -77,9 +77,9 @@ test("notificações: o sino aponta para as pendências", async ({ page }) => {
   // A saída do sino é a AÇÃO: o histórico fica ali mesmo, a pendência tem tela.
   await page.getByRole("link", { name: "Ver o que está pendente" }).click();
 
-  await expect(page).toHaveURL(/\/pending$/);
+  await expect(page).toHaveURL(/\/priorities$/);
   await expect(
-    page.getByRole("heading", { name: /Pendências/, level: 1 })
+    page.getByRole("heading", { name: /Prioridades/, level: 1 })
   ).toBeVisible();
 });
 

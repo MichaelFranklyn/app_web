@@ -5,6 +5,7 @@ import { Modal } from "@/components/Modal";
 import { Title } from "@/components/Title";
 import { ToggleGroup } from "@/components/ToggleGroup";
 import { Mail, MessageCircle, Send } from "lucide-react";
+import { useControlledOpen } from "@/hooks/useControlledOpen";
 import { useState } from "react";
 import { OrderDetail } from "../../interface";
 import { EmailStep } from "./EmailStep";
@@ -16,6 +17,9 @@ import { WhatsAppStep } from "./WhatsAppStep";
 interface Props {
   order: OrderDetail;
   onSuccess: () => void;
+  /** Aberto de fora (menu "Mais ações"): sem `open`, desenha o próprio botão. */
+  open?: boolean;
+  onOpenChange?: (open: boolean) => void;
 }
 
 const CHANNELS = [
@@ -30,8 +34,16 @@ const CHANNELS = [
  * email. A pessoa troca quando quiser. O "como" de cada porta está no
  * `useSendToFactory`; aqui fica só a escolha.
  */
-export function SendToFactoryModal({ order, onSuccess }: Props) {
-  const [open, setOpen] = useState(false);
+export function SendToFactoryModal({
+  order,
+  onSuccess,
+  open: openProp,
+  onOpenChange,
+}: Props) {
+  const { open, setOpen, isControlled } = useControlledOpen(
+    openProp,
+    onOpenChange
+  );
   const [note, setNote] = useState("");
   const [picked, setPicked] = useState<SendChannel | null>(null);
   const [contactId, setContactId] = useState<string | null>(null);
@@ -73,18 +85,20 @@ export function SendToFactoryModal({ order, onSuccess }: Props) {
 
   return (
     <Modal.Root open={open} onOpenChange={handleOpenChange}>
-      <Modal.Trigger asChild>
-        <Button.Root
-          appearance={isResend ? "outline" : "solid"}
-          color={isResend ? "neutral" : "amber"}
-          size="sm"
-        >
-          <Button.Icon icon={Send} />
-          <Button.Title>
-            {isResend ? "Reenviar à fábrica" : "Enviar à fábrica"}
-          </Button.Title>
-        </Button.Root>
-      </Modal.Trigger>
+      {!isControlled && (
+        <Modal.Trigger asChild>
+          <Button.Root
+            appearance={isResend ? "outline" : "solid"}
+            color={isResend ? "neutral" : "amber"}
+            size="sm"
+          >
+            <Button.Icon icon={Send} />
+            <Button.Title>
+              {isResend ? "Reenviar à fábrica" : "Enviar à fábrica"}
+            </Button.Title>
+          </Button.Root>
+        </Modal.Trigger>
+      )}
 
       <Modal.Content size="md">
         <Modal.Header
@@ -139,7 +153,6 @@ export function SendToFactoryModal({ order, onSuccess }: Props) {
               appearance="ghost"
               color="neutral"
               size="md"
-              noUppercase
               disabled={isLoading}
             >
               <Button.Title>Cancelar</Button.Title>
@@ -150,7 +163,6 @@ export function SendToFactoryModal({ order, onSuccess }: Props) {
             appearance="solid"
             color="amber"
             size="md"
-            noUppercase
             loading={isLoading}
             disabled={!canSend || loading || isLoading}
             onClick={handleSend}

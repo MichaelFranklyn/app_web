@@ -67,8 +67,11 @@ export function DefaultImpactNotice({ impact, month }: Props) {
               </Title>
               {estoura && (
                 <span className="inline-flex items-center gap-6">
-                  <AlertTriangle size={14} className="text-(--amber)" />
-                  <Title variant="caption" color="amber">
+                  <AlertTriangle
+                    size={14}
+                    className="text-(--color-status-warning)"
+                  />
+                  <Title variant="caption" color="warning">
                     {seller.share >= 1
                       ? "Passa da comissão inteira do mês dele."
                       : "Come mais da metade do mês dele."}{" "}

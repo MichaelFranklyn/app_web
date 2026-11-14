@@ -1,23 +1,15 @@
 "use client";
 
-import { canDeleteOrder } from "@/app/(inside)/_shared/orderStatus";
 import { isQuoteStatus } from "@/app/(inside)/_shared/orderStatus";
 import { Badge } from "@/components/Badges";
 import { Breadcrumb } from "@/components/Breadcrumb";
 import { PanelHeader } from "@/components/PanelHeader";
+import { PAGE_HEADING } from "@/utils/modules";
 import { formatDateDMY } from "@/utils/format/masks";
 import { clientName, factoryName } from "@/utils/company";
+import { formatOrderNumber, orderShortCode } from "@/utils/orderNumber";
 import { OrderDetail } from "../../interface";
-import { EditInvoiceModal } from "../EditInvoiceModal";
-import { InvoiceOrderModal } from "../InvoiceOrderModal";
-import { MarkDeliveredModal } from "../MarkDeliveredModal";
-import { SendToFactoryModal } from "../SendToFactoryModal";
-import { CancelOrderModal } from "./CancelOrderModal";
-import { ConvertToOrderModal } from "./ConvertToOrderModal";
-import { DeleteOrderModal } from "./DeleteOrderModal";
-import { OrderExportMenu } from "./OrderExportMenu";
-import { ScheduleReturnButton } from "./ScheduleReturnButton";
-import { UpdateOrderModal } from "./UpdateOrderModal";
+import { OrderHeaderActions } from "./OrderHeaderActions";
 
 interface Props {
   order: OrderDetail;
@@ -36,7 +28,7 @@ export function OrderDetailHeader({ order, onRefetch }: Props) {
           <Breadcrumb.Item href="/orders">Pedidos</Breadcrumb.Item>
           <Breadcrumb.Separator />
           <Breadcrumb.Item>
-            {order.id.slice(0, 8).toUpperCase()}
+            Pedido {formatOrderNumber(order.number)}
           </Breadcrumb.Item>
         </Breadcrumb.Root>
       </div>
@@ -44,14 +36,17 @@ export function OrderDetailHeader({ order, onRefetch }: Props) {
       <PanelHeader.Root>
         <PanelHeader.Top>
           <PanelHeader.Left>
-            <PanelHeader.Title>
-              {order.id.slice(0, 8).toUpperCase()}
-              {" · "}
-              {clientName(order.client)}
-            </PanelHeader.Title>
+            <PanelHeader.Heading {...PAGE_HEADING.orders}>
+              Pedido {formatOrderNumber(order.number)}
+            </PanelHeader.Heading>
+            {/* O cliente abre a descrição e o título fica só "Pedido N": curto,
+                não quebra no celular e casa com o breadcrumb (14/11/2026). O
+                código antigo (prefixo do id) fica como detalhe: casa com o que
+                foi impresso ou enviado antes da numeração. */}
             <PanelHeader.Description>
-              {factoryName(order.factory)} · {order.seller?.name ?? "—"} ·{" "}
-              {formatDateDMY(order.orderDate)}
+              {clientName(order.client)} · {factoryName(order.factory)} ·{" "}
+              {order.seller?.name ?? "—"} · {formatDateDMY(order.orderDate)} ·
+              código {orderShortCode(order.id)}
             </PanelHeader.Description>
 
             {/* As tarjas dizem em que pé está o pedido; o `title` explica o
@@ -62,217 +57,165 @@ export function OrderDetailHeader({ order, onRefetch }: Props) {
                 de converter. */}
             {/* Histórico da migração: o número é o do sistema antigo, e a
                 falta de comissão e boleto é esperada, não defeito. */}
-            {order.isImported && (
-              <div className="mt-4">
-                <Badge.Root
-                  appearance="tinted"
-                  color="neutral"
-                  title="Pedido trazido do sistema antigo na migração. Entrou como entregue e não gera comissão nem boleto aqui."
-                >
-                  <Badge.Text>
-                    Histórico importado
-                    {order.externalRef ? ` · nº ${order.externalRef}` : ""}
-                  </Badge.Text>
-                </Badge.Root>
-              </div>
-            )}
+            {/* Tarjas e ações na MESMA linha: as tarjas primeiro (o estado), os
+                botões logo ao lado; se não couberem, as ações descem inteiras. */}
+            {/* No celular cada tarja ocupa a linha toda: lado a lado, curtas,
+                elas deixavam sobra à direita (14/11/2026). */}
+            <div className="max-tablet:mt-16 max-tablet:[&>span]:w-full mt-6 flex flex-wrap items-center gap-8">
+              {order.isImported && (
+                <>
+                  <Badge.Root
+                    appearance="tinted"
+                    color="neutral"
+                    title="Pedido trazido do sistema antigo na migração. Entrou como entregue e não gera comissão nem boleto aqui."
+                  >
+                    <Badge.Text>
+                      Histórico importado
+                      {order.externalRef ? ` · nº ${order.externalRef}` : ""}
+                    </Badge.Text>
+                  </Badge.Root>
+                </>
+              )}
 
-            {order.isFromPortal && (
-              <div className="mt-4">
-                <Badge.Root
-                  appearance="tinted"
-                  color="purple"
-                  title="O próprio cliente pediu estes produtos pelo portal. O preço veio da tabela no nível dele (ou da última compra); confira preço, condição de pagamento e frete antes de converter em pedido."
-                >
-                  <Badge.Text>Pedido do cliente pelo portal</Badge.Text>
-                </Badge.Root>
-              </div>
-            )}
+              {order.isFromPortal && (
+                <>
+                  <Badge.Root
+                    appearance="tinted"
+                    color="purple"
+                    title="O próprio cliente pediu estes produtos pelo portal. O preço veio da tabela no nível dele (ou da última compra); confira preço, condição de pagamento e frete antes de converter em pedido."
+                  >
+                    <Badge.Text>Pedido do cliente pelo portal</Badge.Text>
+                  </Badge.Root>
+                </>
+              )}
 
-            {/* Cancelado continua na lista de propósito; a tarja diz quando,
+              {/* Cancelado continua na lista de propósito; a tarja diz quando,
                 quem e por quê — é a pergunta de quem acha o pedido depois. */}
-            {order.status === "CANCELLED" && (
-              <div className="mt-4">
-                <Badge.Root
-                  appearance="tinted"
-                  color="red"
-                  title={
-                    order.cancelReason
-                      ? `Motivo: ${order.cancelReason}`
-                      : "Pedido cancelado: não conta nas vendas, nas metas nem nos relatórios."
-                  }
-                >
-                  <Badge.Text>
-                    Cancelado
-                    {order.cancelledAt
-                      ? ` em ${formatDateDMY(order.cancelledAt)}`
-                      : ""}
-                    {order.cancelledByName
-                      ? ` por ${order.cancelledByName}`
-                      : ""}
-                    {order.cancelReason ? ` · ${order.cancelReason}` : ""}
-                  </Badge.Text>
-                </Badge.Root>
-              </div>
-            )}
-
-            {isQuote && (
-              <div className="mt-4">
-                <Badge.Root
-                  appearance="tinted"
-                  color="amber"
-                  title="Orçamento ainda não é pedido: não gera nota, nem parcelas, nem comissão. Use “Converter em pedido” quando o cliente fechar."
-                >
-                  <Badge.Text>
-                    {order.status === "SENT"
-                      ? "Orçamento enviado"
-                      : "Orçamento"}
-                  </Badge.Text>
-                </Badge.Root>
-              </div>
-            )}
-
-            {/* Enviado: quando e por quem. A tarja existe porque a pergunta
-                aparece do outro lado — a fábrica dizendo que não recebeu. */}
-            {order.sentAt && (
-              <div className="mt-4">
-                <Badge.Root
-                  appearance="tinted"
-                  color="green"
-                  title={
-                    order.sentNote
-                      ? `Observação de quem enviou: ${order.sentNote}`
-                      : "Registro do envio do pedido para a fábrica. O envio em si sai pelo WhatsApp; aqui fica a data, o autor e o canal."
-                  }
-                >
-                  <Badge.Text>
-                    Enviado à fábrica em {formatDateDMY(order.sentAt)}
-                    {order.sentByName ? ` por ${order.sentByName}` : ""}
-                  </Badge.Text>
-                </Badge.Root>
-              </div>
-            )}
-
-            {/* Fechado com o cliente e NÃO mandado para a fábrica: é a
-                pendência mais cara da operação, porque o pedido existe só aqui
-                dentro. Só aparece em pedido de fato (orçamento ainda não tem o
-                que mandar) e antes do faturamento. */}
-            {!order.sentAt &&
-              !isQuote &&
-              !order.invoicedAt &&
-              order.status !== "CANCELLED" && (
-                <div className="mt-4">
+              {order.status === "CANCELLED" && (
+                <>
                   <Badge.Root
                     appearance="tinted"
                     color="red"
-                    title="O cliente fechou, mas o pedido não foi mandado para a fábrica — ou foi mandado por fora e ninguém registrou. Use “Enviar à fábrica”."
+                    title={
+                      order.cancelReason
+                        ? `Motivo: ${order.cancelReason}`
+                        : "Pedido cancelado: não conta nas vendas, nas metas nem nos relatórios."
+                    }
                   >
-                    <Badge.Text>Não enviado à fábrica</Badge.Text>
+                    <Badge.Text>
+                      Cancelado
+                      {order.cancelledAt
+                        ? ` em ${formatDateDMY(order.cancelledAt)}`
+                        : ""}
+                      {order.cancelledByName
+                        ? ` por ${order.cancelledByName}`
+                        : ""}
+                      {order.cancelReason ? ` · ${order.cancelReason}` : ""}
+                    </Badge.Text>
                   </Badge.Root>
-                </div>
+                </>
               )}
 
-            {order.deliveredAt && (
-              <div className="mt-4">
-                <Badge.Root
-                  appearance="tinted"
-                  color="green"
-                  title="Dia em que a mercadoria chegou na loja do cliente. É essa data que reabastece o estoque estimado dele e alimenta a próxima visita."
-                >
-                  <Badge.Text>
-                    Entregue em {formatDateDMY(order.deliveredAt)}
-                  </Badge.Text>
-                </Badge.Root>
-              </div>
-            )}
+              {isQuote && (
+                <>
+                  <Badge.Root
+                    appearance="tinted"
+                    color="blue"
+                    title="Orçamento ainda não é pedido: não gera nota, nem parcelas, nem comissão. Use “Converter em pedido” quando o cliente fechar."
+                  >
+                    <Badge.Text>
+                      {order.status === "SENT"
+                        ? "Orçamento enviado"
+                        : "Orçamento"}
+                    </Badge.Text>
+                  </Badge.Root>
+                </>
+              )}
 
-            {/* Faturado, não entregue: mostra a previsão; vencida → alerta. */}
-            {!order.deliveredAt && order.estimatedDeliveryDate && (
-              <div className="mt-4">
-                <Badge.Root
-                  appearance="tinted"
-                  color={order.isDeliveryOverdue ? "red" : "blue"}
-                  title={
-                    order.isDeliveryOverdue
-                      ? "A previsão de entrega (data da nota + prazo da fábrica) já passou e ninguém confirmou a chegada. Confirme em “Marcar como entregue” — é o que atualiza o estoque do cliente."
-                      : "Previsão calculada a partir da data da nota mais o prazo de entrega da fábrica. Quando a mercadoria chegar, confirme a entrega."
-                  }
-                >
-                  <Badge.Text>
-                    {order.isDeliveryOverdue
-                      ? `Entrega atrasada (prevista ${formatDateDMY(order.estimatedDeliveryDate)}) — confirme`
-                      : `Entrega prevista: ${formatDateDMY(order.estimatedDeliveryDate)}`}
-                  </Badge.Text>
-                </Badge.Root>
-              </div>
-            )}
+              {/* Enviado: quando e por quem. A tarja existe porque a pergunta
+                aparece do outro lado — a fábrica dizendo que não recebeu. */}
+              {order.sentAt && (
+                <>
+                  <Badge.Root
+                    appearance="tinted"
+                    color="green"
+                    title={
+                      order.sentNote
+                        ? `Observação de quem enviou: ${order.sentNote}`
+                        : "Registro do envio do pedido para a fábrica. O envio em si sai pelo WhatsApp; aqui fica a data, o autor e o canal."
+                    }
+                  >
+                    <Badge.Text>
+                      Enviado à fábrica em {formatDateDMY(order.sentAt)}
+                      {order.sentByName ? ` por ${order.sentByName}` : ""}
+                    </Badge.Text>
+                  </Badge.Root>
+                </>
+              )}
 
-            <PanelHeader.Actions className="mt-6">
-              <div className="print-hide flex items-center gap-8">
-                <OrderExportMenu order={order} />
-                {/* Só até o faturamento: se a fábrica emitiu a nota, ela
-                    recebeu o pedido — mandar de novo não faz sentido. */}
-                {!order.invoicedAt && order.status !== "CANCELLED" && (
-                  <SendToFactoryModal order={order} onSuccess={onRefetch} />
+              {/* Fechado com o cliente e NÃO mandado para a fábrica: é a
+                pendência mais cara da operação, porque o pedido existe só aqui
+                dentro. Só aparece em pedido de fato (orçamento ainda não tem o
+                que mandar) e antes do faturamento. */}
+              {!order.sentAt &&
+                !isQuote &&
+                !order.invoicedAt &&
+                order.status !== "CANCELLED" && (
+                  <>
+                    <Badge.Root
+                      appearance="tinted"
+                      color="red"
+                      title="O cliente fechou, mas o pedido não foi mandado para a fábrica — ou foi mandado por fora e ninguém registrou. Use “Enviar à fábrica”."
+                    >
+                      <Badge.Text>Não enviado à fábrica</Badge.Text>
+                    </Badge.Root>
+                  </>
                 )}
-                {isQuote && (
-                  <ConvertToOrderModal
-                    orderId={order.id}
-                    onSuccess={onRefetch}
-                  />
-                )}
-                {/* Combinar de voltar ao cliente sobre o pedido (o orçamento
-                    sem resposta, a entrega a confirmar). */}
-                {order.status !== "CANCELLED" && (
-                  <ScheduleReturnButton order={order} />
-                )}
-                {!order.invoicedAt &&
-                  order.status !== "CANCELLED" &&
-                  !isQuote && (
-                    <InvoiceOrderModal order={order} onSuccess={onRefetch} />
-                  )}
-                {/* Faturado e ainda não entregue: confirmar a chegada na loja é
-                    o que reabastece o estoque do cliente (faturar ≠ entregar). */}
-                {order.invoicedAt &&
-                  !order.deliveredAt &&
-                  order.status !== "CANCELLED" && (
-                    <MarkDeliveredModal order={order} onSuccess={onRefetch} />
-                  )}
-                {/* Faturamento é lançamento manual (data da nota, prazo, entrega):
-                    errar acontece, e corrigir não pode exigir apagar o pedido. */}
-                {order.invoicedAt && order.status !== "CANCELLED" && (
-                  <EditInvoiceModal order={order} onSuccess={onRefetch} />
-                )}
-                <UpdateOrderModal
-                  orderId={order.id}
-                  currentOrderDate={order.orderDate}
-                  currentNotes={order.notes}
-                  currentFreightType={order.freightType}
-                  currentStatus={order.status}
-                  currentFileUrl={order.fileUrl}
-                  currentFileParsed={order.isFileParsed}
-                  currentDeliveryEstimateDays={order.deliveryEstimateDays}
-                  currentCoverageDays={order.coverageDays}
-                  currentPaymentTermId={order.paymentTermId}
-                  paymentTerms={order.availablePaymentTerms}
-                  onSuccess={onRefetch}
-                />
-                {/* Só antes do faturamento: faturado tem boletos e comissão,
-                    e o caminho é desfazer o faturamento primeiro. */}
-                {!order.invoicedAt &&
-                  order.status !== "CANCELLED" &&
-                  order.status !== "DELIVERED" && (
-                    <CancelOrderModal
-                      orderId={order.id}
-                      isQuote={isQuote}
-                      onSuccess={onRefetch}
-                    />
-                  )}
-                {canDeleteOrder(order.status, order.invoicedAt) && (
-                  <DeleteOrderModal orderId={order.id} />
-                )}
-              </div>
-            </PanelHeader.Actions>
+
+              {order.deliveredAt && (
+                <>
+                  <Badge.Root
+                    appearance="tinted"
+                    color="green"
+                    title="Dia em que a mercadoria chegou na loja do cliente. É essa data que reabastece o estoque estimado dele e alimenta a próxima visita."
+                  >
+                    <Badge.Text>
+                      Entregue em {formatDateDMY(order.deliveredAt)}
+                    </Badge.Text>
+                  </Badge.Root>
+                </>
+              )}
+
+              {/* Faturado, não entregue: mostra a previsão; vencida → alerta. */}
+              {!order.deliveredAt && order.estimatedDeliveryDate && (
+                <>
+                  <Badge.Root
+                    appearance="tinted"
+                    color={order.isDeliveryOverdue ? "red" : "blue"}
+                    title={
+                      order.isDeliveryOverdue
+                        ? "A previsão de entrega (data da nota + prazo da fábrica) já passou e ninguém confirmou a chegada. Confirme em “Marcar como entregue” — é o que atualiza o estoque do cliente."
+                        : "Previsão calculada a partir da data da nota mais o prazo de entrega da fábrica. Quando a mercadoria chegar, confirme a entrega."
+                    }
+                  >
+                    <Badge.Text>
+                      {order.isDeliveryOverdue
+                        ? `Entrega atrasada (prevista ${formatDateDMY(order.estimatedDeliveryDate)}) — confirme`
+                        : `Entrega prevista: ${formatDateDMY(order.estimatedDeliveryDate)}`}
+                    </Badge.Text>
+                  </Badge.Root>
+                </>
+              )}
+
+              {/* w-auto + grow: a base é a largura natural (decide se cabe ao
+                lado das tarjas) e depois ocupa a sobra, que é a régua dos
+                estágios full/icon/column. No celular as ações empilham
+                (useStackOnPhone): na linha das tarjas ficavam espremidas na
+                metade direita, então ganham a linha inteira abaixo delas. */}
+              <PanelHeader.Actions className="max-tablet:basis-full w-auto grow">
+                <OrderHeaderActions order={order} onRefetch={onRefetch} />
+              </PanelHeader.Actions>
+            </div>
           </PanelHeader.Left>
         </PanelHeader.Top>
       </PanelHeader.Root>

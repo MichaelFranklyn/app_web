@@ -35,7 +35,7 @@ export function StaffTable({
     <Card.Root>
       <Card.Body>
         <Table.Root>
-          <Table.Table>
+          <Table.Table cards>
             <Table.Header>
               <Table.Row>
                 <Table.Head>Pessoa</Table.Head>
@@ -49,7 +49,7 @@ export function StaffTable({
             <Table.Body>
               {members.map((member) => (
                 <Table.Row key={member.id}>
-                  <Table.Cell className="max-w-[280px]">
+                  <Table.Cell card="title" className="max-w-[280px]">
                     <div className="flex min-w-0 flex-col gap-[2px]">
                       <Title
                         variant="body-sm"
@@ -65,7 +65,7 @@ export function StaffTable({
                     </div>
                   </Table.Cell>
 
-                  <Table.Cell>
+                  <Table.Cell label="Papel">
                     <Badge.Root
                       color={STAFF_ROLE_COLOR[member.role]}
                       appearance="tinted"
@@ -75,11 +75,15 @@ export function StaffTable({
                     </Badge.Root>
                   </Table.Cell>
 
-                  <Table.Cell variant="dim" className="whitespace-nowrap">
+                  <Table.Cell
+                    label="Último acesso"
+                    variant="dim"
+                    className="whitespace-nowrap"
+                  >
                     {lastAccessLabel(member)}
                   </Table.Cell>
 
-                  <Table.Cell className="whitespace-nowrap">
+                  <Table.Cell card="status" className="whitespace-nowrap">
                     <Title
                       variant="body-sm"
                       color={member.isActive ? "green" : "red"}
@@ -88,7 +92,10 @@ export function StaffTable({
                     </Title>
                   </Table.Cell>
 
-                  <Table.Cell className="text-right whitespace-nowrap">
+                  <Table.Cell
+                    card="actions"
+                    className="text-right whitespace-nowrap"
+                  >
                     {canManage(member) ? (
                       <Button.Root
                         appearance="ghost"

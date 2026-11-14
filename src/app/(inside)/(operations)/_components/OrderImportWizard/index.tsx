@@ -225,7 +225,6 @@ export function OrderImportWizard({
             appearance="solid"
             color="amber"
             size="md"
-            noUppercase
             loading={isRedirecting}
             onClick={viewOrder ?? onClose}
           >
@@ -239,7 +238,6 @@ export function OrderImportWizard({
                 appearance="ghost"
                 color="neutral"
                 size="md"
-                noUppercase
                 disabled={isLoading || isRedirecting}
                 onClick={() =>
                   step > firstStep
@@ -258,7 +256,6 @@ export function OrderImportWizard({
                 appearance="solid"
                 color="amber"
                 size="md"
-                noUppercase
                 disabled={!data || isLoading}
                 onClick={() => setStep(1)}
               >
@@ -271,7 +268,6 @@ export function OrderImportWizard({
                 appearance="solid"
                 color="amber"
                 size="md"
-                noUppercase
                 loading={isLoading}
                 disabled={!canMap}
                 onClick={runPreview}
@@ -285,7 +281,6 @@ export function OrderImportWizard({
                 appearance="solid"
                 color="amber"
                 size="md"
-                noUppercase
                 // O loading só termina quando a página do pedido já carregou —
                 // sem o flash de "pronto" com a próxima tela em branco.
                 loading={isLoading || isRedirecting}

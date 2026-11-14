@@ -5,6 +5,7 @@ import { Button } from "@/components/Button";
 import { Card } from "@/components/Card";
 import { Grid } from "@/components/Grid";
 import { PanelHeader } from "@/components/PanelHeader";
+import { PAGE_HEADING } from "@/utils/modules";
 import { Title } from "@/components/Title";
 import { TextLink } from "@/components/TextLink";
 import { Building2, KeyRound, LogIn } from "lucide-react";
@@ -51,10 +52,10 @@ export function UserProfileCard({ user }: { user: PlatformUserDetail }) {
       <PanelHeader.Root>
         <PanelHeader.Top>
           <PanelHeader.Left>
-            <PanelHeader.Eyebrow color="purple">
-              Console · Pessoa
-            </PanelHeader.Eyebrow>
-            <PanelHeader.Title>{user.name}</PanelHeader.Title>
+            <PanelHeader.Eyebrow color="blue">Pessoa</PanelHeader.Eyebrow>
+            <PanelHeader.Heading {...PAGE_HEADING.platformUsers}>
+              {user.name}
+            </PanelHeader.Heading>
             <PanelHeader.Description>{user.email}</PanelHeader.Description>
 
             <PanelHeader.Actions>
@@ -80,7 +81,7 @@ export function UserProfileCard({ user }: { user: PlatformUserDetail }) {
         </PanelHeader.Top>
       </PanelHeader.Root>
 
-      <Grid.Root cols={{ base: 1, tablet: 2, "desktop-xl": 4 }} gap={12}>
+      <Grid.Root cols={{ base: 2, tablet: 2, "desktop-xl": 4 }} gap={12}>
         <Grid.Item>
           <Card.Kpi>
             <Card.Kpi.Label>Empresa</Card.Kpi.Label>

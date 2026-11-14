@@ -147,7 +147,7 @@ export const buildOrderKpis = (
       label: "Pedidos",
       value: String(totalOrders),
       delta: `pedidos feitos ${scope}${backorders}`,
-      status: "atencao",
+      status: "neutral",
       help: ORDER_KPI_HELP["Pedidos"],
     },
     {
@@ -155,7 +155,7 @@ export const buildOrderKpis = (
       value: formatMoney(totalAmount),
       delta: `ticket médio ${formatMoney(avgTicket)}`,
       positive: totalOrders > 0,
-      status: "ok",
+      status: "neutral",
       help: ORDER_KPI_HELP["Valor total"],
     },
     {
@@ -165,7 +165,7 @@ export const buildOrderKpis = (
       value: formatMoney(invoicedAmount),
       delta: `${invoicedOrders} de ${totalOrders} pedidos faturados`,
       positive: invoicedOrders > 0,
-      status: "ok",
+      status: "neutral",
       help: ORDER_KPI_HELP["Faturado"],
     },
     {

@@ -65,7 +65,8 @@ export function LastPurchasesTable({ companyClientId }: Props) {
         </Table.CardHead.Actions>
       </Table.CardHead>
 
-      <Table.Table>
+      {/* Abaixo do desktop cada compra vira um cartão, sem rolar de lado. */}
+      <Table.Table cards>
         <Table.Header>
           <Table.Row>
             <Table.Head>{isByFactory ? "Fábrica" : "Vendedor"}</Table.Head>
@@ -97,22 +98,36 @@ export function LastPurchasesTable({ companyClientId }: Props) {
           ) : (
             rows.map((row) => (
               <Table.Row key={row.key} href={`/orders/${row.lastOrderId}`}>
-                <Table.Cell variant="strong" title={row.name}>
+                <Table.Cell card="title" variant="strong" title={row.name}>
                   {row.name}
                 </Table.Cell>
-                <Table.Cell variant="dim" className="whitespace-nowrap">
+                <Table.Cell
+                  label="Última compra"
+                  variant="dim"
+                  className="whitespace-nowrap"
+                >
                   {formatDateDMY(row.lastOrderDate)}
                   <Table.CellText variant="dim" className="ml-4">
                     {sinceLabel(row.lastOrderDate, todayIso)}
                   </Table.CellText>
                 </Table.Cell>
-                <Table.Cell variant="dim" title={row.counterpart}>
+                <Table.Cell
+                  label={isByFactory ? "Vendido por" : "Fábrica"}
+                  variant="dim"
+                  title={row.counterpart}
+                >
                   {row.counterpart}
                 </Table.Cell>
-                <Table.Cell variant="strong" className="whitespace-nowrap">
+                <Table.Cell
+                  card="amount"
+                  label="Valor"
+                  variant="strong"
+                  className="whitespace-nowrap"
+                >
                   {formatMoney(row.lastOrderAmount)}
                 </Table.Cell>
                 <Table.Cell
+                  label="Compras"
                   variant="dim"
                   className="whitespace-nowrap"
                   title={`Total comprado: ${formatMoney(row.totalAmount)}`}

@@ -5,7 +5,9 @@ import { cn } from "@/lib/utils";
 import Link from "next/link";
 import { usePathname, useRouter, useSearchParams } from "next/navigation";
 import React from "react";
+import { announceNavigation } from "@/components/AppFrame/navigationSignal";
 import { List, Item, Content } from "./List";
+import { Filter, FilterItem } from "./Filter";
 import { tabsStyles } from "./List/style";
 
 type RootProps = React.ComponentPropsWithoutRef<typeof TabsPrimitive.Root> & {
@@ -32,7 +34,9 @@ function Root({ urlParam, defaultValue, onValueChange, ...props }: RootProps) {
   const handleValueChange = (val: string) => {
     const params = new URLSearchParams(searchParams.toString());
     params.set(urlParam, val);
-    router.push(`${pathname}?${params.toString()}`);
+    const href = `${pathname}?${params.toString()}`;
+    announceNavigation(href);
+    router.push(href);
     onValueChange?.(val);
   };
 
@@ -77,6 +81,7 @@ const NavItem = ({ href, exact, className, ...props }: NavItemProps) => {
     <Link
       href={href}
       data-state={isActive ? "active" : "inactive"}
+      aria-current={isActive ? "page" : undefined}
       className={cn(tabsStyles.item, className)}
       {...props}
     />
@@ -91,4 +96,6 @@ export const Tabs = {
   Content,
   NavList,
   NavItem,
+  Filter,
+  FilterItem,
 };

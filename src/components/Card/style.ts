@@ -1,13 +1,13 @@
 import { CardAccentColor, CardBg } from "./interface";
 
 export const cardBaseStyle =
-  "bg-(--bg2) border border-(--border) rounded-(--r-lg) overflow-hidden flex flex-col relative w-full h-full";
+  "bg-(--bg2) border border-(--border) rounded-(--r-lg) shadow-(--shadow-xs) overflow-hidden flex flex-col relative w-full h-full";
 
 export const accentBorderVariants: Record<CardAccentColor, string> = {
   amber: "border-l-[3px] border-l-(--amber)",
-  red: "border-l-[3px] border-l-(--red)",
-  green: "border-l-[3px] border-l-(--green)",
-  blue: "border-l-[3px] border-l-(--blue)",
+  red: "border-l-[3px] border-l-(--color-status-danger)",
+  green: "border-l-[3px] border-l-(--color-status-success)",
+  blue: "border-l-[3px] border-l-(--color-status-info)",
   cyan: "border-l-[3px] border-l-(--cyan)",
 };
 
@@ -25,4 +25,4 @@ export const cardHeadStyle =
   "px-16 py-12 border-b border-(--border) flex flex-wrap items-center justify-between gap-3 min-h-[48px]";
 
 export const cardFooterBaseStyle =
-  "px-16 py-[10px] border-t border-(--border) flex items-center justify-between text-[13px] text-(--muted) min-h-[38px]";
+  "px-16 py-[10px] border-t border-(--border) flex items-center justify-between text-body-sm text-(--color-text-muted) min-h-[38px]";

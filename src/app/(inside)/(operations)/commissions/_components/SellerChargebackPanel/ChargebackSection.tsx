@@ -80,7 +80,6 @@ export function ChargebackSection({
               appearance="tinted"
               color={bulk.color}
               size="sm"
-              noUppercase
               loading={isLoading}
               onClick={() => bulk.onRun(allIds)}
             >
@@ -147,7 +146,6 @@ export function ChargebackSection({
                         appearance="ghost"
                         color={action.color}
                         size="sm"
-                        noUppercase
                         onClick={() => action.onRun([row.installmentId])}
                       >
                         <Button.Icon icon={action.icon} />

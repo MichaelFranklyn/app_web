@@ -1,9 +1,8 @@
 "use client";
 
-import { Button } from "@/components/Button";
+import type { CatalogModalControl } from "../../../interface";
 import { ConfirmModal } from "@/components/ConfirmModal";
 import { useMutation } from "@apollo/client/react";
-import { Trash2 } from "lucide-react";
 import { DELETE_PRODUCT_CATEGORY_MUTATION } from "./gql";
 
 interface DeleteProductCategoryResponse {
@@ -30,24 +29,17 @@ export function DeleteCategoryModal({
   onCommit,
   onRollback,
   onChanged,
-}: Props) {
+  open,
+  onOpenChange,
+}: Props & CatalogModalControl) {
   const [deleteCategory] = useMutation<DeleteProductCategoryResponse>(
     DELETE_PRODUCT_CATEGORY_MUTATION
   );
 
   return (
     <ConfirmModal
-      trigger={
-        <Button.Root
-          appearance="ghost"
-          color="red"
-          size="sm"
-          isIconOnly
-          label="Excluir categoria"
-        >
-          <Button.Icon icon={Trash2} />
-        </Button.Root>
-      }
+      open={open}
+      onOpenChange={onOpenChange}
       title="Excluir categoria"
       description={`Tem certeza que deseja excluir a categoria "${categoryName}"?`}
       confirmLabel="Excluir"

@@ -126,11 +126,15 @@ export const SelectDropdown = ({
               />
             )}
             {option.startIcon && (
-              <div className="text-(--muted)">{option.startIcon}</div>
+              <div className="text-(--color-text-muted)">
+                {option.startIcon}
+              </div>
             )}
             <span className="truncate">{option.label}</span>
             {option.endIcon && (
-              <div className="ml-auto text-(--muted)">{option.endIcon}</div>
+              <div className="ml-auto text-(--color-text-muted)">
+                {option.endIcon}
+              </div>
             )}
           </div>
         </div>
@@ -156,7 +160,6 @@ export const SelectDropdown = ({
             appearance="ghost"
             color="neutral"
             size="xs"
-            noUppercase
             loading={isCreating}
             disabled={inputValue.trim().length === 0}
             onClick={onCreateNew}

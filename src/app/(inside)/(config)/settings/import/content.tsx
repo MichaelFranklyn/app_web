@@ -2,6 +2,7 @@
 
 import { PageContent } from "@/components/PageContent";
 import { PanelHeader } from "@/components/PanelHeader";
+import { PAGE_HEADING } from "@/utils/modules";
 
 import { MigrationStepCard } from "./_components/MigrationStepCard";
 import { MIGRATION_STEPS } from "./utils";
@@ -12,7 +13,9 @@ export default function ImportSettingsContent() {
       <PanelHeader.Root>
         <PanelHeader.Top>
           <PanelHeader.Left>
-            <PanelHeader.Title>Trazer dados de outro sistema</PanelHeader.Title>
+            <PanelHeader.Heading {...PAGE_HEADING.import}>
+              Trazer dados de outro sistema
+            </PanelHeader.Heading>
             <PanelHeader.Description>
               Vindo de outro sistema? Traga sua base em três passos, nesta
               ordem.

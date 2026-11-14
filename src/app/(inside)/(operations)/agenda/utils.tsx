@@ -153,13 +153,13 @@ const toScore = (raw: string | null): number | null => {
 };
 
 export const VISIT_URGENCY_BORDER: Record<VisitStatus, string> = {
-  COMPLETED: "border-l-[3px] border-l-(--green)",
-  PENDING: "border-l-[3px] border-l-(--blue)",
-  CLIENT_ABSENT: "border-l-[3px] border-l-(--red)",
-  CANCELLED: "border-l-[3px] border-l-(--red)",
-  RESCHEDULED: "border-l-[3px] border-l-(--blue)",
+  COMPLETED: "border-l-[3px] border-l-(--color-status-success)",
+  PENDING: "border-l-[3px] border-l-(--color-status-info)",
+  CLIENT_ABSENT: "border-l-[3px] border-l-(--color-status-danger)",
+  CANCELLED: "border-l-[3px] border-l-(--color-status-danger)",
+  RESCHEDULED: "border-l-[3px] border-l-(--color-status-info)",
   NO_TIME: "border-l-[3px] border-l-(--amber)",
-  SKIPPED_BY_CUSTOMER: "border-l-[3px] border-l-(--blue)",
+  SKIPPED_BY_CUSTOMER: "border-l-[3px] border-l-(--color-status-info)",
 };
 
 const WEEKDAY_LABELS = [

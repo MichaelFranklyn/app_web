@@ -1,5 +1,6 @@
 "use client";
 
+import { DocumentNumber } from "@/components/DocumentNumber";
 import { Badge } from "@/components/Badges";
 import { EmptyState } from "@/components/EmptyState";
 import { QueryError } from "@/components/QueryError";
@@ -7,7 +8,6 @@ import { Table } from "@/components/Table";
 import { Tooltip } from "@/components/Tooltip";
 import { TextLink } from "@/components/TextLink";
 import { formatDate } from "@/utils/format/date";
-import { maskCNPJ } from "@/utils/format/masks";
 import { CheckCircle2 } from "lucide-react";
 import { HygieneActions } from "../../../_shared/hygiene/HygieneActions";
 import { HYGIENE_REASON } from "../../help";
@@ -117,7 +117,7 @@ export function HygieneTable({
                         </Table.CellText>
                       )}
                       <Table.CellText variant="dim" className="block">
-                        CNPJ {maskCNPJ(client.cnpj)}
+                        CNPJ <DocumentNumber value={client.cnpj} />
                       </Table.CellText>
                     </div>
                   </Table.Cell>
@@ -126,7 +126,7 @@ export function HygieneTable({
                       {item.reasons.map((reason) => (
                         <Tooltip
                           key={reason}
-                          className="max-w-100 whitespace-normal"
+                          className="max-w-[min(400px,calc(100vw-20px))] whitespace-normal"
                           content={HYGIENE_REASON[reason].help}
                         >
                           <Badge.Root

@@ -4,9 +4,9 @@ import { Badge } from "@/components/Badges";
 import { Breadcrumb } from "@/components/Breadcrumb";
 import { Button } from "@/components/Button";
 import { EmptyState } from "@/components/EmptyState";
-import { Loading } from "@/components/Loading";
 import { PageContent } from "@/components/PageContent";
 import { PanelHeader } from "@/components/PanelHeader";
+import { PAGE_HEADING } from "@/utils/modules";
 import { QueryError } from "@/components/QueryError";
 import { SupportCaseModal } from "@/components/SupportCaseModal";
 import { SUPPORT_CASE_QUERY } from "@/graphql/support";
@@ -22,6 +22,7 @@ import { useParams, useRouter } from "next/navigation";
 import { useState } from "react";
 
 import { AddUpdateCard } from "./_components/AddUpdateCard";
+import { CaseSkeleton } from "./_components/CaseSkeleton";
 import { CaseSummary } from "./_components/CaseSummary";
 import { CaseTimeline } from "./_components/CaseTimeline";
 import { DeleteCaseModal } from "./_components/DeleteCaseModal";
@@ -49,14 +50,9 @@ export default function SupportCaseContent() {
     );
   }
 
-  if (loading && !supportCase) {
-    return (
-      <PageContent>
-        <Loading.Skeleton className="h-[120px] w-full" />
-        <Loading.Skeleton className="h-[220px] w-full" />
-      </PageContent>
-    );
-  }
+  // Mesma forma do loading.tsx: a espera da navegação e a da query não trocam
+  // de desenho no meio.
+  if (loading && !supportCase) return <CaseSkeleton />;
 
   if (!supportCase) {
     return (
@@ -74,7 +70,6 @@ export default function SupportCaseContent() {
               appearance="solid"
               color="amber"
               size="md"
-              noUppercase
               onClick={() => router.push("/support")}
             >
               <Button.Title>Voltar para Reclamações</Button.Title>
@@ -87,50 +82,55 @@ export default function SupportCaseContent() {
 
   return (
     <PageContent>
-      <Breadcrumb.Root>
-        <Breadcrumb.Item href="/support">Reclamações</Breadcrumb.Item>
-        <Breadcrumb.Separator />
-        <Breadcrumb.Item active>{supportCase.title}</Breadcrumb.Item>
-      </Breadcrumb.Root>
+      {/* Breadcrumb e header colados (gap-8), como nas outras telas de
+          detalhe: soltos no PageContent herdavam o gap-20 e o header parecia
+          desgarrado do caminho (14/11/2026). */}
+      <div className="flex flex-col gap-8">
+        <Breadcrumb.Root>
+          <Breadcrumb.Item href="/support">Reclamações</Breadcrumb.Item>
+          <Breadcrumb.Separator />
+          <Breadcrumb.Item active>{supportCase.title}</Breadcrumb.Item>
+        </Breadcrumb.Root>
 
-      <PanelHeader.Root>
-        <PanelHeader.Top>
-          <PanelHeader.Left>
-            <PanelHeader.Eyebrow color="green">
-              {clientDisplayName(supportCase.client)}
-            </PanelHeader.Eyebrow>
-            <PanelHeader.Title>{supportCase.title}</PanelHeader.Title>
-            <PanelHeader.Description>
-              {SUPPORT_STATUS_HINT[supportCase.status]}
-            </PanelHeader.Description>
-            <PanelHeader.Actions className="mt-6">
-              <Badge.Root
-                color={SUPPORT_STATUS_COLOR[supportCase.status]}
-                appearance="tinted"
-              >
-                <Badge.Text>
-                  {SUPPORT_STATUS_LABEL[supportCase.status]}
-                </Badge.Text>
-              </Badge.Root>
-              <Button.Root
-                type="button"
-                appearance="outline"
-                color="neutral"
-                size="sm"
-                noUppercase
-                onClick={() => setEditing(true)}
-              >
-                <Button.Icon icon={Pencil} />
-                <Button.Title>Corrigir dados</Button.Title>
-              </Button.Root>
-              <DeleteCaseModal
-                caseId={supportCase.id}
-                caseTitle={supportCase.title}
-              />
-            </PanelHeader.Actions>
-          </PanelHeader.Left>
-        </PanelHeader.Top>
-      </PanelHeader.Root>
+        <PanelHeader.Root>
+          <PanelHeader.Top>
+            <PanelHeader.Left>
+              <PanelHeader.Heading {...PAGE_HEADING.support}>
+                {supportCase.title}
+              </PanelHeader.Heading>
+              <PanelHeader.Description>
+                {/* O cliente vem na descrição, não acima do título (14/11/2026). */}
+                {clientDisplayName(supportCase.client)} ·{" "}
+                {SUPPORT_STATUS_HINT[supportCase.status]}
+              </PanelHeader.Description>
+              <PanelHeader.Actions className="mt-6">
+                <Badge.Root
+                  color={SUPPORT_STATUS_COLOR[supportCase.status]}
+                  appearance="tinted"
+                >
+                  <Badge.Text>
+                    {SUPPORT_STATUS_LABEL[supportCase.status]}
+                  </Badge.Text>
+                </Badge.Root>
+                <Button.Root
+                  type="button"
+                  appearance="outline"
+                  color="neutral"
+                  size="sm"
+                  onClick={() => setEditing(true)}
+                >
+                  <Button.Icon icon={Pencil} />
+                  <Button.Title>Corrigir dados</Button.Title>
+                </Button.Root>
+                <DeleteCaseModal
+                  caseId={supportCase.id}
+                  caseTitle={supportCase.title}
+                />
+              </PanelHeader.Actions>
+            </PanelHeader.Left>
+          </PanelHeader.Top>
+        </PanelHeader.Root>
+      </div>
 
       <CaseSummary supportCase={supportCase} />
 

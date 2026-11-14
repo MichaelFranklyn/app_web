@@ -117,7 +117,6 @@ export function PromoteContactModal({
               appearance="ghost"
               color="neutral"
               size="md"
-              noUppercase
               disabled={isSubmitting}
             >
               <Button.Title>Cancelar</Button.Title>
@@ -128,7 +127,6 @@ export function PromoteContactModal({
             appearance="solid"
             color="amber"
             size="md"
-            noUppercase
             loading={isSubmitting}
             disabled={!canSubmit}
             onClick={submit}

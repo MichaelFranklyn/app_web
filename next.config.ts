@@ -83,6 +83,12 @@ const nextConfig: NextConfig = {
   // (.next-e2e), sem colidir com o .next do `next dev` em uso.
   distDir: process.env.NEXT_DIST_DIR || ".next",
 
+  // Só vale no `next dev`. O Next 16 bloqueia os chunks de dev para qualquer
+  // origem que não seja localhost — aberto pelo celular (http://192.168.x.y:3001),
+  // o HTML chegava mas o JS não, a tela não hidratava e o login não respondia ao
+  // toque. Rede doméstica liberada para o teste em aparelho real (13/11/2026).
+  allowedDevOrigins: ["192.168.*.*"],
+
   // Recomendado true para identificar problemas no ciclo de vida do React
   reactStrictMode: true,
 
@@ -135,7 +141,22 @@ const nextConfig: NextConfig = {
       // `:path*` casa também com "/insights" sozinho.
       {
         source: "/insights/:path*",
-        destination: "/opportunities",
+        destination: "/priorities/opportunities",
+        permanent: true,
+      },
+      // Oportunidades virou a segunda aba da central de pendências
+      // (14/11/2026). `:path*` casa também com "/opportunities" sozinho.
+      {
+        source: "/opportunities/:path*",
+        destination: "/priorities/opportunities",
+        permanent: true,
+      },
+      // A central "Pendências e oportunidades" virou Prioridades (14/11/2026):
+      // o nome não cabia no menu. E-mails da manhã, avisos do sino já
+      // gravados e o push ainda apontam para /pending — a aba vai junto.
+      {
+        source: "/pending/:path*",
+        destination: "/priorities/:path*",
         permanent: true,
       },
       // A rotina virou Agenda (18/10/2026): é de pessoa, e tem as ligações

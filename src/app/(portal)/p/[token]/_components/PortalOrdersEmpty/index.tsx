@@ -32,7 +32,6 @@ export function PortalOrdersEmpty({ token, page }: PortalOrdersEmptyProps) {
             href={`/p/${token}`}
             appearance="outline"
             color="neutral"
-            noUppercase
           >
             <Button.Title>Voltar para os pedidos recentes</Button.Title>
           </Button.Link>

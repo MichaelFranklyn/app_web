@@ -70,7 +70,9 @@ export default function ClientSupportContent() {
           appearance="solid"
           color="amber"
           size="sm"
-          noUppercase
+          // Abaixo do desktop desce sozinho para baixo do título; esticado,
+          // não deixa sobra à direita.
+          fullWidthBelowDesktop
           onClick={() => setCreating(true)}
         >
           <Button.Icon icon={Plus} />

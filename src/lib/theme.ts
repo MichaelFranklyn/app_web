@@ -10,58 +10,80 @@ export type ThemeColor =
   | "cyan"
   | "purple"
   | "orange"
-  | "pink";
+  | "pink"
+  /** Alerta (vencido, precisa de atenção). Âmbar é só para o que se clica. */
+  | "warning";
 
 const themeVariants: Record<ThemeAppearance, Record<ThemeColor, string>> = {
   tinted: {
-    red: "bg-(--red-bg) border-(--red-bd) text-(--red)",
-    amber: "bg-(--amber-bg) border-(--amber-bd) text-(--amber)",
-    blue: "bg-(--blue-bg) border-(--blue-bd) text-(--blue)",
-    green: "bg-(--green-bg) border-(--green-bd) text-(--green)",
-    neutral: "bg-(--bg3) border-(--border) text-(--muted)",
-    subtle: "bg-(--bg3) border-(--border2) text-(--text2)",
-    cyan: "bg-(--cyan-bg) border-(--cyan)/20 text-(--cyan)",
-    purple:
-      "bg-(--purple-bg) border-(--purple)/20 text-(--purple)",
-    orange:
-      "bg-(--orange-bg) border-(--orange)/20 text-(--orange)",
-    pink: "bg-(--pink-bg) border-(--pink)/20 text-(--pink)",
+    red: "bg-(--color-status-danger-bg) border-(--color-status-danger-bd) text-(--color-status-danger)",
+    amber:
+      "bg-(--amber-bg) border-(--amber-bd) text-(--color-action-text-on-tint)",
+    blue: "bg-(--color-status-info-bg) border-(--color-status-info-bd) text-(--color-status-info)",
+    green:
+      "bg-(--color-status-success-bg) border-(--color-status-success-bd) text-(--color-status-success)",
+    neutral:
+      "bg-(--bg3) border-(--color-border-control) text-(--color-text-muted)",
+    subtle:
+      "bg-(--bg3) border-(--color-border-control) text-(--color-text-secondary)",
+    cyan: "bg-(--cyan-bg) border-(--cyan)/20 text-(--cyan-text)",
+    purple: "bg-(--purple-bg) border-(--purple)/20 text-(--purple-text)",
+    orange: "bg-(--orange-bg) border-(--orange)/20 text-(--orange-text)",
+    pink: "bg-(--pink-bg) border-(--pink)/20 text-(--pink-text)",
+    warning:
+      "bg-(--color-status-warning-bg) border-(--color-status-warning-bd) text-(--color-status-warning)",
   },
   outline: {
-    neutral: "bg-transparent border-(--border2) text-(--text2)",
-    subtle: "bg-transparent border-(--border2) text-(--text2)",
-    red: "bg-transparent border-(--red) text-(--red)",
-    amber: "bg-transparent border-(--amber) text-(--amber)",
-    blue: "bg-transparent border-(--blue) text-(--blue)",
-    green: "bg-transparent border-(--green) text-(--green)",
-    cyan: "bg-transparent border-(--cyan) text-(--cyan)",
-    purple: "bg-transparent border-(--purple) text-(--purple)",
-    orange: "bg-transparent border-(--orange) text-(--orange)",
-    pink: "bg-transparent border-(--pink) text-(--pink)",
+    // Mesma borda dos inputs (--color-border-control): botão, tag e campo lado
+    // a lado têm o mesmo contorno.
+    neutral:
+      "bg-transparent border-(--color-border-control) text-(--color-text-secondary)",
+    subtle:
+      "bg-transparent border-(--color-border-control) text-(--color-text-secondary)",
+    red: "bg-transparent border-(--color-status-danger) text-(--color-status-danger)",
+    amber: "bg-transparent border-(--amber) text-(--color-action-text)",
+    blue: "bg-transparent border-(--color-status-info) text-(--color-status-info)",
+    green:
+      "bg-transparent border-(--color-status-success) text-(--color-status-success)",
+    cyan: "bg-transparent border-(--cyan) text-(--cyan-text)",
+    purple: "bg-transparent border-(--purple) text-(--purple-text)",
+    orange: "bg-transparent border-(--orange) text-(--orange-text)",
+    pink: "bg-transparent border-(--pink) text-(--pink-text)",
+    warning:
+      "bg-transparent border-(--color-status-warning) text-(--color-status-warning)",
   },
   ghost: {
-    neutral: "bg-transparent border-transparent text-(--text2)",
-    subtle: "bg-transparent border-transparent text-(--muted)",
-    red: "bg-transparent border-transparent text-(--red)",
-    amber: "bg-transparent border-transparent text-(--amber)",
-    blue: "bg-transparent border-transparent text-(--blue)",
-    green: "bg-transparent border-transparent text-(--green)",
-    cyan: "bg-transparent border-transparent text-(--cyan)",
-    purple: "bg-transparent border-transparent text-(--purple)",
-    orange: "bg-transparent border-transparent text-(--orange)",
-    pink: "bg-transparent border-transparent text-(--pink)",
+    neutral: "bg-transparent border-transparent text-(--color-text-secondary)",
+    subtle: "bg-transparent border-transparent text-(--color-text-muted)",
+    red: "bg-transparent border-transparent text-(--color-status-danger)",
+    amber: "bg-transparent border-transparent text-(--color-action-text)",
+    blue: "bg-transparent border-transparent text-(--color-status-info)",
+    green: "bg-transparent border-transparent text-(--color-status-success)",
+    cyan: "bg-transparent border-transparent text-(--cyan-text)",
+    purple: "bg-transparent border-transparent text-(--purple-text)",
+    orange: "bg-transparent border-transparent text-(--orange-text)",
+    pink: "bg-transparent border-transparent text-(--pink-text)",
+    warning: "bg-transparent border-transparent text-(--color-status-warning)",
   },
   solid: {
-    amber: "bg-(--amber) border-(--amber) text-white",
-    neutral: "bg-(--text) border-(--text) text-white",
-    subtle: "bg-(--text2) border-(--text2) text-white",
-    red: "bg-(--red) border-(--red) text-white",
-    blue: "bg-(--blue) border-(--blue) text-white",
-    green: "bg-(--green) border-(--green) text-white",
-    cyan: "bg-(--cyan) border-(--cyan) text-white",
+    // Texto branco por escolha de marca (o escuro foi recusado em 13/11/2026).
+    // Para o branco passar no WCAG 1.4.3, o FUNDO escurece: --color-action
+    // (#a86608) dá 4,6:1; o --amber puro dava 3,2:1 e reprovava.
+    amber:
+      "bg-(--color-action) border-(--color-action) text-(--color-on-action)",
+    neutral: "bg-(--color-text) border-(--color-text) text-white",
+    subtle:
+      "bg-(--color-text-secondary) border-(--color-text-secondary) text-white",
+    red: "bg-(--color-status-danger) border-(--color-status-danger) text-white",
+    blue: "bg-(--color-status-info) border-(--color-status-info) text-white",
+    green:
+      "bg-(--color-status-success) border-(--color-status-success) text-white",
+    cyan: "bg-(--cyan-text) border-(--cyan-text) text-white",
     purple: "bg-(--purple) border-(--purple) text-white",
-    orange: "bg-(--orange) border-(--orange) text-white",
+    orange: "bg-(--orange-text) border-(--orange-text) text-white",
     pink: "bg-(--pink) border-(--pink) text-white",
+    warning:
+      "bg-(--color-status-warning) border-(--color-status-warning) text-white",
   },
 };
 

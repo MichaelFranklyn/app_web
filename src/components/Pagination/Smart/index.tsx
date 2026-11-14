@@ -8,7 +8,11 @@ interface PaginationSmartProps {
   onPageChange: (page: number) => void;
 }
 
-export const Smart = ({ currentPage, totalPages, onPageChange }: PaginationSmartProps) => {
+export const Smart = ({
+  currentPage,
+  totalPages,
+  onPageChange,
+}: PaginationSmartProps) => {
   if (totalPages <= 1) return null;
 
   const pages = Array.from({ length: Math.min(7, totalPages) }, (_, i) => {
@@ -19,13 +23,23 @@ export const Smart = ({ currentPage, totalPages, onPageChange }: PaginationSmart
 
   return (
     <Root>
-      <Prev disabled={currentPage <= 1} onClick={() => onPageChange(currentPage - 1)} />
+      <Prev
+        disabled={currentPage <= 1}
+        onClick={() => onPageChange(currentPage - 1)}
+      />
       {pages.map((page) => (
-        <Item key={page} active={page === currentPage} onClick={() => onPageChange(page)}>
+        <Item
+          key={page}
+          active={page === currentPage}
+          onClick={() => onPageChange(page)}
+        >
           {page}
         </Item>
       ))}
-      <Next disabled={currentPage >= totalPages} onClick={() => onPageChange(currentPage + 1)} />
+      <Next
+        disabled={currentPage >= totalPages}
+        onClick={() => onPageChange(currentPage + 1)}
+      />
     </Root>
   );
 };

@@ -141,7 +141,6 @@ export function PortalReplenishContent({
             color="amber"
             size="md"
             fullWidth
-            noUppercase
             loading={isPending}
           >
             <Button.Title>Pedir ao meu representante</Button.Title>

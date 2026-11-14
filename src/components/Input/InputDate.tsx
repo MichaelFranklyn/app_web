@@ -7,7 +7,7 @@ import { InputLabel } from "./Label";
 import { InputHint } from "./Hint";
 import { InputGroup } from "./Group";
 import { InputAddon } from "./Addon";
-import { useInputContext } from "./context";
+import { fieldAria, useInputContext } from "./context";
 import {
   inputSizeMinHeight,
   inputSizePadding,
@@ -195,9 +195,11 @@ const InputDateControl = ({
     inputSizePadding[size],
     !inGroup && inputSizeMinHeight[size],
     "flex items-center gap-[8px] cursor-pointer",
-    inGroup ? inputStyles.controlGrouped : inputStyles.controlBordered,
-    !inGroup && isError && inputStyles.error,
-    !inGroup && isSuccess && inputStyles.success,
+    inGroup ? inputStyles.controlGrouped : inputStyles.controlBorderedWithin,
+    // Travado tem de parecer travado (ver controlBase).
+    disabled && inputStyles.controlDisabled,
+    !inGroup && isError && inputStyles.groupError,
+    !inGroup && isSuccess && inputStyles.groupSuccess,
     className
   );
 
@@ -209,7 +211,7 @@ const InputDateControl = ({
     >
       <div
         className={cn(
-          "flex items-center justify-center pl-1 text-(--muted)",
+          "flex items-center justify-center pl-1 text-(--color-text-muted)",
           variant === "single" && "mr-1"
         )}
       >
@@ -218,6 +220,7 @@ const InputDateControl = ({
 
       <input
         {...props}
+        {...fieldAria(context, props)}
         readOnly
         id={context?.id}
         disabled={disabled}
@@ -233,6 +236,7 @@ const InputDateControl = ({
       {!disabledClear && dateSel.hasValue && (
         <button
           type="button"
+          aria-label="Limpar"
           className={cn(selectStyles.clearIcon, "pointer-events-auto")}
           onClick={dateSel.handleClear}
           disabled={disabled}

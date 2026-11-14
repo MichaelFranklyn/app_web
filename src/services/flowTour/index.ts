@@ -2,6 +2,7 @@
 // - FlowTourProvider: provê o contexto e renderiza o lançador (FAB) + a camada do tour.
 // - useFlowTourLauncher: inicia um fluxo e consulta o progresso a partir de qualquer lugar.
 export { FlowTourProvider, useFlowTourLauncher } from "./FlowTourProvider";
+export { FlowTourLauncher } from "./components/FlowTourLauncher";
 export type {
   FlowDefinition,
   FlowStep,

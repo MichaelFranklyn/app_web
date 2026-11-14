@@ -42,6 +42,28 @@ interface Props {
   onChanged: () => void;
 }
 
+/**
+ * O título do vazio diz O QUE não há, na situação aberta: "Nenhuma comissão
+ * em novembro" na aba Recebido se lia como se o mês estivesse vazio, com o
+ * card "A receber" mostrando valor logo acima. Na aba que ignora o mês,
+ * nomear o mês seria mentir sobre o que foi procurado.
+ */
+function emptyTitle(tab: CommissionTab, month: YearMonth): string {
+  const label = monthLabel(month);
+  switch (tab) {
+    case "receivable":
+      return `Nada a receber em ${label}`;
+    case "pending":
+      return `Nada previsto para ${label}`;
+    case "received":
+      return `Nada recebido em ${label}`;
+    case "overdue":
+      return "Nenhum boleto em atraso";
+    default:
+      return `Nenhuma comissão em ${label}`;
+  }
+}
+
 /** Um cartão por fábrica com o seu mês — ou o esqueleto, ou o vazio. */
 export function CommissionsList({
   groups,
@@ -72,32 +94,26 @@ export function CommissionsList({
   }
 
   if (groups.length === 0) {
+    // O EmptyState já é um card: dentro do `Table.Root` + p-24 ele virava
+    // card dentro de card (14/11/2026).
     return (
-      <Table.Root>
-        <div className="p-24">
-          <EmptyState.Root>
-            <EmptyState.Icon>
-              <Coins size={32} />
-            </EmptyState.Icon>
-            {/* Na aba que ignora o mês, nomear o mês aqui seria mentir
-                sobre o que foi procurado. */}
-            <EmptyState.Title>
-              {ignoresMonth(tab)
-                ? "Nenhum boleto em atraso"
-                : `Nenhuma comissão em ${monthLabel(month)}`}
-            </EmptyState.Title>
-            <EmptyState.Description>
-              {isFiltered
-                ? "Nenhuma parcela passou pelos filtros. Ajuste-os no botão “Filtros”, ao lado das situações."
-                : // "Há comissão em algum mês": a data mais recente diz,
-                  // e não as linhas — elas são só as do mês aberto.
-                  hasAnyCommission
-                  ? "Use as setas ao lado do mês, lá em cima, para conferir outro mês, ou troque a situação nos botões acima."
-                  : "As comissões aparecem quando os pedidos são faturados. Fature um pedido para gerar as parcelas e acompanhar o que há a receber."}
-            </EmptyState.Description>
-          </EmptyState.Root>
-        </div>
-      </Table.Root>
+      <EmptyState.Root>
+        <EmptyState.Icon>
+          <Coins size={32} />
+        </EmptyState.Icon>
+        <EmptyState.Title>{emptyTitle(tab, month)}</EmptyState.Title>
+        <EmptyState.Description>
+          {isFiltered
+            ? "Nenhuma parcela passou pelos filtros. Ajuste-os no botão “Filtros”, ao lado das situações."
+            : // "Há comissão em algum mês": a data mais recente diz,
+              // e não as linhas — elas são só as do mês aberto.
+              hasAnyCommission
+              ? ignoresMonth(tab)
+                ? "Nenhuma parcela venceu sem a fábrica pagar. Troque a situação nas abas acima para ver as outras."
+                : "Use as setas ao lado do mês, lá em cima, para conferir outro mês, ou troque a situação nas abas acima."
+              : "As comissões aparecem quando os pedidos são faturados. Fature um pedido para gerar as parcelas e acompanhar o que há a receber."}
+        </EmptyState.Description>
+      </EmptyState.Root>
     );
   }
 

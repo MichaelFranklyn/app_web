@@ -18,7 +18,11 @@ const Root = ({
   <div
     className={cn(
       "flex flex-col divide-y divide-(--border)",
-      width === 280 ? "w-[280px]" : "w-[300px]"
+      // 22px = margem da tela (20) + borda da caixa (2): no celular estreito o
+      // painel encolhe em vez de vazar.
+      width === 280
+        ? "w-[min(280px,calc(100vw-22px))]"
+        : "w-[min(300px,calc(100vw-22px))]"
     )}
   >
     {children}
@@ -35,7 +39,9 @@ const Header = ({
 }) => (
   <div className="flex items-center justify-between gap-8 px-[12px] py-[10px]">
     {typeof children === "string" ? (
-      <Title variant="label">{children}</Title>
+      <Title variant="label" weight="semibold">
+        {children}
+      </Title>
     ) : (
       children
     )}
@@ -59,4 +65,10 @@ const Section = ({
   />
 );
 
+/**
+ * QUANDO USAR: conteúdo em seções dentro de `<Tooltip panel content={...}>` —
+ * a composição de um número (KPI, score, total). Não é peça solta nem
+ * substitui modal: se tiver ação, vira rota/tela. Regras:
+ * PATTERNS/ds-usage-rules.md.
+ */
 export const TooltipPanel = { Root, Header, Section };

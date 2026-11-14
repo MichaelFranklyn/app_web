@@ -93,8 +93,10 @@ export default function Chart({
     <div
       ref={containerRef}
       className={cn(
-        "transition-opacity duration-200",
-        dimmed && "opacity-60",
+        // Recarga: o gráfico desbota a cor (grayscale), não a transparência —
+        // os rótulos dos eixos continuam legíveis enquanto o dado novo chega.
+        "transition-[filter] duration-200",
+        dimmed && "grayscale-[0.7]",
         className
       )}
       style={{ height }}

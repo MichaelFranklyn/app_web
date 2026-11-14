@@ -4,6 +4,7 @@ import { Loading } from "@/components/Loading";
 import { PageContent } from "@/components/PageContent";
 import { PanelHeader } from "@/components/PanelHeader";
 import { Table } from "@/components/Table";
+import { PAGE_HEADING } from "@/utils/modules";
 
 const ITEM_ROWS = 5;
 
@@ -19,7 +20,7 @@ function HeaderSkeleton() {
       <PanelHeader.Root>
         <PanelHeader.Top>
           <PanelHeader.Left>
-            <Loading.Skeleton className="h-[20px] w-72" />
+            <PanelHeader.HeadingSkeleton {...PAGE_HEADING.orders} />
             <Loading.Skeleton className="mt-[6px] h-[12px] w-56" />
             <PanelHeader.Actions className="mt-6">
               <Loading.Skeleton shape="pill" className="h-[22px] w-20" />
@@ -93,7 +94,7 @@ export function OrderDetailSkeleton() {
         <div className="flex min-w-0 flex-1 flex-col gap-12">
           <ItemsTableSkeleton />
         </div>
-        <div className="flex w-[260px] shrink-0 flex-col gap-12">
+        <div className="desktop:w-[320px] flex w-[260px] shrink-0 flex-col gap-12">
           <SummaryCardSkeleton />
         </div>
       </div>

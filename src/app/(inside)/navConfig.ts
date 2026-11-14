@@ -10,7 +10,6 @@ import {
   ListChecks,
   Route,
   Settings,
-  Sparkles,
   Target,
   Users,
 } from "lucide-react";
@@ -56,20 +55,14 @@ export const NAV = [
     feature: "ROUTINES" as NavFeature,
   },
   {
-    // A ÚNICA lista de trabalho: uma linha por compromisso, com prioridade,
-    // prazo e o caminho até onde se resolve. Sem `feature` e sem `access`: o
-    // recorte (as minhas / as da empresa) é no resolver, e o que o plano não
-    // tem (rotina) simplesmente não gera pendência.
-    href: "/pending",
-    label: "Pendências",
+    // A central do dia (14/11/2026): Pendências (o que resolver) e
+    // Oportunidades (onde vale agir para vender mais) numa entrada só, cada
+    // uma na sua aba (`/priorities` e `/priorities/opportunities`). Sem `feature` e
+    // sem `access`: as duas leituras são de quem abre (o recorte é no
+    // resolver), e o que o plano não tem simplesmente não gera pendência.
+    href: "/priorities",
+    label: "Prioridades",
     icon: ListChecks,
-  },
-  {
-    // Onde vale agir para vender mais (a antiga /insights, que redireciona
-    // para cá). Sem `feature`: a leitura é da carteira, calculada na hora.
-    href: "/opportunities",
-    label: "Oportunidades",
-    icon: Sparkles,
   },
   { divider: true },
   { section: "Operações" },

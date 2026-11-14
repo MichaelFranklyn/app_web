@@ -66,7 +66,7 @@ export default function LoginContent() {
         <Responsive.Show
           from="desktop"
           display="flex"
-          className="w-120 flex-col items-start justify-center gap-8"
+          className="w-[440px] shrink-0 flex-col items-start justify-center gap-8"
         >
           {/* A marca leva à vitrine: quem cai aqui por link direto e ainda
               não conhece o sistema precisa de um caminho de volta. */}
@@ -74,11 +74,14 @@ export default function LoginContent() {
             <BrandLogo priority className="w-60" />
           </Link>
 
+          {/* Duas linhas justas: em 380px o "representação" quebrava sozinho e
+              o leading-relaxed do kpi abria um vão entre as três linhas
+              (pedido do usuário, 14/11/2026). */}
           <Title
             variant="kpi"
             as="h1"
             weight="extrabold"
-            className="pt-8 uppercase"
+            className="pt-8 leading-[1.1]"
           >
             {HEADLINE.lead}
             <br />
@@ -94,7 +97,7 @@ export default function LoginContent() {
           <div className="flex flex-col gap-12">
             {FEATURES.map((text, i) => (
               <div key={i} className="flex items-start gap-4">
-                <Title variant="caption" color="amber">
+                <Title variant="caption" weight="semibold" color="secondary">
                   {String(i + 1).padStart(2, "0")}
                 </Title>
                 <Title variant="caption" color="muted">
@@ -109,7 +112,7 @@ export default function LoginContent() {
           <Divider.Root orientation="vertical" diamond />
         </Responsive.Show>
 
-        <div className="desktop:justify-center flex w-full max-w-95 flex-col gap-8">
+        <div className="desktop:justify-center desktop:w-[380px] desktop:shrink-0 flex w-full max-w-95 flex-col gap-8">
           {/* No celular o painel da esquerda não existe, e sem isto a tela de
               entrada ficava sem marca nenhuma — justamente onde o vendedor
               entra todo dia. */}
@@ -175,7 +178,6 @@ export default function LoginContent() {
                   color="amber"
                   appearance="ghost"
                   size="sm"
-                  noUppercase
                   noPadding
                   onClick={() => router.push("/forgot-password")}
                 >

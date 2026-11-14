@@ -1,7 +1,7 @@
 "use client";
 
+import { Alert } from "@/components/Alert";
 import { Loading } from "@/components/Loading";
-import { Title } from "@/components/Title";
 import { Info } from "lucide-react";
 
 import { ignoresMonth, scopeSentence } from "../../help";
@@ -50,7 +50,7 @@ interface Props {
  * boletos travados, e num alerta grande — as outras quatro deixavam o leitor
  * adivinhar.
  *
- * A aba que ignora o mês continua se destacando (âmbar), porque ali a lista
+ * A aba que ignora o mês continua se destacando (alerta), porque ali a lista
  * realmente não bate com os cartões de cima e isso precisa saltar.
  */
 export function ListScopeLine({
@@ -65,34 +65,35 @@ export function ListScopeLine({
   const foraDoMes = ignoresMonth(tab);
   const filtrado = total !== undefined && total !== shown;
 
+  const contagem = filtrado
+    ? `${shown} de ${total} parcela(s) após os filtros`
+    : `${shown} parcela(s)`;
+
+  // Alert pequeno do DS: a frase numa linha, quem e quantas na outra. Como
+  // texto solto com "·", a linha quebrava no meio no celular. `role="note"`:
+  // é legenda permanente, não um aviso que o leitor de tela deva interromper
+  // para anunciar a cada troca de aba.
   return (
-    <div className="flex flex-wrap items-center gap-6">
-      <Info
-        size={14}
-        className={foraDoMes ? "text-(--amber)" : "text-(--fg-muted)"}
-      />
-      <Title variant="caption" color={foraDoMes ? "amber" : "muted"}>
-        {scopeSentence(tab, monthLabel(month), audience)}
-      </Title>
-      {scopeLabel && (
-        <Title variant="caption" color="muted">
-          · {scopeLabel}
-        </Title>
-      )}
-      <Title variant="caption" color="muted">
-        ·{" "}
-        {filtrado
-          ? `${shown} de ${total} parcela(s) após os filtros`
-          : `${shown} parcela(s)`}
-      </Title>
-      {isRefreshing && (
-        <>
-          <Loading.Spinner size="sm" />
-          <Title variant="caption" color="muted">
-            Atualizando…
-          </Title>
-        </>
-      )}
-    </div>
+    <Alert.Root variant={foraDoMes ? "warning" : "info"} size="sm" role="note">
+      <Alert.Icon icon={Info} />
+      <Alert.Content>
+        <Alert.Description className="max-w-none">
+          {scopeSentence(tab, monthLabel(month), audience)}
+        </Alert.Description>
+        <div className="flex flex-wrap items-center gap-6">
+          <Alert.Description className="max-w-none">
+            {scopeLabel ? `${scopeLabel} · ${contagem}` : contagem}
+          </Alert.Description>
+          {isRefreshing && (
+            <>
+              <Loading.Spinner size="sm" />
+              <Alert.Description className="max-w-none">
+                Atualizando…
+              </Alert.Description>
+            </>
+          )}
+        </div>
+      </Alert.Content>
+    </Alert.Root>
   );
 }

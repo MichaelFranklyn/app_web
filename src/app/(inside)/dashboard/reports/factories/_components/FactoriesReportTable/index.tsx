@@ -64,6 +64,8 @@ export function FactoriesReportTable({
         </Table.CardHead.Title>
         <Table.CardHead.Actions>
           <Filters
+            resultCount={totalItems}
+            resultLoading={loading}
             fields={filterFields}
             values={inputValues}
             onChange={setFilters}
@@ -106,7 +108,7 @@ export function FactoriesReportTable({
           ) : items.length === 0 ? (
             <Table.Row>
               <Table.Cell colSpan={8}>
-                <EmptyState.Root>
+                <EmptyState.Root flat>
                   <EmptyState.Icon>
                     <Building2 size={32} />
                   </EmptyState.Icon>

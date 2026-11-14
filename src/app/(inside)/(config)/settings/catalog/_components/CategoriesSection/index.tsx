@@ -12,6 +12,7 @@ import { useOptimisticList } from "@/hooks/useOptimisticList";
 import { Tag } from "lucide-react";
 import { useMemo } from "react";
 import { AddCategoryModal } from "./AddCategoryModal";
+import { CatalogRowActions } from "../CatalogRowActions";
 import { DeleteCategoryModal } from "./DeleteCategoryModal";
 import { EditCategoryModal } from "./EditCategoryModal";
 import { ProductCategoryRow } from "./gql";
@@ -46,14 +47,12 @@ export function CategoriesSection() {
   return (
     <Table.Root>
       <CatalogSectionHead
-        count={categories.length}
-        loading={loading && categories.length === 0}
-        noun={{ one: "categoria", many: "categorias" }}
+        title="Categorias cadastradas"
         helpLabel="Qual a diferença entre categoria e segmento?"
         helpContent={
           <div className="flex flex-col gap-6">
             <div className="flex flex-col gap-2">
-              <Title variant="label" color="amber">
+              <Title variant="label" weight="semibold">
                 Segmento
               </Title>
               <Title variant="body-sm">
@@ -62,7 +61,7 @@ export function CategoriesSection() {
               </Title>
             </div>
             <div className="flex flex-col gap-2">
-              <Title variant="label" color="amber">
+              <Title variant="label" weight="semibold">
                 Categoria
               </Title>
               <Title variant="body-sm">
@@ -87,7 +86,8 @@ export function CategoriesSection() {
         />
       </CatalogSectionHead>
 
-      <Table.Table maxHeight={600}>
+      {/* Abaixo do desktop cada linha vira cartão, com editar/excluir no "⋯". */}
+      <Table.Table maxHeight={600} cards>
         <Table.Header>
           <Table.Row>
             <Table.Head title={CATEGORY_COLUMN_HELP.name}>Nome</Table.Head>
@@ -131,26 +131,41 @@ export function CategoriesSection() {
           ) : (
             categories.map((c) => (
               <Table.Row key={c.id}>
-                <Table.Cell variant="strong">{c.name}</Table.Cell>
-                <Table.Cell variant="dim">{c.segment}</Table.Cell>
-                <Table.Cell>
-                  <div className="flex items-center justify-end gap-4">
-                    <EditCategoryModal
-                      category={c}
-                      onUpdateOptimistic={optimistic.updateOptimistic}
-                      onCommit={optimistic.commit}
-                      onRollback={optimistic.rollback}
-                      onChanged={onChanged}
-                    />
-                    <DeleteCategoryModal
-                      categoryId={c.id}
-                      categoryName={c.name}
-                      onRemoveOptimistic={optimistic.removeOptimistic}
-                      onCommit={optimistic.commit}
-                      onRollback={optimistic.rollback}
-                      onChanged={onChanged}
-                    />
-                  </div>
+                <Table.Cell card="title" variant="strong">
+                  {c.name}
+                </Table.Cell>
+                {/* No cartão o segmento divide a última linha com o "⋯" (`aside`):
+                    sozinho ele deixava a direita vazia e o "⋯" numa linha só dele. */}
+                <Table.Cell card="aside" label="Segmento" variant="dim">
+                  {c.segment}
+                </Table.Cell>
+                <Table.Cell card="actions">
+                  <CatalogRowActions
+                    label={`Ações da categoria ${c.name}`}
+                    editLabel="Editar categoria"
+                    deleteLabel="Excluir categoria"
+                    renderEdit={(control) => (
+                      <EditCategoryModal
+                        {...control}
+                        category={c}
+                        onUpdateOptimistic={optimistic.updateOptimistic}
+                        onCommit={optimistic.commit}
+                        onRollback={optimistic.rollback}
+                        onChanged={onChanged}
+                      />
+                    )}
+                    renderDelete={(control) => (
+                      <DeleteCategoryModal
+                        {...control}
+                        categoryId={c.id}
+                        categoryName={c.name}
+                        onRemoveOptimistic={optimistic.removeOptimistic}
+                        onCommit={optimistic.commit}
+                        onRollback={optimistic.rollback}
+                        onChanged={onChanged}
+                      />
+                    )}
+                  />
                 </Table.Cell>
               </Table.Row>
             ))

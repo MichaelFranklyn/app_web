@@ -67,7 +67,7 @@ export function PortalOrderCard({ order, token }: PortalOrderCardProps) {
               </div>
               <ChevronRight
                 size={20}
-                className="shrink-0 text-(--muted)"
+                className="shrink-0 text-(--color-text-muted)"
                 aria-hidden
               />
             </div>

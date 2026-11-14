@@ -61,6 +61,8 @@ export function SentOrdersTable({
         </Table.CardHead.Title>
         <Table.CardHead.Actions>
           <Filters
+            resultCount={totalItems}
+            resultLoading={loading}
             fields={filterFields}
             values={inputValues}
             onChange={setFilters}
@@ -96,7 +98,7 @@ export function SentOrdersTable({
           ) : items.length === 0 ? (
             <Table.Row>
               <Table.Cell colSpan={7}>
-                <EmptyState.Root>
+                <EmptyState.Root flat>
                   <EmptyState.Icon>
                     <Send size={32} />
                   </EmptyState.Icon>
@@ -156,7 +158,7 @@ export function SentOrdersTable({
                   {order.invoicedAt ? (
                     formatDateDMY(order.invoicedAt)
                   ) : (
-                    <Badge.Root color="amber" appearance="tinted">
+                    <Badge.Root color="warning" appearance="tinted">
                       <Badge.Text>Aguardando</Badge.Text>
                     </Badge.Root>
                   )}

@@ -74,7 +74,6 @@ export function VisitPlaybook({ itemId, open }: Props) {
           appearance="ghost"
           color="neutral"
           size="sm"
-          noUppercase
           onClick={() => router.push(`/clients/${clientId}/products`)}
         >
           <Button.Icon icon={PackageSearch} />

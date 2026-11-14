@@ -200,7 +200,6 @@ export function StockObservationList({
                     appearance="outline"
                     color="neutral"
                     size="sm"
-                    noUppercase
                     disabled={!group.factory || isBusy}
                     loading={
                       isBusy && orderingId === group.sellerClientFactoryId
@@ -247,7 +246,6 @@ export function StockObservationList({
           appearance="solid"
           color="amber"
           size="md"
-          noUppercase
           loading={isLoading}
           disabled={isLeaving}
           onClick={handleSave}

@@ -244,7 +244,6 @@ export function EditCompanyFactoryModal() {
                 appearance="ghost"
                 color="neutral"
                 size="md"
-                noUppercase
                 disabled={isLoading}
               >
                 <Button.Title>Cancelar</Button.Title>
@@ -256,7 +255,6 @@ export function EditCompanyFactoryModal() {
               appearance="ghost"
               color="neutral"
               size="md"
-              noUppercase
               disabled={isLoading}
               onClick={handleBack}
             >
@@ -268,7 +266,6 @@ export function EditCompanyFactoryModal() {
             appearance="solid"
             color="amber"
             size="md"
-            noUppercase
             loading={isLoading}
             onClick={() =>
               isLastStep ? formRef.current?.submitForm() : handleNext()

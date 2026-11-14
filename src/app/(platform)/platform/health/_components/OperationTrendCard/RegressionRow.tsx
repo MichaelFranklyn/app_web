@@ -73,7 +73,7 @@ export function RegressionRow({
               {formatMs(regression.p95Previous)} →{" "}
               {formatMs(regression.p95Current)}
             </Title>
-            <Title variant="micro" color="amber">
+            <Title variant="micro" color="warning">
               {formatDelta(regression.p95Change)}
             </Title>
           </div>

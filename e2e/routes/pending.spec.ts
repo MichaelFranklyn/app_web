@@ -218,7 +218,7 @@ test("pendências: cada assunto é um cartão com o número e os mais urgentes",
     ])
   );
 
-  await page.goto("/pending");
+  await page.goto("/priorities");
 
   const visits = cardOf(page, "Visitas e ligações sem resposta");
   await expect(visits).toContainText("de prioridade alta");
@@ -259,7 +259,7 @@ test("pendências: abrir o cartão mostra a lista com prioridade, prazo e motivo
 }) => {
   const spy = await mockGraphql(page, handlers([item(), order(), comeBack()]));
 
-  await page.goto("/pending");
+  await page.goto("/priorities");
   await openCard(page, "Pedidos parados");
 
   // A lista é do backend, cortada pelo assunto — e o assunto fica na URL: quem
@@ -297,7 +297,7 @@ test("pendências: visita sem resposta diz o que houve e leva à rota", async ({
 }) => {
   await mockGraphql(page, handlers([item()]));
 
-  await page.goto("/pending?type=VISIT_OVERDUE");
+  await page.goto("/priorities?type=VISIT_OVERDUE");
 
   const visit = rowOf(page, "Mercadinho do Zé");
   await expect(visit).toContainText("Alta");
@@ -329,7 +329,7 @@ test("pendências: a parada marcada do retorno nasce vinculada a ele", async ({
       },
     }),
   });
-  await page.goto("/pending");
+  await page.goto("/priorities");
   await openCard(page, "Retornos combinados");
 
   await rowOf(page, "Casa Bahia Tintas")
@@ -359,7 +359,7 @@ test("pendências: o mais urgente do cartão leva direto aonde se resolve", asyn
 }) => {
   await mockGraphql(page, handlers([order()]));
 
-  await page.goto("/pending");
+  await page.goto("/priorities");
   await cardOf(page, "Pedidos parados")
     .getByRole("link", { name: /Decore Casa/ })
     .click();
@@ -372,7 +372,7 @@ test("pendências: pedido parado também abre a ficha do cliente", async ({
 }) => {
   await mockGraphql(page, handlers([order(), comeBack()]));
 
-  await page.goto("/pending?type=RETURN_SCHEDULED");
+  await page.goto("/priorities?type=RETURN_SCHEDULED");
   // Quando a ação JÁ leva ao cliente, um segundo botão para o mesmo lugar
   // seria ruído: o retorno não tem "Ver cliente".
   await expect(rowOf(page, "Casa Bahia Tintas")).toBeVisible();
@@ -394,7 +394,7 @@ test("pendências: vendedor não filtra por vendedor nem vê de quem é", async 
 }) => {
   await mockGraphql(page, handlers([item()]));
 
-  await page.goto("/pending?type=VISIT_OVERDUE");
+  await page.goto("/priorities?type=VISIT_OVERDUE");
   const row = rowOf(page, "Mercadinho do Zé");
   await expect(row).toBeVisible();
   // Tudo ali é dele: o nome do responsável seria ruído.
@@ -424,7 +424,7 @@ test("pendências: gestor filtra por vendedor e vê de quem é cada uma", async 
     }),
   });
 
-  await page.goto("/pending?type=VISIT_OVERDUE");
+  await page.goto("/priorities?type=VISIT_OVERDUE");
 
   await expect(rowOf(page, "Mercadinho do Zé")).toContainText(
     "João Sacramento"
@@ -452,7 +452,7 @@ test("pendências: gestor filtra por vendedor e vê de quem é cada uma", async 
 test("pendências: nada pendente é boa notícia, não erro", async ({ page }) => {
   await mockGraphql(page, handlers([]));
 
-  await page.goto("/pending");
+  await page.goto("/priorities");
 
   await expect(page.getByText("Nada pendente")).toBeVisible();
   await expect(page.locator('[data-tour="pending-card"]')).toHaveCount(0);
@@ -470,11 +470,11 @@ test("pendências: o contador filtra os cartões pelo prazo e fica na URL", asyn
 }) => {
   const spy = await mockGraphql(page, handlers([item(), order(), comeBack()]));
 
-  await page.goto("/pending");
+  await page.goto("/priorities");
   const counters = page.locator('[data-tour="pending-counts"]');
   // Visita e pedido venceram; o retorno é da semana que vem.
   await expect(
-    counters.getByRole("button", { name: /2\s*Atrasadas/ })
+    counters.getByRole("button", { name: /Atrasadas\s*2/ })
   ).toBeVisible();
   await expect(cardOf(page, "Visitas e ligações sem resposta")).toBeVisible();
 
@@ -492,7 +492,7 @@ test("pendências: o contador filtra os cartões pelo prazo e fica na URL", asyn
   ).toHaveAttribute("aria-pressed", "true");
   // Os contadores dizem o que existe para clicar: não mudam com a faixa.
   await expect(
-    counters.getByRole("button", { name: /2\s*Atrasadas/ })
+    counters.getByRole("button", { name: /Atrasadas\s*2/ })
   ).toBeVisible();
 
   // O mesmo clique desfaz.
@@ -545,7 +545,7 @@ test("pendências: boleto vencido tem cartão próprio, sem perder a prioridade"
 }) => {
   const spy = await mockGraphql(page, handlers([item(), boleto(), address()]));
 
-  await page.goto("/pending");
+  await page.goto("/priorities");
 
   // O boleto não se mistura com a visita: cada assunto no seu cartão, e a
   // cobrança sempre à vista, com o número.
@@ -581,9 +581,9 @@ test("pendências: boleto vencido tem cartão próprio, sem perder a prioridade"
 });
 
 for (const url of [
-  "/pending?type=INSTALLMENT_OVERDUE",
+  "/priorities?type=INSTALLMENT_OVERDUE",
   // O link da tela antiga, que separava "Cobranças" numa seção.
-  "/pending?section=charges",
+  "/priorities?section=charges",
 ]) {
   test(`pendências: o link ${url} abre a lista dos boletos`, async ({
     page,
@@ -606,7 +606,7 @@ test("pendências: endereço a corrigir não tem prazo e leva ao cadastro", asyn
 }) => {
   await mockGraphql(page, handlers([address()]));
 
-  await page.goto("/pending");
+  await page.goto("/priorities");
 
   const card = cardOf(page, "Endereços a corrigir");
   await expect(card).toContainText("sem prazo — trava a rotina");
@@ -650,7 +650,7 @@ test("pendências: frequência vencida não se confunde com visita sem resposta"
     ])
   );
 
-  await page.goto("/pending");
+  await page.goto("/priorities");
 
   // Dois assuntos, dois cartões: cada cliente no seu.
   await expect(cardOf(page, "Visitas e ligações sem resposta")).toContainText(
@@ -697,7 +697,7 @@ test("pendências: entrega sem confirmar traz o WhatsApp do pós-venda", async (
     ])
   );
 
-  await page.goto("/pending?type=ORDER_STALLED");
+  await page.goto("/priorities?type=ORDER_STALLED");
 
   const whatsapp = list(page).getByRole("link", {
     name: /Perguntar pelo WhatsApp se o pedido de Decore/,
@@ -720,7 +720,7 @@ test("pendências: no celular o cartão e a lista cabem sem rolar para o lado", 
   await page.setViewportSize({ width: 390, height: 844 });
   await mockGraphql(page, handlers([order()]));
 
-  await page.goto("/pending?type=ORDER_STALLED");
+  await page.goto("/priorities?type=ORDER_STALLED");
 
   // Não há tabela em largura nenhuma: cartão e lista se empilham.
   await expect(page.getByRole("table")).toHaveCount(0);

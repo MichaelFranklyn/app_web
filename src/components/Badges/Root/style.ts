@@ -2,17 +2,26 @@ import { getThemeClasses, ThemeAppearance } from "@/lib/theme";
 import { cn } from "@/lib/utils";
 import { BadgeAppearance, BadgeColor, BadgeSize } from "./interface";
 
+// justify-center + text-center na BASE, não só no fullWidth: a tag esticada
+// pelo pai (grid, coluna do card, estágio column do header) ficava com o texto
+// grudado à esquerda e sobra à direita (teste em aparelho, 13/11/2026).
 const baseClasses =
-  "inline-flex items-center gap-(--spacing-4) font-(--weight-medium) tracking-[0.06em] uppercase border whitespace-nowrap transition-colors w-max";
+  "inline-flex items-center justify-center text-center gap-(--spacing-4) rounded-full font-(--weight-semibold) border whitespace-nowrap transition-colors w-max";
 
-// Espelha exatamente o Button (Button/Root/style.ts → sizeText + sizePadding),
-// para que badge e botão de mesmo size fiquem com a mesma altura quando usados
-// lado a lado. Todos os tamanhos têm paridade 1:1 com o botão, inclusive o xs.
+// Altura espelha o Button (Button/Root/style.ts → sizeText + sizePadding),
+// para que badge e botão de mesmo size fiquem alinhados lado a lado.
+//
+// A FORMA não espelha: selo é pílula (rounded-full), botão é retângulo de
+// canto arredondado. Com a mesma forma, a mesma borda e a mesma altura, o
+// status "ENTREGUE" ao lado de "Editar" parecia mais um botão (revisão UX,
+// 13/11/2026). A forma separa "isto informa" de "isto se clica". A caixa alta
+// saiu em 14/11/2026: lê pior para o público idoso; o peso semibold sustenta
+// o selo sem gritar.
 const sizeClasses: Record<BadgeSize, string> = {
-  xs: "px-[8px] py-[3px] rounded-(--r-sm) text-[13px]",
-  sm: "px-[12px] py-[5px] rounded-(--r-sm) text-[13px]",
-  md: "px-[16px] py-[8px] rounded-(--r-md) text-[13px]",
-  lg: "px-[20px] py-[11px] rounded-(--r-lg) text-[13px]",
+  xs: "px-[10px] py-[3px] text-body-sm",
+  sm: "px-[12px] py-[5px] text-body-sm",
+  md: "px-[16px] py-[8px] text-body-sm",
+  lg: "px-[20px] py-[11px] text-body-sm",
 };
 
 export const getBadgeClasses = (
@@ -30,7 +39,7 @@ export const getBadgeClasses = (
     baseClasses,
     sizeClasses[size],
     typeClasses,
-    fullWidth && "w-full justify-center",
+    fullWidth && "w-full",
     className
   );
 };

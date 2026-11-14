@@ -44,7 +44,7 @@ export function ScoreTag({ score, factoryScores = [] }: Props) {
     <TooltipPanel.Root width={280}>
       <TooltipPanel.Header
         aside={
-          <Title variant="label" color="amber">
+          <Title variant="label" weight="semibold">
             {total.toFixed(0)}
           </Title>
         }
@@ -56,7 +56,9 @@ export function ScoreTag({ score, factoryScores = [] }: Props) {
             pulse={false}
             intensity="solid"
           />
-          <Title variant="label">{level.label}</Title>
+          <Title variant="label" weight="semibold">
+            {level.label}
+          </Title>
         </div>
       </TooltipPanel.Header>
 

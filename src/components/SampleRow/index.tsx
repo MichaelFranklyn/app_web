@@ -46,7 +46,11 @@ export function SampleRow({
         <div className="flex shrink-0 items-center gap-6">
           {aside}
           {href && (
-            <ArrowUpRight size={14} className="text-(--muted)" aria-hidden />
+            <ArrowUpRight
+              size={14}
+              className="text-(--color-text-muted)"
+              aria-hidden
+            />
           )}
         </div>
       )}

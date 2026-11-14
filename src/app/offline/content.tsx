@@ -2,7 +2,6 @@
 
 import { Button } from "@/components/Button";
 import { EmptyState } from "@/components/EmptyState";
-import { Title } from "@/components/Title";
 import { WifiOff } from "lucide-react";
 import { useEffect, useState } from "react";
 import { sondarServidor } from "@/utils/connectivity";
@@ -84,9 +83,9 @@ export function OfflineContent() {
         <EmptyState.Icon>
           <WifiOff size={36} />
         </EmptyState.Icon>
-        <EmptyState.Title>
-          <Title variant="heading-md">Sem conexão</Title>
-        </EmptyState.Title>
+        {/* Texto direto: EmptyState.Title já é um <h3>, e o <Title> dentro dele
+            gerava h3 aninhado — HTML inválido, erro de hidratação #418. */}
+        <EmptyState.Title>Sem conexão</EmptyState.Title>
         <EmptyState.Description className="max-w-[340px]">
           {voltou
             ? "A conexão voltou. Toque no botão para continuar de onde parou."

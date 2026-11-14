@@ -36,7 +36,7 @@ function VisitRowSkeleton() {
 export function DashboardSkeleton() {
   return (
     <>
-      <Grid.Root cols={{ base: 1, tablet: 2, "desktop-xl": 4 }} gap={12}>
+      <Grid.Root cols={{ base: 2, tablet: 2, "desktop-xl": 4 }} gap={12}>
         {Array.from({ length: KPI_COUNT }).map((_, i) => (
           <KpiCardSkeleton key={i} />
         ))}

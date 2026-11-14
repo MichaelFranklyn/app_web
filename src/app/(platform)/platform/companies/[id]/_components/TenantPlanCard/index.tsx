@@ -28,7 +28,7 @@ export function TenantPlanCard({ tenant }: { tenant: TenantDetail }) {
         </Card.Header.Title>
         <Card.Header.Description>
           {plan
-            ? "O que esta empresa enxerga hoje. Os limites abaixo são os do plano — um teto próprio, se houver, aparece em Uso."
+            ? "O que esta empresa enxerga hoje. Os limites abaixo são os do plano — o que vale de fato, com teto próprio e usuários extras, aparece em Uso."
             : null}
         </Card.Header.Description>
       </Card.Header>

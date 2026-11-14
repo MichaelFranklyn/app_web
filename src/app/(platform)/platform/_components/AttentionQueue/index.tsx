@@ -22,7 +22,10 @@ export function AttentionQueue({ items }: { items: AttentionItem[] }) {
     return (
       <Card.Root>
         <Card.Body className="flex items-center gap-12">
-          <CheckCircle2 size={20} className="shrink-0 text-(--green)" />
+          <CheckCircle2
+            size={20}
+            className="shrink-0 text-(--color-status-success)"
+          />
           <div className="flex flex-col gap-[2px]">
             <Title variant="body-sm" weight="semibold">
               Nada exigindo atenção

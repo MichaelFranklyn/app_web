@@ -33,6 +33,7 @@ const item = (overrides: Partial<OrderItem> = {}): OrderItem =>
 const order = (overrides: Partial<OrderDetail> = {}): OrderDetail =>
   ({
     id: "abc12345-0000-0000-0000-000000000000",
+    number: 42,
     orderDate: "2026-05-10",
     totalAmount: "240",
     ipiAmount: "20",
@@ -84,7 +85,7 @@ const findRow = (rows: string[][], label: string) =>
 describe("buildOrderSheetRows", () => {
   it("abre com a ficha do negócio e o número do pedido", () => {
     const rows = buildOrderSheetRows(order(), [item()]);
-    expect(rows[0]).toEqual(["Pedido", "ABC12345"]);
+    expect(rows[0]).toEqual(["Pedido", "#42"]);
     expect(findRow(rows, "Cliente")?.[1]).toBe("Bom Preço Comércio LTDA");
     expect(findRow(rows, "CNPJ")?.[1]).toBe("12.345.678/0001-90");
     expect(findRow(rows, "Cidade / UF")?.[1]).toBe("Salvador / BA");

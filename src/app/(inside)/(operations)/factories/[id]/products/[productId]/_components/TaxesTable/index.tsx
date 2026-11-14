@@ -81,7 +81,7 @@ export function TaxesTable({ productId, onChanged }: Props) {
             label="Como o imposto afeta os preços?"
             content={
               <div className="flex flex-col gap-2">
-                <Title variant="label" color="amber">
+                <Title variant="label" weight="semibold">
                   Mudou um imposto?
                 </Title>
                 <Title variant="body-sm">

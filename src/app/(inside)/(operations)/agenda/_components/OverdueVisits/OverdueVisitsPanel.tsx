@@ -47,7 +47,7 @@ export function OverdueVisitsPanel({
       <Drawer.Header>
         <Title variant="heading-sm">Visitas sem resposta</Title>
         <div className="mt-6">
-          <Badge.Root color="amber" appearance="tinted">
+          <Badge.Root color="warning" appearance="tinted">
             <Badge.Text>
               {visits.length === 1
                 ? "1 em aberto"

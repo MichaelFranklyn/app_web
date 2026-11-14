@@ -42,7 +42,7 @@ const Root = ({ variant, children, className }: RootProps) => (
   </div>
 );
 
-/** A faixa "SEG TER QUA…" sobre o mês (na semana, o dia diz o próprio nome). */
+/** A faixa "Seg Ter Qua…" sobre o mês (na semana, o dia diz o próprio nome). */
 const Weekdays = ({ labels }: { labels: string[] }) => (
   <>
     {labels.map((label) => (
@@ -56,7 +56,10 @@ const Weekdays = ({ labels }: { labels: string[] }) => (
 );
 
 interface CellProps {
-  /** Dia de fora do mês exibido: esmaecido, como na folhinha. */
+  /**
+   * Dia de fora do mês exibido: fundo apagado e o número em cinza. Sem
+   * `opacity` — ela apagava também os compromissos, que são reais e legíveis.
+   */
   isOutside?: boolean;
   /** Dia que a pessoa não trabalha: fundo apagado. */
   isOff?: boolean;
@@ -87,13 +90,13 @@ const Cell = ({
 
   return (
     <div
+      data-outside={isOutside || undefined}
       className={cn(
-        "relative flex min-w-0 flex-col bg-(--bg2) transition-colors",
+        "group/cell relative flex min-w-0 flex-col bg-(--bg2) transition-colors",
         variant === "week"
           ? "desktop:min-h-[420px]"
           : "tablet:min-h-[112px] min-h-[64px]",
         (isOutside || isOff) && "bg-(--bg)",
-        isOutside && "opacity-60",
         isOver && "bg-(--bg3) ring-2 ring-(--amber) ring-inset",
         className
       )}
@@ -122,7 +125,7 @@ const Cell = ({
 };
 
 interface CellHeaderProps {
-  /** "SEG" — só na semana; no mês a faixa de cima já diz. */
+  /** "Seg" — só na semana; no mês a faixa de cima já diz. */
   weekday?: string;
   day: number;
   isToday?: boolean;
@@ -148,13 +151,18 @@ const CellHeader = ({
     <span
       className={cn(
         "inline-flex h-[28px] min-w-[28px] items-center justify-center rounded-full px-4",
-        isToday && "bg-(--amber)"
+        // Fundo de ação, não o --amber puro: o número é TEXTO branco e o
+        // #c97f0a dava 3,21:1 (axe no navegador, 13/11/2026); o #a86608 dá 4,6.
+        isToday && "bg-(--color-action)"
       )}
     >
       <Title
         as="span"
         variant="heading-sm"
         color={isToday ? "inverse" : "default"}
+        className={cn(
+          !isToday && "group-data-outside/cell:text-(--color-text-muted)"
+        )}
       >
         {day}
       </Title>
@@ -184,7 +192,7 @@ const CellHeader = ({
             onClick={onOpen}
             title={openLabel}
             aria-label={openLabel}
-            className="pointer-events-auto rounded-full transition-colors hover:bg-(--bg4) focus:outline-none focus-visible:ring-1 focus-visible:ring-(--amber)"
+            className="focus-ring pointer-events-auto rounded-full transition-colors hover:bg-(--bg4)"
           >
             {number}
           </button>
@@ -235,7 +243,7 @@ const CellHitArea = forwardRef<
     title={label}
     aria-label={label}
     className={cn(
-      "absolute inset-0 cursor-pointer transition-colors hover:bg-(--bg3)/60 focus:outline-none focus-visible:ring-1 focus-visible:ring-(--amber) focus-visible:ring-inset",
+      "focus-ring-inset absolute inset-0 cursor-pointer transition-colors hover:bg-(--bg3)/60",
       className
     )}
     {...props}

@@ -72,7 +72,7 @@ export function EditNotesModal({
   return (
     <Modal.Root open={open} onOpenChange={setOpen}>
       <Modal.Trigger asChild>
-        <Button.Root appearance="solid" color="amber" size="sm" noUppercase>
+        <Button.Root appearance="solid" color="amber" size="sm">
           <Button.Icon icon={Pencil} />
           <Button.Title>Editar</Button.Title>
         </Button.Root>
@@ -102,7 +102,6 @@ export function EditNotesModal({
               appearance="ghost"
               color="neutral"
               size="md"
-              noUppercase
               disabled={isLoading}
             >
               <Button.Title>Cancelar</Button.Title>
@@ -113,7 +112,6 @@ export function EditNotesModal({
             appearance="solid"
             color="amber"
             size="md"
-            noUppercase
             loading={isLoading}
             onClick={() => formRef.current?.submitForm()}
           >

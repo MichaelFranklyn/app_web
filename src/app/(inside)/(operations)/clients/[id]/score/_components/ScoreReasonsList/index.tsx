@@ -45,7 +45,7 @@ export function ScoreReasonsList({ reasons }: { reasons: ScoreReason[] }) {
               <div className="flex items-start gap-6">
                 <Lightbulb
                   size={14}
-                  className="mt-[2px] shrink-0 text-(--amber)"
+                  className="mt-[2px] shrink-0 text-(--color-action-text)"
                 />
                 <Title variant="body-sm" color="secondary">
                   {reason.tip}

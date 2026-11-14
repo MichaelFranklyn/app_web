@@ -56,7 +56,10 @@ test("users: edita o nome e a linha reflete a mudança", async ({ page }) => {
   await dialog.getByRole("button", { name: "Editar usuário" }).click();
 
   await expect(page.getByText("Usuário editado com sucesso")).toBeVisible();
-  await expect(page.getByText("Maria Nova")).toBeVisible();
+  // O modal anima a saída (`--animate-dialog-out`) e, nesses ms, o título dele
+  // ainda diz "Editar usuário - Maria Nova". A prova é a LINHA da tabela.
+  await expect(dialog).toBeHidden();
+  await expect(page.getByRole("row", { name: /Maria Nova/ })).toBeVisible();
 });
 
 test("users: exclui um usuário e a linha some", async ({ page }) => {

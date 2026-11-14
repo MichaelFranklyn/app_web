@@ -18,8 +18,9 @@ interface ButtonLinkProps extends Omit<
   color?: ThemeColor;
   size?: ButtonSize;
   fullWidth?: boolean;
+  /** Estica e ganha fundo só abaixo do desktop, como no `Button.Root`. */
+  fullWidthBelowDesktop?: boolean;
   isIconOnly?: boolean;
-  noUppercase?: boolean;
   dashed?: boolean;
   shape?: ButtonShape;
   /** Nome acessível + tooltip, como no `Button.Root`. */
@@ -42,8 +43,8 @@ export const ButtonLink = React.forwardRef<HTMLAnchorElement, ButtonLinkProps>(
       color = "amber",
       size = "md",
       fullWidth = false,
+      fullWidthBelowDesktop = false,
       isIconOnly = false,
-      noUppercase = false,
       dashed = false,
       shape = "default",
       label,
@@ -60,9 +61,9 @@ export const ButtonLink = React.forwardRef<HTMLAnchorElement, ButtonLinkProps>(
       size,
       isIconOnly,
       fullWidth,
+      fullWidthBelowDesktop,
       active: false,
       noPadding: false,
-      noUppercase,
       dashed,
       shape,
       className,

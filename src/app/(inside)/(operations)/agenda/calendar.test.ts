@@ -1,8 +1,10 @@
 import { describe, expect, it } from "vitest";
 
+import type { AgendaDay } from "./calendar";
 import {
   agendaTitle,
   indexDays,
+  isPlannableBlankWeek,
   itemClient,
   monthGrid,
   mondayOf,
@@ -44,9 +46,7 @@ describe("calendário da agenda", () => {
   });
 
   it("o título diz o período como a folhinha", () => {
-    expect(agendaTitle("day", "2026-10-18")).toBe(
-      "domingo, 18 de outubro de 2026"
-    );
+    expect(agendaTitle("day", "2026-10-18")).toBe("Domingo, 18/10/2026");
     expect(agendaTitle("week", "2026-10-15")).toBe(
       "12 – 18 de outubro de 2026"
     );
@@ -93,5 +93,55 @@ describe("calendário da agenda", () => {
       scheduleId: null,
       day: null,
     });
+  });
+});
+
+describe("isPlannableBlankWeek", () => {
+  const dates = ["2026-11-09", "2026-11-10", "2026-11-11"];
+  const blank = new Map<string, AgendaDay>();
+  const withItem = (date: string) =>
+    new Map<string, AgendaDay>([
+      [
+        date,
+        {
+          date,
+          scheduleId: "s1",
+          day: { items: [{ id: "i1" }] } as unknown as AgendaDay["day"],
+        },
+      ],
+    ]);
+
+  it("semana vazia com dia aberto pela frente pede montagem", () => {
+    expect(isPlannableBlankWeek(dates, blank, "2026-11-10", new Set())).toBe(
+      true
+    );
+  });
+
+  it("um compromisso qualquer já tira o aviso", () => {
+    expect(
+      isPlannableBlankWeek(
+        dates,
+        withItem("2026-11-09"),
+        "2026-11-10",
+        new Set()
+      )
+    ).toBe(false);
+  });
+
+  it("semana que já passou não oferece montar", () => {
+    expect(isPlannableBlankWeek(dates, blank, "2026-11-12", new Set())).toBe(
+      false
+    );
+  });
+
+  it("dias restantes todos de folga não oferecem montar", () => {
+    expect(
+      isPlannableBlankWeek(
+        dates,
+        blank,
+        "2026-11-10",
+        new Set(["2026-11-10", "2026-11-11"])
+      )
+    ).toBe(false);
   });
 });

@@ -83,7 +83,6 @@ export function SelectionBar({
             appearance="ghost"
             color="neutral"
             size="sm"
-            noUppercase
             onClick={onClear}
           >
             <Button.Icon icon={X} />

@@ -75,7 +75,7 @@ const VISUAL: [RegExp, string][] = [
   [new RegExp(`${PREFIX}ring-`), "ring"],
   [
     new RegExp(
-      `${PREFIX}font-(?:medium|semibold|bold|extrabold|normal|mono|sans)`
+      `${PREFIX}font-(?:medium|semibold|bold|extrabold|normal|mono|sans|body)`
     ),
     "font",
   ],

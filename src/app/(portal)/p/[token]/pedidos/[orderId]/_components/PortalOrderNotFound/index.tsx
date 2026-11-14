@@ -17,12 +17,7 @@ export function PortalOrderNotFound({ token }: PortalOrderNotFoundProps) {
         Ele pode ter sido removido, ou o endereço está incompleto.
       </EmptyState.Description>
       <EmptyState.Actions>
-        <Button.Link
-          href={`/p/${token}`}
-          appearance="outline"
-          color="neutral"
-          noUppercase
-        >
+        <Button.Link href={`/p/${token}`} appearance="outline" color="neutral">
           <Button.Title>Voltar para as minhas compras</Button.Title>
         </Button.Link>
       </EmptyState.Actions>

@@ -109,7 +109,6 @@ export function ToggleProductModal({
               appearance="ghost"
               color="neutral"
               size="md"
-              noUppercase
               disabled={isLoading}
             >
               <Button.Title>Cancelar</Button.Title>
@@ -120,7 +119,6 @@ export function ToggleProductModal({
             appearance="solid"
             color={next ? "green" : "red"}
             size="md"
-            noUppercase
             loading={isLoading}
             onClick={handleConfirm}
           >

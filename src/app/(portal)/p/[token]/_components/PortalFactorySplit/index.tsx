@@ -62,7 +62,7 @@ export function PortalFactorySplit({
                   fillColor={CHART_PALETTE[index % CHART_PALETTE.length]}
                   shape="square"
                   className="h-[8px]"
-                  aria-label={`${factory.factoryName}: ${share.toFixed(0)}% das compras`}
+                  label={`${factory.factoryName}: ${share.toFixed(0)}% das compras`}
                 />
                 <Title variant="body-xs" color="muted">
                   {share.toFixed(0)}% das compras ·{" "}

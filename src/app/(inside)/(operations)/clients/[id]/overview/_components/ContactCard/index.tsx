@@ -95,16 +95,21 @@ export function ContactCard({ clientId }: ContactCardProps) {
               <div className="py-8">
                 <div className="flex items-start justify-between gap-8">
                   <div className="flex min-w-0 flex-col gap-2">
-                    <div className="flex items-center gap-6">
+                    {/* O nome quebra linha em vez de cortar: a 375px ele
+                        dividia a linha com o selo e sobravam ~114px, e
+                        "Responsável de Compras" virava "Responsável d…"
+                        (auditoria 13/11/2026, P-14.6). Sem espaço, o selo
+                        desce para a linha de baixo. */}
+                    <div className="flex flex-wrap items-center gap-x-6 gap-y-2">
                       <Title
                         variant="body-sm"
                         weight="semibold"
-                        className="truncate"
+                        className="min-w-0 break-words"
                       >
                         {contact.name}
                       </Title>
                       {contact.isPrimary && (
-                        <Badge.Root color="amber" appearance="tinted">
+                        <Badge.Root color="blue" appearance="tinted">
                           <Badge.Text>Principal</Badge.Text>
                         </Badge.Root>
                       )}

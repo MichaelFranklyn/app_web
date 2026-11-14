@@ -71,8 +71,8 @@ export function DevRoleSwitch() {
         padding="none"
         className="flex-row items-center gap-4 px-6 py-2"
       >
-        <FlaskConical size={13} className="text-(--amber)" />
-        <Title variant="label" weight="bold" color="amber">
+        <FlaskConical size={13} className="text-(--color-status-warning)" />
+        <Title variant="label" weight="bold" color="warning">
           DEV
         </Title>
         <ToggleGroup

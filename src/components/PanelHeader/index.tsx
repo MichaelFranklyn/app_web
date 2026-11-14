@@ -1,6 +1,8 @@
 import { Actions } from "./Actions";
 import { Description } from "./Description";
 import { Eyebrow } from "./Eyebrow";
+import { Heading } from "./Heading";
+import { HeadingSkeleton } from "./HeadingSkeleton";
 import { Root } from "./Root";
 import { Tags } from "./Tags";
 import { Title } from "./Title";
@@ -12,6 +14,8 @@ export const PanelHeader = Object.assign(Root, {
   Left,
   Eyebrow,
   Title,
+  Heading,
+  HeadingSkeleton,
   Description,
   Actions,
   Tags,

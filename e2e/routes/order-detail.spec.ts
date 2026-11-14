@@ -81,7 +81,8 @@ test("pedido detalhe: deleta o pedido", async ({ page }) => {
   });
 
   await page.goto(URL);
-  await page.getByRole("button", { name: "Deletar pedido" }).click();
+  await page.getByRole("button", { name: "Mais ações", exact: true }).click();
+  await page.getByRole("menuitem", { name: "Deletar pedido" }).click();
   await page
     .getByRole("dialog")
     .getByRole("button", { name: "Confirmar exclusão" })
@@ -153,7 +154,8 @@ test("pedido faturado: corrige os dados do faturamento", async ({ page }) => {
   });
 
   await page.goto(URL);
-  await page.getByRole("button", { name: "Editar faturamento" }).click();
+  await page.getByRole("button", { name: "Mais ações", exact: true }).click();
+  await page.getByRole("menuitem", { name: "Editar faturamento" }).click();
 
   const dialog = page.getByRole("dialog");
   // A data usa o calendário do FormBuilder (campo não digitável); aqui basta
@@ -194,7 +196,8 @@ test("pedido faturado: refaz o faturamento para lançar de novo", async ({
   });
 
   await page.goto(URL);
-  await page.getByRole("button", { name: "Editar faturamento" }).click();
+  await page.getByRole("button", { name: "Mais ações", exact: true }).click();
+  await page.getByRole("menuitem", { name: "Editar faturamento" }).click();
 
   const dialog = page.getByRole("dialog");
   await dialog.getByRole("button", { name: "Refazer faturamento" }).click();
@@ -272,7 +275,8 @@ test("pedido faturado com boleto pago: desfazer exige o motivo, e o histórico a
   await expect(page.getByText("Nota lançada no pedido errado")).toBeVisible();
   await expect(page.getByText(/2 parcelas apagadas/)).toBeVisible();
 
-  await page.getByRole("button", { name: "Editar faturamento" }).click();
+  await page.getByRole("button", { name: "Mais ações", exact: true }).click();
+  await page.getByRole("menuitem", { name: "Editar faturamento" }).click();
   const dialog = page.getByRole("dialog");
   await dialog.getByRole("button", { name: "Refazer faturamento" }).click();
 
@@ -352,7 +356,8 @@ test("só o repasse ao vendedor pago: desfazer avisa, exige o motivo e o histór
     page.getByText(/baixas apagadas: 1 repasse pago ao vendedor/)
   ).toBeVisible();
 
-  await page.getByRole("button", { name: "Editar faturamento" }).click();
+  await page.getByRole("button", { name: "Mais ações", exact: true }).click();
+  await page.getByRole("menuitem", { name: "Editar faturamento" }).click();
   const dialog = page.getByRole("dialog");
   await dialog.getByRole("button", { name: "Refazer faturamento" }).click();
   await expect(

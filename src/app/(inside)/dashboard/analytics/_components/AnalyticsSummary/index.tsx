@@ -50,7 +50,7 @@ export function AnalyticsSummary({ filters }: { filters: ChartFilters }) {
 
   if (loading && !summary) {
     return (
-      <Grid.Root cols={{ base: 1, tablet: 2, "desktop-xl": 4 }} gap={12}>
+      <Grid.Root cols={{ base: 2, tablet: 2, "desktop-xl": 4 }} gap={12}>
         {Array.from({ length: 4 }).map((_, i) => (
           <Grid.Item key={i}>
             <Loading.Skeleton className="h-[104px] w-full" />
@@ -66,16 +66,14 @@ export function AnalyticsSummary({ filters }: { filters: ChartFilters }) {
 
   return (
     <Grid.Root
-      cols={{ base: 1, tablet: 2, "desktop-xl": 4 }}
+      cols={{ base: 2, tablet: 2, "desktop-xl": 4 }}
       gap={12}
       data-tour="analytics-summary"
     >
       <Grid.Item>
         <Card.Kpi>
           <Card.Kpi.Label>Pedidos no período</Card.Kpi.Label>
-          <Card.Kpi.Value status="atencao">
-            {formatNumber(totalOrders)}
-          </Card.Kpi.Value>
+          <Card.Kpi.Value>{formatNumber(totalOrders)}</Card.Kpi.Value>
           <Card.Kpi.Delta>
             {hasOrders ? "pedidos faturados" : "nenhum pedido no período"}
           </Card.Kpi.Delta>
@@ -85,9 +83,7 @@ export function AnalyticsSummary({ filters }: { filters: ChartFilters }) {
       <Grid.Item>
         <Card.Kpi>
           <Card.Kpi.Label>Faturamento</Card.Kpi.Label>
-          <Card.Kpi.Value status="ok">
-            {formatMoney(totalAmount)}
-          </Card.Kpi.Value>
+          <Card.Kpi.Value>{formatMoney(totalAmount)}</Card.Kpi.Value>
           <Card.Kpi.Delta>soma dos pedidos do período</Card.Kpi.Delta>
         </Card.Kpi>
       </Grid.Item>
@@ -95,9 +91,7 @@ export function AnalyticsSummary({ filters }: { filters: ChartFilters }) {
       <Grid.Item>
         <Card.Kpi>
           <Card.Kpi.Label>Ticket médio</Card.Kpi.Label>
-          <Card.Kpi.Value status="info">
-            {formatMoney(avgTicket)}
-          </Card.Kpi.Value>
+          <Card.Kpi.Value>{formatMoney(avgTicket)}</Card.Kpi.Value>
           <Card.Kpi.Delta>valor médio por pedido</Card.Kpi.Delta>
         </Card.Kpi>
       </Grid.Item>
@@ -105,7 +99,7 @@ export function AnalyticsSummary({ filters }: { filters: ChartFilters }) {
       <Grid.Item>
         <Card.Kpi>
           <Card.Kpi.Label>Clientes ativos</Card.Kpi.Label>
-          <Card.Kpi.Value status={activeClients > 0 ? "ok" : "urgente"}>
+          <Card.Kpi.Value status={activeClients > 0 ? "neutral" : "urgente"}>
             {formatNumber(activeClients)}
           </Card.Kpi.Value>
           <Card.Kpi.Delta>fizeram ao menos um pedido</Card.Kpi.Delta>

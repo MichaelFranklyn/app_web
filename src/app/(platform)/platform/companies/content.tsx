@@ -3,6 +3,7 @@
 import { Button } from "@/components/Button";
 import { PageContent } from "@/components/PageContent";
 import { PanelHeader } from "@/components/PanelHeader";
+import { PAGE_HEADING } from "@/utils/modules";
 import { QueryError } from "@/components/QueryError";
 import { useTableData } from "@/hooks/useTableData";
 import { Plus } from "lucide-react";
@@ -36,8 +37,9 @@ export default function TenantsContent({ initialData }: TenantsContentProps) {
       <PanelHeader.Root>
         <PanelHeader.Top>
           <PanelHeader.Left>
-            <PanelHeader.Eyebrow color="purple">Console</PanelHeader.Eyebrow>
-            <PanelHeader.Title>Empresas</PanelHeader.Title>
+            <PanelHeader.Heading {...PAGE_HEADING.platformCompanies}>
+              Empresas
+            </PanelHeader.Heading>
             <PanelHeader.Description>
               Todas as empresas da plataforma, com o uso de cada uma nos últimos
               30 dias.
@@ -52,7 +54,6 @@ export default function TenantsContent({ initialData }: TenantsContentProps) {
                 appearance="solid"
                 color="amber"
                 size="sm"
-                noUppercase
                 onClick={() => setCreateOpen(true)}
               >
                 <Button.Icon icon={Plus} />

@@ -71,7 +71,7 @@ export function DecisiveProductsGroup({ products, daysMap, onChange }: Props) {
           <button
             type="button"
             onClick={() => setShowAll((value) => !value)}
-            className="cursor-pointer text-[13px] text-(--muted) underline underline-offset-2 hover:text-(--text)"
+            className="text-body-sm cursor-pointer text-(--color-text-muted) underline underline-offset-2 hover:text-(--color-text)"
           >
             {showAll
               ? "Esconder os demais"

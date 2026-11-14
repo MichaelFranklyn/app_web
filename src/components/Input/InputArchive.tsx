@@ -159,9 +159,11 @@ export const InputArchive = React.forwardRef<
             "relative flex w-full cursor-pointer flex-col items-center justify-center rounded-(--r-md) border-2 border-dashed bg-(--bg) p-6 transition-colors",
             isDragging
               ? "border-(--amber) bg-(--amber-bg)" // Active drag state mapped to amber (system primary conceptual action)
-              : "border-(--border) hover:border-(--muted)",
-            error && "border-(--red) bg-(--red-bg)",
-            disabled && "cursor-not-allowed opacity-50",
+              : "border-(--border) hover:border-(--color-text-muted)",
+            error &&
+              "border-(--color-status-danger) bg-(--color-status-danger-bg)",
+            disabled &&
+              "cursor-not-allowed border-(--border) bg-(--bg3) hover:border-(--border) [&_*]:text-(--color-text-disabled)",
             className
           )}
           onDragEnter={handleDragEnter}
@@ -189,7 +191,7 @@ export const InputArchive = React.forwardRef<
                 "rounded-full p-3",
                 isDragging
                   ? "bg-(--amber) text-white"
-                  : "bg-(--bg2) text-(--muted2)"
+                  : "bg-(--bg2) text-(--color-text-disabled)"
               )}
             >
               <UploadCloud size={24} />
@@ -222,7 +224,10 @@ export const InputArchive = React.forwardRef<
                 className="flex items-center justify-between rounded-(--r-md) border border-(--border) bg-(--bg2) px-12 py-10"
               >
                 <div className="flex items-center gap-3 overflow-hidden">
-                  <File size={14} className="shrink-0 text-(--text2)" />
+                  <File
+                    size={14}
+                    className="shrink-0 text-(--color-text-secondary)"
+                  />
                   <div className="flex flex-col overflow-hidden">
                     <Title variant="body" weight="medium" className="truncate">
                       {file.name}
@@ -237,8 +242,9 @@ export const InputArchive = React.forwardRef<
                   type="button"
                   onClick={(e) => handleRemoveFile(idx, e)}
                   disabled={disabled}
-                  className="ml-2 shrink-0 cursor-pointer rounded-full p-2 text-(--muted2) transition-colors hover:bg-(--red-bg) hover:text-(--red) disabled:opacity-50"
+                  className="ml-2 shrink-0 cursor-pointer rounded-full p-2 text-(--color-text-muted) transition-colors hover:bg-(--color-status-danger-bg) hover:text-(--color-status-danger) disabled:cursor-not-allowed disabled:text-(--color-text-disabled) disabled:hover:bg-transparent"
                   title="Remover arquivo"
+                  aria-label={`Remover ${file.name}`}
                 >
                   <Trash size={14} />
                 </button>

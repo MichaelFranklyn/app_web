@@ -18,14 +18,14 @@ export type TextLinkTone = "accent" | "inherit" | "muted";
 export type TextLinkUnderline = "hover" | "always" | "none";
 
 const TONE: Record<TextLinkTone, string> = {
-  accent: "text-(--amber)",
+  accent: "text-(--color-action-text)",
   inherit: "",
-  muted: "text-(--muted) hover:text-(--text2)",
+  muted: "text-(--color-text-muted) hover:text-(--color-text-secondary)",
 };
 
 const UNDERLINE: Record<TextLinkUnderline, string> = {
   hover: "hover:underline",
-  always: "underline hover:opacity-70",
+  always: "underline decoration-1 underline-offset-2 hover:decoration-2",
   none: "",
 };
 
@@ -67,20 +67,31 @@ export const TextLink = React.forwardRef<HTMLAnchorElement, TextLinkProps>(
     ref
   ) => {
     const classes = cn(
-      "underline-offset-2 transition-colors",
+      "underline-offset-2 transition-colors focus-ring rounded-(--r-xs)",
       TONE[tone],
       UNDERLINE[underline],
-      underline === "none" && tone === "inherit" && "hover:text-(--amber)",
+      underline === "none" &&
+        tone === "inherit" &&
+        "hover:text-(--color-action-text)",
       emphasis && "font-(--weight-medium)",
       className
     );
     const target = external
       ? { target: "_blank", rel: "noreferrer" }
       : undefined;
+    // Marca para a `Table.Cell` dar ao link o alvo mínimo de clique.
+    const marker = { "data-text-link": "" };
 
     if (!isAppRoute(href)) {
       return (
-        <a ref={ref} href={href} className={classes} {...target} {...props} />
+        <a
+          ref={ref}
+          href={href}
+          className={classes}
+          {...marker}
+          {...target}
+          {...props}
+        />
       );
     }
     return (
@@ -88,6 +99,7 @@ export const TextLink = React.forwardRef<HTMLAnchorElement, TextLinkProps>(
         ref={ref}
         href={href}
         className={classes}
+        {...marker}
         {...target}
         {...props}
       />

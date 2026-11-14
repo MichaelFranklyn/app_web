@@ -34,7 +34,7 @@ export function LinkClientModal(props: LinkClientModalProps) {
     <>
       <Modal.Root open={open} onOpenChange={setOpen}>
         <Modal.Trigger asChild>
-          <Button.Root appearance="solid" color="amber" size="sm" noUppercase>
+          <Button.Root appearance="solid" color="amber" size="sm">
             <Button.Icon icon={Plus} />
             <Button.Title>Vincular cliente</Button.Title>
           </Button.Root>
@@ -88,7 +88,6 @@ export function LinkClientModal(props: LinkClientModalProps) {
                 appearance="ghost"
                 color="neutral"
                 size="md"
-                noUppercase
                 disabled={isLoading}
               >
                 <Button.Title>Cancelar</Button.Title>
@@ -99,7 +98,6 @@ export function LinkClientModal(props: LinkClientModalProps) {
               appearance="solid"
               color="amber"
               size="md"
-              noUppercase
               loading={isLoading}
               disabled={blocked}
               onClick={() => formRef.current?.submitForm()}

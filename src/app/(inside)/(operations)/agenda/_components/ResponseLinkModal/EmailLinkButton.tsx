@@ -47,7 +47,6 @@ export function EmailLinkButton({ url }: { url: string }) {
       appearance="outline"
       color="neutral"
       size="sm"
-      noUppercase
       loading={isLoading}
       disabled={isSent}
       onClick={() => void handleSend()}

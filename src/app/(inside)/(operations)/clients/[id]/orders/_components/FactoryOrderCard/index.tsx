@@ -60,7 +60,7 @@ export function FactoryOrderCard({ summary, onSelect }: Props) {
           <Title variant="micro" color="secondary">
             Ver pedidos
           </Title>
-          <ChevronRight size={14} className="text-(--muted)" />
+          <ChevronRight size={14} className="text-(--color-text-muted)" />
         </div>
       </div>
     </Card.Button>

@@ -69,12 +69,16 @@ export function PriorityToolbar({
           aria-label="Buscar cliente"
         />
       </div>
-      <div className="flex items-center gap-6">
+      {/* Abaixo do desktop as duas opções dividem a linha e o "?" fica na
+          ponta direita (sem sobra no fim da linha). */}
+      <div className="max-desktop:w-full flex items-center gap-6">
         <ToggleGroup
           aria-label="Quais clientes mostrar"
           options={SCOPE_OPTIONS}
           value={scope}
           onChange={onScopeChange}
+          fullWidthBelowDesktop
+          className="max-desktop:min-w-0 max-desktop:flex-1"
         />
         <HelpTooltip
           label="O que entra em Prioritários?"

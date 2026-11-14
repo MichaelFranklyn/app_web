@@ -12,7 +12,7 @@ export const BreadcrumbSeparator = React.forwardRef<
     role="presentation"
     aria-hidden="true"
     className={cn(
-      "flex items-center justify-center text-(--muted2)",
+      "flex items-center justify-center text-(--color-text-disabled)",
       className
     )}
     {...props}

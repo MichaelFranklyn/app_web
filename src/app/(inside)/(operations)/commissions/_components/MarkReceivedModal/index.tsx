@@ -27,6 +27,8 @@ interface Props {
   onSuccess: () => void;
   /** Bloco acima do campo de data — o alcance do lote, quando há um. */
   children?: React.ReactNode;
+  /** Gatilho ocupa a linha inteira abaixo do desktop (cabeçalho da fábrica). */
+  fullWidthBelowDesktop?: boolean;
 }
 
 export function MarkReceivedModal({
@@ -36,6 +38,7 @@ export function MarkReceivedModal({
   onOpenChange,
   onSuccess,
   children,
+  fullWidthBelowDesktop = false,
 }: Props) {
   const [uncontrolledOpen, setUncontrolledOpen] = useState(false);
   const isControlled = controlledOpen !== undefined;
@@ -106,7 +109,12 @@ export function MarkReceivedModal({
     <Modal.Root open={open} onOpenChange={handleClose}>
       {!isControlled && (
         <Modal.Trigger asChild>
-          <Button.Root appearance="ghost" color="green" size="sm">
+          <Button.Root
+            appearance="ghost"
+            color="green"
+            size="sm"
+            fullWidthBelowDesktop={fullWidthBelowDesktop}
+          >
             <Button.Icon icon={BadgeCheck} />
             <Button.Title>{label}</Button.Title>
           </Button.Root>
@@ -140,7 +148,6 @@ export function MarkReceivedModal({
               appearance="ghost"
               color="neutral"
               size="md"
-              noUppercase
               disabled={isLoading}
             >
               <Button.Title>Cancelar</Button.Title>
@@ -151,7 +158,6 @@ export function MarkReceivedModal({
             appearance="solid"
             color="amber"
             size="md"
-            noUppercase
             loading={isLoading}
             onClick={() => formRef.current?.submitForm()}
           >

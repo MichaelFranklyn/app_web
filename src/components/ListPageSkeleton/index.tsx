@@ -13,6 +13,7 @@ import { PanelHeader } from "@/components/PanelHeader";
 import { Table } from "@/components/Table";
 import { Tabs } from "@/components/Tabs";
 import { cn } from "@/lib/utils";
+import { PAGE_HEADING, PageHeadingKey } from "@/utils/modules";
 import React from "react";
 
 const DEFAULT_KPI_COLS: GridBreakpointCols = {
@@ -24,6 +25,11 @@ const DEFAULT_KPI_COLS: GridBreakpointCols = {
 interface ListPageSkeletonProps {
   /** Título da página. É texto fixo — aparece de imediato, sem esperar dados. */
   title: string;
+  /**
+   * Ícone + cor do header real (`PAGE_HEADING`). Vai a CHAVE, não o ícone: o
+   * `loading.tsx` é server e não passa componente para este client.
+   */
+  page?: PageHeadingKey;
   /** Descrição fixa da página; ausente (quando depende de dados) vira barra. */
   description?: string;
   /**
@@ -56,6 +62,7 @@ interface ListPageSkeletonProps {
  */
 export function ListPageSkeleton({
   title,
+  page,
   description,
   actions = [],
   kpis,
@@ -111,7 +118,13 @@ export function ListPageSkeleton({
       <PanelHeader.Root>
         <PanelHeader.Top>
           <PanelHeader.Left>
-            <PanelHeader.Title>{title}</PanelHeader.Title>
+            {page ? (
+              <PanelHeader.Heading {...PAGE_HEADING[page]}>
+                {title}
+              </PanelHeader.Heading>
+            ) : (
+              <PanelHeader.Title>{title}</PanelHeader.Title>
+            )}
             {description ? (
               <PanelHeader.Description>{description}</PanelHeader.Description>
             ) : (

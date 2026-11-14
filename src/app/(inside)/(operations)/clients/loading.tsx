@@ -6,6 +6,7 @@ import { ListPageSkeleton } from "@/components/ListPageSkeleton";
 export default function Loading() {
   return (
     <ListPageSkeleton
+      page="clients"
       title="Clientes"
       description="Carteira de clientes da empresa. Dados globais complementados com informações privadas."
       actions={3}

@@ -40,11 +40,7 @@ export function CompanyBrandCard({ company, onEdit }: Props) {
       <Card.Body>
         <Grid.Root cols={{ base: 1, desktop: 2 }} gap={16}>
           <div className="flex flex-col gap-8">
-            <Title
-              variant="micro"
-              color="muted"
-              className="tracking-[0.08em] uppercase"
-            >
+            <Title variant="micro" color="muted">
               Logo completa
             </Title>
             {company.logoUrl ? (
@@ -54,6 +50,12 @@ export function CompanyBrandCard({ company, onEdit }: Props) {
                 fit="logo"
                 src={mediaUrl(company.logoUrl)}
                 alt={`Logo de ${company.nomeFantasia ?? company.razaoSocial}`}
+                fallback={
+                  <Title variant="body" color="muted">
+                    Não foi possível carregar a logo. Envie de novo em
+                    &quot;Trocar imagens&quot;.
+                  </Title>
+                }
               />
             ) : (
               <Title variant="body" color="muted">
@@ -63,11 +65,7 @@ export function CompanyBrandCard({ company, onEdit }: Props) {
           </div>
 
           <div className="flex flex-col gap-8">
-            <Title
-              variant="micro"
-              color="muted"
-              className="tracking-[0.08em] uppercase"
-            >
+            <Title variant="micro" color="muted">
               Símbolo
             </Title>
             <Avatar
@@ -75,6 +73,7 @@ export function CompanyBrandCard({ company, onEdit }: Props) {
               color="amber"
               initials={initials}
               src={mediaUrl(company.avatarUrl ?? company.logoUrl)}
+              alt={`Símbolo de ${company.nomeFantasia ?? company.razaoSocial}`}
             />
           </div>
         </Grid.Root>

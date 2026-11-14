@@ -45,7 +45,6 @@ export function QueryError({
             appearance="solid"
             color="amber"
             size="md"
-            noUppercase
             loading={retrying}
             onClick={onRetry}
           >

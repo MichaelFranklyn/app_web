@@ -8,6 +8,7 @@ import { Grid } from "@/components/Grid";
 import { Loading } from "@/components/Loading";
 import { PageContent } from "@/components/PageContent";
 import { PanelHeader } from "@/components/PanelHeader";
+import { PAGE_HEADING } from "@/utils/modules";
 import { QueryError } from "@/components/QueryError";
 import { RowList } from "@/components/RowList";
 import { Title } from "@/components/Title";
@@ -78,8 +79,9 @@ export default function PlatformHealthContent({
       <PanelHeader.Root>
         <PanelHeader.Top>
           <PanelHeader.Left>
-            <PanelHeader.Eyebrow color="purple">Console</PanelHeader.Eyebrow>
-            <PanelHeader.Title>Saúde</PanelHeader.Title>
+            <PanelHeader.Heading {...PAGE_HEADING.platformHealth}>
+              Saúde
+            </PanelHeader.Heading>
             <PanelHeader.Description>
               Estado técnico da plataforma: banco, jobs agendados e pendências.
             </PanelHeader.Description>
@@ -129,7 +131,7 @@ export default function PlatformHealthContent({
             </Alert.Root>
           )}
 
-          <Grid.Root cols={{ base: 1, tablet: 3 }} gap={12}>
+          <Grid.Root cols={{ base: 2, tablet: 3 }} gap={12}>
             <Grid.Item>
               <Card.Kpi>
                 <Card.Kpi.Label>Revisão do banco</Card.Kpi.Label>
@@ -224,7 +226,11 @@ export default function PlatformHealthContent({
                     return (
                       <RowList.Item
                         key={job.jobName}
-                        className="flex flex-wrap items-baseline justify-between gap-8"
+                        // Abaixo do desktop: nome ↔ situação na 1ª linha,
+                        // duração e horário na 2ª. Com flex-wrap a quebra
+                        // dependia do tamanho do nome — uns jobs numa linha,
+                        // outros em duas, com meia linha vazia.
+                        className="desktop:grid-cols-[minmax(0,1fr)_auto_auto] grid grid-cols-[minmax(0,1fr)_auto] items-baseline gap-x-8 gap-y-[2px]"
                       >
                         <div className="flex flex-col gap-[2px]">
                           <Title variant="body-sm" weight="semibold">
@@ -236,18 +242,24 @@ export default function PlatformHealthContent({
                             </Title>
                           )}
                         </div>
-                        <div className="flex items-baseline gap-8">
-                          {/* A duração da última execução vem antes do horário:
-                              é ela que muda com o tempo, e um job que dobrou de
-                              duração é o aviso que antecede a falha. */}
-                          <Title variant="micro" color="muted">
-                            {formatDuration(job.durationMs)} ·{" "}
-                            {formatMoment(job.startedAt)}
-                          </Title>
-                          <Title variant="caption" color={TONE_COLOR[tone]}>
-                            {JOB_STATUS_LABEL[job.status] ?? job.status}
-                          </Title>
-                        </div>
+                        {/* A duração da última execução vem antes do horário:
+                            é ela que muda com o tempo, e um job que dobrou de
+                            duração é o aviso que antecede a falha. */}
+                        <Title
+                          variant="micro"
+                          color="muted"
+                          className="max-desktop:col-span-2"
+                        >
+                          {formatDuration(job.durationMs)} ·{" "}
+                          {formatMoment(job.startedAt)}
+                        </Title>
+                        <Title
+                          variant="caption"
+                          color={TONE_COLOR[tone]}
+                          className="max-desktop:col-start-2 max-desktop:row-start-1"
+                        >
+                          {JOB_STATUS_LABEL[job.status] ?? job.status}
+                        </Title>
                       </RowList.Item>
                     );
                   })}

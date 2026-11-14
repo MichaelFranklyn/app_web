@@ -42,8 +42,8 @@ const WEEKDAYS = [
   "sábado",
 ];
 
-/** "SEG", "TER"… — o cabeçalho das colunas. */
-export const WEEKDAY_SHORT = ["SEG", "TER", "QUA", "QUI", "SEX", "SÁB", "DOM"];
+/** "Seg", "Ter"… — o cabeçalho das colunas (caixa mista: lê melhor que CAIXA ALTA). */
+export const WEEKDAY_SHORT = ["Seg", "Ter", "Qua", "Qui", "Sex", "Sáb", "Dom"];
 
 const parse = (iso: string): Date => {
   const [year, month, day] = iso.slice(0, 10).split("-").map(Number);
@@ -111,10 +111,17 @@ export const isSameMonth = (iso: string, anchor: string): boolean =>
 
 export const dayNumber = (iso: string): number => parse(iso).getUTCDate();
 
-/** "sábado, 18 de outubro de 2026" */
+/**
+ * "Sábado, 18/10/2026". O dia da semana por extenso (é o que a pessoa procura
+ * no celular) e a data em número: "18 de outubro de 2026" quebrava a barra em
+ * duas linhas no celular (pedido do usuário, 13/11/2026).
+ */
 export const longDayLabel = (iso: string): string => {
   const date = parse(iso);
-  return `${WEEKDAYS[date.getUTCDay()]}, ${date.getUTCDate()} de ${MONTHS[date.getUTCMonth()]} de ${date.getUTCFullYear()}`;
+  const weekday = WEEKDAYS[date.getUTCDay()];
+  const dd = String(date.getUTCDate()).padStart(2, "0");
+  const mm = String(date.getUTCMonth() + 1).padStart(2, "0");
+  return `${weekday[0].toUpperCase()}${weekday.slice(1)}, ${dd}/${mm}/${date.getUTCFullYear()}`;
 };
 
 /**
@@ -191,3 +198,18 @@ export const indexDays = (
     })
   );
 };
+
+/**
+ * A semana em tela está em branco E ainda dá para montá-la: nenhum compromisso
+ * em dia nenhum, ao menos um dia de hoje em diante, e esse dia não é folga.
+ * Semana passada vazia é só histórico — oferecer "Montar semana" nela seria
+ * um convite para planejar o que já passou.
+ */
+export const isPlannableBlankWeek = (
+  dates: string[],
+  days: Map<string, AgendaDay>,
+  todayIso: string,
+  dayOffDates: Set<string>
+): boolean =>
+  dates.every((date) => (days.get(date)?.day?.items.length ?? 0) === 0) &&
+  dates.some((date) => date >= todayIso && !dayOffDates.has(date));

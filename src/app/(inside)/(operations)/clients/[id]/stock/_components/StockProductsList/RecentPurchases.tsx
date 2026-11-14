@@ -57,7 +57,7 @@ export function RecentPurchases({ purchases, unitLabel }: Props) {
         onToggle={() => setIsOpen((open) => !open)}
         size="sm"
       >
-        <ShoppingCart size={13} className="text-(--muted)" />
+        <ShoppingCart size={13} className="text-(--color-text-muted)" />
         <Title variant="micro" color="secondary">
           {label}
         </Title>

@@ -6,7 +6,7 @@ import React from "react";
 interface EyebrowProps extends React.HTMLAttributes<HTMLDivElement> {
   /**
    * Cor do MÓDULO da tela (roxo no console, verde em Clientes). Sem ela, cada
-   * tela pintava o eyebrow com `className="text-(--purple)"`.
+   * tela pintava o eyebrow com uma classe de cor solta.
    */
   color?: TitleColor;
 }
@@ -16,7 +16,7 @@ export const Eyebrow = React.forwardRef<HTMLDivElement, EyebrowProps>(
     <div
       ref={ref}
       className={cn(
-        "mb-[2px] text-[13px] font-medium tracking-[0.12em] uppercase",
+        "text-body-sm mb-[2px] font-medium",
         colorClasses[color],
         className
       )}

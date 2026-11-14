@@ -77,7 +77,6 @@ export function RouteMap({ stops, distanceKm, departureAddress }: Props) {
                 external
                 appearance="tinted"
                 size="sm"
-                noUppercase
               >
                 <Button.Icon icon={ExternalLink} />
                 <Button.Title>Abrir rota no Google Maps</Button.Title>
@@ -100,7 +99,6 @@ export function RouteMap({ stops, distanceKm, departureAddress }: Props) {
             external
             appearance="tinted"
             size="sm"
-            noUppercase
           >
             <Button.Icon icon={ExternalLink} />
             <Button.Title>Abrir no Google Maps</Button.Title>

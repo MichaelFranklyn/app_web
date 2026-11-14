@@ -29,7 +29,6 @@ export function PortalPager({ token, page, hasNextPage }: PortalPagerProps) {
           href={hrefFor(page - 1)}
           appearance="outline"
           color="neutral"
-          noUppercase
         >
           <Button.Icon icon={ChevronLeft} />
           <Button.Title>Mais recentes</Button.Title>
@@ -43,7 +42,6 @@ export function PortalPager({ token, page, hasNextPage }: PortalPagerProps) {
           href={hrefFor(page + 1)}
           appearance="outline"
           color="neutral"
-          noUppercase
         >
           <Button.Title>Mais antigos</Button.Title>
           <Button.Icon icon={ChevronRight} />

@@ -15,23 +15,29 @@ export function DeleteOrderModal({
   onRemoveOptimistic,
   onCommit,
   onRollback,
+  open,
+  onOpenChange,
 }: DeleteOrderModalProps) {
   const invalidateClient = useInvalidateQueriesClient();
   const [deleteOrder] = useMutation<DeleteOrderResponse>(DELETE_ORDER_MUTATION);
 
   return (
     <ConfirmModal
+      open={open}
+      onOpenChange={onOpenChange}
       trigger={
-        <Button.Root
-          appearance="ghost"
-          color="red"
-          size="sm"
-          isIconOnly
-          aria-label="Remover pedido"
-          onClick={(e) => e.stopPropagation()}
-        >
-          <Button.Icon icon={Trash2} />
-        </Button.Root>
+        open === undefined && (
+          <Button.Root
+            appearance="ghost"
+            color="red"
+            size="sm"
+            isIconOnly
+            aria-label="Remover pedido"
+            onClick={(e) => e.stopPropagation()}
+          >
+            <Button.Icon icon={Trash2} />
+          </Button.Root>
+        )
       }
       title="Remover pedido"
       description={`Remover o pedido ${orderCode}? Ele sai das listas e dos totais da fábrica. Esta ação não pode ser desfeita.`}

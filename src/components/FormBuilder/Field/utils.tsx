@@ -1,6 +1,7 @@
 import { Input, InputLabel, RequiredMark } from "@/components/Input";
 import { SelectOption } from "@/components/Input";
 import { Title } from "@/components/Title";
+import { ChoiceGroup, choiceLabelId } from "./ChoiceGroup";
 import {
   maskCEP,
   maskCNPJ,
@@ -145,8 +146,18 @@ const renderSelect: FieldRenderer = (
 const renderCheckbox: FieldRenderer = ({ field, controllerField, error }) => {
   const f = field as FieldConfigCheckbox;
   return (
-    <div className="flex flex-col gap-5">
-      {f.label && <InputLabel required={f.required}>{f.label}</InputLabel>}
+    <ChoiceGroup
+      name={f.name}
+      error={error}
+      className="flex flex-col gap-5"
+      label={
+        f.label && (
+          <InputLabel id={choiceLabelId(f.name)} required={f.required}>
+            {f.label}
+          </InputLabel>
+        )
+      }
+    >
       <div className="flex flex-wrap gap-16">
         {f.options?.map((opt) => (
           <Input.Checkbox
@@ -178,20 +189,25 @@ const renderCheckbox: FieldRenderer = ({ field, controllerField, error }) => {
           />
         ))}
       </div>
-      {error && (
-        <Title variant="micro" color="red">
-          {error}
-        </Title>
-      )}
-    </div>
+    </ChoiceGroup>
   );
 };
 
 const renderRadio: FieldRenderer = ({ field, controllerField, error }) => {
   const f = field as FieldConfigRadio;
   return (
-    <div className="flex flex-col gap-5">
-      {f.label && <InputLabel required={f.required}>{f.label}</InputLabel>}
+    <ChoiceGroup
+      name={f.name}
+      error={error}
+      className="flex flex-col gap-5"
+      label={
+        f.label && (
+          <InputLabel id={choiceLabelId(f.name)} required={f.required}>
+            {f.label}
+          </InputLabel>
+        )
+      }
+    >
       <div className="flex flex-wrap gap-16">
         {f.options?.map((opt) => (
           <Input.Radio
@@ -206,25 +222,32 @@ const renderRadio: FieldRenderer = ({ field, controllerField, error }) => {
           />
         ))}
       </div>
-      {error && (
-        <Title variant="micro" color="red">
-          {error}
-        </Title>
-      )}
-    </div>
+    </ChoiceGroup>
   );
 };
 
 const renderSwitch: FieldRenderer = ({ field, controllerField, error }) => {
   const f = field as FieldConfigSwitch;
   return (
-    <div className="flex flex-col gap-2">
-      {f.label && (
-        <Title as="label" variant="body-sm" weight="medium" color="secondary">
-          {f.label}
-          {f.required && <RequiredMark />}
-        </Title>
-      )}
+    <ChoiceGroup
+      name={f.name}
+      error={error}
+      className="flex flex-col gap-2"
+      label={
+        f.label && (
+          <Title
+            as="label"
+            id={choiceLabelId(f.name)}
+            variant="body-sm"
+            weight="medium"
+            color="secondary"
+          >
+            {f.label}
+            {f.required && <RequiredMark />}
+          </Title>
+        )
+      }
+    >
       <div className="flex flex-wrap gap-4">
         {f.options?.map((opt) => (
           <Input.Toggle
@@ -250,12 +273,7 @@ const renderSwitch: FieldRenderer = ({ field, controllerField, error }) => {
           />
         ))}
       </div>
-      {error && (
-        <Title variant="micro" color="red">
-          {error}
-        </Title>
-      )}
-    </div>
+    </ChoiceGroup>
   );
 };
 

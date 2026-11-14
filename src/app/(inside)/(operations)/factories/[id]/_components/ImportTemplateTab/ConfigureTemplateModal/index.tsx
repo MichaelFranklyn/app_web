@@ -208,9 +208,13 @@ export function ConfigureTemplateModal(props: ConfigureTemplateModalProps) {
                     <Table.Body>
                       {preview.slice(0, 30).map((item, index) => (
                         <Table.Row key={`${item.sku}-${index}`}>
-                          <Table.Cell variant="strong">{item.sku}</Table.Cell>
-                          <Table.Cell variant="dim">{item.quantity}</Table.Cell>
-                          <Table.Cell variant="dim">
+                          <Table.Cell variant="strong" card="title">
+                            {item.sku}
+                          </Table.Cell>
+                          <Table.Cell variant="dim" label="Quantidade">
+                            {item.quantity}
+                          </Table.Cell>
+                          <Table.Cell variant="dim" card="amount" label="Preço">
                             {item.unitPrice ? formatMoney(item.unitPrice) : "—"}
                           </Table.Cell>
                         </Table.Row>
@@ -230,7 +234,6 @@ export function ConfigureTemplateModal(props: ConfigureTemplateModalProps) {
               appearance="ghost"
               color="neutral"
               size="md"
-              noUppercase
               disabled={isLoading}
             >
               <Button.Title>Cancelar</Button.Title>
@@ -242,7 +245,6 @@ export function ConfigureTemplateModal(props: ConfigureTemplateModalProps) {
               appearance="solid"
               color="amber"
               size="md"
-              noUppercase
               loading={isLoading}
               disabled={!canPreview}
               onClick={runPreview}
@@ -255,7 +257,6 @@ export function ConfigureTemplateModal(props: ConfigureTemplateModalProps) {
               appearance="solid"
               color="amber"
               size="md"
-              noUppercase
               loading={isLoading}
               disabled={!canSave}
               onClick={handleSave}

@@ -3,7 +3,7 @@ import { Title } from "@/components/Title";
 import { ReactNode } from "react";
 
 import type { CommissionAudience } from "./utils";
-import { CommissionTab } from "./utils";
+import { COMMISSION_TABS, CommissionTab } from "./utils";
 
 /**
  * O texto de ajuda de cada peça da tela de comissões, num lugar só.
@@ -296,3 +296,64 @@ export const CHARGEBACK_PANEL_HELP: ReactNode = (
     </Title>
   </>
 );
+
+/** As cinco situações, cada uma com o seu nome — para ler de uma vez. */
+const TABS_GUIDE: ReactNode = (
+  <>
+    {COMMISSION_TABS.map((item) => (
+      <div key={item.id} className="flex flex-col gap-2">
+        <Title variant="body-sm" weight="semibold">
+          {item.label}
+        </Title>
+        {TAB_HELP[item.id]}
+      </div>
+    ))}
+  </>
+);
+
+const KPIS_GUIDE: ReactNode = (
+  <>
+    <Title variant="body-sm" weight="semibold">
+      A receber
+    </Title>
+    {KPI_RECEIVABLE_HELP}
+    <Title variant="body-sm" weight="semibold">
+      Previsto
+    </Title>
+    {KPI_PENDING_HELP}
+    <Title variant="body-sm" weight="semibold">
+      Recebido
+    </Title>
+    {KPI_RECEIVED_HELP}
+  </>
+);
+
+const LENS_GUIDE: ReactNode = (
+  <Title variant="body-sm">
+    Em <Emphasis>Valores de: Escritório</Emphasis> a tela soma todos os
+    vendedores — é o número que se confere contra a planilha da fábrica. Troque
+    para <Emphasis>Vendedor</Emphasis> para ver, e escolher, um de cada vez.
+  </Title>
+);
+
+export interface GuideSection {
+  title: string;
+  body: ReactNode;
+}
+
+/**
+ * O "Como isto é calculado" da tela, na ordem em que as peças aparecem. As
+ * partes de gestão (ótica e repartição) só entram para quem gerencia: o
+ * vendedor não vê esses controles, e explicar o que não está na tela confunde.
+ */
+export const guideSections = (canManage: boolean): GuideSection[] => [
+  ...(canManage ? [{ title: "Escritório ou vendedor", body: LENS_GUIDE }] : []),
+  { title: "O mês", body: MONTH_HELP },
+  { title: "Os três cartões do mês", body: KPIS_GUIDE },
+  ...(canManage
+    ? [{ title: "Repartição com o vendedor", body: OFFICE_SPLIT_HELP }]
+    : []),
+  { title: "As situações", body: TABS_GUIDE },
+  { title: "Os filtros", body: FILTERS_HELP },
+  { title: "O PDF do mês", body: PDF_HELP },
+];

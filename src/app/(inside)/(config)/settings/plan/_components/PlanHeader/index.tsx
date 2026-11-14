@@ -3,6 +3,7 @@ import { Button } from "@/components/Button";
 
 import { Alert } from "@/components/Alert";
 import { PanelHeader } from "@/components/PanelHeader";
+import { PAGE_HEADING } from "@/utils/modules";
 import { MyPlan } from "@/services/plan";
 import { ArrowUpRight, Sparkles } from "lucide-react";
 
@@ -19,7 +20,9 @@ export function PlanHeader({ plan }: { plan: MyPlan }) {
       <PanelHeader.Root>
         <PanelHeader.Top>
           <PanelHeader.Left>
-            <PanelHeader.Title>Plano da empresa</PanelHeader.Title>
+            <PanelHeader.Heading {...PAGE_HEADING.plan}>
+              Plano da empresa
+            </PanelHeader.Heading>
             <PanelHeader.Description>
               O que está incluído no seu plano e quanto de cada limite já foi
               usado.
@@ -28,7 +31,12 @@ export function PlanHeader({ plan }: { plan: MyPlan }) {
         </PanelHeader.Top>
       </PanelHeader.Root>
 
-      <Alert.Root variant="warning" className="items-center">
+      {/* Abaixo do desktop o botão desce e toma a linha: ao lado, espremia o
+          texto em quatro linhas e sobrava espaço embaixo dele. */}
+      <Alert.Root
+        variant="warning"
+        className="max-desktop:flex-wrap items-center"
+      >
         <Alert.Icon icon={Sparkles} />
         <Alert.Content>
           <Alert.Title>Plano {plan.label}</Alert.Title>
@@ -45,7 +53,7 @@ export function PlanHeader({ plan }: { plan: MyPlan }) {
           appearance="outline"
           color="neutral"
           size="sm"
-          noUppercase
+          fullWidthBelowDesktop
           className="shrink-0"
         >
           <Button.Title>Comparar planos</Button.Title>

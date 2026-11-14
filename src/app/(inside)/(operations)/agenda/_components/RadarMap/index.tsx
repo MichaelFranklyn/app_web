@@ -9,7 +9,7 @@ import { Loading } from "@/components/Loading";
 import { QueryError } from "@/components/QueryError";
 import { Title } from "@/components/Title";
 import { useGoogleMapsLoader } from "@/hooks/useGoogleMapsLoader";
-import { scoreLevel, type ScoreTone } from "@/utils/score";
+import { SCORE_TONE_VAR, scoreLevel, type ScoreTone } from "@/utils/score";
 import { MarkerClusterer } from "@googlemaps/markerclusterer";
 import { useQuery } from "@apollo/client/react";
 import { MapPin, Radar } from "lucide-react";
@@ -24,17 +24,13 @@ interface Props {
   sellerId: string | null;
 }
 
-// Cor do marcador por tom de score (alto = urgente/vermelho). Hex fixo porque o
-// pino do mapa é desenhado fora do CSS (não enxerga as variáveis do tema).
-const TONE_HEX: Record<ScoreTone, string> = {
-  red: "#ef4444",
-  orange: "#f97316",
-  amber: "#f59e0b",
-  blue: "#3b82f6",
-  green: "#22c55e",
-  cyan: "#06b6d4",
-  neutral: "#6b7280",
-};
+// Cor do marcador por tom de score (alto = urgente/vermelho). O pino é
+// desenhado pelo Google Maps, fora do CSS: lê o valor do token do DS na hora de
+// desenhar, para ficar igual ao selo do score no resto da tela.
+const toneColor = (styles: CSSStyleDeclaration, tone: ScoreTone): string =>
+  styles.getPropertyValue(SCORE_TONE_VAR[tone]).trim() ||
+  styles.getPropertyValue(SCORE_TONE_VAR.neutral).trim() ||
+  "gray";
 
 const scoreNumber = (c: RadarClient): number =>
   c.companyClient?.visitScoreTotal
@@ -91,6 +87,8 @@ export function RadarMap({ sellerId }: Props) {
     clustererRef.current?.clearMarkers();
 
     const bounds = new google.maps.LatLngBounds();
+    const styles = getComputedStyle(document.documentElement);
+    const halo = styles.getPropertyValue("--bg2").trim() || "white";
     const markers = clients
       .map((client) => {
         const lat = Number(client.latitude);
@@ -103,9 +101,9 @@ export function RadarMap({ sellerId }: Props) {
           icon: {
             path: google.maps.SymbolPath.CIRCLE,
             scale: 8,
-            fillColor: TONE_HEX[tone] ?? TONE_HEX.neutral,
+            fillColor: toneColor(styles, tone),
             fillOpacity: 1,
-            strokeColor: "#ffffff",
+            strokeColor: halo,
             strokeWeight: 2,
           },
         });
@@ -179,7 +177,7 @@ export function RadarMap({ sellerId }: Props) {
         <Card.Root>
           <Card.Header>
             <div className="flex items-center gap-8">
-              <Radar size={16} className="text-(--amber)" />
+              <Radar size={16} className="text-(--color-action-text)" />
               <Title variant="body-sm" weight="semibold">
                 Loja selecionada
               </Title>
@@ -221,7 +219,6 @@ export function RadarMap({ sellerId }: Props) {
                       appearance="tinted"
                       color="amber"
                       size="sm"
-                      noUppercase
                       fullWidth
                     >
                       <Button.Title>Abrir cliente</Button.Title>

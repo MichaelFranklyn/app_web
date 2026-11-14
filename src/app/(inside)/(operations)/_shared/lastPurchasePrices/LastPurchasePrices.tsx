@@ -67,7 +67,7 @@ export function LastPurchasePrices({
     <Card.Root inset>
       <Card.Body padding="compact" className="flex flex-col gap-8">
         <div className="flex flex-wrap items-center justify-between gap-8">
-          <Title variant="label" weight="bold" className="tracking-normal">
+          <Title variant="label" weight="bold">
             Últimas compras deste cliente
           </Title>
           {variation !== null && Math.abs(variation) >= 0.01 && (
@@ -129,7 +129,6 @@ export function LastPurchasePrices({
                   appearance="ghost"
                   color="neutral"
                   size="sm"
-                  noUppercase
                   onClick={() => onUsePrice(net)}
                 >
                   <Button.Title>Usar este preço</Button.Title>

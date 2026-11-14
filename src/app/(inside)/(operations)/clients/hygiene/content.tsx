@@ -3,6 +3,7 @@
 import { Breadcrumb } from "@/components/Breadcrumb";
 import { PageContent } from "@/components/PageContent";
 import { PanelHeader } from "@/components/PanelHeader";
+import { PAGE_HEADING } from "@/utils/modules";
 import { useInvalidateQueriesClient } from "@/hooks/useInvalidateQueries";
 import { CLIENT_CACHE_FIELDS } from "@/utils/cacheFields";
 import { useQuery } from "@apollo/client/react";
@@ -43,7 +44,9 @@ export default function HygieneContent() {
         <PanelHeader.Root>
           <PanelHeader.Top>
             <PanelHeader.Left>
-              <PanelHeader.Title>{HYGIENE_TITLE}</PanelHeader.Title>
+              <PanelHeader.Heading {...PAGE_HEADING.hygiene}>
+                {HYGIENE_TITLE}
+              </PanelHeader.Heading>
               <PanelHeader.Description>
                 {HYGIENE_DESCRIPTION}
               </PanelHeader.Description>

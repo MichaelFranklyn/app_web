@@ -9,12 +9,11 @@ interface SectionProps {
 }
 
 // Cabeçalho da seção. Renderiza um <h3> (variant heading-md) roteado pelo Title,
-// com os overrides que dão o visual "eyebrow" mono/âmbar do FormBuilder.
+// em cor de texto padrão — âmbar é só do que é interativo.
 const SectionHeading = ({ children }: { children: ReactNode }) => (
   <Title
     variant="heading-md"
-    color="amber"
-    className="mt-4 border-b border-(--border) pb-2 font-mono text-[15px] font-medium tracking-wider"
+    className="font-body mt-4 border-b border-(--border) pb-2 text-[15px] font-medium"
   >
     {children}
   </Title>

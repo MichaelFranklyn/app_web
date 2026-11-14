@@ -5,6 +5,7 @@ import { Pdf } from "@/utils/pdf/theme";
 
 import { CommissionRow } from "../interface";
 import { boletoLabel, CommissionLens, OFFICE_LENS } from "../utils";
+import { formatOrderNumber } from "@/utils/orderNumber";
 
 /**
  * Colunas das seções de BOLETO (inadimplentes e liquidados).
@@ -28,7 +29,7 @@ export const boletoColumns = (
   {
     header: "PEDIDO",
     width: 8,
-    value: (row) => row.orderId.slice(0, 8).toUpperCase(),
+    value: (row) => formatOrderNumber(row.orderNumber),
   },
   { header: "NOTA", width: 6, value: (row) => row.invoiceNumber ?? "—" },
   {

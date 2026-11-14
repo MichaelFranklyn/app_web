@@ -19,6 +19,7 @@ import {
 import { ReconcileToggle } from "../ReconcileToggle";
 import { CommissionRowActions } from "./CommissionRowActions";
 import { InstallmentStateCell } from "./InstallmentStateCell";
+import { formatOrderNumber } from "@/utils/orderNumber";
 
 interface Props {
   rows: CommissionRow[];
@@ -86,16 +87,26 @@ export function CommissionsTable({
     rows.length > 0 && rows.every((row) => selectedIds?.has(row.installmentId));
 
   return (
-    <Table.Table>
+    <Table.Table cards>
       <Table.Header>
         <Table.Row>
           {selectable && (
             <Table.Head>
-              {/* `label` no checkbox vira texto visível; o nome acessível vai
-                  no `aria-label` — sem ele o leitor de tela anuncia "caixa de
-                  seleção" e nada mais. */}
+              {/* O texto só aparece no modo cartão (< 1024px), onde o checkbox
+                  fica na faixa de controles sem coluna embaixo para explicar o
+                  que marca. Vai DENTRO do `label` do checkbox para que tocar no
+                  texto também marque. O nome acessível segue no `aria-label`. */}
               <Input.Checkbox
-                label=""
+                label={
+                  <Title
+                    as="span"
+                    variant="body-sm"
+                    color="secondary"
+                    className="desktop:hidden"
+                  >
+                    {isPaged ? "Selecionar esta página" : "Selecionar todas"}
+                  </Title>
+                }
                 aria-label={
                   isPaged
                     ? "Selecionar esta página"
@@ -213,15 +224,18 @@ export function CommissionsTable({
         ) : rows.length === 0 ? (
           <Table.Row>
             <Table.Cell colSpan={columns}>
-              <EmptyState.Root>
+              {/* flat: a célula já está dentro do card da fábrica. E o
+                  cartão só existe se a fábrica tem parcela na situação —
+                  vazio aqui é parcela que acabou de mudar (baixa, estorno),
+                  não falta de faturamento (14/11/2026). */}
+              <EmptyState.Root flat>
                 <EmptyState.Icon>
                   <Coins size={32} />
                 </EmptyState.Icon>
-                <EmptyState.Title>Nenhuma comissão aqui</EmptyState.Title>
+                <EmptyState.Title>Nenhuma parcela aqui</EmptyState.Title>
                 <EmptyState.Description>
-                  As comissões aparecem quando os pedidos são faturados. Fature
-                  um pedido para gerar as parcelas e acompanhar o que há a
-                  receber.
+                  As parcelas desta fábrica mudaram de situação. Troque a
+                  situação nas abas acima para encontrá-las.
                 </EmptyState.Description>
               </EmptyState.Root>
             </Table.Cell>
@@ -230,7 +244,7 @@ export function CommissionsTable({
           rows.map((row) => (
             <Table.Row key={row.installmentId}>
               {selectable && (
-                <Table.Cell>
+                <Table.Cell card="lead">
                   <Input.Checkbox
                     label=""
                     aria-label={`Selecionar a parcela ${row.sequence} de ${clientName(row.client)}`}
@@ -239,9 +253,11 @@ export function CommissionsTable({
                   />
                 </Table.Cell>
               )}
-              <Table.Cell variant="strong">{clientName(row.client)}</Table.Cell>
+              <Table.Cell variant="strong" card="title">
+                {clientName(row.client)}
+              </Table.Cell>
               {showSeller && (
-                <Table.Cell>
+                <Table.Cell label="Vendedor">
                   {row.seller?.name ?? (
                     <Title variant="body-sm" color="muted">
                       —
@@ -249,12 +265,12 @@ export function CommissionsTable({
                   )}
                 </Table.Cell>
               )}
-              <Table.Cell>
+              <Table.Cell label="Pedido">
                 <TextLink href={`/orders/${row.orderId}`}>
-                  {row.orderId.slice(0, 8).toUpperCase()}
+                  {formatOrderNumber(row.orderNumber)}
                 </TextLink>
               </Table.Cell>
-              <Table.Cell>
+              <Table.Cell card="hidden">
                 {row.invoiceNumber ? (
                   row.invoiceNumber
                 ) : (
@@ -263,12 +279,12 @@ export function CommissionsTable({
                   </Title>
                 )}
               </Table.Cell>
-              <Table.Cell>{row.sequence}</Table.Cell>
-              <Table.Cell>
+              <Table.Cell card="hidden">{row.sequence}</Table.Cell>
+              <Table.Cell label="Boleto">
                 <InstallmentStateCell row={row} />
               </Table.Cell>
               <Table.Cell>{whenLabel(row, lens)}</Table.Cell>
-              <Table.Cell className="text-right">
+              <Table.Cell className="text-right" label="Valor" card="amount">
                 {/* Estorno vem negativo: sai em vermelho para não ser lido como ganho. */}
                 <Title
                   variant="body-sm"
@@ -280,7 +296,7 @@ export function CommissionsTable({
                   {formatMoney(lens.amount(row))}
                 </Title>
               </Table.Cell>
-              <Table.Cell>
+              <Table.Cell card="status">
                 <Badge.Root
                   color={COMMISSION_STATUS_TONE[lens.status(row)]}
                   appearance="tinted"
@@ -291,7 +307,7 @@ export function CommissionsTable({
                 </Badge.Root>
               </Table.Cell>
               {canManage && (
-                <Table.Cell>
+                <Table.Cell label="Conferência" card="aside">
                   <ReconcileToggle
                     installmentId={row.installmentId}
                     reconciled={row.isReconciled}
@@ -301,7 +317,7 @@ export function CommissionsTable({
                 </Table.Cell>
               )}
               {canManage && (
-                <Table.Cell>
+                <Table.Cell card="actions">
                   <div className="flex items-center justify-end">
                     <CommissionRowActions row={row} onChanged={onChanged} />
                   </div>

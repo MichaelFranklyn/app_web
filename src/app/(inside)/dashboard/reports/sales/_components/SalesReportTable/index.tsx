@@ -70,6 +70,8 @@ export function SalesReportTable({
         </Table.CardHead.Title>
         <Table.CardHead.Actions>
           <Filters
+            resultCount={totalItems}
+            resultLoading={loading}
             fields={filterFields}
             values={inputValues}
             onChange={setFilters}
@@ -111,7 +113,7 @@ export function SalesReportTable({
           ) : items.length === 0 ? (
             <Table.Row>
               <Table.Cell colSpan={8}>
-                <EmptyState.Root>
+                <EmptyState.Root flat>
                   <EmptyState.Icon>
                     <Receipt size={32} />
                   </EmptyState.Icon>

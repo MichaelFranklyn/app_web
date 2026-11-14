@@ -9,6 +9,7 @@ import { Grid } from "@/components/Grid";
 import { Loading } from "@/components/Loading";
 import { PageContent } from "@/components/PageContent";
 import { PanelHeader } from "@/components/PanelHeader";
+import { PAGE_HEADING } from "@/utils/modules";
 
 import { AnalyticsStoryIndex } from "../AnalyticsStoryIndex";
 
@@ -38,7 +39,9 @@ export function AnalyticsSkeleton() {
         <PanelHeader.Root>
           <PanelHeader.Top>
             <PanelHeader.Left>
-              <PanelHeader.Title>Desempenho</PanelHeader.Title>
+              <PanelHeader.Heading {...PAGE_HEADING.analytics}>
+                Desempenho
+              </PanelHeader.Heading>
               {/* A descrição traz o período escolhido — vem com os dados. */}
               <Loading.Skeleton className="mt-[6px] h-[12px] w-64" />
               <PanelHeader.Actions className="mt-6">
@@ -47,7 +50,7 @@ export function AnalyticsSkeleton() {
                 <Loading.Skeleton className="h-[32px] w-[220px]" />
                 <Loading.Skeleton className="h-[32px] w-[220px]" />
                 <Loading.Skeleton className="h-[32px] w-[180px]" />
-                <Loading.Skeleton className="h-[32px] w-[120px]" />
+                <Loading.Skeleton className="max-desktop:w-full h-[32px] w-[120px]" />
               </PanelHeader.Actions>
             </PanelHeader.Left>
           </PanelHeader.Top>

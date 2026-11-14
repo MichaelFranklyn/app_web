@@ -4,6 +4,7 @@ import { Emphasis } from "@/components/Emphasis";
 import { Button } from "@/components/Button";
 import { HelpTooltip } from "@/components/HelpTooltip";
 import { PanelHeader } from "@/components/PanelHeader";
+import { PAGE_HEADING } from "@/utils/modules";
 import { SupportCaseModal } from "@/components/SupportCaseModal";
 import { Plus } from "lucide-react";
 import { useState } from "react";
@@ -24,9 +25,9 @@ export function SupportHeader({ onSaved }: Props) {
           {/* Eyebrow verde: atendimento é assunto do módulo Clientes. */}
           <PanelHeader.Eyebrow color="green">Clientes</PanelHeader.Eyebrow>
           <div className="flex items-center gap-6">
-            <PanelHeader.Title>
+            <PanelHeader.Heading {...PAGE_HEADING.support}>
               Reclamações <Emphasis tone="accent">de clientes</Emphasis>
-            </PanelHeader.Title>
+            </PanelHeader.Heading>
             <HelpTooltip
               label="O que entra nas reclamações?"
               content={SUPPORT_HELP}
@@ -42,7 +43,6 @@ export function SupportHeader({ onSaved }: Props) {
               appearance="solid"
               color="amber"
               size="sm"
-              noUppercase
               onClick={() => setCreating(true)}
             >
               <Button.Icon icon={Plus} />

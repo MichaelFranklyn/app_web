@@ -33,7 +33,7 @@ export function PlanChangeNotice({ change }: { change: PlanChange }) {
             <AlertTriangle
               aria-hidden
               size={14}
-              className="mt-[2px] shrink-0 text-(--red)"
+              className="mt-[2px] shrink-0 text-(--color-status-danger)"
             />
             <Title variant="caption" color="red">
               Perde: {change.lost.map((f) => FEATURE_LABEL[f]).join(", ")}. Quem
@@ -47,7 +47,7 @@ export function PlanChangeNotice({ change }: { change: PlanChange }) {
             <Plus
               aria-hidden
               size={14}
-              className="mt-[2px] shrink-0 text-(--green)"
+              className="mt-[2px] shrink-0 text-(--color-status-success)"
             />
             <Title variant="caption">
               Ganha: {change.gained.map((f) => FEATURE_LABEL[f]).join(", ")}.
@@ -65,7 +65,7 @@ export function PlanChangeNotice({ change }: { change: PlanChange }) {
                 <ArrowRight
                   aria-hidden
                   size={12}
-                  className="shrink-0 text-(--muted)"
+                  className="shrink-0 text-(--color-text-muted)"
                 />
                 <Title
                   variant="caption"

@@ -7,6 +7,8 @@ export type { CommissionStatus };
 
 export interface CommissionRow {
   orderId: string;
+  /** "#128": o número legível do pedido na empresa. */
+  orderNumber: number;
   installmentId: string;
   sequence: number;
   orderDate: string;

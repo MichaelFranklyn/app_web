@@ -1,9 +1,9 @@
 "use client";
 
+import { DocumentNumber } from "@/components/DocumentNumber";
 import { Card } from "@/components/Card";
 import { Grid } from "@/components/Grid";
 import { Title } from "@/components/Title";
-import { maskCNPJ } from "@/utils/format/masks";
 import { DataField, EditCardAction } from "../../../../_shared/dataCards";
 import { MyCompany } from "../../interface";
 
@@ -28,7 +28,10 @@ export function CompanyIdentityCard({ company, onEdit }: Props) {
       <Card.Body className="flex flex-col gap-16">
         <Grid.Root cols={{ base: 1, desktop: 2 }} gap={16}>
           <DataField label="Razão social" value={company.razaoSocial} />
-          <DataField label="CNPJ" value={maskCNPJ(company.cnpj)} />
+          <DataField
+            label="CNPJ"
+            value={<DocumentNumber value={company.cnpj} />}
+          />
           <DataField label="Nome fantasia" value={company.nomeFantasia ?? ""} />
           <DataField label="Segmento" value={company.segment} />
         </Grid.Root>

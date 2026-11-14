@@ -23,23 +23,27 @@ export interface DotProps extends React.HTMLAttributes<HTMLDivElement> {
 
 export type DotIntensity = "soft" | "solid" | "faint";
 
+// A força é uma MISTURA da cor com o fundo (`color-mix`), não `opacity`: o
+// `animate-pulse-soft` anima a opacity e, com as duas no mesmo elemento, a
+// intensidade sumia no meio do pulso.
 const intensityClasses: Record<DotIntensity, string> = {
-  soft: "opacity-60",
-  solid: "opacity-100",
-  faint: "opacity-40",
+  soft: "bg-[color-mix(in_srgb,var(--dot)_60%,transparent)]",
+  solid: "bg-(--dot)",
+  faint: "bg-[color-mix(in_srgb,var(--dot)_40%,transparent)]",
 };
 
 const colorClasses: Record<ThemeColor, string> = {
-  amber: "bg-(--amber)",
-  red: "bg-(--red)",
-  green: "bg-(--green)",
-  blue: "bg-(--blue)",
-  cyan: "bg-(--cyan)",
-  purple: "bg-(--purple)",
-  orange: "bg-(--orange)",
-  pink: "bg-(--pink)",
-  neutral: "bg-(--muted)",
-  subtle: "bg-(--dim)",
+  amber: "[--dot:var(--amber)]",
+  red: "[--dot:var(--color-status-danger)]",
+  green: "[--dot:var(--color-status-success)]",
+  blue: "[--dot:var(--color-status-info)]",
+  cyan: "[--dot:var(--cyan)]",
+  purple: "[--dot:var(--purple)]",
+  orange: "[--dot:var(--orange)]",
+  pink: "[--dot:var(--pink)]",
+  neutral: "[--dot:var(--color-text-muted)]",
+  subtle: "[--dot:var(--dim)]",
+  warning: "[--dot:var(--color-status-warning)]",
 };
 
 const sizeClasses: Record<DotSize, string> = {
@@ -70,14 +74,14 @@ export const DotRoot = React.forwardRef<HTMLDivElement, DotProps>(
         ref={ref}
         className={cn(
           "shrink-0",
+          colorClasses[color],
           shape === "bar"
-            ? "h-[18px] w-[10px] rounded-[2px]"
+            ? "h-[18px] w-[10px] rounded-[2px] bg-(--dot)"
             : cn(
                 "rounded-full",
                 intensityClasses[intensity],
                 sizeClasses[size]
               ),
-          colorClasses[color],
           pulse && "animate-pulse-soft",
           className
         )}

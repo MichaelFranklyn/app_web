@@ -6,7 +6,7 @@ import { formatDateDMY } from "@/utils/format/masks";
 import { ArrowRightLeft, Info, UserMinus } from "lucide-react";
 import { walletStatusLabel } from "../../../_shared/hygiene/utils";
 import { WalletSituation } from "../../interface";
-import { formatCnpj } from "../../utils";
+import { DocumentNumber } from "@/components/DocumentNumber";
 
 interface Props {
   situation: WalletSituation;
@@ -36,9 +36,12 @@ export function WalletStatusBanner({ situation }: Props) {
           <Alert.Title>Este cliente mudou de CNPJ{since}</Alert.Title>
           <Alert.Description>
             A relação continua no CNPJ novo
-            {succeededBy.client
-              ? ` (${formatCnpj(succeededBy.client.cnpj)})`
-              : ""}
+            {succeededBy.client ? (
+              <>
+                {" ("}
+                <DocumentNumber value={succeededBy.client.cnpj} />)
+              </>
+            ) : null}
             . Aqui ficam os pedidos antigos, feitos no CNPJ anterior.{reason}{" "}
             <TextLink
               href={`/clients/${succeededBy.id}/overview`}
@@ -82,9 +85,12 @@ export function WalletStatusBanner({ situation }: Props) {
           <Alert.Description>
             Este cadastro veio de uma troca de CNPJ. Os pedidos feitos no CNPJ
             anterior
-            {succeededFrom.client
-              ? ` (${formatCnpj(succeededFrom.client.cnpj)})`
-              : ""}{" "}
+            {succeededFrom.client ? (
+              <>
+                {" ("}
+                <DocumentNumber value={succeededFrom.client.cnpj} />)
+              </>
+            ) : null}{" "}
             estão no{" "}
             <TextLink
               href={`/clients/${succeededFrom.id}/overview`}

@@ -33,7 +33,6 @@ export function ScheduleVisitButton({ sellerId, onScheduled }: Props) {
         appearance="outline"
         color="amber"
         size="sm"
-        noUppercase
         onClick={() => setOpen(true)}
       >
         <Button.Icon icon={CalendarPlus} />

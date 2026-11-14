@@ -8,6 +8,7 @@ export const ORDER_DETAIL_QUERY = gql`
       message
       data {
         id
+        number
         orderDate
         totalAmount
         ipiAmount

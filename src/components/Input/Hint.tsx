@@ -15,9 +15,17 @@ export const InputHint = ({
 }: InputHintProps) => {
   const context = useInputContext();
   const isError = context?.error;
+  const register = context?.registerHint;
+
+  React.useEffect(() => {
+    if (!register) return;
+    register(true);
+    return () => register(false);
+  }, [register]);
 
   return (
     <span
+      id={context?.id ? `${context.id}-hint` : undefined}
       className={cn(
         inputStyles.hint,
         isError && inputStyles.hintError,

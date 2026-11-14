@@ -98,7 +98,6 @@ export function ImportProductsModal({ companyFactoryId, onChanged }: Props) {
                       appearance="outline"
                       color="neutral"
                       size="sm"
-                      noUppercase
                       className="mt-8 self-start"
                       loading={isRedirecting}
                       onClick={goToPriceListImport}
@@ -151,7 +150,6 @@ export function ImportProductsModal({ companyFactoryId, onChanged }: Props) {
                 appearance="solid"
                 color="amber"
                 size="md"
-                noUppercase
               >
                 <Button.Title>Fechar</Button.Title>
               </Button.Root>
@@ -164,7 +162,6 @@ export function ImportProductsModal({ companyFactoryId, onChanged }: Props) {
                   appearance="ghost"
                   color="neutral"
                   size="md"
-                  noUppercase
                   disabled={isLoading}
                 >
                   <Button.Title>Cancelar</Button.Title>
@@ -176,7 +173,6 @@ export function ImportProductsModal({ companyFactoryId, onChanged }: Props) {
                   appearance="ghost"
                   color="neutral"
                   size="md"
-                  noUppercase
                   disabled={isLoading}
                   onClick={() => setStep((s) => s - 1)}
                 >
@@ -189,7 +185,6 @@ export function ImportProductsModal({ companyFactoryId, onChanged }: Props) {
                   appearance="solid"
                   color="amber"
                   size="md"
-                  noUppercase
                   disabled={!pendingRows?.length}
                   onClick={() => setStep(1)}
                 >
@@ -201,7 +196,6 @@ export function ImportProductsModal({ companyFactoryId, onChanged }: Props) {
                   appearance="solid"
                   color="amber"
                   size="md"
-                  noUppercase
                   loading={isLoading}
                   disabled={!pendingRows?.length}
                   onClick={handleImport}

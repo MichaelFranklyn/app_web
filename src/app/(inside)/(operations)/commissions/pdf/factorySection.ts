@@ -10,6 +10,7 @@ import {
   truncate,
 } from "@/utils/pdf/theme";
 import { boletoLabel, CommissionFactoryGroup, CommissionLens } from "../utils";
+import { formatOrderNumber } from "@/utils/orderNumber";
 
 const ROW_H = 18;
 const HEAD_H = 20;
@@ -163,7 +164,7 @@ export const drawFactorySection = (
     );
 
     setText(pdf, COLOR.muted);
-    pdf.text(row.orderId.slice(0, 8).toUpperCase(), cols.order, textY);
+    pdf.text(formatOrderNumber(row.orderNumber), cols.order, textY);
     // Pedido faturado antes de a nota chegar sai com o traço: o papel diz que
     // falta o dado, em vez de deixar a célula vazia e parecer erro de impressão.
     pdf.text(

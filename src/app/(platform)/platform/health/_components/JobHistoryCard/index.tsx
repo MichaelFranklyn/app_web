@@ -67,27 +67,34 @@ export function JobHistoryCard({ history }: { history: JobHistory[] }) {
 
               return (
                 <RowList.Item key={job.jobName} className="flex flex-col gap-8">
-                  <div className="flex flex-wrap items-baseline justify-between gap-8">
-                    <div className="flex flex-wrap items-center gap-8">
-                      <Title variant="body-sm" weight="semibold">
-                        {job.jobName}
-                      </Title>
-                      <Badge.Root
-                        color={TONE_COLOR[tone]}
-                        appearance="tinted"
-                        size="xs"
-                      >
-                        <Badge.Text>
-                          {JOB_STATUS_LABEL[job.lastStatus] ?? job.lastStatus}
-                        </Badge.Text>
-                      </Badge.Root>
+                  {/* Nome ↔ situação dividem a primeira linha (a tag na ponta
+                      direita); notas e "última" vêm embaixo. Com a tag colada
+                      ao nome, o "última" quebrava e sobrava meia linha vazia
+                      no celular. */}
+                  <div className="flex items-center justify-between gap-8">
+                    <Title variant="body-sm" weight="semibold">
+                      {job.jobName}
+                    </Title>
+                    <Badge.Root
+                      color={TONE_COLOR[tone]}
+                      appearance="tinted"
+                      size="xs"
+                    >
+                      <Badge.Text>
+                        {JOB_STATUS_LABEL[job.lastStatus] ?? job.lastStatus}
+                      </Badge.Text>
+                    </Badge.Root>
+                  </div>
+
+                  <div className="flex flex-wrap items-baseline gap-8">
+                    <div className="flex flex-wrap items-center gap-8 empty:hidden">
                       {job.failures > 0 && (
                         <Title variant="micro" color="red">
                           {job.failures} de {job.runs} falharam
                         </Title>
                       )}
                       {job.skipped > 0 && (
-                        <Title variant="micro" color="amber">
+                        <Title variant="micro" color="warning">
                           {job.skipped} pulados por lock ocupado
                         </Title>
                       )}
@@ -112,7 +119,7 @@ export function JobHistoryCard({ history }: { history: JobHistory[] }) {
                       {formatDuration(job.lastDurationMs)}
                     </Title>
                     {slower && (
-                      <Title variant="micro" color="amber">
+                      <Title variant="micro" color="warning">
                         {formatDelta(job.durationChange)} acima do normal — job
                         engordando
                       </Title>

@@ -48,7 +48,7 @@ export function StepItems({ draft, minimum, freeFreight }: Props) {
       {/* Formulário de adição (ou edição) de um item */}
       <Card.Root inset>
         <Card.Body padding="compact" className="flex flex-col gap-8">
-          <Title variant="label" weight="bold" className="tracking-normal">
+          <Title variant="label" weight="bold">
             {isEditing ? "Editar item" : "Adicionar item"}
           </Title>
 
@@ -177,7 +177,6 @@ export function StepItems({ draft, minimum, freeFreight }: Props) {
               appearance="solid"
               color="amber"
               size="sm"
-              noUppercase
               onClick={draft.submitItem}
             >
               <Button.Icon icon={isEditing ? Check : Plus} />
@@ -192,7 +191,6 @@ export function StepItems({ draft, minimum, freeFreight }: Props) {
                 appearance="ghost"
                 color="neutral"
                 size="sm"
-                noUppercase
                 onClick={draft.cancelEdit}
               >
                 <Button.Icon icon={X} />
@@ -279,7 +277,6 @@ export function StepItems({ draft, minimum, freeFreight }: Props) {
                         color="neutral"
                         size="sm"
                         isIconOnly
-                        noUppercase
                         label="Editar item"
                         onClick={() => draft.startEdit(index)}
                       >
@@ -291,7 +288,6 @@ export function StepItems({ draft, minimum, freeFreight }: Props) {
                         color="red"
                         size="sm"
                         isIconOnly
-                        noUppercase
                         label="Remover item"
                         onClick={() => draft.removeItem(index)}
                       >

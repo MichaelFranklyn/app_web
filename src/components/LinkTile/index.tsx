@@ -14,7 +14,7 @@ export const LinkTile = React.forwardRef<
   <a
     ref={ref}
     className={cn(
-      "flex gap-8 rounded-(--r-sm) p-8 transition-colors hover:bg-(--bg3) focus:outline-none focus-visible:ring-1 focus-visible:ring-(--amber)",
+      "focus-ring flex gap-8 rounded-(--r-sm) p-8 transition-colors hover:bg-(--bg3)",
       className
     )}
     {...props}

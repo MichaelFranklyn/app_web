@@ -40,7 +40,7 @@ export const TourCard = ({
         type="button"
         aria-label="Fechar tutorial"
         onClick={onClose}
-        className="shrink-0 cursor-pointer rounded p-4 text-(--muted) transition-colors hover:bg-(--bg3) hover:text-(--text)"
+        className="shrink-0 cursor-pointer rounded p-4 text-(--color-text-muted) transition-colors hover:bg-(--bg3) hover:text-(--color-text)"
       >
         <X size={16} strokeWidth={2} />
       </button>

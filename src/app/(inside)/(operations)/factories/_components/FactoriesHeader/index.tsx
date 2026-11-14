@@ -2,6 +2,7 @@
 
 import { InputSearch } from "@/components/Input";
 import { PanelHeader } from "@/components/PanelHeader";
+import { PAGE_HEADING } from "@/utils/modules";
 import { PlanLimitGate } from "@/components/PlanLimitGate";
 import { FeatureGate } from "@/components/FeatureGate";
 import { useUserData } from "@/hooks/useUserData";
@@ -29,7 +30,9 @@ export function FactoriesHeader({
     <PanelHeader.Root>
       <PanelHeader.Top>
         <PanelHeader.Left>
-          <PanelHeader.Title>Fábricas Representadas</PanelHeader.Title>
+          <PanelHeader.Heading {...PAGE_HEADING.factories}>
+            Fábricas Representadas
+          </PanelHeader.Heading>
           <PanelHeader.Description>
             Fábricas cujos produtos são vendidos pela empresa. Entidade global
             da plataforma.

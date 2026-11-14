@@ -90,7 +90,6 @@ export function PortalStockContent({ items, token }: PortalStockContentProps) {
           color="amber"
           size="md"
           fullWidth
-          noUppercase
           loading={isPending}
         >
           <Button.Title>Enviar para o meu representante</Button.Title>

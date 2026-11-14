@@ -65,7 +65,7 @@ export function Reconciliation({
             >
               {value}
             </Title>
-            <ArrowRight className="size-14 text-(--muted)" />
+            <ArrowRight className="size-14 text-(--color-text-muted)" />
             <Input.Select
               placeholder="Escolha a correspondência"
               options={options}

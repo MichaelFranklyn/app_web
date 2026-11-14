@@ -6,8 +6,6 @@ import { useAsyncAction } from "@/hooks/useAsyncAction";
 import { useInvalidateQueriesClient } from "@/hooks/useInvalidateQueries";
 import { ORDER_CACHE_FIELDS } from "@/utils/cacheFields";
 import { useMutation } from "@apollo/client/react";
-import { Trash2 } from "lucide-react";
-import { useState } from "react";
 import { DELETE_ORDER_MUTATION } from "@/graphql/orders";
 
 interface DeleteOrderResponse {
@@ -25,6 +23,9 @@ interface Props {
   onRemoveOptimistic: (id: string) => void;
   onCommit: () => void;
   onRollback: () => void;
+  /** Controlado: quem abre é a ação "Remover pedido" do `OrderRowActions`. */
+  open: boolean;
+  onOpenChange: (open: boolean) => void;
 }
 
 export function DeleteOrderModal({
@@ -34,8 +35,9 @@ export function DeleteOrderModal({
   onRemoveOptimistic,
   onCommit,
   onRollback,
+  open,
+  onOpenChange: setOpen,
 }: Props) {
-  const [open, setOpen] = useState(false);
   const [deleteOrder] = useMutation<DeleteOrderResponse>(DELETE_ORDER_MUTATION);
   const { execute, isLoading } = useAsyncAction();
   const invalidateClient = useInvalidateQueriesClient();
@@ -72,17 +74,6 @@ export function DeleteOrderModal({
 
   return (
     <Modal.Root open={open} onOpenChange={setOpen}>
-      <Modal.Trigger asChild>
-        <Button.Root
-          appearance="ghost"
-          color="red"
-          size="sm"
-          aria-label="Remover pedido"
-        >
-          <Button.Icon icon={Trash2} />
-        </Button.Root>
-      </Modal.Trigger>
-
       <Modal.Content size="md">
         <Modal.Header
           title="Remover pedido"
@@ -95,7 +86,6 @@ export function DeleteOrderModal({
               appearance="ghost"
               color="neutral"
               size="md"
-              noUppercase
               disabled={isLoading}
             >
               <Button.Title>Cancelar</Button.Title>
@@ -106,7 +96,6 @@ export function DeleteOrderModal({
             appearance="solid"
             color="red"
             size="md"
-            noUppercase
             loading={isLoading}
             onClick={handleConfirm}
           >

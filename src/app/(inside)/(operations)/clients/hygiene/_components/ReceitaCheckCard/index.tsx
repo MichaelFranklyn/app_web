@@ -51,7 +51,7 @@ export function ReceitaCheckCard({ pending, onChecked }: Props) {
       <Card.Body>
         <div className="flex flex-wrap items-center justify-between gap-12">
           <div className="flex items-start gap-10">
-            <Landmark size={20} className="mt-2 text-(--muted)" />
+            <Landmark size={20} className="mt-2 text-(--color-text-muted)" />
             <div className="flex flex-col gap-2">
               <span className="inline-flex items-center gap-6">
                 <Title variant="body-md" weight="bold">
@@ -76,7 +76,9 @@ export function ReceitaCheckCard({ pending, onChecked }: Props) {
               appearance="solid"
               color="amber"
               size="sm"
-              noUppercase
+              // Abaixo do desktop o botão desce sozinho para a linha de baixo;
+              // esticado, não deixa sobra à direita.
+              fullWidthBelowDesktop
               loading={isLoading}
               onClick={handleCheck}
             >

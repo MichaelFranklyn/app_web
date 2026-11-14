@@ -59,6 +59,8 @@ export interface BackorderRef {
 
 export interface OrderDetail {
   id: string;
+  /** "#128": sequencial por empresa (ver `@/utils/orderNumber`). */
+  number: number;
   orderDate: string;
   totalAmount: string;
   ipiAmount: string;

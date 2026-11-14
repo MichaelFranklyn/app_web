@@ -18,7 +18,9 @@ const Item = ({
 }: React.LiHTMLAttributes<HTMLLIElement>) => (
   <li
     className={cn(
-      "flex flex-col gap-[2px] border-l-2 border-(--border) pl-12",
+      // O ponto marca onde cada acontecimento começa; o traço os liga.
+      "relative flex flex-col gap-[2px] border-l-2 border-(--border) pl-12",
+      "before:absolute before:top-[7px] before:-left-[5px] before:size-[8px] before:rounded-full before:bg-(--border2)",
       className
     )}
     {...props}

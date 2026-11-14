@@ -72,7 +72,7 @@ export function UserActivityCard({ entries, total, loading }: Props) {
           </EmptyState.Root>
         ) : (
           <Table.Root>
-            <Table.Table>
+            <Table.Table cards>
               <Table.Header>
                 <Table.Row>
                   <Table.Head>Quando</Table.Head>
@@ -85,11 +85,15 @@ export function UserActivityCard({ entries, total, loading }: Props) {
               <Table.Body>
                 {entries.map((entry) => (
                   <Table.Row key={entry.id}>
-                    <Table.Cell variant="dim" className="whitespace-nowrap">
+                    <Table.Cell
+                      label="Quando"
+                      variant="dim"
+                      className="whitespace-nowrap"
+                    >
                       {formatMoment(entry.createdAt)}
                     </Table.Cell>
 
-                    <Table.Cell className="max-w-[280px]">
+                    <Table.Cell card="title" className="max-w-[280px]">
                       <div className="flex min-w-0 flex-col gap-[2px]">
                         <Title
                           variant="body-sm"
@@ -110,7 +114,7 @@ export function UserActivityCard({ entries, total, loading }: Props) {
                       </div>
                     </Table.Cell>
 
-                    <Table.Cell className="whitespace-nowrap">
+                    <Table.Cell card="status" className="whitespace-nowrap">
                       <Badge.Root
                         color={entry.status === "error" ? "red" : "green"}
                         appearance="tinted"
@@ -122,7 +126,11 @@ export function UserActivityCard({ entries, total, loading }: Props) {
                       </Badge.Root>
                     </Table.Cell>
 
-                    <Table.Cell variant="dim" className="whitespace-nowrap">
+                    <Table.Cell
+                      label="Duração"
+                      variant="dim"
+                      className="whitespace-nowrap"
+                    >
                       {formatDuration(entry.durationMs)}
                     </Table.Cell>
                   </Table.Row>

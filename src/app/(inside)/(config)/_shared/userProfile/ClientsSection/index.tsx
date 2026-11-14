@@ -38,6 +38,8 @@ export function ClientsSection({ sellerId }: Props) {
         <Table.CardHead.Title>Carteira de clientes</Table.CardHead.Title>
         <Table.CardHead.Actions>
           <Filters
+            resultCount={table.totalItems}
+            resultLoading={loading}
             fields={table.filterFields}
             values={table.inputValues}
             onChange={table.setFilters}

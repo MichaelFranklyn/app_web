@@ -10,6 +10,7 @@ import { ORDER_CACHE_FIELDS } from "@/utils/cacheFields";
 import { gql } from "@apollo/client";
 import { useMutation } from "@apollo/client/react";
 import { Ban } from "lucide-react";
+import { useControlledOpen } from "@/hooks/useControlledOpen";
 import { useState } from "react";
 
 const CANCEL_ORDER_MUTATION = gql`
@@ -41,6 +42,9 @@ interface Props {
   /** Orçamento ou pedido: muda só as palavras do modal. */
   isQuote: boolean;
   onSuccess: () => void;
+  /** Aberto de fora (menu "Mais ações"): sem `open`, desenha o próprio botão. */
+  open?: boolean;
+  onOpenChange?: (open: boolean) => void;
 }
 
 /** Mesmo teto do backend (`MAX_REASON_LENGTH`). */
@@ -53,8 +57,17 @@ const MAX_REASON_LENGTH = 500;
  * Só aparece antes do faturamento: faturado tem boletos e comissão, e o caminho
  * é desfazer o faturamento primeiro (o backend recusa e diz isso).
  */
-export function CancelOrderModal({ orderId, isQuote, onSuccess }: Props) {
-  const [open, setOpen] = useState(false);
+export function CancelOrderModal({
+  orderId,
+  isQuote,
+  onSuccess,
+  open: openProp,
+  onOpenChange,
+}: Props) {
+  const { open, setOpen, isControlled } = useControlledOpen(
+    openProp,
+    onOpenChange
+  );
   const [reason, setReason] = useState("");
   const [cancelOrder] = useMutation<CancelOrderResponse>(CANCEL_ORDER_MUTATION);
   const { execute, isLoading } = useAsyncAction();
@@ -95,12 +108,14 @@ export function CancelOrderModal({ orderId, isQuote, onSuccess }: Props) {
 
   return (
     <Modal.Root open={open} onOpenChange={handleOpenChange}>
-      <Modal.Trigger asChild>
-        <Button.Root appearance="outline" color="red" size="sm">
-          <Button.Icon icon={Ban} />
-          <Button.Title>Cancelar {noun}</Button.Title>
-        </Button.Root>
-      </Modal.Trigger>
+      {!isControlled && (
+        <Modal.Trigger asChild>
+          <Button.Root appearance="outline" color="red" size="sm">
+            <Button.Icon icon={Ban} />
+            <Button.Title>Cancelar {noun}</Button.Title>
+          </Button.Root>
+        </Modal.Trigger>
+      )}
 
       <Modal.Content size="sm">
         <Modal.Header
@@ -138,7 +153,6 @@ export function CancelOrderModal({ orderId, isQuote, onSuccess }: Props) {
               appearance="ghost"
               color="neutral"
               size="md"
-              noUppercase
               disabled={isLoading}
             >
               <Button.Title>Voltar</Button.Title>
@@ -149,7 +163,6 @@ export function CancelOrderModal({ orderId, isQuote, onSuccess }: Props) {
             appearance="solid"
             color="red"
             size="md"
-            noUppercase
             loading={isLoading}
             onClick={handleConfirm}
           >

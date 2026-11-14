@@ -49,7 +49,11 @@ export const Indicator = ({
         variant="caption"
         weight={isActive ? "semibold" : "regular"}
         color={isActive ? "default" : isPending ? "muted" : "secondary"}
-        className="whitespace-nowrap"
+        className={cn(
+          "whitespace-nowrap",
+          // Passo travado: cor de desabilitado, nunca opacity.
+          disabled && "text-(--color-text-disabled)"
+        )}
       >
         {label}
       </Title>
@@ -78,7 +82,10 @@ export const Indicator = ({
           </button>
           {!isLast && (
             <div
-              className="mt-1 w-px flex-1 bg-(--border)"
+              className={cn(
+                "mt-1 w-[2px] flex-1 rounded-full transition-colors",
+                isCompleted ? "bg-(--color-status-success)" : "bg-(--border)"
+              )}
               style={{ minHeight: 20 }}
             />
           )}
@@ -108,7 +115,15 @@ export const Indicator = ({
         {circle}
         {text}
       </button>
-      {!isLast && <div className="mx-3 h-px w-8 shrink-0 bg-(--border)" />}
+      {!isLast && (
+        // O trecho já percorrido fica verde, como o círculo cumprido.
+        <div
+          className={cn(
+            "mx-4 h-[2px] w-[12px] shrink-0 rounded-full transition-colors",
+            isCompleted ? "bg-(--color-status-success)" : "bg-(--border)"
+          )}
+        />
+      )}
     </div>
   );
 };

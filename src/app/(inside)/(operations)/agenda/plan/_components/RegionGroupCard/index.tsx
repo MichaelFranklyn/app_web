@@ -53,7 +53,6 @@ export function RegionGroupCard({
             appearance="ghost"
             color="neutral"
             size="sm"
-            noUppercase
             onClick={() => onToggleMany(group.clients, !allChosen)}
           >
             <Button.Title>

@@ -13,6 +13,7 @@ import { Ruler } from "lucide-react";
 import { useMemo } from "react";
 import { PRODUCT_UNITS_QUERY } from "../../gql";
 import { AddUnitModal } from "./AddUnitModal";
+import { CatalogRowActions } from "../CatalogRowActions";
 import { DeleteUnitModal } from "./DeleteUnitModal";
 import { EditUnitModal } from "./EditUnitModal";
 
@@ -50,13 +51,11 @@ export function UnitsSection() {
   return (
     <Table.Root>
       <CatalogSectionHead
-        count={units.length}
-        loading={loading && units.length === 0}
-        noun={{ one: "unidade", many: "unidades" }}
+        title="Unidades cadastradas"
         helpLabel="O que é uma unidade?"
         helpContent={
           <div className="flex flex-col gap-2">
-            <Title variant="label" color="amber">
+            <Title variant="label" weight="semibold">
               Unidade
             </Title>
             <Title variant="body-sm">
@@ -75,7 +74,8 @@ export function UnitsSection() {
           onDone={onChanged}
         />
       </CatalogSectionHead>
-      <Table.Table maxHeight={600}>
+      {/* Abaixo do desktop cada linha vira cartão, com editar/excluir no "⋯". */}
+      <Table.Table maxHeight={600} cards>
         <Table.Header>
           <Table.Row>
             <Table.Head title={UNIT_COLUMN_HELP.name}>Nome</Table.Head>
@@ -85,7 +85,7 @@ export function UnitsSection() {
           </Table.Row>
         </Table.Header>
         <Table.Body>
-          {loading ? (
+          {loading && units.length === 0 ? (
             <Table.Skeleton columns={2} rows={3} />
           ) : error && units.length === 0 ? (
             <Table.Row>
@@ -113,25 +113,36 @@ export function UnitsSection() {
           ) : (
             units.map((u) => (
               <Table.Row key={u.id}>
-                <Table.Cell variant="strong">{u.label}</Table.Cell>
-                <Table.Cell>
-                  <div className="flex items-center justify-end gap-4">
-                    <EditUnitModal
-                      unit={u}
-                      onUpdateOptimistic={optimistic.updateOptimistic}
-                      onCommit={optimistic.commit}
-                      onRollback={optimistic.rollback}
-                      onDone={onChanged}
-                    />
-                    <DeleteUnitModal
-                      unitId={u.id}
-                      unitLabel={u.label}
-                      onRemoveOptimistic={optimistic.removeOptimistic}
-                      onCommit={optimistic.commit}
-                      onRollback={optimistic.rollback}
-                      onDone={onChanged}
-                    />
-                  </div>
+                <Table.Cell card="title" variant="strong">
+                  {u.label}
+                </Table.Cell>
+                <Table.Cell card="actions">
+                  <CatalogRowActions
+                    label={`Ações da unidade ${u.label}`}
+                    editLabel="Editar unidade"
+                    deleteLabel="Remover unidade"
+                    renderEdit={(control) => (
+                      <EditUnitModal
+                        {...control}
+                        unit={u}
+                        onUpdateOptimistic={optimistic.updateOptimistic}
+                        onCommit={optimistic.commit}
+                        onRollback={optimistic.rollback}
+                        onDone={onChanged}
+                      />
+                    )}
+                    renderDelete={(control) => (
+                      <DeleteUnitModal
+                        {...control}
+                        unitId={u.id}
+                        unitLabel={u.label}
+                        onRemoveOptimistic={optimistic.removeOptimistic}
+                        onCommit={optimistic.commit}
+                        onRollback={optimistic.rollback}
+                        onDone={onChanged}
+                      />
+                    )}
+                  />
                 </Table.Cell>
               </Table.Row>
             ))

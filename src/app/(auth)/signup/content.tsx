@@ -106,7 +106,6 @@ export default function SignUpContent() {
                 appearance="ghost"
                 size="sm"
                 noPadding
-                noUppercase
                 onClick={() => router.push("/login")}
               >
                 <Button.Title>Entrar</Button.Title>

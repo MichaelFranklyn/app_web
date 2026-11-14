@@ -36,6 +36,7 @@ export function ProductAnalysisTable({ table, rows }: Props) {
         <Table.CardHead.Title>Produtos deste cliente</Table.CardHead.Title>
         <Table.CardHead.Actions>
           <Filters
+            resultCount={table.totalItems}
             fields={table.filterFields}
             values={table.inputValues}
             onChange={table.setFilters}
@@ -43,7 +44,9 @@ export function ProductAnalysisTable({ table, rows }: Props) {
         </Table.CardHead.Actions>
       </Table.CardHead>
 
-      <Table.Table>
+      {/* Abaixo do desktop cada produto vira um cartão: as 8 colunas rolando
+          de lado escondiam a situação, que é o que mais importa. */}
+      <Table.Table cards>
         <Table.Header>
           <Table.Row>
             <Table.Head sortKey="product" title={PRODUCT_COLUMN_HELP.product}>
@@ -100,7 +103,7 @@ export function ProductAnalysisTable({ table, rows }: Props) {
           ) : (
             table.displayedData.map((row) => (
               <Table.Row key={`${row.productId}-${row.factoryId}`}>
-                <Table.Cell>
+                <Table.Cell card="title">
                   <div className="flex flex-col">
                     <Table.CellText variant="strong">
                       {row.product?.name ?? "Produto"}
@@ -112,12 +115,12 @@ export function ProductAnalysisTable({ table, rows }: Props) {
                     )}
                   </div>
                 </Table.Cell>
-                <Table.Cell>
+                <Table.Cell label="Fábrica">
                   <Table.CellText variant="dim">
                     {factoryName(row.factory)}
                   </Table.CellText>
                 </Table.Cell>
-                <Table.Cell>
+                <Table.Cell label="Compra sempre?">
                   <div className="flex flex-col items-start gap-2">
                     <Table.CellText variant="dim">
                       {presenceLabel(row)}
@@ -131,7 +134,7 @@ export function ProductAnalysisTable({ table, rows }: Props) {
                     )}
                   </div>
                 </Table.Cell>
-                <Table.Cell>
+                <Table.Cell label="Última compra">
                   <div className="flex flex-col">
                     <Table.CellText variant="dim">
                       {formatDate(row.lastPurchaseDate)}
@@ -141,19 +144,19 @@ export function ProductAnalysisTable({ table, rows }: Props) {
                     </Table.CellText>
                   </div>
                 </Table.Cell>
-                <Table.Cell>
+                <Table.Cell label="Ritmo de compra">
                   <Table.CellText variant="dim">
                     {cycleLabel(row.avgIntervalDays)}
                   </Table.CellText>
                 </Table.Cell>
-                <Table.Cell>
+                <Table.Cell label="Próxima esperada">
                   <Table.CellText variant="dim">
                     {row.expectedNextDate
                       ? formatDate(row.expectedNextDate)
                       : "—"}
                   </Table.CellText>
                 </Table.Cell>
-                <Table.Cell>
+                <Table.Cell label="Quantidade">
                   <div className="flex flex-col">
                     <Table.CellText variant="dim">
                       {`${unitsLabel(row.lastUnits)} na última`}
@@ -163,7 +166,9 @@ export function ProductAnalysisTable({ table, rows }: Props) {
                     </Table.CellText>
                   </div>
                 </Table.Cell>
-                <Table.Cell>
+                {/* Detalhe, e não `card="status"`: no cartão a tag fecha a lista,
+                    embaixo da Quantidade, como "Situação: [tag]" (14/11/2026). */}
+                <Table.Cell label="Situação">
                   <Badge.Root
                     color={PURCHASE_STATUS_COLOR[row.status]}
                     appearance="tinted"

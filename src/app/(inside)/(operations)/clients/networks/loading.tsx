@@ -6,6 +6,7 @@ import { ListPageSkeleton } from "@/components/ListPageSkeleton";
 export default function Loading() {
   return (
     <ListPageSkeleton
+      page="networks"
       title="Redes de clientes"
       description="Lojas do mesmo grupo reunidas para você ver a rede inteira de uma vez."
       actions={1}

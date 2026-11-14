@@ -171,7 +171,7 @@ test("clients: vendedor não vê o seletor de vendedor (já vê só a sua cartei
 
   await expect(page.getByText("Central Horizonte ME")).toBeVisible();
 
-  // O painel existe (busca, estado, cadastro), mas sem o campo de vendedor:
+  // O painel existe (estado, cadastro…), mas sem o campo de vendedor:
   // escolher "de quem" não faz sentido para quem só vê a própria carteira.
   await page.getByRole("button", { name: "Filtros" }).click();
   const painel = page.locator("[data-filters-panel]");
@@ -179,7 +179,7 @@ test("clients: vendedor não vê o seletor de vendedor (já vê só a sua cartei
   await expect(painel.getByPlaceholder("Todos os vendedores")).toHaveCount(0);
 });
 
-test("clients: a busca por nome mora no painel e vai como filtro da query", async ({
+test("clients: a busca por nome fica à vista, fora do painel, e vai como filtro da query", async ({
   page,
 }) => {
   await grantRole(page, "OWNER");
@@ -206,17 +206,10 @@ test("clients: a busca por nome mora no painel e vai como filtro da query", asyn
   await page.goto("/clients");
   await expect(page.getByText("Central Horizonte ME")).toBeVisible();
 
-  // Fora do painel não sobrou campo de busca nenhum no cabeçalho da tabela.
-  await expect(page.getByPlaceholder("Nome, razão social ou CNPJ")).toHaveCount(
-    0
-  );
-
-  await page.getByRole("button", { name: "Filtros" }).click();
+  // A busca está no cabeçalho da tabela, sem precisar abrir "Filtros".
   await page
-    .locator("[data-filters-panel]")
-    .getByPlaceholder("Nome, razão social ou CNPJ")
+    .getByRole("searchbox", { name: "Buscar cliente" })
     .fill("Horizonte");
-
   await expect
     .poll(() => {
       const input = spy.lastVariables("Clients")?.input as
@@ -226,6 +219,12 @@ test("clients: a busca por nome mora no painel e vai como filtro da query", asyn
     })
     .toBe("Horizonte");
 
-  // Estando no painel, a busca conta como filtro ativo no botão.
-  await expect(page.getByRole("button", { name: "Filtros (1)" })).toBeVisible();
+  // Fora do painel, ela não conta no botão nem aparece lá dentro.
+  await expect(page.getByRole("button", { name: "Filtros" })).toBeVisible();
+  await page.getByRole("button", { name: "Filtros" }).click();
+  await expect(
+    page
+      .locator("[data-filters-panel]")
+      .getByPlaceholder("Nome, razão social ou CNPJ")
+  ).toHaveCount(0);
 });

@@ -17,6 +17,9 @@ interface DeleteOrderItemResponse {
 }
 
 interface Props {
+  /** Controlado: o gatilho mora fora (o "⋯"/ícone da linha, em RowActions). */
+  open?: boolean;
+  onOpenChange?: (open: boolean) => void;
   item: OrderItem;
   onOptimisticRemove: (id: string) => void;
   onRollback: () => void;
@@ -28,8 +31,16 @@ export function DeleteOrderItemModal({
   onOptimisticRemove,
   onRollback,
   onRefetch,
+  open: controlledOpen,
+  onOpenChange,
 }: Props) {
-  const [open, setOpen] = useState(false);
+  const [uncontrolledOpen, setUncontrolledOpen] = useState(false);
+  const isControlled = controlledOpen !== undefined;
+  const open = isControlled ? controlledOpen : uncontrolledOpen;
+  const setOpen = (value: boolean) => {
+    if (isControlled) onOpenChange?.(value);
+    else setUncontrolledOpen(value);
+  };
 
   const [deleteOrderItem] = useMutation<DeleteOrderItemResponse>(
     DELETE_ORDER_ITEM_MUTATION
@@ -60,18 +71,19 @@ export function DeleteOrderItemModal({
 
   return (
     <Modal.Root open={open} onOpenChange={setOpen}>
-      <Modal.Trigger asChild>
-        <Button.Root
-          appearance="ghost"
-          color="red"
-          size="sm"
-          isIconOnly
-          noUppercase
-          aria-label="Remover item"
-        >
-          <Button.Icon icon={Trash2} />
-        </Button.Root>
-      </Modal.Trigger>
+      {!isControlled && (
+        <Modal.Trigger asChild>
+          <Button.Root
+            appearance="ghost"
+            color="red"
+            size="sm"
+            isIconOnly
+            aria-label="Remover item"
+          >
+            <Button.Icon icon={Trash2} />
+          </Button.Root>
+        </Modal.Trigger>
+      )}
 
       <Modal.Content size="sm">
         <Modal.Header
@@ -86,7 +98,6 @@ export function DeleteOrderItemModal({
               appearance="ghost"
               color="neutral"
               size="md"
-              noUppercase
               disabled={isLoading}
             >
               <Button.Title>Voltar</Button.Title>
@@ -97,7 +108,6 @@ export function DeleteOrderItemModal({
             appearance="solid"
             color="red"
             size="md"
-            noUppercase
             loading={isLoading}
             onClick={handleConfirm}
           >

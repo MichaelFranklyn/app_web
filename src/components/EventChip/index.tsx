@@ -11,8 +11,8 @@ export { EVENT_CHIP_STYLE };
 export type { EventChipTone };
 
 const ICON: Record<EventChipTone, string> = {
-  amber: "text-(--amber)",
-  blue: "text-(--blue)",
+  amber: "text-(--color-action-text)",
+  blue: "text-(--color-status-info)",
 };
 
 interface Props {
@@ -63,10 +63,12 @@ export function EventChip({
       title={label}
       aria-label={label}
       className={cn(
-        "flex w-full min-w-0 items-start gap-6 rounded-(--r-sm) text-left transition-colors focus:outline-none focus-visible:ring-1",
+        "focus-ring flex w-full min-w-0 items-start gap-6 rounded-(--r-sm) text-left transition-colors",
         size === "sm" ? "px-6 py-2" : "px-8 py-6",
         EVENT_CHIP_STYLE[tone],
-        (isDone || isMuted) && "opacity-70",
+        // Feito ou com outro desfecho: recua pelo fundo cinza e pelo texto
+        // muted — nunca `opacity`, que apagava o nome do cliente.
+        (isDone || isMuted) && "bg-(--bg)",
         onDragStart && "cursor-grab active:cursor-grabbing"
       )}
     >
@@ -75,7 +77,11 @@ export function EventChip({
         aria-hidden
         className={cn(
           "mt-[2px] shrink-0",
-          isDone ? "text-(--green)" : ICON[tone]
+          isDone
+            ? "text-(--color-status-success)"
+            : isMuted
+              ? "text-(--color-text-muted)"
+              : ICON[tone]
         )}
       />
       <span className="flex min-w-0 flex-col">

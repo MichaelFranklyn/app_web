@@ -1,8 +1,7 @@
 "use client";
-import { Button } from "@/components/Button";
 import { MapFrame } from "@/components/MapFrame";
 
-import { ExternalLink, MapPin } from "lucide-react";
+import { MapPin } from "lucide-react";
 
 interface Props {
   /** Endereço no formato do Maps (`mapsAddressQuery`); null = sem endereço. */
@@ -14,9 +13,9 @@ interface Props {
 const MAPS_KEY = process.env.NEXT_PUBLIC_GOOGLE_MAPS_API_KEY;
 
 /**
- * O endereço do cliente no mapa. Embutido quando há chave do Google Maps; o
- * link "Abrir no Google Maps" não precisa de chave e fica sempre — é por ele
- * que o vendedor pede a rota no celular.
+ * O endereço do cliente no mapa, embutido quando há chave do Google Maps.
+ * O botão "Abrir no Google Maps" saiu a pedido do usuário (14/11/2026): o
+ * próprio mapa embutido já traz o "Ver mapa ampliado" para quem quer a rota.
  */
 export function AddressMap({ query }: Props) {
   if (!query) {
@@ -31,34 +30,19 @@ export function AddressMap({ query }: Props) {
   }
 
   const q = encodeURIComponent(query);
-  const externalUrl = `https://www.google.com/maps/search/?api=1&query=${q}`;
 
   return (
-    <div className="flex flex-col gap-8">
-      <MapFrame.Root className="h-[220px]">
-        {MAPS_KEY ? (
-          <MapFrame.Embed
-            title="Mapa do endereço do cliente"
-            src={`https://www.google.com/maps/embed/v1/place?key=${MAPS_KEY}&q=${q}`}
-          />
-        ) : (
-          <MapFrame.Message icon={MapPin}>
-            Mapa embutido indisponível (chave do Google Maps não configurada).
-          </MapFrame.Message>
-        )}
-      </MapFrame.Root>
-      <Button.Link
-        href={externalUrl}
-        external
-        appearance="outline"
-        color="neutral"
-        size="sm"
-        noUppercase
-        className="self-start"
-      >
-        <Button.Icon icon={ExternalLink} />
-        <Button.Title>Abrir no Google Maps</Button.Title>
-      </Button.Link>
-    </div>
+    <MapFrame.Root className="h-[220px]">
+      {MAPS_KEY ? (
+        <MapFrame.Embed
+          title="Mapa do endereço do cliente"
+          src={`https://www.google.com/maps/embed/v1/place?key=${MAPS_KEY}&q=${q}`}
+        />
+      ) : (
+        <MapFrame.Message icon={MapPin}>
+          Mapa embutido indisponível (chave do Google Maps não configurada).
+        </MapFrame.Message>
+      )}
+    </MapFrame.Root>
   );
 }

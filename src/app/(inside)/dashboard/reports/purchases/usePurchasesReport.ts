@@ -107,7 +107,7 @@ export const usePurchasesReport = (filters: ReportFilters) => {
         label: "Comprado no período",
         value: formatMoney(report.periodAmount),
         hint: `${report.periodOrderCount} compra(s), pela data do pedido`,
-        status: "atencao",
+        status: "neutral",
       },
     ];
   }, [report]);

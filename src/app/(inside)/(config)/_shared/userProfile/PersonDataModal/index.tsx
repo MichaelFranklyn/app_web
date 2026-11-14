@@ -86,7 +86,7 @@ export function PersonDataModal({
 
         <Modal.Body>
           <div className="flex flex-col gap-16">
-            <Title variant="micro" color="muted" className="uppercase">
+            <Title variant="micro" color="muted">
               Passo {step + 1} de {steps.length}
             </Title>
 
@@ -109,7 +109,6 @@ export function PersonDataModal({
                 appearance="ghost"
                 color="neutral"
                 size="md"
-                noUppercase
                 disabled={isLoading}
               >
                 <Button.Title>Cancelar</Button.Title>
@@ -121,7 +120,6 @@ export function PersonDataModal({
               appearance="ghost"
               color="neutral"
               size="md"
-              noUppercase
               disabled={isLoading}
               onClick={goBack}
             >
@@ -136,7 +134,6 @@ export function PersonDataModal({
               appearance="solid"
               color="amber"
               size="md"
-              noUppercase
               loading={isLoading}
               onClick={() => formRef.current?.submitForm()}
             >
@@ -148,7 +145,6 @@ export function PersonDataModal({
               appearance="solid"
               color="amber"
               size="md"
-              noUppercase
               onClick={goNext}
             >
               <Button.Title>Continuar</Button.Title>

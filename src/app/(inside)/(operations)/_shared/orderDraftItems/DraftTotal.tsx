@@ -40,7 +40,7 @@ export function DraftTotal({ total, minimum, freeFreight }: Props) {
   return (
     <div className="flex flex-col gap-8">
       <div className="flex items-baseline justify-between gap-16">
-        <Title variant="label" weight="bold" className="tracking-normal">
+        <Title variant="label" weight="bold">
           Total do pedido
         </Title>
         <Title variant="value" weight="bold">

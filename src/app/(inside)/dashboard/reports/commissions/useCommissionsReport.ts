@@ -129,7 +129,7 @@ export const useCommissionsReport = (
         label: "Já recebido",
         value: formatMoney(totals.received),
         hint: "baixado no período",
-        status: "ok",
+        status: "neutral",
       },
       {
         // Previsto ainda depende da fábrica faturar (ou do cliente pagar).
@@ -154,13 +154,13 @@ export const useCommissionsReport = (
               label: "Repasse aos vendedores",
               value: formatMoney(split.seller),
               hint: "sai do escritório",
-              status: "atencao" as const,
+              status: "neutral" as const,
             },
             {
               label: "Fica no escritório",
               value: formatMoney(split.office),
               hint: `${Math.round(split.margin * 100)}% do que veio das fábricas`,
-              status: "ok" as const,
+              status: "neutral" as const,
             },
           ]
         : []),

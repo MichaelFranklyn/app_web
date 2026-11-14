@@ -23,7 +23,7 @@ export function UpcomingVisitsCard({ items }: Props) {
           Próximas visitas
         </Card.Header.Title>
         <Card.Header.Actions>
-          <Badge.Root appearance="tinted" color="amber">
+          <Badge.Root appearance="tinted" color="blue">
             <Badge.Text>{items.length} planejadas</Badge.Text>
           </Badge.Root>
           <Button.Root
@@ -31,7 +31,6 @@ export function UpcomingVisitsCard({ items }: Props) {
             color="amber"
             appearance="solid"
             size="sm"
-            noUppercase
             disabled={isPending}
             onClick={() => navigateTo("/agenda")}
           >
@@ -42,7 +41,7 @@ export function UpcomingVisitsCard({ items }: Props) {
       </Card.Header>
       <Card.Body padding="compact">
         {items.length === 0 ? (
-          <EmptyState.Root>
+          <EmptyState.Root flat>
             <EmptyState.Icon>
               <CalendarCheck size={32} />
             </EmptyState.Icon>

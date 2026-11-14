@@ -1,6 +1,6 @@
 import { Alert } from "@/components/Alert";
 import { Card } from "@/components/Card";
-import { StatCard } from "@/components/StatCard";
+
 import { Title } from "@/components/Title";
 import { Info } from "lucide-react";
 
@@ -27,22 +27,24 @@ export function ResultView({ result }: { result: ImportPriceListResult }) {
         </Title>
       </Card.Root>
       <div className="tablet:grid-cols-4 grid grid-cols-2 gap-8">
-        <StatCard
-          label="Produtos novos"
-          value={result.productsCreated}
-          tone="green"
-        />
-        <StatCard
-          label="Atualizados"
-          value={result.productsReused}
-          tone="muted"
-        />
-        <StatCard
-          label="Preços gravados"
-          value={result.pricesSet}
-          tone="green"
-        />
-        <StatCard label="Com erro" value={result.failed} tone="red" />
+        <Card.Kpi>
+          <Card.Kpi.Label>Produtos novos</Card.Kpi.Label>
+          <Card.Kpi.Value>{result.productsCreated}</Card.Kpi.Value>
+        </Card.Kpi>
+        <Card.Kpi>
+          <Card.Kpi.Label>Atualizados</Card.Kpi.Label>
+          <Card.Kpi.Value>{result.productsReused}</Card.Kpi.Value>
+        </Card.Kpi>
+        <Card.Kpi>
+          <Card.Kpi.Label>Preços gravados</Card.Kpi.Label>
+          <Card.Kpi.Value>{result.pricesSet}</Card.Kpi.Value>
+        </Card.Kpi>
+        <Card.Kpi>
+          <Card.Kpi.Label>Com erro</Card.Kpi.Label>
+          <Card.Kpi.Value status={result.failed > 0 ? "urgente" : "neutral"}>
+            {result.failed}
+          </Card.Kpi.Value>
+        </Card.Kpi>
       </div>
       {result.attention > 0 && (
         <Alert.Root variant="warning">

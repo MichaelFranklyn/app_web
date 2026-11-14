@@ -39,7 +39,7 @@ export function PushNotificationsCard() {
             label="Como funcionam os avisos"
             content={
               <div className="flex flex-col gap-2">
-                <Title variant="label" color="amber">
+                <Title variant="label" weight="semibold">
                   Um aparelho de cada vez
                 </Title>
                 <Title variant="body-sm">
@@ -84,7 +84,6 @@ export function PushNotificationsCard() {
               appearance="solid"
               color="amber"
               size="md"
-              noUppercase
               loading={isLoading}
               onClick={enable}
             >
@@ -103,7 +102,6 @@ export function PushNotificationsCard() {
               appearance="outline"
               color="neutral"
               size="md"
-              noUppercase
               loading={isLoading}
               onClick={disable}
             >

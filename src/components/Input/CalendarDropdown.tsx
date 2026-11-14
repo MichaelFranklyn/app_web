@@ -79,7 +79,7 @@ export function CalendarDropdown({
         aria-label={ariaLabel}
         disabled={disabled}
         onClick={() => !disabled && setOpen((o) => !o)}
-        className="flex cursor-pointer items-center gap-[4px] rounded-(--r-sm) border border-(--border) bg-(--bg3) px-[6px] py-[4px] font-mono text-[13px] text-(--text) hover:border-(--amber) focus:border-(--amber) focus:outline-none disabled:cursor-not-allowed disabled:opacity-50"
+        className="text-body-sm focus-ring font-body flex cursor-pointer items-center gap-[4px] rounded-(--r-sm) border border-(--border) bg-(--bg3) px-[6px] py-[4px] text-(--color-text) hover:border-(--amber) focus:border-(--amber) disabled:cursor-not-allowed disabled:text-(--color-text-disabled) disabled:hover:border-(--border)"
       >
         <span>{selected?.label}</span>
         <ChevronDown
@@ -105,10 +105,10 @@ export function CalendarDropdown({
                 disabled={option.disabled}
                 onClick={() => handleSelect(option)}
                 className={cn(
-                  "cursor-pointer rounded-(--r-sm) px-[10px] py-[6px] text-left font-mono text-[13px] whitespace-nowrap hover:bg-(--bg3) disabled:cursor-not-allowed disabled:opacity-50",
+                  "text-body-sm font-body cursor-pointer rounded-(--r-sm) px-[10px] py-[6px] text-left whitespace-nowrap hover:bg-(--bg3) disabled:cursor-not-allowed disabled:text-(--color-text-disabled) disabled:hover:bg-transparent",
                   isSelected
-                    ? "bg-(--amber-bg) text-(--amber)"
-                    : "text-(--text)"
+                    ? "bg-(--amber-bg) text-(--color-action-text-on-tint)"
+                    : "text-(--color-text)"
                 )}
               >
                 {option.label}

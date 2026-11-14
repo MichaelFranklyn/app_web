@@ -49,7 +49,7 @@ export function EmailLogTable({
               </EmptyState.Description>
             </EmptyState.Root>
           ) : (
-            <Table.Table>
+            <Table.Table cards>
               <Table.Header>
                 <Table.Row>
                   <Table.Head>Quando</Table.Head>
@@ -63,11 +63,17 @@ export function EmailLogTable({
               <Table.Body>
                 {messages.map((message) => (
                   <Table.Row key={message.id}>
-                    <Table.Cell variant="dim" className="whitespace-nowrap">
+                    <Table.Cell
+                      label="Quando"
+                      variant="dim"
+                      className="whitespace-nowrap"
+                    >
                       {formatMoment(message.createdAt)}
                     </Table.Cell>
-                    <Table.Cell>{message.toEmail}</Table.Cell>
-                    <Table.Cell>
+                    <Table.Cell label="Destinatário">
+                      {message.toEmail}
+                    </Table.Cell>
+                    <Table.Cell card="title">
                       <div className="flex flex-col gap-[2px]">
                         <Title variant="body-sm">{message.subject}</Title>
                         {message.error && (
@@ -77,7 +83,7 @@ export function EmailLogTable({
                         )}
                       </div>
                     </Table.Cell>
-                    <Table.Cell>
+                    <Table.Cell card="status">
                       <Badge.Root
                         color={STATUS_COLOR[message.status]}
                         appearance="tinted"
@@ -86,7 +92,7 @@ export function EmailLogTable({
                         <Badge.Text>{STATUS_LABEL[message.status]}</Badge.Text>
                       </Badge.Root>
                     </Table.Cell>
-                    <Table.Cell>
+                    <Table.Cell label="Retorno">
                       <div className="flex flex-col gap-[2px]">
                         <Title variant="body-sm">
                           {eventLabel(message.lastEvent)}

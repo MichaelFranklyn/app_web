@@ -69,7 +69,7 @@ export function ExecutionSellersTable({ items, loading, sort }: Props) {
           ) : items.length === 0 ? (
             <Table.Row>
               <Table.Cell colSpan={8}>
-                <EmptyState.Root>
+                <EmptyState.Root flat>
                   <EmptyState.Icon>
                     <CalendarX size={32} />
                   </EmptyState.Icon>

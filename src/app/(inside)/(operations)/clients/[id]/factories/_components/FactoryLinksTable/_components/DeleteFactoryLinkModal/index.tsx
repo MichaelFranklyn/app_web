@@ -17,6 +17,9 @@ interface DeleteSellerClientFactoryResponse {
 }
 
 interface Props {
+  /** Controlado: o gatilho mora fora (o "⋯"/ícone da linha, em RowActions). */
+  open?: boolean;
+  onOpenChange?: (open: boolean) => void;
   linkId: string;
   factoryName: string;
   onRemoved: () => void;
@@ -32,6 +35,8 @@ export function DeleteFactoryLinkModal({
   onRemoveOptimistic,
   onCommit,
   onRollback,
+  open,
+  onOpenChange,
 }: Props) {
   const [deleteLink] = useMutation<DeleteSellerClientFactoryResponse>(
     DELETE_SELLER_CLIENT_FACTORY_MUTATION
@@ -40,15 +45,19 @@ export function DeleteFactoryLinkModal({
 
   return (
     <ConfirmModal
+      open={open}
+      onOpenChange={onOpenChange}
       trigger={
-        <Button.Root
-          appearance="ghost"
-          color="red"
-          size="sm"
-          aria-label="Remover vínculo"
-        >
-          <Button.Icon icon={Trash2} />
-        </Button.Root>
+        open === undefined && (
+          <Button.Root
+            appearance="ghost"
+            color="red"
+            size="sm"
+            aria-label="Remover vínculo"
+          >
+            <Button.Icon icon={Trash2} />
+          </Button.Root>
+        )
       }
       title="Remover vínculo"
       description={`Remover o vínculo com a fábrica "${factoryName}"? Esta ação não pode ser desfeita.`}

@@ -38,6 +38,8 @@ export function TenantsTable({
         <Table.CardHead.Title>Empresas da plataforma</Table.CardHead.Title>
         <Table.CardHead.Actions>
           <Filters
+            resultCount={totalItems}
+            resultLoading={loading}
             fields={filterFields}
             values={inputValues}
             onChange={setFilters}
@@ -48,7 +50,7 @@ export function TenantsTable({
         </Table.CardHead.Actions>
       </Table.CardHead>
 
-      <Table.Table>
+      <Table.Table cards>
         <Table.Header>
           <Table.Row>
             <Table.Head sortKey="razao_social">Empresa</Table.Head>
@@ -101,15 +103,23 @@ export function TenantsTable({
               >
                 <TenantCell tenant={tenant} />
 
-                <Table.Cell variant="dim" className="whitespace-nowrap">
+                <Table.Cell
+                  label="Plano"
+                  variant="dim"
+                  className="whitespace-nowrap"
+                >
                   {planLabel(tenant.plan)}
                 </Table.Cell>
 
-                <Table.Cell variant="dim">{tenant.usersCount}</Table.Cell>
+                <Table.Cell label="Pessoas" variant="dim">
+                  {tenant.usersCount}
+                </Table.Cell>
 
-                <Table.Cell variant="dim">{tenant.clientsCount}</Table.Cell>
+                <Table.Cell label="Clientes" variant="dim">
+                  {tenant.clientsCount}
+                </Table.Cell>
 
-                <Table.Cell className="whitespace-nowrap">
+                <Table.Cell card="value" className="whitespace-nowrap">
                   <div className="flex flex-col gap-[2px]">
                     <Title variant="body-sm">
                       {formatMoney(tenant.gmvInPeriod)}

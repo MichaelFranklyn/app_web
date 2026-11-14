@@ -16,7 +16,7 @@ interface Props {
 /**
  * A tarja "Negativado" de um vínculo cliente × fábrica.
  *
- * Ícone E palavra, como as outras marcas da rotina (`FixedVisitTag`): o público
+ * Ícone E palavra, como as outras marcas da rotina (`Badge.FixedVisit`): o público
  * é idoso e um símbolo sozinho não se lê de relance. O porquê e o desde quando
  * ficam no tooltip — a linha da tabela não comporta a frase inteira, mas o
  * vendedor precisa alcançá-la sem sair da tela.

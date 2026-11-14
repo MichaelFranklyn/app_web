@@ -33,7 +33,7 @@ export function TenantHealthCard({ rows }: { rows: TenantHealthRow[] }) {
       </Card.Header>
 
       <Table.Root>
-        <Table.Table>
+        <Table.Table cards>
           <Table.Header>
             <Table.Row>
               <Table.Head>Empresa</Table.Head>
@@ -66,7 +66,7 @@ export function TenantHealthCard({ rows }: { rows: TenantHealthRow[] }) {
                   key={row.companyId}
                   href={`/platform/companies/${row.companyId}`}
                 >
-                  <Table.Cell className="max-w-[260px]">
+                  <Table.Cell card="title" className="max-w-[260px]">
                     <div className="flex min-w-0 items-center gap-6">
                       <Title
                         variant="body-sm"
@@ -83,19 +83,23 @@ export function TenantHealthCard({ rows }: { rows: TenantHealthRow[] }) {
                     </div>
                   </Table.Cell>
 
-                  <Table.Cell className="whitespace-nowrap">
+                  <Table.Cell card="status" className="whitespace-nowrap">
                     <Title variant="body-sm" color={TREND_COLOR[row.trend]}>
                       {TREND_LABEL[row.trend]}
                     </Title>
                   </Table.Cell>
 
-                  <Table.Cell variant="dim" className="whitespace-nowrap">
+                  <Table.Cell
+                    label="Pedidos"
+                    variant="dim"
+                    className="whitespace-nowrap"
+                  >
                     {/* Os dois números lado a lado: a variação sozinha esconde
                         a escala, e 2→4 pedidos não é o mesmo que 100→200. */}
                     {row.ordersPrevious} → {row.ordersCurrent}
                   </Table.Cell>
 
-                  <Table.Cell className="whitespace-nowrap">
+                  <Table.Cell card="value" className="whitespace-nowrap">
                     <div className="flex flex-col gap-[2px]">
                       <Title variant="body-sm">
                         {formatMoney(row.gmvCurrent)}
@@ -115,7 +119,11 @@ export function TenantHealthCard({ rows }: { rows: TenantHealthRow[] }) {
                     </div>
                   </Table.Cell>
 
-                  <Table.Cell variant="dim" className="whitespace-nowrap">
+                  <Table.Cell
+                    label="Último pedido"
+                    variant="dim"
+                    className="whitespace-nowrap"
+                  >
                     {formatDate(row.lastOrderDate)}
                   </Table.Cell>
                 </Table.Row>

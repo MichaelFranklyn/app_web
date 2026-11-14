@@ -102,6 +102,7 @@ export const ORDERS_QUERY = gql`
       edges {
         node {
           id
+          number
           orderDate
           invoicedAt
           totalAmount

@@ -1,6 +1,5 @@
 "use client";
 
-import { Loading } from "@/components/Loading";
 import { PageContent } from "@/components/PageContent";
 import { QueryError } from "@/components/QueryError";
 import { SuspendTenantModal } from "./_components/SuspendTenantModal";
@@ -9,6 +8,7 @@ import { TenantActivityChart } from "./_components/TenantActivityChart";
 import { TenantAuditCard } from "./_components/TenantAuditCard";
 import { TenantHeader } from "./_components/TenantHeader";
 import { TenantPlanCard } from "./_components/TenantPlanCard";
+import { TenantSkeleton } from "./_components/TenantSkeleton";
 import { TenantPlanModal } from "./_components/TenantPlanModal";
 import { TenantUsageCard } from "./_components/TenantUsageCard";
 import { TenantUsersCard } from "./_components/TenantUsersCard";
@@ -45,12 +45,7 @@ export default function TenantDetailContent(props: TenantDetailContentProps) {
   }
 
   if (!tenant) {
-    return (
-      <PageContent>
-        <Loading.Skeleton className="h-[80px] w-full" />
-        <Loading.Skeleton className="h-[200px] w-full" />
-      </PageContent>
-    );
+    return <TenantSkeleton />;
   }
 
   return (

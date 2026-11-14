@@ -151,7 +151,9 @@ export function ReportToolbar({
 
   return (
     <div
-      className="tablet:flex-row tablet:items-center flex flex-col gap-8"
+      // Abaixo do desktop tudo empilha na linha inteira (sem sobra vazia no fim
+      // da linha); no desktop, uma faixa só com o "Exportar" na ponta direita.
+      className="desktop:flex-row desktop:items-center flex flex-col gap-8"
       data-tour="reports-toolbar"
     >
       {canSelectSeller && (
@@ -196,7 +198,7 @@ export function ReportToolbar({
         onChange={onRangeChange}
       />
 
-      <div className="tablet:ml-auto" data-tour="reports-export">
+      <div className="desktop:ml-auto" data-tour="reports-export">
         <ExportMenu
           onExportSheet={onExportSheet}
           onExportPdf={onExportPdf}
@@ -204,6 +206,7 @@ export function ReportToolbar({
           sheetLabel={sheetLabel}
           pdfLabel={pdfLabel}
           disabled={exportDisabled}
+          fullWidthBelowDesktop
         />
       </div>
     </div>

@@ -121,10 +121,13 @@ export default function OrderDetailContent({
           </div>
         </Card.Header.Group>
 
-        {/* self-start: sem isso o flex-row estica a coluna à altura da lista de
+        {/* Largura: 260px apertava os valores do resumo financeiro (rótulo e
+            R$ disputando a linha); 320 dá folga sem roubar a tabela de
+            itens (14/11/2026). O skeleton usa a mesma régua.
+            self-start: sem isso o flex-row estica a coluna à altura da lista de
             itens e o card (h-full) cresce com espaço em branco embaixo. */}
         <div
-          className="desktop:w-[260px] desktop:self-start flex w-full shrink-0 flex-col gap-12"
+          className="desktop:w-[320px] desktop:self-start flex w-full shrink-0 flex-col gap-12"
           data-tour="order-summary"
         >
           <OrderSummaryCard order={order} />

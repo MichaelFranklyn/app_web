@@ -1,9 +1,8 @@
 "use client";
 
-import { Button } from "@/components/Button";
+import type { CatalogModalControl } from "../../../interface";
 import { ConfirmModal } from "@/components/ConfirmModal";
 import { useMutation } from "@apollo/client/react";
-import { Trash2 } from "lucide-react";
 
 import { DELETE_CLIENT_SEGMENT_MUTATION } from "../../../gql";
 import { DeleteClientSegmentResponse } from "../interface";
@@ -24,24 +23,17 @@ export function DeleteSegmentModal({
   onCommit,
   onRollback,
   onDone,
-}: Props) {
+  open,
+  onOpenChange,
+}: Props & CatalogModalControl) {
   const [deleteSegment] = useMutation<DeleteClientSegmentResponse>(
     DELETE_CLIENT_SEGMENT_MUTATION
   );
 
   return (
     <ConfirmModal
-      trigger={
-        <Button.Root
-          appearance="ghost"
-          color="red"
-          size="sm"
-          isIconOnly
-          label="Remover segmento"
-        >
-          <Button.Icon icon={Trash2} />
-        </Button.Root>
-      }
+      open={open}
+      onOpenChange={onOpenChange}
       title="Remover segmento"
       description={`Remover o segmento "${segmentName}"? Os clientes classificados nele continuam na carteira, apenas sem segmento.`}
       confirmLabel="Remover"

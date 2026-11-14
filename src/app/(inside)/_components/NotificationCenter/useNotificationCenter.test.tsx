@@ -296,7 +296,7 @@ describe("useNotificationCenter", () => {
 
     act(() => result.current.handleItemClick(result.current.items[0]));
 
-    expect(push).toHaveBeenCalledWith("/pending?type=VISIT_FREQUENCY");
+    expect(push).toHaveBeenCalledWith("/priorities?type=VISIT_FREQUENCY");
   });
 
   it("aviso sem destino não navega para lugar nenhum", async () => {

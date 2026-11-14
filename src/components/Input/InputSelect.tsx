@@ -11,7 +11,7 @@ import { InputBaseProps } from "./InputText";
 import { InputLabel } from "./Label";
 import { InputRoot } from "./Root";
 import { SelectDropdown, selectOptionId } from "./SelectDropdown";
-import { useInputContext } from "./context";
+import { fieldAria, useInputContext } from "./context";
 import {
   inputSizeMinHeight,
   inputSizePadding,
@@ -281,10 +281,10 @@ const InputSelectControl = ({
     // Travado tem de PARECER travado: o clique já era ignorado, mas o campo
     // continuava com a mesma cara de um editável, e quem tentava escolher não
     // entendia por que nada acontecia.
-    disabled && "cursor-not-allowed opacity-60",
-    inGroup ? inputStyles.controlGrouped : inputStyles.controlBordered,
-    !inGroup && isError && inputStyles.error,
-    !inGroup && isSuccess && inputStyles.success,
+    inGroup ? inputStyles.controlGrouped : inputStyles.controlBorderedWithin,
+    disabled && inputStyles.controlDisabled,
+    !inGroup && isError && inputStyles.groupError,
+    !inGroup && isSuccess && inputStyles.groupSuccess,
     className
   );
 
@@ -303,12 +303,12 @@ const InputSelectControl = ({
               appearance="solid"
               className="h-[26px] shrink-0 gap-1 py-0 pr-[6px] pl-[10px]"
             >
-              <Badge.Text className="max-w-[220px] truncate text-[13px] font-medium">
+              <Badge.Text className="text-body-sm max-w-[220px] truncate font-medium">
                 {option.label}
               </Badge.Text>
               <Badge.Icon
                 onClick={(e) => select.handleRemoveMultiOption(option, e)}
-                className="ml-[2px] flex size-[18px] cursor-pointer items-center justify-center rounded-full transition-colors hover:bg-black/20 [&>svg]:!size-3.5"
+                className="ml-[2px] flex size-[18px] cursor-pointer items-center justify-center rounded-full transition-colors hover:bg-black/20"
               >
                 <X size={14} strokeWidth={2.5} />
               </Badge.Icon>
@@ -317,6 +317,7 @@ const InputSelectControl = ({
 
         <input
           {...props}
+          {...fieldAria(context, props)}
           id={context?.id}
           ref={inputRef}
           type="text"

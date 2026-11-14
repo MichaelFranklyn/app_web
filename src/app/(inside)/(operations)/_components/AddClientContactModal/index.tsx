@@ -155,7 +155,7 @@ export function AddClientContactModal({
     <Modal.Root open={open} onOpenChange={setOpen}>
       <Modal.Trigger asChild>
         {trigger ?? (
-          <Button.Root appearance="solid" color="amber" size="sm" noUppercase>
+          <Button.Root appearance="solid" color="amber" size="sm">
             <Button.Icon icon={Plus} />
             <Button.Title>Adicionar</Button.Title>
           </Button.Root>
@@ -183,7 +183,6 @@ export function AddClientContactModal({
               appearance="ghost"
               color="neutral"
               size="md"
-              noUppercase
               disabled={isLoading}
             >
               <Button.Title>Cancelar</Button.Title>
@@ -194,7 +193,6 @@ export function AddClientContactModal({
             appearance="solid"
             color="amber"
             size="md"
-            noUppercase
             loading={isLoading}
             onClick={() => formRef.current?.submitForm()}
           >

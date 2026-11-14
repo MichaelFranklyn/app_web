@@ -12,6 +12,7 @@ import { ORDER_COLUMN_HELP } from "../../help";
 import { Order } from "../../interface";
 import { ORDER_STATUS_LABELS, ORDER_STATUS_TONE } from "../../utils";
 import { clientName, factoryName } from "@/utils/company";
+import { formatOrderNumber } from "@/utils/orderNumber";
 
 interface Props {
   items: Order[];
@@ -59,6 +60,8 @@ export function OrdersTable({
         <Table.CardHead.Title>{title}</Table.CardHead.Title>
         <Table.CardHead.Actions>
           <Filters
+            resultCount={totalItems}
+            resultLoading={loading}
             fields={filterFields}
             values={inputValues}
             onChange={setFilters}
@@ -70,7 +73,7 @@ export function OrdersTable({
         </Table.CardHead.Actions>
       </Table.CardHead>
 
-      <Table.Table>
+      <Table.Table cards>
         <Table.Header>
           <Table.Row>
             {/* Só "Pedido" não ordena: o código é o prefixo do id, e uma
@@ -151,12 +154,10 @@ export function OrdersTable({
                 data-tour="orders-row"
                 className="group"
               >
-                <Table.Cell>
+                <Table.Cell label="Pedido">
                   <span className="inline-flex items-center gap-6">
                     <Badge.Root color="subtle" appearance="tinted">
-                      <Badge.Text>
-                        {order.id.slice(0, 8).toUpperCase()}
-                      </Badge.Text>
+                      <Badge.Text>{formatOrderNumber(order.number)}</Badge.Text>
                     </Badge.Root>
                     {/* O saldo aparece na lista (precisa ser faturado), mas
                         não é pedido novo — a tarja diz o que ele é. */}
@@ -172,8 +173,8 @@ export function OrdersTable({
                   </span>
                 </Table.Cell>
 
-                <Table.Cell variant="strong" wrap>
-                  <span className="inline-flex items-center gap-6">
+                <Table.Cell variant="strong" wrap card="title">
+                  <span className="inline-flex flex-wrap items-center gap-6">
                     {clientName(order.client)}
                     {order.isDeliveryOverdue && (
                       <Badge.Root color="red" appearance="tinted">
@@ -183,19 +184,27 @@ export function OrdersTable({
                   </span>
                 </Table.Cell>
 
-                <Table.Cell variant="dim">
+                <Table.Cell variant="dim" label="Fábrica">
                   {factoryName(order.factory)}
                 </Table.Cell>
 
-                <Table.Cell variant="dim">
+                {/* No cartão (celular/tablet) ficam de fora o vendedor e a
+                    comissão: estão no detalhe do pedido, a um toque. */}
+                <Table.Cell variant="dim" card="hidden">
                   {order.seller?.name ?? "—"}
                 </Table.Cell>
 
-                <Table.Cell variant="dim" className="whitespace-nowrap">
+                <Table.Cell
+                  variant="dim"
+                  className="whitespace-nowrap"
+                  label="Data"
+                >
                   {formatDateDMY(order.orderDate)}
                 </Table.Cell>
 
-                <Table.Cell>
+                {/* No cartão a situação é uma linha própria, "Situação: [TAG]",
+                    e não encostada no valor (14/11/2026). */}
+                <Table.Cell label="Situação">
                   <Badge.Root
                     color={ORDER_STATUS_TONE[order.status]}
                     appearance="tinted"
@@ -204,11 +213,16 @@ export function OrdersTable({
                   </Badge.Root>
                 </Table.Cell>
 
-                <Table.Cell variant="strong" align="right">
+                <Table.Cell
+                  variant="strong"
+                  align="right"
+                  card="amount"
+                  label="Valor"
+                >
                   {formatMoney(order.totalAmount)}
                 </Table.Cell>
 
-                <Table.Cell variant="dim" align="right">
+                <Table.Cell variant="dim" align="right" card="hidden">
                   {formatMoney(order.commissionAmount)}
                 </Table.Cell>
               </Table.Row>

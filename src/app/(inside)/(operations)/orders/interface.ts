@@ -6,6 +6,8 @@ export type { OrderStatus };
 
 export interface Order {
   id: string;
+  /** "#128": sequencial por empresa (ver `@/utils/orderNumber`). */
+  number: number;
   orderDate: string;
   /** Quando a fábrica faturou. Nulo enquanto o pedido não foi faturado. */
   invoicedAt: string | null;

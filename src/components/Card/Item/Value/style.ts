@@ -1,13 +1,13 @@
 import { cva } from "class-variance-authority";
 
-export type CardItemValueColor = "amber" | "green" | "red";
+export type CardItemValueColor = "warning" | "green" | "red";
 
-export const valueStyle = cva("font-bold text-(--text) font-head", {
+export const valueStyle = cva("font-bold text-(--color-text) font-head", {
   variants: {
     color: {
-      amber: "text-(--amber)",
-      green: "text-(--green)",
-      red: "text-(--red)",
+      warning: "text-(--color-status-warning)",
+      green: "text-(--color-status-success)",
+      red: "text-(--color-status-danger)",
     },
   },
 });

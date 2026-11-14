@@ -71,7 +71,7 @@ function CheckItem({
       }}
     >
       <span className="flex-1">{children}</span>
-      {active && <Check size={14} className="text-(--amber)" />}
+      {active && <Check size={14} className="text-(--color-action-text)" />}
     </Dropdown.Item>
   );
 }

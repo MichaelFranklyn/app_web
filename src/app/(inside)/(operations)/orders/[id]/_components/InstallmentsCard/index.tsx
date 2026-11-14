@@ -29,7 +29,7 @@ export function InstallmentsCard({ order, onChanged }: Props) {
             label="Como funciona a comissão deste pedido?"
             content={
               <div className="flex flex-col gap-2">
-                <Title variant="label" color="amber">
+                <Title variant="label" weight="semibold">
                   Modo {commissionModeLabel(order.commissionCalcBasis)}
                 </Title>
                 <Title variant="body-sm">
@@ -70,7 +70,8 @@ export function InstallmentsCard({ order, onChanged }: Props) {
         </Table.CardHead.Actions>
       </Table.CardHead>
 
-      <Table.Table>
+      {/* Abaixo do desktop cada parcela vira um cartão, sem rolar de lado. */}
+      <Table.Table cards>
         <Table.Header>
           <Table.Row>
             <Table.Head title={INSTALLMENT_COLUMN_HELP.sequence}>#</Table.Head>
@@ -104,22 +105,24 @@ export function InstallmentsCard({ order, onChanged }: Props) {
         <Table.Body>
           {order.installments.map((inst) => (
             <Table.Row key={inst.id}>
-              <Table.Cell variant="strong">{inst.sequence}</Table.Cell>
-              <Table.Cell>
+              <Table.Cell label="Parcela" variant="strong">
+                {inst.sequence}
+              </Table.Cell>
+              <Table.Cell card="title">
                 {formatDateDMY(inst.dueDate ?? undefined)}
               </Table.Cell>
-              <Table.Cell className="text-right">
+              <Table.Cell card="amount" label="Valor" className="text-right">
                 {formatMoney(inst.amount)}
               </Table.Cell>
-              <Table.Cell className="text-right">
-                <Title variant="body-sm" color="amber" weight="bold">
+              <Table.Cell label="Comissão" className="text-right">
+                <Title variant="body-sm" weight="bold">
                   {formatMoney(inst.commissionAmount)}
                 </Title>
               </Table.Cell>
-              <Table.Cell>
+              <Table.Cell card="status">
                 <InstallmentStatusCell installment={inst} />
               </Table.Cell>
-              <Table.Cell>
+              <Table.Cell card="actions">
                 <InstallmentRowActions
                   installment={inst}
                   onChanged={onChanged}

@@ -15,7 +15,7 @@ export function MonthNavigator({ nav }: Props) {
   const { isCurrentMonth } = nav;
 
   return (
-    <div className="flex items-center gap-4">
+    <div className="desktop:w-auto flex w-full items-center gap-4">
       <Button.Root
         appearance="outline"
         color="neutral"
@@ -30,8 +30,8 @@ export function MonthNavigator({ nav }: Props) {
         appearance={isCurrentMonth ? "tinted" : "ghost"}
         color={isCurrentMonth ? "amber" : "neutral"}
         size="sm"
-        noUppercase
         onClick={nav.goToday}
+        className="max-desktop:flex-1"
       >
         <Button.Icon icon={CalendarDays} />
         <Button.Title>{monthLabel(nav.month)}</Button.Title>

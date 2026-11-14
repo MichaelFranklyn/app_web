@@ -30,7 +30,7 @@ const Root = ({ href, className, children }: ChipProps) => {
       href={href}
       className={cn(
         CHIP,
-        "transition-colors hover:border-(--border2) hover:bg-(--bg4) focus:outline-none focus-visible:ring-1 focus-visible:ring-(--amber)",
+        "focus-ring transition-colors hover:border-(--amber) hover:bg-(--bg4)",
         className
       )}
     >

@@ -46,18 +46,10 @@ export const systemOverviewFlow: FlowDefinition = {
       align: "center",
     },
     {
-      element: '[data-tour-route="/pending"]',
-      title: "Pendências",
+      element: '[data-tour-route="/priorities"]',
+      title: "Prioridades",
       description:
-        "Os seus compromissos numa lista só: visita sem resposta, pedido parado, boleto vencido, cliente sem contato. É por aqui que muita gente começa o dia.",
-      side: "right",
-      align: "center",
-    },
-    {
-      element: '[data-tour-route="/opportunities"]',
-      title: "Oportunidades",
-      description:
-        "Onde vale agir para vender mais: quem está no momento de recomprar e quem ficou fora da rotina.",
+        "A central do dia, em duas abas: Pendências são os compromissos a resolver (visita sem resposta, pedido parado, boleto vencido); Oportunidades, onde vale agir para vender mais. É por aqui que muita gente começa o dia.",
       side: "right",
       align: "center",
     },
@@ -116,8 +108,8 @@ export const systemOverviewFlow: FlowDefinition = {
       element: '[data-tour="flowtour-launcher"]',
       title: "Precisa rever?",
       description:
-        "Sempre que quiser repetir um tutorial, clique neste botão de ajuda. Ele mostra os tours disponíveis em cada página.",
-      side: "left",
+        "Sempre que quiser repetir um tutorial, clique neste botão de ajuda, no alto da tela. Ele mostra os tours disponíveis em cada página.",
+      side: "bottom",
       align: "end",
     },
   ],

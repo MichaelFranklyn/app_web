@@ -4,6 +4,7 @@ import { formatMoney } from "@/utils/format/masks";
 import { ReportColumn } from "@/utils/pdf/table";
 import { Order } from "../interface";
 import { orderStatusLabel } from "../utils";
+import { formatOrderNumber } from "@/utils/orderNumber";
 
 /**
  * Colunas do relatório de pedidos: as MESMAS oito da tela, na mesma ordem — quem
@@ -18,7 +19,7 @@ export const ORDER_COLUMNS: ReportColumn<Order>[] = [
   {
     header: "PEDIDO",
     width: 8,
-    value: (order) => order.id.slice(0, 8).toUpperCase(),
+    value: (order) => formatOrderNumber(order.number),
   },
   {
     header: "CLIENTE",

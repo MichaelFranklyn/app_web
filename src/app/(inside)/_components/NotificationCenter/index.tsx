@@ -53,7 +53,6 @@ export function NotificationCenter() {
                 appearance="ghost"
                 color="neutral"
                 size="xs"
-                noUppercase
                 onClick={handleMarkAllRead}
               >
                 <Button.Icon icon={CheckCheck} />
@@ -62,12 +61,12 @@ export function NotificationCenter() {
             )
           }
         >
-          <Bell size={14} className="text-(--muted)" />
+          <Bell size={14} className="text-(--color-text-muted)" />
           <Title variant="body-sm" weight="semibold">
             Notificações
           </Title>
           {unreadCount > 0 && (
-            <Badge.Root color="amber" appearance="tinted" size="xs">
+            <Badge.Root color="blue" appearance="tinted" size="xs">
               <Badge.Text>{unreadCount}</Badge.Text>
             </Badge.Root>
           )}
@@ -125,7 +124,7 @@ export function NotificationCenter() {
                 {!n.isRead && (
                   <Check
                     size={12}
-                    className="mt-[4px] shrink-0 text-(--muted2)"
+                    className="mt-[4px] shrink-0 text-(--color-text-disabled)"
                   />
                 )}
               </Dropdown.PanelRow>

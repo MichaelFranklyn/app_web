@@ -44,8 +44,11 @@ export function ProductThumb({ imageUrl, name, size = "sm" }: Props) {
       <div
         className={cn(
           BOX[size],
-          "flex shrink-0 items-center justify-center rounded-(--r-sm) border border-dashed border-(--border) bg-(--bg2) text-(--muted)"
+          "flex shrink-0 items-center justify-center rounded-(--r-sm) border border-dashed border-(--border) bg-(--bg2) text-(--color-text-muted)"
         )}
+        // role="img": aria-label em <div> sem papel é proibido (o leitor de
+        // tela ignora; axe aria-prohibited-attr no E2E, 13/11/2026).
+        role="img"
         aria-label={`${name} — sem foto`}
       >
         <ImageOff size={ICON[size]} />

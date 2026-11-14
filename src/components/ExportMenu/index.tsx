@@ -28,6 +28,11 @@ interface ExportMenuProps {
   label?: string;
   sheetLabel?: string;
   pdfLabel?: string;
+  /**
+   * Abaixo do desktop, o botão ocupa a linha inteira e ganha fundo (botão
+   * esticado sem fundo parece sobra em branco). O desktop não muda.
+   */
+  fullWidthBelowDesktop?: boolean;
 }
 
 /**
@@ -51,6 +56,7 @@ export function ExportMenu({
   label = "Exportar",
   sheetLabel = "Planilha (.xlsx)",
   pdfLabel = "PDF",
+  fullWidthBelowDesktop = false,
 }: ExportMenuProps) {
   const [busy, setBusy] = useState(false);
 
@@ -70,9 +76,9 @@ export function ExportMenu({
           appearance="outline"
           color="neutral"
           size="sm"
-          noUppercase
           loading={busy}
           disabled={disabled}
+          fullWidthBelowDesktop={fullWidthBelowDesktop}
         >
           <Button.Icon icon={Download} />
           <Button.Title>{label}</Button.Title>

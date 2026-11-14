@@ -24,7 +24,7 @@ export const buildKpis = (stats: SellersStats): KpiItem[] => {
       value: String(activeCount),
       positive: true,
       delta: `de ${totalCount} com perfil de vendedor`,
-      status: "ok",
+      status: "neutral",
       help: USERS_KPI_HELP["Vendem em campo"],
     },
     {

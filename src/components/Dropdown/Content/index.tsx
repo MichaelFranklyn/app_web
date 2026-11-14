@@ -22,9 +22,12 @@ export const Content = React.forwardRef<
       sideOffset={sideOffset}
       className={cn(
         "z-50 min-w-[160px] border border-(--border) bg-(--bg2)",
-        "rounded-(--r-lg) shadow-(--shadow-md)",
+        "rounded-(--r-lg) shadow-(--shadow-lg)",
         panel ? "flex flex-col" : "py-4",
-        "animate-in fade-in zoom-in-95 data-[state=closed]:animate-out data-[state=closed]:fade-out data-[state=closed]:zoom-out-95 duration-200",
+        // Cresce a partir do gatilho (a origem vem do Radix, pelo lado em que
+        // o menu abriu). O `animate-in` do plugin antigo não gerava CSS.
+        "origin-(--radix-dropdown-menu-content-transform-origin)",
+        "animate-pop-in data-[state=closed]:animate-pop-out",
         className
       )}
       {...props}

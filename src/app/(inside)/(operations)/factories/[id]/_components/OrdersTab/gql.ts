@@ -9,6 +9,7 @@ export const CREATE_ORDER_FROM_FACTORY_MUTATION = gql`
       message
       data {
         id
+        number
         orderDate
         totalAmount
         commissionAmount
@@ -33,6 +34,7 @@ export const FACTORY_ORDERS_QUERY = gql`
       edges {
         node {
           id
+          number
           orderDate
           totalAmount
           commissionAmount
@@ -61,6 +63,7 @@ export const FACTORY_ORDERS_QUERY = gql`
 /** Uma linha da tabela de pedidos da fábrica. */
 export interface FactoryOrder {
   id: string;
+  number: number;
   orderDate: string;
   totalAmount: string;
   commissionAmount: string;

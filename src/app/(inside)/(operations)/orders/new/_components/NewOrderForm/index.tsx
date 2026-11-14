@@ -3,6 +3,7 @@
 import { Breadcrumb } from "@/components/Breadcrumb";
 import { PageContent } from "@/components/PageContent";
 import { PanelHeader } from "@/components/PanelHeader";
+import { PAGE_HEADING } from "@/utils/modules";
 import { useLeaveGuard } from "@/hooks/useLeaveGuard";
 import { useState } from "react";
 
@@ -50,24 +51,29 @@ export function NewOrderForm({
 
   return (
     <PageContent>
-      <Breadcrumb.Root>
-        <Breadcrumb.Item href={back.href}>{back.label}</Breadcrumb.Item>
-        <Breadcrumb.Separator />
-        <Breadcrumb.Item>Novo pedido</Breadcrumb.Item>
-      </Breadcrumb.Root>
+      {/* Caminho e título juntos (gap-8): soltos no PageContent herdavam o
+          gap-20 entre blocos e o título ficava longe do breadcrumb
+          (14/11/2026). O loading.tsx espelha o mesmo agrupamento. */}
+      <div className="flex flex-col gap-8">
+        <Breadcrumb.Root>
+          <Breadcrumb.Item href={back.href}>{back.label}</Breadcrumb.Item>
+          <Breadcrumb.Separator />
+          <Breadcrumb.Item>Novo pedido</Breadcrumb.Item>
+        </Breadcrumb.Root>
 
-      <PanelHeader.Root>
-        <PanelHeader.Top>
-          <PanelHeader.Left>
-            <PanelHeader.Title>
-              Novo pedido{details.subject ? ` · ${details.subject}` : ""}
-            </PanelHeader.Title>
-            <PanelHeader.Description>
-              {details.description ?? description}
-            </PanelHeader.Description>
-          </PanelHeader.Left>
-        </PanelHeader.Top>
-      </PanelHeader.Root>
+        <PanelHeader.Root>
+          <PanelHeader.Top>
+            <PanelHeader.Left>
+              <PanelHeader.Heading {...PAGE_HEADING.newOrder}>
+                Novo pedido{details.subject ? ` · ${details.subject}` : ""}
+              </PanelHeader.Heading>
+              <PanelHeader.Description>
+                {details.description ?? description}
+              </PanelHeader.Description>
+            </PanelHeader.Left>
+          </PanelHeader.Top>
+        </PanelHeader.Root>
+      </div>
 
       <OrderDetailsCard
         formRef={core.formRef}

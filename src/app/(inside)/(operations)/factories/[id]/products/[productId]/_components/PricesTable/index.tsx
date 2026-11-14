@@ -83,7 +83,7 @@ export function PricesTable({
             label="Como ler os preços deste produto?"
             content={
               <div className="flex flex-col gap-2">
-                <Title variant="label" color="amber">
+                <Title variant="label" weight="semibold">
                   Preço por embalagem
                 </Title>
                 <Title variant="body-sm">

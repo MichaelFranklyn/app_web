@@ -32,7 +32,8 @@ interface Props {
 export function GoalsTable({ groups, onOpen }: Props) {
   return (
     <Table.Root data-tour="goals-table">
-      <Table.Table>
+      {/* Abaixo do desktop cada linha vira cartão, em vez de a tabela rolar de lado. */}
+      <Table.Table cards>
         <Table.Header>
           <Table.Row>
             <Table.Head title="Clique na linha para ver as fábricas deste vendedor.">
@@ -63,7 +64,7 @@ export function GoalsTable({ groups, onOpen }: Props) {
                 onClick={() => onOpen(group)}
                 className="cursor-pointer"
               >
-                <Table.Cell variant="strong">
+                <Table.Cell card="title" variant="strong">
                   <div className="flex flex-col gap-2">
                     {group.sellerName}
                     <Table.CellText variant="dim2">
@@ -75,7 +76,7 @@ export function GoalsTable({ groups, onOpen }: Props) {
 
                 <GoalMetricCells totals={totals} />
 
-                <Table.Cell align="right">
+                <Table.Cell card="value" align="right">
                   {overall === null ? (
                     <Badge.Root appearance="tinted" color="neutral" size="xs">
                       <Badge.Text>Sem meta neste mês</Badge.Text>

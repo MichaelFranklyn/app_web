@@ -51,7 +51,15 @@ export function AudienceSwitch({ value, onChange }: Props) {
       <Title variant="caption" color="muted">
         Valores de
       </Title>
-      <ToggleGroup options={OPTIONS} value={value} onChange={onChange} />
+      {/* Estica na linha que é só dele no celular; no desktop a caixa em
+          volta já tem a largura do conteúdo e o flex-1 não muda nada. */}
+      <ToggleGroup
+        options={OPTIONS}
+        value={value}
+        onChange={onChange}
+        fullWidth
+        className="flex-1 flex-nowrap"
+      />
       <HelpTooltip
         label="De quem são os valores da tela"
         content={AUDIENCE_HELP}

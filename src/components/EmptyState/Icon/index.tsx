@@ -8,7 +8,9 @@ export const Icon = React.forwardRef<
   <div
     ref={ref}
     className={cn(
-      "mb-[4px] flex items-center justify-center text-[33px] text-(--muted2)",
+      // Disco tingido com anel: o ícone solto em cinza-claro sumia no fundo.
+      // O tamanho do svg é decidido AQUI (as telas passam size={32} ou 36).
+      "mb-[6px] flex size-[64px] items-center justify-center rounded-full bg-(--bg3) text-(--color-text-muted) ring-[6px] ring-(--bg3)/40 [&>svg]:size-[28px] [&>svg]:stroke-[1.75]",
       className
     )}
     {...props}

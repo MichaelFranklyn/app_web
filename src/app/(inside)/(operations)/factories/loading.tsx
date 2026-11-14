@@ -6,6 +6,7 @@ import { FactoriesGridSkeleton } from "./_components/FactoriesGridSkeleton";
 export default function Loading() {
   return (
     <ListPageSkeleton
+      page="factories"
       title="Fábricas Representadas"
       description="Fábricas cujos produtos são vendidos pela empresa. Entidade global da plataforma."
       actions={["w-[260px]", "w-[120px]", "w-[120px]"]}

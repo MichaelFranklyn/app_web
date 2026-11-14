@@ -10,11 +10,12 @@ import { AgendaDayView } from "./_components/AgendaDayView";
 import { AgendaMonthView } from "./_components/AgendaMonthView";
 import { AgendaToolbar } from "./_components/AgendaToolbar";
 import { AgendaWeekView } from "./_components/AgendaWeekView";
+import { EmptyWeekNote } from "./_components/EmptyWeekNote";
 import { PrintWeekButton } from "./_components/PrintWeekButton";
 import { ResponseLinkModal } from "./_components/ResponseLinkModal";
 import { RoutinesSkeleton } from "./_components/RoutinesSkeleton";
 import { RoutinesSummary } from "./_components/RoutinesSummary";
-import { monthGrid } from "./calendar";
+import { isPlannableBlankWeek, monthGrid } from "./calendar";
 import { useAgenda } from "./useAgenda";
 import { useDayOffs } from "./useDayOffs";
 import { useMoveItem } from "./useMoveItem";
@@ -99,7 +100,9 @@ export default function AgendaContent({
           {view === "week" && isSellerAgenda && schedule && (
             <>
               <RoutinesSummary days={schedule.days} />
-              <div className="flex flex-wrap items-center justify-end gap-8">
+              {/* No celular os dois botões dividem a linha inteira (sem sobra
+                  vazia à esquerda); do desktop em diante, à direita. */}
+              <div className="max-desktop:[&>button]:flex-1 desktop:justify-end flex flex-wrap items-center justify-center gap-8">
                 <PrintWeekButton
                   scheduleId={schedule.id}
                   weekStart={weekStart}
@@ -115,6 +118,15 @@ export default function AgendaContent({
               </div>
             </>
           )}
+
+          {/* Semana em branco: o próximo passo vem antes da grade vazia. Só
+              na agenda de quem vende — a do escritório não se "monta". */}
+          {view === "week" &&
+            isSellerAgenda &&
+            sellerId &&
+            isPlannableBlankWeek(dates, days, todayIso, dayOffDates) && (
+              <EmptyWeekNote weekStart={weekStart} sellerId={sellerId} />
+            )}
 
           <div data-tour="routines-grid">
             {view === "month" ? (

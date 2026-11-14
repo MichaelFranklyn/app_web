@@ -100,6 +100,22 @@ export const trialDaysLeft = (
   return Math.round((endDay - todayDay) / 86_400_000);
 };
 
+/**
+ * O teto que vale de fato para pessoas ou vendedores — a mesma conta de
+ * `resolve_entitlements` no backend: a base é o teto próprio (override) ou, sem
+ * ele, o do plano; os usuários extras somam por cima. Base sem teto continua
+ * sem teto. Sem isto, a tela mostraria "de 2" para quem comprou o terceiro.
+ */
+export const effectiveSeatLimit = (
+  planLimit: number | null,
+  override: number | null,
+  extraUsers: number
+): number | null => {
+  const base = override ?? planLimit;
+  if (base === null) return null;
+  return base + Math.max(0, extraUsers);
+};
+
 /** Uso do teto contratado. `null` = sem teto, que não é o mesmo que ilimitado
  * atingido — a barra simplesmente não aparece. */
 export const limitUsage = (

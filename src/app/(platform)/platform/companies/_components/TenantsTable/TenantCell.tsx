@@ -13,7 +13,7 @@ import { tenantName } from "../../utils";
  */
 export function TenantCell({ tenant }: { tenant: PlatformTenant }) {
   return (
-    <Table.Cell className="max-w-[280px]">
+    <Table.Cell card="title" className="max-w-[280px]">
       <div className="flex min-w-0 flex-col gap-[2px]">
         <div className="flex min-w-0 items-center gap-[6px]">
           <Title variant="body-sm" weight="semibold" className="truncate">

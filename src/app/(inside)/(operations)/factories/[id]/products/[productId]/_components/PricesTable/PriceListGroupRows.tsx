@@ -66,7 +66,6 @@ export function PriceListGroupRows({
                 appearance="ghost"
                 color="neutral"
                 size="sm"
-                noUppercase
                 onClick={() =>
                   router.push(
                     `/factories/${companyFactoryId}/price-lists/${priceList.id}`

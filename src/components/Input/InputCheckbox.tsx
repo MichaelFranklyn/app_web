@@ -15,7 +15,10 @@ export const InputCheckbox = forwardRef<HTMLInputElement, InputCheckboxProps>(
     const id = externalId || generatedId;
 
     return (
-      <label htmlFor={id} className={cn(checkStyles.wrap, className)}>
+      <label
+        htmlFor={id}
+        className={cn(checkStyles.wrap, !label && "justify-center", className)}
+      >
         <input
           type="checkbox"
           id={id}

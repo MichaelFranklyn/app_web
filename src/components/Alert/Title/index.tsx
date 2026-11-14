@@ -7,7 +7,7 @@ export const AlertTitle = React.forwardRef<
 >(({ className, ...props }, ref) => (
   <div
     ref={ref}
-    className={cn("text-[13px] font-medium", className)}
+    className={cn("text-body-sm font-(--weight-semibold)", className)}
     {...props}
   />
 ));

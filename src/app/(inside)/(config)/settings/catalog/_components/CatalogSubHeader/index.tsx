@@ -2,15 +2,16 @@
 
 import { Breadcrumb } from "@/components/Breadcrumb";
 import { PanelHeader } from "@/components/PanelHeader";
-import { IconTile } from "@/components/IconTile";
 
-import { CATALOG_GROUPS, CATALOG_TONE } from "../../utils";
+import { CatalogPageHref } from "../../interface";
+import { CATALOG_GROUPS, CATALOG_PAGES, CATALOG_TONE } from "../../utils";
 
 interface Props {
-  /** A rota deste catálogo — é por ela que o ícone e a cor são encontrados. */
-  href: string;
-  title: string;
-  description: string;
+  /**
+   * A rota deste catálogo — é por ela que o ícone, a cor e o texto
+   * (`CATALOG_PAGES`) são encontrados.
+   */
+  href: CatalogPageHref;
 }
 
 /**
@@ -22,7 +23,8 @@ interface Props {
  * para o índice, outra para as telas — perderiam o pareamento no primeiro
  * catálogo novo.
  */
-export function CatalogSubHeader({ href, title, description }: Props) {
+export function CatalogSubHeader({ href }: Props) {
+  const { title, description } = CATALOG_PAGES[href];
   const group = CATALOG_GROUPS.find((g) =>
     g.links.some((l) => l.href === href)
   );
@@ -41,19 +43,16 @@ export function CatalogSubHeader({ href, title, description }: Props) {
       <PanelHeader.Root>
         <PanelHeader.Top>
           <PanelHeader.Left>
-            {group && color && (
-              <PanelHeader.Eyebrow color={color}>
-                {group.title}
-              </PanelHeader.Eyebrow>
-            )}
-            <div className="flex items-center gap-10">
-              {Icon && color && (
-                <IconTile aria-hidden shape="square" size="sm" color={color}>
-                  <Icon />
-                </IconTile>
-              )}
+            {/* Sem o nome do grupo acima do título (14/11/2026): o
+                breadcrumb já diz de onde se veio, e o ícone na cor do card
+                faz o pareamento com o índice. */}
+            {Icon && color ? (
+              <PanelHeader.Heading icon={Icon} color={color}>
+                {title}
+              </PanelHeader.Heading>
+            ) : (
               <PanelHeader.Title>{title}</PanelHeader.Title>
-            </div>
+            )}
             <PanelHeader.Description>{description}</PanelHeader.Description>
           </PanelHeader.Left>
         </PanelHeader.Top>

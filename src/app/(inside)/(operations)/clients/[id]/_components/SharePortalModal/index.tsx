@@ -57,7 +57,7 @@ export function SharePortalModal({
   return (
     <Modal.Root open={isOpen} onOpenChange={handleOpenChange}>
       <Modal.Trigger asChild>
-        <Button.Root appearance="outline" color="neutral" size="sm" noUppercase>
+        <Button.Root appearance="outline" color="neutral" size="sm">
           <Button.Icon icon={Share2} />
           <Button.Title>Compartilhar</Button.Title>
         </Button.Root>
@@ -120,7 +120,6 @@ export function SharePortalModal({
               appearance={confirmRevoke ? "solid" : "outline"}
               color="red"
               size="sm"
-              noUppercase
               loading={isLoading}
               onClick={() => void handleRevoke()}
             >
@@ -136,7 +135,6 @@ export function SharePortalModal({
             appearance="solid"
             color="amber"
             size="sm"
-            noUppercase
             loading={isLoading}
             onClick={() => void issue()}
           >

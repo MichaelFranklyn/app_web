@@ -48,7 +48,7 @@ export function DraftBackupNotice({ backup }: { backup: DraftBackupState }) {
       <Alert.Actions>
         <ConfirmModal
           trigger={
-            <Button.Root appearance="ghost" color="red" size="sm" noUppercase>
+            <Button.Root appearance="ghost" color="red" size="sm">
               <Button.Title>Descartar</Button.Title>
             </Button.Root>
           }
@@ -62,7 +62,6 @@ export function DraftBackupNotice({ backup }: { backup: DraftBackupState }) {
           appearance="solid"
           color="amber"
           size="sm"
-          noUppercase
           onClick={backup.recover}
         >
           <Button.Title>Recuperar itens</Button.Title>

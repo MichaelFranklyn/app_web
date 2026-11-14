@@ -14,6 +14,8 @@ interface Props {
   onRemove: (client: PriorityClient) => void;
   onOrganize: () => void;
   sellerId: string | null;
+  /** Gestor ainda sem vendedor escolhido: as visitas marcadas esperam. */
+  awaitingSeller: boolean;
   scheduleSellerId: string | null;
   onScheduled: () => void;
 }
@@ -29,6 +31,7 @@ export function WeekPanel({
   onRemove,
   onOrganize,
   sellerId,
+  awaitingSeller,
   scheduleSellerId,
   onScheduled,
 }: Props) {
@@ -52,6 +55,7 @@ export function WeekPanel({
       <Card.Section divided>
         <ScheduledVisits
           sellerId={sellerId}
+          skip={awaitingSeller}
           scheduleSellerId={scheduleSellerId}
           onScheduled={onScheduled}
         />

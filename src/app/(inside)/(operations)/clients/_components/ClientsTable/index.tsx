@@ -2,6 +2,7 @@
 
 import { EmptyState } from "@/components/EmptyState";
 import { Filters } from "@/components/Filters";
+import { InputSearch } from "@/components/Input";
 import { Loading } from "@/components/Loading";
 import { Pagination } from "@/components/Pagination";
 import { Table } from "@/components/Table";
@@ -11,6 +12,8 @@ import { Users } from "lucide-react";
 import { CLIENT_COLUMN_HELP } from "../../help";
 import { formatCity } from "../../utils";
 import { ClientCell } from "./ClientCell";
+import { ClientIdentityCells } from "./ClientIdentityCells";
+import { ClientStatusTags } from "./ClientStatusTags";
 import { ClientsTableProps } from "./interface";
 import { SellerCell } from "./SellerCell";
 
@@ -36,19 +39,30 @@ export function ClientsTable({
       <Table.CardHead>
         <Table.CardHead.Title>Carteira de clientes</Table.CardHead.Title>
         <Table.CardHead.Actions>
+          {/* A busca fica à vista, fora do painel: é por onde quase sempre se
+              começa, e escondida atrás de "Filtros" ninguém a achava. O campo
+              continua em `filterFields` (escondido) para o aviso dos KPIs
+              nomeá-la; o "x" do próprio campo a limpa. */}
+          <InputSearch
+            size="sm"
+            aria-label="Buscar cliente"
+            placeholder="Nome, razão social ou CNPJ"
+            data-tour="clients-search"
+            value={inputValues.search ?? ""}
+            onChange={(e) => setFilter("search", e.target.value || undefined)}
+          />
           <Filters
+            resultCount={totalCount}
+            resultLoading={loading}
             fields={filterFields}
             values={inputValues}
             onChange={setFilters}
-            // A busca vai por aqui para manter o debounce do campo: pelo
-            // `onChange` cada tecla viraria uma consulta ao backend.
-            onTextChange={setFilter}
             data-tour="clients-filters"
           />
         </Table.CardHead.Actions>
       </Table.CardHead>
 
-      <Table.Table>
+      <Table.Table cards>
         <Table.Header>
           <Table.Row>
             {/* CNPJ e CNAE moram dentro da coluna Cliente (ver ClientCell). */}
@@ -123,8 +137,13 @@ export function ClientsTable({
                 className="group"
               >
                 <ClientCell client={node} />
+                <ClientIdentityCells client={node} />
 
-                <Table.Cell variant="dim" className="whitespace-nowrap">
+                <Table.Cell
+                  variant="dim"
+                  className="whitespace-nowrap"
+                  label="Cidade"
+                >
                   {formatCity(node.addressCity, node.addressState)}
                 </Table.Cell>
 
@@ -133,16 +152,25 @@ export function ClientsTable({
                   highlightSellerId={inputValues.sellerId ?? null}
                 />
 
-                <Table.Cell variant="dim" className="whitespace-nowrap">
+                <Table.Cell
+                  variant="dim"
+                  className="whitespace-nowrap"
+                  label="Última compra"
+                >
                   {formatDate(node.companyClient?.lastOrderDate)}
                 </Table.Cell>
 
-                <Table.Cell variant="dim" className="whitespace-nowrap">
+                <Table.Cell
+                  variant="dim"
+                  className="whitespace-nowrap"
+                  label="Última visita"
+                >
                   {formatDate(node.companyClient?.lastVisitDate)}
                 </Table.Cell>
 
                 {node.companyClient?.visitScoreTotal != null ? (
                   <Table.ScoreCell
+                    data-label="Score"
                     score={Number(node.companyClient.visitScoreTotal)}
                     color={scoreBarColor(
                       Number(node.companyClient.visitScoreTotal)
@@ -150,9 +178,19 @@ export function ClientsTable({
                     label={Number(node.companyClient.visitScoreTotal).toFixed(
                       0
                     )}
-                  />
+                  >
+                    <ClientStatusTags
+                      client={node}
+                      className="desktop:hidden ml-8"
+                    />
+                  </Table.ScoreCell>
                 ) : (
-                  <Table.ScoreCell score={0} noBar label="—" />
+                  <Table.ScoreCell data-label="Score" score={0} noBar label="—">
+                    <ClientStatusTags
+                      client={node}
+                      className="desktop:hidden ml-8"
+                    />
+                  </Table.ScoreCell>
                 )}
               </Table.Row>
             ))

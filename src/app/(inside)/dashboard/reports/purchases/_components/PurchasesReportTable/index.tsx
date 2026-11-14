@@ -84,6 +84,8 @@ export function PurchasesReportTable({
         </Table.CardHead.Title>
         <Table.CardHead.Actions>
           <Filters
+            resultCount={totalItems}
+            resultLoading={loading}
             fields={filterFields}
             values={inputValues}
             onChange={setFilters}
@@ -125,7 +127,7 @@ export function PurchasesReportTable({
           ) : items.length === 0 ? (
             <Table.Row>
               <Table.Cell colSpan={9}>
-                <EmptyState.Root>
+                <EmptyState.Root flat>
                   <EmptyState.Icon>
                     <ShoppingBasket size={32} />
                   </EmptyState.Icon>

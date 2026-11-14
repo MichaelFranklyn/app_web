@@ -121,7 +121,6 @@ export function ImportClientsModal() {
               appearance="ghost"
               color="neutral"
               size="md"
-              noUppercase
               disabled={isLoading}
             >
               <Button.Title>{result ? "Fechar" : "Cancelar"}</Button.Title>
@@ -132,7 +131,6 @@ export function ImportClientsModal() {
             appearance="solid"
             color="amber"
             size="md"
-            noUppercase
             loading={isLoading}
             disabled={!file}
             onClick={handleImport}

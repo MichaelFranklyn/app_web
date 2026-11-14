@@ -47,9 +47,17 @@ function FeatureCard({
               {FEATURE_LABEL[feature]}
             </Title>
             {included ? (
-              <Check aria-hidden size={13} className="text-(--green)" />
+              <Check
+                aria-hidden
+                size={13}
+                className="text-(--color-status-success)"
+              />
             ) : (
-              <Lock aria-hidden size={12} className="text-(--muted2)" />
+              <Lock
+                aria-hidden
+                size={12}
+                className="text-(--color-text-disabled)"
+              />
             )}
           </div>
           <Title variant="micro" color="muted">
@@ -82,7 +90,7 @@ export function PlanFeaturesSection({ features }: { features: PlanFeature[] }) {
             label="Por que aparecem recursos que eu não tenho?"
             content={
               <div className="flex flex-col gap-2">
-                <Title variant="label" color="amber">
+                <Title variant="label" weight="semibold">
                   A lista inteira
                 </Title>
                 <Title variant="body-sm">

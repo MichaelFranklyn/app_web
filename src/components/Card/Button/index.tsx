@@ -13,7 +13,7 @@ export const Button = React.forwardRef<
     ref={ref}
     type={type}
     className={cn(
-      "flex w-full cursor-pointer flex-col gap-10 rounded-(--r-md) border border-(--border) bg-(--bg2) p-16 text-left transition-colors hover:bg-(--bg3) focus-visible:outline-2 focus-visible:outline-(--amber)",
+      "focus-ring flex w-full cursor-pointer flex-col gap-10 rounded-(--r-md) border border-(--border) bg-(--bg2) p-16 text-left transition-colors hover:bg-(--bg3)",
       className
     )}
     {...props}

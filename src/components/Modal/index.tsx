@@ -1,7 +1,10 @@
 "use client";
 
+import { Button } from "@/components/Button";
+import { Title } from "@/components/Title";
 import { cn } from "@/lib/utils";
 import * as Dialog from "@radix-ui/react-dialog";
+import { X } from "lucide-react";
 import React from "react";
 
 const ModalPortalContext = React.createContext<HTMLDivElement | null>(null);
@@ -28,37 +31,40 @@ const Header = React.forwardRef<HTMLDivElement, HeaderProps>(
     <div
       ref={ref}
       className={cn(
-        "flex items-start justify-between gap-4 border-b border-(--border) px-16 py-12",
+        "flex items-start justify-between gap-12 px-20 pt-20 pb-12",
         className
       )}
       {...props}
     >
-      <div className="flex flex-col gap-6">
-        <Dialog.Title className="text-heading-md font-semibold text-(--fg)">
-          {title}
+      <div className="flex min-w-0 flex-col gap-4">
+        <Dialog.Title asChild>
+          <Title variant="heading-md" weight="semibold" as="h2">
+            {title}
+          </Title>
         </Dialog.Title>
         {description && (
-          <Dialog.Description className="text-md text-(--muted)">
-            {description}
+          <Dialog.Description asChild>
+            <Title variant="body" color="muted" as="p">
+              {description}
+            </Title>
           </Dialog.Description>
         )}
       </div>
       {showClose && (
-        <Dialog.Close className="mt-2 shrink-0 text-(--muted) transition-colors hover:text-(--fg)">
-          <svg
-            xmlns="http://www.w3.org/2000/svg"
-            width="16"
-            height="16"
-            viewBox="0 0 24 24"
-            fill="none"
-            stroke="currentColor"
-            strokeWidth="2"
-            strokeLinecap="round"
-            strokeLinejoin="round"
+        // Mesmo "Fechar" do Drawer: botão do DS (alvo de 33px, foco visível,
+        // hover). Antes era um <svg> cru de 16px, sem área de toque, e o hover
+        // pintava `--fg` — token que não existe.
+        <Dialog.Close asChild>
+          <Button.Root
+            appearance="ghost"
+            color="neutral"
+            size="sm"
+            isIconOnly
+            label="Fechar"
+            className="-mt-4 -mr-8 shrink-0"
           >
-            <line x1="18" y1="6" x2="6" y2="18" />
-            <line x1="6" y1="6" x2="18" y2="18" />
-          </svg>
+            <Button.Icon icon={X} />
+          </Button.Root>
         </Dialog.Close>
       )}
     </div>
@@ -75,7 +81,7 @@ const Body = React.forwardRef<
 >(({ className, ...props }, ref) => (
   <div
     ref={ref}
-    className={cn("flex-1 overflow-y-auto px-16 py-12", className)}
+    className={cn("flex-1 overflow-y-auto px-20 py-12", className)}
     {...props}
   />
 ));
@@ -93,7 +99,8 @@ const Footer = React.forwardRef<
     className={cn(
       // Mobile/tablet: botões empilhados e full-width (alvos de toque grandes).
       // Desktop: volta para linha, alinhados à direita, no tamanho natural.
-      "desktop:flex-row desktop:items-center desktop:justify-end desktop:[&>button]:w-auto flex flex-col gap-3 border-t border-(--border) px-16 py-12 [&>button]:w-full",
+      // gap-8: a escala é em px — o `gap-3` herdado do Tailwind dava 3px.
+      "desktop:flex-row desktop:items-center desktop:justify-end desktop:[&>button]:w-auto flex flex-col gap-8 rounded-b-(--r-xl) border-t border-(--border) bg-(--bg) px-20 py-[14px] [&>button]:w-full",
       className
     )}
     {...props}
@@ -143,18 +150,17 @@ const Content = React.forwardRef<
 
   return (
     <Dialog.Portal>
-      <Dialog.Overlay className="data-[state=open]:animate-in data-[state=closed]:animate-out data-[state=open]:fade-in data-[state=closed]:fade-out fixed inset-0 z-50 bg-black/50 backdrop-blur-[2px] duration-200" />
+      <Dialog.Overlay className="data-[state=open]:animate-fade-in data-[state=closed]:animate-fade-out fixed inset-0 z-50 bg-black/45 backdrop-blur-[3px]" />
       <Dialog.Content
         ref={ref}
         className={cn(
           "fixed top-1/2 left-1/2 z-50 w-full -translate-x-1/2 -translate-y-1/2",
           "max-w-[calc(100vw-32px)]",
           "flex max-h-[90vh] flex-col",
-          "rounded-(--r-lg) border border-(--border) bg-(--bg2) shadow-(--shadow-md)",
-          "data-[state=open]:animate-in data-[state=closed]:animate-out",
-          "data-[state=open]:fade-in data-[state=closed]:fade-out",
-          "data-[state=open]:zoom-in-95 data-[state=closed]:zoom-out-95",
-          "duration-200",
+          // Camada mais alta da tela: a sombra maior (--shadow-lg) a descola
+          // do véu; a do card (--shadow-md) a deixava colada no fundo.
+          "rounded-(--r-xl) border border-(--border) bg-(--bg2) shadow-(--shadow-lg)",
+          "data-[state=open]:animate-dialog-in data-[state=closed]:animate-dialog-out",
           sizeVariants[size],
           className
         )}

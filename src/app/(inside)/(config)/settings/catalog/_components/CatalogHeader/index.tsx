@@ -2,6 +2,7 @@
 
 import { Badge } from "@/components/Badges";
 import { PanelHeader } from "@/components/PanelHeader";
+import { PAGE_HEADING } from "@/utils/modules";
 
 interface Props {
   /** Total cadastrado nos cinco catálogos. Null quando a contagem não veio. */
@@ -14,7 +15,9 @@ export function CatalogHeader({ totalItems }: Props) {
       <PanelHeader.Root>
         <PanelHeader.Top>
           <PanelHeader.Left>
-            <PanelHeader.Title>Catálogos da empresa</PanelHeader.Title>
+            <PanelHeader.Heading {...PAGE_HEADING.catalog}>
+              Catálogos da empresa
+            </PanelHeader.Heading>
             <PanelHeader.Description>
               Listas que o sistema oferece pronto na hora de cadastrar um
               produto ou calcular imposto. Preencha uma vez e reaproveite em

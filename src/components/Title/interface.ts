@@ -33,6 +33,8 @@ export type TitleColor =
   | "cyan"
   | "pink"
   | "orange"
+  /** Alerta (vence hoje, precisa de atenção). */
+  | "warning"
   /** Herda a cor do pai: o texto dentro de um `TextLink`. */
   | "inherit";
 

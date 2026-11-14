@@ -49,6 +49,8 @@ export function AwaitingDeliveryTable(props: Props) {
         <Table.CardHead.Title>Pedidos esperando entrega</Table.CardHead.Title>
         <Table.CardHead.Actions>
           <Filters
+            resultCount={props.totalItems}
+            resultLoading={loading}
             fields={props.filterFields}
             values={props.inputValues}
             onChange={props.setFilters}
