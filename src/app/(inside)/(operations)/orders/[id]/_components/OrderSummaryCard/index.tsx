@@ -96,7 +96,7 @@ export function OrderSummaryCard({ order }: Props) {
       label: "Comissão",
       help: SUMMARY_HELP.commission,
       // Valor em cor de texto: âmbar é só do que se clica (revisão 13/11/2026).
-      value: formatMoney(order.commissionAmount),
+      value: formatMoney(order.sellerCommissionAmount),
     },
     {
       key: "paymentTerm",

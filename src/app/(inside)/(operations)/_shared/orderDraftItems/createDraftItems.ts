@@ -37,7 +37,7 @@ export async function createDraftItems(
             discount: item.discount,
             ipiRate: item.ipiRate,
             isPromo: item.isPromo,
-            source: "MANUAL",
+            source: item.source ?? "MANUAL",
           },
         },
       });

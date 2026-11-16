@@ -111,6 +111,7 @@ export {
   commissionModeLabel,
   isPaymentBasis,
 } from "@/app/(inside)/_shared/commissions";
+import { visibleCommission } from "@/utils/commission";
 
 /**
  * Ordena itens de pedido para exibição na ORDEM DE CRIAÇÃO (mais antigo
@@ -211,3 +212,23 @@ export const reversalSummary = (reversal: {
   }
   return parts.join(" · ");
 };
+
+/** Onde o aviso "vi o seu pedido" vale: pedido do portal ainda em aberto. */
+const PORTAL_SEEN_STATUSES: OrderStatus[] = ["DRAFT", "SENT"];
+
+/**
+ * O pedido mostra o aviso "Avisar o cliente que vi"? Só o do portal ainda em
+ * aberto — confirmado ou cancelado, o próprio status já conta ao cliente.
+ */
+export const canMarkPortalSeen = (order: {
+  isFromPortal: boolean;
+  status: OrderStatus;
+}): boolean =>
+  order.isFromPortal && PORTAL_SEEN_STATUSES.includes(order.status);
+
+/**
+ * A comissão que a coluna da parcela mostra: a da fábrica para a gestão, que
+ * confere o que a fábrica pagou; a do vendedor para ele — o servidor nunca lhe
+ * entrega a da fábrica (dela se deduz o percentual da fábrica).
+ */
+export const installmentCommission = visibleCommission;

@@ -13,6 +13,7 @@ const row = (patch: Partial<FactoryOrdersRow>): FactoryOrdersRow => ({
   invoicedCount: 6,
   invoicedAmount: "600",
   commissionAmount: "50",
+  sellerCommissionAmount: "1",
   lastOrderDate: "2026-07-20",
   share: 0.5,
   ...patch,

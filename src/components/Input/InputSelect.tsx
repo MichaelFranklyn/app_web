@@ -54,6 +54,13 @@ export interface InputSelectProps extends Omit<
   /** Indicador de carregamento das opções (usado no modo assíncrono). */
   loading?: boolean;
   /**
+   * Busca paginada: chamado quando a lista rola até perto do fim e
+   * `hasMore` diz que o servidor tem mais opções para o termo atual.
+   */
+  onLoadMore?: () => void;
+  /** Há mais opções no servidor além das já listadas. */
+  hasMore?: boolean;
+  /**
    * Formulário nativo (Server Action / `FormData`): envia o VALOR da opção num
    * campo oculto com este nome. Sem isso, o `name` cairia na caixa de busca e o
    * formulário mandaria o rótulo digitado ("Visitei"), não o valor ("VISITED").
@@ -188,6 +195,8 @@ const InputSelectControl = ({
   placeholder,
   onSearch,
   loading,
+  onLoadMore,
+  hasMore,
   searchable = true,
   ...props
 }: Omit<InputSelectProps, "size" | "name" | "defaultValue">) => {
@@ -392,6 +401,8 @@ const InputSelectControl = ({
           portalTarget={modalPortal ?? document.body}
           variant={variant}
           loading={loading}
+          onLoadMore={onLoadMore}
+          hasMore={hasMore}
           options={select.filteredOptions}
           isSelected={select.isSelected}
           areAllFilteredSelected={select.areAllFilteredSelected}

@@ -84,6 +84,10 @@ export interface FieldConfigSelect extends FieldConfigBase {
   onSearch?: (term: string) => void;
   /** Indicador de carregamento das opções no modo assíncrono. */
   loading?: boolean;
+  /** Busca paginada: traz a próxima página ao rolar até o fim da lista. */
+  onLoadMore?: () => void;
+  /** Ainda há páginas no servidor (liga o `onLoadMore`). */
+  hasMore?: boolean;
 }
 
 export interface FieldConfigCheckbox extends FieldConfigBase {
@@ -155,6 +159,11 @@ export interface FormBuilderProps {
    * Valor posto pelo código (`setValue`) não conta: sugestão não é trabalho.
    */
   onDirtyChange?: (isDirty: boolean) => void;
+  /**
+   * Avisa quando todos os campos `required` passam a ter valor (ou deixam de
+   * ter) — para a tela liberar o que depende deles antes do envio.
+   */
+  onRequiredFilledChange?: (isFilled: boolean) => void;
 }
 
 export interface RenderInputProps {

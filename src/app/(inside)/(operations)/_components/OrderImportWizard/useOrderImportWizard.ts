@@ -16,7 +16,9 @@ import {
   WorkbookData,
 } from "@/utils/import/reader";
 
+import { DraftItem } from "../../_shared/orderDraftItems";
 import { buildImportSource, ReadingGuess, ReadingKind } from "./diagnostics";
+import { reviewRowsToDraftItems } from "./draftItems";
 import {
   CONFIRM_ORDER_IMPORT_MUTATION,
   EXTRACT_ORDER_FILE_MUTATION,
@@ -62,10 +64,24 @@ export interface DeferredOrderTarget {
   createOrder: () => Promise<string>;
 }
 
+/**
+ * Fluxo em que NADA é gravado: os itens conferidos voltam para o rascunho de
+ * `/orders/new`, e o pedido só nasce no "Criar pedido" da tela. O cliente é
+ * opcional — sem ele o casamento usa a tabela da fábrica, sem o nível do
+ * vínculo.
+ */
+export interface DraftImportTarget {
+  factoryId: string;
+  clientId?: string | null;
+  onItems: (items: DraftItem[]) => void;
+}
+
 interface UseOrderImportWizardArgs {
   /** Pedido existente (detalhe do pedido). Ausente → use `deferred`. */
   orderId?: string | null;
   deferred?: DeferredOrderTarget;
+  /** Devolve os itens ao rascunho em vez de gravar (ver `DraftImportTarget`). */
+  draft?: DraftImportTarget;
   /**
    * Itens que já vieram prontos de uma ficha de pedido nossa.
    *
@@ -83,6 +99,7 @@ interface UseOrderImportWizardArgs {
 export function useOrderImportWizard({
   orderId,
   deferred,
+  draft,
   initialRows,
   ipiInOrder = false,
   onImported,
@@ -224,7 +241,7 @@ export function useOrderImportWizard({
           fileRefPromise.current = Promise.resolve(fileRef);
           const target = orderId
             ? { orderId }
-            : { factoryId: deferred?.factoryId };
+            : { factoryId: (deferred ?? draft)?.factoryId };
           const res = await extractFile({
             variables: {
               input: { ...target, fileName: selected.name, fileRef },
@@ -304,8 +321,8 @@ export function useOrderImportWizard({
         const target = orderId
           ? { orderId }
           : {
-              factoryId: deferred?.factoryId,
-              clientId: deferred?.clientId,
+              factoryId: (deferred ?? draft)?.factoryId,
+              clientId: (deferred ?? draft)?.clientId || undefined,
             };
         // O preview casa por SKU/preço; o IPI viaja à parte (alinhado por
         // rowIndex) e só entra na confirmação — o backend do preview não o aceita.
@@ -398,6 +415,13 @@ export function useOrderImportWizard({
     }));
 
   const runConfirm = async () => {
+    // Rascunho: sem mutation, sem pedido — quem abriu o assistente recebe os
+    // itens e fecha o modal.
+    if (draft) {
+      draft.onItems(reviewRowsToDraftItems(reviewRows, ipiInOrder));
+      onImported();
+      return;
+    }
     const items = reviewRows
       .filter((r) => r.include && r.candidate.productId && r.tierId)
       .map((r) => ({
@@ -485,6 +509,8 @@ export function useOrderImportWizard({
     setStep,
     /** Veio de uma ficha nossa: sem passo de arquivo nem de colunas. */
     fromSheet,
+    /** Devolve os itens ao rascunho em vez de gravar. */
+    toDraft: Boolean(draft),
     file,
     matrix,
     data: parsedSheet,

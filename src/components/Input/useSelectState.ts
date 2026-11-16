@@ -106,8 +106,12 @@ export function useSelectState({
   }, [open, inputValue, options.length]);
 
   // Ao fechar, encerra a busca e restaura o texto para o rótulo selecionado.
+  // No modo assíncrono o termo também volta a vazio: ele mora no consumidor e
+  // sobrevivia ao fechamento — uma busca que não achou nada deixava a lista
+  // vazia na próxima abertura, sem nada digitado no campo para explicar.
   useEffect(() => {
     if (!open) {
+      if (isAsync) onSearch?.("");
       setIsSearching(false);
       if (variant === "multi") {
         setInputValue("");
@@ -115,7 +119,7 @@ export function useSelectState({
         setInputValue(singleValue?.label ?? "");
       }
     }
-  }, [open, variant, singleValue]);
+  }, [open, variant, singleValue, isAsync, onSearch]);
 
   const handleSelectSingle = (option: SelectOption) => {
     onChange?.(option);

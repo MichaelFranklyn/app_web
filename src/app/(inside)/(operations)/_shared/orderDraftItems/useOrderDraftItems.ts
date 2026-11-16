@@ -7,11 +7,18 @@ import {
   isQuantityMultiple,
   priceKey,
   resolveTierForProduct,
+  suggestedQuantity,
   useOrderItemCatalog,
+  packMinimumText,
 } from "../orderItemCatalog";
 import { useLastPurchasePrices } from "../lastPurchasePrices";
 import { DiscountType, DraftItem } from "./interface";
-import { discountToAmount, draftTotal } from "./utils";
+import {
+  discountToAmount,
+  DraftMergeResult,
+  draftTotal,
+  mergeDraftItems,
+} from "./utils";
 
 const toCurrencyMask = (value: number): string =>
   maskCurrency(value.toFixed(2));
@@ -48,6 +55,10 @@ export function useOrderDraftItems(
   // produto deixa o vendedor trocar o nível na mão sem ser corrigido de volta.
   const tierResolvedForRef = useRef<string>("");
   const ipiFilledForRef = useRef<string>("");
+  // Produto cuja embalagem mínima já foi posta na quantidade, e o valor posto:
+  // trocar de produto troca o valor automático, mas nunca o que foi digitado.
+  const qtyFilledForRef = useRef<string>("");
+  const autoQuantityRef = useRef<string>("");
 
   // Produtos que precisam de dado de apoio (unidade, múltiplo, IPI, preço): o
   // que está no formulário e os que já entraram no rascunho — a lista de itens
@@ -64,7 +75,10 @@ export function useOrderDraftItems(
     productOptions,
     onProductSearch,
     isLoadingProducts,
+    hasMoreProducts,
+    onLoadMoreProducts,
     hasProducts,
+    isCatalogPending,
     productOptionById,
     loadedProductIds,
     tierOptions,
@@ -135,6 +149,24 @@ export function useOrderDraftItems(
     ? saleMultipleByProduct.get(productId)
     : undefined;
 
+  // A quantidade já nasce com a embalagem mínima: é o que a fábrica aceita, e o
+  // vendedor só sobe a partir dela. Espera o nó do produto (o múltiplo vem
+  // nele) e não mexe em item em edição, que volta com o que foi gravado.
+  useEffect(() => {
+    if (!productId || editingIndex !== null) return;
+    if (!loadedProductIds.has(productId)) return;
+    if (qtyFilledForRef.current === productId) return;
+    qtyFilledForRef.current = productId;
+    const auto = autoQuantityRef.current;
+    const next = saleMultipleByProduct.get(productId);
+    setQuantity((current) => {
+      const value = suggestedQuantity(current, auto, next);
+      autoQuantityRef.current =
+        value === current && current !== auto ? "" : value;
+      return value;
+    });
+  }, [productId, editingIndex, loadedProductIds, saleMultipleByProduct]);
+
   // Do mapa dos escolhidos, não da lista de opções: a lista mostra o resultado
   // da busca atual, e o produto do item pode não estar mais nela.
   const selectedProduct = useMemo(
@@ -163,6 +195,8 @@ export function useOrderDraftItems(
     lastSuggestedRef.current = "";
     tierResolvedForRef.current = "";
     ipiFilledForRef.current = "";
+    qtyFilledForRef.current = "";
+    autoQuantityRef.current = "";
     // `tierId` sobrevive de propósito: o próximo item do pedido costuma ser do
     // mesmo nível comercial, e trocá-lo a cada item era o que deixava o preço
     // em branco.
@@ -265,6 +299,8 @@ export function useOrderDraftItems(
     lastSuggestedRef.current = priceKey(item.productId, item.tierId);
     tierResolvedForRef.current = item.productId;
     ipiFilledForRef.current = item.productId;
+    qtyFilledForRef.current = item.productId;
+    autoQuantityRef.current = "";
   };
 
   const cancelEdit = () => {
@@ -293,6 +329,19 @@ export function useOrderDraftItems(
     setItems(saved);
   };
 
+  /**
+   * Junta à lista os itens que vieram da planilha (ver `mergeDraftItems`).
+   * O item que está no formulário fica onde está: importar não apaga o que o
+   * vendedor estava digitando — mas sai da edição, porque as posições mudam.
+   */
+  const appendItems = (incoming: DraftItem[]): DraftMergeResult => {
+    const result = mergeDraftItems(items, incoming);
+    setItems(result.items);
+    if (editingIndex !== null) resetNewItem();
+    setError(null);
+    return result;
+  };
+
   // Um item começado e ainda não adicionado à lista: o que o vendedor já
   // digitou nele se perde ao sair da tela. O preço sugerido não conta sozinho —
   // ele só aparece depois de escolher o produto, que já conta.
@@ -304,11 +353,23 @@ export function useOrderDraftItems(
     productOptions,
     onProductSearch,
     isLoadingProducts,
+    hasMoreProducts,
+    onLoadMoreProducts,
     tierOptions,
     hasCatalog: hasProducts,
+    /** A 1ª página do catálogo ainda não chegou — não diga "sem produtos". */
+    isCatalogPending,
     ipiInOrder,
     unitName,
     saleMultiple,
+    /**
+     * Texto do campo só-leitura "Embalagem mínima": vazio até o nó do produto
+     * (que traz o múltiplo) chegar, para não dizer "sem mínimo" antes da hora.
+     */
+    packMinimum:
+      productId && loadedProductIds.has(productId)
+        ? packMinimumText(saleMultiple)
+        : "",
     priceMissing,
     items,
     /** Mercadoria acumulada (sem IPI) — base do aviso de valor mínimo. */
@@ -336,6 +397,7 @@ export function useOrderDraftItems(
     removeItem,
     reset,
     restore,
+    appendItems,
     lastPurchasesByProduct,
     isLoadingLastPurchases,
     /** Produto no formulário (vazio = nenhum). */

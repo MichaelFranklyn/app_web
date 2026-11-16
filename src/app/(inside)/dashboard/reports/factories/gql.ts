@@ -19,6 +19,7 @@ export const FACTORY_ORDERS_REPORT_QUERY = gql`
       invoicedCount
       invoicedAmount
       commissionAmount
+      sellerCommissionAmount
       lastOrderDate
       share
     }

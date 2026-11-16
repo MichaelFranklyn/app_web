@@ -61,6 +61,7 @@ export interface ProductOptionNode {
 export interface ProductOptionsData {
   products: {
     edges: { node: ProductOptionNode }[];
+    pageInfo?: { hasNextPage: boolean; endCursor?: string | null };
   };
 }
 

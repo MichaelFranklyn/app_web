@@ -3,6 +3,7 @@ import { ReportColumn } from "@/utils/pdf/table";
 
 import { formatPercent } from "../../utils";
 import { AbcRow } from "./interface";
+import { visibleCommission } from "@/utils/commission";
 
 /**
  * Colunas do PDF da curva, na mesma ordem da tela.
@@ -58,7 +59,7 @@ export const ABC_PDF_COLUMNS: ReportColumn<AbcRow>[] = [
     header: "COMISSÃO",
     width: 10,
     align: "right",
-    value: (row) => formatMoney(row.commissionAmount),
+    value: (row) => formatMoney(visibleCommission(row)),
   },
   {
     header: "ÚLT. FAT.",

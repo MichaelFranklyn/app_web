@@ -25,6 +25,9 @@ interface SelectDropdownProps {
   portalTarget: Element;
   variant: "single" | "multi";
   loading?: boolean;
+  /** Pede a próxima página quando a lista rola até perto do fim. */
+  onLoadMore?: () => void;
+  hasMore?: boolean;
   options: SelectOption[];
   isSelected: (option: SelectOption) => boolean;
   areAllFilteredSelected: boolean;
@@ -35,6 +38,9 @@ interface SelectDropdownProps {
   isCreating: boolean;
   onCreateNew: (e: React.MouseEvent) => void;
 }
+
+/** Distância (px) do fim da lista em que a próxima página é pedida. */
+const LOAD_MORE_GAP = 96;
 
 /** Painel flutuante do InputSelect (opções, selecionar-todos e criar). */
 export const SelectDropdown = ({
@@ -47,6 +53,8 @@ export const SelectDropdown = ({
   portalTarget,
   variant,
   loading,
+  onLoadMore,
+  hasMore,
   options,
   isSelected,
   areAllFilteredSelected,
@@ -77,6 +85,14 @@ export const SelectDropdown = ({
           : {}),
       }}
       onMouseDown={(e) => e.preventDefault()}
+      // Rolagem infinita: a uns 3 itens do fim, busca a próxima página.
+      onScroll={(e) => {
+        if (!hasMore || loading || !onLoadMore) return;
+        const el = e.currentTarget;
+        if (el.scrollHeight - el.scrollTop - el.clientHeight < LOAD_MORE_GAP) {
+          onLoadMore();
+        }
+      }}
     >
       {variant === "multi" && options.length > 0 && (
         <div
@@ -142,6 +158,10 @@ export const SelectDropdown = ({
 
       {loading && options.length === 0 && (
         <div className={selectStyles.warningText}>Buscando…</div>
+      )}
+
+      {loading && options.length > 0 && hasMore && (
+        <div className={selectStyles.warningText}>Carregando mais…</div>
       )}
 
       {!loading && options.length === 0 && !showCreateOption && (

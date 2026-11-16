@@ -1,9 +1,6 @@
 import { LinkExpired } from "@/components/LinkExpired";
-import { PublicPage } from "@/components/PublicPage";
-import { Title } from "@/components/Title";
 import { portalFetch } from "@/services/graphql/portalFetch";
-import { PortalHeader } from "./_components/PortalHeader";
-import { PortalNav } from "./_components/PortalNav";
+import { PortalShell } from "./_components/PortalShell";
 import { PORTAL_PROFILE } from "./gql";
 import { PortalProfileData } from "./interface";
 
@@ -39,24 +36,8 @@ export default async function PortalTokenLayout({
   }
 
   return (
-    <PublicPage.Root>
-      <PortalHeader profile={profile} />
-
-      <PublicPage.Nav aria-label="Seções do portal">
-        <PortalNav
-          token={token}
-          canRequestReplenishment={profile.canRequestReplenishment}
-        />
-      </PublicPage.Nav>
-
-      {/* Sem respiro em cima: a margem das abas já separa. */}
-      <PublicPage.Main className="pt-0">{children}</PublicPage.Main>
-
-      <PublicPage.Footer>
-        <Title variant="body-sm" color="muted">
-          Dúvida sobre algum pedido? Fale com o seu representante.
-        </Title>
-      </PublicPage.Footer>
-    </PublicPage.Root>
+    <PortalShell token={token} profile={profile}>
+      {children}
+    </PortalShell>
   );
 }

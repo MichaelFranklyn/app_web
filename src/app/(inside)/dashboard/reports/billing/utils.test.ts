@@ -25,6 +25,7 @@ const row = (patch: Partial<BillingRow>): BillingRow => ({
   dueDate: "2026-08-01",
   amount: "100",
   commissionAmount: "5",
+  sellerCommissionAmount: "1",
   situation: "DUE",
   paidAt: null,
   daysOverdue: 0,

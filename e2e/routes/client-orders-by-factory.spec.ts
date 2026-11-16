@@ -1,5 +1,6 @@
 import { expect, test } from "../support/fixtures";
 import { emptyConnection as conn, mockGraphql } from "../support/graphql";
+import { addDraftItem, oneProductMocks } from "../support/orderDraft";
 
 /**
  * Aba Pedidos do cliente (/clients/[id]/orders). O pedido é POR FÁBRICA: a aba
@@ -133,10 +134,9 @@ test("cliente/pedidos: criar pedido abre a página com o cliente decidido e entr
         ],
       },
     }),
-    // Escolher o vínculo monta o catálogo dos itens (respostas vazias encerram
-    // o carregamento sem exercer os itens).
-    OrderItemCompanyFactories: () => ({ companyFactories: { edges: [] } }),
-    OrderItemProducts: () => ({ products: { edges: [] } }),
+    // Escolher o vínculo monta o catálogo dos itens: um produto, para o
+    // rascunho ter o item sem o qual o pedido não é criado.
+    ...oneProductMocks("f-1"),
     OrderItemTiers: () => ({ priceTiers: { edges: [] } }),
     OrderItemPriceLists: () => ({ factoryPriceLists: { edges: [] } }),
     OrderItemPriceListItems: () => ({ priceListItems: { edges: [] } }),
@@ -153,6 +153,7 @@ test("cliente/pedidos: criar pedido abre a página com o cliente decidido e entr
             invoicedAt: null,
             totalAmount: "0",
             commissionAmount: "0",
+            sellerCommissionAmount: "0",
             status: "CONFIRMED",
             seller: { id: "s-1", name: "Vendedor A" },
             client: {
@@ -192,8 +193,9 @@ test("cliente/pedidos: criar pedido abre a página com o cliente decidido e entr
     .click({ force: true });
   await page.getByRole("button", { name: "Hoje" }).click();
 
-  // Criar sem itens (eles são opcionais).
-  await page.getByRole("button", { name: "Criar pedido", exact: true }).click();
+  // Pedido sem item não é criado: um item no rascunho antes de gravar.
+  await addDraftItem(page);
+  await page.getByRole("button", { name: "Criar pedido com 1 item" }).click();
 
   // Redireciona para o pedido recém-criado.
   await page.waitForURL(/\/orders\/order-novo/);

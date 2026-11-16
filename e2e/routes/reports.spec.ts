@@ -17,6 +17,7 @@ const orderNode = (overrides: Record<string, unknown> = {}) => ({
   invoicedAt: "2026-07-12",
   totalAmount: "4820.00",
   commissionAmount: "144.60",
+  sellerCommissionAmount: "144.60",
   status: "INVOICED",
   isDeliveryOverdue: false,
   seller: { id: "seller-1", name: "Rafael Vendas" },
@@ -47,6 +48,7 @@ const orderStats = (overrides: Record<string, unknown> = {}) => ({
   invoicedOrders: 1,
   invoicedAmount: "4820.00",
   commissionAmount: "144.60",
+  sellerCommissionAmount: "144.60",
   ...overrides,
 });
 
@@ -71,6 +73,7 @@ test("vendas: KPIs, linhas e recorte pela data de faturamento", async ({
           total: "4820.00",
           orderCount: 1,
           commissionAmount: "144.60",
+          sellerCommissionAmount: "144.60",
         },
       ],
     }),

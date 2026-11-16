@@ -1,10 +1,13 @@
 import { Button } from "@/components/Button";
-import { ChevronLeft, ChevronRight } from "lucide-react";
 
 interface PortalPagerProps {
   token: string;
   page: number;
   hasNextPage: boolean;
+  /** Endereço de cada página. Padrão: a lista de compras (`/p/{token}?p=N`). */
+  hrefFor?: (page: number) => string;
+  previousLabel?: string;
+  nextLabel?: string;
 }
 
 /**
@@ -15,11 +18,19 @@ interface PortalPagerProps {
  * tela. Dois links resolvem — e continuam funcionando com a conexão ruim de uma
  * loja, que é onde isto vai ser aberto: o `Button.Link` sai do servidor como
  * `<a>` e navega antes de qualquer JavaScript carregar.
+ *
+ * Componente de SERVIDOR: nada de `Button.Icon` (lê o contexto do botão, que
+ * é client) — com mais de uma página a tela quebrava.
  */
-export function PortalPager({ token, page, hasNextPage }: PortalPagerProps) {
-  const hrefFor = (target: number) =>
-    target <= 1 ? `/p/${token}` : `/p/${token}?p=${target}`;
-
+export function PortalPager({
+  token,
+  page,
+  hasNextPage,
+  hrefFor = (target: number) =>
+    target <= 1 ? `/p/${token}` : `/p/${token}?p=${target}`,
+  previousLabel = "Mais recentes",
+  nextLabel = "Mais antigos",
+}: PortalPagerProps) {
   if (page <= 1 && !hasNextPage) return null;
 
   return (
@@ -30,8 +41,7 @@ export function PortalPager({ token, page, hasNextPage }: PortalPagerProps) {
           appearance="outline"
           color="neutral"
         >
-          <Button.Icon icon={ChevronLeft} />
-          <Button.Title>Mais recentes</Button.Title>
+          <Button.Title>{previousLabel}</Button.Title>
         </Button.Link>
       ) : (
         <span />
@@ -43,8 +53,7 @@ export function PortalPager({ token, page, hasNextPage }: PortalPagerProps) {
           appearance="outline"
           color="neutral"
         >
-          <Button.Title>Mais antigos</Button.Title>
-          <Button.Icon icon={ChevronRight} />
+          <Button.Title>{nextLabel}</Button.Title>
         </Button.Link>
       ) : (
         <span />

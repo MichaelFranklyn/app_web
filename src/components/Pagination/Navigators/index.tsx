@@ -13,6 +13,7 @@ export const First = React.forwardRef<
   React.ButtonHTMLAttributes<HTMLButtonElement>
 >(({ className, children, ...props }, ref) => (
   <button
+    type="button"
     ref={ref}
     aria-label="Primeira página"
     className={cn(itemVariants({}), className)}
@@ -27,6 +28,7 @@ export const Prev = React.forwardRef<
   React.ButtonHTMLAttributes<HTMLButtonElement>
 >(({ className, children, ...props }, ref) => (
   <button
+    type="button"
     ref={ref}
     aria-label="Página anterior"
     className={cn(itemVariants({}), className)}
@@ -41,6 +43,7 @@ export const Next = React.forwardRef<
   React.ButtonHTMLAttributes<HTMLButtonElement>
 >(({ className, children, ...props }, ref) => (
   <button
+    type="button"
     ref={ref}
     aria-label="Próxima página"
     className={cn(itemVariants({}), className)}
@@ -55,6 +58,7 @@ export const Last = React.forwardRef<
   React.ButtonHTMLAttributes<HTMLButtonElement>
 >(({ className, children, ...props }, ref) => (
   <button
+    type="button"
     ref={ref}
     aria-label="Última página"
     className={cn(itemVariants({}), className)}

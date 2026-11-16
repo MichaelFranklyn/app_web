@@ -117,27 +117,7 @@ describe("buildOrderSheetRows", () => {
     ).toBeUndefined();
 
     const withInstallments = buildOrderSheetRows(
-      order({
-        installments: [
-          {
-            id: "n1",
-            sequence: 1,
-            amount: "270",
-            commissionAmount: "12",
-            dueDate: "2026-06-10",
-            status: "PENDING",
-            paidAt: null,
-            isOverdue: false,
-            defaultedAt: null,
-            isCommissionReceived: false,
-            commissionReceivedAt: null,
-            isSellerCommissionPaid: false,
-            sellerCommissionPaidAt: null,
-            sellerChargebackMonth: null,
-            hasSettlement: false,
-          },
-        ],
-      }),
+      order({ installments: [sheetInstallment("12")] }),
       []
     );
     expect(findRow(withInstallments, "Parcelas")).toBeDefined();
@@ -149,4 +129,33 @@ describe("buildOrderSheetRows", () => {
       "Pendente",
     ]);
   });
+
+  it("para o vendedor (comissão da fábrica nula) a coluna traz a parte dele", () => {
+    const rows = buildOrderSheetRows(
+      order({ installments: [sheetInstallment(null)] }),
+      []
+    );
+    expect(rows.at(-1)?.[3]).toBe("7,20");
+  });
 });
+
+function sheetInstallment(commissionAmount: string | null) {
+  return {
+    id: "n1",
+    sequence: 1,
+    amount: "270",
+    commissionAmount,
+    sellerCommissionAmount: "7.20",
+    dueDate: "2026-06-10",
+    status: "PENDING" as const,
+    paidAt: null,
+    isOverdue: false,
+    defaultedAt: null,
+    isCommissionReceived: false,
+    commissionReceivedAt: null,
+    isSellerCommissionPaid: false,
+    sellerCommissionPaidAt: null,
+    sellerChargebackMonth: null,
+    hasSettlement: false,
+  };
+}

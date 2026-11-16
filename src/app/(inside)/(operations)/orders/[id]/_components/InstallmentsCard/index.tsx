@@ -8,7 +8,11 @@ import { formatDateDMY, formatMoney } from "@/utils/format/masks";
 import { installmentDueBasisLabel } from "@/app/(inside)/_shared/commissions";
 import { INSTALLMENT_COLUMN_HELP } from "../../../help";
 import { OrderDetail } from "../../interface";
-import { commissionModeLabel, isPaymentBasis } from "../../utils";
+import {
+  commissionModeLabel,
+  installmentCommission,
+  isPaymentBasis,
+} from "../../utils";
 import { InstallmentRowActions } from "./InstallmentRowActions";
 import { InstallmentStatusCell } from "./InstallmentStatusCell";
 
@@ -116,7 +120,7 @@ export function InstallmentsCard({ order, onChanged }: Props) {
               </Table.Cell>
               <Table.Cell label="Comissão" className="text-right">
                 <Title variant="body-sm" weight="bold">
-                  {formatMoney(inst.commissionAmount)}
+                  {formatMoney(installmentCommission(inst))}
                 </Title>
               </Table.Cell>
               <Table.Cell card="status">

@@ -1,7 +1,12 @@
 import { describe, expect, it } from "vitest";
 
 import { DraftItem } from "./interface";
-import { discountToAmount, draftTotal, itemSubtotal } from "./utils";
+import {
+  discountToAmount,
+  draftTotal,
+  itemSubtotal,
+  mergeDraftItems,
+} from "./utils";
 
 const item = (over: Partial<DraftItem> = {}): DraftItem => ({
   productId: "p-1",
@@ -56,5 +61,41 @@ describe("draftTotal", () => {
     expect(
       draftTotal([item({ unitPrice: 100, quantity: 2, discount: desconto })])
     ).toBe(180);
+  });
+});
+
+describe("mergeDraftItems", () => {
+  it("põe os novos no topo e mantém os que já estavam", () => {
+    const current = [item({ productId: "a" })];
+    const result = mergeDraftItems(current, [item({ productId: "b" })]);
+    expect(result.items.map((i) => i.productId)).toEqual(["b", "a"]);
+    expect(result.added).toBe(1);
+    expect(result.updated).toBe(0);
+  });
+
+  it("produto já na lista recebe a quantidade da planilha e guarda preço e desconto", () => {
+    const current = [
+      item({
+        productId: "a",
+        unitPrice: 10,
+        quantity: 2,
+        discountType: "PERCENT",
+        discountInput: 10,
+        discount: 2,
+      }),
+    ];
+    const result = mergeDraftItems(current, [
+      item({ productId: "a", unitPrice: 99, quantity: 5, discountInput: 0 }),
+    ]);
+    expect(result.items).toHaveLength(1);
+    expect(result.items[0]).toMatchObject({
+      unitPrice: 10,
+      quantity: 5,
+      discountType: "PERCENT",
+      discountInput: 10,
+      discount: 5,
+    });
+    expect(result.updated).toBe(1);
+    expect(result.added).toBe(0);
   });
 });

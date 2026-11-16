@@ -21,20 +21,15 @@ interface Props {
   details: NewOrderDetails;
   back: BackLink;
   description: string;
-  /** O que falta escolher para os itens aparecerem. */
-  itemsPendingHint: string;
 }
 
 /** A página de novo pedido, igual para todas as origens. */
-export function NewOrderForm({
-  core,
-  details,
-  back,
-  description,
-  itemsPendingHint,
-}: Props) {
+export function NewOrderForm({ core, details, back, description }: Props) {
   const itemCount = core.draft.items.length;
   const [isDetailsDirty, setDetailsDirty] = useState(false);
+  // Os itens dependem do que está em cima (fábrica → catálogo, cliente →
+  // últimos preços, tipo e data do pedido): só abrem com todos os * cheios.
+  const [isDetailsFilled, setDetailsFilled] = useState(false);
   // Qualquer coisa que o vendedor já fez e ainda não foi gravada — itens na
   // lista, um item começado, dados do pedido mexidos: sair (link, Voltar,
   // Cancelar, recarregar) pergunta antes. Nada disso existe no servidor até
@@ -81,16 +76,18 @@ export function NewOrderForm({
         onValid={handleValid}
         initialData={details.initialData}
         onDirtyChange={setDetailsDirty}
+        onRequiredFilledChange={setDetailsFilled}
       />
 
       <DraftBackupNotice backup={core.backup} />
 
       <OrderItemsCard
         draft={core.draft}
-        hasFactory={Boolean(core.factoryId)}
-        pendingHint={itemsPendingHint}
+        isUnlocked={Boolean(core.factoryId) && isDetailsFilled}
         minimum={core.paymentMinimum}
         freeFreight={core.freeFreight}
+        factoryId={core.factoryId}
+        clientId={core.clientId}
       />
 
       <NewOrderFooter

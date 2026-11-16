@@ -17,6 +17,7 @@ import {
 } from "@/app/(inside)/_shared/orderStatus";
 import { SalesReportOrder } from "../../interface";
 import { sumBy } from "../../utils";
+import { visibleCommission } from "@/utils/commission";
 
 interface Props {
   items: SalesReportOrder[];
@@ -55,7 +56,7 @@ export function SalesReportTable({
   totalItems,
 }: Props) {
   const pageAmount = sumBy(items, (order) => order.totalAmount);
-  const pageCommission = sumBy(items, (order) => order.commissionAmount);
+  const pageCommission = sumBy(items, (order) => visibleCommission(order));
   const isNarrowed = Object.values(inputValues).some(Boolean);
 
   return (
@@ -160,7 +161,7 @@ export function SalesReportTable({
                   {formatMoney(order.totalAmount)}
                 </Table.Cell>
                 <Table.Cell variant="dim" className="whitespace-nowrap">
-                  {formatMoney(order.commissionAmount)}
+                  {formatMoney(visibleCommission(order))}
                 </Table.Cell>
               </Table.Row>
             ))

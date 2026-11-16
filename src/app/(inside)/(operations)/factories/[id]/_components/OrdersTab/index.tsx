@@ -27,6 +27,7 @@ import { FeatureGate } from "@/components/FeatureGate";
 import { FactoryOrder } from "./gql";
 import { useFactoryOrdersTable } from "./useFactoryOrdersTable";
 import { formatOrderNumber } from "@/utils/orderNumber";
+import { visibleCommission } from "@/utils/commission";
 
 interface Props {
   factoryId: string;
@@ -216,7 +217,7 @@ export function OrdersTab({ factoryId }: Props) {
                     {formatMoney(o.totalAmount)}
                   </Table.Cell>
                   <Table.Cell label="Comissão" variant="dim" align="right">
-                    {formatMoney(o.commissionAmount)}
+                    {formatMoney(visibleCommission(o))}
                   </Table.Cell>
                   {/* No cartão a situação divide a última linha com as ações. */}
                   <Table.Cell card="aside">

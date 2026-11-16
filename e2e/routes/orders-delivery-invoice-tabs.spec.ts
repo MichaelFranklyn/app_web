@@ -13,6 +13,7 @@ const order = (over: Record<string, unknown>) => ({
   deliveryEstimateDays: null,
   totalAmount: "1000.00",
   commissionAmount: "0",
+  sellerCommissionAmount: "0",
   status: "INVOICED",
   isDeliveryOverdue: true,
   expectedDeliveryDate: "2026-08-04",
@@ -41,6 +42,7 @@ const noStats = () => ({
     invoicedOrders: 0,
     invoicedAmount: "0",
     commissionAmount: "0",
+    sellerCommissionAmount: "0",
   },
 });
 

@@ -156,6 +156,7 @@ const catalogMocks: MockLink.MockedResponse[] = [
         companyFactories: {
           edges: [
             { node: { id: "cf-1", factoryId: "fac-1", ipiInOrder: true } },
+            { node: { id: "cf-2", factoryId: "fac-2", ipiInOrder: false } },
           ],
         },
       },
@@ -174,6 +175,44 @@ const catalogMocks: MockLink.MockedResponse[] = [
           edges: PRODUCTS.map(({ id, name, sku, imageUrl }) => ({
             node: { id, name, sku, imageUrl },
           })),
+        },
+      },
+    },
+  },
+  // fac-2: catálogo do MESMO tamanho da fac-1 — era o que escondia a troca.
+  {
+    request: {
+      query: ORDER_ITEM_PRODUCT_OPTIONS_QUERY,
+      variables: {
+        input: {
+          first: 25,
+          filters: [{ ...cfFilter, value: "cf-2" }],
+        },
+      },
+    },
+    maxUsageCount: Number.POSITIVE_INFINITY,
+    result: {
+      data: {
+        products: {
+          edges: [
+            {
+              node: {
+                id: "prod-3",
+                name: "Produto 3",
+                sku: "S3",
+                imageUrl: null,
+              },
+            },
+            {
+              node: {
+                id: "prod-4",
+                name: "Produto 4",
+                sku: "S4",
+                imageUrl: null,
+              },
+            },
+          ],
+          pageInfo: lastPage,
         },
       },
     },
@@ -275,6 +314,42 @@ const renderDraft = (clientId?: string) =>
   });
 
 describe("useOrderDraftItems", () => {
+  it('trocar de fábrica não diz "sem produtos" para quem tem catálogo', async () => {
+    const { result, rerender } = renderHook(
+      ({ factoryId }: { factoryId: string }) =>
+        useOrderDraftItems(true, factoryId, "cli-1"),
+      { wrapper: wrapperWithLink, initialProps: { factoryId: "fac-1" } }
+    );
+    await waitFor(() => expect(result.current.hasCatalog).toBe(true));
+
+    // Outra fábrica, mesmo tamanho de catálogo: enquanto carrega, "pendente";
+    // ao chegar, tem catálogo — nunca "sem produtos" no meio do caminho.
+    rerender({ factoryId: "fac-2" });
+    expect(result.current.hasCatalog || result.current.isCatalogPending).toBe(
+      true
+    );
+    await waitFor(() =>
+      expect(result.current.productOptions[0]?.value).toBe("prod-3")
+    );
+    expect(result.current.hasCatalog).toBe(true);
+
+    // E de volta à primeira.
+    rerender({ factoryId: "fac-1" });
+    await waitFor(() =>
+      expect(result.current.productOptions[0]?.value).toBe("prod-1")
+    );
+    expect(result.current.hasCatalog).toBe(true);
+  });
+
+  it('fábrica sem vínculo: sem catálogo, e não fica "carregando" para sempre', async () => {
+    const { result } = renderHook(
+      () => useOrderDraftItems(true, "fac-sem-vinculo"),
+      { wrapper }
+    );
+    await waitFor(() => expect(result.current.isCatalogPending).toBe(false));
+    expect(result.current.hasCatalog).toBe(false);
+  });
+
   it("sugere o preço POR UNIDADE da tabela ao escolher produto e nível", async () => {
     const { result } = renderDraft();
     await waitFor(() => expect(result.current.productOptions.length).toBe(2));
@@ -375,6 +450,26 @@ describe("useOrderDraftItems", () => {
     act(() => result.current.submitItem());
     expect(result.current.error).toMatch(/múltiplos de 10 unidade/i);
     expect(result.current.items).toHaveLength(0);
+  });
+
+  it("a quantidade nasce com a embalagem mínima e não reescreve o digitado", async () => {
+    const { result } = renderDraft();
+    await waitFor(() => expect(result.current.productOptions.length).toBe(2));
+
+    // prod-1: 2 embalagens × 5 peças = 10 unidades.
+    selectProd1(result);
+    await waitFor(() => expect(result.current.quantity).toBe("10"));
+
+    // Troca para um produto sem múltiplo: o 10 automático não vale para ele.
+    selectProd2(result);
+    await waitFor(() => expect(result.current.quantity).toBe(""));
+
+    // O que o vendedor digitou fica, mesmo trocando de produto.
+    act(() => result.current.setQuantity("30"));
+    selectProd1(result);
+    await waitFor(() => expect(result.current.saleMultiple).toBe(10));
+    expect(result.current.packMinimum).toBe("10 unidades");
+    expect(result.current.quantity).toBe("30");
   });
 
   it("recusa o mesmo produto duas vezes no pedido", async () => {
@@ -484,5 +579,51 @@ describe("useOrderDraftItems", () => {
     // Adicionado: vira item da lista, e o formulário de item volta vazio.
     expect(result.current.items).toHaveLength(1);
     expect(result.current.hasPendingItem).toBe(false);
+  });
+  it("importação: novos no topo, repetido fica com a quantidade da planilha", async () => {
+    const { result } = renderDraft();
+    await waitFor(() => expect(result.current.productOptions.length).toBe(2));
+
+    selectProd1(result);
+    act(() => result.current.selectTier({ value: "tier-1", label: "Varejo" }));
+    act(() => result.current.setUnitPrice("10,00"));
+    act(() => result.current.setQuantity("10"));
+    act(() => result.current.submitItem());
+
+    const imported = (productId: string, quantity: number) => ({
+      productId,
+      productLabel: productId,
+      tierId: "tier-2",
+      tierLabel: "Atacado",
+      unitPrice: 99,
+      quantity,
+      discount: 0,
+      discountInput: 0,
+      discountType: "VALUE" as const,
+      ipiRate: 0,
+      isPromo: false,
+      source: "FILE_IMPORT" as const,
+    });
+
+    let merge: ReturnType<typeof result.current.appendItems> | undefined;
+    act(() => {
+      merge = result.current.appendItems([
+        imported("prod-1", 30),
+        imported("prod-2", 5),
+      ]);
+    });
+
+    expect(merge).toMatchObject({ added: 1, updated: 1 });
+    expect(result.current.items.map((i) => i.productId)).toEqual([
+      "prod-2",
+      "prod-1",
+    ]);
+    // O item que já estava guarda o preço combinado; só a quantidade muda.
+    expect(result.current.items[1]).toMatchObject({
+      unitPrice: 10,
+      quantity: 30,
+      tierId: "tier-1",
+    });
+    expect(result.current.items[0].source).toBe("FILE_IMPORT");
   });
 });

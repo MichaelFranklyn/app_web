@@ -20,6 +20,7 @@ import {
   summarizeByClass,
   sumBy,
 } from "./utils";
+import { visibleCommission } from "@/utils/commission";
 
 interface Props {
   canSelectSeller: boolean;
@@ -70,7 +71,7 @@ export default function AbcReportContent({ canSelectSeller }: Props) {
       label: "TOTAL",
       byColumn: {
         3: formatMoney(sumBy(exported, (row) => row.totalAmount)),
-        7: formatMoney(sumBy(exported, (row) => row.commissionAmount)),
+        7: formatMoney(sumBy(exported, (row) => visibleCommission(row))),
       },
     }),
   });

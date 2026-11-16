@@ -13,6 +13,7 @@ import { BILLING_REPORT_QUERY } from "./gql";
 import { BillingReportResponse, BillingRow } from "./interface";
 import { BILLING_FILTER_FIELDS, useBillingFilters } from "./useBillingFilters";
 import { BILLING_SORT_COLUMNS, buildFactoryOption } from "./utils";
+import { visibleCommission } from "@/utils/commission";
 
 export const BILLING_PER_PAGE = 25;
 
@@ -26,6 +27,7 @@ const EMPTY_REPORT = {
   overdueAmount: "0",
   overdueCount: 0,
   commissionAmount: "0",
+  sellerCommissionAmount: "0",
 };
 
 /**
@@ -96,7 +98,7 @@ export const useBillingReport = (filters: ReportFilters) => {
       {
         label: "Pago",
         value: formatMoney(report.paidAmount),
-        hint: `comissão do período: ${formatMoney(report.commissionAmount)}`,
+        hint: `comissão do período: ${formatMoney(visibleCommission(report))}`,
         status: "neutral",
       },
     ];

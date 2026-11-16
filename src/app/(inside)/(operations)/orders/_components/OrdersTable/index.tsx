@@ -13,6 +13,7 @@ import { Order } from "../../interface";
 import { ORDER_STATUS_LABELS, ORDER_STATUS_TONE } from "../../utils";
 import { clientName, factoryName } from "@/utils/company";
 import { formatOrderNumber } from "@/utils/orderNumber";
+import { visibleCommission } from "@/utils/commission";
 
 interface Props {
   items: Order[];
@@ -223,7 +224,7 @@ export function OrdersTable({
                 </Table.Cell>
 
                 <Table.Cell variant="dim" align="right" card="hidden">
-                  {formatMoney(order.commissionAmount)}
+                  {formatMoney(visibleCommission(order))}
                 </Table.Cell>
               </Table.Row>
             ))

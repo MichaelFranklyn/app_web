@@ -13,6 +13,7 @@ export const CREATE_ORDER_FROM_FACTORY_MUTATION = gql`
         orderDate
         totalAmount
         commissionAmount
+        sellerCommissionAmount
         status
         seller {
           id
@@ -38,6 +39,7 @@ export const FACTORY_ORDERS_QUERY = gql`
           orderDate
           totalAmount
           commissionAmount
+          sellerCommissionAmount
           status
           notes
           seller {
@@ -66,7 +68,8 @@ export interface FactoryOrder {
   number: number;
   orderDate: string;
   totalAmount: string;
-  commissionAmount: string;
+  commissionAmount: string | null;
+  sellerCommissionAmount: string;
   status: string;
   notes: string | null;
   seller: { id: string; name: string } | null;

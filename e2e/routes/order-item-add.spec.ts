@@ -162,7 +162,7 @@ test("pedido detalhe: adiciona um item (cascata produto/nível/preço)", async (
   // quando ele deixava o campo vazio, o preço aparecia sugerido e o nível, em
   // branco, e o vendedor gravava um item sem nível sem perceber.
   const nivel = dialog.getByRole("combobox", {
-    name: "Nível comercial (opcional)",
+    name: "Nível comercial",
   });
   await expect(nivel).toHaveValue("Varejo");
 

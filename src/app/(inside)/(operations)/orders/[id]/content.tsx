@@ -8,6 +8,7 @@ import { useSeedQuery } from "@/hooks/useSeedQuery";
 import { useQuery } from "@apollo/client/react";
 import { PackageX } from "lucide-react";
 import { BackorderBanner } from "./_components/BackorderBanner";
+import { ClientRequestBanner } from "./_components/ClientRequestBanner";
 import { InstallmentsCard } from "./_components/InstallmentsCard";
 import { InvoiceReversalsCard } from "./_components/InvoiceReversalsCard";
 import { ItemsLockedBanner } from "./_components/ItemsLockedBanner";
@@ -16,6 +17,7 @@ import { OrderDetailSkeleton } from "./_components/OrderDetailSkeleton";
 import { OrderItemsTable } from "./_components/OrderItemsTable";
 import { OrderSummaryCard } from "./_components/OrderSummaryCard";
 import { PaymentMinimumBanner } from "./_components/PaymentMinimumBanner";
+import { PortalQuoteSeen } from "./_components/PortalQuoteSeen";
 import { ORDER_DETAIL_QUERY, ORDER_ITEMS_QUERY } from "./gql";
 import { OrderDetailResponse, OrderItemsResponse } from "./interface";
 import { itemsLockReason } from "./utils";
@@ -79,6 +81,8 @@ export default function OrderDetailContent({
       <OrderDetailHeader order={order} onRefetch={refetch} />
 
       <BackorderBanner order={order} />
+      <ClientRequestBanner order={order} />
+      <PortalQuoteSeen order={order} />
 
       <PaymentMinimumBanner order={order} />
 

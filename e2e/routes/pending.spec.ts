@@ -699,14 +699,22 @@ test("pendências: entrega sem confirmar traz o WhatsApp do pós-venda", async (
 
   await page.goto("/priorities?type=ORDER_STALLED");
 
-  const whatsapp = list(page).getByRole("link", {
-    name: /Perguntar pelo WhatsApp se o pedido de Decore/,
-  });
+  // O botão abre a prévia (para quem + mensagem); o link do WhatsApp mora nela.
+  await list(page)
+    .getByRole("button", {
+      name: /Perguntar pelo WhatsApp se o pedido de Decore/,
+    })
+    .click();
+  const dialog = page.getByRole("dialog");
+  await expect(dialog).toContainText("(71) 99999-8888");
+  const whatsapp = dialog.getByRole("link", { name: "Abrir o WhatsApp" });
   const href = await whatsapp.getAttribute("href");
   expect(href).toContain("https://wa.me/5571999998888?text=");
   expect(decodeURIComponent(href!.split("text=")[1])).toContain(
     "o pedido da Herc feito em 30/07/2026 já foi entregue"
   );
+
+  await dialog.getByRole("button", { name: "Cancelar" }).click();
 
   // Sem celular não há WhatsApp: o caminho é cadastrar o contato.
   await expect(

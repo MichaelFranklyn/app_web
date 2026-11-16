@@ -7,6 +7,7 @@ import { buildHorizontalBarOption, mutedLine } from "../../chartBuilders";
 import { formatPercent } from "../../utils";
 import { safeRate } from "../utils";
 import { FactoryOrdersRow } from "./interface";
+import { visibleCommission } from "@/utils/commission";
 
 export const sumBy = (
   rows: FactoryOrdersRow[],
@@ -73,7 +74,7 @@ export const FACTORIES_SORT_COLUMNS = {
   avgTicket: (row: FactoryOrdersRow) => Number(row.avgTicket || 0),
   invoicedAmount: (row: FactoryOrdersRow) => Number(row.invoicedAmount || 0),
   commissionAmount: (row: FactoryOrdersRow) =>
-    Number(row.commissionAmount || 0),
+    Number(visibleCommission(row) || 0),
   lastOrderDate: (row: FactoryOrdersRow) => row.lastOrderDate,
 };
 
@@ -115,7 +116,7 @@ export const buildFactoryExportRows = (
     row.invoicedCount,
     Number(row.invoicedAmount || 0),
     formatPercent(invoicedRate(row)),
-    Number(row.commissionAmount || 0),
+    Number(visibleCommission(row) || 0),
     row.lastOrderDate ? formatDateDMY(row.lastOrderDate) : "—",
     formatPercent(row.share),
   ]);

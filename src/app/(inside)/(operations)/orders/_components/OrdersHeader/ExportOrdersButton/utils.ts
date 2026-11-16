@@ -4,6 +4,7 @@ import { formatAmount } from "@/utils/format/masks";
 import { Order } from "../../../interface";
 import { orderStatusLabel } from "../../../utils";
 import { formatOrderNumber } from "@/utils/orderNumber";
+import { visibleCommission } from "@/utils/commission";
 
 export const EXPORT_HEADERS = [
   "Pedido",
@@ -39,5 +40,5 @@ export const buildExportRows = (orders: Order[]): string[][] =>
     orderStatusLabel(order.status),
     formatDate(order.invoicedAt, ""),
     formatAmount(order.totalAmount),
-    formatAmount(order.commissionAmount),
+    formatAmount(visibleCommission(order)),
   ]);

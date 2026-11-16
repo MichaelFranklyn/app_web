@@ -48,8 +48,7 @@ function FromOrders({
       core={core}
       details={details}
       back={back}
-      description="Preencha os dados do pedido e, se quiser, já adicione os itens. Os itens também podem ser incluídos depois, no próprio pedido."
-      itemsPendingHint="Escolha a fábrica em “Dados do pedido” para ver os produtos dela."
+      description="Preencha os dados do pedido e adicione os itens. O pedido precisa de ao menos um item."
     />
   );
 }
@@ -62,8 +61,7 @@ function FromClient({ clientId, back }: { clientId: string; back: BackLink }) {
       core={core}
       details={details}
       back={back}
-      description="Escolha por qual vendedor e fábrica o pedido sai e, se quiser, já adicione os itens."
-      itemsPendingHint="Escolha o vínculo vendedor → fábrica em “Dados do pedido” para ver os produtos da fábrica."
+      description="Escolha por qual vendedor e fábrica o pedido sai e adicione os itens."
     />
   );
 }
@@ -82,8 +80,7 @@ function FromFactory({
       core={core}
       details={details}
       back={back}
-      description="Pedido desta fábrica: escolha o vendedor e o cliente e, se quiser, já adicione os itens."
-      itemsPendingHint=""
+      description="Pedido desta fábrica: escolha o vendedor e o cliente e adicione os itens."
     />
   );
 }
@@ -106,7 +103,6 @@ function FromVisit({
       details={details}
       back={back}
       description="Pedido registrado nesta visita. Se quiser, já adicione os itens."
-      itemsPendingHint=""
     />
   );
 }

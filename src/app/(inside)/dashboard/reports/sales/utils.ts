@@ -19,6 +19,7 @@ import {
   InvoicedByMonthPoint,
   SalesReportOrder,
 } from "./interface";
+import { visibleCommission } from "@/utils/commission";
 
 /**
  * Situações que contam como venda faturada. `invoicedAt` preenchido já exclui o
@@ -113,7 +114,7 @@ export const buildFactoryOption = (
         point.entityName,
         `Faturado: <b>${formatMoney(point.total)}</b>`,
         mutedLine(
-          `${point.orderCount} pedido(s) · comissão ${formatMoney(point.commissionAmount)}`
+          `${point.orderCount} pedido(s) · comissão ${formatMoney(visibleCommission(point))}`
         ),
       ];
     }
@@ -143,7 +144,7 @@ export const buildMonthOption = (
     {
       name: "Comissão",
       color: SERIES_GREEN,
-      data: points.map((point) => Number(point.commissionAmount)),
+      data: points.map((point) => Number(visibleCommission(point))),
       formatter: (value) => formatMoney(value),
     }
   );
@@ -176,7 +177,7 @@ export const buildSalesExportRows = (
     order.seller?.name ?? "—",
     statusLabel(order.status),
     Number(order.totalAmount),
-    Number(order.commissionAmount),
+    Number(visibleCommission(order)),
   ]);
 
 /** Soma de uma coluna monetária das linhas à vista (rodapé da tabela e do PDF). */

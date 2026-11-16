@@ -11,7 +11,8 @@ export interface AbcRow {
   rank: number;
   totalAmount: string;
   orderCount: number;
-  commissionAmount: string;
+  commissionAmount: string | null;
+  sellerCommissionAmount: string;
   /** Fatia deste cliente no faturamento do período (0 a 1). */
   share: number;
   /** Fatia acumulada até esta linha, inclusive (0 a 1). */

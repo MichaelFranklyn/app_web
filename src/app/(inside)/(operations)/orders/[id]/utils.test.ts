@@ -4,6 +4,7 @@ import { formatNumber } from "@/utils/format/masks";
 
 import { OrderItemProductTax } from "./interface";
 import {
+  canMarkPortalSeen,
   backorderItemCount,
   buildInvoiceItemsInput,
   byCreatedAtAsc,
@@ -229,5 +230,27 @@ describe("reversalSummary", () => {
         invoiceNumber: null,
       })
     ).toBe("1 parcela apagada");
+  });
+});
+
+describe("canMarkPortalSeen", () => {
+  it("só o pedido do portal ainda em aberto mostra o aviso ao cliente", () => {
+    expect(canMarkPortalSeen({ isFromPortal: true, status: "DRAFT" })).toBe(
+      true
+    );
+    expect(canMarkPortalSeen({ isFromPortal: true, status: "SENT" })).toBe(
+      true
+    );
+    expect(canMarkPortalSeen({ isFromPortal: false, status: "DRAFT" })).toBe(
+      false
+    );
+    for (const status of [
+      "CONFIRMED",
+      "INVOICED",
+      "DELIVERED",
+      "CANCELLED",
+    ] as const) {
+      expect(canMarkPortalSeen({ isFromPortal: true, status })).toBe(false);
+    }
   });
 });

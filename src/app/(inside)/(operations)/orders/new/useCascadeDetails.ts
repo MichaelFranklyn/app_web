@@ -15,7 +15,7 @@ import {
   useCoverageSuggestion,
 } from "../../_shared/orderCoverage";
 import {
-  FIELD_GRID,
+  partyGrid,
   coverageField,
   deliveryField,
   freightField,
@@ -135,15 +135,17 @@ export function useCascadeDetails(
   useCoverageSuggestion(formRef, cadenceByClient.get(clientId));
 
   const formSteps: FormStepSchema[] = useMemo(
-    () =>
-      singleSection([
+    () => {
+      // Vendedor (só gestor), fábrica e cliente fecham a 1ª linha com o Tipo.
+      const party = partyGrid(canSelectSeller ? 3 : 2);
+      return singleSection([
         orderKindField,
         // Só gestor escolhe o vendedor (ver `canSelectSeller`).
         ...(canSelectSeller
           ? [
               {
                 name: "sellerId",
-                grid: FIELD_GRID,
+                grid: party[0],
                 type: "select-single" as const,
                 label: "Vendedor",
                 placeholder: "Selecione o vendedor",
@@ -165,7 +167,7 @@ export function useCascadeDetails(
           : []),
         {
           name: "factoryId",
-          grid: FIELD_GRID,
+          grid: party[party.length - 2],
           type: "select-single",
           label: "Fábrica",
           placeholder: sellerId
@@ -187,7 +189,7 @@ export function useCascadeDetails(
         },
         {
           name: "clientId",
-          grid: FIELD_GRID,
+          grid: party[party.length - 1],
           type: "select-single",
           label: "Cliente",
           placeholder: factoryId
@@ -215,7 +217,8 @@ export function useCascadeDetails(
         deliveryField,
         coverageField(coverageHint(cadenceByClient.get(clientId))),
         notesField,
-      ]),
+      ]);
+    },
     // `core` muda a cada render; o que ele contribui para os campos (fábrica,
     // cliente, condições) já está listado abaixo, e os setters que ele passa
     // só mexem em estado.

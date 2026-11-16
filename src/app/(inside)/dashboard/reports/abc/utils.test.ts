@@ -17,6 +17,7 @@ const row = (patch: Partial<AbcRow>): AbcRow => ({
   totalAmount: "1000",
   orderCount: 3,
   commissionAmount: "50",
+  sellerCommissionAmount: "1",
   share: 0.5,
   cumulativeShare: 0.5,
   abcClass: "A",

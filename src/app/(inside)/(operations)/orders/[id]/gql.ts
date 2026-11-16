@@ -14,13 +14,16 @@ export const ORDER_DETAIL_QUERY = gql`
         ipiAmount
         taxAmount
         ipiInOrder
-        commissionAmount
+        sellerCommissionAmount
         status
         freightType
         fileUrl
         isFileParsed
         notes
         isFromPortal
+        clientDiscountPercent
+        clientRequestNote
+        seenBySellerAt
         isImported
         externalRef
         createdAt
@@ -102,6 +105,7 @@ export const ORDER_DETAIL_QUERY = gql`
           sequence
           amount
           commissionAmount
+          sellerCommissionAmount
           dueDate
           status
           paidAt
@@ -310,6 +314,20 @@ export const REVERT_ORDER_INSTALLMENT_MUTATION = gql`
       data {
         id
         status
+      }
+    }
+  }
+`;
+
+/** O vendedor avisa o cliente (no portal) que viu o pedido que ele mandou. */
+export const MARK_PORTAL_QUOTE_SEEN_MUTATION = gql`
+  mutation MarkPortalQuoteSeen($id: UUID!) {
+    markPortalQuoteSeen(id: $id) {
+      status
+      message
+      data {
+        id
+        seenBySellerAt
       }
     }
   }

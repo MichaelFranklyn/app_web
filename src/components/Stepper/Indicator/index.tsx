@@ -31,7 +31,10 @@ export const Indicator = ({
   const isActive = index === current;
   const isPending = index > current;
   const isLast = index === total - 1;
-  const isInteractive = !!onChange && !disabled && !isActive;
+  // Só se volta a um passo cumprido: o futuro depende do que o passo atual
+  // ainda tem de fazer (escolher o arquivo, casar os produtos) — pular pela
+  // faixa levava a um passo vazio ou com dado velho. Avançar é o botão do passo.
+  const isInteractive = !!onChange && !disabled && isCompleted;
 
   const handleClick = () => {
     if (isInteractive) onChange!(index);

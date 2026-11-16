@@ -33,7 +33,8 @@ const PRODUCT_NODES: Record<string, Record<string, unknown>> = {
     name: "Produto 1",
     sku: "S1",
     imageUrl: null,
-    saleMultiple: null,
+    // 2 embalagens de 5 peças: a embalagem mínima é de 10 unidades.
+    saleMultiple: "2",
     unitPerPack: "5.0000",
     unit: { id: "u1", label: "Peça" },
     taxes: [],
@@ -240,6 +241,7 @@ function Harness(props: AddOrderItemModalProps) {
 const findField = (name: string) =>
   api.steps[0].sections[0].fields.find((f) => f.name === name) as {
     name: string;
+    disabled?: boolean;
     options?: { value: string; label: string }[];
     onChange?: (
       v: unknown,
@@ -310,6 +312,43 @@ describe("useAddOrderItem — sugestão de preço", () => {
     await waitFor(() => {
       expect(api.formRef.current!.getValues().unitPrice).toContain("6,50");
     });
+  });
+
+  it("a quantidade nasce com a embalagem mínima do produto", async () => {
+    render(
+      <MockedProvider mocks={mocks}>
+        <Harness
+          orderId="o-1"
+          factoryId="fac-1"
+          onAdded={vi.fn()}
+          onRefetch={vi.fn()}
+        />
+      </MockedProvider>
+    );
+
+    act(() => api.handleClose(true));
+    await waitFor(() => expect(findField("productId").options?.length).toBe(2));
+
+    const setValue = api.formRef.current!.setValue;
+    act(() => findField("productId").onChange!({ value: "prod-1" }, setValue));
+
+    await waitFor(() =>
+      expect(api.formRef.current!.getValues().quantity).toBe("10")
+    );
+    expect(
+      (findField("quantity") as unknown as { hint: string }).hint
+    ).toContain("Embalagem mínima: 10");
+    // E fica à vista num campo só-leitura ao lado da quantidade.
+    await waitFor(() =>
+      expect(api.formRef.current!.getValues().packMinimum).toBe("10 unidades")
+    );
+    expect(findField("packMinimum").disabled).toBe(true);
+
+    // Produto sem múltiplo: o 10 automático não vale para ele e sai.
+    act(() => findField("productId").onChange!({ value: "prod-2" }, setValue));
+    await waitFor(() =>
+      expect(api.formRef.current!.getValues().quantity ?? "").toBe("")
+    );
   });
 
   it("abre no nível do último item do pedido", async () => {

@@ -57,12 +57,18 @@ export interface OrderItemCatalog {
   onProductSearch?: (term: string) => void;
   /** Busca de opções em andamento — alimenta o `loading` do select. */
   isLoadingProducts: boolean;
+  /** Há mais produtos desta busca no servidor (a lista é paginada). */
+  hasMoreProducts: boolean;
+  /** Traz a próxima página — o select chama ao rolar até o fim da lista. */
+  onLoadMoreProducts: () => void;
   /**
    * A fábrica tem catálogo. Não é `productOptions.length > 0`: a lista mostra o
    * resultado da BUSCA, e uma busca sem resultado não significa fábrica sem
    * produto — significa que aquele termo não achou nada.
    */
   hasProducts: boolean;
+  /** Ainda carregando a 1ª página da fábrica: não afirme "sem produtos" ainda. */
+  isCatalogPending: boolean;
   /**
    * Opção dos produtos JÁ ESCOLHIDOS. O select mostra uma página por vez, então
    * um produto do pedido pode não estar em `productOptions` — quem precisa
@@ -106,11 +112,10 @@ export interface OrderItemCatalog {
 type CompanyFactoryNode =
   CompanyFactoriesData["companyFactories"]["edges"][number]["node"];
 
-export function useCompanyFactoryNode(
-  open: boolean,
-  factoryId: string | null
-): CompanyFactoryNode | null {
-  const { data: cfData } = useQuery<CompanyFactoriesData>(
+/** O vínculo da fábrica e se a busca dele ainda está a caminho — sem o
+ *  `loading`, "ainda buscando" e "fábrica sem vínculo" seriam o mesmo `null`. */
+function useCompanyFactoryLookup(open: boolean, factoryId: string | null) {
+  const { data: cfData, loading } = useQuery<CompanyFactoriesData>(
     ORDER_ITEM_COMPANY_FACTORIES_QUERY,
     {
       variables: { input: { first: 200 } },
@@ -118,12 +123,21 @@ export function useCompanyFactoryNode(
     }
   );
 
-  return useMemo(
+  const node = useMemo(
     () =>
-      cfData?.companyFactories.edges.find((e) => e.node.factoryId === factoryId)
-        ?.node ?? null,
+      cfData?.companyFactories?.edges.find(
+        (e) => e.node.factoryId === factoryId
+      )?.node ?? null,
     [cfData, factoryId]
   );
+  return { node, loading };
+}
+
+export function useCompanyFactoryNode(
+  open: boolean,
+  factoryId: string | null
+): CompanyFactoryNode | null {
+  return useCompanyFactoryLookup(open, factoryId).node;
 }
 
 export function useCompanyFactoryId(
@@ -159,7 +173,8 @@ export function useOrderItemCatalog(
   selectedProductIds: readonly string[] = []
 ): OrderItemCatalog {
   // 1) Localiza o company_factory da fábrica deste pedido.
-  const companyFactoryNode = useCompanyFactoryNode(open, factoryId);
+  const { node: companyFactoryNode, loading: isLoadingCompanyFactory } =
+    useCompanyFactoryLookup(open, factoryId);
   const companyFactoryId = companyFactoryNode?.id ?? null;
   const ipiInOrder = companyFactoryNode?.ipiInOrder ?? false;
 
@@ -194,6 +209,8 @@ export function useOrderItemCatalog(
     options: productOptions,
     loading: isLoadingProducts,
     onSearch: onProductSearch,
+    hasMore: hasMoreProducts,
+    onLoadMore: onLoadMoreProducts,
   } = useAsyncSelectOptions<ProductOptionsData, ProductOptionNode>({
     query: ORDER_ITEM_PRODUCT_OPTIONS_QUERY,
     getConnection: getProductsConnection,
@@ -205,16 +222,30 @@ export function useOrderItemCatalog(
   });
 
   // Uma vez que a busca trouxe produtos, a fábrica tem catálogo — e continua
-  // tendo depois de um termo que não acha nada. Zera ao trocar de fábrica.
-  const [hasProducts, setHasProducts] = useState(false);
+  // tendo depois de um termo que não acha nada. A marca guarda DE QUAL fábrica
+  // veio: trocar de fábrica não herda o "tem catálogo" da anterior, e voltar a
+  // uma fábrica cuja página já está em cache não depende de a lista mudar de
+  // tamanho (era o bug: duas fábricas com 25 itens na 1ª página deixavam o
+  // efeito parado e a tela dizia "sem produtos").
+  const [factoryWithProducts, setFactoryWithProducts] = useState<string | null>(
+    null
+  );
 
   useEffect(() => {
-    setHasProducts(false);
-  }, [companyFactoryId]);
+    if (companyFactoryId && !isLoadingProducts && productOptions.length > 0) {
+      setFactoryWithProducts(companyFactoryId);
+    }
+  }, [companyFactoryId, isLoadingProducts, productOptions]);
 
-  useEffect(() => {
-    if (productOptions.length > 0) setHasProducts(true);
-  }, [productOptions.length]);
+  const hasProducts =
+    companyFactoryId !== null && factoryWithProducts === companyFactoryId;
+  // Até a 1ª página da fábrica chegar, não dá para afirmar que ela não tem
+  // catálogo — quem mostra "sem produtos" espera este sinal.
+  const isCatalogPending =
+    Boolean(open && factoryId) &&
+    !hasProducts &&
+    (isLoadingCompanyFactory ||
+      (companyFactoryId !== null && isLoadingProducts));
 
   // Ids em ordem estável e sem repetição: eles entram nas variables de duas
   // queries, e a mesma seleção em outra ordem seria outra entrada de cache.
@@ -453,7 +484,10 @@ export function useOrderItemCatalog(
     productOptions,
     onProductSearch,
     isLoadingProducts,
+    hasMoreProducts,
+    onLoadMoreProducts,
     hasProducts,
+    isCatalogPending,
     productOptionById,
     loadedProductIds,
     tierOptions,

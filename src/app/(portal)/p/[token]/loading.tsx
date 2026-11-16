@@ -1,32 +1,37 @@
 import { Grid } from "@/components/Grid";
 import { Loading } from "@/components/Loading";
-import { Title } from "@/components/Title";
+import { PanelHeader } from "@/components/PanelHeader";
+import { PAGE_HEADING } from "@/utils/modules";
+import { PORTAL_HOME_TITLE } from "./utils";
 
 /**
- * Espelha `content.tsx`: o resumo das compras em cima e os cards de pedido
- * embaixo, em duas colunas no desktop.
- *
- * A página faz duas queries no servidor (resumo de 12 meses + 1ª página de
- * pedidos) antes de renderizar. O limite do grupo já cobriu o layout; este
- * cobre a espera da própria tela, e com a forma certa — um esqueleto de
- * proporção diferente faz a página inteira se reorganizar quando os dados
+ * Espelha `content.tsx`: o cabeçalho, os números e o gráfico — um esqueleto
+ * de proporção diferente faria a página inteira se reorganizar quando os dados
  * chegam.
  */
-export default function PortalPurchasesLoading() {
+export default function PortalSummaryLoading() {
   return (
-    <div className="flex flex-col gap-[24px]">
-      <Loading.Skeleton className="h-[220px] w-full" />
+    <>
+      <PanelHeader.Root>
+        <PanelHeader.Top>
+          <PanelHeader.Left>
+            <PanelHeader.Heading {...PAGE_HEADING.orders}>
+              {PORTAL_HOME_TITLE}
+            </PanelHeader.Heading>
+            <Loading.Skeleton className="h-[14px] w-[280px] max-w-full" />
+          </PanelHeader.Left>
+        </PanelHeader.Top>
+      </PanelHeader.Root>
 
-      <section className="flex flex-col gap-[12px]">
-        <Title variant="eyebrow" color="muted">
-          Seus pedidos
-        </Title>
-        <Grid.Root cols={{ base: 1, desktop: 2 }} gap={12}>
-          {Array.from({ length: 6 }).map((_, index) => (
-            <Loading.Skeleton key={index} className="h-[104px] w-full" />
-          ))}
-        </Grid.Root>
-      </section>
-    </div>
+      <Grid.Root cols={{ base: 2, tablet: 3 }} gap={20}>
+        {Array.from({ length: 3 }).map((_, index) => (
+          <Grid.Item key={index}>
+            <Loading.Skeleton className="h-[96px] w-full" />
+          </Grid.Item>
+        ))}
+      </Grid.Root>
+      <Loading.Skeleton className="h-[220px] w-full" />
+      <Loading.Skeleton className="h-[160px] w-full" />
+    </>
   );
 }

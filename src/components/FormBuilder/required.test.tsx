@@ -1,5 +1,5 @@
-import { render, screen } from "@testing-library/react";
-import { describe, expect, it } from "vitest";
+import { act, fireEvent, render, screen } from "@testing-library/react";
+import { describe, expect, it, vi } from "vitest";
 
 import { FormBuilder } from "./index";
 import { FormStepSchema } from "./interface";
@@ -95,5 +95,37 @@ describe("FormBuilder — campo obrigatório", () => {
       />
     );
     expect(asterisks()).toHaveLength(0);
+  });
+});
+
+describe("FormBuilder — onRequiredFilledChange", () => {
+  it("avisa quando o último obrigatório ganha valor e quando perde", async () => {
+    const onFilled = vi.fn();
+    render(
+      <FormBuilder
+        steps={steps([
+          { name: "nome", type: "text", label: "Nome", required: true },
+          { name: "apelido", type: "text", label: "Apelido" },
+        ])}
+        onSubmit={() => {}}
+        initialData={{ nome: "", apelido: "" }}
+        onRequiredFilledChange={onFilled}
+      />
+    );
+    expect(onFilled).toHaveBeenLastCalledWith(false);
+
+    await act(async () => {
+      fireEvent.change(screen.getByLabelText(/Nome/), {
+        target: { value: "Ana" },
+      });
+    });
+    expect(onFilled).toHaveBeenLastCalledWith(true);
+
+    await act(async () => {
+      fireEvent.change(screen.getByLabelText(/Nome/), {
+        target: { value: "" },
+      });
+    });
+    expect(onFilled).toHaveBeenLastCalledWith(false);
   });
 });

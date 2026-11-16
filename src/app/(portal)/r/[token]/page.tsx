@@ -13,7 +13,7 @@ interface PageProps {
 }
 
 /**
- * Título próprio: o layout do grupo `(portal)` chama tudo de "Suas compras", e
+ * Título próprio: o layout do grupo `(portal)` chama tudo de "Portal do cliente", e
  * esta página não é do cliente. O `robots: noindex` do layout continua valendo
  * — aqui o endereço também É a credencial.
  */

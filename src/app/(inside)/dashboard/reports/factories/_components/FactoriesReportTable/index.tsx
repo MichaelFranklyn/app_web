@@ -12,6 +12,7 @@ import { Building2 } from "lucide-react";
 import { formatPercent } from "../../../../utils";
 import { FactoryOrdersRow } from "../../interface";
 import { invoicedRate, sumBy } from "../../utils";
+import { visibleCommission } from "@/utils/commission";
 
 interface Props {
   items: FactoryOrdersRow[];
@@ -149,7 +150,7 @@ export function FactoriesReportTable({
                   </Table.CellText>
                 </Table.Cell>
                 <Table.Cell variant="dim" className="whitespace-nowrap">
-                  {formatMoney(row.commissionAmount)}
+                  {formatMoney(visibleCommission(row))}
                 </Table.Cell>
                 <Table.Cell variant="dim" className="whitespace-nowrap">
                   {row.lastOrderDate ? formatDateDMY(row.lastOrderDate) : "—"}

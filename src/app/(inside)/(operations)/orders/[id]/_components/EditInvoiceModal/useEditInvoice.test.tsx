@@ -23,6 +23,7 @@ const installment = (
   sequence,
   amount: "500.00",
   commissionAmount: "15.00",
+  sellerCommissionAmount: "9.00",
   dueDate: "2026-10-10",
   status: "PENDING",
   paidAt: null,

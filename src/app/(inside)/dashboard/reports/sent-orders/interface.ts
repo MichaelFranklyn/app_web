@@ -7,7 +7,8 @@ export interface SentOrder {
   /** Nulo enquanto a fábrica não faturou — é o pedido ainda pendente lá. */
   invoicedAt: string | null;
   totalAmount: string;
-  commissionAmount: string;
+  commissionAmount: string | null;
+  sellerCommissionAmount: string;
   status: OrderStatus;
   /** Faturado, prazo de entrega vencido e não entregue. */
   isDeliveryOverdue: boolean;

@@ -10,6 +10,7 @@ const order: Order = {
   invoicedAt: "2026-05-18",
   totalAmount: "1234.5",
   commissionAmount: "61.73",
+  sellerCommissionAmount: "1",
   status: "INVOICED",
   isBackorder: false,
   isDeliveryOverdue: false,

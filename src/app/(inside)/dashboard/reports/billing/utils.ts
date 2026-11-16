@@ -10,6 +10,7 @@ import { buildHorizontalBarOption, mutedLine } from "../../chartBuilders";
 import { SortLabel } from "@/utils/pdf/context";
 
 import { BillingRow, BillingSituation } from "./interface";
+import { visibleCommission } from "@/utils/commission";
 
 /** Rótulo da situação da parcela, do jeito que a cobrança fala. */
 export const BILLING_SITUATION_LABEL: Record<BillingSituation, string> = {
@@ -137,7 +138,7 @@ export const BILLING_SORT_COLUMNS = {
   client: (row: BillingRow) => row.clientName,
   factory: (row: BillingRow) => row.factoryName,
   amount: (row: BillingRow) => Number(row.amount || 0),
-  commissionAmount: (row: BillingRow) => Number(row.commissionAmount || 0),
+  commissionAmount: (row: BillingRow) => Number(visibleCommission(row) || 0),
 };
 
 /** Como cada coluna ordenável se chama no papel, e em que sentido ela é lida. */
@@ -178,6 +179,6 @@ export const buildBillingExportRows = (
     row.invoicedAt ? formatDateDMY(row.invoicedAt) : "—",
     row.sequence,
     Number(row.amount || 0),
-    Number(row.commissionAmount || 0),
+    Number(visibleCommission(row) || 0),
     row.paidAt ? formatDateDMY(row.paidAt) : "—",
   ]);

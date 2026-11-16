@@ -1,62 +1,56 @@
-import { Title } from "@/components/Title";
-import { PortalOrderCard } from "./_components/PortalOrderCard";
-import { PortalOrdersEmpty } from "./_components/PortalOrdersEmpty";
-import { PortalPager } from "./_components/PortalPager";
+import { Button } from "@/components/Button";
+import { EmptyState } from "@/components/EmptyState";
+import { Package } from "lucide-react";
+import { PortalPageHeader } from "./_components/PortalPageHeader";
 import { PortalSummary } from "./_components/PortalSummary";
-import { PortalOrder, PortalPurchaseSummary } from "./interface";
+import { PortalProfile, PortalPurchaseSummary } from "./interface";
+import { PORTAL_HOME_TITLE, portalGreeting } from "./utils";
 
 interface PortalContentProps {
+  profile: PortalProfile | null;
   summary: PortalPurchaseSummary | null;
-  orders: PortalOrder[];
-  totalCount: number;
-  hasNextPage: boolean;
-  page: number;
   token: string;
 }
 
-export function PortalContent({
-  summary,
-  orders,
-  totalCount,
-  hasNextPage,
-  page,
-  token,
-}: PortalContentProps) {
+/**
+ * "Resumo": quanto o cliente comprou nos últimos 12 meses, mês a mês e por
+ * fábrica. Os pedidos, um a um, ficam em "Pedidos" — o botão do cabeçalho leva
+ * para lá.
+ */
+export function PortalContent({ profile, summary, token }: PortalContentProps) {
+  const hasPurchases = summary !== null && summary.orderCount > 0;
+
   return (
-    <div className="flex flex-col gap-[24px]">
-      {/* O resumo só na primeira página: navegando para trás no histórico, o
-          gráfico dos últimos 12 meses continuaria igual e roubaria a tela dos
-          pedidos que o cliente foi procurar. */}
-      {summary && page === 1 ? <PortalSummary summary={summary} /> : null}
+    <>
+      <PortalPageHeader
+        heading="orders"
+        title={PORTAL_HOME_TITLE}
+        description={profile ? portalGreeting(profile) : undefined}
+        actions={
+          <Button.Link
+            href={`/p/${token}/enviados`}
+            appearance="outline"
+            color="neutral"
+          >
+            <Button.Title>Ver meus pedidos</Button.Title>
+          </Button.Link>
+        }
+      />
 
-      <section className="flex flex-col gap-[12px]">
-        <div className="flex flex-col gap-[4px]">
-          <Title variant="eyebrow" color="muted">
-            Seus pedidos
-          </Title>
-          <Title variant="body-sm" color="muted">
-            {totalCount === 1
-              ? "1 pedido registrado"
-              : `${totalCount} pedidos registrados`}
-            {orders.length > 0 ? " · toque para ver os itens" : ""}
-          </Title>
-        </div>
-
-        {orders.length === 0 ? (
-          <PortalOrdersEmpty token={token} page={page} />
-        ) : (
-          // Duas colunas no desktop: o card tem quatro linhas de conteúdo e,
-          // esticado na largura inteira, sobra tanto espaço vazio à direita que
-          // a data e o valor deixam de ser lidos como parte do mesmo pedido.
-          <div className="desktop:grid-cols-2 grid grid-cols-1 gap-[12px]">
-            {orders.map((order) => (
-              <PortalOrderCard key={order.id} order={order} token={token} />
-            ))}
-          </div>
-        )}
-
-        <PortalPager token={token} page={page} hasNextPage={hasNextPage} />
-      </section>
-    </div>
+      {hasPurchases ? (
+        <PortalSummary summary={summary} />
+      ) : (
+        <EmptyState.Root>
+          <EmptyState.Icon>
+            <Package size={36} />
+          </EmptyState.Icon>
+          <EmptyState.Title>Nenhuma compra por aqui ainda</EmptyState.Title>
+          <EmptyState.Description>
+            Assim que o seu primeiro pedido for fechado, o resumo das suas
+            compras aparece nesta página.
+          </EmptyState.Description>
+        </EmptyState.Root>
+      )}
+    </>
   );
 }

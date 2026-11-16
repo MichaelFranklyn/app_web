@@ -12,6 +12,7 @@ export const CREATE_ORDER_MUTATION = gql`
         invoicedAt
         totalAmount
         commissionAmount
+        sellerCommissionAmount
         status
         seller {
           id

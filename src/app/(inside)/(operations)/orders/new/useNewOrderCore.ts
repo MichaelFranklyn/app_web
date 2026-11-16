@@ -94,6 +94,17 @@ export function useNewOrderCore(fixed: Fixed = {}) {
 
   // Cria o pedido e, em seguida, cada item do rascunho.
   const create = async (input: CreateOrderInput) => {
+    // Pedido sem item não existe: o "Criar pedido" pede a lista antes.
+    if (draft.items.length === 0) {
+      toast({
+        variant: "error",
+        title: "Adicione ao menos um item",
+        description: draft.hasPendingItem
+          ? "O produto escolhido ainda não está na lista: toque em “Adicionar item”."
+          : "Escolha o produto e a quantidade e toque em “Adicionar item”.",
+      });
+      return;
+    }
     await execute(
       async () => {
         const res = await createOrder({ variables: { input } }).catch(

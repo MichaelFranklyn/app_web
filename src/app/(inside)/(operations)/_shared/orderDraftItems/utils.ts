@@ -60,3 +60,51 @@ export const discountLabel = (
   if (type === "VALUE") return formatMoney(amount);
   return `${input}% (${formatMoney(amount)})`;
 };
+
+/** O que a mesclagem fez — vira a mensagem de quem importou. */
+export interface DraftMergeResult {
+  items: DraftItem[];
+  added: number;
+  updated: number;
+}
+
+/**
+ * Junta itens que chegaram de uma vez (planilha) ao rascunho.
+ *
+ * A regra é uma só, e a tela diz qual: produto que JÁ está na lista fica onde
+ * está, com o preço, o nível e o desconto que o vendedor deu, e passa a ter a
+ * QUANTIDADE da planilha — a planilha é o pedido do cliente, e o preço é
+ * decisão do vendedor. O desconto em % é recalculado para a quantidade nova;
+ * o em reais continua o mesmo valor. Produto novo entra no topo, na ordem da
+ * planilha — como o item digitado, que também entra no topo.
+ *
+ * O rascunho nunca tem o mesmo produto duas vezes (`submitItem` recusa), então
+ * a chave é o produto, não produto+nível.
+ */
+export const mergeDraftItems = (
+  current: DraftItem[],
+  incoming: DraftItem[]
+): DraftMergeResult => {
+  const incomingByProduct = new Map(
+    incoming.map((item) => [item.productId, item])
+  );
+  let updated = 0;
+  const kept = current.map((item) => {
+    const match = incomingByProduct.get(item.productId);
+    if (!match) return item;
+    updated += 1;
+    return {
+      ...item,
+      quantity: match.quantity,
+      discount: discountToAmount(
+        item.discountInput,
+        item.discountType,
+        item.unitPrice,
+        match.quantity
+      ),
+    };
+  });
+  const existing = new Set(current.map((item) => item.productId));
+  const added = incoming.filter((item) => !existing.has(item.productId));
+  return { items: [...added, ...kept], added: added.length, updated };
+};

@@ -139,6 +139,8 @@ const renderSelect: FieldRenderer = (
       onCreateOption={f.onCreateOption}
       onSearch={f.onSearch}
       loading={f.loading}
+      onLoadMore={f.onLoadMore}
+      hasMore={f.hasMore}
     />
   );
 };

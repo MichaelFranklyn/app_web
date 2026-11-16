@@ -11,6 +11,7 @@ export const ORDER_STATS_QUERY = gql`
       invoicedOrders
       invoicedAmount
       commissionAmount
+      sellerCommissionAmount
       backorderCount
     }
   }
@@ -107,6 +108,7 @@ export const ORDERS_QUERY = gql`
           invoicedAt
           totalAmount
           commissionAmount
+          sellerCommissionAmount
           status
           isBackorder
           isDeliveryOverdue

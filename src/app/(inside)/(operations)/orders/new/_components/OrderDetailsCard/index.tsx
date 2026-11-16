@@ -18,6 +18,8 @@ interface Props {
   initialData?: Record<string, unknown>;
   /** O vendedor mexeu nos dados (conta para perguntar antes de sair). */
   onDirtyChange?: (isDirty: boolean) => void;
+  /** Todos os campos com * têm valor — é o que libera os itens. */
+  onRequiredFilledChange?: (isFilled: boolean) => void;
 }
 
 // Pré-seleciona "Pedido": o caminho comum é criar pedido, não orçamento.
@@ -29,6 +31,7 @@ export function OrderDetailsCard({
   onValid,
   initialData,
   onDirtyChange,
+  onRequiredFilledChange,
 }: Props) {
   // Estável entre renders: o formulário não pode se reiniciar a cada digitação.
   const initial = useMemo(
@@ -44,7 +47,7 @@ export function OrderDetailsCard({
         </Card.Header.Title>
         <Card.Header.Description>
           Quem vende, para quem e em que condições. Os itens abaixo são
-          liberados assim que a fábrica fica definida.
+          liberados quando todos os campos com * estiverem preenchidos.
         </Card.Header.Description>
       </Card.Header>
       <Card.Body>
@@ -54,6 +57,7 @@ export function OrderDetailsCard({
           initialData={initial}
           onSubmit={onValid}
           onDirtyChange={onDirtyChange}
+          onRequiredFilledChange={onRequiredFilledChange}
           unstyled
         />
       </Card.Body>

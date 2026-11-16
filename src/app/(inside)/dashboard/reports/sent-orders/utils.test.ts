@@ -14,6 +14,7 @@ const order = (over: Partial<SentOrder> = {}): SentOrder => ({
   invoicedAt: null,
   totalAmount: "2150.00",
   commissionAmount: "64.50",
+  sellerCommissionAmount: "1",
   status: "CONFIRMED",
   isDeliveryOverdue: false,
   seller: { id: "s1", name: "Michael" },

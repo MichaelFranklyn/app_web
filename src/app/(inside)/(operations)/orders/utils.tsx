@@ -106,6 +106,7 @@ export {
   ORDER_STATUS_TONE,
   orderStatusLabel,
 } from "../../_shared/orderStatus";
+import { visibleCommission } from "@/utils/commission";
 
 export const buildOrderKpis = (
   stats: OrdersStats,
@@ -120,9 +121,15 @@ export const buildOrderKpis = (
     avgTicket = "0",
     invoicedOrders = 0,
     invoicedAmount = "0",
-    commissionAmount = "0",
+    commissionAmount = null,
+    sellerCommissionAmount = "0",
     backorderCount = 0,
   } = stats.orderStats ?? {};
+  // Vendedor: a comissão da fábrica vem nula do servidor — vale a dele.
+  const commission = visibleCommission({
+    commissionAmount,
+    sellerCommissionAmount,
+  });
 
   // Os cartões contam só PEDIDO FEITO (confirmado, faturado, entregue) — ver
   // `_apply_placed_only`, no backend. A legenda diz isso: sem ela, o número
@@ -170,7 +177,7 @@ export const buildOrderKpis = (
     },
     {
       label: "Comissão do faturado",
-      value: formatMoney(commissionAmount),
+      value: formatMoney(commission),
       delta: "gerada pelo que já foi faturado",
       status: "neutral",
       help: ORDER_KPI_HELP["Comissão do faturado"],

@@ -1,4 +1,5 @@
 import { expect, test } from "../support/fixtures";
+import { addDraftItem, oneProductMocks } from "../support/orderDraft";
 import { mockGraphql } from "../support/graphql";
 import { grantRole } from "../support/role";
 
@@ -119,8 +120,7 @@ test("orders: cria um pedido pela cascata vendedor→fábrica→cliente", async 
     // fallback `{}` — resposta malformada que o Apollo refazia em loop,
     // re-renderizando o form sem parar e desanexando o campo Cliente (o flake).
     // Respostas vazias e bem-formadas encerram o loop (os itens não são exercidos).
-    OrderItemCompanyFactories: () => ({ companyFactories: { edges: [] } }),
-    OrderItemProducts: () => ({ products: { edges: [] } }),
+    ...oneProductMocks("factory-1"),
     OrderItemTiers: () => ({ priceTiers: { edges: [] } }),
     OrderItemPriceLists: () => ({ factoryPriceLists: { edges: [] } }),
     OrderItemPriceListItems: () => ({ priceListItems: { edges: [] } }),
@@ -224,8 +224,14 @@ test("orders: cria um pedido pela cascata vendedor→fábrica→cliente", async 
     .click({ force: true });
   await page.getByRole("button", { name: "Hoje" }).click();
 
-  // Sem itens, o botão é "Criar pedido": valida os dados e grava.
+  // Pedido sem item não existe: o "Criar pedido" vazio só avisa, não grava.
   await page.getByRole("button", { name: "Criar pedido", exact: true }).click();
+  await expect(page.getByText("Adicione ao menos um item")).toBeVisible();
+  expect(gql.calls("CreateOrder")).toHaveLength(0);
+
+  // Com um item na lista, valida os dados e grava.
+  await addDraftItem(page);
+  await page.getByRole("button", { name: "Criar pedido com 1 item" }).click();
 
   await expect(page.getByText("Pedido criado com sucesso")).toBeVisible();
   // Criar leva PARA DENTRO do pedido: é o que o vendedor faz em seguida
@@ -322,8 +328,7 @@ test("orders/new: da fábrica, escolhe o vínculo e grava com a fábrica da tela
         totalCount: 1,
       },
     }),
-    OrderItemCompanyFactories: () => ({ companyFactories: { edges: [] } }),
-    OrderItemProducts: () => ({ products: { edges: [] } }),
+    ...oneProductMocks("factory-1"),
     OrderItemTiers: () => ({ priceTiers: { edges: [] } }),
     OrderItemPriceLists: () => ({ factoryPriceLists: { edges: [] } }),
     OrderItemPriceListItems: () => ({ priceListItems: { edges: [] } }),
@@ -376,7 +381,8 @@ test("orders/new: da fábrica, escolhe o vínculo e grava com a fábrica da tela
     .getByRole("textbox", { name: "Data do pedido" })
     .click({ force: true });
   await page.getByRole("button", { name: "Hoje" }).click();
-  await page.getByRole("button", { name: "Criar pedido", exact: true }).click();
+  await addDraftItem(page);
+  await page.getByRole("button", { name: "Criar pedido com 1 item" }).click();
 
   await expect(page).toHaveURL(/\/orders\/order-2$/);
   const createVars = await gql.waitForCall("CreateOrder");
@@ -430,8 +436,24 @@ test("orders/new: sair com algo não gravado pergunta antes (dados, item, itens)
         ],
       },
     }),
+    // Os itens só liberam com todos os campos com * preenchidos — Fábrica E
+    // Cliente —, então o cliente precisa existir para o rascunho receber item.
     OrderSellerClients: () => ({
-      sellerClientFactoryList: { totalCount: 0, edges: [] },
+      sellerClientFactoryList: {
+        totalCount: 1,
+        edges: [
+          {
+            node: {
+              clientId: "client-1",
+              client: {
+                id: "client-1",
+                razaoSocial: "Cliente LTDA",
+                nomeFantasia: "Cliente XYZ",
+              },
+            },
+          },
+        ],
+      },
     }),
     OrderItemCompanyFactories: () => ({
       companyFactories: {
@@ -517,6 +539,13 @@ test("orders/new: sair com algo não gravado pergunta antes (dados, item, itens)
     .getByRole("button", { name: "Continuar no pedido" })
     .click();
   await expect(page).toHaveURL(/\/orders\/new$/);
+
+  // Com cliente e data, os campos com * fecham e os itens são liberados.
+  await pickOption(page, "Cliente", "Cliente", "Cliente XYZ");
+  await page
+    .getByRole("textbox", { name: "Data do pedido" })
+    .click({ force: true });
+  await page.getByRole("button", { name: "Hoje" }).click();
 
   // Um item no rascunho (sem nível e sem tabela: o preço é digitado).
   const produto = page.getByRole("combobox", {

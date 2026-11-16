@@ -30,6 +30,8 @@ interface StepReviewProps {
   ipiInOrder?: boolean;
   /** Linhas do PDF com cara de item que não puderam ser lidas. */
   unreadableRows?: string[];
+  /** Os itens vão para a lista do pedido em criação, não para o banco. */
+  toDraft?: boolean;
 }
 
 export function StepReview({
@@ -41,18 +43,26 @@ export function StepReview({
   skippedItems,
   ipiInOrder = false,
   unreadableRows = [],
+  toDraft = false,
 }: StepReviewProps) {
   return (
     <div className="flex flex-col gap-12">
       <Stepper.Intro
         step={step}
         total={total}
-        title="Confira os itens antes de gravar"
+        title={
+          toDraft
+            ? "Confira os itens antes de levar para a lista"
+            : "Confira os itens antes de gravar"
+        }
       >
         Casamos cada código do produto com o catálogo da fábrica. Confira o
         produto, o nível e o preço. Desmarque o que não quer importar. Linhas
         sem produto ou sem nível não podem ser gravadas — ajuste o catálogo e
         importe de novo.
+        {toDraft
+          ? " Produto que já está na lista fica com a quantidade da planilha; o preço e o desconto continuam os seus. Nada é gravado até você clicar em “Criar pedido”."
+          : null}
       </Stepper.Intro>
       <UnreadableAlert rows={unreadableRows} />
       {skippedItems.length > 0 && (

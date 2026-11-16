@@ -479,6 +479,71 @@ describe("useOrderImportWizard — máquina de estado", () => {
   });
 });
 
+describe("useOrderImportWizard — rascunho de /orders/new", () => {
+  function renderDraft(
+    mocks: MockLink.MockedResponse[],
+    onItems: (items: unknown[]) => void
+  ) {
+    function DraftHarness() {
+      api = useOrderImportWizard({
+        draft: { factoryId: "fac-1", clientId: "cli-1", onItems },
+        onImported,
+      });
+      return null;
+    }
+    onImported.mockClear();
+    render(
+      <MockedProvider mocks={mocks}>
+        <DraftHarness />
+      </MockedProvider>
+    );
+  }
+
+  it("confirmar entrega os itens à lista e não grava nada no servidor", async () => {
+    const onItems = vi.fn();
+    // Sem mock de confirmOrderImport: se o wizard chamasse a mutation, o
+    // MockedProvider responderia erro e o onItems não seria chamado.
+    renderDraft(
+      [
+        extractItemsMock([
+          {
+            sku: "SKU-001",
+            name: "Produto Teste",
+            quantity: "10",
+            unitPrice: "100.00",
+          },
+        ]),
+        previewMock([matchedCandidate()]),
+      ],
+      onItems
+    );
+
+    await act(async () => {
+      await api.handleFiles([
+        new File(["%PDF-1.4"], "itens.pdf", { type: "application/pdf" }),
+      ]);
+    });
+    await waitFor(() => expect(api.step).toBe(2));
+    expect(api.toDraft).toBe(true);
+
+    await act(async () => {
+      await api.runConfirm();
+    });
+
+    expect(onItems).toHaveBeenCalledTimes(1);
+    expect(onItems.mock.calls[0][0]).toEqual([
+      expect.objectContaining({
+        productId: "p-1",
+        quantity: 10,
+        source: "FILE_IMPORT",
+      }),
+    ]);
+    expect(onImported).toHaveBeenCalledTimes(1);
+    expect(push).not.toHaveBeenCalled();
+    expect(api.result).toBeNull();
+  });
+});
+
 describe("useOrderImportWizard — ficha de pedido", () => {
   const sheetRow = (overrides: Partial<ImportRow> = {}): ImportRow => ({
     sku: "SKU-001",

@@ -77,10 +77,14 @@ async function abrir(page: import("@playwright/test").Page, url: string) {
 /**
  * O portal do cliente abre SEM sessão e é a tela mais aberta no telefone: fica
  * num bloco próprio porque precisa do storageState vazio. Os dados vêm do
- * stub (PortalProfile/PortalPurchases/PortalStock).
+ * stub (PortalProfile/PortalPurchaseSummary/PortalStock).
  */
 const PORTAL_TOKEN = "token-de-teste-do-portal";
-const ROTAS_PORTAL = [`/p/${PORTAL_TOKEN}`, `/p/${PORTAL_TOKEN}/estoque`];
+const ROTAS_PORTAL = [
+  `/p/${PORTAL_TOKEN}`,
+  `/p/${PORTAL_TOKEN}/estoque`,
+  `/p/${PORTAL_TOKEN}/pedido`,
+];
 
 for (const [viewport, nome] of [
   [MOBILE, "mobile 320"],

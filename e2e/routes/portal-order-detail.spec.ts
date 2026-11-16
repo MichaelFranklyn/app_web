@@ -59,17 +59,14 @@ test("pedido do portal: mostra as parcelas e o que já foi pago", async ({
   await expect(page.getByText("Pago em 01/10/2026")).toBeVisible();
 });
 
-test("pedido do portal: volta para a lista de compras", async ({ page }) => {
+test("pedido do portal: volta para a lista de pedidos", async ({ page }) => {
   await page.goto(URL);
 
   // O mesmo destino existe na navegação do portal; aqui o alvo é o link de
   // voltar, dentro do conteúdo.
-  await page
-    .getByRole("main")
-    .getByRole("link", { name: "Minhas compras" })
-    .click();
+  await page.getByRole("main").getByRole("link", { name: "Pedidos" }).click();
 
-  await expect(page).toHaveURL(new RegExp(`/p/${TOKEN}$`));
+  await expect(page).toHaveURL(new RegExp(`/p/${TOKEN}/enviados$`));
 });
 
 test("pedido do portal: pedido que não é dele não vira ficha vazia", async ({
@@ -81,6 +78,6 @@ test("pedido do portal: pedido que não é dele não vira ficha vazia", async ({
 
   await expect(page.getByText("Pedido não encontrado")).toBeVisible();
   await expect(
-    page.getByRole("link", { name: "Voltar para as minhas compras" })
+    page.getByRole("link", { name: "Voltar para os pedidos" })
   ).toBeVisible();
 });

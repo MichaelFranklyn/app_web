@@ -1,84 +1,76 @@
 import { Badge } from "@/components/Badges";
-import { Card } from "@/components/Card";
-import { Divider } from "@/components/Divider";
-import { Title } from "@/components/Title";
-import { TextLink } from "@/components/TextLink";
-import { formatMoney } from "@/utils/format/masks";
-import { ArrowLeft } from "lucide-react";
+import { Breadcrumb } from "@/components/Breadcrumb";
+import { formatOrderNumber } from "@/utils/orderNumber";
+import { PortalOrderItems } from "../../_components/PortalOrderItems";
+import { PortalPageHeader } from "../../_components/PortalPageHeader";
 import { PortalOrderDetail } from "../../interface";
+import { PortalPdfBrand } from "../../orderPdf";
 import {
-  hasIpi,
   portalOrderDateLine,
-  portalOrderTotal,
-  portalStatusHint,
   portalStatusLabel,
   portalStatusTone,
 } from "../../utils";
+import { OrderActions } from "./_components/OrderActions";
 import { PortalOrderInstallments } from "./_components/PortalOrderInstallments";
-import { PortalOrderItems } from "./_components/PortalOrderItems";
+import { PortalOrderSummary } from "./_components/PortalOrderSummary";
 
 interface PortalOrderContentProps {
   order: PortalOrderDetail;
   token: string;
+  /** A marca do escritório no cabeçalho do PDF. */
+  brand: PortalPdfBrand;
 }
 
-export function PortalOrderContent({ order, token }: PortalOrderContentProps) {
+/**
+ * Um pedido confirmado, no molde do detalhe de pedido do sistema (o mesmo do
+ * pedido enviado): breadcrumb, cabeçalho com a situação, os produtos à
+ * esquerda e o resumo + parcelas numa coluna de 320px à direita (empilha
+ * abaixo do desktop).
+ */
+export function PortalOrderContent({
+  order,
+  token,
+  brand,
+}: PortalOrderContentProps) {
+  const title = `Pedido ${formatOrderNumber(order.number)}`;
+
   return (
-    <div className="flex flex-col gap-[16px]">
-      <TextLink
-        href={`/p/${token}`}
-        tone="muted"
-        underline="none"
-        className="flex items-center gap-[6px]"
-      >
-        <ArrowLeft size={16} />
-        <Title variant="body-sm" color="inherit">
-          Minhas compras
-        </Title>
-      </TextLink>
+    <>
+      {/* Como o sistema: "Pedido #428" no título e a fábrica na descrição —
+          é o número que o cliente e o representante usam para conversar. */}
+      <PortalPageHeader
+        heading="orders"
+        title={title}
+        description={`${order.factoryName} · ${portalOrderDateLine(order)}`}
+        breadcrumb={
+          <Breadcrumb.Root>
+            <Breadcrumb.Item href={`/p/${token}/enviados`}>
+              Pedidos
+            </Breadcrumb.Item>
+            <Breadcrumb.Separator />
+            <Breadcrumb.Item>{title}</Breadcrumb.Item>
+          </Breadcrumb.Root>
+        }
+        actions={<OrderActions order={order} token={token} brand={brand} />}
+        badges={
+          // `md`: a mesma altura do badge do pedido enviado no cabeçalho.
+          <Badge color={portalStatusTone(order.status)} size="md">
+            <Badge.Text>{portalStatusLabel(order.status)}</Badge.Text>
+          </Badge>
+        }
+      />
 
-      <Card.Root className="h-auto">
-        <Card.Body padding="compact">
-          <div className="flex flex-col gap-[12px]">
-            <div className="flex items-start justify-between gap-[12px]">
-              <Title variant="heading-md" className="min-w-0 break-words">
-                {order.factoryName}
-              </Title>
-              <Badge color={portalStatusTone(order.status)} size="sm">
-                <Badge.Text>{portalStatusLabel(order.status)}</Badge.Text>
-              </Badge>
-            </div>
-
-            <div className="flex flex-col gap-[2px]">
-              <Title variant="kpi">
-                {formatMoney(portalOrderTotal(order))}
-              </Title>
-              {hasIpi(order) ? (
-                <Title variant="body-xs" color="muted">
-                  {formatMoney(order.totalAmount)} em mercadoria +{" "}
-                  {formatMoney(order.ipiAmount)} de IPI
-                </Title>
-              ) : null}
-            </div>
-
-            <Divider.Root />
-            <div className="flex flex-col gap-[4px]">
-              <Title variant="body-sm">{portalOrderDateLine(order)}</Title>
-              <Title variant="body-xs" color="muted">
-                {portalStatusHint(order.status)}
-              </Title>
-              {order.paymentTermName ? (
-                <Title variant="body-xs" color="muted">
-                  Condição de pagamento: {order.paymentTermName}
-                </Title>
-              ) : null}
-            </div>
-          </div>
-        </Card.Body>
-      </Card.Root>
-
-      <PortalOrderItems items={order.items} />
-      <PortalOrderInstallments installments={order.installments} />
-    </div>
+      <div className="desktop:flex-row flex flex-col gap-20">
+        <div className="flex min-w-0 flex-1 flex-col gap-12">
+          <PortalOrderItems items={order.items} />
+        </div>
+        {/* Abaixo do desktop o resumo sobe: com 25 produtos, o total e as
+            parcelas — o que o cliente veio ver — ficariam no fim da rolagem. */}
+        <div className="desktop:order-none desktop:w-[320px] desktop:self-start order-first flex w-full shrink-0 flex-col gap-12">
+          <PortalOrderSummary order={order} />
+          <PortalOrderInstallments installments={order.installments} />
+        </div>
+      </div>
+    </>
   );
 }

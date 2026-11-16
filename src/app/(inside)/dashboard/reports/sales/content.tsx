@@ -19,6 +19,7 @@ import {
   SALES_SORT_LABELS,
   sumBy,
 } from "./utils";
+import { visibleCommission } from "@/utils/commission";
 
 interface Props {
   canSelectSeller: boolean;
@@ -69,7 +70,7 @@ export default function SalesReportContent({ canSelectSeller }: Props) {
       },
       {
         label: "Comissão gerada",
-        value: formatMoney(sumBy(rows, (row) => row.commissionAmount)),
+        value: formatMoney(sumBy(rows, (row) => visibleCommission(row))),
       },
     ],
     buildHighlight: (rows) =>
@@ -78,7 +79,7 @@ export default function SalesReportContent({ canSelectSeller }: Props) {
       label: "TOTAL",
       byColumn: {
         6: formatMoney(sumBy(rows, (row) => row.totalAmount)),
-        7: formatMoney(sumBy(rows, (row) => row.commissionAmount)),
+        7: formatMoney(sumBy(rows, (row) => visibleCommission(row))),
       },
     }),
   });

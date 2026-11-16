@@ -1,41 +1,35 @@
 import { portalFetch } from "@/services/graphql/portalFetch";
-import { pageToAfter } from "@/utils/pagination";
 import { PortalContent } from "./content";
-import { PORTAL_PURCHASES } from "./gql";
-import { PortalPurchasesData } from "./interface";
-import { parsePortalPage } from "./utils";
-
-/** Poucos por página: o cliente lê no celular, e a lista é de rolagem, não de estudo. */
-const PAGE_SIZE = 10;
+import { PORTAL_PROFILE, PORTAL_PURCHASE_SUMMARY } from "./gql";
+import { PortalProfileData, PortalPurchaseSummaryData } from "./interface";
 
 /** Um ano fechado — a janela em que o dono da loja pensa a própria compra. */
 const SUMMARY_MONTHS = 12;
 
 interface PageProps {
   params: Promise<{ token: string }>;
-  searchParams: Promise<{ p?: string }>;
 }
 
-export default async function PortalPurchasesPage({
-  params,
-  searchParams,
-}: PageProps) {
+/**
+ * A primeira tela do portal: o retrato das compras. A lista de pedidos mora em
+ * "Pedidos" (`/enviados`), que já junta pedidos feitos e orçamentos — repetir
+ * a lista aqui eram dois lugares para a mesma coisa.
+ */
+export default async function PortalSummaryPage({ params }: PageProps) {
   const { token } = await params;
-  const { p } = await searchParams;
-  const page = parsePortalPage(p);
 
-  const data = await portalFetch<PortalPurchasesData>(PORTAL_PURCHASES, token, {
-    input: { first: PAGE_SIZE, after: pageToAfter(page, PAGE_SIZE) },
-    months: SUMMARY_MONTHS,
-  });
+  // O perfil (já validado no layout) dá o nome do cliente ao cabeçalho.
+  const [profileData, data] = await Promise.all([
+    portalFetch<PortalProfileData>(PORTAL_PROFILE, token),
+    portalFetch<PortalPurchaseSummaryData>(PORTAL_PURCHASE_SUMMARY, token, {
+      months: SUMMARY_MONTHS,
+    }),
+  ]);
 
   return (
     <PortalContent
+      profile={profileData?.portalProfile?.data ?? null}
       summary={data?.portalPurchaseSummary?.data ?? null}
-      orders={data?.portalOrders?.edges.map((edge) => edge.node) ?? []}
-      totalCount={data?.portalOrders?.totalCount ?? 0}
-      hasNextPage={data?.portalOrders?.pageInfo.hasNextPage ?? false}
-      page={page}
       token={token}
     />
   );

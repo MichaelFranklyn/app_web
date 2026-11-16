@@ -18,6 +18,7 @@ import {
   FACTORY_EXPORT_HEADERS,
   sumBy,
 } from "./utils";
+import { visibleCommission } from "@/utils/commission";
 
 interface Props {
   canSelectSeller: boolean;
@@ -72,7 +73,7 @@ export default function FactoriesReportContent({ canSelectSeller }: Props) {
         1: String(sumBy(exported, (row) => row.orderCount)),
         3: formatMoney(sumBy(exported, (row) => row.totalAmount)),
         5: formatMoney(sumBy(exported, (row) => row.invoicedAmount)),
-        6: formatMoney(sumBy(exported, (row) => row.commissionAmount)),
+        6: formatMoney(sumBy(exported, (row) => visibleCommission(row))),
       },
     }),
   });

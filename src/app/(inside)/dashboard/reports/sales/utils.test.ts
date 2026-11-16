@@ -14,6 +14,7 @@ const order = (over: Partial<SalesReportOrder> = {}): SalesReportOrder => ({
   invoicedAt: "2026-07-03",
   totalAmount: "4820.00",
   commissionAmount: "144.60",
+  sellerCommissionAmount: "1",
   status: "INVOICED",
   seller: { id: "s1", name: "Rafael" },
   client: {

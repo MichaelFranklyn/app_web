@@ -2,15 +2,17 @@
 
 import { Button } from "@/components/Button";
 import { Tooltip } from "@/components/Tooltip";
+import { Share } from "@/components/Share";
 import { whatsappHref } from "@/utils/phone";
-import { MessageCircle, UserPlus } from "lucide-react";
+import { UserPlus } from "lucide-react";
 
 import { PendingItem } from "../../interface";
 import { postSaleMessage } from "../../utils";
 
 /**
  * O contato do pós-venda: WhatsApp com a mensagem pronta ("Olá, bom dia! ...
- * o pedido da Herc feito em 30/07/2026 já foi entregue?").
+ * o pedido da Herc feito em 30/07/2026 já foi entregue?"), mostrada na prévia
+ * do `Share` antes de abrir o WhatsApp.
  *
  * Veio do antigo cartão de entregas de /insights: o pedido parado mora só aqui
  * agora, e a ação de pós-venda veio junto.
@@ -20,21 +22,17 @@ import { postSaleMessage } from "../../utils";
  * cadastrar o contato na ficha do cliente.
  */
 export function PostSaleContact({ item }: { item: PendingItem }) {
-  const href = whatsappHref(item.contactPhone, postSaleMessage(item));
-
-  if (href) {
+  if (whatsappHref(item.contactPhone)) {
     return (
-      <Button.Link
-        href={href}
-        external
-        appearance="outline"
-        color="neutral"
+      <Share.Whatsapp
+        phone={item.contactPhone}
+        toName={item.clientName}
+        message={postSaleMessage(item)}
+        title="Perguntar se o pedido foi entregue"
+        label="WhatsApp"
         size="xs"
-        aria-label={`Perguntar pelo WhatsApp se o pedido de ${item.clientName} foi entregue`}
-      >
-        <Button.Icon icon={MessageCircle} />
-        <Button.Title>WhatsApp</Button.Title>
-      </Button.Link>
+        ariaLabel={`Perguntar pelo WhatsApp se o pedido de ${item.clientName} foi entregue`}
+      />
     );
   }
 

@@ -1,7 +1,10 @@
 import { Alert } from "@/components/Alert";
+import { Import } from "@/components/Import";
 import { Input } from "@/components/Input";
 import { Stepper } from "@/components/Stepper";
 import { CheckCircle2 } from "lucide-react";
+
+import { downloadOrderItemsTemplate } from "./template";
 
 interface StepFileProps {
   /**
@@ -27,6 +30,10 @@ export function StepFile({ step, total, file, onFiles, ready }: StepFileProps) {
         são lidos automaticamente; se for um PDF escaneado (imagem), peça a
         versão em Excel para a fábrica.
       </Stepper.Intro>
+      <Import.TemplateDownload
+        description="Não recebeu o pedido da fábrica? Baixe a planilha de exemplo, preencha com código e quantidade de cada item e envie aqui."
+        onDownload={downloadOrderItemsTemplate}
+      />
       <Input.Archive
         variant="single"
         accept=".pdf,.csv,.xlsx,.xls"

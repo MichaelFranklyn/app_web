@@ -11,6 +11,7 @@ export const SENT_ORDERS_QUERY = gql`
           invoicedAt
           totalAmount
           commissionAmount
+          sellerCommissionAmount
           status
           isDeliveryOverdue
           seller {

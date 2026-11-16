@@ -6,7 +6,7 @@ import { orderStatusLabel } from "../utils";
 import { OrderDetail, OrderItem } from "./interface";
 import { paymentTermLabel } from "../../_shared/orderPaymentTerms";
 
-import { INSTALLMENT_STATUS_LABEL } from "./utils";
+import { INSTALLMENT_STATUS_LABEL, installmentCommission } from "./utils";
 import { formatOrderNumber } from "@/utils/orderNumber";
 
 const ITEM_HEADERS = [
@@ -91,7 +91,7 @@ export const buildOrderSheetRows = (
         String(installment.sequence),
         installment.dueDate ? formatDateDMY(installment.dueDate) : "",
         formatAmount(installment.amount),
-        formatAmount(installment.commissionAmount),
+        formatAmount(installmentCommission(installment)),
         INSTALLMENT_STATUS_LABEL[installment.status] ?? installment.status,
       ])
     );
