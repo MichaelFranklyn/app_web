@@ -16,6 +16,9 @@ interface DeleteResponse {
 }
 
 interface Props {
+  /** Controlado: o gatilho mora fora (o "⋯"/ícone da linha, em RowActions). */
+  open?: boolean;
+  onOpenChange?: (open: boolean) => void;
   linkId: string;
   clientName: string;
   onRemoveOptimistic: (id: string) => void;
@@ -29,6 +32,8 @@ export function DeleteClientLinkModal({
   onRemoveOptimistic,
   onCommit,
   onRollback,
+  open,
+  onOpenChange,
 }: Props) {
   const invalidateClient = useInvalidateQueriesClient();
   const [unlink] = useMutation<DeleteResponse>(
@@ -37,16 +42,20 @@ export function DeleteClientLinkModal({
 
   return (
     <ConfirmModal
+      open={open}
+      onOpenChange={onOpenChange}
       trigger={
-        <Button.Root
-          appearance="ghost"
-          color="red"
-          size="sm"
-          isIconOnly
-          label="Desvincular cliente"
-        >
-          <Button.Icon icon={Trash2} />
-        </Button.Root>
+        open === undefined && (
+          <Button.Root
+            appearance="ghost"
+            color="red"
+            size="sm"
+            isIconOnly
+            label="Desvincular cliente"
+          >
+            <Button.Icon icon={Trash2} />
+          </Button.Root>
+        )
       }
       size="sm"
       title="Desvincular cliente"

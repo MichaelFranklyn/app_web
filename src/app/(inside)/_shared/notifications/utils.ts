@@ -5,10 +5,10 @@ import { Notification, NotificationSeverity } from "./interface";
  * A lista de trabalho — a saída do sino. O sino mostra o que já aconteceu;
  * Pendências, o que ainda precisa ser feito, com o motivo.
  */
-export const PENDING_ROUTE = "/pending";
+export const PENDING_ROUTE = "/priorities";
 
 /** As oportunidades comerciais (a antiga /insights). */
-export const OPPORTUNITIES_ROUTE = "/opportunities";
+export const OPPORTUNITIES_ROUTE = "/priorities/opportunities";
 
 /**
  * Para onde cada aviso CONCLUÍDO pelo sistema (categoria INSIGHT) leva — a
@@ -27,7 +27,7 @@ const INSIGHT_ROUTES: Record<string, string> = {
 export const SEVERITY_COLOR: Record<NotificationSeverity, ThemeColor> = {
   INFO: "blue",
   SUCCESS: "green",
-  WARNING: "amber",
+  WARNING: "warning",
   ERROR: "red",
 };
 

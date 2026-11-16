@@ -8,7 +8,8 @@ export interface FactoryOrdersRow {
   clientCount: number;
   invoicedCount: number;
   invoicedAmount: string;
-  commissionAmount: string;
+  commissionAmount: string | null;
+  sellerCommissionAmount: string;
   lastOrderDate: string | null;
   /** Fatia da fábrica no total colocado no período (0 a 1). */
   share: number;

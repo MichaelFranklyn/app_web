@@ -6,6 +6,7 @@ import { HYGIENE_COLUMNS, HYGIENE_DESCRIPTION, HYGIENE_TITLE } from "./utils";
 export default function Loading() {
   return (
     <ListPageSkeleton
+      page="hygiene"
       title={HYGIENE_TITLE}
       description={HYGIENE_DESCRIPTION}
       listTitle="Para revisar"

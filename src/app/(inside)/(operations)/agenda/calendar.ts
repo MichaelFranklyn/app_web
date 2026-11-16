@@ -2,6 +2,7 @@ import { toUtcIsoDate } from "@/utils/format/date";
 
 import {
   AgendaView,
+  CrossOfficeStop,
   VisitClient,
   VisitSchedule,
   VisitScheduleDay,
@@ -42,8 +43,8 @@ const WEEKDAYS = [
   "sábado",
 ];
 
-/** "SEG", "TER"… — o cabeçalho das colunas. */
-export const WEEKDAY_SHORT = ["SEG", "TER", "QUA", "QUI", "SEX", "SÁB", "DOM"];
+/** "Seg", "Ter"… — o cabeçalho das colunas (caixa mista: lê melhor que CAIXA ALTA). */
+export const WEEKDAY_SHORT = ["Seg", "Ter", "Qua", "Qui", "Sex", "Sáb", "Dom"];
 
 const parse = (iso: string): Date => {
   const [year, month, day] = iso.slice(0, 10).split("-").map(Number);
@@ -111,10 +112,17 @@ export const isSameMonth = (iso: string, anchor: string): boolean =>
 
 export const dayNumber = (iso: string): number => parse(iso).getUTCDate();
 
-/** "sábado, 18 de outubro de 2026" */
+/**
+ * "Sábado, 18/10/2026". O dia da semana por extenso (é o que a pessoa procura
+ * no celular) e a data em número: "18 de outubro de 2026" quebrava a barra em
+ * duas linhas no celular (pedido do usuário, 13/11/2026).
+ */
 export const longDayLabel = (iso: string): string => {
   const date = parse(iso);
-  return `${WEEKDAYS[date.getUTCDay()]}, ${date.getUTCDate()} de ${MONTHS[date.getUTCMonth()]} de ${date.getUTCFullYear()}`;
+  const weekday = WEEKDAYS[date.getUTCDay()];
+  const dd = String(date.getUTCDate()).padStart(2, "0");
+  const mm = String(date.getUTCMonth() + 1).padStart(2, "0");
+  return `${weekday[0].toUpperCase()}${weekday.slice(1)}, ${dd}/${mm}/${date.getUTCFullYear()}`;
 };
 
 /**
@@ -155,7 +163,62 @@ export interface AgendaDay {
   scheduleId: string | null;
   /** O dia persistido; nulo quando nada foi marcado nele ainda. */
   day: VisitScheduleDay | null;
+  /**
+   * As paradas da pessoa nos OUTROS escritórios neste dia que pedem cartão
+   * próprio — a visita ao cliente que também tem visita aqui não entra: ela
+   * vira o selo `alsoInOffice` do cartão daqui (é uma ida só).
+   */
+  otherOffices: CrossOfficeStop[];
+  /** Cliente (id global) → escritório onde ele também tem visita no dia. */
+  alsoInOffice: Map<string, string>;
 }
+
+const isDriving = (contactType: string) => contactType !== "REMOTE";
+
+/**
+ * Separa as paradas do outro escritório de um dia: as que se juntam a uma
+ * visita presencial daqui ao mesmo cliente (viram selo) e as que pedem cartão.
+ * Só visita junta com visita: a ligação não tem ida a economizar.
+ */
+export const splitOtherOffices = (
+  items: VisitScheduleDay["items"],
+  stops: CrossOfficeStop[]
+): Pick<AgendaDay, "otherOffices" | "alsoInOffice"> => {
+  const visitedHere = new Set(
+    items
+      .filter((item) => isDriving(item.contactType))
+      .map((item) => itemClient(item)?.id)
+      .filter((id): id is string => Boolean(id))
+  );
+  const otherOffices: CrossOfficeStop[] = [];
+  const alsoInOffice = new Map<string, string>();
+  for (const stop of stops) {
+    if (isDriving(stop.contactType) && visitedHere.has(stop.clientId)) {
+      alsoInOffice.set(stop.clientId, stop.officeName);
+    } else {
+      otherOffices.push(stop);
+    }
+  }
+  return {
+    otherOffices: [...otherOffices].sort(
+      (a, b) => a.plannedOrder - b.plannedOrder
+    ),
+    alsoInOffice,
+  };
+};
+
+/**
+ * O escritório onde o cliente desta visita presencial também tem visita no
+ * dia — o selo "Também no …" do cartão. Nulo para ligação ou sem par.
+ */
+export const alsoInOfficeOf = (
+  item: VisitScheduleDay["items"][number],
+  alsoInOffice: Map<string, string> | undefined
+): string | null => {
+  if (!alsoInOffice || !isDriving(item.contactType)) return null;
+  const clientId = itemClient(item)?.id;
+  return (clientId && alsoInOffice.get(clientId)) || null;
+};
 
 /**
  * Junta as semanas buscadas num índice por data. O mês pede até seis semanas
@@ -163,8 +226,14 @@ export interface AgendaDay {
  */
 export const indexDays = (
   schedules: VisitSchedule[],
-  dates: string[]
+  dates: string[],
+  otherOfficeStops: CrossOfficeStop[] = []
 ): Map<string, AgendaDay> => {
+  const stopsByDate = new Map<string, CrossOfficeStop[]>();
+  for (const stop of otherOfficeStops) {
+    const date = stop.date.slice(0, 10);
+    stopsByDate.set(date, [...(stopsByDate.get(date) ?? []), stop]);
+  }
   const byDate = new Map<
     string,
     { scheduleId: string; day: VisitScheduleDay }
@@ -186,8 +255,27 @@ export const indexDays = (
           scheduleId:
             found?.scheduleId ?? scheduleByWeek.get(mondayOf(date)) ?? null,
           day: found?.day ?? null,
+          ...splitOtherOffices(
+            found?.day?.items ?? [],
+            stopsByDate.get(date) ?? []
+          ),
         },
       ];
     })
   );
 };
+
+/**
+ * A semana em tela está em branco E ainda dá para montá-la: nenhum compromisso
+ * em dia nenhum, ao menos um dia de hoje em diante, e esse dia não é folga.
+ * Semana passada vazia é só histórico — oferecer "Montar semana" nela seria
+ * um convite para planejar o que já passou.
+ */
+export const isPlannableBlankWeek = (
+  dates: string[],
+  days: Map<string, AgendaDay>,
+  todayIso: string,
+  dayOffDates: Set<string>
+): boolean =>
+  dates.every((date) => (days.get(date)?.day?.items.length ?? 0) === 0) &&
+  dates.some((date) => date >= todayIso && !dayOffDates.has(date));

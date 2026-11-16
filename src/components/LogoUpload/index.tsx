@@ -90,7 +90,7 @@ export function LogoUpload({
               {initials}
             </Title>
           ) : (
-            <ImagePlus size={24} className="text-(--muted)" />
+            <ImagePlus size={24} className="text-(--color-text-muted)" />
           )}
         </div>
 
@@ -101,7 +101,6 @@ export function LogoUpload({
               appearance="outline"
               color="neutral"
               size="sm"
-              noUppercase
               disabled={disabled}
               onClick={() => inputRef.current?.click()}
             >
@@ -115,7 +114,6 @@ export function LogoUpload({
                 appearance="ghost"
                 color="red"
                 size="sm"
-                noUppercase
                 disabled={disabled}
                 onClick={handleRemove}
               >

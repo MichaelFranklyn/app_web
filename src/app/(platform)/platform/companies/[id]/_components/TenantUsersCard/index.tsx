@@ -43,7 +43,7 @@ export function TenantUsersCard({ users, loading }: Props) {
         </Card.Header>
 
         <Table.Root>
-          <Table.Table>
+          <Table.Table cards>
             <Table.Header>
               <Table.Row>
                 <Table.Head>Pessoa</Table.Head>
@@ -75,7 +75,7 @@ export function TenantUsersCard({ users, loading }: Props) {
               ) : (
                 users.map((user) => (
                   <Table.Row key={user.id}>
-                    <Table.Cell className="max-w-[260px]">
+                    <Table.Cell card="title" className="max-w-[260px]">
                       <div className="flex min-w-0 flex-col gap-[2px]">
                         <Title
                           variant="body-sm"
@@ -94,22 +94,32 @@ export function TenantUsersCard({ users, loading }: Props) {
                       </div>
                     </Table.Cell>
 
-                    <Table.Cell variant="dim" className="whitespace-nowrap">
+                    <Table.Cell
+                      label="Papel"
+                      variant="dim"
+                      className="whitespace-nowrap"
+                    >
                       {ROLE_LABEL[user.role] ?? user.role}
                       {!user.isActive && " · desativada"}
                     </Table.Cell>
 
-                    <Table.Cell variant="dim" className="whitespace-nowrap">
+                    <Table.Cell
+                      label="Último acesso"
+                      variant="dim"
+                      className="whitespace-nowrap"
+                    >
                       {activityLabel(daysSinceLogin(user.lastLoginAt))}
                     </Table.Cell>
 
-                    <Table.Cell>
-                      <div className="flex gap-6">
+                    <Table.Cell card="actions">
+                      {/* Abaixo do desktop o par divide a linha do cartão, com
+                          fundo: soltos à esquerda, deixavam a sobra da linha. */}
+                      <div className="max-desktop:w-full flex gap-6">
                         <Button.Root
                           appearance="ghost"
                           color="neutral"
                           size="xs"
-                          noUppercase
+                          fullWidthBelowDesktop
                           disabled={!user.isActive}
                           onClick={() => setLinkTarget(user)}
                         >
@@ -124,7 +134,7 @@ export function TenantUsersCard({ users, loading }: Props) {
                             appearance="ghost"
                             color="neutral"
                             size="xs"
-                            noUppercase
+                            fullWidthBelowDesktop
                             disabled={!user.isActive}
                             loading={impersonating === user.id}
                             onClick={() => impersonate(user.id)}

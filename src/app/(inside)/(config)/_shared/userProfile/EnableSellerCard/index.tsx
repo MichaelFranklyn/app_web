@@ -44,7 +44,6 @@ export function EnableSellerCard({ isSelf, onEnable }: Props) {
             appearance="solid"
             color="amber"
             size="md"
-            noUppercase
             onClick={onEnable}
           >
             <Button.Icon icon={Store} />

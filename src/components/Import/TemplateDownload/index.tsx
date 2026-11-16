@@ -34,7 +34,6 @@ export function TemplateDownload({
           appearance="ghost"
           color="neutral"
           size="sm"
-          noUppercase
           onClick={onDownload}
         >
           <Button.Icon icon={Download} />

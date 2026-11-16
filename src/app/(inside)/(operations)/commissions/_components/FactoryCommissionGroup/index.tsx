@@ -159,7 +159,10 @@ export function FactoryCommissionGroup({
         <Collapse.Trigger
           open={open}
           onToggle={() => setOpen((v) => !v)}
-          className="flex-1"
+          // basis 240px: com flex-1 puro (basis 0) os valores ao lado tomavam a
+          // linha e o gatilho encolhia para 2–4px no celular — o alvo de abrir
+          // a fábrica sumia (revisão UX 13/11/2026).
+          className="flex-[1_1_240px]"
         >
           <div className="flex flex-col gap-2">
             <div className="flex flex-wrap items-center gap-8">
@@ -183,9 +186,16 @@ export function FactoryCommissionGroup({
           </div>
         </Collapse.Trigger>
 
-        <div className="flex flex-wrap items-center gap-16">
+        {/* Abaixo do desktop: uma linha só com os valores (rótulo sobre o
+            número, lado a lado) e "Receber tudo" esticando no que sobra — se
+            não couber, ele desce e toma a linha inteira. Nenhum dos dois casos
+            deixa sobra vazia. */}
+        <div className="max-desktop:w-full flex flex-wrap items-center gap-16">
           {highlights.map((highlight) => (
-            <div key={highlight.label} className="flex flex-col items-end">
+            <div
+              key={highlight.label}
+              className="max-desktop:items-start flex flex-col items-end"
+            >
               <Title variant="caption" color="muted">
                 {highlight.label}
               </Title>
@@ -205,11 +215,14 @@ export function FactoryCommissionGroup({
           {canManage &&
             lens.audience === "office" &&
             summary.receivableIds.length > 0 && (
-              <MarkReceivedModal
-                installmentIds={summary.receivableIds}
-                label={`Receber tudo desta fábrica (${summary.receivableIds.length})`}
-                onSuccess={onChanged}
-              />
+              <div className="max-desktop:min-w-[150px] max-desktop:flex-1">
+                <MarkReceivedModal
+                  installmentIds={summary.receivableIds}
+                  label={`Receber tudo (${summary.receivableIds.length})`}
+                  onSuccess={onChanged}
+                  fullWidthBelowDesktop
+                />
+              </div>
             )}
         </div>
       </div>

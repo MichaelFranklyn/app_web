@@ -3,6 +3,7 @@ import { describe, expect, it } from "vitest";
 import type { ScoreDimensions } from "@/utils/score";
 import { VisitScheduleItem } from "./interface";
 import {
+  crossOfficeMapsQuery,
   formatTravelToStop,
   formatVisitSlot,
   getVisitFollowupWarning,
@@ -351,5 +352,34 @@ describe("shiftDayIso", () => {
 
   it("data inválida volta como veio", () => {
     expect(shiftDayIso("", 3)).toBe("");
+  });
+});
+
+describe("crossOfficeMapsQuery", () => {
+  it("monta o endereço da parada do outro escritório como o do cliente", () => {
+    expect(
+      crossOfficeMapsQuery({
+        address: "Rua A, 10",
+        neighborhood: "Centro",
+        city: "Campinas",
+        state: "SP",
+      })
+    ).toBe("Rua A, 10, Centro, Campinas - SP");
+    expect(
+      crossOfficeMapsQuery({
+        address: null,
+        neighborhood: null,
+        city: null,
+        state: "SP",
+      })
+    ).toBe("SP");
+    expect(
+      crossOfficeMapsQuery({
+        address: null,
+        neighborhood: null,
+        city: null,
+        state: null,
+      })
+    ).toBeNull();
   });
 });

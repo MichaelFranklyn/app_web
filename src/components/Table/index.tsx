@@ -12,6 +12,7 @@ import { Footer } from "./Footer";
 import { Skeleton } from "./Skeleton";
 
 export type { TableSort, TableSortDirection } from "./interface";
+export type { TableCardRole } from "./Cell/interface";
 
 export const Table = Object.assign(Root, {
   Root,

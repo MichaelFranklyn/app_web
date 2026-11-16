@@ -53,7 +53,9 @@ export function ClientSupportList({ cases }: Props) {
         </Table.CardHead.Title>
       </Table.CardHead>
 
-      <Table.Table>
+      {/* Abaixo do desktop cada caso vira um cartão: a tabela rolando de lado
+          cortava o estado vazio e deixava as colunas fora da tela. */}
+      <Table.Table cards>
         <Table.Header>
           <Table.Row>
             <Table.Head>Assunto</Table.Head>
@@ -85,7 +87,7 @@ export function ClientSupportList({ cases }: Props) {
           ) : (
             ordered.map((item) => (
               <Table.Row key={item.id} href={`/support/${item.id}`}>
-                <Table.Cell>
+                <Table.Cell card="title">
                   <div className="flex flex-col">
                     <Table.CellText variant="strong">
                       {item.title}
@@ -95,12 +97,13 @@ export function ClientSupportList({ cases }: Props) {
                     </Table.CellText>
                   </div>
                 </Table.Cell>
-                <Table.Cell>
+                <Table.Cell label="Fábrica">
                   <Table.CellText variant="dim">
                     {item.factory ? factoryName(item.factory) : "—"}
                   </Table.CellText>
                 </Table.Cell>
-                <Table.Cell>
+                {/* No cartão a tag leva o rótulo na frente ("Status: [Aberta]"). */}
+                <Table.Cell card="status" label="Status">
                   <Badge.Root
                     color={SUPPORT_STATUS_COLOR[item.status]}
                     appearance="tinted"
@@ -109,12 +112,12 @@ export function ClientSupportList({ cases }: Props) {
                     <Badge.Text>{SUPPORT_STATUS_LABEL[item.status]}</Badge.Text>
                   </Badge.Root>
                 </Table.Cell>
-                <Table.Cell>
+                <Table.Cell label="Tempo">
                   <Table.CellText variant="dim">
                     {supportAgeLabel(item.ageDays, item.isOpen)}
                   </Table.CellText>
                 </Table.Cell>
-                <Table.Cell>
+                <Table.Cell label="Último andamento">
                   <div className="flex flex-col">
                     {item.lastUpdate ? (
                       <>

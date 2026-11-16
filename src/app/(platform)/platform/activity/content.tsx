@@ -7,6 +7,7 @@ import { Loading } from "@/components/Loading";
 import { PageContent } from "@/components/PageContent";
 import { Pagination } from "@/components/Pagination";
 import { PanelHeader } from "@/components/PanelHeader";
+import { PAGE_HEADING } from "@/utils/modules";
 import { QueryError } from "@/components/QueryError";
 import { Table } from "@/components/Table";
 import { Title } from "@/components/Title";
@@ -82,12 +83,11 @@ export default function ActivityContent({
       <PanelHeader.Root>
         <PanelHeader.Top>
           <PanelHeader.Left>
-            <PanelHeader.Eyebrow color="purple">Console</PanelHeader.Eyebrow>
-            <PanelHeader.Title>
+            <PanelHeader.Heading {...PAGE_HEADING.platformActivity}>
               {companyName
                 ? `Histórico — ${companyName}`
                 : "Histórico de ações"}
-            </PanelHeader.Title>
+            </PanelHeader.Heading>
             <PanelHeader.Description>
               O que os usuários fizeram no sistema. Registrado automaticamente e
               mantido por 90 dias — não guarda os dados enviados, só a operação
@@ -125,6 +125,8 @@ export default function ActivityContent({
             <Table.CardHead.Title>Ações</Table.CardHead.Title>
             <Table.CardHead.Actions>
               <Filters
+                resultCount={tableData.totalItems}
+                resultLoading={tableData.loading}
                 fields={[
                   {
                     type: "text",
@@ -147,7 +149,7 @@ export default function ActivityContent({
             </Table.CardHead.Actions>
           </Table.CardHead>
 
-          <Table.Table>
+          <Table.Table cards>
             <Table.Header>
               <Table.Row>
                 <Table.Head>Quando</Table.Head>
@@ -184,11 +186,15 @@ export default function ActivityContent({
               ) : (
                 tableData.displayedData.map((row) => (
                   <Table.Row key={row.id}>
-                    <Table.Cell variant="dim" className="whitespace-nowrap">
+                    <Table.Cell
+                      label="Quando"
+                      variant="dim"
+                      className="whitespace-nowrap"
+                    >
                       {formatMoment(row.createdAt)}
                     </Table.Cell>
 
-                    <Table.Cell className="max-w-[280px]">
+                    <Table.Cell card="title" className="max-w-[280px]">
                       <div className="flex min-w-0 flex-col gap-[2px]">
                         <Title
                           variant="body-sm"
@@ -209,7 +215,7 @@ export default function ActivityContent({
                       </div>
                     </Table.Cell>
 
-                    <Table.Cell className="max-w-[220px]">
+                    <Table.Cell label="Quem" className="max-w-[220px]">
                       {row.userEmail ? (
                         <div className="flex min-w-0 flex-col gap-[2px]">
                           <Title variant="body-sm" className="truncate">
@@ -239,7 +245,7 @@ export default function ActivityContent({
                       )}
                     </Table.Cell>
 
-                    <Table.Cell className="whitespace-nowrap">
+                    <Table.Cell card="status" className="whitespace-nowrap">
                       <Badge.Root
                         color={row.status === "error" ? "red" : "green"}
                         appearance="tinted"
@@ -251,7 +257,7 @@ export default function ActivityContent({
                       </Badge.Root>
                     </Table.Cell>
 
-                    <Table.Cell className="whitespace-nowrap">
+                    <Table.Cell label="Duração" className="whitespace-nowrap">
                       <Title
                         variant="body-sm"
                         color={isSlow(row.durationMs) ? "amber" : "muted"}

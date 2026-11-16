@@ -7,7 +7,7 @@ export const BadgeDot = React.forwardRef<
 >(({ className, ...props }, ref) => (
   <span
     ref={ref}
-    className={cn("h-5 w-5 shrink-0 rounded-full bg-current", className)}
+    className={cn("size-[6px] shrink-0 rounded-full bg-current", className)}
     aria-hidden="true"
     {...props}
   />

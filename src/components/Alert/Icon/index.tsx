@@ -15,10 +15,16 @@ export const AlertIcon = React.forwardRef<HTMLDivElement, AlertIconProps>(
   ({ icon: Icon, muted = false, className, ...props }, ref) => (
     <div
       ref={ref}
-      className={cn("shrink-0", muted && "text-(--muted)", className)}
+      data-slot="alert-icon"
+      className={cn(
+        // Círculo tingido pela própria cor do texto (currentColor a 12%).
+        "grid size-[28px] shrink-0 place-items-center rounded-full bg-current/12",
+        muted && "text-(--color-text-muted)",
+        className
+      )}
       {...props}
     >
-      <Icon size={16} />
+      <Icon size={16} aria-hidden />
     </div>
   )
 );

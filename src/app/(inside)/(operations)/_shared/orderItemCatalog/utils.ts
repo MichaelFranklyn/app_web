@@ -42,3 +42,41 @@ export const isQuantityMultiple = (
   const ratio = quantity / multiple;
   return Math.abs(ratio - Math.round(ratio)) < 1e-9;
 };
+
+/** Múltiplo como texto de campo numérico (ponto decimal, sem zeros sobrando). */
+const multipleText = (multiple: number): string =>
+  String(Number(multiple.toFixed(3)));
+
+/**
+ * Quantidade que entra sozinha ao escolher o produto: a embalagem mínima.
+ *
+ * Só preenche um campo vazio ou que ainda guarda o que foi preenchido sozinho
+ * para o produto anterior (`autoFilled`) — o que o vendedor digitou nunca é
+ * reescrito. Produto sem múltiplo devolve o campo vazio no lugar do valor
+ * automático do anterior, que não valeria para ele.
+ */
+export const suggestedQuantity = (
+  current: string,
+  autoFilled: string,
+  multiple: number | undefined | null
+): string => {
+  const untouched = current === "" || current === autoFilled;
+  if (!untouched) return current;
+  return multiple && multiple > 0 ? multipleText(multiple) : "";
+};
+
+/** Dica do campo quantidade: unidades, e a embalagem mínima quando há. */
+export const quantityHint = (multiple: number | undefined | null): string =>
+  multiple && multiple > 1
+    ? `Em unidades. Embalagem mínima: ${multipleText(multiple)} — vendido de ${multipleText(multiple)} em ${multipleText(multiple)}.`
+    : "Em unidades (peças), não em embalagens.";
+
+/**
+ * Texto do campo "Embalagem mínima" (só leitura): quantas unidades vêm numa
+ * embalagem — a quantidade do item anda de quanto em quanto. Produto sem
+ * múltiplo diz isso por extenso, para o campo nunca parecer esquecido.
+ */
+export const packMinimumText = (multiple: number | undefined | null): string =>
+  multiple && multiple > 1
+    ? `${multipleText(multiple)} unidades`
+    : "Sem mínimo (vende por unidade)";

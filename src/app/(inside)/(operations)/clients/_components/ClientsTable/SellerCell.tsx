@@ -28,7 +28,7 @@ export function SellerCell({ sellers, highlightSellerId }: SellerCellProps) {
 
   if (!first) {
     return (
-      <Table.Cell flex>
+      <Table.Cell flex label="Vendedor">
         <Avatar size="sm" color="neutral" initials="—" />
         <Table.CellText variant="dim">Sem vendedor</Table.CellText>
       </Table.Cell>
@@ -36,7 +36,7 @@ export function SellerCell({ sellers, highlightSellerId }: SellerCellProps) {
   }
 
   return (
-    <Table.Cell flex>
+    <Table.Cell flex label="Vendedor">
       <Avatar
         size="sm"
         color="amber"
@@ -47,7 +47,7 @@ export function SellerCell({ sellers, highlightSellerId }: SellerCellProps) {
       </Table.CellText>
       {rest.length > 0 && (
         <Tooltip
-          className="max-w-100 whitespace-normal"
+          className="max-w-[min(400px,calc(100vw-20px))] whitespace-normal"
           content={`Também atendem: ${rest.map((seller) => seller.name).join(", ")}`}
         >
           <Table.CellText variant="dim">+{rest.length}</Table.CellText>

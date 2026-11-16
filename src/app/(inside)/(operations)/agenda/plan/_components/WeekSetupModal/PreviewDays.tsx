@@ -1,13 +1,13 @@
 "use client";
 
 import { Alert } from "@/components/Alert";
-import { Badge } from "@/components/Badges";
 import { Card } from "@/components/Card";
-import { ContactTypeTag } from "@/components/ContactTypeTag";
 import { Title } from "@/components/Title";
 
 import { dayChipLabel } from "../../utils";
+import { AlignedNote } from "./AlignedNote";
 import { PlanStopSkipReason, WeekPlan } from "./interface";
+import { StopBadges } from "./StopBadges";
 
 const SKIP_LABEL: Record<PlanStopSkipReason, string> = {
   ALREADY_SCHEDULED: "já está marcado",
@@ -21,7 +21,8 @@ interface Props {
 
 /**
  * A semana como vai ficar, dia a dia: o que já estava (apagado), o que a
- * pessoa escolheu ("Novo") e o que o sistema pôs para completar ("Sugerido").
+ * pessoa escolheu ("Novo"), o que o sistema pôs para completar ("Sugerido")
+ * e as visitas do outro escritório da pessoa, que pesam no mesmo dia.
  * A distância é a da estrada entre as visitas, para a pessoa sentir o tamanho
  * do dia — a rota de verdade sai depois de gravar.
  */
@@ -32,6 +33,7 @@ export function PreviewDays({ plan }: Props) {
   const freeDays = plan.days.filter((day) => day.stops.length === 0);
   return (
     <div className="flex flex-col gap-12">
+      <AlignedNote aligned={plan.aligned} />
       {plan.ignoredDays.length > 0 && (
         <Alert.Root variant="warning">
           <Alert.Content>
@@ -73,7 +75,7 @@ export function PreviewDays({ plan }: Props) {
               </Title>
               {day.stops.map((stop) => (
                 <div
-                  key={`${stop.clientId}-${stop.contactType}`}
+                  key={`${stop.clientId}-${stop.contactType}-${stop.officeName ?? ""}`}
                   className="flex items-center justify-between gap-8"
                 >
                   <div className="flex min-w-0 flex-col">
@@ -90,23 +92,7 @@ export function PreviewDays({ plan }: Props) {
                         .join(" · ")}
                     </Title>
                   </div>
-                  <div className="flex shrink-0 items-center gap-6">
-                    <ContactTypeTag contactType={stop.contactType} />
-                    {stop.isNew &&
-                      (stop.isSuggested ? (
-                        <Badge.Root
-                          color="blue"
-                          appearance="tinted"
-                          title="Entrou para completar o dia — dá para tirar voltando e mexendo."
-                        >
-                          <Badge.Text>Sugerido</Badge.Text>
-                        </Badge.Root>
-                      ) : (
-                        <Badge.Root color="amber" appearance="tinted">
-                          <Badge.Text>Novo</Badge.Text>
-                        </Badge.Root>
-                      ))}
-                  </div>
+                  <StopBadges stop={stop} />
                 </div>
               ))}
             </div>

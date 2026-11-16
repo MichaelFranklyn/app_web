@@ -67,7 +67,6 @@ export function CompletionPromptModal({
               appearance="ghost"
               color="neutral"
               size="md"
-              noUppercase
             >
               <Button.Title>Agora não</Button.Title>
             </Button.Root>

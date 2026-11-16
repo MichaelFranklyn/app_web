@@ -1,5 +1,5 @@
 import { Card } from "@/components/Card";
-import { StatCard } from "@/components/StatCard";
+
 import { Title, TitleColor } from "@/components/Title";
 
 export interface ImportSummaryDetail {
@@ -41,17 +41,20 @@ export function Summary<T extends ImportSummaryDetail>({
   return (
     <div className="flex flex-col gap-10">
       <div className="grid grid-cols-3 gap-8">
-        <StatCard
-          label={createdLabel ?? (feminine ? "Criadas" : "Criados")}
-          value={result.created}
-          tone="green"
-        />
-        <StatCard
-          label={`${ignoredLabel}s`}
-          value={result.skipped}
-          tone="amber"
-        />
-        <StatCard label="Com erro" value={result.failed} tone="red" />
+        <Card.Kpi>
+          <Card.Kpi.Label>
+            {createdLabel ?? (feminine ? "Criadas" : "Criados")}
+          </Card.Kpi.Label>
+          <Card.Kpi.Value status="ok">{result.created}</Card.Kpi.Value>
+        </Card.Kpi>
+        <Card.Kpi>
+          <Card.Kpi.Label>{`${ignoredLabel}s`}</Card.Kpi.Label>
+          <Card.Kpi.Value status="atencao">{result.skipped}</Card.Kpi.Value>
+        </Card.Kpi>
+        <Card.Kpi>
+          <Card.Kpi.Label>Com erro</Card.Kpi.Label>
+          <Card.Kpi.Value status="urgente">{result.failed}</Card.Kpi.Value>
+        </Card.Kpi>
       </div>
 
       {hasDetails && (
@@ -73,7 +76,7 @@ export function Summary<T extends ImportSummaryDetail>({
               <DetailLine
                 key={`ign-${detail.row}-${identify(detail)}`}
                 label={ignoredLabel}
-                tone="amber"
+                tone="warning"
                 identifier={identify(detail)}
                 detail={detail}
               />

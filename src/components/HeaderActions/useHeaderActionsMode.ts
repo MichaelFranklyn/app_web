@@ -87,12 +87,49 @@ export function useHeaderActionsMode({
 
       // Largura das ações em cada estágio de linha, alternando o atributo (o CSS
       // reage na hora; leitura síncrona, sem repintar).
+      // O "esticar para encher a linha" (data-actions-fill, ver PanelHeader.Actions)
+      // sai durante a medição: esticadas, as ações mediriam a linha inteira e a
+      // régua viraria circular.
+      const fill = header.getAttribute("data-actions-fill");
+      // Quando a linha esticada quebra (abaixo do desktop a busca vai para a
+      // linha dela — ver PanelHeader.Actions), os botões têm a linha inteira só
+      // para si. Sem descontar a busca, /factories no celular somava busca +
+      // botões, caía em `icon` e os botões ficavam sem título (14/11/2026).
+      // Liga o fill de propósito só para ler se o CSS quebra a linha (regra por
+      // viewport); no estágio column o atributo está fora e a leitura mentiria.
+      const prevModeForWrap = header.getAttribute("data-actions-mode");
+      header.setAttribute("data-actions-fill", "");
+      header.setAttribute("data-actions-mode", "full");
+      const wraps = getComputedStyle(actions).flexWrap === "wrap";
+      if (prevModeForWrap)
+        header.setAttribute("data-actions-mode", prevModeForWrap);
+      if (fill === null) header.removeAttribute("data-actions-fill");
+      const ownRowItems = wraps
+        ? Array.from(actions.children).filter(
+            (child) =>
+              child.matches("[data-input-root]") ||
+              child.querySelector("[data-input-root]") !== null
+          )
+        : [];
+      const actionsGap =
+        parseFloat(getComputedStyle(actions).columnGap || "0") || 0;
+      // Largura dos botões sem a busca; a busca, sozinha, nunca colapsa.
+      const rowWidth = () => {
+        if (ownRowItems.length === 0) return actions.offsetWidth;
+        const removed = ownRowItems.reduce(
+          (sum, item) => sum + (item as HTMLElement).offsetWidth + actionsGap,
+          0
+        );
+        return Math.max(0, actions.offsetWidth - removed);
+      };
+      if (fill !== null) header.removeAttribute("data-actions-fill");
       const prev = header.getAttribute("data-actions-mode");
       header.setAttribute("data-actions-mode", "full");
-      const fullWidth = actions.offsetWidth;
+      const fullWidth = rowWidth();
       header.setAttribute("data-actions-mode", "icon");
-      const iconWidth = actions.offsetWidth;
+      const iconWidth = rowWidth();
       if (prev) header.setAttribute("data-actions-mode", prev);
+      if (fill !== null) header.setAttribute("data-actions-fill", fill);
 
       setAvailable(avail);
       setOwnNeed((prevNeed) => {
@@ -112,9 +149,23 @@ export function useHeaderActionsMode({
     measure();
     const observer = new ResizeObserver(schedule);
     observer.observe(header);
+    // As ações também mudam de tamanho sozinhas: um badge que chega depois do
+    // carregamento alargava as ações sem mexer no header, o estágio ficava em
+    // `full` e o título era truncado ("Met…"). Na medição os atributos voltam
+    // ao valor anterior antes de pintar, então isso não cria laço.
+    observer.observe(actions);
+    // Abaixo do desktop as ações ficam ESTICADAS na linha (data-actions-fill):
+    // um botão que chega depois (gate de plano, "Higienizar" que depende do
+    // papel) só redivide a linha, a caixa não muda de tamanho e o
+    // ResizeObserver não dispara. Em /clients o estágio ficava `full` com 4
+    // botões transbordando (teste em aparelho, 13/11/2026). Entrar/sair um
+    // filho é o sinal direto para medir de novo.
+    const mutations = new MutationObserver(schedule);
+    mutations.observe(actions, { childList: true, subtree: true });
     return () => {
       cancelAnimationFrame(raf);
       observer.disconnect();
+      mutations.disconnect();
     };
   }, [headerRef, contentRef, actionsRef]);
 

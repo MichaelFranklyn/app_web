@@ -32,7 +32,10 @@ export function UploadSummary({ stats, sent, isLoading }: Props) {
         <Title variant="caption" color="muted">
           Enviando {sent} de {stats.matched} foto(s)…
         </Title>
-        <Progress value={stats.matched ? (sent / stats.matched) * 100 : 0} />
+        <Progress
+          value={stats.matched ? (sent / stats.matched) * 100 : 0}
+          label="Envio das fotos"
+        />
       </div>
     );
   }
@@ -44,13 +47,13 @@ export function UploadSummary({ stats, sent, isLoading }: Props) {
         salvar
       </Title>
       {stats.unmatched > 0 && (
-        <Title variant="caption" color="amber">
+        <Title variant="caption" color="warning">
           {stats.unmatched} sem produto correspondente — escolha o produto ou
           remova a foto.
         </Title>
       )}
       {stats.duplicated > 0 && (
-        <Title variant="caption" color="amber">
+        <Title variant="caption" color="warning">
           {stats.duplicated} produto(s) com mais de uma foto apontada.
         </Title>
       )}

@@ -51,21 +51,12 @@ export const CalendarBase = ({
         years_dropdown: calendarStyles.years_dropdown,
         day: calendarStyles.day,
         day_button: calendarStyles.day_button,
-        selected: calendarStyles.selected,
-        today: calendarStyles.today,
-        outside: calendarStyles.outside,
-        disabled: calendarStyles.disabled,
-        range_end: calendarStyles.range_end,
-        range_middle: calendarStyles.range_middle,
-        range_start: calendarStyles.range_start,
+        // Estados do dia: o `day` se pinta pelos `data-*` do <td>; o período
+        // não tem `data-*`, então vira classe-marcador (ver calendarStyles.day).
+        range_start: "cal-range-start",
+        range_middle: "cal-range-middle",
+        range_end: "cal-range-end",
         ...classNames,
-      }}
-      modifiersClassNames={{
-        selected: calendarStyles.selected,
-        today: calendarStyles.today,
-        range_start: calendarStyles.range_start,
-        range_middle: calendarStyles.range_middle,
-        range_end: calendarStyles.range_end,
       }}
       components={{
         Chevron: ({ orientation }) => {

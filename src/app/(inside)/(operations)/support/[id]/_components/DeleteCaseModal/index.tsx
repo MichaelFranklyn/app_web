@@ -36,7 +36,6 @@ export function DeleteCaseModal({ caseId, caseTitle }: Props) {
         appearance="outline"
         color="red"
         size="sm"
-        noUppercase
         onClick={() => setOpen(true)}
       >
         <Button.Icon icon={Trash2} />

@@ -60,7 +60,6 @@ export function UnsubscribeContent({ token }: Props) {
         appearance="solid"
         color="red"
         size="md"
-        noUppercase
         loading={isPending}
       >
         <Button.Icon icon={MailX} />

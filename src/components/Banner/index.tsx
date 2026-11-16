@@ -3,9 +3,9 @@ import { LucideIcon } from "lucide-react";
 import React from "react";
 
 const TONES = {
-  red: "bg-(--red)",
+  red: "bg-(--color-status-danger)",
   purple: "bg-(--purple)",
-  blue: "bg-(--blue)",
+  blue: "bg-(--color-status-info)",
 } as const;
 
 interface BannerProps extends React.HTMLAttributes<HTMLDivElement> {
@@ -22,6 +22,10 @@ interface BannerProps extends React.HTMLAttributes<HTMLDivElement> {
 /**
  * Faixa de largura total no topo do painel, acima da topbar: uma condição que
  * vale para a tela inteira enquanto durar. Texto em `Title color="inverse"`.
+ *
+ * QUANDO USAR: só condição GLOBAL do app (rede caiu, sessão emprestada, fila
+ * offline). Aviso de um trecho → `Alert.Root`; retorno de ação → `useToast`.
+ * Regras: PATTERNS/ds-usage-rules.md.
  */
 export const Banner = ({
   tone,
@@ -32,6 +36,10 @@ export const Banner = ({
   ...props
 }: BannerProps) => (
   <div
+    // Aparece quando a condição começa (caiu a rede, sessão emprestada): sem
+    // região viva, quem usa leitor de tela não fica sabendo. `status` não
+    // interrompe; o chamador passa `role="alert"` quando a condição trava.
+    role="status"
     className={cn(
       "flex flex-wrap items-center justify-between gap-8 px-16 py-8 text-white",
       TONES[tone],
@@ -40,7 +48,9 @@ export const Banner = ({
     {...props}
   >
     <div className="flex min-w-0 items-center gap-8">
-      <Icon size={16} className="shrink-0" aria-hidden />
+      <span className="grid size-[26px] shrink-0 place-items-center rounded-full bg-white/20">
+        <Icon size={14} aria-hidden />
+      </span>
       {children}
     </div>
     {action}

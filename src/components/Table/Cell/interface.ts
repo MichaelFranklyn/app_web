@@ -2,6 +2,29 @@ import React from "react";
 import { TableHeadAlign } from "../Head/interface";
 import { tableCellVariants } from "./style";
 
+/**
+ * Lugar da célula no cartão de `<Table.Table cards>` (abaixo de 1024px):
+ * - `title`: identidade da linha (cliente, produto), no alto;
+ * - `value`: o número que responde a lista, no alto à direita;
+ * - `status`: a etiqueta de situação, sob o valor;
+ * - `actions`: os botões da linha, no pé do cartão;
+ * - `aside`: um detalhe com controle (ex.: "Conferência: [Conferir]") que
+ *   divide a última linha com `actions`, em vez de o "…" ficar sozinho nela.
+ *   A célula `aside` vem logo ANTES da `actions` na linha;
+ * - `lead`: a caixa de seleção, à esquerda;
+ * - `hidden`: fica de fora do cartão (está no detalhe da entidade).
+ * Sem `card`, a célula é detalhe: uma linha rotulada por `label`.
+ */
+export type TableCardRole =
+  | "title"
+  | "value"
+  | "amount"
+  | "status"
+  | "actions"
+  | "aside"
+  | "lead"
+  | "hidden";
+
 export interface TableCellProps extends React.TdHTMLAttributes<HTMLTableCellElement> {
   variant?: keyof typeof tableCellVariants;
   flex?: boolean;
@@ -17,4 +40,11 @@ export interface TableCellProps extends React.TdHTMLAttributes<HTMLTableCellElem
    * dentro de outro componente, e `false` trava a célula em uma linha.
    */
   wrap?: boolean;
+  /** Lugar no cartão de `<Table.Table cards>` — ver `TableCardRole`. */
+  card?: TableCardRole;
+  /**
+   * Rótulo da célula de detalhe no cartão ("Fábrica: Herc"): lá o cabeçalho
+   * some, e o dado sozinho não diz o que é. Use o texto do `Table.Head`.
+   */
+  label?: string;
 }

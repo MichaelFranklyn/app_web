@@ -19,6 +19,9 @@ interface DeleteVisitResponse {
 }
 
 interface Props {
+  /** Controlado: o gatilho mora fora (o "⋯"/ícone da linha, em RowActions). */
+  open?: boolean;
+  onOpenChange?: (open: boolean) => void;
   visitId: string;
   visitLabel: string;
   onDeleted?: () => void;
@@ -34,8 +37,16 @@ export function DeleteVisitModal({
   onRemoveOptimistic,
   onCommit,
   onRollback,
+  open: controlledOpen,
+  onOpenChange,
 }: Props) {
-  const [open, setOpen] = useState(false);
+  const [uncontrolledOpen, setUncontrolledOpen] = useState(false);
+  const isControlled = controlledOpen !== undefined;
+  const open = isControlled ? controlledOpen : uncontrolledOpen;
+  const setOpen = (value: boolean) => {
+    if (isControlled) onOpenChange?.(value);
+    else setUncontrolledOpen(value);
+  };
   const invalidateClient = useInvalidateQueriesClient();
   const [deleteVisit] = useMutation<DeleteVisitResponse>(
     DELETE_VISIT_SCHEDULE_ITEM_MUTATION
@@ -73,16 +84,18 @@ export function DeleteVisitModal({
 
   return (
     <Modal.Root open={open} onOpenChange={setOpen}>
-      <Modal.Trigger asChild>
-        <Button.Root
-          appearance="ghost"
-          color="red"
-          size="sm"
-          aria-label="Remover visita"
-        >
-          <Button.Icon icon={Trash2} />
-        </Button.Root>
-      </Modal.Trigger>
+      {!isControlled && (
+        <Modal.Trigger asChild>
+          <Button.Root
+            appearance="ghost"
+            color="red"
+            size="sm"
+            aria-label="Remover visita"
+          >
+            <Button.Icon icon={Trash2} />
+          </Button.Root>
+        </Modal.Trigger>
+      )}
 
       <Modal.Content size="md">
         <Modal.Header
@@ -96,7 +109,6 @@ export function DeleteVisitModal({
               appearance="ghost"
               color="neutral"
               size="md"
-              noUppercase
               disabled={isLoading}
             >
               <Button.Title>Cancelar</Button.Title>
@@ -107,7 +119,6 @@ export function DeleteVisitModal({
             appearance="solid"
             color="red"
             size="md"
-            noUppercase
             loading={isLoading}
             onClick={handleConfirm}
           >

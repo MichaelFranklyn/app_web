@@ -64,7 +64,7 @@ export function FixedSchedulesSection({ sellerId }: Props) {
             label="O que é um dia fixo?"
             content={
               <div className="flex flex-col gap-2">
-                <Title variant="label" color="amber">
+                <Title variant="label" weight="semibold">
                   Dia fixo
                 </Title>
                 <Title variant="body-sm">

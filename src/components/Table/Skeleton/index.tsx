@@ -7,6 +7,12 @@ interface TableSkeletonProps {
   rows?: number;
 }
 
+/**
+ * QUANDO USAR: dentro de `Table.Body` enquanto a primeira página da lista
+ * carrega. `columns` = número de colunas do cabeçalho, para a grade não pular.
+ * Recarga com dados já na tela (filtro, página) não troca as linhas por
+ * esqueleto. Regras: PATTERNS/ds-usage-rules.md.
+ */
 export const Skeleton = ({ columns, rows = 5 }: TableSkeletonProps) => (
   <>
     {Array.from({ length: rows }).map((_, rowIdx) => (

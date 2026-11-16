@@ -15,8 +15,14 @@
 // de cada lado. Numa tabela de oito colunas são 64px devolvidos ao dado — a
 // diferença entre a lista de pedidos caber ou rolar em 1280px. Em tela grande
 // volta ao normal.
-export const tableCellBase =
-  "px-16 desktop:px-12 desktop-xl:px-16 py-12 align-middle whitespace-nowrap border-b border-(--border) group-last:border-b-0";
+// Link de texto na célula (o nº do pedido, o nome do cliente): sozinho tinha
+// 18px de altura, abaixo do alvo mínimo de 24px (WCAG 2.5.8). O `py-3 -my-3`
+// cresce a área de clique sem crescer a linha. Mira só o `TextLink`
+// (`data-text-link`): um `Button.Link` na célula já tem o tamanho dele.
+const tableCellLinkTarget =
+  "[&_a[data-text-link]]:inline-block [&_a[data-text-link]]:py-3 [&_a[data-text-link]]:-my-3";
+
+export const tableCellBase = `px-16 desktop:px-12 desktop-xl:px-16 py-12 align-middle whitespace-nowrap border-b border-(--border) group-last:border-b-0 ${tableCellLinkTarget}`;
 
 export const tableCellFlex = "flex items-center gap-8";
 
@@ -31,11 +37,11 @@ export const tableCellAlignStyle = {
 } as const;
 
 export const tableCellVariants = {
-  default: "text-(--text2)",
-  strong: "text-(--text) font-medium",
-  mono: "font-mono text-(--text2)",
-  dim: "text-(--muted) text-[13px]",
-  dim2: "text-(--muted2) text-[13px]",
+  default: "text-(--color-text-secondary)",
+  strong: "text-(--color-text) font-medium",
+  mono: "font-body text-(--color-text-secondary)",
+  dim: "text-(--color-text-muted) text-body-sm",
+  dim2: "text-(--color-text-muted) text-body-sm",
   // Linha-título de um grupo (a tabela de preço sobre os seus itens).
-  group: "bg-(--bg3) text-(--text2)",
+  group: "bg-(--bg3) text-(--color-text-secondary)",
 } as const;

@@ -20,6 +20,7 @@ import {
   paymentHeight,
   totalsHeight,
 } from "./summary";
+import { formatOrderNumber } from "@/utils/orderNumber";
 
 export interface PdfBranding {
   companyLogoUrl?: string | null;
@@ -96,7 +97,7 @@ export const buildOrderPdf = async (
 
   const quote = isQuote(order.status);
   const docKind = quote ? "Orçamento" : "Pedido";
-  const number = order.id.slice(0, 8).toUpperCase();
+  const number = formatOrderNumber(order.number);
 
   let y = drawHeader(pdf, {
     docKind,
@@ -157,7 +158,7 @@ export const buildOrderPdf = async (
 
   drawFooters(pdf, brandLogo);
 
-  return { pdf, fileName: `${docKind.toLowerCase()}-${number}.pdf` };
+  return { pdf, fileName: `${docKind.toLowerCase()}-${order.number}.pdf` };
 };
 
 /** Gera e baixa o PDF do pedido para o vendedor compartilhar com o cliente. */

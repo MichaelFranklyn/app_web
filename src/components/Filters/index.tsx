@@ -4,6 +4,7 @@ import { Button } from "@/components/Button";
 import { useAnchoredDropdown } from "@/hooks/useAnchoredDropdown";
 import { SlidersHorizontal } from "lucide-react";
 import { FilterPanel } from "./FilterPanel";
+import { ResultAnnouncer } from "./ResultAnnouncer";
 import { FiltersProps } from "./interface";
 import { usePanelPosition } from "./usePanelPosition";
 import { activeFilterCount, fieldKeys, visibleFields } from "./utils";
@@ -35,7 +36,10 @@ export function Filters({
   onChange,
   onTextChange,
   label = "Filtros",
+  resultCount,
+  resultLoading = false,
   "data-tour": dataTour,
+  fullWidthBelowDesktop = false,
 }: FiltersProps) {
   const { containerRef, floatingRef, open, setOpen, anchor, position } =
     useAnchoredDropdown(CHILD_PANELS);
@@ -68,20 +72,28 @@ export function Filters({
   return (
     <div
       ref={containerRef}
-      className="relative inline-flex"
+      className={
+        fullWidthBelowDesktop
+          ? "max-desktop:flex max-desktop:w-full relative inline-flex"
+          : "relative inline-flex"
+      }
       data-tour={dataTour}
     >
       <Button.Root
         appearance={count > 0 ? "outline" : "ghost"}
         color="neutral"
         size="sm"
-        noUppercase
         active={open}
         onClick={handleToggle}
+        fullWidthBelowDesktop={fullWidthBelowDesktop}
       >
         <Button.Icon icon={SlidersHorizontal} />
         <Button.Title>{count > 0 ? `${label} (${count})` : label}</Button.Title>
       </Button.Root>
+
+      {resultCount !== undefined && (
+        <ResultAnnouncer count={resultLoading ? undefined : resultCount} />
+      )}
 
       {open && portalTarget && (
         <FilterPanel

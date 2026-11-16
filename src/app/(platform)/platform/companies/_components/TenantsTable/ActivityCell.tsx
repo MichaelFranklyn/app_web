@@ -21,7 +21,7 @@ export function ActivityCell({ lastLoginAt }: { lastLoginAt: string | null }) {
   const tone = activityTone(days);
 
   return (
-    <Table.Cell className="whitespace-nowrap">
+    <Table.Cell label="Último acesso" className="whitespace-nowrap">
       <Title
         variant="body-sm"
         color={TONE_COLOR[tone]}

@@ -36,6 +36,14 @@ describe("Stepper.Trail", () => {
     screen.getByText("Arquivo").click();
     expect(onChange).toHaveBeenCalledWith(0);
 
+    // Passo futuro nunca: pular pela faixa deixava chegar à "Revisão" sem
+    // arquivo nem colunas. Avançar é o botão do passo, que confere o que falta.
+    onChange.mockClear();
+    rerender(<Stepper.Trail steps={STEPS} current={0} onChange={onChange} />);
+    screen.getByText("Colunas").click();
+    screen.getByText("Revisão").click();
+    expect(onChange).not.toHaveBeenCalled();
+
     // Sem `onChange` a trilha é só indicação: nada é clicável.
     onChange.mockClear();
     rerender(<Stepper.Trail steps={STEPS} current={2} />);

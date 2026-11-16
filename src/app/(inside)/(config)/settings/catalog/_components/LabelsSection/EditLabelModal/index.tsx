@@ -1,5 +1,6 @@
 "use client";
 
+import type { CatalogModalControl } from "../../../interface";
 import { Button } from "@/components/Button";
 import {
   FormBuilder,
@@ -9,8 +10,7 @@ import {
 import { Modal } from "@/components/Modal";
 import { useAsyncAction } from "@/hooks/useAsyncAction";
 import { useMutation } from "@apollo/client/react";
-import { Pencil } from "lucide-react";
-import { useMemo, useRef, useState } from "react";
+import { useMemo, useRef } from "react";
 import { UPDATE_PRODUCT_UNIT_LABEL_MUTATION } from "../../../gql";
 import {
   EditLabelModalProps,
@@ -23,8 +23,9 @@ export function EditLabelModal({
   onCommit,
   onRollback,
   onDone,
-}: EditLabelModalProps) {
-  const [open, setOpen] = useState(false);
+  open,
+  onOpenChange: setOpen,
+}: EditLabelModalProps & CatalogModalControl) {
   const formRef = useRef<FormBuilderRef>(null);
   const [updateLabel] = useMutation<UpdateProductUnitLabelResponse>(
     UPDATE_PRODUCT_UNIT_LABEL_MUTATION
@@ -91,17 +92,6 @@ export function EditLabelModal({
 
   return (
     <Modal.Root open={open} onOpenChange={setOpen}>
-      <Modal.Trigger asChild>
-        <Button.Root
-          appearance="ghost"
-          color="neutral"
-          size="sm"
-          isIconOnly
-          label="Editar rótulo"
-        >
-          <Button.Icon icon={Pencil} />
-        </Button.Root>
-      </Modal.Trigger>
       <Modal.Content size="sm">
         <Modal.Header
           title="Editar rótulo"
@@ -124,7 +114,6 @@ export function EditLabelModal({
               appearance="ghost"
               color="neutral"
               size="md"
-              noUppercase
               disabled={isLoading}
             >
               <Button.Title>Cancelar</Button.Title>
@@ -135,7 +124,6 @@ export function EditLabelModal({
             appearance="solid"
             color="amber"
             size="md"
-            noUppercase
             loading={isLoading}
             onClick={() => formRef.current?.submitForm()}
           >

@@ -15,12 +15,17 @@ export interface ButtonProps extends ButtonHTMLAttributes<HTMLButtonElement> {
   isIconOnly?: boolean;
   active?: boolean;
   noPadding?: boolean;
-  noUppercase?: boolean;
   /**
    * Borda tracejada que acende em âmbar no hover: o "adicionar" que ocupa o
    * lugar do item que ainda não existe (fim de lista, célula vazia).
    */
   dashed?: boolean;
+  /**
+   * Abaixo do desktop o botão ocupa a linha inteira E ganha o fundo do tinted
+   * da cor: esticado sem fundo (ghost/outline), ele se lia como uma sobra em
+   * branco na linha, e não como botão. O desktop não muda.
+   */
+  fullWidthBelowDesktop?: boolean;
   shape?: ButtonShape;
   /**
    * Nome acessível + tooltip nativo do botão. Obrigatório na prática para

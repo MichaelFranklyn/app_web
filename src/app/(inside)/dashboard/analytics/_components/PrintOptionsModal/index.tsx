@@ -75,7 +75,6 @@ export function PrintOptionsModal({
                 appearance="outline"
                 color="neutral"
                 size="sm"
-                noUppercase
                 onClick={selectAll}
               >
                 <Button.Title>Marcar tudo</Button.Title>
@@ -85,7 +84,6 @@ export function PrintOptionsModal({
                 appearance="ghost"
                 color="neutral"
                 size="sm"
-                noUppercase
                 onClick={clearAll}
               >
                 <Button.Title>Limpar</Button.Title>
@@ -166,7 +164,6 @@ export function PrintOptionsModal({
               appearance="ghost"
               color="neutral"
               size="md"
-              noUppercase
               disabled={exporting}
             >
               <Button.Title>Cancelar</Button.Title>
@@ -177,7 +174,6 @@ export function PrintOptionsModal({
             appearance="solid"
             color="amber"
             size="md"
-            noUppercase
             loading={exporting}
             disabled={!canPrint}
             onClick={onConfirm}

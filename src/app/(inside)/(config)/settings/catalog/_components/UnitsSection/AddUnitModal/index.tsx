@@ -101,7 +101,6 @@ export function AddUnitModal({ onAddOptimistic, onDone }: AddUnitModalProps) {
               appearance="ghost"
               color="neutral"
               size="md"
-              noUppercase
               disabled={isLoading}
             >
               <Button.Title>Cancelar</Button.Title>
@@ -112,7 +111,6 @@ export function AddUnitModal({ onAddOptimistic, onDone }: AddUnitModalProps) {
             appearance="solid"
             color="amber"
             size="md"
-            noUppercase
             loading={isLoading}
             onClick={() => formRef.current?.submitForm()}
           >

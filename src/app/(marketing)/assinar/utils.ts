@@ -1,4 +1,5 @@
 import { ANNUAL_BILLED_MONTHS, MarketingPlan, PLANS } from "../plans";
+import { monthlyTotalFor } from "../pricing";
 import { BillingCycle, CardData, ChargeOutcome } from "./interface";
 
 /**
@@ -14,17 +15,20 @@ export function findPlanByCode(code: string | null): MarketingPlan | null {
   return PLANS.find((plan) => plan.code === code) ?? null;
 }
 
-/** O que a assinatura custaria no ciclo escolhido. Anual cobra
- * `ANNUAL_BILLED_MONTHS` meses por doze de uso. */
+/** O que a assinatura custaria no ciclo escolhido, com `users` logins (os
+ * usuários a mais entram na mensalidade). Anual cobra `ANNUAL_BILLED_MONTHS`
+ * meses por doze de uso — a conta em centavos, como em `pricing.ts`. */
 export function totalForCycle(
   plan: MarketingPlan,
-  cycle: BillingCycle
+  cycle: BillingCycle,
+  users: number = plan.includedUsers ?? 1
 ): number | null {
-  if (plan.demoMonthlyPrice === null) return null;
+  const monthly = monthlyTotalFor(plan, users);
+  if (monthly === null) return null;
 
   return cycle === "annual"
-    ? plan.demoMonthlyPrice * ANNUAL_BILLED_MONTHS
-    : plan.demoMonthlyPrice;
+    ? (Math.round(monthly * 100) * ANNUAL_BILLED_MONTHS) / 100
+    : monthly;
 }
 
 /** Só dígitos, para comparar cartão e conferir tamanho. */

@@ -18,6 +18,11 @@ interface UseAsyncSelectOptionsArgs<TData, TNode> {
   getConnection: (data: TData) => {
     edges: { node: TNode }[];
     totalCount?: number;
+    /**
+     * Com `pageInfo { hasNextPage endCursor }` na query, a lista vira busca
+     * paginada: rolar até o fim traz a próxima página (`onLoadMore`).
+     */
+    pageInfo?: { hasNextPage: boolean; endCursor?: string | null };
   };
   /** Converte um nó em opção do select. */
   toOption: (node: TNode) => SelectOption;
@@ -85,7 +90,7 @@ export function useAsyncSelectOptions<TData, TNode>({
   // Mesmo motivo do `baseFiltersKey`: o chamador monta o objeto inline.
   const orderKey = JSON.stringify(order ?? null);
 
-  const variables = useMemo(() => {
+  const baseVariables = useMemo(() => {
     const value = debounced.trim();
     const filters = [
       ...(JSON.parse(baseFiltersKey) as {
@@ -108,15 +113,73 @@ export function useAsyncSelectOptions<TData, TNode>({
     };
   }, [first, debounced, searchField, baseFiltersKey, orderKey]);
 
+  // A "busca" atual (termo + escopo). Trocou, a paginação recomeça do zero.
+  const searchKey = JSON.stringify(baseVariables);
+
+  // Cursor da página pedida pela rolagem — só vale para a busca em que nasceu.
+  const [cursor, setCursor] = useState<{ key: string; after: string } | null>(
+    null
+  );
+  const after = cursor?.key === searchKey ? cursor.after : null;
+
+  const variables = useMemo(
+    () =>
+      after ? { input: { ...baseVariables.input, after } } : baseVariables,
+    [baseVariables, after]
+  );
+
   const { data, loading } = useAsyncQuery<TData>(query, { variables, skip });
 
   // Encadeamento opcional de propósito: com `errorPolicy: "all"`, uma query que
   // falha em parte entrega `data` sem a chave da connection. Sem isso, um
   // select de apoio quebrava a PÁGINA inteira que o hospeda.
-  const nodes = useMemo<TNode[]>(
-    () => (data ? (getConnection(data)?.edges?.map((e) => e.node) ?? []) : []),
-    [data, getConnection]
+  const connection = data ? getConnection(data) : undefined;
+  const pageNodes = useMemo<TNode[]>(
+    () => connection?.edges?.map((e) => e.node) ?? [],
+    [connection]
   );
+
+  // Páginas já carregadas desta busca, na ordem. A página nova se soma às
+  // anteriores; uma busca nova começa a lista de novo.
+  const [loaded, setLoaded] = useState<{
+    key: string;
+    after: string | null;
+    nodes: TNode[];
+    endCursor: string | null;
+    hasNextPage: boolean;
+  } | null>(null);
+
+  useEffect(() => {
+    if (!connection || loading) return;
+    const endCursor = connection.pageInfo?.endCursor ?? null;
+    const hasNextPage = connection.pageInfo?.hasNextPage ?? false;
+    setLoaded((prev) => {
+      if (prev && prev.key === searchKey && prev.after === after) return prev;
+      const base = after && prev && prev.key === searchKey ? prev.nodes : [];
+      return {
+        key: searchKey,
+        after,
+        nodes: after ? [...base, ...pageNodes] : pageNodes,
+        endCursor,
+        hasNextPage,
+      };
+    });
+  }, [connection, loading, pageNodes, searchKey, after]);
+
+  const current = loaded?.key === searchKey ? loaded : null;
+  // Enquanto a 2ª página chega, a lista mostra as já carregadas.
+  const nodes = current ? current.nodes : pageNodes;
+  const hasMore = current
+    ? current.hasNextPage
+    : (connection?.pageInfo?.hasNextPage ?? false);
+  const endCursor = current
+    ? current.endCursor
+    : (connection?.pageInfo?.endCursor ?? null);
+
+  const onLoadMore = useCallback(() => {
+    if (!hasMore || !endCursor || loading) return;
+    setCursor({ key: searchKey, after: endCursor });
+  }, [hasMore, endCursor, loading, searchKey]);
 
   const options = useMemo<SelectOption[]>(
     () => nodes.map(toOption),
@@ -129,18 +192,24 @@ export function useAsyncSelectOptions<TData, TNode>({
   // página (a que vem SEM termo) já trouxe tudo, o select filtra em memória.
   // A decisão é tomada uma vez e mantida — trocar de modo no meio da digitação
   // faria a lista piscar entre dois comportamentos.
-  const completeRef = useRef<boolean | null>(null);
-  const connection = data ? getConnection(data) : undefined;
+  // A decisão vale para o ESCOPO (filtros-base): trocou a fábrica do catálogo,
+  // decide de novo — a fábrica anterior podia ser pequena e esta, grande.
+  const completeRef = useRef<{ scope: string; complete: boolean } | null>(null);
   const total = connection?.totalCount;
+  if (completeRef.current?.scope !== baseFiltersKey) completeRef.current = null;
   if (
     completeRef.current === null &&
     !debounced.trim() &&
+    !after &&
     total !== undefined &&
     !loading
   ) {
-    completeRef.current = nodes.length >= total;
+    completeRef.current = {
+      scope: baseFiltersKey,
+      complete: pageNodes.length >= total,
+    };
   }
-  const isComplete = completeRef.current === true;
+  const isComplete = completeRef.current?.complete === true;
 
   // `nodes` são os mesmos itens de `options`, ainda inteiros: quem precisa de um
   // atributo que não cabe no par value/label (o rótulo da embalagem do produto,
@@ -152,5 +221,9 @@ export function useAsyncSelectOptions<TData, TNode>({
     /** `undefined` quando a lista inteira já está na mão (filtro local). */
     onSearch: isComplete ? undefined : onSearch,
     isComplete,
+    /** Há mais páginas desta busca no servidor (pede `pageInfo` na query). */
+    hasMore: !isComplete && hasMore,
+    /** Traz a próxima página — o select chama ao rolar até o fim. */
+    onLoadMore,
   };
 }

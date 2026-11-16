@@ -13,7 +13,7 @@ import type { Metadata } from "next";
  * resultado de busca de qualquer um.
  */
 export const metadata: Metadata = {
-  title: "Suas compras",
+  title: "Portal do cliente",
   robots: { index: false, follow: false },
 };
 

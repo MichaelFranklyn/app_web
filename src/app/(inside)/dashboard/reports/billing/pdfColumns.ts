@@ -3,6 +3,7 @@ import { ReportColumn } from "@/utils/pdf/table";
 
 import { BillingRow } from "./interface";
 import { BILLING_SITUATION_LABEL, dueDateLabel, overdueLabel } from "./utils";
+import { visibleCommission } from "@/utils/commission";
 
 /**
  * Colunas do PDF das duplicatas, na mesma ordem da tela — quem imprime está
@@ -60,6 +61,6 @@ export const BILLING_PDF_COLUMNS: ReportColumn<BillingRow>[] = [
     header: "COMISSÃO",
     width: 9,
     align: "right",
-    value: (row) => formatMoney(row.commissionAmount),
+    value: (row) => formatMoney(visibleCommission(row)),
   },
 ];

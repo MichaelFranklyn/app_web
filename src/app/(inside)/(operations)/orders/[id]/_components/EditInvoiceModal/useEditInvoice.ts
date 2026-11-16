@@ -1,5 +1,6 @@
 "use client";
 
+import { useControlledOpen } from "@/hooks/useControlledOpen";
 import { FormBuilderRef, FormStepSchema } from "@/components/FormBuilder";
 import { useAsyncAction } from "@/hooks/useAsyncAction";
 import { useInvalidateQueriesClient } from "@/hooks/useInvalidateQueries";
@@ -34,8 +35,16 @@ export type PendingAction = "undoDelivery" | "redoInvoice" | null;
  * inteiro (que é o caminho para trocar as quantidades faturadas — ver
  * `uninvoiceOrder` no backend).
  */
-export function useEditInvoice(order: OrderDetail, onSuccess: () => void) {
-  const [open, setOpen] = useState(false);
+export function useEditInvoice(
+  order: OrderDetail,
+  onSuccess: () => void,
+  openProp?: boolean,
+  onOpenChange?: (open: boolean) => void
+) {
+  const { open, setOpen, isControlled } = useControlledOpen(
+    openProp,
+    onOpenChange
+  );
   const [pendingAction, setPendingAction] = useState<PendingAction>(null);
   const [termId, setTermId] = useState<string | null>(order.paymentTermId);
   // Por que o faturamento está sendo desfeito/refeito. Vai para o histórico do
@@ -269,6 +278,7 @@ export function useEditInvoice(order: OrderDetail, onSuccess: () => void) {
 
   return {
     open,
+    isControlled,
     handleClose,
     formRef,
     steps,

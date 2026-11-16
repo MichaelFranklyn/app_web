@@ -6,9 +6,11 @@ export interface CreateOrderResponse {
     message: string;
     data: {
       id: string;
+      number: number;
       orderDate: string;
       totalAmount: string;
-      commissionAmount: string;
+      commissionAmount: string | null;
+      sellerCommissionAmount: string;
       status: string;
       seller: { id: string; name: string } | null;
       client: {

@@ -27,6 +27,21 @@ export const panelActionsStyle = [
   // acessível do botão. Com `display:none` o leitor de tela (e o teste)
   // encontrava um botão sem nome nenhum — só um ícone.
   "group-data-[actions-mode=icon]/panelhead:[&_*:has(>svg)>[data-button-title]]:sr-only",
+  // Abaixo do desktop, nos estágios de linha, as ações DIVIDEM a linha: botões
+  // curtos à esquerda deixavam a linha com sobra vazia no fim (regra das telas
+  // abaixo do desktop). `data-actions-fill` sai durante a medição, então a
+  // régua continua sendo o tamanho natural.
+  "max-desktop:group-data-[actions-fill]/panelhead:w-full",
+  "max-desktop:group-data-[actions-fill]/panelhead:shrink",
+  "max-desktop:group-data-[actions-fill]/panelhead:[&>*]:flex-1",
+  "max-desktop:group-data-[actions-fill]/panelhead:[&>*]:min-w-0",
+  "max-desktop:group-data-[actions-fill]/panelhead:[&>*>button]:w-full",
+  "max-desktop:group-data-[actions-fill]/panelhead:[&>div]:flex",
+  // A busca não divide: fica com a linha dela e os botões vão para a de baixo.
+  "max-desktop:group-data-[actions-fill]/panelhead:flex-wrap",
+  "max-desktop:group-data-[actions-fill]/panelhead:[&>*:has([data-input-root])]:basis-full",
+  "max-desktop:group-data-[actions-fill]/panelhead:[&>[data-input-root]]:basis-full",
+  "max-desktop:group-data-[actions-fill]/panelhead:[&_[data-input-root]]:w-full",
   // Estágio column: empilha tudo full-width, cada item no seu mínimo. Inclui o
   // caso comum de um <div> interno agrupando controles (ele também empilha).
   "group-data-[actions-mode=column]/panelhead:w-full",
@@ -35,6 +50,9 @@ export const panelActionsStyle = [
   "group-data-[actions-mode=column]/panelhead:[&>div]:w-full",
   "group-data-[actions-mode=column]/panelhead:[&>div]:flex-col",
   "group-data-[actions-mode=column]/panelhead:[&>div]:items-stretch",
+  // Botão embrulhado (menu "…", dropdown de exportar): o wrapper estica, o
+  // botão de dentro também — senão o "…" ficava pequeno no meio da pilha.
+  "group-data-[actions-mode=column]/panelhead:[&>*>button]:w-full",
   "group-data-[actions-mode=column]/panelhead:[&_[data-input-root]]:w-full",
   "group-data-[actions-mode=column]/panelhead:[&_[data-badge]]:w-full",
   "group-data-[actions-mode=column]/panelhead:[&_[data-badge]]:justify-center",

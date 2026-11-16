@@ -190,9 +190,10 @@ export const emptyDashboardQueries: Record<string, Handler> = {
 export function orderDetailData(overrides: Record<string, unknown> = {}) {
   return {
     id: "order-1",
+    number: 1,
     orderDate: "2026-06-22",
     totalAmount: "1000.00",
-    commissionAmount: "100.00",
+    sellerCommissionAmount: "100.00",
     status: "DRAFT",
     freightType: null,
     fileUrl: null,

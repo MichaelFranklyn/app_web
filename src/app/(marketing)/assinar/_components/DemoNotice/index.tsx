@@ -9,14 +9,19 @@ import { DEMO_CARDS } from "../../utils";
  *
  * Traz também os cartões de teste, porque quem abre esta página está avaliando
  * o fluxo — inclusive a tela de recusa.
+ *
+ * Faixa em tom de AVISO, não âmbar: âmbar é só do que é interativo.
  */
 export function DemoNotice() {
   return (
-    <div className="flex flex-col gap-8 rounded-(--radius-md) border border-(--amber-bd) bg-(--amber-bg) p-16">
+    <div className="flex flex-col gap-8 rounded-(--radius-md) border border-(--color-status-warning-bd) bg-(--color-status-warning-bg) p-16">
       <div className="flex items-center gap-8">
-        <FlaskConical size={16} className="shrink-0 text-(--amber)" />
+        <FlaskConical
+          size={16}
+          className="shrink-0 text-(--color-status-warning)"
+        />
 
-        <Title variant="heading-sm" color="amber">
+        <Title variant="heading-sm" color="warning">
           Simulação — nenhum pagamento é processado
         </Title>
       </div>

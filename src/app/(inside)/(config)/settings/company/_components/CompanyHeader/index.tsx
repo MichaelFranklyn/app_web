@@ -1,10 +1,10 @@
 "use client";
 
+import { DocumentNumber } from "@/components/DocumentNumber";
 import { Avatar } from "@/components/Avatar";
 import { Badge } from "@/components/Badges";
 import { PanelHeader } from "@/components/PanelHeader";
 import { companyInitials } from "@/utils/company";
-import { maskCNPJ } from "@/utils/format/masks";
 import { mediaUrl } from "@/utils/media";
 import { MyCompany } from "../../interface";
 
@@ -34,7 +34,7 @@ export function CompanyHeader({ company }: Props) {
               <div className="flex flex-col">
                 <PanelHeader.Title>{name}</PanelHeader.Title>
                 <PanelHeader.Description>
-                  CNPJ {maskCNPJ(company.cnpj)}
+                  CNPJ <DocumentNumber value={company.cnpj} />
                 </PanelHeader.Description>
               </div>
             </div>

@@ -4,6 +4,9 @@ import { PlatformTenant } from "../interface";
 export interface TenantDetail extends PlatformTenant {
   maxUsers: number | null;
   maxSellers: number | null;
+  /** Usuários comprados além do plano. Somam no teto de pessoas e no de
+   * vendedores (ver `effectiveSeatLimit`). */
+  extraUsers: number;
 }
 
 export interface TenantUser {
@@ -84,7 +87,7 @@ export interface UpdateTenantPlanData {
   updateTenantPlan: MutationResponse<
     Pick<
       TenantDetail,
-      "id" | "plan" | "trialEndsAt" | "maxUsers" | "maxSellers"
+      "id" | "plan" | "trialEndsAt" | "maxUsers" | "maxSellers" | "extraUsers"
     >
   >;
 }

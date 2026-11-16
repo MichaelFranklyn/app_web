@@ -1,7 +1,7 @@
 "use client";
 
-import { StatCard } from "@/components/StatCard";
-import { TitleColor } from "@/components/Title";
+import { Card } from "@/components/Card";
+import type { KpiStatus } from "@/components/Card/Kpi";
 import { SUPPORT_STATUS_LABEL, SupportStatus } from "@/utils/support";
 
 import { SupportCountsData } from "../../interface";
@@ -17,11 +17,11 @@ interface Props {
  * Resolvido e cancelado ficam de fora: a fila existe para o que falta fazer, e
  * um cartão de "resolvidos" no topo só empurra os outros para baixo.
  */
-const SHOWN: { status: SupportStatus; tone: TitleColor }[] = [
-  { status: "OPEN", tone: "red" },
-  { status: "IN_PROGRESS", tone: "amber" },
-  { status: "WAITING_FACTORY", tone: "blue" },
-  { status: "WAITING_CLIENT", tone: "blue" },
+const SHOWN: { status: SupportStatus; tone: KpiStatus }[] = [
+  { status: "OPEN", tone: "urgente" },
+  { status: "IN_PROGRESS", tone: "atencao" },
+  { status: "WAITING_FACTORY", tone: "info" },
+  { status: "WAITING_CLIENT", tone: "info" },
 ];
 
 export function SupportCounts({ data }: Props) {
@@ -35,12 +35,14 @@ export function SupportCounts({ data }: Props) {
       data-tour="support-counts"
     >
       {SHOWN.map(({ status, tone }) => (
-        <StatCard
-          key={status}
-          label={SUPPORT_STATUS_LABEL[status]}
-          value={byStatus.get(status) ?? 0}
-          tone={tone}
-        />
+        <Card.Kpi key={status}>
+          <Card.Kpi.Label>{SUPPORT_STATUS_LABEL[status]}</Card.Kpi.Label>
+          <Card.Kpi.Value
+            status={(byStatus.get(status) ?? 0) > 0 ? tone : "neutral"}
+          >
+            {byStatus.get(status) ?? 0}
+          </Card.Kpi.Value>
+        </Card.Kpi>
       ))}
     </div>
   );

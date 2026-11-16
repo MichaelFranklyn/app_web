@@ -1,11 +1,11 @@
 "use client";
 
+import { DocumentNumber } from "@/components/DocumentNumber";
 import { Badge } from "@/components/Badges";
 import { Breadcrumb } from "@/components/Breadcrumb";
 import { PanelHeader } from "@/components/PanelHeader";
 import { Avatar } from "@/components/Avatar";
 import { factoryName } from "@/utils/company";
-import { maskCNPJ } from "@/utils/format/masks";
 import { mediaUrl } from "@/utils/media";
 import { CompanyFactoryDetail } from "../../interface";
 import { isContractExpired } from "../../../utils";
@@ -50,10 +50,10 @@ export function FactoryPageHeader({ companyFactory }: Props) {
               <PanelHeader.Title>{name}</PanelHeader.Title>
             </div>
             <PanelHeader.Description>
-              {city} · CNPJ {maskCNPJ(factory.cnpj)}
+              {city} · CNPJ <DocumentNumber value={factory.cnpj} />
             </PanelHeader.Description>
             <PanelHeader.Actions
-              className="mt-6"
+              className="max-tablet:mt-16 mt-6"
               data-tour="factory-detail-actions"
             >
               <Badge.Root

@@ -55,7 +55,7 @@ export function FactoryStockCard({ summary, onSelect }: Props) {
           <Title variant="micro" color="secondary">
             Ver produtos
           </Title>
-          <ChevronRight size={14} className="text-(--muted)" />
+          <ChevronRight size={14} className="text-(--color-text-muted)" />
         </div>
       </div>
     </Card.Button>

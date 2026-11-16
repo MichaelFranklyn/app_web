@@ -190,7 +190,12 @@ export function SettlePeriodModal({
   return (
     <Modal.Root open={open} onOpenChange={handleClose}>
       <Modal.Trigger asChild>
-        <Button.Root appearance="outline" color="neutral" size="sm">
+        <Button.Root
+          appearance="outline"
+          color="neutral"
+          size="sm"
+          className="max-desktop:w-full"
+        >
           <Button.Icon icon={CheckCheck} />
           <Button.Title>Dar baixa em período</Button.Title>
         </Button.Root>
@@ -304,7 +309,6 @@ export function SettlePeriodModal({
               appearance="ghost"
               color="neutral"
               size="md"
-              noUppercase
               disabled={isLoading}
             >
               <Button.Title>Cancelar</Button.Title>
@@ -315,7 +319,6 @@ export function SettlePeriodModal({
             appearance="solid"
             color="amber"
             size="md"
-            noUppercase
             loading={isLoading}
             disabled={!canSubmit}
             onClick={handleConfirm}

@@ -160,7 +160,6 @@ function ProductStockCard({
             appearance="ghost"
             color="neutral"
             size="sm"
-            noUppercase
             disabled={!canEdit}
             onClick={onToggleEdit}
           >

@@ -88,7 +88,6 @@ export function DepartureModal({
                 appearance="ghost"
                 color="neutral"
                 size="md"
-                noUppercase
                 disabled={isLoading}
               >
                 <Button.Title>Cancelar</Button.Title>
@@ -99,7 +98,6 @@ export function DepartureModal({
               appearance="solid"
               color="amber"
               size="md"
-              noUppercase
               loading={isLoading}
               onClick={applyHome}
             >

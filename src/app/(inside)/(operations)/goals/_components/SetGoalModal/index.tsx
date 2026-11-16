@@ -29,7 +29,12 @@ export function SetGoalModal(props: SetGoalModalProps) {
     <Modal.Root open={open} onOpenChange={handleClose}>
       <Modal.Trigger asChild>
         {props.trigger ?? (
-          <Button.Root appearance="solid" color="amber" size="sm" noUppercase>
+          <Button.Root
+            appearance="solid"
+            color="amber"
+            size="sm"
+            className="max-desktop:w-full"
+          >
             <Button.Icon icon={Target} />
             <Button.Title>Definir meta</Button.Title>
           </Button.Root>
@@ -60,7 +65,6 @@ export function SetGoalModal(props: SetGoalModalProps) {
               appearance="ghost"
               color="neutral"
               size="md"
-              noUppercase
               disabled={isLoading}
             >
               <Button.Title>Cancelar</Button.Title>
@@ -71,7 +75,6 @@ export function SetGoalModal(props: SetGoalModalProps) {
             appearance="solid"
             color="amber"
             size="md"
-            noUppercase
             loading={isLoading}
             onClick={() => formRef.current?.submitForm()}
           >

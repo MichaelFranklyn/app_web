@@ -126,7 +126,6 @@ export function CreateTaxRuleDialog({
             appearance="ghost"
             color="neutral"
             size="md"
-            noUppercase
             disabled={isLoading}
             onClick={onCancel}
           >
@@ -137,7 +136,6 @@ export function CreateTaxRuleDialog({
             appearance="solid"
             color="amber"
             size="md"
-            noUppercase
             loading={isLoading}
             onClick={() => formRef.current?.submitForm()}
           >

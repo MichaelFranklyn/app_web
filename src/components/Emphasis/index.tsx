@@ -27,9 +27,9 @@ export const Emphasis = ({
       tone === "accent" || tone === "promo"
         ? "font-[inherit]"
         : "font-(--weight-bold)",
-      tone === "accent" && "text-(--amber)",
-      tone === "promo" && "text-(--orange)",
-      tone === "strong" && "text-(--text)",
+      tone === "accent" && "text-(--color-action-text)",
+      tone === "promo" && "text-(--orange-text)",
+      tone === "strong" && "text-(--color-text)",
       className
     )}
     {...props}

@@ -8,7 +8,7 @@ export const Title = React.forwardRef<
   <h3
     ref={ref}
     className={cn(
-      "font-head text-[15px] font-bold text-(--text2)",
+      "font-head text-[15px] font-bold text-(--color-text)",
       className
     )}
     {...props}

@@ -96,7 +96,6 @@ export function StockDaysEditor({
               appearance="ghost"
               color="neutral"
               size="sm"
-              noUppercase
               disabled={isLoading}
               onClick={onCancel}
             >
@@ -108,7 +107,6 @@ export function StockDaysEditor({
               appearance="solid"
               color="amber"
               size="sm"
-              noUppercase
               loading={isLoading}
               disabled={days == null}
               onClick={() => days != null && onSave(days)}

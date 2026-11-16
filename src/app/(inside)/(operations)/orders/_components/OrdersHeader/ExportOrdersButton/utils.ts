@@ -3,6 +3,8 @@ import { formatDate } from "@/utils/format/date";
 import { formatAmount } from "@/utils/format/masks";
 import { Order } from "../../../interface";
 import { orderStatusLabel } from "../../../utils";
+import { formatOrderNumber } from "@/utils/orderNumber";
+import { visibleCommission } from "@/utils/commission";
 
 export const EXPORT_HEADERS = [
   "Pedido",
@@ -28,7 +30,7 @@ export const EXPORT_HEADERS = [
  */
 export const buildExportRows = (orders: Order[]): string[][] =>
   orders.map((order) => [
-    order.id.slice(0, 8).toUpperCase(),
+    formatOrderNumber(order.number),
     formatDate(order.orderDate, ""),
     // Célula vazia, não "—": na planilha o travessão viraria texto a limpar.
     order.client ? clientName(order.client) : "",
@@ -38,5 +40,5 @@ export const buildExportRows = (orders: Order[]): string[][] =>
     orderStatusLabel(order.status),
     formatDate(order.invoicedAt, ""),
     formatAmount(order.totalAmount),
-    formatAmount(order.commissionAmount),
+    formatAmount(visibleCommission(order)),
   ]);

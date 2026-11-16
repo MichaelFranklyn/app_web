@@ -19,17 +19,19 @@ interface Props {
 export function PlanViewTabs({ view, onViewChange, chosen }: Props) {
   return (
     <Responsive.Hide from="desktop">
-      <Tabs.Root
+      {/* Tabs.Filter (botões com aria-pressed): as duas metades da tela ficam
+          fora de um Tabs.Content, e a aba do Radix apontaria o aria-controls
+          para um painel que não existe. */}
+      <Tabs.Filter
+        aria-label="O que ver"
         value={view}
         onValueChange={(value) => onViewChange(value as PlanView)}
       >
-        <Tabs.List aria-label="O que ver">
-          <Tabs.Item value="clients">Clientes</Tabs.Item>
-          <Tabs.Item value="week">
-            Sua semana{chosen > 0 ? ` (${chosen})` : ""}
-          </Tabs.Item>
-        </Tabs.List>
-      </Tabs.Root>
+        <Tabs.FilterItem value="clients">Clientes</Tabs.FilterItem>
+        <Tabs.FilterItem value="week">
+          Sua semana{chosen > 0 ? ` (${chosen})` : ""}
+        </Tabs.FilterItem>
+      </Tabs.Filter>
     </Responsive.Hide>
   );
 }

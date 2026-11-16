@@ -6,6 +6,7 @@ import { Button } from "@/components/Button";
 import { Loading } from "@/components/Loading";
 import { PageContent } from "@/components/PageContent";
 import { PanelHeader } from "@/components/PanelHeader";
+import { PAGE_HEADING } from "@/utils/modules";
 import { QueryError } from "@/components/QueryError";
 import { useSeedQuery } from "@/hooks/useSeedQuery";
 import { useQuery } from "@apollo/client/react";
@@ -41,8 +42,9 @@ export default function PlatformTeamContent({ seed }: TeamContentProps) {
       <PanelHeader.Root>
         <PanelHeader.Top>
           <PanelHeader.Left>
-            <PanelHeader.Eyebrow color="purple">Console</PanelHeader.Eyebrow>
-            <PanelHeader.Title>Equipe da plataforma</PanelHeader.Title>
+            <PanelHeader.Heading {...PAGE_HEADING.platformTeam}>
+              Equipe da plataforma
+            </PanelHeader.Heading>
             <PanelHeader.Description>
               Quem enxerga todas as empresas. Contas de suporte são criadas e
               revogadas aqui.

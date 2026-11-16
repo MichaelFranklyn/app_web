@@ -24,6 +24,7 @@ import {
 
 const row = (over: Partial<CommissionRow>): CommissionRow => ({
   orderId: "o1",
+  orderNumber: 1,
   installmentId: "i1",
   sequence: 1,
   orderDate: "2026-03-01",

@@ -5,6 +5,7 @@ import { ListPageSkeleton } from "@/components/ListPageSkeleton";
 export default function Loading() {
   return (
     <ListPageSkeleton
+      page="networks"
       title="Rede"
       description="Lojas do grupo e o consolidado da rede."
       kpis={{ count: 3 }}

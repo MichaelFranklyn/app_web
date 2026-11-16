@@ -6,9 +6,9 @@ import { ProgressProps } from "./Root/interface";
 import { Value } from "./Value";
 
 const _Progress = React.forwardRef<HTMLDivElement, ProgressProps>(
-  ({ value, color = "amber", className, ...props }, ref) => (
+  ({ value, color = "amber", label, className, ...props }, ref) => (
     <Root ref={ref} className={className} {...props}>
-      <Bar value={value} color={color} />
+      <Bar value={value} color={color} label={label} />
     </Root>
   )
 );

@@ -2,6 +2,7 @@
 
 import { HelpTooltip } from "@/components/HelpTooltip";
 import { PanelHeader } from "@/components/PanelHeader";
+import { PAGE_HEADING } from "@/utils/modules";
 
 import { NETWORK_HELP } from "../../../help";
 import { ClientNetwork } from "../../interface";
@@ -18,7 +19,9 @@ export function NetworksHeader({ onAddOptimistic, onChanged }: Props) {
       <PanelHeader.Top>
         <PanelHeader.Left>
           <div className="flex items-center gap-6">
-            <PanelHeader.Title>Redes de clientes</PanelHeader.Title>
+            <PanelHeader.Heading {...PAGE_HEADING.networks}>
+              Redes de clientes
+            </PanelHeader.Heading>
             <HelpTooltip label="O que é uma rede?" content={NETWORK_HELP} />
           </div>
           <PanelHeader.Description>

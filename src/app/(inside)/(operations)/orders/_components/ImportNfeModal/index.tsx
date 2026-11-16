@@ -84,7 +84,6 @@ export function ImportNfeModal({ onInvoiced }: Props) {
                 appearance="ghost"
                 color="neutral"
                 size="md"
-                noUppercase
                 disabled={flow.isInvoicing}
                 onClick={flow.reset}
               >
@@ -95,7 +94,6 @@ export function ImportNfeModal({ onInvoiced }: Props) {
                 appearance="solid"
                 color="amber"
                 size="md"
-                noUppercase
                 loading={flow.isInvoicing}
                 disabled={readyCount === 0}
                 onClick={flow.runInvoice}
@@ -115,7 +113,6 @@ export function ImportNfeModal({ onInvoiced }: Props) {
                   appearance="ghost"
                   color="neutral"
                   size="md"
-                  noUppercase
                 >
                   <Button.Title>Cancelar</Button.Title>
                 </Button.Root>
@@ -125,7 +122,6 @@ export function ImportNfeModal({ onInvoiced }: Props) {
                 appearance="solid"
                 color="amber"
                 size="md"
-                noUppercase
                 loading={flow.isPreviewing}
                 disabled={flow.files.length === 0}
                 onClick={flow.runPreview}

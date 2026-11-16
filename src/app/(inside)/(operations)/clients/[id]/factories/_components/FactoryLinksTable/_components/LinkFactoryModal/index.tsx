@@ -35,7 +35,7 @@ export function LinkFactoryModal(props: LinkFactoryModalProps) {
     <>
       <Modal.Root open={open} onOpenChange={handleOpenChange}>
         <Modal.Trigger asChild>
-          <Button.Root appearance="solid" color="amber" size="sm" noUppercase>
+          <Button.Root appearance="solid" color="amber" size="sm">
             <Button.Icon icon={Plus} />
             <Button.Title>Vincular</Button.Title>
           </Button.Root>
@@ -89,7 +89,6 @@ export function LinkFactoryModal(props: LinkFactoryModalProps) {
                 appearance="ghost"
                 color="neutral"
                 size="md"
-                noUppercase
                 disabled={isLoading}
               >
                 <Button.Title>Cancelar</Button.Title>
@@ -100,7 +99,6 @@ export function LinkFactoryModal(props: LinkFactoryModalProps) {
               appearance="solid"
               color="amber"
               size="md"
-              noUppercase
               loading={isLoading}
               disabled={blocked}
               onClick={() => formRef.current?.submitForm()}

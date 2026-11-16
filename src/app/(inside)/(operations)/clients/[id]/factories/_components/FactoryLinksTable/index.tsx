@@ -1,10 +1,7 @@
 "use client";
 
 import { Badge } from "@/components/Badges";
-import {
-  NegativeLinkAction,
-  NegativeTag,
-} from "@/components/ClientFactoryNegative";
+import { NegativeTag } from "@/components/ClientFactoryNegative";
 import { EmptyState } from "@/components/EmptyState";
 import { HelpTooltip } from "@/components/HelpTooltip";
 import { CLIENT_FACTORY_COLUMN_HELP } from "../../../../help";
@@ -12,8 +9,7 @@ import { Table } from "@/components/Table";
 import { Title } from "@/components/Title";
 import { Tooltip } from "@/components/Tooltip";
 import { Factory, TriangleAlert } from "lucide-react";
-import { DeleteFactoryLinkModal } from "./_components/DeleteFactoryLinkModal";
-import { EditFactoryLinkModal } from "./_components/EditFactoryLinkModal";
+import { FactoryLinkRowActions } from "./_components/FactoryLinkRowActions";
 import { LinkFactoryModal } from "./_components/LinkFactoryModal";
 import { FactoryLinksTableProps } from "./interface";
 import { priorityColor, priorityLabel } from "./utils";
@@ -53,7 +49,8 @@ export function FactoryLinksTable({
           />
         </Table.CardHead.Actions>
       </Table.CardHead>
-      <Table.Table>
+      {/* Abaixo do desktop cada vínculo vira um cartão: as 7 colunas rolando de lado escondiam as ações. */}
+      <Table.Table cards>
         <Table.Header>
           <Table.Row>
             <Table.Head title={CLIENT_FACTORY_COLUMN_HELP.factory}>
@@ -82,25 +79,35 @@ export function FactoryLinksTable({
         <Table.Body>
           {connections.map((c) => (
             <Table.Row key={c.id} className="group">
-              <Table.Cell>
+              <Table.Cell card="title">
                 <Table.CellText variant="strong">
                   {factoryName(c.factory)}
                 </Table.CellText>
               </Table.Cell>
-              <Table.Cell>
+              <Table.Cell label="Vendedor">
                 <Table.CellText variant="dim">
                   {c.seller?.name ?? "—"}
                 </Table.CellText>
               </Table.Cell>
-              <Table.Cell>
+              {/* No cartão, prioridade e situação fecham com as ações na última
+                  linha, sem rótulo: "[Alta] [Ativo] ……… [⋯]" (14/11/2026). A
+                  situação tem coluna própria no desktop; aqui ela vem junto. */}
+              <Table.Cell card="aside">
                 <Badge.Root
                   color={priorityColor(c.priority)}
                   appearance="tinted"
                 >
                   <Badge.Text>{priorityLabel(c.priority)}</Badge.Text>
                 </Badge.Root>
+                <span className="desktop:hidden">
+                  <NegativeTag
+                    isNegative={c.isNegative}
+                    negativeSince={c.negativeSince}
+                    negativeReason={c.negativeReason}
+                  />
+                </span>
               </Table.Cell>
-              <Table.Cell>
+              <Table.Cell label="Frequência">
                 {/* O número E a procedência dele. Mostrar só "45 dias"
                     esconderia do vendedor o que ele não tem como saber de
                     cabeça: o intervalo real entre os últimos pedidos. Quando a
@@ -116,7 +123,7 @@ export function FactoryLinksTable({
                         <span aria-label={c.cadence.divergenceMessage}>
                           <TriangleAlert
                             size={13}
-                            className="text-(--amber)"
+                            className="text-(--color-action-text)"
                             aria-hidden
                           />
                         </span>
@@ -130,12 +137,12 @@ export function FactoryLinksTable({
                   )}
                 </div>
               </Table.Cell>
-              <Table.Cell>
+              <Table.Cell label="Última visita">
                 <Table.CellText variant="dim">
                   {formatDate(c.lastVisitDate)}
                 </Table.CellText>
               </Table.Cell>
-              <Table.Cell>
+              <Table.Cell card="hidden">
                 {/* A coluna era um "Ativo" fixo. Negativado é o único estado que
                     o vínculo tem além de ativo, e é o que muda o que o vendedor
                     pode fazer: sai da rotina desta fábrica e não recebe pedido
@@ -146,37 +153,37 @@ export function FactoryLinksTable({
                   negativeReason={c.negativeReason}
                 />
               </Table.Cell>
-              <Table.Cell>
-                <div className="flex items-center justify-end gap-2">
-                  <NegativeLinkAction
-                    linkId={c.id}
-                    factoryName={factoryName(c.factory)}
-                    isNegative={c.isNegative}
-                    negativeSince={c.negativeSince}
+              <Table.Cell card="actions">
+                <FactoryLinkRowActions
+                  negative={{
+                    linkId: c.id,
+                    factoryName: factoryName(c.factory),
+                    isNegative: c.isNegative,
+                    negativeSince: c.negativeSince,
                     // Repinta a linha com o que o servidor confirmou (a
                     // mutation já devolve o vínculo inteiro), e fecha o ciclo
                     // otimista para o próximo rollback partir daqui.
-                    onSaved={(state) => {
+                    onSaved: (state) => {
                       onUpdateOptimistic(c.id, state);
                       onCommit();
-                    }}
-                  />
-                  <EditFactoryLinkModal
-                    link={c}
-                    onSaved={onChanged}
-                    onUpdateOptimistic={onUpdateOptimistic}
-                    onCommit={onCommit}
-                    onRollback={onRollback}
-                  />
-                  <DeleteFactoryLinkModal
-                    linkId={c.id}
-                    factoryName={factoryName(c.factory)}
-                    onRemoved={onChanged}
-                    onRemoveOptimistic={onRemoveOptimistic}
-                    onCommit={onCommit}
-                    onRollback={onRollback}
-                  />
-                </div>
+                    },
+                  }}
+                  edit={{
+                    link: c,
+                    onSaved: onChanged,
+                    onUpdateOptimistic,
+                    onCommit,
+                    onRollback,
+                  }}
+                  remove={{
+                    linkId: c.id,
+                    factoryName: factoryName(c.factory),
+                    onRemoved: onChanged,
+                    onRemoveOptimistic,
+                    onCommit,
+                    onRollback,
+                  }}
+                />
               </Table.Cell>
             </Table.Row>
           ))}

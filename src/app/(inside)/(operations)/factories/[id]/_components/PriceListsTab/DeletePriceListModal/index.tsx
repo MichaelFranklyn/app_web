@@ -17,6 +17,9 @@ interface DeletePriceListResponse {
 }
 
 interface Props {
+  /** Controlado: o gatilho mora fora (o "⋯"/ícone da linha, em RowActions). */
+  open?: boolean;
+  onOpenChange?: (open: boolean) => void;
   priceListId: string;
   priceListName: string;
   onRemoved: () => void;
@@ -32,6 +35,8 @@ export function DeletePriceListModal({
   onRemoveOptimistic,
   onCommit,
   onRollback,
+  open,
+  onOpenChange,
 }: Props) {
   const [deletePriceList] = useMutation<DeletePriceListResponse>(
     DELETE_FACTORY_PRICE_LIST_MUTATION
@@ -40,16 +45,20 @@ export function DeletePriceListModal({
 
   return (
     <ConfirmModal
+      open={open}
+      onOpenChange={onOpenChange}
       trigger={
-        <Button.Root
-          appearance="ghost"
-          color="red"
-          size="sm"
-          isIconOnly
-          label="Remover tabela de preço"
-        >
-          <Button.Icon icon={Trash2} />
-        </Button.Root>
+        open === undefined && (
+          <Button.Root
+            appearance="ghost"
+            color="red"
+            size="sm"
+            isIconOnly
+            label="Remover tabela de preço"
+          >
+            <Button.Icon icon={Trash2} />
+          </Button.Root>
+        )
       }
       title="Remover tabela de preço"
       description={`Remover a tabela "${priceListName}"? Todos os preços lançados nela também serão removidos.`}

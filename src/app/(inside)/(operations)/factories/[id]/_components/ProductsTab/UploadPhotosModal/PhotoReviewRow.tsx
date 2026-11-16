@@ -61,7 +61,7 @@ export function PhotoReviewRow({
           />
 
           {!photo.productId && (
-            <Title variant="caption" color="amber">
+            <Title variant="caption" color="warning">
               O nome do arquivo não bateu com nenhum código de produto. Escolha
               o produto acima ou remova esta foto.
             </Title>
@@ -70,7 +70,7 @@ export function PhotoReviewRow({
           {isDuplicated && (
             <Title
               variant="caption"
-              color="amber"
+              color="warning"
               className="inline-flex items-center gap-4"
             >
               <AlertTriangle size={13} />
@@ -92,7 +92,6 @@ export function PhotoReviewRow({
           color="red"
           size="sm"
           isIconOnly
-          noUppercase
           label="Remover esta foto"
           onClick={onRemove}
         >

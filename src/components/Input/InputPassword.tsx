@@ -47,7 +47,7 @@ export const InputPassword = ({
           {...props}
         />
         <div
-          className="flex cursor-pointer items-center justify-center px-3 text-(--muted) transition-colors hover:text-(--text)"
+          className="flex cursor-pointer items-center justify-center px-3 text-(--color-text-muted) transition-colors hover:text-(--color-text)"
           onClick={toggleVisibility}
         >
           {show ? <EyeOff size={14} /> : <Eye size={14} />}

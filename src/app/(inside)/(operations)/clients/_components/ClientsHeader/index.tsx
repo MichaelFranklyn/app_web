@@ -7,6 +7,7 @@ import { FilterField } from "@/components/Filters";
 import { Grid } from "@/components/Grid";
 import { HelpTooltip } from "@/components/HelpTooltip";
 import { PanelHeader } from "@/components/PanelHeader";
+import { PAGE_HEADING } from "@/utils/modules";
 import { ReportOrder } from "@/utils/pdf/context";
 import { useUserData } from "@/hooks/useUserData";
 import { isAdminRole } from "@/utils/auth/roles";
@@ -53,7 +54,9 @@ export function ClientsHeader({
       <PanelHeader.Root>
         <PanelHeader.Top>
           <PanelHeader.Left>
-            <PanelHeader.Title>Clientes</PanelHeader.Title>
+            <PanelHeader.Heading {...PAGE_HEADING.clients}>
+              Clientes
+            </PanelHeader.Heading>
             <PanelHeader.Description>
               Carteira de clientes da empresa. Dados globais complementados com
               informações privadas.
@@ -73,7 +76,6 @@ export function ClientsHeader({
                 appearance="outline"
                 color="neutral"
                 size="sm"
-                noUppercase
               >
                 <Button.Icon icon={Network} />
                 <Button.Title>Redes</Button.Title>
@@ -84,7 +86,6 @@ export function ClientsHeader({
                   appearance="outline"
                   color="neutral"
                   size="sm"
-                  noUppercase
                   title="Revisar clientes que fecharam, pararam de comprar ou mudaram de nome"
                 >
                   <Button.Icon icon={Eraser} />
@@ -103,7 +104,7 @@ export function ClientsHeader({
         </PanelHeader.Top>
       </PanelHeader.Root>
 
-      <Grid.Root cols={{ base: 1, tablet: 2, "desktop-xl": 4 }} gap={20}>
+      <Grid.Root cols={{ base: 2, tablet: 2, "desktop-xl": 4 }} gap={20}>
         {kpis.map(
           ({ label, value, delta, positive, negative, status, help }) => (
             <Grid.Item key={label}>

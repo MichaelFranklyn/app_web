@@ -1,7 +1,7 @@
 "use client";
 
+import { Badge } from "@/components/Badges";
 import { Button } from "@/components/Button";
-import { ContactTypeTag } from "@/components/ContactTypeTag";
 import { Title } from "@/components/Title";
 import { X } from "lucide-react";
 
@@ -47,7 +47,7 @@ export function ChosenClients({ selection, clients, onRemove }: Props) {
                     : " · dia pela região"}
                 </Title>
               </div>
-              <ContactTypeTag contactType={choice.contactType} />
+              <Badge.ContactType contactType={choice.contactType} />
               <Button.Root
                 appearance="ghost"
                 color="neutral"

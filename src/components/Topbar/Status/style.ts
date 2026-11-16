@@ -6,22 +6,22 @@ export const statusVariants: Record<
   { root: string; dot: string }
 > = {
   online: {
-    root: "text-(--green)",
-    dot: "bg-(--green)",
+    root: "text-(--color-status-success)",
+    dot: "bg-(--color-status-success)",
   },
   offline: {
-    root: "text-(--red)",
-    dot: "bg-(--red)",
+    root: "text-(--color-status-danger)",
+    dot: "bg-(--color-status-danger)",
   },
   warning: {
-    root: "text-(--amber)",
+    root: "text-(--color-action-text)",
     dot: "bg-(--amber)",
   },
 };
 
 export const getStatusClasses = (variant: TopbarStatusVariant) => ({
   root: cn(
-    "flex items-center gap-[6px] text-[13px]",
+    "flex items-center gap-[6px] text-body-sm",
     statusVariants[variant].root
   ),
   dot: cn(

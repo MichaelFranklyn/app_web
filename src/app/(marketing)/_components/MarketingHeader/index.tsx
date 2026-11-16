@@ -1,3 +1,4 @@
+import { TextLink } from "@/components/TextLink";
 import { Title } from "@/components/Title";
 import Image from "next/image";
 import Link from "next/link";
@@ -16,15 +17,18 @@ import { CtaLink } from "../CtaLink";
  * existem: uma âncora relativa ali não leva a lugar nenhum e o clique parece
  * quebrado.
  *
- * Os links do meio somem no celular, onde só cabem a marca e o botão de
- * cadastro. Um menu sanfonado exigiria estado, e estado aqui significaria
+ * Os links do meio somem no celular, onde só cabem a marca e as duas portas —
+ * "Entrar" e o cadastro. "Entrar" já sumiu ali uma vez (14/11/2026) e quem já
+ * é cliente abria o site no celular sem achar o login: ele fica, e a logo e o
+ * respiro encolhem para caber até em 360px. Um menu sanfonado exigiria estado, e estado aqui significaria
  * `"use client"` numa página que é servida do CDN — caro demais para esconder
- * três links que a rolagem já entrega.
+ * quatro links que a rolagem já entrega.
  *
  * `sticky` porque a página é longa: sem isso, o botão de cadastro só volta a
  * existir no rodapé.
  */
 const NAV = [
+  { href: "/#rotina", label: "Rotina" },
   { href: "/#recursos", label: "Recursos" },
   { href: "/#como-funciona", label: "Como funciona" },
   { href: "/precos", label: "Preços" },
@@ -33,7 +37,7 @@ const NAV = [
 export function MarketingHeader() {
   return (
     <header className="sticky top-0 z-10 border-b border-(--border) bg-(--bg2)">
-      <nav className="mx-auto flex max-w-[1200px] items-center justify-between gap-24 px-24 py-16">
+      <nav className="tablet:gap-24 mx-auto flex max-w-[1200px] items-center justify-between gap-12 px-24 py-16">
         <Link href="/" aria-label="Itinus — página inicial">
           <Image
             src="/horizontal_logo.svg"
@@ -44,26 +48,32 @@ export function MarketingHeader() {
             /* 128×32 é a proporção real do arquivo (viewBox 361×90). Com números
                fora da proporção, o `height: auto` do reset recalcula a altura,
                ela não bate com a declarada e o Next avisa no console. */
-            className="h-auto w-[128px]"
+            className="tablet:w-[128px] h-auto w-[104px]"
           />
         </Link>
 
         <div className="tablet:flex hidden items-center gap-24">
           {NAV.map((item) => (
-            <Link key={item.href} href={item.href} className="hover:opacity-70">
-              <Title variant="body-sm" color="secondary" weight="semibold">
+            <TextLink
+              key={item.href}
+              href={item.href}
+              tone="inherit"
+              underline="none"
+              className="text-(--color-text-secondary)"
+            >
+              <Title variant="body-sm" color="inherit" weight="semibold">
                 {item.label}
               </Title>
-            </Link>
+            </TextLink>
           ))}
         </div>
 
-        <div className="flex items-center gap-16">
-          <Link href="/login" className="tablet:block hidden hover:opacity-70">
-            <Title variant="body-sm" weight="semibold">
+        <div className="tablet:gap-16 flex shrink-0 items-center gap-12">
+          <TextLink href="/login" tone="inherit" underline="none">
+            <Title variant="body-sm" color="inherit" weight="semibold">
               Entrar
             </Title>
-          </Link>
+          </TextLink>
 
           <CtaLink href="/signup" size="sm">
             Testar grátis

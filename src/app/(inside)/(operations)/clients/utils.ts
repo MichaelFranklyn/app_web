@@ -57,7 +57,7 @@ export const buildKpis = (stats: ClientsStats): KpiItem[] => {
       label: "Total de clientes",
       value: String(totalClients),
       delta: "carteira da empresa",
-      status: "atencao",
+      status: "neutral",
       help: CLIENT_KPI_HELP["Total de clientes"],
     },
     {
@@ -65,7 +65,7 @@ export const buildKpis = (stats: ClientsStats): KpiItem[] => {
       value: String(activeClients),
       delta: `${totalClients ? Math.round((activeClients / totalClients) * 100) : 0}% da carteira`,
       positive: true,
-      status: "ok",
+      status: "neutral",
       help: CLIENT_KPI_HELP["Clientes ativos"],
     },
     {

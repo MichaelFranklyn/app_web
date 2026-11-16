@@ -56,6 +56,11 @@ export const ORDER_ITEM_PRODUCT_OPTIONS_QUERY = gql`
           imageUrl
         }
       }
+      # Rolar a lista até o fim traz a próxima página (busca paginada).
+      pageInfo {
+        hasNextPage
+        endCursor
+      }
     }
   }
 `;

@@ -40,7 +40,6 @@ export function OfficeSwitcher() {
           appearance="ghost"
           color="neutral"
           size="sm"
-          noUppercase
           aria-label="Trocar de escritório"
           loading={!!enteringId}
         >

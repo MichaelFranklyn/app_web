@@ -60,3 +60,23 @@ const textLength = (children: ReactNode): number | null => {
  */
 export const isLongCellText = (children: ReactNode): boolean =>
   (textLength(children) ?? 0) > WRAP_MIN_CHARS;
+
+/** O que a célula diz quando o dado não existe (pedido de 14/11/2026). */
+export const EMPTY_CELL_TEXT = "Não informado";
+
+/**
+ * Troca o marcador de vazio ("—", ou texto em branco) por "Não informado".
+ *
+ * O traço sozinho não dizia nada — no cartão do celular ficava "Ritmo de
+ * compra: —" e o usuário pediu a frase, na plataforma toda. Feito aqui, na
+ * célula, e não em cada tela: são mais de cem `?? "—"` espalhados, e a próxima
+ * tabela já nasce certa. Só o TEXTO vazio é trocado; uma célula de ações sem
+ * botão (`null`) continua vazia.
+ */
+export function withEmptyFallback(children: ReactNode): ReactNode {
+  if (typeof children !== "string") return children;
+  const text = children.trim();
+  return text === "" || text === "—" || text === "-"
+    ? EMPTY_CELL_TEXT
+    : children;
+}

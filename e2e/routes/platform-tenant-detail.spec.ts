@@ -267,6 +267,7 @@ test("ficha da empresa: muda o teto de pessoas do contrato", async ({
       trialEndsAt: null,
       maxUsers: 25,
       maxSellers: null,
+      extraUsers: null,
     },
   });
   await expect(page.getByText("Plano atualizado.")).toBeVisible();

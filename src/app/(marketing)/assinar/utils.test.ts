@@ -38,9 +38,17 @@ describe("totalForCycle", () => {
     expect(totalForCycle(basic, "monthly")).toBe(basic.demoMonthlyPrice);
   });
 
-  it("cobra menos meses no ciclo anual", () => {
+  it("cobra menos meses no ciclo anual, sem erro de centavo", () => {
     expect(totalForCycle(basic, "annual")).toBe(
-      basic.demoMonthlyPrice! * ANNUAL_BILLED_MONTHS
+      Math.round(basic.demoMonthlyPrice! * 100 * ANNUAL_BILLED_MONTHS) / 100
+    );
+  });
+
+  it("soma os usuários a mais à mensalidade e ao anual", () => {
+    // Básico (2 inclusos) com 3 usuários: 54,90 + 24,90.
+    expect(totalForCycle(basic, "monthly", 3)).toBe(79.8);
+    expect(totalForCycle(basic, "annual", 3)).toBe(
+      (7980 * ANNUAL_BILLED_MONTHS) / 100
     );
   });
 

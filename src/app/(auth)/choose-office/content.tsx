@@ -100,7 +100,6 @@ export default function ChooseOfficeContent() {
             appearance="ghost"
             color="neutral"
             size="sm"
-            noUppercase
             className="self-center"
             onClick={() => logout()}
           >

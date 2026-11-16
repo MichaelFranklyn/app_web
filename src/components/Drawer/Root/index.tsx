@@ -3,6 +3,7 @@
 import { cn } from "@/lib/utils";
 import React from "react";
 import { DrawerContext } from "../context";
+import { useDrawerFocus } from "./useDrawerFocus";
 
 interface DrawerRootProps {
   open: boolean;
@@ -40,6 +41,8 @@ export function Root({
   width = 420,
   children,
 }: DrawerRootProps) {
+  const { panelRef, onKeyDown } = useDrawerFocus(open, onClose);
+
   if (unmountOnClose && !open) return null;
 
   return (
@@ -47,7 +50,9 @@ export function Root({
       <div
         className={cn(
           "fixed inset-0 z-[55] bg-black/30 transition-opacity duration-200",
-          unmountOnClose && "animate-in fade-in",
+          // Montado já aberto não há transição (nada muda de estado): a
+          // entrada vem do keyframe. O `animate-in` antigo não gerava CSS.
+          unmountOnClose && "animate-fade-in",
           open ? "opacity-100" : "pointer-events-none opacity-0"
         )}
         onClick={onClose}
@@ -55,13 +60,22 @@ export function Root({
         aria-hidden
       />
       <aside
+        ref={panelRef}
         role="dialog"
+        aria-modal={open || undefined}
         aria-label={label}
+        tabIndex={-1}
+        // Fechado, o painel segue montado fora da tela (é o que dá a animação de
+        // saída): `inert` o tira do Tab e do leitor de tela. Sem isso, nove
+        // painéis de parada somavam ~63 paradas de Tab invisíveis na agenda.
+        inert={!open}
+        onKeyDown={onKeyDown}
         className={cn(
-          "fixed top-0 right-0 z-[60] flex h-full max-w-[calc(100vw-32px)] flex-col border-l border-(--border) bg-(--bg) transition-transform duration-200",
+          "fixed top-0 right-0 z-[60] flex h-full max-w-[calc(100vw-32px)] flex-col border-l border-(--border) bg-(--bg)",
+          "transition-[translate,box-shadow] duration-260 ease-(--ease-out-soft)",
           WIDTH[width],
-          unmountOnClose && "animate-in slide-in-from-right",
-          open ? "translate-x-0 shadow-xl" : "translate-x-full"
+          unmountOnClose && "animate-drawer-in",
+          open ? "translate-x-0 shadow-(--shadow-lg)" : "translate-x-full"
         )}
       >
         {children}

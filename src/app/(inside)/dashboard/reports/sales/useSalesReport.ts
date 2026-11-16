@@ -159,7 +159,7 @@ export const useSalesReport = (filters: ReportFilters) => {
         label: "Faturamento",
         value: formatMoney(stats?.totalAmount ?? 0),
         hint: "soma dos pedidos faturados",
-        status: "ok",
+        status: "neutral",
       },
       {
         label: "Ticket médio",
@@ -171,7 +171,7 @@ export const useSalesReport = (filters: ReportFilters) => {
         label: "Comissão gerada",
         value: formatMoney(stats?.commissionAmount ?? 0),
         hint: "o que o faturamento rendeu",
-        status: "atencao",
+        status: "neutral",
       },
     ],
     [stats]

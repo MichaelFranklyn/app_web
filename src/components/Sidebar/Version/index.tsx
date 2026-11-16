@@ -8,7 +8,7 @@ export const Version = React.forwardRef<HTMLDivElement, SidebarVersionProps>(
     <div
       ref={ref}
       className={cn(
-        "mx-[20px] border-b border-(--border) py-[8px] text-[13px] tracking-[0.06em] text-(--muted)",
+        "text-body-sm mx-[20px] border-b border-(--border) py-[8px] text-(--color-text-muted)",
         className
       )}
       {...props}

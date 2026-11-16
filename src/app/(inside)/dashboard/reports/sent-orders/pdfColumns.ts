@@ -4,6 +4,7 @@ import { formatDateDMY, formatMoney } from "@/utils/format/masks";
 import { ReportColumn } from "@/utils/pdf/table";
 
 import { SentOrder } from "./interface";
+import { visibleCommission } from "@/utils/commission";
 
 /**
  * Colunas do PDF de pedidos enviados.
@@ -51,6 +52,6 @@ export const SENT_ORDERS_PDF_COLUMNS: ReportColumn<SentOrder>[] = [
     header: "COMISSÃO",
     width: 10,
     align: "right",
-    value: (order) => formatMoney(order.commissionAmount),
+    value: (order) => formatMoney(visibleCommission(order)),
   },
 ];

@@ -27,6 +27,9 @@ interface PlanLimitGateProps {
  * mata o clique sem precisar que cada modal aceite um `disabled` próprio, e o
  * `span` de fora continua recebendo hover — um elemento desabilitado de verdade
  * não dispara evento nenhum, e o tooltip nunca apareceria.
+ *
+ * O "desligado" é `grayscale`, não `opacity`: o botão âmbar vira cinza (perde a
+ * cor de ação) e o texto continua legível para o público idoso.
  */
 export function PlanLimitGate({ limit, children }: PlanLimitGateProps) {
   const { usage, isAtLimit } = usePlanLimit(limit);
@@ -37,7 +40,7 @@ export function PlanLimitGate({ limit, children }: PlanLimitGateProps) {
     <Tooltip content={limitReachedMessage(usage)}>
       <span
         aria-disabled
-        className="inline-flex cursor-not-allowed opacity-50 [&>*]:pointer-events-none"
+        className="inline-flex cursor-not-allowed grayscale [&>*]:pointer-events-none"
       >
         {children}
       </span>

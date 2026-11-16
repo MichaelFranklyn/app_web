@@ -153,13 +153,13 @@ const toScore = (raw: string | null): number | null => {
 };
 
 export const VISIT_URGENCY_BORDER: Record<VisitStatus, string> = {
-  COMPLETED: "border-l-[3px] border-l-(--green)",
-  PENDING: "border-l-[3px] border-l-(--blue)",
-  CLIENT_ABSENT: "border-l-[3px] border-l-(--red)",
-  CANCELLED: "border-l-[3px] border-l-(--red)",
-  RESCHEDULED: "border-l-[3px] border-l-(--blue)",
+  COMPLETED: "border-l-[3px] border-l-(--color-status-success)",
+  PENDING: "border-l-[3px] border-l-(--color-status-info)",
+  CLIENT_ABSENT: "border-l-[3px] border-l-(--color-status-danger)",
+  CANCELLED: "border-l-[3px] border-l-(--color-status-danger)",
+  RESCHEDULED: "border-l-[3px] border-l-(--color-status-info)",
   NO_TIME: "border-l-[3px] border-l-(--amber)",
-  SKIPPED_BY_CUSTOMER: "border-l-[3px] border-l-(--blue)",
+  SKIPPED_BY_CUSTOMER: "border-l-[3px] border-l-(--color-status-info)",
 };
 
 const WEEKDAY_LABELS = [
@@ -385,6 +385,27 @@ export const formatDateLong = (isoDate: string): string => {
 
 // Endereço em formato amigável ao Google Maps (vírgulas), ou null se não houver
 // dados suficientes para localizar — usado para origem/destino/waypoints da rota.
+/**
+ * O endereço de uma parada do outro escritório no mesmo formato do
+ * `mapsQuery` — o backend já manda rua e número numa linha só.
+ */
+export const crossOfficeMapsQuery = (stop: {
+  address: string | null;
+  neighborhood: string | null;
+  city: string | null;
+  state: string | null;
+}): string | null => {
+  const place = stop.city
+    ? stop.state
+      ? `${stop.city} - ${stop.state}`
+      : stop.city
+    : stop.state;
+  const parts = [stop.address, stop.neighborhood, place].filter(
+    (part): part is string => Boolean(part)
+  );
+  return parts.length > 0 ? parts.join(", ") : null;
+};
+
 export const mapsQuery = (client: VisitClient | null): string | null => {
   if (!client) return null;
   const parts: string[] = [];

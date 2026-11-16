@@ -20,7 +20,15 @@ export interface DraftItem {
   ipiRate: number;
   /** Produto+nível em promoção relâmpago no momento em que o item foi montado. */
   isPromo: boolean;
+  /**
+   * De onde o item veio: digitado (padrão) ou da planilha importada no
+   * rascunho. Vai para `order_items.source` — é o que separa, depois, o item
+   * que a pessoa escolheu do que entrou pelo arquivo.
+   */
+  source?: DraftItemSource;
 }
+
+export type DraftItemSource = "MANUAL" | "FILE_IMPORT";
 
 /**
  * Piso de faturamento da condição de pagamento escolhida.

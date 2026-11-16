@@ -5,10 +5,12 @@ import { EXPORT_HEADERS, buildExportRows } from "./utils";
 
 const order: Order = {
   id: "abc12345-0000-0000-0000-000000000000",
+  number: 42,
   orderDate: "2026-05-10",
   invoicedAt: "2026-05-18",
   totalAmount: "1234.5",
   commissionAmount: "61.73",
+  sellerCommissionAmount: "1",
   status: "INVOICED",
   isBackorder: false,
   isDeliveryOverdue: false,
@@ -33,7 +35,7 @@ describe("buildExportRows", () => {
   it("gera uma linha por pedido, alinhada com os cabeçalhos", () => {
     const [row] = buildExportRows([order]);
     expect(row).toHaveLength(EXPORT_HEADERS.length);
-    expect(cell(row, "Pedido")).toBe("ABC12345");
+    expect(cell(row, "Pedido")).toBe("#42");
     expect(cell(row, "Data do pedido")).toBe("10/05/2026");
     expect(cell(row, "Cliente")).toBe("Bom Preço Comércio LTDA");
     expect(cell(row, "Fábrica")).toBe("Delta");

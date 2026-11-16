@@ -27,6 +27,7 @@ export const BILLING_REPORT_QUERY = gql`
         dueDate
         amount
         commissionAmount
+        sellerCommissionAmount
         situation
         paidAt
         daysOverdue
@@ -40,6 +41,7 @@ export const BILLING_REPORT_QUERY = gql`
       overdueAmount
       overdueCount
       commissionAmount
+      sellerCommissionAmount
     }
   }
 `;

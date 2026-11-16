@@ -22,6 +22,9 @@ export interface UpdateVisitResponse {
 }
 
 export interface EditVisitModalProps {
+  /** Controlado: o gatilho mora fora (o "⋯"/ícone da linha, em RowActions). */
+  open?: boolean;
+  onOpenChange?: (open: boolean) => void;
   visit: VisitEditable;
   onUpdateOptimistic: (id: string, updates: Partial<VisitEditable>) => void;
   onCommit: () => void;

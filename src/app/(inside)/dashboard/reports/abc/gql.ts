@@ -28,6 +28,7 @@ export const CLIENT_ABC_CURVE_QUERY = gql`
       totalAmount
       orderCount
       commissionAmount
+      sellerCommissionAmount
       share
       cumulativeShare
       abcClass

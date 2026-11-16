@@ -1,6 +1,11 @@
 import { describe, expect, it } from "vitest";
 import { TenantDetail } from "./interface";
-import { limitUsage, tenantSituation, trialDaysLeft } from "./utils";
+import {
+  effectiveSeatLimit,
+  limitUsage,
+  tenantSituation,
+  trialDaysLeft,
+} from "./utils";
 
 const TODAY = new Date("2026-08-12T15:00:00Z");
 
@@ -117,5 +122,23 @@ describe("limitUsage", () => {
     // O backend recusa zero; se algum registro antigo tiver, a tela não divide
     // por zero nem desenha uma barra sem sentido.
     expect(limitUsage(3, 0)).toBeNull();
+  });
+});
+
+describe("effectiveSeatLimit", () => {
+  it("soma os extras sobre o teto do plano", () => {
+    expect(effectiveSeatLimit(2, null, 1)).toBe(3);
+  });
+
+  it("soma os extras sobre o teto próprio, que vence o plano", () => {
+    expect(effectiveSeatLimit(2, 4, 2)).toBe(6);
+  });
+
+  it("plano sem teto segue sem teto", () => {
+    expect(effectiveSeatLimit(null, null, 5)).toBeNull();
+  });
+
+  it("extra negativo não tira cota", () => {
+    expect(effectiveSeatLimit(2, null, -3)).toBe(2);
   });
 });

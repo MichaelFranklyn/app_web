@@ -5,8 +5,8 @@ import React from "react";
 export type IconTileSize = "xs" | "sm" | "md" | "lg";
 
 const SIZE: Record<IconTileSize, string> = {
-  xs: "size-[22px] text-[13px] [&>svg]:size-[12px]",
-  sm: "size-[32px] text-[13px] [&>svg]:size-[16px]",
+  xs: "size-[22px] text-body-sm [&>svg]:size-[12px]",
+  sm: "size-[32px] text-body-sm [&>svg]:size-[16px]",
   md: "size-[36px] text-[14px] [&>svg]:size-[18px]",
   lg: "size-[40px] text-[16px] [&>svg]:size-[20px]",
 };

@@ -183,7 +183,6 @@ export function ScheduleVisitModal(props: ScheduleVisitModalProps) {
               appearance="ghost"
               color="neutral"
               size="md"
-              noUppercase
               disabled={form.isLoading}
             >
               <Button.Title>Cancelar</Button.Title>
@@ -194,7 +193,6 @@ export function ScheduleVisitModal(props: ScheduleVisitModalProps) {
             appearance="solid"
             color="amber"
             size="md"
-            noUppercase
             loading={form.isLoading}
             disabled={!form.isValid}
             onClick={() => form.submit()}

@@ -94,7 +94,6 @@ export function ImportOrderModal(props: ImportFactoryOrderProps) {
                   appearance="ghost"
                   color="neutral"
                   size="md"
-                  noUppercase
                 >
                   <Button.Title>Cancelar</Button.Title>
                 </Button.Root>
@@ -104,7 +103,6 @@ export function ImportOrderModal(props: ImportFactoryOrderProps) {
                 appearance="solid"
                 color="amber"
                 size="md"
-                noUppercase
                 onClick={() => formRef.current?.submitForm()}
               >
                 <Button.Title>Continuar</Button.Title>

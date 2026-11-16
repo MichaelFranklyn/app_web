@@ -30,9 +30,12 @@ export function GoalMetricCells({ totals }: Props) {
           <Table.Cell
             key={metric.id}
             align="right"
+            label={metric.label}
             className="whitespace-nowrap"
           >
-            <div className="flex flex-col items-end gap-2">
+            {/* No cartão o realizado e o "% da meta" ficam na linha do
+                rótulo: empilhados, sobrava a linha inteira à direita. */}
+            <div className="max-desktop:inline-flex max-desktop:flex-row max-desktop:flex-wrap max-desktop:items-baseline max-desktop:gap-x-6 flex flex-col items-end gap-2">
               <Table.CellText variant="strong">
                 {format(values.done)}
               </Table.CellText>

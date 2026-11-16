@@ -11,7 +11,7 @@ import * as DropdownMenuPrimitive from "@radix-ui/react-dropdown-menu";
  */
 export function Label({ children }: { children: React.ReactNode }) {
   return (
-    <DropdownMenuPrimitive.Label className="px-[14px] pt-[10px] pb-[4px] text-[11px] font-medium tracking-wider text-(--muted) uppercase">
+    <DropdownMenuPrimitive.Label className="px-[14px] pt-[10px] pb-[4px] text-[12px] font-(--weight-semibold) text-(--color-text-muted)">
       {children}
     </DropdownMenuPrimitive.Label>
   );

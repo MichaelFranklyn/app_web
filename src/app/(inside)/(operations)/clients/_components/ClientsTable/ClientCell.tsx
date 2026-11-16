@@ -1,16 +1,10 @@
 "use client";
 
+import { DocumentNumber } from "@/components/DocumentNumber";
 import { Badge } from "@/components/Badges";
 import { Table } from "@/components/Table";
-import { Title } from "@/components/Title";
-import { Tooltip } from "@/components/Tooltip";
-import { maskCNPJ } from "@/utils/format/masks";
-import {
-  WALLET_STATUS_COLOR,
-  isWalletActive,
-  walletStatusLabel,
-} from "../../_shared/hygiene/utils";
 import { Client } from "../../interface";
+import { ClientStatusTags } from "./ClientStatusTags";
 
 interface ClientCellProps {
   client: Client;
@@ -29,62 +23,36 @@ export function ClientCell({ client }: ClientCellProps) {
   return (
     // Sem teto de largura: a razão social aparece inteira, numa linha só, e
     // quando a soma das colunas não cabe é a tabela que rola na horizontal.
-    <Table.Cell>
+    <Table.Cell card="title">
       <div className="flex flex-col gap-2">
+        {/* No cartão (celular/tablet) as tags vão para a linha do score
+            (ver ClientsTable): ao lado do nome, espremiam-no. */}
         <div className="flex min-w-0 items-center gap-8">
           {/* Nome em uma linha só e por extenso — o `nowrap` vem da própria
               `Table.Cell`. */}
           <Table.CellText variant="strong" className="block">
             {client.nickname ?? client.razaoSocial}
           </Table.CellText>
-          {/* Só aparece quando a lista mostra quem saiu da carteira (filtro
-              "Situação"): na lista padrão todos são ativos. */}
-          {!isWalletActive(client.companyClient?.status) && (
-            <Badge.Root
-              color={
-                WALLET_STATUS_COLOR[client.companyClient?.status ?? "ACTIVE"]
-              }
-              appearance="tinted"
-            >
-              <Badge.Text>
-                {walletStatusLabel(client.companyClient?.status)}
-              </Badge.Text>
-            </Badge.Root>
-          )}
-          {client.isNeedsAttention && (
-            <Tooltip
-              className="max-w-100 whitespace-normal"
-              content={
-                <div className="flex flex-col gap-2 text-left normal-case">
-                  <Title variant="label" color="amber">
-                    Precisa de atenção
-                  </Title>
-                  <Title variant="body-sm">
-                    {client.attentionReason ?? "Revise os dados deste cliente."}
-                  </Title>
-                </div>
-              }
-            >
-              <Badge.Root color="amber" appearance="tinted">
-                <Badge.Text>Precisa de atenção</Badge.Text>
-              </Badge.Root>
-            </Tooltip>
-          )}
+          <ClientStatusTags client={client} className="max-desktop:hidden" />
         </div>
 
         {/* Com apelido, o nome oficial desce para cá — é ele que está na
             nota e no cadastro da Receita. */}
+        {/* No cartão, ela e o CNPJ viram linhas com rótulo (ClientIdentityCells):
+            soltos sob o nome, ninguém sabia o que era cada um. */}
         {(client.nickname ? client.razaoSocial : client.nomeFantasia) && (
-          <Table.CellText variant="dim" className="block">
+          <Table.CellText variant="dim" className="max-desktop:hidden block">
             {client.nickname ? client.razaoSocial : client.nomeFantasia}
           </Table.CellText>
         )}
 
         {/* A linha existe para o badge não esticar na largura da coluna: numa
             flex-col ele herdaria o `stretch` do container. */}
-        <div className="flex items-center gap-8">
+        <div className="max-desktop:hidden flex items-center gap-8">
           <Badge.Root color="subtle" appearance="tinted">
-            <Badge.Text>{maskCNPJ(client.cnpj)}</Badge.Text>
+            <Badge.Text>
+              <DocumentNumber value={client.cnpj} />
+            </Badge.Text>
           </Badge.Root>
         </div>
       </div>

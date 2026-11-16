@@ -14,7 +14,7 @@ export const Row = React.forwardRef<HTMLDivElement, CardRowProps>(
       className={cn(
         "flex items-center gap-12 border-t border-(--border) px-16 py-12",
         interactive &&
-          "cursor-pointer transition-colors hover:bg-(--bg3) focus:outline-none focus-visible:ring-1 focus-visible:ring-(--amber)",
+          "focus-ring-inset cursor-pointer transition-colors hover:bg-(--bg3)",
         className
       )}
       {...props}

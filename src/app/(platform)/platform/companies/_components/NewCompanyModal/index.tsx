@@ -81,7 +81,6 @@ export function NewCompanyModal({ open, onOpenChange, onCreated }: Props) {
                 type="button"
                 appearance="solid"
                 color="amber"
-                noUppercase
                 onClick={() => {
                   // A lista atualiza agora: a empresa recém-criada precisa
                   // estar lá quando esta janela fechar de vez.
@@ -108,7 +107,6 @@ export function NewCompanyModal({ open, onOpenChange, onCreated }: Props) {
                 type="button"
                 appearance="solid"
                 color="amber"
-                noUppercase
                 loading={isLoading}
                 onClick={() => formRef.current?.submitForm()}
               >

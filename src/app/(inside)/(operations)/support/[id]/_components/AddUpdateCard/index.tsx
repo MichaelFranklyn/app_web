@@ -45,7 +45,7 @@ export function AddUpdateCard({ caseId, currentStatus, onSaved }: Props) {
 
   return (
     <Card.Root>
-      <div className="flex flex-col gap-12">
+      <Card.Body padding="compact" className="gap-12">
         <Title variant="heading-sm">Registrar andamento</Title>
 
         <Input.Textarea
@@ -100,13 +100,14 @@ export function AddUpdateCard({ caseId, currentStatus, onSaved }: Props) {
           />
         )}
 
-        <div className="flex justify-end">
+        {/* No celular o botão ocupa a linha: sozinho à direita deixava a
+            linha com sobra vazia. */}
+        <div className="max-tablet:[&>*]:w-full flex justify-end">
           <Button.Root
             type="button"
             appearance="solid"
             color="amber"
             size="md"
-            noUppercase
             loading={form.isLoading}
             disabled={!form.isValid}
             onClick={() => form.submit()}
@@ -114,7 +115,7 @@ export function AddUpdateCard({ caseId, currentStatus, onSaved }: Props) {
             <Button.Title>Registrar andamento</Button.Title>
           </Button.Root>
         </div>
-      </div>
+      </Card.Body>
     </Card.Root>
   );
 }

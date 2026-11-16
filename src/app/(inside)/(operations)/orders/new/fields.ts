@@ -11,18 +11,29 @@ import { FREIGHT_OPTIONS } from "../../_shared/orderFreight";
  */
 
 /**
- * Um campo por linha só no celular: no tablet vão dois lado a lado e no
- * computador três — a página tem largura, e empilhar tudo numa coluna estreita
- * empurrava os itens para longe do fim da tela.
+ * Um campo por linha só no celular; no tablet, dois lado a lado. No computador
+ * os dados do pedido cabem em DUAS linhas: na 1ª, o tipo e "de quem é o pedido"
+ * (`partyGrid`); na 2ª, data, condição, frete, prazo e duração (2+3+2+2+3).
+ * Empilhar em várias linhas empurrava os itens para longe do fim da tela.
  */
-export const FIELD_GRID: GridConfig = { tablet: 6, desktop: 4 };
+const narrow = (desktop: number): GridConfig => ({ tablet: 6, desktop });
+
+/**
+ * Largura dos campos "de quem é o pedido" (vendedor, fábrica, cliente ou o
+ * vínculo) para fecharem a 1ª linha ao lado do Tipo (2 colunas).
+ */
+export function partyGrid(count: 1 | 2 | 3): GridConfig[] {
+  if (count === 3) return [narrow(3), narrow(3), narrow(4)];
+  if (count === 2) return [narrow(5), narrow(5)];
+  return [narrow(10)];
+}
 
 export const orderKindField: FormFieldSchema = {
-  grid: FIELD_GRID,
+  grid: narrow(2),
   name: "orderKind",
   type: "radio",
   label: "Tipo",
-  hint: "O orçamento pode ser convertido em pedido depois. Só o pedido pode ser faturado.",
+  hint: "Orçamento vira pedido depois. Só pedido é faturado.",
   required: true,
   options: [
     { label: "Pedido", value: "order" },
@@ -31,7 +42,7 @@ export const orderKindField: FormFieldSchema = {
 };
 
 export const orderDateField: FormFieldSchema = {
-  grid: FIELD_GRID,
+  grid: narrow(2),
   name: "orderDate",
   type: "date",
   label: "Data do pedido",
@@ -51,9 +62,9 @@ export const paymentTermField = ({
   onChange,
 }: PaymentTermFieldArgs): FormFieldSchema => ({
   name: "paymentTermId",
-  grid: FIELD_GRID,
+  grid: narrow(3),
   type: "select-single",
-  label: "Condição de pagamento (opcional)",
+  label: "Condição de pagamento",
   placeholder:
     pendingPlaceholder ??
     (options.length === 0
@@ -70,26 +81,26 @@ export const freightField = (
   onChange: (freightType: string) => void
 ): FormFieldSchema => ({
   name: "freightType",
-  grid: FIELD_GRID,
+  grid: narrow(2),
   type: "select-single",
-  label: "Frete (opcional)",
+  label: "Frete",
   placeholder: "FOB ou CIF",
   options: FREIGHT_OPTIONS,
   onChange: (value) => onChange(extractSelectValue(value)),
 });
 
 export const deliveryField: FormFieldSchema = {
-  grid: FIELD_GRID,
+  grid: narrow(2),
   name: "deliveryEstimateDays",
   type: "number",
   label: "Prazo de entrega (dias)",
   placeholder: "Ex: 15",
-  hint: "Dias até a mercadoria chegar, contados do faturamento. Em branco: usa o prazo padrão da fábrica.",
+  hint: "Contados do faturamento. Em branco: o prazo da fábrica.",
 };
 
 export const coverageField = (hint: string): FormFieldSchema => ({
   name: "coverageDays",
-  grid: FIELD_GRID,
+  grid: narrow(3),
   type: "number",
   label: "Dura quantos dias na loja?",
   placeholder: "Ex: 30",

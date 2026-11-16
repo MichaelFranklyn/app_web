@@ -55,7 +55,6 @@ export function AgendaAddMenu({
         appearance="ghost"
         color="neutral"
         size="sm"
-        noUppercase
         fullWidth={variant === "button"}
         dashed
         label="Agendar neste dia"

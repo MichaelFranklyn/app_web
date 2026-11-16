@@ -24,6 +24,9 @@ interface UpdateResponse {
 }
 
 interface Props {
+  /** Controlado: o gatilho mora fora (o "⋯"/ícone da linha, em RowActions). */
+  open?: boolean;
+  onOpenChange?: (open: boolean) => void;
   term: PaymentTermNode;
   onChanged: () => void;
   onUpdateOptimistic: (id: string, updates: Partial<PaymentTermNode>) => void;
@@ -37,8 +40,16 @@ export function EditPaymentTermModal({
   onUpdateOptimistic,
   onCommit,
   onRollback,
+  open: controlledOpen,
+  onOpenChange,
 }: Props) {
-  const [open, setOpen] = useState(false);
+  const [uncontrolledOpen, setUncontrolledOpen] = useState(false);
+  const isControlled = controlledOpen !== undefined;
+  const open = isControlled ? controlledOpen : uncontrolledOpen;
+  const setOpen = (value: boolean) => {
+    if (isControlled) onOpenChange?.(value);
+    else setUncontrolledOpen(value);
+  };
   const formRef = useRef<FormBuilderRef>(null);
   const [updateTerm] = useMutation<UpdateResponse>(
     UPDATE_FACTORY_PAYMENT_TERM_MUTATION
@@ -154,17 +165,19 @@ export function EditPaymentTermModal({
 
   return (
     <Modal.Root open={open} onOpenChange={setOpen}>
-      <Modal.Trigger asChild>
-        <Button.Root
-          appearance="ghost"
-          color="neutral"
-          size="sm"
-          isIconOnly
-          label="Editar prazo"
-        >
-          <Button.Icon icon={Pencil} />
-        </Button.Root>
-      </Modal.Trigger>
+      {!isControlled && (
+        <Modal.Trigger asChild>
+          <Button.Root
+            appearance="ghost"
+            color="neutral"
+            size="sm"
+            isIconOnly
+            label="Editar prazo"
+          >
+            <Button.Icon icon={Pencil} />
+          </Button.Root>
+        </Modal.Trigger>
+      )}
 
       <Modal.Content size="md">
         <Modal.Header
@@ -188,7 +201,6 @@ export function EditPaymentTermModal({
               appearance="ghost"
               color="neutral"
               size="md"
-              noUppercase
               disabled={isLoading}
             >
               <Button.Title>Cancelar</Button.Title>
@@ -199,7 +211,6 @@ export function EditPaymentTermModal({
             appearance="solid"
             color="amber"
             size="md"
-            noUppercase
             loading={isLoading}
             onClick={() => formRef.current?.submitForm()}
           >

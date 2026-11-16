@@ -6,7 +6,8 @@ import { orderStatusLabel } from "../utils";
 import { OrderDetail, OrderItem } from "./interface";
 import { paymentTermLabel } from "../../_shared/orderPaymentTerms";
 
-import { INSTALLMENT_STATUS_LABEL } from "./utils";
+import { INSTALLMENT_STATUS_LABEL, installmentCommission } from "./utils";
+import { formatOrderNumber } from "@/utils/orderNumber";
 
 const ITEM_HEADERS = [
   "Código",
@@ -37,7 +38,7 @@ export const buildOrderSheetRows = (
   order: OrderDetail,
   items: OrderItem[]
 ): string[][] => {
-  const number = order.id.slice(0, 8).toUpperCase();
+  const number = formatOrderNumber(order.number);
   const subtotalWithTax =
     Number(order.totalAmount) + Number(order.taxAmount ?? 0);
   const total = subtotalWithTax + Number(order.ipiAmount || 0);
@@ -90,7 +91,7 @@ export const buildOrderSheetRows = (
         String(installment.sequence),
         installment.dueDate ? formatDateDMY(installment.dueDate) : "",
         formatAmount(installment.amount),
-        formatAmount(installment.commissionAmount),
+        formatAmount(installmentCommission(installment)),
         INSTALLMENT_STATUS_LABEL[installment.status] ?? installment.status,
       ])
     );
@@ -107,9 +108,8 @@ export const exportOrderSheet = async (
   items: OrderItem[]
 ): Promise<void> => {
   const kind = isQuoteStatus(order.status) ? "orcamento" : "pedido";
-  const number = order.id.slice(0, 8).toUpperCase();
   await downloadSheet(
-    `${kind}-${number}.xlsx`,
+    `${kind}-${order.number}.xlsx`,
     buildOrderSheetRows(order, items),
     "Pedido"
   );

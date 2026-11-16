@@ -17,7 +17,8 @@ export interface BillingRow {
   invoicedAt: string | null;
   dueDate: string | null;
   amount: string;
-  commissionAmount: string;
+  commissionAmount: string | null;
+  sellerCommissionAmount: string;
   situation: BillingSituation;
   paidAt: string | null;
   daysOverdue: number;
@@ -34,7 +35,8 @@ export interface BillingReport {
   dueAmount: string;
   overdueAmount: string;
   overdueCount: number;
-  commissionAmount: string;
+  commissionAmount: string | null;
+  sellerCommissionAmount: string;
 }
 
 export interface BillingReportResponse {

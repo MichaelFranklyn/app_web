@@ -4,14 +4,20 @@ export const kpiDeltaStyle = cva(
   // `mt-auto`: o texto de apoio é o rodapé do cartão. É ele que absorve a
   // altura sobrando quando um irmão é mais alto — assim os números permanecem
   // na mesma linha.
-  "text-[13px] font-medium flex items-center gap-4 mt-auto",
+  // `anywhere`: em 2 colunas no celular o cartão tem ~120px úteis, e um
+  // "faturamento/pagamento" (palavra única) estourava o cartão.
+  "text-body-sm font-medium flex items-center gap-4 mt-auto min-w-0 [overflow-wrap:anywhere]",
   {
     variants: {
-      positive: { true: "text-(--green)", false: "" },
-      negative: { true: "text-(--red)", false: "" },
+      positive: { true: "text-(--color-status-success)", false: "" },
+      negative: { true: "text-(--color-status-danger)", false: "" },
     },
     compoundVariants: [
-      { positive: false, negative: false, className: "text-(--muted)" },
+      {
+        positive: false,
+        negative: false,
+        className: "text-(--color-text-muted)",
+      },
     ],
     defaultVariants: { positive: false, negative: false },
   }

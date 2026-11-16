@@ -36,9 +36,11 @@ const Trigger = ({
     aria-expanded={open}
     className={cn(
       "flex min-w-0 cursor-pointer items-center text-left",
+      // bar ocupa a faixa inteira: o anel por fora seria cortado pelo card.
+      variant === "bar" ? "focus-ring-inset" : "focus-ring rounded-(--r-sm)",
       size === "md" ? "gap-12" : "gap-6",
       variant === "bar" &&
-        "flex-1 px-16 py-12 transition-colors hover:bg-(--bg2)",
+        "flex-1 px-16 py-12 transition-colors hover:bg-(--bg4)",
       className
     )}
     {...props}
@@ -47,7 +49,7 @@ const Trigger = ({
       size={size === "md" ? 18 : 14}
       aria-hidden
       className={cn(
-        "shrink-0 text-(--muted) transition-transform",
+        "shrink-0 text-(--color-text-muted) transition-transform duration-200 ease-(--ease-out-soft)",
         !open && "-rotate-90"
       )}
     />

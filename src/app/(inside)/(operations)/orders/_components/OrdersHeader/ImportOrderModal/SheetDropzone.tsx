@@ -22,7 +22,7 @@ export function SheetDropzone({ onFile, loading }: Props) {
     <Card.Root inset tone="transparent" dashed>
       <Card.Body padding="compact">
         <div className="mb-8 flex items-center gap-8">
-          <FileSpreadsheet size={16} className="text-(--amber)" />
+          <FileSpreadsheet size={16} className="text-(--color-action-text)" />
           <Title variant="body-sm" weight="medium">
             Suba a ficha preenchida
           </Title>

@@ -3,6 +3,7 @@
 import { Badge } from "@/components/Badges";
 import { Button } from "@/components/Button";
 import { PanelHeader } from "@/components/PanelHeader";
+import { PAGE_HEADING } from "@/utils/modules";
 import { Title } from "@/components/Title";
 import { Ban, RotateCcw, SlidersHorizontal } from "lucide-react";
 import { TenantDetail } from "../../interface";
@@ -24,11 +25,11 @@ export function TenantHeader({ tenant, onToggleStatus, onEditPlan }: Props) {
     <PanelHeader.Root>
       <PanelHeader.Top>
         <PanelHeader.Left>
-          <PanelHeader.Eyebrow color="purple">Empresa</PanelHeader.Eyebrow>
-          <div className="flex flex-wrap items-center gap-8">
-            <PanelHeader.Title>
-              {tenant.nomeFantasia || tenant.razaoSocial}
-            </PanelHeader.Title>
+          {/* A situação mora na linha do eyebrow, na ponta direita: ao lado
+              do título ela quebrava para uma linha só dela sempre que o nome
+              da empresa era longo (sobra de linha no celular). */}
+          <div className="flex items-center justify-between gap-8">
+            <PanelHeader.Eyebrow color="blue">Empresa</PanelHeader.Eyebrow>
             <Badge.Root
               color={TONE_COLOR[situation.tone]}
               appearance="tinted"
@@ -37,6 +38,9 @@ export function TenantHeader({ tenant, onToggleStatus, onEditPlan }: Props) {
               <Badge.Text>{situation.label}</Badge.Text>
             </Badge.Root>
           </div>
+          <PanelHeader.Heading {...PAGE_HEADING.platformCompanies}>
+            {tenant.nomeFantasia || tenant.razaoSocial}
+          </PanelHeader.Heading>
           <PanelHeader.Description>
             {tenant.cnpj} · {tenant.segment} · plano {planLabel(tenant.plan)}
           </PanelHeader.Description>
@@ -61,7 +65,6 @@ export function TenantHeader({ tenant, onToggleStatus, onEditPlan }: Props) {
               appearance="outline"
               color="neutral"
               size="sm"
-              noUppercase
               onClick={onEditPlan}
             >
               <Button.Icon icon={SlidersHorizontal} />
@@ -72,7 +75,6 @@ export function TenantHeader({ tenant, onToggleStatus, onEditPlan }: Props) {
               appearance={tenant.isActive ? "outline" : "solid"}
               color={tenant.isActive ? "red" : "amber"}
               size="sm"
-              noUppercase
               onClick={onToggleStatus}
             >
               <Button.Icon icon={tenant.isActive ? Ban : RotateCcw} />

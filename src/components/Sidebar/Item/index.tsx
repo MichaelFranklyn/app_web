@@ -22,12 +22,17 @@ export interface SidebarItemProps extends React.AnchorHTMLAttributes<HTMLAnchorE
 
 const sidebarItemStyles = {
   item: cn(
-    "flex items-center gap-[8px] px-[20px] py-[7px] text-[14px] text-(--muted)",
-    "border-l-[2px] border-transparent transition-all duration-120 cursor-pointer",
-    "hover:text-(--text) hover:bg-(--bg3)"
+    // Item é uma pílula recuada (mx 8 + px 12 = os mesmos 20px de antes até o
+    // ícone), não uma faixa de ponta a ponta: o fundo do hover e do ativo
+    // ganha canto e respiro, e a lista não parece uma tabela.
+    "relative mx-[8px] flex items-center gap-[8px] rounded-(--r-md) px-[12px] py-[7px] text-[14px] text-(--color-text-muted)",
+    "cursor-pointer transition-colors duration-150 focus-ring",
+    "hover:text-(--color-text) hover:bg-(--bg3)",
+    // Barra do ativo: 3px colada à borda esquerda da pílula, presa no meio.
+    "before:absolute before:top-[8px] before:bottom-[8px] before:left-0 before:w-[3px] before:rounded-full before:bg-(--amber) before:opacity-0 before:transition-opacity"
   ),
   active:
-    "font-(--weight-semibold) text-(--amber) border-l-(--amber) bg-(--amber-bg) hover:bg-(--amber-bg) hover:text-(--amber)",
+    "font-(--weight-semibold) text-(--color-action-text-on-tint) bg-(--amber-bg) before:opacity-100 hover:bg-(--amber-bg) hover:text-(--color-action-text-on-tint)",
   // No desktop recolhido, centraliza o ícone e remove o respiro horizontal.
   collapsed: "desktop:justify-center desktop:gap-0 desktop:px-0",
 };
@@ -84,7 +89,7 @@ export const Item = React.forwardRef<HTMLAnchorElement, SidebarItemProps>(
         {badge !== undefined && (
           <span
             className={cn(
-              "ml-auto flex h-[18px] min-w-[18px] items-center justify-center rounded-full bg-(--red) px-[5px] text-[13px] font-bold text-white",
+              "text-body-sm ml-auto flex h-[18px] min-w-[18px] items-center justify-center rounded-full bg-(--color-status-danger) px-[5px] font-bold text-white",
               collapsed && "desktop:hidden"
             )}
           >

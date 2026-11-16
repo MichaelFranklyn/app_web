@@ -43,26 +43,30 @@ export function SuggestedProductsList({
     );
   }
 
+  // O cartão só embrulha a lista: o EmptyState já é um cartão, e dentro de
+  // outro ficava borda dentro de borda (14/11/2026).
   return (
-    <>
-      {insights.map((insight) => {
-        const urgency = urgencyLabel(insight.churnRisk);
-        return (
-          <Card.Item key={insight.id}>
-            <Card.Item.Info>
-              <Card.Item.Info.Name>
-                {insight.product?.name ?? "—"}
-              </Card.Item.Info.Name>
-              <Card.Item.Info.Sub>{stockMeta(insight)}</Card.Item.Info.Sub>
-            </Card.Item.Info>
-            <Card.Item.Action>
-              <Badge.Root color={urgency.color} appearance="tinted">
-                <Badge.Text>{urgency.label}</Badge.Text>
-              </Badge.Root>
-            </Card.Item.Action>
-          </Card.Item>
-        );
-      })}
-    </>
+    <Card.Root>
+      <Card.Body padding="compact">
+        {insights.map((insight) => {
+          const urgency = urgencyLabel(insight.churnRisk);
+          return (
+            <Card.Item key={insight.id}>
+              <Card.Item.Info>
+                <Card.Item.Info.Name>
+                  {insight.product?.name ?? "—"}
+                </Card.Item.Info.Name>
+                <Card.Item.Info.Sub>{stockMeta(insight)}</Card.Item.Info.Sub>
+              </Card.Item.Info>
+              <Card.Item.Action>
+                <Badge.Root color={urgency.color} appearance="tinted">
+                  <Badge.Text>{urgency.label}</Badge.Text>
+                </Badge.Root>
+              </Card.Item.Action>
+            </Card.Item>
+          );
+        })}
+      </Card.Body>
+    </Card.Root>
   );
 }

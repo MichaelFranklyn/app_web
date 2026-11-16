@@ -112,7 +112,7 @@ test("cliente/produtos: os cartões somam a mesma lista da tabela", async ({
 
   const parou = page
     .locator("div")
-    .filter({ hasText: /^2Parou de comprar$/ })
+    .filter({ hasText: /^Parou de comprar2$/ })
     .first();
   await expect(parou).toBeVisible();
   await expect(page.getByText("3 de 3 produto(s)")).toBeVisible();

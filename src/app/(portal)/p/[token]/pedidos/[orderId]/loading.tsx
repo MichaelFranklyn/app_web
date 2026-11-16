@@ -1,4 +1,6 @@
 import { Loading } from "@/components/Loading";
+import { PanelHeader } from "@/components/PanelHeader";
+import { PAGE_HEADING } from "@/utils/modules";
 
 /**
  * Limite próprio do detalhe do pedido.
@@ -9,10 +11,21 @@ import { Loading } from "@/components/Loading";
  */
 export default function PortalOrderLoading() {
   return (
-    <div className="flex flex-col gap-[16px]">
-      <Loading.Skeleton className="h-[120px] w-full" />
-      <Loading.Skeleton className="h-[240px] w-full" />
-      <Loading.Skeleton className="h-[140px] w-full" />
-    </div>
+    <>
+      <div className="flex flex-col gap-8">
+        <Loading.Skeleton className="h-[16px] w-[180px]" />
+        <PanelHeader.HeadingSkeleton
+          {...PAGE_HEADING.orders}
+          barClassName="w-[200px]"
+        />
+      </div>
+      <div className="desktop:flex-row flex flex-col gap-20">
+        <Loading.Skeleton className="h-[320px] w-full flex-1" />
+        <div className="desktop:w-[320px] flex w-full shrink-0 flex-col gap-12">
+          <Loading.Skeleton className="h-[160px] w-full" />
+          <Loading.Skeleton className="h-[140px] w-full" />
+        </div>
+      </div>
+    </>
   );
 }

@@ -17,7 +17,7 @@ export const Root = React.forwardRef<HTMLDivElement, EmptyStateRootProps>(
     // (uma linha por célula, a tabela rola). Sem reverter aqui, a descrição
     // virava uma linha só de ~680px e o card a cortava no meio da frase.
     const layout =
-      "flex w-full flex-col items-center gap-[10px] text-center whitespace-normal";
+      "flex w-full flex-col items-center gap-[10px] text-center whitespace-normal animate-fade-in";
 
     if (flat) {
       return (

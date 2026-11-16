@@ -5,6 +5,7 @@ import { ListPageSkeleton } from "@/components/ListPageSkeleton";
 export default function Loading() {
   return (
     <ListPageSkeleton
+      page="users"
       title="Pessoas"
       description="Quem entra no sistema e quem vende em campo — uma lista só. Clique em alguém para abrir o perfil completo."
       actions={2}

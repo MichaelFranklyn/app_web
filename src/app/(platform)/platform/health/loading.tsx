@@ -5,6 +5,7 @@ import { ListPageSkeleton } from "@/components/ListPageSkeleton";
 export default function Loading() {
   return (
     <ListPageSkeleton
+      page="platformHealth"
       title="Saúde"
       description="Estado técnico da plataforma: banco, jobs agendados e pendências."
       kpis={{ count: 3, cols: { base: 1, tablet: 3 } }}

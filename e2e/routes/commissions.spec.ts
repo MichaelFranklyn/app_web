@@ -54,6 +54,7 @@ const monthName = (delta: number): string => {
 function row(overrides: Record<string, unknown> = {}) {
   return {
     orderId: "order-1",
+    orderNumber: 1,
     installmentId: "inst-1",
     sequence: 1,
     orderDate: "2026-07-02",
@@ -154,7 +155,9 @@ test("comissões: trocar a ótica refaz os números da tela inteira", async ({
   await page.goto("/commissions");
 
   // Ótica do escritório (a que a tela abre): o dinheiro da fábrica, em agosto.
-  await expect(page.getByText("A receber em agosto de 2026")).toBeVisible();
+  await expect(
+    page.getByText("A receber em agosto de 2026", { exact: true })
+  ).toBeVisible();
   await expect(page.getByText("R$ 50,00").first()).toBeVisible();
   await expect(
     page.getByText("Mostrando o que as fábricas devem em agosto de 2026", {
@@ -328,7 +331,7 @@ test("comissões: no escritório a tela soma todos os vendedores", async ({
     .toContain('"sellerId":null');
   await expect(page.getByPlaceholder("Todos os vendedores")).toBeDisabled();
   // E a lista diz de quem são as parcelas, lá embaixo, longe do seletor.
-  await expect(page.getByText("· Todos os vendedores")).toBeVisible();
+  await expect(page.getByText(/^Todos os vendedores · /)).toBeVisible();
 
   await page.getByRole("button", { name: "Valores de Vendedor" }).click();
 
@@ -363,6 +366,7 @@ test("comissões: somando todos, a lista diz de quem é cada parcela", async ({
         row(),
         row({
           orderId: "order-2",
+          orderNumber: 2,
           installmentId: "inst-2",
           client: {
             id: "client-2",
@@ -400,7 +404,7 @@ test("comissões: somando todos, a lista diz de quem é cada parcela", async ({
     .click();
 
   await expect(page.getByText("CASA DO SONO LTDA")).toHaveCount(0);
-  await expect(page.getByText("· Mariana Souza")).toBeVisible();
+  await expect(page.getByText(/^Mariana Souza · /)).toBeVisible();
 
   // Na ótica do vendedor a coluna sai: repetiria o mesmo nome em toda linha.
   await page.getByRole("button", { name: "Valores de Vendedor" }).click();
@@ -418,6 +422,7 @@ test.describe("comissões: mês com muitas parcelas", () => {
   const MANY = Array.from({ length: 120 }, (_, i) =>
     row({
       orderId: `order-${i + 1}`,
+      orderNumber: i + 1,
       installmentId: `inst-${i + 1}`,
       client: {
         id: `client-${i + 1}`,
@@ -640,18 +645,20 @@ test.describe("comissões: nome comprido na tabela", () => {
     await expect(cell).toHaveText(LONG_NAME);
   });
 
-  test("no tablet o nome segue em uma linha e a tabela rola", async ({
+  test("no tablet a linha vira cartão: o nome quebra e nada rola para o lado", async ({
     page,
   }) => {
-    // Abaixo do desktop nada mudou: rolar com o dedo é gesto natural, e a
-    // linha única mantém a leitura vertical da lista.
+    // Abaixo de 1024px a tabela de comissões é linha-cartão (`cards`): rolar
+    // para o lado escondia justamente o VALOR da comissão. No cartão o nome
+    // quebra dentro dele e o valor fica à vista, na primeira linha.
     await page.setViewportSize({ width: 800, height: 1000 });
     const cell = await openWithLongName(page);
     await expect(cell).toBeVisible();
 
     expect(await cell.evaluate((el) => getComputedStyle(el).whiteSpace)).toBe(
-      "nowrap"
+      "normal"
     );
-    expect(await tableOverflow(cell)).toBeGreaterThan(1);
+    expect(await tableOverflow(cell)).toBeLessThanOrEqual(1);
+    await expect(cell).toHaveText(LONG_NAME);
   });
 });

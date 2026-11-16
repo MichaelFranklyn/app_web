@@ -3,7 +3,10 @@ import React from "react";
 import { ProgressColor } from "../Root/interface";
 import { PROGRESS_COLOR_TOKENS } from "../Root/style";
 
-export interface ProgressBarProps extends React.HTMLAttributes<HTMLDivElement> {
+interface ProgressBarBaseProps extends Omit<
+  React.HTMLAttributes<HTMLDivElement>,
+  "aria-label" | "aria-labelledby"
+> {
   value: number;
   color?: ProgressColor;
   /**
@@ -19,9 +22,31 @@ export interface ProgressBarProps extends React.HTMLAttributes<HTMLDivElement> {
   shape?: "pill" | "square";
 }
 
+/**
+ * Nome acessível OBRIGATÓRIO (WCAG 4.1.2): um `role="progressbar"` sem nome é
+ * lido como "barra de progresso, 40%" — de quê? No /dashboard as quatro barras
+ * de metas soavam iguais (auditoria 13/11/2026, P-14.2).
+ *
+ *   • `label` vira o `aria-label` (o caso comum: texto curto e próprio).
+ *   • `aria-labelledby` aponta para um texto que já está na tela.
+ */
+export type ProgressBarProps = ProgressBarBaseProps &
+  (
+    | { label: string; "aria-labelledby"?: never }
+    | { label?: never; "aria-labelledby": string }
+  );
+
 export const Bar = React.forwardRef<HTMLDivElement, ProgressBarProps>(
   (
-    { value, color = "amber", fillColor, shape = "pill", className, ...props },
+    {
+      value,
+      color = "amber",
+      fillColor,
+      shape = "pill",
+      label,
+      className,
+      ...props
+    },
     ref
   ) => {
     const pct = Math.min(100, Math.max(0, value));
@@ -32,6 +57,7 @@ export const Bar = React.forwardRef<HTMLDivElement, ProgressBarProps>(
         aria-valuenow={pct}
         aria-valuemin={0}
         aria-valuemax={100}
+        aria-label={label}
         className={cn(
           "h-[6px] w-full overflow-hidden bg-(--bg3)",
           shape === "square" ? "rounded-[2px]" : "rounded-[6px]",
@@ -40,7 +66,7 @@ export const Bar = React.forwardRef<HTMLDivElement, ProgressBarProps>(
         {...props}
       >
         <div
-          className="h-full transition-all duration-500 ease-out"
+          className="h-full transition-[width] duration-500 ease-(--ease-out-soft)"
           style={{
             width: `${pct}%`,
             background: fillColor ?? PROGRESS_COLOR_TOKENS[color],

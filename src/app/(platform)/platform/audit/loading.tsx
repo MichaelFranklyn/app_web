@@ -3,6 +3,7 @@ import { ListPageSkeleton } from "@/components/ListPageSkeleton";
 export default function Loading() {
   return (
     <ListPageSkeleton
+      page="platformAudit"
       title="Auditoria"
       description="Tudo que a plataforma fez sobre as empresas."
       listTitle="Ações registradas"

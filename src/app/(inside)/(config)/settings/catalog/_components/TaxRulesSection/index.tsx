@@ -13,6 +13,7 @@ import { Percent } from "lucide-react";
 import { useMemo } from "react";
 import { TAX_RULES_QUERY } from "../../gql";
 import { AddTaxRuleModal } from "./AddTaxRuleModal";
+import { CatalogRowActions } from "../CatalogRowActions";
 import { DeleteTaxRuleModal } from "./DeleteTaxRuleModal";
 import { EditTaxRuleModal } from "./EditTaxRuleModal";
 
@@ -49,14 +50,12 @@ export function TaxRulesSection() {
   return (
     <Table.Root>
       <CatalogSectionHead
-        count={rules.length}
-        loading={loading && rules.length === 0}
-        noun={{ one: "regra", many: "regras" }}
+        title="Regras cadastradas"
         helpLabel="Como funcionam as regras de imposto?"
         helpContent={
           <div className="flex flex-col gap-6">
             <div className="flex flex-col gap-2">
-              <Title variant="label" color="amber">
+              <Title variant="label" weight="semibold">
                 Tipo de cálculo
               </Title>
               <Title variant="body-sm">
@@ -65,7 +64,7 @@ export function TaxRulesSection() {
               </Title>
             </div>
             <div className="flex flex-col gap-2">
-              <Title variant="label" color="amber">
+              <Title variant="label" weight="semibold">
                 Incluso no preço
               </Title>
               <Title variant="body-sm">
@@ -86,7 +85,8 @@ export function TaxRulesSection() {
           onDone={onChanged}
         />
       </CatalogSectionHead>
-      <Table.Table maxHeight={600}>
+      {/* Abaixo do desktop cada linha vira cartão, com editar/excluir no "⋯". */}
+      <Table.Table maxHeight={600} cards>
         <Table.Header>
           <Table.Row>
             <Table.Head title={TAX_RULE_COLUMN_HELP.name}>Nome</Table.Head>
@@ -99,7 +99,7 @@ export function TaxRulesSection() {
           </Table.Row>
         </Table.Header>
         <Table.Body>
-          {loading ? (
+          {loading && rules.length === 0 ? (
             <Table.Skeleton columns={2} rows={3} />
           ) : error && rules.length === 0 ? (
             <Table.Row>
@@ -114,7 +114,7 @@ export function TaxRulesSection() {
                   <EmptyState.Icon>
                     <Percent size={32} />
                   </EmptyState.Icon>
-                  <EmptyState.Title>Nenhuma regra de imposto</EmptyState.Title>
+                  <EmptyState.Title>Nenhuma regra cadastrada</EmptyState.Title>
                   <EmptyState.Description>
                     Use &quot;Nova regra&quot; para cadastrar os impostos
                     aplicados aos produtos da empresa.
@@ -125,25 +125,36 @@ export function TaxRulesSection() {
           ) : (
             rules.map((r) => (
               <Table.Row key={r.id}>
-                <Table.Cell variant="strong">{r.name}</Table.Cell>
-                <Table.Cell>
-                  <div className="flex items-center justify-end gap-4">
-                    <EditTaxRuleModal
-                      rule={r}
-                      onUpdateOptimistic={optimistic.updateOptimistic}
-                      onCommit={optimistic.commit}
-                      onRollback={optimistic.rollback}
-                      onDone={onChanged}
-                    />
-                    <DeleteTaxRuleModal
-                      ruleId={r.id}
-                      ruleName={r.name}
-                      onRemoveOptimistic={optimistic.removeOptimistic}
-                      onCommit={optimistic.commit}
-                      onRollback={optimistic.rollback}
-                      onDone={onChanged}
-                    />
-                  </div>
+                <Table.Cell card="title" variant="strong">
+                  {r.name}
+                </Table.Cell>
+                <Table.Cell card="actions">
+                  <CatalogRowActions
+                    label={`Ações da regra ${r.name}`}
+                    editLabel="Editar regra de imposto"
+                    deleteLabel="Remover regra de imposto"
+                    renderEdit={(control) => (
+                      <EditTaxRuleModal
+                        {...control}
+                        rule={r}
+                        onUpdateOptimistic={optimistic.updateOptimistic}
+                        onCommit={optimistic.commit}
+                        onRollback={optimistic.rollback}
+                        onDone={onChanged}
+                      />
+                    )}
+                    renderDelete={(control) => (
+                      <DeleteTaxRuleModal
+                        {...control}
+                        ruleId={r.id}
+                        ruleName={r.name}
+                        onRemoveOptimistic={optimistic.removeOptimistic}
+                        onCommit={optimistic.commit}
+                        onRollback={optimistic.rollback}
+                        onDone={onChanged}
+                      />
+                    )}
+                  />
                 </Table.Cell>
               </Table.Row>
             ))

@@ -147,10 +147,10 @@ export const formatShortDay = (day: string): string => {
 
 export const SEVERITY_COLOR: Record<
   AttentionSeverity,
-  "red" | "amber" | "blue"
+  "red" | "warning" | "blue"
 > = {
   CRITICAL: "red",
-  WARNING: "amber",
+  WARNING: "warning",
   INFO: "blue",
 };
 

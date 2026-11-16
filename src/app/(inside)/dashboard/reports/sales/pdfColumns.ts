@@ -4,6 +4,7 @@ import { ReportColumn } from "@/utils/pdf/table";
 
 import { orderStatusLabel } from "@/app/(inside)/_shared/orderStatus";
 import { SalesReportOrder } from "./interface";
+import { visibleCommission } from "@/utils/commission";
 
 /**
  * Colunas do PDF de vendas, na mesma ordem da tabela da tela — quem imprime está
@@ -56,6 +57,6 @@ export const SALES_PDF_COLUMNS: ReportColumn<SalesReportOrder>[] = [
     header: "COMISSÃO",
     width: 10,
     align: "right",
-    value: (order) => formatMoney(order.commissionAmount),
+    value: (order) => formatMoney(visibleCommission(order)),
   },
 ];

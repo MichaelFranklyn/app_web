@@ -125,7 +125,7 @@ export const INSTALLMENT_COLUMN_HELP = {
     "Vencimento do boleto do cliente. De onde contam os dias (da nota ou da compra) está escrito na tarja acima da tabela.",
   amount: "Valor do boleto que o cliente paga nesta parcela.",
   commission:
-    "Fatia da comissão que esta parcela gera. Quando ela pode ser cobrada da fábrica depende do modo de comissão, explicado no “?” do título.",
+    "Fatia da comissão que esta parcela gera: para a gestão, o que a fábrica paga; para o vendedor, a parte dele. Quando ela pode ser cobrada da fábrica depende do modo de comissão, explicado no “?” do título.",
   status:
     "Situação do boleto: pendente, pago, cancelado ou inadimplente (o cliente não pagou).",
   actions:
@@ -169,8 +169,9 @@ export const SUMMARY_HELP: Record<string, ReactNode> = {
   ),
   commission: (
     <Title variant="body-sm">
-      Comissão da representação neste pedido. Ela só é calculada no faturamento
-      — antes disso aparece zerada.
+      Comissão do vendedor responsável neste pedido: a porcentagem dele sobre o
+      valor da mercadoria, sem IPI. Ela só é calculada no faturamento — antes
+      disso aparece zerada.
     </Title>
   ),
   paymentTerm: (

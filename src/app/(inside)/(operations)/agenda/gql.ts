@@ -276,3 +276,75 @@ export const RESCHEDULE_VISIT_MUTATION = gql`
     }
   }
 `;
+
+/**
+ * As paradas da pessoa logada nos OUTROS escritórios em que ela vende — a
+ * rotina integrada (16/11/2026). Só rota: nome do cliente, endereço, estado.
+ * Nada de preço, comissão ou percentual atravessa de um escritório ao outro.
+ */
+export const CROSS_OFFICE_STOPS_QUERY = gql`
+  query CrossOfficeStops($dateFrom: Date!, $dateTo: Date!) {
+    crossOfficeStops(dateFrom: $dateFrom, dateTo: $dateTo) {
+      status
+      message
+      data {
+        id
+        companyId
+        officeName
+        date
+        status
+        contactType
+        plannedOrder
+        isManual
+        outcome
+        clientId
+        clientName
+        city
+        state
+        neighborhood
+        address
+        factoryName
+      }
+    }
+  }
+`;
+
+/** O desfecho de uma parada do outro escritório — o resto se muda lá. */
+export const UPDATE_CROSS_OFFICE_VISIT_MUTATION = gql`
+  mutation UpdateCrossOfficeVisit(
+    $id: UUID!
+    $input: UpdateCrossOfficeVisitInput!
+  ) {
+    updateCrossOfficeVisit(id: $id, input: $input) {
+      status
+      message
+      data {
+        id
+        status
+      }
+    }
+  }
+`;
+
+/**
+ * A rota do dia somando as paradas presenciais dos escritórios da pessoa
+ * logada — calculada na leitura, sem gravar nada em escritório nenhum. Só ids,
+ * quilômetros e minutos: nada de fábrica, preço ou comissão.
+ */
+export const CROSS_OFFICE_DAY_ROUTE_QUERY = gql`
+  query CrossOfficeDayRoute($date: Date!) {
+    crossOfficeDayRoute(date: $date) {
+      status
+      message
+      data {
+        distanceKm
+        durationMin
+        stopCount
+        visitDurationMin
+        lastEndTime
+        departureAddress
+        order
+      }
+    }
+  }
+`;

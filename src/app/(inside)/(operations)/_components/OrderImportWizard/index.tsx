@@ -13,17 +13,23 @@ import { STEP_LABEL } from "./steps";
 import type { ImportRow } from "./utils";
 import {
   DeferredOrderTarget,
+  DraftImportTarget,
   REVIEW_STEP,
   useOrderImportWizard,
 } from "./useOrderImportWizard";
 
-export type { DeferredOrderTarget } from "./useOrderImportWizard";
+export type {
+  DeferredOrderTarget,
+  DraftImportTarget,
+} from "./useOrderImportWizard";
 
 interface Props {
   /** Pedido existente (detalhe do pedido). Ausente → informe `deferred`. */
   orderId?: string | null;
   /** Fluxo em que o pedido só é criado na confirmação final. */
   deferred?: DeferredOrderTarget;
+  /** Devolve os itens ao rascunho de `/orders/new`, sem gravar nada. */
+  draft?: DraftImportTarget;
   /**
    * Itens de uma ficha de pedido nossa, já lidos. Quando vêm, o wizard abre na
    * revisão: não há arquivo a escolher nem coluna a mapear.
@@ -66,6 +72,7 @@ interface Props {
 export function OrderImportWizard({
   orderId,
   deferred,
+  draft,
   initialRows,
   ipiInOrder,
   onImported,
@@ -79,6 +86,7 @@ export function OrderImportWizard({
     step,
     setStep,
     fromSheet,
+    toDraft,
     file,
     matrix,
     data,
@@ -108,6 +116,7 @@ export function OrderImportWizard({
   } = useOrderImportWizard({
     orderId,
     deferred,
+    draft,
     initialRows,
     ipiInOrder,
     onImported,
@@ -122,7 +131,8 @@ export function OrderImportWizard({
   // todo. É esta conta que a caixa "Passo 3 de 6" mostra: quem está importando
   // quer saber quanto falta até o fim, não até o fim deste componente.
   const done = leadingSteps.length;
-  const total = done + (fromSheet ? 2 : 4);
+  // No rascunho não há resultado: confirmar devolve os itens e fecha.
+  const total = done + (fromSheet ? 2 : 4) - (toDraft ? 1 : 0);
 
   return (
     <>
@@ -137,7 +147,7 @@ export function OrderImportWizard({
               return;
             }
             const target = index - done + firstStep;
-            if (target < REVIEW_STEP + 1) setStep(target);
+            if (target < step) setStep(target);
           }}
         >
           {leadingSteps.map((label) => (
@@ -204,13 +214,16 @@ export function OrderImportWizard({
                 skippedItems={skippedItems}
                 ipiInOrder={ipiEnabled}
                 unreadableRows={unreadableRows}
+                toDraft={toDraft}
               />
             )}
           </Stepper.Item>
 
-          <Stepper.Item label={STEP_LABEL.result}>
-            {result && <StepResult result={result} skipped={skippedItems} />}
-          </Stepper.Item>
+          {!toDraft && (
+            <Stepper.Item label={STEP_LABEL.result}>
+              {result && <StepResult result={result} skipped={skippedItems} />}
+            </Stepper.Item>
+          )}
         </Stepper.Root>
       </Modal.Body>
 
@@ -225,7 +238,6 @@ export function OrderImportWizard({
             appearance="solid"
             color="amber"
             size="md"
-            noUppercase
             loading={isRedirecting}
             onClick={viewOrder ?? onClose}
           >
@@ -239,7 +251,6 @@ export function OrderImportWizard({
                 appearance="ghost"
                 color="neutral"
                 size="md"
-                noUppercase
                 disabled={isLoading || isRedirecting}
                 onClick={() =>
                   step > firstStep
@@ -258,7 +269,6 @@ export function OrderImportWizard({
                 appearance="solid"
                 color="amber"
                 size="md"
-                noUppercase
                 disabled={!data || isLoading}
                 onClick={() => setStep(1)}
               >
@@ -271,7 +281,6 @@ export function OrderImportWizard({
                 appearance="solid"
                 color="amber"
                 size="md"
-                noUppercase
                 loading={isLoading}
                 disabled={!canMap}
                 onClick={runPreview}
@@ -285,7 +294,6 @@ export function OrderImportWizard({
                 appearance="solid"
                 color="amber"
                 size="md"
-                noUppercase
                 // O loading só termina quando a página do pedido já carregou —
                 // sem o flash de "pronto" com a próxima tela em branco.
                 loading={isLoading || isRedirecting}
@@ -293,11 +301,14 @@ export function OrderImportWizard({
                 onClick={runConfirm}
               >
                 <Button.Title>
-                  {fromSheet
-                    ? // Na ficha o botão é o momento em que o pedido nasce —
-                      // dizer "importar itens" esconderia isso.
-                      `Subir pedido com ${confirmableCount} item(ns)`
-                    : `Importar ${confirmableCount} item(ns)`}
+                  {toDraft
+                    ? // Nada é gravado aqui — o botão diz para onde vão.
+                      `Adicionar ${confirmableCount} item(ns) à lista`
+                    : fromSheet
+                      ? // Na ficha o botão é o momento em que o pedido nasce —
+                        // dizer "importar itens" esconderia isso.
+                        `Subir pedido com ${confirmableCount} item(ns)`
+                      : `Importar ${confirmableCount} item(ns)`}
                 </Button.Title>
               </Button.Root>
             )}

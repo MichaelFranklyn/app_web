@@ -60,13 +60,7 @@ export function ShareLinkBox({
       </div>
 
       <div className="flex flex-wrap gap-8">
-        <Button.Root
-          appearance="solid"
-          color="amber"
-          size="sm"
-          noUppercase
-          onClick={copy}
-        >
+        <Button.Root appearance="solid" color="amber" size="sm" onClick={copy}>
           <Button.Icon icon={isCopied ? Check : Copy} />
           <Button.Title>{isCopied ? "Copiado" : "Copiar link"}</Button.Title>
         </Button.Root>
@@ -76,12 +70,7 @@ export function ShareLinkBox({
           target="_blank"
           rel="noopener noreferrer"
         >
-          <Button.Root
-            appearance="outline"
-            color="neutral"
-            size="sm"
-            noUppercase
-          >
+          <Button.Root appearance="outline" color="neutral" size="sm">
             <Button.Icon icon={MessageCircle} />
             <Button.Title>Enviar pelo WhatsApp</Button.Title>
           </Button.Root>

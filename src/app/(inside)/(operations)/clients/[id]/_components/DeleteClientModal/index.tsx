@@ -30,7 +30,7 @@ export function DeleteClientModal({ companyClientId, clientName }: Props) {
   return (
     <ConfirmModal
       trigger={
-        <Button.Root appearance="outline" color="red" size="sm" noUppercase>
+        <Button.Root appearance="outline" color="red" size="sm">
           <Button.Icon icon={Trash2} />
           <Button.Title>Remover</Button.Title>
         </Button.Root>

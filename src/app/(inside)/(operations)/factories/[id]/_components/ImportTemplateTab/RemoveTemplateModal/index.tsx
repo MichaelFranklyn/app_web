@@ -31,7 +31,7 @@ export function RemoveTemplateModal({
   return (
     <ConfirmModal
       trigger={
-        <Button.Root appearance="ghost" color="red" size="sm" noUppercase>
+        <Button.Root appearance="ghost" color="red" size="sm">
           <Button.Icon icon={Trash2} />
           <Button.Title>Remover</Button.Title>
         </Button.Root>

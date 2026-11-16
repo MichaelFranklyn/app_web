@@ -39,7 +39,7 @@ export function PlatformShell({ children }: { children: React.ReactNode }) {
       <AppFrame.Sidebar drawerOpen={drawerOpen}>
         <Sidebar.Brand>
           <div className="flex items-center gap-[8px]">
-            <ShieldCheck size={20} className="text-(--purple)" />
+            <ShieldCheck size={20} className="stroke-(--purple)" />
             <Title variant="body-md" weight="semibold">
               Plataforma
             </Title>

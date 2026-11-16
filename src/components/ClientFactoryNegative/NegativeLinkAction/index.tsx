@@ -1,6 +1,6 @@
 "use client";
 
-import { Button } from "@/components/Button";
+import type { RowAction } from "@/components/RowActions";
 import { Ban, ShieldCheck } from "lucide-react";
 import { useState } from "react";
 import { NegativeLinkModal } from "../NegativeLinkModal";
@@ -16,44 +16,33 @@ interface Props {
 }
 
 /**
- * O botão da negativação para as linhas de tabela: marca quando está livre,
+ * A ação da negativação para as linhas de tabela: marca quando está livre,
  * retira quando está negativado.
  *
- * O rótulo diz a fábrica ("...nesta fábrica") porque é a única informação que
- * separa esta ação de um bloqueio geral do cliente — e é ela que o leitor de
- * tela anuncia.
+ * Devolve a ação (entra no `RowActions` da linha — ícone no desktop, item do
+ * "⋯" no celular) e o modal que ela abre. O rótulo diz "nesta fábrica" porque
+ * é a única informação que separa esta ação de um bloqueio geral do cliente.
  */
-export function NegativeLinkAction({
+export function useNegativeLinkAction({
   linkId,
   factoryName,
   clientName,
   isNegative,
   negativeSince = null,
   onSaved,
-}: Props) {
+}: Props): { action: RowAction; modal: React.ReactNode } {
   const [open, setOpen] = useState(false);
 
-  return (
-    <>
-      <Button.Root
-        appearance="ghost"
-        color={isNegative ? "green" : "red"}
-        size="sm"
-        aria-label={
-          isNegative
-            ? `Retirar a negativação em ${factoryName}`
-            : `Marcar como negativado em ${factoryName}`
-        }
-        title={
-          isNegative
-            ? "Retirar negativação"
-            : "Marcar cliente como negativado nesta fábrica"
-        }
-        onClick={() => setOpen(true)}
-      >
-        <Button.Icon icon={isNegative ? ShieldCheck : Ban} />
-      </Button.Root>
-
+  return {
+    action: {
+      label: isNegative
+        ? "Retirar negativação nesta fábrica"
+        : "Marcar como negativado nesta fábrica",
+      icon: isNegative ? ShieldCheck : Ban,
+      danger: !isNegative,
+      onClick: () => setOpen(true),
+    },
+    modal: (
       <NegativeLinkModal
         linkId={linkId}
         factoryName={factoryName}
@@ -64,6 +53,6 @@ export function NegativeLinkAction({
         onOpenChange={setOpen}
         onSaved={onSaved}
       />
-    </>
-  );
+    ),
+  };
 }

@@ -24,7 +24,17 @@ export const PLAN_WEEK_MUTATION = gql`
             contactType
             isNew
             isSuggested
+            officeName
+            alsoInOffice
           }
+        }
+        aligned {
+          clientId
+          name
+          officeName
+          fromDate
+          toDate
+          movesOtherOffice
         }
         skipped {
           clientId

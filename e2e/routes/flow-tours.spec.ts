@@ -49,7 +49,7 @@ const TOUR_HANDLERS: Record<string, Handler> = {
  * que importa aqui é outra coisa — cada alvo do tour presente uma vez.
  */
 const DADOS: Record<string, Record<string, Handler>> = {
-  "/opportunities": {
+  "/priorities/opportunities": {
     MyOpportunities: () => ({
       myInsights: {
         status: true,
@@ -91,7 +91,7 @@ const DADOS: Record<string, Record<string, Handler>> = {
       },
     }),
   },
-  "/pending": {
+  "/priorities": {
     MyPendingItems: () => ({
       myPendingItems: {
         status: true,

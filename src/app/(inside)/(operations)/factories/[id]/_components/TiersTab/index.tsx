@@ -68,7 +68,7 @@ export function TiersTab({ companyFactoryId }: Props) {
             label="O que é um nível comercial?"
             content={
               <div className="flex flex-col gap-2">
-                <Title variant="label" color="amber">
+                <Title variant="label" weight="semibold">
                   Nível comercial
                 </Title>
                 <Title variant="body-sm">

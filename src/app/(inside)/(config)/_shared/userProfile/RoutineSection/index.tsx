@@ -65,7 +65,6 @@ export function RoutineSection({ seller, onRefetch }: Props) {
               appearance="ghost"
               color="neutral"
               size="md"
-              noUppercase
               disabled={isLoading}
               onClick={cancelEditing}
             >
@@ -77,7 +76,6 @@ export function RoutineSection({ seller, onRefetch }: Props) {
             appearance="solid"
             color="amber"
             size="md"
-            noUppercase
             loading={isLoading}
             onClick={save}
           >

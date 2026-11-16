@@ -3,6 +3,7 @@
 import { Badge } from "@/components/Badges";
 import { Breadcrumb } from "@/components/Breadcrumb";
 import { PanelHeader } from "@/components/PanelHeader";
+import { PAGE_HEADING } from "@/utils/modules";
 import { formatDateDMY } from "@/utils/format/masks";
 import { Zap } from "lucide-react";
 import { CompanyFactoryDetail } from "../../../../interface";
@@ -57,9 +58,9 @@ export function PriceListDetailHeader({
       <PanelHeader.Root>
         <PanelHeader.Top>
           <PanelHeader.Left>
-            <PanelHeader.Title>
+            <PanelHeader.Heading {...PAGE_HEADING.priceList}>
               {loading && !priceList ? "Carregando…" : priceList?.name}
-            </PanelHeader.Title>
+            </PanelHeader.Heading>
             <PanelHeader.Description>
               Vigência: {validity}
               {promoWindow && (

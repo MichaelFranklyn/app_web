@@ -161,7 +161,6 @@ export function PriceHistoryTable({
             appearance="ghost"
             color="neutral"
             size="sm"
-            noUppercase
             onClick={() => setShown((n) => n + PAGE)}
           >
             <Button.Icon icon={ChevronDown} />

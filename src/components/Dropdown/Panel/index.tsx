@@ -55,8 +55,8 @@ export const PanelRow = ({
     type={type}
     className={cn(
       ROW_BASE,
-      "transition-colors hover:bg-(--bg3)",
-      "disabled:cursor-default disabled:opacity-60",
+      "focus-ring-inset transition-colors hover:bg-(--bg3)",
+      "disabled:cursor-default disabled:text-(--color-text-disabled) disabled:hover:bg-transparent",
       ROW_TONE[tone],
       separated && "border-t",
       className
@@ -89,7 +89,7 @@ export const PanelFooter = ({
   <Link
     href={href}
     onClick={onClick}
-    className="flex items-center justify-center gap-6 border-t border-(--border) px-12 py-10 text-(--muted) transition-colors hover:bg-(--bg3) hover:text-(--text)"
+    className="flex items-center justify-center gap-6 border-t border-(--border) px-12 py-10 text-(--color-text-muted) transition-colors hover:bg-(--bg3) hover:text-(--color-text)"
   >
     <Title variant="micro" weight="semibold" className="text-inherit">
       {children}

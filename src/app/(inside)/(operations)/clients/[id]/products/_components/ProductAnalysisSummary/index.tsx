@@ -1,6 +1,6 @@
 "use client";
 
-import { StatCard } from "@/components/StatCard";
+import { Card } from "@/components/Card";
 
 import { ProductAnalysisSummaryData } from "../../interface";
 
@@ -14,12 +14,33 @@ interface Props {
  */
 export function ProductAnalysisSummary({ data }: Props) {
   return (
-    <div className="tablet:grid-cols-3 desktop:grid-cols-5 grid grid-cols-2 gap-8">
-      <StatCard label="Parou de comprar" value={data.stopped} tone="muted" />
-      <StatCard label="Atrasados" value={data.late} tone="red" />
-      <StatCard label="Hora de repor" value={data.due} tone="amber" />
-      <StatCard label="Compra sempre" value={data.always} tone="green" />
-      <StatCard label="Produtos já comprados" value={data.total} />
+    // Abaixo do desktop são 5 cartões: no celular (2 colunas) e no tablet (3)
+    // o último esticaria só metade da linha; ele toma o resto e não sobra buraco.
+    <div className="tablet:grid-cols-3 desktop:grid-cols-5 max-tablet:[&>:last-child]:col-span-2 tablet:max-desktop:[&>:last-child]:col-span-2 grid grid-cols-2 gap-8">
+      <Card.Kpi>
+        <Card.Kpi.Label>Parou de comprar</Card.Kpi.Label>
+        <Card.Kpi.Value>{data.stopped}</Card.Kpi.Value>
+      </Card.Kpi>
+      <Card.Kpi>
+        <Card.Kpi.Label>Atrasados</Card.Kpi.Label>
+        <Card.Kpi.Value status={data.late > 0 ? "urgente" : "neutral"}>
+          {data.late}
+        </Card.Kpi.Value>
+      </Card.Kpi>
+      <Card.Kpi>
+        <Card.Kpi.Label>Hora de repor</Card.Kpi.Label>
+        <Card.Kpi.Value status={data.due > 0 ? "atencao" : "neutral"}>
+          {data.due}
+        </Card.Kpi.Value>
+      </Card.Kpi>
+      <Card.Kpi>
+        <Card.Kpi.Label>Compra sempre</Card.Kpi.Label>
+        <Card.Kpi.Value>{data.always}</Card.Kpi.Value>
+      </Card.Kpi>
+      <Card.Kpi>
+        <Card.Kpi.Label>Produtos já comprados</Card.Kpi.Label>
+        <Card.Kpi.Value>{data.total}</Card.Kpi.Value>
+      </Card.Kpi>
     </div>
   );
 }

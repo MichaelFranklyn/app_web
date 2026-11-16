@@ -6,6 +6,7 @@ import { Card } from "@/components/Card";
 import { Grid } from "@/components/Grid";
 import { HelpTooltip } from "@/components/HelpTooltip";
 import { PanelHeader } from "@/components/PanelHeader";
+import { PAGE_HEADING } from "@/utils/modules";
 import { PlanLimitGate } from "@/components/PlanLimitGate";
 import { useToast } from "@/components/Toast";
 import { useApolloClient } from "@apollo/client/react";
@@ -133,7 +134,9 @@ export function UsersHeader({
       <PanelHeader.Root>
         <PanelHeader.Top>
           <PanelHeader.Left>
-            <PanelHeader.Title>Pessoas</PanelHeader.Title>
+            <PanelHeader.Heading {...PAGE_HEADING.users}>
+              Pessoas
+            </PanelHeader.Heading>
             <PanelHeader.Description>
               Quem entra no sistema e quem vende em campo — uma lista só. Clique
               em alguém para abrir o perfil completo.
@@ -162,7 +165,13 @@ export function UsersHeader({
       </PanelHeader.Root>
 
       {/* KPIs da operação de campo: é o que muda no dia a dia. */}
-      <Grid.Root cols={{ base: 1, tablet: 3 }} gap={20}>
+      {/* Três cartões em duas colunas: no celular o último toma a linha
+          inteira, senão sobra meia linha vazia ao lado dele. */}
+      <Grid.Root
+        cols={{ base: 2, tablet: 3 }}
+        gap={20}
+        className="max-tablet:[&>:last-child]:col-span-2"
+      >
         {kpis.map(
           ({ label, value, delta, positive, negative, status, help }) => (
             <Grid.Item key={label}>

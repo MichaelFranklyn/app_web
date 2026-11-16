@@ -26,13 +26,17 @@ test("pedido do portal: abre sem sessão e identifica a compra", async ({
   // pedido no caminho não pode fazê-la deixar de valer.
   expect(response?.status()).toBe(200);
 
+  // Como no sistema: o número do pedido no título, a fábrica na descrição.
   await expect(
-    page.getByRole("heading", { name: "Fábrica Alfa" })
+    page.getByRole("heading", { name: "Pedido #428" })
+  ).toBeVisible();
+  await expect(
+    page.getByText("Fábrica Alfa · Entregue em 10/08/2026")
   ).toBeVisible();
   await expect(page.getByText("R$ 3.000,00").first()).toBeVisible();
   await expect(page.getByText("Entregue", { exact: true })).toBeVisible();
-  await expect(page.getByText("Entregue em 10/08/2026")).toBeVisible();
-  await expect(page.getByText("Condição de pagamento: 30/60")).toBeVisible();
+  await expect(page.getByText("Prazo de pagamento")).toBeVisible();
+  await expect(page.getByText("30/60", { exact: true })).toBeVisible();
 });
 
 test("pedido do portal: lista os itens com quantidade, preço e total da linha", async ({
@@ -40,11 +44,16 @@ test("pedido do portal: lista os itens com quantidade, preço e total da linha",
 }) => {
   await page.goto(URL);
 
-  await expect(page.getByText("1 item")).toBeVisible();
+  await expect(page.getByText("1 produto", { exact: true })).toBeVisible();
   await expect(page.getByText("Quantidades em unidades.")).toBeVisible();
   await expect(page.getByText("Torneira Teste")).toBeVisible();
   await expect(page.getByText("Código SKU-1")).toBeVisible();
-  await expect(page.getByText("12 × R$ 250,00")).toBeVisible();
+  // Uma linha da tabela: quantidade, preço com imposto e total da linha.
+  const row = page.getByRole("row").filter({ hasText: "Torneira Teste" });
+  await expect(row.getByText("12", { exact: true })).toBeVisible();
+  // Sem imposto, preço e preço com imposto coincidem.
+  await expect(row.getByText("R$ 250,00").first()).toBeVisible();
+  await expect(row.getByText("R$ 3.000,00")).toBeVisible();
 });
 
 test("pedido do portal: mostra as parcelas e o que já foi pago", async ({
@@ -59,17 +68,14 @@ test("pedido do portal: mostra as parcelas e o que já foi pago", async ({
   await expect(page.getByText("Pago em 01/10/2026")).toBeVisible();
 });
 
-test("pedido do portal: volta para a lista de compras", async ({ page }) => {
+test("pedido do portal: volta para a lista de pedidos", async ({ page }) => {
   await page.goto(URL);
 
   // O mesmo destino existe na navegação do portal; aqui o alvo é o link de
   // voltar, dentro do conteúdo.
-  await page
-    .getByRole("main")
-    .getByRole("link", { name: "Minhas compras" })
-    .click();
+  await page.getByRole("main").getByRole("link", { name: "Pedidos" }).click();
 
-  await expect(page).toHaveURL(new RegExp(`/p/${TOKEN}$`));
+  await expect(page).toHaveURL(new RegExp(`/p/${TOKEN}/enviados$`));
 });
 
 test("pedido do portal: pedido que não é dele não vira ficha vazia", async ({
@@ -81,6 +87,6 @@ test("pedido do portal: pedido que não é dele não vira ficha vazia", async ({
 
   await expect(page.getByText("Pedido não encontrado")).toBeVisible();
   await expect(
-    page.getByRole("link", { name: "Voltar para as minhas compras" })
+    page.getByRole("link", { name: "Voltar para os pedidos" })
   ).toBeVisible();
 });

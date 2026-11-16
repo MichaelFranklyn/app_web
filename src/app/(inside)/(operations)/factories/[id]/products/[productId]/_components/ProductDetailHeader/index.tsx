@@ -1,6 +1,7 @@
 import { Badge } from "@/components/Badges";
 import { Breadcrumb } from "@/components/Breadcrumb";
 import { PanelHeader } from "@/components/PanelHeader";
+import { PAGE_HEADING } from "@/utils/modules";
 import { ProductDetail } from "../../interface";
 import { DeleteProductModal } from "./DeleteProductModal";
 import { EditProductModal } from "./EditProductModal";
@@ -26,7 +27,9 @@ export function ProductDetailHeader({ product, onRefetch }: Props) {
       <PanelHeader.Root>
         <PanelHeader.Top>
           <PanelHeader.Left>
-            <PanelHeader.Title>{product.name}</PanelHeader.Title>
+            <PanelHeader.Heading {...PAGE_HEADING.product}>
+              {product.name}
+            </PanelHeader.Heading>
             <PanelHeader.Description>
               Código: {product.sku} · Categoria: {product.category?.name ?? "—"}{" "}
               · Unidade base: {product.unit?.label ?? "—"}

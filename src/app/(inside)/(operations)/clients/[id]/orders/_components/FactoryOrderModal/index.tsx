@@ -2,7 +2,6 @@
 
 import { canDeleteOrder } from "@/app/(inside)/_shared/orderStatus";
 import { Badge } from "@/components/Badges";
-import { Button } from "@/components/Button";
 import { EmptyState } from "@/components/EmptyState";
 import { InputSearch, InputSelect } from "@/components/Input";
 import { SelectOption } from "@/components/Input";
@@ -12,7 +11,7 @@ import { CLIENT_ORDER_COLUMN_HELP } from "../../../../help";
 import { Table } from "@/components/Table";
 import { useOptimisticList } from "@/hooks/useOptimisticList";
 import { useQuery } from "@apollo/client/react";
-import { Pencil, Receipt } from "lucide-react";
+import { Receipt } from "lucide-react";
 import { useMemo, useState } from "react";
 import { formatDate } from "@/utils/format/date";
 import { pageToAfter } from "@/utils/pagination";
@@ -28,8 +27,9 @@ import {
   orderStatusLabel,
   orderStatusTone,
 } from "../../../../../../_shared/orderStatus";
-import { DeleteOrderModal } from "../DeleteOrderModal";
+import { OrderRowActions } from "../OrderRowActions";
 import { factoryName } from "@/utils/company";
+import { formatOrderNumber } from "@/utils/orderNumber";
 
 const ITEMS_PER_PAGE = 10;
 
@@ -119,10 +119,10 @@ export function FactoryOrderModal({
           description="Histórico de compra do cliente nesta fábrica."
         />
         <Modal.Body>
-          <div className="mb-12 flex items-center gap-8">
+          <div className="mb-12 flex flex-wrap items-center gap-8">
             <InputSearch
               size="sm"
-              containerClassName="w-72"
+              containerClassName="w-72 max-tablet:w-full"
               placeholder="Buscar por vendedor ou código..."
               value={search}
               onChange={(e) => {
@@ -139,12 +139,12 @@ export function FactoryOrderModal({
                 setStatusFilter(val as SelectOption | null);
                 setPage(1);
               }}
-              containerClassName="w-[160px]"
+              containerClassName="w-[160px] max-tablet:w-full"
             />
           </div>
 
           <Table.Root>
-            <Table.Table>
+            <Table.Table cards>
               <Table.Header>
                 <Table.Row>
                   <Table.Head title={CLIENT_ORDER_COLUMN_HELP.code}>
@@ -200,29 +200,28 @@ export function FactoryOrderModal({
                       className="group"
                       href={`/orders/${p.id}`}
                     >
-                      <Table.Cell>
+                      <Table.Cell card="title">
                         <Badge.Root color="neutral" appearance="tinted">
-                          <Badge.Text>
-                            {p.id.slice(0, 8).toUpperCase()}
-                          </Badge.Text>
+                          <Badge.Text>{formatOrderNumber(p.number)}</Badge.Text>
                         </Badge.Root>
                       </Table.Cell>
-                      <Table.Cell>
+                      <Table.Cell label="Vendedor">
                         <Table.CellText variant="dim">
                           {p.seller?.name ?? "—"}
                         </Table.CellText>
                       </Table.Cell>
-                      <Table.Cell>
+                      <Table.Cell label="Data">
                         <Table.CellText variant="dim">
                           {formatDate(p.orderDate)}
                         </Table.CellText>
                       </Table.Cell>
-                      <Table.Cell>
+                      <Table.Cell card="amount" label="Valor">
                         <Table.CellText variant="strong">
                           {formatCurrency(p.totalAmount)}
                         </Table.CellText>
                       </Table.Cell>
-                      <Table.Cell>
+                      {/* No cartão a situação divide a última linha com as ações. */}
+                      <Table.Cell card="aside">
                         <Badge.Root
                           color={orderStatusTone(p.status)}
                           appearance="tinted"
@@ -230,35 +229,24 @@ export function FactoryOrderModal({
                           <Badge.Text>{orderStatusLabel(p.status)}</Badge.Text>
                         </Badge.Root>
                       </Table.Cell>
-                      <Table.Cell>
-                        <div className="flex items-center justify-end gap-2">
-                          <Button.Root
-                            appearance="ghost"
-                            color="neutral"
-                            size="sm"
-                            noUppercase
-                            onClick={(e) => {
-                              // A linha inteira é um link para o pedido: sem
-                              // isso, editar também navegaria.
-                              e.stopPropagation();
-                              e.preventDefault();
-                              onEditOrder(p);
-                            }}
-                          >
-                            <Button.Icon icon={Pencil} />
-                            <Button.Title>Editar</Button.Title>
-                          </Button.Root>
-                          {canDeleteOrder(p.status) && (
-                            <DeleteOrderModal
-                              orderId={p.id}
-                              orderCode={p.id.slice(0, 8).toUpperCase()}
-                              onDeleted={() => refetch()}
-                              onRemoveOptimistic={optimistic.removeOptimistic}
-                              onCommit={optimistic.commit}
-                              onRollback={optimistic.rollback}
-                            />
-                          )}
-                        </div>
+                      <Table.Cell card="actions">
+                        <OrderRowActions
+                          orderCode={formatOrderNumber(p.number)}
+                          onEdit={() => onEditOrder(p)}
+                          remove={
+                            canDeleteOrder(p.status)
+                              ? {
+                                  orderId: p.id,
+                                  orderCode: formatOrderNumber(p.number),
+                                  onDeleted: () => refetch(),
+                                  onRemoveOptimistic:
+                                    optimistic.removeOptimistic,
+                                  onCommit: optimistic.commit,
+                                  onRollback: optimistic.rollback,
+                                }
+                              : undefined
+                          }
+                        />
                       </Table.Cell>
                     </Table.Row>
                   ))

@@ -35,11 +35,14 @@ export function DashboardGoalsCard({ sellerId }: Props) {
         <Card.Header.Title size="sm" weight="bold">
           Metas de {monthLabel(goals.month)}
         </Card.Header.Title>
-        <Card.Header.Actions>
+        {/* Quando as ações descem (estágio column), badge e "Ver metas"
+            dividem a linha em vez de empilhar: a tag no tamanho dela, o botão no
+            resto (sem sobra vazia). */}
+        <Card.Header.Actions className="group-data-[actions-mode=column]/cardhead:flex-row! group-data-[actions-mode=column]/cardhead:[&_[data-badge]]:w-auto! group-data-[actions-mode=column]/cardhead:[&>*]:shrink-0 group-data-[actions-mode=column]/cardhead:[&>*:last-child]:flex-1">
           {goals.behindCount > 0 && (
             <Badge.Root
               appearance="tinted"
-              color="amber"
+              color="warning"
               title="Indicadores cujo realizado está mais de 10% abaixo do que o calendário já pediu."
             >
               <Badge.Text>
@@ -54,7 +57,6 @@ export function DashboardGoalsCard({ sellerId }: Props) {
             appearance="outline"
             color="neutral"
             size="sm"
-            noUppercase
           >
             <Button.Title>Ver metas</Button.Title>
             <Button.Icon icon={ArrowRight} />
@@ -68,7 +70,7 @@ export function DashboardGoalsCard({ sellerId }: Props) {
         ) : goals.loading ? (
           <Loading.Skeleton className="h-[120px] w-full" />
         ) : goals.metrics.length === 0 ? (
-          <EmptyState.Root>
+          <EmptyState.Root flat>
             <EmptyState.Icon>
               <Target size={32} />
             </EmptyState.Icon>
@@ -110,6 +112,7 @@ export function DashboardGoalsCard({ sellerId }: Props) {
                   <Progress.Bar
                     value={Math.min(percent, 100)}
                     color={percentTone(percent)}
+                    label={`${metric.label}: ${Math.round(percent)}% da meta`}
                   />
                 </div>
               );

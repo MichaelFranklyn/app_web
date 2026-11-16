@@ -75,13 +75,15 @@ test("pedido detalhe: deleta o pedido", async ({ page }) => {
         invoicedOrders: 0,
         invoicedAmount: "0",
         commissionAmount: "0",
+        sellerCommissionAmount: "0",
       },
     }),
     DeleteOrder: () => ({ deleteOrder: { status: true, message: "ok" } }),
   });
 
   await page.goto(URL);
-  await page.getByRole("button", { name: "Deletar pedido" }).click();
+  await page.getByRole("button", { name: "Mais ações", exact: true }).click();
+  await page.getByRole("menuitem", { name: "Deletar pedido" }).click();
   await page
     .getByRole("dialog")
     .getByRole("button", { name: "Confirmar exclusão" })
@@ -121,6 +123,7 @@ const invoicedOrder = () =>
         sequence: 1,
         amount: "500.00",
         commissionAmount: "50.00",
+        sellerCommissionAmount: "50.00",
         dueDate: "2026-08-09",
         status: "PENDING",
         paidAt: null,
@@ -153,7 +156,8 @@ test("pedido faturado: corrige os dados do faturamento", async ({ page }) => {
   });
 
   await page.goto(URL);
-  await page.getByRole("button", { name: "Editar faturamento" }).click();
+  await page.getByRole("button", { name: "Mais ações", exact: true }).click();
+  await page.getByRole("menuitem", { name: "Editar faturamento" }).click();
 
   const dialog = page.getByRole("dialog");
   // A data usa o calendário do FormBuilder (campo não digitável); aqui basta
@@ -194,7 +198,8 @@ test("pedido faturado: refaz o faturamento para lançar de novo", async ({
   });
 
   await page.goto(URL);
-  await page.getByRole("button", { name: "Editar faturamento" }).click();
+  await page.getByRole("button", { name: "Mais ações", exact: true }).click();
+  await page.getByRole("menuitem", { name: "Editar faturamento" }).click();
 
   const dialog = page.getByRole("dialog");
   await dialog.getByRole("button", { name: "Refazer faturamento" }).click();
@@ -272,7 +277,8 @@ test("pedido faturado com boleto pago: desfazer exige o motivo, e o histórico a
   await expect(page.getByText("Nota lançada no pedido errado")).toBeVisible();
   await expect(page.getByText(/2 parcelas apagadas/)).toBeVisible();
 
-  await page.getByRole("button", { name: "Editar faturamento" }).click();
+  await page.getByRole("button", { name: "Mais ações", exact: true }).click();
+  await page.getByRole("menuitem", { name: "Editar faturamento" }).click();
   const dialog = page.getByRole("dialog");
   await dialog.getByRole("button", { name: "Refazer faturamento" }).click();
 
@@ -352,7 +358,8 @@ test("só o repasse ao vendedor pago: desfazer avisa, exige o motivo e o histór
     page.getByText(/baixas apagadas: 1 repasse pago ao vendedor/)
   ).toBeVisible();
 
-  await page.getByRole("button", { name: "Editar faturamento" }).click();
+  await page.getByRole("button", { name: "Mais ações", exact: true }).click();
+  await page.getByRole("menuitem", { name: "Editar faturamento" }).click();
   const dialog = page.getByRole("dialog");
   await dialog.getByRole("button", { name: "Refazer faturamento" }).click();
   await expect(
@@ -457,4 +464,74 @@ test("pedido detalhe: remove um item", async ({ page }) => {
     .click();
 
   await expect(page.getByText("Item removido do pedido")).toBeVisible();
+});
+
+/**
+ * Pedido feito pelo cliente no portal: o vendedor avisa que viu, e a tela troca
+ * para "Cliente avisado" sem refetch (a mutation devolve o pedido e o Apollo
+ * normaliza — por isso o `__typename` nos dois mocks).
+ */
+test("pedido do portal: avisa o cliente que o vendedor viu", async ({
+  page,
+}) => {
+  // Como o backend: depois de marcar, quem relê o pedido já vê a data.
+  let seenBySellerAt: string | null = null;
+  const spy = await mockGraphql(page, {
+    ...renderMock(),
+    OrderDetail: () => ({
+      order: {
+        status: true,
+        code: 200,
+        message: "ok",
+        data: {
+          ...orderDetailData({ isFromPortal: true, seenBySellerAt }),
+          __typename: "OrderType",
+        },
+      },
+    }),
+    MarkPortalQuoteSeen: () => {
+      seenBySellerAt = "2026-11-16T15:00:00-03:00";
+      return {
+        markPortalQuoteSeen: {
+          status: true,
+          message: "Pronto: o cliente já vê no portal que você viu o pedido.",
+          data: {
+            __typename: "OrderType",
+            id: "order-1",
+            seenBySellerAt,
+          },
+        },
+      };
+    },
+  });
+
+  await page.goto(URL);
+  await expect(
+    page.getByText("O cliente ainda não sabe que você viu este pedido.", {
+      exact: false,
+    })
+  ).toBeVisible();
+  await page.getByRole("button", { name: "Avisar o cliente que vi" }).click();
+
+  await expect(page.getByText("Cliente avisado em 16/11/2026")).toBeVisible();
+  await expect(
+    page.getByRole("button", { name: "Avisar o cliente que vi" })
+  ).toHaveCount(0);
+  expect(spy.lastVariables("MarkPortalQuoteSeen")).toMatchObject({
+    id: "order-1",
+  });
+});
+
+test("pedido que não veio do portal não mostra o aviso ao cliente", async ({
+  page,
+}) => {
+  await mockGraphql(page, renderMock());
+
+  await page.goto(URL);
+  await expect(
+    page.getByText("Produto X").or(page.getByText("Editar")).first()
+  ).toBeVisible();
+  await expect(
+    page.getByRole("button", { name: "Avisar o cliente que vi" })
+  ).toHaveCount(0);
 });

@@ -4,6 +4,7 @@ import { ReportColumn } from "@/utils/pdf/table";
 import { formatPercent } from "../../utils";
 import { FactoryOrdersRow } from "./interface";
 import { invoicedRate } from "./utils";
+import { visibleCommission } from "@/utils/commission";
 
 /**
  * Colunas do PDF das fábricas, na mesma ordem da tela.
@@ -54,7 +55,7 @@ export const FACTORIES_PDF_COLUMNS: ReportColumn<FactoryOrdersRow>[] = [
     header: "COMISSÃO",
     width: 10,
     align: "right",
-    value: (row) => formatMoney(row.commissionAmount),
+    value: (row) => formatMoney(visibleCommission(row)),
   },
   {
     header: "ÚLT. PEDIDO",

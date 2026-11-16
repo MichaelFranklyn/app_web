@@ -13,7 +13,7 @@ import { ImageResponse } from "next/og";
  * fonte); o restante usa a fonte padrão de propósito — carregar a Oswald aqui
  * exigiria ler o `.woff2` a cada build para ganhar pouco num quadro de 1200×630.
  *
- * As cores são as do tema (`--bg`, `--text`, `--amber`), mas escritas em hexa
+ * As cores são as do tema (`--bg`, `--color-text`, `--amber`), mas escritas em hexa
  * literal: isto não roda no navegador, então não há CSS de onde ler a variável.
  */
 export const alt = "Itinus — Plataforma de Gestão Comercial";

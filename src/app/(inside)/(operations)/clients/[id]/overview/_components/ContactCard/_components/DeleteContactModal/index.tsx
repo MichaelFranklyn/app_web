@@ -85,7 +85,6 @@ export function DeleteContactModal({
               appearance="ghost"
               color="neutral"
               size="md"
-              noUppercase
               disabled={isLoading}
             >
               <Button.Title>Cancelar</Button.Title>
@@ -96,7 +95,6 @@ export function DeleteContactModal({
             appearance="solid"
             color="red"
             size="md"
-            noUppercase
             loading={isLoading}
             onClick={handleConfirm}
           >

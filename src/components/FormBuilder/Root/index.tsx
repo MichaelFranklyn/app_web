@@ -2,16 +2,31 @@ import { Title } from "@/components/Title";
 import { cn } from "@/lib/utils";
 import { yupResolver } from "@hookform/resolvers/yup";
 import { forwardRef, useEffect, useImperativeHandle, useState } from "react";
-import { FieldValues, FormProvider, Path, useForm } from "react-hook-form";
+import {
+  FieldValues,
+  FormProvider,
+  Path,
+  useForm,
+  useWatch,
+} from "react-hook-form";
 import { FormBuilderProps, FormBuilderRef } from "../interface";
 import { Navigation } from "../Navigation";
 import { Section } from "../Section";
 import { Stepper } from "../Stepper";
+import { requiredFieldsFilled } from "../utils/required";
 import { buildYupSchema } from "../utils/schema";
 
 export const Root = forwardRef<FormBuilderRef, FormBuilderProps>(
   (
-    { steps, onSubmit, initialData, unstyled = false, onDirtyChange, ...props },
+    {
+      steps,
+      onSubmit,
+      initialData,
+      unstyled = false,
+      onDirtyChange,
+      onRequiredFilledChange,
+      ...props
+    },
     ref
   ) => {
     const [currentStepIndex, setCurrentStepIndex] = useState(0);
@@ -28,6 +43,16 @@ export const Root = forwardRef<FormBuilderRef, FormBuilderProps>(
     useEffect(() => {
       onDirtyChange?.(isDirty);
     }, [isDirty, onDirtyChange]);
+
+    // Assina todos os valores: inclusive os postos pelo código (`setValue`).
+    const values = useWatch({ control: methods.control }) as Record<
+      string,
+      unknown
+    >;
+    const isRequiredFilled = requiredFieldsFilled(steps, values ?? {});
+    useEffect(() => {
+      onRequiredFilledChange?.(isRequiredFilled);
+    }, [isRequiredFilled, onRequiredFilledChange]);
 
     const isLastStep = currentStepIndex === steps.length - 1;
     const isFirstStep = currentStepIndex === 0;

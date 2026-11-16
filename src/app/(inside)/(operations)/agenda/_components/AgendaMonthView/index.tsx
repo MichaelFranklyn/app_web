@@ -12,10 +12,19 @@ import {
   WEEKDAY_SHORT,
 } from "../../calendar";
 import { AGENDA_DRAG_TYPE, AgendaDrag, readDrag } from "../../dragItem";
-import { AgendaPerson } from "../../interface";
+import {
+  AgendaPerson,
+  CrossOfficeStop,
+  VisitScheduleItem,
+} from "../../interface";
 import { isPastDay, sortVisitsByRoute } from "../../utils";
 import { AgendaAddMenu } from "../AgendaAddMenu";
 import { AgendaChip } from "../AgendaChip";
+import { OtherOfficeStopChip } from "../OtherOfficeStop/Chip";
+
+type MonthEntry =
+  | { kind: "here"; item: VisitScheduleItem }
+  | { kind: "other"; stop: CrossOfficeStop };
 
 /** Quantos compromissos cabem na célula do mês antes do "+N mais". */
 const SHOWN_PER_DAY = 3;
@@ -64,8 +73,18 @@ export function AgendaMonthView({
     <Calendar.Root variant="month">
       <Calendar.Weekdays labels={WEEKDAY_SHORT} />
       {weeks.flat().map((date) => {
-        const items = sortVisitsByRoute(days.get(date)?.day?.items ?? []);
-        const hidden = items.length - SHOWN_PER_DAY;
+        const agendaDay = days.get(date);
+        // Os compromissos de cá e, depois, os do outro escritório da pessoa —
+        // contam juntos no "+N mais" e na contagem do celular.
+        const entries: MonthEntry[] = [
+          ...sortVisitsByRoute(agendaDay?.day?.items ?? []).map(
+            (item): MonthEntry => ({ kind: "here", item })
+          ),
+          ...(agendaDay?.otherOffices ?? []).map(
+            (stop): MonthEntry => ({ kind: "other", stop })
+          ),
+        ];
+        const hidden = entries.length - SHOWN_PER_DAY;
         const isExpanded = expanded.has(date);
         const isDayOff = dayOffDates.has(date);
         const isOpen = !isPastDay(date, todayIso);
@@ -101,16 +120,23 @@ export function AgendaMonthView({
             />
             <Calendar.CellBody passThrough={isOpen}>
               <div className="tablet:flex pointer-events-auto hidden min-w-0 flex-col gap-2">
-                {(isExpanded ? items : items.slice(0, SHOWN_PER_DAY)).map(
-                  (item) => (
-                    <AgendaChip
-                      key={item.id}
-                      item={item}
-                      dayDate={date}
-                      size="sm"
-                      onChanged={onChanged}
-                    />
-                  )
+                {(isExpanded ? entries : entries.slice(0, SHOWN_PER_DAY)).map(
+                  (entry) =>
+                    entry.kind === "here" ? (
+                      <AgendaChip
+                        key={entry.item.id}
+                        item={entry.item}
+                        dayDate={date}
+                        size="sm"
+                        onChanged={onChanged}
+                      />
+                    ) : (
+                      <OtherOfficeStopChip
+                        key={entry.stop.id}
+                        stop={entry.stop}
+                        onOpen={() => onOpenDay(date)}
+                      />
+                    )
                 )}
                 {hidden > 0 && (
                   <Button.Root
@@ -118,11 +144,10 @@ export function AgendaMonthView({
                     appearance="ghost"
                     color="neutral"
                     size="sm"
-                    noUppercase
                     label={
                       isExpanded
                         ? "Mostrar menos"
-                        : `Mostrar os ${items.length} compromissos aqui`
+                        : `Mostrar os ${entries.length} compromissos aqui`
                     }
                     onClick={() => toggleExpanded(date)}
                   >
@@ -132,16 +157,25 @@ export function AgendaMonthView({
                   </Button.Root>
                 )}
               </div>
-              {items.length > 0 && (
+              {entries.length > 0 && (
                 <Title
                   variant="micro"
                   color="muted"
                   className="tablet:hidden text-center"
                 >
-                  {items.length}
+                  {entries.length}
                 </Title>
               )}
             </Calendar.CellBody>
+            {/* No celular a célula é pequena demais para dois alvos (número
+                abre o dia, vazio agenda) e os compromissos nem aparecem: o
+                toque em qualquer ponto abre o dia, onde se vê e se agenda.
+                Vem por último para ficar por cima de tudo (14/11/2026). */}
+            <Calendar.CellHitArea
+              label="Abrir este dia"
+              onClick={() => onOpenDay(date)}
+              className="tablet:hidden"
+            />
           </Calendar.Cell>
         );
       })}

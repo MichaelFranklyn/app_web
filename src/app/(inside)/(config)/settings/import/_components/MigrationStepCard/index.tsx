@@ -31,7 +31,6 @@ export function MigrationStepCard({ step }: { step: MigrationStep }) {
           appearance={step.number === 3 ? "solid" : "outline"}
           color={step.number === 3 ? "amber" : "neutral"}
           size="sm"
-          noUppercase
           className="shrink-0"
         >
           <Button.Title>{step.action}</Button.Title>

@@ -20,6 +20,7 @@ const stats = (over: Partial<OrdersStats["orderStats"]> = {}): OrdersStats => ({
     invoicedOrders: 4,
     invoicedAmount: "400",
     commissionAmount: "20",
+    sellerCommissionAmount: "1",
     backorderCount: 0,
     ...over,
   },

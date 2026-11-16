@@ -85,7 +85,6 @@ export function WeekSetupModal({
                 appearance="ghost"
                 color="neutral"
                 size="md"
-                noUppercase
                 disabled={busy}
                 onClick={form.backToSetup}
               >
@@ -96,7 +95,6 @@ export function WeekSetupModal({
                 appearance="solid"
                 color="amber"
                 size="md"
-                noUppercase
                 loading={busy}
                 disabled={!form.plan || form.plan.added === 0}
                 onClick={() => void form.confirm()}
@@ -112,7 +110,6 @@ export function WeekSetupModal({
                   appearance="ghost"
                   color="neutral"
                   size="md"
-                  noUppercase
                   disabled={form.isOrganizing}
                 >
                   <Button.Title>Cancelar</Button.Title>
@@ -123,7 +120,6 @@ export function WeekSetupModal({
                 appearance="solid"
                 color="amber"
                 size="md"
-                noUppercase
                 loading={form.isOrganizing}
                 disabled={!form.isValid}
                 onClick={() => void form.organize()}

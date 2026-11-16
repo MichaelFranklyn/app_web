@@ -77,7 +77,7 @@ export function EditAddressModal({
   return (
     <Modal.Root open={open} onOpenChange={setOpen}>
       <Modal.Trigger asChild>
-        <Button.Root appearance="solid" color="amber" size="sm" noUppercase>
+        <Button.Root appearance="solid" color="amber" size="sm">
           <Button.Icon icon={Pencil} />
           <Button.Title>Editar</Button.Title>
         </Button.Root>
@@ -107,7 +107,6 @@ export function EditAddressModal({
               appearance="ghost"
               color="neutral"
               size="md"
-              noUppercase
               disabled={isLoading}
             >
               <Button.Title>Cancelar</Button.Title>
@@ -118,7 +117,6 @@ export function EditAddressModal({
             appearance="solid"
             color="amber"
             size="md"
-            noUppercase
             loading={isLoading}
             onClick={() => formRef.current?.submitForm()}
           >

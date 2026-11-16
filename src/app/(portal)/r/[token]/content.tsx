@@ -105,7 +105,6 @@ export function VisitResponseContent({ form, token }: Props) {
           color="amber"
           size="md"
           fullWidth
-          noUppercase
           loading={isPending}
         >
           <Button.Title>Enviar respostas</Button.Title>

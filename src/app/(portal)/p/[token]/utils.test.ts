@@ -1,11 +1,12 @@
 import { describe, expect, it } from "vitest";
 import { PortalOrder } from "./interface";
 import {
-  hasIpi,
+  formatUnits,
   installmentLabel,
   itemLineTotal,
   monthShortLabel,
   parsePortalPage,
+  pickedEntries,
   portalOrderDateLine,
   portalOrderTotal,
   portalStatusLabel,
@@ -34,7 +35,15 @@ describe("portalOrderTotal", () => {
 
   it("é o próprio valor quando não há IPI", () => {
     expect(portalOrderTotal(order())).toBe(1000);
-    expect(hasIpi(order())).toBe(false);
+  });
+
+  it("no detalhe, soma também o imposto embutido (o total do sistema)", () => {
+    expect(
+      portalOrderTotal({
+        ...order({ ipiAmount: "50.0000" }),
+        taxAmount: "100.0000",
+      })
+    ).toBe(1150);
   });
 });
 
@@ -171,8 +180,8 @@ describe("sortStockByUrgency", () => {
 });
 
 describe("itemLineTotal", () => {
-  it("soma o IPI da linha", () => {
-    expect(itemLineTotal({ subtotal: "100.0000", ipiAmount: "6.5000" })).toBe(
+  it("soma o imposto embutido da linha (o IPI fica à parte)", () => {
+    expect(itemLineTotal({ subtotal: "100.0000", taxAmount: "6.5000" })).toBe(
       106.5
     );
   });
@@ -186,5 +195,39 @@ describe("installmentLabel", () => {
 
   it("status desconhecido não vira texto vazio na tela", () => {
     expect(installmentLabel("QUALQUER")).toBe("QUALQUER");
+  });
+});
+
+const formWith = (entries: Record<string, string>) => {
+  const form = new FormData();
+  form.set("token", "tok-1");
+  Object.entries(entries).forEach(([key, value]) => form.set(key, value));
+  return form;
+};
+
+describe("pickedEntries", () => {
+  it("só as linhas MARCADAS vão — a quantidade preenchida sozinha não pede", () => {
+    const entries = pickedEntries(
+      formWith({
+        pick__p1: "on",
+        qty__p1: "12",
+        qty__p2: "24", // não marcado
+        pick__p3: "on",
+        qty__p3: "0", // marcado e zerado: não é pedido
+        pick__p4: "on",
+        qty__p4: "1,5", // vírgula do teclado brasileiro
+      })
+    );
+    expect(entries).toEqual([
+      { productId: "p1", quantity: "12" },
+      { productId: "p4", quantity: "1.5" },
+    ]);
+  });
+});
+
+describe("formatUnits", () => {
+  it("tira as casas do Decimal", () => {
+    expect(formatUnits("12.0000")).toBe("12");
+    expect(formatUnits(null)).toBe("");
   });
 });

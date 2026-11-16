@@ -1,7 +1,7 @@
 "use client";
 import { cn } from "@/lib/utils";
 import React, { forwardRef } from "react";
-import { useInputContext } from "./context";
+import { fieldAria, useInputContext } from "./context";
 import {
   inputSizeMinHeight,
   inputSizePadding,
@@ -31,6 +31,8 @@ export const InputControl = forwardRef<
   const ariaRequired =
     props["aria-required"] ?? (context?.required || undefined);
 
+  const aria = fieldAria(context, props);
+
   const computedClasses = cn(
     inputStyles.controlBase,
     inputSizePadding[size],
@@ -52,6 +54,7 @@ export const InputControl = forwardRef<
         disabled={disabled}
         aria-required={ariaRequired}
         {...(props as unknown as React.TextareaHTMLAttributes<HTMLTextAreaElement>)}
+        {...aria}
       />
     );
   }
@@ -64,6 +67,7 @@ export const InputControl = forwardRef<
       disabled={disabled}
       aria-required={ariaRequired}
       {...props}
+      {...aria}
     />
   );
 });

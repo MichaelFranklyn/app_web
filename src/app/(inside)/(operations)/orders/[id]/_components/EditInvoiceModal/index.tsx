@@ -16,6 +16,9 @@ import { useEditInvoice } from "./useEditInvoice";
 interface Props {
   order: OrderDetail;
   onSuccess: () => void;
+  /** Aberto de fora (menu "Mais ações"): sem `open`, desenha o próprio botão. */
+  open?: boolean;
+  onOpenChange?: (open: boolean) => void;
 }
 
 /**
@@ -24,9 +27,15 @@ interface Props {
  * refazer o faturamento — pedem confirmação ali mesmo, sem abrir outra janela
  * por cima.
  */
-export function EditInvoiceModal({ order, onSuccess }: Props) {
+export function EditInvoiceModal({
+  order,
+  onSuccess,
+  open: openProp,
+  onOpenChange,
+}: Props) {
   const {
     open,
+    isControlled,
     handleClose,
     formRef,
     steps,
@@ -44,16 +53,18 @@ export function EditInvoiceModal({ order, onSuccess }: Props) {
     setPendingAction,
     undoDelivery,
     redoInvoice,
-  } = useEditInvoice(order, onSuccess);
+  } = useEditInvoice(order, onSuccess, openProp, onOpenChange);
 
   return (
     <Modal.Root open={open} onOpenChange={handleClose}>
-      <Modal.Trigger asChild>
-        <Button.Root appearance="outline" color="neutral" size="sm">
-          <Button.Icon icon={FileClock} />
-          <Button.Title>Editar faturamento</Button.Title>
-        </Button.Root>
-      </Modal.Trigger>
+      {!isControlled && (
+        <Modal.Trigger asChild>
+          <Button.Root appearance="outline" color="neutral" size="sm">
+            <Button.Icon icon={FileClock} />
+            <Button.Title>Editar faturamento</Button.Title>
+          </Button.Root>
+        </Modal.Trigger>
+      )}
 
       <Modal.Content size="md">
         <Modal.Header
@@ -182,7 +193,6 @@ export function EditInvoiceModal({ order, onSuccess }: Props) {
               appearance="ghost"
               color="neutral"
               size="md"
-              noUppercase
               disabled={isLoading}
             >
               <Button.Title>Cancelar</Button.Title>
@@ -193,7 +203,6 @@ export function EditInvoiceModal({ order, onSuccess }: Props) {
             appearance="solid"
             color="amber"
             size="md"
-            noUppercase
             loading={isLoading}
             disabled={
               pendingAction !== null || (willDropSettlements && !hasValidReason)
@@ -281,7 +290,6 @@ function ConfirmBlock({
             appearance="ghost"
             color="neutral"
             size="sm"
-            noUppercase
             disabled={isLoading}
             onClick={onCancel}
           >
@@ -292,7 +300,6 @@ function ConfirmBlock({
             appearance="solid"
             color={color}
             size="sm"
-            noUppercase
             loading={isLoading}
             disabled={confirmDisabled}
             onClick={onConfirm}

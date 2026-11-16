@@ -166,7 +166,6 @@ function ChangePasswordForm() {
                 appearance="ghost"
                 size="sm"
                 noPadding
-                noUppercase
               >
                 <Button.Title>suporte@itinus.com.br</Button.Title>
               </Button.Root>

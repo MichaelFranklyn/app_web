@@ -20,12 +20,12 @@ export const NFE_STATUS_LABEL: Record<NfeImportStatus, string> = {
 
 export const NFE_STATUS_COLOR: Record<NfeImportStatus, ThemeColor> = {
   READY: "green",
-  NEEDS_REVIEW: "amber",
+  NEEDS_REVIEW: "warning",
   ALREADY_IMPORTED: "neutral",
   NOT_AUTHORIZED: "red",
   UNKNOWN_FACTORY: "red",
   UNKNOWN_CLIENT: "red",
-  NO_OPEN_ORDER: "amber",
+  NO_OPEN_ORDER: "warning",
   INVALID: "red",
 };
 

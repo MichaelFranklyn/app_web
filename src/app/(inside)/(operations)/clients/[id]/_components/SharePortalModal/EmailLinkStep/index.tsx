@@ -74,7 +74,6 @@ export function EmailLinkStep({ companyClientId, clientId, url }: Props) {
           appearance="outline"
           color="neutral"
           size="sm"
-          noUppercase
           loading={isSending}
           onClick={() => void send(selectedId, url)}
         >

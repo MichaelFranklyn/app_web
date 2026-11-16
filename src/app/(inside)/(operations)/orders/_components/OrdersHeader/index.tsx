@@ -5,6 +5,7 @@ import { Grid } from "@/components/Grid";
 import { HelpTooltip } from "@/components/HelpTooltip";
 import { Loading } from "@/components/Loading";
 import { PanelHeader } from "@/components/PanelHeader";
+import { PAGE_HEADING } from "@/utils/modules";
 import { TrendingDown, TrendingUp } from "lucide-react";
 import { FilterField } from "@/components/Filters";
 import { ReportOrder } from "@/utils/pdf/context";
@@ -58,7 +59,9 @@ export function OrdersHeader({
       <PanelHeader.Root>
         <PanelHeader.Top>
           <PanelHeader.Left>
-            <PanelHeader.Title>Pedidos</PanelHeader.Title>
+            <PanelHeader.Heading {...PAGE_HEADING.orders}>
+              Pedidos
+            </PanelHeader.Heading>
             <PanelHeader.Description>
               Gestão de pedidos por fábrica e vendedor.
             </PanelHeader.Description>
@@ -88,7 +91,7 @@ export function OrdersHeader({
         </PanelHeader.Top>
       </PanelHeader.Root>
 
-      <Grid.Root cols={{ base: 1, tablet: 2, desktop: 4 }} gap={20}>
+      <Grid.Root cols={{ base: 2, tablet: 2, desktop: 4 }} gap={20}>
         {kpis
           ? kpis.map(
               ({ label, value, delta, positive, negative, status, help }) => (

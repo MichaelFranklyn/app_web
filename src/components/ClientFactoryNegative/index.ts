@@ -10,7 +10,7 @@
  */
 export { ClearNegativeModal } from "./ClearNegativeModal";
 export { MarkNegativeModal } from "./MarkNegativeModal";
-export { NegativeLinkAction } from "./NegativeLinkAction";
+export { useNegativeLinkAction } from "./NegativeLinkAction";
 export { NegativeLinkModal } from "./NegativeLinkModal";
 export { NegativeTag } from "./NegativeTag";
 export type {

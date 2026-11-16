@@ -16,8 +16,7 @@ import { useMemo } from "react";
 import { AddPriceListModal } from "./AddPriceListModal";
 import { ClonePriceListModal } from "./ClonePriceListModal";
 import { ImportPriceListModal } from "./ImportPriceListModal";
-import { DeletePriceListModal } from "./DeletePriceListModal";
-import { EditPriceListModal } from "./EditPriceListModal";
+import { PriceListRowActions } from "./PriceListRowActions";
 import {
   FACTORY_PRICE_LISTS_QUERY,
   FactoryPriceListNode,
@@ -75,7 +74,7 @@ export function PriceListsTab({ companyFactoryId, factoryId }: Props) {
             label="O que é uma tabela de preço?"
             content={
               <div className="flex flex-col gap-2">
-                <Title variant="label" color="amber">
+                <Title variant="label" weight="semibold">
                   Tabela de preço
                 </Title>
                 <Title variant="body-sm">
@@ -112,7 +111,8 @@ export function PriceListsTab({ companyFactoryId, factoryId }: Props) {
         </Table.CardHead.Actions>
       </Table.CardHead>
 
-      <Table.Table>
+      {/* Abaixo do desktop cada linha vira cartão, em vez de a tabela rolar de lado. */}
+      <Table.Table cards>
         <Table.Header>
           <Table.Row>
             <Table.Head title={FACTORY_PRICE_LIST_COLUMN_HELP.name}>
@@ -168,7 +168,7 @@ export function PriceListsTab({ companyFactoryId, factoryId }: Props) {
                 href={`/factories/${companyFactoryId}/price-lists/${pl.id}`}
                 data-tour="prices-row"
               >
-                <Table.Cell>
+                <Table.Cell card="title">
                   <div className="flex flex-col">
                     <Table.CellText variant="strong">{pl.name}</Table.CellText>
                     {pl.clonedFromId && (
@@ -179,14 +179,17 @@ export function PriceListsTab({ companyFactoryId, factoryId }: Props) {
                     )}
                   </div>
                 </Table.Cell>
-                <Table.Cell variant="dim">{pl.region || "Geral"}</Table.Cell>
-                <Table.Cell variant="dim">
+                <Table.Cell label="Região" variant="dim">
+                  {pl.region || "Geral"}
+                </Table.Cell>
+                <Table.Cell label="Vigência início" variant="dim">
                   {formatDateDMY(pl.validFrom)}
                 </Table.Cell>
-                <Table.Cell variant="dim">
+                <Table.Cell label="Vigência fim" variant="dim">
                   {pl.validUntil ? formatDateDMY(pl.validUntil) : "—"}
                 </Table.Cell>
-                <Table.Cell>
+                {/* No cartão, a tarja divide a última linha com as ações. */}
+                <Table.Cell card="aside">
                   <Badge.Root
                     color={pl.isActive ? "green" : "neutral"}
                     appearance="tinted"
@@ -194,24 +197,24 @@ export function PriceListsTab({ companyFactoryId, factoryId }: Props) {
                     <Badge.Text>{pl.isActive ? "Ativa" : "Inativa"}</Badge.Text>
                   </Badge.Root>
                 </Table.Cell>
-                <Table.Cell>
-                  <div className="flex items-center justify-end gap-4">
-                    <EditPriceListModal
-                      priceList={pl}
-                      onChanged={() => refetch()}
-                      onUpdateOptimistic={optimistic.updateOptimistic}
-                      onCommit={optimistic.commit}
-                      onRollback={optimistic.rollback}
-                    />
-                    <DeletePriceListModal
-                      priceListId={pl.id}
-                      priceListName={pl.name}
-                      onRemoved={() => refetch()}
-                      onRemoveOptimistic={optimistic.removeOptimistic}
-                      onCommit={optimistic.commit}
-                      onRollback={optimistic.rollback}
-                    />
-                  </div>
+                <Table.Cell card="actions">
+                  <PriceListRowActions
+                    edit={{
+                      priceList: pl,
+                      onChanged: () => refetch(),
+                      onUpdateOptimistic: optimistic.updateOptimistic,
+                      onCommit: optimistic.commit,
+                      onRollback: optimistic.rollback,
+                    }}
+                    remove={{
+                      priceListId: pl.id,
+                      priceListName: pl.name,
+                      onRemoved: () => refetch(),
+                      onRemoveOptimistic: optimistic.removeOptimistic,
+                      onCommit: optimistic.commit,
+                      onRollback: optimistic.rollback,
+                    }}
+                  />
                 </Table.Cell>
               </Table.Row>
             ))

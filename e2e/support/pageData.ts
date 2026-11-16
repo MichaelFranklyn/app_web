@@ -56,6 +56,7 @@ const clientRef = {
 /** Uma linha de comissão (a tabela mais larga do app). */
 const commissionRow = () => ({
   orderId: "order-1",
+  orderNumber: 1,
   installmentId: "inst-1",
   sequence: 1,
   orderDate: noMesCorrente(2),
@@ -223,7 +224,7 @@ export const PAGE_DATA: Record<string, Handlers> = {
   // tela lê `myInsights.data.insights` (a API manteve o nome de quando a tela
   // era /insights). Com o array direto a rota caía no estado vazio e a medição
   // de largura olhava para um lugar onde não havia cartão nenhum.
-  "/opportunities": {
+  "/priorities/opportunities": {
     MyOpportunities: () => ({
       myInsights: {
         status: true,
@@ -461,6 +462,7 @@ export const PAGE_DATA: Record<string, Handlers> = {
           avgTicket: "4820.00",
           clientCount: 6,
           commissionAmount: "2410.00",
+          sellerCommissionAmount: "2410.00",
         },
       ],
     }),
@@ -509,6 +511,7 @@ export const PAGE_DATA: Record<string, Handlers> = {
           totalAmount: "80000.00",
           orderCount: 12,
           commissionAmount: "2400.00",
+          sellerCommissionAmount: "2400.00",
           share: 0.8,
           cumulativeShare: 0.8,
           abcClass: "A",
@@ -601,7 +604,7 @@ export const PAGE_READY: Record<string, RegExp> = {
   // — foi assim que o shape velho do /insights ficou meses sem ninguém notar.
   "/commissions": /Industria Herc Colchoes|Herc/i,
   "/goals": /Rafael Vendas/i,
-  "/opportunities": /348 dias sem comprar/i,
+  "/priorities/opportunities": /348 dias sem comprar/i,
   "/orders/order-1": /Colchão Ortopédico Premium/i,
   "/clients/cc-1/overview": /Casa do Sono/i,
   "/clients/cc-1/orders": /Industria Herc Colchoes/i,

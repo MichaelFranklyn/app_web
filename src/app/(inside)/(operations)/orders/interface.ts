@@ -6,11 +6,14 @@ export type { OrderStatus };
 
 export interface Order {
   id: string;
+  /** "#128": sequencial por empresa (ver `@/utils/orderNumber`). */
+  number: number;
   orderDate: string;
   /** Quando a fábrica faturou. Nulo enquanto o pedido não foi faturado. */
   invoicedAt: string | null;
   totalAmount: string;
-  commissionAmount: string;
+  commissionAmount: string | null;
+  sellerCommissionAmount: string;
   status: OrderStatus;
   /**
    * Saldo de um faturamento parcial: o resto de um pedido que a fábrica não
@@ -43,7 +46,8 @@ export interface OrdersStats {
     invoicedOrders: number;
     invoicedAmount: string;
     /** Comissão gerada pelo que já foi faturado no recorte. */
-    commissionAmount: string;
+    commissionAmount: string | null;
+    sellerCommissionAmount: string;
     /**
      * Saldos de faturamento parcial no recorte. Fora de `totalOrders` (são a
      * mesma venda), mas o valor deles soma nos totais.

@@ -109,7 +109,6 @@ export function ConfirmModal({
               appearance="ghost"
               color="neutral"
               size="md"
-              noUppercase
               disabled={busy}
             >
               <Button.Title>{cancelLabel}</Button.Title>
@@ -120,7 +119,6 @@ export function ConfirmModal({
             appearance="solid"
             color={confirmColor}
             size="md"
-            noUppercase
             loading={busy}
             onClick={handleConfirm}
           >

@@ -9,9 +9,9 @@ interface Props {
 }
 
 /**
- * Ação de editar no cabeçalho de um card do perfil: sólida e âmbar. Não segue o
- * neutro da taxonomia geral de "editar" porque aqui ela É a ação principal do
- * card — é o que a pessoa vem fazer nesta tela.
+ * Ação de editar no cabeçalho de um card do perfil: neutra, como todo "editar"
+ * da taxonomia de botões. Âmbar fica só para criar/salvar — com quatro cards
+ * âmbar na mesma tela, nenhum se destacava (auditoria UX, item 8).
  *
  * O header colapsa o texto por medição, então o `label` mantém o nome acessível
  * quando só o ícone aparece.
@@ -19,10 +19,9 @@ interface Props {
 export function EditCardAction({ title, onClick }: Props) {
   return (
     <Button.Root
-      appearance="solid"
-      color="amber"
+      appearance="outline"
+      color="neutral"
       size="sm"
-      noUppercase
       label={title}
       onClick={onClick}
     >

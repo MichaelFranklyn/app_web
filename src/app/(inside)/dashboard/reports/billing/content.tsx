@@ -18,6 +18,7 @@ import {
   buildBillingExportRows,
   sumBy,
 } from "./utils";
+import { visibleCommission } from "@/utils/commission";
 
 interface Props {
   canSelectSeller: boolean;
@@ -70,7 +71,7 @@ export default function BillingReportContent({ canSelectSeller }: Props) {
       },
       {
         label: "Comissão",
-        value: formatMoney(sumBy(exported, (row) => row.commissionAmount)),
+        value: formatMoney(sumBy(exported, (row) => visibleCommission(row))),
       },
     ],
     buildHighlight: (exported) =>
@@ -79,7 +80,7 @@ export default function BillingReportContent({ canSelectSeller }: Props) {
       label: "TOTAL",
       byColumn: {
         7: formatMoney(sumBy(exported, (row) => row.amount)),
-        8: formatMoney(sumBy(exported, (row) => row.commissionAmount)),
+        8: formatMoney(sumBy(exported, (row) => visibleCommission(row))),
       },
     }),
   });

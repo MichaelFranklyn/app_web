@@ -18,7 +18,7 @@ interface Props {
 export function SetupSection({ number, title, hint, children }: Props) {
   return (
     <section className="flex gap-12">
-      <IconTile color="amber" size="xs" aria-hidden>
+      <IconTile size="xs" aria-hidden>
         <Title variant="body-xs" weight="semibold" color="inherit" as="span">
           {number}
         </Title>

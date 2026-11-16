@@ -13,4 +13,6 @@ export type ProgressRootProps = React.HTMLAttributes<HTMLDivElement>;
 export interface ProgressProps extends ProgressRootProps {
   value: number;
   color?: ProgressColor;
+  /** Nome da barra para o leitor de tela (vira o aria-label). */
+  label: string;
 }

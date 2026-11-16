@@ -118,13 +118,13 @@ export const useSentOrdersReport = (filters: ReportFilters) => {
         label: "Valor colocado",
         value: formatMoney(stats?.totalAmount ?? 0),
         hint: "soma dos pedidos enviados",
-        status: "ok",
+        status: "neutral",
       },
       {
         label: "Já faturados",
         value: String(stats?.invoicedOrders ?? 0),
         hint: formatMoney(stats?.invoicedAmount ?? 0),
-        status: "ok",
+        status: "neutral",
       },
       {
         // O número que faz o papel existir: o que ainda está parado na fábrica.

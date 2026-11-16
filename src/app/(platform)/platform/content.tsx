@@ -3,6 +3,7 @@
 import { Loading } from "@/components/Loading";
 import { PageContent } from "@/components/PageContent";
 import { PanelHeader } from "@/components/PanelHeader";
+import { PAGE_HEADING } from "@/utils/modules";
 import { QueryError } from "@/components/QueryError";
 import { AdoptionCard } from "./_components/AdoptionCard";
 import { AttentionQueue } from "./_components/AttentionQueue";
@@ -47,8 +48,9 @@ export default function PlatformHomeContent(props: PlatformHomeProps) {
       <PanelHeader.Root>
         <PanelHeader.Top>
           <PanelHeader.Left>
-            <PanelHeader.Eyebrow color="purple">Console</PanelHeader.Eyebrow>
-            <PanelHeader.Title>Visão geral</PanelHeader.Title>
+            <PanelHeader.Heading {...PAGE_HEADING.platformOverview}>
+              Visão geral
+            </PanelHeader.Heading>
             <PanelHeader.Description>
               Números de toda a plataforma nos últimos 30 dias.
             </PanelHeader.Description>

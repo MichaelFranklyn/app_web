@@ -7,6 +7,9 @@ import { useEffect, useMemo, useRef, useState } from "react";
 
 import {
   isQuantityMultiple,
+  packMinimumText,
+  quantityHint,
+  suggestedQuantity,
   priceKey,
   resolveTierForProduct,
   useOrderItemCatalog,
@@ -67,6 +70,9 @@ export function useAddOrderItem({
   // não corrigir de volta o que o vendedor escolher na mão.
   const tierResolvedForRef = useRef<string>("");
   const ipiFilledForRef = useRef<string>("");
+  // Produto cuja embalagem mínima já foi posta na quantidade, e o valor posto.
+  const qtyFilledForRef = useRef<string>("");
+  const autoQuantityRef = useRef<string>("");
   const [discountType, setDiscountType] = useState<DiscountType>("VALUE");
 
   // Só o produto em edição precisa de dado de apoio aqui: o modal adiciona um
@@ -80,6 +86,8 @@ export function useAddOrderItem({
     productOptions,
     onProductSearch,
     isLoadingProducts,
+    hasMoreProducts,
+    onLoadMoreProducts,
     loadedProductIds,
     tierOptions,
     priceMap,
@@ -177,6 +185,39 @@ export function useAddOrderItem({
     formRef.current?.setValue("ipiRate", rate == null ? "" : String(rate));
   }, [selection, ipiInOrder, ipiRateByProduct, loadedProductIds]);
 
+  // A quantidade nasce com a embalagem mínima do produto (o múltiplo vem no nó
+  // dele, uma consulta depois da escolha). Trocar de produto troca o valor
+  // automático; o que o vendedor digitou fica.
+  useEffect(() => {
+    const { productId } = selection;
+    if (!productId || !loadedProductIds.has(productId)) return;
+    if (qtyFilledForRef.current === productId) return;
+    qtyFilledForRef.current = productId;
+    const form = formRef.current;
+    if (!form) return;
+    const current = String(form.getValues().quantity ?? "");
+    const auto = autoQuantityRef.current;
+    const value = suggestedQuantity(
+      current,
+      auto,
+      saleMultipleByProduct.get(productId)
+    );
+    autoQuantityRef.current =
+      value === current && current !== auto ? "" : value;
+    if (value !== current) form.setValue("quantity", value);
+  }, [selection, loadedProductIds, saleMultipleByProduct]);
+
+  // O campo "Embalagem mínima" é só leitura: acompanha o produto escolhido
+  // assim que o nó dele (com o múltiplo) chega.
+  const packLoaded =
+    !!selection.productId && loadedProductIds.has(selection.productId);
+  useEffect(() => {
+    formRef.current?.setValue(
+      "packMinimum",
+      packLoaded ? packMinimumText(saleMultiple) : ""
+    );
+  }, [packLoaded, saleMultiple]);
+
   const steps: FormStepSchema[] = useMemo(
     () => [
       {
@@ -197,6 +238,9 @@ export function useAddOrderItem({
                 // de produtos.
                 onSearch: onProductSearch,
                 loading: isLoadingProducts,
+                // Rolar até o fim traz mais produtos (busca paginada).
+                onLoadMore: onLoadMoreProducts,
+                hasMore: hasMoreProducts,
                 onChange: (_value, setValue) => {
                   const productId = extractSelectValue(_value);
                   // O nível é mantido: quase sempre é o mesmo do item anterior,
@@ -213,7 +257,7 @@ export function useAddOrderItem({
                 // campos curtos, e o produto (rótulo longo) fica com a linha
                 // inteira acima.
                 grid: { desktop: 6 },
-                label: "Nível comercial (opcional)",
+                label: "Nível comercial",
                 placeholder: "Selecione o nível para sugerir o preço",
                 options: tierOptions,
                 onChange: (_value) => {
@@ -241,14 +285,17 @@ export function useAddOrderItem({
                 label: "Quantidade",
                 required: true,
                 placeholder: "0",
-                hint: [
-                  "Em unidades (peças), não em embalagens.",
-                  saleMultiple
-                    ? `Vendido em múltiplos de ${saleMultiple}.`
-                    : null,
-                ]
-                  .filter(Boolean)
-                  .join(" "),
+                hint: quantityHint(saleMultiple),
+              },
+              {
+                // Só leitura: a embalagem do produto escolhido, à vista ao
+                // lado da quantidade — na dica do campo ela passava batida.
+                name: "packMinimum",
+                type: "text",
+                grid: { desktop: 6 },
+                label: "Embalagem mínima",
+                placeholder: "Escolha o produto para ver",
+                disabled: true,
               },
               {
                 name: "discountType",
@@ -296,6 +343,8 @@ export function useAddOrderItem({
       productOptions,
       onProductSearch,
       isLoadingProducts,
+      onLoadMoreProducts,
+      hasMoreProducts,
       tierOptions,
       unitName,
       saleMultiple,
@@ -317,6 +366,8 @@ export function useAddOrderItem({
       lastSuggestedRef.current = "";
       tierResolvedForRef.current = "";
       ipiFilledForRef.current = "";
+      qtyFilledForRef.current = "";
+      autoQuantityRef.current = "";
       setDiscountType("VALUE");
     }
   };

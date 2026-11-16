@@ -97,6 +97,7 @@ const marca = { dataUrl: "data:image/png;base64,AA", width: 100, height: 40 };
 const pedido = (overrides: Partial<OrderDetail> = {}): OrderDetail =>
   ({
     id: "9f8e7d6c-1111-2222-3333-444455556666",
+    number: 128,
     orderDate: "2026-08-01",
     status: "CONFIRMED",
     totalAmount: "1000.00",
@@ -168,7 +169,7 @@ describe("orderPdfBlob", () => {
       pedido({ status: "DRAFT" }),
       []
     );
-    expect(fileName).toBe("orçamento-9F8E7D6C.pdf");
+    expect(fileName).toBe("orçamento-128.pdf");
     expect(blob.size).toBe("%PDF-1.7".length);
     expect(save).not.toHaveBeenCalled();
   });
@@ -222,15 +223,16 @@ describe("exportOrderPdf", () => {
       await exportar(pedido({ status } as Partial<OrderDetail>), []);
 
       expect(cabecalho().docKind).toBe(docKind);
-      expect(save).toHaveBeenCalledWith(`${arquivo}-9F8E7D6C.pdf`);
+      expect(save).toHaveBeenCalledWith(`${arquivo}-128.pdf`);
     }
   );
 
-  it("o número do documento é o começo do id, em caixa alta", async () => {
-    // O id inteiro não cabe no topo e não é o que o cliente repete no telefone.
+  it("o número do documento é o número do pedido na empresa", async () => {
+    // O número sequencial é o que se dita ao telefone e se acha na lista; o
+    // UUID não cabe no topo e ninguém o repete.
     await exportar(pedido(), []);
 
-    expect(cabecalho().number).toBe("9F8E7D6C");
+    expect(cabecalho().number).toBe("#128");
   });
 
   it("leva a data do pedido, não a de hoje", async () => {

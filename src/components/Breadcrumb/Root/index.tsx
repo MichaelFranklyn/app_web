@@ -11,7 +11,7 @@ export const BreadcrumbRoot = React.forwardRef<
     ref={ref}
     aria-label="breadcrumb"
     className={cn(
-      "flex items-center gap-[6px] text-[13px] text-(--muted)",
+      "text-body-sm flex items-center gap-[6px] text-(--color-text-muted)",
       className
     )}
     {...props}

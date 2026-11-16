@@ -35,16 +35,16 @@ export const COMMISSION_STATUS_LABEL: Record<CommissionStatus, string> = {
 
 export const COMMISSION_STATUS_TONE: Record<
   CommissionStatus,
-  "neutral" | "amber" | "green" | "red"
+  "neutral" | "warning" | "green" | "red"
 > = {
   pending: "neutral",
-  receivable: "amber",
+  receivable: "warning",
   received: "green",
   cancelled: "red",
   chargeback: "red",
   chargeback_settled: "neutral",
   // Devolução é dinheiro voltando: fica no mesmo tom do que há a receber.
-  refund: "amber",
+  refund: "warning",
 };
 
 /** O mínimo que o agrupamento por fábrica precisa saber de uma linha. */

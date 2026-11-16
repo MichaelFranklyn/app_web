@@ -73,7 +73,6 @@ export function OverdueVisitRow({
               appearance="solid"
               color="amber"
               size="sm"
-              noUppercase
               fullWidth
               loading={isAnswering}
               onClick={() => onAnswer("COMPLETED")}
@@ -85,7 +84,6 @@ export function OverdueVisitRow({
               appearance="outline"
               color="neutral"
               size="sm"
-              noUppercase
               fullWidth
               disabled={isAnswering}
               onClick={() => onAnswer("CLIENT_ABSENT")}
@@ -99,7 +97,6 @@ export function OverdueVisitRow({
               appearance="outline"
               color="neutral"
               size="sm"
-              noUppercase
               fullWidth
               disabled={isAnswering}
               onClick={() => onAnswer("NO_TIME")}
@@ -111,7 +108,6 @@ export function OverdueVisitRow({
               appearance="ghost"
               color="neutral"
               size="sm"
-              noUppercase
               fullWidth
               disabled={isAnswering}
               onClick={onReschedule}

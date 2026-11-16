@@ -1,6 +1,6 @@
 "use client";
 
-import { ContactTypeTag } from "@/components/ContactTypeTag";
+import { Badge } from "@/components/Badges";
 import { Title } from "@/components/Title";
 import { TextLink } from "@/components/TextLink";
 import { useQueryErrorToast } from "@/hooks/useQueryErrorToast";
@@ -15,6 +15,11 @@ import { ScheduledVisit, ScheduledVisitsData } from "./interface";
 interface Props {
   /** Nulo = o vendedor logado (o backend resolve). */
   sellerId: string | null;
+  /**
+   * Gestor ainda sem vendedor na URL: sem vendedor o backend recusa ("Escolha
+   * o vendedor da agenda.") e o toast de erro piscava antes do redirect.
+   */
+  skip?: boolean;
   /** Para o "Marcar visita": a carteira de quem. */
   scheduleSellerId: string | null;
   /** Marcou uma visita: a lista de prioritários recarrega (o "Já marcado"). */
@@ -32,12 +37,13 @@ interface Props {
  */
 export function ScheduledVisits({
   sellerId,
+  skip = false,
   scheduleSellerId,
   onScheduled,
 }: Props) {
   const { data, loading, error, refetch } = useQuery<ScheduledVisitsData>(
     SCHEDULED_VISITS_QUERY,
-    { variables: { sellerId }, fetchPolicy: "cache-and-network" }
+    { variables: { sellerId }, fetchPolicy: "cache-and-network", skip }
   );
   useQueryErrorToast(error, "Não foi possível carregar as visitas marcadas.");
   const visits = data?.scheduledVisits;
@@ -100,7 +106,7 @@ export function ScheduledVisits({
                       .join(" · ")}
                   </Title>
                 </div>
-                <ContactTypeTag contactType={visit.contactType} />
+                <Badge.ContactType contactType={visit.contactType} />
               </div>
             ))}
           </div>

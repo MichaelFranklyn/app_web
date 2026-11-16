@@ -61,7 +61,12 @@ export function CopyGoalsModal({ month, sellerId, onCopied }: Props) {
       confirmColor="amber"
       onConfirm={handleConfirm}
       trigger={
-        <Button.Root appearance="outline" color="neutral" size="sm" noUppercase>
+        <Button.Root
+          appearance="outline"
+          color="neutral"
+          size="sm"
+          fullWidthBelowDesktop
+        >
           <Button.Icon icon={CopyPlus} />
           <Button.Title>Repetir mês anterior</Button.Title>
         </Button.Root>

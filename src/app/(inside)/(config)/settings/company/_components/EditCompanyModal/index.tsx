@@ -83,7 +83,6 @@ export function EditCompanyModal({
               appearance="ghost"
               color="neutral"
               size="md"
-              noUppercase
               disabled={isSaving}
             >
               <Button.Title>Cancelar</Button.Title>
@@ -94,7 +93,6 @@ export function EditCompanyModal({
             appearance="solid"
             color="amber"
             size="md"
-            noUppercase
             loading={isSaving}
             onClick={() => formRef.current?.submitForm()}
           >

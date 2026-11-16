@@ -64,7 +64,7 @@ export function ContactLinks({ contact, clientName, clientId }: Props) {
           <PhoneOff
             size={14}
             aria-hidden
-            className="shrink-0 text-(--muted2)"
+            className="shrink-0 text-(--color-text-disabled)"
           />
           <Title variant="micro" color="muted">
             Sem telefone cadastrado
@@ -81,12 +81,7 @@ export function ContactLinks({ contact, clientName, clientId }: Props) {
               await apollo.refetchQueries({ include: "active" });
             }}
             trigger={
-              <Button.Root
-                appearance="outline"
-                color="neutral"
-                size="sm"
-                noUppercase
-              >
+              <Button.Root appearance="outline" color="neutral" size="sm">
                 <Button.Icon icon={UserPlus} />
                 <Button.Title>Cadastrar contato</Button.Title>
               </Button.Root>
@@ -103,7 +98,6 @@ export function ContactLinks({ contact, clientName, clientId }: Props) {
         href={tel}
         appearance="tinted"
         size="sm"
-        noUppercase
         title={`Ligar para ${clientName}`}
       >
         <Button.Icon icon={Phone} />
@@ -115,7 +109,6 @@ export function ContactLinks({ contact, clientName, clientId }: Props) {
           external
           appearance="tinted"
           size="sm"
-          noUppercase
           title={`Abrir WhatsApp de ${clientName} com a mensagem pronta`}
         >
           <Button.Icon icon={MessageCircle} />

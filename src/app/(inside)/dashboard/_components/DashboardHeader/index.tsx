@@ -5,6 +5,7 @@ import { FeatureGate } from "@/components/FeatureGate";
 import { Input } from "@/components/Input";
 import { SelectOption } from "@/components/Input";
 import { PanelHeader } from "@/components/PanelHeader";
+import { PAGE_HEADING } from "@/utils/modules";
 import { ChartLine, FileText } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { DateRangeIso, SellerOption } from "../../interface";
@@ -48,7 +49,9 @@ export function DashboardHeader({
     <PanelHeader.Root>
       <PanelHeader.Top>
         <PanelHeader.Left>
-          <PanelHeader.Title>Dashboard</PanelHeader.Title>
+          <PanelHeader.Heading {...PAGE_HEADING.dashboard}>
+            Dashboard
+          </PanelHeader.Heading>
           <PanelHeader.Description>{description}</PanelHeader.Description>
           <PanelHeader.Actions className="mt-6">
             {canSelectSeller && (
@@ -74,28 +77,35 @@ export function DashboardHeader({
             {/* Cada destino é um recurso de plano à parte, e a página de
                 lá redireciona quem não tem — botão que leva a um redirect é
                 pior do que botão ausente (mesma regra da sidebar). */}
-            <FeatureGate feature="ANALYTICS">
-              <Button.Root
-                appearance="outline"
-                color="neutral"
-                size="sm"
-                onClick={() => router.push("/dashboard/analytics")}
-              >
-                <Button.Icon icon={ChartLine} />
-                <Button.Title>Ver desempenho</Button.Title>
-              </Button.Root>
-            </FeatureGate>
-            <FeatureGate feature="REPORTS">
-              <Button.Root
-                appearance="outline"
-                color="neutral"
-                size="sm"
-                onClick={() => router.push("/dashboard/reports")}
-              >
-                <Button.Icon icon={FileText} />
-                <Button.Title>Relatórios</Button.Title>
-              </Button.Root>
-            </FeatureGate>
+            {/* Abaixo do desktop os dois atalhos dividem uma linha meio a
+                meio (com fundo, para o botão esticado não parecer sobra). O
+                `flex-row!` vence o empilhar do estágio column do header. */}
+            <div className="flex flex-row! gap-8 [&>*]:min-w-0 [&>*]:flex-1">
+              <FeatureGate feature="ANALYTICS">
+                <Button.Root
+                  appearance="outline"
+                  color="neutral"
+                  size="sm"
+                  fullWidthBelowDesktop
+                  onClick={() => router.push("/dashboard/analytics")}
+                >
+                  <Button.Icon icon={ChartLine} />
+                  <Button.Title>Ver desempenho</Button.Title>
+                </Button.Root>
+              </FeatureGate>
+              <FeatureGate feature="REPORTS">
+                <Button.Root
+                  appearance="outline"
+                  color="neutral"
+                  size="sm"
+                  fullWidthBelowDesktop
+                  onClick={() => router.push("/dashboard/reports")}
+                >
+                  <Button.Icon icon={FileText} />
+                  <Button.Title>Relatórios</Button.Title>
+                </Button.Root>
+              </FeatureGate>
+            </div>
           </PanelHeader.Actions>
         </PanelHeader.Left>
       </PanelHeader.Top>

@@ -76,6 +76,8 @@ export function CommissionsReportTable({
         </Table.CardHead.Title>
         <Table.CardHead.Actions>
           <Filters
+            resultCount={totalItems}
+            resultLoading={loading}
             fields={filterFields}
             values={inputValues}
             onChange={setFilters}
@@ -123,7 +125,7 @@ export function CommissionsReportTable({
           ) : items.length === 0 ? (
             <Table.Row>
               <Table.Cell colSpan={columns}>
-                <EmptyState.Root>
+                <EmptyState.Root flat>
                   <EmptyState.Icon>
                     <Coins size={32} />
                   </EmptyState.Icon>
@@ -194,7 +196,7 @@ export function CommissionsReportTable({
                       <Badge.Text>Não pagou</Badge.Text>
                     </Badge.Root>
                   ) : row.isOverdue ? (
-                    <Badge.Root color="amber" appearance="tinted">
+                    <Badge.Root color="warning" appearance="tinted">
                       <Badge.Text>Vencido</Badge.Text>
                     </Badge.Root>
                   ) : (

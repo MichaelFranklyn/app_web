@@ -85,7 +85,6 @@ export function ToggleUserModal({
               appearance="ghost"
               color="neutral"
               size="md"
-              noUppercase
               disabled={isLoading}
             >
               <Button.Title>Cancelar</Button.Title>
@@ -96,7 +95,6 @@ export function ToggleUserModal({
             appearance="solid"
             color={isActive ? "red" : "green"}
             size="md"
-            noUppercase
             loading={isLoading}
             onClick={handleConfirm}
           >

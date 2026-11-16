@@ -48,6 +48,30 @@ const OFFLINE_URL = "/offline";
 // instala.
 const SHELL_ASSETS = [OFFLINE_URL, "/icon-192.png"];
 
+// O HTML de /offline sozinho não basta: ao abrir, o Next baixa os chunks JS
+// próprios dessa página. Eles só entravam no cache de assets se alguém tivesse
+// aberto /offline COM rede — o que nunca acontece. Sem rede, o chunk falhava
+// (ChunkLoadError) e a tela trocava "Sem conexão" pelo erro genérico do Next
+// (teste manual 13/11/2026). Aqui o install lê o HTML recém-gravado e guarda
+// tudo de /_next/static que ele cita (tags e o payload RSC embutido).
+// Melhor esforço: um asset que falhe não impede o SW de instalar.
+async function precacheOfflineChunks(shellCache) {
+  try {
+    const res = await shellCache.match(OFFLINE_URL);
+    if (!res) return;
+    const html = await res.text();
+    const urls = new Set(html.match(/\/_next\/static\/[^"'\\\s)<>]+/g) || []);
+    const assets = await caches.open(ASSET_CACHE);
+    await Promise.all(
+      [...urls].map((url) =>
+        assets.add(new Request(url, { cache: "reload" })).catch(() => undefined),
+      ),
+    );
+  } catch {
+    // sem os chunks, a página offline ainda chega; só não hidrata.
+  }
+}
+
 self.addEventListener("install", (event) => {
   event.waitUntil(
     (async () => {
@@ -56,6 +80,7 @@ self.addEventListener("install", (event) => {
       // HTTP do navegador — em deploy novo isso guardaria a página offline
       // antiga.
       await cache.addAll(SHELL_ASSETS.map((url) => new Request(url, { cache: "reload" })));
+      await precacheOfflineChunks(cache);
       // Assume o controle sem esperar a próxima aba: o SW novo já traz a página
       // offline correta, e adiar isso deixa o aparelho com a antiga por dias.
       await self.skipWaiting();

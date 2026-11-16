@@ -8,11 +8,11 @@ import React from "react";
 export type HeatLevel = "strong" | "good" | "weak" | "bad" | "empty";
 
 const LEVEL: Record<HeatLevel, string> = {
-  strong: "bg-(--green)/85 text-white",
-  good: "bg-(--green)/45",
+  strong: "bg-(--color-status-success)/85 text-white",
+  good: "bg-(--color-status-success)/45",
   weak: "bg-(--amber)/40",
-  bad: "bg-(--red)/35",
-  empty: "bg-(--bg3) text-(--muted)",
+  bad: "bg-(--color-status-danger)/35",
+  empty: "bg-(--bg3) text-(--color-text-muted)",
 };
 
 /**
@@ -94,7 +94,10 @@ const HeatCell = ({ level, partial, className, ...props }: HeatCellProps) => (
     className={cn(
       "rounded-[4px] px-8 py-[6px] text-center",
       LEVEL[level],
-      partial && "opacity-55 outline-1 outline-(--border) outline-dashed",
+      // Hachura branca sobre a cor do nível, não `opacity`: o número segue
+      // legível e a célula ainda se lê "incompleta".
+      partial &&
+        "bg-[image:repeating-linear-gradient(135deg,transparent_0_5px,color-mix(in_srgb,var(--bg2)_55%,transparent)_5px_8px)] outline-1 outline-(--border2) outline-dashed",
       className
     )}
     {...props}

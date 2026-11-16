@@ -235,3 +235,72 @@ export interface AgendaPeopleQueryData {
 
 /** Como a agenda se mostra: um dia, a semana ou o mês. */
 export type AgendaView = "day" | "week" | "month";
+
+/**
+ * Uma parada da pessoa noutro escritório em que ela também vende. Vem só o que
+ * a rota precisa — quem, onde e em que pé está. Pedido e estoque exigem
+ * entrar no escritório dela.
+ */
+export interface CrossOfficeStop {
+  id: string;
+  companyId: string;
+  /** Como o outro escritório aparece (nome fantasia ou razão social). */
+  officeName: string;
+  date: string;
+  status: VisitStatus;
+  contactType: VisitContactType;
+  plannedOrder: number;
+  isManual: boolean;
+  outcome: VisitOutcome | null;
+  /** O cliente GLOBAL — o mesmo `client.id` das paradas daqui. */
+  clientId: string;
+  clientName: string;
+  city: string | null;
+  state: string | null;
+  neighborhood: string | null;
+  /** Rua e número numa linha só. */
+  address: string | null;
+  /** A fábrica que motivou a parada lá (só o nome). */
+  factoryName: string | null;
+}
+
+export interface CrossOfficeStopsQueryData {
+  crossOfficeStops: {
+    status: boolean;
+    message: string;
+    data: CrossOfficeStop[] | null;
+  };
+}
+
+export interface UpdateCrossOfficeVisitData {
+  updateCrossOfficeVisit: {
+    status: boolean;
+    message: string | null;
+    data: { id: string; status: VisitStatus } | null;
+  } | null;
+}
+
+/**
+ * A rota de um dia somando os escritórios da pessoa (`crossOfficeDayRoute`).
+ * Vem nula quando o dia não tem visita presencial noutro escritório: aí a rota
+ * gravada no dia de cá já é a rota inteira.
+ */
+export interface CrossOfficeDayRoute {
+  distanceKm: string;
+  durationMin: number;
+  /** Paradas presenciais dos escritórios, sem repetir cliente. */
+  stopCount: number;
+  visitDurationMin: number;
+  lastEndTime: string | null;
+  departureAddress: string | null;
+  /** Ids das paradas (daqui e de lá) na ordem do trajeto. */
+  order: string[];
+}
+
+export interface CrossOfficeDayRouteData {
+  crossOfficeDayRoute: {
+    status: boolean;
+    message: string | null;
+    data: CrossOfficeDayRoute | null;
+  } | null;
+}

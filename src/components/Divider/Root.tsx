@@ -71,9 +71,7 @@ export const DividerRoot = React.forwardRef<HTMLDivElement, DividerProps>(
           {...props}
         >
           <div className="h-px flex-1 bg-(--border)" />
-          {/* `tracking` mais fechado que o do `label`: aqui a legenda divide
-              espaço com as duas linhas do separador. */}
-          <Title variant="label" color="muted2" className="tracking-[0.08em]">
+          <Title variant="label" color="muted2">
             {children}
           </Title>
           <div className="h-px flex-1 bg-(--border)" />

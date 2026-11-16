@@ -5,6 +5,7 @@ import { Button } from "@/components/Button";
 import { Input } from "@/components/Input";
 import { SelectOption } from "@/components/Input";
 import { PanelHeader } from "@/components/PanelHeader";
+import { PAGE_HEADING } from "@/utils/modules";
 import { FileDown } from "lucide-react";
 import { DateRangeIso, FactoryOption, SellerOption } from "../../../interface";
 import { formatDateRangeLabel } from "../../../utils";
@@ -71,7 +72,9 @@ export function AnalyticsHeader({
       <PanelHeader.Root>
         <PanelHeader.Top>
           <PanelHeader.Left>
-            <PanelHeader.Title>Desempenho</PanelHeader.Title>
+            <PanelHeader.Heading {...PAGE_HEADING.analytics}>
+              Desempenho
+            </PanelHeader.Heading>
             <PanelHeader.Description>
               Como a empresa vem indo ·{" "}
               {formatDateRangeLabel(range.from, range.to)}
@@ -118,11 +121,14 @@ export function AnalyticsHeader({
                 </div>
               )}
               <DashboardDateFilter value={range} onChange={onRangeChange} />
-              <span data-tour="analytics-pdf">
+              {/* Abaixo do desktop os filtros empilham na linha inteira; o
+                  botão vem junto, com fundo, para a linha não sobrar. */}
+              <span data-tour="analytics-pdf" className="max-desktop:w-full">
                 <Button.Root
                   appearance="outline"
                   color="neutral"
                   size="sm"
+                  fullWidthBelowDesktop
                   loading={exportingPdf}
                   onClick={onDownloadPdf}
                 >

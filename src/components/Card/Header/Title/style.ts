@@ -1,11 +1,11 @@
 import { cva } from "class-variance-authority";
 
 export const titleStyle = cva(
-  "font-head truncate tracking-[-0.01em] text-(--text)",
+  "font-head truncate tracking-[-0.01em] text-(--color-text)",
   {
     variants: {
       size: {
-        xs: "text-[13px]",
+        xs: "text-body-sm",
         sm: "text-[15px]",
         md: "text-[19px]",
         lg: "text-[23px]",

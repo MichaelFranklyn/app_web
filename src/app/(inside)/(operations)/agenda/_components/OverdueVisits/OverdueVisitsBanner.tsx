@@ -42,7 +42,6 @@ export function OverdueVisitsBanner({ count, canAnswer, onOpen }: Props) {
           appearance="solid"
           color="amber"
           size="sm"
-          noUppercase
           onClick={onOpen}
         >
           <Button.Title>{canAnswer ? "Responder" : "Ver visitas"}</Button.Title>

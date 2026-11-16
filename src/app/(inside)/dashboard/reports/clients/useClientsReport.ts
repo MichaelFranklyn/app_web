@@ -105,7 +105,7 @@ export const useClientsReport = (filters: ReportFilters) => {
         label: "Ativos",
         value: String(stats?.activeClients ?? 0),
         hint: "com compra recente",
-        status: "ok",
+        status: "neutral",
       },
       {
         label: "Atrasados para voltar",

@@ -1,8 +1,19 @@
 import React from "react";
 import type { KpiStatus } from "../Value/style";
 
-export interface CardKpiRootProps extends React.HTMLAttributes<HTMLDivElement> {
+export interface CardKpiRootProps extends Omit<
+  React.HTMLAttributes<HTMLElement>,
+  "onClick"
+> {
   children: React.ReactNode;
+  /**
+   * O cartão vira um FILTRO: clicar aplica o recorte que ele conta (as
+   * pendências atrasadas, as de hoje). Sai como `<button aria-pressed>`. Sem
+   * `onClick`, é só leitura.
+   */
+  onClick?: () => void;
+  /** O recorte deste cartão é o que está valendo agora (borda âmbar). */
+  active?: boolean;
 }
 
 export interface KpiItem {

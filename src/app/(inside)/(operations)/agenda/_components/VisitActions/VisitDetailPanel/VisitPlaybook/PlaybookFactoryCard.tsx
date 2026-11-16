@@ -60,7 +60,6 @@ export function PlaybookFactoryCard({ entry, onOpenOrder }: Props) {
                 appearance="outline"
                 color="neutral"
                 size="sm"
-                noUppercase
                 onClick={() => onOpenOrder(portalRequest.orderId)}
               >
                 <Button.Icon icon={ShoppingBasket} />

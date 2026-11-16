@@ -38,7 +38,6 @@ export function DayOffButton({
         appearance="tinted"
         color="neutral"
         size="sm"
-        noUppercase
         onClick={() => setIsOpen(true)}
       >
         <Button.Icon icon={isDayOff ? CalendarPlus : CalendarOff} />

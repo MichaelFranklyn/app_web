@@ -14,6 +14,7 @@ import { ORDER_SPLIT_CACHE_FIELDS } from "@/utils/cacheFields";
 import { getTodayIso, toIsoDate } from "@/utils/format/date";
 import { useMutation } from "@apollo/client/react";
 import { FileCheck2 } from "lucide-react";
+import { useControlledOpen } from "@/hooks/useControlledOpen";
 import { useMemo, useRef, useState } from "react";
 import { INVOICE_ORDER_MUTATION } from "../../gql";
 import { OrderDetail } from "../../interface";
@@ -32,10 +33,21 @@ interface InvoiceResponse {
 interface Props {
   order: OrderDetail;
   onSuccess: () => void;
+  /** Aberto de fora (menu "Mais ações"): sem `open`, desenha o próprio botão. */
+  open?: boolean;
+  onOpenChange?: (open: boolean) => void;
 }
 
-export function InvoiceOrderModal({ order, onSuccess }: Props) {
-  const [open, setOpen] = useState(false);
+export function InvoiceOrderModal({
+  order,
+  onSuccess,
+  open: openProp,
+  onOpenChange,
+}: Props) {
+  const { open, setOpen, isControlled } = useControlledOpen(
+    openProp,
+    onOpenChange
+  );
   const formRef = useRef<FormBuilderRef>(null);
   const [invoiceOrder] = useMutation<InvoiceResponse>(INVOICE_ORDER_MUTATION);
   const { execute, isLoading } = useAsyncAction();
@@ -190,12 +202,14 @@ export function InvoiceOrderModal({ order, onSuccess }: Props) {
 
   return (
     <Modal.Root open={open} onOpenChange={handleClose}>
-      <Modal.Trigger asChild>
-        <Button.Root appearance="solid" color="amber" size="sm">
-          <Button.Icon icon={FileCheck2} />
-          <Button.Title>Faturar pedido</Button.Title>
-        </Button.Root>
-      </Modal.Trigger>
+      {!isControlled && (
+        <Modal.Trigger asChild>
+          <Button.Root appearance="solid" color="amber" size="sm">
+            <Button.Icon icon={FileCheck2} />
+            <Button.Title>Faturar pedido</Button.Title>
+          </Button.Root>
+        </Modal.Trigger>
+      )}
 
       <Modal.Content size="md">
         <Modal.Header
@@ -233,7 +247,6 @@ export function InvoiceOrderModal({ order, onSuccess }: Props) {
               appearance="ghost"
               color="neutral"
               size="md"
-              noUppercase
               disabled={isLoading}
             >
               <Button.Title>Cancelar</Button.Title>
@@ -244,7 +257,6 @@ export function InvoiceOrderModal({ order, onSuccess }: Props) {
             appearance="solid"
             color="amber"
             size="md"
-            noUppercase
             loading={isLoading}
             onClick={() => formRef.current?.submitForm()}
           >

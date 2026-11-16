@@ -29,25 +29,56 @@ export interface MoreOptionGroup {
 interface MoreOptionsProps {
   /** Lista simples ou blocos com título; blocos vazios são descartados. */
   options: MoreOption[] | MoreOptionGroup[];
+  /**
+   * Nome do botão para leitor de tela. Em lista com um menu por linha, diga de
+   * QUAL linha é ("Mais ações da parcela 2") — "Mais ações" repetido não
+   * distingue as linhas e colide com o menu da página.
+   */
+  label?: string;
+  /**
+   * Ao lado de botões com texto (cabeçalho de página), só o "⋯" some no meio
+   * deles: no desktop o gatilho vira "ícone + Mais ações", com o mesmo
+   * contorno dos vizinhos. No celular também: lá as ações empilham na largura
+   * toda, e o "⋯" sozinho virava uma faixa vazia sem dizer o que era
+   * (14/11/2026). Quando não cabe, quem esconde o texto é o estágio `icon` do
+   * header. Em linha de tabela, chip e card fica desligado.
+   */
+  showLabel?: boolean;
 }
 
 const isGrouped = (
   options: MoreOption[] | MoreOptionGroup[]
 ): options is MoreOptionGroup[] => options.length > 0 && "title" in options[0];
 
-export function MoreOptions({ options }: MoreOptionsProps) {
+export function MoreOptions({
+  options,
+  label = "Mais ações",
+  showLabel = false,
+}: MoreOptionsProps) {
   return (
     <Dropdown.Root>
       <Dropdown.Trigger asChild>
-        <Button.Root
-          appearance="ghost"
-          color="neutral"
-          size="sm"
-          isIconOnly
-          label="Mais ações"
-        >
-          <Button.Icon icon={MoreHorizontal} />
-        </Button.Root>
+        {showLabel ? (
+          <Button.Root
+            appearance="outline"
+            color="neutral"
+            size="sm"
+            label={label}
+          >
+            <Button.Icon icon={MoreHorizontal} />
+            <Button.Title>Mais ações</Button.Title>
+          </Button.Root>
+        ) : (
+          <Button.Root
+            appearance="ghost"
+            color="neutral"
+            size="sm"
+            isIconOnly
+            label={label}
+          >
+            <Button.Icon icon={MoreHorizontal} />
+          </Button.Root>
+        )}
       </Dropdown.Trigger>
       <Dropdown.Content align="end">
         {isGrouped(options)

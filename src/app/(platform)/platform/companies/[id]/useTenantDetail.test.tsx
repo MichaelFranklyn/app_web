@@ -48,6 +48,7 @@ const tenantMock = (razaoSocial: string, usage = 5) => ({
           trialEndsAt: null,
           maxUsers: 10,
           maxSellers: 5,
+          extraUsers: 0,
           createdAt: "2026-01-01",
           usersCount: 4,
           sellersCount: 2,

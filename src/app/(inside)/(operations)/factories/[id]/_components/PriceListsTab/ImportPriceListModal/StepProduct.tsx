@@ -106,7 +106,7 @@ export function StepProduct({
         label="NCM"
         help={
           <div className="flex flex-col gap-2">
-            <Title variant="label" color="amber">
+            <Title variant="label" weight="semibold">
               Classificação fiscal
             </Title>
             <Title variant="body-sm">

@@ -1,12 +1,15 @@
+"use client";
+
 import { Card } from "@/components/Card";
 import { Divider } from "@/components/Divider";
 import { Grid } from "@/components/Grid";
 import { Title } from "@/components/Title";
 import { formatDate } from "@/utils/format/date";
 import { formatMoney } from "@/utils/format/masks";
+import { usePlanCatalog } from "../../../../usePlanCatalog";
 import { activityLabel, daysSinceLogin } from "../../../../utils";
 import { TenantDetail } from "../../interface";
-import { limitUsage } from "../../utils";
+import { effectiveSeatLimit, limitUsage } from "../../utils";
 
 /** Uma contagem com o teto contratado ao lado, quando existe teto. */
 function CountItem({
@@ -41,6 +44,18 @@ function CountItem({
 }
 
 export function TenantUsageCard({ tenant }: { tenant: TenantDetail }) {
+  const { findPlan } = usePlanCatalog();
+  const plan = findPlan(tenant.plan);
+
+  // O teto EFETIVO (plano ou teto próprio, mais os usuários extras) — o mesmo
+  // que o backend cobra ao criar a próxima pessoa. Enquanto o catálogo não
+  // chega, só o teto próprio é conhecido.
+  const seatLimit = (key: "USERS" | "SELLERS", override: number | null) => {
+    const planLimit = plan?.limits.find((l) => l.key === key)?.limit ?? null;
+    if (!plan && override === null) return null;
+    return effectiveSeatLimit(planLimit, override, tenant.extraUsers);
+  };
+
   return (
     <Card.Root>
       <Card.Header>
@@ -49,6 +64,8 @@ export function TenantUsageCard({ tenant }: { tenant: TenantDetail }) {
         </Card.Header.Title>
         <Card.Header.Description>
           Contagens totais; pedidos e faturamento são dos últimos 30 dias.
+          {tenant.extraUsers > 0 &&
+            ` Os limites de pessoas e vendedores já somam ${tenant.extraUsers} ${tenant.extraUsers === 1 ? "usuário extra" : "usuários extras"}.`}
         </Card.Header.Description>
       </Card.Header>
 
@@ -58,14 +75,14 @@ export function TenantUsageCard({ tenant }: { tenant: TenantDetail }) {
             <CountItem
               label="Pessoas"
               value={tenant.usersCount}
-              limit={tenant.maxUsers}
+              limit={seatLimit("USERS", tenant.maxUsers)}
             />
           </Grid.Item>
           <Grid.Item>
             <CountItem
               label="Vendedores"
               value={tenant.sellersCount}
-              limit={tenant.maxSellers}
+              limit={seatLimit("SELLERS", tenant.maxSellers)}
             />
           </Grid.Item>
           <Grid.Item>

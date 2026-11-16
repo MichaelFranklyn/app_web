@@ -135,7 +135,6 @@ export function LinkFactoryModal({ onAddOptimistic }: LinkFactoryModalProps) {
                   appearance="ghost"
                   color="neutral"
                   size="md"
-                  noUppercase
                   disabled={isLoading}
                 >
                   <Button.Title>Cancelar</Button.Title>
@@ -147,7 +146,6 @@ export function LinkFactoryModal({ onAddOptimistic }: LinkFactoryModalProps) {
                 appearance="ghost"
                 color="neutral"
                 size="md"
-                noUppercase
                 disabled={isLoading}
                 onClick={handleBack}
               >
@@ -159,7 +157,6 @@ export function LinkFactoryModal({ onAddOptimistic }: LinkFactoryModalProps) {
               appearance="solid"
               color="amber"
               size="md"
-              noUppercase
               loading={isLoading}
               onClick={handleFooterClick}
             >

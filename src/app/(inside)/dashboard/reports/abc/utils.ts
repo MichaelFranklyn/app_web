@@ -7,6 +7,7 @@ import { formatPercent } from "../../utils";
 import { SortLabel } from "@/utils/pdf/context";
 
 import { AbcClass, AbcRow } from "./interface";
+import { visibleCommission } from "@/utils/commission";
 
 export const ABC_CLASS_LABEL: Record<AbcClass, string> = {
   A: "Classe A",
@@ -151,6 +152,6 @@ export const buildAbcExportRows = (rows: AbcRow[]): (string | number)[][] =>
     formatPercent(row.share),
     formatPercent(row.cumulativeShare),
     row.orderCount,
-    Number(row.commissionAmount || 0),
+    Number(visibleCommission(row) || 0),
     row.lastOrderDate ? formatDateDMY(row.lastOrderDate) : "—",
   ]);

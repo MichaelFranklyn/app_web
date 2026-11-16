@@ -1,6 +1,7 @@
 "use client";
 
 import { Badge } from "@/components/Badges";
+import { Title } from "@/components/Title";
 import { EmptyState } from "@/components/EmptyState";
 import { QueryError } from "@/components/QueryError";
 import { Filters, FilterField } from "@/components/Filters";
@@ -20,8 +21,7 @@ import {
   taxRatesLabel,
 } from "../../utils";
 import { AddOrderItemModal } from "./AddOrderItemModal";
-import { DeleteOrderItemModal } from "./DeleteOrderItemModal";
-import { EditOrderItemModal } from "./EditOrderItemModal";
+import { OrderItemRowActions } from "./OrderItemRowActions";
 import { ImportOrderModal } from "./ImportOrderModal";
 import { FeatureGate } from "@/components/FeatureGate";
 import {
@@ -200,13 +200,14 @@ export function OrderItemsTable({
               values={table.inputValues}
               onChange={table.setFilters}
               onTextChange={table.setFilter}
+              resultCount={filteredItems.length}
+              resultLoading={loading && items.length === 0}
             />
           )}
-          <Badge.Root color="neutral" appearance="tinted">
-            <Badge.Text>
-              {items.length} {items.length === 1 ? "item" : "itens"}
-            </Badge.Text>
-          </Badge.Root>
+          {/* Contagem é informação, não estado nem ação: texto, não selo. */}
+          <Title variant="caption" color="muted" className="whitespace-nowrap">
+            {items.length} {items.length === 1 ? "item" : "itens"}
+          </Title>
           {!isLocked && (
             <>
               {/* Importação em massa é recurso de plano. */}
@@ -232,7 +233,7 @@ export function OrderItemsTable({
         </Table.CardHead.Actions>
       </Table.CardHead>
 
-      <Table.Table maxHeight={520}>
+      <Table.Table maxHeight={520} cards>
         <Table.Header>
           <Table.Row>
             {/* O que cada coluna significa vai no `title` do cabeçalho: ele é
@@ -367,7 +368,11 @@ export function OrderItemsTable({
           ) : (
             filteredItems.map((item) => (
               <Table.Row key={item.id} className="group">
-                <Table.Cell>
+                {/* No cartão (celular/tablet): produto, subtotal, quantidade e
+                    preço pago à vista. Preço sem imposto, IPI e imposto ficam
+                    de fora — o subtotal mostrado já soma o imposto, e a
+                    composição está no "Editar" do item. */}
+                <Table.Cell card="title">
                   <div className="flex flex-col items-start gap-2">
                     <Table.CellText variant="strong">
                       {item.product?.name ?? "—"}
@@ -387,23 +392,36 @@ export function OrderItemsTable({
                     )}
                   </div>
                 </Table.Cell>
-                <Table.Cell variant="dim">{item.tier?.name ?? "—"}</Table.Cell>
-                <Table.Cell variant="strong" align="right">
+                <Table.Cell variant="dim" label="Tabela">
+                  {item.tier?.name ?? "—"}
+                </Table.Cell>
+                <Table.Cell variant="strong" align="right" label="Qtd">
                   {formatNumber(Number(item.quantity))}
                 </Table.Cell>
-                <Table.Cell variant="dim" align="right">
+                <Table.Cell variant="dim" align="right" card="hidden">
                   {formatMoney(item.unitPrice)}
                 </Table.Cell>
-                <Table.Cell variant="strong" align="right">
+                <Table.Cell
+                  variant="strong"
+                  align="right"
+                  label="Preço com imposto"
+                >
                   {formatMoney(item.unitPriceWithTax)}
                 </Table.Cell>
-                <Table.Cell variant="dim" align="right">
+                {/* Desconto só entra no cartão quando existe: um "—" rotulado
+                    seria uma linha a mais para não dizer nada. */}
+                <Table.Cell
+                  variant="dim"
+                  align="right"
+                  label="Desconto"
+                  card={parseFloat(item.discount) > 0 ? undefined : "hidden"}
+                >
                   {parseFloat(item.discount) > 0
                     ? formatMoney(item.discount)
                     : "—"}
                 </Table.Cell>
                 {ipiInOrder && (
-                  <Table.Cell variant="dim" align="right">
+                  <Table.Cell variant="dim" align="right" card="hidden">
                     {parseFloat(item.ipiRate) > 0 ? (
                       <div className="flex flex-col">
                         <Table.CellText variant="strong">
@@ -418,7 +436,7 @@ export function OrderItemsTable({
                     )}
                   </Table.Cell>
                 )}
-                <Table.Cell variant="dim" align="right">
+                <Table.Cell variant="dim" align="right" card="hidden">
                   {parseFloat(item.taxAmount) > 0 ? (
                     <div className="flex flex-col">
                       <Table.CellText variant="strong">
@@ -432,29 +450,34 @@ export function OrderItemsTable({
                     "—"
                   )}
                 </Table.Cell>
-                <Table.Cell variant="strong" align="right">
+                <Table.Cell
+                  variant="strong"
+                  align="right"
+                  card="amount"
+                  label="Subtotal"
+                >
                   {formatMoney(Number(item.subtotal) + Number(item.taxAmount))}
                 </Table.Cell>
                 {!isLocked && (
-                  <Table.Cell>
-                    <div className="flex items-center justify-end gap-4">
-                      <EditOrderItemModal
-                        item={item}
-                        orderId={orderId}
-                        clientId={clientId}
-                        factoryId={factoryId}
-                        ipiInOrder={ipiInOrder}
-                        onOptimisticUpdate={updateOptimistic}
-                        onRollback={rollback}
-                        onRefetch={handleRefetch}
-                      />
-                      <DeleteOrderItemModal
-                        item={item}
-                        onOptimisticRemove={removeOptimistic}
-                        onRollback={rollback}
-                        onRefetch={handleRefetch}
-                      />
-                    </div>
+                  <Table.Cell card="actions">
+                    <OrderItemRowActions
+                      edit={{
+                        item,
+                        orderId,
+                        clientId,
+                        factoryId,
+                        ipiInOrder,
+                        onOptimisticUpdate: updateOptimistic,
+                        onRollback: rollback,
+                        onRefetch: handleRefetch,
+                      }}
+                      remove={{
+                        item,
+                        onOptimisticRemove: removeOptimistic,
+                        onRollback: rollback,
+                        onRefetch: handleRefetch,
+                      }}
+                    />
                   </Table.Cell>
                 )}
               </Table.Row>

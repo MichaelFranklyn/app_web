@@ -30,7 +30,7 @@ export function CommercialCard({ companyFactory }: Props) {
               label="O que são as condições comerciais?"
               content={
                 <div className="flex flex-col gap-2">
-                  <Title variant="label" color="amber">
+                  <Title variant="label" weight="semibold">
                     Condições comerciais
                   </Title>
                   <Title variant="body-sm">
@@ -63,19 +63,24 @@ export function CommercialCard({ companyFactory }: Props) {
         <Card.Item variant="stat">
           <Card.Item.Label>Comissão</Card.Item.Label>
           {/* O rótulo do botão é longo ("Aplicar aos pedidos faturados"):
-              sem quebrar, ele e o percentual não cabem em 320px. */}
-          <div className="flex flex-wrap items-center justify-end gap-x-12 gap-y-4">
+              sem quebrar, ele e o percentual não cabem em 320px. Abaixo do
+              desktop o grupo se desfaz (`contents`): o percentual fica na linha
+              de "Comissão", como os outros itens, e o botão desce esticado para
+              a linha de baixo — antes "Comissão" ficava sozinho e o grupo
+              descia desalinhado (regra "nenhuma linha com sobra"). */}
+          <div className="max-desktop:contents flex flex-wrap items-center justify-end gap-x-12 gap-y-4">
             <Button.Root
               appearance="ghost"
               color="neutral"
               size="sm"
-              noUppercase
+              fullWidthBelowDesktop
+              className="max-desktop:order-last max-desktop:mt-8"
               onClick={() => setApplyRatePrompt(true)}
             >
               <Button.Icon icon={Calculator} />
               <Button.Title>Aplicar aos pedidos faturados</Button.Title>
             </Button.Root>
-            <Card.Item.Value color="amber">
+            <Card.Item.Value>
               {formatCommissionRate(companyFactory.commissionRate)}
             </Card.Item.Value>
           </div>

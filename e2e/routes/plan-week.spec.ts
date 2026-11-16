@@ -78,6 +78,7 @@ const plan = (dryRun: boolean) => ({
       added: 3,
       ignoredDays: [],
       skipped: [],
+      aligned: [],
       days: [
         {
           date: NEXT_WEEK,
@@ -93,6 +94,8 @@ const plan = (dryRun: boolean) => ({
               contactType: "IN_PERSON",
               isNew: true,
               isSuggested: false,
+              officeName: null,
+              alsoInOffice: null,
             },
             {
               clientId: "c-2",
@@ -102,6 +105,8 @@ const plan = (dryRun: boolean) => ({
               contactType: "REMOTE",
               isNew: true,
               isSuggested: false,
+              officeName: null,
+              alsoInOffice: null,
             },
             {
               clientId: "c-3",
@@ -111,6 +116,8 @@ const plan = (dryRun: boolean) => ({
               contactType: "IN_PERSON",
               isNew: true,
               isSuggested: true,
+              officeName: null,
+              alsoInOffice: null,
             },
           ],
         },

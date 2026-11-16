@@ -104,7 +104,7 @@ export function ProductsTab({ companyFactoryId }: Props) {
             content={
               <div className="flex flex-col gap-6">
                 <div className="flex flex-col gap-2">
-                  <Title variant="label" color="amber">
+                  <Title variant="label" weight="semibold">
                     Código do produto
                   </Title>
                   <Title variant="body-sm">
@@ -113,7 +113,7 @@ export function ProductsTab({ companyFactoryId }: Props) {
                   </Title>
                 </div>
                 <div className="flex flex-col gap-2">
-                  <Title variant="label" color="amber">
+                  <Title variant="label" weight="semibold">
                     Unidade
                   </Title>
                   <Title variant="body-sm">
@@ -122,7 +122,7 @@ export function ProductsTab({ companyFactoryId }: Props) {
                   </Title>
                 </div>
                 <div className="flex flex-col gap-2">
-                  <Title variant="label" color="amber">
+                  <Title variant="label" weight="semibold">
                     Rótulo de embalagem
                   </Title>
                   <Title variant="body-sm">
@@ -150,6 +150,8 @@ export function ProductsTab({ companyFactoryId }: Props) {
               onChange={(e) => table.setFilter("search", e.target.value)}
             />
             <Filters
+              resultCount={table.totalItems}
+              resultLoading={table.loading}
               fields={filterFields}
               values={table.inputValues}
               onChange={table.setFilters}
@@ -162,7 +164,6 @@ export function ProductsTab({ companyFactoryId }: Props) {
               appearance={onlyAttention ? "solid" : "outline"}
               color={onlyAttention ? "amber" : "neutral"}
               size="sm"
-              noUppercase
               onClick={() =>
                 table.setFilter(
                   "onlyAttention",
@@ -194,7 +195,8 @@ export function ProductsTab({ companyFactoryId }: Props) {
         </Table.CardHead.Actions>
       </Table.CardHead>
 
-      <Table.Table>
+      {/* Abaixo do desktop cada linha vira cartão, em vez de a tabela rolar de lado. */}
+      <Table.Table cards>
         <Table.Header>
           <Table.Row>
             <Table.Head
@@ -273,18 +275,33 @@ export function ProductsTab({ companyFactoryId }: Props) {
                 href={`/factories/${companyFactoryId}/products/${p.id}`}
                 data-tour="products-row"
               >
-                <Table.Cell>
+                {/* No cartão a foto não fica ao lado do conteúdo: ela abre o
+                    cartão numa linha própria, dentro do título (abaixo). */}
+                <Table.Cell card="hidden">
                   <ProductThumb imageUrl={p.imageUrl} name={p.name} />
                 </Table.Cell>
-                <Table.Cell>
+                <Table.Cell label="Código">
                   <Badge.Root color="subtle" appearance="tinted">
                     <Badge.Text>{p.sku}</Badge.Text>
                   </Badge.Root>
                 </Table.Cell>
-                <Table.Cell variant="strong">{p.name}</Table.Cell>
-                <Table.Cell variant="dim">{p.category?.name ?? "—"}</Table.Cell>
-                <Table.Cell variant="dim">{p.unit?.label ?? "—"}</Table.Cell>
-                <Table.Cell>
+                <Table.Cell card="title" variant="strong">
+                  <div className="desktop:hidden mb-8">
+                    <ProductThumb
+                      imageUrl={p.imageUrl}
+                      name={p.name}
+                      size="md"
+                    />
+                  </div>
+                  {p.name}
+                </Table.Cell>
+                <Table.Cell label="Categoria" variant="dim">
+                  {p.category?.name ?? "—"}
+                </Table.Cell>
+                <Table.Cell label="Unidade" variant="dim">
+                  {p.unit?.label ?? "—"}
+                </Table.Cell>
+                <Table.Cell card="status">
                   <div className="flex items-center gap-4">
                     <Badge.Root
                       color={p.isActive ? "green" : "neutral"}
@@ -296,10 +313,10 @@ export function ProductsTab({ companyFactoryId }: Props) {
                     </Badge.Root>
                     {p.isNeedsAttention && (
                       <Tooltip
-                        className="max-w-100 whitespace-normal"
+                        className="max-w-[min(400px,calc(100vw-20px))] whitespace-normal"
                         content={
                           <div className="flex flex-col gap-2 text-left normal-case">
-                            <Title variant="label" color="amber">
+                            <Title variant="label" weight="semibold">
                               Importado com aviso
                             </Title>
                             <Title variant="body-sm">
@@ -312,14 +329,14 @@ export function ProductsTab({ companyFactoryId }: Props) {
                           </div>
                         }
                       >
-                        <Badge.Root color="amber" appearance="tinted">
+                        <Badge.Root color="warning" appearance="tinted">
                           <Badge.Text>Precisa de atenção</Badge.Text>
                         </Badge.Root>
                       </Tooltip>
                     )}
                   </div>
                 </Table.Cell>
-                <Table.Cell>
+                <Table.Cell card="actions">
                   <div className="flex items-center justify-end">
                     <ProductRowActions
                       product={p}

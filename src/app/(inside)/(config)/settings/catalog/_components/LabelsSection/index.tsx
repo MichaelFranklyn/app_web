@@ -13,6 +13,7 @@ import { Tag } from "lucide-react";
 import { useMemo } from "react";
 import { PRODUCT_UNIT_LABELS_QUERY } from "../../gql";
 import { AddLabelModal } from "./AddLabelModal";
+import { CatalogRowActions } from "../CatalogRowActions";
 import { DeleteLabelModal } from "./DeleteLabelModal";
 import { EditLabelModal } from "./EditLabelModal";
 
@@ -51,13 +52,11 @@ export function LabelsSection() {
   return (
     <Table.Root>
       <CatalogSectionHead
-        count={labels.length}
-        loading={loading && labels.length === 0}
-        noun={{ one: "rótulo", many: "rótulos" }}
+        title="Rótulos cadastrados"
         helpLabel="O que é um rótulo de embalagem?"
         helpContent={
           <div className="flex flex-col gap-2">
-            <Title variant="label" color="amber">
+            <Title variant="label" weight="semibold">
               Rótulo de embalagem
             </Title>
             <Title variant="body-sm">
@@ -76,10 +75,11 @@ export function LabelsSection() {
           onDone={onChanged}
         />
       </CatalogSectionHead>
-      <Table.Table maxHeight={600}>
+      {/* Abaixo do desktop cada linha vira cartão, com editar/excluir no "⋯". */}
+      <Table.Table maxHeight={600} cards>
         <Table.Header>
           <Table.Row>
-            <Table.Head title={LABEL_COLUMN_HELP.name}>Rótulo</Table.Head>
+            <Table.Head title={LABEL_COLUMN_HELP.name}>Nome</Table.Head>
             <Table.Head
               className="text-right"
               title={LABEL_COLUMN_HELP.actions}
@@ -89,7 +89,7 @@ export function LabelsSection() {
           </Table.Row>
         </Table.Header>
         <Table.Body>
-          {loading ? (
+          {loading && labels.length === 0 ? (
             <Table.Skeleton columns={2} rows={3} />
           ) : error && labels.length === 0 ? (
             <Table.Row>
@@ -115,25 +115,36 @@ export function LabelsSection() {
           ) : (
             labels.map((l) => (
               <Table.Row key={l.id}>
-                <Table.Cell variant="strong">{l.label}</Table.Cell>
-                <Table.Cell>
-                  <div className="flex items-center justify-end gap-4">
-                    <EditLabelModal
-                      label={l}
-                      onUpdateOptimistic={optimistic.updateOptimistic}
-                      onCommit={optimistic.commit}
-                      onRollback={optimistic.rollback}
-                      onDone={onChanged}
-                    />
-                    <DeleteLabelModal
-                      labelId={l.id}
-                      labelText={l.label}
-                      onRemoveOptimistic={optimistic.removeOptimistic}
-                      onCommit={optimistic.commit}
-                      onRollback={optimistic.rollback}
-                      onDone={onChanged}
-                    />
-                  </div>
+                <Table.Cell card="title" variant="strong">
+                  {l.label}
+                </Table.Cell>
+                <Table.Cell card="actions">
+                  <CatalogRowActions
+                    label={`Ações do rótulo ${l.label}`}
+                    editLabel="Editar rótulo"
+                    deleteLabel="Remover rótulo"
+                    renderEdit={(control) => (
+                      <EditLabelModal
+                        {...control}
+                        label={l}
+                        onUpdateOptimistic={optimistic.updateOptimistic}
+                        onCommit={optimistic.commit}
+                        onRollback={optimistic.rollback}
+                        onDone={onChanged}
+                      />
+                    )}
+                    renderDelete={(control) => (
+                      <DeleteLabelModal
+                        {...control}
+                        labelId={l.id}
+                        labelText={l.label}
+                        onRemoveOptimistic={optimistic.removeOptimistic}
+                        onCommit={optimistic.commit}
+                        onRollback={optimistic.rollback}
+                        onDone={onChanged}
+                      />
+                    )}
+                  />
                 </Table.Cell>
               </Table.Row>
             ))

@@ -4,6 +4,8 @@ import { formatMoney } from "@/utils/format/masks";
 import { ReportColumn } from "@/utils/pdf/table";
 import { Order } from "../interface";
 import { orderStatusLabel } from "../utils";
+import { formatOrderNumber } from "@/utils/orderNumber";
+import { visibleCommission } from "@/utils/commission";
 
 /**
  * Colunas do relatório de pedidos: as MESMAS oito da tela, na mesma ordem — quem
@@ -18,7 +20,7 @@ export const ORDER_COLUMNS: ReportColumn<Order>[] = [
   {
     header: "PEDIDO",
     width: 8,
-    value: (order) => order.id.slice(0, 8).toUpperCase(),
+    value: (order) => formatOrderNumber(order.number),
   },
   {
     header: "CLIENTE",
@@ -55,7 +57,7 @@ export const ORDER_COLUMNS: ReportColumn<Order>[] = [
     header: "COMISSÃO",
     width: 10,
     align: "right",
-    value: (order) => formatMoney(order.commissionAmount),
+    value: (order) => formatMoney(visibleCommission(order)),
   },
 ];
 
@@ -80,7 +82,7 @@ export const buildOrderTotals = (
   orders: Order[]
 ): Partial<Record<number, string>> => ({
   [COMMISSION_INDEX]: formatMoney(
-    sum(orders, (order) => order.commissionAmount)
+    sum(orders, (order) => visibleCommission(order))
   ),
   [AMOUNT_INDEX]: formatMoney(sum(orders, (order) => order.totalAmount)),
 });

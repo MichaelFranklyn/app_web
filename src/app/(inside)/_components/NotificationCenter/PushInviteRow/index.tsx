@@ -34,7 +34,7 @@ export function PushInviteRow({ onEnable, isLoading }: Props) {
       {isLoading ? (
         <Loading.Spinner size="sm" colorClass="amber" />
       ) : (
-        <BellRing size={14} className="shrink-0 text-(--amber)" />
+        <BellRing size={14} className="shrink-0 text-(--color-action-text)" />
       )}
       <div className="flex min-w-0 flex-col gap-2">
         <Title variant="micro" weight="semibold" color="amber">

@@ -52,7 +52,11 @@ const Message = ({ icon: Icon, dim = false, children }: MessageProps) => (
     )}
   >
     {Icon ? (
-      <Icon size={28} strokeWidth={1.5} className="text-(--muted2)" />
+      <Icon
+        size={28}
+        strokeWidth={1.5}
+        className="text-(--color-text-disabled)"
+      />
     ) : null}
     {typeof children === "string" ? (
       <Title variant="body-sm" color="muted">

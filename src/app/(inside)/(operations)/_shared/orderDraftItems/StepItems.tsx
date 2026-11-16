@@ -1,6 +1,5 @@
 "use client";
 import { Badge } from "@/components/Badges";
-import { Card } from "@/components/Card";
 
 import { Check, Pencil, Plus, Trash, X, Zap } from "lucide-react";
 
@@ -16,6 +15,7 @@ import { DraftTotal } from "./DraftTotal";
 import { FreeFreightTarget } from "../orderFreight";
 import { LastPriceHint, LastPurchasePrices } from "../lastPurchasePrices";
 import { PaymentTermMinimum } from "./interface";
+import { quantityHint } from "../orderItemCatalog";
 
 interface Props {
   draft: OrderDraftItems;
@@ -32,176 +32,197 @@ interface Props {
 }
 
 export function StepItems({ draft, minimum, freeFreight }: Props) {
+  // Trocar de fábrica recarrega o catálogo: até a 1ª página chegar, não se
+  // afirma "sem produtos" (era o aviso falso depois de trocar a fábrica).
+  if (draft.isCatalogPending) {
+    return (
+      <Title variant="body-md" color="muted">
+        Carregando os produtos da fábrica…
+      </Title>
+    );
+  }
+
+  // Pedido sem item não existe: sem catálogo, o caminho é cadastrar produtos.
   if (!draft.hasCatalog) {
     return (
       <Title variant="body-md" color="muted">
-        Esta fábrica ainda não tem produtos cadastrados. Você pode criar o
-        pedido sem itens e adicioná-los depois.
+        Esta fábrica ainda não tem produtos cadastrados. Cadastre os produtos na
+        fábrica para fazer o pedido.
       </Title>
     );
   }
 
   const isEditing = draft.editingIndex !== null;
+  // A 2ª linha fecha 12 colunas: 4 campos com IPI, 3 sem.
+  const secondRow = draft.ipiInOrder
+    ? "desktop:col-span-3"
+    : "desktop:col-span-4";
 
   return (
     <div className="flex flex-col gap-16">
       {/* Formulário de adição (ou edição) de um item */}
-      <Card.Root inset>
-        <Card.Body padding="compact" className="flex flex-col gap-8">
-          <Title variant="label" weight="bold" className="tracking-normal">
-            {isEditing ? "Editar item" : "Adicionar item"}
-          </Title>
+      <div className="flex flex-col gap-8">
+        <Title variant="label" weight="bold">
+          {isEditing ? "Editar item" : "Adicionar item"}
+        </Title>
 
-          {/* Lado a lado a partir do tablet: produto, nível e preço numa linha;
-            quantidade e desconto na outra. Empilhado só no celular. */}
-          <div className="grid grid-cols-12 gap-x-16 gap-y-12">
-            <div className="desktop:col-span-6 col-span-12">
-              <Input.Select
-                label="Produto (nome ou código)"
-                placeholder="Digite o nome ou o código do produto"
-                options={draft.productOptions}
-                value={draft.selectedProduct}
-                onChange={draft.selectProduct}
-                // Busca no servidor: o catálogo de uma fábrica real não cabe em
-                // memória, e digitar é como o vendedor acha o produto.
-                onSearch={draft.onProductSearch}
-                loading={draft.isLoadingProducts}
-              />
-            </div>
-
-            <div className="tablet:col-span-6 desktop:col-span-3 col-span-12">
-              <Input.Select
-                label="Nível comercial (opcional)"
-                placeholder="Selecione o nível para sugerir o preço"
-                options={draft.tierOptions}
-                value={draft.selectedTier}
-                onChange={draft.selectTier}
-              />
-            </div>
-
-            <div className="tablet:col-span-6 desktop:col-span-3 col-span-12">
-              <Input.Text
-                label={
-                  draft.unitName
-                    ? `Preço por ${draft.unitName.toLowerCase()}`
-                    : "Preço por unidade"
-                }
-                addon="R$"
-                inputMode="numeric"
-                placeholder="0,00"
-                value={draft.unitPrice}
-                onChange={(e) =>
-                  draft.setUnitPrice(maskCurrency(e.target.value))
-                }
-                hint={
-                  draft.priceMissing
-                    ? "Este produto não tem preço neste nível na tabela ativa. Digite o preço."
-                    : "Preço de uma unidade, sugerido pela tabela ativa. Você pode ajustar."
-                }
-              />
-            </div>
-
-            <div className="tablet:col-span-6 desktop:col-span-3 col-span-12">
-              <Input.Number
-                label="Quantidade"
-                placeholder="0"
-                value={draft.quantity}
-                onChange={(e) => draft.setQuantity(e.target.value)}
-                hint={
-                  draft.saleMultiple
-                    ? `Em unidades. Vendido em múltiplos de ${draft.saleMultiple}.`
-                    : "Em unidades (peças), não em embalagens."
-                }
-              />
-            </div>
-
-            <div className="tablet:col-span-3 col-span-6">
-              <Input.Select
-                placeholder="Escolha o tipo de desconto"
-                label="Tipo de desconto"
-                options={DISCOUNT_TYPE_OPTIONS}
-                value={
-                  DISCOUNT_TYPE_OPTIONS.find(
-                    (o) => o.value === draft.discountType
-                  ) ?? null
-                }
-                onChange={draft.selectDiscountType}
-              />
-            </div>
-
-            <div className="tablet:col-span-3 col-span-6">
-              <Input.Number
-                label={
-                  draft.discountType === "PERCENT"
-                    ? "Desconto (%)"
-                    : "Desconto (R$)"
-                }
-                placeholder="0"
-                value={draft.discount}
-                onChange={(e) => draft.setDiscount(e.target.value)}
-              />
-            </div>
-
-            {draft.ipiInOrder && (
-              <div className="tablet:col-span-6 desktop:col-span-3 col-span-12">
-                <Input.Number
-                  label="Alíq. IPI (%)"
-                  placeholder="0"
-                  value={draft.ipiRate}
-                  onChange={(e) => draft.setIpiRate(e.target.value)}
-                  hint="Vem do IPI cadastrado no produto e é somado por cima do subtotal. Você pode ajustar."
-                />
-              </div>
-            )}
+        {/* No computador, duas linhas: produto, nível, preço e quantidade;
+            depois embalagem, desconto e IPI. Dois a dois no tablet; empilhado
+            só no celular. */}
+        <div className="grid grid-cols-12 gap-x-16 gap-y-12">
+          <div className="desktop:col-span-5 col-span-12">
+            <Input.Select
+              label="Produto (nome ou código)"
+              placeholder="Digite o nome ou o código do produto"
+              options={draft.productOptions}
+              value={draft.selectedProduct}
+              onChange={draft.selectProduct}
+              // Busca no servidor: o catálogo de uma fábrica real não cabe em
+              // memória, e digitar é como o vendedor acha o produto.
+              onSearch={draft.onProductSearch}
+              loading={draft.isLoadingProducts}
+              // Rolar até o fim da lista traz mais produtos.
+              onLoadMore={draft.onLoadMoreProducts}
+              hasMore={draft.hasMoreProducts}
+            />
           </div>
 
-          {draft.productId && (
-            <LastPurchasePrices
-              purchases={draft.lastPurchasesByProduct.get(draft.productId)}
-              loading={draft.isLoadingLastPurchases}
-              tablePrice={draft.tablePrice}
-              unitName={draft.unitName}
-              onUsePrice={draft.applyLastPrice}
+          <div className="tablet:col-span-6 desktop:col-span-3 col-span-12">
+            <Input.Select
+              label="Nível comercial"
+              placeholder="Selecione o nível para sugerir o preço"
+              options={draft.tierOptions}
+              value={draft.selectedTier}
+              onChange={draft.selectTier}
             />
-          )}
+          </div>
 
-          {draft.error && (
-            <Title variant="caption" color="red">
-              {draft.error}
-            </Title>
-          )}
+          <div className="tablet:col-span-6 desktop:col-span-2 col-span-12">
+            <Input.Text
+              label={
+                draft.unitName
+                  ? `Preço por ${draft.unitName.toLowerCase()}`
+                  : "Preço por unidade"
+              }
+              addon="R$"
+              inputMode="numeric"
+              placeholder="0,00"
+              value={draft.unitPrice}
+              onChange={(e) => draft.setUnitPrice(maskCurrency(e.target.value))}
+              hint={
+                draft.priceMissing
+                  ? "Sem preço neste nível na tabela. Digite o preço."
+                  : "Sugerido pela tabela ativa. Pode ajustar."
+              }
+            />
+          </div>
 
-          <div className="flex gap-8">
+          <div className="tablet:col-span-6 desktop:col-span-2 col-span-12">
+            <Input.Number
+              label="Quantidade"
+              placeholder="0"
+              value={draft.quantity}
+              onChange={(e) => draft.setQuantity(e.target.value)}
+              hint={quantityHint(draft.saleMultiple)}
+            />
+          </div>
+
+          <div className={`tablet:col-span-6 col-span-12 ${secondRow}`}>
+            {/* Só leitura: a embalagem do produto escolhido, à vista ao lado
+                da quantidade — na dica do campo ela passava batida. */}
+            <Input.Text
+              label="Embalagem mínima"
+              placeholder="Escolha o produto para ver"
+              value={draft.packMinimum}
+              readOnly
+              disabled
+            />
+          </div>
+
+          <div className={`tablet:col-span-3 col-span-6 ${secondRow}`}>
+            <Input.Select
+              placeholder="Escolha o tipo de desconto"
+              label="Tipo de desconto"
+              options={DISCOUNT_TYPE_OPTIONS}
+              value={
+                DISCOUNT_TYPE_OPTIONS.find(
+                  (o) => o.value === draft.discountType
+                ) ?? null
+              }
+              onChange={draft.selectDiscountType}
+            />
+          </div>
+
+          <div className={`tablet:col-span-3 col-span-6 ${secondRow}`}>
+            <Input.Number
+              label={
+                draft.discountType === "PERCENT"
+                  ? "Desconto (%)"
+                  : "Desconto (R$)"
+              }
+              placeholder="0"
+              value={draft.discount}
+              onChange={(e) => draft.setDiscount(e.target.value)}
+            />
+          </div>
+
+          {draft.ipiInOrder && (
+            <div className={`tablet:col-span-6 col-span-12 ${secondRow}`}>
+              <Input.Number
+                label="Alíq. IPI (%)"
+                placeholder="0"
+                value={draft.ipiRate}
+                onChange={(e) => draft.setIpiRate(e.target.value)}
+                hint="Do cadastro do produto, somado ao subtotal."
+              />
+            </div>
+          )}
+        </div>
+
+        {draft.productId && (
+          <LastPurchasePrices
+            purchases={draft.lastPurchasesByProduct.get(draft.productId)}
+            loading={draft.isLoadingLastPurchases}
+            tablePrice={draft.tablePrice}
+            unitName={draft.unitName}
+            onUsePrice={draft.applyLastPrice}
+          />
+        )}
+
+        {draft.error && (
+          <Title variant="caption" color="red">
+            {draft.error}
+          </Title>
+        )}
+
+        <div className="flex gap-8">
+          <Button.Root
+            type="button"
+            appearance="solid"
+            color="amber"
+            size="sm"
+            onClick={draft.submitItem}
+          >
+            <Button.Icon icon={isEditing ? Check : Plus} />
+            <Button.Title>
+              {isEditing ? "Salvar item" : "Adicionar item"}
+            </Button.Title>
+          </Button.Root>
+
+          {isEditing && (
             <Button.Root
               type="button"
-              appearance="solid"
-              color="amber"
+              appearance="ghost"
+              color="neutral"
               size="sm"
-              noUppercase
-              onClick={draft.submitItem}
+              onClick={draft.cancelEdit}
             >
-              <Button.Icon icon={isEditing ? Check : Plus} />
-              <Button.Title>
-                {isEditing ? "Salvar item" : "Adicionar item"}
-              </Button.Title>
+              <Button.Icon icon={X} />
+              <Button.Title>Cancelar</Button.Title>
             </Button.Root>
-
-            {isEditing && (
-              <Button.Root
-                type="button"
-                appearance="ghost"
-                color="neutral"
-                size="sm"
-                noUppercase
-                onClick={draft.cancelEdit}
-              >
-                <Button.Icon icon={X} />
-                <Button.Title>Cancelar</Button.Title>
-              </Button.Root>
-            )}
-          </div>
-        </Card.Body>
-      </Card.Root>
+          )}
+        </div>
+      </div>
 
       {/* Itens já adicionados ao rascunho */}
       {draft.items.length > 0 && (
@@ -279,7 +300,6 @@ export function StepItems({ draft, minimum, freeFreight }: Props) {
                         color="neutral"
                         size="sm"
                         isIconOnly
-                        noUppercase
                         label="Editar item"
                         onClick={() => draft.startEdit(index)}
                       >
@@ -291,7 +311,6 @@ export function StepItems({ draft, minimum, freeFreight }: Props) {
                         color="red"
                         size="sm"
                         isIconOnly
-                        noUppercase
                         label="Remover item"
                         onClick={() => draft.removeItem(index)}
                       >

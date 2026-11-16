@@ -33,6 +33,7 @@ const item = (overrides: Partial<OrderItem> = {}): OrderItem =>
 const order = (overrides: Partial<OrderDetail> = {}): OrderDetail =>
   ({
     id: "abc12345-0000-0000-0000-000000000000",
+    number: 42,
     orderDate: "2026-05-10",
     totalAmount: "240",
     ipiAmount: "20",
@@ -84,7 +85,7 @@ const findRow = (rows: string[][], label: string) =>
 describe("buildOrderSheetRows", () => {
   it("abre com a ficha do negócio e o número do pedido", () => {
     const rows = buildOrderSheetRows(order(), [item()]);
-    expect(rows[0]).toEqual(["Pedido", "ABC12345"]);
+    expect(rows[0]).toEqual(["Pedido", "#42"]);
     expect(findRow(rows, "Cliente")?.[1]).toBe("Bom Preço Comércio LTDA");
     expect(findRow(rows, "CNPJ")?.[1]).toBe("12.345.678/0001-90");
     expect(findRow(rows, "Cidade / UF")?.[1]).toBe("Salvador / BA");
@@ -116,27 +117,7 @@ describe("buildOrderSheetRows", () => {
     ).toBeUndefined();
 
     const withInstallments = buildOrderSheetRows(
-      order({
-        installments: [
-          {
-            id: "n1",
-            sequence: 1,
-            amount: "270",
-            commissionAmount: "12",
-            dueDate: "2026-06-10",
-            status: "PENDING",
-            paidAt: null,
-            isOverdue: false,
-            defaultedAt: null,
-            isCommissionReceived: false,
-            commissionReceivedAt: null,
-            isSellerCommissionPaid: false,
-            sellerCommissionPaidAt: null,
-            sellerChargebackMonth: null,
-            hasSettlement: false,
-          },
-        ],
-      }),
+      order({ installments: [sheetInstallment("12")] }),
       []
     );
     expect(findRow(withInstallments, "Parcelas")).toBeDefined();
@@ -148,4 +129,33 @@ describe("buildOrderSheetRows", () => {
       "Pendente",
     ]);
   });
+
+  it("para o vendedor (comissão da fábrica nula) a coluna traz a parte dele", () => {
+    const rows = buildOrderSheetRows(
+      order({ installments: [sheetInstallment(null)] }),
+      []
+    );
+    expect(rows.at(-1)?.[3]).toBe("7,20");
+  });
 });
+
+function sheetInstallment(commissionAmount: string | null) {
+  return {
+    id: "n1",
+    sequence: 1,
+    amount: "270",
+    commissionAmount,
+    sellerCommissionAmount: "7.20",
+    dueDate: "2026-06-10",
+    status: "PENDING" as const,
+    paidAt: null,
+    isOverdue: false,
+    defaultedAt: null,
+    isCommissionReceived: false,
+    commissionReceivedAt: null,
+    isSellerCommissionPaid: false,
+    sellerCommissionPaidAt: null,
+    sellerChargebackMonth: null,
+    hasSettlement: false,
+  };
+}

@@ -59,6 +59,27 @@ const WEEK_STOPS = [
   hasLinkedOrder: false,
 }));
 
+/** Último "Enviar ao representante" recebido (ver `RequestPortalQuote`). */
+let lastPortalQuoteEcho: string | null = null;
+
+/** O pedido enviado pelo portal que o stub conhece. */
+const SENT_PORTAL_ORDER = {
+  id: "sent-1",
+  number: 42,
+  createdAt: "2026-11-10T13:30:00+00:00",
+  factoryName: "Fábrica Alfa",
+  status: "DRAFT",
+  totalAmount: "480.0000",
+  ipiAmount: "0.0000",
+  taxAmount: "0.0000",
+  itemCount: 1,
+  seenBySellerAt: null,
+  clientRequestNote: null,
+  sellerName: "Vendedor Teste",
+  sellerEmail: "vendedor@teste.com",
+  sellerPhone: "11999990000",
+};
+
 const SSR_RESPONSES: Record<string, SsrResponse> = {
   // Listas de topo agora buscam a 1ª página no SERVIDOR (SSR-seed do useTableData,
   // ver [[project_ssr_list_apollo_cache_seed]]). O stub devolve connection VAZIO:
@@ -239,7 +260,7 @@ const SSR_RESPONSES: Record<string, SsrResponse> = {
       },
     },
   },
-  PortalPurchases: {
+  PortalPurchaseSummary: {
     portalPurchaseSummary: {
       status: true,
       code: 200,
@@ -257,25 +278,6 @@ const SSR_RESPONSES: Record<string, SsrResponse> = {
           { factoryName: "Fábrica Beta", amount: "2000.0000", orderCount: 1 },
         ],
       },
-    },
-    portalOrders: {
-      totalCount: 1,
-      pageInfo: { hasNextPage: false, hasPreviousPage: false },
-      edges: [
-        {
-          node: {
-            id: "order-portal-1",
-            orderDate: "2026-08-01",
-            factoryName: "Fábrica Alfa",
-            totalAmount: "3000.0000",
-            ipiAmount: "0.0000",
-            status: "DELIVERED",
-            invoicedAt: "2026-08-05",
-            deliveredAt: "2026-08-10",
-            estimatedDeliveryDate: null,
-          },
-        },
-      ],
     },
   },
   // Único por VARIÁVEIS: o portal decide entre a ficha e o "não encontrado"
@@ -298,6 +300,7 @@ const SSR_RESPONSES: Record<string, SsrResponse> = {
             message: "ok",
             data: {
               id: "order-portal-1",
+              number: 428,
               orderDate: "2026-08-01",
               factoryName: "Fábrica Alfa",
               totalAmount: "3000.0000",
@@ -307,6 +310,11 @@ const SSR_RESPONSES: Record<string, SsrResponse> = {
               deliveredAt: "2026-08-10",
               estimatedDeliveryDate: null,
               paymentTermName: "30/60",
+              taxAmount: "0.0000",
+              freightType: null,
+              sellerName: null,
+              sellerEmail: null,
+              sellerPhone: null,
               items: [
                 {
                   id: "item-1",
@@ -316,6 +324,9 @@ const SSR_RESPONSES: Record<string, SsrResponse> = {
                   unitPrice: "250.0000",
                   subtotal: "3000.0000",
                   ipiAmount: "0.0000",
+                  ipiRate: "0.0000",
+                  taxAmount: "0.0000",
+                  unitPriceWithTax: "250.0000",
                 },
               ],
               installments: [
@@ -385,23 +396,35 @@ const SSR_RESPONSES: Record<string, SsrResponse> = {
             productId: "prod-repor-1",
             productName: "Torneira Teste",
             sku: "SKU-1",
+            factoryId: "fab-alfa",
             factoryName: "Fábrica Alfa",
+            imageUrl: null,
             daysRemaining: 3,
             lastPurchaseDate: "2026-08-01",
             suggestedQuantity: "24.0000",
             saleMultiple: "12.0000",
             pendingQuantity: null,
+            estimatedUnitPrice: "15.00",
+            estimatedUnitPriceWithTax: "16.50",
+            isPromo: false,
+            lastUnitPrice: "14.20",
           },
           {
             productId: "prod-repor-2",
             productName: "Sifão Teste",
             sku: "SKU-2",
+            factoryId: "fab-beta",
             factoryName: "Fábrica Beta",
+            imageUrl: null,
             daysRemaining: -2,
             lastPurchaseDate: "2026-07-10",
             suggestedQuantity: "6.0000",
             saleMultiple: null,
             pendingQuantity: "6.0000",
+            estimatedUnitPrice: null,
+            estimatedUnitPriceWithTax: null,
+            isPromo: false,
+            lastUnitPrice: null,
           },
         ],
       },
@@ -425,6 +448,139 @@ const SSR_RESPONSES: Record<string, SsrResponse> = {
       },
     };
   },
+  // Orçamento livre: responde à busca (`search`) e à fábrica (`factoryId`)
+  // para o spec provar que as duas chegam ao servidor. Preço sempre vem: o
+  // estimado e o da última compra.
+  PortalCatalog: (variables: Record<string, unknown>) => {
+    const all = [
+      {
+        productId: "prod-cat-1",
+        productName: "Registro Teste",
+        sku: "REG-1",
+        factoryId: "fab-alfa",
+        factoryName: "Fábrica Alfa",
+        imageUrl: null,
+        suggestedQuantity: "10.0000",
+        saleMultiple: "10.0000",
+        pendingQuantity: null,
+        lastPurchaseDate: null,
+        estimatedUnitPrice: "9.90",
+        estimatedUnitPriceWithTax: "9.90",
+        isPromo: true,
+        lastUnitPrice: null,
+      },
+      {
+        productId: "prod-cat-2",
+        productName: "Chuveiro Teste",
+        sku: "CHU-1",
+        factoryId: "fab-beta",
+        factoryName: "Fábrica Beta",
+        imageUrl: null,
+        suggestedQuantity: "1.0000",
+        saleMultiple: null,
+        pendingQuantity: "2.0000",
+        lastPurchaseDate: "2026-07-10",
+        estimatedUnitPrice: null,
+        estimatedUnitPriceWithTax: null,
+        isPromo: false,
+        lastUnitPrice: "120.00",
+      },
+    ];
+    const search = String(variables.search ?? "").toLowerCase();
+    const factoryId = (variables.factoryId as string | null) ?? null;
+    const factories = [
+      { factoryId: "fab-alfa", name: "Fábrica Alfa" },
+      { factoryId: "fab-beta", name: "Fábrica Beta" },
+    ];
+    const known = factories.some((f) => f.factoryId === factoryId);
+    const items = all
+      .filter(
+        (item) => !search || item.productName.toLowerCase().includes(search)
+      )
+      .filter((item) => !known || item.factoryId === factoryId);
+    return {
+      portalCatalog: {
+        status: true,
+        code: 200,
+        message: "ok",
+        data: {
+          total: items.length,
+          page: 1,
+          pageSize: 30,
+          factoryId: known ? factoryId : null,
+          factories,
+          items,
+        },
+      },
+    };
+  },
+  // Ecoa itens e recado — mesmo motivo da reposição. O desconto segue no eco
+  // para o spec provar que a tela não o manda mais.
+  RequestPortalQuote: (variables: Record<string, unknown>) => {
+    const input =
+      (variables.input as
+        | {
+            items?: Array<{ productId: string; quantity: string }>;
+            discountPercent?: string;
+            note?: string;
+          }
+        | undefined) ?? {};
+    const items = (input.items ?? [])
+      .map((item) => `${item.productId}=${item.quantity}`)
+      .join(", ");
+    // O envio redireciona para a tela do pedido enviado: o eco fica guardado
+    // e volta como "recado" lá — é o que prova, na tela de destino, o que foi
+    // enviado.
+    lastPortalQuoteEcho = `Orçamento: ${items}; desconto=${input.discountPercent ?? "-"}; recado=${input.note ?? "-"}`;
+    return {
+      requestPortalQuote: {
+        status: true,
+        code: 200,
+        message: lastPortalQuoteEcho,
+        data: { orderIds: [SENT_PORTAL_ORDER.id] },
+      },
+    };
+  },
+  PortalSentOrders: () => ({
+    portalSentOrders: {
+      total: 1,
+      page: 1,
+      limit: 10,
+      data: [{ ...SENT_PORTAL_ORDER, clientRequestNote: lastPortalQuoteEcho }],
+    },
+  }),
+  PortalSentOrdersSummary: () => ({
+    portalSentOrdersSummary: {
+      status: true,
+      code: 200,
+      message: "",
+      data: { total: 1, waiting: 1, seen: 0, ordered: 0, cancelled: 0 },
+    },
+  }),
+  // Pedido de outro cliente ou inexistente: data nula (a tela mostra o
+  // "não encontrado").
+  PortalSentOrder: (variables: Record<string, unknown>) => ({
+    portalSentOrder: {
+      data:
+        variables.id === SENT_PORTAL_ORDER.id
+          ? {
+              ...SENT_PORTAL_ORDER,
+              clientRequestNote: lastPortalQuoteEcho,
+              items: [
+                {
+                  id: "sent-item-1",
+                  productName: "Torneira Teste",
+                  sku: "SKU-1",
+                  quantity: "24.0000",
+                  unitPrice: "20.0000",
+                  subtotal: "480.0000",
+                  ipiAmount: "0.0000",
+                },
+              ],
+            }
+          : null,
+    },
+  }),
   // Folha de resposta da rota do dia (`/r/[token]`): SSR puro, como o portal.
   // Responde pelo TOKEN, e não por variável, porque é assim que a página
   // autentica — é o que permite o spec provar a tela de link morto.

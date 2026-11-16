@@ -81,7 +81,7 @@ export function ImportTemplateTab({ factoryId }: Props) {
               title="Modelo de pedido"
               help={
                 <div className="flex flex-col gap-2">
-                  <Title variant="label" color="amber">
+                  <Title variant="label" weight="semibold">
                     Modelo de pedido
                   </Title>
                   <Title variant="body-sm">
@@ -112,7 +112,7 @@ export function ImportTemplateTab({ factoryId }: Props) {
               title="Modelo de tabela de preço"
               help={
                 <div className="flex flex-col gap-2">
-                  <Title variant="label" color="amber">
+                  <Title variant="label" weight="semibold">
                     Modelo de tabela de preço
                   </Title>
                   <Title variant="body-sm">

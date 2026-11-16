@@ -87,7 +87,7 @@ export const useWalletReport = (filters: ReportFilters) => {
           report.totalClients > 0
             ? `${formatPercent(safeRate(report.activeClients, report.totalClients))} da carteira`
             : "carteira vazia",
-        status: "ok",
+        status: "neutral",
       },
       {
         // Atrasado e parado juntos: é a fila de trabalho do vendedor, e separá-la
@@ -101,7 +101,7 @@ export const useWalletReport = (filters: ReportFilters) => {
         label: "Comprado no período",
         value: formatMoney(report.periodAmount),
         hint: "pela data do pedido, orçamento fora",
-        status: "atencao",
+        status: "neutral",
       },
     ];
   }, [report]);

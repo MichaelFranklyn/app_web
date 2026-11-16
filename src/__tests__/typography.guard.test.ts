@@ -32,7 +32,7 @@ const TEXT_TAGS = "span|p|h1|h2|h3|h4|h5|h6|div|strong|em|label|li|td|th";
  * tipográfica escritos direto na classe. `text-(--x)` NÃO conta: é cor.
  */
 const TYPOGRAPHY_CLASS =
-  /\b(text-\[\d+px\]|text-(?:xs|sm|base|lg|xl|2xl|3xl)|font-(?:medium|semibold|bold|extrabold))\b/;
+  /\b(text-\[\d+px\]|text-(?:xs|sm|base|lg|xl|2xl|3xl|body-sm)|font-(?:medium|semibold|bold|extrabold))\b/;
 
 const readSources = (): Map<string, string> => {
   const out = new Map<string, string>();

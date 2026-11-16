@@ -1,9 +1,8 @@
 import { Card } from "@/components/Card";
-import { Divider } from "@/components/Divider";
 import { HelpTooltip } from "@/components/HelpTooltip";
 import { Title } from "@/components/Title";
 import { formatMoney } from "@/utils/format/masks";
-import { Fragment, ReactNode } from "react";
+import { ReactNode } from "react";
 import { SUMMARY_HELP } from "../../../help";
 import { OrderDetail } from "../../interface";
 
@@ -30,7 +29,6 @@ interface SummaryRow {
   label: string;
   help: ReactNode;
   value: ReactNode;
-  color?: "amber";
 }
 
 interface Props {
@@ -97,8 +95,8 @@ export function OrderSummaryCard({ order }: Props) {
       key: "commission",
       label: "Comissão",
       help: SUMMARY_HELP.commission,
-      value: formatMoney(order.commissionAmount),
-      color: "amber" as const,
+      // Valor em cor de texto: âmbar é só do que se clica (revisão 13/11/2026).
+      value: formatMoney(order.sellerCommissionAmount),
     },
     {
       key: "paymentTerm",
@@ -127,14 +125,13 @@ export function OrderSummaryCard({ order }: Props) {
         </Card.Header.Title>
       </Card.Header>
       <Card.Body padding="compact">
-        {rows.map((row, index) => (
-          <Fragment key={row.key}>
-            {index > 0 && <Divider.Root className="my-2" />}
-            <Card.Item variant="stat">
-              <LabelWithHelp help={row.help}>{row.label}</LabelWithHelp>
-              <Card.Item.Value color={row.color}>{row.value}</Card.Item.Value>
-            </Card.Item>
-          </Fragment>
+        {/* O separador é a borda do próprio Card.Item: um Divider a mais
+            entre eles desenhava linha dupla. */}
+        {rows.map((row) => (
+          <Card.Item key={row.key} variant="stat">
+            <LabelWithHelp help={row.help}>{row.label}</LabelWithHelp>
+            <Card.Item.Value>{row.value}</Card.Item.Value>
+          </Card.Item>
         ))}
       </Card.Body>
     </Card.Root>

@@ -18,6 +18,7 @@ import {
   overdueLabel,
   sumBy,
 } from "../../utils";
+import { visibleCommission } from "@/utils/commission";
 
 interface Props {
   items: BillingRow[];
@@ -70,6 +71,8 @@ export function BillingReportTable({
         </Table.CardHead.Title>
         <Table.CardHead.Actions>
           <Filters
+            resultCount={totalItems}
+            resultLoading={loading}
             fields={filterFields}
             values={inputValues}
             onChange={setFilters}
@@ -104,7 +107,7 @@ export function BillingReportTable({
           ) : items.length === 0 ? (
             <Table.Row>
               <Table.Cell colSpan={8}>
-                <EmptyState.Root>
+                <EmptyState.Root flat>
                   <EmptyState.Icon>
                     <Receipt size={32} />
                   </EmptyState.Icon>
@@ -160,7 +163,7 @@ export function BillingReportTable({
                   {formatMoney(row.amount)}
                 </Table.Cell>
                 <Table.Cell variant="dim" className="whitespace-nowrap">
-                  {formatMoney(row.commissionAmount)}
+                  {formatMoney(visibleCommission(row))}
                 </Table.Cell>
               </Table.Row>
             ))

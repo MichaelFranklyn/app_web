@@ -12,6 +12,7 @@ import { Building2 } from "lucide-react";
 import { formatPercent } from "../../../../utils";
 import { FactoryOrdersRow } from "../../interface";
 import { invoicedRate, sumBy } from "../../utils";
+import { visibleCommission } from "@/utils/commission";
 
 interface Props {
   items: FactoryOrdersRow[];
@@ -64,6 +65,8 @@ export function FactoriesReportTable({
         </Table.CardHead.Title>
         <Table.CardHead.Actions>
           <Filters
+            resultCount={totalItems}
+            resultLoading={loading}
             fields={filterFields}
             values={inputValues}
             onChange={setFilters}
@@ -106,7 +109,7 @@ export function FactoriesReportTable({
           ) : items.length === 0 ? (
             <Table.Row>
               <Table.Cell colSpan={8}>
-                <EmptyState.Root>
+                <EmptyState.Root flat>
                   <EmptyState.Icon>
                     <Building2 size={32} />
                   </EmptyState.Icon>
@@ -147,7 +150,7 @@ export function FactoriesReportTable({
                   </Table.CellText>
                 </Table.Cell>
                 <Table.Cell variant="dim" className="whitespace-nowrap">
-                  {formatMoney(row.commissionAmount)}
+                  {formatMoney(visibleCommission(row))}
                 </Table.Cell>
                 <Table.Cell variant="dim" className="whitespace-nowrap">
                   {row.lastOrderDate ? formatDateDMY(row.lastOrderDate) : "—"}

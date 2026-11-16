@@ -98,7 +98,6 @@ export function ImportOrderModal(props: ImportOrderModalProps) {
                   appearance="ghost"
                   color="neutral"
                   size="md"
-                  noUppercase
                 >
                   <Button.Title>Cancelar</Button.Title>
                 </Button.Root>
@@ -121,7 +120,6 @@ export function ImportOrderModal(props: ImportOrderModalProps) {
                 appearance="ghost"
                 color="neutral"
                 size="md"
-                noUppercase
                 disabled={readingSheet}
                 onClick={() => setMode(null)}
               >
@@ -152,7 +150,6 @@ export function ImportOrderModal(props: ImportOrderModalProps) {
                 appearance="ghost"
                 color="neutral"
                 size="md"
-                noUppercase
                 onClick={() => setMode(null)}
               >
                 <Button.Icon icon={ArrowLeft} />
@@ -163,7 +160,6 @@ export function ImportOrderModal(props: ImportOrderModalProps) {
                 appearance="solid"
                 color="amber"
                 size="md"
-                noUppercase
                 onClick={() => formRef.current?.submitForm()}
               >
                 <Button.Title>Continuar</Button.Title>

@@ -48,11 +48,12 @@ describe("visibleNav — papel", () => {
     }
   });
 
-  it("dá as oportunidades a todos os papéis", () => {
-    // A leitura é de QUEM ABRE (o backend prende a carteira ao token), então
-    // não há papel a esconder — o vendedor é justamente quem mais precisa dela.
+  it("junta oportunidades e pendências numa entrada só", () => {
+    // A central (14/11/2026): Oportunidades é uma aba de /priorities, não um
+    // item próprio — duas entradas para a mesma central confundiam.
     for (const role of ["OWNER", "ADMIN", "SELLER"]) {
-      expect(hrefs(role)).toContain("/opportunities");
+      expect(hrefs(role)).not.toContain("/opportunities");
+      expect(hrefs(role)).toContain("/priorities");
     }
   });
 
@@ -66,8 +67,8 @@ describe("visibleNav — papel", () => {
     // É a lista de trabalho de quem abre — o vendedor vê as dele, o gestor as
     // da empresa — e nenhuma das quatro leituras depende de recurso de plano.
     for (const role of ["OWNER", "ADMIN", "SELLER"]) {
-      expect(hrefs(role)).toContain("/pending");
-      expect(hrefs(role, [])).toContain("/pending");
+      expect(hrefs(role)).toContain("/priorities");
+      expect(hrefs(role, [])).toContain("/priorities");
     }
   });
 
@@ -88,10 +89,10 @@ describe("visibleNav — plano", () => {
     expect(semRotina).toContain("/goals");
   });
 
-  it("mantém as oportunidades em qualquer plano", () => {
+  it("mantém a central (com as oportunidades) em qualquer plano", () => {
     // A leitura é calculada na hora a partir da carteira — não depende do
     // módulo de avisos automáticos, que é o sino.
-    expect(hrefs("OWNER", [])).toContain("/opportunities");
+    expect(hrefs("OWNER", [])).toContain("/priorities");
   });
 
   it("corta antes do papel: nem o dono vê o que não foi contratado", () => {

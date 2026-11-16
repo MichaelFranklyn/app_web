@@ -36,7 +36,7 @@ export const getContractStatus = (contractEnd: string | null) => {
   const days = Math.ceil(
     (end.getTime() - today.getTime()) / (1000 * 60 * 60 * 24)
   );
-  if (days <= 90) return { label: "A renovar", color: "amber" as const };
+  if (days <= 90) return { label: "A renovar", color: "warning" as const };
   return { label: "Vigente", color: "green" as const };
 };
 

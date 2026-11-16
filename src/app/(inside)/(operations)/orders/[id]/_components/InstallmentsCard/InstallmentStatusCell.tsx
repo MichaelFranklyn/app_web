@@ -25,7 +25,7 @@ export function InstallmentStatusCell({
       </Badge.Root>
 
       {installment.isOverdue && (
-        <Badge.Root color="amber" appearance="tinted">
+        <Badge.Root color="warning" appearance="tinted">
           <Badge.Icon>
             <Clock />
           </Badge.Icon>

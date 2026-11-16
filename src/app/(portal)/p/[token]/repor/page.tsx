@@ -1,27 +1,14 @@
-import { portalFetch } from "@/services/graphql/portalFetch";
-import { PORTAL_REPLENISHMENT } from "../gql";
-import { PortalReplenishmentData } from "../interface";
-import { PortalReplenishContent } from "./content";
+import { redirect } from "next/navigation";
 
 interface PageProps {
   params: Promise<{ token: string }>;
 }
 
-export default async function PortalReplenishPage({ params }: PageProps) {
+/**
+ * Endereço antigo: "repor" virou parte de "Fazer pedido" (`/pedido`). Fica o
+ * redirecionamento para links salvos e mensagens já enviadas.
+ */
+export default async function PortalLegacyReporPage({ params }: PageProps) {
   const { token } = await params;
-
-  const data = await portalFetch<PortalReplenishmentData>(
-    PORTAL_REPLENISHMENT,
-    token
-  );
-  const replenishment = data?.portalReplenishment?.data ?? null;
-
-  return (
-    <PortalReplenishContent
-      token={token}
-      available={replenishment !== null}
-      horizonDays={replenishment?.horizonDays ?? 15}
-      items={replenishment?.items ?? []}
-    />
-  );
+  redirect(`/p/${token}/pedido`);
 }

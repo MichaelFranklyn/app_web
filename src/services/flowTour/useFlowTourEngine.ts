@@ -23,7 +23,7 @@ const TRANSITION_MS = 200;
  * Motor do tour guiado: carrega o progresso do usuário, dirige a navegação
  * entre steps (avançar/voltar, pular alvo ausente, transições com fade),
  * persiste no back e faz o auto-start por rota. O `FlowTourProvider` fica só
- * com o contexto e a renderização da camada (`TourLayer` + `FlowTourLauncher`).
+ * com o contexto e a renderização da camada (`TourLayer`; o `FlowTourLauncher` mora na topbar).
  */
 export function useFlowTourEngine() {
   const pathname = usePathname();

@@ -9,7 +9,7 @@ import { InputLabel } from "./Label";
 import { InputGroup } from "./Group";
 import { InputAddon } from "./Addon";
 import { InputHint } from "./Hint";
-import { useInputContext } from "./context";
+import { fieldAria, useInputContext } from "./context";
 import { inputSizeMinHeight, inputSizePadding, inputStyles } from "./styles";
 import { InputBaseProps } from "./InputText";
 
@@ -60,6 +60,7 @@ const IMaskControl = forwardRef<HTMLInputElement, InputMaskProps>(
       className: computedClasses,
       disabled,
       ...props,
+      ...fieldAria(context, props),
     } as unknown as React.ComponentProps<typeof IMaskInput>;
 
     return <IMaskInput {...maskedProps} />;

@@ -34,7 +34,6 @@ export default function InsideError({
             appearance="solid"
             color="amber"
             size="md"
-            noUppercase
             onClick={reset}
           >
             <Button.Title>Tentar novamente</Button.Title>
@@ -43,7 +42,6 @@ export default function InsideError({
             appearance="outline"
             color="neutral"
             size="md"
-            noUppercase
             onClick={() => {
               window.location.href = "/dashboard";
             }}

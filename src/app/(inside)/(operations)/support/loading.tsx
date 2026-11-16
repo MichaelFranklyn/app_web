@@ -6,10 +6,10 @@ import { ListPageSkeleton } from "@/components/ListPageSkeleton";
 export default function Loading() {
   return (
     <ListPageSkeleton
+      page="support"
       title="Reclamações de clientes"
       description="Os problemas que os clientes relatam e o que já foi feito sobre cada um."
       actions={1}
-      listTitle="Reclamações"
       columns={[
         "Assunto",
         "Cliente",

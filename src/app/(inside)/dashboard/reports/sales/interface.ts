@@ -7,7 +7,8 @@ export interface SalesReportOrder {
   /** Nunca nulo neste relatório — é o campo pelo qual o período recorta. */
   invoicedAt: string | null;
   totalAmount: string;
-  commissionAmount: string;
+  commissionAmount: string | null;
+  sellerCommissionAmount: string;
   status: OrderStatus;
   seller: { id: string; name: string } | null;
   client: {
@@ -36,7 +37,8 @@ export interface SalesReportStatsResponse {
     totalOrders: number;
     totalAmount: string;
     avgTicket: string;
-    commissionAmount: string;
+    commissionAmount: string | null;
+    sellerCommissionAmount: string;
   };
 }
 
@@ -45,7 +47,8 @@ export interface InvoicedByFactoryPoint {
   entityName: string;
   total: string;
   orderCount: number;
-  commissionAmount: string;
+  commissionAmount: string | null;
+  sellerCommissionAmount: string;
 }
 
 export interface InvoicedByFactoryResponse {
@@ -56,7 +59,8 @@ export interface InvoicedByMonthPoint {
   month: string;
   total: string;
   orderCount: number;
-  commissionAmount: string;
+  commissionAmount: string | null;
+  sellerCommissionAmount: string;
 }
 
 export interface InvoicedByMonthResponse {

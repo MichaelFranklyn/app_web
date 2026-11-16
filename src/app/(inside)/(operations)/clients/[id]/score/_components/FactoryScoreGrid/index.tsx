@@ -57,7 +57,6 @@ export function FactoryScoreGrid({ scores, onSelect }: Props) {
           appearance="ghost"
           color="neutral"
           size="sm"
-          noUppercase
           className="self-center"
           onClick={() => setExpanded(true)}
         >

@@ -5,6 +5,7 @@ import { ListPageSkeleton } from "@/components/ListPageSkeleton";
 export default function Loading() {
   return (
     <ListPageSkeleton
+      page="platformTeam"
       title="Equipe da plataforma"
       description="Quem enxerga todas as empresas. Contas de suporte são criadas e revogadas aqui."
       actions={1}

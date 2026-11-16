@@ -52,7 +52,7 @@ export function AdoptionCard({ features }: { features: FeatureAdoption[] }) {
                 <Progress.Bar
                   value={percent}
                   color={barColor(percent)}
-                  aria-label={`Adoção de ${feature.label}`}
+                  label={`Adoção de ${feature.label}`}
                 />
               </li>
             );

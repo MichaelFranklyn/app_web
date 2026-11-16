@@ -6,4 +6,9 @@ export interface TableScoreCellProps extends React.TdHTMLAttributes<HTMLTableCel
   color?: ScoreColor;
   noBar?: boolean;
   label?: React.ReactNode;
+  /**
+   * Ao lado do número, na mesma linha (ex.: as tags de situação do cliente no
+   * cartão do celular). Esconda com `desktop:hidden` o que for só do cartão.
+   */
+  children?: React.ReactNode;
 }

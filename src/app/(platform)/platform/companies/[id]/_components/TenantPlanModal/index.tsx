@@ -36,6 +36,9 @@ export function TenantPlanModal({ open, onOpenChange, tenant, onDone }: Props) {
   const [maxSellers, setMaxSellers] = useState(
     tenant.maxSellers?.toString() ?? ""
   );
+  const [extraUsers, setExtraUsers] = useState(
+    tenant.extraUsers > 0 ? tenant.extraUsers.toString() : ""
+  );
 
   const { findPlan } = usePlanCatalog();
   // O catálogo é a MESMA matriz que o backend aplica — o console não mantém
@@ -65,7 +68,7 @@ export function TenantPlanModal({ open, onOpenChange, tenant, onDone }: Props) {
         const { data } = await mutate({
           variables: {
             companyId: tenant.id,
-            // Os quatro campos vão sempre: o formulário mostra o estado
+            // Os campos vão sempre: o formulário mostra o estado
             // inteiro, então tudo que está na tela é intenção — inclusive os
             // campos que a pessoa esvaziou para remover o limite.
             input: {
@@ -73,6 +76,8 @@ export function TenantPlanModal({ open, onOpenChange, tenant, onDone }: Props) {
               trialEndsAt: trialEndsAt ? toIsoDate(trialEndsAt) : null,
               maxUsers: emptyToNull(maxUsers),
               maxSellers: emptyToNull(maxSellers),
+              // Vazio = nenhum extra; o backend grava zero.
+              extraUsers: emptyToNull(extraUsers),
             },
           },
         });
@@ -127,6 +132,21 @@ export function TenantPlanModal({ open, onOpenChange, tenant, onDone }: Props) {
             disabled={isLoading}
             onChange={(d: unknown) =>
               setTrialEndsAt(d instanceof Date ? d : null)
+            }
+          />
+
+          <Input.Number
+            label="Usuários extras"
+            // O add-on pago: soma nos dois tetos abaixo (ou nos do plano,
+            // quando eles estão vazios). Usuário e vendedor são a mesma cota.
+            hint="Comprados além do plano, R$ 24,90 cada. Somam no limite de pessoas e no de vendedores."
+            value={extraUsers}
+            placeholder="Nenhum"
+            min={0}
+            max={100}
+            disabled={isLoading}
+            onChange={(e: ChangeEvent<HTMLInputElement>) =>
+              setExtraUsers(e.target.value)
             }
           />
 

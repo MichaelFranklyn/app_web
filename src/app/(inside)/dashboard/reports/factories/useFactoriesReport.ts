@@ -84,7 +84,7 @@ export const useFactoriesReport = (filters: ReportFilters) => {
         label: "Valor colocado",
         value: formatMoney(total),
         hint: "soma dos pedidos enviados às fábricas",
-        status: "ok",
+        status: "neutral",
       },
       {
         label: "Já faturado",
@@ -93,7 +93,7 @@ export const useFactoriesReport = (filters: ReportFilters) => {
           total > 0
             ? `${formatPercent(safeRate(invoiced, total))} do que foi colocado`
             : "nada faturado ainda",
-        status: "atencao",
+        status: "neutral",
       },
       {
         // A concentração é o risco da representação: uma fábrica com metade da

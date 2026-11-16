@@ -1,4 +1,5 @@
 import { Card } from "@/components/Card";
+import { Grid } from "@/components/Grid";
 import { Title } from "@/components/Title";
 import { formatMoney } from "@/utils/format/masks";
 import { PortalPurchaseSummary } from "../../interface";
@@ -20,18 +21,27 @@ export function PortalSummary({ summary }: PortalSummaryProps) {
   if (summary.orderCount === 0) return null;
 
   return (
-    <section className="flex flex-col gap-[16px]">
-      {/* Três colunas só a partir do tablet: em 320px cada cartão ficava com
-          ~90px e o rótulo "TOTAL COMPRADO" (caixa alta, com tracking) saía
-          cortado pela borda do card. */}
-      <div className="tablet:grid-cols-3 grid grid-cols-2 gap-[8px]">
-        <Kpi label="Total comprado" value={formatMoney(summary.totalAmount)} />
-        <Kpi label="Pedidos" value={String(summary.orderCount)} />
-        <Kpi
-          label="Média por pedido"
-          value={formatMoney(summary.averageTicket)}
-        />
-      </div>
+    <section className="flex flex-col gap-[20px]">
+      {/* Os mesmos cartões de número das telas do sistema. Três colunas só a
+          partir do tablet: em 320px cada cartão ficava estreito demais para o
+          rótulo. */}
+      <Grid.Root cols={{ base: 2, tablet: 3 }} gap={20}>
+        <Grid.Item>
+          <Kpi
+            label="Total comprado"
+            value={formatMoney(summary.totalAmount)}
+          />
+        </Grid.Item>
+        <Grid.Item>
+          <Kpi label="Pedidos" value={String(summary.orderCount)} />
+        </Grid.Item>
+        <Grid.Item>
+          <Kpi
+            label="Média por pedido"
+            value={formatMoney(summary.averageTicket)}
+          />
+        </Grid.Item>
+      </Grid.Root>
 
       <Card.Root className="h-auto">
         <Card.Body padding="compact">
@@ -55,19 +65,10 @@ export function PortalSummary({ summary }: PortalSummaryProps) {
 
 function Kpi({ label, value }: { label: string; value: string }) {
   return (
-    <Card.Root className="h-auto">
-      <Card.Body padding="compact">
-        <div className="flex flex-col gap-[4px]">
-          <Title variant="label" color="muted">
-            {label}
-          </Title>
-          {/* `value` e não `kpi`: três valores de moeda lado a lado no celular
-            estouram a coluna no tamanho maior. */}
-          <Title variant="value" className="break-words">
-            {value}
-          </Title>
-        </div>
-      </Card.Body>
-    </Card.Root>
+    <Card.Kpi>
+      <Card.Kpi.Label>{label}</Card.Kpi.Label>
+      {/* `break-words`: três valores de moeda lado a lado no celular. */}
+      <Card.Kpi.Value className="break-words">{value}</Card.Kpi.Value>
+    </Card.Kpi>
   );
 }

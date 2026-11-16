@@ -2,7 +2,6 @@
 
 import { Badge } from "@/components/Badges";
 import { Button } from "@/components/Button";
-import { ContactTypeTag } from "@/components/ContactTypeTag";
 import { Title } from "@/components/Title";
 import { EmptyState } from "@/components/EmptyState";
 import { Filters } from "@/components/Filters";
@@ -27,10 +26,8 @@ import {
 import { clientDisplayName } from "@/utils/client";
 import { factoryName } from "@/utils/company";
 import { formatDate } from "@/utils/format/date";
-import { DeleteVisitModal } from "./_components/DeleteVisitModal";
-import { EditVisitModal } from "./_components/EditVisitModal";
 import { VisitsSkeleton } from "./_components/VisitsSkeleton";
-import { VisitStockAction } from "./_components/VisitStockAction";
+import { VisitRowActions } from "./_components/VisitRowActions";
 import { useVisitsTable } from "./useVisitsTable";
 
 const ITEMS_PER_PAGE = 10;
@@ -146,6 +143,8 @@ export default function VisitsContent() {
         <Table.CardHead.Title>Agenda do cliente</Table.CardHead.Title>
         <Table.CardHead.Actions>
           <Filters
+            resultCount={table.totalItems}
+            resultLoading={visitsLoading}
             fields={table.filterFields}
             values={table.inputValues}
             onChange={table.setFilters}
@@ -157,7 +156,6 @@ export default function VisitsContent() {
             appearance="solid"
             color="amber"
             size="sm"
-            noUppercase
             onClick={() => setScheduling(true)}
           >
             <Button.Icon icon={CalendarPlus} />
@@ -166,7 +164,8 @@ export default function VisitsContent() {
         </Table.CardHead.Actions>
       </Table.CardHead>
 
-      <Table.Table>
+      {/* Abaixo do desktop cada visita vira um cartão: as 8 colunas rolando de lado escondiam as ações. */}
+      <Table.Table cards>
         <Table.Header>
           <Table.Row>
             <Table.Head
@@ -242,16 +241,18 @@ export default function VisitsContent() {
               <Table.Row key={v.id} className="group">
                 {/* Tipo junto da data, não em coluna própria: a tabela já tem
                     8 colunas e uma nona a faria rolar na horizontal. */}
-                <Table.Cell>
+                <Table.Cell label="Data">
                   <Table.CellText variant="dim">
                     {formatDate(v.day?.date ?? v.actualVisitAt)}
                   </Table.CellText>
-                  <ContactTypeTag
+                  {/* No cartão (<1024px) o tipo sai daqui e vai para a linha
+                      das ações, ao lado da situação (14/11/2026). */}
+                  <Badge.ContactType
                     contactType={v.contactType}
-                    className="mt-2 flex"
+                    className="max-desktop:hidden mt-2 flex"
                   />
                 </Table.Cell>
-                <Table.Cell>
+                <Table.Cell card="title">
                   {/* O motivo combinado por quem marcou vem primeiro; as
                       fábricas do foco, quando houver, ficam como apoio. */}
                   <Table.CellText variant="strong">
@@ -263,27 +264,34 @@ export default function VisitsContent() {
                     </Table.CellText>
                   )}
                 </Table.Cell>
-                <Table.Cell>
+                <Table.Cell label="Fábricas tratadas">
                   <Table.CellText variant="dim">
                     {treatedLabel(v)}
                   </Table.CellText>
                 </Table.Cell>
-                <Table.Cell>
+                <Table.Cell label="Responsável">
                   <Table.CellText variant="dim">
                     {v.day?.schedule?.seller?.name ??
                       v.day?.schedule?.owner?.name ??
                       "—"}
                   </Table.CellText>
                 </Table.Cell>
-                <Table.Cell>
-                  <Badge.Root
-                    color={VISIT_STATUS_COLOR[v.status]}
-                    appearance="tinted"
-                  >
-                    <Badge.Text>{VISIT_STATUS_LABEL[v.status]}</Badge.Text>
-                  </Badge.Root>
+                <Table.Cell card="status">
+                  <div className="flex flex-wrap items-center gap-8">
+                    <Badge.Root
+                      color={VISIT_STATUS_COLOR[v.status]}
+                      appearance="tinted"
+                    >
+                      <Badge.Text>{VISIT_STATUS_LABEL[v.status]}</Badge.Text>
+                    </Badge.Root>
+                    {/* Só no cartão: no desktop o tipo fica junto da data. */}
+                    <Badge.ContactType
+                      contactType={v.contactType}
+                      className="desktop:hidden"
+                    />
+                  </div>
                 </Table.Cell>
-                <Table.Cell>
+                <Table.Cell label="Resultado">
                   {v.outcome ? (
                     <Badge.Root
                       color={VISIT_OUTCOME_COLOR[v.outcome]}
@@ -297,46 +305,45 @@ export default function VisitsContent() {
                     </Title>
                   )}
                 </Table.Cell>
-                <Table.Cell>
+                <Table.Cell label="Motivo do resultado">
                   <Table.CellText variant="dim">
                     {v.outcomeReason ?? "—"}
                   </Table.CellText>
                 </Table.Cell>
-                <Table.Cell>
-                  <div className="flex items-center justify-end gap-2">
-                    <VisitStockAction
-                      visitId={v.id}
-                      clientName={clientLabel(v)}
-                      onSaved={() => refetch()}
-                    />
-                    <EditVisitModal
-                      visit={{
+                <Table.Cell card="actions">
+                  <VisitRowActions
+                    stock={{
+                      visitId: v.id,
+                      clientName: clientLabel(v),
+                      onSaved: () => refetch(),
+                    }}
+                    edit={{
+                      visit: {
                         id: v.id,
                         status: v.status,
                         outcome: v.outcome,
                         outcomeReason: v.outcomeReason,
                         notes: v.notes,
-                      }}
-                      onUpdateOptimistic={(visitId, updates) =>
+                      },
+                      onUpdateOptimistic: (visitId, updates) =>
                         optimistic.updateOptimistic(
                           visitId,
                           updates as Partial<ClientVisit>
-                        )
-                      }
-                      onCommit={optimistic.commit}
-                      onRollback={optimistic.rollback}
-                    />
-                    <DeleteVisitModal
-                      visitId={v.id}
-                      visitLabel={`de ${formatDate(
+                        ),
+                      onCommit: optimistic.commit,
+                      onRollback: optimistic.rollback,
+                    }}
+                    remove={{
+                      visitId: v.id,
+                      visitLabel: `de ${formatDate(
                         v.day?.date ?? v.actualVisitAt
-                      )}`}
-                      onDeleted={() => refetch()}
-                      onRemoveOptimistic={optimistic.removeOptimistic}
-                      onCommit={optimistic.commit}
-                      onRollback={optimistic.rollback}
-                    />
-                  </div>
+                      )}`,
+                      onDeleted: () => refetch(),
+                      onRemoveOptimistic: optimistic.removeOptimistic,
+                      onCommit: optimistic.commit,
+                      onRollback: optimistic.rollback,
+                    }}
+                  />
                 </Table.Cell>
               </Table.Row>
             ))

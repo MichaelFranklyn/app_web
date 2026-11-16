@@ -29,7 +29,8 @@ export function InvoiceReversalsCard({ reversals }: Props) {
       <Table.CardHead>
         <Table.CardHead.Title>Histórico do faturamento</Table.CardHead.Title>
       </Table.CardHead>
-      <Table.Table>
+      {/* Abaixo do desktop cada registro vira um cartão, sem rolar de lado. */}
+      <Table.Table cards>
         <Table.Header>
           <Table.Row>
             <Table.Head>Quando</Table.Head>
@@ -42,10 +43,10 @@ export function InvoiceReversalsCard({ reversals }: Props) {
         <Table.Body>
           {reversals.map((reversal) => (
             <Table.Row key={reversal.id}>
-              <Table.Cell variant="dim">
+              <Table.Cell label="Quando" variant="dim">
                 {formatDateDMY(reversal.createdAt)}
               </Table.Cell>
-              <Table.Cell>
+              <Table.Cell card="title">
                 <div className="flex flex-col items-start gap-2">
                   <Table.CellText variant="strong">
                     {KIND_LABEL[reversal.kind] ?? reversal.kind}
@@ -55,9 +56,18 @@ export function InvoiceReversalsCard({ reversals }: Props) {
                   </Table.CellText>
                 </div>
               </Table.Cell>
-              <Table.Cell variant="dim">{reversal.userEmail ?? "—"}</Table.Cell>
-              <Table.Cell variant="dim">{reversal.reason ?? "—"}</Table.Cell>
-              <Table.Cell variant="strong" align="right">
+              <Table.Cell label="Quem" variant="dim">
+                {reversal.userEmail ?? "—"}
+              </Table.Cell>
+              <Table.Cell label="Motivo" variant="dim">
+                {reversal.reason ?? "—"}
+              </Table.Cell>
+              <Table.Cell
+                card="amount"
+                label="Valor"
+                variant="strong"
+                align="right"
+              >
                 {formatMoney(reversal.totalAmount)}
               </Table.Cell>
             </Table.Row>

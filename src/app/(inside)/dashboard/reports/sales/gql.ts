@@ -16,6 +16,7 @@ export const SALES_REPORT_ORDERS_QUERY = gql`
           invoicedAt
           totalAmount
           commissionAmount
+          sellerCommissionAmount
           status
           seller {
             id
@@ -51,6 +52,7 @@ export const SALES_REPORT_STATS_QUERY = gql`
       totalAmount
       avgTicket
       commissionAmount
+      sellerCommissionAmount
     }
   }
 `;
@@ -73,6 +75,7 @@ export const INVOICED_BY_FACTORY_QUERY = gql`
       total
       orderCount
       commissionAmount
+      sellerCommissionAmount
     }
   }
 `;
@@ -84,6 +87,7 @@ export const INVOICED_BY_MONTH_QUERY = gql`
       total
       orderCount
       commissionAmount
+      sellerCommissionAmount
     }
   }
 `;

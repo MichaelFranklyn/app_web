@@ -13,8 +13,6 @@ import { clientDisplayName } from "@/utils/client";
 import { formatDate } from "@/utils/format/date";
 import {
   SUPPORT_CATEGORY_LABEL,
-  SUPPORT_PRIORITY_COLOR,
-  SUPPORT_PRIORITY_LABEL,
   SUPPORT_STATUS_COLOR,
   SUPPORT_STATUS_HINT,
   SUPPORT_STATUS_LABEL,
@@ -24,6 +22,8 @@ import {
 import { Headset } from "lucide-react";
 
 import { SUPPORT_COLUMN_HELP } from "../../help";
+
+import { SupportPriorityBadge } from "../SupportPriorityBadge";
 
 interface Props {
   cases: SupportCase[];
@@ -57,7 +57,6 @@ export function SupportTable({
   return (
     <Table.Root sort={sort} data-tour="support-table">
       <Table.CardHead>
-        <Table.CardHead.Title>Reclamações</Table.CardHead.Title>
         <Table.CardHead.Actions>
           <InputSearch
             size="sm"
@@ -67,6 +66,8 @@ export function SupportTable({
             onChange={(e) => setFilter("search", e.target.value)}
           />
           <Filters
+            resultCount={totalItems}
+            resultLoading={loading}
             fields={filterFields}
             values={inputValues}
             onChange={setFilters}
@@ -74,7 +75,8 @@ export function SupportTable({
         </Table.CardHead.Actions>
       </Table.CardHead>
 
-      <Table.Table>
+      {/* Abaixo do desktop cada linha vira cartão, em vez de a tabela rolar de lado. */}
+      <Table.Table cards>
         <Table.Header>
           <Table.Row>
             <Table.Head sortKey="title" title={SUPPORT_COLUMN_HELP.title}>
@@ -117,7 +119,7 @@ export function SupportTable({
           ) : (
             cases.map((item) => (
               <Table.Row key={item.id} href={`/support/${item.id}`}>
-                <Table.Cell>
+                <Table.Cell card="title">
                   <div className="flex flex-col">
                     <Table.CellText variant="strong">
                       {item.title}
@@ -127,8 +129,8 @@ export function SupportTable({
                     </Table.CellText>
                   </div>
                 </Table.Cell>
-                <Table.Cell>
-                  <div className="flex flex-col">
+                <Table.Cell label="Cliente">
+                  <div className="max-desktop:inline-flex max-desktop:flex-row max-desktop:flex-wrap max-desktop:gap-x-6 flex flex-col">
                     <Table.CellText variant="strong">
                       {clientDisplayName(item.client)}
                     </Table.CellText>
@@ -137,12 +139,16 @@ export function SupportTable({
                     </Table.CellText>
                   </div>
                 </Table.Cell>
-                <Table.Cell>
+                <Table.Cell label="Fábrica">
                   <Table.CellText variant="dim">
                     {item.factory ? factoryName(item.factory) : "—"}
                   </Table.CellText>
                 </Table.Cell>
-                <Table.Cell>
+                {/* Situação e urgência fecham o cartão, juntas e à esquerda
+                    (14/11/2026): no topo disputavam espaço com o assunto, e
+                    em duas células a urgência ia para a direita com o rótulo
+                    "Urgência:" — a cor da tarja já diz o que ela é. */}
+                <Table.Cell card="aside">
                   <Badge.Root
                     color={SUPPORT_STATUS_COLOR[item.status]}
                     appearance="tinted"
@@ -150,20 +156,16 @@ export function SupportTable({
                   >
                     <Badge.Text>{SUPPORT_STATUS_LABEL[item.status]}</Badge.Text>
                   </Badge.Root>
+                  <SupportPriorityBadge
+                    priority={item.priority}
+                    className="desktop:hidden"
+                  />
                 </Table.Cell>
-                <Table.Cell>
-                  <Badge.Root
-                    color={SUPPORT_PRIORITY_COLOR[item.priority]}
-                    appearance="tinted"
-                    size="sm"
-                  >
-                    <Badge.Text>
-                      {SUPPORT_PRIORITY_LABEL[item.priority]}
-                    </Badge.Text>
-                  </Badge.Root>
+                <Table.Cell card="hidden">
+                  <SupportPriorityBadge priority={item.priority} />
                 </Table.Cell>
-                <Table.Cell>
-                  <div className="flex flex-col">
+                <Table.Cell label="Esperando">
+                  <div className="max-desktop:inline-flex max-desktop:flex-row max-desktop:flex-wrap max-desktop:gap-x-6 flex flex-col">
                     <Table.CellText variant="dim">
                       {supportAgeLabel(item.ageDays, item.isOpen)}
                     </Table.CellText>
@@ -172,8 +174,8 @@ export function SupportTable({
                     </Table.CellText>
                   </div>
                 </Table.Cell>
-                <Table.Cell>
-                  <div className="flex flex-col">
+                <Table.Cell label="Último andamento">
+                  <div className="max-desktop:inline-flex max-desktop:flex-row max-desktop:flex-wrap max-desktop:gap-x-6 flex flex-col">
                     {item.lastUpdate ? (
                       <>
                         <Table.CellText variant="dim">

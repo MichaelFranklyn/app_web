@@ -8,7 +8,7 @@ export const itemStyle = cva("flex items-center", {
       // (às vezes com um botão junto) do outro. Em 320px, "Comissão" mais
       // "Aplicar aos pedidos faturados" não cabem lado a lado, e o card, que é
       // overflow-hidden, cortava o botão. Quebrando, o valor desce inteiro.
-      stat: "flex-wrap justify-between gap-x-12 text-[13px]",
+      stat: "flex-wrap justify-between gap-x-12 text-body-sm",
     },
     size: {
       default: "py-[10px]",

@@ -10,7 +10,7 @@ export function DefaultedPackView({
 }) {
   return (
     <div className="flex flex-col gap-8">
-      <Title variant="body-sm" weight="medium" color="amber" className="pt-4">
+      <Title variant="body-sm" weight="medium" color="warning" className="pt-4">
         Importados com múltiplo 1 — revise ({items.length})
       </Title>
       <Title variant="caption" color="muted">
@@ -24,12 +24,7 @@ export function DefaultedPackView({
       >
         {items.map((it, i) => (
           <Title key={`${it.sku}-${i}`} variant="caption">
-            <Title
-              variant="caption"
-              color="amber"
-              weight="medium"
-              className="inline"
-            >
+            <Title variant="caption" weight="medium" className="inline">
               {it.sku}
             </Title>
             {it.name ? ` ${it.name}` : ""}

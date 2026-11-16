@@ -20,11 +20,17 @@ interface SkeletonProps extends React.HTMLAttributes<HTMLDivElement> {
   shape?: SkeletonShape;
 }
 
+/**
+ * QUANDO USAR: carregamento de CONTEÚDO cuja forma já se conhece (card, lista,
+ * KPI, texto). Ocupa o lugar do que vai chegar, então a tela não pula.
+ * Linha de tabela → `Table.Skeleton`. Ação em andamento (salvar, enviar,
+ * gerar PDF) → `Loading.Spinner`. Regras: PATTERNS/ds-usage-rules.md.
+ */
 export const Skeleton = React.forwardRef<HTMLDivElement, SkeletonProps>(
   ({ shape = "sm", className, ...props }, ref) => (
     <div
       ref={ref}
-      className={cn("animate-pulse bg-(--bg3)", shapeClasses[shape], className)}
+      className={cn("skeleton-shimmer", shapeClasses[shape], className)}
       {...props}
     />
   )

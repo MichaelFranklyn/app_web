@@ -20,6 +20,7 @@ export const PLATFORM_TENANT_QUERY = gql`
         trialEndsAt
         maxUsers
         maxSellers
+        extraUsers
         createdAt
         usersCount
         sellersCount
@@ -150,6 +151,7 @@ export const UPDATE_TENANT_PLAN_MUTATION = gql`
         trialEndsAt
         maxUsers
         maxSellers
+        extraUsers
       }
     }
   }

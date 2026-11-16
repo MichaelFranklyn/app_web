@@ -26,12 +26,24 @@ import { FLOW_ROUTES } from "./routes";
 const ROOT = resolve(process.cwd(), "src");
 const DEFINITIONS = join(ROOT, "services/flowTour/flows/definitions");
 
-/** Grupos de rota do App Router em que uma página de tour pode morar. */
-const ROUTE_GROUPS = [
-  "app/(inside)",
-  "app/(inside)/(operations)",
-  "app/(inside)/(config)",
-];
+/** Pastas `(grupo)` não entram na URL — e podem aparecer em QUALQUER nível
+ * (ex.: `settings/catalog/(index)/page.tsx` serve `/settings/catalog`). */
+function routeGroupsIn(dir: string): string[] {
+  if (!existsSync(dir)) return [];
+  return readdirSync(dir, { withFileTypes: true })
+    .filter((entry) => entry.isDirectory() && /^\(.+\)$/.test(entry.name))
+    .map((entry) => join(dir, entry.name));
+}
+
+function hasPage(dir: string, segments: string[]): boolean {
+  const viaGroups = routeGroupsIn(dir).some((group) =>
+    hasPage(group, segments)
+  );
+  if (viaGroups) return true;
+  if (segments.length === 0) return existsSync(join(dir, "page.tsx"));
+  const [head, ...rest] = segments;
+  return existsSync(join(dir, head)) && hasPage(join(dir, head), rest);
+}
 
 function sourceFiles(dir: string): string[] {
   return readdirSync(dir, { withFileTypes: true }).flatMap((entry) => {
@@ -103,10 +115,8 @@ describe("tutoriais guiados", () => {
 
   it("aponta só para rotas que existem", () => {
     const semPágina = Object.entries(FLOW_ROUTES).filter(([, route]) => {
-      const segments = route.split("/").filter(Boolean).join("/");
-      return !ROUTE_GROUPS.some((group) =>
-        existsSync(join(ROOT, group, segments, "page.tsx"))
-      );
+      const segments = route.split("/").filter(Boolean);
+      return !hasPage(join(ROOT, "app/(inside)"), segments);
     });
 
     expect(semPágina.map(([name, route]) => `${name} → ${route}`)).toEqual([]);

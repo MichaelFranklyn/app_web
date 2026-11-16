@@ -1,9 +1,8 @@
 "use client";
 
-import { Button } from "@/components/Button";
+import type { CatalogModalControl } from "../../../interface";
 import { ConfirmModal } from "@/components/ConfirmModal";
 import { useMutation } from "@apollo/client/react";
-import { Trash2 } from "lucide-react";
 import { DELETE_PRODUCT_UNIT_MUTATION } from "../../../gql";
 import { DeleteProductUnitResponse, DeleteUnitModalProps } from "./interface";
 
@@ -14,24 +13,17 @@ export function DeleteUnitModal({
   onCommit,
   onRollback,
   onDone,
-}: DeleteUnitModalProps) {
+  open,
+  onOpenChange,
+}: DeleteUnitModalProps & CatalogModalControl) {
   const [deleteUnit] = useMutation<DeleteProductUnitResponse>(
     DELETE_PRODUCT_UNIT_MUTATION
   );
 
   return (
     <ConfirmModal
-      trigger={
-        <Button.Root
-          appearance="ghost"
-          color="red"
-          size="sm"
-          isIconOnly
-          label="Remover unidade"
-        >
-          <Button.Icon icon={Trash2} />
-        </Button.Root>
-      }
+      open={open}
+      onOpenChange={onOpenChange}
       title="Remover unidade"
       description={`Tem certeza que deseja remover a unidade "${unitLabel}"?`}
       confirmLabel="Remover"

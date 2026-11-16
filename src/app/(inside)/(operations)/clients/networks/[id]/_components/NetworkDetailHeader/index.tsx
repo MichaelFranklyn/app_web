@@ -2,7 +2,8 @@
 
 import { Grid } from "@/components/Grid";
 import { PanelHeader } from "@/components/PanelHeader";
-import { StatCard } from "@/components/StatCard";
+import { PAGE_HEADING } from "@/utils/modules";
+import { Card } from "@/components/Card";
 import { Title } from "@/components/Title";
 import { formatDate } from "@/utils/format/date";
 import { formatMoney } from "@/utils/format/masks";
@@ -26,10 +27,12 @@ export function NetworkDetailHeader({ network, loading }: Props) {
       <PanelHeader.Root>
         <PanelHeader.Top>
           <PanelHeader.Left>
-            <PanelHeader.Eyebrow>Rede de clientes</PanelHeader.Eyebrow>
-            <PanelHeader.Title>
+            <PanelHeader.Eyebrow color="green">
+              Rede de clientes
+            </PanelHeader.Eyebrow>
+            <PanelHeader.Heading {...PAGE_HEADING.networks}>
               {network?.name ?? (loading ? "Carregando…" : "Rede")}
-            </PanelHeader.Title>
+            </PanelHeader.Heading>
             {network?.notes && (
               <PanelHeader.Description>{network.notes}</PanelHeader.Description>
             )}
@@ -37,19 +40,23 @@ export function NetworkDetailHeader({ network, loading }: Props) {
         </PanelHeader.Top>
       </PanelHeader.Root>
 
-      <Grid.Root cols={{ base: 1, tablet: 3 }} gap={16}>
-        <StatCard label="Lojas na carteira" value={network?.storeCount ?? 0} />
-        <StatCard
-          label="Faturamento da rede"
-          value={formatMoney(network?.invoicedAmount ?? 0)}
-          tone="amber"
-        />
-        <StatCard
-          label="Último pedido"
-          value={
-            network?.lastOrderDate ? formatDate(network.lastOrderDate) : "—"
-          }
-        />
+      <Grid.Root cols={{ base: 2, tablet: 3 }} gap={16}>
+        <Card.Kpi>
+          <Card.Kpi.Label>Lojas na carteira</Card.Kpi.Label>
+          <Card.Kpi.Value>{network?.storeCount ?? 0}</Card.Kpi.Value>
+        </Card.Kpi>
+        <Card.Kpi>
+          <Card.Kpi.Label>Faturamento da rede</Card.Kpi.Label>
+          <Card.Kpi.Value>
+            {formatMoney(network?.invoicedAmount ?? 0)}
+          </Card.Kpi.Value>
+        </Card.Kpi>
+        <Card.Kpi>
+          <Card.Kpi.Label>Último pedido</Card.Kpi.Label>
+          <Card.Kpi.Value>
+            {network?.lastOrderDate ? formatDate(network.lastOrderDate) : "—"}
+          </Card.Kpi.Value>
+        </Card.Kpi>
       </Grid.Root>
 
       {network && network.storeCount === 0 && (

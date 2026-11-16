@@ -3,7 +3,7 @@
 import { Alert } from "@/components/Alert";
 import { Grid } from "@/components/Grid";
 import { Progress } from "@/components/Progress";
-import { StatCard } from "@/components/StatCard";
+import { Card } from "@/components/Card";
 import { Stepper } from "@/components/Stepper";
 import { Title } from "@/components/Title";
 import { factoryName } from "@/utils/company";
@@ -31,7 +31,10 @@ export function StepReview({
         <Title variant="body-sm" color="muted">
           Lendo os pedidos… parte {progress.done} de {progress.total}.
         </Title>
-        <Progress value={(progress.done / Math.max(progress.total, 1)) * 100} />
+        <Progress
+          value={(progress.done / Math.max(progress.total, 1)) * 100}
+          label="Progresso da importação"
+        />
       </div>
     );
   }
@@ -64,17 +67,24 @@ export function StepReview({
         </Alert.Root>
       )}
       <Grid.Root cols={{ base: 2, desktop: 4 }} gap={12}>
-        <StatCard
-          label={done ? "Pedidos importados" : "Pedidos que entram"}
-          value={result.ordersCreated}
-          tone="green"
-        />
-        <StatCard label="Itens" value={result.itemsImported} />
-        <StatCard
-          label="Já importados antes"
-          value={result.ordersAlreadyImported}
-        />
-        <StatCard label="Vínculos novos" value={result.linksCreated} />
+        <Card.Kpi>
+          <Card.Kpi.Label>
+            {done ? "Pedidos importados" : "Pedidos que entram"}
+          </Card.Kpi.Label>
+          <Card.Kpi.Value>{result.ordersCreated}</Card.Kpi.Value>
+        </Card.Kpi>
+        <Card.Kpi>
+          <Card.Kpi.Label>Itens</Card.Kpi.Label>
+          <Card.Kpi.Value>{result.itemsImported}</Card.Kpi.Value>
+        </Card.Kpi>
+        <Card.Kpi>
+          <Card.Kpi.Label>Já importados antes</Card.Kpi.Label>
+          <Card.Kpi.Value>{result.ordersAlreadyImported}</Card.Kpi.Value>
+        </Card.Kpi>
+        <Card.Kpi>
+          <Card.Kpi.Label>Vínculos novos</Card.Kpi.Label>
+          <Card.Kpi.Value>{result.linksCreated}</Card.Kpi.Value>
+        </Card.Kpi>
       </Grid.Root>
       <ReviewList
         title={`${result.missingClients.length} cliente(s) fora da carteira`}

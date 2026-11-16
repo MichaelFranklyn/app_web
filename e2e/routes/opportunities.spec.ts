@@ -55,10 +55,10 @@ test("oportunidades: o cartão traz o número, o motivo e quem são", async ({
 }) => {
   await mockGraphql(page, { MyOpportunities: () => overview([opportunity()]) });
 
-  await page.goto("/opportunities");
+  await page.goto("/priorities/opportunities");
 
   await expect(
-    page.getByRole("heading", { name: "Oportunidades", level: 1 })
+    page.getByRole("heading", { name: "Prioridades", level: 1 })
   ).toBeVisible();
   await expect(
     page.getByText("Onde vale concentrar suas próximas ações comerciais.", {
@@ -92,7 +92,7 @@ test("oportunidades: a lista abre na própria página, paginada no servidor", as
       ),
   });
 
-  await page.goto("/opportunities");
+  await page.goto("/priorities/opportunities");
   await page.getByRole("button", { name: "Ver clientes (23)" }).click();
 
   // Na página, não num modal: daqui se abre o modal de agendar.
@@ -121,7 +121,7 @@ test("oportunidades: o cliente avisa a ligação já marcada", async ({
       casesPage("CLIENT_OVERDUE", 1, [sample({ nextCallDate: "2026-10-14" })]),
   });
 
-  await page.goto("/opportunities?open=CLIENT_OVERDUE");
+  await page.goto("/priorities/opportunities?open=CLIENT_OVERDUE");
 
   await expect(page.getByText("Ligação marcada para 14/10/2026")).toBeVisible();
 });
@@ -146,7 +146,7 @@ test("oportunidades: marcar a ligação sai com o cliente já escolhido", async 
     }),
   });
 
-  await page.goto("/opportunities?open=CLIENT_OVERDUE");
+  await page.goto("/priorities/opportunities?open=CLIENT_OVERDUE");
   await page.getByRole("button", { name: "Marcar ligação" }).click();
 
   const dialog = page.getByRole("dialog");
@@ -213,7 +213,7 @@ test("oportunidades: prioritário travado explica o motivo em vez de acusar a ro
       ]),
   });
 
-  await page.goto("/opportunities");
+  await page.goto("/priorities/opportunities");
 
   await expect(page.getByText("clientes explicados")).toBeVisible();
   await expect(page.getByText(/de propósito/i)).toBeVisible();
@@ -229,7 +229,7 @@ test("oportunidades: sem oportunidade, a tela aponta para Pendências", async ({
 }) => {
   await mockGraphql(page, { MyOpportunities: () => overview([]) });
 
-  await page.goto("/opportunities");
+  await page.goto("/priorities/opportunities");
 
   await expect(page.getByText("Nenhuma oportunidade agora")).toBeVisible();
 });
@@ -244,7 +244,9 @@ test("oportunidades: o link antigo /insights redireciona com a query", async ({
 
   await page.goto("/insights?open=CLIENT_OVERDUE");
 
-  await expect(page).toHaveURL(/\/opportunities\?open=CLIENT_OVERDUE$/);
+  await expect(page).toHaveURL(
+    /\/priorities\/opportunities\?open=CLIENT_OVERDUE$/
+  );
   await expect(
     page.getByRole("button", { name: "Marcar ligação" })
   ).toBeVisible();

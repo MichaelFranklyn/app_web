@@ -33,7 +33,6 @@ export function RecentOrdersTable({ orders }: Props) {
             color="amber"
             appearance="solid"
             size="sm"
-            noUppercase
             disabled={isPending}
             onClick={() => navigateTo("/orders")}
           >
@@ -55,7 +54,7 @@ export function RecentOrdersTable({ orders }: Props) {
           {orders.length === 0 ? (
             <Table.Row>
               <Table.Cell colSpan={4}>
-                <EmptyState.Root>
+                <EmptyState.Root flat>
                   <EmptyState.Icon>
                     <Receipt size={32} />
                   </EmptyState.Icon>

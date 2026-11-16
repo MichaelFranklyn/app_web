@@ -13,13 +13,12 @@ import { formatMoney } from "@/utils/format/masks";
 import { CalendarClock } from "lucide-react";
 import { useMemo } from "react";
 import { AddPaymentTermModal } from "./AddPaymentTermModal";
-import { EditPaymentTermModal } from "./EditPaymentTermModal";
+import { PaymentTermRowActions } from "./PaymentTermRowActions";
 import {
   FACTORY_PAYMENT_TERMS_QUERY,
   FactoryPaymentTermsData,
   PaymentTermNode,
 } from "./gql";
-import { RemovePaymentTermModal } from "./RemovePaymentTermModal";
 import { formatInstallments, installmentsCountLabel } from "./utils";
 
 interface Props {
@@ -74,7 +73,7 @@ export function PaymentTermsTab({ companyFactoryId }: Props) {
             label="O que é um prazo de pagamento?"
             content={
               <div className="flex flex-col gap-2">
-                <Title variant="label" color="amber">
+                <Title variant="label" weight="semibold">
                   Prazo de pagamento
                 </Title>
                 <Title variant="body-sm">
@@ -95,7 +94,8 @@ export function PaymentTermsTab({ companyFactoryId }: Props) {
         </Table.CardHead.Actions>
       </Table.CardHead>
 
-      <Table.Table>
+      {/* Abaixo do desktop cada linha vira cartão, em vez de a tabela rolar de lado. */}
+      <Table.Table cards>
         <Table.Header>
           <Table.Row>
             <Table.Head title={FACTORY_PAYMENT_TERM_COLUMN_HELP.days}>
@@ -143,19 +143,21 @@ export function PaymentTermsTab({ companyFactoryId }: Props) {
           ) : (
             terms.map((term) => (
               <Table.Row key={term.id}>
-                <Table.Cell>
+                {/* No cartão a tarja do prazo divide a última linha com as
+                    ações, em vez de ficar sozinha no topo. */}
+                <Table.Cell card="aside">
                   <Badge.Root color="subtle" appearance="tinted">
                     <Badge.Text>
                       {formatInstallments(term.installmentsDays)}
                     </Badge.Text>
                   </Badge.Root>
                 </Table.Cell>
-                <Table.Cell>
+                <Table.Cell label="Parcelas">
                   <Table.CellText variant="dim">
                     {installmentsCountLabel(term.installmentsDays)}
                   </Table.CellText>
                 </Table.Cell>
-                <Table.Cell>
+                <Table.Cell label="Valor mínimo">
                   <Table.CellText
                     variant={term.minOrderAmount ? "strong" : "dim"}
                   >
@@ -164,24 +166,24 @@ export function PaymentTermsTab({ companyFactoryId }: Props) {
                       : "Sem mínimo"}
                   </Table.CellText>
                 </Table.Cell>
-                <Table.Cell>
-                  <div className="flex items-center justify-end gap-4">
-                    <EditPaymentTermModal
-                      term={term}
-                      onChanged={handleChanged}
-                      onUpdateOptimistic={optimistic.updateOptimistic}
-                      onCommit={optimistic.commit}
-                      onRollback={optimistic.rollback}
-                    />
-                    <RemovePaymentTermModal
-                      termId={term.id}
-                      termName={term.name}
-                      onRemoved={handleChanged}
-                      onRemoveOptimistic={optimistic.removeOptimistic}
-                      onCommit={optimistic.commit}
-                      onRollback={optimistic.rollback}
-                    />
-                  </div>
+                <Table.Cell card="actions">
+                  <PaymentTermRowActions
+                    edit={{
+                      term,
+                      onChanged: handleChanged,
+                      onUpdateOptimistic: optimistic.updateOptimistic,
+                      onCommit: optimistic.commit,
+                      onRollback: optimistic.rollback,
+                    }}
+                    remove={{
+                      termId: term.id,
+                      termName: term.name,
+                      onRemoved: handleChanged,
+                      onRemoveOptimistic: optimistic.removeOptimistic,
+                      onCommit: optimistic.commit,
+                      onRollback: optimistic.rollback,
+                    }}
+                  />
                 </Table.Cell>
               </Table.Row>
             ))

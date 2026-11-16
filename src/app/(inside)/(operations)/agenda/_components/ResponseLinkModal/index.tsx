@@ -80,7 +80,6 @@ export function ResponseLinkModal({ scope, dateLabel, isEmpty }: Props) {
           appearance="outline"
           color="neutral"
           size="sm"
-          noUppercase
           disabled={isEmpty}
           title={copy.hint}
         >
@@ -132,7 +131,6 @@ export function ResponseLinkModal({ scope, dateLabel, isEmpty }: Props) {
               appearance="solid"
               color="amber"
               size="sm"
-              noUppercase
               loading={isLoading}
               onClick={() => void handleIssue()}
             >

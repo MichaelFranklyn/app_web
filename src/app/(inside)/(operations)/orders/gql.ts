@@ -11,6 +11,7 @@ export const ORDER_STATS_QUERY = gql`
       invoicedOrders
       invoicedAmount
       commissionAmount
+      sellerCommissionAmount
       backorderCount
     }
   }
@@ -102,10 +103,12 @@ export const ORDERS_QUERY = gql`
       edges {
         node {
           id
+          number
           orderDate
           invoicedAt
           totalAmount
           commissionAmount
+          sellerCommissionAmount
           status
           isBackorder
           isDeliveryOverdue

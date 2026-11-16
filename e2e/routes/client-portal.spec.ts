@@ -31,29 +31,32 @@ test.describe("Portal do cliente", () => {
     await expect(page).toHaveURL(new RegExp(`/p/${TOKEN}$`));
 
     await expect(
-      page.getByRole("heading", { name: "Loja do Cliente" })
+      page.getByRole("heading", { level: 1, name: "Resumo" })
     ).toBeVisible();
-    await expect(page.getByText("Empresa Teste")).toBeVisible();
+    // Quem é o cliente e quem o atende ficam na descrição do cabeçalho.
+    await expect(
+      page.getByText(
+        "Loja do Cliente · Salvador - BA · atendido por Empresa Teste"
+      )
+    ).toBeVisible();
 
     await expect(page.getByText("R$ 5.000,00")).toBeVisible();
     await expect(page.getByText("Compras por mês")).toBeVisible();
     // Duas fábricas: a divisão aparece. Com uma só, o bloco some.
     await expect(page.getByText("Compras por fábrica")).toBeVisible();
-    await expect(page.getByText("Fábrica Alfa")).toHaveCount(2);
+    // A lista de pedidos mora em "Pedidos": o resumo não a repete.
+    await expect(page.getByText("Seus pedidos")).toHaveCount(0);
   });
 
-  test("o card do pedido leva aos itens e às parcelas", async ({ page }) => {
-    await page.goto(`/p/${TOKEN}`);
+  test("o detalhe do pedido mostra os itens e as parcelas", async ({
+    page,
+  }) => {
+    await page.goto(`/p/${TOKEN}/pedidos/order-portal-1`);
 
-    // Pelo href, e não pelo texto: "Fábrica Alfa" também aparece no bloco de
-    // divisão por fábrica, que não é link. Clicar no card inteiro é o ponto do
-    // teste — a área de toque é o card, não um "ver detalhes" num canto.
-    await page.locator('a[href$="/pedidos/order-portal-1"]').click();
-
-    await expect(page).toHaveURL(new RegExp(`/pedidos/order-portal-1$`));
     await expect(page.getByText("Torneira Teste")).toBeVisible();
     await expect(page.getByText("Código SKU-1")).toBeVisible();
-    await expect(page.getByText("Condição de pagamento: 30/60")).toBeVisible();
+    await expect(page.getByText("Prazo de pagamento")).toBeVisible();
+    await expect(page.getByText("30/60", { exact: true })).toBeVisible();
 
     await expect(page.getByText("2 parcelas")).toBeVisible();
     await expect(page.getByText("vence 05/09/2026")).toBeVisible();
@@ -65,14 +68,24 @@ test.describe("Portal do cliente", () => {
   }) => {
     await page.goto(`/p/${TOKEN}/estoque`);
 
-    // Ordenado pelo que acaba primeiro: o produto com 5 dias vem antes do que
-    // não tem estimativa.
+    // Uma fábrica por vez, abrindo pela mais urgente: o produto com 5 dias é
+    // da Alfa; o sem estimativa, da Beta, aparece ao trocar a fábrica.
     await expect(page.getByText("Acaba em ~5 dias")).toBeVisible();
-    await expect(page.getByText("Sem estimativa")).toBeVisible();
+    await expect(page.getByText("Sifão Teste")).toBeHidden();
+    await page
+      .getByRole("button", { name: "Fábrica Beta", exact: true })
+      .click();
+    await expect(page.getByText("Sifão Teste")).toBeVisible();
+    await page
+      .getByRole("button", { name: "Fábrica Alfa", exact: true })
+      .click();
 
     await page.locator("#days__prod-1").fill("3");
+    // O botão conta o que vai: "Enviar 1 produto para o meu representante".
     await page
-      .getByRole("button", { name: /enviar para o meu representante/i })
+      .getByRole("button", {
+        name: /enviar 1 produto para o meu representante/i,
+      })
       .click();
 
     await expect(
@@ -102,7 +115,7 @@ test.describe("Portal do cliente", () => {
     await page.getByRole("link", { name: "Meu estoque" }).click();
     await expect(page).toHaveURL(new RegExp("/estoque$"));
 
-    await page.getByRole("link", { name: "Minhas compras" }).click();
+    await page.getByRole("link", { name: "Resumo" }).click();
     await expect(page).toHaveURL(new RegExp(`/p/${TOKEN}$`));
   });
 });

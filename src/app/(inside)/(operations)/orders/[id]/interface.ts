@@ -28,7 +28,10 @@ export interface OrderInstallment {
   id: string;
   sequence: number;
   amount: string;
-  commissionAmount: string;
+  /** Fatia da fábrica; nula para o vendedor (o servidor não entrega). */
+  commissionAmount: string | null;
+  /** Fatia do vendedor do pedido nesta parcela. */
+  sellerCommissionAmount: string;
   dueDate: string | null;
   status: InstallmentStatus;
   paidAt: string | null;
@@ -59,19 +62,31 @@ export interface BackorderRef {
 
 export interface OrderDetail {
   id: string;
+  /** "#128": sequencial por empresa (ver `@/utils/orderNumber`). */
+  number: number;
   orderDate: string;
   totalAmount: string;
   ipiAmount: string;
   /** Imposto embutido agregado (soma dos taxAmount dos itens); exibição, fora da base de comissão. */
   taxAmount: string;
   ipiInOrder: boolean;
-  commissionAmount: string;
+  /** Comissão do vendedor responsável (taxa dele sobre o pedido) — nunca a da fábrica. */
+  sellerCommissionAmount: string;
   status: OrderStatus;
   fileUrl: string | null;
   isFileParsed: boolean;
   notes: string | null;
-  /** O cliente pediu pelo portal (aba "Repor"): orçamento a conferir. */
+  /** O cliente pediu pelo portal ("Repor" ou "Orçamento"): orçamento a conferir. */
   isFromPortal: boolean;
+  /** Desconto que o cliente PEDIU no orçamento do portal (decimal em string). */
+  clientDiscountPercent?: string | null;
+  /** Recado do cliente no orçamento do portal. */
+  clientRequestNote?: string | null;
+  /**
+   * Quando o vendedor avisou o cliente (no portal) que viu o pedido. Nulo =
+   * ainda não avisou — ou o cliente acrescentou produtos depois do aviso.
+   */
+  seenBySellerAt?: string | null;
   /** Histórico trazido de outro sistema: entregue, sem comissão nem boleto. */
   isImported: boolean;
   /** Número do pedido no sistema de origem. */

@@ -54,7 +54,6 @@ export function DepartureCard({
               appearance="outline"
               color="neutral"
               size="sm"
-              noUppercase
               onClick={() => setOpen(true)}
               className="shrink-0"
             >

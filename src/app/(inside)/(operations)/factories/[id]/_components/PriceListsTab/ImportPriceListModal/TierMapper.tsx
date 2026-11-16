@@ -131,7 +131,6 @@ export function TierMapper({ headers, tiers, onChange }: Props) {
           appearance="outline"
           color="neutral"
           size="sm"
-          noUppercase
           onClick={add}
         >
           <Button.Icon icon={Plus} />

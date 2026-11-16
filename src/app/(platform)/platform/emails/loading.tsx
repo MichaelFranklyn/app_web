@@ -5,6 +5,7 @@ import { ListPageSkeleton } from "@/components/ListPageSkeleton";
 export default function Loading() {
   return (
     <ListPageSkeleton
+      page="platformEmails"
       title="Emails"
       description="O que saiu, o que chegou e quem está bloqueado."
       listTitle="Últimos envios"

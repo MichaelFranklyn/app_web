@@ -30,4 +30,10 @@ export const headerActionsStyle = [
   "group-data-[actions-mode=column]/cardhead:[&_[data-input-root]]:w-full",
   "group-data-[actions-mode=column]/cardhead:[&_[data-badge]]:w-full",
   "group-data-[actions-mode=column]/cardhead:[&_[data-badge]]:justify-center",
+  // Esticada, a tag tem a largura da coluna e não pode mais crescer. O texto
+  // dela (Badge.Text é `truncate`) cortava em "VENCIMENTOS CONTAM DO
+  // FATURAME…", e a informação inteira se perdia. Aqui o texto quebra linha.
+  "group-data-[actions-mode=column]/cardhead:[&_[data-badge]]:whitespace-normal",
+  "group-data-[actions-mode=column]/cardhead:[&_[data-badge]]:text-center",
+  "group-data-[actions-mode=column]/cardhead:[&_[data-badge]>span]:whitespace-normal",
 ].join(" ");

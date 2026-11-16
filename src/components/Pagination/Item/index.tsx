@@ -6,6 +6,7 @@ import { itemVariants } from "./style";
 export const Item = React.forwardRef<HTMLButtonElement, PaginationItemProps>(
   ({ className, active, ...props }, ref) => (
     <button
+      type="button"
       ref={ref}
       aria-current={active ? "page" : undefined}
       className={cn(itemVariants({ active }), className)}

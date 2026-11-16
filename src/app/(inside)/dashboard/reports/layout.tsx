@@ -1,6 +1,7 @@
 import { Breadcrumb } from "@/components/Breadcrumb";
 import { PageContent } from "@/components/PageContent";
 import { PanelHeader } from "@/components/PanelHeader";
+import { PAGE_HEADING } from "@/utils/modules";
 import { requireFeaturePage } from "@/services/plan/server";
 import React, { Suspense } from "react";
 
@@ -40,7 +41,9 @@ export default async function ReportsLayout({
         <PanelHeader.Root>
           <PanelHeader.Top>
             <PanelHeader.Left>
-              <PanelHeader.Title>Relatórios</PanelHeader.Title>
+              <PanelHeader.Heading {...PAGE_HEADING.reports}>
+                Relatórios
+              </PanelHeader.Heading>
               <PanelHeader.Description>
                 Os papéis da operação: escolha o período, confira os números e
                 baixe em planilha ou PDF.

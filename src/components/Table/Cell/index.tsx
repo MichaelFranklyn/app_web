@@ -1,6 +1,6 @@
 import { cn } from "@/lib/utils";
 import React from "react";
-import { isLongCellText, tableWrapStyle } from "../utils";
+import { isLongCellText, tableWrapStyle, withEmptyFallback } from "../utils";
 import { TableCellProps } from "./interface";
 import {
   tableCellAlignStyle,
@@ -17,29 +17,36 @@ export const Cell = React.forwardRef<HTMLTableCellElement, TableCellProps>(
       align = "left",
       flex,
       wrap,
+      card,
+      label,
       children,
       ...props
     },
     ref
-  ) => (
-    <td
-      ref={ref}
-      className={cn(
-        tableCellBase,
-        tableCellVariants[variant],
-        tableCellAlignStyle[align],
-        (wrap ?? isLongCellText(children)) && tableWrapStyle,
-        className
-      )}
-      {...props}
-    >
-      {flex ? (
-        <div className={tableCellFlex + " " + className}>{children}</div>
-      ) : (
-        children
-      )}
-    </td>
-  )
+  ) => {
+    const content = withEmptyFallback(children);
+    return (
+      <td
+        ref={ref}
+        data-card={card}
+        data-label={label}
+        className={cn(
+          tableCellBase,
+          tableCellVariants[variant],
+          tableCellAlignStyle[align],
+          (wrap ?? isLongCellText(content)) && tableWrapStyle,
+          className
+        )}
+        {...props}
+      >
+        {flex ? (
+          <div className={tableCellFlex + " " + className}>{content}</div>
+        ) : (
+          content
+        )}
+      </td>
+    );
+  }
 );
 
 Cell.displayName = "Table.Cell";

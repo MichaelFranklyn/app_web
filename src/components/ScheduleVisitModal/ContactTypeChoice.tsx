@@ -32,7 +32,6 @@ export function ContactTypeChoice({ value, onChange }: Props) {
             appearance={value === choice.value ? "solid" : "outline"}
             color={value === choice.value ? "amber" : "neutral"}
             size="md"
-            noUppercase
             fullWidth
             onClick={() => onChange(choice.value)}
           >

@@ -1,12 +1,10 @@
 "use client";
 import { Card } from "@/components/Card";
 
-import { HelpTooltip } from "@/components/HelpTooltip";
 import { Title } from "@/components/Title";
 import { formatMoney } from "@/utils/format/masks";
 import { Building2 } from "lucide-react";
 
-import { OFFICE_SPLIT_HELP } from "../../help";
 import { monthLabel, type OfficeSplit, YearMonth } from "../../utils";
 
 interface Props {
@@ -69,7 +67,7 @@ export function OfficeSplitPanel({ split, month, sellerName }: Props) {
           ·
         </Title>
 
-        <Title variant="body-sm" weight="semibold" color="amber">
+        <Title variant="body-sm" weight="semibold">
           {formatMoney(split.seller)}
         </Title>
         <Title variant="body-sm" color="muted">
@@ -92,11 +90,6 @@ export function OfficeSplitPanel({ split, month, sellerName }: Props) {
             ? "no escritório (o vendedor leva a comissão inteira — defina a taxa dele no vínculo com a fábrica)"
             : `no escritório (${Math.round(split.margin * 100)}%)`}
         </Title>
-
-        <HelpTooltip
-          label="Como a repartição é calculada"
-          content={OFFICE_SPLIT_HELP}
-        />
       </Card.Body>
     </Card.Root>
   );

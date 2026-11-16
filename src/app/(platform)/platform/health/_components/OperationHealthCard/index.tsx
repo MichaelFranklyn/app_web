@@ -52,7 +52,7 @@ export function OperationHealthCard({
           </EmptyState.Root>
         ) : (
           <Table.Root>
-            <Table.Table>
+            <Table.Table cards>
               <Table.Header>
                 <Table.Row>
                   <Table.Head>Operação</Table.Head>
@@ -68,7 +68,7 @@ export function OperationHealthCard({
                   const tone = operationTone(row);
                   return (
                     <Table.Row key={row.operation}>
-                      <Table.Cell className="max-w-[280px]">
+                      <Table.Cell card="title" className="max-w-[280px]">
                         <div className="flex min-w-0 flex-col gap-[2px]">
                           <Title
                             variant="body-sm"
@@ -97,11 +97,15 @@ export function OperationHealthCard({
                         </div>
                       </Table.Cell>
 
-                      <Table.Cell variant="dim" className="whitespace-nowrap">
+                      <Table.Cell
+                        label="Chamadas"
+                        variant="dim"
+                        className="whitespace-nowrap"
+                      >
                         {row.total}
                       </Table.Cell>
 
-                      <Table.Cell className="whitespace-nowrap">
+                      <Table.Cell label="Falhas" className="whitespace-nowrap">
                         {row.errors === 0 ? (
                           <Title variant="body-sm" color="muted">
                             —
@@ -115,11 +119,22 @@ export function OperationHealthCard({
                         )}
                       </Table.Cell>
 
-                      <Table.Cell variant="dim" className="whitespace-nowrap">
+                      <Table.Cell
+                        label="Típica"
+                        variant="dim"
+                        className="whitespace-nowrap"
+                      >
                         {formatMs(row.medianMs)}
                       </Table.Cell>
 
-                      <Table.Cell className="whitespace-nowrap">
+                      {/* p95 é o sinal da linha (a cor diz se demorou): no
+                          cartão ele ocupa o canto do título, que sozinho
+                          deixava a linha inteira vazia à direita. */}
+                      <Table.Cell
+                        card="value"
+                        label="p95"
+                        className="whitespace-nowrap"
+                      >
                         <Title variant="body-sm" color={TONE_COLOR[tone]}>
                           {formatMs(row.p95Ms)}
                         </Title>

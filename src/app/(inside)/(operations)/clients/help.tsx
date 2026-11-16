@@ -78,7 +78,7 @@ export const CLIENT_KPI_HELP: Record<string, ReactNode> = {
 
 export const CLIENT_COLUMN_HELP = {
   client:
-    "Razão social, nome fantasia e CNPJ do cliente. A tarja âmbar “Precisa de atenção” marca cadastro pendente de revisão — passe o mouse nela para ver o motivo. Ordena pela razão social.",
+    "Razão social, nome fantasia e CNPJ do cliente. A tarja laranja “Precisa de atenção” marca cadastro pendente de revisão — passe o mouse nela para ver o motivo. Ordena pela razão social.",
   city: "Cidade e estado do endereço cadastrado. É por ele que o cliente entra (ou não) na rota do dia: endereço que não vira coordenada some do mapa e ganha a tarja de atenção.",
   seller:
     "Vendedor que atende o cliente. O vínculo é por fábrica, então o mesmo cliente pode ter mais de um — o “+N” ao lado mostra os outros. Não ordena: não existe um vendedor por linha para comparar.",

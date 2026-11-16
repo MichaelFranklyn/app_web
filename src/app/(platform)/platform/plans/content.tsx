@@ -5,6 +5,7 @@ import { Grid } from "@/components/Grid";
 import { Loading } from "@/components/Loading";
 import { PageContent } from "@/components/PageContent";
 import { PanelHeader } from "@/components/PanelHeader";
+import { PAGE_HEADING } from "@/utils/modules";
 import { QueryError } from "@/components/QueryError";
 import { Title } from "@/components/Title";
 
@@ -43,7 +44,9 @@ export default function PlansContent() {
       <PanelHeader.Root>
         <PanelHeader.Top>
           <PanelHeader.Left>
-            <PanelHeader.Title>Planos</PanelHeader.Title>
+            <PanelHeader.Heading {...PAGE_HEADING.platformPlans}>
+              Planos
+            </PanelHeader.Heading>
             <PanelHeader.Description>
               O que cada plano entrega. É a mesma matriz que o sistema aplica —
               o que estiver fora daqui, a API recusa. Para trocar o plano de uma

@@ -112,7 +112,6 @@ export function UploadPhotosModal({ companyFactoryId, onChanged }: Props) {
               appearance="ghost"
               color="neutral"
               size="md"
-              noUppercase
               disabled={upload.isLoading}
             >
               <Button.Title>Cancelar</Button.Title>
@@ -123,7 +122,6 @@ export function UploadPhotosModal({ companyFactoryId, onChanged }: Props) {
             appearance="solid"
             color="amber"
             size="md"
-            noUppercase
             loading={upload.isLoading}
             disabled={upload.stats.matched === 0}
             onClick={upload.handleSubmit}

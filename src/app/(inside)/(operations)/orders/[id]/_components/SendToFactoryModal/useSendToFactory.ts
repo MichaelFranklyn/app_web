@@ -20,6 +20,7 @@ import {
   buildOrderMessage,
   buildWhatsAppUrl,
 } from "./utils";
+import { formatOrderNumber } from "@/utils/orderNumber";
 
 /**
  * As duas portas do "Enviar para a fábrica", com o mesmo PDF e o mesmo carimbo.
@@ -80,7 +81,7 @@ export function useSendToFactory(order: OrderDetail, onDone: () => void) {
         );
       }
       const message = buildOrderMessage({
-        orderCode: order.id.slice(0, 8).toUpperCase(),
+        orderCode: formatOrderNumber(order.number),
         clientName: clientName(order.client) || "Cliente",
         clientCity: order.client?.addressCity,
         clientState: order.client?.addressState,

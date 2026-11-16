@@ -4,12 +4,15 @@ import { Button } from "@/components/Button";
 import { ScheduleVisitModal } from "@/components/ScheduleVisitModal";
 import { formatDate } from "@/utils/format/date";
 import { CalendarPlus } from "lucide-react";
-import { useState } from "react";
+import { useControlledOpen } from "@/hooks/useControlledOpen";
 
 import { OrderDetail } from "../../../interface";
 
 interface Props {
   order: OrderDetail;
+  /** Aberto de fora (menu "Mais ações"): sem `open`, desenha o próprio botão. */
+  open?: boolean;
+  onOpenChange?: (open: boolean) => void;
 }
 
 /**
@@ -17,8 +20,15 @@ interface Props {
  * agenda vinculada ao pedido e ao cliente dele — é daqui que a maioria dos
  * retornos de negociação sai.
  */
-export function ScheduleReturnButton({ order }: Props) {
-  const [open, setOpen] = useState(false);
+export function ScheduleReturnButton({
+  order,
+  open: openProp,
+  onOpenChange,
+}: Props) {
+  const { open, setOpen, isControlled } = useControlledOpen(
+    openProp,
+    onOpenChange
+  );
   const client = order.client;
   // Sem cliente não há com quem falar (pedido órfão de cadastro removido).
   if (!client) return null;
@@ -28,17 +38,18 @@ export function ScheduleReturnButton({ order }: Props) {
 
   return (
     <>
-      <Button.Root
-        type="button"
-        appearance="outline"
-        color="neutral"
-        size="sm"
-        noUppercase
-        onClick={() => setOpen(true)}
-      >
-        <Button.Icon icon={CalendarPlus} />
-        <Button.Title>Agendar retorno</Button.Title>
-      </Button.Root>
+      {!isControlled && (
+        <Button.Root
+          type="button"
+          appearance="outline"
+          color="neutral"
+          size="sm"
+          onClick={() => setOpen(true)}
+        >
+          <Button.Icon icon={CalendarPlus} />
+          <Button.Title>Agendar retorno</Button.Title>
+        </Button.Root>
+      )}
       <ScheduleVisitModal
         open={open}
         onOpenChange={setOpen}

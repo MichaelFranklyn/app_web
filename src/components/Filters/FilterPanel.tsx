@@ -72,7 +72,6 @@ export function FilterPanel({
           appearance="ghost"
           color="neutral"
           size="sm"
-          noUppercase
           disabled={!hasActiveFilters}
           onClick={onClear}
         >
@@ -83,7 +82,6 @@ export function FilterPanel({
           appearance="outline"
           color="neutral"
           size="sm"
-          noUppercase
           onClick={onClose}
         >
           <Button.Title>Fechar</Button.Title>

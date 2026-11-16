@@ -70,7 +70,9 @@ export function UsersTable({
         </Table.CardHead.Actions>
       </Table.CardHead>
 
-      <Table.Table>
+      {/* Abaixo do desktop cada pessoa vira um cartão: no celular as três
+          colunas ainda passavam da tela e rolavam de lado. */}
+      <Table.Table cards>
         <Table.Header>
           <Table.Row>
             {/* Uma coluna só para a identidade (a tabela nunca rola), então
@@ -94,14 +96,15 @@ export function UsersTable({
             >
               Situação
             </Table.Head>
+            <Table.Head className="text-right">Ações</Table.Head>
           </Table.Row>
         </Table.Header>
         <Table.Body>
           {loading && items.length === 0 ? (
-            <Table.Skeleton columns={3} rows={5} />
+            <Table.Skeleton columns={4} rows={5} />
           ) : isEmpty ? (
             <Table.Row>
-              <Table.Cell colSpan={3}>
+              <Table.Cell colSpan={4}>
                 <EmptyState.Root>
                   <EmptyState.Icon>
                     <Users size={32} />
@@ -127,7 +130,7 @@ export function UsersTable({
                   className="group"
                   href={`/settings/users/${node.id}`}
                 >
-                  <Table.Cell flex>
+                  <Table.Cell card="title" flex>
                     <Avatar
                       size="md"
                       color={ROLE_COLOR[role] ?? "neutral"}
@@ -151,11 +154,17 @@ export function UsersTable({
                     </div>
                   </Table.Cell>
 
-                  <Table.Cell variant="dim" className="whitespace-nowrap">
+                  <Table.Cell
+                    label="Desde"
+                    variant="dim"
+                    className="whitespace-nowrap"
+                  >
                     {formatDateDMY(node.createdAt)}
                   </Table.Cell>
 
-                  <Table.Cell flex className="justify-end">
+                  {/* No cartão, tarjas e ações fecham a última linha:
+                      tarjas à esquerda (`aside`), "⋯" à direita (14/11/2026). */}
+                  <Table.Cell card="aside" flex className="desktop:justify-end">
                     <Badge.Root
                       color={status.color}
                       appearance="tinted"
@@ -182,7 +191,9 @@ export function UsersTable({
                         <Badge.Text>Vende em campo</Badge.Text>
                       </Badge.Root>
                     )}
+                  </Table.Cell>
 
+                  <Table.Cell card="actions">
                     <UserRowActions
                       user={node}
                       onUpdateOptimistic={onUpdateOptimistic}

@@ -31,13 +31,20 @@ export function usePlanWeek() {
   const pathname = usePathname();
   const searchParams = useSearchParams();
 
-  const [canSelectSeller, setCanSelectSeller] = useState(false);
+  // Null = o cookie ainda não foi lido (só no effect, no cliente). Enquanto
+  // isso não se busca nada: tratado como "não gestor", o primeiro render
+  // disparava as queries com sellerId nulo e o gestor via o toast de erro
+  // ("Escolha o vendedor da agenda.") antes do redirect para ?sellerId=.
+  const [role, setRole] = useState<"manager" | "seller" | null>(null);
+  const canSelectSeller = role === "manager";
   // O perfil de vendedor de quem está logado: é a agenda do vendedor quando a
   // URL não diz de quem (o "Marcar visita" precisa saber a carteira).
   const [ownSellerId, setOwnSellerId] = useState<string | null>(null);
   useEffect(() => {
     const userData = getCookie<UserData>("userData");
-    setCanSelectSeller(MANAGER_ROLES.includes(userData?.role ?? ""));
+    setRole(
+      MANAGER_ROLES.includes(userData?.role ?? "") ? "manager" : "seller"
+    );
     setOwnSellerId(userData?.sellerId ?? null);
   }, []);
 
@@ -71,7 +78,7 @@ export function usePlanWeek() {
     }
   }, [canSelectSeller, sellerId, sellers, setParam]);
 
-  const skip = canSelectSeller && !sellerId;
+  const skip = role === null || (canSelectSeller && !sellerId);
   const { data, loading, error, refetch } = useQuery<PriorityClientsData>(
     PRIORITY_CLIENTS_QUERY,
     {
@@ -111,6 +118,8 @@ export function usePlanWeek() {
     shownGroups: shown.groups,
     city: shown.city,
     setCity,
+    /** Gestor ainda sem vendedor na URL (o redirect está a caminho): nada a buscar. */
+    awaitingSeller: skip,
     loading: skip || (loading && !result),
     error,
     refetch,

@@ -46,6 +46,7 @@ export const CLIENT_ORDERS_QUERY = gql`
       edges {
         node {
           id
+          number
           orderDate
           totalAmount
           status

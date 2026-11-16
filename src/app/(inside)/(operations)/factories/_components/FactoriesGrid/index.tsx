@@ -1,5 +1,6 @@
 "use client";
 
+import { DocumentNumber } from "@/components/DocumentNumber";
 import { Avatar } from "@/components/Avatar";
 import { Badge } from "@/components/Badges";
 import { Button } from "@/components/Button";
@@ -12,7 +13,6 @@ import { Title } from "@/components/Title";
 import { useNavigation } from "@/hooks/useNavigation";
 import { useUserData } from "@/hooks/useUserData";
 import { factoryName } from "@/utils/company";
-import { maskCNPJ } from "@/utils/format/masks";
 import { mediaUrl } from "@/utils/media";
 import { ArrowRight, Factory } from "lucide-react";
 import { useEffect, useState } from "react";
@@ -101,7 +101,10 @@ export function FactoriesGrid({
 
   return (
     <div className="flex flex-col gap-16" data-tour="factories-grid">
-      <Grid.Root cols={{ base: 1, tablet: 2, desktop: 3 }} gap={12}>
+      <Grid.Root
+        cols={{ base: 1, tablet: 2, desktop: 2, "desktop-xl": 3 }}
+        gap={12}
+      >
         {visibleItems.map((cf) => {
           const name = factoryName(cf.factory);
           const city = [cf.factory.addressCity, cf.factory.addressState]
@@ -140,7 +143,7 @@ export function FactoriesGrid({
                           color="muted"
                           className="mt-[2px]"
                         >
-                          {maskCNPJ(cf.factory.cnpj)}
+                          <DocumentNumber value={cf.factory.cnpj} />
                         </Title>
                         {city && (
                           <Title variant="body-sm" color="muted">
@@ -172,7 +175,7 @@ export function FactoriesGrid({
                       a mesma coisa. */}
                   <Card.Item variant="stat">
                     <StatLabel label={isSeller ? "Sua comissão" : "Comissão"} />
-                    <Card.Item.Value color="amber">
+                    <Card.Item.Value>
                       {commission.rate != null
                         ? formatCommissionRate(commission.rate)
                         : "—"}
@@ -203,7 +206,6 @@ export function FactoriesGrid({
                       color="neutral"
                       size="sm"
                       className="mt-12 w-full justify-center"
-                      noUppercase
                       disabled={isPending}
                       loading={pendingId === cf.id}
                       onClick={() => handleNavigate(cf.id)}

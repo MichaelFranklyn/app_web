@@ -59,7 +59,6 @@ export function HygieneActions({
             appearance="outline"
             color="neutral"
             size="sm"
-            noUppercase
             loading={isBusy}
           >
             <Button.Icon icon={Store} />

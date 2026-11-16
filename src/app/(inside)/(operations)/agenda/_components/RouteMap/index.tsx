@@ -5,12 +5,16 @@ import { MapFrame } from "@/components/MapFrame";
 import { Badge } from "@/components/Badges";
 import { Title } from "@/components/Title";
 import { ExternalLink, MapPin } from "lucide-react";
-import { itemClient } from "../../calendar";
-import { VisitScheduleItem } from "../../interface";
-import { formatDistanceKm, mapsQuery } from "../../utils";
+import { formatDistanceKm } from "../../utils";
 
 interface Props {
-  stops: VisitScheduleItem[];
+  /**
+   * Endereços das paradas, já na ordem do trajeto — inclusive as da pessoa
+   * no outro escritório, quando a rota do dia soma os dois.
+   */
+  points: string[];
+  /** Quantas paradas o dia tem (a que não tem endereço também conta). */
+  stopCount: number;
   distanceKm: string;
   departureAddress?: string | null;
 }
@@ -20,11 +24,12 @@ interface Props {
 // (Credenciais → restrições de aplicativo → sites) aos domínios do app.
 const MAPS_KEY = process.env.NEXT_PUBLIC_GOOGLE_MAPS_API_KEY;
 
-export function RouteMap({ stops, distanceKm, departureAddress }: Props) {
-  // Endereços utilizáveis das paradas, na ordem da rota.
-  const points = stops
-    .map((s) => mapsQuery(itemClient(s)))
-    .filter((q): q is string => Boolean(q));
+export function RouteMap({
+  points,
+  stopCount,
+  distanceKm,
+  departureAddress,
+}: Props) {
   const hasPoints = points.length > 0;
 
   // Origem = ponto de partida (se houver) senão a 1ª parada; destino = última.
@@ -77,7 +82,6 @@ export function RouteMap({ stops, distanceKm, departureAddress }: Props) {
                 external
                 appearance="tinted"
                 size="sm"
-                noUppercase
               >
                 <Button.Icon icon={ExternalLink} />
                 <Button.Title>Abrir rota no Google Maps</Button.Title>
@@ -90,7 +94,8 @@ export function RouteMap({ stops, distanceKm, departureAddress }: Props) {
       <div className="flex flex-wrap items-center justify-between gap-8">
         <Badge.Root color="neutral" appearance="tinted">
           <Badge.Text>
-            {formatDistanceKm(distanceKm)} · {stops.length} paradas
+            {formatDistanceKm(distanceKm)} · {stopCount}{" "}
+            {stopCount === 1 ? "parada" : "paradas"}
           </Badge.Text>
         </Badge.Root>
         {/* Botão sempre disponível quando o mapa embutido está visível. */}
@@ -100,7 +105,6 @@ export function RouteMap({ stops, distanceKm, departureAddress }: Props) {
             external
             appearance="tinted"
             size="sm"
-            noUppercase
           >
             <Button.Icon icon={ExternalLink} />
             <Button.Title>Abrir no Google Maps</Button.Title>

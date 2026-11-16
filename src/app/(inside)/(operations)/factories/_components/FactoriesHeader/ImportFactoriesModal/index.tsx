@@ -118,7 +118,6 @@ export function ImportFactoriesModal() {
               appearance="ghost"
               color="neutral"
               size="md"
-              noUppercase
               disabled={isLoading}
             >
               <Button.Title>{result ? "Fechar" : "Cancelar"}</Button.Title>
@@ -129,7 +128,6 @@ export function ImportFactoriesModal() {
             appearance="solid"
             color="amber"
             size="md"
-            noUppercase
             loading={isLoading}
             disabled={!file}
             onClick={handleImport}

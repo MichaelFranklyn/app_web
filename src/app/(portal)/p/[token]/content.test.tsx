@@ -1,8 +1,8 @@
 import { render, screen } from "@testing-library/react";
-import { describe, expect, it, vi } from "vitest";
+import { beforeAll, describe, expect, it, vi } from "vitest";
 
 import { PortalContent } from "./content";
-import { PortalOrder, PortalPurchaseSummary } from "./interface";
+import { PortalPurchaseSummary } from "./interface";
 
 // O gráfico baixa o echarts sob demanda e tem teste próprio; aqui só atrapalha.
 vi.mock("./_components/PortalPurchaseChart", () => ({
@@ -11,17 +11,15 @@ vi.mock("./_components/PortalPurchaseChart", () => ({
 
 const TOKEN = "token-do-cliente";
 
-const pedido = (overrides: Partial<PortalOrder> = {}): PortalOrder => ({
-  id: "order-1",
-  orderDate: "2026-08-01",
-  factoryName: "Fábrica Alfa",
-  totalAmount: "3000.0000",
-  ipiAmount: "0.0000",
-  status: "DELIVERED",
-  invoicedAt: "2026-08-05",
-  deliveredAt: "2026-08-10",
-  estimatedDeliveryDate: null,
-  ...overrides,
+// O jsdom não tem `matchMedia`; o cabeçalho com ação ("Pedidos") o consulta
+// para empilhar os botões no celular.
+beforeAll(() => {
+  window.matchMedia = vi.fn().mockImplementation((query: string) => ({
+    matches: false,
+    media: query,
+    addEventListener: vi.fn(),
+    removeEventListener: vi.fn(),
+  }));
 });
 
 const resumo: PortalPurchaseSummary = {
@@ -34,103 +32,42 @@ const resumo: PortalPurchaseSummary = {
 
 const renderizar = (props: Partial<Parameters<typeof PortalContent>[0]> = {}) =>
   render(
-    <PortalContent
-      summary={resumo}
-      orders={[pedido()]}
-      totalCount={1}
-      hasNextPage={false}
-      page={1}
-      token={TOKEN}
-      {...props}
-    />
+    <PortalContent profile={null} summary={resumo} token={TOKEN} {...props} />
   );
 
 describe("PortalContent", () => {
-  it("abre com o retrato das compras e a lista de pedidos", () => {
+  it("abre com o retrato das compras, sem repetir a lista de pedidos", () => {
     renderizar();
 
+    expect(
+      screen.getByRole("heading", { level: 1, name: "Resumo" })
+    ).toBeInTheDocument();
     expect(screen.getByText("Total comprado")).toBeInTheDocument();
-    expect(screen.getByText("Seus pedidos")).toBeInTheDocument();
-    expect(screen.getByText("Fábrica Alfa")).toBeInTheDocument();
+    expect(screen.queryByText("Seus pedidos")).not.toBeInTheDocument();
   });
 
-  it("conta os pedidos e convida ao toque quando há o que abrir", () => {
-    renderizar({ totalCount: 8, orders: [pedido()] });
+  it("o cabeçalho leva aos pedidos", () => {
+    renderizar();
 
     expect(
-      screen.getByText("8 pedidos registrados · toque para ver os itens")
+      screen.getByRole("link", { name: "Ver meus pedidos" })
+    ).toHaveAttribute("href", `/p/${TOKEN}/enviados`);
+  });
+
+  it("cliente sem compra nenhuma vê o recado, não números zerados", () => {
+    renderizar({ summary: { ...resumo, orderCount: 0 } });
+
+    expect(screen.queryByText("Total comprado")).not.toBeInTheDocument();
+    expect(
+      screen.getByText("Nenhuma compra por aqui ainda")
     ).toBeInTheDocument();
   });
 
-  it("um pedido só é dito no singular", () => {
-    renderizar({ totalCount: 1 });
-
-    expect(screen.getByText(/^1 pedido registrado/)).toBeInTheDocument();
-  });
-
-  it("o resumo só aparece na primeira página", () => {
-    // Navegando para trás no histórico, o gráfico dos últimos 12 meses
-    // continuaria igual e roubaria a tela dos pedidos que o cliente foi buscar.
-    renderizar({ page: 2 });
-
-    expect(screen.queryByText("Total comprado")).not.toBeInTheDocument();
-    expect(screen.getByText("Seus pedidos")).toBeInTheDocument();
-  });
-
-  it("cliente sem compra nenhuma não vê resumo", () => {
-    renderizar({ summary: null, orders: [], totalCount: 0 });
-
-    expect(screen.queryByText("Total comprado")).not.toBeInTheDocument();
-  });
-
-  it("lista vazia na primeira página fala de quem nunca comprou", () => {
-    renderizar({ orders: [], totalCount: 0, summary: null });
+  it("resumo que não chegou também cai no recado", () => {
+    renderizar({ summary: null });
 
     expect(
-      screen.queryByText(/toque para ver os itens/)
-    ).not.toBeInTheDocument();
-    expect(
-      screen.queryByText("Você chegou ao fim da lista")
-    ).not.toBeInTheDocument();
-  });
-
-  it("lista vazia numa página adiante diz que a lista acabou", () => {
-    // Dizer "nenhum pedido por aqui" a um cliente que tem oito é o que faz ele
-    // ligar para o vendedor achando que sumiu tudo.
-    renderizar({ orders: [], totalCount: 8, page: 3 });
-
-    expect(screen.getByText("Você chegou ao fim da lista")).toBeInTheDocument();
-    expect(
-      screen.getByRole("link", { name: "Voltar para os pedidos recentes" })
-    ).toHaveAttribute("href", `/p/${TOKEN}`);
-  });
-
-  it("com mais páginas, oferece os mais antigos", () => {
-    renderizar({ hasNextPage: true });
-
-    expect(screen.getByRole("link", { name: /Mais antigos/ })).toHaveAttribute(
-      "href",
-      `/p/${TOKEN}?p=2`
-    );
-  });
-
-  it("voltar da segunda para a primeira página cai na URL sem parâmetro", () => {
-    renderizar({ page: 2 });
-
-    expect(screen.getByRole("link", { name: /Mais recentes/ })).toHaveAttribute(
-      "href",
-      `/p/${TOKEN}`
-    );
-  });
-
-  it("página única não desenha navegação nenhuma", () => {
-    renderizar({ page: 1, hasNextPage: false });
-
-    expect(
-      screen.queryByRole("link", { name: /Mais antigos/ })
-    ).not.toBeInTheDocument();
-    expect(
-      screen.queryByRole("link", { name: /Mais recentes/ })
-    ).not.toBeInTheDocument();
+      screen.getByText("Nenhuma compra por aqui ainda")
+    ).toBeInTheDocument();
   });
 });

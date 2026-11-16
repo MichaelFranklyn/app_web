@@ -1,6 +1,6 @@
 # AUTO-GERADO por scripts/pull-schema.mjs — NÃO editar à mão.
 # Snapshot do schema do backend (app_user). Atualize com: npm run schema:pull
-# Fonte: 59 arquivos .graphql merge-ados (mesma regra do Ariadne).
+# Fonte: 60 arquivos .graphql merge-ados (mesma regra do Ariadne).
 
 input BaseListInput {
   filters: [FieldFilterInput!] = null
@@ -331,6 +331,12 @@ type PortalOrderItemType {
   """Sem IPI — o IPI do item vem separado, como na nota."""
   subtotal: Decimal!
   ipiAmount: Decimal!
+  """Alíquota do IPI cobrado no pedido (3.25 = 3,25%). Zero quando a fábrica não cobra IPI à parte."""
+  ipiRate: Decimal!
+  """Imposto embutido no preço da linha (ST e afins), derivado do produto — o mesmo do detalhe de pedido do sistema."""
+  taxAmount: Decimal!
+  """Preço por unidade com o imposto embutido. Sem imposto, é o próprio unitPrice."""
+  unitPriceWithTax: Decimal!
 }
 
 """Uma parcela do pedido faturado. Sem nada de comissão."""
@@ -344,6 +350,8 @@ type PortalInstallmentType {
 
 type PortalOrderDetailType {
   id: UUID!
+  """Número sequencial do pedido no escritório — o mesmo que o representante vê."""
+  number: Int!
   orderDate: Date!
   factoryName: String!
   totalAmount: Decimal!
@@ -354,6 +362,14 @@ type PortalOrderDetailType {
   estimatedDeliveryDate: Date
   """Prazo de pagamento combinado (ex.: "30/60/90"). Nulo se não houver."""
   paymentTermName: String
+  """Imposto embutido do pedido (soma do taxAmount dos itens). Total a pagar = totalAmount + taxAmount + ipiAmount."""
+  taxAmount: Decimal!
+  """FOB (frete por conta do cliente) ou CIF (entrega pela fábrica). Nulo se não informado."""
+  freightType: String
+  """Representante que atende o pedido — destino do email/WhatsApp. Nulos se não houver."""
+  sellerName: String
+  sellerEmail: String
+  sellerPhone: String
   items: [PortalOrderItemType!]!
   """Vazio até o faturamento: é ele que gera as parcelas."""
   installments: [PortalInstallmentType!]!
@@ -429,23 +445,35 @@ type PortalStockItemTypeListResponse {
 """
 Um produto que está acabando, pronto para o cliente pedir.
 
-Sem preço de propósito: o pedido nasce ORÇAMENTO e quem fecha preço, condição
-e frete é o vendedor. O cliente diz o que precisa e quanto.
+O preço é ESTIMADO (o do nível do cliente, com que o orçamento nasce): quem
+fecha preço, condição e frete é o vendedor. Vem junto o que o cliente pagou na
+última compra, para ele comparar.
 """
 type PortalReplenishmentItemType {
   productId: UUID!
   productName: String!
   sku: String
+  factoryId: UUID!
   factoryName: String!
+  """Foto do produto, quando cadastrada (caminho de mídia)."""
+  imageUrl: String
   """Dias até acabar, pela estimativa. Negativo = já acabou."""
   daysRemaining: Int!
   lastPurchaseDate: Date
   """Quantidade que vem preenchida: a da última compra, no múltiplo de venda."""
   suggestedQuantity: Decimal!
-  """De quantas em quantas unidades a fábrica vende. Nulo = venda livre."""
+  """Embalagem mínima em unidades: de quantas em quantas o cliente pede (múltiplo × unidades por embalagem; sem múltiplo, a embalagem fechada). Nulo = venda livre."""
   saleMultiple: Decimal
   """Quanto já está pedido e esperando o vendedor confirmar. Nulo = nada."""
   pendingQuantity: Decimal
+  """Preço estimado por unidade, no nível do cliente. Nulo = sem preço na tabela."""
+  estimatedUnitPrice: Decimal
+  """O preço estimado por unidade já com o imposto do produto (sem o IPI das fábricas que o lançam no pedido). Nulo = sem preço na tabela."""
+  estimatedUnitPriceWithTax: Decimal
+  """O preço estimado é o da promoção relâmpago no ar."""
+  isPromo: Boolean!
+  """Quanto o cliente pagou por unidade na última compra. Nulo = nunca comprou."""
+  lastUnitPrice: Decimal
 }
 
 type PortalReplenishmentType {
@@ -469,6 +497,68 @@ input PortalReplenishmentEntryInput {
 
 input RequestPortalReplenishmentInput {
   items: [PortalReplenishmentEntryInput!]!
+}
+
+"""
+Um produto do catálogo do cliente, para o orçamento livre do portal.
+
+`estimatedUnitPrice` é o preço por unidade no nível do cliente, com que o
+orçamento nasceria — o vendedor ainda confere. Nunca outro nível.
+"""
+type PortalCatalogItemType {
+  productId: UUID!
+  productName: String!
+  sku: String
+  factoryId: UUID!
+  factoryName: String!
+  """Foto do produto, quando cadastrada (caminho de mídia)."""
+  imageUrl: String
+  """Quantidade que vem preenchida: a da última compra, no múltiplo de venda."""
+  suggestedQuantity: Decimal!
+  """Embalagem mínima em unidades: de quantas em quantas o cliente pede (múltiplo × unidades por embalagem; sem múltiplo, a embalagem fechada). Nulo = venda livre."""
+  saleMultiple: Decimal
+  """Quanto já está pedido e esperando o vendedor confirmar. Nulo = nada."""
+  pendingQuantity: Decimal
+  lastPurchaseDate: Date
+  """Preço estimado por unidade, no nível do cliente. Nulo = sem preço na tabela."""
+  estimatedUnitPrice: Decimal
+  """O preço estimado por unidade já com o imposto do produto (sem o IPI das fábricas que o lançam no pedido). Nulo = sem preço na tabela."""
+  estimatedUnitPriceWithTax: Decimal
+  """O preço estimado é o da promoção relâmpago no ar."""
+  isPromo: Boolean!
+  """Quanto o cliente pagou por unidade na última compra. Nulo = nunca comprou."""
+  lastUnitPrice: Decimal
+}
+
+type PortalCatalogType {
+  items: [PortalCatalogItemType!]!
+  total: Int!
+  page: Int!
+  pageSize: Int!
+  """A fábrica do recorte. Nulo = todas."""
+  factoryId: UUID
+  """As fábricas que atendem o cliente — por elas ele escolhe de quem quer o orçamento."""
+  factories: [PortalCatalogFactoryType!]!
+}
+
+type PortalCatalogFactoryType {
+  factoryId: UUID!
+  name: String!
+}
+
+type PortalCatalogTypeDataResponse {
+  status: Boolean!
+  code: Int!
+  message: String!
+  data: PortalCatalogType
+}
+
+input RequestPortalQuoteInput {
+  items: [PortalReplenishmentEntryInput!]!
+  """Desconto PEDIDO pelo cliente, em %. Não altera preço: o vendedor decide."""
+  discountPercent: Decimal
+  """Recado do cliente para o vendedor (até 500 caracteres)."""
+  note: String
 }
 
 input PortalStockEntryInput {
@@ -497,6 +587,115 @@ type PortalOrderTypeConnectionResponse {
   edges: [PortalOrderTypeEdge!]!
   pageInfo: PageInfo!
   totalCount: Int!
+}
+
+"""
+Uma linha da lista "Pedidos" do portal: pedido feito (de qualquer origem) ou
+orçamento que o CLIENTE pediu pelo portal, com o andamento do lado do vendedor.
+
+O orçamento que o vendedor simula no escritório continua fora — só entra o que
+o próprio cliente montou. Sem comissão, margem ou score.
+"""
+type PortalSentOrderType {
+  id: UUID!
+  """O número que o representante e a fábrica usam para achar o pedido."""
+  number: Int!
+  """Quando o cliente mandou (o primeiro envio, se ele mandou em partes)."""
+  createdAt: DateTime!
+  factoryName: String!
+  """DRAFT/SENT = aguardando o vendedor; CONFIRMED em diante = virou pedido; CANCELLED = não foi adiante."""
+  status: OrderStatus!
+  """Estimado enquanto não confirmado: o vendedor ainda confere preço e condição."""
+  totalAmount: Decimal!
+  ipiAmount: Decimal!
+  """Imposto embutido estimado (soma do taxAmount dos itens) — a mesma conta do detalhe. Total = totalAmount + taxAmount + ipiAmount."""
+  taxAmount: Decimal!
+  itemCount: Int!
+  """Quando o vendedor marcou que viu. Nulo = ainda não viu (ou o cliente mandou mais depois)."""
+  seenBySellerAt: DateTime
+  clientDiscountPercent: Decimal
+  clientRequestNote: String
+  """O representante do cliente neste pedido — para ele mandar por email ou WhatsApp."""
+  sellerName: String
+  sellerEmail: String
+  sellerPhone: String
+}
+
+type PortalSentOrderTypeListResponse {
+  status: Boolean!
+  code: Int!
+  message: String!
+  total: Int!
+  page: Int!
+  limit: Int!
+  data: [PortalSentOrderType!]!
+}
+
+"""Filtro da lista "Pedidos" do portal."""
+enum PortalOrderKind {
+  ALL
+  """Confirmado, faturado ou entregue."""
+  ORDER
+  """Orçamento pedido pelo portal que ainda não virou pedido."""
+  QUOTE
+}
+
+"""O placar dos pedidos mandados pelo portal — todos, não só a página aberta."""
+type PortalSentOrdersSummaryType {
+  total: Int!
+  """Rascunho/enviado que o vendedor ainda não marcou como visto."""
+  waiting: Int!
+  """Rascunho/enviado que o vendedor já viu."""
+  seen: Int!
+  """Confirmado, faturado ou entregue."""
+  ordered: Int!
+  cancelled: Int!
+}
+
+type PortalSentOrdersSummaryTypeDataResponse {
+  status: Boolean!
+  code: Int!
+  message: String!
+  data: PortalSentOrdersSummaryType
+}
+
+type PortalSentOrderDetailType {
+  id: UUID!
+  number: Int!
+  """Imposto embutido estimado (soma do taxAmount dos itens)."""
+  taxAmount: Decimal!
+  createdAt: DateTime!
+  factoryName: String!
+  status: OrderStatus!
+  totalAmount: Decimal!
+  ipiAmount: Decimal!
+  itemCount: Int!
+  seenBySellerAt: DateTime
+  clientDiscountPercent: Decimal
+  clientRequestNote: String
+  sellerName: String
+  sellerEmail: String
+  sellerPhone: String
+  items: [PortalOrderItemType!]!
+}
+
+type PortalSentOrderDetailTypeDataResponse {
+  status: Boolean!
+  code: Int!
+  message: String!
+  data: PortalSentOrderDetailType
+}
+
+"""O que o envio gerou: um pedido por vendedor × fábrica."""
+type PortalQuoteRequestType {
+  orderIds: [UUID!]!
+}
+
+type PortalQuoteRequestTypeDataResponse {
+  status: Boolean!
+  code: Int!
+  message: String!
+  data: PortalQuoteRequestType
 }
 
 """
@@ -557,6 +756,24 @@ extend type Query {
   `status=false`) quando o plano do escritório não inclui o pedido pelo portal.
   """
   portalReplenishment: PortalReplenishmentTypeDataResponse!
+  """
+  O catálogo do cliente para o orçamento livre: produtos ativos das fábricas
+  com vínculo ativo e não negativado. Paginado, com busca por nome ou código.
+  `status=false` quando o plano não inclui o pedido pelo portal.
+  """
+  portalCatalog(search: String, page: Int = 1, pageSize: Int = 30, factoryId: UUID): PortalCatalogTypeDataResponse!
+  """
+  A lista "Pedidos" do cliente, do mais novo para o mais antigo: os pedidos
+  feitos (confirmado em diante, qualquer origem) e os orçamentos que ele pediu
+  pelo portal e ainda não viraram pedido. O orçamento confirmado é a mesma
+  order e aparece uma vez só, como pedido. `kind` filtra (padrão: todos);
+  `search` procura no nome da fábrica ou no número do pedido.
+  """
+  portalSentOrders(page: Int = 1, pageSize: Int = 20, kind: PortalOrderKind = ALL, search: String): PortalSentOrderTypeListResponse!
+  """O placar de `portalSentOrders` (todos): quantos aguardam, foram vistos, são pedido feito ou não foram adiante."""
+  portalSentOrdersSummary: PortalSentOrdersSummaryTypeDataResponse!
+  """Um pedido mandado pelo portal, com os itens. Id alheio responde "não encontrado"."""
+  portalSentOrder(id: UUID!): PortalSentOrderDetailTypeDataResponse!
   """Link ativo do cliente, para o escritório. Nulo se não houver nenhum vivo."""
   clientPortalLink(companyClientId: UUID!): ClientPortalLinkTypeDataResponse!
 }
@@ -576,6 +793,20 @@ extend type Mutation {
   orçamento de reposição ainda aberto em vez de abrir outro.
   """
   requestPortalReplenishment(input: RequestPortalReplenishmentInput!): BaseResponse!
+  """
+  O cliente manda um orçamento livre (qualquer produto do catálogo dele), com
+  desconto pedido e recado. Mesmo destino da reposição: o orçamento aberto do
+  portal por vendedor × fábrica. O vendedor recebe aviso no sino e por email.
+  O retorno traz os ids dos pedidos tocados, para a tela seguir até eles.
+  """
+  requestPortalQuote(input: RequestPortalQuoteInput!): PortalQuoteRequestTypeDataResponse!
+  """
+  O cliente confirma que recebeu um pedido faturado. Mesmo efeito do
+  "Confirmar entrega" do sistema (status ENTREGUE + estoque do cliente
+  abastecido). `deliveredAt` padrão: hoje; não aceita data futura nem anterior
+  ao faturamento.
+  """
+  confirmPortalOrderDelivery(id: UUID!, deliveredAt: Date): BaseResponse!
   """Emite um link novo e derruba o anterior. Devolve a URL — única vez em que ela existe."""
   issueClientPortalLink(companyClientId: UUID!): ClientPortalLinkTypeDataResponse!
   """
@@ -1061,6 +1292,9 @@ type CompanyType {
   logoUrl: String
   """Símbolo quadrado da empresa, para o avatar no topo do sistema. Sem ele, usa-se logoUrl."""
   avatarUrl: String
+  """Mostra ao cliente, no portal, o preço ESTIMADO de tabela no nível dele.
+  Desligado por padrão: o preço final continua sendo o que o vendedor confirma."""
+  portalShowPrices: Boolean!
 
   # Governança da plataforma: só o SU altera (via `setTenantStatus` /
   # `updateTenantPlan`), mas a leitura é aberta à própria empresa — são fatos
@@ -1076,6 +1310,8 @@ type CompanyType {
   """Tetos de contratação. Nulo = sem teto (não confundir com zero)."""
   maxUsers: Int
   maxSellers: Int
+  """Usuários comprados além do plano. Somam nos tetos acima."""
+  extraUsers: Int!
 
   createdAt: DateTime!
   updatedAt: DateTime!
@@ -1182,6 +1418,8 @@ input UpdateCompanyInput {
   """Novo símbolo (avatar) em base64, mesmas regras da logo. String vazia remove."""
   avatarBase64: String = null
   avatarFileName: String = null
+  """Liga/desliga o preço estimado no portal do cliente."""
+  portalShowPrices: Boolean = null
 }
 
 """Provisiona uma empresa nova junto do seu primeiro usuário (owner).
@@ -1783,6 +2021,118 @@ extend type Mutation {
   deleteCompanyFactory(id: UUID!): BaseResponse!
 }
 
+"""
+A rotina integrada entre escritórios da MESMA pessoa (decisão de 16/11/2026).
+
+Quem é vendedor em mais de um escritório vê, na agenda e na rota do dia, as
+paradas que tem nos outros, e registra o desfecho delas sem trocar de
+escritório. Pedido e estoque continuam exigindo entrar no escritório da
+fábrica. Nada de preço, comissão ou percentual atravessa: só a rota.
+"""
+type CrossOfficeStopType {
+  "A visita na rotina do outro escritório."
+  id: UUID!
+  dayId: UUID!
+  companyId: UUID!
+  "Como o outro escritório aparece (nome fantasia ou razão social)."
+  officeName: String!
+  date: Date!
+  status: VisitStatus!
+  contactType: VisitContactType!
+  plannedOrder: Int!
+  isManual: Boolean!
+  outcome: VisitOutcome
+  actualVisitAt: DateTime
+  clientId: UUID!
+  clientName: String!
+  city: String
+  state: String
+  neighborhood: String
+  address: String
+  latitude: Float
+  longitude: Float
+  "A fábrica que motivou a parada lá (só o nome)."
+  factoryName: String
+}
+
+type CrossOfficeStopListDataResponse {
+  status: Boolean!
+  code: Int!
+  message: String!
+  data: [CrossOfficeStopType!]
+}
+
+type CrossOfficeStopTypeDataResponse {
+  status: Boolean!
+  code: Int!
+  message: String!
+  data: CrossOfficeStopType
+}
+
+"""
+A rota do dia somando os escritórios da pessoa: uma ida só, saindo do mesmo
+lugar. Só ids, quilômetros e minutos — nada de fábrica, preço ou comissão.
+"""
+type CrossOfficeDayRouteType {
+  "Deslocamento do que falta, ida e volta."
+  distanceKm: Decimal!
+  durationMin: Int!
+  "Paradas presenciais dos dois escritórios (o mesmo cliente conta uma vez)."
+  stopCount: Int!
+  visitDurationMin: Int!
+  "Quando termina a última visita, no formato 17:40."
+  lastEndTime: String
+  departureAddress: String
+  """
+  Ids das paradas na ordem do trajeto (daqui ou de lá): as resolvidas
+  primeiro, depois as pendentes na ordem otimizada.
+  """
+  order: [UUID!]!
+}
+
+type CrossOfficeDayRouteDataResponse {
+  status: Boolean!
+  code: Int!
+  message: String!
+  data: CrossOfficeDayRouteType
+}
+
+"""O desfecho de uma parada de outro escritório — o resto se muda lá."""
+input UpdateCrossOfficeVisitInput {
+  status: VisitStatus = null
+  outcome: VisitOutcome = null
+  outcomeReason: String = null
+  notes: String = null
+  checkinLat: Decimal = null
+  checkinLng: Decimal = null
+  actualVisitAt: DateTime = null
+}
+
+extend type Query {
+  """
+  As paradas da pessoa logada nos OUTROS escritórios em que ela é vendedora,
+  entre as duas datas (no máximo 62 dias). Vazio para quem trabalha num
+  escritório só e na sessão emprestada.
+  """
+  crossOfficeStops(dateFrom: Date!, dateTo: Date!): CrossOfficeStopListDataResponse!
+
+  """
+  A rota do dia da pessoa logada contando as paradas presenciais dos outros
+  escritórios. `data` nulo quando o dia não tem parada presencial lá (a rota
+  daqui já é a rota inteira) e na sessão emprestada.
+  """
+  crossOfficeDayRoute(date: Date!): CrossOfficeDayRouteDataResponse!
+}
+
+extend type Mutation {
+  """
+  Registra o desfecho de uma parada de outro escritório da mesma pessoa.
+  Concluir uma visita presencial conclui também a do mesmo cliente, no mesmo
+  dia, na rotina daqui.
+  """
+  updateCrossOfficeVisit(id: UUID!, input: UpdateCrossOfficeVisitInput!): CrossOfficeStopTypeDataResponse!
+}
+
 type RevenueByMonthPoint {
   month: String!
   total: Decimal!
@@ -1959,7 +2309,10 @@ type InvoicedByMonthPoint {
   month: String!
   total: Decimal!
   orderCount: Int!
-  commissionAmount: Decimal!
+  """Comissão da FÁBRICA (o que ela paga ao escritório). Nula para o vendedor: dividida pelo faturamento, entregaria o percentual da fábrica."""
+  commissionAmount: Decimal
+  """Comissão do vendedor de cada pedido, somada (mesma régua do detalhe do pedido: parcela repassada vale o que saiu do caixa)."""
+  sellerCommissionAmount: Decimal!
 }
 
 """Faturamento de uma fábrica no período de faturamento."""
@@ -1968,7 +2321,10 @@ type InvoicedByFactoryPoint {
   entityName: String!
   total: Decimal!
   orderCount: Int!
-  commissionAmount: Decimal!
+  """Comissão da FÁBRICA (o que ela paga ao escritório). Nula para o vendedor: dividida pelo faturamento, entregaria o percentual da fábrica."""
+  commissionAmount: Decimal
+  """Comissão do vendedor de cada pedido, somada (mesma régua do detalhe do pedido: parcela repassada vale o que saiu do caixa)."""
+  sellerCommissionAmount: Decimal!
 }
 
 """
@@ -2967,7 +3323,10 @@ type OrderInstallmentType {
   orderId: UUID!
   sequence: Int!
   amount: Decimal!
-  commissionAmount: Decimal!
+  """Fatia da comissão da FÁBRICA nesta parcela. Nula para o vendedor: dela se deduz o percentual da fábrica, que ele nunca vê."""
+  commissionAmount: Decimal
+  """Fatia do VENDEDOR do pedido nesta parcela (taxa dele sobre o pedido); já repassada = o valor que saiu do caixa."""
+  sellerCommissionAmount: Decimal!
   dueDate: Date
   status: InstallmentStatus!
   paidAt: Date
@@ -3516,7 +3875,8 @@ type OrderInvoiceReversalType {
   invoicedAt: Date
   invoiceNumber: String
   totalAmount: Decimal!
-  commissionAmount: Decimal!
+  """Comissão da fábrica gravada no retrato. Nula para o vendedor."""
+  commissionAmount: Decimal
   installmentsCount: Int!
   settlementsDropped: Int!
   """As baixas que havia nas parcelas apagadas, por tipo (ex.: "1 parcela paga e 1 repasse pago ao vendedor")."""
@@ -3527,6 +3887,11 @@ type OrderInvoiceReversalType {
 
 type OrderType {
   id: UUID!
+  """
+  Número legível do pedido, sequencial por empresa ("#128"): é o que se dita
+  por telefone e se acha na lista. O `id` fica como detalhe técnico.
+  """
+  number: Int!
   companyId: UUID!
   sellerId: UUID!
   clientId: UUID!
@@ -3537,7 +3902,10 @@ type OrderType {
   ipiAmount: Decimal!
   """Imposto embutido agregado (soma do taxAmount dos itens). Informativo, para exibir o total com imposto; não entra na base da comissão."""
   taxAmount: Decimal!
-  commissionAmount: Decimal!
+  """Comissão da FÁBRICA (taxa da fábrica, congelada no faturamento). Nula para o vendedor: dividida pelo pedido, entregaria o percentual da fábrica — a dele é `sellerCommissionAmount`."""
+  commissionAmount: Decimal
+  """Comissão do VENDEDOR responsável neste pedido: a taxa dele (vínculo vendedor×fábrica) sobre o pedido, sem IPI. Soma das parcelas — a já repassada vale o que saiu do caixa. Zero antes do faturamento. Taxa não cadastrada = a comissão inteira."""
+  sellerCommissionAmount: Decimal!
   status: OrderStatus!
   paymentTermId: UUID
   invoicedAt: Date
@@ -3614,6 +3982,18 @@ type OrderType {
   carteira do vendedor, que confere preço, condição e frete antes de confirmar.
   """
   isFromPortal: Boolean!
+  """
+  Desconto (%) que o cliente PEDIU no orçamento do portal. É só o pedido: o
+  preço dos itens continua o da tabela até o vendedor decidir.
+  """
+  clientDiscountPercent: Decimal
+  """Recado que o cliente deixou ao montar o orçamento no portal."""
+  clientRequestNote: String
+  """
+  Quando o vendedor avisou o cliente que viu este pedido do portal. Nulo = ainda
+  não avisou (ou o cliente acrescentou produtos depois do aviso).
+  """
+  seenBySellerAt: DateTime
   createdAt: DateTime!
   updatedAt: DateTime!
   deletedAt: DateTime
@@ -3670,8 +4050,10 @@ type OrderStatsType {
   invoicedOrders: Int!
   """Valor somado dos pedidos já faturados — o total faturado no recorte filtrado."""
   invoicedAmount: Decimal!
-  """Comissão somada dos pedidos já faturados no recorte."""
-  commissionAmount: Decimal!
+  """Comissão da FÁBRICA somada nos pedidos já faturados do recorte. Nula para o vendedor."""
+  commissionAmount: Decimal
+  """Comissão do vendedor de cada pedido já faturado no recorte, somada (mesma régua do detalhe do pedido)."""
+  sellerCommissionAmount: Decimal!
   """
   Saldos de faturamento parcial no recorte. Não entram em `totalOrders` nem em
   `invoicedOrders` — são a continuação de uma venda já contada —, mas o valor
@@ -3755,6 +4137,8 @@ vendedor, a fatia dele. Os campos `seller*` são sempre o nível do vendedor.
 """
 type CommissionRowType {
   orderId: UUID!
+  """Número legível do pedido na empresa ("#128")."""
+  orderNumber: Int!
   installmentId: UUID!
   sequence: Int!
   orderDate: Date!
@@ -4145,6 +4529,11 @@ extend type Mutation {
   Reenvio é permitido e esperado — a fábrica perder a mensagem é comum.
   """
   markOrderSent(id: UUID!, input: MarkOrderSentInput!): OrderTypeDataResponse!
+  """
+  Avisa o cliente, no portal, que o vendedor viu o pedido que ele fez por lá.
+  Só pedido do portal ainda em aberto (orçamento). Repetir não troca a data.
+  """
+  markPortalQuoteSeen(id: UUID!): OrderTypeDataResponse!
   """
   Manda o PDF do pedido por EMAIL para um contato da fábrica e carimba o envio
   (canal EMAIL). Diferente do WhatsApp, o envio acontece aqui: o front gera o PDF
@@ -4766,6 +5155,9 @@ type PlatformTenantType {
   """Tetos de contratação. Nulo = sem teto (não é zero)."""
   maxUsers: Int
   maxSellers: Int
+  """Usuários comprados além do plano (R$ 24,90 cada). Somam no teto de
+  usuários e no de vendedores."""
+  extraUsers: Int!
 
   usersCount: Int!
   sellersCount: Int!
@@ -5520,6 +5912,8 @@ input UpdateTenantPlanInput {
   trialEndsAt: Date
   maxUsers: Int
   maxSellers: Int
+  """Usuários comprados além do plano. `null` volta a zero."""
+  extraUsers: Int
 }
 
 """Sessão emprestada de um usuário, para suporte. Devolve apenas um token de
@@ -6114,7 +6508,10 @@ type BillingInstallmentRow {
   invoicedAt: Date
   dueDate: Date
   amount: Decimal!
-  commissionAmount: Decimal!
+  """Comissão da FÁBRICA (o que ela paga ao escritório). Nula para o vendedor: dividida pelo faturamento, entregaria o percentual da fábrica."""
+  commissionAmount: Decimal
+  """Comissão do vendedor do pedido nesta parcela (mesma régua do detalhe do pedido: parcela repassada vale o que saiu do caixa)."""
+  sellerCommissionAmount: Decimal!
   situation: BillingSituation!
   paidAt: Date
   "Dias de atraso; 0 quando a parcela não está vencida."
@@ -6136,7 +6533,10 @@ type BillingReportType {
   dueAmount: Decimal!
   overdueAmount: Decimal!
   overdueCount: Int!
-  commissionAmount: Decimal!
+  """Comissão da FÁBRICA (o que ela paga ao escritório). Nula para o vendedor: dividida pelo faturamento, entregaria o percentual da fábrica."""
+  commissionAmount: Decimal
+  """Comissão do vendedor de cada pedido, somada (mesma régua do detalhe do pedido: parcela repassada vale o que saiu do caixa)."""
+  sellerCommissionAmount: Decimal!
 }
 
 # ── Fábricas por pedido ─────────────────────────────────────────────────
@@ -6155,7 +6555,10 @@ type FactoryOrdersRow {
   clientCount: Int!
   invoicedCount: Int!
   invoicedAmount: Decimal!
-  commissionAmount: Decimal!
+  """Comissão da FÁBRICA (o que ela paga ao escritório). Nula para o vendedor: dividida pelo faturamento, entregaria o percentual da fábrica."""
+  commissionAmount: Decimal
+  """Comissão do vendedor de cada pedido, somada (mesma régua do detalhe do pedido: parcela repassada vale o que saiu do caixa)."""
+  sellerCommissionAmount: Decimal!
   lastOrderDate: Date
   share: Float!
 }
@@ -6306,7 +6709,10 @@ type ClientAbcRow {
   rank: Int!
   totalAmount: Decimal!
   orderCount: Int!
-  commissionAmount: Decimal!
+  """Comissão da FÁBRICA (o que ela paga ao escritório). Nula para o vendedor: dividida pelo faturamento, entregaria o percentual da fábrica."""
+  commissionAmount: Decimal
+  """Comissão do vendedor de cada pedido, somada (mesma régua do detalhe do pedido: parcela repassada vale o que saiu do caixa)."""
+  sellerCommissionAmount: Decimal!
   share: Float!
   cumulativeShare: Float!
   abcClass: AbcClass!
@@ -8548,6 +8954,31 @@ type PlannedStopType {
   isSuggested: Boolean!
   latitude: Float
   longitude: Float
+  """
+  A parada é da rotina de OUTRO escritório da mesma pessoa (nome do
+  escritório). Só leitura aqui: quem a muda é aquele escritório.
+  """
+  officeName: String
+  """
+  O cliente também tem visita neste dia no outro escritório (nome dele): é uma
+  ida só, e cada escritório registra a sua.
+  """
+  alsoInOffice: String
+}
+
+"""
+Visita alinhada no mesmo dia com outro escritório da mesma pessoa. Só quem,
+onde e quando — nada de fábrica, preço ou comissão do outro escritório.
+"""
+type AlignedStopType {
+  clientId: UUID!
+  name: String!
+  officeName: String!
+  """De onde a visita saiu. Nulo quando a parada daqui não tinha data."""
+  fromDate: Date
+  toDate: Date!
+  """Quem muda de dia é a visita do outro escritório."""
+  movesOtherOffice: Boolean!
 }
 
 type PlannedDayType {
@@ -8578,6 +9009,8 @@ type PlanWeekType {
   added: Int!
   """Dias escolhidos que não existem para o vendedor (folga, já passou) — ignorados."""
   ignoredDays: [Date!]!
+  """Visitas alinhadas no mesmo dia com outro escritório da mesma pessoa."""
+  aligned: [AlignedStopType!]!
 }
 
 type PlanWeekTypeDataResponse {

@@ -94,7 +94,6 @@ export function EditBrandModal({
               appearance="ghost"
               color="neutral"
               size="md"
-              noUppercase
               disabled={isSaving}
             >
               <Button.Title>Cancelar</Button.Title>
@@ -105,7 +104,6 @@ export function EditBrandModal({
             appearance="solid"
             color="amber"
             size="md"
-            noUppercase
             loading={isSaving}
             onClick={handleSave}
           >

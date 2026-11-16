@@ -7,11 +7,7 @@ import { CategoriesSection } from "../_components/CategoriesSection";
 export default function CategoriesContent() {
   return (
     <PageContent>
-      <CatalogSubHeader
-        href="/settings/catalog/categories"
-        title="Categorias de produtos"
-        description="Agrupam produtos parecidos dentro de um segmento. É o que organiza o catálogo e os filtros na hora de montar um pedido."
-      />
+      <CatalogSubHeader href="/settings/catalog/categories" />
       <CategoriesSection />
     </PageContent>
   );

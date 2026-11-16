@@ -8,15 +8,18 @@ export type { OrderDraftItems } from "./useOrderDraftItems";
 export type {
   DiscountType,
   DraftItem,
+  DraftItemSource,
   PaymentTermMinimum,
   CreateOrderItemResponse,
 } from "./interface";
 export { CREATE_ORDER_ITEM_MUTATION } from "./gql";
 export { createDraftItems } from "./createDraftItems";
+export type { DraftMergeResult } from "./utils";
 export {
   DISCOUNT_TYPE_OPTIONS,
   discountToAmount,
   discountLabel,
   itemSubtotal,
   draftTotal,
+  mergeDraftItems,
 } from "./utils";

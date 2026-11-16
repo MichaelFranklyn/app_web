@@ -1,1 +1,1 @@
-export const accentDescriptionStyle = "text-[13px] text-(--muted)";
+export const accentDescriptionStyle = "text-body-sm text-(--color-text-muted)";

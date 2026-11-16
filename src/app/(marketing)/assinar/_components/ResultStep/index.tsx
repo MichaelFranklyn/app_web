@@ -25,8 +25,8 @@ export function ResultStep({
 }) {
   if (outcome === "declined") {
     return (
-      <div className="flex flex-col items-start gap-16 rounded-(--radius-md) border border-(--red-bd) bg-(--red-bg) p-24">
-        <CircleX size={32} className="text-(--red)" />
+      <div className="flex flex-col items-start gap-16 rounded-(--radius-md) border border-(--color-status-danger-bd) bg-(--color-status-danger-bg) p-24">
+        <CircleX size={32} className="text-(--color-status-danger)" />
 
         <Title variant="heading-md">Pagamento recusado</Title>
 
@@ -43,8 +43,8 @@ export function ResultStep({
   }
 
   return (
-    <div className="flex flex-col items-start gap-16 rounded-(--radius-md) border border-(--green-bd) bg-(--green-bg) p-24">
-      <CircleCheck size={32} className="text-(--green)" />
+    <div className="flex flex-col items-start gap-16 rounded-(--radius-md) border border-(--color-status-success-bd) bg-(--color-status-success-bg) p-24">
+      <CircleCheck size={32} className="text-(--color-status-success)" />
 
       <Title variant="heading-md">Assinatura simulada com sucesso</Title>
 

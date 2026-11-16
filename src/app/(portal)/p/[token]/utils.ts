@@ -1,5 +1,5 @@
 import { formatDate } from "@/utils/format/date";
-import { PortalOrder, PortalOrderStatus } from "./interface";
+import { PortalOrder, PortalOrderStatus, PortalProfile } from "./interface";
 
 /**
  * O status como o CLIENTE o entende.
@@ -36,19 +36,25 @@ export const portalStatusTone = (
   return "neutral";
 };
 
-/**
- * Total a pagar: mercadoria + IPI.
- *
- * O sistema separa os dois porque a comissão do vendedor incide só sobre a
- * mercadoria. Para quem paga a conta essa distinção não existe — o valor da
- * nota é a soma —, então é ela que aparece em destaque, com o IPI detalhado
- * embaixo quando houver.
- */
-export const portalOrderTotal = (order: PortalOrder): number =>
-  Number(order.totalAmount) + Number(order.ipiAmount);
+/** O que entra na conta do total. A lista de pedidos feitos (`portalOrders`) não traz `taxAmount`; a de "Pedidos" (`portalSentOrders`) e os detalhes trazem. */
+export interface OrderAmounts {
+  totalAmount: string;
+  ipiAmount: string;
+  taxAmount?: string;
+}
 
-export const hasIpi = (order: PortalOrder): boolean =>
-  Number(order.ipiAmount) > 0;
+/**
+ * Total a pagar: mercadoria + imposto embutido + IPI.
+ *
+ * O sistema separa as partes porque a comissão do vendedor incide só sobre a
+ * mercadoria. Para quem paga a conta essa distinção não existe — o valor da
+ * nota é a soma —, então é ela que aparece em destaque, com a composição no
+ * resumo financeiro. Mesma conta do "Total do pedido" do detalhe do sistema.
+ */
+export const portalOrderTotal = (order: OrderAmounts): number =>
+  Number(order.totalAmount) +
+  Number(order.taxAmount ?? 0) +
+  Number(order.ipiAmount);
 
 /**
  * A linha de data que importa em cada estado — uma só, a mais recente.
@@ -137,11 +143,25 @@ export const sortStockByUrgency = <T extends { daysRemaining: number | null }>(
     return a.daysRemaining - b.daysRemaining;
   });
 
-/** Total de uma linha do pedido: mercadoria + IPI, como sai na nota. */
+/**
+ * Subtotal de uma linha: mercadoria + imposto embutido, SEM o IPI — a coluna
+ * Subtotal do detalhe de pedido do sistema. O IPI tem coluna própria e entra
+ * no total do resumo.
+ */
 export const itemLineTotal = (item: {
   subtotal: string;
-  ipiAmount: string;
-}): number => Number(item.subtotal) + Number(item.ipiAmount);
+  taxAmount: string;
+}): number => Number(item.subtotal) + Number(item.taxAmount);
+
+/** Frete como o sistema escreve no resumo. O backend devolve "fob"/"cif". */
+export const freightLabel = (
+  freightType: string | null | undefined
+): string => {
+  const kind = freightType?.toUpperCase();
+  if (kind === "FOB") return "FOB — por conta do cliente";
+  if (kind === "CIF") return "CIF — entrega pela fábrica";
+  return "—";
+};
 
 const INSTALLMENT_LABEL: Record<string, string> = {
   PENDING: "A pagar",
@@ -151,3 +171,58 @@ const INSTALLMENT_LABEL: Record<string, string> = {
 
 export const installmentLabel = (status: string): string =>
   INSTALLMENT_LABEL[status] ?? status;
+
+/**
+ * O que o formulário de pedido do portal (`/pedido`) manda: só as linhas
+ * MARCADAS.
+ *
+ * A quantidade vem preenchida com a última compra, e é por isso que ela sozinha
+ * não basta — senão o envio pediria a lista inteira. Quem decide é o "Pedir".
+ * Quantidade vazia, zero ou ilegível na linha marcada também fica de fora: o
+ * cliente marcou e apagou, e "zero de X" não é pedido.
+ */
+export function pickedEntries(
+  formData: FormData
+): Array<{ productId: string; quantity: string }> {
+  const picked: Array<{ productId: string; quantity: string }> = [];
+  for (const [key] of formData.entries()) {
+    if (!key.startsWith("pick__")) continue;
+    const productId = key.replace("pick__", "");
+    const raw = String(formData.get(`qty__${productId}`) ?? "")
+      .trim()
+      .replace(",", ".");
+    const quantity = Number(raw);
+    if (raw === "" || !Number.isFinite(quantity) || quantity <= 0) continue;
+    picked.push({ productId, quantity: raw });
+  }
+  return picked;
+}
+
+/** "12" em vez de "12.0000": o Decimal do backend chega com as casas todas. */
+export function formatUnits(value: string | null): string {
+  if (value === null) return "";
+  const number = Number(value);
+  return Number.isFinite(number)
+    ? number.toLocaleString("pt-BR", { maximumFractionDigits: 3 })
+    : value;
+}
+
+/**
+ * O nome da primeira tela do portal — no menu, no título e no esqueleto. Era
+ * "Minhas compras", mas a lista de pedidos foi para "Pedidos"; o que sobrou é o
+ * resumo dos últimos 12 meses.
+ */
+export const PORTAL_HOME_TITLE = "Resumo";
+
+/**
+ * A linha sob o título do Resumo: quem é o cliente, onde fica e quem o atende —
+ * é por ela que ele confere que o link é mesmo dele.
+ */
+export function portalGreeting(profile: PortalProfile): string {
+  const city = [profile.clientCity, profile.clientState]
+    .filter(Boolean)
+    .join(" - ");
+  return [profile.clientName, city, `atendido por ${profile.companyName}`]
+    .filter(Boolean)
+    .join(" · ");
+}

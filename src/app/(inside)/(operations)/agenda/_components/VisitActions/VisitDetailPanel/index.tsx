@@ -110,7 +110,6 @@ export function VisitDetailPanel({
             appearance="outline"
             color="neutral"
             size="sm"
-            noUppercase
             className="mt-8"
             onClick={onClient}
           >
@@ -157,7 +156,6 @@ export function VisitDetailPanel({
                 href={`/orders/${item.order.id}`}
                 appearance="tinted"
                 size="sm"
-                noUppercase
                 fullWidth
               >
                 <Button.Icon icon={Handshake} />
@@ -251,7 +249,6 @@ export function VisitDetailPanel({
             appearance="outline"
             color="neutral"
             size="sm"
-            noUppercase
             fullWidth
             onClick={onEdit}
           >
@@ -263,7 +260,6 @@ export function VisitDetailPanel({
               appearance="outline"
               color="neutral"
               size="sm"
-              noUppercase
               fullWidth
               onClick={onStock}
             >
@@ -276,7 +272,6 @@ export function VisitDetailPanel({
               appearance="outline"
               color="neutral"
               size="sm"
-              noUppercase
               fullWidth
               onClick={onOrder}
             >
@@ -288,7 +283,6 @@ export function VisitDetailPanel({
             appearance="outline"
             color="neutral"
             size="sm"
-            noUppercase
             fullWidth
             onClick={onReschedule}
           >

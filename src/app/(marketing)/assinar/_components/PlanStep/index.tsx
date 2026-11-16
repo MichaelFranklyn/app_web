@@ -8,6 +8,7 @@ import { Check } from "lucide-react";
 import { ANNUAL_BILLED_MONTHS, MarketingPlan } from "../../../plans";
 import { BillingCycle } from "../../interface";
 import { formatMoney } from "@/utils/format/masks";
+import { monthlyTotalFor } from "../../../pricing";
 import { totalForCycle } from "../../utils";
 
 /**
@@ -19,16 +20,19 @@ import { totalForCycle } from "../../utils";
  */
 export function PlanStep({
   plan,
+  users,
   cycle,
   onChangeCycle,
   onContinue,
 }: {
   plan: MarketingPlan;
+  users: number;
   cycle: BillingCycle;
   onChangeCycle: (cycle: BillingCycle) => void;
   onContinue: () => void;
 }) {
-  const monthly = plan.demoMonthlyPrice ?? 0;
+  const monthly = monthlyTotalFor(plan, users) ?? 0;
+  const annual = totalForCycle(plan, "annual", users) ?? 0;
 
   const options: { key: BillingCycle; label: string; hint: string }[] = [
     {
@@ -39,7 +43,7 @@ export function PlanStep({
     {
       key: "annual",
       label: "Anual",
-      hint: `${formatMoney(monthly * ANNUAL_BILLED_MONTHS)} por ano — ${
+      hint: `${formatMoney(annual)} por ano — ${
         12 - ANNUAL_BILLED_MONTHS
       } meses grátis`,
     },
@@ -51,7 +55,8 @@ export function PlanStep({
         <Title variant="heading-md">Como você prefere pagar</Title>
 
         <Title variant="body-sm" color="muted">
-          Plano {plan.label}. {plan.limits}
+          Plano {plan.label} com {users} {users === 1 ? "usuário" : "usuários"}.
+          O plano inclui {plan.limits}
         </Title>
       </div>
 
@@ -96,8 +101,10 @@ export function PlanStep({
 
       <Title variant="body-sm" color="secondary">
         Total de hoje:{" "}
-        <Emphasis>{formatMoney(totalForCycle(plan, cycle) ?? 0)}</Emphasis>. A
-        renovação é automática e pode ser cancelada a qualquer momento.
+        <Emphasis>
+          {formatMoney(totalForCycle(plan, cycle, users) ?? 0)}
+        </Emphasis>
+        . A renovação é automática e pode ser cancelada a qualquer momento.
       </Title>
 
       <div>

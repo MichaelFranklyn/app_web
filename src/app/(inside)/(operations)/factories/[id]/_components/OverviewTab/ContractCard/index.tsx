@@ -24,7 +24,7 @@ export function ContractCard({ companyFactory }: Props) {
               label="O que é o contrato?"
               content={
                 <div className="flex flex-col gap-2">
-                  <Title variant="label" color="amber">
+                  <Title variant="label" weight="semibold">
                     Contrato de representação
                   </Title>
                   <Title variant="body-sm">

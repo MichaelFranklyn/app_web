@@ -83,11 +83,7 @@ export function FactoryScoreModal({ score, onClose }: Props) {
               {loading ? (
                 <Loading.Skeleton className="h-[96px] w-full" />
               ) : (
-                <Card.Root>
-                  <Card.Body padding="compact">
-                    <SuggestedProductsList insights={insights} />
-                  </Card.Body>
-                </Card.Root>
+                <SuggestedProductsList insights={insights} />
               )}
             </Section>
 

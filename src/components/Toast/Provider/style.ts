@@ -1,10 +1,12 @@
 export const toastStyles = {
+  // Escala em px: o `bottom-4 right-4 gap-2` antigo dava 4px da borda e 2px
+  // entre avisos. No celular a pilha ocupa a largura (16px de cada lado).
   container:
-    "fixed bottom-4 right-4 z-[9999] flex flex-col gap-2 max-w-[320px] w-full pointer-events-none",
-  item: "pointer-events-auto bg-(--bg2) border border-(--border) rounded-(--r-lg) p-[10px] px-[14px] flex items-start gap-[8px] text-[13px] shadow-(--shadow-md) animate-in slide-in-from-right-full fade-in slide-out-to-right fade-out duration-300",
-  content: "flex-1 flex flex-col min-w-0",
-  title: "",
-  description: "opacity-90 leading-snug mt-[2px]",
-  close:
-    "text-(--muted) hover:text-(--text) transition-colors shrink-0 -mt-[2px] -mr-[6px] p-1",
+    "fixed right-16 bottom-16 left-16 z-[9999] flex flex-col gap-8 pointer-events-none tablet:left-auto tablet:w-[360px]",
+  // Sem faixa lateral (14/11/2026): o tom do aviso vem só do ícone tingido.
+  item: "pointer-events-auto relative flex items-start gap-10 overflow-hidden rounded-(--r-lg) border border-(--border) bg-(--bg2) py-10 pr-8 pl-10 text-body-sm shadow-(--shadow-lg) animate-toast-in data-[leaving]:animate-toast-out",
+  icon: "grid size-[28px] shrink-0 place-items-center rounded-full bg-current/12",
+  content: "flex min-h-[28px] min-w-0 flex-1 flex-col justify-center",
+  description: "mt-[2px] leading-snug",
+  close: "-my-2 shrink-0",
 };

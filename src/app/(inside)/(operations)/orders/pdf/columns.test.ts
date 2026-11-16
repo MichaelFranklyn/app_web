@@ -6,6 +6,7 @@ import { buildOrderTotals, ORDER_COLUMNS } from "./columns";
 const order = (overrides: Partial<Order> = {}): Order =>
   ({
     id: "aabbccdd-1111-2222-3333-444455556666",
+    number: 7,
     orderDate: "2026-07-05",
     invoicedAt: "2026-07-12",
     totalAmount: "1000.00",
@@ -47,8 +48,8 @@ describe("ORDER_COLUMNS", () => {
     ]);
   });
 
-  it("mostra o pedido pelos 8 primeiros caracteres do id, em caixa alta", () => {
-    expect(column("PEDIDO").value(order())).toBe("AABBCCDD");
+  it("mostra o pedido pelo número sequencial da empresa", () => {
+    expect(column("PEDIDO").value(order())).toBe("#7");
   });
 
   it("leva o nome fantasia como segunda linha do cliente", () => {

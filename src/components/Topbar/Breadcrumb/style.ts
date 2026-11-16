@@ -5,8 +5,8 @@ export const topbarBreadcrumbStyles = {
   // longo à direita (o nome da empresa) seria espremido em vez do rótulo da
   // página, que é curto e se recompõe a cada rota.
   root: cn(
-    "flex min-w-0 flex-1 items-center gap-[6px] text-[13px] text-(--muted)"
+    "flex min-w-0 flex-1 items-center gap-[6px] text-body-sm text-(--color-text-muted)"
   ),
-  current: "text-(--text) font-(--weight-semibold)",
-  separator: "select-none text-(--muted)",
+  current: "text-(--color-text) font-(--weight-semibold)",
+  separator: "select-none text-(--color-text-muted)",
 };

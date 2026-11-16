@@ -62,7 +62,7 @@ export function EmailDigestCard({ isEnabled, onDone }: Props) {
             label="Quais emails são esses"
             content={
               <div className="flex flex-col gap-2">
-                <Title variant="label" color="amber">
+                <Title variant="label" weight="semibold">
                   O que esta opção liga e desliga
                 </Title>
                 <Title variant="body-sm">

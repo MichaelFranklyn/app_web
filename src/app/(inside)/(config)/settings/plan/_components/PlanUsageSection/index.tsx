@@ -27,7 +27,7 @@ export function PlanUsageSection({ limits }: { limits: PlanLimitUsage[] }) {
             label="O que acontece quando um limite enche?"
             content={
               <div className="flex flex-col gap-2">
-                <Title variant="label" color="amber">
+                <Title variant="label" weight="semibold">
                   Limite atingido
                 </Title>
                 <Title variant="body-sm">

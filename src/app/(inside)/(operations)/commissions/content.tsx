@@ -3,6 +3,7 @@
 import { PageContent } from "@/components/PageContent";
 import { QueryError } from "@/components/QueryError";
 import { BulkActionsBar } from "./_components/BulkActionsBar";
+import { CommissionsGuide } from "./_components/CommissionsGuide";
 import { CommissionsFilterBar } from "./_components/CommissionsFilterBar";
 import { CommissionsHeader } from "./_components/CommissionsHeader";
 import { CommissionsList } from "./_components/CommissionsList";
@@ -35,6 +36,8 @@ export default function CommissionsContent(props: Props) {
   return (
     <PageContent>
       <CommissionsHeader scope={scope} />
+      {/* A explicação da tela inteira, fechada: substitui os "?" espalhados. */}
+      <CommissionsGuide canManage={canManage} />
 
       {query.hasFailed ? (
         <QueryError onRetry={() => query.retry()} />
@@ -81,6 +84,8 @@ export default function CommissionsContent(props: Props) {
             values={panel.inputValues}
             onChange={panel.setFilters}
             onTextChange={panel.setFilter}
+            resultCount={view.shown}
+            resultLoading={showSkeleton || query.isRefreshing}
           />
 
           {/* O que a lista abaixo está somando, sempre escrito: são dois

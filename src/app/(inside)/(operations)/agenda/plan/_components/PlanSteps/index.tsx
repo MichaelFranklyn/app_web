@@ -55,7 +55,6 @@ export function PlanSteps({
             appearance="ghost"
             color="neutral"
             size="sm"
-            noUppercase
             className="self-start"
             onClick={onLetSystemChoose}
           >
@@ -78,7 +77,6 @@ export function PlanSteps({
             appearance="solid"
             color="amber"
             size="md"
-            noUppercase
             className="w-full"
             onClick={onOrganize}
           >

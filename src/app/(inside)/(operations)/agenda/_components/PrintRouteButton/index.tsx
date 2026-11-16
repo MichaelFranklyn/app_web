@@ -94,7 +94,6 @@ export function PrintRouteButton({
       appearance="outline"
       color="neutral"
       size="sm"
-      noUppercase
       disabled={isEmpty}
       loading={isBusy}
       onClick={handlePrint}

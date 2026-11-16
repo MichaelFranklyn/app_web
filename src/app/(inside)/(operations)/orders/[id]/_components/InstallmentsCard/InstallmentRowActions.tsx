@@ -1,13 +1,14 @@
 "use client";
 
-import { Button } from "@/components/Button";
 import { ConfirmModal } from "@/components/ConfirmModal";
+import { MoreOption, MoreOptions } from "@/components/MoreOptions";
 import { Table } from "@/components/Table";
 import { useInvalidateQueriesClient } from "@/hooks/useInvalidateQueries";
 import { COMMISSION_CACHE_FIELDS } from "@/utils/cacheFields";
 import { getTodayIso } from "@/utils/format/date";
 import { useMutation } from "@apollo/client/react";
 import { Ban, RotateCcw, XCircle } from "lucide-react";
+import { useState } from "react";
 import {
   CANCEL_ORDER_INSTALLMENT_MUTATION,
   MARK_ORDER_INSTALLMENTS_DEFAULTED_MUTATION,
@@ -26,7 +27,15 @@ interface Props {
   onChanged: () => void;
 }
 
+type ConfirmKind = "defaulted" | "cancel" | "revert" | null;
+
+/**
+ * Ações da parcela: "Pago" (o caso comum) fica à vista; o resto vai para o
+ * menu "…". Antes eram três botões na linha (Pago, Inadimplente, Cancelar
+ * boleto) e no celular a linha virava uma régua de ações (revisão 13/11/2026).
+ */
 export function InstallmentRowActions({ installment, onChanged }: Props) {
+  const [confirm, setConfirm] = useState<ConfirmKind>(null);
   const [cancelInstallment] = useMutation<{
     cancelOrderInstallment: StatusResponse;
   }>(CANCEL_ORDER_INSTALLMENT_MUTATION);
@@ -56,6 +65,29 @@ export function InstallmentRowActions({ installment, onChanged }: Props) {
   const isOpen =
     installment.status === "PENDING" || installment.status === "DEFAULTED";
 
+  const menu: MoreOption[] =
+    installment.status === "PENDING"
+      ? [
+          {
+            label: "Cancelar boleto",
+            icon: XCircle,
+            onClick: () => setConfirm("cancel"),
+          },
+          {
+            label: "Cliente não pagou (inadimplente)",
+            icon: Ban,
+            danger: true,
+            onClick: () => setConfirm("defaulted"),
+          },
+        ]
+      : [
+          {
+            label: "Reverter para pendente",
+            icon: RotateCcw,
+            onClick: () => setConfirm("revert"),
+          },
+        ];
+
   return (
     <div className="flex items-center justify-end gap-4">
       {isOpen && (
@@ -69,12 +101,8 @@ export function InstallmentRowActions({ installment, onChanged }: Props) {
       {installment.status === "PENDING" && (
         <>
           <ConfirmModal
-            trigger={
-              <Button.Root appearance="ghost" color="red" size="sm">
-                <Button.Icon icon={Ban} />
-                <Button.Title>Inadimplente</Button.Title>
-              </Button.Root>
-            }
+            open={confirm === "defaulted"}
+            onOpenChange={(v) => setConfirm(v ? "defaulted" : null)}
             title={`Marcar parcela ${installment.sequence} como inadimplente`}
             description="Use quando o cliente não pagou o boleto. A comissão desta parcela deixa de ser devida — e, se já tiver sido paga, vira estorno no próximo fechamento."
             confirmLabel="Marcar inadimplente"
@@ -98,12 +126,8 @@ export function InstallmentRowActions({ installment, onChanged }: Props) {
           />
 
           <ConfirmModal
-            trigger={
-              <Button.Root appearance="ghost" color="neutral" size="sm">
-                <Button.Icon icon={XCircle} />
-                <Button.Title>Cancelar boleto</Button.Title>
-              </Button.Root>
-            }
+            open={confirm === "cancel"}
+            onOpenChange={(v) => setConfirm(v ? "cancel" : null)}
             title={`Cancelar parcela ${installment.sequence}`}
             description="Use quando o boleto deixou de existir (a fábrica cancelou, houve acerto direto). Não é inadimplência: nada é estornado."
             confirmLabel="Cancelar boleto"
@@ -126,12 +150,8 @@ export function InstallmentRowActions({ installment, onChanged }: Props) {
 
       {installment.status !== "PENDING" && (
         <ConfirmModal
-          trigger={
-            <Button.Root appearance="ghost" color="neutral" size="sm">
-              <Button.Icon icon={RotateCcw} />
-              <Button.Title>Reverter</Button.Title>
-            </Button.Root>
-          }
+          open={confirm === "revert"}
+          onOpenChange={(v) => setConfirm(v ? "revert" : null)}
           title={`Reverter parcela ${installment.sequence}`}
           description="Volta a parcela para pendente, desfazendo o pagamento, o cancelamento ou a inadimplência."
           confirmLabel="Reverter"
@@ -148,6 +168,13 @@ export function InstallmentRowActions({ installment, onChanged }: Props) {
             }
           }}
           onSuccess={syncInstallment}
+        />
+      )}
+
+      {menu.length > 0 && (
+        <MoreOptions
+          options={menu}
+          label={`Mais ações da parcela ${installment.sequence}`}
         />
       )}
     </div>

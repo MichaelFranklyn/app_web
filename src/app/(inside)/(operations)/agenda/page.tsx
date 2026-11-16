@@ -12,7 +12,10 @@ const Page = async () => {
   // vendedor qualquer, sem filtro de pessoa, e a jogava fora.
   const payload = await getDecodedTokenServer();
   return (
-    <RoutinesContent canSelectPerson={isAgendaManagerRole(payload?.role)} />
+    <RoutinesContent
+      canSelectPerson={isAgendaManagerRole(payload?.role)}
+      ownSellerId={payload?.seller_id ?? null}
+    />
   );
 };
 

@@ -457,3 +457,30 @@ describe("InputSelect para o leitor de tela", () => {
     );
   });
 });
+
+describe("InputSelect (busca no servidor)", () => {
+  it("ao fechar, devolve o termo vazio — a busca sem resultado não fica presa", async () => {
+    // Bug real no item do pedido: digitar um produto que não existia e fechar
+    // a lista deixava o termo guardado no consumidor; reabrir mostrava a lista
+    // vazia, com o campo limpo, e o catálogo parecia ter sumido.
+    const onSearch = vi.fn();
+    render(
+      <>
+        <InputSelect
+          options={OPTIONS}
+          placeholder="Produto"
+          onSearch={onSearch}
+        />
+        <button type="button">fora</button>
+      </>
+    );
+    const input = screen.getByPlaceholderText("Produto");
+    await userEvent.click(input);
+    await userEvent.type(input, "xyz");
+    expect(onSearch).toHaveBeenLastCalledWith("xyz");
+
+    await userEvent.keyboard("{Escape}");
+    await waitFor(() => expect(dropdown()).toBeNull());
+    expect(onSearch).toHaveBeenLastCalledWith("");
+  });
+});

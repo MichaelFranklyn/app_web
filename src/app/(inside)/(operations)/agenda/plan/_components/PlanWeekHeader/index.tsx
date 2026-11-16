@@ -2,6 +2,7 @@
 
 import { Breadcrumb } from "@/components/Breadcrumb";
 import { PanelHeader } from "@/components/PanelHeader";
+import { PAGE_HEADING } from "@/utils/modules";
 
 interface Props {
   sellerId: string | null;
@@ -26,7 +27,9 @@ export function PlanWeekHeader({ sellerId }: Props) {
       <PanelHeader.Root>
         <PanelHeader.Top>
           <PanelHeader.Left>
-            <PanelHeader.Title>Montar semana</PanelHeader.Title>
+            <PanelHeader.Heading {...PAGE_HEADING.planWeek}>
+              Montar semana
+            </PanelHeader.Heading>
             <PanelHeader.Description>
               Monte a sua agenda em dois passos: escolha os clientes e organize
               a semana. O sistema separa por região e monta o caminho de cada

@@ -1,5 +1,6 @@
 import { parseJwtServer } from "@/utils/auth/jwt";
 import { getServerCookie } from "@/utils/cookies/serverCookie";
+import { print } from "graphql";
 import { unstable_cache } from "next/cache";
 import { gqlFetch, GqlQueryOptions } from "./gqlFetch";
 
@@ -33,6 +34,16 @@ function isConnectionResponse(v: unknown): v is BackendConnectionResponse {
     typeof v === "object" && v !== null && "edges" in v && "totalCount" in v
   );
 }
+
+/**
+ * O TEXTO da consulta entra na chave do cache. Sem ele, a chave era só
+ * `[nome, usuário, variáveis]`: quando a query ganhava um campo (`number` no
+ * pedido, `isInvitationPending` no usuário), o Data Cache — que sobrevive ao
+ * restart do dev e, na Vercel, ao deploy — devolvia a resposta guardada com o
+ * shape VELHO. O seed do Apollo (`useTableData`) recusava com "Missing field".
+ */
+const querySource = (query: GqlQueryOptions["query"]): string =>
+  typeof query === "string" ? query : print(query);
 
 // ─── token é lido fora do unstable_cache e passado como argumento ── //
 
@@ -74,7 +85,12 @@ export async function executeServerQueries<TResult>(
 
       const cached = unstable_cache(
         (t: string | null) => fetchAndExtract(key, options, t),
-        [key, userId, JSON.stringify(options.variables ?? {})],
+        [
+          key,
+          userId,
+          JSON.stringify(options.variables ?? {}),
+          querySource(options.query),
+        ],
         {
           tags: ["global", `user-${userId}`, ...tags],
           revalidate,

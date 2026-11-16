@@ -10,6 +10,7 @@ import { buildHorizontalBarOption, mutedLine } from "../../chartBuilders";
 import { ReportFilters } from "../interface";
 import { PLACED_ORDER_STATUSES } from "../utils";
 import { PlacedByFactoryPoint, SentOrder } from "./interface";
+import { visibleCommission } from "@/utils/commission";
 
 /**
  * O recorte: pedidos COLOCADOS no período, pela data do pedido.
@@ -135,7 +136,7 @@ export const buildSentOrdersExportRows = (
     // Traço quando a fábrica ainda não faturou: o pedido existe, a data não.
     order.invoicedAt ? formatDateDMY(order.invoicedAt) : "—",
     Number(order.totalAmount),
-    Number(order.commissionAmount),
+    Number(visibleCommission(order)),
   ]);
 
 export interface SentOrdersTotals {

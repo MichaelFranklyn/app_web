@@ -25,10 +25,7 @@ import { contactNoun } from "@/utils/visit";
 import { ContactLinks } from "../ContactLinks";
 import { ViabilityNote } from "../ViabilityNote";
 import { chipAppearance } from "../../appearance";
-import { ContactTypeTag } from "@/components/ContactTypeTag";
-import { FixedVisitTag } from "@/components/FixedVisitTag";
 import { NegativeTag } from "@/components/ClientFactoryNegative";
-import { TripVisitTag } from "@/components/TripVisitTag";
 import { itemClient } from "../../calendar";
 import { canDragItem, writeDrag } from "../../dragItem";
 
@@ -42,6 +39,11 @@ interface Props {
    * botões não cabem. É o cartão que se arrasta para outro dia.
    */
   density?: "full" | "compact";
+  /**
+   * O outro escritório da pessoa que também tem visita a este cliente neste
+   * dia — é uma ida só, e concluir aqui conclui lá.
+   */
+  alsoInOffice?: string | null;
   onChanged: () => void;
 }
 
@@ -79,6 +81,7 @@ export function VisitCard({
   item,
   dayDate,
   density = "full",
+  alsoInOffice = null,
   onChanged,
 }: Props) {
   const {
@@ -177,11 +180,22 @@ export function VisitCard({
                   solto de minutos era lido como "visita de 7 minutos", que é o
                   contrário do que ele significa. */}
                 <div className="mb-4 flex flex-wrap items-center gap-x-8 gap-y-2">
-                  <ContactTypeTag contactType={item.contactType} />
+                  <Badge.ContactType contactType={item.contactType} />
+                  {alsoInOffice && (
+                    <Badge.Root
+                      color="purple"
+                      appearance="outline"
+                      title={`Este cliente também tem visita hoje no ${alsoInOffice}: é uma ida só, e concluir aqui conclui lá.`}
+                    >
+                      <Badge.Text>Também no {alsoInOffice}</Badge.Text>
+                    </Badge.Root>
+                  )}
                   {!isCompact && (
                     <>
-                      <FixedVisitTag fixedScheduleId={item.fixedScheduleId} />
-                      <TripVisitTag tripId={item.tripId} />
+                      <Badge.FixedVisit
+                        fixedScheduleId={item.fixedScheduleId}
+                      />
+                      <Badge.Trip tripId={item.tripId} />
                       {/* A parada continua de pé — negativar não desmarca o
                         que já estava agendado —, mas quem vai precisa saber
                         que esta fábrica não fecha pedido. */}
@@ -202,7 +216,7 @@ export function VisitCard({
                   {warning && (
                     <TriangleAlert
                       size={14}
-                      className="shrink-0 text-(--amber)"
+                      className="shrink-0 text-(--color-action-text)"
                       aria-label={warning.message}
                     >
                       <title>{warning.message}</title>
@@ -215,7 +229,7 @@ export function VisitCard({
                 <Title
                   variant={isCompact ? "body-xs" : "value"}
                   weight={isCompact ? "semibold" : undefined}
-                  color={isCompleted ? "muted" : "default"}
+                  color={isCompleted || look.isMuted ? "muted" : "default"}
                   className={cn(
                     "block break-words",
                     isCompact && "line-clamp-2",

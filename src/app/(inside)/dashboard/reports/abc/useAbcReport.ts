@@ -91,7 +91,7 @@ export const useAbcReport = (filters: ReportFilters) => {
         label: "Classe B",
         value: String(totals.B.clients),
         hint: formatMoney(totals.B.amount),
-        status: "atencao",
+        status: "neutral",
       },
       {
         label: "Classe C",

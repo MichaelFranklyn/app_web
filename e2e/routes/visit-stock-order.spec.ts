@@ -1,5 +1,6 @@
 import { getCurrentWeekMondayIso } from "@/utils/format/date";
 import { expect, test } from "../support/fixtures";
+import { addDraftItem, oneProductMocks } from "../support/orderDraft";
 import { mockGraphql } from "../support/graphql";
 import { grantRole } from "../support/role";
 
@@ -141,8 +142,7 @@ const newOrderPageMocks = () => ({
   ClientAssignments: () => ({
     sellerClientFactoryList: { edges: [], totalCount: 0 },
   }),
-  OrderItemCompanyFactories: () => ({ companyFactories: { edges: [] } }),
-  OrderItemProducts: () => ({ products: { edges: [] } }),
+  ...oneProductMocks("f-2"),
   OrderItemTiers: () => ({ priceTiers: { edges: [] } }),
   OrderItemPriceLists: () => ({ factoryPriceLists: { edges: [] } }),
   OrderItemPriceListItems: () => ({ priceListItems: { edges: [] } }),
@@ -237,6 +237,7 @@ test("visita/estoque: o pedido lançado carrega a fábrica e a visita de origem"
             invoicedAt: null,
             totalAmount: "0",
             commissionAmount: "0",
+            sellerCommissionAmount: "0",
             status: "CONFIRMED",
             seller: { id: "s-1", name: "Vendedor" },
             client: {
@@ -270,8 +271,9 @@ test("visita/estoque: o pedido lançado carrega a fábrica e a visita de origem"
   await expect(page).toHaveURL(/\/orders\/new\?visitItemId=it-1/);
   await expect(stockModal).toHaveCount(0);
 
-  // A data já vem com hoje (o pedido nasce na visita): é só criar.
-  await page.getByRole("button", { name: "Criar pedido", exact: true }).click();
+  // A data já vem com hoje (o pedido nasce na visita): põe o item e cria.
+  await addDraftItem(page);
+  await page.getByRole("button", { name: "Criar pedido com 1 item" }).click();
 
   await expect.poll(() => orderInput).not.toBeNull();
 

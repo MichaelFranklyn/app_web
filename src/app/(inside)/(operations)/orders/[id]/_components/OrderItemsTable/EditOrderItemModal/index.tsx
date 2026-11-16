@@ -35,6 +35,9 @@ interface UpdateOrderItemResponse {
 }
 
 interface Props {
+  /** Controlado: o gatilho mora fora (o "⋯"/ícone da linha, em RowActions). */
+  open?: boolean;
+  onOpenChange?: (open: boolean) => void;
   item: OrderItem;
   /** Pedido, cliente e fábrica: o que o cliente pagou nas compras anteriores. */
   orderId: string;
@@ -55,8 +58,16 @@ export function EditOrderItemModal({
   onOptimisticUpdate,
   onRollback,
   onRefetch,
+  open: controlledOpen,
+  onOpenChange,
 }: Props) {
-  const [open, setOpen] = useState(false);
+  const [uncontrolledOpen, setUncontrolledOpen] = useState(false);
+  const isControlled = controlledOpen !== undefined;
+  const open = isControlled ? controlledOpen : uncontrolledOpen;
+  const setOpen = (value: boolean) => {
+    if (isControlled) onOpenChange?.(value);
+    else setUncontrolledOpen(value);
+  };
   const formRef = useRef<FormBuilderRef>(null);
   const [discountType, setDiscountType] = useState<DiscountType>("VALUE");
 
@@ -239,18 +250,19 @@ export function EditOrderItemModal({
 
   return (
     <Modal.Root open={open} onOpenChange={handleOpenChange}>
-      <Modal.Trigger asChild>
-        <Button.Root
-          appearance="ghost"
-          color="neutral"
-          size="sm"
-          isIconOnly
-          noUppercase
-          aria-label="Editar item"
-        >
-          <Button.Icon icon={Pencil} />
-        </Button.Root>
-      </Modal.Trigger>
+      {!isControlled && (
+        <Modal.Trigger asChild>
+          <Button.Root
+            appearance="ghost"
+            color="neutral"
+            size="sm"
+            isIconOnly
+            aria-label="Editar item"
+          >
+            <Button.Icon icon={Pencil} />
+          </Button.Root>
+        </Modal.Trigger>
+      )}
 
       <Modal.Content size="md">
         <Modal.Header
@@ -297,7 +309,6 @@ export function EditOrderItemModal({
               appearance="ghost"
               color="neutral"
               size="md"
-              noUppercase
               disabled={isLoading}
             >
               <Button.Title>Cancelar</Button.Title>
@@ -308,7 +319,6 @@ export function EditOrderItemModal({
             appearance="solid"
             color="amber"
             size="md"
-            noUppercase
             loading={isLoading}
             onClick={() => formRef.current?.submitForm()}
           >

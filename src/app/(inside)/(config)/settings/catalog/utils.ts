@@ -1,5 +1,11 @@
 import { Boxes, Package, Percent, Store, Tags } from "lucide-react";
-import { CatalogGroup, CatalogLinkWithCount, CatalogTone } from "./interface";
+import {
+  CatalogGroup,
+  CatalogLinkWithCount,
+  CatalogPageCopy,
+  CatalogPageHref,
+  CatalogTone,
+} from "./interface";
 
 /**
  * Os catálogos agrupados por ASSUNTO, e não numa grade de cinco cards iguais.
@@ -109,4 +115,47 @@ export const countLabel = (
   if (count === null) return "";
   if (count === 0) return "nada cadastrado ainda";
   return `${count} ${count === 1 ? noun.one : noun.many}`;
+};
+
+/**
+ * O texto fixo de cada tela de catálogo, num lugar só: o header da tela
+ * (`CatalogSubHeader`) e o esqueleto do `loading.tsx` leem daqui, então o
+ * esqueleto não fica com título ou colunas diferentes da tela que vai chegar.
+ */
+export const CATALOG_PAGES: Record<CatalogPageHref, CatalogPageCopy> = {
+  "/settings/catalog/categories": {
+    title: "Categorias de produtos",
+    description:
+      "Agrupam produtos parecidos dentro de um segmento. É o que organiza o catálogo e os filtros na hora de montar um pedido.",
+    listTitle: "Categorias cadastradas",
+    columns: ["Nome", "Segmento", "Ações"],
+  },
+  "/settings/catalog/units": {
+    title: "Unidades",
+    description:
+      "Como o produto é medido e vendido. Cada produto escolhe uma unidade base — saco, metro, quilograma, unidade.",
+    listTitle: "Unidades cadastradas",
+    columns: ["Nome", "Ações"],
+  },
+  "/settings/catalog/labels": {
+    title: "Rótulos de embalagem",
+    description:
+      "O nome da embalagem em que o produto é entregue. Junto com as unidades por embalagem, define como o produto é comercializado (ex.: 12 sacos por pallet).",
+    listTitle: "Rótulos cadastrados",
+    columns: ["Nome", "Ações"],
+  },
+  "/settings/catalog/segments": {
+    title: "Segmentos de clientes",
+    description:
+      "O ramo de atividade de cada cliente — farmácia, mercearia, atacado. Serve para filtrar a carteira e comparar os números por tipo de negócio.",
+    listTitle: "Segmentos cadastrados",
+    columns: ["Nome", "Ações"],
+  },
+  "/settings/catalog/tax-rules": {
+    title: "Regras de imposto",
+    description:
+      "O catálogo de impostos da empresa. A alíquota de cada produto é definida depois, na tabela de preços.",
+    listTitle: "Regras cadastradas",
+    columns: ["Nome", "Ações"],
+  },
 };

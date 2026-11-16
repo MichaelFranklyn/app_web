@@ -21,7 +21,7 @@ export function ProductInfoCard({ product }: Props) {
                 label="O que significa cada campo?"
                 content={
                   <div className="flex flex-col gap-2">
-                    <Title variant="label" color="amber">
+                    <Title variant="label" weight="semibold">
                       Campos do produto
                     </Title>
                     <Title variant="body-sm">

@@ -17,7 +17,7 @@ import { inputStyles } from "./styles";
  */
 export const RequiredMark = () => (
   <>
-    <span aria-hidden="true" className="ml-4 text-(--red)">
+    <span aria-hidden="true" className="ml-4 text-(--color-status-danger)">
       *
     </span>
     <span className="sr-only">(obrigatório)</span>

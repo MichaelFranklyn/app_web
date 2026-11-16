@@ -19,6 +19,7 @@ export const COMMISSIONS_SELLERS_QUERY = gql`
 const COMMISSION_ROW = gql`
   fragment CommissionRowFields on CommissionRowType {
     orderId
+    orderNumber
     installmentId
     sequence
     orderDate
