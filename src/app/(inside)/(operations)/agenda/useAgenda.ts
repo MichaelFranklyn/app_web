@@ -11,11 +11,16 @@ import {
   weekDates,
   weekStartsFor,
 } from "./calendar";
-import { AGENDA_PEOPLE_QUERY, VISIT_SCHEDULES_QUERY } from "./gql";
+import {
+  AGENDA_PEOPLE_QUERY,
+  CROSS_OFFICE_STOPS_QUERY,
+  VISIT_SCHEDULES_QUERY,
+} from "./gql";
 import {
   AgendaPeopleQueryData,
   AgendaPerson,
   AgendaView,
+  CrossOfficeStopsQueryData,
   VisitSchedule,
   VisitSchedulesQueryData,
 } from "./interface";
@@ -29,7 +34,11 @@ const VIEWS: AgendaView[] = ["day", "week", "month"];
  * agenda que estava vendo, no mesmo dia e na mesma visão. `?week=` continua
  * valendo (é por ele que o Montar semana devolve a pessoa à semana que montou).
  */
-export function useAgenda(canSelectPerson: boolean) {
+export function useAgenda(
+  canSelectPerson: boolean,
+  /** O perfil de vendedor de quem está logado (do token). */
+  ownSellerId: string | null = null
+) {
   const pathname = usePathname();
   const searchParams = useSearchParams();
 
@@ -143,7 +152,6 @@ export function useAgenda(canSelectPerson: boolean) {
           : [anchor],
     [view, anchor, weekStart]
   );
-  const days = useMemo(() => indexDays(schedules, dates), [schedules, dates]);
   // A semana da âncora: é dela o resumo, a impressão e o link de resposta.
   const schedule = schedules.find(
     (s) => s.weekStart.slice(0, 10) === weekStart
@@ -155,6 +163,30 @@ export function useAgenda(canSelectPerson: boolean) {
   const sellerId = canSelectPerson
     ? (selectedPerson?.sellerId ?? null)
     : (schedules.find((s) => s.seller)?.seller?.id ?? null);
+
+  // A rotina integrada (16/11/2026): quem vende em mais de um escritório vê,
+  // na PRÓPRIA agenda, as paradas que tem nos outros. O backend sempre
+  // responde pelo logado — na agenda de outra pessoa, elas seriam de quem
+  // está olhando, não de quem está na tela.
+  const isOwnAgenda =
+    !canSelectPerson || (Boolean(ownSellerId) && sellerId === ownSellerId);
+  const crossQuery = useQuery<CrossOfficeStopsQueryData>(
+    CROSS_OFFICE_STOPS_QUERY,
+    {
+      variables: { dateFrom: dates[0], dateTo: dates.at(-1) },
+      skip: !isOwnAgenda || dates.length === 0,
+      fetchPolicy: "cache-and-network",
+    }
+  );
+  // Falhar aqui não derruba a agenda: as paradas daqui continuam na tela.
+  const otherOfficeStops = useMemo(
+    () => (isOwnAgenda ? (crossQuery.data?.crossOfficeStops?.data ?? []) : []),
+    [isOwnAgenda, crossQuery.data]
+  );
+  const days = useMemo(
+    () => indexDays(schedules, dates, otherOfficeStops),
+    [schedules, dates, otherOfficeStops]
+  );
   const isSellerAgenda = canSelectPerson
     ? Boolean(selectedPerson?.sellerId)
     : true;
@@ -198,6 +230,11 @@ export function useAgenda(canSelectPerson: boolean) {
     goToDate: (date: string) => writeParams({ date }),
     /** Abre um dia na visão de dia — o clique no número do dia, como no Google. */
     openDay: (date: string) => writeParams({ view: "day", date }),
-    refetch,
+    /** Recarrega a agenda e as paradas dos outros escritórios: concluir uma
+     * visita lá conclui a do mesmo cliente aqui, e vice-versa. */
+    refetch: async () => {
+      if (isOwnAgenda) void crossQuery.refetch();
+      return refetch();
+    },
   };
 }

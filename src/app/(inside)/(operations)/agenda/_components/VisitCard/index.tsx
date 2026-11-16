@@ -39,6 +39,11 @@ interface Props {
    * botões não cabem. É o cartão que se arrasta para outro dia.
    */
   density?: "full" | "compact";
+  /**
+   * O outro escritório da pessoa que também tem visita a este cliente neste
+   * dia — é uma ida só, e concluir aqui conclui lá.
+   */
+  alsoInOffice?: string | null;
   onChanged: () => void;
 }
 
@@ -76,6 +81,7 @@ export function VisitCard({
   item,
   dayDate,
   density = "full",
+  alsoInOffice = null,
   onChanged,
 }: Props) {
   const {
@@ -175,6 +181,15 @@ export function VisitCard({
                   contrário do que ele significa. */}
                 <div className="mb-4 flex flex-wrap items-center gap-x-8 gap-y-2">
                   <Badge.ContactType contactType={item.contactType} />
+                  {alsoInOffice && (
+                    <Badge.Root
+                      color="purple"
+                      appearance="outline"
+                      title={`Este cliente também tem visita hoje no ${alsoInOffice}: é uma ida só, e concluir aqui conclui lá.`}
+                    >
+                      <Badge.Text>Também no {alsoInOffice}</Badge.Text>
+                    </Badge.Root>
+                  )}
                   {!isCompact && (
                     <>
                       <Badge.FixedVisit

@@ -4,13 +4,14 @@ import { Card } from "@/components/Card";
 import { Title } from "@/components/Title";
 import { useUserRole } from "@/services/flowTour/useUserRole";
 
-import { AgendaDay, longDayLabel } from "../../calendar";
+import { AgendaDay, alsoInOfficeOf, longDayLabel } from "../../calendar";
 import { AgendaPerson } from "../../interface";
 import { isPastDay, sortVisitsByRoute } from "../../utils";
 import { AgendaAddMenu } from "../AgendaAddMenu";
 import { DayOffButton } from "../DayOffButton";
 import { DayRoute } from "../DayRoute";
 import { DayRouteActions } from "../DayRouteActions";
+import { OtherOfficeStopCard } from "../OtherOfficeStop";
 import { OverdueVisits } from "../OverdueVisits";
 import { VisitCard } from "../VisitCard";
 
@@ -53,10 +54,19 @@ export function AgendaDayView({
   const isSeller = useUserRole() === "SELLER";
   const day = agendaDay?.day ?? null;
   const items = sortVisitsByRoute(day?.items ?? []);
+  // Paradas da rotina da pessoa nos outros escritórios: aparecem, se concluem
+  // e entram na rota do dia aqui; o "Não trabalho" continua sendo de cá.
+  const otherOffices = agendaDay?.otherOffices ?? [];
+  const alsoInOffice = agendaDay?.alsoInOffice;
   const isPast = isPastDay(date, todayIso);
   const pendingCount = items.filter((i) => i.status === "PENDING").length;
   const routeDay = isSellerAgenda && !isDayOff && items.length > 0 ? day : null;
-  const hasDrivingStops = items.some((i) => i.contactType !== "REMOTE");
+  // A rota aparece quando há para onde dirigir — daqui ou do outro
+  // escritório: um dia só com visitas de lá também é um trajeto.
+  const showRoute =
+    isSellerAgenda &&
+    !isDayOff &&
+    [...items, ...otherOffices].some((s) => s.contactType !== "REMOTE");
 
   return (
     <div className="flex flex-col gap-20">
@@ -107,7 +117,7 @@ export function AgendaDayView({
               Você não trabalha neste dia. O sistema não vai planejar visitas
               para ele.
             </Title>
-          ) : items.length === 0 ? (
+          ) : items.length === 0 && otherOffices.length === 0 ? (
             <Title variant="body-sm" color="muted" className="text-center">
               Nada marcado neste dia.
             </Title>
@@ -118,6 +128,14 @@ export function AgendaDayView({
                   key={item.id}
                   item={item}
                   dayDate={date}
+                  alsoInOffice={alsoInOfficeOf(item, alsoInOffice)}
+                  onChanged={onChanged}
+                />
+              ))}
+              {otherOffices.map((stop) => (
+                <OtherOfficeStopCard
+                  key={stop.id}
+                  stop={stop}
                   onChanged={onChanged}
                 />
               ))}
@@ -125,10 +143,12 @@ export function AgendaDayView({
           )}
         </Card.Body>
       </Card.Root>
-      {routeDay && hasDrivingStops && (
+      {showRoute && (
         <DayRoute
+          date={date}
           day={routeDay}
           canEditDeparture={isSeller}
+          otherOfficeStops={otherOffices}
           onChanged={onChanged}
         />
       )}

@@ -3,11 +3,17 @@
 import { Badge } from "@/components/Badges";
 import { Calendar } from "@/components/Calendar";
 
-import { AgendaDay, dayNumber, WEEKDAY_SHORT } from "../../calendar";
+import {
+  AgendaDay,
+  alsoInOfficeOf,
+  dayNumber,
+  WEEKDAY_SHORT,
+} from "../../calendar";
 import { AGENDA_DRAG_TYPE, AgendaDrag, readDrag } from "../../dragItem";
 import { AgendaPerson } from "../../interface";
 import { isPastDay, sortVisitsByRoute } from "../../utils";
 import { AgendaAddMenu } from "../AgendaAddMenu";
+import { OtherOfficeStopCard } from "../OtherOfficeStop";
 import { VisitCard } from "../VisitCard";
 
 interface Props {
@@ -77,6 +83,15 @@ export function AgendaWeekView({
                   key={item.id}
                   item={item}
                   dayDate={date}
+                  density="compact"
+                  alsoInOffice={alsoInOfficeOf(item, agendaDay?.alsoInOffice)}
+                  onChanged={onChanged}
+                />
+              ))}
+              {(agendaDay?.otherOffices ?? []).map((stop) => (
+                <OtherOfficeStopCard
+                  key={stop.id}
+                  stop={stop}
                   density="compact"
                   onChanged={onChanged}
                 />

@@ -2,6 +2,7 @@ import { toUtcIsoDate } from "@/utils/format/date";
 
 import {
   AgendaView,
+  CrossOfficeStop,
   VisitClient,
   VisitSchedule,
   VisitScheduleDay,
@@ -162,7 +163,62 @@ export interface AgendaDay {
   scheduleId: string | null;
   /** O dia persistido; nulo quando nada foi marcado nele ainda. */
   day: VisitScheduleDay | null;
+  /**
+   * As paradas da pessoa nos OUTROS escritórios neste dia que pedem cartão
+   * próprio — a visita ao cliente que também tem visita aqui não entra: ela
+   * vira o selo `alsoInOffice` do cartão daqui (é uma ida só).
+   */
+  otherOffices: CrossOfficeStop[];
+  /** Cliente (id global) → escritório onde ele também tem visita no dia. */
+  alsoInOffice: Map<string, string>;
 }
+
+const isDriving = (contactType: string) => contactType !== "REMOTE";
+
+/**
+ * Separa as paradas do outro escritório de um dia: as que se juntam a uma
+ * visita presencial daqui ao mesmo cliente (viram selo) e as que pedem cartão.
+ * Só visita junta com visita: a ligação não tem ida a economizar.
+ */
+export const splitOtherOffices = (
+  items: VisitScheduleDay["items"],
+  stops: CrossOfficeStop[]
+): Pick<AgendaDay, "otherOffices" | "alsoInOffice"> => {
+  const visitedHere = new Set(
+    items
+      .filter((item) => isDriving(item.contactType))
+      .map((item) => itemClient(item)?.id)
+      .filter((id): id is string => Boolean(id))
+  );
+  const otherOffices: CrossOfficeStop[] = [];
+  const alsoInOffice = new Map<string, string>();
+  for (const stop of stops) {
+    if (isDriving(stop.contactType) && visitedHere.has(stop.clientId)) {
+      alsoInOffice.set(stop.clientId, stop.officeName);
+    } else {
+      otherOffices.push(stop);
+    }
+  }
+  return {
+    otherOffices: [...otherOffices].sort(
+      (a, b) => a.plannedOrder - b.plannedOrder
+    ),
+    alsoInOffice,
+  };
+};
+
+/**
+ * O escritório onde o cliente desta visita presencial também tem visita no
+ * dia — o selo "Também no …" do cartão. Nulo para ligação ou sem par.
+ */
+export const alsoInOfficeOf = (
+  item: VisitScheduleDay["items"][number],
+  alsoInOffice: Map<string, string> | undefined
+): string | null => {
+  if (!alsoInOffice || !isDriving(item.contactType)) return null;
+  const clientId = itemClient(item)?.id;
+  return (clientId && alsoInOffice.get(clientId)) || null;
+};
 
 /**
  * Junta as semanas buscadas num índice por data. O mês pede até seis semanas
@@ -170,8 +226,14 @@ export interface AgendaDay {
  */
 export const indexDays = (
   schedules: VisitSchedule[],
-  dates: string[]
+  dates: string[],
+  otherOfficeStops: CrossOfficeStop[] = []
 ): Map<string, AgendaDay> => {
+  const stopsByDate = new Map<string, CrossOfficeStop[]>();
+  for (const stop of otherOfficeStops) {
+    const date = stop.date.slice(0, 10);
+    stopsByDate.set(date, [...(stopsByDate.get(date) ?? []), stop]);
+  }
   const byDate = new Map<
     string,
     { scheduleId: string; day: VisitScheduleDay }
@@ -193,6 +255,10 @@ export const indexDays = (
           scheduleId:
             found?.scheduleId ?? scheduleByWeek.get(mondayOf(date)) ?? null,
           day: found?.day ?? null,
+          ...splitOtherOffices(
+            found?.day?.items ?? [],
+            stopsByDate.get(date) ?? []
+          ),
         },
       ];
     })

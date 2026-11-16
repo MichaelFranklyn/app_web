@@ -1,6 +1,6 @@
 # AUTO-GERADO por scripts/pull-schema.mjs — NÃO editar à mão.
 # Snapshot do schema do backend (app_user). Atualize com: npm run schema:pull
-# Fonte: 59 arquivos .graphql merge-ados (mesma regra do Ariadne).
+# Fonte: 60 arquivos .graphql merge-ados (mesma regra do Ariadne).
 
 input BaseListInput {
   filters: [FieldFilterInput!] = null
@@ -2019,6 +2019,118 @@ extend type Mutation {
   createCompanyFactory(input: CreateCompanyFactoryInput!): CompanyFactoryTypeDataResponse!
   updateCompanyFactory(id: UUID!, input: UpdateCompanyFactoryInput!): CompanyFactoryTypeDataResponse!
   deleteCompanyFactory(id: UUID!): BaseResponse!
+}
+
+"""
+A rotina integrada entre escritórios da MESMA pessoa (decisão de 16/11/2026).
+
+Quem é vendedor em mais de um escritório vê, na agenda e na rota do dia, as
+paradas que tem nos outros, e registra o desfecho delas sem trocar de
+escritório. Pedido e estoque continuam exigindo entrar no escritório da
+fábrica. Nada de preço, comissão ou percentual atravessa: só a rota.
+"""
+type CrossOfficeStopType {
+  "A visita na rotina do outro escritório."
+  id: UUID!
+  dayId: UUID!
+  companyId: UUID!
+  "Como o outro escritório aparece (nome fantasia ou razão social)."
+  officeName: String!
+  date: Date!
+  status: VisitStatus!
+  contactType: VisitContactType!
+  plannedOrder: Int!
+  isManual: Boolean!
+  outcome: VisitOutcome
+  actualVisitAt: DateTime
+  clientId: UUID!
+  clientName: String!
+  city: String
+  state: String
+  neighborhood: String
+  address: String
+  latitude: Float
+  longitude: Float
+  "A fábrica que motivou a parada lá (só o nome)."
+  factoryName: String
+}
+
+type CrossOfficeStopListDataResponse {
+  status: Boolean!
+  code: Int!
+  message: String!
+  data: [CrossOfficeStopType!]
+}
+
+type CrossOfficeStopTypeDataResponse {
+  status: Boolean!
+  code: Int!
+  message: String!
+  data: CrossOfficeStopType
+}
+
+"""
+A rota do dia somando os escritórios da pessoa: uma ida só, saindo do mesmo
+lugar. Só ids, quilômetros e minutos — nada de fábrica, preço ou comissão.
+"""
+type CrossOfficeDayRouteType {
+  "Deslocamento do que falta, ida e volta."
+  distanceKm: Decimal!
+  durationMin: Int!
+  "Paradas presenciais dos dois escritórios (o mesmo cliente conta uma vez)."
+  stopCount: Int!
+  visitDurationMin: Int!
+  "Quando termina a última visita, no formato 17:40."
+  lastEndTime: String
+  departureAddress: String
+  """
+  Ids das paradas na ordem do trajeto (daqui ou de lá): as resolvidas
+  primeiro, depois as pendentes na ordem otimizada.
+  """
+  order: [UUID!]!
+}
+
+type CrossOfficeDayRouteDataResponse {
+  status: Boolean!
+  code: Int!
+  message: String!
+  data: CrossOfficeDayRouteType
+}
+
+"""O desfecho de uma parada de outro escritório — o resto se muda lá."""
+input UpdateCrossOfficeVisitInput {
+  status: VisitStatus = null
+  outcome: VisitOutcome = null
+  outcomeReason: String = null
+  notes: String = null
+  checkinLat: Decimal = null
+  checkinLng: Decimal = null
+  actualVisitAt: DateTime = null
+}
+
+extend type Query {
+  """
+  As paradas da pessoa logada nos OUTROS escritórios em que ela é vendedora,
+  entre as duas datas (no máximo 62 dias). Vazio para quem trabalha num
+  escritório só e na sessão emprestada.
+  """
+  crossOfficeStops(dateFrom: Date!, dateTo: Date!): CrossOfficeStopListDataResponse!
+
+  """
+  A rota do dia da pessoa logada contando as paradas presenciais dos outros
+  escritórios. `data` nulo quando o dia não tem parada presencial lá (a rota
+  daqui já é a rota inteira) e na sessão emprestada.
+  """
+  crossOfficeDayRoute(date: Date!): CrossOfficeDayRouteDataResponse!
+}
+
+extend type Mutation {
+  """
+  Registra o desfecho de uma parada de outro escritório da mesma pessoa.
+  Concluir uma visita presencial conclui também a do mesmo cliente, no mesmo
+  dia, na rotina daqui.
+  """
+  updateCrossOfficeVisit(id: UUID!, input: UpdateCrossOfficeVisitInput!): CrossOfficeStopTypeDataResponse!
 }
 
 type RevenueByMonthPoint {
@@ -8842,6 +8954,31 @@ type PlannedStopType {
   isSuggested: Boolean!
   latitude: Float
   longitude: Float
+  """
+  A parada é da rotina de OUTRO escritório da mesma pessoa (nome do
+  escritório). Só leitura aqui: quem a muda é aquele escritório.
+  """
+  officeName: String
+  """
+  O cliente também tem visita neste dia no outro escritório (nome dele): é uma
+  ida só, e cada escritório registra a sua.
+  """
+  alsoInOffice: String
+}
+
+"""
+Visita alinhada no mesmo dia com outro escritório da mesma pessoa. Só quem,
+onde e quando — nada de fábrica, preço ou comissão do outro escritório.
+"""
+type AlignedStopType {
+  clientId: UUID!
+  name: String!
+  officeName: String!
+  """De onde a visita saiu. Nulo quando a parada daqui não tinha data."""
+  fromDate: Date
+  toDate: Date!
+  """Quem muda de dia é a visita do outro escritório."""
+  movesOtherOffice: Boolean!
 }
 
 type PlannedDayType {
@@ -8872,6 +9009,8 @@ type PlanWeekType {
   added: Int!
   """Dias escolhidos que não existem para o vendedor (folga, já passou) — ignorados."""
   ignoredDays: [Date!]!
+  """Visitas alinhadas no mesmo dia com outro escritório da mesma pessoa."""
+  aligned: [AlignedStopType!]!
 }
 
 type PlanWeekTypeDataResponse {

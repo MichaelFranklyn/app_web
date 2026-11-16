@@ -28,10 +28,13 @@ import { formatWeekRange } from "./utils";
  */
 export default function AgendaContent({
   canSelectPerson,
+  ownSellerId = null,
 }: {
   canSelectPerson: boolean;
+  /** O perfil de vendedor de quem está logado — liga a rotina integrada. */
+  ownSellerId?: string | null;
 }) {
-  const agenda = useAgenda(canSelectPerson);
+  const agenda = useAgenda(canSelectPerson, ownSellerId);
   const {
     view,
     anchor,

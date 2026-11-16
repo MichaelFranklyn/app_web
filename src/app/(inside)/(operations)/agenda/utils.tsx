@@ -385,6 +385,27 @@ export const formatDateLong = (isoDate: string): string => {
 
 // Endereço em formato amigável ao Google Maps (vírgulas), ou null se não houver
 // dados suficientes para localizar — usado para origem/destino/waypoints da rota.
+/**
+ * O endereço de uma parada do outro escritório no mesmo formato do
+ * `mapsQuery` — o backend já manda rua e número numa linha só.
+ */
+export const crossOfficeMapsQuery = (stop: {
+  address: string | null;
+  neighborhood: string | null;
+  city: string | null;
+  state: string | null;
+}): string | null => {
+  const place = stop.city
+    ? stop.state
+      ? `${stop.city} - ${stop.state}`
+      : stop.city
+    : stop.state;
+  const parts = [stop.address, stop.neighborhood, place].filter(
+    (part): part is string => Boolean(part)
+  );
+  return parts.length > 0 ? parts.join(", ") : null;
+};
+
 export const mapsQuery = (client: VisitClient | null): string | null => {
   if (!client) return null;
   const parts: string[] = [];
