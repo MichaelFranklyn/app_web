@@ -300,6 +300,7 @@ const SSR_RESPONSES: Record<string, SsrResponse> = {
             message: "ok",
             data: {
               id: "order-portal-1",
+              number: 428,
               orderDate: "2026-08-01",
               factoryName: "Fábrica Alfa",
               totalAmount: "3000.0000",
@@ -309,6 +310,11 @@ const SSR_RESPONSES: Record<string, SsrResponse> = {
               deliveredAt: "2026-08-10",
               estimatedDeliveryDate: null,
               paymentTermName: "30/60",
+              taxAmount: "0.0000",
+              freightType: null,
+              sellerName: null,
+              sellerEmail: null,
+              sellerPhone: null,
               items: [
                 {
                   id: "item-1",
@@ -318,6 +324,9 @@ const SSR_RESPONSES: Record<string, SsrResponse> = {
                   unitPrice: "250.0000",
                   subtotal: "3000.0000",
                   ipiAmount: "0.0000",
+                  ipiRate: "0.0000",
+                  taxAmount: "0.0000",
+                  unitPriceWithTax: "250.0000",
                 },
               ],
               installments: [

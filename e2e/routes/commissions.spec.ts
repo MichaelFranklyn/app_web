@@ -155,7 +155,9 @@ test("comissões: trocar a ótica refaz os números da tela inteira", async ({
   await page.goto("/commissions");
 
   // Ótica do escritório (a que a tela abre): o dinheiro da fábrica, em agosto.
-  await expect(page.getByText("A receber em agosto de 2026")).toBeVisible();
+  await expect(
+    page.getByText("A receber em agosto de 2026", { exact: true })
+  ).toBeVisible();
   await expect(page.getByText("R$ 50,00").first()).toBeVisible();
   await expect(
     page.getByText("Mostrando o que as fábricas devem em agosto de 2026", {
