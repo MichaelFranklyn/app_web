@@ -99,6 +99,11 @@ export default defineConfig({
       // variável é lida no build (o Next inlina NEXT_PUBLIC_* no bundle), por
       // isso vive aqui, onde o `e2e:build` também a recebe.
       NEXT_PUBLIC_DISABLE_SW: "1",
+      // Sem chave do Google Maps, como na CI: com a chave do `.env` local o
+      // mapa embutido vira o iframe de erro do Google (o referer localhost não
+      // é autorizado), e a baseline visual gerada na máquina não bate com a
+      // da CI. Vazia vence o `.env` (o Next não sobrescreve o que já existe).
+      NEXT_PUBLIC_GOOGLE_MAPS_API_KEY: "",
       ...(process.env.COVERAGE
         ? { COVERAGE: "1", NODE_V8_COVERAGE: "coverage/e2e-server" }
         : {}),
