@@ -96,7 +96,7 @@ export function UsersTable({
             >
               Situação
             </Table.Head>
-            <Table.Head className="text-right">Ações</Table.Head>
+            <Table.Head align="right">Ações</Table.Head>
           </Table.Row>
         </Table.Header>
         <Table.Body>
@@ -193,7 +193,7 @@ export function UsersTable({
                     )}
                   </Table.Cell>
 
-                  <Table.Cell card="actions">
+                  <Table.Cell card="actions" align="right">
                     <UserRowActions
                       user={node}
                       onUpdateOptimistic={onUpdateOptimistic}

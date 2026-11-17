@@ -21,7 +21,7 @@ interface Props {
  */
 export function EnableSellerCard({ isSelf, onEnable }: Props) {
   return (
-    <Card.Root className="desktop:col-span-2">
+    <Card.Root>
       <Card.Header>
         <Card.Header.Title>Atuação em campo</Card.Header.Title>
         <Card.Header.Description>

@@ -1,12 +1,12 @@
 "use client";
 
-import { Grid } from "@/components/Grid";
 import { useState } from "react";
 import {
   EditSellerDataModal,
   EnableSellerCard,
   EnableSellerModal,
   PersonalDataCard,
+  ProfileSection,
   SellerDataCard,
   SellerKpis,
   SystemAccessCard,
@@ -41,18 +41,19 @@ export function MyProfileCards({ user, canEnableSeller, onRefetch }: Props) {
   const seller = user.seller;
 
   return (
-    <div className="flex flex-col gap-16">
+    <div className="flex flex-col gap-24">
       {seller && <SellerKpis seller={seller} />}
 
-      <Grid.Root cols={{ base: 1, desktop: 2 }} gap={16}>
+      <ProfileSection
+        title="Seus dados"
+        description="Quem você é e como a empresa fala com você."
+      >
         <PersonalDataCard
           user={user}
           isSelf
           onEdit={() => setEditProfileOpen(true)}
           dataTour="profile-info"
         />
-
-        <SystemAccessCard user={user} isSelf />
 
         {seller ? (
           <SellerDataCard
@@ -68,13 +69,25 @@ export function MyProfileCards({ user, canEnableSeller, onRefetch }: Props) {
             />
           )
         )}
+      </ProfileSection>
+
+      <ProfileSection
+        title="Acesso e segurança"
+        description="Como você entra no Itinus e o que pode fazer nele."
+      >
+        <SystemAccessCard user={user} isSelf />
 
         <PasswordCard
           email={user.email}
           onChangePassword={() => setChangePasswordOpen(true)}
           dataTour="profile-password"
         />
+      </ProfileSection>
 
+      <ProfileSection
+        title="Notificações"
+        description="O que o Itinus avisa a você, por email e neste aparelho."
+      >
         <EmailDigestCard
           isEnabled={user.isEmailDigestEnabled}
           onDone={onRefetch}
@@ -83,7 +96,7 @@ export function MyProfileCards({ user, canEnableSeller, onRefetch }: Props) {
         {/* Só no próprio perfil: a autorização é do aparelho de quem está
             usando, e o gestor não tem como ligá-la no celular de outra pessoa. */}
         <PushNotificationsCard />
-      </Grid.Root>
+      </ProfileSection>
 
       <EditMyProfileModal
         profile={user}

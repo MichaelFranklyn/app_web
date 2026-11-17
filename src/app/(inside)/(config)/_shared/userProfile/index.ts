@@ -36,6 +36,7 @@ export { FixedSchedulesSection } from "./FixedSchedulesSection";
 export { DataField, EditCardAction } from "../dataCards";
 export { PersonalDataCard } from "./PersonalDataCard";
 export { PersonDataModal } from "./PersonDataModal";
+export { ProfileSection } from "./ProfileSection";
 export { RoutineSection } from "./RoutineSection";
 export { SellerDataCard } from "./SellerDataCard";
 export { SellerKpis } from "./SellerKpis";

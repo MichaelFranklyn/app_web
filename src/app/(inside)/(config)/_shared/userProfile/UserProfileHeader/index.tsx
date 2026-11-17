@@ -11,8 +11,12 @@ import { UserDetail } from "../interface";
 
 interface Props {
   user: UserDetail;
-  /** true quando é o próprio usuário logado abrindo o seu perfil. */
-  isSelf: boolean;
+  /**
+   * Mostra o rastro "Pessoas › nome". Vale para quem gerencia a equipe (gestor
+   * vendo outra pessoa, ou proprietário/admin no próprio perfil); o vendedor não
+   * tem a lista de Pessoas, então o rastro não teria para onde voltar.
+   */
+  hasBreadcrumb: boolean;
   actions?: React.ReactNode;
 }
 
@@ -24,14 +28,13 @@ const initials = (name: string): string =>
     .join("")
     .toUpperCase();
 
-export function UserProfileHeader({ user, isSelf, actions }: Props) {
+export function UserProfileHeader({ user, hasBreadcrumb, actions }: Props) {
   const role = user.role as UserRole;
   const status = userAccessStatus(user);
 
   return (
     <div className="flex flex-col gap-8">
-      {/* Só na visão do gestor: no próprio perfil o rastro teria um passo único. */}
-      {!isSelf && (
+      {hasBreadcrumb && (
         <Breadcrumb.Root>
           <Breadcrumb.Item href="/settings/users">Pessoas</Breadcrumb.Item>
           <Breadcrumb.Separator />

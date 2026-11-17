@@ -9,9 +9,9 @@ interface Props {
 }
 
 /**
- * Ação de editar no cabeçalho de um card do perfil: neutra, como todo "editar"
- * da taxonomia de botões. Âmbar fica só para criar/salvar — com quatro cards
- * âmbar na mesma tela, nenhum se destacava (auditoria UX, item 8).
+ * Ação no cabeçalho de um card (perfil, empresa): botão primário, igual aos de
+ * adicionar das outras caixas — decisão do produto em 17/11/2026, para toda
+ * caixa ter a sua ação com o mesmo peso.
  *
  * O header colapsa o texto por medição, então o `label` mantém o nome acessível
  * quando só o ícone aparece.
@@ -19,8 +19,8 @@ interface Props {
 export function EditCardAction({ title, onClick }: Props) {
   return (
     <Button.Root
-      appearance="outline"
-      color="neutral"
+      appearance="solid"
+      color="amber"
       size="sm"
       label={title}
       onClick={onClick}
