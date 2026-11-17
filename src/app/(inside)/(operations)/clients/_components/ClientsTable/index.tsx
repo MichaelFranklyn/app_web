@@ -111,7 +111,7 @@ export function ClientsTable({
           ) : items.length === 0 ? (
             <Table.Row>
               <Table.Cell colSpan={6}>
-                <EmptyState.Root>
+                <EmptyState.Root flat>
                   <EmptyState.Icon>
                     <Users size={32} />
                   </EmptyState.Icon>

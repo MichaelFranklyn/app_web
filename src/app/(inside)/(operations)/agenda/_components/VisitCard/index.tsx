@@ -5,7 +5,8 @@ import { Card } from "@/components/Card";
 import { Badge } from "@/components/Badges";
 import { InputCheckbox } from "@/components/Input/InputCheckbox";
 import { Title } from "@/components/Title";
-import { CloudUpload, TriangleAlert } from "lucide-react";
+import { Button } from "@/components/Button";
+import { Check, CloudUpload, TriangleAlert, X } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { clientDisplayName } from "@/utils/client";
 import { visitPriority } from "@/utils/score";
@@ -19,7 +20,7 @@ import {
   getVisitFollowupWarning,
   getVisitScoreTotal,
 } from "../../utils";
-import { useVisitActions } from "../../useVisitActions";
+import { PushAnswer, useVisitActions } from "../../useVisitActions";
 import { factoryName } from "@/utils/company";
 import { contactNoun } from "@/utils/visit";
 import { ContactLinks } from "../ContactLinks";
@@ -44,6 +45,13 @@ interface Props {
    * dia — é uma ida só, e concluir aqui conclui lá.
    */
   alsoInOffice?: string | null;
+  /**
+   * Os botões grandes "Visitei" / "Não deu" no próprio cartão — a rota de hoje
+   * do vendedor, respondida em um toque sem abrir nada (TASK-006).
+   */
+  quickAnswer?: boolean;
+  /** Resposta que veio do botão do aviso no celular para ESTA visita. */
+  autoAnswer?: PushAnswer | null;
   onChanged: () => void;
 }
 
@@ -82,6 +90,8 @@ export function VisitCard({
   dayDate,
   density = "full",
   alsoInOffice = null,
+  quickAnswer = false,
+  autoAnswer = null,
   onChanged,
 }: Props) {
   const {
@@ -89,10 +99,11 @@ export function VisitCard({
     isAwaitingSignal,
     openView,
     toggleCompleted,
+    openMissed,
     isToggling,
     menu,
     overlays,
-  } = useVisitActions({ item, dayDate, onChanged });
+  } = useVisitActions({ item, dayDate, onChanged, autoAnswer });
 
   const isCompleted = status === "COMPLETED";
   const isRemote = item.contactType === "REMOTE";
@@ -115,6 +126,10 @@ export function VisitCard({
     isCompact && Boolean(dayDate) && canDragItem(item, isAwaitingSignal);
   // O motivo de quem marcou vem no lugar das fábricas: é ele que explica a parada.
   const subtitle = item.reason ?? getFocusLabel(item);
+  // Só a parada ainda aberta e já com a resposta no servidor: a que está
+  // guardada no aparelho mostra o "aguardando sinal" no lugar.
+  const showQuickAnswer =
+    quickAnswer && !isCompact && status === "PENDING" && !isAwaitingSignal;
 
   return (
     <>
@@ -279,6 +294,42 @@ export function VisitCard({
                 clientName={clientName}
                 clientId={client?.id ?? null}
               />
+            </div>
+          )}
+
+          {/* Responder em um toque: o alvo grande é para quem está na rua, com
+            o celular numa mão. "Visitei" já oferece pedido/estoque em seguida;
+            "Não deu" pergunta o motivo numa tela só. */}
+          {showQuickAnswer && (
+            <div
+              className="mt-8 grid grid-cols-2 gap-8"
+              onClick={(e) => e.stopPropagation()}
+              onKeyDown={(e) => e.stopPropagation()}
+            >
+              <Button.Root
+                type="button"
+                appearance="solid"
+                color="amber"
+                size="md"
+                fullWidth
+                loading={isToggling}
+                onClick={() => toggleCompleted(true)}
+              >
+                <Button.Icon icon={Check} />
+                <Button.Title>{isRemote ? "Liguei" : "Visitei"}</Button.Title>
+              </Button.Root>
+              <Button.Root
+                type="button"
+                appearance="outline"
+                color="neutral"
+                size="md"
+                fullWidth
+                disabled={isToggling}
+                onClick={openMissed}
+              >
+                <Button.Icon icon={X} />
+                <Button.Title>Não deu</Button.Title>
+              </Button.Root>
             </div>
           )}
 

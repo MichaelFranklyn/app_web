@@ -86,6 +86,15 @@ export const ORDER_DETAIL_QUERY = gql`
           installmentsDays
           minOrderAmount
         }
+        reopenings {
+          id
+          createdAt
+          userEmail
+          reason
+          restoredStatus
+          cancelledAt
+          cancelReason
+        }
         invoiceReversals {
           id
           kind

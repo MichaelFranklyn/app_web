@@ -9,6 +9,7 @@ import {
   ORDER_CACHE_FIELDS,
   ORDER_ITEM_EVIDENCE_CACHE_FIELDS,
 } from "@/utils/cacheFields";
+import { DELETE_ORDER_MUTATION } from "@/graphql/orders";
 import { useMutation } from "@apollo/client/react";
 import { useRef, useState } from "react";
 
@@ -18,8 +19,8 @@ import {
   CreateOrderResponse,
 } from "../_shared/orderCreate";
 import {
-  CREATE_ORDER_ITEM_MUTATION,
-  CreateOrderItemResponse,
+  CREATE_ORDER_ITEMS_MUTATION,
+  CreateOrderItemsResponse,
   createDraftItems,
   useOrderDraftItems,
 } from "../../_shared/orderDraftItems";
@@ -31,7 +32,7 @@ import { useDraftBackup } from "./useDraftBackup";
  * O que a página de novo pedido faz igual em qualquer origem (lista, cliente,
  * fábrica): guarda a fábrica e o cliente escolhidos, mantém o rascunho de
  * itens, as condições e o frete da fábrica, e grava — cria o pedido, depois
- * cada item, e entra no pedido criado.
+ * os itens num lote só (tudo ou nada), e entra no pedido criado.
  *
  * O "de quem é o pedido" (a cascata, ou o vínculo) fica com cada origem, que
  * recebe este núcleo e chama `setFactoryId`/`setClientId` conforme escolhe.
@@ -87,12 +88,16 @@ export function useNewOrderCore(fixed: Fixed = {}) {
   };
 
   const [createOrder] = useMutation<CreateOrderResponse>(CREATE_ORDER_MUTATION);
-  const [createOrderItem] = useMutation<CreateOrderItemResponse>(
-    CREATE_ORDER_ITEM_MUTATION
+  const [createOrderItems] = useMutation<CreateOrderItemsResponse>(
+    CREATE_ORDER_ITEMS_MUTATION
+  );
+  // Só para desfazer o pedido vazio quando o lote de itens é recusado.
+  const [deleteOrder] = useMutation<{ deleteOrder: { status: boolean } }>(
+    DELETE_ORDER_MUTATION
   );
   const { execute, isLoading } = useAsyncAction();
 
-  // Cria o pedido e, em seguida, cada item do rascunho.
+  // Cria o pedido e, em seguida, os itens do rascunho.
   const create = async (input: CreateOrderInput) => {
     // Pedido sem item não existe: o "Criar pedido" pede a lista antes.
     if (draft.items.length === 0) {
@@ -128,17 +133,34 @@ export function useNewOrderCore(fixed: Fixed = {}) {
         const order = res.data.createOrder.data;
 
         // Itens são gravados após o pedido existir (o backend não os aceita no
-        // CreateOrderInput). Falhas parciais não desfazem o pedido.
-        const failed = await createDraftItems(
-          createOrderItem,
-          order.id,
-          draft.items
-        );
-        return { order, failed };
+        // CreateOrderInput), num lote que é tudo ou nada. Recusado o lote, o
+        // pedido ficaria vazio: apagamos e o vendedor segue aqui, com o
+        // rascunho intacto e a mensagem dizendo qual item travou.
+        try {
+          await createDraftItems(createOrderItems, order.id, draft.items);
+        } catch (error) {
+          const removed = await deleteOrder({ variables: { id: order.id } })
+            .then((r) => Boolean(r.data?.deleteOrder?.status))
+            .catch(() => false);
+          if (!removed) {
+            // Raro (sem sinal no meio do caminho): o pedido existe, sem itens.
+            // Dizer isso evita que o vendedor crie um segundo pedido igual.
+            throw new Error(
+              "Os itens não foram gravados e o pedido ficou criado sem itens. Abra-o na lista de pedidos para completar ou excluir."
+            );
+          }
+          if (isConnectivityError(error)) {
+            throw new Error(
+              "Sem sinal: o pedido não foi criado. O que você preencheu continua aqui e guardado no aparelho — toque em “Criar pedido” quando o sinal voltar."
+            );
+          }
+          throw error;
+        }
+        return { order };
       },
       {
         successMessage: "Pedido criado com sucesso",
-        onSuccess: async ({ order, failed }) => {
+        onSuccess: async ({ order }) => {
           backup.clear();
           // Item gravado é a prova de que a visita aconteceu: o backend fecha
           // a visita pendente do cliente no primeiro item. Sem itens, só o
@@ -148,13 +170,6 @@ export function useNewOrderCore(fixed: Fixed = {}) {
               ? ORDER_ITEM_EVIDENCE_CACHE_FIELDS
               : ORDER_CACHE_FIELDS
           );
-          if (failed.length) {
-            toast({
-              variant: "error",
-              title: "Alguns itens não foram adicionados",
-              description: `${failed.join(", ")} — adicione no detalhe do pedido.`,
-            });
-          }
           // O botão segue em loading até o pedido novo carregar: é a
           // navegação que tira esta página de cena.
           // Com itens, a página pôs uma sentinela no histórico (guarda de

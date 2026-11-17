@@ -94,6 +94,7 @@ const ASSUNTOS: Assunto[] = [
       "createOrder",
       "deleteOrder",
       "createOrderItem",
+      "createOrderItems",
       "updateOrderItem",
       "deleteOrderItem",
       "invoiceOrder",

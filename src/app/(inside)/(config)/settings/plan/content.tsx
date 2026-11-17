@@ -10,6 +10,7 @@ import { useQuery } from "@apollo/client/react";
 import { PlanFeaturesSection } from "./_components/PlanFeaturesSection";
 import { PlanHeader } from "./_components/PlanHeader";
 import { PlanUsageSection } from "./_components/PlanUsageSection";
+import { SubscriptionSection } from "./_components/SubscriptionSection";
 
 /**
  * O contrato da empresa, do lado de quem paga por ele: qual plano, o que ele
@@ -57,6 +58,7 @@ export default function PlanContent({ seed }: Props) {
   return (
     <PageContent>
       <PlanHeader plan={plan} />
+      <SubscriptionSection planCode={plan.code} />
       <PlanUsageSection limits={plan.limits} />
       <PlanFeaturesSection features={plan.features} />
     </PageContent>

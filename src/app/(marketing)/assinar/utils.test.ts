@@ -1,24 +1,17 @@
 import { describe, expect, it } from "vitest";
 import { ANNUAL_BILLED_MONTHS, PLANS } from "../plans";
-import { CardData } from "./interface";
 import {
-  DEMO_CARDS,
+  describeStartError,
+  extraUsersFor,
   findPlanByCode,
-  simulateCharge,
+  isSafeInvoiceUrl,
+  START_FALLBACK_MESSAGE,
+  toApiCycle,
   totalForCycle,
-  validateCard,
 } from "./utils";
 
 const basic = PLANS.find((plan) => plan.code === "basic")!;
 const enterprise = PLANS.find((plan) => plan.code === "enterprise")!;
-
-const card = (overrides: Partial<CardData> = {}): CardData => ({
-  number: DEMO_CARDS.approved,
-  holder: "Michael Franklyn",
-  expiry: "12/30",
-  cvv: "123",
-  ...overrides,
-});
 
 describe("findPlanByCode", () => {
   it("acha o plano pelo código da URL", () => {
@@ -57,33 +50,56 @@ describe("totalForCycle", () => {
   });
 });
 
-describe("simulateCharge", () => {
-  it("aprova o cartão de teste", () => {
-    expect(simulateCharge(card())).toBe("approved");
-  });
-
-  it("recusa o cartão de recusa, com ou sem máscara", () => {
-    // O campo entrega o número mascarado; a comparação tem de ignorar isso,
-    // senão a tela de recusa nunca seria alcançada pela interface.
-    expect(simulateCharge(card({ number: DEMO_CARDS.declined }))).toBe(
-      "declined"
-    );
-    expect(simulateCharge(card({ number: "4000000000000002" }))).toBe(
-      "declined"
-    );
+describe("toApiCycle", () => {
+  it("traduz o ciclo da tela para o enum do backend", () => {
+    expect(toApiCycle("monthly")).toBe("MONTHLY");
+    expect(toApiCycle("annual")).toBe("YEARLY");
   });
 });
 
-describe("validateCard", () => {
-  it("aceita o cartão de teste preenchido", () => {
-    expect(validateCard(card())).toEqual({});
+describe("extraUsersFor", () => {
+  it("cobra só os logins além dos inclusos", () => {
+    // Básico inclui 2: com 5 usuários, 3 vão à parte.
+    expect(extraUsersFor(basic, 5)).toBe(3);
   });
 
-  it("exige 16 dígitos, validade MM/AA e CVV de 3", () => {
-    const errors = validateCard(
-      card({ number: "4242 4242", expiry: "1230", cvv: "1" })
-    );
+  it("nunca manda número negativo", () => {
+    expect(extraUsersFor(basic, 1)).toBe(0);
+    expect(extraUsersFor(basic, 2)).toBe(0);
+  });
+});
 
-    expect(Object.keys(errors).sort()).toEqual(["cvv", "expiry", "number"]);
+describe("describeStartError", () => {
+  it("manda entrar quando não há sessão", () => {
+    expect(describeStartError("UNAUTHORIZED")).toEqual({ status: "login" });
+    expect(describeStartError("Autenticação necessária")).toEqual({
+      status: "login",
+    });
+    expect(describeStartError("Token inválido ou expirado")).toEqual({
+      status: "login",
+    });
+  });
+
+  it("mostra a recusa de negócio como o backend escreveu", () => {
+    const message = "A empresa já tem uma assinatura ativa.";
+    expect(describeStartError(message)).toEqual({ status: "error", message });
+  });
+
+  it("troca erro técnico pelo texto genérico", () => {
+    for (const raw of ["", "NETWORK_ERROR: 502", "fetch failed"]) {
+      expect(describeStartError(raw)).toEqual({
+        status: "error",
+        message: START_FALLBACK_MESSAGE,
+      });
+    }
+  });
+});
+
+describe("isSafeInvoiceUrl", () => {
+  it("só aceita página HTTPS", () => {
+    expect(isSafeInvoiceUrl("https://www.asaas.com/i/abc")).toBe(true);
+    expect(isSafeInvoiceUrl("http://exemplo.com")).toBe(false);
+    expect(isSafeInvoiceUrl("javascript:alert(1)")).toBe(false);
+    expect(isSafeInvoiceUrl(null)).toBe(false);
   });
 });

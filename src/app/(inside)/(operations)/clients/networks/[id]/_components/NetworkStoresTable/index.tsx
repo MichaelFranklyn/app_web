@@ -58,7 +58,7 @@ export function NetworkStoresTable({ table, stores }: Props) {
           ) : stores.length === 0 ? (
             <Table.Row>
               <Table.Cell colSpan={COLUMNS}>
-                <EmptyState.Root>
+                <EmptyState.Root flat>
                   <EmptyState.Icon>
                     <Store size={32} />
                   </EmptyState.Icon>

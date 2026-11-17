@@ -113,6 +113,7 @@ export function OrderImportWizard({
     sheetOptions,
     onSheetChange,
     unreadableRows,
+    readingPhase,
   } = useOrderImportWizard({
     orderId,
     deferred,
@@ -162,6 +163,7 @@ export function OrderImportWizard({
                 file={file}
                 onFiles={handleFiles}
                 ready={Boolean(matrix && data)}
+                readingPhase={readingPhase}
               />
             </Stepper.Item>
           )}

@@ -113,7 +113,7 @@ export function FixedSchedulesSection({ sellerId }: Props) {
           ) : schedules.length === 0 ? (
             <Table.Row>
               <Table.Cell colSpan={5}>
-                <EmptyState.Root>
+                <EmptyState.Root flat>
                   <EmptyState.Icon>
                     <CalendarCheck size={32} />
                   </EmptyState.Icon>

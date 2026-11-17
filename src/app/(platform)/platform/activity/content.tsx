@@ -166,7 +166,7 @@ export default function ActivityContent({
               ) : tableData.displayedData.length === 0 ? (
                 <Table.Row>
                   <Table.Cell colSpan={COLUMN_COUNT}>
-                    <EmptyState.Root>
+                    <EmptyState.Root flat>
                       <EmptyState.Icon>
                         <Activity size={32} />
                       </EmptyState.Icon>

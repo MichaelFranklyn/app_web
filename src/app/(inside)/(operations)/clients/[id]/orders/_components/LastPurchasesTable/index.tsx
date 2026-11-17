@@ -83,7 +83,7 @@ export function LastPurchasesTable({ companyClientId }: Props) {
           ) : rows.length === 0 ? (
             <Table.Row>
               <Table.Cell colSpan={COLUMNS}>
-                <EmptyState.Root>
+                <EmptyState.Root flat>
                   <EmptyState.Icon>
                     <ShoppingBasket size={32} />
                   </EmptyState.Icon>

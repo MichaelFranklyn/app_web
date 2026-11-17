@@ -15,7 +15,7 @@ import { getTodayIso, toIsoDate } from "@/utils/format/date";
 import { useMutation } from "@apollo/client/react";
 import { FileCheck2 } from "lucide-react";
 import { useControlledOpen } from "@/hooks/useControlledOpen";
-import { useMemo, useRef, useState } from "react";
+import { useMemo, useRef } from "react";
 import { INVOICE_ORDER_MUTATION } from "../../gql";
 import { OrderDetail } from "../../interface";
 import { isPaymentBasis, selectValue } from "../../utils";

@@ -4,10 +4,13 @@ import {
   CalendarPlus,
   FileCheck2,
   FileClock,
+  RotateCcw,
   Send,
   Trash2,
 } from "lucide-react";
 import { useState } from "react";
+import { useUserData } from "@/hooks/useUserData";
+import { isAdminRole } from "@/utils/auth/roles";
 import { OrderDetail } from "../../../interface";
 import { availableActions, pickPrimaryAction } from "./utils";
 
@@ -17,6 +20,7 @@ export type MenuModal =
   | "editInvoice"
   | "scheduleReturn"
   | "cancel"
+  | "reopen"
   | "delete";
 
 const when = (condition: boolean, option: MoreOption): MoreOption[] =>
@@ -29,6 +33,7 @@ const when = (condition: boolean, option: MoreOption): MoreOption[] =>
  */
 export function useOrderMenu(order: OrderDetail) {
   const [menuModal, setMenuModal] = useState<MenuModal | null>(null);
+  const { userData } = useUserData();
   const can = availableActions(order);
   const primary = pickPrimaryAction(order);
   const isQuote = can.convert;
@@ -38,6 +43,8 @@ export function useOrderMenu(order: OrderDetail) {
     invoice: can.invoice && primary !== "invoice",
     // Sem cliente não há com quem combinar o retorno.
     scheduleReturn: can.scheduleReturn && !!order.client,
+    // Cancelar é do dia a dia; desfazer o desfecho é correção — do gestor.
+    reopen: can.reopen && isAdminRole(userData?.role),
   };
   const open = (key: MenuModal) => () => setMenuModal(key);
 
@@ -59,6 +66,11 @@ export function useOrderMenu(order: OrderDetail) {
           label: "Editar faturamento",
           icon: FileClock,
           onClick: open("editInvoice"),
+        }),
+        ...when(show.reopen, {
+          label: "Reabrir pedido",
+          icon: RotateCcw,
+          onClick: open("reopen"),
         }),
         ...when(show.scheduleReturn, {
           label: "Agendar retorno",

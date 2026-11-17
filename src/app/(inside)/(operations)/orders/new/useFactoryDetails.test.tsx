@@ -16,9 +16,9 @@ vi.mock("../../_shared/orderDraftItems", async () => {
   return {
     createDraftItems: vi.fn(async () => []),
     useOrderDraftItems: () => draft,
-    CREATE_ORDER_ITEM_MUTATION: gql`
-      mutation CreateOrderItem {
-        createOrderItem {
+    CREATE_ORDER_ITEMS_MUTATION: gql`
+      mutation CreateOrderItems {
+        createOrderItems {
           status
         }
       }

@@ -43,10 +43,10 @@ export interface PaymentTermMinimum {
   amount: number;
 }
 
-export interface CreateOrderItemResponse {
-  createOrderItem: {
+export interface CreateOrderItemsResponse {
+  createOrderItems: {
     status: boolean;
     message: string;
-    data: { id: string } | null;
+    data: { id: string }[] | null;
   };
 }

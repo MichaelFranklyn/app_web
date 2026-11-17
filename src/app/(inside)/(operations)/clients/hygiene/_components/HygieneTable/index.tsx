@@ -80,7 +80,7 @@ export function HygieneTable({
           ) : items.length === 0 ? (
             <Table.Row>
               <Table.Cell colSpan={COLUMNS}>
-                <EmptyState.Root>
+                <EmptyState.Root flat>
                   <EmptyState.Icon>
                     <CheckCircle2 size={32} />
                   </EmptyState.Icon>

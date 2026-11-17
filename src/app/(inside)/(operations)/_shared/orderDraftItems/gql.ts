@@ -1,11 +1,14 @@
 import { gql } from "@apollo/client";
 
-// Criação de item durante o wizard de novo pedido. O backend não aceita itens
-// no CreateOrderInput, então o pedido é criado primeiro e cada item do rascunho
-// é gravado em seguida com o orderId retornado.
-export const CREATE_ORDER_ITEM_MUTATION = gql`
-  mutation CreateOrderItemForNewOrder($input: CreateOrderItemInput!) {
-    createOrderItem(input: $input) {
+// Gravação dos itens do rascunho depois que o pedido existe (o backend não
+// aceita itens no CreateOrderInput). Uma chamada só, numa transação só: ou os
+// itens entram todos, ou nenhum entra.
+export const CREATE_ORDER_ITEMS_MUTATION = gql`
+  mutation CreateOrderItemsForNewOrder(
+    $orderId: UUID!
+    $items: [OrderItemLineInput!]!
+  ) {
+    createOrderItems(orderId: $orderId, items: $items) {
       status
       code
       message

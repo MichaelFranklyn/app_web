@@ -53,6 +53,8 @@ export interface RowProblem {
 
 export interface HistoryResult {
   dryRun: boolean;
+  /** Lote da importação de verdade; nulo na prévia. */
+  batchId?: string | null;
   totalRows: number;
   ordersCreated: number;
   ordersAlreadyImported: number;
@@ -81,5 +83,29 @@ export interface ImportOrderHistoryResponse {
     status: boolean;
     message: string;
     data: HistoryResult | null;
+  };
+}
+
+export interface HistoryImportBatch {
+  id: string;
+  createdAt: string;
+  createdByEmail: string | null;
+  ordersCount: number;
+  itemsCount: number;
+  undoneAt: string | null;
+  undoneByEmail: string | null;
+  undoReason: string | null;
+  ordersUndone: number;
+}
+
+export interface HistoryImportBatchesResponse {
+  orderHistoryImportBatches: HistoryImportBatch[];
+}
+
+export interface UndoHistoryImportResponse {
+  undoOrderHistoryImport: {
+    status: boolean;
+    message: string;
+    data: Pick<HistoryImportBatch, "id"> | null;
   };
 }

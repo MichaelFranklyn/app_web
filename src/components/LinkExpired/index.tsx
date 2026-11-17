@@ -1,5 +1,4 @@
-import { EmptyState } from "@/components/EmptyState";
-import { Title } from "@/components/Title";
+import { RouteError } from "@/components/RouteError";
 import { Link2Off } from "lucide-react";
 
 interface LinkExpiredProps {
@@ -18,21 +17,10 @@ interface LinkExpiredProps {
  */
 export function LinkExpired({ children }: LinkExpiredProps) {
   return (
-    <div className="flex min-h-screen items-center justify-center px-[16px]">
-      <EmptyState.Root className="max-w-[420px]">
-        <EmptyState.Icon>
-          <Link2Off size={36} />
-        </EmptyState.Icon>
-        {/* `as="span"`: `EmptyState.Title` JÁ é o <h3>. */}
-        <EmptyState.Title>
-          <Title variant="heading-md" as="span">
-            Este link não está mais válido
-          </Title>
-        </EmptyState.Title>
-        <EmptyState.Description className="max-w-[320px]">
-          {children}
-        </EmptyState.Description>
-      </EmptyState.Root>
-    </div>
+    <RouteError
+      icon={<Link2Off size={36} />}
+      title="Este link não está mais válido"
+      description={children}
+    />
   );
 }

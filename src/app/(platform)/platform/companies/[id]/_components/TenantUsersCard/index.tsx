@@ -59,7 +59,7 @@ export function TenantUsersCard({ users, loading }: Props) {
               ) : users.length === 0 ? (
                 <Table.Row>
                   <Table.Cell colSpan={4}>
-                    <EmptyState.Root>
+                    <EmptyState.Root flat>
                       <EmptyState.Icon>
                         <UserCog size={32} />
                       </EmptyState.Icon>

@@ -7,6 +7,7 @@ export const IMPORT_ORDER_HISTORY_MUTATION = gql`
       message
       data {
         dryRun
+        batchId
         totalRows
         ordersCreated
         ordersAlreadyImported
@@ -77,6 +78,39 @@ export const HISTORY_SELLERS_QUERY = gql`
         endCursor
       }
       totalCount
+    }
+  }
+`;
+
+/** Importações já feitas, mais recentes primeiro (só o gestor). */
+export const HISTORY_IMPORT_BATCHES_QUERY = gql`
+  query OrderHistoryImportBatches {
+    orderHistoryImportBatches {
+      id
+      createdAt
+      createdByEmail
+      ordersCount
+      itemsCount
+      undoneAt
+      undoneByEmail
+      undoReason
+      ordersUndone
+    }
+  }
+`;
+
+export const UNDO_HISTORY_IMPORT_MUTATION = gql`
+  mutation UndoOrderHistoryImport($id: UUID!, $input: ReasonInput!) {
+    undoOrderHistoryImport(id: $id, input: $input) {
+      status
+      message
+      data {
+        id
+        undoneAt
+        undoneByEmail
+        undoReason
+        ordersUndone
+      }
     }
   }
 `;

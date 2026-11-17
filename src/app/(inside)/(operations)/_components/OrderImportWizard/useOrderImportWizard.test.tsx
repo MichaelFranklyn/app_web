@@ -1,7 +1,7 @@
 import { MockLink } from "@apollo/client/testing";
 import { MockedProvider } from "@apollo/client/testing/react";
 import { act, render, waitFor } from "@testing-library/react";
-import { beforeEach, describe, expect, it, vi } from "vitest";
+import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
 import {
   CONFIRM_ORDER_IMPORT_MUTATION,
@@ -16,8 +16,15 @@ import type { ImportRow } from "./utils";
 // assertar variant/title/description de cada toast (sucesso, parcial, erro).
 const toastSpy = vi.fn();
 // O arquivo sobe direto à API (tíquete + PUT); aqui só interessa a referência.
+// Um teste segura o envio para ver a fase "upload" na tela.
+const upload = vi.hoisted(() => ({
+  gate: null as Promise<void> | null,
+}));
 vi.mock("@/services/upload", () => ({
-  useFileUpload: () => async () => "uploads/empresa/arquivo.pdf",
+  useFileUpload: () => async () => {
+    if (upload.gate) await upload.gate;
+    return "uploads/empresa/arquivo.pdf";
+  },
 }));
 
 vi.mock("@/components/Toast", () => ({
@@ -149,7 +156,6 @@ function confirmMock(
 type Api = ReturnType<typeof useOrderImportWizard>;
 let api: Api;
 const onImported = vi.fn();
-
 function Harness({ initialRows }: { initialRows?: ImportRow[] }) {
   api = useOrderImportWizard({ orderId: "order-1", onImported, initialRows });
   return null;
@@ -476,6 +482,46 @@ describe("useOrderImportWizard — máquina de estado", () => {
     // Só o casado (com produto + nível) conta como confirmável.
     expect(api.confirmableCount).toBe(1);
     expect(api.reviewRows[1].include).toBe(false);
+  });
+});
+
+describe("useOrderImportWizard — progresso da leitura do PDF", () => {
+  afterEach(() => {
+    upload.gate = null;
+  });
+
+  it("mostra o envio, depois a leitura, e some ao terminar", async () => {
+    let release = () => {};
+    upload.gate = new Promise((resolve) => {
+      release = resolve;
+    });
+    // A leitura demora um pouco: dá para ver a fase "read".
+    const slowExtract = { ...extractItemsMock([]), delay: 50 };
+    renderWizard([slowExtract, previewMock([])]);
+    expect(api.readingPhase).toBeNull();
+
+    let reading: Promise<void> = Promise.resolve();
+    act(() => {
+      reading = api.handleFiles([pdf()]);
+    });
+    await waitFor(() => expect(api.readingPhase).toBe("upload"));
+
+    act(() => release());
+    await waitFor(() => expect(api.readingPhase).toBe("read"));
+
+    await act(async () => {
+      await reading;
+    });
+    expect(api.readingPhase).toBeNull();
+  });
+
+  it("some também quando a leitura falha", async () => {
+    renderWizard([extractErrorMock("Este PDF está demorando demais.")]);
+
+    await uploadPdf();
+
+    expect(api.readingPhase).toBeNull();
+    expect(api.file).toEqual([]);
   });
 });
 

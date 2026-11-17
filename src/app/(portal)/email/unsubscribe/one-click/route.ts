@@ -1,14 +1,9 @@
-import { tokenFetch } from "@/services/graphql/tokenFetch";
 import { NextRequest, NextResponse } from "next/server";
-import { UNSUBSCRIBE_EMAIL_DIGEST } from "../gql";
-
-interface UnsubscribeResponse {
-  unsubscribeEmailDigest: { status: boolean; message: string } | null;
-}
+import { parseUnsubscribeKind, requestUnsubscribe } from "../utils";
 
 /**
  * Descadastro de um clique (RFC 8058) — o endereço do cabeçalho
- * `List-Unsubscribe` dos resumos.
+ * `List-Unsubscribe` dos resumos e dos avisos de pedido ao cliente (`kind`).
  *
  * O Gmail e o Yahoo mostram "Cancelar inscrição" ao lado do remetente e, no
  * clique, fazem um POST aqui com `List-Unsubscribe=One-Click` no corpo. Não há
@@ -21,18 +16,23 @@ interface UnsubscribeResponse {
  * recusado pelo backend, sem efeito nenhum.
  */
 export async function POST(request: NextRequest) {
-  const token = request.nextUrl.searchParams.get("token");
+  const params = request.nextUrl.searchParams;
+  const token = params.get("token");
   if (token) {
-    await tokenFetch<UnsubscribeResponse>(UNSUBSCRIBE_EMAIL_DIGEST, null, {
-      token,
-    }).catch(() => null);
+    await requestUnsubscribe(
+      parseUnsubscribeKind(params.get("kind")),
+      token
+    ).catch(() => null);
   }
   return new NextResponse(null, { status: 200 });
 }
 
 export function GET(request: NextRequest) {
-  const token = request.nextUrl.searchParams.get("token") ?? "";
+  const params = request.nextUrl.searchParams;
+  const token = params.get("token") ?? "";
+  const kind = params.get("kind");
   const target = new URL("/email/unsubscribe", request.url);
+  if (kind) target.searchParams.set("kind", kind);
   if (token) target.searchParams.set("token", token);
   return NextResponse.redirect(target);
 }

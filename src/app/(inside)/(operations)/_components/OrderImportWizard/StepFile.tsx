@@ -4,6 +4,8 @@ import { Input } from "@/components/Input";
 import { Stepper } from "@/components/Stepper";
 import { CheckCircle2 } from "lucide-react";
 
+import { ReadingPhase } from "./interface";
+import { ReadingProgress } from "./ReadingProgress";
 import { downloadOrderItemsTemplate } from "./template";
 
 interface StepFileProps {
@@ -16,9 +18,18 @@ interface StepFileProps {
   file: File[];
   onFiles: (files: File[]) => void;
   ready: boolean;
+  /** PDF subindo ou sendo lido: a tela mostra a fase e o tempo. */
+  readingPhase?: ReadingPhase | null;
 }
 
-export function StepFile({ step, total, file, onFiles, ready }: StepFileProps) {
+export function StepFile({
+  step,
+  total,
+  file,
+  onFiles,
+  ready,
+  readingPhase,
+}: StepFileProps) {
   return (
     <div className="flex flex-col gap-12">
       <Stepper.Intro
@@ -41,7 +52,8 @@ export function StepFile({ step, total, file, onFiles, ready }: StepFileProps) {
         value={file}
         onChange={onFiles}
       />
-      {ready && (
+      {readingPhase && <ReadingProgress phase={readingPhase} />}
+      {ready && !readingPhase && (
         <Alert.Root variant="success">
           <Alert.Icon icon={CheckCircle2} />
           <Alert.Content>

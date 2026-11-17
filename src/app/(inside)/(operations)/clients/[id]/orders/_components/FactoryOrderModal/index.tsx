@@ -176,7 +176,7 @@ export function FactoryOrderModal({
                 ) : orders.length === 0 ? (
                   <Table.Row>
                     <Table.Cell colSpan={6}>
-                      <EmptyState.Root>
+                      <EmptyState.Root flat>
                         <EmptyState.Icon>
                           <Receipt size={32} />
                         </EmptyState.Icon>

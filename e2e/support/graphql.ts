@@ -37,7 +37,8 @@ const UPLOAD_DEFAULTS: Record<string, Handler> = {
       status: true,
       message: "OK",
       data: {
-        uploadPath: "/uploads/tiquete-e2e",
+        uploadUrlPath: "/uploads",
+        ticket: "tiquete-e2e",
         fileRef: `uploads/e2e/${String(
           (variables.input as { fileName?: string } | undefined)?.fileName ??
             "arquivo"
@@ -67,12 +68,15 @@ export async function mockGraphql(
 
   // Envio direto de arquivo (tíquete + PUT na API, fora do BFF): responde como
   // o backend para todo spec que sobe PDF ou planilha, sem cada um repetir.
-  await page.route("**/uploads/**", (route: Route) =>
-    route.fulfill({
-      status: 200,
-      contentType: "application/json",
-      body: JSON.stringify({ status: true }),
-    })
+  await page.route(
+    (url) =>
+      url.pathname === "/uploads" || url.pathname.startsWith("/uploads/"),
+    (route: Route) =>
+      route.fulfill({
+        status: 200,
+        contentType: "application/json",
+        body: JSON.stringify({ status: true }),
+      })
   );
 
   await page.route("**/graphql", async (route: Route) => {

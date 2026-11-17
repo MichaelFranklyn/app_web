@@ -150,7 +150,7 @@ export function PriceListsTab({ companyFactoryId, factoryId }: Props) {
           ) : priceLists.length === 0 ? (
             <Table.Row>
               <Table.Cell colSpan={6}>
-                <EmptyState.Root>
+                <EmptyState.Root flat>
                   <EmptyState.Icon>
                     <ListChecks size={32} />
                   </EmptyState.Icon>

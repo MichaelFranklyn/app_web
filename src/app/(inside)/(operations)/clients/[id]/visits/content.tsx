@@ -219,7 +219,7 @@ export default function VisitsContent() {
           {visits.length === 0 ? (
             <Table.Row>
               <Table.Cell colSpan={8}>
-                <EmptyState.Root>
+                <EmptyState.Root flat>
                   <EmptyState.Icon>
                     <CalendarCheck size={32} />
                   </EmptyState.Icon>

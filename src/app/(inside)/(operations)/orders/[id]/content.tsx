@@ -11,6 +11,7 @@ import { BackorderBanner } from "./_components/BackorderBanner";
 import { ClientRequestBanner } from "./_components/ClientRequestBanner";
 import { InstallmentsCard } from "./_components/InstallmentsCard";
 import { InvoiceReversalsCard } from "./_components/InvoiceReversalsCard";
+import { ReopeningsCard } from "./_components/ReopeningsCard";
 import { ItemsLockedBanner } from "./_components/ItemsLockedBanner";
 import { OrderDetailHeader } from "./_components/OrderDetailHeader";
 import { OrderDetailSkeleton } from "./_components/OrderDetailSkeleton";
@@ -107,6 +108,7 @@ export default function OrderDetailContent({
             )}
 
             <InvoiceReversalsCard reversals={order.invoiceReversals ?? []} />
+            <ReopeningsCard reopenings={order.reopenings ?? []} />
 
             {order.notes && (
               <Card.Root>

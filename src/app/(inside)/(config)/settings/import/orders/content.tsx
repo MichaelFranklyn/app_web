@@ -8,6 +8,7 @@ import { PAGE_HEADING } from "@/utils/modules";
 import { Stepper } from "@/components/Stepper";
 import { ArrowLeft, ArrowRight, ClipboardList } from "lucide-react";
 
+import { HistoryBatchesCard } from "./_components/HistoryBatchesCard";
 import { StepColumns } from "./_components/StepColumns";
 import { StepFile } from "./_components/StepFile";
 import { StepMatch } from "./_components/StepMatch";
@@ -150,6 +151,8 @@ export default function OrderHistoryImportContent() {
           </div>
         </Card.Body>
       </Card.Root>
+
+      <HistoryBatchesCard />
     </PageContent>
   );
 }

@@ -52,4 +52,12 @@ describe("availableActions", () => {
     expect(can.invoice).toBe(false);
     expect(can.cancel).toBe(false);
   });
+
+  it("cancelado pode ser reaberto; o resto não", () => {
+    expect(availableActions({ status: "CANCELLED" }).reopen).toBe(true);
+    expect(availableActions({ status: "CONFIRMED" }).reopen).toBe(false);
+    expect(
+      availableActions({ status: "CANCELLED", invoicedAt: "2026-11-01" }).reopen
+    ).toBe(false);
+  });
 });

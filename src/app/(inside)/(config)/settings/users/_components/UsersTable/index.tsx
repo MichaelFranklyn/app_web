@@ -105,7 +105,7 @@ export function UsersTable({
           ) : isEmpty ? (
             <Table.Row>
               <Table.Cell colSpan={4}>
-                <EmptyState.Root>
+                <EmptyState.Root flat>
                   <EmptyState.Icon>
                     <Users size={32} />
                   </EmptyState.Icon>

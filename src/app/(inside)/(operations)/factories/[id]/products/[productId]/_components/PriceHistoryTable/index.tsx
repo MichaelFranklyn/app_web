@@ -90,7 +90,7 @@ export function PriceHistoryTable({
           ) : changes.length === 0 ? (
             <Table.Row>
               <Table.Cell colSpan={5}>
-                <EmptyState.Root>
+                <EmptyState.Root flat>
                   <EmptyState.Icon>
                     <History size={32} />
                   </EmptyState.Icon>

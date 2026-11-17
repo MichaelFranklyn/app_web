@@ -99,37 +99,26 @@ test.describe("Páginas públicas de marketing", () => {
     expect(sitemapBody).not.toContain("/assinar");
   });
 
-  test("o checkout simulado vai do plano ao resultado", async ({ page }) => {
+  test("o visitante escolhe o plano e é levado a entrar para assinar", async ({
+    page,
+  }) => {
     await page.goto("/precos");
     await page.getByRole("link", { name: "Assinar o Corporativo" }).click();
 
     await expect(page).toHaveURL(/\/assinar\?plano=corporate$/);
-    // O aviso de simulação não é decoração: é o que impede alguém de achar que
-    // está pagando de verdade. Se sumir da tela, este teste cai.
-    await expect(
-      page.getByText(/nenhum pagamento é processado/i)
-    ).toBeVisible();
+    // Visitante ainda pode experimentar antes: a oferta do teste grátis só
+    // some para quem já entrou.
+    await expect(page.getByText(/prefere experimentar antes/i)).toBeVisible();
 
     await page.getByRole("button", { name: /continuar/i }).click();
-
-    await page.getByLabel(/razão social/i).fill("Representações Demo LTDA");
-    // `pressSequentially` nos campos com máscara: o `fill` escreve o valor de
-    // uma vez e o imask reclama de mudança fora da máscara.
-    await page.getByLabel(/cnpj/i).pressSequentially("11222333000181");
-    await page.getByLabel(/e-mail/i).fill("financeiro@demo.com");
     await page.getByRole("button", { name: /ir para o pagamento/i }).click();
 
-    await page
-      .getByLabel(/número do cartão/i)
-      .pressSequentially("4242424242424242");
-    await page.getByLabel(/nome impresso/i).fill("MICHAEL F SILVA");
-    await page.getByLabel(/validade/i).pressSequentially("1230");
-    await page.getByLabel(/código de segurança/i).pressSequentially("123");
-    await page.getByRole("button", { name: /confirmar assinatura/i }).click();
-
+    // A assinatura fica no nome da empresa: sem sessão, a action devolve
+    // "entre na sua conta" antes de chamar o backend — nada é cobrado.
     await expect(
-      page.getByRole("heading", { name: /assinatura simulada com sucesso/i })
+      page.getByText(/entre na sua conta para assinar/i)
     ).toBeVisible();
+    await expect(page.getByRole("link", { name: "Criar conta" })).toBeVisible();
   });
 
   test("o sistema continua exigindo sessão", async ({ page }) => {

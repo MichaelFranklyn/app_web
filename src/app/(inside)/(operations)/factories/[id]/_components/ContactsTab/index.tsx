@@ -103,7 +103,7 @@ export function ContactsTab({ factoryId }: Props) {
           ) : contacts.length === 0 ? (
             <Table.Row>
               <Table.Cell colSpan={4}>
-                <EmptyState.Root>
+                <EmptyState.Root flat>
                   <EmptyState.Icon>
                     <Contact size={32} />
                   </EmptyState.Icon>

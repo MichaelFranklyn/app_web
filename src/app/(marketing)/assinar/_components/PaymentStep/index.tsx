@@ -1,117 +1,78 @@
 "use client";
 
+import { Alert } from "@/components/Alert";
 import { Button } from "@/components/Button";
-import { Input } from "@/components/Input";
 import { Title } from "@/components/Title";
+import { formatMoney } from "@/utils/format/masks";
 import { Lock } from "lucide-react";
-import { CardData } from "../../interface";
 
 /**
- * Terceiro passo: o cartão. Simulado de ponta a ponta — o que é digitado aqui
- * fica no estado do componente e morre com a aba.
+ * Segundo passo: confirmar e seguir para a página de pagamento.
  *
- * `autoComplete="off"` nos campos: sem gateway do outro lado, deixar o
- * navegador oferecer para salvar um cartão numa tela de mentira seria
- * desagradável de um jeito difícil de desfazer.
+ * Não há formulário de cartão aqui de propósito. O cliente paga numa página
+ * segura do sistema de pagamento (cartão, Pix ou boleto), e o número do cartão
+ * nunca passa pelo nosso servidor.
  */
 export function PaymentStep({
-  data,
-  errors,
-  isProcessing,
-  onChange,
+  total,
+  isAnnual,
+  error,
+  isSubmitting,
   onBack,
-  onSubmit,
+  onConfirm,
 }: {
-  data: CardData;
-  errors: Record<string, string>;
-  isProcessing: boolean;
-  onChange: (data: CardData) => void;
+  total: number;
+  isAnnual: boolean;
+  error: string | null;
+  isSubmitting: boolean;
   onBack: () => void;
-  onSubmit: () => void;
+  onConfirm: () => void;
 }) {
   return (
-    <form
-      className="flex flex-col gap-24"
-      onSubmit={(event) => {
-        event.preventDefault();
-        onSubmit();
-      }}
-    >
+    <div className="flex flex-col gap-24">
       <div className="flex flex-col gap-8">
-        <Title variant="heading-md">Cartão de crédito</Title>
+        <Title variant="heading-md">Pagamento</Title>
 
-        <Title variant="body-sm" color="muted">
-          Use um dos cartões de teste indicados no aviso acima.
+        <Title variant="body-sm" color="muted" className="max-w-[56ch]">
+          Ao confirmar, abrimos a página de pagamento. Lá você escolhe cartão de
+          crédito, Pix ou boleto e paga {formatMoney(total)}
+          {isAnnual ? " pelo ano" : " pelo mês"}.
+        </Title>
+
+        <Title variant="body-sm" color="muted" className="max-w-[56ch]">
+          O plano passa a valer assim que o pagamento for confirmado. No boleto,
+          isso pode levar até 3 dias úteis.
         </Title>
       </div>
 
-      <Input.Mask
-        placeholder="0000 0000 0000 0000"
-        label="Número do cartão"
-        required
-        mask="0000 0000 0000 0000"
-        value={data.number}
-        error={errors.number}
-        autoComplete="off"
-        onAccept={(value) => onChange({ ...data, number: value })}
-      />
-
-      <Input.Text
-        placeholder="Como está no cartão"
-        label="Nome impresso no cartão"
-        required
-        value={data.holder}
-        error={errors.holder}
-        autoComplete="off"
-        onChange={(event) => onChange({ ...data, holder: event.target.value })}
-      />
-
-      <div className="tablet:grid-cols-2 grid gap-16">
-        <Input.Mask
-          label="Validade"
-          required
-          mask="00/00"
-          placeholder="MM/AA"
-          value={data.expiry}
-          error={errors.expiry}
-          autoComplete="off"
-          onAccept={(value) => onChange({ ...data, expiry: value })}
-        />
-
-        <Input.Mask
-          placeholder="000"
-          label="Código de segurança"
-          required
-          mask="000"
-          value={data.cvv}
-          error={errors.cvv}
-          autoComplete="off"
-          onAccept={(value) => onChange({ ...data, cvv: value })}
-        />
-      </div>
+      {error ? (
+        <Alert.Root variant="error">
+          <Alert.Description>{error}</Alert.Description>
+        </Alert.Root>
+      ) : null}
 
       <div className="flex items-center gap-8">
         <Lock size={14} className="shrink-0 text-(--color-text-muted)" />
 
         <Title variant="body-xs" color="muted">
-          Simulação: os dados não são enviados a lugar nenhum.
+          Pagamento em página segura. Os dados do cartão não passam pelo Itinus.
         </Title>
       </div>
 
       <div className="flex flex-wrap gap-12">
-        <Button.Root type="submit" color="amber" loading={isProcessing}>
-          <Button.Title>Confirmar assinatura</Button.Title>
+        <Button.Root color="amber" loading={isSubmitting} onClick={onConfirm}>
+          <Button.Title>Ir para o pagamento</Button.Title>
         </Button.Root>
 
         <Button.Root
           type="button"
           appearance="ghost"
-          disabled={isProcessing}
+          disabled={isSubmitting}
           onClick={onBack}
         >
           <Button.Title>Voltar</Button.Title>
         </Button.Root>
       </div>
-    </form>
+    </div>
   );
 }

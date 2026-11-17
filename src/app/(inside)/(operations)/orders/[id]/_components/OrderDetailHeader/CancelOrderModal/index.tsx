@@ -129,8 +129,8 @@ export function CancelOrderModal({
                 <Alert.Title>Ele deixa de contar nas vendas</Alert.Title>
                 <Alert.Description>
                   Pedido cancelado não entra nos totais, nas metas nem nos
-                  relatórios, e não pode mais ser faturado. Cancelar não pode
-                  ser desfeito.
+                  relatórios, e não pode mais ser faturado. Se o cliente voltar
+                  atrás, um gestor pode reabri-lo.
                 </Alert.Description>
               </Alert.Content>
             </Alert.Root>

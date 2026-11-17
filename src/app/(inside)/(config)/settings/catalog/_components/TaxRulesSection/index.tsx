@@ -110,7 +110,7 @@ export function TaxRulesSection() {
           ) : rules.length === 0 ? (
             <Table.Row>
               <Table.Cell colSpan={2}>
-                <EmptyState.Root>
+                <EmptyState.Root flat>
                   <EmptyState.Icon>
                     <Percent size={32} />
                   </EmptyState.Icon>

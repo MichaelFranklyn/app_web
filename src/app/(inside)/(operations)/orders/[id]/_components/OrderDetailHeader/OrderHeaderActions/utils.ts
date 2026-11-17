@@ -33,6 +33,9 @@ export function availableActions(order: OrderActionState) {
     // Faturado tem boletos e comissão: o caminho é desfazer o faturamento.
     cancel: !isInvoiced && !isCancelled && order.status !== "DELIVERED",
     delete: canDeleteOrder(order.status, order.invoicedAt),
+    // Desfazer o cancelamento (o cliente voltou atrás). Quem pode é decidido
+    // pelo papel em `useOrderMenu`: só o gestor.
+    reopen: isCancelled && !isInvoiced,
   };
 }
 

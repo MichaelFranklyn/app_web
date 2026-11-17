@@ -1,3 +1,4 @@
+import { ErrorReporter } from "@/components/ErrorReporter";
 import { ServiceWorker } from "@/components/ServiceWorker";
 import { getSiteUrl } from "@/utils/site";
 import { Analytics } from "@vercel/analytics/next";
@@ -124,6 +125,9 @@ export default function RootLayout({
         <Analytics />
         {/* Registra o service worker depois do `load`, só em produção. */}
         <ServiceWorker />
+        {/* Relata à API o erro de tela que ninguém tratou (Error Reporting do
+            GCP, grátis). Inerte fora da produção da Vercel. */}
+        <ErrorReporter />
       </body>
     </html>
   );

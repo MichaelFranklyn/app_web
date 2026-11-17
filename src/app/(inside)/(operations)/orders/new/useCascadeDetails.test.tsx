@@ -5,7 +5,7 @@ import { beforeEach, describe, expect, it, vi } from "vitest";
  * Os pedaços compartilhados da página (rascunho de itens, condições, frete,
  * cobertura, carteira) têm testes próprios: aqui eles entram como dublês, para
  * o que se prende ser a página de novo pedido — a cascata, o que vai na
- * mutation e o que acontece quando um item falha.
+ * mutation e o que acontece quando o lote de itens é recusado.
  */
 const {
   createDraftItems,
@@ -15,7 +15,9 @@ const {
   freeFreight,
   clientOptions,
 } = vi.hoisted(() => ({
-  createDraftItems: vi.fn(async () => [] as string[]),
+  createDraftItems: vi.fn(
+    async (...args: unknown[]): Promise<void> => void args
+  ),
   draft: { items: [{ productId: "p1" }], reset: vi.fn() },
   redirect: vi.fn(),
   paymentTerms: {
@@ -37,9 +39,9 @@ vi.mock("../../_shared/orderDraftItems", async () => {
   return {
     createDraftItems,
     useOrderDraftItems: () => draft,
-    CREATE_ORDER_ITEM_MUTATION: gql`
-      mutation CreateOrderItem {
-        createOrderItem {
+    CREATE_ORDER_ITEMS_MUTATION: gql`
+      mutation CreateOrderItems {
+        createOrderItems {
           status
         }
       }
@@ -70,6 +72,8 @@ import {
   ORDER_SELLER_FACTORIES_QUERY,
   ORDER_SELLERS_OPTIONS_QUERY,
 } from "../_shared/orderCreate";
+import { DELETE_ORDER_MUTATION } from "@/graphql/orders";
+
 import { withProviders } from "./testSupport";
 import { useCascadeDetails } from "./useCascadeDetails";
 import { useNewOrderCore } from "./useNewOrderCore";
@@ -367,15 +371,39 @@ describe("useNewOrderCore — criar", () => {
     expect(orderId).toBe("o-novo");
   });
 
-  it("item que falhou não desfaz o pedido — ele avisa e segue", async () => {
-    createDraftItems.mockResolvedValueOnce(["Produto 1"]);
+  it("lote recusado apaga o pedido vazio e não sai da página", async () => {
+    // Tudo ou nada: sem os itens, o pedido não fica para trás.
+    createDraftItems.mockRejectedValueOnce(
+      new Error("Item 2 (Cimento): Produto não encontrado")
+    );
+    const deleted = vi.fn(() => ({
+      data: { deleteOrder: { status: true, code: 200, message: "ok" } },
+    }));
+    const { result } = run([
+      sellersMock,
+      createMock(expectedInput),
+      {
+        request: { query: DELETE_ORDER_MUTATION, variables: { id: "o-novo" } },
+        result: deleted,
+      },
+    ]);
+
+    await act(() => create(result, details()));
+
+    await waitFor(() => expect(result.current.core.isLoading).toBe(false));
+    expect(deleted).toHaveBeenCalledOnce();
+    expect(redirect).not.toHaveBeenCalled();
+  });
+
+  it("se nem a exclusão passa, o pedido vazio não some calado", async () => {
+    createDraftItems.mockRejectedValueOnce(new Error("Item 1: recusado"));
+    // Sem mock para o deleteOrder: a exclusão falha.
     const { result } = run([sellersMock, createMock(expectedInput)]);
 
     await act(() => create(result, details()));
 
-    await waitFor(() =>
-      expect(redirect).toHaveBeenCalledWith("/orders/o-novo")
-    );
+    await waitFor(() => expect(result.current.core.isLoading).toBe(false));
+    expect(redirect).not.toHaveBeenCalled();
   });
 
   it("recusa do backend não sai da página", async () => {
