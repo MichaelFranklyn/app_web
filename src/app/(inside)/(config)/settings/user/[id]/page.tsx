@@ -28,9 +28,15 @@ const Page = async ({ params }: Props) => {
   }
 
   // `createSeller` é mutation de gestor: só owner/admin pode habilitar o próprio
-  // perfil de vendedor (o proprietário que também vende).
+  // perfil de vendedor (o proprietário que também vende). Os mesmos papéis têm a
+  // lista de Pessoas, então o rastro "Pessoas › nome" aparece para eles.
+  const isAdmin = isAdminRole(payload.role);
   return (
-    <MyProfileContent userId={id} canEnableSeller={isAdminRole(payload.role)} />
+    <MyProfileContent
+      userId={id}
+      canEnableSeller={isAdmin}
+      canManagePeople={isAdmin}
+    />
   );
 };
 

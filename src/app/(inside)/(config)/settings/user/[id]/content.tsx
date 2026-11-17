@@ -22,9 +22,15 @@ import { MyProfileCards } from "./_components/MyProfileCards";
 interface Props {
   userId: string;
   canEnableSeller: boolean;
+  /** Owner/admin: tem a lista de Pessoas, então o rastro volta para ela. */
+  canManagePeople: boolean;
 }
 
-export default function MyProfileContent({ userId, canEnableSeller }: Props) {
+export default function MyProfileContent({
+  userId,
+  canEnableSeller,
+  canManagePeople,
+}: Props) {
   const { data, loading, error, refetch } = useQuery<UserDetailQueryResponse>(
     USER_DETAIL_QUERY,
     { variables: { id: userId } }
@@ -33,7 +39,7 @@ export default function MyProfileContent({ userId, canEnableSeller }: Props) {
   const user = data?.user_detail?.data;
 
   if (loading && !user) {
-    return <UserProfileSkeleton />;
+    return <UserProfileSkeleton hasBreadcrumb={canManagePeople} />;
   }
 
   if (error && !user) {
@@ -66,7 +72,7 @@ export default function MyProfileContent({ userId, canEnableSeller }: Props) {
   return (
     <PageContent>
       {/* Sem ações de gestão: ninguém se desativa ou muda o próprio papel. */}
-      <UserProfileHeader user={user} isSelf />
+      <UserProfileHeader user={user} hasBreadcrumb={canManagePeople} />
 
       {/* Uma página só, sem abas — igual à visão do gestor: seus dados, sua
           rotina, suas fábricas e sua carteira, em sequência. */}

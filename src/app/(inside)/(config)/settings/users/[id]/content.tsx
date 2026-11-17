@@ -65,7 +65,7 @@ export default function UserProfileContent({ userId }: Props) {
     <PageContent>
       <UserProfileHeader
         user={user}
-        isSelf={false}
+        hasBreadcrumb
         actions={<UserDetailActions user={user} onRefetch={refetch} />}
       />
 

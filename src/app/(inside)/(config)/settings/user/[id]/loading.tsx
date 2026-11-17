@@ -1,7 +1,10 @@
+import { getDecodedTokenServer } from "@/utils/auth/jwt";
+import { isAdminRole } from "@/utils/auth/roles";
 import { UserProfileSkeleton } from "../../../_shared/userProfile";
 
-// Sem breadcrumb: no próprio perfil o rastro teria um passo único (é o que o
-// `UserProfileHeader` faz com `isSelf`).
-export default function Loading() {
-  return <UserProfileSkeleton />;
+// Owner/admin veem o rastro "Pessoas › nome" no próprio perfil (têm a lista de
+// Pessoas); o vendedor não. O esqueleto reserva o mesmo espaço para não pular.
+export default async function Loading() {
+  const payload = await getDecodedTokenServer();
+  return <UserProfileSkeleton hasBreadcrumb={isAdminRole(payload?.role)} />;
 }
