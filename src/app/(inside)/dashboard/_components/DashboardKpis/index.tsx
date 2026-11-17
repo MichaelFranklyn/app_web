@@ -34,8 +34,13 @@ export function DashboardKpis({
       : 0;
 
   return (
+    // Uma fileira só a partir do desktop. Antes as 4 colunas só vinham em
+    // 1600px: num notebook (1293, 1469px) a faixa virava 2×2, cada cartão com
+    // ~570px para um número de 25px — muito vazio e o dobro da altura. Com 4
+    // colunas em 1024px o cartão tem ~210px, e o número (que mede o próprio
+    // cartão, ver kpiValueStyle) ainda cabe "R$ 1.481.481,36" inteiro.
     <Grid.Root
-      cols={{ base: 2, tablet: 2, "desktop-xl": hasRoutines ? 4 : 3 }}
+      cols={{ base: 2, tablet: 2, desktop: hasRoutines ? 4 : 3 }}
       gap={12}
     >
       <Grid.Item>
