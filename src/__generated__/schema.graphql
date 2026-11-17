@@ -7745,11 +7745,6 @@ extend type Mutation {
 
 """Autorização para enviar UM arquivo direto à API (fora do BFF)."""
 type UploadTicketType {
-  """
-  LEGADO (front de antes da TASK-012): caminho com o tíquete dentro, que acaba
-  no log de acesso. Use `uploadUrlPath` + `ticket` no cabeçalho.
-  """
-  uploadPath: String! @deprecated(reason: "Use uploadUrlPath com o tíquete no cabeçalho X-Upload-Ticket.")
   """Caminho relativo na API (`/uploads`): o navegador faz PUT nele com o arquivo cru."""
   uploadUrlPath: String!
   """Autorização do envio: vai no cabeçalho `X-Upload-Ticket`, nunca na URL."""
