@@ -1,12 +1,15 @@
 "use client";
 
-import { Grid } from "@/components/Grid";
+import { FeatureGate } from "@/components/FeatureGate";
 import { useState } from "react";
 import {
   EditSellerDataModal,
   EnableSellerCard,
   EnableSellerModal,
+  FixedSchedulesSection,
   PersonalDataCard,
+  ProfileSection,
+  RoutineSection,
   SellerDataCard,
   SellerKpis,
   SystemAccessCard,
@@ -31,25 +34,38 @@ export function ProfileCards({ user, onRefetch }: Props) {
   const seller = user.seller;
 
   return (
-    <div className="flex flex-col gap-16">
+    <div className="flex flex-col gap-24">
       {seller && <SellerKpis seller={seller} />}
 
-      <Grid.Root cols={{ base: 1, desktop: 2 }} gap={16}>
+      <ProfileSection
+        title="Dados e acesso"
+        description="Contato, endereço e o que esta pessoa pode fazer no sistema."
+      >
         <PersonalDataCard user={user} onEdit={() => setEditPersonOpen(true)} />
         <SystemAccessCard user={user} />
+      </ProfileSection>
 
-        {/* Terceiro card da grade de dois: ocupa a linha inteira. */}
-        <Grid.Item span={{ desktop: 2 }}>
-          {seller ? (
-            <SellerDataCard
-              seller={seller}
-              onEdit={() => setEditSellerOpen(true)}
-            />
-          ) : (
-            <EnableSellerCard onEnable={() => setEnableSellerOpen(true)} />
-          )}
-        </Grid.Item>
-      </Grid.Root>
+      <ProfileSection
+        title="Trabalho em campo"
+        description="A região que esta pessoa atende e como o sistema monta a agenda de visitas dela."
+        columns={1}
+      >
+        {seller ? (
+          <SellerDataCard
+            seller={seller}
+            onEdit={() => setEditSellerOpen(true)}
+          />
+        ) : (
+          <EnableSellerCard onEnable={() => setEnableSellerOpen(true)} />
+        )}
+
+        {/* Configuração de rotina e rotas fixas alimentam o motor de
+            visita: sem o recurso no plano, não há rotina para configurar. */}
+        <FeatureGate feature="ROUTINES">
+          {seller && <RoutineSection seller={seller} onRefetch={onRefetch} />}
+          {seller && <FixedSchedulesSection sellerId={seller.id} />}
+        </FeatureGate>
+      </ProfileSection>
 
       <EditPersonDataModal
         user={user}

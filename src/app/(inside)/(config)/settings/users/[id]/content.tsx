@@ -1,7 +1,6 @@
 "use client";
 
 import { EmptyState } from "@/components/EmptyState";
-import { FeatureGate } from "@/components/FeatureGate";
 import { PageContent } from "@/components/PageContent";
 import { QueryError } from "@/components/QueryError";
 import { useQuery } from "@apollo/client/react";
@@ -9,8 +8,7 @@ import { UserX } from "lucide-react";
 import {
   ClientsSection,
   FactoriesSection,
-  FixedSchedulesSection,
-  RoutineSection,
+  ProfileSection,
   USER_DETAIL_QUERY,
   UserDetailQueryResponse,
   UserProfileHeader,
@@ -71,27 +69,27 @@ export default function UserProfileContent({ userId }: Props) {
         actions={<UserDetailActions user={user} onRefetch={refetch} />}
       />
 
-      {/* Uma página só, sem abas: cadastro, rotina, fábricas e carteira em
-          sequência. Cada bloco tem o seu próprio cabeçalho, então quem abre o
-          perfil enxerga a pessoa inteira rolando a tela. */}
+      {/* Uma página só, sem abas: cadastro, trabalho em campo, fábricas e
+          carteira em sequência, cada grupo com título e descrição. Quem abre
+          o perfil enxerga a pessoa inteira rolando a tela. */}
       <div className="flex flex-col gap-24" data-tour="user-profile-sections">
         <ProfileCards user={user} onRefetch={refetch} />
 
-        {/* Configuração de rotina e rotas fixas alimentam o motor de
-            visita: sem o recurso no plano, não há rotina para configurar. */}
-        <FeatureGate feature="ROUTINES">
-          {seller && <RoutineSection seller={seller} onRefetch={refetch} />}
-          {seller && <FixedSchedulesSection sellerId={seller.id} />}
-        </FeatureGate>
         {seller && (
-          <FactoriesSection
-            sellerId={seller.id}
-            sellerName={seller.name}
-            sellerIsActive={seller.isActive}
-            canManage
-          />
+          <ProfileSection
+            title="Fábricas e clientes"
+            description="Com quais fábricas esta pessoa trabalha e quais clientes ela atende."
+            columns={1}
+          >
+            <FactoriesSection
+              sellerId={seller.id}
+              sellerName={seller.name}
+              sellerIsActive={seller.isActive}
+              canManage
+            />
+            <ClientsSection sellerId={seller.id} />
+          </ProfileSection>
         )}
-        {seller && <ClientsSection sellerId={seller.id} />}
       </div>
     </PageContent>
   );

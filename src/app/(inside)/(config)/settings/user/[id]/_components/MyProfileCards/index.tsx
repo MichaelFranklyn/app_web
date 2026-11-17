@@ -6,6 +6,7 @@ import {
   EnableSellerCard,
   EnableSellerModal,
   PersonalDataCard,
+  ProfileSection,
   SellerDataCard,
   SellerKpis,
   SystemAccessCard,
@@ -15,7 +16,6 @@ import { ChangePasswordModal } from "../ChangePasswordModal";
 import { EditMyProfileModal } from "../EditMyProfileModal";
 import { EmailDigestCard } from "../EmailDigestCard";
 import { PasswordCard } from "../PasswordCard";
-import { ProfileSection } from "../ProfileSection";
 import { PushNotificationsCard } from "../PushNotificationsCard";
 
 interface Props {

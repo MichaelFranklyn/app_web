@@ -10,6 +10,7 @@ import {
   ClientsSection,
   FactoriesSection,
   FixedSchedulesSection,
+  ProfileSection,
   RoutineSection,
   USER_DETAIL_QUERY,
   UserDetailQueryResponse,
@@ -78,19 +79,34 @@ export default function MyProfileContent({ userId, canEnableSeller }: Props) {
 
         {/* Configuração de rotina e rotas fixas alimentam o motor de
             visita: sem o recurso no plano, não há rotina para configurar. */}
-        <FeatureGate feature="ROUTINES">
-          {seller && <RoutineSection seller={seller} onRefetch={refetch} />}
-          {seller && <FixedSchedulesSection sellerId={seller.id} />}
-        </FeatureGate>
+        {seller && (
+          <FeatureGate feature="ROUTINES">
+            <ProfileSection
+              title="Sua rotina"
+              description="Como o sistema monta a sua agenda de visitas."
+              columns={1}
+            >
+              <RoutineSection seller={seller} onRefetch={refetch} />
+              <FixedSchedulesSection sellerId={seller.id} />
+            </ProfileSection>
+          </FeatureGate>
+        )}
+
         {/* Sem ações: a comissão e o acesso são combinados por quem gerencia. */}
         {seller && (
-          <FactoriesSection
-            sellerId={seller.id}
-            sellerName={seller.name}
-            sellerIsActive={seller.isActive}
-          />
+          <ProfileSection
+            title="Fábricas e clientes"
+            description="Com quais fábricas você trabalha e quais clientes atende."
+            columns={1}
+          >
+            <FactoriesSection
+              sellerId={seller.id}
+              sellerName={seller.name}
+              sellerIsActive={seller.isActive}
+            />
+            <ClientsSection sellerId={seller.id} />
+          </ProfileSection>
         )}
-        {seller && <ClientsSection sellerId={seller.id} />}
       </div>
     </PageContent>
   );
