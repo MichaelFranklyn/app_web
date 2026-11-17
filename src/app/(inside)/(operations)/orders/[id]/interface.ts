@@ -149,8 +149,22 @@ export interface OrderDetail {
   availablePaymentTerms: PaymentTermRef[];
   installments: OrderInstallment[];
   invoiceReversals: InvoiceReversal[];
+  /** Vezes em que o pedido cancelado foi reaberto (mais recentes primeiro). */
+  reopenings: OrderReopening[];
   /** As baixas lançadas nas parcelas, em frase do servidor ("" = nenhuma). */
   settlementSummary: string;
+}
+
+/** Uma reabertura de pedido cancelado, com o retrato do cancelamento desfeito. */
+export interface OrderReopening {
+  id: string;
+  createdAt: string;
+  userEmail: string | null;
+  reason: string;
+  /** Status para onde voltou, no valor do banco ("rascunho", "enviado", "confirmado"). */
+  restoredStatus: string;
+  cancelledAt: string | null;
+  cancelReason: string | null;
 }
 
 /** Um faturamento desfeito (`uninvoice`) ou com as parcelas refeitas (`revise`). */

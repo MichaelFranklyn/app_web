@@ -12,6 +12,9 @@ import { CREATE_UPLOAD_TICKET, CreateUploadTicketResponse } from "./gql";
  */
 export type UploadPurpose = "RAW" | "PRICE_LIST_PDF";
 
+/** Cabeçalho que leva o tíquete no PUT (o mesmo do backend). */
+const UPLOAD_TICKET_HEADER = "X-Upload-Ticket";
+
 /** Origem da API (o backend no Cloud Run), a mesma da mídia (`mediaUrl`). */
 const apiOrigin = (): string =>
   new URL(process.env.NEXT_PUBLIC_GRAPHQL_API_HOST ?? "").origin;
@@ -24,6 +27,8 @@ const apiOrigin = (): string =>
  * Aqui o BFF só pede o tíquete (pequeno, autenticado pelo cookie); o arquivo
  * vai cru num PUT para o backend, que aceita até 15 MB. A mutation que usa o
  * arquivo recebe a referência no lugar do base64.
+ *
+ * O tíquete vai no cabeçalho, nunca na URL: a URL fica no log de acesso da API.
  */
 export function useFileUpload() {
   const client = useApolloClient();
@@ -43,8 +48,9 @@ export function useFileUpload() {
 
       let response: Response;
       try {
-        response = await fetch(`${apiOrigin()}${ticket.data.uploadPath}`, {
+        response = await fetch(`${apiOrigin()}${ticket.data.uploadUrlPath}`, {
           method: "PUT",
+          headers: { [UPLOAD_TICKET_HEADER]: ticket.data.ticket },
           body: file,
         });
       } catch {

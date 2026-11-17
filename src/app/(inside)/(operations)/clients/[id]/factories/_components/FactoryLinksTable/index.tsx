@@ -190,7 +190,7 @@ export function FactoryLinksTable({
           {connections.length === 0 && (
             <Table.Row>
               <Table.Cell colSpan={7}>
-                <EmptyState.Root>
+                <EmptyState.Root flat>
                   <EmptyState.Icon>
                     <Factory size={32} />
                   </EmptyState.Icon>

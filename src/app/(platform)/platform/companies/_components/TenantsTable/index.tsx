@@ -78,7 +78,7 @@ export function TenantsTable({
           ) : items.length === 0 ? (
             <Table.Row>
               <Table.Cell colSpan={COLUMN_COUNT}>
-                <EmptyState.Root>
+                <EmptyState.Root flat>
                   <EmptyState.Icon>
                     <Building2 size={32} />
                   </EmptyState.Icon>

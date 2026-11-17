@@ -128,7 +128,7 @@ export function TaxesTable({ productId, onChanged }: Props) {
           ) : taxes.length === 0 ? (
             <Table.Row>
               <Table.Cell colSpan={4}>
-                <EmptyState.Root>
+                <EmptyState.Root flat>
                   <EmptyState.Icon>
                     <Percent size={32} />
                   </EmptyState.Icon>

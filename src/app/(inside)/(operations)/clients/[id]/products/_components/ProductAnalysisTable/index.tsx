@@ -83,7 +83,7 @@ export function ProductAnalysisTable({ table, rows }: Props) {
           {table.displayedData.length === 0 ? (
             <Table.Row>
               <Table.Cell colSpan={8}>
-                <EmptyState.Root>
+                <EmptyState.Root flat>
                   <EmptyState.Icon>
                     <PackageSearch size={32} />
                   </EmptyState.Icon>

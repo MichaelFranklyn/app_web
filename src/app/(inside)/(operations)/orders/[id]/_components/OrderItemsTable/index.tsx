@@ -338,7 +338,7 @@ export function OrderItemsTable({
           ) : items.length === 0 ? (
             <Table.Row>
               <Table.Cell colSpan={columns}>
-                <EmptyState.Root>
+                <EmptyState.Root flat>
                   <EmptyState.Icon>
                     <Package size={32} />
                   </EmptyState.Icon>
@@ -354,7 +354,7 @@ export function OrderItemsTable({
           ) : filteredItems.length === 0 ? (
             <Table.Row>
               <Table.Cell colSpan={columns}>
-                <EmptyState.Root>
+                <EmptyState.Root flat>
                   <EmptyState.Icon>
                     <SearchX size={32} />
                   </EmptyState.Icon>

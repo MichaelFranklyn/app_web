@@ -6,7 +6,8 @@ export const CREATE_UPLOAD_TICKET = gql`
       status
       message
       data {
-        uploadPath
+        uploadUrlPath
+        ticket
         fileRef
       }
     }
@@ -17,6 +18,6 @@ export interface CreateUploadTicketResponse {
   createUploadTicket: {
     status: boolean;
     message: string;
-    data: { uploadPath: string; fileRef: string } | null;
+    data: { uploadUrlPath: string; ticket: string; fileRef: string } | null;
   };
 }

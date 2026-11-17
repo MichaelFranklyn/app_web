@@ -24,11 +24,15 @@ import {
   UserRound,
 } from "lucide-react";
 import { usePathname, useRouter } from "next/navigation";
-import { ReactNode, useState } from "react";
+import { ReactNode, useEffect, useRef, useState } from "react";
 import { UPDATE_VISIT_ITEM_MUTATION } from "./gql";
 import { itemClient } from "./calendar";
 import { VisitScheduleItem } from "./interface";
 import { CompletionPromptModal } from "./_components/VisitActions/CompletionPromptModal";
+import {
+  MissedReason,
+  MissedVisitModal,
+} from "./_components/VisitActions/MissedVisitModal";
 import { EditVisitModal } from "./_components/VisitActions/EditVisitModal";
 import { PromoteContactModal } from "./_components/PromoteContactModal";
 import { RescheduleVisitModal } from "./_components/VisitActions/RescheduleVisitModal";
@@ -48,13 +52,23 @@ type ActiveModal =
   | "completed"
   | "promote"
   | "wholeDay"
+  | "missed"
   | null;
+
+/** A resposta que veio do botão do aviso no celular (TASK-006). */
+export type PushAnswer = "done" | "missed";
 
 interface Args {
   item: VisitScheduleItem;
   /** Data do dia em que a parada está — padrão da viagem ao promover. */
   dayDate?: string | null;
   onChanged: () => void;
+  /**
+   * Resposta dada no botão do aviso no celular: executa uma vez ao montar
+   * ("done" conclui; "missed" abre o motivo), pelo mesmo caminho do cartão —
+   * inclusive a fila do aparelho quando não há sinal.
+   */
+  autoAnswer?: PushAnswer | null;
 }
 
 interface UpdateItemResponse {
@@ -75,6 +89,8 @@ interface Result {
   promptAfterComplete: () => void;
   /** Conclui (ou reabre) a visita; ao concluir, oferece pedido/estoque. */
   toggleCompleted: (checked: boolean) => void;
+  /** Abre o "Não deu": o motivo de a visita não ter acontecido. */
+  openMissed: () => void;
   /** A mutação de conclusão está em andamento. */
   isToggling: boolean;
   /** Menu de três pontos (visualizar/editar/estoque/remarcar). */
@@ -90,6 +106,7 @@ export function useVisitActions({
   item,
   dayDate = null,
   onChanged,
+  autoAnswer = null,
 }: Args): Result {
   const router = useRouter();
   const pathname = usePathname();
@@ -188,6 +205,36 @@ export function useVisitActions({
       }
     );
   };
+
+  // "Não deu": a visita fecha com o motivo, os mesmos desfechos das visitas
+  // vencidas. Sem actualVisitAt — a resposta é do dia, dada no próprio dia.
+  const answerMissed = (reason: MissedReason) => {
+    execute(() => saveStatus(reason, `Erro ao registrar ${noun}`), {
+      successMessage: (outcome) =>
+        outcome.queued
+          ? queuedMessage
+          : reason === "CLIENT_ABSENT"
+            ? isRemote
+              ? "Registrado: cliente não atendeu"
+              : "Registrado: cliente não estava"
+            : "Registrado: não deu tempo",
+      onSuccess: (outcome) => {
+        if (!outcome.queued) syncVisit();
+      },
+    });
+  };
+
+  // O botão do aviso no celular chega pela URL: responde uma vez só, e só se a
+  // visita ainda está aberta (o aviso pode ser tocado depois de respondida).
+  const answeredFromPush = useRef(false);
+  useEffect(() => {
+    if (!autoAnswer || answeredFromPush.current) return;
+    answeredFromPush.current = true;
+    if (status !== "PENDING") return;
+    if (autoAnswer === "done") toggleCompleted(true);
+    else setActive("missed");
+    // eslint-disable-next-line react-hooks/exhaustive-deps -- uma vez por resposta
+  }, [autoAnswer]);
 
   // Registrar o estoque é a evidência de que a visita aconteceu, então salvá-lo
   // conclui a visita automaticamente. Sem reabrir o prompt de próximos passos (o
@@ -358,6 +405,15 @@ export function useVisitActions({
         onDone={syncVisit}
       />
 
+      <MissedVisitModal
+        clientName={clientName}
+        contactType={item.contactType}
+        open={active === "missed"}
+        onOpenChange={(o) => !o && close()}
+        onReason={answerMissed}
+        onReschedule={() => setActive("reschedule")}
+      />
+
       <CompletionPromptModal
         clientName={clientName}
         contactType={item.contactType}
@@ -375,6 +431,7 @@ export function useVisitActions({
     openView: () => setActive("view"),
     promptAfterComplete: () => setActive("completed"),
     toggleCompleted,
+    openMissed: () => setActive("missed"),
     isToggling,
     menu,
     overlays,

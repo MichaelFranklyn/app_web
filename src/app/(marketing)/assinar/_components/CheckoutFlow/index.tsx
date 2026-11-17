@@ -4,50 +4,49 @@ import { TextLink } from "@/components/TextLink";
 import { Title } from "@/components/Title";
 import { useSearchParams } from "next/navigation";
 import { parseUsers } from "../../../pricing";
-import { findPlanByCode } from "../../utils";
-import { BillingStep } from "../BillingStep";
-import { DemoNotice } from "../DemoNotice";
+import { MarketingPlan } from "../../../plans";
+import { findPlanByCode, totalForCycle } from "../../utils";
 import { EnterpriseNotice } from "../EnterpriseNotice";
 import { OrderSummary } from "../OrderSummary";
 import { PaymentStep } from "../PaymentStep";
-import { PlanStep } from "../PlanStep";
 import { PlanPicker } from "../PlanPicker";
-import { ResultStep } from "../ResultStep";
+import { PlanStep } from "../PlanStep";
+import { SignInNotice } from "../SignInNotice";
 import { StepTrail } from "../StepTrail";
 import { useCheckout } from "./useCheckout";
 
 /**
- * Container do checkout simulado: resolve o plano da URL e conduz os passos.
+ * Container do checkout: resolve o plano da URL e decide o que mostrar.
  *
- * Fino de propósito — o estado inteiro está em `useCheckout`, e cada passo é um
- * componente que só recebe valores e callbacks. Quando o gateway real entrar,
- * este arquivo não muda.
- *
- * Lê `?plano=` e `?usuarios=` com `useSearchParams`, o que exige `Suspense` no pai: sem ele o
- * Next recusa a rota estática.
+ * Lê `?plano=` e `?usuarios=` com `useSearchParams`, o que exige `Suspense` no
+ * pai: sem ele o Next recusa a rota estática.
  */
 export function CheckoutFlow() {
   const searchParams = useSearchParams();
   const plan = findPlanByCode(searchParams.get("plano"));
-  const checkout = useCheckout();
 
   // Sem plano na URL (ou com código que não existe), a decisão ainda não foi
-  // tomada: mostrar um checkout vazio seria pedir cartão para comprar o quê.
+  // tomada: mostrar um checkout vazio seria cobrar o quê.
   if (!plan) return <PlanPicker />;
 
-  // O Enterprise não tem preço de tabela — mandar esse caso para o formulário
-  // de cartão seria inventar um valor que ninguém combinou.
+  // O Enterprise não tem preço de tabela — o valor é combinado em conversa.
   if (plan.demoMonthlyPrice === null) return <EnterpriseNotice plan={plan} />;
 
   // `?usuarios=` vem da calculadora da vitrine. Sem ele, vale o que o plano
   // inclui — o checkout nunca cobra abaixo da mensalidade cheia.
   const users = parseUsers(searchParams.get("usuarios"), plan);
 
+  return <Checkout plan={plan} users={users} />;
+}
+
+/** Separado para o hook rodar só quando há plano vendável — hook não pode
+ * ficar depois dos `return` antecipados acima. */
+function Checkout({ plan, users }: { plan: MarketingPlan; users: number }) {
+  const checkout = useCheckout(plan.code, users);
+
   return (
     <div className="desktop:grid-cols-[1.4fr_1fr] desktop:items-start grid gap-32">
       <div className="flex flex-col gap-24">
-        <DemoNotice />
-
         <StepTrail current={checkout.step} />
 
         {checkout.step === "plan" && (
@@ -56,34 +55,22 @@ export function CheckoutFlow() {
             users={users}
             cycle={checkout.cycle}
             onChangeCycle={checkout.setCycle}
-            onContinue={checkout.goToBilling}
+            onContinue={checkout.goToPayment}
           />
         )}
 
-        {checkout.step === "billing" && (
-          <BillingStep
-            data={checkout.billing}
-            onBack={checkout.backToPlan}
-            onContinue={checkout.submitBilling}
-          />
+        {checkout.step === "payment" && checkout.needsLogin && (
+          <SignInNotice onBack={checkout.backToPlan} />
         )}
 
-        {checkout.step === "payment" && (
+        {checkout.step === "payment" && !checkout.needsLogin && (
           <PaymentStep
-            data={checkout.card}
-            errors={checkout.errors}
-            isProcessing={checkout.isProcessing}
-            onChange={checkout.setCard}
-            onBack={checkout.backToBilling}
-            onSubmit={checkout.submitPayment}
-          />
-        )}
-
-        {checkout.step === "result" && checkout.outcome && (
-          <ResultStep
-            outcome={checkout.outcome}
-            plan={plan}
-            onRetry={checkout.retryPayment}
+            total={totalForCycle(plan, checkout.cycle, users) ?? 0}
+            isAnnual={checkout.cycle === "annual"}
+            error={checkout.error}
+            isSubmitting={checkout.isSubmitting}
+            onBack={checkout.backToPlan}
+            onConfirm={checkout.confirm}
           />
         )}
 
@@ -96,7 +83,7 @@ export function CheckoutFlow() {
           <TextLink href="/privacidade" tone="inherit" underline="always">
             Política de privacidade
           </TextLink>
-          . Nesta simulação nenhuma cobrança é feita.
+          . A renovação é automática e pode ser cancelada a qualquer momento.
         </Title>
       </div>
 

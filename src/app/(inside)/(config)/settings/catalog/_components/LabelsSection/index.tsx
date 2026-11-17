@@ -100,7 +100,7 @@ export function LabelsSection() {
           ) : labels.length === 0 ? (
             <Table.Row>
               <Table.Cell colSpan={2}>
-                <EmptyState.Root>
+                <EmptyState.Root flat>
                   <EmptyState.Icon>
                     <Tag size={32} />
                   </EmptyState.Icon>

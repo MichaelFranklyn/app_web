@@ -9,6 +9,9 @@ export type Mapping = {
   ipiRate: ColumnChoice;
 };
 
+/** Leitura do PDF em andamento: o arquivo subindo, ou o servidor lendo. */
+export type ReadingPhase = "upload" | "read";
+
 /** Item já estruturado por uma receita (quando a fábrica tem modelo de pedido). */
 export interface ExtractedItem {
   sku: string;

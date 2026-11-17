@@ -10,9 +10,9 @@ export type {
   DraftItem,
   DraftItemSource,
   PaymentTermMinimum,
-  CreateOrderItemResponse,
+  CreateOrderItemsResponse,
 } from "./interface";
-export { CREATE_ORDER_ITEM_MUTATION } from "./gql";
+export { CREATE_ORDER_ITEMS_MUTATION } from "./gql";
 export { createDraftItems } from "./createDraftItems";
 export type { DraftMergeResult } from "./utils";
 export {

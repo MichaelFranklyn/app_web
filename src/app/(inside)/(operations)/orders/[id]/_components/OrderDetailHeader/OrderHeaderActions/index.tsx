@@ -9,6 +9,7 @@ import { SendToFactoryModal } from "../../SendToFactoryModal";
 import { CancelOrderModal } from "../CancelOrderModal";
 import { ConvertToOrderModal } from "../ConvertToOrderModal";
 import { DeleteOrderModal } from "../DeleteOrderModal";
+import { ReopenOrderModal } from "../ReopenOrderModal";
 import { OrderExportMenu } from "../OrderExportMenu";
 import { ScheduleReturnButton } from "../ScheduleReturnButton";
 import { UpdateOrderModal } from "../UpdateOrderModal";
@@ -74,6 +75,13 @@ export function OrderHeaderActions({ order, onRefetch }: Props) {
           isQuote={isQuote}
           onSuccess={onRefetch}
           {...modalProps("cancel")}
+        />
+      )}
+      {show.reopen && (
+        <ReopenOrderModal
+          order={order}
+          onSuccess={onRefetch}
+          {...modalProps("reopen")}
         />
       )}
       {show.delete && (

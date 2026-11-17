@@ -14,6 +14,7 @@ import { DayRouteActions } from "../DayRouteActions";
 import { OtherOfficeStopCard } from "../OtherOfficeStop";
 import { OverdueVisits } from "../OverdueVisits";
 import { VisitCard } from "../VisitCard";
+import { usePushAnswer } from "./usePushAnswer";
 
 interface Props {
   date: string;
@@ -59,6 +60,10 @@ export function AgendaDayView({
   const otherOffices = agendaDay?.otherOffices ?? [];
   const alsoInOffice = agendaDay?.alsoInOffice;
   const isPast = isPastDay(date, todayIso);
+  // Os botões "Visitei / Não deu" no cartão: só a rota de HOJE do próprio
+  // vendedor. Dia passado é com as vencidas, que registram a data planejada.
+  const quickAnswer = isSeller && isSellerAgenda && date === todayIso;
+  const pushAnswer = usePushAnswer(items.map((i) => i.id));
   const pendingCount = items.filter((i) => i.status === "PENDING").length;
   const routeDay = isSellerAgenda && !isDayOff && items.length > 0 ? day : null;
   // A rota aparece quando há para onde dirigir — daqui ou do outro
@@ -129,6 +134,10 @@ export function AgendaDayView({
                   item={item}
                   dayDate={date}
                   alsoInOffice={alsoInOfficeOf(item, alsoInOffice)}
+                  quickAnswer={quickAnswer}
+                  autoAnswer={
+                    pushAnswer?.visitId === item.id ? pushAnswer.answer : null
+                  }
                   onChanged={onChanged}
                 />
               ))}

@@ -69,7 +69,7 @@ export function ClientSupportList({ cases }: Props) {
           {ordered.length === 0 ? (
             <Table.Row>
               <Table.Cell colSpan={COLUMNS}>
-                <EmptyState.Root>
+                <EmptyState.Root flat>
                   <EmptyState.Icon>
                     <Headset size={32} />
                   </EmptyState.Icon>

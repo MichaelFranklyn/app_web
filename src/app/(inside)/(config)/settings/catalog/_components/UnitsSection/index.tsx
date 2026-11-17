@@ -96,7 +96,7 @@ export function UnitsSection() {
           ) : units.length === 0 ? (
             <Table.Row>
               <Table.Cell colSpan={2}>
-                <EmptyState.Root>
+                <EmptyState.Root flat>
                   <EmptyState.Icon>
                     <Ruler size={32} />
                   </EmptyState.Icon>

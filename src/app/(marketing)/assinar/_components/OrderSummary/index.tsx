@@ -6,6 +6,7 @@ import {
   TRIAL_DAYS,
 } from "../../../plans";
 import { extraUsersFor } from "../../../pricing";
+import { useSignedInUser } from "../../../useSignedInUser";
 import { BillingCycle } from "../../interface";
 import { formatMoney } from "@/utils/format/masks";
 import { totalForCycle } from "../../utils";
@@ -14,6 +15,10 @@ import { totalForCycle } from "../../utils";
  * O resumo do pedido, fixo ao lado do fluxo. Ele acompanha a rolagem porque a
  * pergunta "o que mesmo eu estou levando?" costuma vir justamente na hora de
  * digitar o cartão, quando o cartão do plano já saiu da tela.
+ *
+ * O convite ao teste grátis é só para visitante: quem está logado já tem conta
+ * (no teste ou com ele vencido), e oferecer de novo o teste confundia — parecia
+ * que o caminho era criar outra conta (17/11/2026).
  */
 export function OrderSummary({
   plan,
@@ -26,6 +31,7 @@ export function OrderSummary({
 }) {
   const total = totalForCycle(plan, cycle, users);
   const extraUsers = extraUsersFor(plan, users);
+  const user = useSignedInUser();
 
   return (
     <aside className="desktop:sticky desktop:top-[96px] flex flex-col gap-16 rounded-(--radius-lg) border border-(--border) bg-(--bg2) p-24">
@@ -81,10 +87,12 @@ export function OrderSummary({
         </Title>
       </div>
 
-      <Title variant="body-xs" color="muted">
-        Prefere experimentar antes? O teste de {TRIAL_DAYS} dias abre com o
-        sistema inteiro liberado e não pede cartão.
-      </Title>
+      {!user && (
+        <Title variant="body-xs" color="muted">
+          Prefere experimentar antes? O teste de {TRIAL_DAYS} dias abre com o
+          sistema inteiro liberado e não pede cartão.
+        </Title>
+      )}
     </aside>
   );
 }

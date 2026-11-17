@@ -8,3 +8,12 @@ export const UNSUBSCRIBE_EMAIL_DIGEST = gql`
     }
   }
 `;
+
+export const UNSUBSCRIBE_CLIENT_ORDER_EMAILS = gql`
+  mutation UnsubscribeClientOrderEmails($token: String!) {
+    unsubscribeClientOrderEmails(token: $token) {
+      status
+      message
+    }
+  }
+`;

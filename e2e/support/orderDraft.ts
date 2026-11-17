@@ -54,8 +54,16 @@ export const oneProductMocks = (factoryId: string) => ({
       ],
     },
   }),
-  CreateOrderItem: () => ({
-    createOrderItem: { status: true, code: 200, message: "ok", data: null },
+  // Os itens do rascunho vão num lote só, depois do pedido (tudo ou nada).
+  CreateOrderItemsForNewOrder: (variables: Record<string, unknown>) => ({
+    createOrderItems: {
+      status: true,
+      code: 201,
+      message: "ok",
+      data: ((variables.items as unknown[]) ?? []).map((_, i) => ({
+        id: `oi-${i + 1}`,
+      })),
+    },
   }),
 });
 

@@ -128,7 +128,7 @@ export function PaymentTermsTab({ companyFactoryId }: Props) {
           ) : terms.length === 0 ? (
             <Table.Row>
               <Table.Cell colSpan={4}>
-                <EmptyState.Root>
+                <EmptyState.Root flat>
                   <EmptyState.Icon>
                     <CalendarClock size={32} />
                   </EmptyState.Icon>

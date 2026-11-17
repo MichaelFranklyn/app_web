@@ -1,6 +1,6 @@
 # AUTO-GERADO por scripts/pull-schema.mjs — NÃO editar à mão.
 # Snapshot do schema do backend (app_user). Atualize com: npm run schema:pull
-# Fonte: 60 arquivos .graphql merge-ados (mesma regra do Ariadne).
+# Fonte: 61 arquivos .graphql merge-ados (mesma regra do Ariadne).
 
 input BaseListInput {
   filters: [FieldFilterInput!] = null
@@ -148,6 +148,80 @@ extend type Mutation {
     acceptInvitation(companyId: UUID!): LoginPayloadDataResponse!
     "Recusa o convite: o vínculo é removido"
     declineInvitation(companyId: UUID!): BaseResponse!
+}
+
+"""Ciclo da assinatura: mensal ou anual (o anual cobra 10 meses)."""
+enum BillingCycle {
+  MONTHLY
+  YEARLY
+}
+
+"""Situação da assinatura paga pelo sistema."""
+enum SubscriptionStatus {
+  """Criada, esperando o primeiro pagamento."""
+  PENDING
+  """Em dia."""
+  ACTIVE
+  """Uma cobrança venceu sem pagamento."""
+  OVERDUE
+  """Cancelada. O período já pago continua valendo."""
+  CANCELED
+}
+
+type MySubscription {
+  """Falso quando o sistema de pagamento não está configurado: a tela manda
+  falar com o suporte em vez de mostrar o botão de assinar."""
+  isBillingEnabled: Boolean!
+  """Até quando a empresa está paga. Nulo = sem cobrança pelo sistema."""
+  paidUntil: Date
+  status: SubscriptionStatus
+  plan: String
+  planLabel: String
+  cycle: BillingCycle
+  extraUsers: Int!
+  """Valor de cada cobrança do ciclo."""
+  value: Decimal
+  overdueSince: Date
+  """Página do Asaas para pagar a cobrança em aberto (cartão, Pix ou boleto)."""
+  invoiceUrl: String
+}
+
+type MySubscriptionDataResponse {
+  status: Boolean!
+  code: Int!
+  message: String!
+  data: MySubscription
+}
+
+input StartSubscriptionInput {
+  plan: String!
+  cycle: BillingCycle!
+  extraUsers: Int! = 0
+}
+
+type StartSubscriptionPayload {
+  """Para onde mandar o dono pagar. Nulo se o Asaas ainda não gerou a
+  cobrança — a tela pede para tentar de novo em instantes."""
+  invoiceUrl: String
+}
+
+type StartSubscriptionPayloadDataResponse {
+  status: Boolean!
+  code: Int!
+  message: String!
+  data: StartSubscriptionPayload
+}
+
+extend type Query {
+  """A assinatura da empresa do usuário logado (só o dono)."""
+  mySubscription: MySubscriptionDataResponse!
+}
+
+extend type Mutation {
+  """Cria a assinatura no Asaas e devolve o link de pagamento (só o dono)."""
+  startSubscription(input: StartSubscriptionInput!): StartSubscriptionPayloadDataResponse!
+  """Cancela as próximas cobranças. O período pago continua valendo."""
+  cancelSubscription: BaseResponse!
 }
 
 type ClientContactType {
@@ -2477,6 +2551,8 @@ extend type Query {
 extend type Mutation {
     "Desliga os resumos por email pelo link do rodapé. Pública: o token assinado identifica o vínculo."
     unsubscribeEmailDigest(token: String!): BaseResponse!
+    "Desliga os avisos de pedido ao contato do cliente pelo link do rodapé. Pública: o token assinado identifica o contato."
+    unsubscribeClientOrderEmails(token: String!): BaseResponse!
 }
 
 input CreateFactoryInput {
@@ -3368,6 +3444,18 @@ input CreateOrderItemInput {
   source: OrderItemSource! = MANUAL
 }
 
+"""Uma linha do lote de `createOrderItems`: o item sem o pedido, que vem uma vez na mutation."""
+input OrderItemLineInput {
+  productId: UUID!
+  tierId: UUID = null
+  quantity: Decimal!
+  unitPrice: Decimal!
+  discount: Decimal! = "0.0"
+  ipiRate: Decimal! = "0.0"
+  isPromo: Boolean! = false
+  source: OrderItemSource! = MANUAL
+}
+
 enum OrderItemSource {
   MANUAL
   FILE_IMPORT
@@ -3425,6 +3513,13 @@ type OrderItemTypeDataResponse {
   data: OrderItemType
 }
 
+type OrderItemListDataResponse {
+  status: Boolean!
+  code: Int!
+  message: String!
+  data: [OrderItemType!]!
+}
+
 type OrderItemTypeEdge {
   node: OrderItemType!
   cursor: String!
@@ -3475,6 +3570,12 @@ extend type Query {
 
 extend type Mutation {
   createOrderItem(input: CreateOrderItemInput!): OrderItemTypeDataResponse!
+  """
+  Grava vários itens do pedido numa transação só: entram todos ou nenhum. As
+  linhas são gravadas na ordem da lista (a primeira é a mais antiga). Uma linha
+  recusada recusa o lote, e a mensagem diz qual foi.
+  """
+  createOrderItems(orderId: UUID!, items: [OrderItemLineInput!]!): OrderItemListDataResponse!
   updateOrderItem(id: UUID!, input: UpdateOrderItemInput!): OrderItemTypeDataResponse!
   deleteOrderItem(id: UUID!): BaseResponse!
 }
@@ -3865,6 +3966,39 @@ type ReversedInstallmentType {
   hasSettlement: Boolean!
 }
 
+"""Registro permanente de uma reabertura de pedido cancelado (`reopenCancelledOrder`)."""
+type OrderReopeningType {
+  id: UUID!
+  createdAt: DateTime!
+  userEmail: String
+  reason: String!
+  """Status para o qual o pedido voltou (`DRAFT`, `SENT` ou `CONFIRMED`)."""
+  restoredStatus: String!
+  """O cancelamento desfeito: quando e com que motivo."""
+  cancelledAt: DateTime
+  cancelReason: String
+}
+
+"""Uma importação de histórico confirmada (`importOrderHistory`), que pode ser desfeita inteira."""
+type OrderHistoryImportBatchType {
+  id: UUID!
+  createdAt: DateTime!
+  createdByEmail: String
+  ordersCount: Int!
+  itemsCount: Int!
+  undoneAt: DateTime
+  undoneByEmail: String
+  undoReason: String
+  ordersUndone: Int!
+}
+
+type OrderHistoryImportBatchTypeDataResponse {
+  status: Boolean!
+  code: Int!
+  message: String!
+  data: OrderHistoryImportBatchType
+}
+
 """Registro permanente de um faturamento desfeito (`UNINVOICE`) ou refeito (`REVISE`)."""
 type OrderInvoiceReversalType {
   id: UUID!
@@ -4007,6 +4141,8 @@ type OrderType {
   refeitas: quem, quando, por quê e como as parcelas estavam. Mais recente primeiro.
   """
   invoiceReversals: [OrderInvoiceReversalType!]!
+  """Vezes em que este pedido, cancelado, foi reaberto pelo gestor. Mais recente primeiro."""
+  reopenings: [OrderReopeningType!]!
   """
   Baixas lançadas nas parcelas deste pedido (pagamento, calote, comissão
   recebida/conferida, repasse ao vendedor, estorno descontado), em frase. Vazio =
@@ -4404,6 +4540,8 @@ type SettleInstallmentsPreviewType {
 }
 
 extend type Query {
+  """As importações de histórico mais recentes da empresa (só gestor)."""
+  orderHistoryImportBatches: [OrderHistoryImportBatchType!]!
   "Pedidos parados: faturados com a entrega vencida e confirmados sem faturar."
   stalledOrders(sellerId: UUID = null): StalledOrdersType!
   orders(input: BaseListInput!): OrderTypeConnectionResponse!
@@ -4561,6 +4699,16 @@ extend type Mutation {
   (`uninvoiceOrder`), senão boletos e comissão ficariam vivos.
   """
   cancelOrder(id: UUID!, input: CancelOrderInput = null): OrderTypeDataResponse!
+  """
+  Reabre um pedido cancelado (só gestor, motivo obrigatório). Volta ao status de
+  antes do cancelamento e o registro fica em `reopenings`.
+  """
+  reopenCancelledOrder(id: UUID!, input: ReasonInput!): OrderTypeDataResponse!
+  """
+  Desfaz uma importação de histórico inteira (só gestor, motivo obrigatório).
+  Recusa se algum pedido do lote já mudou de status ou tem parcelas.
+  """
+  undoOrderHistoryImport(id: UUID!, input: ReasonInput!): OrderHistoryImportBatchTypeDataResponse!
   payOrderInstallment(id: UUID!, paidAt: Date!): OrderInstallmentTypeDataResponse!
   """Marca vários boletos como pagos de uma vez, conferindo o relatório da fábrica."""
   payOrderInstallments(installmentIds: [UUID!]!, paidAt: Date!): BaseResponse!
@@ -4607,6 +4755,11 @@ extend type Mutation {
   """Encerra a devolução ao vendedor: o valor descontado dele voltou."""
   markSellerChargebackRefunded(installmentIds: [UUID!]!): BaseResponse!
   setCommissionReconciled(installmentIds: [UUID!]!, reconciled: Boolean!): BaseResponse!
+}
+
+input ReasonInput {
+  """Motivo, entre 5 e 500 caracteres. Fica registrado."""
+  reason: String!
 }
 
 input CancelOrderInput {
@@ -4751,6 +4904,8 @@ input ImportOrderHistoryInput {
   rows: [ImportOrderHistoryRowInput!]!
   quantityUnit: HistoryQuantityUnit! = UNITS
   dryRun: Boolean! = false
+  """Lote devolvido pelo pedaço anterior desta mesma importação (a planilha vai em pedaços)."""
+  batchId: UUID = null
 }
 
 type ImportHistoryIssue {
@@ -4788,6 +4943,8 @@ type ImportOrderHistoryResult {
   missingProducts: [ImportHistoryMissingProduct!]!
   """Clientes que não estão na carteira — importe os clientes antes."""
   missingClients: [ImportHistoryMissingClient!]!
+  """Lote em que os pedidos gravados entraram. Nulo na prévia ou quando nada entrou."""
+  batchId: UUID
 }
 
 type ImportOrderHistoryResultDataResponse {
@@ -7588,8 +7745,15 @@ extend type Mutation {
 
 """Autorização para enviar UM arquivo direto à API (fora do BFF)."""
 type UploadTicketType {
-  """Caminho relativo na API (`/uploads/<tíquete>`): o navegador faz PUT nele com o arquivo cru."""
-  uploadPath: String!
+  """
+  LEGADO (front de antes da TASK-012): caminho com o tíquete dentro, que acaba
+  no log de acesso. Use `uploadUrlPath` + `ticket` no cabeçalho.
+  """
+  uploadPath: String! @deprecated(reason: "Use uploadUrlPath com o tíquete no cabeçalho X-Upload-Ticket.")
+  """Caminho relativo na API (`/uploads`): o navegador faz PUT nele com o arquivo cru."""
+  uploadUrlPath: String!
+  """Autorização do envio: vai no cabeçalho `X-Upload-Ticket`, nunca na URL."""
+  ticket: String!
   """Referência do arquivo, a passar para a mutation que o usa (`fileRef`)."""
   fileRef: String!
 }

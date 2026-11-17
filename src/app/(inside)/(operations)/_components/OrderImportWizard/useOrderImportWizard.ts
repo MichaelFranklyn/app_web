@@ -31,6 +31,7 @@ import {
   ImportResult,
   Mapping,
   PreviewOrderImportResponse,
+  ReadingPhase,
   ReviewRow,
   SkippedImportItem,
 } from "./interface";
@@ -120,6 +121,9 @@ export function useOrderImportWizard({
   // Linhas com cara de item que o backend não conseguiu ler (PDF): avisadas ao
   // usuário para ele não achar que subiram em silêncio.
   const [unreadableRows, setUnreadableRows] = useState<string[]>([]);
+  // Em que ponto está a leitura do arquivo: o PDF sobe e depois o servidor o
+  // lê, o que pode levar uns segundos (TASK-009) — a tela diz qual dos dois.
+  const [readingPhase, setReadingPhase] = useState<ReadingPhase | null>(null);
   const [mapping, setMapping] = useState<Mapping>({
     sku: NONE,
     quantity: NONE,
@@ -237,8 +241,10 @@ export function useOrderImportWizard({
         | { workbook: WorkbookData; sheet: string }
       > => {
         if (isPdf) {
+          setReadingPhase("upload");
           const fileRef = await uploadFile(selected);
           fileRefPromise.current = Promise.resolve(fileRef);
+          setReadingPhase("read");
           const target = orderId
             ? { orderId }
             : { factoryId: (deferred ?? draft)?.factoryId };
@@ -288,6 +294,7 @@ export function useOrderImportWizard({
         },
       }
     );
+    setReadingPhase(null);
   };
 
   const sheetOptions: SelectOption[] = useMemo(
@@ -538,5 +545,7 @@ export function useOrderImportWizard({
     sheetOptions,
     onSheetChange,
     unreadableRows,
+    /** Fase da leitura do PDF em andamento; null quando não há leitura. */
+    readingPhase,
   };
 }

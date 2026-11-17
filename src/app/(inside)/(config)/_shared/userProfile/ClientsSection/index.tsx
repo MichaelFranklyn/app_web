@@ -86,7 +86,7 @@ export function ClientsSection({ sellerId }: Props) {
           ) : items.length === 0 ? (
             <Table.Row>
               <Table.Cell colSpan={5}>
-                <EmptyState.Root>
+                <EmptyState.Root flat>
                   <EmptyState.Icon>
                     <Users size={32} />
                   </EmptyState.Icon>

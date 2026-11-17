@@ -1,6 +1,8 @@
+import type { Page } from "@playwright/test";
+
 import { expect, test } from "../support/fixtures";
 import { addDraftItem, oneProductMocks } from "../support/orderDraft";
-import { mockGraphql } from "../support/graphql";
+import { type Handler, mockGraphql } from "../support/graphql";
 import { grantRole } from "../support/role";
 
 /**
@@ -251,6 +253,14 @@ test("orders: cria um pedido pela cascata vendedor→fábrica→cliente", async 
   expect((createVars.input as { orderDate: string }).orderDate).toMatch(
     /^\d{4}-\d{2}-\d{2}$/
   );
+
+  // Os itens vão numa chamada só, para o pedido recém-criado.
+  expect(gql.calls("CreateOrderItemsForNewOrder")).toHaveLength(1);
+  const itemsVars = await gql.waitForCall("CreateOrderItemsForNewOrder");
+  expect(itemsVars.orderId).toBe("order-1");
+  expect(itemsVars.items).toEqual([
+    expect.objectContaining({ productId: "p-1", source: "MANUAL" }),
+  ]);
 });
 
 /**
@@ -300,66 +310,88 @@ test("orders: gestor escolhe o vendedor do pedido", async ({ page }) => {
  * A porta da FÁBRICA: a página abre com a fábrica decidida e o dono do pedido
  * sai do vínculo vendedor → cliente — nada de cascata.
  */
+/** Mocks da porta da fábrica: um vínculo, um produto e o pedido "order-2". */
+const factoryOriginMocks = (): Record<string, Handler> => ({
+  FactoryAssignments: () => ({
+    sellerClientFactoryList: {
+      edges: [
+        {
+          node: {
+            id: "scf-1",
+            sellerId: "seller-1",
+            clientId: "client-1",
+            isNegative: false,
+            negativeReason: null,
+            seller: { id: "seller-1", name: "Vendedor A" },
+            client: {
+              id: "client-1",
+              razaoSocial: "Cliente LTDA",
+              nomeFantasia: "Cliente XYZ",
+              cnpj: null,
+            },
+            cadence: null,
+          },
+        },
+      ],
+      totalCount: 1,
+    },
+  }),
+  ...oneProductMocks("factory-1"),
+  OrderItemTiers: () => ({ priceTiers: { edges: [] } }),
+  OrderItemPriceLists: () => ({ factoryPriceLists: { edges: [] } }),
+  OrderItemPriceListItems: () => ({ priceListItems: { edges: [] } }),
+  CreateOrder: () => ({
+    createOrder: {
+      status: true,
+      code: 200,
+      message: "ok",
+      data: {
+        id: "order-2",
+        orderDate: "2026-09-25",
+        invoicedAt: null,
+        totalAmount: "0",
+        commissionAmount: "0",
+        status: "CONFIRMED",
+        seller: { id: "seller-1", name: "Vendedor A" },
+        client: {
+          id: "client-1",
+          razaoSocial: "Cliente LTDA",
+          nomeFantasia: "Cliente XYZ",
+        },
+        factory: {
+          id: "factory-1",
+          nomeFantasia: "Fábrica Modelo",
+          nickname: null,
+          razaoSocial: "Fabrica LTDA",
+        },
+      },
+    },
+  }),
+});
+
+/** Abre pela fábrica, escolhe o vínculo e a data, põe um item e grava. */
+async function createFromFactory(page: Page) {
+  await page.goto(
+    "/orders/new?factoryId=factory-1&from=/factories/cf-1/orders"
+  );
+  await pickOption(
+    page,
+    "Vendedor → Cliente",
+    "Cliente",
+    "Vendedor A → Cliente XYZ"
+  );
+  await page
+    .getByRole("textbox", { name: "Data do pedido" })
+    .click({ force: true });
+  await page.getByRole("button", { name: "Hoje" }).click();
+  await addDraftItem(page);
+  await page.getByRole("button", { name: "Criar pedido com 1 item" }).click();
+}
+
 test("orders/new: da fábrica, escolhe o vínculo e grava com a fábrica da tela", async ({
   page,
 }) => {
-  const gql = await mockGraphql(page, {
-    FactoryAssignments: () => ({
-      sellerClientFactoryList: {
-        edges: [
-          {
-            node: {
-              id: "scf-1",
-              sellerId: "seller-1",
-              clientId: "client-1",
-              isNegative: false,
-              negativeReason: null,
-              seller: { id: "seller-1", name: "Vendedor A" },
-              client: {
-                id: "client-1",
-                razaoSocial: "Cliente LTDA",
-                nomeFantasia: "Cliente XYZ",
-                cnpj: null,
-              },
-              cadence: null,
-            },
-          },
-        ],
-        totalCount: 1,
-      },
-    }),
-    ...oneProductMocks("factory-1"),
-    OrderItemTiers: () => ({ priceTiers: { edges: [] } }),
-    OrderItemPriceLists: () => ({ factoryPriceLists: { edges: [] } }),
-    OrderItemPriceListItems: () => ({ priceListItems: { edges: [] } }),
-    CreateOrder: () => ({
-      createOrder: {
-        status: true,
-        code: 200,
-        message: "ok",
-        data: {
-          id: "order-2",
-          orderDate: "2026-09-25",
-          invoicedAt: null,
-          totalAmount: "0",
-          commissionAmount: "0",
-          status: "CONFIRMED",
-          seller: { id: "seller-1", name: "Vendedor A" },
-          client: {
-            id: "client-1",
-            razaoSocial: "Cliente LTDA",
-            nomeFantasia: "Cliente XYZ",
-          },
-          factory: {
-            id: "factory-1",
-            nomeFantasia: "Fábrica Modelo",
-            nickname: null,
-            razaoSocial: "Fabrica LTDA",
-          },
-        },
-      },
-    }),
-  });
+  const gql = await mockGraphql(page, factoryOriginMocks());
 
   await page.goto(
     "/orders/new?factoryId=factory-1&from=/factories/cf-1/orders"
@@ -391,6 +423,44 @@ test("orders/new: da fábrica, escolhe o vínculo e grava com a fábrica da tela
     clientId: "client-1",
     factoryId: "factory-1",
   });
+});
+
+/**
+ * Itens são tudo ou nada: recusado o lote, o pedido recém-criado ficaria
+ * vazio. Ele é apagado, e o vendedor segue no formulário com o rascunho e a
+ * mensagem que diz qual item travou.
+ */
+test("orders/new: lote de itens recusado apaga o pedido e fica na página", async ({
+  page,
+}) => {
+  const gql = await mockGraphql(page, {
+    ...factoryOriginMocks(),
+    CreateOrderItemsForNewOrder: () => ({
+      createOrderItems: {
+        status: false,
+        code: 422,
+        message:
+          "Item 1 (Produto X): Este produto é vendido em múltiplos de 12 unidade(s).",
+        data: null,
+      },
+    }),
+    DeleteOrder: () => ({
+      deleteOrder: { status: true, code: 200, message: "ok" },
+    }),
+  });
+
+  await createFromFactory(page);
+
+  await expect(
+    page.getByText("Item 1 (Produto X): Este produto é vendido em múltiplos")
+  ).toBeVisible();
+  const deleteVars = await gql.waitForCall("DeleteOrder");
+  expect(deleteVars.id).toBe("order-2");
+  await expect(page).toHaveURL(/\/orders\/new/);
+  // O rascunho continua: dá para corrigir e gravar de novo.
+  await expect(
+    page.getByRole("button", { name: "Criar pedido com 1 item" })
+  ).toBeVisible();
 });
 
 /**

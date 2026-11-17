@@ -108,7 +108,7 @@ export function AwaitingDeliveryTable(props: Props) {
           ) : items.length === 0 ? (
             <Table.Row>
               <Table.Cell colSpan={7}>
-                <EmptyState.Root>
+                <EmptyState.Root flat>
                   <EmptyState.Icon>
                     <PackageCheck size={32} />
                   </EmptyState.Icon>

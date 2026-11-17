@@ -36,6 +36,13 @@ type SsrResponse =
 const visitToken = (headers: SsrHeaders): string =>
   String(headers["x-visit-token"] ?? "");
 
+/** Token do portal do cliente, como ele chega ao backend. */
+const portalToken = (headers: SsrHeaders): string =>
+  String(headers["x-portal-token"] ?? "");
+
+/** O endereço do portal que o spec usa para provar a tela de link morto. */
+export const EXPIRED_PORTAL_TOKEN = "token-do-portal-expirado";
+
 /** O endereço que o spec usa para provar a tela de link morto. */
 export const EXPIRED_VISIT_TOKEN = "token-de-resposta-expirado";
 
@@ -78,6 +85,23 @@ const SENT_PORTAL_ORDER = {
   sellerName: "Vendedor Teste",
   sellerEmail: "vendedor@teste.com",
   sellerPhone: "11999990000",
+};
+
+/** O perfil do portal com link válido (a tela normal). */
+const PORTAL_PROFILE_OK = {
+  portalProfile: {
+    status: true,
+    code: 200,
+    message: "ok",
+    data: {
+      clientName: "Loja do Cliente",
+      clientCity: "Salvador",
+      clientState: "BA",
+      companyName: "Empresa Teste",
+      companyLogoUrl: null,
+      canRequestReplenishment: true,
+    },
+  },
 };
 
 const SSR_RESPONSES: Record<string, SsrResponse> = {
@@ -245,21 +269,19 @@ const SSR_RESPONSES: Record<string, SsrResponse> = {
   // Portal do cliente: TODAS as telas são SSR (não há Apollo no navegador lá),
   // então cada query e a mutation do estoque precisam de resposta aqui — o
   // `page.route` do spec não alcança nenhuma delas.
-  PortalProfile: {
-    portalProfile: {
-      status: true,
-      code: 200,
-      message: "ok",
-      data: {
-        clientName: "Loja do Cliente",
-        clientCity: "Salvador",
-        clientState: "BA",
-        companyName: "Empresa Teste",
-        companyLogoUrl: null,
-        canRequestReplenishment: true,
-      },
-    },
-  },
+  // Responde pelo TOKEN (como a `VisitResponseForm`): é o que deixa o spec
+  // provar o `LinkExpired` do layout de `/p/[token]`.
+  PortalProfile: (_variables: Record<string, unknown>, headers: SsrHeaders) =>
+    portalToken(headers) === EXPIRED_PORTAL_TOKEN
+      ? {
+          portalProfile: {
+            status: false,
+            code: 401,
+            message: "Este link não é mais válido.",
+            data: null,
+          },
+        }
+      : PORTAL_PROFILE_OK,
   PortalPurchaseSummary: {
     portalPurchaseSummary: {
       status: true,

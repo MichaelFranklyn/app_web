@@ -95,7 +95,7 @@ export function ComponentsTable({ productId, companyFactoryId }: Props) {
           ) : components.length === 0 ? (
             <Table.Row>
               <Table.Cell colSpan={3}>
-                <EmptyState.Root>
+                <EmptyState.Root flat>
                   <EmptyState.Icon>
                     <Boxes size={32} />
                   </EmptyState.Icon>

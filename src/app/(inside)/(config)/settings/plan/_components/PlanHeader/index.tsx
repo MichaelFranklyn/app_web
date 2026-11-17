@@ -8,7 +8,12 @@ import { MyPlan } from "@/services/plan";
 import { ArrowUpRight, Sparkles } from "lucide-react";
 
 /**
- * O contrato em uma linha: qual plano, e o que fazer para mudar.
+ * O contrato em uma linha: qual plano, e onde ver os outros.
+ *
+ * A frase aqui não pode depender da assinatura: este componente não a conhece,
+ * e "cancele a assinatura atual" aparecia até para quem já tinha cancelado
+ * (17/11/2026). Como trocar de plano é dito pela `SubscriptionSection`, que
+ * sabe o estado.
  *
  * Faixa, e não cartão: o nome do plano é uma palavra e o caminho para trocá-lo
  * é uma frase — num cartão inteiro sobrava espaço vazio ocupando o topo da tela
@@ -41,7 +46,7 @@ export function PlanHeader({ plan }: { plan: MyPlan }) {
         <Alert.Content>
           <Alert.Title>Plano {plan.label}</Alert.Title>
           <Alert.Description>
-            Para mudar de plano, fale com o suporte.
+            Veja o que muda nos outros planos.
           </Alert.Description>
         </Alert.Content>
         {/* Comparar planos é a vitrine pública, fora do sistema: em outra aba,

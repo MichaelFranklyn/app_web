@@ -14,7 +14,11 @@ const ticketOk = {
     createUploadTicket: {
       status: true,
       message: "OK",
-      data: { uploadPath: "/uploads/TIQUETE", fileRef: "uploads/e/a.pdf" },
+      data: {
+        uploadUrlPath: "/uploads",
+        ticket: "TIQUETE",
+        fileRef: "uploads/e/a.pdf",
+      },
     },
   },
 };
@@ -37,9 +41,14 @@ describe("useFileUpload", () => {
     expect(mutate.mock.calls[0][0].variables).toEqual({
       input: { fileName: "tabela.pdf", size: file.size, purpose: "RAW" },
     });
+    // O tíquete vai no cabeçalho: a URL (que fica no log de acesso) não o leva.
     expect(fetchMock).toHaveBeenCalledWith(
-      "https://api.exemplo.com/uploads/TIQUETE",
-      expect.objectContaining({ method: "PUT", body: file })
+      "https://api.exemplo.com/uploads",
+      expect.objectContaining({
+        method: "PUT",
+        body: file,
+        headers: { "X-Upload-Ticket": "TIQUETE" },
+      })
     );
   });
 

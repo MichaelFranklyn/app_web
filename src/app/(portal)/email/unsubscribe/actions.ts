@@ -1,44 +1,40 @@
 "use server";
 
-import { tokenFetch } from "@/services/graphql/tokenFetch";
-import { UNSUBSCRIBE_EMAIL_DIGEST } from "./gql";
-
-interface UnsubscribeResponse {
-  unsubscribeEmailDigest: { status: boolean; message: string } | null;
-}
+import {
+  parseUnsubscribeKind,
+  requestUnsubscribe,
+  UNSUBSCRIBE_COPY,
+} from "./utils";
 
 export interface UnsubscribeState {
   status: "idle" | "success" | "error";
   message: string;
 }
 
-/** O backend responde 400 para link adulterado, e aí não chega mensagem. */
-const INVALID_LINK_MESSAGE =
-  "Este link não é válido. Para parar de receber os emails, entre no Itinus e desligue a opção em Meu perfil.";
-
 /**
- * Desliga os resumos por email.
+ * Desliga os emails do `kind` do link (resumos do usuário ou avisos de pedido
+ * ao contato do cliente).
  *
  * Server Action atrás de um botão, e NÃO na abertura da página: leitores de
  * email e antivírus abrem os links sozinhos para conferir se são seguros, e um
  * descadastro no GET desligaria os emails de quem nunca clicou.
+ *
+ * O backend responde 400 para link adulterado, e aí não chega mensagem: o texto
+ * de link inválido é o do `kind`.
  */
 export async function unsubscribeAction(
   _prevState: UnsubscribeState,
   formData: FormData
 ): Promise<UnsubscribeState> {
+  const kind = parseUnsubscribeKind(String(formData.get("kind") ?? ""));
   const token = String(formData.get("token") ?? "");
-  if (!token) return { status: "error", message: INVALID_LINK_MESSAGE };
+  const invalid: UnsubscribeState = {
+    status: "error",
+    message: UNSUBSCRIBE_COPY[kind].invalidLink,
+  };
+  if (!token) return invalid;
 
-  const data = await tokenFetch<UnsubscribeResponse>(
-    UNSUBSCRIBE_EMAIL_DIGEST,
-    null,
-    { token }
-  );
-  const payload = data?.unsubscribeEmailDigest;
-
-  if (!payload?.status) {
-    return { status: "error", message: INVALID_LINK_MESSAGE };
-  }
+  const payload = await requestUnsubscribe(kind, token);
+  if (!payload?.status) return invalid;
   return { status: "success", message: payload.message };
 }

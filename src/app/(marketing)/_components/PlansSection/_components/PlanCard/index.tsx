@@ -48,8 +48,8 @@ export function PlanCard({
       </div>
 
       {/* Tabela comercial de 14/11/2026 (54,90 / 99,90 / 175,90). O campo
-          ainda se chama `demoMonthlyPrice` porque o checkout é simulado: não
-          há cobrança de verdade por trás dele. */}
+          ainda se chama `demoMonthlyPrice` por histórico: é só vitrine — o valor
+          cobrado de verdade é calculado no backend (`core/domain/billing.py`). */}
       <div className="flex items-baseline gap-8">
         <Title variant="kpi">
           {demoMonthlyPrice === null

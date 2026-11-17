@@ -3,6 +3,7 @@
 import { Button } from "@/components/Button";
 import { EmptyState } from "@/components/EmptyState";
 import { PageContent } from "@/components/PageContent";
+import { useReportRouteError } from "@/hooks/useReportRouteError";
 import { TriangleAlert } from "lucide-react";
 
 /**
@@ -11,11 +12,13 @@ import { TriangleAlert } from "lucide-react";
  * Next — aqui o usuário mantém a sidebar e ganha saídas claras.
  */
 export default function InsideError({
+  error,
   reset,
 }: {
   error: Error & { digest?: string };
   reset: () => void;
 }) {
+  useReportRouteError(error);
   return (
     <PageContent>
       <EmptyState.Root>

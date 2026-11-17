@@ -83,7 +83,7 @@ export function NetworksTable({
           ) : networks.length === 0 ? (
             <Table.Row>
               <Table.Cell colSpan={COLUMNS}>
-                <EmptyState.Root>
+                <EmptyState.Root flat>
                   <EmptyState.Icon>
                     <Network size={32} />
                   </EmptyState.Icon>

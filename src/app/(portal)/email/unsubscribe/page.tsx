@@ -2,9 +2,10 @@ import { LinkExpired } from "@/components/LinkExpired";
 import { PublicPage } from "@/components/PublicPage";
 import { Title } from "@/components/Title";
 import { UnsubscribeContent } from "./content";
+import { parseUnsubscribeKind, UNSUBSCRIBE_COPY } from "./utils";
 
 interface PageProps {
-  searchParams: Promise<{ token?: string }>;
+  searchParams: Promise<{ token?: string; kind?: string }>;
 }
 
 /** O `robots: noindex` do layout `(portal)` vale aqui também. */
@@ -15,30 +16,26 @@ export const metadata = { title: "Emails do Itinus" };
  *
  * Abrir a página não desliga nada — só o botão desliga (ver `actions.ts`).
  * O token só serve para DESLIGAR; não lê nem muda mais nada da conta.
+ * `kind=client` é o contato do cliente (avisos de pedido) — ver `utils.ts`.
  */
 export default async function UnsubscribePage({ searchParams }: PageProps) {
-  const { token } = await searchParams;
+  const { token, kind: rawKind } = await searchParams;
+  const kind = parseUnsubscribeKind(rawKind);
+  const copy = UNSUBSCRIBE_COPY[kind];
 
-  if (!token) {
-    return (
-      <LinkExpired>
-        Para parar de receber os emails, entre no Itinus e desligue a opção em
-        Meu perfil.
-      </LinkExpired>
-    );
-  }
+  if (!token) return <LinkExpired>{copy.invalidLink}</LinkExpired>;
 
   return (
     <PublicPage.Root>
       <PublicPage.Header className="gap-[2px]">
-        <Title variant="heading-sm">Emails do Itinus</Title>
+        <Title variant="heading-sm">{copy.title}</Title>
         <Title variant="body-xs" color="muted">
-          Parar de receber os resumos e lembretes
+          {copy.subtitle}
         </Title>
       </PublicPage.Header>
 
       <PublicPage.Main>
-        <UnsubscribeContent token={token} />
+        <UnsubscribeContent token={token} kind={kind} copy={copy} />
       </PublicPage.Main>
     </PublicPage.Root>
   );

@@ -218,8 +218,38 @@ function parsePush(event) {
   }
 }
 
+/**
+ * Aviso de UMA visita (o lembrete da tarde quando sobrou uma só): o link traz
+ * `?visit=<id>` e o aviso ganha os botões "Visitei" / "Não deu". O botão não
+ * grava nada daqui — abre o app com `&answer=`, e a tela registra pelo mesmo
+ * caminho do cartão, inclusive a fila do aparelho quando não há sinal.
+ */
+function visitActions(url) {
+  try {
+    const params = new URL(url, self.location.origin).searchParams;
+    if (!params.get("visit")) return [];
+    const isCall = params.get("kind") === "call";
+    return [
+      { action: "done", title: isCall ? "Liguei" : "Visitei" },
+      { action: "missed", title: "Não deu" },
+    ];
+  } catch {
+    return [];
+  }
+}
+
+/** O destino do clique: o botão tocado vai junto como `answer`. */
+function clickDestination(url, action) {
+  const destino = new URL(url, self.location.origin);
+  if (action === "done" || action === "missed") {
+    destino.searchParams.set("answer", action);
+  }
+  return destino.href;
+}
+
 self.addEventListener("push", (event) => {
   const dados = parsePush(event);
+  const url = dados.url || "/dashboard";
 
   event.waitUntil(
     self.registration.showNotification(dados.title, {
@@ -233,7 +263,10 @@ self.addEventListener("push", (event) => {
       renotify: Boolean(dados.tag),
       // O destino viaja no `data` porque o clique acontece noutro evento, e lá
       // o payload original já não existe.
-      data: { url: dados.url || "/dashboard" },
+      data: { url },
+      // Navegador sem suporte a botões ignora a lista: o toque no corpo
+      // continua abrindo a agenda do dia.
+      actions: visitActions(url),
     }),
   );
 });
@@ -241,10 +274,10 @@ self.addEventListener("push", (event) => {
 self.addEventListener("notificationclick", (event) => {
   event.notification.close();
 
-  const destino = new URL(
+  const destino = clickDestination(
     (event.notification.data && event.notification.data.url) || "/dashboard",
-    self.location.origin,
-  ).href;
+    event.action,
+  );
 
   event.waitUntil(
     (async () => {

@@ -114,7 +114,7 @@ export function CategoriesSection() {
           ) : categories.length === 0 ? (
             <Table.Row>
               <Table.Cell colSpan={3}>
-                <EmptyState.Root>
+                <EmptyState.Root flat>
                   <EmptyState.Icon>
                     <Tag size={32} />
                   </EmptyState.Icon>

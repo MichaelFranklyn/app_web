@@ -2,11 +2,14 @@ import { TextLink } from "@/components/TextLink";
 import { Title } from "@/components/Title";
 import Image from "next/image";
 import Link from "next/link";
-import { CtaLink } from "../CtaLink";
+import { HeaderEntryLinks } from "../HeaderEntryLinks";
 
 /**
  * Topo das páginas públicas: marca à esquerda, navegação no meio, portas de
  * entrada à direita.
+ *
+ * As portas da direita ficam em `HeaderEntryLinks`, a única ilha cliente do
+ * topo: quem já está logado vê "Ir para o sistema" no lugar delas.
  *
  * Os CTAs apontam para rotas que já existem (`/login` e `/signup`, do grupo
  * `(auth)`) — é a vantagem de a landing morar no mesmo app: o funil inteiro é
@@ -69,15 +72,7 @@ export function MarketingHeader() {
         </div>
 
         <div className="tablet:gap-16 flex shrink-0 items-center gap-12">
-          <TextLink href="/login" tone="inherit" underline="none">
-            <Title variant="body-sm" color="inherit" weight="semibold">
-              Entrar
-            </Title>
-          </TextLink>
-
-          <CtaLink href="/signup" size="sm">
-            Testar grátis
-          </CtaLink>
+          <HeaderEntryLinks />
         </div>
       </nav>
     </header>
