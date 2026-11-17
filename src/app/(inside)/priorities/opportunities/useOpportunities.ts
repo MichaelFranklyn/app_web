@@ -1,26 +1,22 @@
 "use client";
 
-import { SelectOption } from "@/components/Input";
-import { useCompleteList } from "@/hooks/useCompleteList";
 import { useSeedQuery } from "@/hooks/useSeedQuery";
 import { useQuery } from "@apollo/client/react";
 import { usePathname, useRouter, useSearchParams } from "next/navigation";
-import { useMemo, useState } from "react";
+import { useMemo } from "react";
 
-import { MY_OPPORTUNITIES_QUERY, OPPORTUNITIES_SELLERS_QUERY } from "./gql";
+import { SELLER_PARAM } from "../utils";
+import { MY_OPPORTUNITIES_QUERY } from "./gql";
 import {
   MyOpportunitiesResponse,
   OpportunitiesContentProps,
-  OpportunitiesSellersResponse,
   OpportunityKind,
 } from "./interface";
 import { isOpportunityKind, sortOpportunities } from "./utils";
 
-const EMPTY_INPUT = {};
-const getSellers = (d: OpportunitiesSellersResponse) => d.opportunities_sellers;
-
 /**
- * O estado da tela: o vendedor escolhido, a leitura e o cartão aberto.
+ * O estado da tela: a leitura e o cartão aberto. O vendedor vem do cabeçalho
+ * da central (`?seller=`, escrito pelo `SellerScope`) e só vale para o gestor.
  *
  * O cartão aberto mora na URL (`?open=PRIORITY_OFF_ROUTE`) para o aviso do
  * sino chegar com a lista já aberta, e para voltar da ficha do cliente e cair
@@ -41,26 +37,13 @@ export function useOpportunities({
   const router = useRouter();
   const pathname = usePathname();
   const searchParams = useSearchParams();
-  const [sellerId, setSellerId] = useState<string | null>(null);
+  const sellerId = canSelectSeller
+    ? searchParams.get(SELLER_PARAM) || null
+    : null;
 
   const { data, loading, error, refetch } = useQuery<MyOpportunitiesResponse>(
     MY_OPPORTUNITIES_QUERY,
     { variables: { sellerId }, fetchPolicy: "cache-and-network" }
-  );
-
-  const sellersQuery = useCompleteList<OpportunitiesSellersResponse>(
-    OPPORTUNITIES_SELLERS_QUERY,
-    EMPTY_INPUT,
-    getSellers,
-    { skip: !canSelectSeller }
-  );
-
-  const sellerOptions: SelectOption[] = useMemo(
-    () =>
-      (sellersQuery.data?.opportunities_sellers.edges ?? [])
-        .filter(({ node }) => node.isActive)
-        .map(({ node }) => ({ value: node.id, label: node.name })),
-    [sellersQuery.data]
   );
 
   const opportunities = useMemo(
@@ -92,8 +75,6 @@ export function useOpportunities({
 
   return {
     sellerId,
-    setSellerId,
-    sellerOptions,
     opportunities,
     openKind,
     toggle,

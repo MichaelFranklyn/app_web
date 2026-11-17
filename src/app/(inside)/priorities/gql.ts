@@ -122,7 +122,7 @@ export const MY_PENDING_CASES_QUERY = gql`
   ${PENDING_ITEM_FIELDS}
 `;
 
-/** Vendedores para o filtro do gestor — o mesmo catálogo curto de /opportunities. */
+/** Vendedores para o campo do gestor no cabeçalho da central (`SellerScope`). */
 export const PENDING_SELLERS_QUERY = gql`
   query PendingSellers($input: BaseListInput!) {
     pending_sellers: sellers(input: $input) {

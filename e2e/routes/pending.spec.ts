@@ -404,6 +404,8 @@ test("pendências: vendedor não filtra por vendedor nem vê de quem é", async 
   const panel = page.locator("[data-filters-panel]");
   await expect(panel.getByText("Prazo (período)")).toBeVisible();
   await expect(panel.getByPlaceholder("Toda a empresa")).toHaveCount(0);
+  // Nem no cabeçalho: o campo de vendedor é só do gestor.
+  await expect(page.getByRole("combobox", { name: "Vendedor" })).toHaveCount(0);
 });
 
 test("pendências: gestor filtra por vendedor e vê de quem é cada uma", async ({
@@ -430,11 +432,9 @@ test("pendências: gestor filtra por vendedor e vê de quem é cada uma", async 
     "João Sacramento"
   );
 
-  await page.getByRole("button", { name: "Filtros" }).click();
-  const vendedor = page
-    .locator("[data-filters-panel]")
-    .getByPlaceholder("Toda a empresa");
-  await vendedor.click();
+  // O vendedor fica no cabeçalho da central, não no painel de Filtros: vale
+  // para as duas abas (Pendências e Oportunidades).
+  await page.getByRole("combobox", { name: "Vendedor" }).click();
   await page
     .locator("[data-select-dropdown]")
     .getByText("Mariana Souza", { exact: true })
@@ -447,6 +447,11 @@ test("pendências: gestor filtra por vendedor e vê de quem é cada uma", async 
   await expect
     .poll(() => spy.lastVariables("MyPendingCases")?.sellerId)
     .toBe("seller-2");
+  await expect(page).toHaveURL(/[?&]seller=seller-2/);
+  // A escolha viaja para a aba Oportunidades.
+  await expect(
+    page.getByRole("link", { name: "Oportunidades" })
+  ).toHaveAttribute("href", /seller=seller-2/);
 });
 
 test("pendências: nada pendente é boa notícia, não erro", async ({ page }) => {

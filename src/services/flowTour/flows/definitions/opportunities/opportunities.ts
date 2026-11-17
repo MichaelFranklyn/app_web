@@ -24,7 +24,7 @@ export const opportunitiesFlow: FlowDefinition = {
         "Esta tela não é lista de tarefas: ela lê a sua carteira e mostra quem está no momento de recomprar e quem ficou fora da rotina. O que é compromisso a resolver — pedido parado, boleto, visita — está em Pendências.",
     },
     {
-      element: '[data-tour="opportunities-seller"]',
+      element: '[data-tour="priorities-seller"]',
       roles: ["OWNER", "ADMIN", "SU"],
       title: "De quem são as oportunidades",
       description:
