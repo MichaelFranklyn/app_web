@@ -63,13 +63,6 @@ export interface OpportunityCasesResponse {
   } | null;
 }
 
-export interface OpportunitiesSellersResponse {
-  opportunities_sellers: {
-    edges: { node: { id: string; name: string; isActive: boolean } }[];
-    totalCount: number;
-  };
-}
-
 export interface OpportunitiesContentProps {
   /** Gestor (owner/admin): escolhe de quem são as oportunidades. */
   canSelectSeller: boolean;

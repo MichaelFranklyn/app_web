@@ -36,12 +36,7 @@ export default function OpportunitiesContent({
 
   return (
     <div className="flex flex-col gap-20">
-      <OpportunitiesHeader
-        canSelectSeller={canSelectSeller}
-        sellerOptions={view.sellerOptions}
-        sellerId={view.sellerId}
-        onSellerChange={view.setSellerId}
-      />
+      <OpportunitiesHeader />
 
       {view.failed ? (
         <QueryError onRetry={() => view.refetch()} />

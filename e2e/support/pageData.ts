@@ -255,8 +255,8 @@ export const PAGE_DATA: Record<string, Handlers> = {
     }),
     // Só o gestor pede esta; com o papel padrão (vendedor) ela é pulada. Fica
     // registrada para a rota não depender de quem está logado.
-    OpportunitiesSellers: () => ({
-      opportunities_sellers: conn([
+    PendingSellers: () => ({
+      pending_sellers: conn([
         { id: "seller-1", name: "Rafael Vendas", isActive: true },
       ]),
     }),

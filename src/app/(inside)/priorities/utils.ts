@@ -31,6 +31,12 @@ export const ITEMS_PER_PAGE = 20;
 export const SAMPLE_SIZE = 3;
 
 /**
+ * O vendedor escolhido no cabeçalho da central (`SellerScope`). Na URL, e não
+ * no estado de uma aba, porque vale para as duas e atravessa a troca de aba.
+ */
+export const SELLER_PARAM = "seller";
+
+/**
  * Sem período escolhido, o backend mostra o que já venceu e o que vence nos
  * próximos dias (`DEFAULT_HORIZON_DAYS` em `pending_items/rules.py`). O número
  * mora lá; aqui ele só aparece na frase que explica o recorte.

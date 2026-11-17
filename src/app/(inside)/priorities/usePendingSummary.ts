@@ -2,18 +2,16 @@
 
 import { FilterField } from "@/components/Filters";
 import { useHeldResult } from "@/hooks/useHeldResult";
-import { useCompleteList } from "@/hooks/useCompleteList";
 import { useSeedQuery } from "@/hooks/useSeedQuery";
 import { useTableFilters } from "@/hooks/useTableFilters";
 import { useQuery } from "@apollo/client/react";
 import { useSearchParams } from "next/navigation";
 import { useMemo } from "react";
 
-import { MY_PENDING_ITEMS_QUERY, PENDING_SELLERS_QUERY } from "./gql";
+import { MY_PENDING_ITEMS_QUERY } from "./gql";
 import {
   MyPendingItemsResponse,
   PendingContentProps,
-  PendingSellersResponse,
   PendingType,
   PendingWhen,
 } from "./interface";
@@ -23,9 +21,6 @@ import {
   pendingSummaryVariables,
   visibleTypeCounts,
 } from "./utils";
-
-const EMPTY_INPUT = {};
-const getSellers = (d: PendingSellersResponse) => d.pending_sellers;
 
 /**
  * O estado da central: filtros, assunto aberto e página na URL; cartões e
@@ -70,13 +65,8 @@ export function usePendingSummary({
   const held = useHeldResult(query, variables);
   const summary = held.shown?.myPendingItems?.data ?? null;
 
-  const sellersQuery = useCompleteList<PendingSellersResponse>(
-    PENDING_SELLERS_QUERY,
-    EMPTY_INPUT,
-    getSellers,
-    { skip: !canSelectSeller }
-  );
-
+  // Sem "Responsável" aqui: o vendedor é escolhido no cabeçalho da central
+  // (`SellerScope`), que escreve o mesmo `?seller=` lido em `queryValues`.
   const filterFields: FilterField[] = useMemo(
     () => [
       {
@@ -85,19 +75,8 @@ export function usePendingSummary({
         toKey: "dueTo",
         label: "Prazo (período)",
       },
-      {
-        type: "select",
-        key: "seller",
-        label: "Responsável",
-        placeholder: "Toda a empresa",
-        // `sellers` é @is_admin: para o vendedor o campo nem existe.
-        hidden: !canSelectSeller,
-        options: (sellersQuery.data?.pending_sellers.edges ?? [])
-          .filter(({ node }) => node.isActive)
-          .map(({ node }) => ({ value: node.id, label: node.name })),
-      },
     ],
-    [canSelectSeller, sellersQuery.data]
+    []
   );
 
   const openType = openTypeOf(filters.inputValues);

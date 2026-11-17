@@ -34,22 +34,6 @@ export const MY_OPPORTUNITIES_QUERY = gql`
   }
 `;
 
-/** Vendedores para o seletor do gestor — o mesmo catálogo curto das metas. */
-export const OPPORTUNITIES_SELLERS_QUERY = gql`
-  query OpportunitiesSellers($input: BaseListInput!) {
-    opportunities_sellers: sellers(input: $input) {
-      edges {
-        node {
-          id
-          name
-          isActive
-        }
-      }
-      totalCount
-    }
-  }
-`;
-
 /**
  * A lista COMPLETA de uma oportunidade — aberta na própria página, uma página
  * por vez, e só quando alguém abre o cartão.

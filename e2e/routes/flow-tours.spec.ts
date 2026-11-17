@@ -78,11 +78,10 @@ const DADOS: Record<string, Record<string, Handler>> = {
         },
       },
     }),
-    // Só o gestor pede esta (o vendedor já vê a própria carteira): sem ela, a
-    // resposta vazia do fallback derruba a tela para o gestor e todos os
-    // passos de conteúdo somem.
-    OpportunitiesSellers: () => ({
-      opportunities_sellers: {
+    // Campo de vendedor do cabeçalho (só o gestor pede): sem ela, a resposta
+    // vazia do fallback derruba a tela para o gestor e os passos somem.
+    PendingSellers: () => ({
+      pending_sellers: {
         edges: [
           { node: { id: "seller-1", name: "Rafael Vendas", isActive: true } },
         ],
