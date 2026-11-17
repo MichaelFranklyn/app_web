@@ -38,14 +38,17 @@ export function ProfileCards({ user, onRefetch }: Props) {
         <PersonalDataCard user={user} onEdit={() => setEditPersonOpen(true)} />
         <SystemAccessCard user={user} />
 
-        {seller ? (
-          <SellerDataCard
-            seller={seller}
-            onEdit={() => setEditSellerOpen(true)}
-          />
-        ) : (
-          <EnableSellerCard onEnable={() => setEnableSellerOpen(true)} />
-        )}
+        {/* Terceiro card da grade de dois: ocupa a linha inteira. */}
+        <Grid.Item span={{ desktop: 2 }}>
+          {seller ? (
+            <SellerDataCard
+              seller={seller}
+              onEdit={() => setEditSellerOpen(true)}
+            />
+          ) : (
+            <EnableSellerCard onEnable={() => setEnableSellerOpen(true)} />
+          )}
+        </Grid.Item>
       </Grid.Root>
 
       <EditPersonDataModal

@@ -17,7 +17,7 @@ interface Props {
  */
 export function PasswordCard({ email, onChangePassword, dataTour }: Props) {
   return (
-    <Card.Root className="desktop:col-span-2" data-tour={dataTour}>
+    <Card.Root data-tour={dataTour}>
       <Card.Header>
         <Card.Header.Title>Senha de acesso</Card.Header.Title>
         <Card.Header.Description>

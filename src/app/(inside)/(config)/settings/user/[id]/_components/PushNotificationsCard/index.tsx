@@ -27,7 +27,7 @@ export function PushNotificationsCard() {
   if (status === "disabled") return null;
 
   return (
-    <Card.Root className="desktop:col-span-2">
+    <Card.Root>
       <Card.Header>
         <Card.Header.Title>Avisos neste aparelho</Card.Header.Title>
         <Card.Header.Description>
