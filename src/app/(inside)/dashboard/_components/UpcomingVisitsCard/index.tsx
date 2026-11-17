@@ -53,15 +53,29 @@ export function UpcomingVisitsCard({ items }: Props) {
           </EmptyState.Root>
         ) : (
           items.map((item) => (
-            <Card.Item key={item.id} variant="stat">
-              <Card.Item.Label>
+            // Do tablet para cima, cliente e fábrica dividem a linha e cada um
+            // quebra o próprio texto: com o `flex-wrap` do stat, um nome de
+            // cliente comprido empurrava fábrica e `#N` para baixo mesmo com
+            // espaço sobrando (relato de 17/11/2026, 1293 e 1469px). No celular
+            // segue descendo — lá não há largura para os dois lado a lado — e a
+            // fábrica quebra em vez de empurrar o `#N` para fora do card.
+            <Card.Item
+              key={item.id}
+              variant="stat"
+              className="tablet:flex-nowrap"
+            >
+              <Card.Item.Label className="tablet:min-w-0">
                 {namedEntityLabel(item.clientFactoryLink?.client ?? null)}
               </Card.Item.Label>
-              <Card.Item.Actions>
-                <Card.Item.Value>
+              <Card.Item.Actions className="min-w-0 shrink">
+                <Card.Item.Value className="text-right">
                   {namedEntityLabel(item.clientFactoryLink?.factory ?? null)}
                 </Card.Item.Value>
-                <Badge.Root color="blue" appearance="tinted">
+                <Badge.Root
+                  color="blue"
+                  appearance="tinted"
+                  className="shrink-0"
+                >
                   <Badge.Text>#{item.plannedOrder}</Badge.Text>
                 </Badge.Root>
               </Card.Item.Actions>

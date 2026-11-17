@@ -14,6 +14,16 @@ import {
   namedEntityLabel,
 } from "../../utils";
 
+/**
+ * Piso das colunas de nome nesta tabela. O padrão da `Table` (220px) foi
+ * pensado para tabela de página inteira; aqui ela divide a linha com
+ * "Próximas visitas", e dois pisos de 220px mais Valor e Status passavam da
+ * largura do card em notebook — a etiqueta de status saía da caixa e a tabela
+ * rolava (1293px, relato de 17/11/2026). Com 140px o nome quebra em mais
+ * linhas, e nada rola para o lado.
+ */
+const NAME_CELL_STYLE = "desktop:min-w-[140px]";
+
 interface Props {
   orders: DashboardOrder[];
 }
@@ -68,10 +78,10 @@ export function RecentOrdersTable({ orders }: Props) {
           ) : (
             orders.map((order) => (
               <Table.Row key={order.id}>
-                <Table.Cell variant="strong">
+                <Table.Cell variant="strong" className={NAME_CELL_STYLE}>
                   {namedEntityLabel(order.client)}
                 </Table.Cell>
-                <Table.Cell variant="dim">
+                <Table.Cell variant="dim" className={NAME_CELL_STYLE}>
                   {namedEntityLabel(order.factory)}
                 </Table.Cell>
                 <Table.Cell variant="strong">
