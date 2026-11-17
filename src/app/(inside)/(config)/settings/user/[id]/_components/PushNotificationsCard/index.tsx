@@ -99,8 +99,8 @@ export function PushNotificationsCard() {
               Este aparelho já recebe os avisos.
             </Title>
             <Button.Root
-              appearance="outline"
-              color="neutral"
+              appearance="solid"
+              color="amber"
               size="md"
               loading={isLoading}
               onClick={disable}
