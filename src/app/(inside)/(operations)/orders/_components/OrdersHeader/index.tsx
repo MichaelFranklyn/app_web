@@ -1,6 +1,7 @@
 "use client";
 
 import { Card } from "@/components/Card";
+import React from "react";
 import { Grid } from "@/components/Grid";
 import { HelpTooltip } from "@/components/HelpTooltip";
 import { Loading } from "@/components/Loading";
@@ -37,7 +38,27 @@ interface Props {
   hasOrders: boolean;
 }
 
-const KPI_COUNT = 4;
+const ZERO_STATS: OrdersStats = {
+  orderStats: {
+    totalOrders: 0,
+    totalAmount: "0",
+    avgTicket: "0",
+    invoicedOrders: 0,
+    invoicedAmount: "0",
+    commissionAmount: null,
+    sellerCommissionAmount: "0",
+    backorderCount: 0,
+  },
+};
+
+/** O texto que vai chegar, invisível sob o shimmer: reserva a altura exata. */
+function Pending({ children }: { children: React.ReactNode }) {
+  return (
+    <Loading.Skeleton aria-hidden className="w-fit max-w-full text-transparent">
+      {children}
+    </Loading.Skeleton>
+  );
+}
 
 export function OrdersHeader({
   stats,
@@ -52,7 +73,13 @@ export function OrdersHeader({
   scopeLabel,
   hasOrders,
 }: Props) {
-  const kpis = stats ? buildOrderKpis(stats, isFiltered) : null;
+  // Sem os números ainda, os cartões saem com os rótulos e a ajuda reais (não
+  // dependem de dado) e com o valor/legenda de um recorte zerado por baixo do
+  // skeleton: o cartão já nasce na altura final. O skeleton genérico tinha
+  // 128px contra 156–171px do real e empurrava a tabela ao chegar (tela
+  // "tremendo", 17/11/2026).
+  const isLoading = !stats;
+  const kpis = buildOrderKpis(stats ?? ZERO_STATS, isFiltered);
 
   return (
     <>
@@ -92,39 +119,37 @@ export function OrdersHeader({
       </PanelHeader.Root>
 
       <Grid.Root cols={{ base: 2, tablet: 2, desktop: 4 }} gap={20}>
-        {kpis
-          ? kpis.map(
-              ({ label, value, delta, positive, negative, status, help }) => (
-                <Grid.Item key={label}>
-                  <Card.Kpi>
-                    {/* Os quatro cartões somam recortes diferentes (todos os
-                        pedidos × só a mercadoria × só o faturado): sem a
-                        explicação ao lado, um parece contradizer o outro. */}
-                    <Card.Kpi.Label className="inline-flex items-center gap-2">
-                      {label}
-                      {help && (
-                        <HelpTooltip label={`Sobre ${label}`} content={help} />
-                      )}
-                    </Card.Kpi.Label>
-                    <Card.Kpi.Value status={status}>{value}</Card.Kpi.Value>
-                    <Card.Kpi.Delta positive={positive} negative={negative}>
-                      {positive && <TrendingUp size={12} />}
-                      {negative && <TrendingDown size={12} />}
-                      {delta}
-                    </Card.Kpi.Delta>
-                  </Card.Kpi>
-                </Grid.Item>
-              )
-            )
-          : Array.from({ length: KPI_COUNT }).map((_, i) => (
-              <Grid.Item key={i}>
-                <Card.Kpi>
-                  <Loading.Skeleton className="h-[12px] w-24" />
-                  <Loading.Skeleton className="mt-8 h-[28px] w-32" />
-                  <Loading.Skeleton className="mt-8 h-[10px] w-28" />
-                </Card.Kpi>
-              </Grid.Item>
-            ))}
+        {kpis.map(
+          ({ label, value, delta, positive, negative, status, help }) => (
+            <Grid.Item key={label}>
+              <Card.Kpi aria-busy={isLoading || undefined}>
+                {/* Os quatro cartões somam recortes diferentes (todos os
+                    pedidos × só a mercadoria × só o faturado): sem a
+                    explicação ao lado, um parece contradizer o outro. */}
+                <Card.Kpi.Label className="inline-flex items-center gap-2">
+                  {label}
+                  {help && (
+                    <HelpTooltip label={`Sobre ${label}`} content={help} />
+                  )}
+                </Card.Kpi.Label>
+                <Card.Kpi.Value status={status}>
+                  {isLoading ? <Pending>{value}</Pending> : value}
+                </Card.Kpi.Value>
+                {isLoading ? (
+                  <Card.Kpi.Delta>
+                    <Pending>{delta}</Pending>
+                  </Card.Kpi.Delta>
+                ) : (
+                  <Card.Kpi.Delta positive={positive} negative={negative}>
+                    {positive && <TrendingUp size={12} />}
+                    {negative && <TrendingDown size={12} />}
+                    {delta}
+                  </Card.Kpi.Delta>
+                )}
+              </Card.Kpi>
+            </Grid.Item>
+          )
+        )}
       </Grid.Root>
     </>
   );

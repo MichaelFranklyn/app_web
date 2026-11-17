@@ -37,8 +37,11 @@ interface ListPageSkeletonProps {
    * larguras, quando algum deles é largo (um campo de busca, por exemplo).
    */
   actions?: number | string[];
-  /** Faixa de KPIs acima da lista. Ausente = a página não tem KPIs. */
-  kpis?: { count: number; cols?: GridBreakpointCols };
+  /**
+   * Faixa de KPIs acima da lista. Ausente = a página não tem KPIs. `help`: os
+   * cartões reais têm o "?" ao lado do rótulo (ele deixa a linha mais alta).
+   */
+  kpis?: { count: number; cols?: GridBreakpointCols; help?: boolean };
   /** Rótulos das abas, quando a lista tem abas (a 1ª entra como ativa). */
   tabs?: string[];
   /** Título do card da lista (fixo na página real). */
@@ -48,6 +51,15 @@ interface ListPageSkeletonProps {
   rows?: number;
   /** Corpo no lugar da tabela (ex.: grid de cards, painel de KPIs próprio). */
   children?: React.ReactNode;
+}
+
+/** Texto-modelo transparente sob o shimmer: ocupa a altura da linha real. */
+function TextSkeleton({ children }: { children: React.ReactNode }) {
+  return (
+    <Loading.Skeleton className="w-fit max-w-full text-transparent">
+      {children}
+    </Loading.Skeleton>
+  );
 }
 
 /**
@@ -145,10 +157,23 @@ export function ListPageSkeleton({
         <Grid.Root cols={kpis.cols ?? DEFAULT_KPI_COLS} gap={20}>
           {Array.from({ length: kpis.count }).map((_, i) => (
             <Grid.Item key={i}>
-              <Card.Kpi>
-                <Loading.Skeleton className="h-[12px] w-24" />
-                <Loading.Skeleton className="mt-8 h-[28px] w-32" />
-                <Loading.Skeleton className="mt-8 h-[10px] w-28" />
+              {/* Os slots reais com um texto-modelo invisível sob o shimmer:
+                  cada linha fica com a altura tipográfica de verdade. Barras
+                  soltas davam 128px contra 156px+ do cartão e a lista descia
+                  quando a página chegava (/orders, 17/11/2026). */}
+              <Card.Kpi aria-hidden>
+                <Card.Kpi.Label>
+                  <TextSkeleton>Rótulo do cartão</TextSkeleton>
+                  {kpis.help && (
+                    <Loading.Skeleton className="size-[32.8px] shrink-0" />
+                  )}
+                </Card.Kpi.Label>
+                <Card.Kpi.Value>
+                  <TextSkeleton>R$ 0.000,00</TextSkeleton>
+                </Card.Kpi.Value>
+                <Card.Kpi.Delta>
+                  <TextSkeleton>legenda do cartão</TextSkeleton>
+                </Card.Kpi.Delta>
               </Card.Kpi>
             </Grid.Item>
           ))}

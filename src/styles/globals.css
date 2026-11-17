@@ -576,3 +576,48 @@
     scroll-behavior: auto !important;
   }
 }
+
+/* PanelHeader.Actions — empilhar no celular JÁ no HTML do servidor.
+   A regra "2+ ações no celular empilham" (useStackOnPhone) é JS: até a página
+   hidratar, o HTML do servidor mostrava os botões numa linha só, e na
+   hidratação eles empilhavam e empurravam a página ~120px para baixo (/orders
+   "tremendo" no celular, 17/11/2026). Este CSS dá a mesma forma antes do JS;
+   `data-actions-ready` (ligado no 1º layout effect) devolve o comando ao hook.
+   Só vale sem busca nas ações: a busca não conta como ação e não dá para
+   descontá-la aqui (`:has` não aninha) — essas telas seguem como antes. */
+@media (width < 760px) {
+  .group\/panelhead:not([data-actions-ready]):not(:has([data-input-root])):has(
+      > div > :nth-child(2)
+    )
+    > div {
+    width: 100%;
+    flex-direction: column;
+    flex-wrap: nowrap;
+    align-items: stretch;
+  }
+  .group\/panelhead:not([data-actions-ready]):not(:has([data-input-root])):has(
+      > div > :nth-child(2)
+    )
+    > div
+    > * {
+    flex: 0 1 auto;
+  }
+  .group\/panelhead:not([data-actions-ready]):not(:has([data-input-root])):has(
+      > div > :nth-child(2)
+    )
+    > div
+    > div {
+    width: 100%;
+    display: flex;
+    flex-direction: column;
+    align-items: stretch;
+  }
+  .group\/panelhead:not([data-actions-ready]):not(:has([data-input-root])):has(
+      > div > :nth-child(2)
+    )
+    > div
+    > *
+    > button {
+    width: 100%;
+  }
+}

@@ -9,10 +9,13 @@ const useIsomorphicLayoutEffect =
 const PHONE_QUERY = "(max-width: 759.98px)";
 
 // Conta o que é botão/link de ação; a busca não conta (ela tem a linha dela).
+// O skeleton do `loading.tsx` (ListPageSkeleton) conta também: sem isso a faixa
+// de espera ficava numa linha só e, quando os botões reais chegavam empilhados,
+// a página inteira descia ~120px no celular (/orders "tremendo", 17/11/2026).
 function countActions(root: HTMLElement) {
-  return Array.from(root.querySelectorAll("button, a[href]")).filter(
-    (el) => el.closest("[data-input-root]") === null
-  ).length;
+  return Array.from(
+    root.querySelectorAll("button, a[href], :scope > .skeleton-shimmer")
+  ).filter((el) => el.closest("[data-input-root]") === null).length;
 }
 
 /**

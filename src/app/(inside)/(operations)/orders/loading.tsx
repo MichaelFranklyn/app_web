@@ -9,8 +9,8 @@ export default function Loading() {
       page="orders"
       title="Pedidos"
       description="Gestão de pedidos por fábrica e vendedor."
-      actions={2}
-      kpis={{ count: 4, cols: { base: 1, tablet: 2, desktop: 4 } }}
+      actions={4}
+      kpis={{ count: 4, cols: { base: 2, tablet: 2, desktop: 4 }, help: true }}
       tabs={["Todos os pedidos", "Esperando faturamento", "Esperando entrega"]}
       listTitle="Lista de pedidos"
       columns={[

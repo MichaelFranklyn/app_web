@@ -6,6 +6,9 @@ import React from "react";
 import { panelActionsStyle, panelActionsWrapperStyle } from "./style";
 import { useStackOnPhone } from "./useStackOnPhone";
 
+const useIsomorphicLayoutEffect =
+  typeof window !== "undefined" ? React.useLayoutEffect : React.useEffect;
+
 export const Actions = React.forwardRef<
   HTMLDivElement,
   React.HTMLAttributes<HTMLDivElement>
@@ -22,11 +25,16 @@ export const Actions = React.forwardRef<
   });
   // No celular, 2+ botões sempre empilham com título (ver useStackOnPhone).
   const mode = useStackOnPhone(innerRef) ? "column" : measuredMode;
+  // Até o 1º layout effect quem empilha no celular é o CSS (globals.css,
+  // "PanelHeader.Actions — empilhar no celular"); daqui em diante, o hook.
+  const [ready, setReady] = React.useState(false);
+  useIsomorphicLayoutEffect(() => setReady(true), []);
 
   return (
     <div
       ref={outerRef}
       data-actions-mode={mode}
+      data-actions-ready={ready ? "" : undefined}
       // Nos estágios de linha, abaixo do desktop, as ações dividem a linha
       // (sem sobra vazia no fim). No column elas já ocupam a linha inteira.
       data-actions-fill={mode === "column" ? undefined : ""}
