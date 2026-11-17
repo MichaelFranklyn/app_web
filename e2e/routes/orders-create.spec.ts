@@ -464,6 +464,145 @@ test("orders/new: lote de itens recusado apaga o pedido e fica na página", asyn
 });
 
 /**
+ * Importar itens de planilha no RASCUNHO (TASK-001). A planilha é lida no
+ * navegador e só o casamento com o catálogo vai ao servidor
+ * (PreviewOrderImport). Nada é gravado na importação: os itens entram na lista
+ * e seguem o caminho de qualquer item digitado até o "Criar pedido". Produto
+ * que já estava na lista fica com a quantidade da planilha (e mantém o preço
+ * digitado); produto novo entra com o preço do catálogo.
+ */
+test("orders/new: importa itens de planilha para o rascunho e grava no lote", async ({
+  page,
+}) => {
+  const gql = await mockGraphql(page, {
+    ...factoryOriginMocks(),
+    PreviewOrderImport: () => ({
+      previewOrderImport: {
+        status: true,
+        message: "ok",
+        data: {
+          matchedCount: 2,
+          unmatchedCount: 0,
+          candidates: [
+            {
+              rowIndex: 1,
+              rawSku: "SKU-1",
+              rawName: "Produto X",
+              quantity: "5",
+              matched: true,
+              productId: "p-1",
+              productName: "Produto X",
+              tierId: "t-1",
+              tierName: "Varejo",
+              unitPrice: "900.00",
+              confidence: 100,
+              message: null,
+              tierOptions: [
+                { tierId: "t-1", tierName: "Varejo", unitPrice: "900.00" },
+              ],
+            },
+            {
+              rowIndex: 2,
+              rawSku: "SKU-2",
+              rawName: "Produto Y",
+              quantity: "3",
+              matched: true,
+              productId: "p-2",
+              productName: "Produto Y",
+              tierId: "t-1",
+              tierName: "Varejo",
+              unitPrice: "50.00",
+              confidence: 100,
+              message: null,
+              tierOptions: [
+                { tierId: "t-1", tierName: "Varejo", unitPrice: "50.00" },
+              ],
+            },
+          ],
+        },
+      },
+    }),
+  });
+
+  await page.goto(
+    "/orders/new?factoryId=factory-1&from=/factories/cf-1/orders"
+  );
+  await pickOption(
+    page,
+    "Vendedor → Cliente",
+    "Cliente",
+    "Vendedor A → Cliente XYZ"
+  );
+  await page
+    .getByRole("textbox", { name: "Data do pedido" })
+    .click({ force: true });
+  await page.getByRole("button", { name: "Hoje" }).click();
+  // Já digitado: Produto X, 10 unidades a R$ 10,00 (o campo é máscara de
+  // moeda: "1000" são centavos).
+  await addDraftItem(page);
+
+  await page.getByRole("button", { name: "Importar de planilha" }).click();
+  const dialog = page.getByRole("dialog");
+  await expect(dialog).toBeVisible();
+  await dialog.locator('input[type="file"]').setInputFiles({
+    name: "itens.csv",
+    mimeType: "text/csv",
+    buffer: Buffer.from(
+      "Código;Produto;Quantidade;Preço\nSKU-1;Produto X;5;900,00\nSKU-2;Produto Y;3;50,00\n"
+    ),
+  });
+  // Lida a planilha, o wizard já passa sozinho para o passo das colunas.
+  await expect(dialog.getByText("Aponte as colunas do pedido")).toBeVisible();
+  await dialog.getByRole("button", { name: "Casar produtos" }).click();
+  await dialog
+    .getByRole("button", { name: "Adicionar 2 item(ns) à lista" })
+    .click();
+
+  await expect(page.getByText("Itens levados para a lista")).toBeVisible();
+  await expect(
+    page.getByText(
+      "1 item novo e 1 item já na lista com a quantidade da planilha."
+    )
+  ).toBeVisible();
+  await expect(dialog).toBeHidden();
+
+  // A pré-visualização casa no catálogo da fábrica e no nível do cliente.
+  const previewVars = await gql.waitForCall("PreviewOrderImport");
+  expect(previewVars.input).toMatchObject({
+    factoryId: "factory-1",
+    clientId: "client-1",
+  });
+
+  // O aviso fica por cima do rodapé no viewport do teste: fecha como o usuário.
+  await page.getByRole("button", { name: "Fechar aviso" }).click();
+  await page.getByRole("button", { name: "Criar pedido com 2 itens" }).click();
+  await expect(page).toHaveURL(/\/orders\/order-2$/);
+
+  // Importar não grava; quem grava é o lote do "Criar pedido", numa chamada.
+  expect(gql.calls("ConfirmOrderImport")).toHaveLength(0);
+  const itemsVars = await gql.waitForCall("CreateOrderItemsForNewOrder");
+  expect(itemsVars.orderId).toBe("order-2");
+  const items = itemsVars.items as Record<string, unknown>[];
+  expect(items).toHaveLength(2);
+  expect(items).toEqual(
+    expect.arrayContaining([
+      expect.objectContaining({
+        productId: "p-1",
+        // A planilha traz a quantidade; o preço digitado à mão continua.
+        quantity: 5,
+        unitPrice: 10,
+      }),
+      expect.objectContaining({
+        productId: "p-2",
+        tierId: "t-1",
+        quantity: 3,
+        unitPrice: 50,
+      }),
+    ])
+  );
+});
+
+/**
  * Guarda de saída: com algo feito e não gravado (dados, itens), sair da página
  * pergunta antes — por link e pelo botão Voltar do navegador. É a interação com
  * o roteador do Next (sentinela no histórico) que só o navegador de verdade
