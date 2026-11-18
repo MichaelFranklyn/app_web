@@ -11,6 +11,7 @@ export const normalizeLinkFactoryInput = (
   const priceTierRaw = data.priceTierId as { value: string } | string | null;
   const priorityRaw = data.priority as { value: string } | string | null;
   const freq = Number(data.visitFrequencyDays);
+  const factoryClientCode = String(data.factoryClientCode ?? "").trim();
 
   const sellerId =
     sellerIdOverride ??
@@ -39,5 +40,6 @@ export const normalizeLinkFactoryInput = (
     priceTierId,
     ...(priority ? { priority } : {}),
     ...(!Number.isNaN(freq) && freq > 0 ? { visitFrequencyDays: freq } : {}),
+    ...(factoryClientCode ? { factoryClientCode } : {}),
   };
 };

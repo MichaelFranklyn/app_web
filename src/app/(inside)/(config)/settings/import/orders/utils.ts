@@ -7,14 +7,12 @@ import { parseSheetDate } from "@/utils/import/dates";
 import { normalizeLabel, suggestMatch } from "@/utils/import/similarity";
 
 import {
-  HistoryField,
-  HistoryFieldKey,
-  HistoryMapping,
-  HistoryResult,
+  HistoryOrderStatus,
   HistoryRowInput,
   MatchOption,
   RowProblem,
-} from "./interface";
+} from "../interface";
+import { HistoryField, HistoryFieldKey, HistoryMapping } from "./interface";
 
 /**
  * Os campos do histórico, na ordem em que a tela pergunta. Os palpites são os
@@ -40,7 +38,7 @@ export const HISTORY_FIELDS: HistoryField[] = [
     key: "clientDocument",
     label: "CNPJ do cliente",
     required: true,
-    help: "CNPJ (ou CPF) do cliente. O cliente precisa já estar em Clientes.",
+    help: "CNPJ (ou CPF) do cliente. Cliente que ainda não está em Clientes pode ser criado pelo CNPJ no passo 3.",
     guesses: [
       "cnpj",
       "cnpj/cpf",
@@ -49,6 +47,13 @@ export const HISTORY_FIELDS: HistoryField[] = [
       "documento",
       "cpf",
     ],
+  },
+  {
+    key: "clientName",
+    label: "Nome do cliente",
+    required: false,
+    help: "A razão social do cliente. Só é usada para criar o cliente que ainda não está em Clientes.",
+    guesses: ["razao social", "nome do cliente", "cliente"],
   },
   {
     key: "factory",
@@ -63,6 +68,13 @@ export const HISTORY_FIELDS: HistoryField[] = [
     required: false,
     help: "Quem vendeu. Sem esta coluna, todos os pedidos ficam no vendedor que você escolher no próximo passo.",
     guesses: ["vendedor", "representante", "usuario", "criado por"],
+  },
+  {
+    key: "status",
+    label: "Status do pedido",
+    required: false,
+    help: "Em que pé o pedido está (confirmado, faturado, entregue, cancelado…). No próximo passo você diz o que é cada status da planilha. Sem esta coluna, todos entram como entregues.",
+    guesses: ["status", "situacao", "status do pedido", "situacao do pedido"],
   },
   {
     key: "externalRef",
@@ -143,7 +155,72 @@ export const HISTORY_FIELDS: HistoryField[] = [
       "total liquido",
     ],
   },
+  {
+    key: "invoiceNumber",
+    label: "Número da nota fiscal",
+    required: false,
+    help: "O número da nota dos pedidos faturados e entregues.",
+    guesses: [
+      "nota fiscal",
+      "numero da nota",
+      "numero nf",
+      "n nf",
+      "nf",
+      "nfe",
+      "nf-e",
+    ],
+  },
+  {
+    key: "invoicedAt",
+    label: "Data do faturamento",
+    required: false,
+    help: "O dia da nota. É dela que contam os vencimentos das parcelas; sem esta coluna, vale a data do pedido.",
+    guesses: [
+      "data de faturamento",
+      "data do faturamento",
+      "data faturamento",
+      "data da nota",
+      "data nf",
+      "faturado em",
+    ],
+  },
+  {
+    key: "paymentTerms",
+    label: "Condição de pagamento",
+    required: false,
+    help: 'O prazo do pedido, como "30/60/90". Dele saem as parcelas que ainda vão vencer; sem esta coluna, vale o prazo cadastrado na fábrica.',
+    guesses: [
+      "condicao de pagamento",
+      "condicao pagamento",
+      "prazo de pagamento",
+      "prazo",
+      "condicao",
+    ],
+  },
 ];
+
+/**
+ * Palavras que denunciam o status, da mais forte à mais fraca: "Faturado
+ * parcialmente" é faturado, "Pedido cancelado" é cancelado. O que não cair em
+ * nenhuma (orçamento, rascunho) fica sem par — a pessoa decide.
+ */
+const STATUS_HINTS: [RegExp, HistoryOrderStatus][] = [
+  [/cancel/, "CANCELLED"],
+  [/entreg/, "DELIVERED"],
+  [/fatur|nota emitida/, "INVOICED"],
+  [/envia|transmit/, "SENT_TO_FACTORY"],
+  [/confirm|aprovad|liberad|^pedido$/, "CONFIRMED"],
+];
+
+export const guessStatusMatches = (
+  values: string[]
+): Record<string, string | null> =>
+  Object.fromEntries(
+    values.map((value) => {
+      const text = normalizeLabel(value);
+      return [value, STATUS_HINTS.find(([re]) => re.test(text))?.[1] ?? null];
+    })
+  );
 
 const NONE: ColumnChoice = { kind: "none" };
 
@@ -259,6 +336,7 @@ interface BuildInput {
   mapping: HistoryMapping;
   factoryByValue: Record<string, string | null>;
   sellerByValue: Record<string, string | null>;
+  statusByValue: Record<string, string | null>;
   /** Vendedor de todos os pedidos, quando a planilha não tem a coluna. */
   defaultSellerId: string | null;
 }
@@ -274,6 +352,7 @@ export const buildRows = ({
   mapping,
   factoryByValue,
   sellerByValue,
+  statusByValue,
   defaultSellerId,
 }: BuildInput): { rows: HistoryRowInput[]; problems: RowProblem[] } => {
   const out: HistoryRowInput[] = [];
@@ -301,6 +380,15 @@ export const buildRows = ({
       problems.push({ row, message: "Vendedor sem correspondente escolhido." });
       return;
     }
+    const status =
+      mapping.status.kind === "none"
+        ? "DELIVERED"
+        : ((statusByValue[get("status", cells)] ??
+            null) as HistoryOrderStatus | null);
+    if (!status) {
+      problems.push({ row, message: "Status sem correspondente escolhido." });
+      return;
+    }
     const quantity = numberOrNull(get("quantity", cells));
     if (!quantity) {
       problems.push({ row, message: "Quantidade ilegível." });
@@ -318,93 +406,13 @@ export const buildRows = ({
       quantity,
       unitPrice: numberOrNull(get("unitPrice", cells)),
       total: numberOrNull(get("total", cells)),
+      status,
+      clientName: get("clientName", cells) || null,
+      invoiceNumber: get("invoiceNumber", cells) || null,
+      // Data de nota ilegível vale como ausente: o servidor usa a do pedido.
+      invoicedAt: parseSheetDate(get("invoicedAt", cells)),
+      paymentTerms: get("paymentTerms", cells) || null,
     });
   });
   return { rows: out, problems };
-};
-
-/** Mesma regra do servidor para juntar linhas num pedido. */
-const orderKey = (r: HistoryRowInput): string =>
-  r.externalRef
-    ? `ref|${r.factoryId}|${r.externalRef}`
-    : `day|${r.clientDocument.replace(/\D/g, "")}|${r.factoryId}|${r.sellerId}|${r.orderDate}`;
-
-/**
- * Lotes para a mutation, sem partir um pedido ao meio — metade dos itens num
- * lote e metade no outro viraria dois pedidos, e o segundo seria recusado como
- * "já importado".
- */
-export const chunkByOrder = (
-  rows: HistoryRowInput[],
-  maxRows = 2000
-): HistoryRowInput[][] => {
-  const byOrder = new Map<string, HistoryRowInput[]>();
-  for (const row of rows) {
-    const key = orderKey(row);
-    byOrder.set(key, [...(byOrder.get(key) ?? []), row]);
-  }
-  const chunks: HistoryRowInput[][] = [];
-  let current: HistoryRowInput[] = [];
-  for (const group of byOrder.values()) {
-    if (current.length > 0 && current.length + group.length > maxRows) {
-      chunks.push(current);
-      current = [];
-    }
-    current = current.concat(group);
-  }
-  if (current.length > 0) chunks.push(current);
-  return chunks;
-};
-
-const EMPTY: HistoryResult = {
-  dryRun: true,
-  totalRows: 0,
-  ordersCreated: 0,
-  ordersAlreadyImported: 0,
-  ordersSkipped: 0,
-  itemsImported: 0,
-  itemsSkipped: 0,
-  linksCreated: 0,
-  issues: [],
-  missingProducts: [],
-  missingClients: [],
-};
-
-/** Soma os resultados dos lotes num resumo só (listas somadas por chave). */
-export const mergeResults = (results: HistoryResult[]): HistoryResult => {
-  const products = new Map<string, HistoryResult["missingProducts"][number]>();
-  const clients = new Map<string, number>();
-  const merged = results.reduce<HistoryResult>(
-    (acc, r) => {
-      r.missingProducts.forEach((p) => {
-        const key = `${p.factoryId}|${p.code ?? ""}|${p.name ?? ""}`;
-        const prev = products.get(key);
-        products.set(key, prev ? { ...prev, rows: prev.rows + p.rows } : p);
-      });
-      r.missingClients.forEach((c) =>
-        clients.set(c.document, (clients.get(c.document) ?? 0) + c.rows)
-      );
-      return {
-        ...acc,
-        dryRun: r.dryRun,
-        totalRows: acc.totalRows + r.totalRows,
-        ordersCreated: acc.ordersCreated + r.ordersCreated,
-        ordersAlreadyImported:
-          acc.ordersAlreadyImported + r.ordersAlreadyImported,
-        ordersSkipped: acc.ordersSkipped + r.ordersSkipped,
-        itemsImported: acc.itemsImported + r.itemsImported,
-        itemsSkipped: acc.itemsSkipped + r.itemsSkipped,
-        linksCreated: acc.linksCreated + r.linksCreated,
-        issues: acc.issues.concat(r.issues),
-      };
-    },
-    { ...EMPTY, dryRun: results[0]?.dryRun ?? true }
-  );
-  return {
-    ...merged,
-    missingProducts: [...products.values()].sort((a, b) => b.rows - a.rows),
-    missingClients: [...clients.entries()]
-      .map(([document, rows]) => ({ document, rows }))
-      .sort((a, b) => b.rows - a.rows),
-  };
 };

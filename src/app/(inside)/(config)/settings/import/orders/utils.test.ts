@@ -1,11 +1,9 @@
 import { describe, expect, it } from "vitest";
-import { HistoryResult, HistoryRowInput } from "./interface";
 import {
   buildRows,
-  chunkByOrder,
   guessMapping,
   guessMatches,
-  mergeResults,
+  guessStatusMatches,
   missingFields,
 } from "./utils";
 
@@ -39,6 +37,22 @@ describe("guessMapping", () => {
     expect(mapping.productName).toEqual(col(8));
     expect(mapping.quantity).toEqual(col(9));
     expect(mapping.unitPrice).toEqual(col(10));
+    expect(mapping.clientName).toEqual(col(2));
+  });
+
+  it("acha status, nota e condição de pagamento", () => {
+    const m = guessMapping([
+      "Data",
+      "Situação",
+      "Nota fiscal",
+      "Data de faturamento",
+      "Condição de pagamento",
+    ]);
+    expect(m.orderDate).toEqual(col(0));
+    expect(m.status).toEqual(col(1));
+    expect(m.invoiceNumber).toEqual(col(2));
+    expect(m.invoicedAt).toEqual(col(3));
+    expect(m.paymentTerms).toEqual(col(4));
   });
 
   it("'Total' é o do item, não o 'Total do pedido'", () => {
@@ -93,6 +107,28 @@ describe("guessMatches — nome contido no outro", () => {
   });
 });
 
+describe("guessStatusMatches", () => {
+  it("reconhece o status pela palavra e deixa o orçamento sem par", () => {
+    expect(
+      guessStatusMatches([
+        "Faturado parcialmente",
+        "ENTREGUE",
+        "Pedido cancelado",
+        "Enviado",
+        "Confirmado",
+        "Orçamento",
+      ])
+    ).toEqual({
+      "Faturado parcialmente": "INVOICED",
+      ENTREGUE: "DELIVERED",
+      "Pedido cancelado": "CANCELLED",
+      Enviado: "SENT_TO_FACTORY",
+      Confirmado: "CONFIRMED",
+      Orçamento: null,
+    });
+  });
+});
+
 describe("buildRows", () => {
   const mapping = guessMapping(HEADERS);
   const line = (patch: Partial<Record<number, string>> = {}) => {
@@ -119,6 +155,7 @@ describe("buildRows", () => {
     mapping,
     factoryByValue: { HERC: "f1" },
     sellerByValue: { Ana: "s1" },
+    statusByValue: {},
     defaultSellerId: null,
   };
 
@@ -137,6 +174,11 @@ describe("buildRows", () => {
       quantity: "12",
       unitPrice: "10.5",
       total: "126",
+      status: "DELIVERED",
+      clientName: "Loja",
+      invoiceNumber: null,
+      invoicedAt: null,
+      paymentTerms: null,
     });
   });
 
@@ -162,70 +204,21 @@ describe("buildRows", () => {
     });
     expect(rows[0].sellerId).toBe("s9");
   });
-});
 
-describe("chunkByOrder", () => {
-  const row = (ref: string, n: number): HistoryRowInput => ({
-    row: n,
-    externalRef: ref,
-    clientDocument: "1",
-    factoryId: "f",
-    sellerId: "s",
-    orderDate: "2026-01-01",
-    productCode: String(n),
-    productName: null,
-    quantity: "1",
-    unitPrice: "1",
-    total: null,
-  });
-
-  it("nunca parte um pedido entre dois lotes", () => {
-    const rows = [
-      row("A", 1),
-      row("A", 2),
-      row("B", 3),
-      row("B", 4),
-      row("C", 5),
-    ];
-    const chunks = chunkByOrder(rows, 3);
-    expect(chunks.map((c) => c.map((r) => r.externalRef))).toEqual([
-      ["A", "A"],
-      ["B", "B", "C"],
-    ]);
-  });
-});
-
-describe("mergeResults", () => {
-  const result = (patch: Partial<HistoryResult>): HistoryResult => ({
-    dryRun: true,
-    totalRows: 10,
-    ordersCreated: 2,
-    ordersAlreadyImported: 0,
-    ordersSkipped: 1,
-    itemsImported: 8,
-    itemsSkipped: 2,
-    linksCreated: 1,
-    issues: [],
-    missingProducts: [],
-    missingClients: [],
-    ...patch,
-  });
-
-  it("soma contadores e junta as listas pela chave", () => {
-    const merged = mergeResults([
-      result({ missingClients: [{ document: "1", rows: 2 }] }),
-      result({
-        missingClients: [
-          { document: "1", rows: 3 },
-          { document: "2", rows: 9 },
-        ],
-      }),
-    ]);
-    expect(merged.ordersCreated).toBe(4);
-    expect(merged.totalRows).toBe(20);
-    expect(merged.missingClients).toEqual([
-      { document: "2", rows: 9 },
-      { document: "1", rows: 5 },
+  it("com coluna de status, vale o par escolhido; sem par, a linha sai", () => {
+    const withStatus = {
+      ...mapping,
+      status: { kind: "column" as const, index: 3 },
+    };
+    const { rows, problems } = buildRows({
+      ...base,
+      mapping: withStatus,
+      statusByValue: { Faturado: "INVOICED", Orçamento: null },
+      rows: [line({ 3: "Faturado" }), line({ 3: "Orçamento" })],
+    });
+    expect(rows.map((r) => r.status)).toEqual(["INVOICED"]);
+    expect(problems).toEqual([
+      { row: 3, message: "Status sem correspondente escolhido." },
     ]);
   });
 });

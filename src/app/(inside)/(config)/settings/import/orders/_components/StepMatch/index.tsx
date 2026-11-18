@@ -8,7 +8,9 @@ import { Stepper } from "@/components/Stepper";
 import { Title } from "@/components/Title";
 import { Info } from "lucide-react";
 
-import { MatchOption } from "../../interface";
+import { CreateMissingOptions } from "../../../_components/CreateMissingOptions";
+import { MatchOption } from "../../../interface";
+import { STATUS_OPTIONS } from "../../../utils";
 import { ValueMatchRow } from "../ValueMatchRow";
 
 interface Props {
@@ -26,6 +28,14 @@ interface Props {
   onSellerMatch: (value: string, id: string | null) => void;
   defaultSellerId: string | null;
   onDefaultSeller: (id: string | null) => void;
+  hasStatusColumn: boolean;
+  statusValues: string[];
+  statusMatches: Record<string, string | null>;
+  onStatusMatch: (value: string, id: string | null) => void;
+  createClients: boolean;
+  onCreateClients: (value: boolean) => void;
+  createProducts: boolean;
+  onCreateProducts: (value: boolean) => void;
   pending: number;
 }
 
@@ -40,8 +50,8 @@ export function StepMatch(props: Props) {
   return (
     <div className="flex flex-col gap-12">
       <Stepper.Intro step={3} total={4} title="Diga quem é quem">
-        A planilha escreve as fábricas e os vendedores do jeito dela. Para cada
-        nome, escolha o cadastro correspondente aqui. Os parecidos já vêm
+        A planilha escreve as fábricas, os vendedores e os status do jeito dela.
+        Para cada nome, escolha o correspondente aqui. Os parecidos já vêm
         escolhidos.
       </Stepper.Intro>
       {props.pending > 0 && (
@@ -99,6 +109,31 @@ export function StepMatch(props: Props) {
           )}
         </Card.Body>
       </Card.Root>
+      {props.hasStatusColumn && (
+        <Card.Root inset tone="transparent">
+          <Card.Body padding="sm" className="gap-10">
+            <Title variant="micro" color="muted">
+              Status
+            </Title>
+            {props.statusValues.map((value) => (
+              <ValueMatchRow
+                key={value}
+                value={value}
+                options={STATUS_OPTIONS}
+                selectedId={props.statusMatches[value] ?? null}
+                onChange={(id) => props.onStatusMatch(value, id)}
+                placeholder="Escolha o status"
+              />
+            ))}
+          </Card.Body>
+        </Card.Root>
+      )}
+      <CreateMissingOptions
+        createClients={props.createClients}
+        onCreateClients={props.onCreateClients}
+        createProducts={props.createProducts}
+        onCreateProducts={props.onCreateProducts}
+      />
     </div>
   );
 }

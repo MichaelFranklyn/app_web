@@ -118,6 +118,14 @@ export function EditClientLinkModal({
                 placeholder: "Selecione a prioridade",
                 options: PRIORITY_OPTIONS,
               },
+              {
+                name: "factoryClientCode",
+                type: "text",
+                label: "Código do cliente na fábrica",
+                placeholder: "Ex.: 23401",
+                maxLength: 30,
+                hint: "O código que a fábrica usa para este cliente. Com ele, o pedido em PDF sem CNPJ acha o cliente.",
+              },
             ],
           },
         ],
@@ -139,6 +147,7 @@ export function EditClientLinkModal({
               link.priority,
           }
         : null,
+      factoryClientCode: link.factoryClientCode ?? "",
     }),
     [link]
   );
@@ -154,6 +163,11 @@ export function EditClientLinkModal({
 
     const input: Record<string, unknown> = { priceTierId };
     if (priority) input.priority = priority;
+    const factoryClientCode = String(data.factoryClientCode ?? "").trim();
+    // Vazio limpa o código; só vai quando mudou.
+    if (factoryClientCode !== (link.factoryClientCode ?? "")) {
+      input.factoryClientCode = factoryClientCode;
+    }
 
     const tierNode = tierOptions.find((o) => o.value === priceTierId);
 
@@ -164,6 +178,7 @@ export function EditClientLinkModal({
         ? { id: tierNode.value, name: tierNode.label }
         : link.priceTier,
       priority: priority || link.priority,
+      factoryClientCode: factoryClientCode || null,
     });
 
     await execute(
@@ -210,7 +225,7 @@ export function EditClientLinkModal({
       <Modal.Content size="md">
         <Modal.Header
           title="Editar vínculo"
-          description="Altere o nível de preço e a prioridade deste cliente nesta fábrica."
+          description="Altere o nível de preço, a prioridade e o código deste cliente nesta fábrica."
         />
 
         <Modal.Body>

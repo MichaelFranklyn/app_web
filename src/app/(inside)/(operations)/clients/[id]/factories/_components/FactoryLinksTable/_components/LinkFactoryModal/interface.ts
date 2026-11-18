@@ -12,4 +12,5 @@ export interface LinkFactoryInput {
   priceTierId: string;
   priority?: string;
   visitFrequencyDays?: number;
+  factoryClientCode?: string;
 }

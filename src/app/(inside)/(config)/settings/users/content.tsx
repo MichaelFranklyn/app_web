@@ -1,5 +1,7 @@
 "use client";
 
+import { useRouter } from "next/navigation";
+
 import { PageContent } from "@/components/PageContent";
 import { QueryError } from "@/components/QueryError";
 import { useOptimisticList } from "@/hooks/useOptimisticList";
@@ -40,6 +42,8 @@ export default function UsersContent({ initialData, stats }: Props) {
     initialData,
   });
 
+  const router = useRouter();
+
   const optimistic = useOptimisticList<User>({
     initialData: tableData.displayedData,
   });
@@ -51,6 +55,11 @@ export default function UsersContent({ initialData, stats }: Props) {
         onAddOptimistic={optimistic.addOptimistic}
         search={tableData.inputValues.search ?? ""}
         totalItems={tableData.totalItems}
+        onImported={() => {
+          tableData.refetch();
+          // Os cartões vêm do servidor.
+          router.refresh();
+        }}
       />
 
       {tableData.error && optimistic.items.length === 0 ? (

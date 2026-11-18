@@ -7,7 +7,8 @@ import { Title } from "@/components/Title";
 import { ToggleGroup } from "@/components/ToggleGroup";
 import { Info } from "lucide-react";
 
-import { HistoryMapping, QuantityUnit } from "../../interface";
+import { QuantityUnit } from "../../../interface";
+import { HistoryMapping } from "../../interface";
 import { HISTORY_FIELDS, missingFields } from "../../utils";
 
 interface Props {

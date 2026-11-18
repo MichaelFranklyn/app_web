@@ -114,6 +114,8 @@ export interface SellerClientFactory {
   id: string;
   priority: string | null;
   visitFrequencyDays: number | null;
+  /** O código que a fábrica deu a este cliente no sistema dela ("23401"). */
+  factoryClientCode: string | null;
   /** Ciclo calculado pelo intervalo entre os últimos pedidos nesta fábrica. */
   orderIntervalDays: number | null;
   /**

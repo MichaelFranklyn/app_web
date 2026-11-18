@@ -22,6 +22,8 @@ interface RunInput {
   rows: HistoryRowInput[];
   problems: RowProblem[];
   quantityUnit: QuantityUnit;
+  createMissingClients: boolean;
+  createMissingProducts: boolean;
 }
 
 /**
@@ -43,7 +45,15 @@ export function useHistoryRun() {
   const [imported, setImported] = useState<HistoryResult | null>(null);
   const [localProblems, setLocalProblems] = useState<RowProblem[]>([]);
 
-  const run = async ({ rows, quantityUnit }: RunInput, dryRun: boolean) => {
+  const run = async (
+    {
+      rows,
+      quantityUnit,
+      createMissingClients,
+      createMissingProducts,
+    }: RunInput,
+    dryRun: boolean
+  ) => {
     const chunks = chunkByOrder(rows);
     const results: HistoryResult[] = [];
     // Os pedaços da mesma planilha formam UM lote: o servidor devolve o id no
@@ -56,6 +66,8 @@ export function useHistoryRun() {
           input: {
             rows: chunk,
             quantityUnit,
+            createMissingClients,
+            createMissingProducts,
             dryRun,
             ...(batchId ? { batchId } : {}),
           },
@@ -114,5 +126,10 @@ export function useHistoryRun() {
     imported,
     localProblems,
     resetPreview: () => setPreview(null),
+    /** Volta ao começo: some a prévia e o resultado da última importação. */
+    reset: () => {
+      setPreview(null);
+      setImported(null);
+    },
   };
 }

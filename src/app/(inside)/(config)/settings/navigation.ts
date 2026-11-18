@@ -75,7 +75,7 @@ export const SETTINGS_NAV: SettingsNavGroup[] = [
         // A migração de quem chega de outro sistema.
         href: "/settings/import",
         matchPrefix: "/settings/import",
-        label: "Trazer dados",
+        label: "Configuração inicial",
         icon: Import,
         access: "admin",
       },

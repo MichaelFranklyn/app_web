@@ -18,6 +18,7 @@ import { KPI_IGNORES_SEARCH } from "../../help";
 import { USERS_QUERY } from "../../gql";
 import { SellersStats, User, UsersQueryResponse } from "../../interface";
 import { ROLE_LABEL, UserRole } from "../../utils";
+import { ImportSellersModal } from "../../../_components/ImportSellersModal";
 import { AddUserModal } from "./AddUserModal";
 
 // Página larga; o teto de páginas é o do app inteiro (`MAX_SCAN_PAGES`).
@@ -32,6 +33,8 @@ interface Props {
   search: string;
   /** Quantas pessoas o recorte tem ao todo, para o aviso de "nada a exportar". */
   totalItems: number;
+  /** Depois de importar vendedores por planilha: lista e cartões recarregam. */
+  onImported: () => void;
 }
 
 export function UsersHeader({
@@ -39,6 +42,7 @@ export function UsersHeader({
   onAddOptimistic,
   search,
   totalItems,
+  onImported,
 }: Props) {
   const kpis = buildKpis(stats);
   const apollo = useApolloClient();
@@ -158,6 +162,10 @@ export function UsersHeader({
                   própria mutation, com a frase daquele teto. */}
               <PlanLimitGate limit="USERS">
                 <AddUserModal onAddOptimistic={onAddOptimistic} />
+              </PlanLimitGate>
+              {/* A planilha só cria vendedores: o teto é o de vendedores. */}
+              <PlanLimitGate limit="SELLERS">
+                <ImportSellersModal onImported={onImported} />
               </PlanLimitGate>
             </PanelHeader.Actions>
           </PanelHeader.Left>

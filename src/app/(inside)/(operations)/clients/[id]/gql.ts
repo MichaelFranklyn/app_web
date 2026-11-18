@@ -8,6 +8,7 @@ export const SELLER_CLIENT_FACTORIES_QUERY = gql`
           id
           priority
           visitFrequencyDays
+          factoryClientCode
           orderIntervalDays
           lastVisitDate
           isNegative

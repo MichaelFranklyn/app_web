@@ -263,6 +263,14 @@ export function useLinkClient({
                 placeholder: "Selecione a prioridade",
                 options: PRIORITY_OPTIONS,
               },
+              {
+                name: "factoryClientCode",
+                type: "text",
+                label: "Código do cliente na fábrica",
+                placeholder: "Ex.: 23401",
+                maxLength: 30,
+                hint: "O código que a fábrica usa para este cliente. Com ele, o pedido em PDF sem CNPJ acha o cliente.",
+              },
             ],
           },
         ],
@@ -304,6 +312,7 @@ export function useLinkClient({
     const sellerId = extractSelectValue(data.sellerId);
     const priceTierId = extractSelectValue(data.priceTierId);
     const priority = extractSelectValue(data.priority);
+    const factoryClientCode = String(data.factoryClientCode ?? "").trim();
     if (!clientId || !sellerId || !priceTierId) return null;
 
     const input: Record<string, unknown> = {
@@ -313,6 +322,7 @@ export function useLinkClient({
       priceTierId,
       transferFromCurrentSeller,
       ...(priority ? { priority } : {}),
+      ...(factoryClientCode ? { factoryClientCode } : {}),
     };
 
     const res = await linkClient({ variables: { input } });

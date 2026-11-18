@@ -24,9 +24,14 @@ import { UPDATE_SELLER_CLIENT_FACTORY_MUTATION } from "./gql";
 interface UpdateInput {
   priority?: string;
   visitFrequencyDays?: number;
+  /** "" limpa o código; ausente, não mexe. */
+  factoryClientCode?: string;
 }
 
-function normalizeInput(data: Record<string, unknown>): UpdateInput {
+function normalizeInput(
+  data: Record<string, unknown>,
+  currentCode: string | null
+): UpdateInput {
   const priorityRaw = data.priority as { value: string } | string | null;
   const priority =
     typeof priorityRaw === "object" && priorityRaw !== null
@@ -35,10 +40,12 @@ function normalizeInput(data: Record<string, unknown>): UpdateInput {
         ? String(priorityRaw)
         : undefined;
   const freq = Number(data.visitFrequencyDays);
+  const code = String(data.factoryClientCode ?? "").trim();
 
   return {
     ...(priority ? { priority } : {}),
     ...(!Number.isNaN(freq) && freq > 0 ? { visitFrequencyDays: freq } : {}),
+    ...(code !== (currentCode ?? "") ? { factoryClientCode: code } : {}),
   };
 }
 
@@ -115,6 +122,14 @@ export function EditFactoryLinkModal({
                     ? `Este cliente compra desta fábrica a cada ${link.orderIntervalDays} dias, em média — e é esse ritmo que a rotina segue. Preencha aqui só se ficou combinado um intervalo de visita diferente do de compra.`
                     : "Enquanto não houver pedidos suficientes para medir o ritmo, é este número que a rotina usa.",
               },
+              {
+                name: "factoryClientCode",
+                type: "text",
+                label: "Código do cliente na fábrica",
+                placeholder: "Ex.: 23401",
+                maxLength: 30,
+                hint: "O código que a fábrica usa para este cliente. Com ele, o pedido em PDF sem CNPJ acha o cliente.",
+              },
             ],
           },
         ],
@@ -131,15 +146,22 @@ export function EditFactoryLinkModal({
         ? (PRIORITY_OPTIONS.find((o) => o.value === link.priority) ?? null)
         : null,
       visitFrequencyDays: link.visitFrequencyDays ?? "",
+      factoryClientCode: link.factoryClientCode ?? "",
     }),
     [link]
   );
 
   const handleSubmit = async (data: Record<string, unknown>) => {
-    const input = normalizeInput(data);
+    const input = normalizeInput(data, link.factoryClientCode);
 
     setOpen(false);
-    onUpdateOptimistic(link.id, input);
+    const { factoryClientCode, ...rest } = input;
+    onUpdateOptimistic(link.id, {
+      ...rest,
+      ...(factoryClientCode !== undefined
+        ? { factoryClientCode: factoryClientCode || null }
+        : {}),
+    });
 
     await execute(
       async () => {

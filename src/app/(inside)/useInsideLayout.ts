@@ -14,6 +14,9 @@ interface UseInsideLayoutParams {
   userData: UserData | null;
   /** Preferência de sidebar recolhida, também vinda do servidor. */
   initialCollapsed: boolean;
+  /** Empresa ainda na configuração inicial — também resolvido no servidor,
+   *  para o atalho já nascer no menu (sem empurrar os itens depois). */
+  setupPending: boolean;
 }
 
 const getUserInitials = (name: string): string =>
@@ -40,6 +43,7 @@ const getUserInitials = (name: string): string =>
 export function useInsideLayout({
   userData,
   initialCollapsed,
+  setupPending,
 }: UseInsideLayoutParams) {
   const pathname = usePathname();
   const searchParams = useSearchParams();
@@ -83,7 +87,7 @@ export function useInsideLayout({
   // para ninguém. Vem do SSR (ver o layout), então o menu já nasce certo — sem
   // itens que somem depois que a resposta chega.
   const { features } = usePlan();
-  const navItems = visibleNav(userData?.role, features);
+  const navItems = visibleNav(userData?.role, features, setupPending);
   const userInitials = userData ? getUserInitials(userData.userName) : "—";
   const userName = userData?.userName ?? "Usuário";
   const userRole = userData?.role
