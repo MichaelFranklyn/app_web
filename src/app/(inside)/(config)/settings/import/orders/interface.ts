@@ -4,17 +4,20 @@ export type HistoryFieldKey =
   | "externalRef"
   | "orderDate"
   | "clientDocument"
+  | "clientName"
   | "factory"
   | "seller"
+  | "status"
   | "productCode"
   | "productName"
   | "quantity"
   | "unitPrice"
-  | "total";
+  | "total"
+  | "invoiceNumber"
+  | "invoicedAt"
+  | "paymentTerms";
 
 export type HistoryMapping = Record<HistoryFieldKey, ColumnChoice>;
-
-export type QuantityUnit = "UNITS" | "PACKS";
 
 export interface HistoryField {
   key: HistoryFieldKey;
@@ -23,89 +26,4 @@ export interface HistoryField {
   help: string;
   /** Títulos de coluna que já indicam o campo (sem acento, minúsculo). */
   guesses: string[];
-}
-
-/** Uma opção para casar com o valor da planilha (fábrica, vendedor). */
-export interface MatchOption {
-  id: string;
-  label: string;
-}
-
-/** Linha pronta para a mutation (espelha `ImportOrderHistoryRowInput`). */
-export interface HistoryRowInput {
-  row: number;
-  externalRef: string | null;
-  clientDocument: string;
-  factoryId: string;
-  sellerId: string;
-  orderDate: string;
-  productCode: string | null;
-  productName: string | null;
-  quantity: string;
-  unitPrice: string | null;
-  total: string | null;
-}
-
-export interface RowProblem {
-  row: number;
-  message: string;
-}
-
-export interface HistoryResult {
-  dryRun: boolean;
-  /** Lote da importação de verdade; nulo na prévia. */
-  batchId?: string | null;
-  totalRows: number;
-  ordersCreated: number;
-  ordersAlreadyImported: number;
-  ordersSkipped: number;
-  itemsImported: number;
-  itemsSkipped: number;
-  linksCreated: number;
-  issues: RowProblem[];
-  missingProducts: {
-    factoryId: string;
-    factory: {
-      id: string;
-      nomeFantasia: string | null;
-      razaoSocial: string;
-      nickname: string | null;
-    } | null;
-    code: string | null;
-    name: string | null;
-    rows: number;
-  }[];
-  missingClients: { document: string; rows: number }[];
-}
-
-export interface ImportOrderHistoryResponse {
-  importOrderHistory: {
-    status: boolean;
-    message: string;
-    data: HistoryResult | null;
-  };
-}
-
-export interface HistoryImportBatch {
-  id: string;
-  createdAt: string;
-  createdByEmail: string | null;
-  ordersCount: number;
-  itemsCount: number;
-  undoneAt: string | null;
-  undoneByEmail: string | null;
-  undoReason: string | null;
-  ordersUndone: number;
-}
-
-export interface HistoryImportBatchesResponse {
-  orderHistoryImportBatches: HistoryImportBatch[];
-}
-
-export interface UndoHistoryImportResponse {
-  undoOrderHistoryImport: {
-    status: boolean;
-    message: string;
-    data: Pick<HistoryImportBatch, "id"> | null;
-  };
 }

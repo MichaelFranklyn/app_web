@@ -17,13 +17,23 @@ interface Props {
   localProblems: RowProblem[];
   progress: { done: number; total: number } | null;
   running: boolean;
+  /** Posição no assistente (o de planilha tem 4 passos). */
+  step?: number;
+  total?: number;
+  /** Como apontar a origem de um problema: "Linha 12", "pedido.pdf, item 3". */
+  describeRow?: (row: number) => string;
 }
+
+const lineLabel = (row: number) => `Linha ${row}`;
 
 export function StepReview({
   result,
   localProblems,
   progress,
   running,
+  step = 4,
+  total = 4,
+  describeRow = lineLabel,
 }: Props) {
   if (running && progress) {
     return (
@@ -43,17 +53,17 @@ export function StepReview({
   const done = !result.dryRun;
   const problems = [...localProblems, ...result.issues]
     .sort((a, b) => a.row - b.row)
-    .map((p) => `Linha ${p.row}: ${p.message}`);
+    .map((p) => `${describeRow(p.row)}: ${p.message}`);
 
   return (
     <div className="flex flex-col gap-12">
       <Stepper.Intro
-        step={4}
-        total={4}
+        step={step}
+        total={total}
         title={done ? "Histórico importado" : "Confira antes de importar"}
       >
         {done
-          ? "Os pedidos entraram como entregues, sem comissão nem boleto. O estoque estimado e a rotina desses clientes já foram recalculados."
+          ? "Os pedidos entraram no status em que estavam. Os faturados e entregues ganharam só as parcelas que ainda vão vencer, com a comissão delas. O estoque estimado e a rotina desses clientes já foram recalculados."
           : "Nada foi gravado ainda. Veja o que vai entrar e o que fica de fora; se estiver certo, clique em Importar."}
       </Stepper.Intro>
       {done && (
@@ -85,26 +95,35 @@ export function StepReview({
           <Card.Kpi.Label>Vínculos novos</Card.Kpi.Label>
           <Card.Kpi.Value>{result.linksCreated}</Card.Kpi.Value>
         </Card.Kpi>
+        <Card.Kpi>
+          <Card.Kpi.Label>Parcelas a vencer</Card.Kpi.Label>
+          <Card.Kpi.Value>{result.installmentsCreated}</Card.Kpi.Value>
+        </Card.Kpi>
+        <Card.Kpi>
+          <Card.Kpi.Label>Clientes novos</Card.Kpi.Label>
+          <Card.Kpi.Value>{result.clientsCreated}</Card.Kpi.Value>
+        </Card.Kpi>
+        <Card.Kpi>
+          <Card.Kpi.Label>Produtos novos</Card.Kpi.Label>
+          <Card.Kpi.Value>{result.productsCreated}</Card.Kpi.Value>
+        </Card.Kpi>
       </Grid.Root>
       <ReviewList
         title={`${result.missingClients.length} cliente(s) fora da carteira`}
-        hint="Os pedidos destes clientes ficam de fora. Importe os clientes em Clientes → Importar e depois suba esta planilha de novo: o que já entrou não duplica."
+        hint='Os pedidos destes clientes ficam de fora. Volte e ligue "Criar os clientes que faltam", ou importe os clientes em Clientes → Importar e importe de novo: o que já entrou não duplica.'
         items={result.missingClients.map(
-          (c) => `${c.document} · ${c.rows} linha(s)`
+          (c) => `${c.document} · ${c.rows} item(ns)`
         )}
       />
       <ReviewList
         title={`${result.missingProducts.length} produto(s) fora do catálogo`}
-        hint="Estes itens ficam de fora (o resto do pedido entra). Importe a tabela da fábrica antes, se quiser trazê-los."
+        hint='Estes itens ficam de fora (o resto do pedido entra). Volte e ligue "Criar os produtos que faltam", ou importe a tabela da fábrica antes.'
         items={result.missingProducts.map(
           (p) =>
-            `${[p.code, p.name].filter(Boolean).join(" — ")} (${factoryName(p.factory)}) · ${p.rows} linha(s)`
+            `${[p.code, p.name].filter(Boolean).join(" — ")} (${factoryName(p.factory)}) · ${p.rows} item(ns)`
         )}
       />
-      <ReviewList
-        title={`${problems.length} linha(s) com problema`}
-        items={problems}
-      />
+      <ReviewList title={`${problems.length} problema(s)`} items={problems} />
     </div>
   );
 }

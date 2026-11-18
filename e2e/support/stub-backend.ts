@@ -162,6 +162,13 @@ const SSR_RESPONSES: Record<string, SsrResponse> = {
     myPlan: { status: true, code: 200, message: "ok", data: null },
   },
 
+  // A casca do gestor pergunta no servidor se a empresa ainda está na
+  // configuração inicial (item "Configuração inicial" no menu + redirecionamento).
+  // `false` = empresa já configurada: os specs abrem direto na tela que testam.
+  // Os passos voltam vazios — sem passos, a página de um passo não redireciona.
+  CompanySetupPending: { companySetupPending: false },
+  CompanySetupSteps: { companySetupProgress: { data: null } },
+
   // O seletor de escritório da topbar (multi-escritório) roda a query também
   // no servidor. Lista vazia = um escritório só, sem convites: a topbar mostra
   // só o selo — o mesmo default do mock do cliente (`SHELL_DEFAULTS`).

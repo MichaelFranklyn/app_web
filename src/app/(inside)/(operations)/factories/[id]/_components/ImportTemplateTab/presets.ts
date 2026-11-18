@@ -53,7 +53,15 @@ export const PDF_PRESETS: PresetMeta[] = [
     id: "header_columns",
     label: "Código entre parênteses no produto",
     description:
-      "Tabela com Produto, Quantidade e Preço, mas sem coluna de código: o código vem entre parênteses no começo do produto, como “(96257) FECH. 925”. Ex.: pedidos Silvana (Sellentt).",
+      "Tabela com Produto, Quantidade e Preço, mas sem coluna de código: o código vem entre parênteses no começo do produto, como “(96257) FECH. 925”.",
+    fileKind: "pdf",
+    parserStrategy: "FIXED_LAYOUT",
+  },
+  {
+    id: "code_column",
+    label: "Coluna de código na tabela",
+    description:
+      "Tabela com uma coluna de código (Cód., Ref. ou #) à esquerda da descrição; a descrição pode ocupar duas linhas, acima e abaixo da quantidade.",
     fileKind: "pdf",
     parserStrategy: "FIXED_LAYOUT",
   },

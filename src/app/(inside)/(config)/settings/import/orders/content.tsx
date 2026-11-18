@@ -8,11 +8,11 @@ import { PAGE_HEADING } from "@/utils/modules";
 import { Stepper } from "@/components/Stepper";
 import { ArrowLeft, ArrowRight, ClipboardList } from "lucide-react";
 
-import { HistoryBatchesCard } from "./_components/HistoryBatchesCard";
+import { HistoryBatchesCard } from "../_components/HistoryBatchesCard";
 import { StepColumns } from "./_components/StepColumns";
 import { StepFile } from "./_components/StepFile";
 import { StepMatch } from "./_components/StepMatch";
-import { StepReview } from "./_components/StepReview";
+import { StepReview } from "../_components/StepReview";
 import { useHistoryImportWizard } from "./useHistoryImportWizard";
 
 export default function OrderHistoryImportContent() {
@@ -23,6 +23,10 @@ export default function OrderHistoryImportContent() {
     options,
     matches,
     run,
+    createMissingClients,
+    setCreateMissingClients,
+    createMissingProducts,
+    setCreateMissingProducts,
     canAdvance,
     next,
     back,
@@ -43,8 +47,9 @@ export default function OrderHistoryImportContent() {
               Importar histórico de pedidos
             </PanelHeader.Heading>
             <PanelHeader.Description>
-              Os pedidos antigos entram como entregues, sem comissão nem boleto,
-              e ensinam ao sistema o ritmo de compra de cada cliente.
+              Os pedidos antigos entram no status em que estavam, os faturados
+              com as parcelas que ainda vão vencer, e ensinam ao sistema o ritmo
+              de compra de cada cliente.
             </PanelHeader.Description>
           </PanelHeader.Left>
         </PanelHeader.Top>
@@ -97,6 +102,14 @@ export default function OrderHistoryImportContent() {
                 onSellerMatch={matches.setSellerMatch}
                 defaultSellerId={matches.defaultSellerId}
                 onDefaultSeller={matches.setDefaultSellerId}
+                hasStatusColumn={matches.hasStatusColumn}
+                statusValues={matches.statusValues}
+                statusMatches={matches.statusMatches}
+                onStatusMatch={matches.setStatusMatch}
+                createClients={createMissingClients}
+                onCreateClients={setCreateMissingClients}
+                createProducts={createMissingProducts}
+                onCreateProducts={setCreateMissingProducts}
                 pending={matches.pending}
               />
             </Stepper.Item>

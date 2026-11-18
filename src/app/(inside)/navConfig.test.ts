@@ -132,3 +132,23 @@ describe("visibleNav — plano", () => {
     expect("section" in last).toBe(false);
   });
 });
+
+describe("visibleNav — configuração inicial", () => {
+  const withSetup = (role: string, setupPending: boolean) =>
+    visibleNav(role, ALL, setupPending)
+      .filter((item) => "href" in item)
+      .map((item) => (item as { href: string }).href);
+
+  it("põe o atalho no topo do menu do gestor enquanto está pendente", () => {
+    expect(withSetup("OWNER", true)[0]).toBe("/settings/import");
+    expect(withSetup("ADMIN", true)[0]).toBe("/settings/import");
+  });
+
+  it("some quando a configuração foi concluída", () => {
+    expect(withSetup("OWNER", false)).not.toContain("/settings/import");
+  });
+
+  it("nunca aparece para o vendedor", () => {
+    expect(withSetup("SELLER", true)).not.toContain("/settings/import");
+  });
+});

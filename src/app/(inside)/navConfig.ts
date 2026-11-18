@@ -8,6 +8,7 @@ import {
   Headset,
   LayoutDashboard,
   ListChecks,
+  Rocket,
   Route,
   Settings,
   Target,
@@ -112,7 +113,7 @@ export const NAV = [
   },
   { divider: true },
   {
-    // Um item só: as telas (Empresa, Plano, Pessoas, Catálogos, Trazer dados)
+    // Um item só: as telas (Empresa, Plano, Pessoas, Catálogos, Configuração inicial)
     // se escolhem no menu interno da área (`settings/navigation.ts`). Antes
     // eram cinco itens soltos aqui. `access: "admin"` porque toda tela da
     // área é de gestão — e o vendedor, em `/settings`, seria mandado ao perfil.
@@ -123,6 +124,20 @@ export const NAV = [
     access: "admin",
   },
 ];
+
+/**
+ * Atalho fixo para a configuração inicial, só enquanto ela está incompleta. Vai
+ * no TOPO, acima do Dashboard: empresa nova ainda não tem o que ver no resto
+ * do menu, e o passo a passo é o que destrava as outras telas. Concluída a
+ * configuração, o item some — a tela segue em Configurações.
+ */
+export const SETUP_NAV_ITEM = {
+  href: "/settings/import",
+  matchPrefix: "/settings/import",
+  label: "Configuração inicial",
+  icon: Rocket,
+  access: "admin" as NavAccess,
+};
 
 // Não existe item de plataforma neste menu: o SU nunca chega a renderizar esta
 // casca. O middleware (`proxy.ts`) devolve qualquer rota do tenant para
@@ -137,12 +152,17 @@ export const NAV = [
  */
 export const visibleNav = (
   role?: string | null,
-  features: readonly NavFeature[] = []
+  features: readonly NavFeature[] = [],
+  /** A empresa ainda não concluiu a configuração inicial (lido no servidor). */
+  setupPending = false
 ) => {
   const isAdmin = isAdminRole(role);
   const isOwner = isOwnerRole(role);
+  // A configuração é tarefa de gestão: o vendedor nunca vê o atalho, mesmo
+  // com a empresa ainda configurando (a rota exige admin).
+  const source = setupPending && isAdmin ? [SETUP_NAV_ITEM, ...NAV] : NAV;
 
-  const allowed = NAV.filter((item) => {
+  const allowed = source.filter((item) => {
     // Plano primeiro: recurso que a empresa não tem não existe para papel
     // nenhum, nem para o dono da conta.
     const feature = (item as { feature?: NavFeature }).feature;

@@ -1,6 +1,6 @@
 # AUTO-GERADO por scripts/pull-schema.mjs — NÃO editar à mão.
 # Snapshot do schema do backend (app_user). Atualize com: npm run schema:pull
-# Fonte: 61 arquivos .graphql merge-ados (mesma regra do Ariadne).
+# Fonte: 63 arquivos .graphql merge-ados (mesma regra do Ariadne).
 
 input BaseListInput {
   filters: [FieldFilterInput!] = null
@@ -2095,6 +2095,102 @@ extend type Mutation {
   deleteCompanyFactory(id: UUID!): BaseResponse!
 }
 
+"""Passos da "Configuração inicial", na ordem em que a tela guia."""
+enum CompanySetupStepKey {
+  SELLERS
+  FACTORIES
+  PRICE_LISTS
+  CLIENTS
+  ORDER_HISTORY
+}
+
+type CompanySetupStep {
+  key: CompanySetupStepKey!
+  isDone: Boolean!
+  isRequired: Boolean!
+}
+
+type CompanySetupFactory {
+  companyFactoryId: UUID!
+  factoryId: UUID!
+  name: String!
+  paymentTermsCount: Int!
+  sellersCount: Int!
+  hasPriceList: Boolean!
+  """Tem prazo de pagamento e ao menos um vendedor atendendo."""
+  isConfigured: Boolean!
+}
+
+type CompanySetupProgress {
+  isCompleted: Boolean!
+  completedAt: DateTime
+  canComplete: Boolean!
+  doneStepsCount: Int!
+  sellersCount: Int!
+  clientsCount: Int!
+  historyBatchesCount: Int!
+  historyOrdersCount: Int!
+  """Pessoas importadas que recebem o email de acesso ao concluir."""
+  pendingAccessEmailsCount: Int!
+  factories: [CompanySetupFactory!]!
+  steps: [CompanySetupStep!]!
+}
+
+type CompanySetupProgressDataResponse {
+  status: Boolean!
+  code: Int!
+  message: String!
+  data: CompanySetupProgress
+}
+
+input ImportSellerRowInput {
+  name: String!
+  email: String!
+  cpf: String = null
+  region: String = null
+}
+
+input ImportSellersInput {
+  rows: [ImportSellerRowInput!]!
+}
+
+type ImportSellerRowDetail {
+  row: Int!
+  email: String!
+  message: String!
+}
+
+type ImportSellersResult {
+  total: Int!
+  created: Int!
+  failed: Int!
+  errors: [ImportSellerRowDetail!]!
+  """Verdadeiro quando os emails de acesso ficaram para a conclusão da configuração."""
+  accessEmailsDeferred: Boolean!
+}
+
+type ImportSellersResultDataResponse {
+  status: Boolean!
+  code: Int!
+  message: String!
+  data: ImportSellersResult
+}
+
+extend type Query {
+  companySetupProgress: CompanySetupProgressDataResponse!
+  """
+  A empresa ainda não concluiu a configuração inicial. Consulta de uma linha,
+  feita pela casca a cada carga para decidir o item fixo do menu e o
+  redirecionamento — por isso separada do progresso, que conta tabelas.
+  """
+  companySetupPending: Boolean!
+}
+
+extend type Mutation {
+  importSellers(input: ImportSellersInput!): ImportSellersResultDataResponse!
+  completeCompanySetup: CompanySetupProgressDataResponse!
+}
+
 """
 A rotina integrada entre escritórios da MESMA pessoa (decisão de 16/11/2026).
 
@@ -3580,6 +3676,138 @@ extend type Mutation {
   deleteOrderItem(id: UUID!): BaseResponse!
 }
 
+"""Em que pé está um PDF da importação em massa."""
+enum OrderPdfImportFileStatus {
+  """Envio autorizado; o PDF ainda não chegou ou está sendo lido."""
+  PENDING
+  """Lido: tem cabeçalho e itens para conferir."""
+  READ
+  """Não se leu; `error` diz o que fazer."""
+  FAILED
+  """Os pedidos dele já foram gravados."""
+  IMPORTED
+}
+
+"""Um PDF da leva: o que se leu dele (cabeçalho e itens) ou por que não."""
+type OrderPdfImportFileType {
+  id: UUID!
+  fileName: String!
+  size: Int!
+  status: OrderPdfImportFileStatus!
+  """Pendente há mais de 10 minutos: o envio caiu no meio. Pode ser enviado de novo."""
+  isStale: Boolean!
+  """
+  {clientDocument, clientName, orderDate, orderNumber, invoiceNumber, paymentTerms,
+  clientCode, notes, notesPaymentTerms, otherDocuments}. `clientCode` é o código do
+  cliente no sistema da fábrica; `notesPaymentTerms`, o prazo citado nas observações
+  quando difere de `paymentTerms`.
+  """
+  header: JSON
+  """[{code, name, quantity, unitPrice, ipiRate}]"""
+  items: JSON
+  unreadableRows: Int!
+  error: String
+  createdAt: DateTime!
+  readAt: DateTime
+  """Cliente da carteira com o CNPJ lido no cabeçalho ou, sem ele, com o código do cliente nesta fábrica."""
+  clientId: UUID
+  clientName: String
+  """CNPJ do cliente achado: o do PDF ou, achado pelo código, o do cadastro."""
+  clientDocument: String
+  """Como o cliente foi achado: DOCUMENT (CNPJ) ou FACTORY_CODE (código na fábrica)."""
+  clientMatchedBy: String
+  """Vendedor vinculado a esse cliente nesta fábrica."""
+  suggestedSellerId: UUID
+}
+
+"""Uma leva de PDFs de pedido de uma fábrica."""
+type OrderPdfImportBatchType {
+  id: UUID!
+  factoryId: UUID!
+  factoryName: String!
+  """Vendedor de todos os pedidos; nulo = o vendedor de cada cliente."""
+  sellerId: UUID
+  defaultStatus: HistoryOrderStatus!
+  createdAt: DateTime!
+  totalFiles: Int!
+  pendingFiles: Int!
+  readFiles: Int!
+  failedFiles: Int!
+  importedFiles: Int!
+  """Só no `orderPdfImportBatch` (a lista de lotes não traz os arquivos)."""
+  files: [OrderPdfImportFileType!]
+}
+
+type OrderPdfImportBatchTypeDataResponse {
+  status: Boolean!
+  code: Int!
+  message: String!
+  data: OrderPdfImportBatchType
+}
+
+type OrderPdfImportBatchListDataResponse {
+  status: Boolean!
+  code: Int!
+  message: String!
+  data: [OrderPdfImportBatchType!]
+}
+
+"""O arquivo registrado e, se ele precisa subir, o tíquete do envio direto."""
+type AddedOrderPdfImportFile {
+  file: OrderPdfImportFileType!
+  """Nulo quando o PDF já estava no lote (lido ou importado): não precisa subir."""
+  ticket: String
+  """Para onde o navegador faz o `PUT` com o arquivo cru."""
+  uploadUrlPath: String!
+  duplicate: Boolean!
+}
+
+type AddedOrderPdfImportFileDataResponse {
+  status: Boolean!
+  code: Int!
+  message: String!
+  data: AddedOrderPdfImportFile
+}
+
+type MarkOrderPdfImportFilesResult {
+  marked: Int!
+}
+
+type MarkOrderPdfImportFilesResultDataResponse {
+  status: Boolean!
+  code: Int!
+  message: String!
+  data: MarkOrderPdfImportFilesResult
+}
+
+input CreateOrderPdfImportBatchInput {
+  factoryId: UUID!
+  """Nulo = o vendedor vinculado a cada cliente."""
+  sellerId: UUID = null
+  defaultStatus: HistoryOrderStatus! = DELIVERED
+}
+
+input AddOrderPdfImportFileInput {
+  batchId: UUID!
+  fileName: String!
+  size: Int!
+  """SHA-256 do arquivo (hex): o mesmo PDF duas vezes não vira dois pedidos."""
+  sha256: String!
+}
+
+extend type Query {
+  orderPdfImportBatch(id: UUID!): OrderPdfImportBatchTypeDataResponse!
+  """Os lotes mais recentes da empresa."""
+  orderPdfImportBatches: OrderPdfImportBatchListDataResponse!
+}
+
+extend type Mutation {
+  createOrderPdfImportBatch(input: CreateOrderPdfImportBatchInput!): OrderPdfImportBatchTypeDataResponse!
+  addOrderPdfImportFile(input: AddOrderPdfImportFileInput!): AddedOrderPdfImportFileDataResponse!
+  """Marca como importados os PDFs cujos pedidos o `importOrderHistory` gravou."""
+  markOrderPdfImportFilesImported(batchId: UUID!, fileIds: [UUID!]!): MarkOrderPdfImportFilesResultDataResponse!
+}
+
 """
 Vendedor dono da ficha. Vai no cabeçalho da folha (para quem abre o arquivo) e
 no `_META` (para o importador saber de quem é o pedido, independente de quem
@@ -4882,6 +5110,20 @@ enum HistoryQuantityUnit {
   PACKS
 }
 
+"""Em que pé o pedido estava no sistema de origem."""
+enum HistoryOrderStatus {
+  """Fechado com o cliente, ainda não mandado à fábrica. Fatura depois pelo fluxo normal."""
+  CONFIRMED
+  """Já mandado à fábrica. Entra confirmado, com o envio registrado."""
+  SENT_TO_FACTORY
+  """Faturado: ganha as parcelas que ainda vão vencer, com a comissão delas."""
+  INVOICED
+  """Entregue: como o faturado. É o status de quem não manda a coluna."""
+  DELIVERED
+  """Cancelado: entra só como registro, sem parcela nem rotina."""
+  CANCELLED
+}
+
 input ImportOrderHistoryRowInput {
   """Linha da planilha (para o resumo apontar onde está o problema)."""
   row: Int!
@@ -4898,6 +5140,17 @@ input ImportOrderHistoryRowInput {
   unitPrice: Decimal = null
   """Valor total da linha (com desconto). Vence o preço unitário quando os dois vêm."""
   total: Decimal = null
+  status: HistoryOrderStatus! = DELIVERED
+  """Número da nota (faturado e entregue)."""
+  invoiceNumber: String = null
+  """Data da nota. Sem ela, vale a data do pedido."""
+  invoicedAt: Date = null
+  """Condição de pagamento como veio ("30/60/90", "28 ddl", "à vista")."""
+  paymentTerms: String = null
+  """Nome do cliente — usado só para criar o cliente que falta."""
+  clientName: String = null
+  """Observações do pedido (o texto livre que veio com ele)."""
+  notes: String = null
 }
 
 input ImportOrderHistoryInput {
@@ -4906,6 +5159,10 @@ input ImportOrderHistoryInput {
   dryRun: Boolean! = false
   """Lote devolvido pelo pedaço anterior desta mesma importação (a planilha vai em pedaços)."""
   batchId: UUID = null
+  """Cria pelo CNPJ o cliente que não está na carteira (conferido na Receita depois)."""
+  createMissingClients: Boolean! = false
+  """Cria no catálogo da fábrica o produto que não existe (marcado para conferir)."""
+  createMissingProducts: Boolean! = false
 }
 
 type ImportHistoryIssue {
@@ -4938,6 +5195,12 @@ type ImportOrderHistoryResult {
   itemsSkipped: Int!
   """Vínculos vendedor × cliente × fábrica criados para o histórico entrar na rotina."""
   linksCreated: Int!
+  """Clientes criados pelo CNPJ (com `createMissingClients`)."""
+  clientsCreated: Int!
+  """Produtos criados no catálogo (com `createMissingProducts`)."""
+  productsCreated: Int!
+  """Parcelas a vencer lançadas para os pedidos faturados e entregues."""
+  installmentsCreated: Int!
   issues: [ImportHistoryIssue!]!
   """Produtos da planilha que não existem no catálogo (os mais citados primeiro)."""
   missingProducts: [ImportHistoryMissingProduct!]!
@@ -7035,6 +7298,12 @@ input CreateSellerClientFactoryInput {
   priority: String = null
   visitFrequencyDays: Int = null
   notes: String = null
+  """
+  Código do cliente no sistema da fábrica (vem no cabeçalho dos pedidos dela).
+  Único por fábrica; a importação de PDF sem CNPJ acha o cliente por ele.
+  Vazio limpa o código.
+  """
+  factoryClientCode: String = null
   lastVisitDate: DateTime = null
   """
   Assume um vínculo que já é de OUTRO vendedor (ele saiu, deixou de atender esta
@@ -7071,6 +7340,8 @@ type SellerClientFactoryType {
   """
   cadence: CadenceType
   notes: String
+  """Código do cliente no sistema da fábrica."""
+  factoryClientCode: String
   lastVisitDate: DateTime
   """Último toque de qualquer tipo — visita presencial OU contato remoto."""
   lastContactDate: Date
@@ -7153,6 +7424,12 @@ input UpdateSellerClientFactoryInput {
   priority: String = null
   visitFrequencyDays: Int = null
   notes: String = null
+  """
+  Código do cliente no sistema da fábrica (vem no cabeçalho dos pedidos dela).
+  Único por fábrica; a importação de PDF sem CNPJ acha o cliente por ele.
+  Vazio limpa o código.
+  """
+  factoryClientCode: String = null
   lastVisitDate: DateTime = null
 }
 

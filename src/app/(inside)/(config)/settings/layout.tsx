@@ -6,7 +6,7 @@ import { SettingsNav } from "./_components/SettingsNav";
 /**
  * A área de Configurações: o menu interno de um lado, a tela do outro. Na
  * sidebar ela é um item só — as telas (Empresa, Plano, Pessoas, Catálogos,
- * Trazer dados) se escolhem aqui.
+ * Configuração inicial) se escolhem aqui.
  *
  * O papel vem do cookie, lido no servidor: o menu nasce já recortado, sem
  * itens que somem depois da hidratação. É leitura local, não ida ao backend,

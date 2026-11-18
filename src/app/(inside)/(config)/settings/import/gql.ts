@@ -1,5 +1,56 @@
 import { gql } from "@apollo/client";
 
+const PROGRESS_FIELDS = `
+  isCompleted
+  completedAt
+  canComplete
+  doneStepsCount
+  sellersCount
+  clientsCount
+  historyBatchesCount
+  historyOrdersCount
+  pendingAccessEmailsCount
+  factories {
+    companyFactoryId
+    factoryId
+    name
+    paymentTermsCount
+    sellersCount
+    hasPriceList
+    isConfigured
+  }
+  steps {
+    key
+    isDone
+    isRequired
+  }
+`;
+
+export const COMPANY_SETUP_PROGRESS_QUERY = gql`
+  query CompanySetupProgress {
+    companySetupProgress {
+      status
+      message
+      data {
+        ${PROGRESS_FIELDS}
+      }
+    }
+  }
+`;
+
+export const COMPLETE_COMPANY_SETUP_MUTATION = gql`
+  mutation CompleteCompanySetup {
+    completeCompanySetup {
+      status
+      message
+      data {
+        ${PROGRESS_FIELDS}
+      }
+    }
+  }
+`;
+
+// Histórico de pedidos (planilha e PDFs).
 export const IMPORT_ORDER_HISTORY_MUTATION = gql`
   mutation ImportOrderHistory($input: ImportOrderHistoryInput!) {
     importOrderHistory(input: $input) {
@@ -15,6 +66,9 @@ export const IMPORT_ORDER_HISTORY_MUTATION = gql`
         itemsImported
         itemsSkipped
         linksCreated
+        clientsCreated
+        productsCreated
+        installmentsCreated
         issues {
           row
           message

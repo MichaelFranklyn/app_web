@@ -14,6 +14,7 @@ import { NotificationCenter } from "./_components/NotificationCenter";
 import { OfflineBanner } from "./_components/OfflineBanner";
 import { OfflineSync } from "./_components/OfflineSync";
 import { OfficeSwitcher } from "./_components/OfficeSwitcher";
+import { SetupRedirect } from "./_components/SetupRedirect";
 import { UserMenu } from "./_components/UserMenu";
 import { useInsideLayout } from "./useInsideLayout";
 
@@ -26,12 +27,15 @@ export default function InsideShell({
   children,
   userData,
   initialCollapsed,
+  setupPending,
 }: {
   children: React.ReactNode;
   /** Quem está logado e a preferência da sidebar, resolvidos no `layout.tsx`
    *  a partir dos cookies — para o primeiro render já sair no formato final. */
   userData: UserData | null;
   initialCollapsed: boolean;
+  /** Empresa ainda na configuração inicial (só vem `true` para o gestor). */
+  setupPending: boolean;
 }) {
   const {
     pathname,
@@ -46,10 +50,11 @@ export default function InsideShell({
     userRole,
     userInitials,
     canManageCompany,
-  } = useInsideLayout({ userData, initialCollapsed });
+  } = useInsideLayout({ userData, initialCollapsed, setupPending });
 
   return (
     <FlowTourProvider>
+      <SetupRedirect pending={setupPending} pathname={pathname} />
       {/* A casca respira: um padding na página deixa as bordas da sidebar e do
           painel de conteúdo aparecerem, em vez de as duas colarem na janela.
           Só no desktop — no mobile a sidebar é drawer e o conteúdo usa a tela

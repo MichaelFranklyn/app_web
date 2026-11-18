@@ -12,12 +12,16 @@ describe("visibleSettingsNav", () => {
       "Plano",
       "Pessoas",
       "Catálogos",
-      "Trazer dados",
+      "Configuração inicial",
     ]);
   });
 
   it("o administrador não vê o que é do dono, nem o grupo vazio", () => {
-    expect(labels("ADMIN")).toEqual(["Pessoas", "Catálogos", "Trazer dados"]);
+    expect(labels("ADMIN")).toEqual([
+      "Pessoas",
+      "Catálogos",
+      "Configuração inicial",
+    ]);
     expect(visibleSettingsNav("ADMIN").map((g) => g.label)).toEqual([
       "Equipe",
       "Cadastros",

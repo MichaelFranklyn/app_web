@@ -2,7 +2,9 @@ import { UserData } from "@/app/(auth)/login/interface";
 import { AppProviders } from "@/components/AppProviders";
 import { PlanProvider } from "@/services/plan";
 import type { Metadata } from "next";
+import { getCompanySetupPending } from "@/services/companySetup/server";
 import { getPlanContract } from "@/services/plan/server";
+import { isAdminRole } from "@/utils/auth/roles";
 import { getServerCookie } from "@/utils/cookies/serverCookie";
 import InsideShell from "./content";
 import { SIDEBAR_COLLAPSED_COOKIE } from "./navConfig";
@@ -35,11 +37,19 @@ export default async function InsideLayout({
   // Os três em paralelo: o plano é uma ida ao backend, os cookies são locais, e
   // encadeá-los somaria latência ao tempo até a primeira pintura de TODA tela
   // de dentro — o layout roda antes de a página começar a renderizar.
-  const [plan, userData, collapsedPreference] = await Promise.all([
-    getPlanContract(),
-    getServerCookie<UserData>("userData"),
-    getServerCookie<boolean>(SIDEBAR_COLLAPSED_COOKIE),
-  ]);
+  const userDataPromise = getServerCookie<UserData>("userData");
+  const [plan, userData, collapsedPreference, setupPending] = await Promise.all(
+    [
+      getPlanContract(),
+      userDataPromise,
+      getServerCookie<boolean>(SIDEBAR_COLLAPSED_COOKIE),
+      // Só o gestor configura a empresa: para o vendedor nem se pergunta, e a
+      // casca dele não paga a ida ao backend.
+      userDataPromise.then((user) =>
+        isAdminRole(user?.role) ? getCompanySetupPending() : false
+      ),
+    ]
+  );
 
   // Sem preferência salva, recolhida: é o padrão do produto (a tela inteira
   // para o conteúdo). Só a escolha explícita de expandir sobrevive.
@@ -48,7 +58,11 @@ export default async function InsideLayout({
   return (
     <AppProviders>
       <PlanProvider plan={plan}>
-        <InsideShell userData={userData} initialCollapsed={initialCollapsed}>
+        <InsideShell
+          userData={userData}
+          initialCollapsed={initialCollapsed}
+          setupPending={setupPending}
+        >
           {children}
         </InsideShell>
       </PlanProvider>

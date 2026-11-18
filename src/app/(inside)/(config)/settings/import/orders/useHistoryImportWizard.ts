@@ -4,8 +4,8 @@ import { useState } from "react";
 
 import { buildRows, missingFields } from "./utils";
 import { useHistoryMatches } from "./useHistoryMatches";
-import { useHistoryOptions } from "./useHistoryOptions";
-import { useHistoryRun } from "./useHistoryRun";
+import { useHistoryOptions } from "../useHistoryOptions";
+import { useHistoryRun } from "../useHistoryRun";
 import { useHistorySheet } from "./useHistorySheet";
 
 /** As quatro etapas: planilha → colunas → quem é quem → conferir e importar. */
@@ -20,6 +20,10 @@ export function useHistoryImportWizard() {
     sellerOptions: options.sellerOptions,
   });
   const run = useHistoryRun();
+  // Criar o que falta é opção: quem já cadastrou tudo prefere ver o que não
+  // bateu a ganhar um cliente com o CNPJ digitado errado.
+  const [createMissingClients, setCreateMissingClients] = useState(false);
+  const [createMissingProducts, setCreateMissingProducts] = useState(false);
 
   const input = () => {
     const built = buildRows({
@@ -28,9 +32,15 @@ export function useHistoryImportWizard() {
       mapping: sheet.mapping!,
       factoryByValue: matches.factoryMatches,
       sellerByValue: matches.sellerMatches,
+      statusByValue: matches.statusMatches,
       defaultSellerId: matches.defaultSellerId,
     });
-    return { ...built, quantityUnit: sheet.quantityUnit };
+    return {
+      ...built,
+      quantityUnit: sheet.quantityUnit,
+      createMissingClients,
+      createMissingProducts,
+    };
   };
 
   const canAdvance = [
@@ -66,6 +76,10 @@ export function useHistoryImportWizard() {
     options,
     matches,
     run,
+    createMissingClients,
+    setCreateMissingClients,
+    createMissingProducts,
+    setCreateMissingProducts,
     canAdvance,
     next,
     back,

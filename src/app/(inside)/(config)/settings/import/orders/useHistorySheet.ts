@@ -10,7 +10,8 @@ import {
   splitAt,
 } from "@/utils/import/reader";
 
-import { HistoryMapping, QuantityUnit } from "./interface";
+import { QuantityUnit } from "../interface";
+import { HistoryMapping } from "./interface";
 import { guessMapping } from "./utils";
 
 /**

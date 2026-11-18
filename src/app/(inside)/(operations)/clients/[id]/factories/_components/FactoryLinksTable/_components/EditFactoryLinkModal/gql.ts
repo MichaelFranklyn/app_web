@@ -12,6 +12,7 @@ export const UPDATE_SELLER_CLIENT_FACTORY_MUTATION = gql`
         id
         priority
         visitFrequencyDays
+        factoryClientCode
         lastVisitDate
         factory {
           id

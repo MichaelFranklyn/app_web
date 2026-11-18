@@ -8,6 +8,7 @@ export const FACTORY_CLIENT_LINKS_QUERY = gql`
           id
           priority
           priceTierId
+          factoryClientCode
           lastInvoiceDate
           isNegative
           negativeSince
@@ -40,6 +41,8 @@ export interface FactoryClientLink {
   id: string;
   priority: string | null;
   priceTierId: string | null;
+  /** O código que a fábrica deu a este cliente no sistema dela ("23401"). */
+  factoryClientCode: string | null;
   /** Faturamento mais recente deste vínculo (este vendedor, nesta fábrica). */
   lastInvoiceDate: string | null;
   /**

@@ -3,7 +3,7 @@
 import { Input, SelectOption } from "@/components/Input";
 import { Title } from "@/components/Title";
 
-import { MatchOption } from "../../interface";
+import { MatchOption } from "../../../interface";
 
 interface Props {
   /** O nome como está na planilha. */

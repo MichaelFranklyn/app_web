@@ -20,6 +20,33 @@ const apiOrigin = (): string =>
   new URL(process.env.NEXT_PUBLIC_GRAPHQL_API_HOST ?? "").origin;
 
 /**
+ * O `PUT` do arquivo cru com o tíquete, para quem já tem o tíquete em mãos
+ * (a importação de PDFs recebe o dela junto com o registro do arquivo).
+ */
+export async function putUpload(
+  uploadUrlPath: string,
+  ticket: string,
+  file: File
+): Promise<void> {
+  let response: Response;
+  try {
+    response = await fetch(`${apiOrigin()}${uploadUrlPath}`, {
+      method: "PUT",
+      headers: { [UPLOAD_TICKET_HEADER]: ticket },
+      body: file,
+    });
+  } catch {
+    throw new Error("Sem conexão para enviar o arquivo. Tente de novo.");
+  }
+  if (!response.ok) {
+    const body = (await response.json().catch(() => null)) as {
+      message?: string;
+    } | null;
+    throw new Error(body?.message ?? "Não foi possível enviar o arquivo.");
+  }
+}
+
+/**
  * Envia um arquivo DIRETO à API e devolve a referência dele (`fileRef`).
  *
  * O caminho de sempre (base64 dentro da mutation, pelo BFF da Vercel) morre em
@@ -46,22 +73,7 @@ export function useFileUpload() {
         );
       }
 
-      let response: Response;
-      try {
-        response = await fetch(`${apiOrigin()}${ticket.data.uploadUrlPath}`, {
-          method: "PUT",
-          headers: { [UPLOAD_TICKET_HEADER]: ticket.data.ticket },
-          body: file,
-        });
-      } catch {
-        throw new Error("Sem conexão para enviar o arquivo. Tente de novo.");
-      }
-      if (!response.ok) {
-        const body = (await response.json().catch(() => null)) as {
-          message?: string;
-        } | null;
-        throw new Error(body?.message ?? "Não foi possível enviar o arquivo.");
-      }
+      await putUpload(ticket.data.uploadUrlPath, ticket.data.ticket, file);
       return ticket.data.fileRef;
     },
     [client]
