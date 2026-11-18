@@ -4,7 +4,7 @@ import { grantRole } from "../support/role";
 
 /**
  * Configurações é UM item na sidebar. As telas (Empresa, Plano, Pessoas,
- * Catálogos, Trazer dados) ficam no menu interno da área, que só mostra o que
+ * Catálogos, Configuração inicial) ficam no menu interno da área, que só mostra o que
  * o papel pode abrir — item que leva a um redirect é pior do que item ausente.
  */
 const sidebar = (page: import("@playwright/test").Page) =>
@@ -33,7 +33,7 @@ test("sidebar: configurações é um item só e abre o menu da área", async ({
     "Plano",
     "Pessoas",
     "Catálogos",
-    "Trazer dados",
+    "Configuração inicial",
   ]) {
     await expect(nav.getByRole("link", { name })).toBeVisible();
   }
