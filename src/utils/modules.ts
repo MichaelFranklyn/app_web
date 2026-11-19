@@ -60,46 +60,43 @@ export const MODULE_COLOR: Record<AppModule, ThemeColor> = {
 };
 
 /**
- * Ícone e cor do header de cada página — o ícone é o mesmo do item da
- * navegação que leva até ela. Registro único porque o header real e o
+ * Ícone do header de cada página — o mesmo do item da navegação que leva até
+ * ela. A cor é sempre a da marca (18/11/2026), não a do módulo. Registro único porque o header real e o
  * `loading.tsx` (que é server e não pode passar componente para o skeleton
  * client) precisam do MESMO par; o skeleton recebe só a chave.
  */
 export const PAGE_HEADING = {
-  dashboard: { icon: LayoutDashboard, color: MODULE_COLOR.intel },
-  analytics: { icon: ChartLine, color: MODULE_COLOR.intel },
-  reports: { icon: FileText, color: MODULE_COLOR.intel },
-  priorities: { icon: ListChecks, color: MODULE_COLOR.routine },
-  agenda: { icon: CalendarDays, color: MODULE_COLOR.routine },
-  planWeek: { icon: CalendarPlus, color: MODULE_COLOR.routine },
-  orders: { icon: ClipboardList, color: MODULE_COLOR.sales },
-  newOrder: { icon: ClipboardPlus, color: MODULE_COLOR.sales },
-  commissions: { icon: Coins, color: MODULE_COLOR.sales },
-  goals: { icon: Target, color: MODULE_COLOR.sales },
-  clients: { icon: Users, color: MODULE_COLOR.clients },
-  networks: { icon: Network, color: MODULE_COLOR.clients },
-  hygiene: { icon: Eraser, color: MODULE_COLOR.clients },
-  support: { icon: Headset, color: MODULE_COLOR.clients },
-  factories: { icon: Building2, color: MODULE_COLOR.factories },
-  product: { icon: Package, color: MODULE_COLOR.products },
-  priceList: { icon: Receipt, color: MODULE_COLOR.products },
-  catalog: { icon: Tags, color: MODULE_COLOR.products },
-  plan: { icon: BadgeCheck, color: MODULE_COLOR.identity },
-  users: { icon: UserCog, color: MODULE_COLOR.identity },
-  import: { icon: Import, color: MODULE_COLOR.import },
-  // Console da plataforma (`/platform`): mesmo ícone do item do
-  // `PLATFORM_NAV`. Quem governa contas (empresas, pessoas, planos, equipe) é
-  // identity; o que só se LÊ para acompanhar (visão geral, histórico,
-  // auditoria, saúde, emails) é intel — como dashboard e relatórios.
-  platformOverview: { icon: LayoutDashboard, color: MODULE_COLOR.intel },
-  platformCompanies: { icon: Building2, color: MODULE_COLOR.identity },
-  platformUsers: { icon: UserCog, color: MODULE_COLOR.identity },
-  platformPlans: { icon: BadgeCheck, color: MODULE_COLOR.identity },
-  platformTeam: { icon: ShieldCheck, color: MODULE_COLOR.identity },
-  platformActivity: { icon: History, color: MODULE_COLOR.intel },
-  platformAudit: { icon: ScrollText, color: MODULE_COLOR.intel },
-  platformHealth: { icon: Activity, color: MODULE_COLOR.intel },
-  platformEmails: { icon: Mail, color: MODULE_COLOR.intel },
-} satisfies Record<string, { icon: LucideIcon; color: ThemeColor }>;
+  dashboard: { icon: LayoutDashboard },
+  analytics: { icon: ChartLine },
+  reports: { icon: FileText },
+  priorities: { icon: ListChecks },
+  agenda: { icon: CalendarDays },
+  planWeek: { icon: CalendarPlus },
+  orders: { icon: ClipboardList },
+  newOrder: { icon: ClipboardPlus },
+  commissions: { icon: Coins },
+  goals: { icon: Target },
+  clients: { icon: Users },
+  networks: { icon: Network },
+  hygiene: { icon: Eraser },
+  support: { icon: Headset },
+  factories: { icon: Building2 },
+  product: { icon: Package },
+  priceList: { icon: Receipt },
+  catalog: { icon: Tags },
+  plan: { icon: BadgeCheck },
+  users: { icon: UserCog },
+  import: { icon: Import },
+  // Console da plataforma (`/platform`): mesmo ícone do item do `PLATFORM_NAV`.
+  platformOverview: { icon: LayoutDashboard },
+  platformCompanies: { icon: Building2 },
+  platformUsers: { icon: UserCog },
+  platformPlans: { icon: BadgeCheck },
+  platformTeam: { icon: ShieldCheck },
+  platformActivity: { icon: History },
+  platformAudit: { icon: ScrollText },
+  platformHealth: { icon: Activity },
+  platformEmails: { icon: Mail },
+} satisfies Record<string, { icon: LucideIcon }>;
 
 export type PageHeadingKey = keyof typeof PAGE_HEADING;

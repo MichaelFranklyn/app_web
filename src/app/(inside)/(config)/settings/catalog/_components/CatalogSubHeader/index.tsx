@@ -4,7 +4,7 @@ import { Breadcrumb } from "@/components/Breadcrumb";
 import { PanelHeader } from "@/components/PanelHeader";
 
 import { CatalogPageHref } from "../../interface";
-import { CATALOG_GROUPS, CATALOG_PAGES, CATALOG_TONE } from "../../utils";
+import { CATALOG_GROUPS, CATALOG_PAGES } from "../../utils";
 
 interface Props {
   /**
@@ -17,9 +17,9 @@ interface Props {
 /**
  * Header das telas de um catálogo (categorias, unidades, rótulos, impostos).
  *
- * O ícone e a cor vêm do MESMO registro que desenha o card do índice: quem
- * clicou no cartão roxo de "Unidades" chega numa tela com o mesmo ícone roxo, e
- * é essa repetição que diz "você está onde clicou". Duas listas de ícones — uma
+ * O ícone vem do MESMO registro que desenha o card do índice: quem clicou no
+ * cartão de "Unidades" chega numa tela com o mesmo ícone (na cor da marca, como
+ * todo header), e é essa repetição que diz "você está onde clicou". Duas listas de ícones — uma
  * para o índice, outra para as telas — perderiam o pareamento no primeiro
  * catálogo novo.
  */
@@ -29,7 +29,6 @@ export function CatalogSubHeader({ href }: Props) {
     g.links.some((l) => l.href === href)
   );
   const link = group?.links.find((l) => l.href === href);
-  const color = link ? CATALOG_TONE[link.tone] : null;
   const Icon = link?.icon;
 
   return (
@@ -44,12 +43,10 @@ export function CatalogSubHeader({ href }: Props) {
         <PanelHeader.Top>
           <PanelHeader.Left>
             {/* Sem o nome do grupo acima do título (14/11/2026): o
-                breadcrumb já diz de onde se veio, e o ícone na cor do card
-                faz o pareamento com o índice. */}
-            {Icon && color ? (
-              <PanelHeader.Heading icon={Icon} color={color}>
-                {title}
-              </PanelHeader.Heading>
+                breadcrumb já diz de onde se veio, e o mesmo ícone do card faz o
+                pareamento com o índice. */}
+            {Icon ? (
+              <PanelHeader.Heading icon={Icon}>{title}</PanelHeader.Heading>
             ) : (
               <PanelHeader.Title>{title}</PanelHeader.Title>
             )}

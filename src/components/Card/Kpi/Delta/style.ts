@@ -6,7 +6,9 @@ export const kpiDeltaStyle = cva(
   // na mesma linha.
   // `anywhere`: em 2 colunas no celular o cartão tem ~120px úteis, e um
   // "faturamento/pagamento" (palavra única) estourava o cartão.
-  "text-body-sm font-medium flex items-center gap-4 mt-auto min-w-0 [overflow-wrap:anywhere]",
+  // O fio de cima separa o número (o que é) do apoio (de onde vem): sem ele o
+  // texto de apoio colava no número e parecia parte do valor.
+  "text-body-sm font-medium leading-snug flex items-center gap-4 mt-auto pt-12 border-t border-(--border) min-w-0 [overflow-wrap:anywhere]",
   {
     variants: {
       positive: { true: "text-(--color-status-success)", false: "" },

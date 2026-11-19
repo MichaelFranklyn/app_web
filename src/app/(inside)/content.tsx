@@ -8,7 +8,6 @@ import { Topbar } from "@/components/Topbar";
 import { cn } from "@/lib/utils";
 import { FlowTourLauncher, FlowTourProvider } from "@/services/flowTour";
 import { BrandLogo } from "@/components/BrandLogo";
-import { DevRoleSwitch } from "./_components/DevRoleSwitch";
 import { ImpersonationBanner } from "./_components/ImpersonationBanner";
 import { NotificationCenter } from "./_components/NotificationCenter";
 import { OfflineBanner } from "./_components/OfflineBanner";
@@ -200,7 +199,6 @@ export default function InsideShell({
             </Topbar.Breadcrumb>
 
             <Topbar.Actions>
-              <DevRoleSwitch />
               {/* Tutoriais: na topbar, não flutuando sobre os CTAs. */}
               <FlowTourLauncher />
               {/* Notificação automática é recurso de plano: sem ele o sino

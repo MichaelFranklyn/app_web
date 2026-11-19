@@ -54,8 +54,8 @@ export const COLOR = {
 /**
  * Calibri, e não a fonte do sistema.
  *
- * Oswald e Nunito são carregadas pelo navegador; o Excel do balcão não as tem
- * instaladas e substituiria por conta própria, sem avisar. Calibri existe em
+ * A Figtree é carregada pelo navegador; o Excel do balcão não a tem
+ * instalada e substituiria por conta própria, sem avisar. Calibri existe em
  * toda instalação e o LibreOffice tem métrica equivalente.
  */
 export const FONT = "Calibri";

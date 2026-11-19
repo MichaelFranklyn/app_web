@@ -201,9 +201,11 @@ export function FactoriesGrid({
                   </Card.Item>
 
                   {canSeeDetails && (
+                    // A ação do cartão é a primária (pedido do usuário,
+                    // 18/11/2026): toda caixa leva a sua ação em `solid amber`.
                     <Button.Root
-                      appearance="outline"
-                      color="neutral"
+                      appearance="solid"
+                      color="amber"
                       size="sm"
                       className="mt-12 w-full justify-center"
                       disabled={isPending}

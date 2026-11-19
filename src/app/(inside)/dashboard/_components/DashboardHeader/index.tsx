@@ -79,8 +79,11 @@ export function DashboardHeader({
                 pior do que botão ausente (mesma regra da sidebar). */}
             {/* Abaixo do desktop os dois atalhos dividem uma linha meio a
                 meio (com fundo, para o botão esticado não parecer sobra). O
-                `flex-row!` vence o empilhar do estágio column do header. */}
-            <div className="flex flex-row! gap-8 [&>*]:min-w-0 [&>*]:flex-1">
+                `flex-row!` vence o empilhar do estágio column do header.
+                No desktop cada um fica com a largura do próprio texto: o
+                `flex-1` ali dividia a soma meio a meio e espremia o "Ver
+                desempenho", o rótulo mais longo. */}
+            <div className="max-desktop:[&>*]:min-w-0 max-desktop:[&>*]:flex-1 flex flex-row! gap-8">
               <FeatureGate feature="ANALYTICS">
                 <Button.Root
                   appearance="outline"

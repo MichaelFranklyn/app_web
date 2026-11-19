@@ -8,24 +8,30 @@ export const variantConfig: Record<
     defaultWeight: TitleWeight;
   }
 > = {
+  hero: {
+    element: "h1",
+    className:
+      "font-head text-[38px] tablet:text-[52px] desktop:text-[64px] leading-none tracking-[-0.035em]",
+    defaultWeight: "bold",
+  },
   display: {
     element: "strong",
-    className: "font-head text-[44px] leading-none tracking-[-0.04em]",
+    className: "font-head text-[44px] leading-none tracking-[-0.025em]",
     defaultWeight: "bold",
   },
   "heading-xl": {
     element: "h1",
-    className: "font-head text-[41px] leading-none tracking-[-0.04em]",
+    className: "font-head text-[41px] leading-none tracking-[-0.025em]",
     defaultWeight: "bold",
   },
   "heading-lg": {
     element: "h2",
-    className: "font-head text-[25px] leading-none tracking-[-0.03em]",
+    className: "font-head text-[25px] leading-none tracking-[-0.02em]",
     defaultWeight: "bold",
   },
   "heading-md": {
     element: "h3",
-    className: "font-head text-[19px] leading-none tracking-[-0.02em]",
+    className: "font-head text-[19px] leading-none tracking-[-0.015em]",
     defaultWeight: "bold",
   },
   "heading-sm": {
@@ -35,7 +41,7 @@ export const variantConfig: Record<
   },
   kpi: {
     element: "strong",
-    className: "font-head text-[31px] leading-none tracking-[-0.04em]",
+    className: "font-head text-[31px] leading-none tracking-[-0.025em]",
     defaultWeight: "bold",
   },
   value: {
@@ -46,6 +52,11 @@ export const variantConfig: Record<
   body: {
     element: "span",
     className: "font-body text-[14px] leading-[1.6]",
+    defaultWeight: "regular",
+  },
+  lead: {
+    element: "p",
+    className: "font-body text-[17px] desktop:text-[19px] leading-[1.6]",
     defaultWeight: "regular",
   },
   "body-md": {
@@ -92,6 +103,8 @@ export const colorClasses: Record<TitleColor, string> = {
   // à mão só para não herdar `--color-text` — e escapavam do Title inteiro por causa
   // de uma cor.
   inverse: "text-white",
+  // Sobre o fundo âmbar da logo o branco dava 3,2:1; o escuro dá ~6:1 (18/11/2026).
+  onAction: "text-(--color-on-action)",
   secondary: "text-(--color-text-secondary)",
   muted: "text-(--color-text-muted)",
   // Rótulo é texto de leitura: --color-text-disabled dava 2,6:1. Fica o nome por compatibilidade.

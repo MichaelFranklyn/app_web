@@ -3,15 +3,22 @@
 import { cn } from "@/lib/utils";
 import * as TabsPrimitive from "@radix-ui/react-tabs";
 import React from "react";
-import { tabsStyles } from "./style";
+import { tabsStyles, TabsVariant } from "./style";
 
 export const List = React.forwardRef<
   React.ComponentRef<typeof TabsPrimitive.List>,
-  React.ComponentPropsWithoutRef<typeof TabsPrimitive.List>
->(({ className, ...props }, ref) => (
+  React.ComponentPropsWithoutRef<typeof TabsPrimitive.List> & {
+    variant?: TabsVariant;
+  }
+>(({ className, variant = "line", ...props }, ref) => (
   <TabsPrimitive.List
     ref={ref}
-    className={cn(tabsStyles.list, className)}
+    data-variant={variant}
+    className={cn(
+      tabsStyles.list,
+      variant === "filled" && tabsStyles.listFilled,
+      className
+    )}
     {...props}
   />
 ));

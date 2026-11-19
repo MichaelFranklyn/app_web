@@ -190,7 +190,7 @@ export const InputArchive = React.forwardRef<
               className={cn(
                 "rounded-full p-3",
                 isDragging
-                  ? "bg-(--amber) text-white"
+                  ? "bg-(--amber) text-(--color-on-action)"
                   : "bg-(--bg2) text-(--color-text-disabled)"
               )}
             >

@@ -30,7 +30,7 @@ export const requireOwnerPage = async (
  * Guard do console da plataforma (`/platform`) — super usuário OU suporte.
  *
  * Lê o papel do TOKEN, não do cookie `userData`: este último é legível e
- * gravável por JavaScript (é o que o `DevRoleSwitch` reescreve em dev), então um
+ * gravável por JavaScript (qualquer script ou o próprio usuário reescreve), então um
  * gate baseado nele é decoração. O backend barra de qualquer forma
  * (`@is_platform_user`); aqui é o que evita a tela abrir e só depois estourar
  * erro em cada query.

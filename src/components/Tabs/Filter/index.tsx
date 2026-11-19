@@ -2,7 +2,7 @@
 
 import { cn } from "@/lib/utils";
 import React, { createContext, useContext } from "react";
-import { tabsStyles } from "../List/style";
+import { tabsStyles, TabsVariant } from "../List/style";
 
 /**
  * Faixa com CARA de abas que só FILTRA o conteúdo abaixo — não troca de painel.
@@ -28,15 +28,21 @@ type FilterProps = Omit<React.HTMLAttributes<HTMLDivElement>, "onChange"> &
   FilterContextValue & {
     /** Nome do grupo para o leitor de tela ("Situação da comissão"). */
     "aria-label": string;
+    variant?: TabsVariant;
   };
 
 export const Filter = React.forwardRef<HTMLDivElement, FilterProps>(
-  ({ value, onValueChange, className, ...props }, ref) => (
+  ({ value, onValueChange, className, variant = "line", ...props }, ref) => (
     <FilterContext.Provider value={{ value, onValueChange }}>
       <div
         ref={ref}
         role="group"
-        className={cn(tabsStyles.list, className)}
+        data-variant={variant}
+        className={cn(
+          tabsStyles.list,
+          variant === "filled" && tabsStyles.listFilled,
+          className
+        )}
         {...props}
       />
     </FilterContext.Provider>

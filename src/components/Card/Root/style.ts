@@ -8,10 +8,10 @@ export const rootStyle = cva(cardBaseStyle, {
     isCompact: {
       true: "px-4 py-[14px]",
     },
-    /** Fundo: `muted` (bg3) é a caixa DENTRO de um card, modal ou painel. */
+    /** Fundo: `muted` (bg3) é a caixa de legenda; a sombra segue o lugar (ver `cardBaseStyle`). */
     tone: {
       default: "",
-      muted: "bg-(--bg3) shadow-none",
+      muted: "bg-(--bg3)",
       /** O que está incluído / deu certo: fundo e borda verdes. */
       success:
         "border-(--color-status-success-bd) bg-(--color-status-success-bg)",
@@ -19,10 +19,11 @@ export const rootStyle = cva(cardBaseStyle, {
     },
     /**
      * Caixa interna — um bloco dentro de modal/card, não um card de página:
-     * raio menor e altura do conteúdo (o card de página estica na grade).
+     * raio menor e altura do conteúdo (o card de página estica na grade). A
+     * sombra não é dela: some sozinha dentro de card/modal (`cardBaseStyle`).
      */
     inset: {
-      true: "h-auto rounded-(--r-md) shadow-none",
+      true: "h-auto rounded-(--r-md)",
     },
     dashed: {
       true: "border-dashed",

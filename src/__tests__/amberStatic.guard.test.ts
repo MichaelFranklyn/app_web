@@ -34,6 +34,10 @@ const KNOWN: Record<string, string> = {
   "src/components/Input/InputSelect.tsx":
     "chip da opção escolhida, removível — seleção é estado interativo",
   "src/components/OptionCard/index.tsx": "ícone dentro do <button> da opção",
+  "src/components/PanelHeader/Heading/index.tsx":
+    "ícone do header na cor da marca, pedido do usuário em 18/11/2026",
+  "src/components/PanelHeader/HeadingSkeleton/index.tsx":
+    "skeleton do mesmo ícone de header na cor da marca (18/11/2026)",
 };
 
 const AMBER_TITLE =
