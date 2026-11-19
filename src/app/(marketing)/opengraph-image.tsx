@@ -10,7 +10,7 @@ import { ImageResponse } from "next/og";
  * Gerada no build em vez de ser um PNG no `public/`: assim o texto acompanha a
  * copy do site sem depender de alguém reabrir um arquivo de design. A marca é o
  * SVG de `public/horizontal_logo.svg` (texto já em curvas, então não precisa de
- * fonte); o restante usa a fonte padrão de propósito — carregar a Oswald aqui
+ * fonte); o restante usa a fonte padrão de propósito — carregar a Figtree aqui
  * exigiria ler o `.woff2` a cada build para ganhar pouco num quadro de 1200×630.
  *
  * As cores são as do tema (`--bg`, `--color-text`, `--amber`), mas escritas em hexa

@@ -1,9 +1,8 @@
 import {
-  BarChart3,
   ClipboardList,
   FileSpreadsheet,
   HandCoins,
-  Route,
+  Lightbulb,
   Tags,
   Target,
   Users,
@@ -11,61 +10,80 @@ import {
 import { MarketingFeature } from "./interface";
 
 /**
- * Os oito módulos, cada um com a cor que ele tem dentro do sistema
- * (`--mod-*`). Quem entra no teste depois de ler esta página encontra a mesma
- * cor na barra lateral — a página vira legenda do produto, não uma peça de
- * design separada dele.
+ * Os módulos, cada um com a cor que ele tem dentro do sistema (`--mod-*`).
+ * Quem entra no teste depois de ler esta página encontra a mesma cor na barra
+ * lateral — a página vira legenda do produto.
  *
- * A ordem segue o caminho do dinheiro: primeiro o que faz vender (pedido,
- * carteira, rotina), depois o que faz receber e conferir.
+ * Bento desde 19/11/2026: o pedido (2×2), a comissão e as oportunidades (2×1)
+ * levam um recorte do print real; o resto é cartão simples. A rotina saiu
+ * daqui porque tem seção própria logo acima. A ordem preenche a grade de
+ * quatro colunas sem buraco — mudar a ordem exige conferir o desenho.
  */
 export const FEATURES: MarketingFeature[] = [
   {
     icon: ClipboardList,
     color: "var(--mod-orders)",
     title: "Pedidos e orçamentos",
-    text: "Pedido em duas etapas, com o preço e o nível do cliente já preenchidos. Orçamento vira pedido sem redigitar, e o PDF sai pronto para mandar à fábrica.",
-  },
-  {
-    icon: Users,
-    color: "var(--mod-clients)",
-    title: "Carteira de clientes",
-    text: "Cada cliente com as fábricas que compra, rede e segmento, contatos, endereço e o histórico completo de pedidos.",
-  },
-  {
-    icon: Route,
-    color: "var(--mod-routine)",
-    title: "Rotina e rota do dia",
-    text: "O sistema monta a semana do vendedor, organiza a rota no mapa e registra o que saiu de cada visita.",
-  },
-  {
-    icon: Tags,
-    color: "var(--mod-products)",
-    title: "Catálogo e tabelas de preço",
-    text: "Tabela por região, níveis de desconto, ST com MVA, IPI e NCM por produto. O cálculo é do sistema, não da cabeça de quem digita.",
+    text: "Pedido com o preço e o nível do cliente já preenchidos. Orçamento vira pedido sem redigitar, e o PDF sai pronto para mandar à fábrica.",
+    size: "big",
+    shot: {
+      src: "/marketing/pedidos.webp",
+      alt: "Lista de pedidos do Itinus com os totais do mês.",
+      zoom: 1.7,
+      x: 5,
+      y: 9,
+    },
   },
   {
     icon: HandCoins,
     color: "var(--amber)",
     title: "Comissões",
-    text: "A comissão nasce do que foi faturado, parcela a parcela, respeitando o dia de corte de cada fábrica. Dá para marcar recebimento e conciliar.",
+    text: "A comissão nasce do que foi faturado, parcela a parcela, respeitando o dia de corte de cada fábrica.",
+    size: "wide",
+    shot: {
+      src: "/marketing/comissoes.webp",
+      alt: "Comissões do mês no Itinus: a receber, previsto e recebido.",
+      zoom: 1.5,
+      x: 6,
+      y: 36,
+    },
+  },
+  {
+    icon: Tags,
+    color: "var(--mod-products)",
+    title: "Catálogo e tabelas",
+    text: "Tabela por região, níveis de desconto, ST, IPI e NCM por produto. O cálculo é do sistema.",
+  },
+  {
+    icon: Users,
+    color: "var(--mod-clients)",
+    title: "Carteira de clientes",
+    text: "Cada cliente com as fábricas que compra, contatos, endereço e o histórico de pedidos.",
+  },
+  {
+    icon: Lightbulb,
+    color: "var(--mod-intel)",
+    title: "Oportunidades",
+    text: "Quem está na hora de recomprar e quem ficou fora da rota, numa lista só — antes de o cliente esfriar.",
+    size: "wide",
+    shot: {
+      src: "/marketing/oportunidades.webp",
+      alt: "Oportunidades no Itinus: clientes no momento de recomprar.",
+      zoom: 1.5,
+      x: 6,
+      y: 38,
+    },
   },
   {
     icon: FileSpreadsheet,
     color: "var(--mod-import)",
     title: "Importação em massa",
-    text: "Clientes e tabelas de preço entram por planilha. Pedido da fábrica em PDF ou Excel vira pedido do sistema, item por item.",
-  },
-  {
-    icon: BarChart3,
-    color: "var(--mod-intel)",
-    title: "Desempenho e relatórios",
-    text: "Ranking de cliente, produto e vendedor, curva ABC e conferência de faturamento. Tudo exporta em XLSX e PDF.",
+    text: "Clientes e tabelas entram por planilha. Pedido da fábrica em PDF ou Excel vira pedido do sistema.",
   },
   {
     icon: Target,
     color: "var(--mod-identity)",
-    title: "Metas e avisos",
-    text: "Meta por vendedor, fábrica e mês, com o realizado saindo dos pedidos. Os avisos chegam antes de o prazo virar problema.",
+    title: "Metas e relatórios",
+    text: "Meta por vendedor e fábrica, ranking, curva ABC e conferência de faturamento, em XLSX e PDF.",
   },
 ];

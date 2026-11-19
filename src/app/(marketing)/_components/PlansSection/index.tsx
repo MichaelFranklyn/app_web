@@ -24,17 +24,18 @@ import { SeatCalculator } from "./_components/SeatCalculator";
  */
 export function PlansSection({
   showComparisonLink = true,
+  tone = "raised",
 }: {
   showComparisonLink?: boolean;
+  /** O fundo: na home a seção cai entre duas `raised` e passa `default`. */
+  tone?: "default" | "raised";
 }) {
   return (
-    <Section id="planos" tone="raised">
+    <Section id="planos" tone={tone}>
       <div className="flex max-w-[640px] flex-col gap-12">
-        <Title variant="eyebrow" color="amber">
-          Planos
+        <Title variant="heading-xl" className="leading-[1.08] text-balance">
+          Escolha pelo tamanho da operação
         </Title>
-
-        <Title variant="heading-lg">Escolha pelo tamanho da operação</Title>
 
         <Title variant="body-md" color="secondary">
           Assine direto o plano que couber na sua operação, ou comece pelo teste

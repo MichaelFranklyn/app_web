@@ -81,7 +81,7 @@ export function PlanStep({
                 className={cn(
                   "mt-2 flex size-20 shrink-0 items-center justify-center rounded-(--radius-full) border",
                   isSelected
-                    ? "border-(--amber) bg-(--amber) text-(--bg2)"
+                    ? "border-(--amber) bg-(--amber) text-(--color-on-action)"
                     : "border-(--border2)"
                 )}
               >

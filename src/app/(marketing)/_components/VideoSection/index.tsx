@@ -22,11 +22,9 @@ export function VideoSection() {
       className="flex flex-col items-center gap-32"
     >
       <div className="flex max-w-[640px] flex-col items-center gap-12 text-center">
-        <Title variant="eyebrow" color="cyan">
-          Em vídeo
+        <Title variant="heading-xl" className="leading-[1.08] text-balance">
+          A semana do vendedor, tela a tela
         </Title>
-
-        <Title variant="heading-lg">A semana do vendedor, tela a tela</Title>
 
         <Title variant="body-md" color="secondary">
           Da escolha dos clientes na segunda-feira à última visita da sexta: um
