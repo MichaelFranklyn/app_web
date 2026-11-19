@@ -4,7 +4,7 @@ import { getSiteUrl } from "@/utils/site";
 import { Analytics } from "@vercel/analytics/next";
 import { SpeedInsights } from "@vercel/speed-insights/next";
 import type { Metadata, Viewport } from "next";
-import { Nunito, Oswald } from "next/font/google";
+import { Figtree } from "next/font/google";
 import { Suspense } from "react";
 import "../styles/globals.css";
 
@@ -18,19 +18,19 @@ import "../styles/globals.css";
  * 120ms (quando o CSS do app terminava) e só liberava em 229ms, para um FCP de
  * 264ms. Aqui não há requisição extra nem dois hosts novos para resolver.
  *
- * Sem `weight`: as duas são variáveis no Google Fonts, então um arquivo cobre
+ * Sem `weight`: a Figtree é variável no Google Fonts, então um arquivo cobre
  * toda a faixa de pesos que o tema usa (até 800 em `--weight-extrabold`).
+ *
+ * Uma família só para título e corpo (escolha do usuário, 18/11/2026, depois
+ * da comparação de fontes): a Oswald condensada espremia rótulos e números, e a
+ * Figtree é a mais legível para o público idoso. Uma instância só — o
+ * `globals.css` aponta `--font-head` e `--font-body` para a mesma variável;
+ * duas chamadas gerariam dois `@font-face` e dois downloads do mesmo arquivo.
  */
-const fontHead = Oswald({
+const font = Figtree({
   subsets: ["latin"],
   display: "swap",
-  variable: "--font-head-family",
-});
-
-const fontBody = Nunito({
-  subsets: ["latin"],
-  display: "swap",
-  variable: "--font-body-family",
+  variable: "--font-family",
 });
 
 /**
@@ -106,11 +106,7 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <html
-      lang="pt-br"
-      data-scroll-behavior="smooth"
-      className={`${fontHead.variable} ${fontBody.variable}`}
-    >
+    <html lang="pt-br" data-scroll-behavior="smooth" className={font.variable}>
       <body suppressHydrationWarning className={`antialiased`}>
         {/* Apollo e toasts NÃO entram aqui: cada grupo de rotas que fala com o
             backend monta o `AppProviders` no próprio layout. O layout raiz é

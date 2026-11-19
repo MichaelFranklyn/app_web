@@ -26,7 +26,7 @@ interface ListPageSkeletonProps {
   /** Título da página. É texto fixo — aparece de imediato, sem esperar dados. */
   title: string;
   /**
-   * Ícone + cor do header real (`PAGE_HEADING`). Vai a CHAVE, não o ícone: o
+   * Ícone do header real (`PAGE_HEADING`). Vai a CHAVE, não o ícone: o
    * `loading.tsx` é server e não passa componente para este client.
    */
   page?: PageHeadingKey;

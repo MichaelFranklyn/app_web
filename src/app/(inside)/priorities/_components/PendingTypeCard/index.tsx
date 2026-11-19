@@ -89,8 +89,10 @@ export function PendingTypeCard({ row, open, onToggle }: Props) {
       >
         <Button.Root
           type="button"
-          appearance={open ? "tinted" : "outline"}
-          color={open ? "amber" : "neutral"}
+          // A ação do cartão é a primária, aberta ou fechada (18/11/2026): o
+          // estado aparece no texto e na seta, não no peso do botão.
+          appearance="solid"
+          color="amber"
           size="sm"
           fullWidthBelowDesktop
           aria-expanded={open}

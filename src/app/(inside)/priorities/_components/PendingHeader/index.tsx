@@ -5,15 +5,24 @@ import { HelpTooltip } from "@/components/HelpTooltip";
 import { ListChecks } from "lucide-react";
 
 import { PENDING_HELP } from "../../help";
+import { scopeNote } from "../../utils";
+
+interface Props {
+  /** Os filtros da URL: dizem qual período os cartões estão contando. */
+  filterValues: Record<string, string>;
+}
 
 /**
- * A frase da aba Pendências. O título e as abas são da central (`layout.tsx`);
- * aqui fica só o que é desta aba: o que ela mostra e a ajuda do que entra.
- * Vem num `Alert` informativo (14/11/2026): o texto corrido em cinza passava
- * despercebido e o usuário pediu o componente de aviso. É texto fixo, então
- * `role="note"` — não interrompe o leitor de tela como um alerta faria.
+ * O aviso único da aba Pendências. O título e as abas são da central
+ * (`layout.tsx`); aqui fica o que é desta aba: o que ela mostra, o período que
+ * os cartões contam e a ajuda do que entra.
+ *
+ * Eram dois `Alert` empilhados — este e a nota "Período dos cartões" — e o
+ * usuário pediu um só (18/11/2026): a segunda linha da descrição é o escopo.
+ * Lê o período da URL, então aparece já no primeiro quadro, antes dos dados.
+ * É texto, não evento: `role="note"` não interrompe o leitor de tela.
  */
-export function PendingHeader() {
+export function PendingHeader({ filterValues }: Props) {
   return (
     <Alert.Root variant="info" role="note">
       <Alert.Icon icon={ListChecks} />
@@ -25,6 +34,7 @@ export function PendingHeader() {
           Abra a lista do assunto para ir direto aonde cada um se resolve.
           Resolveu, sai daqui sozinho.
         </Alert.Description>
+        <Alert.Description>{scopeNote(filterValues)}</Alert.Description>
       </Alert.Content>
       <Alert.Actions>
         <HelpTooltip

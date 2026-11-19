@@ -6,8 +6,8 @@ import { getServerCookie } from "@/utils/cookies/serverCookie";
 import { PAGE_HEADING } from "@/utils/modules";
 import React from "react";
 
+import { CentralHeaderActions } from "./_components/CentralHeaderActions";
 import { CentralTabsNav } from "./_components/CentralTabsNav";
-import { SellerScope } from "./_components/SellerScope";
 
 /**
  * A central do dia: Pendências (o que você tem de resolver) e Oportunidades
@@ -17,7 +17,8 @@ import { SellerScope } from "./_components/SellerScope";
  * cabeçalho e abas ficam parados ao trocar de aba.
  *
  * O vendedor escolhido pelo gestor é da central, não de uma aba: o campo fica
- * no cabeçalho e as duas abas leem o mesmo `?seller=` (17/11/2026).
+ * no cabeçalho e as duas abas leem o mesmo `?seller=` (17/11/2026). O período
+ * de Pendências mora ali também, só naquela aba (18/11/2026).
  */
 export default async function CentralLayout({
   children,
@@ -41,11 +42,7 @@ export default async function CentralLayout({
               O que espera por você e onde vale agir para vender mais, cada um
               na sua aba.
             </PanelHeader.Description>
-            {canSelectSeller && (
-              <PanelHeader.Actions className="mt-6">
-                <SellerScope />
-              </PanelHeader.Actions>
-            )}
+            <CentralHeaderActions canSelectSeller={canSelectSeller} />
           </PanelHeader.Left>
         </PanelHeader.Top>
       </PanelHeader.Root>

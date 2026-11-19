@@ -58,6 +58,7 @@ export function OtherOfficeStopCard({
       tone="muted"
       event={isRemote ? "blue" : "amber"}
       faded={!isPending}
+      className="group/card"
       title={`Da sua rotina no ${stop.officeName}`}
     >
       <Card.Body padding="sm">
@@ -89,7 +90,13 @@ export function OtherOfficeStopCard({
               color={isPending ? "default" : "muted"}
               className={cn(
                 "block break-words",
-                isCompact && "line-clamp-2",
+                isCompact && [
+                  "line-clamp-2",
+                  // Como o Jira: o nome longo fica em duas linhas e, com o
+                  // mouse (ou o foco) no card, aparece inteiro — o card cresce
+                  // para baixo e empurra os de baixo, sem sobrepor.
+                  "group-hover/card:line-clamp-none group-focus-visible/card:line-clamp-none",
+                ],
                 isCompleted && "line-through"
               )}
             >
@@ -99,7 +106,11 @@ export function OtherOfficeStopCard({
               <Title
                 variant={isCompact ? "micro" : "body-xs"}
                 color="muted"
-                className="mt-2 block truncate"
+                className={cn(
+                  "mt-2 block truncate",
+                  isCompact &&
+                    "group-hover/card:break-words group-hover/card:whitespace-normal group-focus-visible/card:break-words group-focus-visible/card:whitespace-normal"
+                )}
                 title={place}
               >
                 {place}

@@ -52,12 +52,7 @@ export function DashboardGoalsCard({ sellerId }: Props) {
               </Badge.Text>
             </Badge.Root>
           )}
-          <Button.Link
-            href="/goals"
-            appearance="outline"
-            color="neutral"
-            size="sm"
-          >
+          <Button.Link href="/goals" appearance="solid" color="amber" size="sm">
             <Button.Title>Ver metas</Button.Title>
             <Button.Icon icon={ArrowRight} />
           </Button.Link>

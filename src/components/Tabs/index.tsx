@@ -8,7 +8,7 @@ import React from "react";
 import { announceNavigation } from "@/components/AppFrame/navigationSignal";
 import { List, Item, Content } from "./List";
 import { Filter, FilterItem } from "./Filter";
-import { tabsStyles } from "./List/style";
+import { tabsStyles, TabsVariant } from "./List/style";
 
 type RootProps = React.ComponentPropsWithoutRef<typeof TabsPrimitive.Root> & {
   urlParam?: string;
@@ -53,9 +53,18 @@ Root.displayName = "Tabs.Root";
 
 const NavList = React.forwardRef<
   HTMLDivElement,
-  React.HTMLAttributes<HTMLDivElement>
->(({ className, ...props }, ref) => (
-  <div ref={ref} className={cn(tabsStyles.list, className)} {...props} />
+  React.HTMLAttributes<HTMLDivElement> & { variant?: TabsVariant }
+>(({ className, variant = "line", ...props }, ref) => (
+  <div
+    ref={ref}
+    data-variant={variant}
+    className={cn(
+      tabsStyles.list,
+      variant === "filled" && tabsStyles.listFilled,
+      className
+    )}
+    {...props}
+  />
 ));
 NavList.displayName = "Tabs.NavList";
 
@@ -88,6 +97,8 @@ const NavItem = ({ href, exact, className, ...props }: NavItemProps) => {
   );
 };
 NavItem.displayName = "Tabs.NavItem";
+
+export type { TabsVariant };
 
 export const Tabs = {
   Root,

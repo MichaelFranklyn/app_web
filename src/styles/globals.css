@@ -1,7 +1,7 @@
 /* src/styles/globals.css */
-/* Título: Oswald (condensada, impacto). Corpo/UI: Nunito (legível).
-   As duas são carregadas por `next/font` no layout raiz (auto-hospedadas) —
-   para trocar, mexa no `src/app/layout.tsx` e nas variáveis abaixo. */
+/* Título e corpo/UI: Figtree (uma família só, legível para o público idoso).
+   Carregada por `next/font` no layout raiz (auto-hospedada) — para trocar,
+   mexa no `src/app/layout.tsx` e nas variáveis `--font-head`/`--font-body`. */
 @import "tailwindcss";
 
 @theme {
@@ -145,10 +145,12 @@
   ); /* texto de apoio que ainda é leitura principal */
   --color-text-muted: var(--muted); /* rótulo, legenda, metadado (5,8:1) */
   --color-text-disabled: var(--muted2); /* só desabilitado (isento de 1.4.3) */
-  --color-action: var(
-    --amber2
-  ); /* fundo do primário: #a86608 dá 4,6:1 com o branco (o --amber dava 3,2) */
-  --color-on-action: #fff; /* texto sobre o primário: branco (escolha de marca; escuro recusado 13/11) */
+  /* Primário = a cor da logo (#c97f0a), pedido do usuário em 18/11/2026. O
+     branco sobre ele dá 3,2:1 (passa só em texto grande/UI); antes era
+     --amber2 (#a86608, 4,6:1). Para voltar ao tom acessível, troque por
+     var(--amber2). */
+  --color-action: var(--amber);
+  --color-on-action: #fff; /* texto sobre o primário: BRANCO, pedido do usuário em 18/11/2026 ("cor clara no título do botão"). Sobre o #c97f0a dá 3,2:1 (abaixo de 4,5 em texto pequeno); o marrom #2a1a02 (~6:1) foi trocado por isso */
   --color-action-text: var(
     --amber-text
   ); /* link e texto âmbar (5,2:1 só sobre branco/--bg) */
@@ -182,10 +184,10 @@
 
   /* Typography — as famílias vêm de `next/font` (variáveis definidas no <html>
      pelo layout raiz); o fallback vale enquanto o CSS da fonte não aplicou. */
-  --font-head: var(--font-head-family), sans-serif;
+  --font-head: var(--font-family), sans-serif;
   /* Fonte de corpo/UI do sistema (classe `font-body`). Chamava-se --font-mono,
      herança de quando o corpo era monoespaçado; o nome mentia sobre o valor. */
-  --font-body: var(--font-body-family), sans-serif;
+  --font-body: var(--font-family), sans-serif;
 
   --weight-regular: 400;
   --weight-medium: 500;
@@ -204,6 +206,12 @@
      "flutuar" (a borda sozinha deixava a tela chapada). */
   --shadow-xs: 0 1px 2px rgba(31, 29, 20, 0.05);
   --shadow-sm: 0 1px 3px rgba(0, 0, 0, 0.1);
+  /* Repouso do card de página e do KPI (18/11/2026): contato nítido + uma
+     difusa curta puxada para baixo pelo spread negativo. Calibrada entre dois
+     extremos recusados: difusa a 10% sumia no print (card chapado); três
+     camadas com difusa a 20% e 28px de blur ficou "agressiva" (usuário). */
+  --shadow-card:
+    0 1px 2px rgba(31, 29, 20, 0.05), 0 6px 16px -8px rgba(31, 29, 20, 0.12);
   /* Sombra em duas camadas (14/11/2026): um contato curto e nítido + uma
      difusa, puxada para baixo pelo spread negativo. A de uma camada só
      parecia um borrão cinza em volta do modal e do menu. */
@@ -341,7 +349,7 @@
     font-family: var(--font-head);
     font-weight: var(--weight-extrabold);
     font-size: 41px;
-    letter-spacing: -0.04em;
+    letter-spacing: -0.025em;
     line-height: 1;
   }
 
@@ -349,14 +357,14 @@
     font-family: var(--font-head);
     font-weight: var(--weight-bold);
     font-size: 25px;
-    letter-spacing: -0.03em;
+    letter-spacing: -0.02em;
   }
 
   .text-heading-md {
     font-family: var(--font-head);
     font-weight: var(--weight-bold);
     font-size: 19px;
-    letter-spacing: -0.02em;
+    letter-spacing: -0.015em;
   }
 
   .text-heading-sm {
@@ -394,7 +402,7 @@
     font-family: var(--font-head);
     font-weight: var(--weight-extrabold);
     font-size: 31px;
-    letter-spacing: -0.04em;
+    letter-spacing: -0.025em;
     line-height: 1;
     color: var(--amber-text);
   }
@@ -426,6 +434,14 @@
   }
   to {
     transform: scaleX(1);
+  }
+}
+
+/* O tracejado do trajeto da landing andando, como estrada vista de cima.
+   O passo (24) é a soma traço + vão do `RouteTrail`: o laço não dá salto. */
+@keyframes route-dash {
+  to {
+    stroke-dashoffset: -24;
   }
 }
 

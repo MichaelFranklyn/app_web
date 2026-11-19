@@ -18,8 +18,12 @@ export const iconPixelSizes: Record<ButtonSize, number> = {
 // camadas: `transition-all` animava até largura/padding quando o cabeçalho
 // esticava o botão. O `active:scale` é o retorno físico do clique; o movimento
 // reduzido o desliga.
+//
+// Fonte do CORPO, não a de título: quando o título era a Oswald condensada,
+// ela espremia o rótulo e o botão parecia preso numa largura máxima (usuário,
+// 18/11/2026). Hoje as duas são a Figtree; o `font-body` fica pela semântica.
 const baseClasses =
-  "inline-flex cursor-pointer items-center justify-center gap-[7px] font-head font-(--weight-bold) transition-[background-color,border-color,color,filter,box-shadow,scale] duration-150 ease-(--ease-out-soft) active:scale-[0.97] motion-reduce:active:scale-100 whitespace-nowrap border focus-ring disabled:opacity-35 disabled:cursor-default disabled:pointer-events-none";
+  "inline-flex cursor-pointer items-center justify-center gap-[7px] font-body font-(--weight-bold) transition-[background-color,border-color,color,filter,box-shadow,scale] duration-150 ease-(--ease-out-soft) active:scale-[0.97] motion-reduce:active:scale-100 whitespace-nowrap border focus-ring disabled:opacity-35 disabled:cursor-default disabled:pointer-events-none";
 
 const sizeTextClasses: Record<ButtonSize, string> = {
   lg: "text-body-sm rounded-(--r-lg)",
@@ -62,10 +66,24 @@ const iconOnlySizeClasses: Record<ButtonSize, string> = {
 const appearanceHover: Record<ThemeAppearance, string> = {
   solid:
     "shadow-[0_1px_2px_rgba(0,0,0,0.12)] hover:brightness-[0.92] hover:shadow-(--shadow-sm)",
-  outline: "hover:bg-(--bg3)",
+  // --bg4, não --bg3: o #f0efe9 quase não se via sobre o branco do cartão
+  // nem sobre o fundo da página ("hover bem fraquinho", 18/11/2026).
+  outline: "hover:bg-(--bg4)",
   tinted: "hover:brightness-[0.96]",
   ghost: "hover:bg-(--bg4)/60",
 };
+
+// Botão SECUNDÁRIO (outline neutral: Editar, Voltar…): só o TEXTO na cor
+// do sistema (--color-action-text, o tom de texto do âmbar, por contraste);
+// a borda fica a neutra de sempre. Pedido do usuário em 18/11/2026. Só no
+// botão: Badge/tag outline neutral seguem cinza.
+// O hover é um véu da cor do sistema (12%), que acompanha o texto âmbar; o
+// texto #9a5f00 segue ≥4,5:1 sobre ele.
+const secondaryClasses =
+  "text-(--color-action-text) hover:bg-(--color-action)/12";
+
+const isSecondary = (appearance: ThemeAppearance, color: ThemeColor) =>
+  appearance === "outline" && color === "neutral";
 
 const activeIconOnlyClasses =
   "bg-(--amber-bg) text-(--color-action-text-on-tint) border-(--amber-bd)";
@@ -132,6 +150,7 @@ export const getButtonClasses = ({
     noPadding && appearance === "ghost"
       ? "hover:underline underline-offset-[3px]"
       : appearanceHover[appearance],
+    isSecondary(appearance, color) && secondaryClasses,
     isIconOnly ? iconOnlySizeClasses[size] : sizeTextClasses[size],
     !noPadding && !isIconOnly && sizePaddingClasses[size],
     !noPadding && !isIconOnly && sizeMinHeightClasses[size],
@@ -153,6 +172,11 @@ export const getButtonClasses = ({
       color === "neutral" &&
       !isIconOnly &&
       stretchedByHeaderClasses,
+    // O esticado ganha fundo neutro, mas o secundário mantém o texto na
+    // cor do sistema.
+    isSecondary(appearance, color) &&
+      fullWidthBelowDesktop &&
+      "max-desktop:text-(--color-action-text)",
     dashed &&
       "border-dashed border-(--color-border-control) hover:border-(--amber) hover:text-(--color-action-text)",
     className

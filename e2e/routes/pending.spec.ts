@@ -400,11 +400,12 @@ test("pendências: vendedor não filtra por vendedor nem vê de quem é", async 
   // Tudo ali é dele: o nome do responsável seria ruído.
   await expect(row).not.toContainText("João Sacramento");
 
-  await page.getByRole("button", { name: "Filtros" }).click();
-  const panel = page.locator("[data-filters-panel]");
-  await expect(panel.getByText("Prazo (período)")).toBeVisible();
-  await expect(panel.getByPlaceholder("Toda a empresa")).toHaveCount(0);
-  // Nem no cabeçalho: o campo de vendedor é só do gestor.
+  // O período é o único filtro: mora no cabeçalho, sem painel de Filtros.
+  await expect(
+    page.getByRole("textbox", { name: "Período dos cartões" })
+  ).toBeVisible();
+  await expect(page.getByRole("button", { name: "Filtros" })).toHaveCount(0);
+  // O campo de vendedor é só do gestor.
   await expect(page.getByRole("combobox", { name: "Vendedor" })).toHaveCount(0);
 });
 
@@ -432,7 +433,7 @@ test("pendências: gestor filtra por vendedor e vê de quem é cada uma", async 
     "João Sacramento"
   );
 
-  // O vendedor fica no cabeçalho da central, não no painel de Filtros: vale
+  // O vendedor fica no cabeçalho da central, ao lado do período: vale
   // para as duas abas (Pendências e Oportunidades).
   await page.getByRole("combobox", { name: "Vendedor" }).click();
   await page

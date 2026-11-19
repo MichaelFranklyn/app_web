@@ -183,7 +183,7 @@ export const calendarStyles = {
     // Hoje: sublinhado; a cor âmbar só quando o dia não está marcado.
     "data-today:font-bold data-today:underline data-today:underline-offset-4 [&[data-today]:not([data-selected])]:text-(--color-action-text)",
     // Marcado (dia avulso ou ponta do período).
-    "[&[data-selected]:not(.cal-range-middle)]:bg-(--amber)",
+    "[&[data-selected]:not(.cal-range-middle)]:bg-(--amber) [&[data-selected]:not(.cal-range-middle)]:text-(--color-on-action)",
     // Miolo do período: fundo claro, sem cantos.
     "[&.cal-range-middle[data-selected]]:bg-(--amber-bg) [&.cal-range-middle[data-selected]]:text-(--color-action-text-on-tint) [&.cal-range-middle]:rounded-none",
     // Pontas do período: arredonda só o lado de fora.

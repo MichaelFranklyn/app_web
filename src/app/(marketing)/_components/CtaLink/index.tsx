@@ -13,7 +13,8 @@ import { ReactNode } from "react";
  *
  * `emphasis` traduz a taxonomia de botões do sistema para cá: âmbar é a ação
  * que queremos (criar conta), a versão de contorno é a alternativa (entrar,
- * ver recursos).
+ * ver recursos). `inverse` (19/11/2026) é o contorno claro sobre a faixa
+ * escura do fechamento.
  */
 export function CtaLink({
   href,
@@ -23,7 +24,7 @@ export function CtaLink({
   children,
 }: {
   href: string;
-  emphasis?: "primary" | "secondary";
+  emphasis?: "primary" | "secondary" | "inverse";
   size?: "sm" | "md" | "lg";
   className?: string;
   children: ReactNode;
@@ -41,13 +42,16 @@ export function CtaLink({
         // divisória, não de controle.
         emphasis === "primary"
           ? "bg-(--color-action) shadow-[0_1px_2px_rgba(0,0,0,0.12)] hover:brightness-[0.92]"
-          : "border border-(--color-border-control) bg-(--bg2) hover:bg-(--bg3)",
+          : emphasis === "inverse"
+            ? "border border-white/40 hover:bg-white/10"
+            : "border border-(--color-border-control) bg-(--bg2) hover:bg-(--bg3)",
         className
       )}
     >
       <Title
         variant="body-sm"
         weight="semibold"
+        color={emphasis === "inverse" ? "inverse" : undefined}
         className={
           emphasis === "primary" ? "text-(--color-on-action)" : undefined
         }

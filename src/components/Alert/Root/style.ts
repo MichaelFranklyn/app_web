@@ -1,9 +1,18 @@
+import { cn } from "@/lib/utils";
+
 export const alertRootStyles = {
   // Sem faixa lateral (14/11/2026): a barra colorida à esquerda é o clichê de
   // "componente gerado" e o usuário recusou. Quem classifica o aviso antes da
   // leitura é o ícone no círculo tingido (Alert.Icon) sobre o fundo do tom,
   // com a borda fina e inteira na mesma família de cor.
-  root: "rounded-(--r-lg) flex items-start border",
+  // Mesma sombra dos cards e do BigNumber (18/11/2026): o aviso solto na
+  // página fica no mesmo plano das peças ao lado, não "pintado" no fundo.
+  // Dentro de card ou de modal, sem sombra: seria sombra sobre sombra. Quem
+  // decide é o lugar, não o tamanho — o `sm` também aparece solto na página.
+  root: cn(
+    "rounded-(--r-lg) flex items-start border shadow-(--shadow-card)",
+    "in-data-[slot=card]:shadow-none in-[[role=dialog]]:shadow-none"
+  ),
 
   sizes: {
     md: "p-12 px-16 gap-10",

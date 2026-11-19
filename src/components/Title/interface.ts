@@ -1,6 +1,8 @@
 import { HTMLAttributes, ReactNode } from "react";
 
 export type TitleVariant =
+  /** O título da landing: cresce com a tela (40 → 64px). Só lá. */
+  | "hero"
   /** O número-herói de um cartão (o score do cliente): maior que o `kpi`. */
   | "display"
   | "heading-xl"
@@ -9,6 +11,8 @@ export type TitleVariant =
   | "heading-sm"
   | "kpi"
   | "value"
+  /** O texto de apoio do título da landing (17 → 19px). Só lá. */
+  | "lead"
   | "body"
   | "body-md"
   | "body-sm"
@@ -22,6 +26,8 @@ export type TitleColor =
   | "default"
   /** Texto sobre fundo colorido (faixa de offline, de impersonação). */
   | "inverse"
+  /** Texto sobre o fundo do primário (`--color-action`): branco (pedido do usuário, 18/11/2026). */
+  | "onAction"
   | "secondary"
   | "muted"
   | "muted2"

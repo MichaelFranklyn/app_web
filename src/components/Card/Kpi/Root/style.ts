@@ -9,12 +9,12 @@
 // `@container`: o número mede o PRÓPRIO cartão (ver kpiValueStyle) — no celular
 // a faixa vai em 2 colunas e o cartão tem metade da tela.
 export const kpiRootStyle =
-  "@container h-full border border-(--border) rounded-(--r-lg) shadow-(--shadow-xs) px-[18px] py-16 bg-(--bg2) relative flex flex-col overflow-hidden gap-[14px]";
+  "@container h-full border border-(--border) rounded-(--r-lg) shadow-(--shadow-card) px-20 py-[18px] bg-(--bg2) relative flex flex-col overflow-hidden gap-12";
 
 /**
  * O cartão-filtro: âmbar porque é interação — a mesma cor de "escolhido" do
  * `ToggleGroup`.
  */
 export const kpiInteractiveStyle =
-  "cursor-pointer text-left transition-colors hover:border-(--border2) focus-ring";
+  "cursor-pointer text-left transition-[border-color,box-shadow] duration-150 ease-(--ease-out-soft) hover:border-(--border2) hover:shadow-(--shadow-md) focus-ring";
 export const kpiActiveStyle = "border-(--amber) bg-(--amber-bg)";

@@ -1,7 +1,13 @@
 import { Card } from "@/components/Card";
 import { Grid } from "@/components/Grid";
 import { formatMoney } from "@/utils/format/masks";
-import { TrendingDown } from "lucide-react";
+import {
+  CircleDollarSign,
+  MapPinCheck,
+  ShoppingCart,
+  TrendingDown,
+  Users,
+} from "lucide-react";
 
 interface Props {
   totalOrders: number;
@@ -45,7 +51,9 @@ export function DashboardKpis({
     >
       <Grid.Item>
         <Card.Kpi>
-          <Card.Kpi.Label>Pedidos no período</Card.Kpi.Label>
+          <Card.Kpi.Label icon={ShoppingCart}>
+            Pedidos no período
+          </Card.Kpi.Label>
           <Card.Kpi.Value>{totalOrders}</Card.Kpi.Value>
           <Card.Kpi.Delta>
             {totalOrders > 0
@@ -57,7 +65,7 @@ export function DashboardKpis({
 
       <Grid.Item>
         <Card.Kpi>
-          <Card.Kpi.Label>Faturamento</Card.Kpi.Label>
+          <Card.Kpi.Label icon={CircleDollarSign}>Faturamento</Card.Kpi.Label>
           <Card.Kpi.Value>{formatMoney(totalRevenue)}</Card.Kpi.Value>
           <Card.Kpi.Delta>soma dos pedidos do período</Card.Kpi.Delta>
         </Card.Kpi>
@@ -66,7 +74,9 @@ export function DashboardKpis({
       {hasRoutines && (
         <Grid.Item>
           <Card.Kpi>
-            <Card.Kpi.Label>Visitas realizadas</Card.Kpi.Label>
+            <Card.Kpi.Label icon={MapPinCheck}>
+              Visitas realizadas
+            </Card.Kpi.Label>
             <Card.Kpi.Value>{completedVisits}</Card.Kpi.Value>
             <Card.Kpi.Delta>
               {totalPlannedVisits > 0
@@ -79,7 +89,7 @@ export function DashboardKpis({
 
       <Grid.Item>
         <Card.Kpi>
-          <Card.Kpi.Label>Clientes ativos</Card.Kpi.Label>
+          <Card.Kpi.Label icon={Users}>Clientes ativos</Card.Kpi.Label>
           <Card.Kpi.Value status={totalClients > 0 ? "neutral" : "urgente"}>
             {totalClients}
           </Card.Kpi.Value>

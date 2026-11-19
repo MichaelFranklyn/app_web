@@ -1,8 +1,10 @@
 "use client";
 
 import { Card } from "@/components/Card";
+import { EmptyState } from "@/components/EmptyState";
 import { Title } from "@/components/Title";
 import { useUserRole } from "@/services/flowTour/useUserRole";
+import { CalendarCheck, CalendarOff } from "lucide-react";
 
 import { AgendaDay, alsoInOfficeOf, longDayLabel } from "../../calendar";
 import { AgendaPerson } from "../../interface";
@@ -117,15 +119,31 @@ export function AgendaDayView({
           )}
         </Card.Header>
         <Card.Body>
+          {/* EmptyState `flat`: o dia já é um cartão — cartão dentro de
+              cartão não (18/11/2026). */}
           {isDayOff ? (
-            <Title variant="body-sm" color="muted" className="text-center">
-              Você não trabalha neste dia. O sistema não vai planejar visitas
-              para ele.
-            </Title>
+            <EmptyState.Root flat data-testid="agenda-day-off">
+              <EmptyState.Icon>
+                <CalendarOff size={32} />
+              </EmptyState.Icon>
+              <EmptyState.Title>Dia sem trabalho</EmptyState.Title>
+              <EmptyState.Description>
+                Você não trabalha neste dia. O sistema não vai planejar visitas
+                para ele.
+              </EmptyState.Description>
+            </EmptyState.Root>
           ) : items.length === 0 && otherOffices.length === 0 ? (
-            <Title variant="body-sm" color="muted" className="text-center">
-              Nada marcado neste dia.
-            </Title>
+            <EmptyState.Root flat data-testid="agenda-empty-day">
+              <EmptyState.Icon>
+                <CalendarCheck size={32} />
+              </EmptyState.Icon>
+              <EmptyState.Title>Nada marcado neste dia</EmptyState.Title>
+              <EmptyState.Description>
+                {isPast
+                  ? "Nenhuma visita nem ligação ficou registrada para este dia."
+                  : "Nenhuma visita nem ligação por aqui. Use “Agendar” para marcar uma à mão ou monte a semana para o sistema traçar a rota."}
+              </EmptyState.Description>
+            </EmptyState.Root>
           ) : (
             <div className="tablet:grid-cols-2 desktop:grid-cols-3 grid grid-cols-1 gap-8">
               {items.map((item) => (

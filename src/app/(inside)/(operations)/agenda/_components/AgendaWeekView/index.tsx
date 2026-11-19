@@ -2,6 +2,7 @@
 
 import { Badge } from "@/components/Badges";
 import { Calendar } from "@/components/Calendar";
+import { useState } from "react";
 
 import {
   AgendaDay,
@@ -28,10 +29,19 @@ interface Props {
   onChanged: () => void;
 }
 
+/** Sábado e domingo — a semana começa na segunda (índice 0). */
+const WEEKEND_INDEXES = [5, 6];
+
 /**
  * A semana em sete colunas, com o cartão compacto de cada compromisso — a
  * semana inteira cabe na tela, e o detalhe abre no clique. O número do dia
  * abre o dia, e o cartão em aberto se arrasta para outro dia.
+ *
+ * No desktop, cada dia recolhe numa faixa estreita (como a coluna do Jira) e
+ * os outros ganham a largura — o fim de semana vazio deixa de roubar espaço
+ * dos cartões. A escolha é por dia da semana, não por data: recolher o sábado
+ * vale também ao trocar de semana. Sábado e domingo começam recolhidos: a
+ * semana de trabalho é de segunda a sexta, e o fim de semana abre num clique.
  */
 export function AgendaWeekView({
   dates,
@@ -44,13 +54,29 @@ export function AgendaWeekView({
   onMove,
   onChanged,
 }: Props) {
+  const [collapsedWeekdays, setCollapsedWeekdays] = useState<Set<number>>(
+    () => new Set(WEEKEND_INDEXES)
+  );
+  const toggleWeekday = (index: number) =>
+    setCollapsedWeekdays((current) => {
+      const next = new Set(current);
+      if (next.has(index)) next.delete(index);
+      else next.add(index);
+      return next;
+    });
+
   return (
-    <Calendar.Root variant="week">
+    <Calendar.Root
+      variant="week"
+      collapsed={dates.map((_, index) => collapsedWeekdays.has(index))}
+    >
       {dates.map((date, index) => {
         const agendaDay = days.get(date);
         const items = sortVisitsByRoute(agendaDay?.day?.items ?? []);
+        const otherOffices = agendaDay?.otherOffices ?? [];
         const isDayOff = dayOffDates.has(date);
         const isOpen = !isPastDay(date, todayIso);
+        const isCollapsed = collapsedWeekdays.has(index);
 
         return (
           <Calendar.Cell
@@ -76,8 +102,13 @@ export function AgendaWeekView({
                   </Badge.Root>
                 ) : null
               }
+              collapse={{
+                isCollapsed,
+                onToggle: () => toggleWeekday(index),
+                count: items.length + otherOffices.length,
+              }}
             />
-            <Calendar.CellBody>
+            <Calendar.CellBody isCollapsed={isCollapsed}>
               {items.map((item) => (
                 <VisitCard
                   key={item.id}
@@ -88,7 +119,7 @@ export function AgendaWeekView({
                   onChanged={onChanged}
                 />
               ))}
-              {(agendaDay?.otherOffices ?? []).map((stop) => (
+              {otherOffices.map((stop) => (
                 <OtherOfficeStopCard
                   key={stop.id}
                   stop={stop}
@@ -98,7 +129,7 @@ export function AgendaWeekView({
               ))}
             </Calendar.CellBody>
             {isOpen && (
-              <Calendar.CellFooter>
+              <Calendar.CellFooter isCollapsed={isCollapsed}>
                 <AgendaAddMenu
                   date={date}
                   person={person}

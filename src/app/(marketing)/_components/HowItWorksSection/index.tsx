@@ -24,20 +24,20 @@ const STEPS = [
 
 export function HowItWorksSection() {
   return (
-    <Section id="como-funciona">
+    <Section id="como-funciona" tone="raised">
       <div className="flex max-w-[640px] flex-col gap-12">
-        <Title variant="eyebrow" color="amber">
-          Como começa
+        <Title variant="heading-xl" className="leading-[1.08] text-balance">
+          Três passos, na ordem
         </Title>
-
-        <Title variant="heading-lg">Três passos, na ordem</Title>
       </div>
 
-      <div className="desktop:grid-cols-3 mt-32 grid gap-16">
+      {/* O trilho tracejado passa atrás dos pinos (no desktop, na horizontal;
+          empilhado, na vertical), como as paradas de uma rota. */}
+      <ol className="desktop:grid-cols-3 desktop:gap-48 desktop:before:top-[23px] desktop:before:bottom-auto desktop:before:left-24 desktop:before:right-24 desktop:before:border-l-0 desktop:before:border-t-2 relative mt-40 grid gap-40 before:absolute before:top-24 before:bottom-24 before:left-[23px] before:border-l-2 before:border-dashed before:border-(--color-action)/50 before:content-['']">
         {STEPS.map((step, index) => (
           <StepCard key={step.title} number={index + 1} {...step} />
         ))}
-      </div>
+      </ol>
     </Section>
   );
 }

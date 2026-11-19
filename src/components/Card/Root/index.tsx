@@ -23,6 +23,9 @@ export const Root = React.forwardRef<HTMLDivElement, CardRootProps>(
   ) => (
     <div
       ref={ref}
+      // Marca da superfície: peças de dentro (Alert) leem para não pôr sombra
+      // sobre a sombra do card.
+      data-slot="card"
       className={cn(
         rootStyle({
           accent,

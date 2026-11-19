@@ -11,6 +11,9 @@ import { ReactNode } from "react";
  * `tone` alterna o fundo entre o papel da página (`--bg`) e o branco dos
  * cartões (`--bg2`). Alternar é o que separa uma seção da seguinte sem precisar
  * de linha divisória em cada emenda.
+ *
+ * `ink` (19/11/2026) é a faixa escura do fechamento: a única seção que quebra
+ * a alternância, de propósito — é o ponto de chegada do trajeto da página.
  */
 export function Section({
   id,
@@ -19,7 +22,7 @@ export function Section({
   children,
 }: {
   id?: string;
-  tone?: "default" | "raised";
+  tone?: "default" | "raised" | "ink";
   className?: string;
   children: ReactNode;
 }) {
@@ -30,8 +33,9 @@ export function Section({
          título da seção para embaixo da barra do topo. */
       className={cn(
         "scroll-mt-64",
-        tone === "raised" ? "bg-(--bg2)" : "bg-(--bg)",
-        tone === "raised" && "border-y border-(--border)"
+        tone === "default" && "bg-(--bg)",
+        tone === "raised" && "border-y border-(--border) bg-(--bg2)",
+        tone === "ink" && "relative isolate overflow-hidden bg-(--color-text)"
       )}
     >
       <div

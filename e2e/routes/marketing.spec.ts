@@ -26,7 +26,7 @@ test.describe("Páginas públicas de marketing", () => {
     await expect(page).toHaveURL(/\/$/);
 
     await expect(
-      page.getByRole("heading", { name: /o comercial da sua representação/i })
+      page.getByRole("heading", { name: /cada vendedor sabe quem visitar/i })
     ).toBeVisible();
     // `exact` é obrigatório aqui: sem ele o `name` casa por trecho e os dois
     // "Testar 7 dias grátis" do corpo entrariam na conta do botão do topo.
