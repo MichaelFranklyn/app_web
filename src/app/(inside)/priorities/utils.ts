@@ -441,7 +441,7 @@ export const scopeNote = (values: Record<string, string>): string => {
   if (from && to) return `Contando o que tem prazo de ${from} a ${to}.`;
   if (from) return `Contando o que tem prazo a partir de ${from}.`;
   if (to) return `Contando o que tem prazo até ${to}.`;
-  return `Contando o que já venceu, o que vence nos próximos ${DEFAULT_HORIZON_DAYS} dias e o cadastro a corrigir (sem prazo). Para ver mais adiante, escolha um período em Filtros.`;
+  return `Contando o que já venceu, o que vence nos próximos ${DEFAULT_HORIZON_DAYS} dias e o cadastro a corrigir (sem prazo). Para ver mais adiante, escolha um período no topo da página.`;
 };
 
 /**

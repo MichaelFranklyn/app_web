@@ -10,7 +10,8 @@ import { SELLER_PARAM } from "../../utils";
  * a sua leitura, o seu filtro e o seu esqueleto — a central junta o LUGAR, não
  * a estrutura (pedido do usuário, 14/11/2026). Da querystring só viaja o
  * vendedor do cabeçalho, que vale para as duas (17/11/2026); o filtro de uma
- * (prazo, assunto, cartão aberto) não significa nada na outra.
+ * (prazo, assunto, cartão aberto) não significa nada na outra. Usa a versão
+ * `filled` das abas (18/11/2026): é a navegação principal da central.
  */
 export function CentralTabsNav() {
   const sellerId = useSearchParams().get(SELLER_PARAM);
@@ -20,7 +21,7 @@ export function CentralTabsNav() {
       : href;
 
   return (
-    <Tabs.NavList data-tour="central-tabs">
+    <Tabs.NavList variant="filled" data-tour="central-tabs">
       <Tabs.NavItem href={withSeller("/priorities")} exact>
         Pendências
       </Tabs.NavItem>

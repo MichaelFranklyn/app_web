@@ -34,11 +34,11 @@ export const pendingFlow: FlowDefinition = {
     {
       element: '[data-tour="pending-filters"]',
       requireSelector: '[data-tour="pending-filters"]',
-      title: "Filtre por responsável e período",
+      title: "Escolha o período",
       description:
-        "O filtro fica guardado: abra um pedido, resolva e volte — a tela continua no mesmo recorte.",
+        "Sem período, os cartões contam o vencido e os próximos 7 dias. O período fica guardado: abra um pedido, resolva e volte — a tela continua no mesmo recorte.",
       side: "bottom",
-      align: "end",
+      align: "start",
     },
     {
       element: '[data-tour="pending-card"]',

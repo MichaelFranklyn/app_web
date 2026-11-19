@@ -1,6 +1,5 @@
 "use client";
 
-import { FilterField } from "@/components/Filters";
 import { useHeldResult } from "@/hooks/useHeldResult";
 import { useSeedQuery } from "@/hooks/useSeedQuery";
 import { useTableFilters } from "@/hooks/useTableFilters";
@@ -65,20 +64,6 @@ export function usePendingSummary({
   const held = useHeldResult(query, variables);
   const summary = held.shown?.myPendingItems?.data ?? null;
 
-  // Sem "Responsável" aqui: o vendedor é escolhido no cabeçalho da central
-  // (`SellerScope`), que escreve o mesmo `?seller=` lido em `queryValues`.
-  const filterFields: FilterField[] = useMemo(
-    () => [
-      {
-        type: "date-range",
-        key: "dueFrom",
-        toKey: "dueTo",
-        label: "Prazo (período)",
-      },
-    ],
-    []
-  );
-
   const openType = openTypeOf(filters.inputValues);
   /**
    * Abre a lista de um assunto; clicar no aberto de novo fecha. `section` sai
@@ -114,7 +99,6 @@ export function usePendingSummary({
     failed: held.failed,
     showSkeleton: loading && !summary,
     refetch,
-    filterFields,
     filterValues: filters.inputValues,
     queryValues: filters.queryValues,
     setFilters: filters.setFilters,

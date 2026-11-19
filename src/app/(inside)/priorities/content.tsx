@@ -10,7 +10,6 @@ import { CheckCircle2, RefreshCw } from "lucide-react";
 import { PendingCases } from "./_components/PendingCases";
 import { PendingCounts } from "./_components/PendingCounts";
 import { PendingHeader } from "./_components/PendingHeader";
-import { PendingToolbar } from "./_components/PendingToolbar";
 import { PendingTypeCard } from "./_components/PendingTypeCard";
 import { PendingContentProps } from "./interface";
 import { PendingSkeleton } from "./skeleton";
@@ -42,7 +41,7 @@ export default function PendingContent(props: PendingContentProps) {
 
   return (
     <div className="flex flex-col gap-20">
-      <PendingHeader />
+      <PendingHeader filterValues={pending.filterValues} />
 
       {pending.failed ? (
         <QueryError onRetry={() => pending.refetch()} />
@@ -55,13 +54,6 @@ export default function PendingContent(props: PendingContentProps) {
             active={pending.activeWhen}
             onToggle={pending.toggleWhen}
           />
-          <PendingToolbar
-            filterFields={pending.filterFields}
-            filterValues={pending.filterValues}
-            setFilters={pending.setFilters}
-            resultCount={pending.cards.reduce((sum, row) => sum + row.count, 0)}
-            resultLoading={pending.loading}
-          />
 
           {pending.cards.length === 0 ? (
             <EmptyState.Root>
@@ -73,7 +65,7 @@ export default function PendingContent(props: PendingContentProps) {
               </EmptyState.Title>
               <EmptyState.Description>
                 {filtered
-                  ? "Não há pendência com o prazo e o responsável escolhidos. Limpe os filtros para ver tudo o que espera por você."
+                  ? "Não há pendência com o prazo e o responsável escolhidos. Limpe o período no topo da página para ver tudo o que espera por você."
                   : "Nenhuma visita sem resposta, nenhum retorno vencendo, nenhum pedido parado, nenhum boleto vencido e nenhum cliente esquecido. Quando algo aparecer, é aqui que vai estar."}
               </EmptyState.Description>
             </EmptyState.Root>

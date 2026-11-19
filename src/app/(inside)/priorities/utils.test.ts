@@ -354,7 +354,7 @@ describe("scopeNote", () => {
   it("sem período, avisa que a lista não é 'tudo'", () => {
     const note = scopeNote({});
     expect(note).toContain("próximos 7 dias");
-    expect(note).toContain("Filtros");
+    expect(note).toContain("período no topo");
   });
 
   it("descreve o período escolhido, inteiro ou pela metade", () => {

@@ -20,6 +20,9 @@ interface Props {
  *
  * O "Ver cliente" só aparece quando o destino principal NÃO é a ficha do
  * cliente — senão seriam dois caminhos para o mesmo lugar.
+ *
+ * Hierarquia: o destino que resolve a pendência é o primário (âmbar); o resto
+ * é secundário, todos em contorno — o ghost solto parecia texto, não botão.
  */
 export function PendingActions({ item, onScheduleReturn }: Props) {
   const clientLink =
@@ -30,8 +33,8 @@ export function PendingActions({ item, onScheduleReturn }: Props) {
       {item.link && (
         <Button.Link
           href={item.link}
-          appearance="outline"
-          color="neutral"
+          appearance="solid"
+          color="amber"
           size="xs"
         >
           <Button.Title>{destinationLabel(item.type)}</Button.Title>
@@ -50,7 +53,7 @@ export function PendingActions({ item, onScheduleReturn }: Props) {
       {item.reason === "RETURN_DATE" && onScheduleReturn && (
         <Button.Root
           type="button"
-          appearance="ghost"
+          appearance="outline"
           color="neutral"
           size="xs"
           onClick={() => onScheduleReturn(item)}
@@ -61,7 +64,7 @@ export function PendingActions({ item, onScheduleReturn }: Props) {
       {clientLink && (
         <Button.Link
           href={clientLink}
-          appearance="ghost"
+          appearance="outline"
           color="neutral"
           size="xs"
         >

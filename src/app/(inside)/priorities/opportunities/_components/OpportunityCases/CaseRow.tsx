@@ -107,7 +107,7 @@ export function CaseRow({
           {canPlanVisits && (
             <Button.Root
               type="button"
-              appearance="ghost"
+              appearance="outline"
               color="neutral"
               size="xs"
               onClick={() => onPlanVisit(item)}

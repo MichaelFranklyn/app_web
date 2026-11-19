@@ -96,8 +96,8 @@ export function OpportunityCard({
         {plan ? (
           <Button.Link
             href={plan.href}
-            appearance="ghost"
-            color="neutral"
+            appearance="solid"
+            color="amber"
             size="sm"
             fullWidthBelowDesktop
             className={SHARE_ROW_BELOW_DESKTOP}
@@ -111,8 +111,10 @@ export function OpportunityCard({
         {total > 0 && (
           <Button.Root
             type="button"
-            appearance={open ? "tinted" : "outline"}
-            color={open ? "amber" : "neutral"}
+            // Primária, aberta ou fechada (18/11/2026): o estado aparece no
+            // texto e na seta, não no peso do botão.
+            appearance="solid"
+            color="amber"
             size="sm"
             fullWidthBelowDesktop
             className={SHARE_ROW_BELOW_DESKTOP}
