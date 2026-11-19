@@ -142,7 +142,10 @@ export function VisitCard({
         // densidades.
         event={look.tone}
         faded={isCompleted || look.isMuted}
-        className={cn(isDraggable && "cursor-grab active:cursor-grabbing")}
+        className={cn(
+          "group/card",
+          isDraggable && "cursor-grab active:cursor-grabbing"
+        )}
         draggable={isDraggable}
         onDragStart={
           isDraggable && dayDate
@@ -247,7 +250,13 @@ export function VisitCard({
                   color={isCompleted || look.isMuted ? "muted" : "default"}
                   className={cn(
                     "block break-words",
-                    isCompact && "line-clamp-2",
+                    isCompact && [
+                      "line-clamp-2",
+                      // Como o Jira: o nome longo fica em duas linhas e, com o
+                      // mouse (ou o foco) no card, aparece inteiro — o card cresce
+                      // para baixo e empurra os de baixo, sem sobrepor.
+                      "group-hover/card:line-clamp-none group-focus-visible/card:line-clamp-none",
+                    ],
                     isCompleted && "line-through"
                   )}
                 >
@@ -256,7 +265,11 @@ export function VisitCard({
                 <Title
                   variant={isCompact ? "micro" : "body-xs"}
                   color="muted"
-                  className="mt-2 block truncate"
+                  className={cn(
+                    "mt-2 block truncate",
+                    isCompact &&
+                      "group-hover/card:break-words group-hover/card:whitespace-normal group-focus-visible/card:break-words group-focus-visible/card:whitespace-normal"
+                  )}
                   title={subtitle}
                 >
                   {subtitle}

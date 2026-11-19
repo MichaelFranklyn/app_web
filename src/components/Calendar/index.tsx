@@ -1,9 +1,12 @@
 "use client";
 
+import { Button } from "@/components/Button";
 import { Title } from "@/components/Title";
 import { cn } from "@/lib/utils";
+import { FoldHorizontal, UnfoldHorizontal } from "lucide-react";
 import {
   ButtonHTMLAttributes,
+  CSSProperties,
   DragEvent,
   forwardRef,
   ReactNode,
@@ -25,22 +28,48 @@ interface RootProps {
    * `month`: sempre sete colunas, células baixas.
    */
   variant: "week" | "month";
+  /**
+   * Só na semana, no desktop: quais colunas estão recolhidas (uma por dia, na
+   * ordem). A recolhida vira uma faixa estreita e as outras dividem o resto.
+   */
+  collapsed?: boolean[];
   children: ReactNode;
   className?: string;
 }
 
+/** Largura da coluna recolhida: cabe o número do dia e o botão de abrir. */
+const COLLAPSED_COLUMN = "56px";
+
 /** As linhas entre os dias são o fundo aparecendo pelo `gap` de 1px. */
-const Root = ({ variant, children, className }: RootProps) => (
-  <div
-    className={cn(
-      "grid gap-px overflow-hidden rounded-(--r-md) border border-(--border) bg-(--border)",
-      variant === "week" ? "desktop:grid-cols-7 grid-cols-1" : "grid-cols-7",
-      className
-    )}
-  >
-    {children}
-  </div>
-);
+const Root = ({ variant, collapsed, children, className }: RootProps) => {
+  const hasCollapsed = variant === "week" && collapsed?.some(Boolean);
+  const style = hasCollapsed
+    ? ({
+        "--week-cols": collapsed!
+          .map((isCollapsed) =>
+            isCollapsed ? COLLAPSED_COLUMN : "minmax(0,1fr)"
+          )
+          .join(" "),
+      } as CSSProperties)
+    : undefined;
+
+  return (
+    <div
+      style={style}
+      className={cn(
+        "grid gap-px overflow-hidden rounded-(--r-md) border border-(--border) bg-(--border)",
+        variant === "week"
+          ? hasCollapsed
+            ? "desktop:grid-cols-(--week-cols) grid-cols-1"
+            : "desktop:grid-cols-7 grid-cols-1"
+          : "grid-cols-7",
+        className
+      )}
+    >
+      {children}
+    </div>
+  );
+};
 
 /** A faixa "Seg Ter Qua…" sobre o mês (na semana, o dia diz o próprio nome). */
 const Weekdays = ({ labels }: { labels: string[] }) => (
@@ -136,6 +165,17 @@ interface CellHeaderProps {
   aside?: ReactNode;
   /** O clique no vazio cai na `CellHitArea` de baixo; só o número responde. */
   passThrough?: boolean;
+  /**
+   * Recolher a coluna do dia (só na semana, só no desktop), como a coluna do
+   * Jira: o botão aparece com o mouse sobre o dia e, recolhida, a coluna mostra
+   * só o dia, a contagem e o botão de abrir.
+   */
+  collapse?: {
+    isCollapsed: boolean;
+    onToggle: () => void;
+    /** Quantos compromissos o dia tem — o que a coluna recolhida ainda diz. */
+    count?: number;
+  };
 }
 
 const CellHeader = ({
@@ -146,20 +186,21 @@ const CellHeader = ({
   openLabel,
   aside,
   passThrough,
+  collapse,
 }: CellHeaderProps) => {
   const number = (
     <span
       className={cn(
         "inline-flex h-[28px] min-w-[28px] items-center justify-center rounded-full px-4",
-        // Fundo de ação, não o --amber puro: o número é TEXTO branco e o
-        // #c97f0a dava 3,21:1 (axe no navegador, 13/11/2026); o #a86608 dá 4,6.
+        // Fundo de ação (a cor da logo) com o número em --color-on-action:
+        // o branco dava 3,21:1 sobre o #c97f0a (18/11/2026).
         isToday && "bg-(--color-action)"
       )}
     >
       <Title
         as="span"
         variant="heading-sm"
-        color={isToday ? "inverse" : "default"}
+        color={isToday ? "onAction" : "default"}
         className={cn(
           !isToday && "group-data-outside/cell:text-(--color-text-muted)"
         )}
@@ -168,6 +209,85 @@ const CellHeader = ({
       </Title>
     </span>
   );
+
+  const dayControl = onOpen ? (
+    <button
+      type="button"
+      onClick={onOpen}
+      title={openLabel}
+      aria-label={openLabel}
+      className="focus-ring pointer-events-auto rounded-full transition-colors hover:bg-(--bg4)"
+    >
+      {number}
+    </button>
+  ) : (
+    number
+  );
+
+  const isCollapsed = Boolean(collapse?.isCollapsed);
+  const toggle = collapse && (
+    <Button.Root
+      type="button"
+      appearance="ghost"
+      color="neutral"
+      size="xs"
+      isIconOnly
+      label={isCollapsed ? "Abrir a coluna do dia" : "Recolher a coluna do dia"}
+      onClick={collapse.onToggle}
+      className={cn(
+        "desktop:inline-flex pointer-events-auto hidden",
+        // Aberta, só aparece com o mouse no dia (ou com o foco nele), como no
+        // Jira; recolhida, fica sempre à vista — é o único jeito de voltar.
+        !isCollapsed &&
+          "desktop:opacity-0 desktop:group-hover/cell:opacity-100 desktop:focus-visible:opacity-100"
+      )}
+    >
+      <Button.Icon icon={isCollapsed ? UnfoldHorizontal : FoldHorizontal} />
+    </Button.Root>
+  );
+
+  if (isCollapsed) {
+    return (
+      <>
+        {/* Abaixo do desktop a coluna não recolhe (os dias se empilham): o
+          cabeçalho de sempre continua valendo ali. */}
+        <div className="desktop:flex hidden flex-col items-center gap-6 px-4 pt-8 pb-4">
+          {weekday && (
+            <Title
+              variant="micro"
+              weight="semibold"
+              color={isToday ? "amber" : "muted"}
+            >
+              {weekday}
+            </Title>
+          )}
+          {dayControl}
+          {toggle}
+          {Boolean(collapse?.count) && (
+            <Title
+              variant="micro"
+              weight="semibold"
+              color="muted"
+              title={`${collapse!.count} compromisso(s) neste dia`}
+            >
+              {collapse!.count}
+            </Title>
+          )}
+        </div>
+        <div className="desktop:hidden">
+          <CellHeader
+            weekday={weekday}
+            day={day}
+            isToday={isToday}
+            onOpen={onOpen}
+            openLabel={openLabel}
+            aside={aside}
+            passThrough={passThrough}
+          />
+        </div>
+      </>
+    );
+  }
 
   return (
     <div
@@ -186,21 +306,12 @@ const CellHeader = ({
             {weekday}
           </Title>
         )}
-        {onOpen ? (
-          <button
-            type="button"
-            onClick={onOpen}
-            title={openLabel}
-            aria-label={openLabel}
-            className="focus-ring pointer-events-auto rounded-full transition-colors hover:bg-(--bg4)"
-          >
-            {number}
-          </button>
-        ) : (
-          number
-        )}
+        {dayControl}
       </div>
-      {aside}
+      <div className="flex items-center gap-4">
+        {aside}
+        {toggle}
+      </div>
     </div>
   );
 };
@@ -212,15 +323,18 @@ interface CellBodyProps {
    * seletor de filhos, que reativaria o fundo de um painel fechado ali dentro.
    */
   passThrough?: boolean;
+  /** Coluna recolhida (desktop): o corpo some; abaixo do desktop, fica. */
+  isCollapsed?: boolean;
   children: ReactNode;
 }
 
 /** Os compromissos do dia, em coluna. */
-const CellBody = ({ passThrough, children }: CellBodyProps) => (
+const CellBody = ({ passThrough, isCollapsed, children }: CellBodyProps) => (
   <div
     className={cn(
       "relative flex min-w-0 flex-1 flex-col gap-4 px-6 pb-6",
-      passThrough && "pointer-events-none"
+      passThrough && "pointer-events-none",
+      isCollapsed && "desktop:hidden"
     )}
   >
     {children}
@@ -251,9 +365,22 @@ const CellHitArea = forwardRef<
 ));
 CellHitArea.displayName = "Calendar.CellHitArea";
 
-/** O pé do dia: "+ Agendar". */
-const CellFooter = ({ children }: { children: ReactNode }) => (
-  <div className="relative flex flex-col gap-4 px-6 pb-8">{children}</div>
+/** O pé do dia: "+ Agendar". Some com a coluna recolhida (desktop). */
+const CellFooter = ({
+  isCollapsed,
+  children,
+}: {
+  isCollapsed?: boolean;
+  children: ReactNode;
+}) => (
+  <div
+    className={cn(
+      "relative flex flex-col gap-4 px-6 pb-8",
+      isCollapsed && "desktop:hidden"
+    )}
+  >
+    {children}
+  </div>
 );
 
 export const Calendar = {
