@@ -49,11 +49,35 @@ const VAZIAS = [
   "/settings",
 ];
 
+/**
+ * Exceção de contraste DECIDIDA pelo dono do produto em 18/11/2026: a marca é
+ * o âmbar `--amber` (#c97f0a) com texto branco (`--color-on-action`), que dá
+ * 3,2:1 — abaixo dos 4,5:1 do AA para texto normal. Texto escuro sobre o âmbar
+ * foi proposto e recusado duas vezes. A guarda libera SÓ este par (botão
+ * primário, aba ativa); qualquer outra combinação abaixo do AA continua
+ * travando. Se a marca mudar, apague esta exceção.
+ */
+const CONTRASTE_ACEITO = { fgColor: "#ffffff", bgColor: "#c97f0a" };
+
+interface AxeNode {
+  target: string[];
+  failureSummary?: string;
+  contrast?: { fgColor?: string; bgColor?: string };
+}
+
 interface AxeViolation {
   id: string;
   impact: string | null;
   help: string;
-  nodes: { target: string[]; failureSummary?: string }[];
+  nodes: AxeNode[];
+}
+
+function contrasteAceito(violacao: AxeViolation, node: AxeNode) {
+  return (
+    violacao.id === "color-contrast" &&
+    node.contrast?.fgColor === CONTRASTE_ACEITO.fgColor &&
+    node.contrast?.bgColor === CONTRASTE_ACEITO.bgColor
+  );
 }
 
 async function rodarAxe(page: Page): Promise<AxeViolation[]> {
@@ -80,12 +104,34 @@ async function rodarAxe(page: Page): Promise<AxeViolation[]> {
       id: v.id,
       impact: v.impact,
       help: v.help,
-      nodes: v.nodes.slice(0, 5).map((n) => ({
+      nodes: (
+        v.nodes as unknown as {
+          target: string[];
+          failureSummary?: string;
+          any?: { data?: { fgColor?: string; bgColor?: string } }[];
+        }[]
+      ).map((n) => ({
         target: n.target,
         failureSummary: n.failureSummary,
+        contrast: n.any?.[0]?.data
+          ? {
+              fgColor: n.any[0].data.fgColor,
+              bgColor: n.any[0].data.bgColor,
+            }
+          : undefined,
       })),
     }));
   });
+}
+
+/** Tira os nós do par de contraste aceito; violação sem nó restante some. */
+function semExcecoes(violacoes: AxeViolation[]) {
+  return violacoes
+    .map((v) => ({
+      ...v,
+      nodes: v.nodes.filter((n) => !contrasteAceito(v, n)).slice(0, 5),
+    }))
+    .filter((v) => v.nodes.length > 0);
 }
 
 function descrever(url: string, violacoes: AxeViolation[]) {
@@ -102,7 +148,7 @@ function descrever(url: string, violacoes: AxeViolation[]) {
 async function verificar(page: Page, url: string) {
   await expect(page.locator("main")).toBeVisible();
   await page.waitForLoadState("networkidle", { timeout: 8000 }).catch(() => {});
-  const graves = (await rodarAxe(page)).filter(
+  const graves = semExcecoes(await rodarAxe(page)).filter(
     (v) => v.impact === "serious" || v.impact === "critical"
   );
   expect(graves, descrever(url, graves)).toEqual([]);
