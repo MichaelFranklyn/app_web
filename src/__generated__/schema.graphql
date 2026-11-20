@@ -2225,6 +2225,21 @@ type CrossOfficeStopType {
   factoryName: String
 }
 
+"""
+Uma fábrica do mesmo cliente em OUTRO escritório da pessoa. Na visita ela
+pode oferecer as duas, então o score dessa fábrica entra no ranking do
+cliente. Atravessam o nome e as partes do score (20/11/2026: o tooltip do
+card da Agenda mostra o score e o motivo por escritório, como Montar semana);
+comissão, percentual e preço nunca.
+"""
+type OtherOfficeFactoryType {
+  companyId: UUID!
+  officeName: String!
+  factoryName: String!
+  "Último score gravado do vínculo de lá. Só as dimensões, nada do vínculo."
+  dimensions: PriorityScoreDimensionsType
+}
+
 type CrossOfficeStopListDataResponse {
   status: Boolean!
   code: Int!
@@ -8779,6 +8794,8 @@ type VisitScheduleItemType {
   focusFactories: [VisitItemFactoryType!]!
   """Fábricas efetivamente tratadas, derivadas das observações de estoque registradas."""
   treatedFactories: [FactoryType!]!
+  """Fábricas deste cliente com a mesma pessoa em outros escritórios dela (só nomes)."""
+  otherOfficeFactories: [OtherOfficeFactoryType!]!
 }
 
 """Cliente da região que vale entrar na mesma viagem da visita promovida."""
@@ -9326,6 +9343,39 @@ type PriorityScheduledTouchType {
   status: VisitStatus!
 }
 
+"""
+O score de uma fábrica do cliente, o mesmo que entrou na fila da semana. Só o
+score atravessa escritórios — nunca comissão, percentual ou preço.
+"""
+type PriorityFactoryScoreType {
+  score: Float!
+  """Vínculo deste escritório. Nulo na fábrica de outro escritório."""
+  link: SellerClientFactoryType
+  """Nome da fábrica de outro escritório (nas deste, vem de `link.factory`)."""
+  factoryName: String
+  """Escritório da fábrica. Nulo = este escritório."""
+  officeName: String
+  """
+  Os componentes do último score gravado da fábrica, para a tela dizer o
+  motivo (estoque acabando, visita atrasada…). Nulo sem score gravado.
+  """
+  dimensions: PriorityScoreDimensionsType
+}
+
+"""
+Só as partes do score — nada do vínculo de outro escritório (comissão,
+percentual, preço) atravessa por aqui.
+"""
+type PriorityScoreDimensionsType {
+  scoreTotal: Decimal!
+  scoreUrgency: Decimal!
+  scorePriority: Decimal!
+  scoreFrequency: Decimal!
+  scorePotential: Decimal!
+  scoreRecency: Decimal!
+  stockConfidence: String!
+}
+
 type PriorityClientType {
   clientId: UUID!
   client: ClientType
@@ -9355,6 +9405,10 @@ type PriorityClientType {
   focusLinks: [SellerClientFactoryType!]!
   """Onde o cliente já está nesta semana (vazio = ainda não marcado)."""
   scheduled: [PriorityScheduledTouchType!]!
+  """Fábricas do cliente nos outros escritórios da pessoa (entram no score)."""
+  otherOfficeFactories: [OtherOfficeFactoryType!]!
+  """Cada fábrica do cliente (deste e dos outros escritórios) com o score, da mais urgente à menos."""
+  factoryScores: [PriorityFactoryScoreType!]!
 }
 
 type PriorityUnavailableClientType {

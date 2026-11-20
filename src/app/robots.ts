@@ -22,7 +22,7 @@ const PRIVATE_AREAS = [
   "/sellers",
   "/users",
   "/commissions",
-  "/agenda",
+  "/schedule",
   "/goals",
   "/profile",
 ];

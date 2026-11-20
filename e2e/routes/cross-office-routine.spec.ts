@@ -1,4 +1,5 @@
 import { getCurrentWeekMondayIso, getTodayIso } from "@/utils/format/date";
+import { visitPriority } from "@/utils/score";
 import type { Page } from "@playwright/test";
 import { expect, test } from "../support/fixtures";
 import { mockGraphql } from "../support/graphql";
@@ -40,7 +41,20 @@ const hereItem = {
   status: "PENDING",
   outcome: null,
   notes: null,
-  focusFactories: [],
+  // Com score, o card mostra o selo de prioridade, e o tooltip dele avisa
+  // que a mesma ida também está marcada no outro escritório.
+  focusFactories: [
+    {
+      scoreTotal: "80.00",
+      factory: {
+        id: "f-1",
+        nomeFantasia: "Fábrica",
+        nickname: null,
+        razaoSocial: "Fábrica LTDA",
+      },
+      clientFactoryLink: null,
+    },
+  ],
   treatedFactories: [],
   clientFactoryLink: {
     id: "cfl-here",
@@ -167,7 +181,7 @@ test("outro escritório: cartão, selo e rota somando os dois", async ({
   page,
 }) => {
   const spy = await mockCrossOffice(page, [hereItem]);
-  await page.goto(`/agenda?view=day&date=${TODAY}`);
+  await page.goto(`/schedule?view=day&date=${TODAY}`);
 
   // A parada de lá tem cartão próprio; a do mesmo cliente vira selo.
   const card = theirCard(page);
@@ -177,7 +191,15 @@ test("outro escritório: cartão, selo e rota somando os dois", async ({
   await expect(
     card.getByText(`Pedido e estoque: entre no ${OFFICE}.`)
   ).toBeVisible();
-  await expect(page.getByText(`Também no ${OFFICE}`)).toBeVisible();
+  // A parada daqui do mesmo cliente avisa no tooltip do selo de prioridade
+  // (o card não tem mais a linha "Também no …").
+  await page
+    .locator("[data-badge]", { hasText: visitPriority(80).label })
+    .first()
+    .hover();
+  await expect(page.getByRole("tooltip")).toContainText(
+    `Também marcada no ${OFFICE} neste dia`
+  );
 
   // A rota é uma só: os números vêm da soma, pedida para o dia.
   expect((await spy.waitForCall("CrossOfficeDayRoute")).date).toBe(TODAY);
@@ -193,7 +215,7 @@ test("outro escritório: concluir manda só o estado e refaz a rota", async ({
   page,
 }) => {
   const spy = await mockCrossOffice(page, [hereItem]);
-  await page.goto(`/agenda?view=day&date=${TODAY}`);
+  await page.goto(`/schedule?view=day&date=${TODAY}`);
   await spy.waitForCall("CrossOfficeDayRoute");
   const routeCalls = spy.calls("CrossOfficeDayRoute").length;
 
@@ -217,7 +239,7 @@ test("outro escritório: concluir manda só o estado e refaz a rota", async ({
 
 test('outro escritório: "Não estava" anota a ausência lá', async ({ page }) => {
   const spy = await mockCrossOffice(page, [hereItem]);
-  await page.goto(`/agenda?view=day&date=${TODAY}`);
+  await page.goto(`/schedule?view=day&date=${TODAY}`);
 
   await theirCard(page)
     .getByRole("button", { name: "Marcar que Loja Do Sul não estava" })
@@ -234,7 +256,7 @@ test("outro escritório: dia só com paradas de lá também tem rota", async ({
   page,
 }) => {
   await mockCrossOffice(page, []);
-  await page.goto(`/agenda?view=day&date=${TODAY}`);
+  await page.goto(`/schedule?view=day&date=${TODAY}`);
 
   // Sem dia de cá, as duas paradas de lá são cartões.
   await expect(theirCard(page)).toHaveCount(2);

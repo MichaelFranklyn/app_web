@@ -2,7 +2,7 @@
 // `matchRoute` (em ./index), que suporta segmentos dinâmicos do Next (ex.: [id]).
 export const FLOW_ROUTES = {
   dashboard: "/dashboard",
-  routines: "/agenda",
+  routines: "/schedule",
   orders: "/orders",
   orderDetail: "/orders/[id]",
   clients: "/clients",

@@ -82,7 +82,9 @@ describe("scrubRoute", () => {
   });
 
   it("mantém o dia da agenda e os nomes fixos", () => {
-    expect(scrubRoute("/agenda/2026-11-17#topo")).toBe("/agenda/2026-11-17");
+    expect(scrubRoute("/schedule/2026-11-17#topo")).toBe(
+      "/schedule/2026-11-17"
+    );
     expect(scrubRoute("/settings/company")).toBe("/settings/company");
     expect(scrubRoute(null)).toBe("/");
   });

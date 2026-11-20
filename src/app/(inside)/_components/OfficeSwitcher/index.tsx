@@ -7,8 +7,10 @@ import { useMyOffices } from "@/hooks/useMyOffices";
 import { useUserData } from "@/hooks/useUserData";
 import { CHOOSE_OFFICE_ROUTE, OFFICE_ROLE_LABEL } from "@/utils/auth/offices";
 import { Building2, Check, ChevronDown, MailPlus } from "lucide-react";
-import { useRouter } from "next/navigation";
+import { usePathname, useRouter } from "next/navigation";
+import { AllOfficesBadge } from "../AllOfficesBadge";
 import { CompanyBadge } from "../CompanyBadge";
+import { isAllOfficesScreen } from "./utils";
 
 /**
  * O escritório da sessão, no topo, com a troca para os outros em que a pessoa
@@ -20,6 +22,7 @@ import { CompanyBadge } from "../CompanyBadge";
  */
 export function OfficeSwitcher() {
   const router = useRouter();
+  const pathname = usePathname();
   const { userData } = useUserData();
   // Numa sessão emprestada pelo suporte, trocar de escritório trocaria a
   // sessão DA PESSOA personificada — fora do escopo do atendimento.
@@ -30,8 +33,13 @@ export function OfficeSwitcher() {
   });
 
   const hasChoice = activeOffices.length > 1 || invitations.length > 0;
-
-  if (isImpersonating || !hasChoice) return <CompanyBadge />;
+  if (isImpersonating) return <CompanyBadge />;
+  // Na Agenda e na Rota do dia aparecem as visitas de todos os escritórios:
+  // o topo diz isso e trava a troca, senão o nome de um só engana.
+  if (activeOffices.length > 1 && isAllOfficesScreen(pathname)) {
+    return <AllOfficesBadge />;
+  }
+  if (!hasChoice) return <CompanyBadge />;
 
   return (
     <Dropdown.Root>
@@ -42,6 +50,9 @@ export function OfficeSwitcher() {
           size="sm"
           aria-label="Trocar de escritório"
           loading={!!enteringId}
+          // No celular, colado ao hambúrguer: o padding do ghost somava
+          // 12px ao vão entre o menu e o escritório.
+          className="max-desktop:px-[6px]"
         >
           <CompanyBadge />
           {invitations.length > 0 && (

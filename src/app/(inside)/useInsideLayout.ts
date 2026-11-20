@@ -50,7 +50,7 @@ export function useInsideLayout({
 
   // A Agenda na visão de dia ("Rota do dia"), distinta da semana e do mês.
   const isDayRoute =
-    pathname === "/agenda" && searchParams.get("view") === "day";
+    pathname === "/schedule" && searchParams.get("view") === "day";
 
   // Data de hoje resolvida só no cliente (evita mismatch de hidratação).
   const [todayIso, setTodayIso] = useState<string | null>(null);

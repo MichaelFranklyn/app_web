@@ -17,7 +17,7 @@ describe("newOrderUrl", () => {
     const url = new URL(
       newOrderUrl(
         { visitItemId: "v1", sellerId: "s1", clientId: "c1", factoryId: "f1" },
-        "/agenda"
+        "/schedule"
       ),
       "http://x"
     );
@@ -26,7 +26,7 @@ describe("newOrderUrl", () => {
       sellerId: "s1",
       clientId: "c1",
       factoryId: "f1",
-      from: "/agenda",
+      from: "/schedule",
     });
   });
 });

@@ -27,7 +27,7 @@ test("routines: a rotina da semana carrega sem agendamentos", async ({
     VisitScheduleConfig: scheduleConfig,
   });
 
-  await page.goto("/agenda");
+  await page.goto("/schedule");
 
   await expect(
     page.getByRole("heading", { name: "Agenda", level: 1 })
@@ -35,7 +35,7 @@ test("routines: a rotina da semana carrega sem agendamentos", async ({
 });
 
 /**
- * Lote 5 — rotina da semana (/agenda). Mock VisitSchedules com 1 visita
+ * Lote 5 — rotina da semana (/schedule). Mock VisitSchedules com 1 visita
  * acionável; o item tem um menu (MoreOptions) → "Editar visita". O EditVisitModal
  * tem status prefilled, então só alteramos as notas (evita o select de status).
  */
@@ -109,7 +109,7 @@ test("rotina: edita uma visita (notas)", async ({ page }) => {
     }),
   });
 
-  await page.goto("/agenda");
+  await page.goto("/schedule");
 
   // Kebab DENTRO do card da visita. O `following::button[1]` era ambíguo: o
   // card virou role="button" e há outros botões depois dele no DOM.
@@ -201,7 +201,7 @@ test("agenda (dia): mostra só aquele dia e leva à rota dele", async ({
     }),
   });
 
-  await page.goto(`/agenda?view=day&date=${TODAY}`);
+  await page.goto(`/schedule?view=day&date=${TODAY}`);
 
   // O checkbox de concluir só existe nos cards renderizados (o painel de
   // detalhes repete o nome do cliente, então ancoramos no checkbox): o de
@@ -261,7 +261,7 @@ test("rotina: marca um dia como não trabalhado", async ({ page }) => {
   });
 
   // A folga se marca na visão de DIA — é lá que o dia inteiro está à vista.
-  await page.goto(`/agenda?view=day&date=${today}`);
+  await page.goto(`/schedule?view=day&date=${today}`);
 
   // A visita de hoje é a que a confirmação precisa contar.
   const card = page.getByRole("button", { name: /Cliente LTDA/ });
@@ -305,7 +305,7 @@ test("rotina: painel fechado não projeta sombra na lateral", async ({
     }),
   });
 
-  await page.goto("/agenda");
+  await page.goto("/schedule");
   await expect(
     page.getByRole("button", { name: /Cliente LTDA/ })
   ).toBeVisible();
@@ -397,7 +397,7 @@ test("rotina: ligação sem contato cadastra ali; com celular, WhatsApp com mens
 
   // Os botões de ligar ficam no card completo, o da visão de dia (na semana o
   // card é compacto e eles ficam no painel).
-  await page.goto(`/agenda?view=day&date=${TODAY}`);
+  await page.goto(`/schedule?view=day&date=${TODAY}`);
 
   // Com celular: o link já leva a mensagem, chamando o contato pelo nome.
   // O painel lateral de cada visita fica montado FORA da tela (aside) com os

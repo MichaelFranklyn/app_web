@@ -180,14 +180,14 @@ const ASSUNTOS: Assunto[] = [
     ],
     delegacoes: {
       // Os modais da rotina recebem o syncVisit de useVisitActions como onDone.
-      "app/(inside)/(operations)/agenda/_components/VisitActions/EditVisitModal/index.tsx":
-        "app/(inside)/(operations)/agenda/useVisitActions.tsx",
-      "app/(inside)/(operations)/agenda/_components/VisitActions/RescheduleVisitModal/index.tsx":
-        "app/(inside)/(operations)/agenda/useVisitActions.tsx",
-      "app/(inside)/(operations)/agenda/_components/VisitActions/WholeDayModal/index.tsx":
-        "app/(inside)/(operations)/agenda/useVisitActions.tsx",
-      "app/(inside)/(operations)/agenda/_components/PromoteContactModal/usePromoteContact.ts":
-        "app/(inside)/(operations)/agenda/useVisitActions.tsx",
+      "app/(inside)/(operations)/schedule/_components/VisitActions/EditVisitModal/index.tsx":
+        "app/(inside)/(operations)/schedule/useVisitActions.tsx",
+      "app/(inside)/(operations)/schedule/_components/VisitActions/RescheduleVisitModal/index.tsx":
+        "app/(inside)/(operations)/schedule/useVisitActions.tsx",
+      "app/(inside)/(operations)/schedule/_components/VisitActions/WholeDayModal/index.tsx":
+        "app/(inside)/(operations)/schedule/useVisitActions.tsx",
+      "app/(inside)/(operations)/schedule/_components/PromoteContactModal/usePromoteContact.ts":
+        "app/(inside)/(operations)/schedule/useVisitActions.tsx",
     },
   },
   {

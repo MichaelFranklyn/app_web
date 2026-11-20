@@ -109,12 +109,12 @@ test("rotina por data: abre o dia na agenda", async ({ page }) => {
   // Confere a resposta sem segui-la: abrir a Agenda aqui dispararia no SSR
   // consultas que esta suíte não stuba. O `?seller=` dos links antigos segue.
   const response = await page.request.get(
-    "/agenda/2026-06-22?seller=seller-1",
+    "/schedule/2026-06-22?seller=seller-1",
     { maxRedirects: 0 }
   );
   expect(response.status()).toBe(307);
   const target = new URL(response.headers().location, "http://x");
-  expect(target.pathname).toBe("/agenda");
+  expect(target.pathname).toBe("/schedule");
   expect(Object.fromEntries(target.searchParams)).toEqual({
     view: "day",
     date: "2026-06-22",

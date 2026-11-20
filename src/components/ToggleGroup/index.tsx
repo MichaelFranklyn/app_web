@@ -71,14 +71,18 @@ export function ToggleGroup<T extends string | number>({
             disabled={disabled}
             aria-pressed={active}
             label={option.ariaLabel}
+            // Numa coluna estreita (grade de duas no celular) o rótulo longo
+            // trunca com "…" em vez de vazar do botão; o ariaLabel guarda o
+            // nome completo.
             className={cn(
+              "min-w-0",
               fullWidth && "flex-1",
               fullWidthBelowDesktop && "max-desktop:flex-1"
             )}
             onClick={() => onChange(option.value)}
           >
             {option.icon ? <Button.Icon icon={option.icon} /> : null}
-            <Button.Title>{option.label}</Button.Title>
+            <Button.Title className="truncate">{option.label}</Button.Title>
           </Button.Root>
         );
       })}

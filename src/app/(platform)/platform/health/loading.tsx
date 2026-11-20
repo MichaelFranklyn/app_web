@@ -10,6 +10,7 @@ export default function Loading() {
       description="Estado técnico da plataforma: banco, jobs agendados e pendências."
       kpis={{ count: 3, cols: { base: 1, tablet: 3 } }}
       listTitle="Jobs agendados"
+      cards
       columns={["Job", "Quando roda", "Última execução", "Resultado"]}
     />
   );

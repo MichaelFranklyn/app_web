@@ -6,11 +6,13 @@
 
 import { Card } from "@/components/Card";
 import { Grid } from "@/components/Grid";
-import { GridBreakpointCols } from "@/components/Grid/Root/interface";
+import { GridBreakpointCols, GridGap } from "@/components/Grid/Root/interface";
 import { Loading } from "@/components/Loading";
 import { PageContent } from "@/components/PageContent";
 import { PanelHeader } from "@/components/PanelHeader";
 import { Table } from "@/components/Table";
+import { Title } from "@/components/Title";
+import { TitleColor } from "@/components/Title/interface";
 import { Tabs } from "@/components/Tabs";
 import { cn } from "@/lib/utils";
 import { PAGE_HEADING, PageHeadingKey } from "@/utils/modules";
@@ -23,8 +25,16 @@ const DEFAULT_KPI_COLS: GridBreakpointCols = {
 };
 
 interface ListPageSkeletonProps {
-  /** Título da página. É texto fixo — aparece de imediato, sem esperar dados. */
-  title: string;
+  /**
+   * Título da página. É texto fixo — aparece de imediato, sem esperar dados.
+   * Aceita nó para levar o mesmo `<Emphasis>` do header real (o destaque muda
+   * a quebra de linha do título).
+   */
+  title: React.ReactNode;
+  /** Eyebrow acima do título, quando o header real tem (texto e cor). */
+  eyebrow?: { label: string; color?: TitleColor };
+  /** O header real tem o "?" de ajuda ao lado do título (ocupa a linha). */
+  help?: boolean;
   /**
    * Ícone do header real (`PAGE_HEADING`). Vai a CHAVE, não o ícone: o
    * `loading.tsx` é server e não passa componente para este client.
@@ -40,15 +50,40 @@ interface ListPageSkeletonProps {
   /**
    * Faixa de KPIs acima da lista. Ausente = a página não tem KPIs. `help`: os
    * cartões reais têm o "?" ao lado do rótulo (ele deixa a linha mais alta).
+   * `delta: false`: os cartões reais não têm a legenda embaixo do número (só
+   * rótulo + valor, como os contadores de /support). `gap`: o da página real.
    */
-  kpis?: { count: number; cols?: GridBreakpointCols; help?: boolean };
+  kpis?: {
+    count: number;
+    cols?: GridBreakpointCols;
+    help?: boolean;
+    delta?: boolean;
+    gap?: GridGap;
+  };
   /** Rótulos das abas, quando a lista tem abas (a 1ª entra como ativa). */
   tabs?: string[];
-  /** Título do card da lista (fixo na página real). */
-  listTitle?: string;
+  /**
+   * Título do card da lista (fixo na página real). `false`: o card real não
+   * tem título — o cabeçalho é só busca e filtros.
+   */
+  listTitle?: string | false;
+  /** Larguras dos controles do cabeçalho da lista (busca, "Filtros"…). */
+  listActions?: string[];
   /** Rótulos das colunas — o cabeçalho da tabela também não depende de dados. */
   columns?: string[];
   rows?: number;
+  /**
+   * A tabela real usa `<Table.Table cards>`: abaixo do desktop cada linha vira
+   * um cartão. Sem isto o celular via o cabeçalho de colunas e as faixas de
+   * desktop enquanto carregava, e a página chegava com outra cara (/support,
+   * 20/11/2026).
+   */
+  cards?: boolean;
+  /**
+   * Com `cards`: a tabela real tem colunas ordenáveis, e no celular elas viram
+   * a faixa "Ordenar por:" com chips acima dos cartões.
+   */
+  sortable?: boolean;
   /** Corpo no lugar da tabela (ex.: grid de cards, painel de KPIs próprio). */
   children?: React.ReactNode;
 }
@@ -59,6 +94,54 @@ function TextSkeleton({ children }: { children: React.ReactNode }) {
     <Loading.Skeleton className="w-fit max-w-full text-transparent">
       {children}
     </Loading.Skeleton>
+  );
+}
+
+/**
+ * As linhas-cartão do celular (ver `Table/Primitive/cards.ts`): título com o
+ * valor/situação à direita e duas linhas de detalhe — a mesma grade do cartão
+ * real, com o mesmo respiro (px-16 py-12) e o mesmo divisor.
+ */
+function CardRowsSkeleton({
+  rows,
+  sortable,
+}: {
+  rows: number;
+  sortable: boolean;
+}) {
+  return (
+    <div className="desktop:hidden" aria-hidden>
+      {sortable && (
+        // A faixa real: py-12, chips de 44px no toque, "Ordenar por:" na frente.
+        <div className="flex items-center gap-8 overflow-hidden border-b border-(--border) bg-(--bg2) px-16 py-12">
+          <Title variant="body-sm" color="muted" className="shrink-0">
+            Ordenar por:
+          </Title>
+          {["w-[92px]", "w-[96px]", "w-[104px]"].map((width, i) => (
+            <Loading.Skeleton
+              key={i}
+              className={cn(
+                "h-32 shrink-0 rounded-full pointer-coarse:h-[44px]",
+                width
+              )}
+            />
+          ))}
+        </div>
+      )}
+      {Array.from({ length: rows }).map((_, i) => (
+        <div
+          key={i}
+          className="flex flex-col gap-6 border-b border-(--border) px-16 py-12 last:border-b-0"
+        >
+          <div className="flex items-center justify-between gap-12">
+            <Loading.Skeleton className="h-[16px] w-3/5" />
+            <Loading.Skeleton className="h-[20px] w-[72px] rounded-full" />
+          </div>
+          <Loading.Skeleton className="h-[12px] w-2/5" />
+          <Loading.Skeleton className="h-[12px] w-1/2" />
+        </div>
+      ))}
+    </div>
   );
 }
 
@@ -80,8 +163,13 @@ export function ListPageSkeleton({
   kpis,
   tabs,
   listTitle,
+  listActions = ["w-[220px]"],
+  eyebrow,
+  help = false,
   columns,
   rows = 5,
+  cards = false,
+  sortable = false,
   children,
 }: ListPageSkeletonProps) {
   const actionWidths =
@@ -96,26 +184,42 @@ export function ListPageSkeleton({
         <Table.CardHead>
           {listTitle ? (
             <Table.CardHead.Title>{listTitle}</Table.CardHead.Title>
-          ) : (
+          ) : listTitle === false ? null : (
             <Loading.Skeleton className="h-[14px] w-40" />
           )}
           <Table.CardHead.Actions>
-            <Loading.Skeleton className="h-[32px] w-[220px]" />
+            {/* Num <div> próprio: as ações forçam `w-auto` nos filhos <div>
+                diretos, e a barra solta ficava com 0px — no celular o
+                cabeçalho da lista aparecia sem a busca. */}
+            <div>
+              {listActions.map((width, i) => (
+                <Loading.Skeleton
+                  key={i}
+                  className={cn("h-[32px] shrink-0", width)}
+                />
+              ))}
+            </div>
           </Table.CardHead.Actions>
         </Table.CardHead>
 
-        <Table.Table>
-          <Table.Header>
-            <Table.Row>
-              {columns.map((label, i) => (
-                <Table.Head key={i}>{label}</Table.Head>
-              ))}
-            </Table.Row>
-          </Table.Header>
-          <Table.Body>
-            <Table.Skeleton columns={columns.length} rows={rows} />
-          </Table.Body>
-        </Table.Table>
+        {/* O className da Table vai no <table>, não no wrapper: quem some no
+            celular é o wrapper inteiro. */}
+        <div className={cards ? "max-desktop:hidden" : "contents"}>
+          <Table.Table>
+            <Table.Header>
+              <Table.Row>
+                {columns.map((label, i) => (
+                  <Table.Head key={i}>{label}</Table.Head>
+                ))}
+              </Table.Row>
+            </Table.Header>
+            <Table.Body>
+              <Table.Skeleton columns={columns.length} rows={rows} />
+            </Table.Body>
+          </Table.Table>
+        </div>
+
+        {cards && <CardRowsSkeleton rows={rows} sortable={sortable} />}
 
         <Table.Footer>
           <Table.Footer.Info>
@@ -130,13 +234,23 @@ export function ListPageSkeleton({
       <PanelHeader.Root>
         <PanelHeader.Top>
           <PanelHeader.Left>
-            {page ? (
-              <PanelHeader.Heading {...PAGE_HEADING[page]}>
-                {title}
-              </PanelHeader.Heading>
-            ) : (
-              <PanelHeader.Title>{title}</PanelHeader.Title>
+            {eyebrow && (
+              <PanelHeader.Eyebrow color={eyebrow.color}>
+                {eyebrow.label}
+              </PanelHeader.Eyebrow>
             )}
+            <div className="flex items-center gap-6">
+              {page ? (
+                <PanelHeader.Heading {...PAGE_HEADING[page]}>
+                  {title}
+                </PanelHeader.Heading>
+              ) : (
+                <PanelHeader.Title>{title}</PanelHeader.Title>
+              )}
+              {help && (
+                <Loading.Skeleton className="size-[32.8px] shrink-0 rounded-full" />
+              )}
+            </div>
             {description ? (
               <PanelHeader.Description>{description}</PanelHeader.Description>
             ) : (
@@ -154,7 +268,7 @@ export function ListPageSkeleton({
       </PanelHeader.Root>
 
       {kpis && (
-        <Grid.Root cols={kpis.cols ?? DEFAULT_KPI_COLS} gap={20}>
+        <Grid.Root cols={kpis.cols ?? DEFAULT_KPI_COLS} gap={kpis.gap ?? 20}>
           {Array.from({ length: kpis.count }).map((_, i) => (
             <Grid.Item key={i}>
               {/* Os slots reais com um texto-modelo invisível sob o shimmer:
@@ -171,9 +285,11 @@ export function ListPageSkeleton({
                 <Card.Kpi.Value>
                   <TextSkeleton>R$ 0.000,00</TextSkeleton>
                 </Card.Kpi.Value>
-                <Card.Kpi.Delta>
-                  <TextSkeleton>legenda do cartão</TextSkeleton>
-                </Card.Kpi.Delta>
+                {kpis.delta !== false && (
+                  <Card.Kpi.Delta>
+                    <TextSkeleton>legenda do cartão</TextSkeleton>
+                  </Card.Kpi.Delta>
+                )}
               </Card.Kpi>
             </Grid.Item>
           ))}

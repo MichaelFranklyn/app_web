@@ -33,7 +33,11 @@ export function CatalogPageSkeleton({ href }: Props) {
         <Table.CardHead>
           <Table.CardHead.Title>{listTitle}</Table.CardHead.Title>
           <Table.CardHead.Actions>
-            <Loading.Skeleton className="h-[32px] w-[120px]" />
+            {/* Wrapper: as ações do cabeçalho forçam `w-auto` nos filhos
+                diretos, e a barra sumia. No celular o botão real é só o "+". */}
+            <div>
+              <Loading.Skeleton className="tablet:w-[120px] h-[32px] w-40" />
+            </div>
           </Table.CardHead.Actions>
         </Table.CardHead>
 

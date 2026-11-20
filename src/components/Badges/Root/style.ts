@@ -6,7 +6,7 @@ import { BadgeAppearance, BadgeColor, BadgeSize } from "./interface";
 // pelo pai (grid, coluna do card, estágio column do header) ficava com o texto
 // grudado à esquerda e sobra à direita (teste em aparelho, 13/11/2026).
 const baseClasses =
-  "inline-flex items-center justify-center text-center gap-(--spacing-4) rounded-full font-(--weight-semibold) border whitespace-nowrap transition-colors w-max";
+  "inline-flex items-center justify-center text-center gap-(--spacing-4) rounded-full font-(--weight-semibold) border whitespace-nowrap transition-colors w-max max-w-full";
 
 // Altura espelha o Button (Button/Root/style.ts → sizeText + sizePadding),
 // para que badge e botão de mesmo size fiquem alinhados lado a lado.

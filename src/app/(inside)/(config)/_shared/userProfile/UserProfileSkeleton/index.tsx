@@ -1,55 +1,18 @@
 "use client";
 
-import { Card } from "@/components/Card";
 import { Grid } from "@/components/Grid";
 import { Loading } from "@/components/Loading";
 import { PageContent } from "@/components/PageContent";
 import { PanelHeader } from "@/components/PanelHeader";
+import { DataCardSkeleton } from "../../dataCards";
 
 // Dados pessoais, acesso ao sistema, dados de campo e senha — os quatro cards
 // que as duas visões do perfil mostram.
 const CARD_COUNT = 4;
-// Os cards reais têm duas fileiras de campos (dados pessoais: contato +
-// endereço; acesso: e-mail, situação, empresa, cadastro) — duas aproximam a
-// altura definitiva melhor que uma.
-const FIELD_ROWS = 2;
-const FIELDS_PER_ROW = 3;
-
-/** Placeholder de um campo: rótulo em cima, valor embaixo (igual ao DataField). */
-function FieldSkeleton() {
-  return (
-    <div className="flex flex-col gap-[6px]">
-      <Loading.Skeleton className="h-[9px] w-16" />
-      <Loading.Skeleton className="h-[13px] w-28" />
-    </div>
-  );
-}
-
-/** Placeholder de um card de dados: título, descrição e as fileiras de campos. */
-function DataCardSkeleton() {
-  return (
-    <Card.Root className="h-full">
-      <Card.Header>
-        <Loading.Skeleton className="h-[14px] w-32" />
-        <Loading.Skeleton className="mt-[6px] h-[10px] w-56" />
-        <Card.Header.Actions>
-          <Loading.Skeleton className="h-[28px] w-[28px]" />
-        </Card.Header.Actions>
-      </Card.Header>
-      <Card.Body className="flex flex-col gap-16">
-        {Array.from({ length: FIELD_ROWS }).map((_, row) => (
-          <Grid.Root key={row} cols={{ base: 1, desktop: 3 }} gap={16}>
-            {Array.from({ length: FIELDS_PER_ROW }).map((_, i) => (
-              <Grid.Item key={i}>
-                <FieldSkeleton />
-              </Grid.Item>
-            ))}
-          </Grid.Root>
-        ))}
-      </Card.Body>
-    </Card.Root>
-  );
-}
+// Os cards reais têm duas fileiras de três campos (dados pessoais: contato +
+// endereço; acesso: e-mail, situação, empresa, cadastro) — seis aproximam a
+// altura definitiva melhor que três.
+const FIELDS_PER_CARD = 6;
 
 /**
  * Placeholder do perfil de uma pessoa — vale para as duas visões: o próprio
@@ -72,8 +35,8 @@ export function UserProfileSkeleton({
       <div className="flex flex-col gap-8">
         {hasBreadcrumb && (
           <div className="flex items-center gap-[8px]">
-            <Loading.Skeleton className="h-[12px] w-16" />
-            <Loading.Skeleton className="h-[12px] w-24" />
+            <Loading.Skeleton className="h-[12px] w-[64px]" />
+            <Loading.Skeleton className="h-[12px] w-[96px]" />
           </div>
         )}
 
@@ -81,10 +44,13 @@ export function UserProfileSkeleton({
           <PanelHeader.Top>
             <PanelHeader.Left>
               <div className="flex items-center gap-12">
-                <Loading.Skeleton shape="pill" className="h-[48px] w-[48px]" />
-                <div className="flex flex-col gap-[6px]">
-                  <Loading.Skeleton className="h-[24px] w-56" />
-                  <Loading.Skeleton className="h-[12px] w-72" />
+                <Loading.Skeleton
+                  shape="pill"
+                  className="h-[48px] w-[48px] shrink-0"
+                />
+                <div className="flex min-w-0 flex-1 flex-col gap-[6px]">
+                  <Loading.Skeleton className="h-[24px] w-[224px] max-w-full" />
+                  <Loading.Skeleton className="h-[12px] w-[288px] max-w-full" />
                 </div>
               </div>
 
@@ -104,7 +70,7 @@ export function UserProfileSkeleton({
       >
         {Array.from({ length: CARD_COUNT }).map((_, i) => (
           <Grid.Item key={i}>
-            <DataCardSkeleton />
+            <DataCardSkeleton fields={FIELDS_PER_CARD} desktopCols={3} />
           </Grid.Item>
         ))}
       </Grid.Root>

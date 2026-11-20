@@ -1,6 +1,6 @@
 import { PlanFeature } from "@/services/plan";
 import { describe, expect, it } from "vitest";
-import { visibleNav } from "./navConfig";
+import { isNavItemActive, visibleNav } from "./navConfig";
 
 /** Plano completo: nos casos sobre PAPEL, o plano não pode ser a variável que
  * esconde o item — senão o teste passaria pelo motivo errado. */
@@ -84,7 +84,7 @@ describe("visibleNav — papel", () => {
 describe("visibleNav — plano", () => {
   it("esconde o que a empresa não contratou", () => {
     const semRotina = hrefs("OWNER", ["COMMISSIONS", "GOALS"]);
-    expect(semRotina).not.toContain("/agenda");
+    expect(semRotina).not.toContain("/schedule");
     expect(semRotina).toContain("/commissions");
     expect(semRotina).toContain("/goals");
   });
@@ -150,5 +150,35 @@ describe("visibleNav — configuração inicial", () => {
 
   it("nunca aparece para o vendedor", () => {
     expect(withSetup("SELLER", true)).not.toContain("/settings/import");
+  });
+});
+
+describe("isNavItemActive", () => {
+  const at = (pathname: string, href: string, isDayRoute = false) =>
+    isNavItemActive({ pathname, href, isDayRoute });
+
+  it("marca a Agenda nas rotas de dentro dela", () => {
+    expect(at("/schedule", "/schedule")).toBe(true);
+    expect(at("/schedule/plan", "/schedule")).toBe(true);
+  });
+
+  it("na visão de dia, a Agenda cede o lugar à Rota do dia", () => {
+    expect(at("/schedule", "/schedule", true)).toBe(false);
+  });
+
+  it("marca o item no detalhe, mas não num prefixo parecido", () => {
+    expect(at("/clients/123", "/clients")).toBe(true);
+    expect(at("/clientsx", "/clients")).toBe(false);
+  });
+
+  it("usa o matchPrefix quando o href aponta para uma aba", () => {
+    expect(
+      isNavItemActive({
+        pathname: "/settings/company",
+        href: "/settings",
+        matchPrefix: "/settings",
+        isDayRoute: false,
+      })
+    ).toBe(true);
   });
 });

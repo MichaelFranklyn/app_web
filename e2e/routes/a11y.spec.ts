@@ -45,7 +45,7 @@ const VAZIAS = [
   "/clients",
   "/factories",
   "/orders",
-  "/agenda",
+  "/schedule",
   "/settings",
 ];
 

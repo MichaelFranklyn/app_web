@@ -42,6 +42,7 @@ const HeaderRoot = React.forwardRef<HTMLDivElement, CardHeaderRootProps>(
       headerRef: innerRef,
       contentRef,
       actionsRef,
+      hasActions: actions.length > 0,
     });
 
     return (

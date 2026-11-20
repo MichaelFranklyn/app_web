@@ -13,6 +13,7 @@ export default function Loading() {
       kpis={{ count: 4, cols: { base: 2, tablet: 2, desktop: 4 }, help: true }}
       tabs={["Todos os pedidos", "Esperando faturamento", "Esperando entrega"]}
       listTitle="Lista de pedidos"
+      cards
       columns={[
         "Pedido",
         "Cliente",

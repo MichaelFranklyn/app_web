@@ -1,6 +1,5 @@
 "use client";
 
-import { Loading } from "@/components/Loading";
 import { PageContent } from "@/components/PageContent";
 import { QueryError } from "@/components/QueryError";
 import { useSeedQuery } from "@/hooks/useSeedQuery";
@@ -9,6 +8,7 @@ import { useQuery } from "@apollo/client/react";
 
 import { PlanFeaturesSection } from "./_components/PlanFeaturesSection";
 import { PlanHeader } from "./_components/PlanHeader";
+import { PlanSkeleton } from "./_components/PlanSkeleton";
 import { PlanUsageSection } from "./_components/PlanUsageSection";
 import { SubscriptionSection } from "./_components/SubscriptionSection";
 
@@ -40,11 +40,7 @@ export default function PlanContent({ seed }: Props) {
   const plan = data?.myPlan?.data ?? null;
 
   if (loading && !plan) {
-    return (
-      <PageContent>
-        <Loading.Skeleton className="h-[420px]" />
-      </PageContent>
-    );
+    return <PlanSkeleton />;
   }
 
   if (error || !plan) {

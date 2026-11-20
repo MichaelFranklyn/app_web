@@ -149,7 +149,7 @@ const newOrderPageMocks = () => ({
 });
 
 async function openStockModal(page: import("@playwright/test").Page) {
-  await page.goto("/agenda");
+  await page.goto("/schedule");
 
   // Kebab DENTRO do card da visita (mesmo padrão de `routines.spec.ts`).
   // O card exibe a RAZÃO SOCIAL (`clientDisplayName`), não o nome fantasia.
@@ -441,7 +441,7 @@ test("visita/estoque: cancelar o pedido volta para a rotina", async ({
   await page.getByRole("button", { name: "Cancelar" }).click();
 
   // Volta para a tela de onde a visita foi aberta.
-  await expect(page).toHaveURL(/\/agenda/);
+  await expect(page).toHaveURL(/\/schedule/);
   await expect(page.getByRole("button", { name: "Criar pedido" })).toHaveCount(
     0
   );

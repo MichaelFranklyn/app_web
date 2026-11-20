@@ -54,7 +54,7 @@ export const systemOverviewFlow: FlowDefinition = {
       align: "center",
     },
     {
-      element: '[data-tour-route="/agenda"]',
+      element: '[data-tour-route="/schedule"]',
       title: "Agenda",
       description:
         "Aqui você monta a sua semana: escolhe quem quer ver, e o sistema separa por região e monta o caminho de cada dia.",

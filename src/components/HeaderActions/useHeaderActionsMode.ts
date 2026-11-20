@@ -23,6 +23,14 @@ interface Params {
   contentRef?: RefObject<HTMLDivElement | null>;
   /** Wrapper das ações; medido em cada estágio. Null = sem ações. */
   actionsRef: RefObject<HTMLDivElement | null>;
+  /**
+   * Se o wrapper das ações está montado agora. Quando ele sai e volta (ex.:
+   * Agenda no dia passado sem rota não tem botão nenhum), o elemento é OUTRO:
+   * sem refazer o efeito, os observers ficavam presos no velho e a medida
+   * congelava — voltando ao dia com 4 botões, o estágio ficava `full` e os
+   * botões transbordavam (relato de 20/11/2026).
+   */
+  hasActions?: boolean;
 }
 
 const INITIAL_NEED: HeaderActionsNeed = { full: 0, icon: 0 };
@@ -43,6 +51,7 @@ export function useHeaderActionsMode({
   headerRef,
   contentRef,
   actionsRef,
+  hasActions = true,
 }: Params): HeaderActionsMode {
   const id = useId();
   const group = useHeaderActionsGroup();
@@ -167,7 +176,7 @@ export function useHeaderActionsMode({
       observer.disconnect();
       mutations.disconnect();
     };
-  }, [headerRef, contentRef, actionsRef]);
+  }, [headerRef, contentRef, actionsRef, hasActions]);
 
   // Reporta ao grupo (se houver). Em layout effect para convergir antes de pintar.
   useIsomorphicLayoutEffect(() => {

@@ -4,7 +4,7 @@ import { emptyConnection, mockGraphql } from "../support/graphql";
 import { grantRole } from "../support/role";
 
 /**
- * "Montar semana" (/agenda/plan) — o vendedor escolhe os clientes e o
+ * "Montar semana" (/schedule/plan) — o vendedor escolhe os clientes e o
  * sistema monta o caminho. Guarda o caminho inteiro: a lista agrupada por
  * cidade, o filtro de prioritários, a escolha de visita × contato, a prévia
  * (dryRun) e a gravação, que leva de volta para a Agenda na mesma semana.
@@ -159,7 +159,7 @@ test("montar semana: escolher, configurar a semana, organizar e confirmar", asyn
 }) => {
   const spy = await mockGraphql(page, mocks());
 
-  await page.goto(`/agenda/plan?week=${WEEK}`);
+  await page.goto(`/schedule/plan?week=${WEEK}`);
   await expect(
     page.getByRole("heading", { name: "Montar semana" })
   ).toBeVisible();
@@ -225,7 +225,7 @@ test("montar semana: escolher, configurar a semana, organizar e confirmar", asyn
   await expect(dialog.getByText("Sugerido")).toBeVisible();
 
   await dialog.getByRole("button", { name: "Confirmar semana" }).click();
-  await expect(page).toHaveURL(new RegExp(`/agenda\\?week=${NEXT_WEEK}$`));
+  await expect(page).toHaveURL(new RegExp(`/schedule\\?week=${NEXT_WEEK}$`));
   const saved = spy.lastVariables("PlanWeek");
   expect((saved?.input as { dryRun: boolean }).dryRun).toBe(false);
   await expect(
@@ -238,7 +238,7 @@ test("organizar sem escolher ninguém: o sistema monta com os mais urgentes", as
 }) => {
   const spy = await mockGraphql(page, mocks());
 
-  await page.goto(`/agenda/plan?week=${WEEK}`);
+  await page.goto(`/schedule/plan?week=${WEEK}`);
   // Passo 1 do guia: sem ninguém escolhido, a saída é deixar o sistema escolher.
   await expect(
     page.getByText("Toque nos clientes que você quer ver nesta semana.")
@@ -264,7 +264,7 @@ test("cidades sempre abertas: o filtro de cidade e o painel dos escolhidos", asy
 }) => {
   await mockGraphql(page, mocks());
 
-  await page.goto(`/agenda/plan?week=${WEEK}`);
+  await page.goto(`/schedule/plan?week=${WEEK}`);
   // Nenhuma cidade fechada: os clientes das duas aparecem de cara.
   await expect(page.getByText("Del Atacadista", { exact: true })).toBeVisible();
   await expect(page.getByText("Lojão Barra", { exact: true })).toBeVisible();
@@ -294,7 +294,7 @@ test("visitas marcadas: o que já está combinado aparece, com Marcar visita", a
 }) => {
   await mockGraphql(page, mocks());
 
-  await page.goto(`/agenda/plan?week=${WEEK}`);
+  await page.goto(`/schedule/plan?week=${WEEK}`);
   await expect(page.getByText("Visitas marcadas (1)")).toBeVisible();
   await expect(page.getByText("Hiperferro")).toBeVisible();
   await expect(
@@ -310,7 +310,7 @@ test("agenda: sem marcar visita nem planejar viagem no cabeçalho", async ({
   await grantRole(page, "SELLER", { alsoJwt: true });
   await mockGraphql(page, mocks());
 
-  await page.goto("/agenda");
+  await page.goto("/schedule");
   await expect(
     page.getByRole("heading", { name: "Agenda", level: 1 })
   ).toBeVisible();

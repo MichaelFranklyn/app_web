@@ -1,7 +1,6 @@
 "use client";
 
 import { Grid } from "@/components/Grid";
-import { Loading } from "@/components/Loading";
 import { PageContent } from "@/components/PageContent";
 import { QueryError } from "@/components/QueryError";
 import { useSeedQuery } from "@/hooks/useSeedQuery";
@@ -12,6 +11,7 @@ import { CompanyBrandCard } from "./_components/CompanyBrandCard";
 import { CompanyContactCard } from "./_components/CompanyContactCard";
 import { CompanyHeader } from "./_components/CompanyHeader";
 import { CompanyIdentityCard } from "./_components/CompanyIdentityCard";
+import { CompanySkeleton } from "./_components/CompanySkeleton";
 import { EditBrandModal } from "./_components/EditBrandModal";
 import { EditCompanyModal } from "./_components/EditCompanyModal";
 
@@ -50,11 +50,7 @@ export default function CompanyContent({ seed }: Props) {
   const close = () => setEditing(null);
 
   if (loading && !company) {
-    return (
-      <PageContent>
-        <Loading.Skeleton className="h-[420px]" />
-      </PageContent>
-    );
+    return <CompanySkeleton />;
   }
 
   if (error || !company) {

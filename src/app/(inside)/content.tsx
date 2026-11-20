@@ -16,6 +16,7 @@ import { OfficeSwitcher } from "./_components/OfficeSwitcher";
 import { SetupRedirect } from "./_components/SetupRedirect";
 import { UserMenu } from "./_components/UserMenu";
 import { useInsideLayout } from "./useInsideLayout";
+import { isNavItemActive } from "./navConfig";
 
 /**
  * A casca autenticada: sidebar, topbar e o que mais é comum a toda tela de
@@ -124,8 +125,8 @@ export default function InsideShell({
                 // Antes de resolver a data no cliente, aponta para a grade semanal
                 // (evita divergência de hidratação com o horário do servidor).
                 const href = todayIso
-                  ? `/agenda?view=day&date=${todayIso}`
-                  : "/agenda";
+                  ? `/schedule?view=day&date=${todayIso}`
+                  : "/schedule";
                 return (
                   <Sidebar.Item
                     key="rota-do-dia"
@@ -133,7 +134,7 @@ export default function InsideShell({
                     icon={icon}
                     active={isDayRoute}
                     collapsed={isCollapsed}
-                    data-tour-route="/agenda/today"
+                    data-tour-route="/schedule/today"
                   >
                     {label}
                   </Sidebar.Item>
@@ -150,12 +151,12 @@ export default function InsideShell({
 
               // matchPrefix: item cujo href aponta para uma sub-rota (ex.: uma
               // aba padrão), mas que deve ficar ativo em todo o prefixo.
-              const activeBase = matchPrefix ?? href;
-              const isActive =
-                href === "/agenda"
-                  ? pathname === "/agenda" && !isDayRoute
-                  : pathname === activeBase ||
-                    pathname.startsWith(`${activeBase}/`);
+              const isActive = isNavItemActive({
+                pathname,
+                href,
+                matchPrefix,
+                isDayRoute,
+              });
 
               return (
                 <Sidebar.Item

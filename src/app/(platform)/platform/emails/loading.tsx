@@ -9,6 +9,7 @@ export default function Loading() {
       title="Emails"
       description="O que saiu, o que chegou e quem está bloqueado."
       listTitle="Últimos envios"
+      cards
       columns={["Quando", "Destinatário", "Assunto", "Situação", "Retorno"]}
     />
   );
