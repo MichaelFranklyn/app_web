@@ -22,7 +22,7 @@ export function AllOfficesBadge() {
     >
       {/* Botão desabilitado não recebe o mouse: o span leva o tooltip e o
           foco do teclado. */}
-      <span tabIndex={0} className="inline-flex rounded-md">
+      <span tabIndex={0} className="inline-flex">
         <Button.Root
           appearance="ghost"
           color="neutral"
