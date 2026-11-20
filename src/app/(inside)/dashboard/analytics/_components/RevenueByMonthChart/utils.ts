@@ -2,6 +2,7 @@ import type { EChartsCoreOption } from "echarts/core";
 
 import { formatMoney } from "@/utils/format/masks";
 import {
+  axisLabelFormatter,
   baseGrid,
   categoryAxis,
   SERIES_BLUE,
@@ -28,14 +29,14 @@ export const buildRevenueByMonthOption = (
     ...valueAxis,
     axisLabel: {
       ...valueAxis.axisLabel,
-      formatter: (v: number) => formatMoney(v),
+      formatter: axisLabelFormatter(formatMoney),
     },
   },
   series: [
     {
       name: "Faturamento",
       type: "line",
-      smooth: true,
+      smooth: false,
       symbol: "circle",
       symbolSize: 8,
       lineStyle: { width: 2, color: SERIES_BLUE },

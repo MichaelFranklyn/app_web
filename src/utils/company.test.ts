@@ -91,6 +91,13 @@ describe("companyDisplayName", () => {
     );
   });
 
+  it("reconhece sigla com ponto final", () => {
+    expect(companyDisplayName("CONTATO - REPRESENTACOES LTDA.")).toBe(
+      "Contato - Representacoes LTDA."
+    );
+    expect(companyDisplayName("ACME S.A.")).toBe("Acme S.A.");
+  });
+
   it("respeita o nome que já tem caixa própria", () => {
     expect(companyDisplayName("Contato Repres. iFood")).toBe(
       "Contato Repres. iFood"

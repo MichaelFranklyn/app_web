@@ -6,7 +6,7 @@ import {
 import { formatMoney } from "@/utils/format/masks";
 import type { EChartsCoreOption } from "echarts/core";
 
-import { buildMonthLinesOption } from "../../../../../chartBuilders";
+import { buildStackedBarOption } from "../../../../../chartBuilders";
 import { monthKeyToLabel } from "../../../../utils";
 import { ScopedCommissionRow } from "../../interface";
 import { commissionMonths } from "../../utils";
@@ -41,15 +41,16 @@ export const bucketCommissionsByMonth = (
 };
 
 /**
- * Três linhas por mês: o que já entrou, o que a fábrica ainda deve e o que
- * depende do cliente pagar. Separadas (e não somadas numa linha só) porque a
- * distância entre elas é a informação: previsto virando a receber e a receber
- * virando recebido é o caminho normal — travar em algum degrau é o problema.
+ * Uma barra por mês, empilhando o que já entrou, o que a fábrica ainda deve e
+ * o que depende do cliente pagar. Barra (e não linha) porque são partes de um
+ * mesmo total: a altura é a comissão do mês e as cores mostram em que degrau
+ * ela está. Linhas suavizadas inventavam vales entre meses e a série zerada
+ * escondia as outras.
  */
 export const buildCommissionsByMonthOption = (
   buckets: CommissionMonthlyBucket[]
 ): EChartsCoreOption =>
-  buildMonthLinesOption(
+  buildStackedBarOption(
     buckets.map((bucket) => monthKeyToLabel(bucket.month)),
     [
       {

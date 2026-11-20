@@ -51,7 +51,9 @@ export const valueAxis = {
   type: "value" as const,
   axisLine: { show: false },
   axisTick: { show: false },
-  axisLabel: { color: CHART_INK_MUTED, fontSize: 12 },
+  // hideOverlap: no celular as barras deitadas têm ~200px de eixo; sem isso
+  // os rótulos encavalavam ("R$ 2R$ 4R$ 6…").
+  axisLabel: { color: CHART_INK_MUTED, fontSize: 12, hideOverlap: true },
   splitLine: { lineStyle: { color: CHART_GRID, type: "solid" as const } },
 };
 
@@ -64,3 +66,29 @@ export const tooltipBase = {
   textStyle: { color: CHART_INK, fontSize: 12 },
   extraCssText: "box-shadow: 0 4px 16px rgba(0,0,0,0.08); border-radius: 8px;",
 };
+
+const compactNumber = new Intl.NumberFormat("pt-BR", {
+  maximumFractionDigits: 1,
+});
+
+/** Dinheiro curto para eixo: "R$ 20 mil", "R$ 1,2 mi", "R$ 500". */
+export const compactMoneyLabel = (value: number): string => {
+  const abs = Math.abs(value);
+  if (abs >= 1_000_000)
+    return `R$ ${compactNumber.format(value / 1_000_000)} mi`;
+  if (abs >= 1_000) return `R$ ${compactNumber.format(value / 1_000)} mil`;
+  return `R$ ${compactNumber.format(value)}`;
+};
+
+/**
+ * Formatador de rótulo de eixo a partir do formatador do valor. Dinheiro vira
+ * o formato curto ("R$ 100.000,00" ocupava ~90px no celular e encavalava nas
+ * barras deitadas); o valor exato continua no tooltip. Outras grandezas
+ * (dias, %, contagem) passam como vieram.
+ */
+export const axisLabelFormatter =
+  (format: (value: number) => string) =>
+  (value: number): string => {
+    const text = format(value);
+    return text.includes("R$") ? compactMoneyLabel(value) : text;
+  };

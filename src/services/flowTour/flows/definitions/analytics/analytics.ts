@@ -33,15 +33,18 @@ export const analyticsFlow: FlowDefinition = {
       requireSelector: '[data-tour="analytics-summary"]',
       title: "O fechamento do período",
       description:
-        "Pedidos, faturamento, ticket médio e clientes ativos no recorte escolhido. É a leitura rápida antes de descer aos gráficos.",
+        "Pedidos, faturamento, ticket médio e clientes que compraram no recorte escolhido. É a leitura rápida antes de descer aos gráficos.",
       side: "bottom",
       align: "start",
     },
     {
       element: '[data-tour="analytics-story"]',
+      // Sem pedidos no recorte, a página mostra só o aviso de vazio e o roteiro
+      // não existe.
+      requireSelector: '[data-tour="analytics-story"]',
       title: "A página conta uma história",
       description:
-        "São sete partes, e cada uma responde uma pergunta que prepara a seguinte. Clique numa delas para pular direto — a página é longa de propósito.",
+        "São sete partes, e cada uma responde uma pergunta que prepara a seguinte. Clique numa delas para pular direto (no celular, toque antes em “Ver as 7 partes”) — a página é longa de propósito.",
       side: "top",
       align: "start",
     },

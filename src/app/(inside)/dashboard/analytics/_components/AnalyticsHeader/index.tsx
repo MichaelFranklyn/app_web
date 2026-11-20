@@ -76,8 +76,10 @@ export function AnalyticsHeader({
               Desempenho
             </PanelHeader.Heading>
             <PanelHeader.Description>
-              Como a empresa vem indo ·{" "}
-              {formatDateRangeLabel(range.from, range.to)}
+              {canSelectSeller
+                ? "Como a empresa vem indo"
+                : "Como você vem indo"}{" "}
+              · {formatDateRangeLabel(range.from, range.to)}
             </PanelHeader.Description>
             <PanelHeader.Actions className="mt-6" data-tour="analytics-filters">
               {canSelectSeller && (

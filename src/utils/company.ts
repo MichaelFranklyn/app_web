@@ -70,7 +70,13 @@ export const companyDisplayName = (name?: string | null): string => {
   return trimmed
     .split(" ")
     .map((word, index) => {
-      if (NAME_ACRONYMS.has(word)) return word;
+      // "LTDA." com ponto final continua sigla: compara sem a pontuação do
+      // fim e devolve a palavra como veio.
+      if (
+        NAME_ACRONYMS.has(word) ||
+        NAME_ACRONYMS.has(word.replace(/[.,;]+$/, ""))
+      )
+        return word;
       const lower = word.toLocaleLowerCase("pt-BR");
       if (index > 0 && NAME_CONNECTORS.has(lower)) return lower;
       return lower.replace(/\p{L}/u, (letter) =>

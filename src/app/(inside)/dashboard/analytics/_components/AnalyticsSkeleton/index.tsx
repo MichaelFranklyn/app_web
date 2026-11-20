@@ -26,7 +26,11 @@ import { AnalyticsStoryIndex } from "../AnalyticsStoryIndex";
  * — um esqueleto sem a trilha, por exemplo, faria a página inteira descer
  * 24px no instante em que os dados chegassem.
  */
-export function AnalyticsSkeleton() {
+interface Props {
+  canSelectSeller: boolean;
+}
+
+export function AnalyticsSkeleton({ canSelectSeller }: Props) {
   return (
     <PageContent>
       <div className="flex flex-col gap-8">
@@ -67,7 +71,7 @@ export function AnalyticsSkeleton() {
       </Grid.Root>
 
       {/* Conteúdo fixo: não depende de nenhuma query, então entra inteiro. */}
-      <AnalyticsStoryIndex />
+      <AnalyticsStoryIndex canSelectSeller={canSelectSeller} />
 
       {/* A primeira parte da história ("O resultado do período"): só ela, e não
           as sete. O resto está abaixo da dobra e só monta ao rolar (ver

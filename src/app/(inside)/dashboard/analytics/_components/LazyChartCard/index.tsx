@@ -166,31 +166,40 @@ export function LazyChartCard({ title, description, help, children }: Props) {
     <ChartCardContext.Provider value={ctx}>
       <Card.Root>
         <Card.Header>
-          {/* Título e "?" na mesma linha: a explicação é do gráfico, não do
-              card — longe do título ela vira mais um botão sem dono. */}
-          <div className="flex min-w-0 items-center gap-4">
-            <Card.Header.Title size="sm" weight="semibold" className="min-w-0">
+          {/* Título, "?" e menu na mesma linha: a explicação é do gráfico, não
+              do card — longe do título ela vira mais um botão sem dono. O menu
+              não vai em Card.Header.Actions porque, no celular, o título longo
+              jogava o cabeçalho no modo coluna e o "…" ganhava uma linha só
+              dele. */}
+          {/* O título quebra linha em vez de truncar: no celular "Quanto os
+              maiores clientes co…" escondia justamente a pergunta. */}
+          <div className="flex min-w-0 items-start gap-4">
+            <Card.Header.Title
+              size="sm"
+              weight="semibold"
+              className="min-w-0 self-center whitespace-normal"
+            >
               {title}
             </Card.Header.Title>
             {help && (
               <ChartHelpTip title={title} help={help} insight={insight} />
             )}
+            <div className="ml-auto shrink-0">
+              <ChartMenu
+                prefs={prefs}
+                capabilities={capabilities}
+                disabled={!hasChart}
+                onToggle={togglePref}
+                onSelectVariant={selectVariant}
+                onExpand={() => setExpanded(true)}
+                onDownloadImage={handleDownloadImage}
+                onDownloadCsv={handleDownloadCsv}
+              />
+            </div>
           </div>
           {description && (
             <Card.Header.Description>{description}</Card.Header.Description>
           )}
-          <Card.Header.Actions>
-            <ChartMenu
-              prefs={prefs}
-              capabilities={capabilities}
-              disabled={!hasChart}
-              onToggle={togglePref}
-              onSelectVariant={selectVariant}
-              onExpand={() => setExpanded(true)}
-              onDownloadImage={handleDownloadImage}
-              onDownloadCsv={handleDownloadCsv}
-            />
-          </Card.Header.Actions>
         </Card.Header>
         <Card.Body>
           <div ref={ref}>
