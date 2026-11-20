@@ -15,20 +15,26 @@ export function StepCard({
   text: string;
 }) {
   return (
-    <li className="flex flex-col gap-12">
+    // Empilhado (celular/tablet), o texto vai AO LADO do pino: o trilho
+    // vertical passa no centro dos pinos (x=23px), e com o texto embaixo dele
+    // a linha cortava título e parágrafo (relato de 20/11/2026). No desktop o
+    // trilho é horizontal e o texto volta para baixo do pino.
+    <li className="desktop:flex desktop:flex-col desktop:gap-12 grid grid-cols-[48px_1fr] gap-x-20">
       <span className="relative flex size-48 items-center justify-center rounded-(--radius-full) bg-(--color-action) shadow-(--shadow-sm) ring-8 ring-(--bg2)">
         <Title as="span" variant="heading-md" color="onAction">
           {number}
         </Title>
       </span>
 
-      <Title as="h3" variant="heading-md" className="mt-8">
-        {title}
-      </Title>
+      <div className="desktop:pt-0 flex min-w-0 flex-col gap-12 pt-[10px]">
+        <Title as="h3" variant="heading-md" className="desktop:mt-8">
+          {title}
+        </Title>
 
-      <Title variant="body-md" color="secondary" className="max-w-[36ch]">
-        {text}
-      </Title>
+        <Title variant="body-md" color="secondary" className="max-w-[36ch]">
+          {text}
+        </Title>
+      </div>
     </li>
   );
 }
