@@ -1,4 +1,5 @@
 import { getCurrentWeekMondayIso, getTodayIso } from "@/utils/format/date";
+import { visitPriority } from "@/utils/score";
 import type { Page } from "@playwright/test";
 import { expect, test } from "../support/fixtures";
 import { mockGraphql } from "../support/graphql";
@@ -40,7 +41,20 @@ const hereItem = {
   status: "PENDING",
   outcome: null,
   notes: null,
-  focusFactories: [],
+  // Com score, o card mostra o selo de prioridade, e o tooltip dele avisa
+  // que a mesma ida também está marcada no outro escritório.
+  focusFactories: [
+    {
+      scoreTotal: "80.00",
+      factory: {
+        id: "f-1",
+        nomeFantasia: "Fábrica",
+        nickname: null,
+        razaoSocial: "Fábrica LTDA",
+      },
+      clientFactoryLink: null,
+    },
+  ],
   treatedFactories: [],
   clientFactoryLink: {
     id: "cfl-here",
@@ -177,7 +191,15 @@ test("outro escritório: cartão, selo e rota somando os dois", async ({
   await expect(
     card.getByText(`Pedido e estoque: entre no ${OFFICE}.`)
   ).toBeVisible();
-  await expect(page.getByText(`Também no ${OFFICE}`)).toBeVisible();
+  // A parada daqui do mesmo cliente avisa no tooltip do selo de prioridade
+  // (o card não tem mais a linha "Também no …").
+  await page
+    .locator("[data-badge]", { hasText: visitPriority(80).label })
+    .first()
+    .hover();
+  await expect(page.getByRole("tooltip")).toContainText(
+    `Também marcada no ${OFFICE} neste dia`
+  );
 
   // A rota é uma só: os números vêm da soma, pedida para o dia.
   expect((await spy.waitForCall("CrossOfficeDayRoute")).date).toBe(TODAY);
