@@ -22,17 +22,21 @@ export function UpcomingVisitsCard({ items }: Props) {
         <Card.Header.Title size="sm" weight="bold">
           Próximas visitas
         </Card.Header.Title>
+        {/* A contagem fica sob o título, e não numa etiqueta ao lado do botão:
+            no celular etiqueta + botão não cabiam ao lado do título e o
+            cabeçalho descia os dois em faixas de largura total (relato de
+            20/11/2026). */}
+        <Card.Header.Description>
+          {items.length === 1 ? "1 planejada" : `${items.length} planejadas`}
+        </Card.Header.Description>
         <Card.Header.Actions>
-          <Badge.Root appearance="tinted" color="blue">
-            <Badge.Text>{items.length} planejadas</Badge.Text>
-          </Badge.Root>
           <Button.Root
             type="button"
             color="amber"
             appearance="solid"
             size="sm"
             disabled={isPending}
-            onClick={() => navigateTo("/agenda")}
+            onClick={() => navigateTo("/schedule")}
           >
             <Button.Title>Ver rotina</Button.Title>
             <Button.Icon icon={ArrowRight} />
@@ -53,32 +57,22 @@ export function UpcomingVisitsCard({ items }: Props) {
           </EmptyState.Root>
         ) : (
           items.map((item) => (
-            // Do tablet para cima, cliente e fábrica dividem a linha e cada um
-            // quebra o próprio texto: com o `flex-wrap` do stat, um nome de
-            // cliente comprido empurrava fábrica e `#N` para baixo mesmo com
-            // espaço sobrando (relato de 17/11/2026, 1293 e 1469px). No celular
-            // segue descendo — lá não há largura para os dois lado a lado — e a
-            // fábrica quebra em vez de empurrar o `#N` para fora do card.
-            <Card.Item
-              key={item.id}
-              variant="stat"
-              className="tablet:flex-nowrap"
-            >
-              <Card.Item.Label className="tablet:min-w-0">
-                {namedEntityLabel(item.clientFactoryLink?.client ?? null)}
-              </Card.Item.Label>
-              <Card.Item.Actions className="min-w-0 shrink">
-                <Card.Item.Value className="text-right">
+            // Cliente em destaque e fábrica embaixo, como nome + detalhe: lado a
+            // lado (rótulo apagado × fábrica em negrito) a hierarquia ficava
+            // invertida e, no celular, o nome quebrava em várias linhas
+            // (relato de 20/11/2026). Cada um trunca na própria linha.
+            <Card.Item key={item.id}>
+              <Card.Item.Info>
+                <Card.Item.Info.Name>
+                  {namedEntityLabel(item.clientFactoryLink?.client ?? null)}
+                </Card.Item.Info.Name>
+                <Card.Item.Info.Sub>
                   {namedEntityLabel(item.clientFactoryLink?.factory ?? null)}
-                </Card.Item.Value>
-                <Badge.Root
-                  color="blue"
-                  appearance="tinted"
-                  className="shrink-0"
-                >
-                  <Badge.Text>#{item.plannedOrder}</Badge.Text>
-                </Badge.Root>
-              </Card.Item.Actions>
+                </Card.Item.Info.Sub>
+              </Card.Item.Info>
+              <Badge.Root color="blue" appearance="tinted" className="shrink-0">
+                <Badge.Text>#{item.plannedOrder}</Badge.Text>
+              </Badge.Root>
             </Card.Item>
           ))
         )}

@@ -56,7 +56,10 @@ export function UsersTable({
   const isEmpty = !loading && items.length === 0;
 
   return (
-    <Table.Root className="mt-16" sort={sort} data-tour="users-table">
+    // Sem margem própria: o respiro até os cartões é o gap do `PageContent`,
+    // igual às outras listas. O `mt-16` somava 36px e, no celular, a tabela
+    // ficava visivelmente mais longe dos números (relato de 20/11/2026).
+    <Table.Root sort={sort} data-tour="users-table">
       <Table.CardHead>
         <Table.CardHead.Title>Pessoas da empresa</Table.CardHead.Title>
         <Table.CardHead.Actions>

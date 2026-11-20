@@ -15,24 +15,40 @@ interface DropdownContentProps extends React.ComponentPropsWithoutRef<
 export const Content = React.forwardRef<
   React.ComponentRef<typeof DropdownMenuPrimitive.Content>,
   DropdownContentProps
->(({ className, sideOffset = 6, panel = false, ...props }, ref) => (
-  <DropdownMenuPrimitive.Portal>
-    <DropdownMenuPrimitive.Content
-      ref={ref}
-      sideOffset={sideOffset}
-      className={cn(
-        "z-50 min-w-[160px] border border-(--border) bg-(--bg2)",
-        "rounded-(--r-lg) shadow-(--shadow-lg)",
-        panel ? "flex flex-col" : "py-4",
-        // Cresce a partir do gatilho (a origem vem do Radix, pelo lado em que
-        // o menu abriu). O `animate-in` do plugin antigo não gerava CSS.
-        "origin-(--radix-dropdown-menu-content-transform-origin)",
-        "animate-pop-in data-[state=closed]:animate-pop-out",
-        className
-      )}
-      {...props}
-    />
-  </DropdownMenuPrimitive.Portal>
-));
+>(
+  (
+    {
+      className,
+      sideOffset = 6,
+      collisionPadding = 10,
+      panel = false,
+      ...props
+    },
+    ref
+  ) => (
+    <DropdownMenuPrimitive.Portal>
+      <DropdownMenuPrimitive.Content
+        ref={ref}
+        sideOffset={sideOffset}
+        collisionPadding={collisionPadding}
+        className={cn(
+          "z-50 min-w-[160px] border border-(--border) bg-(--bg2)",
+          // Nunca mais largo que a tela: no celular o menu do "Baixar PDF do
+          // mês" (opções com frase longa) saía cortado na borda (19/11/2026).
+          // Com o teto, o texto do item quebra linha em vez de vazar.
+          "max-w-[min(var(--radix-dropdown-menu-content-available-width),calc(100vw-20px))]",
+          "rounded-(--r-lg) shadow-(--shadow-lg)",
+          panel ? "flex flex-col" : "py-4",
+          // Cresce a partir do gatilho (a origem vem do Radix, pelo lado em que
+          // o menu abriu). O `animate-in` do plugin antigo não gerava CSS.
+          "origin-(--radix-dropdown-menu-content-transform-origin)",
+          "animate-pop-in data-[state=closed]:animate-pop-out",
+          className
+        )}
+        {...props}
+      />
+    </DropdownMenuPrimitive.Portal>
+  )
+);
 
 Content.displayName = DropdownMenuPrimitive.Content.displayName;

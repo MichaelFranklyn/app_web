@@ -69,7 +69,7 @@ export function EditVisitModal({
           formRef.current?.resetForm();
           onCommit();
           // `visitSchedules` alimenta a rotina da semana: o mesmo item aparece lá
-          // como card. Sem invalidar, voltar para /agenda pode servir o status
+          // como card. Sem invalidar, voltar para /schedule pode servir o status
           // antigo do cache.
           await invalidateClient(VISIT_CACHE_FIELDS);
         },

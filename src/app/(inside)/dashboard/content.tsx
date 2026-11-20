@@ -74,13 +74,17 @@ export default function DashboardContent({
             hasRoutines={hasRoutines}
           />
 
-          {/* O acompanhamento do mês — sem plano de metas, nem aparece. Para o
-              gestor, só com um vendedor escolhido: é o recorte do painel. */}
-          {hasGoals && (!canSelectSeller || selectedSellerId) && (
-            <DashboardGoalsCard sellerId={selectedSellerId} />
-          )}
-
+          {/* Metas, pedidos e visitas no MESMO grupo: no celular os três têm a
+              mesma largura e o botão de um não pode ter título enquanto o do
+              outro vira só a seta (relato de 19/11/2026 — a tag "atrás do
+              ritmo" descia o "Ver metas" e os outros ficavam em ícone). */}
           <Card.Header.Group>
+            {/* O acompanhamento do mês — sem plano de metas, nem aparece. Para
+                o gestor, só com um vendedor escolhido: é o recorte do painel. */}
+            {hasGoals && (!canSelectSeller || selectedSellerId) && (
+              <DashboardGoalsCard sellerId={selectedSellerId} />
+            )}
+
             {/* Sem rotina no plano, os pedidos recentes ocupam a linha inteira —
                 metade da tela vazia diria "faltou carregar", não "não contratado". */}
             <Grid.Root

@@ -4,6 +4,7 @@ import { Button } from "@/components/Button";
 import { Sidebar } from "@/components/Sidebar";
 import { cn } from "@/lib/utils";
 import { ChevronLeft, ChevronRight, Menu } from "lucide-react";
+import { usePathname } from "next/navigation";
 import React from "react";
 import { NavigationProgress } from "./NavigationProgress";
 
@@ -137,6 +138,9 @@ const Panel = ({ children }: { children: React.ReactNode }) => (
  * `-ml-[15px]`: o alvo é 44 e o ícone 14, centralizado — sem a compensação o
  * ícone ficava 15px à direita da margem do conteúdo (desalinhado do título).
  * A margem negativa devolve a folga ao gutter sem encolher a área de toque.
+ * À direita, só 4px depois do ícone (`pr-[4px]`, 33px de largura): com o
+ * ícone centralizado em 44px, o seletor de escritório ficava a ~37px do
+ * hambúrguer e parecia solto (relato de 20/11/2026). A altura segue 44px.
  */
 const MenuButton = ({ onClick }: { onClick: () => void }) => (
   <Button.Root
@@ -145,7 +149,7 @@ const MenuButton = ({ onClick }: { onClick: () => void }) => (
     size="sm"
     isIconOnly
     label="Abrir menu"
-    className="desktop:hidden mr-4 -ml-[15px] min-h-[44px] min-w-[44px] justify-center"
+    className="desktop:hidden -ml-[15px] min-h-[44px] w-auto min-w-[33px] justify-start pr-[4px] pl-[15px]"
     onClick={onClick}
   >
     <Button.Icon icon={Menu} />
@@ -157,14 +161,53 @@ const MenuButton = ({ onClick }: { onClick: () => void }) => (
  * Tab segue dentro do conteúdo). Sem contorno: quem recebe o foco é a área
  * inteira, não um controle.
  */
-const Main = ({ className, ...props }: React.HTMLAttributes<HTMLElement>) => (
-  <main
-    id={MAIN_ID}
-    tabIndex={-1}
-    className={cn("flex-1 overflow-y-auto outline-none", className)}
-    {...props}
-  />
-);
+const Main = ({ className, ...props }: React.HTMLAttributes<HTMLElement>) => {
+  const ref = useScrollTopOnRouteChange();
+  return (
+    <main
+      ref={ref}
+      id={MAIN_ID}
+      tabIndex={-1}
+      className={cn("flex-1 overflow-y-auto outline-none", className)}
+      {...props}
+    />
+  );
+};
+
+/**
+ * Quem rola é o `<main>`, não a janela — e o Next só reseta o scroll da
+ * janela. Sem isto, abrir outra tela pelo menu (ou por um card) mantinha a
+ * posição da anterior: a página nova "abria no meio" (relato de 20/11/2026,
+ * celular). Só troca de CAMINHO volta ao topo: mudar a query (aba, filtro,
+ * página da lista) é a mesma tela. Voltar/avançar do navegador também não —
+ * ali o esperado é reencontrar onde se estava.
+ */
+function useScrollTopOnRouteChange() {
+  const ref = React.useRef<HTMLElement>(null);
+  const pathname = usePathname();
+  const fromHistory = React.useRef(false);
+  const previous = React.useRef(pathname);
+
+  React.useEffect(() => {
+    const onPopState = () => {
+      fromHistory.current = true;
+    };
+    window.addEventListener("popstate", onPopState);
+    return () => window.removeEventListener("popstate", onPopState);
+  }, []);
+
+  React.useEffect(() => {
+    if (previous.current === pathname) return;
+    previous.current = pathname;
+    if (fromHistory.current) {
+      fromHistory.current = false;
+      return;
+    }
+    ref.current?.scrollTo({ top: 0 });
+  }, [pathname]);
+
+  return ref;
+}
 
 export const AppFrame = {
   Root,

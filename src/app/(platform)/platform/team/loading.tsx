@@ -10,6 +10,7 @@ export default function Loading() {
       description="Quem enxerga todas as empresas. Contas de suporte são criadas e revogadas aqui."
       actions={1}
       listTitle="Contas"
+      cards
       columns={["Pessoa", "Papel", "Criada em", ""]}
     />
   );

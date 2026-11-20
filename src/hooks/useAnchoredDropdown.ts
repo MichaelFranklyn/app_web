@@ -49,8 +49,30 @@ export function useAnchoredDropdown(keepOpenSelectors: string[] = []) {
       }
       setOpen(false);
     };
+    // Rolar a tela com o dedo também fecha: o painel fica parado enquanto o
+    // campo some de baixo dele (relato de 19/11/2026, /commissions no
+    // celular). É o GESTO (touchmove), não o evento de scroll: o teclado
+    // virtual e o scroll programático também disparam `scroll`, e fechariam
+    // o select no instante em que ele abre. Arrastar dentro do próprio
+    // painel (lista longa de opções) não conta.
+    const handleTouchMove = (event: TouchEvent) => {
+      const target = event.target as Node | null;
+      if (!target) return;
+      if (floatingRef.current?.contains(target)) return;
+      if (
+        target instanceof Element &&
+        selectors.some((selector) => target.closest(selector))
+      ) {
+        return;
+      }
+      setOpen(false);
+    };
     document.addEventListener("mousedown", handleOutside);
-    return () => document.removeEventListener("mousedown", handleOutside);
+    document.addEventListener("touchmove", handleTouchMove, { passive: true });
+    return () => {
+      document.removeEventListener("mousedown", handleOutside);
+      document.removeEventListener("touchmove", handleTouchMove);
+    };
   }, [open, selectorsKey]);
 
   return {

@@ -11,6 +11,7 @@ export default function Loading() {
       actions={2}
       kpis={{ count: 3, cols: { base: 1, tablet: 3 } }}
       listTitle="Pessoas da empresa"
+      cards
       // As MESMAS três colunas da tabela, na mesma ordem: o esqueleto que
       // não bate faz a linha se reorganizar quando os dados chegam.
       columns={["Pessoa", "Desde", "Situação"]}

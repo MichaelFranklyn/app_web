@@ -167,7 +167,7 @@ test("outro escritório: cartão, selo e rota somando os dois", async ({
   page,
 }) => {
   const spy = await mockCrossOffice(page, [hereItem]);
-  await page.goto(`/agenda?view=day&date=${TODAY}`);
+  await page.goto(`/schedule?view=day&date=${TODAY}`);
 
   // A parada de lá tem cartão próprio; a do mesmo cliente vira selo.
   const card = theirCard(page);
@@ -193,7 +193,7 @@ test("outro escritório: concluir manda só o estado e refaz a rota", async ({
   page,
 }) => {
   const spy = await mockCrossOffice(page, [hereItem]);
-  await page.goto(`/agenda?view=day&date=${TODAY}`);
+  await page.goto(`/schedule?view=day&date=${TODAY}`);
   await spy.waitForCall("CrossOfficeDayRoute");
   const routeCalls = spy.calls("CrossOfficeDayRoute").length;
 
@@ -217,7 +217,7 @@ test("outro escritório: concluir manda só o estado e refaz a rota", async ({
 
 test('outro escritório: "Não estava" anota a ausência lá', async ({ page }) => {
   const spy = await mockCrossOffice(page, [hereItem]);
-  await page.goto(`/agenda?view=day&date=${TODAY}`);
+  await page.goto(`/schedule?view=day&date=${TODAY}`);
 
   await theirCard(page)
     .getByRole("button", { name: "Marcar que Loja Do Sul não estava" })
@@ -234,7 +234,7 @@ test("outro escritório: dia só com paradas de lá também tem rota", async ({
   page,
 }) => {
   await mockCrossOffice(page, []);
-  await page.goto(`/agenda?view=day&date=${TODAY}`);
+  await page.goto(`/schedule?view=day&date=${TODAY}`);
 
   // Sem dia de cá, as duas paradas de lá são cartões.
   await expect(theirCard(page)).toHaveCount(2);

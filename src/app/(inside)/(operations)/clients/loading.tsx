@@ -12,6 +12,7 @@ export default function Loading() {
       actions={3}
       kpis={{ count: 4 }}
       listTitle="Carteira de clientes"
+      cards
       // As MESMAS seis colunas do `ClientsTable`, na mesma ordem: o esqueleto
       // trazia uma sétima ("Faturamento") que a tabela não tem, e a linha
       // inteira se reorganizava quando os dados chegavam.

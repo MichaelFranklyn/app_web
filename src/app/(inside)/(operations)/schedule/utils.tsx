@@ -1,0 +1,576 @@
+import {
+  getCurrentWeekMondayIso,
+  getTodayIso,
+  toUtcIsoDate as toIsoDate,
+} from "@/utils/format/date";
+import { factoryName } from "@/utils/company";
+import {
+  explainScore,
+  ScoreDimensions,
+  ScoreExplanation,
+  ScoreLevel,
+  scoreLevel,
+  ScoreReason,
+} from "@/utils/score";
+import {
+  OtherOfficeFactory,
+  VisitClient,
+  VisitScheduleDay,
+  VisitScheduleItem,
+  VisitStatus,
+} from "./interface";
+
+export { VISIT_STATUS_COLOR, VISIT_STATUS_LABEL } from "@/utils/visit";
+export { getTodayIso };
+
+/** Dica do badge da visita respondida sem sinal (guardada no aparelho). */
+export const AWAITING_SIGNAL_HINT =
+  "Resposta guardada neste aparelho. Vai sozinha para o sistema quando o sinal voltar.";
+
+export interface VisitFollowupWarning {
+  needsStock: boolean;
+  needsOrder: boolean;
+  message: string;
+}
+
+// Uma visita CONCLUÍDA precisa render alguma informação útil para a próxima
+// rotina: ou o estoque observado no cliente, ou o resultado/pedido. Basta UMA
+// das duas (o vendedor pode só ter levantado o estoque, sem fechar pedido).
+// Só avisamos quando NENHUMA foi registrada.
+//
+// "Registrou estoque" = tratou ao menos uma fábrica. As fábricas tratadas saem
+// das observações de estoque por produto, então a lista vazia é exatamente o
+// caso de quem saiu da loja sem levantar nada.
+export const getVisitFollowupWarning = (
+  item: VisitScheduleItem
+): VisitFollowupWarning | null => {
+  if (item.status !== "COMPLETED") return null;
+  const needsStock = (item.treatedFactories ?? []).length === 0;
+  const needsOrder = item.outcome == null;
+  if (!needsStock || !needsOrder) return null;
+  return {
+    needsStock,
+    needsOrder,
+    message: "Visita concluída — registre o estoque ou lance o pedido.",
+  };
+};
+
+/**
+ * Score da visita: o MAIOR entre as fábricas em foco, não o do vínculo principal.
+ *
+ * A visita é ao cliente e carrega N fábricas; mostrar o score de uma delas
+ * escolhida por acaso esconde justamente a urgente. Cai no vínculo só nas visitas
+ * antigas, geradas antes de o foco existir.
+ *
+ * Usa o score de HOJE (`latestVisitScore`), a mesma fonte de `getVisitScoreReasons`
+ * — o card e o painel de detalhe têm de dizer o mesmo número. `focus.scoreTotal` é
+ * o total CONGELADO na geração da rotina e serve para auditar o plano, não para
+ * descrever o cliente agora: uma rotina montada na terça e executada na segunda
+ * seguinte carrega um score de uma semana atrás, e o card anunciava "Urgente · 62"
+ * para um cliente que já estava em "Atenção · 41".
+ *
+ * O congelado sobrou como último recurso, para a visita cujo vínculo perdeu o
+ * score (job ainda não rodou, vínculo desativado): melhor um número velho do que
+ * card nenhum. Mas basta UM foco ter score atual para os congelados saírem da
+ * disputa — misturar as duas escalas no mesmo `Math.max` faria o card mostrar um
+ * valor que o painel não explica.
+ */
+export const getVisitScoreTotal = (item: VisitScheduleItem): number | null => {
+  const focusFactories = item.focusFactories ?? [];
+
+  // `Number(null)` é 0, não NaN: sem descartar o nulo antes, uma fábrica em foco
+  // que nunca teve score entraria como zero e ainda venceria o `Math.max` de uma
+  // lista toda nula.
+  const currentScores = focusFactories
+    .map((focus) =>
+      toScore(focus.clientFactoryLink?.latestVisitScore?.scoreTotal ?? null)
+    )
+    .filter((score): score is number => score !== null);
+
+  if (currentScores.length > 0) return Math.max(...currentScores);
+
+  const linkScore = toScore(
+    item.clientFactoryLink?.latestVisitScore?.scoreTotal ?? null
+  );
+  if (linkScore !== null) return linkScore;
+
+  const frozenScores = focusFactories
+    .map((focus) => toScore(focus.scoreTotal))
+    .filter((score): score is number => score !== null);
+
+  return frozenScores.length > 0 ? Math.max(...frozenScores) : null;
+};
+
+/** Motivo do score de UMA empresa (fábrica) que puxou esta visita. */
+export interface VisitScoreReason {
+  /** Chave estável para a lista (id do vínculo ou da fábrica). */
+  key: string;
+  factoryLabel: string;
+  explanation: ScoreExplanation;
+}
+
+/**
+ * Por que esta visita existe, empresa por empresa.
+ *
+ * A visita é ao CLIENTE, mas quem pontua é o vínculo com cada fábrica — o
+ * vendedor precisa saber que vai lá porque a Telhas Potiguar está com estoque
+ * no fim, não só que "o score é 78". As dimensões vêm do score ATUAL do vínculo
+ * (`latestVisitScore`), não do total congelado na geração da rotina.
+ *
+ * Ordena da empresa mais urgente para a menos urgente e ignora vínculos sem
+ * score calculado (nada a explicar). Visitas antigas, geradas antes de o foco
+ * existir, caem no vínculo principal.
+ */
+export const getVisitScoreReasons = (
+  item: VisitScheduleItem
+): VisitScoreReason[] => {
+  const fromFocus = (item.focusFactories ?? []).flatMap((focus, index) => {
+    const dims = focus.clientFactoryLink?.latestVisitScore;
+    if (!dims) return [];
+    return [
+      {
+        key:
+          focus.clientFactoryLink?.id ?? focus.factory?.id ?? `focus-${index}`,
+        factoryLabel: factoryName(focus.factory),
+        explanation: explainScore(dims),
+      },
+    ];
+  });
+
+  const link = item.clientFactoryLink;
+  const reasons =
+    fromFocus.length > 0
+      ? fromFocus
+      : link?.latestVisitScore
+        ? [
+            {
+              key: link.id,
+              factoryLabel: factoryName(link.factory),
+              explanation: explainScore(link.latestVisitScore),
+            },
+          ]
+        : [];
+
+  return [...reasons].sort((a, b) => b.explanation.total - a.explanation.total);
+};
+
+const toScore = (raw: string | null): number | null => {
+  if (raw == null) return null;
+  const parsed = Number(raw);
+  return Number.isFinite(parsed) ? parsed : null;
+};
+
+export const VISIT_URGENCY_BORDER: Record<VisitStatus, string> = {
+  COMPLETED: "border-l-[3px] border-l-(--color-status-success)",
+  PENDING: "border-l-[3px] border-l-(--color-status-info)",
+  CLIENT_ABSENT: "border-l-[3px] border-l-(--color-status-danger)",
+  CANCELLED: "border-l-[3px] border-l-(--color-status-danger)",
+  RESCHEDULED: "border-l-[3px] border-l-(--color-status-info)",
+  NO_TIME: "border-l-[3px] border-l-(--amber)",
+  SKIPPED_BY_CUSTOMER: "border-l-[3px] border-l-(--color-status-info)",
+};
+
+const WEEKDAY_LABELS = [
+  "Domingo",
+  "Segunda",
+  "Terça",
+  "Quarta",
+  "Quinta",
+  "Sexta",
+  "Sábado",
+];
+
+const MONTH_LABELS = [
+  "Jan",
+  "Fev",
+  "Mar",
+  "Abr",
+  "Mai",
+  "Jun",
+  "Jul",
+  "Ago",
+  "Set",
+  "Out",
+  "Nov",
+  "Dez",
+];
+
+export const formatDayLabel = (isoDate: string): string => {
+  const [year, month, day] = isoDate.split("-").map(Number);
+  if (!year || !month || !day) return isoDate;
+  return `${String(day).padStart(2, "0")} ${MONTH_LABELS[month - 1]}`;
+};
+
+export const formatWeekdayLabel = (isoDate: string): string => {
+  const [year, month, day] = isoDate.split("-").map(Number);
+  if (!year || !month || !day) return "";
+  const date = new Date(Date.UTC(year, month - 1, day));
+  return WEEKDAY_LABELS[date.getUTCDay()];
+};
+
+export const formatWeekRange = (weekStartIso: string): string => {
+  const [year, month, day] = weekStartIso.split("-").map(Number);
+  if (!year || !month || !day) return weekStartIso;
+  const start = new Date(Date.UTC(year, month - 1, day));
+  const end = new Date(start);
+  end.setUTCDate(start.getUTCDate() + 6);
+  const startLabel = `${String(start.getUTCDate()).padStart(2, "0")} ${MONTH_LABELS[start.getUTCMonth()]}`;
+  const endLabel = `${String(end.getUTCDate()).padStart(2, "0")} ${MONTH_LABELS[end.getUTCMonth()]}`;
+  return `${startLabel} a ${endLabel} de ${end.getUTCFullYear()}`;
+};
+
+// Segunda-feira (início da semana) da semana que contém a data informada.
+// Usa os componentes locais da Date escolhida no calendário para não sofrer
+// deslocamento de fuso ao normalizar em UTC.
+export const getWeekMondayIsoFromDate = (date: Date): string => {
+  const utc = new Date(
+    Date.UTC(date.getFullYear(), date.getMonth(), date.getDate())
+  );
+  const dayOfWeek = utc.getUTCDay();
+  const offsetToMonday = dayOfWeek === 0 ? -6 : 1 - dayOfWeek;
+  utc.setUTCDate(utc.getUTCDate() + offsetToMonday);
+  return toIsoDate(utc);
+};
+
+// Date local a partir de um ISO (para popular o valor do Input.Date).
+export const isoToLocalDate = (isoDate: string): Date | null => {
+  const [year, month, day] = isoDate.split("-").map(Number);
+  if (!year || !month || !day) return null;
+  return new Date(year, month - 1, day);
+};
+
+/** ISO deslocado em N dias — UTC de propósito, como o resto dos cálculos de
+ * data desta tela: somar dias em horário local erra na virada do horário de
+ * verão. */
+export const shiftDayIso = (isoDate: string, days: number): string => {
+  const [year, month, day] = isoDate.split("-").map(Number);
+  if (!year || !month || !day) return isoDate;
+  const date = new Date(Date.UTC(year, month - 1, day));
+  date.setUTCDate(date.getUTCDate() + days);
+  return toIsoDate(date);
+};
+
+export const shiftWeekIso = (isoDate: string, weeks: number): string => {
+  const [year, month, day] = isoDate.split("-").map(Number);
+  if (!year || !month || !day) return isoDate;
+  const date = new Date(Date.UTC(year, month - 1, day));
+  date.setUTCDate(date.getUTCDate() + weeks * 7);
+  return toIsoDate(date);
+};
+
+/** Segunda-feira da semana que vem (ISO). */
+export const getNextWeekMondayIso = (): string =>
+  shiftWeekIso(getCurrentWeekMondayIso(), 1);
+
+/** Hoje é sábado ou domingo — os dias em que a semana seguinte já se planeja. */
+export const isWeekendToday = (): boolean => {
+  const weekday = new Date().getDay();
+  return weekday === 0 || weekday === 6;
+};
+
+/**
+ * O dia já passou — não recebe parada nova (a visita seria impossível). Aqui o
+ * botão some antes de o vendedor tentar, para o erro nunca aparecer.
+ */
+export const isPastDay = (dateIso: string, todayIso: string): boolean =>
+  dateIso < todayIso;
+
+export interface WeekDayCell {
+  date: string;
+  weekdayLabel: string;
+  dayLabel: string;
+  day: VisitScheduleDay | null;
+}
+
+// Monta os 7 dias (Seg→Dom) a partir do início da semana, mapeando os dias já
+// persistidos no schedule; dias que ainda não têm rota vêm com `day: null`.
+export const buildWeekDays = (
+  weekStartIso: string,
+  days: VisitScheduleDay[]
+): WeekDayCell[] => {
+  const byDate = new Map(days.map((d) => [d.date.slice(0, 10), d]));
+  const [year, month, day] = weekStartIso.split("-").map(Number);
+  if (!year || !month || !day) return [];
+  const start = new Date(Date.UTC(year, month - 1, day));
+  const cells: WeekDayCell[] = [];
+  for (let i = 0; i < 7; i++) {
+    const d = new Date(start);
+    d.setUTCDate(start.getUTCDate() + i);
+    const iso = toIsoDate(d);
+    cells.push({
+      date: iso,
+      weekdayLabel: formatWeekdayLabel(iso),
+      dayLabel: formatDayLabel(iso),
+      day: byDate.get(iso) ?? null,
+    });
+  }
+  return cells;
+};
+
+// Ordena as visitas de um dia pela sequência planejada da rota (plannedOrder),
+// que é a ordem em que o vendedor deve percorrê-las. Não muta o array recebido.
+export const sortVisitsByRoute = (
+  items: VisitScheduleItem[]
+): VisitScheduleItem[] =>
+  [...items].sort((a, b) => a.plannedOrder - b.plannedOrder);
+
+// Opções dos enums — value = NOME do membro GraphQL, label = PT.
+export { VISIT_STATUS_OPTIONS, VISIT_OUTCOME_OPTIONS } from "@/utils/visit";
+
+export const RESCHEDULE_REASON_OPTIONS = [
+  { value: "CLIENT_ABSENT", label: "Cliente ausente" },
+  { value: "NO_TIME", label: "Sem tempo" },
+  { value: "RESCHEDULED", label: "Reagendado" },
+  { value: "CANCELLED", label: "Cancelado" },
+];
+
+/**
+ * O compromisso no relógio: "09:40 · 30 min".
+ *
+ * Existe porque o card mostrava só `estimatedTravelMin` ("· 7m") — o tempo de
+ * DESLOCAMENTO até a parada, que todo mundo lia como "visita de 7 minutos". A
+ * visita tem duração própria (a configuração do vendedor, 30 min por padrão) e
+ * hora marcada; o deslocamento é outra informação, e aparece com nome.
+ *
+ * Contato remoto não tem horário previsto (não é parada de rota): sobra só a
+ * posição na fila do dia.
+ */
+export const formatVisitSlot = (item: {
+  plannedStartTime: string | null;
+  visitDurationMin: number | null;
+}): string => {
+  if (!item.plannedStartTime) return "";
+  // Em horas, não em minutos: a visita padrão passou a durar 2h, e "120 min"
+  // obriga o vendedor a fazer a conta de cabeça para ler a própria agenda.
+  const duration = item.visitDurationMin
+    ? ` · ${formatMinutes(item.visitDurationMin)}`
+    : "";
+  return ` · ${item.plannedStartTime}${duration}`;
+};
+
+/** Duração legível: 45 → "45 min", 120 → "2h", 150 → "2h 30m". */
+/** Distância em km com uma casa e vírgula decimal ("12,4 km"). */
+export const formatDistanceKm = (rawKm: string): string => {
+  const km = Number(rawKm);
+  if (!isFinite(km)) return `${rawKm} km`;
+  return `${km.toFixed(1).replace(".", ",")} km`;
+};
+
+export const formatMinutes = (mins: number): string => {
+  if (mins < 60) return `${mins} min`;
+  const hours = Math.floor(mins / 60);
+  const remainder = mins % 60;
+  return remainder === 0 ? `${hours}h` : `${hours}h ${remainder}m`;
+};
+
+/** "20 min até aqui" — o deslocamento, dito com todas as letras. */
+export const formatTravelToStop = (
+  estimatedTravelMin: number | null
+): string | null =>
+  estimatedTravelMin == null || estimatedTravelMin <= 0
+    ? null
+    : `${estimatedTravelMin} min até aqui`;
+
+const WEEKDAY_LONG_LABELS = [
+  "Domingo",
+  "Segunda-feira",
+  "Terça-feira",
+  "Quarta-feira",
+  "Quinta-feira",
+  "Sexta-feira",
+  "Sábado",
+];
+
+/** "19/10/2026 · Segunda-feira" — a data por extenso da folha da rota do dia. */
+export const formatDateLong = (isoDate: string): string => {
+  const [year, month, day] = isoDate.split("-").map(Number);
+  if (!year || !month || !day) return isoDate;
+  const date = new Date(Date.UTC(year, month - 1, day));
+  const dd = String(day).padStart(2, "0");
+  const mm = String(month).padStart(2, "0");
+  return `${dd}/${mm}/${year} · ${WEEKDAY_LONG_LABELS[date.getUTCDay()]}`;
+};
+
+// Endereço em formato amigável ao Google Maps (vírgulas), ou null se não houver
+// dados suficientes para localizar — usado para origem/destino/waypoints da rota.
+/**
+ * O endereço de uma parada do outro escritório no mesmo formato do
+ * `mapsQuery` — o backend já manda rua e número numa linha só.
+ */
+export const crossOfficeMapsQuery = (stop: {
+  address: string | null;
+  neighborhood: string | null;
+  city: string | null;
+  state: string | null;
+}): string | null => {
+  const place = stop.city
+    ? stop.state
+      ? `${stop.city} - ${stop.state}`
+      : stop.city
+    : stop.state;
+  const parts = [stop.address, stop.neighborhood, place].filter(
+    (part): part is string => Boolean(part)
+  );
+  return parts.length > 0 ? parts.join(", ") : null;
+};
+
+export const mapsQuery = (client: VisitClient | null): string | null => {
+  if (!client) return null;
+  const parts: string[] = [];
+  if (client.addressStreet) {
+    parts.push(
+      client.addressNumber
+        ? `${client.addressStreet}, ${client.addressNumber}`
+        : client.addressStreet
+    );
+  }
+  if (client.addressNeighborhood) parts.push(client.addressNeighborhood);
+  if (client.addressCity) {
+    parts.push(
+      client.addressState
+        ? `${client.addressCity} - ${client.addressState}`
+        : client.addressCity
+    );
+  } else if (client.addressState) {
+    parts.push(client.addressState);
+  }
+  return parts.length > 0 ? parts.join(", ") : null;
+};
+
+/**
+ * Os escritórios (sem repetir, na ordem em que chegam) de onde vêm as outras
+ * fábricas do cliente — um selo para cada na lista de "Montar semana".
+ */
+export const otherOfficeNames = (
+  others: OtherOfficeFactory[] | null | undefined
+): string[] => [...new Set((others ?? []).map((other) => other.officeName))];
+
+/** "A", "A e B", "A, B e C" — nomes numa frase. */
+const joinNames = (names: string[]): string =>
+  names.length > 1
+    ? `${names.slice(0, -1).join(", ")} e ${names[names.length - 1]}`
+    : (names[0] ?? "");
+
+/**
+ * O texto do aviso da agenda de quem trabalha em vários escritórios: quais
+ * entram (o da sessão primeiro). Nulo com um escritório só — aí não há o que
+ * explicar.
+ */
+export const allOfficesNoteText = (
+  offices: { companyName: string; isCurrent: boolean }[]
+): string | null => {
+  if (offices.length < 2) return null;
+  const ordered = [
+    ...offices.filter((office) => office.isCurrent),
+    ...offices.filter((office) => !office.isCurrent),
+  ];
+  return `Aqui aparecem os clientes e as visitas de todos os seus escritórios: ${joinNames(ordered.map((office) => office.companyName))}.`;
+};
+
+/**
+ * Uma fábrica no tooltip de score (Montar semana, card da Agenda, prévia da
+ * semana): nome, escritório, score, nível e o motivo da visita. Só partes do
+ * score: nada de comissão ou preço de outro escritório.
+ */
+export interface FactoryScoreChip {
+  key: string;
+  name: string;
+  /** Escritório da fábrica (o daqui também); nulo só sem nome à mão. */
+  office: string | null;
+  score: number;
+  level: ScoreLevel;
+  /** O que mais pesa no score desta fábrica; nulo sem as partes do score. */
+  reason: ScoreReason | null;
+}
+
+export const factoryScoreChip = (
+  base: Pick<FactoryScoreChip, "key" | "name" | "office" | "score">,
+  dimensions: ScoreDimensions | null | undefined
+): FactoryScoreChip => ({
+  ...base,
+  score: Math.round(base.score),
+  level: scoreLevel(base.score),
+  reason: dimensions ? (explainScore(dimensions).reasons[0] ?? null) : null,
+});
+
+/**
+ * O score de cada fábrica da visita, da mais urgente à menos: as do foco
+ * (deste escritório, com o score de hoje — o congelado só sem ele) e as dos
+ * outros escritórios que têm score gravado.
+ */
+export const visitScoreChips = (
+  item: Pick<VisitScheduleItem, "focusFactories" | "otherOfficeFactories">,
+  currentOffice: string | null
+): FactoryScoreChip[] => {
+  const here = item.focusFactories.map((f, index) => {
+    const dims = f.clientFactoryLink?.latestVisitScore ?? null;
+    return factoryScoreChip(
+      {
+        key: f.clientFactoryLink?.id ?? `focus-${index}`,
+        name: factoryName(f.factory),
+        office: currentOffice,
+        score: Number(dims?.scoreTotal ?? f.scoreTotal) || 0,
+      },
+      dims
+    );
+  });
+  const there = (item.otherOfficeFactories ?? []).flatMap((f) =>
+    f.dimensions
+      ? [
+          factoryScoreChip(
+            {
+              key: `${f.companyId}-${f.factoryName}`,
+              name: f.factoryName,
+              office: f.officeName,
+              score: Number(f.dimensions.scoreTotal) || 0,
+            },
+            f.dimensions
+          ),
+        ]
+      : []
+  );
+  return [...here, ...there].sort((a, b) => b.score - a.score);
+};
+
+/** Uma linha de "Ofereça também": a fábrica, o escritório dela e o score. */
+export interface OtherOfficeOffer {
+  key: string;
+  factoryName: string;
+  officeName: string;
+  /** O tooltip de score; nulo quando o vínculo de lá ainda não tem score. */
+  chip: FactoryScoreChip | null;
+}
+
+/**
+ * O que o vendedor pode oferecer também no mesmo cliente: uma linha por
+ * fábrica de outro escritório, sem repetir, da mais urgente à menos (as sem
+ * score por último). Vazio quando o cliente só é atendido por este escritório.
+ */
+export const otherOfficeOffers = (
+  others: OtherOfficeFactory[] | null | undefined
+): OtherOfficeOffer[] => {
+  const offers = new Map<string, OtherOfficeOffer>();
+  for (const other of others ?? []) {
+    const key = `${other.officeName}|${other.factoryName}`;
+    if (offers.has(key)) continue;
+    offers.set(key, {
+      key,
+      factoryName: other.factoryName,
+      officeName: other.officeName,
+      chip: other.dimensions
+        ? factoryScoreChip(
+            {
+              key,
+              name: other.factoryName,
+              office: other.officeName,
+              score: Number(other.dimensions.scoreTotal) || 0,
+            },
+            other.dimensions
+          )
+        : null,
+    });
+  }
+  return [...offers.values()].sort(
+    (a, b) => (b.chip?.score ?? -1) - (a.chip?.score ?? -1)
+  );
+};

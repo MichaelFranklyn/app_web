@@ -10,6 +10,7 @@ export default function Loading() {
       description="Todas as empresas da plataforma, com o uso de cada uma nos últimos 30 dias."
       actions={1}
       listTitle="Empresas da plataforma"
+      cards
       columns={[
         "Empresa",
         "Plano",

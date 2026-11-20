@@ -8,6 +8,7 @@ export default function Loading() {
       actions={2}
       kpis={{ count: 4 }}
       listTitle="O que fez"
+      cards
       columns={["Quando", "Ação", "Resultado", "Duração"]}
     />
   );

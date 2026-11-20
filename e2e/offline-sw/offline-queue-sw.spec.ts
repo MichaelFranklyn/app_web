@@ -157,7 +157,7 @@ async function openRoutine(
   // Antes de abrir: a tela descarrega a fila assim que monta, e uma aba que
   // nascesse "com sinal" mandaria o registro antes de o teste olhar.
   network.down = down;
-  await page.goto("/agenda");
+  await page.goto("/schedule");
   await expect(routineCard(page)).toBeVisible();
   return { page, network };
 }
@@ -170,7 +170,7 @@ test.beforeEach(async ({ page }) => {
   // Um contexto novo por teste, mas o registro do SW é assíncrono: a primeira
   // visita o instala, e só a partir daí ele responde pela origem.
   await mockGraphql(page, baseMocks);
-  await page.goto("/agenda");
+  await page.goto("/schedule");
   await waitForServiceWorker(page);
 });
 
@@ -198,7 +198,7 @@ test("sem sinal: a visita fica guardada, sobrevive a fechar a aba e chega uma ve
 
   // Reabre SEM sinal: quem responde é o service worker, com a tela offline.
   const reopened = await context.newPage();
-  await reopened.goto("/agenda", { waitUntil: "domcontentloaded" });
+  await reopened.goto("/schedule", { waitUntil: "domcontentloaded" });
   await expect(reopened.getByText("Sem conexão")).toBeVisible();
   // O toque continua no aparelho, e nada foi enviado no escuro.
   expect(await queued(reopened)).toHaveLength(1);
@@ -207,7 +207,7 @@ test("sem sinal: a visita fica guardada, sobrevive a fechar a aba e chega uma ve
   // O sinal volta e ele abre a rotina de novo.
   await device.on();
   await mockGraphql(reopened, handlers);
-  await reopened.goto("/agenda");
+  await reopened.goto("/schedule");
   await expect(routineCard(reopened)).toBeVisible();
 
   await expect.poll(() => calls.length).toBe(1);

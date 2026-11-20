@@ -56,6 +56,14 @@ export const NAV = [
     feature: "ROUTINES" as NavFeature,
   },
   {
+    href: "/schedule",
+    label: "Agenda",
+    icon: CalendarDays,
+    feature: "ROUTINES" as NavFeature,
+  },
+  { divider: true },
+  { section: "Operações" },
+  {
     // A central do dia (14/11/2026): Pendências (o que resolver) e
     // Oportunidades (onde vale agir para vender mais) numa entrada só, cada
     // uma na sua aba (`/priorities` e `/priorities/opportunities`). Sem `feature` e
@@ -64,14 +72,6 @@ export const NAV = [
     href: "/priorities",
     label: "Prioridades",
     icon: ListChecks,
-  },
-  { divider: true },
-  { section: "Operações" },
-  {
-    href: "/agenda",
-    label: "Agenda",
-    icon: CalendarDays,
-    feature: "ROUTINES" as NavFeature,
   },
   {
     href: "/orders",
@@ -196,3 +196,24 @@ export const visibleNav = (
     return true;
   });
 };
+
+/**
+ * O item da sidebar fica marcado na própria rota e em tudo abaixo dela
+ * (`/schedule/plan`, `/clients/123`). A Agenda é a exceção: na visão de dia
+ * quem fica marcado é o atalho "Rota do dia", não ela.
+ */
+export function isNavItemActive({
+  pathname,
+  href,
+  matchPrefix,
+  isDayRoute,
+}: {
+  pathname: string;
+  href: string;
+  matchPrefix?: string;
+  isDayRoute: boolean;
+}): boolean {
+  if (href === "/schedule" && isDayRoute) return false;
+  const base = matchPrefix ?? href;
+  return pathname === base || pathname.startsWith(`${base}/`);
+}

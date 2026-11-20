@@ -7,6 +7,7 @@ export default function Loading() {
       title="Histórico de ações"
       description="O que os usuários fizeram no sistema."
       listTitle="Ações"
+      cards
       columns={["Quando", "Ação", "Quem", "Resultado", "Duração"]}
     />
   );

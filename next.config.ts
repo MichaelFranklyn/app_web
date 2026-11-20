@@ -165,7 +165,7 @@ const nextConfig: NextConfig = {
       // A query (?week=, ?seller=) vai junto.
       {
         source: "/routines/:path*",
-        destination: "/agenda/:path*",
+        destination: "/schedule/:path*",
         permanent: true,
       },
       // A rota do dia virou a visão de dia da Agenda (19/10/2026). Era uma tela
@@ -173,9 +173,23 @@ const nextConfig: NextConfig = {
       // os links antigos (sino, Pendências, favoritos) abrem o mesmo dia. O
       // `?seller=` vai junto e a Agenda o converte na pessoa.
       {
-        source: "/agenda/:date(\\d{4}-\\d{2}-\\d{2})",
-        destination: "/agenda?view=day&date=:date",
+        source: "/schedule/:date(\\d{4}-\\d{2}-\\d{2})",
+        destination: "/schedule?view=day&date=:date",
         permanent: false,
+      },
+      // A Agenda trocou de endereço (20/11/2026): todas as rotas são em
+      // inglês, e /agenda era a única fora. Sino, push, e-mail, atalho do
+      // app instalado e favoritos antigos ainda chegam por /agenda — o dia
+      // primeiro (direto na visão de dia, sem dois saltos), depois o resto.
+      {
+        source: "/agenda/:date(\\d{4}-\\d{2}-\\d{2})",
+        destination: "/schedule?view=day&date=:date",
+        permanent: false,
+      },
+      {
+        source: "/agenda/:path*",
+        destination: "/schedule/:path*",
+        permanent: true,
       },
     ];
   },
