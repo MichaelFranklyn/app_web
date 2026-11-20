@@ -18,6 +18,9 @@ interface Props {
   /** Empresa sem o motor de rotina no plano não vê o cartão de visitas: "0
    * realizadas" pareceria uma semana parada, e não um recurso que ela não tem. */
   hasRoutines: boolean;
+  /** Gerente vê a carteira do vendedor escolhido; vendedor, a própria. O
+   * número já vem nesse escopo do back — "vinculados à empresa" mentia. */
+  canSelectSeller: boolean;
 }
 
 /**
@@ -33,6 +36,7 @@ export function DashboardKpis({
   totalPlannedVisits,
   totalClients,
   hasRoutines,
+  canSelectSeller,
 }: Props) {
   const completionRate =
     totalPlannedVisits > 0
@@ -96,8 +100,10 @@ export function DashboardKpis({
           <Card.Kpi.Delta negative={totalClients === 0}>
             {totalClients === 0 && <TrendingDown size={12} />}
             {totalClients > 0
-              ? "vinculados à empresa"
-              : "nenhum cliente vinculado"}
+              ? canSelectSeller
+                ? "na carteira"
+                : "na sua carteira"
+              : "nenhum cliente na carteira"}
           </Card.Kpi.Delta>
         </Card.Kpi>
       </Grid.Item>

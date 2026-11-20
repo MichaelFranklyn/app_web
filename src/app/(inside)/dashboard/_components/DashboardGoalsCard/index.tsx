@@ -18,6 +18,9 @@ import { useDashboardGoals } from "./useDashboardGoals";
 interface Props {
   /** O vendedor escolhido no topo do dashboard (nulo para o vendedor). */
   sellerId: string | null;
+  /** Só o gestor combina metas: para o vendedor, "combine na tela de Metas"
+   * mandava fazer algo que ele não pode. */
+  canSelectSeller: boolean;
 }
 
 /**
@@ -26,7 +29,7 @@ interface Props {
  * /insights; aqui ele mostra também quem está EM dia — meta é acompanhamento,
  * não pendência. Definir e detalhar continuam em /goals.
  */
-export function DashboardGoalsCard({ sellerId }: Props) {
+export function DashboardGoalsCard({ sellerId, canSelectSeller }: Props) {
   const goals = useDashboardGoals(sellerId);
 
   return (
@@ -65,13 +68,17 @@ export function DashboardGoalsCard({ sellerId }: Props) {
         ) : goals.loading ? (
           <Loading.Skeleton className="h-[120px] w-full" />
         ) : goals.metrics.length === 0 ? (
-          <EmptyState.Root flat>
+          // Vazio compacto: sem meta não há o que acompanhar, e o cartão não
+          // deve empurrar pedidos e visitas para baixo da dobra.
+          <EmptyState.Root flat className="py-[20px]">
             <EmptyState.Icon>
               <Target size={32} />
             </EmptyState.Icon>
             <EmptyState.Title>Nenhuma meta para este mês</EmptyState.Title>
             <EmptyState.Description>
-              As metas são combinadas por vendedor e fábrica na tela de Metas.
+              {canSelectSeller
+                ? "As metas são combinadas por vendedor e fábrica na tela de Metas."
+                : "Seu escritório ainda não definiu metas para este mês."}
             </EmptyState.Description>
           </EmptyState.Root>
         ) : (

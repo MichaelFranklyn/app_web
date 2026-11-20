@@ -9,7 +9,6 @@ import { PAGE_HEADING } from "@/utils/modules";
 import { ChartLine, FileText } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { DateRangeIso, SellerOption } from "../../interface";
-import { formatDateRangeLabel } from "../../utils";
 import { DashboardDateFilter } from "../DashboardDateFilter";
 
 interface Props {
@@ -32,11 +31,12 @@ export function DashboardHeader({
   onSelectSeller,
 }: Props) {
   const router = useRouter();
-  const periodLabel = `Período · ${formatDateRangeLabel(range.from, range.to)}`;
+  // O período já está escrito no filtro de datas logo abaixo — repeti-lo aqui
+  // era a mesma data duas vezes. A descrição diz de QUEM são os números.
   const description =
     canSelectSeller && selectedSellerName
-      ? `${selectedSellerName} · ${periodLabel}`
-      : periodLabel;
+      ? `Números de ${selectedSellerName} no período escolhido`
+      : "Seus pedidos, visitas e clientes no período escolhido";
 
   const sellerOptions: SelectOption[] = sellers.map((s) => ({
     value: s.id,

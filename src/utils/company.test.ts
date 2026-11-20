@@ -1,6 +1,11 @@
 import { describe, expect, it } from "vitest";
 
-import { clientName, companyInitials, factoryName } from "./company";
+import {
+  clientName,
+  companyDisplayName,
+  companyInitials,
+  factoryName,
+} from "./company";
 
 describe("factoryName", () => {
   it("prioriza o apelido dado pela empresa", () => {
@@ -70,5 +75,29 @@ describe("companyInitials", () => {
   it("tolera vazio", () => {
     expect(companyInitials(null)).toBe("");
     expect(companyInitials("   ")).toBe("");
+  });
+});
+
+describe("companyDisplayName", () => {
+  it("tira a razão social da CAIXA ALTA", () => {
+    expect(companyDisplayName("MENEZES REPRESENTACOES")).toBe(
+      "Menezes Representacoes"
+    );
+  });
+
+  it("mantém conectivos minúsculos e siglas societárias", () => {
+    expect(companyDisplayName("COMERCIO DE TINTAS DA SILVA LTDA")).toBe(
+      "Comercio de Tintas da Silva LTDA"
+    );
+  });
+
+  it("respeita o nome que já tem caixa própria", () => {
+    expect(companyDisplayName("Contato Repres. iFood")).toBe(
+      "Contato Repres. iFood"
+    );
+  });
+
+  it("devolve vazio sem nome", () => {
+    expect(companyDisplayName(null)).toBe("");
   });
 });
