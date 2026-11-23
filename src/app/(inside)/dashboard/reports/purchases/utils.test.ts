@@ -104,9 +104,11 @@ describe("rótulos da linha", () => {
     expect(orderNumber(row({ lastOrderId: null }))).toBe("—");
   });
 
-  it("escreve 'nunca' quando o par não tem compra alguma", () => {
+  it("escreve 'Nunca comprou' quando o par não tem compra alguma", () => {
     expect(lastPurchaseLabel(row())).toBe("30/07/2026");
-    expect(lastPurchaseLabel(row({ lastOrderDate: null }))).toBe("nunca");
+    expect(lastPurchaseLabel(row({ lastOrderDate: null }))).toBe(
+      "Nunca comprou"
+    );
   });
 });
 

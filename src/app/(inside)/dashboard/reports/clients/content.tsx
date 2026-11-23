@@ -1,5 +1,6 @@
 "use client";
 
+import { plural } from "@/utils/format/plural";
 import { buildReportContext } from "@/utils/pdf/context";
 
 import { ReportChartCard } from "../_components/ReportChartCard";
@@ -39,11 +40,11 @@ export default function ClientsReportContent({ canSelectSeller }: Props) {
     slug: "clientes",
     title: "Carteira de clientes",
     from: filters.from,
-    // A carteira é um retrato de hoje: dizer isso evita que o papel seja lido
-    // como "os clientes do período" — o período só governa o gráfico de atraso.
-    // Depois vêm os filtros do painel e a ordem da tabela.
+    // A carteira é um retrato de hoje: nada aqui depende do período, então a
+    // linha "Período" sai do papel (e o filtro sai da tela). Depois vêm os
+    // filtros do painel e a ordem da tabela.
     context: [
-      ...context,
+      ...context.filter((line) => !line.startsWith("Período:")),
       "Carteira: retrato de hoje",
       ...buildReportContext({
         fields: filterFields,
@@ -73,7 +74,7 @@ export default function ClientsReportContent({ canSelectSeller }: Props) {
         { label: "Nunca compraram", value: String(never) },
       ];
     },
-    buildHighlight: (rows) => `${rows.length} cliente(s)`,
+    buildHighlight: (rows) => `${plural(rows.length, "cliente", "clientes")}`,
   });
 
   return (
@@ -83,6 +84,7 @@ export default function ClientsReportContent({ canSelectSeller }: Props) {
         onRangeChange={setRange}
         onSellerChange={setSellerId}
         canSelectSeller={canSelectSeller}
+        showPeriod={false}
         onExportSheet={exportSheet}
         onExportPdf={exportPdf}
         exportDisabled={!hasRows}
@@ -92,13 +94,13 @@ export default function ClientsReportContent({ canSelectSeller }: Props) {
 
       <ReportChartCard
         title="Quem está mais atrasado para voltar"
-        description="Compara cada cliente com o próprio ritmo de compra, no período escolhido. Vermelho passou do dobro do próprio ciclo."
+        description="Compara cada cliente com o próprio ritmo de compra, em todo o histórico. Vermelho passou do dobro do próprio ciclo."
         option={chart.option}
         hasData={chart.hasData}
         loading={chart.loading}
         error={chart.error}
         onRetry={chart.refetch}
-        emptyDescription="O atraso é calculado sobre o ritmo de cada cliente, e para isso ele precisa de pelo menos dois pedidos no período."
+        emptyDescription="Nenhum cliente passou do próprio ritmo. O atraso só é medido em quem tem pelo menos dois pedidos."
       />
 
       <ClientsReportTable
@@ -113,6 +115,7 @@ export default function ClientsReportContent({ canSelectSeller }: Props) {
         setFilter={tableData.setFilter}
         setFilters={tableData.setFilters}
         sort={tableData.sort}
+        showSeller={canSelectSeller}
       />
     </div>
   );

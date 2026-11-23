@@ -13,8 +13,14 @@ import { clientDisplayName } from "@/utils/client";
 import { extractSelectValue } from "@/utils/form";
 import { useMutation } from "@apollo/client/react";
 import { useMemo, useRef } from "react";
-import { VISIT_STATUS_OPTIONS } from "../../../utils";
-import { contactLabel, contactNoun, outcomeOptionsFor } from "@/utils/visit";
+import {
+  contactLabel,
+  contactNoun,
+  isVisitStatusLocked,
+  lockedVisitStatusHint,
+  outcomeOptionsFor,
+  visitStatusOptionsFor,
+} from "@/utils/visit";
 import { UPDATE_VISIT_ITEM_MUTATION } from "../../../gql";
 import {
   EditVisitModalProps,
@@ -47,6 +53,13 @@ export function EditVisitModal({
     () => outcomeOptionsFor(item.contactType),
     [item.contactType]
   );
+  // Remarcada, cancelada ou adiada pelo cliente: a parada saiu do dia e o
+  // status vira leitura (o back recusa trocá-lo). A observação segue editável.
+  const isStatusLocked = isVisitStatusLocked(item.status);
+  const statusOptions = useMemo(
+    () => visitStatusOptionsFor(item.status),
+    [item.status]
+  );
 
   const steps: FormStepSchema[] = useMemo(
     () => [
@@ -60,9 +73,11 @@ export function EditVisitModal({
                 name: "status",
                 type: "select-single",
                 label: "Status",
-                required: true,
+                required: !isStatusLocked,
+                disabled: isStatusLocked,
+                hint: lockedVisitStatusHint(item.status),
                 placeholder: "Selecione o status",
-                options: VISIT_STATUS_OPTIONS,
+                options: statusOptions,
               },
               {
                 name: "outcome",
@@ -83,22 +98,24 @@ export function EditVisitModal({
         ],
       },
     ],
-    [isRemote, outcomeOptions]
+    [isRemote, outcomeOptions, isStatusLocked, item.status, statusOptions]
   );
 
   const initialData = useMemo(
     () => ({
-      status: VISIT_STATUS_OPTIONS.find((o) => o.value === item.status) ?? null,
+      status: statusOptions.find((o) => o.value === item.status) ?? null,
       outcome: outcomeOptions.find((o) => o.value === item.outcome) ?? null,
       notes: item.notes ?? "",
     }),
-    [item, outcomeOptions]
+    [item, outcomeOptions, statusOptions]
   );
 
   const handleSubmit = async (data: Record<string, unknown>) => {
     const input: Record<string, unknown> = {};
     const status = extractSelectValue(data.status);
-    if (status) input.status = status;
+    // Só quando mudou: reenviar o status pré-selecionado de quem só editou o
+    // texto disputaria a parada com uma remarcação à toa.
+    if (status && status !== item.status) input.status = status;
     const outcome = extractSelectValue(data.outcome);
     if (outcome) input.outcome = outcome;
     const notes = String(data.notes ?? "").trim();

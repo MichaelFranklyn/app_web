@@ -1,3 +1,4 @@
+import { plural } from "@/utils/format/plural";
 import { orderStatusLabel } from "@/app/(inside)/_shared/orderStatus";
 import { SelectOption } from "@/components/Input";
 import { formatDateDMY, formatMoney } from "@/utils/format/masks";
@@ -53,7 +54,9 @@ export const cadenceLabel = (row: PurchaseRow): string =>
 
 /** "1,8×" — o quanto o par passou do que costuma levar entre compras. */
 export const riskLabel = (row: PurchaseRow): string =>
-  row.riskRatio === null ? "—" : `${row.riskRatio.toFixed(1)}×`;
+  row.riskRatio === null
+    ? "—"
+    : `${row.riskRatio.toFixed(1).replace(".", ",")}×`;
 
 /**
  * O número do pedido: o prefixo do id, os mesmos 8 caracteres que a tela do
@@ -64,7 +67,7 @@ export const orderNumber = (row: PurchaseRow): string =>
 
 /** A data da última compra, ou o motivo de não haver uma. */
 export const lastPurchaseLabel = (row: PurchaseRow): string =>
-  row.lastOrderDate ? formatDateDMY(row.lastOrderDate) : "nunca";
+  row.lastOrderDate ? formatDateDMY(row.lastOrderDate) : "Nunca comprou";
 
 /**
  * Para onde a linha leva.
@@ -152,7 +155,7 @@ export const buildFactorySituationOption = (
       const total = totalOf(counts);
       return [
         `<b>${name}</b>`,
-        `${total} cliente(s) vinculado(s)`,
+        `${plural(total, "cliente vinculado", "clientes vinculados")}`,
         ...SITUATION_ORDER.filter((situation) => counts[situation] > 0).map(
           (situation) => `${SITUATION_LABEL[situation]}: ${counts[situation]}`
         ),

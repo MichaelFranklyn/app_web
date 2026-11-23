@@ -7,11 +7,13 @@ import { Loading } from "@/components/Loading";
 import { Pagination } from "@/components/Pagination";
 import { Table, TableSort } from "@/components/Table";
 import { formatDateDMY, formatMoney } from "@/utils/format/masks";
+import { plural } from "@/utils/format/plural";
 import { Users } from "lucide-react";
 
 import { PositivationFactory, PositivationRow } from "../../interface";
 import { positivatedLabel } from "../../utils";
 import { PositivationCellMark } from "../PositivationCell";
+import { PositivationLegend } from "../PositivationLegend";
 
 interface Props {
   factories: PositivationFactory[];
@@ -61,7 +63,7 @@ export function PositivationTable({
           Cliente × fábrica
           <HelpTooltip
             label="Sobre a matriz de positivação"
-            content="Visto verde comprou no período; traço âmbar é vínculo sem compra; ponto é fábrica que o cliente não atende."
+            content="Uma linha por cliente, uma coluna por fábrica. Leia o padrão da linha: quem compra de todas, quem compra só de uma. Passe o mouse num visto para ver quantos pedidos e quanto."
           />
         </Table.CardHead.Title>
         <Table.CardHead.Actions>
@@ -76,7 +78,9 @@ export function PositivationTable({
         </Table.CardHead.Actions>
       </Table.CardHead>
 
-      <Table.Table>
+      <PositivationLegend />
+
+      <Table.Table cards>
         <Table.Header>
           <Table.Row>
             <Table.Head sortKey="client">Cliente</Table.Head>
@@ -130,26 +134,44 @@ export function PositivationTable({
                     : undefined
                 }
               >
-                <Table.Cell variant="strong" title={row.clientName}>
+                <Table.Cell
+                  variant="strong"
+                  card="title"
+                  title={row.clientName}
+                >
                   {row.clientName}
                 </Table.Cell>
 
                 {row.cells.map((cell) => (
-                  <Table.Cell key={cell.factoryId} className="text-center">
+                  <Table.Cell
+                    key={cell.factoryId}
+                    label={cell.factoryName}
+                    className="text-center"
+                  >
                     <PositivationCellMark cell={cell} />
                   </Table.Cell>
                 ))}
 
                 <Table.Cell
                   variant={row.positivatedFactories === 0 ? "default" : "dim"}
+                  label="Positivou"
                 >
                   {positivatedLabel(row)}
                 </Table.Cell>
-                <Table.Cell variant="strong" className="whitespace-nowrap">
+                <Table.Cell
+                  variant="strong"
+                  card="value"
+                  className="whitespace-nowrap"
+                >
                   {formatMoney(row.totalAmount)}
                 </Table.Cell>
-                <Table.Cell variant="dim" className="whitespace-nowrap">
-                  {row.lastOrderDate ? formatDateDMY(row.lastOrderDate) : "—"}
+                <Table.Cell
+                  variant="dim"
+                  label="Última compra"
+                  emptyText="Sem compra"
+                  className="whitespace-nowrap"
+                >
+                  {row.lastOrderDate ? formatDateDMY(row.lastOrderDate) : ""}
                 </Table.Cell>
               </Table.Row>
             ))
@@ -164,7 +186,7 @@ export function PositivationTable({
           )}
           {/* Sem linhas quem fala é o estado vazio, não o rodapé. */}
           {totalItems > 0 &&
-            `${totalItems} cliente(s) · página ${currentPage} de ${totalPages}`}
+            `${plural(totalItems, "cliente", "clientes")} · página ${currentPage} de ${totalPages}`}
         </Table.Footer.Info>
 
         <Pagination.Smart

@@ -122,7 +122,7 @@ const queued = (page: Page) =>
   }, QUEUE_KEY);
 
 const routineCard = (page: Page) =>
-  page.getByRole("button", { name: /Cliente LTDA/ });
+  page.getByRole("group", { name: /Cliente LTDA/i });
 
 /**
  * A aba deixa de ouvir o aviso de que OUTRA aba mexeu na fila (o evento

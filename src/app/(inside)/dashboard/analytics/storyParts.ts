@@ -18,6 +18,11 @@ export interface StoryPart {
   label: string;
   /** A pergunta que a parte responde, em uma linha. */
   question: string;
+  /**
+   * Título para quem só vê os próprios números (vendedor). Sem ele, o vendedor
+   * lia "Quem vende e como vende" numa página que só mostra ele mesmo.
+   */
+  sellerLabel?: string;
 }
 
 export const ANALYTICS_STORY: StoryPart[] = [
@@ -47,6 +52,7 @@ export const ANALYTICS_STORY: StoryPart[] = [
   {
     id: "vendas",
     label: "Quem vende e como vende",
+    sellerLabel: "Como você vende",
     question:
       "O trabalho de campo: visita, carteira trabalhada e tamanho da venda.",
   },
@@ -69,4 +75,19 @@ export const storyStep = (id: string): string => {
   const index = ANALYTICS_STORY.findIndex((part) => part.id === id);
   if (index < 0) return "";
   return `Parte ${index + 1} de ${ANALYTICS_STORY.length}`;
+};
+
+/** Título da parte conforme quem lê: a equipe (admin) ou só o vendedor. */
+export const storyLabel = (
+  part: StoryPart,
+  canSelectSeller: boolean
+): string => (canSelectSeller ? part.label : (part.sellerLabel ?? part.label));
+
+/** Título de uma parte pelo id — a seção e o roteiro mostram o mesmo texto. */
+export const storyLabelById = (
+  id: string,
+  canSelectSeller: boolean
+): string => {
+  const part = ANALYTICS_STORY.find((item) => item.id === id);
+  return part ? storyLabel(part, canSelectSeller) : "";
 };

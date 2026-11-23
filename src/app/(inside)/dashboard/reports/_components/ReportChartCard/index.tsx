@@ -8,6 +8,8 @@ import type { EChartsCoreOption } from "echarts/core";
 import { BarChart3 } from "lucide-react";
 import dynamic from "next/dynamic";
 
+import { emptyFilterHint } from "../../utils";
+
 // echarts entra por chunk assíncrono, sem SSR: é biblioteca de DOM e pesada
 // demais para o bundle inicial de uma tela que talvez não seja aberta.
 const Chart = dynamic(() => import("@/components/Chart"), {
@@ -26,6 +28,8 @@ interface Props {
   onRetry?: () => void;
   height?: number;
   emptyDescription?: string;
+  /** Sem `emptyDescription`, o texto de vazio só cita o filtro de vendedor para quem o tem. */
+  canSelectSeller?: boolean;
 }
 
 /**
@@ -45,7 +49,8 @@ export function ReportChartCard({
   error,
   onRetry,
   height = 300,
-  emptyDescription = "Ajuste o período ou o vendedor no filtro acima.",
+  emptyDescription,
+  canSelectSeller = true,
 }: Props) {
   const body = () => {
     if (loading && !hasData) {
@@ -59,7 +64,9 @@ export function ReportChartCard({
             <BarChart3 size={32} />
           </EmptyState.Icon>
           <EmptyState.Title>Sem dados no período</EmptyState.Title>
-          <EmptyState.Description>{emptyDescription}</EmptyState.Description>
+          <EmptyState.Description>
+            {emptyDescription ?? emptyFilterHint(canSelectSeller)}
+          </EmptyState.Description>
         </EmptyState.Root>
       );
     }
@@ -71,7 +78,11 @@ export function ReportChartCard({
   return (
     <Card.Root>
       <Card.Header>
-        <Card.HeaderTitle>{title}</Card.HeaderTitle>
+        {/* Quebra linha em vez de truncar: no celular o título é a pergunta
+            que o gráfico responde, e cortado ele não diz nada. */}
+        <Card.HeaderTitle className="whitespace-normal">
+          {title}
+        </Card.HeaderTitle>
         {description && (
           <Card.HeaderDescription>{description}</Card.HeaderDescription>
         )}

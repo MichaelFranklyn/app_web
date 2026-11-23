@@ -1,4 +1,5 @@
 "use client";
+import { ReactNode } from "react";
 
 import { Button } from "@/components/Button";
 import { Input, SelectOption } from "@/components/Input";
@@ -28,7 +29,6 @@ interface Props {
   view: AgendaView;
   anchor: string;
   weekStart: string;
-  isShowingToday: boolean;
   /** Só para quem abre a agenda de outra pessoa (gestor). */
   people?: AgendaPerson[];
   personId: string | null;
@@ -40,6 +40,11 @@ interface Props {
   onPrev: () => void;
   onNext: () => void;
   onToday: () => void;
+  /**
+   * O "Mais ações" da semana (folha, link de resposta), colado no "Montar
+   * semana": é tudo o que se faz com a semana, num lugar só.
+   */
+  weekActions?: ReactNode;
 }
 
 /**
@@ -51,7 +56,6 @@ export function AgendaToolbar({
   view,
   anchor,
   weekStart,
-  isShowingToday,
   people,
   personId,
   onSelectPerson,
@@ -61,6 +65,7 @@ export function AgendaToolbar({
   onPrev,
   onNext,
   onToday,
+  weekActions,
 }: Props) {
   const personOptions: SelectOption[] = (people ?? []).map((person) => ({
     value: person.id,
@@ -88,14 +93,13 @@ export function AgendaToolbar({
         className="flex flex-wrap items-center gap-8"
         data-tour="routines-week-nav"
       >
-        {/* Com o hoje em tela, o botão ACENDE em vez de apagar: desabilitado
-            ele parecia quebrado ("por que não clica?"), e o aceso responde a
-            pergunta de quem procura — "estou no hoje". */}
+        {/* Sempre neutro: aceso em âmbar ele competia com o "Agendar", a
+            ação principal (crítica de 23/11/2026). O período no título já diz
+            onde se está. */}
         <Button.Root
-          appearance={isShowingToday ? "tinted" : "outline"}
-          color={isShowingToday ? "amber" : "neutral"}
+          appearance="outline"
+          color="neutral"
           size="sm"
-          aria-pressed={isShowingToday}
           onClick={onToday}
         >
           <Button.Title>Hoje</Button.Title>
@@ -159,14 +163,15 @@ export function AgendaToolbar({
             // Abaixo do desktop, "Montar semana" fica com a linha de baixo
             // inteira (ao lado das visões sobrava meia linha).
             <div
-              className="max-desktop:w-full"
+              className="max-desktop:w-full flex items-center gap-8"
               data-tour="routines-header-actions"
             >
               <PlanWeekLink
                 weekStart={weekStart}
                 sellerId={sellerId}
-                className="max-desktop:w-full"
+                className="max-desktop:flex-1"
               />
+              {weekActions}
             </div>
           )}
         </div>

@@ -25,6 +25,9 @@ const VISIT = {
       id: "c1",
       razaoSocial: "Padaria do Zé LTDA",
       nomeFantasia: "Padaria do Zé",
+      addressNeighborhood: "Centro",
+      addressCity: "Campinas",
+      addressState: "SP",
     },
     factory: {
       __typename: "FactoryType",

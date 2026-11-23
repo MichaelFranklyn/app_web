@@ -19,12 +19,13 @@ export const Cell = React.forwardRef<HTMLTableCellElement, TableCellProps>(
       wrap,
       card,
       label,
+      emptyText,
       children,
       ...props
     },
     ref
   ) => {
-    const content = withEmptyFallback(children);
+    const content = withEmptyFallback(children, emptyText);
     return (
       <td
         ref={ref}

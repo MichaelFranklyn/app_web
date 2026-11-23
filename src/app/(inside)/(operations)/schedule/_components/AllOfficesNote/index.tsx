@@ -25,11 +25,9 @@ export function AllOfficesNote({ isOwnAgenda }: Props) {
     <Alert.Root variant="info" role="note">
       <Alert.Icon icon={Building2} />
       <Alert.Content>
-        <Alert.Title>Sua agenda junta todos os seus escritórios</Alert.Title>
+        <Alert.Title>Agenda de todos os seus escritórios</Alert.Title>
         <Alert.Description>
-          {text} Os de outro escritório vêm com o nome dele. Para fazer pedido
-          ou ver o estoque de lá, saia da agenda e troque de escritório no topo
-          da tela.
+          {text} Pedido e estoque: troque de escritório no topo.
         </Alert.Description>
       </Alert.Content>
     </Alert.Root>

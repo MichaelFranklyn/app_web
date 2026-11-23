@@ -27,11 +27,12 @@ export function LiftNotice({ report }: Props) {
         <Alert.Content>
           <Alert.Title>A rotina quase não está sendo registrada</Alert.Title>
           <Alert.Description>
-            Só {formatPercent(report.executionRate)} das visitas planejadas
-            tiveram resposta. Abaixo de {formatPercent(MIN_EXECUTION_FOR_LIFT)}{" "}
-            não dá para saber se a rotina escolhe bem os clientes: o sistema
-            aprende com cada visita marcada como feita, com cliente ausente ou
-            sem tempo.
+            {report.executionRate === 0
+              ? "Nenhuma visita planejada teve resposta ainda."
+              : `Só ${formatPercent(report.executionRate)} das visitas planejadas tiveram resposta.`}{" "}
+            Abaixo de {formatPercent(MIN_EXECUTION_FOR_LIFT)} não dá para saber
+            se a rotina escolhe bem os clientes: o sistema aprende com cada
+            visita marcada como feita, com cliente ausente ou sem tempo.
           </Alert.Description>
         </Alert.Content>
       </Alert.Root>

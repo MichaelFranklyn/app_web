@@ -30,7 +30,7 @@ export const buildOrdersByMonthOption = (
     {
       name: "Pedidos",
       type: "line",
-      smooth: true,
+      smooth: false,
       symbol: "circle",
       symbolSize: 8,
       lineStyle: { width: 2, color: SERIES_BLUE },

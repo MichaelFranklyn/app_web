@@ -26,7 +26,9 @@ function kpiCols(count: number) {
   // não só no desktop-xl — senão 6 cartões viravam 3 fileiras de 2.
   if (count % 3 === 0 && count % 4 !== 0)
     return { base: 2, tablet: 2, desktop: 3 } as const;
-  return { base: 2, tablet: 2, "desktop-xl": 4 } as const;
+  // 4 colunas já no desktop comum: no 2×2 os cartões ficavam enormes e
+  // empurravam o gráfico para baixo da dobra (crítica dos Relatórios, 20/11).
+  return { base: 2, tablet: 2, desktop: 4 } as const;
 }
 
 export function ReportKpis({ items, loading }: Props) {

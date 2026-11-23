@@ -1,5 +1,8 @@
 "use client";
 
+import { Card } from "@/components/Card";
+import { Title } from "@/components/Title";
+import { plural } from "@/utils/format/plural";
 import { useQuery } from "@apollo/client/react";
 import { useEffect, useRef } from "react";
 
@@ -12,6 +15,7 @@ import {
 } from "../../interface";
 import {
   crossOfficeMapsQuery,
+  formatDistanceKm,
   mapsQuery,
   sortVisitsByRoute,
 } from "../../utils";
@@ -88,30 +92,49 @@ export function DayRoute({
     .map((id) => addressOf.get(id))
     .filter((q): q is string => Boolean(q));
 
+  const stopCount = combined?.stopCount ?? ourStops.length + theirStops.length;
+  const distanceKm = combined?.distanceKm ?? day?.routeDistanceKm ?? "0";
+
+  // Um card só — números, partida e mapa —, no lugar de quatro KPIs, um
+  // cartão de partida e o mapa soltos, que somavam mais altura que a própria
+  // lista (relato de 23/11/2026).
   return (
-    <>
-      <RouteSummary
-        day={day}
-        theirStopCount={theirStops.length}
-        combined={combined}
-      />
-      {day && (
-        <DepartureCard
-          dayId={day.id}
-          departureType={day.departureType}
-          departureAddress={day.departureAddress ?? null}
-          canEdit={canEditDeparture}
-          onChanged={onChanged}
+    <Card.Root>
+      <Card.Header bg="bg3">
+        <div className="flex min-w-0 flex-col">
+          <Title variant="heading-sm">Trajeto</Title>
+          <Title variant="body-xs" color="muted">
+            {formatDistanceKm(distanceKm)} ·{" "}
+            {plural(stopCount, "parada", "paradas")}
+          </Title>
+        </div>
+      </Card.Header>
+      <Card.Section>
+        <RouteSummary
+          day={day}
+          theirStopCount={theirStops.length}
+          combined={combined}
         />
+      </Card.Section>
+      {day && (
+        <Card.Section divided>
+          <DepartureCard
+            dayId={day.id}
+            departureType={day.departureType}
+            departureAddress={day.departureAddress ?? null}
+            canEdit={canEditDeparture}
+            onChanged={onChanged}
+          />
+        </Card.Section>
       )}
-      <RouteMap
-        points={points}
-        stopCount={combined?.stopCount ?? ourStops.length + theirStops.length}
-        distanceKm={combined?.distanceKm ?? day?.routeDistanceKm ?? "0"}
-        departureAddress={
-          combined ? combined.departureAddress : day?.departureAddress
-        }
-      />
-    </>
+      <Card.Section divided>
+        <RouteMap
+          points={points}
+          departureAddress={
+            combined ? combined.departureAddress : day?.departureAddress
+          }
+        />
+      </Card.Section>
+    </Card.Root>
   );
 }

@@ -111,10 +111,10 @@ test("rotina: edita uma visita (notas)", async ({ page }) => {
 
   await page.goto("/schedule");
 
-  // Kebab DENTRO do card da visita. O `following::button[1]` era ambíguo: o
-  // card virou role="button" e há outros botões depois dele no DOM.
+  // Kebab DENTRO do card da visita. O `following::button[1]` era ambíguo: há
+  // outros botões depois dele no DOM. O card é um grupo com o nome do cliente.
   // O card exibe a RAZÃO SOCIAL (`clientDisplayName`), não o nome fantasia.
-  const card = page.getByRole("button", { name: /Cliente LTDA/ });
+  const card = page.getByRole("group", { name: /Cliente LTDA/i });
   await card.locator('[aria-haspopup="menu"]').click();
   await page.getByRole("menuitem", { name: "Editar visita" }).click();
 
@@ -203,17 +203,18 @@ test("agenda (dia): mostra só aquele dia e leva à rota dele", async ({
 
   await page.goto(`/schedule?view=day&date=${TODAY}`);
 
-  // O checkbox de concluir só existe nos cards renderizados (o painel de
-  // detalhes repete o nome do cliente, então ancoramos no checkbox): o de
-  // hoje, e nada do outro dia.
-  const doneChecks = page.getByLabel("Marcar visita como concluída");
-  await expect(doneChecks).toHaveCount(1);
+  // Cada cartão é um grupo com o nome do cliente (o painel de detalhes repete
+  // o nome, então ancoramos no grupo): o de hoje, e nada do outro dia.
+  const cards = page.getByRole("group", { name: /^Cliente De/ });
+  await expect(cards).toHaveCount(1);
   await expect(page.getByText("Cliente De Hoje").first()).toBeVisible();
   await expect(page.getByText("Cliente De Outro Dia")).toHaveCount(0);
 
-  // A rota do dia mora no próprio dia: a folha impressa sai do cabeçalho.
+  // A rota do dia mora no próprio dia: a folha impressa sai do menu do
+  // cabeçalho ("Mais ações do dia").
+  await page.getByRole("button", { name: "Mais ações do dia" }).click();
   await expect(
-    page.getByRole("button", { name: "Imprimir rota" })
+    page.getByRole("menuitem", { name: "Imprimir rota" })
   ).toBeVisible();
 });
 
@@ -264,10 +265,11 @@ test("rotina: marca um dia como não trabalhado", async ({ page }) => {
   await page.goto(`/schedule?view=day&date=${today}`);
 
   // A visita de hoje é a que a confirmação precisa contar.
-  const card = page.getByRole("button", { name: /Cliente LTDA/ });
+  const card = page.getByRole("group", { name: /Cliente LTDA/i });
   await expect(card).toBeVisible();
 
-  await page.getByRole("button", { name: "Não vou trabalhar" }).click();
+  await page.getByRole("button", { name: "Mais ações do dia" }).click();
+  await page.getByRole("menuitem", { name: "Não vou trabalhar" }).click();
 
   await expect(page.getByText(/1 parada marcada/)).toBeVisible();
 
@@ -307,7 +309,7 @@ test("rotina: painel fechado não projeta sombra na lateral", async ({
 
   await page.goto("/schedule");
   await expect(
-    page.getByRole("button", { name: /Cliente LTDA/ })
+    page.getByRole("group", { name: /Cliente LTDA/i })
   ).toBeVisible();
 
   const painel = page.locator('aside[role="dialog"]').first();
@@ -318,7 +320,7 @@ test("rotina: painel fechado não projeta sombra na lateral", async ({
   await expect(painel).toHaveCSS("box-shadow", "none");
 
   // Aberto: a sombra volta — ela é o que separa o painel do conteúdo atrás.
-  await page.getByRole("button", { name: /Cliente LTDA/ }).click();
+  await page.getByRole("group", { name: /Cliente LTDA/i }).click();
   await expect(painel).not.toHaveCSS("box-shadow", "none");
 });
 

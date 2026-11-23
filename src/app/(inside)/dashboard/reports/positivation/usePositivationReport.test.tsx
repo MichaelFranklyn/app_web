@@ -136,9 +136,9 @@ describe("usePositivationReport", () => {
     const result = await run();
 
     expect(result.current.kpis[0].value).toContain("67");
-    expect(result.current.kpis[0].hint).toBe("2 de 3 cliente(s)");
+    expect(result.current.kpis[0].hint).toBe("2 de 3 clientes");
     expect(result.current.kpis[1].value).toContain("50");
-    expect(result.current.kpis[1].hint).toBe("3 de 6 vínculo(s)");
+    expect(result.current.kpis[1].hint).toBe("3 de 6 vínculos");
   });
 
   it("conta os zerados e cobra atenção enquanto houver algum", async () => {
@@ -173,7 +173,7 @@ describe("usePositivationReport", () => {
     await waitFor(() =>
       expect(result.current.rows.map((row) => row.clientId)).toEqual(["c3"])
     );
-    expect(result.current.kpis[0].hint).toBe("2 de 3 cliente(s)");
+    expect(result.current.kpis[0].hint).toBe("2 de 3 clientes");
   });
 
   it("filtrar por fábrica responde 'quem comprou desta' pela célula", async () => {

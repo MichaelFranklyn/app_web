@@ -8,6 +8,7 @@ import { Loading } from "@/components/Loading";
 import { Pagination } from "@/components/Pagination";
 import { Table, TableSort } from "@/components/Table";
 import { formatDateDMY, formatMoney } from "@/utils/format/masks";
+import { plural } from "@/utils/format/plural";
 import { Receipt } from "lucide-react";
 
 import { BillingRow } from "../../interface";
@@ -81,7 +82,8 @@ export function BillingReportTable({
         </Table.CardHead.Actions>
       </Table.CardHead>
 
-      <Table.Table>
+      {/* Abaixo do desktop cada duplicata vira um cartão, em vez de rolar. */}
+      <Table.Table cards>
         <Table.Header>
           <Table.Row>
             <Table.Head sortKey="dueDate">Vencimento</Table.Head>
@@ -130,10 +132,14 @@ export function BillingReportTable({
                 key={row.installmentId}
                 href={`/orders/${row.orderId}`}
               >
-                <Table.Cell variant="strong" className="whitespace-nowrap">
+                <Table.Cell
+                  variant="strong"
+                  className="whitespace-nowrap"
+                  label="Vencimento"
+                >
                   {dueDateLabel(row.dueDate)}
                 </Table.Cell>
-                <Table.Cell>
+                <Table.Cell card="status">
                   <Badge.Root
                     color={BILLING_SITUATION_COLOR[row.situation]}
                     appearance="tinted"
@@ -146,23 +152,44 @@ export function BillingReportTable({
                 <Table.Cell
                   variant={row.daysOverdue > 0 ? "strong" : "dim"}
                   className="whitespace-nowrap"
+                  label="Atraso"
                 >
                   {overdueLabel(row.daysOverdue)}
                 </Table.Cell>
-                <Table.Cell variant="strong" title={row.clientName}>
+                <Table.Cell
+                  variant="strong"
+                  title={row.clientName}
+                  card="title"
+                >
                   {row.clientName}
                 </Table.Cell>
-                <Table.Cell variant="dim" title={row.factoryName}>
+                <Table.Cell
+                  variant="dim"
+                  title={row.factoryName}
+                  label="Fábrica"
+                >
                   {row.factoryName}
                 </Table.Cell>
-                <Table.Cell variant="dim" className="whitespace-nowrap">
+                <Table.Cell
+                  variant="dim"
+                  className="whitespace-nowrap"
+                  label="Parcela"
+                >
                   {row.sequence}
                   {row.paidAt && ` · pago ${formatDateDMY(row.paidAt)}`}
                 </Table.Cell>
-                <Table.Cell variant="strong" className="whitespace-nowrap">
+                <Table.Cell
+                  variant="strong"
+                  className="whitespace-nowrap"
+                  card="value"
+                >
                   {formatMoney(row.amount)}
                 </Table.Cell>
-                <Table.Cell variant="dim" className="whitespace-nowrap">
+                <Table.Cell
+                  variant="dim"
+                  className="whitespace-nowrap"
+                  label="Comissão"
+                >
                   {formatMoney(visibleCommission(row))}
                 </Table.Cell>
               </Table.Row>
@@ -178,7 +205,7 @@ export function BillingReportTable({
           )}
           {/* Sem linhas quem fala é o estado vazio, não o rodapé. */}
           {totalItems > 0 &&
-            `${totalItems} parcela(s) · página ${currentPage} de ${totalPages} · nesta página: ${formatMoney(pageAmount)}`}
+            `${plural(totalItems, "parcela", "parcelas")} · página ${currentPage} de ${totalPages} · nesta página: ${formatMoney(pageAmount)}`}
         </Table.Footer.Info>
 
         <Pagination.Smart

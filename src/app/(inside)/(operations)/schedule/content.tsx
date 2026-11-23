@@ -12,8 +12,7 @@ import { AgendaMonthView } from "./_components/AgendaMonthView";
 import { AgendaToolbar } from "./_components/AgendaToolbar";
 import { AgendaWeekView } from "./_components/AgendaWeekView";
 import { EmptyWeekNote } from "./_components/EmptyWeekNote";
-import { PrintWeekButton } from "./_components/PrintWeekButton";
-import { ResponseLinkModal } from "./_components/ResponseLinkModal";
+import { WeekMoreMenu } from "./_components/WeekMoreMenu";
 import { RoutinesSkeleton } from "./_components/RoutinesSkeleton";
 import { RoutinesSummary } from "./_components/RoutinesSummary";
 import { isPlannableBlankWeek, monthGrid } from "./calendar";
@@ -70,7 +69,6 @@ export default function AgendaContent({
         view={view}
         anchor={anchor}
         weekStart={weekStart}
-        isShowingToday={agenda.isShowingToday}
         people={agenda.canSelectPerson ? agenda.people : undefined}
         personId={agenda.personId}
         onSelectPerson={agenda.setPersonId}
@@ -80,6 +78,20 @@ export default function AgendaContent({
         onPrev={agenda.goPrev}
         onNext={agenda.goNext}
         onToday={agenda.goToday}
+        weekActions={
+          // A folha e o link da semana ficam ao lado de "Montar semana"
+          // (pedido de 23/11/2026) — só na semana, e só com rotina montada.
+          view === "week" && isSellerAgenda && schedule ? (
+            <WeekMoreMenu
+              scheduleId={schedule.id}
+              weekStart={weekStart}
+              weekLabel={`semana de ${formatWeekRange(weekStart)}`}
+              days={schedule.days}
+              sellerName={schedule.seller?.user?.name ?? null}
+              dayOffDates={[...dayOffDates]}
+            />
+          ) : null
+        }
       />
 
       {agenda.showSkeleton ? (
@@ -106,23 +118,12 @@ export default function AgendaContent({
               semana inteira. */}
           {view === "week" && isSellerAgenda && schedule && (
             <>
-              <RoutinesSummary days={schedule.days} />
-              {/* No celular os dois botões dividem a linha inteira (sem sobra
-                  vazia à esquerda); do desktop em diante, à direita. */}
-              <div className="max-desktop:[&>button]:flex-1 desktop:justify-end flex flex-wrap items-center justify-center gap-8">
-                <PrintWeekButton
-                  scheduleId={schedule.id}
-                  weekStart={weekStart}
-                  days={schedule.days}
-                  sellerName={schedule.seller?.user?.name ?? null}
-                  dayOffDates={[...dayOffDates]}
-                />
-                <ResponseLinkModal
-                  scope={{ kind: "week", scheduleId: schedule.id }}
-                  dateLabel={`semana de ${formatWeekRange(weekStart)}`}
-                  isEmpty={schedule.days.every((day) => day.items.length === 0)}
-                />
-              </div>
+              <RoutinesSummary
+                days={schedule.days}
+                otherOfficeStops={dates.flatMap(
+                  (date) => days.get(date)?.otherOffices ?? []
+                )}
+              />
             </>
           )}
 

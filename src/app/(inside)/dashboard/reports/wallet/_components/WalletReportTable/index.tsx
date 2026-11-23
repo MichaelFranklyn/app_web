@@ -8,6 +8,7 @@ import { Loading } from "@/components/Loading";
 import { Pagination } from "@/components/Pagination";
 import { Table, TableSort } from "@/components/Table";
 import { formatDateDMY, formatMoney } from "@/utils/format/masks";
+import { plural } from "@/utils/format/plural";
 import { Users } from "lucide-react";
 
 import {
@@ -90,7 +91,7 @@ export function WalletReportTable({
         </Table.CardHead.Actions>
       </Table.CardHead>
 
-      <Table.Table>
+      <Table.Table cards>
         <Table.Header>
           <Table.Row>
             <Table.Head sortKey="client">Cliente</Table.Head>
@@ -147,13 +148,22 @@ export function WalletReportTable({
                     : undefined
                 }
               >
-                <Table.Cell variant="strong" title={row.clientName}>
+                <Table.Cell
+                  variant="strong"
+                  card="title"
+                  title={row.clientName}
+                >
                   {row.clientName}
                 </Table.Cell>
-                <Table.Cell variant="dim" className="whitespace-nowrap">
+                <Table.Cell
+                  variant="dim"
+                  label="Cidade/UF"
+                  emptyText="Sem endereço"
+                  className="whitespace-nowrap"
+                >
                   {cityAndState(row)}
                 </Table.Cell>
-                <Table.Cell>
+                <Table.Cell card="status">
                   <Badge.Root
                     color={SITUATION_COLOR[row.situation]}
                     appearance="tinted"
@@ -165,24 +175,44 @@ export function WalletReportTable({
                     </Badge.Text>
                   </Badge.Root>
                 </Table.Cell>
-                <Table.Cell variant="dim" className="whitespace-nowrap">
+                <Table.Cell
+                  variant="dim"
+                  label="Parado há"
+                  className="whitespace-nowrap"
+                >
                   {idleLabel(row)}
                 </Table.Cell>
-                <Table.Cell variant="dim" className="whitespace-nowrap">
+                <Table.Cell
+                  variant="dim"
+                  label="Ritmo"
+                  emptyText="Sem 2ª compra"
+                  className="whitespace-nowrap"
+                >
                   {cadenceLabel(row)}
                 </Table.Cell>
                 <Table.Cell
                   variant={
                     row.riskRatio && row.riskRatio > 1 ? "strong" : "dim"
                   }
+                  label="Atraso"
+                  emptyText="Sem ritmo"
                   className="whitespace-nowrap"
                 >
                   {riskLabel(row)}
                 </Table.Cell>
-                <Table.Cell variant="dim" className="whitespace-nowrap">
-                  {row.lastOrderDate ? formatDateDMY(row.lastOrderDate) : "—"}
+                <Table.Cell
+                  variant="dim"
+                  label="Última compra"
+                  emptyText="Nunca comprou"
+                  className="whitespace-nowrap"
+                >
+                  {row.lastOrderDate ? formatDateDMY(row.lastOrderDate) : ""}
                 </Table.Cell>
-                <Table.Cell variant="strong" className="whitespace-nowrap">
+                <Table.Cell
+                  variant="strong"
+                  card="value"
+                  className="whitespace-nowrap"
+                >
                   {formatMoney(row.periodAmount)}
                   {row.periodOrderCount > 0 && (
                     <Table.CellText variant="dim" className="ml-4">
@@ -203,7 +233,7 @@ export function WalletReportTable({
           )}
           {/* Sem linhas quem fala é o estado vazio, não o rodapé. */}
           {totalItems > 0 &&
-            `${totalItems} cliente(s) · página ${currentPage} de ${totalPages} · nesta página: ${formatMoney(pageAmount)}`}
+            `${plural(totalItems, "cliente", "clientes")} · página ${currentPage} de ${totalPages} · nesta página: ${formatMoney(pageAmount)}`}
         </Table.Footer.Info>
 
         <Pagination.Smart

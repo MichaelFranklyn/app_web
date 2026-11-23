@@ -89,7 +89,7 @@ describe("useFactoriesReport", () => {
 
     expect(result.current.kpis[0].value).toBe("2");
     expect(money(result.current.kpis[1].value)).toBe("R$ 10.000,00");
-    expect(result.current.kpis[0].hint).toContain("4 pedido(s)");
+    expect(result.current.kpis[0].hint).toContain("4 pedidos");
   });
 
   it("mostra quanto do colocado já virou faturamento", async () => {

@@ -1,5 +1,6 @@
 "use client";
 
+import { plural } from "@/utils/format/plural";
 import { useLocalTable } from "@/hooks/useLocalTable";
 import { useQueryErrorToast } from "@/hooks/useQueryErrorToast";
 import { formatMoney } from "@/utils/format/masks";
@@ -75,14 +76,14 @@ export const usePositivationReport = (filters: ReportFilters) => {
       {
         label: "Positivação da carteira",
         value: formatPercent(report.clientPositivationRate),
-        hint: `${report.positivatedClients} de ${report.walletClients} cliente(s)`,
+        hint: `${report.positivatedClients} de ${plural(report.walletClients, "cliente", "clientes")}`,
         status: report.clientPositivationRate >= 0.5 ? "ok" : "atencao",
       },
       {
         // A taxa que revela o cliente fiel a uma fábrica e fechado nas outras.
         label: "Positivação por fábrica",
         value: formatPercent(report.pairPositivationRate),
-        hint: `${report.positivatedPairs} de ${report.linkedPairs} vínculo(s)`,
+        hint: `${report.positivatedPairs} de ${plural(report.linkedPairs, "vínculo", "vínculos")}`,
         status: "neutral",
       },
       {

@@ -6,6 +6,7 @@ import { Title } from "@/components/Title";
 import { useMyOffices } from "@/hooks/useMyOffices";
 import { useUserData } from "@/hooks/useUserData";
 import { CHOOSE_OFFICE_ROUTE, OFFICE_ROLE_LABEL } from "@/utils/auth/offices";
+import { companyDisplayName } from "@/utils/company";
 import { Building2, Check, ChevronDown, MailPlus } from "lucide-react";
 import { usePathname, useRouter } from "next/navigation";
 import { AllOfficesBadge } from "../AllOfficesBadge";
@@ -75,7 +76,7 @@ export function OfficeSwitcher() {
           >
             <span className="flex min-w-0 flex-col">
               <Title variant="body-sm" weight="medium" as="span">
-                {office.companyName}
+                {companyDisplayName(office.companyName)}
               </Title>
               <Title variant="micro" color="muted" as="span">
                 {office.isCurrent

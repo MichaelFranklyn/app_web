@@ -2,6 +2,7 @@
 
 import { Tooltip } from "@/components/Tooltip";
 import { formatDateDMY, formatMoney } from "@/utils/format/masks";
+import { plural } from "@/utils/format/plural";
 import { Check, Minus } from "lucide-react";
 
 import { PositivationCell as Cell } from "../../interface";
@@ -11,7 +12,7 @@ import { Title } from "@/components/Title";
  * Uma célula da matriz. Três estados, e a diferença entre os dois últimos é o
  * relatório inteiro:
  *
- * - vazio: o cliente não atende essa fábrica (nada a fazer);
+ * - ponto cinza: o cliente não atende essa fábrica (nada a fazer);
  * - traço âmbar: atende e NÃO comprou no período (é a linha para trabalhar);
  * - visto verde: comprou.
  *
@@ -47,7 +48,7 @@ export function PositivationCellMark({ cell }: { cell: Cell }) {
 
   return (
     <Tooltip
-      content={`${cell.factoryName}: ${cell.orderCount} pedido(s) · ${formatMoney(cell.totalAmount)}${
+      content={`${cell.factoryName}: ${plural(cell.orderCount, "pedido", "pedidos")} · ${formatMoney(cell.totalAmount)}${
         cell.lastOrderDate
           ? ` · última ${formatDateDMY(cell.lastOrderDate)}`
           : ""

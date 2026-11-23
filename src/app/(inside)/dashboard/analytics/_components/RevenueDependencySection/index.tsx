@@ -46,6 +46,7 @@ export function RevenueDependencySection({
         <Grid.Item>
           <LazyChartCard
             title="Faturamento por fábrica"
+            description="Quanto cada fábrica trouxe de dinheiro no período."
             help={CHART_HELP.revenueByFactory}
           >
             <RevenueByFactoryChart filters={filters} />
@@ -54,6 +55,7 @@ export function RevenueDependencySection({
         <Grid.Item>
           <LazyChartCard
             title="Pedidos por fábrica"
+            description="Quantas vendas saíram para cada fábrica."
             help={CHART_HELP.ordersByFactory}
           >
             <OrdersByFactoryChart filters={filters} />

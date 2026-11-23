@@ -16,6 +16,9 @@ interface Props {
   pendingCount: number;
   onMark: (date: string) => Promise<void>;
   onUnmark: (date: string) => Promise<void>;
+  /** Aberto pelo pai (item de menu): sem o botão próprio. */
+  open?: boolean;
+  onOpenChange?: (open: boolean) => void;
 }
 
 /** "Não vou trabalhar neste dia" — e o caminho de volta. */
@@ -25,8 +28,14 @@ export function DayOffButton({
   pendingCount,
   onMark,
   onUnmark,
+  open,
+  onOpenChange,
 }: Props) {
-  const [isOpen, setIsOpen] = useState(false);
+  const [ownOpen, setOwnOpen] = useState(false);
+  const isControlled = open !== undefined;
+  const isOpen = isControlled ? open : ownOpen;
+  const setIsOpen = (next: boolean) =>
+    isControlled ? onOpenChange?.(next) : setOwnOpen(next);
   const { title, description, confirmLabel } = buildDayOffConfirmation(
     isDayOff,
     pendingCount
@@ -34,17 +43,19 @@ export function DayOffButton({
 
   return (
     <>
-      <Button.Root
-        appearance="tinted"
-        color="neutral"
-        size="sm"
-        onClick={() => setIsOpen(true)}
-      >
-        <Button.Icon icon={isDayOff ? CalendarPlus : CalendarOff} />
-        <Button.Title>
-          {isDayOff ? "Voltar a trabalhar" : "Não vou trabalhar"}
-        </Button.Title>
-      </Button.Root>
+      {!isControlled && (
+        <Button.Root
+          appearance="tinted"
+          color="neutral"
+          size="sm"
+          onClick={() => setIsOpen(true)}
+        >
+          <Button.Icon icon={isDayOff ? CalendarPlus : CalendarOff} />
+          <Button.Title>
+            {isDayOff ? "Voltar a trabalhar" : "Não vou trabalhar"}
+          </Button.Title>
+        </Button.Root>
+      )}
 
       <ConfirmModal
         open={isOpen}

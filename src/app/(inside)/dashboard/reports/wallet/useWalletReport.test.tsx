@@ -101,7 +101,7 @@ describe("useWalletReport", () => {
 
     expect(result.current.rows).toHaveLength(4);
     expect(result.current.kpis[0].value).toBe("4");
-    expect(result.current.kpis[0].hint).toContain("1 novo(s)");
+    expect(result.current.kpis[0].hint).toContain("1 novo");
     expect(result.current.kpis[0].hint).toContain("1 sem nenhuma compra");
   });
 
@@ -111,7 +111,7 @@ describe("useWalletReport", () => {
     const contato = result.current.kpis[2];
 
     expect(contato.value).toBe("2");
-    expect(contato.hint).toBe("1 atrasado(s) · 1 parado(s)");
+    expect(contato.hint).toBe("1 atrasado · 1 parado");
     expect(contato.status).toBe("urgente");
   });
 

@@ -1,11 +1,13 @@
 "use client";
-import { Card } from "@/components/Card";
 
+import { Badge } from "@/components/Badges";
 import { Button } from "@/components/Button";
+import { Card } from "@/components/Card";
 import { Title } from "@/components/Title";
 import { clientDisplayName } from "@/utils/client";
 import { factoryName } from "@/utils/company";
 import { CalendarClock, Check, Clock, UserX } from "lucide-react";
+
 import { formatDayLabel, formatWeekdayLabel } from "../../utils";
 import { OverdueOutcome, OverdueVisit } from "./interface";
 
@@ -18,6 +20,24 @@ interface Props {
   onReschedule: () => void;
 }
 
+/** A linha do lugar, como no cartão da visita: bairro, cidade - UF. */
+const placeLine = (visit: OverdueVisit): string => {
+  const client = visit.clientFactoryLink?.client;
+  if (!client) return "";
+  return [
+    client.addressNeighborhood,
+    [client.addressCity, client.addressState].filter(Boolean).join(" - "),
+  ]
+    .filter(Boolean)
+    .join(", ");
+};
+
+/**
+ * Uma visita sem resposta no painel lateral — no mesmo molde do cartão da
+ * visita na agenda (pedido de 23/11/2026): fundo claro, borda esquerda na cor
+ * do tipo (âmbar visita, azul ligação), nome, fábrica e lugar. O que muda é a
+ * linha do dia planejado e os desfechos embaixo.
+ */
 export function OverdueVisitRow({
   visit,
   canAnswer,
@@ -30,39 +50,60 @@ export function OverdueVisitRow({
   const clientName = clientDisplayName(client, "Cliente");
   const isRemote = visit.contactType === "REMOTE";
   const date = visit.day?.date ?? null;
+  const place = placeLine(visit);
 
   return (
     // `min-w-0` no card e em cada bloco de texto: sem isso, razão social longa
     // (sem espaço para quebrar) estica o card e estoura o painel para os lados.
-    <Card.Root inset tone="transparent" className="min-w-0">
+    <Card.Root
+      inset
+      tone="muted"
+      event={isRemote ? "blue" : "amber"}
+      className="min-w-0"
+    >
       <Card.Body padding="sm" className="min-w-0 gap-10">
-        <div className="min-w-0">
+        <div className="flex min-w-0 flex-col gap-4">
           {/* Nome completo em até duas linhas, não reticências: o vendedor
             reconhece o cliente pela razão social inteira, e ela é o que
             diferencia duas lojas da mesma rede. */}
           <Title
-            variant="body-md"
-            weight="bold"
-            className="line-clamp-2 leading-[1.35] break-words"
+            variant="body-sm"
+            weight="semibold"
+            className="line-clamp-2 break-words"
             title={clientName}
           >
             {clientName}
           </Title>
-          <Title
-            variant="micro"
-            color="muted"
-            className="mt-[2px] line-clamp-1 break-words"
-          >
-            {factory ? factoryName(factory) : "—"}
-          </Title>
-          {date && (
-            <Title variant="micro" color="muted2" className="mt-[2px]">
-              {/* "sexta · 31 Jul" — o vendedor reconhece o dia pelo nome, não
-                pela data solta. */}
-              {formatWeekdayLabel(date)} · {formatDayLabel(date)}
-              {isRemote ? " · ligação" : ""}
+          {factory && (
+            <Title
+              variant="body-xs"
+              color="muted"
+              className="block truncate"
+              title={factoryName(factory)}
+            >
+              {factoryName(factory)}
             </Title>
           )}
+          {!isRemote && (
+            <Title
+              variant="body-xs"
+              color="muted"
+              className="block truncate"
+              title={place || "Sem endereço"}
+            >
+              {place || "Sem endereço"}
+            </Title>
+          )}
+          <div className="flex flex-wrap items-center gap-x-8 gap-y-4">
+            {isRemote && <Badge.ContactType contactType={visit.contactType} />}
+            {date && (
+              <Title variant="micro" color="muted">
+                {/* "sexta · 31 Jul" — o vendedor reconhece o dia pelo nome,
+                  não pela data solta. */}
+                {formatWeekdayLabel(date)} · {formatDayLabel(date)}
+              </Title>
+            )}
+          </div>
         </div>
 
         {/* Duas colunas iguais: os desfechos ficam do mesmo tamanho, sem uma

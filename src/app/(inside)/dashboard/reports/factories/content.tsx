@@ -1,9 +1,11 @@
 "use client";
 
+import { plural } from "@/utils/format/plural";
 import { formatMoney } from "@/utils/format/masks";
 import { buildReportContext } from "@/utils/pdf/context";
 
 import { ReportChartCard } from "../_components/ReportChartCard";
+import { ReportEmpty } from "../_components/ReportEmpty";
 import { ReportKpis } from "../_components/ReportKpis";
 import { ReportToolbar } from "../_components/ReportToolbar";
 import { useReportContext } from "../useReportContext";
@@ -19,6 +21,7 @@ import {
   sumBy,
 } from "./utils";
 import { visibleCommission } from "@/utils/commission";
+import { isReportEmpty } from "../utils";
 
 interface Props {
   canSelectSeller: boolean;
@@ -66,7 +69,7 @@ export default function FactoriesReportContent({ canSelectSeller }: Props) {
       },
     ],
     buildHighlight: (exported) =>
-      `${exported.length} fábrica(s) · ${formatMoney(sumBy(exported, (row) => row.totalAmount))}`,
+      `${plural(exported.length, "fábrica", "fábricas")} · ${formatMoney(sumBy(exported, (row) => row.totalAmount))}`,
     buildTotals: (exported) => ({
       label: "TOTAL",
       byColumn: {
@@ -76,6 +79,14 @@ export default function FactoriesReportContent({ canSelectSeller }: Props) {
         6: formatMoney(sumBy(exported, (row) => visibleCommission(row))),
       },
     }),
+  });
+
+  const isEmpty = isReportEmpty({
+    loading: report.kpisLoading || report.chart.loading,
+    hasRows: report.hasRows,
+    chartHasData: report.chart.hasData,
+    error: report.chart.error,
+    inputValues: report.inputValues,
   });
 
   return (
@@ -90,31 +101,38 @@ export default function FactoriesReportContent({ canSelectSeller }: Props) {
         exportDisabled={!report.hasRows}
       />
 
-      <ReportKpis items={report.kpis} loading={report.kpisLoading} />
+      {isEmpty ? (
+        <ReportEmpty canSelectSeller={canSelectSeller} />
+      ) : (
+        <>
+          <ReportKpis items={report.kpis} loading={report.kpisLoading} />
 
-      <ReportChartCard
-        title="Colocado × já faturado"
-        description="A distância entre as duas barras é o que ainda não voltou da fábrica."
-        option={report.chart.option}
-        hasData={report.chart.hasData}
-        loading={report.chart.loading}
-        error={report.chart.error}
-        onRetry={report.chart.refetch}
-      />
+          <ReportChartCard
+            title="Colocado × já faturado"
+            description="A distância entre as duas barras é o que ainda não voltou da fábrica."
+            option={report.chart.option}
+            hasData={report.chart.hasData}
+            loading={report.chart.loading}
+            error={report.chart.error}
+            onRetry={report.chart.refetch}
+            canSelectSeller={canSelectSeller}
+          />
 
-      <FactoriesReportTable
-        items={report.pageRows}
-        loading={report.loading}
-        filterFields={report.filterFields}
-        inputValues={report.inputValues}
-        setFilter={report.setFilter}
-        setFilters={report.setFilters}
-        sort={report.sort}
-        currentPage={report.currentPage}
-        setCurrentPage={report.setCurrentPage}
-        totalPages={report.totalPages}
-        totalItems={report.rows.length}
-      />
+          <FactoriesReportTable
+            items={report.pageRows}
+            loading={report.loading}
+            filterFields={report.filterFields}
+            inputValues={report.inputValues}
+            setFilter={report.setFilter}
+            setFilters={report.setFilters}
+            sort={report.sort}
+            currentPage={report.currentPage}
+            setCurrentPage={report.setCurrentPage}
+            totalPages={report.totalPages}
+            totalItems={report.rows.length}
+          />
+        </>
+      )}
     </div>
   );
 }

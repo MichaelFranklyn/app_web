@@ -153,7 +153,7 @@ async function openStockModal(page: import("@playwright/test").Page) {
 
   // Kebab DENTRO do card da visita (mesmo padrão de `routines.spec.ts`).
   // O card exibe a RAZÃO SOCIAL (`clientDisplayName`), não o nome fantasia.
-  const card = page.getByRole("button", { name: /Cliente LTDA/ });
+  const card = page.getByRole("group", { name: /Cliente LTDA/i });
   await card.locator('[aria-haspopup="menu"]').click();
   await page.getByRole("menuitem", { name: "Estoque do cliente" }).click();
 }

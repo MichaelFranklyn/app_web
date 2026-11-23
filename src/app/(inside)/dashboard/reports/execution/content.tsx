@@ -1,9 +1,11 @@
 "use client";
 
+import { plural } from "@/utils/format/plural";
 import { buildReportContext } from "@/utils/pdf/context";
 
 import { formatPercent } from "../../utils";
 import { ReportChartCard } from "../_components/ReportChartCard";
+import { ReportEmpty } from "../_components/ReportEmpty";
 import { ReportKpis } from "../_components/ReportKpis";
 import { ReportToolbar } from "../_components/ReportToolbar";
 import { useReportContext } from "../useReportContext";
@@ -18,6 +20,7 @@ import {
   EXECUTION_SORT_LABELS,
   buildExecutionExportRows,
 } from "./utils";
+import { isReportEmpty } from "../utils";
 
 interface Props {
   canSelectSeller: boolean;
@@ -50,8 +53,15 @@ export default function ExecutionReportContent({ canSelectSeller }: Props) {
     buildKpis: () => report.kpis.map(({ label, value }) => ({ label, value })),
     buildHighlight: () =>
       report.report
-        ? `${formatPercent(report.report.executionRate)} de execução · ${report.report.planned} visita(s) planejada(s)`
+        ? `${formatPercent(report.report.executionRate)} de execução · ${plural(report.report.planned, "visita planejada", "visitas planejadas")}`
         : "",
+  });
+
+  const isEmpty = isReportEmpty({
+    loading: report.kpisLoading || report.chart.loading,
+    hasRows: report.hasRows,
+    chartHasData: report.chart.hasData,
+    error: report.chart.error,
   });
 
   return (
@@ -66,25 +76,35 @@ export default function ExecutionReportContent({ canSelectSeller }: Props) {
         exportDisabled={!report.hasRows}
       />
 
-      <ReportKpis items={report.kpis} loading={report.kpisLoading} />
+      {isEmpty ? (
+        <ReportEmpty canSelectSeller={canSelectSeller} />
+      ) : (
+        <>
+          <ReportKpis items={report.kpis} loading={report.kpisLoading} />
 
-      {report.report && <LiftNotice report={report.report} />}
+          {report.report && <LiftNotice report={report.report} />}
 
-      <ReportChartCard
-        title="O que aconteceu com cada visita planejada"
-        description="Verde e azul são execução. Vermelho é visita que ninguém respondeu em 7 dias e o sistema fechou."
-        option={report.chart.option}
-        hasData={report.chart.hasData}
-        loading={report.chart.loading}
-        error={report.chart.error}
-        onRetry={report.chart.refetch}
-      />
+          <ReportChartCard
+            title="O que aconteceu com cada visita planejada"
+            description="Verde e azul são execução. Vermelho é visita que ninguém respondeu em 7 dias e o sistema fechou."
+            option={report.chart.option}
+            hasData={report.chart.hasData}
+            loading={report.chart.loading}
+            error={report.chart.error}
+            onRetry={report.chart.refetch}
+            canSelectSeller={canSelectSeller}
+          />
 
-      <ExecutionSellersTable
-        items={report.rows}
-        loading={report.loading}
-        sort={report.sort}
-      />
+          {/* O vendedor só vê a própria linha: a tabela repetiria os KPIs. */}
+          {canSelectSeller && (
+            <ExecutionSellersTable
+              items={report.rows}
+              loading={report.loading}
+              sort={report.sort}
+            />
+          )}
+        </>
+      )}
     </div>
   );
 }

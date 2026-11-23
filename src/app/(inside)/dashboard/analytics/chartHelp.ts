@@ -47,7 +47,7 @@ export const CHART_HELP = {
   // (recebimento), não o do pedido — é o que responde "quanto entra em agosto".
   commissionsByMonth: {
     what: "A comissão de cada mês, separada em três: o que já entrou, o que a fábrica ainda deve e o que depende do cliente pagar.",
-    read: "O mês é o da data em que a comissão cai, não o do pedido. Verde é recebido, azul é a receber e a linha clara é previsto (fábrica que só paga depois que o cliente paga o boleto). Para ver os meses que ainda vão cair, estenda a data final do período no filtro acima.",
+    read: "O mês é o da data em que a comissão cai, não o do pedido. A altura da barra é a comissão do mês: verde é recebido, azul é a receber e ciano é previsto (fábrica que só paga depois que o cliente paga o boleto). Para ver os meses que ainda vão cair, estenda a data final do período no filtro acima.",
     watch:
       "Muita coisa parada em 'a receber' nos meses passados é comissão atrasada para cobrar da fábrica. Previsto alto é dinheiro que ainda depende de boleto pago.",
     insight: {

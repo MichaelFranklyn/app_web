@@ -72,6 +72,7 @@ export default function DashboardContent({
             totalPlannedVisits={totalPlannedVisits}
             totalClients={totalClients}
             hasRoutines={hasRoutines}
+            canSelectSeller={canSelectSeller}
           />
 
           {/* Metas, pedidos e visitas no MESMO grupo: no celular os três têm a
@@ -82,7 +83,10 @@ export default function DashboardContent({
             {/* O acompanhamento do mês — sem plano de metas, nem aparece. Para
                 o gestor, só com um vendedor escolhido: é o recorte do painel. */}
             {hasGoals && (!canSelectSeller || selectedSellerId) && (
-              <DashboardGoalsCard sellerId={selectedSellerId} />
+              <DashboardGoalsCard
+                sellerId={selectedSellerId}
+                canSelectSeller={canSelectSeller}
+              />
             )}
 
             {/* Sem rotina no plano, os pedidos recentes ocupam a linha inteira —
@@ -91,8 +95,19 @@ export default function DashboardContent({
               cols={{ base: 1, desktop: hasRoutines ? 2 : 1 }}
               gap={12}
             >
-              <RecentOrdersTable orders={orders} />
-              {hasRoutines && <UpcomingVisitsCard items={upcomingVisits} />}
+              {/* Um botão de ação só no painel vazio: com rotina, "Montar
+                  semana" (nas visitas); sem rotina, "Novo pedido". */}
+              <RecentOrdersTable
+                orders={orders}
+                showNewOrderAction={!hasRoutines}
+              />
+              {hasRoutines && (
+                <UpcomingVisitsCard
+                  items={upcomingVisits}
+                  totalPlannedVisits={totalPlannedVisits}
+                  sellerId={canSelectSeller ? selectedSellerId : null}
+                />
+              )}
             </Grid.Root>
           </Card.Header.Group>
         </>

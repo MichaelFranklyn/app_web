@@ -1,18 +1,19 @@
 "use client";
 
+import { Button } from "@/components/Button";
 import { Card } from "@/components/Card";
 import { EmptyState } from "@/components/EmptyState";
 import { Title } from "@/components/Title";
 import { useUserRole } from "@/services/flowTour/useUserRole";
-import { CalendarCheck, CalendarOff } from "lucide-react";
+import { plural } from "@/utils/format/plural";
+import { CalendarCheck, CalendarOff, Map as MapIcon } from "lucide-react";
 
-import { AgendaDay, alsoInOfficeOf, longDayLabel } from "../../calendar";
+import { AgendaDay, alsoInOfficeOf } from "../../calendar";
 import { AgendaPerson } from "../../interface";
 import { isPastDay, sortVisitsByRoute } from "../../utils";
 import { AgendaAddMenu } from "../AgendaAddMenu";
-import { DayOffButton } from "../DayOffButton";
+import { DayMoreMenu } from "../DayMoreMenu";
 import { DayRoute } from "../DayRoute";
-import { DayRouteActions } from "../DayRouteActions";
 import { OtherOfficeStopCard } from "../OtherOfficeStop";
 import { OverdueVisits } from "../OverdueVisits";
 import { VisitCard } from "../VisitCard";
@@ -74,6 +75,19 @@ export function AgendaDayView({
     isSellerAgenda &&
     !isDayOff &&
     [...items, ...otherOffices].some((s) => s.contactType !== "REMOTE");
+  const stopTotal = items.length + otherOffices.length;
+  // O número de cada parada presencial, na ordem do trajeto — o mesmo do pino
+  // no mapa. A ligação não é parada: fica sem número.
+  const stopNumbers = new Map<string, number>();
+  for (const item of items) {
+    if (item.contactType !== "REMOTE") {
+      stopNumbers.set(item.id, stopNumbers.size + 1);
+    }
+  }
+  const scrollToRoute = () =>
+    document
+      .getElementById("day-route")
+      ?.scrollIntoView({ behavior: "smooth", block: "start" });
 
   return (
     <div className="flex flex-col gap-20">
@@ -86,104 +100,144 @@ export function AgendaDayView({
           onAnswered={onChanged}
         />
       )}
-      <Card.Root>
-        <Card.Header bg="bg3">
-          <Title variant="heading-sm" className="first-letter:uppercase">
-            {longDayLabel(date)}
-          </Title>
-          {(routeDay || !isPast) && (
-            // Empilhado (celular), quatro botões de largura total davam um
-            // cabeçalho de 209px antes da primeira visita (relato de
-            // 20/11/2026). Aqui eles quebram linha no tamanho natural e
-            // crescem para preencher: dois por linha onde cabem, um só onde
-            // o texto não cabe ao lado — grade fixa de 2 estourava em 360px.
-            <Card.Header.Actions className="group-data-[actions-mode=column]/cardhead:flex-row group-data-[actions-mode=column]/cardhead:flex-wrap group-data-[actions-mode=column]/cardhead:[&>*]:w-auto group-data-[actions-mode=column]/cardhead:[&>*]:flex-auto group-data-[actions-mode=column]/cardhead:[&>div]:w-auto">
-              {routeDay && (
-                <DayRouteActions day={routeDay} sellerName={sellerName} />
+      {/* No desktop a lista e o trajeto lado a lado: a ordem dos cartões é a
+          dos pinos, e ver os dois juntos é o que faz dela uma rota. */}
+      <div
+        className={
+          showRoute
+            ? "desktop:grid desktop:grid-cols-[minmax(0,3fr)_minmax(0,2fr)] desktop:items-start flex flex-col gap-20"
+            : "flex flex-col gap-20"
+        }
+      >
+        <Card.Root>
+          <Card.Header bg="bg3">
+            {/* A data já está na barra da agenda: aqui vai o que o dia é. */}
+            <div className="flex min-w-0 flex-col">
+              <Title variant="heading-sm">
+                {showRoute ? "Rota do dia" : "Compromissos do dia"}
+              </Title>
+              {!isDayOff && stopTotal > 0 && (
+                <Title variant="body-xs" color="muted">
+                  {plural(stopTotal, "compromisso", "compromissos")}
+                  {pendingCount > 0 && pendingCount < items.length
+                    ? ` · ${plural(pendingCount, "pendente", "pendentes")}`
+                    : ""}
+                </Title>
               )}
-              {!isPast && (
-                <AgendaAddMenu
-                  variant="header"
+            </div>
+            {(routeDay || !isPast || showRoute) && (
+              // Empilhado (celular), quatro botões de largura total davam um
+              // cabeçalho de 209px antes da primeira visita (relato de
+              // 20/11/2026). Aqui eles quebram linha no tamanho natural e
+              // crescem para preencher: dois por linha onde cabem, um só onde
+              // o texto não cabe ao lado — grade fixa de 2 estourava em 360px.
+              <Card.Header.Actions className="group-data-[actions-mode=column]/cardhead:flex-row group-data-[actions-mode=column]/cardhead:flex-wrap group-data-[actions-mode=column]/cardhead:[&>*]:w-auto group-data-[actions-mode=column]/cardhead:[&>*]:flex-auto group-data-[actions-mode=column]/cardhead:[&>div]:w-auto">
+                {showRoute && (
+                  <Button.Root
+                    appearance="outline"
+                    color="neutral"
+                    size="sm"
+                    className="desktop:hidden"
+                    onClick={scrollToRoute}
+                  >
+                    <Button.Icon icon={MapIcon} />
+                    <Button.Title>Ver no mapa</Button.Title>
+                  </Button.Root>
+                )}
+                {!isPast && (
+                  <AgendaAddMenu
+                    variant="header"
+                    date={date}
+                    person={person}
+                    sellerId={sellerId}
+                    isDayOff={isDayOff}
+                    onChanged={onChanged}
+                  />
+                )}
+                <DayMoreMenu
                   date={date}
-                  person={person}
-                  sellerId={sellerId}
-                  isDayOff={isDayOff}
-                  onChanged={onChanged}
-                />
-              )}
-              {!isPast && isSellerAgenda && (
-                <DayOffButton
-                  date={date}
+                  routeDay={routeDay}
+                  sellerName={sellerName}
+                  canMarkDayOff={!isPast && isSellerAgenda}
                   isDayOff={isDayOff}
                   pendingCount={pendingCount}
-                  onMark={onMarkDayOff}
-                  onUnmark={onUnmarkDayOff}
+                  onMarkDayOff={onMarkDayOff}
+                  onUnmarkDayOff={onUnmarkDayOff}
                 />
-              )}
-            </Card.Header.Actions>
-          )}
-        </Card.Header>
-        <Card.Body>
-          {/* EmptyState `flat`: o dia já é um cartão — cartão dentro de
+              </Card.Header.Actions>
+            )}
+          </Card.Header>
+          <Card.Body>
+            {/* EmptyState `flat`: o dia já é um cartão — cartão dentro de
               cartão não (18/11/2026). */}
-          {isDayOff ? (
-            <EmptyState.Root flat data-testid="agenda-day-off">
-              <EmptyState.Icon>
-                <CalendarOff size={32} />
-              </EmptyState.Icon>
-              <EmptyState.Title>Dia sem trabalho</EmptyState.Title>
-              <EmptyState.Description>
-                Você não trabalha neste dia. O sistema não vai planejar visitas
-                para ele.
-              </EmptyState.Description>
-            </EmptyState.Root>
-          ) : items.length === 0 && otherOffices.length === 0 ? (
-            <EmptyState.Root flat data-testid="agenda-empty-day">
-              <EmptyState.Icon>
-                <CalendarCheck size={32} />
-              </EmptyState.Icon>
-              <EmptyState.Title>Nada marcado neste dia</EmptyState.Title>
-              <EmptyState.Description>
-                {isPast
-                  ? "Nenhuma visita nem ligação ficou registrada para este dia."
-                  : "Nenhuma visita nem ligação por aqui. Use “Agendar” para marcar uma à mão ou monte a semana para o sistema traçar a rota."}
-              </EmptyState.Description>
-            </EmptyState.Root>
-          ) : (
-            <div className="tablet:grid-cols-2 desktop:grid-cols-3 grid grid-cols-1 gap-8">
-              {items.map((item) => (
-                <VisitCard
-                  key={item.id}
-                  item={item}
-                  dayDate={date}
-                  alsoInOffice={alsoInOfficeOf(item, alsoInOffice)}
-                  quickAnswer={quickAnswer}
-                  autoAnswer={
-                    pushAnswer?.visitId === item.id ? pushAnswer.answer : null
-                  }
-                  onChanged={onChanged}
-                />
-              ))}
-              {otherOffices.map((stop) => (
-                <OtherOfficeStopCard
-                  key={stop.id}
-                  stop={stop}
-                  onChanged={onChanged}
-                />
-              ))}
-            </div>
-          )}
-        </Card.Body>
-      </Card.Root>
-      {showRoute && (
-        <DayRoute
-          date={date}
-          day={routeDay}
-          canEditDeparture={isSeller}
-          otherOfficeStops={otherOffices}
-          onChanged={onChanged}
-        />
-      )}
+            {isDayOff ? (
+              <EmptyState.Root flat data-testid="agenda-day-off">
+                <EmptyState.Icon>
+                  <CalendarOff size={32} />
+                </EmptyState.Icon>
+                <EmptyState.Title>Dia sem trabalho</EmptyState.Title>
+                <EmptyState.Description>
+                  Você não trabalha neste dia. O sistema não vai planejar
+                  visitas para ele.
+                </EmptyState.Description>
+              </EmptyState.Root>
+            ) : items.length === 0 && otherOffices.length === 0 ? (
+              <EmptyState.Root flat data-testid="agenda-empty-day">
+                <EmptyState.Icon>
+                  <CalendarCheck size={32} />
+                </EmptyState.Icon>
+                <EmptyState.Title>Nada marcado neste dia</EmptyState.Title>
+                <EmptyState.Description>
+                  {isPast
+                    ? "Nenhuma visita nem ligação ficou registrada para este dia."
+                    : "Nenhuma visita nem ligação por aqui. Use “Agendar” para marcar uma à mão ou monte a semana para o sistema traçar a rota."}
+                </EmptyState.Description>
+              </EmptyState.Root>
+            ) : (
+              <div
+                className={
+                  showRoute
+                    ? "grid grid-cols-1 gap-8"
+                    : "tablet:grid-cols-2 desktop:grid-cols-3 grid grid-cols-1 gap-8"
+                }
+              >
+                {items.map((item) => (
+                  <VisitCard
+                    key={item.id}
+                    item={item}
+                    dayDate={date}
+                    alsoInOffice={alsoInOfficeOf(item, alsoInOffice)}
+                    quickAnswer={quickAnswer}
+                    stopNumber={stopNumbers.get(item.id) ?? null}
+                    autoAnswer={
+                      pushAnswer?.visitId === item.id ? pushAnswer.answer : null
+                    }
+                    onChanged={onChanged}
+                  />
+                ))}
+                {otherOffices.map((stop) => (
+                  <OtherOfficeStopCard
+                    key={stop.id}
+                    stop={stop}
+                    onChanged={onChanged}
+                  />
+                ))}
+              </div>
+            )}
+          </Card.Body>
+        </Card.Root>
+        {showRoute && (
+          <div id="day-route" className="flex scroll-mt-16 flex-col gap-20">
+            <DayRoute
+              date={date}
+              day={routeDay}
+              canEditDeparture={isSeller}
+              otherOfficeStops={otherOffices}
+              onChanged={onChanged}
+            />
+          </div>
+        )}
+      </div>
     </div>
   );
 }

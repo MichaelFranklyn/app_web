@@ -7,6 +7,7 @@ import { Loading } from "@/components/Loading";
 import { Pagination } from "@/components/Pagination";
 import { Table, TableSort } from "@/components/Table";
 import { formatDateDMY, formatMoney } from "@/utils/format/masks";
+import { plural } from "@/utils/format/plural";
 import { Building2 } from "lucide-react";
 
 import { formatPercent } from "../../../../utils";
@@ -75,7 +76,7 @@ export function FactoriesReportTable({
         </Table.CardHead.Actions>
       </Table.CardHead>
 
-      <Table.Table>
+      <Table.Table cards>
         <Table.Header>
           <Table.Row>
             <Table.Head sortKey="factory">Fábrica</Table.Head>
@@ -129,31 +130,60 @@ export function FactoriesReportTable({
           ) : (
             items.map((row) => (
               <Table.Row key={row.entityId} href={`/factories/${row.entityId}`}>
-                <Table.Cell variant="strong" title={row.entityName}>
+                <Table.Cell
+                  variant="strong"
+                  card="title"
+                  title={row.entityName}
+                >
                   {row.entityName}
                 </Table.Cell>
-                <Table.Cell variant="dim">{row.orderCount}</Table.Cell>
-                <Table.Cell variant="dim">{row.clientCount}</Table.Cell>
-                <Table.Cell variant="strong" className="whitespace-nowrap">
+                <Table.Cell variant="dim" label="Pedidos">
+                  {row.orderCount}
+                </Table.Cell>
+                <Table.Cell variant="dim" label="Clientes">
+                  {row.clientCount}
+                </Table.Cell>
+                <Table.Cell
+                  variant="strong"
+                  card="value"
+                  className="whitespace-nowrap"
+                >
                   {formatMoney(row.totalAmount)}
                   <Table.CellText variant="dim" className="ml-4">
                     {formatPercent(row.share)}
                   </Table.CellText>
                 </Table.Cell>
-                <Table.Cell variant="dim" className="whitespace-nowrap">
+                <Table.Cell
+                  variant="dim"
+                  label="Ticket médio"
+                  className="whitespace-nowrap"
+                >
                   {formatMoney(row.avgTicket)}
                 </Table.Cell>
-                <Table.Cell variant="dim" className="whitespace-nowrap">
+                <Table.Cell
+                  variant="dim"
+                  label="Já faturado"
+                  className="whitespace-nowrap"
+                >
                   {formatMoney(row.invoicedAmount)}
                   <Table.CellText variant="dim" className="ml-4">
                     {formatPercent(invoicedRate(row))}
                   </Table.CellText>
                 </Table.Cell>
-                <Table.Cell variant="dim" className="whitespace-nowrap">
+                <Table.Cell
+                  variant="dim"
+                  label="Comissão"
+                  className="whitespace-nowrap"
+                >
                   {formatMoney(visibleCommission(row))}
                 </Table.Cell>
-                <Table.Cell variant="dim" className="whitespace-nowrap">
-                  {row.lastOrderDate ? formatDateDMY(row.lastOrderDate) : "—"}
+                <Table.Cell
+                  variant="dim"
+                  label="Último pedido"
+                  emptyText="Sem pedido"
+                  className="whitespace-nowrap"
+                >
+                  {row.lastOrderDate ? formatDateDMY(row.lastOrderDate) : ""}
                 </Table.Cell>
               </Table.Row>
             ))
@@ -168,7 +198,7 @@ export function FactoriesReportTable({
           )}
           {/* Sem linhas quem fala é o estado vazio, não o rodapé. */}
           {totalItems > 0 &&
-            `${totalItems} fábrica(s) · página ${currentPage} de ${totalPages} · nesta página: ${formatMoney(pageAmount)}`}
+            `${plural(totalItems, "fábrica", "fábricas")} · página ${currentPage} de ${totalPages} · nesta página: ${formatMoney(pageAmount)}`}
         </Table.Footer.Info>
 
         <Pagination.Smart

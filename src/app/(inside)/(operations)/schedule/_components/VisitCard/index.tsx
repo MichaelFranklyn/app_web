@@ -1,10 +1,11 @@
 "use client";
-import { Divider } from "@/components/Divider";
 import { Card } from "@/components/Card";
 
 import { Badge } from "@/components/Badges";
 import { InputCheckbox } from "@/components/Input/InputCheckbox";
 import { Title } from "@/components/Title";
+import { IconTile } from "@/components/IconTile";
+import { TextButton } from "@/components/TextLink";
 import { Button } from "@/components/Button";
 import { Check, CloudUpload, TriangleAlert, X } from "lucide-react";
 import { cn } from "@/lib/utils";
@@ -53,6 +54,11 @@ interface Props {
    * do vendedor, respondida em um toque sem abrir nada (TASK-006).
    */
   quickAnswer?: boolean;
+  /**
+   * Na rota do dia o cartão abre com o número da parada no lugar da caixinha:
+   * é uma lista em ordem de trajeto. A caixinha volta onde não há "Visitei".
+   */
+  stopNumber?: number | null;
   /** Resposta que veio do botão do aviso no celular para ESTA visita. */
   autoAnswer?: PushAnswer | null;
   onChanged: () => void;
@@ -70,13 +76,20 @@ const getFactoryName = (item: VisitScheduleItem): string => {
 // borda no celular, onde a largura é curta demais para perder 32px.
 const UNDER_NAME = "desktop:pl-[32px]";
 
-// Etiquetas: lado a lado no desktop; no celular cada uma toma a linha e se
-// centra — lida de cima a baixo, como uma ficha, e nunca estoura o card.
-const TAGS_ROW = cn(
-  "flex flex-wrap items-center gap-x-8 gap-y-4 empty:hidden",
-  "max-desktop:flex-col max-desktop:items-stretch",
-  "max-desktop:[&>*]:w-full max-desktop:[&_[data-badge]]:w-full max-desktop:[&_[data-badge]]:justify-center"
-);
+// Etiquetas do tamanho do próprio texto, quebrando a linha quando faltar
+// espaço: esticadas na largura do card (celular) pareciam botões.
+const TAGS_ROW = "flex flex-wrap items-center gap-x-8 gap-y-4 empty:hidden";
+
+/** A linha do lugar: bairro, cidade - UF. */
+const placeLine = (client: ReturnType<typeof itemClient>): string =>
+  client
+    ? [
+        client.addressNeighborhood,
+        [client.addressCity, client.addressState].filter(Boolean).join(" - "),
+      ]
+        .filter(Boolean)
+        .join(", ")
+    : "";
 
 const FACTORY_NAMES_SHOWN = 2;
 
@@ -119,6 +132,7 @@ export function VisitCard({
   alsoInOffice = null,
   quickAnswer = false,
   autoAnswer = null,
+  stopNumber = null,
   onChanged,
 }: Props) {
   const {
@@ -149,8 +163,11 @@ export function VisitCard({
   const hintTitle = scoreHintTitle(alsoInOffice);
   // O tooltip de Montar semana: score e motivo de cada fábrica, por escritório.
   const scoreChips = visitScoreChips(item, currentOffice ?? null);
-  // Score não se aplica a visita concluída: o que importa passa a ser o estado.
-  const showPriority = Boolean(priority) && !isCompleted;
+  // Só a faixa "Urgente" ganha selo: as outras (atenção, acompanhar,
+  // tranquilo) eram ruído em todo cartão. O número fica no tooltip. Score não
+  // se aplica a visita concluída: o que importa passa a ser o estado.
+  const showPriority = priority?.tone === "red" && !isCompleted;
+  const place = placeLine(client);
   const isCompact = density === "compact";
   const look = chipAppearance(item);
   const isDraggable =
@@ -161,6 +178,9 @@ export function VisitCard({
   // guardada no aparelho mostra o "aguardando sinal" no lugar.
   const showQuickAnswer =
     quickAnswer && !isCompact && status === "PENDING" && !isAwaitingSignal;
+  // Com "Visitei" / "Não deu" no cartão, a caixinha seria um terceiro jeito de
+  // responder a mesma coisa: no lugar dela vai o número da parada.
+  const showNumber = !isCompact && stopNumber != null && quickAnswer;
 
   return (
     <>
@@ -173,6 +193,11 @@ export function VisitCard({
         // densidades.
         event={look.tone}
         faded={isCompleted || look.isMuted}
+        // Um grupo com o nome do cliente: o cartão em si não é mais botão (o
+        // botão é o nome), mas quem navega por leitor de tela ainda pula de
+        // cartão em cartão — e os testes acham o cartão pelo cliente.
+        role="group"
+        aria-label={clientName}
         className={cn(
           "group/card",
           isDraggable && "cursor-grab active:cursor-grabbing"
@@ -183,15 +208,10 @@ export function VisitCard({
             ? (e) => writeDrag(e, { itemId: item.id, fromDate: dayDate })
             : undefined
         }
-        role="button"
-        tabIndex={0}
+        // O cartão inteiro abre o painel com o mouse ou o dedo; para o
+        // teclado e o leitor de tela quem abre é o nome (um botão de verdade)
+        // — um role="button" em volta da caixinha e do menu aninhava controles.
         onClick={openView}
-        onKeyDown={(e) => {
-          if (e.key === "Enter" || e.key === " ") {
-            e.preventDefault();
-            openView();
-          }
-        }}
         title={`Visualizar ${noun}`}
       >
         <Card.Body padding="sm">
@@ -202,28 +222,34 @@ export function VisitCard({
             ficha (relato de 20/11/2026: "Também no <escritório>" estourava o
             card e a urgência ficava fora do alinhamento do resto). */}
           <div className="flex items-start gap-8">
-            <div
-              className="shrink-0"
-              onClick={(e) => e.stopPropagation()}
-              onKeyDown={(e) => e.stopPropagation()}
-            >
-              <InputCheckbox
-                tone="green"
-                checked={isCompleted}
-                disabled={isToggling}
-                onChange={(e) => toggleCompleted(e.target.checked)}
-                title={
-                  isCompleted
-                    ? `Reabrir ${noun}`
-                    : `Marcar ${noun} como concluída`
-                }
-                aria-label={
-                  isCompleted
-                    ? `Reabrir ${noun}`
-                    : `Marcar ${noun} como concluída`
-                }
-              />
-            </div>
+            {showNumber ? (
+              <IconTile size="xs" aria-label={`Parada ${stopNumber}`}>
+                {stopNumber}
+              </IconTile>
+            ) : (
+              <div
+                className="shrink-0"
+                onClick={(e) => e.stopPropagation()}
+                onKeyDown={(e) => e.stopPropagation()}
+              >
+                <InputCheckbox
+                  tone="green"
+                  checked={isCompleted}
+                  disabled={isToggling}
+                  onChange={(e) => toggleCompleted(e.target.checked)}
+                  title={
+                    isCompleted
+                      ? `Reabrir ${noun}`
+                      : `Marcar ${noun} como concluída`
+                  }
+                  aria-label={
+                    isCompleted
+                      ? `Reabrir ${noun}`
+                      : `Marcar ${noun} como concluída`
+                  }
+                />
+              </div>
+            )}
             {/* Nome quebra em várias linhas em vez de truncar: numa coluna de
               240px o "…" escondia justamente o que identifica a loja.
               `break-words` cobre razão social longa sem espaços. A altura
@@ -231,24 +257,32 @@ export function VisitCard({
               O alerta de acompanhamento vem colado no nome: qualifica este
               compromisso. */}
             <div className="flex min-h-24 min-w-0 flex-1 items-center gap-6">
-              <Title
-                variant={isCompact ? "body-xs" : "value"}
-                weight={isCompact ? "semibold" : undefined}
-                color={isCompleted || look.isMuted ? "muted" : "default"}
-                className={cn(
-                  "block min-w-0 break-words",
-                  isCompact && [
-                    "line-clamp-2",
-                    // Como o Jira: o nome longo fica em duas linhas e, com o
-                    // mouse (ou o foco) no card, aparece inteiro — o card cresce
-                    // para baixo e empurra os de baixo, sem sobrepor.
-                    "group-hover/card:line-clamp-none group-focus-visible/card:line-clamp-none",
-                  ],
-                  isCompleted && "line-through"
-                )}
+              <TextButton
+                aria-label={`Visualizar ${noun}: ${clientName}`}
+                onClick={(e) => {
+                  e.stopPropagation();
+                  openView();
+                }}
               >
-                {clientName}
-              </Title>
+                <Title
+                  variant={isCompact ? "body-xs" : "body-sm"}
+                  weight="semibold"
+                  color={isCompleted || look.isMuted ? "muted" : "default"}
+                  className={cn(
+                    "block min-w-0 break-words",
+                    isCompact && [
+                      "line-clamp-2",
+                      // Como o Jira: o nome longo fica em duas linhas e, com o
+                      // mouse (ou o foco) no card, aparece inteiro — o card cresce
+                      // para baixo e empurra os de baixo, sem sobrepor.
+                      "group-focus-within/card:line-clamp-none group-hover/card:line-clamp-none",
+                    ],
+                    isCompleted && "line-through"
+                  )}
+                >
+                  {clientName}
+                </Title>
+              </TextButton>
               {warning && (
                 <TriangleAlert
                   size={14}
@@ -274,17 +308,31 @@ export function VisitCard({
               className={cn(
                 "block truncate",
                 isCompact &&
-                  "group-hover/card:break-words group-hover/card:whitespace-normal group-focus-visible/card:break-words group-focus-visible/card:whitespace-normal"
+                  "group-focus-within/card:break-words group-focus-within/card:whitespace-normal group-hover/card:break-words group-hover/card:whitespace-normal"
               )}
               title={subtitle}
             >
               {subtitle}
             </Title>
+            {/* Sem endereço, a linha diz isso em vez de sumir: é a pista de
+              que o cadastro precisa ser completado antes de sair. */}
+            {!isCompact && (
+              <Title
+                variant="body-xs"
+                color="muted"
+                className="block truncate"
+                title={place || "Sem endereço"}
+              >
+                {place || "Sem endereço"}
+              </Title>
+            )}
             {/* O tipo, de onde vem e QUANDO acontece. O horário vem antes do
               deslocamento de propósito: o número solto de minutos era lido
               como "visita de 7 minutos", o contrário do que ele significa. */}
             <div className={TAGS_ROW}>
-              <Badge.ContactType contactType={item.contactType} />
+              {/* A borda já separa visita de ligação; o selo fica só na
+                ligação, que é a exceção. */}
+              {isRemote && <Badge.ContactType contactType={item.contactType} />}
               {!isCompact && (
                 <>
                   <Badge.FixedVisit fixedScheduleId={item.fixedScheduleId} />
@@ -302,50 +350,67 @@ export function VisitCard({
                   />
                 </>
               )}
-              {/* No compacto, a urgência OU a situação entra junto das
-                etiquetas — uma faixa à parte dobrava a altura do card. */}
-              {isCompact &&
-                (showStatusBadge ? (
-                  <Badge.Root
-                    color={VISIT_STATUS_COLOR[status]}
-                    appearance="tinted"
-                    title={isAwaitingSignal ? AWAITING_SIGNAL_HINT : undefined}
-                  >
-                    <Badge.Text>
-                      {VISIT_STATUS_LABEL[status]}
-                      {isAwaitingSignal ? " · sem sinal" : ""}
-                    </Badge.Text>
-                  </Badge.Root>
-                ) : (
-                  showPriority &&
-                  priority && (
-                    <FactoryScoreHint chips={scoreChips} title={hintTitle}>
-                      <Badge.Root
-                        color={priority.tone}
-                        appearance="tinted"
-                        title={
-                          scoreChips.length
-                            ? undefined
-                            : `${priority.label} · score ${scoreValue?.toFixed(0)}`
-                        }
-                        className={cn(scoreChips.length > 0 && "cursor-help")}
-                      >
-                        <Badge.Dot />
-                        <Badge.Text>{priority.label}</Badge.Text>
-                      </Badge.Root>
-                    </FactoryScoreHint>
-                  )
-                ))}
+              {/* A urgência OU a situação entra junto das etiquetas, nas duas
+                densidades — a faixa à parte, com divisor, dobrava a altura do
+                cartão da rota do dia (pedido de 23/11/2026: o cartão do dia
+                parecido com o da semana). */}
+              {showStatusBadge ? (
+                <Badge.Root
+                  color={VISIT_STATUS_COLOR[status]}
+                  appearance="tinted"
+                  title={isAwaitingSignal ? AWAITING_SIGNAL_HINT : undefined}
+                >
+                  {isAwaitingSignal && !isCompact && (
+                    <Badge.Icon>
+                      <CloudUpload />
+                    </Badge.Icon>
+                  )}
+                  <Badge.Text>
+                    {VISIT_STATUS_LABEL[status]}
+                    {isAwaitingSignal
+                      ? isCompact
+                        ? " · sem sinal"
+                        : " · aguardando sinal"
+                      : ""}
+                  </Badge.Text>
+                </Badge.Root>
+              ) : (
+                showPriority &&
+                priority && (
+                  <FactoryScoreHint chips={scoreChips} title={hintTitle}>
+                    <Badge.Root
+                      color={priority.tone}
+                      appearance="tinted"
+                      title={
+                        scoreChips.length
+                          ? undefined
+                          : `${priority.label} · score ${scoreValue?.toFixed(0)}`
+                      }
+                      className={cn(scoreChips.length > 0 && "cursor-help")}
+                    >
+                      <Badge.Dot />
+                      <Badge.Text>{priority.label}</Badge.Text>
+                    </Badge.Root>
+                  </FactoryScoreHint>
+                )
+              )}
             </div>
+            {/* O número da parada já está no círculo: aqui ficam horário e
+              deslocamento — este com nome, porque é o tempo ATÉ a parada, não
+              a duração dela. Vazia, a linha some. */}
             {!isCompact && (
-              <Title variant="micro" color="muted" className="block">
-                #{item.plannedOrder}
-                {formatVisitSlot(item)}
-                {/* O deslocamento vem com nome: é o tempo ATÉ a parada, não a
-                  duração dela. */}
-                {formatTravelToStop(item.estimatedTravelMin)
-                  ? ` · ${formatTravelToStop(item.estimatedTravelMin)}`
-                  : ""}
+              <Title
+                variant="micro"
+                color="muted"
+                className="block empty:hidden"
+              >
+                {[
+                  showNumber ? null : `#${item.plannedOrder}`,
+                  formatVisitSlot(item).replace(/^ · /, "") || null,
+                  formatTravelToStop(item.estimatedTravelMin) || null,
+                ]
+                  .filter(Boolean)
+                  .join(" · ")}
               </Title>
             )}
             {/* "Dá pedido nesse cliente hoje?" — a pergunta que o vendedor só
@@ -382,7 +447,7 @@ export function VisitCard({
                 type="button"
                 appearance="solid"
                 color="amber"
-                size="md"
+                size="sm"
                 fullWidth
                 loading={isToggling}
                 onClick={() => toggleCompleted(true)}
@@ -394,7 +459,7 @@ export function VisitCard({
                 type="button"
                 appearance="outline"
                 color="neutral"
-                size="md"
+                size="sm"
                 fullWidth
                 disabled={isToggling}
                 onClick={openMissed}
@@ -402,50 +467,6 @@ export function VisitCard({
                 <Button.Icon icon={X} />
                 <Button.Title>Não deu</Button.Title>
               </Button.Root>
-            </div>
-          )}
-
-          {!isCompact && (showPriority || showStatusBadge) && (
-            <div className="mt-8 flex flex-col gap-4">
-              <Divider.Root className="mb-4" />
-              {showPriority && priority && (
-                <FactoryScoreHint chips={scoreChips} title={hintTitle}>
-                  <Badge.Root
-                    fullWidth
-                    color={priority.tone}
-                    appearance="tinted"
-                    title={
-                      scoreChips.length
-                        ? undefined
-                        : `Score ${scoreValue?.toFixed(0)}`
-                    }
-                    className={cn(scoreChips.length > 0 && "cursor-help")}
-                  >
-                    <Badge.Dot />
-                    <Badge.Text>
-                      {priority.label} · {scoreValue?.toFixed(0)}
-                    </Badge.Text>
-                  </Badge.Root>
-                </FactoryScoreHint>
-              )}
-              {showStatusBadge && (
-                <Badge.Root
-                  fullWidth
-                  color={VISIT_STATUS_COLOR[status]}
-                  appearance="tinted"
-                  title={isAwaitingSignal ? AWAITING_SIGNAL_HINT : undefined}
-                >
-                  {isAwaitingSignal && (
-                    <Badge.Icon>
-                      <CloudUpload />
-                    </Badge.Icon>
-                  )}
-                  <Badge.Text>
-                    {VISIT_STATUS_LABEL[status]}
-                    {isAwaitingSignal ? " · aguardando sinal" : ""}
-                  </Badge.Text>
-                </Badge.Root>
-              )}
             </div>
           )}
         </Card.Body>

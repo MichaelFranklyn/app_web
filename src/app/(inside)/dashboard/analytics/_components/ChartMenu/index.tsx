@@ -32,6 +32,12 @@ interface Props {
   onDownloadCsv: () => void;
 }
 
+// Só-ícone (não esticar no cabeçalho do card no celular) com área de toque de
+// 44,8px no dedo: o quadrado sm tem 32,8; o ::after amplia o alvo sem mudar o
+// desenho nem o alinhamento com o título.
+const TOUCH_HIT_AREA =
+  "relative pointer-coarse:after:absolute pointer-coarse:after:-inset-[6px] pointer-coarse:after:content-['']";
+
 /** Ícone da variação de forma conforme o rótulo. */
 const variantIcon = (label: string) => {
   if (label.includes("Linha") || label.includes("Área")) return LineChart;
@@ -101,7 +107,9 @@ export function ChartMenu({
           color="neutral"
           size="sm"
           disabled={disabled}
-          aria-label="Opções do gráfico"
+          isIconOnly
+          label="Opções do gráfico"
+          className={TOUCH_HIT_AREA}
         >
           <Button.Icon icon={MoreHorizontal} />
         </Button.Root>

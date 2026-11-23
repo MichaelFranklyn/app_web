@@ -6,7 +6,7 @@ import { formatMoney, formatNumber } from "@/utils/format/masks";
 
 import { CHART_HELP } from "../../chartHelp";
 import { ChartFilters } from "../../interface";
-import { storyStep } from "../../storyParts";
+import { storyLabelById, storyStep } from "../../storyParts";
 import { AnalyticsSection } from "../AnalyticsSection";
 import { EntityMonthSeriesChart } from "../EntityMonthSeriesChart";
 import { REVENUE_BY_SELLER_MONTH_QUERY } from "../EntityMonthSeriesChart/gql";
@@ -42,7 +42,7 @@ export function SalesTeamSection({ filters, canCompareSellers }: Props) {
     <AnalyticsSection
       id="vendas"
       step={storyStep("vendas")}
-      title={canCompareSellers ? "Quem vende e como vende" : "Como você vende"}
+      title={storyLabelById("vendas", canCompareSellers)}
       description="O trabalho de campo: visita que virou pedido, carteira trabalhada e tamanho da venda."
     >
       <Grid.Root cols={{ base: 1, desktop: 2 }} gap={12}>

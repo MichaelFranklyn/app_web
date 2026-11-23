@@ -22,6 +22,12 @@ export const tabsStyles = {
     "group/tabs flex overflow-x-auto overflow-y-hidden overscroll-x-contain hide-scrollbar mb-[24px]",
     "shadow-[inset_0_-1px_0_var(--border)]"
   ),
+  // Borda esmaecida quando há aba escondida daquele lado (`useScrollEdges`
+  // escreve os data-attributes). Sem nada escondido a máscara é opaca inteira.
+  listEdgeFade: cn(
+    "[--fade-l:0px] [--fade-r:0px] data-fade-start:[--fade-l:40px] data-fade-end:[--fade-r:40px]",
+    "[mask-image:linear-gradient(to_right,transparent,#000_var(--fade-l),#000_calc(100%-var(--fade-r)),transparent)]"
+  ),
   listFilled: cn(
     // O halo de foco dentro de overflow-x-auto é cortado: a trilha tem p-[3px].
     // Compacta: na altura de um campo `sm` (~34px), não um bloco que pesa mais
@@ -35,6 +41,8 @@ export const tabsStyles = {
   item: cn(
     "shrink-0 whitespace-nowrap",
     "relative px-[18px] py-[10px] text-body-sm text-(--color-text-muted)",
+    // No toque a aba `line` chega a 44px de altura (tinha 41).
+    "group-data-[variant=line]/tabs:pointer-coarse:py-[12px]",
     "cursor-pointer transition-colors duration-150 focus-ring",
     "hover:text-(--color-text)",
     // Traço da aba num ::after (não border-b): cresce do centro ao ativar, e no

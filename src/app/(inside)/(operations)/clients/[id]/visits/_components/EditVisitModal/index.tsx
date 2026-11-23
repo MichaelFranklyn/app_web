@@ -8,15 +8,15 @@ import { useInvalidateQueriesClient } from "@/hooks/useInvalidateQueries";
 import { VISIT_CACHE_FIELDS } from "@/utils/cacheFields";
 import { useMutation } from "@apollo/client/react";
 import { Pencil } from "lucide-react";
-import { useRef, useState } from "react";
+import { useMemo, useRef, useState } from "react";
 import { UPDATE_VISIT_SCHEDULE_ITEM_MUTATION } from "./gql";
 import { EditVisitModalProps, UpdateVisitResponse } from "./interface";
 import {
-  EDIT_VISIT_FORM_STEPS,
   VISIT_OUTCOME_OPTIONS,
-  VISIT_STATUS_OPTIONS,
+  editVisitFormSteps,
   normalizeVisitInput,
 } from "./utils";
+import { visitStatusOptionsFor } from "@/utils/visit";
 
 export function EditVisitModal({
   visit,
@@ -39,6 +39,7 @@ export function EditVisitModal({
     UPDATE_VISIT_SCHEDULE_ITEM_MUTATION
   );
   const { execute, isLoading } = useAsyncAction();
+  const steps = useMemo(() => editVisitFormSteps(visit.status), [visit.status]);
 
   const handleSubmit = async (data: Record<string, unknown>) => {
     const input = normalizeVisitInput(data, visit);
@@ -103,13 +104,14 @@ export function EditVisitModal({
         <Modal.Body>
           <FormBuilder
             ref={formRef}
-            steps={EDIT_VISIT_FORM_STEPS}
+            steps={steps}
             onSubmit={handleSubmit}
             loading={isLoading}
             initialData={{
               status:
-                VISIT_STATUS_OPTIONS.find((o) => o.value === visit.status) ??
-                null,
+                visitStatusOptionsFor(visit.status).find(
+                  (o) => o.value === visit.status
+                ) ?? null,
               outcome:
                 VISIT_OUTCOME_OPTIONS.find((o) => o.value === visit.outcome) ??
                 null,

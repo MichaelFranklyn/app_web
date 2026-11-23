@@ -4,7 +4,7 @@ import { Avatar } from "@/components/Avatar";
 import { Title } from "@/components/Title";
 import { useCompanyBranding } from "@/hooks/useCompanyBranding";
 import { cn } from "@/lib/utils";
-import { companyInitials } from "@/utils/company";
+import { companyDisplayName, companyInitials } from "@/utils/company";
 import { mediaUrl } from "@/utils/media";
 
 /**
@@ -17,7 +17,8 @@ import { mediaUrl } from "@/utils/media";
  * cada navegação incomodaria mais do que ajuda.
  */
 export function CompanyBadge({ className }: { className?: string }) {
-  const { name, avatarUrl } = useCompanyBranding();
+  const { name: rawName, avatarUrl } = useCompanyBranding();
+  const name = companyDisplayName(rawName);
 
   if (!name) return null;
 

@@ -1,6 +1,7 @@
 import type { EChartsCoreOption } from "echarts/core";
 
 import {
+  axisLabelFormatter,
   baseGrid,
   categoryAxis,
   SERIES_BLUE,
@@ -28,7 +29,7 @@ export const buildRevenueByFactoryOption = (
       ...valueAxis,
       axisLabel: {
         ...valueAxis.axisLabel,
-        formatter: (v: number) => formatMoney(v),
+        formatter: axisLabelFormatter(formatMoney),
       },
     },
     yAxis: {

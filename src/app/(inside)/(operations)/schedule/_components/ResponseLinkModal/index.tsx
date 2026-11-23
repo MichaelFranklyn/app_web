@@ -6,6 +6,7 @@ import { Modal } from "@/components/Modal";
 import { ShareLinkBox } from "@/components/ShareLinkBox";
 import { Title } from "@/components/Title";
 import { useAsyncAction } from "@/hooks/useAsyncAction";
+import { useUserRole } from "@/services/flowTour/useUserRole";
 import { formatDate } from "@/utils/format/date";
 import { Link2 } from "lucide-react";
 import { useState } from "react";
@@ -25,7 +26,28 @@ interface Props {
    */
   dateLabel: string;
   isEmpty: boolean;
+  /**
+   * Aberto pelo pai (item de um menu "Mais ações"): sem botão próprio. Sem
+   * estas props o modal traz o seu gatilho, como antes.
+   */
+  open?: boolean;
+  onOpenChange?: (open: boolean) => void;
 }
+
+// Quem abre é o próprio vendedor ou o gestor: o texto fala com quem lê —
+// "mandar ao vendedor" para o próprio vendedor não fazia sentido.
+const AUDIENCE = {
+  manager: {
+    description:
+      "O vendedor abre no celular, marca como foi cada visita e o sistema atualiza a rotina sozinho.",
+    issue: "Ao gerar, você recebe um endereço para mandar ao vendedor.",
+  },
+  self: {
+    description:
+      "Abra no celular, marque como foi cada visita e o sistema atualiza a rotina sozinho.",
+    issue: "Ao gerar, você recebe um endereço para abrir no celular.",
+  },
+} as const;
 
 const COPY = {
   day: {
@@ -52,8 +74,17 @@ const COPY = {
  * Por isso o modal avisa ANTES de gerar: quem já está com a folha na mão
  * perderia o QR sem saber.
  */
-export function ResponseLinkModal({ scope, dateLabel, isEmpty }: Props) {
-  const [isOpen, setIsOpen] = useState(false);
+export function ResponseLinkModal({
+  scope,
+  dateLabel,
+  isEmpty,
+  open,
+  onOpenChange,
+}: Props) {
+  const [ownOpen, setOwnOpen] = useState(false);
+  const isControlled = open !== undefined;
+  const isOpen = isControlled ? open : ownOpen;
+  const audience = AUDIENCE[useUserRole() === "SELLER" ? "self" : "manager"];
   const [issued, setIssued] = useState<IssuedResponseLink | null>(null);
   const { execute, isLoading } = useAsyncAction();
   const issueLink = useIssueResponseLink(scope);
@@ -62,7 +93,8 @@ export function ResponseLinkModal({ scope, dateLabel, isEmpty }: Props) {
   // A URL só existe na memória da aba: fechar o modal a esquece, para ninguém
   // achar que dá para voltar e copiar de novo mais tarde.
   const handleOpenChange = (open: boolean) => {
-    setIsOpen(open);
+    if (isControlled) onOpenChange?.(open);
+    else setOwnOpen(open);
     if (!open) setIssued(null);
   };
 
@@ -75,24 +107,23 @@ export function ResponseLinkModal({ scope, dateLabel, isEmpty }: Props) {
 
   return (
     <Modal.Root open={isOpen} onOpenChange={handleOpenChange}>
-      <Modal.Trigger asChild>
-        <Button.Root
-          appearance="outline"
-          color="neutral"
-          size="sm"
-          disabled={isEmpty}
-          title={copy.hint}
-        >
-          <Button.Icon icon={Link2} />
-          <Button.Title>Link de resposta</Button.Title>
-        </Button.Root>
-      </Modal.Trigger>
+      {!isControlled && (
+        <Modal.Trigger asChild>
+          <Button.Root
+            appearance="outline"
+            color="neutral"
+            size="sm"
+            disabled={isEmpty}
+            title={copy.hint}
+          >
+            <Button.Icon icon={Link2} />
+            <Button.Title>Link de resposta</Button.Title>
+          </Button.Root>
+        </Modal.Trigger>
+      )}
 
       <Modal.Content size="lg">
-        <Modal.Header
-          title={copy.title}
-          description="O vendedor abre no celular, marca como foi cada visita e o sistema atualiza a rotina sozinho."
-        />
+        <Modal.Header title={copy.title} description={audience.description} />
 
         <Modal.Body>
           {issued ? (
@@ -112,8 +143,7 @@ export function ResponseLinkModal({ scope, dateLabel, isEmpty }: Props) {
           ) : (
             <div className="flex flex-col gap-12">
               <Title variant="body-sm">
-                Ao gerar, você recebe um endereço para mandar ao vendedor.{" "}
-                {copy.scopeText}
+                {audience.issue} {copy.scopeText}
               </Title>
               <Alert.Root variant="warning">
                 <Alert.Description>

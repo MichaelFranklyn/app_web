@@ -1,3 +1,4 @@
+import { plural } from "@/utils/format/plural";
 import { SERIES_BLUE, SERIES_GREEN } from "@/components/Chart/chartTheme";
 import type { QueryFilter } from "@/hooks/useTableData";
 import type { FieldConfig } from "@/hooks/useTableFilters";
@@ -100,11 +101,11 @@ export const buildPlacedByFactoryOption = (
       const pending = point.orderCount - point.invoicedCount;
       return [
         point.entityName,
-        `Colocado: <b>${formatMoney(point.total)}</b> em ${point.orderCount} pedido(s)`,
+        `Colocado: <b>${formatMoney(point.total)}</b> em ${plural(point.orderCount, "pedido", "pedidos")}`,
         `Já faturado: <b>${formatMoney(point.invoicedAmount)}</b> (${point.invoicedCount})`,
         mutedLine(
           pending > 0
-            ? `${pending} pedido(s) ainda na fábrica`
+            ? `${plural(pending, "pedido", "pedidos")} ainda na fábrica`
             : "nada pendente nesta fábrica"
         ),
       ];

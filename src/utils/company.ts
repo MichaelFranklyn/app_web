@@ -42,3 +42,46 @@ export const companyInitials = (name?: string | null): string =>
     .slice(0, 2)
     .map((part) => part.match(/\p{L}/u)?.[0].toUpperCase() ?? "")
     .join("");
+
+/** Palavras que ficam minúsculas no meio do nome ("Comércio de Tintas"). */
+const NAME_CONNECTORS = new Set(["de", "da", "do", "das", "dos", "e"]);
+/** Siglas societárias que continuam em caixa alta ("Menezes Ltda" não). */
+const NAME_ACRONYMS = new Set([
+  "LTDA",
+  "ME",
+  "EPP",
+  "EIRELI",
+  "SA",
+  "S/A",
+  "S.A",
+  "S.A.",
+]);
+
+/**
+ * Nome de empresa para exibição. A razão social vem da Receita em CAIXA ALTA
+ * ("MENEZES REPRESENTACOES") e no topo do sistema parecia um grito; vira
+ * "Menezes Representacoes". Só mexe em nome TODO maiúsculo: o que a empresa
+ * digitou com caixa própria (apelido, "iFood Repres.") fica como está.
+ */
+export const companyDisplayName = (name?: string | null): string => {
+  const trimmed = (name ?? "").trim().replace(/\s+/g, " ");
+  if (!trimmed || trimmed !== trimmed.toLocaleUpperCase("pt-BR"))
+    return trimmed;
+  return trimmed
+    .split(" ")
+    .map((word, index) => {
+      // "LTDA." com ponto final continua sigla: compara sem a pontuação do
+      // fim e devolve a palavra como veio.
+      if (
+        NAME_ACRONYMS.has(word) ||
+        NAME_ACRONYMS.has(word.replace(/[.,;]+$/, ""))
+      )
+        return word;
+      const lower = word.toLocaleLowerCase("pt-BR");
+      if (index > 0 && NAME_CONNECTORS.has(lower)) return lower;
+      return lower.replace(/\p{L}/u, (letter) =>
+        letter.toLocaleUpperCase("pt-BR")
+      );
+    })
+    .join(" ");
+};

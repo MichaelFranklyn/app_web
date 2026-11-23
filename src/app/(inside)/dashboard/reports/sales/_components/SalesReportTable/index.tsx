@@ -9,6 +9,7 @@ import { Pagination } from "@/components/Pagination";
 import { Table, TableSort } from "@/components/Table";
 import { clientName, factoryName } from "@/utils/company";
 import { formatDateDMY, formatMoney } from "@/utils/format/masks";
+import { plural } from "@/utils/format/plural";
 import { Receipt } from "lucide-react";
 
 import {
@@ -32,6 +33,9 @@ interface Props {
   setCurrentPage: (page: number) => void;
   totalPages: number;
   totalItems: number;
+  /** Coluna Vendedor só para quem vê mais de um vendedor: para o vendedor ela
+   * repetiria o próprio nome em toda linha. */
+  showSeller: boolean;
 }
 
 /**
@@ -54,7 +58,9 @@ export function SalesReportTable({
   setCurrentPage,
   totalPages,
   totalItems,
+  showSeller,
 }: Props) {
+  const columns = showSeller ? 8 : 7;
   const pageAmount = sumBy(items, (order) => order.totalAmount);
   const pageCommission = sumBy(items, (order) => visibleCommission(order));
   const isNarrowed = Object.values(inputValues).some(Boolean);
@@ -83,7 +89,9 @@ export function SalesReportTable({
         </Table.CardHead.Actions>
       </Table.CardHead>
 
-      <Table.Table>
+      {/* Abaixo do desktop cada pedido vira um cartão: as 8 colunas rolavam
+          para o lado em 360px e o valor ficava fora da tela. */}
+      <Table.Table cards>
         <Table.Header>
           <Table.Row>
             <Table.Head sortKey="invoiced_at" sortFirst="desc">
@@ -97,7 +105,7 @@ export function SalesReportTable({
                 nome na tabela vizinha. */}
             <Table.Head>Cliente</Table.Head>
             <Table.Head>Fábrica</Table.Head>
-            <Table.Head>Vendedor</Table.Head>
+            {showSeller && <Table.Head>Vendedor</Table.Head>}
             <Table.Head sortKey="status">Situação</Table.Head>
             <Table.Head sortKey="total_amount" sortFirst="desc">
               Valor
@@ -110,10 +118,10 @@ export function SalesReportTable({
 
         <Table.Body>
           {loading && items.length === 0 ? (
-            <Table.Skeleton columns={8} rows={8} />
+            <Table.Skeleton columns={columns} rows={8} />
           ) : items.length === 0 ? (
             <Table.Row>
-              <Table.Cell colSpan={8}>
+              <Table.Cell colSpan={columns}>
                 <EmptyState.Root flat>
                   <EmptyState.Icon>
                     <Receipt size={32} />
@@ -134,22 +142,45 @@ export function SalesReportTable({
           ) : (
             items.map((order) => (
               <Table.Row key={order.id} href={`/orders/${order.id}`}>
-                <Table.Cell variant="strong" className="whitespace-nowrap">
-                  {order.invoicedAt ? formatDateDMY(order.invoicedAt) : "—"}
+                <Table.Cell
+                  variant="strong"
+                  className="whitespace-nowrap"
+                  label="Faturamento"
+                  emptyText="Não faturado"
+                >
+                  {order.invoicedAt ? formatDateDMY(order.invoicedAt) : ""}
                 </Table.Cell>
-                <Table.Cell variant="dim" className="whitespace-nowrap">
+                <Table.Cell
+                  variant="dim"
+                  className="whitespace-nowrap"
+                  label="Data do pedido"
+                >
                   {formatDateDMY(order.orderDate)}
                 </Table.Cell>
-                <Table.Cell variant="strong" title={clientName(order.client)}>
+                <Table.Cell
+                  variant="strong"
+                  title={clientName(order.client)}
+                  card="title"
+                >
                   {clientName(order.client)}
                 </Table.Cell>
-                <Table.Cell variant="dim" title={factoryName(order.factory)}>
+                <Table.Cell
+                  variant="dim"
+                  title={factoryName(order.factory)}
+                  label="Fábrica"
+                >
                   {factoryName(order.factory)}
                 </Table.Cell>
-                <Table.Cell variant="dim">
-                  {order.seller?.name ?? "—"}
-                </Table.Cell>
-                <Table.Cell>
+                {showSeller && (
+                  <Table.Cell
+                    variant="dim"
+                    label="Vendedor"
+                    emptyText="Sem vendedor"
+                  >
+                    {order.seller?.name ?? ""}
+                  </Table.Cell>
+                )}
+                <Table.Cell card="status">
                   <Badge.Root
                     color={orderStatusTone(order.status)}
                     appearance="tinted"
@@ -157,10 +188,18 @@ export function SalesReportTable({
                     <Badge.Text>{orderStatusLabel(order.status)}</Badge.Text>
                   </Badge.Root>
                 </Table.Cell>
-                <Table.Cell variant="strong" className="whitespace-nowrap">
+                <Table.Cell
+                  variant="strong"
+                  className="whitespace-nowrap"
+                  card="value"
+                >
                   {formatMoney(order.totalAmount)}
                 </Table.Cell>
-                <Table.Cell variant="dim" className="whitespace-nowrap">
+                <Table.Cell
+                  variant="dim"
+                  className="whitespace-nowrap"
+                  label="Comissão"
+                >
                   {formatMoney(visibleCommission(order))}
                 </Table.Cell>
               </Table.Row>
@@ -176,7 +215,7 @@ export function SalesReportTable({
           )}
           {/* Sem linhas quem fala é o estado vazio, não o rodapé. */}
           {totalItems > 0 &&
-            `${totalItems} pedidos · página ${currentPage} de ${totalPages} · nesta página: ${formatMoney(pageAmount)} (comissão ${formatMoney(pageCommission)})`}
+            `${plural(totalItems, "pedido", "pedidos")} · página ${currentPage} de ${totalPages} · nesta página: ${formatMoney(pageAmount)} (comissão ${formatMoney(pageCommission)})`}
         </Table.Footer.Info>
 
         <Pagination.Smart

@@ -237,7 +237,7 @@ describe("useCommissionsReport — paginado no servidor", () => {
     expect(money(result.current.kpis[0].value)).toBe("R$ 300,00");
     expect(money(result.current.kpis[1].value)).toBe("R$ 200,00");
     expect(money(result.current.kpis[3].value)).toBe("R$ 500,00");
-    expect(result.current.kpis[0].hint).toContain("1 parcela(s)");
+    expect(result.current.kpis[0].hint).toContain("1 parcela");
   });
 
   it("para quem gerencia, mostra o que fica e o que é repassado", async () => {

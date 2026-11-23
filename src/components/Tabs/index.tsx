@@ -4,11 +4,12 @@ import * as TabsPrimitive from "@radix-ui/react-tabs";
 import { cn } from "@/lib/utils";
 import Link from "next/link";
 import { usePathname, useRouter, useSearchParams } from "next/navigation";
-import React from "react";
+import React, { useEffect, useRef } from "react";
 import { announceNavigation } from "@/components/AppFrame/navigationSignal";
 import { List, Item, Content } from "./List";
 import { Filter, FilterItem } from "./Filter";
 import { tabsStyles, TabsVariant } from "./List/style";
+import { useScrollEdges } from "./useScrollEdges";
 
 type RootProps = React.ComponentPropsWithoutRef<typeof TabsPrimitive.Root> & {
   urlParam?: string;
@@ -54,18 +55,22 @@ Root.displayName = "Tabs.Root";
 const NavList = React.forwardRef<
   HTMLDivElement,
   React.HTMLAttributes<HTMLDivElement> & { variant?: TabsVariant }
->(({ className, variant = "line", ...props }, ref) => (
-  <div
-    ref={ref}
-    data-variant={variant}
-    className={cn(
-      tabsStyles.list,
-      variant === "filled" && tabsStyles.listFilled,
-      className
-    )}
-    {...props}
-  />
-));
+>(({ className, variant = "line", ...props }, ref) => {
+  const edgesRef = useScrollEdges(ref);
+  return (
+    <div
+      ref={edgesRef}
+      data-variant={variant}
+      className={cn(
+        tabsStyles.list,
+        tabsStyles.listEdgeFade,
+        variant === "filled" && tabsStyles.listFilled,
+        className
+      )}
+      {...props}
+    />
+  );
+});
 NavList.displayName = "Tabs.NavList";
 
 type NavItemProps = Omit<
@@ -86,8 +91,25 @@ const NavItem = ({ href, exact, className, ...props }: NavItemProps) => {
   const isActive = exact
     ? pathname === target
     : pathname === target || pathname.startsWith(`${target}/`);
+  const ref = useRef<HTMLAnchorElement>(null);
+
+  // A aba ativa pode estar fora da faixa (a 11ª dos relatórios, no celular).
+  // Rola só a FAIXA, nunca a página: `scrollIntoView` mexeria na vertical.
+  useEffect(() => {
+    const el = ref.current;
+    const strip = el?.parentElement;
+    if (!isActive || !el || !strip) return;
+    if (strip.scrollWidth <= strip.clientWidth) return;
+    const left = el.offsetLeft - strip.offsetLeft;
+    const fits =
+      left >= strip.scrollLeft &&
+      left + el.offsetWidth <= strip.scrollLeft + strip.clientWidth;
+    if (!fits) strip.scrollLeft = left - 32;
+  }, [isActive]);
+
   return (
     <Link
+      ref={ref}
       href={href}
       data-state={isActive ? "active" : "inactive"}
       aria-current={isActive ? "page" : undefined}

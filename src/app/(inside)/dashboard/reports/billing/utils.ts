@@ -45,9 +45,10 @@ export const sumBy = (
   pick: (row: BillingRow) => string
 ): number => rows.reduce((total, row) => total + Number(pick(row) || 0), 0);
 
-/** "3 dias" / "1 dia" — o atraso escrito por extenso. */
+/** "3 dias" / "1 dia" — o atraso escrito por extenso; "Em dia" sem atraso (o
+ * traço, na tabela e no PDF, parecia dado que faltou). */
 export const overdueLabel = (days: number): string => {
-  if (days <= 0) return "—";
+  if (days <= 0) return "Em dia";
   return days === 1 ? "1 dia" : `${days} dias`;
 };
 

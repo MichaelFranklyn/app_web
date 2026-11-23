@@ -1,5 +1,6 @@
 import { expect, test } from "../support/fixtures";
 import { mockGraphql } from "../support/graphql";
+import { grantRole } from "../support/role";
 
 /**
  * A aba "Últimas compras" (/dashboard/reports/purchases).
@@ -240,6 +241,8 @@ test("todos os clientes que compraram de uma fábrica, com quem vendeu", async (
       ]),
   });
 
+  // A coluna Vendedor só aparece para quem escolhe vendedor (gestor).
+  await grantRole(page, "OWNER");
   await page.goto("/dashboard/reports/purchases");
   await expect(page.getByText("ALFA MATERIAIS")).toBeVisible();
   // O vendedor de cada linha está na tabela.

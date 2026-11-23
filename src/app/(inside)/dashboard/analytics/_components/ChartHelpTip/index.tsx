@@ -79,7 +79,8 @@ export function ChartHelpTip({ title, help, insight }: Props) {
         shape="pill"
         isIconOnly
         label={`O que o gráfico "${title}" está mostrando`}
-        className="cursor-help"
+        // xs tem 28,8px; no dedo o ::after leva o alvo a 44,8 sem mudar o desenho.
+        className="relative cursor-help pointer-coarse:after:absolute pointer-coarse:after:-inset-[8px] pointer-coarse:after:content-['']"
         onClick={() => setOpen(true)}
       >
         <Button.Icon icon={Info} />

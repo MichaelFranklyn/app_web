@@ -1,6 +1,7 @@
 import type { EChartsCoreOption } from "echarts/core";
 
 import {
+  axisLabelFormatter,
   baseGrid,
   categoryAxis,
   tooltipBase,
@@ -57,7 +58,7 @@ export const buildEntityRankingOption = (
       ...valueAxis,
       axisLabel: {
         ...valueAxis.axisLabel,
-        formatter: (v: number) => valueFormatter(v),
+        formatter: axisLabelFormatter(valueFormatter),
       },
     },
     yAxis: {

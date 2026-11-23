@@ -4,11 +4,14 @@ import {
   asContactType,
   contactLabel,
   contactNoun,
+  isVisitStatusLocked,
+  lockedVisitStatusHint,
   outcomeOptionsFor,
   VISIT_OUTCOME_OPTIONS,
   VISIT_STATUS_COLOR,
   VISIT_STATUS_LABEL,
   VISIT_STATUS_OPTIONS,
+  visitStatusOptionsFor,
 } from "./visit";
 
 describe("catálogos de visita", () => {
@@ -69,5 +72,37 @@ describe("tipo de toque tolera valor ausente", () => {
     expect(outcomeOptionsFor("REMOTE").map((o) => o.value)).toContain(
       "WANTS_VISIT"
     );
+  });
+});
+
+describe("status de visita que saiu do dia", () => {
+  it.each(["RESCHEDULED", "CANCELLED", "SKIPPED_BY_CUSTOMER"])(
+    "%s fica só para leitura, com explicação",
+    (status) => {
+      expect(isVisitStatusLocked(status)).toBe(true);
+      expect(lockedVisitStatusHint(status)).toMatch(/não muda mais/);
+    }
+  );
+
+  it.each([
+    "PENDING",
+    "COMPLETED",
+    "CLIENT_ABSENT",
+    "NO_TIME",
+    null,
+    undefined,
+  ])("%s continua editável", (status) => {
+    expect(isVisitStatusLocked(status)).toBe(false);
+    expect(lockedVisitStatusHint(status)).toBeUndefined();
+  });
+
+  it("cliente adiou aparece no select só quando é o status atual", () => {
+    const values = (s: string) => visitStatusOptionsFor(s).map((o) => o.value);
+    expect(values("PENDING")).not.toContain("SKIPPED_BY_CUSTOMER");
+    expect(visitStatusOptionsFor("SKIPPED_BY_CUSTOMER")).toContainEqual({
+      value: "SKIPPED_BY_CUSTOMER",
+      label: VISIT_STATUS_LABEL.SKIPPED_BY_CUSTOMER,
+    });
+    expect(visitStatusOptionsFor("RESCHEDULED")).toBe(VISIT_STATUS_OPTIONS);
   });
 });

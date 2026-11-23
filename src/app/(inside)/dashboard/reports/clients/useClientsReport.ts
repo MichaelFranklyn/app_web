@@ -31,10 +31,11 @@ export const CLIENTS_PER_PAGE = 20;
 /**
  * Os dados do relatório de clientes.
  *
- * Este relatório é um RETRATO da carteira, não um recorte de período: os cartões e
- * a tabela respondem "como está a carteira hoje". O período do filtro governa o
- * gráfico de atraso, que é o único número aqui que depende de um intervalo (o
- * ritmo de compra de cada cliente sai dos pedidos do período).
+ * Este relatório é um RETRATO da carteira, não um recorte de período: cartões,
+ * gráfico e tabela respondem "como está a carteira hoje". O gráfico de atraso
+ * mede o ritmo pelo histórico INTEIRO, como o KPI "Atrasados para voltar" —
+ * medido pelo período, ele dizia "Sem dados" ao lado de um KPI de 15
+ * (crítica de 20/11/2026), e a tela se contradizia.
  */
 export const useClientsReport = (filters: ReportFilters) => {
   const apollo = useApolloClient();
@@ -80,12 +81,7 @@ export const useClientsReport = (filters: ReportFilters) => {
 
   const riskQuery = useQuery<ClientsAtRiskResponse>(CLIENTS_AT_RISK_QUERY, {
     fetchPolicy: "cache-and-network",
-    variables: {
-      from: filters.from,
-      to: filters.to,
-      sellerId: filters.sellerId,
-      limit: 10,
-    },
+    variables: { sellerId: filters.sellerId, limit: 10 },
   });
   const riskPoints = useMemo(
     () => riskQuery.data?.clientsAtRisk ?? [],
@@ -102,21 +98,24 @@ export const useClientsReport = (filters: ReportFilters) => {
         status: "neutral",
       },
       {
+        // `activeClients` conta o CADASTRO ativo (não desativado), não quem
+        // comprou: o "com compra recente" de antes dizia 50 ativos numa
+        // carteira com 12 clientes que nunca compraram.
         label: "Ativos",
         value: String(stats?.activeClients ?? 0),
-        hint: "com compra recente",
+        hint: "cadastro ativo, não desativados",
         status: "neutral",
       },
       {
         label: "Atrasados para voltar",
         value: String(stats?.atRiskClients ?? 0),
-        hint: "passaram do próprio ritmo",
+        hint: "passaram do próprio ritmo (2+ pedidos)",
         status: (stats?.atRiskClients ?? 0) > 0 ? "atencao" : "ok",
       },
       {
         label: "Sem visita há 30 dias",
         value: String(stats?.noVisit30d ?? 0),
-        hint: "nenhuma visita registrada",
+        hint: "nenhuma visita nos últimos 30 dias",
         status: (stats?.noVisit30d ?? 0) > 0 ? "urgente" : "ok",
       },
     ],

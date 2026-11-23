@@ -1,3 +1,4 @@
+import { plural } from "@/utils/format/plural";
 import {
   SERIES_CYAN,
   SERIES_GREEN,
@@ -70,7 +71,7 @@ export const buildExecutionOption = (
       if (!row) return [];
       return [
         row.sellerName,
-        `Execução: <b>${formatPercent(row.executionRate)}</b> de ${row.planned} planejada(s)`,
+        `Execução: <b>${formatPercent(row.executionRate)}</b> de ${plural(row.planned, "planejada", "planejadas")}`,
         `Registradas: ${recordedByPerson(row)} · pelo pedido: ${row.workedInferred}`,
         `Aguardando resposta: ${row.pending}`,
         `Fechadas sem resposta: ${row.autoClosed}`,

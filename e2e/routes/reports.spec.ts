@@ -477,7 +477,10 @@ test("o recorte sobrevive à troca de aba", async ({ page }) => {
   await page.goto(
     "/dashboard/reports/sales?from=2026-05-01&to=2026-05-31&seller=seller-1"
   );
-  await expect(page.getByText("Pedidos faturados").first()).toBeVisible();
+  // Maio sem venda: a aba mostra o vazio único no lugar de KPIs zerados.
+  await expect(
+    page.getByRole("heading", { name: "Nada neste período" })
+  ).toBeVisible();
 
   // Quem filtrou maio de um vendedor e clica na aba seguinte espera continuar em
   // maio daquele vendedor — não recomeçar do mês corrente.

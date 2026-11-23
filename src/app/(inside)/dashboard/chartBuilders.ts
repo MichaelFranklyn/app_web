@@ -1,4 +1,5 @@
 import {
+  axisLabelFormatter,
   baseGrid,
   categoryAxis,
   CHART_INK_MUTED,
@@ -25,6 +26,19 @@ const topLegend = {
   textStyle: { fontSize: 12 },
 };
 
+/**
+ * Tira as séries que são zero em toda categoria. Uma série vazia só ocupa a
+ * legenda e se esconde atrás das outras ("Previsto" em zero cobria a linha de
+ * "Recebido"; "Prazo prometido" na legenda sem nenhuma barra). Se todas forem
+ * vazias, devolve como veio — o gráfico decide o estado vazio.
+ */
+export const withoutEmptySeries = <T extends { data: number[] }>(
+  series: T[]
+): T[] => {
+  const filled = series.filter((s) => s.data.some((v) => Number(v) !== 0));
+  return filled.length > 0 ? filled : series;
+};
+
 export interface StackedSeries {
   name: string;
   color: string;
@@ -46,6 +60,19 @@ export const buildStackedBarOption = (
   series: StackedSeries[],
   valueFormatter: (v: number) => string = String,
   tooltipLines?: (index: number) => string[]
+): EChartsCoreOption =>
+  stackedBarOption(
+    categories,
+    withoutEmptySeries(series),
+    valueFormatter,
+    tooltipLines
+  );
+
+const stackedBarOption = (
+  categories: string[],
+  series: StackedSeries[],
+  valueFormatter: (v: number) => string,
+  tooltipLines?: (index: number) => string[]
 ): EChartsCoreOption => ({
   grid: { ...baseGrid, top: 40 },
   legend: topLegend,
@@ -65,7 +92,7 @@ export const buildStackedBarOption = (
     ...valueAxis,
     axisLabel: {
       ...valueAxis.axisLabel,
-      formatter: (v: number) => valueFormatter(v),
+      formatter: axisLabelFormatter(valueFormatter),
     },
   },
   series: series.map((s, index) => ({
@@ -113,7 +140,7 @@ export const buildVerticalBarOption = (
     minInterval: 1,
     axisLabel: {
       ...valueAxis.axisLabel,
-      formatter: (v: number) => valueFormatter(v),
+      formatter: axisLabelFormatter(valueFormatter),
     },
   },
   series: [
@@ -165,7 +192,7 @@ export const buildBarLineOption = (
       ...valueAxis,
       axisLabel: {
         ...valueAxis.axisLabel,
-        formatter: (v: number) => bar.formatter(v),
+        formatter: axisLabelFormatter(bar.formatter),
       },
     },
     {
@@ -174,7 +201,7 @@ export const buildBarLineOption = (
       splitLine: { show: false },
       axisLabel: {
         ...valueAxis.axisLabel,
-        formatter: (v: number) => line.formatter(v),
+        formatter: axisLabelFormatter(line.formatter),
       },
     },
   ],
@@ -190,7 +217,7 @@ export const buildBarLineOption = (
       name: line.name,
       type: "line",
       yAxisIndex: 1,
-      smooth: true,
+      smooth: false,
       symbol: "circle",
       symbolSize: 7,
       lineStyle: { width: 2, color: line.color },
@@ -228,13 +255,13 @@ export const buildMonthLinesOption = (
     ...valueAxis,
     axisLabel: {
       ...valueAxis.axisLabel,
-      formatter: (v: number) => valueFormatter(v),
+      formatter: axisLabelFormatter(valueFormatter),
     },
   },
-  series: series.map((s) => ({
+  series: withoutEmptySeries(series).map((s) => ({
     name: s.name,
     type: "line",
-    smooth: true,
+    smooth: false,
     symbol: "circle",
     symbolSize: 7,
     lineStyle: { width: 2, color: s.color },
@@ -274,6 +301,7 @@ export const buildHorizontalBarOption = (
   tooltipLines: (index: number) => string[],
   options?: { stacked?: boolean }
 ): EChartsCoreOption => {
+  series = withoutEmptySeries(series);
   // O eixo Y do ECharts cresce de baixo para cima: invertemos para que o
   // primeiro item da lista apareça no topo.
   const order = labels.map((_, index) => labels.length - 1 - index);
@@ -294,7 +322,7 @@ export const buildHorizontalBarOption = (
       ...valueAxis,
       axisLabel: {
         ...valueAxis.axisLabel,
-        formatter: (v: number) => valueFormatter(v),
+        formatter: axisLabelFormatter(valueFormatter),
       },
     },
     yAxis: { ...categoryAxis, data: order.map((i) => labels[i]) },

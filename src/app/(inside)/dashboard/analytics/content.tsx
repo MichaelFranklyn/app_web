@@ -109,6 +109,10 @@ export default function AnalyticsContent({ canSelectSeller }: Props) {
     factoryId: selectedFactoryId,
   };
 
+  // Recorte sem pedido nenhum: a página mostra um aviso só (no lugar dos KPIs)
+  // em vez de sete partes com trinta cartões "Sem dados".
+  const [isEmpty, setIsEmpty] = useState(false);
+
   const { contextValue, downloadPdf, isExporting, listCharts } =
     useAnalyticsPdf();
 
@@ -191,26 +195,34 @@ export default function AnalyticsContent({ canSelectSeller }: Props) {
           />
         )}
 
-        <AnalyticsSummary filters={filters} />
-        <AnalyticsStoryIndex />
+        <AnalyticsSummary
+          filters={filters}
+          canSelectSeller={canSelectSeller}
+          onEmptyChange={setIsEmpty}
+        />
+        {!isEmpty && (
+          <>
+            <AnalyticsStoryIndex canSelectSeller={canSelectSeller} />
 
-        {/* A página conta uma história, e a ordem é o argumento (ver
+            {/* A página conta uma história, e a ordem é o argumento (ver
             storyParts.ts): o resultado, o que o explica, de quem ele depende e
             só então as três pessoas por trás dele — cliente, vendedor e
             fábrica. A comissão fecha porque é consequência de todo o resto. */}
-        <PeriodResultSection filters={filters} />
-        <GrowthDriversSection filters={filters} />
-        <RevenueDependencySection filters={filters} />
-        <ClientPortfolioSection filters={filters} />
-        <SalesTeamSection
-          filters={filters}
-          canCompareSellers={canSelectSeller}
-        />
-        <FactoryServiceSection filters={filters} />
-        <CommissionsSection
-          filters={filters}
-          canCompareSellers={canSelectSeller}
-        />
+            <PeriodResultSection filters={filters} />
+            <GrowthDriversSection filters={filters} />
+            <RevenueDependencySection filters={filters} />
+            <ClientPortfolioSection filters={filters} />
+            <SalesTeamSection
+              filters={filters}
+              canCompareSellers={canSelectSeller}
+            />
+            <FactoryServiceSection filters={filters} />
+            <CommissionsSection
+              filters={filters}
+              canCompareSellers={canSelectSeller}
+            />
+          </>
+        )}
       </PageContent>
     </AnalyticsPrintContext.Provider>
   );

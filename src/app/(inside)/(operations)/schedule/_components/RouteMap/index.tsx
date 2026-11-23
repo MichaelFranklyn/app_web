@@ -2,10 +2,8 @@
 import { Button } from "@/components/Button";
 import { MapFrame } from "@/components/MapFrame";
 
-import { Badge } from "@/components/Badges";
 import { Title } from "@/components/Title";
 import { ExternalLink, MapPin } from "lucide-react";
-import { formatDistanceKm } from "../../utils";
 
 interface Props {
   /**
@@ -13,9 +11,6 @@ interface Props {
    * no outro escritório, quando a rota do dia soma os dois.
    */
   points: string[];
-  /** Quantas paradas o dia tem (a que não tem endereço também conta). */
-  stopCount: number;
-  distanceKm: string;
   departureAddress?: string | null;
 }
 
@@ -24,12 +19,7 @@ interface Props {
 // (Credenciais → restrições de aplicativo → sites) aos domínios do app.
 const MAPS_KEY = process.env.NEXT_PUBLIC_GOOGLE_MAPS_API_KEY;
 
-export function RouteMap({
-  points,
-  stopCount,
-  distanceKm,
-  departureAddress,
-}: Props) {
+export function RouteMap({ points, departureAddress }: Props) {
   const hasPoints = points.length > 0;
 
   // Origem = ponto de partida (se houver) senão a 1ª parada; destino = última.
@@ -64,7 +54,7 @@ export function RouteMap({
 
   return (
     <div className="flex flex-col gap-10">
-      <MapFrame.Root className="h-[360px]">
+      <MapFrame.Root className="h-[280px]">
         {embedUrl ? (
           <MapFrame.Embed title="Mapa da rota" src={embedUrl} />
         ) : (
@@ -91,15 +81,10 @@ export function RouteMap({
         )}
       </MapFrame.Root>
 
-      <div className="flex flex-wrap items-center justify-between gap-8">
-        <Badge.Root color="neutral" appearance="tinted">
-          <Badge.Text>
-            {formatDistanceKm(distanceKm)} · {stopCount}{" "}
-            {stopCount === 1 ? "parada" : "paradas"}
-          </Badge.Text>
-        </Badge.Root>
-        {/* Botão sempre disponível quando o mapa embutido está visível. */}
-        {embedUrl && externalUrl && (
+      {/* A distância e as paradas estão no cabeçalho do card do trajeto;
+        aqui fica só o atalho para o app de mapas. */}
+      {embedUrl && externalUrl && (
+        <div className="flex justify-end">
           <Button.Link
             href={externalUrl}
             external
@@ -109,8 +94,8 @@ export function RouteMap({
             <Button.Icon icon={ExternalLink} />
             <Button.Title>Abrir no Google Maps</Button.Title>
           </Button.Link>
-        )}
-      </div>
+        </div>
+      )}
     </div>
   );
 }

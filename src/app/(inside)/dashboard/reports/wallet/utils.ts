@@ -1,3 +1,4 @@
+import { plural } from "@/utils/format/plural";
 import { SERIES_GREEN } from "@/components/Chart/chartTheme";
 import { formatDateDMY, formatMoney } from "@/utils/format/masks";
 import { SortLabel } from "@/utils/pdf/context";
@@ -37,7 +38,9 @@ export const cadenceLabel = (row: WalletRow): string =>
 
 /** "1,8× o próprio ritmo" — o quanto o cliente passou do que costuma levar. */
 export const riskLabel = (row: WalletRow): string =>
-  row.riskRatio === null ? "—" : `${row.riskRatio.toFixed(1)}×`;
+  row.riskRatio === null
+    ? "—"
+    : `${row.riskRatio.toFixed(1).replace(".", ",")}×`;
 
 /**
  * Como a carteira se reparte entre as situações.
@@ -81,7 +84,7 @@ export const buildSituationOption = (
         report.totalClients > 0 ? entry.count / report.totalClients : 0;
       return [
         SITUATION_LABEL[entry.situation],
-        `<b>${entry.count}</b> de ${report.totalClients} cliente(s) · ${Math.round(share * 100)}%`,
+        `<b>${entry.count}</b> de ${plural(report.totalClients, "cliente", "clientes")} · ${Math.round(share * 100)}%`,
         mutedLine(SITUATION_HINT[entry.situation]),
       ];
     }

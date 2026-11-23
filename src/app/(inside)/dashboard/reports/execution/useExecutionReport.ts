@@ -1,5 +1,6 @@
 "use client";
 
+import { plural } from "@/utils/format/plural";
 import { useLocalTable } from "@/hooks/useLocalTable";
 import { useQueryErrorToast } from "@/hooks/useQueryErrorToast";
 import { useQuery } from "@apollo/client/react";
@@ -57,13 +58,13 @@ export const useExecutionReport = (filters: ReportFilters) => {
       {
         label: "Execução da rotina",
         value: formatPercent(report.executionRate),
-        hint: `${report.worked} de ${report.planned} visita(s) com resposta`,
+        hint: `${report.worked} de ${plural(report.planned, "visita", "visitas")} com resposta`,
         status: executionTone(report.executionRate),
       },
       {
         label: "Registradas pelo vendedor",
         value: String(recorded),
-        hint: `+ ${report.workedInferred} concluída(s) pelo pedido`,
+        hint: `+ ${plural(report.workedInferred, "concluída", "concluídas")} pelo pedido`,
         status: "neutral",
       },
       {

@@ -44,7 +44,7 @@ export function ChartCanvas({
   error,
   onRetry,
   emptyTitle = "Sem dados no período",
-  emptyDescription = "Ajuste o período ou o vendedor no filtro acima.",
+  emptyDescription = "Ajuste os filtros acima.",
 }: Props) {
   const { prefs, registerOption, registerInstance } = useChartCard();
 

@@ -48,7 +48,9 @@ export function AnalyticsSection({
               {step}
             </Title>
           )}
-          <Title variant="heading-sm" weight="semibold">
+          {/* h2: a parte é o nível logo abaixo do título da página (h1); os
+              cards de gráfico dentro dela são h3. */}
+          <Title variant="heading-sm" weight="semibold" as="h2">
             {title}
           </Title>
           {description && (

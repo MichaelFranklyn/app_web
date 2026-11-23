@@ -17,6 +17,9 @@ export const OVERDUE_VISITS_QUERY = gql`
           id
           razaoSocial
           nomeFantasia
+          addressNeighborhood
+          addressCity
+          addressState
         }
         factory {
           id

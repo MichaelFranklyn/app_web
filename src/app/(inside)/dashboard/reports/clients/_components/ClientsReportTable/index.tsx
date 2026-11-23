@@ -9,6 +9,7 @@ import { FilterField, Filters } from "@/components/Filters";
 import { HelpTooltip } from "@/components/HelpTooltip";
 import { Table, TableSort } from "@/components/Table";
 import { formatDateDMY } from "@/utils/format/masks";
+import { plural } from "@/utils/format/plural";
 import { Users } from "lucide-react";
 
 import { ClientReportRow } from "../../interface";
@@ -27,6 +28,8 @@ interface Props {
   setCurrentPage: (page: number) => void;
   totalPages: number;
   totalItems: number;
+  /** Só quem escolhe vendedor vê a coluna: para o vendedor ela seria ele mesmo. */
+  showSeller: boolean;
   /** Campos do painel: cliente, estado e situação do cadastro. */
   filterFields: FilterField[];
   inputValues: Record<string, string>;
@@ -45,6 +48,7 @@ export function ClientsReportTable({
   setCurrentPage,
   totalPages,
   totalItems,
+  showSeller,
   filterFields,
   inputValues,
   setFilter,
@@ -52,6 +56,7 @@ export function ClientsReportTable({
   sort,
 }: Props) {
   const isNarrowed = Object.values(inputValues).some(Boolean);
+  const columns = showSeller ? 9 : 8;
 
   return (
     <Table.Root sort={sort}>
@@ -60,7 +65,7 @@ export function ClientsReportTable({
           Carteira de clientes
           <HelpTooltip
             label="Sobre a carteira de clientes"
-            content="Retrato de hoje: quem está na carteira, quando comprou e quando foi visitado pela última vez. O período do filtro governa só o gráfico de atraso."
+            content="Retrato de hoje: quem está na carteira, quando comprou e quando foi visitado pela última vez. Nenhum número desta aba depende de período."
           />
         </Table.CardHead.Title>
         <Table.CardHead.Actions>
@@ -75,7 +80,7 @@ export function ClientsReportTable({
         </Table.CardHead.Actions>
       </Table.CardHead>
 
-      <Table.Table>
+      <Table.Table cards>
         <Table.Header>
           <Table.Row>
             <Table.Head sortKey="razao_social">Cliente</Table.Head>
@@ -84,7 +89,7 @@ export function ClientsReportTable({
             <Table.Head>Rede</Table.Head>
             {/* Vendedor não ordena: o cliente pode ter vários, e não existe "o
                 vendedor" da linha para comparar. */}
-            <Table.Head>Vendedor</Table.Head>
+            {showSeller && <Table.Head>Vendedor</Table.Head>}
             <Table.Head sortKey="last_order_date" sortFirst="desc">
               Última compra
             </Table.Head>
@@ -103,10 +108,10 @@ export function ClientsReportTable({
 
         <Table.Body>
           {loading && items.length === 0 ? (
-            <Table.Skeleton columns={9} rows={8} />
+            <Table.Skeleton columns={columns} rows={8} />
           ) : items.length === 0 ? (
             <Table.Row>
-              <Table.Cell colSpan={9}>
+              <Table.Cell colSpan={columns}>
                 <EmptyState.Root flat>
                   <EmptyState.Icon>
                     <Users size={32} />
@@ -138,7 +143,12 @@ export function ClientsReportTable({
                       : undefined
                   }
                 >
-                  <Table.Cell variant="strong" title={row.razaoSocial} wrap>
+                  <Table.Cell
+                    variant="strong"
+                    card="title"
+                    title={row.razaoSocial}
+                    wrap
+                  >
                     <span className="inline-flex items-center gap-6">
                       {row.nomeFantasia ?? row.razaoSocial}
                       {row.isNeedsAttention && (
@@ -148,25 +158,50 @@ export function ClientsReportTable({
                       )}
                     </span>
                   </Table.Cell>
-                  <Table.Cell variant="dim" className="whitespace-nowrap">
+                  <Table.Cell
+                    variant="dim"
+                    label="CNPJ"
+                    className="whitespace-nowrap"
+                  >
                     <DocumentNumber value={row.cnpj} />
                   </Table.Cell>
-                  <Table.Cell variant="dim">{cityAndState(row)}</Table.Cell>
-                  <Table.Cell variant="dim">
-                    {row.companyClient?.network?.name ?? "—"}
+                  <Table.Cell
+                    variant="dim"
+                    label="Cidade / UF"
+                    emptyText="Sem endereço"
+                  >
+                    {cityAndState(row)}
                   </Table.Cell>
-                  <Table.Cell variant="dim" title={sellerNames(row)}>
-                    {sellerNames(row)}
+                  <Table.Cell variant="dim" label="Rede" emptyText="Sem rede">
+                    {row.companyClient?.network?.name ?? ""}
                   </Table.Cell>
-                  <Table.Cell variant="dim" className="whitespace-nowrap">
+                  {showSeller && (
+                    <Table.Cell
+                      variant="dim"
+                      label="Vendedor"
+                      emptyText="Sem vendedor"
+                      title={sellerNames(row)}
+                    >
+                      {sellerNames(row)}
+                    </Table.Cell>
+                  )}
+                  {/* Sem data, um traço: o selo vermelho "nunca comprou" da coluna
+                      ao lado já diz o porquê, e repetir a frase aqui era eco. */}
+                  <Table.Cell
+                    variant="dim"
+                    label="Última compra"
+                    emptyText="—"
+                    className="whitespace-nowrap"
+                  >
                     {row.companyClient?.lastOrderDate
                       ? formatDateDMY(row.companyClient.lastOrderDate)
-                      : "—"}
+                      : ""}
                   </Table.Cell>
                   {/* A coluna que decide a visita: destacada quando passou de um
                       mês, e "nunca comprou" é o caso mais urgente de todos. */}
                   <Table.Cell
                     variant={isIdle ? "default" : "dim"}
+                    label="Sem comprar"
                     className="whitespace-nowrap"
                   >
                     {isIdle ? (
@@ -182,12 +217,19 @@ export function ClientsReportTable({
                       idleLabel(row.companyClient?.lastOrderDate)
                     )}
                   </Table.Cell>
-                  <Table.Cell variant="dim" className="whitespace-nowrap">
+                  <Table.Cell
+                    variant="dim"
+                    label="Última visita"
+                    emptyText="Nunca visitado"
+                    className="whitespace-nowrap"
+                  >
                     {row.companyClient?.lastVisitDate
                       ? formatDateDMY(row.companyClient.lastVisitDate)
-                      : "—"}
+                      : ""}
                   </Table.Cell>
-                  <Table.Cell variant="dim">{scoreLabel(row)}</Table.Cell>
+                  <Table.Cell variant="dim" label="Score" emptyText="Sem score">
+                    {scoreLabel(row)}
+                  </Table.Cell>
                 </Table.Row>
               );
             })
@@ -202,7 +244,7 @@ export function ClientsReportTable({
           )}
           {/* Sem linhas quem fala é o estado vazio, não o rodapé. */}
           {totalItems > 0 &&
-            `${totalItems} cliente(s) · página ${currentPage} de ${totalPages}`}
+            `${plural(totalItems, "cliente", "clientes")} · página ${currentPage} de ${totalPages}`}
         </Table.Footer.Info>
 
         <Pagination.Smart

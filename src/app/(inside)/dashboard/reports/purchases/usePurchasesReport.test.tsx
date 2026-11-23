@@ -112,7 +112,7 @@ describe("usePurchasesReport", () => {
     const result = await run();
 
     expect(result.current.kpis[0].value).toBe("4");
-    expect(result.current.kpis[0].hint).toBe("3 cliente(s) em 2 fábrica(s)");
+    expect(result.current.kpis[0].hint).toBe("3 clientes em 2 fábricas");
     expect(result.current.rows).toHaveLength(4);
   });
 
@@ -121,7 +121,7 @@ describe("usePurchasesReport", () => {
     const fila = result.current.kpis[1];
 
     expect(fila.value).toBe("2");
-    expect(fila.hint).toBe("1 atrasado(s) · 1 parado(s)");
+    expect(fila.hint).toBe("1 atrasado · 1 parado");
     expect(fila.status).toBe("urgente");
   });
 
