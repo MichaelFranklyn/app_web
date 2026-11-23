@@ -109,6 +109,49 @@ export const VISIT_STATUS_OPTIONS = toOptions(VISIT_STATUS_LABEL).filter(
   (option) => !SYSTEM_ONLY_STATUSES.includes(option.value as VisitStatus)
 );
 
+/**
+ * Status em que a parada SAIU do dia: outra visita ficou no lugar dela (ou o
+ * cliente adiou a data). O backend recusa trocar esse status por outro — uma
+ * conclusão gravada aqui iria para a parada errada. Nos formulários, o status
+ * aparece só para leitura; as observações continuam editáveis.
+ */
+const LEFT_THE_DAY_STATUSES: VisitStatus[] = [
+  "RESCHEDULED",
+  "CANCELLED",
+  "SKIPPED_BY_CUSTOMER",
+];
+
+export const isVisitStatusLocked = (status: string | null | undefined) =>
+  LEFT_THE_DAY_STATUSES.includes(status as VisitStatus);
+
+const LOCKED_STATUS_HINT: Record<string, string> = {
+  RESCHEDULED:
+    "Remarcada: o status não muda mais. Registre o resultado na visita que ficou no lugar desta.",
+  CANCELLED:
+    "Cancelada: o status não muda mais. As observações continuam editáveis.",
+  SKIPPED_BY_CUSTOMER:
+    "O cliente adiou esta data: o status não muda mais. As observações continuam editáveis.",
+};
+
+/** Explicação do status travado, ou `undefined` quando ele é editável. */
+export const lockedVisitStatusHint = (status: string | null | undefined) =>
+  status ? LOCKED_STATUS_HINT[status] : undefined;
+
+/**
+ * Opções do select de status para UMA visita. Um status só do sistema (cliente
+ * adiou) não é escolhível, mas precisa aparecer quando é o atual — senão o
+ * campo somente leitura fica vazio.
+ */
+export const visitStatusOptionsFor = (status: string | null | undefined) => {
+  if (!status || VISIT_STATUS_OPTIONS.some((o) => o.value === status)) {
+    return VISIT_STATUS_OPTIONS;
+  }
+  const label = VISIT_STATUS_LABEL[status as VisitStatus];
+  return label
+    ? [...VISIT_STATUS_OPTIONS, { value: status, label }]
+    : VISIT_STATUS_OPTIONS;
+};
+
 export const VISIT_OUTCOME_OPTIONS = [
   { value: "SOLD", label: "Vendeu" },
   { value: "NOT_BOUGHT", label: "Não comprou" },

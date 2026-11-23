@@ -1,15 +1,13 @@
 "use client";
 
-import { Button } from "@/components/Button";
 import { useToast } from "@/components/Toast";
 import { useCompanyBranding } from "@/hooks/useCompanyBranding";
-import { Printer } from "lucide-react";
 import { useState } from "react";
 import { useIssueResponseLink } from "../../_shared/responseLink";
 import { VisitScheduleItem } from "../../interface";
 import { DayRoutePdfMeta } from "../../pdf/day";
 
-interface Props {
+interface Params {
   /** Dia da rotina — é dele que o link de resposta é emitido. */
   scheduleDayId: string;
   date: string;
@@ -38,7 +36,7 @@ interface Props {
  * O gerador entra por import dinâmico no clique: jsPDF pesa mais que a página
  * inteira e quase ninguém imprime toda vez que abre o dia.
  */
-export function PrintRouteButton({
+export function usePrintRoute({
   scheduleDayId,
   date,
   stops,
@@ -47,7 +45,7 @@ export function PrintRouteButton({
   departureAddress,
   routeDistanceKm,
   routeDurationMin,
-}: Props) {
+}: Params): { print: () => Promise<void>; isBusy: boolean; isEmpty: boolean } {
   const { toast } = useToast();
   const { name: companyName, logoUrl: companyLogoUrl } = useCompanyBranding();
   const issueLink = useIssueResponseLink({ kind: "day", scheduleDayId });
@@ -89,17 +87,5 @@ export function PrintRouteButton({
     }
   };
 
-  return (
-    <Button.Root
-      appearance="outline"
-      color="neutral"
-      size="sm"
-      disabled={isEmpty}
-      loading={isBusy}
-      onClick={handlePrint}
-    >
-      <Button.Icon icon={Printer} />
-      <Button.Title>Imprimir rota</Button.Title>
-    </Button.Root>
-  );
+  return { print: handlePrint, isBusy, isEmpty };
 }

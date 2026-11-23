@@ -461,8 +461,6 @@ describe("allOfficesNoteText", () => {
         { companyName: "Sul", isCurrent: false },
         { companyName: "Centro", isCurrent: true },
       ])
-    ).toBe(
-      "Aqui aparecem os clientes e as visitas de todos os seus escritórios: Centro, Norte e Sul."
-    );
+    ).toBe("Inclui Centro, Norte e Sul.");
   });
 });

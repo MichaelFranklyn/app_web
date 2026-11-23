@@ -107,3 +107,40 @@ export const TextLink = React.forwardRef<HTMLAnchorElement, TextLinkProps>(
   }
 );
 TextLink.displayName = "TextLink";
+
+interface TextButtonProps extends React.ButtonHTMLAttributes<HTMLButtonElement> {
+  tone?: TextLinkTone;
+  underline?: TextLinkUnderline;
+}
+
+/**
+ * O texto que se clica para abrir algo NA PRÓPRIA tela (um painel, um modal) —
+ * o nome do cliente no cartão da agenda. Sem `href`, então é `<button>`, mas
+ * sem a caixa do `Button`: ocupa o lugar do texto, quebra linha como ele e o
+ * `Title` dentro dita a tipografia. Navegar para outra rota é `TextLink`.
+ */
+export const TextButton = React.forwardRef<HTMLButtonElement, TextButtonProps>(
+  (
+    {
+      tone = "inherit",
+      underline = "none",
+      type = "button",
+      className,
+      ...props
+    },
+    ref
+  ) => (
+    <button
+      ref={ref}
+      type={type}
+      className={cn(
+        "focus-ring min-w-0 cursor-pointer rounded-(--r-xs) text-left transition-colors",
+        TONE[tone],
+        UNDERLINE[underline],
+        className
+      )}
+      {...props}
+    />
+  )
+);
+TextButton.displayName = "TextButton";

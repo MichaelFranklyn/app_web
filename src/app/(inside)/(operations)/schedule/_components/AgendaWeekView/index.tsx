@@ -1,6 +1,7 @@
 "use client";
 
 import { Badge } from "@/components/Badges";
+import { Button } from "@/components/Button";
 import { Calendar } from "@/components/Calendar";
 import { useState } from "react";
 
@@ -28,6 +29,12 @@ interface Props {
   onMove: (drag: AgendaDrag, toDate: string) => void;
   onChanged: () => void;
 }
+
+/**
+ * Quantos cartões cada dia mostra antes do "Mais N…": num dia cheio a coluna
+ * descia além da tela e escondia a semana (pedido de 23/11/2026).
+ */
+const CARDS_SHOWN = 5;
 
 /** Sábado e domingo — a semana começa na segunda (índice 0). */
 const WEEKEND_INDEXES = [5, 6];
@@ -62,6 +69,15 @@ export function AgendaWeekView({
       const next = new Set(current);
       if (next.has(index)) next.delete(index);
       else next.add(index);
+      return next;
+    });
+  // Os dias abertos além dos cinco primeiros cartões.
+  const [expanded, setExpanded] = useState<Set<string>>(() => new Set());
+  const toggleExpanded = (date: string) =>
+    setExpanded((current) => {
+      const next = new Set(current);
+      if (next.has(date)) next.delete(date);
+      else next.add(date);
       return next;
     });
 
@@ -109,24 +125,43 @@ export function AgendaWeekView({
               }}
             />
             <Calendar.CellBody isCollapsed={isCollapsed}>
-              {items.map((item) => (
-                <VisitCard
-                  key={item.id}
-                  item={item}
-                  dayDate={date}
-                  density="compact"
-                  alsoInOffice={alsoInOfficeOf(item, agendaDay?.alsoInOffice)}
-                  onChanged={onChanged}
-                />
-              ))}
-              {otherOffices.map((stop) => (
-                <OtherOfficeStopCard
-                  key={stop.id}
-                  stop={stop}
-                  density="compact"
-                  onChanged={onChanged}
-                />
-              ))}
+              {[
+                ...items.map((item) => (
+                  <VisitCard
+                    key={item.id}
+                    item={item}
+                    dayDate={date}
+                    density="compact"
+                    alsoInOffice={alsoInOfficeOf(item, agendaDay?.alsoInOffice)}
+                    onChanged={onChanged}
+                  />
+                )),
+                ...otherOffices.map((stop) => (
+                  <OtherOfficeStopCard
+                    key={stop.id}
+                    stop={stop}
+                    density="compact"
+                    onChanged={onChanged}
+                  />
+                )),
+              ].filter((_, index) => expanded.has(date) || index < CARDS_SHOWN)}
+              {items.length + otherOffices.length > CARDS_SHOWN && (
+                <Button.Root
+                  type="button"
+                  appearance="ghost"
+                  color="neutral"
+                  size="xs"
+                  fullWidth
+                  aria-expanded={expanded.has(date)}
+                  onClick={() => toggleExpanded(date)}
+                >
+                  <Button.Title>
+                    {expanded.has(date)
+                      ? "Mostrar menos"
+                      : `Mais ${items.length + otherOffices.length - CARDS_SHOWN}…`}
+                  </Button.Title>
+                </Button.Root>
+              )}
             </Calendar.CellBody>
             {isOpen && (
               <Calendar.CellFooter isCollapsed={isCollapsed}>

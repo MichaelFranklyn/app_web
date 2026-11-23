@@ -1,12 +1,22 @@
 import { FormStepSchema } from "@/components/FormBuilder";
 import { extractSelectValue } from "@/utils/form";
-import { VISIT_OUTCOME_OPTIONS, VISIT_STATUS_OPTIONS } from "@/utils/visit";
+import {
+  VISIT_OUTCOME_OPTIONS,
+  VISIT_STATUS_OPTIONS,
+  isVisitStatusLocked,
+  lockedVisitStatusHint,
+  visitStatusOptionsFor,
+} from "@/utils/visit";
 
 import { UpdateVisitInput, VisitEditable } from "./interface";
 
 export { VISIT_OUTCOME_OPTIONS, VISIT_STATUS_OPTIONS };
 
-export const EDIT_VISIT_FORM_STEPS: FormStepSchema[] = [
+/**
+ * Passos do formulário para UMA visita: remarcada, cancelada ou adiada pelo
+ * cliente mostra o status só para leitura (o back recusa trocá-lo).
+ */
+export const editVisitFormSteps = (status: string): FormStepSchema[] => [
   {
     id: "visit",
     sections: [
@@ -18,7 +28,9 @@ export const EDIT_VISIT_FORM_STEPS: FormStepSchema[] = [
             type: "select-single",
             label: "Status",
             placeholder: "Selecione o status",
-            options: VISIT_STATUS_OPTIONS,
+            disabled: isVisitStatusLocked(status),
+            hint: lockedVisitStatusHint(status),
+            options: visitStatusOptionsFor(status),
           },
           {
             name: "outcome",

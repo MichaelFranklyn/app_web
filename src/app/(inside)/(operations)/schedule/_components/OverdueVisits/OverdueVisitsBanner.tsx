@@ -30,11 +30,13 @@ export function OverdueVisitsBanner({ count, canAnswer, onOpen }: Props) {
           {label} de dias que já passaram {count === 1 ? "está" : "estão"} sem
           resposta
         </Alert.Title>
-        <Alert.Description>
-          {canAnswer
-            ? "Diga o que houve em cada uma — é assim que o sistema sabe quando voltar a esse cliente."
-            : "Só o vendedor pode registrar o que aconteceu."}
-        </Alert.Description>
+        {/* Quem vende sabe o que fazer pelo botão; a explicação longa mora no
+            painel. Ao gestor a faixa diz por que ele só acompanha. */}
+        {!canAnswer && (
+          <Alert.Description>
+            Só o vendedor pode registrar o que aconteceu.
+          </Alert.Description>
+        )}
       </Alert.Content>
 
       <Alert.Actions>

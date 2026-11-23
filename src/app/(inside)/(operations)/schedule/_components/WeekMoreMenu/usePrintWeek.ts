@@ -1,15 +1,13 @@
 "use client";
 
-import { Button } from "@/components/Button";
 import { useToast } from "@/components/Toast";
 import { useCompanyBranding } from "@/hooks/useCompanyBranding";
-import { Printer } from "lucide-react";
 import { useState } from "react";
 import { useIssueResponseLink } from "../../_shared/responseLink";
 import { VisitScheduleDay } from "../../interface";
 import type { WeekRoutinePdfMeta } from "../../pdf";
 
-interface Props {
+interface Params {
   /** Rotina da semana — é dela que o link de resposta é emitido. */
   scheduleId: string;
   weekStart: string;
@@ -29,13 +27,13 @@ interface Props {
  * O gerador entra por import dinâmico no clique: jsPDF pesa mais que a página
  * inteira e quase ninguém imprime toda vez que abre a rotina.
  */
-export function PrintWeekButton({
+export function usePrintWeek({
   scheduleId,
   weekStart,
   days,
   sellerName,
   dayOffDates,
-}: Props) {
+}: Params) {
   const { toast } = useToast();
   const { name: companyName, logoUrl: companyLogoUrl } = useCompanyBranding();
   const [isBusy, setIsBusy] = useState(false);
@@ -43,7 +41,7 @@ export function PrintWeekButton({
 
   const isEmpty = days.every((day) => day.items.length === 0);
 
-  const handlePrint = async () => {
+  const print = async () => {
     setIsBusy(true);
     try {
       const meta: WeekRoutinePdfMeta = {
@@ -70,17 +68,5 @@ export function PrintWeekButton({
     }
   };
 
-  return (
-    <Button.Root
-      appearance="outline"
-      color="neutral"
-      size="sm"
-      disabled={isEmpty}
-      loading={isBusy}
-      onClick={handlePrint}
-    >
-      <Button.Icon icon={Printer} />
-      <Button.Title>Imprimir semana</Button.Title>
-    </Button.Root>
-  );
+  return { print, isBusy, isEmpty };
 }

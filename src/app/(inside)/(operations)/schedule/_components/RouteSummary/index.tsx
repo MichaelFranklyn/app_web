@@ -1,5 +1,4 @@
-import { Card } from "@/components/Card";
-import { Grid } from "@/components/Grid";
+import { Title } from "@/components/Title";
 import { CrossOfficeDayRoute, VisitScheduleDay } from "../../interface";
 import { formatDistanceKm, formatMinutes } from "../../utils";
 
@@ -50,41 +49,61 @@ export function RouteSummary({
   const endsAt = combined ? combined.lastEndTime : lastEnd;
 
   return (
-    <Grid.Root cols={{ base: 2, desktop: 4 }} gap={12}>
-      <Card.Kpi>
-        <Card.Kpi.Label>Paradas</Card.Kpi.Label>
-        <Card.Kpi.Value>{stopCount}</Card.Kpi.Value>
-        <Card.Kpi.Delta>
-          {remoteCount > 0
+    // Quatro números pequenos em 2×2, sem cartão em volta de cada um: eram
+    // quatro KPIs grandes que tomavam meia tela para dizer pouco (relato de
+    // 23/11/2026, "essa box da rota do dia tá muito grande"). Agora são uma
+    // faixa dentro do card do trajeto.
+    <div className="grid grid-cols-2 gap-x-16 gap-y-12">
+      <Stat
+        label="Paradas"
+        value={String(stopCount)}
+        hint={
+          remoteCount > 0
             ? `+ ${remoteCount} ${remoteCount === 1 ? "contato" : "contatos"}`
-            : "clientes hoje"}
-        </Card.Kpi.Delta>
-      </Card.Kpi>
-      <Card.Kpi>
-        <Card.Kpi.Label>Distância total</Card.Kpi.Label>
-        <Card.Kpi.Value status="neutral">
-          {formatDistanceKm(distanceKm)}
-        </Card.Kpi.Value>
-        <Card.Kpi.Delta>
-          {combined ? "somando os escritórios" : "rota otimizada"}
-        </Card.Kpi.Delta>
-      </Card.Kpi>
-      <Card.Kpi>
-        <Card.Kpi.Label>Tempo de deslocamento</Card.Kpi.Label>
-        <Card.Kpi.Value status="neutral">
-          {formatMinutes(durationMin)}
-        </Card.Kpi.Value>
-        <Card.Kpi.Delta>ida e volta</Card.Kpi.Delta>
-      </Card.Kpi>
-      <Card.Kpi>
-        <Card.Kpi.Label>Tempo de visita</Card.Kpi.Label>
-        <Card.Kpi.Value status="neutral">
-          {visitMin > 0 ? formatMinutes(visitMin) : "—"}
-        </Card.Kpi.Value>
-        <Card.Kpi.Delta>
-          {endsAt ? `última termina ${endsAt}` : "total planejado"}
-        </Card.Kpi.Delta>
-      </Card.Kpi>
-    </Grid.Root>
+            : "clientes no dia"
+        }
+      />
+      <Stat
+        label="Distância total"
+        value={formatDistanceKm(distanceKm)}
+        hint={combined ? "somando os escritórios" : "rota otimizada"}
+      />
+      <Stat
+        label="Deslocamento"
+        value={formatMinutes(durationMin)}
+        hint="ida e volta"
+      />
+      <Stat
+        label="Tempo de visita"
+        value={visitMin > 0 ? formatMinutes(visitMin) : "—"}
+        hint={endsAt ? `última termina ${endsAt}` : "total planejado"}
+      />
+    </div>
+  );
+}
+
+function Stat({
+  label,
+  value,
+  hint,
+}: {
+  label: string;
+  value: string;
+  hint: string;
+}) {
+  return (
+    <div className="flex min-w-0 flex-col">
+      <Title variant="micro" color="muted">
+        {label}
+      </Title>
+      <div className="flex min-w-0 flex-wrap items-baseline gap-x-6">
+        <Title variant="body-md" weight="semibold">
+          {value}
+        </Title>
+        <Title variant="micro" color="muted">
+          {hint}
+        </Title>
+      </div>
+    </div>
   );
 }

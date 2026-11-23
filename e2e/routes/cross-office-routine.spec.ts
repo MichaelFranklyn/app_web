@@ -187,10 +187,11 @@ test("outro escritório: cartão, selo e rota somando os dois", async ({
   const card = theirCard(page);
   await expect(card).toHaveCount(1);
   await expect(card.getByText("Loja Do Sul")).toBeVisible();
-  await expect(card.getByText(OFFICE, { exact: true })).toBeVisible();
+  // Fábrica e escritório numa linha só; o aviso de onde lançar pedido e
+  // estoque vai no title dela.
   await expect(
-    card.getByText(`Pedido e estoque: entre no ${OFFICE}.`)
-  ).toBeVisible();
+    card.getByTitle(`Pedido e estoque desta parada: entre no ${OFFICE}.`)
+  ).toHaveText(`Fábrica Sul · ${OFFICE}`);
   // A parada daqui do mesmo cliente avisa no tooltip do selo de prioridade
   // (o card não tem mais a linha "Também no …").
   await page

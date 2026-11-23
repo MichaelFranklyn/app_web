@@ -1,3 +1,4 @@
+import { toTitleCase } from "@/utils/format/titleCase";
 import {
   getCurrentWeekMondayIso,
   getTodayIso,
@@ -464,7 +465,7 @@ export const allOfficesNoteText = (
     ...offices.filter((office) => office.isCurrent),
     ...offices.filter((office) => !office.isCurrent),
   ];
-  return `Aqui aparecem os clientes e as visitas de todos os seus escritórios: ${joinNames(ordered.map((office) => office.companyName))}.`;
+  return `Inclui ${joinNames(ordered.map((office) => toTitleCase(office.companyName)))}.`;
 };
 
 /**
