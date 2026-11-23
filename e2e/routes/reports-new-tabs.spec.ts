@@ -152,7 +152,7 @@ test("carteira: classifica o cliente contra o próprio ritmo", async ({
   await expect(page.getByText("MÓVEIS NORTE")).toBeVisible();
   await expect(page.getByText("Atrasado").first()).toBeVisible();
   // 96 dias parados sobre um ritmo de 60 dias.
-  await expect(page.getByText("1.6×")).toBeVisible();
+  await expect(page.getByText("1,6×")).toBeVisible();
   // Quem nunca comprou não recebe "0 dias", que seria lido como "comprou hoje".
   await expect(page.getByText("nunca comprou").first()).toBeVisible();
 });
@@ -222,9 +222,8 @@ test("o recorte sobrevive à troca para as abas novas", async ({ page }) => {
   await page.goto(
     "/dashboard/reports/abc?from=2026-05-01&to=2026-05-31&seller=seller-1"
   );
-  await expect(
-    page.getByText("Clientes por faturamento").first()
-  ).toBeVisible();
+  // Recorte sem dado: a aba mostra o aviso único no lugar da tabela.
+  await expect(page.getByText("Nada neste período")).toBeVisible();
 
   await page.getByRole("link", { name: "Situação da carteira" }).click();
 

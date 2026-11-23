@@ -147,7 +147,62 @@ const DADOS: Record<string, Record<string, Handler>> = {
   // Nenhum passo destes depende de conteúdo: a faixa de contagem, a tabela, as
   // abas e a barra de recorte desenham vazias.
   "/support": {},
-  "/dashboard/reports/sales": {},
+  // Recorte vazio troca KPIs, gráfico e tabela por um aviso só (ReportEmpty), e
+  // o passo dos KPIs tem `requireSelector`: sem uma venda o tour encolhe.
+  "/dashboard/reports/sales": {
+    SalesReportOrders: () => ({
+      sales_report_orders: {
+        edges: [
+          {
+            node: {
+              id: "order-1",
+              orderDate: "2026-07-05",
+              invoicedAt: "2026-07-12",
+              totalAmount: "4820.00",
+              commissionAmount: "144.60",
+              sellerCommissionAmount: "144.60",
+              status: "INVOICED",
+              seller: { id: "seller-1", name: "Rafael Vendas" },
+              client: {
+                id: "client-1",
+                razaoSocial: "CASA DO SONO LTDA",
+                nomeFantasia: "Casa do Sono",
+              },
+              factory: {
+                id: "factory-1",
+                razaoSocial: "INDUSTRIA HERC LTDA",
+                nomeFantasia: "Herc",
+                nickname: null,
+              },
+            },
+          },
+        ],
+        pageInfo: { hasNextPage: false, endCursor: null },
+        totalCount: 1,
+      },
+    }),
+    SalesReportStats: () => ({
+      sales_report_stats: {
+        totalOrders: 1,
+        totalAmount: "4820.00",
+        avgTicket: "4820.00",
+        commissionAmount: "144.60",
+        sellerCommissionAmount: "144.60",
+      },
+    }),
+    InvoicedRevenueByFactory: () => ({
+      invoicedRevenueByFactory: [
+        {
+          entityId: "factory-1",
+          entityName: "Herc",
+          total: "4820.00",
+          orderCount: 1,
+          commissionAmount: "144.60",
+          sellerCommissionAmount: "144.60",
+        },
+      ],
+    }),
+  },
   "/dashboard/analytics": {
     DashboardSummary: () => ({
       dashboardSummary: {
