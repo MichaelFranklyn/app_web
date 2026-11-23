@@ -1,3 +1,4 @@
+import { plural } from "@/utils/format/plural";
 import type { FieldConfig } from "@/hooks/useTableFilters";
 import type { QueryFilter } from "@/hooks/useTableData";
 import type { SortLabel } from "@/utils/pdf/context";
@@ -96,8 +97,8 @@ export const monthsInRange = (from: string, to: string): number => {
  */
 export const buildFactoryOption = (
   points: InvoicedByFactoryPoint[]
-): EChartsCoreOption =>
-  buildHorizontalBarOption(
+): EChartsCoreOption => {
+  const option = buildHorizontalBarOption(
     points.map((point) => point.entityName),
     [
       {
@@ -114,11 +115,31 @@ export const buildFactoryOption = (
         point.entityName,
         `Faturado: <b>${formatMoney(point.total)}</b>`,
         mutedLine(
-          `${point.orderCount} pedido(s) · comissão ${formatMoney(visibleCommission(point))}`
+          `${plural(point.orderCount, "pedido", "pedidos")} · comissão ${formatMoney(visibleCommission(point))}`
         ),
       ];
     }
   );
+  // Com uma fábrica só, a barra única não tem com o que se comparar: o "R$ 0"
+  // explícito no começo do eixo é que dá a régua do comprimento dela.
+  const xAxis = option.xAxis as { axisLabel?: object };
+  return {
+    ...option,
+    xAxis: {
+      ...xAxis,
+      min: 0,
+      axisLabel: { ...xAxis.axisLabel, showMinLabel: true },
+    },
+  };
+};
+
+/**
+ * Altura do gráfico por fábrica: proporcional ao número de barras, entre 160px
+ * e 300px. Com uma ou duas fábricas, 300px fixos viravam um card quase vazio
+ * com uma barra perdida no meio.
+ */
+export const factoryChartHeight = (count: number): number =>
+  Math.min(300, Math.max(160, 72 + count * 44));
 
 /**
  * Faturamento mês a mês, quando o período abrange mais de um mês: barra para o

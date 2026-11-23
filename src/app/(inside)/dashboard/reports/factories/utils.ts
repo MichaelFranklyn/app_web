@@ -1,3 +1,4 @@
+import { plural } from "@/utils/format/plural";
 import { SERIES_BLUE, SERIES_GREEN } from "@/components/Chart/chartTheme";
 import { formatDateDMY, formatMoney } from "@/utils/format/masks";
 import { SortLabel } from "@/utils/pdf/context";
@@ -50,10 +51,12 @@ export const buildFactoryOption = (
       if (!row) return [];
       return [
         row.entityName,
-        `Colocado: <b>${formatMoney(row.totalAmount)}</b> em ${row.orderCount} pedido(s)`,
+        `Colocado: <b>${formatMoney(row.totalAmount)}</b> em ${plural(row.orderCount, "pedido", "pedidos")}`,
         `Já faturado: <b>${formatMoney(row.invoicedAmount)}</b> (${formatPercent(invoicedRate(row))})`,
         mutedLine(`Ticket médio: ${formatMoney(row.avgTicket)}`),
-        mutedLine(`${row.clientCount} cliente(s) atendido(s)`),
+        mutedLine(
+          `${plural(row.clientCount, "cliente atendido", "clientes atendidos")}`
+        ),
       ];
     }
   );

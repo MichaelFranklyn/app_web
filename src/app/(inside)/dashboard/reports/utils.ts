@@ -78,3 +78,37 @@ export const reportFileName = (
   from: string,
   extension: "xlsx" | "pdf"
 ): string => `${slug}-${from}.${extension}`;
+
+/** O texto de vazio fala só do filtro que a pessoa tem: o vendedor não escolhe vendedor. */
+export const emptyFilterHint = (canSelectSeller: boolean): string =>
+  canSelectSeller
+    ? "Ajuste o período ou o vendedor no filtro acima."
+    : "Ajuste o período no filtro acima.";
+
+interface ReportEmptySignals {
+  loading: boolean;
+  hasRows: boolean;
+  chartHasData: boolean;
+  /** Erro de consulta não é vazio: o aviso esconderia o "tentar de novo". */
+  error?: unknown;
+  /** Filtros da tabela (busca, status…) em uso. */
+  inputValues?: Record<string, unknown>;
+}
+
+/**
+ * O recorte não tem nada: a aba mostra um aviso só em vez de KPIs zerados,
+ * gráfico vazio e tabela vazia. Com filtro de tabela em uso, não — o vazio é
+ * do filtro, e a tabela precisa continuar na tela para ele ser desfeito.
+ */
+export const isReportEmpty = ({
+  loading,
+  hasRows,
+  chartHasData,
+  error,
+  inputValues,
+}: ReportEmptySignals): boolean =>
+  !loading &&
+  !error &&
+  !hasRows &&
+  !chartHasData &&
+  !Object.values(inputValues ?? {}).some(Boolean);

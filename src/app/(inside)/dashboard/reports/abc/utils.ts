@@ -1,3 +1,4 @@
+import { plural } from "@/utils/format/plural";
 import { SERIES_BLUE, SERIES_GREEN } from "@/components/Chart/chartTheme";
 import { formatDateDMY, formatMoney } from "@/utils/format/masks";
 import type { EChartsCoreOption } from "echarts/core";
@@ -97,7 +98,9 @@ export const abcTooltipLines = (row: AbcRow | undefined): string[] => {
     `${row.rank}. ${row.clientName}`,
     `Faturamento: <b>${formatMoney(row.totalAmount)}</b> (${formatPercent(row.share)})`,
     mutedLine(`Acumulado até aqui: ${formatPercent(row.cumulativeShare)}`),
-    mutedLine(`${ABC_CLASS_LABEL[row.abcClass]} · ${row.orderCount} pedido(s)`),
+    mutedLine(
+      `${ABC_CLASS_LABEL[row.abcClass]} · ${plural(row.orderCount, "pedido", "pedidos")}`
+    ),
   ];
 };
 

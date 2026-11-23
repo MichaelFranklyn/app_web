@@ -1,5 +1,6 @@
 "use client";
 
+import { plural } from "@/utils/format/plural";
 import { useToast } from "@/components/Toast";
 import { useCompanyBranding } from "@/hooks/useCompanyBranding";
 import { downloadSheet } from "@/utils/import/writer";
@@ -76,7 +77,7 @@ export const useReportExport = <T>(spec: ReportExportSpec<T>) => {
           toast({
             variant: "warning",
             title: "Arquivo incompleto",
-            description: `O arquivo saiu com ${rows.length} de ${spec.totalRows} linha(s) — o recorte é grande demais para uma exportação só. Filtre um período menor para levar o resto.`,
+            description: `O arquivo saiu com ${rows.length} de ${plural(spec.totalRows, "linha", "linhas")} — o recorte é grande demais para uma exportação só. Filtre um período menor para levar o resto.`,
           });
         }
       } catch {
@@ -113,7 +114,9 @@ export const useReportExport = <T>(spec: ReportExportSpec<T>) => {
             companyLogoUrl,
             title: spec.title,
             context: spec.context,
-            highlight: spec.buildHighlight?.(rows) ?? `${rows.length} linha(s)`,
+            highlight:
+              spec.buildHighlight?.(rows) ??
+              `${plural(rows.length, "linha", "linhas")}`,
             kpis: spec.buildKpis?.(rows),
             slug: spec.slug,
             from: spec.from,

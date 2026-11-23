@@ -99,7 +99,7 @@ describe("cadenceLabel", () => {
 
 describe("riskLabel", () => {
   it("mostra o atraso como múltiplo do próprio ritmo", () => {
-    expect(riskLabel(row({ riskRatio: 1.85 }))).toBe("1.9×");
+    expect(riskLabel(row({ riskRatio: 1.85 }))).toBe("1,9×");
   });
 
   it("sem ritmo próprio não há múltiplo a mostrar", () => {

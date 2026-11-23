@@ -1,5 +1,6 @@
 "use client";
 
+import { plural } from "@/utils/format/plural";
 import { useQueryErrorToast } from "@/hooks/useQueryErrorToast";
 import { useTableFilters } from "@/hooks/useTableFilters";
 import { useUrlSort } from "@/hooks/useUrlSort";
@@ -122,7 +123,7 @@ export const useCommissionsReport = (
       {
         label: "A receber no período",
         value: formatMoney(totals.receivable),
-        hint: `${totals.countReceivable} parcela(s) liberada(s)`,
+        hint: `${plural(totals.countReceivable, "parcela liberada", "parcelas liberadas")}`,
         status: totals.receivable > 0 ? "atencao" : "neutral",
       },
       {
@@ -145,7 +146,7 @@ export const useCommissionsReport = (
         value: formatMoney(
           totals.receivable + totals.received + totals.pending
         ),
-        hint: `${totals.count} parcela(s)`,
+        hint: `${plural(totals.count, "parcela", "parcelas")}`,
         status: "neutral",
       },
       ...(withOffice

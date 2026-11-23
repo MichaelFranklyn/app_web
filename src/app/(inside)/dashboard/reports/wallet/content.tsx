@@ -1,5 +1,6 @@
 "use client";
 
+import { plural } from "@/utils/format/plural";
 import { buildReportContext } from "@/utils/pdf/context";
 
 import { ReportChartCard } from "../_components/ReportChartCard";
@@ -62,7 +63,7 @@ export default function WalletReportContent({ canSelectSeller }: Props) {
     },
     buildHighlight: (exported) => {
       const totals = summarize(exported);
-      return `${totals.clients} cliente(s) · ${totals.amount} no período`;
+      return `${plural(totals.clients, "cliente", "clientes")} · ${totals.amount} no período`;
     },
     buildTotals: (exported) => ({
       label: "TOTAL",

@@ -60,16 +60,12 @@ export const CLIENTS_REPORT_STATS_QUERY = gql`
 
 /**
  * Quem está mais atrasado para voltar a comprar, comparado ao próprio ritmo.
- * Respeita o período do relatório (é dele que sai o intervalo médio de cada um).
+ * Sem período: o intervalo médio sai do histórico inteiro, a mesma régua do KPI
+ * "Atrasados para voltar" (a carteira é retrato de hoje).
  */
 export const CLIENTS_AT_RISK_QUERY = gql`
-  query ClientsReportAtRisk(
-    $from: Date
-    $to: Date
-    $sellerId: UUID
-    $limit: Int
-  ) {
-    clientsAtRisk(from: $from, to: $to, sellerId: $sellerId, limit: $limit) {
+  query ClientsReportAtRisk($sellerId: UUID, $limit: Int) {
+    clientsAtRisk(sellerId: $sellerId, limit: $limit) {
       entityId
       entityName
       lastOrderDate

@@ -9,6 +9,7 @@ import { Pagination } from "@/components/Pagination";
 import { Table, TableSort } from "@/components/Table";
 import { Title } from "@/components/Title";
 import { formatMoney } from "@/utils/format/masks";
+import { plural } from "@/utils/format/plural";
 import { ShoppingBasket } from "lucide-react";
 
 import {
@@ -38,6 +39,8 @@ interface Props {
   setCurrentPage: (page: number) => void;
   totalPages: number;
   totalItems: number;
+  /** Só quem escolhe vendedor vê a coluna: para o vendedor ela seria ele mesmo. */
+  showSeller: boolean;
 }
 
 /**
@@ -62,7 +65,9 @@ export function PurchasesReportTable({
   setCurrentPage,
   totalPages,
   totalItems,
+  showSeller,
 }: Props) {
+  const columns = showSeller ? 9 : 8;
   const pageAmount = sumBy(items, (row) => row.periodAmount);
   // A tabela vazia diz coisas diferentes: "não há linha nenhuma" é um estado do
   // relatório, "não achei nada" é consequência do que a pessoa pediu.
@@ -96,12 +101,12 @@ export function PurchasesReportTable({
         </Table.CardHead.Actions>
       </Table.CardHead>
 
-      <Table.Table>
+      <Table.Table cards>
         <Table.Header>
           <Table.Row>
             <Table.Head sortKey="client">Cliente</Table.Head>
             <Table.Head sortKey="factory">Fábrica</Table.Head>
-            <Table.Head sortKey="seller">Vendedor</Table.Head>
+            {showSeller && <Table.Head sortKey="seller">Vendedor</Table.Head>}
             <Table.Head>Situação</Table.Head>
             <Table.Head sortKey="lastOrderDate" sortFirst="desc">
               Última compra
@@ -123,10 +128,10 @@ export function PurchasesReportTable({
 
         <Table.Body>
           {loading && items.length === 0 ? (
-            <Table.Skeleton columns={9} rows={8} />
+            <Table.Skeleton columns={columns} rows={8} />
           ) : items.length === 0 ? (
             <Table.Row>
-              <Table.Cell colSpan={9}>
+              <Table.Cell colSpan={columns}>
                 <EmptyState.Root flat>
                   <EmptyState.Icon>
                     <ShoppingBasket size={32} />
@@ -150,10 +155,18 @@ export function PurchasesReportTable({
                 key={`${row.clientId}-${row.factoryId}`}
                 href={rowHref(row)}
               >
-                <Table.Cell variant="strong" title={row.clientName}>
+                <Table.Cell
+                  variant="strong"
+                  card="title"
+                  title={row.clientName}
+                >
                   {row.clientName}
                 </Table.Cell>
-                <Table.Cell variant="dim" title={row.factoryName}>
+                <Table.Cell
+                  variant="dim"
+                  label="Fábrica"
+                  title={row.factoryName}
+                >
                   {row.factoryName}
                   {/* Vínculo desfeito: a compra está no histórico e ninguém
                       atende esse cliente nessa fábrica hoje. */}
@@ -165,10 +178,17 @@ export function PurchasesReportTable({
                 </Table.Cell>
                 {/* Quem atende o par hoje; sem vínculo, quem vendeu da última
                     vez — é com essa pessoa que se fala sobre a linha. */}
-                <Table.Cell variant="dim" title={row.sellerName ?? undefined}>
-                  {row.sellerName ?? "—"}
-                </Table.Cell>
-                <Table.Cell>
+                {showSeller && (
+                  <Table.Cell
+                    variant="dim"
+                    label="Vendedor"
+                    emptyText="Sem vendedor"
+                    title={row.sellerName ?? undefined}
+                  >
+                    {row.sellerName ?? ""}
+                  </Table.Cell>
+                )}
+                <Table.Cell card="status">
                   <Badge.Root
                     color={SITUATION_COLOR[row.situation]}
                     appearance="tinted"
@@ -182,24 +202,43 @@ export function PurchasesReportTable({
                 </Table.Cell>
                 {/* Só a data: o número do pedido aqui embaixo parecia código de
                     erro. Quem quer o pedido clica na linha, que abre ele. */}
-                <Table.Cell variant="dim" className="whitespace-nowrap">
+                <Table.Cell
+                  variant="dim"
+                  label="Última compra"
+                  className="whitespace-nowrap"
+                >
                   {lastPurchaseLabel(row)}
                 </Table.Cell>
-                <Table.Cell variant="dim" className="whitespace-nowrap">
-                  {row.lastOrderDate ? formatMoney(row.lastOrderAmount) : "—"}
+                <Table.Cell
+                  variant="dim"
+                  label="Valor da última"
+                  emptyText="—"
+                  className="whitespace-nowrap"
+                >
+                  {row.lastOrderDate ? formatMoney(row.lastOrderAmount) : ""}
                 </Table.Cell>
                 <Table.Cell
                   variant={
                     row.riskRatio && row.riskRatio > 1 ? "strong" : "dim"
                   }
+                  label="Parado há"
                   className="whitespace-nowrap"
                 >
                   {idleLabel(row)}
                 </Table.Cell>
-                <Table.Cell variant="dim" className="whitespace-nowrap">
+                <Table.Cell
+                  variant="dim"
+                  label="Ritmo"
+                  emptyText="Sem 2ª compra"
+                  className="whitespace-nowrap"
+                >
                   {cadenceLabel(row)}
                 </Table.Cell>
-                <Table.Cell variant="strong" className="whitespace-nowrap">
+                <Table.Cell
+                  variant="strong"
+                  card="value"
+                  className="whitespace-nowrap"
+                >
                   {formatMoney(row.periodAmount)}
                   {row.periodOrderCount > 0 && (
                     <Table.CellText variant="dim" className="ml-4">
@@ -220,7 +259,7 @@ export function PurchasesReportTable({
           )}
           {/* Sem linhas quem fala é o estado vazio, não o rodapé. */}
           {totalItems > 0 &&
-            `${totalItems} linha(s) · página ${currentPage} de ${totalPages} · nesta página: ${formatMoney(pageAmount)}`}
+            `${plural(totalItems, "linha", "linhas")} · página ${currentPage} de ${totalPages} · nesta página: ${formatMoney(pageAmount)}`}
         </Table.Footer.Info>
 
         <Pagination.Smart

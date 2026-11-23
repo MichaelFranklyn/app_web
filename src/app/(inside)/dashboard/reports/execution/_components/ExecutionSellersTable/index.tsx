@@ -35,7 +35,7 @@ export function ExecutionSellersTable({ items, loading, sort }: Props) {
         </Table.CardHead.Title>
       </Table.CardHead>
 
-      <Table.Table>
+      <Table.Table cards>
         <Table.Header>
           <Table.Row>
             <Table.Head sortKey="seller">Vendedor</Table.Head>
@@ -86,11 +86,13 @@ export function ExecutionSellersTable({ items, loading, sort }: Props) {
           ) : (
             items.map((row) => (
               <Table.Row key={row.sellerId}>
-                <Table.Cell variant="strong" className="whitespace-nowrap">
+                <Table.Cell variant="strong" card="title">
                   {row.sellerName}
                 </Table.Cell>
-                <Table.Cell variant="dim">{row.planned}</Table.Cell>
-                <Table.Cell className="whitespace-nowrap">
+                <Table.Cell variant="dim" label="Planejadas">
+                  {row.planned}
+                </Table.Cell>
+                <Table.Cell className="whitespace-nowrap" card="status">
                   <Badge.Root
                     color={TONE_COLOR[executionTone(row.executionRate)]}
                     appearance="tinted"
@@ -98,11 +100,21 @@ export function ExecutionSellersTable({ items, loading, sort }: Props) {
                     <Badge.Text>{formatPercent(row.executionRate)}</Badge.Text>
                   </Badge.Root>
                 </Table.Cell>
-                <Table.Cell variant="dim">{recordedByPerson(row)}</Table.Cell>
-                <Table.Cell variant="dim">{row.workedInferred}</Table.Cell>
-                <Table.Cell variant="dim">{row.pending}</Table.Cell>
-                <Table.Cell variant="dim">{row.autoClosed}</Table.Cell>
-                <Table.Cell variant="dim">{row.converted}</Table.Cell>
+                <Table.Cell variant="dim" label="Registradas">
+                  {recordedByPerson(row)}
+                </Table.Cell>
+                <Table.Cell variant="dim" label="Pelo pedido">
+                  {row.workedInferred}
+                </Table.Cell>
+                <Table.Cell variant="dim" label="Aguardando">
+                  {row.pending}
+                </Table.Cell>
+                <Table.Cell variant="dim" label="Fechadas sem resposta">
+                  {row.autoClosed}
+                </Table.Cell>
+                <Table.Cell variant="dim" label="Viraram pedido">
+                  {row.converted}
+                </Table.Cell>
               </Table.Row>
             ))
           )}

@@ -11,8 +11,9 @@ import { ClientReportRow, ClientRiskPoint } from "./interface";
 
 /**
  * O recorte da carteira. Só o vendedor entra: a carteira é um retrato de HOJE
- * (quem está cadastrado, quando comprou pela última vez), não um intervalo — o
- * período do filtro governa o gráfico de atraso, que é o que depende dele.
+ * (quem está cadastrado, quando comprou pela última vez), não um intervalo. O
+ * gráfico de atraso também olha o histórico todo, e o filtro de período nem
+ * aparece nesta aba.
  */
 export const buildClientsFilters = (sellerId: string | null): QueryFilter[] =>
   sellerId ? [{ field: "seller_id", operator: "eq", value: sellerId }] : [];

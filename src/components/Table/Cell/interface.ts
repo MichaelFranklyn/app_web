@@ -47,4 +47,10 @@ export interface TableCellProps extends React.TdHTMLAttributes<HTMLTableCellElem
    * some, e o dado sozinho não diz o que é. Use o texto do `Table.Head`.
    */
   label?: string;
+  /**
+   * O que a célula diz quando o dado não existe. O padrão é "Não informado",
+   * mas há coluna em que o vazio tem nome ("Nunca comprou", "Em dia", "Sem NF")
+   * ou em que a frase repetiria o que a linha já disse — aí "—".
+   */
+  emptyText?: string;
 }

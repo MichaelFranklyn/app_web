@@ -13,6 +13,7 @@ import { Pagination } from "@/components/Pagination";
 import { Table, TableSort } from "@/components/Table";
 import { clientName, factoryName } from "@/utils/company";
 import { formatDateDMY, formatMoney } from "@/utils/format/masks";
+import { plural } from "@/utils/format/plural";
 import { Coins } from "lucide-react";
 
 import { CommissionRow, CommissionsTotals } from "../../interface";
@@ -61,7 +62,9 @@ export function CommissionsReportTable({
   filteredTotals,
   withOffice,
 }: Props) {
-  const columns = withOffice ? 13 : 11;
+  // Para o vendedor sai a coluna Vendedor (seria o nome dele em toda linha) e
+  // as duas da divisão da comissão.
+  const columns = withOffice ? 12 : 9;
   const isNarrowed = Object.values(inputValues).some(Boolean);
 
   return (
@@ -86,15 +89,18 @@ export function CommissionsReportTable({
         </Table.CardHead.Actions>
       </Table.CardHead>
 
-      <Table.Table>
+      {/* Abaixo do desktop cada parcela vira um cartão: 13 colunas rolavam
+          para o lado até no notebook. */}
+      <Table.Table cards>
         <Table.Header>
           <Table.Row>
             <Table.Head sortKey="receiveDate">Recebimento</Table.Head>
             <Table.Head sortKey="client">Cliente</Table.Head>
             <Table.Head sortKey="factory">Fábrica</Table.Head>
-            <Table.Head sortKey="seller">Vendedor</Table.Head>
-            <Table.Head sortKey="invoiceNumber">Nota fiscal</Table.Head>
-            <Table.Head>Parcela</Table.Head>
+            {withOffice && <Table.Head sortKey="seller">Vendedor</Table.Head>}
+            {/* Nota e parcela numa coluna só: "Parcela" sozinha era uma coluna
+                inteira para um dígito. */}
+            <Table.Head sortKey="invoiceNumber">Nota · parcela</Table.Head>
             <Table.Head sortKey="installmentAmount" sortFirst="desc">
               Valor da parcela
             </Table.Head>
@@ -148,37 +154,77 @@ export function CommissionsReportTable({
                 key={row.installmentId}
                 href={`/orders/${row.orderId}`}
               >
-                <Table.Cell variant="strong" className="whitespace-nowrap">
-                  {row.receiveDate ? formatDateDMY(row.receiveDate) : "—"}
+                <Table.Cell
+                  variant="strong"
+                  className="whitespace-nowrap"
+                  label="Recebimento"
+                  emptyText="Sem data"
+                >
+                  {row.receiveDate ? formatDateDMY(row.receiveDate) : ""}
                 </Table.Cell>
-                <Table.Cell variant="strong" title={clientName(row.client)}>
+                <Table.Cell
+                  variant="strong"
+                  title={clientName(row.client)}
+                  card="title"
+                >
                   {clientName(row.client)}
                 </Table.Cell>
-                <Table.Cell variant="dim" title={factoryName(row.factory)}>
+                <Table.Cell
+                  variant="dim"
+                  title={factoryName(row.factory)}
+                  label="Fábrica"
+                >
                   {factoryName(row.factory)}
                 </Table.Cell>
-                <Table.Cell variant="dim">{row.seller?.name ?? "—"}</Table.Cell>
-                <Table.Cell variant="dim" className="whitespace-nowrap">
-                  {row.invoiceNumber ?? "—"}
+                {withOffice && (
+                  <Table.Cell
+                    variant="dim"
+                    label="Vendedor"
+                    emptyText="Sem vendedor"
+                  >
+                    {row.seller?.name ?? ""}
+                  </Table.Cell>
+                )}
+                <Table.Cell
+                  variant="dim"
+                  className="whitespace-nowrap"
+                  label="Nota · parcela"
+                >
+                  {`${row.invoiceNumber ? `NF ${row.invoiceNumber}` : "Sem NF"} · ${row.sequence}ª`}
                 </Table.Cell>
-                <Table.Cell variant="dim">{row.sequence}</Table.Cell>
-                <Table.Cell variant="dim" className="whitespace-nowrap">
+                <Table.Cell
+                  variant="dim"
+                  className="whitespace-nowrap"
+                  label="Valor da parcela"
+                >
                   {formatMoney(row.installmentAmount)}
                 </Table.Cell>
-                <Table.Cell variant="strong" className="whitespace-nowrap">
+                <Table.Cell
+                  variant="strong"
+                  className="whitespace-nowrap"
+                  card="value"
+                >
                   {formatMoney(row.amount)}
                 </Table.Cell>
                 {withOffice && (
-                  <Table.Cell variant="dim" className="whitespace-nowrap">
+                  <Table.Cell
+                    variant="dim"
+                    className="whitespace-nowrap"
+                    label="Repasse ao vendedor"
+                  >
                     {formatMoney(row.sellerAmount)}
                   </Table.Cell>
                 )}
                 {withOffice && (
-                  <Table.Cell variant="strong" className="whitespace-nowrap">
+                  <Table.Cell
+                    variant="strong"
+                    className="whitespace-nowrap"
+                    label="Fica no escritório"
+                  >
                     {formatMoney(Number(row.amount) - Number(row.sellerAmount))}
                   </Table.Cell>
                 )}
-                <Table.Cell>
+                <Table.Cell card="status">
                   <Badge.Root
                     color={COMMISSION_STATUS_TONE[row.status]}
                     appearance="tinted"
@@ -190,7 +236,7 @@ export function CommissionsReportTable({
                 </Table.Cell>
                 {/* Situação do BOLETO do cliente: é o que trava a comissão —
                     vencido ainda pode virar pagamento, calote já não. */}
-                <Table.Cell>
+                <Table.Cell label="Boleto">
                   {row.defaultedAt ? (
                     <Badge.Root color="red" appearance="tinted">
                       <Badge.Text>Não pagou</Badge.Text>
@@ -200,11 +246,11 @@ export function CommissionsReportTable({
                       <Badge.Text>Vencido</Badge.Text>
                     </Badge.Root>
                   ) : (
-                    <Table.CellText variant="dim">—</Table.CellText>
+                    <Table.CellText variant="dim">Sem atraso</Table.CellText>
                   )}
                 </Table.Cell>
-                <Table.Cell variant="dim">
-                  {row.isReconciled ? "Sim" : "—"}
+                <Table.Cell variant="dim" label="Conferida">
+                  {row.isReconciled ? "Sim" : "Não"}
                 </Table.Cell>
               </Table.Row>
             ))
@@ -220,7 +266,7 @@ export function CommissionsReportTable({
           {/* Sem linhas o rodapé fica quieto: repetir aqui a frase do estado
               vazio dizia a mesma coisa duas vezes na mesma tela. */}
           {totalItems > 0 &&
-            `${totalItems} parcelas · página ${currentPage} de ${totalPages} · ${isNarrowed ? "no filtro" : "no período"}: a receber ${formatMoney(filteredTotals.receivable)}, recebido ${formatMoney(filteredTotals.received)}${filteredTotals.countOverdue > 0 ? `, ${filteredTotals.countOverdue} boleto(s) em atraso` : ""}`}
+            `${plural(totalItems, "parcela", "parcelas")} · página ${currentPage} de ${totalPages} · ${isNarrowed ? "no filtro" : "no período"}: a receber ${formatMoney(filteredTotals.receivable)}, recebido ${formatMoney(filteredTotals.received)}${filteredTotals.countOverdue > 0 ? `, ${plural(filteredTotals.countOverdue, "boleto", "boletos")} em atraso` : ""}`}
         </Table.Footer.Info>
 
         <Pagination.Smart

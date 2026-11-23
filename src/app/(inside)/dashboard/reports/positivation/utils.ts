@@ -1,3 +1,4 @@
+import { plural } from "@/utils/format/plural";
 import { SERIES_BLUE, SERIES_GREEN } from "@/components/Chart/chartTheme";
 import { formatDateDMY, formatMoney } from "@/utils/format/masks";
 import type { EChartsCoreOption } from "echarts/core";
@@ -34,7 +35,7 @@ export const buildFactoryRateOption = (
       return [
         factory.factoryName,
         `Positivação: <b>${formatPercent(factory.positivationRate)}</b>`,
-        `${factory.positivatedClients} de ${factory.linkedClients} cliente(s) vinculado(s)`,
+        `${factory.positivatedClients} de ${plural(factory.linkedClients, "cliente vinculado", "clientes vinculados")}`,
         mutedLine(`Faturado no período: ${formatMoney(factory.totalAmount)}`),
       ];
     },

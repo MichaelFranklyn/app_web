@@ -1,10 +1,12 @@
 "use client";
 
+import { plural } from "@/utils/format/plural";
 import { formatMoney } from "@/utils/format/masks";
 import { buildReportContext } from "@/utils/pdf/context";
 
 import { orderStatusLabel } from "@/app/(inside)/_shared/orderStatus";
 import { ReportChartCard } from "../_components/ReportChartCard";
+import { ReportEmpty } from "../_components/ReportEmpty";
 import { ReportKpis } from "../_components/ReportKpis";
 import { ReportToolbar } from "../_components/ReportToolbar";
 import { useReportContext } from "../useReportContext";
@@ -20,6 +22,7 @@ import {
   sumBy,
 } from "./utils";
 import { visibleCommission } from "@/utils/commission";
+import { isReportEmpty } from "../utils";
 
 interface Props {
   canSelectSeller: boolean;
@@ -74,7 +77,7 @@ export default function SalesReportContent({ canSelectSeller }: Props) {
       },
     ],
     buildHighlight: (rows) =>
-      `${rows.length} pedido(s) · ${formatMoney(sumBy(rows, (row) => row.totalAmount))}`,
+      `${plural(rows.length, "pedido", "pedidos")} · ${formatMoney(sumBy(rows, (row) => row.totalAmount))}`,
     buildTotals: (rows) => ({
       label: "TOTAL",
       byColumn: {
@@ -82,6 +85,14 @@ export default function SalesReportContent({ canSelectSeller }: Props) {
         7: formatMoney(sumBy(rows, (row) => visibleCommission(row))),
       },
     }),
+  });
+
+  const isEmpty = isReportEmpty({
+    loading: kpisLoading || chart.loading,
+    hasRows: hasRows,
+    chartHasData: chart.hasData,
+    error: chart.error,
+    inputValues: tableData.inputValues,
   });
 
   return (
@@ -96,31 +107,40 @@ export default function SalesReportContent({ canSelectSeller }: Props) {
         exportDisabled={!hasRows}
       />
 
-      <ReportKpis items={kpis} loading={kpisLoading} />
+      {isEmpty ? (
+        <ReportEmpty canSelectSeller={canSelectSeller} />
+      ) : (
+        <>
+          <ReportKpis items={kpis} loading={kpisLoading} />
 
-      <ReportChartCard
-        title={chart.title}
-        description={chart.description}
-        option={chart.option}
-        hasData={chart.hasData}
-        loading={chart.loading}
-        error={chart.error}
-        onRetry={chart.refetch}
-      />
+          <ReportChartCard
+            title={chart.title}
+            description={chart.description}
+            height={chart.height}
+            option={chart.option}
+            hasData={chart.hasData}
+            loading={chart.loading}
+            error={chart.error}
+            onRetry={chart.refetch}
+            canSelectSeller={canSelectSeller}
+          />
 
-      <SalesReportTable
-        items={tableData.displayedData}
-        loading={tableData.loading}
-        filterFields={filterFields}
-        inputValues={tableData.inputValues}
-        setFilter={tableData.setFilter}
-        setFilters={tableData.setFilters}
-        sort={tableData.sort}
-        currentPage={tableData.currentPage}
-        setCurrentPage={tableData.setCurrentPage}
-        totalPages={tableData.totalPages}
-        totalItems={tableData.totalItems}
-      />
+          <SalesReportTable
+            items={tableData.displayedData}
+            loading={tableData.loading}
+            filterFields={filterFields}
+            inputValues={tableData.inputValues}
+            setFilter={tableData.setFilter}
+            setFilters={tableData.setFilters}
+            sort={tableData.sort}
+            currentPage={tableData.currentPage}
+            setCurrentPage={tableData.setCurrentPage}
+            totalPages={tableData.totalPages}
+            totalItems={tableData.totalItems}
+            showSeller={canSelectSeller}
+          />
+        </>
+      )}
     </div>
   );
 }

@@ -39,6 +39,12 @@ interface Props {
   onFactoryChange?: (factoryId: string | null) => void;
   /** Gestor escolhe de quem ver; vendedor já é escopado pelo backend. */
   canSelectSeller: boolean;
+  /**
+   * Esconde o período na aba que é retrato de hoje (Clientes): um filtro que
+   * não muda nenhum número faz a pessoa achar que o relatório quebrou. O
+   * recorte segue na URL para a próxima aba.
+   */
+  showPeriod?: boolean;
   onExportSheet: () => Promise<void> | void;
   onExportPdf: () => Promise<void> | void;
   /**
@@ -70,6 +76,7 @@ export function ReportToolbar({
   onSellerChange,
   onFactoryChange,
   canSelectSeller,
+  showPeriod = true,
   onExportSheet,
   onExportPdf,
   extraExportActions,
@@ -193,10 +200,12 @@ export function ReportToolbar({
           />
         </div>
       )}
-      <DashboardDateFilter
-        value={{ from: filters.from, to: filters.to }}
-        onChange={onRangeChange}
-      />
+      {showPeriod && (
+        <DashboardDateFilter
+          value={{ from: filters.from, to: filters.to }}
+          onChange={onRangeChange}
+        />
+      )}
 
       <div className="desktop:ml-auto" data-tour="reports-export">
         <ExportMenu

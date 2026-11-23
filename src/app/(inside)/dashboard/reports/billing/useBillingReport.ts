@@ -1,5 +1,6 @@
 "use client";
 
+import { plural } from "@/utils/format/plural";
 import { useLocalTable } from "@/hooks/useLocalTable";
 import { useQueryErrorToast } from "@/hooks/useQueryErrorToast";
 import { formatMoney } from "@/utils/format/masks";
@@ -77,7 +78,7 @@ export const useBillingReport = (filters: ReportFilters) => {
       {
         label: "Vence no período",
         value: formatMoney(report.totalAmount),
-        hint: `${report.installmentCount} parcela(s) de ${report.orderCount} pedido(s)`,
+        hint: `${plural(report.installmentCount, "parcela", "parcelas")} de ${plural(report.orderCount, "pedido", "pedidos")}`,
         status: "neutral",
       },
       {
@@ -85,7 +86,7 @@ export const useBillingReport = (filters: ReportFilters) => {
         value: formatMoney(report.overdueAmount),
         hint:
           total > 0
-            ? `${report.overdueCount} parcela(s) · ${formatPercent(overdue / total)} do período`
+            ? `${plural(report.overdueCount, "parcela", "parcelas")} · ${formatPercent(overdue / total)} do período`
             : "nada vencido",
         status: overdue > 0 ? "urgente" : "ok",
       },

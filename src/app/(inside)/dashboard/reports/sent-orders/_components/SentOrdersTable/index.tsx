@@ -13,6 +13,7 @@ import { HelpTooltip } from "@/components/HelpTooltip";
 import { Table, TableSort } from "@/components/Table";
 import { clientName, factoryName } from "@/utils/company";
 import { formatDateDMY, formatMoney } from "@/utils/format/masks";
+import { plural } from "@/utils/format/plural";
 import { Send } from "lucide-react";
 
 import { SentOrder } from "../../interface";
@@ -31,6 +32,8 @@ interface Props {
   setCurrentPage: (page: number) => void;
   totalPages: number;
   totalItems: number;
+  /** Coluna Vendedor só para quem vê mais de um vendedor. */
+  showSeller: boolean;
 }
 
 export function SentOrdersTable({
@@ -45,7 +48,9 @@ export function SentOrdersTable({
   setCurrentPage,
   totalPages,
   totalItems,
+  showSeller,
 }: Props) {
+  const columns = showSeller ? 7 : 6;
   const page = summarizeSentOrders(items);
   const isNarrowed = Object.values(inputValues).some(Boolean);
 
@@ -71,7 +76,8 @@ export function SentOrdersTable({
         </Table.CardHead.Actions>
       </Table.CardHead>
 
-      <Table.Table>
+      {/* Abaixo do desktop cada pedido vira um cartão, em vez de rolar. */}
+      <Table.Table cards>
         <Table.Header>
           <Table.Row>
             <Table.Head sortKey="order_date" sortFirst="desc">
@@ -81,7 +87,7 @@ export function SentOrdersTable({
                 UUID da chave estrangeira. */}
             <Table.Head>Cliente</Table.Head>
             <Table.Head>Fábrica</Table.Head>
-            <Table.Head>Vendedor</Table.Head>
+            {showSeller && <Table.Head>Vendedor</Table.Head>}
             <Table.Head sortKey="status">Situação</Table.Head>
             <Table.Head sortKey="invoiced_at" sortFirst="desc">
               Faturamento
@@ -94,10 +100,10 @@ export function SentOrdersTable({
 
         <Table.Body>
           {loading && items.length === 0 ? (
-            <Table.Skeleton columns={7} rows={8} />
+            <Table.Skeleton columns={columns} rows={8} />
           ) : items.length === 0 ? (
             <Table.Row>
-              <Table.Cell colSpan={7}>
+              <Table.Cell colSpan={columns}>
                 <EmptyState.Root flat>
                   <EmptyState.Icon>
                     <Send size={32} />
@@ -118,13 +124,18 @@ export function SentOrdersTable({
           ) : (
             items.map((order) => (
               <Table.Row key={order.id} href={`/orders/${order.id}`}>
-                <Table.Cell variant="strong" className="whitespace-nowrap">
+                <Table.Cell
+                  variant="strong"
+                  className="whitespace-nowrap"
+                  label="Data do pedido"
+                >
                   {formatDateDMY(order.orderDate)}
                 </Table.Cell>
                 <Table.Cell
                   variant="strong"
                   title={clientName(order.client)}
                   wrap
+                  card="title"
                 >
                   <span className="inline-flex items-center gap-6">
                     {clientName(order.client)}
@@ -135,13 +146,23 @@ export function SentOrdersTable({
                     )}
                   </span>
                 </Table.Cell>
-                <Table.Cell variant="dim" title={factoryName(order.factory)}>
+                <Table.Cell
+                  variant="dim"
+                  title={factoryName(order.factory)}
+                  label="Fábrica"
+                >
                   {factoryName(order.factory)}
                 </Table.Cell>
-                <Table.Cell variant="dim">
-                  {order.seller?.name ?? "—"}
-                </Table.Cell>
-                <Table.Cell>
+                {showSeller && (
+                  <Table.Cell
+                    variant="dim"
+                    label="Vendedor"
+                    emptyText="Sem vendedor"
+                  >
+                    {order.seller?.name ?? ""}
+                  </Table.Cell>
+                )}
+                <Table.Cell card="status">
                   <Badge.Root
                     color={orderStatusTone(order.status)}
                     appearance="tinted"
@@ -154,6 +175,7 @@ export function SentOrdersTable({
                 <Table.Cell
                   variant={isPendingAtFactory(order) ? "default" : "dim"}
                   className="whitespace-nowrap"
+                  label="Faturamento"
                 >
                   {order.invoicedAt ? (
                     formatDateDMY(order.invoicedAt)
@@ -163,7 +185,11 @@ export function SentOrdersTable({
                     </Badge.Root>
                   )}
                 </Table.Cell>
-                <Table.Cell variant="strong" className="whitespace-nowrap">
+                <Table.Cell
+                  variant="strong"
+                  className="whitespace-nowrap"
+                  card="value"
+                >
                   {formatMoney(order.totalAmount)}
                 </Table.Cell>
               </Table.Row>
@@ -179,7 +205,7 @@ export function SentOrdersTable({
           )}
           {/* Sem linhas quem fala é o estado vazio, não o rodapé. */}
           {totalItems > 0 &&
-            `${totalItems} pedidos · página ${currentPage} de ${totalPages} · nesta página: ${formatMoney(page.amount)}, ${page.pendingCount} aguardando`}
+            `${plural(totalItems, "pedido", "pedidos")} · página ${currentPage} de ${totalPages} · nesta página: ${formatMoney(page.amount)}, ${page.pendingCount} aguardando`}
         </Table.Footer.Info>
 
         <Pagination.Smart

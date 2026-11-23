@@ -1,10 +1,12 @@
 "use client";
 
+import { plural } from "@/utils/format/plural";
 import { orderStatusLabel } from "@/app/(inside)/_shared/orderStatus";
 import { formatMoney } from "@/utils/format/masks";
 import { buildReportContext } from "@/utils/pdf/context";
 
 import { ReportChartCard } from "../_components/ReportChartCard";
+import { ReportEmpty } from "../_components/ReportEmpty";
 import { ReportKpis } from "../_components/ReportKpis";
 import { ReportToolbar } from "../_components/ReportToolbar";
 import { useReportContext } from "../useReportContext";
@@ -19,6 +21,7 @@ import {
   SENT_ORDERS_SORT_LABELS,
   summarizeSentOrders,
 } from "./utils";
+import { isReportEmpty } from "../utils";
 
 interface Props {
   canSelectSeller: boolean;
@@ -76,12 +79,20 @@ export default function SentOrdersReportContent({ canSelectSeller }: Props) {
     },
     buildHighlight: (rows) => {
       const totals = summarizeSentOrders(rows);
-      return `${totals.count} pedido(s) · ${totals.pendingCount} aguardando`;
+      return `${plural(totals.count, "pedido", "pedidos")} · ${totals.pendingCount} aguardando`;
     },
     buildTotals: (rows) => ({
       label: "TOTAL",
       byColumn: { 6: formatMoney(summarizeSentOrders(rows).amount) },
     }),
+  });
+
+  const isEmpty = isReportEmpty({
+    loading: kpisLoading || chart.loading,
+    hasRows: hasRows,
+    chartHasData: chart.hasData,
+    error: chart.error,
+    inputValues: tableData.inputValues,
   });
 
   return (
@@ -96,31 +107,39 @@ export default function SentOrdersReportContent({ canSelectSeller }: Props) {
         exportDisabled={!hasRows}
       />
 
-      <ReportKpis items={kpis} loading={kpisLoading} />
+      {isEmpty ? (
+        <ReportEmpty canSelectSeller={canSelectSeller} />
+      ) : (
+        <>
+          <ReportKpis items={kpis} loading={kpisLoading} />
 
-      <ReportChartCard
-        title="Colocado × já faturado, por fábrica"
-        description="A barra inteira é o que foi mandado no período; a parte azul é o que a fábrica ainda não faturou."
-        option={chart.option}
-        hasData={chart.hasData}
-        loading={chart.loading}
-        error={chart.error}
-        onRetry={chart.refetch}
-      />
+          <ReportChartCard
+            title="Colocado × já faturado, por fábrica"
+            description="A barra inteira é o que foi mandado no período; a parte azul é o que a fábrica ainda não faturou."
+            option={chart.option}
+            hasData={chart.hasData}
+            loading={chart.loading}
+            error={chart.error}
+            onRetry={chart.refetch}
+            canSelectSeller={canSelectSeller}
+          />
 
-      <SentOrdersTable
-        items={tableData.displayedData}
-        loading={tableData.loading}
-        filterFields={filterFields}
-        inputValues={tableData.inputValues}
-        setFilter={tableData.setFilter}
-        setFilters={tableData.setFilters}
-        sort={tableData.sort}
-        currentPage={tableData.currentPage}
-        setCurrentPage={tableData.setCurrentPage}
-        totalPages={tableData.totalPages}
-        totalItems={tableData.totalItems}
-      />
+          <SentOrdersTable
+            items={tableData.displayedData}
+            loading={tableData.loading}
+            filterFields={filterFields}
+            inputValues={tableData.inputValues}
+            setFilter={tableData.setFilter}
+            setFilters={tableData.setFilters}
+            sort={tableData.sort}
+            currentPage={tableData.currentPage}
+            setCurrentPage={tableData.setCurrentPage}
+            totalPages={tableData.totalPages}
+            totalItems={tableData.totalItems}
+            showSeller={canSelectSeller}
+          />
+        </>
+      )}
     </div>
   );
 }

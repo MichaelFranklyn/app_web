@@ -2,6 +2,7 @@
 
 import { useQueryErrorToast } from "@/hooks/useQueryErrorToast";
 import { useTableData } from "@/hooks/useTableData";
+import { visibleCommission } from "@/utils/commission";
 import { formatMoney } from "@/utils/format/masks";
 import { useApolloClient, useQuery } from "@apollo/client/react";
 import { useCallback, useMemo } from "react";
@@ -28,6 +29,7 @@ import {
   SALES_SORTABLE_FIELDS,
   SALES_TABLE_FIELDS,
   buildFactoryOption,
+  factoryChartHeight,
   buildMonthOption,
   buildSalesFilters,
   monthsInRange,
@@ -132,17 +134,18 @@ export const useSalesReport = (filters: ReportFilters) => {
         hasData: monthPoints.length > 0,
         loading: monthQuery.loading,
         error: monthQuery.error,
-        refetch: () => void monthQuery.refetch(),
+        refetch: (): void => void monthQuery.refetch(),
       };
     }
     return {
       title: "Faturamento por fábrica",
       description: "De quem veio o faturamento do período, maiores primeiro.",
       option: buildFactoryOption(factoryPoints),
+      height: factoryChartHeight(factoryPoints.length),
       hasData: factoryPoints.length > 0,
       loading: factoryQuery.loading,
       error: factoryQuery.error,
-      refetch: () => void factoryQuery.refetch(),
+      refetch: (): void => void factoryQuery.refetch(),
     };
   }, [showMonthly, monthPoints, factoryPoints, monthQuery, factoryQuery]);
 
@@ -169,7 +172,9 @@ export const useSalesReport = (filters: ReportFilters) => {
       },
       {
         label: "Comissão gerada",
-        value: formatMoney(stats?.commissionAmount ?? 0),
+        // Para o vendedor o servidor devolve `commissionAmount` nulo: a parte
+        // dele vem em `sellerCommissionAmount` (mesma regra da tabela).
+        value: formatMoney((stats && visibleCommission(stats)) ?? 0),
         hint: "o que o faturamento rendeu",
         status: "neutral",
       },

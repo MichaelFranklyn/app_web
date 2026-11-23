@@ -1,5 +1,6 @@
 "use client";
 
+import { plural } from "@/utils/format/plural";
 import {
   lensFor,
   type CommissionLens,
@@ -10,6 +11,7 @@ import { FileSpreadsheet, FileText } from "lucide-react";
 import { useMemo } from "react";
 
 import { ReportChartCard } from "../_components/ReportChartCard";
+import { ReportEmpty } from "../_components/ReportEmpty";
 import { ReportKpis } from "../_components/ReportKpis";
 import { ReportToolbar } from "../_components/ReportToolbar";
 import { useReportContext } from "../useReportContext";
@@ -26,6 +28,7 @@ import {
   splitTotals,
   summarize,
 } from "./utils";
+import { isReportEmpty } from "../utils";
 
 interface Props {
   canSelectSeller: boolean;
@@ -120,9 +123,9 @@ export default function CommissionsReportContent({ canSelectSeller }: Props) {
       const totals = summarize(rows);
       if (lens.audience === "seller" && withOffice) {
         const split = splitTotals(rows);
-        return `${rows.length} parcela(s) · repasse ${formatMoney(split.seller)}`;
+        return `${plural(rows.length, "parcela", "parcelas")} · repasse ${formatMoney(split.seller)}`;
       }
-      return `${rows.length} parcela(s) · a receber ${formatMoney(totals.receivable)}`;
+      return `${plural(rows.length, "parcela", "parcelas")} · a receber ${formatMoney(totals.receivable)}`;
     },
     buildTotals: (rows: CommissionRow[]) => {
       const totals = summarize(rows);
@@ -176,6 +179,14 @@ export default function CommissionsReportContent({ canSelectSeller }: Props) {
     [canExportSellerCopy, sellerExport]
   );
 
+  const isEmpty = isReportEmpty({
+    loading: report.kpisLoading || report.chart.loading,
+    hasRows: report.hasRows,
+    chartHasData: report.chart.hasData,
+    error: report.chart.error,
+    inputValues: report.inputValues,
+  });
+
   return (
     <div className="flex flex-col gap-12">
       <ReportToolbar
@@ -197,45 +208,56 @@ export default function CommissionsReportContent({ canSelectSeller }: Props) {
         exportDisabled={!report.hasRows}
       />
 
-      <ReportKpis items={report.kpis} loading={report.kpisLoading} />
-
-      <ReportChartCard
-        title="Comissão por fábrica"
-        description="A barra inteira é a comissão do período naquela fábrica; as cores dizem em que pé ela está."
-        option={report.chart.option}
-        hasData={report.chart.hasData}
-        loading={report.chart.loading}
-        error={report.chart.error}
-        onRetry={report.chart.refetch}
-      />
-
-      {withOffice && report.splitChart.hasData && (
-        <ReportChartCard
-          title="Quanto fica no escritório"
-          description="A barra inteira é a comissão que a fábrica paga à empresa; o verde é o que sobra depois do repasse ao vendedor."
-          option={report.splitChart.option}
-          hasData={report.splitChart.hasData}
-          loading={report.splitChart.loading}
-          error={report.splitChart.error}
-          onRetry={report.splitChart.refetch}
+      {isEmpty ? (
+        <ReportEmpty
+          canSelectSeller={canSelectSeller}
+          title="Nenhuma comissão no período"
         />
-      )}
+      ) : (
+        <>
+          <ReportKpis items={report.kpis} loading={report.kpisLoading} />
 
-      <CommissionsReportTable
-        items={report.pageRows}
-        loading={report.loading}
-        filterFields={report.filterFields}
-        inputValues={report.inputValues}
-        setFilter={report.setFilter}
-        setFilters={report.setFilters}
-        sort={report.sort}
-        currentPage={report.currentPage}
-        setCurrentPage={report.setCurrentPage}
-        totalPages={report.totalPages}
-        totalItems={report.totalItems}
-        filteredTotals={report.filteredTotals}
-        withOffice={withOffice}
-      />
+          <ReportChartCard
+            title="Comissão por fábrica"
+            description="A barra inteira é a comissão do período naquela fábrica; as cores dizem em que pé ela está."
+            option={report.chart.option}
+            hasData={report.chart.hasData}
+            loading={report.chart.loading}
+            error={report.chart.error}
+            onRetry={report.chart.refetch}
+            canSelectSeller={canSelectSeller}
+          />
+
+          {withOffice && report.splitChart.hasData && (
+            <ReportChartCard
+              title="Quanto fica no escritório"
+              description="A barra inteira é a comissão que a fábrica paga à empresa; o verde é o que sobra depois do repasse ao vendedor."
+              option={report.splitChart.option}
+              hasData={report.splitChart.hasData}
+              loading={report.splitChart.loading}
+              error={report.splitChart.error}
+              onRetry={report.splitChart.refetch}
+              canSelectSeller={canSelectSeller}
+            />
+          )}
+
+          <CommissionsReportTable
+            items={report.pageRows}
+            loading={report.loading}
+            filterFields={report.filterFields}
+            inputValues={report.inputValues}
+            setFilter={report.setFilter}
+            setFilters={report.setFilters}
+            sort={report.sort}
+            currentPage={report.currentPage}
+            setCurrentPage={report.setCurrentPage}
+            totalPages={report.totalPages}
+            totalItems={report.totalItems}
+            filteredTotals={report.filteredTotals}
+            withOffice={withOffice}
+          />
+        </>
+      )}
     </div>
   );
 }

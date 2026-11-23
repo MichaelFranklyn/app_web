@@ -73,10 +73,11 @@ export const EMPTY_CELL_TEXT = "Não informado";
  * tabela já nasce certa. Só o TEXTO vazio é trocado; uma célula de ações sem
  * botão (`null`) continua vazia.
  */
-export function withEmptyFallback(children: ReactNode): ReactNode {
+export function withEmptyFallback(
+  children: ReactNode,
+  emptyText: string = EMPTY_CELL_TEXT
+): ReactNode {
   if (typeof children !== "string") return children;
   const text = children.trim();
-  return text === "" || text === "—" || text === "-"
-    ? EMPTY_CELL_TEXT
-    : children;
+  return text === "" || text === "—" || text === "-" ? emptyText : children;
 }

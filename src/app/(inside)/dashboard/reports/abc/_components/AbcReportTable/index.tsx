@@ -8,6 +8,7 @@ import { Loading } from "@/components/Loading";
 import { Pagination } from "@/components/Pagination";
 import { Table, TableSort } from "@/components/Table";
 import { formatDateDMY, formatMoney } from "@/utils/format/masks";
+import { plural } from "@/utils/format/plural";
 import { TrendingUp } from "lucide-react";
 
 import { formatPercent } from "../../../../utils";
@@ -73,7 +74,7 @@ export function AbcReportTable({
         </Table.CardHead.Actions>
       </Table.CardHead>
 
-      <Table.Table>
+      <Table.Table cards>
         <Table.Header>
           <Table.Row>
             <Table.Head sortKey="rank">#</Table.Head>
@@ -121,11 +122,17 @@ export function AbcReportTable({
           ) : (
             items.map((row) => (
               <Table.Row key={row.clientId}>
-                <Table.Cell variant="dim">{row.rank}</Table.Cell>
-                <Table.Cell variant="strong" title={row.clientName}>
+                <Table.Cell variant="dim" label="Posição">
+                  {`${row.rank}º`}
+                </Table.Cell>
+                <Table.Cell
+                  variant="strong"
+                  card="title"
+                  title={row.clientName}
+                >
                   {row.clientName}
                 </Table.Cell>
-                <Table.Cell>
+                <Table.Cell card="status">
                   <Badge.Root
                     color={ABC_CLASS_COLOR[row.abcClass]}
                     appearance="tinted"
@@ -137,18 +144,37 @@ export function AbcReportTable({
                     </Badge.Text>
                   </Badge.Root>
                 </Table.Cell>
-                <Table.Cell variant="strong" className="whitespace-nowrap">
+                <Table.Cell
+                  variant="strong"
+                  card="value"
+                  className="whitespace-nowrap"
+                >
                   {formatMoney(row.totalAmount)}
                 </Table.Cell>
-                <Table.Cell variant="dim" className="whitespace-nowrap">
+                <Table.Cell
+                  variant="dim"
+                  label="Participação"
+                  className="whitespace-nowrap"
+                >
                   {formatPercent(row.share)}
                 </Table.Cell>
-                <Table.Cell variant="dim" className="whitespace-nowrap">
+                <Table.Cell
+                  variant="dim"
+                  label="Acumulado"
+                  className="whitespace-nowrap"
+                >
                   {formatPercent(row.cumulativeShare)}
                 </Table.Cell>
-                <Table.Cell variant="dim">{row.orderCount}</Table.Cell>
-                <Table.Cell variant="dim" className="whitespace-nowrap">
-                  {row.lastOrderDate ? formatDateDMY(row.lastOrderDate) : "—"}
+                <Table.Cell variant="dim" label="Pedidos">
+                  {row.orderCount}
+                </Table.Cell>
+                <Table.Cell
+                  variant="dim"
+                  label="Último faturamento"
+                  emptyText="Sem faturamento"
+                  className="whitespace-nowrap"
+                >
+                  {row.lastOrderDate ? formatDateDMY(row.lastOrderDate) : ""}
                 </Table.Cell>
               </Table.Row>
             ))
@@ -163,7 +189,7 @@ export function AbcReportTable({
           )}
           {/* Sem linhas quem fala é o estado vazio, não o rodapé. */}
           {totalItems > 0 &&
-            `${totalItems} cliente(s) · página ${currentPage} de ${totalPages} · nesta página: ${formatMoney(pageAmount)}`}
+            `${plural(totalItems, "cliente", "clientes")} · página ${currentPage} de ${totalPages} · nesta página: ${formatMoney(pageAmount)}`}
         </Table.Footer.Info>
 
         <Pagination.Smart

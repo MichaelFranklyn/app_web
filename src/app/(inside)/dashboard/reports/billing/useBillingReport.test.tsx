@@ -128,7 +128,7 @@ describe("useBillingReport", () => {
     const vencido = result.current.kpis[1];
 
     expect(money(vencido.value)).toBe("R$ 1.000,00");
-    expect(vencido.hint).toContain("1 parcela(s)");
+    expect(vencido.hint).toContain("1 parcela");
     expect(vencido.hint).toContain("25");
     expect(vencido.status).toBe("urgente");
   });
@@ -147,7 +147,7 @@ describe("useBillingReport", () => {
     // Com dinheiro no período e nada atrasado, o KPI fica verde e escreve a
     // fatia zerada; "nada vencido" é a frase do período sem parcela nenhuma.
     expect(vencido.status).toBe("ok");
-    expect(vencido.hint).toContain("0 parcela(s)");
+    expect(vencido.hint).toContain("0 parcelas");
   });
 
   it("período sem parcela nenhuma mostra zeros, e não tela quebrada", async () => {

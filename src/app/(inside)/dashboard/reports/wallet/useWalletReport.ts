@@ -1,5 +1,6 @@
 "use client";
 
+import { plural } from "@/utils/format/plural";
 import { useLocalTable } from "@/hooks/useLocalTable";
 import { useQueryErrorToast } from "@/hooks/useQueryErrorToast";
 import { formatMoney } from "@/utils/format/masks";
@@ -77,7 +78,7 @@ export const useWalletReport = (filters: ReportFilters) => {
       {
         label: "Clientes na carteira",
         value: String(report.totalClients),
-        hint: `${report.newClients} novo(s) · ${report.neverBoughtClients} sem nenhuma compra`,
+        hint: `${plural(report.newClients, "novo", "novos")} · ${report.neverBoughtClients} sem nenhuma compra`,
         status: "neutral",
       },
       {
@@ -94,7 +95,7 @@ export const useWalletReport = (filters: ReportFilters) => {
         // em dois cartões esconderia o tamanho do problema.
         label: "Precisam de contato",
         value: String(needAttention),
-        hint: `${report.atRiskClients} atrasado(s) · ${report.inactiveClients} parado(s)`,
+        hint: `${plural(report.atRiskClients, "atrasado", "atrasados")} · ${plural(report.inactiveClients, "parado", "parados")}`,
         status: needAttention > 0 ? "urgente" : "ok",
       },
       {

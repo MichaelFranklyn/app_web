@@ -80,7 +80,7 @@ describe("overdueLabel", () => {
   });
 
   it("sem atraso não inventa número", () => {
-    expect(overdueLabel(0)).toBe("—");
+    expect(overdueLabel(0)).toBe("Em dia");
   });
 });
 

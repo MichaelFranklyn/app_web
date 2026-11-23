@@ -1,5 +1,6 @@
 "use client";
 
+import { plural } from "@/utils/format/plural";
 import { useLocalTable } from "@/hooks/useLocalTable";
 import { useQueryErrorToast } from "@/hooks/useQueryErrorToast";
 import { formatMoney } from "@/utils/format/masks";
@@ -86,7 +87,7 @@ export const usePurchasesReport = (filters: ReportFilters) => {
       {
         label: "Cliente × fábrica",
         value: String(report.totalRows),
-        hint: `${report.clientCount} cliente(s) em ${report.factoryCount} fábrica(s)`,
+        hint: `${plural(report.clientCount, "cliente", "clientes")} em ${plural(report.factoryCount, "fábrica", "fábricas")}`,
         status: "neutral",
       },
       {
@@ -94,7 +95,7 @@ export const usePurchasesReport = (filters: ReportFilters) => {
         // cartões esconderia o tamanho do problema.
         label: "Atrasados na fábrica",
         value: String(needAttention),
-        hint: `${report.atRiskRows} atrasado(s) · ${report.inactiveRows} parado(s)`,
+        hint: `${plural(report.atRiskRows, "atrasado", "atrasados")} · ${plural(report.inactiveRows, "parado", "parados")}`,
         status: needAttention > 0 ? "urgente" : "ok",
       },
       {
@@ -106,7 +107,7 @@ export const usePurchasesReport = (filters: ReportFilters) => {
       {
         label: "Comprado no período",
         value: formatMoney(report.periodAmount),
-        hint: `${report.periodOrderCount} compra(s), pela data do pedido`,
+        hint: `${plural(report.periodOrderCount, "compra", "compras")}, pela data do pedido`,
         status: "neutral",
       },
     ];

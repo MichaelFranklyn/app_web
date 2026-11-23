@@ -1,5 +1,6 @@
 "use client";
 
+import { plural } from "@/utils/format/plural";
 import { buildReportContext } from "@/utils/pdf/context";
 
 import { ReportChartCard } from "../_components/ReportChartCard";
@@ -71,7 +72,7 @@ export default function PurchasesReportContent({ canSelectSeller }: Props) {
     },
     buildHighlight: (exported) => {
       const totals = summarize(exported);
-      return `${totals.pairs} linha(s) · ${totals.clients} cliente(s) em ${totals.factories} fábrica(s)`;
+      return `${plural(totals.pairs, "linha", "linhas")} · ${plural(totals.clients, "cliente", "clientes")} em ${plural(totals.factories, "fábrica", "fábricas")}`;
     },
     buildTotals: (exported) => ({
       label: "TOTAL",
@@ -116,6 +117,7 @@ export default function PurchasesReportContent({ canSelectSeller }: Props) {
         setCurrentPage={report.setCurrentPage}
         totalPages={report.totalPages}
         totalItems={report.rows.length}
+        showSeller={canSelectSeller}
       />
     </div>
   );

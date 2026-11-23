@@ -109,12 +109,8 @@ const statsMock = (stats: Record<string, number> = {}) => ({
 const riskMock = (points: unknown[] = []) => ({
   request: {
     query: CLIENTS_AT_RISK_QUERY,
-    variables: {
-      from: FILTERS.from,
-      to: FILTERS.to,
-      sellerId: null,
-      limit: 10,
-    },
+    // Sem período: o ritmo sai do histórico inteiro, a régua do KPI.
+    variables: { sellerId: null, limit: 10 },
   },
   maxUsageCount: 5,
   result: { data: { clientsAtRisk: points } },
@@ -156,8 +152,8 @@ beforeEach(() => {
 
 describe("useClientsReport", () => {
   it("os cartões são o retrato de HOJE, não um recorte de período", async () => {
-    // Só o gráfico de atraso depende do intervalo: o ritmo de compra de cada
-    // cliente sai dos pedidos do período. Os números da carteira, não.
+    // Nem o gráfico de atraso depende do intervalo: ele e o KPI medem o ritmo
+    // pelo histórico inteiro, senão um dizia 15 e o outro "Sem dados".
     const result = await run([listMock(), statsMock(), riskMock()]);
 
     expect(result.current.kpis.map((kpi) => kpi.value)).toEqual([

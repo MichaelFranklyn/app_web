@@ -1,5 +1,6 @@
 "use client";
 
+import { plural } from "@/utils/format/plural";
 import { useLocalTable } from "@/hooks/useLocalTable";
 import { useQueryErrorToast } from "@/hooks/useQueryErrorToast";
 import { formatMoney } from "@/utils/format/masks";
@@ -77,7 +78,7 @@ export const useFactoriesReport = (filters: ReportFilters) => {
       {
         label: "Fábricas com pedido",
         value: String(allRows.length),
-        hint: `${orders} pedido(s) no período`,
+        hint: `${plural(orders, "pedido", "pedidos")} no período`,
         status: "neutral",
       },
       {

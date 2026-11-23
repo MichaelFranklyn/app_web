@@ -1,3 +1,4 @@
+import { plural } from "@/utils/format/plural";
 import {
   COMMISSION_STATUS_LABEL,
   type CommissionLens,
@@ -194,7 +195,7 @@ export const buildFactoryOption = (
         `Recebido: <b>${formatMoney(group.received)}</b>`,
         `A receber: <b>${formatMoney(group.receivable)}</b>`,
         `Previsto: <b>${formatMoney(group.pending)}</b>`,
-        mutedLine(`${group.count} parcela(s)`),
+        mutedLine(`${plural(group.count, "parcela", "parcelas")}`),
       ];
     },
     { stacked: true }
