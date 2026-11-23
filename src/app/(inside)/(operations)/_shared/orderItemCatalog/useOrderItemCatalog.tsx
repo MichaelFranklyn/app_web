@@ -237,8 +237,13 @@ export function useOrderItemCatalog(
     }
   }, [companyFactoryId, isLoadingProducts, productOptions]);
 
+  // A página que já chegou conta no MESMO render: esperar o efeito gravar a
+  // marca deixava um render com a lista cheia e `hasProducts` falso (tela
+  // piscando "sem produtos" ao voltar a uma fábrica em cache).
   const hasProducts =
-    companyFactoryId !== null && factoryWithProducts === companyFactoryId;
+    companyFactoryId !== null &&
+    (factoryWithProducts === companyFactoryId ||
+      (!isLoadingProducts && productOptions.length > 0));
   // Até a 1ª página da fábrica chegar, não dá para afirmar que ela não tem
   // catálogo — quem mostra "sem produtos" espera este sinal.
   const isCatalogPending =
