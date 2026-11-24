@@ -3042,6 +3042,14 @@ input ImportFactoryPriceListInput {
   taxesAsFraction: Boolean! = false
   """Preços da planilha são por unidade base (peça/kg); convertidos para preço por embalagem multiplicando por unitPerPack."""
   pricesPerUnit: Boolean! = false
+  """
+  Preços de OUTRO grupo de clientes (ex.: Interior) para uma tabela que já está
+  vigente: os níveis da planilha entram nessa tabela, que segue ativa, e os
+  preços dos demais níveis ficam como estão. Nulo = tabela nova (substitui a
+  vigente da mesma região). Com ele, listName/region/validFrom/validUntil são
+  ignorados.
+  """
+  addToPriceListId: UUID = null
   rows: [ImportPriceListRowInput!]!
 }
 
@@ -7448,6 +7456,49 @@ input UpdateSellerClientFactoryInput {
   lastVisitDate: DateTime = null
 }
 
+"""Quantos clientes desta fábrica moram numa cidade (para o nível por cidade)."""
+type SellerClientFactoryCity {
+  """Vazio = clientes sem cidade no cadastro."""
+  city: String!
+  state: String!
+  clients: Int!
+}
+
+type SellerClientFactoryCityListResponse {
+  status: Boolean!
+  code: Int!
+  message: String!
+  data: [SellerClientFactoryCity!]!
+}
+
+input ClientCityInput {
+  city: String!
+  state: String!
+}
+
+"""
+Põe um nível comercial nos clientes de uma fábrica pela cidade. `exceptCities`
+inverte: todos os clientes MENOS os dessas cidades ("o interior é tudo que não é
+a capital").
+"""
+input SetSellerClientFactoriesPriceTierInput {
+  factoryId: UUID!
+  priceTierId: UUID!
+  cities: [ClientCityInput!]!
+  exceptCities: Boolean = false
+}
+
+type UpdatedCount {
+  updated: Int!
+}
+
+type UpdatedCountDataResponse {
+  status: Boolean!
+  code: Int!
+  message: String!
+  data: UpdatedCount
+}
+
 extend type Query {
   sellerClientFactoryList(input: BaseListInput!): SellerClientFactoryTypeConnectionResponse!
   sellerClientFactory(id: UUID!): SellerClientFactoryTypeDataResponse!
@@ -7457,6 +7508,8 @@ extend type Query {
   de um colega antes de tentar vincular). `data` nulo = fábrica livre.
   """
   clientFactoryAssignment(clientId: UUID!, factoryId: UUID!): SellerClientFactoryTypeDataResponse!
+  """Cidades dos clientes desta fábrica, com quantos clientes há em cada uma."""
+  sellerClientFactoryCities(factoryId: UUID!): SellerClientFactoryCityListResponse!
 }
 
 """
@@ -7490,6 +7543,8 @@ extend type Mutation {
   createSellerClientFactory(input: CreateSellerClientFactoryInput!): SellerClientFactoryTypeDataResponse!
   updateSellerClientFactory(id: UUID!, input: UpdateSellerClientFactoryInput!): SellerClientFactoryTypeDataResponse!
   deleteSellerClientFactory(id: UUID!): BaseResponse!
+  """Nível comercial em massa pela cidade do cliente. Só gestor."""
+  setSellerClientFactoriesPriceTier(input: SetSellerClientFactoriesPriceTierInput!): UpdatedCountDataResponse!
 }
 
 """

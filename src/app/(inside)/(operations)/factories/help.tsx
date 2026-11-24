@@ -151,8 +151,13 @@ export const FACTORY_PRICE_LISTS_HELP: ReactNode = (
       por <Emphasis>nível</Emphasis>, valendo num período.
     </Title>
     <Title variant="body-sm">
-      Uma fábrica pode ter mais de uma ao mesmo tempo — por região, por exemplo,
-      porque o imposto muda de estado para estado.
+      Preço diferente para um grupo de clientes (capital × interior, por
+      exemplo) não é outra tabela: é outro <Emphasis>nível</Emphasis> na mesma
+      tabela. Cada cliente recebe o nível dele na aba Clientes.
+    </Title>
+    <Title variant="body-sm">
+      Duas tabelas ao mesmo tempo só por região fiscal — quando o imposto muda
+      de estado para estado.
     </Title>
   </>
 );
@@ -160,7 +165,7 @@ export const FACTORY_PRICE_LISTS_HELP: ReactNode = (
 export const FACTORY_PRICE_LIST_COLUMN_HELP = {
   name: "Como a tabela é chamada — normalmente o nome que veio da fábrica, com o mês ou a campanha.",
   region:
-    "Estado ou região onde esta tabela vale. É o que permite duas tabelas ao mesmo tempo com preços diferentes, porque o imposto muda por estado.",
+    "Região fiscal: o estado ou a alíquota de imposto em que esta tabela vale. Preço por grupo de clientes (capital × interior) não vai aqui — vira nível dentro da tabela.",
   from: "Primeiro dia em que a tabela passa a valer.",
   to: "Último dia de validade. Vazio significa que ela vale por tempo indeterminado.",
   status:

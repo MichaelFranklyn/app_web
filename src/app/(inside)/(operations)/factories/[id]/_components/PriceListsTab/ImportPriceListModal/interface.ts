@@ -50,3 +50,17 @@ export interface ImportPriceListResponse {
     data: ImportPriceListResult | null;
   };
 }
+
+/** Tabela vigente da fábrica — destino possível de uma planilha de outro grupo de clientes. */
+export interface ActivePriceList {
+  id: string;
+  name: string;
+  region: string;
+}
+
+/**
+ * O que a planilha é: a nova versão da tabela (substitui a vigente da mesma
+ * região) ou os preços de OUTRO grupo de clientes (ex.: Interior), que entram
+ * como nível na tabela vigente sem mexer nos preços dos outros grupos.
+ */
+export type ImportMode = "replace" | "group";

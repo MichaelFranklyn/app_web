@@ -32,7 +32,11 @@ import {
   EXTRACT_PRICE_LIST_FILE_MUTATION,
   IMPORT_PRICE_LIST_MUTATION,
 } from "./gql";
-import { ImportPriceListResponse, ImportPriceListResult } from "./interface";
+import {
+  ActivePriceList,
+  ImportPriceListResponse,
+  ImportPriceListResult,
+} from "./interface";
 import { isPriceListConfig, PriceListTemplateConfig } from "./templateConfig";
 import { useListDetails } from "./useListDetails";
 import { useMappingState } from "./useMappingState";
@@ -48,6 +52,9 @@ export interface ImportPriceListModalProps {
    *  `?import=price-list` abre já no estado inicial dele). */
   open: boolean;
   onOpenChange: (open: boolean) => void;
+  /** Tabelas vigentes da fábrica: com alguma, o último passo pergunta se a
+   *  planilha substitui a tabela ou traz os preços de outro grupo de clientes. */
+  activeLists?: ActivePriceList[];
 }
 
 // Usa os componentes de data LOCAIS (via toIsoDate), não `toISOString().slice`,
@@ -60,6 +67,7 @@ export function useImportPriceListWizard({
   onImported,
   open,
   onOpenChange,
+  activeLists = [],
 }: ImportPriceListModalProps) {
   const searchParams = useSearchParams();
   const router = useRouter();
@@ -157,8 +165,20 @@ export function useImportPriceListWizard({
     setValidFrom,
     validUntil,
     setValidUntil,
+    mode: chosenMode,
+    setMode,
+    targetListId: chosenTargetId,
+    setTargetListId,
     reset: resetDetails,
   } = useListDetails();
+
+  // Sem tabela vigente não há onde acrescentar um grupo: a planilha é tabela
+  // nova. Com uma vigente só, ela já é o destino — nada a escolher.
+  const mode = activeLists.length > 0 ? chosenMode : "replace";
+  const targetList =
+    activeLists.find((l) => l.id === chosenTargetId) ??
+    (activeLists.length === 1 ? activeLists[0] : null);
+  const addToPriceListId = mode === "group" ? (targetList?.id ?? null) : null;
 
   const distinctUnits = useMemo(
     () => distinctValues(rows, mapping.unit),
@@ -239,10 +259,12 @@ export function useImportPriceListWizard({
     ncmChoice,
     taxColumns,
     stMva,
-    listName,
+    // Outro grupo: o backend ignora nome/vigência, mas o contrato os exige.
+    listName: addToPriceListId ? (targetList?.name ?? "") : listName,
     region,
-    validFrom: toIso(validFrom),
+    validFrom: addToPriceListId ? toIso(new Date()) : toIso(validFrom),
     validUntil: toIso(validUntil) || null,
+    addToPriceListId,
     pricesPerUnit,
     ipiAsFraction,
     taxesAsFraction,
@@ -395,7 +417,9 @@ export function useImportPriceListWizard({
     isMappingComplete(mapping, PRICE_REQUIRED_FIELDS),
     validTiersCount > 0,
     true, // Impostos: tudo opcional
-    canImport(buildArgs) && importableRows > 0,
+    canImport(buildArgs) &&
+      importableRows > 0 &&
+      (mode === "replace" || addToPriceListId !== null),
     true, // Resultado: só leitura
   ];
 
@@ -528,6 +552,13 @@ export function useImportPriceListWizard({
         }
       : null,
     detailsStep: {
+      activeLists,
+      mode,
+      setMode,
+      targetListId: targetList?.id ?? null,
+      setTargetListId,
+      tierColumns,
+      setTierColumns,
       listName,
       setListName,
       region,

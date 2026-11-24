@@ -32,6 +32,12 @@ export interface BuildArgs {
   region: string;
   validFrom: string;
   validUntil: string | null;
+  /**
+   * Tabela vigente que recebe os preços de OUTRO grupo de clientes (os níveis
+   * da planilha entram nela). Nulo = tabela nova, que substitui a vigente da
+   * mesma região; com ele, nome/região/vigência não valem (o backend ignora).
+   */
+  addToPriceListId?: string | null;
   /** Preços da planilha por unidade base: o backend converte para preço por embalagem. */
   pricesPerUnit: boolean;
   /** IPI da planilha em fração decimal (0,0325): o backend converte para percentual (×100). */
@@ -56,7 +62,10 @@ export const hasConfiguredTaxes = (
 
 /** Pré-condições para habilitar a importação. */
 export const canImport = (args: BuildArgs): boolean =>
-  args.listName.trim() !== "" && args.validFrom !== "" && canSaveTemplate(args);
+  (args.addToPriceListId
+    ? true
+    : args.listName.trim() !== "" && args.validFrom !== "") &&
+  canSaveTemplate(args);
 
 /**
  * Pré-condições para salvar o modelo (mapeamento) da fábrica. NÃO exige
@@ -191,6 +200,7 @@ export const buildImportInput = (args: BuildArgs) => {
       region: args.region.trim(),
       validFrom: args.validFrom,
       validUntil: args.validUntil || null,
+      addToPriceListId: args.addToPriceListId ?? null,
       tiers: validTiers.map((t) => t.tierName.trim()),
       importIpi,
       ipiAsFraction: args.ipiAsFraction,

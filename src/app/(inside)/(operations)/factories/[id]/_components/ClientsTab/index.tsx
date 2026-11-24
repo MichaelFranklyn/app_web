@@ -12,11 +12,13 @@ import { Title } from "@/components/Title";
 import { Loading } from "@/components/Loading";
 import { Pagination } from "@/components/Pagination";
 import { useOptimisticList } from "@/hooks/useOptimisticList";
+import { useUserData } from "@/hooks/useUserData";
 import { Users } from "lucide-react";
 import { FACTORY_CLIENT_COLUMN_HELP } from "../../../help";
 import { ClientLinkRowActions } from "./ClientLinkRowActions";
 import { FactoryClientLink } from "./gql";
 import { LinkClientModal } from "./LinkClientModal";
+import { SetTierByCityModal } from "./SetTierByCityModal";
 import { useFactoryClientsTable } from "./useFactoryClientsTable";
 import { priorityMeta } from "@/utils/clientPriority";
 import { clientName } from "@/utils/company";
@@ -43,6 +45,8 @@ export function ClientsTab({
   });
   const links = optimistic.items;
   const { loading, error, refetch } = table;
+  // Nível em massa é decisão comercial do escritório: o back só aceita admin.
+  const { isSeller } = useUserData();
   const isNarrowed = Object.values(table.inputValues).some(Boolean);
   // Coluna em que nenhuma linha da página tem valor é uma coluna de "—": sai
   // no desktop (crítica de 23/11/2026). Nível de preço é opcional no vínculo e
@@ -85,6 +89,13 @@ export function ClientsTab({
             onChange={table.setFilters}
             onTextChange={table.setFilter}
           />
+          {!isSeller && (
+            <SetTierByCityModal
+              factoryId={factoryId}
+              tierOptions={table.tierOptions}
+              onDone={() => refetch()}
+            />
+          )}
           <LinkClientModal
             factoryId={factoryId}
             companyFactoryId={companyFactoryId}
