@@ -8,12 +8,20 @@ import {
 } from "@/components/FormBuilder";
 import { Modal } from "@/components/Modal";
 import { useAsyncAction } from "@/hooks/useAsyncAction";
+import { extractSelectValue } from "@/utils/form";
 import { maskCurrency, parseMoneyToNumber } from "@/utils/format/masks";
 import { useMutation } from "@apollo/client/react";
 import { Pencil } from "lucide-react";
 import { useMemo, useRef, useState } from "react";
 import { PaymentTermNode, UPDATE_FACTORY_PAYMENT_TERM_MUTATION } from "../gql";
-import { formatInstallments, parseInstallments } from "../utils";
+import {
+  formatInstallments,
+  parseInstallments,
+  TierOption,
+  tierFieldValue,
+  tierFormFields,
+  tierIdFromField,
+} from "../utils";
 
 interface UpdateResponse {
   updateFactoryPaymentTerm: {
@@ -32,6 +40,8 @@ interface Props {
   onUpdateOptimistic: (id: string, updates: Partial<PaymentTermNode>) => void;
   onCommit: () => void;
   onRollback: () => void;
+  /** Níveis da fábrica; vazio = fábrica de um nível só, sem o campo. */
+  tiers: TierOption[];
 }
 
 export function EditPaymentTermModal({
@@ -40,6 +50,7 @@ export function EditPaymentTermModal({
   onUpdateOptimistic,
   onCommit,
   onRollback,
+  tiers,
   open: controlledOpen,
   onOpenChange,
 }: Props) {
@@ -75,16 +86,17 @@ export function EditPaymentTermModal({
               {
                 name: "minOrderAmount",
                 type: "currency",
-                label: "Valor mínimo do pedido (opcional)",
+                label: "Valor mínimo do pedido",
                 placeholder: "0,00",
                 hint: "Quanto a fábrica exige em mercadoria para liberar este prazo. Zere o campo para deixar o prazo sem mínimo.",
               },
+              ...tierFormFields(tiers),
             ],
           },
         ],
       },
     ],
-    []
+    [tiers]
   );
 
   const initialData = useMemo(
@@ -93,8 +105,11 @@ export function EditPaymentTermModal({
       minOrderAmount: term.minOrderAmount
         ? maskCurrency(String(Math.round(term.minOrderAmount * 100)))
         : "",
+      ...(tiers.length
+        ? { priceTierId: tierFieldValue(term.priceTierId, tiers) }
+        : {}),
     }),
-    [term]
+    [term, tiers]
   );
 
   const handleSubmit = async (data: Record<string, unknown>) => {
@@ -116,7 +131,13 @@ export function EditPaymentTermModal({
     );
     const sameMinimum = minOrderAmount === (term.minOrderAmount ?? 0);
 
-    if (sameDays && sameMinimum) {
+    // Sem o campo (fábrica de um nível só), o nível fica como está.
+    const priceTierId = tiers.length
+      ? tierIdFromField(extractSelectValue(data.priceTierId))
+      : term.priceTierId;
+    const sameTier = priceTierId === term.priceTierId;
+
+    if (sameDays && sameMinimum && sameTier) {
       setOpen(false);
       return;
     }
@@ -129,6 +150,7 @@ export function EditPaymentTermModal({
       name,
       installmentsDays,
       minOrderAmount: minOrderAmount || null,
+      priceTierId,
     });
 
     await execute(
@@ -136,7 +158,16 @@ export function EditPaymentTermModal({
         const res = await updateTerm({
           variables: {
             id: term.id,
-            input: { installmentsDays, minOrderAmount },
+            // null no update é "não mexer": desvincular precisa do flag.
+            input: {
+              installmentsDays,
+              minOrderAmount,
+              ...(sameTier
+                ? {}
+                : priceTierId
+                  ? { priceTierId }
+                  : { clearPriceTier: true }),
+            },
           },
         });
         if (

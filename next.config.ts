@@ -89,6 +89,11 @@ const nextConfig: NextConfig = {
   // toque. Rede doméstica liberada para o teste em aparelho real (13/11/2026).
   allowedDevOrigins: ["192.168.*.*"],
 
+  // A raiz do Turbopack é ESTA pasta. Sem isso ele adota a pasta de cima (que
+  // junta app_web e app_user) e o Tailwind resolve `@import "tailwindcss"` de
+  // lá, onde não há node_modules: "Can't resolve 'tailwindcss'" no `next dev`.
+  turbopack: { root: __dirname },
+
   // Recomendado true para identificar problemas no ciclo de vida do React
   reactStrictMode: true,
 

@@ -16,15 +16,23 @@ import { PaymentTermRowActions } from "./PaymentTermRowActions";
 import {
   FACTORY_PAYMENT_TERMS_QUERY,
   FactoryPaymentTermsData,
+  PAYMENT_TERM_TIERS_QUERY,
   PaymentTermNode,
+  PaymentTermTiersData,
 } from "./gql";
-import { formatInstallments, installmentsCountLabel } from "./utils";
+import {
+  formatInstallments,
+  installmentsCountLabel,
+  TierOption,
+  tierLabel,
+} from "./utils";
 
 interface Props {
   companyFactoryId: string;
 }
 
 const getConnection = (d: FactoryPaymentTermsData) => d.payment_terms;
+const getTiers = (d: PaymentTermTiersData) => d.priceTiers;
 
 export function PaymentTermsTab({ companyFactoryId }: Props) {
   // Sem teto fixo: o `first: 50` que estava aqui cobria a fábrica comum e, no
@@ -50,6 +58,27 @@ export function PaymentTermsTab({ companyFactoryId }: Props) {
       getConnection,
       { skip: !companyFactoryId, fetchPolicy: "cache-and-network" }
     );
+
+  // Os níveis só aparecem quando a fábrica tem mais de um: com um nível só,
+  // "de qual nível é o prazo" não é pergunta — todos os clientes são do mesmo.
+  const { data: tiersData } = useCompleteList<PaymentTermTiersData>(
+    PAYMENT_TERM_TIERS_QUERY,
+    listInput,
+    getTiers,
+    { skip: !companyFactoryId, fetchPolicy: "cache-and-network" }
+  );
+  const tiers = useMemo<TierOption[]>(
+    () =>
+      tiersData?.priceTiers?.edges.map(({ node }) => ({
+        value: node.id,
+        label: node.name,
+      })) ?? [],
+    [tiersData]
+  );
+  const showTiers =
+    tiers.length > 1 ||
+    (data?.payment_terms?.edges.some((e) => e.node.priceTierId) ?? false);
+  const columns = showTiers ? 5 : 4;
 
   const initial = useMemo<PaymentTermNode[]>(
     () => data?.payment_terms?.edges.map((e) => e.node) ?? [],
@@ -89,6 +118,7 @@ export function PaymentTermsTab({ companyFactoryId }: Props) {
             companyFactoryId={companyFactoryId}
             onAdded={handleChanged}
             onAddOptimistic={optimistic.addOptimistic}
+            tiers={showTiers ? tiers : []}
           />
         </Table.CardHead.Actions>
       </Table.CardHead>
@@ -112,6 +142,11 @@ export function PaymentTermsTab({ companyFactoryId }: Props) {
             >
               Valor mínimo
             </Table.Head>
+            {showTiers && (
+              <Table.Head title={FACTORY_PAYMENT_TERM_COLUMN_HELP.tier}>
+                Nível dos clientes
+              </Table.Head>
+            )}
             <Table.Head
               className="text-right"
               title={FACTORY_PAYMENT_TERM_COLUMN_HELP.actions}
@@ -123,16 +158,16 @@ export function PaymentTermsTab({ companyFactoryId }: Props) {
 
         <Table.Body>
           {loading ? (
-            <Table.Skeleton columns={4} rows={3} />
+            <Table.Skeleton columns={columns} rows={3} />
           ) : error && terms.length === 0 ? (
             <Table.Row>
-              <Table.Cell colSpan={4}>
+              <Table.Cell colSpan={columns}>
                 <QueryError flat onRetry={() => refetch()} />
               </Table.Cell>
             </Table.Row>
           ) : terms.length === 0 ? (
             <Table.Row>
-              <Table.Cell colSpan={4}>
+              <Table.Cell colSpan={columns}>
                 <EmptyState.Root flat>
                   <EmptyState.Icon>
                     <CalendarClock />
@@ -175,6 +210,18 @@ export function PaymentTermsTab({ companyFactoryId }: Props) {
                       : "Sem mínimo"}
                   </Table.CellText>
                 </Table.Cell>
+                {showTiers && (
+                  <Table.Cell
+                    label="Nível dos clientes"
+                    cardHidden={!term.priceTierId}
+                  >
+                    <Table.CellText
+                      variant={term.priceTierId ? "strong" : "dim"}
+                    >
+                      {tierLabel(term.priceTierId, tiers)}
+                    </Table.CellText>
+                  </Table.Cell>
+                )}
                 <Table.Cell card="actions">
                   <PaymentTermRowActions
                     edit={{
@@ -183,6 +230,7 @@ export function PaymentTermsTab({ companyFactoryId }: Props) {
                       onUpdateOptimistic: optimistic.updateOptimistic,
                       onCommit: optimistic.commit,
                       onRollback: optimistic.rollback,
+                      tiers: showTiers ? tiers : [],
                     }}
                     remove={{
                       termId: term.id,

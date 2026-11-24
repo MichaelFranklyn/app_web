@@ -9,6 +9,7 @@ export const FACTORY_PAYMENT_TERMS_QUERY = gql`
           name
           installmentsDays
           minOrderAmount
+          priceTierId
         }
       }
       totalCount
@@ -36,6 +37,11 @@ export interface PaymentTermNode {
   installmentsDays: number[];
   /** Piso de faturamento exigido pela fábrica; null = prazo sem mínimo. */
   minOrderAmount: number | null;
+  /**
+   * Nível comercial a que o prazo pertence (ex.: "Interior" → 45/75/105).
+   * null = vale para todos os níveis. Só SUGERE o prazo no pedido.
+   */
+  priceTierId: string | null;
 }
 
 export interface FactoryPaymentTermsData {
@@ -54,6 +60,8 @@ export const CREATE_FACTORY_PAYMENT_TERM_MUTATION = gql`
         id
         name
         installmentsDays
+        minOrderAmount
+        priceTierId
       }
     }
   }
@@ -71,6 +79,8 @@ export const UPDATE_FACTORY_PAYMENT_TERM_MUTATION = gql`
         id
         name
         installmentsDays
+        minOrderAmount
+        priceTierId
       }
     }
   }
@@ -84,3 +94,25 @@ export const DELETE_FACTORY_PAYMENT_TERM_MUTATION = gql`
     }
   }
 `;
+
+// Níveis da fábrica: a aba carrega uma vez e entrega aos dois modais e à coluna.
+export const PAYMENT_TERM_TIERS_QUERY = gql`
+  query PaymentTermTiers($input: BaseListInput!) {
+    priceTiers(input: $input) {
+      edges {
+        node {
+          id
+          name
+        }
+      }
+      totalCount
+    }
+  }
+`;
+
+export interface PaymentTermTiersData {
+  priceTiers: {
+    edges: { node: { id: string; name: string } }[];
+    totalCount: number;
+  };
+}

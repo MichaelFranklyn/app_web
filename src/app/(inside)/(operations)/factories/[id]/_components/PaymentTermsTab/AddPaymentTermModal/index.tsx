@@ -8,12 +8,19 @@ import {
 } from "@/components/FormBuilder";
 import { Modal } from "@/components/Modal";
 import { useAsyncAction } from "@/hooks/useAsyncAction";
+import { extractSelectValue } from "@/utils/form";
 import { parseMoneyToNumber } from "@/utils/format/masks";
 import { useMutation } from "@apollo/client/react";
 import { Plus } from "lucide-react";
 import { useMemo, useRef, useState } from "react";
 import { CREATE_FACTORY_PAYMENT_TERM_MUTATION, PaymentTermNode } from "../gql";
-import { parseInstallments } from "../utils";
+import {
+  parseInstallments,
+  TierOption,
+  tierFieldValue,
+  tierFormFields,
+  tierIdFromField,
+} from "../utils";
 
 interface CreateResponse {
   createFactoryPaymentTerm: {
@@ -27,12 +34,15 @@ interface Props {
   companyFactoryId: string;
   onAdded: () => void;
   onAddOptimistic: (term: PaymentTermNode) => void;
+  /** Níveis da fábrica; vazio = fábrica de um nível só, sem o campo. */
+  tiers: TierOption[];
 }
 
 export function AddPaymentTermModal({
   companyFactoryId,
   onAdded,
   onAddOptimistic,
+  tiers,
 }: Props) {
   const [open, setOpen] = useState(false);
   const formRef = useRef<FormBuilderRef>(null);
@@ -60,16 +70,23 @@ export function AddPaymentTermModal({
               {
                 name: "minOrderAmount",
                 type: "currency",
-                label: "Valor mínimo do pedido (opcional)",
+                label: "Valor mínimo do pedido",
                 placeholder: "0,00",
                 hint: "Quanto a fábrica exige em mercadoria para liberar este prazo. Deixe em branco se não houver mínimo.",
               },
+              ...tierFormFields(tiers),
             ],
           },
         ],
       },
     ],
-    []
+    [tiers]
+  );
+
+  // Abre em "Todos os níveis": é o que o prazo vale se ninguém mexer.
+  const initialData = useMemo(
+    () => (tiers.length ? { priceTierId: tierFieldValue(null, tiers) } : {}),
+    [tiers]
   );
 
   const handleClose = (v: boolean) => {
@@ -90,10 +107,18 @@ export function AddPaymentTermModal({
         const minOrderAmount = parseMoneyToNumber(
           String(data.minOrderAmount ?? "")
         );
+        const priceTierId = tierIdFromField(
+          extractSelectValue(data.priceTierId)
+        );
         // O nome do prazo é derivado dos vencimentos pelo back (ex.: "30/60/90").
         const res = await createTerm({
           variables: {
-            input: { companyFactoryId, installmentsDays, minOrderAmount },
+            input: {
+              companyFactoryId,
+              installmentsDays,
+              minOrderAmount,
+              priceTierId,
+            },
           },
         });
         if (
@@ -138,6 +163,7 @@ export function AddPaymentTermModal({
             steps={steps}
             onSubmit={handleSubmit}
             loading={isLoading}
+            initialData={initialData}
             unstyled
           />
         </Modal.Body>

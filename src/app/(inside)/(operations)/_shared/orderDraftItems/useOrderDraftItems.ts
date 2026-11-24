@@ -398,6 +398,8 @@ export function useOrderDraftItems(
     removeItem,
     reset,
     restore,
+    /** Nível acordado com o cliente nesta fábrica (sugere a condição). */
+    linkedTierId,
     appendItems,
     lastPurchasesByProduct,
     isLoadingLastPurchases,
