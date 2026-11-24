@@ -271,6 +271,15 @@ describe("buildImportInput — passagem de flags e vigência", () => {
       validUntil: "2026-12-31",
     });
   });
+
+  it("tabela nova vai sem addToPriceListId; outro grupo leva a tabela vigente", () => {
+    const fresh = buildImportInput(makeArgs()).input;
+    expect(fresh.addToPriceListId).toBeNull();
+    const group = buildImportInput(
+      makeArgs({ addToPriceListId: "pl-1" })
+    ).input;
+    expect(group.addToPriceListId).toBe("pl-1");
+  });
 });
 
 describe("canSaveTemplate / canImport / hasConfiguredTaxes", () => {
@@ -290,6 +299,12 @@ describe("canSaveTemplate / canImport / hasConfiguredTaxes", () => {
     expect(canImport(makeArgs({ validFrom: "" }))).toBe(false);
     // mesmo com nome/vigência, sem nível não importa.
     expect(canImport(makeArgs({ tierColumns: [] }))).toBe(false);
+  });
+
+  it("outro grupo de clientes: dispensa nome/vigência, mas não o nível", () => {
+    const group = { addToPriceListId: "pl-1", listName: "", validFrom: "" };
+    expect(canImport(makeArgs(group))).toBe(true);
+    expect(canImport(makeArgs({ ...group, tierColumns: [] }))).toBe(false);
   });
 
   it("hasConfiguredTaxes: verdadeiro com imposto aditivo OU ST completo", () => {

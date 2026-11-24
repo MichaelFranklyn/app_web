@@ -103,6 +103,7 @@ function importMock(
 type Api = ReturnType<typeof useImportPriceListWizard>;
 let api: Api;
 const onImported = vi.fn();
+let activeLists: { id: string; name: string; region: string }[] = [];
 
 function Harness() {
   api = useImportPriceListWizard({
@@ -112,12 +113,17 @@ function Harness() {
     open: false,
     onOpenChange: vi.fn(),
     onImported,
+    activeLists,
   });
   return null;
 }
 
-function renderWizard(mocks: MockLink.MockedResponse[]) {
+function renderWizard(
+  mocks: MockLink.MockedResponse[],
+  lists: typeof activeLists = []
+) {
   onImported.mockClear();
+  activeLists = lists;
   render(
     <MockedProvider mocks={mocks}>
       <Harness />
@@ -225,5 +231,32 @@ describe("useImportPriceListWizard — máquina de estado", () => {
     );
     expect(api.step).not.toBe(6);
     expect(api.result).toBeNull();
+  });
+});
+
+describe("useImportPriceListWizard — outro grupo de clientes", () => {
+  const CAPITAL = { id: "pl-1", name: "Lista 7", region: "" };
+
+  it("sem tabela vigente, a planilha é sempre tabela nova", () => {
+    renderWizard([]);
+    act(() => api.detailsStep.setMode("group"));
+    expect(api.detailsStep.mode).toBe("replace");
+  });
+
+  it("com uma tabela vigente, o grupo já cai nela (nada a escolher)", () => {
+    renderWizard([], [CAPITAL]);
+    expect(api.detailsStep.mode).toBe("replace");
+    act(() => api.detailsStep.setMode("group"));
+    expect(api.detailsStep.mode).toBe("group");
+    expect(api.detailsStep.targetListId).toBe("pl-1");
+  });
+
+  it("com duas vigentes, espera a escolha da tabela", () => {
+    const other = { id: "pl-2", name: "Lista 7 Ne", region: "ICMS 7%" };
+    renderWizard([], [CAPITAL, other]);
+    act(() => api.detailsStep.setMode("group"));
+    expect(api.detailsStep.targetListId).toBeNull();
+    act(() => api.detailsStep.setTargetListId("pl-2"));
+    expect(api.detailsStep.targetListId).toBe("pl-2");
   });
 });

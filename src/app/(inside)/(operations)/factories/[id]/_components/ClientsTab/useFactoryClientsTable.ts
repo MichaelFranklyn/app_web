@@ -175,5 +175,5 @@ export function useFactoryClientsTable(
     [sellerOptions, sellersQuery.loading, tierOptions, tiersQuery.loading]
   );
 
-  return { ...table, filterFields };
+  return { ...table, filterFields, tierOptions };
 }

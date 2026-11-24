@@ -12,6 +12,7 @@ import { useOptimisticList } from "@/hooks/useOptimisticList";
 import { formatDateDMY } from "@/utils/format/masks";
 import { ListChecks } from "lucide-react";
 import { useMemo } from "react";
+import { ActiveListsNotice } from "./ActiveListsNotice";
 import { AddPriceListModal } from "./AddPriceListModal";
 import { PriceListRowActions } from "./PriceListRowActions";
 import { PriceListsMoreMenu } from "./PriceListsMoreMenu";
@@ -62,166 +63,179 @@ export function PriceListsTab({ companyFactoryId, factoryId }: Props) {
   });
   const priceLists = optimistic.items;
   const nameById = new Map(priceLists.map((pl) => [pl.id, pl.name]));
+  const activeLists = priceLists
+    .filter((pl) => pl.isActive)
+    .map(({ id, name, region }) => ({ id, name, region }));
 
   return (
-    <Table.Root data-tour="prices-table">
-      <Table.CardHead>
-        <Table.CardHead.Title>
-          Tabelas de preços
-          <HelpTooltip
-            label="O que é uma tabela de preço?"
-            content={
-              <div className="flex flex-col gap-2">
-                <Title variant="label" weight="semibold">
-                  Tabela de preço
-                </Title>
-                <Title variant="body-sm">
-                  Versiona os preços por vigência — promoções, reajustes,
-                  histórico. Dentro de cada tabela você lança o preço por
-                  produto e nível comercial.
-                </Title>
-                <Title variant="body-sm" color="muted">
-                  Clique numa linha para abrir a tabela e gerenciar os preços.
-                </Title>
-              </div>
-            }
-          />
-        </Table.CardHead.Title>
-        <Table.CardHead.Actions data-tour="prices-actions">
-          <PriceListsMoreMenu
-            importProps={{
-              companyFactoryId,
-              factoryId,
-              onImported: () => refetch(),
-            }}
-            cloneProps={{
-              companyFactoryId,
-              onCloned: () => refetch(),
-              onAddOptimistic: optimistic.addOptimistic,
-            }}
-            canClone={priceLists.length >= 2}
-          />
-          <AddPriceListModal
-            companyFactoryId={companyFactoryId}
-            onAdded={() => refetch()}
-            onAddOptimistic={optimistic.addOptimistic}
-          />
-        </Table.CardHead.Actions>
-      </Table.CardHead>
+    <div className="flex flex-col gap-16">
+      <ActiveListsNotice activeCount={activeLists.length} />
+      <Table.Root data-tour="prices-table">
+        <Table.CardHead>
+          <Table.CardHead.Title>
+            Tabelas de preços
+            <HelpTooltip
+              label="O que é uma tabela de preço?"
+              content={
+                <div className="flex flex-col gap-2">
+                  <Title variant="label" weight="semibold">
+                    Tabela de preço
+                  </Title>
+                  <Title variant="body-sm">
+                    Versiona os preços por vigência — promoções, reajustes,
+                    histórico. Dentro de cada tabela você lança o preço por
+                    produto e nível comercial.
+                  </Title>
+                  <Title variant="body-sm" color="muted">
+                    Clique numa linha para abrir a tabela e gerenciar os preços.
+                  </Title>
+                </div>
+              }
+            />
+          </Table.CardHead.Title>
+          <Table.CardHead.Actions data-tour="prices-actions">
+            <PriceListsMoreMenu
+              importProps={{
+                companyFactoryId,
+                factoryId,
+                onImported: () => refetch(),
+                activeLists,
+              }}
+              cloneProps={{
+                companyFactoryId,
+                onCloned: () => refetch(),
+                onAddOptimistic: optimistic.addOptimistic,
+              }}
+              canClone={priceLists.length >= 2}
+            />
+            <AddPriceListModal
+              companyFactoryId={companyFactoryId}
+              onAdded={() => refetch()}
+              onAddOptimistic={optimistic.addOptimistic}
+            />
+          </Table.CardHead.Actions>
+        </Table.CardHead>
 
-      {/* Abaixo do desktop cada linha vira cartão, em vez de a tabela rolar de lado. */}
-      <Table.Table cards>
-        <Table.Header>
-          <Table.Row>
-            <Table.Head title={FACTORY_PRICE_LIST_COLUMN_HELP.name}>
-              Nome
-            </Table.Head>
-            <Table.Head title={FACTORY_PRICE_LIST_COLUMN_HELP.region}>
-              Região
-            </Table.Head>
-            <Table.Head title={FACTORY_PRICE_LIST_COLUMN_HELP.from}>
-              Vigência início
-            </Table.Head>
-            <Table.Head title={FACTORY_PRICE_LIST_COLUMN_HELP.to}>
-              Vigência fim
-            </Table.Head>
-            <Table.Head title={FACTORY_PRICE_LIST_COLUMN_HELP.status}>
-              Status
-            </Table.Head>
-            <Table.Head
-              className="text-right"
-              title={FACTORY_PRICE_LIST_COLUMN_HELP.actions}
-            >
-              Ações
-            </Table.Head>
-          </Table.Row>
-        </Table.Header>
-        <Table.Body>
-          {loading ? (
-            <Table.Skeleton columns={6} rows={5} />
-          ) : error && priceLists.length === 0 ? (
+        {/* Abaixo do desktop cada linha vira cartão, em vez de a tabela rolar de lado. */}
+        <Table.Table cards>
+          <Table.Header>
             <Table.Row>
-              <Table.Cell colSpan={6}>
-                <QueryError flat onRetry={() => refetch()} />
-              </Table.Cell>
-            </Table.Row>
-          ) : priceLists.length === 0 ? (
-            <Table.Row>
-              <Table.Cell colSpan={6}>
-                <EmptyState.Root flat>
-                  <EmptyState.Icon>
-                    <ListChecks />
-                  </EmptyState.Icon>
-                  <EmptyState.Title>Nenhuma tabela de preços</EmptyState.Title>
-                  <EmptyState.Description>
-                    Crie uma tabela em Tabelas de Preços para começar.
-                  </EmptyState.Description>
-                </EmptyState.Root>
-              </Table.Cell>
-            </Table.Row>
-          ) : (
-            priceLists.map((pl) => (
-              <Table.Row
-                key={pl.id}
-                href={`/factories/${companyFactoryId}/price-lists/${pl.id}`}
-                data-tour="prices-row"
+              <Table.Head title={FACTORY_PRICE_LIST_COLUMN_HELP.name}>
+                Nome
+              </Table.Head>
+              <Table.Head title={FACTORY_PRICE_LIST_COLUMN_HELP.region}>
+                Região
+              </Table.Head>
+              <Table.Head title={FACTORY_PRICE_LIST_COLUMN_HELP.from}>
+                Vigência início
+              </Table.Head>
+              <Table.Head title={FACTORY_PRICE_LIST_COLUMN_HELP.to}>
+                Vigência fim
+              </Table.Head>
+              <Table.Head title={FACTORY_PRICE_LIST_COLUMN_HELP.status}>
+                Status
+              </Table.Head>
+              <Table.Head
+                className="text-right"
+                title={FACTORY_PRICE_LIST_COLUMN_HELP.actions}
               >
-                <Table.Cell card="title">
-                  <div className="flex flex-col">
-                    <Table.CellText variant="strong">{pl.name}</Table.CellText>
-                    {pl.clonedFromId && (
-                      <Table.CellText variant="dim2">
-                        Cópia de{" "}
-                        {nameById.get(pl.clonedFromId) ?? "tabela removida"}
-                      </Table.CellText>
-                    )}
-                  </div>
-                </Table.Cell>
-                <Table.Cell label="Região" variant="dim">
-                  {pl.region || "Geral"}
-                </Table.Cell>
-                <Table.Cell label="Vigência início" variant="dim">
-                  {formatDateDMY(pl.validFrom)}
-                </Table.Cell>
-                <Table.Cell label="Vigência fim" variant="dim">
-                  {/* "—" não dizia se faltava o dado ou se a tabela vale sem prazo. */}
-                  {pl.validUntil
-                    ? formatDateDMY(pl.validUntil)
-                    : "Sem data final"}
-                </Table.Cell>
-                {/* No cartão, a tarja divide a última linha com as ações. */}
-                <Table.Cell card="aside">
-                  <Badge.Root
-                    color={pl.isActive ? "green" : "neutral"}
-                    appearance="tinted"
-                  >
-                    <Badge.Text>{pl.isActive ? "Ativa" : "Inativa"}</Badge.Text>
-                  </Badge.Root>
-                </Table.Cell>
-                <Table.Cell card="actions">
-                  <PriceListRowActions
-                    edit={{
-                      priceList: pl,
-                      onChanged: () => refetch(),
-                      onUpdateOptimistic: optimistic.updateOptimistic,
-                      onCommit: optimistic.commit,
-                      onRollback: optimistic.rollback,
-                    }}
-                    remove={{
-                      priceListId: pl.id,
-                      priceListName: pl.name,
-                      onRemoved: () => refetch(),
-                      onRemoveOptimistic: optimistic.removeOptimistic,
-                      onCommit: optimistic.commit,
-                      onRollback: optimistic.rollback,
-                    }}
-                  />
+                Ações
+              </Table.Head>
+            </Table.Row>
+          </Table.Header>
+          <Table.Body>
+            {loading ? (
+              <Table.Skeleton columns={6} rows={5} />
+            ) : error && priceLists.length === 0 ? (
+              <Table.Row>
+                <Table.Cell colSpan={6}>
+                  <QueryError flat onRetry={() => refetch()} />
                 </Table.Cell>
               </Table.Row>
-            ))
-          )}
-        </Table.Body>
-      </Table.Table>
-    </Table.Root>
+            ) : priceLists.length === 0 ? (
+              <Table.Row>
+                <Table.Cell colSpan={6}>
+                  <EmptyState.Root flat>
+                    <EmptyState.Icon>
+                      <ListChecks />
+                    </EmptyState.Icon>
+                    <EmptyState.Title>
+                      Nenhuma tabela de preços
+                    </EmptyState.Title>
+                    <EmptyState.Description>
+                      Crie uma tabela em Tabelas de Preços para começar.
+                    </EmptyState.Description>
+                  </EmptyState.Root>
+                </Table.Cell>
+              </Table.Row>
+            ) : (
+              priceLists.map((pl) => (
+                <Table.Row
+                  key={pl.id}
+                  href={`/factories/${companyFactoryId}/price-lists/${pl.id}`}
+                  data-tour="prices-row"
+                >
+                  <Table.Cell card="title">
+                    <div className="flex flex-col">
+                      <Table.CellText variant="strong">
+                        {pl.name}
+                      </Table.CellText>
+                      {pl.clonedFromId && (
+                        <Table.CellText variant="dim2">
+                          Cópia de{" "}
+                          {nameById.get(pl.clonedFromId) ?? "tabela removida"}
+                        </Table.CellText>
+                      )}
+                    </div>
+                  </Table.Cell>
+                  <Table.Cell label="Região" variant="dim">
+                    {pl.region || "Geral"}
+                  </Table.Cell>
+                  <Table.Cell label="Vigência início" variant="dim">
+                    {formatDateDMY(pl.validFrom)}
+                  </Table.Cell>
+                  <Table.Cell label="Vigência fim" variant="dim">
+                    {/* "—" não dizia se faltava o dado ou se a tabela vale sem prazo. */}
+                    {pl.validUntil
+                      ? formatDateDMY(pl.validUntil)
+                      : "Sem data final"}
+                  </Table.Cell>
+                  {/* No cartão, a tarja divide a última linha com as ações. */}
+                  <Table.Cell card="aside">
+                    <Badge.Root
+                      color={pl.isActive ? "green" : "neutral"}
+                      appearance="tinted"
+                    >
+                      <Badge.Text>
+                        {pl.isActive ? "Ativa" : "Inativa"}
+                      </Badge.Text>
+                    </Badge.Root>
+                  </Table.Cell>
+                  <Table.Cell card="actions">
+                    <PriceListRowActions
+                      edit={{
+                        priceList: pl,
+                        onChanged: () => refetch(),
+                        onUpdateOptimistic: optimistic.updateOptimistic,
+                        onCommit: optimistic.commit,
+                        onRollback: optimistic.rollback,
+                      }}
+                      remove={{
+                        priceListId: pl.id,
+                        priceListName: pl.name,
+                        onRemoved: () => refetch(),
+                        onRemoveOptimistic: optimistic.removeOptimistic,
+                        onCommit: optimistic.commit,
+                        onRollback: optimistic.rollback,
+                      }}
+                    />
+                  </Table.Cell>
+                </Table.Row>
+              ))
+            )}
+          </Table.Body>
+        </Table.Table>
+      </Table.Root>
+    </div>
   );
 }
