@@ -145,21 +145,10 @@ export function UsersHeader({
               Quem entra no sistema e quem vende em campo — uma lista só. Clique
               em alguém para abrir o perfil completo.
             </PanelHeader.Description>
-            {/* O primário primeiro (Adicionar), depois Importar e Exportar: no
-                celular os botões empilham e o Exportar abria a pilha, empurrando
-                a ação principal para baixo (crítica de configurações,
-                23/11/2026). */}
-            <PanelHeader.Actions className="mt-12" data-tour="users-actions">
-              {/* Pelo teto de LOGINS: o papel só é escolhido dentro do modal, e
-                  quem pedir vendedor sem cota de vendedor recebe a recusa da
-                  própria mutation, com a frase daquele teto. */}
-              <PlanLimitGate limit="USERS">
-                <AddUserModal onAddOptimistic={onAddOptimistic} />
-              </PlanLimitGate>
-              {/* A planilha só cria vendedores: o teto é o de vendedores. */}
-              <PlanLimitGate limit="SELLERS">
-                <ImportSellersModal onImported={onImported} />
-              </PlanLimitGate>
+            {/* Secundários primeiro, o primário (Adicionar) por último — o
+                padrão de todo cabeçalho. No celular a pilha põe o primário no
+                topo sozinha (globals.css, "onde fica o primário"). */}
+            <PanelHeader.Actions data-tour="users-actions">
               <Button.Root
                 appearance="outline"
                 color="neutral"
@@ -171,6 +160,16 @@ export function UsersHeader({
                 <Button.Icon icon={Download} />
                 <Button.Title>Exportar</Button.Title>
               </Button.Root>
+              {/* A planilha só cria vendedores: o teto é o de vendedores. */}
+              <PlanLimitGate limit="SELLERS">
+                <ImportSellersModal onImported={onImported} />
+              </PlanLimitGate>
+              {/* Pelo teto de LOGINS: o papel só é escolhido dentro do modal, e
+                  quem pedir vendedor sem cota de vendedor recebe a recusa da
+                  própria mutation, com a frase daquele teto. */}
+              <PlanLimitGate limit="USERS">
+                <AddUserModal onAddOptimistic={onAddOptimistic} />
+              </PlanLimitGate>
             </PanelHeader.Actions>
           </PanelHeader.Left>
         </PanelHeader.Top>

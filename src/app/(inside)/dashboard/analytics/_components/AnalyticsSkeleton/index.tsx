@@ -48,7 +48,7 @@ export function AnalyticsSkeleton({ canSelectSeller }: Props) {
               </PanelHeader.Heading>
               {/* A descrição traz o período escolhido — vem com os dados. */}
               <Loading.Skeleton className="mt-[6px] h-[12px] w-64" />
-              <PanelHeader.Actions className="mt-6">
+              <PanelHeader.Actions>
                 {/* Vendedor, fábrica, período e "Baixar PDF": as mesmas
                     larguras da barra real. */}
                 <Loading.Skeleton className="h-[32px] w-[220px]" />

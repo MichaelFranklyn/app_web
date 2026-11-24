@@ -59,12 +59,8 @@ export function FactoryPageHeader({ companyFactory }: Props) {
                 </PanelHeader.Description>
               </div>
             </div>
-            {/* Tarjas e ações na MESMA linha, como no detalhe da reclamação e
-                do cliente: antes as tarjas eram itens do PanelHeader.Actions e
-                no celular cada uma esticava na largura toda, virando faixas
-                coloridas soltas (crítica de 23/11/2026). No celular as ações
-                ganham a linha inteira abaixo das tarjas. */}
-            <div className="max-tablet:mt-16 max-tablet:[&>span]:w-full mt-6 flex flex-wrap items-center gap-8">
+            {/* Tarjas e ações na faixa padrão (PanelHeader.Tags). */}
+            <PanelHeader.Tags>
               <Badge.Root
                 color={isActive ? "green" : "red"}
                 appearance="tinted"
@@ -79,17 +75,14 @@ export function FactoryPageHeader({ companyFactory }: Props) {
                 </Badge.Root>
               )}
 
-              <PanelHeader.Actions
-                className="max-tablet:basis-full w-auto grow"
-                data-tour="factory-detail-actions"
-              >
+              <PanelHeader.Actions data-tour="factory-detail-actions">
                 <EditCompanyFactoryModal />
                 <FactoryMoreMenu
                   companyFactoryId={companyFactory.id}
                   factoryName={name}
                 />
               </PanelHeader.Actions>
-            </div>
+            </PanelHeader.Tags>
           </PanelHeader.Left>
         </PanelHeader.Top>
       </PanelHeader.Root>

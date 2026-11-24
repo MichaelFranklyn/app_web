@@ -593,6 +593,30 @@
   }
 }
 
+/* PanelHeader.Actions — onde fica o primário (padrão de cabeçalho, 23/11/2026).
+   Na LINHA ele é a última ação, na ponta direita: secundários primeiro, o
+   próximo passo por último, em toda tela. Na PILHA (celular) ele sobe para o
+   topo, onde o polegar chega sem rolar. O primário é o botão `solid`; o
+   `order` vai nele e em cada embrulho até a linha (PlanLimitGate, modal,
+   `contents`), porque só conta no filho direto de um flex. */
+.group\/panelhead
+  > div
+  :is([data-appearance="solid"], :has([data-appearance="solid"])) {
+  order: 1;
+}
+.group\/panelhead[data-actions-mode="column"]
+  > div
+  :is([data-appearance="solid"], :has([data-appearance="solid"])) {
+  order: -1;
+}
+@media (width < 760px) {
+  .group\/panelhead:not([data-actions-ready])
+    > div
+    :is([data-appearance="solid"], :has([data-appearance="solid"])) {
+    order: -1;
+  }
+}
+
 /* PanelHeader.Actions — empilhar no celular JÁ no HTML do servidor.
    A regra "2+ ações no celular empilham" (useStackOnPhone) é JS: até a página
    hidratar, o HTML do servidor mostrava os botões numa linha só, e na

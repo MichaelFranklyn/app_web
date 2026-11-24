@@ -54,10 +54,10 @@ export function UserProfileSkeleton({
                 </div>
               </div>
 
-              <PanelHeader.Actions className="mt-12">
-                <Loading.Skeleton className="h-[24px] w-[88px]" />
-                <Loading.Skeleton className="h-[24px] w-[64px]" />
-              </PanelHeader.Actions>
+              <PanelHeader.Tags>
+                <Loading.Skeleton className="h-[33px] w-[88px]" />
+                <Loading.Skeleton className="h-[33px] w-[64px]" />
+              </PanelHeader.Tags>
             </PanelHeader.Left>
           </PanelHeader.Top>
         </PanelHeader.Root>

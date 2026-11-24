@@ -39,7 +39,7 @@ export function FactoriesHeader({
               ? "As fábricas que você pode vender."
               : "As fábricas que a sua empresa representa."}
           </PanelHeader.Description>
-          <PanelHeader.Actions className="mt-6" data-tour="factories-actions">
+          <PanelHeader.Actions data-tour="factories-actions">
             <InputSearch
               size="sm"
               placeholder="Buscar por CNPJ ou nome..."

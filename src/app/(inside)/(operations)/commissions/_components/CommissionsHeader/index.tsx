@@ -33,10 +33,15 @@ export function CommissionsHeader({ scope }: Props) {
               ? "O que as fábricas devem ao escritório, mês a mês."
               : "Quanto você tem para ganhar de comissão, por fábrica e por mês."}
           </PanelHeader.Description>
+          {/* A explicação da tela inteira, num painel. Fica na linha das
+              ações, não na do título: no título só cabe o "?" (padrão de
+              cabeçalho, 23/11/2026). Com o seletor, vai ao fim daquela linha. */}
+          {!canSelectSeller && (
+            <PanelHeader.Actions>
+              <CommissionsGuide canManage={canManage} />
+            </PanelHeader.Actions>
+          )}
         </PanelHeader.Left>
-        {/* A explicação da tela inteira, num painel: substitui os "?"
-            espalhados sem ocupar uma faixa da tela em toda visita. */}
-        <CommissionsGuide canManage={canManage} />
       </PanelHeader.Top>
       {canSelectSeller && (
         // Caixa crua e não PanelHeader.Actions: o Actions mede o conteúdo
@@ -83,6 +88,9 @@ export function CommissionsHeader({ scope }: Props) {
               value={scope.audience}
               onChange={scope.setAudience}
             />
+            <div className="desktop:ml-auto max-desktop:[&>*]:w-full flex">
+              <CommissionsGuide canManage={canManage} />
+            </div>
           </div>
         </div>
       )}

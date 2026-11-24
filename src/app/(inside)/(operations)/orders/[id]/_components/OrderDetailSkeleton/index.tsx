@@ -22,7 +22,7 @@ function HeaderSkeleton() {
           <PanelHeader.Left>
             <PanelHeader.HeadingSkeleton {...PAGE_HEADING.orders} />
             <Loading.Skeleton className="mt-[6px] h-[12px] w-56" />
-            <PanelHeader.Actions className="mt-6">
+            <PanelHeader.Actions>
               <Loading.Skeleton shape="pill" className="h-[22px] w-20" />
               <Loading.Skeleton className="h-[36px] w-28" />
               <Loading.Skeleton className="h-[36px] w-24" />

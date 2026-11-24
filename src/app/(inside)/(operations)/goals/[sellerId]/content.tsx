@@ -179,10 +179,10 @@ export default function SellerGoalsContent({
                 combinada em cada fábrica — é nela que se ajusta.
               </PanelHeader.Description>
               {!loading && rows.length > 0 && (
-                <PanelHeader.Actions className="mt-6">
+                <PanelHeader.Actions>
                   <div className="flex w-full max-w-[320px] flex-col gap-4">
                     {overall === null ? (
-                      <Badge.Root appearance="tinted" color="neutral" size="xs">
+                      <Badge.Root appearance="tinted" color="neutral" size="sm">
                         <Badge.Text>Sem meta neste mês</Badge.Text>
                       </Badge.Root>
                     ) : (

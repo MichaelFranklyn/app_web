@@ -43,11 +43,7 @@ export function CommissionsGuide({ canManage }: Props) {
         onClick={() => setOpen(true)}
       >
         <Button.Icon icon={BookOpen} />
-        {/* No celular, só o ícone: com o rótulo, o botão espremia o título
-            "Comissões" e a descrição numa coluna estreita. */}
-        <Button.Title className="max-tablet:hidden">
-          Como é calculado
-        </Button.Title>
+        <Button.Title>Como é calculado</Button.Title>
       </Button.Root>
       <Drawer.Root
         open={open}

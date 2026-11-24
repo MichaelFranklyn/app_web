@@ -73,10 +73,7 @@ export function PriceListDetailHeader({
               )}
             </PanelHeader.Description>
             {priceList && (
-              <PanelHeader.Actions
-                className="mt-6"
-                data-tour="price-detail-actions"
-              >
+              <PanelHeader.Tags>
                 <Badge.Root
                   color={priceList.isActive ? "green" : "neutral"}
                   appearance="tinted"
@@ -94,17 +91,19 @@ export function PriceListDetailHeader({
                     <Badge.Text>Promoção no ar</Badge.Text>
                   </Badge.Root>
                 )}
-                <PromotionModal priceList={priceList} onChanged={onRefetch} />
-                <EditPriceListModal
-                  priceList={priceList}
-                  onChanged={onRefetch}
-                />
-                <DeletePriceListModal
-                  priceListId={priceList.id}
-                  priceListName={priceList.name}
-                  priceListsHref={`${basePath}/price-lists`}
-                />
-              </PanelHeader.Actions>
+                <PanelHeader.Actions data-tour="price-detail-actions">
+                  <PromotionModal priceList={priceList} onChanged={onRefetch} />
+                  <EditPriceListModal
+                    priceList={priceList}
+                    onChanged={onRefetch}
+                  />
+                  <DeletePriceListModal
+                    priceListId={priceList.id}
+                    priceListName={priceList.name}
+                    priceListsHref={`${basePath}/price-lists`}
+                  />
+                </PanelHeader.Actions>
+              </PanelHeader.Tags>
             )}
           </PanelHeader.Left>
         </PanelHeader.Top>

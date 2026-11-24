@@ -103,7 +103,7 @@ export function OrdersHeader({
             <PanelHeader.Heading {...PAGE_HEADING.orders}>
               Pedidos
             </PanelHeader.Heading>
-            <PanelHeader.Actions className="mt-6" data-tour="orders-actions">
+            <PanelHeader.Actions data-tour="orders-actions">
               {/* No celular ficam só "Novo pedido" e o "Mais ações"; o CSS
                   esconde o resto desde o primeiro quadro, e os modais passam a
                   abrir pelo menu depois de hidratar. */}

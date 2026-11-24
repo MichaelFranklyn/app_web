@@ -33,7 +33,7 @@ export function TenantSkeleton() {
             <div className="mt-[2px] flex h-[21px] items-center">
               <Loading.Skeleton className="h-[12px] w-80 max-w-full" />
             </div>
-            <PanelHeader.Actions className="mt-12">
+            <PanelHeader.Actions>
               <Loading.Skeleton className="h-[32px] w-[140px]" />
               <Loading.Skeleton className="h-[32px] w-[104px]" />
             </PanelHeader.Actions>

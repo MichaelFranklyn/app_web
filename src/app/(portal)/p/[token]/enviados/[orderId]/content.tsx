@@ -48,7 +48,7 @@ export function PortalSentOrderContent({
             <Breadcrumb.Item>{title}</Breadcrumb.Item>
           </Breadcrumb.Root>
         }
-        badges={<SentOrderBadge order={order} size="md" />}
+        badges={<SentOrderBadge order={order} />}
         actions={<SentOrderShare order={order} brand={brand} />}
       />
 

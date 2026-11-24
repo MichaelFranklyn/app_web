@@ -61,7 +61,8 @@ export function UserProfileCard({ user }: { user: PlatformUserDetail }) {
             <PanelHeader.Actions>
               <Button.Root
                 appearance="solid"
-                color="neutral"
+                color="amber"
+                size="sm"
                 onClick={() => setLinkOpen(true)}
               >
                 <Button.Icon icon={KeyRound} />

@@ -220,7 +220,7 @@ export default function ClientLayout({
                 <>
                   <Loading.Skeleton className="h-[24px] w-72" />
                   <Loading.Skeleton className="mt-[6px] h-[14px] w-96" />
-                  <PanelHeader.Actions className="mt-8">
+                  <PanelHeader.Actions>
                     <Loading.Skeleton
                       shape="xs"
                       className="h-[20px] w-[72px]"
@@ -241,11 +241,8 @@ export default function ClientLayout({
                     )}
                   </PanelHeader.Description>
 
-                  {/* Tarjas e ações na MESMA faixa, como no detalhe do pedido
-                      e da reclamação. No celular segue o padrão do pedido: uma
-                      tarja ou um botão por linha, na largura toda. Botões lado
-                      a lado fugiam desse padrão (relato de 23/11/2026). */}
-                  <div className="max-tablet:mt-16 max-tablet:[&>span]:w-full mt-6 flex flex-wrap items-center gap-8">
+                  {/* Tarjas e ações na faixa padrão (PanelHeader.Tags). */}
+                  <PanelHeader.Tags>
                     {companyClientView && (
                       <Badge.Root
                         color={WALLET_STATUS_COLOR[walletStatus]}
@@ -263,10 +260,7 @@ export default function ClientLayout({
                         factoryScores={cc?.factoryVisitScores ?? []}
                       />
                     </FeatureGate>
-                    <PanelHeader.Actions
-                      data-tour="client-detail-actions"
-                      className="max-tablet:basis-full w-auto grow"
-                    >
+                    <PanelHeader.Actions data-tour="client-detail-actions">
                       {clientData && (
                         <EditClientModal
                           client={clientData}
@@ -301,7 +295,7 @@ export default function ClientLayout({
                         />
                       )}
                     </PanelHeader.Actions>
-                  </div>
+                  </PanelHeader.Tags>
                 </>
               )}
             </PanelHeader.Left>

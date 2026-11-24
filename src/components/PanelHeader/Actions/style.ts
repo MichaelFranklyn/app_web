@@ -8,7 +8,10 @@
 // `group/panelhead` nomeia o grupo para o wrapper interno ler o estágio.
 
 // Externo: ocupa a linha inteira e é a fonte da largura disponível.
-export const panelActionsWrapperStyle = "group/panelhead flex w-full";
+// `mt-6` é a distância padrão da descrição até a linha de ações — a mesma em
+// toda tela (antes cada uma passava a sua: 6, 8 ou 12). Dentro de
+// `PanelHeader.Tags` a faixa zera essa margem.
+export const panelActionsWrapperStyle = "group/panelhead mt-6 flex w-full";
 
 // Interno: é o que se mede. Nos estágios de linha fica no tamanho natural
 // (`w-auto shrink-0`, sem wrap), então offsetWidth revela o quanto as ações

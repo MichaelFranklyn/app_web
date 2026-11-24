@@ -23,7 +23,7 @@ export function FactoryDetailSkeleton() {
             <PanelHeader.Left>
               <Loading.Skeleton className="h-[20px] w-64" />
               <Loading.Skeleton className="mt-[6px] h-[12px] w-80" />
-              <PanelHeader.Actions className="mt-6">
+              <PanelHeader.Actions>
                 <Loading.Skeleton shape="xs" className="h-[22px] w-16" />
                 <Loading.Skeleton className="h-[36px] w-24" />
               </PanelHeader.Actions>

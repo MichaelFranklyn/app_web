@@ -257,7 +257,7 @@ export function ListPageSkeleton({
               <Loading.Skeleton className="mt-[6px] h-[12px] w-64" />
             )}
             {actionWidths.length > 0 && (
-              <PanelHeader.Actions className="mt-6">
+              <PanelHeader.Actions>
                 {actionWidths.map((width, i) => (
                   <Loading.Skeleton key={i} className={cn("h-[32px]", width)} />
                 ))}

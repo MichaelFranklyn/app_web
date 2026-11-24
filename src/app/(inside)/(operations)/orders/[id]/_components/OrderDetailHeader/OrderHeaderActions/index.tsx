@@ -33,13 +33,6 @@ export function OrderHeaderActions({ order, onRefetch }: Props) {
 
   return (
     <div className="print-hide flex flex-wrap items-center gap-8">
-      {primary === "convert" && (
-        <ConvertToOrderModal orderId={order.id} onSuccess={onRefetch} />
-      )}
-      {primary === "send" && <SendToFactoryModal {...base} />}
-      {primary === "invoice" && <InvoiceOrderModal {...base} />}
-      {primary === "deliver" && <MarkDeliveredModal {...base} />}
-
       {/* No celular, Editar e Exportar moram no "Mais ações". O CSS os esconde
           desde o primeiro quadro (antes de hidratar o hook ainda não sabe que é
           celular); depois o Editar passa a abrir pelo menu. */}
@@ -62,6 +55,15 @@ export function OrderHeaderActions({ order, onRefetch }: Props) {
         <OrderExportMenu order={order} />
       </div>
       {hasMenu && <MoreOptions options={menu} showLabel />}
+
+      {/* O próximo passo por último, como em todo cabeçalho; no celular a
+          pilha o leva ao topo (globals.css, "onde fica o primário"). */}
+      {primary === "convert" && (
+        <ConvertToOrderModal orderId={order.id} onSuccess={onRefetch} />
+      )}
+      {primary === "send" && <SendToFactoryModal {...base} />}
+      {primary === "invoice" && <InvoiceOrderModal {...base} />}
+      {primary === "deliver" && <MarkDeliveredModal {...base} />}
 
       {/* Modais do menu: só montam quando a ação existe, porque alguns buscam
           dados ao abrir (contatos da fábrica, saldo a faturar). */}

@@ -69,7 +69,7 @@ export function ClientsHeader({
                 : "Os clientes que sua empresa atende."}{" "}
               Clique em um para ver compras, visitas e score.
             </PanelHeader.Description>
-            <PanelHeader.Actions className="mt-6" data-tour="clients-actions">
+            <PanelHeader.Actions data-tour="clients-actions">
               <ExportClientsButton
                 inputValues={inputValues}
                 filterFields={filterFields}

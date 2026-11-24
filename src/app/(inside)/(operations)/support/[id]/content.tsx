@@ -106,12 +106,10 @@ export default function SupportCaseContent() {
               <PanelHeader.Description>
                 {SUPPORT_STATUS_HINT[supportCase.status]}
               </PanelHeader.Description>
-              {/* Tarja e ações na MESMA linha, como no detalhe do pedido: com a
-                  tarja numa linha própria entre a dica e os botões, o cabeçalho
-                  virava três fileiras soltas (crítica de 23/11/2026). No
-                  celular as ações ganham a linha inteira abaixo da tarja. */}
-              <div className="max-tablet:mt-16 max-tablet:[&>span]:w-full mt-6 flex flex-wrap items-center gap-8">
+              {/* Tarja e ações na faixa padrão (PanelHeader.Tags). */}
+              <PanelHeader.Tags>
                 <Badge.Root
+                  size="sm"
                   color={SUPPORT_STATUS_COLOR[supportCase.status]}
                   appearance="tinted"
                 >
@@ -119,7 +117,7 @@ export default function SupportCaseContent() {
                     {SUPPORT_STATUS_LABEL[supportCase.status]}
                   </Badge.Text>
                 </Badge.Root>
-                <PanelHeader.Actions className="max-tablet:basis-full w-auto grow">
+                <PanelHeader.Actions>
                   <Button.Root
                     type="button"
                     appearance="outline"
@@ -135,7 +133,7 @@ export default function SupportCaseContent() {
                     caseTitle={supportCase.title}
                   />
                 </PanelHeader.Actions>
-              </div>
+              </PanelHeader.Tags>
             </PanelHeader.Left>
           </PanelHeader.Top>
         </PanelHeader.Root>

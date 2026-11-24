@@ -49,7 +49,7 @@ export default function TenantsContent({ initialData }: TenantsContentProps) {
                 `w-full` e mede a si mesmo para decidir se colapsa em ícones.
                 Ao lado do título ele disputa a largura com o `flex-1` e a
                 medição sai errada. */}
-            <PanelHeader.Actions className="mt-6">
+            <PanelHeader.Actions>
               <Button.Root
                 appearance="solid"
                 color="amber"

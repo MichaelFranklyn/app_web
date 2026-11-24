@@ -62,7 +62,11 @@ export function CompanyBrandCard({ company, onEdit }: Props) {
             ) : (
               // Área de envio visível, e não um texto solto: "nenhuma logo"
               // não dizia o que fazer (crítica de configurações, 23/11/2026).
-              <div className="flex flex-col items-start gap-8 rounded-[8px] border border-dashed border-(--border) p-16">
+              <Card.Root
+                inset
+                dashed
+                className="flex flex-col items-start gap-8 p-16"
+              >
                 <Title variant="body" color="muted">
                   Nenhuma logo enviada. Sem ela, o PDF sai só com o nome da
                   empresa.
@@ -77,7 +81,7 @@ export function CompanyBrandCard({ company, onEdit }: Props) {
                   <Button.Icon icon={ImageUp} />
                   <Button.Title>Enviar logo</Button.Title>
                 </Button.Root>
-              </div>
+              </Card.Root>
             )}
           </div>
 

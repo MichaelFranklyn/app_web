@@ -137,7 +137,7 @@ export default function GoalsContent({ canManage }: Props) {
                 : "Suas metas do mês e o quanto você já fez, fábrica por fábrica."}
             </PanelHeader.Description>
             {canManage && (
-              <PanelHeader.Actions className="mt-6" data-tour="goals-seller">
+              <PanelHeader.Actions data-tour="goals-seller">
                 <div className="desktop:w-[220px] w-full">
                   <Input.Select
                     size="sm"

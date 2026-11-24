@@ -39,18 +39,14 @@ export function PortalPageHeader({
             <PanelHeader.Description>{description}</PanelHeader.Description>
           ) : null}
           {badges ? (
-            <div className="max-tablet:mt-16 max-tablet:[&>span]:w-full mt-6 flex flex-wrap items-center gap-8">
+            <PanelHeader.Tags>
               {badges}
               {actions ? (
-                <PanelHeader.Actions className="max-tablet:basis-full w-auto grow">
-                  {actions}
-                </PanelHeader.Actions>
+                <PanelHeader.Actions>{actions}</PanelHeader.Actions>
               ) : null}
-            </div>
+            </PanelHeader.Tags>
           ) : actions ? (
-            <PanelHeader.Actions className="mt-6">
-              {actions}
-            </PanelHeader.Actions>
+            <PanelHeader.Actions>{actions}</PanelHeader.Actions>
           ) : null}
         </PanelHeader.Left>
       </PanelHeader.Top>

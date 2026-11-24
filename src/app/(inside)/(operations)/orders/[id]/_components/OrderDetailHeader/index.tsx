@@ -59,14 +59,13 @@ export function OrderDetailHeader({ order, onRefetch }: Props) {
                 de converter. */}
             {/* Histórico da migração: o número é o do sistema antigo, e a
                 falta de comissão e boleto é esperada, não defeito. */}
-            {/* Tarjas e ações na MESMA linha: as tarjas primeiro (o estado), os
-                botões logo ao lado; se não couberem, as ações descem inteiras. */}
-            {/* No celular cada tarja ocupa a linha toda: lado a lado, curtas,
-                elas deixavam sobra à direita (14/11/2026). */}
-            <div className="max-tablet:mt-16 max-tablet:[&>span]:w-full mt-6 flex flex-wrap items-center gap-8">
+            {/* Tarjas e ações na faixa padrão (PanelHeader.Tags): as tarjas
+                primeiro (o estado), os botões depois; no celular, uma por linha. */}
+            <PanelHeader.Tags>
               {order.isImported && (
                 <>
                   <Badge.Root
+                    size="sm"
                     appearance="tinted"
                     color="neutral"
                     title="Pedido trazido do sistema antigo na migração. Entrou como entregue e não gera comissão nem boleto aqui."
@@ -82,6 +81,7 @@ export function OrderDetailHeader({ order, onRefetch }: Props) {
               {order.isFromPortal && (
                 <>
                   <Badge.Root
+                    size="sm"
                     appearance="tinted"
                     color="purple"
                     title="O próprio cliente pediu estes produtos pelo portal. O preço veio da tabela no nível dele (ou da última compra); confira preço, condição de pagamento e frete antes de converter em pedido."
@@ -96,6 +96,7 @@ export function OrderDetailHeader({ order, onRefetch }: Props) {
               {order.status === "CANCELLED" && (
                 <>
                   <Badge.Root
+                    size="sm"
                     appearance="tinted"
                     color="red"
                     title={
@@ -121,6 +122,7 @@ export function OrderDetailHeader({ order, onRefetch }: Props) {
               {isQuote && (
                 <>
                   <Badge.Root
+                    size="sm"
                     appearance="tinted"
                     color="blue"
                     title="Orçamento ainda não é pedido: não gera nota, nem parcelas, nem comissão. Use “Converter em pedido” quando o cliente fechar."
@@ -139,6 +141,7 @@ export function OrderDetailHeader({ order, onRefetch }: Props) {
               {order.sentAt && (
                 <>
                   <Badge.Root
+                    size="sm"
                     appearance="tinted"
                     color="green"
                     title={
@@ -165,6 +168,7 @@ export function OrderDetailHeader({ order, onRefetch }: Props) {
                 order.status !== "CANCELLED" && (
                   <>
                     <Badge.Root
+                      size="sm"
                       appearance="tinted"
                       color="red"
                       title="O cliente fechou, mas o pedido não foi mandado para a fábrica — ou foi mandado por fora e ninguém registrou. Use “Enviar à fábrica”."
@@ -177,6 +181,7 @@ export function OrderDetailHeader({ order, onRefetch }: Props) {
               {order.deliveredAt && (
                 <>
                   <Badge.Root
+                    size="sm"
                     appearance="tinted"
                     color="green"
                     title="Dia em que a mercadoria chegou na loja do cliente. É essa data que reabastece o estoque estimado dele e alimenta a próxima visita."
@@ -192,6 +197,7 @@ export function OrderDetailHeader({ order, onRefetch }: Props) {
               {!order.deliveredAt && order.estimatedDeliveryDate && (
                 <>
                   <Badge.Root
+                    size="sm"
                     appearance="tinted"
                     color={order.isDeliveryOverdue ? "red" : "blue"}
                     title={
@@ -208,16 +214,10 @@ export function OrderDetailHeader({ order, onRefetch }: Props) {
                   </Badge.Root>
                 </>
               )}
-
-              {/* w-auto + grow: a base é a largura natural (decide se cabe ao
-                lado das tarjas) e depois ocupa a sobra, que é a régua dos
-                estágios full/icon/column. No celular as ações empilham
-                (useStackOnPhone): na linha das tarjas ficavam espremidas na
-                metade direita, então ganham a linha inteira abaixo delas. */}
-              <PanelHeader.Actions className="max-tablet:basis-full w-auto grow">
+              <PanelHeader.Actions>
                 <OrderHeaderActions order={order} onRefetch={onRefetch} />
               </PanelHeader.Actions>
-            </div>
+            </PanelHeader.Tags>
           </PanelHeader.Left>
         </PanelHeader.Top>
       </PanelHeader.Root>

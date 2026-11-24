@@ -60,7 +60,7 @@ export function TenantHeader({ tenant, onToggleStatus, onEditPlan }: Props) {
           {/* Dentro do `Left`: o wrapper das ações é `w-full` e se mede para
               decidir se colapsa em ícones — ao lado do título a medição sai
               errada. Mesma composição do header do dashboard. */}
-          <PanelHeader.Actions className="mt-12">
+          <PanelHeader.Actions>
             <Button.Root
               appearance="outline"
               color="neutral"

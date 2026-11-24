@@ -51,7 +51,7 @@ export function CaseSkeleton() {
               <div className="mt-[2px] flex h-[21px] items-center">
                 <Loading.Skeleton className="h-[12px] w-96 max-w-full" />
               </div>
-              <PanelHeader.Actions className="mt-6">
+              <PanelHeader.Actions>
                 <Loading.Skeleton className="h-[24px] w-[88px]" />
                 <Loading.Skeleton className="h-[32px] w-[132px]" />
                 <Loading.Skeleton className="h-[32px] w-[96px]" />

@@ -21,7 +21,7 @@ export function CentralHeaderActions({ canSelectSeller }: Props) {
   if (!canSelectSeller && !onPending) return null;
 
   return (
-    <PanelHeader.Actions className="mt-6">
+    <PanelHeader.Actions>
       {canSelectSeller && <SellerScope />}
       {onPending && <PendingPeriodScope />}
     </PanelHeader.Actions>
