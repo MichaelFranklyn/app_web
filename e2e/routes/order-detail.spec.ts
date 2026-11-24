@@ -1,15 +1,24 @@
+import type { Page } from "@playwright/test";
+
 import { expect, test } from "../support/fixtures";
 import {
   emptyConnection,
   mockGraphql,
   orderDetailData,
 } from "../support/graphql";
+import { rowAction } from "../support/rowActions";
 
 /**
  * Lote 4 — detalhe do pedido (orders/[id], client-side: OrderDetail via useQuery).
- * Header = editar/deletar; OrderItemsTable = itens (add/edit/delete por ícone aria-label).
+ * Header = editar/deletar; OrderItemsTable = itens (editar/remover no "⋯" da linha).
  */
 const URL = "/orders/order-1";
+
+/** A linha do item: a que tem o "⋯" "Ações do item …". */
+const itemRow = (page: Page) =>
+  page
+    .getByRole("row")
+    .filter({ has: page.getByRole("button", { name: /^Ações do item/ }) });
 
 const orderData = () => orderDetailData();
 
@@ -394,7 +403,7 @@ test("pedido detalhe: edita um item", async ({ page }) => {
   });
 
   await page.goto(URL);
-  await page.getByRole("button", { name: "Editar item" }).click();
+  await rowAction(page, itemRow(page), "Editar item");
 
   const dialog = page.getByRole("dialog");
   await dialog.locator('input[name="quantity"]').fill("20");
@@ -434,7 +443,7 @@ test("pedido detalhe: editar item mostra o que o cliente pagou antes", async ({
   });
 
   await page.goto(URL);
-  await page.getByRole("button", { name: "Editar item" }).click();
+  await rowAction(page, itemRow(page), "Editar item");
   const dialog = page.getByRole("dialog");
 
   await expect(dialog.getByText("Últimas compras deste cliente")).toBeVisible();
@@ -457,7 +466,7 @@ test("pedido detalhe: remove um item", async ({ page }) => {
   });
 
   await page.goto(URL);
-  await page.getByRole("button", { name: "Remover item" }).click();
+  await rowAction(page, itemRow(page), "Remover item");
   await page
     .getByRole("dialog")
     .getByRole("button", { name: "Remover item" })

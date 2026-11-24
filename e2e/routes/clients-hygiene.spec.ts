@@ -70,7 +70,7 @@ test("higienização: gestor marca que o cliente não existe mais e ele sai da l
   ).toBeVisible();
   // Os pendentes da Receita ficam à vista, com a ação de conferir.
   await expect(
-    page.getByText("3 cliente(s) ainda não conferido(s) na Receita")
+    page.getByText("3 clientes ainda não conferidos na Receita")
   ).toBeVisible();
 
   const linha = page

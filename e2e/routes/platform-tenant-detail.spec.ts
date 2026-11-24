@@ -1,6 +1,7 @@
 import { expect, test } from "../support/fixtures";
 import { emptyConnection, mockGraphql } from "../support/graphql";
 import { grantRole } from "../support/role";
+import { rowAction } from "../support/rowActions";
 
 /**
  * Ficha da empresa no console (`/platform/companies/[id]`) — a tela por onde o
@@ -286,12 +287,17 @@ test("ficha da empresa: libera acesso e mostra o link na tela", async ({
           link: "https://itinus.app/change-password?token=abc123",
           userEmail: "ana@metais.test",
           userName: "Ana Ribeiro",
+          expiresInMinutes: 4320,
         },
       },
     }),
   });
 
-  await page.getByRole("button", { name: "Liberar acesso" }).click();
+  await rowAction(
+    page,
+    page.getByRole("row").filter({ hasText: "Ana Ribeiro" }),
+    "Liberar acesso"
+  );
 
   const dialog = page.getByRole("dialog");
   await expect(
@@ -322,14 +328,26 @@ test("ficha da empresa: não oferece 'entrar como' para um SU", async ({
   );
   await page.goto(URL);
 
+  // As ações moram no "⋯" da linha: no do SU o item nem aparece.
   const linhaSu = page.getByRole("row").filter({ hasText: "Suporte Itinus" });
+  await rowAction(page, linhaSu, "Liberar acesso");
+  await page
+    .getByRole("dialog")
+    .getByRole("button", { name: "Cancelar" })
+    .click();
+  await linhaSu.getByRole("button", { name: /ações/i }).click();
   await expect(
-    linhaSu.getByRole("button", { name: "Entrar como" })
-  ).toHaveCount(0);
+    page.getByRole("menuitem", { name: "Liberar acesso" })
+  ).toBeVisible();
+  await expect(page.getByRole("menuitem", { name: "Entrar como" })).toHaveCount(
+    0
+  );
+  await page.keyboard.press("Escape");
 
   const linhaBruno = page.getByRole("row").filter({ hasText: "Bruno Alves" });
+  await linhaBruno.getByRole("button", { name: /ações/i }).click();
   await expect(
-    linhaBruno.getByRole("button", { name: "Entrar como" })
+    page.getByRole("menuitem", { name: "Entrar como" })
   ).toBeVisible();
 });
 

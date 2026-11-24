@@ -101,7 +101,7 @@ test("pedidos parados: confirma a entrega na data prevista de cada pedido", asyn
   const dialog = page.getByRole("dialog");
   await dialog.getByRole("button", { name: "Confirmar entrega" }).click();
 
-  await expect(page.getByText(/1 entrega\(s\) confirmada\(s\)/)).toBeVisible();
+  await expect(page.getByText(/1 entrega confirmada/)).toBeVisible();
   // Sem data escolhida, cada pedido recebe a própria previsão no backend.
   expect(calls[0]).toEqual({ ids: ["o-1"], deliveredAt: null });
 });
@@ -191,10 +191,8 @@ test("pedidos parados: fatura pelo XML só a nota pronta", async ({ page }) => {
     dialog.getByRole("link", { name: "Abrir o pedido" })
   ).toHaveAttribute("href", "/orders/o-3");
 
-  await dialog.getByRole("button", { name: "Faturar 1 pedido(s)" }).click();
-  await expect(
-    page.getByText("1 pedido(s) faturado(s) pelas notas.")
-  ).toBeVisible();
+  await dialog.getByRole("button", { name: "Faturar 1 pedido" }).click();
+  await expect(page.getByText("1 pedido faturado pelas notas.")).toBeVisible();
 
   const files = (
     invoiced[0] as { files: { fileName: string; orderId: string }[] }

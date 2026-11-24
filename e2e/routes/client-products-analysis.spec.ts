@@ -115,7 +115,7 @@ test("cliente/produtos: os cartões somam a mesma lista da tabela", async ({
     .filter({ hasText: /^Parou de comprar2$/ })
     .first();
   await expect(parou).toBeVisible();
-  await expect(page.getByText("3 de 3 produto(s)")).toBeVisible();
+  await expect(page.getByText("3 de 3 produtos")).toBeVisible();
 });
 
 test("cliente/produtos: o período escolhido chega ao servidor", async ({

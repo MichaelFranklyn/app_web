@@ -1,5 +1,6 @@
 import { expect, test } from "../support/fixtures";
 import { mockGraphql } from "../support/graphql";
+import { rowAction } from "../support/rowActions";
 
 /**
  * Lote 3 — detalhe do produto (factories/[id]/products/[productId], client-side:
@@ -81,11 +82,11 @@ test("produto detalhe: remove um imposto", async ({ page }) => {
   });
 
   await page.goto(URL);
-  await page
-    .getByRole("row", { name: /ICMS/ })
-    .getByRole("button")
-    .last()
-    .click();
+  await rowAction(
+    page,
+    page.getByRole("row", { name: /ICMS/ }),
+    "Remover imposto"
+  );
   await page
     .getByRole("dialog")
     .getByRole("button", { name: "Remover" })
@@ -116,11 +117,11 @@ test("produto detalhe: edita a alíquota de um imposto", async ({ page }) => {
   });
 
   await page.goto(URL);
-  await page
-    .getByRole("row", { name: /ICMS/ })
-    .getByRole("button")
-    .first()
-    .click();
+  await rowAction(
+    page,
+    page.getByRole("row", { name: /ICMS/ }),
+    "Editar alíquota"
+  );
 
   const dialog = page.getByRole("dialog");
   await dialog.locator('input[name="rate"]').fill("20");
@@ -162,11 +163,11 @@ test("produto detalhe: edita a quantidade de um componente", async ({
   });
 
   await page.goto(URL);
-  await page
-    .getByRole("row", { name: /Parafuso/ })
-    .getByRole("button")
-    .first()
-    .click();
+  await rowAction(
+    page,
+    page.getByRole("row", { name: /Parafuso/ }),
+    "Editar componente"
+  );
 
   const dialog = page.getByRole("dialog");
   await dialog.locator('input[name="quantity"]').fill("5");
@@ -201,11 +202,11 @@ test("produto detalhe: remove um componente", async ({ page }) => {
   });
 
   await page.goto(URL);
-  await page
-    .getByRole("row", { name: /Parafuso/ })
-    .getByRole("button")
-    .last()
-    .click();
+  await rowAction(
+    page,
+    page.getByRole("row", { name: /Parafuso/ }),
+    "Remover componente"
+  );
   await page
     .getByRole("dialog")
     .getByRole("button", { name: "Remover" })

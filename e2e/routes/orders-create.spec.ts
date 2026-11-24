@@ -555,7 +555,7 @@ test("orders/new: importa itens de planilha para o rascunho e grava no lote", as
   await expect(dialog.getByText("Aponte as colunas do pedido")).toBeVisible();
   await dialog.getByRole("button", { name: "Casar produtos" }).click();
   await dialog
-    .getByRole("button", { name: "Adicionar 2 item(ns) à lista" })
+    .getByRole("button", { name: "Adicionar 2 itens à lista" })
     .click();
 
   await expect(page.getByText("Itens levados para a lista")).toBeVisible();

@@ -120,6 +120,7 @@ test("ficha da pessoa: libera acesso pelo mesmo caminho da ficha da empresa", as
           link: "https://itinus.app/change-password?token=xyz789",
           userEmail: "ana@metais.test",
           userName: "Ana Ribeiro",
+          expiresInMinutes: 4320,
         },
       },
     }),
