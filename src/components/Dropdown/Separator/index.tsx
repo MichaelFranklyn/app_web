@@ -10,7 +10,7 @@ export const Separator = React.forwardRef<
 >(({ className, ...props }, ref) => (
   <DropdownMenuPrimitive.Separator
     ref={ref}
-    className={cn("-mx-0 my-[4px] border-t border-(--border)", className)}
+    className={cn("-mx-0 my-4 border-t border-(--border)", className)}
     {...props}
   />
 ));

@@ -1,9 +1,9 @@
 "use client";
 
 import { Badge } from "@/components/Badges";
+import { formatDate } from "@/utils/format/date";
 import { Button } from "@/components/Button";
 import { Card } from "@/components/Card";
-import { Grid } from "@/components/Grid";
 import { PanelHeader } from "@/components/PanelHeader";
 import { PAGE_HEADING } from "@/utils/modules";
 import { Title } from "@/components/Title";
@@ -19,6 +19,7 @@ import {
   daysSinceLogin,
 } from "../../../../utils";
 import { PlatformUserDetail } from "../../interface";
+import { ICON_SIZE } from "@/components/Icon";
 
 const TONE_COLOR = {
   ok: "green",
@@ -26,12 +27,6 @@ const TONE_COLOR = {
   urgente: "red",
   neutral: "muted",
 } as const;
-
-const formatDate = (iso: string): string => {
-  const date = new Date(iso);
-  if (Number.isNaN(date.getTime())) return "—";
-  return date.toLocaleDateString("pt-BR");
-};
 
 /**
  * Quem é a pessoa e o que o suporte pode fazer por ela.
@@ -82,76 +77,67 @@ export function UserProfileCard({ user }: { user: PlatformUserDetail }) {
         </PanelHeader.Top>
       </PanelHeader.Root>
 
-      <Grid.Root cols={{ base: 2, tablet: 2, "desktop-xl": 4 }} gap={12}>
-        <Grid.Item>
-          <Card.Kpi>
-            <Card.Kpi.Label>Empresa</Card.Kpi.Label>
-            <Card.Kpi.Value status="neutral" size="sm">
-              {user.companyName}
-            </Card.Kpi.Value>
-            <Card.Kpi.Delta>
-              <TextLink
-                href={`/platform/companies/${user.companyId}`}
-                tone="inherit"
-                underline="always"
-                className="inline-flex items-center gap-4"
-              >
-                <Building2 size={12} />
-                abrir a ficha
-              </TextLink>
-            </Card.Kpi.Delta>
-          </Card.Kpi>
-        </Grid.Item>
+      <Card.Kpi.Group>
+        <Card.Kpi>
+          <Card.Kpi.Label>Empresa</Card.Kpi.Label>
+          <Card.Kpi.Value status="neutral" size="sm">
+            {user.companyName}
+          </Card.Kpi.Value>
+          <Card.Kpi.Delta>
+            <TextLink
+              href={`/platform/companies/${user.companyId}`}
+              tone="inherit"
+              underline="always"
+              touchTarget
+              className="inline-flex items-center gap-4"
+            >
+              <Building2 size={ICON_SIZE.xs} />
+              abrir a ficha
+            </TextLink>
+          </Card.Kpi.Delta>
+        </Card.Kpi>
 
-        <Grid.Item>
-          <Card.Kpi>
-            <Card.Kpi.Label>Papel</Card.Kpi.Label>
-            <Card.Kpi.Value status="neutral" size="sm">
-              {ROLE_LABEL[user.role] ?? user.role}
-            </Card.Kpi.Value>
-            <Card.Kpi.Delta>define o que ela enxerga</Card.Kpi.Delta>
-          </Card.Kpi>
-        </Grid.Item>
+        <Card.Kpi>
+          <Card.Kpi.Label>Papel</Card.Kpi.Label>
+          <Card.Kpi.Value status="neutral" size="sm">
+            {ROLE_LABEL[user.role] ?? user.role}
+          </Card.Kpi.Value>
+          <Card.Kpi.Delta>define o que ela enxerga</Card.Kpi.Delta>
+        </Card.Kpi>
 
-        <Grid.Item>
-          <Card.Kpi>
-            <Card.Kpi.Label>Último acesso</Card.Kpi.Label>
-            {/* "Nunca entrou" não é "entrou há muito tempo": uma é conta que
+        <Card.Kpi>
+          <Card.Kpi.Label>Último acesso</Card.Kpi.Label>
+          {/* "Nunca entrou" não é "entrou há muito tempo": uma é conta que
                 nunca começou, a outra é conta abandonada. */}
-            <Card.Kpi.Value
-              status={days === null ? "atencao" : days <= 30 ? "ok" : "atencao"}
+          <Card.Kpi.Value
+            status={days === null ? "atencao" : days <= 30 ? "ok" : "atencao"}
+            size="sm"
+          >
+            {activityLabel(days)}
+          </Card.Kpi.Value>
+          <Card.Kpi.Delta>
+            <Title variant="micro" color={TONE_COLOR[activityTone(days)]}>
+              conta criada em {formatDate(user.createdAt)}
+            </Title>
+          </Card.Kpi.Delta>
+        </Card.Kpi>
+
+        <Card.Kpi>
+          <Card.Kpi.Label>Situação</Card.Kpi.Label>
+          <Card.Kpi.Value status={user.isActive ? "ok" : "urgente"}>
+            <Badge.Root
+              color={user.isActive ? "green" : "red"}
+              appearance="tinted"
               size="sm"
             >
-              {activityLabel(days)}
-            </Card.Kpi.Value>
-            <Card.Kpi.Delta>
-              <Title variant="micro" color={TONE_COLOR[activityTone(days)]}>
-                conta criada em {formatDate(user.createdAt)}
-              </Title>
-            </Card.Kpi.Delta>
-          </Card.Kpi>
-        </Grid.Item>
-
-        <Grid.Item>
-          <Card.Kpi>
-            <Card.Kpi.Label>Situação</Card.Kpi.Label>
-            <Card.Kpi.Value status={user.isActive ? "ok" : "urgente"}>
-              <Badge.Root
-                color={user.isActive ? "green" : "red"}
-                appearance="tinted"
-                size="sm"
-              >
-                <Badge.Text>{user.isActive ? "Ativa" : "Inativa"}</Badge.Text>
-              </Badge.Root>
-            </Card.Kpi.Value>
-            <Card.Kpi.Delta>
-              {user.isActive
-                ? "pode entrar normalmente"
-                : "não consegue entrar"}
-            </Card.Kpi.Delta>
-          </Card.Kpi>
-        </Grid.Item>
-      </Grid.Root>
+              <Badge.Text>{user.isActive ? "Ativa" : "Inativa"}</Badge.Text>
+            </Badge.Root>
+          </Card.Kpi.Value>
+          <Card.Kpi.Delta>
+            {user.isActive ? "pode entrar normalmente" : "não consegue entrar"}
+          </Card.Kpi.Delta>
+        </Card.Kpi>
+      </Card.Kpi.Group>
 
       <AccessLinkModal
         user={linkOpen ? { id: user.id, name: user.name } : null}

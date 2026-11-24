@@ -31,7 +31,7 @@ export function RoutineStep({
   return (
     <li className="tablet:pl-64 relative pl-48">
       {/* O pino da parada, sobre o trilho desenhado pela lista. */}
-      <span className="absolute top-0 left-0 flex size-32 items-center justify-center rounded-(--radius-full) bg-(--color-action) shadow-(--shadow-sm) ring-4 ring-(--bg)">
+      <span className="absolute top-0 left-0 flex size-32 items-center justify-center rounded-full bg-(--color-action) shadow-(--shadow-sm) ring-4 ring-(--bg)">
         <Title as="span" variant="label" color="onAction">
           {number}
         </Title>

@@ -26,7 +26,7 @@ export function ExecutionSellersTable({ items, loading, sort }: Props) {
   return (
     <Table.Root sort={sort}>
       <Table.CardHead>
-        <Table.CardHead.Title className="inline-flex items-center gap-6">
+        <Table.CardHead.Title>
           Execução por vendedor
           <HelpTooltip
             label="Sobre a execução por vendedor"
@@ -39,25 +39,25 @@ export function ExecutionSellersTable({ items, loading, sort }: Props) {
         <Table.Header>
           <Table.Row>
             <Table.Head sortKey="seller">Vendedor</Table.Head>
-            <Table.Head sortKey="planned" sortFirst="desc">
+            <Table.Head align="right" sortKey="planned" sortFirst="desc">
               Planejadas
             </Table.Head>
             <Table.Head sortKey="executionRate" sortFirst="desc">
               Execução
             </Table.Head>
-            <Table.Head sortKey="recorded" sortFirst="desc">
+            <Table.Head align="right" sortKey="recorded" sortFirst="desc">
               Registradas
             </Table.Head>
-            <Table.Head sortKey="workedInferred" sortFirst="desc">
+            <Table.Head align="right" sortKey="workedInferred" sortFirst="desc">
               Pelo pedido
             </Table.Head>
-            <Table.Head sortKey="pending" sortFirst="desc">
+            <Table.Head align="right" sortKey="pending" sortFirst="desc">
               Aguardando
             </Table.Head>
-            <Table.Head sortKey="autoClosed" sortFirst="desc">
+            <Table.Head align="right" sortKey="autoClosed" sortFirst="desc">
               Fechadas sem resposta
             </Table.Head>
-            <Table.Head sortKey="converted" sortFirst="desc">
+            <Table.Head align="right" sortKey="converted" sortFirst="desc">
               Viraram pedido
             </Table.Head>
           </Table.Row>
@@ -71,7 +71,7 @@ export function ExecutionSellersTable({ items, loading, sort }: Props) {
               <Table.Cell colSpan={8}>
                 <EmptyState.Root flat>
                   <EmptyState.Icon>
-                    <CalendarX size={32} />
+                    <CalendarX />
                   </EmptyState.Icon>
                   <EmptyState.Title>
                     Nenhuma visita planejada no período
@@ -89,7 +89,7 @@ export function ExecutionSellersTable({ items, loading, sort }: Props) {
                 <Table.Cell variant="strong" card="title">
                   {row.sellerName}
                 </Table.Cell>
-                <Table.Cell variant="dim" label="Planejadas">
+                <Table.Cell align="right" variant="dim" label="Planejadas">
                   {row.planned}
                 </Table.Cell>
                 <Table.Cell className="whitespace-nowrap" card="status">
@@ -100,19 +100,23 @@ export function ExecutionSellersTable({ items, loading, sort }: Props) {
                     <Badge.Text>{formatPercent(row.executionRate)}</Badge.Text>
                   </Badge.Root>
                 </Table.Cell>
-                <Table.Cell variant="dim" label="Registradas">
+                <Table.Cell align="right" variant="dim" label="Registradas">
                   {recordedByPerson(row)}
                 </Table.Cell>
-                <Table.Cell variant="dim" label="Pelo pedido">
+                <Table.Cell align="right" variant="dim" label="Pelo pedido">
                   {row.workedInferred}
                 </Table.Cell>
-                <Table.Cell variant="dim" label="Aguardando">
+                <Table.Cell align="right" variant="dim" label="Aguardando">
                   {row.pending}
                 </Table.Cell>
-                <Table.Cell variant="dim" label="Fechadas sem resposta">
+                <Table.Cell
+                  align="right"
+                  variant="dim"
+                  label="Fechadas sem resposta"
+                >
                   {row.autoClosed}
                 </Table.Cell>
-                <Table.Cell variant="dim" label="Viraram pedido">
+                <Table.Cell align="right" variant="dim" label="Viraram pedido">
                   {row.converted}
                 </Table.Cell>
               </Table.Row>

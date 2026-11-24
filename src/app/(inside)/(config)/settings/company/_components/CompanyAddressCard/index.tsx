@@ -2,7 +2,7 @@
 
 import { Card } from "@/components/Card";
 import { Title } from "@/components/Title";
-import { DataField, EditCardAction } from "../../../../_shared/dataCards";
+import { EditCardAction } from "../../../../_shared/dataCards";
 import { MyCompany } from "../../interface";
 import { formatCompanyAddress } from "../../utils";
 
@@ -44,7 +44,7 @@ export function CompanyAddressCard({ company, onEdit }: Props) {
 
       <Card.Body>
         <div className="flex flex-col gap-8">
-          <DataField label="Endereço" value={formatCompanyAddress(company)} />
+          <Card.Field label="Endereço" value={formatCompanyAddress(company)} />
           {missing.length > 0 && (
             <Title variant="body-sm" color="muted">
               Falta {joinParts(missing)} — complete em &quot;Editar

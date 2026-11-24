@@ -11,6 +11,7 @@ import { toIsoDate } from "@/utils/format/date";
 import { formatMoney } from "@/utils/format/masks";
 import { useCompleteList } from "@/hooks/useCompleteList";
 import { factoryName } from "@/utils/company";
+import { plural, pluralWord } from "@/utils/format/plural";
 import { useLazyQuery, useMutation } from "@apollo/client/react";
 import { CheckCheck, Info, Users } from "lucide-react";
 import { useEffect, useMemo, useState } from "react";
@@ -26,7 +27,6 @@ import {
   SettleResponse,
 } from "./interface";
 import { outOfScopeCount, settleScopeLabel } from "./utils";
-import { plural } from "@/utils/format/plural";
 
 // Catálogo pequeno (dezenas por empresa): `useCompleteList` rebusca pelo total
 // se um dia passar da primeira página, em vez de truncar calado.
@@ -273,7 +273,7 @@ export function SettlePeriodModal({
                     {preview.loading
                       ? "Contando os boletos do período…"
                       : count > 0
-                        ? `${plural(count, "boleto", "boletos")} ${escopo} ${count === 1 ? "vence" : "vencem"} neste período, somando ${formatMoney(result?.amount ?? 0)}.`
+                        ? `${plural(count, "boleto", "boletos")} ${escopo} ${pluralWord(count, "vence", "vencem")} neste período, somando ${formatMoney(result?.amount ?? 0)}.`
                         : `Nenhum boleto em aberto ${escopo} vence neste período.`}
                   </Alert.Description>
                 </Alert.Content>
@@ -290,9 +290,9 @@ export function SettlePeriodModal({
                       : `Outros ${foraDoRecorte} boletos vencem`}{" "}
                     neste período na carteira dos demais vendedores e{" "}
                     <Emphasis>não</Emphasis>{" "}
-                    {foraDoRecorte === 1 ? "entra" : "entram"} nesta baixa.
+                    {pluralWord(foraDoRecorte, "entra", "entram")} nesta baixa.
                     Marque “Aplicar a todos os vendedores” para{" "}
-                    {foraDoRecorte === 1 ? "incluí-lo" : "incluí-los"}.
+                    {pluralWord(foraDoRecorte, "incluí-lo", "incluí-los")}.
                   </Alert.Description>
                 </Alert.Content>
               </Alert.Root>

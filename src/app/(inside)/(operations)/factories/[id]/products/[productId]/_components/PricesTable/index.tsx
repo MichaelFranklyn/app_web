@@ -14,6 +14,7 @@ import { Tag } from "lucide-react";
 import { useOptimisticList } from "@/hooks/useOptimisticList";
 import type { FieldConfig } from "@/hooks/useTableFilters";
 import { useTableData } from "@/hooks/useTableData";
+import { plural } from "@/utils/format/plural";
 import { useMemo } from "react";
 import { AddPriceItemModal } from "./AddPriceItemModal";
 import { PRICE_LIST_ITEMS_QUERY } from "./gql";
@@ -77,7 +78,7 @@ export function PricesTable({
   return (
     <Table.Root>
       <Table.CardHead>
-        <Table.CardHead.Title className="inline-flex items-center gap-6">
+        <Table.CardHead.Title>
           Preços nas tabelas
           <HelpTooltip
             label="Como ler os preços deste produto?"
@@ -119,19 +120,28 @@ export function PricesTable({
         </Table.CardHead.Actions>
       </Table.CardHead>
 
-      <Table.Table>
+      <Table.Table cards>
         <Table.Header>
           <Table.Row>
             <Table.Head title={PRODUCT_PRICE_COLUMN_HELP.tier}>
               Nível
             </Table.Head>
-            <Table.Head title={PRODUCT_PRICE_COLUMN_HELP.packPrice}>
+            <Table.Head
+              align="right"
+              title={PRODUCT_PRICE_COLUMN_HELP.packPrice}
+            >
               Preço por {pack.packLabel}
             </Table.Head>
-            <Table.Head title={PRODUCT_PRICE_COLUMN_HELP.priceWithTax}>
+            <Table.Head
+              align="right"
+              title={PRODUCT_PRICE_COLUMN_HELP.priceWithTax}
+            >
               Preço c/ imposto
             </Table.Head>
-            <Table.Head title={PRODUCT_PRICE_COLUMN_HELP.unitPrice}>
+            <Table.Head
+              align="right"
+              title={PRODUCT_PRICE_COLUMN_HELP.unitPrice}
+            >
               Preço por {pack.baseUnitLabel}
             </Table.Head>
             <Table.Head
@@ -157,7 +167,7 @@ export function PricesTable({
               <Table.Cell colSpan={5}>
                 <EmptyState.Root flat>
                   <EmptyState.Icon>
-                    <Tag size={32} />
+                    <Tag />
                   </EmptyState.Icon>
                   <EmptyState.Title>
                     {search.trim()
@@ -195,7 +205,7 @@ export function PricesTable({
             <Loading.Spinner size="sm" className="mr-6 inline-block" />
           )}
           {table.totalItems > 0
-            ? `${table.totalItems} preço(s) · página ${table.currentPage} de ${table.totalPages}`
+            ? `${plural(table.totalItems, "preço", "preços")} · página ${table.currentPage} de ${table.totalPages}`
             : "Nenhum preço"}
         </Table.Footer.Info>
 

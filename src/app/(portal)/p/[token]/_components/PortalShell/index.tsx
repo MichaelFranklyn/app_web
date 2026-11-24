@@ -74,10 +74,7 @@ export function PortalShell({ token, profile, children }: PortalShellProps) {
         </Sidebar.Brand>
 
         <Sidebar.Content>
-          <nav
-            aria-label="Seções do portal"
-            className="flex flex-col gap-[2px]"
-          >
+          <nav aria-label="Seções do portal" className="flex flex-col gap-2">
             {navItems.map((item) => (
               <Sidebar.Item
                 key={item.href}

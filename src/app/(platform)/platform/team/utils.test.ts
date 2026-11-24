@@ -51,7 +51,7 @@ describe("lastAccessLabel", () => {
       member({ lastLoginAt: "2026-09-12T12:00:00Z" })
     );
 
-    expect(label).toMatch(/^12\/09\/26, \d{2}:\d{2}$/);
+    expect(label).toMatch(/^12\/09\/26, \d{2}:\d{2}:\d{2}$/);
   });
 
   it("data quebrada vira traço, não 'Invalid Date'", () => {

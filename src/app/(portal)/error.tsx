@@ -23,7 +23,7 @@ export default function PortalError({
   useReportRouteError(error);
   return (
     <RouteError
-      icon={<TriangleAlert size={36} />}
+      icon={<TriangleAlert />}
       title="Não foi possível abrir esta página"
       description="Houve um problema do nosso lado. Tente de novo em instantes; se continuar, fale com o seu representante."
     >

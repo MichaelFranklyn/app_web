@@ -10,6 +10,7 @@ import { telHref, whatsappHref } from "@/utils/phone";
 import { AddClientContactModal } from "../../../_components/AddClientContactModal";
 import { VisitPrimaryContact } from "../../interface";
 import { remoteContactMessage } from "./utils";
+import { ICON_SIZE } from "@/components/Icon";
 
 interface Props {
   contact: VisitPrimaryContact | null;
@@ -62,7 +63,7 @@ export function ContactLinks({ contact, clientName, clientId }: Props) {
       >
         <span className="inline-flex items-center gap-6">
           <PhoneOff
-            size={14}
+            size={ICON_SIZE.sm}
             aria-hidden
             className="shrink-0 text-(--color-text-disabled)"
           />

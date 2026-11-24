@@ -76,7 +76,7 @@ export default function ClientSupportContent() {
       {cases.length === 0 ? (
         <EmptyState.Root>
           <EmptyState.Icon>
-            <Headset size={32} />
+            <Headset />
           </EmptyState.Icon>
           <EmptyState.Title>Nenhuma reclamação registrada</EmptyState.Title>
           <EmptyState.Description>

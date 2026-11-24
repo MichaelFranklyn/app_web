@@ -1,6 +1,6 @@
 import { plural } from "@/utils/format/plural";
 import { SERIES_GREEN } from "@/components/Chart/chartTheme";
-import { formatDateDMY, formatMoney } from "@/utils/format/masks";
+import { formatDateDMY, formatMoney, formatRatio } from "@/utils/format/masks";
 import { SortLabel } from "@/utils/pdf/context";
 import type { EChartsCoreOption } from "echarts/core";
 
@@ -14,6 +14,7 @@ import {
   SITUATION_SERIES_COLOR,
 } from "../situation";
 import { WalletReport, WalletRow } from "./interface";
+import { formatPercent } from "@/utils/format/percent";
 
 export const sumBy = (
   rows: WalletRow[],
@@ -37,10 +38,7 @@ export const cadenceLabel = (row: WalletRow): string =>
   row.avgIntervalDays ? `a cada ${formatDays(row.avgIntervalDays)}` : "—";
 
 /** "1,8× o próprio ritmo" — o quanto o cliente passou do que costuma levar. */
-export const riskLabel = (row: WalletRow): string =>
-  row.riskRatio === null
-    ? "—"
-    : `${row.riskRatio.toFixed(1).replace(".", ",")}×`;
+export const riskLabel = (row: WalletRow): string => formatRatio(row.riskRatio);
 
 /**
  * Como a carteira se reparte entre as situações.
@@ -84,7 +82,7 @@ export const buildSituationOption = (
         report.totalClients > 0 ? entry.count / report.totalClients : 0;
       return [
         SITUATION_LABEL[entry.situation],
-        `<b>${entry.count}</b> de ${plural(report.totalClients, "cliente", "clientes")} · ${Math.round(share * 100)}%`,
+        `<b>${entry.count}</b> de ${plural(report.totalClients, "cliente", "clientes")} · ${formatPercent(share)}`,
         mutedLine(SITUATION_HINT[entry.situation]),
       ];
     }

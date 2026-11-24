@@ -58,7 +58,7 @@ export default function SupportCaseContent() {
       <PageContent>
         <EmptyState.Root>
           <EmptyState.Icon>
-            <Headset size={32} />
+            <Headset />
           </EmptyState.Icon>
           <EmptyState.Title>Reclamação não encontrada</EmptyState.Title>
           <EmptyState.Description>

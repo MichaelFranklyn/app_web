@@ -1,4 +1,5 @@
 import { Title } from "@/components/Title";
+import { ICON_SIZE } from "@/components/Icon";
 import { cn } from "@/lib/utils";
 import { LucideIcon } from "lucide-react";
 import React from "react";
@@ -53,7 +54,7 @@ const Message = ({ icon: Icon, dim = false, children }: MessageProps) => (
   >
     {Icon ? (
       <Icon
-        size={28}
+        size={ICON_SIZE.xl}
         strokeWidth={1.5}
         className="text-(--color-text-disabled)"
       />

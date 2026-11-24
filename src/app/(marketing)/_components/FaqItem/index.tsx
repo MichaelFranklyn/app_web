@@ -1,5 +1,6 @@
 import { Title } from "@/components/Title";
 import { ChevronDown } from "lucide-react";
+import { ICON_SIZE } from "@/components/Icon";
 
 /**
  * Pergunta expansível em `<details>`/`<summary>` nativos.
@@ -18,12 +19,12 @@ export function FaqItem({
   answer: string;
 }) {
   return (
-    <details className="group rounded-(--radius-md) border border-(--border) bg-(--bg2) px-24 py-16">
+    <details className="group rounded-(--r-md) border border-(--border) bg-(--bg2) px-24 py-16">
       <summary className="flex cursor-pointer list-none items-center justify-between gap-16">
         <Title variant="heading-sm">{question}</Title>
 
         <ChevronDown
-          size={18}
+          size={ICON_SIZE.lg}
           className="shrink-0 text-(--color-text-muted) transition group-open:rotate-180"
         />
       </summary>

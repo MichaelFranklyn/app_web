@@ -7,6 +7,7 @@ import {
   monthStartIso,
   type YearMonth,
 } from "@/utils/format/month";
+import { plural } from "@/utils/format/plural";
 import {
   CommissionMonthData,
   CommissionMonthGroupData,
@@ -586,15 +587,13 @@ export const selectionScope = ({
       ? `${selected} de ${total} parcelas desta fábrica`
       : "todas as parcelas desta fábrica";
   const elsewhere =
-    offPage > 0
-      ? ` · ${offPage} ${offPage === 1 ? "está" : "estão"} em outra página`
-      : "";
+    offPage > 0 ? ` · ${plural(offPage, "está", "estão")} em outra página` : "";
   return {
     label: `${where} · ${share}${elsewhere}`,
     sentence:
       `Esta ação vale para ${selected === 1 ? "a parcela selecionada" : `as ${selected} parcelas selecionadas`} de ${factoryName} (${periodLabel})` +
       (offPage > 0
-        ? ` — ${offPage} ${offPage === 1 ? "delas não está" : "delas não estão"} na página aberta.`
+        ? ` — ${plural(offPage, "delas não está", "delas não estão")} na página aberta.`
         : "."),
   };
 };

@@ -4,10 +4,10 @@ export type InputSize = "xs" | "sm" | "md" | "lg";
 // fiquem com a MESMA altura quando usados lado a lado.
 // Altura = line-height (1.6 × 13px = 20.8) + 2×padY + 2×borda.
 export const inputSizePadding: Record<InputSize, string> = {
-  lg: "py-[11px] px-[20px]",
-  md: "py-[8px] px-[12px]",
-  sm: "py-[5px] px-[12px]",
-  xs: "py-[3px] px-[8px]",
+  lg: "py-[11px] px-20",
+  md: "py-8 px-12",
+  sm: "py-5 px-12",
+  xs: "py-3 px-8",
 };
 
 // Piso de altura para os controles que são <div> (Select/Date), onde não há
@@ -24,7 +24,7 @@ export const inputSizeMinHeight: Record<InputSize, string> = {
 // disso o Safari do iPhone dá zoom automático ao focar o campo — e é nas telas
 // abertas no celular (portal do cliente, folha de resposta da rota) que ele vive.
 export const inputSizeText: Record<InputSize, string> = {
-  lg: "text-[16px]",
+  lg: "text-body-lg",
   md: "",
   sm: "",
   xs: "",
@@ -34,7 +34,7 @@ export const inputStyles = {
   // max-desktop:w-full → no mobile/tablet todo input ocupa a largura total
   // (inclusive em modais e qualquer lugar), sobrepondo larguras fixas; no
   // desktop volta ao definido pelo uso (containerClassName).
-  wrap: "flex flex-col gap-[5px] max-desktop:w-full",
+  wrap: "flex flex-col gap-5 max-desktop:w-full",
   // Caixa mista e peso médio: o rótulo em CAIXA ALTA espaçada se lia como
   // sigla e cansava o público mais velho. A caixa alta fica para eyebrow e
   // seção (que não são perguntas ao usuário).
@@ -91,7 +91,7 @@ export const checkStyles = {
   // aparece como um segundo scroll que nunca termina (bug na tela de comissões).
   // `min-h-24 min-w-24`: o alvo é o label inteiro (o input escondido mede 1px).
   // Sem texto, o label era só a caixa de 16px — abaixo dos 24px (WCAG 2.5.8).
-  wrap: "group/check relative flex min-h-24 min-w-24 items-center gap-[8px] cursor-pointer text-body-sm text-(--color-text-secondary) select-none",
+  wrap: "group/check relative flex min-h-24 min-w-24 items-center gap-8 cursor-pointer text-body-sm text-(--color-text-secondary) select-none",
   input: "peer/check sr-only",
   box: "flex items-center justify-center w-[16px] h-[16px] border-[1.5px] border-(--border2) rounded-(--r-xs) bg-(--bg3) shrink-0 transition-[background-color,border-color] duration-[120ms] group-hover/check:border-(--color-border-control) peer-checked/check:[&>svg]:block peer-focus-visible/check:outline-2 peer-focus-visible/check:outline-offset-2 peer-focus-visible/check:outline-(--amber)",
   // Cor quando marcado. amber = padrão (seleção); green = ação concluída/sucesso.
@@ -101,12 +101,12 @@ export const checkStyles = {
     green:
       "peer-checked/check:bg-(--color-status-success) peer-checked/check:border-(--color-status-success)",
   },
-  mark: "text-white text-body-sm hidden",
+  mark: "text-(--color-on-action) text-body-sm hidden",
 };
 
 export const radioStyles = {
   // Mesmo motivo do checkbox: o input `sr-only` precisa se ancorar aqui.
-  wrap: "relative flex min-h-24 min-w-24 items-center gap-[8px] cursor-pointer text-body-sm text-(--color-text-secondary) select-none",
+  wrap: "relative flex min-h-24 min-w-24 items-center gap-8 cursor-pointer text-body-sm text-(--color-text-secondary) select-none",
   input: "peer/radio sr-only",
   box: "flex items-center justify-center w-[16px] h-[16px] border-[1.5px] border-(--border2) rounded-full bg-(--bg3) shrink-0 transition-colors duration-[120ms] peer-checked/radio:border-(--amber) peer-checked/radio:[&>div]:block peer-focus-visible/radio:outline-2 peer-focus-visible/radio:outline-offset-2 peer-focus-visible/radio:outline-(--amber)",
   dot: "w-[7px] h-[7px] rounded-full bg-(--amber) hidden",
@@ -114,7 +114,7 @@ export const radioStyles = {
 
 export const toggleStyles = {
   // Mesmo motivo do checkbox: o input `sr-only` precisa se ancorar aqui.
-  wrap: "relative flex items-center gap-[10px] cursor-pointer text-body-sm text-(--color-text-secondary) select-none",
+  wrap: "relative flex items-center gap-10 cursor-pointer text-body-sm text-(--color-text-secondary) select-none",
   input: "peer/toggle sr-only",
   track:
     "relative w-[36px] h-[20px] bg-(--bg4) border border-(--border2) rounded-[10px] shrink-0 transition-colors duration-[150ms] peer-checked/toggle:bg-(--amber3) peer-checked/toggle:border-(--amber3) peer-checked/toggle:[&>div]:translate-x-[16px] peer-checked/toggle:[&>div]:bg-(--amber)",
@@ -124,47 +124,46 @@ export const toggleStyles = {
 
 export const selectStyles = {
   overlay:
-    "bg-(--bg2) border border-(--border) rounded-(--r-md) shadow-(--shadow-md) z-[9999] max-h-[240px] overflow-auto flex flex-col p-[4px] gap-[2px] animate-fade-in",
+    "bg-(--bg2) border border-(--border) rounded-(--r-md) shadow-(--shadow-md) z-(--z-popover) max-h-[240px] overflow-auto flex flex-col p-4 gap-2 animate-fade-in",
   optionBox:
-    "px-[12px] py-[8px] cursor-pointer hover:bg-(--bg3) rounded-(--r-sm) flex items-center gap-[8px] text-body-sm text-(--color-text) transition-colors data-[selected=true]:bg-(--amber-bg) data-[active=true]:bg-(--bg3) data-[active=true]:outline data-[active=true]:outline-2 data-[active=true]:-outline-offset-2 data-[active=true]:outline-(--amber)",
-  optionCheckboxWrap: "flex items-center gap-[8px] w-full",
-  warningText:
-    "p-[8px] text-body-sm text-(--color-text-muted) text-center w-full",
-  inputFlex: "flex flex-1 flex-wrap items-center gap-[4px] min-w-0",
+    "px-12 py-8 cursor-pointer hover:bg-(--bg3) rounded-(--r-sm) flex items-center gap-8 text-body-sm text-(--color-text) transition-colors data-[selected=true]:bg-(--amber-bg) data-[active=true]:bg-(--bg3) data-[active=true]:outline data-[active=true]:outline-2 data-[active=true]:-outline-offset-2 data-[active=true]:outline-(--amber)",
+  optionCheckboxWrap: "flex items-center gap-8 w-full",
+  warningText: "p-8 text-body-sm text-(--color-text-muted) text-center w-full",
+  inputFlex: "flex flex-1 flex-wrap items-center gap-4 min-w-0",
   clearIcon:
-    "cursor-pointer p-[4px] rounded-full hover:bg-(--bg3) text-(--color-text-muted) transition-colors",
+    "cursor-pointer p-4 rounded-full hover:bg-(--bg3) text-(--color-text-muted) transition-colors",
   dropdownIcon:
-    "cursor-pointer p-[2px] text-(--color-text-muted) transition-transform duration-200",
+    "cursor-pointer p-2 text-(--color-text-muted) transition-transform duration-200",
 };
 
 export const calendarStyles = {
   overlay:
-    "flex bg-(--bg2) border border-(--border) rounded-(--r-md) shadow-(--shadow-md) z-50 overflow-hidden animate-fade-in",
+    "flex bg-(--bg2) border border-(--border) rounded-(--r-md) shadow-(--shadow-md) z-(--z-popover) overflow-hidden animate-fade-in",
   sidebar:
-    "w-[140px] border-r border-(--border) bg-(--bg3) hidden tablet:flex flex-col p-[8px] gap-[4px]",
+    "w-[140px] border-r border-(--border) bg-(--bg3) hidden tablet:flex flex-col p-8 gap-4",
   sidebarButton:
-    "w-full text-left px-[12px] py-[8px] text-body-sm text-(--color-text-secondary) rounded-(--r-sm) hover:bg-(--bg4) hover:text-(--color-text) transition-colors cursor-pointer",
+    "w-full text-left px-12 py-8 text-body-sm text-(--color-text-secondary) rounded-(--r-sm) hover:bg-(--bg4) hover:text-(--color-text) transition-colors cursor-pointer",
 
-  wrapper: "p-[12px]",
+  wrapper: "p-12",
   months:
-    "flex flex-col tablet:flex-row space-y-[16px] tablet:space-x-[16px] tablet:space-y-0",
-  month: "space-y-[16px]",
+    "flex flex-col tablet:flex-row space-y-16 tablet:space-x-16 tablet:space-y-0",
+  month: "space-y-16",
   month_caption: "flex justify-center pt-1 relative items-center",
-  caption_label: "text-[14px] font-medium text-(--color-text) font-body",
-  nav: "space-x-[4px] flex items-center absolute flex-row w-full justify-between",
+  caption_label: "text-body font-medium text-(--color-text) font-body",
+  nav: "space-x-4 flex items-center absolute flex-row w-full justify-between",
   button_previous:
     "h-[28px] w-[28px] bg-transparent p-0 flex items-center justify-center text-(--color-text-muted) hover:text-(--color-text) rounded-(--r-sm) hover:bg-(--bg4) transition-colors cursor-pointer",
   button_next:
     "h-[28px] w-[28px] bg-transparent p-0 flex items-center justify-center text-(--color-text-muted) hover:text-(--color-text) rounded-(--r-sm) hover:bg-(--bg4) transition-colors cursor-pointer",
-  month_grid: "w-full border-collapse space-y-[4px]",
+  month_grid: "w-full border-collapse space-y-4",
   weekdays: "flex",
   weekday:
-    "text-(--color-text-muted) rounded-md w-[36px] font-normal text-body-sm h-[36px] flex items-center justify-center",
-  week: "flex w-full mt-[8px]",
+    "text-(--color-text-muted) rounded-(--r-md) w-[36px] font-normal text-body-sm h-[36px] flex items-center justify-center",
+  week: "flex w-full mt-8",
 
-  dropdowns: "flex gap-[6px] items-center",
+  dropdowns: "flex gap-6 items-center",
   dropdown:
-    "bg-(--bg3) border border-(--border) rounded-(--r-sm) text-body-sm text-(--color-text) px-[6px] py-[4px] font-body cursor-pointer hover:border-(--amber) focus-ring focus:border-(--amber)",
+    "bg-(--bg3) border border-(--border) rounded-(--r-sm) text-body-sm text-(--color-text) px-6 py-4 font-body cursor-pointer hover:border-(--amber) focus-ring focus:border-(--amber)",
   months_dropdown: "",
   years_dropdown: "",
 
@@ -179,7 +178,7 @@ export const calendarStyles = {
    * `color: inherit` ao botão) —, senão a cor do estado nunca chegava ao número.
    */
   day: [
-    "h-[36px] w-[36px] p-0 text-center text-body-sm font-medium relative rounded-(--r-sm) text-(--color-text) transition-colors cursor-pointer focus-within:z-10 hover:bg-(--bg4)",
+    "h-[36px] w-[36px] p-0 text-center text-body-sm font-medium relative rounded-(--r-sm) text-(--color-text) transition-colors cursor-pointer focus-within:z-(--z-raised) hover:bg-(--bg4)",
     // Hoje: sublinhado; a cor âmbar só quando o dia não está marcado.
     "data-today:font-bold data-today:underline data-today:underline-offset-4 [&[data-today]:not([data-selected])]:text-(--color-action-text)",
     // Marcado (dia avulso ou ponta do período).
@@ -193,5 +192,5 @@ export const calendarStyles = {
     "data-disabled:text-(--color-text-disabled) data-disabled:cursor-not-allowed [&[data-disabled]:hover]:bg-transparent",
   ].join(" "),
   day_button:
-    "h-[36px] w-[36px] text-center text-body-sm p-0 font-medium relative focus:z-10 focus-ring flex justify-center items-center rounded-md cursor-pointer",
+    "h-[36px] w-[36px] text-center text-body-sm p-0 font-medium relative focus:z-(--z-raised) focus-ring flex justify-center items-center rounded-(--r-md) cursor-pointer",
 };

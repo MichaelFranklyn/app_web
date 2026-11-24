@@ -62,7 +62,7 @@ export function PushNotificationsCard() {
         </Card.Header.Description>
       </Card.Header>
 
-      <Card.Body className="flex flex-col items-start gap-12">
+      <Card.Body className="items-start">
         {status === "loading" && (
           <Loading.Skeleton className="h-16 w-[220px]" />
         )}

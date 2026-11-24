@@ -32,7 +32,7 @@ export async function FactoryDetailContent({ id, children }: Props) {
       <div className="flex min-h-[60vh] items-center justify-center px-32 py-[28px]">
         <EmptyState.Root className="max-w-105">
           <EmptyState.Icon>
-            <Factory size={32} />
+            <Factory />
           </EmptyState.Icon>
           <EmptyState.Title>Fábrica não encontrada</EmptyState.Title>
           <EmptyState.Description>

@@ -17,7 +17,7 @@ export function ContractCard({ companyFactory }: Props) {
   return (
     <Card.Root>
       <Card.Header>
-        <Card.Header.Title size="sm" weight="bold">
+        <Card.Header.Title>
           <span className="inline-flex items-center gap-6">
             Contrato
             <HelpTooltip

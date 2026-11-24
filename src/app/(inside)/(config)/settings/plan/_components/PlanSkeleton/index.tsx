@@ -12,8 +12,8 @@ function SectionHeadingSkeleton({ help = false }: { help?: boolean }) {
         <Loading.Skeleton className="h-[18px] w-[120px]" />
         {help && <Loading.Skeleton shape="pill" className="size-[28px]" />}
       </div>
-      <Loading.Skeleton className="h-[12px] w-[420px] max-w-full" />
-      <Loading.Skeleton className="desktop:hidden h-[12px] w-[160px]" />
+      <Loading.Skeleton text="body-sm" className="w-[420px] max-w-full" />
+      <Loading.Skeleton text="body-sm" className="desktop:hidden w-[160px]" />
     </div>
   );
 }
@@ -33,8 +33,8 @@ export function PlanSkeleton() {
           <PanelHeader.Heading {...PAGE_HEADING.plan}>
             Plano da empresa
           </PanelHeader.Heading>
-          <Loading.Skeleton className="h-[14px] w-[420px] max-w-full" />
-          <Loading.Skeleton className="desktop:hidden h-[14px] w-[180px]" />
+          <Loading.Skeleton text="body" className="w-[420px] max-w-full" />
+          <Loading.Skeleton text="body" className="desktop:hidden w-[180px]" />
         </div>
         <Loading.Skeleton
           shape="md"

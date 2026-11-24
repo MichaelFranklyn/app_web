@@ -1,5 +1,6 @@
 "use client";
 import { Emphasis } from "@/components/Emphasis";
+import { formatScore } from "@/utils/score";
 import { Dot } from "@/components/Dot";
 import { Card } from "@/components/Card";
 
@@ -36,7 +37,7 @@ export function VisitScoreReasons({ reasons }: Props) {
       <div className="flex flex-col gap-10">
         {reasons.map(({ key, factoryLabel, explanation }) => (
           <Card.Root key={key} inset tone="transparent">
-            <Card.Body padding="sm" className="gap-6">
+            <Card.Body padding="sm">
               <div className="flex items-start justify-between gap-8">
                 <Title variant="body-sm" className="min-w-0 truncate">
                   {factoryLabel}
@@ -48,7 +49,7 @@ export function VisitScoreReasons({ reasons }: Props) {
                 >
                   <Badge.Dot />
                   <Badge.Text>
-                    {explanation.level.label} · {explanation.total.toFixed(0)}
+                    {explanation.level.label} · {formatScore(explanation.total)}
                   </Badge.Text>
                 </Badge.Root>
               </div>
@@ -65,7 +66,7 @@ export function VisitScoreReasons({ reasons }: Props) {
                         color={reason.tone}
                         pulse={false}
                         intensity="solid"
-                        className="mt-[6px]"
+                        className="mt-6"
                       />
                       <Title variant="body-xs" color="secondary">
                         <Emphasis>{reason.label}</Emphasis> — {reason.why}

@@ -1,3 +1,4 @@
+import { plural } from "@/utils/format/plural";
 /**
  * Converte o texto livre digitado (ex.: "30/60/90", "30, 60, 90", "à vista")
  * na lista ordenada de offsets em dias. Aceita qualquer separador não-numérico;
@@ -18,5 +19,5 @@ export function formatInstallments(days: number[]): string {
 /** "3 parcelas" / "1 parcela" a partir da quantidade de offsets. */
 export function installmentsCountLabel(days: number[]): string {
   const n = days.length;
-  return `${n} parcela${n === 1 ? "" : "s"}`;
+  return plural(n, "parcela", "parcelas");
 }

@@ -1,5 +1,6 @@
 "use client";
 
+import { BulletList } from "@/components/BulletList";
 import { Card } from "@/components/Card";
 import { HelpTooltip } from "@/components/HelpTooltip";
 import { Title } from "@/components/Title";
@@ -27,19 +28,11 @@ function FeatureItem({
   feature: PlanFeature;
   included: boolean;
 }) {
-  const StatusIcon = included ? Check : Lock;
-
   return (
-    <li className="flex items-start gap-8">
-      <StatusIcon
-        aria-hidden
-        size={16}
-        className={
-          included
-            ? "mt-2 shrink-0 text-(--color-status-success)"
-            : "mt-2 shrink-0 text-(--color-text-disabled)"
-        }
-      />
+    <BulletList.Item
+      icon={included ? Check : Lock}
+      iconTone={included ? "success" : "disabled"}
+    >
       <div className="flex min-w-0 flex-col gap-2">
         <Title
           variant="body-sm"
@@ -53,7 +46,7 @@ function FeatureItem({
           {FEATURE_DESCRIPTION[feature]}
         </Title>
       </div>
-    </li>
+    </BulletList.Item>
   );
 }
 
@@ -101,7 +94,10 @@ export function PlanFeaturesSection({ features }: { features: PlanFeature[] }) {
 
       <Card.Root>
         <Card.Body>
-          <ul className="tablet:grid-cols-2 desktop-xl:grid-cols-3 grid grid-cols-1 gap-x-24 gap-y-16">
+          <BulletList.Root
+            marker="icon"
+            className="tablet:grid-cols-2 desktop-xl:grid-cols-3 grid grid-cols-1 gap-x-24 gap-y-16"
+          >
             {FEATURE_ORDER.map((feature) => (
               <FeatureItem
                 key={feature}
@@ -109,7 +105,7 @@ export function PlanFeaturesSection({ features }: { features: PlanFeature[] }) {
                 included={features.includes(feature)}
               />
             ))}
-          </ul>
+          </BulletList.Root>
         </Card.Body>
       </Card.Root>
     </section>

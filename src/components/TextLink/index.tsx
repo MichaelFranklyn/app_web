@@ -40,6 +40,13 @@ interface TextLinkProps extends Omit<
   emphasis?: boolean;
   /** Abre em outra aba: `target="_blank"` com `rel="noreferrer"`. */
   external?: boolean;
+  /**
+   * Link SOLTO (numa linha só dele, não no meio de uma frase): no toque, a
+   * área clicável cresce até ~44px de altura sem mudar o desenho, como no
+   * Breadcrumb. Fora de frase porque o alvo ampliado cobriria a linha de cima
+   * e a de baixo. "abrir a ficha" media 85×18 no celular (24/11/2026).
+   */
+  touchTarget?: boolean;
 }
 
 const isAppRoute = (href: string) =>
@@ -61,6 +68,7 @@ export const TextLink = React.forwardRef<HTMLAnchorElement, TextLinkProps>(
       underline = "hover",
       emphasis = false,
       external = false,
+      touchTarget = false,
       className,
       ...props
     },
@@ -74,6 +82,8 @@ export const TextLink = React.forwardRef<HTMLAnchorElement, TextLinkProps>(
         tone === "inherit" &&
         "hover:text-(--color-action-text)",
       emphasis && "font-(--weight-medium)",
+      touchTarget &&
+        "relative pointer-coarse:after:absolute pointer-coarse:after:-inset-x-[4px] pointer-coarse:after:-inset-y-[13px] pointer-coarse:after:content-['']",
       className
     );
     const target = external

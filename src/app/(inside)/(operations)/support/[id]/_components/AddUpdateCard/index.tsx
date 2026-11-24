@@ -3,7 +3,6 @@
 import { Button } from "@/components/Button";
 import { Card } from "@/components/Card";
 import { Input, SelectOption } from "@/components/Input";
-import { Title } from "@/components/Title";
 import {
   SUPPORT_STATUS_HINT,
   SUPPORT_STATUS_LABEL,
@@ -48,9 +47,10 @@ export function AddUpdateCard({ caseId, currentStatus, onSaved }: Props) {
 
   return (
     <Card.Root>
-      <Card.Body padding="compact" className="gap-12">
-        <Title variant="heading-sm">Registrar andamento</Title>
-
+      <Card.Header>
+        <Card.Header.Title>Registrar andamento</Card.Header.Title>
+      </Card.Header>
+      <Card.Body>
         <Input.Textarea
           label="O que aconteceu"
           required

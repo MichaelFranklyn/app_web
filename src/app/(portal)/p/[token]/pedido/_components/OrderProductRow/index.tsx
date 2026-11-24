@@ -40,12 +40,12 @@ export function OrderProductRow({
   return (
     <Table.Row>
       <Table.Cell card="title" wrap>
-        <div className="flex min-w-0 items-center gap-[12px]">
+        <div className="flex min-w-0 items-center gap-12">
           <ProductThumb
             imageUrl={item.imageUrl ?? null}
             name={item.productName}
           />
-          <div className="flex min-w-0 flex-col gap-[2px]">
+          <div className="flex min-w-0 flex-col gap-2">
             <Title variant="body-sm" weight="semibold" className="break-words">
               {item.productName}
             </Title>
@@ -71,15 +71,15 @@ export function OrderProductRow({
       ) : null}
 
       <Table.Cell label="Embalagem mínima" wrap>
-        <div className="flex flex-col items-start gap-[4px]">
-          <Badge color={isLoose ? "neutral" : "amber"} size="sm">
+        <div className="flex flex-col items-start gap-4">
+          <Badge.Root color={isLoose ? "neutral" : "amber"} size="sm">
             <Badge.Icon>
               <Package />
             </Badge.Icon>
             <Badge.Text>
               {isLoose ? "Avulso" : minimumPackText(item.saleMultiple)}
             </Badge.Text>
-          </Badge>
+          </Badge.Root>
           {packPrice ? (
             <Title
               variant="body-xs"

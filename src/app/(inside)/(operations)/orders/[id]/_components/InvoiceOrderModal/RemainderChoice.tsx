@@ -2,6 +2,7 @@ import { Card } from "@/components/Card";
 import { Alert } from "@/components/Alert";
 import { Input } from "@/components/Input";
 import { Title } from "@/components/Title";
+import { pluralWord } from "@/utils/format/plural";
 import { PackageX, Trash2 } from "lucide-react";
 
 import { RemainderMode } from "./usePartialInvoice";
@@ -19,12 +20,12 @@ interface Props {
  * cliente desistiu do restante, e deixar um pedido pendente só atrapalharia.
  */
 export function RemainderChoice({ count, mode, onChange }: Props) {
-  const items = count === 1 ? "item" : "itens";
+  const items = pluralWord(count, "item", "itens");
 
   return (
     <div className="flex flex-col gap-12">
       <Card.Root inset>
-        <Card.Body padding="sm" className="flex flex-col gap-8">
+        <Card.Body padding="sm">
           <Title variant="body-sm" weight="medium">
             O que fazer com o que faltou?
           </Title>
@@ -62,9 +63,10 @@ export function RemainderChoice({ count, mode, onChange }: Props) {
           <Alert.Icon icon={PackageX} />
           <Alert.Content>
             <Alert.Description>
-              {count} {items} {count === 1 ? "vai" : "vão"} para um novo pedido
-              (backorder), que você fatura quando a fábrica tiver estoque. A
-              comissão deste faturamento sai só sobre o que foi faturado agora.
+              {count} {items} {pluralWord(count, "vai", "vão")} para um novo
+              pedido (backorder), que você fatura quando a fábrica tiver
+              estoque. A comissão deste faturamento sai só sobre o que foi
+              faturado agora.
             </Alert.Description>
           </Alert.Content>
         </Alert.Root>

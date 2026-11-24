@@ -2,6 +2,7 @@
 
 import { useAsyncAction } from "@/hooks/useAsyncAction";
 import { fileToBase64 } from "@/utils/file";
+import { plural } from "@/utils/format/plural";
 import { useMutation } from "@apollo/client/react";
 import { useState } from "react";
 
@@ -108,8 +109,8 @@ export const useImportNfe = ({ onInvoiced }: Args) => {
       {
         successMessage: ({ invoiced, failed }) =>
           failed.length > 0
-            ? `${invoiced} pedido(s) faturado(s). ${failed.length} nota(s) não entraram: ${failed[0].message}`
-            : `${invoiced} pedido(s) faturado(s) pelas notas.`,
+            ? `${plural(invoiced, "pedido faturado", "pedidos faturados")}. ${plural(failed.length, "nota não entrou", "notas não entraram")}: ${failed[0].message}`
+            : `${plural(invoiced, "pedido faturado", "pedidos faturados")} pelas notas.`,
         onSuccess: () => {
           reset();
           onInvoiced();

@@ -224,7 +224,7 @@ export default function VisitsContent() {
               <Table.Cell colSpan={8}>
                 <EmptyState.Root flat>
                   <EmptyState.Icon>
-                    <CalendarCheck size={32} />
+                    <CalendarCheck />
                   </EmptyState.Icon>
                   <EmptyState.Title>
                     {table.totalUnfiltered > 0

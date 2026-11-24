@@ -71,19 +71,20 @@ const themeVariants: Record<ThemeAppearance, Record<ThemeColor, string>> = {
     // (#a86608) dá 4,6:1; o --amber puro dava 3,2:1 e reprovava.
     amber:
       "bg-(--color-action) border-(--color-action) text-(--color-on-action)",
-    neutral: "bg-(--color-text) border-(--color-text) text-white",
+    neutral: "bg-(--color-text) border-(--color-text) text-(--color-on-action)",
     subtle:
-      "bg-(--color-text-secondary) border-(--color-text-secondary) text-white",
-    red: "bg-(--color-status-danger) border-(--color-status-danger) text-white",
-    blue: "bg-(--color-status-info) border-(--color-status-info) text-white",
+      "bg-(--color-text-secondary) border-(--color-text-secondary) text-(--color-on-action)",
+    red: "bg-(--color-status-danger) border-(--color-status-danger) text-(--color-on-action)",
+    blue: "bg-(--color-status-info) border-(--color-status-info) text-(--color-on-action)",
     green:
-      "bg-(--color-status-success) border-(--color-status-success) text-white",
-    cyan: "bg-(--cyan-text) border-(--cyan-text) text-white",
-    purple: "bg-(--purple) border-(--purple) text-white",
-    orange: "bg-(--orange-text) border-(--orange-text) text-white",
-    pink: "bg-(--pink) border-(--pink) text-white",
+      "bg-(--color-status-success) border-(--color-status-success) text-(--color-on-action)",
+    cyan: "bg-(--cyan-text) border-(--cyan-text) text-(--color-on-action)",
+    purple: "bg-(--purple) border-(--purple) text-(--color-on-action)",
+    orange:
+      "bg-(--orange-text) border-(--orange-text) text-(--color-on-action)",
+    pink: "bg-(--pink) border-(--pink) text-(--color-on-action)",
     warning:
-      "bg-(--color-status-warning) border-(--color-status-warning) text-white",
+      "bg-(--color-status-warning) border-(--color-status-warning) text-(--color-on-action)",
   },
 };
 

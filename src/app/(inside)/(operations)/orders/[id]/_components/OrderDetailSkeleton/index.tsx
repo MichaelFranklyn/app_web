@@ -1,5 +1,4 @@
 import { Card } from "@/components/Card";
-import { Divider } from "@/components/Divider";
 import { Loading } from "@/components/Loading";
 import { PageContent } from "@/components/PageContent";
 import { PanelHeader } from "@/components/PanelHeader";
@@ -12,16 +11,16 @@ const ITEM_ROWS = 5;
 function HeaderSkeleton() {
   return (
     <div className="flex flex-col gap-8">
-      <div className="flex items-center gap-[8px]">
-        <Loading.Skeleton className="h-[12px] w-16" />
-        <Loading.Skeleton className="h-[12px] w-20" />
+      <div className="flex items-center gap-8">
+        <Loading.Skeleton text="body-sm" className="w-16" />
+        <Loading.Skeleton text="body-sm" className="w-20" />
       </div>
 
       <PanelHeader.Root>
         <PanelHeader.Top>
           <PanelHeader.Left>
             <PanelHeader.HeadingSkeleton {...PAGE_HEADING.orders} />
-            <Loading.Skeleton className="mt-[6px] h-[12px] w-56" />
+            <Loading.Skeleton text="body-sm" className="mt-6 w-56" />
             <PanelHeader.Actions>
               <Loading.Skeleton shape="pill" className="h-[22px] w-20" />
               <Loading.Skeleton className="h-[36px] w-28" />
@@ -40,7 +39,7 @@ function ItemsTableSkeleton() {
   return (
     <Table.Root>
       <Table.CardHead>
-        <Loading.Skeleton className="h-[16px] w-32" />
+        <Loading.Skeleton text="heading-sm" className="w-32" />
         <Loading.Skeleton shape="pill" className="h-[20px] w-16" />
       </Table.CardHead>
       <Table.Table>
@@ -63,23 +62,27 @@ function ItemsTableSkeleton() {
   );
 }
 
-/** Placeholder do card de resumo financeiro. */
+/** Linhas sempre presentes no resumo: total, comissão, prazo e frete. */
+const SUMMARY_ROWS = ["w-24", "w-20", "w-28", "w-16"];
+
+/**
+ * Placeholder do card de resumo financeiro — a mesma casca do
+ * `OrderSummaryCard`: título no cabeçalho e linhas `Card.Item variant="stat"`,
+ * que trazem o próprio separador.
+ */
 function SummaryCardSkeleton() {
   return (
-    <Card.Root>
+    <Card.Root aria-hidden>
       <Card.Header>
-        <Loading.Skeleton className="h-[14px] w-32" />
+        <Loading.Skeleton text="body-md" className="w-32" />
       </Card.Header>
-      <Card.Body padding="compact">
-        <div className="flex items-center justify-between py-[8px]">
-          <Loading.Skeleton className="h-[12px] w-24" />
-          <Loading.Skeleton className="h-[14px] w-16" />
-        </div>
-        <Divider.Root className="my-2" />
-        <div className="flex items-center justify-between py-[8px]">
-          <Loading.Skeleton className="h-[12px] w-20" />
-          <Loading.Skeleton className="h-[14px] w-16" />
-        </div>
+      <Card.Body padding="compact" columns="wide">
+        {SUMMARY_ROWS.map((width) => (
+          <Card.Item key={width} variant="stat">
+            <Loading.Skeleton text="body-sm" className={width} />
+            <Loading.Skeleton text="body-sm" className="w-16" />
+          </Card.Item>
+        ))}
       </Card.Body>
     </Card.Root>
   );

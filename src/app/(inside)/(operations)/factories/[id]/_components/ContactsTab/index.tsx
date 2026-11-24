@@ -50,7 +50,7 @@ export function ContactsTab({ factoryId }: Props) {
   return (
     <Table.Root data-tour="factory-contacts-table">
       <Table.CardHead>
-        <Table.CardHead.Title className="inline-flex items-center gap-6">
+        <Table.CardHead.Title>
           Contatos da fábrica
           <HelpTooltip
             label="Para que servem os contatos?"
@@ -106,7 +106,7 @@ export function ContactsTab({ factoryId }: Props) {
               <Table.Cell colSpan={4}>
                 <EmptyState.Root flat>
                   <EmptyState.Icon>
-                    <Contact size={32} />
+                    <Contact />
                   </EmptyState.Icon>
                   <EmptyState.Title>Nenhum contato cadastrado</EmptyState.Title>
                   <EmptyState.Description>

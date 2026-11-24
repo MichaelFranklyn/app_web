@@ -1,4 +1,5 @@
 import { ReportColumn } from "@/utils/pdf/table";
+import { formatScore } from "@/utils/score";
 import { factoryName } from "@/utils/company";
 import { clientDisplayName } from "@/utils/client";
 import { VISIT_STATUS_LABEL } from "@/utils/visit";
@@ -88,7 +89,7 @@ export const stopReason = (stop: VisitScheduleItem): string => {
 export const stopUrgency = (stop: VisitScheduleItem): string | null => {
   const [first] = getVisitScoreReasons(stop);
   if (!first) return null;
-  return `${first.explanation.level.label} · ${first.explanation.total.toFixed(0)}`;
+  return `${first.explanation.level.label} · ${formatScore(first.explanation.total)}`;
 };
 
 /** Horário previsto da parada; contato remoto não tem hora marcada. */

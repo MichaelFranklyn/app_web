@@ -5,6 +5,7 @@ import { Button } from "@/components/Button";
 import { Emphasis } from "@/components/Emphasis";
 import { Title } from "@/components/Title";
 import { recordsLabel, useOfflineQueue } from "@/services/offlineQueue";
+import { pluralWord } from "@/utils/format/plural";
 import { CircleAlert, CloudUpload } from "lucide-react";
 
 import { useOfflineSync } from "./useOfflineSync";
@@ -34,10 +35,10 @@ export function OfflineSync() {
           data-testid="offline-queue-banner"
         >
           <Title variant="body-xs" color="inverse">
-            <Emphasis>{recordsLabel(entries.length)}</Emphasis> guardado
-            {entries.length === 1 ? "" : "s"} neste aparelho. Vão sozinhos
-            quando o sinal voltar — não precisa marcar de novo, e não saia da
-            sua conta até lá.
+            <Emphasis>{recordsLabel(entries.length)}</Emphasis>{" "}
+            {pluralWord(entries.length, "guardado", "guardados")} neste
+            aparelho. Vão sozinhos quando o sinal voltar — não precisa marcar de
+            novo, e não saia da sua conta até lá.
           </Title>
         </Banner>
       )}

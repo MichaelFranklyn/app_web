@@ -274,7 +274,7 @@ function ConfirmBlock({
 }: ConfirmBlockProps) {
   return (
     <Card.Root inset>
-      <Card.Body padding="compact" className="flex flex-col gap-12">
+      <Card.Body padding="compact">
         <div className="flex flex-col gap-4">
           <Title variant="body-sm" weight="medium">
             {title}

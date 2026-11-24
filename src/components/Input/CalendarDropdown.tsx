@@ -3,6 +3,7 @@
 import { cn } from "@/lib/utils";
 import { ChevronDown } from "lucide-react";
 import React, { ChangeEvent, useEffect, useRef, useState } from "react";
+import { ICON_SIZE } from "@/components/Icon";
 
 interface DropdownOption {
   value: number | string;
@@ -79,11 +80,11 @@ export function CalendarDropdown({
         aria-label={ariaLabel}
         disabled={disabled}
         onClick={() => !disabled && setOpen((o) => !o)}
-        className="text-body-sm focus-ring font-body flex cursor-pointer items-center gap-[4px] rounded-(--r-sm) border border-(--border) bg-(--bg3) px-[6px] py-[4px] text-(--color-text) hover:border-(--amber) focus:border-(--amber) disabled:cursor-not-allowed disabled:text-(--color-text-disabled) disabled:hover:border-(--border)"
+        className="text-body-sm focus-ring font-body flex cursor-pointer items-center gap-4 rounded-(--r-sm) border border-(--border) bg-(--bg3) px-6 py-4 text-(--color-text) hover:border-(--amber) focus:border-(--amber) disabled:cursor-not-allowed disabled:text-(--color-text-disabled) disabled:hover:border-(--border)"
       >
         <span>{selected?.label}</span>
         <ChevronDown
-          size={12}
+          size={ICON_SIZE.xs}
           className={cn(
             "transition-transform duration-150",
             open && "rotate-180"
@@ -93,7 +94,7 @@ export function CalendarDropdown({
       {open && (
         <div
           ref={listRef}
-          className="absolute top-full left-0 z-[10000] mt-[4px] flex max-h-[200px] min-w-full flex-col gap-[2px] overflow-x-hidden overflow-y-auto rounded-(--r-sm) bg-(--bg2) p-[4px] shadow-lg ring-1 ring-(--border) [&::-webkit-scrollbar]:w-[6px] [&::-webkit-scrollbar-thumb]:rounded-[2px] [&::-webkit-scrollbar-thumb]:bg-(--border2) [&::-webkit-scrollbar-track]:bg-transparent"
+          className="absolute top-full left-0 z-(--z-popover) mt-4 flex max-h-[200px] min-w-full flex-col gap-2 overflow-x-hidden overflow-y-auto rounded-(--r-sm) bg-(--bg2) p-4 shadow-(--shadow-lg) ring-1 ring-(--border) [&::-webkit-scrollbar]:w-[6px] [&::-webkit-scrollbar-thumb]:rounded-[2px] [&::-webkit-scrollbar-thumb]:bg-(--border2) [&::-webkit-scrollbar-track]:bg-transparent"
         >
           {options.map((option) => {
             const isSelected = String(option.value) === String(currentValue);
@@ -105,7 +106,7 @@ export function CalendarDropdown({
                 disabled={option.disabled}
                 onClick={() => handleSelect(option)}
                 className={cn(
-                  "text-body-sm font-body cursor-pointer rounded-(--r-sm) px-[10px] py-[6px] text-left whitespace-nowrap hover:bg-(--bg3) disabled:cursor-not-allowed disabled:text-(--color-text-disabled) disabled:hover:bg-transparent",
+                  "text-body-sm font-body cursor-pointer rounded-(--r-sm) px-10 py-6 text-left whitespace-nowrap hover:bg-(--bg3) disabled:cursor-not-allowed disabled:text-(--color-text-disabled) disabled:hover:bg-transparent",
                   isSelected
                     ? "bg-(--amber-bg) text-(--color-action-text-on-tint)"
                     : "text-(--color-text)"

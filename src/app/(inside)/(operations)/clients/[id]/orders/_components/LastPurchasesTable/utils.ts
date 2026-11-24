@@ -1,6 +1,7 @@
 import { factoryName } from "@/utils/company";
 import { daysBetweenIso } from "@/utils/format/date";
 import { daysAgoLabel } from "@/utils/productPurchase";
+import { plural } from "@/utils/format/plural";
 import {
   ClientLastPurchase,
   PurchaseGroupRow,
@@ -63,4 +64,4 @@ export const sinceLabel = (iso: string, todayIso: string): string =>
 
 /** "1 compra" / "3 compras". */
 export const purchaseCountLabel = (count: number): string =>
-  count === 1 ? "1 compra" : `${count} compras`;
+  plural(count, "compra", "compras");

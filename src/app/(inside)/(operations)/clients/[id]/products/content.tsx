@@ -14,6 +14,7 @@ import { CLIENT_PRODUCT_ANALYSIS_QUERY } from "./gql";
 import { ClientProductAnalysisQueryResponse } from "./interface";
 import { useProductAnalysisTable } from "./useProductAnalysisTable";
 import { summarizeAnalysis } from "./utils";
+import { ICON_SIZE } from "@/components/Icon";
 
 export default function ProductsContent() {
   const { companyClientId } = useClientRoute();
@@ -41,7 +42,7 @@ export default function ProductsContent() {
   return (
     <div className="flex flex-col gap-16">
       <Alert.Root variant="info">
-        <Info size={14} className="mt-[1px] shrink-0" />
+        <Info size={ICON_SIZE.sm} className="mt-1 shrink-0" />
         <Alert.Content>
           <Alert.Description>
             Esta leitura sai dos pedidos já fechados deste cliente. O ritmo de

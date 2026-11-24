@@ -66,14 +66,6 @@ export const historyTone = (history: JobHistory): JobTone => {
   return "ok";
 };
 
-/** Duração em texto. Job se mede em segundos e minutos, não em milissegundos. */
-export const formatDuration = (ms: number | null): string => {
-  if (ms === null) return "—";
-  if (ms < 1000) return `${ms}ms`;
-  if (ms < 60_000) return `${(ms / 1000).toFixed(1)}s`;
-  return `${Math.round(ms / 60_000)}min`;
-};
-
 export const REGRESSION_LABEL: Record<RegressionKind, string> = {
   SLOWER: "Ficou mais lenta",
   FAILING: "Passou a falhar",
@@ -92,17 +84,6 @@ export const formatDelta = (percent: number | null): string => {
   if (percent === null) return "—";
   const rounded = Math.round(percent);
   return `${rounded > 0 ? "+" : ""}${rounded}%`;
-};
-
-export const formatMoment = (iso: string): string => {
-  const date = new Date(iso);
-  if (Number.isNaN(date.getTime())) return "—";
-  return date.toLocaleString("pt-BR", {
-    day: "2-digit",
-    month: "2-digit",
-    hour: "2-digit",
-    minute: "2-digit",
-  });
 };
 
 /** A partir daqui a demora é sentida por quem está do outro lado da tela. É o
@@ -125,10 +106,3 @@ export const operationTone = (row: OperationHealth): JobTone => {
 /** Fatia das chamadas que falhou por defeito, de 0 a 100. */
 export const failureRate = (row: OperationHealth): number =>
   row.total > 0 ? Math.round((row.errors / row.total) * 100) : 0;
-
-/**
- * Duração em texto. Acima de um segundo passa a segundos: 2400ms é mais difícil
- * de ler que 2,4s, e é justamente na faixa lenta que o número importa.
- */
-export const formatMs = (ms: number): string =>
-  ms >= 1000 ? `${(ms / 1000).toFixed(1)}s` : `${ms}ms`;

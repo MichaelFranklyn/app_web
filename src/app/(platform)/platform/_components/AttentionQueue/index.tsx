@@ -2,9 +2,11 @@ import { Badge } from "@/components/Badges";
 import { Card } from "@/components/Card";
 import { RowList } from "@/components/RowList";
 import { Title } from "@/components/Title";
+import { plural } from "@/utils/format/plural";
 import { CheckCircle2 } from "lucide-react";
 import { AttentionItem } from "../../interface";
 import { SEVERITY_COLOR, SEVERITY_LABEL } from "../../utils";
+import { ICON_SIZE } from "@/components/Icon";
 
 /**
  * O que exige decisão agora — o primeiro bloco da tela.
@@ -21,12 +23,12 @@ export function AttentionQueue({ items }: { items: AttentionItem[] }) {
   if (items.length === 0) {
     return (
       <Card.Root>
-        <Card.Body className="flex items-center gap-12">
+        <Card.Body className="items-center">
           <CheckCircle2
-            size={20}
+            size={ICON_SIZE.lg}
             className="shrink-0 text-(--color-status-success)"
           />
-          <div className="flex flex-col gap-[2px]">
+          <div className="flex flex-col gap-2">
             <Title variant="body-sm" weight="semibold">
               Nada exigindo atenção
             </Title>
@@ -43,12 +45,10 @@ export function AttentionQueue({ items }: { items: AttentionItem[] }) {
   return (
     <Card.Root>
       <Card.Header>
-        <Card.Header.Title size="sm" weight="semibold">
-          Precisa de atenção
-        </Card.Header.Title>
+        <Card.Header.Title>Precisa de atenção</Card.Header.Title>
         <Card.Header.Description>
-          {items.length} {items.length === 1 ? "item" : "itens"} · o mais grave
-          primeiro. Some sozinho quando a situação se resolve.
+          {plural(items.length, "item", "itens")} · o mais grave primeiro. Some
+          sozinho quando a situação se resolve.
         </Card.Header.Description>
       </Card.Header>
 

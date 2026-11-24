@@ -29,21 +29,25 @@ export const TourCard = ({
   onNext,
   onClose,
 }: TourCardProps) => (
-  <div className="flex w-[320px] max-w-[90vw] flex-col gap-12 rounded-lg border border-(--border) bg-(--bg) p-12 shadow-xl">
+  <div className="flex w-[320px] max-w-[90vw] flex-col gap-12 rounded-(--r-lg) border border-(--border) bg-(--bg) p-12 shadow-(--shadow-lg)">
     <div className="flex items-start justify-between gap-8">
       {title && (
         <Title variant="body-md" weight="semibold">
           {title}
         </Title>
       )}
-      <button
-        type="button"
-        aria-label="Fechar tutorial"
+      {/* O mesmo "fechar" do Modal e do Drawer (era um <button> cru). */}
+      <Button.Root
+        appearance="ghost"
+        color="neutral"
+        size="sm"
+        isIconOnly
+        label="Fechar tutorial"
         onClick={onClose}
-        className="shrink-0 cursor-pointer rounded p-4 text-(--color-text-muted) transition-colors hover:bg-(--bg3) hover:text-(--color-text)"
+        className="-mt-4 -mr-4 shrink-0"
       >
-        <X size={16} strokeWidth={2} />
-      </button>
+        <Button.Icon icon={X} />
+      </Button.Root>
     </div>
 
     {description && (

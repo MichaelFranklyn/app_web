@@ -5,11 +5,13 @@ import { Card } from "@/components/Card";
 import { HelpTooltip } from "@/components/HelpTooltip";
 import { Title } from "@/components/Title";
 import { useAsyncAction } from "@/hooks/useAsyncAction";
+import { plural } from "@/utils/format/plural";
 import { useMutation } from "@apollo/client/react";
 import { Landmark } from "lucide-react";
 import { RECEITA_HELP } from "../../help";
 import { CHECK_WALLET_RECEITA_MUTATION } from "../../gql";
 import { CheckWalletReceitaResponse } from "../../interface";
+import { ICON_SIZE } from "@/components/Icon";
 
 interface Props {
   pending: number;
@@ -51,13 +53,16 @@ export function ReceitaCheckCard({ pending, onChecked }: Props) {
       <Card.Body>
         <div className="flex flex-wrap items-center justify-between gap-12">
           <div className="flex items-start gap-10">
-            <Landmark size={20} className="mt-2 text-(--color-text-muted)" />
+            <Landmark
+              size={ICON_SIZE.lg}
+              className="mt-2 text-(--color-text-muted)"
+            />
             <div className="flex flex-col gap-2">
               <span className="inline-flex items-center gap-6">
                 <Title variant="body-md" weight="bold">
                   {pending === 0
                     ? "Carteira conferida na Receita"
-                    : `${pending} cliente(s) ainda não conferido(s) na Receita`}
+                    : `${plural(pending, "cliente ainda não conferido", "clientes ainda não conferidos")} na Receita`}
                 </Title>
                 <HelpTooltip
                   label="Sobre a conferência na Receita"

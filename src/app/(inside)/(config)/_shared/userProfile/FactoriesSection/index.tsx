@@ -1,15 +1,16 @@
 "use client";
 
 import { Badge } from "@/components/Badges";
+import { EmptyState } from "@/components/EmptyState";
 import { QueryError } from "@/components/QueryError";
 import {
   AccessRowActions,
   sellerAgreementLabel,
 } from "@/components/SellerFactoryAccess";
 import { Table } from "@/components/Table";
-import { Title } from "@/components/Title";
 import { useOptimisticList } from "@/hooks/useOptimisticList";
 import { formatDateDMY } from "@/utils/format/masks";
+import { Factory } from "lucide-react";
 import { useQuery } from "@apollo/client/react";
 import { useMemo } from "react";
 import { AddFactoryAccessModal } from "./AddFactoryAccessModal";
@@ -17,6 +18,7 @@ import { FACTORY_ACCESS_COLUMN_HELP } from "./help";
 import { SELLER_FACTORY_ACCESSES_QUERY } from "../gql";
 import { FactoryAccessNode, SellerAccessesQueryResponse } from "../interface";
 import { factoryName } from "@/utils/company";
+import { plural } from "@/utils/format/plural";
 
 interface Props {
   sellerId: string;
@@ -78,7 +80,7 @@ export function FactoriesSection({
             celular a tarja esticava na largura toda acima do botão
             (crítica de configurações, 23/11/2026). */}
         <Table.CardHead.Description>
-          {total === 1 ? "1 fábrica" : `${total} fábricas`}
+          {plural(total, "fábrica", "fábricas")}
         </Table.CardHead.Description>
         <Table.CardHead.Actions>
           <AddFactoryAccessModal
@@ -133,13 +135,15 @@ export function FactoriesSection({
           ) : items.length === 0 ? (
             <Table.Row>
               <Table.Cell colSpan={columns}>
-                <Title
-                  variant="body-sm"
-                  color="muted"
-                  className="py-16 text-center"
-                >
-                  Nenhuma fábrica vinculada
-                </Title>
+                <EmptyState.Root flat>
+                  <EmptyState.Icon>
+                    <Factory />
+                  </EmptyState.Icon>
+                  <EmptyState.Title>Nenhuma fábrica vinculada</EmptyState.Title>
+                  <EmptyState.Description>
+                    Dê acesso a uma fábrica para esta pessoa vender por ela.
+                  </EmptyState.Description>
+                </EmptyState.Root>
               </Table.Cell>
             </Table.Row>
           ) : (

@@ -5,6 +5,7 @@ import {
   formatDateMY,
   formatMoney,
   formatNumber,
+  formatQuantity,
   maskCEP,
   maskCNPJ,
   maskCPF,
@@ -101,5 +102,17 @@ describe("formatDateDMY / formatDateMY", () => {
     expect(formatDateDMY("data inválida")).toBe("");
     expect(formatDateMY()).toBe("");
     expect(formatDateMY("nope")).toBe("");
+  });
+});
+
+describe("formatQuantity", () => {
+  it("só mostra as casas que existem", () => {
+    expect(formatQuantity("12.0000")).toBe("12");
+    expect(formatQuantity(1.5)).toBe("1,5");
+    expect(formatQuantity("1234.125", 3)).toBe("1.234,125");
+  });
+
+  it("devolve o texto quando não é número", () => {
+    expect(formatQuantity("abc")).toBe("abc");
   });
 });

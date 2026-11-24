@@ -9,6 +9,7 @@ import Link from "next/link";
 
 import { CatalogLinkWithCount } from "../../interface";
 import { CATALOG_TONE, countLabel } from "../../utils";
+import { ICON_SIZE } from "@/components/Icon";
 
 interface Props {
   link: CatalogLinkWithCount;
@@ -31,8 +32,8 @@ export function CatalogNavCard({ link, count }: Props) {
 
   return (
     <Link href={href} className="group block h-full focus-visible:outline-none">
-      <Card.Root lift className="h-full">
-        <Card.Body className="flex h-full flex-col gap-12">
+      <Card.Root lift>
+        <Card.Body className="h-full">
           <div className="flex items-start gap-12">
             <IconTile
               aria-hidden
@@ -71,7 +72,7 @@ export function CatalogNavCard({ link, count }: Props) {
                   configurações, 23/11/2026). Escurece no hover. */}
               <ArrowRight
                 aria-hidden
-                size={16}
+                size={ICON_SIZE.md}
                 className="shrink-0 stroke-(--color-text-muted) transition-transform duration-200 group-hover:translate-x-[3px] group-hover:stroke-(--color-text)"
               />
             </div>

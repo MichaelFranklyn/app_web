@@ -18,9 +18,9 @@ import { PublicPage } from "@/components/PublicPage";
 export default function PortalGroupLoading() {
   return (
     <PublicPage.Root>
-      <PublicPage.Header className="gap-[6px]">
+      <PublicPage.Header className="gap-6">
         <Loading.Skeleton className="h-[20px] w-[200px]" />
-        <Loading.Skeleton className="h-[14px] w-[140px]" />
+        <Loading.Skeleton text="body" className="w-[140px]" />
       </PublicPage.Header>
       <PublicPage.Main>
         <Loading.Skeleton className="h-[180px] w-full" />

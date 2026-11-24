@@ -124,21 +124,23 @@ export function StepProduct({
         onChange={setNcmChoice}
       />
       {(distinctUnits.length > 0 || distinctPacks.length > 0) && (
-        <Card.Root isCompact className="flex flex-col gap-12">
-          <Reconciliation
-            title="Unidades"
-            values={distinctUnits}
-            existingLabels={unitLabels}
-            recon={unitRecon}
-            onChange={setUnitFinal}
-          />
-          <Reconciliation
-            title="Rótulos de embalagem"
-            values={distinctPacks}
-            existingLabels={packLabels}
-            recon={packRecon}
-            onChange={setPackFinal}
-          />
+        <Card.Root inset>
+          <Card.Body padding="sm">
+            <Reconciliation
+              title="Unidades"
+              values={distinctUnits}
+              existingLabels={unitLabels}
+              recon={unitRecon}
+              onChange={setUnitFinal}
+            />
+            <Reconciliation
+              title="Rótulos de embalagem"
+              values={distinctPacks}
+              existingLabels={packLabels}
+              recon={packRecon}
+              onChange={setPackFinal}
+            />
+          </Card.Body>
         </Card.Root>
       )}
     </div>

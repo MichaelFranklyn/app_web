@@ -51,7 +51,7 @@ export function HygieneTable({
         <Table.CardHead.Title>Para revisar</Table.CardHead.Title>
       </Table.CardHead>
 
-      <Table.Table>
+      <Table.Table cards>
         <Table.Header>
           <Table.Row>
             <Table.Head>Cliente</Table.Head>
@@ -64,7 +64,7 @@ export function HygieneTable({
             <Table.Head title="Situação do CNPJ na Receita Federal na última conferência.">
               Receita
             </Table.Head>
-            <Table.Head className="text-right">O que aconteceu</Table.Head>
+            <Table.Head align="right">O que aconteceu</Table.Head>
           </Table.Row>
         </Table.Header>
 
@@ -82,7 +82,7 @@ export function HygieneTable({
               <Table.Cell colSpan={COLUMNS}>
                 <EmptyState.Root flat>
                   <EmptyState.Icon>
-                    <CheckCircle2 size={32} />
+                    <CheckCircle2 />
                   </EmptyState.Icon>
                   <EmptyState.Title>Carteira em dia</EmptyState.Title>
                   <EmptyState.Description>
@@ -100,7 +100,7 @@ export function HygieneTable({
               const { main, sub } = names(client);
               return (
                 <Table.Row key={item.companyClient.id}>
-                  <Table.Cell>
+                  <Table.Cell card="title">
                     <div className="flex flex-col gap-2">
                       <TextLink
                         href={`/clients/${item.companyClient.id}/overview`}
@@ -121,7 +121,7 @@ export function HygieneTable({
                       </Table.CellText>
                     </div>
                   </Table.Cell>
-                  <Table.Cell>
+                  <Table.Cell card="status">
                     <div className="flex flex-wrap gap-4">
                       {item.reasons.map((reason) => (
                         <Tooltip
@@ -141,19 +141,19 @@ export function HygieneTable({
                       ))}
                     </div>
                   </Table.Cell>
-                  <Table.Cell>
+                  <Table.Cell label="Última compra">
                     <Table.CellText variant="dim">
                       {item.lastOrderDate
                         ? formatDate(item.lastOrderDate)
                         : "Nunca"}
                     </Table.CellText>
                   </Table.Cell>
-                  <Table.Cell>
+                  <Table.Cell label="Receita">
                     <Table.CellText variant="dim">
                       {item.receitaStatus ?? "Não conferido"}
                     </Table.CellText>
                   </Table.Cell>
-                  <Table.Cell>
+                  <Table.Cell card="actions">
                     <div className="flex justify-end">
                       <HygieneActions
                         companyClientId={item.companyClient.id}

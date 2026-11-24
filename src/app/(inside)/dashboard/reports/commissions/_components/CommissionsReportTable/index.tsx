@@ -64,13 +64,13 @@ export function CommissionsReportTable({
 }: Props) {
   // Para o vendedor sai a coluna Vendedor (seria o nome dele em toda linha) e
   // as duas da divisão da comissão.
-  const columns = withOffice ? 12 : 9;
+  const columns = withOffice ? 10 : 7;
   const isNarrowed = Object.values(inputValues).some(Boolean);
 
   return (
     <Table.Root sort={sort}>
       <Table.CardHead>
-        <Table.CardHead.Title className="inline-flex items-center gap-6">
+        <Table.CardHead.Title>
           Parcelas de comissão
           <HelpTooltip
             label="Sobre as parcelas de comissão"
@@ -94,31 +94,35 @@ export function CommissionsReportTable({
       <Table.Table cards>
         <Table.Header>
           <Table.Row>
+            {/* A nota e a parcela moram embaixo da data: "Nota · parcela" era
+                uma coluna inteira, e com Boleto separado a tabela do gestor
+                passava 149px da tela no 1440 — "Conferida" sumia à direita
+                (crítica de 24/11/2026). */}
             <Table.Head sortKey="receiveDate">Recebimento</Table.Head>
             <Table.Head sortKey="client">Cliente</Table.Head>
             <Table.Head sortKey="factory">Fábrica</Table.Head>
             {withOffice && <Table.Head sortKey="seller">Vendedor</Table.Head>}
-            {/* Nota e parcela numa coluna só: "Parcela" sozinha era uma coluna
-                inteira para um dígito. */}
-            <Table.Head sortKey="invoiceNumber">Nota · parcela</Table.Head>
-            <Table.Head sortKey="installmentAmount" sortFirst="desc">
+            <Table.Head
+              align="right"
+              sortKey="installmentAmount"
+              sortFirst="desc"
+            >
               Valor da parcela
             </Table.Head>
-            <Table.Head sortKey="amount" sortFirst="desc">
+            <Table.Head align="right" sortKey="amount" sortFirst="desc">
               {withOffice ? "Comissão da empresa" : "Comissão"}
             </Table.Head>
             {withOffice && (
-              <Table.Head sortKey="sellerAmount" sortFirst="desc">
+              <Table.Head align="right" sortKey="sellerAmount" sortFirst="desc">
                 Repasse ao vendedor
               </Table.Head>
             )}
             {withOffice && (
-              <Table.Head sortKey="officeAmount" sortFirst="desc">
+              <Table.Head align="right" sortKey="officeAmount" sortFirst="desc">
                 Fica no escritório
               </Table.Head>
             )}
             <Table.Head sortKey="status">Situação</Table.Head>
-            <Table.Head>Boleto</Table.Head>
             <Table.Head sortKey="isReconciled" sortFirst="desc">
               Conferida
             </Table.Head>
@@ -133,7 +137,7 @@ export function CommissionsReportTable({
               <Table.Cell colSpan={columns}>
                 <EmptyState.Root flat>
                   <EmptyState.Icon>
-                    <Coins size={32} />
+                    <Coins />
                   </EmptyState.Icon>
                   <EmptyState.Title>
                     {isNarrowed
@@ -154,13 +158,17 @@ export function CommissionsReportTable({
                 key={row.installmentId}
                 href={`/orders/${row.orderId}`}
               >
-                <Table.Cell
-                  variant="strong"
-                  className="whitespace-nowrap"
-                  label="Recebimento"
-                  emptyText="Sem data"
-                >
-                  {row.receiveDate ? formatDateDMY(row.receiveDate) : ""}
+                <Table.Cell className="whitespace-nowrap" label="Recebimento">
+                  <div className="flex flex-col">
+                    <Table.CellText variant="strong">
+                      {row.receiveDate
+                        ? formatDateDMY(row.receiveDate)
+                        : "Sem data"}
+                    </Table.CellText>
+                    <Table.CellText variant="dim">
+                      {`${row.invoiceNumber ? `NF ${row.invoiceNumber}` : "Sem NF"} · ${row.sequence}ª`}
+                    </Table.CellText>
+                  </div>
                 </Table.Cell>
                 <Table.Cell
                   variant="strong"
@@ -186,13 +194,7 @@ export function CommissionsReportTable({
                   </Table.Cell>
                 )}
                 <Table.Cell
-                  variant="dim"
-                  className="whitespace-nowrap"
-                  label="Nota · parcela"
-                >
-                  {`${row.invoiceNumber ? `NF ${row.invoiceNumber}` : "Sem NF"} · ${row.sequence}ª`}
-                </Table.Cell>
-                <Table.Cell
+                  align="right"
                   variant="dim"
                   className="whitespace-nowrap"
                   label="Valor da parcela"
@@ -200,6 +202,7 @@ export function CommissionsReportTable({
                   {formatMoney(row.installmentAmount)}
                 </Table.Cell>
                 <Table.Cell
+                  align="right"
                   variant="strong"
                   className="whitespace-nowrap"
                   card="value"
@@ -208,6 +211,7 @@ export function CommissionsReportTable({
                 </Table.Cell>
                 {withOffice && (
                   <Table.Cell
+                    align="right"
                     variant="dim"
                     className="whitespace-nowrap"
                     label="Repasse ao vendedor"
@@ -217,6 +221,7 @@ export function CommissionsReportTable({
                 )}
                 {withOffice && (
                   <Table.Cell
+                    align="right"
                     variant="strong"
                     className="whitespace-nowrap"
                     label="Fica no escritório"
@@ -224,30 +229,30 @@ export function CommissionsReportTable({
                     {formatMoney(Number(row.amount) - Number(row.sellerAmount))}
                   </Table.Cell>
                 )}
+                {/* Situação da comissão e, só quando trava, a do BOLETO do
+                    cliente — vencido ainda pode virar pagamento, calote já
+                    não. Boleto em dia não ganha selo: "Sem atraso" em toda
+                    linha era uma coluna inteira dizendo que está tudo bem. */}
                 <Table.Cell card="status">
-                  <Badge.Root
-                    color={COMMISSION_STATUS_TONE[row.status]}
-                    appearance="tinted"
-                  >
-                    <Badge.Text>
-                      {COMMISSION_STATUS_LABEL[row.status]}
-                    </Badge.Text>
-                  </Badge.Root>
-                </Table.Cell>
-                {/* Situação do BOLETO do cliente: é o que trava a comissão —
-                    vencido ainda pode virar pagamento, calote já não. */}
-                <Table.Cell label="Boleto">
-                  {row.defaultedAt ? (
-                    <Badge.Root color="red" appearance="tinted">
-                      <Badge.Text>Não pagou</Badge.Text>
+                  <div className="flex flex-wrap items-center gap-4">
+                    <Badge.Root
+                      color={COMMISSION_STATUS_TONE[row.status]}
+                      appearance="tinted"
+                    >
+                      <Badge.Text>
+                        {COMMISSION_STATUS_LABEL[row.status]}
+                      </Badge.Text>
                     </Badge.Root>
-                  ) : row.isOverdue ? (
-                    <Badge.Root color="warning" appearance="tinted">
-                      <Badge.Text>Vencido</Badge.Text>
-                    </Badge.Root>
-                  ) : (
-                    <Table.CellText variant="dim">Sem atraso</Table.CellText>
-                  )}
+                    {row.defaultedAt ? (
+                      <Badge.Root color="red" appearance="tinted">
+                        <Badge.Text>Boleto não pago</Badge.Text>
+                      </Badge.Root>
+                    ) : row.isOverdue ? (
+                      <Badge.Root color="warning" appearance="tinted">
+                        <Badge.Text>Boleto vencido</Badge.Text>
+                      </Badge.Root>
+                    ) : null}
+                  </div>
                 </Table.Cell>
                 <Table.Cell variant="dim" label="Conferida">
                   {row.isReconciled ? "Sim" : "Não"}

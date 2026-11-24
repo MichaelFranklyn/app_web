@@ -1,6 +1,7 @@
 import { cn } from "@/lib/utils";
 import { LucideIcon } from "lucide-react";
 import React from "react";
+import { ICON_SIZE } from "@/components/Icon";
 
 interface AlertIconProps extends Omit<
   React.HTMLAttributes<HTMLDivElement>,
@@ -24,7 +25,7 @@ export const AlertIcon = React.forwardRef<HTMLDivElement, AlertIconProps>(
       )}
       {...props}
     >
-      <Icon size={16} aria-hidden />
+      <Icon size={ICON_SIZE.md} aria-hidden />
     </div>
   )
 );

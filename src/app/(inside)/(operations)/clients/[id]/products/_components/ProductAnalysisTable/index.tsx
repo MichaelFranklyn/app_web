@@ -15,6 +15,7 @@ import {
   PURCHASE_STATUS_LABEL,
   unitsLabel,
 } from "@/utils/productPurchase";
+import { plural } from "@/utils/format/plural";
 import { PackageSearch } from "lucide-react";
 
 import { PRODUCT_COLUMN_HELP } from "../../help";
@@ -55,7 +56,7 @@ export function ProductAnalysisTable({
       <Table.CardHead>
         {/* Um título só: "O que ele compra" acima do card e "Produtos deste
             cliente" dentro dele diziam a mesma coisa (crítica de 23/11/2026). */}
-        <Table.CardHead.Title className="inline-flex items-center gap-6">
+        <Table.CardHead.Title>
           O que ele compra
           <HelpTooltip
             label="Como esta análise é feita?"
@@ -105,7 +106,11 @@ export function ProductAnalysisTable({
             <Table.Head sortKey="expected" title={PRODUCT_COLUMN_HELP.expected}>
               Próxima esperada
             </Table.Head>
-            <Table.Head sortKey="amount" title={PRODUCT_COLUMN_HELP.amount}>
+            <Table.Head
+              align="right"
+              sortKey="amount"
+              title={PRODUCT_COLUMN_HELP.amount}
+            >
               Quantidade
             </Table.Head>
             <Table.Head sortKey="status" title={PRODUCT_COLUMN_HELP.status}>
@@ -119,7 +124,7 @@ export function ProductAnalysisTable({
               <Table.Cell colSpan={8}>
                 <EmptyState.Root flat>
                   <EmptyState.Icon>
-                    <PackageSearch size={32} />
+                    <PackageSearch />
                   </EmptyState.Icon>
                   <EmptyState.Title>
                     {table.totalUnfiltered > 0
@@ -198,7 +203,7 @@ export function ProductAnalysisTable({
                     )}
                   </div>
                 </Table.Cell>
-                <Table.Cell label="Quantidade">
+                <Table.Cell align="right" label="Quantidade">
                   <div className="flex flex-col">
                     <Table.CellText variant="dim">
                       {`${unitsLabel(row.lastUnits)} na última`}
@@ -227,7 +232,7 @@ export function ProductAnalysisTable({
       <Table.Footer>
         <Table.Footer.Info>
           {rows.length > 0
-            ? `${table.totalItems} de ${rows.length} produto(s)`
+            ? `${table.totalItems} de ${plural(rows.length, "produto", "produtos")}`
             : "Nenhum produto"}
         </Table.Footer.Info>
       </Table.Footer>

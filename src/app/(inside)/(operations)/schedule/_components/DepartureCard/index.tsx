@@ -7,6 +7,7 @@ import { useState } from "react";
 
 import { DepartureModal } from "./DepartureModal";
 import { DepartureCardProps } from "./interface";
+import { ICON_SIZE } from "@/components/Icon";
 
 export function DepartureCard({
   dayId,
@@ -29,7 +30,7 @@ export function DepartureCard({
   return (
     <div className="flex items-center gap-10">
       <Icon
-        size={16}
+        size={ICON_SIZE.md}
         className="shrink-0 text-(--color-text-muted)"
         aria-hidden
       />

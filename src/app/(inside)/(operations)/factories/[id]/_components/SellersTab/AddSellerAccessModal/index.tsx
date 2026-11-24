@@ -13,6 +13,7 @@ import { useToast } from "@/components/Toast";
 import { useAsyncAction } from "@/hooks/useAsyncAction";
 import { useInvalidateQueriesClient } from "@/hooks/useInvalidateQueries";
 import { useCompleteList } from "@/hooks/useCompleteList";
+import { plural } from "@/utils/format/plural";
 import { useMutation } from "@apollo/client/react";
 import { Plus } from "lucide-react";
 import { useEffect, useMemo, useRef, useState } from "react";
@@ -195,13 +196,13 @@ export function AddSellerAccessModal({
           toast({
             variant: "success",
             title: "Sucesso",
-            description: `${successCount} vendedor(es) vinculado(s) com sucesso`,
+            description: `${plural(successCount, "vendedor vinculado", "vendedores vinculados")} com sucesso`,
           });
           if (failCount > 0) {
             toast({
               variant: "error",
               title: "Atenção",
-              description: `${failCount} vínculo(s) não puderam ser criados`,
+              description: `${plural(failCount, "vínculo não pôde ser criado", "vínculos não puderam ser criados")}`,
             });
           }
           await invalidateClient(["sellerFactoryAccessList"]);

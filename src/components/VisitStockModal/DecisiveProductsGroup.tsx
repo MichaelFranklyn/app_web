@@ -1,5 +1,6 @@
 "use client";
 
+import { Button } from "@/components/Button";
 import { Title } from "@/components/Title";
 import { useState } from "react";
 
@@ -59,7 +60,7 @@ export function DecisiveProductsGroup({ products, daysMap, onChange }: Props) {
             ? "Pergunte por este"
             : `Pergunte por estes ${decisive.length}`}
         </Title>
-        <Title variant="micro" color="muted" className="mt-[2px]">
+        <Title variant="micro" color="muted" className="mt-2">
           São os que decidem se este cliente precisa de visita. O resto o
           sistema já consegue estimar sozinho.
         </Title>
@@ -68,15 +69,20 @@ export function DecisiveProductsGroup({ products, daysMap, onChange }: Props) {
 
       {rest.length > 0 && (
         <div>
-          <button
-            type="button"
+          <Button.Root
+            appearance="ghost"
+            color="neutral"
+            size="sm"
+            noPadding
+            aria-expanded={showAll}
             onClick={() => setShowAll((value) => !value)}
-            className="text-body-sm cursor-pointer text-(--color-text-muted) underline underline-offset-2 hover:text-(--color-text)"
           >
-            {showAll
-              ? "Esconder os demais"
-              : `Ver os outros ${rest.length} produtos`}
-          </button>
+            <Button.Title>
+              {showAll
+                ? "Esconder os demais"
+                : `Ver os outros ${rest.length} produtos`}
+            </Button.Title>
+          </Button.Root>
           {showAll && <div className="mt-8">{rows(rest)}</div>}
         </div>
       )}

@@ -1,3 +1,4 @@
+import { BulletList } from "@/components/BulletList";
 import { Title } from "@/components/Title";
 import { cn } from "@/lib/utils";
 import { formatMoney } from "@/utils/format/masks";
@@ -29,7 +30,7 @@ export function PlanCard({
   return (
     <div
       className={cn(
-        "flex flex-col gap-16 rounded-(--radius-lg) border bg-(--bg2) p-24",
+        "flex flex-col gap-16 rounded-(--r-lg) border bg-(--bg2) p-24",
         isHighlighted
           ? "border-(--amber-bd) shadow-(--shadow-md)"
           : "border-(--border)"
@@ -39,7 +40,7 @@ export function PlanCard({
         <Title variant="heading-md">{label}</Title>
 
         {isHighlighted && (
-          <span className="rounded-(--radius-xs) bg-(--amber-bg2) px-8 py-4">
+          <span className="rounded-(--r-xs) bg-(--amber-bg2) px-8 py-4">
             <Title variant="micro" color="amber" weight="semibold">
               Mais escolhido
             </Title>
@@ -83,20 +84,15 @@ export function PlanCard({
         </Title>
       </div>
 
-      <ul className="flex flex-1 flex-col gap-8">
+      <BulletList.Root marker="icon" className="flex-1">
         {features.map((feature) => (
-          <li key={feature} className="flex items-start gap-8">
-            <Check
-              size={16}
-              className="mt-2 shrink-0 text-(--color-status-success)"
-            />
-
+          <BulletList.Item key={feature} icon={Check}>
             <Title variant="body-sm" color="secondary">
               {feature}
             </Title>
-          </li>
+          </BulletList.Item>
         ))}
-      </ul>
+      </BulletList.Root>
 
       {cta}
     </div>

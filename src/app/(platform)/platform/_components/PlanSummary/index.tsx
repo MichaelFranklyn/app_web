@@ -3,6 +3,7 @@ import { FEATURE_LABEL, FEATURE_ORDER } from "@/services/plan";
 import { Check, Minus } from "lucide-react";
 
 import { PlanCatalogEntry } from "../../interface";
+import { ICON_SIZE } from "@/components/Icon";
 
 /** Como o teto aparece: número, ou a palavra que diz que não há teto. */
 export const limitText = (limit: number | null): string =>
@@ -42,13 +43,13 @@ export function PlanSummary({ plan, showMissing = false }: Props) {
               <div key={feature} className="flex items-center gap-6">
                 {included ? (
                   <Check
-                    size={14}
+                    size={ICON_SIZE.sm}
                     className="text-(--color-status-success)"
                     aria-hidden
                   />
                 ) : (
                   <Minus
-                    size={14}
+                    size={ICON_SIZE.sm}
                     className="text-(--color-text-muted)"
                     aria-hidden
                   />

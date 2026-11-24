@@ -1,4 +1,5 @@
 import { Alert } from "@/components/Alert";
+import { plural } from "@/utils/format/plural";
 import { CheckCircle2, Info } from "lucide-react";
 
 import { DefaultedPackView } from "./DefaultedPackView";
@@ -28,9 +29,10 @@ export function StepResult({
             <Alert.Title>Importação parcial</Alert.Title>
             <Alert.Description>
               A tabela &quot;{result.listName}&quot; foi criada, mas{" "}
-              {result.failed} linha(s) falharam — veja os motivos abaixo. Você
-              pode corrigir a planilha e importar de novo: produtos já criados
-              são reaproveitados e os preços são atualizados.
+              {plural(result.failed, "linha falhou", "linhas falharam")} — veja
+              os motivos abaixo. Você pode corrigir a planilha e importar de
+              novo: produtos já criados são reaproveitados e os preços são
+              atualizados.
             </Alert.Description>
           </Alert.Content>
         </Alert.Root>
@@ -39,14 +41,19 @@ export function StepResult({
           <Alert.Icon icon={Info} />
           <Alert.Content>
             <Alert.Title>
-              Tabela importada — mas {skipped.length + unreadable.length}{" "}
-              linha(s) ficaram de fora
+              Tabela importada — mas{" "}
+              {plural(
+                skipped.length + unreadable.length,
+                "linha ficou",
+                "linhas ficaram"
+              )}{" "}
+              de fora
             </Alert.Title>
             <Alert.Description>
               A tabela &quot;{result.listName}&quot; está ativa com{" "}
-              {result.totalRows} linha(s). As linhas abaixo NÃO entraram —
-              confira se há produtos que precisam ser cadastrados à mão ou
-              ajustados na planilha.
+              {plural(result.totalRows, "linha", "linhas")}. As linhas abaixo
+              NÃO entraram — confira se há produtos que precisam ser cadastrados
+              à mão ou ajustados na planilha.
             </Alert.Description>
           </Alert.Content>
         </Alert.Root>
@@ -56,8 +63,9 @@ export function StepResult({
           <Alert.Content>
             <Alert.Title>Tabela importada com sucesso</Alert.Title>
             <Alert.Description>
-              A tabela &quot;{result.listName}&quot; está ativa com as{" "}
-              {result.totalRows} linha(s) da planilha — nenhuma ficou de fora.
+              A tabela &quot;{result.listName}&quot; está ativa com{" "}
+              {plural(result.totalRows, "linha", "linhas")} da planilha —
+              nenhuma ficou de fora.
             </Alert.Description>
           </Alert.Content>
         </Alert.Root>

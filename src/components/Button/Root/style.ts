@@ -23,7 +23,7 @@ export const iconPixelSizes: Record<ButtonSize, number> = {
 // ela espremia o rótulo e o botão parecia preso numa largura máxima (usuário,
 // 18/11/2026). Hoje as duas são a Figtree; o `font-body` fica pela semântica.
 const baseClasses =
-  "inline-flex cursor-pointer items-center justify-center gap-[7px] font-body font-(--weight-bold) transition-[background-color,border-color,color,filter,box-shadow,scale] duration-150 ease-(--ease-out-soft) active:scale-[0.97] motion-reduce:active:scale-100 whitespace-nowrap border focus-ring disabled:opacity-35 disabled:cursor-default disabled:pointer-events-none";
+  "inline-flex cursor-pointer items-center justify-center gap-7 font-body font-(--weight-bold) transition-[background-color,border-color,color,filter,box-shadow,scale] duration-150 ease-(--ease-out-soft) active:scale-[0.97] motion-reduce:active:scale-100 whitespace-nowrap border focus-ring disabled:opacity-35 disabled:cursor-default disabled:pointer-events-none";
 
 const sizeTextClasses: Record<ButtonSize, string> = {
   lg: "text-body-sm rounded-(--r-lg)",
@@ -33,10 +33,10 @@ const sizeTextClasses: Record<ButtonSize, string> = {
 };
 
 const sizePaddingClasses: Record<ButtonSize, string> = {
-  lg: "px-[20px] py-[11px]",
-  md: "px-[16px] py-[8px]",
-  sm: "px-[12px] py-[5px]",
-  xs: "px-[8px]  py-[3px]",
+  lg: "px-20 py-[11px]",
+  md: "px-16 py-8",
+  sm: "px-12 py-5",
+  xs: "px-8  py-3",
 };
 
 // Piso de altura do botão de texto, espelhando inputSizeMinHeight. Sem ele a

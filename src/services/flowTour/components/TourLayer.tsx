@@ -301,14 +301,14 @@ export const TourLayer = ({
     <>
       {/* Overlay captura cliques fora (fecha) e desenha o escurecimento. */}
       <div
-        className="fixed inset-0 z-[9998] transition-opacity duration-200 ease-out"
+        className="fixed inset-0 z-(--z-tour) transition-opacity duration-200 ease-out"
         style={{ opacity: visible ? 1 : 0 }}
         onClick={onClose}
       >
         {rect ? (
           // Sem transição de posição: o spotlight acompanha o alvo instantaneamente.
           <div
-            className="pointer-events-none absolute rounded-sm"
+            className="pointer-events-none absolute rounded-(--r-sm)"
             style={{
               top: rect.top - SPOTLIGHT_PADDING,
               left: rect.left - SPOTLIGHT_PADDING,
@@ -329,7 +329,7 @@ export const TourLayer = ({
       {/* Caixa do tour (design system), posicionada por nós. */}
       <div
         ref={cardRef}
-        className="fixed z-[9999] transition-opacity duration-200 ease-out"
+        className="fixed z-(--z-tour-card) transition-opacity duration-200 ease-out"
         style={{
           top: pos?.top ?? -9999,
           left: pos?.left ?? -9999,

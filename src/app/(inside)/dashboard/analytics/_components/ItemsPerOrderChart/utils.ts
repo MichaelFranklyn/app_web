@@ -1,5 +1,5 @@
 import { SERIES_ORANGE } from "@/components/Chart/chartTheme";
-import { formatNumber } from "@/utils/format/masks";
+import { formatDecimal, formatNumber } from "@/utils/format/masks";
 import type { EChartsCoreOption } from "echarts/core";
 
 import { buildHorizontalBarOption, mutedLine } from "../../../chartBuilders";
@@ -7,8 +7,7 @@ import { formatCount } from "../../utils";
 import { ItemsPerOrderPoint } from "./interface";
 
 /** "3,4" — média com uma casa, que é a precisão que a leitura suporta. */
-export const formatItems = (value: number): string =>
-  value.toFixed(1).replace(".", ",");
+export const formatItems = (value: number): string => formatDecimal(value);
 
 /**
  * Quantos itens diferentes tem o pedido médio de cada fábrica.

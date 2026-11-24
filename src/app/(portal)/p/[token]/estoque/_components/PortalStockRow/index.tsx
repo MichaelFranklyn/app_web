@@ -46,7 +46,7 @@ export function PortalStockRow({
   return (
     <Table.Row hidden={hidden}>
       <Table.Cell card="title" wrap>
-        <div className="flex min-w-0 flex-col gap-[2px]">
+        <div className="flex min-w-0 flex-col gap-2">
           <Title variant="body-md" weight="semibold" className="break-words">
             {item.productName}
           </Title>
@@ -61,9 +61,9 @@ export function PortalStockRow({
         {item.lastPurchaseDate ? formatDate(item.lastPurchaseDate) : "—"}
       </Table.Cell>
       <Table.Cell card="status">
-        <Badge color={urgency.tone} size="sm">
+        <Badge.Root color={urgency.tone} size="sm">
           <Badge.Text>{urgency.label}</Badge.Text>
-        </Badge>
+        </Badge.Root>
       </Table.Cell>
       {/* Detalhe, não `actions`: no cartão a célula de ações divide a linha com
           o badge, e a pergunta quebrava em quatro linhas com o campo vazando.

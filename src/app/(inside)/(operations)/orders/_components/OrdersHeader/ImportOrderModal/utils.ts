@@ -2,6 +2,7 @@ import { maskCNPJ } from "@/utils/format/masks";
 import type { OrderSheetRead } from "@/utils/orderSheet/read";
 
 import { clientOptionLabel } from "@/utils/client";
+import { plural } from "@/utils/format/plural";
 import type { CreateOrderInput } from "../../../_shared/orderCreate";
 
 /**
@@ -87,7 +88,7 @@ export const sheetSummary = (
         ? `condição "${sheet.paymentTermName}" não existe mais nesta fábrica`
         : null),
     sheet.freightType ? `frete ${sheet.freightType}` : null,
-    `${sheet.items.length} item(ns)`,
+    `${plural(sheet.items.length, "item", "itens")}`,
   ]
     .filter(Boolean)
     .join("  ·  ");

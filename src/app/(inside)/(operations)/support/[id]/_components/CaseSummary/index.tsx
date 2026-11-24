@@ -2,6 +2,7 @@
 
 import { Badge } from "@/components/Badges";
 import { Card } from "@/components/Card";
+import { Grid } from "@/components/Grid";
 import { Title } from "@/components/Title";
 import { TextLink } from "@/components/TextLink";
 import { clientDisplayName } from "@/utils/client";
@@ -21,32 +22,6 @@ interface Props {
 }
 
 /**
- * Um dado da ficha: uma linha por conteúdo — rótulo à esquerda, valor à
- * direita (14/11/2026). Em grade de colunas o celular empilhava rótulo sobre
- * valor e a ficha virava um mosaico difícil de varrer.
- */
-function Field({
-  label,
-  children,
-}: {
-  label: string;
-  children: React.ReactNode;
-}) {
-  return (
-    // `flex-nowrap` + valor `min-w-0 flex-1`: um nome comprido de cliente
-    // ("Comercial de Materiais … Ltda") não cabia ao lado do rótulo e o
-    // `flex-wrap` do stat jogava o valor inteiro para baixo, à esquerda. Agora
-    // ele quebra DENTRO da coluna da direita, alinhado com os outros valores.
-    <Card.Item variant="stat" className="flex-nowrap">
-      <Card.Item.Label className="shrink-0">{label}</Card.Item.Label>
-      <Card.Item.Actions className="min-w-0 flex-1 justify-end text-right break-words">
-        {children}
-      </Card.Item.Actions>
-    </Card.Item>
-  );
-}
-
-/**
  * A ficha do caso: quem, o quê, de qual fábrica e desde quando.
  *
  * Fica acima da linha do tempo porque é o que se lê ANTES de decidir o que
@@ -57,121 +32,116 @@ export function CaseSummary({ supportCase }: Props) {
 
   return (
     <Card.Root>
-      {/* Sem o Body o conteúdo encostava na borda do cartão (14/11/2026). */}
-      <Card.Body padding="compact">
-        {/* No desktop, duas colunas: numa linha só o rótulo ficava a 1300px
-            do valor e o olho atravessava a tela (crítica de 23/11/2026). Abaixo
-            do desktop segue uma linha por dado. Dado vazio não ganha linha —
-            "Fábrica —" ocupava espaço sem dizer nada; corrigir é no "Corrigir
-            dados". */}
-        <div className="desktop:grid desktop:grid-cols-2 desktop:gap-x-32 flex flex-col">
-          <Field label="Cliente">
-            {/* Leva à ficha do cliente: quem trata a reclamação quase sempre
+      <Card.Header>
+        <Card.Header.Title>Resumo</Card.Header.Title>
+      </Card.Header>
+      <Card.Body>
+        {/* Padrão das fichas (24/11/2026): em duas colunas o rótulo vai EM
+            CIMA do valor (Card.Field), como em /settings/company. Dado vazio
+            não ganha campo — corrigir é no "Corrigir dados". */}
+        <Grid.Root cols={{ base: 1, desktop: 2 }} gap={16}>
+          {/* Leva à ficha do cliente: quem trata a reclamação quase sempre
               precisa do histórico de pedidos dele na mesma conversa. A rota é
               pelo id da CARTEIRA — com o `clientId` abria "não encontrado". */}
-            {supportCase.companyClientId ? (
+          {supportCase.companyClientId ? (
+            <Card.Field label="Cliente">
               <TextLink
                 href={`/clients/${supportCase.companyClientId}/overview`}
               >
-                <Title variant="body-sm" weight="medium" color="inherit">
+                <Title variant="body" weight="medium" color="inherit">
                   {client}
                 </Title>
               </TextLink>
-            ) : (
-              <Title variant="body-sm" weight="medium">
-                {client}
-              </Title>
-            )}
-          </Field>
+            </Card.Field>
+          ) : (
+            <Card.Field label="Cliente" value={client} />
+          )}
           {supportCase.seller?.name && (
-            <Field label="Vendedor">
-              <Title variant="body-sm">{supportCase.seller.name}</Title>
-            </Field>
+            <Card.Field label="Vendedor" value={supportCase.seller.name} />
           )}
           {supportCase.factory && (
-            <Field label="Fábrica">
-              <Title variant="body-sm">
-                {factoryName(supportCase.factory)}
-              </Title>
-            </Field>
+            <Card.Field
+              label="Fábrica"
+              value={factoryName(supportCase.factory)}
+            />
           )}
-          <Field label="Tipo de problema">
-            <Title variant="body-sm">
-              {SUPPORT_CATEGORY_LABEL[supportCase.category]}
-            </Title>
-          </Field>
-          <Field label="Urgência">
-            {/* "Normal" é texto: a pílula azul fica para a exceção. */}
-            {supportCase.priority === "NORMAL" ? (
-              <Title variant="body-sm">
-                {SUPPORT_PRIORITY_LABEL[supportCase.priority]}
-              </Title>
-            ) : (
-              <Badge.Root
-                color={SUPPORT_PRIORITY_COLOR[supportCase.priority]}
-                appearance="tinted"
-                size="sm"
-              >
-                <Badge.Text>
-                  {SUPPORT_PRIORITY_LABEL[supportCase.priority]}
-                </Badge.Text>
-              </Badge.Root>
-            )}
-          </Field>
-          <Field label="Cliente avisou em">
-            <Title variant="body-sm">
-              {formatDate(supportCase.reportedAt)}
-            </Title>
-          </Field>
-          <Field label="Tempo">
-            <Title variant="body-sm">
-              {supportAgeLabel(supportCase.ageDays, supportCase.isOpen)}
-            </Title>
-          </Field>
+          <Card.Field
+            label="Tipo de problema"
+            value={SUPPORT_CATEGORY_LABEL[supportCase.category]}
+          />
+          {/* "Normal" é texto: a pílula fica para a exceção. */}
+          {supportCase.priority === "NORMAL" ? (
+            <Card.Field
+              label="Urgência"
+              value={SUPPORT_PRIORITY_LABEL[supportCase.priority]}
+            />
+          ) : (
+            <Card.Field label="Urgência">
+              <div className="flex">
+                <Badge.Root
+                  color={SUPPORT_PRIORITY_COLOR[supportCase.priority]}
+                  appearance="tinted"
+                  size="sm"
+                >
+                  <Badge.Text>
+                    {SUPPORT_PRIORITY_LABEL[supportCase.priority]}
+                  </Badge.Text>
+                </Badge.Root>
+              </div>
+            </Card.Field>
+          )}
+          <Card.Field
+            label="Cliente avisou em"
+            value={formatDate(supportCase.reportedAt)}
+          />
+          <Card.Field
+            label="Tempo"
+            value={supportAgeLabel(supportCase.ageDays, supportCase.isOpen)}
+          />
           {!!supportCase.amount && (
-            <Field label="Valor envolvido">
-              <Title variant="body-sm">{formatMoney(supportCase.amount)}</Title>
-            </Field>
+            <Card.Field
+              label="Valor envolvido"
+              value={formatMoney(supportCase.amount)}
+            />
           )}
           {supportCase.order && (
-            <Field label="Pedido">
+            <Card.Field label="Pedido">
               <TextLink href={`/orders/${supportCase.order.id}`}>
-                <Title variant="body-sm" color="inherit">
+                <Title variant="body" color="inherit">
                   {supportCase.order.invoiceNumber
                     ? `NF ${supportCase.order.invoiceNumber}`
                     : formatDate(supportCase.order.orderDate)}
                 </Title>
               </TextLink>
-            </Field>
+            </Card.Field>
           )}
           {supportCase.openedBy?.name && (
-            <Field label="Registrado por">
-              <Title variant="body-sm">{supportCase.openedBy.name}</Title>
-            </Field>
+            <Card.Field
+              label="Registrado por"
+              value={supportCase.openedBy.name}
+            />
           )}
-        </div>
-
-        {supportCase.description && (
-          <div className="mt-16 flex flex-col gap-4">
-            <Title variant="label" color="muted">
-              O que o cliente contou
-            </Title>
-            <Title variant="body-sm" className="whitespace-pre-line">
-              {supportCase.description}
-            </Title>
-          </div>
-        )}
-
-        {supportCase.resolution && (
-          <div className="mt-16 flex flex-col gap-4">
-            <Title variant="label" color="muted">
-              Como terminou
-            </Title>
-            <Title variant="body-sm" className="whitespace-pre-line">
-              {supportCase.resolution}
-            </Title>
-          </div>
-        )}
+          {/* Texto livre ocupa a largura toda: em meia coluna um relato longo
+              virava uma tripa estreita. */}
+          {supportCase.description && (
+            <Grid.Item span={{ base: 1, desktop: 2 }}>
+              <Card.Field label="O que o cliente contou">
+                <Title variant="body" className="whitespace-pre-line">
+                  {supportCase.description}
+                </Title>
+              </Card.Field>
+            </Grid.Item>
+          )}
+          {supportCase.resolution && (
+            <Grid.Item span={{ base: 1, desktop: 2 }}>
+              <Card.Field label="Como terminou">
+                <Title variant="body" className="whitespace-pre-line">
+                  {supportCase.resolution}
+                </Title>
+              </Card.Field>
+            </Grid.Item>
+          )}
+        </Grid.Root>
       </Card.Body>
     </Card.Root>
   );

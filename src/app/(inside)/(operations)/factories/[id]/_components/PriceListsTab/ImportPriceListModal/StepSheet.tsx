@@ -51,7 +51,7 @@ export function StepSheet({
       />
       {extracting && (
         <Card.Root inset>
-          <Card.Body padding="sm" className="flex flex-row items-center gap-8">
+          <Card.Body padding="sm" className="flex-row items-center">
             <Loading.Spinner size="sm" colorClass="amber" />
             <Title variant="body" color="muted">
               Lendo o arquivo e procurando as colunas… Em tabelas grandes (PDF)

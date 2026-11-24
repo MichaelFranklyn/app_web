@@ -2,7 +2,7 @@
 
 import { Progress } from "@/components/Progress";
 import { ProgressColor } from "@/components/Progress/Root/interface";
-import { ScoreDimensions } from "@/utils/score";
+import { ScoreDimensions, formatScore } from "@/utils/score";
 
 // Teto de cada dimensão na escala bruta (espelha _DIMENSION_MAX no backend).
 // Cada barra mostra a dimensão normalizada por regra de 3 para 0–100 (bruto /
@@ -52,13 +52,13 @@ export function ScoreBars({ score }: { score: ScoreDimensions }) {
           <Progress.Header>
             <Progress.Label>{bar.label}</Progress.Label>
             <Progress.Value color={bar.color}>
-              {bar.pct.toFixed(0)}
+              {formatScore(bar.pct)}
             </Progress.Value>
           </Progress.Header>
           <Progress.Bar
             value={bar.pct}
             color={bar.color}
-            label={`${bar.label}: ${bar.pct.toFixed(0)}`}
+            label={`${bar.label}: ${formatScore(bar.pct)}`}
           />
         </Progress.Root>
       ))}

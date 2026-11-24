@@ -3,6 +3,7 @@
 import { EmptyState } from "@/components/EmptyState";
 import { Pagination } from "@/components/Pagination";
 import { Table } from "@/components/Table";
+import { plural } from "@/utils/format/plural";
 import { SearchX } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { PortalCatalogItem } from "../../../interface";
@@ -68,7 +69,7 @@ export function CatalogSection({
       empty={
         <EmptyState.Root flat>
           <EmptyState.Icon>
-            <SearchX size={32} />
+            <SearchX />
           </EmptyState.Icon>
           <EmptyState.Title>
             {search ? "Nenhum produto encontrado" : "Nenhum produto disponível"}
@@ -84,8 +85,8 @@ export function CatalogSection({
         total > 0 ? (
           <>
             <Table.Footer.Info>
-              {total === 1 ? "1 produto" : `${total} produtos`} · página {page}{" "}
-              de {Math.max(totalPages, 1)}
+              {plural(total, "produto", "produtos")} · página {page} de{" "}
+              {Math.max(totalPages, 1)}
             </Table.Footer.Info>
             <Pagination.Smart
               currentPage={page}

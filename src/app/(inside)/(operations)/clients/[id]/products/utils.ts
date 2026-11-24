@@ -2,6 +2,7 @@ import {
   ClientProductAnalysisRow,
   ProductAnalysisSummaryData,
 } from "./interface";
+import { plural } from "@/utils/format/plural";
 
 /**
  * "Compra sempre" é uma fração, não um rótulo: 8 dos 10 pedidos que ele fez
@@ -55,5 +56,5 @@ export const roundedUnits = (value: string | number): number | string => {
 /** "atrasada 12 dias" — a data esperada que já passou diz quanto passou. */
 export const overdueLabel = (overdueDays: number | null): string | null =>
   overdueDays && overdueDays > 0
-    ? `atrasada ${overdueDays} dia${overdueDays === 1 ? "" : "s"}`
+    ? `atrasada ${plural(overdueDays, "dia", "dias")}`
     : null;

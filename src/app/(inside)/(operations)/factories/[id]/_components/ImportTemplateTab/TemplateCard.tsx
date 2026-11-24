@@ -14,6 +14,7 @@ import { cn } from "@/lib/utils";
 
 import { RemoveTemplateModal } from "./RemoveTemplateModal";
 import { ImportTemplateNode } from "./interface";
+import { ICON_SIZE } from "@/components/Icon";
 
 /** Origem da API (sem o /graphql) para montar o link do arquivo-modelo. */
 const apiOrigin = (): string => {
@@ -67,7 +68,7 @@ export function TemplateCard({
   return (
     <Table.Root>
       <Table.CardHead>
-        <Table.CardHead.Title className="inline-flex items-center gap-6">
+        <Table.CardHead.Title>
           {title}
           <HelpTooltip
             label={`O que é o ${title.toLowerCase()}?`}
@@ -81,8 +82,8 @@ export function TemplateCard({
 
       {loading ? (
         <div className={cn(bodyPadding, "flex flex-col gap-8")}>
-          <Loading.Skeleton className="h-[16px] w-1/3" />
-          <Loading.Skeleton className="h-[12px] w-1/4" />
+          <Loading.Skeleton text="heading-sm" className="w-1/3" />
+          <Loading.Skeleton text="body-sm" className="w-1/4" />
         </div>
       ) : !template ? (
         <div className={cn(bodyPadding, "flex flex-col gap-4")}>
@@ -92,7 +93,7 @@ export function TemplateCard({
             className="inline-flex items-center gap-6"
           >
             <FileText
-              size={16}
+              size={ICON_SIZE.md}
               className="shrink-0 text-(--color-text-disabled)"
             />
             Nenhum modelo configurado
@@ -113,7 +114,7 @@ export function TemplateCard({
               className="inline-flex items-center gap-6"
             >
               <FileIcon
-                size={16}
+                size={ICON_SIZE.md}
                 className="shrink-0 text-(--color-action-text)"
               />
               {formatLabel}

@@ -1,4 +1,5 @@
 import { formatDate } from "@/utils/format/date";
+import { formatScore } from "@/utils/score";
 import { maskCNPJ } from "@/utils/format/masks";
 import { ReportColumn } from "@/utils/pdf/table";
 import { Client } from "../interface";
@@ -14,7 +15,7 @@ const sellerNames = (client: Client): string =>
 
 const score = (client: Client): string => {
   const total = client.companyClient?.visitScoreTotal;
-  return total ? Number(total).toFixed(0) : "—";
+  return total ? formatScore(total) : "—";
 };
 
 /**

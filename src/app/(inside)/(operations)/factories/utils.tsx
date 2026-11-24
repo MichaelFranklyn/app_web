@@ -1,4 +1,5 @@
 import { parseLocalDate } from "@/utils/format/date";
+import { formatPercentPoints } from "@/utils/format/percent";
 
 export const ORDER_STATUS_COLOR: Record<
   string,
@@ -41,4 +42,4 @@ export const getContractStatus = (contractEnd: string | null) => {
 };
 
 export const formatCommissionRate = (rate: number): string =>
-  `${rate.toFixed(1).replace(".", ",")}%`;
+  formatPercentPoints(rate, 1);

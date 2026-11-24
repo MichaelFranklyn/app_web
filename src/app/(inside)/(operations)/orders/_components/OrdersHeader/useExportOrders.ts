@@ -9,6 +9,7 @@ import { useCompanyBranding } from "@/hooks/useCompanyBranding";
 import { downloadSheet } from "@/utils/import/writer";
 import type { QueryFilter } from "@/hooks/useTableData";
 import { ReportOrder } from "@/utils/pdf/context";
+import { plural } from "@/utils/format/plural";
 
 import { ORDERS_QUERY } from "../../gql";
 import { Order, QueryData } from "../../interface";
@@ -113,7 +114,7 @@ export function useExportOrders({
         toast({
           variant: "warning",
           title: "Arquivo incompleto",
-          description: `O arquivo saiu com ${orders.length} pedido(s) — o recorte é grande demais para uma exportação só. Filtre um período menor para levar o resto.`,
+          description: `O arquivo saiu com ${plural(orders.length, "pedido", "pedidos")} — o recorte é grande demais para uma exportação só. Filtre um período menor para levar o resto.`,
         });
       }
     } catch {

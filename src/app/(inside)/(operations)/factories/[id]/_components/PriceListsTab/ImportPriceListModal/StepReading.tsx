@@ -7,6 +7,7 @@ import { SelectOption } from "@/components/Input";
 import { Stepper } from "@/components/Stepper";
 import { Title } from "@/components/Title";
 import { SheetMatrix, WorkbookData } from "@/utils/import/reader";
+import { plural } from "@/utils/format/plural";
 import { Info } from "lucide-react";
 import { ComponentProps } from "react";
 
@@ -44,7 +45,8 @@ export function StepReading({
         total={6}
         title="Veja o que o sistema entendeu da planilha"
       >
-        O arquivo foi lido: encontramos {data.rows.length} linha(s) de produtos
+        O arquivo foi lido: encontramos{" "}
+        {plural(data.rows.length, "linha", "linhas")} de produtos
         {workbook && workbook.sheetNames.length > 1 && sheetName
           ? ` na aba "${sheetName}"`
           : ""}
@@ -58,7 +60,11 @@ export function StepReading({
           <Alert.Icon icon={Info} />
           <Alert.Content>
             <Alert.Title>
-              {unreadable.length} linha(s) do PDF não puderam ser lidas
+              {plural(
+                unreadable.length,
+                "linha do PDF não pôde ser lida",
+                "linhas do PDF não puderam ser lidas"
+              )}
             </Alert.Title>
             <Alert.Description>
               O código destes produtos saiu embaralhado no PDF (texto
@@ -125,7 +131,7 @@ export function StepReading({
       </div>
       <SheetPreview data={data} />
       <Title variant="caption" color="muted">
-        {data.rows.length} linha(s) de dados.
+        {plural(data.rows.length, "linha", "linhas")} de dados.
       </Title>
     </div>
   );

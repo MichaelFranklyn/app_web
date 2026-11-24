@@ -12,6 +12,8 @@ import { ChevronRight } from "lucide-react";
 import { FactoryOrderSummary } from "../../../interface";
 import { formatCurrency } from "../../../utils";
 import { factoryName } from "@/utils/company";
+import { plural } from "@/utils/format/plural";
+import { ICON_SIZE } from "@/components/Icon";
 
 interface Props {
   summary: FactoryOrderSummary;
@@ -45,7 +47,6 @@ export function FactoryOrderCard({ summary, onSelect }: Props) {
   const name = factoryName(summary.factory);
   const rel = relationship(summary, getBrtTodayIso());
   const hasOrders = summary.totalOrders > 0;
-  const plural = summary.totalOrders !== 1 ? "s" : "";
 
   return (
     <Card.Button
@@ -64,7 +65,7 @@ export function FactoryOrderCard({ summary, onSelect }: Props) {
       <div className="flex items-center justify-between gap-8">
         <div className="flex min-w-0 flex-col gap-2">
           <Title variant="body-sm" color="secondary">
-            {summary.totalOrders} pedido{plural}
+            {plural(summary.totalOrders, "pedido", "pedidos")}
           </Title>
           <Title variant="body-sm" weight="semibold">
             {formatCurrency(summary.totalAmount)}
@@ -76,7 +77,10 @@ export function FactoryOrderCard({ summary, onSelect }: Props) {
             <Title variant="micro" color="secondary">
               Ver pedidos
             </Title>
-            <ChevronRight size={14} className="text-(--color-text-muted)" />
+            <ChevronRight
+              size={ICON_SIZE.sm}
+              className="text-(--color-text-muted)"
+            />
           </div>
         )}
       </div>

@@ -8,15 +8,15 @@ import { ORDER_PAGE_DESCRIPTION } from "./utils";
  */
 export default function PortalOrderLoading() {
   return (
-    <div className="flex flex-col gap-[20px]">
+    <div className="flex flex-col gap-20">
       <PortalPageHeader
         heading="newOrder"
         title="Fazer pedido"
         description={ORDER_PAGE_DESCRIPTION}
       />
       <Loading.Skeleton className="h-[88px] w-full" />
-      <div className="desktop:grid-cols-[minmax(0,1fr)_360px] grid grid-cols-1 items-start gap-[20px]">
-        <div className="flex flex-col gap-[20px]">
+      <div className="desktop:grid-cols-[minmax(0,1fr)_360px] grid grid-cols-1 items-start gap-20">
+        <div className="flex flex-col gap-20">
           <Loading.Skeleton className="h-[320px] w-full" />
           <Loading.Skeleton className="h-[480px] w-full" />
         </div>

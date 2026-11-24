@@ -6,7 +6,12 @@ import { TooltipPanel } from "@/components/TooltipPanel";
 import { Badge } from "@/components/Badges";
 import { Title } from "@/components/Title";
 import { Tooltip } from "@/components/Tooltip";
-import { explainScore, isUrgent, ScoreDimensions } from "@/utils/score";
+import {
+  explainScore,
+  isUrgent,
+  ScoreDimensions,
+  formatScore,
+} from "@/utils/score";
 import { FactoryVisitScore } from "../../interface";
 
 interface Props {
@@ -49,7 +54,7 @@ export function ScoreTag({ score, factoryScores = [] }: Props) {
       <TooltipPanel.Header
         aside={
           <Title variant="label" weight="semibold">
-            {total.toFixed(0)} de 100
+            {formatScore(total)} de 100
           </Title>
         }
       >
@@ -72,7 +77,8 @@ export function ScoreTag({ score, factoryScores = [] }: Props) {
         </Title>
         {topFactory && (
           <Title variant="micro" color="muted">
-            Score mais alto na fábrica {topFactory}: {total.toFixed(0)} de 100.
+            Score mais alto na fábrica {topFactory}: {formatScore(total)} de
+            100.
             {otherUrgent > 0 &&
               ` Outras ${otherUrgent} fábricas também estão urgentes.`}
           </Title>
@@ -87,7 +93,7 @@ export function ScoreTag({ score, factoryScores = [] }: Props) {
                 color={reason.tone}
                 pulse={false}
                 intensity="solid"
-                className="mt-[5px]"
+                className="mt-5"
               />
               <div className="flex flex-col gap-1">
                 <Title variant="body-sm">

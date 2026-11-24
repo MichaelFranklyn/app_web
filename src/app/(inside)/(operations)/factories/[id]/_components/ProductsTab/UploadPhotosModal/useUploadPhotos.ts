@@ -10,6 +10,7 @@ import { useAsyncAction } from "@/hooks/useAsyncAction";
 import { fileToBase64 } from "@/utils/file";
 import { matchFilesToTargets } from "@/utils/image/match";
 import { resizeImage } from "@/utils/image/resize";
+import { plural } from "@/utils/format/plural";
 
 import {
   SET_PRODUCT_IMAGES_MUTATION,
@@ -189,7 +190,7 @@ export function useUploadPhotos({
           if (errors.length > 0) {
             toast({
               variant: "error",
-              title: `${errors.length} foto(s) não foram gravadas`,
+              title: `${plural(errors.length, "foto não foi gravada", "fotos não foram gravadas")}`,
               description: errors
                 .slice(0, 3)
                 .map((e) => `${e.fileName}: ${e.message}`)
@@ -199,7 +200,7 @@ export function useUploadPhotos({
           }
           toast({
             variant: "success",
-            title: `${updated} foto(s) no catálogo`,
+            title: `${plural(updated, "foto", "fotos")} no catálogo`,
             description: "As miniaturas já aparecem na lista de produtos.",
           });
         },

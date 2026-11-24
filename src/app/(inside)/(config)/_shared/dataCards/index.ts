@@ -4,5 +4,4 @@
 // abre o modal de edição. Manter as duas telas com a mesma forma é o que faz uma
 // parecer a continuação da outra.
 export { DataCardSkeleton } from "./DataCardSkeleton";
-export { DataField } from "./DataField";
 export { EditCardAction } from "./EditCardAction";

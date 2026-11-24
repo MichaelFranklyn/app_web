@@ -1,7 +1,6 @@
 "use client";
 
 import { Card } from "@/components/Card";
-import { cn } from "@/lib/utils";
 
 import { PendingWhen, PendingWhenCount } from "../../interface";
 import {
@@ -33,16 +32,9 @@ export function PendingCounts({ counts, active, onToggle }: Props) {
   );
 
   return (
-    <div
-      className={cn(
-        // Três contadores cabem numa linha até no celular: em 2 colunas o
-        // terceiro ia sozinho para baixo, esticado, e a fileira — que só
-        // funciona lida de um golpe — virava duas. Quatro seguem 2 × 2.
-        "grid gap-8",
-        shown.length === 4 ? "tablet:grid-cols-4 grid-cols-2" : "grid-cols-3"
-      )}
-      data-tour="pending-counts"
-    >
+    // Colunas pela regra única do DS (Card.Kpi.Group): 2 × 2 no celular, e com
+    // três o último ocupa a linha toda em vez de espremer três terços.
+    <Card.Kpi.Group data-tour="pending-counts">
       {shown.map((when) => {
         const row = byWhen.get(when);
         return (
@@ -51,8 +43,6 @@ export function PendingCounts({ counts, active, onToggle }: Props) {
             onClick={() => onToggle(when)}
             active={active === when}
             title={PENDING_WHEN_HINT[when]}
-            // No celular, a terça parte da tela não comporta o respiro de 20px.
-            className="max-tablet:px-12 max-tablet:py-12"
           >
             <Card.Kpi.Label>{PENDING_WHEN_LABEL[when]}</Card.Kpi.Label>
             <Card.Kpi.Value
@@ -63,6 +53,6 @@ export function PendingCounts({ counts, active, onToggle }: Props) {
           </Card.Kpi>
         );
       })}
-    </div>
+    </Card.Kpi.Group>
   );
 }

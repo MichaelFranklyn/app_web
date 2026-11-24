@@ -18,6 +18,7 @@ import {
   readOrderSheet,
   type OrderSheetRead,
 } from "@/utils/orderSheet/read";
+import { plural } from "@/utils/format/plural";
 
 import { DeferredOrderTarget } from "../../../../_components/OrderImportWizard";
 import type { ImportRow } from "../../../../_components/OrderImportWizard/utils";
@@ -411,7 +412,7 @@ export function useImportOrder({
       toast({
         variant: "success",
         title: "Ficha lida",
-        description: `${sheet.items.length} item(ns). Agora confira o que casou com o catálogo.`,
+        description: `${plural(sheet.items.length, "item", "itens")}. Agora confira o que casou com o catálogo.`,
       });
     } catch {
       toast({

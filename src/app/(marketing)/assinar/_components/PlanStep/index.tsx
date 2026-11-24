@@ -3,11 +3,11 @@ import { Emphasis } from "@/components/Emphasis";
 
 import { Button } from "@/components/Button";
 import { Title } from "@/components/Title";
-import { cn } from "@/lib/utils";
-import { Check } from "lucide-react";
+import { ChoiceCardGroup, ChoiceCardOption } from "@/components/ChoiceCard";
 import { ANNUAL_BILLED_MONTHS, MarketingPlan } from "../../../plans";
 import { BillingCycle } from "../../interface";
 import { formatMoney } from "@/utils/format/masks";
+import { plural } from "@/utils/format/plural";
 import { monthlyTotalFor } from "../../../pricing";
 import { totalForCycle } from "../../utils";
 
@@ -34,14 +34,14 @@ export function PlanStep({
   const monthly = monthlyTotalFor(plan, users) ?? 0;
   const annual = totalForCycle(plan, "annual", users) ?? 0;
 
-  const options: { key: BillingCycle; label: string; hint: string }[] = [
+  const options: ChoiceCardOption<BillingCycle>[] = [
     {
-      key: "monthly",
+      value: "monthly",
       label: "Mensal",
       hint: `${formatMoney(monthly)} por mês`,
     },
     {
-      key: "annual",
+      value: "annual",
       label: "Anual",
       hint: `${formatMoney(annual)} por ano — ${
         12 - ANNUAL_BILLED_MONTHS
@@ -55,49 +55,18 @@ export function PlanStep({
         <Title variant="heading-md">Como você prefere pagar</Title>
 
         <Title variant="body-sm" color="muted">
-          Plano {plan.label} com {users} {users === 1 ? "usuário" : "usuários"}.
-          O plano inclui {plan.limits}
+          Plano {plan.label} com {plural(users, "usuário", "usuários")}. O plano
+          inclui {plan.limits}
         </Title>
       </div>
 
-      <div className="tablet:grid-cols-2 grid gap-12">
-        {options.map((option) => {
-          const isSelected = option.key === cycle;
-
-          return (
-            <button
-              key={option.key}
-              type="button"
-              onClick={() => onChangeCycle(option.key)}
-              aria-pressed={isSelected}
-              className={cn(
-                "flex items-start gap-12 rounded-(--radius-md) border p-16 text-left transition",
-                isSelected
-                  ? "border-(--amber) bg-(--amber-bg)"
-                  : "border-(--border) bg-(--bg2) hover:bg-(--bg3)"
-              )}
-            >
-              <span
-                className={cn(
-                  "mt-2 flex size-20 shrink-0 items-center justify-center rounded-(--radius-full) border",
-                  isSelected
-                    ? "border-(--amber) bg-(--amber) text-(--color-on-action)"
-                    : "border-(--border2)"
-                )}
-              >
-                {isSelected && <Check size={12} />}
-              </span>
-
-              <span className="flex flex-col gap-4">
-                <Title variant="heading-sm">{option.label}</Title>
-                <Title variant="body-sm" color="muted">
-                  {option.hint}
-                </Title>
-              </span>
-            </button>
-          );
-        })}
-      </div>
+      <ChoiceCardGroup
+        options={options}
+        value={cycle}
+        onChange={onChangeCycle}
+        aria-label="Ciclo de cobrança"
+        className="tablet:grid-cols-2"
+      />
 
       <Title variant="body-sm" color="secondary">
         Total de hoje:{" "}

@@ -59,7 +59,7 @@ export function PositivationTable({
   return (
     <Table.Root sort={sort}>
       <Table.CardHead>
-        <Table.CardHead.Title className="inline-flex items-center gap-6">
+        <Table.CardHead.Title>
           Cliente × fábrica
           <HelpTooltip
             label="Sobre a matriz de positivação"
@@ -92,7 +92,7 @@ export function PositivationTable({
             <Table.Head sortKey="positivated" sortFirst="desc">
               Positivou
             </Table.Head>
-            <Table.Head sortKey="totalAmount" sortFirst="desc">
+            <Table.Head align="right" sortKey="totalAmount" sortFirst="desc">
               Valor no período
             </Table.Head>
             <Table.Head sortKey="lastOrderDate" sortFirst="desc">
@@ -109,7 +109,7 @@ export function PositivationTable({
               <Table.Cell colSpan={columnCount}>
                 <EmptyState.Root flat>
                   <EmptyState.Icon>
-                    <Users size={32} />
+                    <Users />
                   </EmptyState.Icon>
                   <EmptyState.Title>
                     {isNarrowed
@@ -159,6 +159,7 @@ export function PositivationTable({
                   {positivatedLabel(row)}
                 </Table.Cell>
                 <Table.Cell
+                  align="right"
                   variant="strong"
                   card="value"
                   className="whitespace-nowrap"

@@ -1,6 +1,4 @@
 import { Card } from "@/components/Card";
-import { Grid } from "@/components/Grid";
-import { Loading } from "@/components/Loading";
 import { PortalSentOrdersSummary } from "../../../interface";
 
 interface SentOrdersKpisProps {
@@ -43,33 +41,25 @@ function sentOrdersKpis(summary: PortalSentOrdersSummary) {
  */
 export function SentOrdersKpis({ summary }: SentOrdersKpisProps) {
   return (
-    <Grid.Root cols={{ base: 2, tablet: 2, desktop: 4 }} gap={20}>
+    <Card.Kpi.Group>
       {sentOrdersKpis(summary).map(({ label, value, hint }) => (
-        <Grid.Item key={label}>
-          <Card.Kpi>
-            <Card.Kpi.Label>{label}</Card.Kpi.Label>
-            <Card.Kpi.Value>{value}</Card.Kpi.Value>
-            <Card.Kpi.Delta>{hint}</Card.Kpi.Delta>
-          </Card.Kpi>
-        </Grid.Item>
+        <Card.Kpi key={label}>
+          <Card.Kpi.Label>{label}</Card.Kpi.Label>
+          <Card.Kpi.Value>{value}</Card.Kpi.Value>
+          <Card.Kpi.Delta>{hint}</Card.Kpi.Delta>
+        </Card.Kpi>
       ))}
-    </Grid.Root>
+    </Card.Kpi.Group>
   );
 }
 
 /** O esqueleto do placar, para o `loading.tsx`. */
 export function SentOrdersKpisSkeleton() {
   return (
-    <Grid.Root cols={{ base: 2, tablet: 2, desktop: 4 }} gap={20}>
+    <Card.Kpi.Group>
       {Array.from({ length: 4 }).map((_, index) => (
-        <Grid.Item key={index}>
-          <Card.Kpi>
-            <Loading.Skeleton className="h-[12px] w-[96px]" />
-            <Loading.Skeleton className="mt-8 h-[28px] w-[48px]" />
-            <Loading.Skeleton className="mt-8 h-[10px] w-[112px]" />
-          </Card.Kpi>
-        </Grid.Item>
+        <Card.Kpi.Skeleton key={index} />
       ))}
-    </Grid.Root>
+    </Card.Kpi.Group>
   );
 }

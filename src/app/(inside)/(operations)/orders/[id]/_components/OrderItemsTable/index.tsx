@@ -28,6 +28,7 @@ import {
   ORDER_CACHE_FIELDS,
   ORDER_ITEM_EVIDENCE_CACHE_FIELDS,
 } from "@/utils/cacheFields";
+import { plural } from "@/utils/format/plural";
 import { ORDER_ITEMS_QUERY } from "./gql";
 
 /**
@@ -208,7 +209,7 @@ export function OrderItemsTable({
           )}
           {/* Contagem é informação, não estado nem ação: texto, não selo. */}
           <Title variant="caption" color="muted" className="whitespace-nowrap">
-            {items.length} {items.length === 1 ? "item" : "itens"}
+            {plural(items.length, "item", "itens")}
           </Title>
           {!isLocked && (
             <>
@@ -348,7 +349,7 @@ export function OrderItemsTable({
               <Table.Cell colSpan={columns}>
                 <EmptyState.Root flat>
                   <EmptyState.Icon>
-                    <Package size={32} />
+                    <Package />
                   </EmptyState.Icon>
                   <EmptyState.Title>Pedido sem itens</EmptyState.Title>
                   <EmptyState.Description>
@@ -364,7 +365,7 @@ export function OrderItemsTable({
               <Table.Cell colSpan={columns}>
                 <EmptyState.Root flat>
                   <EmptyState.Icon>
-                    <SearchX size={32} />
+                    <SearchX />
                   </EmptyState.Icon>
                   <EmptyState.Title>Nenhum item encontrado</EmptyState.Title>
                   <EmptyState.Description>

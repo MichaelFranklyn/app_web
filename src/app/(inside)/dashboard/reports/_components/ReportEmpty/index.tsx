@@ -20,7 +20,7 @@ export function ReportEmpty({
   return (
     <EmptyState.Root>
       <EmptyState.Icon>
-        <CalendarX size={32} />
+        <CalendarX />
       </EmptyState.Icon>
       <EmptyState.Title>{title}</EmptyState.Title>
       <EmptyState.Description>

@@ -7,7 +7,7 @@ import { Grid } from "@/components/Grid";
 import { Loading } from "@/components/Loading";
 
 interface Props {
-  /** Quantos campos (`DataField`) o card real mostra. */
+  /** Quantos campos (`Card.Field`) o card real mostra. */
   fields: number;
   /** Colunas da grade de campos no desktop — no celular é sempre uma. */
   desktopCols?: 2 | 3;
@@ -15,12 +15,12 @@ interface Props {
   note?: boolean;
 }
 
-/** Placeholder de um campo: rótulo em cima, valor embaixo (igual ao DataField). */
+/** Placeholder de um campo: rótulo em cima, valor embaixo (igual ao Card.Field). */
 function FieldSkeleton() {
   return (
-    <div className="flex flex-col gap-[6px]">
-      <Loading.Skeleton className="h-[11px] w-[72px]" />
-      <Loading.Skeleton className="h-[15px] w-[160px] max-w-full" />
+    <div className="flex flex-col gap-6">
+      <Loading.Skeleton text="body-sm" className="w-[72px]" />
+      <Loading.Skeleton text="body-md" className="w-[160px] max-w-full" />
     </div>
   );
 }
@@ -35,12 +35,15 @@ function FieldSkeleton() {
  */
 export function DataCardSkeleton({ fields, desktopCols = 2, note }: Props) {
   return (
-    <Card.Root className="h-full">
+    <Card.Root>
       <Card.Header>
-        <Loading.Skeleton className="h-[16px] w-[160px] max-w-full" />
-        <div className="mt-[8px] flex flex-col gap-[6px]">
-          <Loading.Skeleton className="h-[12px] w-[224px] max-w-full" />
-          <Loading.Skeleton className="desktop:hidden h-[12px] w-[112px]" />
+        <Loading.Skeleton text="heading-sm" className="w-[160px] max-w-full" />
+        <div className="mt-8 flex flex-col gap-6">
+          <Loading.Skeleton text="body-sm" className="w-[224px] max-w-full" />
+          <Loading.Skeleton
+            text="body-sm"
+            className="desktop:hidden w-[112px]"
+          />
         </div>
         <Card.Header.Actions>
           {/* Wrapper: as ações do header forçam `w-auto` nos filhos diretos. */}
@@ -49,7 +52,7 @@ export function DataCardSkeleton({ fields, desktopCols = 2, note }: Props) {
           </div>
         </Card.Header.Actions>
       </Card.Header>
-      <Card.Body className="flex flex-col gap-16">
+      <Card.Body>
         <Grid.Root cols={{ base: 1, desktop: desktopCols }} gap={16}>
           {Array.from({ length: fields }).map((_, i) => (
             <Grid.Item key={i}>
@@ -58,9 +61,9 @@ export function DataCardSkeleton({ fields, desktopCols = 2, note }: Props) {
           ))}
         </Grid.Root>
         {note && (
-          <div className="flex flex-col gap-[6px]">
-            <Loading.Skeleton className="h-[11px] w-full" />
-            <Loading.Skeleton className="h-[11px] w-2/3" />
+          <div className="flex flex-col gap-6">
+            <Loading.Skeleton text="body-sm" className="w-full" />
+            <Loading.Skeleton text="body-sm" className="w-2/3" />
           </div>
         )}
       </Card.Body>

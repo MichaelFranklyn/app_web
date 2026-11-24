@@ -1,5 +1,6 @@
 import { Title } from "@/components/Title";
 import { Lock } from "lucide-react";
+import { ICON_SIZE } from "@/components/Icon";
 
 interface Props {
   /** Por que os itens não mudam mais — `null` enquanto ainda podem mudar. */
@@ -20,9 +21,9 @@ export function ItemsLockedBanner({ reason }: Props) {
   return (
     <div className="flex items-start gap-6">
       <Lock
-        size={14}
+        size={ICON_SIZE.sm}
         aria-hidden
-        className="mt-[3px] shrink-0 text-(--color-text-muted)"
+        className="mt-3 shrink-0 text-(--color-text-muted)"
       />
       <Title variant="body-sm" color="muted">
         Itens não podem mais ser alterados. {reason}

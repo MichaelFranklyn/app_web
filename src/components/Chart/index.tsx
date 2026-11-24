@@ -86,7 +86,19 @@ export default function Chart({
   }, []);
 
   useEffect(() => {
-    chartRef.current?.setOption(option, { notMerge: true });
+    const chart = chartRef.current;
+    if (!chart) return;
+    // O canvas não herda a fonte da página: sem isto o ECharts desenhava
+    // eixos e tooltip em "sans-serif" do sistema. A família vem do CSS
+    // (`--font-body`, herdada pelo contêiner); a opção do gráfico ainda
+    // pode sobrescrever.
+    const fontFamily = containerRef.current
+      ? getComputedStyle(containerRef.current).fontFamily
+      : undefined;
+    chart.setOption(
+      { ...option, textStyle: { fontFamily, ...(option.textStyle as object) } },
+      { notMerge: true }
+    );
   }, [option]);
 
   return (

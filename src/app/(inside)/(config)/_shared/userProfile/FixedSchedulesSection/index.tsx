@@ -11,8 +11,8 @@ import { CalendarCheck } from "lucide-react";
 import { useMemo } from "react";
 
 import { clientName } from "@/utils/company";
-import { DeleteFixedScheduleModal } from "./DeleteFixedScheduleModal";
 import { FixedScheduleModal } from "./FixedScheduleModal";
+import { FixedScheduleRowActions } from "./FixedScheduleRowActions";
 import { FIXED_SCHEDULES_QUERY } from "./gql";
 import { FixedScheduleNode, FixedSchedulesQueryData } from "./interface";
 import { formatOccurrences, scheduleSummary } from "./utils";
@@ -58,7 +58,7 @@ export function FixedSchedulesSection({ sellerId }: Props) {
   return (
     <Table.Root>
       <Table.CardHead>
-        <Table.CardHead.Title className="inline-flex items-center gap-6">
+        <Table.CardHead.Title>
           Dias fixos
           <HelpTooltip
             label="O que é um dia fixo?"
@@ -124,7 +124,7 @@ export function FixedSchedulesSection({ sellerId }: Props) {
               <Table.Cell colSpan={5}>
                 <EmptyState.Root flat>
                   <EmptyState.Icon>
-                    <CalendarCheck size={32} />
+                    <CalendarCheck />
                   </EmptyState.Icon>
                   <EmptyState.Title>Nenhum dia fixo marcado</EmptyState.Title>
                   <EmptyState.Description>
@@ -161,21 +161,18 @@ export function FixedSchedulesSection({ sellerId }: Props) {
                   {schedule.notes || "—"}
                 </Table.Cell>
                 <Table.Cell card="actions">
-                  <div className="flex items-center justify-end gap-4">
-                    <FixedScheduleModal
-                      sellerId={sellerId}
-                      schedule={schedule}
-                      onDone={onChanged}
-                    />
-                    <DeleteFixedScheduleModal
-                      scheduleId={schedule.id}
-                      clientLabel={clientName(schedule.client)}
-                      onRemoveOptimistic={optimistic.removeOptimistic}
-                      onCommit={optimistic.commit}
-                      onRollback={optimistic.rollback}
-                      onDone={onChanged}
-                    />
-                  </div>
+                  <FixedScheduleRowActions
+                    clientLabel={clientName(schedule.client)}
+                    edit={{ sellerId, schedule, onDone: onChanged }}
+                    remove={{
+                      scheduleId: schedule.id,
+                      clientLabel: clientName(schedule.client),
+                      onRemoveOptimistic: optimistic.removeOptimistic,
+                      onCommit: optimistic.commit,
+                      onRollback: optimistic.rollback,
+                      onDone: onChanged,
+                    }}
+                  />
                 </Table.Cell>
               </Table.Row>
             ))

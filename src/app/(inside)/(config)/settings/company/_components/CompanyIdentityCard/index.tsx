@@ -4,7 +4,7 @@ import { DocumentNumber } from "@/components/DocumentNumber";
 import { Card } from "@/components/Card";
 import { Grid } from "@/components/Grid";
 import { Title } from "@/components/Title";
-import { DataField, EditCardAction } from "../../../../_shared/dataCards";
+import { EditCardAction } from "../../../../_shared/dataCards";
 import { MyCompany } from "../../interface";
 
 interface Props {
@@ -25,15 +25,18 @@ export function CompanyIdentityCard({ company, onEdit }: Props) {
         </Card.Header.Actions>
       </Card.Header>
 
-      <Card.Body className="flex flex-col gap-16">
+      <Card.Body>
         <Grid.Root cols={{ base: 1, desktop: 2 }} gap={16}>
-          <DataField label="Razão social" value={company.razaoSocial} />
-          <DataField
+          <Card.Field label="Razão social" value={company.razaoSocial} />
+          <Card.Field
             label="CNPJ"
             value={<DocumentNumber value={company.cnpj} />}
           />
-          <DataField label="Nome fantasia" value={company.nomeFantasia ?? ""} />
-          <DataField label="Segmento" value={company.segment} />
+          <Card.Field
+            label="Nome fantasia"
+            value={company.nomeFantasia ?? ""}
+          />
+          <Card.Field label="Segmento" value={company.segment} />
         </Grid.Root>
 
         {/* Vem da Receita Federal: dizer isso evita a pergunta "por que não

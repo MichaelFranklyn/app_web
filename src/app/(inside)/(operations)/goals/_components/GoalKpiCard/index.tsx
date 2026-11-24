@@ -1,10 +1,10 @@
 "use client";
 
 import { Card } from "@/components/Card";
-import { HelpTooltip } from "@/components/HelpTooltip";
 import { Progress } from "@/components/Progress";
 import { formatMoney, formatNumber } from "@/utils/format/masks";
 import { MetricValues, percentOf, percentTone } from "@/utils/goals";
+import { formatPercentPoints } from "@/utils/format/percent";
 
 interface Props {
   label: string;
@@ -21,11 +21,8 @@ export function GoalKpiCard({ label, values, help, money }: Props) {
     money ? formatMoney(value) : formatNumber(value);
 
   return (
-    <Card.Kpi className="max-tablet:px-12 max-tablet:py-12">
-      <Card.Kpi.Label className="inline-flex items-center gap-2">
-        {label}
-        {help && <HelpTooltip label={`Sobre ${label}`} content={help} />}
-      </Card.Kpi.Label>
+    <Card.Kpi>
+      <Card.Kpi.Label help={help}>{label}</Card.Kpi.Label>
 
       {/* O número é neutro: verde fixo em "Faturado" lia como "meta batida"
           com 4% feitos (crítica de 23/11/2026). Quem diz se está bom é a
@@ -37,7 +34,7 @@ export function GoalKpiCard({ label, values, help, money }: Props) {
           className="mt-8"
           value={Math.min(percent, 100)}
           color={percentTone(percent)}
-          label={`${label}: ${percent.toFixed(0)}% da meta`}
+          label={`${label}: ${formatPercentPoints(percent)} da meta`}
         />
       )}
 
@@ -46,7 +43,7 @@ export function GoalKpiCard({ label, values, help, money }: Props) {
             combinado. */}
         {values.target === null
           ? "sem meta definida"
-          : `${percent?.toFixed(0)}% da meta de ${format(values.target)}`}
+          : `${formatPercentPoints(percent ?? 0)} da meta de ${format(values.target)}`}
       </Card.Kpi.Delta>
     </Card.Kpi>
   );

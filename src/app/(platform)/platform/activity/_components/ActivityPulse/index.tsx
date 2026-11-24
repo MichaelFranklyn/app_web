@@ -1,8 +1,8 @@
 "use client";
 
+import { RowList } from "@/components/RowList";
 import { Card } from "@/components/Card";
 import { EmptyState } from "@/components/EmptyState";
-import { Grid } from "@/components/Grid";
 import { Loading } from "@/components/Loading";
 import { Title } from "@/components/Title";
 import { Activity } from "lucide-react";
@@ -31,58 +31,50 @@ export function ActivityPulse({ summary }: { summary: ActivitySummary }) {
   return (
     <Card.Root>
       <Card.Header>
-        <Card.Header.Title size="sm" weight="semibold">
-          Pulso da plataforma
-        </Card.Header.Title>
+        <Card.Header.Title>Pulso da plataforma</Card.Header.Title>
         <Card.Header.Description>
           Ações por dia nos últimos 30 dias e as operações mais usadas.
         </Card.Header.Description>
       </Card.Header>
 
-      <Card.Body className="flex flex-col gap-20">
-        <Grid.Root cols={{ base: 2, tablet: 3 }} gap={12}>
-          <Grid.Item>
-            <Card.Kpi>
-              <Card.Kpi.Label>Ações no período</Card.Kpi.Label>
-              <Card.Kpi.Value status="neutral">
-                {summary.totalActions}
-              </Card.Kpi.Value>
-              <Card.Kpi.Delta>mutations registradas</Card.Kpi.Delta>
-            </Card.Kpi>
-          </Grid.Item>
-          <Grid.Item>
-            <Card.Kpi>
-              <Card.Kpi.Label>Falhas</Card.Kpi.Label>
-              {/* Cinco por cento já merece olhar: a maior parte dos erros que
+      <Card.Body>
+        <Card.Kpi.Group>
+          <Card.Kpi>
+            <Card.Kpi.Label>Ações no período</Card.Kpi.Label>
+            <Card.Kpi.Value status="neutral">
+              {summary.totalActions}
+            </Card.Kpi.Value>
+            <Card.Kpi.Delta>mutations registradas</Card.Kpi.Delta>
+          </Card.Kpi>
+          <Card.Kpi>
+            <Card.Kpi.Label>Falhas</Card.Kpi.Label>
+            {/* Cinco por cento já merece olhar: a maior parte dos erros que
                   chegam aqui é recusa de regra de negócio, não defeito — mas
                   acima disso costuma haver algo travando um fluxo. */}
-              <Card.Kpi.Value
-                status={rate === 0 ? "ok" : rate <= 5 ? "atencao" : "urgente"}
-              >
-                {summary.totalErrors}
-              </Card.Kpi.Value>
-              <Card.Kpi.Delta negative={rate > 5}>
-                {rate}% das ações
-              </Card.Kpi.Delta>
-            </Card.Kpi>
-          </Grid.Item>
-          <Grid.Item>
-            <Card.Kpi>
-              <Card.Kpi.Label>Operações distintas</Card.Kpi.Label>
-              <Card.Kpi.Value status="neutral">
-                {summary.byOperation.length}
-              </Card.Kpi.Value>
-              <Card.Kpi.Delta>tipos de ação usados</Card.Kpi.Delta>
-            </Card.Kpi>
-          </Grid.Item>
-        </Grid.Root>
+            <Card.Kpi.Value
+              status={rate === 0 ? "ok" : rate <= 5 ? "atencao" : "urgente"}
+            >
+              {summary.totalErrors}
+            </Card.Kpi.Value>
+            <Card.Kpi.Delta negative={rate > 5}>
+              {rate}% das ações
+            </Card.Kpi.Delta>
+          </Card.Kpi>
+          <Card.Kpi>
+            <Card.Kpi.Label>Operações distintas</Card.Kpi.Label>
+            <Card.Kpi.Value status="neutral">
+              {summary.byOperation.length}
+            </Card.Kpi.Value>
+            <Card.Kpi.Delta>tipos de ação usados</Card.Kpi.Delta>
+          </Card.Kpi>
+        </Card.Kpi.Group>
 
         {hasMovement ? (
           <Chart option={buildPulseOption(summary.byDay)} height={240} />
         ) : (
           <EmptyState.Root>
             <EmptyState.Icon>
-              <Activity size={32} />
+              <Activity />
             </EmptyState.Icon>
             <EmptyState.Title>Nenhuma ação no período</EmptyState.Title>
             {/* O registro é recente: dizer isso evita ler o vazio como "o
@@ -99,9 +91,9 @@ export function ActivityPulse({ summary }: { summary: ActivitySummary }) {
             <Title variant="caption" weight="semibold">
               Mais usadas
             </Title>
-            <ul className="flex flex-col gap-6">
+            <RowList.Root>
               {summary.byOperation.map((item) => (
-                <li
+                <RowList.Item
                   key={item.key}
                   className="flex items-baseline justify-between gap-8"
                 >
@@ -117,9 +109,9 @@ export function ActivityPulse({ summary }: { summary: ActivitySummary }) {
                       </Title>
                     )}
                   </Title>
-                </li>
+                </RowList.Item>
               ))}
-            </ul>
+            </RowList.Root>
           </div>
         )}
       </Card.Body>

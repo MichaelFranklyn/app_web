@@ -6,6 +6,7 @@ import {
   CatalogPageHref,
   CatalogTone,
 } from "./interface";
+import { plural } from "@/utils/format/plural";
 
 /**
  * Os catálogos agrupados por ASSUNTO, e não numa grade de cinco cards iguais.
@@ -114,7 +115,7 @@ export const countLabel = (
 ): string => {
   if (count === null) return "";
   if (count === 0) return "nada cadastrado ainda";
-  return `${count} ${count === 1 ? noun.one : noun.many}`;
+  return plural(count, noun.one, noun.many);
 };
 
 /**

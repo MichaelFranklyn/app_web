@@ -18,18 +18,17 @@ export function DefaultedPackView({
         entraram com múltiplo 1 — abra cada um e ajuste se vender em
         caixa/fardo.
       </Title>
-      <Card.Root
-        isCompact
-        className="flex max-h-[320px] flex-col gap-4 overflow-y-auto"
-      >
-        {items.map((it, i) => (
-          <Title key={`${it.sku}-${i}`} variant="caption">
-            <Title variant="caption" weight="medium" className="inline">
-              {it.sku}
+      <Card.Root inset>
+        <Card.Body padding="sm" className="max-h-[320px] overflow-y-auto">
+          {items.map((it, i) => (
+            <Title key={`${it.sku}-${i}`} variant="caption">
+              <Title variant="caption" weight="medium" className="inline">
+                {it.sku}
+              </Title>
+              {it.name ? ` ${it.name}` : ""}
             </Title>
-            {it.name ? ` ${it.name}` : ""}
-          </Title>
-        ))}
+          ))}
+        </Card.Body>
       </Card.Root>
     </div>
   );

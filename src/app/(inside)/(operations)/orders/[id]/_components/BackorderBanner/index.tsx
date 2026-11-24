@@ -2,6 +2,7 @@ import { Alert } from "@/components/Alert";
 import { Emphasis } from "@/components/Emphasis";
 import { TextLink } from "@/components/TextLink";
 import { formatDate } from "@/utils/format/date";
+import { pluralWord } from "@/utils/format/plural";
 import { GitBranch, PackageX } from "lucide-react";
 
 import { OrderDetail } from "../../interface";
@@ -47,8 +48,8 @@ export function BackorderBanner({ order }: Props) {
           <Alert.Content>
             <Alert.Description>
               Faturado parcial — o que faltou ficou como{" "}
-              {children.length === 1 ? "saldo" : "saldos"} deste pedido (a mesma
-              venda, entregue em partes):{" "}
+              {pluralWord(children.length, "saldo", "saldos")} deste pedido (a
+              mesma venda, entregue em partes):{" "}
               {children.map((child, i) => (
                 <span key={child.id}>
                   {i > 0 && ", "}

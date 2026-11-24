@@ -12,9 +12,11 @@ import {
   percentTone,
   sumRows,
 } from "@/utils/goals";
+import { plural } from "@/utils/format/plural";
 
 import { SellerGroup } from "../../utils";
 import { GoalMetricCells } from "../GoalMetricCells";
+import { formatPercentPoints } from "@/utils/format/percent";
 
 interface Props {
   groups: SellerGroup[];
@@ -81,8 +83,7 @@ export function GoalsTable({ groups, hrefOf }: Props) {
                       {group.sellerName}
                     </TextLink>
                     <Table.CellText variant="dim2">
-                      {group.rows.length}{" "}
-                      {group.rows.length === 1 ? "fábrica" : "fábricas"}
+                      {plural(group.rows.length, "fábrica", "fábricas")}
                     </Table.CellText>
                   </div>
                 </Table.Cell>
@@ -100,7 +101,7 @@ export function GoalsTable({ groups, hrefOf }: Props) {
                       weight="semibold"
                       color={percentTone(overall)}
                     >
-                      {overall.toFixed(0)}%
+                      {formatPercentPoints(overall)}
                       {/* No cartão o cabeçalho some: "4%" sozinho não dizia
                           de quê. */}
                       <span className="desktop:hidden"> da meta</span>

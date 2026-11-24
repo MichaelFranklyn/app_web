@@ -6,12 +6,8 @@ import { titleStyle } from "./style";
 export const HeaderTitle = React.forwardRef<
   HTMLHeadingElement,
   CardHeaderTitleProps
->(({ size, weight, className, ...props }, ref) => (
-  <h3
-    ref={ref}
-    className={cn(titleStyle({ size, weight }), className)}
-    {...props}
-  />
+>(({ className, ...props }, ref) => (
+  <h3 ref={ref} className={cn(titleStyle, className)} {...props} />
 ));
 
 HeaderTitle.displayName = "Card.Header.Title";

@@ -5,11 +5,17 @@ import { Button } from "@/components/Button";
 import { Card } from "@/components/Card";
 import { RowList } from "@/components/RowList";
 import { Title } from "@/components/Title";
-import { formatDateDMY, formatMoney } from "@/utils/format/masks";
+import {
+  formatDateDMY,
+  formatMoney,
+  formatQuantity,
+} from "@/utils/format/masks";
+import { pluralWord } from "@/utils/format/plural";
 import { Zap } from "lucide-react";
 
 import { PurchasePrice } from "./interface";
 import { variationFromLast } from "./utils";
+import { formatPercentPoints } from "@/utils/format/percent";
 
 interface Props {
   purchases: PurchasePrice[] | undefined;
@@ -24,8 +30,7 @@ interface Props {
   onUsePrice: (price: number) => void;
 }
 
-const formatUnits = (units: string): string =>
-  Number(units).toLocaleString("pt-BR", { maximumFractionDigits: 2 });
+const formatUnits = (units: string): string => formatQuantity(units);
 
 /**
  * "Da última vez ele pagou R$ 4,10": as últimas compras deste produto pelo
@@ -65,7 +70,7 @@ export function LastPurchasePrices({
 
   return (
     <Card.Root inset>
-      <Card.Body padding="compact" className="flex flex-col gap-8">
+      <Card.Body padding="compact">
         <div className="flex flex-wrap items-center justify-between gap-8">
           <Title variant="label" weight="bold">
             Últimas compras deste cliente
@@ -77,10 +82,10 @@ export function LastPurchasePrices({
             >
               <Badge.Text>
                 {compareLabel} {variation > 0 ? "+" : "−"}
-                {Math.abs(variation).toLocaleString("pt-BR", {
-                  maximumFractionDigits: 1,
-                })}
-                % sobre a última
+                {formatPercentPoints(Math.abs(variation), 1, {
+                  trimZeros: true,
+                })}{" "}
+                sobre a última
               </Badge.Text>
             </Badge.Root>
           )}
@@ -114,7 +119,7 @@ export function LastPurchasePrices({
                   <Title variant="caption" color="muted">
                     {[
                       formatDateDMY(p.orderDate),
-                      `${formatUnits(p.units)} ${unit}${Number(p.units) === 1 ? "" : "s"}`,
+                      `${formatUnits(p.units)} ${pluralWord(Number(p.units), unit, `${unit}s`)}`,
                       p.tierName,
                       hasDiscount
                         ? `com desconto (tabela ${formatMoney(Number(p.unitPrice))})`

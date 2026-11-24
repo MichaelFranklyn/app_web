@@ -115,7 +115,7 @@ export const drawHeader = (pdf: Pdf, data: HeaderData): number => {
     data.sellerName ? `Vendedor: ${data.sellerName}` : null,
     `${plural(data.count, "parcela", "parcelas")} de comissão`,
     `${plural(data.settledCount, "boleto liquidado", "boletos liquidados")} no mês`,
-    `${data.defaultedCount} inadimplente(s)`,
+    `${plural(data.defaultedCount, "inadimplente", "inadimplentes")}`,
   ].filter(Boolean);
   pdf.text(parts.join("  ·  "), PAGE.margin, y);
 

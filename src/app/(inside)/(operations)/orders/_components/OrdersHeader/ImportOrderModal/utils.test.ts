@@ -104,7 +104,7 @@ describe("o resumo que substitui os campos", () => {
     expect(texto).toContain("HERC");
     expect(texto).toContain("45/60/90");
     expect(texto).toContain("frete CIF");
-    expect(texto).toContain("1 item(ns)");
+    expect(texto).toMatch(/·\s+1 item$/);
   });
 
   it("avisa quando a condição da ficha não existe mais", () => {

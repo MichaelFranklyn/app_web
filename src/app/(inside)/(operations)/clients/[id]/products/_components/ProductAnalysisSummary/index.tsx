@@ -14,9 +14,9 @@ interface Props {
  */
 export function ProductAnalysisSummary({ data }: Props) {
   return (
-    // Abaixo do desktop são 5 cartões: no celular (2 colunas) e no tablet (3)
-    // o último esticaria só metade da linha; ele toma o resto e não sobra buraco.
-    <div className="tablet:grid-cols-3 desktop:grid-cols-5 max-tablet:[&>:last-child]:col-span-2 tablet:max-desktop:[&>:last-child]:col-span-2 grid grid-cols-2 gap-8">
+    // Cinco cartões: Card.Kpi.Group põe 5 numa linha no desktop e, abaixo
+    // dele, estica o último para não sobrar buraco.
+    <Card.Kpi.Group>
       <Card.Kpi>
         <Card.Kpi.Label>Parou de comprar</Card.Kpi.Label>
         {/* Tom em todos, não só em dois: o número sem cor lia-se como "ok"
@@ -47,6 +47,6 @@ export function ProductAnalysisSummary({ data }: Props) {
         <Card.Kpi.Label>Produtos já comprados</Card.Kpi.Label>
         <Card.Kpi.Value>{data.total}</Card.Kpi.Value>
       </Card.Kpi>
-    </div>
+    </Card.Kpi.Group>
   );
 }

@@ -42,6 +42,9 @@ export const weekMondayIso = (todayIso: string): string => {
   return toUtcIsoDate(utc);
 };
 
+/** O fuso do negócio (o backend decide tudo em `today_brt`). */
+export const BRT_TIME_ZONE = "America/Sao_Paulo";
+
 /**
  * Hoje no fuso de Brasília (aaaa-mm-dd).
  *
@@ -53,7 +56,7 @@ export const weekMondayIso = (todayIso: string): string => {
  */
 export const getBrtTodayIso = (): string =>
   new Intl.DateTimeFormat("en-CA", {
-    timeZone: "America/Sao_Paulo",
+    timeZone: BRT_TIME_ZONE,
     year: "numeric",
     month: "2-digit",
     day: "2-digit",
@@ -84,18 +87,121 @@ export const getTodayIso = (): string => {
  * data curta no app — `formatDateDMY` (masks.ts) delega aqui.
  * @param fallback texto para data ausente/inválida. Padrão "—" (ideal para
  *   células de tabela); passe "" para contextos que concatenam a saída.
+ * @param timeZone fuso fixo para um instante — `BRT_TIME_ZONE` em tela servida
+ *   pelo servidor (UTC), onde um envio às 22h de segunda sairia como terça.
  */
-export const formatDate = (date?: string | null, fallback = "—"): string => {
+export const formatDate = (
+  date?: string | null,
+  fallback = "—",
+  { timeZone }: { timeZone?: string } = {}
+): string => {
   if (!date) return fallback;
   // Data pura ("2026-05-31") é dia de calendário, não instante: `new Date` a
   // leria como meia-noite UTC e o Brasil (UTC-3) mostraria o dia anterior.
   // Datetime (com hora) continua no parse nativo, que é o instante de verdade.
-  const parsed = /^\d{4}-\d{2}-\d{2}$/.test(date)
-    ? parseLocalDate(date)
-    : new Date(date);
+  const isCalendarDay = /^\d{4}-\d{2}-\d{2}$/.test(date);
+  const parsed = isCalendarDay ? parseLocalDate(date) : new Date(date);
   if (!parsed || Number.isNaN(parsed.getTime())) return fallback;
-  return parsed.toLocaleDateString("pt-BR");
+  // O fuso só vale para um instante: o dia de calendário já é o dia.
+  return parsed.toLocaleDateString(
+    "pt-BR",
+    isCalendarDay || !timeZone ? undefined : { timeZone }
+  );
 };
+
+interface DateTimeOptions {
+  /** Ano com 2 dígitos ("24/11/26 14:05"). Padrão: sim. */
+  withYear?: boolean;
+  /** Segundos, para distinguir eventos do mesmo minuto em um log. */
+  withSeconds?: boolean;
+  /** Fuso fixo (ex.: "America/Sao_Paulo"). Padrão: o do navegador. */
+  timeZone?: string;
+}
+
+/**
+ * Instante ISO → "24/11/26 14:05" (pt-BR, fuso do navegador). Fonte única do
+ * "data e hora" das listas de atividade e auditoria — cada uma tinha a sua
+ * cópia de `toLocaleString` com as opções escritas à mão.
+ */
+export const formatDateTime = (
+  iso?: string | null,
+  { withYear = true, withSeconds = false, timeZone }: DateTimeOptions = {}
+): string => {
+  if (!iso) return "—";
+  const date = new Date(iso);
+  if (Number.isNaN(date.getTime())) return "—";
+  return date.toLocaleString("pt-BR", {
+    timeZone,
+    day: "2-digit",
+    month: "2-digit",
+    ...(withYear ? { year: "2-digit" } : {}),
+    hour: "2-digit",
+    minute: "2-digit",
+    ...(withSeconds ? { second: "2-digit" } : {}),
+  });
+};
+
+/**
+ * Instante de um registro (atividade, auditoria, execução de job, email) →
+ * "24/11/26 14:05:33". Fonte única do console da plataforma: até 24/11/2026
+ * eram sete `formatMoment` locais em três formatos — com ano ou sem, com
+ * segundos ou sem —, e a mesma ação aparecia diferente em cada tela. Ano,
+ * porque o log atravessa a virada; segundos, porque a sequência do minuto é o
+ * que se reconstrói ao investigar.
+ */
+export const formatLogMoment = (iso?: string | null): string =>
+  formatDateTime(iso, { withSeconds: true });
+
+/**
+ * Instante ISO → só a hora, "14:05". Para "atualizado às 14:05" de uma tela
+ * que é do dia. Vazio ou inválido vira "—".
+ */
+export const formatTime = (
+  iso?: string | null,
+  { timeZone }: Pick<DateTimeOptions, "timeZone"> = {}
+): string => {
+  if (!iso) return "—";
+  const date = new Date(iso);
+  if (Number.isNaN(date.getTime())) return "—";
+  return date.toLocaleTimeString("pt-BR", {
+    timeZone,
+    hour: "2-digit",
+    minute: "2-digit",
+  });
+};
+
+/**
+ * Instante ISO → "26/09 às 14:32" (ou "17/11/2026 às 14:32" com
+ * `withYear`) — o momento de um evento dito em frase, não em coluna de log.
+ */
+export const formatDateAtTime = (
+  iso?: string | null,
+  {
+    withYear = false,
+    timeZone,
+  }: Pick<DateTimeOptions, "withYear" | "timeZone"> = {}
+): string => {
+  if (!iso) return "—";
+  const date = new Date(iso);
+  if (Number.isNaN(date.getTime())) return "—";
+  const day = date.toLocaleDateString("pt-BR", {
+    timeZone,
+    day: "2-digit",
+    month: "2-digit",
+    ...(withYear ? { year: "numeric" } : {}),
+  });
+  return `${day} às ${formatTime(iso, { timeZone })}`;
+};
+
+/**
+ * Dia de calendário ("2026-09-21") → "segunda-feira". Lido em UTC para não
+ * escorregar um dia no fuso do navegador.
+ */
+export const formatWeekday = (isoDate: string): string =>
+  new Date(`${isoDate}T00:00:00Z`).toLocaleDateString("pt-BR", {
+    weekday: "long",
+    timeZone: "UTC",
+  });
 
 export const toIsoDate = (value: unknown): string => {
   if (value == null || value === "") return "";

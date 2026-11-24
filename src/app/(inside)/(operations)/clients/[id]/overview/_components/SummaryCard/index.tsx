@@ -18,11 +18,7 @@ export function SummaryCard({
   return (
     <Card.Root>
       <Card.Header>
-        <Card.Header.Title
-          size="sm"
-          weight="semibold"
-          className="inline-flex items-center gap-6"
-        >
+        <Card.Header.Title>
           Resumo do Cliente
           <HelpTooltip
             label="Sobre o resumo"
@@ -36,7 +32,7 @@ export function SummaryCard({
         {lastVisitLoading ? (
           <Card.Item variant="stat">
             <Card.Item.Label>Última visita</Card.Item.Label>
-            <Loading.Skeleton className="h-[14px] w-20" />
+            <Loading.Skeleton text="body" className="w-20" />
           </Card.Item>
         ) : (
           <Card.Item

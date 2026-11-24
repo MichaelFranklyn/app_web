@@ -5,7 +5,6 @@ import { CheckCircle2, Info } from "lucide-react";
 import { Alert } from "@/components/Alert";
 import { Button } from "@/components/Button";
 import { Card } from "@/components/Card";
-import { Title } from "@/components/Title";
 
 import { CompanySetupProgress } from "../../interface";
 
@@ -29,16 +28,15 @@ export function CompleteSetupCard({
 
   return (
     <Card.Root>
-      <Card.Body className="flex flex-col gap-16">
-        <div className="flex flex-col gap-3">
-          <Title variant="heading-sm">Concluir configuração</Title>
-          <Title variant="body-sm" color="muted">
-            {progress.canComplete
-              ? "Os passos obrigatórios estão feitos. Clientes e histórico podem vir agora ou depois."
-              : "Faça os passos marcados como pendentes para concluir. Clientes e histórico são opcionais."}
-          </Title>
-        </div>
-
+      <Card.Header>
+        <Card.Header.Title>Concluir configuração</Card.Header.Title>
+        <Card.Header.Description>
+          {progress.canComplete
+            ? "Os passos obrigatórios estão feitos. Clientes e histórico podem vir agora ou depois."
+            : "Faça os passos marcados como pendentes para concluir. Clientes e histórico são opcionais."}
+        </Card.Header.Description>
+      </Card.Header>
+      <Card.Body>
         {pendingEmails > 0 && (
           <Alert.Root variant="info">
             <Alert.Icon icon={Info} />

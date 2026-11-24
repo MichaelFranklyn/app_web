@@ -7,6 +7,7 @@ import { Loading } from "@/components/Loading";
 import { QueryError } from "@/components/QueryError";
 import { Stepper } from "@/components/Stepper";
 import { Title } from "@/components/Title";
+import { plural } from "@/utils/format/plural";
 import { FilePlus2 } from "lucide-react";
 
 import { HistoryOrderStatus, MatchOption } from "../../../interface";
@@ -67,7 +68,7 @@ export function StepBatch(props: Props) {
       <div className="flex flex-col gap-12">
         {intro}
         <Card.Root inset tone="transparent">
-          <Card.Body padding="sm" className="gap-6">
+          <Card.Body padding="sm">
             <Title variant="body-sm" weight="medium">
               {props.batch.factoryName}
             </Title>
@@ -75,8 +76,13 @@ export function StepBatch(props: Props) {
               {seller} · {statusLabel(props.batch.defaultStatus)}
             </Title>
             <Title variant="body-xs" color="muted">
-              {props.batch.totalFiles} PDF(s) no lote,{" "}
-              {props.batch.importedFiles} já importado(s).
+              {plural(props.batch.totalFiles, "PDF", "PDFs")} no lote,{" "}
+              {plural(
+                props.batch.importedFiles,
+                "já importado",
+                "já importados"
+              )}
+              .
             </Title>
           </Card.Body>
         </Card.Root>

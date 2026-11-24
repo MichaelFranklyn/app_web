@@ -46,7 +46,11 @@ export const tableCardsStyle = [
   "max-desktop:[&_thead_th]:shrink-0 max-desktop:[&_thead_button]:whitespace-nowrap",
   "max-desktop:[&_thead_tr]:before:shrink-0 max-desktop:[&_thead_tr]:before:whitespace-nowrap",
   "max-desktop:[&_thead_tr]:gap-8 max-desktop:[&_thead_tr]:px-16 max-desktop:[&_thead_tr]:py-12",
-  "max-desktop:[&_thead_tr]:border-b max-desktop:[&_thead_tr]:border-(--border) max-desktop:[&_thead_tr]:bg-(--bg2)",
+  // Fundo e traço no `thead`, não na `tr`: a `tr` é quem rola e leva o
+  // `edge-fade` (o `Table.Header` marca as bordas) — na `tr`, a máscara
+  // apagaria também o fundo e o traço nas pontas (24/11/2026).
+  "max-desktop:[&_thead]:border-b max-desktop:[&_thead]:border-(--border) max-desktop:[&_thead]:bg-(--bg2)",
+  "max-desktop:[&_thead_tr]:edge-fade",
   "max-desktop:[&_thead_th:not(:has(button)):not(:has(input))]:hidden",
   // Sem nada para ordenar nem selecionar, a faixa inteira sai: sobrava uma
   // tira vazia, com borda, entre o cabeçalho do card e o primeiro cartão.
@@ -94,11 +98,11 @@ export const tableCardsStyle = [
   "max-desktop:[&_td[data-label]>p]:inline",
 
   // Identidade: primeira linha, no meio.
-  "max-desktop:[&_td[data-card=title]]:[grid-column:2] max-desktop:[&_td[data-card=title]]:row-start-1 max-desktop:[&_td[data-card=title]]:text-[14px]",
+  "max-desktop:[&_td[data-card=title]]:[grid-column:2] max-desktop:[&_td[data-card=title]]:row-start-1 max-desktop:[&_td[data-card=title]]:text-body",
 
   // Valor: primeira linha, à direita — sempre à vista, é a resposta da lista.
   "max-desktop:[&_td[data-card=value]]:[grid-column:3] max-desktop:[&_td[data-card=value]]:row-start-1",
-  "max-desktop:[&_td[data-card=value]]:pl-12 max-desktop:[&_td[data-card=value]]:text-right max-desktop:[&_td[data-card=value]]:text-[14px]",
+  "max-desktop:[&_td[data-card=value]]:pl-12 max-desktop:[&_td[data-card=value]]:text-right max-desktop:[&_td[data-card=value]]:text-body",
 
   // Sempre `grid-column` inteiro, nunca `col-start-*`: o longhand herdaria o
   // fim `-1` daqui e o título (ou a seleção) invadiria a coluna do valor.
@@ -136,7 +140,7 @@ export const tableCardsStyle = [
   "max-desktop:[&_tr:has(td[data-card=amount])_td[data-card=aside]]:[grid-column:2/4]",
   "max-desktop:[&_tr:has(td[data-card=amount]):has(td[data-card=aside])_td[data-card=actions]]:[grid-column:4]",
   "max-desktop:[&_td[data-card=amount]]:[grid-column:2] max-desktop:[&_td[data-card=amount]]:row-start-2",
-  "max-desktop:[&_td[data-card=amount]]:text-left max-desktop:[&_td[data-card=amount]]:text-[14px]",
+  "max-desktop:[&_td[data-card=amount]]:text-left max-desktop:[&_td[data-card=amount]]:text-body",
   // Flex: o número vem num <Title>, que é bloco e descia para baixo do rótulo.
   "max-desktop:[&_td[data-card=amount]]:flex max-desktop:[&_td[data-card=amount]]:flex-wrap max-desktop:[&_td[data-card=amount]]:items-baseline",
   "max-desktop:[&_tr:has(td[data-card=amount])_td[data-card=title]]:[grid-column:2/-1]",

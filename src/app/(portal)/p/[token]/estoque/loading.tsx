@@ -9,7 +9,7 @@ import { STOCK_PAGE_DESCRIPTION } from "./utils";
  */
 export default function PortalStockLoading() {
   return (
-    <div className="flex flex-col gap-[20px]">
+    <div className="flex flex-col gap-20">
       <PortalPageHeader
         heading="product"
         title="Meu estoque"

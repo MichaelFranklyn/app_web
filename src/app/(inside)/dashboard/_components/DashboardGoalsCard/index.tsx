@@ -14,6 +14,7 @@ import { percentOf, percentTone } from "@/utils/goals";
 import { ArrowRight, Target } from "lucide-react";
 
 import { useDashboardGoals } from "./useDashboardGoals";
+import { formatPercentPoints } from "@/utils/format/percent";
 
 interface Props {
   /** O vendedor escolhido no topo do dashboard (nulo para o vendedor). */
@@ -34,8 +35,8 @@ export function DashboardGoalsCard({ sellerId, canSelectSeller }: Props) {
 
   return (
     <Card.Root data-tour="dashboard-goals">
-      <Card.Header className="min-h-13.75">
-        <Card.Header.Title size="sm" weight="bold">
+      <Card.Header>
+        <Card.Header.Title>
           Metas de {monthLabel(goals.month)}
         </Card.Header.Title>
         {/* Quando as ações descem (estágio column), badge e "Ver metas"
@@ -70,9 +71,9 @@ export function DashboardGoalsCard({ sellerId, canSelectSeller }: Props) {
         ) : goals.metrics.length === 0 ? (
           // Vazio compacto: sem meta não há o que acompanhar, e o cartão não
           // deve empurrar pedidos e visitas para baixo da dobra.
-          <EmptyState.Root flat className="py-[20px]">
+          <EmptyState.Root flat className="py-20">
             <EmptyState.Icon>
-              <Target size={32} />
+              <Target />
             </EmptyState.Icon>
             <EmptyState.Title>Nenhuma meta para este mês</EmptyState.Title>
             <EmptyState.Description>
@@ -86,7 +87,7 @@ export function DashboardGoalsCard({ sellerId, canSelectSeller }: Props) {
             <Title variant="micro" color="muted">
               {goals.pacePercent}% do mês já passou
               {goals.overall !== null &&
-                ` · ${goals.overall.toFixed(0)}% do combinado cumprido`}
+                ` · ${formatPercentPoints(goals.overall)} do combinado cumprido`}
             </Title>
             {goals.metrics.map((metric) => {
               const percent = percentOf(metric.values) ?? 0;
@@ -114,7 +115,7 @@ export function DashboardGoalsCard({ sellerId, canSelectSeller }: Props) {
                   <Progress.Bar
                     value={Math.min(percent, 100)}
                     color={percentTone(percent)}
-                    label={`${metric.label}: ${Math.round(percent)}% da meta`}
+                    label={`${metric.label}: ${formatPercentPoints(percent)} da meta`}
                   />
                 </div>
               );

@@ -37,13 +37,12 @@ export function PaymentMinimumBanner({ order }: Props) {
       <Alert.Icon icon={AlertTriangle} />
       <Alert.Content>
         <Alert.Title>
-          Faltam {formatMoney(missing.toFixed(2))} para a condição{" "}
+          Faltam {formatMoney(missing)} para a condição{" "}
           {order.paymentTerm?.name}
         </Alert.Title>
         <Alert.Description>
-          A fábrica pede no mínimo {formatMoney(minimum.toFixed(2))} em
-          mercadoria neste prazo, e este pedido soma{" "}
-          {formatMoney(total.toFixed(2))}. Inclua mais itens
+          A fábrica pede no mínimo {formatMoney(minimum)} em mercadoria neste
+          prazo, e este pedido soma {formatMoney(total)}. Inclua mais itens
           {alternatives.length > 0
             ? ` ou troque a condição de pagamento para ${alternatives.join(", ")}, que este valor já alcança`
             : ""}

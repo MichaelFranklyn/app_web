@@ -10,6 +10,7 @@ import { QueryError } from "@/components/QueryError";
 import { Table, TableSort } from "@/components/Table";
 import { Title } from "@/components/Title";
 import { formatMoney } from "@/utils/format/masks";
+import { plural, pluralWord } from "@/utils/format/plural";
 import { useEffect, useMemo, useState } from "react";
 import {
   CommissionFactoryRowsData,
@@ -29,7 +30,6 @@ import {
 import { ignoresMonth } from "../../help";
 import { CommissionsTable } from "../CommissionsTable";
 import { MarkReceivedModal } from "../MarkReceivedModal";
-import { plural } from "@/utils/format/plural";
 
 /** Nada marcado neste cartão: um Set só, para não recriar um por render. */
 const EMPTY_SELECTION: Set<string> = new Set();
@@ -245,7 +245,7 @@ export function FactoryCommissionGroup({
                   {plural(selectedCount, "selecionada", "selecionadas")} nesta
                   fábrica
                   {selectedElsewhere > 0
-                    ? ` — ${selectedOnPage} nesta página e ${selectedElsewhere} em ${selectedElsewhere === 1 ? "outra" : "outras"}`
+                    ? ` — ${selectedOnPage} nesta página e ${selectedElsewhere} em ${pluralWord(selectedElsewhere, "outra", "outras")}`
                     : ""}
                 </Title>
               )}

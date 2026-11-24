@@ -8,6 +8,8 @@ import { formatMoney } from "@/utils/format/masks";
 import { Building2 } from "lucide-react";
 
 import { monthLabel, type OfficeSplit, YearMonth } from "../../utils";
+import { formatPercent } from "@/utils/format/percent";
+import { ICON_SIZE } from "@/components/Icon";
 
 interface Props {
   /**
@@ -77,15 +79,15 @@ export function OfficeSplitPanel({ split, month, sellerName }: Props) {
     <Card.Root inset tone="muted">
       <Card.Body
         padding="sm"
-        className="flex flex-row flex-wrap items-center gap-x-8 gap-y-4"
+        className="flex-row flex-wrap items-center gap-x-8 gap-y-4"
       >
-        <Building2 size={14} className="shrink-0 text-(--fg-muted)" />
+        <Building2 size={ICON_SIZE.sm} className="shrink-0 text-(--fg-muted)" />
         <Title variant="body-sm" color="muted">
           Fica no escritório em {monthLabel(month)}
           {sellerName ? ` com ${sellerName}` : ""}:
         </Title>
         <Title variant="body-sm" weight="semibold" color="green">
-          {formatMoney(split.office)} ({Math.round(split.margin * 100)}%)
+          {formatMoney(split.office)} ({formatPercent(split.margin)})
         </Title>
         <Title variant="body-sm" color="muted">
           · {formatMoney(split.company)} das fábricas menos{" "}

@@ -2,7 +2,7 @@
 
 import { Card } from "@/components/Card";
 import { Grid } from "@/components/Grid";
-import { DataField, EditCardAction } from "../../../../../_shared/dataCards";
+import { EditCardAction } from "../../../../../_shared/dataCards";
 
 interface Props {
   email: string;
@@ -30,8 +30,8 @@ export function PasswordCard({ email, onChangePassword, dataTour }: Props) {
       </Card.Header>
       <Card.Body>
         <Grid.Root cols={{ base: 1, desktop: 2 }} gap={16}>
-          <DataField label="Você entra com" value={email} />
-          <DataField label="Sua senha" value="••••••••" />
+          <Card.Field label="Você entra com" value={email} />
+          <Card.Field label="Sua senha" value="••••••••" />
         </Grid.Root>
       </Card.Body>
     </Card.Root>

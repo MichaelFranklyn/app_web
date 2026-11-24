@@ -67,7 +67,7 @@ export function PartialItemsSection({
                 <Card.Root key={it.id} inset>
                   <Card.Body
                     padding="sm"
-                    className="grid grid-cols-[1fr_auto] items-center gap-8"
+                    className="grid grid-cols-[1fr_auto] items-center"
                   >
                     <div className="flex min-w-0 flex-col">
                       <Title

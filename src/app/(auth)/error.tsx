@@ -19,7 +19,7 @@ export default function AuthError({
   useReportRouteError(error);
   return (
     <RouteError
-      icon={<TriangleAlert size={36} />}
+      icon={<TriangleAlert />}
       title="Não foi possível abrir esta página"
       description="Houve um problema inesperado. Tente de novo ou volte para a tela de entrada."
     >

@@ -4,8 +4,9 @@ import { Card } from "@/components/Card";
 import { Badge } from "@/components/Badges";
 import { EmptyState } from "@/components/EmptyState";
 import { Title } from "@/components/Title";
-import { ScoreReason } from "@/utils/score";
+import { ScoreReason, formatScore } from "@/utils/score";
 import { Lightbulb, ThumbsUp } from "lucide-react";
+import { ICON_SIZE } from "@/components/Icon";
 
 /**
  * Os fatores que empurraram o score, do que mais pesou ao que menos, com a ação
@@ -17,7 +18,7 @@ export function ScoreReasonsList({ reasons }: { reasons: ScoreReason[] }) {
     return (
       <EmptyState.Root>
         <EmptyState.Icon>
-          <ThumbsUp size={32} />
+          <ThumbsUp />
         </EmptyState.Icon>
         <EmptyState.Title>Nada puxando o score</EmptyState.Title>
         <EmptyState.Description>
@@ -31,21 +32,21 @@ export function ScoreReasonsList({ reasons }: { reasons: ScoreReason[] }) {
     <div className="flex flex-col gap-10">
       {reasons.map((reason) => (
         <Card.Root key={reason.key} inset tone="muted">
-          <Card.Body padding="sm" className="gap-4">
+          <Card.Body padding="sm">
             <div className="flex items-center justify-between gap-6">
               <Badge.Root color={reason.tone} appearance="tinted">
                 <Badge.Text>{reason.label}</Badge.Text>
               </Badge.Root>
               <Title variant="micro" color="muted">
-                +{reason.contribution.toFixed(0)} pts no total
+                +{formatScore(reason.contribution)} pts no total
               </Title>
             </div>
             <Title variant="body-sm">{reason.why}</Title>
             {reason.tip && (
               <div className="flex items-start gap-6">
                 <Lightbulb
-                  size={14}
-                  className="mt-[2px] shrink-0 text-(--color-action-text)"
+                  size={ICON_SIZE.sm}
+                  className="mt-2 shrink-0 text-(--color-action-text)"
                 />
                 <Title variant="body-sm" color="secondary">
                   {reason.tip}

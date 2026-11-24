@@ -2,6 +2,7 @@
 import { Alert } from "@/components/Alert";
 
 import { Button } from "@/components/Button";
+import { plural, pluralWord } from "@/utils/format/plural";
 import { CalendarClock, ChevronRight } from "lucide-react";
 
 interface Props {
@@ -20,15 +21,15 @@ interface Props {
  * e acontece no painel lateral.
  */
 export function OverdueVisitsBanner({ count, canAnswer, onOpen }: Props) {
-  const label = count === 1 ? "1 visita" : `${count} visitas`;
+  const label = plural(count, "visita", "visitas");
 
   return (
     <Alert.Root variant="warning" className="flex-wrap">
       <Alert.Icon icon={CalendarClock} />
       <Alert.Content className="min-w-[200px]">
         <Alert.Title>
-          {label} de dias que já passaram {count === 1 ? "está" : "estão"} sem
-          resposta
+          {label} de dias que já passaram {pluralWord(count, "está", "estão")}{" "}
+          sem resposta
         </Alert.Title>
         {/* Quem vende sabe o que fazer pelo botão; a explicação longa mora no
             painel. Ao gestor a faixa diz por que ele só acompanha. */}

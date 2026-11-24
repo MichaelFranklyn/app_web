@@ -8,6 +8,7 @@ import { Modal } from "@/components/Modal";
 import { Title } from "@/components/Title";
 import { useAsyncAction } from "@/hooks/useAsyncAction";
 import { formatMoney } from "@/utils/format/masks";
+import { plural } from "@/utils/format/plural";
 import { useMutation, useQuery } from "@apollo/client/react";
 import { ArrowRight } from "lucide-react";
 
@@ -17,6 +18,7 @@ import {
   APPLY_COMMISSION_RATE_MUTATION,
   APPLY_COMMISSION_RATE_PREVIEW_QUERY,
 } from "./gql";
+import { ICON_SIZE } from "@/components/Icon";
 
 interface RateChange {
   /** Decimal do GraphQL: chega como string. */
@@ -108,9 +110,9 @@ export function ApplyCommissionRateModal() {
         <Modal.Body className="flex flex-col gap-16 py-24">
           {loading || !change ? (
             <div className="flex flex-col gap-8">
-              <Loading.Skeleton className="h-[16px] w-48" />
+              <Loading.Skeleton text="heading-sm" className="w-48" />
               <Loading.Skeleton className="h-[40px] w-full" />
-              <Loading.Skeleton className="h-[12px] w-40" />
+              <Loading.Skeleton text="body-sm" className="w-40" />
             </div>
           ) : nothingToDo ? (
             <Title variant="body-sm">
@@ -127,17 +129,20 @@ export function ApplyCommissionRateModal() {
               </Title>
 
               <Card.Root inset tone="muted">
-                <Card.Body padding="compact" className="flex flex-col gap-12">
+                <Card.Body padding="sm">
                   <Title variant="label">
-                    {change.installments} parcela(s) em {change.orders}{" "}
-                    pedido(s)
+                    {plural(change.installments, "parcela", "parcelas")} em{" "}
+                    {plural(change.orders, "pedido", "pedidos")}
                   </Title>
 
                   <div className="flex flex-wrap items-center gap-12">
                     <Title variant="heading-sm" color="muted">
                       {formatMoney(change.currentTotal)}
                     </Title>
-                    <ArrowRight size={16} className="text-(--fg-muted)" />
+                    <ArrowRight
+                      size={ICON_SIZE.md}
+                      className="text-(--fg-muted)"
+                    />
                     <Title variant="heading-sm" weight="bold">
                       {formatMoney(change.newTotal)}
                     </Title>
@@ -157,7 +162,11 @@ export function ApplyCommissionRateModal() {
 
               {change.skipped > 0 && (
                 <Title variant="body-sm" color="muted">
-                  {change.skipped} parcela(s) ficam como estão: a comissão delas
+                  {plural(
+                    change.skipped,
+                    "parcela fica como está: a comissão dela",
+                    "parcelas ficam como estão: a comissão delas"
+                  )}{" "}
                   já foi acertada — recebida da fábrica, conferida contra a
                   planilha, repassada ao vendedor ou descontada num estorno.
                   Mudar o valor agora faria a conferência de ontem não bater.
@@ -191,7 +200,9 @@ export function ApplyCommissionRateModal() {
               onClick={handleApply}
             >
               <Button.Title>
-                {change ? `Aplicar a ${change.orders} pedido(s)` : "Aplicar"}
+                {change
+                  ? `Aplicar a ${plural(change.orders, "pedido", "pedidos")}`
+                  : "Aplicar"}
               </Button.Title>
             </Button.Root>
           )}

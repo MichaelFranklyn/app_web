@@ -1,12 +1,12 @@
 "use client";
 
 import { Alert } from "@/components/Alert";
-import { Grid } from "@/components/Grid";
 import { Progress } from "@/components/Progress";
 import { Card } from "@/components/Card";
 import { Stepper } from "@/components/Stepper";
 import { Title } from "@/components/Title";
 import { factoryName } from "@/utils/company";
+import { plural } from "@/utils/format/plural";
 import { CheckCircle2 } from "lucide-react";
 
 import { HistoryResult, RowProblem } from "../../interface";
@@ -71,12 +71,17 @@ export function StepReview({
           <Alert.Icon icon={CheckCircle2} />
           <Alert.Content>
             <Alert.Description>
-              {result.ordersCreated} pedido(s) importado(s).
+              {plural(
+                result.ordersCreated,
+                "pedido importado",
+                "pedidos importados"
+              )}
+              .
             </Alert.Description>
           </Alert.Content>
         </Alert.Root>
       )}
-      <Grid.Root cols={{ base: 2, desktop: 4 }} gap={12}>
+      <Card.Kpi.Group>
         <Card.Kpi>
           <Card.Kpi.Label>
             {done ? "Pedidos importados" : "Pedidos que entram"}
@@ -107,23 +112,26 @@ export function StepReview({
           <Card.Kpi.Label>Produtos novos</Card.Kpi.Label>
           <Card.Kpi.Value>{result.productsCreated}</Card.Kpi.Value>
         </Card.Kpi>
-      </Grid.Root>
+      </Card.Kpi.Group>
       <ReviewList
-        title={`${result.missingClients.length} cliente(s) fora da carteira`}
+        title={`${plural(result.missingClients.length, "cliente", "clientes")} fora da carteira`}
         hint='Os pedidos destes clientes ficam de fora. Volte e ligue "Criar os clientes que faltam", ou importe os clientes em Clientes → Importar e importe de novo: o que já entrou não duplica.'
         items={result.missingClients.map(
-          (c) => `${c.document} · ${c.rows} item(ns)`
+          (c) => `${c.document} · ${plural(c.rows, "item", "itens")}`
         )}
       />
       <ReviewList
-        title={`${result.missingProducts.length} produto(s) fora do catálogo`}
+        title={`${plural(result.missingProducts.length, "produto", "produtos")} fora do catálogo`}
         hint='Estes itens ficam de fora (o resto do pedido entra). Volte e ligue "Criar os produtos que faltam", ou importe a tabela da fábrica antes.'
         items={result.missingProducts.map(
           (p) =>
-            `${[p.code, p.name].filter(Boolean).join(" — ")} (${factoryName(p.factory)}) · ${p.rows} item(ns)`
+            `${[p.code, p.name].filter(Boolean).join(" — ")} (${factoryName(p.factory)}) · ${plural(p.rows, "item", "itens")}`
         )}
       />
-      <ReviewList title={`${problems.length} problema(s)`} items={problems} />
+      <ReviewList
+        title={plural(problems.length, "problema", "problemas")}
+        items={problems}
+      />
     </div>
   );
 }

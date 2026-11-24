@@ -378,3 +378,17 @@ export const explainScore = (dims: ScoreDimensions): ScoreExplanation => {
 
   return { total, level: scoreLevel(total), reasons };
 };
+
+/**
+ * O score como a tela mostra: inteiro, sem casa decimal ("73"). Vazio ou
+ * inválido vira o `fallback`. Use em vez de `.toFixed(0)` espalhado — o total,
+ * a dimensão e a contribuição de cada motivo saem todos pelo mesmo lugar.
+ */
+export const formatScore = (
+  value: number | string | null | undefined,
+  fallback = "—"
+): string => {
+  if (value === null || value === undefined || value === "") return fallback;
+  const n = Number(value);
+  return Number.isFinite(n) ? String(Math.round(n)) : fallback;
+};

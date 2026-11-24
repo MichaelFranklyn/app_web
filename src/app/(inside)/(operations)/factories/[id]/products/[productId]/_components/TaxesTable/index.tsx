@@ -13,9 +13,9 @@ import { formatDateDMY } from "@/utils/format/masks";
 import { Percent } from "lucide-react";
 import { useMemo } from "react";
 import { AddTaxModal } from "./AddTaxModal";
-import { EditTaxModal } from "./EditTaxModal";
 import { PRODUCT_TAXES_QUERY } from "./gql";
-import { RemoveTaxModal } from "./RemoveTaxModal";
+import { TaxRowActions } from "./TaxRowActions";
+import { formatPercentPoints } from "@/utils/format/percent";
 
 interface ProductTax {
   id: string;
@@ -27,7 +27,8 @@ interface ProductTax {
   };
 }
 
-const formatRate = (rate: string): string => `${Number(rate).toFixed(2)}%`;
+const formatRate = (rate: string): string =>
+  formatPercentPoints(Number(rate), 2);
 
 interface ProductTaxesData {
   product_taxes: {
@@ -75,7 +76,7 @@ export function TaxesTable({ productId, onChanged }: Props) {
   return (
     <Table.Root>
       <Table.CardHead>
-        <Table.CardHead.Title className="inline-flex items-center gap-6">
+        <Table.CardHead.Title>
           Impostos incidentes
           <HelpTooltip
             label="Como o imposto afeta os preços?"
@@ -102,11 +103,11 @@ export function TaxesTable({ productId, onChanged }: Props) {
         </Table.CardHead.Actions>
       </Table.CardHead>
 
-      <Table.Table>
+      <Table.Table cards>
         <Table.Header>
           <Table.Row>
             <Table.Head title={PRODUCT_TAX_COLUMN_HELP.tax}>Imposto</Table.Head>
-            <Table.Head title={PRODUCT_TAX_COLUMN_HELP.rate}>
+            <Table.Head align="right" title={PRODUCT_TAX_COLUMN_HELP.rate}>
               Alíquota
             </Table.Head>
             <Table.Head title={PRODUCT_TAX_COLUMN_HELP.updatedAt}>
@@ -130,7 +131,7 @@ export function TaxesTable({ productId, onChanged }: Props) {
               <Table.Cell colSpan={4}>
                 <EmptyState.Root flat>
                   <EmptyState.Icon>
-                    <Percent size={32} />
+                    <Percent />
                   </EmptyState.Icon>
                   <EmptyState.Title>Nenhum imposto vinculado</EmptyState.Title>
                   <EmptyState.Description>
@@ -143,25 +144,27 @@ export function TaxesTable({ productId, onChanged }: Props) {
           ) : (
             taxes.map((tax) => (
               <Table.Row key={tax.id}>
-                <Table.Cell variant="strong">{tax.taxRule.name}</Table.Cell>
-                <Table.Cell>
+                <Table.Cell card="title" variant="strong">
+                  {tax.taxRule.name}
+                </Table.Cell>
+                <Table.Cell card="value" align="right">
                   <Title variant="value">{formatRate(tax.rate)}</Title>
                 </Table.Cell>
-                <Table.Cell variant="dim">
+                <Table.Cell label="Última atualização" variant="dim">
                   {formatDateDMY(tax.updatedAt)}
                 </Table.Cell>
-                <Table.Cell>
-                  <div className="flex items-center justify-end gap-4">
-                    <EditTaxModal tax={tax} onChanged={handleChanged} />
-                    <RemoveTaxModal
-                      productTaxId={tax.id}
-                      taxName={tax.taxRule.name}
-                      onRemoved={handleChanged}
-                      onRemoveOptimistic={optimistic.removeOptimistic}
-                      onCommit={optimistic.commit}
-                      onRollback={optimistic.rollback}
-                    />
-                  </div>
+                <Table.Cell card="actions">
+                  <TaxRowActions
+                    edit={{ tax, onChanged: handleChanged }}
+                    remove={{
+                      productTaxId: tax.id,
+                      taxName: tax.taxRule.name,
+                      onRemoved: handleChanged,
+                      onRemoveOptimistic: optimistic.removeOptimistic,
+                      onCommit: optimistic.commit,
+                      onRollback: optimistic.rollback,
+                    }}
+                  />
                 </Table.Cell>
               </Table.Row>
             ))

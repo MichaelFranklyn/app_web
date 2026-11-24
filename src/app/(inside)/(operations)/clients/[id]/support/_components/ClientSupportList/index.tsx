@@ -47,7 +47,7 @@ export function ClientSupportList({ cases, help, action }: Props) {
   return (
     <Table.Root>
       <Table.CardHead>
-        <Table.CardHead.Title className="inline-flex flex-wrap items-center gap-6">
+        <Table.CardHead.Title>
           Reclamações deste cliente
           <HelpTooltip label="O que entra aqui?" content={help} />
           {openCount > 0 && (

@@ -27,6 +27,7 @@ import { FactoryOrder } from "./gql";
 import { useFactoryOrdersTable } from "./useFactoryOrdersTable";
 import { formatOrderNumber } from "@/utils/orderNumber";
 import { visibleCommission } from "@/utils/commission";
+import { plural } from "@/utils/format/plural";
 
 interface Props {
   factoryId: string;
@@ -46,7 +47,7 @@ export function OrdersTab({ factoryId }: Props) {
   return (
     <Table.Root sort={table.sort} data-tour="factory-orders-table">
       <Table.CardHead>
-        <Table.CardHead.Title className="inline-flex items-center gap-6">
+        <Table.CardHead.Title>
           Pedidos desta fábrica
           <HelpTooltip
             label="Como funcionam os pedidos aqui?"
@@ -159,7 +160,7 @@ export function OrdersTab({ factoryId }: Props) {
               <Table.Cell colSpan={8}>
                 <EmptyState.Root flat>
                   <EmptyState.Icon>
-                    <Receipt size={32} />
+                    <Receipt />
                   </EmptyState.Icon>
                   <EmptyState.Title>Nenhum pedido encontrado</EmptyState.Title>
                   <EmptyState.Description>
@@ -284,7 +285,7 @@ export function OrdersTab({ factoryId }: Props) {
             <Loading.Spinner size="sm" className="mr-6 inline-block" />
           )}
           {table.totalItems > 0
-            ? `${table.totalItems} pedido(s) · página ${table.currentPage} de ${table.totalPages}`
+            ? `${plural(table.totalItems, "pedido", "pedidos")} · página ${table.currentPage} de ${table.totalPages}`
             : "Nenhum pedido encontrado"}
         </Table.Footer.Info>
 

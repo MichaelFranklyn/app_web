@@ -5,6 +5,7 @@ import { Input } from "@/components/Input";
 import { Stepper } from "@/components/Stepper";
 import { Title } from "@/components/Title";
 import { ColumnChoice } from "@/utils/import/columns";
+import { plural } from "@/utils/format/plural";
 
 import { hasConfiguredTaxes } from "./build";
 import { TaxColumn } from "./interface";
@@ -64,9 +65,7 @@ export function StepTaxes({
 
       <Card.Root>
         <Card.Header>
-          <Card.Header.Title size="sm" weight="bold">
-            IPI
-          </Card.Header.Title>
+          <Card.Header.Title>IPI</Card.Header.Title>
           <Card.Header.Actions>
             <Badge.Root
               color={ipiChoice.kind !== "none" ? "green" : "neutral"}
@@ -78,7 +77,7 @@ export function StepTaxes({
             </Badge.Root>
           </Card.Header.Actions>
         </Card.Header>
-        <Card.Body padding="compact" className="flex flex-col gap-12">
+        <Card.Body padding="compact">
           {ipiInOrder && (
             <Card.Root inset>
               <Card.Body padding="sm">
@@ -104,7 +103,7 @@ export function StepTaxes({
           />
           {ipiChoice.kind !== "none" && (
             <Card.Root inset>
-              <Card.Body padding="sm" className="flex flex-col gap-8">
+              <Card.Body padding="sm">
                 <Title variant="caption" color="muted">
                   O IPI da planilha está em:
                 </Title>
@@ -128,9 +127,7 @@ export function StepTaxes({
 
       <Card.Root>
         <Card.Header>
-          <Card.Header.Title size="sm" weight="bold">
-            Impostos de alíquota simples
-          </Card.Header.Title>
+          <Card.Header.Title>Impostos de alíquota simples</Card.Header.Title>
           <Card.Header.Actions>
             <Badge.Root
               color={validTaxesCount > 0 ? "green" : "neutral"}
@@ -138,13 +135,13 @@ export function StepTaxes({
             >
               <Badge.Text>
                 {validTaxesCount > 0
-                  ? `${validTaxesCount} mapeado(s)`
+                  ? plural(validTaxesCount, "mapeado", "mapeados")
                   : "Nenhum"}
               </Badge.Text>
             </Badge.Root>
           </Card.Header.Actions>
         </Card.Header>
-        <Card.Body padding="compact" className="flex flex-col gap-12">
+        <Card.Body padding="compact">
           <Title variant="caption" color="muted">
             Percentuais somados direto por cima do preço (ex.: ICMS, FECP). Cada
             coluna mapeada vira um imposto com o nome que você der.
@@ -159,7 +156,7 @@ export function StepTaxes({
 
       <Card.Root>
         <Card.Header>
-          <Card.Header.Title size="sm" weight="bold">
+          <Card.Header.Title>
             ST por MVA (substituição tributária)
           </Card.Header.Title>
           <Card.Header.Actions>
@@ -183,7 +180,7 @@ export function StepTaxes({
             </Badge.Root>
           </Card.Header.Actions>
         </Card.Header>
-        <Card.Body padding="compact" className="flex flex-col gap-12">
+        <Card.Body padding="compact">
           <Title variant="caption" color="muted">
             ST calculado por margem, com o IPI na base: preço × (1+IPI) ×
             (1+MVA) × alíquota interna − preço × crédito de ICMS. Mapeie os três

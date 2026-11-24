@@ -7,6 +7,7 @@ import { UrlBox } from "@/components/UrlBox";
 import { useToast } from "@/components/Toast";
 import { CheckCircle2, Copy, KeyRound } from "lucide-react";
 import { ProvisionCompanyPayload } from "./interface";
+import { ICON_SIZE } from "@/components/Icon";
 
 interface Props {
   data: ProvisionCompanyPayload;
@@ -14,7 +15,7 @@ interface Props {
 
 function Field({ label, value }: { label: string; value: string }) {
   return (
-    <div className="flex flex-col gap-[2px]">
+    <div className="flex flex-col gap-2">
       <Title variant="micro" color="muted">
         {label}
       </Title>
@@ -60,7 +61,10 @@ export function FirstAccessResult({ data }: Props) {
   return (
     <div className="flex flex-col gap-20">
       <div className="flex items-center gap-8">
-        <CheckCircle2 size={20} className="text-(--color-status-success)" />
+        <CheckCircle2
+          size={ICON_SIZE.lg}
+          className="text-(--color-status-success)"
+        />
         <Title variant="body" weight="semibold" color="green">
           {company.nomeFantasia || company.razaoSocial} está no ar
         </Title>
@@ -77,7 +81,10 @@ export function FirstAccessResult({ data }: Props) {
       {firstAccessLink ? (
         <div className="flex flex-col gap-8">
           <div className="flex items-center gap-8">
-            <KeyRound size={16} className="text-(--color-text-muted)" />
+            <KeyRound
+              size={ICON_SIZE.md}
+              className="text-(--color-text-muted)"
+            />
             <Title variant="caption" weight="semibold">
               Link de primeiro acesso
             </Title>
@@ -106,7 +113,10 @@ export function FirstAccessResult({ data }: Props) {
       ) : (
         <div className="flex flex-col gap-8">
           <div className="flex items-center gap-8">
-            <KeyRound size={16} className="text-(--color-text-muted)" />
+            <KeyRound
+              size={ICON_SIZE.md}
+              className="text-(--color-text-muted)"
+            />
             <Title variant="caption" weight="semibold">
               Senha inicial definida
             </Title>

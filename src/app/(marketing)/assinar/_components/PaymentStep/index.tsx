@@ -5,6 +5,7 @@ import { Button } from "@/components/Button";
 import { Title } from "@/components/Title";
 import { formatMoney } from "@/utils/format/masks";
 import { Lock } from "lucide-react";
+import { ICON_SIZE } from "@/components/Icon";
 
 /**
  * Segundo passo: confirmar e seguir para a página de pagamento.
@@ -52,7 +53,10 @@ export function PaymentStep({
       ) : null}
 
       <div className="flex items-center gap-8">
-        <Lock size={14} className="shrink-0 text-(--color-text-muted)" />
+        <Lock
+          size={ICON_SIZE.sm}
+          className="shrink-0 text-(--color-text-muted)"
+        />
 
         <Title variant="body-xs" color="muted">
           Pagamento em página segura. Os dados do cartão não passam pelo Itinus.

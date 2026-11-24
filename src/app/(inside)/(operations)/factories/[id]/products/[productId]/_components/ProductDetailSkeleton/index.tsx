@@ -14,14 +14,17 @@ export function ProductDetailSkeleton() {
       {/* Cabeçalho — espelha ProductDetailHeader (breadcrumb + PanelHeader). */}
       <div className="flex flex-col gap-8">
         <div className="flex items-center gap-6">
-          <Loading.Skeleton className="h-[12px] w-16" />
-          <Loading.Skeleton className="h-[12px] w-28" />
+          <Loading.Skeleton text="body-sm" className="w-16" />
+          <Loading.Skeleton text="body-sm" className="w-28" />
         </div>
         <PanelHeader.Root>
           <PanelHeader.Top>
             <PanelHeader.Left>
               <Loading.Skeleton className="h-[22px] w-64" />
-              <Loading.Skeleton className="mt-[6px] h-[12px] w-96 max-w-full" />
+              <Loading.Skeleton
+                text="body-sm"
+                className="mt-6 w-96 max-w-full"
+              />
               <PanelHeader.Actions>
                 <Loading.Skeleton shape="xs" className="h-[22px] w-16" />
                 <Loading.Skeleton className="h-[36px] w-28" />
@@ -38,7 +41,7 @@ export function ProductDetailSkeleton() {
         <Grid.Item span={{ base: 1, desktop: 2 }} className="min-w-0">
           <Table.Root>
             <Table.CardHead>
-              <Loading.Skeleton className="h-[16px] w-40" />
+              <Loading.Skeleton text="heading-sm" className="w-40" />
               <Table.CardHead.Actions>
                 <Loading.Skeleton className="h-[34px] w-70" />
                 <Loading.Skeleton className="h-[34px] w-32" />
@@ -50,7 +53,7 @@ export function ProductDetailSkeleton() {
               </Table.Body>
             </Table.Table>
             <Table.Footer>
-              <Loading.Skeleton className="h-[12px] w-40" />
+              <Loading.Skeleton text="body-sm" className="w-40" />
               <Loading.Skeleton className="h-[28px] w-48" />
             </Table.Footer>
           </Table.Root>
@@ -63,7 +66,7 @@ export function ProductDetailSkeleton() {
         >
           <Card.Root>
             <Card.Header>
-              <Loading.Skeleton className="h-[14px] w-28" />
+              <Loading.Skeleton text="body" className="w-28" />
             </Card.Header>
             <Card.Body padding="compact">
               <div className="flex flex-col gap-12">
@@ -72,8 +75,8 @@ export function ProductDetailSkeleton() {
                     key={i}
                     className="flex items-center justify-between gap-8"
                   >
-                    <Loading.Skeleton className="h-[12px] w-20" />
-                    <Loading.Skeleton className="h-[12px] w-16" />
+                    <Loading.Skeleton text="body-sm" className="w-20" />
+                    <Loading.Skeleton text="body-sm" className="w-16" />
                   </div>
                 ))}
               </div>
@@ -82,7 +85,7 @@ export function ProductDetailSkeleton() {
 
           <Table.Root>
             <Table.CardHead>
-              <Loading.Skeleton className="h-[16px] w-36" />
+              <Loading.Skeleton text="heading-sm" className="w-36" />
               <Table.CardHead.Actions>
                 <Loading.Skeleton className="h-[34px] w-32" />
               </Table.CardHead.Actions>

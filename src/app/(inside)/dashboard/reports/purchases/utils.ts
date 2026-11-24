@@ -1,7 +1,7 @@
 import { plural } from "@/utils/format/plural";
 import { orderStatusLabel } from "@/app/(inside)/_shared/orderStatus";
 import { SelectOption } from "@/components/Input";
-import { formatDateDMY, formatMoney } from "@/utils/format/masks";
+import { formatDateDMY, formatMoney, formatRatio } from "@/utils/format/masks";
 import { SortLabel } from "@/utils/pdf/context";
 import type { EChartsCoreOption } from "echarts/core";
 
@@ -54,9 +54,7 @@ export const cadenceLabel = (row: PurchaseRow): string =>
 
 /** "1,8×" — o quanto o par passou do que costuma levar entre compras. */
 export const riskLabel = (row: PurchaseRow): string =>
-  row.riskRatio === null
-    ? "—"
-    : `${row.riskRatio.toFixed(1).replace(".", ",")}×`;
+  formatRatio(row.riskRatio);
 
 /**
  * O número do pedido: o prefixo do id, os mesmos 8 caracteres que a tela do

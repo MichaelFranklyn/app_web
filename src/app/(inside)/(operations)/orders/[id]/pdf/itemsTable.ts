@@ -1,4 +1,8 @@
-import { formatMoney, formatNumber } from "@/utils/format/masks";
+import {
+  formatMoney,
+  formatNumber,
+  formatQuantity,
+} from "@/utils/format/masks";
 import { contentBottom } from "@/utils/pdf/footer";
 import type { LoadedImage } from "@/utils/media";
 import { OrderItem } from "../interface";
@@ -31,8 +35,7 @@ const NAME_LINE_H = 11;
 const PHOTO_COL = PHOTO_SIZE + 10;
 const HEAD_H = 22;
 
-const formatQty = (value: string) =>
-  Number(value || 0).toLocaleString("pt-BR", { maximumFractionDigits: 2 });
+const formatQty = (value: string) => formatQuantity(value || 0);
 
 interface Columns {
   photo: number;

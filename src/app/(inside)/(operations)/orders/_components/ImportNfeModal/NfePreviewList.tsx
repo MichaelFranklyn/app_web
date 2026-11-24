@@ -37,7 +37,7 @@ export function NfePreviewList({ rows, selected, onToggle }: Props) {
             <Table.Head>Nota</Table.Head>
             <Table.Head>Cliente</Table.Head>
             <Table.Head>Fábrica</Table.Head>
-            <Table.Head>Valor</Table.Head>
+            <Table.Head align="right">Valor</Table.Head>
             <Table.Head>Situação</Table.Head>
           </Table.Row>
         </Table.Header>
@@ -70,7 +70,11 @@ export function NfePreviewList({ rows, selected, onToggle }: Props) {
                 <Table.Cell variant="dim" className="whitespace-nowrap">
                   {row.emitterName ?? "—"}
                 </Table.Cell>
-                <Table.Cell variant="dim" className="whitespace-nowrap">
+                <Table.Cell
+                  align="right"
+                  variant="dim"
+                  className="whitespace-nowrap"
+                >
                   {row.netProductsTotal
                     ? formatMoney(row.netProductsTotal)
                     : "—"}

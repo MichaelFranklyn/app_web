@@ -53,7 +53,7 @@ export function OfficeSwitcher() {
           loading={!!enteringId}
           // No celular, colado ao hambúrguer: o padding do ghost somava
           // 12px ao vão entre o menu e o escritório.
-          className="max-desktop:px-[6px]"
+          className="max-desktop:px-6"
         >
           <CompanyBadge />
           {invitations.length > 0 && (

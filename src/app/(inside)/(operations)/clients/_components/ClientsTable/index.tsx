@@ -7,7 +7,7 @@ import { Loading } from "@/components/Loading";
 import { Pagination } from "@/components/Pagination";
 import { Table } from "@/components/Table";
 import { formatDate } from "@/utils/format/date";
-import { scoreBarColor } from "@/utils/score";
+import { scoreBarColor, formatScore } from "@/utils/score";
 import { Users } from "lucide-react";
 import { CLIENT_COLUMN_HELP } from "../../help";
 import { formatCity } from "../../utils";
@@ -122,7 +122,7 @@ export function ClientsTable({
               <Table.Cell colSpan={columnCount}>
                 <EmptyState.Root flat>
                   <EmptyState.Icon>
-                    <Users size={32} />
+                    <Users />
                   </EmptyState.Icon>
                   <EmptyState.Title>
                     {isNarrowed
@@ -194,9 +194,7 @@ export function ClientsTable({
                     color={scoreBarColor(
                       Number(node.companyClient.visitScoreTotal)
                     )}
-                    label={Number(node.companyClient.visitScoreTotal).toFixed(
-                      0
-                    )}
+                    label={formatScore(node.companyClient.visitScoreTotal)}
                   >
                     <ClientStatusTags
                       client={node}

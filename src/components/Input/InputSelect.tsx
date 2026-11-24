@@ -21,6 +21,7 @@ import {
 } from "./styles";
 import { useAnchoredDropdown } from "@/hooks/useAnchoredDropdown";
 import { useSelectState } from "./useSelectState";
+import { ICON_SIZE } from "@/components/Icon";
 
 export type SelectOption = {
   value: string;
@@ -285,7 +286,7 @@ const InputSelectControl = ({
     inputSizePadding[size],
     inputSizeText[size],
     !inGroup && inputSizeMinHeight[size],
-    "flex items-center gap-[8px]",
+    "flex items-center gap-8",
     searchable ? "cursor-text" : "cursor-pointer",
     // Travado tem de PARECER travado: o clique já era ignorado, mas o campo
     // continuava com a mesma cara de um editável, e quem tentava escolher não
@@ -310,16 +311,16 @@ const InputSelectControl = ({
               key={option.value}
               color="amber"
               appearance="solid"
-              className="h-[26px] shrink-0 gap-1 py-0 pr-[6px] pl-[10px]"
+              className="h-[26px] shrink-0 gap-1 py-0 pr-6 pl-10"
             >
               <Badge.Text className="text-body-sm max-w-[220px] truncate font-medium">
                 {option.label}
               </Badge.Text>
               <Badge.Icon
                 onClick={(e) => select.handleRemoveMultiOption(option, e)}
-                className="ml-[2px] flex size-[18px] cursor-pointer items-center justify-center rounded-full transition-colors hover:bg-black/20"
+                className="ml-2 flex size-[18px] cursor-pointer items-center justify-center rounded-full transition-colors hover:bg-black/20"
               >
-                <X size={14} strokeWidth={2.5} />
+                <X size={ICON_SIZE.sm} strokeWidth={2.5} />
               </Badge.Icon>
             </Badge>
           ))}
@@ -372,7 +373,7 @@ const InputSelectControl = ({
           onClick={select.handleClear}
           disabled={disabled}
         >
-          <X size={14} strokeWidth={3} />
+          <X size={ICON_SIZE.sm} strokeWidth={3} />
         </button>
       )}
 
@@ -387,7 +388,7 @@ const InputSelectControl = ({
           }
         }}
       >
-        <ChevronDown size={14} strokeWidth={3} />
+        <ChevronDown size={ICON_SIZE.sm} strokeWidth={3} />
       </div>
 
       {open && dropdownPos && typeof window !== "undefined" && (

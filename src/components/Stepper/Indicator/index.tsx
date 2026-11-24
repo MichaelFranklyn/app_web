@@ -108,7 +108,7 @@ export const Indicator = ({
           onClick={handleClick}
           disabled={!isInteractive}
           tabIndex={-1}
-          className={cn(btnClass, "pt-[2px]", !isLast && "pb-6")}
+          className={cn(btnClass, "pt-2", !isLast && "pb-6")}
         >
           {text}
         </button>

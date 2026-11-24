@@ -19,7 +19,7 @@ function CardSkeleton({
   return (
     <Card.Root>
       <Card.Header>
-        <Loading.Skeleton className="h-[14px] w-32" />
+        <Loading.Skeleton text="body" className="w-32" />
         {hasAction && (
           <Card.Header.Actions>
             <Loading.Skeleton className="h-[28px] w-20" />
@@ -27,9 +27,9 @@ function CardSkeleton({
         )}
       </Card.Header>
       <Card.Body>
-        <div className="flex flex-col gap-[10px]">
+        <div className="flex flex-col gap-10">
           {Array.from({ length: lines }).map((_, i) => (
-            <Loading.Skeleton key={i} className="h-[12px] w-full" />
+            <Loading.Skeleton text="body-sm" key={i} className="w-full" />
           ))}
         </div>
       </Card.Body>
@@ -52,20 +52,20 @@ export function ClientDetailSkeleton() {
       <div className="flex min-w-0 flex-1 flex-col gap-16">
         <Card.Root>
           <Card.Header>
-            <Loading.Skeleton className="h-[14px] w-24" />
+            <Loading.Skeleton text="body" className="w-24" />
             <Card.Header.Actions>
               <Loading.Skeleton className="h-[28px] w-20" />
             </Card.Header.Actions>
           </Card.Header>
           <Card.Body>
-            <Loading.Skeleton className="mb-12 h-[12px] w-3/4" />
+            <Loading.Skeleton text="body-sm" className="mb-12 w-3/4" />
             <Loading.Skeleton shape="lg" className="h-50 w-full" />
           </Card.Body>
         </Card.Root>
 
         <Table.Root>
           <Table.CardHead>
-            <Loading.Skeleton className="h-[14px] w-40" />
+            <Loading.Skeleton text="body" className="w-40" />
             <Table.CardHead.Actions>
               <Loading.Skeleton className="h-[28px] w-24" />
             </Table.CardHead.Actions>

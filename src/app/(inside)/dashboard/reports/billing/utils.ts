@@ -11,6 +11,7 @@ import { SortLabel } from "@/utils/pdf/context";
 
 import { BillingRow, BillingSituation } from "./interface";
 import { visibleCommission } from "@/utils/commission";
+import { plural } from "@/utils/format/plural";
 
 /** Rótulo da situação da parcela, do jeito que a cobrança fala. */
 export const BILLING_SITUATION_LABEL: Record<BillingSituation, string> = {
@@ -49,7 +50,7 @@ export const sumBy = (
  * traço, na tabela e no PDF, parecia dado que faltou). */
 export const overdueLabel = (days: number): string => {
   if (days <= 0) return "Em dia";
-  return days === 1 ? "1 dia" : `${days} dias`;
+  return plural(days, "dia", "dias");
 };
 
 /** Vencimento por extenso; "sem data" quando o prazo não gerou data. */

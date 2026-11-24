@@ -1,9 +1,7 @@
 "use client";
 
-import { Button } from "@/components/Button";
 import { ConfirmModal } from "@/components/ConfirmModal";
 import { useMutation } from "@apollo/client/react";
-import { Trash2 } from "lucide-react";
 import { REMOVE_TAX_FROM_PRODUCT_MUTATION } from "../gql";
 
 interface RemoveTaxResponse {
@@ -11,6 +9,9 @@ interface RemoveTaxResponse {
 }
 
 interface Props {
+  /** Controlado: o gatilho é o "⋯" da linha (RowActions). */
+  open: boolean;
+  onOpenChange: (open: boolean) => void;
   productTaxId: string;
   taxName: string;
   onRemoved: () => void;
@@ -20,6 +21,8 @@ interface Props {
 }
 
 export function RemoveTaxModal({
+  open,
+  onOpenChange,
   productTaxId,
   taxName,
   onRemoved,
@@ -33,17 +36,8 @@ export function RemoveTaxModal({
 
   return (
     <ConfirmModal
-      trigger={
-        <Button.Root
-          appearance="ghost"
-          color="red"
-          size="sm"
-          isIconOnly
-          label="Remover imposto"
-        >
-          <Button.Icon icon={Trash2} />
-        </Button.Root>
-      }
+      open={open}
+      onOpenChange={onOpenChange}
       title="Remover imposto"
       description={`Remover o imposto "${taxName}" deste produto?`}
       confirmLabel="Remover"

@@ -7,7 +7,7 @@ export const Footer = React.forwardRef<
   React.HTMLAttributes<HTMLElement>
 >(({ className, children, ...props }, ref) => (
   <footer ref={ref} className="border-t border-(--border)" {...props}>
-    <div className={cn(PUBLIC_PAGE_CONTAINER, "py-[24px]", className)}>
+    <div className={cn(PUBLIC_PAGE_CONTAINER, "py-24", className)}>
       {children}
     </div>
   </footer>

@@ -1,5 +1,6 @@
 "use client";
 
+import { cn } from "@/lib/utils";
 import { Button } from "@/components/Button";
 import { Card } from "@/components/Card";
 import { Loading } from "@/components/Loading";
@@ -26,29 +27,39 @@ function RowSkeleton({ name, others }: (typeof ROWS)[number]) {
         {/* A caixinha (16px) no meio da faixa de 24px e da linha do nome. */}
         <Loading.Skeleton
           shape="xs"
-          className="desktop:mt-[8.5px] mx-[4px] mt-[2.5px] h-[16px] w-[16px] shrink-0"
+          className="desktop:mt-[8.5px] mx-4 mt-[2.5px] h-[16px] w-[16px] shrink-0"
         />
         <div className="flex min-w-0 flex-1 flex-col gap-4">
           <div className="flex flex-wrap items-start gap-6">
             <Loading.Skeleton
-              className={`desktop:mt-[10px] mt-[4px] h-[13px] max-w-full ${name}`}
+              className={cn("desktop:mt-10 mt-4 h-[13px] max-w-full", name)}
             />
             <Loading.Skeleton
               shape="pill"
-              className={`desktop:w-[132px] max-desktop:order-last ${BADGE} ${FULL_BADGE} ${UNDER_CHECKBOX}`}
+              className={cn(
+                "desktop:w-[132px] max-desktop:order-last",
+                BADGE,
+                FULL_BADGE,
+                UNDER_CHECKBOX
+              )}
             />
             <Loading.Skeleton
               shape="pill"
-              className={`desktop:ml-auto desktop:w-[84px] ${BADGE} ${FULL_BADGE} ${UNDER_CHECKBOX}`}
+              className={cn(
+                "desktop:ml-auto desktop:w-[84px]",
+                BADGE,
+                FULL_BADGE,
+                UNDER_CHECKBOX
+              )}
             />
           </div>
-          <div className={`flex flex-col gap-4 ${UNDER_CHECKBOX}`}>
+          <div className={cn("flex flex-col gap-4", UNDER_CHECKBOX)}>
             {/* Os rótulos são fixos: vão como texto, só o dado fica cinza. */}
             <div className="flex flex-wrap items-center gap-x-6">
               <Title variant="body-xs" color="muted" as="span">
                 Localização:
               </Title>
-              <Loading.Skeleton className="h-[11px] w-[150px]" />
+              <Loading.Skeleton text="body-sm" className="w-[150px]" />
             </div>
             {others > 0 && (
               <div className="flex flex-wrap items-center gap-6">
@@ -59,7 +70,10 @@ function RowSkeleton({ name, others }: (typeof ROWS)[number]) {
                   <Loading.Skeleton
                     key={index}
                     shape="pill"
-                    className={`desktop:w-[210px] max-desktop:w-full ${BADGE}`}
+                    className={cn(
+                      "desktop:w-[210px] max-desktop:w-full",
+                      BADGE
+                    )}
                   />
                 ))}
               </div>
@@ -83,9 +97,12 @@ export function PriorityListSkeleton() {
       {[0, 1].map((card) => (
         <Card.Root key={card}>
           <Card.Header>
-            <Loading.Skeleton className="my-[4px] h-[16px] w-[160px]" />
-            <Loading.Skeleton className="mt-[4px] h-[11px] w-[220px] max-w-full" />
-            <Card.HeaderActions>
+            <Loading.Skeleton text="heading-sm" className="w-[160px]" />
+            <Loading.Skeleton
+              text="body-sm"
+              className="mt-4 w-[220px] max-w-full"
+            />
+            <Card.Header.Actions>
               <Button.Root
                 appearance="ghost"
                 color="neutral"
@@ -94,7 +111,7 @@ export function PriorityListSkeleton() {
               >
                 <Button.Title>Escolher todos</Button.Title>
               </Button.Root>
-            </Card.HeaderActions>
+            </Card.Header.Actions>
           </Card.Header>
           <div className="flex flex-col divide-y divide-(--border)">
             {(card === 0 ? ROWS : ROWS.slice(0, 2)).map((row) => (

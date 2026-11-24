@@ -107,7 +107,7 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="pt-br" data-scroll-behavior="smooth" className={font.variable}>
-      <body suppressHydrationWarning className={`antialiased`}>
+      <body suppressHydrationWarning className="antialiased">
         {/* Apollo e toasts NÃO entram aqui: cada grupo de rotas que fala com o
             backend monta o `AppProviders` no próprio layout. O layout raiz é
             compartilhado com a landing pública, que é estática e não deve pagar

@@ -1,4 +1,5 @@
 import { PlatformStaffMember, PlatformStaffRole } from "./interface";
+import { formatLogMoment } from "@/utils/format/date";
 
 export const STAFF_ROLE_LABEL: Record<PlatformStaffRole, string> = {
   SU: "Super Admin",
@@ -35,20 +36,7 @@ export const canManage = (
   currentUserId?: string
 ): boolean => member.role !== "SU" && member.id !== currentUserId;
 
-export const formatMoment = (iso: string | null): string => {
-  if (!iso) return "—";
-  const date = new Date(iso);
-  if (Number.isNaN(date.getTime())) return "—";
-  return date.toLocaleString("pt-BR", {
-    day: "2-digit",
-    month: "2-digit",
-    year: "2-digit",
-    hour: "2-digit",
-    minute: "2-digit",
-  });
-};
-
 /** Quem nunca entrou é diferente de quem entrou há muito tempo: um é conta que
  * não começou, o outro é conta esquecida. A tela distingue os dois. */
 export const lastAccessLabel = (member: PlatformStaffMember): string =>
-  member.lastLoginAt ? formatMoment(member.lastLoginAt) : "Nunca entrou";
+  member.lastLoginAt ? formatLogMoment(member.lastLoginAt) : "Nunca entrou";

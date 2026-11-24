@@ -64,7 +64,7 @@ export default function OrderDetailContent({
       <div className="flex min-h-[60vh] items-center justify-center px-32 py-[28px]">
         <EmptyState.Root className="max-w-[420px]">
           <EmptyState.Icon>
-            <PackageX size={32} />
+            <PackageX />
           </EmptyState.Icon>
           <EmptyState.Title>Pedido não encontrado</EmptyState.Title>
           <EmptyState.Description>
@@ -113,9 +113,7 @@ export default function OrderDetailContent({
             {order.notes && (
               <Card.Root>
                 <Card.Header>
-                  <Card.Header.Title size="sm" weight="bold">
-                    Observações
-                  </Card.Header.Title>
+                  <Card.Header.Title>Observações</Card.Header.Title>
                 </Card.Header>
                 <Card.Body>
                   <Title variant="body-sm" color="secondary">

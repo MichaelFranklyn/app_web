@@ -36,6 +36,11 @@ export const sourceLabel = (group: StockCandidateGroup): string => {
 /**
  * Uma fábrica do cliente na visita. Tocar abre (ou fecha) a aba com os produtos
  * dela: o vendedor percorre os catálogos um a um, sem perder de vista os demais.
+ *
+ * Exceção ao DS, de propósito: o `OptionCard` é ação de um toque (ícone +
+ * seta, sem estado) e o `ChoiceCard` é escolha única obrigatória; aqui o
+ * cartão liga/desliga (`aria-pressed`) e carrega selo e progresso. Se outra
+ * tela precisar de cartão-interruptor, ele vira peça no DS.
  */
 export function FactoryCard({ group, answered, isOpen, onToggle }: Props) {
   const total = group.products.length;
@@ -48,7 +53,7 @@ export function FactoryCard({ group, answered, isOpen, onToggle }: Props) {
       aria-pressed={isOpen}
       aria-label={`${isOpen ? "Fechar" : "Abrir"} os produtos de ${name}`}
       className={cn(
-        "flex w-full cursor-pointer flex-col gap-8 rounded-(--r-md) border p-12 text-left transition-colors",
+        "focus-ring flex w-full cursor-pointer flex-col gap-8 rounded-(--r-md) border p-12 text-left transition-colors",
         isOpen
           ? "border-(--amber) bg-(--bg3)"
           : "border-(--border) bg-(--bg2) hover:bg-(--bg3)"

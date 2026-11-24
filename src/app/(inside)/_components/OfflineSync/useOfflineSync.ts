@@ -9,6 +9,7 @@ import {
   STALE_AFTER_SEND,
 } from "@/services/offlineQueue";
 import { sondarServidor } from "@/utils/connectivity";
+import { pluralWord } from "@/utils/format/plural";
 import { useApolloClient } from "@apollo/client/react";
 import { useCallback, useEffect } from "react";
 
@@ -44,9 +45,11 @@ export function useOfflineSync(userId: string | null, pendingCount: number) {
     toast({
       variant: "success",
       title: "Sinal de volta",
-      description: `${recordsLabel(sent.length)} ${
-        sent.length === 1 ? "enviado" : "enviados"
-      } para o sistema.`,
+      description: `${recordsLabel(sent.length)} ${pluralWord(
+        sent.length,
+        "enviado",
+        "enviados"
+      )} para o sistema.`,
     });
   }, [client, invalidate, toast, userId]);
 

@@ -55,15 +55,15 @@ export function TenantsTable({
           <Table.Row>
             <Table.Head sortKey="razao_social">Empresa</Table.Head>
             <Table.Head sortKey="plan">Plano</Table.Head>
-            <Table.Head sortKey="users_count" sortFirst="desc">
+            <Table.Head align="right" sortKey="users_count" sortFirst="desc">
               Pessoas
             </Table.Head>
-            <Table.Head sortKey="clients_count" sortFirst="desc">
+            <Table.Head align="right" sortKey="clients_count" sortFirst="desc">
               Clientes
             </Table.Head>
             {/* Volume do período, não histórico: é o que diz se a empresa está
                 operando AGORA. O total acumulado premiaria quem já foi grande. */}
-            <Table.Head sortKey="gmv_in_period" sortFirst="desc">
+            <Table.Head align="right" sortKey="gmv_in_period" sortFirst="desc">
               Volume (30d)
             </Table.Head>
             <Table.Head sortKey="last_login_at" sortFirst="desc">
@@ -80,7 +80,7 @@ export function TenantsTable({
               <Table.Cell colSpan={COLUMN_COUNT}>
                 <EmptyState.Root flat>
                   <EmptyState.Icon>
-                    <Building2 size={32} />
+                    <Building2 />
                   </EmptyState.Icon>
                   <EmptyState.Title>
                     {isNarrowed
@@ -111,16 +111,20 @@ export function TenantsTable({
                   {planLabel(tenant.plan)}
                 </Table.Cell>
 
-                <Table.Cell label="Pessoas" variant="dim">
+                <Table.Cell align="right" label="Pessoas" variant="dim">
                   {tenant.usersCount}
                 </Table.Cell>
 
-                <Table.Cell label="Clientes" variant="dim">
+                <Table.Cell align="right" label="Clientes" variant="dim">
                   {tenant.clientsCount}
                 </Table.Cell>
 
-                <Table.Cell card="value" className="whitespace-nowrap">
-                  <div className="flex flex-col gap-[2px]">
+                <Table.Cell
+                  align="right"
+                  card="value"
+                  className="whitespace-nowrap"
+                >
+                  <div className="flex flex-col gap-2">
                     <Title variant="body-sm">
                       {formatMoney(tenant.gmvInPeriod)}
                     </Title>

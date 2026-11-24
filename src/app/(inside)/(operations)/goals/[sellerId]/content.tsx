@@ -44,6 +44,7 @@ import {
   SellerGoalsResponse,
 } from "../interface";
 import { FactoryGoalCard } from "./_components/FactoryGoalCard";
+import { formatPercentPoints } from "@/utils/format/percent";
 
 interface Props {
   sellerId: string;
@@ -190,12 +191,12 @@ export default function SellerGoalsContent({
                         {/* Texto neutro, cor só na barra: a frase inteira em
                             vermelho soava como alarme (crítica de 23/11/2026). */}
                         <Title variant="body-sm" weight="semibold">
-                          {overall.toFixed(0)}% da meta do mês
+                          {formatPercentPoints(overall)} da meta do mês
                         </Title>
                         <Progress.Bar
                           value={Math.min(overall, 100)}
                           color={percentTone(overall)}
-                          label={`${sellerName}: ${overall.toFixed(0)}% da meta do mês`}
+                          label={`${sellerName}: ${formatPercentPoints(overall)} da meta do mês`}
                         />
                         <Title variant="body-xs" color="muted">
                           Média dos indicadores que têm meta combinada.
@@ -284,7 +285,7 @@ export default function SellerGoalsContent({
           ) : rows.length === 0 ? (
             <EmptyState.Root>
               <EmptyState.Icon>
-                <Target size={32} />
+                <Target />
               </EmptyState.Icon>
               <EmptyState.Title>
                 Nada em {monthLabel(month)} para {sellerName}

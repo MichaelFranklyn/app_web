@@ -3,6 +3,7 @@
 import { Badge } from "@/components/Badges";
 import { Card } from "@/components/Card";
 import { EmptyState } from "@/components/EmptyState";
+import { plural } from "@/utils/format/plural";
 import { PackageSearch } from "lucide-react";
 import { ProductInsight } from "../../../interface";
 
@@ -17,9 +18,8 @@ function urgencyLabel(churnRisk: string): {
 
 function stockMeta(insight: ProductInsight): string {
   const days = insight.daysSinceStockout;
-  const plural = (n: number) => (n !== 1 ? "s" : "");
-  if (days > 0) return `Estoque zerado há ${days} dia${plural(days)}`;
-  if (days > -7) return `Crítico em ${-days} dia${plural(-days)}`;
+  if (days > 0) return `Estoque zerado há ${plural(days, "dia", "dias")}`;
+  if (days > -7) return `Crítico em ${plural(-days, "dia", "dias")}`;
   return `Duração média: ${insight.avgShelfDays ?? "??"} dias`;
 }
 
@@ -33,7 +33,7 @@ export function SuggestedProductsList({
     return (
       <EmptyState.Root>
         <EmptyState.Icon>
-          <PackageSearch size={32} />
+          <PackageSearch />
         </EmptyState.Icon>
         <EmptyState.Title>Nenhuma sugestão</EmptyState.Title>
         <EmptyState.Description>

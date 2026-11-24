@@ -4,6 +4,7 @@ import { Button } from "@/components/Button";
 import { Title } from "@/components/Title";
 import { ToggleGroup } from "@/components/ToggleGroup";
 import { formatMoney } from "@/utils/format/masks";
+import { plural } from "@/utils/format/plural";
 import { Minus, Plus } from "lucide-react";
 import { useState } from "react";
 import {
@@ -27,9 +28,6 @@ const PRICED_PLANS = PLANS.filter(
     includedUsers: number;
   } => plan.demoMonthlyPrice !== null && plan.includedUsers !== null
 );
-
-const plural = (count: number, one: string, many: string) =>
-  `${count} ${count === 1 ? one : many}`;
 
 /**
  * "Quero o Básico com mais um usuário: quanto fica?" (14/11/2026).
@@ -66,7 +64,7 @@ export function SeatCalculator() {
   };
 
   return (
-    <div className="desktop:grid-cols-[1fr_1.2fr] desktop:gap-48 tablet:p-32 mt-48 grid gap-24 rounded-(--radius-lg) border border-(--border) bg-(--bg2) p-24">
+    <div className="desktop:grid-cols-[1fr_1.2fr] desktop:gap-48 tablet:p-32 mt-48 grid gap-24 rounded-(--r-lg) border border-(--border) bg-(--bg2) p-24">
       <div className="flex flex-col gap-12">
         <Title variant="eyebrow" color="amber">
           Simule a sua equipe
@@ -183,7 +181,7 @@ export function SeatCalculator() {
         </div>
 
         {upgrade && upgradeTotal !== null && (
-          <div className="tablet:flex-row tablet:items-center tablet:justify-between flex flex-col gap-12 rounded-(--radius-md) bg-(--amber-bg) p-16">
+          <div className="tablet:flex-row tablet:items-center tablet:justify-between flex flex-col gap-12 rounded-(--r-md) bg-(--amber-bg) p-16">
             <Title variant="body-sm">
               Com {plural(users, "usuário", "usuários")}, o {upgrade.label} sai
               por <strong>{formatMoney(upgradeTotal)}</strong> — mais barato, e

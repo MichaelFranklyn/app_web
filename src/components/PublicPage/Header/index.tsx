@@ -17,7 +17,7 @@ export const Header = React.forwardRef<HTMLElement, HeaderProps>(
       <div
         className={cn(
           PUBLIC_PAGE_CONTAINER,
-          "flex flex-col gap-[16px] py-[20px]",
+          "flex flex-col gap-16 py-20",
           className
         )}
       >

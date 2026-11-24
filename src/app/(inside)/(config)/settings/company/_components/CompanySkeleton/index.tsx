@@ -19,7 +19,7 @@ export function CompanySkeleton() {
           {...PAGE_HEADING.company}
           barClassName="w-[220px]"
         />
-        <Loading.Skeleton className="h-[14px] w-[200px] max-w-full" />
+        <Loading.Skeleton text="body" className="w-[200px] max-w-full" />
       </div>
 
       <Grid.Root cols={{ base: 1, desktop: 2 }} gap={16}>

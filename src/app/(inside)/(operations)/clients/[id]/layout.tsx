@@ -176,7 +176,7 @@ export default function ClientLayout({
         </Breadcrumb.Root>
         <EmptyState.Root>
           <EmptyState.Icon>
-            <UserX size={32} />
+            <UserX />
           </EmptyState.Icon>
           <EmptyState.Title>Cliente não encontrado</EmptyState.Title>
           <EmptyState.Description>
@@ -206,7 +206,10 @@ export default function ClientLayout({
           <Breadcrumb.Separator />
           <Breadcrumb.Item active>
             {isHeaderLoading ? (
-              <Loading.Skeleton className="inline-block h-[12px] w-32 align-middle" />
+              <Loading.Skeleton
+                text="body-sm"
+                className="inline-block w-32 align-middle"
+              />
             ) : (
               name || "—"
             )}
@@ -219,7 +222,7 @@ export default function ClientLayout({
               {isHeaderLoading ? (
                 <>
                   <Loading.Skeleton className="h-[24px] w-72" />
-                  <Loading.Skeleton className="mt-[6px] h-[14px] w-96" />
+                  <Loading.Skeleton text="body" className="mt-6 w-96" />
                   <PanelHeader.Actions>
                     <Loading.Skeleton
                       shape="xs"

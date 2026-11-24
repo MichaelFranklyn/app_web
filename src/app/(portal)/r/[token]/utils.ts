@@ -1,4 +1,4 @@
-import { formatDate } from "@/utils/format/date";
+import { formatDate, formatWeekday } from "@/utils/format/date";
 
 import { VisitResponseForm, VisitResponseStop } from "./interface";
 
@@ -59,15 +59,9 @@ export const formPeriodLabel = (
     ? `Semana de ${formatDate(form.date)} a ${formatDate(form.endDate)}`
     : `Rota de ${formatDate(form.date)}`;
 
-/** "segunda-feira, 21/09/2026". A data vem sem hora: lida em UTC para não
- * escorregar um dia no fuso do navegador. */
-export const dayHeading = (iso: string): string => {
-  const weekday = new Date(`${iso}T00:00:00Z`).toLocaleDateString("pt-BR", {
-    weekday: "long",
-    timeZone: "UTC",
-  });
-  return `${weekday}, ${formatDate(iso)}`;
-};
+/** "segunda-feira, 21/09/2026". */
+export const dayHeading = (iso: string): string =>
+  `${formatWeekday(iso)}, ${formatDate(iso)}`;
 
 /** As paradas por dia, na ordem em que chegaram (o backend já ordena). */
 export const groupStopsByDate = (

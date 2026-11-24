@@ -1,3 +1,5 @@
+import { formatQuantity } from "@/utils/format/masks";
+
 // Tokens de cor dos gráficos, espelhando as CSS vars de styles/globals.css.
 // ECharts recebe cores via JS (não classes Tailwind), então mantemos os hex
 // aqui — SSR-safe e num único lugar. Âmbar é reservado à interação: NÃO é usado
@@ -22,6 +24,8 @@ export const SERIES_PURPLE = "#7c3aed";
 export const SERIES_CYAN = "#0a7fa3";
 // Reservado a séries de sentido negativo (cancelado, atraso) — não à interação.
 export const SERIES_RED = "#c0392b";
+// Neutro: o que ainda não tem leitura (cliente que nunca comprou) — fica atrás das cores.
+export const SERIES_GRAY = "#9a9a8e";
 
 // Chrome do gráfico (eixos, grid, texto, tooltip) a partir dos neutros da marca.
 export const CHART_INK = "#1a1a16"; // --color-text
@@ -64,20 +68,17 @@ export const tooltipBase = {
   borderColor: CHART_GRID,
   borderWidth: 1,
   textStyle: { color: CHART_INK, fontSize: 12 },
-  extraCssText: "box-shadow: 0 4px 16px rgba(0,0,0,0.08); border-radius: 8px;",
+  extraCssText: "box-shadow: var(--shadow-md); border-radius: var(--r-md);",
 };
 
-const compactNumber = new Intl.NumberFormat("pt-BR", {
-  maximumFractionDigits: 1,
-});
+const compactNumber = (value: number) => formatQuantity(value, 1);
 
 /** Dinheiro curto para eixo: "R$ 20 mil", "R$ 1,2 mi", "R$ 500". */
 export const compactMoneyLabel = (value: number): string => {
   const abs = Math.abs(value);
-  if (abs >= 1_000_000)
-    return `R$ ${compactNumber.format(value / 1_000_000)} mi`;
-  if (abs >= 1_000) return `R$ ${compactNumber.format(value / 1_000)} mil`;
-  return `R$ ${compactNumber.format(value)}`;
+  if (abs >= 1_000_000) return `R$ ${compactNumber(value / 1_000_000)} mi`;
+  if (abs >= 1_000) return `R$ ${compactNumber(value / 1_000)} mil`;
+  return `R$ ${compactNumber(value)}`;
 };
 
 /**

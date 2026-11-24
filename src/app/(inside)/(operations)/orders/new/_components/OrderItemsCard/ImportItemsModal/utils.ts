@@ -1,7 +1,5 @@
 import type { DraftMergeResult } from "../../../../../_shared/orderDraftItems";
-
-const plural = (count: number, one: string, many: string) =>
-  `${count} ${count === 1 ? one : many}`;
+import { plural } from "@/utils/format/plural";
 
 /** O que a importação fez na lista, em uma frase — vai no toast. */
 export function describeDraftImport({

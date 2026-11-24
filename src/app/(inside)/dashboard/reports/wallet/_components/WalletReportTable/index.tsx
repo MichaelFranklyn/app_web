@@ -72,7 +72,7 @@ export function WalletReportTable({
         {/* A explicação vai no "?" e não numa Description: o cabeçalho decide
             por MEDIÇÃO se as ações cabem na linha (useHeaderActionsMode), e um
             parágrafo aqui colapsaria o botão "Filtros" num ícone sem rótulo. */}
-        <Table.CardHead.Title className="inline-flex items-center gap-6">
+        <Table.CardHead.Title>
           Clientes da carteira
           <HelpTooltip
             label="Sobre a situação da carteira"
@@ -109,7 +109,7 @@ export function WalletReportTable({
             <Table.Head sortKey="lastOrderDate" sortFirst="desc">
               Última compra
             </Table.Head>
-            <Table.Head sortKey="periodAmount" sortFirst="desc">
+            <Table.Head align="right" sortKey="periodAmount" sortFirst="desc">
               No período
             </Table.Head>
           </Table.Row>
@@ -123,7 +123,7 @@ export function WalletReportTable({
               <Table.Cell colSpan={8}>
                 <EmptyState.Root flat>
                   <EmptyState.Icon>
-                    <Users size={32} />
+                    <Users />
                   </EmptyState.Icon>
                   <EmptyState.Title>
                     {isNarrowed
@@ -209,6 +209,7 @@ export function WalletReportTable({
                   {row.lastOrderDate ? formatDateDMY(row.lastOrderDate) : ""}
                 </Table.Cell>
                 <Table.Cell
+                  align="right"
                   variant="strong"
                   card="value"
                   className="whitespace-nowrap"

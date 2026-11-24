@@ -2,7 +2,6 @@
 
 import { Card } from "@/components/Card";
 import { EmptyState } from "@/components/EmptyState";
-import { Grid } from "@/components/Grid";
 import { Loading } from "@/components/Loading";
 import { Title } from "@/components/Title";
 import { UserX } from "lucide-react";
@@ -40,9 +39,7 @@ export function EngagementCard({
   return (
     <Card.Root>
       <Card.Header>
-        <Card.Header.Title size="sm" weight="semibold">
-          Pessoas trabalhando
-        </Card.Header.Title>
+        <Card.Header.Title>Pessoas trabalhando</Card.Header.Title>
         <Card.Header.Description>
           Quantas pessoas distintas registraram alguma ação, por dia. Quem
           apenas consultou telas não aparece — o histórico só grava o que muda
@@ -50,54 +47,46 @@ export function EngagementCard({
         </Card.Header.Description>
       </Card.Header>
 
-      <Card.Body className="flex flex-col gap-20">
-        <Grid.Root cols={{ base: 2, tablet: 4 }} gap={12}>
-          <Grid.Item>
-            <Card.Kpi>
-              <Card.Kpi.Label>Num dia típico</Card.Kpi.Label>
-              <Card.Kpi.Value status="neutral">
-                {engagement.dailyAverage}
-              </Card.Kpi.Value>
-              <Card.Kpi.Delta>média por dia útil</Card.Kpi.Delta>
-            </Card.Kpi>
-          </Grid.Item>
+      <Card.Body>
+        <Card.Kpi.Group>
+          <Card.Kpi>
+            <Card.Kpi.Label>Num dia típico</Card.Kpi.Label>
+            <Card.Kpi.Value status="neutral">
+              {engagement.dailyAverage}
+            </Card.Kpi.Value>
+            <Card.Kpi.Delta>média por dia útil</Card.Kpi.Delta>
+          </Card.Kpi>
 
-          <Grid.Item>
-            <Card.Kpi>
-              <Card.Kpi.Label>Na última semana</Card.Kpi.Label>
-              <Card.Kpi.Value status="neutral">
-                {engagement.weeklyActive}
-              </Card.Kpi.Value>
-              <Card.Kpi.Delta>pessoas distintas</Card.Kpi.Delta>
-            </Card.Kpi>
-          </Grid.Item>
+          <Card.Kpi>
+            <Card.Kpi.Label>Na última semana</Card.Kpi.Label>
+            <Card.Kpi.Value status="neutral">
+              {engagement.weeklyActive}
+            </Card.Kpi.Value>
+            <Card.Kpi.Delta>pessoas distintas</Card.Kpi.Delta>
+          </Card.Kpi>
 
-          <Grid.Item>
-            <Card.Kpi>
-              <Card.Kpi.Label>No período</Card.Kpi.Label>
-              <Card.Kpi.Value status="neutral">
-                {engagement.monthlyActive}
-              </Card.Kpi.Value>
-              <Card.Kpi.Delta negative={inactive > 0}>
-                {inactive > 0
-                  ? `${inactive} sem aparecer na semana`
-                  : "todas apareceram na semana"}
-              </Card.Kpi.Delta>
-            </Card.Kpi>
-          </Grid.Item>
+          <Card.Kpi>
+            <Card.Kpi.Label>No período</Card.Kpi.Label>
+            <Card.Kpi.Value status="neutral">
+              {engagement.monthlyActive}
+            </Card.Kpi.Value>
+            <Card.Kpi.Delta negative={inactive > 0}>
+              {inactive > 0
+                ? `${inactive} sem aparecer na semana`
+                : "todas apareceram na semana"}
+            </Card.Kpi.Delta>
+          </Card.Kpi>
 
-          <Grid.Item>
-            <Card.Kpi>
-              <Card.Kpi.Label>Hábito</Card.Kpi.Label>
-              {/* A aderência é o número que diz se o sistema é onde as pessoas
+          <Card.Kpi>
+            <Card.Kpi.Label>Hábito</Card.Kpi.Label>
+            {/* A aderência é o número que diz se o sistema é onde as pessoas
                   trabalham ou onde elas vão quando precisam de algo. */}
-              <Card.Kpi.Value status={tone}>
-                {engagement.stickiness}%
-              </Card.Kpi.Value>
-              <Card.Kpi.Delta>do período aparece num dia</Card.Kpi.Delta>
-            </Card.Kpi>
-          </Grid.Item>
-        </Grid.Root>
+            <Card.Kpi.Value status={tone}>
+              {engagement.stickiness}%
+            </Card.Kpi.Value>
+            <Card.Kpi.Delta>do período aparece num dia</Card.Kpi.Delta>
+          </Card.Kpi>
+        </Card.Kpi.Group>
 
         {hasMovement ? (
           <>
@@ -116,7 +105,7 @@ export function EngagementCard({
         ) : (
           <EmptyState.Root>
             <EmptyState.Icon>
-              <UserX size={32} />
+              <UserX />
             </EmptyState.Icon>
             <EmptyState.Title>
               Ninguém registrou nada no período

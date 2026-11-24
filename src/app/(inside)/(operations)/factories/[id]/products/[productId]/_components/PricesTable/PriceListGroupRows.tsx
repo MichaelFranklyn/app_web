@@ -87,22 +87,22 @@ export function PriceListGroupRows({
           Number(item.unitPriceWithImpost) / (pack.unitPerPack || 1);
         return (
           <Table.Row key={item.id}>
-            <Table.Cell>
+            <Table.Cell card="title">
               <Badge.Root color="neutral" appearance="tinted">
                 <Badge.Text>{item.tier?.name ?? "—"}</Badge.Text>
               </Badge.Root>
             </Table.Cell>
-            <Table.Cell>
+            <Table.Cell align="right" label={`Preço por ${pack.packLabel}`}>
               <Table.CellText variant="dim">
                 R$ {money(item.unitPrice)}
               </Table.CellText>
             </Table.Cell>
-            <Table.Cell>
+            <Table.Cell card="value" align="right">
               <Table.CellText variant="strong">
                 R$ {money(item.unitPriceWithImpost)}
               </Table.CellText>
             </Table.Cell>
-            <Table.Cell>
+            <Table.Cell align="right" label={`Preço por ${pack.baseUnitLabel}`}>
               <div className="flex flex-col">
                 <Table.CellText variant="strong">
                   R$ {money(String(perBaseUnit))} / {pack.baseUnitLabel}
@@ -113,7 +113,7 @@ export function PriceListGroupRows({
                 </Table.CellText>
               </div>
             </Table.Cell>
-            <Table.Cell>
+            <Table.Cell card="actions">
               <div className="flex items-center justify-end gap-4">
                 <PriceItemRowActions
                   item={item}

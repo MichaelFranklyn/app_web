@@ -11,8 +11,8 @@ export const itemStyle = cva("flex items-center", {
       stat: "flex-wrap justify-between gap-x-12 text-body-sm",
     },
     size: {
-      default: "py-[10px]",
-      compact: "py-[6px]",
+      default: "py-10",
+      compact: "py-6",
     },
   },
   defaultVariants: { variant: "list", size: "default" },

@@ -5,6 +5,7 @@ import { Input } from "@/components/Input";
 import { Pagination } from "@/components/Pagination";
 import { Table } from "@/components/Table";
 import { Tabs } from "@/components/Tabs";
+import { plural } from "@/utils/format/plural";
 import { SearchX } from "lucide-react";
 import { useState } from "react";
 import { PortalStockItem } from "../../../interface";
@@ -80,7 +81,7 @@ export function PortalStockTable({ items }: PortalStockTableProps) {
       <Table.Root>
         <Table.CardHead>
           <Table.CardHead.Title>
-            {scoped.length === 1 ? "1 produto" : `${scoped.length} produtos`}
+            {plural(scoped.length, "produto", "produtos")}
           </Table.CardHead.Title>
           <Table.CardHead.Description>
             O que está mais perto de acabar aparece primeiro. Deixe em branco o
@@ -144,7 +145,7 @@ export function PortalStockTable({ items }: PortalStockTableProps) {
                 <Table.Cell colSpan={COLUMNS}>
                   <EmptyState.Root flat>
                     <EmptyState.Icon>
-                      <SearchX size={32} />
+                      <SearchX />
                     </EmptyState.Icon>
                     <EmptyState.Title>
                       Nenhum produto encontrado

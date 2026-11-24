@@ -43,10 +43,7 @@ export function SupportCounts({ data, active, onToggle }: Props) {
   if (!data || (allZero && !active)) return null;
 
   return (
-    <div
-      className="tablet:grid-cols-4 grid grid-cols-2 gap-8"
-      data-tour="support-counts"
-    >
+    <Card.Kpi.Group data-tour="support-counts">
       {SHOWN.map(({ status, label, tone }) => {
         const count = byStatus.get(status) ?? 0;
         return (
@@ -55,7 +52,6 @@ export function SupportCounts({ data, active, onToggle }: Props) {
             onClick={() => onToggle(status)}
             active={active === status}
             title={SUPPORT_STATUS_HINT[status]}
-            className="max-tablet:px-12 max-tablet:py-12"
           >
             <Card.Kpi.Label>{label}</Card.Kpi.Label>
             <Card.Kpi.Value status={count > 0 ? tone : "muted"}>
@@ -64,6 +60,6 @@ export function SupportCounts({ data, active, onToggle }: Props) {
           </Card.Kpi>
         );
       })}
-    </div>
+    </Card.Kpi.Group>
   );
 }

@@ -18,9 +18,7 @@ export function FeatureGlossary() {
   return (
     <Card.Root>
       <Card.Header>
-        <Card.Header.Title size="sm" weight="semibold">
-          O que cada recurso libera
-        </Card.Header.Title>
+        <Card.Header.Title>O que cada recurso libera</Card.Header.Title>
         <Card.Header.Description>
           Sem o recurso no plano, a empresa não vê o menu e a API recusa a
           operação — com a mensagem de plano, não de permissão.
@@ -30,7 +28,7 @@ export function FeatureGlossary() {
       <Card.Body>
         <div className="flex flex-col gap-12">
           {FEATURE_ORDER.map((feature) => (
-            <div key={feature} className="flex flex-col gap-[2px]">
+            <div key={feature} className="flex flex-col gap-2">
               <Title variant="caption" weight="semibold">
                 {FEATURE_LABEL[feature]}
               </Title>

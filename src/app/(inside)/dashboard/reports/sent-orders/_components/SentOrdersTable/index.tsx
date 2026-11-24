@@ -57,7 +57,7 @@ export function SentOrdersTable({
   return (
     <Table.Root sort={sort}>
       <Table.CardHead>
-        <Table.CardHead.Title className="inline-flex items-center gap-6">
+        <Table.CardHead.Title>
           Pedidos colocados na fábrica
           <HelpTooltip
             label="Sobre os pedidos colocados"
@@ -92,7 +92,7 @@ export function SentOrdersTable({
             <Table.Head sortKey="invoiced_at" sortFirst="desc">
               Faturamento
             </Table.Head>
-            <Table.Head sortKey="total_amount" sortFirst="desc">
+            <Table.Head align="right" sortKey="total_amount" sortFirst="desc">
               Valor
             </Table.Head>
           </Table.Row>
@@ -106,7 +106,7 @@ export function SentOrdersTable({
               <Table.Cell colSpan={columns}>
                 <EmptyState.Root flat>
                   <EmptyState.Icon>
-                    <Send size={32} />
+                    <Send />
                   </EmptyState.Icon>
                   <EmptyState.Title>
                     {isNarrowed
@@ -186,6 +186,7 @@ export function SentOrdersTable({
                   )}
                 </Table.Cell>
                 <Table.Cell
+                  align="right"
                   variant="strong"
                   className="whitespace-nowrap"
                   card="value"

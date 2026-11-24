@@ -10,6 +10,7 @@ import { Table } from "@/components/Table";
 import { priorityMeta } from "@/utils/clientPriority";
 import { clientName, factoryName } from "@/utils/company";
 import { formatDateDMY } from "@/utils/format/masks";
+import { plural } from "@/utils/format/plural";
 import { Users } from "lucide-react";
 
 import { AddWalletClientModal } from "./AddWalletClientModal";
@@ -91,7 +92,7 @@ export function ClientsSection({ sellerId }: Props) {
               <Table.Cell colSpan={5}>
                 <EmptyState.Root flat>
                   <EmptyState.Icon>
-                    <Users size={32} />
+                    <Users />
                   </EmptyState.Icon>
                   {/* "Não tem cliente" e "o filtro não achou" pedem saídas
                       diferentes: uma manda cadastrar, a outra manda afrouxar. */}
@@ -160,7 +161,7 @@ export function ClientsSection({ sellerId }: Props) {
             <Loading.Spinner size="sm" className="mr-6 inline-block" />
           )}
           {table.totalItems > 0
-            ? `${table.totalItems} cliente(s) · página ${table.currentPage} de ${table.totalPages}`
+            ? `${plural(table.totalItems, "cliente", "clientes")} · página ${table.currentPage} de ${table.totalPages}`
             : "Nenhum cliente encontrado"}
         </Table.Footer.Info>
 

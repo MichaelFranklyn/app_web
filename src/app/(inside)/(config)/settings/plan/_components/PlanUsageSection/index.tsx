@@ -1,7 +1,7 @@
 "use client";
 
+import { Card } from "@/components/Card";
 import { Alert } from "@/components/Alert";
-import { Grid } from "@/components/Grid";
 import { HelpTooltip } from "@/components/HelpTooltip";
 import { Title } from "@/components/Title";
 import { PlanLimitUsage } from "@/services/plan";
@@ -66,13 +66,11 @@ export function PlanUsageSection({ limits }: { limits: PlanLimitUsage[] }) {
           </Alert.Content>
         </Alert.Root>
       ) : (
-        <Grid.Root cols={{ base: 1, tablet: 2, "desktop-xl": 4 }} gap={12}>
+        <Card.Kpi.Group>
           {limits.map((usage) => (
-            <Grid.Item key={usage.key}>
-              <PlanLimitCard usage={usage} />
-            </Grid.Item>
+            <PlanLimitCard key={usage.key} usage={usage} />
           ))}
-        </Grid.Root>
+        </Card.Kpi.Group>
       )}
     </section>
   );

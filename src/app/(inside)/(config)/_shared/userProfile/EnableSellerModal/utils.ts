@@ -11,7 +11,7 @@ export const REGION_FORM_STEPS: FormStepSchema[] = [
           {
             name: "region",
             type: "text",
-            label: "Região(ões) que vai atender",
+            label: "Regiões que vai atender",
             placeholder: "Ex: Sul, Nordeste, Centro-Oeste",
             hint: "Pode deixar em branco e preencher depois.",
           },

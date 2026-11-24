@@ -104,7 +104,7 @@ export function OrderCart({
       </Card.Header>
 
       {items.length === 0 ? (
-        <Card.Body padding="compact" className="gap-[12px]">
+        <Card.Body padding="compact">
           {feedback}
           <Title variant="body-sm" color="muted">
             Toque em “Adicionar” nos produtos e eles aparecem aqui.
@@ -157,7 +157,7 @@ export function OrderCart({
 
           <Card.Row className="flex-col items-stretch">
             {estimate !== null ? (
-              <div className="flex flex-col gap-[4px]">
+              <div className="flex flex-col gap-4">
                 {/* Mercadoria e impostos só quando há imposto a separar: sem
                     ele, as três linhas repetiriam o mesmo valor. */}
                 {estimate.tax !== null && estimate.tax > 0 ? (
@@ -216,7 +216,7 @@ interface EstimateLineProps {
 
 function EstimateLine({ label, value, strong }: EstimateLineProps) {
   return (
-    <div className="flex items-baseline justify-between gap-[8px]">
+    <div className="flex items-baseline justify-between gap-8">
       <Title as="span" variant="body-sm" color="muted">
         {label}
       </Title>

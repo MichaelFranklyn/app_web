@@ -1,4 +1,5 @@
 import { Alert } from "@/components/Alert";
+import { formatRatio } from "@/utils/format/masks";
 import { Info, TriangleAlert } from "lucide-react";
 
 import { formatPercent } from "../../../../utils";
@@ -46,9 +47,8 @@ export function LiftNotice({ report }: Props) {
       <Alert.Icon icon={Info} />
       <Alert.Content>
         <Alert.Description>
-          Os clientes que a rotina indicou compraram{" "}
-          {report.lift.toFixed(1).replace(".", ",")}× mais do que a carteira
-          compraria sozinha no mesmo período (
+          Os clientes que a rotina indicou compraram {formatRatio(report.lift)}{" "}
+          mais do que a carteira compraria sozinha no mesmo período (
           {formatPercent(report.conversionRate)} contra{" "}
           {formatPercent(report.baselineRate)}).
         </Alert.Description>

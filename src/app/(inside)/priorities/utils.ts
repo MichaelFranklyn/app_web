@@ -5,6 +5,7 @@ import { ThemeColor } from "@/lib/theme";
 import { formatDate, getBrtTodayIso } from "@/utils/format/date";
 import { formatMoney } from "@/utils/format/masks";
 import { greetingFor } from "@/utils/greeting";
+import { plural } from "@/utils/format/plural";
 import {
   CalendarClock,
   ClipboardList,
@@ -245,7 +246,7 @@ export const PENDING_PRIORITY_HINT: Record<PendingPriority, string> = {
   LOW: "Pode esperar: ainda está no prazo, ou não trava ninguém.",
 };
 
-const days = (n: number): string => (n === 1 ? "1 dia" : `${n} dias`);
+const days = (n: number): string => plural(n, "dia", "dias");
 
 /** Só o que a frase precisa — o resto da linha vem do backend. */
 type ReasonInput = Pick<

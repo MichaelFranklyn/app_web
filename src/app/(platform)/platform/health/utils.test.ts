@@ -4,8 +4,6 @@ import {
   SLOW_P95_MS,
   failureRate,
   formatDelta,
-  formatDuration,
-  formatMs,
   historyTone,
   jobTone,
   operationTone,
@@ -112,16 +110,6 @@ describe("failureRate", () => {
   });
 });
 
-describe("formatMs", () => {
-  it("abaixo de um segundo fica em ms", () => {
-    expect(formatMs(240)).toBe("240ms");
-  });
-
-  it("a partir de um segundo vira segundos", () => {
-    expect(formatMs(2400)).toBe("2.4s");
-  });
-});
-
 const history = (partial: Partial<JobHistory>): JobHistory =>
   ({
     jobName: "girus-visit-scores",
@@ -163,17 +151,6 @@ describe("historyTone", () => {
 
   it("variação pequena de duração é oscilação de carga", () => {
     expect(historyTone(history({ durationChange: 20 }))).toBe("ok");
-  });
-});
-
-describe("formatDuration", () => {
-  it.each([
-    [null, "—"],
-    [340, "340ms"],
-    [2400, "2.4s"],
-    [125_000, "2min"],
-  ])("%s → %s", (ms, expected) => {
-    expect(formatDuration(ms as number | null)).toBe(expected);
   });
 });
 

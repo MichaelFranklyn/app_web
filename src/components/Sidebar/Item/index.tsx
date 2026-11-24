@@ -1,6 +1,7 @@
 import { cn } from "@/lib/utils";
 import Link from "next/link";
 import React from "react";
+import { ICON_SIZE } from "@/components/Icon";
 
 export interface SidebarItemProps extends React.AnchorHTMLAttributes<HTMLAnchorElement> {
   active?: boolean;
@@ -25,7 +26,7 @@ const sidebarItemStyles = {
     // Item é uma pílula recuada (mx 8 + px 12 = os mesmos 20px de antes até o
     // ícone), não uma faixa de ponta a ponta: o fundo do hover e do ativo
     // ganha canto e respiro, e a lista não parece uma tabela.
-    "relative mx-[8px] flex items-center gap-[8px] rounded-(--r-md) px-[12px] py-[7px] text-[14px] text-(--color-text-muted)",
+    "relative mx-8 flex items-center gap-8 rounded-(--r-md) px-12 py-7 text-body text-(--color-text-muted)",
     "cursor-pointer transition-colors duration-150 focus-ring",
     "hover:text-(--color-text) hover:bg-(--bg3)",
     // Barra do ativo: 3px colada à borda esquerda da pílula, presa no meio.
@@ -69,7 +70,7 @@ export const Item = React.forwardRef<HTMLAnchorElement, SidebarItemProps>(
       <>
         {Icon ? (
           <Icon
-            size={16}
+            size={ICON_SIZE.md}
             strokeWidth={2}
             className={cn("shrink-0", color && `text-[var(--${color})]`)}
           />
@@ -89,7 +90,7 @@ export const Item = React.forwardRef<HTMLAnchorElement, SidebarItemProps>(
         {badge !== undefined && (
           <span
             className={cn(
-              "text-body-sm ml-auto flex h-[18px] min-w-[18px] items-center justify-center rounded-full bg-(--color-status-danger) px-[5px] font-bold text-white",
+              "text-body-sm ml-auto flex h-[18px] min-w-[18px] items-center justify-center rounded-full bg-(--color-status-danger) px-5 font-bold text-(--color-on-action)",
               collapsed && "desktop:hidden"
             )}
           >

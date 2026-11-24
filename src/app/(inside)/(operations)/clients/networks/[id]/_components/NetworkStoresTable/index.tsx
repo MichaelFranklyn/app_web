@@ -9,6 +9,7 @@ import { Title } from "@/components/Title";
 import { useTableData } from "@/hooks/useTableData";
 import { clientName } from "@/utils/company";
 import { formatDate } from "@/utils/format/date";
+import { plural } from "@/utils/format/plural";
 import { Store } from "lucide-react";
 
 import { CLIENT_COLUMN_HELP, STORE_COLUMN_HELP } from "../../../../help";
@@ -29,7 +30,7 @@ export function NetworkStoresTable({ table, stores }: Props) {
         <Table.CardHead.Title>Lojas da rede</Table.CardHead.Title>
       </Table.CardHead>
 
-      <Table.Table>
+      <Table.Table cards>
         <Table.Header>
           <Table.Row>
             {/* Nenhuma ordena: são as mesmas colunas da carteira, mas aqui a
@@ -60,7 +61,7 @@ export function NetworkStoresTable({ table, stores }: Props) {
               <Table.Cell colSpan={COLUMNS}>
                 <EmptyState.Root flat>
                   <EmptyState.Icon>
-                    <Store size={32} />
+                    <Store />
                   </EmptyState.Icon>
                   <EmptyState.Title>Nenhuma loja nesta rede</EmptyState.Title>
                   <EmptyState.Description>
@@ -82,37 +83,35 @@ export function NetworkStoresTable({ table, stores }: Props) {
               >
                 {/* Identidade numa coluna só: nome em cima, CNPJ embaixo — a
                     tabela não pode rolar na horizontal. */}
-                <Table.Cell variant="strong">
-                  <div className="flex max-w-72 flex-col">
-                    <span className="truncate">{clientName(store)}</span>
+                <Table.Cell card="title" variant="strong">
+                  <div className="flex flex-col">
+                    <span>{clientName(store)}</span>
                     <Title variant="caption" color="muted">
                       {store.cnpj}
                     </Title>
                   </div>
                 </Table.Cell>
-                <Table.Cell>
-                  <Table.CellText variant="dim">
-                    {formatCity(store.addressCity, store.addressState)}
-                  </Table.CellText>
+                <Table.Cell variant="dim" label="Cidade">
+                  {formatCity(store.addressCity, store.addressState)}
                 </Table.Cell>
-                <Table.Cell>
-                  <Table.CellText variant="dim">
-                    {store.companyClient?.segment?.name ?? "—"}
-                  </Table.CellText>
+                <Table.Cell variant="dim" label="Segmento">
+                  {store.companyClient?.segment?.name ?? ""}
                 </Table.Cell>
-                <Table.Cell>
-                  <Table.CellText variant="dim">
-                    {store.companyClient?.sellers
-                      ?.map((seller) => seller.name)
-                      .join(", ") || "—"}
-                  </Table.CellText>
+                <Table.Cell variant="dim" label="Vendedor">
+                  {store.companyClient?.sellers
+                    ?.map((seller) => seller.name)
+                    .join(", ") ?? ""}
                 </Table.Cell>
-                <Table.Cell>
-                  <Table.CellText variant="dim">
-                    {store.companyClient?.lastOrderDate
-                      ? formatDate(store.companyClient.lastOrderDate)
-                      : "—"}
-                  </Table.CellText>
+                <Table.Cell
+                  variant="dim"
+                  className="whitespace-nowrap"
+                  label="Última compra"
+                >
+                  {/* Mesmo texto da carteira: "Nunca comprou" diz o fato. */}
+                  {formatDate(
+                    store.companyClient?.lastOrderDate,
+                    "Nunca comprou"
+                  )}
                 </Table.Cell>
               </Table.Row>
             ))
@@ -126,7 +125,7 @@ export function NetworkStoresTable({ table, stores }: Props) {
             <Loading.Spinner size="sm" className="mr-6 inline-block" />
           )}
           {table.totalItems > 0
-            ? `${table.totalItems} loja(s) · página ${table.currentPage} de ${table.totalPages}`
+            ? `${plural(table.totalItems, "loja", "lojas")} · página ${table.currentPage} de ${table.totalPages}`
             : "Nenhuma loja encontrada"}
         </Table.Footer.Info>
 

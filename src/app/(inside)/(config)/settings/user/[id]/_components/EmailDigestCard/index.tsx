@@ -87,7 +87,7 @@ export function EmailDigestCard({ isEnabled, onDone }: Props) {
         </Card.Header.Description>
       </Card.Header>
 
-      <Card.Body className="flex flex-col items-start gap-12">
+      <Card.Body className="items-start">
         <Input.Toggle
           label={isEnabled ? "Recebendo os emails" : "Emails desligados"}
           checked={isEnabled}

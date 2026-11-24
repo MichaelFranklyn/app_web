@@ -112,7 +112,7 @@ export default function PlatformUsersContent({
                   <Table.Cell colSpan={COLUMN_COUNT}>
                     <EmptyState.Root flat>
                       <EmptyState.Icon>
-                        <UserCog size={32} />
+                        <UserCog />
                       </EmptyState.Icon>
                       <EmptyState.Title>
                         {isNarrowed
@@ -133,31 +133,29 @@ export default function PlatformUsersContent({
                   // achar alguém pelo e-mail, e o passo seguinte é agir sobre
                   // essa conta. A empresa fica a um clique, na ficha.
                   <Table.Row key={user.id} href={`/platform/users/${user.id}`}>
-                    <Table.Cell card="title" className="max-w-[260px]">
-                      <div className="flex min-w-0 flex-col gap-[2px]">
+                    <Table.Cell card="title" wrap>
+                      <div className="flex min-w-0 flex-col gap-2">
                         <Title
                           variant="body-sm"
                           weight="semibold"
-                          className="truncate"
+                          className="[overflow-wrap:anywhere]"
                         >
                           {user.name}
                         </Title>
                         <Title
                           variant="micro"
                           color="muted"
-                          className="truncate"
+                          className="[overflow-wrap:anywhere]"
                         >
                           {user.email}
                         </Title>
                       </div>
                     </Table.Cell>
 
-                    <Table.Cell
-                      label="Empresa"
-                      variant="dim"
-                      className="max-w-[220px]"
-                    >
-                      <span className="block truncate">{user.companyName}</span>
+                    <Table.Cell label="Empresa" variant="dim" wrap>
+                      <span className="[overflow-wrap:anywhere]">
+                        {user.companyName}
+                      </span>
                     </Table.Cell>
 
                     <Table.Cell

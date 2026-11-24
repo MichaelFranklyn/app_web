@@ -1,12 +1,15 @@
 "use client";
 
+import { RowList } from "@/components/RowList";
 import { Card } from "@/components/Card";
+import { EmptyState } from "@/components/EmptyState";
 import { Loading } from "@/components/Loading";
 import { Pagination } from "@/components/Pagination";
 import { QueryError } from "@/components/QueryError";
 import { ScheduleVisitModal } from "@/components/ScheduleVisitModal";
-import { Title } from "@/components/Title";
 import { getBrtTodayIso } from "@/utils/format/date";
+import { plural } from "@/utils/format/plural";
+import { Users } from "lucide-react";
 import { useQuery } from "@apollo/client/react";
 import { useState } from "react";
 
@@ -78,39 +81,46 @@ export function OpportunityCases({
 
   return (
     <Card.Root data-tour="opportunities-cases">
-      <Card.Body className="flex flex-col gap-12">
-        <div className="flex flex-wrap items-baseline justify-between gap-8">
-          <Title variant="heading-sm">{copy.title}</Title>
-          <Title variant="micro" color="muted">
-            {total} {total === 1 ? "cliente" : "clientes"} · em ordem alfabética
-          </Title>
-        </div>
-
+      <Card.Header>
+        <Card.Header.Title>{copy.title}</Card.Header.Title>
+        <Card.Header.Description>
+          {plural(total, "cliente", "clientes")} · em ordem alfabética
+        </Card.Header.Description>
+      </Card.Header>
+      <Card.Body>
         {error && !result ? (
           <QueryError onRetry={() => refetch()} />
         ) : loading && !result ? (
-          <div className="flex justify-center py-32">
-            <Loading.Spinner />
+          <div className="flex flex-col gap-8" aria-busy="true">
+            {Array.from({ length: 4 }, (_, i) => (
+              <Loading.Skeleton key={i} shape="md" className="h-56 w-full" />
+            ))}
           </div>
         ) : cases.length === 0 ? (
-          <Title variant="body-sm" color="muted" className="py-24 text-center">
-            Nenhum cliente aqui agora — a leitura mudou enquanto a tela estava
-            aberta.
-          </Title>
+          <EmptyState.Root flat>
+            <EmptyState.Icon>
+              <Users />
+            </EmptyState.Icon>
+            <EmptyState.Title>Nenhum cliente aqui agora</EmptyState.Title>
+            <EmptyState.Description>
+              A leitura mudou enquanto a tela estava aberta.
+            </EmptyState.Description>
+          </EmptyState.Root>
         ) : (
-          <ul className="flex flex-col gap-2">
+          <RowList.Root>
             {/* `item.id` é o cliente, e o mesmo cliente pode ocupar duas
                 linhas (duas fábricas): a chave leva o índice junto. */}
             {cases.map((item, index) => (
-              <CaseRow
-                key={`${item.id}-${index}`}
-                item={item}
-                canPlanVisits={canPlanVisits}
-                onScheduleContact={setContactFor}
-                onPlanVisit={setVisitFor}
-              />
+              <RowList.Item key={`${item.id}-${index}`}>
+                <CaseRow
+                  item={item}
+                  canPlanVisits={canPlanVisits}
+                  onScheduleContact={setContactFor}
+                  onPlanVisit={setVisitFor}
+                />
+              </RowList.Item>
             ))}
-          </ul>
+          </RowList.Root>
         )}
 
         {totalPages > 1 && (

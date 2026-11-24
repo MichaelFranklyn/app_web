@@ -88,7 +88,7 @@ export function FactoriesGrid({
     return (
       <EmptyState.Root>
         <EmptyState.Icon>
-          <Factory size={32} />
+          <Factory />
         </EmptyState.Icon>
         <EmptyState.Title>Nenhuma fábrica vinculada</EmptyState.Title>
         <EmptyState.Description>
@@ -116,7 +116,7 @@ export function FactoriesGrid({
 
           return (
             <Grid.Item key={cf.id}>
-              <Card.Root className="h-full" data-tour="factories-card">
+              <Card.Root data-tour="factories-card">
                 <Card.Body>
                   <div className="mb-12 flex items-start justify-between gap-8">
                     <div className="flex min-w-0 gap-10">
@@ -137,11 +137,7 @@ export function FactoriesGrid({
                         >
                           {name}
                         </Title>
-                        <Title
-                          variant="body-sm"
-                          color="muted"
-                          className="mt-[2px]"
-                        >
+                        <Title variant="body-sm" color="muted" className="mt-2">
                           <DocumentNumber value={cf.factory.cnpj} />
                         </Title>
                         {city && (

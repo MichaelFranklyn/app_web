@@ -1,5 +1,6 @@
 "use client";
 
+import { cn } from "@/lib/utils";
 import { Badge } from "@/components/Badges";
 import { InputCheckbox } from "@/components/Input/InputCheckbox";
 import { SelectableRow } from "@/components/SelectableRow";
@@ -29,7 +30,7 @@ const UNDER_CHECKBOX = "max-desktop:-ml-[36px]";
  * No desktop a primeira linha tem a altura do selo de score (~33px); o nome
  * (21px) desce 6px para ficar no meio dela. A caixinha desce o mesmo tanto.
  */
-const NAME_LINE_OFFSET = "desktop:mt-[6px]";
+const NAME_LINE_OFFSET = "desktop:mt-6";
 
 interface Props {
   client: PriorityClient;
@@ -69,7 +70,7 @@ export function PriorityClientRow({
           aria-label={`Escolher ${client.name}`}
           // Da altura de uma linha do nome (21px), para a caixinha ficar no
           // meio dela — e no topo, quando o nome quebra em duas.
-          className={`h-[21px] min-h-0 ${NAME_LINE_OFFSET}`}
+          className={cn("h-[21px] min-h-0", NAME_LINE_OFFSET)}
         />
         {/* A linha inteira marca o cliente, não só a caixinha: ela é pequena
             para quem tem a mão menos firme, e o nome é onde o olho está. */}
@@ -90,11 +91,17 @@ export function PriorityClientRow({
             </Title>
             <TierBadge
               tier={client.tier}
-              className={`max-desktop:order-last max-desktop:w-[calc(100%+36px)] max-desktop:justify-center ${UNDER_CHECKBOX}`}
+              className={cn(
+                "max-desktop:order-last max-desktop:w-[calc(100%+36px)] max-desktop:justify-center",
+                UNDER_CHECKBOX
+              )}
             />
             {scores.top && (
               <span
-                className={`desktop:ml-auto max-desktop:w-[calc(100%+36px)] ${UNDER_CHECKBOX}`}
+                className={cn(
+                  "desktop:ml-auto max-desktop:w-[calc(100%+36px)]",
+                  UNDER_CHECKBOX
+                )}
               >
                 <FactoryScoreBadge chip={scores.top}>
                   Score {scores.top.score}
@@ -102,7 +109,7 @@ export function PriorityClientRow({
               </span>
             )}
           </div>
-          <div className={`flex flex-col gap-4 ${UNDER_CHECKBOX}`}>
+          <div className={cn("flex flex-col gap-4", UNDER_CHECKBOX)}>
             {/* Rotulada: só "Itapuã · Salvador" solto não diz o que é. */}
             {place && (
               <div className="flex flex-wrap items-center gap-x-6">

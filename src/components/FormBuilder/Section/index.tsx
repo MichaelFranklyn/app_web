@@ -13,7 +13,7 @@ interface SectionProps {
 const SectionHeading = ({ children }: { children: ReactNode }) => (
   <Title
     variant="heading-md"
-    className="font-body mt-4 border-b border-(--border) pb-2 text-[15px] font-medium"
+    className="font-body text-body-md mt-4 border-b border-(--border) pb-2 font-medium"
   >
     {children}
   </Title>

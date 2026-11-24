@@ -20,7 +20,7 @@ export function CreateMissingOptions({
 }: Props) {
   return (
     <Card.Root inset tone="transparent">
-      <Card.Body padding="sm" className="gap-10">
+      <Card.Body padding="sm">
         <Title variant="micro" color="muted">
           O que ainda não está cadastrado
         </Title>

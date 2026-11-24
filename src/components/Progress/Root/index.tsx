@@ -6,7 +6,7 @@ export const Root = React.forwardRef<HTMLDivElement, ProgressRootProps>(
   ({ className, ...props }, ref) => (
     <div
       ref={ref}
-      className={cn("flex w-full flex-col gap-[5px]", className)}
+      className={cn("flex w-full flex-col gap-5", className)}
       {...props}
     />
   )

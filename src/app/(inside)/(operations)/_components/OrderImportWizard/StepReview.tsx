@@ -7,6 +7,7 @@ import { Stepper } from "@/components/Stepper";
 import { Table } from "@/components/Table";
 import { Title } from "@/components/Title";
 import { formatMoney, maskCurrency } from "@/utils/format/masks";
+import { plural } from "@/utils/format/plural";
 import { AlertTriangle } from "lucide-react";
 import { ChangeEvent } from "react";
 
@@ -240,7 +241,7 @@ export function StepReview({
         </Table.Table>
       </Table.Root>
       <Title variant="caption" color="muted">
-        {confirmableCount} item(ns) serão gravados.
+        {plural(confirmableCount, "item será gravado", "itens serão gravados")}.
       </Title>
     </div>
   );

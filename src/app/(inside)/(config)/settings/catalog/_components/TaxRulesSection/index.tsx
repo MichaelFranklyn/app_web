@@ -115,7 +115,7 @@ export function TaxRulesSection() {
               <Table.Cell colSpan={2}>
                 <EmptyState.Root flat>
                   <EmptyState.Icon>
-                    <Percent size={32} />
+                    <Percent />
                   </EmptyState.Icon>
                   <EmptyState.Title>Nenhuma regra cadastrada</EmptyState.Title>
                   <EmptyState.Description>

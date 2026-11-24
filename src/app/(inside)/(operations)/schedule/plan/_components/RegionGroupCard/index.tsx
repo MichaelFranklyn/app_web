@@ -3,6 +3,7 @@
 import { Button } from "@/components/Button";
 import { Card } from "@/components/Card";
 import type { VisitContactType } from "@/utils/visit";
+import { plural } from "@/utils/format/plural";
 
 import { PriorityClient, RegionGroup, WeekSelection } from "../../interface";
 import { PriorityClientRow } from "../PriorityClientRow";
@@ -42,13 +43,13 @@ export function RegionGroupCard({
   return (
     <Card.Root>
       <Card.Header>
-        <Card.HeaderTitle>{group.label}</Card.HeaderTitle>
-        <Card.HeaderDescription>
-          {count} {count === 1 ? "cliente" : "clientes"}
+        <Card.Header.Title>{group.label}</Card.Header.Title>
+        <Card.Header.Description>
+          {plural(count, "cliente", "clientes")}
           {group.topCount > 0 && ` · ${group.topCount} com prioridade máxima`}
-          {chosen > 0 && ` · ${chosen} escolhido${chosen === 1 ? "" : "s"}`}
-        </Card.HeaderDescription>
-        <Card.HeaderActions>
+          {chosen > 0 && ` · ${plural(chosen, "escolhido", "escolhidos")}`}
+        </Card.Header.Description>
+        <Card.Header.Actions>
           <Button.Root
             appearance="ghost"
             color="neutral"
@@ -59,7 +60,7 @@ export function RegionGroupCard({
               {allChosen ? "Tirar todos" : "Escolher todos"}
             </Button.Title>
           </Button.Root>
-        </Card.HeaderActions>
+        </Card.Header.Actions>
       </Card.Header>
       <div className="flex flex-col divide-y divide-(--border)">
         {group.clients.map((client) => (

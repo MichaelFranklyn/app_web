@@ -17,12 +17,7 @@ export default function Loading() {
       help
       description="Os problemas que os clientes relatam e o que já foi feito sobre cada um — mercadoria, pagamento, entrega."
       actions={1}
-      kpis={{
-        count: 4,
-        cols: { base: 2, tablet: 4 },
-        delta: false,
-        gap: 8,
-      }}
+      kpis={{ count: 4, delta: false }}
       listTitle={false}
       listActions={["w-[200px] desktop:w-72", "w-[90px]"]}
       cards

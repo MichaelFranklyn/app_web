@@ -20,6 +20,7 @@ import { Calendar as CalendarIcon, X } from "lucide-react";
 import { DateRange } from "react-day-picker";
 import { useAnchoredDropdown } from "@/hooks/useAnchoredDropdown";
 import { useDateSelection } from "./useDateSelection";
+import { ICON_SIZE } from "@/components/Icon";
 
 export interface InputDateProps extends Omit<
   InputBaseProps,
@@ -202,7 +203,7 @@ const InputDateControl = ({
     inputStyles.controlBase,
     inputSizePadding[size],
     !inGroup && inputSizeMinHeight[size],
-    "flex items-center gap-[8px] cursor-pointer",
+    "flex items-center gap-8 cursor-pointer",
     inGroup ? inputStyles.controlGrouped : inputStyles.controlBorderedWithin,
     // Travado tem de parecer travado (ver controlBase).
     disabled && inputStyles.controlDisabled,
@@ -223,7 +224,7 @@ const InputDateControl = ({
           variant === "single" && "mr-1"
         )}
       >
-        <CalendarIcon size={14} strokeWidth={3} />
+        <CalendarIcon size={ICON_SIZE.sm} strokeWidth={3} />
       </div>
 
       <input
@@ -249,7 +250,7 @@ const InputDateControl = ({
           onClick={dateSel.handleClear}
           disabled={disabled}
         >
-          <X size={14} strokeWidth={3} />
+          <X size={ICON_SIZE.sm} strokeWidth={3} />
         </button>
       )}
 

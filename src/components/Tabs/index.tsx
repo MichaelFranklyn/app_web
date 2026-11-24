@@ -9,7 +9,7 @@ import { announceNavigation } from "@/components/AppFrame/navigationSignal";
 import { List, Item, Content } from "./List";
 import { Filter, FilterItem } from "./Filter";
 import { tabsStyles, TabsVariant } from "./List/style";
-import { useScrollEdges } from "./useScrollEdges";
+import { useScrollEdges } from "@/hooks/useScrollEdges";
 
 type RootProps = React.ComponentPropsWithoutRef<typeof TabsPrimitive.Root> & {
   urlParam?: string;

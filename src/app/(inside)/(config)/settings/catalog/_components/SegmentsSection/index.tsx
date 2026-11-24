@@ -101,7 +101,7 @@ export function SegmentsSection() {
               <Table.Cell colSpan={2}>
                 <EmptyState.Root flat>
                   <EmptyState.Icon>
-                    <Store size={32} />
+                    <Store />
                   </EmptyState.Icon>
                   <EmptyState.Title>
                     Nenhum segmento cadastrado

@@ -12,7 +12,7 @@ export default function NewOrderLoading() {
     <PageContent>
       {/* Mesmo agrupamento do NewOrderForm: caminho colado ao título (gap-8). */}
       <div className="flex flex-col gap-8">
-        <Loading.Skeleton className="h-[12px] w-40" />
+        <Loading.Skeleton text="body-sm" className="w-40" />
         <PanelHeader.Root>
           <PanelHeader.Top>
             <PanelHeader.Left>
@@ -26,7 +26,7 @@ export default function NewOrderLoading() {
       {[0, 1].map((card) => (
         <Card.Root key={card}>
           <Card.Header>
-            <Loading.Skeleton className="h-[14px] w-32" />
+            <Loading.Skeleton text="body" className="w-32" />
           </Card.Header>
           <Card.Body>
             <div className="flex flex-col gap-12">

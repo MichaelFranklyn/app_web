@@ -24,7 +24,7 @@ export default function GlobalError({
     <html lang="pt-BR">
       <body>
         <RouteError
-          icon={<TriangleAlert size={36} />}
+          icon={<TriangleAlert />}
           title="Algo deu errado"
           description="Houve um problema inesperado ao abrir o Itinus. Tente de novo em instantes."
         >

@@ -21,6 +21,7 @@ import { useFactoryClientsTable } from "./useFactoryClientsTable";
 import { priorityMeta } from "@/utils/clientPriority";
 import { clientName } from "@/utils/company";
 import { formatDate } from "@/utils/format/date";
+import { plural } from "@/utils/format/plural";
 
 interface Props {
   factoryId: string;
@@ -53,7 +54,7 @@ export function ClientsTab({
   return (
     <Table.Root sort={table.sort} data-tour="factory-clients-table">
       <Table.CardHead>
-        <Table.CardHead.Title className="inline-flex items-center gap-6">
+        <Table.CardHead.Title>
           Clientes da fábrica
           <HelpTooltip
             label="O que é vincular um cliente à fábrica?"
@@ -150,7 +151,7 @@ export function ClientsTab({
               <Table.Cell colSpan={columns}>
                 <EmptyState.Root flat>
                   <EmptyState.Icon>
-                    <Users size={32} />
+                    <Users />
                   </EmptyState.Icon>
                   {/* "Não há vínculo" e "o filtro não achou" pedem saídas
                       diferentes: uma manda cadastrar, a outra manda afrouxar. */}
@@ -275,7 +276,7 @@ export function ClientsTab({
             <Loading.Spinner size="sm" className="mr-6 inline-block" />
           )}
           {table.totalItems > 0
-            ? `${table.totalItems} cliente(s) · página ${table.currentPage} de ${table.totalPages}`
+            ? `${plural(table.totalItems, "cliente", "clientes")} · página ${table.currentPage} de ${table.totalPages}`
             : "Nenhum cliente encontrado"}
         </Table.Footer.Info>
 

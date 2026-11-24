@@ -1,4 +1,5 @@
 import { formatDate } from "@/utils/format/date";
+import { formatScore } from "@/utils/score";
 import { maskCNPJ } from "@/utils/format/masks";
 import { Client } from "../../../interface";
 
@@ -38,6 +39,6 @@ export const buildExportRows = (clients: Client[]): string[][] =>
     formatDate(client.companyClient?.lastInvoiceDate),
     formatDate(client.companyClient?.lastVisitDate),
     client.companyClient?.visitScoreTotal
-      ? Number(client.companyClient.visitScoreTotal).toFixed(0)
+      ? formatScore(client.companyClient.visitScoreTotal)
       : "",
   ]);

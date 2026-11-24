@@ -22,17 +22,3 @@ export const ACTION_OPTIONS = [
   { value: "set_platform_user_status", label: "Acesso de suporte alterado" },
   { value: "release_email_suppression", label: "Email liberado do bloqueio" },
 ];
-
-/** Data e hora: duas ações do mesmo dia se distinguem pela hora, e é a
- * sequência do dia que se reconstrói ao investigar. */
-export const formatMoment = (iso: string): string => {
-  const date = new Date(iso);
-  if (Number.isNaN(date.getTime())) return "—";
-  return date.toLocaleString("pt-BR", {
-    day: "2-digit",
-    month: "2-digit",
-    year: "2-digit",
-    hour: "2-digit",
-    minute: "2-digit",
-  });
-};

@@ -111,7 +111,7 @@ export function UsersTable({
               <Table.Cell colSpan={4}>
                 <EmptyState.Root flat>
                   <EmptyState.Icon>
-                    <Users size={32} />
+                    <Users />
                   </EmptyState.Icon>
                   <EmptyState.Title>Nenhuma pessoa encontrada</EmptyState.Title>
                   <EmptyState.Description>

@@ -1,13 +1,17 @@
 "use client";
+import { RowList } from "@/components/RowList";
 import { Divider } from "@/components/Divider";
 import { Collapse } from "@/components/Collapse";
 
 import { Title } from "@/components/Title";
 import { formatDate } from "@/utils/format/date";
+import { formatQuantity } from "@/utils/format/masks";
+import { plural } from "@/utils/format/plural";
 import { ShoppingCart } from "lucide-react";
 import { useState } from "react";
 import { ProductPurchase } from "../../../interface";
 import { formatCurrency } from "../../../utils";
+import { ICON_SIZE } from "@/components/Icon";
 
 interface Props {
   purchases: ProductPurchase[];
@@ -45,9 +49,11 @@ export function RecentPurchases({ purchases, unitLabel }: Props) {
     );
   }
 
-  const label = `${purchases.length} ${
-    purchases.length === 1 ? "compra registrada" : "últimas compras"
-  }`;
+  const label = plural(
+    purchases.length,
+    "compra registrada",
+    "últimas compras"
+  );
 
   return (
     <div className="flex flex-col gap-8">
@@ -57,14 +63,17 @@ export function RecentPurchases({ purchases, unitLabel }: Props) {
         onToggle={() => setIsOpen((open) => !open)}
         size="sm"
       >
-        <ShoppingCart size={13} className="text-(--color-text-muted)" />
+        <ShoppingCart
+          size={ICON_SIZE.sm}
+          className="text-(--color-text-muted)"
+        />
         <Title variant="micro" color="secondary">
           {label}
         </Title>
       </Collapse.Trigger>
 
       {isOpen && (
-        <ul className="flex flex-col gap-6 pl-20">
+        <RowList.Root className="pl-20">
           {purchases.map((purchase, index) => {
             // A lista vem da mais recente para a mais antiga: a "anterior" em
             // ordem de tempo é a próxima da lista.
@@ -73,7 +82,7 @@ export function RecentPurchases({ purchases, unitLabel }: Props) {
               purchases[index + 1]?.purchaseDate
             );
             return (
-              <li
+              <RowList.Item
                 key={purchase.orderId}
                 className="flex items-baseline justify-between gap-8"
               >
@@ -89,7 +98,7 @@ export function RecentPurchases({ purchases, unitLabel }: Props) {
                 </span>
                 <span className="inline-flex items-baseline gap-8">
                   <Title variant="body-sm" weight="semibold">
-                    {`${parseFloat(purchase.quantity).toFixed(0)} ${unitLabel}`.trim()}
+                    {`${formatQuantity(purchase.quantity, 0)} ${unitLabel}`.trim()}
                   </Title>
                   {purchase.unitPrice && (
                     <Title variant="micro" color="muted">
@@ -97,10 +106,10 @@ export function RecentPurchases({ purchases, unitLabel }: Props) {
                     </Title>
                   )}
                 </span>
-              </li>
+              </RowList.Item>
             );
           })}
-        </ul>
+        </RowList.Root>
       )}
     </div>
   );

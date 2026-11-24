@@ -8,6 +8,7 @@ import { drawFooters, loadBrandLogo } from "@/utils/pdf/footer";
 import { drawReportHeader } from "@/utils/pdf/reportHeader";
 import { drawReportTable } from "@/utils/pdf/table";
 import { PAGE } from "@/utils/pdf/theme";
+import { plural } from "@/utils/format/plural";
 import { Client } from "../interface";
 import { CLIENT_SORT_LABELS } from "../utils";
 import { CLIENT_COLUMNS } from "./columns";
@@ -50,7 +51,7 @@ export const exportClientsPdf = async (
     companyName: meta.companyName ?? null,
     companyLogo,
     title: "Carteira de clientes",
-    highlight: `${clients.length} cliente(s)`,
+    highlight: `${plural(clients.length, "cliente", "clientes")}`,
     context: buildReportContext({
       fields: meta.filterFields,
       values: meta.inputValues,

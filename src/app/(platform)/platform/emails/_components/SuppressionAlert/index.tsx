@@ -6,8 +6,9 @@ import { Emphasis } from "@/components/Emphasis";
 import { Ban } from "lucide-react";
 import { useState } from "react";
 import { EmailSuppressionInfo } from "../../interface";
-import { formatMoment, suppressionReasonLabel } from "../../utils";
+import { suppressionReasonLabel } from "../../utils";
 import { ReleaseSuppressionModal } from "../ReleaseSuppressionModal";
+import { formatLogMoment } from "@/utils/format/date";
 
 /**
  * O endereço pesquisado está na lista de bloqueio: o sistema nem tenta mandar.
@@ -30,7 +31,7 @@ export function SuppressionAlert({
         <Alert.Content>
           <Alert.Title>Este endereço está bloqueado</Alert.Title>
           <Alert.Description>
-            Desde {formatMoment(suppression.since)} o sistema{" "}
+            Desde {formatLogMoment(suppression.since)} o sistema{" "}
             <Emphasis>não envia</Emphasis> nada para {suppression.email}:{" "}
             {suppressionReasonLabel(suppression.reason)}
           </Alert.Description>

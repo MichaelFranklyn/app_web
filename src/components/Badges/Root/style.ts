@@ -18,10 +18,10 @@ const baseClasses =
 // saiu em 14/11/2026: lê pior para o público idoso; o peso semibold sustenta
 // o selo sem gritar.
 const sizeClasses: Record<BadgeSize, string> = {
-  xs: "px-[10px] py-[3px] text-body-sm",
-  sm: "px-[12px] py-[5px] text-body-sm",
-  md: "px-[16px] py-[8px] text-body-sm",
-  lg: "px-[20px] py-[11px] text-body-sm",
+  xs: "px-10 py-3 text-body-sm",
+  sm: "px-12 py-5 text-body-sm",
+  md: "px-16 py-8 text-body-sm",
+  lg: "px-20 py-[11px] text-body-sm",
 };
 
 export const getBadgeClasses = (

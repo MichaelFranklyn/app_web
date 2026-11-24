@@ -4,6 +4,7 @@ import { Dropdown } from "@/components/Dropdown";
 import { Loading } from "@/components/Loading";
 import { Title } from "@/components/Title";
 import { BellRing } from "lucide-react";
+import { ICON_SIZE } from "@/components/Icon";
 
 interface Props {
   onEnable: () => void;
@@ -34,7 +35,10 @@ export function PushInviteRow({ onEnable, isLoading }: Props) {
       {isLoading ? (
         <Loading.Spinner size="sm" colorClass="amber" />
       ) : (
-        <BellRing size={14} className="shrink-0 text-(--color-action-text)" />
+        <BellRing
+          size={ICON_SIZE.sm}
+          className="shrink-0 text-(--color-action-text)"
+        />
       )}
       <div className="flex min-w-0 flex-col gap-2">
         <Title variant="micro" weight="semibold" color="amber">

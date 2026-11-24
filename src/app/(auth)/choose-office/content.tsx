@@ -47,10 +47,12 @@ export default function ChooseOfficeContent() {
           </Card.Header.Description>
         </Card.Header>
 
-        <Card.Body className="flex flex-col gap-12">
+        <Card.Body>
           {loading ? (
-            <div className="flex justify-center py-24">
-              <Loading.Spinner />
+            <div className="flex flex-col gap-8" aria-busy="true">
+              {Array.from({ length: 2 }, (_, i) => (
+                <Loading.Skeleton key={i} shape="md" className="h-64 w-full" />
+              ))}
             </div>
           ) : error ? (
             <QueryError flat onRetry={() => refetch()} />

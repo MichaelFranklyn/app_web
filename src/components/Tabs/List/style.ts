@@ -19,30 +19,27 @@ export const tabsStyles = {
   // vertical ao arrastar (relato de 19/11/2026, /commissions). Agora o traço
   // fica dentro da caixa e a sombra é pintada por baixo dele.
   list: cn(
-    "group/tabs flex overflow-x-auto overflow-y-hidden overscroll-x-contain hide-scrollbar mb-[24px]",
+    "group/tabs flex overflow-x-auto overflow-y-hidden overscroll-x-contain hide-scrollbar mb-24",
     "shadow-[inset_0_-1px_0_var(--border)]"
   ),
   // Borda esmaecida quando há aba escondida daquele lado (`useScrollEdges`
-  // escreve os data-attributes). Sem nada escondido a máscara é opaca inteira.
-  listEdgeFade: cn(
-    "[--fade-l:0px] [--fade-r:0px] data-fade-start:[--fade-l:40px] data-fade-end:[--fade-r:40px]",
-    "[mask-image:linear-gradient(to_right,transparent,#000_var(--fade-l),#000_calc(100%-var(--fade-r)),transparent)]"
-  ),
+  // escreve os data-attributes; a utility mora em globals.css).
+  listEdgeFade: "edge-fade",
   listFilled: cn(
-    // O halo de foco dentro de overflow-x-auto é cortado: a trilha tem p-[3px].
+    // O halo de foco dentro de overflow-x-auto é cortado: a trilha tem p-3.
     // Compacta: na altura de um campo `sm` (~34px), não um bloco que pesa mais
     // que o cabeçalho ("muito grande", 18/11/2026).
     // Abaixo do desktop a trilha ocupa a linha e as abas dividem o espaço em
     // partes iguais (pedido de 19/11/2026, Prioridades no celular): um bloco
     // curto à esquerda parecia sobra. No desktop volta a ser do tamanho dela.
-    "w-full desktop:w-fit max-w-full gap-2 p-[3px] rounded-(--radius-md)",
+    "w-full desktop:w-fit max-w-full gap-2 p-3 rounded-(--r-md)",
     "shadow-none bg-(--bg4)"
   ),
   item: cn(
     "shrink-0 whitespace-nowrap",
-    "relative px-[18px] py-[10px] text-body-sm text-(--color-text-muted)",
+    "relative px-[18px] py-10 text-body-sm text-(--color-text-muted)",
     // No toque a aba `line` chega a 44px de altura (tinha 41).
-    "group-data-[variant=line]/tabs:pointer-coarse:py-[12px]",
+    "group-data-[variant=line]/tabs:pointer-coarse:py-12",
     "cursor-pointer transition-colors duration-150 focus-ring",
     "hover:text-(--color-text)",
     // Traço da aba num ::after (não border-b): cresce do centro ao ativar, e no
@@ -53,7 +50,7 @@ export const tabsStyles = {
     "data-[state=inactive]:hover:after:scale-x-100 data-[state=inactive]:hover:after:bg-(--border2)",
     "data-[state=active]:text-(--color-action-text) data-[state=active]:font-medium data-[state=active]:after:scale-x-100",
     // Versão `filled`: sem traço; a aba ativa vira um bloco na cor de ação.
-    "group-data-[variant=filled]/tabs:rounded-(--radius-sm) group-data-[variant=filled]/tabs:px-[12px] group-data-[variant=filled]/tabs:py-[4px]",
+    "group-data-[variant=filled]/tabs:rounded-(--r-sm) group-data-[variant=filled]/tabs:px-12 group-data-[variant=filled]/tabs:py-4",
     "max-desktop:group-data-[variant=filled]/tabs:flex-1 max-desktop:group-data-[variant=filled]/tabs:text-center",
     "group-data-[variant=filled]/tabs:after:hidden group-data-[variant=filled]/tabs:transition-[background-color,color]",
     "group-data-[variant=filled]/tabs:data-[state=inactive]:hover:bg-(--bg2)",

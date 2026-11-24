@@ -40,7 +40,7 @@ export function PendingTypeCard({ row, open, onToggle }: Props) {
 
   return (
     <Card.Root data-tour="pending-card">
-      <Card.Section className="gap-12">
+      <Card.Section>
         <div className="flex items-start justify-between gap-12">
           <div className="flex min-w-0 items-start gap-10">
             <IconTile
@@ -70,7 +70,7 @@ export function PendingTypeCard({ row, open, onToggle }: Props) {
       </Card.Section>
 
       {samples.length > 0 && (
-        <Card.Section divided className="gap-6 py-12">
+        <Card.Section divided>
           <Title variant="micro" color="muted">
             Mais urgentes
           </Title>

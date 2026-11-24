@@ -1,5 +1,6 @@
 "use client";
 
+import { plural } from "@/utils/format/plural";
 import { Alert } from "@/components/Alert";
 import { Button } from "@/components/Button";
 import { Input } from "@/components/Input";
@@ -80,7 +81,8 @@ export function StepFiles(props: Props) {
       {sendingNow && (
         <div className="flex flex-col gap-4">
           <Title variant="body-xs" color="muted">
-            Enviando {props.progress.done} de {props.progress.total} PDF(s)…
+            Enviando {props.progress.done} de{" "}
+            {plural(props.progress.total, "PDF", "PDFs")}…
           </Title>
           <Progress
             value={(props.progress.done / props.progress.total) * 100}
@@ -94,7 +96,8 @@ export function StepFiles(props: Props) {
           <Alert.Icon icon={Info} />
           <Alert.Content>
             <Alert.Description>
-              {props.failed.length} PDF(s) não subiram:{" "}
+              {plural(props.failed.length, "PDF não subiu", "PDFs não subiram")}
+              :{" "}
               {props.failed
                 .map((f) => `${f.fileName} (${f.error ?? "erro no envio"})`)
                 .join("; ")}
@@ -121,7 +124,12 @@ export function StepFiles(props: Props) {
 
       {imported > 0 && (
         <Title variant="body-xs" color="muted">
-          {imported} PDF(s) deste lote já foram importados.
+          {plural(
+            imported,
+            "PDF deste lote já foi importado",
+            "PDFs deste lote já foram importados"
+          )}
+          .
         </Title>
       )}
 

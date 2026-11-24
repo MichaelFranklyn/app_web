@@ -1,5 +1,6 @@
 "use client";
 
+import { formatDuration } from "@/utils/format/duration";
 import { Badge } from "@/components/Badges";
 import { Card } from "@/components/Card";
 import { Divider } from "@/components/Divider";
@@ -11,7 +12,6 @@ import { CheckCircle2 } from "lucide-react";
 import dynamic from "next/dynamic";
 import { operationLabel } from "../../../utils";
 import { OperationTrendReport } from "../../interface";
-import { formatMs } from "../../utils";
 import { RegressionRow } from "./RegressionRow";
 import { buildTrendOption } from "./option";
 
@@ -42,28 +42,26 @@ export function OperationTrendCard({
   return (
     <Card.Root>
       <Card.Header>
-        <Card.Header.Title size="sm" weight="semibold">
-          Tendência técnica
-        </Card.Header.Title>
+        <Card.Header.Title>Tendência técnica</Card.Header.Title>
         <Card.Header.Description>
           Falhas e tempo de resposta dia a dia, e o que piorou em relação aos 30
           dias anteriores.
         </Card.Header.Description>
       </Card.Header>
 
-      <Card.Body className="flex flex-col gap-20">
+      <Card.Body>
         {hasPulse ? (
           <>
             <Chart option={buildTrendOption(report.daily)} height={240} />
             <Title variant="micro" color="muted">
-              Pico de {formatMs(peak)} no p95 do período. Um degrau que começa
-              num dia específico costuma apontar o deploy daquele dia.
+              Pico de {formatDuration(peak)} no p95 do período. Um degrau que
+              começa num dia específico costuma apontar o deploy daquele dia.
             </Title>
           </>
         ) : (
           <EmptyState.Root>
             <EmptyState.Icon>
-              <CheckCircle2 size={32} />
+              <CheckCircle2 />
             </EmptyState.Icon>
             <EmptyState.Title>Nenhuma chamada no período</EmptyState.Title>
             <EmptyState.Description>

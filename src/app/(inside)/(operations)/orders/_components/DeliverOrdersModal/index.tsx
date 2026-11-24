@@ -10,6 +10,7 @@ import { Modal } from "@/components/Modal";
 import { Title } from "@/components/Title";
 import { useAsyncAction } from "@/hooks/useAsyncAction";
 import { toIsoDate } from "@/utils/format/date";
+import { plural } from "@/utils/format/plural";
 import { useMutation } from "@apollo/client/react";
 import { PackageCheck } from "lucide-react";
 import { useRef, useState } from "react";
@@ -74,8 +75,8 @@ export function DeliverOrdersModal({ orderIds, onDone }: Props) {
       {
         successMessage: (result) =>
           result.failures.length > 0
-            ? `${result.delivered} entrega(s) confirmada(s). ${result.failures.length} pedido(s) não puderam ser entregues: ${result.failures[0].message}`
-            : `${result.delivered} entrega(s) confirmada(s). Estoque dos clientes atualizado.`,
+            ? `${plural(result.delivered, "entrega confirmada", "entregas confirmadas")}. ${plural(result.failures.length, "pedido não pôde ser entregue", "pedidos não puderam ser entregues")}: ${result.failures[0].message}`
+            : `${plural(result.delivered, "entrega confirmada", "entregas confirmadas")}. Estoque dos clientes atualizado.`,
         onSuccess: () => {
           setOpen(false);
           formRef.current?.resetForm();
@@ -96,7 +97,7 @@ export function DeliverOrdersModal({ orderIds, onDone }: Props) {
 
       <Modal.Content size="md">
         <Modal.Header
-          title={`Confirmar a entrega de ${count} pedido(s)`}
+          title={`Confirmar a entrega de ${plural(count, "pedido", "pedidos")}`}
           description="Os pedidos saem da lista, o cliente volta para a rotina nesta fábrica e o estoque dele é atualizado."
         />
         <Modal.Body>

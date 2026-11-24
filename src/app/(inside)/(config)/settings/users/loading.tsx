@@ -9,7 +9,7 @@ export default function Loading() {
       title="Pessoas"
       description="Quem entra no sistema e quem vende em campo — uma lista só. Clique em alguém para abrir o perfil completo."
       actions={2}
-      kpis={{ count: 3, cols: { base: 1, tablet: 3 } }}
+      kpis={{ count: 3 }}
       listTitle="Pessoas da empresa"
       cards
       // As MESMAS três colunas da tabela, na mesma ordem: o esqueleto que

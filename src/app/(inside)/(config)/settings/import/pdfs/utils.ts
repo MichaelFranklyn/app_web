@@ -1,4 +1,6 @@
 import { ThemeColor } from "@/lib/theme";
+import { BRT_TIME_ZONE, formatDateAtTime } from "@/utils/format/date";
+import { plural } from "@/utils/format/plural";
 
 import {
   HistoryOrderStatus,
@@ -138,7 +140,7 @@ export function buildPdfRows(
     if (file.unreadableRows > 0) {
       flag(
         file,
-        `${file.unreadableRows} linha(s) do PDF não foram lidas e ficam de fora; o resto do pedido entra.`
+        `${plural(file.unreadableRows, "linha do PDF não foi lida e fica", "linhas do PDF não foram lidas e ficam")} de fora; o resto do pedido entra.`
       );
     }
     fileRows[file.id] = [];
@@ -208,11 +210,8 @@ export function fileBadge(file: PdfImportFile): {
   return { label: "Importado", color: "neutral" };
 }
 
-const plural = (n: number, one: string, many: string) =>
-  `${n} ${n === 1 ? one : many}`;
-
 /**
- * Contagem do lote, com o plural certo: "1 lido", "3 lidos" — o "lido(s)"
+ * Contagem do lote, com o plural certo: "1 lido", "3 lidos" — o "lido" com "(s)"
  * genérico lia como formulário (crítica de configurações, 23/11/2026).
  */
 export function batchCounts(batch: PdfImportBatch): string {
@@ -245,14 +244,8 @@ export function batchBadge(batch: PdfImportBatch): {
 
 /** "17/11/2026 às 14:32", no fuso do escritório. */
 export function batchOpenedAt(iso: string): string {
-  const date = new Date(iso);
-  if (Number.isNaN(date.getTime())) return "—";
-  const tz = "America/Sao_Paulo";
-  const day = date.toLocaleDateString("pt-BR", { timeZone: tz });
-  const time = date.toLocaleTimeString("pt-BR", {
-    timeZone: tz,
-    hour: "2-digit",
-    minute: "2-digit",
+  return formatDateAtTime(iso, {
+    withYear: true,
+    timeZone: BRT_TIME_ZONE,
   });
-  return `${day} às ${time}`;
 }

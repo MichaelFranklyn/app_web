@@ -150,11 +150,11 @@ const Content = React.forwardRef<
 
   return (
     <Dialog.Portal>
-      <Dialog.Overlay className="data-[state=open]:animate-fade-in data-[state=closed]:animate-fade-out fixed inset-0 z-50 bg-black/45 backdrop-blur-[3px]" />
+      <Dialog.Overlay className="data-[state=open]:animate-fade-in data-[state=closed]:animate-fade-out fixed inset-0 z-(--z-modal) bg-(--scrim) backdrop-blur-[3px]" />
       <Dialog.Content
         ref={ref}
         className={cn(
-          "fixed top-1/2 left-1/2 z-50 w-full -translate-x-1/2 -translate-y-1/2",
+          "fixed top-1/2 left-1/2 z-(--z-modal) w-full -translate-x-1/2 -translate-y-1/2",
           "max-w-[calc(100vw-32px)]",
           "flex max-h-[90vh] flex-col",
           // Camada mais alta da tela: a sombra maior (--shadow-lg) a descola

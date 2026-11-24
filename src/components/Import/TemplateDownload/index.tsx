@@ -17,10 +17,7 @@ export function TemplateDownload({
 }: TemplateDownloadProps) {
   return (
     <Card.Root inset>
-      <Card.Body
-        padding="sm"
-        className="flex-row items-center justify-between gap-12"
-      >
+      <Card.Body padding="sm" className="flex-row items-center justify-between">
         <div className="flex flex-col gap-2">
           <Title variant="body-sm" weight="medium">
             {title}

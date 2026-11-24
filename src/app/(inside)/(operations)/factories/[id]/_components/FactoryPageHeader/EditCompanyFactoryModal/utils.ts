@@ -54,11 +54,11 @@ export const FORM_STEPS: FormStepSchema[] = [
           },
           {
             name: "paymentDays",
-            label: "Dia(s) de pagamento da comissão",
+            label: "Dias de pagamento da comissão",
             type: "text",
             required: true,
             placeholder: "Ex: 10 ou 5, 20",
-            hint: "Dia(s) do mês em que a fábrica paga a comissão. Separe múltiplos por vírgula.",
+            hint: "Dias do mês em que a fábrica paga a comissão. Separe múltiplos por vírgula.",
           },
           {
             name: "commissionCutoffDay",

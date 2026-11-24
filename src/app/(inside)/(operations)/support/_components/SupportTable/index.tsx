@@ -107,7 +107,7 @@ export function SupportTable({
               <Table.Cell colSpan={COLUMNS}>
                 <EmptyState.Root flat>
                   <EmptyState.Icon>
-                    <Headset size={32} />
+                    <Headset />
                   </EmptyState.Icon>
                   <EmptyState.Title>Nenhuma reclamação</EmptyState.Title>
                   <EmptyState.Description>

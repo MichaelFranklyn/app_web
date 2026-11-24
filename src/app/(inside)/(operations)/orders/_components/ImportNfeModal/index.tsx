@@ -4,6 +4,7 @@ import { Button } from "@/components/Button";
 import { Input } from "@/components/Input";
 import { Modal } from "@/components/Modal";
 import { Title } from "@/components/Title";
+import { plural } from "@/utils/format/plural";
 import { FileCode2 } from "lucide-react";
 import { useState } from "react";
 
@@ -100,7 +101,7 @@ export function ImportNfeModal({ onInvoiced }: Props) {
               >
                 <Button.Title>
                   {readyCount > 0
-                    ? `Faturar ${readyCount} pedido(s)`
+                    ? `Faturar ${plural(readyCount, "pedido", "pedidos")}`
                     : "Nenhuma nota pronta"}
                 </Button.Title>
               </Button.Root>

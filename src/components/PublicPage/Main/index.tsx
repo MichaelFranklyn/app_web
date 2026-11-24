@@ -8,7 +8,7 @@ export const Main = React.forwardRef<
 >(({ className, ...props }, ref) => (
   <main
     ref={ref}
-    className={cn(PUBLIC_PAGE_CONTAINER, "flex-1 py-[24px]", className)}
+    className={cn(PUBLIC_PAGE_CONTAINER, "flex-1 py-24", className)}
     {...props}
   />
 ));

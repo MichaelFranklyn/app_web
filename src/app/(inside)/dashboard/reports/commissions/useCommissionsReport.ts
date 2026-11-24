@@ -31,6 +31,7 @@ import {
   factoriesFromServer,
   totalsFromServer,
 } from "./utils";
+import { formatPercent } from "@/utils/format/percent";
 
 export const COMMISSIONS_PER_PAGE = 20;
 /** Página da varredura da exportação (o servidor aceita até 500). */
@@ -160,7 +161,7 @@ export const useCommissionsReport = (
             {
               label: "Fica no escritório",
               value: formatMoney(split.office),
-              hint: `${Math.round(split.margin * 100)}% do que veio das fábricas`,
+              hint: `${formatPercent(split.margin)} do que veio das fábricas`,
               status: "neutral" as const,
             },
           ]

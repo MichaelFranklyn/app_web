@@ -101,7 +101,7 @@ export function UnitsSection() {
               <Table.Cell colSpan={2}>
                 <EmptyState.Root flat>
                   <EmptyState.Icon>
-                    <Ruler size={32} />
+                    <Ruler />
                   </EmptyState.Icon>
                   <EmptyState.Title>
                     Nenhuma unidade cadastrada

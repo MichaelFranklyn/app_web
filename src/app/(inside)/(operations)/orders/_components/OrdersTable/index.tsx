@@ -139,7 +139,7 @@ export function OrdersTable({
               <Table.Cell colSpan={8}>
                 <EmptyState.Root flat>
                   <EmptyState.Icon>
-                    <Receipt size={32} />
+                    <Receipt />
                   </EmptyState.Icon>
                   <EmptyState.Title>{emptyTitle}</EmptyState.Title>
                   <EmptyState.Description>

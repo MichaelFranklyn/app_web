@@ -4,6 +4,7 @@ import { useApolloClient, useMutation } from "@apollo/client/react";
 import { useState } from "react";
 
 import { useAsyncAction } from "@/hooks/useAsyncAction";
+import { plural } from "@/utils/format/plural";
 
 import {
   HISTORY_IMPORT_BATCHES_QUERY,
@@ -112,7 +113,7 @@ export function useHistoryRun() {
         errorMessage:
           'A importação parou no meio. O que já entrou ficou gravado: desfaça-a em "Importações feitas", abaixo, antes de tentar de novo.',
         successMessage: (result) =>
-          `${result.ordersCreated} pedido(s) importado(s).`,
+          `${plural(result.ordersCreated, "pedido importado", "pedidos importados")}.`,
         onSuccess: setImported,
       }
     );

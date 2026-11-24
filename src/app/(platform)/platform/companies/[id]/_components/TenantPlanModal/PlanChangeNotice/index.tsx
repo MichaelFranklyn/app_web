@@ -5,6 +5,7 @@ import { AlertTriangle, ArrowRight, Plus } from "lucide-react";
 
 import { limitText } from "../../../../../_components/PlanSummary";
 import { PlanChange } from "../../../../../utils";
+import { ICON_SIZE } from "@/components/Icon";
 
 /**
  * O que a troca de plano faz com a empresa, dito antes de salvar.
@@ -23,7 +24,7 @@ export function PlanChangeNotice({ change }: { change: PlanChange }) {
 
   return (
     <Card.Root inset>
-      <Card.Body padding="sm" className="gap-8">
+      <Card.Body padding="sm">
         <Title variant="micro" color="muted">
           O que muda para esta empresa
         </Title>
@@ -32,8 +33,8 @@ export function PlanChangeNotice({ change }: { change: PlanChange }) {
           <div className="flex items-start gap-6">
             <AlertTriangle
               aria-hidden
-              size={14}
-              className="mt-[2px] shrink-0 text-(--color-status-danger)"
+              size={ICON_SIZE.sm}
+              className="mt-2 shrink-0 text-(--color-status-danger)"
             />
             <Title variant="caption" color="red">
               Perde: {change.lost.map((f) => FEATURE_LABEL[f]).join(", ")}. Quem
@@ -46,8 +47,8 @@ export function PlanChangeNotice({ change }: { change: PlanChange }) {
           <div className="flex items-start gap-6">
             <Plus
               aria-hidden
-              size={14}
-              className="mt-[2px] shrink-0 text-(--color-status-success)"
+              size={ICON_SIZE.sm}
+              className="mt-2 shrink-0 text-(--color-status-success)"
             />
             <Title variant="caption">
               Ganha: {change.gained.map((f) => FEATURE_LABEL[f]).join(", ")}.
@@ -64,7 +65,7 @@ export function PlanChangeNotice({ change }: { change: PlanChange }) {
                 </Title>
                 <ArrowRight
                   aria-hidden
-                  size={12}
+                  size={ICON_SIZE.xs}
                   className="shrink-0 text-(--color-text-muted)"
                 />
                 <Title

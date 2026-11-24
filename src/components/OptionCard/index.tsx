@@ -2,6 +2,7 @@ import { IconTile } from "@/components/IconTile";
 import { Title } from "@/components/Title";
 import { ChevronRight, LucideIcon } from "lucide-react";
 import React from "react";
+import { ICON_SIZE } from "@/components/Icon";
 
 interface OptionCardProps extends Omit<
   React.ButtonHTMLAttributes<HTMLButtonElement>,
@@ -44,7 +45,7 @@ export function OptionCard({
         ) : null}
       </span>
       <ChevronRight
-        size={16}
+        size={ICON_SIZE.md}
         aria-hidden
         className="shrink-0 text-(--color-text-muted) transition-[color,translate] duration-150 group-hover:translate-x-[2px] group-hover:text-(--color-action-text)"
       />

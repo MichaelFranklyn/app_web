@@ -59,7 +59,7 @@ export function AwaitingDeliveryTable(props: Props) {
         </Table.CardHead.Actions>
       </Table.CardHead>
 
-      <Table.Table>
+      <Table.Table cards>
         <Table.Header>
           <Table.Row>
             <Table.Head className="w-40">
@@ -110,7 +110,7 @@ export function AwaitingDeliveryTable(props: Props) {
               <Table.Cell colSpan={7}>
                 <EmptyState.Root flat>
                   <EmptyState.Icon>
-                    <PackageCheck size={32} />
+                    <PackageCheck />
                   </EmptyState.Icon>
                   <EmptyState.Title>Nenhuma entrega atrasada</EmptyState.Title>
                   <EmptyState.Description>
@@ -123,7 +123,7 @@ export function AwaitingDeliveryTable(props: Props) {
           ) : (
             items.map((order) => (
               <Table.Row key={order.id} href={`/orders/${order.id}`}>
-                <Table.Cell onClick={(e) => e.stopPropagation()}>
+                <Table.Cell card="lead" onClick={(e) => e.stopPropagation()}>
                   <Input.Checkbox
                     label=""
                     aria-label={`Selecionar o pedido de ${clientName(order.client)}`}
@@ -131,16 +131,20 @@ export function AwaitingDeliveryTable(props: Props) {
                     onChange={() => props.onToggle(order.id)}
                   />
                 </Table.Cell>
-                <Table.Cell variant="strong">
+                <Table.Cell card="title" variant="strong">
                   {clientName(order.client)}
                 </Table.Cell>
-                <Table.Cell variant="dim">
+                <Table.Cell variant="dim" label="Fábrica">
                   {factoryName(order.factory)}
                 </Table.Cell>
-                <Table.Cell variant="dim">
-                  {order.seller?.name ?? "—"}
+                <Table.Cell variant="dim" label="Vendedor">
+                  {order.seller?.name ?? ""}
                 </Table.Cell>
-                <Table.Cell variant="dim" className="whitespace-nowrap">
+                <Table.Cell
+                  variant="dim"
+                  className="whitespace-nowrap"
+                  label="Faturado em"
+                >
                   {formatDateDMY(order.invoicedAt ?? undefined)}
                   {order.invoicedAt && (
                     <Table.CellText variant="dim" className="ml-4">
@@ -148,10 +152,14 @@ export function AwaitingDeliveryTable(props: Props) {
                     </Table.CellText>
                   )}
                 </Table.Cell>
-                <Table.Cell variant="dim" className="whitespace-nowrap">
+                <Table.Cell
+                  variant="dim"
+                  className="whitespace-nowrap"
+                  label="Entrega prevista"
+                >
                   {formatDateDMY(order.expectedDeliveryDate ?? undefined)}
                 </Table.Cell>
-                <Table.Cell variant="strong" align="right">
+                <Table.Cell card="value" variant="strong" align="right">
                   {formatMoney(order.totalAmount)}
                 </Table.Cell>
               </Table.Row>

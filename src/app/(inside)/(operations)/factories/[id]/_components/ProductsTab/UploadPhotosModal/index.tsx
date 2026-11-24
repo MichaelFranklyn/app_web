@@ -5,6 +5,7 @@ import { Input } from "@/components/Input";
 import { Modal } from "@/components/Modal";
 import { QueryError } from "@/components/QueryError";
 import { Title } from "@/components/Title";
+import { plural } from "@/utils/format/plural";
 
 import { PhotoReviewList } from "./PhotoReviewList";
 import { UploadSummary } from "./UploadSummary";
@@ -124,7 +125,7 @@ export function UploadPhotosModal({
           >
             <Button.Title>
               {upload.stats.matched > 0
-                ? `Salvar ${upload.stats.matched} foto(s)`
+                ? `Salvar ${plural(upload.stats.matched, "foto", "fotos")}`
                 : "Salvar fotos"}
             </Button.Title>
           </Button.Root>

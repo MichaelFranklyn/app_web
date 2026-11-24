@@ -1,3 +1,4 @@
+import { ICON_SIZE } from "@/components/Icon";
 import { Title } from "@/components/Title";
 import { Play } from "lucide-react";
 import Image from "next/image";
@@ -32,7 +33,7 @@ export function VideoSection() {
         </Title>
       </div>
 
-      <div className="relative aspect-video w-full max-w-[960px] overflow-hidden rounded-(--radius-lg) border border-(--border) bg-(--color-text) shadow-(--shadow-lg)">
+      <div className="relative aspect-video w-full max-w-[960px] overflow-hidden rounded-(--r-lg) border border-(--border) bg-(--color-text) shadow-(--shadow-lg)">
         {src ? (
           <video
             controls
@@ -63,11 +64,14 @@ export function VideoSection() {
             <div className="absolute inset-0 flex flex-col items-center justify-center gap-16 p-24 text-center">
               <span
                 aria-hidden
-                className="tablet:size-[80px] flex size-[56px] items-center justify-center rounded-(--radius-full) border-2 border-(--bg2)/70 bg-(--bg2)/15"
+                className="tablet:size-[80px] flex size-[56px] items-center justify-center rounded-full border-2 border-(--bg2)/70 bg-(--bg2)/15"
               >
-                <Play size={28} className="ml-4 fill-(--bg2) stroke-(--bg2)" />
+                <Play
+                  size={ICON_SIZE.xl}
+                  className="ml-4 fill-(--bg2) stroke-(--bg2)"
+                />
               </span>
-              <span className="rounded-(--radius-full) bg-(--bg2) px-12 py-4">
+              <span className="rounded-full bg-(--bg2) px-12 py-4">
                 <Title as="span" variant="label" color="cyan">
                   Em breve
                 </Title>

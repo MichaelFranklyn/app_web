@@ -3,6 +3,7 @@ import { FileSpreadsheet } from "lucide-react";
 
 import { Input } from "@/components/Input";
 import { Title } from "@/components/Title";
+import { ICON_SIZE } from "@/components/Icon";
 
 interface Props {
   onFile: (files: File[]) => void;
@@ -22,7 +23,10 @@ export function SheetDropzone({ onFile, loading }: Props) {
     <Card.Root inset tone="transparent" dashed>
       <Card.Body padding="compact">
         <div className="mb-8 flex items-center gap-8">
-          <FileSpreadsheet size={16} className="text-(--color-action-text)" />
+          <FileSpreadsheet
+            size={ICON_SIZE.md}
+            className="text-(--color-action-text)"
+          />
           <Title variant="body-sm" weight="medium">
             Suba a ficha preenchida
           </Title>

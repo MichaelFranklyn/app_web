@@ -10,6 +10,7 @@ import { Modal } from "@/components/Modal";
 import { useAsyncAction } from "@/hooks/useAsyncAction";
 import { extractSelectValue } from "@/utils/form";
 import { maskCurrency, parseMoneyToNumber } from "@/utils/format/masks";
+import { plural } from "@/utils/format/plural";
 import { useMutation } from "@apollo/client/react";
 import { Pencil } from "lucide-react";
 import { useMemo, useRef, useState } from "react";
@@ -188,7 +189,7 @@ export function EditOrderItemModal({
     }
     if (saleMultiple && !isQuantityMultiple(quantity, saleMultiple)) {
       throw new Error(
-        `Este produto é vendido em múltiplos de ${saleMultiple} unidade(s).`
+        `Este produto é vendido em múltiplos de ${plural(saleMultiple, "unidade", "unidades")}.`
       );
     }
     if (discountType === "PERCENT" && rawDiscount > 100) {

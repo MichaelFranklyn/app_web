@@ -16,7 +16,7 @@ export const Eyebrow = React.forwardRef<HTMLDivElement, EyebrowProps>(
     <div
       ref={ref}
       className={cn(
-        "text-body-sm mb-[2px] font-medium",
+        "text-body-sm mb-2 font-medium",
         colorClasses[color],
         className
       )}

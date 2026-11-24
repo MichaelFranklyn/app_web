@@ -2,14 +2,15 @@
 
 import { Button } from "@/components/Button";
 import { Card } from "@/components/Card";
+import { EmptyState } from "@/components/EmptyState";
 import { Loading } from "@/components/Loading";
 import { Pagination } from "@/components/Pagination";
 import { QueryError } from "@/components/QueryError";
 import { RowList } from "@/components/RowList";
 import { ScheduleVisitModal } from "@/components/ScheduleVisitModal";
-import { Title } from "@/components/Title";
 import { formatDate } from "@/utils/format/date";
-import { ChevronUp } from "lucide-react";
+import { plural } from "@/utils/format/plural";
+import { ChevronUp, CheckCircle2 } from "lucide-react";
 import { useEffect, useRef, useState } from "react";
 
 import { PendingItem, PendingType } from "../../interface";
@@ -85,45 +86,51 @@ export function PendingCases({
 
   return (
     <Card.Root data-tour="pending-cases">
-      <Card.Body className="flex flex-col gap-12">
-        <div ref={anchor} className="scroll-mt-16" />
-        <div className="flex items-start justify-between gap-12">
-          <div className="flex min-w-0 flex-col gap-2">
-            <Title variant="heading-sm">{PENDING_TYPE_LABEL[type]}</Title>
-            <Title variant="micro" color="muted">
-              {cases.loading && cases.items.length > 0 && (
-                <Loading.Spinner size="sm" className="mr-6 inline-block" />
-              )}
-              {cases.total} {cases.total === 1 ? "pendência" : "pendências"} ·
-              da mais urgente para a que pode esperar
-            </Title>
-          </div>
-          {/* Ação da caixa = primária (pedido de 17/11/2026), como o
-              "Fechar lista" do cartão. */}
+      <div ref={anchor} className="scroll-mt-16" />
+      <Card.Header>
+        <Card.Header.Title>{PENDING_TYPE_LABEL[type]}</Card.Header.Title>
+        <Card.Header.Description>
+          {cases.loading && cases.items.length > 0 && (
+            <Loading.Spinner size="sm" className="mr-6 inline-block" />
+          )}
+          {plural(cases.total, "pendência", "pendências")} · da mais urgente
+          para a que pode esperar
+        </Card.Header.Description>
+        {/* Ação da caixa = primária (pedido de 17/11/2026), como o
+            "Fechar lista" do cartão. */}
+        <Card.Header.Actions>
           <Button.Root
             type="button"
             appearance="solid"
             color="amber"
             size="sm"
-            className="shrink-0"
             onClick={onClose}
           >
             <Button.Title>Fechar lista</Button.Title>
             <Button.Icon icon={ChevronUp} />
           </Button.Root>
-        </div>
-
+        </Card.Header.Actions>
+      </Card.Header>
+      <Card.Body>
         {cases.failed ? (
           <QueryError onRetry={() => cases.refetch()} />
         ) : cases.showSpinner ? (
-          <div className="flex justify-center py-32">
-            <Loading.Spinner />
+          <div className="flex flex-col gap-8" aria-busy="true">
+            {Array.from({ length: 4 }, (_, i) => (
+              <Loading.Skeleton key={i} shape="md" className="h-56 w-full" />
+            ))}
           </div>
         ) : cases.items.length === 0 ? (
-          <Title variant="body-sm" color="muted" className="py-24 text-center">
-            Nenhuma pendência aqui agora — foi resolvida enquanto a tela estava
-            aberta, ou o filtro de prazo não alcança este assunto.
-          </Title>
+          <EmptyState.Root flat>
+            <EmptyState.Icon>
+              <CheckCircle2 />
+            </EmptyState.Icon>
+            <EmptyState.Title>Nenhuma pendência aqui agora</EmptyState.Title>
+            <EmptyState.Description>
+              Foi resolvida enquanto a tela estava aberta, ou o filtro de prazo
+              não alcança este assunto.
+            </EmptyState.Description>
+          </EmptyState.Root>
         ) : (
           <RowList.Root spacing="md">
             {cases.items.map((item) => (

@@ -61,7 +61,7 @@ export default function ProductDetailContent({ id }: Props) {
       <div className="flex min-h-[40vh] items-center justify-center pt-20">
         <EmptyState.Root className="max-w-105">
           <EmptyState.Icon>
-            <PackageX size={32} />
+            <PackageX />
           </EmptyState.Icon>
           <EmptyState.Title>Produto não encontrado</EmptyState.Title>
           <EmptyState.Description>

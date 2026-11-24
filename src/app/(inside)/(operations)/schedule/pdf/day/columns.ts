@@ -1,4 +1,5 @@
 import { formatDistanceKm, formatMinutes } from "../../utils";
+import { plural } from "@/utils/format/plural";
 
 /**
  * As colunas da parada subiram para `agenda/pdf/columns` quando a folha da
@@ -37,8 +38,9 @@ export interface RouteContextData {
 export const buildRouteContext = (data: RouteContextData): string[] => {
   const lines: string[] = [];
   if (data.sellerName) lines.push(`Vendedor: ${data.sellerName}`);
-  lines.push(`${data.stopsCount} parada(s)`);
-  if (data.remoteCount > 0) lines.push(`${data.remoteCount} ligação(ões)`);
+  lines.push(`${plural(data.stopsCount, "parada", "paradas")}`);
+  if (data.remoteCount > 0)
+    lines.push(plural(data.remoteCount, "ligação", "ligações"));
   if (Number(data.routeDistanceKm) > 0) {
     lines.push(formatDistanceKm(data.routeDistanceKm));
   }

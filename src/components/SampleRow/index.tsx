@@ -3,6 +3,7 @@ import { cn } from "@/lib/utils";
 import { ArrowUpRight } from "lucide-react";
 import NextLink from "next/link";
 import React from "react";
+import { ICON_SIZE } from "@/components/Icon";
 
 interface SampleRowProps {
   /** O nome inteiro — é por ele que o vendedor reconhece o cliente. */
@@ -47,7 +48,7 @@ export function SampleRow({
           {aside}
           {href && (
             <ArrowUpRight
-              size={14}
+              size={ICON_SIZE.sm}
               className="text-(--color-text-muted)"
               aria-hidden
             />

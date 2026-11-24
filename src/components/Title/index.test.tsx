@@ -13,7 +13,7 @@ describe("Title", () => {
   it("`as` troca a tag e mantém a escala", () => {
     // O número de um cartão de estatística tem o tamanho de um heading e não é
     // cabeçalho de nada — sem esta saída, o jeito curto era escrever
-    // `text-[19px]` à mão e sair da escala (ver typography.guard).
+    // `text-[19px]` (ou `text-heading-md`) à mão e sair da escala (ver typography.guard).
     const { container } = render(
       <Title as="span" variant="heading-md">
         128
@@ -21,7 +21,7 @@ describe("Title", () => {
     );
     const span = container.querySelector("span");
     expect(span).not.toBeNull();
-    expect(span?.className).toContain("text-[19px]");
+    expect(span?.className).toContain("text-heading-md");
     expect(container.querySelector("h3")).toBeNull();
   });
 
@@ -54,5 +54,36 @@ describe("Title", () => {
     const className = container.firstElementChild?.className ?? "";
     expect(className).toContain("text-(--red)");
     expect(className).not.toContain("text-(--color-text-muted)");
+  });
+
+  it("texto cortado (truncate) leva o texto inteiro no title", () => {
+    const { container } = render(
+      <Title variant="body-sm" className="min-w-0 truncate">
+        Recôncavo Cerâmica {"Ltda"}
+      </Title>
+    );
+    expect(container.firstElementChild?.getAttribute("title")).toBe(
+      "Recôncavo Cerâmica Ltda"
+    );
+  });
+
+  it("sem truncate, sem title; title próprio vence o automático", () => {
+    const plain = render(<Title variant="body-sm">Nome</Title>);
+    expect(plain.container.firstElementChild?.hasAttribute("title")).toBe(
+      false
+    );
+    const own = render(
+      <Title variant="body-sm" className="truncate" title="Outro">
+        Nome
+      </Title>
+    );
+    expect(own.container.firstElementChild?.getAttribute("title")).toBe(
+      "Outro"
+    );
+  });
+
+  it("hero e display usam os degraus da escala, não px à mão", () => {
+    const { container } = render(<Title variant="display">42</Title>);
+    expect(container.firstElementChild?.className).toContain("text-display");
   });
 });

@@ -9,6 +9,7 @@ import { SortLabel } from "@/utils/pdf/context";
 
 import { AbcClass, AbcRow } from "./interface";
 import { visibleCommission } from "@/utils/commission";
+import { formatPercentPoints } from "@/utils/format/percent";
 
 export const ABC_CLASS_LABEL: Record<AbcClass, string> = {
   A: "Classe A",
@@ -82,7 +83,7 @@ export const buildCurveOption = (rows: AbcRow[]): EChartsCoreOption => {
       name: "Acumulado",
       color: SERIES_GREEN,
       data: top.map((row) => row.cumulativeShare * 100),
-      formatter: (value) => `${Math.round(value)}%`,
+      formatter: (value) => formatPercentPoints(value),
     },
     { lineMax: 100 }
   );

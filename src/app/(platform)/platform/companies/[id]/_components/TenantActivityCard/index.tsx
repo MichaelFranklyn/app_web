@@ -8,18 +8,7 @@ import { TextLink } from "@/components/TextLink";
 import { Activity } from "lucide-react";
 import { operationLabel } from "../../../../utils";
 import { TenantActivityEntry } from "../../interface";
-
-const formatMoment = (iso: string): string => {
-  const date = new Date(iso);
-  if (Number.isNaN(date.getTime())) return "—";
-  return date.toLocaleString("pt-BR", {
-    day: "2-digit",
-    month: "2-digit",
-    year: "2-digit",
-    hour: "2-digit",
-    minute: "2-digit",
-  });
-};
+import { formatLogMoment } from "@/utils/format/date";
 
 interface Props {
   companyId: string;
@@ -46,9 +35,7 @@ export function TenantActivityCard({
   return (
     <Card.Root>
       <Card.Header>
-        <Card.Header.Title size="sm" weight="semibold">
-          Atividade recente
-        </Card.Header.Title>
+        <Card.Header.Title>Atividade recente</Card.Header.Title>
         <Card.Header.Description>
           O que as pessoas desta empresa fizeram no sistema, nos últimos 90
           dias.
@@ -61,7 +48,7 @@ export function TenantActivityCard({
         ) : entries.length === 0 ? (
           <EmptyState.Root>
             <EmptyState.Icon>
-              <Activity size={32} />
+              <Activity />
             </EmptyState.Icon>
             <EmptyState.Title>Nenhuma ação registrada</EmptyState.Title>
             <EmptyState.Description>
@@ -85,7 +72,7 @@ export function TenantActivityCard({
                     )}
                   </div>
                   <Title variant="micro" color="muted">
-                    {formatMoment(entry.createdAt)}
+                    {formatLogMoment(entry.createdAt)}
                     {entry.userEmail ? ` · ${entry.userEmail}` : ""}
                   </Title>
                 </Timeline.Item>
@@ -98,6 +85,7 @@ export function TenantActivityCard({
               href={`/platform/activity?company=${companyId}`}
               tone="muted"
               underline="always"
+              touchTarget
               className="w-fit"
             >
               <Title variant="body-sm" color="inherit">

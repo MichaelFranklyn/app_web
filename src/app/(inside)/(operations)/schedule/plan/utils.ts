@@ -3,6 +3,7 @@ import { matchesClientSearch } from "@/utils/client";
 import { factoryName } from "@/utils/company";
 import { getCurrentWeekMondayIso } from "@/utils/format/date";
 import { contactNoun } from "@/utils/visit";
+import { plural } from "@/utils/format/plural";
 
 import {
   factoryScoreChip,
@@ -185,8 +186,8 @@ export const selectionCounts = (selection: WeekSelection) => {
 export const selectionPhrase = (selection: WeekSelection): string => {
   const { visits, calls } = selectionCounts(selection);
   const parts = [];
-  if (visits) parts.push(`${visits} ${visits === 1 ? "visita" : "visitas"}`);
-  if (calls) parts.push(`${calls} ${calls === 1 ? "ligação" : "ligações"}`);
+  if (visits) parts.push(plural(visits, "visita", "visitas"));
+  if (calls) parts.push(plural(calls, "ligação", "ligações"));
   return parts.join(" e ");
 };
 

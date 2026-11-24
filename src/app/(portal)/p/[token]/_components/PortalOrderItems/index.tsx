@@ -8,6 +8,7 @@ import { Pagination } from "@/components/Pagination";
 import { Table } from "@/components/Table";
 import { Title } from "@/components/Title";
 import { formatMoney, formatNumber } from "@/utils/format/masks";
+import { plural } from "@/utils/format/plural";
 import { SearchX } from "lucide-react";
 import { useState } from "react";
 import { PortalOrderItem } from "../../interface";
@@ -65,7 +66,7 @@ export function PortalOrderItems({
     <Table.Root>
       <Table.CardHead>
         <Table.CardHead.Title>
-          {items.length === 1 ? "1 produto" : `${items.length} produtos`}
+          {plural(items.length, "produto", "produtos")}
         </Table.CardHead.Title>
         <Table.CardHead.Description>{description}</Table.CardHead.Description>
         {items.length > ORDER_ITEMS_PAGE_SIZE ? (
@@ -106,7 +107,7 @@ export function PortalOrderItems({
               <Table.Cell colSpan={columns}>
                 <EmptyState.Root flat>
                   <EmptyState.Icon>
-                    <SearchX size={32} />
+                    <SearchX />
                   </EmptyState.Icon>
                   <EmptyState.Title>Nenhum produto encontrado</EmptyState.Title>
                   <EmptyState.Description>
@@ -119,7 +120,7 @@ export function PortalOrderItems({
           {visible.map((item) => (
             <Table.Row key={item.id}>
               <Table.Cell card="title" wrap>
-                <div className="flex min-w-0 flex-col gap-[2px]">
+                <div className="flex min-w-0 flex-col gap-2">
                   <Title
                     variant="body-md"
                     weight="semibold"

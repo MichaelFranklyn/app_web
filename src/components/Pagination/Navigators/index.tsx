@@ -7,6 +7,7 @@ import {
 } from "lucide-react";
 import React from "react";
 import { itemVariants } from "../Item/style";
+import { ICON_SIZE } from "@/components/Icon";
 
 export const First = React.forwardRef<
   HTMLButtonElement,
@@ -19,7 +20,7 @@ export const First = React.forwardRef<
     className={cn(itemVariants({}), className)}
     {...props}
   >
-    {children || <ChevronsLeft size={16} />}
+    {children || <ChevronsLeft size={ICON_SIZE.md} />}
   </button>
 ));
 
@@ -34,7 +35,7 @@ export const Prev = React.forwardRef<
     className={cn(itemVariants({}), className)}
     {...props}
   >
-    {children || <ChevronLeft size={16} />}
+    {children || <ChevronLeft size={ICON_SIZE.md} />}
   </button>
 ));
 
@@ -49,7 +50,7 @@ export const Next = React.forwardRef<
     className={cn(itemVariants({}), className)}
     {...props}
   >
-    {children || <ChevronRight size={16} />}
+    {children || <ChevronRight size={ICON_SIZE.md} />}
   </button>
 ));
 
@@ -64,7 +65,7 @@ export const Last = React.forwardRef<
     className={cn(itemVariants({}), className)}
     {...props}
   >
-    {children || <ChevronsRight size={16} />}
+    {children || <ChevronsRight size={ICON_SIZE.md} />}
   </button>
 ));
 

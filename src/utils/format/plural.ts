@@ -11,3 +11,15 @@ export const plural = (
   pluralForm: string
 ): string =>
   `${count.toLocaleString("pt-BR")} ${count === 1 ? singular : pluralForm}`;
+
+/**
+ * Só a palavra no número certo, sem o número: para quando a contagem já está
+ * escrita em outro lugar da frase ("3 itens **vão** para um novo pedido",
+ * "ficaram de fora"). Mesma regra do `plural`: 1 é singular, o resto
+ * (inclusive 0) é plural.
+ */
+export const pluralWord = (
+  count: number,
+  singular: string,
+  pluralForm: string
+): string => (count === 1 ? singular : pluralForm);

@@ -26,7 +26,7 @@ export const SELLER_FORM_STEPS: FormStepSchema[] = [
           {
             name: "region",
             type: "text",
-            label: "Região(ões)",
+            label: "Regiões",
             placeholder: "Ex: Sul, Nordeste, Centro-Oeste",
             hint: "Separe por vírgula quando atender mais de uma.",
           },

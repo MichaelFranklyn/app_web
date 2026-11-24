@@ -1,3 +1,4 @@
+import { BRT_TIME_ZONE, formatDate } from "@/utils/format/date";
 import {
   exportPortalOrderPdf,
   PORTAL_ORDER_PDF_COLUMNS,
@@ -5,7 +6,6 @@ import {
 } from "../../orderPdf";
 import { PortalSentOrderDetail } from "../../interface";
 import {
-  formatBrtDate,
   sentOrderFileName,
   sentOrderLabel,
   sentOrderStage,
@@ -20,7 +20,7 @@ export const SENT_ORDER_PDF_COLUMNS = PORTAL_ORDER_PDF_COLUMNS;
 export const sentOrderPdfContext = (order: PortalSentOrderDetail): string[] => {
   const lines = [
     `Fábrica: ${order.factoryName}`,
-    `Enviado em ${formatBrtDate(order.createdAt)} · ${sentOrderLabel(sentOrderStage(order))}`,
+    `Enviado em ${formatDate(order.createdAt, "", { timeZone: BRT_TIME_ZONE })} · ${sentOrderLabel(sentOrderStage(order))}`,
   ];
   if (order.sellerName) lines.push(`Representante: ${order.sellerName}`);
   if (order.clientRequestNote) lines.push(`Recado: ${order.clientRequestNote}`);

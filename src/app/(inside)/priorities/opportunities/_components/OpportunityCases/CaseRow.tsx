@@ -1,5 +1,6 @@
 "use client";
 
+import { cn } from "@/lib/utils";
 import { Badge } from "@/components/Badges";
 import { Button } from "@/components/Button";
 import { Title } from "@/components/Title";
@@ -9,6 +10,7 @@ import Link from "next/link";
 
 import { OpportunityCase } from "../../interface";
 import { REASON_COPY, scheduledNote } from "../../utils";
+import { ICON_SIZE } from "@/components/Icon";
 
 interface Props {
   item: OpportunityCase;
@@ -52,7 +54,7 @@ export function CaseRow({
             color="green"
             className="flex items-center gap-4"
           >
-            <CalendarCheck size={12} aria-hidden />
+            <CalendarCheck size={ICON_SIZE.xs} aria-hidden />
             {scheduled}
           </Title>
         )}
@@ -70,7 +72,7 @@ export function CaseRow({
         )}
         {item.link && (
           <ArrowUpRight
-            size={14}
+            size={ICON_SIZE.sm}
             className="text-(--color-text-muted)"
             aria-hidden
           />
@@ -80,13 +82,13 @@ export function CaseRow({
   );
 
   const className =
-    "flex items-center justify-between gap-12 rounded-(--r-sm) border border-transparent px-10 py-8 hover:border-(--border) hover:bg-(--bg3)";
+    "-mx-8 flex items-center justify-between gap-12 rounded-(--r-sm) px-8 py-4 hover:bg-(--bg3)";
 
   return (
-    <li className="tablet:flex-row tablet:items-center flex flex-col gap-6">
+    <div className="tablet:flex-row tablet:items-center flex flex-col gap-6">
       <div className="min-w-0 flex-1">
         {item.link ? (
-          <Link href={item.link} className={`${className} transition-colors`}>
+          <Link href={item.link} className={cn(className, "transition-colors")}>
             {body}
           </Link>
         ) : (
@@ -94,7 +96,7 @@ export function CaseRow({
         )}
       </div>
       {item.clientId && (
-        <div className="flex shrink-0 flex-wrap items-center gap-6 px-10">
+        <div className="flex shrink-0 flex-wrap items-center gap-6">
           <Button.Root
             type="button"
             appearance="outline"
@@ -117,6 +119,6 @@ export function CaseRow({
           )}
         </div>
       )}
-    </li>
+    </div>
   );
 }

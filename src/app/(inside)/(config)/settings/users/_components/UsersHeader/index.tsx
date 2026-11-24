@@ -3,8 +3,6 @@
 import { Alert } from "@/components/Alert";
 import { Button } from "@/components/Button";
 import { Card } from "@/components/Card";
-import { Grid } from "@/components/Grid";
-import { HelpTooltip } from "@/components/HelpTooltip";
 import { PanelHeader } from "@/components/PanelHeader";
 import { PAGE_HEADING } from "@/utils/modules";
 import { PlanLimitGate } from "@/components/PlanLimitGate";
@@ -24,7 +22,9 @@ import { AddUserModal } from "./AddUserModal";
 // Página larga; o teto de páginas é o do app inteiro (`MAX_SCAN_PAGES`).
 const EXPORT_PAGE_SIZE = 100;
 import { MAX_SCAN_PAGES } from "@/utils/pagination";
+import { plural } from "@/utils/format/plural";
 import { buildKpis } from "./utils";
+import { ICON_SIZE } from "@/components/Icon";
 
 interface Props {
   stats: SellersStats;
@@ -119,7 +119,7 @@ export function UsersHeader({
         toast({
           variant: "warning",
           title: "Arquivo incompleto",
-          description: `O arquivo saiu com ${people.length} de ${totalItems} pessoa(s). Use a busca para levar o resto.`,
+          description: `O arquivo saiu com ${people.length} de ${plural(totalItems, "pessoa", "pessoas")}. Use a busca para levar o resto.`,
         });
       }
     } catch {
@@ -176,42 +176,31 @@ export function UsersHeader({
       </PanelHeader.Root>
 
       {/* KPIs da operação de campo: é o que muda no dia a dia. */}
-      {/* Um cartão por linha no celular: em duas colunas os rótulos
-          ("Acessos a fábricas") quebravam no meio da palavra e o terceiro
-          ficava sozinho embaixo, num 2+1 torto (crítica de configurações,
-          23/11/2026). */}
-      <Grid.Root cols={{ base: 1, tablet: 3 }} gap={20}>
+      <Card.Kpi.Group>
         {kpis.map(
           ({ label, value, delta, positive, negative, status, help }) => (
-            <Grid.Item key={label}>
-              <Card.Kpi>
-                {/* Login e perfil de campo são coisas diferentes, e os três
+            <Card.Kpi key={label}>
+              {/* Login e perfil de campo são coisas diferentes, e os três
                     cartões misturam pessoas com permissões: sem a explicação ao
                     lado, um parece contradizer o outro. */}
-                <Card.Kpi.Label className="inline-flex items-center gap-2">
-                  {label}
-                  {help && (
-                    <HelpTooltip label={`Sobre ${label}`} content={help} />
-                  )}
-                </Card.Kpi.Label>
-                <Card.Kpi.Value status={status}>{value}</Card.Kpi.Value>
-                <Card.Kpi.Delta positive={positive} negative={negative}>
-                  {positive && <TrendingUp size={12} />}
-                  {negative && <TrendingDown size={12} />}
-                  {delta}
-                </Card.Kpi.Delta>
-              </Card.Kpi>
-            </Grid.Item>
+              <Card.Kpi.Label help={help}>{label}</Card.Kpi.Label>
+              <Card.Kpi.Value status={status}>{value}</Card.Kpi.Value>
+              <Card.Kpi.Delta positive={positive} negative={negative}>
+                {positive && <TrendingUp size={ICON_SIZE.xs} />}
+                {negative && <TrendingDown size={ICON_SIZE.xs} />}
+                {delta}
+              </Card.Kpi.Delta>
+            </Card.Kpi>
           )
         )}
-      </Grid.Root>
+      </Card.Kpi.Group>
 
       {/* Só quando é necessário: sem busca, cartões e lista falam da mesma
           empresa e não há o que explicar. Escrito na tela, e não só no "?" —
           quem procura um nome e vê os números parados conclui que travou. */}
       {search.trim() !== "" && (
         <Alert.Root variant="info">
-          <Info size={14} className="mt-[1px] shrink-0" />
+          <Info size={ICON_SIZE.sm} className="mt-1 shrink-0" />
           <Alert.Content>
             <Alert.Description>{KPI_IGNORES_SEARCH}</Alert.Description>
           </Alert.Content>

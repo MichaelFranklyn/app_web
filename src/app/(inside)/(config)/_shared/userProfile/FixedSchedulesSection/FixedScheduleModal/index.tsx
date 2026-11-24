@@ -4,7 +4,7 @@ import { Alert } from "@/components/Alert";
 import { Button } from "@/components/Button";
 import { FormBuilder } from "@/components/FormBuilder";
 import { Modal } from "@/components/Modal";
-import { CalendarPlus, Pencil, TriangleAlert } from "lucide-react";
+import { CalendarPlus, TriangleAlert } from "lucide-react";
 
 import {
   FixedScheduleFormProps,
@@ -41,18 +41,9 @@ export function FixedScheduleModal(props: FixedScheduleFormProps) {
 
   return (
     <Modal.Root open={open} onOpenChange={handleClose}>
-      <Modal.Trigger asChild>
-        {isEditing ? (
-          <Button.Root
-            appearance="ghost"
-            color="neutral"
-            size="sm"
-            isIconOnly
-            label="Ajustar dia fixo"
-          >
-            <Button.Icon icon={Pencil} />
-          </Button.Root>
-        ) : (
+      {/* Controlado (edição pelo menu "⋯" da linha) não tem gatilho próprio. */}
+      {props.open === undefined && (
+        <Modal.Trigger asChild>
           <Button.Root
             appearance="solid"
             color="amber"
@@ -62,8 +53,8 @@ export function FixedScheduleModal(props: FixedScheduleFormProps) {
             <Button.Icon icon={CalendarPlus} />
             <Button.Title>Marcar dia fixo</Button.Title>
           </Button.Root>
-        )}
-      </Modal.Trigger>
+        </Modal.Trigger>
+      )}
 
       <Modal.Content size="md">
         <Modal.Header

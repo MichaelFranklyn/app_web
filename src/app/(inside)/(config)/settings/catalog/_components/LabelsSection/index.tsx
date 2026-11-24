@@ -105,7 +105,7 @@ export function LabelsSection() {
               <Table.Cell colSpan={2}>
                 <EmptyState.Root flat>
                   <EmptyState.Icon>
-                    <Tag size={32} />
+                    <Tag />
                   </EmptyState.Icon>
                   <EmptyState.Title>Nenhum rótulo cadastrado</EmptyState.Title>
                   <EmptyState.Description>

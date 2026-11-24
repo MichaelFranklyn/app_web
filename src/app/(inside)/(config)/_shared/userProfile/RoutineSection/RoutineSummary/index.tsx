@@ -2,7 +2,6 @@
 
 import { Card } from "@/components/Card";
 import { Grid } from "@/components/Grid";
-import { DataField } from "../../../dataCards";
 import { ProfileScheduleConfig } from "../../interface";
 import { formatTime, formatWorkDays } from "../../utils";
 
@@ -19,7 +18,7 @@ interface Props {
  * mas quem comparava as duas telas contava 10 campos na edição e 7 na
  * visualização e ia procurar os três que "sumiram".
  *
- * Grade de `DataField` (rótulo em cima, valor embaixo), como os outros cards
+ * Grade de `Card.Field` (rótulo em cima, valor embaixo), como os outros cards
  * do perfil: as linhas rótulo-à-esquerda/valor-à-direita deixavam um vão largo
  * no desktop e destoavam de "Dados pessoais" logo acima (crítica de
  * configurações, 23/11/2026).
@@ -28,29 +27,32 @@ export function RoutineSummary({ config }: Props) {
   return (
     <Card.Body>
       <Grid.Root cols={{ base: 1, tablet: 2, desktop: 3 }} gap={16}>
-        <DataField
+        <Card.Field
           label="Dias de trabalho"
           value={formatWorkDays(config.workDays)}
         />
-        <DataField label="Começa às" value={formatTime(config.workStartTime)} />
-        <DataField label="Termina às" value={formatTime(config.workEndTime)} />
-        <DataField
+        <Card.Field
+          label="Começa às"
+          value={formatTime(config.workStartTime)}
+        />
+        <Card.Field label="Termina às" value={formatTime(config.workEndTime)} />
+        <Card.Field
           label="Ligar entre visitas"
           value={config.isRemoteContactEnabled ? "Sim" : "Não"}
         />
         {/* Desligado, o parâmetro não vale para nada — o editor também o
             esconde, e mostrar número que não é usado faria a pessoa ajustá-lo. */}
         {config.isRemoteContactEnabled && (
-          <DataField
+          <Card.Field
             label="Ligar a partir de"
             value={`${config.remoteContactIntervalPct}% do intervalo`}
           />
         )}
-        <DataField
+        <Card.Field
           label="Tempo médio de visita"
           value={`${config.avgVisitDurationMin} min`}
         />
-        <DataField
+        <Card.Field
           label="Ausência é remarcada"
           value={
             config.isRescheduleSameWeek
@@ -58,7 +60,7 @@ export function RoutineSummary({ config }: Props) {
               : "Na semana seguinte"
           }
         />
-        <DataField
+        <Card.Field
           label="Tentativas de remarcação"
           value={String(config.maxRescheduleAttempts)}
         />

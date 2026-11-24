@@ -3,7 +3,7 @@
 import { Card } from "@/components/Card";
 import { Grid } from "@/components/Grid";
 import { formatDateDMY, maskCPF, maskPhoneBR } from "@/utils/format/masks";
-import { DataField, EditCardAction } from "../../dataCards";
+import { EditCardAction } from "../../dataCards";
 import { UserDetail } from "../interface";
 import { formatAddressLine } from "../utils";
 
@@ -33,16 +33,16 @@ export function PersonalDataCard({ user, isSelf, onEdit, dataTour }: Props) {
           </Card.Header.Actions>
         )}
       </Card.Header>
-      <Card.Body className="flex flex-col gap-16">
+      <Card.Body>
         <Grid.Root cols={{ base: 1, desktop: 3 }} gap={16}>
-          <DataField label="CPF" value={maskCPF(user.cpf ?? "")} />
-          <DataField label="Telefone" value={maskPhoneBR(user.phone ?? "")} />
-          <DataField
+          <Card.Field label="CPF" value={maskCPF(user.cpf ?? "")} />
+          <Card.Field label="Telefone" value={maskPhoneBR(user.phone ?? "")} />
+          <Card.Field
             label="Nascimento"
             value={formatDateDMY(user.birthDate ?? undefined)}
           />
         </Grid.Root>
-        <DataField
+        <Card.Field
           label="Endereço"
           value={formatAddressLine({
             street: user.addressStreet,

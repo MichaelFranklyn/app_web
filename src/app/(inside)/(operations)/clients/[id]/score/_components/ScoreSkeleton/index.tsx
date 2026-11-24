@@ -8,10 +8,10 @@ const HISTORY_ROWS = 4;
 /** Placeholder de uma barra de progresso (label + valor + barra). */
 function ProgressBarSkeleton() {
   return (
-    <div className="flex flex-col gap-[6px]">
+    <div className="flex flex-col gap-6">
       <div className="flex items-center justify-between">
-        <Loading.Skeleton className="h-[10px] w-20" />
-        <Loading.Skeleton className="h-[10px] w-8" />
+        <Loading.Skeleton text="body-sm" className="w-20" />
+        <Loading.Skeleton text="body-sm" className="w-8" />
       </div>
       <Loading.Skeleton shape="pill" className="h-[6px] w-full" />
     </div>
@@ -21,10 +21,10 @@ function ProgressBarSkeleton() {
 /** Placeholder de uma linha de lista (nome + sub + badge). */
 function ListItemSkeleton() {
   return (
-    <div className="flex items-center justify-between py-[8px]">
-      <div className="flex flex-col gap-[4px]">
-        <Loading.Skeleton className="h-[11px] w-32" />
-        <Loading.Skeleton className="h-[9px] w-24" />
+    <div className="flex items-center justify-between py-8">
+      <div className="flex flex-col gap-4">
+        <Loading.Skeleton text="body-sm" className="w-32" />
+        <Loading.Skeleton text="body-sm" className="w-24" />
       </div>
       <Loading.Skeleton shape="pill" className="h-[18px] w-14" />
     </div>
@@ -42,7 +42,7 @@ export function ScoreSkeleton() {
         <div className="flex min-w-0 flex-1 flex-col gap-16">
           <Card.Root>
             <Card.Header>
-              <Loading.Skeleton className="h-[14px] w-56" />
+              <Loading.Skeleton text="body" className="w-56" />
             </Card.Header>
             <Card.Body>
               <div className="flex flex-col gap-6">
@@ -55,7 +55,7 @@ export function ScoreSkeleton() {
 
           <Card.Root>
             <Card.Header>
-              <Loading.Skeleton className="h-[14px] w-48" />
+              <Loading.Skeleton text="body" className="w-48" />
             </Card.Header>
             <Card.Body padding="compact">
               {Array.from({ length: SUGGESTED_ROWS }).map((_, i) => (
@@ -68,7 +68,7 @@ export function ScoreSkeleton() {
         <div className="flex w-65 shrink-0 flex-col gap-12">
           <Card.Root>
             <Card.Header>
-              <Loading.Skeleton className="h-[14px] w-36" />
+              <Loading.Skeleton text="body" className="w-36" />
             </Card.Header>
             <Card.Body padding="compact">
               {Array.from({ length: HISTORY_ROWS }).map((_, i) => (

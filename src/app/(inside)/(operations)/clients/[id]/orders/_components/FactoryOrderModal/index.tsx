@@ -30,6 +30,7 @@ import {
 import { OrderRowActions } from "../OrderRowActions";
 import { factoryName } from "@/utils/company";
 import { formatOrderNumber } from "@/utils/orderNumber";
+import { plural } from "@/utils/format/plural";
 
 const ITEMS_PER_PAGE = 10;
 
@@ -156,7 +157,10 @@ export function FactoryOrderModal({
                   <Table.Head title={CLIENT_ORDER_COLUMN_HELP.date}>
                     Data
                   </Table.Head>
-                  <Table.Head title={CLIENT_ORDER_COLUMN_HELP.amount}>
+                  <Table.Head
+                    align="right"
+                    title={CLIENT_ORDER_COLUMN_HELP.amount}
+                  >
                     Valor
                   </Table.Head>
                   <Table.Head title={CLIENT_ORDER_COLUMN_HELP.status}>
@@ -178,7 +182,7 @@ export function FactoryOrderModal({
                     <Table.Cell colSpan={6}>
                       <EmptyState.Root flat>
                         <EmptyState.Icon>
-                          <Receipt size={32} />
+                          <Receipt />
                         </EmptyState.Icon>
                         <EmptyState.Title>
                           {hasFilters
@@ -215,7 +219,7 @@ export function FactoryOrderModal({
                           {formatDate(p.orderDate)}
                         </Table.CellText>
                       </Table.Cell>
-                      <Table.Cell card="amount" label="Valor">
+                      <Table.Cell align="right" card="amount" label="Valor">
                         <Table.CellText variant="strong">
                           {formatCurrency(p.totalAmount)}
                         </Table.CellText>
@@ -256,7 +260,7 @@ export function FactoryOrderModal({
             <Table.Footer>
               <Table.Footer.Info>
                 {totalCount > 0
-                  ? `${totalCount} pedido(s) · página ${currentPage} de ${totalPages}`
+                  ? `${plural(totalCount, "pedido", "pedidos")} · página ${currentPage} de ${totalPages}`
                   : "Nenhum pedido"}
               </Table.Footer.Info>
               <Pagination.Smart

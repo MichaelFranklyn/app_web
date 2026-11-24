@@ -36,10 +36,10 @@ export function StepperTrail({
     >
       <div
         className={cn(
-          // `p-[4px]`: o halo do passo atual e o fundo do hover saem 3–4px da
+          // `p-4`: o halo do passo atual e o fundo do hover saem 3–4px da
           // caixa; sem o respiro, o `overflow-x-auto` (que corta os dois eixos)
           // aparava o halo e mostrava uma barra de rolagem vertical.
-          "p-[4px]",
+          "p-4",
           isVertical
             ? "flex flex-col"
             : ["flex w-max items-center", centered && "mx-auto"]

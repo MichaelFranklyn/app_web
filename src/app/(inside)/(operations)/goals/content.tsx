@@ -2,7 +2,7 @@
 
 import { Button } from "@/components/Button";
 import { EmptyState } from "@/components/EmptyState";
-import { Grid } from "@/components/Grid";
+import { Card } from "@/components/Card";
 import { Input, SelectOption } from "@/components/Input";
 import { Loading } from "@/components/Loading";
 import { PageContent } from "@/components/PageContent";
@@ -226,58 +226,48 @@ export default function GoalsContent({ canManage }: Props) {
 
           {showSkeleton ? (
             <div className="flex flex-col gap-20">
-              <Loading.Skeleton className="h-[104px] w-full" />
+              <Card.Kpi.Group>
+                {[0, 1, 2, 3].map((i) => (
+                  <Card.Kpi.Skeleton key={i} />
+                ))}
+              </Card.Kpi.Group>
               <Loading.Skeleton className="h-[320px] w-full" />
             </div>
           ) : (
             <>
-              <Grid.Root
-                // 2×2 no celular: empilhados, os quatro cartões empurravam a
-                // lista de vendedores para fora da primeira tela.
-                cols={{ base: 2, desktop: 4 }}
-                gap={12}
-                data-tour="goals-kpis"
-              >
+              <Card.Kpi.Group data-tour="goals-kpis">
                 {/* Os quatro cartões somam o recorte da tela (o vendedor
                     escolhido, ou a empresa toda). A explicação de cada um vem
                     de GOAL_METRICS — a mesma das barras, para o indicador não
                     significar duas coisas em dois lugares. */}
-                <Grid.Item>
-                  <GoalKpiCard
-                    label="Faturado"
-                    values={totals.invoiced}
-                    help={GOAL_METRICS[0].help}
-                    money
-                  />
-                </Grid.Item>
-                <Grid.Item>
-                  <GoalKpiCard
-                    label="Vendido"
-                    values={totals.ordered}
-                    help={GOAL_METRICS[1].help}
-                    money
-                  />
-                </Grid.Item>
-                <Grid.Item>
-                  <GoalKpiCard
-                    label="Clientes que compraram"
-                    values={totals.positivations}
-                    help={GOAL_METRICS[2].help}
-                  />
-                </Grid.Item>
-                <Grid.Item>
-                  <GoalKpiCard
-                    label="Visitas concluídas"
-                    values={totals.visits}
-                    help={GOAL_METRICS[3].help}
-                  />
-                </Grid.Item>
-              </Grid.Root>
+                <GoalKpiCard
+                  label="Faturado"
+                  values={totals.invoiced}
+                  help={GOAL_METRICS[0].help}
+                  money
+                />
+                <GoalKpiCard
+                  label="Vendido"
+                  values={totals.ordered}
+                  help={GOAL_METRICS[1].help}
+                  money
+                />
+                <GoalKpiCard
+                  label="Clientes que compraram"
+                  values={totals.positivations}
+                  help={GOAL_METRICS[2].help}
+                />
+                <GoalKpiCard
+                  label="Visitas concluídas"
+                  values={totals.visits}
+                  help={GOAL_METRICS[3].help}
+                />
+              </Card.Kpi.Group>
 
               {groups.length === 0 ? (
                 <EmptyState.Root>
                   <EmptyState.Icon>
-                    <Target size={32} />
+                    <Target />
                   </EmptyState.Icon>
                   <EmptyState.Title>
                     Nenhuma meta em {monthLabel(month)}

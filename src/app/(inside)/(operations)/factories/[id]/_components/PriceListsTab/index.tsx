@@ -66,7 +66,7 @@ export function PriceListsTab({ companyFactoryId, factoryId }: Props) {
   return (
     <Table.Root data-tour="prices-table">
       <Table.CardHead>
-        <Table.CardHead.Title className="inline-flex items-center gap-6">
+        <Table.CardHead.Title>
           Tabelas de preços
           <HelpTooltip
             label="O que é uma tabela de preço?"
@@ -150,7 +150,7 @@ export function PriceListsTab({ companyFactoryId, factoryId }: Props) {
               <Table.Cell colSpan={6}>
                 <EmptyState.Root flat>
                   <EmptyState.Icon>
-                    <ListChecks size={32} />
+                    <ListChecks />
                   </EmptyState.Icon>
                   <EmptyState.Title>Nenhuma tabela de preços</EmptyState.Title>
                   <EmptyState.Description>

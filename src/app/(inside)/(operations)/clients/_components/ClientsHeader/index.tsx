@@ -2,8 +2,6 @@
 import { Alert } from "@/components/Alert";
 import { Card } from "@/components/Card";
 import { FilterField } from "@/components/Filters";
-import { Grid } from "@/components/Grid";
-import { HelpTooltip } from "@/components/HelpTooltip";
 import { PanelHeader } from "@/components/PanelHeader";
 import { PAGE_HEADING } from "@/utils/modules";
 import { ReportOrder } from "@/utils/pdf/context";
@@ -12,11 +10,13 @@ import { isAdminRole } from "@/utils/auth/roles";
 import { Info } from "lucide-react";
 
 import { PlanLimitGate } from "@/components/PlanLimitGate";
+import { pluralWord } from "@/utils/format/plural";
 import { Client, ClientsStats } from "../../interface";
 import { KPI_IGNORED_FILTERS, buildKpis, listFilters } from "../../utils";
 import { AddClientModal } from "./AddClientModal";
 import { ExportClientsButton } from "./ExportClientsButton";
 import { ClientsMoreMenu } from "./ClientsMoreMenu";
+import { ICON_SIZE } from "@/components/Icon";
 
 interface ClientsHeaderProps {
   stats: ClientsStats;
@@ -88,35 +88,22 @@ export function ClientsHeader({
         </PanelHeader.Top>
       </PanelHeader.Root>
 
-      {/* Três cartões numa linha a partir do tablet. Eram quatro em 2×2 até
-          1600px: no desktop comum cada número ocupava meia largura e a lista
-          só começava a 600px do topo. No celular o tamanho da carteira ocupa a
-          linha toda e os dois alertas dividem a de baixo (crítica de
-          23/11/2026). */}
-      <Grid.Root cols={{ base: 2, tablet: 3 }} gap={20}>
-        {kpis.map(({ label, value, delta, status, help }, index) => (
-          <Grid.Item
-            key={label}
-            span={index === 0 ? { base: 2, tablet: 1 } : undefined}
-          >
-            <Card.Kpi>
-              {/* Os cartões medem coisas diferentes que soam iguais (na
+      {/* Três cartões numa linha a partir do tablet (colunas pelo padrão da
+          faixa, `Card.Kpi.Group`). */}
+      <Card.Kpi.Group>
+        {kpis.map(({ label, value, delta, status, help }) => (
+          <Card.Kpi key={label}>
+            {/* Os cartões medem coisas diferentes que soam iguais (na
                   carteira × atrasado para comprar × sem visita): sem a
                   explicação ao lado, um parece contradizer o outro. */}
-              <Card.Kpi.Label className="inline-flex items-center gap-2">
-                {label}
-                {help && (
-                  <HelpTooltip label={`Sobre ${label}`} content={help} />
-                )}
-              </Card.Kpi.Label>
-              <Card.Kpi.Value status={status}>{value}</Card.Kpi.Value>
-              {/* Sem seta de tendência: nenhum destes números é série no
+            <Card.Kpi.Label help={help}>{label}</Card.Kpi.Label>
+            <Card.Kpi.Value status={status}>{value}</Card.Kpi.Value>
+            {/* Sem seta de tendência: nenhum destes números é série no
                   tempo, e a seta para baixo sugeria uma queda que não houve. */}
-              <Card.Kpi.Delta>{delta}</Card.Kpi.Delta>
-            </Card.Kpi>
-          </Grid.Item>
+            <Card.Kpi.Delta>{delta}</Card.Kpi.Delta>
+          </Card.Kpi>
         ))}
-      </Grid.Root>
+      </Card.Kpi.Group>
 
       {/* O aviso só aparece quando ele é necessário — com a carteira inteira à
           vista, os cartões e a lista contam a mesma coisa e não há o que
@@ -125,12 +112,14 @@ export function ClientsHeader({
           uma interrogação. */}
       {ignoredFilters.length > 0 && (
         <Alert.Root variant="info">
-          <Info size={14} className="mt-[1px] shrink-0" />
+          <Info size={ICON_SIZE.sm} className="mt-1 shrink-0" />
           <Alert.Content>
             <Alert.Description>
-              {`${listFilters(ignoredFilters)} ${
-                ignoredFilters.length === 1 ? "filtra" : "filtram"
-              } apenas a lista abaixo — os cartões acima continuam contando a carteira inteira.`}
+              {`${listFilters(ignoredFilters)} ${pluralWord(
+                ignoredFilters.length,
+                "filtra",
+                "filtram"
+              )} apenas a lista abaixo — os cartões acima continuam contando a carteira inteira.`}
             </Alert.Description>
           </Alert.Content>
         </Alert.Root>

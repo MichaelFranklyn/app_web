@@ -119,7 +119,7 @@ export function CategoriesSection() {
               <Table.Cell colSpan={3}>
                 <EmptyState.Root flat>
                   <EmptyState.Icon>
-                    <Tag size={32} />
+                    <Tag />
                   </EmptyState.Icon>
                   <EmptyState.Title>
                     Nenhuma categoria cadastrada

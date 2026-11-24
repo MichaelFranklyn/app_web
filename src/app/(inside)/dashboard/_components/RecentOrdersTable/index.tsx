@@ -38,9 +38,7 @@ export function RecentOrdersTable({ orders, showNewOrderAction }: Props) {
   return (
     <Table.Root>
       <Table.CardHead className="min-h-13.75">
-        <Table.CardHead.Title size="sm" weight="bold">
-          Pedidos recentes
-        </Table.CardHead.Title>
+        <Table.CardHead.Title>Pedidos recentes</Table.CardHead.Title>
         <Table.CardHead.Actions>
           <Button.Root
             type="button"
@@ -60,7 +58,7 @@ export function RecentOrdersTable({ orders, showNewOrderAction }: Props) {
       {orders.length === 0 ? (
         <EmptyState.Root flat>
           <EmptyState.Icon>
-            <Receipt size={32} />
+            <Receipt />
           </EmptyState.Icon>
           <EmptyState.Title>Nenhum pedido no período</EmptyState.Title>
           <EmptyState.Description>
@@ -89,7 +87,7 @@ export function RecentOrdersTable({ orders, showNewOrderAction }: Props) {
             <Table.Row>
               <Table.Head>Cliente</Table.Head>
               <Table.Head>Fábrica</Table.Head>
-              <Table.Head>Valor</Table.Head>
+              <Table.Head align="right">Valor</Table.Head>
               <Table.Head>Status</Table.Head>
             </Table.Row>
           </Table.Header>
@@ -110,7 +108,12 @@ export function RecentOrdersTable({ orders, showNewOrderAction }: Props) {
                 >
                   {namedEntityLabel(order.factory)}
                 </Table.Cell>
-                <Table.Cell variant="strong" card="amount" label="Valor">
+                <Table.Cell
+                  align="right"
+                  variant="strong"
+                  card="amount"
+                  label="Valor"
+                >
                   {formatMoney(order.totalAmount)}
                 </Table.Cell>
                 <Table.Cell label="Status">

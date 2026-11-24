@@ -144,13 +144,16 @@ export function HeroShowcase() {
           const Icon = item.icon;
 
           return (
+            // Exceção ao DS, de propósito: o ToggleGroup não comporta a
+            // barra de progresso do autoplay dentro da opção. Peça só da
+            // landing; se outra tela precisar dela, vira peça no DS.
             <button
               key={item.key}
               type="button"
               aria-pressed={isActive}
               onClick={() => choose(index)}
               className={cn(
-                "relative flex items-center gap-8 overflow-hidden rounded-(--radius-full) border px-16 py-8 transition-colors",
+                "relative flex items-center gap-8 overflow-hidden rounded-full border px-16 py-8 transition-colors",
                 isActive
                   ? "border-(--color-action) bg-(--amber-bg) text-(--color-action-text)"
                   : "border-(--border) bg-(--bg) text-(--color-text-muted) hover:bg-(--bg3)"

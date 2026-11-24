@@ -1,6 +1,7 @@
 import {
   SERIES_BLUE,
   SERIES_GREEN,
+  SERIES_GRAY,
   SERIES_ORANGE,
   SERIES_RED,
 } from "@/components/Chart/chartTheme";
@@ -60,7 +61,7 @@ export const SITUATION_SERIES_COLOR: Record<ClientSituation, string> = {
   AT_RISK: SERIES_RED,
   INACTIVE: SERIES_ORANGE,
   NEW: SERIES_BLUE,
-  NEVER: "#9a9a8e",
+  NEVER: SERIES_GRAY,
 };
 
 /**

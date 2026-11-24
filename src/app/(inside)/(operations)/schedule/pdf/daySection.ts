@@ -1,5 +1,6 @@
 import { drawReportTable } from "@/utils/pdf/table";
 import { COLOR, PAGE, Pdf, setFill, setText } from "@/utils/pdf/theme";
+import { plural } from "@/utils/format/plural";
 import { VisitScheduleItem } from "../interface";
 import { formatDistanceKm, formatMinutes, sortVisitsByRoute } from "../utils";
 import {
@@ -66,10 +67,10 @@ export const daySummary = (section: DaySection): string => {
 
   const parts: string[] = [];
   if (section.stops.length > 0) {
-    parts.push(`${section.stops.length} parada(s)`);
+    parts.push(`${plural(section.stops.length, "parada", "paradas")}`);
   }
   if (section.remoteStops.length > 0) {
-    parts.push(`${section.remoteStops.length} ligação(ões)`);
+    parts.push(plural(section.remoteStops.length, "ligação", "ligações"));
   }
   if (Number(section.routeDistanceKm) > 0) {
     parts.push(formatDistanceKm(section.routeDistanceKm));

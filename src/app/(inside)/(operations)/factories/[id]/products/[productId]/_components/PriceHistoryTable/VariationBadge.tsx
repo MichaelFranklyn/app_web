@@ -1,12 +1,13 @@
 import { Badge } from "@/components/Badges";
 import { TrendingDown, TrendingUp } from "lucide-react";
+import { formatPercentPoints } from "@/utils/format/percent";
 
 interface Props {
   variationPct: string | null;
 }
 
 const formatPct = (value: number): string =>
-  `${Math.abs(value).toLocaleString("pt-BR", { maximumFractionDigits: 2 })}%`;
+  formatPercentPoints(Math.abs(value), 2, { trimZeros: true });
 
 /** Subiu em vermelho, caiu em verde — do ponto de vista de quem compra. */
 export function VariationBadge({ variationPct }: Props) {

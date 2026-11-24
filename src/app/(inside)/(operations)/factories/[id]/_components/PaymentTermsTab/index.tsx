@@ -66,7 +66,7 @@ export function PaymentTermsTab({ companyFactoryId }: Props) {
   return (
     <Table.Root>
       <Table.CardHead>
-        <Table.CardHead.Title className="inline-flex items-center gap-6">
+        <Table.CardHead.Title>
           Prazos de pagamento
           <HelpTooltip
             label="O que é um prazo de pagamento?"
@@ -100,10 +100,16 @@ export function PaymentTermsTab({ companyFactoryId }: Props) {
             <Table.Head title={FACTORY_PAYMENT_TERM_COLUMN_HELP.days}>
               Vencimentos (dias)
             </Table.Head>
-            <Table.Head title={FACTORY_PAYMENT_TERM_COLUMN_HELP.installments}>
+            <Table.Head
+              align="right"
+              title={FACTORY_PAYMENT_TERM_COLUMN_HELP.installments}
+            >
               Parcelas
             </Table.Head>
-            <Table.Head title={FACTORY_PAYMENT_TERM_COLUMN_HELP.minimum}>
+            <Table.Head
+              align="right"
+              title={FACTORY_PAYMENT_TERM_COLUMN_HELP.minimum}
+            >
               Valor mínimo
             </Table.Head>
             <Table.Head
@@ -129,7 +135,7 @@ export function PaymentTermsTab({ companyFactoryId }: Props) {
               <Table.Cell colSpan={4}>
                 <EmptyState.Root flat>
                   <EmptyState.Icon>
-                    <CalendarClock size={32} />
+                    <CalendarClock />
                   </EmptyState.Icon>
                   <EmptyState.Title>Nenhum prazo de pagamento</EmptyState.Title>
                   <EmptyState.Description>
@@ -150,13 +156,14 @@ export function PaymentTermsTab({ companyFactoryId }: Props) {
                     {formatInstallments(term.installmentsDays)}
                   </Table.CellText>
                 </Table.Cell>
-                <Table.Cell label="Parcelas">
+                <Table.Cell align="right" label="Parcelas">
                   <Table.CellText variant="dim">
                     {installmentsCountLabel(term.installmentsDays)}
                   </Table.CellText>
                 </Table.Cell>
                 {/* "Sem mínimo" repetido em todo cartão só ocupa linha. */}
                 <Table.Cell
+                  align="right"
                   label="Valor mínimo"
                   cardHidden={!term.minOrderAmount}
                 >

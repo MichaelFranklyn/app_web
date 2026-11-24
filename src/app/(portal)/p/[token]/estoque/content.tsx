@@ -83,7 +83,7 @@ export function PortalStockContent({ items, token }: PortalStockContentProps) {
         {header}
         <EmptyState.Root>
           <EmptyState.Icon>
-            <Package size={36} />
+            <Package />
           </EmptyState.Icon>
           <EmptyState.Title>Nada para acompanhar ainda</EmptyState.Title>
           <EmptyState.Description>
@@ -100,7 +100,7 @@ export function PortalStockContent({ items, token }: PortalStockContentProps) {
       ref={formRef}
       action={formAction}
       onChange={() => setFilled(countFilled(formRef.current))}
-      className="flex flex-col gap-[20px]"
+      className="flex flex-col gap-20"
     >
       <input type="hidden" name="token" value={token} />
       {header}

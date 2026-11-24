@@ -11,57 +11,57 @@ export const variantConfig: Record<
   hero: {
     element: "h1",
     className:
-      "font-head text-[38px] tablet:text-[52px] desktop:text-[64px] leading-none tracking-[-0.035em]",
+      "font-head text-hero-sm tablet:text-hero-md desktop:text-hero leading-none tracking-[-0.035em]",
     defaultWeight: "bold",
   },
   display: {
     element: "strong",
-    className: "font-head text-[44px] leading-none tracking-[-0.025em]",
+    className: "font-head text-display leading-none tracking-[-0.025em]",
     defaultWeight: "bold",
   },
   "heading-xl": {
     element: "h1",
-    className: "font-head text-[41px] leading-none tracking-[-0.025em]",
+    className: "font-head text-heading-xl leading-none tracking-[-0.025em]",
     defaultWeight: "bold",
   },
   "heading-lg": {
     element: "h2",
-    className: "font-head text-[25px] leading-none tracking-[-0.02em]",
+    className: "font-head text-heading-lg leading-none tracking-[-0.02em]",
     defaultWeight: "bold",
   },
   "heading-md": {
     element: "h3",
-    className: "font-head text-[19px] leading-none tracking-[-0.015em]",
+    className: "font-head text-heading-md leading-none tracking-[-0.015em]",
     defaultWeight: "bold",
   },
   "heading-sm": {
     element: "h4",
-    className: "font-head text-[16px] leading-none tracking-[-0.01em]",
+    className: "font-head text-heading-sm leading-none tracking-[-0.01em]",
     defaultWeight: "bold",
   },
   kpi: {
     element: "strong",
-    className: "font-head text-[31px] leading-none tracking-[-0.025em]",
+    className: "font-head text-kpi leading-none tracking-[-0.025em]",
     defaultWeight: "bold",
   },
   value: {
     element: "span",
-    className: "font-head text-[14px] leading-none tracking-[-0.01em]",
+    className: "font-head text-body leading-none tracking-[-0.01em]",
     defaultWeight: "bold",
   },
   body: {
     element: "span",
-    className: "font-body text-[14px] leading-[1.6]",
+    className: "font-body text-body leading-[1.6]",
     defaultWeight: "regular",
   },
   lead: {
     element: "p",
-    className: "font-body text-[17px] desktop:text-[19px] leading-[1.6]",
+    className: "font-body text-lead desktop:text-heading-md leading-[1.6]",
     defaultWeight: "regular",
   },
   "body-md": {
     element: "p",
-    className: "font-body text-[15px] leading-[1.6]",
+    className: "font-body text-body-md leading-[1.6]",
     defaultWeight: "regular",
   },
   "body-sm": {
@@ -76,7 +76,7 @@ export const variantConfig: Record<
   },
   caption: {
     element: "span",
-    className: "font-body text-[14px] leading-none",
+    className: "font-body text-body leading-none",
     defaultWeight: "regular",
   },
   micro: {

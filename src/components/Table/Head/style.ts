@@ -11,7 +11,7 @@ import { TableHeadAlign } from "./interface";
 // para a rolagem lateral. Abaixo do desktop segue em uma linha (lá a tabela
 // rola com o dedo, e título quebrado só gastaria altura).
 export const tableHeadStyle =
-  "px-16 desktop:px-12 desktop-xl:px-16 py-10 pointer-coarse:py-[14px] text-[13px] font-(--weight-semibold) text-(--color-text-muted) border-b border-(--border) bg-(--bg2) whitespace-nowrap desktop:whitespace-normal";
+  "px-16 desktop:px-12 desktop-xl:px-16 py-10 pointer-coarse:py-[14px] text-body-sm font-(--weight-semibold) text-(--color-text-muted) border-b border-(--border) bg-(--bg2) whitespace-nowrap desktop:whitespace-normal";
 
 export const tableHeadAlignStyle: Record<TableHeadAlign, string> = {
   left: "text-left",

@@ -7,6 +7,7 @@ import { PageContent } from "@/components/PageContent";
 import { PanelHeader } from "@/components/PanelHeader";
 import { Stepper } from "@/components/Stepper";
 import { PAGE_HEADING } from "@/utils/modules";
+import { plural } from "@/utils/format/plural";
 import { ArrowLeft, ArrowRight, ClipboardList, FileUp } from "lucide-react";
 
 import { HistoryBatchesCard } from "../_components/HistoryBatchesCard";
@@ -31,7 +32,7 @@ export default function OrderPdfImportContent({ initialBatchId }: Props) {
         : "Abrir lote"
       : step === PDF_STEPS.FILES
         ? "Conferir"
-        : `Importar ${run.preview?.ordersCreated ?? 0} pedido(s)`;
+        : `Importar ${plural(run.preview?.ordersCreated ?? 0, "pedido", "pedidos")}`;
 
   return (
     <PageContent>
@@ -51,7 +52,7 @@ export default function OrderPdfImportContent({ initialBatchId }: Props) {
       </PanelHeader.Root>
 
       <Card.Root>
-        <Card.Body className="gap-16">
+        <Card.Body>
           <Stepper.Root
             current={step}
             onChange={(index) => {

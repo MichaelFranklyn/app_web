@@ -19,6 +19,7 @@ import {
 import { ReactNode } from "react";
 
 import { ChartCapabilities, ChartPrefs } from "../../chartCustomize";
+import { ICON_SIZE } from "@/components/Icon";
 
 interface Props {
   prefs: ChartPrefs;
@@ -48,7 +49,7 @@ const variantIcon = (label: string) => {
 /** Rótulo de seção do menu (não-interativo). */
 function SectionLabel({ children }: { children: ReactNode }) {
   return (
-    <div className="px-[14px] pt-[8px] pb-[4px]">
+    <div className="px-[14px] pt-8 pb-4">
       <Title variant="label" color="muted">
         {children}
       </Title>
@@ -77,7 +78,9 @@ function CheckItem({
       }}
     >
       <span className="flex-1">{children}</span>
-      {active && <Check size={14} className="text-(--color-action-text)" />}
+      {active && (
+        <Check size={ICON_SIZE.sm} className="text-(--color-action-text)" />
+      )}
     </Dropdown.Item>
   );
 }

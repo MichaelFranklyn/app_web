@@ -26,7 +26,7 @@ export function InstallmentsCard({ order, onChanged }: Props) {
   return (
     <Table.Root>
       <Table.CardHead>
-        <Table.CardHead.Title className="inline-flex items-center gap-6">
+        <Table.CardHead.Title>
           Parcelas e comissão
           <HelpTooltip
             label="Como funciona a comissão deste pedido?"
@@ -75,14 +75,11 @@ export function InstallmentsCard({ order, onChanged }: Props) {
             <Table.Head title={INSTALLMENT_COLUMN_HELP.dueDate}>
               Vencimento
             </Table.Head>
-            <Table.Head
-              className="text-right"
-              title={INSTALLMENT_COLUMN_HELP.amount}
-            >
+            <Table.Head align="right" title={INSTALLMENT_COLUMN_HELP.amount}>
               Valor
             </Table.Head>
             <Table.Head
-              className="text-right"
+              align="right"
               title={INSTALLMENT_COLUMN_HELP.commission}
             >
               Comissão
@@ -90,10 +87,7 @@ export function InstallmentsCard({ order, onChanged }: Props) {
             <Table.Head title={INSTALLMENT_COLUMN_HELP.status}>
               Situação
             </Table.Head>
-            <Table.Head
-              className="text-right"
-              title={INSTALLMENT_COLUMN_HELP.actions}
-            >
+            <Table.Head align="right" title={INSTALLMENT_COLUMN_HELP.actions}>
               Ações
             </Table.Head>
           </Table.Row>
@@ -108,10 +102,10 @@ export function InstallmentsCard({ order, onChanged }: Props) {
               <Table.Cell card="title">
                 {formatDateDMY(inst.dueDate ?? undefined)}
               </Table.Cell>
-              <Table.Cell card="amount" label="Valor" className="text-right">
+              <Table.Cell card="amount" label="Valor" align="right">
                 {formatMoney(inst.amount)}
               </Table.Cell>
-              <Table.Cell label="Comissão" className="text-right">
+              <Table.Cell label="Comissão" align="right">
                 <Title variant="body-sm" weight="bold">
                   {formatMoney(installmentCommission(inst))}
                 </Title>

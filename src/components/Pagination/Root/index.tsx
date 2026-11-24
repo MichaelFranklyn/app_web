@@ -8,7 +8,7 @@ export const Root = React.forwardRef<HTMLDivElement, PaginationRootProps>(
     <nav
       ref={ref}
       aria-label="pagination"
-      className={cn("flex items-center gap-[4px]", className)}
+      className={cn("flex items-center gap-4", className)}
       {...props}
     />
   )

@@ -29,16 +29,16 @@ export function ProductPrice({
   );
 
   return (
-    <div className="desktop:items-end flex shrink-0 flex-col items-start gap-[4px]">
+    <div className="desktop:items-end flex shrink-0 flex-col items-start gap-4">
       {estimatedUnitPrice ? (
-        <div className="flex items-center gap-[6px]">
+        <div className="flex items-center gap-6">
           <Title variant="heading-sm">
             {formatMoney(estimatedUnitPrice)} / un.
           </Title>
           {isPromo ? (
-            <Badge color="green" size="xs">
+            <Badge.Root color="green" size="xs">
               <Badge.Text>Promoção</Badge.Text>
-            </Badge>
+            </Badge.Root>
           ) : null}
         </div>
       ) : (

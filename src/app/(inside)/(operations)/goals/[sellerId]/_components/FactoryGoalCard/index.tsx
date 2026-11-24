@@ -21,6 +21,7 @@ import { Pencil, Trash2 } from "lucide-react";
 import { GoalRow } from "../../../interface";
 
 import { SetGoalModal } from "../../../_components/SetGoalModal";
+import { formatPercentPoints } from "@/utils/format/percent";
 
 interface Props {
   row: GoalRow;
@@ -60,9 +61,7 @@ export function FactoryGoalCard({
   return (
     <Card.Root>
       <Card.Header>
-        <Card.Header.Title size="sm" weight="bold">
-          {factoryName(row.factory)}
-        </Card.Header.Title>
+        <Card.Header.Title>{factoryName(row.factory)}</Card.Header.Title>
         <Card.Header.Actions>
           {/* Vendeu sem meta combinada: o convite para definir uma. */}
           {!row.goalId && (
@@ -122,12 +121,12 @@ export function FactoryGoalCard({
           <div className="mb-12 flex flex-col gap-4">
             {/* Texto neutro, cor só na barra (crítica de 23/11/2026). */}
             <Title variant="body-xs" weight="semibold">
-              {overall.toFixed(0)}% da meta
+              {formatPercentPoints(overall)} da meta
             </Title>
             <Progress.Bar
               value={Math.min(overall, 100)}
               color={percentTone(overall)}
-              label={`${factoryName(row.factory)}: ${overall.toFixed(0)}% da meta`}
+              label={`${factoryName(row.factory)}: ${formatPercentPoints(overall)} da meta`}
             />
           </div>
         )}
@@ -160,7 +159,8 @@ export function FactoryGoalCard({
                     </Title>
                   ) : (
                     <Title variant="body-xs" color="muted">
-                      · {percent?.toFixed(0)}% de {format(values.target)}
+                      · {formatPercentPoints(percent ?? 0)} de{" "}
+                      {format(values.target)}
                     </Title>
                   )}
                 </div>

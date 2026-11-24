@@ -3,7 +3,6 @@
 import { Card } from "@/components/Card";
 import { Grid } from "@/components/Grid";
 import { formatDateDMY } from "@/utils/format/masks";
-import { DataField } from "../../dataCards";
 import { UserDetail } from "../interface";
 
 interface Props {
@@ -33,9 +32,11 @@ export function SystemAccessCard({ user, isSelf }: Props) {
         <Grid.Root cols={{ base: 1, desktop: 2 }} gap={16}>
           {/* No próprio perfil o e-mail de entrada mora no card de senha
               ("Você entra com"), ao lado de onde ele é usado. */}
-          {!isSelf && <DataField label="E-mail de acesso" value={user.email} />}
+          {!isSelf && (
+            <Card.Field label="E-mail de acesso" value={user.email} />
+          )}
 
-          <DataField
+          <Card.Field
             label="Cadastrado em"
             value={formatDateDMY(user.createdAt)}
           />

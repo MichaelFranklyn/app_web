@@ -72,7 +72,7 @@ export function SellersTab({ factoryId, factoryName, autoOpenLink }: Props) {
   return (
     <Table.Root data-tour="factory-sellers-table">
       <Table.CardHead>
-        <Table.CardHead.Title className="inline-flex items-center gap-6">
+        <Table.CardHead.Title>
           Acesso de vendedores
           <HelpTooltip
             label="O que é o acesso de vendedor?"
@@ -152,7 +152,7 @@ export function SellersTab({ factoryId, factoryName, autoOpenLink }: Props) {
               <Table.Cell colSpan={6}>
                 <EmptyState.Root flat>
                   <EmptyState.Icon>
-                    <Users size={32} />
+                    <Users />
                   </EmptyState.Icon>
                   <EmptyState.Title>
                     Nenhum vendedor com acesso

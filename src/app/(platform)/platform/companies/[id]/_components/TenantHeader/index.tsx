@@ -51,7 +51,7 @@ export function TenantHeader({ tenant, onToggleStatus, onEditPlan }: Props) {
             <Title
               variant="caption"
               color={situation.tone === "urgente" ? "red" : "muted"}
-              className="mt-[2px]"
+              className="mt-2"
             >
               {situation.detail}
             </Title>

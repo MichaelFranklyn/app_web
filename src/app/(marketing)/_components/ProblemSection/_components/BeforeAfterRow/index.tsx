@@ -17,7 +17,7 @@ export function BeforeAfterRow({
 }) {
   return (
     <li className="desktop:grid-cols-[1fr_auto_1fr] grid items-stretch gap-12">
-      <div className="flex flex-col gap-8 rounded-(--radius-md) border border-dashed border-(--border2) p-24">
+      <div className="flex flex-col gap-8 rounded-(--r-md) border border-dashed border-(--border2) p-24">
         <span className="flex items-center gap-8">
           <X
             aria-hidden
@@ -37,7 +37,7 @@ export function BeforeAfterRow({
         className="desktop:block hidden size-[20px] self-center stroke-(--color-action)"
       />
 
-      <div className="flex flex-col gap-8 rounded-(--radius-md) border border-l-4 border-(--border) border-l-(--color-action) bg-(--bg2) p-24 shadow-(--shadow-sm)">
+      <div className="flex flex-col gap-8 rounded-(--r-md) border border-l-4 border-(--border) border-l-(--color-action) bg-(--bg2) p-24 shadow-(--shadow-sm)">
         <span className="flex items-center gap-8">
           <Check
             aria-hidden

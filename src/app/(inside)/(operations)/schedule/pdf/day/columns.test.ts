@@ -187,8 +187,8 @@ describe("buildRouteContext", () => {
 
     expect(context).toEqual([
       "Vendedor: João",
-      "6 parada(s)",
-      "2 ligação(ões)",
+      "6 paradas",
+      "2 ligações",
       "42,3 km",
       "1h 35m de trajeto",
       "Saída: Rua A, 100",
@@ -206,6 +206,6 @@ describe("buildRouteContext", () => {
         routeDistanceKm: "0",
         routeDurationMin: 0,
       })
-    ).toEqual(["0 parada(s)"]);
+    ).toEqual(["0 paradas"]);
   });
 });

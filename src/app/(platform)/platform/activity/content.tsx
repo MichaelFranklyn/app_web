@@ -1,5 +1,6 @@
 "use client";
 
+import { formatDuration } from "@/utils/format/duration";
 import { Badge } from "@/components/Badges";
 import { EmptyState } from "@/components/EmptyState";
 import { Filters } from "@/components/Filters";
@@ -30,11 +31,10 @@ import {
   STATUS_OPTIONS,
   TABLE_FIELDS,
   companyBaseFilters,
-  formatDuration,
-  formatMoment,
   isSlow,
   summaryVariables,
 } from "./utils";
+import { formatLogMoment } from "@/utils/format/date";
 
 const COLUMN_COUNT = 5;
 
@@ -168,7 +168,7 @@ export default function ActivityContent({
                   <Table.Cell colSpan={COLUMN_COUNT}>
                     <EmptyState.Root flat>
                       <EmptyState.Icon>
-                        <Activity size={32} />
+                        <Activity />
                       </EmptyState.Icon>
                       <EmptyState.Title>
                         {isNarrowed
@@ -191,15 +191,15 @@ export default function ActivityContent({
                       variant="dim"
                       className="whitespace-nowrap"
                     >
-                      {formatMoment(row.createdAt)}
+                      {formatLogMoment(row.createdAt)}
                     </Table.Cell>
 
-                    <Table.Cell card="title" className="max-w-[280px]">
-                      <div className="flex min-w-0 flex-col gap-[2px]">
+                    <Table.Cell card="title" wrap>
+                      <div className="flex min-w-0 flex-col gap-2">
                         <Title
                           variant="body-sm"
                           weight="semibold"
-                          className="truncate"
+                          className="[overflow-wrap:anywhere]"
                         >
                           {operationLabel(row.operation)}
                         </Title>
@@ -207,7 +207,7 @@ export default function ActivityContent({
                           <Title
                             variant="micro"
                             color="red"
-                            className="truncate"
+                            className="[overflow-wrap:anywhere]"
                           >
                             {row.errorMessage}
                           </Title>
@@ -215,10 +215,13 @@ export default function ActivityContent({
                       </div>
                     </Table.Cell>
 
-                    <Table.Cell label="Quem" className="max-w-[220px]">
+                    <Table.Cell label="Quem" wrap>
                       {row.userEmail ? (
-                        <div className="flex min-w-0 flex-col gap-[2px]">
-                          <Title variant="body-sm" className="truncate">
+                        <div className="flex min-w-0 flex-col gap-2">
+                          <Title
+                            variant="body-sm"
+                            className="[overflow-wrap:anywhere]"
+                          >
                             {row.userEmail}
                           </Title>
                           {/* A empresa vira link: quase toda investigação

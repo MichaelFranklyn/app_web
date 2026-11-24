@@ -2,8 +2,6 @@
 
 import { Card } from "@/components/Card";
 import React from "react";
-import { Grid } from "@/components/Grid";
-import { HelpTooltip } from "@/components/HelpTooltip";
 import { Loading } from "@/components/Loading";
 import { PanelHeader } from "@/components/PanelHeader";
 import { PAGE_HEADING } from "@/utils/modules";
@@ -19,6 +17,7 @@ import { OrderSheetButton } from "../../../_components/OrderSheetButton";
 import { NewOrderButton } from "../../../_components/NewOrderButton";
 import { MoreOptions } from "@/components/MoreOptions";
 import { useOrdersPhoneMenu } from "./useOrdersPhoneMenu";
+import { ICON_SIZE } from "@/components/Icon";
 
 interface Props {
   stats?: OrdersStats;
@@ -103,6 +102,14 @@ export function OrdersHeader({
             <PanelHeader.Heading {...PAGE_HEADING.orders}>
               Pedidos
             </PanelHeader.Heading>
+            {/* Era a única lista sem descrição (23/11/2026). Quem não escolhe
+                vendedor é o próprio vendedor: vê só os pedidos dele. */}
+            <PanelHeader.Description>
+              {canSelectSeller
+                ? "Os pedidos da sua empresa."
+                : "Os pedidos que você fez."}{" "}
+              Clique em um para ver itens, faturamento e entrega.
+            </PanelHeader.Description>
             <PanelHeader.Actions data-tour="orders-actions">
               {/* No celular ficam só "Novo pedido" e o "Mais ações"; o CSS
                   esconde o resto desde o primeiro quadro, e os modais passam a
@@ -134,39 +141,32 @@ export function OrdersHeader({
         </PanelHeader.Top>
       </PanelHeader.Root>
 
-      <Grid.Root cols={{ base: 2, tablet: 2, desktop: 4 }} gap={20}>
+      <Card.Kpi.Group>
         {kpis.map(
           ({ label, value, delta, positive, negative, status, help }) => (
-            <Grid.Item key={label}>
-              <Card.Kpi aria-busy={isLoading || undefined}>
-                {/* Os quatro cartões somam recortes diferentes (todos os
+            <Card.Kpi key={label} aria-busy={isLoading || undefined}>
+              {/* Os quatro cartões somam recortes diferentes (todos os
                     pedidos × só a mercadoria × só o faturado): sem a
                     explicação ao lado, um parece contradizer o outro. */}
-                <Card.Kpi.Label className="inline-flex items-center gap-2">
-                  {label}
-                  {help && (
-                    <HelpTooltip label={`Sobre ${label}`} content={help} />
-                  )}
-                </Card.Kpi.Label>
-                <Card.Kpi.Value status={status}>
-                  {isLoading ? <Pending>{value}</Pending> : value}
-                </Card.Kpi.Value>
-                {isLoading ? (
-                  <Card.Kpi.Delta>
-                    <Pending>{delta}</Pending>
-                  </Card.Kpi.Delta>
-                ) : (
-                  <Card.Kpi.Delta positive={positive} negative={negative}>
-                    {positive && <TrendingUp size={12} />}
-                    {negative && <TrendingDown size={12} />}
-                    {delta}
-                  </Card.Kpi.Delta>
-                )}
-              </Card.Kpi>
-            </Grid.Item>
+              <Card.Kpi.Label help={help}>{label}</Card.Kpi.Label>
+              <Card.Kpi.Value status={status}>
+                {isLoading ? <Pending>{value}</Pending> : value}
+              </Card.Kpi.Value>
+              {isLoading ? (
+                <Card.Kpi.Delta>
+                  <Pending>{delta}</Pending>
+                </Card.Kpi.Delta>
+              ) : (
+                <Card.Kpi.Delta positive={positive} negative={negative}>
+                  {positive && <TrendingUp size={ICON_SIZE.xs} />}
+                  {negative && <TrendingDown size={ICON_SIZE.xs} />}
+                  {delta}
+                </Card.Kpi.Delta>
+              )}
+            </Card.Kpi>
           )
         )}
-      </Grid.Root>
+      </Card.Kpi.Group>
     </>
   );
 }

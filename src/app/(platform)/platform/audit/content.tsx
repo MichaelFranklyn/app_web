@@ -15,12 +15,8 @@ import { ScrollText } from "lucide-react";
 import { AUDIT_LABEL } from "../companies/[id]/utils";
 import { PLATFORM_AUDIT_QUERY } from "./gql";
 import { AuditContentProps, AuditQueryData, AuditRow } from "./interface";
-import {
-  ACTION_OPTIONS,
-  ITEMS_PER_PAGE,
-  TABLE_FIELDS,
-  formatMoment,
-} from "./utils";
+import { ACTION_OPTIONS, ITEMS_PER_PAGE, TABLE_FIELDS } from "./utils";
+import { formatLogMoment } from "@/utils/format/date";
 
 const COLUMN_COUNT = 4;
 
@@ -100,7 +96,7 @@ export default function PlatformAuditContent({
                   <Table.Cell colSpan={COLUMN_COUNT}>
                     <EmptyState.Root flat>
                       <EmptyState.Icon>
-                        <ScrollText size={32} />
+                        <ScrollText />
                       </EmptyState.Icon>
                       <EmptyState.Title>
                         {isNarrowed
@@ -133,7 +129,7 @@ export default function PlatformAuditContent({
                       variant="dim"
                       className="whitespace-nowrap"
                     >
-                      {formatMoment(row.createdAt)}
+                      {formatLogMoment(row.createdAt)}
                     </Table.Cell>
 
                     <Table.Cell card="title" className="whitespace-nowrap">
@@ -142,16 +138,19 @@ export default function PlatformAuditContent({
                       </Title>
                     </Table.Cell>
 
-                    <Table.Cell label="Alvo" className="max-w-[280px]">
-                      <div className="flex min-w-0 flex-col gap-[2px]">
-                        <Title variant="body-sm" className="truncate">
+                    <Table.Cell label="Alvo" wrap>
+                      <div className="flex min-w-0 flex-col gap-2">
+                        <Title
+                          variant="body-sm"
+                          className="[overflow-wrap:anywhere]"
+                        >
                           {row.targetLabel ?? "—"}
                         </Title>
                         {row.reason && (
                           <Title
                             variant="micro"
                             color="muted"
-                            className="truncate"
+                            className="[overflow-wrap:anywhere]"
                           >
                             {row.reason}
                           </Title>
@@ -159,12 +158,10 @@ export default function PlatformAuditContent({
                       </div>
                     </Table.Cell>
 
-                    <Table.Cell
-                      label="Quem"
-                      variant="dim"
-                      className="max-w-[220px]"
-                    >
-                      <span className="block truncate">{row.actorEmail}</span>
+                    <Table.Cell label="Quem" variant="dim" wrap>
+                      <span className="[overflow-wrap:anywhere]">
+                        {row.actorEmail}
+                      </span>
                     </Table.Cell>
                   </Table.Row>
                 ))

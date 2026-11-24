@@ -39,7 +39,7 @@ const NAV = [
 
 export function MarketingHeader() {
   return (
-    <header className="sticky top-0 z-10 border-b border-(--border) bg-(--bg2)">
+    <header className="sticky top-0 z-(--z-sticky) border-b border-(--border) bg-(--bg2)">
       <nav className="tablet:gap-24 mx-auto flex max-w-[1200px] items-center justify-between gap-12 px-24 py-16">
         <Link href="/" aria-label="Itinus — página inicial">
           <Image

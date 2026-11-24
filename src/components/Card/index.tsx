@@ -1,5 +1,6 @@
 import { Accent } from "./Accent";
 import { Body } from "./Body";
+import { Field } from "./Field";
 import { Button } from "./Button";
 import { Footer } from "./Footer";
 import { Header } from "./Header";
@@ -16,10 +17,6 @@ export type { KpiStatus } from "./Kpi";
 export const Card = Object.assign(Root, {
   Root,
   Header,
-  HeaderEyebrow: Header.Eyebrow,
-  HeaderTitle: Header.Title,
-  HeaderDescription: Header.Description,
-  HeaderActions: Header.Actions,
   Body,
   Section,
   Row,
@@ -28,4 +25,5 @@ export const Card = Object.assign(Root, {
   Kpi,
   Accent,
   Item,
+  Field,
 });

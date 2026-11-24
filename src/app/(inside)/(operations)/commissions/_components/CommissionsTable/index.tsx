@@ -250,7 +250,7 @@ export function CommissionsTable({
                   não falta de faturamento (14/11/2026). */}
               <EmptyState.Root flat>
                 <EmptyState.Icon>
-                  <Coins size={32} />
+                  <Coins />
                 </EmptyState.Icon>
                 <EmptyState.Title>Nenhuma parcela aqui</EmptyState.Title>
                 <EmptyState.Description>
@@ -308,7 +308,7 @@ export function CommissionsTable({
                 <InstallmentStateCell row={row} />
               </Table.Cell>
               <Table.Cell>{whenLabel(row, lens)}</Table.Cell>
-              <Table.Cell className="text-right" label="Valor" card="amount">
+              <Table.Cell align="right" label="Valor" card="amount">
                 {/* Estorno vem negativo: sai em vermelho para não ser lido como ganho. */}
                 <Title
                   variant="body-sm"

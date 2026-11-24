@@ -3,6 +3,7 @@ import {
   toUtcIsoDate,
   weekMondayIso,
 } from "@/utils/format/date";
+import { plural } from "@/utils/format/plural";
 import { DateRangeIso, OrderStatus } from "./interface";
 
 export type OrderStatusColor = "neutral" | "blue" | "amber" | "green" | "red";
@@ -193,17 +194,16 @@ export const monthKeyToLabel = (key: string): string => {
 /** Dias arredondados, em linguagem concreta: "1 dia" / "18 dias". */
 export const formatDays = (value: number): string => {
   const rounded = Math.round(value);
-  return rounded === 1 ? "1 dia" : `${rounded} dias`;
+  return plural(rounded, "dia", "dias");
 };
 
-/** Fração (0..1) → "47%". Sem casas decimais: o público lê a ordem de grandeza,
- * não a precisão. */
-export const formatPercent = (value: number): string =>
-  `${Math.round(value * 100)}%`;
+/** Fração (0..1) → "47%". Mora em `utils/format/percent`; segue exportado
+ * daqui porque os gráficos e relatórios já o importam por este caminho. */
+export { formatPercent } from "@/utils/format/percent";
 
 /** Contagem com o substantivo no singular/plural certo: "1 cliente" / "8 clientes". */
 export const formatCount = (
   value: number,
   singular: string,
-  plural: string
-): string => `${value} ${value === 1 ? singular : plural}`;
+  pluralForm: string
+): string => plural(value, singular, pluralForm);

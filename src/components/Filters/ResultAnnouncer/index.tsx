@@ -2,17 +2,15 @@
 
 import { useEffect, useState } from "react";
 
+import { plural } from "@/utils/format/plural";
+
 interface ResultAnnouncerProps {
   /** Total de linhas que o filtro deixou; `undefined` enquanto carrega. */
   count?: number;
 }
 
 const describe = (count: number) =>
-  count === 0
-    ? "Nenhum resultado"
-    : count === 1
-      ? "1 resultado"
-      : `${count.toLocaleString("pt-BR")} resultados`;
+  count === 0 ? "Nenhum resultado" : plural(count, "resultado", "resultados");
 
 /**
  * Região viva (invisível) que conta ao leitor de tela quantas linhas o filtro

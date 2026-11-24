@@ -11,6 +11,7 @@ import { Modal } from "@/components/Modal";
 import { Table } from "@/components/Table";
 import { Title } from "@/components/Title";
 import { formatMoney } from "@/utils/format/masks";
+import { plural } from "@/utils/format/plural";
 
 import {
   ConfigureTemplateModalProps,
@@ -169,7 +170,7 @@ export function ConfigureTemplateModal(props: ConfigureTemplateModalProps) {
                 <Alert.Content>
                   <Alert.Description>
                     {preview.length > 0
-                      ? `${detectedLabel ? `Formato detectado: ${detectedLabel}. ` : ""}${preview.length} item(ns) reconhecido(s) neste exemplo. Confira abaixo e salve o modelo.`
+                      ? `${detectedLabel ? `Formato detectado: ${detectedLabel}. ` : ""}${plural(preview.length, "item reconhecido", "itens reconhecidos")} neste exemplo. Confira abaixo e salve o modelo.`
                       : "Nenhum item reconhecido. Tente escolher o formato manualmente no campo acima."}
                   </Alert.Description>
                 </Alert.Content>
@@ -201,8 +202,8 @@ export function ConfigureTemplateModal(props: ConfigureTemplateModalProps) {
                     <Table.Header>
                       <Table.Row>
                         <Table.Head>Código</Table.Head>
-                        <Table.Head>Quantidade</Table.Head>
-                        <Table.Head>Preço</Table.Head>
+                        <Table.Head align="right">Quantidade</Table.Head>
+                        <Table.Head align="right">Preço</Table.Head>
                       </Table.Row>
                     </Table.Header>
                     <Table.Body>
@@ -211,10 +212,19 @@ export function ConfigureTemplateModal(props: ConfigureTemplateModalProps) {
                           <Table.Cell variant="strong" card="title">
                             {item.sku}
                           </Table.Cell>
-                          <Table.Cell variant="dim" label="Quantidade">
+                          <Table.Cell
+                            align="right"
+                            variant="dim"
+                            label="Quantidade"
+                          >
                             {item.quantity}
                           </Table.Cell>
-                          <Table.Cell variant="dim" card="amount" label="Preço">
+                          <Table.Cell
+                            align="right"
+                            variant="dim"
+                            card="amount"
+                            label="Preço"
+                          >
                             {item.unitPrice ? formatMoney(item.unitPrice) : "—"}
                           </Table.Cell>
                         </Table.Row>

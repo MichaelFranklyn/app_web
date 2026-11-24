@@ -8,6 +8,7 @@ import { Loading } from "@/components/Loading";
 import { Stepper } from "@/components/Stepper";
 import { Title } from "@/components/Title";
 import { SheetData, SheetMatrix } from "@/utils/import/reader";
+import { plural } from "@/utils/format/plural";
 import { TriangleAlert } from "lucide-react";
 
 interface Props {
@@ -86,7 +87,8 @@ export function StepFile({
             />
           </div>
           <Title variant="body-sm" color="muted">
-            Encontramos {data.rows.length} linha(s) de itens. Amostra:
+            Encontramos {plural(data.rows.length, "linha", "linhas")} de itens.
+            Amostra:
           </Title>
           <SheetPreview data={data} />
         </>

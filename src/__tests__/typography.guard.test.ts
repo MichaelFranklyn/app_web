@@ -28,11 +28,16 @@ const SRC = resolve(process.cwd(), "src");
 const TEXT_TAGS = "span|p|h1|h2|h3|h4|h5|h6|div|strong|em|label|li|td|th";
 
 /**
- * Tamanho de fonte (`text-[13px]`, `text-sm`), peso (`font-bold`) ou caixa
- * tipográfica escritos direto na classe. `text-(--x)` NÃO conta: é cor.
+ * Tamanho de fonte (`text-[13px]`, `text-sm`, os degraus do @theme como
+ * `text-body`), peso (`font-bold`) ou caixa tipográfica escritos direto na
+ * classe. `text-(--x)` NÃO conta: é cor. Os degraus nomeados são para as
+ * peças do DS (`components/`), não para a tela — ela usa o `Title`.
  */
 const TYPOGRAPHY_CLASS =
-  /\b(text-\[\d+px\]|text-(?:xs|sm|base|lg|xl|2xl|3xl|body-sm)|font-(?:medium|semibold|bold|extrabold))\b/;
+  /(?<![\w-])(?:text-\[\d+px\]|(?:text-(?:xs|sm|base|lg|xl|2xl|3xl|micro|body-sm|body|body-md|body-lg|lead|heading-sm|heading-md|heading-lg|kpi|heading-xl)|section-label|font-(?:medium|semibold|bold|extrabold))(?![\w-]))/;
+// O `\b` depois de `text-[13px]` exigia uma letra colada ao `]` — o tamanho cru
+// no fim da classe (ou antes de um espaço) passava pelo guarda sem ser visto
+// (24/11/2026). Agora a fronteira é "nem letra nem hífen" dos dois lados.
 
 const readSources = (): Map<string, string> => {
   const out = new Map<string, string>();
@@ -51,22 +56,62 @@ const readSources = (): Map<string, string> => {
 const sources = readSources();
 
 /**
- * Onde a escala PODE ser escrita: é o arquivo que a define. `style.ts` não
- * aparece aqui porque o guarda só lê `.tsx`.
+ * Onde a escala PODE ser escrita: as peças do DS. Elas é que definem a
+ * tipografia (o `Title`, o `Alert.Title`, o rótulo da `Sidebar`) com os degraus
+ * do `@theme`; a tela compõe as peças e não escreve fonte. Enquanto o guarda só
+ * lia `className="..."`, a fronteira parecia ser o `Title` — mas as peças que
+ * usam `cn()` já escreviam os degraus e passavam sem ser vistas.
  */
-const ALLOWED = ["src/components/Title/index.tsx"];
+const ALLOWED_PREFIX = "src/components/";
+
+/**
+ * O valor do `className` de uma tag que começa em `start`: o literal
+ * (`className="..."`) ou a expressão inteira (`className={cn("...", x)}`), com
+ * as chaves balanceadas. Só olhar o literal deixava `cn("text-[13px]")` passar
+ * (24/11/2026) — e `cn` é como metade das telas escreve a classe.
+ */
+const classNameOf = (text: string, start: number): string | null => {
+  let depth = 0;
+  for (let i = start; i < text.length; i++) {
+    const ch = text[i];
+    if (ch === "{") depth++;
+    else if (ch === "}") depth--;
+    else if (ch === ">" && depth === 0) return null;
+    else if (depth === 0 && text.startsWith("className=", i)) {
+      const v = i + "className=".length;
+      // Com as aspas: o `stringsOf` lê o literal como lê a expressão.
+      if (text[v] === '"') return text.slice(v, text.indexOf('"', v + 1) + 1);
+      if (text[v] !== "{") return null;
+      let d = 0;
+      for (let j = v; j < text.length; j++) {
+        if (text[j] === "{") d++;
+        else if (text[j] === "}" && --d === 0) return text.slice(v + 1, j);
+      }
+      return null;
+    }
+  }
+  return null;
+};
+
+/** As strings de uma expressão: `"a"`, `'b'` e o texto fixo de `` `c ${x}` ``. */
+const stringsOf = (expr: string): string[] =>
+  [...expr.matchAll(/"([^"]*)"|'([^']*)'|`([^`]*)`/g)].map(
+    (m) => m[1] ?? m[2] ?? m[3].replace(/\$\{[^}]*\}/g, " ")
+  );
 
 const findOffenders = (): string[] => {
   const offenders: string[] = [];
-  const opening = new RegExp(`<(?:${TEXT_TAGS})\\s[^>]*className="[^"]*"`, "g");
+  const opening = new RegExp(`<(?:${TEXT_TAGS})\\s`, "g");
 
   for (const [path, text] of sources) {
     if (/\.(test|spec)\.tsx?$/.test(path)) continue;
-    if (ALLOWED.includes(path)) continue;
+    if (path.startsWith(ALLOWED_PREFIX)) continue;
     for (const match of text.matchAll(opening)) {
-      const className = /className="([^"]*)"/.exec(match[0])?.[1] ?? "";
-      if (TYPOGRAPHY_CLASS.test(className)) {
-        offenders.push(`${path} → ${className.trim().slice(0, 60)}`);
+      const value = classNameOf(text, match.index + match[0].length);
+      if (value === null) continue;
+      const hit = stringsOf(value).find((s) => TYPOGRAPHY_CLASS.test(s));
+      if (hit !== undefined) {
+        offenders.push(`${path} → ${hit.trim().slice(0, 60)}`);
         break;
       }
     }
@@ -75,7 +120,7 @@ const findOffenders = (): string[] => {
 };
 
 /**
- * Dívida conhecida — hoje, nenhuma.
+ * Dívida conhecida (e exceções com motivo).
  *
  * Acrescentar um caminho aqui é assumir que aquele texto vive fora da escala,
  * e o motivo tem de estar escrito ao lado. Se o tamanho que falta é legítimo,

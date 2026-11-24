@@ -74,7 +74,7 @@ export function OrderSummaryCard({ order }: Props) {
             key: "subtotal",
             label: "Subtotal (sem IPI)",
             help: SUMMARY_HELP.subtotal,
-            value: formatMoney(subtotalWithTax.toFixed(2)),
+            value: formatMoney(subtotalWithTax),
           },
           {
             key: "ipi",
@@ -90,7 +90,7 @@ export function OrderSummaryCard({ order }: Props) {
       help: SUMMARY_HELP.total,
       value: (
         <Title variant="body-md" as="span" weight="bold">
-          {formatMoney(grandTotal.toFixed(2))}
+          {formatMoney(grandTotal)}
         </Title>
       ),
     },
@@ -123,9 +123,7 @@ export function OrderSummaryCard({ order }: Props) {
   return (
     <Card.Root>
       <Card.Header>
-        <Card.Header.Title size="sm" weight="bold">
-          Resumo financeiro
-        </Card.Header.Title>
+        <Card.Header.Title>Resumo financeiro</Card.Header.Title>
       </Card.Header>
       {/* Entre 1024 e 1600px o resumo ocupa a largura toda, acima da tabela
           de itens (ver content.tsx): `wide` põe as linhas em duas colunas. */}

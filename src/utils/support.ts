@@ -1,3 +1,4 @@
+import { plural } from "@/utils/format/plural";
 /**
  * Vocabulário dos atendimentos — tipos, rótulos e cores, num lugar só.
  *
@@ -160,6 +161,6 @@ export interface SupportCase {
  */
 export const supportAgeLabel = (days: number, isOpen: boolean): string => {
   if (days <= 0) return isOpen ? "hoje" : "no mesmo dia";
-  const label = days === 1 ? "1 dia" : `${days} dias`;
+  const label = plural(days, "dia", "dias");
   return isOpen ? `${label} esperando` : `resolvido em ${label}`;
 };

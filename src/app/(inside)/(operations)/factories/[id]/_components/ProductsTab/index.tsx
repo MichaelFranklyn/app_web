@@ -18,6 +18,7 @@ import type { FieldConfig } from "@/hooks/useTableFilters";
 import { useTableData } from "@/hooks/useTableData";
 import { AlertCircle, Package } from "lucide-react";
 import { Button } from "@/components/Button";
+import { plural } from "@/utils/format/plural";
 import { useMemo } from "react";
 import { AddProductModal } from "./AddProductModal";
 import { ProductRowActions } from "./ProductRowActions";
@@ -95,7 +96,7 @@ export function ProductsTab({ companyFactoryId }: Props) {
   return (
     <Table.Root sort={table.sort} data-tour="products-table">
       <Table.CardHead>
-        <Table.CardHead.Title className="inline-flex items-center gap-6">
+        <Table.CardHead.Title>
           Catálogo de produtos
           <HelpTooltip
             label="O que significa cada campo do produto?"
@@ -242,7 +243,7 @@ export function ProductsTab({ companyFactoryId }: Props) {
               <Table.Cell colSpan={7}>
                 <EmptyState.Root flat>
                   <EmptyState.Icon>
-                    <Package size={32} />
+                    <Package />
                   </EmptyState.Icon>
                   <EmptyState.Title>
                     {onlyAttention
@@ -358,7 +359,7 @@ export function ProductsTab({ companyFactoryId }: Props) {
             <Loading.Spinner size="sm" className="mr-6 inline-block" />
           )}
           {table.totalItems > 0
-            ? `${table.totalItems} produto(s) · página ${table.currentPage} de ${table.totalPages}`
+            ? `${plural(table.totalItems, "produto", "produtos")} · página ${table.currentPage} de ${table.totalPages}`
             : "Nenhum produto encontrado"}
         </Table.Footer.Info>
 

@@ -1,3 +1,4 @@
+import { BulletList } from "@/components/BulletList";
 import { Title } from "@/components/Title";
 import { Check } from "lucide-react";
 import {
@@ -9,6 +10,7 @@ import { extraUsersFor } from "../../../pricing";
 import { useSignedInUser } from "../../../useSignedInUser";
 import { BillingCycle } from "../../interface";
 import { formatMoney } from "@/utils/format/masks";
+import { plural } from "@/utils/format/plural";
 import { totalForCycle } from "../../utils";
 
 /**
@@ -34,7 +36,7 @@ export function OrderSummary({
   const user = useSignedInUser();
 
   return (
-    <aside className="desktop:sticky desktop:top-[96px] flex flex-col gap-16 rounded-(--radius-lg) border border-(--border) bg-(--bg2) p-24">
+    <aside className="desktop:sticky desktop:top-[96px] flex flex-col gap-16 rounded-(--r-lg) border border-(--border) bg-(--bg2) p-24">
       <Title variant="label" color="muted">
         Seu pedido
       </Title>
@@ -51,7 +53,7 @@ export function OrderSummary({
           primeira coisa que o gestor confere antes de pôr o cartão. */}
       <div className="flex flex-col gap-4">
         <Title variant="body-sm" color="secondary">
-          {users} {users === 1 ? "usuário" : "usuários"} com login
+          {plural(users, "usuário", "usuários")} com login
         </Title>
 
         {extraUsers > 0 && (
@@ -62,20 +64,15 @@ export function OrderSummary({
         )}
       </div>
 
-      <ul className="flex flex-col gap-8">
+      <BulletList.Root marker="icon">
         {plan.features.map((feature) => (
-          <li key={feature} className="flex items-start gap-8">
-            <Check
-              size={14}
-              className="mt-4 shrink-0 text-(--color-status-success)"
-            />
-
+          <BulletList.Item key={feature} icon={Check}>
             <Title variant="body-sm" color="secondary">
               {feature}
             </Title>
-          </li>
+          </BulletList.Item>
         ))}
-      </ul>
+      </BulletList.Root>
 
       <div className="flex items-baseline justify-between gap-12 border-t border-(--border) pt-16">
         <Title variant="body-sm" color="muted">

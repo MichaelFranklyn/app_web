@@ -1,7 +1,6 @@
 import { describe, expect, it } from "vitest";
 import { PortalSentOrderDetail } from "../interface";
 import {
-  formatBrtDate,
   sentOrderFileName,
   parseSentOrdersTab,
   sentOrderNumberLine,
@@ -68,17 +67,6 @@ describe("sentOrderStage", () => {
         order({ status: "CANCELLED", seenBySellerAt: "2026-11-11T12:00:00Z" })
       )
     ).toBe("cancelled");
-  });
-});
-
-describe("formatBrtDate", () => {
-  it("usa o fuso de Brasília: 01h UTC ainda é o dia anterior", () => {
-    expect(formatBrtDate("2026-11-11T01:00:00+00:00")).toBe("10/11/2026");
-  });
-
-  it("vazio ou inválido vira texto vazio", () => {
-    expect(formatBrtDate(null)).toBe("");
-    expect(formatBrtDate("não é data")).toBe("");
   });
 });
 

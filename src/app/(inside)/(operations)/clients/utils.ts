@@ -1,6 +1,7 @@
 import { KpiItem } from "@/components/Card/Kpi/Root/interface";
 import { FieldConfig } from "@/hooks/useTableState";
 import { SortLabel } from "@/utils/pdf/context";
+import { plural } from "@/utils/format/plural";
 import { CLIENT_KPI_HELP } from "./help";
 import { ClientsStats } from "./interface";
 
@@ -73,7 +74,7 @@ export const buildKpis = (
   const inactiveText =
     inactive === 0
       ? "todos ativos"
-      : `${inactive} ${inactive === 1 ? "inativo" : "inativos"} fora da conta`;
+      : `${plural(inactive, "inativo", "inativos")} fora da conta`;
 
   return [
     {

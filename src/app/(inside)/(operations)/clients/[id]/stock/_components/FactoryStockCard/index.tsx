@@ -6,6 +6,8 @@ import { Title } from "@/components/Title";
 import { ChevronRight } from "lucide-react";
 import { FactoryStockSummary } from "../../../interface";
 import { factoryName } from "@/utils/company";
+import { plural } from "@/utils/format/plural";
+import { ICON_SIZE } from "@/components/Icon";
 
 interface Props {
   summary: FactoryStockSummary;
@@ -18,12 +20,16 @@ function situation(summary: FactoryStockSummary): {
   color: "red" | "amber" | "green";
 } {
   if (summary.stockedOut > 0) {
-    const plural = summary.stockedOut !== 1 ? "s" : "";
-    return { label: `${summary.stockedOut} zerado${plural}`, color: "red" };
+    return {
+      label: plural(summary.stockedOut, "zerado", "zerados"),
+      color: "red",
+    };
   }
   if (summary.critical > 0) {
-    const plural = summary.critical !== 1 ? "s" : "";
-    return { label: `${summary.critical} crítico${plural}`, color: "amber" };
+    return {
+      label: plural(summary.critical, "crítico", "críticos"),
+      color: "amber",
+    };
   }
   return { label: "Estoque em dia", color: "green" };
 }
@@ -31,7 +37,6 @@ function situation(summary: FactoryStockSummary): {
 export function FactoryStockCard({ summary, onSelect }: Props) {
   const name = factoryName(summary.factory);
   const sit = situation(summary);
-  const plural = summary.totalProducts !== 1 ? "s" : "";
 
   return (
     <Card.Button
@@ -49,13 +54,20 @@ export function FactoryStockCard({ summary, onSelect }: Props) {
 
       <div className="flex items-center justify-between gap-8">
         <Title variant="body-sm" color="secondary">
-          {summary.totalProducts} produto{plural} acompanhado{plural}
+          {plural(
+            summary.totalProducts,
+            "produto acompanhado",
+            "produtos acompanhados"
+          )}
         </Title>
         <div className="flex items-center gap-4">
           <Title variant="micro" color="secondary">
             Ver produtos
           </Title>
-          <ChevronRight size={14} className="text-(--color-text-muted)" />
+          <ChevronRight
+            size={ICON_SIZE.sm}
+            className="text-(--color-text-muted)"
+          />
         </div>
       </div>
     </Card.Button>

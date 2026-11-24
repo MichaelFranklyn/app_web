@@ -61,7 +61,7 @@ export function TiersTab({ companyFactoryId }: Props) {
   return (
     <Table.Root>
       <Table.CardHead>
-        <Table.CardHead.Title className="inline-flex items-center gap-6">
+        <Table.CardHead.Title>
           Níveis comerciais
           <HelpTooltip
             label="O que é um nível comercial?"
@@ -117,7 +117,7 @@ export function TiersTab({ companyFactoryId }: Props) {
               <Table.Cell colSpan={2}>
                 <EmptyState.Root flat>
                   <EmptyState.Icon>
-                    <Layers size={32} />
+                    <Layers />
                   </EmptyState.Icon>
                   <EmptyState.Title>Nenhum nível comercial</EmptyState.Title>
                   <EmptyState.Description>

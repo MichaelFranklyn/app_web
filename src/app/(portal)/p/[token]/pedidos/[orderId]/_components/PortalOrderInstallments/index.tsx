@@ -1,3 +1,4 @@
+import { RowList } from "@/components/RowList";
 import { Badge } from "@/components/Badges";
 import { Card } from "@/components/Card";
 import { Title } from "@/components/Title";
@@ -24,23 +25,22 @@ export function PortalOrderInstallments({
 
   return (
     <Card.Root className="h-auto">
-      <Card.Body padding="compact">
-        <div className="mb-[12px] flex flex-col gap-[2px]">
-          <Title variant="heading-sm">Pagamento</Title>
-          <Title variant="body-xs" color="muted">
-            {installments.length === 1
-              ? "Parcela única"
-              : `${installments.length} parcelas`}
-          </Title>
-        </div>
-
-        <ul className="flex flex-col gap-[10px]">
+      <Card.Header>
+        <Card.Header.Title>Pagamento</Card.Header.Title>
+        <Card.Header.Description>
+          {installments.length === 1
+            ? "Parcela única"
+            : `${installments.length} parcelas`}
+        </Card.Header.Description>
+      </Card.Header>
+      <Card.Body>
+        <RowList.Root>
           {installments.map((installment) => (
-            <li
+            <RowList.Item
               key={installment.sequence}
-              className="flex items-center justify-between gap-[12px]"
+              className="flex items-center justify-between gap-12"
             >
-              <div className="flex min-w-0 flex-col gap-[2px]">
+              <div className="flex min-w-0 flex-col gap-2">
                 <Title variant="body-sm">
                   {installment.sequence}ª ·{" "}
                   {installment.dueDate
@@ -53,22 +53,22 @@ export function PortalOrderInstallments({
                   </Title>
                 ) : null}
               </div>
-              <div className="flex shrink-0 items-center gap-[8px]">
+              <div className="flex shrink-0 items-center gap-8">
                 <Title variant="body-sm" weight="semibold">
                   {formatMoney(installment.amount)}
                 </Title>
-                <Badge
+                <Badge.Root
                   color={installment.status === "PAID" ? "green" : "neutral"}
                   size="xs"
                 >
                   <Badge.Text>
                     {installmentLabel(installment.status)}
                   </Badge.Text>
-                </Badge>
+                </Badge.Root>
               </div>
-            </li>
+            </RowList.Item>
           ))}
-        </ul>
+        </RowList.Root>
       </Card.Body>
     </Card.Root>
   );

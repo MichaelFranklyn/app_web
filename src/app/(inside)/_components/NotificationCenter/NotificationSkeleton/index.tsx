@@ -1,3 +1,5 @@
+"use client";
+
 import { Dropdown } from "@/components/Dropdown";
 import { Loading } from "@/components/Loading";
 
@@ -13,13 +15,13 @@ export function NotificationSkeleton() {
       <span className="sr-only">Carregando notificações…</span>
       {[0, 1, 2].map((row) => (
         <Dropdown.PanelRowSkeleton key={row}>
-          <Loading.Skeleton shape="pill" className="mt-[6px] size-8 shrink-0" />
+          <Loading.Skeleton shape="pill" className="mt-6 size-8 shrink-0" />
           <div className="flex min-w-0 flex-1 flex-col gap-6">
             <div className="flex items-center justify-between gap-8">
-              <Loading.Skeleton className="h-[12px] w-[55%]" />
-              <Loading.Skeleton className="h-[10px] w-[36px] shrink-0" />
+              <Loading.Skeleton text="body-sm" className="w-[55%]" />
+              <Loading.Skeleton text="body-sm" className="w-[36px] shrink-0" />
             </div>
-            <Loading.Skeleton className="h-[10px] w-[85%]" />
+            <Loading.Skeleton text="body-sm" className="w-[85%]" />
           </div>
         </Dropdown.PanelRowSkeleton>
       ))}

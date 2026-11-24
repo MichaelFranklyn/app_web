@@ -10,6 +10,7 @@ import { useCompanyBranding } from "@/hooks/useCompanyBranding";
 import { buildQueryFilters } from "@/hooks/useTableData";
 import { downloadSheet } from "@/utils/import/writer";
 import { ReportOrder } from "@/utils/pdf/context";
+import { plural } from "@/utils/format/plural";
 
 import { CLIENTS_QUERY } from "../../../gql";
 import { Client, ClientsQueryResponse } from "../../../interface";
@@ -112,7 +113,7 @@ export function ExportClientsButton({
         toast({
           variant: "warning",
           title: "Arquivo incompleto",
-          description: `O arquivo saiu com ${clients.length} cliente(s) — o recorte é grande demais para uma exportação só. Filtre um pedaço da carteira para levar o resto.`,
+          description: `O arquivo saiu com ${plural(clients.length, "cliente", "clientes")} — o recorte é grande demais para uma exportação só. Filtre um pedaço da carteira para levar o resto.`,
         });
       }
     } catch {

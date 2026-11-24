@@ -1,4 +1,3 @@
-import { Grid } from "@/components/Grid";
 import { Card } from "@/components/Card";
 import { useMemo } from "react";
 import { CrossOfficeStop, VisitScheduleDay } from "../../interface";
@@ -47,30 +46,27 @@ export function RoutinesSummary({ days, otherOfficeStops = [] }: Props) {
   }, [days, otherOfficeStops]);
 
   return (
-    <Grid.Root cols={{ base: 2, tablet: 4 }} gap={8}>
+    <Card.Kpi.Group>
       <Card.Kpi title="Visitas presenciais marcadas nesta semana, em todos os seus escritórios.">
         <Card.Kpi.Label>Visitas</Card.Kpi.Label>
-        <Card.Kpi.Value size="sm">{stats.visits}</Card.Kpi.Value>
+        <Card.Kpi.Value>{stats.visits}</Card.Kpi.Value>
       </Card.Kpi>
       <Card.Kpi title="Ligações e mensagens marcadas nesta semana.">
         <Card.Kpi.Label>Contatos</Card.Kpi.Label>
-        <Card.Kpi.Value size="sm">{stats.contacts}</Card.Kpi.Value>
+        <Card.Kpi.Value>{stats.contacts}</Card.Kpi.Value>
       </Card.Kpi>
       <Card.Kpi
         title={`${stats.completionRate}% do que foi marcado já está feito.`}
       >
         <Card.Kpi.Label>Feitas</Card.Kpi.Label>
-        <Card.Kpi.Value size="sm">{`${stats.completed}/${stats.total}`}</Card.Kpi.Value>
+        <Card.Kpi.Value>{`${stats.completed}/${stats.total}`}</Card.Kpi.Value>
       </Card.Kpi>
       <Card.Kpi title="Visitas em que o cliente não foi encontrado.">
         <Card.Kpi.Label>Ausências</Card.Kpi.Label>
-        <Card.Kpi.Value
-          size="sm"
-          status={stats.absent > 0 ? "urgente" : "neutral"}
-        >
+        <Card.Kpi.Value status={stats.absent > 0 ? "urgente" : "neutral"}>
           {stats.absent}
         </Card.Kpi.Value>
       </Card.Kpi>
-    </Grid.Root>
+    </Card.Kpi.Group>
   );
 }

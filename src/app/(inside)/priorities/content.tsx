@@ -1,6 +1,7 @@
 "use client";
 
 import { Button } from "@/components/Button";
+import { formatTime } from "@/utils/format/date";
 import { EmptyState } from "@/components/EmptyState";
 import { Grid } from "@/components/Grid";
 import { QueryError } from "@/components/QueryError";
@@ -33,10 +34,7 @@ export default function PendingContent(props: PendingContentProps) {
   // A hora da leitura, e não a data: a tela é do dia, e o que a pessoa quer
   // saber é se os números já consideram o pedido que ela acabou de faturar.
   const readAt = pending.summary?.generatedAt
-    ? new Date(pending.summary.generatedAt).toLocaleTimeString("pt-BR", {
-        hour: "2-digit",
-        minute: "2-digit",
-      })
+    ? formatTime(pending.summary.generatedAt)
     : null;
 
   return (
@@ -58,7 +56,7 @@ export default function PendingContent(props: PendingContentProps) {
           {pending.cards.length === 0 ? (
             <EmptyState.Root>
               <EmptyState.Icon>
-                <CheckCircle2 size={32} />
+                <CheckCircle2 />
               </EmptyState.Icon>
               <EmptyState.Title>
                 {filtered ? "Nenhuma pendência neste filtro" : "Nada pendente"}

@@ -92,7 +92,7 @@ export function SetupStepCard({
   if (collapsed) {
     return (
       <Card.Root>
-        <Card.Body className="tablet:flex-row tablet:items-center flex flex-col gap-12">
+        <Card.Body className="tablet:flex-row tablet:items-center">
           <div className="flex min-w-0 flex-1 flex-col gap-3">
             <div className="flex flex-wrap items-center gap-8">
               <Title variant="eyebrow" color="muted">
@@ -126,7 +126,7 @@ export function SetupStepCard({
 
   return (
     <Card.Root>
-      <Card.Body className="flex flex-col gap-16">
+      <Card.Body>
         <div className="tablet:flex-row tablet:items-center flex flex-col gap-12">
           {/* Ícone e texto lado a lado também no celular: empilhado, o ícone
               ocupava uma linha sozinho no alto de cada card (crítica de

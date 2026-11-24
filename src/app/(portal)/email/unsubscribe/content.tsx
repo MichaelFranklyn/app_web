@@ -25,7 +25,7 @@ export function UnsubscribeContent({ token, kind, copy }: Props) {
 
   if (state.status === "success") {
     return (
-      <div className="flex flex-col gap-[8px]">
+      <div className="flex flex-col gap-8">
         <Alert.Root variant="success">
           <Alert.Description>{state.message}</Alert.Description>
         </Alert.Root>
@@ -39,11 +39,11 @@ export function UnsubscribeContent({ token, kind, copy }: Props) {
   }
 
   return (
-    <form action={formAction} className="flex flex-col gap-[16px]">
+    <form action={formAction} className="flex flex-col gap-16">
       <input type="hidden" name="token" value={token} />
       <input type="hidden" name="kind" value={kind} />
 
-      <div className="flex flex-col gap-[8px]">
+      <div className="flex flex-col gap-8">
         <Title variant="body-md">{copy.whatStops}</Title>
         <Title variant="body-sm" color="muted">
           {copy.whatKeeps}

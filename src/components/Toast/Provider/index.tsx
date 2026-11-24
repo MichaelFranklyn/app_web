@@ -7,6 +7,7 @@ import { AlertCircle, CheckCircle2, Info, X, XCircle } from "lucide-react";
 import { createContext, ReactNode, useCallback, useRef, useState } from "react";
 import { ToastContextData, ToastProps } from "./interface";
 import { toastStyles } from "./style";
+import { ICON_SIZE } from "@/components/Icon";
 
 // Aviso é a cor de ALERTA, não o âmbar (âmbar é só interação). A cor vai no
 // círculo do ícone (currentColor) e na faixa lateral do aviso.
@@ -95,7 +96,7 @@ export const ToastProvider = ({ children }: { children: ReactNode }) => {
               onMouseLeave={() => resume(t)}
             >
               <span className={cn(toastStyles.icon, tone)}>
-                <Icon size={16} aria-hidden />
+                <Icon size={ICON_SIZE.md} aria-hidden />
               </span>
 
               <div className={toastStyles.content}>

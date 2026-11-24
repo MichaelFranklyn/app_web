@@ -42,9 +42,7 @@ export function OrderDetailsCard({
   return (
     <Card.Root>
       <Card.Header>
-        <Card.Header.Title size="sm" weight="bold">
-          Dados do pedido
-        </Card.Header.Title>
+        <Card.Header.Title>Dados do pedido</Card.Header.Title>
         <Card.Header.Description>
           Quem vende, para quem e em que condições. Os itens abaixo são
           liberados quando todos os campos com * estiverem preenchidos.

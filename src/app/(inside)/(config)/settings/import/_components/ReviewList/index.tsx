@@ -19,7 +19,7 @@ export function ReviewList({ title, hint, items, limit = 10 }: Props) {
   const hidden = items.length - limit;
   return (
     <Card.Root inset tone="transparent">
-      <Card.Body padding="sm" className="gap-6">
+      <Card.Body padding="sm">
         <Title variant="body-sm" weight="semibold">
           {title}
         </Title>

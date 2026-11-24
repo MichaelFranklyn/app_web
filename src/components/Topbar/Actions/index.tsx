@@ -8,7 +8,7 @@ export const TopbarActions = React.forwardRef<
 >(({ className, ...props }, ref) => (
   <div
     ref={ref}
-    className={cn("flex items-center gap-[10px]", className)}
+    className={cn("flex items-center gap-10", className)}
     {...props}
   />
 ));

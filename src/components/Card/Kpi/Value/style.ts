@@ -37,7 +37,7 @@ export const kpiValueStyle = cva(
         // seria cortado pelo `overflow-hidden` do cartão. `anywhere` é a rede
         // para o valor que nem a 16px cabe — quebra em vez de sumir.
         md: "text-[length:clamp(18px,13cqi,34px)] [overflow-wrap:anywhere]",
-        sm: "text-[16px]",
+        sm: "text-body-lg",
       },
     },
     defaultVariants: { status: "neutral", size: "md" },

@@ -8,6 +8,7 @@ import { Topbar } from "@/components/Topbar";
 import { logout } from "@/utils/auth/logout";
 import { LogOut, ShieldCheck } from "lucide-react";
 import { usePlatformShell } from "./usePlatformShell";
+import { ICON_SIZE } from "@/components/Icon";
 
 /**
  * Casca do console da plataforma.
@@ -38,8 +39,8 @@ export function PlatformShell({ children }: { children: React.ReactNode }) {
 
       <AppFrame.Sidebar drawerOpen={drawerOpen}>
         <Sidebar.Brand>
-          <div className="flex items-center gap-[8px]">
-            <ShieldCheck size={20} className="stroke-(--purple)" />
+          <div className="flex items-center gap-8">
+            <ShieldCheck size={ICON_SIZE.lg} className="stroke-(--purple)" />
             <Title variant="body-md" weight="semibold">
               Plataforma
             </Title>

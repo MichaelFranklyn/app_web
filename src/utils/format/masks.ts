@@ -79,6 +79,47 @@ export const formatNumber = (value: number): string => {
   return new Intl.NumberFormat("pt-BR").format(value);
 };
 
+/**
+ * Quantidade com as casas só quando existem: "12" (não "12,00"), "1,5", "0,25".
+ * O Decimal do backend chega como "12.0000"; aceita string e devolve o texto
+ * original quando ele não é número.
+ */
+export const formatQuantity = (
+  value: number | string,
+  maxDecimals = 2
+): string => {
+  const n = Number(value);
+  if (!Number.isFinite(n)) return String(value);
+  return n.toLocaleString("pt-BR", { maximumFractionDigits: maxDecimals });
+};
+
+/**
+ * Número com casas FIXAS ("3,4", "1,0") — média ou razão, onde a casa decimal
+ * faz parte da leitura e não pode sumir quando é zero. Vazio vira "—".
+ */
+export const formatDecimal = (
+  value: number | null | undefined,
+  decimals = 1
+): string =>
+  value === null || value === undefined || !Number.isFinite(value)
+    ? "—"
+    : value.toLocaleString("pt-BR", {
+        minimumFractionDigits: decimals,
+        maximumFractionDigits: decimals,
+      });
+
+/**
+ * Razão "quantas vezes" com uma casa: "1,8×" (o cliente passou 1,8 vez do
+ * próprio ciclo, a rotina vendeu 2,3× a carteira). Vazio vira "—".
+ */
+export const formatRatio = (
+  value: number | null | undefined,
+  decimals = 1
+): string => {
+  const text = formatDecimal(value, decimals);
+  return text === "—" ? text : `${text}×`;
+};
+
 // Formata um valor com 2 casas decimais, sem símbolo de moeda (ex.: "1.234,56").
 // Usado em tabelas que prefixam o "R$" no JSX.
 export const formatAmount = (value: number | string): string =>

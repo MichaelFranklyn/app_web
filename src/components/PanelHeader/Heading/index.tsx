@@ -32,7 +32,7 @@ export function Heading({
     // `items-center`, quando o título quebrava em duas no celular o ícone
     // flutuava no meio das duas (crítica de configurações, 23/11/2026).
     <div className={cn("flex min-w-0 items-start gap-10", className)}>
-      <span className="flex h-[1lh] shrink-0 items-center text-[25px] leading-relaxed">
+      <span className="text-heading-lg flex h-[1lh] shrink-0 items-center leading-relaxed">
         <IconTile aria-hidden shape="square" size="sm" color="amber">
           <Icon />
         </IconTile>
