@@ -7,6 +7,62 @@ export const priceKey = (productId: string, tierId: string) =>
  */
 export const IPI_RULE_NAME = "IPI";
 
+interface RankablePriceList {
+  id: string;
+  isActive: boolean;
+  region: string;
+  validFrom: string;
+}
+
+/**
+ * Tabelas vigentes da fábrica, na ordem em que valem para sugerir preço.
+ *
+ * Pode haver mais de uma vigente (uma por região de ICMS, ou duas importadas
+ * como "tabela nova" por engano). A ordem é fixa: a tabela geral (sem região)
+ * primeiro, depois a de vigência mais recente e, no empate, o id. Assim o
+ * mesmo pedido sugere sempre o mesmo preço, não o da tabela que o banco
+ * devolveu primeiro.
+ */
+export const rankActivePriceLists = (lists: RankablePriceList[]): string[] =>
+  lists
+    .filter((list) => list.isActive)
+    .sort(
+      (a, b) =>
+        Number(a.region !== "") - Number(b.region !== "") ||
+        b.validFrom.localeCompare(a.validFrom) ||
+        a.id.localeCompare(b.id)
+    )
+    .map((list) => list.id);
+
+/**
+ * Um preço por produto+nível: o da tabela mais bem colocada em `rankedListIds`.
+ * Um produto que só existe numa tabela regional ainda ganha preço.
+ */
+export const pickPriceItems = <
+  T extends {
+    priceListId: string;
+    product: { id: string } | null;
+    tier: { id: string } | null;
+  },
+>(
+  items: T[],
+  rankedListIds: string[]
+): T[] => {
+  const rank = new Map(rankedListIds.map((id, index) => [id, index]));
+  const best = new Map<string, T>();
+  items.forEach((item) => {
+    if (!item.product || !item.tier || !rank.has(item.priceListId)) return;
+    const key = priceKey(item.product.id, item.tier.id);
+    const current = best.get(key);
+    if (
+      !current ||
+      rank.get(item.priceListId)! < rank.get(current.priceListId)!
+    )
+      best.set(key, item);
+  });
+  return [...best.values()];
+};
+
 /**
  * Escolhe o nível comercial de um item recém-selecionado, para que o preço seja
  * sugerido sem o vendedor precisar mexer no nível a cada item.

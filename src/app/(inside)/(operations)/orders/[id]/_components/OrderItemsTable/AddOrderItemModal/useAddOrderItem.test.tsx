@@ -85,7 +85,7 @@ const priceItemsMock = (
       input: {
         first: 1000,
         filters: [
-          { field: "price_list_id", operator: "eq", value: "pl-1" },
+          { field: "price_list_id", operator: "in", values: ["pl-1"] },
           { field: "product_id", operator: "in", values: [id] },
         ],
       },
@@ -179,6 +179,7 @@ const mocks: MockLink.MockedResponse[] = [
                 id: "pl-1",
                 name: "L1",
                 isActive: true,
+                region: "",
                 validFrom: "2026-01-01",
                 validUntil: null,
               },
@@ -201,6 +202,7 @@ const mocks: MockLink.MockedResponse[] = [
       {
         node: {
           id: "pli-1",
+          priceListId: "pl-1",
           // Preço da EMBALAGEM na tabela; com unitPerPack 5, a sugestão do
           // pedido é 32,50 ÷ 5 = 6,50 por unidade.
           unitPrice: "32.5000",

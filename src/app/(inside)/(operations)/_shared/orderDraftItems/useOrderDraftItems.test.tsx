@@ -71,6 +71,7 @@ const priceItem = (
 ) => ({
   node: {
     id,
+    priceListId: "pl-1",
     unitPrice,
     effectiveUnitPrice: unitPrice,
     isPromoActive: false,
@@ -125,7 +126,7 @@ const priceItemsByIdsMock = (ids: string[]): MockLink.MockedResponse => ({
       input: {
         first: 1000,
         filters: [
-          { field: "price_list_id", operator: "eq", value: "pl-1" },
+          { field: "price_list_id", operator: "in", values: ["pl-1"] },
           { field: "product_id", operator: "in", values: ids },
         ],
       },
@@ -251,6 +252,7 @@ const catalogMocks: MockLink.MockedResponse[] = [
                 id: "pl-1",
                 name: "L1",
                 isActive: true,
+                region: "",
                 validFrom: "2026-01-01",
                 validUntil: null,
               },

@@ -25,7 +25,12 @@ import {
   TiersData,
 } from "./interface";
 import { useAsyncSelectOptions } from "@/hooks/useAsyncSelectOptions";
-import { IPI_RULE_NAME, priceKey } from "./utils";
+import {
+  IPI_RULE_NAME,
+  pickPriceItems,
+  priceKey,
+  rankActivePriceLists,
+} from "./utils";
 
 /**
  * Rótulo e miniatura da opção de produto. Vive no módulo porque
@@ -296,7 +301,7 @@ export function useOrderItemCatalog(
     skip: !open || !companyFactoryId,
   });
 
-  // 5) Tabela de preço ativa — usada apenas para SUGERIR o preço.
+  // 5) Tabelas de preço vigentes — usadas apenas para SUGERIR o preço.
   const { data: priceListsData } = useQuery<PriceListsData>(
     ORDER_ITEM_PRICE_LISTS_QUERY,
     {
@@ -319,15 +324,17 @@ export function useOrderItemCatalog(
     }
   );
 
-  const activePriceListId = useMemo(
+  const activePriceListIds = useMemo(
     () =>
-      priceListsData?.factoryPriceLists.edges.find((e) => e.node.isActive)?.node
-        .id ?? null,
+      rankActivePriceLists(
+        priceListsData?.factoryPriceLists.edges.map((e) => e.node) ?? []
+      ),
     [priceListsData]
   );
 
-  // 6) Preços da tabela ativa para os produtos escolhidos — uma linha por nível
-  // de cada produto, não a tabela inteira.
+  // 6) Preços das tabelas vigentes para os produtos escolhidos — uma linha por
+  // nível de cada produto, não a tabela inteira. Com 2+ vigentes, cada
+  // produto+nível fica com o preço da tabela mais bem colocada.
   const { data: priceItemsData } = useQuery<PriceListItemsData>(
     ORDER_ITEM_PRICE_LIST_ITEMS_QUERY,
     {
@@ -337,22 +344,26 @@ export function useOrderItemCatalog(
           filters: [
             {
               field: "price_list_id",
-              operator: "eq",
-              value: activePriceListId,
+              operator: "in",
+              values: activePriceListIds,
             },
             { field: "product_id", operator: "in", values: selectedIds },
           ],
         },
       },
-      skip: !open || !activePriceListId || !hasSelection,
+      skip: !open || activePriceListIds.length === 0 || !hasSelection,
       // Mesmo motivo da tabela acima: o preço é editado noutra tela.
       fetchPolicy: "cache-and-network",
     }
   );
 
   const priceItems = useMemo(
-    () => priceItemsData?.priceListItems.edges.map((e) => e.node) ?? [],
-    [priceItemsData]
+    () =>
+      pickPriceItems(
+        priceItemsData?.priceListItems.edges.map((e) => e.node) ?? [],
+        activePriceListIds
+      ),
+    [priceItemsData, activePriceListIds]
   );
 
   const tierOptions = useMemo<SelectOption[]>(

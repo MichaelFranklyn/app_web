@@ -41,6 +41,7 @@ const catalogHandlers = (): Record<string, Handler> => ({
           node: {
             id: "pl-1",
             name: "Tabela Ativa",
+            region: "",
             isActive: true,
             validFrom: "2026-01-01",
             validUntil: null,
@@ -96,6 +97,7 @@ const catalogHandlers = (): Record<string, Handler> => ({
         {
           node: {
             id: "pli-1",
+            priceListId: "pl-1",
             unitPrice: "100.00",
             effectiveUnitPrice: "100.00",
             isPromoActive: false,

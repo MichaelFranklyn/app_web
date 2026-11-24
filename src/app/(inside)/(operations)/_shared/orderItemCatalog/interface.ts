@@ -23,6 +23,7 @@ export interface PriceListsData {
         id: string;
         name: string;
         isActive: boolean;
+        region: string;
         validFrom: string;
         validUntil: string | null;
       };
@@ -86,6 +87,7 @@ export interface TiersData {
 
 export interface PriceListItemNode {
   id: string;
+  priceListId: string;
   unitPrice: string;
   /** Preço que vale hoje: promocional se a promoção está ativa, senão o de tabela. */
   effectiveUnitPrice: string;

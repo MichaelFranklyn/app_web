@@ -30,6 +30,7 @@ export const ORDER_ITEM_PRICE_LISTS_QUERY = gql`
           id
           name
           isActive
+          region
           validFrom
           validUntil
         }
@@ -145,6 +146,7 @@ export const ORDER_ITEM_PRICE_LIST_ITEMS_QUERY = gql`
       edges {
         node {
           id
+          priceListId
           unitPrice
           effectiveUnitPrice
           isPromoActive
