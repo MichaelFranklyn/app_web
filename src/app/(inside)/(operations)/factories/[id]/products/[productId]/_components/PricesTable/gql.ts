@@ -18,6 +18,11 @@ export const PRICE_LIST_ITEMS_QUERY = gql`
           tier {
             id
             name
+            adjustmentPercent
+            baseTier {
+              id
+              name
+            }
           }
         }
       }
@@ -48,6 +53,7 @@ export const PRICE_TIERS_OPTIONS_QUERY = gql`
         node {
           id
           name
+          baseTierId
         }
       }
       totalCount

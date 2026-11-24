@@ -1,3 +1,5 @@
+import { DerivedTierFields } from "../../../../_shared/derivedTier";
+
 export interface PriceList {
   id: string;
   name: string;
@@ -11,7 +13,8 @@ export interface PriceItem {
   unitPrice: string;
   unitPriceWithImpost: string;
   priceList: PriceList | null;
-  tier: { id: string; name: string } | null;
+  /** Com `baseTier`, é calculado: preço vem do base, sem edição à mão. */
+  tier: ({ id: string; name: string } & DerivedTierFields) | null;
 }
 
 export interface PriceItemsData {

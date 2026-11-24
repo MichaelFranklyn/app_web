@@ -25,6 +25,7 @@ export const TIERS_OPTIONS_QUERY = gql`
         node {
           id
           name
+          baseTierId
         }
       }
       # O total é o que denuncia truncamento (ver useCompleteList).

@@ -6508,12 +6508,19 @@ extend type Mutation {
 input CreatePriceTierInput {
   companyFactoryId: UUID!
   name: String!
+  """Nível calculado: os preços vêm deste nível com `adjustmentPercent` aplicado."""
+  baseTierId: UUID = null
+  """Negativo = desconto, positivo = acréscimo. Obrigatório com `baseTierId`."""
+  adjustmentPercent: Decimal = null
 }
 
 type PriceTierType {
   id: UUID!
   companyFactoryId: UUID!
   name: String!
+  baseTierId: UUID
+  adjustmentPercent: Decimal
+  baseTier: PriceTierType
   createdAt: DateTime!
   companyFactory: CompanyFactoryType
 }
@@ -6538,6 +6545,10 @@ type PriceTierTypeEdge {
 
 input UpdatePriceTierInput {
   name: String = null
+  baseTierId: UUID = null
+  adjustmentPercent: Decimal = null
+  """Volta a ter preço próprio (mantém os preços já gravados)."""
+  clearBaseTier: Boolean = false
 }
 
 extend type Query {
@@ -7478,20 +7489,47 @@ type SellerClientFactoryCityListResponse {
   data: [SellerClientFactoryCity!]!
 }
 
+"""Como agrupar os clientes para pôr o nível em massa."""
+enum ClientGroupBy {
+  CITY
+  SEGMENT
+  NETWORK
+}
+
+"""Quantos clientes desta fábrica há num segmento ou numa rede."""
+type SellerClientFactoryGroup {
+  """Nulo = clientes sem segmento/rede no cadastro."""
+  id: UUID
+  name: String!
+  clients: Int!
+}
+
+type SellerClientFactoryGroupListResponse {
+  status: Boolean!
+  code: Int!
+  message: String!
+  data: [SellerClientFactoryGroup!]!
+}
+
 input ClientCityInput {
   city: String!
   state: String!
 }
 
 """
-Põe um nível comercial nos clientes de uma fábrica pela cidade. `exceptCities`
-inverte: todos os clientes MENOS os dessas cidades ("o interior é tudo que não é
-a capital").
+Põe um nível comercial nos clientes de uma fábrica pela cidade (`cities`), pelo
+segmento ou pela rede (`groupIds`; `includeUngrouped` pega quem não tem).
+`exceptSelected` inverte: todos os clientes MENOS os escolhidos ("o interior é
+tudo que não é a capital"). `exceptCities` é o nome antigo de `exceptSelected`.
 """
 input SetSellerClientFactoriesPriceTierInput {
   factoryId: UUID!
   priceTierId: UUID!
-  cities: [ClientCityInput!]!
+  by: ClientGroupBy = CITY
+  cities: [ClientCityInput!] = []
+  groupIds: [UUID!] = []
+  includeUngrouped: Boolean = false
+  exceptSelected: Boolean = false
   exceptCities: Boolean = false
 }
 
@@ -7517,6 +7555,8 @@ extend type Query {
   clientFactoryAssignment(clientId: UUID!, factoryId: UUID!): SellerClientFactoryTypeDataResponse!
   """Cidades dos clientes desta fábrica, com quantos clientes há em cada uma."""
   sellerClientFactoryCities(factoryId: UUID!): SellerClientFactoryCityListResponse!
+  """Segmentos (ou redes) dos clientes desta fábrica, com quantos clientes há em cada um."""
+  sellerClientFactoryGroups(factoryId: UUID!, by: ClientGroupBy!): SellerClientFactoryGroupListResponse!
 }
 
 """

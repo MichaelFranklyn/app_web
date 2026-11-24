@@ -28,6 +28,10 @@ export function ItemRowActions({
   const router = useRouter();
   const [editOpen, setEditOpen] = useState(false);
   const [deleteOpen, setDeleteOpen] = useState(false);
+  // Preço de nível calculado vem do base: o servidor recusa mexer à mão.
+  const isDerived = !!item.tier?.baseTier;
+
+  if (isDerived && !item.product) return null;
 
   return (
     <>
@@ -45,17 +49,21 @@ export function ItemRowActions({
                 },
               ]
             : []),
-          {
-            label: "Editar",
-            icon: Pencil,
-            onClick: () => setEditOpen(true),
-          },
-          {
-            label: "Remover",
-            icon: Trash2,
-            danger: true,
-            onClick: () => setDeleteOpen(true),
-          },
+          ...(isDerived
+            ? []
+            : [
+                {
+                  label: "Editar",
+                  icon: Pencil,
+                  onClick: () => setEditOpen(true),
+                },
+                {
+                  label: "Remover",
+                  icon: Trash2,
+                  danger: true,
+                  onClick: () => setDeleteOpen(true),
+                },
+              ]),
         ]}
       />
 

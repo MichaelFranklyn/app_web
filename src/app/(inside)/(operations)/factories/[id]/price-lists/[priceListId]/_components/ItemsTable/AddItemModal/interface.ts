@@ -15,7 +15,7 @@ export interface ProductsData {
 
 export interface TiersData {
   priceTiers: {
-    edges: { node: { id: string; name: string } }[];
+    edges: { node: { id: string; name: string; baseTierId: string | null } }[];
     totalCount: number;
   };
 }

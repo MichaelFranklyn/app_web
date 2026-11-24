@@ -15,7 +15,23 @@ export const FACTORY_CLIENT_CITIES_QUERY = gql`
   }
 `;
 
-export const SET_TIER_BY_CITY_MUTATION = gql`
+// Segmentos (ou redes) dos clientes vinculados, com a contagem; `id` nulo é o
+// grupo de quem não tem segmento (ou rede).
+export const FACTORY_CLIENT_GROUPS_QUERY = gql`
+  query SellerClientFactoryGroups($factoryId: UUID!, $by: ClientGroupBy!) {
+    sellerClientFactoryGroups(factoryId: $factoryId, by: $by) {
+      status
+      message
+      data {
+        id
+        name
+        clients
+      }
+    }
+  }
+`;
+
+export const SET_TIER_IN_BULK_MUTATION = gql`
   mutation SetSellerClientFactoriesPriceTier(
     $input: SetSellerClientFactoriesPriceTierInput!
   ) {
@@ -29,9 +45,17 @@ export const SET_TIER_BY_CITY_MUTATION = gql`
   }
 `;
 
+export type ClientGroupBy = "CITY" | "SEGMENT" | "NETWORK";
+
 export interface ClientCity {
   city: string;
   state: string;
+  clients: number;
+}
+
+export interface ClientGroup {
+  id: string | null;
+  name: string;
   clients: number;
 }
 
@@ -43,7 +67,15 @@ export interface ClientCitiesData {
   };
 }
 
-export interface SetTierByCityData {
+export interface ClientGroupsData {
+  sellerClientFactoryGroups: {
+    status: boolean;
+    message: string | null;
+    data: ClientGroup[];
+  };
+}
+
+export interface SetTierInBulkData {
   setSellerClientFactoriesPriceTier: {
     status: boolean;
     message: string | null;

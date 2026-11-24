@@ -16,7 +16,12 @@ const item = (id: string, listId: string | null): PriceItem => ({
         isActive: true,
       }
     : null,
-  tier: { id: "tier-1", name: "Platina" },
+  tier: {
+    id: "tier-1",
+    name: "Platina",
+    adjustmentPercent: null,
+    baseTier: null,
+  },
 });
 
 describe("groupByPriceList", () => {
