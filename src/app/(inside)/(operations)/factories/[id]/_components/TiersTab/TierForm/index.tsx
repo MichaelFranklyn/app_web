@@ -72,6 +72,7 @@ export function TierForm({
   return (
     <div className="flex flex-col gap-16">
       <Input.Text
+        name="name"
         label="Nome do nível"
         required
         placeholder="Ex: Varejo, Atacado, Gold, Diamante"
