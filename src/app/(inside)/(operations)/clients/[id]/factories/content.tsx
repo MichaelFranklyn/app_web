@@ -38,7 +38,7 @@ export default function FactoriesContent() {
     return (
       <Table.Root>
         <div className="flex flex-col gap-8 p-24">
-          <Loading.Skeleton className="h-[16px] w-1/4" />
+          <Loading.Skeleton text="heading-sm" className="w-1/4" />
           <Loading.Skeleton className="h-[40px] w-full" />
           <Loading.Skeleton className="h-[40px] w-full" />
         </div>

@@ -24,10 +24,15 @@ const tabCounts = (summary: PortalSentOrdersSummary | null) =>
       }
     : null;
 
-const TABS: { value: SentOrdersTab; label: string }[] = [
-  { value: "todos", label: "Todos" },
-  { value: "pedidos", label: "Pedidos feitos" },
-  { value: "orcamentos", label: "Orçamentos" },
+/**
+ * `short`: o rótulo no celular, sem a contagem. Com "Pedidos feitos (7)" a
+ * faixa pedia 364px em 294 e "Orçamentos" saía da tela (auditoria do portal,
+ * 24/11/2026). As contagens já estão no placar logo acima.
+ */
+const TABS: { value: SentOrdersTab; label: string; short: string }[] = [
+  { value: "todos", label: "Todos", short: "Todos" },
+  { value: "pedidos", label: "Pedidos feitos", short: "Pedidos" },
+  { value: "orcamentos", label: "Orçamentos", short: "Orçamentos" },
 ];
 
 /**
@@ -55,9 +60,12 @@ export function SentOrdersFilter({
         )
       }
     >
-      {TABS.map(({ value, label }) => (
+      {TABS.map(({ value, label, short }) => (
         <Tabs.FilterItem key={value} value={value}>
-          {counts ? `${label} (${counts[value]})` : label}
+          <span className="tablet:hidden">{short}</span>
+          <span className="max-tablet:hidden">
+            {counts ? `${label} (${counts[value]})` : label}
+          </span>
         </Tabs.FilterItem>
       ))}
     </Tabs.Filter>

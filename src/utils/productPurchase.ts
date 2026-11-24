@@ -1,3 +1,5 @@
+import { formatQuantity } from "@/utils/format/masks";
+
 /**
  * Situação de um produto na cesta do cliente — a régua de `clientProductAnalysis`
  * (ficha do cliente) e do roteiro da visita. Os dois lugares falam a mesma
@@ -50,9 +52,5 @@ export const daysAgoLabel = (days: number): string => {
 
 /** Quantidade em unidades, sem casas quando é inteira (o caso comum). */
 export const unitsLabel = (value: string | number): string => {
-  const num = Number(value);
-  if (!Number.isFinite(num)) return "—";
-  return Number.isInteger(num)
-    ? String(num)
-    : num.toLocaleString("pt-BR", { maximumFractionDigits: 2 });
+  return Number.isFinite(Number(value)) ? formatQuantity(value) : "—";
 };

@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { plural } from "./plural";
+import { plural, pluralWord } from "./plural";
 
 describe("plural", () => {
   it("usa o singular só para 1", () => {
@@ -12,5 +12,13 @@ describe("plural", () => {
 
   it("formata o número no padrão brasileiro", () => {
     expect(plural(1234, "linha", "linhas")).toBe("1.234 linhas");
+  });
+});
+
+describe("pluralWord", () => {
+  it("devolve só a palavra, no singular só para 1", () => {
+    expect(pluralWord(1, "vai", "vão")).toBe("vai");
+    expect(pluralWord(0, "vai", "vão")).toBe("vão");
+    expect(pluralWord(5, "ficou", "ficaram")).toBe("ficaram");
   });
 });

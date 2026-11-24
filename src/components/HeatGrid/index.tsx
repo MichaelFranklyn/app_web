@@ -8,7 +8,7 @@ import React from "react";
 export type HeatLevel = "strong" | "good" | "weak" | "bad" | "empty";
 
 const LEVEL: Record<HeatLevel, string> = {
-  strong: "bg-(--color-status-success)/85 text-white",
+  strong: "bg-(--color-status-success)/85 text-(--color-on-action)",
   good: "bg-(--color-status-success)/45",
   weak: "bg-(--amber)/40",
   bad: "bg-(--color-status-danger)/35",
@@ -92,7 +92,7 @@ interface HeatCellProps extends React.TdHTMLAttributes<HTMLTableCellElement> {
 const HeatCell = ({ level, partial, className, ...props }: HeatCellProps) => (
   <td
     className={cn(
-      "rounded-[4px] px-8 py-[6px] text-center",
+      "rounded-[4px] px-8 py-6 text-center",
       LEVEL[level],
       // Hachura branca sobre a cor do nível, não `opacity`: o número segue
       // legível e a célula ainda se lê "incompleta".
@@ -112,7 +112,7 @@ interface TileProps extends React.HTMLAttributes<HTMLDivElement> {
 const Tile = ({ level, className, ...props }: TileProps) => (
   <div
     className={cn(
-      "flex min-w-[76px] flex-col gap-[2px] rounded-[6px] px-12 py-8",
+      "flex min-w-[76px] flex-col gap-2 rounded-[6px] px-12 py-8",
       LEVEL[level],
       className
     )}

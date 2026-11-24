@@ -12,8 +12,8 @@ interface SentOrderBadgeProps {
 export function SentOrderBadge({ order, size = "sm" }: SentOrderBadgeProps) {
   const stage = sentOrderStage(order);
   return (
-    <Badge color={sentOrderTone(stage)} size={size}>
+    <Badge.Root color={sentOrderTone(stage)} size={size}>
       <Badge.Text>{sentOrderLabel(stage)}</Badge.Text>
-    </Badge>
+    </Badge.Root>
   );
 }

@@ -10,6 +10,7 @@ import { Table } from "@/components/Table";
 import { priorityMeta } from "@/utils/clientPriority";
 import { clientName, factoryName } from "@/utils/company";
 import { formatDateDMY } from "@/utils/format/masks";
+import { plural } from "@/utils/format/plural";
 import { Users } from "lucide-react";
 
 import { AddWalletClientModal } from "./AddWalletClientModal";
@@ -49,7 +50,10 @@ export function ClientsSection({ sellerId }: Props) {
         </Table.CardHead.Actions>
       </Table.CardHead>
 
-      <Table.Table>
+      {/* Cartões abaixo do desktop, como a lista de clientes: no celular só a
+          coluna "Cliente" cabia e o resto da linha ficava fora da tela
+          (crítica de configurações, 23/11/2026). */}
+      <Table.Table cards>
         <Table.Header>
           <Table.Row>
             <Table.Head sortKey="client_name" title={WALLET_COLUMN_HELP.client}>
@@ -88,7 +92,7 @@ export function ClientsSection({ sellerId }: Props) {
               <Table.Cell colSpan={5}>
                 <EmptyState.Root flat>
                   <EmptyState.Icon>
-                    <Users size={32} />
+                    <Users />
                   </EmptyState.Icon>
                   {/* "Não tem cliente" e "o filtro não achou" pedem saídas
                       diferentes: uma manda cadastrar, a outra manda afrouxar. */}
@@ -110,17 +114,17 @@ export function ClientsSection({ sellerId }: Props) {
               const priority = priorityMeta(node.priority);
               return (
                 <Table.Row key={node.id}>
-                  <Table.Cell>
+                  <Table.Cell card="title">
                     <Table.CellText variant="strong">
                       {clientName(node.client)}
                     </Table.CellText>
                   </Table.Cell>
-                  <Table.Cell>
+                  <Table.Cell label="Fábrica">
                     <Table.CellText variant="dim">
                       {factoryName(node.factory)}
                     </Table.CellText>
                   </Table.Cell>
-                  <Table.Cell>
+                  <Table.Cell card="status" cardHidden={!node.priority}>
                     {/* Vínculo sem prioridade é o caso comum (o motor decide
                         pelo comportamento de compra): um travessão solto lê
                         melhor do que uma etiqueta vazia repetida linha a linha. */}
@@ -132,14 +136,14 @@ export function ClientsSection({ sellerId }: Props) {
                       <Table.CellText variant="dim">—</Table.CellText>
                     )}
                   </Table.Cell>
-                  <Table.Cell>
+                  <Table.Cell label="Frequência de visita">
                     <Table.CellText variant="dim">
                       {node.visitFrequencyDays
                         ? `A cada ${node.visitFrequencyDays} dias`
                         : "—"}
                     </Table.CellText>
                   </Table.Cell>
-                  <Table.Cell>
+                  <Table.Cell label="Última visita">
                     <Table.CellText variant="dim">
                       {formatDateDMY(node.lastVisitDate ?? undefined)}
                     </Table.CellText>
@@ -157,7 +161,7 @@ export function ClientsSection({ sellerId }: Props) {
             <Loading.Spinner size="sm" className="mr-6 inline-block" />
           )}
           {table.totalItems > 0
-            ? `${table.totalItems} cliente(s) · página ${table.currentPage} de ${table.totalPages}`
+            ? `${plural(table.totalItems, "cliente", "clientes")} · página ${table.currentPage} de ${table.totalPages}`
             : "Nenhum cliente encontrado"}
         </Table.Footer.Info>
 

@@ -29,7 +29,7 @@ export function CatalogSectionHead({
 }: Props) {
   return (
     <Table.CardHead>
-      <Table.CardHead.Title className="inline-flex items-center gap-6">
+      <Table.CardHead.Title>
         {title}
         <HelpTooltip label={helpLabel} content={helpContent} />
       </Table.CardHead.Title>

@@ -32,15 +32,13 @@ export function AnalyticsStoryIndex({ canSelectSeller }: Props) {
   return (
     <Card.Root data-tour="analytics-story">
       <Card.Header>
-        <Card.Header.Title size="sm" weight="semibold">
-          O que você vai ver, nesta ordem
-        </Card.Header.Title>
+        <Card.Header.Title>O que você vai ver, nesta ordem</Card.Header.Title>
         <Card.Header.Description>
           Cada parte responde uma pergunta e prepara a seguinte. Clique para ir
           direto a uma delas.
         </Card.Header.Description>
       </Card.Header>
-      <Card.Body className="flex flex-col gap-8">
+      <Card.Body>
         <ol
           id="analytics-story-list"
           className={cn(

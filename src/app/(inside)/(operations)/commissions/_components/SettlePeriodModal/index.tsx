@@ -11,6 +11,7 @@ import { toIsoDate } from "@/utils/format/date";
 import { formatMoney } from "@/utils/format/masks";
 import { useCompleteList } from "@/hooks/useCompleteList";
 import { factoryName } from "@/utils/company";
+import { plural, pluralWord } from "@/utils/format/plural";
 import { useLazyQuery, useMutation } from "@apollo/client/react";
 import { CheckCheck, Info, Users } from "lucide-react";
 import { useEffect, useMemo, useState } from "react";
@@ -272,7 +273,7 @@ export function SettlePeriodModal({
                     {preview.loading
                       ? "Contando os boletos do período…"
                       : count > 0
-                        ? `${count} boleto(s) ${escopo} vencem neste período, somando ${formatMoney(result?.amount ?? 0)}.`
+                        ? `${plural(count, "boleto", "boletos")} ${escopo} ${pluralWord(count, "vence", "vencem")} neste período, somando ${formatMoney(result?.amount ?? 0)}.`
                         : `Nenhum boleto em aberto ${escopo} vence neste período.`}
                   </Alert.Description>
                 </Alert.Content>
@@ -284,10 +285,14 @@ export function SettlePeriodModal({
                 <Alert.Icon icon={Users} />
                 <Alert.Content>
                   <Alert.Description>
-                    Outros {foraDoRecorte} boleto(s) vencem neste período na
-                    carteira dos demais vendedores e <Emphasis>não</Emphasis>{" "}
-                    entram nesta baixa. Marque “Aplicar a todos os vendedores”
-                    para incluí-los.
+                    {foraDoRecorte === 1
+                      ? "Outro boleto vence"
+                      : `Outros ${foraDoRecorte} boletos vencem`}{" "}
+                    neste período na carteira dos demais vendedores e{" "}
+                    <Emphasis>não</Emphasis>{" "}
+                    {pluralWord(foraDoRecorte, "entra", "entram")} nesta baixa.
+                    Marque “Aplicar a todos os vendedores” para{" "}
+                    {pluralWord(foraDoRecorte, "incluí-lo", "incluí-los")}.
                   </Alert.Description>
                 </Alert.Content>
               </Alert.Root>
@@ -324,7 +329,9 @@ export function SettlePeriodModal({
             onClick={handleConfirm}
           >
             <Button.Title>
-              {count > 0 ? `Dar baixa em ${count} boleto(s)` : "Dar baixa"}
+              {count > 0
+                ? `Dar baixa em ${plural(count, "boleto", "boletos")}`
+                : "Dar baixa"}
             </Button.Title>
           </Button.Root>
         </Modal.Footer>

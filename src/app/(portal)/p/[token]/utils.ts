@@ -1,5 +1,6 @@
 import { formatDate } from "@/utils/format/date";
 import { PortalOrder, PortalOrderStatus, PortalProfile } from "./interface";
+import { formatQuantity } from "@/utils/format/masks";
 
 /**
  * O status como o CLIENTE o entende.
@@ -201,10 +202,7 @@ export function pickedEntries(
 /** "12" em vez de "12.0000": o Decimal do backend chega com as casas todas. */
 export function formatUnits(value: string | null): string {
   if (value === null) return "";
-  const number = Number(value);
-  return Number.isFinite(number)
-    ? number.toLocaleString("pt-BR", { maximumFractionDigits: 3 })
-    : value;
+  return formatQuantity(value, 3);
 }
 
 /**

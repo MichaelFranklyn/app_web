@@ -1,18 +1,22 @@
 "use client";
 
+import { Badge } from "@/components/Badges";
 import { Button } from "@/components/Button";
 import { QueryError } from "@/components/QueryError";
 import { Table } from "@/components/Table";
-import { formatDateDMY } from "@/utils/format/masks";
 import { useQuery } from "@apollo/client/react";
 
+import { MatchOption } from "../../../interface";
 import { ORDER_PDF_IMPORT_BATCHES_QUERY } from "../../gql";
-import { PdfImportBatch, PdfImportBatchesResponse } from "../../interface";
+import { PdfImportBatchesResponse } from "../../interface";
+import { batchBadge, batchCounts, batchOpenedAt } from "../../utils";
 
-const COLUMNS = 4;
+const COLUMNS = 6;
 
 interface Props {
   currentBatchId: string | null;
+  /** Para dar nome ao vendedor do lote (o lote só guarda o id). */
+  sellerOptions: MatchOption[];
   onOpen: (id: string) => void;
   disabled: boolean;
 }
@@ -21,7 +25,12 @@ interface Props {
  * Lotes de PDFs já abertos, mais recentes primeiro: dá para voltar a um lote
  * e terminar de enviar ou importar. Some enquanto não há nenhum.
  */
-export function PdfBatchesCard({ currentBatchId, onOpen, disabled }: Props) {
+export function PdfBatchesCard({
+  currentBatchId,
+  sellerOptions,
+  onOpen,
+  disabled,
+}: Props) {
   const { data, loading, error, refetch } = useQuery<PdfImportBatchesResponse>(
     ORDER_PDF_IMPORT_BATCHES_QUERY,
     { fetchPolicy: "cache-and-network" }
@@ -32,6 +41,11 @@ export function PdfBatchesCard({ currentBatchId, onOpen, disabled }: Props) {
 
   if (!loading && !failed && batches.length === 0) return null;
 
+  const sellerName = (id: string | null) =>
+    id
+      ? (sellerOptions.find((o) => o.id === id)?.label ?? "Vendedor removido")
+      : "O de cada cliente";
+
   return (
     <Table.Root>
       <Table.CardHead>
@@ -41,7 +55,9 @@ export function PdfBatchesCard({ currentBatchId, onOpen, disabled }: Props) {
         <Table.Header>
           <Table.Row>
             <Table.Head>Fábrica</Table.Head>
+            <Table.Head>Situação</Table.Head>
             <Table.Head>Aberto em</Table.Head>
+            <Table.Head>Vendedor</Table.Head>
             <Table.Head>PDFs</Table.Head>
             <Table.Head className="text-right">Ações</Table.Head>
           </Table.Row>
@@ -56,45 +72,60 @@ export function PdfBatchesCard({ currentBatchId, onOpen, disabled }: Props) {
               </Table.Cell>
             </Table.Row>
           ) : (
-            batches.map((batch) => (
-              <Table.Row key={batch.id}>
-                <Table.Cell card="title">
-                  <Table.CellText variant="strong">
-                    {batch.factoryName}
-                  </Table.CellText>
-                </Table.Cell>
-                <Table.Cell label="Aberto em" variant="dim">
-                  {formatDateDMY(batch.createdAt)}
-                </Table.Cell>
-                <Table.Cell label="PDFs" variant="dim" wrap>
-                  {counts(batch)}
-                </Table.Cell>
-                <Table.Cell card="actions" align="right">
-                  {batch.id !== currentBatchId && (
-                    <Button.Root
-                      appearance="outline"
-                      color="neutral"
+            batches.map((batch) => {
+              const badge = batchBadge(batch);
+              const isCurrent = batch.id === currentBatchId;
+              return (
+                <Table.Row key={batch.id}>
+                  <Table.Cell card="title">
+                    <Table.CellText variant="strong">
+                      {batch.factoryName}
+                    </Table.CellText>
+                  </Table.Cell>
+                  <Table.Cell card="status">
+                    <Badge.Root
+                      color={badge.color}
+                      appearance="tinted"
                       size="sm"
-                      disabled={disabled}
-                      onClick={() => onOpen(batch.id)}
                     >
-                      <Button.Title>Abrir</Button.Title>
-                    </Button.Root>
-                  )}
-                </Table.Cell>
-              </Table.Row>
-            ))
+                      <Badge.Text>{badge.label}</Badge.Text>
+                    </Badge.Root>
+                  </Table.Cell>
+                  {/* Com hora e vendedor: dois lotes da mesma fábrica no mesmo
+                      dia eram cartões idênticos (crítica de configurações,
+                      23/11/2026). */}
+                  <Table.Cell label="Aberto em" variant="dim">
+                    {batchOpenedAt(batch.createdAt)}
+                  </Table.Cell>
+                  <Table.Cell label="Vendedor" variant="dim">
+                    {sellerName(batch.sellerId)}
+                  </Table.Cell>
+                  <Table.Cell label="PDFs" variant="dim" wrap>
+                    {batchCounts(batch)}
+                  </Table.Cell>
+                  <Table.Cell card="actions" align="right">
+                    {isCurrent ? (
+                      <Table.CellText variant="dim">
+                        Aberto agora
+                      </Table.CellText>
+                    ) : (
+                      <Button.Root
+                        appearance="outline"
+                        color="neutral"
+                        size="sm"
+                        disabled={disabled}
+                        onClick={() => onOpen(batch.id)}
+                      >
+                        <Button.Title>Abrir</Button.Title>
+                      </Button.Root>
+                    )}
+                  </Table.Cell>
+                </Table.Row>
+              );
+            })
           )}
         </Table.Body>
       </Table.Table>
     </Table.Root>
   );
-}
-
-function counts(batch: PdfImportBatch): string {
-  const parts = [`${batch.totalFiles} no lote`];
-  if (batch.importedFiles) parts.push(`${batch.importedFiles} importado(s)`);
-  if (batch.readFiles) parts.push(`${batch.readFiles} lido(s)`);
-  if (batch.failedFiles) parts.push(`${batch.failedFiles} não lido(s)`);
-  return parts.join(" · ");
 }

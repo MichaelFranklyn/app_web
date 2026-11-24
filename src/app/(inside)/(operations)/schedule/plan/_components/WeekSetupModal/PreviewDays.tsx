@@ -1,13 +1,15 @@
 "use client";
 
-import { Fragment, useMemo } from "react";
+import { useMemo } from "react";
 
 import { Alert } from "@/components/Alert";
 import { Card } from "@/components/Card";
-import { Divider } from "@/components/Divider";
+import { RowList } from "@/components/RowList";
 import { Title } from "@/components/Title";
 import { useCompanyBranding } from "@/hooks/useCompanyBranding";
+import { plural, pluralWord } from "@/utils/format/plural";
 
+import { formatDistanceKm } from "../../../utils";
 import { PriorityClient } from "../../interface";
 import { dayChipLabel, FactoryScoreChip, factoryScoreChips } from "../../utils";
 import { AlignedNote } from "./AlignedNote";
@@ -59,8 +61,8 @@ export function PreviewDays({ plan, clients }: Props) {
           <Alert.Content>
             <Alert.Description>
               {plan.ignoredDays.map(dayChipLabel).join(", ")}{" "}
-              {plan.ignoredDays.length === 1 ? "ficou" : "ficaram"} de fora: dia
-              de folga ou que já passou.
+              {pluralWord(plan.ignoredDays.length, "ficou", "ficaram")} de fora:
+              dia de folga ou que já passou.
             </Alert.Description>
           </Alert.Content>
         </Alert.Root>
@@ -85,50 +87,51 @@ export function PreviewDays({ plan, clients }: Props) {
           <Card.Body padding="sm">
             <div className="flex flex-col gap-8">
               <Title variant="label" color="secondary">
-                {dayChipLabel(day.date)} · {day.visitCount}{" "}
-                {day.visitCount === 1 ? "visita" : "visitas"}
+                {dayChipLabel(day.date)} ·{" "}
+                {plural(day.visitCount, "visita", "visitas")}
                 {day.callCount > 0 &&
-                  ` e ${day.callCount} ${day.callCount === 1 ? "ligação" : "ligações"}`}
+                  ` e ${plural(day.callCount, "ligação", "ligações")}`}
                 {day.estimatedKm
-                  ? ` · cerca de ${Math.round(day.estimatedKm)} km entre as visitas`
+                  ? ` · cerca de ${formatDistanceKm(day.estimatedKm, 0)} entre as visitas`
                   : ""}
               </Title>
-              {day.stops.map((stop, index) => (
-                <Fragment
-                  key={`${stop.clientId}-${stop.contactType}-${stop.officeName ?? ""}`}
-                >
-                  {/* Um traço entre um cliente e o seguinte: no celular, com
-                    os selos empilhados embaixo do nome, não se via onde um
-                    terminava e o outro começava (pedido de 20/11/2026). */}
-                  {index > 0 && <Divider.Root />}
-                  <div
-                    // No celular o nome vem em cima e os selos embaixo, um por
-                    // linha (como o card da Agenda): lado a lado, os selos de
-                    // largura fixa espremiam o nome e saíam da tela (relato de
-                    // 20/11/2026 com nome de escritório longo).
-                    className="max-desktop:flex-col max-desktop:items-stretch flex items-center justify-between gap-8"
+              {/* Um traço entre um cliente e o seguinte: no celular, com os
+                  selos empilhados embaixo do nome, não se via onde um
+                  terminava e o outro começava (pedido de 20/11/2026). */}
+              <RowList.Root>
+                {day.stops.map((stop) => (
+                  <RowList.Item
+                    key={`${stop.clientId}-${stop.contactType}-${stop.officeName ?? ""}`}
                   >
-                    <div className="flex min-w-0 flex-col">
-                      <Title
-                        variant="body-sm"
-                        weight="medium"
-                        color={stop.isNew ? "default" : "muted"}
-                      >
-                        {stop.name}
-                      </Title>
-                      <Title variant="body-xs" color="muted">
-                        {[stop.neighborhood, stop.cityLabel]
-                          .filter(Boolean)
-                          .join(" · ")}
-                      </Title>
+                    <div
+                      // No celular o nome vem em cima e os selos embaixo, um por
+                      // linha (como o card da Agenda): lado a lado, os selos de
+                      // largura fixa espremiam o nome e saíam da tela (relato de
+                      // 20/11/2026 com nome de escritório longo).
+                      className="max-desktop:flex-col max-desktop:items-stretch flex items-center justify-between gap-8"
+                    >
+                      <div className="flex min-w-0 flex-col">
+                        <Title
+                          variant="body-sm"
+                          weight="medium"
+                          color={stop.isNew ? "default" : "muted"}
+                        >
+                          {stop.name}
+                        </Title>
+                        <Title variant="body-xs" color="muted">
+                          {[stop.neighborhood, stop.cityLabel]
+                            .filter(Boolean)
+                            .join(" · ")}
+                        </Title>
+                      </div>
+                      <StopBadges
+                        stop={stop}
+                        chips={chipsByClient.get(stop.clientId) ?? []}
+                      />
                     </div>
-                    <StopBadges
-                      stop={stop}
-                      chips={chipsByClient.get(stop.clientId) ?? []}
-                    />
-                  </div>
-                </Fragment>
-              ))}
+                  </RowList.Item>
+                ))}
+              </RowList.Root>
             </div>
           </Card.Body>
         </Card.Root>

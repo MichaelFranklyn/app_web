@@ -22,6 +22,10 @@ interface ToggleGroupProps<T extends string | number> {
   /**
    * Só abaixo do desktop: o grupo toma a linha e as opções a dividem — solto
    * numa barra, ele deixava sobra vazia ao lado. No desktop, largura natural.
+   * Cada opção parte da largura do próprio rótulo (`flex-auto`, não `flex-1`):
+   * com base zero nada quebrava de linha e três fábricas a 360px viravam
+   * "Atlântico …", "AçoSalvad…" (portal, 24/11/2026). Agora o que não cabe
+   * desce para a linha de baixo, inteiro, e a sobra segue dividida.
    */
   fullWidthBelowDesktop?: boolean;
   disabled?: boolean;
@@ -71,13 +75,13 @@ export function ToggleGroup<T extends string | number>({
             disabled={disabled}
             aria-pressed={active}
             label={option.ariaLabel}
-            // Numa coluna estreita (grade de duas no celular) o rótulo longo
-            // trunca com "…" em vez de vazar do botão; o ariaLabel guarda o
-            // nome completo.
+            // Último recurso: um rótulo maior que a linha inteira trunca com
+            // "…" em vez de vazar do botão; o title guarda o nome completo.
+            title={option.ariaLabel ?? option.label}
             className={cn(
               "min-w-0",
               fullWidth && "flex-1",
-              fullWidthBelowDesktop && "max-desktop:flex-1"
+              fullWidthBelowDesktop && "max-desktop:flex-auto"
             )}
             onClick={() => onChange(option.value)}
           >

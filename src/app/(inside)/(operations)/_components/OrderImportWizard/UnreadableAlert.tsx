@@ -1,5 +1,6 @@
 import { BulletList } from "@/components/BulletList";
 import { Alert } from "@/components/Alert";
+import { plural } from "@/utils/format/plural";
 import { FileWarning } from "lucide-react";
 
 interface Props {
@@ -19,7 +20,11 @@ export function UnreadableAlert({ rows }: Props) {
       <Alert.Icon icon={FileWarning} />
       <Alert.Content>
         <Alert.Title>
-          {rows.length} linha(s) do PDF não puderam ser lidas
+          {plural(
+            rows.length,
+            "linha do PDF não pôde ser lida",
+            "linhas do PDF não puderam ser lidas"
+          )}
         </Alert.Title>
         <Alert.Description>
           O código destes itens saiu embaralhado no PDF (texto sobreposto) e

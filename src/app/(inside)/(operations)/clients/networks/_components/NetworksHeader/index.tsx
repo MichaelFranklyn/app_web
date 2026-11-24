@@ -28,7 +28,7 @@ export function NetworksHeader({ onAddOptimistic, onChanged }: Props) {
             Lojas do mesmo grupo reunidas numa rede — assim você vê quanto o
             grupo inteiro comprou, sem somar loja por loja.
           </PanelHeader.Description>
-          <PanelHeader.Actions className="mt-6">
+          <PanelHeader.Actions>
             <AddNetworkModal
               onAddOptimistic={onAddOptimistic}
               onChanged={onChanged}

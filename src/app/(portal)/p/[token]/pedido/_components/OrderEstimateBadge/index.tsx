@@ -28,7 +28,7 @@ export function OrderEstimateBadge({
     <Badge.Root
       appearance="tinted"
       color={count === 0 ? "neutral" : "amber"}
-      size="md"
+      size="sm"
       title={estimate !== null ? "Total estimado da lista" : undefined}
     >
       <Badge.Text>{text}</Badge.Text>

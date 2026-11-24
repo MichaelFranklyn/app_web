@@ -1,5 +1,6 @@
 import { Card } from "@/components/Card";
 import { Title } from "@/components/Title";
+import { plural } from "@/utils/format/plural";
 
 /** Linhas que não chegaram a ser importadas: descartadas no mapeamento (sem
  *  código/descrição) ou ilegíveis no PDF (texto sobreposto). */
@@ -19,33 +20,36 @@ export function LeftOutView({
         Linhas que ficaram de fora ({skipped.length + unreadable.length})
       </Title>
       {(named.length > 0 || unreadable.length > 0) && (
-        <Card.Root
-          isCompact
-          className="flex max-h-[320px] flex-col gap-4 overflow-y-auto"
-        >
-          {named.map((s, i) => (
-            <Title key={`named-${s.sku}-${i}`} variant="caption">
-              <Title variant="caption" weight="medium" className="inline">
-                {s.sku}
+        <Card.Root inset>
+          <Card.Body padding="sm" className="max-h-[320px] overflow-y-auto">
+            {named.map((s, i) => (
+              <Title key={`named-${s.sku}-${i}`} variant="caption">
+                <Title variant="caption" weight="medium" className="inline">
+                  {s.sku}
+                </Title>
+                {s.name ? ` ${s.name}` : ""} — {s.reason}
               </Title>
-              {s.name ? ` ${s.name}` : ""} — {s.reason}
-            </Title>
-          ))}
-          {unreadable.map((desc, i) => (
-            <Title key={`unreadable-${i}`} variant="caption">
-              <Title variant="caption" weight="medium" className="inline">
-                {desc}
-              </Title>{" "}
-              — código ilegível no PDF (texto sobreposto); ache o código no
-              arquivo e cadastre à mão
-            </Title>
-          ))}
+            ))}
+            {unreadable.map((desc, i) => (
+              <Title key={`unreadable-${i}`} variant="caption">
+                <Title variant="caption" weight="medium" className="inline">
+                  {desc}
+                </Title>{" "}
+                — código ilegível no PDF (texto sobreposto); ache o código no
+                arquivo e cadastre à mão
+              </Title>
+            ))}
+          </Card.Body>
         </Card.Root>
       )}
       {noCode > 0 && (
         <Title variant="caption" color="muted">
-          {noCode} linha(s) sem código foram ignoradas (títulos, totais e
-          observações no meio dos dados).
+          {plural(
+            noCode,
+            "linha sem código foi ignorada",
+            "linhas sem código foram ignoradas"
+          )}{" "}
+          (títulos, totais e observações no meio dos dados).
         </Title>
       )}
     </div>

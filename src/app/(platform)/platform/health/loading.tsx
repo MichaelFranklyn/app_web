@@ -8,7 +8,7 @@ export default function Loading() {
       page="platformHealth"
       title="Saúde"
       description="Estado técnico da plataforma: banco, jobs agendados e pendências."
-      kpis={{ count: 3, cols: { base: 1, tablet: 3 } }}
+      kpis={{ count: 5 }}
       listTitle="Jobs agendados"
       cards
       columns={["Job", "Quando roda", "Última execução", "Resultado"]}

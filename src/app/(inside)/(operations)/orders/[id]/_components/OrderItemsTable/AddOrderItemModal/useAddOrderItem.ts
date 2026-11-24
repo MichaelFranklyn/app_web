@@ -2,6 +2,7 @@ import { FormBuilderRef, FormStepSchema } from "@/components/FormBuilder";
 import { useAsyncAction } from "@/hooks/useAsyncAction";
 import { extractSelectValue, selectOption } from "@/utils/form";
 import { maskCurrency, parseMoneyToNumber } from "@/utils/format/masks";
+import { plural } from "@/utils/format/plural";
 import { useMutation } from "@apollo/client/react";
 import { useEffect, useMemo, useRef, useState } from "react";
 
@@ -397,7 +398,7 @@ export function useAddOrderItem({
     const multiple = saleMultipleByProduct.get(productId);
     if (multiple && !isQuantityMultiple(quantity, multiple)) {
       throw new Error(
-        `Este produto é vendido em múltiplos de ${multiple} unidade(s).`
+        `Este produto é vendido em múltiplos de ${plural(multiple, "unidade", "unidades")}.`
       );
     }
     if (discountType === "PERCENT" && rawDiscount > 100) {

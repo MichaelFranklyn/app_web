@@ -6,6 +6,7 @@ import { Input } from "@/components/Input";
 import { Title } from "@/components/Title";
 import { clientDisplayName } from "@/utils/client";
 import { factoryName } from "@/utils/company";
+import { formatDistanceKm } from "../../utils";
 import { NearbyCandidate } from "./interface";
 
 interface Props {
@@ -50,7 +51,7 @@ export function NearbyList({ candidates, selected, onToggle }: Props) {
               inset
               tone="transparent"
             >
-              <Card.Body padding="sm" className="flex-row items-start gap-10">
+              <Card.Body padding="sm" className="flex-row items-start">
                 <Input.Checkbox
                   aria-label={`Visitar também ${clientDisplayName(
                     candidate.client,
@@ -76,7 +77,7 @@ export function NearbyList({ candidates, selected, onToggle }: Props) {
                       </Badge.Text>
                     </Badge.Root>
                     <Title variant="micro" color="muted2">
-                      {candidate.distanceKm.toFixed(0)} km daqui
+                      {formatDistanceKm(candidate.distanceKm, 0)} daqui
                       {city ? ` · ${city}${state ? `/${state}` : ""}` : ""}
                     </Title>
                   </div>

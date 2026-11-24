@@ -33,7 +33,7 @@ export function UserMenu({
       </Dropdown.Trigger>
 
       <Dropdown.Content align="end" className="min-w-50 p-12">
-        <div className="flex flex-col gap-[2px] pb-8">
+        <div className="flex flex-col gap-2 pb-8">
           <Title variant="caption" weight="semibold" className="truncate">
             {name}
           </Title>

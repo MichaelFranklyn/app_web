@@ -32,9 +32,7 @@ export function GrowthChart({ points, loading, error, onRetry }: Props) {
   return (
     <Card.Root>
       <Card.Header>
-        <Card.Header.Title size="sm" weight="semibold">
-          Crescimento
-        </Card.Header.Title>
+        <Card.Header.Title>Crescimento</Card.Header.Title>
         <Card.Header.Description>
           Empresas e pessoas novas por mês, com o volume de pedidos ao lado.
         </Card.Header.Description>
@@ -48,7 +46,7 @@ export function GrowthChart({ points, loading, error, onRetry }: Props) {
         ) : !hasMovement ? (
           <EmptyState.Root>
             <EmptyState.Icon>
-              <BarChart3 size={32} />
+              <BarChart3 />
             </EmptyState.Icon>
             {/* Aqui o vazio é o resultado, não falta de informação: a série vem
                 completa do backend, com os meses parados zerados. */}

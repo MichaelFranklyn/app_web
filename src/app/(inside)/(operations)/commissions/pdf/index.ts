@@ -122,7 +122,7 @@ const buildCommissionsPdf = async (
     "A RECEBER",
     report.receivable,
     "RECEBER EM",
-    `${cai}, já líquido de estorno`
+    `${cai}, com os estornos já descontados`
   );
   commissionSection("RECEBIDO", report.received, "RECEBIDO EM", `em ${name}`);
   commissionSection(

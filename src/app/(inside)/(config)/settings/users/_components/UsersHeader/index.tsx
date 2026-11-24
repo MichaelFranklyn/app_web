@@ -3,8 +3,6 @@
 import { Alert } from "@/components/Alert";
 import { Button } from "@/components/Button";
 import { Card } from "@/components/Card";
-import { Grid } from "@/components/Grid";
-import { HelpTooltip } from "@/components/HelpTooltip";
 import { PanelHeader } from "@/components/PanelHeader";
 import { PAGE_HEADING } from "@/utils/modules";
 import { PlanLimitGate } from "@/components/PlanLimitGate";
@@ -24,7 +22,9 @@ import { AddUserModal } from "./AddUserModal";
 // Página larga; o teto de páginas é o do app inteiro (`MAX_SCAN_PAGES`).
 const EXPORT_PAGE_SIZE = 100;
 import { MAX_SCAN_PAGES } from "@/utils/pagination";
+import { plural } from "@/utils/format/plural";
 import { buildKpis } from "./utils";
+import { ICON_SIZE } from "@/components/Icon";
 
 interface Props {
   stats: SellersStats;
@@ -119,7 +119,7 @@ export function UsersHeader({
         toast({
           variant: "warning",
           title: "Arquivo incompleto",
-          description: `O arquivo saiu com ${people.length} de ${totalItems} pessoa(s). Use a busca para levar o resto.`,
+          description: `O arquivo saiu com ${people.length} de ${plural(totalItems, "pessoa", "pessoas")}. Use a busca para levar o resto.`,
         });
       }
     } catch {
@@ -145,7 +145,10 @@ export function UsersHeader({
               Quem entra no sistema e quem vende em campo — uma lista só. Clique
               em alguém para abrir o perfil completo.
             </PanelHeader.Description>
-            <PanelHeader.Actions className="mt-12" data-tour="users-actions">
+            {/* Secundários primeiro, o primário (Adicionar) por último — o
+                padrão de todo cabeçalho. No celular a pilha põe o primário no
+                topo sozinha (globals.css, "onde fica o primário"). */}
+            <PanelHeader.Actions data-tour="users-actions">
               <Button.Root
                 appearance="outline"
                 color="neutral"
@@ -157,15 +160,15 @@ export function UsersHeader({
                 <Button.Icon icon={Download} />
                 <Button.Title>Exportar</Button.Title>
               </Button.Root>
+              {/* A planilha só cria vendedores: o teto é o de vendedores. */}
+              <PlanLimitGate limit="SELLERS">
+                <ImportSellersModal onImported={onImported} />
+              </PlanLimitGate>
               {/* Pelo teto de LOGINS: o papel só é escolhido dentro do modal, e
                   quem pedir vendedor sem cota de vendedor recebe a recusa da
                   própria mutation, com a frase daquele teto. */}
               <PlanLimitGate limit="USERS">
                 <AddUserModal onAddOptimistic={onAddOptimistic} />
-              </PlanLimitGate>
-              {/* A planilha só cria vendedores: o teto é o de vendedores. */}
-              <PlanLimitGate limit="SELLERS">
-                <ImportSellersModal onImported={onImported} />
               </PlanLimitGate>
             </PanelHeader.Actions>
           </PanelHeader.Left>
@@ -173,44 +176,31 @@ export function UsersHeader({
       </PanelHeader.Root>
 
       {/* KPIs da operação de campo: é o que muda no dia a dia. */}
-      {/* Três cartões em duas colunas: no celular o último toma a linha
-          inteira, senão sobra meia linha vazia ao lado dele. */}
-      <Grid.Root
-        cols={{ base: 2, tablet: 3 }}
-        gap={20}
-        className="max-tablet:[&>:last-child]:col-span-2"
-      >
+      <Card.Kpi.Group>
         {kpis.map(
           ({ label, value, delta, positive, negative, status, help }) => (
-            <Grid.Item key={label}>
-              <Card.Kpi>
-                {/* Login e perfil de campo são coisas diferentes, e os três
+            <Card.Kpi key={label}>
+              {/* Login e perfil de campo são coisas diferentes, e os três
                     cartões misturam pessoas com permissões: sem a explicação ao
                     lado, um parece contradizer o outro. */}
-                <Card.Kpi.Label className="inline-flex items-center gap-2">
-                  {label}
-                  {help && (
-                    <HelpTooltip label={`Sobre ${label}`} content={help} />
-                  )}
-                </Card.Kpi.Label>
-                <Card.Kpi.Value status={status}>{value}</Card.Kpi.Value>
-                <Card.Kpi.Delta positive={positive} negative={negative}>
-                  {positive && <TrendingUp size={12} />}
-                  {negative && <TrendingDown size={12} />}
-                  {delta}
-                </Card.Kpi.Delta>
-              </Card.Kpi>
-            </Grid.Item>
+              <Card.Kpi.Label help={help}>{label}</Card.Kpi.Label>
+              <Card.Kpi.Value status={status}>{value}</Card.Kpi.Value>
+              <Card.Kpi.Delta positive={positive} negative={negative}>
+                {positive && <TrendingUp size={ICON_SIZE.xs} />}
+                {negative && <TrendingDown size={ICON_SIZE.xs} />}
+                {delta}
+              </Card.Kpi.Delta>
+            </Card.Kpi>
           )
         )}
-      </Grid.Root>
+      </Card.Kpi.Group>
 
       {/* Só quando é necessário: sem busca, cartões e lista falam da mesma
           empresa e não há o que explicar. Escrito na tela, e não só no "?" —
           quem procura um nome e vê os números parados conclui que travou. */}
       {search.trim() !== "" && (
         <Alert.Root variant="info">
-          <Info size={14} className="mt-[1px] shrink-0" />
+          <Info size={ICON_SIZE.sm} className="mt-1 shrink-0" />
           <Alert.Content>
             <Alert.Description>{KPI_IGNORES_SEARCH}</Alert.Description>
           </Alert.Content>

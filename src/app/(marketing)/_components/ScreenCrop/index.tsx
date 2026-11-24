@@ -32,7 +32,7 @@ export function ScreenCrop({
   return (
     <div
       className={cn(
-        "relative overflow-hidden rounded-tl-(--radius-md) border-t border-l border-(--border) bg-(--bg) shadow-(--shadow-lg)",
+        "relative overflow-hidden rounded-tl-(--r-md) border-t border-l border-(--border) bg-(--bg) shadow-(--shadow-lg)",
         className
       )}
     >

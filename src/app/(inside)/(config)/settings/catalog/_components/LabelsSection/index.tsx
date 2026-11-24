@@ -50,7 +50,10 @@ export function LabelsSection() {
   const onChanged = () => refetch();
 
   return (
-    <Table.Root>
+    // Lista de uma ou duas colunas não ocupa a tela toda: em 1440px o nome
+    // ficava na ponta esquerda e o "⋯" na direita, longe demais para ler a
+    // linha (crítica de configurações, 23/11/2026).
+    <Table.Root className="w-full max-w-[720px]">
       <CatalogSectionHead
         title="Rótulos cadastrados"
         helpLabel="O que é um rótulo de embalagem?"
@@ -102,7 +105,7 @@ export function LabelsSection() {
               <Table.Cell colSpan={2}>
                 <EmptyState.Root flat>
                   <EmptyState.Icon>
-                    <Tag size={32} />
+                    <Tag />
                   </EmptyState.Icon>
                   <EmptyState.Title>Nenhum rótulo cadastrado</EmptyState.Title>
                   <EmptyState.Description>

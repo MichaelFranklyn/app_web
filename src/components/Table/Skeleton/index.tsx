@@ -19,7 +19,9 @@ export const Skeleton = ({ columns, rows = 5 }: TableSkeletonProps) => (
       <tr key={rowIdx} className={tableRowStyle}>
         {Array.from({ length: columns }).map((_, colIdx) => (
           <td key={colIdx} className={tableCellBase}>
-            <Loading.Skeleton className="h-[16px] w-full" />
+            {/* A célula é corpo pequeno (13px, linha de 21px): a barra ocupa a
+                mesma linha do dado e a tabela não muda de altura ao chegar. */}
+            <Loading.Skeleton text="body-sm" className="w-full" />
           </td>
         ))}
       </tr>

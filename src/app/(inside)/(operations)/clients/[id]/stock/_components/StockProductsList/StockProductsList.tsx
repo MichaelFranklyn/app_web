@@ -8,6 +8,7 @@ import { EmptyState } from "@/components/EmptyState";
 import { HelpTooltip } from "@/components/HelpTooltip";
 import { Title } from "@/components/Title";
 import { formatDate } from "@/utils/format/date";
+import { formatQuantity } from "@/utils/format/masks";
 import { PackageSearch, Pencil } from "lucide-react";
 import { useState } from "react";
 import { ProductInsight } from "../../../interface";
@@ -79,15 +80,15 @@ function ProductStockCard({
   const daysCaption = diasValue >= 0 ? "até esgotar" : "em falta";
 
   const qty = insight.product
-    ? `${parseFloat(insight.lastQuantity).toFixed(0)} ${insight.product.unit?.label ?? ""}`.trim()
-    : parseFloat(insight.lastQuantity).toFixed(0);
+    ? `${formatQuantity(insight.lastQuantity, 0)} ${insight.product.unit?.label ?? ""}`.trim()
+    : formatQuantity(insight.lastQuantity, 0);
 
   return (
     <Card.Root
       inset
       className={isEditing ? "outline-2 outline-(--amber)" : undefined}
     >
-      <Card.Body padding="compact" className="gap-12">
+      <Card.Body padding="compact">
         <div className="flex items-start justify-between gap-8">
           <Title variant="body" weight="semibold" className="min-w-0 truncate">
             {productName}
@@ -204,7 +205,7 @@ export function StockProductsList({
       <div data-tour="client-stock-table">
         <EmptyState.Root>
           <EmptyState.Icon>
-            <PackageSearch size={32} />
+            <PackageSearch />
           </EmptyState.Icon>
           <EmptyState.Title>Nenhum dado de estoque disponível</EmptyState.Title>
           <EmptyState.Description>

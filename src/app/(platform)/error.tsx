@@ -23,7 +23,7 @@ export default function PlatformError({
     <PageContent>
       <EmptyState.Root>
         <EmptyState.Icon>
-          <TriangleAlert size={32} />
+          <TriangleAlert />
         </EmptyState.Icon>
         <EmptyState.Title>
           Não foi possível carregar esta página

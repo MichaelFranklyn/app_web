@@ -1,6 +1,7 @@
 import { Alert } from "@/components/Alert";
 import { Card } from "@/components/Card";
 import { Title } from "@/components/Title";
+import { plural } from "@/utils/format/plural";
 import { CheckCircle2, Info } from "lucide-react";
 
 import { ImportResult, SkippedImportItem } from "./interface";
@@ -22,18 +23,16 @@ export function StepResult({ result, skipped }: StepResultProps) {
             {partial ? "Importação parcial" : "Itens importados"}
           </Alert.Title>
           <Alert.Description>
-            {result.created} item(ns) gravado(s) no pedido
+            {plural(result.created, "item gravado", "itens gravados")} no pedido
             {result.failed > 0 ? ` · ${result.failed} com erro` : ""}
             {skipped.length > 0
-              ? ` · ${skipped.length} não importado(s) (fora do catálogo)`
+              ? ` · ${plural(skipped.length, "não importado", "não importados")} (fora do catálogo)`
               : ""}
             .
           </Alert.Description>
         </Alert.Content>
       </Alert.Root>
-      <div
-        className={`grid gap-8 ${skipped.length > 0 ? "grid-cols-3" : "grid-cols-2"}`}
-      >
+      <Card.Kpi.Group>
         <Card.Kpi>
           <Card.Kpi.Label>Gravados</Card.Kpi.Label>
           <Card.Kpi.Value>{result.created}</Card.Kpi.Value>
@@ -50,7 +49,7 @@ export function StepResult({ result, skipped }: StepResultProps) {
             <Card.Kpi.Value status="atencao">{skipped.length}</Card.Kpi.Value>
           </Card.Kpi>
         )}
-      </div>
+      </Card.Kpi.Group>
       {result.errors.length > 0 && (
         <div className="flex max-h-[260px] flex-col gap-4 overflow-y-auto">
           {result.errors.map((err) => (

@@ -13,7 +13,7 @@ interface Props {
   remove: Omit<ComponentProps<typeof DeletePriceListModal>, Controlled>;
 }
 
-/** Editar e remover; no celular entram no "⋯" (ver RowActions). */
+/** Editar e remover, no "⋯" (ver RowActions). */
 export function PriceListRowActions({ edit, remove }: Props) {
   const [editOpen, setEditOpen] = useState(false);
   const [removeOpen, setRemoveOpen] = useState(false);

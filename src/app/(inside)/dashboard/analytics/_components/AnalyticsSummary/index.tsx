@@ -2,18 +2,10 @@
 
 import { Card } from "@/components/Card";
 import { EmptyState } from "@/components/EmptyState";
-import { Grid } from "@/components/Grid";
-import { Loading } from "@/components/Loading";
 import { QueryError } from "@/components/QueryError";
 import { useAsyncQuery } from "@/hooks/useAsyncQuery";
 import { formatMoney, formatNumber } from "@/utils/format/masks";
-import {
-  BarChart3,
-  CircleDollarSign,
-  Receipt,
-  ShoppingCart,
-  Users,
-} from "lucide-react";
+import { BarChart3 } from "lucide-react";
 import { useEffect } from "react";
 
 import { useAnalyticsPrint } from "../../analyticsPrintContext";
@@ -89,13 +81,11 @@ export function AnalyticsSummary({
 
   if (loading && !summary) {
     return (
-      <Grid.Root cols={{ base: 2, tablet: 2, "desktop-xl": 4 }} gap={12}>
+      <Card.Kpi.Group>
         {Array.from({ length: 4 }).map((_, i) => (
-          <Grid.Item key={i}>
-            <Loading.Skeleton className="h-[104px] w-full" />
-          </Grid.Item>
+          <Card.Kpi.Skeleton key={i} />
         ))}
-      </Grid.Root>
+      </Card.Kpi.Group>
     );
   }
 
@@ -107,7 +97,7 @@ export function AnalyticsSummary({
     return (
       <EmptyState.Root>
         <EmptyState.Icon>
-          <BarChart3 size={32} />
+          <BarChart3 />
         </EmptyState.Icon>
         <EmptyState.Title>
           {canSelectSeller
@@ -124,46 +114,32 @@ export function AnalyticsSummary({
   }
 
   return (
-    <Grid.Root
-      cols={{ base: 2, tablet: 2, "desktop-xl": 4 }}
-      gap={12}
-      data-tour="analytics-summary"
-    >
-      <Grid.Item>
-        <Card.Kpi>
-          <Card.Kpi.Label icon={ShoppingCart}>{LABELS.orders}</Card.Kpi.Label>
-          <Card.Kpi.Value>{formatNumber(totalOrders)}</Card.Kpi.Value>
-          <Card.Kpi.Delta>vendas fechadas no período</Card.Kpi.Delta>
-        </Card.Kpi>
-      </Grid.Item>
+    <Card.Kpi.Group data-tour="analytics-summary">
+      <Card.Kpi>
+        <Card.Kpi.Label>{LABELS.orders}</Card.Kpi.Label>
+        <Card.Kpi.Value>{formatNumber(totalOrders)}</Card.Kpi.Value>
+        <Card.Kpi.Delta>vendas fechadas no período</Card.Kpi.Delta>
+      </Card.Kpi>
 
-      <Grid.Item>
-        <Card.Kpi>
-          <Card.Kpi.Label icon={CircleDollarSign}>
-            {LABELS.amount}
-          </Card.Kpi.Label>
-          <Card.Kpi.Value>{formatMoney(totalAmount)}</Card.Kpi.Value>
-          <Card.Kpi.Delta>soma dos pedidos do período</Card.Kpi.Delta>
-        </Card.Kpi>
-      </Grid.Item>
+      <Card.Kpi>
+        <Card.Kpi.Label>{LABELS.amount}</Card.Kpi.Label>
+        <Card.Kpi.Value>{formatMoney(totalAmount)}</Card.Kpi.Value>
+        <Card.Kpi.Delta>soma dos pedidos do período</Card.Kpi.Delta>
+      </Card.Kpi>
 
-      <Grid.Item>
-        <Card.Kpi>
-          <Card.Kpi.Label icon={Receipt}>{LABELS.ticket}</Card.Kpi.Label>
-          <Card.Kpi.Value>{formatMoney(avgTicket)}</Card.Kpi.Value>
-          <Card.Kpi.Delta>valor médio por pedido</Card.Kpi.Delta>
-        </Card.Kpi>
-      </Grid.Item>
+      <Card.Kpi>
+        <Card.Kpi.Label>{LABELS.ticket}</Card.Kpi.Label>
+        <Card.Kpi.Value>{formatMoney(avgTicket)}</Card.Kpi.Value>
+        <Card.Kpi.Delta>valor médio por pedido</Card.Kpi.Delta>
+      </Card.Kpi>
 
-      <Grid.Item>
-        <Card.Kpi>
-          <Card.Kpi.Label icon={Users}>{LABELS.clients}</Card.Kpi.Label>
-          <Card.Kpi.Value status={activeClients > 0 ? "neutral" : "urgente"}>
-            {formatNumber(activeClients)}
-          </Card.Kpi.Value>
-          <Card.Kpi.Delta>ao menos um pedido no período</Card.Kpi.Delta>
-        </Card.Kpi>
-      </Grid.Item>
-    </Grid.Root>
+      <Card.Kpi>
+        <Card.Kpi.Label>{LABELS.clients}</Card.Kpi.Label>
+        <Card.Kpi.Value status={activeClients > 0 ? "neutral" : "urgente"}>
+          {formatNumber(activeClients)}
+        </Card.Kpi.Value>
+        <Card.Kpi.Delta>ao menos um pedido no período</Card.Kpi.Delta>
+      </Card.Kpi>
+    </Card.Kpi.Group>
   );
 }

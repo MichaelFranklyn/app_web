@@ -42,7 +42,7 @@ export default function PriceListDetailContent({ priceListId }: Props) {
       <div className="flex min-h-[40vh] items-center justify-center">
         <EmptyState.Root className="max-w-105">
           <EmptyState.Icon>
-            <ListX size={32} />
+            <ListX />
           </EmptyState.Icon>
           <EmptyState.Title>Tabela não encontrada</EmptyState.Title>
           <EmptyState.Description>

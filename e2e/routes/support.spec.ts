@@ -86,7 +86,7 @@ test("support: a fila mostra a situação e há quanto tempo o cliente espera", 
   await page.goto("/support");
 
   await expect(
-    page.getByRole("heading", { name: "Reclamações de clientes", level: 1 })
+    page.getByRole("heading", { name: "Reclamações", level: 1 })
   ).toBeVisible();
   await expect(page.getByText("Chegaram 3 caixas quebradas")).toBeVisible();
   await expect(page.getByText("Aguardando a fábrica").first()).toBeVisible();
@@ -108,9 +108,7 @@ test("support: os cartões do topo vêm do servidor, não da página aberta", as
   const cards = page.locator('[data-tour="support-counts"]');
   await expect(cards.getByText("3", { exact: true })).toBeVisible();
   await expect(cards.getByText("2", { exact: true })).toBeVisible();
-  await expect(
-    page.getByText("1 reclamação(ões) · página 1 de 1")
-  ).toBeVisible();
+  await expect(page.getByText("1 reclamação · página 1 de 1")).toBeVisible();
 });
 
 test("support: filtrar por situação manda o NOME do enum ao backend", async ({
@@ -133,6 +131,25 @@ test("support: filtrar por situação manda o NOME do enum ao backend", async ({
       (f) => f.field === "status" && f.value === "WAITING_FACTORY"
     )
   ).toBe(true);
+});
+
+test("support: tocar num cartão do topo filtra a fila por aquela situação", async ({
+  page,
+}) => {
+  await mockGraphql(page, {
+    ClientSupportCases: () => queue([supportCase()]),
+    ClientSupportCounts: () => counts(),
+  });
+  await page.goto("/support");
+
+  const card = page
+    .locator('[data-tour="support-counts"]')
+    .getByRole("button", { name: /Aguardando a fábrica/ });
+  await expect(card).toHaveAttribute("aria-pressed", "false");
+  await card.click();
+
+  await expect(card).toHaveAttribute("aria-pressed", "true");
+  await expect.poll(() => page.url()).toContain("status=WAITING_FACTORY");
 });
 
 test("support/caso: o andamento leva a mudança de situação junto", async ({

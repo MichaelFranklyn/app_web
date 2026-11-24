@@ -1,13 +1,15 @@
 import { expect, test } from "../support/fixtures";
 import { mockGraphql } from "../support/graphql";
+import { rowAction } from "../support/rowActions";
 
 /**
  * CRUD do catálogo. Cada catálogo tem a sua rota (/settings/catalog/categories,
  * /units, /labels, /tax-rules) — /settings/catalog em si é só o índice de cards.
  * Os mocks das 4 listas ficam juntos porque o custo é zero e evita quebra quando
- * um teste muda de rota. Criar = modal (botão "Nova X" → submit); editar = ícone
- * Pencil (1º botão da linha); excluir = ícone Trash (2º) → ConfirmModal. Mocks
- * STATEFUL (refetch via onChanged/onDone).
+ * um teste muda de rota. Criar = modal (botão "Nova X" → submit); editar e
+ * excluir = itens do "⋯" da linha (excluir → ConfirmModal). Mocks STATEFUL
+ * (refetch via onChanged/onDone). A célula do "⋯" se chama "Ações da
+ * categoria X", por isso a célula do nome é buscada com `exact`.
  */
 const conn = (nodes: Array<Record<string, unknown>>) => ({
   edges: nodes.map((node) => ({ node })),
@@ -63,7 +65,7 @@ test("catálogo: cria uma categoria", async ({ page }) => {
     page.getByText("Categoria cadastrada com sucesso")
   ).toBeVisible();
   await expect(
-    page.getByRole("cell", { name: "Cimento e argamassa" })
+    page.getByRole("cell", { name: "Cimento e argamassa", exact: true })
   ).toBeVisible();
 });
 
@@ -89,7 +91,7 @@ test("catálogo: edita uma categoria", async ({ page }) => {
   await page.goto("/settings/catalog/categories");
 
   const row = page.getByRole("row", { name: /Tubos/ });
-  await row.getByRole("button").first().click(); // ícone Pencil (editar)
+  await rowAction(page, row, "Editar categoria");
 
   const dialog = page.getByRole("dialog");
   await dialog.locator('input[name="name"]').fill("Tubos e conexões");
@@ -99,7 +101,7 @@ test("catálogo: edita uma categoria", async ({ page }) => {
     page.getByText("Categoria atualizada com sucesso")
   ).toBeVisible();
   await expect(
-    page.getByRole("cell", { name: "Tubos e conexões" })
+    page.getByRole("cell", { name: "Tubos e conexões", exact: true })
   ).toBeVisible();
 });
 
@@ -117,7 +119,7 @@ test("catálogo: exclui uma categoria", async ({ page }) => {
   await page.goto("/settings/catalog/categories");
 
   const row = page.getByRole("row", { name: /Categoria Velha/ });
-  await row.getByRole("button").last().click(); // ícone Trash (excluir)
+  await rowAction(page, row, "Excluir categoria");
 
   await page
     .getByRole("dialog")
@@ -159,7 +161,9 @@ test("catálogo: cria uma unidade", async ({ page }) => {
   await dialog.getByRole("button", { name: "Criar" }).click();
 
   await expect(page.getByText("Unidade criada")).toBeVisible();
-  await expect(page.getByRole("cell", { name: "Saco" })).toBeVisible();
+  await expect(
+    page.getByRole("cell", { name: "Saco", exact: true })
+  ).toBeVisible();
 });
 
 test("catálogo: exclui uma unidade", async ({ page }) => {
@@ -176,7 +180,7 @@ test("catálogo: exclui uma unidade", async ({ page }) => {
   await page.goto("/settings/catalog/units");
 
   const row = page.getByRole("row", { name: /Unidade Velha/ });
-  await row.getByRole("button").last().click();
+  await rowAction(page, row, "Remover unidade");
 
   await page
     .getByRole("dialog")
@@ -218,7 +222,9 @@ test("catálogo: cria um rótulo de embalagem", async ({ page }) => {
   await dialog.getByRole("button", { name: "Criar" }).click();
 
   await expect(page.getByText("Rótulo criado")).toBeVisible();
-  await expect(page.getByRole("cell", { name: "Pallet" })).toBeVisible();
+  await expect(
+    page.getByRole("cell", { name: "Pallet", exact: true })
+  ).toBeVisible();
 });
 
 test("catálogo: cria uma regra de imposto", async ({ page }) => {
@@ -243,7 +249,9 @@ test("catálogo: cria uma regra de imposto", async ({ page }) => {
   await dialog.getByRole("button", { name: "Criar" }).click();
 
   await expect(page.getByText("Regra de imposto criada")).toBeVisible();
-  await expect(page.getByRole("cell", { name: "IPI" })).toBeVisible();
+  await expect(
+    page.getByRole("cell", { name: "IPI", exact: true })
+  ).toBeVisible();
 });
 
 /**

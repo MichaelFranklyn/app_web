@@ -48,7 +48,7 @@ export function FilterPanel({
     <div
       ref={panelRef}
       data-filters-panel
-      className="z-[9998] flex w-[320px] flex-col gap-16 rounded-(--r-md) border border-(--border) bg-(--bg2) p-16 shadow-lg"
+      className="z-(--z-filter-panel) flex w-[320px] flex-col gap-16 rounded-(--r-md) border border-(--border) bg-(--bg2) p-16 shadow-(--shadow-lg)"
       style={{ position, ...style }}
     >
       <Title variant="label" color="muted">

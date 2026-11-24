@@ -48,6 +48,9 @@ export interface FixedScheduleFormProps {
   /** Clientes que já têm dia marcado — fora do select na criação. */
   takenClientIds?: string[];
   onDone: () => void;
+  /** Controlado (aberto pelo menu "⋯" da linha). Omitido = usa o próprio gatilho. */
+  open?: boolean;
+  onOpenChange?: (open: boolean) => void;
 }
 
 export function useFixedScheduleForm({
@@ -55,8 +58,15 @@ export function useFixedScheduleForm({
   schedule,
   takenClientIds = [],
   onDone,
+  open: openProp,
+  onOpenChange,
 }: FixedScheduleFormProps) {
-  const [open, setOpen] = useState(false);
+  const [internalOpen, setInternalOpen] = useState(false);
+  const open = openProp ?? internalOpen;
+  const setOpen = (v: boolean) => {
+    setInternalOpen(v);
+    onOpenChange?.(v);
+  };
   const formRef = useRef<FormBuilderRef>(null);
   // A recusa do backend fica NA TELA, não num toast que some: ela é uma decisão
   // a tomar ("este dia não cabe, escolha outro"), e o gestor precisa reler o

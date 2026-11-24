@@ -3,8 +3,12 @@ import { UploadCloud, File, Trash } from "lucide-react";
 import { InputRoot } from "./Root";
 import { InputLabel } from "./Label";
 import { InputHint } from "./Hint";
+import { Button } from "@/components/Button";
+import { Card } from "@/components/Card";
 import { Title } from "@/components/Title";
 import { cn } from "@/lib/utils";
+import { ICON_SIZE } from "@/components/Icon";
+import { formatFileSize } from "@/utils/format/fileSize";
 
 export interface InputArchiveProps extends Omit<
   React.InputHTMLAttributes<HTMLInputElement>,
@@ -59,15 +63,6 @@ export const InputArchive = React.forwardRef<
       },
       [ref]
     );
-
-    const formatBytes = (bytes: number, decimals = 2) => {
-      if (!+bytes) return "0 Bytes";
-      const k = 1024;
-      const dm = decimals < 0 ? 0 : decimals;
-      const sizes = ["Bytes", "KB", "MB", "GB", "TB"];
-      const i = Math.floor(Math.log(bytes) / Math.log(k));
-      return `${parseFloat((bytes / Math.pow(k, i)).toFixed(dm))} ${sizes[i]}`;
-    };
 
     const processFiles = (incomingFiles: FileList | File[]) => {
       setLocalError(null);
@@ -194,7 +189,7 @@ export const InputArchive = React.forwardRef<
                   : "bg-(--bg2) text-(--color-text-disabled)"
               )}
             >
-              <UploadCloud size={24} />
+              <UploadCloud size={ICON_SIZE.xl} />
             </div>
             <div>
               <Title variant="body-md" weight="semibold" className="mt-2">
@@ -219,36 +214,45 @@ export const InputArchive = React.forwardRef<
         {value.length > 0 && (
           <div className="mt-3 flex flex-col gap-2">
             {value.map((file, idx) => (
-              <div
-                key={`${file.name}-${idx}`}
-                className="flex items-center justify-between rounded-(--r-md) border border-(--border) bg-(--bg2) px-12 py-10"
-              >
-                <div className="flex items-center gap-3 overflow-hidden">
-                  <File
-                    size={14}
-                    className="shrink-0 text-(--color-text-secondary)"
-                  />
-                  <div className="flex flex-col overflow-hidden">
-                    <Title variant="body" weight="medium" className="truncate">
-                      {file.name}
-                    </Title>
-                    <Title variant="body-xs" color="muted">
-                      {formatBytes(file.size)}
-                    </Title>
-                  </div>
-                </div>
-
-                <button
-                  type="button"
-                  onClick={(e) => handleRemoveFile(idx, e)}
-                  disabled={disabled}
-                  className="ml-2 shrink-0 cursor-pointer rounded-full p-2 text-(--color-text-muted) transition-colors hover:bg-(--color-status-danger-bg) hover:text-(--color-status-danger) disabled:cursor-not-allowed disabled:text-(--color-text-disabled) disabled:hover:bg-transparent"
-                  title="Remover arquivo"
-                  aria-label={`Remover ${file.name}`}
+              <Card.Root key={`${file.name}-${idx}`} inset>
+                <Card.Body
+                  padding="sm"
+                  className="flex-row items-center justify-between"
                 >
-                  <Trash size={14} />
-                </button>
-              </div>
+                  <div className="flex min-w-0 items-center gap-3">
+                    <File
+                      size={ICON_SIZE.sm}
+                      className="shrink-0 text-(--color-text-secondary)"
+                    />
+                    <div className="flex min-w-0 flex-col">
+                      <Title
+                        variant="body"
+                        weight="medium"
+                        className="[overflow-wrap:anywhere]"
+                      >
+                        {file.name}
+                      </Title>
+                      <Title variant="body-xs" color="muted">
+                        {formatFileSize(file.size)}
+                      </Title>
+                    </div>
+                  </div>
+
+                  <Button.Root
+                    type="button"
+                    appearance="ghost"
+                    color="neutral"
+                    size="sm"
+                    isIconOnly
+                    label={`Remover ${file.name}`}
+                    onClick={(e) => handleRemoveFile(idx, e)}
+                    disabled={disabled}
+                    className="shrink-0"
+                  >
+                    <Button.Icon icon={Trash} />
+                  </Button.Root>
+                </Card.Body>
+              </Card.Root>
             ))}
           </div>
         )}

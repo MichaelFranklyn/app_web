@@ -31,7 +31,7 @@ export function CaseTimeline({ updates }: Props) {
     return (
       <EmptyState.Root>
         <EmptyState.Icon>
-          <MessageSquare size={32} />
+          <MessageSquare />
         </EmptyState.Icon>
         <EmptyState.Title>Nenhum andamento ainda</EmptyState.Title>
         <EmptyState.Description>
@@ -44,9 +44,10 @@ export function CaseTimeline({ updates }: Props) {
 
   return (
     <Card.Root>
-      <Card.Body padding="compact" className="gap-16">
-        <Title variant="heading-sm">O que já foi feito</Title>
-
+      <Card.Header>
+        <Card.Header.Title>O que já foi feito</Card.Header.Title>
+      </Card.Header>
+      <Card.Body>
         <Timeline.Root className="gap-16">
           {updates.map((update) => {
             const change = statusChangeLabel(

@@ -31,7 +31,7 @@ describe("buildKpis", () => {
     );
 
     expect(acessos?.value).toBe("15");
-    expect(acessos?.delta).toContain("3.0 fábricas por vendedor");
+    expect(acessos?.delta).toContain("3 fábricas por vendedor");
     expect(acessos?.delta).not.toContain("%");
   });
 

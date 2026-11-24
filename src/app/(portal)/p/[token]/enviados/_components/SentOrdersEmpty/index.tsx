@@ -39,7 +39,7 @@ export function SentOrdersEmpty({
     return (
       <EmptyState.Root>
         <EmptyState.Icon>
-          <Send size={36} />
+          <Send />
         </EmptyState.Icon>
         <EmptyState.Title>Nada nesta página</EmptyState.Title>
         <EmptyState.Actions>
@@ -58,7 +58,7 @@ export function SentOrdersEmpty({
   return (
     <EmptyState.Root>
       <EmptyState.Icon>
-        <Send size={36} />
+        <Send />
       </EmptyState.Icon>
       <EmptyState.Title>
         {copy?.title ?? "Você ainda não tem pedidos"}

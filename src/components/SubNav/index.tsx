@@ -4,6 +4,7 @@ import { cn } from "@/lib/utils";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import React, { useEffect, useRef } from "react";
+import { ICON_SIZE } from "@/components/Icon";
 
 /**
  * Menu interno de uma área com várias telas (ex.: Configurações): a sidebar
@@ -35,12 +36,7 @@ const Group = ({ label, className, children, ...props }: GroupProps) => (
     className={cn("desktop:flex desktop:flex-col contents", className)}
     {...props}
   >
-    <span
-      className={cn(
-        "desktop:block hidden",
-        "px-[12px] pb-[6px] text-[12px] font-(--weight-semibold) text-(--color-text-muted)"
-      )}
-    >
+    <span className={cn("desktop:block hidden", "section-label px-12 pb-6")}>
       {label}
     </span>
     {children}
@@ -88,19 +84,21 @@ const Item = ({
       aria-current={isActive ? "page" : undefined}
       data-state={isActive ? "active" : "inactive"}
       className={cn(
-        "focus-ring flex shrink-0 items-center gap-[8px] whitespace-nowrap text-(--color-text-muted) transition-colors duration-150",
+        "focus-ring flex shrink-0 items-center gap-8 whitespace-nowrap text-(--color-text-muted) transition-colors duration-150",
         "hover:text-(--color-text)",
         // Celular/tablet: aba com traço embaixo.
-        "text-body-sm mb-[-1px] border-b-[2px] border-transparent px-[16px] py-[10px]",
+        "text-body-sm mb-[-1px] border-b-[2px] border-transparent px-16 py-10",
         "data-[state=active]:border-b-(--amber) data-[state=active]:font-(--weight-semibold) data-[state=active]:text-(--color-action-text-on-tint)",
         // Desktop: item de coluna com traço à esquerda, como a sidebar.
-        "desktop:mb-0 desktop:rounded-r-[8px] desktop:border-b-0 desktop:border-l-[2px] desktop:px-[12px] desktop:py-[8px] desktop:text-[14px]",
+        "desktop:mb-0 desktop:rounded-r-[8px] desktop:border-b-0 desktop:border-l-[2px] desktop:px-12 desktop:py-8 desktop:text-body",
         "desktop:hover:bg-(--bg3) desktop:data-[state=active]:border-l-(--amber) desktop:data-[state=active]:bg-(--amber-bg)",
         className
       )}
       {...props}
     >
-      {Icon && <Icon size={16} strokeWidth={2} className="shrink-0" />}
+      {Icon && (
+        <Icon size={ICON_SIZE.md} strokeWidth={2} className="shrink-0" />
+      )}
       {children}
     </Link>
   );

@@ -47,8 +47,8 @@ export function AnalyticsSkeleton({ canSelectSeller }: Props) {
                 Desempenho
               </PanelHeader.Heading>
               {/* A descrição traz o período escolhido — vem com os dados. */}
-              <Loading.Skeleton className="mt-[6px] h-[12px] w-64" />
-              <PanelHeader.Actions className="mt-6">
+              <Loading.Skeleton text="body-sm" className="mt-6 w-64" />
+              <PanelHeader.Actions>
                 {/* Vendedor, fábrica, período e "Baixar PDF": as mesmas
                     larguras da barra real. */}
                 <Loading.Skeleton className="h-[32px] w-[220px]" />
@@ -79,7 +79,7 @@ export function AnalyticsSkeleton({ canSelectSeller }: Props) {
           renderização para pintar o que ninguém está olhando. */}
       <Card.Root>
         <Card.Header>
-          <Loading.Skeleton className="h-[14px] w-48" />
+          <Loading.Skeleton text="body" className="w-48" />
         </Card.Header>
         <Card.Body>
           <Loading.Skeleton className="h-[300px] w-full" />

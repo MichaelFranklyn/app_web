@@ -11,7 +11,7 @@ import { Check, CloudUpload, TriangleAlert, X } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { useCompanyBranding } from "@/hooks/useCompanyBranding";
 import { clientDisplayName } from "@/utils/client";
-import { visitPriority } from "@/utils/score";
+import { visitPriority, formatScore } from "@/utils/score";
 import { VisitScheduleItem } from "../../interface";
 import {
   VISIT_STATUS_COLOR,
@@ -33,6 +33,7 @@ import { chipAppearance } from "../../appearance";
 import { NegativeTag } from "@/components/ClientFactoryNegative";
 import { itemClient } from "../../calendar";
 import { canDragItem, writeDrag } from "../../dragItem";
+import { ICON_SIZE } from "@/components/Icon";
 
 interface Props {
   item: VisitScheduleItem;
@@ -74,7 +75,7 @@ const getFactoryName = (item: VisitScheduleItem): string => {
 // Mesmo molde do card de Montar semana (PriorityClientRow): o que vem abaixo
 // do nome se alinha com ele no desktop (caixinha 24px + gap 8px) e volta para a
 // borda no celular, onde a largura é curta demais para perder 32px.
-const UNDER_NAME = "desktop:pl-[32px]";
+const UNDER_NAME = "desktop:pl-32";
 
 // Etiquetas do tamanho do próprio texto, quebrando a linha quando faltar
 // espaço: esticadas na largura do card (celular) pareciam botões.
@@ -285,7 +286,7 @@ export function VisitCard({
               </TextButton>
               {warning && (
                 <TriangleAlert
-                  size={14}
+                  size={ICON_SIZE.sm}
                   className="shrink-0 text-(--color-action-text)"
                   aria-label={warning.message}
                 >
@@ -301,7 +302,7 @@ export function VisitCard({
             </div>
           </div>
 
-          <div className={`mt-4 flex flex-col gap-6 ${UNDER_NAME}`}>
+          <div className={cn("mt-4 flex flex-col gap-6", UNDER_NAME)}>
             <Title
               variant={isCompact ? "micro" : "body-xs"}
               color="muted"
@@ -384,7 +385,7 @@ export function VisitCard({
                       title={
                         scoreChips.length
                           ? undefined
-                          : `${priority.label} · score ${scoreValue?.toFixed(0)}`
+                          : `${priority.label} · score ${formatScore(scoreValue)}`
                       }
                       className={cn(scoreChips.length > 0 && "cursor-help")}
                     >

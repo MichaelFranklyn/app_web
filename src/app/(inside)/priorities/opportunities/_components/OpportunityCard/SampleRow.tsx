@@ -4,6 +4,7 @@ import { CalendarCheck } from "lucide-react";
 
 import { OpportunityCase } from "../../interface";
 import { scheduledNote } from "../../utils";
+import { ICON_SIZE } from "@/components/Icon";
 
 /**
  * Um cliente prioritário do cartão: o nome, o dado que o coloca ali e o que já
@@ -21,7 +22,7 @@ export function OpportunitySampleRow({ sample }: { sample: OpportunityCase }) {
           color="green"
           className="flex items-center gap-4"
         >
-          <CalendarCheck size={12} aria-hidden />
+          <CalendarCheck size={ICON_SIZE.xs} aria-hidden />
           {scheduled}
         </Title>
       )}

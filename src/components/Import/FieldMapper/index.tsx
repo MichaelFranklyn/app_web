@@ -3,6 +3,7 @@
 import { ChangeEvent, ReactNode } from "react";
 
 import { HelpTooltip } from "@/components/HelpTooltip";
+import { Card } from "@/components/Card";
 import { Input } from "@/components/Input";
 import { SelectOption } from "@/components/Input";
 import { Title } from "@/components/Title";
@@ -82,25 +83,27 @@ export function FieldMapper({
           placeholder="Selecione a coluna"
         />
         {choice.kind === "fixed" && (
-          <div className="flex flex-col gap-4 rounded-md border border-(--border) bg-(--bg2) p-8">
-            <Input.Text
-              label="Valor fixo"
-              value={choice.value}
-              placeholder={
-                fixedExample
-                  ? `Ex: ${fixedExample}`
-                  : `Valor para ${label.toLowerCase()}`
-              }
-              onChange={(e: ChangeEvent<HTMLInputElement>) =>
-                onChange({ kind: "fixed", value: e.target.value })
-              }
-            />
-            <Title variant="caption" color="muted">
-              {choice.value.trim()
-                ? `Todas as linhas da planilha usarão "${choice.value.trim()}" como ${label.toLowerCase()}.`
-                : "O mesmo valor será aplicado a todas as linhas da planilha."}
-            </Title>
-          </div>
+          <Card.Root inset>
+            <Card.Body padding="sm">
+              <Input.Text
+                label="Valor fixo"
+                value={choice.value}
+                placeholder={
+                  fixedExample
+                    ? `Ex: ${fixedExample}`
+                    : `Valor para ${label.toLowerCase()}`
+                }
+                onChange={(e: ChangeEvent<HTMLInputElement>) =>
+                  onChange({ kind: "fixed", value: e.target.value })
+                }
+              />
+              <Title variant="caption" color="muted">
+                {choice.value.trim()
+                  ? `Todas as linhas da planilha usarão "${choice.value.trim()}" como ${label.toLowerCase()}.`
+                  : "O mesmo valor será aplicado a todas as linhas da planilha."}
+              </Title>
+            </Card.Body>
+          </Card.Root>
         )}
       </div>
     </div>

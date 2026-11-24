@@ -9,7 +9,7 @@ export const Nav = React.forwardRef<
 >(({ className, ...props }, ref) => (
   <nav
     ref={ref}
-    className={cn(PUBLIC_PAGE_CONTAINER, "pt-[16px]", className)}
+    className={cn(PUBLIC_PAGE_CONTAINER, "pt-16", className)}
     {...props}
   />
 ));

@@ -61,7 +61,7 @@ export function ReportChartCard({
       return (
         <EmptyState.Root flat>
           <EmptyState.Icon>
-            <BarChart3 size={32} />
+            <BarChart3 />
           </EmptyState.Icon>
           <EmptyState.Title>Sem dados no período</EmptyState.Title>
           <EmptyState.Description>
@@ -80,11 +80,9 @@ export function ReportChartCard({
       <Card.Header>
         {/* Quebra linha em vez de truncar: no celular o título é a pergunta
             que o gráfico responde, e cortado ele não diz nada. */}
-        <Card.HeaderTitle className="whitespace-normal">
-          {title}
-        </Card.HeaderTitle>
+        <Card.Header.Title>{title}</Card.Header.Title>
         {description && (
-          <Card.HeaderDescription>{description}</Card.HeaderDescription>
+          <Card.Header.Description>{description}</Card.Header.Description>
         )}
       </Card.Header>
       <Card.Body>{body()}</Card.Body>

@@ -5,6 +5,7 @@ import { Button } from "@/components/Button";
 import { Card } from "@/components/Card";
 import { EmptyState } from "@/components/EmptyState";
 import { useNavigation } from "@/hooks/useNavigation";
+import { plural } from "@/utils/format/plural";
 import { ArrowRight, CalendarCheck, ListChecks } from "lucide-react";
 import { ScheduleItem } from "../../interface";
 import { namedEntityLabel } from "../../utils";
@@ -36,10 +37,8 @@ export function UpcomingVisitsCard({
 
   return (
     <Card.Root>
-      <Card.Header className="min-h-13.75">
-        <Card.Header.Title size="sm" weight="bold">
-          Próximas visitas
-        </Card.Header.Title>
+      <Card.Header>
+        <Card.Header.Title>Próximas visitas</Card.Header.Title>
         {/* A contagem fica sob o título, e não numa etiqueta ao lado do botão:
             no celular etiqueta + botão não cabiam ao lado do título e o
             cabeçalho descia os dois em faixas de largura total (relato de
@@ -47,7 +46,7 @@ export function UpcomingVisitsCard({
         {/* Sem semana montada, "0 planejadas" só repetiria o vazio abaixo. */}
         {!notPlanned && (
           <Card.Header.Description>
-            {items.length === 1 ? "1 planejada" : `${items.length} planejadas`}
+            {plural(items.length, "planejada", "planejadas")}
           </Card.Header.Description>
         )}
         <Card.Header.Actions>
@@ -68,7 +67,7 @@ export function UpcomingVisitsCard({
         {items.length === 0 ? (
           <EmptyState.Root flat>
             <EmptyState.Icon>
-              <CalendarCheck size={32} />
+              <CalendarCheck />
             </EmptyState.Icon>
             {/* Os dois vazios eram um só ("concluídas OU sem rotina"), e quem
                 abria o painel de uma empresa nova não sabia o que fazer. Sem

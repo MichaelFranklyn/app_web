@@ -1,6 +1,7 @@
 "use client";
 
 import { useSeedQuery } from "@/hooks/useSeedQuery";
+import { formatTime } from "@/utils/format/date";
 import { useQuery } from "@apollo/client/react";
 import { usePathname, useRouter, useSearchParams } from "next/navigation";
 import { useMemo } from "react";
@@ -67,10 +68,7 @@ export function useOpportunities({
   };
 
   const readAt = data?.myInsights?.data?.generatedAt
-    ? new Date(data.myInsights.data.generatedAt).toLocaleTimeString("pt-BR", {
-        hour: "2-digit",
-        minute: "2-digit",
-      })
+    ? formatTime(data.myInsights.data.generatedAt)
     : null;
 
   return {

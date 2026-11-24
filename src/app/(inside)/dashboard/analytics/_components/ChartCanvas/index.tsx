@@ -72,7 +72,7 @@ export function ChartCanvas({
     return (
       <EmptyState.Root flat>
         <EmptyState.Icon>
-          <BarChart3 size={32} />
+          <BarChart3 />
         </EmptyState.Icon>
         <EmptyState.Title>{emptyTitle}</EmptyState.Title>
         <EmptyState.Description>{emptyDescription}</EmptyState.Description>

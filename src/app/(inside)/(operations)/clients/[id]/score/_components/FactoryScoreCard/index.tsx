@@ -5,9 +5,10 @@ import { Badge } from "@/components/Badges";
 import { factoryName } from "@/utils/company";
 import { Title } from "@/components/Title";
 import { formatDate } from "@/utils/format/date";
-import { scoreBarColor, scoreLevel } from "@/utils/score";
+import { scoreBarColor, scoreLevel, formatScore } from "@/utils/score";
 import { ChevronRight } from "lucide-react";
 import { FactoryVisitScore } from "../../../interface";
+import { ICON_SIZE } from "@/components/Icon";
 
 interface Props {
   score: FactoryVisitScore;
@@ -23,7 +24,7 @@ export function FactoryScoreCard({ score, onSelect }: Props) {
   return (
     <Card.Button
       onClick={() => onSelect(score)}
-      aria-label={`Ver por que ${factoryLabel} tem score ${total.toFixed(0)}`}
+      aria-label={`Ver por que ${factoryLabel} tem score ${formatScore(total)}`}
     >
       <div className="flex items-start justify-between gap-8">
         <div className="flex min-w-0 flex-col gap-2">
@@ -41,13 +42,16 @@ export function FactoryScoreCard({ score, onSelect }: Props) {
 
       <div className="flex items-end justify-between gap-8">
         <Title variant="display" color={scoreBarColor(total)}>
-          {total.toFixed(0)}
+          {formatScore(total)}
         </Title>
         <div className="flex items-center gap-4 pb-4">
           <Title variant="micro" color="secondary">
             Ver o porquê
           </Title>
-          <ChevronRight size={14} className="text-(--color-text-muted)" />
+          <ChevronRight
+            size={ICON_SIZE.sm}
+            className="text-(--color-text-muted)"
+          />
         </div>
       </div>
     </Card.Button>

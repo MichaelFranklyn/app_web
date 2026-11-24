@@ -10,6 +10,11 @@ import { PendingSellersResponse } from "../../interface";
 import { SELLER_PARAM } from "../../utils";
 
 const EMPTY_INPUT = {};
+/**
+ * "Toda a empresa" é uma OPÇÃO, e a escolhida por padrão — não um placeholder
+ * cinza, que lia como "campo vazio" quando a tela já mostra a empresa toda.
+ */
+const WHOLE_COMPANY: SelectOption = { value: "", label: "Toda a empresa" };
 const getSellers = (d: PendingSellersResponse) => d.pending_sellers;
 
 /**
@@ -34,10 +39,12 @@ export function SellerScope() {
   );
 
   const options: SelectOption[] = useMemo(
-    () =>
-      (sellersQuery.data?.pending_sellers.edges ?? [])
+    () => [
+      WHOLE_COMPANY,
+      ...(sellersQuery.data?.pending_sellers.edges ?? [])
         .filter(({ node }) => node.isActive)
         .map(({ node }) => ({ value: node.id, label: node.name })),
+    ],
     [sellersQuery.data]
   );
 
@@ -62,9 +69,11 @@ export function SellerScope() {
         size="sm"
         aria-label="Vendedor"
         options={options}
-        value={options.find((o) => o.value === sellerId) ?? null}
+        value={options.find((o) => o.value === sellerId) ?? WHOLE_COMPANY}
         variant="single"
-        placeholder="Toda a empresa"
+        // Voltar para a empresa é escolher a opção; um X ao lado seria a
+        // mesma ação duas vezes.
+        disabledClear
         onChange={onChange}
       />
     </div>

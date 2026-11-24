@@ -1,5 +1,6 @@
 import { expect, test } from "../support/fixtures";
 import { mockGraphql } from "../support/graphql";
+import { rowAction } from "../support/rowActions";
 
 /**
  * Lote 3 — abas do detalhe da fábrica (factories/[id]/{sellers,clients,import-template}).
@@ -80,11 +81,11 @@ test("fábrica/clientes: desvincula um cliente", async ({ page }) => {
   });
 
   await page.goto(`${base}/clients`);
-  await page
-    .getByRole("row", { name: /Cliente Vinculado/ })
-    .getByRole("button")
-    .last()
-    .click();
+  await rowAction(
+    page,
+    page.getByRole("row", { name: /Cliente Vinculado/ }),
+    "Desvincular cliente"
+  );
   await page
     .getByRole("dialog")
     .getByRole("button", { name: "Desvincular" })
@@ -288,7 +289,7 @@ test("fábrica/pedidos: a lista sai escopada na fábrica e paginada", async ({
   expect(vars).toContain('{"field":"factory_id","operator":"eq"');
   // ...e a página deixou de ser um teto de 50 sem rodapé.
   expect(vars).toContain('"first":10');
-  await expect(page.getByText(/1 pedido\(s\) · página 1 de 1/)).toBeVisible();
+  await expect(page.getByText(/1 pedido · página 1 de 1/)).toBeVisible();
 });
 
 test("fábrica/pedidos: pedido faturado aparece por extenso, em português", async ({
@@ -383,10 +384,11 @@ test("fábrica/contatos: remove um contato", async ({ page }) => {
   });
 
   await page.goto(`${base}/contacts`);
-  await page
-    .getByRole("row", { name: /Contato Antigo/ })
-    .getByRole("button", { name: "Remover contato" })
-    .click();
+  await rowAction(
+    page,
+    page.getByRole("row", { name: /Contato Antigo/ }),
+    "Remover contato"
+  );
   await page
     .getByRole("dialog")
     .getByRole("button", { name: "Remover" })

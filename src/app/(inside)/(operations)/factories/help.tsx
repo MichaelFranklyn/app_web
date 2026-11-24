@@ -248,8 +248,8 @@ export const FACTORY_CARD_HELP: Record<string, ReactNode> = {
     <Title variant="body-sm">
       Quanto você ganha nos pedidos desta fábrica, em % do valor do pedido
       (mercadoria sem IPI). É o combinado com a sua empresa — não o que a
-      fábrica paga para a representação. Em branco quer dizer que o seu
-      percentual ainda não foi cadastrado: fale com o seu gestor.
+      fábrica paga para a representação. &quot;Não cadastrada&quot; quer dizer
+      que o seu percentual ainda não foi registrado: fale com o seu gestor.
     </Title>
   ),
   "Quando você recebe": (

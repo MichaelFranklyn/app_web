@@ -7,7 +7,6 @@ export const Root = React.forwardRef<HTMLDivElement, CardRootProps>(
   (
     {
       accent,
-      isCompact,
       tone,
       inset,
       dashed,
@@ -29,7 +28,6 @@ export const Root = React.forwardRef<HTMLDivElement, CardRootProps>(
       className={cn(
         rootStyle({
           accent,
-          isCompact,
           tone,
           inset,
           dashed,

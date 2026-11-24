@@ -7,6 +7,7 @@ import { Check, Minus } from "lucide-react";
 
 import { PositivationCell as Cell } from "../../interface";
 import { Title } from "@/components/Title";
+import { ICON_SIZE } from "@/components/Icon";
 
 /**
  * Uma célula da matriz. Três estados, e a diferença entre os dois últimos é o
@@ -37,7 +38,7 @@ export function PositivationCellMark({ cell }: { cell: Cell }) {
     return (
       <Tooltip content={`${cell.factoryName}: nenhuma compra no período`}>
         <Minus
-          size={16}
+          size={ICON_SIZE.md}
           role="img"
           aria-label={`${cell.factoryName}: não comprou no período`}
           className="text-(--color-action-text)"
@@ -55,7 +56,7 @@ export function PositivationCellMark({ cell }: { cell: Cell }) {
       }`}
     >
       <Check
-        size={16}
+        size={ICON_SIZE.md}
         role="img"
         aria-label={`${cell.factoryName}: comprou no período`}
         className="text-(--color-status-success)"

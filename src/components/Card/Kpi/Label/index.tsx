@@ -1,24 +1,25 @@
-import { IconTile } from "@/components/IconTile";
+import { HelpTooltip } from "@/components/HelpTooltip";
 import { cn } from "@/lib/utils";
 import React from "react";
 import { CardKpiLabelProps } from "./interface";
-import { kpiLabelIconStyle, kpiLabelStyle, kpiLabelTextStyle } from "./style";
+import { kpiLabelStyle, kpiLabelTextStyle } from "./style";
 
 export const KpiLabel = React.forwardRef<HTMLDivElement, CardKpiLabelProps>(
-  ({ icon: Icon, className, children, ...props }, ref) => (
+  ({ help, className, children, ...props }, ref) => (
     <div ref={ref} className={cn(kpiLabelStyle, className)} {...props}>
-      <span className={kpiLabelTextStyle}>{children}</span>
-      {Icon && (
-        <IconTile
-          color="blue"
-          size="sm"
-          shape="square"
-          aria-hidden="true"
-          className={kpiLabelIconStyle}
-        >
-          <Icon />
-        </IconTile>
-      )}
+      <span className={kpiLabelTextStyle}>
+        {children}
+        {help ? (
+          <HelpTooltip
+            label={
+              typeof children === "string"
+                ? `Sobre ${children}`
+                : "Sobre este número"
+            }
+            content={help}
+          />
+        ) : null}
+      </span>
     </div>
   )
 );

@@ -7,6 +7,7 @@ import { ChevronLeft, ChevronRight, Menu } from "lucide-react";
 import { usePathname } from "next/navigation";
 import React from "react";
 import { NavigationProgress } from "./NavigationProgress";
+import { ICON_SIZE } from "@/components/Icon";
 
 /**
  * Casca das telas com menu (sistema e console da plataforma).
@@ -32,7 +33,7 @@ const MAIN_ID = "conteudo";
 const SkipLink = () => (
   <a
     href={`#${MAIN_ID}`}
-    className="focus-ring focus:text-body-sm sr-only focus:not-sr-only focus:fixed focus:top-8 focus:left-8 focus:z-[100] focus:rounded-(--r-md) focus:bg-(--bg2) focus:px-12 focus:py-8 focus:font-semibold focus:text-(--color-text) focus:shadow-(--shadow-sm)"
+    className="focus-ring focus:text-body-sm sr-only focus:not-sr-only focus:fixed focus:top-8 focus:left-8 focus:z-(--z-skip-link) focus:rounded-(--r-md) focus:bg-(--bg2) focus:px-12 focus:py-8 focus:font-semibold focus:text-(--color-text) focus:shadow-(--shadow-sm)"
   >
     Pular para o conteúdo
   </a>
@@ -51,7 +52,7 @@ const Backdrop = ({
   open ? (
     <div
       data-testid={testId}
-      className="desktop:hidden fixed inset-0 z-[80] bg-black/40"
+      className="desktop:hidden fixed inset-0 z-(--z-shell-backdrop) bg-(--scrim)"
       onClick={onClose}
       aria-hidden
     />
@@ -75,11 +76,11 @@ const FrameSidebar = ({
 }: FrameSidebarProps) => (
   <Sidebar.Root
     className={cn(
-      "z-[90] w-[232px] shrink-0",
+      "z-(--z-shell) w-[232px] shrink-0",
       "fixed inset-y-0 left-0 transition-[transform,width] duration-200 ease-out",
       drawerOpen ? "translate-x-0" : "-translate-x-full",
       // `translate-none`, não `translate-x-0`: o `translate: 0` ainda cria
-      // contexto de empilhamento, e aí o z-[95] do CollapseToggle só vale
+      // contexto de empilhamento, e aí o z-index do CollapseToggle só vale
       // DENTRO da sidebar; o Panel (que vem depois) cobria a metade do botão
       // que passa da borda (13/11/2026).
       "desktop:static desktop:z-auto desktop:translate-none",
@@ -108,12 +109,12 @@ const CollapseToggle = ({
       onClick={onToggle}
       aria-label={label}
       title={label}
-      className="desktop:flex absolute top-[74px] right-0 z-[95] hidden size-24 translate-x-1/2 cursor-pointer items-center justify-center rounded-full border border-(--border) bg-(--bg2) text-(--color-text-muted) shadow-(--shadow-sm) transition-colors hover:border-(--border2) hover:text-(--color-text)"
+      className="desktop:flex absolute top-[74px] right-0 z-(--z-shell-toggle) hidden size-24 translate-x-1/2 cursor-pointer items-center justify-center rounded-full border border-(--border) bg-(--bg2) text-(--color-text-muted) shadow-(--shadow-sm) transition-colors hover:border-(--border2) hover:text-(--color-text)"
     >
       {collapsed ? (
-        <ChevronRight size={14} strokeWidth={2.5} />
+        <ChevronRight size={ICON_SIZE.sm} strokeWidth={2.5} />
       ) : (
-        <ChevronLeft size={14} strokeWidth={2.5} />
+        <ChevronLeft size={ICON_SIZE.sm} strokeWidth={2.5} />
       )}
     </button>
   );
@@ -138,7 +139,7 @@ const Panel = ({ children }: { children: React.ReactNode }) => (
  * `-ml-[15px]`: o alvo é 44 e o ícone 14, centralizado — sem a compensação o
  * ícone ficava 15px à direita da margem do conteúdo (desalinhado do título).
  * A margem negativa devolve a folga ao gutter sem encolher a área de toque.
- * À direita, só 4px depois do ícone (`pr-[4px]`, 33px de largura): com o
+ * À direita, só 4px depois do ícone (`pr-4`, 33px de largura): com o
  * ícone centralizado em 44px, o seletor de escritório ficava a ~37px do
  * hambúrguer e parecia solto (relato de 20/11/2026). A altura segue 44px.
  */
@@ -149,7 +150,7 @@ const MenuButton = ({ onClick }: { onClick: () => void }) => (
     size="sm"
     isIconOnly
     label="Abrir menu"
-    className="desktop:hidden -ml-[15px] min-h-[44px] w-auto min-w-[33px] justify-start pr-[4px] pl-[15px]"
+    className="desktop:hidden -ml-[15px] min-h-[44px] w-auto min-w-[33px] justify-start pr-4 pl-[15px]"
     onClick={onClick}
   >
     <Button.Icon icon={Menu} />

@@ -2,6 +2,7 @@ import { Card } from "@/components/Card";
 import { Alert } from "@/components/Alert";
 import { Stepper } from "@/components/Stepper";
 import { Title } from "@/components/Title";
+import { plural } from "@/utils/format/plural";
 import { AlertTriangle } from "lucide-react";
 
 import { ReviewRow, SkippedImportItem } from "./interface";
@@ -46,7 +47,7 @@ export function StepSheetSummary({
 
       {summary && (
         <Card.Root inset>
-          <Card.Body padding="sm" className="flex flex-col gap-4">
+          <Card.Body padding="sm">
             <Title variant="caption" color="muted" weight="medium">
               A ficha diz
             </Title>
@@ -58,7 +59,7 @@ export function StepSheetSummary({
       )}
 
       <Card.Root inset>
-        <Card.Body padding="sm" className="flex flex-col gap-4">
+        <Card.Body padding="sm">
           <Title variant="caption" color="muted" weight="medium">
             Itens
           </Title>
@@ -72,7 +73,13 @@ export function StepSheetSummary({
         <Alert.Root variant="warning">
           <Alert.Icon icon={AlertTriangle} />
           <Alert.Content>
-            <Alert.Title>{skippedItems.length} item(ns) não entram</Alert.Title>
+            <Alert.Title>
+              {plural(
+                skippedItems.length,
+                "item não entra",
+                "itens não entram"
+              )}
+            </Alert.Title>
             <Alert.Description>
               Estes códigos não têm produto ou nível no catálogo desta fábrica —
               o produto pode ter saído de linha depois que a ficha foi baixada:{" "}

@@ -13,8 +13,9 @@ import { isTruncated, MAX_SCAN_PAGES } from "@/utils/pagination";
 import { parseLocalDate, toIsoDate } from "@/utils/format/date";
 import { useInvalidateQueriesClient } from "@/hooks/useInvalidateQueries";
 import { PRICE_ITEM_CACHE_FIELDS } from "@/utils/cacheFields";
+import { plural } from "@/utils/format/plural";
 import { useApolloClient, useMutation } from "@apollo/client/react";
-import { Tags, Zap } from "lucide-react";
+import { SearchX, Tags, Zap } from "lucide-react";
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { PriceListDetail } from "../../../interface";
 import {
@@ -192,7 +193,7 @@ export function PromotionModal({ priceList, onChanged }: Props) {
       },
       {
         successMessage: items.length
-          ? `Promoção salva em ${items.length} preço(s).`
+          ? `Promoção salva em ${plural(items.length, "preço", "preços")}.`
           : "Promoção encerrada.",
         onSuccess: () => {
           setOpen(false);
@@ -275,13 +276,19 @@ export function PromotionModal({ priceList, onChanged }: Props) {
             />
 
             {loadingItems ? (
-              <div className="flex min-h-40 items-center justify-center">
-                <Loading.Spinner size="md" />
+              <div className="flex flex-col gap-8" aria-busy="true">
+                {Array.from({ length: 4 }, (_, i) => (
+                  <Loading.Skeleton
+                    key={i}
+                    shape="md"
+                    className="h-56 w-full"
+                  />
+                ))}
               </div>
             ) : products.length === 0 ? (
-              <EmptyState.Root>
+              <EmptyState.Root flat>
                 <EmptyState.Icon>
-                  <Tags size={32} />
+                  <Tags />
                 </EmptyState.Icon>
                 <EmptyState.Title>Nenhum item na tabela</EmptyState.Title>
                 <EmptyState.Description>
@@ -330,20 +337,24 @@ export function PromotionModal({ priceList, onChanged }: Props) {
                   </div>
                 ))}
                 {filteredProducts.length === 0 && (
-                  <Title
-                    variant="body-sm"
-                    color="muted"
-                    className="py-12 text-center"
-                  >
-                    Nenhum produto encontrado para “{search}”.
-                  </Title>
+                  <EmptyState.Root flat>
+                    <EmptyState.Icon>
+                      <SearchX />
+                    </EmptyState.Icon>
+                    <EmptyState.Title>
+                      Nenhum produto encontrado
+                    </EmptyState.Title>
+                    <EmptyState.Description>
+                      Nada com “{search}”. Tente o nome ou o código.
+                    </EmptyState.Description>
+                  </EmptyState.Root>
                 )}
               </div>
             )}
 
             <Title variant="body-sm" color="muted">
               {promotedCount > 0
-                ? `${promotedCount} preço(s) em promoção.`
+                ? `${plural(promotedCount, "preço", "preços")} em promoção.`
                 : "Nenhum preço em promoção — salvar assim encerra a promoção."}
             </Title>
           </div>

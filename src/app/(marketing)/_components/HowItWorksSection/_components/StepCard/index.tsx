@@ -20,13 +20,13 @@ export function StepCard({
     // a linha cortava título e parágrafo (relato de 20/11/2026). No desktop o
     // trilho é horizontal e o texto volta para baixo do pino.
     <li className="desktop:flex desktop:flex-col desktop:gap-12 grid grid-cols-[48px_1fr] gap-x-20">
-      <span className="relative flex size-48 items-center justify-center rounded-(--radius-full) bg-(--color-action) shadow-(--shadow-sm) ring-8 ring-(--bg2)">
+      <span className="relative flex size-48 items-center justify-center rounded-full bg-(--color-action) shadow-(--shadow-sm) ring-8 ring-(--bg2)">
         <Title as="span" variant="heading-md" color="onAction">
           {number}
         </Title>
       </span>
 
-      <div className="desktop:pt-0 flex min-w-0 flex-col gap-12 pt-[10px]">
+      <div className="desktop:pt-0 flex min-w-0 flex-col gap-12 pt-10">
         <Title as="h3" variant="heading-md" className="desktop:mt-8">
           {title}
         </Title>

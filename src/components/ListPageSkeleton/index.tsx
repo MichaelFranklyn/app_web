@@ -1,12 +1,10 @@
-// `Card.Header` (= `Table.CardHead`) e `Card.Kpi` vêm de módulos "use client":
-// a partir de um Server Component eles chegam como referência opaca, e ler
-// `.Title`/`.Actions` deles dá `undefined` ("Element type is invalid"). Como
-// `loading.tsx` é server, este skeleton precisa ser client.
+// `Tabs` vem de módulo "use client": a partir de um Server Component ele chega
+// como referência opaca, e ler `.Root`/`.List` dá `undefined` ("Element type
+// is invalid"). Como `loading.tsx` é server, este skeleton precisa ser client
+// (guarda em `__tests__/clientCompound.guard.test.ts`).
 "use client";
 
 import { Card } from "@/components/Card";
-import { Grid } from "@/components/Grid";
-import { GridBreakpointCols, GridGap } from "@/components/Grid/Root/interface";
 import { Loading } from "@/components/Loading";
 import { PageContent } from "@/components/PageContent";
 import { PanelHeader } from "@/components/PanelHeader";
@@ -17,12 +15,6 @@ import { Tabs } from "@/components/Tabs";
 import { cn } from "@/lib/utils";
 import { PAGE_HEADING, PageHeadingKey } from "@/utils/modules";
 import React from "react";
-
-const DEFAULT_KPI_COLS: GridBreakpointCols = {
-  base: 1,
-  tablet: 2,
-  "desktop-xl": 4,
-};
 
 interface ListPageSkeletonProps {
   /**
@@ -51,14 +43,13 @@ interface ListPageSkeletonProps {
    * Faixa de KPIs acima da lista. Ausente = a página não tem KPIs. `help`: os
    * cartões reais têm o "?" ao lado do rótulo (ele deixa a linha mais alta).
    * `delta: false`: os cartões reais não têm a legenda embaixo do número (só
-   * rótulo + valor, como os contadores de /support). `gap`: o da página real.
+   * rótulo + valor, como os contadores de /support). Colunas e espaçamento vêm
+   * do `Card.Kpi.Group`, como na página real.
    */
   kpis?: {
     count: number;
-    cols?: GridBreakpointCols;
     help?: boolean;
     delta?: boolean;
-    gap?: GridGap;
   };
   /** Rótulos das abas, quando a lista tem abas (a 1ª entra como ativa). */
   tabs?: string[];
@@ -134,11 +125,11 @@ function CardRowsSkeleton({
           className="flex flex-col gap-6 border-b border-(--border) px-16 py-12 last:border-b-0"
         >
           <div className="flex items-center justify-between gap-12">
-            <Loading.Skeleton className="h-[16px] w-3/5" />
+            <Loading.Skeleton text="heading-sm" className="w-3/5" />
             <Loading.Skeleton className="h-[20px] w-[72px] rounded-full" />
           </div>
-          <Loading.Skeleton className="h-[12px] w-2/5" />
-          <Loading.Skeleton className="h-[12px] w-1/2" />
+          <Loading.Skeleton text="body-sm" className="w-2/5" />
+          <Loading.Skeleton text="body-sm" className="w-1/2" />
         </div>
       ))}
     </div>
@@ -185,7 +176,7 @@ export function ListPageSkeleton({
           {listTitle ? (
             <Table.CardHead.Title>{listTitle}</Table.CardHead.Title>
           ) : listTitle === false ? null : (
-            <Loading.Skeleton className="h-[14px] w-40" />
+            <Loading.Skeleton text="body" className="w-40" />
           )}
           <Table.CardHead.Actions>
             {/* Num <div> próprio: as ações forçam `w-auto` nos filhos <div>
@@ -223,7 +214,7 @@ export function ListPageSkeleton({
 
         <Table.Footer>
           <Table.Footer.Info>
-            <Loading.Skeleton className="h-[12px] w-40" />
+            <Loading.Skeleton text="body-sm" className="w-40" />
           </Table.Footer.Info>
         </Table.Footer>
       </Table.Root>
@@ -254,10 +245,10 @@ export function ListPageSkeleton({
             {description ? (
               <PanelHeader.Description>{description}</PanelHeader.Description>
             ) : (
-              <Loading.Skeleton className="mt-[6px] h-[12px] w-64" />
+              <Loading.Skeleton text="body-sm" className="mt-6 w-64" />
             )}
             {actionWidths.length > 0 && (
-              <PanelHeader.Actions className="mt-6">
+              <PanelHeader.Actions>
                 {actionWidths.map((width, i) => (
                   <Loading.Skeleton key={i} className={cn("h-[32px]", width)} />
                 ))}
@@ -267,33 +258,31 @@ export function ListPageSkeleton({
         </PanelHeader.Top>
       </PanelHeader.Root>
 
+      {/* Os slots reais com um texto-modelo invisível sob o shimmer: cada
+          linha fica com a altura tipográfica de verdade. Barras soltas davam
+          128px contra 156px+ do cartão e a lista descia quando a página
+          chegava (/orders, 17/11/2026). */}
       {kpis && (
-        <Grid.Root cols={kpis.cols ?? DEFAULT_KPI_COLS} gap={kpis.gap ?? 20}>
+        <Card.Kpi.Group>
           {Array.from({ length: kpis.count }).map((_, i) => (
-            <Grid.Item key={i}>
-              {/* Os slots reais com um texto-modelo invisível sob o shimmer:
-                  cada linha fica com a altura tipográfica de verdade. Barras
-                  soltas davam 128px contra 156px+ do cartão e a lista descia
-                  quando a página chegava (/orders, 17/11/2026). */}
-              <Card.Kpi aria-hidden>
-                <Card.Kpi.Label>
-                  <TextSkeleton>Rótulo do cartão</TextSkeleton>
-                  {kpis.help && (
-                    <Loading.Skeleton className="size-[32.8px] shrink-0" />
-                  )}
-                </Card.Kpi.Label>
-                <Card.Kpi.Value>
-                  <TextSkeleton>R$ 0.000,00</TextSkeleton>
-                </Card.Kpi.Value>
-                {kpis.delta !== false && (
-                  <Card.Kpi.Delta>
-                    <TextSkeleton>legenda do cartão</TextSkeleton>
-                  </Card.Kpi.Delta>
+            <Card.Kpi key={i} aria-hidden>
+              <Card.Kpi.Label>
+                <TextSkeleton>Rótulo do cartão</TextSkeleton>
+                {kpis.help && (
+                  <Loading.Skeleton className="size-[32.8px] shrink-0" />
                 )}
-              </Card.Kpi>
-            </Grid.Item>
+              </Card.Kpi.Label>
+              <Card.Kpi.Value>
+                <TextSkeleton>R$ 0.000,00</TextSkeleton>
+              </Card.Kpi.Value>
+              {kpis.delta !== false && (
+                <Card.Kpi.Delta>
+                  <TextSkeleton>legenda do cartão</TextSkeleton>
+                </Card.Kpi.Delta>
+              )}
+            </Card.Kpi>
           ))}
-        </Grid.Root>
+        </Card.Kpi.Group>
       )}
 
       {tabs ? (

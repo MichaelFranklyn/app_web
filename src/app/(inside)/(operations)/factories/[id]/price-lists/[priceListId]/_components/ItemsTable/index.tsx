@@ -14,6 +14,7 @@ import { Title } from "@/components/Title";
 import { useOptimisticList } from "@/hooks/useOptimisticList";
 import type { FieldConfig } from "@/hooks/useTableFilters";
 import { useTableData } from "@/hooks/useTableData";
+import { plural } from "@/utils/format/plural";
 import { Tags, Zap } from "lucide-react";
 import { useMemo } from "react";
 import { AddItemModal } from "./AddItemModal";
@@ -69,7 +70,7 @@ export function ItemsTable({
   return (
     <Table.Root data-tour="price-items-table">
       <Table.CardHead>
-        <Table.CardHead.Title className="inline-flex items-center gap-6">
+        <Table.CardHead.Title>
           Itens da tabela
           <HelpTooltip
             label="Por que alguns produtos não aparecem?"
@@ -98,20 +99,23 @@ export function ItemsTable({
         </Table.CardHead.Actions>
       </Table.CardHead>
 
-      <Table.Table>
+      <Table.Table cards>
         <Table.Header>
           <Table.Row>
             <Table.Head title={PRICE_ITEM_COLUMN_HELP.product}>
               Produto
             </Table.Head>
             <Table.Head title={PRICE_ITEM_COLUMN_HELP.tier}>Nível</Table.Head>
-            <Table.Head title={PRICE_ITEM_COLUMN_HELP.packPrice}>
+            <Table.Head align="right" title={PRICE_ITEM_COLUMN_HELP.packPrice}>
               Preço da embalagem
             </Table.Head>
-            <Table.Head title={PRICE_ITEM_COLUMN_HELP.priceWithTax}>
+            <Table.Head
+              align="right"
+              title={PRICE_ITEM_COLUMN_HELP.priceWithTax}
+            >
               Preço c/ imposto
             </Table.Head>
-            <Table.Head title={PRICE_ITEM_COLUMN_HELP.unitPrice}>
+            <Table.Head align="right" title={PRICE_ITEM_COLUMN_HELP.unitPrice}>
               Preço por unidade
             </Table.Head>
             <Table.Head
@@ -136,7 +140,7 @@ export function ItemsTable({
               <Table.Cell colSpan={6}>
                 <EmptyState.Root flat>
                   <EmptyState.Icon>
-                    <Tags size={32} />
+                    <Tags />
                   </EmptyState.Icon>
                   <EmptyState.Title>
                     {search.trim()
@@ -162,7 +166,7 @@ export function ItemsTable({
               const packLabel = it.product?.unitLabel?.label ?? "Embalagem";
               return (
                 <Table.Row key={it.id}>
-                  <Table.Cell>
+                  <Table.Cell card="title">
                     <div className="flex flex-col items-start gap-2">
                       <Table.CellText variant="strong">
                         {it.product?.name ?? "Produto removido"}
@@ -180,19 +184,17 @@ export function ItemsTable({
                       )}
                     </div>
                   </Table.Cell>
-                  <Table.Cell>
-                    <Table.CellText variant="dim">
-                      {it.tier?.name ?? "—"}
-                    </Table.CellText>
+                  <Table.Cell variant="dim" label="Nível">
+                    {it.tier?.name ?? ""}
                   </Table.Cell>
-                  <Table.Cell>
+                  <Table.Cell align="right" label="Preço da embalagem">
                     <Table.CellText variant="dim">
                       R$ {money(Number(it.unitPrice))}
                     </Table.CellText>
                   </Table.Cell>
-                  <Table.Cell>
+                  <Table.Cell card="value" align="right">
                     {it.isPromoActive && it.promoPriceWithImpost ? (
-                      <div className="flex flex-col items-start gap-2">
+                      <div className="flex flex-col items-end gap-2">
                         <span className="inline-flex items-center gap-6">
                           <Badge.Root
                             color="orange"
@@ -218,7 +220,7 @@ export function ItemsTable({
                       </Table.CellText>
                     )}
                   </Table.Cell>
-                  <Table.Cell>
+                  <Table.Cell align="right" label="Preço por unidade">
                     <div className="flex flex-col">
                       <Table.CellText variant="strong">
                         R$ {money(perBaseUnit)} / {baseUnit}
@@ -228,7 +230,7 @@ export function ItemsTable({
                       </Table.CellText>
                     </div>
                   </Table.Cell>
-                  <Table.Cell>
+                  <Table.Cell card="actions">
                     <div className="flex items-center justify-end">
                       <ItemRowActions
                         item={it}
@@ -253,7 +255,7 @@ export function ItemsTable({
             <Loading.Spinner size="sm" className="mr-6 inline-block" />
           )}
           {table.totalItems > 0
-            ? `${table.totalItems} item(ns) · página ${table.currentPage} de ${table.totalPages}`
+            ? `${plural(table.totalItems, "item", "itens")} · página ${table.currentPage} de ${table.totalPages}`
             : "Nenhum item"}
         </Table.Footer.Info>
 

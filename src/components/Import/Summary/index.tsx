@@ -40,7 +40,7 @@ export function Summary<T extends ImportSummaryDetail>({
 
   return (
     <div className="flex flex-col gap-10">
-      <div className="grid grid-cols-3 gap-8">
+      <Card.Kpi.Group>
         <Card.Kpi>
           <Card.Kpi.Label>
             {createdLabel ?? (feminine ? "Criadas" : "Criados")}
@@ -55,14 +55,11 @@ export function Summary<T extends ImportSummaryDetail>({
           <Card.Kpi.Label>Com erro</Card.Kpi.Label>
           <Card.Kpi.Value status="urgente">{result.failed}</Card.Kpi.Value>
         </Card.Kpi>
-      </div>
+      </Card.Kpi.Group>
 
       {hasDetails && (
         <Card.Root inset>
-          <Card.Body
-            padding="sm"
-            className="max-h-[180px] gap-4 overflow-y-auto"
-          >
+          <Card.Body padding="sm" className="max-h-[180px] overflow-y-auto">
             {result.errors.map((detail) => (
               <DetailLine
                 key={`err-${detail.row}-${identify(detail)}`}

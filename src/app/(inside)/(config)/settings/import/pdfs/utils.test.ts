@@ -3,6 +3,9 @@ import { describe, expect, it } from "vitest";
 import { PdfImportBatch, PdfImportFile } from "./interface";
 import { HistoryResult } from "../interface";
 import {
+  batchBadge,
+  batchCounts,
+  batchOpenedAt,
   buildPdfRows,
   fileBadge,
   hashFile,
@@ -281,5 +284,38 @@ describe("importedFileIds", () => {
       ],
     });
     expect(importedFileIds(build, files, res)).toEqual(["b"]);
+  });
+});
+
+describe("lote na lista de lotes", () => {
+  it("conta com o plural certo", () => {
+    expect(batchCounts(batch({ totalFiles: 1, readFiles: 1 }))).toBe(
+      "1 PDF no lote · 1 lido"
+    );
+    expect(
+      batchCounts(batch({ totalFiles: 5, readFiles: 3, failedFiles: 2 }))
+    ).toBe("5 PDFs no lote · 3 lidos · 2 não lidos");
+  });
+
+  it("diz em que pé está o lote", () => {
+    expect(batchBadge(batch({ totalFiles: 0 })).label).toBe("Vazio");
+    expect(
+      batchBadge(batch({ totalFiles: 2, pendingFiles: 1, readFiles: 1 })).label
+    ).toBe("Lendo");
+    expect(batchBadge(batch({ totalFiles: 2, readFiles: 2 })).label).toBe(
+      "Falta importar"
+    );
+    expect(
+      batchBadge(batch({ totalFiles: 3, importedFiles: 2, failedFiles: 1 }))
+        .label
+    ).toBe("Importado");
+    expect(batchBadge(batch({ totalFiles: 1, failedFiles: 1 })).label).toBe(
+      "Não lido"
+    );
+  });
+
+  it("mostra a hora no fuso do escritório", () => {
+    expect(batchOpenedAt("2026-11-17T13:05:00Z")).toBe("17/11/2026 às 10:05");
+    expect(batchOpenedAt("lixo")).toBe("—");
   });
 });

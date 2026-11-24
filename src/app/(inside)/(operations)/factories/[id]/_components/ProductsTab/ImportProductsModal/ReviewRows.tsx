@@ -2,6 +2,7 @@
 
 import { Table } from "@/components/Table";
 import { Title } from "@/components/Title";
+import { plural } from "@/utils/format/plural";
 
 import { ImportProductRow } from "./interface";
 
@@ -24,7 +25,7 @@ export function ReviewRows({ rows }: { rows: ImportProductRow[] }) {
   return (
     <div className="flex flex-col gap-8">
       <Title variant="body-sm" weight="medium">
-        {rows.length} produto(s) lidos da planilha
+        {plural(rows.length, "produto lido", "produtos lidos")} da planilha
       </Title>
 
       <Table.Root>

@@ -5,6 +5,7 @@ import { ArrowRight } from "lucide-react";
 import Link from "next/link";
 import React from "react";
 import { Title } from "@/components/Title";
+import { ICON_SIZE } from "@/components/Icon";
 
 /**
  * Partes de um menu que é um painel (o sino de notificações): cabeçalho com
@@ -94,6 +95,6 @@ export const PanelFooter = ({
     <Title variant="micro" weight="semibold" className="text-inherit">
       {children}
     </Title>
-    <ArrowRight size={12} aria-hidden />
+    <ArrowRight size={ICON_SIZE.xs} aria-hidden />
   </Link>
 );

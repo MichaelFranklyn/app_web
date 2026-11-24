@@ -49,7 +49,7 @@ export function StockDaysEditor({
 
   return (
     <Card.Root inset tone="muted">
-      <Card.Body padding="sm" className="gap-8">
+      <Card.Body padding="sm">
         <Title variant="body-sm" color="muted">
           Quantos dias o estoque de{" "}
           <Title variant="body-xs" weight="medium">

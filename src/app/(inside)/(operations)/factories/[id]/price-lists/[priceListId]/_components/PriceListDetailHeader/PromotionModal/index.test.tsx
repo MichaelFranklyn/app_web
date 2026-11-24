@@ -207,7 +207,7 @@ describe("PromotionModal", () => {
 
     await userEvent.type(camposDePreco()[0]!, "8990");
 
-    expect(screen.getByText("1 preço(s) em promoção.")).toBeInTheDocument();
+    expect(screen.getByText("1 preço em promoção.")).toBeInTheDocument();
   });
 
   it("busca filtra por nome e por código", async () => {
@@ -232,8 +232,9 @@ describe("PromotionModal", () => {
       "inexistente"
     );
 
+    expect(screen.getByText("Nenhum produto encontrado")).toBeInTheDocument();
     expect(
-      screen.getByText("Nenhum produto encontrado para “inexistente”.")
+      screen.getByText("Nada com “inexistente”. Tente o nome ou o código.")
     ).toBeInTheDocument();
   });
 
@@ -293,7 +294,7 @@ describe("PromotionModal", () => {
       items: [{ productId: "p-1", tierId: "t-SCF", promoPrice: 89.9 }],
     });
     expect(
-      await screen.findByText("Promoção salva em 1 preço(s).")
+      await screen.findByText("Promoção salva em 1 preço.")
     ).toBeInTheDocument();
     await waitFor(() => expect(invalidateClient).toHaveBeenCalled());
   });
@@ -328,7 +329,7 @@ describe("PromotionModal", () => {
     await abrir();
 
     expect(camposDePreco()[0]).toHaveValue("79,90");
-    expect(screen.getByText("1 preço(s) em promoção.")).toBeInTheDocument();
+    expect(screen.getByText("1 preço em promoção.")).toBeInTheDocument();
   });
 
   it("encerrar a promoção pede confirmação antes de valer", async () => {

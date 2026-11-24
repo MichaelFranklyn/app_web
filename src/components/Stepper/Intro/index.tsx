@@ -23,7 +23,11 @@ export function StepperIntro({
   children,
 }: StepperIntroProps) {
   return (
-    <div className="flex flex-col gap-2 rounded-(--r-lg) border border-(--border) bg-(--bg2) px-12 py-10">
+    // Texto solto, sem caixa: o wizard já mora num card (ou num modal), e a
+    // caixa de borda dentro dele era um card dentro do card — mais uma moldura
+    // para o olho atravessar antes do que importa (crítica de configurações,
+    // 23/11/2026).
+    <div className="flex flex-col gap-2">
       <Title variant="caption" color="secondary" weight="medium">
         Passo {step} de {total}
       </Title>

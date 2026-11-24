@@ -13,17 +13,17 @@ export function FactoryDetailSkeleton() {
   return (
     <PageContent>
       <div className="flex flex-col gap-12">
-        <div className="flex items-center gap-[8px]">
-          <Loading.Skeleton className="h-[12px] w-16" />
-          <Loading.Skeleton className="h-[12px] w-24" />
+        <div className="flex items-center gap-8">
+          <Loading.Skeleton text="body-sm" className="w-16" />
+          <Loading.Skeleton text="body-sm" className="w-24" />
         </div>
 
         <PanelHeader.Root>
           <PanelHeader.Top>
             <PanelHeader.Left>
               <Loading.Skeleton className="h-[20px] w-64" />
-              <Loading.Skeleton className="mt-[6px] h-[12px] w-80" />
-              <PanelHeader.Actions className="mt-6">
+              <Loading.Skeleton text="body-sm" className="mt-6 w-80" />
+              <PanelHeader.Actions>
                 <Loading.Skeleton shape="xs" className="h-[22px] w-16" />
                 <Loading.Skeleton className="h-[36px] w-24" />
               </PanelHeader.Actions>
@@ -32,10 +32,10 @@ export function FactoryDetailSkeleton() {
         </PanelHeader.Root>
       </div>
 
-      <div className="flex flex-col gap-[10px]">
+      <div className="flex flex-col gap-10">
         <div className="flex gap-16">
           {Array.from({ length: TAB_COUNT }).map((_, i) => (
-            <Loading.Skeleton key={i} className="h-[14px] w-24" />
+            <Loading.Skeleton text="body" key={i} className="w-24" />
           ))}
         </div>
         <Divider.Root />

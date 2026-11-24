@@ -46,7 +46,7 @@ export function PriceHistoryTable({
   return (
     <Table.Root>
       <Table.CardHead>
-        <Table.CardHead.Title className="inline-flex items-center gap-6">
+        <Table.CardHead.Title>
           Histórico de preços
           <HelpTooltip
             label="De onde vem o histórico?"
@@ -68,13 +68,13 @@ export function PriceHistoryTable({
         </Table.CardHead.Title>
       </Table.CardHead>
 
-      <Table.Table>
+      <Table.Table cards>
         <Table.Header>
           <Table.Row>
             <Table.Head>Data</Table.Head>
             <Table.Head>Nível</Table.Head>
             <Table.Head>Tabela</Table.Head>
-            <Table.Head>Preço (embalagem)</Table.Head>
+            <Table.Head align="right">Preço (embalagem)</Table.Head>
             <Table.Head>Variação</Table.Head>
           </Table.Row>
         </Table.Header>
@@ -92,7 +92,7 @@ export function PriceHistoryTable({
               <Table.Cell colSpan={5}>
                 <EmptyState.Root flat>
                   <EmptyState.Icon>
-                    <History size={32} />
+                    <History />
                   </EmptyState.Icon>
                   <EmptyState.Title>Nenhum preço ainda</EmptyState.Title>
                   <EmptyState.Description>
@@ -104,15 +104,15 @@ export function PriceHistoryTable({
           ) : (
             visible.map((change) => (
               <Table.Row key={change.id}>
-                <Table.Cell variant="dim">
+                <Table.Cell variant="dim" label="Data">
                   {formatDateDMY(change.changedAt)}
                 </Table.Cell>
-                <Table.Cell>
+                <Table.Cell label="Nível">
                   <Badge.Root color="neutral" appearance="tinted">
                     <Badge.Text>{change.tierName}</Badge.Text>
                   </Badge.Root>
                 </Table.Cell>
-                <Table.Cell>
+                <Table.Cell card="title">
                   <div className="flex flex-col">
                     <Table.CellText variant="strong">
                       {change.priceListName}
@@ -127,7 +127,7 @@ export function PriceHistoryTable({
                     </Table.CellText>
                   </div>
                 </Table.Cell>
-                <Table.Cell>
+                <Table.Cell card="value" align="right">
                   <div className="flex flex-col">
                     <Table.CellText variant="strong">
                       R$ {formatAmount(change.unitPrice)}
@@ -146,7 +146,7 @@ export function PriceHistoryTable({
                     )}
                   </div>
                 </Table.Cell>
-                <Table.Cell>
+                <Table.Cell card="status">
                   <VariationBadge variationPct={change.variationPct} />
                 </Table.Cell>
               </Table.Row>

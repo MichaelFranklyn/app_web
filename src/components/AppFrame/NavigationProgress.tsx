@@ -50,7 +50,7 @@ const Bar = () => {
         aria-label="Carregando a página"
         aria-hidden={!active}
         className={cn(
-          "pointer-events-none absolute inset-x-0 top-0 z-[60] h-[3px] overflow-hidden transition-opacity",
+          "pointer-events-none absolute inset-x-0 top-0 z-(--z-progress) h-[3px] overflow-hidden transition-opacity",
           active ? "opacity-100 delay-150 duration-200" : "opacity-0 duration-0"
         )}
       >

@@ -1,16 +1,12 @@
 "use client";
 
+import { formatDuration } from "@/utils/format/duration";
 import { Badge } from "@/components/Badges";
 import { RowList } from "@/components/RowList";
 import { Title } from "@/components/Title";
 import { operationLabel } from "../../../utils";
 import { OperationRegression } from "../../interface";
-import {
-  REGRESSION_COLOR,
-  REGRESSION_LABEL,
-  formatDelta,
-  formatMs,
-} from "../../utils";
+import { REGRESSION_COLOR, REGRESSION_LABEL, formatDelta } from "../../utils";
 
 /**
  * Uma linha de piora, com o ANTES ao lado do depois.
@@ -27,7 +23,7 @@ export function RegressionRow({
 
   return (
     <RowList.Item className="flex flex-wrap items-baseline justify-between gap-8">
-      <div className="flex min-w-0 flex-col gap-[2px]">
+      <div className="flex min-w-0 flex-col gap-2">
         <div className="flex flex-wrap items-center gap-8">
           <Title variant="body-sm" weight="semibold">
             {operationLabel(regression.operation)}
@@ -54,7 +50,7 @@ export function RegressionRow({
 
       <div className="flex items-baseline gap-16">
         {failing && (
-          <div className="flex flex-col items-end gap-[2px]">
+          <div className="flex flex-col items-end gap-2">
             <Title variant="micro" color="muted">
               falhas
             </Title>
@@ -64,14 +60,14 @@ export function RegressionRow({
           </div>
         )}
 
-        <div className="flex flex-col items-end gap-[2px]">
+        <div className="flex flex-col items-end gap-2">
           <Title variant="micro" color="muted">
             p95
           </Title>
-          <div className="flex items-baseline gap-[4px]">
+          <div className="flex items-baseline gap-4">
             <Title variant="body-sm">
-              {formatMs(regression.p95Previous)} →{" "}
-              {formatMs(regression.p95Current)}
+              {formatDuration(regression.p95Previous)} →{" "}
+              {formatDuration(regression.p95Current)}
             </Title>
             <Title variant="micro" color="warning">
               {formatDelta(regression.p95Change)}

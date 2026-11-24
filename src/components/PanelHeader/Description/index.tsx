@@ -8,7 +8,7 @@ export const Description = React.forwardRef<
   <div
     ref={ref}
     className={cn(
-      "text-body-sm mt-[2px] w-full leading-relaxed text-(--color-text-muted)",
+      "text-body-sm mt-2 w-full leading-relaxed text-(--color-text-muted)",
       className
     )}
     {...props}

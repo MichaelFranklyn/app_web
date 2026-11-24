@@ -7,7 +7,7 @@ import { Loading } from "@/components/Loading";
 import { Pagination } from "@/components/Pagination";
 import { Table } from "@/components/Table";
 import { formatDate } from "@/utils/format/date";
-import { scoreBarColor } from "@/utils/score";
+import { scoreBarColor, formatScore } from "@/utils/score";
 import { Users } from "lucide-react";
 import { CLIENT_COLUMN_HELP } from "../../help";
 import { formatCity } from "../../utils";
@@ -29,7 +29,10 @@ export function ClientsTable({
   currentPage,
   totalPages,
   setCurrentPage,
+  showSeller,
 }: ClientsTableProps) {
+  const columnCount = showSeller ? 6 : 5;
+
   // A lista vazia diz coisas diferentes: "sua carteira está vazia" é um estado
   // do sistema, "não achei nada" é consequência do que a pessoa pediu.
   const isNarrowed = Object.values(inputValues).some(Boolean);
@@ -46,7 +49,9 @@ export function ClientsTable({
           <InputSearch
             size="sm"
             aria-label="Buscar cliente"
-            placeholder="Nome, razão social ou CNPJ"
+            // "Nome, razão social ou CNPJ" era cortado no celular; "nome" já
+            // cobre apelido, fantasia e razão social.
+            placeholder="Nome ou CNPJ"
             data-tour="clients-search"
             value={inputValues.search ?? ""}
             onChange={(e) => setFilter("search", e.target.value || undefined)}
@@ -77,7 +82,11 @@ export function ClientsTable({
             </Table.Head>
             {/* Vendedor não ordena: o cliente pode ter vários, e não existe
                 "o vendedor" da linha para comparar. */}
-            <Table.Head title={CLIENT_COLUMN_HELP.seller}>Vendedor</Table.Head>
+            {showSeller && (
+              <Table.Head title={CLIENT_COLUMN_HELP.seller}>
+                Vendedor
+              </Table.Head>
+            )}
             {/* As duas datas ordenam por subconsulta que repete a regra da
                 célula — ver _COMPUTED_ORDER_COLUMNS no ClientRepository. */}
             <Table.Head
@@ -107,13 +116,13 @@ export function ClientsTable({
 
         <Table.Body>
           {loading && items.length === 0 ? (
-            <Table.Skeleton columns={6} rows={5} />
+            <Table.Skeleton columns={columnCount} rows={5} />
           ) : items.length === 0 ? (
             <Table.Row>
-              <Table.Cell colSpan={6}>
+              <Table.Cell colSpan={columnCount}>
                 <EmptyState.Root flat>
                   <EmptyState.Icon>
-                    <Users size={32} />
+                    <Users />
                   </EmptyState.Icon>
                   <EmptyState.Title>
                     {isNarrowed
@@ -147,17 +156,24 @@ export function ClientsTable({
                   {formatCity(node.addressCity, node.addressState)}
                 </Table.Cell>
 
-                <SellerCell
-                  sellers={node.companyClient?.sellers ?? []}
-                  highlightSellerId={inputValues.sellerId ?? null}
-                />
+                {showSeller && (
+                  <SellerCell
+                    sellers={node.companyClient?.sellers ?? []}
+                    highlightSellerId={inputValues.sellerId ?? null}
+                  />
+                )}
 
                 <Table.Cell
                   variant="dim"
                   className="whitespace-nowrap"
                   label="Última compra"
                 >
-                  {formatDate(node.companyClient?.lastOrderDate)}
+                  {/* "Nunca comprou" diz o fato; o "—" virava "Não informado",
+                      que sugere dado faltando. */}
+                  {formatDate(
+                    node.companyClient?.lastOrderDate,
+                    "Nunca comprou"
+                  )}
                 </Table.Cell>
 
                 <Table.Cell
@@ -165,7 +181,10 @@ export function ClientsTable({
                   className="whitespace-nowrap"
                   label="Última visita"
                 >
-                  {formatDate(node.companyClient?.lastVisitDate)}
+                  {formatDate(
+                    node.companyClient?.lastVisitDate,
+                    "Nunca visitado"
+                  )}
                 </Table.Cell>
 
                 {node.companyClient?.visitScoreTotal != null ? (
@@ -175,9 +194,7 @@ export function ClientsTable({
                     color={scoreBarColor(
                       Number(node.companyClient.visitScoreTotal)
                     )}
-                    label={Number(node.companyClient.visitScoreTotal).toFixed(
-                      0
-                    )}
+                    label={formatScore(node.companyClient.visitScoreTotal)}
                   >
                     <ClientStatusTags
                       client={node}

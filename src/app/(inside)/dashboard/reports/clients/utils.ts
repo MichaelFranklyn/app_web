@@ -1,8 +1,9 @@
 import { SERIES_ORANGE, SERIES_RED } from "@/components/Chart/chartTheme";
+import { formatScore } from "@/utils/score";
 import type { QueryFilter } from "@/hooks/useTableData";
 import type { FieldConfig } from "@/hooks/useTableFilters";
 import type { SortLabel } from "@/utils/pdf/context";
-import { formatDateDMY, maskCNPJ } from "@/utils/format/masks";
+import { formatDateDMY, formatRatio, maskCNPJ } from "@/utils/format/masks";
 import type { EChartsCoreOption } from "echarts/core";
 
 import { buildHorizontalBarOption, mutedLine } from "../../chartBuilders";
@@ -88,7 +89,7 @@ export const cityAndState = (row: ClientReportRow): string =>
 
 export const scoreLabel = (row: ClientReportRow): string => {
   const total = row.companyClient?.visitScoreTotal;
-  return total ? Number(total).toFixed(0) : "—";
+  return total ? formatScore(total) : "—";
 };
 
 /**
@@ -113,7 +114,7 @@ export const buildAtRiskOption = (
         ),
       },
     ],
-    (value) => `${value.toFixed(1)}×`,
+    (value) => formatRatio(value),
     (index) => {
       const point = points[index];
       if (!point) return [];
@@ -122,7 +123,7 @@ export const buildAtRiskOption = (
         `Parado há <b>${formatDays(point.daysSinceLastOrder)}</b>`,
         `Costuma comprar a cada ${formatDays(point.avgIntervalDays)}`,
         mutedLine(
-          `${point.riskRatio.toFixed(1)}× o próprio ciclo · última compra ${formatDateDMY(point.lastOrderDate)}`
+          `${formatRatio(point.riskRatio)} o próprio ciclo · última compra ${formatDateDMY(point.lastOrderDate)}`
         ),
       ];
     }

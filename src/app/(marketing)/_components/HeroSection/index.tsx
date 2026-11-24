@@ -48,7 +48,7 @@ export function HeroSection() {
       {/* Entrada em cascata: cada bloco sobe 70ms depois do anterior. Com
           movimento reduzido, a regra global zera a animação. */}
       <div className="[&>*]:animate-rise-in flex flex-col items-center gap-24 text-center [&>*:nth-child(2)]:[animation-delay:70ms] [&>*:nth-child(3)]:[animation-delay:140ms] [&>*:nth-child(4)]:[animation-delay:210ms] [&>*:nth-child(5)]:[animation-delay:280ms]">
-        <span className="flex items-center gap-8 rounded-(--radius-full) border border-(--border) bg-(--bg) px-[14px] py-6 shadow-(--shadow-sm)">
+        <span className="flex items-center gap-8 rounded-full border border-(--border) bg-(--bg) px-[14px] py-6 shadow-(--shadow-sm)">
           <MapPin aria-hidden className="size-[14px] stroke-(--color-action)" />
           <Title as="span" variant="body-sm" weight="medium" color="secondary">
             Para representações comerciais

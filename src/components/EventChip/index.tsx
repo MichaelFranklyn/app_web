@@ -76,7 +76,7 @@ export function EventChip({
         size={size === "sm" ? 12 : 14}
         aria-hidden
         className={cn(
-          "mt-[2px] shrink-0",
+          "mt-2 shrink-0",
           isDone
             ? "text-(--color-status-success)"
             : isMuted

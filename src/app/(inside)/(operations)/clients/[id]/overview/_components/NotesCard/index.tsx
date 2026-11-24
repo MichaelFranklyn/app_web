@@ -20,11 +20,7 @@ export function NotesCard({
   return (
     <Card.Root>
       <Card.Header>
-        <Card.Header.Title
-          size="sm"
-          weight="semibold"
-          className="inline-flex items-center gap-6"
-        >
+        <Card.Header.Title>
           Notas Privadas
           <HelpTooltip
             label="Sobre as notas privadas"
@@ -57,7 +53,7 @@ export function NotesCard({
         ) : (
           <EmptyState.Root flat>
             <EmptyState.Icon>
-              <StickyNote size={32} />
+              <StickyNote />
             </EmptyState.Icon>
             <EmptyState.Title>Sem notas registradas</EmptyState.Title>
             <EmptyState.Description>

@@ -53,10 +53,10 @@ export function PortalOrderContent({
         }
         actions={<OrderActions order={order} token={token} brand={brand} />}
         badges={
-          // `md`: a mesma altura do badge do pedido enviado no cabeçalho.
-          <Badge color={portalStatusTone(order.status)} size="md">
+          // `sm`: a tarja de cabeçalho tem a altura do botão `sm`.
+          <Badge.Root color={portalStatusTone(order.status)} size="sm">
             <Badge.Text>{portalStatusLabel(order.status)}</Badge.Text>
-          </Badge>
+          </Badge.Root>
         }
       />
 

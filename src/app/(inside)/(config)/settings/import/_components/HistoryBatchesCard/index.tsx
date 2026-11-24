@@ -3,6 +3,7 @@
 import { QueryError } from "@/components/QueryError";
 import { Table } from "@/components/Table";
 import { formatDateDMY } from "@/utils/format/masks";
+import { plural } from "@/utils/format/plural";
 import { useQuery } from "@apollo/client/react";
 
 import { HISTORY_IMPORT_BATCHES_QUERY } from "../../gql";
@@ -67,7 +68,7 @@ export function HistoryBatchesCard() {
                   </div>
                 </Table.Cell>
                 <Table.Cell label="Pedidos" variant="dim">
-                  {`${batch.ordersCount} pedido(s) · ${batch.itemsCount} item(ns)`}
+                  {`${plural(batch.ordersCount, "pedido", "pedidos")} · ${plural(batch.itemsCount, "item", "itens")}`}
                 </Table.Cell>
                 <Table.Cell label="Situação" variant="dim" wrap>
                   {situation(batch)}

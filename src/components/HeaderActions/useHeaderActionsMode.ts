@@ -135,8 +135,13 @@ export function useHeaderActionsMode({
       const prev = header.getAttribute("data-actions-mode");
       header.setAttribute("data-actions-mode", "full");
       const fullWidth = rowWidth();
+      // Um botão só nunca vira ícone: "+" sozinho no canto do card economiza
+      // poucos pixels e tira o único nome da ação ("Novo prazo", "Adicionar
+      // contato"). Sem o estágio icon, ele desce para a linha de baixo com o
+      // texto (crítica de 23/11/2026).
+      const namedButtons = actions.querySelectorAll("[data-button-title]");
       header.setAttribute("data-actions-mode", "icon");
-      const iconWidth = rowWidth();
+      const iconWidth = namedButtons.length <= 1 ? fullWidth : rowWidth();
       if (prev) header.setAttribute("data-actions-mode", prev);
       if (fill !== null) header.setAttribute("data-actions-fill", fill);
 

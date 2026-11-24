@@ -85,7 +85,7 @@ export default function OrdersContent() {
       {summaries.length === 0 ? (
         <EmptyState.Root>
           <EmptyState.Icon>
-            <Receipt size={32} />
+            <Receipt />
           </EmptyState.Icon>
           <EmptyState.Title>Nenhuma fábrica vinculada</EmptyState.Title>
           <EmptyState.Description>

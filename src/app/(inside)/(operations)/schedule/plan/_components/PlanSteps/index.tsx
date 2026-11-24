@@ -39,7 +39,16 @@ export function PlanSteps({
 
   return (
     <div className="flex flex-col gap-12">
-      <Stepper.Trail steps={STEPS} current={current} size="sm" />
+      {/* `-mx-4`: a trilha tem 4px de respiro para o halo do passo atual.
+          No painel de ~346px os dois rótulos passavam 5px da largura e a
+          faixa rolava de lado; devolvendo o respiro à margem do painel, cabe
+          — e o primeiro marco alinha com o texto de baixo. */}
+      <Stepper.Trail
+        steps={STEPS}
+        current={current}
+        size="sm"
+        className="-mx-4"
+      />
       {current === 0 ? (
         <>
           <div className="flex flex-col gap-2">

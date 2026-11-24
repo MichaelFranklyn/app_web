@@ -1,6 +1,6 @@
 import { KpiItem } from "@/components/Card/Kpi/Root/interface";
 import { FieldConfig } from "@/hooks/useTableFilters";
-import { formatMoney } from "@/utils/format/masks";
+import { formatMoney, formatMoneyWhole } from "@/utils/format/masks";
 import type { SortLabel } from "@/utils/pdf/context";
 import { ORDER_KPI_HELP } from "./help";
 import type { OrdersStats } from "./interface";
@@ -153,13 +153,15 @@ export const buildOrderKpis = (
     {
       label: "Pedidos",
       value: String(totalOrders),
-      delta: `pedidos feitos ${scope}${backorders}`,
+      // Diz o que fica de fora: a lista abaixo mostra orçamento e cancelado, e
+      // sem isso o cartão parece contar menos do que a tela (23/11/2026).
+      delta: `pedidos feitos ${scope} · sem orçamento e cancelado${backorders}`,
       status: "neutral",
       help: ORDER_KPI_HELP["Pedidos"],
     },
     {
       label: "Valor total",
-      value: formatMoney(totalAmount),
+      value: formatMoneyWhole(totalAmount),
       delta: `ticket médio ${formatMoney(avgTicket)}`,
       positive: totalOrders > 0,
       status: "neutral",
@@ -169,7 +171,7 @@ export const buildOrderKpis = (
       // O número que responde "quanto de pedido a fábrica já faturou" —
       // faturado é o marco que libera a comissão, não o pedido feito.
       label: "Faturado",
-      value: formatMoney(invoicedAmount),
+      value: formatMoneyWhole(invoicedAmount),
       delta: `${invoicedOrders} de ${totalOrders} pedidos faturados`,
       positive: invoicedOrders > 0,
       status: "neutral",
@@ -177,7 +179,7 @@ export const buildOrderKpis = (
     },
     {
       label: "Comissão do faturado",
-      value: formatMoney(commission),
+      value: formatMoneyWhole(commission),
       delta: "gerada pelo que já foi faturado",
       status: "neutral",
       help: ORDER_KPI_HELP["Comissão do faturado"],

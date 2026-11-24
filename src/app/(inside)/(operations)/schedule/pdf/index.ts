@@ -5,6 +5,7 @@ import { loadImage } from "@/utils/media";
 import { drawFooters, loadBrandLogo } from "@/utils/pdf/footer";
 import { drawReportHeader } from "@/utils/pdf/reportHeader";
 import { PAGE, Pdf } from "@/utils/pdf/theme";
+import { plural } from "@/utils/format/plural";
 import { VisitScheduleDay } from "../interface";
 import {
   buildWeekDays,
@@ -76,9 +77,9 @@ export const buildWeekContext = (
 
   const lines: string[] = [];
   if (sellerName) lines.push(`Vendedor: ${sellerName}`);
-  lines.push(`${stops} visita(s)`);
-  if (remote > 0) lines.push(`${remote} ligação(ões)`);
-  lines.push(`${worked} dia(s) com agenda`);
+  lines.push(`${plural(stops, "visita", "visitas")}`);
+  if (remote > 0) lines.push(plural(remote, "ligação", "ligações"));
+  lines.push(`${plural(worked, "dia", "dias")} com agenda`);
   if (km > 0) lines.push(formatDistanceKm(String(km)));
   if (minutes > 0) lines.push(`${formatMinutes(minutes)} de trajeto`);
   return lines;

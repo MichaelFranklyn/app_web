@@ -21,6 +21,7 @@ import {
   monthStartIso,
   yearMonthFromIso,
 } from "@/utils/format/month";
+import { plural } from "@/utils/format/plural";
 import { overallPercent, percentTone, sumRows } from "@/utils/goals";
 import { useMutation, useQuery } from "@apollo/client/react";
 import { CalendarDays, ChevronLeft, ChevronRight, Target } from "lucide-react";
@@ -43,6 +44,7 @@ import {
   SellerGoalsResponse,
 } from "../interface";
 import { FactoryGoalCard } from "./_components/FactoryGoalCard";
+import { formatPercentPoints } from "@/utils/format/percent";
 
 interface Props {
   sellerId: string;
@@ -156,13 +158,16 @@ export default function SellerGoalsContent({
           que é o vão entre BLOCOS da página — não entre o caminho e o título a
           que ele se refere. */}
       <div className="flex flex-col gap-8">
-        <Breadcrumb.Root>
-          <Breadcrumb.Item href={`/goals?month=${periodMonthIso}`}>
-            Metas
-          </Breadcrumb.Item>
-          <Breadcrumb.Separator />
-          <Breadcrumb.Item>{sellerName}</Breadcrumb.Item>
-        </Breadcrumb.Root>
+        {/* O vendedor não tem lista para onde voltar: /goals o traz para cá. */}
+        {canManage && (
+          <Breadcrumb.Root>
+            <Breadcrumb.Item href={`/goals?month=${periodMonthIso}`}>
+              Metas
+            </Breadcrumb.Item>
+            <Breadcrumb.Separator />
+            <Breadcrumb.Item>{sellerName}</Breadcrumb.Item>
+          </Breadcrumb.Root>
+        )}
 
         <PanelHeader.Root>
           <PanelHeader.Top>
@@ -175,26 +180,27 @@ export default function SellerGoalsContent({
                 combinada em cada fábrica — é nela que se ajusta.
               </PanelHeader.Description>
               {!loading && rows.length > 0 && (
-                <PanelHeader.Actions className="mt-6">
+                <PanelHeader.Actions>
                   <div className="flex w-full max-w-[320px] flex-col gap-4">
                     {overall === null ? (
-                      <Badge.Root appearance="tinted" color="neutral" size="xs">
+                      <Badge.Root appearance="tinted" color="neutral" size="sm">
                         <Badge.Text>Sem meta neste mês</Badge.Text>
                       </Badge.Root>
                     ) : (
                       <>
-                        <Title
-                          variant="body-sm"
-                          weight="semibold"
-                          color={percentTone(overall)}
-                        >
-                          {overall.toFixed(0)}% da meta do mês
+                        {/* Texto neutro, cor só na barra: a frase inteira em
+                            vermelho soava como alarme (crítica de 23/11/2026). */}
+                        <Title variant="body-sm" weight="semibold">
+                          {formatPercentPoints(overall)} da meta do mês
                         </Title>
                         <Progress.Bar
                           value={Math.min(overall, 100)}
                           color={percentTone(overall)}
-                          label={`${sellerName}: ${overall.toFixed(0)}% da meta do mês`}
+                          label={`${sellerName}: ${formatPercentPoints(overall)} da meta do mês`}
                         />
+                        <Title variant="body-xs" color="muted">
+                          Média dos indicadores que têm meta combinada.
+                        </Title>
                       </>
                     )}
                   </div>
@@ -211,8 +217,8 @@ export default function SellerGoalsContent({
         <>
           <div className="flex flex-wrap items-center justify-between gap-16">
             <Title variant="heading-sm">
-              {rows.length} {rows.length === 1 ? "fábrica" : "fábricas"} em{" "}
-              {monthLabel(month)}
+              {/* O mês já está no seletor ao lado e na descrição. */}
+              {plural(rows.length, "fábrica", "fábricas")}
             </Title>
             <div className="flex flex-wrap items-center gap-8">
               {canManage && (
@@ -279,7 +285,7 @@ export default function SellerGoalsContent({
           ) : rows.length === 0 ? (
             <EmptyState.Root>
               <EmptyState.Icon>
-                <Target size={32} />
+                <Target />
               </EmptyState.Icon>
               <EmptyState.Title>
                 Nada em {monthLabel(month)} para {sellerName}

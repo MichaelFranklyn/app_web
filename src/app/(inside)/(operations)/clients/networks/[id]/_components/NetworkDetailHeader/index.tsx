@@ -1,6 +1,5 @@
 "use client";
 
-import { Grid } from "@/components/Grid";
 import { PanelHeader } from "@/components/PanelHeader";
 import { PAGE_HEADING } from "@/utils/modules";
 import { Card } from "@/components/Card";
@@ -40,7 +39,7 @@ export function NetworkDetailHeader({ network, loading }: Props) {
         </PanelHeader.Top>
       </PanelHeader.Root>
 
-      <Grid.Root cols={{ base: 2, tablet: 3 }} gap={16}>
+      <Card.Kpi.Group>
         <Card.Kpi>
           <Card.Kpi.Label>Lojas na carteira</Card.Kpi.Label>
           <Card.Kpi.Value>{network?.storeCount ?? 0}</Card.Kpi.Value>
@@ -53,11 +52,11 @@ export function NetworkDetailHeader({ network, loading }: Props) {
         </Card.Kpi>
         <Card.Kpi>
           <Card.Kpi.Label>Último pedido</Card.Kpi.Label>
-          <Card.Kpi.Value>
+          <Card.Kpi.Value size="sm">
             {network?.lastOrderDate ? formatDate(network.lastOrderDate) : "—"}
           </Card.Kpi.Value>
         </Card.Kpi>
-      </Grid.Root>
+      </Card.Kpi.Group>
 
       {network && network.storeCount === 0 && (
         <Title variant="body-sm" color="muted">

@@ -44,6 +44,10 @@ export interface ImportPriceListModalProps {
   companyFactoryId: string;
   factoryId: string;
   onImported: () => void;
+  /** Controlado pelo menu "Mais ações" da aba (o deep link
+   *  `?import=price-list` abre já no estado inicial dele). */
+  open: boolean;
+  onOpenChange: (open: boolean) => void;
 }
 
 // Usa os componentes de data LOCAIS (via toIsoDate), não `toISOString().slice`,
@@ -54,13 +58,13 @@ export function useImportPriceListWizard({
   companyFactoryId,
   factoryId,
   onImported,
+  open,
+  onOpenChange,
 }: ImportPriceListModalProps) {
   const searchParams = useSearchParams();
   const router = useRouter();
   const pathname = usePathname();
-  // Aberto direto pelo CTA do modal de importar produtos (?import=price-list)
   const uploadFile = useFileUpload();
-  const [open, setOpen] = useState(searchParams.get("import") === "price-list");
   const [step, setStep] = useState(0);
 
   // Fábrica que cobra IPI no pedido: a coluna de IPI da planilha continua sendo
@@ -261,7 +265,7 @@ export function useImportPriceListWizard({
   const handleClose = (value: boolean) => {
     // Importação em andamento: ignora ESC, clique no overlay e o X do header.
     if (!value && isLoading) return;
-    setOpen(value);
+    onOpenChange(value);
     if (!value) {
       reset();
       if (searchParams.get("import")) router.replace(pathname);

@@ -6,6 +6,7 @@ import { Grid } from "@/components/Grid";
 import { Title } from "@/components/Title";
 import { formatDate } from "@/utils/format/date";
 import { formatMoney } from "@/utils/format/masks";
+import { plural } from "@/utils/format/plural";
 import { usePlanCatalog } from "../../../../usePlanCatalog";
 import { activityLabel, daysSinceLogin } from "../../../../utils";
 import { TenantDetail } from "../../interface";
@@ -24,7 +25,7 @@ function CountItem({
   const usage = limit !== undefined ? limitUsage(value, limit ?? null) : null;
 
   return (
-    <div className="flex flex-col gap-[2px]">
+    <div className="flex flex-col gap-2">
       <Title variant="micro" color="muted">
         {label}
       </Title>
@@ -59,13 +60,11 @@ export function TenantUsageCard({ tenant }: { tenant: TenantDetail }) {
   return (
     <Card.Root>
       <Card.Header>
-        <Card.Header.Title size="sm" weight="semibold">
-          Uso
-        </Card.Header.Title>
+        <Card.Header.Title>Uso</Card.Header.Title>
         <Card.Header.Description>
           Contagens totais; pedidos e faturamento são dos últimos 30 dias.
           {tenant.extraUsers > 0 &&
-            ` Os limites de pessoas e vendedores já somam ${tenant.extraUsers} ${tenant.extraUsers === 1 ? "usuário extra" : "usuários extras"}.`}
+            ` Os limites de pessoas e vendedores já somam ${plural(tenant.extraUsers, "usuário extra", "usuários extras")}.`}
         </Card.Header.Description>
       </Card.Header>
 
@@ -92,7 +91,7 @@ export function TenantUsageCard({ tenant }: { tenant: TenantDetail }) {
             <CountItem label="Fábricas" value={tenant.factoriesCount} />
           </Grid.Item>
           <Grid.Item>
-            <div className="flex flex-col gap-[2px]">
+            <div className="flex flex-col gap-2">
               <Title variant="micro" color="muted">
                 Pedidos (30d)
               </Title>
@@ -107,7 +106,7 @@ export function TenantUsageCard({ tenant }: { tenant: TenantDetail }) {
             </div>
           </Grid.Item>
           <Grid.Item>
-            <div className="flex flex-col gap-[2px]">
+            <div className="flex flex-col gap-2">
               <Title variant="micro" color="muted">
                 Faturamento (30d)
               </Title>
@@ -120,7 +119,7 @@ export function TenantUsageCard({ tenant }: { tenant: TenantDetail }) {
 
         <Divider.Root className="mt-16" />
         <div className="flex flex-wrap gap-24">
-          <div className="flex flex-col gap-[2px]">
+          <div className="flex flex-col gap-2">
             <Title variant="micro" color="muted">
               Último acesso
             </Title>
@@ -128,13 +127,13 @@ export function TenantUsageCard({ tenant }: { tenant: TenantDetail }) {
               {activityLabel(daysSinceLogin(tenant.lastLoginAt))}
             </Title>
           </div>
-          <div className="flex flex-col gap-[2px]">
+          <div className="flex flex-col gap-2">
             <Title variant="micro" color="muted">
               Último pedido
             </Title>
             <Title variant="caption">{formatDate(tenant.lastOrderDate)}</Title>
           </div>
-          <div className="flex flex-col gap-[2px]">
+          <div className="flex flex-col gap-2">
             <Title variant="micro" color="muted">
               Cliente desde
             </Title>

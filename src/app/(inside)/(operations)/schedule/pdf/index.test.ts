@@ -119,9 +119,9 @@ describe("buildWeekContext", () => {
     const context = buildWeekContext(sections, "Ana");
 
     expect(context[0]).toBe("Vendedor: Ana");
-    expect(context).toContain("1 visita(s)");
-    expect(context).toContain("1 ligação(ões)");
-    expect(context).toContain("2 dia(s) com agenda");
+    expect(context).toContain("1 visita");
+    expect(context).toContain("1 ligação");
+    expect(context).toContain("2 dias com agenda");
     // Os quilômetros somam a semana inteira, não o maior dia.
     expect(context).toContain("60,0 km");
   });
@@ -139,6 +139,6 @@ describe("buildWeekContext", () => {
     // faria a folha declarar um recorte que ela não tem.
     const sections = buildWeekSections(WEEK_START, []);
 
-    expect(buildWeekContext(sections, null)[0]).toBe("0 visita(s)");
+    expect(buildWeekContext(sections, null)[0]).toBe("0 visitas");
   });
 });

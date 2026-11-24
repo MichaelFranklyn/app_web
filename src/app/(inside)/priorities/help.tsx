@@ -63,6 +63,10 @@ export const PENDING_HELP: ReactNode = (
       pendência.
     </Title>
     <Title variant="body-sm">
+      Sem período escolhido, os cartões contam o que já venceu, o que vence nos
+      próximos 7 dias e os endereços a corrigir, que não têm prazo.
+    </Title>
+    <Title variant="body-sm">
       <Emphasis>Não existe botão de baixa.</Emphasis> Quando você responde a
       visita, fatura o pedido, recebe o boleto ou fala com o cliente, a
       pendência some da lista sozinha.

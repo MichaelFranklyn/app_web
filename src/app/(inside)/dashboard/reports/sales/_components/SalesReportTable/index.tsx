@@ -9,7 +9,6 @@ import { Pagination } from "@/components/Pagination";
 import { Table, TableSort } from "@/components/Table";
 import { clientName, factoryName } from "@/utils/company";
 import { formatDateDMY, formatMoney } from "@/utils/format/masks";
-import { plural } from "@/utils/format/plural";
 import { Receipt } from "lucide-react";
 
 import {
@@ -19,6 +18,7 @@ import {
 import { SalesReportOrder } from "../../interface";
 import { sumBy } from "../../utils";
 import { visibleCommission } from "@/utils/commission";
+import { plural } from "@/utils/format/plural";
 
 interface Props {
   items: SalesReportOrder[];
@@ -68,7 +68,7 @@ export function SalesReportTable({
   return (
     <Table.Root sort={sort}>
       <Table.CardHead>
-        <Table.CardHead.Title className="inline-flex items-center gap-6">
+        <Table.CardHead.Title>
           Pedidos faturados
           <HelpTooltip
             label="Sobre os pedidos faturados"
@@ -107,10 +107,14 @@ export function SalesReportTable({
             <Table.Head>Fábrica</Table.Head>
             {showSeller && <Table.Head>Vendedor</Table.Head>}
             <Table.Head sortKey="status">Situação</Table.Head>
-            <Table.Head sortKey="total_amount" sortFirst="desc">
+            <Table.Head align="right" sortKey="total_amount" sortFirst="desc">
               Valor
             </Table.Head>
-            <Table.Head sortKey="commission_amount" sortFirst="desc">
+            <Table.Head
+              align="right"
+              sortKey="commission_amount"
+              sortFirst="desc"
+            >
               Comissão
             </Table.Head>
           </Table.Row>
@@ -124,7 +128,7 @@ export function SalesReportTable({
               <Table.Cell colSpan={columns}>
                 <EmptyState.Root flat>
                   <EmptyState.Icon>
-                    <Receipt size={32} />
+                    <Receipt />
                   </EmptyState.Icon>
                   <EmptyState.Title>
                     {isNarrowed
@@ -189,6 +193,7 @@ export function SalesReportTable({
                   </Badge.Root>
                 </Table.Cell>
                 <Table.Cell
+                  align="right"
                   variant="strong"
                   className="whitespace-nowrap"
                   card="value"
@@ -196,6 +201,7 @@ export function SalesReportTable({
                   {formatMoney(order.totalAmount)}
                 </Table.Cell>
                 <Table.Cell
+                  align="right"
                   variant="dim"
                   className="whitespace-nowrap"
                   label="Comissão"

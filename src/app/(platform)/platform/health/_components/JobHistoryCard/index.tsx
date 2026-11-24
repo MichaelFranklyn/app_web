@@ -1,5 +1,6 @@
 "use client";
 
+import { formatDuration } from "@/utils/format/duration";
 import { Badge } from "@/components/Badges";
 import { Card } from "@/components/Card";
 import { EmptyState } from "@/components/EmptyState";
@@ -11,11 +12,10 @@ import {
   JOB_STATUS_LABEL,
   SLOWER_JOB_PERCENT,
   formatDelta,
-  formatDuration,
-  formatMoment,
   historyTone,
 } from "../../utils";
 import { RunStrip } from "./RunStrip";
+import { formatLogMoment } from "@/utils/format/date";
 
 const TONE_COLOR = { ok: "green", atencao: "amber", urgente: "red" } as const;
 
@@ -34,9 +34,7 @@ export function JobHistoryCard({ history }: { history: JobHistory[] }) {
   return (
     <Card.Root>
       <Card.Header>
-        <Card.Header.Title size="sm" weight="semibold">
-          Jobs nas últimas duas semanas
-        </Card.Header.Title>
+        <Card.Header.Title>Jobs nas últimas duas semanas</Card.Header.Title>
         <Card.Header.Description>
           Quantas vezes cada job rodou, quantas falhou e se vem demorando mais
           que o normal.
@@ -47,7 +45,7 @@ export function JobHistoryCard({ history }: { history: JobHistory[] }) {
         {history.length === 0 ? (
           <EmptyState.Root>
             <EmptyState.Icon>
-              <History size={32} />
+              <History />
             </EmptyState.Icon>
             <EmptyState.Title>
               Nenhuma execução registrada ainda
@@ -101,7 +99,7 @@ export function JobHistoryCard({ history }: { history: JobHistory[] }) {
                     </div>
 
                     <Title variant="micro" color="muted">
-                      última: {formatMoment(job.lastStartedAt)}
+                      última: {formatLogMoment(job.lastStartedAt)}
                     </Title>
                   </div>
 

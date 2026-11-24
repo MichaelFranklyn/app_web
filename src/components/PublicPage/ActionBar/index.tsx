@@ -16,7 +16,7 @@ export const ActionBar = React.forwardRef<
   <div
     ref={ref}
     className={cn(
-      "sticky bottom-0 -mx-[16px] border-t border-(--border) bg-(--bg) px-[16px] py-[12px]",
+      "sticky bottom-0 -mx-16 border-t border-(--border) bg-(--bg) px-16 py-12",
       className
     )}
     {...props}

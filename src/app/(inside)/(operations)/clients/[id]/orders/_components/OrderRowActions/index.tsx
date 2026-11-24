@@ -18,7 +18,7 @@ interface Props {
   remove?: Omit<ComponentProps<typeof DeleteOrderModal>, Controlled>;
 }
 
-/** Editar e remover o pedido; no celular entram no "⋯" (ver RowActions). */
+/** Editar e remover o pedido, no "⋯" (ver RowActions). */
 export function OrderRowActions({ orderCode, onEdit, remove }: Props) {
   const [removeOpen, setRemoveOpen] = useState(false);
 

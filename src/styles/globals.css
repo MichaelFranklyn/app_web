@@ -27,11 +27,32 @@
   --animate-toast-in: toast-in 240ms var(--ease-out-soft) both;
   --animate-toast-out: toast-out 160ms ease-in both;
   --animate-rise-in: rise-in 220ms var(--ease-out-soft) both;
+  /* Tracejado da rota andando (landing). Utilitário, não `style`: o
+     motion-reduce global consegue pará-lo. */
+  --animate-route-dash: route-dash 1.6s linear infinite;
 
-  /* Tipografia — corpo pequeno. Antes vivia como `text-[13px]` em 48 arquivos;
-     agora é um degrau nomeado (`text-body-sm`): mudar o corpo do sistema é
-     mexer AQUI. O `cn` (tailwind-merge) conhece o degrau — ver src/lib/utils.ts. */
+  /* Tipografia — a escala de TAMANHOS do sistema. Antes vivia como
+     `text-[13px]`, `text-[14px]`… escrito à mão nas peças; agora cada degrau
+     tem nome (`text-body`, `text-heading-lg`): mudar a escala é mexer AQUI.
+     Só o tamanho — família, peso e entrelinha ficam no `Title`, que é quem as
+     telas usam. O `cn` (tailwind-merge) conhece cada degrau — ver
+     src/lib/utils.ts; degrau novo entra nas duas listas. */
+  --text-micro: 12px;
   --text-body-sm: 13px;
+  --text-body: 14px;
+  --text-body-md: 15px;
+  --text-body-lg: 16px;
+  --text-lead: 17px;
+  --text-heading-sm: 16px;
+  --text-heading-md: 19px;
+  --text-heading-lg: 25px;
+  --text-kpi: 31px;
+  --text-heading-xl: 41px;
+  /* Números e títulos de vitrine (landing, preço): só o `Title` hero/display usa. */
+  --text-display: 44px;
+  --text-hero-sm: 38px;
+  --text-hero-md: 52px;
+  --text-hero: 64px;
 
   /* Breakpoints */
   --breakpoint-*: initial;
@@ -151,6 +172,9 @@
      var(--amber2). */
   --color-action: var(--amber);
   --color-on-action: #fff; /* texto sobre o primário: BRANCO, pedido do usuário em 18/11/2026 ("cor clara no título do botão"). Sobre o #c97f0a dá 3,2:1 (abaixo de 4,5 em texto pequeno); o marrom #2a1a02 (~6:1) foi trocado por isso */
+  --scrim: rgb(
+    0 0 0 / 0.4
+  ); /* véu atrás de modal, drawer e menu móvel: um só tom (eram 45%, 40% e 30%) */
   --color-action-text: var(
     --amber-text
   ); /* link e texto âmbar (5,2:1 só sobre branco/--bg) */
@@ -254,6 +278,34 @@
   --default-transition-timing-function: ease;
 }
 
+/* Camadas (z-index), da mais baixa para a mais alta. Use `z-(--z-modal)`, nunca
+   o número cru: até 24/11/2026 cada peça escolhia o seu (1, 10, 40, 50, 55, 60,
+   80, 90, 95, 100, 9997, 9998, 9999, 10000) e a ordem só existia nos
+   comentários, que já se contradiziam: o Drawer dizia ficar "abaixo dos modais
+   (z-50)" com 55/60, e o modal aberto a partir do painel abria atrás dele; o
+   Dropdown (50) sumia atrás do painel de filtros (9998).
+   Fora do :root e do @theme: o Tailwind 4 não tem namespace de z-index, e no
+   @theme a variável só seria emitida se alguma utility a citasse pelo nome. */
+:root {
+  --z-raised: 1; /* cabeçalho fixo da tabela sobre as linhas */
+  --z-sticky: 10; /* topbar e cabeçalho da landing */
+  --z-selection-bar: 40; /* barra de seleção em massa: abre modais, fica abaixo */
+  --z-drawer-backdrop: 50;
+  --z-drawer: 55;
+  --z-modal: 60; /* acima do Drawer: "Editar visita" abre do painel */
+  --z-progress: 70; /* barra de troca de tela */
+  --z-shell-backdrop: 80; /* sidebar no celular */
+  --z-shell: 90;
+  --z-shell-toggle: 95; /* botão de recolher, na borda da sidebar */
+  --z-skip-link: 100;
+  --z-filter-panel: 200;
+  --z-popover: 300; /* Dropdown, Select, calendário: abrem de dentro de tudo acima */
+  --z-tooltip: 400;
+  --z-tour: 500; /* escurecimento do tour guiado */
+  --z-tour-card: 510;
+  --z-toast: 600; /* sempre por cima */
+}
+
 @layer base {
   *,
   *::before,
@@ -341,72 +393,37 @@
   }
 }
 
+/* Faixa que rola de lado: esmaece a borda do lado com conteúdo escondido.
+   Os atributos vêm do `useScrollEdges`; sem nada escondido a máscara é
+   opaca inteira. Abas, Tabs.Filter e a faixa "Ordenar por:" da tabela. */
+@utility edge-fade {
+  --fade-l: 0px;
+  --fade-r: 0px;
+  mask-image: linear-gradient(
+    to right,
+    transparent,
+    #000 var(--fade-l),
+    #000 calc(100% - var(--fade-r)),
+    transparent
+  );
+  &[data-fade-start] {
+    --fade-l: 40px;
+  }
+  &[data-fade-end] {
+    --fade-r: 40px;
+  }
+}
+
+/* Rótulo de grupo dentro de uma lista de navegação ou de um menu ("Cadastros",
+   "Ações do pedido"): 12px, seminegrito, apagado. Sidebar, SubNav e Dropdown
+   usam ESTE — eram três cópias da mesma classe. */
+@utility section-label {
+  font-size: var(--text-micro);
+  font-weight: var(--weight-semibold);
+  color: var(--color-text-muted);
+}
+
 @layer utilities {
-  /* =========================================
-     TIPOGRAFIA DO DESIGN SYSTEM
-     ========================================= */
-  .text-heading-xl {
-    font-family: var(--font-head);
-    font-weight: var(--weight-extrabold);
-    font-size: 41px;
-    letter-spacing: -0.025em;
-    line-height: 1;
-  }
-
-  .text-heading-lg {
-    font-family: var(--font-head);
-    font-weight: var(--weight-bold);
-    font-size: 25px;
-    letter-spacing: -0.02em;
-  }
-
-  .text-heading-md {
-    font-family: var(--font-head);
-    font-weight: var(--weight-bold);
-    font-size: 19px;
-    letter-spacing: -0.015em;
-  }
-
-  .text-heading-sm {
-    font-family: var(--font-head);
-    font-weight: var(--weight-bold);
-    font-size: 14px;
-    letter-spacing: -0.01em;
-  }
-
-  .text-body-md {
-    font-family: var(--font-body);
-    font-weight: var(--weight-regular);
-    font-size: 14px;
-    line-height: 1.6;
-    color: var(--text2);
-  }
-
-  .text-caption {
-    font-family: var(--font-body);
-    font-weight: var(--weight-regular);
-    font-size: 13px;
-    color: var(--muted);
-  }
-
-  .text-label {
-    font-family: var(--font-body);
-    font-weight: var(--weight-regular);
-    font-size: 13px;
-    letter-spacing: 0.12em;
-    text-transform: uppercase;
-    color: var(--muted);
-  }
-
-  .text-kpi {
-    font-family: var(--font-head);
-    font-weight: var(--weight-extrabold);
-    font-size: 31px;
-    letter-spacing: -0.025em;
-    line-height: 1;
-    color: var(--amber-text);
-  }
-
   .hide-scrollbar::-webkit-scrollbar {
     display: none;
   }
@@ -590,6 +607,30 @@
     animation-iteration-count: 1 !important;
     transition-duration: 0.01ms !important;
     scroll-behavior: auto !important;
+  }
+}
+
+/* PanelHeader.Actions — onde fica o primário (padrão de cabeçalho, 23/11/2026).
+   Na LINHA ele é a última ação, na ponta direita: secundários primeiro, o
+   próximo passo por último, em toda tela. Na PILHA (celular) ele sobe para o
+   topo, onde o polegar chega sem rolar. O primário é o botão `solid`; o
+   `order` vai nele e em cada embrulho até a linha (PlanLimitGate, modal,
+   `contents`), porque só conta no filho direto de um flex. */
+.group\/panelhead
+  > div
+  :is([data-appearance="solid"], :has([data-appearance="solid"])) {
+  order: 1;
+}
+.group\/panelhead[data-actions-mode="column"]
+  > div
+  :is([data-appearance="solid"], :has([data-appearance="solid"])) {
+  order: -1;
+}
+@media (width < 760px) {
+  .group\/panelhead:not([data-actions-ready])
+    > div
+    :is([data-appearance="solid"], :has([data-appearance="solid"])) {
+    order: -1;
   }
 }
 

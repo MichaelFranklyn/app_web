@@ -1,22 +1,9 @@
-import { cva } from "class-variance-authority";
-
-export const titleStyle = cva(
-  "font-head truncate tracking-[-0.01em] text-(--color-text)",
-  {
-    variants: {
-      size: {
-        xs: "text-body-sm",
-        sm: "text-[15px]",
-        md: "text-[19px]",
-        lg: "text-[23px]",
-      },
-      weight: {
-        medium: "font-medium",
-        semibold: "font-(--weight-semibold)",
-        bold: "font-(--weight-bold)",
-        extrabold: "font-extrabold",
-      },
-    },
-    defaultVariants: { size: "sm", weight: "bold" },
-  }
-);
+/**
+ * Um título de card só (23/11/2026): 15px, negrito — antes cada tela escolhia
+ * entre `bold` e `semibold` e repetia `size="sm"`. Não trunca: o nome longo
+ * quebra linha, como o texto das tabelas (público idoso não adivinha o que o
+ * "…" escondeu). Selo ou "?" ao lado do texto vêm alinhados pelo próprio
+ * título (flex + gap) e descem para a linha de baixo quando não cabem.
+ */
+export const titleStyle =
+  "font-head flex min-w-0 flex-wrap items-center gap-x-6 gap-y-4 text-body-md font-(--weight-bold) tracking-[-0.01em] text-(--color-text) [overflow-wrap:anywhere]";

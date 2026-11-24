@@ -11,8 +11,8 @@ import { CalendarCheck } from "lucide-react";
 import { useMemo } from "react";
 
 import { clientName } from "@/utils/company";
-import { DeleteFixedScheduleModal } from "./DeleteFixedScheduleModal";
 import { FixedScheduleModal } from "./FixedScheduleModal";
+import { FixedScheduleRowActions } from "./FixedScheduleRowActions";
 import { FIXED_SCHEDULES_QUERY } from "./gql";
 import { FixedScheduleNode, FixedSchedulesQueryData } from "./interface";
 import { formatOccurrences, scheduleSummary } from "./utils";
@@ -58,7 +58,7 @@ export function FixedSchedulesSection({ sellerId }: Props) {
   return (
     <Table.Root>
       <Table.CardHead>
-        <Table.CardHead.Title className="inline-flex items-center gap-6">
+        <Table.CardHead.Title>
           Dias fixos
           <HelpTooltip
             label="O que é um dia fixo?"
@@ -82,6 +82,12 @@ export function FixedSchedulesSection({ sellerId }: Props) {
             }
           />
         </Table.CardHead.Title>
+        {/* Com a descrição, o cabeçalho fica igual aos outros cards do perfil
+            e, no celular, o botão desce para a linha dele em vez de espremer
+            o título (crítica de configurações, 23/11/2026). */}
+        <Table.CardHead.Description>
+          Combinados com o cliente: a rotina da semana começa por eles.
+        </Table.CardHead.Description>
         <Table.CardHead.Actions>
           <FixedScheduleModal
             sellerId={sellerId}
@@ -91,7 +97,10 @@ export function FixedSchedulesSection({ sellerId }: Props) {
         </Table.CardHead.Actions>
       </Table.CardHead>
 
-      <Table.Table>
+      {/* Cartões abaixo do desktop: no celular a tabela de 5 colunas cortava
+          "Quando" na borda e rolava de lado (crítica de configurações,
+          23/11/2026). Lista curta — sem a faixa de ordenação. */}
+      <Table.Table cards cardSort={false}>
         <Table.Header>
           <Table.Row>
             <Table.Head>Cliente</Table.Head>
@@ -115,7 +124,7 @@ export function FixedSchedulesSection({ sellerId }: Props) {
               <Table.Cell colSpan={5}>
                 <EmptyState.Root flat>
                   <EmptyState.Icon>
-                    <CalendarCheck size={32} />
+                    <CalendarCheck />
                   </EmptyState.Icon>
                   <EmptyState.Title>Nenhum dia fixo marcado</EmptyState.Title>
                   <EmptyState.Description>
@@ -129,40 +138,41 @@ export function FixedSchedulesSection({ sellerId }: Props) {
           ) : (
             schedules.map((schedule) => (
               <Table.Row key={schedule.id}>
-                <Table.Cell variant="strong">
+                <Table.Cell card="title" variant="strong">
                   {clientName(schedule.client)}
                 </Table.Cell>
-                <Table.Cell>
+                <Table.Cell label="Quando">
                   <Table.CellText>
                     {scheduleSummary(schedule.weekday, schedule.intervalWeeks)}
                   </Table.CellText>
                 </Table.Cell>
-                <Table.Cell>
+                <Table.Cell label="Próximas datas">
                   <Table.CellText variant="dim">
                     {formatOccurrences(schedule.nextOccurrences)}
                   </Table.CellText>
                 </Table.Cell>
-                <Table.Cell>
-                  <Table.CellText variant="dim">
-                    {schedule.notes || "—"}
-                  </Table.CellText>
+                {/* Sem observação, o cartão não repete "—" em toda linha. */}
+                <Table.Cell
+                  label="Observação"
+                  variant="dim"
+                  emptyText="—"
+                  cardHidden={!schedule.notes}
+                >
+                  {schedule.notes || "—"}
                 </Table.Cell>
-                <Table.Cell>
-                  <div className="flex items-center justify-end gap-4">
-                    <FixedScheduleModal
-                      sellerId={sellerId}
-                      schedule={schedule}
-                      onDone={onChanged}
-                    />
-                    <DeleteFixedScheduleModal
-                      scheduleId={schedule.id}
-                      clientLabel={clientName(schedule.client)}
-                      onRemoveOptimistic={optimistic.removeOptimistic}
-                      onCommit={optimistic.commit}
-                      onRollback={optimistic.rollback}
-                      onDone={onChanged}
-                    />
-                  </div>
+                <Table.Cell card="actions">
+                  <FixedScheduleRowActions
+                    clientLabel={clientName(schedule.client)}
+                    edit={{ sellerId, schedule, onDone: onChanged }}
+                    remove={{
+                      scheduleId: schedule.id,
+                      clientLabel: clientName(schedule.client),
+                      onRemoveOptimistic: optimistic.removeOptimistic,
+                      onCommit: optimistic.commit,
+                      onRollback: optimistic.rollback,
+                      onDone: onChanged,
+                    }}
+                  />
                 </Table.Cell>
               </Table.Row>
             ))

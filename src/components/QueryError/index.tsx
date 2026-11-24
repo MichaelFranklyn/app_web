@@ -35,7 +35,7 @@ export function QueryError({
   return (
     <EmptyState.Root flat={flat}>
       <EmptyState.Icon>
-        <TriangleAlert size={32} />
+        <TriangleAlert />
       </EmptyState.Icon>
       <EmptyState.Title>{title}</EmptyState.Title>
       <EmptyState.Description>{description}</EmptyState.Description>

@@ -2,6 +2,7 @@ import { Title } from "@/components/Title";
 import { ArrowRight } from "lucide-react";
 import Link from "next/link";
 import { PLANS } from "../../../plans";
+import { ICON_SIZE } from "@/components/Icon";
 
 /**
  * Fallback de quem chegou a `/assinar` sem plano na URL — link antigo, `?plano`
@@ -18,7 +19,7 @@ export function PlanPicker() {
           <Link
             key={plan.code}
             href={`/assinar?plano=${plan.code}`}
-            className="flex items-center justify-between gap-16 rounded-(--radius-md) border border-(--border) bg-(--bg2) p-24 hover:bg-(--bg3)"
+            className="flex items-center justify-between gap-16 rounded-(--r-md) border border-(--border) bg-(--bg2) p-24 hover:bg-(--bg3)"
           >
             <span className="flex flex-col gap-4">
               <Title variant="heading-sm">{plan.label}</Title>
@@ -29,7 +30,7 @@ export function PlanPicker() {
             </span>
 
             <ArrowRight
-              size={18}
+              size={ICON_SIZE.lg}
               className="shrink-0 text-(--color-text-muted)"
             />
           </Link>

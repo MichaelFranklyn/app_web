@@ -26,7 +26,7 @@ export function RouteError({
   children,
 }: RouteErrorProps) {
   return (
-    <div className="flex min-h-screen items-center justify-center px-[16px]">
+    <div className="flex min-h-screen items-center justify-center px-16">
       <EmptyState.Root className="max-w-[420px]">
         <EmptyState.Icon>{icon}</EmptyState.Icon>
         {/* `as="span"`: `EmptyState.Title` JÁ é o <h3>. */}

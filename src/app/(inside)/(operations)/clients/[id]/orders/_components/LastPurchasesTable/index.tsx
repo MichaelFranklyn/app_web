@@ -48,7 +48,7 @@ export function LastPurchasesTable({ companyClientId }: Props) {
   return (
     <Table.Root data-tour="client-last-purchases">
       <Table.CardHead>
-        <Table.CardHead.Title className="inline-flex items-center gap-6">
+        <Table.CardHead.Title>
           Últimas compras
           <HelpTooltip
             label="O que conta como compra?"
@@ -72,8 +72,8 @@ export function LastPurchasesTable({ companyClientId }: Props) {
             <Table.Head>{isByFactory ? "Fábrica" : "Vendedor"}</Table.Head>
             <Table.Head>Última compra</Table.Head>
             <Table.Head>{isByFactory ? "Vendido por" : "Fábrica"}</Table.Head>
-            <Table.Head>Valor</Table.Head>
-            <Table.Head>Compras</Table.Head>
+            <Table.Head align="right">Valor da última</Table.Head>
+            <Table.Head align="right">Compras</Table.Head>
           </Table.Row>
         </Table.Header>
 
@@ -85,7 +85,7 @@ export function LastPurchasesTable({ companyClientId }: Props) {
               <Table.Cell colSpan={COLUMNS}>
                 <EmptyState.Root flat>
                   <EmptyState.Icon>
-                    <ShoppingBasket size={32} />
+                    <ShoppingBasket />
                   </EmptyState.Icon>
                   <EmptyState.Title>Nenhuma compra ainda</EmptyState.Title>
                   <EmptyState.Description>
@@ -119,14 +119,16 @@ export function LastPurchasesTable({ companyClientId }: Props) {
                   {row.counterpart}
                 </Table.Cell>
                 <Table.Cell
+                  align="right"
                   card="amount"
-                  label="Valor"
+                  label="Valor da última"
                   variant="strong"
                   className="whitespace-nowrap"
                 >
                   {formatMoney(row.lastOrderAmount)}
                 </Table.Cell>
                 <Table.Cell
+                  align="right"
                   label="Compras"
                   variant="dim"
                   className="whitespace-nowrap"

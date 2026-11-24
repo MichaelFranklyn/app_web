@@ -1,3 +1,4 @@
+import { plural } from "@/utils/format/plural";
 /**
  * Vocabulário dos atendimentos — tipos, rótulos e cores, num lugar só.
  *
@@ -57,7 +58,7 @@ export const SUPPORT_STATUS_COLOR: Record<SupportStatus, SupportColor> = {
 
 /** O que fazer quando o caso está nessa situação — vira tooltip e ajuda. */
 export const SUPPORT_STATUS_HINT: Record<SupportStatus, string> = {
-  OPEN: "Registrado e ainda sem ninguém tratando. Assuma ou atribua a alguém.",
+  OPEN: "Ainda não começou a ser tratado. O próximo andamento registrado já passa o caso para Em andamento.",
   IN_PROGRESS: "Alguém do escritório está resolvendo agora.",
   WAITING_FACTORY:
     "A bola está com a fábrica. Quem cobra é o escritório — registre cada cobrança.",
@@ -160,6 +161,6 @@ export interface SupportCase {
  */
 export const supportAgeLabel = (days: number, isOpen: boolean): string => {
   if (days <= 0) return isOpen ? "hoje" : "no mesmo dia";
-  const label = days === 1 ? "1 dia" : `${days} dias`;
+  const label = plural(days, "dia", "dias");
   return isOpen ? `${label} esperando` : `resolvido em ${label}`;
 };

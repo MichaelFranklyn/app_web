@@ -47,7 +47,7 @@ export default function UserProfileContent({ userId }: Props) {
       <PageContent>
         <EmptyState.Root className="max-w-[420px]">
           <EmptyState.Icon>
-            <UserX size={32} />
+            <UserX />
           </EmptyState.Icon>
           <EmptyState.Title>Perfil não encontrado</EmptyState.Title>
           <EmptyState.Description>

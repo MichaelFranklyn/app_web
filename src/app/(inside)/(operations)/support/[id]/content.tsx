@@ -15,7 +15,6 @@ import {
   SUPPORT_STATUS_HINT,
   SUPPORT_STATUS_LABEL,
 } from "@/utils/support";
-import { clientDisplayName } from "@/utils/client";
 import { useQuery } from "@apollo/client/react";
 import { Headset, Pencil } from "lucide-react";
 import { useParams, useRouter } from "next/navigation";
@@ -59,7 +58,7 @@ export default function SupportCaseContent() {
       <PageContent>
         <EmptyState.Root>
           <EmptyState.Icon>
-            <Headset size={32} />
+            <Headset />
           </EmptyState.Icon>
           <EmptyState.Title>Reclamação não encontrada</EmptyState.Title>
           <EmptyState.Description>
@@ -89,7 +88,11 @@ export default function SupportCaseContent() {
         <Breadcrumb.Root>
           <Breadcrumb.Item href="/support">Reclamações</Breadcrumb.Item>
           <Breadcrumb.Separator />
-          <Breadcrumb.Item active>{supportCase.title}</Breadcrumb.Item>
+          {/* Uma linha só: o título inteiro já vem logo abaixo, e no celular
+              a trilha ocupava duas linhas repetindo-o (crítica de 23/11/2026). */}
+          <Breadcrumb.Item active className="min-w-0 truncate">
+            {supportCase.title}
+          </Breadcrumb.Item>
         </Breadcrumb.Root>
 
         <PanelHeader.Root>
@@ -98,13 +101,15 @@ export default function SupportCaseContent() {
               <PanelHeader.Heading {...PAGE_HEADING.support}>
                 {supportCase.title}
               </PanelHeader.Heading>
+              {/* O cliente saiu daqui: é a primeira linha do resumo logo abaixo
+                  (crítica de 23/11/2026). */}
               <PanelHeader.Description>
-                {/* O cliente vem na descrição, não acima do título (14/11/2026). */}
-                {clientDisplayName(supportCase.client)} ·{" "}
                 {SUPPORT_STATUS_HINT[supportCase.status]}
               </PanelHeader.Description>
-              <PanelHeader.Actions className="mt-6">
+              {/* Tarja e ações na faixa padrão (PanelHeader.Tags). */}
+              <PanelHeader.Tags>
                 <Badge.Root
+                  size="sm"
                   color={SUPPORT_STATUS_COLOR[supportCase.status]}
                   appearance="tinted"
                 >
@@ -112,21 +117,23 @@ export default function SupportCaseContent() {
                     {SUPPORT_STATUS_LABEL[supportCase.status]}
                   </Badge.Text>
                 </Badge.Root>
-                <Button.Root
-                  type="button"
-                  appearance="outline"
-                  color="neutral"
-                  size="sm"
-                  onClick={() => setEditing(true)}
-                >
-                  <Button.Icon icon={Pencil} />
-                  <Button.Title>Corrigir dados</Button.Title>
-                </Button.Root>
-                <DeleteCaseModal
-                  caseId={supportCase.id}
-                  caseTitle={supportCase.title}
-                />
-              </PanelHeader.Actions>
+                <PanelHeader.Actions>
+                  <Button.Root
+                    type="button"
+                    appearance="outline"
+                    color="neutral"
+                    size="sm"
+                    onClick={() => setEditing(true)}
+                  >
+                    <Button.Icon icon={Pencil} />
+                    <Button.Title>Corrigir dados</Button.Title>
+                  </Button.Root>
+                  <DeleteCaseModal
+                    caseId={supportCase.id}
+                    caseTitle={supportCase.title}
+                  />
+                </PanelHeader.Actions>
+              </PanelHeader.Tags>
             </PanelHeader.Left>
           </PanelHeader.Top>
         </PanelHeader.Root>

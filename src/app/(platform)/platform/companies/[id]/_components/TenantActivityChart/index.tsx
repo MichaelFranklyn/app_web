@@ -5,6 +5,7 @@ import { Card } from "@/components/Card";
 import { EmptyState } from "@/components/EmptyState";
 import { Loading } from "@/components/Loading";
 import { Title } from "@/components/Title";
+import { pluralWord } from "@/utils/format/plural";
 import { Activity } from "lucide-react";
 import dynamic from "next/dynamic";
 import { ActivitySummary } from "../../../../interface";
@@ -35,15 +36,13 @@ export function TenantActivityChart({
   return (
     <Card.Root>
       <Card.Header>
-        <Card.Header.Title size="sm" weight="semibold">
-          Curva de uso
-        </Card.Header.Title>
+        <Card.Header.Title>Curva de uso</Card.Header.Title>
         <Card.Header.Description>
           Ações por dia nos últimos 30 dias. Cai antes do pedido parar.
         </Card.Header.Description>
       </Card.Header>
 
-      <Card.Body className="flex flex-col gap-16">
+      <Card.Body>
         {loading && !summary ? (
           <Loading.Skeleton className="h-[200px] w-full" />
         ) : hasMovement && summary ? (
@@ -51,11 +50,12 @@ export function TenantActivityChart({
             <div className="flex flex-wrap items-baseline gap-16">
               <Title variant="body-sm" color="muted">
                 <Emphasis tone="strong">{summary.totalActions}</Emphasis>{" "}
-                {summary.totalActions === 1 ? "ação" : "ações"} no período
+                {pluralWord(summary.totalActions, "ação", "ações")} no período
               </Title>
               <Title variant="body-sm" color="muted">
                 <Emphasis tone="strong">{summary.byOperation.length}</Emphasis>{" "}
-                {summary.byOperation.length === 1 ? "tipo" : "tipos"} de ação
+                {pluralWord(summary.byOperation.length, "tipo", "tipos")} de
+                ação
               </Title>
             </div>
             <Chart
@@ -66,7 +66,7 @@ export function TenantActivityChart({
         ) : (
           <EmptyState.Root>
             <EmptyState.Icon>
-              <Activity size={32} />
+              <Activity />
             </EmptyState.Icon>
             <EmptyState.Title>Sem uso no período</EmptyState.Title>
             {/* Vazio aqui não distingue "parou" de "nunca começou" — e as duas

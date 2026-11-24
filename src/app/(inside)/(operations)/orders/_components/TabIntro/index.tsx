@@ -21,7 +21,7 @@ export function TabIntro({ children, action }: Props) {
     <Card.Root inset tone="muted">
       <Card.Body
         padding="sm"
-        className="tablet:flex-row tablet:items-center tablet:justify-between flex flex-col gap-10"
+        className="tablet:flex-row tablet:items-center tablet:justify-between"
       >
         <Title variant="body-sm" color="secondary">
           {children}

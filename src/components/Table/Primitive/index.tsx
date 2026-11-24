@@ -13,14 +13,22 @@ interface TablePrimitiveProps extends React.HTMLAttributes<HTMLTableElement> {
    * `./cards.ts`. No desktop nada muda.
    */
   cards?: boolean;
+  /**
+   * Com `cards`, mostra a faixa "Ordenar por:" acima dos cartões (padrão).
+   * Desligue em lista curta: com dois ou três cartões, que cabem inteiros na
+   * tela, a faixa de chips pesava mais que a própria lista (crítica do detalhe
+   * do pedido, 23/11/2026). No desktop o cabeçalho fica, sempre.
+   */
+  cardSort?: boolean;
 }
 
 export const Primitive = React.forwardRef<
   HTMLTableElement,
   TablePrimitiveProps
->(({ className, maxHeight, cards = false, ...props }, ref) => (
+>(({ className, maxHeight, cards = false, cardSort = true, ...props }, ref) => (
   <div
     data-table-cards={cards || undefined}
+    data-card-sort={cards && !cardSort ? "off" : undefined}
     className={cn(
       tablePrimitiveStyles.wrapper,
       maxHeight != null &&

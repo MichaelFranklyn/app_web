@@ -70,9 +70,12 @@ export const metricValues = (
         done: Number(row.orderedAmount ?? 0),
       };
     case "positivations":
-      return { target: row.targetPositivations, done: row.positivations };
+      return {
+        target: row.targetPositivations ?? null,
+        done: row.positivations ?? 0,
+      };
     case "visits":
-      return { target: row.targetVisits, done: row.visits };
+      return { target: row.targetVisits ?? null, done: row.visits ?? 0 };
   }
 };
 
@@ -84,7 +87,9 @@ const toNumber = (value: string | null): number | null =>
  * mostrar "0%" para um indicador que ninguém combinou, isso leria como atraso.
  */
 export const percentOf = ({ target, done }: MetricValues): number | null => {
-  if (target === null) return null;
+  // `== null` pega também o undefined de um campo ausente: sem isso a conta
+  // dava NaN e a barra anunciava "NaN% da meta".
+  if (target == null || !Number.isFinite(target)) return null;
   if (target === 0) return done > 0 ? 100 : 0;
   return (done / target) * 100;
 };

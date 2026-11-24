@@ -13,7 +13,7 @@ interface Props {
   remove: Omit<ComponentProps<typeof DeleteOrderItemModal>, Controlled>;
 }
 
-/** Editar e remover o item; no celular entram no "⋯" (ver RowActions). */
+/** Editar e remover o item, no "⋯" (ver RowActions). */
 export function OrderItemRowActions({ edit, remove }: Props) {
   const [editOpen, setEditOpen] = useState(false);
   const [removeOpen, setRemoveOpen] = useState(false);

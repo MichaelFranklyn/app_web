@@ -2,6 +2,7 @@
 // (server) eles chegariam opacos, então este esqueleto é client.
 "use client";
 
+import { cn } from "@/lib/utils";
 import { Card } from "@/components/Card";
 import { Loading } from "@/components/Loading";
 import { PageContent } from "@/components/PageContent";
@@ -30,10 +31,10 @@ export function TenantSkeleton() {
               <Loading.Skeleton className="h-[20px] w-[72px]" />
             </div>
             <PanelHeader.HeadingSkeleton {...PAGE_HEADING.platformCompanies} />
-            <div className="mt-[2px] flex h-[21px] items-center">
-              <Loading.Skeleton className="h-[12px] w-80 max-w-full" />
+            <div className="mt-2 flex h-[21px] items-center">
+              <Loading.Skeleton text="body-sm" className="w-80 max-w-full" />
             </div>
-            <PanelHeader.Actions className="mt-12">
+            <PanelHeader.Actions>
               <Loading.Skeleton className="h-[32px] w-[140px]" />
               <Loading.Skeleton className="h-[32px] w-[104px]" />
             </PanelHeader.Actions>
@@ -44,10 +45,10 @@ export function TenantSkeleton() {
       {CARD_BODIES.map((height, i) => (
         <Card.Root key={i}>
           <Card.Header>
-            <Loading.Skeleton className="h-[14px] w-40" />
+            <Loading.Skeleton text="body" className="w-40" />
           </Card.Header>
           <Card.Body>
-            <Loading.Skeleton className={`${height} w-full`} />
+            <Loading.Skeleton className={cn(height, "w-full")} />
           </Card.Body>
         </Card.Root>
       ))}

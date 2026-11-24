@@ -3,7 +3,6 @@
 import { Import } from "@/components/Import";
 
 import { useMutation } from "@apollo/client/react";
-import { Upload } from "lucide-react";
 import { useState } from "react";
 
 import { Button } from "@/components/Button";
@@ -20,8 +19,20 @@ import { IMPORT_COMPANY_CLIENTS_MUTATION } from "./gql";
 import { ImportCompanyClientsResponse, ImportResult } from "./interface";
 import { downloadExampleSheet, parseClientsRows } from "./utils";
 
-export function ImportClientsModal() {
-  const [open, setOpen] = useState(false);
+interface ImportClientsModalProps {
+  open: boolean;
+  onOpenChange: (open: boolean) => void;
+}
+
+/**
+ * Aberto pelo menu "Mais ações" do cabeçalho (ver `ClientsMoreMenu`): o botão
+ * próprio somava o quinto botão da fileira, e no celular eles empilhavam numa
+ * tela inteira antes da carteira (crítica de 23/11/2026).
+ */
+export function ImportClientsModal({
+  open,
+  onOpenChange: setOpen,
+}: ImportClientsModalProps) {
   const [file, setFile] = useState<File | null>(null);
   const [result, setResult] = useState<ImportResult | null>(null);
 
@@ -78,13 +89,6 @@ export function ImportClientsModal() {
 
   return (
     <Modal.Root open={open} onOpenChange={handleClose}>
-      <Modal.Trigger asChild>
-        <Button.Root appearance="outline" color="neutral" size="sm">
-          <Button.Icon icon={Upload} />
-          <Button.Title>Importar</Button.Title>
-        </Button.Root>
-      </Modal.Trigger>
-
       <Modal.Content size="md">
         <Modal.Header
           title="Importar clientes"

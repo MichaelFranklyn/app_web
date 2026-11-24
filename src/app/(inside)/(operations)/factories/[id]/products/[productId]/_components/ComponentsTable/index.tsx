@@ -13,10 +13,9 @@ import { useQuery } from "@apollo/client/react";
 import { Boxes } from "lucide-react";
 import { useMemo } from "react";
 import { AddComponentModal } from "./AddComponentModal";
-import { EditComponentModal } from "./EditComponentModal";
 import { PRODUCT_COMPONENTS_QUERY } from "./gql";
 import { ProductComponentsData } from "./interface";
-import { RemoveComponentModal } from "./RemoveComponentModal";
+import { ComponentRowActions } from "./ComponentRowActions";
 
 interface Props {
   productId: string;
@@ -39,7 +38,7 @@ export function ComponentsTable({ productId, companyFactoryId }: Props) {
   return (
     <Table.Root>
       <Table.CardHead>
-        <Table.CardHead.Title className="inline-flex items-center gap-6">
+        <Table.CardHead.Title>
           Composição do kit
           <HelpTooltip
             label="O que é a composição?"
@@ -70,13 +69,16 @@ export function ComponentsTable({ productId, companyFactoryId }: Props) {
         </Table.CardHead.Actions>
       </Table.CardHead>
 
-      <Table.Table>
+      <Table.Table cards>
         <Table.Header>
           <Table.Row>
             <Table.Head title={PRODUCT_COMPONENT_COLUMN_HELP.component}>
               Componente
             </Table.Head>
-            <Table.Head title={PRODUCT_COMPONENT_COLUMN_HELP.quantity}>
+            <Table.Head
+              align="right"
+              title={PRODUCT_COMPONENT_COLUMN_HELP.quantity}
+            >
               Qtd. no kit
             </Table.Head>
             <Table.Head />
@@ -97,7 +99,7 @@ export function ComponentsTable({ productId, companyFactoryId }: Props) {
               <Table.Cell colSpan={3}>
                 <EmptyState.Root flat>
                   <EmptyState.Icon>
-                    <Boxes size={32} />
+                    <Boxes />
                   </EmptyState.Icon>
                   <EmptyState.Title>Produto simples</EmptyState.Title>
                   <EmptyState.Description>
@@ -110,7 +112,7 @@ export function ComponentsTable({ productId, companyFactoryId }: Props) {
           ) : (
             components.map((item) => (
               <Table.Row key={item.id}>
-                <Table.Cell>
+                <Table.Cell card="title">
                   <div className="flex flex-col">
                     {item.component ? (
                       <TextLink
@@ -129,7 +131,7 @@ export function ComponentsTable({ productId, companyFactoryId }: Props) {
                     </Table.CellText>
                   </div>
                 </Table.Cell>
-                <Table.Cell>
+                <Table.Cell card="value" align="right">
                   <Title variant="value">
                     {formatNumber(Number(item.quantity))}
                     {item.component?.unitLabel
@@ -137,21 +139,18 @@ export function ComponentsTable({ productId, companyFactoryId }: Props) {
                       : ""}
                   </Title>
                 </Table.Cell>
-                <Table.Cell>
-                  <div className="flex items-center justify-end gap-4">
-                    <EditComponentModal
-                      component={item}
-                      onChanged={() => refetch()}
-                    />
-                    <RemoveComponentModal
-                      componentId={item.id}
-                      componentName={item.component?.name ?? "componente"}
-                      onRemoved={() => refetch()}
-                      onRemoveOptimistic={optimistic.removeOptimistic}
-                      onCommit={optimistic.commit}
-                      onRollback={optimistic.rollback}
-                    />
-                  </div>
+                <Table.Cell card="actions">
+                  <ComponentRowActions
+                    edit={{ component: item, onChanged: () => refetch() }}
+                    remove={{
+                      componentId: item.id,
+                      componentName: item.component?.name ?? "componente",
+                      onRemoved: () => refetch(),
+                      onRemoveOptimistic: optimistic.removeOptimistic,
+                      onCommit: optimistic.commit,
+                      onRollback: optimistic.rollback,
+                    }}
+                  />
                 </Table.Cell>
               </Table.Row>
             ))

@@ -5,28 +5,13 @@ import { Title } from "@/components/Title";
 import { ScrollText } from "lucide-react";
 import { TenantAuditEntry } from "../../interface";
 import { AUDIT_LABEL } from "../../utils";
-
-const formatMoment = (iso: string): string => {
-  const date = new Date(iso);
-  if (Number.isNaN(date.getTime())) return "—";
-  // Data e hora: duas ações do mesmo dia se distinguem pela hora, e é
-  // justamente a sequência do dia que se reconstrói ao investigar.
-  return date.toLocaleString("pt-BR", {
-    day: "2-digit",
-    month: "2-digit",
-    year: "2-digit",
-    hour: "2-digit",
-    minute: "2-digit",
-  });
-};
+import { formatLogMoment } from "@/utils/format/date";
 
 export function TenantAuditCard({ entries }: { entries: TenantAuditEntry[] }) {
   return (
     <Card.Root>
       <Card.Header>
-        <Card.Header.Title size="sm" weight="semibold">
-          Auditoria
-        </Card.Header.Title>
+        <Card.Header.Title>Auditoria</Card.Header.Title>
         <Card.Header.Description>
           O que a plataforma fez nesta empresa. Ações do dia a dia da empresa
           não entram aqui.
@@ -37,7 +22,7 @@ export function TenantAuditCard({ entries }: { entries: TenantAuditEntry[] }) {
         {entries.length === 0 ? (
           <EmptyState.Root>
             <EmptyState.Icon>
-              <ScrollText size={32} />
+              <ScrollText />
             </EmptyState.Icon>
             <EmptyState.Title>Nenhuma ação registrada</EmptyState.Title>
             <EmptyState.Description>
@@ -53,7 +38,7 @@ export function TenantAuditCard({ entries }: { entries: TenantAuditEntry[] }) {
                     {AUDIT_LABEL[entry.action] ?? entry.action}
                   </Title>
                   <Title variant="micro" color="muted">
-                    {formatMoment(entry.createdAt)} · {entry.actorEmail}
+                    {formatLogMoment(entry.createdAt)} · {entry.actorEmail}
                   </Title>
                 </div>
                 {entry.reason && (

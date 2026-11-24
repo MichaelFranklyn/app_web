@@ -17,7 +17,7 @@ export const getCircleClasses = (
   cn(
     "flex shrink-0 items-center justify-center rounded-full font-(--weight-semibold) transition-[background-color,color,box-shadow] duration-[150ms]",
     circleSize[size],
-    isCompleted && "bg-(--color-status-success) text-white",
+    isCompleted && "bg-(--color-status-success) text-(--color-on-action)",
     // Fundo de ação, não o --amber puro: número branco sobre #c97f0a dava
     // 3,21:1 (mesma correção do "hoje" do Calendar). O halo diz "você está aqui".
     isActive &&
@@ -31,7 +31,7 @@ export const getButtonClasses = (
   disabled?: boolean
 ): string =>
   cn(
-    "-m-[4px] flex items-center gap-8 rounded-(--r-md) p-[4px] pr-[8px] focus-ring transition-colors duration-[120ms]",
+    "-m-4 flex items-center gap-8 rounded-(--r-md) p-4 pr-8 focus-ring transition-colors duration-[120ms]",
     isInteractive ? "cursor-pointer hover:bg-(--bg3)" : "cursor-default",
     // Sem opacity: o texto do passo travado vai para --color-text-disabled
     // (o Indicator passa a cor ao Title).

@@ -17,13 +17,13 @@ export const Root = React.forwardRef<HTMLDivElement, EmptyStateRootProps>(
     // (uma linha por célula, a tabela rola). Sem reverter aqui, a descrição
     // virava uma linha só de ~680px e o card a cortava no meio da frase.
     const layout =
-      "flex w-full flex-col items-center gap-[10px] text-center whitespace-normal animate-fade-in";
+      "flex w-full flex-col items-center gap-10 text-center whitespace-normal animate-fade-in";
 
     if (flat) {
       return (
         <div
           ref={ref}
-          className={cn(layout, "px-[24px] py-[48px]", className)}
+          className={cn(layout, "px-24 py-48", className)}
           {...props}
         >
           {children}
@@ -38,7 +38,7 @@ export const Root = React.forwardRef<HTMLDivElement, EmptyStateRootProps>(
           // h-auto sobrescreve o h-full herdado do Card: um empty state
           // sempre tem a altura do conteúdo (senão o overflow-hidden corta).
           layout,
-          "h-auto px-[24px] py-[48px]",
+          "h-auto px-24 py-48",
           className
         )}
         {...props}

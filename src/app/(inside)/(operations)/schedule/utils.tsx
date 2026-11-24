@@ -4,6 +4,7 @@ import {
   getTodayIso,
   toUtcIsoDate as toIsoDate,
 } from "@/utils/format/date";
+import { formatDecimal } from "@/utils/format/masks";
 import { factoryName } from "@/utils/company";
 import {
   explainScore,
@@ -349,14 +350,21 @@ export const formatVisitSlot = (item: {
   return ` · ${item.plannedStartTime}${duration}`;
 };
 
-/** Duração legível: 45 → "45 min", 120 → "2h", 150 → "2h 30m". */
-/** Distância em km com uma casa e vírgula decimal ("12,4 km"). */
-export const formatDistanceKm = (rawKm: string): string => {
+/**
+ * Distância em km com vírgula decimal: "12,4 km" (rota do dia, uma casa) ou,
+ * com `decimals = 0`, "38 km" (quanto o cliente fica longe — ali a casa é
+ * ruído). O Decimal do backend chega como string; aceita os dois.
+ */
+export const formatDistanceKm = (
+  rawKm: string | number,
+  decimals = 1
+): string => {
   const km = Number(rawKm);
-  if (!isFinite(km)) return `${rawKm} km`;
-  return `${km.toFixed(1).replace(".", ",")} km`;
+  if (!Number.isFinite(km)) return `${rawKm} km`;
+  return `${formatDecimal(km, decimals)} km`;
 };
 
+/** Duração legível: 45 → "45 min", 120 → "2h", 150 → "2h 30m". */
 export const formatMinutes = (mins: number): string => {
   if (mins < 60) return `${mins} min`;
   const hours = Math.floor(mins / 60);

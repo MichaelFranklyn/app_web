@@ -42,7 +42,7 @@ export function PortalContent({ profile, summary, token }: PortalContentProps) {
       ) : (
         <EmptyState.Root>
           <EmptyState.Icon>
-            <Package size={36} />
+            <Package />
           </EmptyState.Icon>
           <EmptyState.Title>Nenhuma compra por aqui ainda</EmptyState.Title>
           <EmptyState.Description>

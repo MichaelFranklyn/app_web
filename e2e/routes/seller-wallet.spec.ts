@@ -93,7 +93,7 @@ test("carteira: pagina no servidor e conta a carteira inteira", async ({
   await expect(page.getByText("ALFA MATERIAIS")).toBeVisible();
   // O rodapé é o que faltava: sem ele, 12 clientes cabiam em 2 linhas na tela
   // e ninguém sabia que havia mais.
-  await expect(page.getByText("12 cliente(s) · página 1 de 2")).toBeVisible();
+  await expect(page.getByText("12 clientes · página 1 de 2")).toBeVisible();
 });
 
 test("carteira: buscar cliente vai ao banco como `client_name`", async ({

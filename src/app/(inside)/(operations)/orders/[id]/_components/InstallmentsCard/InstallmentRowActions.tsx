@@ -30,7 +30,7 @@ interface Props {
 type ConfirmKind = "defaulted" | "cancel" | "revert" | null;
 
 /**
- * Ações da parcela: "Pago" (o caso comum) fica à vista; o resto vai para o
+ * Ações da parcela: "Marcar como pago" (o caso comum) fica à vista; o resto vai para o
  * menu "…". Antes eram três botões na linha (Pago, Inadimplente, Cancelar
  * boleto) e no celular a linha virava uma régua de ações (revisão 13/11/2026).
  */

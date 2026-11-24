@@ -39,10 +39,10 @@ export function MonthToolbar({
           ? "Boletos travados, de todos os vencimentos"
           : `Resumo de ${monthLabel(nav.month)}`}
       </Title>
-      {/* Celular/tablet: "Dar baixa" e "PDF" dividem uma linha meio a meio
-          e o navegador de mês fica com a linha de baixo inteira — em fila
-          corrida cada um deixava sobra vazia ao lado. */}
-      <div className="desktop:flex desktop:flex-wrap desktop:items-center desktop:w-auto grid w-full grid-cols-2 gap-8 [&>*]:min-w-0">
+      {/* Tablet: "Dar baixa" e "PDF" dividem uma linha meio a meio e o
+          navegador de mês fica com a linha de baixo inteira. Celular: um por
+          linha — meio a meio em 360px, os rótulos cortavam. */}
+      <div className="desktop:flex desktop:flex-wrap desktop:items-center desktop:w-auto tablet:grid-cols-2 grid w-full grid-cols-1 gap-8 [&>*]:min-w-0">
         {canManage && (
           <SettlePeriodModal
             sellerId={sellerId}
@@ -52,7 +52,7 @@ export function MonthToolbar({
         )}
         <div
           data-tour="commissions-pdf"
-          className={canManage ? undefined : "max-desktop:col-span-2"}
+          className={canManage ? undefined : "tablet:max-desktop:col-span-2"}
         >
           <CommissionsPdfButton
             sellerId={sellerId}
@@ -62,7 +62,7 @@ export function MonthToolbar({
             disabled={isLoading}
           />
         </div>
-        <div className="max-desktop:col-span-2">
+        <div className="tablet:max-desktop:col-span-2">
           <MonthNavigator nav={nav} />
         </div>
       </div>

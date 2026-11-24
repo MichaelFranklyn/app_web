@@ -17,6 +17,7 @@ import {
 import { FactoryStockCard } from "./_components/FactoryStockCard";
 import { FactoryStockModal } from "./_components/FactoryStockModal";
 import { StockSkeleton } from "./_components/StockSkeleton";
+import { ICON_SIZE } from "@/components/Icon";
 
 export default function StockContent() {
   const { companyClientId } = useClientRoute();
@@ -39,7 +40,7 @@ export default function StockContent() {
   return (
     <div className="flex flex-col gap-16">
       <Alert.Root variant="info">
-        <Info size={14} className="mt-[1px] shrink-0" />
+        <Info size={ICON_SIZE.sm} className="mt-1 shrink-0" />
         <Alert.Content>
           <Alert.Description>
             Estimativas baseadas nas médias informadas pelo vendedor em campo.
@@ -65,7 +66,7 @@ export default function StockContent() {
       {summaries.length === 0 ? (
         <EmptyState.Root>
           <EmptyState.Icon>
-            <PackageSearch size={32} />
+            <PackageSearch />
           </EmptyState.Icon>
           <EmptyState.Title>Nenhum dado de estoque disponível</EmptyState.Title>
           <EmptyState.Description>

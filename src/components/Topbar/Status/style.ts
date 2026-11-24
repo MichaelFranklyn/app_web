@@ -21,7 +21,7 @@ export const statusVariants: Record<
 
 export const getStatusClasses = (variant: TopbarStatusVariant) => ({
   root: cn(
-    "flex items-center gap-[6px] text-body-sm",
+    "flex items-center gap-6 text-body-sm",
     statusVariants[variant].root
   ),
   dot: cn(

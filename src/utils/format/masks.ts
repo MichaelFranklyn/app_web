@@ -47,6 +47,23 @@ export const formatMoney = (value: number | string): string => {
   }).format(Number(value));
 };
 
+/**
+ * Moeda em reais inteiros ("R$ 223.084"), para o número grande de um cartão de
+ * KPI: em 2 colunas no celular, "R$ 223.084,01" não cabe numa linha e quebrava
+ * entre a moeda e o valor (crítica de /orders, 23/11/2026). O centavo fica na
+ * lista e no detalhe, onde se confere conta.
+ */
+export const formatMoneyWhole = (value: number | string): string => {
+  const n = Number(value);
+  if (!isFinite(n)) return "";
+  return new Intl.NumberFormat("pt-BR", {
+    style: "currency",
+    currency: "BRL",
+    maximumFractionDigits: 0,
+    minimumFractionDigits: 0,
+  }).format(Math.round(n));
+};
+
 // Converte string de moeda para number
 export const parseMoneyToNumber = (value: string): number => {
   if (!value) return 0;
@@ -60,6 +77,47 @@ export const parseMoneyToNumber = (value: string): number => {
 export const formatNumber = (value: number): string => {
   if (!isFinite(value)) return "";
   return new Intl.NumberFormat("pt-BR").format(value);
+};
+
+/**
+ * Quantidade com as casas só quando existem: "12" (não "12,00"), "1,5", "0,25".
+ * O Decimal do backend chega como "12.0000"; aceita string e devolve o texto
+ * original quando ele não é número.
+ */
+export const formatQuantity = (
+  value: number | string,
+  maxDecimals = 2
+): string => {
+  const n = Number(value);
+  if (!Number.isFinite(n)) return String(value);
+  return n.toLocaleString("pt-BR", { maximumFractionDigits: maxDecimals });
+};
+
+/**
+ * Número com casas FIXAS ("3,4", "1,0") — média ou razão, onde a casa decimal
+ * faz parte da leitura e não pode sumir quando é zero. Vazio vira "—".
+ */
+export const formatDecimal = (
+  value: number | null | undefined,
+  decimals = 1
+): string =>
+  value === null || value === undefined || !Number.isFinite(value)
+    ? "—"
+    : value.toLocaleString("pt-BR", {
+        minimumFractionDigits: decimals,
+        maximumFractionDigits: decimals,
+      });
+
+/**
+ * Razão "quantas vezes" com uma casa: "1,8×" (o cliente passou 1,8 vez do
+ * próprio ciclo, a rotina vendeu 2,3× a carteira). Vazio vira "—".
+ */
+export const formatRatio = (
+  value: number | null | undefined,
+  decimals = 1
+): string => {
+  const text = formatDecimal(value, decimals);
+  return text === "—" ? text : `${text}×`;
 };
 
 // Formata um valor com 2 casas decimais, sem símbolo de moeda (ex.: "1.234,56").

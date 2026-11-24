@@ -8,8 +8,16 @@
 //
 // `@container`: o número mede o PRÓPRIO cartão (ver kpiValueStyle) — no celular
 // a faixa vai em 2 colunas e o cartão tem metade da tela.
+//
+// Abaixo do tablet o respiro desce para 12px: com meia tela por cartão, os
+// 20px de cada lado comiam o espaço do número e do rótulo — e cada tela
+// compensava com o seu `className` (padrão de KPIs, 23/11/2026).
+//
+// `w-full`: o `Card.Kpi.Group` embrulha cada cartão num `Grid.Item`, e o
+// cartão-filtro é um <button> — que, sem largura, encolhia ao conteúdo e
+// virava uma tira de 40px com o rótulo letra a letra (/support, 23/11/2026).
 export const kpiRootStyle =
-  "@container h-full border border-(--border) rounded-(--r-lg) shadow-(--shadow-card) px-20 py-[18px] bg-(--bg2) relative flex flex-col overflow-hidden gap-12";
+  "@container h-full w-full border border-(--border) rounded-(--r-lg) shadow-(--shadow-card) px-20 py-[18px] max-tablet:px-12 max-tablet:py-12 bg-(--bg2) relative flex flex-col overflow-hidden gap-12";
 
 /**
  * O cartão-filtro: âmbar porque é interação — a mesma cor de "escolhido" do

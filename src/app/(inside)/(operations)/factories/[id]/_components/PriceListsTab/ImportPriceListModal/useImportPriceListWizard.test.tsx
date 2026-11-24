@@ -24,9 +24,8 @@ vi.mock("@/components/Toast", () => ({
   useToast: () => ({ toast: toastSpy }),
 }));
 
-// O wizard lê ?import=price-list e usa router/pathname ao fechar. Sem app router
-// nos testes, mocamos next/navigation. `get` → null: o modal começa fechado, o
-// que suspende a query de modelo (skip:!open) — mantém o teste enxuto.
+// O wizard usa router/pathname ao fechar. Sem app router nos testes, mocamos
+// next/navigation.
 const replace = vi.fn();
 vi.mock("next/navigation", () => ({
   useSearchParams: () => ({ get: () => null }),
@@ -109,6 +108,9 @@ function Harness() {
   api = useImportPriceListWizard({
     companyFactoryId: "cf-1",
     factoryId: "f-1",
+    // Fechado: suspende a query de modelo (skip:!open) — mantém o teste enxuto.
+    open: false,
+    onOpenChange: vi.fn(),
     onImported,
   });
   return null;

@@ -70,9 +70,7 @@ test("migração: histórico da Mercos passa pela prévia antes de gravar", asyn
     mimeType: "text/csv",
     buffer: Buffer.from(CSV),
   });
-  await expect(
-    page.getByText("Encontramos 3 linha(s) de itens.")
-  ).toBeVisible();
+  await expect(page.getByText("Encontramos 3 linhas de itens.")).toBeVisible();
 
   const next = page.getByRole("button", { name: "Próximo" });
   await next.click();
@@ -85,7 +83,7 @@ test("migração: histórico da Mercos passa pela prévia antes de gravar", asyn
   await page.getByRole("button", { name: "Conferir" }).last().click();
 
   await expect(page.getByText("Confira antes de importar")).toBeVisible();
-  await expect(page.getByText("1 cliente(s) fora da carteira")).toBeVisible();
+  await expect(page.getByText("1 cliente fora da carteira")).toBeVisible();
   const preview = spy.lastVariables("ImportOrderHistory");
   const input = preview?.input as {
     dryRun: boolean;
@@ -98,7 +96,7 @@ test("migração: histórico da Mercos passa pela prévia antes de gravar", asyn
     orderDate: "2026-05-04",
   });
 
-  await page.getByRole("button", { name: "Importar 2 pedido(s)" }).click();
+  await page.getByRole("button", { name: "Importar 2 pedidos" }).click();
   await expect(
     page.getByText("Histórico importado", { exact: true })
   ).toBeVisible();

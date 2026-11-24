@@ -33,7 +33,7 @@ export function CtaLink({
     <Link
       href={href}
       className={cn(
-        "inline-flex items-center justify-center rounded-(--radius-sm) transition",
+        "inline-flex items-center justify-center rounded-(--r-sm) transition",
         size === "lg" && "px-32 py-16",
         size === "md" && "px-24 py-12",
         size === "sm" && "px-16 py-8",
@@ -41,7 +41,7 @@ export function CtaLink({
         // dava 3,2:1 com o texto branco (falha AA) e a borda `--border2` é de
         // divisória, não de controle.
         emphasis === "primary"
-          ? "bg-(--color-action) shadow-[0_1px_2px_rgba(0,0,0,0.12)] hover:brightness-[0.92]"
+          ? "bg-(--color-action) shadow-(--shadow-sm) hover:brightness-[0.92]"
           : emphasis === "inverse"
             ? "border border-white/40 hover:bg-white/10"
             : "border border-(--color-border-control) bg-(--bg2) hover:bg-(--bg3)",

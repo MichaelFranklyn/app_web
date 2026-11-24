@@ -1,6 +1,6 @@
 "use client";
 
-import { ArrowRight, Lock } from "lucide-react";
+import { ArrowRight, Check, Lock } from "lucide-react";
 import { ReactNode } from "react";
 
 import { Badge } from "@/components/Badges";
@@ -25,6 +25,13 @@ interface Props {
   extraAction?: ReactNode;
   /** Detalhe abaixo do texto (ex.: a lista de fábricas). */
   children?: ReactNode;
+  /**
+   * Configuração concluída e passo feito: o card vira uma linha só (passo,
+   * título, situação e o link). Cinco cards inteiros de algo já resolvido
+   * empurravam para baixo o que a pessoa vem fazer aqui depois — trazer mais
+   * dados (crítica de configurações, 23/11/2026).
+   */
+  collapsed?: boolean;
 }
 
 function StepStatusBadge({
@@ -44,9 +51,15 @@ function StepStatusBadge({
       </Badge.Root>
     );
   }
+  // "Feito" discreto: só o texto verde com o check, sem fundo. Feito não pede
+  // nada — a tarja cheia disputava o olho com o "Pendente", que pede
+  // (crítica de configurações, 23/11/2026).
   if (step.isDone) {
     return (
-      <Badge.Root color="green" appearance="tinted" size="sm">
+      <Badge.Root color="green" appearance="ghost" size="sm">
+        <Badge.Icon>
+          <Check />
+        </Badge.Icon>
         <Badge.Text>Feito</Badge.Text>
       </Badge.Root>
     );
@@ -72,31 +85,73 @@ export function SetupStepCard({
   blockedBy,
   extraAction,
   children,
+  collapsed = false,
 }: Props) {
   const Icon = content.icon;
-  return (
-    <Card.Root>
-      <Card.Body className="flex flex-col gap-16">
-        <div className="tablet:flex-row tablet:items-center flex flex-col gap-12">
-          <IconTile aria-hidden shape="square" size="lg">
-            <Icon />
-          </IconTile>
+
+  if (collapsed) {
+    return (
+      <Card.Root>
+        <Card.Body className="tablet:flex-row tablet:items-center">
           <div className="flex min-w-0 flex-1 flex-col gap-3">
             <div className="flex flex-wrap items-center gap-8">
               <Title variant="eyebrow" color="muted">
                 Passo {number}
               </Title>
-              <StepStatusBadge step={step} isBlocked={!!blockedBy} />
+              <StepStatusBadge step={step} isBlocked={false} />
             </div>
-            <Title variant="heading-sm">{content.title}</Title>
+            <Title variant="body" weight="semibold">
+              {content.title}
+            </Title>
             <Title variant="body-sm" color="muted">
-              {content.description}
+              {summary}
             </Title>
-            <Title variant="body-sm" weight="semibold">
-              {blockedBy
-                ? `Libera quando o passo ${blockedBy.number} (${blockedBy.title}) estiver feito.`
-                : summary}
-            </Title>
+          </div>
+          <div className="flex shrink-0 flex-wrap gap-8">
+            {extraAction}
+            <Button.Link
+              href={content.href}
+              appearance="outline"
+              color="neutral"
+              size="sm"
+            >
+              <Button.Title>{content.action}</Button.Title>
+              <Button.Icon icon={ArrowRight} />
+            </Button.Link>
+          </div>
+        </Card.Body>
+      </Card.Root>
+    );
+  }
+
+  return (
+    <Card.Root>
+      <Card.Body>
+        <div className="tablet:flex-row tablet:items-center flex flex-col gap-12">
+          {/* Ícone e texto lado a lado também no celular: empilhado, o ícone
+              ocupava uma linha sozinho no alto de cada card (crítica de
+              configurações, 23/11/2026). Só as ações descem. */}
+          <div className="tablet:items-center flex min-w-0 flex-1 items-start gap-12">
+            <IconTile aria-hidden shape="square" size="lg">
+              <Icon />
+            </IconTile>
+            <div className="flex min-w-0 flex-1 flex-col gap-3">
+              <div className="flex flex-wrap items-center gap-8">
+                <Title variant="eyebrow" color="muted">
+                  Passo {number}
+                </Title>
+                <StepStatusBadge step={step} isBlocked={!!blockedBy} />
+              </div>
+              <Title variant="heading-sm">{content.title}</Title>
+              <Title variant="body-sm" color="muted">
+                {content.description}
+              </Title>
+              <Title variant="body-sm" weight="semibold">
+                {blockedBy
+                  ? `Libera quando o passo ${blockedBy.number} (${blockedBy.title}) estiver feito.`
+                  : summary}
+              </Title>
+            </div>
           </div>
           <div className="tablet:flex-col tablet:items-stretch flex shrink-0 flex-wrap gap-8">
             {extraAction}

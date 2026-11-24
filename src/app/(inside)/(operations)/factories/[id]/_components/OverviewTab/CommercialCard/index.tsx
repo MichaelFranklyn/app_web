@@ -5,6 +5,7 @@ import { Button } from "@/components/Button";
 import { Card } from "@/components/Card";
 import { HelpTooltip } from "@/components/HelpTooltip";
 import { Title } from "@/components/Title";
+import { plural } from "@/utils/format/plural";
 import { Calculator } from "lucide-react";
 import { useFactoryDetail } from "../../../context";
 import { CompanyFactoryDetail } from "../../../interface";
@@ -23,67 +24,46 @@ export function CommercialCard({ companyFactory }: Props) {
   return (
     <Card.Root>
       <Card.Header>
-        <Card.Header.Title size="sm" weight="bold">
-          <span className="inline-flex items-center gap-6">
-            Condições comerciais
-            <HelpTooltip
-              label="O que são as condições comerciais?"
-              content={
-                <div className="flex flex-col gap-2">
-                  <Title variant="label" weight="semibold">
-                    Condições comerciais
-                  </Title>
-                  <Title variant="body-sm">
-                    <Emphasis>Comissão</Emphasis> é o percentual que a sua
-                    empresa recebe sobre as vendas desta fábrica. A{" "}
-                    <Emphasis>base de cálculo</Emphasis> diz sobre qual valor
-                    esse percentual é aplicado.
-                  </Title>
-                  <Title variant="body-sm" color="muted">
-                    O dia de pagamento é quando a fábrica costuma pagar a
-                    comissão. O <Emphasis>corte do faturamento</Emphasis> é o
-                    último dia do mês que ainda entra nesse pagamento: o pedido
-                    faturado depois dele só é pago no mês seguinte. Para
-                    alterar, use o botão Editar no topo da página.
-                  </Title>
-                  <Title variant="body-sm" color="muted">
-                    A comissão de cada pedido é calculada{" "}
-                    <Emphasis>no dia do faturamento</Emphasis> e fica gravada
-                    nele. Mudar o percentual aqui vale para os próximos
-                    faturamentos; para corrigir os pedidos que já foram
-                    lançados, use “Aplicar aos pedidos faturados”.
-                  </Title>
-                </div>
-              }
-            />
-          </span>
+        <Card.Header.Title>
+          Condições comerciais
+          <HelpTooltip
+            label="O que são as condições comerciais?"
+            content={
+              <div className="flex flex-col gap-2">
+                <Title variant="label" weight="semibold">
+                  Condições comerciais
+                </Title>
+                <Title variant="body-sm">
+                  <Emphasis>Comissão</Emphasis> é o percentual que a sua empresa
+                  recebe sobre as vendas desta fábrica. A{" "}
+                  <Emphasis>base de cálculo</Emphasis> diz sobre qual valor esse
+                  percentual é aplicado.
+                </Title>
+                <Title variant="body-sm" color="muted">
+                  O dia de pagamento é quando a fábrica costuma pagar a
+                  comissão. O <Emphasis>corte do faturamento</Emphasis> é o
+                  último dia do mês que ainda entra nesse pagamento: o pedido
+                  faturado depois dele só é pago no mês seguinte. Para alterar,
+                  use o botão Editar no topo da página.
+                </Title>
+                <Title variant="body-sm" color="muted">
+                  A comissão de cada pedido é calculada{" "}
+                  <Emphasis>no dia do faturamento</Emphasis> e fica gravada
+                  nele. Mudar o percentual aqui vale para os próximos
+                  faturamentos; para corrigir os pedidos que já foram lançados,
+                  use “Aplicar aos pedidos faturados”.
+                </Title>
+              </div>
+            }
+          />
         </Card.Header.Title>
       </Card.Header>
       <Card.Body padding="compact">
         <Card.Item variant="stat">
           <Card.Item.Label>Comissão</Card.Item.Label>
-          {/* O rótulo do botão é longo ("Aplicar aos pedidos faturados"):
-              sem quebrar, ele e o percentual não cabem em 320px. Abaixo do
-              desktop o grupo se desfaz (`contents`): o percentual fica na linha
-              de "Comissão", como os outros itens, e o botão desce esticado para
-              a linha de baixo — antes "Comissão" ficava sozinho e o grupo
-              descia desalinhado (regra "nenhuma linha com sobra"). */}
-          <div className="max-desktop:contents flex flex-wrap items-center justify-end gap-x-12 gap-y-4">
-            <Button.Root
-              appearance="ghost"
-              color="neutral"
-              size="sm"
-              fullWidthBelowDesktop
-              className="max-desktop:order-last max-desktop:mt-8"
-              onClick={() => setApplyRatePrompt(true)}
-            >
-              <Button.Icon icon={Calculator} />
-              <Button.Title>Aplicar aos pedidos faturados</Button.Title>
-            </Button.Root>
-            <Card.Item.Value>
-              {formatCommissionRate(companyFactory.commissionRate)}
-            </Card.Item.Value>
-          </div>
+          <Card.Item.Value>
+            {formatCommissionRate(companyFactory.commissionRate)}
+          </Card.Item.Value>
         </Card.Item>
         <Card.Item variant="stat">
           <Card.Item.Label>Base de cálculo</Card.Item.Label>
@@ -119,11 +99,30 @@ export function CommercialCard({ companyFactory }: Props) {
           <Card.Item.Label>Prazo de entrega</Card.Item.Label>
           <Card.Item.Value>
             {companyFactory.deliveryEstimateDays != null
-              ? `${companyFactory.deliveryEstimateDays} dia(s)`
+              ? plural(companyFactory.deliveryEstimateDays, "dia", "dias")
               : "—"}
           </Card.Item.Value>
         </Card.Item>
       </Card.Body>
+      {/* A porta para corrigir os pedidos já lançados fica no rodapé, com a
+          frase do que ela faz: entre "Comissão" e "Base de cálculo" ela
+          quebrava a leitura das condições, e é uma ação que mexe em pedidos
+          passados, não mais uma condição (crítica de 23/11/2026). */}
+      <Card.Footer className="flex-wrap gap-x-12 gap-y-8">
+        <Title variant="body-sm" color="muted" className="min-w-0 flex-1">
+          Mudou o percentual? Os pedidos já faturados guardam o antigo.
+        </Title>
+        <Button.Root
+          appearance="outline"
+          color="neutral"
+          size="sm"
+          fullWidthBelowDesktop
+          onClick={() => setApplyRatePrompt(true)}
+        >
+          <Button.Icon icon={Calculator} />
+          <Button.Title>Aplicar aos pedidos faturados</Button.Title>
+        </Button.Root>
+      </Card.Footer>
     </Card.Root>
   );
 }

@@ -8,6 +8,7 @@ import { Title } from "@/components/Title";
 
 import { SetupFactory } from "../../interface";
 import { factoryPendingItem } from "../../utils";
+import { ICON_SIZE } from "@/components/Icon";
 
 /**
  * Cada fábrica vinculada com o que falta nela. A linha leva direto à aba que
@@ -42,7 +43,7 @@ export function SetupFactoryList({ factories }: { factories: SetupFactory[] }) {
               </Badge.Root>
               <ChevronRight
                 aria-hidden
-                size={16}
+                size={ICON_SIZE.md}
                 className="shrink-0 text-(--color-text-muted)"
               />
             </div>

@@ -55,7 +55,7 @@ export function AbcReportTable({
   return (
     <Table.Root sort={sort}>
       <Table.CardHead>
-        <Table.CardHead.Title className="inline-flex items-center gap-6">
+        <Table.CardHead.Title>
           Clientes por faturamento
           <HelpTooltip
             label="Sobre a curva ABC"
@@ -80,14 +80,16 @@ export function AbcReportTable({
             <Table.Head sortKey="rank">#</Table.Head>
             <Table.Head sortKey="client">Cliente</Table.Head>
             <Table.Head sortKey="abcClass">Classe</Table.Head>
-            <Table.Head sortKey="totalAmount" sortFirst="desc">
+            <Table.Head align="right" sortKey="totalAmount" sortFirst="desc">
               Faturamento
             </Table.Head>
-            <Table.Head sortKey="share" sortFirst="desc">
+            <Table.Head align="right" sortKey="share" sortFirst="desc">
               Participação
             </Table.Head>
-            <Table.Head sortKey="cumulativeShare">Acumulado</Table.Head>
-            <Table.Head sortKey="orderCount" sortFirst="desc">
+            <Table.Head align="right" sortKey="cumulativeShare">
+              Acumulado
+            </Table.Head>
+            <Table.Head align="right" sortKey="orderCount" sortFirst="desc">
               Pedidos
             </Table.Head>
             <Table.Head sortKey="lastOrderDate" sortFirst="desc">
@@ -104,7 +106,7 @@ export function AbcReportTable({
               <Table.Cell colSpan={8}>
                 <EmptyState.Root flat>
                   <EmptyState.Icon>
-                    <TrendingUp size={32} />
+                    <TrendingUp />
                   </EmptyState.Icon>
                   <EmptyState.Title>
                     {isNarrowed
@@ -145,6 +147,7 @@ export function AbcReportTable({
                   </Badge.Root>
                 </Table.Cell>
                 <Table.Cell
+                  align="right"
                   variant="strong"
                   card="value"
                   className="whitespace-nowrap"
@@ -152,6 +155,7 @@ export function AbcReportTable({
                   {formatMoney(row.totalAmount)}
                 </Table.Cell>
                 <Table.Cell
+                  align="right"
                   variant="dim"
                   label="Participação"
                   className="whitespace-nowrap"
@@ -159,13 +163,14 @@ export function AbcReportTable({
                   {formatPercent(row.share)}
                 </Table.Cell>
                 <Table.Cell
+                  align="right"
                   variant="dim"
                   label="Acumulado"
                   className="whitespace-nowrap"
                 >
                   {formatPercent(row.cumulativeShare)}
                 </Table.Cell>
-                <Table.Cell variant="dim" label="Pedidos">
+                <Table.Cell align="right" variant="dim" label="Pedidos">
                   {row.orderCount}
                 </Table.Cell>
                 <Table.Cell

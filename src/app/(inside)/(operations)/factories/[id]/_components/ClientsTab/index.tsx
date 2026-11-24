@@ -21,6 +21,7 @@ import { useFactoryClientsTable } from "./useFactoryClientsTable";
 import { priorityMeta } from "@/utils/clientPriority";
 import { clientName } from "@/utils/company";
 import { formatDate } from "@/utils/format/date";
+import { plural } from "@/utils/format/plural";
 
 interface Props {
   factoryId: string;
@@ -43,11 +44,17 @@ export function ClientsTab({
   const links = optimistic.items;
   const { loading, error, refetch } = table;
   const isNarrowed = Object.values(table.inputValues).some(Boolean);
+  // Coluna em que nenhuma linha da página tem valor é uma coluna de "—": sai
+  // no desktop (crítica de 23/11/2026). Nível de preço é opcional no vínculo e
+  // a Situação só mostra a negativação.
+  const showTier = links.some((link) => link.priceTier);
+  const showStatus = links.some((link) => link.isNegative);
+  const columns = 5 + Number(showTier) + Number(showStatus);
 
   return (
     <Table.Root sort={table.sort} data-tour="factory-clients-table">
       <Table.CardHead>
-        <Table.CardHead.Title className="inline-flex items-center gap-6">
+        <Table.CardHead.Title>
           Clientes da fábrica
           <HelpTooltip
             label="O que é vincular um cliente à fábrica?"
@@ -101,9 +108,11 @@ export function ClientsTab({
             <Table.Head title={FACTORY_CLIENT_COLUMN_HELP.seller}>
               Vendedor
             </Table.Head>
-            <Table.Head title={FACTORY_CLIENT_COLUMN_HELP.priceTier}>
-              Nível de preço
-            </Table.Head>
+            {showTier && (
+              <Table.Head title={FACTORY_CLIENT_COLUMN_HELP.priceTier}>
+                Nível de preço
+              </Table.Head>
+            )}
             <Table.Head title={FACTORY_CLIENT_COLUMN_HELP.priority}>
               Prioridade
             </Table.Head>
@@ -113,11 +122,13 @@ export function ClientsTab({
               sortFirst="desc"
               title={FACTORY_CLIENT_COLUMN_HELP.lastInvoice}
             >
-              Faturamento
+              Último faturamento
             </Table.Head>
-            <Table.Head title={FACTORY_CLIENT_COLUMN_HELP.status}>
-              Situação
-            </Table.Head>
+            {showStatus && (
+              <Table.Head title={FACTORY_CLIENT_COLUMN_HELP.status}>
+                Situação
+              </Table.Head>
+            )}
             <Table.Head
               className="text-right"
               title={FACTORY_CLIENT_COLUMN_HELP.actions}
@@ -128,19 +139,19 @@ export function ClientsTab({
         </Table.Header>
         <Table.Body>
           {loading && links.length === 0 ? (
-            <Table.Skeleton columns={7} rows={5} />
+            <Table.Skeleton columns={columns} rows={5} />
           ) : error && links.length === 0 ? (
             <Table.Row>
-              <Table.Cell colSpan={7}>
+              <Table.Cell colSpan={columns}>
                 <QueryError flat onRetry={() => refetch()} />
               </Table.Cell>
             </Table.Row>
           ) : links.length === 0 ? (
             <Table.Row>
-              <Table.Cell colSpan={7}>
+              <Table.Cell colSpan={columns}>
                 <EmptyState.Root flat>
                   <EmptyState.Icon>
-                    <Users size={32} />
+                    <Users />
                   </EmptyState.Icon>
                   {/* "Não há vínculo" e "o filtro não achou" pedem saídas
                       diferentes: uma manda cadastrar, a outra manda afrouxar. */}
@@ -175,15 +186,17 @@ export function ClientsTab({
                     {link.seller?.name ?? "—"}
                   </Table.Cell>
                   {/* No cartão o nível vai junto da prioridade (célula abaixo). */}
-                  <Table.Cell label="Nível de preço" card="hidden">
-                    {link.priceTier ? (
-                      <Badge.Root color="subtle" appearance="tinted">
-                        <Badge.Text>{link.priceTier.name}</Badge.Text>
-                      </Badge.Root>
-                    ) : (
-                      <Table.CellText variant="dim">—</Table.CellText>
-                    )}
-                  </Table.Cell>
+                  {showTier && (
+                    <Table.Cell label="Nível de preço" card="hidden">
+                      {link.priceTier ? (
+                        <Badge.Root color="subtle" appearance="tinted">
+                          <Badge.Text>{link.priceTier.name}</Badge.Text>
+                        </Badge.Root>
+                      ) : (
+                        <Table.CellText variant="dim">—</Table.CellText>
+                      )}
+                    </Table.Cell>
+                  )}
                   {/* No cartão: nível + prioridade na linha das ações, sem
                       rótulo — as tarjas se explicam sozinhas. O nível só
                       aparece aqui abaixo do desktop (lá ele tem coluna). */}
@@ -202,22 +215,24 @@ export function ClientsTab({
                     </Badge.Root>
                   </Table.Cell>
                   <Table.Cell
-                    label="Faturamento"
+                    label="Último faturamento"
                     variant="dim"
                     className="whitespace-nowrap"
                   >
                     {formatDate(link.lastInvoiceDate)}
                   </Table.Cell>
-                  <Table.Cell card="status">
-                    {/* Só a negativação aparece: "Ativo" em toda linha seria uma
-                        coluna inteira repetindo o que já é o normal. */}
-                    <NegativeTag
-                      isNegative={link.isNegative}
-                      negativeSince={link.negativeSince}
-                      negativeReason={link.negativeReason}
-                      activeLabel={null}
-                    />
-                  </Table.Cell>
+                  {showStatus && (
+                    <Table.Cell card="status">
+                      {/* Só a negativação aparece: "Ativo" em toda linha seria
+                          uma coluna inteira repetindo o que já é o normal. */}
+                      <NegativeTag
+                        isNegative={link.isNegative}
+                        negativeSince={link.negativeSince}
+                        negativeReason={link.negativeReason}
+                        activeLabel={null}
+                      />
+                    </Table.Cell>
+                  )}
                   <Table.Cell card="actions">
                     <ClientLinkRowActions
                       negative={{
@@ -261,7 +276,7 @@ export function ClientsTab({
             <Loading.Spinner size="sm" className="mr-6 inline-block" />
           )}
           {table.totalItems > 0
-            ? `${table.totalItems} cliente(s) · página ${table.currentPage} de ${table.totalPages}`
+            ? `${plural(table.totalItems, "cliente", "clientes")} · página ${table.currentPage} de ${table.totalPages}`
             : "Nenhum cliente encontrado"}
         </Table.Footer.Info>
 

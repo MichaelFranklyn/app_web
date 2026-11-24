@@ -4,21 +4,7 @@ import { Card } from "@/components/Card";
 import { Progress } from "@/components/Progress";
 import { Title } from "@/components/Title";
 import { PlanLimitUsage } from "@/services/plan";
-import {
-  Building2,
-  Infinity as InfinityIcon,
-  LucideIcon,
-  Store,
-  UserRound,
-  Users,
-} from "lucide-react";
-
-const LIMIT_ICON: Record<string, LucideIcon> = {
-  USERS: Users,
-  SELLERS: UserRound,
-  CLIENTS: Store,
-  FACTORIES: Building2,
-};
+import { plural } from "@/utils/format/plural";
 
 /**
  * A cor mede o APERTO, não o recurso.
@@ -42,19 +28,11 @@ export function PlanLimitCard({ usage }: { usage: PlanLimitUsage }) {
     ? 0
     : Math.min(100, Math.round((usage.used / Math.max(usage.limit!, 1)) * 100));
   const tone = toneOf(percent, usage.isAtLimit);
-  const Icon = unlimited ? InfinityIcon : LIMIT_ICON[usage.key];
 
   return (
     <Card.Kpi>
       <Card.Kpi.Label>
-        {Icon && (
-          <Icon
-            aria-hidden
-            size={13}
-            className="shrink-0 text-(--color-text-disabled)"
-          />
-        )}
-        <span className="truncate capitalize">{usage.label}</span>
+        <span className="capitalize">{usage.label}</span>
       </Card.Kpi.Label>
 
       <Card.Kpi.Value
@@ -98,9 +76,7 @@ export function PlanLimitCard({ usage }: { usage: PlanLimitUsage }) {
             Limite atingido. Fale com o suporte para aumentar.
           </Title>
         ) : (
-          `${percent}% do teto · ${usage.limit! - usage.used} ${
-            usage.limit! - usage.used === 1 ? "vaga livre" : "vagas livres"
-          }`
+          `${percent}% do teto · ${plural(usage.limit! - usage.used, "vaga livre", "vagas livres")}`
         )}
       </Card.Kpi.Delta>
     </Card.Kpi>

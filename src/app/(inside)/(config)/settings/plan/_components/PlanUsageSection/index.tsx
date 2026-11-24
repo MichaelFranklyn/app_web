@@ -1,9 +1,11 @@
 "use client";
 
-import { Grid } from "@/components/Grid";
+import { Card } from "@/components/Card";
+import { Alert } from "@/components/Alert";
 import { HelpTooltip } from "@/components/HelpTooltip";
 import { Title } from "@/components/Title";
 import { PlanLimitUsage } from "@/services/plan";
+import { Infinity as InfinityIcon } from "lucide-react";
 
 import { PlanLimitCard } from "../PlanLimitCard";
 
@@ -50,13 +52,26 @@ export function PlanUsageSection({ limits }: { limits: PlanLimitUsage[] }) {
         </Title>
       </div>
 
-      <Grid.Root cols={{ base: 1, tablet: 2, "desktop-xl": 4 }} gap={12}>
-        {limits.map((usage) => (
-          <Grid.Item key={usage.key}>
-            <PlanLimitCard usage={usage} />
-          </Grid.Item>
-        ))}
-      </Grid.Root>
+      {/* Tudo sem teto: quatro cartões com "∞" ocupavam meia tela para dizer
+          uma coisa só. Uma faixa diz o mesmo e devolve o espaço (crítica de
+          configurações, 23/11/2026). */}
+      {limits.every((usage) => usage.limit === null) ? (
+        <Alert.Root variant="neutral" size="sm">
+          <Alert.Icon icon={InfinityIcon} />
+          <Alert.Content>
+            <Alert.Description>
+              Sem limite de cadastro no seu plano:{" "}
+              {limits.map((usage) => usage.label.toLowerCase()).join(", ")}.
+            </Alert.Description>
+          </Alert.Content>
+        </Alert.Root>
+      ) : (
+        <Card.Kpi.Group>
+          {limits.map((usage) => (
+            <PlanLimitCard key={usage.key} usage={usage} />
+          ))}
+        </Card.Kpi.Group>
+      )}
     </section>
   );
 }

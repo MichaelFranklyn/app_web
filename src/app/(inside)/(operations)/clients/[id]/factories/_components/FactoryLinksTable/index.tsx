@@ -16,6 +16,7 @@ import { priorityColor, priorityLabel } from "./utils";
 import { cadenceDaysLabel, cadenceSourceLabel } from "@/utils/cadence";
 import { factoryName } from "@/utils/company";
 import { formatDate } from "@/utils/format/date";
+import { ICON_SIZE } from "@/components/Icon";
 
 export function FactoryLinksTable({
   clientId,
@@ -30,11 +31,7 @@ export function FactoryLinksTable({
   return (
     <Table.Root data-tour="client-factories-table">
       <Table.CardHead>
-        <Table.CardHead.Title
-          size="sm"
-          weight="semibold"
-          className="inline-flex items-center gap-6"
-        >
+        <Table.CardHead.Title>
           Vínculos por Fábrica
           <HelpTooltip
             label="Sobre os vínculos por fábrica"
@@ -71,7 +68,10 @@ export function FactoryLinksTable({
             <Table.Head title={CLIENT_FACTORY_COLUMN_HELP.status}>
               Status
             </Table.Head>
-            <Table.Head title={CLIENT_FACTORY_COLUMN_HELP.actions}>
+            <Table.Head
+              title={CLIENT_FACTORY_COLUMN_HELP.actions}
+              align="right"
+            >
               Ações
             </Table.Head>
           </Table.Row>
@@ -122,7 +122,7 @@ export function FactoryLinksTable({
                       <Tooltip content={c.cadence.divergenceMessage}>
                         <span aria-label={c.cadence.divergenceMessage}>
                           <TriangleAlert
-                            size={13}
+                            size={ICON_SIZE.sm}
                             className="text-(--color-action-text)"
                             aria-hidden
                           />
@@ -153,7 +153,7 @@ export function FactoryLinksTable({
                   negativeReason={c.negativeReason}
                 />
               </Table.Cell>
-              <Table.Cell card="actions">
+              <Table.Cell card="actions" align="right">
                 <FactoryLinkRowActions
                   negative={{
                     linkId: c.id,
@@ -192,7 +192,7 @@ export function FactoryLinksTable({
               <Table.Cell colSpan={7}>
                 <EmptyState.Root flat>
                   <EmptyState.Icon>
-                    <Factory size={32} />
+                    <Factory />
                   </EmptyState.Icon>
                   <EmptyState.Title>Nenhum vínculo cadastrado</EmptyState.Title>
                   <EmptyState.Description>

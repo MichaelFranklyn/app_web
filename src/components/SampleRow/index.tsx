@@ -3,6 +3,7 @@ import { cn } from "@/lib/utils";
 import { ArrowUpRight } from "lucide-react";
 import NextLink from "next/link";
 import React from "react";
+import { ICON_SIZE } from "@/components/Icon";
 
 interface SampleRowProps {
   /** O nome inteiro — é por ele que o vendedor reconhece o cliente. */
@@ -31,7 +32,7 @@ export function SampleRow({
 }: SampleRowProps) {
   const body = (
     <>
-      <div className="flex min-w-0 flex-col gap-2">
+      <div className="flex min-w-0 grow flex-col gap-2">
         <Title variant="body-sm" weight="semibold">
           {label}
         </Title>
@@ -43,11 +44,11 @@ export function SampleRow({
         {children}
       </div>
       {(aside || href) && (
-        <div className="flex shrink-0 items-center gap-6">
+        <div className="ml-auto flex shrink-0 items-center gap-6">
           {aside}
           {href && (
             <ArrowUpRight
-              size={14}
+              size={ICON_SIZE.sm}
               className="text-(--color-text-muted)"
               aria-hidden
             />
@@ -57,8 +58,10 @@ export function SampleRow({
     </>
   );
 
+  // Quebra em vez de espremer: no celular o prazo ("12 dias de atraso") desce
+  // para baixo do nome, alinhado à direita, e o nome não vira três linhas.
   const base =
-    "flex items-center justify-between gap-12 rounded-(--r-sm) px-8 py-6";
+    "flex flex-wrap items-center justify-between gap-x-12 gap-y-4 rounded-(--r-sm) px-8 py-6";
 
   return href ? (
     <NextLink

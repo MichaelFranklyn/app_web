@@ -17,4 +17,9 @@ export interface ClientsTableProps {
   currentPage: number;
   totalPages: number;
   setCurrentPage: (page: number) => void;
+  /**
+   * Coluna Vendedor. O vendedor logado só vê a própria carteira: a coluna
+   * repetia o nome dele em toda linha.
+   */
+  showSeller: boolean;
 }

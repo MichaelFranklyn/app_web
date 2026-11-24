@@ -10,6 +10,7 @@ import { QueryError } from "@/components/QueryError";
 import { Table, TableSort } from "@/components/Table";
 import { Title } from "@/components/Title";
 import { formatMoney } from "@/utils/format/masks";
+import { plural, pluralWord } from "@/utils/format/plural";
 import { useEffect, useMemo, useState } from "react";
 import {
   CommissionFactoryRowsData,
@@ -171,7 +172,9 @@ export function FactoryCommissionGroup({
                   em cima, e a barra de atalhos aparece na base da janela. */}
               {selectedCount > 0 && (
                 <Badge.Root color="amber" appearance="tinted">
-                  <Badge.Text>{selectedCount} selecionada(s)</Badge.Text>
+                  <Badge.Text>
+                    {plural(selectedCount, "selecionada", "selecionadas")}
+                  </Badge.Text>
                 </Badge.Root>
               )}
             </div>
@@ -180,8 +183,8 @@ export function FactoryCommissionGroup({
               color={canManage && allReconciled ? "green" : "muted"}
             >
               {canManage
-                ? `${summary.reconciledCount} de ${total} parcela(s) conferida(s) ${scopeLabel}`
-                : `${total} parcela(s) ${scopeLabel}`}
+                ? `${summary.reconciledCount} de ${plural(total, "parcela conferida", "parcelas conferidas")} ${scopeLabel}`
+                : `${plural(total, "parcela", "parcelas")} ${scopeLabel}`}
             </Title>
           </div>
         </Collapse.Trigger>
@@ -239,9 +242,10 @@ export function FactoryCommissionGroup({
               </Title>
               {selectedCount > 0 && (
                 <Title variant="caption" color="amber" weight="semibold">
-                  {selectedCount} selecionada(s) nesta fábrica
+                  {plural(selectedCount, "selecionada", "selecionadas")} nesta
+                  fábrica
                   {selectedElsewhere > 0
-                    ? ` — ${selectedOnPage} nesta página e ${selectedElsewhere} em outra(s)`
+                    ? ` — ${selectedOnPage} nesta página e ${selectedElsewhere} em ${pluralWord(selectedElsewhere, "outra", "outras")}`
                     : ""}
                 </Title>
               )}
@@ -258,6 +262,7 @@ export function FactoryCommissionGroup({
               canManage={canManage}
               lens={lens}
               showSeller={showSeller}
+              tab={tab}
               isPaged={isPaged}
               selectedIds={selectedIds ?? EMPTY_SELECTION}
               onToggleRow={onToggleRow}

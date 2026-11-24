@@ -1,7 +1,9 @@
 "use client";
 
+import { Card } from "@/components/Card";
 import { Title } from "@/components/Title";
-import { cn } from "@/lib/utils";
+import { InputNumber } from "@/components/Input";
+import { ToggleGroup, ToggleOption } from "@/components/ToggleGroup";
 import { useState } from "react";
 
 import { stockGuessLabel } from "./stockGuess";
@@ -20,6 +22,14 @@ const SHORTCUTS: { label: string; days: number }[] = [
 const isShortcut = (days: number | null | undefined): boolean =>
   days != null && SHORTCUTS.some((s) => s.days === days);
 
+/** "Outro" abre o campo livre; não é um número de dias. */
+const CUSTOM = "outro";
+
+const OPTIONS: ToggleOption<number | typeof CUSTOM>[] = [
+  ...SHORTCUTS.map((s) => ({ value: s.days, label: s.label })),
+  { value: CUSTOM, label: "Outro" },
+];
+
 interface Props {
   product: StockCandidateProduct;
   days: number | null | undefined;
@@ -33,89 +43,75 @@ export function ProductDaysRow({ product, days, onChange }: Props) {
   );
 
   const marked = days != null;
+  const selected = showCustom
+    ? CUSTOM
+    : isShortcut(days)
+      ? (days ?? null)
+      : null;
   const currentGuess = stockGuessLabel(product);
 
   return (
-    <div className="flex flex-col gap-8 rounded-(--r-md) border border-(--border) bg-(--bg3) px-12 py-10">
-      <div className="flex items-baseline justify-between gap-8">
-        <div className="min-w-0">
-          <Title variant="body-sm" weight="medium" className="truncate">
-            {product.name}
-          </Title>
-          <Title variant="body-sm" color="muted">
-            {product.sku}
-          </Title>
-        </div>
-        {marked ? (
-          <Title variant="micro" color="secondary" className="shrink-0">
-            {days === 0 ? "sem estoque" : `dura ~${days} dias`}
-          </Title>
-        ) : (
-          // Antes de responder, o vendedor vê o que o sistema ACHA — e a
-          // procedência do palpite. Confirmar ou corrigir um número é muito
-          // mais rápido que produzir um do zero, e é a diferença entre o
-          // cliente responder e dar de ombros.
-          currentGuess && (
-            <Title variant="micro" color="muted2" className="shrink-0">
-              {currentGuess}
+    <Card.Root inset tone="muted">
+      <Card.Body padding="sm">
+        <div className="flex items-baseline justify-between gap-8">
+          <div className="min-w-0">
+            <Title variant="body-sm" weight="medium" className="truncate">
+              {product.name}
             </Title>
-          )
-        )}
-      </div>
-
-      <div className="flex flex-wrap gap-4">
-        {SHORTCUTS.map((shortcut) => {
-          const active = days === shortcut.days;
-          return (
-            <button
-              key={shortcut.days}
-              type="button"
-              onClick={() => {
-                setShowCustom(false);
-                onChange(product.id, shortcut.days);
-              }}
-              className={cn(
-                "text-body-sm rounded-(--r-sm) border px-8 py-4 transition-colors",
-                active
-                  ? "border-(--amber) bg-(--amber) text-black"
-                  : "border-(--border) text-(--color-text-muted) hover:border-(--border2)"
-              )}
-            >
-              {shortcut.label}
-            </button>
-          );
-        })}
-
-        <button
-          type="button"
-          onClick={() => setShowCustom((v) => !v)}
-          className={cn(
-            "text-body-sm rounded-(--r-sm) border px-8 py-4 transition-colors",
-            showCustom
-              ? "border-(--amber) text-(--color-action-text)"
-              : "border-(--border) text-(--color-text-muted) hover:border-(--border2)"
+            <Title variant="body-sm" color="muted">
+              {product.sku}
+            </Title>
+          </div>
+          {marked ? (
+            <Title variant="micro" color="secondary" className="shrink-0">
+              {days === 0 ? "sem estoque" : `dura ~${days} dias`}
+            </Title>
+          ) : (
+            // Antes de responder, o vendedor vê o que o sistema ACHA — e a
+            // procedência do palpite. Confirmar ou corrigir um número é muito
+            // mais rápido que produzir um do zero, e é a diferença entre o
+            // cliente responder e dar de ombros.
+            currentGuess && (
+              <Title variant="micro" color="muted2" className="shrink-0">
+                {currentGuess}
+              </Title>
+            )
           )}
-        >
-          Outro
-        </button>
+        </div>
 
-        {showCustom && (
-          <input
-            type="number"
-            min={0}
-            max={365}
-            inputMode="numeric"
-            aria-label={`Dias de estoque de ${product.name}`}
-            value={days ?? ""}
-            onChange={(e) => {
-              const raw = e.target.value;
-              onChange(product.id, raw === "" ? null : Number(raw));
+        <div className="flex flex-wrap items-center gap-4">
+          <ToggleGroup
+            options={OPTIONS}
+            value={selected}
+            onChange={(value) => {
+              if (value === CUSTOM) {
+                setShowCustom((open) => !open);
+                return;
+              }
+              setShowCustom(false);
+              onChange(product.id, value);
             }}
-            placeholder="dias"
-            className="text-body-sm w-[80px] rounded-(--r-sm) border border-(--border) bg-(--bg2) px-8 py-4 text-(--color-text)"
+            aria-label={`Quanto dura o estoque de ${product.name}`}
           />
-        )}
-      </div>
-    </div>
+
+          {showCustom && (
+            <InputNumber
+              size="sm"
+              min={0}
+              max={365}
+              inputMode="numeric"
+              aria-label={`Dias de estoque de ${product.name}`}
+              value={days ?? ""}
+              onChange={(e) => {
+                const raw = e.target.value;
+                onChange(product.id, raw === "" ? null : Number(raw));
+              }}
+              placeholder="dias"
+              containerClassName="w-[96px]"
+            />
+          )}
+        </div>
+      </Card.Body>
+    </Card.Root>
   );
 }

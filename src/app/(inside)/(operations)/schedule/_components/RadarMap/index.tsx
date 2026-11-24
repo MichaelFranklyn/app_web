@@ -18,6 +18,7 @@ import { useEffect, useMemo, useRef, useState } from "react";
 
 import { RADAR_CLIENTS_QUERY } from "./gql";
 import { RadarClient, RadarClientsQueryData } from "./interface";
+import { ICON_SIZE } from "@/components/Icon";
 
 interface Props {
   /** Vendedor selecionado (gestor) — só para revalidar ao trocar de vendedor. */
@@ -177,7 +178,10 @@ export function RadarMap({ sellerId }: Props) {
         <Card.Root>
           <Card.Header>
             <div className="flex items-center gap-8">
-              <Radar size={16} className="text-(--color-action-text)" />
+              <Radar
+                size={ICON_SIZE.md}
+                className="text-(--color-action-text)"
+              />
               <Title variant="body-sm" weight="semibold">
                 Loja selecionada
               </Title>

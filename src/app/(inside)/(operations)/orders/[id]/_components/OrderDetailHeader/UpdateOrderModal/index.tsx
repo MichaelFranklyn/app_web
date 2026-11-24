@@ -8,7 +8,8 @@ import { useInvalidateQueriesClient } from "@/hooks/useInvalidateQueries";
 import { ORDER_CACHE_FIELDS } from "@/utils/cacheFields";
 import { useMutation } from "@apollo/client/react";
 import { Pencil } from "lucide-react";
-import { useRef, useState } from "react";
+import { useRef } from "react";
+import { useControlledOpen } from "@/hooks/useControlledOpen";
 import { UPDATE_ORDER_MUTATION } from "./gql";
 import { UpdateOrderModalProps, UpdateOrderResponse } from "./interface";
 import { paymentTermLabel } from "../../../../../_shared/orderPaymentTerms";
@@ -26,8 +27,13 @@ export function UpdateOrderModal({
   currentPaymentTermId,
   paymentTerms,
   onSuccess,
+  open: openProp,
+  onOpenChange,
 }: UpdateOrderModalProps) {
-  const [open, setOpen] = useState(false);
+  const { open, setOpen, isControlled } = useControlledOpen(
+    openProp,
+    onOpenChange
+  );
   const formRef = useRef<FormBuilderRef>(null);
   const currentTerm =
     paymentTerms.find((term) => term.id === currentPaymentTermId) ?? null;
@@ -83,12 +89,14 @@ export function UpdateOrderModal({
 
   return (
     <Modal.Root open={open} onOpenChange={setOpen}>
-      <Modal.Trigger asChild>
-        <Button.Root appearance="outline" color="neutral" size="sm">
-          <Button.Icon icon={Pencil} />
-          <Button.Title>Editar</Button.Title>
-        </Button.Root>
-      </Modal.Trigger>
+      {!isControlled && (
+        <Modal.Trigger asChild>
+          <Button.Root appearance="outline" color="neutral" size="sm">
+            <Button.Icon icon={Pencil} />
+            <Button.Title>Editar</Button.Title>
+          </Button.Root>
+        </Modal.Trigger>
+      )}
 
       <Modal.Content size="md">
         <Modal.Header

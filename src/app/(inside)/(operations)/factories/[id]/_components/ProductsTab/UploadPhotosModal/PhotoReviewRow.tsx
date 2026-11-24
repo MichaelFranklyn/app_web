@@ -9,6 +9,7 @@ import { Input, SelectOption } from "@/components/Input";
 import { Title } from "@/components/Title";
 
 import { PhotoAssignment, PhotoProduct } from "./interface";
+import { ICON_SIZE } from "@/components/Icon";
 
 interface Props {
   photo: PhotoAssignment;
@@ -39,7 +40,7 @@ export function PhotoReviewRow({
 
   return (
     <Card.Root inset>
-      <Card.Body padding="sm" className="flex flex-row items-start gap-12">
+      <Card.Body padding="sm" className="flex-row items-start">
         <ProductThumb
           imageUrl={photo.previewUrl}
           name={photo.file.name}
@@ -73,7 +74,7 @@ export function PhotoReviewRow({
               color="warning"
               className="inline-flex items-center gap-4"
             >
-              <AlertTriangle size={13} />
+              <AlertTriangle size={ICON_SIZE.sm} />
               Outra foto desta leva também aponta para este produto — só a
               última fica.
             </Title>

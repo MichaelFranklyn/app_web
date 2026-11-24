@@ -11,13 +11,15 @@ import { useAsyncAction } from "@/hooks/useAsyncAction";
 import { useInvalidateQueriesClient } from "@/hooks/useInvalidateQueries";
 import { CLIENT_NETWORK_CACHE_FIELDS } from "@/utils/cacheFields";
 import { useMutation } from "@apollo/client/react";
-import { Pencil } from "lucide-react";
-import { useMemo, useRef, useState } from "react";
+import { useMemo, useRef } from "react";
 
 import { UPDATE_CLIENT_NETWORK_MUTATION } from "../../../gql";
 import { ClientNetwork, UpdateClientNetworkResponse } from "../../../interface";
 
 interface Props {
+  /** Controlado: o gatilho é o "⋯" da linha (RowActions). */
+  open: boolean;
+  onOpenChange: (open: boolean) => void;
   network: ClientNetwork;
   onUpdateOptimistic: (id: string, updates: Partial<ClientNetwork>) => void;
   onCommit: () => void;
@@ -31,8 +33,9 @@ export function EditNetworkModal({
   onCommit,
   onRollback,
   onChanged,
+  open,
+  onOpenChange: setOpen,
 }: Props) {
-  const [open, setOpen] = useState(false);
   const formRef = useRef<FormBuilderRef>(null);
   const [updateNetwork] = useMutation<UpdateClientNetworkResponse>(
     UPDATE_CLIENT_NETWORK_MUTATION
@@ -116,18 +119,6 @@ export function EditNetworkModal({
 
   return (
     <Modal.Root open={open} onOpenChange={setOpen}>
-      <Modal.Trigger asChild>
-        <Button.Root
-          appearance="ghost"
-          color="neutral"
-          size="sm"
-          isIconOnly
-          label="Editar rede"
-        >
-          <Button.Icon icon={Pencil} />
-        </Button.Root>
-      </Modal.Trigger>
-
       <Modal.Content size="md">
         <Modal.Header
           title="Editar rede"

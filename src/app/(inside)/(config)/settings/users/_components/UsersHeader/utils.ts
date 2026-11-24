@@ -1,4 +1,5 @@
 import { KpiItem } from "@/components/Card/Kpi/Root/interface";
+import { formatQuantity } from "@/utils/format/masks";
 import { USERS_KPI_HELP } from "../../help";
 import { SellersStats } from "../../interface";
 
@@ -16,7 +17,11 @@ export const buildKpis = (stats: SellersStats): KpiItem[] => {
   // "% da carteira" — cinco vendedores com quinze acessos viravam "300% da
   // carteira", um número que não quer dizer nada e que ninguém consegue conferir.
   const perSeller =
-    activeCount > 0 ? (activeFactoryAccessCount / activeCount).toFixed(1) : "0";
+    activeCount > 0
+      ? // Vírgula brasileira e sem ",0" sobrando: "2.0" lia como dois mil para
+        // quem não é do ramo (crítica de configurações, 23/11/2026).
+        formatQuantity(activeFactoryAccessCount / activeCount, 1)
+      : "0";
 
   return [
     {

@@ -6,9 +6,9 @@ export const avatarStyles = {
   sizes: {
     sm: "w-[28px] h-[28px] text-body-sm",
     md: "w-[36px] h-[36px] text-body-sm",
-    lg: "w-[48px] h-[48px] text-[16px]",
+    lg: "w-[48px] h-[48px] text-body-lg",
     // Marca em destaque (ex.: logo da fábrica no topo do detalhe).
-    xl: "w-[72px] h-[72px] text-[22px]",
+    xl: "w-[72px] h-[72px] text-heading-lg",
   },
 
   colors: {

@@ -4,6 +4,7 @@ import { Button } from "@/components/Button";
 import { SelectionBar } from "@/components/SelectionBar";
 import { Title } from "@/components/Title";
 import { useAsyncAction } from "@/hooks/useAsyncAction";
+import { plural } from "@/utils/format/plural";
 import { useMutation } from "@apollo/client/react";
 import { Ban, CircleDollarSign, HandCoins } from "lucide-react";
 import { useMemo } from "react";
@@ -150,7 +151,7 @@ export function BulkActionsBar({
         label="Cliente pagou"
         icon={CircleDollarSign}
         color="green"
-        title={`Marcar ${count} boleto(s) como pago(s)`}
+        title={`Marcar ${plural(count, "boleto como pago", "boletos como pagos")}`}
         description="Baixa dos boletos conforme o relatório da fábrica. Boletos já baixados são ignorados."
         dateLabel="Data do pagamento"
         dateHint="Dia em que o cliente pagou. É ela que define em qual repasse a comissão entra — um boleto pago com atraso cai no fechamento seguinte."
@@ -179,7 +180,7 @@ export function BulkActionsBar({
         label="Não pagou"
         icon={Ban}
         color="red"
-        title={`Marcar ${count} boleto(s) como inadimplente(s)`}
+        title={`Marcar ${plural(count, "boleto como inadimplente", "boletos como inadimplentes")}`}
         description="O cliente não pagou. A comissão deixa de ser devida e, se já tiver sido paga, volta como estorno no fechamento seguinte."
         dateLabel="Data da inadimplência"
         dateHint="Quando o calote foi confirmado. Define em qual fechamento o estorno entra."
@@ -209,7 +210,7 @@ export function BulkActionsBar({
         label="Repassei ao vendedor"
         icon={HandCoins}
         color="neutral"
-        title={`Registrar repasse de ${count} comissão(ões)`}
+        title={`Registrar repasse de ${plural(count, "comissão", "comissões")}`}
         description="Registra que o escritório pagou ao vendedor a comissão dele destas parcelas."
         dateLabel="Data do repasse"
         dateHint="Dia em que o vendedor recebeu."
@@ -239,7 +240,7 @@ export function BulkActionsBar({
           label={`Fábrica descontou (${chargebackIds.length})`}
           icon={Ban}
           color="red"
-          title={`Registrar desconto de ${chargebackIds.length} estorno(s)`}
+          title={`Registrar desconto de ${plural(chargebackIds.length, "estorno", "estornos")}`}
           description="A fábrica já abateu estes estornos no repasse. Eles viram histórico e param de pesar nos próximos fechamentos."
           dateLabel="Data do desconto"
           dateHint="Dia do repasse em que o abatimento apareceu."

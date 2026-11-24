@@ -1,5 +1,7 @@
 import { ThemeColor } from "@/lib/theme";
 import { formatMoney, formatNumber } from "@/utils/format/masks";
+import { plural } from "@/utils/format/plural";
+import { BRT_TIME_ZONE, formatDate } from "@/utils/format/date";
 import {
   PortalOrderKind,
   PortalSentOrder,
@@ -46,30 +48,12 @@ export const sentOrderLabel = (stage: SentOrderStage): string =>
 export const sentOrderTone = (stage: SentOrderStage): ThemeColor =>
   STAGE_TONE[stage];
 
-/**
- * Data de um instante (`DateTime`) no fuso de Brasília.
- *
- * A tela é servida pelo servidor, que roda em UTC: um envio às 22h de segunda
- * sairia como terça sem o fuso explícito.
- */
-export const formatBrtDate = (iso: string | null | undefined): string => {
-  if (!iso) return "";
-  const date = new Date(iso);
-  if (Number.isNaN(date.getTime())) return "";
-  return new Intl.DateTimeFormat("pt-BR", {
-    timeZone: "America/Sao_Paulo",
-    day: "2-digit",
-    month: "2-digit",
-    year: "numeric",
-  }).format(date);
-};
-
 /** A frase que explica a situação — o que já aconteceu e o que vem depois. */
 export const sentOrderHint = (order: PortalSentOrder): string => {
   const seller = order.sellerName ?? "O representante";
   switch (sentOrderStage(order)) {
     case "seen":
-      return `${seller} viu o seu pedido em ${formatBrtDate(order.seenBySellerAt)} e vai confirmar preço e condição com você.`;
+      return `${seller} viu o seu pedido em ${formatDate(order.seenBySellerAt, "", { timeZone: BRT_TIME_ZONE })} e vai confirmar preço e condição com você.`;
     case "ordered":
       return `${seller} confirmou. O pedido está confirmado.`;
     case "cancelled":
@@ -84,11 +68,11 @@ export const sentOrderTotal = (order: PortalSentOrder): number =>
   portalOrderTotal(order);
 
 export const itemCountLabel = (count: number): string =>
-  count === 1 ? "1 produto" : `${count} produtos`;
+  plural(count, "produto", "produtos");
 
 /** A data em que o cliente mandou, para o card e o cabeçalho. */
 export const sentOrderDateLine = (order: PortalSentOrder): string =>
-  `Enviado em ${formatBrtDate(order.createdAt)}`;
+  `Enviado em ${formatDate(order.createdAt, "", { timeZone: BRT_TIME_ZONE })}`;
 
 /**
  * O resumo que vai no email e no WhatsApp: fábrica, data e os produtos com a
@@ -115,7 +99,7 @@ export const sentOrderShareText = (order: PortalSentOrderDetail): string => {
 
 /** Assunto do email ao representante: fábrica e data do pedido. */
 export const sentOrderMailSubject = (order: PortalSentOrderDetail): string =>
-  `Pedido ${order.factoryName} — ${formatBrtDate(order.createdAt)}`;
+  `Pedido ${order.factoryName} — ${formatDate(order.createdAt, "", { timeZone: BRT_TIME_ZONE })}`;
 
 /** Nome do arquivo do PDF: `pedido-<fabrica>-<dd-mm-aaaa>.pdf`. */
 export const sentOrderFileName = (order: PortalSentOrder): string => {
@@ -125,7 +109,7 @@ export const sentOrderFileName = (order: PortalSentOrder): string => {
     .toLowerCase()
     .replace(/[^a-z0-9]+/g, "-")
     .replace(/^-|-$/g, "");
-  return `pedido-${factory || "portal"}-${formatBrtDate(order.createdAt).replaceAll("/", "-")}.pdf`;
+  return `pedido-${factory || "portal"}-${formatDate(order.createdAt, "", { timeZone: BRT_TIME_ZONE }).replaceAll("/", "-")}.pdf`;
 };
 
 /**

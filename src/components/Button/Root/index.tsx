@@ -45,6 +45,9 @@ export const ButtonRoot = forwardRef<HTMLButtonElement, ButtonProps>(
           className,
         })}
         disabled={loading || disabled}
+        // Lido pelo estágio "só ícone" dos headers: o primário (solid) mantém
+        // o nome (ver Card.Header.Actions / PanelHeader.Actions).
+        data-appearance={appearance}
         title={title ?? label}
         aria-label={ariaLabel ?? label}
         {...props}

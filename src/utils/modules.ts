@@ -84,6 +84,7 @@ export const PAGE_HEADING = {
   product: { icon: Package },
   priceList: { icon: Receipt },
   catalog: { icon: Tags },
+  company: { icon: Building2 },
   plan: { icon: BadgeCheck },
   users: { icon: UserCog },
   import: { icon: Import },

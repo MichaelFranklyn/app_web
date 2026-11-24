@@ -8,6 +8,7 @@ import {
 } from "@/components/FormBuilder";
 import { Modal } from "@/components/Modal";
 import { useAsyncAction } from "@/hooks/useAsyncAction";
+import { plural } from "@/utils/format/plural";
 import { useMutation } from "@apollo/client/react";
 import { useRef } from "react";
 import { TRANSFER_COMPANY_CLIENT_CNPJ_MUTATION } from "../gql";
@@ -91,7 +92,7 @@ export function TransferCnpjModal({
       },
       {
         successMessage: (moved) =>
-          `Cliente transferido para o CNPJ novo, com ${moved.movedLinks} vínculo(s) de fábrica. Os pedidos antigos continuam no CNPJ anterior.`,
+          `Cliente transferido para o CNPJ novo, com ${plural(moved.movedLinks, "vínculo", "vínculos")} de fábrica. Os pedidos antigos continuam no CNPJ anterior.`,
         onSuccess: (moved) => {
           onOpenChange(false);
           onDone(moved.newCompanyClient.id);

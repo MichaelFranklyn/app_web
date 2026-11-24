@@ -7,6 +7,7 @@ import { ImagePlus, Trash } from "lucide-react";
 import { useEffect, useRef, useState } from "react";
 import { LogoUploadProps } from "./interface";
 import { svgToPng } from "./svgToPng";
+import { ICON_SIZE } from "@/components/Icon";
 
 // SVG entra na lista: é o formato em que a maioria das logos existe. Ele é
 // convertido em PNG aqui no navegador (ver svgToPng) — o backend só aceita
@@ -90,7 +91,10 @@ export function LogoUpload({
               {initials}
             </Title>
           ) : (
-            <ImagePlus size={24} className="text-(--color-text-muted)" />
+            <ImagePlus
+              size={ICON_SIZE.xl}
+              className="text-(--color-text-muted)"
+            />
           )}
         </div>
 

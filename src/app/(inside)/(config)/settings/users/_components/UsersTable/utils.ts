@@ -1,4 +1,5 @@
 import { User } from "../../interface";
+import { plural } from "@/utils/format/plural";
 
 /**
  * Resumo de campo da pessoa ("Sudeste · 3 fábricas · 12 clientes"). Vazio para
@@ -7,9 +8,6 @@ import { User } from "../../interface";
 export const fieldSummary = (user: User): string => {
   const seller = user.seller;
   if (!seller) return "";
-
-  const plural = (count: number, singular: string, many: string): string =>
-    `${count} ${count === 1 ? singular : many}`;
 
   return [
     seller.region,

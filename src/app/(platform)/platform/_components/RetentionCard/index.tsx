@@ -36,20 +36,18 @@ export function RetentionCard({ retention }: { retention: PlatformRetention }) {
   return (
     <Card.Root>
       <Card.Header>
-        <Card.Header.Title size="sm" weight="semibold">
-          Permanência por turma
-        </Card.Header.Title>
+        <Card.Header.Title>Permanência por turma</Card.Header.Title>
         <Card.Header.Description>
           Cada linha é o grupo de empresas que entrou no mesmo mês. As colunas
           mostram quantas delas ainda lançavam pedido depois de 1, 2, 3 meses.
         </Card.Header.Description>
       </Card.Header>
 
-      <Card.Body className="flex flex-col gap-20">
+      <Card.Body>
         {cohorts.length === 0 ? (
           <EmptyState.Root>
             <EmptyState.Icon>
-              <Users size={32} />
+              <Users />
             </EmptyState.Icon>
             <EmptyState.Title>
               Nenhuma empresa entrou no período

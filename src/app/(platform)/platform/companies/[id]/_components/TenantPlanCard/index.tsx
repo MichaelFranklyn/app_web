@@ -23,7 +23,7 @@ export function TenantPlanCard({ tenant }: { tenant: TenantDetail }) {
   return (
     <Card.Root>
       <Card.Header>
-        <Card.Header.Title size="sm" weight="semibold">
+        <Card.Header.Title>
           Plano {plan?.label ?? tenant.plan}
         </Card.Header.Title>
         <Card.Header.Description>

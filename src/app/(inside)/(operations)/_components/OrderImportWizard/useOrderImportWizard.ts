@@ -15,6 +15,7 @@ import {
   splitAt,
   WorkbookData,
 } from "@/utils/import/reader";
+import { plural } from "@/utils/format/plural";
 
 import { DraftItem } from "../../_shared/orderDraftItems";
 import { buildImportSource, ReadingGuess, ReadingKind } from "./diagnostics";
@@ -470,12 +471,12 @@ export function useOrderImportWizard({
           onImported();
           const partial = r.failed > 0 || skippedItems.length > 0;
           const skippedNote = skippedItems.length
-            ? ` · ${skippedItems.length} não importado(s) (fora do catálogo)`
+            ? ` · ${plural(skippedItems.length, "não importado", "não importados")} (fora do catálogo)`
             : "";
           toast({
             variant: partial ? "warning" : "success",
             title: partial ? "Importação parcial" : "Itens importados",
-            description: `${r.created} item(ns) importado(s), ${r.failed} com erro${skippedNote}.`,
+            description: `${plural(r.created, "item importado", "itens importados")}, ${r.failed} com erro${skippedNote}.`,
           });
           // Subiu o pedido → cai na página dele. Só paramos no passo de resultado
           // quando algum item FALHOU ao gravar: a mensagem de erro de cada linha

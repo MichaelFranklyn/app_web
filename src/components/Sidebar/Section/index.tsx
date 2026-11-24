@@ -11,7 +11,7 @@ export const Section = React.forwardRef<HTMLDivElement, SidebarSectionProps>(
     <div
       ref={ref}
       className={cn(
-        "px-[20px] pt-[16px] pb-[6px] text-[12px] font-(--weight-semibold) text-(--color-text-muted)",
+        "section-label px-20 pt-16 pb-6",
         collapsed && "desktop:hidden",
         className
       )}

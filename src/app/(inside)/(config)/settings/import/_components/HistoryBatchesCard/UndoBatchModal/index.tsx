@@ -8,6 +8,7 @@ import { useAsyncAction } from "@/hooks/useAsyncAction";
 import { useInvalidateQueriesClient } from "@/hooks/useInvalidateQueries";
 import { ORDER_CACHE_FIELDS } from "@/utils/cacheFields";
 import { formatDateDMY } from "@/utils/format/masks";
+import { plural, pluralWord } from "@/utils/format/plural";
 import { useMutation } from "@apollo/client/react";
 import { Undo2 } from "lucide-react";
 import { useState } from "react";
@@ -84,7 +85,7 @@ export function UndoBatchModal({ batch, onUndone }: Props) {
       <Modal.Content size="sm">
         <Modal.Header
           title="Desfazer importação"
-          description={`Importação de ${formatDateDMY(batch.createdAt)}, com ${batch.ordersCount} pedido(s). Eles saem do sistema e a mesma planilha, corrigida, pode ser importada de novo.`}
+          description={`Importação de ${formatDateDMY(batch.createdAt)}, com ${plural(batch.ordersCount, "pedido", "pedidos")}. ${pluralWord(batch.ordersCount, "Ele sai", "Eles saem")} do sistema e a mesma planilha, corrigida, pode ser importada de novo.`}
         />
         <Modal.Body>
           <div className="flex flex-col gap-16">

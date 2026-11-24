@@ -23,6 +23,7 @@ import {
   CommissionsSplit,
   CommissionsTotals,
 } from "./interface";
+import { formatPercent } from "@/utils/format/percent";
 
 /** As situações que somam no relatório — as outras não são dinheiro de ninguém. */
 const COUNTED_STATUSES: CommissionStatus[] = [
@@ -236,7 +237,7 @@ export const buildSplitOption = (
         `Comissão da fábrica: <b>${formatMoney(group.split.company)}</b>`,
         `Fica no escritório: <b>${formatMoney(group.split.office)}</b>`,
         `Repasse ao vendedor: <b>${formatMoney(group.split.seller)}</b>`,
-        mutedLine(`${Math.round(group.split.margin * 100)}% de margem`),
+        mutedLine(`${formatPercent(group.split.margin)} de margem`),
       ];
     },
     { stacked: true }

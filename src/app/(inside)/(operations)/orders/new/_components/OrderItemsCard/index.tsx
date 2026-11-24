@@ -40,9 +40,7 @@ export function OrderItemsCard({
   return (
     <Card.Root>
       <Card.Header>
-        <Card.Header.Title size="sm" weight="bold">
-          Itens
-        </Card.Header.Title>
+        <Card.Header.Title>Itens</Card.Header.Title>
         <Card.Header.Description>
           {canImport
             ? "Adicione um produto de cada vez ou importe de uma planilha. Nada é gravado até você clicar em “Criar pedido”."

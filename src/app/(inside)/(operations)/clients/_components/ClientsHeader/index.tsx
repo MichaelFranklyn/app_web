@@ -1,25 +1,22 @@
 "use client";
-import { Button } from "@/components/Button";
-
 import { Alert } from "@/components/Alert";
 import { Card } from "@/components/Card";
 import { FilterField } from "@/components/Filters";
-import { Grid } from "@/components/Grid";
-import { HelpTooltip } from "@/components/HelpTooltip";
 import { PanelHeader } from "@/components/PanelHeader";
 import { PAGE_HEADING } from "@/utils/modules";
 import { ReportOrder } from "@/utils/pdf/context";
 import { useUserData } from "@/hooks/useUserData";
 import { isAdminRole } from "@/utils/auth/roles";
-import { Eraser, Info, Network, TrendingDown, TrendingUp } from "lucide-react";
+import { Info } from "lucide-react";
 
 import { PlanLimitGate } from "@/components/PlanLimitGate";
-import { FeatureGate } from "@/components/FeatureGate";
+import { pluralWord } from "@/utils/format/plural";
 import { Client, ClientsStats } from "../../interface";
 import { KPI_IGNORED_FILTERS, buildKpis, listFilters } from "../../utils";
 import { AddClientModal } from "./AddClientModal";
 import { ExportClientsButton } from "./ExportClientsButton";
-import { ImportClientsModal } from "./ImportClientsModal";
+import { ClientsMoreMenu } from "./ClientsMoreMenu";
+import { ICON_SIZE } from "@/components/Icon";
 
 interface ClientsHeaderProps {
   stats: ClientsStats;
@@ -31,6 +28,11 @@ interface ClientsHeaderProps {
   /** Ordenação à vista na tabela — o arquivo sai na mesma ordem. */
   order?: ReportOrder | null;
   hasClients: boolean;
+  /**
+   * Vendedor logado: a carteira na tela é só a dele. Os textos dizem "sua
+   * carteira" — "da empresa" sobre números que eram só dele confundia.
+   */
+  isOwnWallet: boolean;
 }
 
 export function ClientsHeader({
@@ -40,8 +42,9 @@ export function ClientsHeader({
   filterFields,
   order,
   hasClients,
+  isOwnWallet,
 }: ClientsHeaderProps) {
-  const kpis = buildKpis(stats);
+  const kpis = buildKpis(stats, isOwnWallet);
   // Os nomes, e não as chaves: o aviso repete o rótulo que a pessoa acabou de
   // usar no painel ("Rede", "Estado"), senão ela não liga um ao outro.
   const ignoredFilters = KPI_IGNORED_FILTERS(filterFields, inputValues);
@@ -57,45 +60,26 @@ export function ClientsHeader({
             <PanelHeader.Heading {...PAGE_HEADING.clients}>
               Clientes
             </PanelHeader.Heading>
+            {/* Dizia "Dados globais complementados com informações privadas" —
+                o modelo de dados, não o que a pessoa faz aqui (crítica de
+                23/11/2026). */}
             <PanelHeader.Description>
-              Carteira de clientes da empresa. Dados globais complementados com
-              informações privadas.
+              {isOwnWallet
+                ? "Os clientes que você atende."
+                : "Os clientes que sua empresa atende."}{" "}
+              Clique em um para ver compras, visitas e score.
             </PanelHeader.Description>
-            <PanelHeader.Actions className="mt-6" data-tour="clients-actions">
+            <PanelHeader.Actions data-tour="clients-actions">
               <ExportClientsButton
                 inputValues={inputValues}
                 filterFields={filterFields}
                 order={order}
                 disabled={!hasClients}
               />
-              {/* Redes não têm item próprio na sidebar: são um recorte da
-                  carteira, e é daqui que se chega nelas. Link precisa ser <a>,
-                  não <button> — mesma solução do ContactLinks. */}
-              <Button.Link
-                href="/clients/networks"
-                appearance="outline"
-                color="neutral"
-                size="sm"
-              >
-                <Button.Icon icon={Network} />
-                <Button.Title>Redes</Button.Title>
-              </Button.Link>
-              {canClean && (
-                <Button.Link
-                  href="/clients/hygiene"
-                  appearance="outline"
-                  color="neutral"
-                  size="sm"
-                  title="Revisar clientes que fecharam, pararam de comprar ou mudaram de nome"
-                >
-                  <Button.Icon icon={Eraser} />
-                  <Button.Title>Higienizar carteira</Button.Title>
-                </Button.Link>
-              )}
-              {/* Importação em massa é recurso de plano. */}
-              <FeatureGate feature="BULK_IMPORT">
-                <ImportClientsModal />
-              </FeatureGate>
+              {/* Redes, Higienizar e Importar moram no menu: com os cinco
+                  botões à vista, no celular a carteira só começava na segunda
+                  tela (crítica de 23/11/2026). */}
+              <ClientsMoreMenu canClean={canClean} />
               <PlanLimitGate limit="CLIENTS">
                 <AddClientModal onAddOptimistic={onAddOptimistic} />
               </PlanLimitGate>
@@ -104,31 +88,22 @@ export function ClientsHeader({
         </PanelHeader.Top>
       </PanelHeader.Root>
 
-      <Grid.Root cols={{ base: 2, tablet: 2, "desktop-xl": 4 }} gap={20}>
-        {kpis.map(
-          ({ label, value, delta, positive, negative, status, help }) => (
-            <Grid.Item key={label}>
-              <Card.Kpi>
-                {/* Os quatro cartões medem coisas diferentes que soam iguais
-                    (marcado como ativo × atrasado para comprar × sem visita):
-                    sem a explicação ao lado, um parece contradizer o outro. */}
-                <Card.Kpi.Label className="inline-flex items-center gap-2">
-                  {label}
-                  {help && (
-                    <HelpTooltip label={`Sobre ${label}`} content={help} />
-                  )}
-                </Card.Kpi.Label>
-                <Card.Kpi.Value status={status}>{value}</Card.Kpi.Value>
-                <Card.Kpi.Delta positive={positive} negative={negative}>
-                  {positive && <TrendingUp size={12} />}
-                  {negative && <TrendingDown size={12} />}
-                  {delta}
-                </Card.Kpi.Delta>
-              </Card.Kpi>
-            </Grid.Item>
-          )
-        )}
-      </Grid.Root>
+      {/* Três cartões numa linha a partir do tablet (colunas pelo padrão da
+          faixa, `Card.Kpi.Group`). */}
+      <Card.Kpi.Group>
+        {kpis.map(({ label, value, delta, status, help }) => (
+          <Card.Kpi key={label}>
+            {/* Os cartões medem coisas diferentes que soam iguais (na
+                  carteira × atrasado para comprar × sem visita): sem a
+                  explicação ao lado, um parece contradizer o outro. */}
+            <Card.Kpi.Label help={help}>{label}</Card.Kpi.Label>
+            <Card.Kpi.Value status={status}>{value}</Card.Kpi.Value>
+            {/* Sem seta de tendência: nenhum destes números é série no
+                  tempo, e a seta para baixo sugeria uma queda que não houve. */}
+            <Card.Kpi.Delta>{delta}</Card.Kpi.Delta>
+          </Card.Kpi>
+        ))}
+      </Card.Kpi.Group>
 
       {/* O aviso só aparece quando ele é necessário — com a carteira inteira à
           vista, os cartões e a lista contam a mesma coisa e não há o que
@@ -137,12 +112,14 @@ export function ClientsHeader({
           uma interrogação. */}
       {ignoredFilters.length > 0 && (
         <Alert.Root variant="info">
-          <Info size={14} className="mt-[1px] shrink-0" />
+          <Info size={ICON_SIZE.sm} className="mt-1 shrink-0" />
           <Alert.Content>
             <Alert.Description>
-              {`${listFilters(ignoredFilters)} ${
-                ignoredFilters.length === 1 ? "filtra" : "filtram"
-              } apenas a lista abaixo — os quatro cartões acima continuam contando a carteira inteira.`}
+              {`${listFilters(ignoredFilters)} ${pluralWord(
+                ignoredFilters.length,
+                "filtra",
+                "filtram"
+              )} apenas a lista abaixo — os cartões acima continuam contando a carteira inteira.`}
             </Alert.Description>
           </Alert.Content>
         </Alert.Root>

@@ -22,8 +22,8 @@ export function AddressMap({ query }: Props) {
     return (
       <MapFrame.Root className="h-[200px]">
         <MapFrame.Message icon={MapPin}>
-          Sem endereço para mostrar no mapa. Preencha rua ou cidade em
-          &quot;Editar&quot;.
+          Sem endereço para mostrar no mapa. Preencha rua ou cidade em “Editar
+          endereço”.
         </MapFrame.Message>
       </MapFrame.Root>
     );
@@ -40,7 +40,7 @@ export function AddressMap({ query }: Props) {
         />
       ) : (
         <MapFrame.Message icon={MapPin}>
-          Mapa embutido indisponível (chave do Google Maps não configurada).
+          O mapa não está disponível agora.
         </MapFrame.Message>
       )}
     </MapFrame.Root>

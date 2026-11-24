@@ -1,7 +1,7 @@
 "use client";
 
 import { Badge } from "@/components/Badges";
-import { EmptyState } from "@/components/EmptyState";
+import { HelpTooltip } from "@/components/HelpTooltip";
 import { Table } from "@/components/Table";
 import { Title } from "@/components/Title";
 import { factoryName } from "@/utils/company";
@@ -15,14 +15,15 @@ import {
   isSupportCaseOpen,
   supportAgeLabel,
 } from "@/utils/support";
-import { Headset } from "lucide-react";
-import { useMemo } from "react";
+import { ReactNode, useMemo } from "react";
 
 interface Props {
   cases: SupportCase[];
+  /** O que entra aqui — vai na dica ao lado do título. */
+  help: ReactNode;
+  /** "Registrar reclamação", no canto do card. */
+  action: ReactNode;
 }
-
-const COLUMNS = 5;
 
 /**
  * Os casos do cliente, ABERTOS primeiro.
@@ -32,7 +33,7 @@ const COLUMNS = 5;
  * vem abaixo, na mesma tabela, porque é ele que responde "isso já aconteceu
  * antes?".
  */
-export function ClientSupportList({ cases }: Props) {
+export function ClientSupportList({ cases, help, action }: Props) {
   const ordered = useMemo(() => {
     const open = cases.filter((c) => isSupportCaseOpen(c.status));
     const closed = cases.filter((c) => !isSupportCaseOpen(c.status));
@@ -47,10 +48,15 @@ export function ClientSupportList({ cases }: Props) {
     <Table.Root>
       <Table.CardHead>
         <Table.CardHead.Title>
-          {openCount > 0
-            ? `${openCount} reclamação(ões) em aberto`
-            : "Reclamações"}
+          Reclamações deste cliente
+          <HelpTooltip label="O que entra aqui?" content={help} />
+          {openCount > 0 && (
+            <Badge.Root color="warning" appearance="tinted" size="sm">
+              <Badge.Text>{`${openCount} em aberto`}</Badge.Text>
+            </Badge.Root>
+          )}
         </Table.CardHead.Title>
+        <Table.CardHead.Actions>{action}</Table.CardHead.Actions>
       </Table.CardHead>
 
       {/* Abaixo do desktop cada caso vira um cartão: a tabela rolando de lado
@@ -66,78 +72,56 @@ export function ClientSupportList({ cases }: Props) {
           </Table.Row>
         </Table.Header>
         <Table.Body>
-          {ordered.length === 0 ? (
-            <Table.Row>
-              <Table.Cell colSpan={COLUMNS}>
-                <EmptyState.Root flat>
-                  <EmptyState.Icon>
-                    <Headset size={32} />
-                  </EmptyState.Icon>
-                  <EmptyState.Title>
-                    Nenhuma reclamação registrada
-                  </EmptyState.Title>
-                  <EmptyState.Description>
-                    Quando este cliente reclamar de algo — mercadoria,
-                    pagamento, entrega — registre aqui para acompanhar a
-                    tratativa com a fábrica.
-                  </EmptyState.Description>
-                </EmptyState.Root>
+          {ordered.map((item) => (
+            <Table.Row key={item.id} href={`/support/${item.id}`}>
+              <Table.Cell card="title">
+                <div className="flex flex-col">
+                  <Table.CellText variant="strong">{item.title}</Table.CellText>
+                  <Table.CellText variant="dim">
+                    {`${SUPPORT_CATEGORY_LABEL[item.category]} · desde ${formatDate(item.reportedAt)}`}
+                  </Table.CellText>
+                </div>
+              </Table.Cell>
+              <Table.Cell label="Fábrica">
+                <Table.CellText variant="dim">
+                  {item.factory ? factoryName(item.factory) : "—"}
+                </Table.CellText>
+              </Table.Cell>
+              {/* No cartão a tag leva o rótulo na frente ("Status: [Aberta]"). */}
+              <Table.Cell card="status" label="Status">
+                <Badge.Root
+                  color={SUPPORT_STATUS_COLOR[item.status]}
+                  appearance="tinted"
+                  title={SUPPORT_STATUS_HINT[item.status]}
+                >
+                  <Badge.Text>{SUPPORT_STATUS_LABEL[item.status]}</Badge.Text>
+                </Badge.Root>
+              </Table.Cell>
+              <Table.Cell label="Tempo">
+                <Table.CellText variant="dim">
+                  {supportAgeLabel(item.ageDays, item.isOpen)}
+                </Table.CellText>
+              </Table.Cell>
+              <Table.Cell label="Último andamento">
+                <div className="flex flex-col">
+                  {item.lastUpdate ? (
+                    <>
+                      <Table.CellText variant="dim">
+                        {item.lastUpdate.body}
+                      </Table.CellText>
+                      <Table.CellText variant="dim">
+                        {formatDate(item.lastUpdate.createdAt)}
+                      </Table.CellText>
+                    </>
+                  ) : (
+                    <Title variant="body-xs" color="muted">
+                      Sem andamento ainda
+                    </Title>
+                  )}
+                </div>
               </Table.Cell>
             </Table.Row>
-          ) : (
-            ordered.map((item) => (
-              <Table.Row key={item.id} href={`/support/${item.id}`}>
-                <Table.Cell card="title">
-                  <div className="flex flex-col">
-                    <Table.CellText variant="strong">
-                      {item.title}
-                    </Table.CellText>
-                    <Table.CellText variant="dim">
-                      {`${SUPPORT_CATEGORY_LABEL[item.category]} · desde ${formatDate(item.reportedAt)}`}
-                    </Table.CellText>
-                  </div>
-                </Table.Cell>
-                <Table.Cell label="Fábrica">
-                  <Table.CellText variant="dim">
-                    {item.factory ? factoryName(item.factory) : "—"}
-                  </Table.CellText>
-                </Table.Cell>
-                {/* No cartão a tag leva o rótulo na frente ("Status: [Aberta]"). */}
-                <Table.Cell card="status" label="Status">
-                  <Badge.Root
-                    color={SUPPORT_STATUS_COLOR[item.status]}
-                    appearance="tinted"
-                    title={SUPPORT_STATUS_HINT[item.status]}
-                  >
-                    <Badge.Text>{SUPPORT_STATUS_LABEL[item.status]}</Badge.Text>
-                  </Badge.Root>
-                </Table.Cell>
-                <Table.Cell label="Tempo">
-                  <Table.CellText variant="dim">
-                    {supportAgeLabel(item.ageDays, item.isOpen)}
-                  </Table.CellText>
-                </Table.Cell>
-                <Table.Cell label="Último andamento">
-                  <div className="flex flex-col">
-                    {item.lastUpdate ? (
-                      <>
-                        <Table.CellText variant="dim">
-                          {item.lastUpdate.body}
-                        </Table.CellText>
-                        <Table.CellText variant="dim">
-                          {formatDate(item.lastUpdate.createdAt)}
-                        </Table.CellText>
-                      </>
-                    ) : (
-                      <Title variant="body-xs" color="muted">
-                        Sem andamento ainda
-                      </Title>
-                    )}
-                  </div>
-                </Table.Cell>
-              </Table.Row>
-            ))
-          )}
+          ))}
         </Table.Body>
       </Table.Table>
     </Table.Root>

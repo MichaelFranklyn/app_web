@@ -5,6 +5,7 @@ import {
   StockObservationsEntry,
   VisitStatusEntry,
 } from "./interface";
+import { plural } from "@/utils/format/plural";
 
 /**
  * Quanto tempo um registro guardado ainda vale. Depois disso ele é descartado
@@ -105,7 +106,7 @@ export function localDay(date: Date): string {
 
 /** "1 registro" / "3 registros". */
 export function recordsLabel(count: number): string {
-  return count === 1 ? "1 registro" : `${count} registros`;
+  return plural(count, "registro", "registros");
 }
 
 /** Status que encerram a visita — os que carregam a hora em que aconteceu. */

@@ -7,6 +7,7 @@ import { Loading } from "@/components/Loading";
 import { QueryError } from "@/components/QueryError";
 import { Stepper } from "@/components/Stepper";
 import { Title } from "@/components/Title";
+import { plural } from "@/utils/format/plural";
 import { FilePlus2 } from "lucide-react";
 
 import { HistoryOrderStatus, MatchOption } from "../../../interface";
@@ -67,7 +68,7 @@ export function StepBatch(props: Props) {
       <div className="flex flex-col gap-12">
         {intro}
         <Card.Root inset tone="transparent">
-          <Card.Body padding="sm" className="gap-6">
+          <Card.Body padding="sm">
             <Title variant="body-sm" weight="medium">
               {props.batch.factoryName}
             </Title>
@@ -75,8 +76,13 @@ export function StepBatch(props: Props) {
               {seller} · {statusLabel(props.batch.defaultStatus)}
             </Title>
             <Title variant="body-xs" color="muted">
-              {props.batch.totalFiles} PDF(s) no lote,{" "}
-              {props.batch.importedFiles} já importado(s).
+              {plural(props.batch.totalFiles, "PDF", "PDFs")} no lote,{" "}
+              {plural(
+                props.batch.importedFiles,
+                "já importado",
+                "já importados"
+              )}
+              .
             </Title>
           </Card.Body>
         </Card.Root>
@@ -122,8 +128,12 @@ export function StepBatch(props: Props) {
         disabled={props.disabled}
         onChange={(val) => props.onFactory(picked(val))}
       />
+      {/* Vendedor e situação sempre têm valor (o padrão é "o vendedor de cada
+          cliente" / "Entregue"): o "×" de limpar só levava a um campo vazio que
+          não quer dizer nada (crítica de configurações, 23/11/2026). */}
       <Input.Select
         label="Vendedor"
+        disabledClear
         placeholder="Escolha o vendedor"
         variant="single"
         options={sellers}
@@ -140,6 +150,7 @@ export function StepBatch(props: Props) {
       />
       <Input.Select
         label="Situação dos pedidos"
+        disabledClear
         placeholder="Escolha a situação"
         variant="single"
         options={statuses}

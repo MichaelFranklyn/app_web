@@ -9,7 +9,7 @@ import { announceNavigation } from "@/components/AppFrame/navigationSignal";
 import { List, Item, Content } from "./List";
 import { Filter, FilterItem } from "./Filter";
 import { tabsStyles, TabsVariant } from "./List/style";
-import { useScrollEdges } from "./useScrollEdges";
+import { useScrollEdges } from "@/hooks/useScrollEdges";
 
 type RootProps = React.ComponentPropsWithoutRef<typeof TabsPrimitive.Root> & {
   urlParam?: string;
@@ -95,16 +95,18 @@ const NavItem = ({ href, exact, className, ...props }: NavItemProps) => {
 
   // A aba ativa pode estar fora da faixa (a 11ª dos relatórios, no celular).
   // Rola só a FAIXA, nunca a página: `scrollIntoView` mexeria na vertical.
+  // Centraliza a ativa: as vizinhas dos dois lados ficam à vista e dizem que
+  // a faixa continua. Encostada na borda, a aba seguinte sumia e não se via
+  // que havia mais abas (crítica de /factories/[id], 23/11/2026). O navegador
+  // limita o scrollLeft entre 0 e o fim, então a primeira e a última não
+  // ficam com vão.
   useEffect(() => {
     const el = ref.current;
     const strip = el?.parentElement;
     if (!isActive || !el || !strip) return;
     if (strip.scrollWidth <= strip.clientWidth) return;
     const left = el.offsetLeft - strip.offsetLeft;
-    const fits =
-      left >= strip.scrollLeft &&
-      left + el.offsetWidth <= strip.scrollLeft + strip.clientWidth;
-    if (!fits) strip.scrollLeft = left - 32;
+    strip.scrollLeft = left - (strip.clientWidth - el.offsetWidth) / 2;
   }, [isActive]);
 
   return (

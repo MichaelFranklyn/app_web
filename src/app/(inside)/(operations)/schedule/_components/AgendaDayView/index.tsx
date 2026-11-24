@@ -173,7 +173,7 @@ export function AgendaDayView({
             {isDayOff ? (
               <EmptyState.Root flat data-testid="agenda-day-off">
                 <EmptyState.Icon>
-                  <CalendarOff size={32} />
+                  <CalendarOff />
                 </EmptyState.Icon>
                 <EmptyState.Title>Dia sem trabalho</EmptyState.Title>
                 <EmptyState.Description>
@@ -184,7 +184,7 @@ export function AgendaDayView({
             ) : items.length === 0 && otherOffices.length === 0 ? (
               <EmptyState.Root flat data-testid="agenda-empty-day">
                 <EmptyState.Icon>
-                  <CalendarCheck size={32} />
+                  <CalendarCheck />
                 </EmptyState.Icon>
                 <EmptyState.Title>Nada marcado neste dia</EmptyState.Title>
                 <EmptyState.Description>

@@ -5,9 +5,6 @@ import { accentBorderVariants, cardBaseStyle } from "../style";
 export const rootStyle = cva(cardBaseStyle, {
   variants: {
     accent: accentBorderVariants,
-    isCompact: {
-      true: "px-4 py-[14px]",
-    },
     /** Fundo: `muted` (bg3) é a caixa de legenda; a sombra segue o lugar (ver `cardBaseStyle`). */
     tone: {
       default: "",

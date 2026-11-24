@@ -1,5 +1,7 @@
 import { expect, test } from "../support/fixtures";
 import { mockGraphql } from "../support/graphql";
+import { encryptKeyName, encryptValue } from "@/utils/cookies/helpersCookie";
+import { BASE_URL } from "../../playwright.config";
 import { grantRole } from "../support/role";
 
 /**
@@ -81,7 +83,11 @@ const overview = () => ({
 });
 
 test("metas: KPIs do mês e uma linha por vendedor", async ({ page }) => {
-  await mockGraphql(page, { SellerGoals: overview });
+  // A lista é a visão do gestor: o vendedor padrão do e2e cai direto nas
+  // fábricas dele (redirect em `goals/page.tsx`).
+  await grantRole(page, "OWNER");
+  // O gestor também busca os vendedores e as fábricas (filtros e "Nova meta").
+  await mockGraphql(page, { ...OPTIONS, SellerGoals: overview });
 
   await page.goto("/goals");
 
@@ -104,6 +110,7 @@ test("metas: KPIs do mês e uma linha por vendedor", async ({ page }) => {
 test("metas: clicar no vendedor abre a página dele, um cartão por fábrica", async ({
   page,
 }) => {
+  await grantRole(page, "OWNER");
   await mockGraphql(page, { ...OPTIONS, SellerGoals: overview });
 
   // O mês vai na URL de entrada, e não é detalhe do teste: sem ele a tela abre
@@ -131,6 +138,37 @@ test("metas: clicar no vendedor abre a página dele, um cartão por fábrica", a
 
   // Nenhum modal aberto até aqui: o detalhe é a página.
   await expect(page.getByRole("dialog")).toHaveCount(0);
+});
+
+test("metas: o vendedor cai direto nas fábricas dele, sem a lista de uma linha só", async ({
+  page,
+}) => {
+  // Cookie de vendedor COM o perfil de vendedor — o que o login grava hoje.
+  await page.context().addCookies([
+    {
+      name: encryptKeyName("userData"),
+      value: encryptValue(
+        JSON.stringify({
+          userId: "user-e2e-1",
+          userName: "Rafael Vendas",
+          companyName: "Empresa Teste",
+          role: "SELLER",
+          sellerId: "seller-1",
+        })
+      ),
+      url: BASE_URL,
+    },
+  ]);
+  await mockGraphql(page, { SellerGoals: overview });
+
+  await page.goto("/goals");
+
+  await expect(page).toHaveURL(/\/goals\/seller-1$/);
+  await expect(page.getByRole("heading", { name: "Delta" })).toBeVisible();
+  // Sem lista para onde voltar: nada de trilha "Metas › Rafael Vendas".
+  await expect(
+    page.getByRole("navigation", { name: "breadcrumb" })
+  ).toHaveCount(0);
 });
 
 test("metas: gestor ajusta a cota de uma fábrica pelo cartão", async ({

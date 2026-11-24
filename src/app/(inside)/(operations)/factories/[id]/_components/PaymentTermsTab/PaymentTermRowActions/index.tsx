@@ -13,7 +13,7 @@ interface Props {
   remove: Omit<ComponentProps<typeof RemovePaymentTermModal>, Controlled>;
 }
 
-/** Editar e remover; no celular entram no "⋯" (ver RowActions). */
+/** Editar e remover, no "⋯" (ver RowActions). */
 export function PaymentTermRowActions({ edit, remove }: Props) {
   const [editOpen, setEditOpen] = useState(false);
   const [removeOpen, setRemoveOpen] = useState(false);

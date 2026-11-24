@@ -1,7 +1,9 @@
 "use client";
 
 import { Avatar } from "@/components/Avatar";
+import { Button } from "@/components/Button";
 import { Card } from "@/components/Card";
+import { ImageUp } from "lucide-react";
 import { Grid } from "@/components/Grid";
 import { Title } from "@/components/Title";
 import { companyInitials } from "@/utils/company";
@@ -58,9 +60,26 @@ export function CompanyBrandCard({ company, onEdit }: Props) {
                 }
               />
             ) : (
-              <Title variant="body" color="muted">
-                Nenhuma logo enviada
-              </Title>
+              // Área de envio visível, e não um texto solto: "nenhuma logo"
+              // não dizia o que fazer (crítica de configurações, 23/11/2026).
+              <Card.Root inset dashed>
+                <Card.Body padding="sm" className="items-start">
+                  <Title variant="body" color="muted">
+                    Nenhuma logo enviada. Sem ela, o PDF sai só com o nome da
+                    empresa.
+                  </Title>
+                  <Button.Root
+                    type="button"
+                    appearance="outline"
+                    color="neutral"
+                    size="sm"
+                    onClick={onEdit}
+                  >
+                    <Button.Icon icon={ImageUp} />
+                    <Button.Title>Enviar logo</Button.Title>
+                  </Button.Root>
+                </Card.Body>
+              </Card.Root>
             )}
           </div>
 

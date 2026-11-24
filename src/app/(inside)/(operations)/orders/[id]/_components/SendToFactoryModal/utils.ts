@@ -1,4 +1,5 @@
 import { formatMoney, onlyDigits } from "@/utils/format/masks";
+import { plural } from "@/utils/format/plural";
 
 /**
  * Monta o telefone no formato que o `wa.me` exige: E.164 sem o `+`.
@@ -69,7 +70,7 @@ export function buildOrderMessage(input: OrderMessageInput): string {
       : `*Pedido ${input.orderCode}*`,
     `Cliente: ${cliente}`,
     `Fábrica: ${input.factoryName}`,
-    `${input.itemCount} ${input.itemCount === 1 ? "item" : "itens"} · ${formatMoney(input.totalWithIpi)}`,
+    `${plural(input.itemCount, "item", "itens")} · ${formatMoney(input.totalWithIpi)}`,
   ];
   if (input.paymentTermLabel) {
     linhas.push(`Condição: ${input.paymentTermLabel}`);

@@ -1,7 +1,6 @@
 "use client";
 
 import { Card } from "@/components/Card";
-import { cn } from "@/lib/utils";
 
 import { PendingWhen, PendingWhenCount } from "../../interface";
 import {
@@ -22,7 +21,7 @@ interface Props {
  *
  * Contam no recorte de tipo, vendedor e período, mas NÃO mudam com a faixa
  * escolhida: dizem o que existe para clicar. Vermelho quando alguma é de
- * prioridade alta. "Sem prazo" só aparece quando há cadastro a corrigir — um
+ * prioridade alta; zero em cinza. "Sem prazo" só aparece quando há cadastro a corrigir — um
  * zero eterno ali ensinaria a ignorar a fileira.
  */
 export function PendingCounts({ counts, active, onToggle }: Props) {
@@ -33,15 +32,9 @@ export function PendingCounts({ counts, active, onToggle }: Props) {
   );
 
   return (
-    <div
-      className={cn(
-        // Abaixo do tablet, contagem ímpar deixaria o último sozinho com meia
-        // linha vazia: ele ocupa a linha toda.
-        "max-tablet:[&>:last-child:nth-child(odd)]:col-span-2 grid grid-cols-2 gap-8",
-        shown.length === 4 ? "tablet:grid-cols-4" : "tablet:grid-cols-3"
-      )}
-      data-tour="pending-counts"
-    >
+    // Colunas pela regra única do DS (Card.Kpi.Group): 2 × 2 no celular, e com
+    // três o último ocupa a linha toda em vez de espremer três terços.
+    <Card.Kpi.Group data-tour="pending-counts">
       {shown.map((when) => {
         const row = byWhen.get(when);
         return (
@@ -60,6 +53,6 @@ export function PendingCounts({ counts, active, onToggle }: Props) {
           </Card.Kpi>
         );
       })}
-    </div>
+    </Card.Kpi.Group>
   );
 }

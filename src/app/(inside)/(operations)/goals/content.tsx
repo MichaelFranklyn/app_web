@@ -2,7 +2,7 @@
 
 import { Button } from "@/components/Button";
 import { EmptyState } from "@/components/EmptyState";
-import { Grid } from "@/components/Grid";
+import { Card } from "@/components/Card";
 import { Input, SelectOption } from "@/components/Input";
 import { Loading } from "@/components/Loading";
 import { PageContent } from "@/components/PageContent";
@@ -22,7 +22,7 @@ import { useCompleteList } from "@/hooks/useCompleteList";
 import { GOAL_METRICS, sumRows } from "@/utils/goals";
 import { useQuery } from "@apollo/client/react";
 import { CalendarDays, ChevronLeft, ChevronRight, Target } from "lucide-react";
-import { useRouter, useSearchParams } from "next/navigation";
+import { useSearchParams } from "next/navigation";
 import { useMemo, useState } from "react";
 
 import { CopyGoalsModal } from "./_components/CopyGoalsModal";
@@ -53,7 +53,6 @@ const getGoalsSellers = (d: GoalsSellersResponse) => d.goals_sellers;
 const getGoalsFactories = (d: GoalsFactoriesResponse) => d.goals_factories;
 
 export default function GoalsContent({ canManage }: Props) {
-  const router = useRouter();
   const searchParams = useSearchParams();
 
   // Começa no mês corrente — a pergunta do dia a dia é "como estamos ESTE mês"
@@ -138,7 +137,7 @@ export default function GoalsContent({ canManage }: Props) {
                 : "Suas metas do mês e o quanto você já fez, fábrica por fábrica."}
             </PanelHeader.Description>
             {canManage && (
-              <PanelHeader.Actions className="mt-6" data-tour="goals-seller">
+              <PanelHeader.Actions data-tour="goals-seller">
                 <div className="desktop:w-[220px] w-full">
                   <Input.Select
                     size="sm"
@@ -227,60 +226,48 @@ export default function GoalsContent({ canManage }: Props) {
 
           {showSkeleton ? (
             <div className="flex flex-col gap-20">
-              <Loading.Skeleton className="h-[104px] w-full" />
+              <Card.Kpi.Group>
+                {[0, 1, 2, 3].map((i) => (
+                  <Card.Kpi.Skeleton key={i} />
+                ))}
+              </Card.Kpi.Group>
               <Loading.Skeleton className="h-[320px] w-full" />
             </div>
           ) : (
             <>
-              <Grid.Root
-                cols={{ base: 1, tablet: 2, desktop: 4 }}
-                gap={20}
-                data-tour="goals-kpis"
-              >
+              <Card.Kpi.Group data-tour="goals-kpis">
                 {/* Os quatro cartões somam o recorte da tela (o vendedor
                     escolhido, ou a empresa toda). A explicação de cada um vem
                     de GOAL_METRICS — a mesma das barras, para o indicador não
                     significar duas coisas em dois lugares. */}
-                <Grid.Item>
-                  <GoalKpiCard
-                    label={`Faturado em ${monthLabel(month)}`}
-                    status="ok"
-                    values={totals.invoiced}
-                    help={GOAL_METRICS[0].help}
-                    money
-                  />
-                </Grid.Item>
-                <Grid.Item>
-                  <GoalKpiCard
-                    label="Vendido"
-                    status="atencao"
-                    values={totals.ordered}
-                    help={GOAL_METRICS[1].help}
-                    money
-                  />
-                </Grid.Item>
-                <Grid.Item>
-                  <GoalKpiCard
-                    label="Clientes que compraram"
-                    status="info"
-                    values={totals.positivations}
-                    help={GOAL_METRICS[2].help}
-                  />
-                </Grid.Item>
-                <Grid.Item>
-                  <GoalKpiCard
-                    label="Visitas concluídas"
-                    status="ok"
-                    values={totals.visits}
-                    help={GOAL_METRICS[3].help}
-                  />
-                </Grid.Item>
-              </Grid.Root>
+                <GoalKpiCard
+                  label="Faturado"
+                  values={totals.invoiced}
+                  help={GOAL_METRICS[0].help}
+                  money
+                />
+                <GoalKpiCard
+                  label="Vendido"
+                  values={totals.ordered}
+                  help={GOAL_METRICS[1].help}
+                  money
+                />
+                <GoalKpiCard
+                  label="Clientes que compraram"
+                  values={totals.positivations}
+                  help={GOAL_METRICS[2].help}
+                />
+                <GoalKpiCard
+                  label="Visitas concluídas"
+                  values={totals.visits}
+                  help={GOAL_METRICS[3].help}
+                />
+              </Card.Kpi.Group>
 
               {groups.length === 0 ? (
                 <EmptyState.Root>
                   <EmptyState.Icon>
-                    <Target size={32} />
+                    <Target />
                   </EmptyState.Icon>
                   <EmptyState.Title>
                     Nenhuma meta em {monthLabel(month)}
@@ -297,10 +284,8 @@ export default function GoalsContent({ canManage }: Props) {
                   // A pessoa tem página própria: é lá que as fábricas dela
                   // viram cartões editáveis, sem modal sobre modal. O mês vai
                   // junto para a navegação não perder o recorte.
-                  onOpen={(group: SellerGroup) =>
-                    router.push(
-                      `/goals/${group.sellerId}?month=${periodMonthIso}`
-                    )
+                  hrefOf={(group: SellerGroup) =>
+                    `/goals/${group.sellerId}?month=${periodMonthIso}`
                   }
                 />
               )}

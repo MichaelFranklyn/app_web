@@ -140,7 +140,7 @@ export default function VisitsContent() {
   return (
     <Table.Root sort={table.sort} data-tour="client-visits-table">
       <Table.CardHead>
-        <Table.CardHead.Title>Agenda do cliente</Table.CardHead.Title>
+        <Table.CardHead.Title>Visitas e ligações</Table.CardHead.Title>
         <Table.CardHead.Actions>
           <Filters
             resultCount={table.totalItems}
@@ -177,8 +177,11 @@ export default function VisitsContent() {
             </Table.Head>
             {/* Motivo e fábricas tratadas saem de listas de fábricas por visita:
                 não há um valor único por linha para comparar. */}
+            {/* Duas colunas "Motivo" lado a lado não diziam qual era qual
+                (crítica de 23/11/2026): esta é o porquê de ir; a outra, o
+                porquê do resultado. */}
             <Table.Head title={CLIENT_VISIT_COLUMN_HELP.focus}>
-              Motivo
+              Por que ir
             </Table.Head>
             <Table.Head title={CLIENT_VISIT_COLUMN_HELP.treated}>
               Fábricas tratadas
@@ -205,7 +208,7 @@ export default function VisitsContent() {
               sortKey="outcomeReason"
               title={CLIENT_VISIT_COLUMN_HELP.outcomeReason}
             >
-              Motivo
+              Motivo do resultado
             </Table.Head>
             <Table.Head
               className="text-right"
@@ -221,7 +224,7 @@ export default function VisitsContent() {
               <Table.Cell colSpan={8}>
                 <EmptyState.Root flat>
                   <EmptyState.Icon>
-                    <CalendarCheck size={32} />
+                    <CalendarCheck />
                   </EmptyState.Icon>
                   <EmptyState.Title>
                     {table.totalUnfiltered > 0

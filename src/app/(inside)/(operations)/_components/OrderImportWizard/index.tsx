@@ -3,6 +3,7 @@
 import { Button } from "@/components/Button";
 import { Modal } from "@/components/Modal";
 import { Stepper } from "@/components/Stepper";
+import { plural } from "@/utils/format/plural";
 
 import { StepColumns } from "./StepColumns";
 import { StepFile } from "./StepFile";
@@ -305,12 +306,12 @@ export function OrderImportWizard({
                 <Button.Title>
                   {toDraft
                     ? // Nada é gravado aqui — o botão diz para onde vão.
-                      `Adicionar ${confirmableCount} item(ns) à lista`
+                      `Adicionar ${plural(confirmableCount, "item", "itens")} à lista`
                     : fromSheet
                       ? // Na ficha o botão é o momento em que o pedido nasce —
                         // dizer "importar itens" esconderia isso.
-                        `Subir pedido com ${confirmableCount} item(ns)`
-                      : `Importar ${confirmableCount} item(ns)`}
+                        `Subir pedido com ${plural(confirmableCount, "item", "itens")}`
+                      : `Importar ${plural(confirmableCount, "item", "itens")}`}
                 </Button.Title>
               </Button.Root>
             )}

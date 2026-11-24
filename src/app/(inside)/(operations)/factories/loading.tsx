@@ -8,7 +8,9 @@ export default function Loading() {
     <ListPageSkeleton
       page="factories"
       title="Fábricas Representadas"
-      description="Fábricas cujos produtos são vendidos pela empresa. Entidade global da plataforma."
+      // O servidor não sabe o papel aqui: vai a frase do gestor, a mais comum
+      // (o header troca pela do vendedor quando hidrata).
+      description="As fábricas que a sua empresa representa."
       actions={["w-[260px]", "w-[120px]", "w-[120px]"]}
     >
       <FactoriesGridSkeleton />

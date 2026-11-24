@@ -25,7 +25,7 @@ export function FactoryScoreGrid({ scores, onSelect }: Props) {
     return (
       <EmptyState.Root>
         <EmptyState.Icon>
-          <Factory size={32} />
+          <Factory />
         </EmptyState.Icon>
         <EmptyState.Title>Sem score por fábrica</EmptyState.Title>
         <EmptyState.Description>

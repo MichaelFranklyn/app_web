@@ -19,9 +19,20 @@ interface DeleteCompanyClientResponse {
 interface Props {
   companyClientId: string;
   clientName: string;
+  /**
+   * Controlado: a ficha do cliente abre pelo menu "Mais ações" e não mostra
+   * o botão próprio. Sem `open`, o modal traz o botão "Remover".
+   */
+  open?: boolean;
+  onOpenChange?: (open: boolean) => void;
 }
 
-export function DeleteClientModal({ companyClientId, clientName }: Props) {
+export function DeleteClientModal({
+  companyClientId,
+  clientName,
+  open,
+  onOpenChange,
+}: Props) {
   const invalidateClient = useInvalidateQueriesClient();
   const [deleteCompanyClient] = useMutation<DeleteCompanyClientResponse>(
     DELETE_COMPANY_CLIENT_MUTATION
@@ -29,11 +40,15 @@ export function DeleteClientModal({ companyClientId, clientName }: Props) {
 
   return (
     <ConfirmModal
+      open={open}
+      onOpenChange={onOpenChange}
       trigger={
-        <Button.Root appearance="outline" color="red" size="sm">
-          <Button.Icon icon={Trash2} />
-          <Button.Title>Remover</Button.Title>
-        </Button.Root>
+        open === undefined ? (
+          <Button.Root appearance="outline" color="red" size="sm">
+            <Button.Icon icon={Trash2} />
+            <Button.Title>Remover</Button.Title>
+          </Button.Root>
+        ) : undefined
       }
       title="Remover cliente da carteira"
       description={`Remover "${clientName}" da carteira da sua empresa? Os vínculos, contatos e pedidos associados deixam de aparecer. Esta ação não pode ser desfeita.`}

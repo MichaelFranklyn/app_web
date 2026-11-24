@@ -34,7 +34,7 @@ export function PortalPager({
   if (page <= 1 && !hasNextPage) return null;
 
   return (
-    <nav className="flex items-center justify-between gap-[12px] pt-[8px]">
+    <nav className="flex items-center justify-between gap-12 pt-8">
       {page > 1 ? (
         <Button.Link
           href={hrefFor(page - 1)}

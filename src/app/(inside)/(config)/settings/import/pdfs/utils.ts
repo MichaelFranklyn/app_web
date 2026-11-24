@@ -1,4 +1,6 @@
 import { ThemeColor } from "@/lib/theme";
+import { BRT_TIME_ZONE, formatDateAtTime } from "@/utils/format/date";
+import { plural } from "@/utils/format/plural";
 
 import {
   HistoryOrderStatus,
@@ -138,7 +140,7 @@ export function buildPdfRows(
     if (file.unreadableRows > 0) {
       flag(
         file,
-        `${file.unreadableRows} linha(s) do PDF não foram lidas e ficam de fora; o resto do pedido entra.`
+        `${plural(file.unreadableRows, "linha do PDF não foi lida e fica", "linhas do PDF não foram lidas e ficam")} de fora; o resto do pedido entra.`
       );
     }
     fileRows[file.id] = [];
@@ -206,4 +208,44 @@ export function fileBadge(file: PdfImportFile): {
   if (file.status === "READ") return { label: "Lido", color: "green" };
   if (file.status === "FAILED") return { label: "Não lido", color: "red" };
   return { label: "Importado", color: "neutral" };
+}
+
+/**
+ * Contagem do lote, com o plural certo: "1 lido", "3 lidos" — o "lido" com "(s)"
+ * genérico lia como formulário (crítica de configurações, 23/11/2026).
+ */
+export function batchCounts(batch: PdfImportBatch): string {
+  const parts = [plural(batch.totalFiles, "PDF no lote", "PDFs no lote")];
+  if (batch.importedFiles)
+    parts.push(plural(batch.importedFiles, "importado", "importados"));
+  if (batch.readFiles) parts.push(plural(batch.readFiles, "lido", "lidos"));
+  if (batch.failedFiles)
+    parts.push(plural(batch.failedFiles, "não lido", "não lidos"));
+  return parts.join(" · ");
+}
+
+/**
+ * Em que pé está o lote. Dois lotes da mesma fábrica no mesmo dia eram cartões
+ * idênticos; a situação (com a hora e o vendedor) é o que os distingue
+ * (crítica de configurações, 23/11/2026).
+ */
+export function batchBadge(batch: PdfImportBatch): {
+  label: string;
+  color: ThemeColor;
+} {
+  if (batch.totalFiles === 0) return { label: "Vazio", color: "neutral" };
+  if (batch.pendingFiles > 0) return { label: "Lendo", color: "blue" };
+  if (batch.readFiles > 0) return { label: "Falta importar", color: "warning" };
+  // Nada lendo nem esperando: o que dava para entrar já entrou (os não lidos,
+  // se houver, aparecem na contagem ao lado).
+  if (batch.importedFiles > 0) return { label: "Importado", color: "green" };
+  return { label: "Não lido", color: "red" };
+}
+
+/** "17/11/2026 às 14:32", no fuso do escritório. */
+export function batchOpenedAt(iso: string): string {
+  return formatDateAtTime(iso, {
+    withYear: true,
+    timeZone: BRT_TIME_ZONE,
+  });
 }

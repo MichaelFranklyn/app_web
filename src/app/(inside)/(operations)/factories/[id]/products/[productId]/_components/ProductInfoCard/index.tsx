@@ -3,6 +3,7 @@ import { Card } from "@/components/Card";
 import { HelpTooltip } from "@/components/HelpTooltip";
 import { Title } from "@/components/Title";
 import { formatNumber } from "@/utils/format/masks";
+import { pluralWord } from "@/utils/format/plural";
 import { ProductDetail } from "../../interface";
 
 interface Props {
@@ -14,7 +15,7 @@ export function ProductInfoCard({ product }: Props) {
     <div className="flex flex-col gap-12">
       <Card.Root>
         <Card.Header>
-          <Card.Header.Title size="sm" weight="bold">
+          <Card.Header.Title>
             <span className="inline-flex items-center gap-6">
               Informações
               <HelpTooltip
@@ -68,7 +69,7 @@ export function ProductInfoCard({ product }: Props) {
             <Card.Item.Label>Múltiplo de venda</Card.Item.Label>
             <Card.Item.Value>
               {product.saleMultiple
-                ? `${formatNumber(Number(product.saleMultiple))} embalagem(ns)`
+                ? `${formatNumber(Number(product.saleMultiple))} ${pluralWord(Number(product.saleMultiple), "embalagem", "embalagens")}`
                 : "Livre"}
             </Card.Item.Value>
           </Card.Item>

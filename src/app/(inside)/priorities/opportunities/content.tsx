@@ -45,7 +45,7 @@ export default function OpportunitiesContent({
       ) : view.opportunities.length === 0 ? (
         <EmptyState.Root>
           <EmptyState.Icon>
-            <Sparkles size={32} />
+            <Sparkles />
           </EmptyState.Icon>
           <EmptyState.Title>Nenhuma oportunidade agora</EmptyState.Title>
           <EmptyState.Description>

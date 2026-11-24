@@ -23,6 +23,7 @@ export const ItemRoot = React.forwardRef<HTMLDivElement, CardItemRootProps>(
   ) => (
     <div
       ref={ref}
+      data-card-item
       className={cn(
         itemStyle({ variant, size }),
         bordered && "border-b border-(--border) last:border-b-0",

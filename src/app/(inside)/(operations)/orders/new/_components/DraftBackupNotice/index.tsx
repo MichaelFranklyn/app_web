@@ -1,25 +1,13 @@
 "use client";
 
 import { Alert } from "@/components/Alert";
+import { formatDateAtTime } from "@/utils/format/date";
 import { Button } from "@/components/Button";
 import { ConfirmModal } from "@/components/ConfirmModal";
+import { plural } from "@/utils/format/plural";
 import { HardDriveDownload } from "lucide-react";
 
 import { DraftBackupState } from "../../useDraftBackup";
-
-/** "26/09 às 14:32" — o momento em que a pessoa estava montando o pedido. */
-const savedAtLabel = (iso: string) => {
-  const date = new Date(iso);
-  const day = date.toLocaleDateString("pt-BR", {
-    day: "2-digit",
-    month: "2-digit",
-  });
-  const time = date.toLocaleTimeString("pt-BR", {
-    hour: "2-digit",
-    minute: "2-digit",
-  });
-  return `${day} às ${time}`;
-};
 
 /**
  * Itens de um pedido deste cliente e fábrica que não chegou a ser criado —
@@ -35,8 +23,8 @@ export function DraftBackupNotice({ backup }: { backup: DraftBackupState }) {
       <Alert.Icon icon={HardDriveDownload} />
       <Alert.Content className="min-w-[200px]">
         <Alert.Title>
-          {count === 1 ? "1 item guardado" : `${count} itens guardados`} neste
-          aparelho, de {savedAtLabel(backup.offer.savedAt)}
+          {plural(count, "item guardado", "itens guardados")} neste aparelho, de{" "}
+          {formatDateAtTime(backup.offer.savedAt)}
         </Alert.Title>
         <Alert.Description>
           É um pedido deste cliente e desta fábrica que não chegou a ser criado.

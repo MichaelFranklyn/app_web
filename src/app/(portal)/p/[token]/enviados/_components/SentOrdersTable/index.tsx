@@ -4,6 +4,7 @@ import { Button } from "@/components/Button";
 import { EmptyState } from "@/components/EmptyState";
 import { Pagination } from "@/components/Pagination";
 import { Table } from "@/components/Table";
+import { plural } from "@/utils/format/plural";
 import { SearchX } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { useTransition } from "react";
@@ -58,7 +59,7 @@ export function SentOrdersTable({
     <Table.Root>
       <Table.CardHead>
         <Table.CardHead.Title>
-          {total === 1 ? "1 pedido" : `${total} pedidos`}
+          {plural(total, "pedido", "pedidos")}
         </Table.CardHead.Title>
         <Table.CardHead.Description>
           Do mais novo para o mais antigo. Toque em um para ver os produtos.
@@ -100,7 +101,7 @@ export function SentOrdersTable({
               <Table.Cell colSpan={COLUMNS}>
                 <EmptyState.Root flat>
                   <EmptyState.Icon>
-                    <SearchX size={32} />
+                    <SearchX />
                   </EmptyState.Icon>
                   <EmptyState.Title>
                     {page > 1

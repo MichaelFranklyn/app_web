@@ -101,7 +101,7 @@ test("pedidos parados: confirma a entrega na data prevista de cada pedido", asyn
   const dialog = page.getByRole("dialog");
   await dialog.getByRole("button", { name: "Confirmar entrega" }).click();
 
-  await expect(page.getByText(/1 entrega\(s\) confirmada\(s\)/)).toBeVisible();
+  await expect(page.getByText(/1 entrega confirmada/)).toBeVisible();
   // Sem data escolhida, cada pedido recebe a própria previsão no backend.
   expect(calls[0]).toEqual({ ids: ["o-1"], deliveredAt: null });
 });
@@ -191,10 +191,8 @@ test("pedidos parados: fatura pelo XML só a nota pronta", async ({ page }) => {
     dialog.getByRole("link", { name: "Abrir o pedido" })
   ).toHaveAttribute("href", "/orders/o-3");
 
-  await dialog.getByRole("button", { name: "Faturar 1 pedido(s)" }).click();
-  await expect(
-    page.getByText("1 pedido(s) faturado(s) pelas notas.")
-  ).toBeVisible();
+  await dialog.getByRole("button", { name: "Faturar 1 pedido" }).click();
+  await expect(page.getByText("1 pedido faturado pelas notas.")).toBeVisible();
 
   const files = (
     invoiced[0] as { files: { fileName: string; orderId: string }[] }
@@ -243,9 +241,10 @@ test("abas de pedidos: o nome traz quantos esperam, com os filtros da tela", asy
     page.getByRole("tab", { name: "Esperando entrega (59)" })
   ).toBeVisible();
   // "Todos" lista orçamento e cancelado: um número ali contaria outra coisa.
-  await expect(page.getByRole("tab", { name: "Todos os pedidos" })).toHaveText(
-    "Todos os pedidos"
-  );
+  // Nome acessível, não texto: no celular a aba mostra o rótulo curto.
+  await expect(
+    page.getByRole("tab", { name: "Todos os pedidos" })
+  ).toHaveAccessibleName(/^Todos os pedidos$/);
 
   const text = JSON.stringify(counts[0]);
   expect(text).toContain("pending_invoice");

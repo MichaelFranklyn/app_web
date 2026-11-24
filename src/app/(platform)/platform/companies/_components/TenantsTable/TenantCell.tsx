@@ -13,10 +13,14 @@ import { tenantName } from "../../utils";
  */
 export function TenantCell({ tenant }: { tenant: PlatformTenant }) {
   return (
-    <Table.Cell card="title" className="max-w-[280px]">
-      <div className="flex min-w-0 flex-col gap-[2px]">
-        <div className="flex min-w-0 items-center gap-[6px]">
-          <Title variant="body-sm" weight="semibold" className="truncate">
+    <Table.Cell card="title" wrap>
+      <div className="flex min-w-0 flex-col gap-2">
+        <div className="flex min-w-0 items-center gap-6">
+          <Title
+            variant="body-sm"
+            weight="semibold"
+            className="[overflow-wrap:anywhere]"
+          >
             {tenantName(tenant)}
           </Title>
           {!tenant.isActive && (
@@ -25,7 +29,11 @@ export function TenantCell({ tenant }: { tenant: PlatformTenant }) {
             </Badge.Root>
           )}
         </div>
-        <Title variant="micro" color="muted" className="truncate">
+        <Title
+          variant="micro"
+          color="muted"
+          className="[overflow-wrap:anywhere]"
+        >
           {tenant.cnpj}
         </Title>
       </div>

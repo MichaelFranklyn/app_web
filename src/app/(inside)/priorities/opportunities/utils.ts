@@ -1,4 +1,5 @@
 import { formatDate } from "@/utils/format/date";
+import { pluralWord } from "@/utils/format/plural";
 import {
   Ban,
   CalendarClock,
@@ -36,9 +37,6 @@ interface OpportunityCopy {
   planAction: { label: string; href: string } | null;
 }
 
-const plural = (count: number, one: string, many: string) =>
-  count === 1 ? one : many;
-
 /**
  * O texto de cada oportunidade mora AQUI, e não no backend: o backend responde
  * quantos casos existem; como se fala com quem vende é decisão de produto.
@@ -51,7 +49,7 @@ export const OPPORTUNITY_COPY: Record<OpportunityKind, OpportunityCopy> = {
     icon: RefreshCcw,
     title: "Clientes no momento de recomprar",
     countLabel: (count) =>
-      plural(count, "cliente já passou", "clientes já passaram") +
+      pluralWord(count, "cliente já passou", "clientes já passaram") +
       " do próprio intervalo de compra",
     why: () =>
       "Cada cliente é medido contra o próprio ritmo: quem compra a cada 20 dias e não pede há 35 já deveria ter comprado de novo. É a hora de oferecer — antes que outro representante reponha a prateleira.",
@@ -62,7 +60,7 @@ export const OPPORTUNITY_COPY: Record<OpportunityKind, OpportunityCopy> = {
     icon: MapPin,
     title: "Clientes prioritários fora da rotina",
     countLabel: (count) =>
-      plural(count, "cliente ficou", "clientes ficaram") +
+      pluralWord(count, "cliente ficou", "clientes ficaram") +
       " fora da rotina desta semana",
     /**
      * Duas histórias, e é o motivo que separa as duas: com caso sem explicação
@@ -109,7 +107,7 @@ export const cardCount = (
     const value = opportunity.blockedCount;
     return {
       value,
-      label: plural(value, "cliente explicado", "clientes explicados"),
+      label: pluralWord(value, "cliente explicado", "clientes explicados"),
     };
   }
   return {

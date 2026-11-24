@@ -1,4 +1,5 @@
 "use client";
+import { cn } from "@/lib/utils";
 import { Badge } from "@/components/Badges";
 
 import { Check, Pencil, Plus, Trash, X, Zap } from "lucide-react";
@@ -127,7 +128,7 @@ export function StepItems({ draft, minimum, freeFreight }: Props) {
             />
           </div>
 
-          <div className={`tablet:col-span-6 col-span-12 ${secondRow}`}>
+          <div className={cn("tablet:col-span-6 col-span-12", secondRow)}>
             {/* Só leitura: a embalagem do produto escolhido, à vista ao lado
                 da quantidade — na dica do campo ela passava batida. */}
             <Input.Text
@@ -139,7 +140,7 @@ export function StepItems({ draft, minimum, freeFreight }: Props) {
             />
           </div>
 
-          <div className={`tablet:col-span-3 col-span-6 ${secondRow}`}>
+          <div className={cn("tablet:col-span-3 col-span-6", secondRow)}>
             <Input.Select
               placeholder="Escolha o tipo de desconto"
               label="Tipo de desconto"
@@ -153,7 +154,7 @@ export function StepItems({ draft, minimum, freeFreight }: Props) {
             />
           </div>
 
-          <div className={`tablet:col-span-3 col-span-6 ${secondRow}`}>
+          <div className={cn("tablet:col-span-3 col-span-6", secondRow)}>
             <Input.Number
               label={
                 draft.discountType === "PERCENT"
@@ -167,7 +168,7 @@ export function StepItems({ draft, minimum, freeFreight }: Props) {
           </div>
 
           {draft.ipiInOrder && (
-            <div className={`tablet:col-span-6 col-span-12 ${secondRow}`}>
+            <div className={cn("tablet:col-span-6 col-span-12", secondRow)}>
               <Input.Number
                 label="Alíq. IPI (%)"
                 placeholder="0"

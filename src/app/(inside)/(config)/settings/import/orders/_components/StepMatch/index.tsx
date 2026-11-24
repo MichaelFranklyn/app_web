@@ -6,6 +6,7 @@ import { Loading } from "@/components/Loading";
 import { QueryError } from "@/components/QueryError";
 import { Stepper } from "@/components/Stepper";
 import { Title } from "@/components/Title";
+import { plural, pluralWord } from "@/utils/format/plural";
 import { Info } from "lucide-react";
 
 import { CreateMissingOptions } from "../../../_components/CreateMissingOptions";
@@ -59,14 +60,15 @@ export function StepMatch(props: Props) {
           <Alert.Icon icon={Info} />
           <Alert.Content>
             <Alert.Description>
-              {props.pending} nome(s) sem correspondente. As linhas deles ficam
-              de fora da importação.
+              {plural(props.pending, "nome", "nomes")} sem correspondente. As
+              linhas {pluralWord(props.pending, "dele ficam", "deles ficam")} de
+              fora da importação.
             </Alert.Description>
           </Alert.Content>
         </Alert.Root>
       )}
       <Card.Root inset tone="transparent">
-        <Card.Body padding="sm" className="gap-10">
+        <Card.Body padding="sm">
           <Title variant="micro" color="muted">
             Fábricas
           </Title>
@@ -83,7 +85,7 @@ export function StepMatch(props: Props) {
         </Card.Body>
       </Card.Root>
       <Card.Root inset tone="transparent">
-        <Card.Body padding="sm" className="gap-10">
+        <Card.Body padding="sm">
           <Title variant="micro" color="muted">
             Vendedores
           </Title>
@@ -111,7 +113,7 @@ export function StepMatch(props: Props) {
       </Card.Root>
       {props.hasStatusColumn && (
         <Card.Root inset tone="transparent">
-          <Card.Body padding="sm" className="gap-10">
+          <Card.Body padding="sm">
             <Title variant="micro" color="muted">
               Status
             </Title>

@@ -3,8 +3,6 @@
 import { Card } from "@/components/Card";
 import { Grid } from "@/components/Grid";
 import { formatDateDMY } from "@/utils/format/masks";
-import { DataField } from "../../dataCards";
-import { userAccessStatus } from "../accessStatus";
 import { UserDetail } from "../interface";
 
 interface Props {
@@ -28,16 +26,17 @@ export function SystemAccessCard({ user, isSelf }: Props) {
         </Card.Header.Description>
       </Card.Header>
       <Card.Body>
+        {/* Situação e empresa saíram: as duas já estão no cabeçalho da página
+            (tarja e linha de baixo do nome), e cada "Ativo" a mais era uma
+            leitura repetida (crítica de configurações, 23/11/2026). */}
         <Grid.Root cols={{ base: 1, desktop: 2 }} gap={16}>
-          <DataField label="E-mail de acesso" value={user.email} />
-          <DataField label="Situação" value={userAccessStatus(user).label} />
-          <DataField
-            label="Empresa"
-            value={
-              user.company?.nomeFantasia ?? user.company?.razaoSocial ?? ""
-            }
-          />
-          <DataField
+          {/* No próprio perfil o e-mail de entrada mora no card de senha
+              ("Você entra com"), ao lado de onde ele é usado. */}
+          {!isSelf && (
+            <Card.Field label="E-mail de acesso" value={user.email} />
+          )}
+
+          <Card.Field
             label="Cadastrado em"
             value={formatDateDMY(user.createdAt)}
           />

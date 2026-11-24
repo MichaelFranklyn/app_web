@@ -5,6 +5,7 @@ import { ThemeColor } from "@/lib/theme";
 import { formatDate, getBrtTodayIso } from "@/utils/format/date";
 import { formatMoney } from "@/utils/format/masks";
 import { greetingFor } from "@/utils/greeting";
+import { plural } from "@/utils/format/plural";
 import {
   CalendarClock,
   ClipboardList,
@@ -153,7 +154,7 @@ export const PENDING_TYPE_COPY: Record<
   },
   INSTALLMENT_OVERDUE: {
     icon: Receipt,
-    why: "Boletos vencidos, um por pedido. Ficam aqui até o pagamento ser baixado no pedido — conferir a comissão não é pagar.",
+    why: "Boletos vencidos, um por pedido. Saem daqui quando o pagamento for marcado no pedido.",
     listAction: "Ver os boletos",
   },
   CLIENT_NO_CONTACT: {
@@ -186,15 +187,16 @@ export const visibleTypeCounts = (
   });
 };
 
-/** A linha sob o título do cartão: quantas não podem esperar. */
+/**
+ * A linha sob o título do cartão: quantas não podem esperar. Só aparece quando
+ * DIFERENCIA — "nenhuma de prioridade alta" e "todas de prioridade alta" eram
+ * uma linha a mais para ler sem dizer nada que a cor do número já não diga.
+ */
 export const cardSubtitle = (
   row: Pick<PendingTypeCount, "type" | "count" | "highCount">
-): string => {
+): string | null => {
   if (row.type === "ADDRESS_ISSUE") return "sem prazo — trava a rotina";
-  if (row.highCount === 0) return "nenhuma de prioridade alta";
-  if (row.highCount === row.count) {
-    return row.count === 1 ? "de prioridade alta" : "todas de prioridade alta";
-  }
+  if (row.highCount === 0 || row.highCount === row.count) return null;
   return `${row.highCount} de prioridade alta`;
 };
 
@@ -244,7 +246,7 @@ export const PENDING_PRIORITY_HINT: Record<PendingPriority, string> = {
   LOW: "Pode esperar: ainda está no prazo, ou não trava ninguém.",
 };
 
-const days = (n: number): string => (n === 1 ? "1 dia" : `${n} dias`);
+const days = (n: number): string => plural(n, "dia", "dias");
 
 /** Só o que a frase precisa — o resto da linha vem do backend. */
 type ReasonInput = Pick<
@@ -285,13 +287,13 @@ export const reasonText = (item: ReasonInput): string => {
     WANTS_VISIT: `O cliente pediu uma visita na ligação de ${when}.`,
     DRAFT_STALE: `Orçamento de ${when}, há ${ago} sem virar pedido. Prazo considerado: ${days(rule)}.`,
     PENDING_INVOICE: item.isEstimated
-      ? `Pedido de ${when}, há ${ago}, e a fábrica ainda não faturou. Prazo considerado: ${days(rule)}, estimado — a data da confirmação não foi registrada, então contamos da data do pedido.`
+      ? `Pedido de ${when}, há ${ago}, e a fábrica ainda não faturou. Prazo considerado: ${days(rule)}, estimado pela data do pedido.`
       : `Confirmado em ${when}, há ${ago}, e a fábrica ainda não faturou. Prazo considerado: ${days(rule)}.`,
-    DELIVERY_UNCONFIRMED: `Faturado em ${when}, há ${ago}. Prazo de entrega considerado: ${days(rule)} — pergunte ao cliente se a mercadoria chegou.`,
+    DELIVERY_UNCONFIRMED: `Faturado em ${when}, há ${ago}. Prazo de entrega: ${days(rule)}. Pergunte ao cliente se chegou.`,
     NO_CONTACT: `Último contato (visita, ligação ou pedido) em ${when}, há ${ago}. Régua: ${days(rule)} sem contato.`,
     NEVER_CONTACTED: `Na carteira desde ${when} e nunca teve visita, ligação nem pedido registrado. Régua: ${days(rule)} sem contato.`,
     FREQUENCY_DUE: `Última visita em ${when}, há ${ago}. Frequência de visita deste cliente: a cada ${days(rule)} — e não há visita marcada nesta semana.`,
-    INSTALLMENT_UNPAID: `${parcels(item.installmentCount)}${item.amount ? `, ${formatMoney(item.amount)} em aberto` : ""}. ${item.installmentCount && item.installmentCount > 1 ? "A mais antiga venceu" : "Venceu"} em ${when}, há ${days(Math.max(0, item.daysLate ?? 0))}. Fica aqui até o pagamento ser baixado no pedido — conferir a comissão não tira o boleto da lista.`,
+    INSTALLMENT_UNPAID: `${parcels(item.installmentCount)}${item.amount ? `, ${formatMoney(item.amount)} em aberto` : ""}. ${item.installmentCount && item.installmentCount > 1 ? "A mais antiga venceu" : "Venceu"} em ${when}, há ${days(Math.max(0, item.daysLate ?? 0))}. Sai daqui quando o pagamento for marcado no pedido.`,
     LOCATION_MISSING:
       "O mapa não encontrou o endereço deste cliente. Sem ele, o cliente não entra na rota — corrija rua, número e CEP no cadastro.",
     LOCATION_APPROXIMATE:
@@ -327,18 +329,41 @@ export const priorityHint = (
   return `${hint} Vira Alta com ${days(item.highAfterDays)} de atraso.`;
 };
 
-/** "venceu há 3 dias" · "vence hoje" · "vence em 2 dias" · "sem prazo". */
-export const dueLabel = (daysLate: number | null): string => {
+/**
+ * "3 dias de atraso" · "vence hoje" · "vence em 2 dias" · "sem prazo".
+ *
+ * O atraso é dito como atraso, e não "venceu há": "venceu" casa com boleto,
+ * mas não com visita, retorno ou cliente sem contato. Só o boleto (`type`
+ * INSTALLMENT_OVERDUE) mantém "venceu há 3 dias".
+ */
+export const dueLabel = (
+  daysLate: number | null,
+  type?: PendingType
+): string => {
   if (daysLate === null) return "sem prazo";
   if (daysLate === 0) return "vence hoje";
-  if (daysLate > 0) return `venceu há ${days(daysLate)}`;
+  if (daysLate > 0) {
+    return type === "INSTALLMENT_OVERDUE"
+      ? `venceu há ${days(daysLate)}`
+      : `${days(daysLate)} de atraso`;
+  }
   return daysLate === -1 ? "vence amanhã" : `vence em ${days(-daysLate)}`;
 };
 
-/** Vencido em vermelho, hoje em alerta, no prazo (ou sem prazo) sem cor. */
-export const dueTone = (daysLate: number | null): TitleColor => {
+/**
+ * O vermelho é da prioridade Alta: atrasado que ainda não é Alta fica em tom
+ * secundário — senão a tela inteira fica vermelha e o vermelho para de
+ * separar o urgente. Hoje em alerta; no prazo (ou sem prazo) sem cor. Sem
+ * `priority`, o atraso vale como Alta (o comportamento antigo).
+ */
+export const dueTone = (
+  daysLate: number | null,
+  priority?: PendingPriority
+): TitleColor => {
   if (daysLate === null) return "muted";
-  if (daysLate > 0) return "red";
+  if (daysLate > 0) {
+    return priority === undefined || priority === "HIGH" ? "red" : "secondary";
+  }
   return daysLate === 0 ? "warning" : "muted";
 };
 
@@ -380,7 +405,7 @@ export const countTone = (count: number, highCount: number): TitleColor => {
 /** O mesmo tom de `countTone`, na escala do `Card.Kpi` (os cartões-filtro). */
 export const countStatus = (count: number, highCount: number): KpiStatus => {
   if (highCount > 0) return "urgente";
-  return count > 0 ? "atencao" : "neutral";
+  return count > 0 ? "atencao" : "muted";
 };
 
 /** O recorte que os cartões e a lista dividem: vendedor, período e faixa. */
@@ -441,7 +466,7 @@ export const scopeNote = (values: Record<string, string>): string => {
   if (from && to) return `Contando o que tem prazo de ${from} a ${to}.`;
   if (from) return `Contando o que tem prazo a partir de ${from}.`;
   if (to) return `Contando o que tem prazo até ${to}.`;
-  return `Contando o que já venceu, o que vence nos próximos ${DEFAULT_HORIZON_DAYS} dias e o cadastro a corrigir (sem prazo). Para ver mais adiante, escolha um período no topo da página.`;
+  return `Contando o que já venceu e o que vence nos próximos ${DEFAULT_HORIZON_DAYS} dias. Para ver mais adiante, mude o período no topo.`;
 };
 
 /**

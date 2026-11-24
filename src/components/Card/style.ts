@@ -26,10 +26,10 @@ export const bgVariants: Record<CardBg, string> = {
   bg5: "bg-(--bg5)",
 };
 
-export const actionsStyle = "flex shrink-0 items-center gap-[6px]";
+export const actionsStyle = "flex shrink-0 items-center gap-6";
 
 export const cardHeadStyle =
   "px-20 py-12 border-b border-(--border) flex flex-wrap items-center justify-between gap-3 min-h-[52px]";
 
 export const cardFooterBaseStyle =
-  "px-16 py-[10px] border-t border-(--border) flex items-center justify-between text-body-sm text-(--color-text-muted) min-h-[38px]";
+  "px-16 py-10 border-t border-(--border) flex items-center justify-between text-body-sm text-(--color-text-muted) min-h-[38px]";

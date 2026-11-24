@@ -1,11 +1,10 @@
 "use client";
-import { Fragment } from "react";
-import { Divider } from "@/components/Divider";
 
 import { Badge } from "@/components/Badges";
 import { Card } from "@/components/Card";
 import { EmptyState } from "@/components/EmptyState";
 import { QueryError } from "@/components/QueryError";
+import { RowList } from "@/components/RowList";
 import { HelpTooltip } from "@/components/HelpTooltip";
 import { Loading } from "@/components/Loading";
 import { Title } from "@/components/Title";
@@ -52,11 +51,7 @@ export function ContactCard({ clientId }: ContactCardProps) {
   return (
     <Card.Root>
       <Card.Header>
-        <Card.Header.Title
-          size="sm"
-          weight="semibold"
-          className="inline-flex items-center gap-6"
-        >
+        <Card.Header.Title>
           Contatos
           <HelpTooltip
             label="Sobre os contatos"
@@ -72,15 +67,17 @@ export function ContactCard({ clientId }: ContactCardProps) {
       </Card.Header>
       <Card.Body padding="compact">
         {loading ? (
-          <div className="flex justify-center py-12">
-            <Loading.Spinner size="sm" />
+          <div className="flex flex-col gap-8" aria-busy="true">
+            {Array.from({ length: 2 }, (_, i) => (
+              <Loading.Skeleton key={i} shape="md" className="h-48 w-full" />
+            ))}
           </div>
         ) : error && contacts.length === 0 ? (
           <QueryError flat onRetry={() => refetch()} />
         ) : contacts.length === 0 ? (
           <EmptyState.Root flat>
             <EmptyState.Icon>
-              <Users size={32} />
+              <Users />
             </EmptyState.Icon>
             <EmptyState.Title>Nenhum contato cadastrado</EmptyState.Title>
             <EmptyState.Description>
@@ -89,10 +86,9 @@ export function ContactCard({ clientId }: ContactCardProps) {
             </EmptyState.Description>
           </EmptyState.Root>
         ) : (
-          contacts.map((contact, idx) => (
-            <Fragment key={contact.id}>
-              {idx > 0 && <Divider.Root />}
-              <div className="py-8">
+          <RowList.Root>
+            {contacts.map((contact) => (
+              <RowList.Item key={contact.id}>
                 <div className="flex items-start justify-between gap-8">
                   <div className="flex min-w-0 flex-col gap-2">
                     {/* O nome quebra linha em vez de cortar: a 375px ele
@@ -152,9 +148,9 @@ export function ContactCard({ clientId }: ContactCardProps) {
                     />
                   </div>
                 </div>
-              </div>
-            </Fragment>
-          ))
+              </RowList.Item>
+            ))}
+          </RowList.Root>
         )}
       </Card.Body>
     </Card.Root>

@@ -27,7 +27,7 @@ export default async function UnsubscribePage({ searchParams }: PageProps) {
 
   return (
     <PublicPage.Root>
-      <PublicPage.Header className="gap-[2px]">
+      <PublicPage.Header className="gap-2">
         <Title variant="heading-sm">{copy.title}</Title>
         <Title variant="body-xs" color="muted">
           {copy.subtitle}

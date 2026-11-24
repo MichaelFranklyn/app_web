@@ -8,6 +8,7 @@ import {
 } from "../../../../../chartBuilders";
 import { ScopedCommissionRow } from "../../interface";
 import { commissionTotalsBy } from "../../utils";
+import { formatPercent } from "@/utils/format/percent";
 
 export interface FactoryCommissionRate {
   factoryId: string;
@@ -46,8 +47,7 @@ export const factoryCommissionRates = (
     .slice(0, limit);
 
 /** Fração → "4,5%". Uma casa decimal: em comissão, 0,5% já é dinheiro. */
-export const formatRate = (value: number): string =>
-  `${(value * 100).toFixed(1).replace(".", ",")}%`;
+export const formatRate = (value: number): string => formatPercent(value, 1);
 
 /**
  * Ranking das fábricas pela taxa efetiva. Ao lado do ranking por valor, mostra

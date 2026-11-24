@@ -46,7 +46,7 @@ export function VisitResponseContent({ form, token }: Props) {
     return (
       <EmptyState.Root>
         <EmptyState.Icon>
-          <CalendarCheck size={36} />
+          <CalendarCheck />
         </EmptyState.Icon>
         <EmptyState.Title>
           {form.isWeek
@@ -63,10 +63,10 @@ export function VisitResponseContent({ form, token }: Props) {
   }
 
   return (
-    <form action={formAction} className="flex flex-col gap-[16px]">
+    <form action={formAction} className="flex flex-col gap-16">
       <input type="hidden" name="token" value={token} />
 
-      <div className="flex flex-col gap-[4px]">
+      <div className="flex flex-col gap-4">
         <Title variant="eyebrow" color="muted">
           {formPeriodLabel(form)}
         </Title>
@@ -87,7 +87,7 @@ export function VisitResponseContent({ form, token }: Props) {
 
       {form.isWeek ? (
         groupStopsByDate(form.stops).map((group) => (
-          <section key={group.date} className="flex flex-col gap-[8px]">
+          <section key={group.date} className="flex flex-col gap-8">
             <Title variant="body-md" weight="semibold" className="capitalize">
               {dayHeading(group.date)}
             </Title>

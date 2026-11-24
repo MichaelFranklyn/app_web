@@ -33,13 +33,11 @@ export default function OverviewContent() {
 
   const lastVisitDate = useMemo(
     () =>
-      links
-        .reduce<string | null>((latest, c) => {
-          if (!c.lastVisitDate) return latest;
-          if (!latest || c.lastVisitDate > latest) return c.lastVisitDate;
-          return latest;
-        }, null)
-        ?.split("T")[0] ?? "—",
+      links.reduce<string | null>((latest, c) => {
+        if (!c.lastVisitDate) return latest;
+        if (!latest || c.lastVisitDate > latest) return c.lastVisitDate;
+        return latest;
+      }, null),
     [links]
   );
 

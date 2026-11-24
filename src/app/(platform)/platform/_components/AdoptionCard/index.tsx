@@ -1,3 +1,4 @@
+import { RowList } from "@/components/RowList";
 import { Card } from "@/components/Card";
 import { Title } from "@/components/Title";
 import { Progress } from "@/components/Progress";
@@ -27,9 +28,7 @@ export function AdoptionCard({ features }: { features: FeatureAdoption[] }) {
   return (
     <Card.Root>
       <Card.Header>
-        <Card.Header.Title size="sm" weight="semibold">
-          Adoção por funcionalidade
-        </Card.Header.Title>
+        <Card.Header.Title>Adoção por funcionalidade</Card.Header.Title>
         <Card.Header.Description>
           Quantas empresas ativas têm dado em cada parte do sistema, na ordem em
           que costumam adotar.
@@ -37,11 +36,14 @@ export function AdoptionCard({ features }: { features: FeatureAdoption[] }) {
       </Card.Header>
 
       <Card.Body>
-        <ul className="flex flex-col gap-12">
+        <RowList.Root>
           {features.map((feature) => {
             const percent = adoptionRate(feature);
             return (
-              <li key={feature.feature} className="flex flex-col gap-[4px]">
+              <RowList.Item
+                key={feature.feature}
+                className="flex flex-col gap-4"
+              >
                 <div className="flex items-baseline justify-between gap-8">
                   <Title variant="body-sm">{feature.label}</Title>
                   <Title variant="micro" color="muted">
@@ -54,10 +56,10 @@ export function AdoptionCard({ features }: { features: FeatureAdoption[] }) {
                   color={barColor(percent)}
                   label={`Adoção de ${feature.label}`}
                 />
-              </li>
+              </RowList.Item>
             );
           })}
-        </ul>
+        </RowList.Root>
       </Card.Body>
     </Card.Root>
   );

@@ -18,7 +18,10 @@ const LabelWithHelp = ({
   children: ReactNode;
   help: ReactNode;
 }) => (
-  <Card.Item.Label className="inline-flex items-center gap-2">
+  // `min-w-0 flex-1`: o rótulo comprido ("Mercadoria (sem impostos)") quebra
+  // dentro da própria coluna em vez de empurrar o valor para a linha de baixo
+  // (crítica de /orders/[id], 23/11/2026).
+  <Card.Item.Label className="inline-flex min-w-0 flex-1 items-center gap-2">
     {children}
     <HelpTooltip label="Sobre este valor" content={help} position="left" />
   </Card.Item.Label>
@@ -71,7 +74,7 @@ export function OrderSummaryCard({ order }: Props) {
             key: "subtotal",
             label: "Subtotal (sem IPI)",
             help: SUMMARY_HELP.subtotal,
-            value: formatMoney(subtotalWithTax.toFixed(2)),
+            value: formatMoney(subtotalWithTax),
           },
           {
             key: "ipi",
@@ -87,7 +90,7 @@ export function OrderSummaryCard({ order }: Props) {
       help: SUMMARY_HELP.total,
       value: (
         <Title variant="body-md" as="span" weight="bold">
-          {formatMoney(grandTotal.toFixed(2))}
+          {formatMoney(grandTotal)}
         </Title>
       ),
     },
@@ -120,17 +123,19 @@ export function OrderSummaryCard({ order }: Props) {
   return (
     <Card.Root>
       <Card.Header>
-        <Card.Header.Title size="sm" weight="bold">
-          Resumo financeiro
-        </Card.Header.Title>
+        <Card.Header.Title>Resumo financeiro</Card.Header.Title>
       </Card.Header>
-      <Card.Body padding="compact">
+      {/* Entre 1024 e 1600px o resumo ocupa a largura toda, acima da tabela
+          de itens (ver content.tsx): `wide` põe as linhas em duas colunas. */}
+      <Card.Body padding="compact" columns="wide">
         {/* O separador é a borda do próprio Card.Item: um Divider a mais
             entre eles desenhava linha dupla. */}
         {rows.map((row) => (
           <Card.Item key={row.key} variant="stat">
             <LabelWithHelp help={row.help}>{row.label}</LabelWithHelp>
-            <Card.Item.Value>{row.value}</Card.Item.Value>
+            <Card.Item.Value className="shrink-0 whitespace-nowrap">
+              {row.value}
+            </Card.Item.Value>
           </Card.Item>
         ))}
       </Card.Body>

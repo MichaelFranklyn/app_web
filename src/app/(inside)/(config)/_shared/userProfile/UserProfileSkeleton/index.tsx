@@ -34,9 +34,9 @@ export function UserProfileSkeleton({
     <PageContent>
       <div className="flex flex-col gap-8">
         {hasBreadcrumb && (
-          <div className="flex items-center gap-[8px]">
-            <Loading.Skeleton className="h-[12px] w-[64px]" />
-            <Loading.Skeleton className="h-[12px] w-[96px]" />
+          <div className="flex items-center gap-8">
+            <Loading.Skeleton text="body-sm" className="w-[64px]" />
+            <Loading.Skeleton text="body-sm" className="w-[96px]" />
           </div>
         )}
 
@@ -48,16 +48,19 @@ export function UserProfileSkeleton({
                   shape="pill"
                   className="h-[48px] w-[48px] shrink-0"
                 />
-                <div className="flex min-w-0 flex-1 flex-col gap-[6px]">
+                <div className="flex min-w-0 flex-1 flex-col gap-6">
                   <Loading.Skeleton className="h-[24px] w-[224px] max-w-full" />
-                  <Loading.Skeleton className="h-[12px] w-[288px] max-w-full" />
+                  <Loading.Skeleton
+                    text="body-sm"
+                    className="w-[288px] max-w-full"
+                  />
                 </div>
               </div>
 
-              <PanelHeader.Actions className="mt-12">
-                <Loading.Skeleton className="h-[24px] w-[88px]" />
-                <Loading.Skeleton className="h-[24px] w-[64px]" />
-              </PanelHeader.Actions>
+              <PanelHeader.Tags>
+                <Loading.Skeleton className="h-[33px] w-[88px]" />
+                <Loading.Skeleton className="h-[33px] w-[64px]" />
+              </PanelHeader.Tags>
             </PanelHeader.Left>
           </PanelHeader.Top>
         </PanelHeader.Root>

@@ -3,6 +3,7 @@
 import { Button } from "@/components/Button";
 import { Title } from "@/components/Title";
 import { cn } from "@/lib/utils";
+import { plural } from "@/utils/format/plural";
 import { FoldHorizontal, UnfoldHorizontal } from "lucide-react";
 import {
   ButtonHTMLAttributes,
@@ -268,7 +269,7 @@ const CellHeader = ({
               variant="micro"
               weight="semibold"
               color="muted"
-              title={`${collapse!.count} compromisso(s) neste dia`}
+              title={`${plural(collapse?.count ?? 0, "compromisso", "compromissos")} neste dia`}
             >
               {collapse!.count}
             </Title>

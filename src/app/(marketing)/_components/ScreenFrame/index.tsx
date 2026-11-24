@@ -73,7 +73,7 @@ export function ScreenFrame({
   return (
     <div
       className={cn(
-        "overflow-hidden rounded-(--radius-lg) border border-(--border) bg-(--bg2) shadow-(--shadow-lg)",
+        "overflow-hidden rounded-(--r-lg) border border-(--border) bg-(--bg2) shadow-(--shadow-lg)",
         className
       )}
     >
@@ -83,11 +83,11 @@ export function ScreenFrame({
         aria-hidden
         className="flex items-center gap-6 border-b border-(--border) bg-(--bg3) px-12 py-8"
       >
-        <span className="size-8 rounded-(--radius-full) bg-(--border2)" />
-        <span className="size-8 rounded-(--radius-full) bg-(--border2)" />
-        <span className="size-8 rounded-(--radius-full) bg-(--border2)" />
+        <span className="size-8 rounded-full bg-(--border2)" />
+        <span className="size-8 rounded-full bg-(--border2)" />
+        <span className="size-8 rounded-full bg-(--border2)" />
         {address && (
-          <span className="mx-auto flex max-w-[320px] min-w-0 flex-1 justify-center rounded-(--radius-full) bg-(--bg2) px-12 py-2">
+          <span className="mx-auto flex max-w-[320px] min-w-0 flex-1 justify-center rounded-full bg-(--bg2) px-12 py-2">
             <Title as="span" variant="micro" color="muted" className="truncate">
               {address}
             </Title>

@@ -59,11 +59,9 @@ export default function PlansContent() {
       <Grid.Root cols={{ base: 1, tablet: 2, "desktop-xl": 4 }} gap={12}>
         {plans.map((plan) => (
           <Grid.Item key={plan.code}>
-            <Card.Root className="h-full">
+            <Card.Root>
               <Card.Header>
-                <Card.Header.Title size="sm" weight="semibold">
-                  {plan.label}
-                </Card.Header.Title>
+                <Card.Header.Title>{plan.label}</Card.Header.Title>
                 <Card.Header.Description>
                   <Title variant="micro" color="muted">
                     código: {plan.code}

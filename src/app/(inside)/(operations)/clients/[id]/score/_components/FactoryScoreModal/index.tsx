@@ -9,7 +9,7 @@ import { Progress } from "@/components/Progress";
 import { Loading } from "@/components/Loading";
 import { Title } from "@/components/Title";
 import { formatDate } from "@/utils/format/date";
-import { explainScore, scoreBarColor } from "@/utils/score";
+import { explainScore, scoreBarColor, formatScore } from "@/utils/score";
 import { History } from "lucide-react";
 import { FactoryVisitScore } from "../../../interface";
 import { ScoreBars } from "../ScoreBars";
@@ -56,17 +56,17 @@ export function FactoryScoreModal({ score, onClose }: Props) {
     <Modal.Root open onOpenChange={(open) => !open && onClose()}>
       <Modal.Content size="2xl">
         <Modal.Header
-          title={`${factoryLabel} — Score ${total.toFixed(0)}`}
+          title={`${factoryLabel} — Score ${formatScore(total)}`}
           description={level.summary}
         />
         <Modal.Body>
           <div className="flex flex-col gap-20">
-            <Section title={`Como chegamos a ${total.toFixed(0)}`}>
+            <Section title={`Como chegamos a ${formatScore(total)}`}>
               <ScoreBars score={score} />
               <DividerRoot />
               <div className="flex items-center gap-10">
                 <Title variant="display" color={scoreBarColor(total)}>
-                  {total.toFixed(0)}
+                  {formatScore(total)}
                 </Title>
                 <Title variant="caption">
                   Score total ponderado, calculado em{" "}
@@ -93,7 +93,7 @@ export function FactoryScoreModal({ score, onClose }: Props) {
               ) : history.length === 0 ? (
                 <EmptyState.Root>
                   <EmptyState.Icon>
-                    <History size={32} />
+                    <History />
                   </EmptyState.Icon>
                   <EmptyState.Title>Sem histórico</EmptyState.Title>
                   <EmptyState.Description>
@@ -114,7 +114,7 @@ export function FactoryScoreModal({ score, onClose }: Props) {
                           </Card.Item.Info>
                           <Card.Item.Action>
                             <Progress.Value color={scoreBarColor(scoreValue)}>
-                              {scoreValue.toFixed(0)}
+                              {formatScore(scoreValue)}
                             </Progress.Value>
                           </Card.Item.Action>
                         </Card.Item>

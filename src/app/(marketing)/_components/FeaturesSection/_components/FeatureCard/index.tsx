@@ -1,3 +1,4 @@
+import { IconTile } from "@/components/IconTile";
 import { Title } from "@/components/Title";
 import { cn } from "@/lib/utils";
 import { ScreenCrop } from "../../../ScreenCrop";
@@ -21,20 +22,14 @@ export function FeatureCard({
   return (
     <div
       className={cn(
-        "flex flex-col gap-12 overflow-hidden rounded-(--radius-lg) border border-(--border) bg-(--bg2) p-24",
+        "flex flex-col gap-12 overflow-hidden rounded-(--r-lg) border border-(--border) bg-(--bg2) p-24",
         size === "big" && "tablet:col-span-2 desktop:row-span-2",
         size === "wide" && "tablet:col-span-2"
       )}
     >
-      <span
-        className="flex size-40 shrink-0 items-center justify-center rounded-(--radius-sm)"
-        style={{
-          backgroundColor: `color-mix(in srgb, ${color} 10%, transparent)`,
-          color,
-        }}
-      >
-        <Icon size={20} />
-      </span>
+      <IconTile color={color} size="lg" shape="square">
+        <Icon />
+      </IconTile>
 
       <Title as="h3" variant={size === "big" ? "heading-lg" : "heading-md"}>
         {title}

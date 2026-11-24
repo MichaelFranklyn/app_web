@@ -11,9 +11,8 @@ import { useOptimisticList } from "@/hooks/useOptimisticList";
 import { Layers } from "lucide-react";
 import { useMemo } from "react";
 import { AddTierModal } from "./AddTierModal";
-import { EditTierModal } from "./EditTierModal";
 import { PRICE_TIERS_QUERY, PriceTiersData } from "./gql";
-import { RemoveTierModal } from "./RemoveTierModal";
+import { TierRowActions } from "./TierRowActions";
 
 interface Props {
   companyFactoryId: string;
@@ -62,7 +61,7 @@ export function TiersTab({ companyFactoryId }: Props) {
   return (
     <Table.Root>
       <Table.CardHead>
-        <Table.CardHead.Title className="inline-flex items-center gap-6">
+        <Table.CardHead.Title>
           Níveis comerciais
           <HelpTooltip
             label="O que é um nível comercial?"
@@ -89,7 +88,9 @@ export function TiersTab({ companyFactoryId }: Props) {
         </Table.CardHead.Actions>
       </Table.CardHead>
 
-      <Table.Table>
+      {/* Abaixo do desktop cada nível vira cartão, como as tabelas acima:
+          antes era a única tabela da aba que continuava em linhas no celular. */}
+      <Table.Table cards>
         <Table.Header>
           <Table.Row>
             <Table.Head title={FACTORY_TIER_COLUMN_HELP.tier}>Nível</Table.Head>
@@ -116,7 +117,7 @@ export function TiersTab({ companyFactoryId }: Props) {
               <Table.Cell colSpan={2}>
                 <EmptyState.Root flat>
                   <EmptyState.Icon>
-                    <Layers size={32} />
+                    <Layers />
                   </EmptyState.Icon>
                   <EmptyState.Title>Nenhum nível comercial</EmptyState.Title>
                   <EmptyState.Description>
@@ -129,26 +130,28 @@ export function TiersTab({ companyFactoryId }: Props) {
           ) : (
             tiers.map((tier) => (
               <Table.Row key={tier.id}>
-                <Table.Cell variant="strong">{tier.name}</Table.Cell>
-                <Table.Cell>
-                  <div className="flex items-center justify-end gap-4">
-                    <EditTierModal
-                      tierId={tier.id}
-                      tierName={tier.name}
-                      onChanged={handleChanged}
-                      onUpdateOptimistic={optimistic.updateOptimistic}
-                      onCommit={optimistic.commit}
-                      onRollback={optimistic.rollback}
-                    />
-                    <RemoveTierModal
-                      tierId={tier.id}
-                      tierName={tier.name}
-                      onRemoved={handleChanged}
-                      onRemoveOptimistic={optimistic.removeOptimistic}
-                      onCommit={optimistic.commit}
-                      onRollback={optimistic.rollback}
-                    />
-                  </div>
+                <Table.Cell card="title" variant="strong">
+                  {tier.name}
+                </Table.Cell>
+                <Table.Cell card="actions">
+                  <TierRowActions
+                    edit={{
+                      tierId: tier.id,
+                      tierName: tier.name,
+                      onChanged: handleChanged,
+                      onUpdateOptimistic: optimistic.updateOptimistic,
+                      onCommit: optimistic.commit,
+                      onRollback: optimistic.rollback,
+                    }}
+                    remove={{
+                      tierId: tier.id,
+                      tierName: tier.name,
+                      onRemoved: handleChanged,
+                      onRemoveOptimistic: optimistic.removeOptimistic,
+                      onCommit: optimistic.commit,
+                      onRollback: optimistic.rollback,
+                    }}
+                  />
                 </Table.Cell>
               </Table.Row>
             ))

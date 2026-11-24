@@ -3,6 +3,7 @@ import { expect, test } from "../support/fixtures";
 import { addDraftItem, oneProductMocks } from "../support/orderDraft";
 import { mockGraphql } from "../support/graphql";
 import { grantRole } from "../support/role";
+import { rowAction } from "../support/rowActions";
 
 // A agenda decide no SERVIDOR, pelo token, se abre a de quem está logado ou o
 // "Agenda de" do gestor. O storageState tem JWT de owner; aqui quem usa é o
@@ -368,9 +369,11 @@ test("cliente/visitas: registrar o estoque lista todas as fábricas do vendedor"
   });
 
   await page.goto("/clients/cc-1/visits");
-  await page
-    .getByRole("button", { name: "Registrar estoque da visita" })
-    .click();
+  await rowAction(
+    page,
+    page.getByRole("row").filter({ hasText: "Fábrica Alfa" }),
+    "Registrar estoque da visita"
+  );
 
   const modal = page.getByLabel("Estoque · Cliente LTDA");
   await expect(

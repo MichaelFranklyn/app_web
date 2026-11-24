@@ -1,9 +1,7 @@
 "use client";
 
-import { Button } from "@/components/Button";
 import { ConfirmModal } from "@/components/ConfirmModal";
 import { useMutation } from "@apollo/client/react";
-import { Trash2 } from "lucide-react";
 
 import { DELETE_FIXED_SCHEDULE_MUTATION } from "./gql";
 import { DeleteFixedScheduleResponse } from "./interface";
@@ -15,6 +13,8 @@ interface Props {
   onCommit: () => void;
   onRollback: () => void;
   onDone: () => void;
+  open: boolean;
+  onOpenChange: (open: boolean) => void;
 }
 
 export function DeleteFixedScheduleModal({
@@ -24,6 +24,8 @@ export function DeleteFixedScheduleModal({
   onCommit,
   onRollback,
   onDone,
+  open,
+  onOpenChange,
 }: Props) {
   const [deleteSchedule] = useMutation<DeleteFixedScheduleResponse>(
     DELETE_FIXED_SCHEDULE_MUTATION
@@ -31,17 +33,8 @@ export function DeleteFixedScheduleModal({
 
   return (
     <ConfirmModal
-      trigger={
-        <Button.Root
-          appearance="ghost"
-          color="red"
-          size="sm"
-          isIconOnly
-          label="Remover dia fixo"
-        >
-          <Button.Icon icon={Trash2} />
-        </Button.Root>
-      }
+      open={open}
+      onOpenChange={onOpenChange}
       title="Remover dia fixo"
       description={`O vendedor deixa de ter dia marcado em ${clientLabel}. As visitas que já aconteceram por causa do compromisso continuam no histórico, e o cliente volta a entrar na rotina pelo score, como os demais.`}
       confirmLabel="Remover"

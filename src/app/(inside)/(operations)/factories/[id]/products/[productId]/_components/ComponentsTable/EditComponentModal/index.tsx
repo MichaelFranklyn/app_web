@@ -9,18 +9,24 @@ import {
 import { Modal } from "@/components/Modal";
 import { useAsyncAction } from "@/hooks/useAsyncAction";
 import { useMutation } from "@apollo/client/react";
-import { Pencil } from "lucide-react";
-import { useMemo, useRef, useState } from "react";
+import { useMemo, useRef } from "react";
 import { UPDATE_PRODUCT_COMPONENT_MUTATION } from "../gql";
 import { ProductComponentNode, UpdateComponentResponse } from "../interface";
 
 interface Props {
+  /** Controlado: o gatilho é o "⋯" da linha (RowActions). */
+  open: boolean;
+  onOpenChange: (open: boolean) => void;
   component: ProductComponentNode;
   onChanged: () => void;
 }
 
-export function EditComponentModal({ component, onChanged }: Props) {
-  const [open, setOpen] = useState(false);
+export function EditComponentModal({
+  component,
+  onChanged,
+  open,
+  onOpenChange: setOpen,
+}: Props) {
   const formRef = useRef<FormBuilderRef>(null);
   const [updateComponent] = useMutation<UpdateComponentResponse>(
     UPDATE_PRODUCT_COMPONENT_MUTATION
@@ -92,18 +98,6 @@ export function EditComponentModal({ component, onChanged }: Props) {
 
   return (
     <Modal.Root open={open} onOpenChange={setOpen}>
-      <Modal.Trigger asChild>
-        <Button.Root
-          appearance="ghost"
-          color="neutral"
-          size="sm"
-          isIconOnly
-          label="Editar componente"
-        >
-          <Button.Icon icon={Pencil} />
-        </Button.Root>
-      </Modal.Trigger>
-
       <Modal.Content size="sm">
         <Modal.Header
           title="Editar componente"

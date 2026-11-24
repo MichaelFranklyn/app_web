@@ -18,7 +18,7 @@ export default function PortalSummaryLoading() {
             <PanelHeader.Heading {...PAGE_HEADING.orders}>
               {PORTAL_HOME_TITLE}
             </PanelHeader.Heading>
-            <Loading.Skeleton className="h-[14px] w-[280px] max-w-full" />
+            <Loading.Skeleton text="body" className="w-[280px] max-w-full" />
           </PanelHeader.Left>
         </PanelHeader.Top>
       </PanelHeader.Root>

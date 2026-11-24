@@ -15,8 +15,8 @@ export default function PortalSentOrdersLoading() {
       <SentOrdersKpisSkeleton />
       <Table.Root>
         <div className="flex flex-col gap-8 p-16">
-          <Loading.Skeleton className="h-[16px] w-[120px]" />
-          <Loading.Skeleton className="h-[12px] w-[240px]" />
+          <Loading.Skeleton text="heading-sm" className="w-[120px]" />
+          <Loading.Skeleton text="body-sm" className="w-[240px]" />
         </div>
         <Table.Table>
           <Table.Body>

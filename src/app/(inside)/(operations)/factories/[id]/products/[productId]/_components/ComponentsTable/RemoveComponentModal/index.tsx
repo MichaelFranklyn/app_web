@@ -1,13 +1,14 @@
 "use client";
 
-import { Button } from "@/components/Button";
 import { ConfirmModal } from "@/components/ConfirmModal";
 import { useMutation } from "@apollo/client/react";
-import { Trash2 } from "lucide-react";
 import { REMOVE_COMPONENT_FROM_PRODUCT_MUTATION } from "../gql";
 import { RemoveComponentResponse } from "../interface";
 
 interface Props {
+  /** Controlado: o gatilho é o "⋯" da linha (RowActions). */
+  open: boolean;
+  onOpenChange: (open: boolean) => void;
   componentId: string;
   componentName: string;
   onRemoved: () => void;
@@ -17,6 +18,8 @@ interface Props {
 }
 
 export function RemoveComponentModal({
+  open,
+  onOpenChange,
   componentId,
   componentName,
   onRemoved,
@@ -30,17 +33,8 @@ export function RemoveComponentModal({
 
   return (
     <ConfirmModal
-      trigger={
-        <Button.Root
-          appearance="ghost"
-          color="red"
-          size="sm"
-          isIconOnly
-          label="Remover componente"
-        >
-          <Button.Icon icon={Trash2} />
-        </Button.Root>
-      }
+      open={open}
+      onOpenChange={onOpenChange}
       title="Remover componente"
       description={`Remover "${componentName}" da composição deste kit?`}
       confirmLabel="Remover"

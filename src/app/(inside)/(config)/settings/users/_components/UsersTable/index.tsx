@@ -7,6 +7,7 @@ import { InputSearch } from "@/components/Input";
 import { Loading } from "@/components/Loading";
 import { Pagination } from "@/components/Pagination";
 import { Table, TableSort } from "@/components/Table";
+import { personInitials } from "@/utils/format/initials";
 import { formatDateDMY, maskPhoneBR } from "@/utils/format/masks";
 import { Users } from "lucide-react";
 import { USER_COLUMN_HELP } from "../../help";
@@ -110,7 +111,7 @@ export function UsersTable({
               <Table.Cell colSpan={4}>
                 <EmptyState.Root flat>
                   <EmptyState.Icon>
-                    <Users size={32} />
+                    <Users />
                   </EmptyState.Icon>
                   <EmptyState.Title>Nenhuma pessoa encontrada</EmptyState.Title>
                   <EmptyState.Description>
@@ -137,7 +138,7 @@ export function UsersTable({
                     <Avatar
                       size="md"
                       color={ROLE_COLOR[role] ?? "neutral"}
-                      initials={node.name.slice(0, 2).toUpperCase()}
+                      initials={personInitials(node.name)}
                     />
 
                     {/* Identidade numa coluna só: a tabela nunca rola. */}

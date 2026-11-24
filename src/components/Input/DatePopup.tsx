@@ -108,7 +108,7 @@ export const DatePopup = ({
     <div
       ref={popupRef}
       data-date-popup
-      style={{ ...style, position, zIndex: 9999 }}
+      style={{ ...style, position, zIndex: "var(--z-popover)" }}
       className={cn(calendarStyles.overlay, "w-auto min-w-max flex-row")}
       onMouseDown={(e) => e.preventDefault()}
       onClick={(e) => e.stopPropagation()}

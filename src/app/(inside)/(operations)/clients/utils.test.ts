@@ -167,7 +167,7 @@ describe("buildKpis", () => {
     },
   };
 
-  it("explica os quatro cartões — nenhum número fica sem “?”", () => {
+  it("explica os cartões — nenhum número fica sem “?”", () => {
     buildKpis(stats).forEach((kpi) => expect(kpi.help).toBeTruthy());
   });
 
@@ -187,11 +187,35 @@ describe("buildKpis", () => {
 
   it("degrada para zeros quando os stats não vieram", () => {
     const semStats = { clientStats: undefined } as unknown as typeof stats;
-    expect(buildKpis(semStats).map((k) => k.value)).toEqual([
-      "0",
-      "0",
-      "0",
-      "0",
-    ]);
+    expect(buildKpis(semStats).map((k) => k.value)).toEqual(["0", "0", "0"]);
+  });
+
+  /**
+   * "Total" e "Ativos" eram dois cartões quase sempre iguais. Agora é um só,
+   * com o número que a lista mostra por padrão (os ativos) e os inativos no
+   * rodapé — para o tamanho total continuar recuperável.
+   */
+  it("um cartão de carteira: os ativos no número, os inativos no rodapé", () => {
+    const [wallet] = buildKpis(stats);
+    expect(wallet.value).toBe("30");
+    expect(wallet.delta).toContain("10 inativos");
+  });
+
+  it("diz 'sua carteira' ao vendedor, e não 'da empresa'", () => {
+    const [wallet] = buildKpis(stats, true);
+    expect(wallet.delta).toContain("sua carteira");
+  });
+
+  it("carteira sem inativos não inventa um zero", () => {
+    const [wallet] = buildKpis({
+      clientStats: { ...stats.clientStats, activeClients: 40 },
+    });
+    expect(wallet.delta).toContain("todos ativos");
+  });
+
+  /** Dois avisos do mesmo peso: antes um era vermelho e o outro azul. */
+  it("atrasados e sem visita têm o mesmo tom", () => {
+    const [, atRisk, noVisit] = buildKpis(stats);
+    expect(atRisk.status).toBe(noVisit.status);
   });
 });

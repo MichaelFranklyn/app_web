@@ -16,6 +16,7 @@ import {
   HistoryResult,
   HistoryRowInput,
 } from "./interface";
+import { plural } from "@/utils/format/plural";
 
 /**
  * A ordem é a do backend (`steps`), e ela importa: a fábrica pede os
@@ -43,9 +44,12 @@ export const SETUP_STEP_CONTENT: Record<SetupStepKey, SetupStepContent> = {
     icon: Package,
     title: "Tabelas de preço",
     description:
-      "Em cada fábrica, aba Tabelas → Importar tabela. Os produtos entram junto com os preços, e os pedidos novos já saem com ela.",
+      "Em cada fábrica, aba Tabelas → Mais ações → Importar tabela. Os produtos entram junto com os preços, e os pedidos novos já saem com ela.",
     href: "/factories",
-    action: "Ir para Fábricas",
+    // O botão diz a tarefa, não o lugar: dois passos seguidos com "Ir para
+    // Fábricas" pareciam repetidos (crítica de configurações, 23/11/2026). A
+    // descrição acima diz onde, dentro da fábrica, fica a importação.
+    action: "Importar tabela de preço",
   },
   CLIENTS: {
     icon: Users,
@@ -77,9 +81,6 @@ export const blockingStep = <K extends string = SetupStepKey>(
   index: number
 ): K | null =>
   steps.slice(0, index).find((s) => s.isRequired && !s.isDone)?.key ?? null;
-
-const plural = (count: number, one: string, many: string) =>
-  `${count} ${count === 1 ? one : many}`;
 
 /** A linha de situação de cada passo, a partir das contagens do progresso. */
 export const stepSummary = (

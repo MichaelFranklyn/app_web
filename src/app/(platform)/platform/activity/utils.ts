@@ -52,28 +52,6 @@ export const errorRate = (summary: ActivitySummary): number => {
   return Math.round((summary.totalErrors / summary.totalActions) * 100);
 };
 
-export const formatMoment = (iso: string): string => {
-  const parsed = new Date(iso);
-  if (Number.isNaN(parsed.getTime())) return "—";
-  return parsed.toLocaleString("pt-BR", {
-    day: "2-digit",
-    month: "2-digit",
-    hour: "2-digit",
-    minute: "2-digit",
-    second: "2-digit",
-  });
-};
-
-/**
- * Duração em texto. Acima de um segundo passa a mostrar em segundos: 2400ms é
- * mais difícil de ler do que 2,4s, e é justamente na faixa lenta que o número
- * importa.
- */
-export const formatDuration = (ms: number | null): string => {
-  if (ms === null) return "—";
-  return ms >= 1000 ? `${(ms / 1000).toFixed(1)}s` : `${ms}ms`;
-};
-
 /** Acima disto a operação é lenta o bastante para o usuário perceber. */
 const SLOW_MS = 1000;
 

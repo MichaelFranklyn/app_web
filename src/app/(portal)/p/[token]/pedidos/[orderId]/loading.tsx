@@ -13,7 +13,7 @@ export default function PortalOrderLoading() {
   return (
     <>
       <div className="flex flex-col gap-8">
-        <Loading.Skeleton className="h-[16px] w-[180px]" />
+        <Loading.Skeleton text="heading-sm" className="w-[180px]" />
         <PanelHeader.HeadingSkeleton
           {...PAGE_HEADING.orders}
           barClassName="w-[200px]"

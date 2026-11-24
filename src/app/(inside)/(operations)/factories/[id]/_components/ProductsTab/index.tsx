@@ -18,12 +18,11 @@ import type { FieldConfig } from "@/hooks/useTableFilters";
 import { useTableData } from "@/hooks/useTableData";
 import { AlertCircle, Package } from "lucide-react";
 import { Button } from "@/components/Button";
-import { FeatureGate } from "@/components/FeatureGate";
+import { plural } from "@/utils/format/plural";
 import { useMemo } from "react";
 import { AddProductModal } from "./AddProductModal";
-import { ImportProductsModal } from "./ImportProductsModal";
 import { ProductRowActions } from "./ProductRowActions";
-import { UploadPhotosModal } from "./UploadPhotosModal";
+import { ProductsMoreMenu } from "./ProductsMoreMenu";
 import { useProductFilters } from "./useProductFilters";
 import {
   FACTORY_PRODUCTS_QUERY,
@@ -97,7 +96,7 @@ export function ProductsTab({ companyFactoryId }: Props) {
   return (
     <Table.Root sort={table.sort} data-tour="products-table">
       <Table.CardHead>
-        <Table.CardHead.Title className="inline-flex items-center gap-6">
+        <Table.CardHead.Title>
           Catálogo de produtos
           <HelpTooltip
             label="O que significa cada campo do produto?"
@@ -145,7 +144,7 @@ export function ProductsTab({ companyFactoryId }: Props) {
             <InputSearch
               size="sm"
               containerClassName="w-72"
-              placeholder="Buscar por nome ou código..."
+              placeholder="Nome ou código"
               value={search}
               onChange={(e) => table.setFilter("search", e.target.value)}
             />
@@ -175,14 +174,7 @@ export function ProductsTab({ companyFactoryId }: Props) {
               <Button.Icon icon={AlertCircle} />
               <Button.Title>Precisa de atenção</Button.Title>
             </Button.Root>
-            {/* Importação em massa é recurso de plano. */}
-            <FeatureGate feature="BULK_IMPORT">
-              <ImportProductsModal
-                companyFactoryId={companyFactoryId}
-                onChanged={onChanged}
-              />
-            </FeatureGate>
-            <UploadPhotosModal
+            <ProductsMoreMenu
               companyFactoryId={companyFactoryId}
               onChanged={onChanged}
             />
@@ -199,8 +191,10 @@ export function ProductsTab({ companyFactoryId }: Props) {
       <Table.Table cards>
         <Table.Header>
           <Table.Row>
+            {/* Só a largura da miniatura (40px + respiro): com w-56 a coluna
+                tomava espaço do nome (crítica de 23/11/2026). */}
             <Table.Head
-              className="w-56"
+              className="w-[64px]"
               title={FACTORY_PRODUCT_COLUMN_HELP.photo}
             >
               Foto
@@ -249,7 +243,7 @@ export function ProductsTab({ companyFactoryId }: Props) {
               <Table.Cell colSpan={7}>
                 <EmptyState.Root flat>
                   <EmptyState.Icon>
-                    <Package size={32} />
+                    <Package />
                   </EmptyState.Icon>
                   <EmptyState.Title>
                     {onlyAttention
@@ -275,8 +269,8 @@ export function ProductsTab({ companyFactoryId }: Props) {
                 href={`/factories/${companyFactoryId}/products/${p.id}`}
                 data-tour="products-row"
               >
-                {/* No cartão a foto não fica ao lado do conteúdo: ela abre o
-                    cartão numa linha própria, dentro do título (abaixo). */}
+                {/* No cartão a foto vai para o título, em miniatura ao lado do
+                    nome (abaixo). */}
                 <Table.Cell card="hidden">
                   <ProductThumb imageUrl={p.imageUrl} name={p.name} />
                 </Table.Cell>
@@ -286,14 +280,19 @@ export function ProductsTab({ companyFactoryId }: Props) {
                   </Badge.Root>
                 </Table.Cell>
                 <Table.Cell card="title" variant="strong">
-                  <div className="desktop:hidden mb-8">
-                    <ProductThumb
-                      imageUrl={p.imageUrl}
-                      name={p.name}
-                      size="md"
-                    />
-                  </div>
-                  {p.name}
+                  {/* Miniatura AO LADO do nome: numa linha própria, em tamanho
+                      médio, cada cartão gastava uma linha só com a foto
+                      (crítica de 23/11/2026). */}
+                  <span className="flex items-center gap-10">
+                    <span className="desktop:hidden shrink-0">
+                      <ProductThumb
+                        imageUrl={p.imageUrl}
+                        name={p.name}
+                        size="sm"
+                      />
+                    </span>
+                    <span className="min-w-0">{p.name}</span>
+                  </span>
                 </Table.Cell>
                 <Table.Cell label="Categoria" variant="dim">
                   {p.category?.name ?? "—"}
@@ -303,14 +302,14 @@ export function ProductsTab({ companyFactoryId }: Props) {
                 </Table.Cell>
                 <Table.Cell card="status">
                   <div className="flex items-center gap-4">
-                    <Badge.Root
-                      color={p.isActive ? "green" : "neutral"}
-                      appearance="tinted"
-                    >
-                      <Badge.Text>
-                        {p.isActive ? "Ativo" : "Inativo"}
-                      </Badge.Text>
-                    </Badge.Root>
+                    {/* Só o desvio ganha selo: "Ativo" em toda linha era
+                        ruído, e escondia o "Inativo" no meio dos verdes
+                        (crítica de 23/11/2026). */}
+                    {!p.isActive && (
+                      <Badge.Root color="neutral" appearance="tinted">
+                        <Badge.Text>Inativo</Badge.Text>
+                      </Badge.Root>
+                    )}
                     {p.isNeedsAttention && (
                       <Tooltip
                         className="max-w-[min(400px,calc(100vw-20px))] whitespace-normal"
@@ -360,7 +359,7 @@ export function ProductsTab({ companyFactoryId }: Props) {
             <Loading.Spinner size="sm" className="mr-6 inline-block" />
           )}
           {table.totalItems > 0
-            ? `${table.totalItems} produto(s) · página ${table.currentPage} de ${table.totalPages}`
+            ? `${plural(table.totalItems, "produto", "produtos")} · página ${table.currentPage} de ${table.totalPages}`
             : "Nenhum produto encontrado"}
         </Table.Footer.Info>
 

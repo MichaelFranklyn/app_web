@@ -7,6 +7,7 @@ import { ChevronLeft, ChevronRight } from "lucide-react";
 import { calendarStyles } from "./styles";
 import { CalendarDropdown } from "./CalendarDropdown";
 import { cn } from "@/lib/utils";
+import { ICON_SIZE } from "@/components/Icon";
 
 export type CalendarBaseProps = DayPickerProps & { className?: string };
 
@@ -61,9 +62,9 @@ export const CalendarBase = ({
       components={{
         Chevron: ({ orientation }) => {
           if (orientation === "left")
-            return <ChevronLeft size={16} strokeWidth={3} />;
+            return <ChevronLeft size={ICON_SIZE.md} strokeWidth={3} />;
           if (orientation === "right")
-            return <ChevronRight size={16} strokeWidth={3} />;
+            return <ChevronRight size={ICON_SIZE.md} strokeWidth={3} />;
           // CalendarDropdown renders its own indicator; suppress the extra
           // up/down chevrons react-day-picker injects next to dropdowns.
           return <></>;

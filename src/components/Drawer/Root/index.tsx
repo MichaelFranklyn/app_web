@@ -25,7 +25,7 @@ const WIDTH = { 400: "w-[400px]", 420: "w-[420px]" } as const;
 /**
  * Painel lateral sobre a tela, com fundo escurecido que fecha ao clicar.
  *
- * Fica acima do conteúdo e abaixo dos modais (z-50): um modal aberto a partir
+ * Fica acima do conteúdo e abaixo dos modais (--z-drawer < --z-modal): um modal aberto a partir
  * do painel ("Editar visita") aparece por cima dele.
  *
  * A sombra só existe aberto. Fechado, o painel segue montado fora da tela, e a
@@ -49,7 +49,7 @@ export function Root({
     <DrawerContext.Provider value={{ onClose }}>
       <div
         className={cn(
-          "fixed inset-0 z-[55] bg-black/30 transition-opacity duration-200",
+          "fixed inset-0 z-(--z-drawer-backdrop) bg-(--scrim) transition-opacity duration-200",
           // Montado já aberto não há transição (nada muda de estado): a
           // entrada vem do keyframe. O `animate-in` antigo não gerava CSS.
           unmountOnClose && "animate-fade-in",
@@ -71,7 +71,7 @@ export function Root({
         inert={!open}
         onKeyDown={onKeyDown}
         className={cn(
-          "fixed top-0 right-0 z-[60] flex h-full max-w-[calc(100vw-32px)] flex-col border-l border-(--border) bg-(--bg)",
+          "fixed top-0 right-0 z-(--z-drawer) flex h-full max-w-[calc(100vw-32px)] flex-col border-l border-(--border) bg-(--bg)",
           "transition-[translate,box-shadow] duration-260 ease-(--ease-out-soft)",
           WIDTH[width],
           unmountOnClose && "animate-drawer-in",

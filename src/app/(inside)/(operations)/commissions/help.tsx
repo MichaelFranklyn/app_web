@@ -105,7 +105,7 @@ export const scopeSentence = (
     case "overdue":
       return `Mostrando os boletos travados de todos os vencimentos — esta aba não segue o mês; os cartões acima continuam somando ${monthName}`;
     case "receivable":
-      return `Mostrando o que ${quem} em ${monthName}, já líquido de estorno`;
+      return `Mostrando o que ${quem} em ${monthName}, com os estornos já descontados`;
     case "pending":
       return `Mostrando o que está previsto para ${monthName}${seller ? " no ciclo do vendedor" : ""}`;
     case "received":

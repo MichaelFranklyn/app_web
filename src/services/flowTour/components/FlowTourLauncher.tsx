@@ -4,6 +4,7 @@ import { Badge } from "@/components/Badges";
 import { Button } from "@/components/Button";
 import { Dropdown } from "@/components/Dropdown";
 import { EmptyState } from "@/components/EmptyState";
+import { ICON_SIZE } from "@/components/Icon";
 import { Title } from "@/components/Title";
 import { Check, ChevronRight, GraduationCap } from "lucide-react";
 import { usePathname } from "next/navigation";
@@ -20,7 +21,7 @@ const StatusBadge = ({ status }: { status: FlowProgressStatus }) => {
   if (status === "completed") {
     return (
       <Badge.Root color="green" appearance="tinted" size="xs">
-        <Check size={12} strokeWidth={2.5} />
+        <Check size={ICON_SIZE.xs} strokeWidth={2.5} />
         <Badge.Text>Concluído</Badge.Text>
       </Badge.Root>
     );
@@ -95,7 +96,7 @@ export const FlowTourLauncher = () => {
       >
         <Dropdown.PanelHeader>
           <GraduationCap
-            size={14}
+            size={ICON_SIZE.sm}
             className="text-(--color-text-muted)"
             aria-hidden
           />
@@ -107,7 +108,7 @@ export const FlowTourLauncher = () => {
         {groups.length === 0 ? (
           <EmptyState.Root flat className="gap-6 px-16 py-24">
             <EmptyState.Icon>
-              <GraduationCap size={20} />
+              <GraduationCap size={ICON_SIZE.lg} />
             </EmptyState.Icon>
             <EmptyState.Description>
               Nenhum tutorial disponível nesta página.
@@ -160,7 +161,7 @@ export const FlowTourLauncher = () => {
                       </div>
 
                       <ChevronRight
-                        size={16}
+                        size={ICON_SIZE.md}
                         aria-hidden
                         className="mt-2 shrink-0 text-(--color-text-muted) transition-transform group-hover:translate-x-1"
                       />

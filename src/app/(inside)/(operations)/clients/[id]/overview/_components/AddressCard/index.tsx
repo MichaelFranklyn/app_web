@@ -19,11 +19,7 @@ export function AddressCard({
   return (
     <Card.Root>
       <Card.Header>
-        <Card.Header.Title
-          size="sm"
-          weight="semibold"
-          className="inline-flex items-center gap-6"
-        >
+        <Card.Header.Title>
           Endereço
           <HelpTooltip
             label="Sobre o endereço"

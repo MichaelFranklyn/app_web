@@ -13,9 +13,9 @@ import { PublicPage } from "@/components/PublicPage";
 export default function VisitResponseLoading() {
   return (
     <PublicPage.Root>
-      <PublicPage.Header className="gap-[6px]">
+      <PublicPage.Header className="gap-6">
         <Loading.Skeleton className="h-[20px] w-[180px]" />
-        <Loading.Skeleton className="h-[14px] w-[220px]" />
+        <Loading.Skeleton text="body" className="w-[220px]" />
       </PublicPage.Header>
       <PublicPage.Main>
         <Grid.Root cols={{ base: 1, tablet: 2, desktop: 3 }} gap={12}>

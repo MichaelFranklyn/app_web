@@ -5,6 +5,7 @@ import { Button } from "@/components/Button";
 import { Title } from "@/components/Title";
 
 import type { ImportMode } from "./utils";
+import { ICON_SIZE } from "@/components/Icon";
 
 interface Props {
   onChoose: (mode: ImportMode) => void;
@@ -26,9 +27,12 @@ export function ImportModeChoice({ onChoose }: Props) {
   return (
     <div className="tablet:grid-cols-2 grid grid-cols-1 gap-16">
       <Card.Root inset tone="transparent">
-        <Card.Body padding="compact" className="gap-8">
+        <Card.Body padding="compact">
           <div className="flex items-center gap-8">
-            <FileSpreadsheet size={16} className="text-(--color-action-text)" />
+            <FileSpreadsheet
+              size={ICON_SIZE.md}
+              className="text-(--color-action-text)"
+            />
             <Title variant="body-sm" weight="medium">
               Ficha de pedido do sistema
             </Title>
@@ -51,9 +55,9 @@ export function ImportModeChoice({ onChoose }: Props) {
       </Card.Root>
 
       <Card.Root inset tone="transparent">
-        <Card.Body padding="compact" className="gap-8">
+        <Card.Body padding="compact">
           <div className="flex items-center gap-8">
-            <FileUp size={16} className="text-(--color-text-muted)" />
+            <FileUp size={ICON_SIZE.md} className="text-(--color-text-muted)" />
             <Title variant="body-sm" weight="medium">
               Outro arquivo
             </Title>

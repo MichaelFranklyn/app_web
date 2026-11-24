@@ -18,7 +18,7 @@ interface LinkExpiredProps {
 export function LinkExpired({ children }: LinkExpiredProps) {
   return (
     <RouteError
-      icon={<Link2Off size={36} />}
+      icon={<Link2Off />}
       title="Este link não está mais válido"
       description={children}
     />

@@ -8,6 +8,7 @@ import { drawFooters, loadBrandLogo } from "@/utils/pdf/footer";
 import { drawReportHeader } from "@/utils/pdf/reportHeader";
 import { drawReportTable } from "@/utils/pdf/table";
 import { PAGE } from "@/utils/pdf/theme";
+import { plural } from "@/utils/format/plural";
 import { Order } from "../interface";
 import { ORDER_SORT_LABELS } from "../utils";
 import { buildOrderTotals, ORDER_COLUMNS } from "./columns";
@@ -52,7 +53,7 @@ export const exportOrdersPdf = async (
     companyName: meta.companyName ?? null,
     companyLogo,
     title: "Relatório de pedidos",
-    highlight: `${orders.length} pedido(s)`,
+    highlight: `${plural(orders.length, "pedido", "pedidos")}`,
     context: buildReportContext({
       fields: meta.filterFields,
       values: meta.inputValues,

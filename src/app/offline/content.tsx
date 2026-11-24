@@ -78,10 +78,10 @@ export function OfflineContent() {
   const voltou = estado === "voltou";
 
   return (
-    <div className="flex min-h-screen items-center justify-center px-[16px]">
+    <div className="flex min-h-screen items-center justify-center px-16">
       <EmptyState.Root className="max-w-[420px]">
         <EmptyState.Icon>
-          <WifiOff size={36} />
+          <WifiOff />
         </EmptyState.Icon>
         {/* Texto direto: EmptyState.Title já é um <h3>, e o <Title> dentro dele
             gerava h3 aninhado — HTML inválido, erro de hidratação #418. */}

@@ -3,7 +3,9 @@ import { Alert } from "@/components/Alert";
 
 import { Input } from "@/components/Input";
 import { Title } from "@/components/Title";
+import { plural, pluralWord } from "@/utils/format/plural";
 import { AlertTriangle, Car } from "lucide-react";
+import { formatDistanceKm } from "../../utils";
 import { DisplacedStrategy, VisitPromotionPreview } from "./interface";
 
 interface Props {
@@ -41,7 +43,7 @@ export function TripImpact({
         <Alert.Icon icon={Car} muted />
         <Alert.Content>
           <Alert.Description>
-            {preview.distanceKm.toFixed(0)} km de distância ·{" "}
+            {formatDistanceKm(preview.distanceKm, 0)} de distância ·{" "}
             {formatDuration(preview.travelMinOneWay)} de viagem em cada sentido
           </Alert.Description>
         </Alert.Content>
@@ -49,7 +51,7 @@ export function TripImpact({
 
       {needsConfirm && (
         <Alert.Root variant="warning">
-          <Alert.Icon icon={AlertTriangle} className="mt-[2px]" />
+          <Alert.Icon icon={AlertTriangle} className="mt-2" />
           <Alert.Content className="gap-10">
             <Title variant="body-sm">
               {preview.isReachable
@@ -58,9 +60,13 @@ export function TripImpact({
               {preview.displacedCount > 0 && (
                 <>
                   {" "}
-                  Você tem {preview.displacedCount}{" "}
-                  {preview.displacedCount === 1 ? "visita" : "visitas"} marcada
-                  {preview.displacedCount === 1 ? "" : "s"} para este dia.
+                  Você tem{" "}
+                  {plural(
+                    preview.displacedCount,
+                    "visita marcada",
+                    "visitas marcadas"
+                  )}{" "}
+                  para este dia.
                 </>
               )}
             </Title>
@@ -69,7 +75,7 @@ export function TripImpact({
               <div className="flex flex-col gap-6">
                 <Title variant="micro" color="muted">
                   O que fazer com{" "}
-                  {preview.displacedCount === 1 ? "ela" : "elas"}?
+                  {pluralWord(preview.displacedCount, "ela", "elas")}?
                 </Title>
                 <Input.Radio
                   name="displaced-strategy"

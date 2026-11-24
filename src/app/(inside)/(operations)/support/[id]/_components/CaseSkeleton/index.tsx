@@ -3,6 +3,7 @@
 "use client";
 
 import { Card } from "@/components/Card";
+import { Grid } from "@/components/Grid";
 import { Loading } from "@/components/Loading";
 import { PageContent } from "@/components/PageContent";
 import { PanelHeader } from "@/components/PanelHeader";
@@ -40,18 +41,18 @@ export function CaseSkeleton() {
       <div className="flex flex-col gap-8">
         {/* Alturas das linhas reais (caminho 25px, descrição 21px + 2px): a
             troca pelo conteúdo não empurra o que vem embaixo. */}
-        <div className="flex h-[25px] items-center gap-[8px]">
-          <Loading.Skeleton className="h-[12px] w-20" />
-          <Loading.Skeleton className="h-[12px] w-32" />
+        <div className="flex h-[25px] items-center gap-8">
+          <Loading.Skeleton text="body-sm" className="w-20" />
+          <Loading.Skeleton text="body-sm" className="w-32" />
         </div>
         <PanelHeader.Root>
           <PanelHeader.Top>
             <PanelHeader.Left>
               <PanelHeader.HeadingSkeleton {...PAGE_HEADING.support} />
-              <div className="mt-[2px] flex h-[21px] items-center">
-                <Loading.Skeleton className="h-[12px] w-96 max-w-full" />
+              <div className="mt-2 flex h-[21px] items-center">
+                <Loading.Skeleton text="body-sm" className="w-96 max-w-full" />
               </div>
-              <PanelHeader.Actions className="mt-6">
+              <PanelHeader.Actions>
                 <Loading.Skeleton className="h-[24px] w-[88px]" />
                 <Loading.Skeleton className="h-[32px] w-[132px]" />
                 <Loading.Skeleton className="h-[32px] w-[96px]" />
@@ -61,36 +62,45 @@ export function CaseSkeleton() {
         </PanelHeader.Root>
       </div>
 
+      {/* Mesma forma dos cards prontos: cabeçalho com o título real e a
+          ficha em duas colunas, rótulo em cima (padrão de 24/11/2026). */}
       <Card.Root>
-        <Card.Body padding="compact">
-          <div className="flex flex-col">
+        <Card.Header>
+          <Card.Header.Title>Resumo</Card.Header.Title>
+        </Card.Header>
+        <Card.Body>
+          <Grid.Root cols={{ base: 1, desktop: 2 }} gap={16}>
             {SUMMARY_LABELS.map((label) => (
-              <Card.Item key={label} variant="stat" className="flex-nowrap">
-                <Card.Item.Label className="shrink-0">{label}</Card.Item.Label>
-                <Card.Item.Actions className="flex-1 justify-end">
-                  <Loading.Skeleton className="h-[12px] w-32" />
-                </Card.Item.Actions>
-              </Card.Item>
+              <Card.Field key={label} label={label}>
+                <Loading.Skeleton
+                  text="body-md"
+                  className="w-[160px] max-w-full"
+                />
+              </Card.Field>
             ))}
-          </div>
+          </Grid.Root>
         </Card.Body>
       </Card.Root>
 
       <Card.Root>
-        <Card.Body padding="compact" className="gap-12">
-          <Loading.Skeleton className="h-[14px] w-40" />
+        <Card.Header>
+          <Card.Header.Title>Registrar andamento</Card.Header.Title>
+        </Card.Header>
+        <Card.Body>
           <Loading.Skeleton className="h-[72px] w-full" />
           <Loading.Skeleton className="h-[32px] w-[120px] self-end" />
         </Card.Body>
       </Card.Root>
 
       <Card.Root>
-        <Card.Body padding="compact" className="gap-16">
-          <Loading.Skeleton className="h-[14px] w-32" />
+        <Card.Header>
+          <Card.Header.Title>O que já foi feito</Card.Header.Title>
+        </Card.Header>
+        <Card.Body>
           {Array.from({ length: TIMELINE_ENTRIES }).map((_, i) => (
-            <div key={i} className="flex flex-col gap-[6px]">
-              <Loading.Skeleton className="h-[10px] w-28" />
-              <Loading.Skeleton className="h-[12px] w-full" />
+            <div key={i} className="flex flex-col gap-6">
+              <Loading.Skeleton text="body-sm" className="w-28" />
+              <Loading.Skeleton text="body-sm" className="w-full" />
             </div>
           ))}
         </Card.Body>

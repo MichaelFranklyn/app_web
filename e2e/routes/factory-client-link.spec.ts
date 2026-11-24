@@ -1,5 +1,6 @@
 import { expect, test } from "../support/fixtures";
 import { mockGraphql } from "../support/graphql";
+import { rowAction } from "../support/rowActions";
 import { grantRole } from "../support/role";
 
 /**
@@ -275,10 +276,11 @@ test("fábrica/clientes: edita o vínculo (nível/prioridade)", async ({
   });
 
   await page.goto(`${base}/clients`);
-  await page
-    .getByRole("row", { name: /Cliente Vinculado/ })
-    .getByRole("button", { name: "Editar" })
-    .click();
+  await rowAction(
+    page,
+    page.getByRole("row", { name: /Cliente Vinculado/ }),
+    "Editar vínculo"
+  );
 
   const dialog = page.getByRole("dialog");
   await expect(dialog.getByText("Editar vínculo")).toBeVisible();

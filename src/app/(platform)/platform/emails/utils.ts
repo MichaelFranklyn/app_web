@@ -1,8 +1,6 @@
 import { BadgeColor } from "@/components/Badges/Root/interface";
 import { EmailMessageStatus } from "./interface";
 
-export { formatMoment } from "../audit/utils";
-
 export const STATUS_LABEL: Record<EmailMessageStatus, string> = {
   SENT: "Enviado",
   FAILED: "Falhou",

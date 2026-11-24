@@ -84,7 +84,7 @@ export function CommissionsList({
   if (isLoading) {
     return (
       <Table.Root>
-        <Table.Table>
+        <Table.Table cards>
           <Table.Body>
             <Table.Skeleton columns={8} rows={6} />
           </Table.Body>
@@ -99,7 +99,7 @@ export function CommissionsList({
     return (
       <EmptyState.Root>
         <EmptyState.Icon>
-          <Coins size={32} />
+          <Coins />
         </EmptyState.Icon>
         <EmptyState.Title>{emptyTitle(tab, month)}</EmptyState.Title>
         <EmptyState.Description>

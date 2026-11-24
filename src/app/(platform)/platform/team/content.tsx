@@ -54,6 +54,7 @@ export default function PlatformTeamContent({ seed }: TeamContentProps) {
               <Button.Root
                 appearance="solid"
                 color="amber"
+                size="sm"
                 onClick={() => setCreating(true)}
               >
                 <Button.Icon icon={UserPlus} />

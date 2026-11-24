@@ -26,7 +26,7 @@ export function SupportHeader({ onSaved }: Props) {
           <PanelHeader.Eyebrow color="green">Clientes</PanelHeader.Eyebrow>
           <div className="flex items-center gap-6">
             <PanelHeader.Heading {...PAGE_HEADING.support}>
-              Reclamações <Emphasis tone="accent">de clientes</Emphasis>
+              <Emphasis tone="accent">Reclamações</Emphasis>
             </PanelHeader.Heading>
             <HelpTooltip
               label="O que entra nas reclamações?"
@@ -37,7 +37,7 @@ export function SupportHeader({ onSaved }: Props) {
             Os problemas que os clientes relatam e o que já foi feito sobre cada
             um — mercadoria, pagamento, entrega.
           </PanelHeader.Description>
-          <PanelHeader.Actions className="mt-6" data-tour="support-actions">
+          <PanelHeader.Actions data-tour="support-actions">
             <Button.Root
               type="button"
               appearance="solid"

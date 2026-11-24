@@ -7,13 +7,13 @@ import { Loading } from "@/components/Loading";
 import { Pagination } from "@/components/Pagination";
 import { Table, TableSort } from "@/components/Table";
 import { formatDateDMY, formatMoney } from "@/utils/format/masks";
-import { plural } from "@/utils/format/plural";
 import { Building2 } from "lucide-react";
 
 import { formatPercent } from "../../../../utils";
 import { FactoryOrdersRow } from "../../interface";
 import { invoicedRate, sumBy } from "../../utils";
 import { visibleCommission } from "@/utils/commission";
+import { plural } from "@/utils/format/plural";
 
 interface Props {
   items: FactoryOrdersRow[];
@@ -57,7 +57,7 @@ export function FactoriesReportTable({
   return (
     <Table.Root sort={sort}>
       <Table.CardHead>
-        <Table.CardHead.Title className="inline-flex items-center gap-6">
+        <Table.CardHead.Title>
           Fábricas do período
           <HelpTooltip
             label="Sobre as fábricas do período"
@@ -80,22 +80,26 @@ export function FactoriesReportTable({
         <Table.Header>
           <Table.Row>
             <Table.Head sortKey="factory">Fábrica</Table.Head>
-            <Table.Head sortKey="orderCount" sortFirst="desc">
+            <Table.Head align="right" sortKey="orderCount" sortFirst="desc">
               Pedidos
             </Table.Head>
-            <Table.Head sortKey="clientCount" sortFirst="desc">
+            <Table.Head align="right" sortKey="clientCount" sortFirst="desc">
               Clientes
             </Table.Head>
-            <Table.Head sortKey="totalAmount" sortFirst="desc">
+            <Table.Head align="right" sortKey="totalAmount" sortFirst="desc">
               Valor colocado
             </Table.Head>
-            <Table.Head sortKey="avgTicket" sortFirst="desc">
+            <Table.Head align="right" sortKey="avgTicket" sortFirst="desc">
               Ticket médio
             </Table.Head>
-            <Table.Head sortKey="invoicedAmount" sortFirst="desc">
+            <Table.Head align="right" sortKey="invoicedAmount" sortFirst="desc">
               Já faturado
             </Table.Head>
-            <Table.Head sortKey="commissionAmount" sortFirst="desc">
+            <Table.Head
+              align="right"
+              sortKey="commissionAmount"
+              sortFirst="desc"
+            >
               Comissão
             </Table.Head>
             <Table.Head sortKey="lastOrderDate" sortFirst="desc">
@@ -112,7 +116,7 @@ export function FactoriesReportTable({
               <Table.Cell colSpan={8}>
                 <EmptyState.Root flat>
                   <EmptyState.Icon>
-                    <Building2 size={32} />
+                    <Building2 />
                   </EmptyState.Icon>
                   <EmptyState.Title>
                     {isNarrowed
@@ -137,13 +141,14 @@ export function FactoriesReportTable({
                 >
                   {row.entityName}
                 </Table.Cell>
-                <Table.Cell variant="dim" label="Pedidos">
+                <Table.Cell align="right" variant="dim" label="Pedidos">
                   {row.orderCount}
                 </Table.Cell>
-                <Table.Cell variant="dim" label="Clientes">
+                <Table.Cell align="right" variant="dim" label="Clientes">
                   {row.clientCount}
                 </Table.Cell>
                 <Table.Cell
+                  align="right"
                   variant="strong"
                   card="value"
                   className="whitespace-nowrap"
@@ -154,6 +159,7 @@ export function FactoriesReportTable({
                   </Table.CellText>
                 </Table.Cell>
                 <Table.Cell
+                  align="right"
                   variant="dim"
                   label="Ticket médio"
                   className="whitespace-nowrap"
@@ -161,6 +167,7 @@ export function FactoriesReportTable({
                   {formatMoney(row.avgTicket)}
                 </Table.Cell>
                 <Table.Cell
+                  align="right"
                   variant="dim"
                   label="Já faturado"
                   className="whitespace-nowrap"
@@ -171,6 +178,7 @@ export function FactoriesReportTable({
                   </Table.CellText>
                 </Table.Cell>
                 <Table.Cell
+                  align="right"
                   variant="dim"
                   label="Comissão"
                   className="whitespace-nowrap"

@@ -1,6 +1,7 @@
 import { openDialog } from "../support/dialog";
 import { expect, test } from "../support/fixtures";
 import { mockGraphql } from "../support/graphql";
+import { rowAction } from "../support/rowActions";
 
 /**
  * Lote 3 — aba de tabelas de preço da fábrica (factories/[id]/price-lists).
@@ -75,13 +76,12 @@ test("fábrica/preços: remove uma tabela de preço", async ({ page }) => {
   });
 
   await page.goto(base);
-  const dialog = await openDialog(
+  await rowAction(
     page,
-    page
-      .getByRole("row", { name: /Tabela Velha/ })
-      .getByRole("button")
-      .last()
+    page.getByRole("row", { name: /Tabela Velha/ }),
+    "Remover tabela de preço"
   );
+  const dialog = page.getByRole("dialog");
   await dialog.getByRole("button", { name: "Remover" }).click();
 
   await expect(page.getByText("Tabela de preço removida")).toBeVisible();
@@ -110,13 +110,12 @@ test("fábrica/preços: edita uma tabela de preço", async ({ page }) => {
   });
 
   await page.goto(base);
-  const dialog = await openDialog(
+  await rowAction(
     page,
-    page
-      .getByRole("row", { name: /Tabela Editar/ })
-      .getByRole("button")
-      .first()
+    page.getByRole("row", { name: /Tabela Editar/ }),
+    "Editar tabela de preço"
   );
+  const dialog = page.getByRole("dialog");
   await expect(dialog.getByText("Editar tabela de preço")).toBeVisible();
   // validFrom/isActive já vêm pré-preenchidos do nó; só renomeamos.
   await dialog.locator('input[name="name"]').fill("Tabela Renomeada");
@@ -170,13 +169,12 @@ test("fábrica/preços: edita um nível comercial", async ({ page }) => {
   });
 
   await page.goto(base);
-  const dialog = await openDialog(
+  await rowAction(
     page,
-    page
-      .getByRole("row", { name: /Nível Antigo/ })
-      .getByRole("button")
-      .first()
+    page.getByRole("row", { name: /Nível Antigo/ }),
+    "Editar nível"
   );
+  const dialog = page.getByRole("dialog");
   await dialog.locator('input[name="name"]').fill("Nível Novo");
   await dialog.getByRole("button", { name: "Salvar" }).click();
 
@@ -194,13 +192,12 @@ test("fábrica/preços: remove um nível comercial", async ({ page }) => {
   });
 
   await page.goto(base);
-  const dialog = await openDialog(
+  await rowAction(
     page,
-    page
-      .getByRole("row", { name: /Nível Velho/ })
-      .getByRole("button")
-      .last()
+    page.getByRole("row", { name: /Nível Velho/ }),
+    "Remover nível"
   );
+  const dialog = page.getByRole("dialog");
   await dialog.getByRole("button", { name: "Remover" }).click();
 
   await expect(page.getByText("Nível removido")).toBeVisible();

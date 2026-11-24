@@ -46,16 +46,8 @@ export function UserDetailActions({ user, onRefetch }: Props) {
 
   return (
     <>
-      <Button.Root
-        appearance="outline"
-        color={user.isActive ? "red" : "green"}
-        size="sm"
-        onClick={() => setToggleOpen(true)}
-      >
-        <Button.Icon icon={Power} />
-        <Button.Title>{user.isActive ? "Desativar" : "Ativar"}</Button.Title>
-      </Button.Root>
-
+      {/* Editar antes de Desativar: o destrutivo fecha a fila, como em todo
+          cabeçalho de detalhe (crítica de configurações, 23/11/2026). */}
       <Button.Root
         appearance="outline"
         color="neutral"
@@ -64,6 +56,16 @@ export function UserDetailActions({ user, onRefetch }: Props) {
       >
         <Button.Icon icon={Pencil} />
         <Button.Title>Editar</Button.Title>
+      </Button.Root>
+
+      <Button.Root
+        appearance="outline"
+        color={user.isActive ? "red" : "green"}
+        size="sm"
+        onClick={() => setToggleOpen(true)}
+      >
+        <Button.Icon icon={Power} />
+        <Button.Title>{user.isActive ? "Desativar" : "Ativar"}</Button.Title>
       </Button.Root>
 
       <EditUserModal

@@ -4,7 +4,7 @@ import Link from "next/link";
 import React from "react";
 
 const CHIP =
-  "inline-flex items-baseline rounded-(--r-sm) border border-(--border) bg-(--bg3) px-8 py-[3px]";
+  "inline-flex items-baseline rounded-(--r-sm) border border-(--border) bg-(--bg3) px-8 py-3";
 
 interface ChipProps {
   /** Com `href`, o chip leva à tela do registro (realce ao passar o mouse). */

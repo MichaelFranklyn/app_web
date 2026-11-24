@@ -80,7 +80,7 @@ export function PurchasesReportTable({
             por MEDIÇÃO se as ações cabem na linha (ver useHeaderActionsMode), e
             um parágrafo aqui colapsava o botão "Filtros" em um ícone sem
             rótulo. */}
-        <Table.CardHead.Title className="inline-flex items-center gap-6">
+        <Table.CardHead.Title>
           Última compra por fábrica
           <HelpTooltip
             label="Sobre a última compra por fábrica"
@@ -111,7 +111,11 @@ export function PurchasesReportTable({
             <Table.Head sortKey="lastOrderDate" sortFirst="desc">
               Última compra
             </Table.Head>
-            <Table.Head sortKey="lastOrderAmount" sortFirst="desc">
+            <Table.Head
+              align="right"
+              sortKey="lastOrderAmount"
+              sortFirst="desc"
+            >
               Valor
             </Table.Head>
             <Table.Head sortKey="idle" sortFirst="desc">
@@ -120,7 +124,7 @@ export function PurchasesReportTable({
             <Table.Head sortKey="cadence" sortFirst="desc">
               Ritmo
             </Table.Head>
-            <Table.Head sortKey="periodAmount" sortFirst="desc">
+            <Table.Head align="right" sortKey="periodAmount" sortFirst="desc">
               No período
             </Table.Head>
           </Table.Row>
@@ -134,7 +138,7 @@ export function PurchasesReportTable({
               <Table.Cell colSpan={columns}>
                 <EmptyState.Root flat>
                   <EmptyState.Icon>
-                    <ShoppingBasket size={32} />
+                    <ShoppingBasket />
                   </EmptyState.Icon>
                   <EmptyState.Title>
                     {isNarrowed
@@ -210,6 +214,7 @@ export function PurchasesReportTable({
                   {lastPurchaseLabel(row)}
                 </Table.Cell>
                 <Table.Cell
+                  align="right"
                   variant="dim"
                   label="Valor da última"
                   emptyText="—"
@@ -235,6 +240,7 @@ export function PurchasesReportTable({
                   {cadenceLabel(row)}
                 </Table.Cell>
                 <Table.Cell
+                  align="right"
                   variant="strong"
                   card="value"
                   className="whitespace-nowrap"

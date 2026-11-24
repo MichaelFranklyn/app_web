@@ -1,6 +1,7 @@
 "use client";
 
 import { Button } from "@/components/Button";
+import { plural } from "@/utils/format/plural";
 
 interface Props {
   itemCount: number;
@@ -38,7 +39,7 @@ export function NewOrderFooter({
       >
         <Button.Title>
           {itemCount > 0
-            ? `Criar pedido com ${itemCount} ${itemCount === 1 ? "item" : "itens"}`
+            ? `Criar pedido com ${plural(itemCount, "item", "itens")}`
             : "Criar pedido"}
         </Button.Title>
       </Button.Root>

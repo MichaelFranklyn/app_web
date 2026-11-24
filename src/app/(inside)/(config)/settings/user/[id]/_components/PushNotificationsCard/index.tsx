@@ -29,34 +29,40 @@ export function PushNotificationsCard() {
   return (
     <Card.Root>
       <Card.Header>
-        <Card.Header.Title>Avisos neste aparelho</Card.Header.Title>
+        {/* O "?" colado ao título, como nos cards da fábrica: sozinho na
+            ponta direita do cabeçalho ele parecia um botão de ação, e no
+            celular caía numa linha própria (crítica de configurações,
+            23/11/2026). */}
+        <Card.Header.Title>
+          <span className="inline-flex items-center gap-6">
+            Avisos neste aparelho
+            <HelpTooltip
+              label="Como funcionam os avisos"
+              content={
+                <div className="flex flex-col gap-2">
+                  <Title variant="label" weight="semibold">
+                    Um aparelho de cada vez
+                  </Title>
+                  <Title variant="body-sm">
+                    São os mesmos avisos do sininho: pedido faturado, visita
+                    atrasada, importação concluída.
+                  </Title>
+                  <Title variant="body-sm" color="muted">
+                    A autorização vale só para o aparelho em que você ativar. Se
+                    usa o Itinus no celular e no computador, ative nos dois.
+                  </Title>
+                </div>
+              }
+            />
+          </span>
+        </Card.Header.Title>
         <Card.Header.Description>
           Receba um aviso na tela do celular quando algo acontecer — mesmo com o
           Itinus fechado.
         </Card.Header.Description>
-        <Card.Header.Actions>
-          <HelpTooltip
-            label="Como funcionam os avisos"
-            content={
-              <div className="flex flex-col gap-2">
-                <Title variant="label" weight="semibold">
-                  Um aparelho de cada vez
-                </Title>
-                <Title variant="body-sm">
-                  São os mesmos avisos do sininho: pedido faturado, visita
-                  atrasada, importação concluída.
-                </Title>
-                <Title variant="body-sm" color="muted">
-                  A autorização vale só para o aparelho em que você ativar. Se
-                  usa o Itinus no celular e no computador, ative nos dois.
-                </Title>
-              </div>
-            }
-          />
-        </Card.Header.Actions>
       </Card.Header>
 
-      <Card.Body className="flex flex-col items-start gap-12">
+      <Card.Body className="items-start">
         {status === "loading" && (
           <Loading.Skeleton className="h-16 w-[220px]" />
         )}

@@ -3,6 +3,7 @@ import { Badge } from "@/components/Badges";
 import { Emphasis } from "@/components/Emphasis";
 import { Title } from "@/components/Title";
 import { toIsoDate } from "@/utils/format/date";
+import { plural } from "@/utils/format/plural";
 import { Zap } from "lucide-react";
 import { PlaybookPromotion as Promotion } from "./interface";
 import { promoEndsLabel } from "./utils";
@@ -38,7 +39,7 @@ export function PlaybookPromotion({ promotion }: { promotion: Promotion }) {
       ))}
       {hidden > 0 && (
         <Title variant="body-xs" color="muted">
-          E mais {hidden} produto{hidden > 1 ? "s" : ""} em promoção nesta
+          E mais {plural(hidden, "produto", "produtos")} em promoção nesta
           fábrica.
         </Title>
       )}

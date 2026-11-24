@@ -221,10 +221,12 @@ test("pendências: cada assunto é um cartão com o número e os mais urgentes",
   await page.goto("/priorities");
 
   const visits = cardOf(page, "Visitas e ligações sem resposta");
-  await expect(visits).toContainText("de prioridade alta");
+  // Todas de prioridade alta: a linha sob o título sai — a cor do número já
+  // diz isso (crítica de 23/11/2026).
+  await expect(visits).not.toContainText("prioridade alta");
   // A amostra: de quem é e o prazo, sem abrir nada.
   await expect(visits).toContainText("Mercadinho do Zé");
-  await expect(visits).toContainText("venceu há 4 dias");
+  await expect(visits).toContainText("4 dias de atraso");
   await expect(
     visits.getByRole("button", { name: "Ver as visitas (1)" })
   ).toBeVisible();
@@ -241,7 +243,7 @@ test("pendências: cada assunto é um cartão com o número e os mais urgentes",
 
   // Retorno ainda no prazo: aparece, mas sem alarme.
   const returns = cardOf(page, "Retornos combinados");
-  await expect(returns).toContainText("nenhuma de prioridade alta");
+  await expect(returns).not.toContainText("prioridade alta");
   await expect(returns).toContainText("vence em 5 dias");
 
   // Assunto sem pendência não ganha cartão.
@@ -270,13 +272,14 @@ test("pendências: abrir o cartão mostra a lista com prioridade, prazo e motivo
   await expect(page).toHaveURL(/type=ORDER_STALLED/);
 
   const stalled = rowOf(page, "Decore Casa");
-  await expect(stalled).toContainText("Média");
+  // Lista com uma prioridade só: o selo repetido não separa nada e sai.
+  await expect(stalled).not.toContainText("Média");
   await expect(stalled).toContainText("a fábrica ainda não faturou");
   // A régua escrita: 7 dias de prazo + 2 de atraso = confirmado há 9 dias.
   await expect(stalled).toContainText("Confirmado em 02/10/2026, há 9 dias");
   await expect(stalled).toContainText("Prazo considerado: 7 dias");
   await expect(stalled).toContainText("Herc");
-  await expect(stalled).toContainText("venceu há 2 dias");
+  await expect(stalled).toContainText("2 dias de atraso");
   await expect(
     stalled.getByRole("link", { name: "Abrir pedido" })
   ).toHaveAttribute("href", "/orders/o-1");
@@ -300,12 +303,12 @@ test("pendências: visita sem resposta diz o que houve e leva à rota", async ({
   await page.goto("/priorities?type=VISIT_OVERDUE");
 
   const visit = rowOf(page, "Mercadinho do Zé");
-  await expect(visit).toContainText("Alta");
+  await expect(visit).not.toContainText("Alta");
   // O motivo por extenso, com a data do fato.
   await expect(visit).toContainText(
     "A visita de 07/10/2026 ficou sem resposta"
   );
-  await expect(visit).toContainText("venceu há 4 dias");
+  await expect(visit).toContainText("4 dias de atraso");
   await expect(
     visit.getByRole("link", { name: "Responder na rota" })
   ).toHaveAttribute("href", "/schedule/2026-10-11?seller=seller-1");
@@ -560,7 +563,9 @@ test("pendências: boleto vencido tem cartão próprio, sem perder a prioridade"
   );
   const charges = cardOf(page, "Boletos vencidos");
   // Mais de um ano vencido e continua ALTA — a idade não rebaixa a dívida.
-  await expect(charges).toContainText("de prioridade alta");
+  // (O subtítulo "de prioridade alta" sai quando todas são Alta; o número em
+  // vermelho é quem diz.)
+  await expect(charges).not.toContainText("nenhuma de prioridade alta");
   await expect(charges).toContainText("Armazém Bahia");
   await expect(charges).toContainText("venceu há 410 dias");
   await expect(charges).not.toContainText("Mercadinho do Zé");
@@ -573,7 +578,6 @@ test("pendências: boleto vencido tem cartão próprio, sem perder a prioridade"
   await expect(page).toHaveURL(/type=INSTALLMENT_OVERDUE/);
 
   const row = rowOf(page, "Armazém Bahia");
-  await expect(row).toContainText("Alta");
   // Quantidade, valor em aberto e vencimento mais antigo — e o detalhe a um
   // clique.
   await expect(row).toContainText("2 parcelas vencidas");
@@ -739,10 +743,10 @@ test("pendências: no celular o cartão e a lista cabem sem rolar para o lado", 
   // Não há tabela em largura nenhuma: cartão e lista se empilham.
   await expect(page.getByRole("table")).toHaveCount(0);
   await expect(cardOf(page, "Pedidos parados")).toContainText(
-    "venceu há 2 dias"
+    "2 dias de atraso"
   );
   const row = rowOf(page, "Decore Casa");
-  await expect(row.getByText("venceu há 2 dias")).toBeVisible();
+  await expect(row.getByText("2 dias de atraso")).toBeVisible();
   await expect(row.getByRole("link", { name: "Abrir pedido" })).toBeVisible();
   const overflow = await page.evaluate(
     () => document.documentElement.scrollWidth - window.innerWidth

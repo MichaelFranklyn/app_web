@@ -34,7 +34,8 @@ export function ProductDetailHeader({ product, onRefetch }: Props) {
               Código: {product.sku} · Categoria: {product.category?.name ?? "—"}{" "}
               · Unidade base: {product.unit?.label ?? "—"}
             </PanelHeader.Description>
-            <PanelHeader.Actions className="mt-6">
+            {/* Tarja na faixa, ações depois dela (padrão de cabeçalho). */}
+            <PanelHeader.Tags>
               <Badge.Root
                 color={product.isActive ? "green" : "neutral"}
                 appearance="tinted"
@@ -44,13 +45,15 @@ export function ProductDetailHeader({ product, onRefetch }: Props) {
                   {product.isActive ? "Ativo" : "Inativo"}
                 </Badge.Text>
               </Badge.Root>
-              <EditProductModal product={product} onSuccess={onRefetch} />
-              <DeleteProductModal
-                productId={product.id}
-                productName={product.name}
-                productsHref={`/factories/${product.companyFactory?.id}/products`}
-              />
-            </PanelHeader.Actions>
+              <PanelHeader.Actions>
+                <EditProductModal product={product} onSuccess={onRefetch} />
+                <DeleteProductModal
+                  productId={product.id}
+                  productName={product.name}
+                  productsHref={`/factories/${product.companyFactory?.id}/products`}
+                />
+              </PanelHeader.Actions>
+            </PanelHeader.Tags>
           </PanelHeader.Left>
         </PanelHeader.Top>
       </PanelHeader.Root>

@@ -61,7 +61,7 @@ export function OverdueVisitRow({
       event={isRemote ? "blue" : "amber"}
       className="min-w-0"
     >
-      <Card.Body padding="sm" className="min-w-0 gap-10">
+      <Card.Body padding="sm" className="min-w-0">
         <div className="flex min-w-0 flex-col gap-4">
           {/* Nome completo em até duas linhas, não reticências: o vendedor
             reconhece o cliente pela razão social inteira, e ela é o que

@@ -3,7 +3,6 @@
 import { Button } from "@/components/Button";
 import { Card } from "@/components/Card";
 import { Input, SelectOption } from "@/components/Input";
-import { Title } from "@/components/Title";
 import {
   SUPPORT_STATUS_HINT,
   SUPPORT_STATUS_LABEL,
@@ -39,15 +38,19 @@ export function AddUpdateCard({ caseId, currentStatus, onSaved }: Props) {
     value,
     label: SUPPORT_UPDATE_KIND_LABEL[value],
   }));
+  // Caso aberto não "fica como está": o back passa o primeiro andamento para
+  // Em andamento sozinho (add_support_update.py). O campo diz isso antes.
+  const startsOnSave = currentStatus === "OPEN";
   const statusOptions: SelectOption[] = NEXT_STATUS_OPTIONS.filter(
     (value) => value !== currentStatus
   ).map((value) => ({ value, label: SUPPORT_STATUS_LABEL[value] }));
 
   return (
     <Card.Root>
-      <Card.Body padding="compact" className="gap-12">
-        <Title variant="heading-sm">Registrar andamento</Title>
-
+      <Card.Header>
+        <Card.Header.Title>Registrar andamento</Card.Header.Title>
+      </Card.Header>
+      <Card.Body>
         <Input.Textarea
           label="O que aconteceu"
           required
@@ -76,12 +79,14 @@ export function AddUpdateCard({ caseId, currentStatus, onSaved }: Props) {
             hint={
               form.status
                 ? SUPPORT_STATUS_HINT[form.status as SupportStatus]
-                : "Deixe em branco para manter a situação atual."
+                : startsOnSave
+                  ? "Ao registrar, o caso sai de Aberto e passa para Em andamento."
+                  : undefined
             }
             options={statusOptions}
             value={statusOptions.find((o) => o.value === form.status) ?? null}
             variant="single"
-            placeholder="Manter como está"
+            placeholder={startsOnSave ? "Em andamento" : "Manter como está"}
             onChange={(val) =>
               form.setStatus((single(val)?.value as SupportStatus) ?? "")
             }

@@ -55,7 +55,8 @@ export function PendingPeriodScope() {
         size="sm"
         variant="range"
         aria-label="Período dos cartões"
-        placeholder="Vencidas e próximos 7 dias"
+        // É o recorte em vigor, não um campo vazio: vai escrito como valor.
+        emptyLabel="Vencidas e próximos 7 dias"
         value={value}
         onChange={onChange}
       />

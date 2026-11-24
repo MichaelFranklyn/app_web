@@ -1,6 +1,7 @@
 import { cn } from "@/lib/utils";
 import { LucideIcon } from "lucide-react";
 import React from "react";
+import { ICON_SIZE } from "@/components/Icon";
 
 const TONES = {
   red: "bg-(--color-status-danger)",
@@ -41,15 +42,15 @@ export const Banner = ({
     // interrompe; o chamador passa `role="alert"` quando a condição trava.
     role="status"
     className={cn(
-      "flex flex-wrap items-center justify-between gap-8 px-16 py-8 text-white",
+      "flex flex-wrap items-center justify-between gap-8 px-16 py-8 text-(--color-on-action)",
       TONES[tone],
       className
     )}
     {...props}
   >
     <div className="flex min-w-0 items-center gap-8">
-      <span className="grid size-[26px] shrink-0 place-items-center rounded-full bg-white/20">
-        <Icon size={14} aria-hidden />
+      <span className="grid size-[26px] shrink-0 place-items-center rounded-full bg-(--color-on-action)/20">
+        <Icon size={ICON_SIZE.sm} aria-hidden />
       </span>
       {children}
     </div>

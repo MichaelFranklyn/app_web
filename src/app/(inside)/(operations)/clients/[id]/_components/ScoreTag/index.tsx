@@ -6,7 +6,12 @@ import { TooltipPanel } from "@/components/TooltipPanel";
 import { Badge } from "@/components/Badges";
 import { Title } from "@/components/Title";
 import { Tooltip } from "@/components/Tooltip";
-import { explainScore, isUrgent, ScoreDimensions } from "@/utils/score";
+import {
+  explainScore,
+  isUrgent,
+  ScoreDimensions,
+  formatScore,
+} from "@/utils/score";
 import { FactoryVisitScore } from "../../interface";
 
 interface Props {
@@ -18,6 +23,11 @@ interface Props {
 // Tag de score no header do cliente, ao lado de Ativo/Inativo. O tooltip
 // (hover/foco) explica o nível, os fatores que puxam o score e o que fazer.
 //
+// A tag diz o NÍVEL em palavras ("Visita: Urgente · 2 fábricas"); o número e
+// a fábrica de onde ele veio ficam no tooltip. "Score 52 · Delta +1" pedia
+// para o usuário saber o que é score, se 52 é muito e o que é o "+1"
+// (crítica de 23/11/2026).
+//
 // O número é o MAIOR score entre as fábricas do cliente, não a média: um cliente
 // com 10 numa fábrica e 90 em outra precisa de visita naquela outra. Por isso a
 // tag nomeia a fábrica de onde o número veio — sem isso ele parece sair do nada.
@@ -26,26 +36,25 @@ export function ScoreTag({ score, factoryScores = [] }: Props) {
   const { total, level, reasons } = explainScore(score);
 
   const topFactory = factoryScores[0]?.clientFactoryLink?.factory?.nomeFantasia;
-  // O topo já está incluído na contagem; "+N" são as OUTRAS fábricas urgentes.
-  const otherUrgent = Math.max(
-    0,
-    factoryScores.filter((s) => isUrgent(Number(s.scoreTotal))).length - 1
-  );
+  const urgentCount = factoryScores.filter((s) =>
+    isUrgent(Number(s.scoreTotal))
+  ).length;
+  // O topo já está incluído na contagem; no tooltip falam as OUTRAS.
+  const otherUrgent = Math.max(0, urgentCount - 1);
 
   const label = [
-    `Score ${total.toFixed(0)}`,
-    topFactory && `· ${topFactory}`,
-    otherUrgent > 0 && `+${otherUrgent}`,
+    `Visita: ${level.label}`,
+    urgentCount > 1 && `${urgentCount} fábricas`,
   ]
     .filter(Boolean)
-    .join(" ");
+    .join(" · ");
 
   const tooltip = (
     <TooltipPanel.Root width={280}>
       <TooltipPanel.Header
         aside={
           <Title variant="label" weight="semibold">
-            {total.toFixed(0)}
+            {formatScore(total)} de 100
           </Title>
         }
       >
@@ -68,7 +77,8 @@ export function ScoreTag({ score, factoryScores = [] }: Props) {
         </Title>
         {topFactory && (
           <Title variant="micro" color="muted">
-            Score mais alto na fábrica {topFactory}.
+            Score mais alto na fábrica {topFactory}: {formatScore(total)} de
+            100.
             {otherUrgent > 0 &&
               ` Outras ${otherUrgent} fábricas também estão urgentes.`}
           </Title>
@@ -83,7 +93,7 @@ export function ScoreTag({ score, factoryScores = [] }: Props) {
                 color={reason.tone}
                 pulse={false}
                 intensity="solid"
-                className="mt-[5px]"
+                className="mt-5"
               />
               <div className="flex flex-col gap-1">
                 <Title variant="body-sm">
@@ -104,8 +114,13 @@ export function ScoreTag({ score, factoryScores = [] }: Props) {
 
   return (
     <Tooltip content={tooltip} panel>
-      <span className="inline-flex cursor-help">
-        <Badge.Root color={level.tone} appearance="tinted" size="sm">
+      <span className="max-tablet:w-full inline-flex cursor-help">
+        <Badge.Root
+          color={level.tone}
+          appearance="tinted"
+          size="sm"
+          className="max-tablet:w-full"
+        >
           <Badge.Text>{label}</Badge.Text>
         </Badge.Root>
       </span>

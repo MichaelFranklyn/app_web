@@ -76,10 +76,13 @@ export function EditAddressModal({
 
   return (
     <Modal.Root open={open} onOpenChange={setOpen}>
+      {/* Contorno, não primário: na Visão Geral eram dois âmbar cheios
+          disputando com a ação da página, e "Editar" sozinho não dizia o quê
+          (crítica de 23/11/2026). */}
       <Modal.Trigger asChild>
-        <Button.Root appearance="solid" color="amber" size="sm">
+        <Button.Root appearance="outline" color="neutral" size="sm">
           <Button.Icon icon={Pencil} />
-          <Button.Title>Editar</Button.Title>
+          <Button.Title>Editar endereço</Button.Title>
         </Button.Root>
       </Modal.Trigger>
 

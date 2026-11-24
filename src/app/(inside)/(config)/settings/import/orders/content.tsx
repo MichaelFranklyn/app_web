@@ -6,6 +6,7 @@ import { PageContent } from "@/components/PageContent";
 import { PanelHeader } from "@/components/PanelHeader";
 import { PAGE_HEADING } from "@/utils/modules";
 import { Stepper } from "@/components/Stepper";
+import { plural } from "@/utils/format/plural";
 import { ArrowLeft, ArrowRight, ClipboardList } from "lucide-react";
 
 import { HistoryBatchesCard } from "../_components/HistoryBatchesCard";
@@ -35,7 +36,7 @@ export default function OrderHistoryImportContent() {
     step === 2
       ? "Conferir"
       : step === 3
-        ? `Importar ${run.preview?.ordersCreated ?? 0} pedido(s)`
+        ? `Importar ${plural(run.preview?.ordersCreated ?? 0, "pedido", "pedidos")}`
         : "Próximo";
 
   return (
@@ -56,7 +57,7 @@ export default function OrderHistoryImportContent() {
       </PanelHeader.Root>
 
       <Card.Root>
-        <Card.Body className="gap-16">
+        <Card.Body>
           <Stepper.Root
             current={step}
             onChange={(index) => {

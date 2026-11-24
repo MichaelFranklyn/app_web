@@ -1,6 +1,7 @@
 "use client";
 
 import { useToast } from "@/components/Toast";
+import { plural } from "@/utils/format/plural";
 import { useCallback, useMemo, useRef, useState } from "react";
 
 import {
@@ -118,7 +119,7 @@ export function useAnalyticsPdf() {
           const missing = entries.length - included;
           toast({
             variant: "warning",
-            title: `${missing} gráfico(s) ficaram de fora`,
+            title: `${plural(missing, "gráfico ficou de fora", "gráficos ficaram de fora")}`,
             description:
               "Eles não têm dados no período escolhido. Os demais estão no PDF.",
           });

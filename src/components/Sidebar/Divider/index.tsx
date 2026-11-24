@@ -7,7 +7,7 @@ export const Divider = React.forwardRef<HTMLDivElement, SidebarDividerProps>(
   ({ className, ...props }, ref) => (
     <div
       ref={ref}
-      className={cn("mx-[18px] my-[6px] h-px bg-(--border)", className)}
+      className={cn("mx-[18px] my-6 h-px bg-(--border)", className)}
       {...props}
     />
   )

@@ -1,7 +1,6 @@
 "use client";
 
 import { DocumentNumber } from "@/components/DocumentNumber";
-import { Badge } from "@/components/Badges";
 import { Table } from "@/components/Table";
 import { Client } from "../../interface";
 import { ClientStatusTags } from "./ClientStatusTags";
@@ -46,15 +45,12 @@ export function ClientCell({ client }: ClientCellProps) {
           </Table.CellText>
         )}
 
-        {/* A linha existe para o badge não esticar na largura da coluna: numa
-            flex-col ele herdaria o `stretch` do container. */}
-        <div className="max-desktop:hidden flex items-center gap-8">
-          <Badge.Root color="subtle" appearance="tinted">
-            <Badge.Text>
-              <DocumentNumber value={client.cnpj} />
-            </Badge.Text>
-          </Badge.Root>
-        </div>
+        {/* CNPJ em texto apagado, não em tarja: a tarja cinza em toda linha
+            pesava tanto quanto as tags de situação ao lado do nome e brigava
+            com elas pela atenção (crítica de 23/11/2026). */}
+        <Table.CellText variant="dim2" className="max-desktop:hidden block">
+          <DocumentNumber value={client.cnpj} />
+        </Table.CellText>
       </div>
     </Table.Cell>
   );

@@ -9,6 +9,7 @@ import { InputAddon } from "./Addon";
 import { InputHint } from "./Hint";
 import { InputBaseProps } from "./InputText";
 import { Eye, EyeOff } from "lucide-react";
+import { ICON_SIZE } from "@/components/Icon";
 
 export const InputPassword = ({
   label,
@@ -50,7 +51,7 @@ export const InputPassword = ({
           className="flex cursor-pointer items-center justify-center px-3 text-(--color-text-muted) transition-colors hover:text-(--color-text)"
           onClick={toggleVisibility}
         >
-          {show ? <EyeOff size={14} /> : <Eye size={14} />}
+          {show ? <EyeOff size={ICON_SIZE.sm} /> : <Eye size={ICON_SIZE.sm} />}
         </div>
       </InputGroup>
       {hintMessage && <InputHint>{hintMessage}</InputHint>}

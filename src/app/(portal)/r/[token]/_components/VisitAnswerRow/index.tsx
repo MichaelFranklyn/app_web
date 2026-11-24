@@ -40,19 +40,19 @@ export function VisitAnswerRow({ stop }: Props) {
 
   return (
     <Card.Root>
-      <Card.Body padding="compact" className="gap-[12px]">
-        <div className="flex flex-col gap-[4px]">
-          <div className="flex flex-wrap items-center gap-[8px]">
-            <Badge color="neutral" size="xs">
+      <Card.Body padding="compact">
+        <div className="flex flex-col gap-4">
+          <div className="flex flex-wrap items-center gap-8">
+            <Badge.Root color="neutral" size="xs">
               <Badge.Text>{stop.plannedOrder}</Badge.Text>
-            </Badge>
+            </Badge.Root>
             <Title variant="body-sm" weight="semibold" className="break-words">
               {stop.clientName}
             </Title>
             {stop.contactType === "REMOTE" ? (
-              <Badge color="blue" size="xs">
+              <Badge.Root color="blue" size="xs">
                 <Badge.Text>{CONTACT_TYPE_LABEL.REMOTE}</Badge.Text>
-              </Badge>
+              </Badge.Root>
             ) : null}
           </div>
           {stop.clientAlias ? (

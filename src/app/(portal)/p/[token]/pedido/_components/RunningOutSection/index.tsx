@@ -67,9 +67,9 @@ export function RunningOutSection({
         render: (item) => {
           const urgency = stockUrgency(item.daysRemaining);
           return (
-            <Badge color={urgency.tone} size="sm">
+            <Badge.Root color={urgency.tone} size="sm">
               <Badge.Text>{urgency.label}</Badge.Text>
-            </Badge>
+            </Badge.Root>
           );
         },
       }}

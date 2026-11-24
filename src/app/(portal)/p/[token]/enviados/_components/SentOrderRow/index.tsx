@@ -1,3 +1,4 @@
+import { BRT_TIME_ZONE, formatDate } from "@/utils/format/date";
 import { Badge } from "@/components/Badges";
 import { Table } from "@/components/Table";
 import { Title } from "@/components/Title";
@@ -6,7 +7,6 @@ import Link from "next/link";
 import { PortalOrderStatus, PortalSentOrder } from "../../../interface";
 import { portalStatusLabel, portalStatusTone } from "../../../utils";
 import {
-  formatBrtDate,
   sentOrderHref,
   sentOrderNumberLine,
   sentOrderStage,
@@ -35,7 +35,7 @@ export function SentOrderRow({ order, token }: SentOrderRowProps) {
   return (
     <Table.Row href={href}>
       <Table.Cell card="title" wrap>
-        <div className="flex min-w-0 flex-col gap-[2px]">
+        <div className="flex min-w-0 flex-col gap-2">
           <Link href={href} className="min-w-0 break-words hover:underline">
             <Title variant="body-md" weight="semibold" className="break-words">
               {order.factoryName}
@@ -47,7 +47,7 @@ export function SentOrderRow({ order, token }: SentOrderRowProps) {
         </div>
       </Table.Cell>
       <Table.Cell label="Data" variant="dim" className="whitespace-nowrap">
-        {formatBrtDate(order.createdAt)}
+        {formatDate(order.createdAt, "", { timeZone: BRT_TIME_ZONE })}
       </Table.Cell>
       <Table.Cell label="Produtos" variant="dim" align="right">
         {order.itemCount}
@@ -63,9 +63,9 @@ export function SentOrderRow({ order, token }: SentOrderRowProps) {
       </Table.Cell>
       <Table.Cell card="status">
         {isOrder ? (
-          <Badge color={portalStatusTone(status)} size="sm">
+          <Badge.Root color={portalStatusTone(status)} size="sm">
             <Badge.Text>{portalStatusLabel(status)}</Badge.Text>
-          </Badge>
+          </Badge.Root>
         ) : (
           <SentOrderBadge order={order} />
         )}

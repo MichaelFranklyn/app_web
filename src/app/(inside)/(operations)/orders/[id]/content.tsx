@@ -64,7 +64,7 @@ export default function OrderDetailContent({
       <div className="flex min-h-[60vh] items-center justify-center px-32 py-[28px]">
         <EmptyState.Root className="max-w-[420px]">
           <EmptyState.Icon>
-            <PackageX size={32} />
+            <PackageX />
           </EmptyState.Icon>
           <EmptyState.Title>Pedido não encontrado</EmptyState.Title>
           <EmptyState.Description>
@@ -87,7 +87,7 @@ export default function OrderDetailContent({
 
       <PaymentMinimumBanner order={order} />
 
-      <div className="desktop:flex-row flex flex-col gap-20">
+      <div className="desktop-xl:flex-row flex flex-col gap-20">
         <Card.Header.Group>
           <div
             className="flex min-w-0 flex-1 flex-col gap-12"
@@ -113,9 +113,7 @@ export default function OrderDetailContent({
             {order.notes && (
               <Card.Root>
                 <Card.Header>
-                  <Card.Header.Title size="sm" weight="bold">
-                    Observações
-                  </Card.Header.Title>
+                  <Card.Header.Title>Observações</Card.Header.Title>
                 </Card.Header>
                 <Card.Body>
                   <Title variant="body-sm" color="secondary">
@@ -131,9 +129,16 @@ export default function OrderDetailContent({
             R$ disputando a linha); 320 dá folga sem roubar a tabela de
             itens (14/11/2026). O skeleton usa a mesma régua.
             self-start: sem isso o flex-row estica a coluna à altura da lista de
-            itens e o card (h-full) cresce com espaço em branco embaixo. */}
+            itens e o card (h-full) cresce com espaço em branco embaixo.
+            Abaixo do desktop o resumo vem ANTES dos itens: no celular o total
+            ficava depois de toda a lista e das parcelas, e é a primeira
+            pergunta de quem abre o pedido (crítica de 23/11/2026).
+            Lado a lado só a partir do desktop-xl: a tabela de itens tem 9
+            colunas e, dividindo a linha com os 320px do resumo, cortava
+            Subtotal e Ações em notebook (1366px). Abaixo de 1600px o resumo
+            sobe e a tabela fica com a largura toda (23/11/2026). */}
         <div
-          className="desktop:w-[320px] desktop:self-start flex w-full shrink-0 flex-col gap-12"
+          className="desktop-xl:w-[320px] desktop-xl:self-start max-desktop-xl:order-first flex w-full shrink-0 flex-col gap-12"
           data-tour="order-summary"
         >
           <OrderSummaryCard order={order} />

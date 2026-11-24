@@ -19,6 +19,7 @@ import {
 import { NotificationSkeleton } from "./NotificationSkeleton";
 import { PushInviteRow } from "./PushInviteRow";
 import { useNotificationCenter } from "./useNotificationCenter";
+import { ICON_SIZE } from "@/components/Icon";
 
 export function NotificationCenter() {
   const {
@@ -61,7 +62,7 @@ export function NotificationCenter() {
             )
           }
         >
-          <Bell size={14} className="text-(--color-text-muted)" />
+          <Bell size={ICON_SIZE.sm} className="text-(--color-text-muted)" />
           <Title variant="body-sm" weight="semibold">
             Notificações
           </Title>
@@ -78,7 +79,7 @@ export function NotificationCenter() {
           ) : items.length === 0 ? (
             <EmptyState.Root flat className="gap-6 px-16 py-24">
               <EmptyState.Icon>
-                <Bell size={20} />
+                <Bell />
               </EmptyState.Icon>
               <EmptyState.Description>
                 Sem notificações por enquanto.
@@ -96,7 +97,7 @@ export function NotificationCenter() {
                   size="md"
                   pulse={false}
                   intensity="solid"
-                  className="mt-[6px]"
+                  className="mt-6"
                 />
                 <div className="flex min-w-0 flex-1 flex-col gap-2">
                   <div className="flex items-center justify-between gap-8">
@@ -123,8 +124,8 @@ export function NotificationCenter() {
                 </div>
                 {!n.isRead && (
                   <Check
-                    size={12}
-                    className="mt-[4px] shrink-0 text-(--color-text-disabled)"
+                    size={ICON_SIZE.xs}
+                    className="mt-4 shrink-0 text-(--color-text-disabled)"
                   />
                 )}
               </Dropdown.PanelRow>

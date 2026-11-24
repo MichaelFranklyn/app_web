@@ -27,10 +27,16 @@ export function Heading({
   titleClassName,
 }: HeadingProps) {
   return (
-    <div className={cn("flex min-w-0 items-center gap-10", className)}>
-      <IconTile aria-hidden shape="square" size="sm" color="amber">
-        <Icon />
-      </IconTile>
+    // `items-start` + caixa da altura de UMA linha do título (mesma fonte e
+    // entrelinha, `h-[1lh]`): o ícone fica centrado na primeira linha. Com
+    // `items-center`, quando o título quebrava em duas no celular o ícone
+    // flutuava no meio das duas (crítica de configurações, 23/11/2026).
+    <div className={cn("flex min-w-0 items-start gap-10", className)}>
+      <span className="text-heading-lg flex h-[1lh] shrink-0 items-center leading-relaxed">
+        <IconTile aria-hidden shape="square" size="sm" color="amber">
+          <Icon />
+        </IconTile>
+      </span>
       <Title className={cn("min-w-0", titleClassName)}>{children}</Title>
     </div>
   );

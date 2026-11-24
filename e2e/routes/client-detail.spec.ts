@@ -114,7 +114,9 @@ test("cliente detalhe: remove o cliente da carteira", async ({ page }) => {
 
   await page.goto(URL);
 
-  await page.getByRole("button", { name: "Remover" }).click(); // header (único)
+  // "Remover da carteira" mora no menu do header: é ação ocasional.
+  await page.getByRole("button", { name: "Mais ações do cliente" }).click();
+  await page.getByRole("menuitem", { name: "Remover da carteira" }).click();
   await page
     .getByRole("dialog")
     .getByRole("button", { name: "Remover" })
@@ -223,11 +225,7 @@ test("cliente detalhe: edita as notas privadas", async ({ page }) => {
 
   await page.goto(URL);
 
-  // "Editar" da NotesCard: primeiro botão com esse texto após o título do card.
-  await page
-    .getByText("Notas Privadas")
-    .locator('xpath=following::button[normalize-space()="Editar"][1]')
-    .click();
+  await page.getByRole("button", { name: "Editar notas" }).click();
   const dialog = page.getByRole("dialog");
   await dialog.locator('[name="notes"]').fill("Observação interna E2E");
   await dialog.getByRole("button", { name: "Salvar" }).click();
@@ -249,10 +247,7 @@ test("cliente detalhe: edita o endereço", async ({ page }) => {
 
   await page.goto(URL);
 
-  await page
-    .getByText("Endereço", { exact: true })
-    .locator('xpath=following::button[normalize-space()="Editar"][1]')
-    .click();
+  await page.getByRole("button", { name: "Editar endereço" }).click();
   const dialog = page.getByRole("dialog");
   await dialog.locator('input[name="addressStreet"]').fill("Av. Nova");
   await dialog.getByRole("button", { name: "Salvar" }).click();

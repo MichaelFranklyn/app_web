@@ -2,7 +2,9 @@
 
 import { Badge } from "@/components/Badges";
 import { Table } from "@/components/Table";
+import { TextLink } from "@/components/TextLink";
 import { Title } from "@/components/Title";
+import { useRouter } from "next/navigation";
 
 import {
   GOAL_METRICS,
@@ -10,14 +12,16 @@ import {
   percentTone,
   sumRows,
 } from "@/utils/goals";
+import { plural } from "@/utils/format/plural";
 
 import { SellerGroup } from "../../utils";
 import { GoalMetricCells } from "../GoalMetricCells";
+import { formatPercentPoints } from "@/utils/format/percent";
 
 interface Props {
   groups: SellerGroup[];
-  /** Troca esta lista pelo detalhe do vendedor — as fábricas dele. */
-  onOpen: (group: SellerGroup) => void;
+  /** Endereço do detalhe do vendedor — as fábricas dele. */
+  hrefOf: (group: SellerGroup) => string;
 }
 
 /**
@@ -29,7 +33,9 @@ interface Props {
  * lado a lado — que é a leitura do gestor no fechamento do mês — e clicar numa
  * delas troca esta lista pelas fábricas dela (ver `SellerGoalsPanel`).
  */
-export function GoalsTable({ groups, onOpen }: Props) {
+export function GoalsTable({ groups, hrefOf }: Props) {
+  const router = useRouter();
+
   return (
     <Table.Root data-tour="goals-table">
       {/* Abaixo do desktop cada linha vira cartão, em vez de a tabela rolar de lado. */}
@@ -61,15 +67,23 @@ export function GoalsTable({ groups, onOpen }: Props) {
             return (
               <Table.Row
                 key={group.sellerId}
-                onClick={() => onOpen(group)}
+                onClick={() => router.push(hrefOf(group))}
                 className="cursor-pointer"
               >
                 <Table.Cell card="title" variant="strong">
                   <div className="flex flex-col gap-2">
-                    {group.sellerName}
+                    {/* O nome é link: a linha inteira já abria o detalhe, mas
+                        nada na tela dizia isso (crítica de 23/11/2026). */}
+                    <TextLink
+                      href={hrefOf(group)}
+                      tone="inherit"
+                      underline="hover"
+                      onClick={(event) => event.stopPropagation()}
+                    >
+                      {group.sellerName}
+                    </TextLink>
                     <Table.CellText variant="dim2">
-                      {group.rows.length}{" "}
-                      {group.rows.length === 1 ? "fábrica" : "fábricas"}
+                      {plural(group.rows.length, "fábrica", "fábricas")}
                     </Table.CellText>
                   </div>
                 </Table.Cell>
@@ -87,7 +101,10 @@ export function GoalsTable({ groups, onOpen }: Props) {
                       weight="semibold"
                       color={percentTone(overall)}
                     >
-                      {overall.toFixed(0)}%
+                      {formatPercentPoints(overall)}
+                      {/* No cartão o cabeçalho some: "4%" sozinho não dizia
+                          de quê. */}
+                      <span className="desktop:hidden"> da meta</span>
                     </Title>
                   )}
                 </Table.Cell>

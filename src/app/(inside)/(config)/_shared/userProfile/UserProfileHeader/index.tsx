@@ -58,24 +58,28 @@ export function UserProfileHeader({ user, hasBreadcrumb, actions }: Props) {
               </div>
             </div>
 
-            <PanelHeader.Actions className="mt-12">
+            {/* Tarjas na faixa, ações depois delas (padrão de cabeçalho): no
+                celular, uma tarja ou um botão por linha. */}
+            <PanelHeader.Tags>
               <Badge.Root
                 color={ROLE_COLOR[role] ?? "neutral"}
                 appearance="tinted"
+                size="sm"
               >
                 <Badge.Text>{ROLE_LABEL[role] ?? user.role}</Badge.Text>
               </Badge.Root>
               <Badge.Root
                 color={status.color}
                 appearance="tinted"
+                size="sm"
                 title={status.help}
               >
                 <Badge.Text>{status.label}</Badge.Text>
               </Badge.Root>
               {/* "Vende em campo" saiu: os blocos de rotina, fábricas e carteira
                   na própria página já dizem isso, sem mais um badge para ler. */}
-              {actions}
-            </PanelHeader.Actions>
+              {actions && <PanelHeader.Actions>{actions}</PanelHeader.Actions>}
+            </PanelHeader.Tags>
           </PanelHeader.Left>
         </PanelHeader.Top>
       </PanelHeader.Root>

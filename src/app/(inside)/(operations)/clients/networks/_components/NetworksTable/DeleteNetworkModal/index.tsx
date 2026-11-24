@@ -1,16 +1,18 @@
 "use client";
 
-import { Button } from "@/components/Button";
 import { ConfirmModal } from "@/components/ConfirmModal";
 import { useInvalidateQueriesClient } from "@/hooks/useInvalidateQueries";
 import { CLIENT_NETWORK_CACHE_FIELDS } from "@/utils/cacheFields";
+import { plural, pluralWord } from "@/utils/format/plural";
 import { useMutation } from "@apollo/client/react";
-import { Trash2 } from "lucide-react";
 
 import { DELETE_CLIENT_NETWORK_MUTATION } from "../../../gql";
 import { ClientNetwork, DeleteClientNetworkResponse } from "../../../interface";
 
 interface Props {
+  /** Controlado: o gatilho é o "⋯" da linha (RowActions). */
+  open: boolean;
+  onOpenChange: (open: boolean) => void;
   network: ClientNetwork;
   onRemoveOptimistic: (id: string) => void;
   onCommit: () => void;
@@ -19,6 +21,8 @@ interface Props {
 }
 
 export function DeleteNetworkModal({
+  open,
+  onOpenChange,
   network,
   onRemoveOptimistic,
   onCommit,
@@ -34,22 +38,13 @@ export function DeleteNetworkModal({
   // informada — remover uma rede de 14 lojas não é o mesmo que remover uma vazia.
   const impact =
     network.storeCount > 0
-      ? ` As ${network.storeCount} loja(s) continuam na carteira, apenas sem rede.`
+      ? ` ${pluralWord(network.storeCount, "A loja continua", `As ${plural(network.storeCount, "loja", "lojas")} continuam`)} na carteira, apenas sem rede.`
       : "";
 
   return (
     <ConfirmModal
-      trigger={
-        <Button.Root
-          appearance="ghost"
-          color="red"
-          size="sm"
-          isIconOnly
-          label="Remover rede"
-        >
-          <Button.Icon icon={Trash2} />
-        </Button.Root>
-      }
+      open={open}
+      onOpenChange={onOpenChange}
       title="Remover rede"
       description={`Remover a rede "${network.name}"?${impact}`}
       confirmLabel="Remover"

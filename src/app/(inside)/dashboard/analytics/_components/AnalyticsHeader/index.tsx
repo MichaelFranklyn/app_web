@@ -81,7 +81,7 @@ export function AnalyticsHeader({
                 : "Como você vem indo"}{" "}
               · {formatDateRangeLabel(range.from, range.to)}
             </PanelHeader.Description>
-            <PanelHeader.Actions className="mt-6" data-tour="analytics-filters">
+            <PanelHeader.Actions data-tour="analytics-filters">
               {canSelectSeller && (
                 <div className="desktop:w-[220px] w-full">
                   <Input.Select

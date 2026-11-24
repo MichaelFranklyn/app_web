@@ -17,7 +17,7 @@ export function PortalOrderNotFound({
   return (
     <EmptyState.Root>
       <EmptyState.Icon>
-        <FileQuestion size={36} />
+        <FileQuestion />
       </EmptyState.Icon>
       <EmptyState.Title>Pedido não encontrado</EmptyState.Title>
       <EmptyState.Description>

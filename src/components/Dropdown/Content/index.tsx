@@ -32,7 +32,7 @@ export const Content = React.forwardRef<
         sideOffset={sideOffset}
         collisionPadding={collisionPadding}
         className={cn(
-          "z-50 min-w-[160px] border border-(--border) bg-(--bg2)",
+          "z-(--z-popover) min-w-[160px] border border-(--border) bg-(--bg2)",
           // Nunca mais largo que a tela: no celular o menu do "Baixar PDF do
           // mês" (opções com frase longa) saía cortado na borda (19/11/2026).
           // Com o teto, o texto do item quebra linha em vez de vazar.

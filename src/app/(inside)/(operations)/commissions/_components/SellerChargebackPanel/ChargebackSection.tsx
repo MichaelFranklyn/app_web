@@ -2,6 +2,7 @@
 
 import { Badge } from "@/components/Badges";
 import { Button } from "@/components/Button";
+import { RowActions } from "@/components/RowActions";
 import { Table } from "@/components/Table";
 import { Title } from "@/components/Title";
 import { clientName, factoryName } from "@/utils/company";
@@ -90,7 +91,7 @@ export function ChargebackSection({
         </div>
       </div>
 
-      <Table.Table>
+      <Table.Table cards>
         <Table.Header>
           <Table.Row>
             <Table.Head sortKey="cbClient">Cliente</Table.Head>
@@ -109,9 +110,13 @@ export function ChargebackSection({
         <Table.Body>
           {rows.map((row) => (
             <Table.Row key={row.installmentId}>
-              <Table.Cell variant="strong">{clientName(row.client)}</Table.Cell>
-              <Table.Cell>{factoryName(row.factory)}</Table.Cell>
-              <Table.Cell className="text-right">
+              <Table.Cell card="title" variant="strong">
+                {clientName(row.client)}
+              </Table.Cell>
+              <Table.Cell label="Fábrica">
+                {factoryName(row.factory)}
+              </Table.Cell>
+              <Table.Cell card="value" align="right">
                 <Title
                   variant="body-sm"
                   color={tone === "green" ? "green" : "red"}
@@ -120,7 +125,7 @@ export function ChargebackSection({
                   {formatMoney(row.sellerAmount)}
                 </Title>
               </Table.Cell>
-              <Table.Cell>
+              <Table.Cell card="status">
                 {row.sellerChargebackSettledAt ? (
                   <Badge.Root color="neutral" appearance="tinted">
                     <Badge.Text>
@@ -138,21 +143,18 @@ export function ChargebackSection({
                 )}
               </Table.Cell>
               {actions.length > 0 && (
-                <Table.Cell>
-                  <div className="flex items-center justify-end gap-8">
-                    {actions.map((action) => (
-                      <Button.Root
-                        key={action.label}
-                        appearance="ghost"
-                        color={action.color}
-                        size="sm"
-                        onClick={() => action.onRun([row.installmentId])}
-                      >
-                        <Button.Icon icon={action.icon} />
-                        <Button.Title>{action.label}</Button.Title>
-                      </Button.Root>
-                    ))}
-                  </div>
+                <Table.Cell card="actions">
+                  {/* Ações da linha sempre no "⋯" (padrão das tabelas); a
+                      ação em massa da seção continua com nome no cabeçalho. */}
+                  <RowActions
+                    label={`Ações do estorno de ${clientName(row.client)}`}
+                    actions={actions.map((action) => ({
+                      label: action.label,
+                      icon: action.icon,
+                      disabled: isLoading,
+                      onClick: () => action.onRun([row.installmentId]),
+                    }))}
+                  />
                 </Table.Cell>
               )}
             </Table.Row>

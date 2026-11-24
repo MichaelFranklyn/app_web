@@ -37,7 +37,7 @@ const Header = ({
   children: React.ReactNode;
   aside?: React.ReactNode;
 }) => (
-  <div className="flex items-center justify-between gap-8 px-[12px] py-[10px]">
+  <div className="flex items-center justify-between gap-8 px-12 py-10">
     {typeof children === "string" ? (
       <Title variant="label" weight="semibold">
         {children}
@@ -57,7 +57,7 @@ const Section = ({
 }: React.HTMLAttributes<HTMLDivElement> & { muted?: boolean }) => (
   <div
     className={cn(
-      "flex flex-col gap-8 px-[12px] py-[10px]",
+      "flex flex-col gap-8 px-12 py-10",
       muted && "bg-(--bg3)",
       className
     )}

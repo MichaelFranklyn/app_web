@@ -67,21 +67,19 @@ export default function PlatformEmailsContent({ seed }: EmailsContentProps) {
 
       <form onSubmit={handleSearch} className="flex items-end gap-8">
         <InputSearch
-          size="sm"
           containerClassName="w-full max-w-[420px]"
           placeholder="email@cliente.com.br"
           aria-label="Buscar por endereço"
           value={draft}
           onChange={(e) => setDraft(e.target.value)}
         />
-        <Button.Root type="submit" appearance="solid" color="amber" size="sm">
+        <Button.Root type="submit" appearance="solid" color="amber">
           <Button.Title>Buscar</Button.Title>
         </Button.Root>
         {email && (
           <Button.Root
             type="button"
             appearance="ghost"
-            size="sm"
             onClick={() => {
               setDraft("");
               setEmail(null);
@@ -98,7 +96,7 @@ export default function PlatformEmailsContent({ seed }: EmailsContentProps) {
         <Loading.Skeleton className="h-[320px] w-full" />
       ) : report ? (
         <>
-          <div className="tablet:grid-cols-2 grid grid-cols-1 gap-12">
+          <Card.Kpi.Group>
             <Card.Kpi title="Contra a cota diária da Brevo. Acima de 80% o sistema avisa no log; ao estourar, a Brevo para de aceitar até a meia-noite.">
               <Card.Kpi.Label>Enviados hoje</Card.Kpi.Label>
               <Card.Kpi.Value
@@ -109,7 +107,7 @@ export default function PlatformEmailsContent({ seed }: EmailsContentProps) {
                 }
               >{`${report.sentToday} de ${report.dailyQuota}`}</Card.Kpi.Value>
             </Card.Kpi>
-          </div>
+          </Card.Kpi.Group>
 
           {report.suppression && (
             <SuppressionAlert

@@ -139,11 +139,11 @@ export function PortalOrderContent({
 
   if (!available) {
     return (
-      <div className="flex flex-col gap-[20px]">
+      <div className="flex flex-col gap-20">
         {header}
         <EmptyState.Root>
           <EmptyState.Icon>
-            <ShoppingCart size={36} />
+            <ShoppingCart />
           </EmptyState.Icon>
           <EmptyState.Title>Pedidos pelo portal indisponíveis</EmptyState.Title>
           <EmptyState.Description>
@@ -155,7 +155,7 @@ export function PortalOrderContent({
   }
 
   return (
-    <div className="flex flex-col gap-[20px]">
+    <div className="flex flex-col gap-20">
       {header}
       <OrderToolbar
         token={token}
@@ -188,7 +188,7 @@ export function PortalOrderContent({
       ) : (
         <EmptyState.Root>
           <EmptyState.Icon>
-            <Factory size={36} />
+            <Factory />
           </EmptyState.Icon>
           <EmptyState.Title>
             {factories.length === 0
@@ -257,8 +257,8 @@ function OrderBody({
 
   return (
     <>
-      <div className="desktop:grid-cols-[minmax(0,1fr)_360px] grid grid-cols-1 items-start gap-[20px]">
-        <div className="flex min-w-0 flex-col gap-[24px]">
+      <div className="desktop:grid-cols-[minmax(0,1fr)_360px] grid grid-cols-1 items-start gap-20">
+        <div className="flex min-w-0 flex-col gap-24">
           <RunningOutSection
             // O "acabando" também é só da fábrica do orçamento.
             items={runningOut.filter((item) => item.factoryId === factoryId)}

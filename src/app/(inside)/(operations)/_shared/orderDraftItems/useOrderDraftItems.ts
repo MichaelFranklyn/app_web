@@ -2,6 +2,7 @@ import { useEffect, useMemo, useRef, useState } from "react";
 
 import { SelectOption } from "@/components/Input";
 import { maskCurrency, parseMoneyToNumber } from "@/utils/format/masks";
+import { plural } from "@/utils/format/plural";
 
 import {
   isQuantityMultiple,
@@ -229,7 +230,7 @@ export function useOrderDraftItems(
     if (!qty || qty <= 0) return setError("Informe uma quantidade válida.");
     if (saleMultiple && !isQuantityMultiple(qty, saleMultiple)) {
       return setError(
-        `Este produto é vendido em múltiplos de ${saleMultiple} unidade(s).`
+        `Este produto é vendido em múltiplos de ${plural(saleMultiple, "unidade", "unidades")}.`
       );
     }
     // O mesmo produto duas vezes no pedido é sempre engano — quantidade a mais

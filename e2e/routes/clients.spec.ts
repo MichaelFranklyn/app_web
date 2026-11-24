@@ -1,5 +1,6 @@
 import { expect, test } from "../support/fixtures";
 import { emptyConnection, mockGraphql } from "../support/graphql";
+import { grantRole } from "../support/role";
 
 // ClientStats roda SERVER-SIDE (page.tsx) e é atendida pelo stub GraphQL;
 // aqui mockamos apenas a query client-side da tabela.
@@ -120,8 +121,34 @@ test("clients: Vendedor não vira botão de ordenação", async ({ page }) => {
     }),
   });
 
+  // A coluna só existe para o gestor (o vendedor só vê a própria carteira).
+  await grantRole(page, "OWNER");
   await page.goto("/clients");
   await expect(
     page.getByRole("columnheader", { name: "Vendedor" })
   ).not.toHaveAttribute("aria-sort");
+});
+
+test("clients: o vendedor não vê a coluna Vendedor — seria o nome dele em toda linha", async ({
+  page,
+}) => {
+  await mockGraphql(page, {
+    Clients: () => ({ clients_list: emptyConnection() }),
+    ClientStats: () => ({
+      clientStats: {
+        totalClients: 0,
+        activeClients: 0,
+        atRiskClients: 0,
+        noVisit30d: 0,
+      },
+    }),
+  });
+
+  await page.goto("/clients");
+  await expect(
+    page.getByRole("columnheader", { name: "Cliente" })
+  ).toBeVisible();
+  await expect(
+    page.getByRole("columnheader", { name: "Vendedor" })
+  ).toHaveCount(0);
 });

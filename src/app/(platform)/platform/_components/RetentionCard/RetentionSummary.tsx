@@ -4,6 +4,7 @@ import { HeatGrid } from "@/components/HeatGrid";
 import { Title } from "@/components/Title";
 import { PlatformRetention } from "../../interface";
 import { retentionTone } from "../../utils";
+import { formatPercentPoints } from "@/utils/format/percent";
 
 /**
  * A curva média, antes da grade.
@@ -46,7 +47,7 @@ export function RetentionSummary({
           <HeatGrid.Tile key={index} level={retentionTone(Math.round(percent))}>
             <Title variant="micro">{index + 1}º mês</Title>
             <Title variant="body-sm" weight="semibold">
-              {Math.round(percent)}%
+              {formatPercentPoints(percent)}
             </Title>
           </HeatGrid.Tile>
         ))}

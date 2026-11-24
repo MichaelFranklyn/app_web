@@ -7,6 +7,7 @@ import { Loading } from "@/components/Loading";
 import { Pagination } from "@/components/Pagination";
 import { Table, TableSort } from "@/components/Table";
 import { formatDateDMY, formatMoney } from "@/utils/format/masks";
+import { Title } from "@/components/Title";
 import { Receipt } from "lucide-react";
 import { ORDER_COLUMN_HELP } from "../../help";
 import { Order } from "../../interface";
@@ -138,7 +139,7 @@ export function OrdersTable({
               <Table.Cell colSpan={8}>
                 <EmptyState.Root flat>
                   <EmptyState.Icon>
-                    <Receipt size={32} />
+                    <Receipt />
                   </EmptyState.Icon>
                   <EmptyState.Title>{emptyTitle}</EmptyState.Title>
                   <EmptyState.Description>
@@ -155,22 +156,17 @@ export function OrdersTable({
                 data-tour="orders-row"
                 className="group"
               >
-                <Table.Cell label="Pedido">
+                {/* No cartão o número, a fábrica e a data viram a linha cinza
+                    sob o cliente (crítica de /orders, 23/11/2026): eram três
+                    linhas "rótulo: valor" para dados de apoio. */}
+                <Table.Cell card="hidden">
                   <span className="inline-flex items-center gap-6">
-                    <Badge.Root color="subtle" appearance="tinted">
-                      <Badge.Text>{formatOrderNumber(order.number)}</Badge.Text>
-                    </Badge.Root>
-                    {/* O saldo aparece na lista (precisa ser faturado), mas
-                        não é pedido novo — a tarja diz o que ele é. */}
-                    {order.isBackorder && (
-                      <Badge.Root
-                        color="purple"
-                        appearance="tinted"
-                        title={ORDER_COLUMN_HELP.backorder}
-                      >
-                        <Badge.Text>Saldo</Badge.Text>
-                      </Badge.Root>
-                    )}
+                    {/* Número em texto, não em pílula: a pílula cinza competia
+                        com a tag da situação, que é a que importa. */}
+                    <Title variant="body-sm" weight="semibold" as="span">
+                      {formatOrderNumber(order.number)}
+                    </Title>
+                    <BackorderBadge show={order.isBackorder} />
                   </span>
                 </Table.Cell>
 
@@ -183,9 +179,19 @@ export function OrdersTable({
                       </Badge.Root>
                     )}
                   </span>
+                  <span className="desktop:hidden mt-2 flex flex-wrap items-center gap-6">
+                    <Title variant="body-sm" color="muted" as="span">
+                      {[
+                        formatOrderNumber(order.number),
+                        factoryName(order.factory),
+                        formatDateDMY(order.orderDate),
+                      ].join(" · ")}
+                    </Title>
+                    <BackorderBadge show={order.isBackorder} />
+                  </span>
                 </Table.Cell>
 
-                <Table.Cell variant="dim" label="Fábrica">
+                <Table.Cell variant="dim" card="hidden">
                   {factoryName(order.factory)}
                 </Table.Cell>
 
@@ -198,7 +204,7 @@ export function OrdersTable({
                 <Table.Cell
                   variant="dim"
                   className="whitespace-nowrap"
-                  label="Data"
+                  card="hidden"
                 >
                   {formatDateDMY(order.orderDate)}
                 </Table.Cell>
@@ -249,5 +255,20 @@ export function OrdersTable({
         />
       </Table.Footer>
     </Table.Root>
+  );
+}
+
+/** O saldo aparece na lista (precisa ser faturado), mas não é pedido novo — a
+ * tarja diz o que ele é. Vai na coluna "Pedido" e na linha cinza do cartão. */
+function BackorderBadge({ show }: { show: boolean }) {
+  if (!show) return null;
+  return (
+    <Badge.Root
+      color="purple"
+      appearance="tinted"
+      title={ORDER_COLUMN_HELP.backorder}
+    >
+      <Badge.Text>Saldo</Badge.Text>
+    </Badge.Root>
   );
 }

@@ -46,7 +46,7 @@ export function RangeCalendars({ selected, onSelect }: Props) {
   );
 
   return (
-    <div className="tablet:flex-row flex flex-col gap-[16px] p-[12px]">
+    <div className="tablet:flex-row flex flex-col gap-16 p-12">
       <CalendarBase
         mode="range"
         className="p-0"

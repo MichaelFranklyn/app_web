@@ -63,7 +63,7 @@ export function PortalFinancialSummary({
           {
             key: "subtotal",
             label: "Subtotal (sem IPI)",
-            value: formatMoney(subtotalWithTax.toFixed(2)),
+            value: formatMoney(subtotalWithTax),
           },
           { key: "ipi", label: "IPI", value: formatMoney(amounts.ipiAmount) },
         ]
@@ -73,7 +73,7 @@ export function PortalFinancialSummary({
       label: totalLabel,
       value: (
         <Title variant="body-md" as="span" weight="bold">
-          {formatMoney(portalOrderTotal(amounts).toFixed(2))}
+          {formatMoney(portalOrderTotal(amounts))}
         </Title>
       ),
     },
@@ -94,9 +94,7 @@ export function PortalFinancialSummary({
   return (
     <Card.Root className="h-auto">
       <Card.Header>
-        <Card.Header.Title size="sm" weight="bold">
-          Resumo financeiro
-        </Card.Header.Title>
+        <Card.Header.Title>Resumo financeiro</Card.Header.Title>
       </Card.Header>
       <Card.Body padding="compact">
         {/* O separador é a borda do próprio Card.Item (como no sistema). */}
@@ -107,7 +105,7 @@ export function PortalFinancialSummary({
           </Card.Item>
         ))}
         {children ? (
-          <div className="flex flex-col gap-[8px] pt-[12px]">{children}</div>
+          <div className="flex flex-col gap-8 pt-12">{children}</div>
         ) : null}
       </Card.Body>
     </Card.Root>

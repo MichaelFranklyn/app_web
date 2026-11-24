@@ -33,7 +33,7 @@ export { FactoriesSection } from "./FactoriesSection";
 export { FixedSchedulesSection } from "./FixedSchedulesSection";
 // Reexportado para quem monta os cards do perfil não precisar saber de dois
 // caminhos — a fonte é `_shared/dataCards`.
-export { DataField, EditCardAction } from "../dataCards";
+export { EditCardAction } from "../dataCards";
 export { PersonalDataCard } from "./PersonalDataCard";
 export { PersonDataModal } from "./PersonDataModal";
 export { ProfileSection } from "./ProfileSection";

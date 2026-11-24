@@ -3,7 +3,6 @@
 import { Import } from "@/components/Import";
 
 import { useMutation } from "@apollo/client/react";
-import { Upload } from "lucide-react";
 import { useState } from "react";
 
 import { Button } from "@/components/Button";
@@ -19,8 +18,13 @@ import { readSpreadsheet } from "@/utils/import/reader";
 
 import { downloadExampleSheet, parseFactoriesRows } from "./utils";
 
-export function ImportFactoriesModal() {
-  const [open, setOpen] = useState(false);
+interface Props {
+  /** Aberto pelo menu "Mais ações das fábricas" (sem gatilho próprio). */
+  open: boolean;
+  onOpenChange: (open: boolean) => void;
+}
+
+export function ImportFactoriesModal({ open, onOpenChange }: Props) {
   const [file, setFile] = useState<File | null>(null);
   const [result, setResult] = useState<ImportResult | null>(null);
 
@@ -32,7 +36,7 @@ export function ImportFactoriesModal() {
   const { execute, isLoading } = useAsyncAction();
 
   const handleClose = (value: boolean) => {
-    setOpen(value);
+    onOpenChange(value);
     if (!value) {
       setFile(null);
       setResult(null);
@@ -75,13 +79,6 @@ export function ImportFactoriesModal() {
 
   return (
     <Modal.Root open={open} onOpenChange={handleClose}>
-      <Modal.Trigger asChild>
-        <Button.Root appearance="outline" color="neutral" size="sm">
-          <Button.Icon icon={Upload} />
-          <Button.Title>Importar dados</Button.Title>
-        </Button.Root>
-      </Modal.Trigger>
-
       <Modal.Content size="md">
         <Modal.Header
           title="Importar fábricas"

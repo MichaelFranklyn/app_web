@@ -2,6 +2,7 @@ import {
   ClientProductAnalysisRow,
   ProductAnalysisSummaryData,
 } from "./interface";
+import { plural } from "@/utils/format/plural";
 
 /**
  * "Compra sempre" é uma fração, não um rótulo: 8 dos 10 pedidos que ele fez
@@ -35,6 +36,25 @@ export const summarizeAnalysis = (
   always: rows.filter(isStaple).length,
 });
 
-/** "a cada 30 dias" — e o vazio honesto quando não há duas compras. */
-export const cycleLabel = (days: number | null): string =>
-  days ? `a cada ${days} dias` : "—";
+/**
+ * "a cada 30 dias". Sem duas compras não há ritmo; com UMA só, a tela diz por
+ * quê em vez do traço, que parecia dado faltando (crítica de 23/11/2026).
+ */
+export const cycleLabel = (days: number | null, orderCount = 0): string => {
+  if (days) return `a cada ${days} dias`;
+  return orderCount === 1 ? "1 compra só, sem ritmo ainda" : "—";
+};
+
+/** Média em unidades inteiras: "média 12,37" é precisão que ninguém usa. */
+export const roundedUnits = (value: string | number): number | string => {
+  const num = Number(value);
+  if (!Number.isFinite(num)) return value;
+  // Abaixo de 1 o arredondamento daria zero, que é mentira: mantém a fração.
+  return num >= 1 ? Math.round(num) : value;
+};
+
+/** "atrasada 12 dias" — a data esperada que já passou diz quanto passou. */
+export const overdueLabel = (overdueDays: number | null): string | null =>
+  overdueDays && overdueDays > 0
+    ? `atrasada ${plural(overdueDays, "dia", "dias")}`
+    : null;

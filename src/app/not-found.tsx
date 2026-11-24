@@ -18,7 +18,7 @@ export const metadata: Metadata = {
 export default function NotFound() {
   return (
     <RouteError
-      icon={<SearchX size={36} />}
+      icon={<SearchX />}
       title="Página não encontrada"
       description="O endereço que você abriu não existe ou mudou de lugar. Confira o link ou volte para o início."
     >

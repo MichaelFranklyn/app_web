@@ -1,10 +1,7 @@
 "use client";
-import { ToggleGroup } from "@/components/ToggleGroup";
 
 import { Alert } from "@/components/Alert";
-import { HelpTooltip } from "@/components/HelpTooltip";
 import { QueryError } from "@/components/QueryError";
-import { Title } from "@/components/Title";
 import { useQuery } from "@apollo/client/react";
 import { Info } from "lucide-react";
 import { useMemo, useState } from "react";
@@ -17,17 +14,7 @@ import { CLIENT_PRODUCT_ANALYSIS_QUERY } from "./gql";
 import { ClientProductAnalysisQueryResponse } from "./interface";
 import { useProductAnalysisTable } from "./useProductAnalysisTable";
 import { summarizeAnalysis } from "./utils";
-
-/**
- * Quanto histórico olhar. Dois anos é o padrão do backend; "todo o histórico"
- * (0) existe para o cliente antigo, e 12 meses para quem quer ler só o ano
- * corrente sem o ruído do que ele comprava antes.
- */
-const PERIOD_OPTIONS = [
-  { label: "12 meses", value: 12 },
-  { label: "2 anos", value: 24 },
-  { label: "Tudo", value: 0 },
-];
+import { ICON_SIZE } from "@/components/Icon";
 
 export default function ProductsContent() {
   const { companyClientId } = useClientRoute();
@@ -55,7 +42,7 @@ export default function ProductsContent() {
   return (
     <div className="flex flex-col gap-16">
       <Alert.Root variant="info">
-        <Info size={14} className="mt-[1px] shrink-0" />
+        <Info size={ICON_SIZE.sm} className="mt-1 shrink-0" />
         <Alert.Content>
           <Alert.Description>
             Esta leitura sai dos pedidos já fechados deste cliente. O ritmo de
@@ -67,40 +54,12 @@ export default function ProductsContent() {
 
       <ProductAnalysisSummary data={summary} />
 
-      <div className="flex flex-wrap items-center justify-between gap-16">
-        <div className="flex items-center gap-6">
-          <Title variant="heading-md">O que ele compra</Title>
-          <HelpTooltip
-            label="Como esta análise é feita?"
-            content={
-              <Title variant="body-sm">
-                Para cada produto, olhamos em quais pedidos ele apareceu e de
-                quanto em quanto tempo o cliente o repõe. Passado esse tempo, o
-                produto entra em &quot;hora de repor&quot;; muito depois dele,
-                em &quot;parou de comprar&quot;.
-              </Title>
-            }
-          />
-        </div>
-
-        {/* Abaixo do desktop o período toma a linha: rótulo à esquerda e as
-            opções dividindo o resto, sem sobra à direita. */}
-        <div className="max-desktop:w-full flex items-center gap-8">
-          <Title variant="body-xs" color="muted" weight="medium">
-            Período:
-          </Title>
-          <ToggleGroup
-            aria-label="Período"
-            fullWidthBelowDesktop
-            className="max-desktop:flex-1"
-            options={PERIOD_OPTIONS}
-            value={months}
-            onChange={setMonths}
-          />
-        </div>
-      </div>
-
-      <ProductAnalysisTable table={table} rows={rows} />
+      <ProductAnalysisTable
+        table={table}
+        rows={rows}
+        months={months}
+        onMonthsChange={setMonths}
+      />
     </div>
   );
 }

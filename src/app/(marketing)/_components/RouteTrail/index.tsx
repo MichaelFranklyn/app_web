@@ -41,7 +41,7 @@ export function RouteTrail({
         strokeWidth={3}
         strokeLinecap="round"
         strokeDasharray="12 12"
-        style={{ animation: "route-dash 1.6s linear infinite" }}
+        className="animate-route-dash"
       />
 
       {stops.map(({ x, y }, index) => (

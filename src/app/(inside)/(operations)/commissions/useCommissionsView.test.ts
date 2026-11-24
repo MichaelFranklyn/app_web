@@ -66,7 +66,7 @@ describe("useCommissionsView", () => {
 
   it("a frase de escopo compara o que sobrou com o que o mês e a aba têm", () => {
     const { result } = renderHook(() => useCommissionsView(SUMMARY));
-    // "6 de 9 parcela(s) após os filtros".
+    // "6 de 9 parcelas após os filtros".
     expect(result.current.shown).toBe(6);
     expect(result.current.scopeTotal).toBe(9);
     expect(result.current.isFiltered).toBe(true);

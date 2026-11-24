@@ -1,6 +1,5 @@
 "use client";
 
-import { Badge } from "@/components/Badges";
 import { EmptyState } from "@/components/EmptyState";
 import { QueryError } from "@/components/QueryError";
 import { HelpTooltip } from "@/components/HelpTooltip";
@@ -67,7 +66,7 @@ export function PaymentTermsTab({ companyFactoryId }: Props) {
   return (
     <Table.Root>
       <Table.CardHead>
-        <Table.CardHead.Title className="inline-flex items-center gap-6">
+        <Table.CardHead.Title>
           Prazos de pagamento
           <HelpTooltip
             label="O que é um prazo de pagamento?"
@@ -101,10 +100,16 @@ export function PaymentTermsTab({ companyFactoryId }: Props) {
             <Table.Head title={FACTORY_PAYMENT_TERM_COLUMN_HELP.days}>
               Vencimentos (dias)
             </Table.Head>
-            <Table.Head title={FACTORY_PAYMENT_TERM_COLUMN_HELP.installments}>
+            <Table.Head
+              align="right"
+              title={FACTORY_PAYMENT_TERM_COLUMN_HELP.installments}
+            >
               Parcelas
             </Table.Head>
-            <Table.Head title={FACTORY_PAYMENT_TERM_COLUMN_HELP.minimum}>
+            <Table.Head
+              align="right"
+              title={FACTORY_PAYMENT_TERM_COLUMN_HELP.minimum}
+            >
               Valor mínimo
             </Table.Head>
             <Table.Head
@@ -130,7 +135,7 @@ export function PaymentTermsTab({ companyFactoryId }: Props) {
               <Table.Cell colSpan={4}>
                 <EmptyState.Root flat>
                   <EmptyState.Icon>
-                    <CalendarClock size={32} />
+                    <CalendarClock />
                   </EmptyState.Icon>
                   <EmptyState.Title>Nenhum prazo de pagamento</EmptyState.Title>
                   <EmptyState.Description>
@@ -143,21 +148,25 @@ export function PaymentTermsTab({ companyFactoryId }: Props) {
           ) : (
             terms.map((term) => (
               <Table.Row key={term.id}>
-                {/* No cartão a tarja do prazo divide a última linha com as
-                    ações, em vez de ficar sozinha no topo. */}
-                <Table.Cell card="aside">
-                  <Badge.Root color="subtle" appearance="tinted">
-                    <Badge.Text>
-                      {formatInstallments(term.installmentsDays)}
-                    </Badge.Text>
-                  </Badge.Root>
+                {/* O prazo É a identidade da linha: no cartão vira o título,
+                    em vez de uma tarja escondida no rodapé (crítica de
+                    23/11/2026). */}
+                <Table.Cell card="title">
+                  <Table.CellText variant="strong">
+                    {formatInstallments(term.installmentsDays)}
+                  </Table.CellText>
                 </Table.Cell>
-                <Table.Cell label="Parcelas">
+                <Table.Cell align="right" label="Parcelas">
                   <Table.CellText variant="dim">
                     {installmentsCountLabel(term.installmentsDays)}
                   </Table.CellText>
                 </Table.Cell>
-                <Table.Cell label="Valor mínimo">
+                {/* "Sem mínimo" repetido em todo cartão só ocupa linha. */}
+                <Table.Cell
+                  align="right"
+                  label="Valor mínimo"
+                  cardHidden={!term.minOrderAmount}
+                >
                   <Table.CellText
                     variant={term.minOrderAmount ? "strong" : "dim"}
                   >

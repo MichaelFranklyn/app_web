@@ -4,17 +4,24 @@ import {
   CalendarPlus,
   FileCheck2,
   FileClock,
+  FileSpreadsheet,
+  FileText,
+  Images,
+  Pencil,
   RotateCcw,
   Send,
   Trash2,
 } from "lucide-react";
 import { useState } from "react";
+import { useIsPhone } from "@/hooks/useIsPhone";
 import { useUserData } from "@/hooks/useUserData";
+import { useOrderExport } from "../useOrderExport";
 import { isAdminRole } from "@/utils/auth/roles";
 import { OrderDetail } from "../../../interface";
 import { availableActions, pickPrimaryAction } from "./utils";
 
 export type MenuModal =
+  | "edit"
   | "send"
   | "invoice"
   | "editInvoice"
@@ -30,10 +37,16 @@ const when = (condition: boolean, option: MoreOption): MoreOption[] =>
  * Monta o "Mais ações" do pedido e guarda qual modal dele está aberto (um por
  * vez). Envio e faturamento entram no menu só quando não são o primário — o
  * mesmo passo nunca aparece em dois lugares.
+ *
+ * No celular, Editar e Exportar também entram no menu: empilhados, eram quatro
+ * faixas de botão empurrando o pedido para baixo, e lá fica à vista só o
+ * próximo passo + "Mais ações" (crítica de /orders, 23/11/2026).
  */
 export function useOrderMenu(order: OrderDetail) {
   const [menuModal, setMenuModal] = useState<MenuModal | null>(null);
   const { userData } = useUserData();
+  const isPhone = useIsPhone();
+  const exports = useOrderExport(order);
   const can = availableActions(order);
   const primary = pickPrimaryAction(order);
   const isQuote = can.convert;
@@ -48,7 +61,30 @@ export function useOrderMenu(order: OrderDetail) {
   };
   const open = (key: MenuModal) => () => setMenuModal(key);
 
+  const phoneGroup: MoreOptionGroup = {
+    title: "Pedido",
+    options: [
+      { label: "Editar pedido", icon: Pencil, onClick: open("edit") },
+      {
+        label: "Exportar planilha (.xlsx)",
+        icon: FileSpreadsheet,
+        onClick: () => void exports.exportSheet(),
+      },
+      {
+        label: "Exportar PDF",
+        icon: FileText,
+        onClick: () => void exports.exportPdf(),
+      },
+      {
+        label: "Exportar PDF com fotos",
+        icon: Images,
+        onClick: () => void exports.exportPdfWithPhotos(),
+      },
+    ],
+  };
+
   const menu: MoreOptionGroup[] = [
+    ...(isPhone ? [phoneGroup] : []),
     {
       title: "Andamento",
       options: [
@@ -107,6 +143,7 @@ export function useOrderMenu(order: OrderDetail) {
   return {
     menu,
     hasMenu: menu.some((group) => group.options.length > 0),
+    isPhone,
     show,
     primary,
     isQuote,

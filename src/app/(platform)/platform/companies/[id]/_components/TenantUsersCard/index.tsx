@@ -1,8 +1,7 @@
 "use client";
 
-import { Button } from "@/components/Button";
-import { Card } from "@/components/Card";
 import { EmptyState } from "@/components/EmptyState";
+import { RowActions } from "@/components/RowActions";
 import { Table } from "@/components/Table";
 import { Title } from "@/components/Title";
 import { KeyRound, LogIn, UserCog } from "lucide-react";
@@ -31,127 +30,112 @@ export function TenantUsersCard({ users, loading }: Props) {
 
   return (
     <>
-      <Card.Root>
-        <Card.Header>
-          <Card.Header.Title size="sm" weight="semibold">
-            Pessoas
-          </Card.Header.Title>
-          <Card.Header.Description>
+      {/* A tabela é o card: dentro de um Card.Root virava card em card. */}
+      <Table.Root>
+        <Table.CardHead>
+          <Table.CardHead.Title>Pessoas</Table.CardHead.Title>
+          <Table.CardHead.Description>
             Liberar acesso emite um link novo e derruba os anteriores. Entrar
             como abre uma sessão de 1 hora, registrada na auditoria.
-          </Card.Header.Description>
-        </Card.Header>
+          </Table.CardHead.Description>
+        </Table.CardHead>
 
-        <Table.Root>
-          <Table.Table cards>
-            <Table.Header>
+        <Table.Table cards>
+          <Table.Header>
+            <Table.Row>
+              <Table.Head>Pessoa</Table.Head>
+              <Table.Head>Papel</Table.Head>
+              <Table.Head>Último acesso</Table.Head>
+              <Table.Head className="text-right">Ações</Table.Head>
+            </Table.Row>
+          </Table.Header>
+
+          <Table.Body>
+            {loading && users.length === 0 ? (
+              <Table.Skeleton columns={4} rows={3} />
+            ) : users.length === 0 ? (
               <Table.Row>
-                <Table.Head>Pessoa</Table.Head>
-                <Table.Head>Papel</Table.Head>
-                <Table.Head>Último acesso</Table.Head>
-                <Table.Head>Ações</Table.Head>
+                <Table.Cell colSpan={4}>
+                  <EmptyState.Root flat>
+                    <EmptyState.Icon>
+                      <UserCog />
+                    </EmptyState.Icon>
+                    <EmptyState.Title>
+                      Nenhuma pessoa cadastrada
+                    </EmptyState.Title>
+                    <EmptyState.Description>
+                      A empresa foi criada mas ainda não tem usuários.
+                    </EmptyState.Description>
+                  </EmptyState.Root>
+                </Table.Cell>
               </Table.Row>
-            </Table.Header>
+            ) : (
+              users.map((user) => (
+                <Table.Row key={user.id}>
+                  <Table.Cell card="title" wrap>
+                    <div className="flex min-w-0 flex-col gap-2">
+                      <Title
+                        variant="body-sm"
+                        weight="semibold"
+                        className="[overflow-wrap:anywhere]"
+                      >
+                        {user.name}
+                      </Title>
+                      <Title
+                        variant="micro"
+                        color="muted"
+                        className="[overflow-wrap:anywhere]"
+                      >
+                        {user.email}
+                      </Title>
+                    </div>
+                  </Table.Cell>
 
-            <Table.Body>
-              {loading && users.length === 0 ? (
-                <Table.Skeleton columns={4} rows={3} />
-              ) : users.length === 0 ? (
-                <Table.Row>
-                  <Table.Cell colSpan={4}>
-                    <EmptyState.Root flat>
-                      <EmptyState.Icon>
-                        <UserCog size={32} />
-                      </EmptyState.Icon>
-                      <EmptyState.Title>
-                        Nenhuma pessoa cadastrada
-                      </EmptyState.Title>
-                      <EmptyState.Description>
-                        A empresa foi criada mas ainda não tem usuários.
-                      </EmptyState.Description>
-                    </EmptyState.Root>
+                  <Table.Cell
+                    label="Papel"
+                    variant="dim"
+                    className="whitespace-nowrap"
+                  >
+                    {ROLE_LABEL[user.role] ?? user.role}
+                    {!user.isActive && " · desativada"}
+                  </Table.Cell>
+
+                  <Table.Cell
+                    label="Último acesso"
+                    variant="dim"
+                    className="whitespace-nowrap"
+                  >
+                    {activityLabel(daysSinceLogin(user.lastLoginAt))}
+                  </Table.Cell>
+
+                  <Table.Cell card="actions">
+                    <RowActions
+                      label={`Ações de ${user.name}`}
+                      actions={[
+                        {
+                          label: "Liberar acesso",
+                          icon: KeyRound,
+                          disabled: !user.isActive,
+                          onClick: () => setLinkTarget(user),
+                        },
+                        // SU não entra como SU: o backend recusa, e a ação
+                        // some para não oferecer o que não se pode fazer.
+                        {
+                          label: "Entrar como",
+                          icon: LogIn,
+                          absent: user.role === "SU",
+                          disabled: !user.isActive || impersonating === user.id,
+                          onClick: () => impersonate(user.id),
+                        },
+                      ]}
+                    />
                   </Table.Cell>
                 </Table.Row>
-              ) : (
-                users.map((user) => (
-                  <Table.Row key={user.id}>
-                    <Table.Cell card="title" className="max-w-[260px]">
-                      <div className="flex min-w-0 flex-col gap-[2px]">
-                        <Title
-                          variant="body-sm"
-                          weight="semibold"
-                          className="truncate"
-                        >
-                          {user.name}
-                        </Title>
-                        <Title
-                          variant="micro"
-                          color="muted"
-                          className="truncate"
-                        >
-                          {user.email}
-                        </Title>
-                      </div>
-                    </Table.Cell>
-
-                    <Table.Cell
-                      label="Papel"
-                      variant="dim"
-                      className="whitespace-nowrap"
-                    >
-                      {ROLE_LABEL[user.role] ?? user.role}
-                      {!user.isActive && " · desativada"}
-                    </Table.Cell>
-
-                    <Table.Cell
-                      label="Último acesso"
-                      variant="dim"
-                      className="whitespace-nowrap"
-                    >
-                      {activityLabel(daysSinceLogin(user.lastLoginAt))}
-                    </Table.Cell>
-
-                    <Table.Cell card="actions">
-                      {/* Abaixo do desktop o par divide a linha do cartão, com
-                          fundo: soltos à esquerda, deixavam a sobra da linha. */}
-                      <div className="max-desktop:w-full flex gap-6">
-                        <Button.Root
-                          appearance="ghost"
-                          color="neutral"
-                          size="xs"
-                          fullWidthBelowDesktop
-                          disabled={!user.isActive}
-                          onClick={() => setLinkTarget(user)}
-                        >
-                          <Button.Icon icon={KeyRound} />
-                          <Button.Title>Liberar acesso</Button.Title>
-                        </Button.Root>
-
-                        {/* SU não entra como SU: o backend recusa, e o botão
-                            some para não oferecer o que não se pode fazer. */}
-                        {user.role !== "SU" && (
-                          <Button.Root
-                            appearance="ghost"
-                            color="neutral"
-                            size="xs"
-                            fullWidthBelowDesktop
-                            disabled={!user.isActive}
-                            loading={impersonating === user.id}
-                            onClick={() => impersonate(user.id)}
-                          >
-                            <Button.Icon icon={LogIn} />
-                            <Button.Title>Entrar como</Button.Title>
-                          </Button.Root>
-                        )}
-                      </div>
-                    </Table.Cell>
-                  </Table.Row>
-                ))
-              )}
-            </Table.Body>
-          </Table.Table>
-        </Table.Root>
-      </Card.Root>
+              ))
+            )}
+          </Table.Body>
+        </Table.Table>
+      </Table.Root>
 
       <AccessLinkModal
         user={linkTarget}

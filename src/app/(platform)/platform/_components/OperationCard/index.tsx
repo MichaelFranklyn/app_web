@@ -17,7 +17,7 @@ function Metric({
   tone?: "default" | "red" | "amber" | "green";
 }) {
   return (
-    <div className="flex flex-col gap-[2px]">
+    <div className="flex flex-col gap-2">
       <Title variant="micro" color="muted">
         {label}
       </Title>
@@ -49,9 +49,7 @@ export function OperationCard({ operation }: { operation: PlatformOperation }) {
   return (
     <Card.Root>
       <Card.Header>
-        <Card.Header.Title size="sm" weight="semibold">
-          Operação
-        </Card.Header.Title>
+        <Card.Header.Title>Operação</Card.Header.Title>
         <Card.Header.Description>
           O trabalho de campo somado de todas as empresas, nos últimos 30 dias.
         </Card.Header.Description>

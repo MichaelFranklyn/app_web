@@ -6,6 +6,7 @@ import { Card } from "@/components/Card";
 import { Title } from "@/components/Title";
 import { factoryName } from "@/utils/company";
 import { formatDate } from "@/utils/format/date";
+import { plural } from "@/utils/format/plural";
 import { ShoppingBasket } from "lucide-react";
 import { PlaybookFactory } from "./interface";
 import { PlaybookOfferRow } from "./PlaybookOfferRow";
@@ -26,7 +27,7 @@ export function PlaybookFactoryCard({ entry, onOpenOrder }: Props) {
 
   return (
     <Card.Root inset tone="transparent">
-      <Card.Body padding="sm" className="gap-10">
+      <Card.Body padding="sm">
         <div className="flex items-start justify-between gap-8">
           <Title
             variant="body-sm"
@@ -74,8 +75,8 @@ export function PlaybookFactoryCard({ entry, onOpenOrder }: Props) {
         ))}
         {moreOffersCount > 0 && (
           <Title variant="body-xs" color="muted">
-            E mais {moreOffersCount} produto{moreOffersCount > 1 ? "s" : ""}{" "}
-            para oferecer nesta fábrica.
+            E mais {plural(moreOffersCount, "produto", "produtos")} para
+            oferecer nesta fábrica.
           </Title>
         )}
 

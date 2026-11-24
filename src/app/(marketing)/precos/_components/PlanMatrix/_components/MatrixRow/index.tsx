@@ -1,3 +1,5 @@
+import { ICON_SIZE } from "@/components/Icon";
+import { Table } from "@/components/Table";
 import { Title } from "@/components/Title";
 import { Check, Minus } from "lucide-react";
 import { PlanMatrixRow } from "../../../../../plans";
@@ -13,35 +15,41 @@ import { PlanMatrixRow } from "../../../../../plans";
 function MatrixCell({ value }: { value: boolean | string }) {
   if (typeof value === "string") {
     return (
-      <td className="px-12 py-12 text-center">
+      <Table.Cell align="center">
         <Title variant="body-sm" weight="semibold">
           {value}
         </Title>
-      </td>
+      </Table.Cell>
     );
   }
 
   return (
-    <td className="px-12 py-12">
+    <Table.Cell align="center">
       <div className="flex justify-center">
         {value ? (
           <Check
-            size={18}
+            size={ICON_SIZE.lg}
             className="text-(--color-status-success)"
             aria-label="Incluído"
           />
         ) : (
           <Minus
-            size={18}
+            size={ICON_SIZE.lg}
             className="text-(--color-text-muted)"
             aria-label="Não incluído"
           />
         )}
       </div>
-    </td>
+    </Table.Cell>
   );
 }
 
+/**
+ * O nome do recurso é cabeçalho DA LINHA (`th scope="row"`): o leitor de tela
+ * diz "Rotina automática, Corporativo, incluído". Visualmente é corpo — sem o
+ * fundo do cabeçalho e com o mesmo filete das células (inclusive sumindo na
+ * última linha do grupo, como o `Table.Cell`).
+ */
 export function MatrixRow({
   label,
   basic,
@@ -50,17 +58,20 @@ export function MatrixRow({
   enterprise,
 }: PlanMatrixRow) {
   return (
-    <tr className="border-b border-(--border)">
-      <th className="px-12 py-12 text-left font-(--weight-regular)">
+    <Table.Row>
+      <Table.Head
+        scope="row"
+        className="bg-transparent py-12 group-last:border-b-0"
+      >
         <Title variant="body-sm" color="secondary">
           {label}
         </Title>
-      </th>
+      </Table.Head>
 
       <MatrixCell value={basic} />
       <MatrixCell value={intermediate} />
       <MatrixCell value={corporate} />
       <MatrixCell value={enterprise} />
-    </tr>
+    </Table.Row>
   );
 }

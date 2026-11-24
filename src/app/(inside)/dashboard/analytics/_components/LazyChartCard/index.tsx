@@ -174,11 +174,7 @@ export function LazyChartCard({ title, description, help, children }: Props) {
           {/* O título quebra linha em vez de truncar: no celular "Quanto os
               maiores clientes co…" escondia justamente a pergunta. */}
           <div className="flex min-w-0 items-start gap-4">
-            <Card.Header.Title
-              size="sm"
-              weight="semibold"
-              className="min-w-0 self-center whitespace-normal"
-            >
+            <Card.Header.Title className="self-center">
               {title}
             </Card.Header.Title>
             {help && (

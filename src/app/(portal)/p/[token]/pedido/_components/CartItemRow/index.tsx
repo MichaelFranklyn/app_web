@@ -53,16 +53,16 @@ export function CartItemRow({
     );
 
   return (
-    <Card.Row className="flex-col items-stretch gap-[12px]">
+    <Card.Row className="flex-col items-stretch gap-12">
       <input type="hidden" name={`pick__${item.productId}`} value="on" />
 
-      <div className="flex items-start gap-[12px]">
+      <div className="flex items-start gap-12">
         <ProductThumb
           imageUrl={item.imageUrl ?? null}
           name={item.productName}
           size="sm"
         />
-        <div className="flex min-w-0 flex-1 flex-col gap-[2px]">
+        <div className="flex min-w-0 flex-1 flex-col gap-2">
           <Title variant="body-sm" weight="semibold" className="break-words">
             {item.productName}
           </Title>
@@ -88,7 +88,7 @@ export function CartItemRow({
         <Input.Label>Quantas unidades?</Input.Label>
         {/* Stepper de largura fixa: o campo esticado na largura toda do
             cartão parecia um formulário, não uma quantidade. */}
-        <div className="flex items-center gap-[8px]">
+        <div className="flex items-center gap-8">
           <Button.Root
             type="button"
             appearance="outline"
@@ -130,7 +130,7 @@ export function CartItemRow({
       </Input.Root>
 
       {estimate || lastPrice ? (
-        <div className="flex flex-col gap-[2px]">
+        <div className="flex flex-col gap-2">
           {estimate ? (
             <Title variant="body-sm" color="muted">
               {estimate}

@@ -2,6 +2,7 @@ import { Emphasis } from "@/components/Emphasis";
 import { Alert } from "@/components/Alert";
 import { Input } from "@/components/Input";
 import { Stepper } from "@/components/Stepper";
+import { plural, pluralWord } from "@/utils/format/plural";
 import { Info } from "lucide-react";
 import { ChangeEvent } from "react";
 
@@ -93,9 +94,15 @@ export function StepDetails({
           <Alert.Icon icon={Info} />
           <Alert.Content>
             <Alert.Description>
-              {skippedRows} linha(s) da planilha serão ignoradas por não terem
+              {plural(
+                skippedRows,
+                "linha da planilha será ignorada por não ter",
+                "linhas da planilha serão ignoradas por não terem"
+              )}{" "}
               código ou descrição (títulos, totais e observações no meio dos
-              dados). Serão importadas {importableRows} linha(s).
+              dados).{" "}
+              {pluralWord(importableRows, "Será importada", "Serão importadas")}{" "}
+              {plural(importableRows, "linha", "linhas")}.
             </Alert.Description>
           </Alert.Content>
         </Alert.Root>
@@ -105,9 +112,12 @@ export function StepDetails({
           <Alert.Icon icon={Info} />
           <Alert.Content>
             <Alert.Description>
-              {defaultedCount} produto(s) não têm múltiplo/embalagem na planilha
-              e serão importados com múltiplo 1. Você pode ajustar depois em
-              cada produto.
+              {plural(
+                defaultedCount,
+                "produto não tem múltiplo/embalagem na planilha e será importado",
+                "produtos não têm múltiplo/embalagem na planilha e serão importados"
+              )}{" "}
+              com múltiplo 1. Você pode ajustar depois em cada produto.
             </Alert.Description>
           </Alert.Content>
         </Alert.Root>

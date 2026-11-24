@@ -69,7 +69,10 @@ test("cliente/portal: cancelar o link pede confirmação antes de revogar", asyn
   const spy = await mockGraphql(page, { ...clientLayout() });
 
   await page.goto("/clients/cc-1/overview");
-  await page.getByRole("button", { name: "Compartilhar" }).click();
+  await page.getByRole("button", { name: "Mais ações do cliente" }).click();
+  await page
+    .getByRole("menuitem", { name: "Compartilhar com o cliente" })
+    .click();
 
   const cancelar = page.getByRole("button", { name: "Cancelar link" });
   await expect(cancelar).toBeVisible();

@@ -10,12 +10,12 @@ import { UseOptimisticListReturn } from "@/hooks/useOptimisticList";
 import { useTableData } from "@/hooks/useTableData";
 import { formatDate } from "@/utils/format/date";
 import { formatMoney } from "@/utils/format/masks";
+import { plural } from "@/utils/format/plural";
 import { Network } from "lucide-react";
 
 import { NETWORK_COLUMN_HELP } from "../../../help";
 import { ClientNetwork, ClientNetworksData } from "../../interface";
-import { DeleteNetworkModal } from "./DeleteNetworkModal";
-import { EditNetworkModal } from "./EditNetworkModal";
+import { NetworkRowActions } from "./NetworkRowActions";
 
 interface Props {
   table: ReturnType<typeof useTableData<ClientNetworksData, ClientNetwork>>;
@@ -49,7 +49,7 @@ export function NetworksTable({
         </Table.CardHead.Actions>
       </Table.CardHead>
 
-      <Table.Table>
+      <Table.Table cards>
         <Table.Header>
           <Table.Row>
             {/* Só o nome ordena no banco: lojas, faturamento e último pedido
@@ -60,8 +60,10 @@ export function NetworksTable({
             <Table.Head sortKey="name" title={NETWORK_COLUMN_HELP.name}>
               Rede
             </Table.Head>
-            <Table.Head title={NETWORK_COLUMN_HELP.stores}>Lojas</Table.Head>
-            <Table.Head title={NETWORK_COLUMN_HELP.invoiced}>
+            <Table.Head align="right" title={NETWORK_COLUMN_HELP.stores}>
+              Lojas
+            </Table.Head>
+            <Table.Head align="right" title={NETWORK_COLUMN_HELP.invoiced}>
               Faturamento
             </Table.Head>
             <Table.Head title={NETWORK_COLUMN_HELP.lastOrder}>
@@ -85,7 +87,7 @@ export function NetworksTable({
               <Table.Cell colSpan={COLUMNS}>
                 <EmptyState.Root flat>
                   <EmptyState.Icon>
-                    <Network size={32} />
+                    <Network />
                   </EmptyState.Icon>
                   <EmptyState.Title>
                     {search.trim()
@@ -106,41 +108,43 @@ export function NetworksTable({
                 key={network.id}
                 href={`/clients/networks/${network.id}`}
               >
-                <Table.Cell variant="strong">{network.name}</Table.Cell>
-                <Table.Cell>
+                <Table.Cell card="title" variant="strong">
+                  {network.name}
+                </Table.Cell>
+                <Table.Cell align="right" label="Lojas">
                   <Table.CellText variant="dim">
                     {network.storeCount === 1
                       ? "1 loja"
                       : `${network.storeCount} lojas`}
                   </Table.CellText>
                 </Table.Cell>
-                <Table.Cell variant="strong">
+                <Table.Cell card="value" align="right" variant="strong">
                   {formatMoney(network.invoicedAmount)}
                 </Table.Cell>
-                <Table.Cell>
+                <Table.Cell label="Último pedido">
                   <Table.CellText variant="dim">
                     {network.lastOrderDate
                       ? formatDate(network.lastOrderDate)
                       : "—"}
                   </Table.CellText>
                 </Table.Cell>
-                <Table.Cell>
-                  <div className="flex items-center justify-end gap-4">
-                    <EditNetworkModal
-                      network={network}
-                      onUpdateOptimistic={optimistic.updateOptimistic}
-                      onCommit={optimistic.commit}
-                      onRollback={optimistic.rollback}
-                      onChanged={onChanged}
-                    />
-                    <DeleteNetworkModal
-                      network={network}
-                      onRemoveOptimistic={optimistic.removeOptimistic}
-                      onCommit={optimistic.commit}
-                      onRollback={optimistic.rollback}
-                      onChanged={onChanged}
-                    />
-                  </div>
+                <Table.Cell card="actions">
+                  <NetworkRowActions
+                    edit={{
+                      network,
+                      onUpdateOptimistic: optimistic.updateOptimistic,
+                      onCommit: optimistic.commit,
+                      onRollback: optimistic.rollback,
+                      onChanged,
+                    }}
+                    remove={{
+                      network,
+                      onRemoveOptimistic: optimistic.removeOptimistic,
+                      onCommit: optimistic.commit,
+                      onRollback: optimistic.rollback,
+                      onChanged,
+                    }}
+                  />
                 </Table.Cell>
               </Table.Row>
             ))
@@ -154,7 +158,7 @@ export function NetworksTable({
             <Loading.Spinner size="sm" className="mr-6 inline-block" />
           )}
           {table.totalItems > 0
-            ? `${table.totalItems} rede(s) · página ${table.currentPage} de ${table.totalPages}`
+            ? `${plural(table.totalItems, "rede", "redes")} · página ${table.currentPage} de ${table.totalPages}`
             : "Nenhuma rede encontrada"}
         </Table.Footer.Info>
 

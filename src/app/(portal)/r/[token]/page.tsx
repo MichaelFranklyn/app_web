@@ -47,7 +47,7 @@ export default async function VisitResponsePage({ params }: PageProps) {
 
   return (
     <PublicPage.Root>
-      <PublicPage.Header className="gap-[2px]">
+      <PublicPage.Header className="gap-2">
         <Title variant="heading-sm">{form.companyName}</Title>
         <Title variant="body-xs" color="muted">
           {form.sellerName} ·{" "}

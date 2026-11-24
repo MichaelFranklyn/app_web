@@ -1,10 +1,10 @@
 "use client";
+import { formatDuration } from "@/utils/format/duration";
 import { Emphasis } from "@/components/Emphasis";
 
 import { Alert } from "@/components/Alert";
 import { Card } from "@/components/Card";
 import { EmptyState } from "@/components/EmptyState";
-import { Grid } from "@/components/Grid";
 import { Loading } from "@/components/Loading";
 import { PageContent } from "@/components/PageContent";
 import { PanelHeader } from "@/components/PanelHeader";
@@ -31,12 +31,8 @@ import {
   OperationHealthQueryData,
   OperationTrendQueryData,
 } from "./interface";
-import {
-  JOB_STATUS_LABEL,
-  formatDuration,
-  formatMoment,
-  jobTone,
-} from "./utils";
+import { JOB_STATUS_LABEL, jobTone } from "./utils";
+import { formatLogMoment } from "@/utils/format/date";
 
 const TONE_COLOR = { ok: "green", atencao: "amber", urgente: "red" } as const;
 
@@ -131,72 +127,60 @@ export default function PlatformHealthContent({
             </Alert.Root>
           )}
 
-          <Grid.Root cols={{ base: 2, tablet: 3 }} gap={12}>
-            <Grid.Item>
-              <Card.Kpi>
-                <Card.Kpi.Label>Revisão do banco</Card.Kpi.Label>
-                <Card.Kpi.Value
-                  status={health.hasPendingMigration ? "urgente" : "ok"}
-                  size="sm"
-                >
-                  {health.databaseRevision ?? "desconhecida"}
-                </Card.Kpi.Value>
-                <Card.Kpi.Delta>
-                  código: {health.codeRevision ?? "desconhecida"}
-                </Card.Kpi.Delta>
-              </Card.Kpi>
-            </Grid.Item>
+          <Card.Kpi.Group>
+            <Card.Kpi>
+              <Card.Kpi.Label>Revisão do banco</Card.Kpi.Label>
+              <Card.Kpi.Value
+                status={health.hasPendingMigration ? "urgente" : "ok"}
+                size="sm"
+              >
+                {health.databaseRevision ?? "desconhecida"}
+              </Card.Kpi.Value>
+              <Card.Kpi.Delta>
+                código: {health.codeRevision ?? "desconhecida"}
+              </Card.Kpi.Delta>
+            </Card.Kpi>
 
-            <Grid.Item>
-              <Card.Kpi>
-                <Card.Kpi.Label>Testes vencidos</Card.Kpi.Label>
-                <Card.Kpi.Value
-                  status={health.expiredTrials > 0 ? "atencao" : "ok"}
-                >
-                  {health.expiredTrials}
-                </Card.Kpi.Value>
-                <Card.Kpi.Delta>ativas com prazo no passado</Card.Kpi.Delta>
-              </Card.Kpi>
-            </Grid.Item>
+            <Card.Kpi>
+              <Card.Kpi.Label>Testes vencidos</Card.Kpi.Label>
+              <Card.Kpi.Value
+                status={health.expiredTrials > 0 ? "atencao" : "ok"}
+              >
+                {health.expiredTrials}
+              </Card.Kpi.Value>
+              <Card.Kpi.Delta>ativas com prazo no passado</Card.Kpi.Delta>
+            </Card.Kpi>
 
-            <Grid.Item>
-              <Card.Kpi>
-                <Card.Kpi.Label>Jobs monitorados</Card.Kpi.Label>
-                <Card.Kpi.Value status="neutral">
-                  {health.jobs.length}
-                </Card.Kpi.Value>
-                <Card.Kpi.Delta>
-                  {loading ? "atualizando…" : "última execução de cada um"}
-                </Card.Kpi.Delta>
-              </Card.Kpi>
-            </Grid.Item>
+            <Card.Kpi>
+              <Card.Kpi.Label>Jobs monitorados</Card.Kpi.Label>
+              <Card.Kpi.Value status="neutral">
+                {health.jobs.length}
+              </Card.Kpi.Value>
+              <Card.Kpi.Delta>
+                {loading ? "atualizando…" : "última execução de cada um"}
+              </Card.Kpi.Delta>
+            </Card.Kpi>
 
-            <Grid.Item>
-              <Card.Kpi>
-                <Card.Kpi.Label>Operações falhando</Card.Kpi.Label>
-                <Card.Kpi.Value status={report?.failing ? "urgente" : "ok"}>
-                  {report?.failing ?? "—"}
-                </Card.Kpi.Value>
-                <Card.Kpi.Delta>defeito, não recusa esperada</Card.Kpi.Delta>
-              </Card.Kpi>
-            </Grid.Item>
+            <Card.Kpi>
+              <Card.Kpi.Label>Operações falhando</Card.Kpi.Label>
+              <Card.Kpi.Value status={report?.failing ? "urgente" : "ok"}>
+                {report?.failing ?? "—"}
+              </Card.Kpi.Value>
+              <Card.Kpi.Delta>defeito, não recusa esperada</Card.Kpi.Delta>
+            </Card.Kpi>
 
-            <Grid.Item>
-              <Card.Kpi>
-                <Card.Kpi.Label>Operações lentas</Card.Kpi.Label>
-                <Card.Kpi.Value status={report?.slow ? "atencao" : "ok"}>
-                  {report?.slow ?? "—"}
-                </Card.Kpi.Value>
-                <Card.Kpi.Delta>p95 acima de 1s</Card.Kpi.Delta>
-              </Card.Kpi>
-            </Grid.Item>
-          </Grid.Root>
+            <Card.Kpi>
+              <Card.Kpi.Label>Operações lentas</Card.Kpi.Label>
+              <Card.Kpi.Value status={report?.slow ? "atencao" : "ok"}>
+                {report?.slow ?? "—"}
+              </Card.Kpi.Value>
+              <Card.Kpi.Delta>p95 acima de 1s</Card.Kpi.Delta>
+            </Card.Kpi>
+          </Card.Kpi.Group>
 
           <Card.Root>
             <Card.Header>
-              <Card.Header.Title size="sm" weight="semibold">
-                Jobs agendados
-              </Card.Header.Title>
+              <Card.Header.Title>Jobs agendados</Card.Header.Title>
               <Card.Header.Description>
                 Última execução de cada job, registrada pelo próprio job.
               </Card.Header.Description>
@@ -206,7 +190,7 @@ export default function PlatformHealthContent({
               {health.jobs.length === 0 ? (
                 <EmptyState.Root>
                   <EmptyState.Icon>
-                    <CheckCircle2 size={32} />
+                    <CheckCircle2 />
                   </EmptyState.Icon>
                   <EmptyState.Title>
                     Nenhuma execução registrada
@@ -230,9 +214,9 @@ export default function PlatformHealthContent({
                         // duração e horário na 2ª. Com flex-wrap a quebra
                         // dependia do tamanho do nome — uns jobs numa linha,
                         // outros em duas, com meia linha vazia.
-                        className="desktop:grid-cols-[minmax(0,1fr)_auto_auto] grid grid-cols-[minmax(0,1fr)_auto] items-baseline gap-x-8 gap-y-[2px]"
+                        className="desktop:grid-cols-[minmax(0,1fr)_auto_auto] grid grid-cols-[minmax(0,1fr)_auto] items-baseline gap-x-8 gap-y-2"
                       >
-                        <div className="flex flex-col gap-[2px]">
+                        <div className="flex flex-col gap-2">
                           <Title variant="body-sm" weight="semibold">
                             {job.jobName}
                           </Title>
@@ -251,7 +235,7 @@ export default function PlatformHealthContent({
                           className="max-desktop:col-span-2"
                         >
                           {formatDuration(job.durationMs)} ·{" "}
-                          {formatMoment(job.startedAt)}
+                          {formatLogMoment(job.startedAt)}
                         </Title>
                         <Title
                           variant="caption"

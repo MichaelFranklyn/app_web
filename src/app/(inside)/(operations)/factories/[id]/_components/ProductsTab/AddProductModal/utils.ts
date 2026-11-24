@@ -1,5 +1,6 @@
 import { parseMoneyToNumber } from "@/utils/format/masks";
 import { extractSelectValue } from "@/utils/form";
+import { plural } from "@/utils/format/plural";
 
 import { PriceDraftRow, TaxDraftRow } from "./interface";
 
@@ -83,8 +84,8 @@ export function findIncompleteStep(
 /** Resumo do que foi gravado além do produto, para o toast de sucesso. */
 export function buildExtrasSummary(taxes: number, prices: number): string {
   const parts: string[] = [];
-  if (taxes > 0) parts.push(`${taxes} imposto${taxes === 1 ? "" : "s"}`);
-  if (prices > 0) parts.push(`${prices} preço${prices === 1 ? "" : "s"}`);
+  if (taxes > 0) parts.push(plural(taxes, "imposto", "impostos"));
+  if (prices > 0) parts.push(plural(prices, "preço", "preços"));
   if (parts.length === 0) return "Produto cadastrado com sucesso";
   return `Produto cadastrado com ${parts.join(" e ")}`;
 }

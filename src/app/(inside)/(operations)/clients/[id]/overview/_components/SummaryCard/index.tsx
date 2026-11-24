@@ -4,6 +4,7 @@ import { Card } from "@/components/Card";
 import { HelpTooltip } from "@/components/HelpTooltip";
 import { Loading } from "@/components/Loading";
 import { Title } from "@/components/Title";
+import { formatDate } from "@/utils/format/date";
 import { SummaryCardProps } from "./interface";
 
 export function SummaryCard({
@@ -17,11 +18,7 @@ export function SummaryCard({
   return (
     <Card.Root>
       <Card.Header>
-        <Card.Header.Title
-          size="sm"
-          weight="semibold"
-          className="inline-flex items-center gap-6"
-        >
+        <Card.Header.Title>
           Resumo do Cliente
           <HelpTooltip
             label="Sobre o resumo"
@@ -35,13 +32,14 @@ export function SummaryCard({
         {lastVisitLoading ? (
           <Card.Item variant="stat">
             <Card.Item.Label>Última visita</Card.Item.Label>
-            <Loading.Skeleton className="h-[14px] w-20" />
+            <Loading.Skeleton text="body" className="w-20" />
           </Card.Item>
         ) : (
           <Card.Item
             variant="stat"
             label="Última visita"
-            value={lastVisitDate}
+            // Data no formato de leitura, não o ISO cru ("2026-11-10").
+            value={formatDate(lastVisitDate, "Nunca visitado")}
           />
         )}
         {/* Classificação da SUA empresa — o CNAE abaixo é o da Receita. */}

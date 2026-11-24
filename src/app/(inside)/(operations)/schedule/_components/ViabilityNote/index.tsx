@@ -1,3 +1,4 @@
+import { BulletList } from "@/components/BulletList";
 import { Alert } from "@/components/Alert";
 import { Title } from "@/components/Title";
 import { Viability, stockTiming, viabilityNote } from "@/utils/viability";
@@ -44,7 +45,7 @@ export function ViabilityNote({ viability, compact = false }: Props) {
         <Title variant="micro" weight="bold">
           {note.label}
         </Title>
-        <Title variant="body-sm" className="mt-[2px]">
+        <Title variant="body-sm" className="mt-2">
           {note.message}
         </Title>
         {note.action && (
@@ -53,22 +54,22 @@ export function ViabilityNote({ viability, compact = false }: Props) {
           </Title>
         )}
         {suggestions.length > 0 && (
-          <ul className="mt-6 flex flex-col gap-4">
+          <BulletList.Root className="mt-6 gap-4">
             {suggestions.map((suggestion) => {
               const timing = stockTiming(suggestion.daysUntilOut);
               return (
-                <li key={suggestion.productId} className="flex flex-wrap gap-6">
-                  <Title variant="body-sm" weight="medium">
+                <BulletList.Item key={suggestion.productId}>
+                  <Title as="span" variant="body-sm" weight="medium">
                     {suggestion.productName ?? suggestion.sku ?? "Produto"}
-                  </Title>
-                  <Title variant="body-sm" color="muted2">
+                  </Title>{" "}
+                  <Title as="span" variant="body-sm" color="muted2">
                     {suggestion.quantity} un · {formatMoney(suggestion.value)}
                     {timing ? ` · ${timing}` : ""}
                   </Title>
-                </li>
+                </BulletList.Item>
               );
             })}
-          </ul>
+          </BulletList.Root>
         )}
       </Alert.Content>
     </Alert.Root>

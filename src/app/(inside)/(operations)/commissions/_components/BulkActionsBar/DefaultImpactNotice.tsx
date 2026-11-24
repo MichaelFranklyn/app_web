@@ -7,13 +7,15 @@ import { formatMoney } from "@/utils/format/masks";
 import { AlertTriangle } from "lucide-react";
 
 import { DefaultImpact, monthLabel, YearMonth } from "../../utils";
+import { formatPercent } from "@/utils/format/percent";
+import { ICON_SIZE } from "@/components/Icon";
 
 interface Props {
   impact: DefaultImpact;
   month: YearMonth;
 }
 
-const percent = (share: number) => `${Math.round(share * 100)}%`;
+const percent = (share: number) => formatPercent(share);
 
 /**
  * O que o calote vai custar, dito antes de confirmar.
@@ -38,7 +40,7 @@ export function DefaultImpactNotice({ impact, month }: Props) {
 
   return (
     <Card.Root inset tone="muted">
-      <Card.Body padding="compact" className="flex flex-col gap-12">
+      <Card.Body padding="compact">
         <Title variant="label">O que volta</Title>
 
         {impact.factoryChargeback > 0 && (
@@ -68,7 +70,7 @@ export function DefaultImpactNotice({ impact, month }: Props) {
               {estoura && (
                 <span className="inline-flex items-center gap-6">
                   <AlertTriangle
-                    size={14}
+                    size={ICON_SIZE.sm}
                     className="text-(--color-status-warning)"
                   />
                   <Title variant="caption" color="warning">
@@ -86,8 +88,10 @@ export function DefaultImpactNotice({ impact, month }: Props) {
 
         {semDivida > 0 && (
           <Title variant="caption" color="muted">
-            Outras {semDivida} parcela(s) ainda não tinham comissão paga: nelas
-            o calote só cancela o previsto.
+            {semDivida === 1
+              ? "Outra parcela ainda não tinha"
+              : `Outras ${semDivida} parcelas ainda não tinham`}{" "}
+            comissão paga: nelas o calote só cancela o previsto.
           </Title>
         )}
       </Card.Body>

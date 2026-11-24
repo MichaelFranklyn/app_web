@@ -53,7 +53,7 @@ export function DashboardHeader({
             Dashboard
           </PanelHeader.Heading>
           <PanelHeader.Description>{description}</PanelHeader.Description>
-          <PanelHeader.Actions className="mt-6">
+          <PanelHeader.Actions>
             {canSelectSeller && (
               <div className="desktop:w-[220px] w-full">
                 <Input.Select
@@ -77,38 +77,31 @@ export function DashboardHeader({
             {/* Cada destino é um recurso de plano à parte, e a página de
                 lá redireciona quem não tem — botão que leva a um redirect é
                 pior do que botão ausente (mesma regra da sidebar). */}
-            {/* Abaixo do desktop os dois atalhos dividem uma linha meio a
-                meio (com fundo, para o botão esticado não parecer sobra). O
-                `flex-row!` vence o empilhar do estágio column do header.
-                No desktop cada um fica com a largura do próprio texto: o
-                `flex-1` ali dividia a soma meio a meio e espremia o "Ver
-                desempenho", o rótulo mais longo. */}
-            <div className="max-desktop:[&>*]:min-w-0 max-desktop:[&>*]:flex-1 flex flex-row! gap-8">
-              <FeatureGate feature="ANALYTICS">
-                <Button.Root
-                  appearance="outline"
-                  color="neutral"
-                  size="sm"
-                  fullWidthBelowDesktop
-                  onClick={() => router.push("/dashboard/analytics")}
-                >
-                  <Button.Icon icon={ChartLine} />
-                  <Button.Title>Ver desempenho</Button.Title>
-                </Button.Root>
-              </FeatureGate>
-              <FeatureGate feature="REPORTS">
-                <Button.Root
-                  appearance="outline"
-                  color="neutral"
-                  size="sm"
-                  fullWidthBelowDesktop
-                  onClick={() => router.push("/dashboard/reports")}
-                >
-                  <Button.Icon icon={FileText} />
-                  <Button.Title>Relatórios</Button.Title>
-                </Button.Root>
-              </FeatureGate>
-            </div>
+            {/* No celular, um botão por linha como em todo cabeçalho. */}
+            <FeatureGate feature="ANALYTICS">
+              <Button.Root
+                appearance="outline"
+                color="neutral"
+                size="sm"
+                fullWidthBelowDesktop
+                onClick={() => router.push("/dashboard/analytics")}
+              >
+                <Button.Icon icon={ChartLine} />
+                <Button.Title>Ver desempenho</Button.Title>
+              </Button.Root>
+            </FeatureGate>
+            <FeatureGate feature="REPORTS">
+              <Button.Root
+                appearance="outline"
+                color="neutral"
+                size="sm"
+                fullWidthBelowDesktop
+                onClick={() => router.push("/dashboard/reports")}
+              >
+                <Button.Icon icon={FileText} />
+                <Button.Title>Relatórios</Button.Title>
+              </Button.Root>
+            </FeatureGate>
           </PanelHeader.Actions>
         </PanelHeader.Left>
       </PanelHeader.Top>

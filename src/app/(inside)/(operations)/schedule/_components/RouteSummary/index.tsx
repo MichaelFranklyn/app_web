@@ -1,4 +1,5 @@
 import { Title } from "@/components/Title";
+import { plural } from "@/utils/format/plural";
 import { CrossOfficeDayRoute, VisitScheduleDay } from "../../interface";
 import { formatDistanceKm, formatMinutes } from "../../utils";
 
@@ -59,7 +60,7 @@ export function RouteSummary({
         value={String(stopCount)}
         hint={
           remoteCount > 0
-            ? `+ ${remoteCount} ${remoteCount === 1 ? "contato" : "contatos"}`
+            ? `+ ${plural(remoteCount, "contato", "contatos")}`
             : "clientes no dia"
         }
       />

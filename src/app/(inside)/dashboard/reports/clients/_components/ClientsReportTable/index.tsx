@@ -61,7 +61,7 @@ export function ClientsReportTable({
   return (
     <Table.Root sort={sort}>
       <Table.CardHead>
-        <Table.CardHead.Title className="inline-flex items-center gap-6">
+        <Table.CardHead.Title>
           Carteira de clientes
           <HelpTooltip
             label="Sobre a carteira de clientes"
@@ -114,7 +114,7 @@ export function ClientsReportTable({
               <Table.Cell colSpan={columns}>
                 <EmptyState.Root flat>
                   <EmptyState.Icon>
-                    <Users size={32} />
+                    <Users />
                   </EmptyState.Icon>
                   <EmptyState.Title>
                     {isNarrowed

@@ -37,9 +37,12 @@ export function PlanHeader({ plan }: { plan: MyPlan }) {
       </PanelHeader.Root>
 
       {/* Abaixo do desktop o botão desce e toma a linha: ao lado, espremia o
-          texto em quatro linhas e sobrava espaço embaixo dele. */}
+          texto em quatro linhas e sobrava espaço embaixo dele. Neutra, e não
+          âmbar de aviso: dizer o plano não é alerta, e o amarelo no topo
+          fazia a tela parecer com problema (crítica de configurações,
+          23/11/2026). */}
       <Alert.Root
-        variant="warning"
+        variant="neutral"
         className="max-desktop:flex-wrap items-center"
       >
         <Alert.Icon icon={Sparkles} />

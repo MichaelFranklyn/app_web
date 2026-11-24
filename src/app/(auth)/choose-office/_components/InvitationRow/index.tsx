@@ -27,7 +27,7 @@ export function InvitationRow({
 }: InvitationRowProps) {
   return (
     <Card.Root tone="muted" inset>
-      <Card.Body padding="sm" className="gap-12">
+      <Card.Body padding="sm">
         <div className="flex items-center gap-12">
           <IconTile>
             <MailPlus />

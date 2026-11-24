@@ -1,6 +1,8 @@
 import { describe, expect, it } from "vitest";
 import {
+  BRT_TIME_ZONE,
   formatDate,
+  formatDateTime,
   getCurrentWeekMondayIso,
   parseLocalDate,
   toIsoDate,
@@ -73,6 +75,22 @@ describe("formatDate", () => {
     expect(formatDate("")).toBe("—");
     expect(formatDate("data inválida")).toBe("—");
   });
+  it("com fuso, o instante cai no dia de lá: 01h UTC ainda é ontem em BRT", () => {
+    const brt = { timeZone: BRT_TIME_ZONE };
+    expect(formatDate("2026-11-11T01:00:00+00:00", "", brt)).toBe("10/11/2026");
+    expect(
+      formatDate("2026-11-11T01:00:00+00:00", "", { timeZone: "UTC" })
+    ).toBe("11/11/2026");
+  });
+  it("com fuso, a data pura continua o mesmo dia", () => {
+    expect(formatDate("2026-05-31", "—", { timeZone: BRT_TIME_ZONE })).toBe(
+      "31/05/2026"
+    );
+  });
+  it("com fuso, vazio ou inválido devolve o fallback", () => {
+    expect(formatDate(null, "", { timeZone: BRT_TIME_ZONE })).toBe("");
+    expect(formatDate("não é data", "", { timeZone: BRT_TIME_ZONE })).toBe("");
+  });
 });
 
 describe("getCurrentWeekMondayIso", () => {
@@ -81,5 +99,25 @@ describe("getCurrentWeekMondayIso", () => {
     expect(iso).toMatch(/^\d{4}-\d{2}-\d{2}$/);
     // O dia da semana (UTC) da data retornada deve ser segunda (1).
     expect(new Date(`${iso}T00:00:00Z`).getUTCDay()).toBe(1);
+  });
+});
+
+describe("formatDateTime", () => {
+  // Meio-dia UTC: em qualquer fuso brasileiro continua o mesmo dia.
+  const iso = "2026-11-24T12:05:09Z";
+
+  it("traz dia, mês, ano curto e hora", () => {
+    expect(formatDateTime(iso)).toMatch(/^24\/11\/26,? \d{2}:05$/);
+  });
+
+  it("tira o ano e põe os segundos quando pedido", () => {
+    expect(formatDateTime(iso, { withYear: false, withSeconds: true })).toMatch(
+      /^24\/11,? \d{2}:05:09$/
+    );
+  });
+
+  it("mostra travessão para vazio ou inválido", () => {
+    expect(formatDateTime(null)).toBe("—");
+    expect(formatDateTime("não é data")).toBe("—");
   });
 });

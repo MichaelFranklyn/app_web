@@ -7,19 +7,6 @@ const KPI_COUNT = 4;
 const ORDER_ROWS = 4;
 const VISIT_ROWS = 5;
 
-/** Placeholder de um card de KPI (label + valor + delta). */
-function KpiCardSkeleton() {
-  return (
-    <Grid.Item>
-      <Card.Kpi>
-        <Loading.Skeleton className="h-10 w-28" />
-        <Loading.Skeleton className="h-24 w-20" />
-        <Loading.Skeleton className="h-11 w-36" />
-      </Card.Kpi>
-    </Grid.Item>
-  );
-}
-
 /** Placeholder de uma linha do card de próximas visitas. */
 function VisitRowSkeleton() {
   return (
@@ -36,11 +23,11 @@ function VisitRowSkeleton() {
 export function DashboardSkeleton() {
   return (
     <>
-      <Grid.Root cols={{ base: 2, tablet: 2, "desktop-xl": 4 }} gap={12}>
+      <Card.Kpi.Group>
         {Array.from({ length: KPI_COUNT }).map((_, i) => (
-          <KpiCardSkeleton key={i} />
+          <Card.Kpi.Skeleton key={i} />
         ))}
-      </Grid.Root>
+      </Card.Kpi.Group>
 
       <Grid.Root cols={{ base: 1, desktop: 2 }} gap={12}>
         <Table.Root>
@@ -64,9 +51,9 @@ export function DashboardSkeleton() {
         </Table.Root>
 
         <Card.Root>
-          <Card.Header className="min-h-13.75">
+          <Card.Header>
             <Loading.Skeleton className="h-16 w-36" />
-            <div className="flex items-center gap-[6px]">
+            <div className="flex items-center gap-6">
               <Loading.Skeleton shape="pill" className="h-20 w-20" />
               <Loading.Skeleton className="h-7.5 w-28" />
             </div>

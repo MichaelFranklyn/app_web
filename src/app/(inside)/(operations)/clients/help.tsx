@@ -21,28 +21,17 @@ import { ReactNode } from "react";
 // ── Cartões do topo ──────────────────────────────────────────────────────────
 
 export const CLIENT_KPI_HELP: Record<string, ReactNode> = {
-  "Total de clientes": (
+  "Na carteira": (
     <>
       <Title variant="body-sm">
-        Quantos clientes existem na sua carteira,{" "}
-        <Emphasis>ativos ou não</Emphasis>. É o tamanho da carteira da empresa.
+        Quantos clientes estão <Emphasis>ativos</Emphasis> na carteira — os
+        mesmos que a lista abaixo mostra quando nenhum filtro de situação está
+        escolhido.
       </Title>
       <Title variant="body-sm">
-        Cliente excluído não entra. Escolhendo um vendedor no filtro, o cartão
-        passa a contar só a carteira dele.
-      </Title>
-    </>
-  ),
-  "Clientes ativos": (
-    <>
-      <Title variant="body-sm">
-        Quantos estão marcados como <Emphasis>ativos na ficha</Emphasis> — a
-        chave que se liga e desliga ao editar o cliente.
-      </Title>
-      <Title variant="body-sm">
-        É cadastro, não movimento: um cliente que parou de comprar continua
-        contando aqui até alguém desmarcá-lo. Quem parou de comprar está no
-        cartão ao lado.
+        Ativo é cadastro, não movimento: um cliente que parou de comprar
+        continua contando aqui até alguém desativá-lo. Os inativos aparecem no
+        rodapé do cartão; cliente excluído não entra em nenhum dos dois.
       </Title>
     </>
   ),

@@ -2,7 +2,7 @@
 
 import { Card } from "@/components/Card";
 import { Grid } from "@/components/Grid";
-import { DataField, EditCardAction } from "../../dataCards";
+import { EditCardAction } from "../../dataCards";
 import { ProfileSeller } from "../interface";
 
 interface Props {
@@ -36,11 +36,14 @@ export function SellerDataCard({ seller, isSelf, onEdit }: Props) {
       </Card.Header>
       <Card.Body>
         <Grid.Root cols={{ base: 1, desktop: 2 }} gap={16}>
-          <DataField label="Região" value={seller.region ?? ""} />
-          <DataField
-            label="Situação do perfil"
-            value={seller.isActive ? "Ativo" : "Inativo"}
-          />
+          <Card.Field label="Região" value={seller.region ?? ""} />
+          {/* Só quando foge do normal: "Ativo" já está na tarja do cabeçalho,
+              e repetido em dois cards virava ruído (crítica de configurações,
+              23/11/2026). O perfil de vendedor inativo com login ativo é o
+              caso que precisa aparecer. */}
+          {!seller.isActive && (
+            <Card.Field label="Situação do perfil" value="Inativo" />
+          )}
         </Grid.Root>
       </Card.Body>
     </Card.Root>

@@ -48,7 +48,10 @@ export function TaxRulesSection() {
   const onChanged = () => refetch();
 
   return (
-    <Table.Root>
+    // Lista de uma ou duas colunas não ocupa a tela toda: em 1440px o nome
+    // ficava na ponta esquerda e o "⋯" na direita, longe demais para ler a
+    // linha (crítica de configurações, 23/11/2026).
+    <Table.Root className="w-full max-w-[720px]">
       <CatalogSectionHead
         title="Regras cadastradas"
         helpLabel="Como funcionam as regras de imposto?"
@@ -112,7 +115,7 @@ export function TaxRulesSection() {
               <Table.Cell colSpan={2}>
                 <EmptyState.Root flat>
                   <EmptyState.Icon>
-                    <Percent size={32} />
+                    <Percent />
                   </EmptyState.Icon>
                   <EmptyState.Title>Nenhuma regra cadastrada</EmptyState.Title>
                   <EmptyState.Description>

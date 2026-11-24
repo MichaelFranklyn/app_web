@@ -1,4 +1,5 @@
 import { formatMoney } from "@/utils/format/masks";
+import { plural } from "@/utils/format/plural";
 import { formatUnits } from "../utils";
 import { PortalCatalogFactory } from "../interface";
 import { OrderableProduct, OrderCartItem } from "./interface";
@@ -299,7 +300,7 @@ export const cartEstimatedTotal = (items: OrderCartItem[]): number | null =>
 
 /** "1 produto" / "3 produtos". */
 export const productCountLabel = (count: number): string =>
-  count === 1 ? "1 produto" : `${count} produtos`;
+  plural(count, "produto", "produtos");
 
 /**
  * De qual fábrica é o orçamento: a escolhida, se ela atende o cliente; com

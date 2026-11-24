@@ -4,10 +4,9 @@ import { InputSearch } from "@/components/Input";
 import { PanelHeader } from "@/components/PanelHeader";
 import { PAGE_HEADING } from "@/utils/modules";
 import { PlanLimitGate } from "@/components/PlanLimitGate";
-import { FeatureGate } from "@/components/FeatureGate";
 import { useUserData } from "@/hooks/useUserData";
 import { CompanyFactory } from "../../interface";
-import { ImportFactoriesModal } from "./ImportFactoriesModal";
+import { FactoriesMoreMenu } from "./FactoriesMoreMenu";
 import { LinkFactoryModal } from "./LinkFactoryModal";
 
 interface Props {
@@ -33,11 +32,14 @@ export function FactoriesHeader({
           <PanelHeader.Heading {...PAGE_HEADING.factories}>
             Fábricas Representadas
           </PanelHeader.Heading>
+          {/* Por papel, em palavras de quem lê: "entidade global da
+              plataforma" era detalhe de modelagem (crítica de 23/11/2026). */}
           <PanelHeader.Description>
-            Fábricas cujos produtos são vendidos pela empresa. Entidade global
-            da plataforma.
+            {isSeller
+              ? "As fábricas que você pode vender."
+              : "As fábricas que a sua empresa representa."}
           </PanelHeader.Description>
-          <PanelHeader.Actions className="mt-6" data-tour="factories-actions">
+          <PanelHeader.Actions data-tour="factories-actions">
             <InputSearch
               size="sm"
               placeholder="Buscar por CNPJ ou nome..."
@@ -48,10 +50,7 @@ export function FactoriesHeader({
             />
             {!isSeller && (
               <>
-                {/* Importação em massa é recurso de plano. */}
-                <FeatureGate feature="BULK_IMPORT">
-                  <ImportFactoriesModal />
-                </FeatureGate>
+                <FactoriesMoreMenu />
                 <PlanLimitGate limit="FACTORIES">
                   <LinkFactoryModal onAddOptimistic={onAddOptimistic} />
                 </PlanLimitGate>

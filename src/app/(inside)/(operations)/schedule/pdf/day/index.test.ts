@@ -115,8 +115,8 @@ describe("buildDayRoutePdf", () => {
     expect(cabecalho().context).toEqual(
       expect.arrayContaining([
         "Vendedor: Ana",
-        "2 parada(s)",
-        "1 ligação(ões)",
+        "2 paradas",
+        "1 ligação",
         "Saída: Rua A, 100",
       ])
     );

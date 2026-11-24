@@ -7,6 +7,7 @@ import { DocumentNumber } from "@/components/DocumentNumber";
 import { Input, SelectOption } from "@/components/Input";
 import { Title } from "@/components/Title";
 import { parseLocalDate, toIsoDate } from "@/utils/format/date";
+import { plural } from "@/utils/format/plural";
 import { RotateCw } from "lucide-react";
 
 import { MatchOption } from "../../../interface";
@@ -69,14 +70,14 @@ export function PdfFileRow({
 
   return (
     <Card.Root inset tone="transparent">
-      <Card.Body padding="sm" className="gap-8">
+      <Card.Body padding="sm">
         <div className="flex flex-wrap items-center justify-between gap-8">
           <Title variant="body-sm" weight="medium" className="break-all">
             {file.fileName}
           </Title>
-          <Badge color={badge.color} size="sm">
+          <Badge.Root color={badge.color} size="sm">
             <Badge.Text>{badge.label}</Badge.Text>
-          </Badge>
+          </Badge.Root>
         </div>
 
         {header && (
@@ -99,7 +100,7 @@ export function PdfFileRow({
               {header.orderNumber
                 ? `Pedido ${header.orderNumber}`
                 : "Pedido sem número"}
-              {` · ${itemCount} item(ns)`}
+              {` · ${plural(itemCount, "item", "itens")}`}
               {header.invoiceNumber && ` · NF ${header.invoiceNumber}`}
             </Title>
             {header.paymentTerms && (
@@ -127,8 +128,12 @@ export function PdfFileRow({
             )}
             {file.unreadableRows > 0 && (
               <Title variant="body-xs" color="warning">
-                {file.unreadableRows} linha(s) do PDF não deram para ler;
-                confira o pedido depois de importar.
+                {plural(
+                  file.unreadableRows,
+                  "linha do PDF não deu",
+                  "linhas do PDF não deram"
+                )}{" "}
+                para ler; confira o pedido depois de importar.
               </Title>
             )}
           </div>

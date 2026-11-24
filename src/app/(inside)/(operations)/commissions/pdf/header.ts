@@ -9,6 +9,7 @@ import {
   setText,
   truncate,
 } from "@/utils/pdf/theme";
+import { plural } from "@/utils/format/plural";
 
 // Caixa da logo da representação no topo. A imagem chega recortada
 // (trimTransparent), então esta é a altura VISÍVEL da marca.
@@ -112,9 +113,9 @@ export const drawHeader = (pdf: Pdf, data: HeaderData): number => {
   // que o gestor procura quando o mês não fecha.
   const parts = [
     data.sellerName ? `Vendedor: ${data.sellerName}` : null,
-    `${data.count} parcela(s) de comissão`,
-    `${data.settledCount} boleto(s) liquidado(s) no mês`,
-    `${data.defaultedCount} inadimplente(s)`,
+    `${plural(data.count, "parcela", "parcelas")} de comissão`,
+    `${plural(data.settledCount, "boleto liquidado", "boletos liquidados")} no mês`,
+    `${plural(data.defaultedCount, "inadimplente", "inadimplentes")}`,
   ].filter(Boolean);
   pdf.text(parts.join("  ·  "), PAGE.margin, y);
 

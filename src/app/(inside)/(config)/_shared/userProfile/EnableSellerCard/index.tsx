@@ -30,7 +30,7 @@ export function EnableSellerCard({ isSelf, onEnable }: Props) {
             : "Esta pessoa ainda não vende em campo."}
         </Card.Header.Description>
       </Card.Header>
-      <Card.Body className="flex flex-col items-start gap-12">
+      <Card.Body className="items-start">
         <Title variant="body-sm" color="muted">
           {isSelf
             ? "Ao habilitar, você ganha rotina de visitas, acesso a fábricas e carteira de clientes — e continua com o mesmo nível de acesso que tem hoje."

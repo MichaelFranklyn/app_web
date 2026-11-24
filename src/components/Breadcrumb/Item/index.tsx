@@ -17,10 +17,16 @@ export const BreadcrumbItem = React.forwardRef<
     active ? breadcrumbItemStyles.active : breadcrumbItemStyles.interactive,
     className
   );
+  // Item cortado com "…" (nome longo de atendimento, cliente) mostra o texto
+  // inteiro na dica do navegador.
+  const title =
+    typeof children === "string" && /(^|\s)truncate/.test(className ?? "")
+      ? children
+      : undefined;
 
   if (href && !active) {
     return (
-      <Link href={href} className={combinedClasses} {...props}>
+      <Link href={href} className={combinedClasses} title={title} {...props}>
         {children}
       </Link>
     );
@@ -31,6 +37,7 @@ export const BreadcrumbItem = React.forwardRef<
       ref={ref as React.Ref<HTMLSpanElement>}
       aria-current={active ? "page" : undefined}
       className={combinedClasses}
+      title={title}
       {...props}
     >
       {children}

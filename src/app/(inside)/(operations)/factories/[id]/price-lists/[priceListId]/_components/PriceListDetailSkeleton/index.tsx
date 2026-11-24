@@ -12,15 +12,18 @@ export function PriceListDetailSkeleton() {
       {/* Cabeçalho — espelha PriceListDetailHeader (breadcrumb + PanelHeader). */}
       <div className="flex flex-col gap-8">
         <div className="flex items-center gap-6">
-          <Loading.Skeleton className="h-[12px] w-16" />
-          <Loading.Skeleton className="h-[12px] w-32" />
+          <Loading.Skeleton text="body-sm" className="w-16" />
+          <Loading.Skeleton text="body-sm" className="w-32" />
         </div>
         <PanelHeader.Root>
           <PanelHeader.Top>
             <PanelHeader.Left>
               <Loading.Skeleton className="h-[22px] w-56" />
-              <Loading.Skeleton className="mt-[6px] h-[12px] w-72 max-w-full" />
-              <PanelHeader.Actions className="mt-6">
+              <Loading.Skeleton
+                text="body-sm"
+                className="mt-6 w-72 max-w-full"
+              />
+              <PanelHeader.Actions>
                 <Loading.Skeleton shape="xs" className="h-[22px] w-16" />
                 <Loading.Skeleton className="h-[36px] w-28" />
                 <Loading.Skeleton className="h-[36px] w-10" />
@@ -33,7 +36,7 @@ export function PriceListDetailSkeleton() {
       {/* Itens da tabela — espelha ItemsTable (largura total). */}
       <Table.Root>
         <Table.CardHead>
-          <Loading.Skeleton className="h-[16px] w-32" />
+          <Loading.Skeleton text="heading-sm" className="w-32" />
           <Table.CardHead.Actions>
             <Loading.Skeleton className="h-[34px] w-70" />
             <Loading.Skeleton className="h-[34px] w-28" />
@@ -45,7 +48,7 @@ export function PriceListDetailSkeleton() {
           </Table.Body>
         </Table.Table>
         <Table.Footer>
-          <Loading.Skeleton className="h-[12px] w-40" />
+          <Loading.Skeleton text="body-sm" className="w-40" />
           <Loading.Skeleton className="h-[28px] w-48" />
         </Table.Footer>
       </Table.Root>

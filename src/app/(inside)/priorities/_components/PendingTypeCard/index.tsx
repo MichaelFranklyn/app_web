@@ -35,11 +35,12 @@ export function PendingTypeCard({ row, open, onToggle }: Props) {
   const copy = PENDING_TYPE_COPY[row.type];
   const Icon = copy.icon;
   const tone = countTone(row.count, row.highCount);
+  const subtitle = cardSubtitle(row);
   const samples = row.samples ?? [];
 
   return (
     <Card.Root data-tour="pending-card">
-      <Card.Section className="gap-12">
+      <Card.Section>
         <div className="flex items-start justify-between gap-12">
           <div className="flex min-w-0 items-start gap-10">
             <IconTile
@@ -52,9 +53,11 @@ export function PendingTypeCard({ row, open, onToggle }: Props) {
             </IconTile>
             <div className="flex min-w-0 flex-col gap-2">
               <Title variant="heading-sm">{PENDING_TYPE_LABEL[row.type]}</Title>
-              <Title variant="body-xs" color="muted">
-                {cardSubtitle(row)}
-              </Title>
+              {subtitle && (
+                <Title variant="body-xs" color="muted">
+                  {subtitle}
+                </Title>
+              )}
             </div>
           </div>
           <Title variant="kpi" color={tone} className="shrink-0 leading-none">
@@ -67,7 +70,7 @@ export function PendingTypeCard({ row, open, onToggle }: Props) {
       </Card.Section>
 
       {samples.length > 0 && (
-        <Card.Section divided className="gap-6 py-12">
+        <Card.Section divided>
           <Title variant="micro" color="muted">
             Mais urgentes
           </Title>

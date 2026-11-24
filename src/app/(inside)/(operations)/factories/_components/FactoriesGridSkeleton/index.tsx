@@ -9,24 +9,22 @@ const STAT_ROWS = 4;
 function FactoryCardSkeleton() {
   return (
     <Grid.Item>
-      <Card.Root className="h-full">
+      <Card.Root>
         <Card.Body>
           <div className="mb-12 flex items-start justify-between">
-            <div className="flex flex-col gap-[6px]">
-              <div className="flex min-h-[36px] items-start">
-                <Loading.Skeleton className="h-[14px] w-32" />
-              </div>
-              <Loading.Skeleton className="h-[10px] w-28" />
-              <Loading.Skeleton className="h-[10px] w-20" />
+            <div className="flex flex-col gap-6">
+              <Loading.Skeleton text="body" className="w-32" />
+              <Loading.Skeleton text="body-sm" className="w-28" />
+              <Loading.Skeleton text="body-sm" className="w-20" />
             </div>
             <Loading.Skeleton shape="xs" className="h-[20px] w-14" />
           </div>
 
-          <div className="flex flex-col gap-[12px]">
+          <div className="flex flex-col gap-12">
             {Array.from({ length: STAT_ROWS }).map((_, i) => (
               <div key={i} className="flex items-center justify-between">
-                <Loading.Skeleton className="h-[10px] w-24" />
-                <Loading.Skeleton className="h-[10px] w-16" />
+                <Loading.Skeleton text="body-sm" className="w-24" />
+                <Loading.Skeleton text="body-sm" className="w-16" />
               </div>
             ))}
           </div>

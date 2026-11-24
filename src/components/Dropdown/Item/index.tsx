@@ -4,6 +4,7 @@ import { cn } from "@/lib/utils";
 import * as DropdownMenuPrimitive from "@radix-ui/react-dropdown-menu";
 import React from "react";
 import { itemVariants } from "./style";
+import { ICON_SIZE } from "@/components/Icon";
 
 interface DropdownItemProps extends React.ComponentPropsWithoutRef<
   typeof DropdownMenuPrimitive.Item
@@ -21,7 +22,7 @@ export const Item = React.forwardRef<
     className={cn(itemVariants({ danger }), className)}
     {...props}
   >
-    {Icon && <Icon size={14} strokeWidth={1.5} />}
+    {Icon && <Icon size={ICON_SIZE.sm} strokeWidth={1.5} />}
     {children}
   </DropdownMenuPrimitive.Item>
 ));

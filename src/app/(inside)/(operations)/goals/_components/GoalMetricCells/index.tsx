@@ -3,6 +3,7 @@
 import { Table } from "@/components/Table";
 import { formatMoney, formatNumber } from "@/utils/format/masks";
 import { GOAL_METRICS, MetricValues, percentOf } from "@/utils/goals";
+import { formatPercentPoints } from "@/utils/format/percent";
 
 interface Props {
   /** Meta e realizado por indicador — de um vendedor ou de uma fábrica dele. */
@@ -44,7 +45,7 @@ export function GoalMetricCells({ totals }: Props) {
               <Table.CellText variant="dim2">
                 {values.target === null
                   ? "sem meta"
-                  : `${percent?.toFixed(0)}% de ${format(values.target)}`}
+                  : `${formatPercentPoints(percent ?? 0)} de ${format(values.target)}`}
               </Table.CellText>
             </div>
           </Table.Cell>

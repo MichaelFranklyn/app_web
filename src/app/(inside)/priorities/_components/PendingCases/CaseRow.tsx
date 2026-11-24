@@ -20,6 +20,11 @@ interface Props {
   item: PendingItem;
   /** Gestor: mostra de quem é a pendência. */
   showSeller: boolean;
+  /**
+   * O selo de prioridade. Só quando a lista MISTURA prioridades: numa lista
+   * toda Alta (ou toda Baixa) o mesmo selo em cada linha não separa nada.
+   */
+  showPriority: boolean;
   onScheduleReturn: (item: PendingItem) => void;
 }
 
@@ -31,7 +36,12 @@ interface Props {
  * e não na linha inteira: há mais de uma ação por pendência, e botão dentro de
  * link é HTML inválido.
  */
-export function CaseRow({ item, showSeller, onScheduleReturn }: Props) {
+export function CaseRow({
+  item,
+  showSeller,
+  showPriority,
+  onScheduleReturn,
+}: Props) {
   const who = [
     clientDetail(item),
     showSeller ? (item.sellerName ?? "sem responsável único") : null,
@@ -49,14 +59,16 @@ export function CaseRow({ item, showSeller, onScheduleReturn }: Props) {
             <Title variant="body-sm" weight="semibold">
               {item.clientName}
             </Title>
-            <Badge.Root
-              color={PENDING_PRIORITY_COLOR[item.priority]}
-              appearance="tinted"
-              size="xs"
-              title={priorityHint(item)}
-            >
-              <Badge.Text>{PENDING_PRIORITY_LABEL[item.priority]}</Badge.Text>
-            </Badge.Root>
+            {showPriority && (
+              <Badge.Root
+                color={PENDING_PRIORITY_COLOR[item.priority]}
+                appearance="tinted"
+                size="xs"
+                title={priorityHint(item)}
+              >
+                <Badge.Text>{PENDING_PRIORITY_LABEL[item.priority]}</Badge.Text>
+              </Badge.Root>
+            )}
           </div>
           {who && (
             <Title variant="micro" color="muted">
@@ -72,8 +84,11 @@ export function CaseRow({ item, showSeller, onScheduleReturn }: Props) {
         {/* No celular o prazo desce para uma linha própria: como coluna ao
             lado, ele espremia o texto numa faixa estreita. */}
         <div className="tablet:flex-col tablet:items-end tablet:gap-2 tablet:text-right flex shrink-0 flex-wrap items-baseline gap-8">
-          <Title variant="body-xs" color={dueTone(item.daysLate)}>
-            {dueLabel(item.daysLate)}
+          <Title
+            variant="body-xs"
+            color={dueTone(item.daysLate, item.priority)}
+          >
+            {dueLabel(item.daysLate, item.type)}
           </Title>
           {item.dueDate && (
             <Title variant="micro" color="muted">

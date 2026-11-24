@@ -114,7 +114,10 @@ export function describeSubscription(sub: MySubscription): SubscriptionCopy {
         title: "Sem assinatura",
         description: joinSentences(
           paidUntilSentence(sub),
-          "Assine para continuar usando o Itinus depois do período de teste."
+          // Diz por que o botão está ali: "Sem assinatura" sozinho soava como
+          // conta irregular, e não como período de teste (crítica de
+          // configurações, 23/11/2026).
+          `Você está no período de teste do ${plan}. Assine para continuar usando o Itinus quando ele acabar — os dados ficam como estão.`
         ),
         canPay: false,
         canSubscribe: true,

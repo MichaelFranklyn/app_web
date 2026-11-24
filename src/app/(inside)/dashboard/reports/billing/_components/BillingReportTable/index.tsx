@@ -8,7 +8,6 @@ import { Loading } from "@/components/Loading";
 import { Pagination } from "@/components/Pagination";
 import { Table, TableSort } from "@/components/Table";
 import { formatDateDMY, formatMoney } from "@/utils/format/masks";
-import { plural } from "@/utils/format/plural";
 import { Receipt } from "lucide-react";
 
 import { BillingRow } from "../../interface";
@@ -20,6 +19,7 @@ import {
   sumBy,
 } from "../../utils";
 import { visibleCommission } from "@/utils/commission";
+import { plural } from "@/utils/format/plural";
 
 interface Props {
   items: BillingRow[];
@@ -63,7 +63,7 @@ export function BillingReportTable({
   return (
     <Table.Root sort={sort}>
       <Table.CardHead>
-        <Table.CardHead.Title className="inline-flex items-center gap-6">
+        <Table.CardHead.Title>
           Duplicatas do período
           <HelpTooltip
             label="Sobre as duplicatas do período"
@@ -94,10 +94,14 @@ export function BillingReportTable({
             <Table.Head sortKey="client">Cliente</Table.Head>
             <Table.Head sortKey="factory">Fábrica</Table.Head>
             <Table.Head>Parcela</Table.Head>
-            <Table.Head sortKey="amount" sortFirst="desc">
+            <Table.Head align="right" sortKey="amount" sortFirst="desc">
               Valor
             </Table.Head>
-            <Table.Head sortKey="commissionAmount" sortFirst="desc">
+            <Table.Head
+              align="right"
+              sortKey="commissionAmount"
+              sortFirst="desc"
+            >
               Comissão
             </Table.Head>
           </Table.Row>
@@ -111,7 +115,7 @@ export function BillingReportTable({
               <Table.Cell colSpan={8}>
                 <EmptyState.Root flat>
                   <EmptyState.Icon>
-                    <Receipt size={32} />
+                    <Receipt />
                   </EmptyState.Icon>
                   <EmptyState.Title>
                     {isNarrowed
@@ -179,6 +183,7 @@ export function BillingReportTable({
                   {row.paidAt && ` · pago ${formatDateDMY(row.paidAt)}`}
                 </Table.Cell>
                 <Table.Cell
+                  align="right"
                   variant="strong"
                   className="whitespace-nowrap"
                   card="value"
@@ -186,6 +191,7 @@ export function BillingReportTable({
                   {formatMoney(row.amount)}
                 </Table.Cell>
                 <Table.Cell
+                  align="right"
                   variant="dim"
                   className="whitespace-nowrap"
                   label="Comissão"
