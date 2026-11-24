@@ -5,8 +5,10 @@ import { EmptyState } from "@/components/EmptyState";
 import { QueryError } from "@/components/QueryError";
 import { HelpTooltip } from "@/components/HelpTooltip";
 import { Table } from "@/components/Table";
-import { Title } from "@/components/Title";
-import { FACTORY_PRICE_LIST_COLUMN_HELP } from "../../../help";
+import {
+  FACTORY_PRICE_LISTS_HELP,
+  FACTORY_PRICE_LIST_COLUMN_HELP,
+} from "../../../help";
 import { useCompleteList } from "@/hooks/useCompleteList";
 import { useOptimisticList } from "@/hooks/useOptimisticList";
 import { formatDateDMY } from "@/utils/format/masks";
@@ -76,21 +78,7 @@ export function PriceListsTab({ companyFactoryId, factoryId }: Props) {
             Tabelas de preços
             <HelpTooltip
               label="O que é uma tabela de preço?"
-              content={
-                <div className="flex flex-col gap-2">
-                  <Title variant="label" weight="semibold">
-                    Tabela de preço
-                  </Title>
-                  <Title variant="body-sm">
-                    Versiona os preços por vigência — promoções, reajustes,
-                    histórico. Dentro de cada tabela você lança o preço por
-                    produto e nível comercial.
-                  </Title>
-                  <Title variant="body-sm" color="muted">
-                    Clique numa linha para abrir a tabela e gerenciar os preços.
-                  </Title>
-                </div>
-              }
+              content={FACTORY_PRICE_LISTS_HELP}
             />
           </Table.CardHead.Title>
           <Table.CardHead.Actions data-tour="prices-actions">

@@ -4,6 +4,7 @@ import {
   FACTORY_IMPORT_TEMPLATE_FLOW,
   FACTORY_ORDERS_FLOW,
   FACTORY_SELLERS_FLOW,
+  FACTORY_TIERS_FLOW,
 } from "../../keys";
 import { FLOW_ROUTES } from "../../routes";
 
@@ -42,7 +43,8 @@ export const factoryClientsFlow: FlowDefinition = {
   description: "Clientes vinculados a esta fábrica.",
   group: "Catálogo e preços",
   route: FLOW_ROUTES.factoryClients,
-  version: 1,
+  // v2: passo do "Nível em massa".
+  version: 2,
   steps: [
     {
       element: '[data-tour="factory-clients-actions"]',
@@ -53,10 +55,55 @@ export const factoryClientsFlow: FlowDefinition = {
       align: "end",
     },
     {
+      element: '[data-tour="factory-clients-bulk-tier"]',
+      title: "Nível em massa",
+      description:
+        "Mude o nível de muitos clientes de uma vez: todos de uma cidade, de um segmento ou de uma rede. Antes de salvar, a tela mostra quantos clientes vão mudar.",
+      side: "bottom",
+      align: "end",
+    },
+    {
       element: '[data-tour="factory-clients-table"]',
       title: "Clientes vinculados",
       description:
         "Os clientes que compram desta fábrica e o nível de cada um.",
+      side: "top",
+      align: "start",
+    },
+  ],
+};
+
+// Mora na mesma página das tabelas (/price-lists), ao lado do tour delas, que é o
+// que abre sozinho; este fica no botão de ajuda.
+export const factoryTiersFlow: FlowDefinition = {
+  key: FACTORY_TIERS_FLOW,
+  label: "Níveis de preço",
+  description: "Preço por tipo de cliente, inclusive o nível calculado em %.",
+  group: "Catálogo e preços",
+  route: FLOW_ROUTES.factoryPrices,
+  version: 1,
+  steps: [
+    {
+      element: '[data-tour="factory-tiers-table"]',
+      title: "O que é um nível",
+      description:
+        "Nível é um tipo de cliente que paga um preço diferente — por exemplo, Capital e Interior. Cada tabela de preços tem um preço para cada nível.",
+      side: "top",
+      align: "start",
+    },
+    {
+      element: '[data-tour="factory-tiers-actions"]',
+      title: "Nível calculado em %",
+      description:
+        "Em Novo nível, escolha “Percentual sobre outro nível” — ex.: Interior = Capital +8%. Não precisa de planilha: o preço é refeito sozinho sempre que o outro nível mudar.",
+      side: "bottom",
+      align: "end",
+    },
+    {
+      element: '[data-tour="factory-tiers-table"]',
+      title: "Quem paga cada nível",
+      description:
+        "O nível de cada cliente se escolhe na aba Clientes — um a um ou com “Nível em massa”. Ele decide o preço do pedido e, se você ligar um prazo de pagamento ao nível, o prazo sugerido.",
       side: "top",
       align: "start",
     },

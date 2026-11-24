@@ -37,7 +37,12 @@ export function SetTierInBulkModal(props: SetTierInBulkModalProps) {
   return (
     <Modal.Root open={m.open} onOpenChange={m.setOpen}>
       <Modal.Trigger asChild>
-        <Button.Root appearance="outline" color="neutral" size="sm">
+        <Button.Root
+          appearance="outline"
+          color="neutral"
+          size="sm"
+          data-tour="factory-clients-bulk-tier"
+        >
           <Button.Icon icon={Layers} />
           <Button.Title>Nível em massa</Button.Title>
         </Button.Root>

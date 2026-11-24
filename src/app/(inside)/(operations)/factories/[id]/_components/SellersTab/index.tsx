@@ -1,5 +1,4 @@
 "use client";
-import { Emphasis } from "@/components/Emphasis";
 
 import { Avatar } from "@/components/Avatar";
 import { Badge } from "@/components/Badges";
@@ -11,8 +10,10 @@ import {
   sellerAgreementLabel,
 } from "@/components/SellerFactoryAccess";
 import { Table } from "@/components/Table";
-import { Title } from "@/components/Title";
-import { FACTORY_SELLER_COLUMN_HELP } from "../../../help";
+import {
+  FACTORY_SELLERS_HELP,
+  FACTORY_SELLER_COLUMN_HELP,
+} from "../../../help";
 import { useCompleteList } from "@/hooks/useCompleteList";
 import { useOptimisticList } from "@/hooks/useOptimisticList";
 import { personInitials } from "@/utils/format/initials";
@@ -76,30 +77,7 @@ export function SellersTab({ factoryId, factoryName, autoOpenLink }: Props) {
           Acesso de vendedores
           <HelpTooltip
             label="O que é o acesso de vendedor?"
-            content={
-              <div className="flex flex-col gap-2">
-                <Title variant="label" weight="semibold">
-                  Acesso de vendedor
-                </Title>
-                <Title variant="body-sm">
-                  Diz quais vendedores podem vender os produtos desta fábrica.
-                  Só vendedores com acesso <Emphasis>ativo</Emphasis> aparecem
-                  na hora de vincular clientes e registrar pedidos dela.
-                </Title>
-                <Title variant="body-sm">
-                  É aqui também que se combina{" "}
-                  <Emphasis>a comissão de cada um</Emphasis>
-                  nesta fábrica: o percentual que ele ganha por pedido e quando
-                  o escritório repassa.
-                </Title>
-                <Title variant="body-sm" color="muted">
-                  <Emphasis>Desativar</Emphasis> pausa as vendas e pode ser
-                  desfeito quando quiser. <Emphasis>Excluir</Emphasis> tira o
-                  vendedor desta lista. Nos dois casos os pedidos já feitos
-                  continuam guardados.
-                </Title>
-              </div>
-            }
+            content={FACTORY_SELLERS_HELP}
           />
         </Table.CardHead.Title>
         <Table.CardHead.Actions data-tour="factory-sellers-actions">

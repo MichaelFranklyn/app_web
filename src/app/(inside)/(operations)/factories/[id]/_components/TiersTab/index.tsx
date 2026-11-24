@@ -5,7 +5,7 @@ import { QueryError } from "@/components/QueryError";
 import { HelpTooltip } from "@/components/HelpTooltip";
 import { Table } from "@/components/Table";
 import { Title } from "@/components/Title";
-import { FACTORY_TIER_COLUMN_HELP } from "../../../help";
+import { FACTORY_TIERS_HELP, FACTORY_TIER_COLUMN_HELP } from "../../../help";
 import { useCompleteList } from "@/hooks/useCompleteList";
 import { useOptimisticList } from "@/hooks/useOptimisticList";
 import { Layers } from "lucide-react";
@@ -59,28 +59,16 @@ export function TiersTab({ companyFactoryId }: Props) {
   };
 
   return (
-    <Table.Root>
+    <Table.Root data-tour="factory-tiers-table">
       <Table.CardHead>
         <Table.CardHead.Title>
           Níveis comerciais
           <HelpTooltip
             label="O que é um nível comercial?"
-            content={
-              <div className="flex flex-col gap-2">
-                <Title variant="label" weight="semibold">
-                  Nível comercial
-                </Title>
-                <Title variant="body-sm">
-                  Classe de cliente que recebe um preço diferente — por exemplo,
-                  varejo × atacado. O nível pode ter preço próprio (lançado em
-                  cada tabela) ou ser um percentual sobre outro nível — ex.:
-                  Diamante = Gold com 10% de desconto.
-                </Title>
-              </div>
-            }
+            content={FACTORY_TIERS_HELP}
           />
         </Table.CardHead.Title>
-        <Table.CardHead.Actions>
+        <Table.CardHead.Actions data-tour="factory-tiers-actions">
           <AddTierModal
             companyFactoryId={companyFactoryId}
             onAdded={handleChanged}
