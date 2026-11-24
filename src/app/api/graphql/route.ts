@@ -1,6 +1,8 @@
 import { getServerCookie } from "@/utils/cookies/serverCookie";
 import { NextRequest, NextResponse } from "next/server";
 
+import { upstreamTimeoutFor } from "./utils";
+
 // BFF do GraphQL: as chamadas do CLIENTE passam por aqui (same-origin) em vez de
 // irem direto ao backend. O token vive num cookie httpOnly (invisível ao JS) e é
 // injetado no Authorization aqui no servidor — assim um XSS não consegue roubar a
@@ -8,9 +10,9 @@ import { NextRequest, NextResponse } from "next/server";
 // deste caminho.
 const GQL_URI = process.env.NEXT_PUBLIC_GRAPHQL_API_HOST || "";
 
-// Teto da chamada ao backend, abaixo do limite da função: sem ele a função
-// morre pendurada e o navegador recebe um 500 genérico.
-const UPSTREAM_TIMEOUT_MS = 25_000;
+// Limite da função na Vercel (s). Precisa cobrir o teto mais longo de
+// `upstreamTimeoutFor`.
+export const maxDuration = 300;
 
 /**
  * "Não consegui chegar ao backend" — e não "o backend recusou".
@@ -55,7 +57,7 @@ export async function POST(req: NextRequest) {
       },
       body,
       cache: "no-store",
-      signal: AbortSignal.timeout(UPSTREAM_TIMEOUT_MS),
+      signal: AbortSignal.timeout(upstreamTimeoutFor(operationName)),
     });
 
     // Ler o corpo também pode falhar (conexão cortada no meio da resposta).
