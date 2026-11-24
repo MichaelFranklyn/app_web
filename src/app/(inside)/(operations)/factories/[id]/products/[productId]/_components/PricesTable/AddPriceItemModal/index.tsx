@@ -94,10 +94,13 @@ export function AddPriceItemModal({
 
   const tierOptions: SelectOption[] = useMemo(
     () =>
-      tiersData?.priceTiers.edges.map((e) => ({
-        value: e.node.id,
-        label: e.node.name,
-      })) ?? [],
+      // Nível calculado (percentual sobre outro) não recebe preço à mão.
+      tiersData?.priceTiers.edges
+        .filter((e) => !e.node.baseTierId)
+        .map((e) => ({
+          value: e.node.id,
+          label: e.node.name,
+        })) ?? [],
     [tiersData]
   );
 

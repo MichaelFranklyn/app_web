@@ -1,5 +1,7 @@
 import { gql } from "@apollo/client";
 
+import { PriceTier } from "./utils";
+
 export const PRICE_TIERS_QUERY = gql`
   query PriceTiers($input: BaseListInput!) {
     price_tiers: priceTiers(input: $input) {
@@ -7,6 +9,12 @@ export const PRICE_TIERS_QUERY = gql`
         node {
           id
           name
+          baseTierId
+          adjustmentPercent
+          baseTier {
+            id
+            name
+          }
         }
       }
       totalCount
@@ -31,7 +39,7 @@ export interface PriceTiersData {
     __typename?: string;
     edges: {
       __typename?: string;
-      node: { __typename?: string; id: string; name: string };
+      node: { __typename?: string } & PriceTier;
     }[];
     totalCount: number;
   };
@@ -45,6 +53,12 @@ export const CREATE_PRICE_TIER_MUTATION = gql`
       data {
         id
         name
+        baseTierId
+        adjustmentPercent
+        baseTier {
+          id
+          name
+        }
       }
     }
   }
@@ -58,6 +72,12 @@ export const UPDATE_PRICE_TIER_MUTATION = gql`
       data {
         id
         name
+        baseTierId
+        adjustmentPercent
+        baseTier {
+          id
+          name
+        }
       }
     }
   }

@@ -1,25 +1,34 @@
 "use client";
 
 import { Button } from "@/components/Button";
-import {
-  FormBuilder,
-  FormBuilderRef,
-  FormStepSchema,
-} from "@/components/FormBuilder";
 import { Modal } from "@/components/Modal";
 import { useAsyncAction } from "@/hooks/useAsyncAction";
 import { useInvalidateQueriesClient } from "@/hooks/useInvalidateQueries";
-import { PRICE_TIER_CACHE_FIELDS } from "@/utils/cacheFields";
+import {
+  PRICE_ITEM_CACHE_FIELDS,
+  PRICE_TIER_CACHE_FIELDS,
+} from "@/utils/cacheFields";
 import { useMutation } from "@apollo/client/react";
-import { useMemo, useRef } from "react";
+import { useState } from "react";
 import { UPDATE_PRICE_TIER_MUTATION } from "../gql";
+import { TierForm } from "../TierForm";
+import {
+  PriceTier,
+  TierFormValues,
+  baseTierOptions,
+  dependentsOf,
+  pricingUpdateInput,
+  signedAdjustment,
+  tierToForm,
+  validateTierForm,
+} from "../utils";
 
 interface UpdateTierResponse {
   updatePriceTier: {
     __typename?: "PriceTierTypeDataResponse";
     status: boolean;
     message: string;
-    data: { __typename?: "PriceTierType"; id: string; name: string } | null;
+    data: ({ __typename?: "PriceTierType" } & PriceTier) | null;
   };
 }
 
@@ -27,17 +36,36 @@ interface Props {
   /** Controlado: o gatilho mora fora (o "⋯"/ícone da linha, em RowActions). */
   open: boolean;
   onOpenChange: (open: boolean) => void;
-  tierId: string;
-  tierName: string;
+  tier: PriceTier;
+  /** Os níveis da fábrica: base possível e quem é calculado sobre este. */
+  tiers: PriceTier[];
   onChanged: () => void;
-  onUpdateOptimistic: (id: string, updates: { name: string }) => void;
+  onUpdateOptimistic: (id: string, updates: Partial<PriceTier>) => void;
   onCommit: () => void;
   onRollback: () => void;
 }
 
+/** O que a linha mostra já, antes da resposta do servidor. */
+const optimisticUpdates = (
+  values: TierFormValues,
+  tiers: PriceTier[]
+): Partial<PriceTier> => {
+  const name = values.name.trim();
+  if (values.kind === "own") {
+    return { name, baseTierId: null, adjustmentPercent: null, baseTier: null };
+  }
+  const base = tiers.find((t) => t.id === values.baseTierId);
+  return {
+    name,
+    baseTierId: values.baseTierId,
+    adjustmentPercent: String(signedAdjustment(values)),
+    baseTier: base ? { id: base.id, name: base.name } : null,
+  };
+};
+
 export function EditTierModal({
-  tierId,
-  tierName,
+  tier,
+  tiers,
   onChanged,
   onUpdateOptimistic,
   onCommit,
@@ -45,53 +73,43 @@ export function EditTierModal({
   open,
   onOpenChange,
 }: Props) {
-  const formRef = useRef<FormBuilderRef>(null);
+  const [values, setValues] = useState<TierFormValues>(() => tierToForm(tier));
+  const [submitted, setSubmitted] = useState(false);
+  // Cada abertura parte do nível como ele está agora (ajuste no render, não
+  // em efeito: sem um quadro com o valor velho).
+  const [wasOpen, setWasOpen] = useState(open);
+  if (open !== wasOpen) {
+    setWasOpen(open);
+    if (open) {
+      setValues(tierToForm(tier));
+      setSubmitted(false);
+    }
+  }
+
+  const errors = validateTierForm(values);
   const [updateTier] = useMutation<UpdateTierResponse>(
     UPDATE_PRICE_TIER_MUTATION
   );
   const { execute, isLoading } = useAsyncAction();
   const invalidateClient = useInvalidateQueriesClient();
 
-  const steps: FormStepSchema[] = useMemo(
-    () => [
-      {
-        id: "tier",
-        sections: [
-          {
-            id: "fields",
-            fields: [
-              {
-                name: "name",
-                type: "text",
-                label: "Nome do nível",
-                required: true,
-                placeholder: "Ex: Varejo, Atacado, Distribuidor",
-              },
-            ],
-          },
-        ],
-      },
-    ],
-    []
-  );
+  const handleSubmit = async () => {
+    setSubmitted(true);
+    if (Object.keys(errors).length > 0) return;
 
-  const initialData = useMemo(() => ({ name: tierName }), [tierName]);
-
-  const handleSubmit = async (data: Record<string, unknown>) => {
-    const name = String(data.name ?? "").trim();
-    if (!name || name === tierName) {
-      onOpenChange(false);
-      return;
-    }
-
+    const name = values.name.trim();
+    const input = {
+      ...(name !== tier.name ? { name } : {}),
+      ...pricingUpdateInput(values, tier),
+    };
     onOpenChange(false);
-    onUpdateOptimistic(tierId, { name });
+    if (Object.keys(input).length === 0) return;
+
+    onUpdateOptimistic(tier.id, optimisticUpdates(values, tiers));
 
     await execute(
       async () => {
-        const res = await updateTier({
-          variables: { id: tierId, input: { name } },
-        });
+        const res = await updateTier({ variables: { id: tier.id, input } });
         if (
           !res.data?.updatePriceTier?.status ||
           !res.data.updatePriceTier.data
@@ -107,8 +125,13 @@ export function EditTierModal({
         onSuccess: () => {
           onCommit();
           onChanged();
-          // O nível é escolhido nos preços, no item de pedido e no vínculo.
-          void invalidateClient(PRICE_TIER_CACHE_FIELDS);
+          // O nível é escolhido nos preços, no item de pedido e no vínculo; o
+          // calculado tem os preços refeitos.
+          void invalidateClient([
+            ...PRICE_TIER_CACHE_FIELDS,
+            // O calculado ganha (ou refaz) preços nas tabelas.
+            ...PRICE_ITEM_CACHE_FIELDS,
+          ]);
         },
         onError: () => {
           onRollback();
@@ -122,16 +145,16 @@ export function EditTierModal({
       <Modal.Content size="md">
         <Modal.Header
           title="Editar nível"
-          description={`Altere o nome do nível comercial "${tierName}".`}
+          description={`Nome e preço do nível comercial "${tier.name}".`}
         />
         <Modal.Body>
-          <FormBuilder
-            ref={formRef}
-            steps={steps}
-            onSubmit={handleSubmit}
-            loading={isLoading}
-            initialData={initialData}
-            unstyled
+          <TierForm
+            values={values}
+            onChange={setValues}
+            errors={submitted ? errors : {}}
+            baseOptions={baseTierOptions(tiers, tier.id)}
+            dependents={dependentsOf(tiers, tier.id)}
+            leavingPercent={!!tier.baseTierId}
           />
         </Modal.Body>
         <Modal.Footer>
@@ -152,7 +175,7 @@ export function EditTierModal({
             color="amber"
             size="md"
             loading={isLoading}
-            onClick={() => formRef.current?.submitForm()}
+            onClick={handleSubmit}
           >
             <Button.Title>Salvar</Button.Title>
           </Button.Root>

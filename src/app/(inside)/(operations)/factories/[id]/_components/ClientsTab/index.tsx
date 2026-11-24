@@ -18,7 +18,7 @@ import { FACTORY_CLIENT_COLUMN_HELP } from "../../../help";
 import { ClientLinkRowActions } from "./ClientLinkRowActions";
 import { FactoryClientLink } from "./gql";
 import { LinkClientModal } from "./LinkClientModal";
-import { SetTierByCityModal } from "./SetTierByCityModal";
+import { SetTierInBulkModal } from "./SetTierInBulkModal";
 import { useFactoryClientsTable } from "./useFactoryClientsTable";
 import { priorityMeta } from "@/utils/clientPriority";
 import { clientName } from "@/utils/company";
@@ -90,7 +90,7 @@ export function ClientsTab({
             onTextChange={table.setFilter}
           />
           {!isSeller && (
-            <SetTierByCityModal
+            <SetTierInBulkModal
               factoryId={factoryId}
               tierOptions={table.tierOptions}
               onDone={() => refetch()}

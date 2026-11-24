@@ -1,3 +1,5 @@
+import { DerivedTierFields } from "../../../../_shared/derivedTier";
+
 // product e tier vêm de loaders e são anuláveis no schema (ex.: tier
 // soft-deletado depois que o item foi criado).
 export interface PriceListItemRow {
@@ -16,7 +18,8 @@ export interface PriceListItemRow {
     unit: { id: string; label: string } | null;
     unitLabel: { id: string; label: string } | null;
   } | null;
-  tier: { id: string; name: string } | null;
+  /** Com `baseTier`, é calculado: preço vem do base, sem edição à mão. */
+  tier: ({ id: string; name: string } & DerivedTierFields) | null;
 }
 
 export interface ItemsQueryData {

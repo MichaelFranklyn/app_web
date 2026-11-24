@@ -1,4 +1,5 @@
 "use client";
+import { describeDerived } from "../../../../_shared/derivedTier";
 import { Emphasis } from "@/components/Emphasis";
 
 import { Badge } from "@/components/Badges";
@@ -186,6 +187,11 @@ export function ItemsTable({
                   </Table.Cell>
                   <Table.Cell variant="dim" label="Nível">
                     {it.tier?.name ?? ""}
+                    {describeDerived(it.tier) && (
+                      <Table.CellText variant="dim2">
+                        {` · ${describeDerived(it.tier)}`}
+                      </Table.CellText>
+                    )}
                   </Table.Cell>
                   <Table.Cell align="right" label="Preço da embalagem">
                     <Table.CellText variant="dim">

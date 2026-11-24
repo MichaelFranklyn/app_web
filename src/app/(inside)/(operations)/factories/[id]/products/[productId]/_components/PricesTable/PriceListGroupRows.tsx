@@ -1,4 +1,5 @@
 import { Badge } from "@/components/Badges";
+import { describeDerived } from "../../../../_shared/derivedTier";
 import { Button } from "@/components/Button";
 import { Table } from "@/components/Table";
 import { formatDateDMY, formatNumber } from "@/utils/format/masks";
@@ -88,9 +89,16 @@ export function PriceListGroupRows({
         return (
           <Table.Row key={item.id}>
             <Table.Cell card="title">
-              <Badge.Root color="neutral" appearance="tinted">
-                <Badge.Text>{item.tier?.name ?? "—"}</Badge.Text>
-              </Badge.Root>
+              <div className="flex flex-col items-start gap-2">
+                <Badge.Root color="neutral" appearance="tinted">
+                  <Badge.Text>{item.tier?.name ?? "—"}</Badge.Text>
+                </Badge.Root>
+                {describeDerived(item.tier) && (
+                  <Table.CellText variant="dim2">
+                    {describeDerived(item.tier)}
+                  </Table.CellText>
+                )}
+              </div>
             </Table.Cell>
             <Table.Cell align="right" label={`Preço por ${pack.packLabel}`}>
               <Table.CellText variant="dim">
@@ -115,14 +123,17 @@ export function PriceListGroupRows({
             </Table.Cell>
             <Table.Cell card="actions">
               <div className="flex items-center justify-end gap-4">
-                <PriceItemRowActions
-                  item={item}
-                  label={`${priceList?.name ?? "preço"} · ${item.tier?.name ?? ""}`}
-                  onChanged={onChanged}
-                  onRemoveOptimistic={onRemoveOptimistic}
-                  onCommit={onCommit}
-                  onRollback={onRollback}
-                />
+                {/* Preço de nível calculado vem do base: sem edição à mão. */}
+                {!item.tier?.baseTier && (
+                  <PriceItemRowActions
+                    item={item}
+                    label={`${priceList?.name ?? "preço"} · ${item.tier?.name ?? ""}`}
+                    onChanged={onChanged}
+                    onRemoveOptimistic={onRemoveOptimistic}
+                    onCommit={onCommit}
+                    onRollback={onRollback}
+                  />
+                )}
               </div>
             </Table.Cell>
           </Table.Row>

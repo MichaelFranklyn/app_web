@@ -29,6 +29,11 @@ export const PRICE_LIST_ITEMS_QUERY = gql`
           tier {
             id
             name
+            adjustmentPercent
+            baseTier {
+              id
+              name
+            }
           }
         }
       }

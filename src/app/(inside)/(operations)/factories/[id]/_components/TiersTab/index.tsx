@@ -13,12 +13,12 @@ import { useMemo } from "react";
 import { AddTierModal } from "./AddTierModal";
 import { PRICE_TIERS_QUERY, PriceTiersData } from "./gql";
 import { TierRowActions } from "./TierRowActions";
+import { describeDerived } from "../../_shared/derivedTier";
+import { PriceTier } from "./utils";
 
 interface Props {
   companyFactoryId: string;
 }
-
-type PriceTier = { id: string; name: string };
 
 const getConnection = (d: PriceTiersData) => d.price_tiers;
 
@@ -72,8 +72,9 @@ export function TiersTab({ companyFactoryId }: Props) {
                 </Title>
                 <Title variant="body-sm">
                   Classe de cliente que recebe um preço diferente — por exemplo,
-                  varejo × atacado. Dentro de cada tabela, você lança um preço
-                  por produto para cada nível.
+                  varejo × atacado. O nível pode ter preço próprio (lançado em
+                  cada tabela) ou ser um percentual sobre outro nível — ex.:
+                  Diamante = Gold com 10% de desconto.
                 </Title>
               </div>
             }
@@ -84,6 +85,7 @@ export function TiersTab({ companyFactoryId }: Props) {
             companyFactoryId={companyFactoryId}
             onAdded={handleChanged}
             onAddOptimistic={optimistic.addOptimistic}
+            tiers={tiers}
           />
         </Table.CardHead.Actions>
       </Table.CardHead>
@@ -131,13 +133,20 @@ export function TiersTab({ companyFactoryId }: Props) {
             tiers.map((tier) => (
               <Table.Row key={tier.id}>
                 <Table.Cell card="title" variant="strong">
-                  {tier.name}
+                  <div className="flex flex-col gap-2">
+                    {tier.name}
+                    {describeDerived(tier) && (
+                      <Title variant="body-sm" color="muted">
+                        {describeDerived(tier)}
+                      </Title>
+                    )}
+                  </div>
                 </Table.Cell>
                 <Table.Cell card="actions">
                   <TierRowActions
                     edit={{
-                      tierId: tier.id,
-                      tierName: tier.name,
+                      tier,
+                      tiers,
                       onChanged: handleChanged,
                       onUpdateOptimistic: optimistic.updateOptimistic,
                       onCommit: optimistic.commit,
