@@ -1,6 +1,12 @@
 import { describe, expect, it } from "vitest";
 
-import { packMinimumText, quantityHint, suggestedQuantity } from "./utils";
+import {
+  packMinimumText,
+  pickPriceItems,
+  quantityHint,
+  rankActivePriceLists,
+  suggestedQuantity,
+} from "./utils";
 
 describe("suggestedQuantity", () => {
   it("preenche o campo vazio com a embalagem mínima", () => {
@@ -38,5 +44,48 @@ describe("packMinimumText", () => {
     expect(packMinimumText(12)).toBe("12 unidades");
     expect(packMinimumText(null)).toBe("Sem mínimo (vende por unidade)");
     expect(packMinimumText(1)).toBe("Sem mínimo (vende por unidade)");
+  });
+});
+
+describe("tabela que sugere o preço com 2+ vigentes", () => {
+  const list = (
+    id: string,
+    region: string,
+    validFrom: string,
+    isActive = true
+  ) => ({ id, region, validFrom, isActive });
+
+  it("geral antes da regional, mais recente antes, id no empate; encerrada fora", () => {
+    expect(
+      rankActivePriceLists([
+        list("icms7", "ICMS 7%", "2026-11-01"),
+        list("velha", "", "2026-01-01"),
+        list("nova", "", "2026-10-01"),
+        list("b", "", "2026-10-01"),
+        list("encerrada", "", "2026-12-01", false),
+      ])
+    ).toEqual(["b", "nova", "velha", "icms7"]);
+  });
+
+  it("um preço por produto+nível, da tabela mais bem colocada", () => {
+    const item = (priceListId: string, product: string, price: string) => ({
+      priceListId,
+      product: { id: product },
+      tier: { id: "t1" },
+      price,
+    });
+    const picked = pickPriceItems(
+      [
+        item("icms7", "p1", "9"),
+        item("geral", "p1", "10"),
+        item("icms7", "p2", "5"),
+        item("fora", "p3", "1"),
+      ],
+      ["geral", "icms7"]
+    );
+    expect(picked.map((i) => `${i.product.id}=${i.price}`).sort()).toEqual([
+      "p1=10",
+      "p2=5",
+    ]);
   });
 });
