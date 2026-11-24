@@ -139,7 +139,8 @@ export const FACTORY_PAYMENT_TERM_COLUMN_HELP = {
     "Quantos boletos o prazo gera — é a quantidade de vencimentos ao lado.",
   minimum:
     "Valor mínimo do pedido para este prazo ficar disponível. Abaixo dele, o prazo nem aparece na hora de fechar o pedido.",
-  actions: "Alterar os vencimentos e o mínimo, ou remover a condição.",
+  tier: "Para quais clientes o prazo vale. Um prazo do nível “Interior” é sugerido primeiro nos pedidos dos clientes desse nível; “Todos” vale para qualquer cliente.",
+  actions: "Alterar os vencimentos, o mínimo e o nível, ou remover a condição.",
 } as const;
 
 // ── Aba: tabelas de preço ────────────────────────────────────────────────────

@@ -5,6 +5,8 @@ import { gql } from "@apollo/client";
 // `minOrderAmount` é o piso de faturamento que a fábrica exige para liberar o
 // prazo (nulo = sem piso). Vem junto do rótulo para o vendedor descobrir a
 // exigência no passo 1, e não ao tentar confirmar o pedido já montado.
+// `priceTierId` diz de que nível de clientes o prazo é (capital × interior):
+// o pedido sugere o prazo do nível do cliente.
 export const ORDER_PAYMENT_TERMS_QUERY = gql`
   query OrderPaymentTerms($input: BaseListInput!) {
     factoryPaymentTerms(input: $input) {
@@ -14,6 +16,7 @@ export const ORDER_PAYMENT_TERMS_QUERY = gql`
           name
           installmentsDays
           minOrderAmount
+          priceTierId
         }
       }
     }
@@ -28,6 +31,8 @@ export interface OrderPaymentTermsData {
         name: string;
         installmentsDays: number[];
         minOrderAmount: number | null;
+        /** Nível de clientes do prazo; null = vale para todos. */
+        priceTierId: string | null;
       };
     }[];
   };

@@ -27,6 +27,7 @@ import {
 import { usePaymentTermOptions } from "../../_shared/orderPaymentTerms";
 import { useFreeFreightTarget } from "../../_shared/orderFreight";
 import { useDraftBackup } from "./useDraftBackup";
+import { useSuggestedPaymentTerm } from "./useSuggestedPaymentTerm";
 
 /**
  * O que a página de novo pedido faz igual em qualquer origem (lista, cliente,
@@ -65,10 +66,20 @@ export function useNewOrderCore(fixed: Fixed = {}) {
   // Os itens também ficam no aparelho até o pedido ser criado: sem sinal, o
   // pedido não é criado (nem guardado para depois), mas o trabalho não se perde.
   const backup = useDraftBackup(draft, factoryId, clientId);
-  const { options: paymentTermOptions, minimumOf } = usePaymentTermOptions(
-    true,
-    factoryId || null
-  );
+  const {
+    options: paymentTermOptions,
+    minimumOf,
+    suggestedId: suggestedPaymentTermId,
+  } = usePaymentTermOptions(true, factoryId || null, draft.linkedTierId);
+  useSuggestedPaymentTerm({
+    formRef,
+    clientId,
+    factoryId,
+    suggestedId: suggestedPaymentTermId,
+    options: paymentTermOptions,
+    paymentTermId,
+    setPaymentTermId,
+  });
   const paymentMinimum = minimumOf(paymentTermId || null);
   // Piso de frete grátis da modalidade escolhida — incentivo, nunca bloqueio.
   const freeFreight = useFreeFreightTarget(

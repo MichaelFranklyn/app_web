@@ -20,4 +20,9 @@ export interface PaymentTermChoices {
    * código (a ficha de pedido) esperaria para sempre.
    */
   loading: boolean;
+  /**
+   * Condição do nível comercial do cliente, para o pedido já vir com ela —
+   * null quando o nível do cliente não tem condição própria.
+   */
+  suggestedId: string | null;
 }

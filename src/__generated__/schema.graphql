@@ -2879,6 +2879,8 @@ input CreateFactoryPaymentTermInput {
   installmentsDays: [Int!]!
   """Piso de faturamento para usar este prazo. Nulo = sem mínimo."""
   minOrderAmount: Decimal = null
+  """Nível comercial que usa este prazo. Nulo = todos os níveis."""
+  priceTierId: UUID = null
 }
 
 type FactoryPaymentTermType {
@@ -2887,6 +2889,8 @@ type FactoryPaymentTermType {
   name: String!
   installmentsDays: [Int!]!
   minOrderAmount: Decimal
+  """Nível comercial que usa este prazo. Nulo = todos os níveis."""
+  priceTierId: UUID
   createdAt: DateTime!
   companyFactory: CompanyFactoryType
 }
@@ -2914,6 +2918,9 @@ input UpdateFactoryPaymentTermInput {
   installmentsDays: [Int!] = null
   """Zero remove o mínimo — `null` é "não mexer", como nos demais updates."""
   minOrderAmount: Decimal = null
+  priceTierId: UUID = null
+  """`true` desvincula o prazo do nível (volta a valer para todos)."""
+  clearPriceTier: Boolean = false
 }
 
 extend type Query {

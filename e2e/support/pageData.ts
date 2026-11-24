@@ -347,9 +347,11 @@ export const PAGE_DATA: Record<string, Handlers> = {
           name: "30/60/90 com faturamento mínimo",
           installmentsDays: [30, 60, 90],
           minOrderAmount: "5000.00",
+          priceTierId: null,
         },
       ]),
     }),
+    PaymentTermTiers: () => ({ priceTiers: conn([]) }),
   },
 
   "/factories/factory-1/products": {

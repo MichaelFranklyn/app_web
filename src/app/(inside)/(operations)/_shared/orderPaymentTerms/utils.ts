@@ -38,3 +38,52 @@ export const paymentTermLabel = (
   const days = term.installmentsDays ?? [];
   return days.length ? `${days.join("/")} dias` : term.name;
 };
+
+interface TieredTerm {
+  id: string;
+  priceTierId?: string | null;
+  minOrderAmount?: number | null;
+}
+
+/** 0 = do nível do cliente, 1 = de todos os níveis, 2 = de outro nível. */
+const tierRank = (term: TieredTerm, tierId: string | null): number => {
+  if (!term.priceTierId) return 1;
+  return term.priceTierId === tierId ? 0 : 2;
+};
+
+/**
+ * Condições na ordem em que o vendedor deve vê-las: as do nível do cliente
+ * primeiro (o interior compra em 45/75/105, não em 30/60/90), depois as que
+ * valem para todos, por último as de outro nível. Dentro de cada grupo, a
+ * ordem que veio. Sem nível conhecido, nada muda.
+ */
+export const sortTermsForTier = <T extends TieredTerm>(
+  terms: T[],
+  tierId: string | null
+): T[] => {
+  if (!tierId) return terms;
+  return terms
+    .map((term, index) => ({ term, index }))
+    .sort(
+      (a, b) =>
+        tierRank(a.term, tierId) - tierRank(b.term, tierId) || a.index - b.index
+    )
+    .map(({ term }) => term);
+};
+
+/**
+ * A condição que o pedido já traz escolhida para este cliente: a do nível
+ * dele com o MENOR mínimo (a que qualquer pedido alcança). Sem condição do
+ * nível, nenhuma — "todos os níveis" não diz qual o cliente costuma usar.
+ */
+export const suggestTermId = (
+  terms: TieredTerm[],
+  tierId: string | null
+): string | null => {
+  if (!tierId) return null;
+  const own = terms.filter((term) => term.priceTierId === tierId);
+  if (own.length === 0) return null;
+  return own.reduce((best, term) =>
+    (term.minOrderAmount ?? 0) < (best.minOrderAmount ?? 0) ? term : best
+  ).id;
+};

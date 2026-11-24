@@ -7,7 +7,12 @@ import { PaymentTermMinimum } from "../orderDraftItems";
 import { useCompanyFactoryId } from "../orderItemCatalog";
 import { ORDER_PAYMENT_TERMS_QUERY, OrderPaymentTermsData } from "./gql";
 import { PaymentTermChoices } from "./interface";
-import { findTermIdByName, paymentTermLabel } from "./utils";
+import {
+  findTermIdByName,
+  paymentTermLabel,
+  sortTermsForTier,
+  suggestTermId,
+} from "./utils";
 
 /**
  * Opções de condição de pagamento da fábrica escolhida no wizard de pedido —
@@ -17,10 +22,14 @@ import { findTermIdByName, paymentTermLabel } from "./utils";
  * O rótulo carrega o piso de faturamento ("30/60/90 · mínimo R$ 3.000,00")
  * porque é no passo 1 que essa informação evita trabalho perdido: quem já sabe
  * da exigência escolhe outra condição antes de montar o pedido inteiro.
+ *
+ * Com o nível comercial do cliente (`clientTierId`), as condições desse nível
+ * vêm primeiro e uma delas é sugerida (`suggestedId`).
  */
 export function usePaymentTermOptions(
   open: boolean,
-  factoryId: string | null
+  factoryId: string | null,
+  clientTierId: string | null = null
 ): PaymentTermChoices {
   const companyFactoryId = useCompanyFactoryId(open, factoryId);
 
@@ -48,7 +57,7 @@ export function usePaymentTermOptions(
   return useMemo(() => {
     const nodes = data?.factoryPaymentTerms.edges.map(({ node }) => node) ?? [];
 
-    const options = nodes.map((node) => {
+    const options = sortTermsForTier(nodes, clientTierId).map((node) => {
       // O prazo, e só ele: o nome cadastrado costuma ser os próprios dias, e o
       // rótulo saía repetindo — "45/60/90 (45/60/90)".
       const base = paymentTermLabel(node);
@@ -74,6 +83,7 @@ export function usePaymentTermOptions(
       minimumOf,
       idByName: (name: string) => findTermIdByName(nodes, name),
       loading,
+      suggestedId: suggestTermId(nodes, clientTierId),
     };
-  }, [data, loading]);
+  }, [data, loading, clientTierId]);
 }
