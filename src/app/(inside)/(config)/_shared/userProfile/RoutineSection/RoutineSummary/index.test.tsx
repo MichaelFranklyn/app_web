@@ -52,7 +52,7 @@ describe("RoutineSummary", () => {
     expect(screen.queryByText("até 5")).not.toBeInTheDocument();
     expect(screen.getByText("50% do intervalo")).toBeInTheDocument();
     expect(screen.getByText("30 min")).toBeInTheDocument();
-    expect(screen.getByText("na mesma semana")).toBeInTheDocument();
+    expect(screen.getByText("Na mesma semana")).toBeInTheDocument();
     expect(screen.getByText("3")).toBeInTheDocument();
   });
 
@@ -63,7 +63,7 @@ describe("RoutineSummary", () => {
       <RoutineSummary config={{ ...CONFIG, isRemoteContactEnabled: false }} />
     );
     expect(screen.getByText("Ligar entre visitas")).toBeInTheDocument();
-    expect(screen.getByText("não")).toBeInTheDocument();
+    expect(screen.getByText("Não")).toBeInTheDocument();
     expect(screen.queryByText("Ligar a partir de")).toBeNull();
   });
 
@@ -71,6 +71,6 @@ describe("RoutineSummary", () => {
     render(
       <RoutineSummary config={{ ...CONFIG, isRescheduleSameWeek: false }} />
     );
-    expect(screen.getByText("na semana seguinte")).toBeInTheDocument();
+    expect(screen.getByText("Na semana seguinte")).toBeInTheDocument();
   });
 });

@@ -1,5 +1,6 @@
 export interface SummaryCardProps {
-  lastVisitDate: string;
+  /** ISO; `null` quando nenhuma fábrica do cliente foi visitada. */
+  lastVisitDate: string | null;
   /**
    * A data da última visita chega depois do resto: ela sai de uma consulta
    * pesada (os vínculos com as fábricas) que não segura mais a aba inteira.

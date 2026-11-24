@@ -1,8 +1,5 @@
 "use client";
 
-import { ImagePlus } from "lucide-react";
-import { useState } from "react";
-
 import { Button } from "@/components/Button";
 import { Input } from "@/components/Input";
 import { Modal } from "@/components/Modal";
@@ -16,6 +13,9 @@ import { useUploadPhotos } from "./useUploadPhotos";
 interface Props {
   companyFactoryId: string;
   onChanged: () => void;
+  /** Aberto pelo menu "Mais ações" da aba (não tem gatilho próprio). */
+  open: boolean;
+  onOpenChange: (open: boolean) => void;
 }
 
 /**
@@ -26,30 +26,26 @@ interface Props {
  * cada uma com o produto. A tela de conferência existe para o que sobrou — e
  * cada sobra se resolve escolhendo o produto num select, sem renomear arquivo.
  */
-export function UploadPhotosModal({ companyFactoryId, onChanged }: Props) {
-  const [open, setOpen] = useState(false);
-
+export function UploadPhotosModal({
+  companyFactoryId,
+  onChanged,
+  open,
+  onOpenChange,
+}: Props) {
   const upload = useUploadPhotos({
     open,
     companyFactoryId,
     onChanged,
-    onClose: () => setOpen(false),
+    onClose: () => onOpenChange(false),
   });
 
   const handleOpenChange = (value: boolean) => {
-    setOpen(value);
+    onOpenChange(value);
     if (!value) upload.reset();
   };
 
   return (
     <Modal.Root open={open} onOpenChange={handleOpenChange}>
-      <Modal.Trigger asChild>
-        <Button.Root appearance="outline" color="neutral" size="sm">
-          <Button.Icon icon={ImagePlus} />
-          <Button.Title>Enviar fotos</Button.Title>
-        </Button.Root>
-      </Modal.Trigger>
-
       <Modal.Content size="2xl">
         <Modal.Header
           title="Enviar fotos dos produtos"

@@ -4,19 +4,11 @@ import { Card } from "@/components/Card";
 import { Divider } from "@/components/Divider";
 import { IconTile } from "@/components/IconTile";
 import { Title } from "@/components/Title";
-import { cn } from "@/lib/utils";
 import { ArrowRight } from "lucide-react";
 import Link from "next/link";
 
 import { CatalogLinkWithCount } from "../../interface";
 import { CATALOG_TONE, countLabel } from "../../utils";
-
-/** A seta é ícone (3:1 basta): o traço leva a matiz viva, não o tom de texto. */
-const ICON_COLOR = {
-  purple: "stroke-(--purple)",
-  green: "stroke-(--color-status-success)",
-  orange: "stroke-(--orange)",
-} as const;
 
 interface Props {
   link: CatalogLinkWithCount;
@@ -73,13 +65,14 @@ export function CatalogNavCard({ link, count }: Props) {
               >
                 {countLabel(count, noun)}
               </Title>
+              {/* Seta neutra: a cor do módulo já está no ícone do alto, e a
+                  seta verde/laranja somava um segundo acento por card — com
+                  cinco cards, a tela virava um arco-íris (crítica de
+                  configurações, 23/11/2026). Escurece no hover. */}
               <ArrowRight
                 aria-hidden
                 size={16}
-                className={cn(
-                  "shrink-0 transition-transform duration-200 group-hover:translate-x-[3px]",
-                  ICON_COLOR[color]
-                )}
+                className="shrink-0 stroke-(--color-text-muted) transition-transform duration-200 group-hover:translate-x-[3px] group-hover:stroke-(--color-text)"
               />
             </div>
           </div>

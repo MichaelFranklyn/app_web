@@ -20,6 +20,7 @@ export const Cell = React.forwardRef<HTMLTableCellElement, TableCellProps>(
       card,
       label,
       emptyText,
+      cardHidden,
       children,
       ...props
     },
@@ -31,6 +32,7 @@ export const Cell = React.forwardRef<HTMLTableCellElement, TableCellProps>(
         ref={ref}
         data-card={card}
         data-label={label}
+        data-card-hidden={cardHidden || undefined}
         className={cn(
           tableCellBase,
           tableCellVariants[variant],

@@ -2,27 +2,21 @@
 
 import { Button } from "@/components/Button";
 import { Dropdown } from "@/components/Dropdown";
-import {
-  ArrowRightLeft,
-  ChevronDown,
-  RefreshCw,
-  RotateCcw,
-  Store,
-  UserMinus,
-} from "lucide-react";
-import { useState } from "react";
-import { EndClientModal } from "../EndClientModal";
-import { TransferCnpjModal } from "../TransferCnpjModal";
-import { EndingStatus, HygieneTarget } from "../interface";
-import { isWalletActive } from "../utils";
-import { useHygieneMutations } from "./useHygieneMutations";
+import { MoreOption } from "@/components/MoreOptions";
+import { ChevronDown, Store } from "lucide-react";
+import { HygieneOptionsArgs, useHygieneOptions } from "./useHygieneOptions";
 
-interface Props extends HygieneTarget {
-  /** O cliente mudou: a tela recarrega o que mostra. */
-  onChanged: () => void;
-  /** Mudou de CNPJ: para onde ir (a ficha navega para o cadastro novo). */
-  onTransferred?: (newCompanyClientId: string) => void;
-}
+const renderItems = (options: MoreOption[]) =>
+  options.map((option) => (
+    <Dropdown.Item
+      key={option.label}
+      icon={option.icon}
+      danger={option.danger}
+      onSelect={option.onClick}
+    >
+      {option.label}
+    </Dropdown.Item>
+  ));
 
 /**
  * "Situação do cliente": as ações de higienização num lugar só.
@@ -30,26 +24,16 @@ interface Props extends HygieneTarget {
  * Botão com NOME, e não um "…": são ações que mudam o que acontece com o
  * cliente dali em diante, e quem procura "o cliente fechou" precisa achar a
  * porta pela palavra. Os itens são frases do que aconteceu, não comandos de
- * cadastro.
+ * cadastro (definidos em `useHygieneOptions`, que a ficha do cliente também
+ * usa dentro do menu dela).
  *
  * Cliente que mudou de CNPJ não tem ação: a relação continua no cadastro novo.
  */
-export function HygieneActions({
-  companyClientId,
-  clientName,
-  status,
-  onChanged,
-  onTransferred,
-}: Props) {
-  const [ending, setEnding] = useState<EndingStatus | null>(null);
-  const [transferring, setTransferring] = useState(false);
-  const { runReactivate, runReceita, isBusy } = useHygieneMutations(
-    companyClientId,
-    onChanged
-  );
+export function HygieneActions(props: HygieneOptionsArgs) {
+  const { available, registry, wallet, modals, isBusy } =
+    useHygieneOptions(props);
 
-  if (status === "SUCCEEDED") return null;
-  const active = isWalletActive(status);
+  if (!available) return null;
 
   return (
     <>
@@ -69,67 +53,16 @@ export function HygieneActions({
         <Dropdown.Content align="end">
           <Dropdown.Group>
             <Dropdown.Label>Cadastro</Dropdown.Label>
-            <Dropdown.Item icon={RefreshCw} onSelect={runReceita}>
-              Mudou de nome: atualizar pela Receita
-            </Dropdown.Item>
-            {active && (
-              <Dropdown.Item
-                icon={ArrowRightLeft}
-                onSelect={() => setTransferring(true)}
-              >
-                Mudou de CNPJ
-              </Dropdown.Item>
-            )}
+            {renderItems(registry)}
           </Dropdown.Group>
           <Dropdown.Separator />
           <Dropdown.Group>
             <Dropdown.Label>Carteira</Dropdown.Label>
-            {active ? (
-              <>
-                <Dropdown.Item
-                  icon={UserMinus}
-                  danger
-                  onSelect={() => setEnding("CLOSED")}
-                >
-                  Não existe mais
-                </Dropdown.Item>
-                <Dropdown.Item
-                  icon={UserMinus}
-                  danger
-                  onSelect={() => setEnding("ENDED")}
-                >
-                  Não trabalhamos mais com ele
-                </Dropdown.Item>
-              </>
-            ) : (
-              <Dropdown.Item icon={RotateCcw} onSelect={runReactivate}>
-                Reativar cliente
-              </Dropdown.Item>
-            )}
+            {renderItems(wallet)}
           </Dropdown.Group>
         </Dropdown.Content>
       </Dropdown.Root>
-
-      {ending && (
-        <EndClientModal
-          companyClientId={companyClientId}
-          clientName={clientName}
-          open
-          onOpenChange={(open) => !open && setEnding(null)}
-          initialStatus={ending}
-          onDone={onChanged}
-        />
-      )}
-      <TransferCnpjModal
-        companyClientId={companyClientId}
-        clientName={clientName}
-        open={transferring}
-        onOpenChange={setTransferring}
-        onDone={(newId) => {
-          onChanged();
-          onTransferred?.(newId);
-        }}
-      />
+      {modals}
     </>
   );
 }

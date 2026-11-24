@@ -11,6 +11,7 @@ import { Title } from "@/components/Title";
 import { factoryName } from "@/utils/company";
 import { clientDisplayName } from "@/utils/client";
 import { formatDate } from "@/utils/format/date";
+import { plural } from "@/utils/format/plural";
 import {
   SUPPORT_CATEGORY_LABEL,
   SUPPORT_STATUS_COLOR,
@@ -60,7 +61,7 @@ export function SupportTable({
         <Table.CardHead.Actions>
           <InputSearch
             size="sm"
-            containerClassName="w-72"
+            containerClassName="w-72 max-tablet:w-full"
             placeholder="Buscar pelo assunto..."
             value={inputValues.search ?? ""}
             onChange={(e) => setFilter("search", e.target.value)}
@@ -162,17 +163,21 @@ export function SupportTable({
                   />
                 </Table.Cell>
                 <Table.Cell card="hidden">
-                  <SupportPriorityBadge priority={item.priority} />
+                  {item.priority === "NORMAL" ? (
+                    <Table.CellText variant="dim">Normal</Table.CellText>
+                  ) : (
+                    <SupportPriorityBadge priority={item.priority} />
+                  )}
                 </Table.Cell>
+                {/* Só o tempo: "9 dias esperando desde 14/11" repetia a coluna.
+                    A data fica no `title`, para quem precisa dela. */}
                 <Table.Cell label="Esperando">
-                  <div className="max-desktop:inline-flex max-desktop:flex-row max-desktop:flex-wrap max-desktop:gap-x-6 flex flex-col">
-                    <Table.CellText variant="dim">
-                      {supportAgeLabel(item.ageDays, item.isOpen)}
-                    </Table.CellText>
-                    <Table.CellText variant="dim">
-                      {`desde ${formatDate(item.reportedAt)}`}
-                    </Table.CellText>
-                  </div>
+                  <Table.CellText
+                    variant="dim"
+                    title={`Cliente avisou em ${formatDate(item.reportedAt)}`}
+                  >
+                    {supportAgeLabel(item.ageDays, item.isOpen)}
+                  </Table.CellText>
                 </Table.Cell>
                 <Table.Cell label="Último andamento">
                   <div className="max-desktop:inline-flex max-desktop:flex-row max-desktop:flex-wrap max-desktop:gap-x-6 flex flex-col">
@@ -203,7 +208,7 @@ export function SupportTable({
             <Loading.Spinner size="sm" className="mr-6 inline-block" />
           )}
           {totalItems > 0
-            ? `${totalItems} reclamação(ões) · página ${currentPage} de ${totalPages}`
+            ? `${plural(totalItems, "reclamação", "reclamações")} · página ${currentPage} de ${totalPages}`
             : "Nenhuma reclamação"}
         </Table.Footer.Info>
         <Pagination.Smart

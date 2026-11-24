@@ -49,7 +49,10 @@ export function UnitsSection() {
   const onChanged = () => refetch();
 
   return (
-    <Table.Root>
+    // Lista de uma ou duas colunas não ocupa a tela toda: em 1440px o nome
+    // ficava na ponta esquerda e o "⋯" na direita, longe demais para ler a
+    // linha (crítica de configurações, 23/11/2026).
+    <Table.Root className="w-full max-w-[720px]">
       <CatalogSectionHead
         title="Unidades cadastradas"
         helpLabel="O que é uma unidade?"

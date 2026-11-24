@@ -1,8 +1,9 @@
 "use client";
 
-import { Card } from "@/components/Card";
-import { Collapse } from "@/components/Collapse";
+import { Button } from "@/components/Button";
+import { Drawer } from "@/components/Drawer";
 import { Title } from "@/components/Title";
+import { BookOpen } from "lucide-react";
 import { useState } from "react";
 
 import { guideSections } from "../../help";
@@ -13,51 +14,61 @@ interface Props {
 }
 
 /**
- * "Como isto é calculado": a explicação da tela inteira num lugar só, fechada.
+ * "Como isto é calculado": a explicação da tela inteira num lugar só.
  *
  * Antes eram cerca de dez "?" espalhados — um por cartão, um por botão —, e a
  * tela de comissões virava um campo de interrogações. Quem confere o mês todo
  * dia não precisa delas; quem chega pela primeira vez prefere ler de uma vez,
- * na ordem da tela, a caçar ícone por ícone. Os "?" que sobraram estão colados
- * em uma escolha (vendedor, ótica) ou num painel que só às vezes aparece.
+ * na ordem da tela, a caçar ícone por ícone.
+ *
+ * É um botão no cabeçalho que abre um painel lateral, e não um cartão fechado
+ * entre o título e os números: o cartão empurrava a lista ~100px para baixo
+ * em toda visita, para uma leitura que se faz uma vez (crítica de
+ * /commissions, 23/11/2026).
  */
 export function CommissionsGuide({ canManage }: Props) {
   const [open, setOpen] = useState(false);
-  const sections = guideSections(canManage);
 
   return (
-    <Card.Root data-testid="commissions-guide">
-      <Collapse.Header>
-        <Collapse.Trigger
-          variant="bar"
-          open={open}
-          onToggle={() => setOpen((v) => !v)}
-          aria-controls="commissions-guide-body"
-        >
-          <div className="flex min-w-0 flex-col">
-            <Title variant="body-sm" weight="semibold">
-              Como isto é calculado
-            </Title>
-            <Title variant="body-xs" color="muted">
-              O mês, os cartões, as situações, os filtros e o PDF — tudo
-              explicado num lugar só.
-            </Title>
-          </div>
-        </Collapse.Trigger>
-      </Collapse.Header>
-      {open && (
-        <div
-          id="commissions-guide-body"
-          className="desktop:grid-cols-2 grid grid-cols-1 gap-x-24 gap-y-20 px-16 py-16"
-        >
-          {sections.map((section) => (
+    <>
+      <Button.Root
+        appearance="outline"
+        color="neutral"
+        size="sm"
+        className="shrink-0"
+        label="Como é calculado"
+        aria-haspopup="dialog"
+        aria-expanded={open}
+        data-testid="commissions-guide"
+        onClick={() => setOpen(true)}
+      >
+        <Button.Icon icon={BookOpen} />
+        {/* No celular, só o ícone: com o rótulo, o botão espremia o título
+            "Comissões" e a descrição numa coluna estreita. */}
+        <Button.Title className="max-tablet:hidden">
+          Como é calculado
+        </Button.Title>
+      </Button.Root>
+      <Drawer.Root
+        open={open}
+        onClose={() => setOpen(false)}
+        label="Como isto é calculado"
+        unmountOnClose
+      >
+        <Drawer.Header>
+          <Title variant="heading-sm">Como isto é calculado</Title>
+        </Drawer.Header>
+        <Drawer.Body className="gap-20">
+          {guideSections(canManage).map((section) => (
             <section key={section.title} className="flex flex-col gap-6">
-              <Title variant="heading-sm">{section.title}</Title>
+              <Title variant="body-md" weight="semibold">
+                {section.title}
+              </Title>
               {section.body}
             </section>
           ))}
-        </div>
-      )}
-    </Card.Root>
+        </Drawer.Body>
+      </Drawer.Root>
+    </>
   );
 }

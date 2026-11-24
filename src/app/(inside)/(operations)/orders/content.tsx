@@ -25,6 +25,7 @@ import { ORDER_TAB_HELP } from "./help";
 import { ITEMS_PER_PAGE, Order, OrdersStats, QueryData } from "./interface";
 import { useOrderFilters } from "./useOrderFilters";
 import { useOrderTabCounts, withCount } from "./useOrderTabCounts";
+import { OrderTabLabel } from "./_components/OrderTabLabel";
 import { useOrdersTab } from "./useOrdersTab";
 import { ORDER_DEFAULT_SORT, ORDER_SORTABLE_FIELDS } from "./utils";
 
@@ -146,13 +147,19 @@ export default function OrdersContent({
           {/* A explicação vai no `title` do próprio gatilho: a aba já é um
               botão, e um "?" ao lado dela viraria botão dentro de botão. */}
           <Tabs.Item value="all" title={ORDER_TAB_HELP.all}>
-            Todos os pedidos
+            <OrderTabLabel full="Todos os pedidos" short="Todos" />
           </Tabs.Item>
           <Tabs.Item value="pending" title={ORDER_TAB_HELP.pending}>
-            {withCount("Esperando faturamento", tabCounts.pending)}
+            <OrderTabLabel
+              full={withCount("Esperando faturamento", tabCounts.pending)}
+              short={withCount("A faturar", tabCounts.pending)}
+            />
           </Tabs.Item>
           <Tabs.Item value="delivery" title={ORDER_TAB_HELP.delivery}>
-            {withCount("Esperando entrega", tabCounts.delivery)}
+            <OrderTabLabel
+              full={withCount("Esperando entrega", tabCounts.delivery)}
+              short={withCount("A entregar", tabCounts.delivery)}
+            />
           </Tabs.Item>
         </Tabs.List>
 

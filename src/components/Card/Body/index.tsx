@@ -4,10 +4,10 @@ import { CardBodyProps } from "./interface";
 import { bodyStyle } from "./style";
 
 export const Body = React.forwardRef<HTMLDivElement, CardBodyProps>(
-  ({ padding, className, ...props }, ref) => (
+  ({ padding, columns, className, ...props }, ref) => (
     <div
       ref={ref}
-      className={cn(bodyStyle({ padding }), className)}
+      className={cn(bodyStyle({ padding, columns }), className)}
       {...props}
     />
   )

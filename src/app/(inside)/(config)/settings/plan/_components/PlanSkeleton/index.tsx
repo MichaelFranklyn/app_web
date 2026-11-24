@@ -21,7 +21,7 @@ function SectionHeadingSkeleton({ help = false }: { help?: boolean }) {
 /**
  * Espelha `content.tsx` na ordem em que a tela real monta: cabeçalho, o aviso
  * do plano (no celular o "Comparar planos" desce e toma a linha, por isso o
- * aviso é mais alto), a assinatura, os quatro limites e a grade de recursos.
+ * aviso é mais alto), a assinatura, os quatro limites e a checklist de recursos.
  *
  * Serve ao `loading.tsx` e ao carregamento do cliente.
  */
@@ -63,13 +63,11 @@ export function PlanSkeleton() {
 
       <section className="flex flex-col gap-12">
         <SectionHeadingSkeleton help />
-        <Grid.Root cols={{ base: 1, tablet: 2, "desktop-xl": 3 }} gap={12}>
-          {Array.from({ length: 6 }).map((_, i) => (
-            <Grid.Item key={i}>
-              <Loading.Skeleton shape="md" className="h-[76px] w-full" />
-            </Grid.Item>
-          ))}
-        </Grid.Root>
+        {/* Um cartão só com a checklist dentro, como a tela real. */}
+        <Loading.Skeleton
+          shape="md"
+          className="desktop-xl:h-[150px] tablet:h-[220px] h-[420px] w-full"
+        />
       </section>
     </PageContent>
   );

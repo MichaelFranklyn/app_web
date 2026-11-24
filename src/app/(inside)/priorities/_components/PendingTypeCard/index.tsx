@@ -35,6 +35,7 @@ export function PendingTypeCard({ row, open, onToggle }: Props) {
   const copy = PENDING_TYPE_COPY[row.type];
   const Icon = copy.icon;
   const tone = countTone(row.count, row.highCount);
+  const subtitle = cardSubtitle(row);
   const samples = row.samples ?? [];
 
   return (
@@ -52,9 +53,11 @@ export function PendingTypeCard({ row, open, onToggle }: Props) {
             </IconTile>
             <div className="flex min-w-0 flex-col gap-2">
               <Title variant="heading-sm">{PENDING_TYPE_LABEL[row.type]}</Title>
-              <Title variant="body-xs" color="muted">
-                {cardSubtitle(row)}
-              </Title>
+              {subtitle && (
+                <Title variant="body-xs" color="muted">
+                  {subtitle}
+                </Title>
+              )}
             </div>
           </div>
           <Title variant="kpi" color={tone} className="shrink-0 leading-none">

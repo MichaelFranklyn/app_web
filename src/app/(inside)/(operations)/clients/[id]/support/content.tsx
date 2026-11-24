@@ -1,15 +1,14 @@
 "use client";
 
 import { Button } from "@/components/Button";
-import { HelpTooltip } from "@/components/HelpTooltip";
+import { EmptyState } from "@/components/EmptyState";
 import { QueryError } from "@/components/QueryError";
 import { SupportCaseModal } from "@/components/SupportCaseModal";
-import { Title } from "@/components/Title";
 import { SUPPORT_CASES_QUERY } from "@/graphql/support";
 import { SupportCase } from "@/utils/support";
 import { useQuery } from "@apollo/client/react";
 import { Loading } from "@/components/Loading";
-import { Plus } from "lucide-react";
+import { Headset, Plus } from "lucide-react";
 import { useMemo, useState } from "react";
 
 import { useClientRoute } from "../context";
@@ -55,32 +54,44 @@ export default function ClientSupportContent() {
     return <QueryError onRetry={() => refetch()} />;
   }
 
-  return (
-    <div className="flex flex-col gap-16">
-      <div className="flex flex-wrap items-center justify-between gap-16">
-        <div className="flex items-center gap-6">
-          <Title variant="heading-md">Reclamações deste cliente</Title>
-          <HelpTooltip
-            label="O que entra aqui?"
-            content={CLIENT_SUPPORT_HELP}
-          />
-        </div>
-        <Button.Root
-          type="button"
-          appearance="solid"
-          color="amber"
-          size="sm"
-          // Abaixo do desktop desce sozinho para baixo do título; esticado,
-          // não deixa sobra à direita.
-          fullWidthBelowDesktop
-          onClick={() => setCreating(true)}
-        >
-          <Button.Icon icon={Plus} />
-          <Button.Title>Registrar reclamação</Button.Title>
-        </Button.Root>
-      </div>
+  const createButton = (
+    <Button.Root
+      type="button"
+      appearance="solid"
+      color="amber"
+      size="sm"
+      fullWidthBelowDesktop
+      onClick={() => setCreating(true)}
+    >
+      <Button.Icon icon={Plus} />
+      <Button.Title>Registrar reclamação</Button.Title>
+    </Button.Root>
+  );
 
-      <ClientSupportList cases={cases} />
+  return (
+    <>
+      {/* Um título só, o do card (crítica de 23/11/2026): o "Reclamações deste
+          cliente" solto acima do card repetia o título de dentro dele. Sem
+          caso nenhum, só o estado vazio, sem cabeçalho de tabela vazia. */}
+      {cases.length === 0 ? (
+        <EmptyState.Root>
+          <EmptyState.Icon>
+            <Headset size={32} />
+          </EmptyState.Icon>
+          <EmptyState.Title>Nenhuma reclamação registrada</EmptyState.Title>
+          <EmptyState.Description>
+            Quando este cliente reclamar de algo — mercadoria, pagamento,
+            entrega — registre aqui para acompanhar a tratativa com a fábrica.
+          </EmptyState.Description>
+          <EmptyState.Actions>{createButton}</EmptyState.Actions>
+        </EmptyState.Root>
+      ) : (
+        <ClientSupportList
+          cases={cases}
+          help={CLIENT_SUPPORT_HELP}
+          action={createButton}
+        />
+      )}
 
       <SupportCaseModal
         open={creating}
@@ -89,6 +100,6 @@ export default function ClientSupportContent() {
         clientName={client.nomeFantasia ?? client.razaoSocial}
         onSaved={() => refetch()}
       />
-    </div>
+    </>
   );
 }

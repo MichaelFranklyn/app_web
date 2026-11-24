@@ -49,7 +49,10 @@ export function ClientsSection({ sellerId }: Props) {
         </Table.CardHead.Actions>
       </Table.CardHead>
 
-      <Table.Table>
+      {/* Cartões abaixo do desktop, como a lista de clientes: no celular só a
+          coluna "Cliente" cabia e o resto da linha ficava fora da tela
+          (crítica de configurações, 23/11/2026). */}
+      <Table.Table cards>
         <Table.Header>
           <Table.Row>
             <Table.Head sortKey="client_name" title={WALLET_COLUMN_HELP.client}>
@@ -110,17 +113,17 @@ export function ClientsSection({ sellerId }: Props) {
               const priority = priorityMeta(node.priority);
               return (
                 <Table.Row key={node.id}>
-                  <Table.Cell>
+                  <Table.Cell card="title">
                     <Table.CellText variant="strong">
                       {clientName(node.client)}
                     </Table.CellText>
                   </Table.Cell>
-                  <Table.Cell>
+                  <Table.Cell label="Fábrica">
                     <Table.CellText variant="dim">
                       {factoryName(node.factory)}
                     </Table.CellText>
                   </Table.Cell>
-                  <Table.Cell>
+                  <Table.Cell card="status" cardHidden={!node.priority}>
                     {/* Vínculo sem prioridade é o caso comum (o motor decide
                         pelo comportamento de compra): um travessão solto lê
                         melhor do que uma etiqueta vazia repetida linha a linha. */}
@@ -132,14 +135,14 @@ export function ClientsSection({ sellerId }: Props) {
                       <Table.CellText variant="dim">—</Table.CellText>
                     )}
                   </Table.Cell>
-                  <Table.Cell>
+                  <Table.Cell label="Frequência de visita">
                     <Table.CellText variant="dim">
                       {node.visitFrequencyDays
                         ? `A cada ${node.visitFrequencyDays} dias`
                         : "—"}
                     </Table.CellText>
                   </Table.Cell>
-                  <Table.Cell>
+                  <Table.Cell label="Última visita">
                     <Table.CellText variant="dim">
                       {formatDateDMY(node.lastVisitDate ?? undefined)}
                     </Table.CellText>

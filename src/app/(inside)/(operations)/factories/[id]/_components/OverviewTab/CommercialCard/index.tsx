@@ -62,28 +62,9 @@ export function CommercialCard({ companyFactory }: Props) {
       <Card.Body padding="compact">
         <Card.Item variant="stat">
           <Card.Item.Label>Comissão</Card.Item.Label>
-          {/* O rótulo do botão é longo ("Aplicar aos pedidos faturados"):
-              sem quebrar, ele e o percentual não cabem em 320px. Abaixo do
-              desktop o grupo se desfaz (`contents`): o percentual fica na linha
-              de "Comissão", como os outros itens, e o botão desce esticado para
-              a linha de baixo — antes "Comissão" ficava sozinho e o grupo
-              descia desalinhado (regra "nenhuma linha com sobra"). */}
-          <div className="max-desktop:contents flex flex-wrap items-center justify-end gap-x-12 gap-y-4">
-            <Button.Root
-              appearance="ghost"
-              color="neutral"
-              size="sm"
-              fullWidthBelowDesktop
-              className="max-desktop:order-last max-desktop:mt-8"
-              onClick={() => setApplyRatePrompt(true)}
-            >
-              <Button.Icon icon={Calculator} />
-              <Button.Title>Aplicar aos pedidos faturados</Button.Title>
-            </Button.Root>
-            <Card.Item.Value>
-              {formatCommissionRate(companyFactory.commissionRate)}
-            </Card.Item.Value>
-          </div>
+          <Card.Item.Value>
+            {formatCommissionRate(companyFactory.commissionRate)}
+          </Card.Item.Value>
         </Card.Item>
         <Card.Item variant="stat">
           <Card.Item.Label>Base de cálculo</Card.Item.Label>
@@ -124,6 +105,25 @@ export function CommercialCard({ companyFactory }: Props) {
           </Card.Item.Value>
         </Card.Item>
       </Card.Body>
+      {/* A porta para corrigir os pedidos já lançados fica no rodapé, com a
+          frase do que ela faz: entre "Comissão" e "Base de cálculo" ela
+          quebrava a leitura das condições, e é uma ação que mexe em pedidos
+          passados, não mais uma condição (crítica de 23/11/2026). */}
+      <Card.Footer className="flex-wrap gap-x-12 gap-y-8">
+        <Title variant="body-sm" color="muted" className="min-w-0 flex-1">
+          Mudou o percentual? Os pedidos já faturados guardam o antigo.
+        </Title>
+        <Button.Root
+          appearance="outline"
+          color="neutral"
+          size="sm"
+          fullWidthBelowDesktop
+          onClick={() => setApplyRatePrompt(true)}
+        >
+          <Button.Icon icon={Calculator} />
+          <Button.Title>Aplicar aos pedidos faturados</Button.Title>
+        </Button.Root>
+      </Card.Footer>
     </Card.Root>
   );
 }

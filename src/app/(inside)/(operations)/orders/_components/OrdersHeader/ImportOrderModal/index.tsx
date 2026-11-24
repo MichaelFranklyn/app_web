@@ -27,6 +27,7 @@ import { ImportOrderModalProps, useImportOrder } from "./useImportOrder";
 export function ImportOrderModal(props: ImportOrderModalProps) {
   const {
     open,
+    isControlled,
     handleClose,
     deferred,
     ipiInOrder,
@@ -47,12 +48,14 @@ export function ImportOrderModal(props: ImportOrderModalProps) {
 
   return (
     <Modal.Root open={open} onOpenChange={handleClose}>
-      <Modal.Trigger asChild>
-        <Button.Root appearance="outline" color="neutral" size="sm">
-          <Button.Icon icon={Upload} />
-          <Button.Title>Importar pedido</Button.Title>
-        </Button.Root>
-      </Modal.Trigger>
+      {!isControlled && (
+        <Modal.Trigger asChild>
+          <Button.Root appearance="outline" color="neutral" size="sm">
+            <Button.Icon icon={Upload} />
+            <Button.Title>Importar pedido</Button.Title>
+          </Button.Root>
+        </Modal.Trigger>
+      )}
 
       <Modal.Content size="5xl">
         <Modal.Header

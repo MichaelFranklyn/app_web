@@ -35,6 +35,12 @@ export interface ImportFactoryOrderProps {
   onChanged: () => void;
   /** Insere a linha na aba assim que o pedido nasce, antes do refetch. */
   onAddOptimistic: (order: FactoryOrder) => void;
+  /**
+   * Aberto por fora: o gatilho é o item "Importar pedido" do "Mais ações" da
+   * aba (crítica de 23/11/2026), não um botão do próprio modal.
+   */
+  open: boolean;
+  onOpenChange: (open: boolean) => void;
 }
 
 interface PendingOrder {
@@ -58,8 +64,9 @@ export function useImportFactoryOrder({
   factoryId,
   onChanged,
   onAddOptimistic,
+  open,
+  onOpenChange,
 }: ImportFactoryOrderProps) {
-  const [open, setOpen] = useState(false);
   const [isBusy, setIsBusy] = useState(false);
   const [pending, setPending] = useState<PendingOrder | null>(null);
   // O que o formulário mostrava ao avançar: voltar do wizard o remonta, e sem o
@@ -210,7 +217,7 @@ export function useImportFactoryOrder({
 
   const handleClose = (value: boolean) => {
     if (!value && isBusy) return; // Não fecha durante a importação.
-    setOpen(value);
+    onOpenChange(value);
     if (!value) {
       if (createdOrderIdRef.current) refetchList(); // Pedido criado: lista reflete.
       setPending(null);

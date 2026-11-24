@@ -53,4 +53,10 @@ export interface TableCellProps extends React.TdHTMLAttributes<HTMLTableCellElem
    * ou em que a frase repetiria o que a linha já disse — aí "—".
    */
   emptyText?: string;
+  /**
+   * Some do cartão (celular/tablet). Para detalhe opcional que, vazio, só
+   * repetiria "Não informado" em toda linha. No desktop a célula continua,
+   * para a coluna não desalinhar.
+   */
+  cardHidden?: boolean;
 }

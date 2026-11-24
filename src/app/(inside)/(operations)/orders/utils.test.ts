@@ -138,6 +138,12 @@ describe("buildOrderKpis", () => {
     expect(comissao.value).toContain("20");
   });
 
+  it("mostra os valores dos cartões em reais inteiros", () => {
+    // Em 2 colunas no celular o centavo fazia o valor quebrar em duas linhas.
+    const [, valorTotal] = buildOrderKpis(stats({ totalAmount: "223084.51" }));
+    expect(valorTotal.value).toBe("R$\u00a0223.085");
+  });
+
   it("mostra o ticket médio junto do valor total", () => {
     const [, valorTotal] = buildOrderKpis(stats());
     expect(valorTotal.delta).toContain("100");
@@ -148,10 +154,10 @@ describe("buildOrderKpis", () => {
     // (ver `_apply_placed_only` no backend), e a lista abaixo mostra também
     // orçamento e cancelado — o número menor precisa se explicar.
     expect(buildOrderKpis(stats(), false)[0].delta).toBe(
-      "pedidos feitos da empresa"
+      "pedidos feitos da empresa · sem orçamento e cancelado"
     );
     expect(buildOrderKpis(stats(), true)[0].delta).toBe(
-      "pedidos feitos no filtro atual"
+      "pedidos feitos no filtro atual · sem orçamento e cancelado"
     );
   });
 
@@ -159,10 +165,10 @@ describe("buildOrderKpis", () => {
     // O saldo é a mesma venda entregue em partes: fica fora de totalOrders,
     // mas aparece na lista — a legenda explica a diferença.
     expect(buildOrderKpis(stats({ backorderCount: 1 }))[0].delta).toBe(
-      "pedidos feitos da empresa · 1 saldo à parte"
+      "pedidos feitos da empresa · sem orçamento e cancelado · 1 saldo à parte"
     );
     expect(buildOrderKpis(stats({ backorderCount: 3 }), true)[0].delta).toBe(
-      "pedidos feitos no filtro atual · 3 saldos à parte"
+      "pedidos feitos no filtro atual · sem orçamento e cancelado · 3 saldos à parte"
     );
     expect(buildOrderKpis(stats())[0].value).toBe("10");
   });

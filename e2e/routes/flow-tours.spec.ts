@@ -144,9 +144,13 @@ const DADOS: Record<string, Record<string, Handler>> = {
       },
     }),
   },
-  // Nenhum passo destes depende de conteúdo: a faixa de contagem, a tabela, as
-  // abas e a barra de recorte desenham vazias.
-  "/support": {},
+  // A tabela desenha vazia, mas a faixa de contagem some com a fila zerada
+  // (crítica de 23/11/2026): uma reclamação aberta basta para o passo existir.
+  "/support": {
+    ClientSupportCounts: () => ({
+      clientSupportCounts: [{ status: "OPEN", count: 1 }],
+    }),
+  },
   // Recorte vazio troca KPIs, gráfico e tabela por um aviso só (ReportEmpty), e
   // o passo dos KPIs tem `requireSelector`: sem uma venda o tour encolhe.
   "/dashboard/reports/sales": {

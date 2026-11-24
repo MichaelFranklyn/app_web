@@ -33,16 +33,20 @@ export default function CatalogSettingsContent({ counts }: Props) {
       >
         {CATALOG_GROUPS.map((group) => (
           <section key={group.title} className="flex flex-col gap-12">
+            {/* Título do grupo em peso de seção, não eyebrow cinza: era o
+                texto mais apagado da tela e a divisão entre "Produtos" e
+                "Impostos" se perdia (crítica de configurações, 23/11/2026). */}
             <div className="flex flex-col gap-2">
-              <Title variant="eyebrow" color="muted">
-                {group.title}
-              </Title>
+              <Title variant="heading-md">{group.title}</Title>
               <Title variant="body-sm" color="muted">
                 {group.description}
               </Title>
             </div>
 
-            <Grid.Root cols={{ base: 1, desktop: 2 }} gap={16}>
+            {/* Três por fileira no desktop: em duas, o card ficava largo demais
+                para duas linhas de texto e a página rolava à toa (crítica de
+                configurações, 23/11/2026). */}
+            <Grid.Root cols={{ base: 1, tablet: 2, desktop: 3 }} gap={16}>
               {group.links.map((link) => (
                 <CatalogNavCard
                   key={link.href}

@@ -120,11 +120,8 @@ export function FactoryGoalCard({
             e os quatro indicadores abaixo dizem de onde ela vem. */}
         {overall !== null && (
           <div className="mb-12 flex flex-col gap-4">
-            <Title
-              variant="body-xs"
-              weight="semibold"
-              color={percentTone(overall)}
-            >
+            {/* Texto neutro, cor só na barra (crítica de 23/11/2026). */}
+            <Title variant="body-xs" weight="semibold">
               {overall.toFixed(0)}% da meta
             </Title>
             <Progress.Bar
@@ -162,7 +159,7 @@ export function FactoryGoalCard({
                       · sem meta
                     </Title>
                   ) : (
-                    <Title variant="body-xs" color={percentTone(percent)}>
+                    <Title variant="body-xs" color="muted">
                       · {percent?.toFixed(0)}% de {format(values.target)}
                     </Title>
                   )}

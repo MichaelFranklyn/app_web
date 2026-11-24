@@ -15,8 +15,7 @@ import { toIsoDate } from "@/utils/format/date";
 import { useInvalidateQueriesClient } from "@/hooks/useInvalidateQueries";
 import { PRICE_LIST_CACHE_FIELDS } from "@/utils/cacheFields";
 import { useMutation } from "@apollo/client/react";
-import { Copy } from "lucide-react";
-import { useMemo, useRef, useState } from "react";
+import { useMemo, useRef } from "react";
 import {
   CLONE_FACTORY_PRICE_LIST_MUTATION,
   FACTORY_PRICE_LISTS_QUERY,
@@ -37,6 +36,9 @@ interface Props {
   companyFactoryId: string;
   onCloned: () => void;
   onAddOptimistic: (priceList: FactoryPriceListNode) => void;
+  /** Controlado pelo menu "Mais ações" da aba. */
+  open: boolean;
+  onOpenChange: (open: boolean) => void;
 }
 
 const getPriceLists = (d: FactoryPriceListsData) => d.factory_price_lists;
@@ -45,8 +47,9 @@ export function ClonePriceListModal({
   companyFactoryId,
   onCloned,
   onAddOptimistic,
+  open,
+  onOpenChange,
 }: Props) {
-  const [open, setOpen] = useState(false);
   const formRef = useRef<FormBuilderRef>(null);
 
   // Mesmo hook e mesmas variáveis da aba: o select de origem não tem mais teto
@@ -148,7 +151,7 @@ export function ClonePriceListModal({
   );
 
   const handleClose = (v: boolean) => {
-    setOpen(v);
+    onOpenChange(v);
     if (!v) formRef.current?.resetForm();
   };
 
@@ -194,18 +197,6 @@ export function ClonePriceListModal({
 
   return (
     <Modal.Root open={open} onOpenChange={handleClose}>
-      <Modal.Trigger asChild>
-        <Button.Root
-          appearance="outline"
-          color="neutral"
-          size="sm"
-          title="Partir de outra"
-        >
-          <Button.Icon icon={Copy} />
-          <Button.Title>Clonar</Button.Title>
-        </Button.Root>
-      </Modal.Trigger>
-
       <Modal.Content size="md">
         <Modal.Header
           title="Criar a partir de outra tabela"

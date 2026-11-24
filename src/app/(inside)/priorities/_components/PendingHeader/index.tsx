@@ -21,6 +21,10 @@ interface Props {
  * usuário pediu um só (18/11/2026): a segunda linha da descrição é o escopo.
  * Lê o período da URL, então aparece já no primeiro quadro, antes dos dados.
  * É texto, não evento: `role="note"` não interrompe o leitor de tela.
+ *
+ * Título + escopo, nada mais (crítica de design, 23/11/2026): "abra a lista…
+ * resolveu, sai sozinho" foi para a ajuda (`PENDING_HELP`), que já diz que não
+ * existe botão de baixa.
  */
 export function PendingHeader({ filterValues }: Props) {
   return (
@@ -30,10 +34,6 @@ export function PendingHeader({ filterValues }: Props) {
         <Alert.Title>
           Um cartão por assunto, os mais urgentes à vista
         </Alert.Title>
-        <Alert.Description>
-          Abra a lista do assunto para ir direto aonde cada um se resolve.
-          Resolveu, sai daqui sozinho.
-        </Alert.Description>
         <Alert.Description>{scopeNote(filterValues)}</Alert.Description>
       </Alert.Content>
       <Alert.Actions>

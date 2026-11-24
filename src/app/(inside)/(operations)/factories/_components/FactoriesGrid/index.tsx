@@ -101,10 +101,9 @@ export function FactoriesGrid({
 
   return (
     <div className="flex flex-col gap-16" data-tour="factories-grid">
-      <Grid.Root
-        cols={{ base: 1, tablet: 2, desktop: 2, "desktop-xl": 3 }}
-        gap={12}
-      >
+      {/* 3 colunas já no desktop: com 2, quem representa 15 fábricas via só 4
+          na primeira tela (crítica de 23/11/2026). */}
+      <Grid.Root cols={{ base: 1, tablet: 2, desktop: 3 }} gap={12}>
         {visibleItems.map((cf) => {
           const name = factoryName(cf.factory);
           const city = [cf.factory.addressCity, cf.factory.addressState]
@@ -133,7 +132,7 @@ export function FactoriesGrid({
                         <Title
                           variant="body-md"
                           weight="bold"
-                          className="font-head line-clamp-2 min-h-[36px] leading-[18px]"
+                          className="font-head line-clamp-2 leading-[18px]"
                           title={name}
                         >
                           {name}
@@ -172,16 +171,18 @@ export function FactoriesGrid({
                   {/* Os quatro falam da MESMA comissão por ângulos diferentes
                       (quanto, sobre o quê, quando cai, até quando vale): sem a
                       explicação ao lado, "Faturamento" e "Dia 10" parecem dizer
-                      a mesma coisa. */}
-                  <Card.Item variant="stat">
+                      a mesma coisa. Linhas `compact`: com a altura padrão cada
+                      cartão tinha ~460px (crítica de 23/11/2026). */}
+                  <Card.Item variant="stat" size="compact">
                     <StatLabel label={isSeller ? "Sua comissão" : "Comissão"} />
                     <Card.Item.Value>
                       {commission.rate != null
                         ? formatCommissionRate(commission.rate)
-                        : "—"}
+                        : // O "—" sozinho só se explicava dentro do "?".
+                          "Não cadastrada"}
                     </Card.Item.Value>
                   </Card.Item>
-                  <Card.Item variant="stat">
+                  <Card.Item variant="stat" size="compact">
                     <StatLabel
                       label={
                         isSeller ? "Quando você recebe" : "Base de cálculo"
@@ -189,11 +190,18 @@ export function FactoriesGrid({
                     />
                     <Card.Item.Value>{commission.basis}</Card.Item.Value>
                   </Card.Item>
-                  <Card.Item variant="stat">
-                    <StatLabel label="Dia de pagamento da fábrica" />
-                    <Card.Item.Value>Dia {cf.paymentTermDays}</Card.Item.Value>
-                  </Card.Item>
-                  <Card.Item variant="stat" bordered={false}>
+                  {/* O dia em que a fábrica repassa ao ESCRITÓRIO não é assunto
+                      do vendedor, e ao lado de "Quando você recebe" parecia
+                      ser o dia dele (crítica de 23/11/2026). */}
+                  {!isSeller && (
+                    <Card.Item variant="stat" size="compact">
+                      <StatLabel label="Dia de pagamento da fábrica" />
+                      <Card.Item.Value>
+                        Dia {cf.paymentTermDays}
+                      </Card.Item.Value>
+                    </Card.Item>
+                  )}
+                  <Card.Item variant="stat" size="compact" bordered={false}>
                     <StatLabel label="Contrato" />
                     <Card.Item.Value color={contract.color}>
                       {contract.label}

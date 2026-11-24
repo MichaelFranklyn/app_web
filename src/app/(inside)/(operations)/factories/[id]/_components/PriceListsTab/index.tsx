@@ -2,7 +2,6 @@
 
 import { Badge } from "@/components/Badges";
 import { EmptyState } from "@/components/EmptyState";
-import { FeatureGate } from "@/components/FeatureGate";
 import { QueryError } from "@/components/QueryError";
 import { HelpTooltip } from "@/components/HelpTooltip";
 import { Table } from "@/components/Table";
@@ -14,9 +13,8 @@ import { formatDateDMY } from "@/utils/format/masks";
 import { ListChecks } from "lucide-react";
 import { useMemo } from "react";
 import { AddPriceListModal } from "./AddPriceListModal";
-import { ClonePriceListModal } from "./ClonePriceListModal";
-import { ImportPriceListModal } from "./ImportPriceListModal";
 import { PriceListRowActions } from "./PriceListRowActions";
+import { PriceListsMoreMenu } from "./PriceListsMoreMenu";
 import {
   FACTORY_PRICE_LISTS_QUERY,
   FactoryPriceListNode,
@@ -90,18 +88,18 @@ export function PriceListsTab({ companyFactoryId, factoryId }: Props) {
           />
         </Table.CardHead.Title>
         <Table.CardHead.Actions data-tour="prices-actions">
-          {/* Importação em massa é recurso de plano. */}
-          <FeatureGate feature="BULK_IMPORT">
-            <ImportPriceListModal
-              companyFactoryId={companyFactoryId}
-              factoryId={factoryId}
-              onImported={() => refetch()}
-            />
-          </FeatureGate>
-          <ClonePriceListModal
-            companyFactoryId={companyFactoryId}
-            onCloned={() => refetch()}
-            onAddOptimistic={optimistic.addOptimistic}
+          <PriceListsMoreMenu
+            importProps={{
+              companyFactoryId,
+              factoryId,
+              onImported: () => refetch(),
+            }}
+            cloneProps={{
+              companyFactoryId,
+              onCloned: () => refetch(),
+              onAddOptimistic: optimistic.addOptimistic,
+            }}
+            canClone={priceLists.length >= 2}
           />
           <AddPriceListModal
             companyFactoryId={companyFactoryId}
@@ -186,7 +184,10 @@ export function PriceListsTab({ companyFactoryId, factoryId }: Props) {
                   {formatDateDMY(pl.validFrom)}
                 </Table.Cell>
                 <Table.Cell label="Vigência fim" variant="dim">
-                  {pl.validUntil ? formatDateDMY(pl.validUntil) : "—"}
+                  {/* "—" não dizia se faltava o dado ou se a tabela vale sem prazo. */}
+                  {pl.validUntil
+                    ? formatDateDMY(pl.validUntil)
+                    : "Sem data final"}
                 </Table.Cell>
                 {/* No cartão, a tarja divide a última linha com as ações. */}
                 <Table.Cell card="aside">

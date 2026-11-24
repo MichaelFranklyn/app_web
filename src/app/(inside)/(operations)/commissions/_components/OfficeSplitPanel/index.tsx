@@ -1,5 +1,7 @@
 "use client";
+import { Alert } from "@/components/Alert";
 import { Card } from "@/components/Card";
+import { TextLink } from "@/components/TextLink";
 
 import { Title } from "@/components/Title";
 import { formatMoney } from "@/utils/format/masks";
@@ -43,6 +45,34 @@ export function OfficeSplitPanel({ split, month, sellerName }: Props) {
   // mês em que o escritório não ganhou nada.
   const semDivisao = split.office === 0 && split.company !== 0;
 
+  // Sem divisão definida, o número que importa não é a sobra (zero), é o que
+  // falta configurar: vira um aviso com o caminho, e não um parêntese longo em
+  // letra pequena no fim de uma faixa cinza (crítica de /commissions,
+  // 23/11/2026).
+  if (semDivisao) {
+    return (
+      <Alert.Root variant="warning">
+        <Alert.Icon icon={Building2} />
+        <Alert.Content>
+          <Alert.Title>
+            Nada fica com o escritório em {monthLabel(month)}
+          </Alert.Title>
+          <Alert.Description>
+            {sellerName ?? "Os vendedores"} {sellerName ? "leva" : "levam"} a
+            comissão inteira das fábricas ({formatMoney(split.company)}), porque
+            a parte do vendedor não foi definida. Abra a fábrica, vá na aba
+            Vendedores e defina a taxa de cada um.
+          </Alert.Description>
+          <div className="pt-4">
+            <TextLink href="/factories">Ir para Fábricas</TextLink>
+          </div>
+        </Alert.Content>
+      </Alert.Root>
+    );
+  }
+
+  // Uma linha só, com o número da pergunta ("quanto fica comigo?") à frente;
+  // de onde ele sai (das fábricas, menos o repasse) vem depois, em cinza.
   return (
     <Card.Root inset tone="muted">
       <Card.Body
@@ -50,45 +80,16 @@ export function OfficeSplitPanel({ split, month, sellerName }: Props) {
         className="flex flex-row flex-wrap items-center gap-x-8 gap-y-4"
       >
         <Building2 size={14} className="shrink-0 text-(--fg-muted)" />
-
         <Title variant="body-sm" color="muted">
-          Do que cai em {monthLabel(month)}
+          Fica no escritório em {monthLabel(month)}
           {sellerName ? ` com ${sellerName}` : ""}:
         </Title>
-
-        <Title variant="body-sm" weight="semibold">
-          {formatMoney(split.company)}
+        <Title variant="body-sm" weight="semibold" color="green">
+          {formatMoney(split.office)} ({Math.round(split.margin * 100)}%)
         </Title>
         <Title variant="body-sm" color="muted">
-          das fábricas
-        </Title>
-
-        <Title variant="body-sm" color="muted">
-          ·
-        </Title>
-
-        <Title variant="body-sm" weight="semibold">
-          {formatMoney(split.seller)}
-        </Title>
-        <Title variant="body-sm" color="muted">
-          de repasse
-        </Title>
-
-        <Title variant="body-sm" color="muted">
-          ·
-        </Title>
-
-        <Title
-          variant="body-sm"
-          weight="semibold"
-          color={semDivisao ? undefined : "green"}
-        >
-          {formatMoney(split.office)}
-        </Title>
-        <Title variant="body-sm" color="muted">
-          {semDivisao
-            ? "no escritório (o vendedor leva a comissão inteira — defina a taxa dele no vínculo com a fábrica)"
-            : `no escritório (${Math.round(split.margin * 100)}%)`}
+          · {formatMoney(split.company)} das fábricas menos{" "}
+          {formatMoney(split.seller)} de repasse
         </Title>
       </Card.Body>
     </Card.Root>

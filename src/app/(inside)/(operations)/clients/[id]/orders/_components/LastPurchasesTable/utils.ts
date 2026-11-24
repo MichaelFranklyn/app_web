@@ -1,4 +1,5 @@
 import { factoryName } from "@/utils/company";
+import { daysBetweenIso } from "@/utils/format/date";
 import { daysAgoLabel } from "@/utils/productPurchase";
 import {
   ClientLastPurchase,
@@ -53,14 +54,8 @@ export const groupPurchases = (
   return [...groups.values()];
 };
 
-const isoToUtcMs = (iso: string): number => {
-  const [year, month, day] = iso.slice(0, 10).split("-").map(Number);
-  return Date.UTC(year, month - 1, day);
-};
-
 /** Dias entre a data da compra e hoje (ambas datas ISO, sem hora). */
-export const daysSince = (iso: string, todayIso: string): number =>
-  Math.round((isoToUtcMs(todayIso) - isoToUtcMs(iso)) / 86_400_000);
+export const daysSince = daysBetweenIso;
 
 /** "há 12 dias" / "ontem" / "hoje" — o tempo como a pessoa conta. */
 export const sinceLabel = (iso: string, todayIso: string): string =>

@@ -61,6 +61,8 @@ const ITEM_FIELDS: Record<string, LocalField<OrderItem>> = {
 // A partir de quantos itens a busca aparece — abaixo disso a lista cabe na tela
 // (mesma ordem de grandeza do maxHeight da tabela) e o campo só polui o cabeçalho.
 const SEARCH_THRESHOLD = 8;
+/** A partir de quantos itens o cartão do celular oferece "Ordenar por". */
+const CARD_SORT_MIN_ITEMS = 6;
 
 interface Props {
   orderId: string;
@@ -233,7 +235,13 @@ export function OrderItemsTable({
         </Table.CardHead.Actions>
       </Table.CardHead>
 
-      <Table.Table maxHeight={520} cards>
+      {/* "Ordenar por" no celular só a partir de 6 itens: com menos, a
+          lista cabe inteira na tela e a faixa de chips pesava mais que ela. */}
+      <Table.Table
+        maxHeight={520}
+        cards
+        cardSort={items.length >= CARD_SORT_MIN_ITEMS}
+      >
         <Table.Header>
           <Table.Row>
             {/* O que cada coluna significa vai no `title` do cabeçalho: ele é
@@ -409,11 +417,15 @@ export function OrderItemsTable({
                   {formatMoney(item.unitPriceWithTax)}
                 </Table.Cell>
                 {/* Desconto só entra no cartão quando existe: um "—" rotulado
-                    seria uma linha a mais para não dizer nada. */}
+                    seria uma linha a mais para não dizer nada. Na tabela, sem
+                    desconto é "—" e não "Não informado": o desconto não é dado
+                    que falta, é zero — e a frase repetida em toda linha virava
+                    uma coluna de texto cinza (crítica de 23/11/2026). */}
                 <Table.Cell
                   variant="dim"
                   align="right"
                   label="Desconto"
+                  emptyText="—"
                   card={parseFloat(item.discount) > 0 ? undefined : "hidden"}
                 >
                   {parseFloat(item.discount) > 0

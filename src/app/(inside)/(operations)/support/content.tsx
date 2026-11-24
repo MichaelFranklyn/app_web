@@ -48,7 +48,16 @@ export default function SupportContent({ initialData }: Props) {
   return (
     <PageContent>
       <SupportHeader onSaved={onChanged} />
-      <SupportCounts data={counts.data} />
+      <SupportCounts
+        data={counts.data}
+        active={table.inputValues.status}
+        onToggle={(status) =>
+          table.setFilter(
+            "status",
+            table.inputValues.status === status ? undefined : status
+          )
+        }
+      />
       <SupportTable
         cases={table.displayedData}
         loading={table.loading}

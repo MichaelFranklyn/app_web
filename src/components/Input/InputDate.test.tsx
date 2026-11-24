@@ -16,6 +16,22 @@ describe("InputDate (single)", () => {
     expect(screen.getByPlaceholderText("Selecione a data")).toBeInTheDocument();
   });
 
+  it("emptyLabel aparece como valor enquanto nada foi escolhido", () => {
+    const { rerender } = render(
+      <InputDate variant="range" emptyLabel="Vencidas e próximos 7 dias" />
+    );
+    const input = screen.getByRole<HTMLInputElement>("textbox");
+    expect(input.value).toBe("Vencidas e próximos 7 dias");
+    rerender(
+      <InputDate
+        variant="range"
+        emptyLabel="Vencidas e próximos 7 dias"
+        value={{ from: new Date(2026, 6, 1), to: new Date(2026, 6, 31) }}
+      />
+    );
+    expect(input.value).not.toBe("Vencidas e próximos 7 dias");
+  });
+
   it("exibe o valor controlado formatado dd/MM/yyyy", () => {
     render(<InputDate value={new Date(2026, 6, 15)} />);
     expect(screen.getByRole<HTMLInputElement>("textbox").value).toBe(

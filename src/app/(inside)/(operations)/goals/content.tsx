@@ -22,7 +22,7 @@ import { useCompleteList } from "@/hooks/useCompleteList";
 import { GOAL_METRICS, sumRows } from "@/utils/goals";
 import { useQuery } from "@apollo/client/react";
 import { CalendarDays, ChevronLeft, ChevronRight, Target } from "lucide-react";
-import { useRouter, useSearchParams } from "next/navigation";
+import { useSearchParams } from "next/navigation";
 import { useMemo, useState } from "react";
 
 import { CopyGoalsModal } from "./_components/CopyGoalsModal";
@@ -53,7 +53,6 @@ const getGoalsSellers = (d: GoalsSellersResponse) => d.goals_sellers;
 const getGoalsFactories = (d: GoalsFactoriesResponse) => d.goals_factories;
 
 export default function GoalsContent({ canManage }: Props) {
-  const router = useRouter();
   const searchParams = useSearchParams();
 
   // Começa no mês corrente — a pergunta do dia a dia é "como estamos ESTE mês"
@@ -233,8 +232,10 @@ export default function GoalsContent({ canManage }: Props) {
           ) : (
             <>
               <Grid.Root
-                cols={{ base: 1, tablet: 2, desktop: 4 }}
-                gap={20}
+                // 2×2 no celular: empilhados, os quatro cartões empurravam a
+                // lista de vendedores para fora da primeira tela.
+                cols={{ base: 2, desktop: 4 }}
+                gap={12}
                 data-tour="goals-kpis"
               >
                 {/* Os quatro cartões somam o recorte da tela (o vendedor
@@ -243,8 +244,7 @@ export default function GoalsContent({ canManage }: Props) {
                     significar duas coisas em dois lugares. */}
                 <Grid.Item>
                   <GoalKpiCard
-                    label={`Faturado em ${monthLabel(month)}`}
-                    status="ok"
+                    label="Faturado"
                     values={totals.invoiced}
                     help={GOAL_METRICS[0].help}
                     money
@@ -253,7 +253,6 @@ export default function GoalsContent({ canManage }: Props) {
                 <Grid.Item>
                   <GoalKpiCard
                     label="Vendido"
-                    status="atencao"
                     values={totals.ordered}
                     help={GOAL_METRICS[1].help}
                     money
@@ -262,7 +261,6 @@ export default function GoalsContent({ canManage }: Props) {
                 <Grid.Item>
                   <GoalKpiCard
                     label="Clientes que compraram"
-                    status="info"
                     values={totals.positivations}
                     help={GOAL_METRICS[2].help}
                   />
@@ -270,7 +268,6 @@ export default function GoalsContent({ canManage }: Props) {
                 <Grid.Item>
                   <GoalKpiCard
                     label="Visitas concluídas"
-                    status="ok"
                     values={totals.visits}
                     help={GOAL_METRICS[3].help}
                   />
@@ -297,10 +294,8 @@ export default function GoalsContent({ canManage }: Props) {
                   // A pessoa tem página própria: é lá que as fábricas dela
                   // viram cartões editáveis, sem modal sobre modal. O mês vai
                   // junto para a navegação não perder o recorte.
-                  onOpen={(group: SellerGroup) =>
-                    router.push(
-                      `/goals/${group.sellerId}?month=${periodMonthIso}`
-                    )
+                  hrefOf={(group: SellerGroup) =>
+                    `/goals/${group.sellerId}?month=${periodMonthIso}`
                   }
                 />
               )}

@@ -1,11 +1,9 @@
 "use client";
 
-import { Button } from "@/components/Button";
 import { ConfirmModal } from "@/components/ConfirmModal";
 import { useInvalidateQueriesClient } from "@/hooks/useInvalidateQueries";
 import { FACTORY_CACHE_FIELDS } from "@/utils/cacheFields";
 import { useMutation } from "@apollo/client/react";
-import { Trash2 } from "lucide-react";
 import { DELETE_COMPANY_FACTORY_MUTATION } from "./gql";
 
 interface DeleteCompanyFactoryResponse {
@@ -15,11 +13,16 @@ interface DeleteCompanyFactoryResponse {
 interface Props {
   companyFactoryId: string;
   factoryName: string;
+  /** Aberto pelo menu "Mais ações da fábrica" (sem gatilho próprio). */
+  open: boolean;
+  onOpenChange: (open: boolean) => void;
 }
 
 export function DeleteCompanyFactoryModal({
   companyFactoryId,
   factoryName,
+  open,
+  onOpenChange,
 }: Props) {
   const invalidateClient = useInvalidateQueriesClient();
   const [deleteCompanyFactory] = useMutation<DeleteCompanyFactoryResponse>(
@@ -28,12 +31,8 @@ export function DeleteCompanyFactoryModal({
 
   return (
     <ConfirmModal
-      trigger={
-        <Button.Root appearance="outline" color="red" size="sm">
-          <Button.Icon icon={Trash2} />
-          <Button.Title>Excluir</Button.Title>
-        </Button.Root>
-      }
+      open={open}
+      onOpenChange={onOpenChange}
       title="Excluir vínculo com a fábrica"
       description={`Tem certeza que deseja excluir o vínculo com a fábrica "${factoryName}"? Esta ação não pode ser desfeita.`}
       confirmLabel="Excluir vínculo"

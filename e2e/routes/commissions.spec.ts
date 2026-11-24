@@ -117,12 +117,15 @@ test("comissões: o gestor vê quanto da comissão fica no escritório", async (
   await page.goto("/commissions");
 
   await expect(
-    page.getByText("Do que cai em agosto de 2026", { exact: false })
+    page.getByText("Fica no escritório em agosto de 2026", { exact: false })
   ).toBeVisible();
-  await expect(page.getByText("das fábricas", { exact: true })).toBeVisible();
-  await expect(page.getByText("R$ 30,00").first()).toBeVisible();
-  await expect(page.getByText("R$ 20,00").first()).toBeVisible();
-  await expect(page.getByText("no escritório (40%)")).toBeVisible();
+  // O número da pergunta vem à frente; de onde ele sai, depois.
+  await expect(page.getByText("R$ 20,00 (40%)")).toBeVisible();
+  await expect(
+    page.getByText("R$ 50,00 das fábricas menos R$ 30,00 de repasse", {
+      exact: false,
+    })
+  ).toBeVisible();
 });
 
 test("comissões: trocar a ótica refaz os números da tela inteira", async ({
@@ -155,8 +158,12 @@ test("comissões: trocar a ótica refaz os números da tela inteira", async ({
   await page.goto("/commissions");
 
   // Ótica do escritório (a que a tela abre): o dinheiro da fábrica, em agosto.
+  // O mês sai no título; os rótulos dos cartões só dizem o que é o número.
+  await expect(page.getByText("Resumo de agosto de 2026")).toBeVisible();
   await expect(
-    page.getByText("A receber em agosto de 2026", { exact: true })
+    page
+      .locator('[data-tour="commissions-kpis"]')
+      .getByText("A receber", { exact: true })
   ).toBeVisible();
   await expect(page.getByText("R$ 50,00").first()).toBeVisible();
   await expect(
@@ -170,7 +177,9 @@ test("comissões: trocar a ótica refaz os números da tela inteira", async ({
   // Ótica do vendedor: a fatia dele — e ela cai em SETEMBRO, então agosto fica
   // zerado. É o ponto do seletor: o mês também muda de significado.
   await expect(
-    page.getByText("Repasse a receber em agosto de 2026")
+    page
+      .locator('[data-tour="commissions-kpis"]')
+      .getByText("Repasse a receber", { exact: true })
   ).toBeVisible();
   await expect(
     page.getByText(
@@ -181,7 +190,7 @@ test("comissões: trocar a ótica refaz os números da tela inteira", async ({
     )
   ).toBeVisible();
   // A repartição sai da tela: ela é medida no calendário da fábrica.
-  await expect(page.getByText("de repasse", { exact: true })).toHaveCount(0);
+  await expect(page.getByText("Fica no escritório")).toHaveCount(0);
 
   await page.getByRole("button", { name: "Próximo mês" }).click();
 
@@ -209,7 +218,7 @@ test("comissões: a tela pede o mês ao backend, não a carteira inteira", async
 
   // O vendedor não vê a repartição com o escritório: a comissão que ele lê JÁ
   // é a fatia dele, e a conta seria a de outra pessoa.
-  await expect(page.getByText("de repasse", { exact: true })).toHaveCount(0);
+  await expect(page.getByText("Fica no escritório")).toHaveCount(0);
 
   // E vê, como todo mundo, o que a lista está somando — a frase é a resposta
   // para os dois recortes da tela (mês e situação) governarem coisas diferentes.
@@ -442,7 +451,7 @@ test.describe("comissões: mês com muitas parcelas", () => {
 
     // 120 × R$ 50,00: o cartão é do recorte COMPLETO, não das 50 linhas na tela.
     await expect(page.getByText("R$ 6.000,00").first()).toBeVisible();
-    await expect(page.getByText("120 parcela(s) a receber")).toBeVisible();
+    await expect(page.getByText("120 parcelas a receber")).toBeVisible();
     await expect(
       page.getByText("120 parcelas · página 1 de 3", { exact: false })
     ).toBeVisible();
@@ -496,9 +505,9 @@ test.describe("comissões: mês com muitas parcelas", () => {
       .toContain('"search":"CLIENTE 077"');
     // Os cartões seguem o filtro: sobrou uma parcela de R$ 50,00.
     await expect(
-      page.getByText("1 de 120 parcela(s) após os filtros")
+      page.getByText("1 de 120 parcelas após os filtros")
     ).toBeVisible();
-    await expect(page.getByText("1 parcela(s) a receber")).toBeVisible();
+    await expect(page.getByText("1 parcela a receber")).toBeVisible();
     await expect(
       page.getByRole("cell", { name: "CLIENTE 077 LTDA", exact: true })
     ).toBeVisible();
@@ -546,7 +555,7 @@ test.describe("comissões: mês com muitas parcelas", () => {
     await expect(page.getByText("51 parcelas selecionadas")).toBeVisible();
     await expect(
       page.getByText(
-        "51 selecionada(s) nesta fábrica — 1 nesta página e 50 em outra(s)"
+        "51 selecionadas nesta fábrica — 1 nesta página e 50 em outras"
       )
     ).toBeVisible();
     await expect(

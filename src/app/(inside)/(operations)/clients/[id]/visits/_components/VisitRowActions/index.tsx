@@ -17,7 +17,7 @@ interface Props {
 }
 
 /**
- * Estoque, editar e remover a visita; no celular entram no "⋯" (ver
+ * Estoque, editar e remover a visita, no "⋯" (ver
  * RowActions). O estoque vem aqui porque o vendedor nem sempre anota no
  * balcão: ele volta na visita e diz o que viu em cada fábrica.
  */

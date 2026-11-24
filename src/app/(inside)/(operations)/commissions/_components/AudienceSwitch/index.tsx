@@ -47,18 +47,26 @@ const OPTIONS: ToggleOption<CommissionAudience>[] = [
  */
 export function AudienceSwitch({ value, onChange }: Props) {
   return (
-    <div className="flex items-center gap-4">
-      <Title variant="caption" color="muted">
+    <div className="flex flex-wrap items-center gap-x-8 gap-y-4">
+      {/* Abaixo do desktop: "Valores de" e o "?" numa linha e o grupo na de
+          baixo, com a linha inteira. Os três lado a lado em 360px truncavam
+          as opções ("Escritó…", "Vende…"); deixando quebrar à toa, o "?"
+          caía sozinho. No desktop, os três numa linha e o grupo com a
+          largura natural — esticado, truncava em "Escritór…" (crítica de
+          /commissions, 23/11/2026). */}
+      <Title
+        variant="caption"
+        color="muted"
+        className="shrink-0 whitespace-nowrap"
+      >
         Valores de
       </Title>
-      {/* Estica na linha que é só dele no celular; no desktop a caixa em
-          volta já tem a largura do conteúdo e o flex-1 não muda nada. */}
       <ToggleGroup
         options={OPTIONS}
         value={value}
         onChange={onChange}
-        fullWidth
-        className="flex-1 flex-nowrap"
+        fullWidthBelowDesktop
+        className="max-desktop:order-last max-desktop:basis-full flex-nowrap"
       />
       <HelpTooltip
         label="De quem são os valores da tela"

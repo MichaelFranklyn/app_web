@@ -122,8 +122,12 @@ export function StepBatch(props: Props) {
         disabled={props.disabled}
         onChange={(val) => props.onFactory(picked(val))}
       />
+      {/* Vendedor e situação sempre têm valor (o padrão é "o vendedor de cada
+          cliente" / "Entregue"): o "×" de limpar só levava a um campo vazio que
+          não quer dizer nada (crítica de configurações, 23/11/2026). */}
       <Input.Select
         label="Vendedor"
+        disabledClear
         placeholder="Escolha o vendedor"
         variant="single"
         options={sellers}
@@ -140,6 +144,7 @@ export function StepBatch(props: Props) {
       />
       <Input.Select
         label="Situação dos pedidos"
+        disabledClear
         placeholder="Escolha a situação"
         variant="single"
         options={statuses}

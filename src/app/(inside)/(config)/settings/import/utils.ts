@@ -43,9 +43,12 @@ export const SETUP_STEP_CONTENT: Record<SetupStepKey, SetupStepContent> = {
     icon: Package,
     title: "Tabelas de preço",
     description:
-      "Em cada fábrica, aba Tabelas → Importar tabela. Os produtos entram junto com os preços, e os pedidos novos já saem com ela.",
+      "Em cada fábrica, aba Tabelas → Mais ações → Importar tabela. Os produtos entram junto com os preços, e os pedidos novos já saem com ela.",
     href: "/factories",
-    action: "Ir para Fábricas",
+    // O botão diz a tarefa, não o lugar: dois passos seguidos com "Ir para
+    // Fábricas" pareciam repetidos (crítica de configurações, 23/11/2026). A
+    // descrição acima diz onde, dentro da fábrica, fica a importação.
+    action: "Importar tabela de preço",
   },
   CLIENTS: {
     icon: Users,

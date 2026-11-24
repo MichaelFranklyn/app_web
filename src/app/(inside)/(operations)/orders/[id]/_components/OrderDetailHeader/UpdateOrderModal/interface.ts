@@ -50,4 +50,7 @@ export interface UpdateOrderModalProps {
   /** Condições de pagamento da fábrica deste pedido. */
   paymentTerms: PaymentTermRef[];
   onSuccess: () => void;
+  /** Aberto de fora (menu "Mais ações" do celular): sem `open`, desenha o próprio botão. */
+  open?: boolean;
+  onOpenChange?: (open: boolean) => void;
 }

@@ -3,6 +3,7 @@
 import { Avatar } from "@/components/Avatar";
 import { Table } from "@/components/Table";
 import { Tooltip } from "@/components/Tooltip";
+import { personInitials } from "@/utils/format/initials";
 import { ClientSeller } from "../../interface";
 
 interface SellerCellProps {
@@ -37,11 +38,8 @@ export function SellerCell({ sellers, highlightSellerId }: SellerCellProps) {
 
   return (
     <Table.Cell flex label="Vendedor">
-      <Avatar
-        size="sm"
-        color="amber"
-        initials={first.name.slice(0, 2).toUpperCase()}
-      />
+      {/* "JS" para João Sacramento — o `slice(0, 2)` dava "JO". */}
+      <Avatar size="sm" color="amber" initials={personInitials(first.name)} />
       <Table.CellText variant="dim" className="whitespace-nowrap">
         {first.name}
       </Table.CellText>

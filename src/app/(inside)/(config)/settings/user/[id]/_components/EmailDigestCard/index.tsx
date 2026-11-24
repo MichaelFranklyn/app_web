@@ -53,32 +53,38 @@ export function EmailDigestCard({ isEnabled, onDone }: Props) {
   return (
     <Card.Root>
       <Card.Header>
-        <Card.Header.Title>Emails do Itinus</Card.Header.Title>
+        {/* O "?" colado ao título, como nos cards da fábrica: sozinho na
+            ponta direita do cabeçalho ele parecia um botão de ação, e no
+            celular caía numa linha própria (crítica de configurações,
+            23/11/2026). */}
+        <Card.Header.Title>
+          <span className="inline-flex items-center gap-6">
+            Emails do Itinus
+            <HelpTooltip
+              label="Quais emails são esses"
+              content={
+                <div className="flex flex-col gap-2">
+                  <Title variant="label" weight="semibold">
+                    O que esta opção liga e desliga
+                  </Title>
+                  <Title variant="body-sm">
+                    Para proprietários e administradores: o resultado da semana
+                    e as pendências, toda segunda de manhã. Para todos: parabéns
+                    no aniversário e nas datas comemorativas.
+                  </Title>
+                  <Title variant="body-sm" color="muted">
+                    Os emails de acesso (convite, troca de senha e conta
+                    bloqueada) continuam chegando sempre — eles servem para você
+                    entrar na sua conta.
+                  </Title>
+                </div>
+              }
+            />
+          </span>
+        </Card.Header.Title>
         <Card.Header.Description>
           Resumos e lembretes que chegam no seu email.
         </Card.Header.Description>
-        <Card.Header.Actions>
-          <HelpTooltip
-            label="Quais emails são esses"
-            content={
-              <div className="flex flex-col gap-2">
-                <Title variant="label" weight="semibold">
-                  O que esta opção liga e desliga
-                </Title>
-                <Title variant="body-sm">
-                  Para proprietários e administradores: o resultado da semana e
-                  as pendências, toda segunda de manhã. Para todos: parabéns no
-                  aniversário e nas datas comemorativas.
-                </Title>
-                <Title variant="body-sm" color="muted">
-                  Os emails de acesso (convite, troca de senha e conta
-                  bloqueada) continuam chegando sempre — eles servem para você
-                  entrar na sua conta.
-                </Title>
-              </div>
-            }
-          />
-        </Card.Header.Actions>
       </Card.Header>
 
       <Card.Body className="flex flex-col items-start gap-12">

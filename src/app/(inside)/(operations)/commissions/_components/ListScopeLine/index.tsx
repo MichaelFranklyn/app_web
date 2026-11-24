@@ -11,6 +11,7 @@ import {
   monthLabel,
   YearMonth,
 } from "../../utils";
+import { plural } from "@/utils/format/plural";
 
 interface Props {
   tab: CommissionTab;
@@ -66,8 +67,8 @@ export function ListScopeLine({
   const filtrado = total !== undefined && total !== shown;
 
   const contagem = filtrado
-    ? `${shown} de ${total} parcela(s) após os filtros`
-    : `${shown} parcela(s)`;
+    ? `${shown} de ${plural(total, "parcela", "parcelas")} após os filtros`
+    : plural(shown, "parcela", "parcelas");
 
   // Alert pequeno do DS: a frase numa linha, quem e quantas na outra. Como
   // texto solto com "·", a linha quebrava no meio no celular. `role="note"`:

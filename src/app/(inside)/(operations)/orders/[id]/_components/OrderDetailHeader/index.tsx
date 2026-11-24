@@ -7,7 +7,7 @@ import { PanelHeader } from "@/components/PanelHeader";
 import { PAGE_HEADING } from "@/utils/modules";
 import { formatDateDMY } from "@/utils/format/masks";
 import { clientName, factoryName } from "@/utils/company";
-import { formatOrderNumber, orderShortCode } from "@/utils/orderNumber";
+import { formatOrderNumber } from "@/utils/orderNumber";
 import { OrderDetail } from "../../interface";
 import { OrderHeaderActions } from "./OrderHeaderActions";
 
@@ -40,13 +40,15 @@ export function OrderDetailHeader({ order, onRefetch }: Props) {
               Pedido {formatOrderNumber(order.number)}
             </PanelHeader.Heading>
             {/* O cliente abre a descrição e o título fica só "Pedido N": curto,
-                não quebra no celular e casa com o breadcrumb (14/11/2026). O
-                código antigo (prefixo do id) fica como detalhe: casa com o que
-                foi impresso ou enviado antes da numeração. */}
+                não quebra no celular e casa com o breadcrumb (14/11/2026).
+                Duas linhas — quem/de onde, depois quem vendeu/quando — em vez
+                de uma fila de cinco itens que quebrava em qualquer ponto; o
+                "código" (prefixo do id) saiu: ninguém o procura mais desde a
+                numeração (crítica de /orders/[id], 23/11/2026). */}
             <PanelHeader.Description>
-              {clientName(order.client)} · {factoryName(order.factory)} ·{" "}
-              {order.seller?.name ?? "—"} · {formatDateDMY(order.orderDate)} ·
-              código {orderShortCode(order.id)}
+              {clientName(order.client)} · {factoryName(order.factory)}
+              <br />
+              {order.seller?.name ?? "—"} · {formatDateDMY(order.orderDate)}
             </PanelHeader.Description>
 
             {/* As tarjas dizem em que pé está o pedido; o `title` explica o

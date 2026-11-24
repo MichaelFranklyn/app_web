@@ -1,11 +1,15 @@
 "use client";
 
-import { Button } from "@/components/Button";
 import { MoreOption, MoreOptions } from "@/components/MoreOptions";
 import React from "react";
 
 export interface RowAction extends MoreOption {
   icon: React.ElementType;
+  /**
+   * A ação não vale para ESTA linha, mas vale para outras da mesma tabela
+   * (remover pedido só em algumas situações): ela não entra no "⋯".
+   */
+  absent?: boolean;
 }
 
 interface RowActionsProps {
@@ -21,37 +25,24 @@ interface RowActionsProps {
 }
 
 /**
- * Ações de uma linha de tabela.
+ * Ações de uma linha de tabela: sempre um "⋯", com o nome de cada ação escrita.
  *
- * No desktop, cada ação é um botão-ícone (cabe, e é um clique só). Abaixo do
- * desktop a tabela vira cartão e os ícones soltos — lápis, lixeira, sem nome —
- * viram adivinhação para quem usa o celular: lá elas entram no "⋯", onde cada
- * uma tem o nome escrito (14/11/2026). Os modais são controlados pelo dono da
- * linha, porque um item de menu não pode ser o `Trigger` deles.
+ * Até 23/11/2026 o desktop mostrava botões-ícone soltos (lápis, lixeira,
+ * cadeado), e só o celular usava o "⋯". Ícone sem nome é adivinhação para o
+ * público mais velho ("o cadeado bloqueia o quê?"), a coluna mudava de largura
+ * conforme a linha e, com 3 ícones, a tabela do pedido cortava a última
+ * coluna. O menu tem a mesma largura em toda linha e diz o que cada ação faz
+ * (crítica de 23/11/2026). Os modais são controlados pelo dono da linha,
+ * porque um item de menu não pode ser o `Trigger` deles.
  */
 export function RowActions({ actions, label, children }: RowActionsProps) {
-  if (actions.length === 0) return <>{children}</>;
+  const available = actions.filter((action) => !action.absent);
+  if (available.length === 0) return <>{children}</>;
 
   return (
     <>
-      <div className="max-desktop:hidden flex items-center justify-end gap-4">
-        {actions.map((action) => (
-          <Button.Root
-            key={action.label}
-            appearance="ghost"
-            color={action.danger ? "red" : "neutral"}
-            size="sm"
-            isIconOnly
-            label={action.label}
-            disabled={action.disabled}
-            onClick={action.onClick}
-          >
-            <Button.Icon icon={action.icon} />
-          </Button.Root>
-        ))}
-      </div>
-      <div className="desktop:hidden flex justify-end">
-        <MoreOptions options={actions} label={label} />
+      <div className="flex justify-end">
+        <MoreOptions options={available} label={label} />
       </div>
       {children}
     </>

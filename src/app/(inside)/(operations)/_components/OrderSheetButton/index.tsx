@@ -3,6 +3,8 @@
 import { FileSpreadsheet } from "lucide-react";
 import { useMemo, useState } from "react";
 
+import { useControlledOpen } from "@/hooks/useControlledOpen";
+
 import { Button } from "@/components/Button";
 import { Input, SelectOption } from "@/components/Input";
 import { Modal } from "@/components/Modal";
@@ -37,6 +39,13 @@ interface Props {
   cnpjDigits?: string;
   clientName?: string;
   size?: "sm" | "md";
+  /**
+   * Modal do gestor aberto de fora (o "Mais ações" do celular): sem botão
+   * próprio. O vendedor não tem modal — quem abre de fora chama
+   * `useOrderSheet().generate()` direto.
+   */
+  open?: boolean;
+  onOpenChange?: (open: boolean) => void;
 }
 
 /**
@@ -52,8 +61,13 @@ export function OrderSheetButton({
   cnpjDigits,
   clientName,
   size = "sm",
+  open: openProp,
+  onOpenChange,
 }: Props) {
-  const [open, setOpen] = useState(false);
+  const { open, setOpen, isControlled } = useControlledOpen(
+    openProp,
+    onOpenChange
+  );
   const [sellerId, setSellerId] = useState<string | null>(null);
   const { generate, generating } = useOrderSheet({ cnpjDigits, clientName });
 
@@ -134,12 +148,14 @@ export function OrderSheetButton({
 
   return (
     <Modal.Root open={open} onOpenChange={setOpen}>
-      <Modal.Trigger asChild>
-        <Button.Root appearance="outline" color="neutral" size={size}>
-          <Button.Icon icon={FileSpreadsheet} />
-          <Button.Title>Ficha de pedido</Button.Title>
-        </Button.Root>
-      </Modal.Trigger>
+      {!isControlled && (
+        <Modal.Trigger asChild>
+          <Button.Root appearance="outline" color="neutral" size={size}>
+            <Button.Icon icon={FileSpreadsheet} />
+            <Button.Title>Ficha de pedido</Button.Title>
+          </Button.Root>
+        </Modal.Trigger>
+      )}
 
       <Modal.Content size="md">
         <Modal.Header

@@ -17,7 +17,7 @@ export const factoryDetailFlow: FlowDefinition = {
       element: '[data-tour="factory-detail-actions"]',
       title: "Editar ou remover",
       description:
-        "Aqui você edita o vínculo com a fábrica (comissão, contrato) ou o remove.",
+        "Aqui você edita o vínculo com a fábrica (comissão, contrato). Para remover o vínculo, use Mais ações.",
       side: "bottom",
       align: "end",
     },

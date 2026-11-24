@@ -1,3 +1,4 @@
+import type { Page } from "@playwright/test";
 import * as XLSX from "xlsx";
 
 import { expect, test } from "../support/fixtures";
@@ -36,13 +37,22 @@ const mockImport = (page: Parameters<typeof mockGraphql>[0]) =>
     },
   });
 
+/**
+ * Importar mora no menu "Mais ações" do cabeçalho, com Redes e Higienizar:
+ * eram cinco botões à vista e no celular a lista só começava na segunda tela.
+ */
+const openImport = async (page: Page) => {
+  await page.getByRole("button", { name: "Mais ações da carteira" }).click();
+  await page.getByRole("menuitem", { name: "Importar planilha" }).click();
+};
+
 test("clients: baixa a planilha modelo em .xlsx com as colunas da mutation", async ({
   page,
 }) => {
   await mockImport(page);
 
   await page.goto("/clients");
-  await page.getByRole("button", { name: "Importar" }).click();
+  await openImport(page);
 
   const dialog = page.getByRole("dialog");
   const downloadPromise = page.waitForEvent("download");
@@ -70,7 +80,7 @@ test("clients: importa clientes via planilha .xlsx e mostra o resumo", async ({
   await mockImport(page);
 
   await page.goto("/clients");
-  await page.getByRole("button", { name: "Importar" }).click();
+  await openImport(page);
 
   const dialog = page.getByRole("dialog");
   await expect(dialog.getByText("Importar clientes")).toBeVisible();
@@ -106,7 +116,7 @@ test("clients: importa clientes via planilha e mostra o resumo", async ({
   await mockImport(page);
 
   await page.goto("/clients");
-  await page.getByRole("button", { name: "Importar" }).click();
+  await openImport(page);
 
   const dialog = page.getByRole("dialog");
   await expect(dialog.getByText("Importar clientes")).toBeVisible();

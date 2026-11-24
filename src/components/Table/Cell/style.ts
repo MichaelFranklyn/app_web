@@ -44,4 +44,9 @@ export const tableCellVariants = {
   dim2: "text-(--color-text-muted) text-body-sm",
   // Linha-título de um grupo (a tabela de preço sobre os seus itens).
   group: "bg-(--bg3) text-(--color-text-secondary)",
+  // Aviso de atraso dentro da célula ("vencida há 12 dias").
+  danger: "text-(--color-status-danger) text-body-sm",
+  // Herda o visual da célula: um pedaço de texto que só aparece no cartão do
+  // celular (`desktop:hidden`) sem trocar cor nem peso de quem o envolve.
+  inherit: "",
 } as const;

@@ -5,6 +5,7 @@ import { EmptyState } from "@/components/EmptyState";
 import { HelpTooltip } from "@/components/HelpTooltip";
 import { QueryError } from "@/components/QueryError";
 import { Table } from "@/components/Table";
+import { TextLink } from "@/components/TextLink";
 import { Title } from "@/components/Title";
 import { useCompleteList } from "@/hooks/useCompleteList";
 import { useOptimisticList } from "@/hooks/useOptimisticList";
@@ -139,13 +140,34 @@ export function ContactsTab({ factoryId }: Props) {
                   </div>
                 </Table.Cell>
                 <Table.Cell label="Telefone">
+                  {/* Link: no celular, um toque já liga (crítica de 23/11/2026). */}
                   <Table.CellText variant="dim">
-                    {contact.phone ? maskPhoneBR(contact.phone) : "—"}
+                    {contact.phone ? (
+                      <TextLink
+                        href={`tel:${contact.phone.replace(/\D/g, "")}`}
+                        tone="inherit"
+                        underline="none"
+                      >
+                        {maskPhoneBR(contact.phone)}
+                      </TextLink>
+                    ) : (
+                      "—"
+                    )}
                   </Table.CellText>
                 </Table.Cell>
                 <Table.Cell label="E-mail">
                   <Table.CellText variant="dim">
-                    {contact.email ?? "—"}
+                    {contact.email ? (
+                      <TextLink
+                        href={`mailto:${contact.email}`}
+                        tone="inherit"
+                        underline="none"
+                      >
+                        {contact.email}
+                      </TextLink>
+                    ) : (
+                      "—"
+                    )}
                   </Table.CellText>
                 </Table.Cell>
                 {/* No cartão a tarja abre a linha das ações, à esquerda do

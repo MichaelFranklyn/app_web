@@ -3,7 +3,9 @@
 import { Badge } from "@/components/Badges";
 import { EmptyState } from "@/components/EmptyState";
 import { Filters } from "@/components/Filters";
+import { HelpTooltip } from "@/components/HelpTooltip";
 import { Table } from "@/components/Table";
+import { ToggleGroup } from "@/components/ToggleGroup";
 import { factoryName } from "@/utils/company";
 import { formatDate } from "@/utils/format/date";
 import {
@@ -17,24 +19,56 @@ import { PackageSearch } from "lucide-react";
 
 import { PRODUCT_COLUMN_HELP } from "../../help";
 import { ClientProductAnalysisRow } from "../../interface";
-import { cycleLabel, isStaple } from "../../utils";
+import { cycleLabel, isStaple, overdueLabel, roundedUnits } from "../../utils";
 import { useProductAnalysisTable } from "../../useProductAnalysisTable";
+
+/**
+ * Quanto histórico olhar. Dois anos é o padrão do backend; "todo o histórico"
+ * (0) existe para o cliente antigo, e 12 meses para quem quer ler só o ano
+ * corrente sem o ruído do que ele comprava antes.
+ */
+const PERIOD_OPTIONS = [
+  { label: "12 meses", value: 12 },
+  { label: "2 anos", value: 24 },
+  { label: "Tudo", value: 0 },
+];
 
 interface Props {
   table: ReturnType<typeof useProductAnalysisTable>;
   rows: ClientProductAnalysisRow[];
+  months: number;
+  onMonthsChange: (months: number) => void;
 }
 
 /** "8 de 10 pedidos" — a fração é o que responde "ele compra sempre?". */
 const presenceLabel = (row: ClientProductAnalysisRow): string =>
   `${row.orderCount} de ${row.factoryOrderCount} pedidos`;
 
-export function ProductAnalysisTable({ table, rows }: Props) {
+export function ProductAnalysisTable({
+  table,
+  rows,
+  months,
+  onMonthsChange,
+}: Props) {
   return (
     <Table.Root sort={table.sort}>
       <Table.CardHead>
-        <Table.CardHead.Title>Produtos deste cliente</Table.CardHead.Title>
+        {/* Um título só: "O que ele compra" acima do card e "Produtos deste
+            cliente" dentro dele diziam a mesma coisa (crítica de 23/11/2026). */}
+        <Table.CardHead.Title className="inline-flex items-center gap-6">
+          O que ele compra
+          <HelpTooltip
+            label="Como esta análise é feita?"
+            content="Para cada produto, olhamos em quais pedidos ele apareceu e de quanto em quanto tempo o cliente o repõe. Passado esse tempo, o produto entra em “hora de repor”; muito depois dele, em “parou de comprar”."
+          />
+        </Table.CardHead.Title>
         <Table.CardHead.Actions>
+          <ToggleGroup
+            aria-label="Período"
+            options={PERIOD_OPTIONS}
+            value={months}
+            onChange={onMonthsChange}
+          />
           <Filters
             resultCount={table.totalItems}
             fields={table.filterFields}
@@ -56,7 +90,7 @@ export function ProductAnalysisTable({ table, rows }: Props) {
               Fábrica
             </Table.Head>
             <Table.Head sortKey="presence" title={PRODUCT_COLUMN_HELP.presence}>
-              Compra sempre?
+              Aparece em
             </Table.Head>
             <Table.Head
               sortKey="lastPurchase"
@@ -120,7 +154,7 @@ export function ProductAnalysisTable({ table, rows }: Props) {
                     {factoryName(row.factory)}
                   </Table.CellText>
                 </Table.Cell>
-                <Table.Cell label="Compra sempre?">
+                <Table.Cell label="Aparece em">
                   <div className="flex flex-col items-start gap-2">
                     <Table.CellText variant="dim">
                       {presenceLabel(row)}
@@ -146,15 +180,23 @@ export function ProductAnalysisTable({ table, rows }: Props) {
                 </Table.Cell>
                 <Table.Cell label="Ritmo de compra">
                   <Table.CellText variant="dim">
-                    {cycleLabel(row.avgIntervalDays)}
+                    {cycleLabel(row.avgIntervalDays, row.orderCount)}
                   </Table.CellText>
                 </Table.Cell>
                 <Table.Cell label="Próxima esperada">
-                  <Table.CellText variant="dim">
-                    {row.expectedNextDate
-                      ? formatDate(row.expectedNextDate)
-                      : "—"}
-                  </Table.CellText>
+                  <div className="flex flex-col">
+                    <Table.CellText variant="dim">
+                      {row.expectedNextDate
+                        ? formatDate(row.expectedNextDate)
+                        : "—"}
+                    </Table.CellText>
+                    {/* Data no passado sem dizer que passou parecia futura. */}
+                    {overdueLabel(row.overdueDays) && (
+                      <Table.CellText variant="danger">
+                        {overdueLabel(row.overdueDays)}
+                      </Table.CellText>
+                    )}
+                  </div>
                 </Table.Cell>
                 <Table.Cell label="Quantidade">
                   <div className="flex flex-col">
@@ -162,7 +204,7 @@ export function ProductAnalysisTable({ table, rows }: Props) {
                       {`${unitsLabel(row.lastUnits)} na última`}
                     </Table.CellText>
                     <Table.CellText variant="dim">
-                      {`média ${unitsLabel(row.avgUnits)}`}
+                      {`média ${unitsLabel(roundedUnits(row.avgUnits))}`}
                     </Table.CellText>
                   </div>
                 </Table.Cell>

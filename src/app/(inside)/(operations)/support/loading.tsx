@@ -11,7 +11,7 @@ export default function Loading() {
       eyebrow={{ label: "Clientes", color: "green" }}
       title={
         <>
-          Reclamações <Emphasis tone="accent">de clientes</Emphasis>
+          <Emphasis tone="accent">Reclamações</Emphasis>
         </>
       }
       help

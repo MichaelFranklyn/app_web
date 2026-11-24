@@ -173,6 +173,7 @@ export default function OrderPdfImportContent({ initialBatchId }: Props) {
 
       <PdfBatchesCard
         currentBatchId={wizard.batchId}
+        sellerOptions={options.sellerOptions}
         disabled={busy || upload.sending}
         onOpen={(id) => {
           wizard.openBatch(id);

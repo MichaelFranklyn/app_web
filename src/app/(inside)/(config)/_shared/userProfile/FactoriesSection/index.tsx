@@ -64,16 +64,23 @@ export function FactoriesSection({
   });
   const items = optimistic.items;
   const total = data?.seller_accesses?.totalCount ?? 0;
-  const columns = canManage ? 6 : 5;
+  // "Concedido por" só aparece quando alguma linha tem quem concedeu: nos
+  // vínculos antigos e importados o campo é vazio, e a coluna inteira de "—"
+  // só ocupava espaço (crítica de configurações, 23/11/2026).
+  const hasGrantedBy = items.some((n) => n.grantedByUser?.name);
+  const columns = 4 + (hasGrantedBy ? 1 : 0) + (canManage ? 1 : 0);
 
   return (
     <Table.Root>
       <Table.CardHead>
         <Table.CardHead.Title>Fábricas com acesso</Table.CardHead.Title>
+        {/* A contagem é texto de apoio, não tarja: como item das ações, no
+            celular a tarja esticava na largura toda acima do botão
+            (crítica de configurações, 23/11/2026). */}
+        <Table.CardHead.Description>
+          {total === 1 ? "1 fábrica" : `${total} fábricas`}
+        </Table.CardHead.Description>
         <Table.CardHead.Actions>
-          <Badge.Root color="neutral" appearance="tinted">
-            <Badge.Text>{total} fábricas</Badge.Text>
-          </Badge.Root>
           <AddFactoryAccessModal
             sellerId={sellerId}
             onAdded={() => refetch()}
@@ -81,7 +88,10 @@ export function FactoriesSection({
         </Table.CardHead.Actions>
       </Table.CardHead>
 
-      <Table.Table>
+      {/* Cartões abaixo do desktop, como as outras listas: no celular a
+          tabela de 6 colunas rolava de lado (crítica de configurações,
+          23/11/2026). Poucas linhas — sem a faixa de ordenação. */}
+      <Table.Table cards cardSort={false}>
         <Table.Header>
           <Table.Row>
             <Table.Head title={FACTORY_ACCESS_COLUMN_HELP.factory}>
@@ -93,9 +103,11 @@ export function FactoriesSection({
             <Table.Head title={FACTORY_ACCESS_COLUMN_HELP.commission}>
               Comissão do vendedor
             </Table.Head>
-            <Table.Head title={FACTORY_ACCESS_COLUMN_HELP.grantedBy}>
-              Concedido por
-            </Table.Head>
+            {hasGrantedBy && (
+              <Table.Head title={FACTORY_ACCESS_COLUMN_HELP.grantedBy}>
+                Concedido por
+              </Table.Head>
+            )}
             <Table.Head title={FACTORY_ACCESS_COLUMN_HELP.date}>
               Data
             </Table.Head>
@@ -133,12 +145,12 @@ export function FactoriesSection({
           ) : (
             items.map((node) => (
               <Table.Row key={node.id}>
-                <Table.Cell>
+                <Table.Cell card="title">
                   <Table.CellText variant="strong">
                     {factoryName(node.factory)}
                   </Table.CellText>
                 </Table.Cell>
-                <Table.Cell>
+                <Table.Cell card="status">
                   <Badge.Root
                     color={node.isActive ? "green" : "red"}
                     appearance="tinted"
@@ -148,7 +160,7 @@ export function FactoriesSection({
                     </Badge.Text>
                   </Badge.Root>
                 </Table.Cell>
-                <Table.Cell>
+                <Table.Cell label="Comissão do vendedor">
                   <Table.CellText variant="dim">
                     {sellerAgreementLabel(
                       node.sellerCommissionRate,
@@ -156,18 +168,18 @@ export function FactoriesSection({
                     )}
                   </Table.CellText>
                 </Table.Cell>
-                <Table.Cell>
-                  <Table.CellText variant="dim">
+                {hasGrantedBy && (
+                  <Table.Cell label="Concedido por" variant="dim" emptyText="—">
                     {node.grantedByUser?.name ?? "—"}
-                  </Table.CellText>
-                </Table.Cell>
-                <Table.Cell>
+                  </Table.Cell>
+                )}
+                <Table.Cell label="Data">
                   <Table.CellText variant="dim">
                     {formatDateDMY(node.createdAt)}
                   </Table.CellText>
                 </Table.Cell>
                 {canManage && (
-                  <Table.Cell flex className="justify-end">
+                  <Table.Cell card="actions" flex className="justify-end">
                     <AccessRowActions
                       id={node.id}
                       sellerName={sellerName}

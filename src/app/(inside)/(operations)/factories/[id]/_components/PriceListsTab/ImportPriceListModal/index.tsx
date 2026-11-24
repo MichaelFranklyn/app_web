@@ -1,7 +1,5 @@
 "use client";
 
-import { Upload } from "lucide-react";
-
 import { Button } from "@/components/Button";
 import { Modal } from "@/components/Modal";
 import { Stepper } from "@/components/Stepper";
@@ -40,18 +38,6 @@ export function ImportPriceListModal(props: ImportPriceListModalProps) {
 
   return (
     <Modal.Root open={open} onOpenChange={handleClose}>
-      <Modal.Trigger asChild>
-        <Button.Root
-          appearance="outline"
-          color="neutral"
-          size="sm"
-          title="Importar tabela"
-        >
-          <Button.Icon icon={Upload} />
-          <Button.Title>Importar</Button.Title>
-        </Button.Root>
-      </Modal.Trigger>
-
       <Modal.Content size="5xl">
         <Modal.Header
           title="Importar tabela de preço"

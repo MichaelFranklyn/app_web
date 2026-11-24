@@ -22,8 +22,7 @@ import { FACTORY_ORDER_COLUMN_HELP } from "../../../help";
 import { UPDATE_ORDER_FROM_FACTORY_MUTATION } from "../../../../_components/EditOrderModal";
 import { NewOrderButton } from "../../../../_components/NewOrderButton";
 import { OrderRowActions } from "./OrderRowActions";
-import { ImportOrderModal } from "./ImportOrderModal";
-import { FeatureGate } from "@/components/FeatureGate";
+import { OrdersMoreMenu } from "./OrdersMoreMenu";
 import { FactoryOrder } from "./gql";
 import { useFactoryOrdersTable } from "./useFactoryOrdersTable";
 import { formatOrderNumber } from "@/utils/orderNumber";
@@ -78,14 +77,11 @@ export function OrdersTab({ factoryId }: Props) {
             values={table.inputValues}
             onChange={table.setFilters}
           />
-          {/* Importação em massa é recurso de plano. */}
-          <FeatureGate feature="BULK_IMPORT">
-            <ImportOrderModal
-              factoryId={factoryId}
-              onChanged={() => refetch()}
-              onAddOptimistic={optimistic.addOptimistic}
-            />
-          </FeatureGate>
+          <OrdersMoreMenu
+            factoryId={factoryId}
+            onChanged={() => refetch()}
+            onAddOptimistic={optimistic.addOptimistic}
+          />
           <NewOrderButton from={{ factoryId }} />
         </Table.CardHead.Actions>
       </Table.CardHead>
@@ -187,12 +183,19 @@ export function OrdersTab({ factoryId }: Props) {
 
               return (
                 <Table.Row key={o.id} href={`/orders/${o.id}`}>
-                  <Table.Cell label="Pedido">
+                  {/* No cartão o número vai no título ("#499 · Cliente"). */}
+                  <Table.Cell label="Pedido" card="hidden">
                     <Badge.Root color="subtle" appearance="tinted">
                       <Badge.Text>{formatOrderNumber(o.number)}</Badge.Text>
                     </Badge.Root>
                   </Table.Cell>
                   <Table.Cell card="title" variant="strong">
+                    <Table.CellText
+                      variant="inherit"
+                      className="desktop:hidden"
+                    >
+                      {`${formatOrderNumber(o.number)} · `}
+                    </Table.CellText>
                     {clientName}
                   </Table.Cell>
                   <Table.Cell label="Vendedor" flex>
@@ -203,9 +206,16 @@ export function OrdersTab({ factoryId }: Props) {
                     />
                     <Table.CellText variant="dim">
                       {o.seller?.name ?? "—"}
+                      {/* No cartão a data vem na linha do vendedor. */}
+                      <Table.CellText
+                        variant="inherit"
+                        className="desktop:hidden"
+                      >
+                        {` · ${formatDateDMY(o.orderDate)}`}
+                      </Table.CellText>
                     </Table.CellText>
                   </Table.Cell>
-                  <Table.Cell label="Data" variant="dim">
+                  <Table.Cell label="Data" variant="dim" cardHidden>
                     {formatDateDMY(o.orderDate)}
                   </Table.Cell>
                   <Table.Cell
@@ -216,11 +226,18 @@ export function OrdersTab({ factoryId }: Props) {
                   >
                     {formatMoney(o.totalAmount)}
                   </Table.Cell>
-                  <Table.Cell label="Comissão" variant="dim" align="right">
+                  {/* No cartão a comissão fecha a linha das ações. */}
+                  <Table.Cell
+                    label="Comissão"
+                    variant="dim"
+                    align="right"
+                    card="aside"
+                  >
                     {formatMoney(visibleCommission(o))}
                   </Table.Cell>
-                  {/* No cartão a situação divide a última linha com as ações. */}
-                  <Table.Cell card="aside">
+                  {/* No cartão a situação encosta no valor ("Valor: R$ x
+                      [Faturado]"), logo abaixo do título. */}
+                  <Table.Cell card="status">
                     {/* Vocabulário compartilhado: o mapa local desta pasta não
                         conhece INVOICED, e pedido faturado aparecia com a
                         palavra crua, em inglês, na cor de "sem situação". */}

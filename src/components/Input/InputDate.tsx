@@ -30,6 +30,13 @@ export interface InputDateProps extends Omit<
   onChange?: (date: Date | DateRange | undefined | null) => void;
   onClose?: () => void;
   disabledClear?: boolean;
+  /**
+   * O que vale quando nada foi escolhido, escrito como VALOR (cor de texto),
+   * não como placeholder cinza: num filtro com padrão ("Vencidas e próximos 7
+   * dias"), o cinza dizia "campo vazio" quando o filtro já está recortando.
+   * Diferente do `placeholder`, que pede uma escolha.
+   */
+  emptyLabel?: string;
 }
 
 export const InputDate = ({
@@ -107,6 +114,7 @@ const InputDateControl = ({
   onClose,
   disabledClear,
   placeholder,
+  emptyLabel,
   ...props
 }: Omit<InputDateProps, "size">) => {
   const context = useInputContext();
@@ -228,7 +236,7 @@ const InputDateControl = ({
           placeholder ||
           (variant === "single" ? "Selecione a data" : "Selecione o período")
         }
-        value={dateSel.displayValue}
+        value={dateSel.displayValue || emptyLabel || ""}
         style={{ cursor: disabled ? "not-allowed" : "pointer" }}
         className="pointer-events-none min-w-[50px] flex-1 bg-transparent outline-none disabled:cursor-not-allowed"
       />

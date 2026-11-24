@@ -2,6 +2,8 @@ import { describe, expect, it } from "vitest";
 import { ClientProductAnalysisRow } from "./interface";
 import {
   cycleLabel,
+  overdueLabel,
+  roundedUnits,
   isStaple,
   presenceShare,
   summarizeAnalysis,
@@ -91,5 +93,31 @@ describe("cycleLabel", () => {
   // Sem duas compras não há ritmo: inventar um número seria pior que o traço.
   it("sem ciclo mostra traço", () => {
     expect(cycleLabel(null)).toBe("—");
+  });
+
+  it("com uma compra só diz que ainda não há ritmo", () => {
+    expect(cycleLabel(null, 1)).toBe("1 compra só, sem ritmo ainda");
+  });
+});
+
+describe("roundedUnits", () => {
+  it("arredonda a média para unidades inteiras", () => {
+    expect(roundedUnits("12.37")).toBe(12);
+  });
+
+  it("abaixo de 1 mantém a fração em vez de mostrar zero", () => {
+    expect(roundedUnits("0.4")).toBe("0.4");
+  });
+});
+
+describe("overdueLabel", () => {
+  it("diz quantos dias a data esperada passou", () => {
+    expect(overdueLabel(12)).toBe("atrasada 12 dias");
+    expect(overdueLabel(1)).toBe("atrasada 1 dia");
+  });
+
+  it("sem atraso não diz nada", () => {
+    expect(overdueLabel(0)).toBeNull();
+    expect(overdueLabel(null)).toBeNull();
   });
 });

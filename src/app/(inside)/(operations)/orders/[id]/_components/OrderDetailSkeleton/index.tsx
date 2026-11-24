@@ -90,11 +90,12 @@ export function OrderDetailSkeleton() {
     <PageContent>
       <HeaderSkeleton />
 
-      <div className="flex gap-20">
+      {/* Mesma régua do `content.tsx`: abaixo do desktop-xl, resumo em cima. */}
+      <div className="desktop-xl:flex-row flex flex-col gap-20">
         <div className="flex min-w-0 flex-1 flex-col gap-12">
           <ItemsTableSkeleton />
         </div>
-        <div className="desktop:w-[320px] flex w-[260px] shrink-0 flex-col gap-12">
+        <div className="desktop-xl:w-[320px] max-desktop-xl:order-first flex w-full shrink-0 flex-col gap-12">
           <SummaryCardSkeleton />
         </div>
       </div>

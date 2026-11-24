@@ -43,7 +43,24 @@ export const TABLE_FIELDS: Record<string, FieldConfig> = {
   walletStatus: { type: "select", queryField: "wallet_status" },
 };
 
-export const buildKpis = (stats: ClientsStats): KpiItem[] => {
+/**
+ * Os três cartões do topo.
+ *
+ * Eram quatro: "Total de clientes" e "Clientes ativos" lado a lado, com o
+ * segundo sempre quase igual ao primeiro — dois números grandes para dizer uma
+ * coisa só (crítica de 23/11/2026). Virou um cartão, "Na carteira" = os
+ * vínculos ATIVOS (o mesmo recorte que a lista abaixo mostra por padrão), com
+ * os inativos no rodapé.
+ *
+ * Atrasados e sem visita têm o MESMO tom quando há alguém: são dois avisos do
+ * mesmo peso. Antes um era vermelho e o outro azul, e o azul lia como neutro.
+ *
+ * `isOwnWallet`: vendedor logado — os números são só da carteira dele.
+ */
+export const buildKpis = (
+  stats: ClientsStats,
+  isOwnWallet = false
+): KpiItem[] => {
   // Defensivo: se `clientStats` vier ausente, degrada para zeros sem quebrar a página.
   const {
     totalClients = 0,
@@ -52,21 +69,21 @@ export const buildKpis = (stats: ClientsStats): KpiItem[] => {
     noVisit30d = 0,
   } = stats.clientStats ?? {};
 
+  const inactive = Math.max(totalClients - activeClients, 0);
+  const inactiveText =
+    inactive === 0
+      ? "todos ativos"
+      : `${inactive} ${inactive === 1 ? "inativo" : "inativos"} fora da conta`;
+
   return [
     {
-      label: "Total de clientes",
-      value: String(totalClients),
-      delta: "carteira da empresa",
-      status: "neutral",
-      help: CLIENT_KPI_HELP["Total de clientes"],
-    },
-    {
-      label: "Clientes ativos",
+      label: "Na carteira",
       value: String(activeClients),
-      delta: `${totalClients ? Math.round((activeClients / totalClients) * 100) : 0}% da carteira`,
-      positive: true,
+      // "clientes ativos · todos ativos" repetia a mesma ideia: o rótulo e a
+      // ajuda já dizem que o número é dos ativos.
+      delta: isOwnWallet ? `sua carteira · ${inactiveText}` : inactiveText,
       status: "neutral",
-      help: CLIENT_KPI_HELP["Clientes ativos"],
+      help: CLIENT_KPI_HELP["Na carteira"],
     },
     {
       // O rótulo era "Em risco de churn" e o texto de apoio dizia "score acima
@@ -77,23 +94,21 @@ export const buildKpis = (stats: ClientsStats): KpiItem[] => {
       label: "Atrasados para comprar",
       value: String(atRiskClients),
       delta: "passaram do próprio ritmo",
-      negative: atRiskClients > 0,
-      status: atRiskClients > 0 ? "urgente" : "ok",
+      status: atRiskClients > 0 ? "atencao" : "ok",
       help: CLIENT_KPI_HELP["Atrasados para comprar"],
     },
     {
       label: "Sem visita há 30d+",
       value: String(noVisit30d),
       delta: "sem visita recente",
-      negative: noVisit30d > 0,
-      status: noVisit30d > 0 ? "info" : "ok",
+      status: noVisit30d > 0 ? "atencao" : "ok",
       help: CLIENT_KPI_HELP["Sem visita há 30d+"],
     },
   ];
 };
 
 /**
- * Os filtros ativos que NÃO governam os quatro cartões do topo.
+ * Os filtros ativos que NÃO governam os cartões do topo.
  *
  * Os KPIs vêm de `clientStats`, uma consulta à parte que só aceita o recorte por
  * vendedor: filtrar a lista por rede deixa o topo contando a carteira inteira.

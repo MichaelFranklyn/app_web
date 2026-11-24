@@ -1,6 +1,6 @@
 import { MockedProvider } from "@apollo/client/testing/react";
 import { act, renderHook } from "@testing-library/react";
-import { ReactNode } from "react";
+import { ReactNode, useState } from "react";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 
 /** Vínculos, condições e catálogo da fábrica têm hooks próprios: dublês aqui. */
@@ -131,12 +131,16 @@ const run = (mocks: unknown[] = []) => {
   const onChanged = vi.fn();
   const onAddOptimistic = vi.fn();
   const { result } = renderHook(
-    () =>
-      useImportFactoryOrder({
+    () => {
+      const [open, setOpen] = useState(false);
+      return useImportFactoryOrder({
         factoryId: FACTORY,
         onChanged,
         onAddOptimistic,
-      }),
+        open,
+        onOpenChange: setOpen,
+      });
+    },
     { wrapper: wrapper(mocks) }
   );
   act(() => result.current.handleClose(true));

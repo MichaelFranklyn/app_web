@@ -66,10 +66,8 @@ export function ImportTemplateTab({ factoryId }: Props) {
 
   return (
     <div className="flex flex-col gap-16" data-tour="factory-import-template">
-      <Title variant="heading-sm" weight="bold">
-        Modelos de importação
-      </Title>
-
+      {/* Sem título próprio: a aba já se chama "Modelos" e cada card diz o
+          seu (crítica de 23/11/2026). */}
       {error && !data ? (
         <QueryError onRetry={() => refetch()} />
       ) : (

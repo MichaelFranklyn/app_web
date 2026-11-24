@@ -86,8 +86,10 @@ export function DefaultImpactNotice({ impact, month }: Props) {
 
         {semDivida > 0 && (
           <Title variant="caption" color="muted">
-            Outras {semDivida} parcela(s) ainda não tinham comissão paga: nelas
-            o calote só cancela o previsto.
+            {semDivida === 1
+              ? "Outra parcela ainda não tinha"
+              : `Outras ${semDivida} parcelas ainda não tinham`}{" "}
+            comissão paga: nelas o calote só cancela o previsto.
           </Title>
         )}
       </Card.Body>

@@ -207,3 +207,52 @@ export function fileBadge(file: PdfImportFile): {
   if (file.status === "FAILED") return { label: "Não lido", color: "red" };
   return { label: "Importado", color: "neutral" };
 }
+
+const plural = (n: number, one: string, many: string) =>
+  `${n} ${n === 1 ? one : many}`;
+
+/**
+ * Contagem do lote, com o plural certo: "1 lido", "3 lidos" — o "lido(s)"
+ * genérico lia como formulário (crítica de configurações, 23/11/2026).
+ */
+export function batchCounts(batch: PdfImportBatch): string {
+  const parts = [plural(batch.totalFiles, "PDF no lote", "PDFs no lote")];
+  if (batch.importedFiles)
+    parts.push(plural(batch.importedFiles, "importado", "importados"));
+  if (batch.readFiles) parts.push(plural(batch.readFiles, "lido", "lidos"));
+  if (batch.failedFiles)
+    parts.push(plural(batch.failedFiles, "não lido", "não lidos"));
+  return parts.join(" · ");
+}
+
+/**
+ * Em que pé está o lote. Dois lotes da mesma fábrica no mesmo dia eram cartões
+ * idênticos; a situação (com a hora e o vendedor) é o que os distingue
+ * (crítica de configurações, 23/11/2026).
+ */
+export function batchBadge(batch: PdfImportBatch): {
+  label: string;
+  color: ThemeColor;
+} {
+  if (batch.totalFiles === 0) return { label: "Vazio", color: "neutral" };
+  if (batch.pendingFiles > 0) return { label: "Lendo", color: "blue" };
+  if (batch.readFiles > 0) return { label: "Falta importar", color: "warning" };
+  // Nada lendo nem esperando: o que dava para entrar já entrou (os não lidos,
+  // se houver, aparecem na contagem ao lado).
+  if (batch.importedFiles > 0) return { label: "Importado", color: "green" };
+  return { label: "Não lido", color: "red" };
+}
+
+/** "17/11/2026 às 14:32", no fuso do escritório. */
+export function batchOpenedAt(iso: string): string {
+  const date = new Date(iso);
+  if (Number.isNaN(date.getTime())) return "—";
+  const tz = "America/Sao_Paulo";
+  const day = date.toLocaleDateString("pt-BR", { timeZone: tz });
+  const time = date.toLocaleTimeString("pt-BR", {
+    timeZone: tz,
+    hour: "2-digit",
+    minute: "2-digit",
+  });
+  return `${day} às ${time}`;
+}

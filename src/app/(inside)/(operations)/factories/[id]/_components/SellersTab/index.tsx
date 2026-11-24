@@ -15,6 +15,7 @@ import { Title } from "@/components/Title";
 import { FACTORY_SELLER_COLUMN_HELP } from "../../../help";
 import { useCompleteList } from "@/hooks/useCompleteList";
 import { useOptimisticList } from "@/hooks/useOptimisticList";
+import { personInitials } from "@/utils/format/initials";
 import { formatDateDMY } from "@/utils/format/masks";
 import { Users } from "lucide-react";
 import { useMemo } from "react";
@@ -170,7 +171,7 @@ export function SellersTab({ factoryId, factoryName, autoOpenLink }: Props) {
                   <Avatar
                     size="sm"
                     color="neutral"
-                    initials={(a.seller?.name ?? "?").slice(0, 2).toUpperCase()}
+                    initials={personInitials(a.seller?.name) || "?"}
                   />
                   <Table.CellText variant="strong">
                     {a.seller?.name ?? "—"}
@@ -192,7 +193,13 @@ export function SellersTab({ factoryId, factoryName, autoOpenLink }: Props) {
                     )}
                   </Table.CellText>
                 </Table.Cell>
-                <Table.Cell label="Concedido por">
+                {/* Vazio em quase toda linha (acesso antigo, sem registro de
+                    quem concedeu): no cartão só repetia "Não informado"
+                    (crítica de 23/11/2026). */}
+                <Table.Cell
+                  label="Concedido por"
+                  cardHidden={!a.grantedByUser?.name}
+                >
                   <Table.CellText variant="dim">
                     {a.grantedByUser?.name ?? "—"}
                   </Table.CellText>

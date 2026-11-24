@@ -53,7 +53,10 @@ test("fábrica detalhe: desvincula a fábrica", async ({ page }) => {
 
   await page.goto(URL);
 
-  await page.getByRole("button", { name: "Excluir" }).click();
+  // Excluir mora no menu "Mais ações da fábrica": é ida rara e grave, longe
+  // do Editar (crítica de 23/11/2026).
+  await page.getByRole("button", { name: "Mais ações da fábrica" }).click();
+  await page.getByRole("menuitem", { name: "Excluir vínculo" }).click();
   await page
     .getByRole("dialog")
     .getByRole("button", { name: "Excluir vínculo" })

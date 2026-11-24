@@ -15,7 +15,7 @@ interface Props {
   remove: Omit<ComponentProps<typeof DeleteClientLinkModal>, Controlled>;
 }
 
-/** Negativar, editar e remover o vínculo; no celular entram no "⋯". */
+/** Negativar, editar e remover o vínculo, no "⋯". */
 export function ClientLinkRowActions({ negative, edit, remove }: Props) {
   const [editOpen, setEditOpen] = useState(false);
   const [removeOpen, setRemoveOpen] = useState(false);

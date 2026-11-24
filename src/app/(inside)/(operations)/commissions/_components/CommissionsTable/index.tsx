@@ -14,6 +14,7 @@ import {
   COMMISSION_STATUS_LABEL,
   COMMISSION_STATUS_TONE,
   type CommissionLens,
+  type CommissionTab,
   OFFICE_LENS,
 } from "../../utils";
 import { ReconcileToggle } from "../ReconcileToggle";
@@ -41,6 +42,13 @@ interface Props {
    */
   showSeller?: boolean;
   /**
+   * Aba da lista. Em "Todas" e "Boleto em atraso" as situações se misturam e a
+   * coluna Situação é a única que as separa; nas outras abas ela só repete o
+   * nome da aba em cada linha — some quando todas as linhas dizem o mesmo
+   * (crítica de /commissions, 23/11/2026).
+   */
+  tab?: CommissionTab;
+  /**
    * A fábrica tem mais de uma página: a caixa do cabeçalho marca as parcelas
    * DESTA página, e o nome dela precisa dizer isso.
    */
@@ -56,10 +64,13 @@ interface Props {
 const whenLabel = (row: CommissionRow, lens: CommissionLens): string => {
   const status = lens.status(row);
   const date = lens.receiveDate(row);
+  // Na ótica do vendedor o dinheiro é REPASSE do escritório: "Recebido em" ao
+  // lado do boleto "Pago" do cliente parecia falar do mesmo pagamento.
+  const isSeller = lens.audience === "seller";
   if (status === "received")
-    return `Recebido em ${formatDateDMY(date ?? undefined)}`;
+    return `${isSeller ? "Repassado em" : "Recebido em"} ${formatDateDMY(date ?? undefined)}`;
   if (status === "receivable")
-    return `Receber em ${formatDateDMY(date ?? undefined)}`;
+    return `${isSeller ? "Repasse em" : "Receber em"} ${formatDateDMY(date ?? undefined)}`;
   if (status === "chargeback")
     return date ? `Desconto em ${formatDateDMY(date)}` : "Desconto a agendar";
   if (status === "pending")
@@ -73,6 +84,7 @@ export function CommissionsTable({
   canManage,
   lens = OFFICE_LENS,
   showSeller = false,
+  tab,
   isPaged = false,
   selectedIds,
   onToggleRow,
@@ -80,9 +92,18 @@ export function CommissionsTable({
   onChanged,
 }: Props) {
   const selectable = canManage && !!onToggleRow;
-  // Seleção + boleto + conferência/repasse: as colunas de gestão.
+  const showStatus =
+    tab === undefined ||
+    tab === "all" ||
+    tab === "overdue" ||
+    new Set(rows.map((row) => lens.status(row))).size > 1;
+  // Cliente, pedido, nota, boleto, quando, comissão + as opcionais.
   const columns =
-    8 + (showSeller ? 1 : 0) + (selectable ? 1 : 0) + (canManage ? 2 : 0);
+    6 +
+    (showSeller ? 1 : 0) +
+    (showStatus ? 1 : 0) +
+    (selectable ? 1 : 0) +
+    (canManage ? 2 : 0);
   const allSelected =
     rows.length > 0 && rows.every((row) => selectedIds?.has(row.installmentId));
 
@@ -138,9 +159,12 @@ export function CommissionsTable({
               Vendedor
             </Table.Head>
           )}
+          {/* A parcela vai na mesma célula do pedido ("#487 · parcela 2"): como
+              coluna própria, um número solto empurrava a tabela para rolar de
+              lado no desktop (crítica de /commissions, 23/11/2026). */}
           <Table.Head
             sortKey="order"
-            title="Código curto do pedido. Clique para abrir o pedido inteiro."
+            title="Código curto do pedido e o número da parcela (1, 2, 3…). Clique no código para abrir o pedido inteiro."
           >
             Pedido
           </Table.Head>
@@ -151,12 +175,6 @@ export function CommissionsTable({
             title="Número da nota que a fábrica emitiu — é por ele que a planilha da fábrica é conferida. “Sem nota” significa que ainda não foi informada: dá para preencher em “Editar faturamento”, dentro do pedido."
           >
             Nota fiscal
-          </Table.Head>
-          <Table.Head
-            sortKey="sequence"
-            title="Número da parcela do pedido: 1 de 3, 2 de 3…"
-          >
-            Parcela
           </Table.Head>
           {/* Data e dinheiro abrem na ordem útil: o mais recente e o maior. */}
           <Table.Head
@@ -189,16 +207,18 @@ export function CommissionsTable({
           >
             Comissão
           </Table.Head>
-          <Table.Head
-            sortKey="status"
-            title={
-              lens.audience === "seller"
-                ? "Situação da comissão DO VENDEDOR: prevista, a receber, repassada, estorno ou devolução. Ela não acompanha a da fábrica — o escritório pode já ter recebido e ainda não ter repassado."
-                : "Situação da COMISSÃO: prevista, a receber, recebida, estorno ou devolução."
-            }
-          >
-            Situação
-          </Table.Head>
+          {showStatus && (
+            <Table.Head
+              sortKey="status"
+              title={
+                lens.audience === "seller"
+                  ? "Situação da comissão DO VENDEDOR: prevista, a receber, repassada, estorno ou devolução. Ela não acompanha a da fábrica — o escritório pode já ter recebido e ainda não ter repassado."
+                  : "Situação da COMISSÃO: prevista, a receber, recebida, estorno ou devolução."
+              }
+            >
+              Situação
+            </Table.Head>
+          )}
           {canManage && (
             <Table.Head
               sortKey="reconciled"
@@ -266,9 +286,14 @@ export function CommissionsTable({
                 </Table.Cell>
               )}
               <Table.Cell label="Pedido">
-                <TextLink href={`/orders/${row.orderId}`}>
-                  {formatOrderNumber(row.orderNumber)}
-                </TextLink>
+                <span className="whitespace-nowrap">
+                  <TextLink href={`/orders/${row.orderId}`}>
+                    {formatOrderNumber(row.orderNumber)}
+                  </TextLink>
+                  <Title as="span" variant="body-sm" color="muted">
+                    {` · parcela ${row.sequence}`}
+                  </Title>
+                </span>
               </Table.Cell>
               <Table.Cell card="hidden">
                 {row.invoiceNumber ? (
@@ -279,7 +304,6 @@ export function CommissionsTable({
                   </Title>
                 )}
               </Table.Cell>
-              <Table.Cell card="hidden">{row.sequence}</Table.Cell>
               <Table.Cell label="Boleto">
                 <InstallmentStateCell row={row} />
               </Table.Cell>
@@ -296,16 +320,18 @@ export function CommissionsTable({
                   {formatMoney(lens.amount(row))}
                 </Title>
               </Table.Cell>
-              <Table.Cell card="status">
-                <Badge.Root
-                  color={COMMISSION_STATUS_TONE[lens.status(row)]}
-                  appearance="tinted"
-                >
-                  <Badge.Text>
-                    {COMMISSION_STATUS_LABEL[lens.status(row)]}
-                  </Badge.Text>
-                </Badge.Root>
-              </Table.Cell>
+              {showStatus && (
+                <Table.Cell card="status">
+                  <Badge.Root
+                    color={COMMISSION_STATUS_TONE[lens.status(row)]}
+                    appearance="tinted"
+                  >
+                    <Badge.Text>
+                      {COMMISSION_STATUS_LABEL[lens.status(row)]}
+                    </Badge.Text>
+                  </Badge.Root>
+                </Table.Cell>
+              )}
               {canManage && (
                 <Table.Cell label="Conferência" card="aside">
                   <ReconcileToggle

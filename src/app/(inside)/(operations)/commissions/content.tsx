@@ -3,7 +3,6 @@
 import { PageContent } from "@/components/PageContent";
 import { QueryError } from "@/components/QueryError";
 import { BulkActionsBar } from "./_components/BulkActionsBar";
-import { CommissionsGuide } from "./_components/CommissionsGuide";
 import { CommissionsFilterBar } from "./_components/CommissionsFilterBar";
 import { CommissionsHeader } from "./_components/CommissionsHeader";
 import { CommissionsList } from "./_components/CommissionsList";
@@ -36,8 +35,6 @@ export default function CommissionsContent(props: Props) {
   return (
     <PageContent>
       <CommissionsHeader scope={scope} />
-      {/* A explicação da tela inteira, fechada: substitui os "?" espalhados. */}
-      <CommissionsGuide canManage={canManage} />
 
       {query.hasFailed ? (
         <QueryError onRetry={() => query.retry()} />
@@ -55,7 +52,6 @@ export default function CommissionsContent(props: Props) {
 
           <MonthKpis
             totals={view.monthTotals}
-            month={month}
             isSellerView={scope.isSellerView}
             isLoading={showSkeleton}
           />

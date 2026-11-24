@@ -101,7 +101,7 @@ describe("reasonText", () => {
       daysLate: 5,
     });
     expect(text).toContain("Faturado em 05/10/2026, há 20 dias");
-    expect(text).toContain("Prazo de entrega considerado: 15 dias");
+    expect(text).toContain("Prazo de entrega: 15 dias");
   });
 
   it("nunca contatado conta da entrada na carteira", () => {
@@ -157,8 +157,10 @@ describe("reasonText — tipos que vieram de /insights", () => {
     });
     expect(text).toMatch(/^3 parcelas vencidas, R\$\s806,00 em aberto\./);
     expect(text).toContain("A mais antiga venceu em 01/09/2026, há 10 dias");
-    // Conferir não é pagar: só o pagamento baixado tira o boleto daqui.
-    expect(text).toContain("conferir a comissão não tira o boleto da lista");
+    // Conferir não é pagar: só o pagamento marcado tira o boleto daqui.
+    expect(text).toContain(
+      "Sai daqui quando o pagamento for marcado no pedido"
+    );
   });
 
   it("boleto de uma parcela fala no singular", () => {
@@ -197,11 +199,24 @@ describe("priorityHint", () => {
 describe("dueLabel / dueTone", () => {
   it("fala em singular, plural, hoje e amanhã", () => {
     expect(dueLabel(0)).toBe("vence hoje");
-    expect(dueLabel(1)).toBe("venceu há 1 dia");
-    expect(dueLabel(12)).toBe("venceu há 12 dias");
+    expect(dueLabel(1)).toBe("1 dia de atraso");
+    expect(dueLabel(12)).toBe("12 dias de atraso");
     expect(dueLabel(-1)).toBe("vence amanhã");
     expect(dueLabel(-5)).toBe("vence em 5 dias");
     expect(dueLabel(null)).toBe("sem prazo");
+  });
+
+  it("só o boleto 'venceu há'; o resto é atraso", () => {
+    expect(dueLabel(3, "INSTALLMENT_OVERDUE")).toBe("venceu há 3 dias");
+    expect(dueLabel(3, "VISIT_OVERDUE")).toBe("3 dias de atraso");
+    expect(dueLabel(-2, "INSTALLMENT_OVERDUE")).toBe("vence em 2 dias");
+  });
+
+  it("vermelho só para o atraso de prioridade Alta", () => {
+    expect(dueTone(3, "HIGH")).toBe("red");
+    expect(dueTone(3, "MEDIUM")).toBe("secondary");
+    expect(dueTone(3, "LOW")).toBe("secondary");
+    expect(dueTone(0, "LOW")).toBe("warning");
   });
 
   it("pinta de vermelho só o que já venceu", () => {
@@ -281,7 +296,7 @@ describe("countStatus", () => {
   it("o mesmo tom na escala do Card.Kpi", () => {
     expect(countStatus(5, 2)).toBe("urgente");
     expect(countStatus(5, 0)).toBe("atencao");
-    expect(countStatus(0, 0)).toBe("neutral");
+    expect(countStatus(0, 0)).toBe("muted");
   });
 });
 
@@ -355,6 +370,7 @@ describe("scopeNote", () => {
     const note = scopeNote({});
     expect(note).toContain("próximos 7 dias");
     expect(note).toContain("período no topo");
+    expect(note).not.toContain("cadastro");
   });
 
   it("descreve o período escolhido, inteiro ou pela metade", () => {
@@ -460,13 +476,14 @@ describe("cartões por assunto", () => {
     ).toEqual([]);
   });
 
-  it("a linha sob o título diz quantas não podem esperar", () => {
+  it("a linha sob o título só aparece quando diferencia", () => {
     expect(cardSubtitle(counts[2])).toBe("250 de prioridade alta");
-    expect(cardSubtitle(counts[3])).toBe("todas de prioridade alta");
-    expect(cardSubtitle(counts[0])).toBe("nenhuma de prioridade alta");
+    // Todas ou nenhuma: a cor do número já diz; a linha some.
+    expect(cardSubtitle(counts[3])).toBeNull();
+    expect(cardSubtitle(counts[0])).toBeNull();
     expect(
       cardSubtitle({ type: "RETURN_SCHEDULED", count: 1, highCount: 1 })
-    ).toBe("de prioridade alta");
+    ).toBeNull();
     // Endereço não tem prazo nem chega a Alta: o que importa é o efeito.
     expect(
       cardSubtitle({ type: "ADDRESS_ISSUE", count: 150, highCount: 0 })

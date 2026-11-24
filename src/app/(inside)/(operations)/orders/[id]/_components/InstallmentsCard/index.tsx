@@ -1,6 +1,5 @@
 "use client";
 
-import { Badge } from "@/components/Badges";
 import { HelpTooltip } from "@/components/HelpTooltip";
 import { Table } from "@/components/Table";
 import { Title } from "@/components/Title";
@@ -50,27 +49,21 @@ export function InstallmentsCard({ order, onChanged }: Props) {
             }
           />
         </Table.CardHead.Title>
+        {/* Faturamento, nota e base do vencimento numa linha cinza: eram três
+            pílulas iguais que pareciam filtros ou situações (crítica do
+            detalhe do pedido, 23/11/2026). A nota é a chave que a fábrica usa
+            na planilha de comissão; a base do vencimento evita que um prazo
+            contado da compra pareça erro para quem confere pela nota. */}
         <Table.CardHead.Actions>
-          <Badge.Root color="subtle" appearance="tinted">
-            <Badge.Text>
-              Faturado em {formatDateDMY(order.invoicedAt ?? undefined)}
-            </Badge.Text>
-          </Badge.Root>
-          {/* A nota é a chave que a fábrica usa na planilha de comissão. Sem ela
-              à vista, conferir o repasse obriga a abrir o pedido item a item. */}
-          {order.invoiceNumber && (
-            <Badge.Root color="subtle" appearance="tinted">
-              <Badge.Text>NF {order.invoiceNumber}</Badge.Text>
-            </Badge.Root>
-          )}
-          {/* Sem isto, um vencimento contado da compra parece erro de cálculo
-              para quem confere olhando a data da nota. */}
-          <Badge.Root color="subtle" appearance="tinted">
-            <Badge.Text>
-              Vencimentos contam{" "}
-              {installmentDueBasisLabel(order.installmentDueBasis)}
-            </Badge.Text>
-          </Badge.Root>
+          <Title variant="body-sm" color="muted">
+            {[
+              `Faturado em ${formatDateDMY(order.invoicedAt ?? undefined)}`,
+              order.invoiceNumber && `NF ${order.invoiceNumber}`,
+              `vencimentos contam ${installmentDueBasisLabel(order.installmentDueBasis)}`,
+            ]
+              .filter(Boolean)
+              .join(" · ")}
+          </Title>
         </Table.CardHead.Actions>
       </Table.CardHead>
 

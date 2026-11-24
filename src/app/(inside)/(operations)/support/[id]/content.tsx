@@ -15,7 +15,6 @@ import {
   SUPPORT_STATUS_HINT,
   SUPPORT_STATUS_LABEL,
 } from "@/utils/support";
-import { clientDisplayName } from "@/utils/client";
 import { useQuery } from "@apollo/client/react";
 import { Headset, Pencil } from "lucide-react";
 import { useParams, useRouter } from "next/navigation";
@@ -89,7 +88,11 @@ export default function SupportCaseContent() {
         <Breadcrumb.Root>
           <Breadcrumb.Item href="/support">Reclamações</Breadcrumb.Item>
           <Breadcrumb.Separator />
-          <Breadcrumb.Item active>{supportCase.title}</Breadcrumb.Item>
+          {/* Uma linha só: o título inteiro já vem logo abaixo, e no celular
+              a trilha ocupava duas linhas repetindo-o (crítica de 23/11/2026). */}
+          <Breadcrumb.Item active className="min-w-0 truncate">
+            {supportCase.title}
+          </Breadcrumb.Item>
         </Breadcrumb.Root>
 
         <PanelHeader.Root>
@@ -98,12 +101,16 @@ export default function SupportCaseContent() {
               <PanelHeader.Heading {...PAGE_HEADING.support}>
                 {supportCase.title}
               </PanelHeader.Heading>
+              {/* O cliente saiu daqui: é a primeira linha do resumo logo abaixo
+                  (crítica de 23/11/2026). */}
               <PanelHeader.Description>
-                {/* O cliente vem na descrição, não acima do título (14/11/2026). */}
-                {clientDisplayName(supportCase.client)} ·{" "}
                 {SUPPORT_STATUS_HINT[supportCase.status]}
               </PanelHeader.Description>
-              <PanelHeader.Actions className="mt-6">
+              {/* Tarja e ações na MESMA linha, como no detalhe do pedido: com a
+                  tarja numa linha própria entre a dica e os botões, o cabeçalho
+                  virava três fileiras soltas (crítica de 23/11/2026). No
+                  celular as ações ganham a linha inteira abaixo da tarja. */}
+              <div className="max-tablet:mt-16 max-tablet:[&>span]:w-full mt-6 flex flex-wrap items-center gap-8">
                 <Badge.Root
                   color={SUPPORT_STATUS_COLOR[supportCase.status]}
                   appearance="tinted"
@@ -112,21 +119,23 @@ export default function SupportCaseContent() {
                     {SUPPORT_STATUS_LABEL[supportCase.status]}
                   </Badge.Text>
                 </Badge.Root>
-                <Button.Root
-                  type="button"
-                  appearance="outline"
-                  color="neutral"
-                  size="sm"
-                  onClick={() => setEditing(true)}
-                >
-                  <Button.Icon icon={Pencil} />
-                  <Button.Title>Corrigir dados</Button.Title>
-                </Button.Root>
-                <DeleteCaseModal
-                  caseId={supportCase.id}
-                  caseTitle={supportCase.title}
-                />
-              </PanelHeader.Actions>
+                <PanelHeader.Actions className="max-tablet:basis-full w-auto grow">
+                  <Button.Root
+                    type="button"
+                    appearance="outline"
+                    color="neutral"
+                    size="sm"
+                    onClick={() => setEditing(true)}
+                  >
+                    <Button.Icon icon={Pencil} />
+                    <Button.Title>Corrigir dados</Button.Title>
+                  </Button.Root>
+                  <DeleteCaseModal
+                    caseId={supportCase.id}
+                    caseTitle={supportCase.title}
+                  />
+                </PanelHeader.Actions>
+              </div>
             </PanelHeader.Left>
           </PanelHeader.Top>
         </PanelHeader.Root>

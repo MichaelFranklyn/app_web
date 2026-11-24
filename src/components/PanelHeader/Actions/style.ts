@@ -26,7 +26,10 @@ export const panelActionsStyle = [
   // `sr-only` e não `hidden`: o rótulo sai da tela, mas continua no nome
   // acessível do botão. Com `display:none` o leitor de tela (e o teste)
   // encontrava um botão sem nome nenhum — só um ícone.
-  "group-data-[actions-mode=icon]/panelhead:[&_*:has(>svg)>[data-button-title]]:sr-only",
+  // O primário (solid) mantém o nome: "+" sozinho ao lado de "…" deixava o
+  // vendedor adivinhar o que cria ("Nova tabela", crítica de 23/11/2026). Só
+  // os secundários viram ícone.
+  "group-data-[actions-mode=icon]/panelhead:[&_*:has(>svg):not([data-appearance=solid])>[data-button-title]]:sr-only",
   // Abaixo do desktop, nos estágios de linha, as ações DIVIDEM a linha: botões
   // curtos à esquerda deixavam a linha com sobra vazia no fim (regra das telas
   // abaixo do desktop). `data-actions-fill` sai durante a medição, então a

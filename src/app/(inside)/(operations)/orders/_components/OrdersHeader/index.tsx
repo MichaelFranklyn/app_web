@@ -17,6 +17,8 @@ import { ImportOrderModal } from "./ImportOrderModal";
 import { FeatureGate } from "@/components/FeatureGate";
 import { OrderSheetButton } from "../../../_components/OrderSheetButton";
 import { NewOrderButton } from "../../../_components/NewOrderButton";
+import { MoreOptions } from "@/components/MoreOptions";
+import { useOrdersPhoneMenu } from "./useOrdersPhoneMenu";
 
 interface Props {
   stats?: OrdersStats;
@@ -80,6 +82,18 @@ export function OrdersHeader({
   // "tremendo", 17/11/2026).
   const isLoading = !stats;
   const kpis = buildOrderKpis(stats ?? ZERO_STATS, isFiltered);
+  const exportOptions = {
+    filters: exportFilters,
+    filterFields,
+    inputValues,
+    order,
+    scopeLabel,
+  };
+  const { menu, modalProps } = useOrdersPhoneMenu({
+    ...exportOptions,
+    canSelectSeller,
+    hasOrders,
+  });
 
   return (
     <>
@@ -89,30 +103,32 @@ export function OrdersHeader({
             <PanelHeader.Heading {...PAGE_HEADING.orders}>
               Pedidos
             </PanelHeader.Heading>
-            <PanelHeader.Description>
-              Gestão de pedidos por fábrica e vendedor.
-            </PanelHeader.Description>
             <PanelHeader.Actions className="mt-6" data-tour="orders-actions">
-              {/* A ficha offline sai daqui em branco; da tela do cliente ela já
-                  vem com o cabeçalho preenchido. */}
-              <OrderSheetButton canSelectSeller={canSelectSeller} />
-              <ExportOrdersButton
-                filters={exportFilters}
-                filterFields={filterFields}
-                inputValues={inputValues}
-                order={order}
-                scopeLabel={scopeLabel}
-                disabled={!hasOrders}
-              />
-              {/* Importação em massa é recurso de plano. */}
-              <FeatureGate feature="BULK_IMPORT">
-                <ImportOrderModal
-                  onAddOptimistic={onAddOptimistic}
+              {/* No celular ficam só "Novo pedido" e o "Mais ações"; o CSS
+                  esconde o resto desde o primeiro quadro, e os modais passam a
+                  abrir pelo menu depois de hidratar. */}
+              <div className="max-tablet:hidden contents">
+                {/* A ficha offline sai daqui em branco; da tela do cliente ela
+                    já vem com o cabeçalho preenchido. */}
+                <OrderSheetButton
                   canSelectSeller={canSelectSeller}
-                  ownSellerId={ownSellerId}
+                  {...modalProps("sheet")}
                 />
-              </FeatureGate>
+                <ExportOrdersButton {...exportOptions} disabled={!hasOrders} />
+                {/* Importação em massa é recurso de plano. */}
+                <FeatureGate feature="BULK_IMPORT">
+                  <ImportOrderModal
+                    onAddOptimistic={onAddOptimistic}
+                    canSelectSeller={canSelectSeller}
+                    ownSellerId={ownSellerId}
+                    {...modalProps("import")}
+                  />
+                </FeatureGate>
+              </div>
               <NewOrderButton />
+              <div className="tablet:hidden contents">
+                <MoreOptions options={menu} showLabel />
+              </div>
             </PanelHeader.Actions>
           </PanelHeader.Left>
         </PanelHeader.Top>

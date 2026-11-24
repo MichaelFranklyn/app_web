@@ -59,6 +59,15 @@ export const getBrtTodayIso = (): string =>
     day: "2-digit",
   }).format(new Date());
 
+const isoDayToUtcMs = (iso: string): number => {
+  const [year, month, day] = iso.slice(0, 10).split("-").map(Number);
+  return Date.UTC(year, month - 1, day);
+};
+
+/** Dias corridos de `fromIso` até `todayIso` (datas aaaa-mm-dd, sem hora). */
+export const daysBetweenIso = (fromIso: string, todayIso: string): number =>
+  Math.round((isoDayToUtcMs(todayIso) - isoDayToUtcMs(fromIso)) / 86_400_000);
+
 /**
  * Retorna o ISO (aaaa-mm-dd, em UTC) do dia de hoje.
  * Usado para atalhos que apontam para "o dia atual" (ex.: rota do dia).

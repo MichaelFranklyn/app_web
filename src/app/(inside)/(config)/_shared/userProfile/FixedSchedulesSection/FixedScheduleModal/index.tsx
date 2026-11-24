@@ -53,7 +53,12 @@ export function FixedScheduleModal(props: FixedScheduleFormProps) {
             <Button.Icon icon={Pencil} />
           </Button.Root>
         ) : (
-          <Button.Root appearance="solid" color="amber" size="sm">
+          <Button.Root
+            appearance="solid"
+            color="amber"
+            size="sm"
+            label="Marcar dia fixo"
+          >
             <Button.Icon icon={CalendarPlus} />
             <Button.Title>Marcar dia fixo</Button.Title>
           </Button.Root>

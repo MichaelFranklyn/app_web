@@ -47,6 +47,23 @@ export const formatMoney = (value: number | string): string => {
   }).format(Number(value));
 };
 
+/**
+ * Moeda em reais inteiros ("R$ 223.084"), para o número grande de um cartão de
+ * KPI: em 2 colunas no celular, "R$ 223.084,01" não cabe numa linha e quebrava
+ * entre a moeda e o valor (crítica de /orders, 23/11/2026). O centavo fica na
+ * lista e no detalhe, onde se confere conta.
+ */
+export const formatMoneyWhole = (value: number | string): string => {
+  const n = Number(value);
+  if (!isFinite(n)) return "";
+  return new Intl.NumberFormat("pt-BR", {
+    style: "currency",
+    currency: "BRL",
+    maximumFractionDigits: 0,
+    minimumFractionDigits: 0,
+  }).format(Math.round(n));
+};
+
 // Converte string de moeda para number
 export const parseMoneyToNumber = (value: string): number => {
   if (!value) return 0;

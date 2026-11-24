@@ -7,7 +7,7 @@ import { ShareLinkBox } from "@/components/ShareLinkBox";
 import { Title } from "@/components/Title";
 import { formatDate } from "@/utils/format/date";
 import { Share2 } from "lucide-react";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { EmailLinkStep } from "./EmailLinkStep";
 import { useClientPortalLink } from "./useClientPortalLink";
 
@@ -16,6 +16,12 @@ interface SharePortalModalProps {
   /** Os contatos são do cliente (não do vínculo): é por ele que se buscam. */
   clientId: string;
   clientName: string;
+  /**
+   * Controlado: a ficha do cliente abre pelo menu "Mais ações" e não mostra
+   * o botão próprio. Sem `open`, o modal traz o botão "Compartilhar".
+   */
+  open?: boolean;
+  onOpenChange?: (open: boolean) => void;
 }
 
 /**
@@ -30,8 +36,12 @@ export function SharePortalModal({
   companyClientId,
   clientId,
   clientName,
+  open,
+  onOpenChange,
 }: SharePortalModalProps) {
-  const [isOpen, setIsOpen] = useState(false);
+  const [internalOpen, setInternalOpen] = useState(false);
+  const isControlled = open !== undefined;
+  const isOpen = isControlled ? open : internalOpen;
   // Cancelar derruba o acesso do cliente na hora, então o botão pergunta antes.
   // A confirmação é no próprio botão, e não num ConfirmModal, porque isto já é
   // um modal — e modal sobre modal é proibido no projeto.
@@ -39,11 +49,18 @@ export function SharePortalModal({
   const { activeLink, issuedUrl, isFetching, isLoading, load, issue, revoke } =
     useClientPortalLink(companyClientId);
 
-  const handleOpenChange = (open: boolean) => {
-    setIsOpen(open);
+  const handleOpenChange = (next: boolean) => {
+    if (!isControlled) setInternalOpen(next);
+    onOpenChange?.(next);
     setConfirmRevoke(false);
-    if (open) load();
+    if (next) load();
   };
+
+  // Aberto por fora (menu), o `onOpenChange` do Radix não dispara na
+  // abertura: busca o link aqui.
+  useEffect(() => {
+    if (isControlled && open) load();
+  }, [isControlled, open, load]);
 
   const handleRevoke = async () => {
     if (!confirmRevoke) {
@@ -56,12 +73,14 @@ export function SharePortalModal({
 
   return (
     <Modal.Root open={isOpen} onOpenChange={handleOpenChange}>
-      <Modal.Trigger asChild>
-        <Button.Root appearance="outline" color="neutral" size="sm">
-          <Button.Icon icon={Share2} />
-          <Button.Title>Compartilhar</Button.Title>
-        </Button.Root>
-      </Modal.Trigger>
+      {!isControlled && (
+        <Modal.Trigger asChild>
+          <Button.Root appearance="outline" color="neutral" size="sm">
+            <Button.Icon icon={Share2} />
+            <Button.Title>Compartilhar</Button.Title>
+          </Button.Root>
+        </Modal.Trigger>
+      )}
 
       <Modal.Content size="lg">
         <Modal.Header

@@ -9,8 +9,8 @@ import { CatalogRowActionsProps } from "./interface";
  * Editar e excluir de uma linha de catálogo (categoria, rótulo, segmento,
  * regra de imposto, unidade).
  *
- * No desktop são os dois ícones de sempre; no cartão do celular entram no "⋯",
- * com o nome escrito (14/11/2026). Os modais são controlados daqui porque um
+ * As duas ações ficam no "⋯" da linha, com o nome escrito (23/11/2026). Os
+ * modais são controlados daqui porque um
  * item de menu não pode ser o gatilho deles — cada seção só diz QUAL modal
  * abrir em `renderEdit`/`renderDelete`.
  */

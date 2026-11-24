@@ -71,7 +71,10 @@ export function FactoryLinksTable({
             <Table.Head title={CLIENT_FACTORY_COLUMN_HELP.status}>
               Status
             </Table.Head>
-            <Table.Head title={CLIENT_FACTORY_COLUMN_HELP.actions}>
+            <Table.Head
+              title={CLIENT_FACTORY_COLUMN_HELP.actions}
+              align="right"
+            >
               Ações
             </Table.Head>
           </Table.Row>
@@ -153,7 +156,7 @@ export function FactoryLinksTable({
                   negativeReason={c.negativeReason}
                 />
               </Table.Cell>
-              <Table.Cell card="actions">
+              <Table.Cell card="actions" align="right">
                 <FactoryLinkRowActions
                   negative={{
                     linkId: c.id,

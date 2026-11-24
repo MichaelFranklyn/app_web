@@ -16,11 +16,10 @@ export function OpportunitiesHeader() {
     <Alert.Root variant="info" role="note">
       <Alert.Icon icon={Sparkles} />
       <Alert.Content>
+        {/* Uma linha só (crítica de 23/11/2026): a diferença para Pendências
+            já está no tour e no estado vazio; aqui era a segunda frase que
+            empurrava os cartões para baixo da dobra no celular. */}
         <Alert.Title>{OPPORTUNITIES_TAGLINE}</Alert.Title>
-        <Alert.Description>
-          O que é compromisso a resolver (pedido parado, boleto, visita) fica na
-          aba Pendências.
-        </Alert.Description>
       </Alert.Content>
     </Alert.Root>
   );

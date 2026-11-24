@@ -27,7 +27,7 @@ interface Props {
  * celular.
  */
 export function OrderHeaderActions({ order, onRefetch }: Props) {
-  const { menu, hasMenu, show, primary, isQuote, modalProps } =
+  const { menu, hasMenu, isPhone, show, primary, isQuote, modalProps } =
     useOrderMenu(order);
   const base = { order, onSuccess: onRefetch };
 
@@ -40,21 +40,27 @@ export function OrderHeaderActions({ order, onRefetch }: Props) {
       {primary === "invoice" && <InvoiceOrderModal {...base} />}
       {primary === "deliver" && <MarkDeliveredModal {...base} />}
 
-      <UpdateOrderModal
-        orderId={order.id}
-        currentOrderDate={order.orderDate}
-        currentNotes={order.notes}
-        currentFreightType={order.freightType}
-        currentStatus={order.status}
-        currentFileUrl={order.fileUrl}
-        currentFileParsed={order.isFileParsed}
-        currentDeliveryEstimateDays={order.deliveryEstimateDays}
-        currentCoverageDays={order.coverageDays}
-        currentPaymentTermId={order.paymentTermId}
-        paymentTerms={order.availablePaymentTerms}
-        onSuccess={onRefetch}
-      />
-      <OrderExportMenu order={order} />
+      {/* No celular, Editar e Exportar moram no "Mais ações". O CSS os esconde
+          desde o primeiro quadro (antes de hidratar o hook ainda não sabe que é
+          celular); depois o Editar passa a abrir pelo menu. */}
+      <div className="max-tablet:hidden contents">
+        <UpdateOrderModal
+          orderId={order.id}
+          currentOrderDate={order.orderDate}
+          currentNotes={order.notes}
+          currentFreightType={order.freightType}
+          currentStatus={order.status}
+          currentFileUrl={order.fileUrl}
+          currentFileParsed={order.isFileParsed}
+          currentDeliveryEstimateDays={order.deliveryEstimateDays}
+          currentCoverageDays={order.coverageDays}
+          currentPaymentTermId={order.paymentTermId}
+          paymentTerms={order.availablePaymentTerms}
+          onSuccess={onRefetch}
+          {...(isPhone ? modalProps("edit") : {})}
+        />
+        <OrderExportMenu order={order} />
+      </div>
       {hasMenu && <MoreOptions options={menu} showLabel />}
 
       {/* Modais do menu: só montam quando a ação existe, porque alguns buscam

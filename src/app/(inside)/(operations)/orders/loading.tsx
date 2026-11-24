@@ -8,7 +8,6 @@ export default function Loading() {
     <ListPageSkeleton
       page="orders"
       title="Pedidos"
-      description="Gestão de pedidos por fábrica e vendedor."
       actions={4}
       kpis={{ count: 4, cols: { base: 2, tablet: 2, desktop: 4 }, help: true }}
       tabs={["Todos os pedidos", "Esperando faturamento", "Esperando entrega"]}

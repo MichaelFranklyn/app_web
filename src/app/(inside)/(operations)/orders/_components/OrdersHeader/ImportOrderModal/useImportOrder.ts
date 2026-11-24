@@ -4,6 +4,7 @@ import { useEffect, useMemo, useRef, useState } from "react";
 
 import { FormBuilderRef, FormStepSchema } from "@/components/FormBuilder";
 import { useToast } from "@/components/Toast";
+import { useControlledOpen } from "@/hooks/useControlledOpen";
 import {
   useInvalidateQueriesClient,
   useRefetchQueriesClient,
@@ -65,14 +66,22 @@ export interface ImportOrderModalProps {
   canSelectSeller: boolean;
   /** Perfil de vendedor de quem usa a tela — o dono do pedido quando não há escolha. */
   ownSellerId: string | null;
+  /** Aberto de fora (o "Mais ações" do celular): o modal não desenha o botão. */
+  open?: boolean;
+  onOpenChange?: (open: boolean) => void;
 }
 
 export function useImportOrder({
   onAddOptimistic,
   canSelectSeller,
   ownSellerId,
+  open: openProp,
+  onOpenChange,
 }: ImportOrderModalProps) {
-  const [open, setOpen] = useState(false);
+  const { open, setOpen, isControlled } = useControlledOpen(
+    openProp,
+    onOpenChange
+  );
   const [isBusy, setIsBusy] = useState(false);
   // Qual caminho de importação: a ficha do sistema (que se lê sozinha) ou um
   // arquivo de fábrica (que precisa dos dados do pedido antes).
@@ -512,6 +521,7 @@ export function useImportOrder({
 
   return {
     open,
+    isControlled,
     handleClose,
     deferred,
     ipiInOrder,

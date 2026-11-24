@@ -21,6 +21,7 @@ import {
   monthStartIso,
   yearMonthFromIso,
 } from "@/utils/format/month";
+import { plural } from "@/utils/format/plural";
 import { overallPercent, percentTone, sumRows } from "@/utils/goals";
 import { useMutation, useQuery } from "@apollo/client/react";
 import { CalendarDays, ChevronLeft, ChevronRight, Target } from "lucide-react";
@@ -156,13 +157,16 @@ export default function SellerGoalsContent({
           que é o vão entre BLOCOS da página — não entre o caminho e o título a
           que ele se refere. */}
       <div className="flex flex-col gap-8">
-        <Breadcrumb.Root>
-          <Breadcrumb.Item href={`/goals?month=${periodMonthIso}`}>
-            Metas
-          </Breadcrumb.Item>
-          <Breadcrumb.Separator />
-          <Breadcrumb.Item>{sellerName}</Breadcrumb.Item>
-        </Breadcrumb.Root>
+        {/* O vendedor não tem lista para onde voltar: /goals o traz para cá. */}
+        {canManage && (
+          <Breadcrumb.Root>
+            <Breadcrumb.Item href={`/goals?month=${periodMonthIso}`}>
+              Metas
+            </Breadcrumb.Item>
+            <Breadcrumb.Separator />
+            <Breadcrumb.Item>{sellerName}</Breadcrumb.Item>
+          </Breadcrumb.Root>
+        )}
 
         <PanelHeader.Root>
           <PanelHeader.Top>
@@ -183,11 +187,9 @@ export default function SellerGoalsContent({
                       </Badge.Root>
                     ) : (
                       <>
-                        <Title
-                          variant="body-sm"
-                          weight="semibold"
-                          color={percentTone(overall)}
-                        >
+                        {/* Texto neutro, cor só na barra: a frase inteira em
+                            vermelho soava como alarme (crítica de 23/11/2026). */}
+                        <Title variant="body-sm" weight="semibold">
                           {overall.toFixed(0)}% da meta do mês
                         </Title>
                         <Progress.Bar
@@ -195,6 +197,9 @@ export default function SellerGoalsContent({
                           color={percentTone(overall)}
                           label={`${sellerName}: ${overall.toFixed(0)}% da meta do mês`}
                         />
+                        <Title variant="body-xs" color="muted">
+                          Média dos indicadores que têm meta combinada.
+                        </Title>
                       </>
                     )}
                   </div>
@@ -211,8 +216,8 @@ export default function SellerGoalsContent({
         <>
           <div className="flex flex-wrap items-center justify-between gap-16">
             <Title variant="heading-sm">
-              {rows.length} {rows.length === 1 ? "fábrica" : "fábricas"} em{" "}
-              {monthLabel(month)}
+              {/* O mês já está no seletor ao lado e na descrição. */}
+              {plural(rows.length, "fábrica", "fábricas")}
             </Title>
             <div className="flex flex-wrap items-center gap-8">
               {canManage && (

@@ -15,7 +15,7 @@ export const supportFlow: FlowDefinition = {
   description: "A fila de problemas dos clientes e o andamento de cada um.",
   group: "Primeiros passos",
   route: FLOW_ROUTES.support,
-  version: 1,
+  version: 2,
   autoStart: true,
   steps: [
     {
@@ -30,7 +30,7 @@ export const supportFlow: FlowDefinition = {
       element: '[data-tour="support-counts"]',
       title: "Quem está com a bola",
       description:
-        "Os números seguem a ordem de quem precisa agir: primeiro o que ninguém assumiu, depois o que está andando, depois o que espera a fábrica ou o cliente.",
+        "Os números seguem a ordem de quem precisa agir: primeiro o que ninguém assumiu, depois o que está andando, depois o que espera a fábrica ou o cliente. Toque num número para ver só esses casos.",
       side: "bottom",
       align: "start",
     },

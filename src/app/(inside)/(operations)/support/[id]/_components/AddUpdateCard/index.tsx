@@ -39,6 +39,9 @@ export function AddUpdateCard({ caseId, currentStatus, onSaved }: Props) {
     value,
     label: SUPPORT_UPDATE_KIND_LABEL[value],
   }));
+  // Caso aberto não "fica como está": o back passa o primeiro andamento para
+  // Em andamento sozinho (add_support_update.py). O campo diz isso antes.
+  const startsOnSave = currentStatus === "OPEN";
   const statusOptions: SelectOption[] = NEXT_STATUS_OPTIONS.filter(
     (value) => value !== currentStatus
   ).map((value) => ({ value, label: SUPPORT_STATUS_LABEL[value] }));
@@ -76,12 +79,14 @@ export function AddUpdateCard({ caseId, currentStatus, onSaved }: Props) {
             hint={
               form.status
                 ? SUPPORT_STATUS_HINT[form.status as SupportStatus]
-                : "Deixe em branco para manter a situação atual."
+                : startsOnSave
+                  ? "Ao registrar, o caso sai de Aberto e passa para Em andamento."
+                  : undefined
             }
             options={statusOptions}
             value={statusOptions.find((o) => o.value === form.status) ?? null}
             variant="single"
-            placeholder="Manter como está"
+            placeholder={startsOnSave ? "Em andamento" : "Manter como está"}
             onChange={(val) =>
               form.setStatus((single(val)?.value as SupportStatus) ?? "")
             }

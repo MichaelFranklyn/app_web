@@ -26,7 +26,7 @@ export function SupportHeader({ onSaved }: Props) {
           <PanelHeader.Eyebrow color="green">Clientes</PanelHeader.Eyebrow>
           <div className="flex items-center gap-6">
             <PanelHeader.Heading {...PAGE_HEADING.support}>
-              Reclamações <Emphasis tone="accent">de clientes</Emphasis>
+              <Emphasis tone="accent">Reclamações</Emphasis>
             </PanelHeader.Heading>
             <HelpTooltip
               label="O que entra nas reclamações?"

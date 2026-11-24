@@ -99,7 +99,9 @@ export function PayInstallmentModal({
       <Modal.Trigger asChild>
         <Button.Root appearance="ghost" color="green" size="sm">
           <Button.Icon icon={CircleDollarSign} />
-          <Button.Title>Pago</Button.Title>
+          {/* "Pago" sozinho lia como situação, não como ação (crítica do
+              detalhe do pedido, 23/11/2026). */}
+          <Button.Title>Marcar como pago</Button.Title>
         </Button.Root>
       </Modal.Trigger>
 

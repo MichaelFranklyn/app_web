@@ -11,8 +11,7 @@ import { useAsyncAction } from "@/hooks/useAsyncAction";
 import { useInvalidateQueriesClient } from "@/hooks/useInvalidateQueries";
 import { PRICE_TIER_CACHE_FIELDS } from "@/utils/cacheFields";
 import { useMutation } from "@apollo/client/react";
-import { Pencil } from "lucide-react";
-import { useMemo, useRef, useState } from "react";
+import { useMemo, useRef } from "react";
 import { UPDATE_PRICE_TIER_MUTATION } from "../gql";
 
 interface UpdateTierResponse {
@@ -25,6 +24,9 @@ interface UpdateTierResponse {
 }
 
 interface Props {
+  /** Controlado: o gatilho mora fora (o "⋯"/ícone da linha, em RowActions). */
+  open: boolean;
+  onOpenChange: (open: boolean) => void;
   tierId: string;
   tierName: string;
   onChanged: () => void;
@@ -40,8 +42,9 @@ export function EditTierModal({
   onUpdateOptimistic,
   onCommit,
   onRollback,
+  open,
+  onOpenChange,
 }: Props) {
-  const [open, setOpen] = useState(false);
   const formRef = useRef<FormBuilderRef>(null);
   const [updateTier] = useMutation<UpdateTierResponse>(
     UPDATE_PRICE_TIER_MUTATION
@@ -77,11 +80,11 @@ export function EditTierModal({
   const handleSubmit = async (data: Record<string, unknown>) => {
     const name = String(data.name ?? "").trim();
     if (!name || name === tierName) {
-      setOpen(false);
+      onOpenChange(false);
       return;
     }
 
-    setOpen(false);
+    onOpenChange(false);
     onUpdateOptimistic(tierId, { name });
 
     await execute(
@@ -115,19 +118,7 @@ export function EditTierModal({
   };
 
   return (
-    <Modal.Root open={open} onOpenChange={setOpen}>
-      <Modal.Trigger asChild>
-        <Button.Root
-          appearance="ghost"
-          color="neutral"
-          size="sm"
-          isIconOnly
-          label="Editar nível"
-        >
-          <Button.Icon icon={Pencil} />
-        </Button.Root>
-      </Modal.Trigger>
-
+    <Modal.Root open={open} onOpenChange={onOpenChange}>
       <Modal.Content size="md">
         <Modal.Header
           title="Editar nível"

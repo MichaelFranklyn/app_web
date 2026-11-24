@@ -51,6 +51,9 @@ export const tableCardsStyle = [
   // Sem nada para ordenar nem selecionar, a faixa inteira sai: sobrava uma
   // tira vazia, com borda, entre o cabeçalho do card e o primeiro cartão.
   "max-desktop:[&_thead:not(:has(button,input))]:hidden",
+  // `cardSort={false}`: sem a faixa "Ordenar por:". O atributo dá ao seletor
+  // a especificidade que vence o `[&_thead]:block` acima, sem `!`.
+  "max-desktop:data-[card-sort=off]:[&_thead]:hidden",
   "max-desktop:[&_thead_th]:p-0 max-desktop:[&_thead_th]:border-0 max-desktop:[&_thead_th]:shadow-none max-desktop:[&_thead_th]:bg-transparent",
   // "Ordenar por:" só aparece quando há o que ordenar.
   "max-desktop:[&_thead_tr:has(button)]:before:content-['Ordenar_por:'] max-desktop:[&_thead_tr]:before:text-body-sm max-desktop:[&_thead_tr]:before:text-(--color-text-muted)",
@@ -75,6 +78,10 @@ export const tableCardsStyle = [
   // para salvar um nome comprido.
   "max-desktop:[&_tbody_td]:block max-desktop:[&_tbody_td]:p-0 max-desktop:[&_tbody_td]:border-0",
   "max-desktop:[&_tbody_td]:whitespace-normal max-desktop:[&_tbody_td]:min-w-0",
+  // `Table.Cell cardHidden`: detalhe vazio que, repetido em toda linha, só
+  // vira ruído no cartão ("Concedido por: Não informado"). No desktop a
+  // célula fica, para a coluna não desalinhar.
+  "max-desktop:[&_tbody_td[data-card-hidden]]:hidden",
 
   // Detalhe (célula sem papel): coluna do meio, texto menor, rótulo na frente.
   "max-desktop:[&_tbody_td]:text-left max-desktop:[&_tbody_td]:text-body-sm",

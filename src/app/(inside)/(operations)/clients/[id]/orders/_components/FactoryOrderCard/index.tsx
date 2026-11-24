@@ -3,7 +3,11 @@ import { Card } from "@/components/Card";
 
 import { Badge } from "@/components/Badges";
 import { Title } from "@/components/Title";
-import { formatDate } from "@/utils/format/date";
+import {
+  daysBetweenIso,
+  formatDate,
+  getBrtTodayIso,
+} from "@/utils/format/date";
 import { ChevronRight } from "lucide-react";
 import { FactoryOrderSummary } from "../../../interface";
 import { formatCurrency } from "../../../utils";
@@ -14,23 +18,33 @@ interface Props {
   onSelect: (summary: FactoryOrderSummary) => void;
 }
 
-/** Relação de compra com aquela fábrica, numa frase que o vendedor lê de relance. */
-function relationship(summary: FactoryOrderSummary): {
-  label: string;
-  color: "neutral" | "green";
-} {
-  if (summary.totalOrders === 0) {
+/** Até aqui a última compra é recente; depois, esfriando; depois, parada. */
+const RECENT_DAYS = 45;
+const COOLING_DAYS = 90;
+
+/**
+ * Relação de compra com aquela fábrica, numa frase que o vendedor lê de
+ * relance. A cor diz se o tempo desde a última compra preocupa: sempre verde,
+ * a tarja de quem não compra há meio ano parecia a de quem comprou ontem
+ * (crítica de 23/11/2026).
+ */
+function relationship(
+  summary: FactoryOrderSummary,
+  todayIso: string
+): { label: string; color: "neutral" | "green" | "amber" | "red" } {
+  if (summary.totalOrders === 0 || !summary.lastOrderDate) {
     return { label: "Nunca comprou", color: "neutral" };
   }
-  return {
-    label: `Última em ${formatDate(summary.lastOrderDate)}`,
-    color: "green",
-  };
+  const days = daysBetweenIso(summary.lastOrderDate, todayIso);
+  const color =
+    days <= RECENT_DAYS ? "green" : days <= COOLING_DAYS ? "amber" : "red";
+  return { label: `Última em ${formatDate(summary.lastOrderDate)}`, color };
 }
 
 export function FactoryOrderCard({ summary, onSelect }: Props) {
   const name = factoryName(summary.factory);
-  const rel = relationship(summary);
+  const rel = relationship(summary, getBrtTodayIso());
+  const hasOrders = summary.totalOrders > 0;
   const plural = summary.totalOrders !== 1 ? "s" : "";
 
   return (
@@ -56,12 +70,15 @@ export function FactoryOrderCard({ summary, onSelect }: Props) {
             {formatCurrency(summary.totalAmount)}
           </Title>
         </div>
-        <div className="flex items-center gap-4">
-          <Title variant="micro" color="secondary">
-            Ver pedidos
-          </Title>
-          <ChevronRight size={14} className="text-(--color-text-muted)" />
-        </div>
+        {/* Sem pedido não há lista para abrir: a chamada prometia algo vazio. */}
+        {hasOrders && (
+          <div className="flex items-center gap-4">
+            <Title variant="micro" color="secondary">
+              Ver pedidos
+            </Title>
+            <ChevronRight size={14} className="text-(--color-text-muted)" />
+          </div>
+        )}
       </div>
     </Card.Button>
   );

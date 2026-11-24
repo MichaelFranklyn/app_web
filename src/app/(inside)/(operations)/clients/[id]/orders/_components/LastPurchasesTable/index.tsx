@@ -72,7 +72,7 @@ export function LastPurchasesTable({ companyClientId }: Props) {
             <Table.Head>{isByFactory ? "Fábrica" : "Vendedor"}</Table.Head>
             <Table.Head>Última compra</Table.Head>
             <Table.Head>{isByFactory ? "Vendido por" : "Fábrica"}</Table.Head>
-            <Table.Head>Valor</Table.Head>
+            <Table.Head>Valor da última</Table.Head>
             <Table.Head>Compras</Table.Head>
           </Table.Row>
         </Table.Header>
@@ -120,7 +120,7 @@ export function LastPurchasesTable({ companyClientId }: Props) {
                 </Table.Cell>
                 <Table.Cell
                   card="amount"
-                  label="Valor"
+                  label="Valor da última"
                   variant="strong"
                   className="whitespace-nowrap"
                 >

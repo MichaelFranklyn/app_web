@@ -109,6 +109,7 @@ export default function ImportSettingsContent() {
                 content={SETUP_STEP_CONTENT[step.key]}
                 summary={stepSummary(step.key, progress)}
                 isNext={!progress.isCompleted && step.key === nextKey}
+                collapsed={progress.isCompleted && step.isDone && !blocker}
                 blockedBy={
                   blocker
                     ? {

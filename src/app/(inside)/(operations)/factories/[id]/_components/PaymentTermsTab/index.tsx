@@ -1,6 +1,5 @@
 "use client";
 
-import { Badge } from "@/components/Badges";
 import { EmptyState } from "@/components/EmptyState";
 import { QueryError } from "@/components/QueryError";
 import { HelpTooltip } from "@/components/HelpTooltip";
@@ -143,21 +142,24 @@ export function PaymentTermsTab({ companyFactoryId }: Props) {
           ) : (
             terms.map((term) => (
               <Table.Row key={term.id}>
-                {/* No cartão a tarja do prazo divide a última linha com as
-                    ações, em vez de ficar sozinha no topo. */}
-                <Table.Cell card="aside">
-                  <Badge.Root color="subtle" appearance="tinted">
-                    <Badge.Text>
-                      {formatInstallments(term.installmentsDays)}
-                    </Badge.Text>
-                  </Badge.Root>
+                {/* O prazo É a identidade da linha: no cartão vira o título,
+                    em vez de uma tarja escondida no rodapé (crítica de
+                    23/11/2026). */}
+                <Table.Cell card="title">
+                  <Table.CellText variant="strong">
+                    {formatInstallments(term.installmentsDays)}
+                  </Table.CellText>
                 </Table.Cell>
                 <Table.Cell label="Parcelas">
                   <Table.CellText variant="dim">
                     {installmentsCountLabel(term.installmentsDays)}
                   </Table.CellText>
                 </Table.Cell>
-                <Table.Cell label="Valor mínimo">
+                {/* "Sem mínimo" repetido em todo cartão só ocupa linha. */}
+                <Table.Cell
+                  label="Valor mínimo"
+                  cardHidden={!term.minOrderAmount}
+                >
                   <Table.CellText
                     variant={term.minOrderAmount ? "strong" : "dim"}
                   >

@@ -98,6 +98,7 @@ export default function PendingContent(props: PendingContentProps) {
               page={pending.currentPage}
               onPageChange={pending.setCurrentPage}
               onChanged={() => pending.refetch()}
+              onClose={() => pending.toggleType(open.type)}
             />
           )}
 

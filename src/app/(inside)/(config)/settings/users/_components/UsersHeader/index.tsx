@@ -145,7 +145,21 @@ export function UsersHeader({
               Quem entra no sistema e quem vende em campo — uma lista só. Clique
               em alguém para abrir o perfil completo.
             </PanelHeader.Description>
+            {/* O primário primeiro (Adicionar), depois Importar e Exportar: no
+                celular os botões empilham e o Exportar abria a pilha, empurrando
+                a ação principal para baixo (crítica de configurações,
+                23/11/2026). */}
             <PanelHeader.Actions className="mt-12" data-tour="users-actions">
+              {/* Pelo teto de LOGINS: o papel só é escolhido dentro do modal, e
+                  quem pedir vendedor sem cota de vendedor recebe a recusa da
+                  própria mutation, com a frase daquele teto. */}
+              <PlanLimitGate limit="USERS">
+                <AddUserModal onAddOptimistic={onAddOptimistic} />
+              </PlanLimitGate>
+              {/* A planilha só cria vendedores: o teto é o de vendedores. */}
+              <PlanLimitGate limit="SELLERS">
+                <ImportSellersModal onImported={onImported} />
+              </PlanLimitGate>
               <Button.Root
                 appearance="outline"
                 color="neutral"
@@ -157,29 +171,17 @@ export function UsersHeader({
                 <Button.Icon icon={Download} />
                 <Button.Title>Exportar</Button.Title>
               </Button.Root>
-              {/* Pelo teto de LOGINS: o papel só é escolhido dentro do modal, e
-                  quem pedir vendedor sem cota de vendedor recebe a recusa da
-                  própria mutation, com a frase daquele teto. */}
-              <PlanLimitGate limit="USERS">
-                <AddUserModal onAddOptimistic={onAddOptimistic} />
-              </PlanLimitGate>
-              {/* A planilha só cria vendedores: o teto é o de vendedores. */}
-              <PlanLimitGate limit="SELLERS">
-                <ImportSellersModal onImported={onImported} />
-              </PlanLimitGate>
             </PanelHeader.Actions>
           </PanelHeader.Left>
         </PanelHeader.Top>
       </PanelHeader.Root>
 
       {/* KPIs da operação de campo: é o que muda no dia a dia. */}
-      {/* Três cartões em duas colunas: no celular o último toma a linha
-          inteira, senão sobra meia linha vazia ao lado dele. */}
-      <Grid.Root
-        cols={{ base: 2, tablet: 3 }}
-        gap={20}
-        className="max-tablet:[&>:last-child]:col-span-2"
-      >
+      {/* Um cartão por linha no celular: em duas colunas os rótulos
+          ("Acessos a fábricas") quebravam no meio da palavra e o terceiro
+          ficava sozinho embaixo, num 2+1 torto (crítica de configurações,
+          23/11/2026). */}
+      <Grid.Root cols={{ base: 1, tablet: 3 }} gap={20}>
         {kpis.map(
           ({ label, value, delta, positive, negative, status, help }) => (
             <Grid.Item key={label}>

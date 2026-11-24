@@ -7,6 +7,7 @@ import {
   setText,
   truncate,
 } from "@/utils/pdf/theme";
+import { plural } from "@/utils/format/plural";
 
 const BAND_H = 26;
 /**
@@ -68,7 +69,7 @@ export const drawSectionBand = (
   pdf.text(
     truncate(
       pdf,
-      `${data.scope} · ${data.count} parcela(s)`,
+      `${data.scope} · ${plural(data.count, "parcela", "parcelas")}`,
       right - scopeX - 130
     ),
     scopeX,

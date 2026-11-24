@@ -243,9 +243,10 @@ test("abas de pedidos: o nome traz quantos esperam, com os filtros da tela", asy
     page.getByRole("tab", { name: "Esperando entrega (59)" })
   ).toBeVisible();
   // "Todos" lista orçamento e cancelado: um número ali contaria outra coisa.
-  await expect(page.getByRole("tab", { name: "Todos os pedidos" })).toHaveText(
-    "Todos os pedidos"
-  );
+  // Nome acessível, não texto: no celular a aba mostra o rótulo curto.
+  await expect(
+    page.getByRole("tab", { name: "Todos os pedidos" })
+  ).toHaveAccessibleName(/^Todos os pedidos$/);
 
   const text = JSON.stringify(counts[0]);
   expect(text).toContain("pending_invoice");

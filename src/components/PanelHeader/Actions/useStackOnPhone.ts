@@ -1,12 +1,10 @@
 "use client";
 
 import { RefObject, useEffect, useLayoutEffect, useState } from "react";
+import { PHONE_QUERY } from "@/hooks/useIsPhone";
 
 const useIsomorphicLayoutEffect =
   typeof window !== "undefined" ? useLayoutEffect : useEffect;
-
-// Abaixo do `tablet` (760px, ver --breakpoint-tablet no globals.css).
-const PHONE_QUERY = "(max-width: 759.98px)";
 
 // Conta o que é botão/link de ação; a busca não conta (ela tem a linha dela).
 // O skeleton do `loading.tsx` (ListPageSkeleton) conta também: sem isso a faixa

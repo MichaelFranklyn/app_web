@@ -1,7 +1,5 @@
 "use client";
 
-import { Upload } from "lucide-react";
-
 import { Button } from "@/components/Button";
 import { FormBuilder } from "@/components/FormBuilder";
 import { Modal } from "@/components/Modal";
@@ -44,13 +42,6 @@ export function ImportOrderModal(props: ImportFactoryOrderProps) {
 
   return (
     <Modal.Root open={open} onOpenChange={handleClose}>
-      <Modal.Trigger asChild>
-        <Button.Root appearance="outline" color="neutral" size="sm">
-          <Button.Icon icon={Upload} />
-          <Button.Title>Importar pedido</Button.Title>
-        </Button.Root>
-      </Modal.Trigger>
-
       <Modal.Content size="5xl">
         <Modal.Header
           title="Importar pedido"

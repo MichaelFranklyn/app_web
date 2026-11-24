@@ -4,6 +4,7 @@ import { Card } from "@/components/Card";
 import { HelpTooltip } from "@/components/HelpTooltip";
 import { Loading } from "@/components/Loading";
 import { Title } from "@/components/Title";
+import { formatDate } from "@/utils/format/date";
 import { SummaryCardProps } from "./interface";
 
 export function SummaryCard({
@@ -41,7 +42,8 @@ export function SummaryCard({
           <Card.Item
             variant="stat"
             label="Última visita"
-            value={lastVisitDate}
+            // Data no formato de leitura, não o ISO cru ("2026-11-10").
+            value={formatDate(lastVisitDate, "Nunca visitado")}
           />
         )}
         {/* Classificação da SUA empresa — o CNAE abaixo é o da Receita. */}

@@ -47,7 +47,17 @@ export const Indicator = ({
   );
 
   const text = (
-    <div className="flex flex-col">
+    // Na faixa horizontal do celular, só o passo atual mostra o nome: com
+    // quatro nomes a faixa passava da tela e o último saía cortado ("Qu…").
+    // Os outros ficam só o número — o nome continua para leitor de tela — e o
+    // "Passo X de N" do Stepper.Intro logo abaixo dá o contexto (crítica de
+    // configurações, 23/11/2026).
+    <div
+      className={cn(
+        "flex flex-col",
+        orientation === "horizontal" && !isActive && "max-tablet:sr-only"
+      )}
+    >
       <Title
         variant="caption"
         weight={isActive ? "semibold" : "regular"}

@@ -1,11 +1,9 @@
 "use client";
 
-import { Button } from "@/components/Button";
 import { ConfirmModal } from "@/components/ConfirmModal";
 import { useInvalidateQueriesClient } from "@/hooks/useInvalidateQueries";
 import { PRICE_TIER_CACHE_FIELDS } from "@/utils/cacheFields";
 import { useMutation } from "@apollo/client/react";
-import { Trash2 } from "lucide-react";
 import { DELETE_PRICE_TIER_MUTATION } from "../gql";
 
 interface DeleteTierResponse {
@@ -17,6 +15,9 @@ interface DeleteTierResponse {
 }
 
 interface Props {
+  /** Controlado: o gatilho mora fora (o "⋯"/ícone da linha, em RowActions). */
+  open: boolean;
+  onOpenChange: (open: boolean) => void;
   tierId: string;
   tierName: string;
   onRemoved: () => void;
@@ -32,6 +33,8 @@ export function RemoveTierModal({
   onRemoveOptimistic,
   onCommit,
   onRollback,
+  open,
+  onOpenChange,
 }: Props) {
   const [deleteTier] = useMutation<DeleteTierResponse>(
     DELETE_PRICE_TIER_MUTATION
@@ -40,17 +43,8 @@ export function RemoveTierModal({
 
   return (
     <ConfirmModal
-      trigger={
-        <Button.Root
-          appearance="ghost"
-          color="red"
-          size="sm"
-          isIconOnly
-          label="Remover nível"
-        >
-          <Button.Icon icon={Trash2} />
-        </Button.Root>
-      }
+      open={open}
+      onOpenChange={onOpenChange}
       title="Remover nível"
       description={`Remover o nível comercial "${tierName}"? Preços vinculados a ele também deixam de existir.`}
       confirmLabel="Remover"

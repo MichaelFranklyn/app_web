@@ -10,8 +10,8 @@ import { mediaUrl } from "@/utils/media";
 import { CompanyFactoryDetail } from "../../interface";
 import { isContractExpired } from "../../../utils";
 import { ApplyCommissionRateModal } from "../ApplyCommissionRateModal";
-import { DeleteCompanyFactoryModal } from "./DeleteCompanyFactoryModal";
 import { EditCompanyFactoryModal } from "./EditCompanyFactoryModal";
+import { FactoryMoreMenu } from "./FactoryMoreMenu";
 
 interface Props {
   companyFactory: CompanyFactoryDetail;
@@ -38,24 +38,33 @@ export function FactoryPageHeader({ companyFactory }: Props) {
       <PanelHeader.Root>
         <PanelHeader.Top>
           <PanelHeader.Left>
+            {/* Logo ao lado do bloco nome + cidade/CNPJ, e não só do nome:
+                antes o nome ficava sozinho ao lado do círculo de 72px e a
+                linha de baixo voltava para a margem, por baixo do logo — no
+                celular parecia um título solto e um texto desalinhado
+                (relato de 23/11/2026). */}
             <div className="flex items-center gap-12">
               <Avatar
-                size="xl"
+                size="lg"
                 color="amber"
                 src={mediaUrl(factory.logoUrl)}
                 alt={name}
                 initials={name.slice(0, 2).toUpperCase()}
                 className="shrink-0"
               />
-              <PanelHeader.Title>{name}</PanelHeader.Title>
+              <div className="min-w-0">
+                <PanelHeader.Title>{name}</PanelHeader.Title>
+                <PanelHeader.Description>
+                  {city} · CNPJ <DocumentNumber value={factory.cnpj} />
+                </PanelHeader.Description>
+              </div>
             </div>
-            <PanelHeader.Description>
-              {city} · CNPJ <DocumentNumber value={factory.cnpj} />
-            </PanelHeader.Description>
-            <PanelHeader.Actions
-              className="max-tablet:mt-16 mt-6"
-              data-tour="factory-detail-actions"
-            >
+            {/* Tarjas e ações na MESMA linha, como no detalhe da reclamação e
+                do cliente: antes as tarjas eram itens do PanelHeader.Actions e
+                no celular cada uma esticava na largura toda, virando faixas
+                coloridas soltas (crítica de 23/11/2026). No celular as ações
+                ganham a linha inteira abaixo das tarjas. */}
+            <div className="max-tablet:mt-16 max-tablet:[&>span]:w-full mt-6 flex flex-wrap items-center gap-8">
               <Badge.Root
                 color={isActive ? "green" : "red"}
                 appearance="tinted"
@@ -70,13 +79,17 @@ export function FactoryPageHeader({ companyFactory }: Props) {
                 </Badge.Root>
               )}
 
-              <EditCompanyFactoryModal />
-
-              <DeleteCompanyFactoryModal
-                companyFactoryId={companyFactory.id}
-                factoryName={name}
-              />
-            </PanelHeader.Actions>
+              <PanelHeader.Actions
+                className="max-tablet:basis-full w-auto grow"
+                data-tour="factory-detail-actions"
+              >
+                <EditCompanyFactoryModal />
+                <FactoryMoreMenu
+                  companyFactoryId={companyFactory.id}
+                  factoryName={name}
+                />
+              </PanelHeader.Actions>
+            </div>
           </PanelHeader.Left>
         </PanelHeader.Top>
       </PanelHeader.Root>

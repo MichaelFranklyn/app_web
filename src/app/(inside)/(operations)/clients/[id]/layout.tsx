@@ -20,7 +20,6 @@ import { useParams, useRouter } from "next/navigation";
 import React, { useMemo } from "react";
 import { useInvalidateQueriesClient } from "@/hooks/useInvalidateQueries";
 import { CLIENT_CACHE_FIELDS } from "@/utils/cacheFields";
-import { HygieneActions } from "../_shared/hygiene/HygieneActions";
 import {
   WALLET_STATUS_COLOR,
   isWalletActive,
@@ -28,11 +27,10 @@ import {
 } from "../_shared/hygiene/utils";
 import { ClientDetailSkeleton } from "./_components/ClientDetailSkeleton";
 import { WalletStatusBanner } from "./_components/WalletStatusBanner";
-import { DeleteClientModal } from "./_components/DeleteClientModal";
+import { ClientMoreMenu } from "./_components/ClientMoreMenu";
 import { EditClientModal } from "./_components/EditClientModal";
 import { OrderSheetButton } from "../../_components/OrderSheetButton";
 import { ScoreTag } from "./_components/ScoreTag";
-import { SharePortalModal } from "./_components/SharePortalModal";
 import { ClientRouteProvider } from "./context";
 import { COMPANY_CLIENT_QUERY } from "./gql";
 import { ClientDetail, CompanyClientDetailQueryResponse } from "./interface";
@@ -122,13 +120,14 @@ export default function ClientLayout({
 
   const basePath = `/clients/${companyClientId}`;
 
-  // O apelido da empresa, quando existe, é o título: é por ele que o
-  // vendedor conhece o cliente. O nome oficial desce para a descrição.
+  // O título é o nome pelo qual o vendedor conhece o cliente: o apelido da
+  // empresa, senão o nome fantasia. A razão social desce para a descrição.
+  // Antes o título remendava razão social + fantasia e, quando um continha
+  // parte do outro, saía "Depósito Ribeira ME Ribeira — Fazenda Grande"
+  // (crítica de 23/11/2026).
   const nickname = companyClientView?.nickname ?? null;
-  const name = nickname ?? clientData?.razaoSocial ?? "";
-  const nameHighlight = nickname
-    ? null
-    : (clientData?.nomeFantasia ?? name.split(" ").slice(1).join(" "));
+  const razaoSocial = clientData?.razaoSocial ?? "";
+  const name = nickname ?? clientData?.nomeFantasia ?? razaoSocial;
   const walletStatus = companyClientView?.status ?? "ACTIVE";
   const walletActive = isWalletActive(walletStatus);
   const canManage = isAdminRole(userData?.role);
@@ -139,10 +138,9 @@ export default function ClientLayout({
     void refetch();
     void invalidateClient(CLIENT_CACHE_FIELDS);
   };
-  const cnae =
-    clientData?.cnae && clientData?.cnaeDescription
-      ? `${clientData.cnae} - ${clientData.cnaeDescription}`
-      : (clientData?.cnae ?? "—");
+  // A CNAE saiu daqui: é um código que o vendedor não usa para reconhecer o
+  // cliente, e no celular empurrava a descrição para três linhas. Continua no
+  // Resumo da Visão Geral.
   const city =
     [clientData?.addressCity, clientData?.addressState]
       .filter(Boolean)
@@ -233,17 +231,9 @@ export default function ClientLayout({
                 </>
               ) : (
                 <>
-                  <PanelHeader.Title>
-                    {nameHighlight ? (
-                      <>
-                        {name.replace(nameHighlight, "").trim()} {nameHighlight}
-                      </>
-                    ) : (
-                      name || "—"
-                    )}
-                  </PanelHeader.Title>
+                  <PanelHeader.Title>{name || "—"}</PanelHeader.Title>
                   <PanelHeader.Description>
-                    {`${nickname ? `${clientData?.razaoSocial} · ` : ""}${cnae} · ${city} · CNPJ `}
+                    {`${razaoSocial && razaoSocial !== name ? `${razaoSocial} · ` : ""}${city} · CNPJ `}
                     {clientData ? (
                       <DocumentNumber value={clientData.cnpj} />
                     ) : (
@@ -251,10 +241,11 @@ export default function ClientLayout({
                     )}
                   </PanelHeader.Description>
 
-                  <PanelHeader.Actions
-                    data-tour="client-detail-actions"
-                    className="max-tablet:mt-16"
-                  >
+                  {/* Tarjas e ações na MESMA faixa, como no detalhe do pedido
+                      e da reclamação. No celular segue o padrão do pedido: uma
+                      tarja ou um botão por linha, na largura toda. Botões lado
+                      a lado fugiam desse padrão (relato de 23/11/2026). */}
+                  <div className="max-tablet:mt-16 max-tablet:[&>span]:w-full mt-6 flex flex-wrap items-center gap-8">
                     {companyClientView && (
                       <Badge.Root
                         color={WALLET_STATUS_COLOR[walletStatus]}
@@ -272,59 +263,45 @@ export default function ClientLayout({
                         factoryScores={cc?.factoryVisitScores ?? []}
                       />
                     </FeatureGate>
-                    {clientData && (
-                      <EditClientModal
-                        client={clientData}
-                        onUpdateOptimistic={optimisticClient.updateOptimistic}
-                        onCommit={optimisticClient.commit}
-                        onRollback={optimisticClient.rollback}
-                      />
-                    )}
-                    {canManage && clientData?.companyClient && (
-                      <HygieneActions
-                        companyClientId={clientData.companyClient.id}
-                        clientName={name}
-                        status={walletStatus}
-                        onChanged={handleSituationChanged}
-                        onTransferred={(newId) =>
-                          router.push(`/clients/${newId}/overview`)
-                        }
-                      />
-                    )}
-                    {/* Cliente encerrado não recebe pedido: a ficha de
-                        pedido e o link do portal (onde ele pede sozinho) não
-                        têm para onde levar. */}
-                    {clientData && walletActive && (
-                      /* A ficha sai daqui com o cabeçalho deste cliente já
-                         preenchido — é a tela de onde o vendedor sai para
-                         visitá-lo. */
-                      <OrderSheetButton
-                        canSelectSeller={isAdminRole(userData?.role)}
-                        clientId={clientData.id}
-                        cnpjDigits={clientData.cnpj.replace(/\D/g, "")}
-                        clientName={
-                          clientData.nomeFantasia ?? clientData.razaoSocial
-                        }
-                      />
-                    )}
-                    {clientData?.companyClient && walletActive && (
-                      <SharePortalModal
-                        companyClientId={clientData.companyClient.id}
-                        clientId={clientData.id}
-                        clientName={
-                          clientData.nomeFantasia ?? clientData.razaoSocial
-                        }
-                      />
-                    )}
-                    {clientData?.companyClient && (
-                      <DeleteClientModal
-                        companyClientId={clientData.companyClient.id}
-                        clientName={
-                          clientData.nomeFantasia ?? clientData.razaoSocial
-                        }
-                      />
-                    )}
-                  </PanelHeader.Actions>
+                    <PanelHeader.Actions
+                      data-tour="client-detail-actions"
+                      className="max-tablet:basis-full w-auto grow"
+                    >
+                      {clientData && (
+                        <EditClientModal
+                          client={clientData}
+                          onUpdateOptimistic={optimisticClient.updateOptimistic}
+                          onCommit={optimisticClient.commit}
+                          onRollback={optimisticClient.rollback}
+                        />
+                      )}
+                      {/* Cliente encerrado não recebe pedido: a ficha não tem
+                          para onde levar. Ela sai daqui com o cabeçalho deste
+                          cliente já preenchido — é a tela de onde o vendedor
+                          sai para visitá-lo. */}
+                      {clientData && walletActive && (
+                        <OrderSheetButton
+                          canSelectSeller={canManage}
+                          clientId={clientData.id}
+                          cnpjDigits={clientData.cnpj.replace(/\D/g, "")}
+                          clientName={name}
+                        />
+                      )}
+                      {clientData?.companyClient && (
+                        <ClientMoreMenu
+                          companyClientId={clientData.companyClient.id}
+                          clientId={clientData.id}
+                          clientName={name}
+                          status={walletStatus}
+                          canManage={canManage}
+                          onChanged={handleSituationChanged}
+                          onTransferred={(newId) =>
+                            router.push(`/clients/${newId}/overview`)
+                          }
+                        />
+                      )}
+                    </PanelHeader.Actions>
+                  </div>
                 </>
               )}
             </PanelHeader.Left>
@@ -351,7 +328,10 @@ export default function ClientLayout({
               recurso só, e um plano que não o tem não tem nenhum dos três. */}
           <FeatureGate feature="ROUTINES">
             {/* Visitas e ligações do cliente — a mesma parada da agenda. */}
-            <Tabs.NavItem href={`${basePath}/visits`}>Agenda</Tabs.NavItem>
+            {/* "Visitas", e não "Agenda": a aba é o histórico e as próximas
+                visitas DESTE cliente; "Agenda" é a semana do vendedor
+                (crítica de 23/11/2026). */}
+            <Tabs.NavItem href={`${basePath}/visits`}>Visitas</Tabs.NavItem>
             <Tabs.NavItem href={`${basePath}/stock`}>
               Estoque Estimado
             </Tabs.NavItem>

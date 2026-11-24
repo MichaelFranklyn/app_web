@@ -13,9 +13,7 @@ function FactoryCardSkeleton() {
         <Card.Body>
           <div className="mb-12 flex items-start justify-between">
             <div className="flex flex-col gap-[6px]">
-              <div className="flex min-h-[36px] items-start">
-                <Loading.Skeleton className="h-[14px] w-32" />
-              </div>
+              <Loading.Skeleton className="h-[14px] w-32" />
               <Loading.Skeleton className="h-[10px] w-28" />
               <Loading.Skeleton className="h-[10px] w-20" />
             </div>

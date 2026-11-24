@@ -61,6 +61,9 @@ export default function ClientesContent({
         filterFields={filterFields}
         order={tableData.order}
         hasClients={tableData.totalItems > 0}
+        // Quem não filtra por vendedor é o próprio vendedor: a carteira na
+        // tela é só a dele.
+        isOwnWallet={!canFilterBySeller}
       />
 
       {tableData.error && optimistic.items.length === 0 ? (
@@ -78,6 +81,7 @@ export default function ClientesContent({
           currentPage={tableData.currentPage}
           totalPages={tableData.totalPages}
           setCurrentPage={tableData.setCurrentPage}
+          showSeller={canFilterBySeller}
         />
       )}
     </PageContent>

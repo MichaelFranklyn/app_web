@@ -2,7 +2,7 @@
 
 import { Import } from "@/components/Import";
 
-import { ArrowRight, Info, Upload } from "lucide-react";
+import { ArrowRight, Info } from "lucide-react";
 import { useEffect, useState } from "react";
 
 import { Alert } from "@/components/Alert";
@@ -19,12 +19,19 @@ import { TemplateMode } from "./TemplateMode";
 interface Props {
   companyFactoryId: string;
   onChanged: () => void;
+  /** Aberto pelo menu "Mais ações" da aba (não tem gatilho próprio). */
+  open: boolean;
+  onOpenChange: (open: boolean) => void;
 }
 
 const RESULT_STEP = 2;
 
-export function ImportProductsModal({ companyFactoryId, onChanged }: Props) {
-  const [open, setOpen] = useState(false);
+export function ImportProductsModal({
+  companyFactoryId,
+  onChanged,
+  open,
+  onOpenChange,
+}: Props) {
   const [step, setStep] = useState(0);
   const [pendingRows, setPendingRows] = useState<ImportProductRow[] | null>(
     null
@@ -42,7 +49,7 @@ export function ImportProductsModal({ companyFactoryId, onChanged }: Props) {
   }, [result]);
 
   const handleClose = (value: boolean) => {
-    setOpen(value);
+    onOpenChange(value);
     if (!value) {
       setStep(0);
       setPendingRows(null);
@@ -61,13 +68,6 @@ export function ImportProductsModal({ companyFactoryId, onChanged }: Props) {
 
   return (
     <Modal.Root open={open} onOpenChange={handleClose}>
-      <Modal.Trigger asChild>
-        <Button.Root appearance="outline" color="neutral" size="sm">
-          <Button.Icon icon={Upload} />
-          <Button.Title>Importar</Button.Title>
-        </Button.Root>
-      </Modal.Trigger>
-
       <Modal.Content size="3xl">
         <Modal.Header
           title="Importar produtos"

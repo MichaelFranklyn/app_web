@@ -59,7 +59,12 @@ export function CaseSummary({ supportCase }: Props) {
     <Card.Root>
       {/* Sem o Body o conteúdo encostava na borda do cartão (14/11/2026). */}
       <Card.Body padding="compact">
-        <div className="flex flex-col">
+        {/* No desktop, duas colunas: numa linha só o rótulo ficava a 1300px
+            do valor e o olho atravessava a tela (crítica de 23/11/2026). Abaixo
+            do desktop segue uma linha por dado. Dado vazio não ganha linha —
+            "Fábrica —" ocupava espaço sem dizer nada; corrigir é no "Corrigir
+            dados". */}
+        <div className="desktop:grid desktop:grid-cols-2 desktop:gap-x-32 flex flex-col">
           <Field label="Cliente">
             {/* Leva à ficha do cliente: quem trata a reclamação quase sempre
               precisa do histórico de pedidos dele na mesma conversa. A rota é
@@ -78,29 +83,40 @@ export function CaseSummary({ supportCase }: Props) {
               </Title>
             )}
           </Field>
-          <Field label="Vendedor">
-            <Title variant="body-sm">{supportCase.seller?.name ?? "—"}</Title>
-          </Field>
-          <Field label="Fábrica">
-            <Title variant="body-sm">
-              {supportCase.factory ? factoryName(supportCase.factory) : "—"}
-            </Title>
-          </Field>
+          {supportCase.seller?.name && (
+            <Field label="Vendedor">
+              <Title variant="body-sm">{supportCase.seller.name}</Title>
+            </Field>
+          )}
+          {supportCase.factory && (
+            <Field label="Fábrica">
+              <Title variant="body-sm">
+                {factoryName(supportCase.factory)}
+              </Title>
+            </Field>
+          )}
           <Field label="Tipo de problema">
             <Title variant="body-sm">
               {SUPPORT_CATEGORY_LABEL[supportCase.category]}
             </Title>
           </Field>
           <Field label="Urgência">
-            <Badge.Root
-              color={SUPPORT_PRIORITY_COLOR[supportCase.priority]}
-              appearance="tinted"
-              size="sm"
-            >
-              <Badge.Text>
+            {/* "Normal" é texto: a pílula azul fica para a exceção. */}
+            {supportCase.priority === "NORMAL" ? (
+              <Title variant="body-sm">
                 {SUPPORT_PRIORITY_LABEL[supportCase.priority]}
-              </Badge.Text>
-            </Badge.Root>
+              </Title>
+            ) : (
+              <Badge.Root
+                color={SUPPORT_PRIORITY_COLOR[supportCase.priority]}
+                appearance="tinted"
+                size="sm"
+              >
+                <Badge.Text>
+                  {SUPPORT_PRIORITY_LABEL[supportCase.priority]}
+                </Badge.Text>
+              </Badge.Root>
+            )}
           </Field>
           <Field label="Cliente avisou em">
             <Title variant="body-sm">
@@ -112,11 +128,11 @@ export function CaseSummary({ supportCase }: Props) {
               {supportAgeLabel(supportCase.ageDays, supportCase.isOpen)}
             </Title>
           </Field>
-          <Field label="Valor envolvido">
-            <Title variant="body-sm">
-              {supportCase.amount ? formatMoney(supportCase.amount) : "—"}
-            </Title>
-          </Field>
+          {!!supportCase.amount && (
+            <Field label="Valor envolvido">
+              <Title variant="body-sm">{formatMoney(supportCase.amount)}</Title>
+            </Field>
+          )}
           {supportCase.order && (
             <Field label="Pedido">
               <TextLink href={`/orders/${supportCase.order.id}`}>
@@ -128,9 +144,11 @@ export function CaseSummary({ supportCase }: Props) {
               </TextLink>
             </Field>
           )}
-          <Field label="Registrado por">
-            <Title variant="body-sm">{supportCase.openedBy?.name ?? "—"}</Title>
-          </Field>
+          {supportCase.openedBy?.name && (
+            <Field label="Registrado por">
+              <Title variant="body-sm">{supportCase.openedBy.name}</Title>
+            </Field>
+          )}
         </div>
 
         {supportCase.description && (

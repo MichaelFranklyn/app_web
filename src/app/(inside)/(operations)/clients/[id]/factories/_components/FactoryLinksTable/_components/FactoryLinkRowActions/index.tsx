@@ -15,7 +15,7 @@ interface Props {
   remove: Omit<ComponentProps<typeof DeleteFactoryLinkModal>, Controlled>;
 }
 
-/** Negativar, editar e remover o vínculo; no celular entram no "⋯". */
+/** Negativar, editar e remover o vínculo, no "⋯". */
 export function FactoryLinkRowActions({ negative, edit, remove }: Props) {
   const [editOpen, setEditOpen] = useState(false);
   const [removeOpen, setRemoveOpen] = useState(false);

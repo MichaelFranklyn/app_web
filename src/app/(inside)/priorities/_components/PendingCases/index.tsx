@@ -1,5 +1,6 @@
 "use client";
 
+import { Button } from "@/components/Button";
 import { Card } from "@/components/Card";
 import { Loading } from "@/components/Loading";
 import { Pagination } from "@/components/Pagination";
@@ -8,6 +9,7 @@ import { RowList } from "@/components/RowList";
 import { ScheduleVisitModal } from "@/components/ScheduleVisitModal";
 import { Title } from "@/components/Title";
 import { formatDate } from "@/utils/format/date";
+import { ChevronUp } from "lucide-react";
 import { useEffect, useRef, useState } from "react";
 
 import { PendingItem, PendingType } from "../../interface";
@@ -26,6 +28,11 @@ interface Props {
   onPageChange: (page: number) => void;
   /** Depois de agendar um contato: os cartões releem os números. */
   onChanged: () => void;
+  /**
+   * Fecha a lista daqui mesmo. Ela abre longe do cartão (abaixo de todos), e
+   * o único "Fechar lista" ficava lá em cima, fora da vista de quem leu.
+   */
+  onClose: () => void;
 }
 
 /**
@@ -44,6 +51,7 @@ export function PendingCases({
   page,
   onPageChange,
   onChanged,
+  onClose,
 }: Props) {
   // Um modal só, fora das linhas: evento de dentro do modal (portal) subiria
   // até a linha.
@@ -65,6 +73,11 @@ export function PendingCases({
     anchor.current?.scrollIntoView({ behavior: "smooth", block: "start" });
   }, []);
 
+  // O selo de prioridade só separa alguma coisa quando a página mistura
+  // degraus; numa lista toda Alta ele é ruído repetido em cada linha.
+  const showPriority =
+    new Set(cases.items.map((item) => item.priority)).size > 1;
+
   const afterAction = () => {
     cases.refetch();
     onChanged();
@@ -74,15 +87,30 @@ export function PendingCases({
     <Card.Root data-tour="pending-cases">
       <Card.Body className="flex flex-col gap-12">
         <div ref={anchor} className="scroll-mt-16" />
-        <div className="flex flex-wrap items-baseline justify-between gap-8">
-          <Title variant="heading-sm">{PENDING_TYPE_LABEL[type]}</Title>
-          <Title variant="micro" color="muted">
-            {cases.loading && cases.items.length > 0 && (
-              <Loading.Spinner size="sm" className="mr-6 inline-block" />
-            )}
-            {cases.total} {cases.total === 1 ? "pendência" : "pendências"} · da
-            mais urgente para a que pode esperar
-          </Title>
+        <div className="flex items-start justify-between gap-12">
+          <div className="flex min-w-0 flex-col gap-2">
+            <Title variant="heading-sm">{PENDING_TYPE_LABEL[type]}</Title>
+            <Title variant="micro" color="muted">
+              {cases.loading && cases.items.length > 0 && (
+                <Loading.Spinner size="sm" className="mr-6 inline-block" />
+              )}
+              {cases.total} {cases.total === 1 ? "pendência" : "pendências"} ·
+              da mais urgente para a que pode esperar
+            </Title>
+          </div>
+          {/* Ação da caixa = primária (pedido de 17/11/2026), como o
+              "Fechar lista" do cartão. */}
+          <Button.Root
+            type="button"
+            appearance="solid"
+            color="amber"
+            size="sm"
+            className="shrink-0"
+            onClick={onClose}
+          >
+            <Button.Title>Fechar lista</Button.Title>
+            <Button.Icon icon={ChevronUp} />
+          </Button.Root>
         </div>
 
         {cases.failed ? (
@@ -103,6 +131,7 @@ export function PendingCases({
                 <CaseRow
                   item={item}
                   showSeller={canSelectSeller}
+                  showPriority={showPriority}
                   onScheduleReturn={setScheduling}
                 />
               </RowList.Item>

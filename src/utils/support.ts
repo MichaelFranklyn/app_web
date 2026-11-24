@@ -57,7 +57,7 @@ export const SUPPORT_STATUS_COLOR: Record<SupportStatus, SupportColor> = {
 
 /** O que fazer quando o caso está nessa situação — vira tooltip e ajuda. */
 export const SUPPORT_STATUS_HINT: Record<SupportStatus, string> = {
-  OPEN: "Registrado e ainda sem ninguém tratando. Assuma ou atribua a alguém.",
+  OPEN: "Ainda não começou a ser tratado. O próximo andamento registrado já passa o caso para Em andamento.",
   IN_PROGRESS: "Alguém do escritório está resolvendo agora.",
   WAITING_FACTORY:
     "A bola está com a fábrica. Quem cobra é o escritório — registre cada cobrança.",
