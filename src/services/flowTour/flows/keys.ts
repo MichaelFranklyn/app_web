@@ -14,6 +14,7 @@ export const FACTORIES_FLOW = "factories";
 export const FACTORY_DETAIL_FLOW = "factory-detail";
 export const FACTORY_PRODUCTS_FLOW = "factory-products";
 export const FACTORY_PRICES_FLOW = "factory-prices";
+export const FACTORY_TIERS_FLOW = "factory-tiers";
 export const PRICE_LIST_DETAIL_FLOW = "price-list-detail";
 export const PRODUCT_DETAIL_FLOW = "product-detail";
 export const FACTORY_SELLERS_FLOW = "factory-sellers";

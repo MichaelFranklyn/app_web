@@ -4,8 +4,10 @@ import { EmptyState } from "@/components/EmptyState";
 import { QueryError } from "@/components/QueryError";
 import { HelpTooltip } from "@/components/HelpTooltip";
 import { Table } from "@/components/Table";
-import { Title } from "@/components/Title";
-import { FACTORY_PAYMENT_TERM_COLUMN_HELP } from "../../../help";
+import {
+  FACTORY_PAYMENT_TERMS_HELP,
+  FACTORY_PAYMENT_TERM_COLUMN_HELP,
+} from "../../../help";
 import { useCompleteList } from "@/hooks/useCompleteList";
 import { useOptimisticList } from "@/hooks/useOptimisticList";
 import { formatMoney } from "@/utils/format/masks";
@@ -99,18 +101,7 @@ export function PaymentTermsTab({ companyFactoryId }: Props) {
           Prazos de pagamento
           <HelpTooltip
             label="O que é um prazo de pagamento?"
-            content={
-              <div className="flex flex-col gap-2">
-                <Title variant="label" weight="semibold">
-                  Prazo de pagamento
-                </Title>
-                <Title variant="body-sm">
-                  Combinação de vencimentos das parcelas do pedido — por
-                  exemplo, &quot;30/60/90&quot; gera 3 boletos, para 30, 60 e 90
-                  dias. Ao criar um pedido você escolhe um destes prazos.
-                </Title>
-              </div>
-            }
+            content={FACTORY_PAYMENT_TERMS_HELP}
           />
         </Table.CardHead.Title>
         <Table.CardHead.Actions>

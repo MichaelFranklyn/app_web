@@ -39,17 +39,22 @@ export const FACTORY_ORDER_COLUMN_HELP = {
 // ── Aba: clientes desta fábrica ──────────────────────────────────────────────
 
 export const FACTORY_CLIENTS_HELP: ReactNode = (
-  <>
-    <Title variant="body-sm">
-      Os clientes que compram <Emphasis>desta fábrica</Emphasis>, e por qual
-      vendedor. Cada linha é um vínculo — o mesmo cliente pode ser atendido por
-      vendedores diferentes em fábricas diferentes.
+  <div className="flex flex-col gap-2">
+    <Title variant="label" weight="semibold">
+      Cliente da fábrica
     </Title>
     <Title variant="body-sm">
-      É o vínculo que decide o <Emphasis>nível de preço</Emphasis> do cliente
-      nesta fábrica e o que entra na rota de visita do vendedor.
+      Diz quais clientes da sua carteira compram{" "}
+      <Emphasis>desta fábrica</Emphasis>, por qual vendedor e em qual nível de
+      preço. Só clientes vinculados aqui podem ter pedidos desta fábrica.
     </Title>
-  </>
+    <Title variant="body-sm">
+      O <Emphasis>nível</Emphasis> do cliente decide o preço e o prazo sugeridos
+      no pedido. Para mudar o nível de muitos clientes de uma vez — todos de uma
+      cidade, de um segmento ou de uma rede — use{" "}
+      <Emphasis>Nível em massa</Emphasis>.
+    </Title>
+  </div>
 );
 
 export const FACTORY_CLIENT_COLUMN_HELP = {
@@ -58,7 +63,7 @@ export const FACTORY_CLIENT_COLUMN_HELP = {
   seller:
     "Vendedor que atende este cliente NESTA fábrica. Só aparece quem tem acesso ativo à fábrica.",
   priceTier:
-    "Nível de preço acordado com o cliente: é ele que decide qual coluna da tabela de preços vale nos pedidos deste cliente. Vínculo sem nível usa o preço padrão da tabela.",
+    "Nível de preço acordado com o cliente: é ele que decide qual preço da tabela vale nos pedidos deste cliente e qual prazo é sugerido primeiro. Vínculo sem nível usa o preço padrão da tabela. Para trocar o nível de vários clientes de uma vez, use “Nível em massa”.",
   priority:
     "Peso que este cliente tem na rota de visita desta fábrica. Prioridade alta puxa o cliente para cima no score.",
   lastInvoice:
@@ -66,23 +71,32 @@ export const FACTORY_CLIENT_COLUMN_HELP = {
   status:
     "Cliente negativado nesta fábrica está com o crédito suspenso aqui: ele sai das recomendações de visita desta fábrica e não pode receber pedido novo dela. As outras fábricas dele continuam normais.",
   actions:
-    "Trocar o nível ou a prioridade do vínculo, marcar o cliente como negativado nesta fábrica, ou desfazer o vínculo.",
+    "Trocar o nível ou a prioridade do vínculo, marcar o cliente como negativado nesta fábrica, ou desfazer o vínculo. Para mudar o nível de um grupo inteiro, use “Nível em massa”, no alto.",
 } as const;
 
 // ── Aba: vendedores com acesso ───────────────────────────────────────────────
 
 export const FACTORY_SELLERS_HELP: ReactNode = (
-  <>
-    <Title variant="body-sm">
-      Quem pode vender esta fábrica. Sem acesso aqui, o vendedor não vê a
-      fábrica na lista dele e não consegue lançar pedido nem vincular cliente a
-      ela.
+  <div className="flex flex-col gap-2">
+    <Title variant="label" weight="semibold">
+      Acesso de vendedor
     </Title>
     <Title variant="body-sm">
-      Tirar o acesso não apaga nada do que já foi feito: os pedidos e os
-      vínculos antigos continuam onde estão.
+      Diz quais vendedores podem vender os produtos desta fábrica. Só vendedores
+      com acesso <Emphasis>ativo</Emphasis> aparecem na hora de vincular
+      clientes e registrar pedidos dela.
     </Title>
-  </>
+    <Title variant="body-sm">
+      É aqui também que se combina <Emphasis>a comissão de cada um</Emphasis>{" "}
+      nesta fábrica: o percentual que ele ganha por pedido e quando o escritório
+      repassa.
+    </Title>
+    <Title variant="body-sm" color="muted">
+      <Emphasis>Desativar</Emphasis> pausa as vendas e pode ser desfeito quando
+      quiser. <Emphasis>Excluir</Emphasis> tira o vendedor desta lista. Nos dois
+      casos os pedidos já feitos continuam guardados.
+    </Title>
+  </div>
 );
 
 export const FACTORY_SELLER_COLUMN_HELP = {
@@ -100,37 +114,52 @@ export const FACTORY_SELLER_COLUMN_HELP = {
 // ── Aba: níveis de preço ─────────────────────────────────────────────────────
 
 export const FACTORY_TIERS_HELP: ReactNode = (
-  <>
-    <Title variant="body-sm">
-      Nível é o <Emphasis>degrau de preço</Emphasis> acordado com o cliente — o
-      que a fábrica costuma chamar de tabela A, B, C ou de faixa de desconto.
+  <div className="flex flex-col gap-2">
+    <Title variant="label" weight="semibold">
+      Nível comercial
     </Title>
     <Title variant="body-sm">
-      Cada tabela de preços tem um preço por nível; o nível do cliente fica no
-      vínculo dele (aba Clientes) e é o que o pedido usa sozinho.
+      Tipo de cliente que paga um preço diferente — por exemplo, Capital ×
+      Interior, ou Varejo × Atacado. Cada tabela de preços tem um preço por
+      nível.
     </Title>
-  </>
+    <Title variant="body-sm">
+      O nível pode ter <Emphasis>preço próprio</Emphasis> (vindo da planilha da
+      fábrica) ou ser um <Emphasis>percentual sobre outro nível</Emphasis> —
+      ex.: Interior = Capital +8%. O calculado não precisa de planilha: o preço
+      é refeito sozinho quando o outro muda.
+    </Title>
+    <Title variant="body-sm" color="muted">
+      O nível de cada cliente se escolhe na aba Clientes. Os prazos de pagamento
+      também podem ser ligados a um nível.
+    </Title>
+  </div>
 );
 
 export const FACTORY_TIER_COLUMN_HELP = {
-  tier: "Nome do degrau, como a fábrica o chama. Ele aparece na escolha do nível ao vincular um cliente e ao montar a tabela de preços.",
-  actions: "Renomear o nível ou removê-lo.",
+  tier: "Nome do nível, como a fábrica o chama. Quando ele é calculado, aparece embaixo sobre qual nível e quanto (ex.: “Gold −10%”) — o preço dele é refeito sozinho e não se edita à mão.",
+  actions:
+    "Renomear o nível, mudar o percentual (ou voltar a preço próprio) e removê-lo.",
 } as const;
 
 // ── Aba: condições de pagamento ──────────────────────────────────────────────
 
 export const FACTORY_PAYMENT_TERMS_HELP: ReactNode = (
-  <>
-    <Title variant="body-sm">
-      Os prazos que esta fábrica aceita. É o prazo escolhido no pedido que gera
-      os <Emphasis>boletos</Emphasis> do cliente no faturamento: 30/60/90 vira
-      três parcelas.
+  <div className="flex flex-col gap-2">
+    <Title variant="label" weight="semibold">
+      Prazo de pagamento
     </Title>
     <Title variant="body-sm">
-      Algumas fábricas só liberam o prazo mais longo acima de um valor — é o
-      &quot;valor mínimo&quot; da última coluna.
+      Os vencimentos das parcelas do pedido — por exemplo, &quot;30/60/90&quot;
+      gera 3 <Emphasis>boletos</Emphasis>, para 30, 60 e 90 dias. Ao criar um
+      pedido você escolhe um destes prazos.
     </Title>
-  </>
+    <Title variant="body-sm" color="muted">
+      Um prazo pode exigir um <Emphasis>valor mínimo</Emphasis> do pedido, e
+      pode ser ligado a um <Emphasis>nível</Emphasis>: aí ele é sugerido
+      primeiro nos pedidos dos clientes desse nível.
+    </Title>
+  </div>
 );
 
 export const FACTORY_PAYMENT_TERM_COLUMN_HELP = {
@@ -146,21 +175,25 @@ export const FACTORY_PAYMENT_TERM_COLUMN_HELP = {
 // ── Aba: tabelas de preço ────────────────────────────────────────────────────
 
 export const FACTORY_PRICE_LISTS_HELP: ReactNode = (
-  <>
-    <Title variant="body-sm">
-      Tabela de preços é a lista que a fábrica publica: um preço por produto,
-      por <Emphasis>nível</Emphasis>, valendo num período.
+  <div className="flex flex-col gap-2">
+    <Title variant="label" weight="semibold">
+      Tabela de preço
     </Title>
     <Title variant="body-sm">
-      Preço diferente para um grupo de clientes (capital × interior, por
+      A lista que a fábrica publica: um preço por produto, por{" "}
+      <Emphasis>nível</Emphasis>, valendo num período — promoções, reajustes,
+      histórico.
+    </Title>
+    <Title variant="body-sm">
+      Preço diferente para um grupo de clientes (Capital × Interior, por
       exemplo) não é outra tabela: é outro <Emphasis>nível</Emphasis> na mesma
-      tabela. Cada cliente recebe o nível dele na aba Clientes.
+      tabela. Duas tabelas ao mesmo tempo, só quando o imposto muda de estado
+      para estado.
     </Title>
-    <Title variant="body-sm">
-      Duas tabelas ao mesmo tempo só por região fiscal — quando o imposto muda
-      de estado para estado.
+    <Title variant="body-sm" color="muted">
+      Clique numa linha para abrir a tabela e ver os preços.
     </Title>
-  </>
+  </div>
 );
 
 export const FACTORY_PRICE_LIST_COLUMN_HELP = {
