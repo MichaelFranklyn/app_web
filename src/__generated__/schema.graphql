@@ -3104,9 +3104,43 @@ input SetPriceListPromotionInput {
   items: [PriceListPromotionItemInput!]! = []
 }
 
+"""Situação de uma importação de tabela de preço em segundo plano."""
+enum PriceListImportStatus {
+  PENDING
+  RUNNING
+  DONE
+  FAILED
+}
+
+type PriceListImportType {
+  id: UUID!
+  companyFactoryId: UUID!
+  status: PriceListImportStatus!
+  """Em andamento além do tempo esperado: o processo morreu no meio. A tela para de esperar."""
+  isStale: Boolean!
+  """Resumo da importação concluída (mesma frase da notificação)."""
+  message: String
+  """Por que falhou, em linguagem de gente."""
+  error: String
+  """Só quando DONE."""
+  result: ImportPriceListResult
+  createdAt: DateTime!
+  startedAt: DateTime
+  finishedAt: DateTime
+}
+
+type PriceListImportTypeDataResponse {
+  status: Boolean!
+  code: Int!
+  message: String!
+  data: PriceListImportType
+}
+
 extend type Query {
   factoryPriceList(id: UUID!): FactoryPriceListTypeDataResponse!
   factoryPriceLists(input: BaseListInput!): FactoryPriceListTypeConnectionResponse!
+  """Situação de uma importação iniciada por `startFactoryPriceListImport` (admin)."""
+  priceListImport(id: UUID!): PriceListImportTypeDataResponse!
 }
 
 input ExtractPriceListFileInput {
@@ -3121,7 +3155,11 @@ extend type Mutation {
   createFactoryPriceList(input: CreateFactoryPriceListInput!): FactoryPriceListTypeDataResponse!
   # Extrai a grade de um PDF de tabela de preço (reusa OrderImportGridType: rows).
   extractPriceListFile(input: ExtractPriceListFileInput!): OrderImportGridResponse!
+  # Importa esperando terminar (front antigo). Prefira `startFactoryPriceListImport`.
   importFactoryPriceList(input: ImportFactoryPriceListInput!): ImportPriceListResultDataResponse!
+  # Enfileira a importação e responde na hora; acompanhe por `priceListImport(id)`.
+  # Recusa se a fábrica já tem uma importação em andamento.
+  startFactoryPriceListImport(input: ImportFactoryPriceListInput!): PriceListImportTypeDataResponse!
   cloneFactoryPriceList(input: CloneFactoryPriceListInput!): FactoryPriceListTypeDataResponse!
   updateFactoryPriceList(id: UUID!, input: UpdateFactoryPriceListInput!): FactoryPriceListTypeDataResponse!
   deleteFactoryPriceList(id: UUID!): BaseResponse!

@@ -65,6 +65,10 @@ export function ImportReview({
               Produtos e níveis que ainda não existem são criados sozinhos.
             </Title>
           )}
+          <Title variant="caption" color="muted">
+            Tabela grande pode levar alguns minutos. O resultado aparece aqui e
+            chega uma notificação quando terminar.
+          </Title>
         </Card.Body>
       </Card.Root>
       <PricePreview

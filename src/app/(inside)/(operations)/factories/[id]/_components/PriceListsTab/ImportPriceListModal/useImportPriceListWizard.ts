@@ -1,4 +1,4 @@
-import { useMutation } from "@apollo/client/react";
+import { useApolloClient, useMutation } from "@apollo/client/react";
 import { useFileUpload } from "@/services/upload";
 import { usePathname, useRouter, useSearchParams } from "next/navigation";
 import { useMemo, useState } from "react";
@@ -30,12 +30,15 @@ import { useCompanyFactoryNode } from "../../../../../_shared/orderItemCatalog";
 import { buildImportInput, canImport, PRICE_REQUIRED_FIELDS } from "./build";
 import {
   EXTRACT_PRICE_LIST_FILE_MUTATION,
-  IMPORT_PRICE_LIST_MUTATION,
+  PRICE_LIST_IMPORT_QUERY,
+  START_PRICE_LIST_IMPORT_MUTATION,
 } from "./gql";
+import { humanizeImportError, waitForImportJob } from "./importJob";
 import {
   ActivePriceList,
-  ImportPriceListResponse,
   ImportPriceListResult,
+  PriceListImportResponse,
+  StartPriceListImportResponse,
 } from "./interface";
 import { pickPreviewRows } from "./preview";
 import { isPriceListConfig, PriceListTemplateConfig } from "./templateConfig";
@@ -105,8 +108,9 @@ export function useImportPriceListWizard({
   >([]);
 
   const { toast } = useToast();
-  const [importList] = useMutation<ImportPriceListResponse>(
-    IMPORT_PRICE_LIST_MUTATION
+  const client = useApolloClient();
+  const [startImport] = useMutation<StartPriceListImportResponse>(
+    START_PRICE_LIST_IMPORT_MUTATION
   );
   const [extractPdf] = useMutation<{
     extractPriceListFile: {
@@ -435,12 +439,31 @@ export function useImportPriceListWizard({
     const built = buildImportInput(buildArgs);
     await execute(
       async () => {
-        const res = await importList({ variables: { input: built.input } });
-        const payload = res.data?.importFactoryPriceList;
-        if (!payload?.status || !payload.data) {
-          throw new Error(payload?.message ?? "Erro ao importar tabela");
+        try {
+          const res = await startImport({ variables: { input: built.input } });
+          const started = res.data?.startFactoryPriceListImport;
+          if (!started?.status || !started.data) {
+            throw new Error(started?.message ?? "Erro ao importar tabela");
+          }
+          const importId = started.data.id;
+          // A importação roda no backend; a tela só pergunta se terminou.
+          return await waitForImportJob(async () => {
+            const { data } = await client.query<PriceListImportResponse>({
+              query: PRICE_LIST_IMPORT_QUERY,
+              variables: { id: importId },
+              fetchPolicy: "network-only",
+            });
+            const job = data?.priceListImport;
+            if (!job?.status || !job.data) {
+              throw new Error(
+                job?.message ?? "Erro ao acompanhar a importação"
+              );
+            }
+            return job.data;
+          });
+        } catch (error) {
+          throw humanizeImportError(error);
         }
-        return { data: payload.data, message: payload.message };
       },
       {
         onSuccess: ({ data: r, message }) => {

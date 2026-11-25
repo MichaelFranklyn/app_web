@@ -5,10 +5,12 @@ import { beforeEach, describe, expect, it, vi } from "vitest";
 
 import {
   EXTRACT_PRICE_LIST_FILE_MUTATION,
-  IMPORT_PRICE_LIST_MUTATION,
+  PRICE_LIST_IMPORT_QUERY,
+  START_PRICE_LIST_IMPORT_MUTATION,
   PRODUCT_UNIT_LABELS_QUERY,
   PRODUCT_UNITS_QUERY,
 } from "./gql";
+import { CONNECTION_LOST_MESSAGE } from "./importJob";
 import { useImportPriceListWizard } from "./useImportPriceListWizard";
 
 // useToast é chamado pelo wizard, pelo useAsyncAction e pelo sub-hook de modelo.
@@ -70,34 +72,79 @@ function extractMock(
   } as MockLink.MockedResponse;
 }
 
-function importMock(
-  result: { failed: number; message?: string; extra?: Record<string, unknown> },
-  status = true
-) {
-  const { failed, message = "Importação concluída", extra = {} } = result;
+const RESULT = {
+  listName: "Tabela",
+  totalRows: 10,
+  tiers: 2,
+  productsCreated: 9,
+  productsReused: 0,
+  pricesSet: 18,
+  failed: 0,
+  attention: 0,
+  errors: [],
+};
+
+/** A fila aceita a importação e devolve o id para acompanhar. */
+function startMock(status = true, message = "Importação iniciada.") {
   return {
-    request: { query: IMPORT_PRICE_LIST_MUTATION, variables: anyVars },
+    request: { query: START_PRICE_LIST_IMPORT_MUTATION, variables: anyVars },
     result: {
       data: {
-        importFactoryPriceList: {
+        startFactoryPriceListImport: {
           status,
           message,
+          data: status
+            ? { id: "imp-1", status: "PENDING", isStale: false }
+            : null,
+        },
+      },
+    },
+  } as MockLink.MockedResponse;
+}
+
+/** Uma resposta do acompanhamento (`priceListImport`). */
+function jobMock(job: {
+  status: "PENDING" | "RUNNING" | "DONE" | "FAILED";
+  isStale?: boolean;
+  message?: string | null;
+  error?: string | null;
+  result?: Record<string, unknown> | null;
+}) {
+  return {
+    request: { query: PRICE_LIST_IMPORT_QUERY, variables: { id: "imp-1" } },
+    result: {
+      data: {
+        priceListImport: {
+          status: true,
+          message: "ok",
           data: {
-            listName: "Tabela",
-            totalRows: 10,
-            tiers: 2,
-            productsCreated: 9,
-            productsReused: 0,
-            pricesSet: 18,
-            failed,
-            attention: 0,
-            errors: [],
-            ...extra,
+            id: "imp-1",
+            isStale: false,
+            message: null,
+            error: null,
+            result: null,
+            ...job,
           },
         },
       },
     },
   } as MockLink.MockedResponse;
+}
+
+function importMock(result: {
+  failed: number;
+  message?: string;
+  extra?: Record<string, unknown>;
+}) {
+  const { failed, message = "Importação concluída", extra = {} } = result;
+  return [
+    startMock(),
+    jobMock({
+      status: "DONE",
+      message,
+      result: { ...RESULT, failed, ...extra },
+    }),
+  ];
 }
 
 type Api = ReturnType<typeof useImportPriceListWizard>;
@@ -179,13 +226,13 @@ describe("useImportPriceListWizard — máquina de estado", () => {
   });
 
   it("importação parcial (failed>0): vai ao Resultado (passo 6) e avisa 'Importação parcial'", async () => {
-    renderWizard([
+    renderWizard(
       importMock({
         failed: 2,
         message: "8 de 10 linhas importadas",
         extra: { failed: 2, errors: [{ row: 3, sku: "X", message: "erro" }] },
-      }),
-    ]);
+      })
+    );
 
     await act(async () => {
       await api.handleImport();
@@ -204,7 +251,7 @@ describe("useImportPriceListWizard — máquina de estado", () => {
   });
 
   it("importação sem falhas: vai ao Resultado e mostra 'Tabela importada' (success)", async () => {
-    renderWizard([importMock({ failed: 0, message: "10 linhas importadas" })]);
+    renderWizard(importMock({ failed: 0, message: "10 linhas importadas" }));
 
     await act(async () => {
       await api.handleImport();
@@ -217,8 +264,8 @@ describe("useImportPriceListWizard — máquina de estado", () => {
     );
   });
 
-  it("importação com status:false: não avança e reporta erro", async () => {
-    renderWizard([importMock({ failed: 0 }, false)]);
+  it("importação recusada na largada (outra em andamento): não avança e mostra o motivo", async () => {
+    renderWizard([startMock(false, "Já tem uma importação em andamento.")]);
 
     await act(async () => {
       await api.handleImport();
@@ -226,10 +273,60 @@ describe("useImportPriceListWizard — máquina de estado", () => {
 
     await waitFor(() =>
       expect(toastSpy).toHaveBeenCalledWith(
-        expect.objectContaining({ variant: "error" })
+        expect.objectContaining({
+          variant: "error",
+          description: "Já tem uma importação em andamento.",
+        })
       )
     );
     expect(api.step).not.toBe(6);
+    expect(api.result).toBeNull();
+  });
+
+  it("importação que falha no backend: mostra o erro da fila e fica no passo", async () => {
+    renderWizard([
+      startMock(),
+      jobMock({ status: "FAILED", error: "Linha 3 sem código." }),
+    ]);
+
+    await act(async () => {
+      await api.handleImport();
+    });
+
+    await waitFor(() =>
+      expect(toastSpy).toHaveBeenCalledWith(
+        expect.objectContaining({
+          variant: "error",
+          description: "Linha 3 sem código.",
+        })
+      )
+    );
+    expect(api.result).toBeNull();
+  });
+
+  it("queda de conexão ao iniciar: avisa para conferir a lista antes de reenviar", async () => {
+    renderWizard([
+      {
+        request: {
+          query: START_PRICE_LIST_IMPORT_MUTATION,
+          variables: anyVars,
+        },
+        error: new TypeError("Failed to fetch"),
+      } as MockLink.MockedResponse,
+    ]);
+
+    await act(async () => {
+      await api.handleImport();
+    });
+
+    await waitFor(() =>
+      expect(toastSpy).toHaveBeenCalledWith(
+        expect.objectContaining({
+          variant: "error",
+          description: CONNECTION_LOST_MESSAGE,
+        })
+      )
+    );
     expect(api.result).toBeNull();
   });
 });

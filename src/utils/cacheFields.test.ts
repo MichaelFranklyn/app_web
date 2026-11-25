@@ -208,7 +208,7 @@ const ASSUNTOS: Assunto[] = [
       "deletePriceListItem",
       "setPriceListPromotion",
       "clearPriceListPromotion",
-      "importFactoryPriceList",
+      "startFactoryPriceListImport",
     ],
     delegacoes: {},
   },

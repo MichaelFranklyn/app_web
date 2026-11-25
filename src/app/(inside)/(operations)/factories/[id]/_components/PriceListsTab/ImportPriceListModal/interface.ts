@@ -43,12 +43,33 @@ export interface ImportPriceListResult {
   errors: ImportPriceRowDetail[];
 }
 
-export interface ImportPriceListResponse {
-  importFactoryPriceList: {
-    status: boolean;
-    message: string;
-    data: ImportPriceListResult | null;
-  };
+export type PriceListImportStatus = "PENDING" | "RUNNING" | "DONE" | "FAILED";
+
+/** A importação na fila do backend (`priceListImport`). */
+export interface PriceListImportJob {
+  id: string;
+  status: PriceListImportStatus;
+  /** Parada há tempo demais: a instância que rodava morreu no meio. */
+  isStale: boolean;
+  message: string | null;
+  error: string | null;
+  result: ImportPriceListResult | null;
+}
+
+interface JobPayload<T> {
+  status: boolean;
+  message: string;
+  data: T | null;
+}
+
+export interface StartPriceListImportResponse {
+  startFactoryPriceListImport: JobPayload<
+    Pick<PriceListImportJob, "id" | "status" | "isStale">
+  >;
+}
+
+export interface PriceListImportResponse {
+  priceListImport: JobPayload<PriceListImportJob>;
 }
 
 /** Tabela vigente da fábrica — destino possível de uma planilha de outro grupo de clientes. */
