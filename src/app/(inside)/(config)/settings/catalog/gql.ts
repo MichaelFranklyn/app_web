@@ -146,6 +146,7 @@ export const TAX_RULES_QUERY = gql`
         node {
           id
           name
+          productCount
         }
       }
       totalCount

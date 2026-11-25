@@ -7,12 +7,14 @@ import { Info } from "lucide-react";
 import { ChangeEvent } from "react";
 
 import { GroupTargetFields } from "./GroupTargetFields";
-import { ImportModeChoice } from "./ImportModeChoice";
+import { ImportReview } from "./ImportReview";
 import { ActivePriceList, ImportMode, TierColumn } from "./interface";
+import { ImportPreviewRow } from "./preview";
 
 interface StepDetailsProps {
   activeLists: ActivePriceList[];
   mode: ImportMode;
+  /** A pergunta mora no primeiro passo; o bundle guarda o setter para os testes. */
   setMode: (mode: ImportMode) => void;
   targetListId: string | null;
   setTargetListId: (id: string | null) => void;
@@ -30,12 +32,14 @@ interface StepDetailsProps {
   skippedRows: number;
   importableRows: number;
   defaultedCount: number;
+  previewRows: ImportPreviewRow[];
+  pricesPerUnit: boolean;
+  replacedList: ActivePriceList | null;
 }
 
 export function StepDetails({
   activeLists,
   mode,
-  setMode,
   targetListId,
   setTargetListId,
   tierColumns,
@@ -52,6 +56,9 @@ export function StepDetails({
   skippedRows,
   importableRows,
   defaultedCount,
+  previewRows,
+  pricesPerUnit,
+  replacedList,
 }: StepDetailsProps) {
   return (
     <div className="flex flex-col gap-12">
@@ -76,9 +83,6 @@ export function StepDetails({
           estiver tudo certo, clique no botão{" "}
           <Emphasis>Importar tabela</Emphasis> aqui embaixo.
         </Stepper.Intro>
-      )}
-      {activeLists.length > 0 && (
-        <ImportModeChoice mode={mode} onChange={setMode} disabled={isLoading} />
       )}
       {mode === "group" ? (
         <GroupTargetFields
@@ -130,18 +134,16 @@ export function StepDetails({
               }
             />
           </div>
-          <Alert.Root variant="info">
-            <Alert.Icon icon={Info} />
-            <Alert.Content>
-              <Alert.Description>
-                A nova tabela fica ativa e a anterior da mesma região fiscal é
-                desativada. Produtos e níveis que não existirem são criados
-                automaticamente.
-              </Alert.Description>
-            </Alert.Content>
-          </Alert.Root>
         </>
       )}
+      <ImportReview
+        mode={mode}
+        importableRows={importableRows}
+        tierColumns={tierColumns}
+        replacedList={replacedList}
+        previewRows={previewRows}
+        pricesPerUnit={pricesPerUnit}
+      />
       {skippedRows > 0 && (
         <Alert.Root variant="warning">
           <Alert.Icon icon={Info} />

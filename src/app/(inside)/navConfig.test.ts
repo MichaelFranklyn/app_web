@@ -1,6 +1,6 @@
 import { PlanFeature } from "@/services/plan";
 import { describe, expect, it } from "vitest";
-import { isNavItemActive, visibleNav } from "./navConfig";
+import { isNavItemActive, settingsHomeHref, visibleNav } from "./navConfig";
 
 /** Plano completo: nos casos sobre PAPEL, o plano não pode ser a variável que
  * esconde o item — senão o teste passaria pelo motivo errado. */
@@ -26,13 +26,21 @@ const sections = (role?: string, features: PlanFeature[] = ALL) =>
     .map((item) => (item as { section: string }).section);
 
 describe("visibleNav — papel", () => {
-  it("configurações é UM item, para dono e administrador", () => {
+  it("configurações é UM item, já apontando para a tela final do papel", () => {
     // As telas da área se escolhem no menu interno (settings/navigation.ts).
-    for (const role of ["OWNER", "ADMIN"]) {
+    // Ir direto evita o redirect de /settings, que mostrava conteúdo em branco.
+    const expected = { OWNER: "/settings/company", ADMIN: "/settings/users" };
+    for (const [role, href] of Object.entries(expected)) {
       const settings = hrefs(role).filter((h) => h.startsWith("/settings"));
-      expect(settings).toEqual(["/settings"]);
+      expect(settings).toEqual([href]);
       expect(sections(role)).not.toContain("Configurações");
     }
+  });
+
+  it("o redirect de /settings segue a mesma regra do menu", () => {
+    expect(settingsHomeHref("OWNER")).toBe("/settings/company");
+    expect(settingsHomeHref("ADMIN")).toBe("/settings/users");
+    expect(settingsHomeHref("SELLER")).toBe("/profile");
   });
 
   it("esconde configurações do vendedor", () => {

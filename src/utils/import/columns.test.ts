@@ -1,6 +1,11 @@
 import { describe, expect, it } from "vitest";
 
-import { distinctValues, parseNumber, valueForChoice } from "./columns";
+import {
+  distinctValues,
+  parseNumber,
+  sampleValues,
+  valueForChoice,
+} from "./columns";
 
 describe("valueForChoice", () => {
   it("none/undefined → ''", () => {
@@ -66,5 +71,42 @@ describe("parseNumber", () => {
     expect(parseNumber("1 c/100 pçs")).toBeNaN();
     expect(parseNumber("1 c/72 pçs")).toBeNaN();
     expect(parseNumber("8/4")).toBeNaN();
+  });
+});
+
+describe("sampleValues", () => {
+  const rows = [
+    ["A1", "10"],
+    ["", "10"],
+    ["A2", "12"],
+    ["A3", ""],
+    ["A4", "9"],
+  ];
+
+  it("pega os primeiros valores distintos e não vazios da coluna", () => {
+    expect(sampleValues(rows, { kind: "column", index: 0 })).toEqual([
+      "A1",
+      "A2",
+      "A3",
+    ]);
+    expect(sampleValues(rows, { kind: "column", index: 1 })).toEqual([
+      "10",
+      "12",
+      "9",
+    ]);
+  });
+
+  it("respeita o limite", () => {
+    expect(sampleValues(rows, { kind: "column", index: 0 }, 2)).toEqual([
+      "A1",
+      "A2",
+    ]);
+  });
+
+  it("não mostra amostra para valor fixo, nenhum ou coluna vazia", () => {
+    expect(sampleValues(rows, { kind: "fixed", value: "UN" })).toEqual([]);
+    expect(sampleValues(rows, { kind: "none" })).toEqual([]);
+    expect(sampleValues(rows, undefined)).toEqual([]);
+    expect(sampleValues(rows, { kind: "column", index: 5 })).toEqual([]);
   });
 });

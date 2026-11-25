@@ -45,10 +45,9 @@ export function SegmentsSection() {
   const onChanged = () => refetch();
 
   return (
-    // Lista de uma ou duas colunas não ocupa a tela toda: em 1440px o nome
-    // ficava na ponta esquerda e o "⋯" na direita, longe demais para ler a
-    // linha (crítica de configurações, 23/11/2026).
-    <Table.Root className="w-full max-w-[720px]">
+    // Largura total, como as demais tabelas do sistema (25/11/2026). O teto de
+    // 720px da crítica de 23/11 deixava a tabela "pela metade" no desktop.
+    <Table.Root className="w-full">
       <CatalogSectionHead
         title="Segmentos cadastrados"
         helpLabel="O que é um segmento de cliente?"

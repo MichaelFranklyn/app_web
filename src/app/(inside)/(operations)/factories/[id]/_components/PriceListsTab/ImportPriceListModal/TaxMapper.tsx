@@ -7,14 +7,19 @@ import { Button } from "@/components/Button";
 import { HelpTooltip } from "@/components/HelpTooltip";
 import { Input } from "@/components/Input";
 import { SelectOption } from "@/components/Input";
+import { ColumnSample } from "@/components/Import";
 import { Title } from "@/components/Title";
 
 import { TaxColumn } from "./interface";
+import { formatRateSample } from "./preview";
 
 interface Props {
   headers: string[];
   taxes: TaxColumn[];
   onChange: (taxes: TaxColumn[]) => void;
+  /** Linhas da planilha, para mostrar as alíquotas reais de cada coluna. */
+  rows: string[][];
+  asFraction: boolean;
 }
 
 const newId = () =>
@@ -22,7 +27,13 @@ const newId = () =>
     ? crypto.randomUUID()
     : String(Math.random());
 
-export function TaxMapper({ headers, taxes, onChange }: Props) {
+export function TaxMapper({
+  headers,
+  taxes,
+  onChange,
+  rows,
+  asFraction,
+}: Props) {
   const columnOptions: SelectOption[] = headers.map((header, index) => ({
     value: String(index),
     label: header || `Coluna ${index + 1}`,
@@ -46,7 +57,7 @@ export function TaxMapper({ headers, taxes, onChange }: Props) {
             </Title>
             <HelpTooltip
               label="Como funcionam as colunas de imposto?"
-              content="Cada coluna escolhida vira um imposto do produto, somado por cima do preço. Para ST por MVA use o bloco específico abaixo — aqui entram só alíquotas simples."
+              content="Cada coluna escolhida vira um imposto do produto, somado por cima do preço. ST por MVA tem o seu próprio bloco — aqui entram só alíquotas simples."
               position="right"
             />
           </span>
@@ -58,45 +69,54 @@ export function TaxMapper({ headers, taxes, onChange }: Props) {
       )}
 
       {taxes.map((tax) => (
-        <div
-          key={tax.id}
-          className="grid grid-cols-[1fr_1fr_auto] items-center gap-8"
-        >
-          <Input.Select
-            options={columnOptions}
-            value={
-              columnOptions.find((o) => o.value === String(tax.columnIndex)) ??
-              null
+        <div key={tax.id} className="flex flex-col gap-4">
+          <div className="grid grid-cols-[1fr_1fr_auto] items-center gap-8">
+            <Input.Select
+              options={columnOptions}
+              value={
+                columnOptions.find(
+                  (o) => o.value === String(tax.columnIndex)
+                ) ?? null
+              }
+              variant="single"
+              placeholder="Selecione a coluna"
+              onChange={(val: SelectOption | SelectOption[] | null) => {
+                const opt = Array.isArray(val) ? val[0] : val;
+                const columnIndex = opt ? Number(opt.value) : null;
+                // Sugere o nome do imposto a partir do cabeçalho, se ainda vazio.
+                const suggested =
+                  !tax.taxName && columnIndex !== null
+                    ? (headers[columnIndex] ?? "")
+                    : tax.taxName;
+                update(tax.id, { columnIndex, taxName: suggested });
+              }}
+            />
+            <Input.Text
+              value={tax.taxName}
+              placeholder="Ex: ICMS"
+              onChange={(e: ChangeEvent<HTMLInputElement>) =>
+                update(tax.id, { taxName: e.target.value })
+              }
+            />
+            <Button.Root
+              type="button"
+              appearance="ghost"
+              color="red"
+              size="sm"
+              onClick={() => remove(tax.id)}
+            >
+              <Button.Icon icon={Trash2} />
+            </Button.Root>
+          </div>
+          <ColumnSample
+            rows={rows}
+            choice={
+              tax.columnIndex !== null
+                ? { kind: "column", index: tax.columnIndex }
+                : undefined
             }
-            variant="single"
-            placeholder="Selecione a coluna"
-            onChange={(val: SelectOption | SelectOption[] | null) => {
-              const opt = Array.isArray(val) ? val[0] : val;
-              const columnIndex = opt ? Number(opt.value) : null;
-              // Sugere o nome do imposto a partir do cabeçalho, se ainda vazio.
-              const suggested =
-                !tax.taxName && columnIndex !== null
-                  ? (headers[columnIndex] ?? "")
-                  : tax.taxName;
-              update(tax.id, { columnIndex, taxName: suggested });
-            }}
+            format={(value) => formatRateSample(value, asFraction)}
           />
-          <Input.Text
-            value={tax.taxName}
-            placeholder="Ex: ICMS"
-            onChange={(e: ChangeEvent<HTMLInputElement>) =>
-              update(tax.id, { taxName: e.target.value })
-            }
-          />
-          <Button.Root
-            type="button"
-            appearance="ghost"
-            color="red"
-            size="sm"
-            onClick={() => remove(tax.id)}
-          >
-            <Button.Icon icon={Trash2} />
-          </Button.Root>
         </div>
       ))}
 

@@ -37,6 +37,7 @@ import {
   ImportPriceListResponse,
   ImportPriceListResult,
 } from "./interface";
+import { pickPreviewRows } from "./preview";
 import { isPriceListConfig, PriceListTemplateConfig } from "./templateConfig";
 import { useListDetails } from "./useListDetails";
 import { useMappingState } from "./useMappingState";
@@ -402,6 +403,11 @@ export function useImportPriceListWizard({
   // Pré-monta o payload para validar e exibir linhas ignoradas antes do envio.
   const importPreview = parsedSheet ? buildImportInput(buildArgs) : null;
   const importableRows = importPreview?.input.rows.length ?? 0;
+  // Produtos reais da planilha como ficarão gravados (preço por embalagem).
+  const previewRows = pickPreviewRows(importPreview?.input.rows ?? []);
+  // Tabela que deixa de valer ao importar uma tabela nova (mesma região).
+  const replacedList =
+    activeLists.find((l) => l.region === region.trim()) ?? null;
   const skippedRows = importPreview?.skippedRows ?? 0;
   const defaultedCount = importPreview?.defaultedPack.length ?? 0;
 
@@ -492,6 +498,9 @@ export function useImportPriceListWizard({
       onFiles: handleFiles,
       ready: Boolean(matrix && parsedSheet),
       templateApplied,
+      activeLists,
+      mode,
+      setMode,
     },
     readingStep:
       matrix && parsedSheet
@@ -511,6 +520,7 @@ export function useImportPriceListWizard({
     productStep: parsedSheet
       ? {
           headers,
+          rows,
           mapping,
           setMapping,
           ncmChoice,
@@ -528,15 +538,19 @@ export function useImportPriceListWizard({
     pricesStep: parsedSheet
       ? {
           headers,
+          rows,
+          mode,
           tierColumns,
           setTierColumns,
           pricesPerUnit,
           setPricesPerUnit,
+          previewRows,
         }
       : null,
     taxesStep: parsedSheet
       ? {
           headers,
+          rows,
           ipiInOrder,
           ipiChoice,
           onIpiChoice: handleIpiChoice,
@@ -571,6 +585,9 @@ export function useImportPriceListWizard({
       skippedRows,
       importableRows,
       defaultedCount,
+      previewRows,
+      pricesPerUnit,
+      replacedList,
     },
     resultStep: result
       ? {

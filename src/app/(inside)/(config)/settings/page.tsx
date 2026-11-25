@@ -1,10 +1,10 @@
 import { getDecodedTokenServer } from "@/utils/auth/jwt";
-import { isAdminRole, isOwnerRole } from "@/utils/auth/roles";
+import { settingsHomeHref } from "../../navConfig";
 import { redirect } from "next/navigation";
 
 /**
- * A porta da área: o item "Configurações" da sidebar e os breadcrumbs das telas
- * internas apontam para cá. Não há tela própria — o menu da área (`layout.tsx`)
+ * A porta da área: os breadcrumbs das telas internas apontam para cá (a
+ * sidebar já aponta direto para a tela final, sem passar por este redirect). Não há tela própria — o menu da área (`layout.tsx`)
  * já lista as telas, então isto manda para a primeira que o papel abre. Redirecionar todo
  * mundo para `/settings/company` jogaria o admin em `requireOwnerPage`, e ele
  * cairia fora de novo.
@@ -12,11 +12,8 @@ import { redirect } from "next/navigation";
 const Page = async () => {
   const payload = await getDecodedTokenServer();
 
-  if (isOwnerRole(payload?.role)) redirect("/settings/company");
-  if (isAdminRole(payload?.role)) redirect("/settings/users");
-
-  // Vendedor não tem assunto de configuração da empresa: o que é dele é o perfil.
-  redirect("/profile");
+  // Vendedor não tem assunto de configuração da empresa: cai no perfil.
+  redirect(settingsHomeHref(payload?.role));
 };
 
 export default Page;

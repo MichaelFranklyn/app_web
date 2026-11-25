@@ -1,9 +1,11 @@
+import { ColumnSample } from "./ColumnSample";
 import { FieldMapper } from "./FieldMapper";
 import { Reconciliation } from "./Reconciliation";
 import { SheetPreview } from "./SheetPreview";
 import { Summary } from "./Summary";
 import { TemplateDownload } from "./TemplateDownload";
 
+export { ColumnSample } from "./ColumnSample";
 export { FieldMapper } from "./FieldMapper";
 export { Reconciliation } from "./Reconciliation";
 export { SheetPreview } from "./SheetPreview";
@@ -14,6 +16,7 @@ export type { ImportSummaryDetail, ImportSummaryResult } from "./Summary";
 // Toolkit de importação de planilhas, compartilhado entre features (factories,
 // orders, etc.). Use o namespace `Import.FieldMapper` ou os exports nomeados.
 export const Import = {
+  ColumnSample,
   FieldMapper,
   Reconciliation,
   SheetPreview,

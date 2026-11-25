@@ -50,15 +50,18 @@ export function useMappingState(rows: string[][]) {
     }
   };
 
-  // Aplica os palpites da grade (colunas fiscais + convenções), reiniciando os
-  // níveis para um degrau em branco. O cabeçalho/base fica com o orquestrador.
+  // Aplica os palpites da grade (colunas fiscais + convenções + níveis pelas
+  // colunas "PREÇO X"); sem coluna de preço reconhecida, os níveis começam com
+  // um degrau em branco. O cabeçalho/base fica com o orquestrador.
   const applyGuess = (guessed: GuessedColumns) => {
     setIpiChoice(guessed.ipiChoice);
     setIpiAsFraction(guessed.ipiAsFraction);
     setNcmChoice(guessed.ncmChoice);
     setStMva(guessed.stMva);
     setTaxesAsFraction(guessed.taxesAsFraction);
-    setTierColumns([{ ...INITIAL_TIER }]);
+    setTierColumns(
+      guessed.tierColumns.length ? guessed.tierColumns : [{ ...INITIAL_TIER }]
+    );
   };
 
   // Aplica o mapeamento salvo no modelo da fábrica (parte de mapeamento; o

@@ -12,6 +12,8 @@ import { useAsyncAction } from "@/hooks/useAsyncAction";
 import { useMutation } from "@apollo/client/react";
 import { useMemo, useRef } from "react";
 import { UPDATE_TAX_RULE_MUTATION } from "../../../gql";
+import { Title } from "@/components/Title";
+import { IPI_RULE_NAME } from "../utils";
 import { EditTaxRuleModalProps, UpdateTaxRuleResponse } from "./interface";
 
 export function EditTaxRuleModal({
@@ -28,6 +30,8 @@ export function EditTaxRuleModal({
     UPDATE_TAX_RULE_MUTATION
   );
   const { execute, isLoading } = useAsyncAction();
+  // O preço acha o IPI pelo nome para somá-lo à base da ST (o back recusa).
+  const isIpi = rule.name === IPI_RULE_NAME;
 
   const steps: FormStepSchema[] = useMemo(
     () => [
@@ -92,17 +96,30 @@ export function EditTaxRuleModal({
       <Modal.Content size="sm">
         <Modal.Header
           title="Editar regra de imposto"
-          description={`Altere o nome de "${rule.name}".`}
+          description={
+            isIpi
+              ? "A regra IPI não pode ser renomeada."
+              : `Altere o nome de "${rule.name}".`
+          }
         />
         <Modal.Body>
-          <FormBuilder
-            ref={formRef}
-            steps={steps}
-            onSubmit={handleSubmit}
-            loading={isLoading}
-            initialData={initialData}
-            unstyled
-          />
+          {isIpi ? (
+            <Title variant="body-sm">
+              O IPI entra na base de cálculo da substituição tributária, e o
+              sistema o reconhece pelo nome &quot;IPI&quot;. Com outro nome, os
+              preços com ST sairiam errados. As alíquotas de IPI de cada produto
+              continuam editáveis na tabela de preços.
+            </Title>
+          ) : (
+            <FormBuilder
+              ref={formRef}
+              steps={steps}
+              onSubmit={handleSubmit}
+              loading={isLoading}
+              initialData={initialData}
+              unstyled
+            />
+          )}
         </Modal.Body>
         <Modal.Footer>
           <Modal.Close asChild>
@@ -113,19 +130,21 @@ export function EditTaxRuleModal({
               size="md"
               disabled={isLoading}
             >
-              <Button.Title>Cancelar</Button.Title>
+              <Button.Title>{isIpi ? "Fechar" : "Cancelar"}</Button.Title>
             </Button.Root>
           </Modal.Close>
-          <Button.Root
-            type="button"
-            appearance="solid"
-            color="amber"
-            size="md"
-            loading={isLoading}
-            onClick={() => formRef.current?.submitForm()}
-          >
-            <Button.Title>Salvar</Button.Title>
-          </Button.Root>
+          {!isIpi && (
+            <Button.Root
+              type="button"
+              appearance="solid"
+              color="amber"
+              size="md"
+              loading={isLoading}
+              onClick={() => formRef.current?.submitForm()}
+            >
+              <Button.Title>Salvar</Button.Title>
+            </Button.Root>
+          )}
         </Modal.Footer>
       </Modal.Content>
     </Modal.Root>

@@ -233,7 +233,11 @@ test("catálogo: cria uma regra de imposto", async ({ page }) => {
     ...catalogLists({ taxRules }),
     SettingsCreateTaxRule: (v) => {
       const input = (v.input ?? {}) as { name: string };
-      const node = { id: `tax-${taxRules.length + 1}`, name: input.name };
+      const node = {
+        id: `tax-${taxRules.length + 1}`,
+        name: input.name,
+        productCount: 0,
+      };
       taxRules.push(node);
       return {
         createTaxRule: { status: true, code: 200, message: "ok", data: node },

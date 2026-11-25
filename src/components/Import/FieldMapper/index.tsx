@@ -5,10 +5,12 @@ import { ChangeEvent, ReactNode } from "react";
 import { HelpTooltip } from "@/components/HelpTooltip";
 import { Card } from "@/components/Card";
 import { Input } from "@/components/Input";
-import { SelectOption } from "@/components/Input";
+import { RequiredMark, SelectOption } from "@/components/Input";
 import { Title } from "@/components/Title";
 
 import { ColumnChoice } from "@/utils/import/columns";
+
+import { ColumnSample } from "../ColumnSample";
 
 const FIXED = "fixed";
 
@@ -21,6 +23,12 @@ interface Props {
   help?: ReactNode;
   /** Exemplo exibido como placeholder do valor fixo (ex.: "Peça"). */
   fixedExample?: string;
+  /** Linhas da planilha: com elas, mostra valores reais da coluna escolhida. */
+  rows?: string[][];
+  /** Como exibir cada valor da amostra (ex.: converter fração em %). */
+  formatSample?: (value: string) => string;
+  /** Campo exigido para avançar: mostra o asterisco no label. */
+  required?: boolean;
 }
 
 /** Linha de mapeamento genérica: um campo → coluna da planilha ou valor fixo. */
@@ -31,6 +39,9 @@ export function FieldMapper({
   onChange,
   help,
   fixedExample,
+  rows,
+  formatSample,
+  required,
 }: Props) {
   const options: SelectOption[] = [
     ...headers.map((header, index) => ({
@@ -65,6 +76,7 @@ export function FieldMapper({
       <div className="inline-flex min-h-32 items-center gap-4 whitespace-nowrap">
         <Title variant="body-sm" weight="medium">
           {label}
+          {required && <RequiredMark />}
         </Title>
         {help && (
           <HelpTooltip
@@ -82,6 +94,9 @@ export function FieldMapper({
           variant="single"
           placeholder="Selecione a coluna"
         />
+        {rows && (
+          <ColumnSample rows={rows} choice={choice} format={formatSample} />
+        )}
         {choice.kind === "fixed" && (
           <Card.Root inset>
             <Card.Body padding="sm">

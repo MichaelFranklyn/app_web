@@ -4,35 +4,63 @@ import { Input } from "@/components/Input";
 import { Stepper } from "@/components/Stepper";
 import { Title } from "@/components/Title";
 
-import { TierColumn } from "./interface";
+import { ImportMode, TierColumn } from "./interface";
+import { ImportPreviewRow } from "./preview";
+import { PricePreview } from "./PricePreview";
 import { TierMapper } from "./TierMapper";
 
 interface StepPricesProps {
   headers: string[];
+  rows: string[][];
+  mode: ImportMode;
   tierColumns: TierColumn[];
   setTierColumns: (tiers: TierColumn[]) => void;
   pricesPerUnit: boolean;
   setPricesPerUnit: (value: boolean) => void;
+  previewRows: ImportPreviewRow[];
 }
 
 export function StepPrices({
   headers,
+  rows,
+  mode,
   tierColumns,
   setTierColumns,
   pricesPerUnit,
   setPricesPerUnit,
+  previewRows,
 }: StepPricesProps) {
   return (
     <div className="flex flex-col gap-16">
-      <Stepper.Intro step={4} total={6} title="Marque as colunas que têm preço">
-        Diga quais colunas da planilha trazem os preços. Se a fábrica trabalha
-        com mais de um preço (ex.: DIAMANTE, PLATINA, OURO), marque uma coluna
-        para cada um — cada uma vira um nível de preço no sistema. Depois,
-        responda se o preço da planilha é da embalagem fechada ou de uma peça
-        só.
-      </Stepper.Intro>
+      {mode === "group" ? (
+        <Stepper.Intro
+          step={4}
+          total={6}
+          title="Marque a coluna com o preço deste grupo"
+        >
+          Diga qual coluna da planilha traz o preço do grupo de clientes (ex.:
+          Interior) e dê um nome ao grupo. Depois, responda se o preço da
+          planilha é da embalagem fechada ou de uma peça só. No fim da tela
+          aparecem produtos da planilha com o preço calculado — confira.
+        </Stepper.Intro>
+      ) : (
+        <Stepper.Intro
+          step={4}
+          total={6}
+          title="Marque as colunas que têm preço"
+        >
+          Diga quais colunas da planilha trazem os preços. Se a fábrica trabalha
+          com mais de um preço (ex.: DIAMANTE, PLATINA, OURO), marque uma coluna
+          para cada um — cada uma vira um nível de preço no sistema. Depois,
+          responda se o preço da planilha é da embalagem fechada ou de uma peça
+          só. No fim da tela aparecem produtos da planilha com o preço calculado
+          — confira.
+        </Stepper.Intro>
+      )}
       <TierMapper
         headers={headers}
+        rows={rows}
+        mode={mode}
         tiers={tierColumns}
         onChange={setTierColumns}
       />
@@ -62,6 +90,7 @@ export function StepPrices({
           />
         </div>
       </Card.Root>
+      <PricePreview rows={previewRows} pricesPerUnit={pricesPerUnit} />
     </div>
   );
 }

@@ -67,7 +67,12 @@ export function AddTaxRuleModal({
         onSuccess: () => {
           setOpen(false);
           formRef.current?.resetForm();
-          onAddOptimistic({ id: `temp-${Date.now()}`, name: trimmedName });
+          onAddOptimistic({
+            id: `temp-${Date.now()}`,
+            name: trimmedName,
+            // Regra nova ainda não está em produto nenhum.
+            productCount: 0,
+          });
           onDone();
         },
       }

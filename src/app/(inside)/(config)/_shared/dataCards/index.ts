@@ -5,3 +5,5 @@
 // parecer a continuação da outra.
 export { DataCardSkeleton } from "./DataCardSkeleton";
 export { EditCardAction } from "./EditCardAction";
+export { DataSection } from "./DataSection";
+export { DataSectionSkeleton } from "./DataSectionSkeleton";
