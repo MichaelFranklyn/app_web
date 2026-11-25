@@ -39,7 +39,7 @@ const PRODUCT_FIELDS: Record<string, FieldConfig> = {
   search: { type: "text", queryField: "name,sku", operator: "like" },
   onlyAttention: {
     type: "select",
-    queryField: "needs_attention",
+    queryField: "is_needs_attention",
     operator: "eq",
   },
   // Colunas do próprio produto: o filtro vai ao banco e vale para o catálogo
