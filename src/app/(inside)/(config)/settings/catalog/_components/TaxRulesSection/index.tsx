@@ -16,10 +16,12 @@ import { AddTaxRuleModal } from "./AddTaxRuleModal";
 import { CatalogRowActions } from "../CatalogRowActions";
 import { DeleteTaxRuleModal } from "./DeleteTaxRuleModal";
 import { EditTaxRuleModal } from "./EditTaxRuleModal";
+import { formatProductCount } from "./utils";
 
 interface TaxRuleNode {
   id: string;
   name: string;
+  productCount: number;
 }
 
 type Connection = { edges: { node: TaxRuleNode }[]; totalCount: number };
@@ -48,10 +50,9 @@ export function TaxRulesSection() {
   const onChanged = () => refetch();
 
   return (
-    // Lista de uma ou duas colunas não ocupa a tela toda: em 1440px o nome
-    // ficava na ponta esquerda e o "⋯" na direita, longe demais para ler a
-    // linha (crítica de configurações, 23/11/2026).
-    <Table.Root className="w-full max-w-[720px]">
+    // Largura total, como as demais tabelas do sistema (25/11/2026). O teto de
+    // 720px da crítica de 23/11 deixava a tabela "pela metade" no desktop.
+    <Table.Root className="w-full">
       <CatalogSectionHead
         title="Regras cadastradas"
         helpLabel="Como funcionam as regras de imposto?"
@@ -59,26 +60,35 @@ export function TaxRulesSection() {
           <div className="flex flex-col gap-6">
             <div className="flex flex-col gap-2">
               <Title variant="label" weight="semibold">
-                Tipo de cálculo
+                A regra é só o nome do imposto
               </Title>
               <Title variant="body-sm">
-                Percentual (%) aplica uma alíquota sobre o preço; Valor fixo
-                (R$) soma um valor fechado por item.
+                ST, ICMS, IPI: o nome que aparece no pedido e no PDF. A alíquota
+                não fica aqui.
               </Title>
             </div>
             <div className="flex flex-col gap-2">
               <Title variant="label" weight="semibold">
-                Incluso no preço
+                A alíquota é de cada produto
               </Title>
               <Title variant="body-sm">
-                &quot;Sim&quot; = o imposto já está embutido no preço
-                cadastrado. &quot;Não&quot; = é somado por cima do preço ao
-                montar o pedido.
+                É definida na tabela de preços (ao importar ou editar) ou na
+                ficha do produto, em percentual ou pelo cálculo da ST com MVA. O
+                imposto é sempre somado por cima do preço.
+              </Title>
+            </div>
+            <div className="flex flex-col gap-2">
+              <Title variant="label" weight="semibold">
+                IPI é especial
+              </Title>
+              <Title variant="body-sm">
+                O IPI entra na base de cálculo da ST. Por isso a regra
+                &quot;IPI&quot; não pode ser renomeada.
               </Title>
             </div>
             <Title variant="body-sm" color="muted">
-              As regras são o catálogo de impostos da empresa. A alíquota de
-              cada produto é definida depois, na tabela de preços.
+              Excluir uma regra tira a alíquota dela de todos os produtos e
+              recalcula os preços. Pedidos já feitos não mudam.
             </Title>
           </div>
         }
@@ -93,6 +103,9 @@ export function TaxRulesSection() {
         <Table.Header>
           <Table.Row>
             <Table.Head title={TAX_RULE_COLUMN_HELP.name}>Nome</Table.Head>
+            <Table.Head title={TAX_RULE_COLUMN_HELP.productCount}>
+              Produtos
+            </Table.Head>
             <Table.Head
               className="text-right"
               title={TAX_RULE_COLUMN_HELP.actions}
@@ -103,16 +116,16 @@ export function TaxRulesSection() {
         </Table.Header>
         <Table.Body>
           {loading && rules.length === 0 ? (
-            <Table.Skeleton columns={2} rows={3} />
+            <Table.Skeleton columns={3} rows={3} />
           ) : error && rules.length === 0 ? (
             <Table.Row>
-              <Table.Cell colSpan={2}>
+              <Table.Cell colSpan={3}>
                 <QueryError flat onRetry={() => refetch()} />
               </Table.Cell>
             </Table.Row>
           ) : rules.length === 0 ? (
             <Table.Row>
-              <Table.Cell colSpan={2}>
+              <Table.Cell colSpan={3}>
                 <EmptyState.Root flat>
                   <EmptyState.Icon>
                     <Percent />
@@ -130,6 +143,9 @@ export function TaxRulesSection() {
               <Table.Row key={r.id}>
                 <Table.Cell card="title" variant="strong">
                   {r.name}
+                </Table.Cell>
+                <Table.Cell label="Produtos">
+                  {formatProductCount(r.productCount)}
                 </Table.Cell>
                 <Table.Cell card="actions">
                   <CatalogRowActions
@@ -151,6 +167,7 @@ export function TaxRulesSection() {
                         {...control}
                         ruleId={r.id}
                         ruleName={r.name}
+                        productCount={r.productCount}
                         onRemoveOptimistic={optimistic.removeOptimistic}
                         onCommit={optimistic.commit}
                         onRollback={optimistic.rollback}

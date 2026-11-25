@@ -14,11 +14,11 @@ interface Props {
 }
 
 /**
- * Um grupo de cards do perfil com título e uma linha dizendo para que serve.
+ * Um grupo de cards (perfil da pessoa, dados da empresa) com título e uma linha dizendo para que serve.
  * Separar por assunto (dados, acesso, rotina, carteira) evita a fila solta de
  * caixas, em que a pessoa precisava ler todas para achar a que queria.
  */
-export function ProfileSection({
+export function DataSection({
   title,
   description,
   columns = 2,

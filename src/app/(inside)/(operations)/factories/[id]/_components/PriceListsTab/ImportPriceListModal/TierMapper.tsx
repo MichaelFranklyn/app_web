@@ -7,15 +7,20 @@ import { Button } from "@/components/Button";
 import { HelpTooltip } from "@/components/HelpTooltip";
 import { Input } from "@/components/Input";
 import { SelectOption } from "@/components/Input";
+import { ColumnSample } from "@/components/Import";
 import { Title } from "@/components/Title";
 
-import { TierColumn } from "./interface";
+import { ImportMode, TierColumn } from "./interface";
 import { findStaleListColumns } from "./wizardGuess";
 
 interface Props {
   headers: string[];
   tiers: TierColumn[];
   onChange: (tiers: TierColumn[]) => void;
+  /** Linhas da planilha, para mostrar valores reais de cada coluna. */
+  rows: string[][];
+  /** Em "outro grupo de clientes" o nível É o grupo — o texto fala disso. */
+  mode: ImportMode;
 }
 
 const newId = () =>
@@ -23,7 +28,8 @@ const newId = () =>
     ? crypto.randomUUID()
     : String(Math.random());
 
-export function TierMapper({ headers, tiers, onChange }: Props) {
+export function TierMapper({ headers, tiers, onChange, rows, mode }: Props) {
+  const isGroup = mode === "group";
   const columnOptions: SelectOption[] = headers.map((header, index) => ({
     value: String(index),
     label: header || `Coluna ${index + 1}`,
@@ -58,11 +64,19 @@ export function TierMapper({ headers, tiers, onChange }: Props) {
         </span>
         <span className="inline-flex items-center gap-4">
           <Title variant="caption" color="muted">
-            Nível comercial
+            {isGroup ? "Grupo de clientes" : "Nível comercial"}
           </Title>
           <HelpTooltip
-            label="O que é nível comercial?"
-            content="Faixa de preço praticada pela fábrica (ex.: DIAMANTE, PLATINA, OURO). Cada coluna de preço vira um nível; níveis que não existirem são criados."
+            label={
+              isGroup
+                ? "O que é grupo de clientes?"
+                : "O que é nível comercial?"
+            }
+            content={
+              isGroup
+                ? "Nome do grupo que compra por este preço (ex.: Interior). Ele vira um nível da tabela vigente; depois é só marcar esse nível nos clientes do grupo."
+                : "Faixa de preço praticada pela fábrica (ex.: DIAMANTE, PLATINA, OURO). Cada coluna de preço vira um nível; níveis que não existirem são criados."
+            }
             position="right"
           />
         </span>
@@ -99,7 +113,7 @@ export function TierMapper({ headers, tiers, onChange }: Props) {
               />
               <Input.Text
                 value={tier.tierName}
-                placeholder="Ex: DIAMANTE"
+                placeholder={isGroup ? "Ex: Interior" : "Ex: DIAMANTE"}
                 onChange={(e: ChangeEvent<HTMLInputElement>) =>
                   update(tier.id, { tierName: e.target.value })
                 }
@@ -114,6 +128,14 @@ export function TierMapper({ headers, tiers, onChange }: Props) {
                 <Button.Icon icon={Trash2} />
               </Button.Root>
             </div>
+            <ColumnSample
+              rows={rows}
+              choice={
+                tier.columnIndex !== null
+                  ? { kind: "column", index: tier.columnIndex }
+                  : undefined
+              }
+            />
             {stale && (
               <Title variant="caption" color="orange">
                 ⚠ Esta parece ser a LISTA {stale.listNumber} (anterior). A mais
@@ -134,7 +156,9 @@ export function TierMapper({ headers, tiers, onChange }: Props) {
           onClick={add}
         >
           <Button.Icon icon={Plus} />
-          <Button.Title>Adicionar nível</Button.Title>
+          <Button.Title>
+            {isGroup ? "Adicionar grupo" : "Adicionar nível"}
+          </Button.Title>
         </Button.Root>
       </div>
     </div>

@@ -41,6 +41,9 @@ export const ROLE_LABEL: Record<string, string> = {
   SELLER: "Vendedor",
 };
 
+/** A porta da área de configurações — ver o item "Configurações" abaixo. */
+const SETTINGS_ROOT = "/settings";
+
 export const NAV = [
   {
     href: "/dashboard",
@@ -117,13 +120,32 @@ export const NAV = [
     // se escolhem no menu interno da área (`settings/navigation.ts`). Antes
     // eram cinco itens soltos aqui. `access: "admin"` porque toda tela da
     // área é de gestão — e o vendedor, em `/settings`, seria mandado ao perfil.
-    href: "/settings",
-    matchPrefix: "/settings",
+    //
+    // O `href` daqui é só a chave: `visibleNav` troca pela tela final do papel
+    // (`settingsHomeHref`). Apontar para `/settings` fazia o clique passar pelo
+    // redirect do servidor, e nesse salto a casca já mostrava o menu interno
+    // com o conteúdo em branco — sem skeleton nenhum (25/11/2026).
+    // `tourRoute` fica fixo para o tour achar o item com qualquer papel.
+    href: SETTINGS_ROOT,
+    matchPrefix: SETTINGS_ROOT,
+    tourRoute: SETTINGS_ROOT,
     label: "Configurações",
     icon: Settings,
     access: "admin",
   },
 ];
+
+/**
+ * A primeira tela de configuração que o papel abre — a mesma regra do redirect
+ * de `/settings` (`(config)/settings/page.tsx`), que usa esta função. Dono cai
+ * em Empresa; admin, que não abre Empresa, em Pessoas; o resto não tem
+ * configuração e vai ao perfil.
+ */
+export function settingsHomeHref(role?: string | null) {
+  if (isOwnerRole(role)) return "/settings/company";
+  if (isAdminRole(role)) return "/settings/users";
+  return "/profile";
+}
 
 /**
  * Atalho fixo para a configuração inicial, só enquanto ela está incompleta. Vai
@@ -175,26 +197,33 @@ export const visibleNav = (
 
   // Segunda passada: descarta seção sem nenhum destino depois dela e divisor que
   // ficou encostado em outro (ou no fim).
-  return allowed.filter((item, index) => {
-    if ("section" in item) {
-      const next = allowed[index + 1];
-      return !!next && !("section" in next) && !("divider" in next);
-    }
-    if ("divider" in item) {
-      const next = allowed[index + 1];
-      if (!next || "divider" in next) return false;
-      // Divisor antes de uma seção que vai cair também não deve sobrar.
-      if ("section" in next) {
-        const afterSection = allowed[index + 2];
-        return (
-          !!afterSection &&
-          !("section" in afterSection) &&
-          !("divider" in afterSection)
-        );
+  const settingsHome = settingsHomeHref(role);
+  return allowed
+    .map((item) =>
+      "href" in item && item.href === SETTINGS_ROOT
+        ? { ...item, href: settingsHome }
+        : item
+    )
+    .filter((item, index) => {
+      if ("section" in item) {
+        const next = allowed[index + 1];
+        return !!next && !("section" in next) && !("divider" in next);
       }
-    }
-    return true;
-  });
+      if ("divider" in item) {
+        const next = allowed[index + 1];
+        if (!next || "divider" in next) return false;
+        // Divisor antes de uma seção que vai cair também não deve sobrar.
+        if ("section" in next) {
+          const afterSection = allowed[index + 2];
+          return (
+            !!afterSection &&
+            !("section" in afterSection) &&
+            !("divider" in afterSection)
+          );
+        }
+      }
+      return true;
+    });
 };
 
 /**

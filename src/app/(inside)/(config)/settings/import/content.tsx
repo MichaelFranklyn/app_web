@@ -4,31 +4,19 @@ import { CheckCircle2, FileText } from "lucide-react";
 
 import { Alert } from "@/components/Alert";
 import { Button } from "@/components/Button";
-import { Loading } from "@/components/Loading";
 import { PageContent } from "@/components/PageContent";
-import { PanelHeader } from "@/components/PanelHeader";
 import { Progress } from "@/components/Progress";
 import { QueryError } from "@/components/QueryError";
 import { formatDate } from "@/utils/format/date";
-import { PAGE_HEADING } from "@/utils/modules";
 
 import { ImportSellersModal } from "../_components/ImportSellersModal";
 import { CompleteSetupCard } from "./_components/CompleteSetupCard";
+import { ImportHeader } from "./_components/ImportHeader";
+import { SetupSkeleton } from "./_components/SetupSkeleton";
 import { SetupFactoryList } from "./_components/SetupFactoryList";
 import { SetupStepCard } from "./_components/SetupStepCard";
 import { useCompanySetup } from "./useCompanySetup";
 import { SETUP_STEP_CONTENT, blockingStep, stepSummary } from "./utils";
-
-function SetupSkeleton() {
-  return (
-    <div className="flex flex-col gap-12" aria-busy="true">
-      <Loading.Skeleton className="h-[40px] w-full" />
-      {Array.from({ length: 5 }, (_, i) => (
-        <Loading.Skeleton key={i} className="h-[120px] w-full" />
-      ))}
-    </div>
-  );
-}
 
 export default function ImportSettingsContent() {
   const { progress, loading, error, refetch, complete, isCompleting } =
@@ -43,19 +31,7 @@ export default function ImportSettingsContent() {
 
   return (
     <PageContent>
-      <PanelHeader.Root>
-        <PanelHeader.Top>
-          <PanelHeader.Left>
-            <PanelHeader.Heading {...PAGE_HEADING.import}>
-              Configuração inicial
-            </PanelHeader.Heading>
-            <PanelHeader.Description>
-              Monte a empresa passo a passo, nesta ordem: cada passo prepara o
-              que o próximo precisa.
-            </PanelHeader.Description>
-          </PanelHeader.Left>
-        </PanelHeader.Top>
-      </PanelHeader.Root>
+      <ImportHeader />
 
       {error && !progress ? (
         <QueryError onRetry={() => refetch()} />

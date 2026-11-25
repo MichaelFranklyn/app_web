@@ -3,6 +3,7 @@ import { describe, expect, it } from "vitest";
 import {
   findStaleListColumns,
   guessColumns,
+  guessTierColumns,
   looksLikeFraction,
 } from "./wizardGuess";
 
@@ -152,5 +153,59 @@ describe("findStaleListColumns", () => {
     ]);
     expect(stale.map((s) => s.listNumber)).toEqual([37, 38]);
     expect(stale.every((s) => s.latestNumber === 39)).toBe(true);
+  });
+});
+
+describe("guessTierColumns", () => {
+  it("'PREÇO X' vira nível X; colunas fiscais ficam de fora", () => {
+    const headers = [
+      "CÓDIGO",
+      "DESCRIÇÃO",
+      "EMB",
+      "PREÇO CAPITAL",
+      "PREÇO INTERIOR",
+      "IPI",
+      "VALOR ICMS",
+    ];
+    expect(guessTierColumns(headers)).toEqual([
+      { id: "t4", columnIndex: 3, tierName: "Capital" },
+      { id: "t5", columnIndex: 4, tierName: "Interior" },
+    ]);
+  });
+
+  it("'LISTA N NÍVEL' usa só a lista vigente", () => {
+    const headers = ["COD", "LISTA 38 DIAMANTE", "LISTA 39 DIAMANTE"];
+    expect(guessTierColumns(headers)).toEqual([
+      { id: "t3", columnIndex: 2, tierName: "Diamante" },
+    ]);
+  });
+
+  it("'PREÇO' sozinho é nível sem nome; sem coluna de preço → nada", () => {
+    expect(guessTierColumns(["COD", "Preço"])).toEqual([
+      { id: "t2", columnIndex: 1, tierName: "" },
+    ]);
+    expect(guessTierColumns(["COD", "NOME", "NCM"])).toEqual([]);
+  });
+
+  it("guessColumns devolve os níveis adivinhados", () => {
+    const g = guessColumns([
+      ["CODIGO", "NOME", "PRECO DE VAREJO"],
+      ["1", "Torneira", "10,00"],
+    ]);
+    expect(g.tierColumns).toEqual([
+      { id: "t3", columnIndex: 2, tierName: "Varejo" },
+    ]);
+  });
+});
+
+describe("guessColumns — ST", () => {
+  it("coluna 'ICMS' solta (sem MVA nem alíquota interna) não abre o ST", () => {
+    const g = guessColumns([
+      ["CODIGO", "NOME", "PREÇO", "IPI", "ICMS"],
+      ["1", "Torneira", "10,00", "3,25", "18"],
+    ]);
+    expect(g.stMva.mva).toEqual({ kind: "none" });
+    expect(g.stMva.icmsCredit).toEqual({ kind: "none" });
+    expect(g.stMva.internalRate).toEqual({ kind: "none" });
   });
 });

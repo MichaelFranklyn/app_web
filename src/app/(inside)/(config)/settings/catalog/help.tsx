@@ -41,5 +41,7 @@ export const SEGMENT_COLUMN_HELP = {
 
 export const TAX_RULE_COLUMN_HELP = {
   name: "Nome da regra de imposto, como a fábrica a chama (ST, por exemplo). A alíquota não fica aqui: ela é definida por produto, na tabela de preços.",
+  productCount:
+    "Quantos produtos têm alíquota desta regra. Excluir a regra tira a alíquota de todos eles e recalcula os preços.",
   actions: ACTIONS,
 } as const;

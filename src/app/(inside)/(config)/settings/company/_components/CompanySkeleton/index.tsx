@@ -1,12 +1,14 @@
-import { Grid } from "@/components/Grid";
 import { Loading } from "@/components/Loading";
 import { PageContent } from "@/components/PageContent";
 import { PanelHeader } from "@/components/PanelHeader";
 import { PAGE_HEADING } from "@/utils/modules";
-import { DataCardSkeleton } from "../../../../_shared/dataCards";
+import {
+  DataCardSkeleton,
+  DataSectionSkeleton,
+} from "../../../../_shared/dataCards";
 
 /**
- * Espelha `content.tsx`: o cabeçalho (ícone, nome e CNPJ) e os quatro cards de assunto com os campos de cada um.
+ * Espelha `content.tsx`: o cabeçalho (ícone, nome e CNPJ) e as duas seções (título, descrição e os cards com os campos de cada um).
  *
  * Serve ao `loading.tsx` (navegação) e ao carregamento do cliente, para as duas
  * esperas terem a mesma cara.
@@ -22,20 +24,20 @@ export function CompanySkeleton() {
         <Loading.Skeleton text="body" className="w-[200px] max-w-full" />
       </div>
 
-      <Grid.Root cols={{ base: 1, desktop: 2 }} gap={16}>
-        <Grid.Item>
+      <div className="flex flex-col gap-24">
+        <DataSectionSkeleton>
           <DataCardSkeleton fields={4} note />
-        </Grid.Item>
-        <Grid.Item>
           <DataCardSkeleton fields={3} />
-        </Grid.Item>
-        <Grid.Item>
-          <DataCardSkeleton fields={1} />
-        </Grid.Item>
-        <Grid.Item>
-          <DataCardSkeleton fields={2} />
-        </Grid.Item>
-      </Grid.Root>
+        </DataSectionSkeleton>
+        <DataSectionSkeleton>
+          <div className="desktop:col-span-2">
+            <DataCardSkeleton fields={1} />
+          </div>
+          <div className="desktop:col-span-2">
+            <DataCardSkeleton fields={2} />
+          </div>
+        </DataSectionSkeleton>
+      </div>
     </PageContent>
   );
 }

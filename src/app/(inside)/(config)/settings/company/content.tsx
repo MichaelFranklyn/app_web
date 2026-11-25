@@ -1,11 +1,11 @@
 "use client";
 
-import { Grid } from "@/components/Grid";
 import { PageContent } from "@/components/PageContent";
 import { QueryError } from "@/components/QueryError";
 import { useSeedQuery } from "@/hooks/useSeedQuery";
 import { useQuery } from "@apollo/client/react";
 import { useState } from "react";
+import { DataSection } from "../../_shared/dataCards";
 import { CompanyAddressCard } from "./_components/CompanyAddressCard";
 import { CompanyBrandCard } from "./_components/CompanyBrandCard";
 import { CompanyContactCard } from "./_components/CompanyContactCard";
@@ -73,8 +73,14 @@ export default function CompanyContent({ seed }: Props) {
           assunto, e o botão âmbar do cabeçalho abre o modal daquele assunto. Antes
           eram quatro formulários abertos e quatro botões "Salvar" — quem só queria
           trocar o telefone rolava a tela inteira sem saber o que cada um gravava. */}
+      {/* Mesma forma do perfil da pessoa: seções com título e para que servem,
+          um card por assunto em leitura, e o botão âmbar do cabeçalho abre o
+          modal daquele assunto. */}
       <div className="flex flex-col gap-24">
-        <Grid.Root cols={{ base: 1, desktop: 2 }} gap={16}>
+        <DataSection
+          title="Identificação e contato"
+          description="Quem é a empresa e como o cliente fala com ela."
+        >
           <CompanyIdentityCard
             company={company}
             onEdit={() => setEditing("identity")}
@@ -83,6 +89,12 @@ export default function CompanyContent({ seed }: Props) {
             company={company}
             onEdit={() => setEditing("contact")}
           />
+        </DataSection>
+
+        <DataSection
+          title="Documentos e marca"
+          description="O que aparece no PDF do pedido e nos emails que a empresa envia."
+        >
           <CompanyAddressCard
             company={company}
             onEdit={() => setEditing("address")}
@@ -91,7 +103,7 @@ export default function CompanyContent({ seed }: Props) {
             company={company}
             onEdit={() => setEditing("brand")}
           />
-        </Grid.Root>
+        </DataSection>
       </div>
 
       <EditCompanyModal

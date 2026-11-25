@@ -17,6 +17,9 @@ import { FLOW_ROUTES } from "../../routes";
  *   que é o destino que todo gestor enxerga, e é gateado pelos papéis que veem
  *   a seção — o vendedor não tem nenhum destino de configuração, e para ele o
  *   passo some em vez de iluminar um item que não está lá.
+ *   (25/11/2026) A área voltou a ser UM item na sidebar, e o alvo Pessoas
+ *   deixou de existir no menu — o passo era pulado de novo. Agora mira o
+ *   `tourRoute: "/settings"` fixo do item, que não muda com o papel.
  * - Insights e Comissões entraram no menu depois do tour e ficaram de fora da
  *   apresentação, apesar de serem uso diário.
  *
@@ -94,9 +97,10 @@ export const systemOverviewFlow: FlowDefinition = {
       align: "center",
     },
     {
-      // Pessoas é o destino de configuração que todo gestor enxerga (owner,
-      // admin e SU). O vendedor não vê nenhum, e por isso não vê este passo.
-      element: '[data-tour-route="/settings/users"]',
+      // O item "Configurações" da sidebar: o href muda com o papel (Empresa
+      // para o dono, Pessoas para o admin), por isso o marcador é o fixo
+      // `tourRoute: "/settings"`. O vendedor não vê o item nem este passo.
+      element: '[data-tour-route="/settings"]',
       roles: ["OWNER", "ADMIN", "SU"],
       title: "Configurações",
       description:

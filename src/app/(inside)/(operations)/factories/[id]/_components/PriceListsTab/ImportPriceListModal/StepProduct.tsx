@@ -17,6 +17,7 @@ type ReconChange = ComponentProps<typeof Reconciliation>["onChange"];
 
 interface StepProductProps {
   headers: string[];
+  rows: string[][];
   mapping: MappingState;
   setMapping: Dispatch<SetStateAction<MappingState>>;
   ncmChoice: ColumnChoice;
@@ -33,6 +34,7 @@ interface StepProductProps {
 
 export function StepProduct({
   headers,
+  rows,
   mapping,
   setMapping,
   ncmChoice,
@@ -54,9 +56,10 @@ export function StepProduct({
         title="Confira onde estão os dados do produto"
       >
         Aqui você diz em qual coluna da planilha está o código, o nome e a
-        embalagem de cada produto. O sistema já tentou adivinhar — confira se
-        cada campo aponta para a coluna certa e corrija se for preciso. Em caso
-        de dúvida, abra a planilha no Excel e compare.
+        embalagem de cada produto. O sistema já tentou adivinhar — embaixo de
+        cada campo aparecem valores tirados da planilha: se eles não combinam
+        com o campo (ex.: um preço onde deveria estar o código), troque a
+        coluna.
       </Stepper.Intro>
       <Title variant="body-sm" weight="medium">
         Identificação do produto
@@ -70,6 +73,8 @@ export function StepProduct({
           help={field.description}
           fixedExample={field.fixedExample}
           headers={headers}
+          rows={rows}
+          required
           choice={mapping[field.key] ?? { kind: "none" }}
           onChange={(choice) =>
             setMapping((p) => ({ ...p, [field.key]: choice }))
@@ -79,7 +84,7 @@ export function StepProduct({
 
       <span className="inline-flex items-center gap-4 pt-4">
         <Title variant="body-sm" weight="medium">
-          Classificação (opcional)
+          Classificação
         </Title>
         <HelpTooltip
           label="O que acontece se eu não mapear?"
@@ -96,6 +101,7 @@ export function StepProduct({
           help={`${field.description} Sem mapeamento, usamos o padrão do sistema.`}
           fixedExample={field.fixedExample}
           headers={headers}
+          rows={rows}
           choice={mapping[field.key] ?? { kind: "none" }}
           onChange={(choice) =>
             setMapping((p) => ({ ...p, [field.key]: choice }))
@@ -120,6 +126,7 @@ export function StepProduct({
           </div>
         }
         headers={headers}
+        rows={rows}
         choice={ncmChoice}
         onChange={setNcmChoice}
       />

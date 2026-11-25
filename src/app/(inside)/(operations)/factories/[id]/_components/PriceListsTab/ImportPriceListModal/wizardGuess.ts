@@ -5,6 +5,9 @@ import {
 } from "@/utils/import/columns";
 import { guessHeaderRow, SheetMatrix, splitAt } from "@/utils/import/reader";
 
+import { toTitleCase } from "@/utils/format/titleCase";
+
+import { TierColumn } from "./interface";
 import { StMvaChoices } from "./StMvaFields";
 
 /**
@@ -68,7 +71,43 @@ export interface GuessedColumns {
   ncmChoice: ColumnChoice;
   stMva: StMvaChoices;
   taxesAsFraction: boolean;
+  tierColumns: TierColumn[];
 }
+
+const PRICE_WORD = /\b(pre[çc]os?|price|valor)\b/i;
+// Colunas fiscais também podem trazer "valor" no título ("VALOR IPI"): nunca são nível.
+const TAX_WORD = /\b(ipi|icms|st|mva|ncm|al[íi]quota|fecp|pis|cofins)\b|%/i;
+
+/**
+ * Colunas de preço que viram nível: "PREÇO CAPITAL" → nível "Capital",
+ * "LISTA 39 DIAMANTE" → "Diamante". Ignora colunas fiscais e as de lista
+ * anterior (obsoletas). O nome do nível é o que sobra do título; se não sobrar
+ * nada ("PREÇO"), fica em branco para a pessoa digitar.
+ */
+export const guessTierColumns = (headers: string[]): TierColumn[] => {
+  const stale = new Set(findStaleListColumns(headers).map((c) => c.index));
+  return headers
+    .map((header, index) => ({ header: header.trim(), index }))
+    .filter(
+      ({ header, index }) =>
+        !stale.has(index) &&
+        !TAX_WORD.test(header) &&
+        (PRICE_WORD.test(header) || LIST_NUMBER.test(header))
+    )
+    .map(({ header, index }) => {
+      const rest = header
+        .replace(LIST_NUMBER, "")
+        .replace(PRICE_WORD, "")
+        .replace(/^[\s\-–:/.]+|[\s\-–:/.]+$/g, "")
+        .replace(/^(d[aeo]s?)\s+/i, "")
+        .trim();
+      return {
+        id: `t${index + 1}`,
+        columnIndex: index,
+        tierName: toTitleCase(rest),
+      };
+    });
+};
 
 /**
  * Adivinha a linha de cabeçalho e as colunas fiscais (IPI, NCM, ST) de uma grade
@@ -91,10 +130,18 @@ export const guessColumns = (parsed: SheetMatrix): GuessedColumns => {
   };
   const ipiChoice = findHeader("ipi");
   // Colunas fiscais da planilha estilo Bahia: MVA, ICMS Crédito, Alíquota Interna.
+  const mva = findHeader("mva");
+  const internalRate = findHeader("interna");
+  // Uma coluna "ICMS" solta não é sinal de ST: só vira crédito de ICMS quando a
+  // planilha traz MVA ou alíquota interna — senão o bloco ST abriria marcado
+  // numa tabela que não tem ST.
+  const hasStEvidence = mva.kind !== "none" || internalRate.kind !== "none";
   const stMva: StMvaChoices = {
-    mva: findHeader("mva"),
-    icmsCredit: findHeader("icms créd", "icms cred", "icms"),
-    internalRate: findHeader("interna"),
+    mva,
+    icmsCredit: hasStEvidence
+      ? findHeader("icms créd", "icms cred", "icms")
+      : findHeader("icms créd", "icms cred"),
+    internalRate,
   };
   return {
     headerIndex,
@@ -103,5 +150,6 @@ export const guessColumns = (parsed: SheetMatrix): GuessedColumns => {
     ncmChoice: findHeader("ncm"),
     stMva,
     taxesAsFraction: looksLikeFraction(stMva.internalRate, split.rows),
+    tierColumns: guessTierColumns(split.headers),
   };
 };

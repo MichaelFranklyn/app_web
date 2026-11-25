@@ -3,6 +3,8 @@
 import { ColumnChoice } from "@/utils/import/columns";
 import { FieldMapper } from "@/components/Import";
 
+import { formatRateSample } from "./preview";
+
 export interface StMvaChoices {
   mva: ColumnChoice;
   icmsCredit: ColumnChoice;
@@ -31,16 +33,27 @@ interface Props {
   headers: string[];
   value: StMvaChoices;
   onChange: (value: StMvaChoices) => void;
+  rows: string[][];
+  asFraction: boolean;
 }
 
 /** Os três componentes do ST por MVA — o container (card/título) é de quem usa. */
-export function StMvaFields({ headers, value, onChange }: Props) {
+export function StMvaFields({
+  headers,
+  value,
+  onChange,
+  rows,
+  asFraction,
+}: Props) {
+  const formatSample = (sample: string) => formatRateSample(sample, asFraction);
   return (
     <div className="flex flex-col gap-12">
       <FieldMapper
         label="MVA"
         help="Margem de valor agregado do produto (ex.: 0,45 ou 45). MVA zero = produto fora do regime de ST."
         headers={headers}
+        rows={rows}
+        formatSample={formatSample}
         choice={value.mva}
         onChange={(mva) => onChange({ ...value, mva })}
       />
@@ -48,6 +61,8 @@ export function StMvaFields({ headers, value, onChange }: Props) {
         label="Crédito de ICMS"
         help="ICMS destacado na origem, abatido do ST (ex.: 0,205 ou 20,5)."
         headers={headers}
+        rows={rows}
+        formatSample={formatSample}
         choice={value.icmsCredit}
         onChange={(icmsCredit) => onChange({ ...value, icmsCredit })}
       />
@@ -55,6 +70,8 @@ export function StMvaFields({ headers, value, onChange }: Props) {
         label="Alíquota interna"
         help="Alíquota interna do estado de destino (ex.: 0,205 ou 20,5)."
         headers={headers}
+        rows={rows}
+        formatSample={formatSample}
         choice={value.internalRate}
         onChange={(internalRate) => onChange({ ...value, internalRate })}
       />

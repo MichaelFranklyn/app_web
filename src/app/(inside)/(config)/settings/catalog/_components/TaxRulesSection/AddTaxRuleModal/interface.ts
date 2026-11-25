@@ -6,6 +6,10 @@ export interface CreateTaxRuleResponse {
 }
 
 export interface AddTaxRuleModalProps {
-  onAddOptimistic: (rule: { id: string; name: string }) => void;
+  onAddOptimistic: (rule: {
+    id: string;
+    name: string;
+    productCount: number;
+  }) => void;
   onDone: () => void;
 }

@@ -7,6 +7,8 @@ import { Stepper } from "@/components/Stepper";
 import { Title } from "@/components/Title";
 import { CheckCircle2 } from "lucide-react";
 
+import { ImportModeChoice } from "./ImportModeChoice";
+import { ActivePriceList, ImportMode } from "./interface";
 import { downloadExampleSheet } from "./template";
 
 interface StepSheetProps {
@@ -15,6 +17,9 @@ interface StepSheetProps {
   onFiles: (files: File[]) => void;
   ready: boolean;
   templateApplied: boolean;
+  activeLists: ActivePriceList[];
+  mode: ImportMode;
+  setMode: (mode: ImportMode) => void;
 }
 
 export function StepSheet({
@@ -23,6 +28,9 @@ export function StepSheet({
   onFiles,
   ready,
   templateApplied,
+  activeLists,
+  mode,
+  setMode,
 }: StepSheetProps) {
   return (
     <div className="flex flex-col gap-12">
@@ -36,6 +44,15 @@ export function StepSheet({
         e tenta descobrir sozinho onde está cada informação — nos próximos
         passos você só confere se ele acertou.
       </Stepper.Intro>
+      {/* Primeira pergunta: muda o que os passos seguintes pedem (nível ×
+          grupo de clientes) e o que acontece com a tabela vigente. */}
+      {activeLists.length > 0 && (
+        <ImportModeChoice
+          mode={mode}
+          onChange={setMode}
+          disabled={extracting}
+        />
+      )}
       <Import.TemplateDownload
         title="Não tem a planilha da fábrica em mãos?"
         description="Baixe o modelo com as colunas que o sistema reconhece sozinho — inclui exemplos com IPI e ST por MVA."

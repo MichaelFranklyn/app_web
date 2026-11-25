@@ -54,3 +54,23 @@ export const parseNumber = (value: string): number => {
     .replace(decimalSep, ".");
   return Number(normalized);
 };
+
+/**
+ * Primeiros valores distintos (não vazios) de uma coluna — a amostra que aparece
+ * ao lado do seletor para a pessoa reconhecer a coluna pelo conteúdo, não só
+ * pelo cabeçalho. Valor fixo não tem amostra (já está escrito na tela).
+ */
+export const sampleValues = (
+  rows: string[][],
+  choice: ColumnChoice | undefined,
+  limit = 3
+): string[] => {
+  if (!choice || choice.kind !== "column") return [];
+  const seen = new Set<string>();
+  for (const row of rows) {
+    const value = String(row[choice.index] ?? "").trim();
+    if (value) seen.add(value);
+    if (seen.size >= limit) break;
+  }
+  return [...seen];
+};

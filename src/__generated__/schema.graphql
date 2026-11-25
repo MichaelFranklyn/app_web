@@ -8040,6 +8040,8 @@ type TaxRuleType {
   companyId: UUID!
   name: String!
   createdAt: DateTime!
+  """Produtos (não excluídos) com alíquota desta regra. Excluir a regra tira a alíquota de todos eles."""
+  productCount: Int!
 }
 
 type TaxRuleTypeConnectionResponse {
@@ -8350,6 +8352,11 @@ extend type Mutation {
     createUser(input: CreateUserInput!): UserTypeDataResponse!
     updateUser(id: UUID!, input: UpdateUserInput!): UserTypeDataResponse!
     deleteUser(id: UUID!): BaseResponse!
+    """
+    Reenvia o email de primeiros passos (link para criar a senha). O link
+    anterior deixa de valer. Recusa convite pendente e conta desativada.
+    """
+    resendWelcomeEmail(id: UUID!): BaseResponse!
     updatePassword(input: UpdateUserPasswordInput!): BaseResponse!
     updateMyProfile(input: UpdateMyProfileInput!): UserTypeDataResponse!
     """

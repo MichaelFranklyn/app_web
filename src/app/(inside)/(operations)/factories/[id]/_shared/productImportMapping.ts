@@ -110,6 +110,12 @@ const GUESS_EXCLUDE: Record<string, string[]> = {
   unitLabel: ["máster", "master"],
 };
 
+// Abreviações curtas demais para casar por "contém": "emb" está dentro de
+// "embalagem" (rótulo). Só valem quando o cabeçalho inteiro é a abreviação.
+const GUESS_EXACT: Record<string, string[]> = {
+  unitPerPack: ["emb", "emb."],
+};
+
 // Ordem de prioridade ao reivindicar colunas (campos mais específicos primeiro,
 // para que "unidade de venda" caia em unitPerPack e não em unit).
 const GUESS_ORDER = [
@@ -128,9 +134,11 @@ export const autoGuessMapping = (headers: string[]): MappingState => {
   for (const key of GUESS_ORDER) {
     const hints = GUESS_HINTS[key] ?? [];
     const excludes = GUESS_EXCLUDE[key] ?? [];
+    const exact = GUESS_EXACT[key] ?? [];
     const index = headers.findIndex((h, i) => {
       if (used.has(i)) return false;
       const lower = h.toLowerCase();
+      if (exact.includes(lower.trim())) return true;
       if (excludes.some((hint) => lower.includes(hint))) return false;
       return hints.some((hint) => lower.includes(hint));
     });
