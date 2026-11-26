@@ -4,8 +4,12 @@ import { buildQueryFilters } from "@/hooks/useTableData";
 import {
   buildKpis,
   formatCity,
+  importBatchFilters,
+  importScopeLabel,
+  importScopeText,
   KPI_IGNORED_FILTERS,
   listFilters,
+  parseImportBatch,
   STATE_OPTIONS,
   TABLE_FIELDS,
 } from "./utils";
@@ -217,5 +221,33 @@ describe("buildKpis", () => {
   it("atrasados e sem visita têm o mesmo tom", () => {
     const [, atRisk, noVisit] = buildKpis(stats);
     expect(atRisk.status).toBe(noVisit.status);
+  });
+});
+
+describe("recorte do lote de importação", () => {
+  const id = "3f2b8c1a-9d4e-4f6a-8b7c-1e2d3c4b5a69";
+
+  it("só um id válido vira filtro", () => {
+    expect(parseImportBatch(id)).toBe(id);
+    expect(parseImportBatch("lixo")).toBeNull();
+    expect(parseImportBatch(null)).toBeNull();
+    expect(importBatchFilters(id)).toEqual([
+      { field: "import_batch_id", operator: "eq", value: id },
+    ]);
+    expect(importBatchFilters(null)).toEqual([]);
+  });
+
+  it("explica o recorte com a data, ou no genérico sem ela", () => {
+    expect(importScopeText("17/11/2026")).toBe(
+      "clientes novos da importação de 17/11/2026"
+    );
+    expect(importScopeText("")).toBe("clientes novos de uma importação");
+  });
+
+  it("a linha do PDF só existe com lote", () => {
+    expect(importScopeLabel(id, "17/11/2026")).toBe(
+      "Somente: clientes novos da importação de 17/11/2026"
+    );
+    expect(importScopeLabel(null, "17/11/2026")).toBeNull();
   });
 });

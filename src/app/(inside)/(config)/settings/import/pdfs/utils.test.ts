@@ -157,6 +157,15 @@ describe("buildPdfRows", () => {
     expect(built.problems[0].message).toMatch(/vendedor/);
   });
 
+  it("cliente fora da carteira pede o vendedor como cliente novo", () => {
+    const built = buildPdfRows(
+      batch(),
+      [file({ clientId: null, suggestedSellerId: null })],
+      {}
+    );
+    expect(built.problems[0].message).toMatch(/cliente novo/);
+  });
+
   it("deixa de fora os importados e os marcados; aponta os que falharam", () => {
     const built = buildPdfRows(
       batch(),

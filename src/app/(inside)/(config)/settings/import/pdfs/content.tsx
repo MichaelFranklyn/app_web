@@ -44,8 +44,10 @@ export default function OrderPdfImportContent({ initialBatchId }: Props) {
             </PanelHeader.Heading>
             <PanelHeader.Description>
               Envie os PDFs dos pedidos de uma fábrica: o sistema lê o cliente,
-              a data e os itens de cada um e importa como o histórico da
-              planilha. O lote fica guardado; dá para voltar e terminar depois.
+              a data e os itens de cada um e grava os pedidos já na situação
+              escolhida, como pedidos antigos: sem avisar ninguém, sem conferir
+              valor mínimo e sem fechar visita. O lote fica guardado; dá para
+              voltar e terminar depois.
             </PanelHeader.Description>
           </PanelHeader.Left>
         </PanelHeader.Top>

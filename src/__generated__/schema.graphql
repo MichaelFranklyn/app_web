@@ -4286,6 +4286,10 @@ type OrderHistoryImportBatchType {
   undoneByEmail: String
   undoReason: String
   ordersUndone: Int!
+  "Clientes novos do lote que o desfazer tirou da carteira."
+  clientsUndone: Int!
+  "Clientes que esta importação pôs na carteira e continuam nela."
+  clientsCount: Int!
 }
 
 type OrderHistoryImportBatchTypeDataResponse {

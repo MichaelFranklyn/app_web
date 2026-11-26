@@ -175,3 +175,38 @@ export const CLIENT_SORT_LABELS: Record<string, SortLabel> = {
   last_visit_date: { label: "Última visita", kind: "date" },
   visit_score_total: { label: "Score", kind: "number" },
 };
+
+/**
+ * Recorte de "Ver clientes novos" em Configurações › Importar: os clientes que
+ * um lote de importação pôs na carteira. Mesmos nomes de parâmetro que /orders
+ * usa para "Ver pedidos" (não se importa código de outra página).
+ */
+export const IMPORT_BATCH_PARAM = "importBatch";
+/** Quando o lote foi importado (ISO), só para o texto do recorte. */
+export const IMPORT_DATE_PARAM = "importedAt";
+
+const UUID_RE =
+  /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
+
+/** Só um id válido vira filtro: lixo na URL viraria erro do banco na tela. */
+export const parseImportBatch = (value: string | null): string | null =>
+  value && UUID_RE.test(value) ? value : null;
+
+/** Coluna do VÍNCULO (company_clients): o backend a põe no join, como a rede. */
+export const importBatchFilters = (importBatchId: string | null) =>
+  importBatchId
+    ? [{ field: "import_batch_id", operator: "eq", value: importBatchId }]
+    : [];
+
+/** "clientes novos da importação de 17/11/2026"; sem data legível, o genérico. */
+export const importScopeText = (importDate: string) =>
+  importDate
+    ? `clientes novos da importação de ${importDate}`
+    : "clientes novos de uma importação";
+
+/** A linha do recorte no cabeçalho do PDF; null sem lote. */
+export const importScopeLabel = (
+  importBatchId: string | null,
+  importDate = ""
+): string | null =>
+  importBatchId ? `Somente: ${importScopeText(importDate)}` : null;

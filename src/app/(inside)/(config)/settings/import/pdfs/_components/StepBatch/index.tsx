@@ -141,7 +141,7 @@ export function StepBatch(props: Props) {
           sellers.find((o) => o.value === (props.sellerId ?? EACH_CLIENT)) ??
           null
         }
-        hint="Com “o vendedor de cada cliente”, cada pedido vai para quem atende aquele cliente nesta fábrica."
+        hint="Com “o vendedor de cada cliente”, cada pedido vai para quem atende aquele cliente nesta fábrica. Cliente novo ainda não tem vendedor: escolha um aqui para o lote todo ou em cada PDF."
         disabled={props.disabled}
         onChange={(val) => {
           const id = picked(val);

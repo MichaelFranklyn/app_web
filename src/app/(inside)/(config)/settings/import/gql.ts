@@ -149,6 +149,8 @@ export const HISTORY_IMPORT_BATCHES_QUERY = gql`
       undoneByEmail
       undoReason
       ordersUndone
+      clientsUndone
+      clientsCount
     }
   }
 `;
@@ -164,6 +166,7 @@ export const UNDO_HISTORY_IMPORT_MUTATION = gql`
         undoneByEmail
         undoReason
         ordersUndone
+        clientsUndone
       }
     }
   }

@@ -16,6 +16,7 @@ import { useMemo } from "react";
 
 import { AwaitingDeliveryTable } from "./_components/AwaitingDeliveryTable";
 import { DeliverOrdersModal } from "./_components/DeliverOrdersModal";
+import { ImportBatchNotice } from "./_components/ImportBatchNotice";
 import { ImportNfeModal } from "./_components/ImportNfeModal";
 import { OrdersHeader } from "./_components/OrdersHeader";
 import { OrdersTable } from "./_components/OrdersTable";
@@ -44,7 +45,17 @@ export default function OrdersContent({
   canFilterBySeller,
   ownSellerId,
 }: Props) {
-  const { tab, setTab, baseFilters, tableFields, scopeLabel } = useOrdersTab();
+  const {
+    tab,
+    setTab,
+    baseFilters,
+    tableFields,
+    scopeLabel,
+    importBatchId,
+    importDate,
+    clearImportBatch,
+    importFilters,
+  } = useOrdersTab();
   const isAll = tab === "all";
   const selection = useScopedSelection();
   const invalidateClient = useInvalidateQueriesClient();
@@ -62,7 +73,8 @@ export default function OrdersContent({
     baseFilters,
     // O SSR trouxe a lista SEM filtro: semear o cache numa aba filtrada
     // mostraria os pedidos errados (as variáveis não batem com o que ela consulta).
-    initialData: isAll ? initialData : undefined,
+    // O lote de importação também é recorte que o SSR não aplicou.
+    initialData: isAll && !importBatchId ? initialData : undefined,
   });
 
   const filterFields = useOrderFilters({
@@ -90,7 +102,7 @@ export default function OrdersContent({
     { variables: { input: { first: ITEMS_PER_PAGE, filters: statsFilters } } }
   );
 
-  const tabCounts = useOrderTabCounts(tableData.inputValues);
+  const tabCounts = useOrderTabCounts(tableData.inputValues, importFilters);
 
   const optimistic = useOptimisticList<Order>({
     initialData: tableData.displayedData,
@@ -141,6 +153,10 @@ export default function OrdersContent({
         scopeLabel={scopeLabel}
         hasOrders={tableData.totalItems > 0}
       />
+
+      {importBatchId && (
+        <ImportBatchNotice date={importDate} onClear={clearImportBatch} />
+      )}
 
       <Tabs.Root value={tab} onValueChange={setTab}>
         <Tabs.List data-tour="orders-tabs">
