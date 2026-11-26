@@ -6,14 +6,20 @@ import { beforeEach, describe, expect, it, vi } from "vitest";
 /** A espera pela ociosidade da página tem hook próprio. */
 const { idle, sellers } = vi.hoisted(() => ({
   idle: { ready: true },
-  sellers: { nodes: [] as { id: string; name: string }[], loading: false },
+  sellers: {
+    nodes: [] as { id: string; name: string }[],
+    loading: false,
+    missing: false,
+  },
 }));
 
 vi.mock("@/hooks/useIdleReady", () => ({ useIdleReady: () => idle.ready }));
 vi.mock("@/hooks/useCompleteList", () => ({
   useCompleteList: () => ({
     data: {
-      clients_sellers: { edges: sellers.nodes.map((node) => ({ node })) },
+      clients_sellers: sellers.missing
+        ? null
+        : { edges: sellers.nodes.map((node) => ({ node })) },
     },
     loading: sellers.loading,
     error: undefined,
@@ -76,6 +82,7 @@ beforeEach(() => {
   idle.ready = true;
   sellers.nodes = [{ id: "s1", name: "Rafael" }];
   sellers.loading = false;
+  sellers.missing = false;
 });
 
 describe("useSellerScope", () => {
@@ -101,6 +108,16 @@ describe("useSellerScope", () => {
     expect(result.current.sellerOptions).toEqual([
       { value: "s1", label: "Rafael" },
     ]);
+  });
+
+  it("resposta sem a lista de vendedores deixa o seletor vazio, sem derrubar a tela", () => {
+    // Erro parcial do GraphQL (ou operação sem mock no E2E) devolve `data` com
+    // o campo nulo: estourar aqui, dentro do render, levava /clients inteira
+    // para o error boundary.
+    sellers.missing = true;
+    const result = run([]);
+
+    expect(result.current.sellerOptions).toEqual([]);
   });
 
   it("enquanto a busca espera a página carregar, o seletor diz 'carregando'", () => {

@@ -46,7 +46,7 @@ export function useSellerScope({
 
   const sellerOptions: SelectOption[] = useMemo(
     () =>
-      sellersQuery.data?.clients_sellers.edges.map(({ node }) => ({
+      sellersQuery.data?.clients_sellers?.edges.map(({ node }) => ({
         value: node.id,
         label: node.name,
       })) ?? [],
