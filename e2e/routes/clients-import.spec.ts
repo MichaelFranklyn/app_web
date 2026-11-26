@@ -17,6 +17,30 @@ import { emptyConnection, mockGraphql } from "../support/graphql";
 const mockImport = (page: Parameters<typeof mockGraphql>[0]) =>
   mockGraphql(page, {
     Clients: () => ({ clients_list: emptyConnection() }),
+    CompanyClientsImportSheet: () => ({
+      companyClientsImportSheet: {
+        status: true,
+        message: "OK",
+        data: {
+          rows: [
+            {
+              cnpj: "11222333000181",
+              notes: "Paga em dia",
+              sellerEmail: "ana@exemplo.com",
+              factoryName: "Herc",
+            },
+            {
+              cnpj: "11222333000181",
+              notes: "Paga em dia",
+              sellerEmail: "ana@exemplo.com",
+              factoryName: "Sol",
+            },
+          ],
+          sellerEmails: ["ana@exemplo.com"],
+          factoryNames: ["Herc", "Sol"],
+        },
+      },
+    }),
     ImportCompanyClients: (variables) => {
       const rows = ((variables.input as { rows?: unknown[] })?.rows ??
         []) as unknown[];
@@ -27,6 +51,7 @@ const mockImport = (page: Parameters<typeof mockGraphql>[0]) =>
           data: {
             total: rows.length,
             created: rows.length,
+            linksCreated: 0,
             skipped: 0,
             failed: 0,
             errors: [],
@@ -46,7 +71,7 @@ const openImport = async (page: Page) => {
   await page.getByRole("menuitem", { name: "Importar planilha" }).click();
 };
 
-test("clients: baixa a planilha modelo em .xlsx com as colunas da mutation", async ({
+test("clients: baixa a planilha com a carteira, uma linha por fábrica", async ({
   page,
 }) => {
   await mockImport(page);
@@ -55,23 +80,38 @@ test("clients: baixa a planilha modelo em .xlsx com as colunas da mutation", asy
   await openImport(page);
 
   const dialog = page.getByRole("dialog");
+  // O modal abre logo depois do menu fechar: clicar antes de ele assentar
+  // perde o clique.
+  await expect(
+    dialog.getByText("Vendedor e fábrica", { exact: true })
+  ).toBeVisible();
   const downloadPromise = page.waitForEvent("download");
-  await dialog.getByRole("button", { name: "Baixar modelo" }).click();
+  await dialog.getByRole("button", { name: "Baixar planilha" }).click();
   const download = await downloadPromise;
 
-  expect(download.suggestedFilename()).toBe("modelo-importacao-clientes.xlsx");
+  expect(download.suggestedFilename()).toBe("carteira-de-clientes.xlsx");
 
   // Abre o arquivo baixado: tem de ser um xlsx legível, com as colunas que o
-  // parser lê por posição (CNPJ, Observações) e o exemplo preenchido.
+  // parser lê e a carteira da empresa, o CNPJ repetido por fábrica.
   const path = await download.path();
   const workbook = XLSX.readFile(path);
   const rows = XLSX.utils.sheet_to_json<string[]>(
     workbook.Sheets[workbook.SheetNames[0]],
-    { header: 1, raw: false }
+    // Como a importação lê (`blankrows: false`): as linhas vazias que só têm
+    // a lista suspensa não contam.
+    { header: 1, raw: false, blankrows: false }
   );
 
-  expect(rows[0]).toEqual(["CNPJ", "Observações"]);
-  expect(rows[1][0]).toBe("00.000.000/0001-91");
+  expect(rows[0]).toEqual([
+    "CNPJ",
+    "Observações",
+    "Email do vendedor",
+    "Fábrica",
+  ]);
+  expect(rows.slice(1)).toEqual([
+    ["11.222.333/0001-81", "Paga em dia", "ana@exemplo.com", "Herc"],
+    ["11.222.333/0001-81", "Paga em dia", "ana@exemplo.com", "Sol"],
+  ]);
 });
 
 test("clients: importa clientes via planilha .xlsx e mostra o resumo", async ({
