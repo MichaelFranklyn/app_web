@@ -3,6 +3,7 @@ export interface ImportClientRow {
   notes: string | null;
   sellerEmail: string | null;
   factoryName: string | null;
+  factoryClientCode: string | null;
 }
 
 export interface ImportRowDetail {
@@ -15,6 +16,7 @@ export interface ImportResult {
   total: number;
   created: number;
   linksCreated: number;
+  codesSaved: number;
   skipped: number;
   failed: number;
   errors: ImportRowDetail[];
@@ -34,6 +36,7 @@ export interface ImportSheetRow {
   notes?: string | null;
   sellerEmail?: string | null;
   factoryName?: string | null;
+  factoryClientCode?: string | null;
 }
 
 /** A planilha baixada: a carteira e as listas suspensas de vendedor e fábrica. */

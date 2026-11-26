@@ -16,6 +16,7 @@ describe("parseClientsRows", () => {
         notes: "Cliente indicado",
         sellerEmail: null,
         factoryName: null,
+        factoryClientCode: null,
       },
     ]);
   });
@@ -39,6 +40,7 @@ describe("parseClientsRows", () => {
         notes: null,
         sellerEmail: null,
         factoryName: null,
+        factoryClientCode: null,
       },
     ]);
   });
@@ -74,6 +76,7 @@ describe("parseClientsRows — lista exportada de outro sistema", () => {
         notes: null,
         sellerEmail: null,
         factoryName: null,
+        factoryClientCode: null,
       },
     ]);
   });
@@ -105,12 +108,14 @@ describe("parseClientsRows — vendedor e fábrica", () => {
         notes: "Paga em dia",
         sellerEmail: "ana@x.com",
         factoryName: "Herc",
+        factoryClientCode: null,
       },
       {
         cnpj: "11222333000181",
         notes: "Paga em dia",
         sellerEmail: "ana@x.com",
         factoryName: "Sol",
+        factoryClientCode: null,
       },
     ]);
   });
@@ -125,6 +130,23 @@ describe("parseClientsRows — vendedor e fábrica", () => {
       factoryName: "Herc",
       notes: null,
     });
+  });
+
+  it("lê o código do cliente na fábrica como texto, com zeros à esquerda", () => {
+    const rows = parseClientsRows([
+      SHEET_HEADERS,
+      ["11.222.333/0001-81", "", "ana@x.com", "Herc", " 00123 "],
+      ["11.222.333/0001-81", "", "ana@x.com", "Sol", ""],
+    ]);
+    expect(rows.map((r) => r.factoryClientCode)).toEqual(["00123", null]);
+  });
+
+  it("acha o código por títulos de outros sistemas", () => {
+    const rows = parseClientsRows([
+      ["CNPJ", "Cód. cliente", "Fábrica"],
+      ["11.222.333/0001-81", "A-77", "Herc"],
+    ]);
+    expect(rows[0].factoryClientCode).toBe("A-77");
   });
 
   it("ignora linha totalmente vazia no meio da planilha", () => {
@@ -146,13 +168,14 @@ describe("buildSheetMatrix", () => {
           notes: null,
           sellerEmail: "ana@x.com",
           factoryName: "Herc",
+          factoryClientCode: "00123",
         },
         { cnpj: "45723174000110" },
       ])
     ).toEqual([
       SHEET_HEADERS,
-      ["11.222.333/0001-81", "", "ana@x.com", "Herc"],
-      ["45.723.174/0001-10", "", "", ""],
+      ["11.222.333/0001-81", "", "ana@x.com", "Herc", "00123"],
+      ["45.723.174/0001-10", "", "", "", ""],
     ]);
   });
 
@@ -169,6 +192,7 @@ describe("buildSheetMatrix", () => {
         notes: "Obs",
         sellerEmail: "ana@x.com",
         factoryName: "Herc",
+        factoryClientCode: "00123",
       },
     ]);
     expect(parseClientsRows(matrix)).toEqual([
@@ -177,6 +201,7 @@ describe("buildSheetMatrix", () => {
         notes: "Obs",
         sellerEmail: "ana@x.com",
         factoryName: "Herc",
+        factoryClientCode: "00123",
       },
     ]);
   });

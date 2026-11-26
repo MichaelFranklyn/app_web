@@ -71,12 +71,19 @@ export function ImportClientsModal({
       {
         onSuccess: async ({ data, message }) => {
           setResult(data);
-          if (data.created > 0 || data.linksCreated > 0) {
+          if (
+            data.created > 0 ||
+            data.linksCreated > 0 ||
+            data.codesSaved > 0
+          ) {
             await invalidateClient(CLIENT_CACHE_FIELDS);
           }
 
           const allFailed =
-            data.created === 0 && data.linksCreated === 0 && data.skipped === 0;
+            data.created === 0 &&
+            data.linksCreated === 0 &&
+            data.codesSaved === 0 &&
+            data.skipped === 0;
           toast({
             variant: data.failed > 0 ? "warning" : "success",
             title: allFailed
@@ -124,6 +131,11 @@ export function ImportClientsModal({
               Importar não remove vínculos. Vendedor e fábrica em branco: o
               cliente entra só na carteira.
             </Title>
+            <Title variant="body-xs" color="muted">
+              Código do cliente na fábrica: o código que a fábrica usa para esse
+              cliente. Só vale na linha com vendedor e fábrica; preenchido,
+              substitui o atual; em branco, mantém o que já está gravado.
+            </Title>
           </div>
 
           <Input.Archive
@@ -144,6 +156,7 @@ export function ImportClientsModal({
               createdLabel="Adicionados"
               extraKpis={[
                 { label: "Vínculos criados", value: result.linksCreated },
+                { label: "Códigos gravados", value: result.codesSaved },
               ]}
             />
           )}

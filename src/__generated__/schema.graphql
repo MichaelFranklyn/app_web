@@ -1906,6 +1906,8 @@ type ImportSheetRowType {
   notes: String
   sellerEmail: String
   factoryName: String
+  "Código do cliente no sistema da fábrica da linha."
+  factoryClientCode: String
 }
 
 """
@@ -1941,6 +1943,11 @@ input ImportCompanyClientRowInput {
   """
   sellerEmail: String = null
   factoryName: String = null
+  """
+  Código do cliente no sistema da fábrica da mesma linha ("23401"). Só vale com
+  vendedor e fábrica. Em branco não apaga o código que já está no vínculo.
+  """
+  factoryClientCode: String = null
 }
 
 input ImportCompanyClientsInput {
@@ -1958,6 +1965,8 @@ type ImportCompanyClientsResult {
   created: Int!
   "Vínculos vendedor × fábrica criados ou reativados."
   linksCreated: Int!
+  "Vínculos que já existiam e receberam o código do cliente na fábrica."
+  codesSaved: Int!
   skipped: Int!
   failed: Int!
   errors: [ImportClientRowDetail!]!
