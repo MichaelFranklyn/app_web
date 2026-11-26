@@ -153,6 +153,10 @@ export interface HistoryImportBatch {
   undoneByEmail: string | null;
   undoReason: string | null;
   ordersUndone: number;
+  /** Clientes novos do lote que o desfazer tirou da carteira. */
+  clientsUndone: number;
+  /** Clientes que esta importação pôs na carteira e continuam nela. */
+  clientsCount: number;
 }
 
 export interface HistoryImportBatchesResponse {
@@ -163,6 +167,6 @@ export interface UndoHistoryImportResponse {
   undoOrderHistoryImport: {
     status: boolean;
     message: string;
-    data: Pick<HistoryImportBatch, "id"> | null;
+    data: Pick<HistoryImportBatch, "id" | "clientsUndone"> | null;
   };
 }

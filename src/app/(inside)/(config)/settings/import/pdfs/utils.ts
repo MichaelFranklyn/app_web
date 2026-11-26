@@ -85,7 +85,9 @@ export function fileBlocker(
   if (!file.items?.length) return "nenhum item foi lido do PDF.";
   if (!fileOrderDate(file, override)) return "informe a data do pedido.";
   if (!fileSellerId(batch, file, override))
-    return "o cliente não tem vendedor nesta fábrica; escolha um.";
+    return file.clientId
+      ? "o cliente não tem vendedor nesta fábrica; escolha um."
+      : "cliente novo: escolha o vendedor que vai atendê-lo.";
   return null;
 }
 

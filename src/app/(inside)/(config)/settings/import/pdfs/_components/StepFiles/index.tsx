@@ -134,6 +134,15 @@ export function StepFiles(props: Props) {
       )}
 
       {open.length > 0 && (
+        <CreateMissingOptions
+          createClients={props.createClients}
+          onCreateClients={props.onCreateClients}
+          createProducts={props.createProducts}
+          onCreateProducts={props.onCreateProducts}
+        />
+      )}
+
+      {open.length > 0 && (
         <div className="flex flex-col gap-8">
           {open.map((file) => (
             <PdfFileRow
@@ -149,15 +158,6 @@ export function StepFiles(props: Props) {
             />
           ))}
         </div>
-      )}
-
-      {open.length > 0 && (
-        <CreateMissingOptions
-          createClients={props.createClients}
-          onCreateClients={props.onCreateClients}
-          createProducts={props.createProducts}
-          onCreateProducts={props.onCreateProducts}
-        />
       )}
 
       {!props.sending &&

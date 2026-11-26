@@ -1,10 +1,12 @@
 "use client";
 
+import { Button } from "@/components/Button";
 import { QueryError } from "@/components/QueryError";
 import { Table } from "@/components/Table";
 import { formatDateDMY } from "@/utils/format/masks";
 import { plural } from "@/utils/format/plural";
 import { useQuery } from "@apollo/client/react";
+import { ListOrdered, Users } from "lucide-react";
 
 import { HISTORY_IMPORT_BATCHES_QUERY } from "../../gql";
 import {
@@ -16,8 +18,10 @@ import { UndoBatchModal } from "./UndoBatchModal";
 const COLUMNS = 4;
 
 /**
- * Importações de histórico já feitas, mais recentes primeiro, com "Desfazer"
- * nas que ainda valem. Planilha errada se corrige desfazendo o lote e
+ * Importações de histórico já feitas, mais recentes primeiro, com "Ver
+ * pedidos" (a lista de pedidos só daquele lote), "Ver clientes novos" (os que
+ * o lote pôs na carteira) e "Desfazer" nas que ainda
+ * valem. Planilha errada se corrige desfazendo o lote e
  * importando de novo. Some enquanto a empresa nunca importou nada.
  */
 export function HistoryBatchesCard() {
@@ -68,14 +72,42 @@ export function HistoryBatchesCard() {
                   </div>
                 </Table.Cell>
                 <Table.Cell label="Pedidos" variant="dim">
-                  {`${plural(batch.ordersCount, "pedido", "pedidos")} · ${plural(batch.itemsCount, "item", "itens")}`}
+                  {batchCounts(batch)}
                 </Table.Cell>
                 <Table.Cell label="Situação" variant="dim" wrap>
                   {situation(batch)}
                 </Table.Cell>
                 <Table.Cell card="actions" align="right">
                   {!batch.undoneAt && (
-                    <UndoBatchModal batch={batch} onUndone={() => refetch()} />
+                    <div className="flex flex-wrap justify-end gap-8">
+                      {batch.ordersCount > 0 && (
+                        // Mesmos nomes de `IMPORT_BATCH_PARAM`/`IMPORT_DATE_PARAM`
+                        // em /orders (não se importa código de outra página).
+                        <Button.Link
+                          href={`/orders?importBatch=${batch.id}&importedAt=${encodeURIComponent(batch.createdAt)}`}
+                          appearance="ghost"
+                          size="sm"
+                        >
+                          <Button.Icon icon={ListOrdered} />
+                          <Button.Title>Ver pedidos</Button.Title>
+                        </Button.Link>
+                      )}
+                      {batch.clientsCount > 0 && (
+                        // Mesmos nomes de parâmetro que /orders, lidos em /clients.
+                        <Button.Link
+                          href={`/clients?importBatch=${batch.id}&importedAt=${encodeURIComponent(batch.createdAt)}`}
+                          appearance="ghost"
+                          size="sm"
+                        >
+                          <Button.Icon icon={Users} />
+                          <Button.Title>Ver clientes novos</Button.Title>
+                        </Button.Link>
+                      )}
+                      <UndoBatchModal
+                        batch={batch}
+                        onUndone={() => refetch()}
+                      />
+                    </div>
                   )}
                 </Table.Cell>
               </Table.Row>
@@ -87,9 +119,24 @@ export function HistoryBatchesCard() {
   );
 }
 
+function batchCounts(batch: HistoryImportBatch): string {
+  const parts = [
+    plural(batch.ordersCount, "pedido", "pedidos"),
+    plural(batch.itemsCount, "item", "itens"),
+  ];
+  if (batch.clientsCount > 0) {
+    parts.push(plural(batch.clientsCount, "cliente novo", "clientes novos"));
+  }
+  return parts.join(" · ");
+}
+
 function situation(batch: HistoryImportBatch): string {
   if (!batch.undoneAt) return "Em vigor";
   const who = batch.undoneByEmail ? ` por ${batch.undoneByEmail}` : "";
   const why = batch.undoReason ? ` · ${batch.undoReason}` : "";
-  return `Desfeita em ${formatDateDMY(batch.undoneAt)}${who}${why}`;
+  const clients =
+    batch.clientsUndone > 0
+      ? ` · ${plural(batch.clientsUndone, "cliente saiu", "clientes saíram")} da carteira`
+      : "";
+  return `Desfeita em ${formatDateDMY(batch.undoneAt)}${who}${clients}${why}`;
 }

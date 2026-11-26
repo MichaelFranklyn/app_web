@@ -20,6 +20,8 @@ export interface ClientsPdfMeta {
   filterFields: FilterField[];
   /** Filtros ativos na tela — vão escritos no cabeçalho do documento. */
   inputValues: Record<string, string>;
+  /** Recorte fora do painel (o lote de importação), escrito antes dos filtros. */
+  scopeLabel?: string | null;
   /** Ordenação à vista na tabela, para o papel dizer em que ordem ele está. */
   order?: ReportOrder | null;
 }
@@ -55,6 +57,7 @@ export const exportClientsPdf = async (
     context: buildReportContext({
       fields: meta.filterFields,
       values: meta.inputValues,
+      scopeLabel: meta.scopeLabel,
       order: meta.order,
       sortLabels: CLIENT_SORT_LABELS,
     }),

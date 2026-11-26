@@ -30,7 +30,8 @@ const MAX_REASON_LENGTH = 500;
 
 /**
  * Desfaz a importação inteira: os pedidos daquela planilha saem e ela pode ser
- * importada de novo, corrigida. O servidor recusa o lote todo se algum pedido
+ * importada de novo, corrigida. Os clientes novos que vieram só por ela saem
+ * da carteira junto; fica quem já tem outro pedido ou visita feita. O servidor recusa o lote todo se algum pedido
  * já foi mexido depois — a mensagem diz quantos e por quê.
  */
 export function UndoBatchModal({ batch, onUndone }: Props) {
@@ -64,7 +65,10 @@ export function UndoBatchModal({ batch, onUndone }: Props) {
         return payload;
       },
       {
-        successMessage: () => "Importação desfeita.",
+        successMessage: (payload) =>
+          payload.data?.clientsUndone
+            ? `Importação desfeita. ${plural(payload.data.clientsUndone, "cliente saiu", "clientes saíram")} da carteira.`
+            : "Importação desfeita.",
         onSuccess: () => {
           handleOpenChange(false);
           onUndone();
@@ -98,6 +102,19 @@ export function UndoBatchModal({ batch, onUndone }: Props) {
                 </Alert.Description>
               </Alert.Content>
             </Alert.Root>
+
+            {batch.clientsCount > 0 && (
+              <Alert.Root variant="warning">
+                <Alert.Content>
+                  <Alert.Title>
+                    {`${pluralWord(batch.clientsCount, "O cliente novo sai", "Os clientes novos saem")} da carteira`}
+                  </Alert.Title>
+                  <Alert.Description>
+                    {`${plural(batch.clientsCount, "cliente entrou", "clientes entraram")} na carteira com esta importação. ${pluralWord(batch.clientsCount, "Ele sai", "Eles saem")} junto, e as visitas marcadas ${pluralWord(batch.clientsCount, "dele", "deles")} são canceladas. Fica na carteira quem já tem outro pedido ou visita feita.`}
+                  </Alert.Description>
+                </Alert.Content>
+              </Alert.Root>
+            )}
 
             <Input.Textarea
               label="Motivo"

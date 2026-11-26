@@ -7,7 +7,7 @@ import { FilterField } from "@/components/Filters";
 import { useToast } from "@/components/Toast";
 import { isTruncated, MAX_SCAN_PAGES } from "@/utils/pagination";
 import { useCompanyBranding } from "@/hooks/useCompanyBranding";
-import { buildQueryFilters } from "@/hooks/useTableData";
+import { QueryFilter, buildQueryFilters } from "@/hooks/useTableData";
 import { downloadSheet } from "@/utils/import/writer";
 import { ReportOrder } from "@/utils/pdf/context";
 import { plural } from "@/utils/format/plural";
@@ -23,6 +23,10 @@ interface Props {
   inputValues: Record<string, string>;
   /** Campos do painel, para o PDF escrever o recorte por extenso. */
   filterFields: FilterField[];
+  /** Recorte do lote de importação, que não mora no painel de filtros. */
+  importFilters?: QueryFilter[];
+  /** A linha do recorte do lote no cabeçalho do PDF. */
+  scopeLabel?: string | null;
   /** Ordenação à vista na tabela; o arquivo sai na MESMA ordem. */
   order?: ReportOrder | null;
   disabled?: boolean;
@@ -45,6 +49,8 @@ const PAGE_SIZE = 100;
 export function ExportClientsButton({
   inputValues,
   filterFields,
+  importFilters,
+  scopeLabel,
   order,
   disabled,
 }: Props) {
@@ -58,7 +64,10 @@ export function ExportClientsButton({
     all: Client[];
     truncated: boolean;
   }> => {
-    const filters = buildQueryFilters(TABLE_FIELDS, inputValues);
+    const filters = [
+      ...(importFilters ?? []),
+      ...buildQueryFilters(TABLE_FIELDS, inputValues),
+    ];
     const all: Client[] = [];
     let after: string | null = null;
     let pagesRead = 0;
@@ -144,6 +153,7 @@ export function ExportClientsButton({
             companyLogoUrl,
             filterFields,
             inputValues,
+            scopeLabel,
             order,
           })
         )

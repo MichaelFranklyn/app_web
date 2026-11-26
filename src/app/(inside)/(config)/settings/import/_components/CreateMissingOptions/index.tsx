@@ -35,6 +35,12 @@ export function CreateMissingOptions({
             endereço é completado pela Receita aos poucos. Desligado, os pedidos
             de cliente fora da carteira ficam de fora.
           </Title>
+          <Title variant="body-xs" color="muted">
+            Em todo pedido, o cliente também é ligado à fábrica e ao vendedor,
+            com o nível de preço mais usado na fábrica, se o vendedor atende
+            essa fábrica. Se não atende, o pedido entra, mas o cliente fica fora
+            da rotina dessa fábrica até alguém fazer a ligação.
+          </Title>
         </div>
         <div className="flex flex-col gap-4">
           <Input.Toggle

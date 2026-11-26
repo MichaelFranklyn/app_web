@@ -22,10 +22,18 @@ const scoped = (field: string, filters: object[]) => ({
  * lista que ela abre. "Todos os pedidos" fica sem número de propósito — a
  * lista mostra orçamento e cancelado, e o `orderStats` conta só pedido feito.
  */
-export function useOrderTabCounts(inputValues: Record<string, string>) {
+export function useOrderTabCounts(
+  inputValues: Record<string, string>,
+  /** Recorte fixo da tela (o lote de importação), somado aos do painel. */
+  scopeFilters: object[] = []
+) {
+  const scopeKey = JSON.stringify(scopeFilters);
   const filters = useMemo(
-    () => buildQueryFilters(PENDING_ORDER_TABLE_FIELDS, inputValues),
-    [inputValues]
+    () => [
+      ...(JSON.parse(scopeKey) as object[]),
+      ...buildQueryFilters(PENDING_ORDER_TABLE_FIELDS, inputValues),
+    ],
+    [inputValues, scopeKey]
   );
   const { data, refetch } = useQuery<TabCounts>(ORDER_TAB_COUNTS_QUERY, {
     variables: {

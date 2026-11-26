@@ -6,10 +6,12 @@ import { useOptimisticList } from "@/hooks/useOptimisticList";
 import { useTableData } from "@/hooks/useTableData";
 import { ClientsHeader } from "./_components/ClientsHeader";
 import { ClientsTable } from "./_components/ClientsTable";
+import { ImportBatchNotice } from "./_components/ImportBatchNotice";
 import { CLIENTS_QUERY } from "./gql";
 import { Client, ClientsContentProps, QueryData } from "./interface";
 import { useClassificationOptions } from "./useClassificationOptions";
 import { useClientFilters } from "./useClientFilters";
+import { useImportBatchScope } from "./useImportBatchScope";
 import { useSellerScope } from "./useSellerScope";
 import { CLIENT_SORTABLE_FIELDS, ITEMS_PER_PAGE, TABLE_FIELDS } from "./utils";
 
@@ -18,13 +20,18 @@ export default function ClientesContent({
   initialData,
   canFilterBySeller,
 }: ClientsContentProps) {
+  const importScope = useImportBatchScope();
+
   const tableData = useTableData<QueryData, Client>({
     query: CLIENTS_QUERY,
     fields: TABLE_FIELDS,
     getConnection: (data) => data.clients_list,
     itemsPerPage: ITEMS_PER_PAGE,
     sortableFields: CLIENT_SORTABLE_FIELDS,
-    initialData,
+    baseFilters: importScope.baseFilters,
+    // A página semeada no servidor é a da carteira inteira: com o lote, a
+    // lista tem de vir do filtro, não dela.
+    initialData: importScope.importBatchId ? undefined : initialData,
   });
 
   const selectedSellerId = tableData.inputValues.sellerId || null;
@@ -59,12 +66,21 @@ export default function ClientesContent({
         // O painel de filtros e a ordenação da tabela definem o que o arquivo
         // exportado contém — e o cabeçalho do PDF os escreve por extenso.
         filterFields={filterFields}
+        importFilters={importScope.baseFilters}
+        scopeLabel={importScope.scopeLabel}
         order={tableData.order}
         hasClients={tableData.totalItems > 0}
         // Quem não filtra por vendedor é o próprio vendedor: a carteira na
         // tela é só a dele.
         isOwnWallet={!canFilterBySeller}
       />
+
+      {importScope.importBatchId && (
+        <ImportBatchNotice
+          date={importScope.importDate}
+          onClear={importScope.clearImportBatch}
+        />
+      )}
 
       {tableData.error && optimistic.items.length === 0 ? (
         <QueryError onRetry={() => tableData.refetch()} />

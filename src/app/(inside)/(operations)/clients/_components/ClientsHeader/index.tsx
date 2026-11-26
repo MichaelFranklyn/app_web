@@ -2,6 +2,7 @@
 import { Alert } from "@/components/Alert";
 import { Card } from "@/components/Card";
 import { FilterField } from "@/components/Filters";
+import { QueryFilter } from "@/hooks/useTableData";
 import { PanelHeader } from "@/components/PanelHeader";
 import { PAGE_HEADING } from "@/utils/modules";
 import { ReportOrder } from "@/utils/pdf/context";
@@ -25,6 +26,10 @@ interface ClientsHeaderProps {
   inputValues: Record<string, string>;
   /** Campos do painel de filtros, para o PDF escrever o recorte por extenso. */
   filterFields: FilterField[];
+  /** Recorte do lote de importação ("Ver clientes novos"), fora do painel. */
+  importFilters?: QueryFilter[];
+  /** A linha do recorte do lote no PDF. */
+  scopeLabel?: string | null;
   /** Ordenação à vista na tabela — o arquivo sai na mesma ordem. */
   order?: ReportOrder | null;
   hasClients: boolean;
@@ -40,6 +45,8 @@ export function ClientsHeader({
   onAddOptimistic,
   inputValues,
   filterFields,
+  importFilters,
+  scopeLabel,
   order,
   hasClients,
   isOwnWallet,
@@ -73,6 +80,8 @@ export function ClientsHeader({
               <ExportClientsButton
                 inputValues={inputValues}
                 filterFields={filterFields}
+                importFilters={importFilters}
+                scopeLabel={scopeLabel}
                 order={order}
                 disabled={!hasClients}
               />
