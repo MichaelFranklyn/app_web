@@ -81,7 +81,10 @@ const Body = React.forwardRef<
 >(({ className, ...props }, ref) => (
   <div
     ref={ref}
-    className={cn("flex-1 overflow-y-auto px-20 py-12", className)}
+    // `*:shrink-0`: o corpo rola. Quem usa `flex flex-col` aqui não pode ver os
+    // filhos encolherem para caber — um card com overflow-hidden achatava e o
+    // bloco de baixo cobria o botão dele.
+    className={cn("flex-1 overflow-y-auto px-20 py-12 *:shrink-0", className)}
     {...props}
   />
 ));

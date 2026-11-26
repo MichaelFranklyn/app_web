@@ -110,10 +110,13 @@ test("clients: baixa a planilha com a carteira, uma linha por fábrica", async (
     "Observações",
     "Email do vendedor",
     "Fábrica",
+    "Código do cliente na fábrica",
   ]);
+  // O código sai como texto, com o zero à esquerda; sem código, a célula vem
+  // vazia.
   expect(rows.slice(1)).toEqual([
-    ["11.222.333/0001-81", "Paga em dia", "ana@exemplo.com", "Herc"],
-    ["11.222.333/0001-81", "Paga em dia", "ana@exemplo.com", "Sol"],
+    ["11.222.333/0001-81", "Paga em dia", "ana@exemplo.com", "Herc", "00123"],
+    ["11.222.333/0001-81", "Paga em dia", "ana@exemplo.com", "Sol", ""],
   ]);
 });
 
