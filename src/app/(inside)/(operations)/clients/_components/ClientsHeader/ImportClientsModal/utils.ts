@@ -9,17 +9,20 @@ import { ImportClientRow, ImportSheetRow } from "./interface";
  * repetindo o CNPJ. Os demais dados do cliente vêm da Receita pelo CNPJ.
  *
  * Espelha o `ImportCompanyClientRowInput` do backend: cnpj (obrigatório),
- * notes, sellerEmail e factoryName (os dois últimos juntos, ou nenhum).
+ * notes, sellerEmail e factoryName (os dois juntos, ou nenhum) e
+ * factoryClientCode — o código do cliente no sistema da fábrica da linha, que
+ * só vale com vendedor e fábrica.
  */
 export const SHEET_HEADERS = [
   "CNPJ",
   "Observações",
   "Email do vendedor",
   "Fábrica",
+  "Código do cliente na fábrica",
 ];
 
 const EXAMPLE_ROWS = [
-  ["11.222.333/0001-81", "Cliente indicado pela fábrica", "", ""],
+  ["11.222.333/0001-81", "Cliente indicado pela fábrica", "", "", ""],
 ];
 
 /** A carteira da empresa como planilha, pronta para editar e reenviar. */
@@ -32,6 +35,7 @@ export const buildSheetMatrix = (rows: ImportSheetRow[]): string[][] => [
         row.notes ?? "",
         row.sellerEmail ?? "",
         row.factoryName ?? "",
+        row.factoryClientCode ?? "",
       ])),
 ];
 
@@ -50,6 +54,13 @@ const SELLER_HEADERS = [
   "email vendedor",
 ];
 const FACTORY_HEADERS = ["fabrica", "fabricas", "representada"];
+const CODE_HEADERS = [
+  "codigo do cliente na fabrica",
+  "codigo na fabrica",
+  "codigo do cliente",
+  "cod. cliente",
+  "cod cliente",
+];
 
 const looksLikeDocument = (value: string): boolean =>
   [11, 14].includes(value.replace(/\D/g, "").length);
@@ -64,6 +75,7 @@ interface SheetColumns {
   notes: number | null;
   seller: number | null;
   factory: number | null;
+  code: number | null;
 }
 
 /**
@@ -71,7 +83,7 @@ interface SheetColumns {
  * exportada de outro sistema (a Mercos traz razão social, fantasia,
  * endereço…) pode estar em qualquer lugar. Vale o título da coluna; sem título
  * conhecido, a coluna em que a maioria das linhas tem cara de CNPJ/CPF; sem
- * nada disso, a primeira. Vendedor e fábrica só valem pelo título.
+ * nada disso, a primeira. Vendedor, fábrica e código só valem pelo título.
  */
 export const findColumns = (matrix: string[][]): SheetColumns => {
   const headers = (matrix[0] ?? []).map((h) => normalizeLabel(h));
@@ -79,6 +91,7 @@ export const findColumns = (matrix: string[][]): SheetColumns => {
     notes: indexOrNull(headers, NOTES_HEADERS),
     seller: indexOrNull(headers, SELLER_HEADERS),
     factory: indexOrNull(headers, FACTORY_HEADERS),
+    code: indexOrNull(headers, CODE_HEADERS),
   };
 
   const byHeader = headers.findIndex((h) => CNPJ_HEADERS.includes(h));
@@ -122,5 +135,6 @@ export const parseClientsRows = (matrix: string[][]): ImportClientRow[] => {
     notes: cell(cells, columns.notes),
     sellerEmail: cell(cells, columns.seller),
     factoryName: cell(cells, columns.factory),
+    factoryClientCode: cell(cells, columns.code),
   }));
 };

@@ -9,12 +9,13 @@ export const LISTS_SHEET = "Listas";
 
 const SELLER_COLUMN = "C";
 const FACTORY_COLUMN = "D";
+const CODE_COLUMN = "E";
 
 /** Linhas com lista suspensa além das da carteira: espaço para cliente novo. */
 const SPARE_ROWS = 300;
 const MIN_ROWS = 500;
 
-const COLUMN_WIDTHS = [22, 40, 34, 40];
+const COLUMN_WIDTHS = [22, 40, 34, 40, 30];
 
 /**
  * A célula da linha `row` ganha a lista suspensa que aponta para a coluna da
@@ -73,6 +74,9 @@ export const buildClientsSheetFile = async (
   COLUMN_WIDTHS.forEach((width, index) => {
     clients.getColumn(index + 1).width = width;
   });
+  // O código é texto: "00123" não pode virar 123 quando alguém digita na
+  // célula — na fábrica são códigos diferentes.
+  clients.getColumn(CODE_COLUMN).numFmt = "@";
 
   const lists = workbook.addWorksheet(LISTS_SHEET);
   lists.state = "veryHidden";

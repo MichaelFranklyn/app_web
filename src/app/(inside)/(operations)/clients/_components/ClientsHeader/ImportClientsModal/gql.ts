@@ -9,6 +9,7 @@ export const IMPORT_COMPANY_CLIENTS_MUTATION = gql`
         total
         created
         linksCreated
+        codesSaved
         skipped
         failed
         errors {
@@ -41,6 +42,7 @@ export const COMPANY_CLIENTS_IMPORT_SHEET_QUERY = gql`
           notes
           sellerEmail
           factoryName
+          factoryClientCode
         }
         sellerEmails
         factoryNames

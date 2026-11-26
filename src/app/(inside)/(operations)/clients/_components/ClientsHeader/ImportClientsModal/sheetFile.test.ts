@@ -13,6 +13,7 @@ const sheet = (over: Partial<ImportSheet> = {}): ImportSheet => ({
       notes: "Paga em dia",
       sellerEmail: "ana@x.com",
       factoryName: "Herc (12.345.678/0001-95)",
+      factoryClientCode: "00123",
     },
   ],
   sellerEmails: ["ana@x.com", "beto@x.com"],
@@ -41,6 +42,14 @@ describe("buildClientsSheetFile", () => {
     });
     // CNPJ e observação continuam livres.
     expect(clients.getCell("A2").dataValidation).toBeFalsy();
+  });
+
+  it("a coluna do código é texto, para o Excel não comer os zeros", async () => {
+    const clients = (await open(sheet())).getWorksheet(CLIENTS_SHEET)!;
+    expect(clients.getCell("E1").value).toBe("Código do cliente na fábrica");
+    expect(clients.getCell("E2").value).toBe("00123");
+    expect(clients.getColumn("E").numFmt).toBe("@");
+    expect(clients.getCell("E2").dataValidation).toBeFalsy();
   });
 
   it("as listas ficam numa aba que ninguém vê, depois da de clientes", async () => {
@@ -77,6 +86,7 @@ describe("buildClientsSheetFile", () => {
         notes: "Paga em dia",
         sellerEmail: "ana@x.com",
         factoryName: "Herc (12.345.678/0001-95)",
+        factoryClientCode: "00123",
       },
     ]);
   });

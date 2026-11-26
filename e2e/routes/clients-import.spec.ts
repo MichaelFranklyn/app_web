@@ -28,12 +28,14 @@ const mockImport = (page: Parameters<typeof mockGraphql>[0]) =>
               notes: "Paga em dia",
               sellerEmail: "ana@exemplo.com",
               factoryName: "Herc",
+              factoryClientCode: "00123",
             },
             {
               cnpj: "11222333000181",
               notes: "Paga em dia",
               sellerEmail: "ana@exemplo.com",
               factoryName: "Sol",
+              factoryClientCode: null,
             },
           ],
           sellerEmails: ["ana@exemplo.com"],
@@ -52,6 +54,7 @@ const mockImport = (page: Parameters<typeof mockGraphql>[0]) =>
             total: rows.length,
             created: rows.length,
             linksCreated: 0,
+            codesSaved: 0,
             skipped: 0,
             failed: 0,
             errors: [],
@@ -107,10 +110,13 @@ test("clients: baixa a planilha com a carteira, uma linha por fábrica", async (
     "Observações",
     "Email do vendedor",
     "Fábrica",
+    "Código do cliente na fábrica",
   ]);
+  // O código sai como texto, com o zero à esquerda; sem código, a célula vem
+  // vazia.
   expect(rows.slice(1)).toEqual([
-    ["11.222.333/0001-81", "Paga em dia", "ana@exemplo.com", "Herc"],
-    ["11.222.333/0001-81", "Paga em dia", "ana@exemplo.com", "Sol"],
+    ["11.222.333/0001-81", "Paga em dia", "ana@exemplo.com", "Herc", "00123"],
+    ["11.222.333/0001-81", "Paga em dia", "ana@exemplo.com", "Sol", ""],
   ]);
 });
 
