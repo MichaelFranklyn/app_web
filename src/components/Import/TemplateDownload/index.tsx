@@ -6,6 +6,8 @@ import { Download } from "lucide-react";
 interface TemplateDownloadProps {
   title?: string;
   description?: string;
+  /** O que o botão faz: a planilha pode vir já preenchida com os dados. */
+  buttonLabel?: string;
   onDownload: () => void;
 }
 
@@ -13,6 +15,7 @@ interface TemplateDownloadProps {
 export function TemplateDownload({
   title = "Não tem o modelo?",
   description = "Baixe a planilha de exemplo, preencha e envie de volta.",
+  buttonLabel = "Baixar modelo",
   onDownload,
 }: TemplateDownloadProps) {
   return (
@@ -34,7 +37,7 @@ export function TemplateDownload({
           onClick={onDownload}
         >
           <Button.Icon icon={Download} />
-          <Button.Title>Baixar modelo</Button.Title>
+          <Button.Title>{buttonLabel}</Button.Title>
         </Button.Root>
       </Card.Body>
     </Card.Root>

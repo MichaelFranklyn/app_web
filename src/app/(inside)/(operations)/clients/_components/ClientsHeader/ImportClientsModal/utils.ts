@@ -1,30 +1,39 @@
+import { maskCNPJ } from "@/utils/format/masks";
 import { normalizeLabel } from "@/utils/import/similarity";
-import { downloadSheet } from "@/utils/import/writer";
 
-import { ImportClientRow } from "./interface";
+import { ImportClientRow, ImportSheetRow } from "./interface";
 
 /**
- * Cabeçalho da planilha modelo. A ordem das colunas define o mapeamento na
- * leitura do arquivo enviado — manter sincronizado com `rowToInput`. Os demais
- * dados do cliente são preenchidos automaticamente via Receita Federal a partir
- * do CNPJ, então a planilha só pede CNPJ + observações internas (opcional).
+ * Cabeçalho da planilha. Uma linha = um cliente numa fábrica e o vendedor que o
+ * atende nela: o cliente atendido em três fábricas aparece em três linhas,
+ * repetindo o CNPJ. Os demais dados do cliente vêm da Receita pelo CNPJ.
  *
- * Espelha o `ImportCompanyClientRowInput` do backend: cnpj (obrigatório) e
- * notes (opcional).
+ * Espelha o `ImportCompanyClientRowInput` do backend: cnpj (obrigatório),
+ * notes, sellerEmail e factoryName (os dois últimos juntos, ou nenhum).
  */
-const EXAMPLE_HEADERS = ["CNPJ", "Observações"];
-
-const EXAMPLE_ROWS = [
-  ["00.000.000/0001-91", ""],
-  ["11.222.333/0001-81", "Cliente indicado pela fábrica"],
+export const SHEET_HEADERS = [
+  "CNPJ",
+  "Observações",
+  "Email do vendedor",
+  "Fábrica",
 ];
 
-export const downloadExampleSheet = (): Promise<void> =>
-  downloadSheet(
-    "modelo-importacao-clientes.xlsx",
-    [EXAMPLE_HEADERS, ...EXAMPLE_ROWS],
-    "Clientes"
-  );
+const EXAMPLE_ROWS = [
+  ["11.222.333/0001-81", "Cliente indicado pela fábrica", "", ""],
+];
+
+/** A carteira da empresa como planilha, pronta para editar e reenviar. */
+export const buildSheetMatrix = (rows: ImportSheetRow[]): string[][] => [
+  SHEET_HEADERS,
+  ...(rows.length === 0
+    ? EXAMPLE_ROWS
+    : rows.map((row) => [
+        maskCNPJ(row.cnpj ?? ""),
+        row.notes ?? "",
+        row.sellerEmail ?? "",
+        row.factoryName ?? "",
+      ])),
+];
 
 const CNPJ_HEADERS = [
   "cnpj",
@@ -34,25 +43,46 @@ const CNPJ_HEADERS = [
   "documento",
 ];
 const NOTES_HEADERS = ["observacoes", "observacao", "obs"];
+const SELLER_HEADERS = [
+  "email do vendedor",
+  "e-mail do vendedor",
+  "vendedor",
+  "email vendedor",
+];
+const FACTORY_HEADERS = ["fabrica", "fabricas", "representada"];
 
 const looksLikeDocument = (value: string): boolean =>
   [11, 14].includes(value.replace(/\D/g, "").length);
 
+const indexOrNull = (headers: string[], names: string[]): number | null => {
+  const index = headers.findIndex((h) => names.includes(h));
+  return index >= 0 ? index : null;
+};
+
+interface SheetColumns {
+  cnpj: number;
+  notes: number | null;
+  seller: number | null;
+  factory: number | null;
+}
+
 /**
- * Onde está o CNPJ. No modelo daqui é a primeira coluna; na lista exportada de
- * outro sistema (a Mercos traz razão social, fantasia, endereço…) pode estar
- * em qualquer lugar. Vale o título da coluna; sem título conhecido, a coluna
- * em que a maioria das linhas tem cara de CNPJ/CPF; sem nada disso, a primeira.
+ * Onde está cada coluna. No modelo daqui o CNPJ é a primeira; na lista
+ * exportada de outro sistema (a Mercos traz razão social, fantasia,
+ * endereço…) pode estar em qualquer lugar. Vale o título da coluna; sem título
+ * conhecido, a coluna em que a maioria das linhas tem cara de CNPJ/CPF; sem
+ * nada disso, a primeira. Vendedor e fábrica só valem pelo título.
  */
-export const findColumns = (
-  matrix: string[][]
-): { cnpj: number; notes: number | null } => {
+export const findColumns = (matrix: string[][]): SheetColumns => {
   const headers = (matrix[0] ?? []).map((h) => normalizeLabel(h));
-  const notesIndex = headers.findIndex((h) => NOTES_HEADERS.includes(h));
-  const notes = notesIndex >= 0 ? notesIndex : null;
+  const named = {
+    notes: indexOrNull(headers, NOTES_HEADERS),
+    seller: indexOrNull(headers, SELLER_HEADERS),
+    factory: indexOrNull(headers, FACTORY_HEADERS),
+  };
 
   const byHeader = headers.findIndex((h) => CNPJ_HEADERS.includes(h));
-  if (byHeader >= 0) return { cnpj: byHeader, notes };
+  if (byHeader >= 0) return { cnpj: byHeader, ...named };
 
   const sample = matrix.slice(1, 51);
   let best = 0;
@@ -66,30 +96,31 @@ export const findColumns = (
       best = index;
     }
   });
-  return {
-    cnpj: bestHits > sample.length / 2 ? best : 0,
-    notes,
-  };
+  return { cnpj: bestHits > sample.length / 2 ? best : 0, ...named };
 };
+
+const cell = (cells: string[], index: number | null): string | null =>
+  index === null ? null : (cells[index] ?? "").trim() || null;
 
 /**
  * Converte a matriz de células do arquivo (xlsx ou csv, já lido) em linhas
- * prontas para a mutation. Descarta a primeira linha (cabeçalho). Lança erro se
- * não houver dados.
+ * prontas para a mutation. Descarta a primeira linha (cabeçalho) e as linhas
+ * totalmente vazias. Lança erro se não houver dados.
  */
 export const parseClientsRows = (matrix: string[][]): ImportClientRow[] => {
-  const dataRows = matrix.slice(1);
+  const dataRows = matrix
+    .slice(1)
+    .filter((cells) => cells.some((value) => (value ?? "").trim() !== ""));
 
   if (dataRows.length === 0) {
     throw new Error("A planilha não contém linhas de dados.");
   }
 
-  const { cnpj, notes } = findColumns(matrix);
-  return dataRows.map((cells) => {
-    const note = notes === null ? "" : (cells[notes] ?? "").trim();
-    return {
-      cnpj: (cells[cnpj] ?? "").replace(/\D/g, ""),
-      notes: note || null,
-    };
-  });
+  const columns = findColumns(matrix);
+  return dataRows.map((cells) => ({
+    cnpj: (cells[columns.cnpj] ?? "").replace(/\D/g, ""),
+    notes: cell(cells, columns.notes),
+    sellerEmail: cell(cells, columns.seller),
+    factoryName: cell(cells, columns.factory),
+  }));
 };

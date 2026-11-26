@@ -1751,6 +1751,11 @@ extend type Query {
   companyClient(id: UUID!): CompanyClientTypeDataResponse!
   companyClients(input: BaseListInput!): CompanyClientTypeConnectionResponse!
   """
+  A carteira no formato da planilha de importação: uma linha por cliente ativo
+  × fábrica em que ele tem vendedor. Só gestor.
+  """
+  companyClientsImportSheet: ImportSheetDataResponse!
+  """
   O histórico de compras do cliente lido POR PRODUTO: o que ele sempre pede, o
   que está na hora de repor e o que ele parou de comprar. Sai dos pedidos
   FEITOS (orçamento e cancelado ficam de fora), pelas fábricas que o vendedor
@@ -1891,6 +1896,35 @@ extend type Mutation {
   checkWalletReceita(limit: Int = 10): CheckWalletReceitaResultDataResponse!
   importCompanyClients(input: ImportCompanyClientsInput!): ImportCompanyClientsResultDataResponse!
 }
+
+"""
+Uma linha da planilha de carteira: o cliente numa fábrica e quem o atende
+nela. Cliente sem vínculo sai numa linha só, com vendedor e fábrica nulos.
+"""
+type ImportSheetRowType {
+  cnpj: String!
+  notes: String
+  sellerEmail: String
+  factoryName: String
+}
+
+"""
+A planilha de carteira: as linhas e as listas que viram lista suspensa nas
+colunas de vendedor (emails dos vendedores ativos) e de fábrica (nome da
+fábrica; com o CNPJ entre parênteses quando duas têm o mesmo nome).
+"""
+type ImportSheetType {
+  rows: [ImportSheetRowType!]!
+  sellerEmails: [String!]!
+  factoryNames: [String!]!
+}
+
+type ImportSheetDataResponse {
+  status: Boolean!
+  code: Int!
+  message: String!
+  data: ImportSheetType
+}
 input AddClientToCompanyInput {
   cnpj: String!
   notes: String = null
@@ -1899,6 +1933,14 @@ input AddClientToCompanyInput {
 input ImportCompanyClientRowInput {
   cnpj: String!
   notes: String = null
+  """
+  Quem atende o cliente na fábrica da mesma linha. Os dois vêm juntos ou
+  nenhum. A fábrica casa pelo apelido, nome fantasia, razão social ou CNPJ.
+  Cada fábrica tem um só vendedor por cliente: a linha que põe um segundo
+  vendedor numa fábrica já atendida é recusada.
+  """
+  sellerEmail: String = null
+  factoryName: String = null
 }
 
 input ImportCompanyClientsInput {
@@ -1914,6 +1956,8 @@ type ImportClientRowDetail {
 type ImportCompanyClientsResult {
   total: Int!
   created: Int!
+  "Vínculos vendedor × fábrica criados ou reativados."
+  linksCreated: Int!
   skipped: Int!
   failed: Int!
   errors: [ImportClientRowDetail!]!

@@ -8,6 +8,7 @@ export const IMPORT_COMPANY_CLIENTS_MUTATION = gql`
       data {
         total
         created
+        linksCreated
         skipped
         failed
         errors {
@@ -20,6 +21,29 @@ export const IMPORT_COMPANY_CLIENTS_MUTATION = gql`
           cnpj
           message
         }
+      }
+    }
+  }
+`;
+
+/**
+ * A carteira atual, no formato da planilha (uma linha por cliente × fábrica),
+ * e as listas das colunas de vendedor e de fábrica.
+ */
+export const COMPANY_CLIENTS_IMPORT_SHEET_QUERY = gql`
+  query CompanyClientsImportSheet {
+    companyClientsImportSheet {
+      status
+      message
+      data {
+        rows {
+          cnpj
+          notes
+          sellerEmail
+          factoryName
+        }
+        sellerEmails
+        factoryNames
       }
     }
   }

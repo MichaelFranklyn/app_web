@@ -23,6 +23,8 @@ interface ImportSummaryProps<T extends ImportSummaryDetail> {
   feminine?: boolean;
   /** O verbo de quem entrou: cliente é "Adicionado" à carteira, não criado. */
   createdLabel?: string;
+  /** Números a mais da importação (ex.: vínculos criados), depois dos criados. */
+  extraKpis?: { label: string; value: number }[];
 }
 
 /**
@@ -34,6 +36,7 @@ export function Summary<T extends ImportSummaryDetail>({
   identify,
   feminine = false,
   createdLabel,
+  extraKpis = [],
 }: ImportSummaryProps<T>) {
   const hasDetails = result.errors.length > 0 || result.ignored.length > 0;
   const ignoredLabel = feminine ? "Ignorada" : "Ignorado";
@@ -47,6 +50,12 @@ export function Summary<T extends ImportSummaryDetail>({
           </Card.Kpi.Label>
           <Card.Kpi.Value status="ok">{result.created}</Card.Kpi.Value>
         </Card.Kpi>
+        {extraKpis.map((kpi) => (
+          <Card.Kpi key={kpi.label}>
+            <Card.Kpi.Label>{kpi.label}</Card.Kpi.Label>
+            <Card.Kpi.Value status="ok">{kpi.value}</Card.Kpi.Value>
+          </Card.Kpi>
+        ))}
         <Card.Kpi>
           <Card.Kpi.Label>{`${ignoredLabel}s`}</Card.Kpi.Label>
           <Card.Kpi.Value status="atencao">{result.skipped}</Card.Kpi.Value>
