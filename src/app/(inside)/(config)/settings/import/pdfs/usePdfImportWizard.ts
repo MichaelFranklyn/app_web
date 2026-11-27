@@ -57,7 +57,8 @@ export function usePdfImportWizard(initialBatchId: string | null) {
     {}
   );
   const [createMissingClients, setCreateMissingClients] = useState(false);
-  const [createMissingProducts, setCreateMissingProducts] = useState(false);
+  // Produto que falta já vem ligado: sem ele o item cai e o pedido soma menos.
+  const [createMissingProducts, setCreateMissingProducts] = useState(true);
 
   const options = useHistoryOptions();
   const upload = usePdfUpload(batchId);
@@ -211,6 +212,12 @@ export function usePdfImportWizard(initialBatchId: string | null) {
     }
   };
 
+  /** Na conferência: cadastra os produtos que faltam e confere de novo. */
+  const includeMissingProducts = async () => {
+    setCreateMissingProducts(true);
+    await run.check({ ...runInput(), createMissingProducts: true });
+  };
+
   /** Depois de importar: volta aos PDFs do mesmo lote para mandar mais. */
   const sendMore = () => {
     setOverrides({});
@@ -255,6 +262,7 @@ export function usePdfImportWizard(initialBatchId: string | null) {
     setCreateMissingClients,
     createMissingProducts,
     setCreateMissingProducts,
+    includeMissingProducts,
     canAdvance,
     next,
     back,

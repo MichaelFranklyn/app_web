@@ -20,10 +20,11 @@ export function useHistoryImportWizard() {
     sellerOptions: options.sellerOptions,
   });
   const run = useHistoryRun();
-  // Criar o que falta é opção: quem já cadastrou tudo prefere ver o que não
-  // bateu a ganhar um cliente com o CNPJ digitado errado.
+  // Cliente que falta é opção: quem já cadastrou tudo prefere ver o que não
+  // bateu a ganhar um cliente com o CNPJ digitado errado. Produto que falta
+  // já vem ligado: sem ele o item cai e o pedido soma menos que o da planilha.
   const [createMissingClients, setCreateMissingClients] = useState(false);
-  const [createMissingProducts, setCreateMissingProducts] = useState(false);
+  const [createMissingProducts, setCreateMissingProducts] = useState(true);
 
   const input = () => {
     const built = buildRows({
@@ -64,6 +65,12 @@ export function useHistoryImportWizard() {
     setStep(step + 1);
   };
 
+  /** Na conferência: cadastra os produtos que faltam e confere de novo. */
+  const includeMissingProducts = async () => {
+    setCreateMissingProducts(true);
+    await run.check({ ...input(), createMissingProducts: true });
+  };
+
   const back = () => {
     run.resetPreview();
     setStep(Math.max(0, step - 1));
@@ -80,6 +87,7 @@ export function useHistoryImportWizard() {
     setCreateMissingClients,
     createMissingProducts,
     setCreateMissingProducts,
+    includeMissingProducts,
     canAdvance,
     next,
     back,

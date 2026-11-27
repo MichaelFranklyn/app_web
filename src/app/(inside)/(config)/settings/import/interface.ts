@@ -137,6 +137,8 @@ export interface HistoryResult {
     code: string | null;
     name: string | null;
     rows: number;
+    /** Valor dessas linhas na planilha (Decimal do servidor, em texto). */
+    amount: string;
   }[];
   missingClients: { document: string; rows: number }[];
   /** Prazos que a importação cadastra na fábrica (vieram no pedido, ela não tinha). */

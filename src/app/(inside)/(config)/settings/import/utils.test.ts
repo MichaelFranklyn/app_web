@@ -1,7 +1,12 @@
 import { describe, expect, it } from "vitest";
 
 import { HistoryResult, HistoryRowInput, SetupStep } from "./interface";
-import { blockingStep, chunkByOrder, mergeResults } from "./utils";
+import {
+  blockingStep,
+  chunkByOrder,
+  mergeResults,
+  missingProductsAmount,
+} from "./utils";
 
 const steps = (done: Partial<Record<SetupStep["key"], boolean>>): SetupStep[] =>
   (
@@ -112,6 +117,29 @@ describe("mergeResults", () => {
       { document: "2", rows: 9 },
       { document: "1", rows: 5 },
     ]);
+  });
+
+  it("soma linhas e valor do produto que falta em várias partes", () => {
+    const product = {
+      factoryId: "f1",
+      factory: null,
+      code: "1508",
+      name: "Fogão",
+      rows: 1,
+      amount: "880.00",
+    };
+    const merged = mergeResults([
+      result({ missingProducts: [product] }),
+      result({
+        missingProducts: [
+          { ...product, rows: 2, amount: "120.50" },
+          { ...product, code: "8057", amount: "10.00" },
+        ],
+      }),
+    ]);
+    const fogao = merged.missingProducts.find((p) => p.code === "1508");
+    expect(fogao).toMatchObject({ rows: 3, amount: "1000.50" });
+    expect(missingProductsAmount(merged)).toBeCloseTo(1010.5);
   });
 
   it("conta uma vez o prazo novo que volta em várias partes", () => {

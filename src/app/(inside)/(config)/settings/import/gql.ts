@@ -84,6 +84,7 @@ export const IMPORT_ORDER_HISTORY_MUTATION = gql`
           code
           name
           rows
+          amount
         }
         missingClients {
           document

@@ -28,6 +28,7 @@ export default function OrderHistoryImportContent() {
     setCreateMissingClients,
     createMissingProducts,
     setCreateMissingProducts,
+    includeMissingProducts,
     canAdvance,
     next,
     back,
@@ -120,6 +121,7 @@ export default function OrderHistoryImportContent() {
                 localProblems={run.localProblems}
                 progress={run.progress}
                 running={run.running}
+                onIncludeMissingProducts={includeMissingProducts}
               />
             </Stepper.Item>
           </Stepper.Root>
