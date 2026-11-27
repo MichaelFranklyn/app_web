@@ -147,7 +147,9 @@ test("clients: importa clientes via planilha .xlsx e mostra o resumo", async ({
     buffer: XLSX.write(workbook, { type: "buffer", bookType: "xlsx" }),
   });
 
-  await dialog.getByRole("button", { name: "Importar", exact: true }).click();
+  // Em etapas: Planilha → Revisão → Resultado.
+  await dialog.getByRole("button", { name: "Próximo" }).click();
+  await dialog.getByRole("button", { name: "Importar (2)" }).click();
 
   await expect(
     page.getByText("Importação concluída", { exact: true })
@@ -175,7 +177,9 @@ test("clients: importa clientes via planilha e mostra o resumo", async ({
     ),
   });
 
-  await dialog.getByRole("button", { name: "Importar", exact: true }).click();
+  // Em etapas: Planilha → Revisão → Resultado.
+  await dialog.getByRole("button", { name: "Próximo" }).click();
+  await dialog.getByRole("button", { name: "Importar (2)" }).click();
 
   // Título do toast (a descrição repete o texto, por isso exact no título).
   await expect(

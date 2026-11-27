@@ -28,6 +28,7 @@ const result = (dryRun: boolean) => ({
       issues: [],
       missingProducts: [],
       missingClients: [{ document: "11111111000111", rows: 1 }],
+      newPaymentTerms: [],
     },
   },
 });
