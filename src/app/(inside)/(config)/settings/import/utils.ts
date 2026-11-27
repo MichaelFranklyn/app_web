@@ -211,7 +211,16 @@ export const mergeResults = (results: HistoryResult[]): HistoryResult => {
       r.missingProducts.forEach((p) => {
         const key = `${p.factoryId}|${p.code ?? ""}|${p.name ?? ""}`;
         const prev = products.get(key);
-        products.set(key, prev ? { ...prev, rows: prev.rows + p.rows } : p);
+        products.set(
+          key,
+          prev
+            ? {
+                ...prev,
+                rows: prev.rows + p.rows,
+                amount: (Number(prev.amount) + Number(p.amount)).toFixed(2),
+              }
+            : p
+        );
       });
       r.newPaymentTerms.forEach((t) =>
         terms.set(`${t.factoryId}|${t.name}`, t)
@@ -247,3 +256,7 @@ export const mergeResults = (results: HistoryResult[]): HistoryResult => {
     newPaymentTerms: [...terms.values()],
   };
 };
+
+/** Quanto os pedidos deixam de somar com os produtos fora do catálogo. */
+export const missingProductsAmount = (result: HistoryResult): number =>
+  result.missingProducts.reduce((sum, p) => sum + Number(p.amount), 0);

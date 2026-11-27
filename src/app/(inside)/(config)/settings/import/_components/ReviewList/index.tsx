@@ -11,10 +11,12 @@ interface Props {
   items: string[];
   /** Quantas linhas aparecem; o resto vira "e mais N". */
   limit?: number;
+  /** O que resolve a lista ali mesmo (ex.: cadastrar o que falta). */
+  action?: ReactNode;
 }
 
 /** Uma lista curta do que ficou de fora, com o que fazer a respeito. */
-export function ReviewList({ title, hint, items, limit = 10 }: Props) {
+export function ReviewList({ title, hint, items, limit = 10, action }: Props) {
   if (items.length === 0) return null;
   const hidden = items.length - limit;
   return (
@@ -42,6 +44,7 @@ export function ReviewList({ title, hint, items, limit = 10 }: Props) {
             E mais {hidden}.
           </Title>
         )}
+        {action && <div className="pt-4">{action}</div>}
       </Card.Body>
     </Card.Root>
   );

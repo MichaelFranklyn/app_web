@@ -133,6 +133,7 @@ export function PdfImportWizard({ initialBatchId }: Props) {
                 step={3}
                 total={3}
                 describeRow={(row) => build.labels[row] ?? `Linha ${row}`}
+                onIncludeMissingProducts={wizard.includeMissingProducts}
               />
             </Stepper.Item>
           </Stepper.Root>

@@ -5323,6 +5323,8 @@ type ImportHistoryMissingProduct {
   name: String
   """Quantas linhas citam este produto."""
   rows: Int!
+  """Valor dessas linhas na planilha: o que os pedidos deixam de somar sem o produto."""
+  amount: Decimal!
 }
 
 """Prazo de pagamento que a importação cadastra na fábrica (veio no pedido e ela não tinha)."""
