@@ -25,6 +25,8 @@ interface RunInput {
   quantityUnit: QuantityUnit;
   createMissingClients: boolean;
   createMissingProducts: boolean;
+  /** Libera a fábrica ao vendedor do pedido que ainda não a atende. */
+  grantSellerAccess?: boolean;
 }
 
 /**
@@ -52,6 +54,7 @@ export function useHistoryRun() {
       quantityUnit,
       createMissingClients,
       createMissingProducts,
+      grantSellerAccess = false,
     }: RunInput,
     dryRun: boolean
   ) => {
@@ -69,6 +72,7 @@ export function useHistoryRun() {
             quantityUnit,
             createMissingClients,
             createMissingProducts,
+            grantSellerAccess,
             dryRun,
             ...(batchId ? { batchId } : {}),
           },

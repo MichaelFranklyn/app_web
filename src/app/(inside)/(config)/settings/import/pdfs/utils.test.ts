@@ -264,10 +264,12 @@ describe("importedFileIds", () => {
     linksCreated: 0,
     clientsCreated: 0,
     productsCreated: 0,
+    sellerAccessesGranted: 0,
     installmentsCreated: 0,
     issues: [],
     missingProducts: [],
     missingClients: [],
+    missingSellerAccess: [],
     newPaymentTerms: [],
     ...over,
   });

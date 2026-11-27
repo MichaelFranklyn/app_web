@@ -130,6 +130,8 @@ export interface HistoryResult {
   linksCreated: number;
   clientsCreated: number;
   productsCreated: number;
+  /** Fábricas liberadas a vendedores que ainda não as atendiam. */
+  sellerAccessesGranted: number;
   /** Parcelas a vencer criadas nos faturados e entregues. */
   installmentsCreated: number;
   issues: RowProblem[];
@@ -143,6 +145,14 @@ export interface HistoryResult {
     amount: string;
   }[];
   missingClients: { document: string; rows: number }[];
+  /** Vendedor × fábrica sem acesso: o pedido entra, o cliente fica fora da rotina. */
+  missingSellerAccess: {
+    sellerId: string;
+    seller: { id: string; name: string } | null;
+    factoryId: string;
+    factory: HistoryFactory | null;
+    orders: number;
+  }[];
   /** Prazos que a importação cadastra na fábrica (vieram no pedido, ela não tinha). */
   newPaymentTerms: {
     factoryId: string;

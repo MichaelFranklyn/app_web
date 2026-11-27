@@ -25,6 +25,8 @@ export function useHistoryImportWizard() {
   // já vem ligado: sem ele o item cai e o pedido soma menos que o da planilha.
   const [createMissingClients, setCreateMissingClients] = useState(false);
   const [createMissingProducts, setCreateMissingProducts] = useState(true);
+  // Só liga pelo botão da conferência, depois de a pessoa ver quem e qual fábrica.
+  const [grantSellerAccess, setGrantSellerAccess] = useState(false);
 
   const input = () => {
     const built = buildRows({
@@ -41,6 +43,7 @@ export function useHistoryImportWizard() {
       quantityUnit: sheet.quantityUnit,
       createMissingClients,
       createMissingProducts,
+      grantSellerAccess,
     };
   };
 
@@ -71,6 +74,12 @@ export function useHistoryImportWizard() {
     await run.check({ ...input(), createMissingProducts: true });
   };
 
+  /** Na conferência: libera a fábrica aos vendedores que não a atendem e confere de novo. */
+  const includeSellerAccess = async () => {
+    setGrantSellerAccess(true);
+    await run.check({ ...input(), grantSellerAccess: true });
+  };
+
   const back = () => {
     run.resetPreview();
     setStep(Math.max(0, step - 1));
@@ -88,6 +97,7 @@ export function useHistoryImportWizard() {
     createMissingProducts,
     setCreateMissingProducts,
     includeMissingProducts,
+    includeSellerAccess,
     canAdvance,
     next,
     back,

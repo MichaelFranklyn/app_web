@@ -193,10 +193,12 @@ const EMPTY: HistoryResult = {
   linksCreated: 0,
   clientsCreated: 0,
   productsCreated: 0,
+  sellerAccessesGranted: 0,
   installmentsCreated: 0,
   issues: [],
   missingProducts: [],
   missingClients: [],
+  missingSellerAccess: [],
   newPaymentTerms: [],
 };
 
@@ -204,6 +206,10 @@ const EMPTY: HistoryResult = {
 export const mergeResults = (results: HistoryResult[]): HistoryResult => {
   const products = new Map<string, HistoryResult["missingProducts"][number]>();
   const clients = new Map<string, number>();
+  const accesses = new Map<
+    string,
+    HistoryResult["missingSellerAccess"][number]
+  >();
   // Cada parte da prévia roda sozinha: o mesmo prazo novo volta em várias.
   const terms = new Map<string, HistoryResult["newPaymentTerms"][number]>();
   const merged = results.reduce<HistoryResult>(
@@ -220,6 +226,14 @@ export const mergeResults = (results: HistoryResult[]): HistoryResult => {
                 amount: (Number(prev.amount) + Number(p.amount)).toFixed(2),
               }
             : p
+        );
+      });
+      r.missingSellerAccess.forEach((a) => {
+        const key = `${a.sellerId}|${a.factoryId}`;
+        const prev = accesses.get(key);
+        accesses.set(
+          key,
+          prev ? { ...prev, orders: prev.orders + a.orders } : a
         );
       });
       r.newPaymentTerms.forEach((t) =>
@@ -241,6 +255,8 @@ export const mergeResults = (results: HistoryResult[]): HistoryResult => {
         linksCreated: acc.linksCreated + r.linksCreated,
         clientsCreated: acc.clientsCreated + r.clientsCreated,
         productsCreated: acc.productsCreated + r.productsCreated,
+        sellerAccessesGranted:
+          acc.sellerAccessesGranted + r.sellerAccessesGranted,
         installmentsCreated: acc.installmentsCreated + r.installmentsCreated,
         issues: acc.issues.concat(r.issues),
       };
@@ -253,6 +269,9 @@ export const mergeResults = (results: HistoryResult[]): HistoryResult => {
     missingClients: [...clients.entries()]
       .map(([document, rows]) => ({ document, rows }))
       .sort((a, b) => b.rows - a.rows),
+    missingSellerAccess: [...accesses.values()].sort(
+      (a, b) => b.orders - a.orders
+    ),
     newPaymentTerms: [...terms.values()],
   };
 };

@@ -68,6 +68,7 @@ export const IMPORT_ORDER_HISTORY_MUTATION = gql`
         linksCreated
         clientsCreated
         productsCreated
+        sellerAccessesGranted
         installmentsCreated
         issues {
           row
@@ -90,6 +91,21 @@ export const IMPORT_ORDER_HISTORY_MUTATION = gql`
         missingClients {
           document
           rows
+        }
+        missingSellerAccess {
+          sellerId
+          seller {
+            id
+            name
+          }
+          factoryId
+          factory {
+            id
+            nomeFantasia
+            razaoSocial
+            nickname
+          }
+          orders
         }
         newPaymentTerms {
           factoryId
