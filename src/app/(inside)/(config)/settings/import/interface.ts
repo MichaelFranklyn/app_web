@@ -97,11 +97,22 @@ export interface HistoryRowInput {
   paymentTerms: string | null;
   /** Observações do pedido; basta numa linha do pedido. */
   notes?: string | null;
+  /** Cria o cliente que falta só para este pedido (escolha da prévia do PDF). */
+  createClient?: boolean;
+  /** O código do cliente na fábrica, gravado no vínculo quando estiver livre. */
+  factoryClientCode?: string | null;
 }
 
 export interface RowProblem {
   row: number;
   message: string;
+}
+
+interface HistoryFactory {
+  id: string;
+  nomeFantasia: string | null;
+  razaoSocial: string;
+  nickname: string | null;
 }
 
 export interface HistoryResult {
@@ -122,17 +133,18 @@ export interface HistoryResult {
   issues: RowProblem[];
   missingProducts: {
     factoryId: string;
-    factory: {
-      id: string;
-      nomeFantasia: string | null;
-      razaoSocial: string;
-      nickname: string | null;
-    } | null;
+    factory: HistoryFactory | null;
     code: string | null;
     name: string | null;
     rows: number;
   }[];
   missingClients: { document: string; rows: number }[];
+  /** Prazos que a importação cadastra na fábrica (vieram no pedido, ela não tinha). */
+  newPaymentTerms: {
+    factoryId: string;
+    factory: HistoryFactory | null;
+    name: string;
+  }[];
 }
 
 export interface ImportOrderHistoryResponse {

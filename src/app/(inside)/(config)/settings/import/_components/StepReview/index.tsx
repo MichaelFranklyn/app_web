@@ -81,38 +81,58 @@ export function StepReview({
           </Alert.Content>
         </Alert.Root>
       )}
-      <Card.Kpi.Group>
-        <Card.Kpi>
-          <Card.Kpi.Label>
-            {done ? "Pedidos importados" : "Pedidos que entram"}
-          </Card.Kpi.Label>
-          <Card.Kpi.Value>{result.ordersCreated}</Card.Kpi.Value>
-        </Card.Kpi>
-        <Card.Kpi>
-          <Card.Kpi.Label>Itens</Card.Kpi.Label>
-          <Card.Kpi.Value>{result.itemsImported}</Card.Kpi.Value>
-        </Card.Kpi>
-        <Card.Kpi>
-          <Card.Kpi.Label>Já importados antes</Card.Kpi.Label>
-          <Card.Kpi.Value>{result.ordersAlreadyImported}</Card.Kpi.Value>
-        </Card.Kpi>
-        <Card.Kpi>
-          <Card.Kpi.Label>Vínculos novos</Card.Kpi.Label>
-          <Card.Kpi.Value>{result.linksCreated}</Card.Kpi.Value>
-        </Card.Kpi>
-        <Card.Kpi>
-          <Card.Kpi.Label>Parcelas a vencer</Card.Kpi.Label>
-          <Card.Kpi.Value>{result.installmentsCreated}</Card.Kpi.Value>
-        </Card.Kpi>
-        <Card.Kpi>
-          <Card.Kpi.Label>Clientes novos</Card.Kpi.Label>
-          <Card.Kpi.Value>{result.clientsCreated}</Card.Kpi.Value>
-        </Card.Kpi>
-        <Card.Kpi>
-          <Card.Kpi.Label>Produtos novos</Card.Kpi.Label>
-          <Card.Kpi.Value>{result.productsCreated}</Card.Kpi.Value>
-        </Card.Kpi>
-      </Card.Kpi.Group>
+      {/* Duas fileiras de quatro: o que entra e o que se cadastra no caminho.
+          Sete cartões numa grade de quatro deixavam um buraco no fim. */}
+      <div className="flex flex-col gap-8">
+        <Title variant="micro" color="muted">
+          {done ? "O que entrou" : "O que entra"}
+        </Title>
+        <Card.Kpi.Group size="compact">
+          <Card.Kpi>
+            <Card.Kpi.Label>Pedidos</Card.Kpi.Label>
+            <Card.Kpi.Value>{result.ordersCreated}</Card.Kpi.Value>
+          </Card.Kpi>
+          <Card.Kpi>
+            <Card.Kpi.Label>Itens</Card.Kpi.Label>
+            <Card.Kpi.Value>{result.itemsImported}</Card.Kpi.Value>
+          </Card.Kpi>
+          <Card.Kpi>
+            <Card.Kpi.Label>Parcelas a vencer</Card.Kpi.Label>
+            <Card.Kpi.Value>{result.installmentsCreated}</Card.Kpi.Value>
+          </Card.Kpi>
+          <Card.Kpi>
+            <Card.Kpi.Label help="Pedidos com o mesmo número já importados antes: não entram de novo.">
+              Já importados antes
+            </Card.Kpi.Label>
+            <Card.Kpi.Value>{result.ordersAlreadyImported}</Card.Kpi.Value>
+          </Card.Kpi>
+        </Card.Kpi.Group>
+      </div>
+      <div className="flex flex-col gap-8">
+        <Title variant="micro" color="muted">
+          {done ? "O que foi cadastrado" : "O que é cadastrado"}
+        </Title>
+        <Card.Kpi.Group size="compact">
+          <Card.Kpi>
+            <Card.Kpi.Label>Clientes novos</Card.Kpi.Label>
+            <Card.Kpi.Value>{result.clientsCreated}</Card.Kpi.Value>
+          </Card.Kpi>
+          <Card.Kpi>
+            <Card.Kpi.Label>Produtos novos</Card.Kpi.Label>
+            <Card.Kpi.Value>{result.productsCreated}</Card.Kpi.Value>
+          </Card.Kpi>
+          <Card.Kpi>
+            <Card.Kpi.Label help="Vendedor × cliente × fábrica: é o que põe o cliente na rotina do vendedor.">
+              Vínculos novos
+            </Card.Kpi.Label>
+            <Card.Kpi.Value>{result.linksCreated}</Card.Kpi.Value>
+          </Card.Kpi>
+          <Card.Kpi>
+            <Card.Kpi.Label>Prazos novos</Card.Kpi.Label>
+            <Card.Kpi.Value>{result.newPaymentTerms.length}</Card.Kpi.Value>
+          </Card.Kpi>
+        </Card.Kpi.Group>
+      </div>
       <ReviewList
         title={`${plural(result.missingClients.length, "cliente", "clientes")} fora da carteira`}
         hint='Os pedidos destes clientes ficam de fora. Volte e ligue "Criar os clientes que faltam", ou importe os clientes em Clientes → Importar e importe de novo: o que já entrou não duplica.'
@@ -126,6 +146,17 @@ export function StepReview({
         items={result.missingProducts.map(
           (p) =>
             `${[p.code, p.name].filter(Boolean).join(" — ")} (${factoryName(p.factory)}) · ${plural(p.rows, "item", "itens")}`
+        )}
+      />
+      <ReviewList
+        title={
+          done
+            ? `${plural(result.newPaymentTerms.length, "prazo cadastrado", "prazos cadastrados")} na fábrica`
+            : `${plural(result.newPaymentTerms.length, "prazo será cadastrado", "prazos serão cadastrados")} na fábrica`
+        }
+        hint="Vieram nos pedidos e a fábrica ainda não tinha. Os pedidos entram com eles; dá para ajustar depois na página da fábrica."
+        items={result.newPaymentTerms.map(
+          (t) => `${t.name} (${factoryName(t.factory)})`
         )}
       />
       <ReviewList

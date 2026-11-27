@@ -3925,8 +3925,25 @@ extend type Query {
 extend type Mutation {
   createOrderPdfImportBatch(input: CreateOrderPdfImportBatchInput!): OrderPdfImportBatchTypeDataResponse!
   addOrderPdfImportFile(input: AddOrderPdfImportFileInput!): AddedOrderPdfImportFileDataResponse!
-  """Marca como importados os PDFs cujos pedidos o `importOrderHistory` gravou."""
-  markOrderPdfImportFilesImported(batchId: UUID!, fileIds: [UUID!]!): MarkOrderPdfImportFilesResultDataResponse!
+  """
+  Marca como importados os PDFs cujos pedidos o `importOrderHistory` gravou.
+  `historyBatchId` é o lote que ele devolveu: desfazer aquela importação
+  devolve estes PDFs a READ.
+  """
+  markOrderPdfImportFilesImported(
+    batchId: UUID!
+    fileIds: [UUID!]!
+    historyBatchId: UUID = null
+  ): MarkOrderPdfImportFilesResultDataResponse!
+  """
+  Troca a fábrica do lote enquanto nenhum PDF dele virou pedido. Os PDFs já
+  lidos voltam a PENDING e são relidos com o modelo da nova fábrica.
+  """
+  changeOrderPdfImportBatchFactory(id: UUID!, factoryId: UUID!): OrderPdfImportBatchTypeDataResponse!
+  """Apaga o lote e os PDFs dele. Pedidos já importados continuam."""
+  deleteOrderPdfImportBatch(id: UUID!): BaseResponse!
+  """Tira um PDF do lote. O que já virou pedido não sai."""
+  deleteOrderPdfImportFile(batchId: UUID!, fileId: UUID!): BaseResponse!
 }
 
 """
@@ -5276,6 +5293,10 @@ input ImportOrderHistoryRowInput {
   clientName: String = null
   """Observações do pedido (o texto livre que veio com ele)."""
   notes: String = null
+  """Cria pelo documento o cliente deste pedido se ele não estiver na carteira (vale só para este pedido)."""
+  createClient: Boolean! = false
+  """Código do cliente na fábrica: gravado no vínculo que ainda não tem código."""
+  factoryClientCode: String = null
 }
 
 input ImportOrderHistoryInput {
@@ -5302,6 +5323,13 @@ type ImportHistoryMissingProduct {
   name: String
   """Quantas linhas citam este produto."""
   rows: Int!
+}
+
+"""Prazo de pagamento que a importação cadastra na fábrica (veio no pedido e ela não tinha)."""
+type ImportHistoryNewPaymentTerm {
+  factoryId: UUID!
+  factory: FactoryType
+  name: String!
 }
 
 type ImportHistoryMissingClient {
@@ -5331,6 +5359,8 @@ type ImportOrderHistoryResult {
   missingProducts: [ImportHistoryMissingProduct!]!
   """Clientes que não estão na carteira — importe os clientes antes."""
   missingClients: [ImportHistoryMissingClient!]!
+  """Prazos de pagamento cadastrados nas fábricas (um por fábrica e condição)."""
+  newPaymentTerms: [ImportHistoryNewPaymentTerm!]!
   """Lote em que os pedidos gravados entraram. Nulo na prévia ou quando nada entrou."""
   batchId: UUID
 }

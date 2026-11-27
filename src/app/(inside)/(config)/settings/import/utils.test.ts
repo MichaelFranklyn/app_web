@@ -90,6 +90,7 @@ describe("mergeResults", () => {
     issues: [],
     missingProducts: [],
     missingClients: [],
+    newPaymentTerms: [],
     ...patch,
   });
 
@@ -111,5 +112,16 @@ describe("mergeResults", () => {
       { document: "2", rows: 9 },
       { document: "1", rows: 5 },
     ]);
+  });
+
+  it("conta uma vez o prazo novo que volta em várias partes", () => {
+    const term = { factoryId: "f1", factory: null, name: "30/60/90/120" };
+    const merged = mergeResults([
+      result({ newPaymentTerms: [term] }),
+      result({
+        newPaymentTerms: [term, { ...term, factoryId: "f2" }],
+      }),
+    ]);
+    expect(merged.newPaymentTerms).toHaveLength(2);
   });
 });

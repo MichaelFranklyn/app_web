@@ -89,6 +89,16 @@ export const IMPORT_ORDER_HISTORY_MUTATION = gql`
           document
           rows
         }
+        newPaymentTerms {
+          factoryId
+          factory {
+            id
+            nomeFantasia
+            razaoSocial
+            nickname
+          }
+          name
+        }
       }
     }
   }

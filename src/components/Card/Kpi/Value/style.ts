@@ -36,7 +36,9 @@ export const kpiValueStyle = cva(
         // colunas num celular de 375px sobram ~130px, e "R$ 12.345,67" a 25px
         // seria cortado pelo `overflow-hidden` do cartão. `anywhere` é a rede
         // para o valor que nem a 16px cabe — quebra em vez de sumir.
-        md: "text-[length:clamp(18px,13cqi,34px)] [overflow-wrap:anywhere]",
+        // Na faixa `compact` (`Card.Kpi.Group size="compact"`), o mesmo
+        // encolhimento com teto de 24px.
+        md: "text-[length:clamp(18px,13cqi,34px)] group-data-[size=compact]/kpi:text-[length:clamp(18px,10cqi,24px)] [overflow-wrap:anywhere]",
         sm: "text-body-lg",
       },
     },

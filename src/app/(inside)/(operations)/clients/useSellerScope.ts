@@ -3,6 +3,7 @@
 import { SelectOption } from "@/components/Input";
 import { useIdleReady } from "@/hooks/useIdleReady";
 import { useCompleteList } from "@/hooks/useCompleteList";
+import { useSeedQuery } from "@/hooks/useSeedQuery";
 import { useQuery } from "@apollo/client/react";
 import { useMemo } from "react";
 import { CLIENTS_SELLERS_QUERY, CLIENT_STATS_QUERY } from "./gql";
@@ -53,14 +54,24 @@ export function useSellerScope({
     [sellersQuery.data]
   );
 
-  // Sem vendedor escolhido não refaz a query: os KPIs do SSR já são os certos.
+  // Os KPIs da carteira inteira (sem vendedor) vêm do SSR, mas SEMEADOS no
+  // cache do Apollo, não usados direto: a query fica ativa e, quando uma
+  // mutation invalida `clientStats` (importar, adicionar, excluir cliente), ela
+  // refaz o fetch. Com o valor do SSR na mão, o topo ficava congelado até o F5.
+  useSeedQuery([
+    {
+      query: CLIENT_STATS_QUERY,
+      variables: { sellerId: null },
+      data: fallbackStats?.clientStats ? fallbackStats : null,
+    },
+  ]);
+
   const statsQuery = useQuery<ClientsStats>(CLIENT_STATS_QUERY, {
-    variables: { sellerId: selectedSellerId },
-    skip: !selectedSellerId,
+    variables: { sellerId: selectedSellerId ?? null },
   });
 
-  const stats =
-    selectedSellerId && statsQuery.data ? statsQuery.data : fallbackStats;
+  // Resposta sem o campo (hiccup do back, stub vazio) não derruba o topo.
+  const stats = statsQuery.data?.clientStats ? statsQuery.data : fallbackStats;
 
   // Enquanto a busca está represada o seletor precisa parecer "carregando", e
   // não "sem vendedores": `loading` do Apollo é false enquanto a query está skipada.

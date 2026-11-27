@@ -30,6 +30,27 @@ function unreachable(status: 503 | 504, message: string) {
   );
 }
 
+/** Cookies da sessão que um 401 mata (os mesmos que o `DELETE /api/session` apaga). */
+const SESSION_COOKIES = ["token", "userData", "remember"];
+
+/**
+ * O backend responde 200 com `extensions.code: 401` quando o token não vale
+ * mais sem estar vencido — sessão revogada (troca de senha, saída em outro
+ * aparelho), usuário desativado. O proxy só pega o `exp` no passado, então essa
+ * sessão passava por ele e a tela ficava de pé, vazia, sem nunca voltar ao
+ * login (painel em branco, 27/11/2026).
+ */
+function isSessionRejected(text: string): boolean {
+  try {
+    const json = JSON.parse(text) as {
+      errors?: Array<{ extensions?: { code?: unknown } }>;
+    };
+    return Boolean(json.errors?.some((e) => e.extensions?.code === 401));
+  } catch {
+    return false;
+  }
+}
+
 export async function POST(req: NextRequest) {
   // token httpOnly (ou o `code` de primeiro acesso, como fazia o authLink).
   const token =
@@ -62,6 +83,19 @@ export async function POST(req: NextRequest) {
 
     // Ler o corpo também pode falhar (conexão cortada no meio da resposta).
     const text = await upstream.text();
+
+    // Sessão recusada: vira 401 de verdade e os cookies saem aqui mesmo — o
+    // cliente Apollo leva para o login, e o proxy, sem token, não deixa a
+    // próxima navegação abrir uma tela que só daria erro.
+    if (isSessionRejected(text)) {
+      const response = new NextResponse(text, {
+        status: 401,
+        headers: { "Content-Type": "application/json" },
+      });
+      SESSION_COOKIES.forEach((name) => response.cookies.delete(name));
+      return response;
+    }
+
     return new NextResponse(text, {
       status: upstream.status,
       headers: { "Content-Type": "application/json" },

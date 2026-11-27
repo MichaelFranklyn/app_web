@@ -1,3 +1,4 @@
+import { cn } from "@/lib/utils";
 import { Grid } from "@/components/Grid";
 import React from "react";
 import { CardKpiGroupProps } from "./interface";
@@ -9,7 +10,7 @@ import { KPI_GROUP_LAST_ODD_SPAN, kpiGroupCols } from "./style";
  * entrega os cartões.
  */
 export const KpiGroup = React.forwardRef<HTMLDivElement, CardKpiGroupProps>(
-  ({ children, ...props }, ref) => {
+  ({ children, size = "default", className, ...props }, ref) => {
     const items = React.Children.toArray(children);
     const odd = items.length > 1 && items.length % 2 === 1;
 
@@ -18,6 +19,8 @@ export const KpiGroup = React.forwardRef<HTMLDivElement, CardKpiGroupProps>(
         ref={ref}
         cols={kpiGroupCols(items.length)}
         gap={12}
+        data-size={size}
+        className={cn("group/kpi", className)}
         {...props}
       >
         {items.map((item, index) => (

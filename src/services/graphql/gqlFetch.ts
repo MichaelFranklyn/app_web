@@ -116,8 +116,13 @@ export async function gqlFetch<
 
   const json = (await response.json()) as {
     data?: TData;
-    errors?: Array<{ message: string }>;
+    errors?: Array<{ message: string; extensions?: { code?: unknown } }>;
   };
+
+  // O backend recusa a sessão com 200 + `extensions.code: 401` (token revogado
+  // sem estar vencido): é o mesmo caso do 401 do HTTP acima.
+  if (json.errors?.some((e) => e.extensions?.code === 401))
+    throw new Error("UNAUTHORIZED");
 
   if (json.errors?.length) throw new Error(json.errors[0].message);
 

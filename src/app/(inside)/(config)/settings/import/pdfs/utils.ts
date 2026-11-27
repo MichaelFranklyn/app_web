@@ -1,4 +1,6 @@
+import type { SelectOption } from "@/components/Input";
 import { ThemeColor } from "@/lib/theme";
+import { isValidCnpj } from "@/utils/document";
 import { BRT_TIME_ZONE, formatDateAtTime } from "@/utils/format/date";
 import { plural } from "@/utils/format/plural";
 
@@ -6,9 +8,11 @@ import {
   HistoryOrderStatus,
   HistoryResult,
   HistoryRowInput,
+  MatchOption,
   RowProblem,
 } from "../interface";
 import {
+  PdfDefaults,
   PdfFileOverride,
   PdfImportBatch,
   PdfImportFile,
@@ -17,11 +21,41 @@ import {
 
 /** Quantos PDFs sobem ao mesmo tempo: o servidor lê cada um na hora do envio. */
 export const UPLOAD_CONCURRENCY = 2;
-/** Igual ao limite do backend (`MAX_FILES_PER_BATCH`). */
-export const MAX_PDF_FILES = 200;
+/** Igual ao limite do backend (`MAX_OPEN_FILES_PER_BATCH`): 20 PDFs abertos por lote. */
+export const MAX_PDF_FILES = 20;
+
+export const PDF_BATCHES_PATH = "/settings/import/pdfs";
+export const NEW_PDF_BATCH_PATH = `${PDF_BATCHES_PATH}/new`;
+export const pdfBatchPath = (id: string) => `${PDF_BATCHES_PATH}/${id}`;
+
 export const MAX_PDF_SIZE_MB = 10;
 /** Enquanto há PDF sendo lido, a tela pergunta de novo a cada tanto. */
 export const POLL_INTERVAL_MS = 2500;
+
+/**
+ * Quantos PDFs ainda cabem no lote: como no backend (`_is_open`), ocupam vaga
+ * os lidos à espera de importar e os que estão chegando agora.
+ */
+export const freePdfSlots = (files: PdfImportFile[]): number =>
+  Math.max(
+    0,
+    MAX_PDF_FILES -
+      files.filter(
+        (f) => f.status === "READ" || (f.status === "PENDING" && !f.isStale)
+      ).length
+  );
+
+/** As opções de fábrica/vendedor/situação no formato do `Input.Select`. */
+export const toSelect = (options: MatchOption[]): SelectOption[] =>
+  options.map((o) => ({ value: o.id, label: o.label }));
+
+/** O id escolhido num `Input.Select` de escolha única (nulo = limpo). */
+export const pickedId = (
+  val: SelectOption | SelectOption[] | null
+): string | null => {
+  const opt = Array.isArray(val) ? val[0] : val;
+  return opt && opt.value !== "" ? String(opt.value) : null;
+};
 
 /** SHA-256 em hex: o mesmo PDF enviado duas vezes não vira dois pedidos. */
 export async function hashFile(
@@ -49,13 +83,31 @@ export function rowStatus(
   return beforeInvoice && invoiceNumber ? "INVOICED" : defaultStatus;
 }
 
-/** O vendedor de um PDF: o escolhido nele, o do lote ou o do cliente. */
+/** Os padrões de um lote aberto antes da prévia (vendedor e situação no lote). */
+export const batchDefaults = (batch: PdfImportBatch): PdfDefaults => ({
+  sellerId: batch.sellerId,
+  status: batch.defaultStatus,
+});
+
+/** O vendedor de um PDF: o escolhido nele, o de todos ou o do cliente. */
 export const fileSellerId = (
-  batch: PdfImportBatch,
+  defaults: PdfDefaults,
   file: PdfImportFile,
   override?: PdfFileOverride
 ): string | null =>
-  override?.sellerId ?? batch.sellerId ?? file.suggestedSellerId ?? null;
+  override?.sellerId ?? defaults.sellerId ?? file.suggestedSellerId ?? null;
+
+/**
+ * A situação de um PDF: a escolhida nele ou a de todos — e, com o número da
+ * nota no PDF, faturado em vez de confirmado (`rowStatus`).
+ */
+export const fileStatus = (
+  defaults: PdfDefaults,
+  file: PdfImportFile,
+  override?: PdfFileOverride
+): HistoryOrderStatus =>
+  override?.status ??
+  rowStatus(defaults.status, file.header?.invoiceNumber ?? null);
 
 /** A data de um PDF: a corrigida na tela ou a lida do cabeçalho. */
 export const fileOrderDate = (
@@ -64,30 +116,129 @@ export const fileOrderDate = (
 ): string | null => override?.orderDate ?? file.header?.orderDate ?? null;
 
 /**
- * O CNPJ do cliente do PDF: o que o servidor resolveu (o do PDF ou, quando o
- * PDF só traz o código do cliente na fábrica, o do cadastro) ou o lido.
+ * A condição de pagamento de um PDF: a digitada na tela (mesmo apagada — aí o
+ * pedido vai sem condição) ou a lida do cabeçalho.
  */
-export const fileClientDocument = (file: PdfImportFile): string | null =>
+export const filePaymentTerms = (
+  file: PdfImportFile,
+  override?: PdfFileOverride
+): string | null => {
+  const typed = override?.paymentTerms;
+  if (typed !== undefined) return typed?.trim() || null;
+  return file.header?.paymentTerms ?? null;
+};
+
+/**
+ * O que a condição digitada vira na importação, para o campo explicar. `error`
+ * quando não há dias no texto: o pedido entraria como se não tivesse condição.
+ */
+export const paymentTermsHint = (
+  text: string | null
+): { message: string; error: boolean } => {
+  if (!text)
+    return {
+      message:
+        "Em branco: o pedido faturado usa o prazo cadastrado na fábrica.",
+      error: false,
+    };
+  const days = paymentTermDays(text);
+  if (!days)
+    return {
+      message: "Não deu para ler os dias. Escreva como 30/60/90 ou à vista.",
+      error: true,
+    };
+  const label =
+    days.length === 1 && days[0] === 0 ? "à vista" : `${days.join("/")} dias`;
+  return {
+    message: `Prazo de ${label}. Se a fábrica não tiver, ele é cadastrado nela.`,
+    error: false,
+  };
+};
+
+/** O maior prazo de parcela que o backend aceita (`MAX_PAYMENT_DAYS`). */
+const MAX_PAYMENT_DAYS = 720;
+
+/**
+ * Os dias de uma condição escrita, como o backend lê (`parse_payment_days`):
+ * "30/60/90 DDL" é [30, 60, 90]; "à vista" é [0]. Nulo quando não há dias.
+ */
+export const paymentTermDays = (text: string | null): number[] | null => {
+  const normalized = (text ?? "")
+    .normalize("NFKD")
+    .replace(/[\u0300-\u036f]/g, "")
+    .toUpperCase();
+  const numbers = (normalized.match(/\d+/g) ?? []).map(Number);
+  if (!numbers.length) return /\bA ?VISTA\b/.test(normalized) ? [0] : null;
+  if (numbers.some((n) => n > MAX_PAYMENT_DAYS)) return null;
+  return numbers.sort((a, b) => a - b);
+};
+
+/**
+ * O CNPJ que o próprio PDF identifica: o que o servidor resolveu (o do PDF ou,
+ * quando o PDF só traz o código do cliente na fábrica, o do cadastro) ou o lido.
+ */
+const pdfClientDocument = (file: PdfImportFile): string | null =>
   file.clientDocument ?? file.header?.clientDocument ?? null;
 
-/** O que impede um PDF lido de entrar, em palavras; nulo = pode entrar. */
-export function fileBlocker(
-  batch: PdfImportBatch,
+/** Sem CNPJ nem código que case: a prévia pede o cliente (existente ou novo). */
+export const fileNeedsClient = (file: PdfImportFile): boolean =>
+  file.status === "READ" && !pdfClientDocument(file);
+
+/** O CNPJ do cliente do PDF: o identificado pelo PDF ou o escolhido na prévia. */
+export const fileClientDocument = (
+  file: PdfImportFile,
+  override?: PdfFileOverride
+): string | null =>
+  pdfClientDocument(file) ??
+  (override?.clientMode ? (override.clientDocument ?? null) : null);
+
+/** O nome do cliente: o escolhido na prévia, o do cadastro ou o lido. */
+export const fileClientName = (
+  file: PdfImportFile,
+  override?: PdfFileOverride
+): string | null =>
+  (fileNeedsClient(file) && override?.clientMode
+    ? override.clientName
+    : null) ??
+  file.clientName ??
+  file.header?.clientName ??
+  null;
+
+/** O cliente que falta acertar na prévia, em palavras; nulo = identificado. */
+function clientBlocker(
   file: PdfImportFile,
   override?: PdfFileOverride
 ): string | null {
-  if (!fileClientDocument(file)) {
-    const code = file.header?.clientCode;
-    return code
-      ? `o PDF não traz o CNPJ, e nenhum cliente tem o código ${code} nesta fábrica. Cadastre o código no vínculo do cliente com a fábrica.`
-      : "o PDF não traz o CNPJ nem o código do cliente.";
+  if (!fileNeedsClient(file)) return null;
+  const mode = override?.clientMode;
+  if (mode === "existing")
+    return override?.clientDocument ? null : "escolha o cliente da carteira.";
+  if (mode === "new") {
+    if (!isValidCnpj(override?.clientDocument))
+      return "informe um CNPJ válido para o cliente novo.";
+    if (!override?.clientName?.trim()) return "informe o nome do cliente novo.";
+    return null;
   }
+  const code = file.header?.clientCode;
+  return code
+    ? `o PDF não traz o CNPJ, e nenhum cliente tem o código ${code} nesta fábrica. Vincule um cliente da carteira ou cadastre um novo.`
+    : "o PDF não traz o CNPJ nem o código do cliente. Vincule um cliente da carteira ou cadastre um novo.";
+}
+
+/** O que impede um PDF lido de entrar, em palavras; nulo = pode entrar. */
+export function fileBlocker(
+  defaults: PdfDefaults,
+  file: PdfImportFile,
+  override?: PdfFileOverride
+): string | null {
+  const client = clientBlocker(file, override);
+  if (client) return client;
   if (!file.items?.length) return "nenhum item foi lido do PDF.";
   if (!fileOrderDate(file, override)) return "informe a data do pedido.";
-  if (!fileSellerId(batch, file, override))
+  if (!fileSellerId(defaults, file, override))
     return file.clientId
-      ? "o cliente não tem vendedor nesta fábrica; escolha um."
-      : "cliente novo: escolha o vendedor que vai atendê-lo.";
+      ? "o cliente não tem vendedor ligado nesta fábrica. Escolha o vendedor deste pedido no campo Vendedor."
+      : "o cliente não está na carteira, então não há vendedor ligado a ele. Escolha o vendedor deste pedido no campo Vendedor.";
   return null;
 }
 
@@ -99,7 +250,8 @@ export function fileBlocker(
 export function buildPdfRows(
   batch: PdfImportBatch,
   files: PdfImportFile[],
-  overrides: Record<string, PdfFileOverride>
+  overrides: Record<string, PdfFileOverride>,
+  defaults: PdfDefaults = batchDefaults(batch)
 ): PdfRowsBuild {
   const rows: HistoryRowInput[] = [];
   const problems: RowProblem[] = [];
@@ -116,7 +268,7 @@ export function buildPdfRows(
 
   for (const file of files) {
     const override = overrides[file.id];
-    if (file.status === "IMPORTED" || override?.skip) continue;
+    if (file.status === "IMPORTED") continue;
     if (file.status === "FAILED") {
       flag(file, file.error ?? "o PDF não pôde ser lido.");
       continue;
@@ -125,20 +277,28 @@ export function buildPdfRows(
       flag(
         file,
         file.isStale
-          ? "o envio caiu no meio; envie o PDF de novo ou deixe-o de fora."
+          ? "o envio caiu no meio; envie o PDF de novo ou exclua-o do lote."
           : "o PDF ainda não foi lido."
       );
       continue;
     }
-    const blocker = fileBlocker(batch, file, override);
+    const blocker = fileBlocker(defaults, file, override);
     if (blocker) {
       flag(file, blocker);
       continue;
     }
     const header = file.header!;
-    const sellerId = fileSellerId(batch, file, override)!;
+    const sellerId = fileSellerId(defaults, file, override)!;
     const orderDate = fileOrderDate(file, override)!;
-    const status = rowStatus(batch.defaultStatus, header.invoiceNumber);
+    const status = fileStatus(defaults, file, override);
+    const createClient =
+      fileNeedsClient(file) && override?.clientMode === "new";
+    // O código do PDF vai junto quando não foi ele que achou o cliente: o
+    // backend grava no vínculo se estiver vazio e o código, livre.
+    const factoryClientCode =
+      file.clientMatchedBy === "FACTORY_CODE"
+        ? null
+        : (header.clientCode ?? null);
     if (file.unreadableRows > 0) {
       flag(
         file,
@@ -152,7 +312,7 @@ export function buildPdfRows(
       rows.push({
         row: next,
         externalRef: header.orderNumber || file.fileName,
-        clientDocument: fileClientDocument(file)!,
+        clientDocument: fileClientDocument(file, override)!,
         factoryId: batch.factoryId,
         sellerId,
         orderDate,
@@ -162,12 +322,14 @@ export function buildPdfRows(
         unitPrice: item.unitPrice,
         total: null,
         status,
-        clientName: file.clientName ?? header.clientName,
+        clientName: fileClientName(file, override),
         invoiceNumber: header.invoiceNumber,
         invoicedAt: null,
-        paymentTerms: header.paymentTerms,
+        paymentTerms: filePaymentTerms(file, override),
         // A observação é do pedido: vai uma vez só, na primeira linha.
         notes: index === 0 ? (header.notes ?? null) : null,
+        createClient,
+        factoryClientCode,
       });
       next += 1;
     }
@@ -184,7 +346,8 @@ export function buildPdfRows(
 export function importedFileIds(
   build: PdfRowsBuild,
   files: PdfImportFile[],
-  result: HistoryResult
+  result: HistoryResult,
+  overrides: Record<string, PdfFileOverride> = {}
 ): string[] {
   const digits = (value: string) => value.replace(/\D/g, "");
   const missing = new Set(result.missingClients.map((c) => digits(c.document)));
@@ -192,10 +355,33 @@ export function importedFileIds(
   const byId = new Map(files.map((f) => [f.id, f]));
   return build.fileIds.filter((id) => {
     const file = byId.get(id);
-    const document = (file && fileClientDocument(file)) ?? "";
+    const document = (file && fileClientDocument(file, overrides[id])) ?? "";
     if (missing.has(digits(document))) return false;
     return (build.fileRows[id] ?? []).some((row) => !refused.has(row));
   });
+}
+
+/**
+ * Soma quantidade × preço dos itens lidos (sem IPI). Nulo quando nenhum item
+ * trouxe preço; `unpriced` conta os que ficaram sem, para a ficha avisar.
+ */
+export function fileItemsTotal(
+  file: PdfImportFile
+): { total: number; unpriced: number } | null {
+  let total = 0;
+  let priced = 0;
+  let unpriced = 0;
+  for (const item of file.items ?? []) {
+    const qty = Number(item.quantity);
+    const price = item.unitPrice == null ? NaN : Number(item.unitPrice);
+    if (!isFinite(qty) || !isFinite(price)) {
+      unpriced += 1;
+      continue;
+    }
+    total += qty * price;
+    priced += 1;
+  }
+  return priced > 0 ? { total, unpriced } : null;
 }
 
 /** Em que pé está o PDF, para a etiqueta da lista. */

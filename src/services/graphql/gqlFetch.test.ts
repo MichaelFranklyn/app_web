@@ -205,4 +205,15 @@ describe("gqlFetch", () => {
 
     await expect(gqlFetch({ query: QUERY })).resolves.toEqual({ data: null });
   });
+
+  it("sessão recusada no corpo (200 + code 401) é UNAUTHORIZED, como o 401 do HTTP", async () => {
+    responde({
+      errors: [
+        { message: "Token inválido ou expirado", extensions: { code: 401 } },
+      ],
+      data: null,
+    });
+
+    await expect(gqlFetch({ query: QUERY })).rejects.toThrow("UNAUTHORIZED");
+  });
 });

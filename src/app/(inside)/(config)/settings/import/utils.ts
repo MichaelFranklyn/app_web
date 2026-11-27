@@ -197,12 +197,15 @@ const EMPTY: HistoryResult = {
   issues: [],
   missingProducts: [],
   missingClients: [],
+  newPaymentTerms: [],
 };
 
 /** Soma os resultados dos lotes num resumo só (listas somadas por chave). */
 export const mergeResults = (results: HistoryResult[]): HistoryResult => {
   const products = new Map<string, HistoryResult["missingProducts"][number]>();
   const clients = new Map<string, number>();
+  // Cada parte da prévia roda sozinha: o mesmo prazo novo volta em várias.
+  const terms = new Map<string, HistoryResult["newPaymentTerms"][number]>();
   const merged = results.reduce<HistoryResult>(
     (acc, r) => {
       r.missingProducts.forEach((p) => {
@@ -210,6 +213,9 @@ export const mergeResults = (results: HistoryResult[]): HistoryResult => {
         const prev = products.get(key);
         products.set(key, prev ? { ...prev, rows: prev.rows + p.rows } : p);
       });
+      r.newPaymentTerms.forEach((t) =>
+        terms.set(`${t.factoryId}|${t.name}`, t)
+      );
       r.missingClients.forEach((c) =>
         clients.set(c.document, (clients.get(c.document) ?? 0) + c.rows)
       );
@@ -238,5 +244,6 @@ export const mergeResults = (results: HistoryResult[]): HistoryResult => {
     missingClients: [...clients.entries()]
       .map(([document, rows]) => ({ document, rows }))
       .sort((a, b) => b.rows - a.rows),
+    newPaymentTerms: [...terms.values()],
   };
 };
