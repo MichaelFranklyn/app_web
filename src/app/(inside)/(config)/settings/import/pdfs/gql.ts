@@ -93,13 +93,53 @@ export const MARK_ORDER_PDF_IMPORT_FILES_IMPORTED_MUTATION = gql`
   mutation MarkOrderPdfImportFilesImported(
     $batchId: UUID!
     $fileIds: [UUID!]!
+    $historyBatchId: UUID
   ) {
-    markOrderPdfImportFilesImported(batchId: $batchId, fileIds: $fileIds) {
+    markOrderPdfImportFilesImported(
+      batchId: $batchId
+      fileIds: $fileIds
+      historyBatchId: $historyBatchId
+    ) {
       status
       message
       data {
         marked
       }
+    }
+  }
+`;
+
+/** Troca a fábrica enquanto nada do lote virou pedido; os lidos são relidos. */
+export const CHANGE_ORDER_PDF_IMPORT_BATCH_FACTORY_MUTATION = gql`
+  mutation ChangeOrderPdfImportBatchFactory($id: UUID!, $factoryId: UUID!) {
+    changeOrderPdfImportBatchFactory(id: $id, factoryId: $factoryId) {
+      status
+      message
+      data {
+        ${BATCH_FIELDS}
+        files {
+          ${FILE_FIELDS}
+        }
+      }
+    }
+  }
+`;
+
+/** Exclui o lote e os PDFs dele; os pedidos já importados ficam. */
+export const DELETE_ORDER_PDF_IMPORT_BATCH_MUTATION = gql`
+  mutation DeleteOrderPdfImportBatch($id: UUID!) {
+    deleteOrderPdfImportBatch(id: $id) {
+      status
+      message
+    }
+  }
+`;
+
+export const DELETE_ORDER_PDF_IMPORT_FILE_MUTATION = gql`
+  mutation DeleteOrderPdfImportFile($batchId: UUID!, $fileId: UUID!) {
+    deleteOrderPdfImportFile(batchId: $batchId, fileId: $fileId) {
+      status
+      message
     }
   }
 `;

@@ -1,57 +1,52 @@
 "use client";
 
-import { Button } from "@/components/Button";
 import { Card } from "@/components/Card";
-import { Input, SelectOption } from "@/components/Input";
+import { Input } from "@/components/Input";
 import { Loading } from "@/components/Loading";
 import { QueryError } from "@/components/QueryError";
 import { Stepper } from "@/components/Stepper";
 import { Title } from "@/components/Title";
 import { plural } from "@/utils/format/plural";
-import { FilePlus2 } from "lucide-react";
 
-import { HistoryOrderStatus, MatchOption } from "../../../interface";
-import { STATUS_OPTIONS } from "../../../utils";
+import { MatchOption } from "../../../interface";
 import { PdfImportBatch } from "../../interface";
-
-/** Valor do select para "o vendedor de cada cliente" (o lote vai com `null`). */
-const EACH_CLIENT = "__each_client__";
+import { MAX_PDF_FILES, pickedId, toSelect } from "../../utils";
 
 interface Props {
   batch: PdfImportBatch | null;
   batchLoading: boolean;
   factoryOptions: MatchOption[];
-  sellerOptions: MatchOption[];
   optionsLoading: boolean;
   optionsError: Error | null;
   onRetry: () => void;
   factoryId: string | null;
   onFactory: (id: string | null) => void;
-  sellerId: string | null;
-  onSeller: (id: string | null) => void;
-  defaultStatus: HistoryOrderStatus;
-  onStatus: (status: HistoryOrderStatus) => void;
+  /** O lote já tem pedido importado: a fábrica não muda mais. */
+  factoryLocked: boolean;
+  /** A fábrica escolhida difere da do lote aberto. */
+  factoryChanged: boolean;
   disabled: boolean;
-  onNewBatch: () => void;
 }
 
-const toSelect = (options: MatchOption[]): SelectOption[] =>
-  options.map((o) => ({ value: o.id, label: o.label }));
+/** O aviso sob a fábrica de um lote já aberto. */
+function factoryHint(batch: PdfImportBatch, changed: boolean) {
+  if (batch.totalFiles === 0) return undefined;
+  const files = plural(batch.totalFiles, "PDF enviado", "PDFs enviados");
+  return changed
+    ? `Ao avançar, ${files} ${batch.totalFiles === 1 ? "é lido" : "são lidos"} de novo com a nova fábrica, e os acertos da prévia recomeçam.`
+    : `Lote com ${files}. Trocar a fábrica faz a leitura de novo.`;
+}
 
-const picked = (val: SelectOption | SelectOption[] | null) => {
-  const opt = Array.isArray(val) ? val[0] : val;
-  return opt ? String(opt.value) : null;
-};
-
-const statusLabel = (status: HistoryOrderStatus) =>
-  STATUS_OPTIONS.find((o) => o.id === status)?.label ?? status;
-
-/** Passo 1: de que fábrica são os PDFs, quem vendeu e em que pé estão. */
+/**
+ * Passo 1: de que fábrica são os PDFs. Vendedor e situação vêm na prévia. Num
+ * lote já aberto a fábrica ainda pode mudar, até o primeiro pedido importado.
+ */
 export function StepBatch(props: Props) {
   const intro = (
     <Stepper.Intro step={1} total={3} title="Abra o lote">
-      Cada lote é de uma fábrica. Escolha também o vendedor e em que pé os
-      pedidos estão hoje; os PDFs com número de nota entram como faturados.
+      Cada lote é de uma fábrica e recebe até {MAX_PDF_FILES} PDFs por vez.
+      Vendedor, situação e cliente você confere depois, na prévia de cada PDF,
+      antes de gravar qualquer pedido.
     </Stepper.Intro>
   );
 
@@ -59,11 +54,7 @@ export function StepBatch(props: Props) {
     return <Loading.Skeleton className="h-[160px] w-full" />;
   }
 
-  if (props.batch) {
-    const seller = props.batch.sellerId
-      ? (props.sellerOptions.find((o) => o.id === props.batch!.sellerId)
-          ?.label ?? "Vendedor escolhido")
-      : "O vendedor de cada cliente";
+  if (props.batch && props.factoryLocked) {
     return (
       <div className="flex flex-col gap-12">
         {intro}
@@ -73,30 +64,16 @@ export function StepBatch(props: Props) {
               {props.batch.factoryName}
             </Title>
             <Title variant="body-xs" color="muted">
-              {seller} · {statusLabel(props.batch.defaultStatus)}
-            </Title>
-            <Title variant="body-xs" color="muted">
               {plural(props.batch.totalFiles, "PDF", "PDFs")} no lote,{" "}
               {plural(
                 props.batch.importedFiles,
                 "já importado",
                 "já importados"
               )}
-              .
+              . Com pedido importado, a fábrica do lote não muda mais.
             </Title>
           </Card.Body>
         </Card.Root>
-        <div>
-          <Button.Root
-            appearance="outline"
-            color="neutral"
-            size="md"
-            onClick={props.onNewBatch}
-          >
-            <Button.Icon icon={FilePlus2} />
-            <Button.Title>Abrir outro lote</Button.Title>
-          </Button.Root>
-        </div>
       </div>
     );
   }
@@ -109,12 +86,6 @@ export function StepBatch(props: Props) {
   }
 
   const factories = toSelect(props.factoryOptions);
-  const sellers: SelectOption[] = [
-    { value: EACH_CLIENT, label: "O vendedor de cada cliente" },
-    ...toSelect(props.sellerOptions),
-  ];
-  const statuses = toSelect(STATUS_OPTIONS);
-
   return (
     <div className="flex flex-col gap-12">
       {intro}
@@ -126,40 +97,13 @@ export function StepBatch(props: Props) {
         options={factories}
         value={factories.find((o) => o.value === props.factoryId) ?? null}
         disabled={props.disabled}
-        onChange={(val) => props.onFactory(picked(val))}
-      />
-      {/* Vendedor e situação sempre têm valor (o padrão é "o vendedor de cada
-          cliente" / "Entregue"): o "×" de limpar só levava a um campo vazio que
-          não quer dizer nada (crítica de configurações, 23/11/2026). */}
-      <Input.Select
-        label="Vendedor"
-        disabledClear
-        placeholder="Escolha o vendedor"
-        variant="single"
-        options={sellers}
-        value={
-          sellers.find((o) => o.value === (props.sellerId ?? EACH_CLIENT)) ??
-          null
+        disabledClear={Boolean(props.batch)}
+        hint={
+          props.batch
+            ? factoryHint(props.batch, props.factoryChanged)
+            : undefined
         }
-        hint="Com “o vendedor de cada cliente”, cada pedido vai para quem atende aquele cliente nesta fábrica. Cliente novo ainda não tem vendedor: escolha um aqui para o lote todo ou em cada PDF."
-        disabled={props.disabled}
-        onChange={(val) => {
-          const id = picked(val);
-          props.onSeller(id === EACH_CLIENT ? null : id);
-        }}
-      />
-      <Input.Select
-        label="Situação dos pedidos"
-        disabledClear
-        placeholder="Escolha a situação"
-        variant="single"
-        options={statuses}
-        value={statuses.find((o) => o.value === props.defaultStatus) ?? null}
-        disabled={props.disabled}
-        onChange={(val) => {
-          const id = picked(val);
-          if (id) props.onStatus(id as HistoryOrderStatus);
-        }}
+        onChange={(val) => props.onFactory(pickedId(val))}
       />
     </div>
   );

@@ -16,8 +16,11 @@
 // `w-full`: o `Card.Kpi.Group` embrulha cada cartão num `Grid.Item`, e o
 // cartão-filtro é um <button> — que, sem largura, encolhia ao conteúdo e
 // virava uma tira de 40px com o rótulo letra a letra (/support, 23/11/2026).
+//
+// Faixa `compact` (`Card.Kpi.Group size="compact"`): respiro de 16/12 e 6px
+// entre rótulo e número.
 export const kpiRootStyle =
-  "@container h-full w-full border border-(--border) rounded-(--r-lg) shadow-(--shadow-card) px-20 py-[18px] max-tablet:px-12 max-tablet:py-12 bg-(--bg2) relative flex flex-col overflow-hidden gap-12";
+  "group-data-[size=compact]/kpi:px-16 group-data-[size=compact]/kpi:py-12 group-data-[size=compact]/kpi:max-tablet:px-12 group-data-[size=compact]/kpi:gap-6 @container h-full w-full border border-(--border) rounded-(--r-lg) shadow-(--shadow-card) px-20 py-[18px] max-tablet:px-12 max-tablet:py-12 bg-(--bg2) relative flex flex-col overflow-hidden gap-12";
 
 /**
  * O cartão-filtro: âmbar porque é interação — a mesma cor de "escolhido" do

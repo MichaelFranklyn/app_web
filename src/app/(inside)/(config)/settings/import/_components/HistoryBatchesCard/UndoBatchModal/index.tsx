@@ -4,6 +4,7 @@ import { Alert } from "@/components/Alert";
 import { Button } from "@/components/Button";
 import { Input } from "@/components/Input";
 import { Modal } from "@/components/Modal";
+import { Tooltip } from "@/components/Tooltip";
 import { useAsyncAction } from "@/hooks/useAsyncAction";
 import { useInvalidateQueriesClient } from "@/hooks/useInvalidateQueries";
 import { ORDER_CACHE_FIELDS } from "@/utils/cacheFields";
@@ -80,12 +81,17 @@ export function UndoBatchModal({ batch, onUndone }: Props) {
 
   return (
     <Modal.Root open={open} onOpenChange={handleOpenChange}>
-      <Modal.Trigger asChild>
-        <Button.Root appearance="ghost" color="red" size="sm">
-          <Button.Icon icon={Undo2} />
-          <Button.Title>Desfazer</Button.Title>
-        </Button.Root>
-      </Modal.Trigger>
+      <Tooltip
+        content="Remove os pedidos desta importação e os clientes que só vieram com ela. Pede o motivo antes de confirmar."
+        className="max-w-[min(320px,calc(100vw-20px))] whitespace-normal"
+      >
+        <Modal.Trigger asChild>
+          <Button.Root appearance="ghost" color="red" size="sm">
+            <Button.Icon icon={Undo2} />
+            <Button.Title>Desfazer</Button.Title>
+          </Button.Root>
+        </Modal.Trigger>
+      </Tooltip>
       <Modal.Content size="sm">
         <Modal.Header
           title="Desfazer importação"

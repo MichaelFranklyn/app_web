@@ -8,12 +8,22 @@ import { expect, Locator, Page } from "@playwright/test";
  * "Ações …" (ou "Mais ações …") da linha; o item é um `menuitem`. Como no `openDialog`, o clique
  * re-tenta enquanto o menu não abriu: antes da hidratação o botão do SSR não
  * tem onClick.
+ *
+ * Linha com UMA ação só (desde 27/11/2026) não tem "⋯": a ação é um botão com
+ * nome, direto na linha — o helper clica nele.
  */
 export async function rowAction(
   page: Page,
   row: Locator,
   action: string | RegExp
 ): Promise<void> {
+  const direct = row.getByRole("button", { name: action });
+  const trigger = row.getByRole("button", { name: /ações/i });
+  await expect(direct.or(trigger).first()).toBeVisible({ timeout: 15_000 });
+  if ((await trigger.count()) === 0) {
+    await direct.click();
+    return;
+  }
   const item = page.getByRole("menuitem", { name: action });
   await expect(async () => {
     if (!(await item.isVisible())) {

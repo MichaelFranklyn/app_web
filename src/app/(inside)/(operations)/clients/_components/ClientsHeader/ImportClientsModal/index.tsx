@@ -2,191 +2,180 @@
 
 import { Import } from "@/components/Import";
 
-import { useMutation } from "@apollo/client/react";
-import { useState } from "react";
+import { Info } from "lucide-react";
+import { useEffect, useState } from "react";
 
+import { Alert } from "@/components/Alert";
 import { Button } from "@/components/Button";
-import { Input } from "@/components/Input";
 import { Modal } from "@/components/Modal";
-import { Title } from "@/components/Title";
-import { useToast } from "@/components/Toast";
-import { useAsyncAction } from "@/hooks/useAsyncAction";
-import { CLIENT_CACHE_FIELDS } from "@/utils/cacheFields";
-import { useInvalidateQueriesClient } from "@/hooks/useInvalidateQueries";
+import { Stepper } from "@/components/Stepper";
 
-import { readSpreadsheet } from "@/utils/import/reader";
-
-import { IMPORT_COMPANY_CLIENTS_MUTATION } from "./gql";
-import { ImportCompanyClientsResponse, ImportResult } from "./interface";
-import { parseClientsRows } from "./utils";
-import { useClientsSheetDownload } from "./useClientsSheetDownload";
+import { ImportClientRow } from "./interface";
+import { ReviewRows } from "./ReviewRows";
+import { StepSheet } from "./StepSheet";
+import { useClientsImport } from "./useClientsImport";
 
 interface ImportClientsModalProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
 }
 
+const RESULT_STEP = 2;
+
 /**
  * Aberto pelo menu "Mais ações" do cabeçalho (ver `ClientsMoreMenu`): o botão
  * próprio somava o quinto botão da fileira, e no celular eles empilhavam numa
  * tela inteira antes da carteira (crítica de 23/11/2026).
+ *
+ * Em etapas, como o de produtos: Planilha → Revisão → Resultado. Numa coluna
+ * só, a explicação, o arquivo e o resumo disputavam o mesmo espaço estreito.
  */
 export function ImportClientsModal({
   open,
-  onOpenChange: setOpen,
+  onOpenChange,
 }: ImportClientsModalProps) {
-  const [file, setFile] = useState<File | null>(null);
-  const [result, setResult] = useState<ImportResult | null>(null);
-
-  const { toast } = useToast();
-  const invalidateClient = useInvalidateQueriesClient();
-  const [importClients] = useMutation<ImportCompanyClientsResponse>(
-    IMPORT_COMPANY_CLIENTS_MUTATION
+  const [step, setStep] = useState(0);
+  const [pendingRows, setPendingRows] = useState<ImportClientRow[] | null>(
+    null
   );
-  const { execute, isLoading } = useAsyncAction();
-  const downloadSheet = useClientsSheetDownload();
+  const { runImport, result, isLoading, resetResult } = useClientsImport();
+
+  // Importação concluída: a navegação trava no Resultado.
+  useEffect(() => {
+    if (result) setStep(RESULT_STEP);
+  }, [result]);
 
   const handleClose = (value: boolean) => {
-    setOpen(value);
+    onOpenChange(value);
     if (!value) {
-      setFile(null);
-      setResult(null);
+      setStep(0);
+      setPendingRows(null);
+      resetResult();
     }
   };
 
   const handleImport = async () => {
-    if (!file) return;
-
-    await execute(
-      async () => {
-        const rows = parseClientsRows(await readSpreadsheet(file));
-        const res = await importClients({ variables: { input: { rows } } });
-
-        const payload = res.data?.importCompanyClients;
-        if (!payload?.status || !payload.data) {
-          throw new Error(payload?.message ?? "Erro ao importar clientes");
-        }
-        return { data: payload.data, message: payload.message };
-      },
-      {
-        onSuccess: async ({ data, message }) => {
-          setResult(data);
-          if (
-            data.created > 0 ||
-            data.linksCreated > 0 ||
-            data.codesSaved > 0
-          ) {
-            await invalidateClient(CLIENT_CACHE_FIELDS);
-          }
-
-          const allFailed =
-            data.created === 0 &&
-            data.linksCreated === 0 &&
-            data.codesSaved === 0 &&
-            data.skipped === 0;
-          toast({
-            variant: data.failed > 0 ? "warning" : "success",
-            title: allFailed
-              ? "Nenhum cliente importado"
-              : data.failed > 0
-                ? "Importação parcial"
-                : "Importação concluída",
-            description: message,
-          });
-        },
-      }
-    );
+    if (pendingRows?.length) await runImport(pendingRows);
   };
 
   return (
     <Modal.Root open={open} onOpenChange={handleClose}>
-      <Modal.Content size="md">
+      <Modal.Content size="3xl">
         <Modal.Header
           title="Importar clientes"
-          description="Envie uma planilha do Excel com os CNPJs para adicionar vários clientes de uma vez. Os demais dados vêm da Receita Federal. Serve também a lista exportada de outro sistema: o sistema acha a coluna do CNPJ sozinho."
+          description="Envie uma planilha do Excel com os CNPJs para adicionar vários clientes de uma vez. Os demais dados vêm da Receita Federal."
         />
 
-        <Modal.Body className="flex flex-col gap-16">
-          <Import.TemplateDownload
-            title="Sua carteira em planilha"
-            description="Baixe a planilha já com os seus clientes, ajuste e envie de volta."
-            buttonLabel="Baixar planilha"
-            onDownload={downloadSheet}
-          />
-
-          <div className="flex flex-col gap-4">
-            <Title variant="body-sm" weight="medium">
-              Vendedor e fábrica
-            </Title>
-            <Title variant="body-xs" color="muted">
-              Uma linha para cada fábrica do cliente: quem é atendido em três
-              fábricas aparece em três linhas, com o mesmo CNPJ.
-            </Title>
-            <Title variant="body-xs" color="muted">
-              Vendedor e fábrica se escolhem numa lista, sem digitar. Cada
-              fábrica tem um só vendedor por cliente; para trocar, use a página
-              do cliente.
-            </Title>
-            <Title variant="body-xs" color="muted">
-              Importar não remove vínculos. Vendedor e fábrica em branco: o
-              cliente entra só na carteira.
-            </Title>
-            <Title variant="body-xs" color="muted">
-              Código do cliente na fábrica: o código que a fábrica usa para esse
-              cliente. Só vale na linha com vendedor e fábrica; preenchido,
-              substitui o atual; em branco, mantém o que já está gravado.
-            </Title>
-          </div>
-
-          <Input.Archive
-            variant="single"
-            accept=".xlsx,.xls,.csv"
-            hint="Planilha do Excel (.xlsx) ou .csv"
-            value={file ? [file] : []}
-            onChange={(files) => {
-              setResult(null);
-              setFile(files[0] ?? null);
+        <Modal.Body className="flex flex-col gap-16 py-24">
+          <Stepper.Root
+            current={step}
+            onChange={(index) => {
+              if (!result && index < RESULT_STEP) setStep(index);
             }}
-          />
+          >
+            <Stepper.Item label="Planilha">
+              <StepSheet onRowsChange={setPendingRows} />
+            </Stepper.Item>
 
-          {result && (
-            <Import.Summary
-              result={result}
-              identify={(detail) => detail.cnpj}
-              createdLabel="Adicionados"
-              extraKpis={[
-                { label: "Vínculos criados", value: result.linksCreated },
-                { label: "Códigos gravados", value: result.codesSaved },
-              ]}
-            />
-          )}
+            <Stepper.Item label="Revisão">
+              <div className="flex flex-col gap-16">
+                {pendingRows?.length ? <ReviewRows rows={pendingRows} /> : null}
+
+                <Alert.Root variant="info">
+                  <Alert.Icon icon={Info} />
+                  <Alert.Content>
+                    <Alert.Description>
+                      Serve também a lista exportada de outro sistema: a coluna
+                      do CNPJ é encontrada sozinha. Nome, endereço e contato vêm
+                      da Receita Federal.
+                    </Alert.Description>
+                  </Alert.Content>
+                </Alert.Root>
+              </div>
+            </Stepper.Item>
+
+            <Stepper.Item label="Resultado">
+              {result && (
+                <Import.Summary
+                  result={result}
+                  identify={(detail) => detail.cnpj}
+                  createdLabel="Adicionados"
+                  extraKpis={[
+                    { label: "Vínculos criados", value: result.linksCreated },
+                    { label: "Códigos gravados", value: result.codesSaved },
+                  ]}
+                />
+              )}
+            </Stepper.Item>
+          </Stepper.Root>
         </Modal.Body>
 
         <Modal.Footer>
-          <Modal.Close asChild>
-            <Button.Root
-              type="button"
-              appearance="ghost"
-              color="neutral"
-              size="md"
-              disabled={isLoading}
-            >
-              <Button.Title>{result ? "Fechar" : "Cancelar"}</Button.Title>
-            </Button.Root>
-          </Modal.Close>
-          <Button.Root
-            type="button"
-            appearance="solid"
-            color="amber"
-            size="md"
-            loading={isLoading}
-            disabled={!file}
-            onClick={handleImport}
-          >
-            <Button.Title>
-              {result ? "Importar novamente" : "Importar"}
-            </Button.Title>
-          </Button.Root>
+          {result ? (
+            <Modal.Close asChild>
+              <Button.Root
+                type="button"
+                appearance="solid"
+                color="amber"
+                size="md"
+              >
+                <Button.Title>Fechar</Button.Title>
+              </Button.Root>
+            </Modal.Close>
+          ) : (
+            <>
+              <Modal.Close asChild>
+                <Button.Root
+                  type="button"
+                  appearance="ghost"
+                  color="neutral"
+                  size="md"
+                  disabled={isLoading}
+                >
+                  <Button.Title>Cancelar</Button.Title>
+                </Button.Root>
+              </Modal.Close>
+              {step > 0 && (
+                <Button.Root
+                  type="button"
+                  appearance="ghost"
+                  color="neutral"
+                  size="md"
+                  disabled={isLoading}
+                  onClick={() => setStep((s) => s - 1)}
+                >
+                  <Button.Title>Voltar</Button.Title>
+                </Button.Root>
+              )}
+              {step === 0 ? (
+                <Button.Root
+                  type="button"
+                  appearance="solid"
+                  color="amber"
+                  size="md"
+                  disabled={!pendingRows?.length}
+                  onClick={() => setStep(1)}
+                >
+                  <Button.Title>Próximo</Button.Title>
+                </Button.Root>
+              ) : (
+                <Button.Root
+                  type="button"
+                  appearance="solid"
+                  color="amber"
+                  size="md"
+                  loading={isLoading}
+                  disabled={!pendingRows?.length}
+                  onClick={handleImport}
+                >
+                  <Button.Title>
+                    Importar
+                    {pendingRows?.length ? ` (${pendingRows.length})` : ""}
+                  </Button.Title>
+                </Button.Root>
+              )}
+            </>
+          )}
         </Modal.Footer>
       </Modal.Content>
     </Modal.Root>

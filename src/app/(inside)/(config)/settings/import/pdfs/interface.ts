@@ -98,14 +98,48 @@ export interface MarkPdfImportFilesResponse {
   markOrderPdfImportFilesImported: Payload<{ marked: number }>;
 }
 
+export interface ChangePdfImportBatchFactoryResponse {
+  changeOrderPdfImportBatchFactory: Payload<PdfImportBatch>;
+}
+
+export interface DeletePdfImportBatchResponse {
+  deleteOrderPdfImportBatch: { status: boolean; message: string };
+}
+
+export interface DeletePdfImportFileResponse {
+  deleteOrderPdfImportFile: { status: boolean; message: string };
+}
+
+/**
+ * Vendedor e situação para todos os PDFs do lote, escolhidos depois da leitura
+ * (cada PDF ainda pode trocar os seus). Nulo = o vendedor de cada cliente.
+ */
+export interface PdfDefaults {
+  sellerId: string | null;
+  status: HistoryOrderStatus;
+}
+
 /** O que a pessoa acertou num PDF antes de importar. */
 export interface PdfFileOverride {
-  /** Fica de fora da importação. */
-  skip?: boolean;
   /** ISO; quando o PDF não trouxe a data (ou trouxe errada). */
   orderDate?: string | null;
-  /** Quando o lote é "o vendedor de cada cliente" e o cliente não tem um. */
+  /** O vendedor deste PDF, no lugar do padrão escolhido para todos. */
   sellerId?: string | null;
+  /**
+   * A condição de pagamento digitada, no lugar da lida do PDF (que pode ter
+   * vindo errada ou faltado). `null` = apagada: o pedido vai sem condição.
+   */
+  paymentTerms?: string | null;
+  /** A situação deste pedido, no lugar do padrão escolhido para todos. */
+  status?: HistoryOrderStatus;
+  /** Sem CNPJ nem código no PDF: vincular um cliente da carteira ou criar um. */
+  clientMode?: "existing" | "new";
+  /** O cliente escolhido (modo "existing"). */
+  clientId?: string | null;
+  /** O CNPJ do cliente: o do cadastro escolhido ou o digitado no modo "new". */
+  clientDocument?: string | null;
+  /** O nome do cliente escolhido ou digitado. */
+  clientName?: string | null;
 }
 
 /** As linhas do `importOrderHistory` montadas a partir dos PDFs lidos. */

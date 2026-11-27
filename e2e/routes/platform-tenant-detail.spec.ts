@@ -328,21 +328,21 @@ test("ficha da empresa: não oferece 'entrar como' para um SU", async ({
   );
   await page.goto(URL);
 
-  // As ações moram no "⋯" da linha: no do SU o item nem aparece.
+  // Sem "Entrar como", sobra uma ação só na linha do SU: ela vira botão
+  // direto, sem "⋯" — e o "Entrar como" não aparece em lugar nenhum.
   const linhaSu = page.getByRole("row").filter({ hasText: "Suporte Itinus" });
   await rowAction(page, linhaSu, "Liberar acesso");
   await page
     .getByRole("dialog")
     .getByRole("button", { name: "Cancelar" })
     .click();
-  await linhaSu.getByRole("button", { name: /ações/i }).click();
   await expect(
-    page.getByRole("menuitem", { name: "Liberar acesso" })
+    linhaSu.getByRole("button", { name: "Liberar acesso" })
   ).toBeVisible();
-  await expect(page.getByRole("menuitem", { name: "Entrar como" })).toHaveCount(
-    0
-  );
-  await page.keyboard.press("Escape");
+  await expect(linhaSu.getByRole("button", { name: /ações/i })).toHaveCount(0);
+  await expect(
+    linhaSu.getByRole("button", { name: "Entrar como" })
+  ).toHaveCount(0);
 
   const linhaBruno = page.getByRole("row").filter({ hasText: "Bruno Alves" });
   await linhaBruno.getByRole("button", { name: /ações/i }).click();

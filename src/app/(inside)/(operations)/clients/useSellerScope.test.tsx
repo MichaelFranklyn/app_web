@@ -1,3 +1,5 @@
+import { ApolloClient } from "@apollo/client";
+import { useApolloClient } from "@apollo/client/react";
 import { MockedProvider } from "@apollo/client/testing/react";
 import { renderHook, waitFor } from "@testing-library/react";
 import { ReactNode } from "react";
@@ -32,6 +34,7 @@ import { useSellerScope } from "./useSellerScope";
 
 const SSR_STATS: ClientsStats = {
   clientStats: {
+    __typename: "ClientStatsType",
     totalClients: 100,
     activeClients: 60,
     atRiskClients: 30,
@@ -39,7 +42,7 @@ const SSR_STATS: ClientsStats = {
   },
 } as ClientsStats;
 
-const statsMock = (sellerId: string, totalClients: number) => ({
+const statsMock = (sellerId: string | null, totalClients: number) => ({
   request: { query: CLIENT_STATS_QUERY, variables: { sellerId } },
   maxUsageCount: 5,
   result: {
@@ -86,11 +89,35 @@ beforeEach(() => {
 });
 
 describe("useSellerScope", () => {
-  it("sem vendedor escolhido, os KPIs do SSR já são os certos", () => {
-    // Refazer a conta aqui só repetiria o que o servidor mandou com a página.
+  it("sem vendedor escolhido, os KPIs do SSR pintam o topo de cara", () => {
+    // Semeados no cache: o 1º render já mostra o número, sem ida à rede.
     const result = run([]);
 
-    expect(result.current.stats).toBe(SSR_STATS);
+    expect(result.current.stats.clientStats.totalClients).toBe(100);
+  });
+
+  it("invalidar clientStats (ex.: importar clientes) refaz o topo", async () => {
+    // O bug: o topo lia o prop do SSR direto e ficava parado até o F5.
+    let client: ApolloClient | undefined;
+    const { result } = renderHook(
+      () => {
+        client = useApolloClient();
+        return useSellerScope({
+          canFilterBySeller: true,
+          selectedSellerId: null,
+          fallbackStats: SSR_STATS,
+        });
+      },
+      { wrapper: wrapper([statsMock(null, 140)]) }
+    );
+    expect(result.current.stats.clientStats.totalClients).toBe(100);
+
+    client!.cache.evict({ id: "ROOT_QUERY", fieldName: "clientStats" });
+    client!.cache.gc();
+
+    await waitFor(() =>
+      expect(result.current.stats.clientStats.totalClients).toBe(140)
+    );
   });
 
   it("escolhido o vendedor, o topo passa a contar a carteira dele", async () => {

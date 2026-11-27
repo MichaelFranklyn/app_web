@@ -3,6 +3,7 @@
 import { Button } from "@/components/Button";
 import { QueryError } from "@/components/QueryError";
 import { Table } from "@/components/Table";
+import { Tooltip } from "@/components/Tooltip";
 import { formatDateDMY } from "@/utils/format/masks";
 import { plural } from "@/utils/format/plural";
 import { useQuery } from "@apollo/client/react";
@@ -83,25 +84,35 @@ export function HistoryBatchesCard() {
                       {batch.ordersCount > 0 && (
                         // Mesmos nomes de `IMPORT_BATCH_PARAM`/`IMPORT_DATE_PARAM`
                         // em /orders (não se importa código de outra página).
-                        <Button.Link
-                          href={`/orders?importBatch=${batch.id}&importedAt=${encodeURIComponent(batch.createdAt)}`}
-                          appearance="ghost"
-                          size="sm"
+                        <Tooltip
+                          content="Abre a lista de pedidos só com os que vieram nesta importação."
+                          className="max-w-[min(320px,calc(100vw-20px))] whitespace-normal"
                         >
-                          <Button.Icon icon={ListOrdered} />
-                          <Button.Title>Ver pedidos</Button.Title>
-                        </Button.Link>
+                          <Button.Link
+                            href={`/orders?importBatch=${batch.id}&importedAt=${encodeURIComponent(batch.createdAt)}`}
+                            appearance="ghost"
+                            size="sm"
+                          >
+                            <Button.Icon icon={ListOrdered} />
+                            <Button.Title>Ver pedidos</Button.Title>
+                          </Button.Link>
+                        </Tooltip>
                       )}
                       {batch.clientsCount > 0 && (
                         // Mesmos nomes de parâmetro que /orders, lidos em /clients.
-                        <Button.Link
-                          href={`/clients?importBatch=${batch.id}&importedAt=${encodeURIComponent(batch.createdAt)}`}
-                          appearance="ghost"
-                          size="sm"
+                        <Tooltip
+                          content="Abre a carteira só com os clientes que esta importação adicionou."
+                          className="max-w-[min(320px,calc(100vw-20px))] whitespace-normal"
                         >
-                          <Button.Icon icon={Users} />
-                          <Button.Title>Ver clientes novos</Button.Title>
-                        </Button.Link>
+                          <Button.Link
+                            href={`/clients?importBatch=${batch.id}&importedAt=${encodeURIComponent(batch.createdAt)}`}
+                            appearance="ghost"
+                            size="sm"
+                          >
+                            <Button.Icon icon={Users} />
+                            <Button.Title>Ver clientes novos</Button.Title>
+                          </Button.Link>
+                        </Tooltip>
                       )}
                       <UndoBatchModal
                         batch={batch}

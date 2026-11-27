@@ -8,8 +8,15 @@ import {
   batchOpenedAt,
   buildPdfRows,
   fileBadge,
+  fileItemsTotal,
   hashFile,
+  fileBlocker,
+  fileStatus,
+  freePdfSlots,
   importedFileIds,
+  paymentTermDays,
+  paymentTermsHint,
+  pickedId,
   rowStatus,
 } from "./utils";
 
@@ -157,21 +164,20 @@ describe("buildPdfRows", () => {
     expect(built.problems[0].message).toMatch(/vendedor/);
   });
 
-  it("cliente fora da carteira pede o vendedor como cliente novo", () => {
+  it("cliente fora da carteira pede o vendedor deste pedido", () => {
     const built = buildPdfRows(
       batch(),
       [file({ clientId: null, suggestedSellerId: null })],
       {}
     );
-    expect(built.problems[0].message).toMatch(/cliente novo/);
+    expect(built.problems[0].message).toMatch(/não está na carteira/);
   });
 
-  it("deixa de fora os importados e os marcados; aponta os que falharam", () => {
+  it("deixa de fora os importados; aponta os que falharam", () => {
     const built = buildPdfRows(
       batch(),
       [
         file({ id: "a", status: "IMPORTED" }),
-        file({ id: "b" }),
         file({
           id: "c",
           fileName: "ruim.pdf",
@@ -179,7 +185,7 @@ describe("buildPdfRows", () => {
           error: "PDF escaneado.",
         }),
       ],
-      { b: { skip: true } }
+      {}
     );
     expect(built.rows).toEqual([]);
     expect(built.fileIds).toEqual([]);
@@ -209,7 +215,7 @@ describe("buildPdfRows", () => {
     expect(withCode.problems[0].message).toMatch(/código 23401/);
     const noCode = buildPdfRows(batch(), [file({ header: noCnpj })], {});
     expect(noCode.problems[0].message).toBe(
-      "o PDF não traz o CNPJ nem o código do cliente."
+      "o PDF não traz o CNPJ nem o código do cliente. Vincule um cliente da carteira ou cadastre um novo."
     );
   });
 
@@ -262,6 +268,7 @@ describe("importedFileIds", () => {
     issues: [],
     missingProducts: [],
     missingClients: [],
+    newPaymentTerms: [],
     ...over,
   });
   const files = [
@@ -326,5 +333,202 @@ describe("lote na lista de lotes", () => {
   it("mostra a hora no fuso do escritório", () => {
     expect(batchOpenedAt("2026-11-17T13:05:00Z")).toBe("17/11/2026 às 10:05");
     expect(batchOpenedAt("lixo")).toBe("—");
+  });
+});
+
+describe("vendedor e situação escolhidos na prévia", () => {
+  const defaults = { sellerId: null, status: "DELIVERED" as const };
+
+  it("o padrão de todos vale sobre o do cliente, e o do PDF sobre os dois", () => {
+    const pdfs = [file({ id: "a" }), file({ id: "b", fileName: "b.pdf" })];
+    const built = buildPdfRows(
+      batch(),
+      pdfs,
+      { b: { sellerId: "s-pdf", status: "CANCELLED" } },
+      { sellerId: "s-todos", status: "INVOICED" }
+    );
+    expect(built.rows.map((r) => [r.sellerId, r.status])).toEqual([
+      ["s-todos", "INVOICED"],
+      ["s-todos", "INVOICED"],
+      ["s-pdf", "CANCELLED"],
+      ["s-pdf", "CANCELLED"],
+    ]);
+  });
+
+  it("sem vendedor para todos, fica o do cliente", () => {
+    const built = buildPdfRows(batch(), [file()], {}, defaults);
+    expect(built.rows[0].sellerId).toBe("s-cliente");
+  });
+
+  it("com a nota no PDF, confirmado vira faturado; a escolha no PDF manda", () => {
+    const pdf = file({
+      header: { ...file().header!, invoiceNumber: "991" },
+    });
+    const confirmed = { sellerId: null, status: "CONFIRMED" as const };
+    expect(fileStatus(confirmed, pdf)).toBe("INVOICED");
+    expect(fileStatus(confirmed, pdf, { status: "CONFIRMED" })).toBe(
+      "CONFIRMED"
+    );
+  });
+});
+
+describe("cliente escolhido na prévia (PDF sem CNPJ nem código)", () => {
+  const defaults = { sellerId: "s1", status: "DELIVERED" as const };
+  const noClient = file({
+    header: { ...file().header!, clientDocument: null, clientCode: "777" },
+    clientId: null,
+    clientName: null,
+    suggestedSellerId: null,
+  });
+
+  it("sem escolher, fica de fora pedindo o cliente", () => {
+    expect(fileBlocker(defaults, noClient)).toMatch(/código 777/);
+  });
+
+  it("cliente da carteira: usa o CNPJ e o nome do escolhido", () => {
+    expect(fileBlocker(defaults, noClient, { clientMode: "existing" })).toBe(
+      "escolha o cliente da carteira."
+    );
+    const built = buildPdfRows(
+      batch(),
+      [noClient],
+      {
+        p1: {
+          clientMode: "existing",
+          clientId: "c9",
+          clientDocument: "11222333000181",
+          clientName: "Mercado Escolhido",
+        },
+      },
+      defaults
+    );
+    expect(built.problems).toEqual([]);
+    expect(built.rows[0]).toMatchObject({
+      clientDocument: "11222333000181",
+      clientName: "Mercado Escolhido",
+      createClient: false,
+      factoryClientCode: "777",
+    });
+  });
+
+  it("cliente novo: exige CNPJ válido e nome, e pede para criar", () => {
+    const base = { clientMode: "new" as const };
+    expect(
+      fileBlocker(defaults, noClient, {
+        ...base,
+        clientDocument: "11222333000100",
+      })
+    ).toBe("informe um CNPJ válido para o cliente novo.");
+    expect(
+      fileBlocker(defaults, noClient, {
+        ...base,
+        clientDocument: "11222333000181",
+        clientName: "  ",
+      })
+    ).toBe("informe o nome do cliente novo.");
+    const built = buildPdfRows(
+      batch(),
+      [noClient],
+      {
+        p1: {
+          ...base,
+          clientDocument: "11222333000181",
+          clientName: "Mercado Novo",
+        },
+      },
+      defaults
+    );
+    expect(built.problems).toEqual([]);
+    expect(built.rows[0]).toMatchObject({
+      clientDocument: "11222333000181",
+      clientName: "Mercado Novo",
+      createClient: true,
+      factoryClientCode: "777",
+    });
+  });
+
+  it("cliente achado pelo código não reenvia o código", () => {
+    const byCode = file({
+      header: { ...file().header!, clientDocument: null, clientCode: "23401" },
+      clientDocument: "98765432000110",
+      clientMatchedBy: "FACTORY_CODE",
+    });
+    const built = buildPdfRows(batch(), [byCode], {});
+    expect(built.rows[0]).toMatchObject({
+      createClient: false,
+      factoryClientCode: null,
+    });
+  });
+});
+
+describe("vagas do lote e escolha no select", () => {
+  it("lidos e chegando ocupam vaga; importados, falhos e caídos não", () => {
+    const files = [
+      file({ id: "1" }),
+      file({ id: "2", status: "PENDING" }),
+      file({ id: "3", status: "PENDING", isStale: true }),
+      file({ id: "4", status: "FAILED" }),
+      file({ id: "5", status: "IMPORTED" }),
+    ];
+    expect(freePdfSlots(files)).toBe(18);
+    expect(
+      freePdfSlots(Array.from({ length: 25 }, (_, i) => file({ id: `${i}` })))
+    ).toBe(0);
+  });
+
+  it("valor vazio no select vale como nada escolhido", () => {
+    expect(pickedId({ value: "", label: "O vendedor de cada cliente" })).toBe(
+      null
+    );
+    expect(pickedId([{ value: "s1", label: "Ana" }])).toBe("s1");
+    expect(pickedId(null)).toBe(null);
+  });
+});
+
+describe("fileItemsTotal", () => {
+  const item = (quantity: string, unitPrice: string | null) => ({
+    code: "X",
+    name: "X",
+    quantity,
+    unitPrice,
+    ipiRate: null,
+  });
+
+  it("soma quantidade × preço e conta os itens sem preço", () => {
+    const f = file({
+      items: [item("10", "2.50"), item("3", "1.10"), item("2", null)],
+    });
+    const result = fileItemsTotal(f);
+    expect(result?.total).toBeCloseTo(28.3);
+    expect(result?.unpriced).toBe(1);
+  });
+
+  it("é nulo quando nenhum item trouxe preço", () => {
+    expect(fileItemsTotal(file({ items: [item("1", null)] }))).toBeNull();
+    expect(fileItemsTotal(file({ items: [] }))).toBeNull();
+  });
+});
+
+describe("condição de pagamento", () => {
+  it("a digitada vale sobre a lida; apagada, o pedido vai sem condição", () => {
+    const rows = (override = {}) =>
+      buildPdfRows(batch(), [file()], { p1: override }).rows[0].paymentTerms;
+    expect(rows()).toBe("30/60");
+    expect(rows({ paymentTerms: " 28/35/42 " })).toBe("28/35/42");
+    expect(rows({ paymentTerms: "" })).toBeNull();
+  });
+
+  it("lê os dias como o backend", () => {
+    expect(paymentTermDays("90/30/60 DDL")).toEqual([30, 60, 90]);
+    expect(paymentTermDays("À vista")).toEqual([0]);
+    expect(paymentTermDays("boleto")).toBeNull();
+    expect(paymentTermDays("30/900")).toBeNull();
+  });
+
+  it("explica o que a condição vira, e acusa a que não tem dias", () => {
+    expect(paymentTermsHint("30/60").message).toContain("30/60 dias");
+    expect(paymentTermsHint("a vista").message).toContain("à vista");
+    expect(paymentTermsHint("boleto").error).toBe(true);
+    expect(paymentTermsHint(null).error).toBe(false);
   });
 });

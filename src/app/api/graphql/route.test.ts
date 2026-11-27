@@ -75,4 +75,34 @@ describe("BFF /api/graphql", () => {
 
     expect(res.status).toBe(503);
   });
+
+  it("sessão recusada pelo backend (200 + code 401) vira 401 e apaga os cookies", async () => {
+    fetchMock.mockResolvedValue(
+      new Response(
+        '{"errors":[{"message":"Token inválido ou expirado","extensions":{"code":401}}]}',
+        { status: 200 }
+      )
+    );
+
+    const res = await POST(request({ query: "{x}" }));
+
+    expect(res.status).toBe(401);
+    expect((await res.json()).errors[0].extensions.code).toBe(401);
+    const cleared = res.headers.getSetCookie().join(";");
+    expect(cleared).toContain("token=");
+    expect(cleared).toContain("userData=");
+  });
+
+  it("erro de domínio que não é sessão (403) segue com o status do backend", async () => {
+    fetchMock.mockResolvedValue(
+      new Response('{"errors":[{"message":"x","extensions":{"code":403}}]}', {
+        status: 200,
+      })
+    );
+
+    const res = await POST(request({ query: "{x}" }));
+
+    expect(res.status).toBe(200);
+    expect(res.headers.getSetCookie()).toEqual([]);
+  });
 });

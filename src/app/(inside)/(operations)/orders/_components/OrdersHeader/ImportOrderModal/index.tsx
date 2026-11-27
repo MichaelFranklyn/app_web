@@ -92,7 +92,10 @@ export function ImportOrderModal(props: ImportOrderModalProps) {
             <Modal.Body>
               {/* Sem faixa aqui: antes da escolha não se sabe nem quantos
                   passos o caminho tem. */}
-              <ImportModeChoice onChoose={setMode} />
+              <ImportModeChoice
+                onChoose={setMode}
+                canImportBatch={props.canSelectSeller}
+              />
             </Modal.Body>
             <Modal.Footer>
               <Modal.Close asChild>
