@@ -29,6 +29,7 @@ export default function OrderHistoryImportContent() {
     createMissingProducts,
     setCreateMissingProducts,
     includeMissingProducts,
+    includeSellerAccess,
     canAdvance,
     next,
     back,
@@ -122,6 +123,7 @@ export default function OrderHistoryImportContent() {
                 progress={run.progress}
                 running={run.running}
                 onIncludeMissingProducts={includeMissingProducts}
+                onIncludeSellerAccess={includeSellerAccess}
               />
             </Stepper.Item>
           </Stepper.Root>

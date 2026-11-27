@@ -59,6 +59,8 @@ export function usePdfImportWizard(initialBatchId: string | null) {
   const [createMissingClients, setCreateMissingClients] = useState(false);
   // Produto que falta já vem ligado: sem ele o item cai e o pedido soma menos.
   const [createMissingProducts, setCreateMissingProducts] = useState(true);
+  // Só liga pelo botão da conferência, depois de a pessoa ver quem e qual fábrica.
+  const [grantSellerAccess, setGrantSellerAccess] = useState(false);
 
   const options = useHistoryOptions();
   const upload = usePdfUpload(batchId);
@@ -124,6 +126,7 @@ export function usePdfImportWizard(initialBatchId: string | null) {
     quantityUnit: "UNITS" as const,
     createMissingClients,
     createMissingProducts,
+    grantSellerAccess,
   });
 
   const submitBatch = () =>
@@ -218,6 +221,12 @@ export function usePdfImportWizard(initialBatchId: string | null) {
     await run.check({ ...runInput(), createMissingProducts: true });
   };
 
+  /** Na conferência: libera a fábrica aos vendedores que não a atendem e confere de novo. */
+  const includeSellerAccess = async () => {
+    setGrantSellerAccess(true);
+    await run.check({ ...runInput(), grantSellerAccess: true });
+  };
+
   /** Depois de importar: volta aos PDFs do mesmo lote para mandar mais. */
   const sendMore = () => {
     setOverrides({});
@@ -263,6 +272,7 @@ export function usePdfImportWizard(initialBatchId: string | null) {
     createMissingProducts,
     setCreateMissingProducts,
     includeMissingProducts,
+    includeSellerAccess,
     canAdvance,
     next,
     back,

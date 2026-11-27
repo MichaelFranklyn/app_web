@@ -5309,6 +5309,8 @@ input ImportOrderHistoryInput {
   createMissingClients: Boolean! = false
   """Cria no catálogo da fábrica o produto que não existe (marcado para conferir)."""
   createMissingProducts: Boolean! = false
+  """Libera a fábrica ao vendedor do pedido que ainda não a tem (sem % de comissão definido)."""
+  grantSellerAccess: Boolean! = false
 }
 
 type ImportHistoryIssue {
@@ -5336,6 +5338,16 @@ type ImportHistoryNewPaymentTerm {
   name: String!
 }
 
+"""Vendedor sem a fábrica liberada: os pedidos entram, mas o cliente fica fora da rotina."""
+type ImportHistoryMissingSellerAccess {
+  sellerId: UUID!
+  seller: SellerType
+  factoryId: UUID!
+  factory: FactoryType
+  """Quantos pedidos ficam sem vínculo por isso."""
+  orders: Int!
+}
+
 type ImportHistoryMissingClient {
   document: String!
   rows: Int!
@@ -5356,6 +5368,8 @@ type ImportOrderHistoryResult {
   clientsCreated: Int!
   """Produtos criados no catálogo (com `createMissingProducts`)."""
   productsCreated: Int!
+  """Fábricas liberadas a vendedores (com `grantSellerAccess`)."""
+  sellerAccessesGranted: Int!
   """Parcelas a vencer lançadas para os pedidos faturados e entregues."""
   installmentsCreated: Int!
   issues: [ImportHistoryIssue!]!
@@ -5363,6 +5377,8 @@ type ImportOrderHistoryResult {
   missingProducts: [ImportHistoryMissingProduct!]!
   """Clientes que não estão na carteira — importe os clientes antes."""
   missingClients: [ImportHistoryMissingClient!]!
+  """Vendedores escolhidos que não têm a fábrica do pedido liberada."""
+  missingSellerAccess: [ImportHistoryMissingSellerAccess!]!
   """Prazos de pagamento cadastrados nas fábricas (um por fábrica e condição)."""
   newPaymentTerms: [ImportHistoryNewPaymentTerm!]!
   """Lote em que os pedidos gravados entraram. Nulo na prévia ou quando nada entrou."""

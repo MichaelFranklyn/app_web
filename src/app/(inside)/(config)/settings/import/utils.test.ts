@@ -91,10 +91,12 @@ describe("mergeResults", () => {
     linksCreated: 1,
     clientsCreated: 1,
     productsCreated: 0,
+    sellerAccessesGranted: 0,
     installmentsCreated: 3,
     issues: [],
     missingProducts: [],
     missingClients: [],
+    missingSellerAccess: [],
     newPaymentTerms: [],
     ...patch,
   });
@@ -140,6 +142,30 @@ describe("mergeResults", () => {
     const fogao = merged.missingProducts.find((p) => p.code === "1508");
     expect(fogao).toMatchObject({ rows: 3, amount: "1000.50" });
     expect(missingProductsAmount(merged)).toBeCloseTo(1010.5);
+  });
+
+  it("soma pedidos do vendedor sem a fábrica e os acessos liberados", () => {
+    const access = {
+      sellerId: "s1",
+      seller: { id: "s1", name: "Ana" },
+      factoryId: "f1",
+      factory: null,
+      orders: 1,
+    };
+    const merged = mergeResults([
+      result({ missingSellerAccess: [access], sellerAccessesGranted: 1 }),
+      result({
+        missingSellerAccess: [
+          { ...access, orders: 2 },
+          { ...access, sellerId: "s2", orders: 1 },
+        ],
+      }),
+    ]);
+    expect(merged.missingSellerAccess).toEqual([
+      { ...access, orders: 3 },
+      { ...access, sellerId: "s2", orders: 1 },
+    ]);
+    expect(merged.sellerAccessesGranted).toBe(1);
   });
 
   it("conta uma vez o prazo novo que volta em várias partes", () => {

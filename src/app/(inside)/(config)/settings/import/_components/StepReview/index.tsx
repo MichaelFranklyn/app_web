@@ -9,7 +9,7 @@ import { Title } from "@/components/Title";
 import { factoryName } from "@/utils/company";
 import { formatMoney } from "@/utils/format/masks";
 import { plural } from "@/utils/format/plural";
-import { CheckCircle2, PackagePlus } from "lucide-react";
+import { CheckCircle2, PackagePlus, UserCheck } from "lucide-react";
 
 import { HistoryResult, RowProblem } from "../../interface";
 import { missingProductsAmount } from "../../utils";
@@ -27,6 +27,8 @@ interface Props {
   describeRow?: (row: number) => string;
   /** Refaz a conferência cadastrando os produtos fora do catálogo. */
   onIncludeMissingProducts?: () => void;
+  /** Refaz a conferência liberando a fábrica aos vendedores que não a atendem. */
+  onIncludeSellerAccess?: () => void;
 }
 
 const lineLabel = (row: number) => `Linha ${row}`;
@@ -40,6 +42,7 @@ export function StepReview({
   total = 4,
   describeRow = lineLabel,
   onIncludeMissingProducts,
+  onIncludeSellerAccess,
 }: Props) {
   if (running && progress) {
     return (
@@ -58,6 +61,9 @@ export function StepReview({
 
   const done = !result.dryRun;
   const lostAmount = missingProductsAmount(result);
+  const accesses = result.missingSellerAccess;
+  const sellerLabel = (a: (typeof accesses)[number]) =>
+    a.seller?.name ?? "O vendedor";
   const problems = [...localProblems, ...result.issues]
     .sort((a, b) => a.row - b.row)
     .map(
@@ -86,6 +92,8 @@ export function StepReview({
                 "pedido importado",
                 "pedidos importados"
               )}
+              {result.sellerAccessesGranted > 0 &&
+                `; ${plural(result.sellerAccessesGranted, "fábrica liberada", "fábricas liberadas")} a vendedores (com a comissão cheia até ajustar na grade de comissões)`}
               .
             </Alert.Description>
           </Alert.Content>
@@ -175,6 +183,33 @@ export function StepReview({
               <Button.Icon icon={PackagePlus} />
               <Button.Title>
                 {`Cadastrar ${result.missingProducts.length === 1 ? "este produto" : `estes ${result.missingProducts.length} produtos`} e incluir`}
+              </Button.Title>
+            </Button.Root>
+          )
+        }
+      />
+      <ReviewList
+        title={`${plural(accesses.length, "vendedor", "vendedores")} sem a fábrica liberada`}
+        hint="Os pedidos entram, mas o cliente fica fora da rotina desta fábrica até o vendedor atendê-la. Libere aqui: a fábrica passa a aparecer para ele com a comissão cheia, e o percentual dele se ajusta depois na grade de comissões."
+        items={accesses.map(
+          (a) =>
+            `${sellerLabel(a)} não tem a ${factoryName(a.factory)} liberada · ${plural(a.orders, "pedido", "pedidos")}`
+        )}
+        action={
+          !done &&
+          onIncludeSellerAccess && (
+            <Button.Root
+              type="button"
+              appearance="solid"
+              color="amber"
+              size="sm"
+              onClick={onIncludeSellerAccess}
+            >
+              <Button.Icon icon={UserCheck} />
+              <Button.Title>
+                {accesses.length === 1
+                  ? `Liberar ${factoryName(accesses[0].factory)} para ${sellerLabel(accesses[0])} e incluir`
+                  : `Liberar todos (${accesses.length}) e incluir`}
               </Button.Title>
             </Button.Root>
           )
