@@ -5314,6 +5314,8 @@ input ImportOrderHistoryInput {
 type ImportHistoryIssue {
   row: Int!
   message: String!
+  """A linha com que esta conflita (onde o mesmo número de pedido apareceu antes)."""
+  relatedRow: Int
 }
 
 type ImportHistoryMissingProduct {

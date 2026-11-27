@@ -60,7 +60,10 @@ export function StepReview({
   const lostAmount = missingProductsAmount(result);
   const problems = [...localProblems, ...result.issues]
     .sort((a, b) => a.row - b.row)
-    .map((p) => `${describeRow(p.row)}: ${p.message}`);
+    .map(
+      (p) =>
+        `${describeRow(p.row)}: ${p.message}${p.relatedRow ? ` Veja: ${describeRow(p.relatedRow)}.` : ""}`
+    );
 
   return (
     <div className="flex flex-col gap-12">
