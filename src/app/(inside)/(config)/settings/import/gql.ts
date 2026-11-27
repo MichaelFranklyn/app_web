@@ -72,6 +72,7 @@ export const IMPORT_ORDER_HISTORY_MUTATION = gql`
         issues {
           row
           message
+          relatedRow
         }
         missingProducts {
           factoryId

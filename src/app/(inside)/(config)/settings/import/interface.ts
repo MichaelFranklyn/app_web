@@ -106,6 +106,8 @@ export interface HistoryRowInput {
 export interface RowProblem {
   row: number;
   message: string;
+  /** A linha com que esta conflita (onde o mesmo pedido apareceu antes). */
+  relatedRow?: number | null;
 }
 
 interface HistoryFactory {
