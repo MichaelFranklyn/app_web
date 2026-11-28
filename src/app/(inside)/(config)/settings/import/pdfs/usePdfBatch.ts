@@ -1,5 +1,6 @@
 "use client";
 
+import { CombinedGraphQLErrors } from "@apollo/client";
 import { useQuery } from "@apollo/client/react";
 import { useEffect } from "react";
 
@@ -34,6 +35,11 @@ export function usePdfBatch(batchId: string | null, sending: boolean) {
     files,
     reading,
     loading: loading && !batch,
+    // Excluído (ou de outra empresa): a tela diz isso, e não "tente de novo".
+    notFound:
+      !batch &&
+      CombinedGraphQLErrors.is(error) &&
+      error.errors.some((e) => e.extensions?.error_type === "NOT_FOUND"),
     error:
       error ?? (payload && !payload.status ? new Error(payload.message) : null),
     reload: () => refetch(),

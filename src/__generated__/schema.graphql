@@ -3821,7 +3821,8 @@ type OrderPdfImportFileType {
   {clientDocument, clientName, orderDate, orderNumber, invoiceNumber, paymentTerms,
   clientCode, notes, notesPaymentTerms, otherDocuments}. `clientCode` é o código do
   cliente no sistema da fábrica; `notesPaymentTerms`, o prazo citado nas observações
-  quando difere de `paymentTerms`.
+  quando difere de `paymentTerms`. `totals` = {items, ipi, st, total}: o que o rodapé
+  do PDF imprime (strings decimais, cada uma pode faltar), ou nulo sem rodapé.
   """
   header: JSON
   """[{code, name, quantity, unitPrice, ipiRate}]"""
@@ -3837,8 +3838,73 @@ type OrderPdfImportFileType {
   clientDocument: String
   """Como o cliente foi achado: DOCUMENT (CNPJ) ou FACTORY_CODE (código na fábrica)."""
   clientMatchedBy: String
-  """Vendedor vinculado a esse cliente nesta fábrica."""
+  """Vendedor vinculado a esse cliente (ou ao cliente sugerido) nesta fábrica."""
   suggestedSellerId: UUID
+  """
+  A condição que a pessoa pôs no lugar da lida nas últimas importações desta
+  fábrica (o mesmo acerto repetido): a leitura aprendeu. Nulo = vale a lida.
+  """
+  suggestedPaymentTerms: String
+  """
+  Sem cliente achado pelo CNPJ ou código: o cliente da carteira que a pessoa
+  escolheu nas últimas importações para o mesmo nome lido.
+  """
+  suggestedClient: OrderPdfImportSuggestedClient
+}
+
+"""O cliente que a leitura aprendeu para um nome lido sem CNPJ."""
+type OrderPdfImportSuggestedClient {
+  id: UUID!
+  name: String!
+  document: String!
+}
+
+"""Por que a pessoa tirou o PDF do lote."""
+enum OrderPdfDiscardReason {
+  WRONG_CLIENT
+  WRONG_PRICE
+  WRONG_ITEMS
+  WRONG_TERMS
+  """Arquivo errado ou repetido: não é defeito da leitura."""
+  WRONG_FILE
+  """Não é um pedido: não é defeito da leitura."""
+  NOT_AN_ORDER
+  OTHER
+}
+
+"""Campo do PDF que a pessoa marca como lido errado ao excluir."""
+enum OrderPdfField {
+  CLIENT_DOCUMENT
+  CLIENT_CODE
+  ORDER_NUMBER
+  ORDER_DATE
+  PAYMENT_TERMS
+  ITEMS_TOTAL
+  IPI_TOTAL
+  ORDER_TOTAL
+  """Os itens: só se marca, não há valor para digitar."""
+  ITEMS
+}
+
+"""Campo lido errado e, quando a pessoa digitou, o valor certo: com ele se
+aprende onde o campo fica nos PDFs da fábrica."""
+input OrderPdfWrongFieldInput {
+  field: OrderPdfField!
+  value: String
+}
+
+"""Campo da prévia que a leitura aprende com o acerto da pessoa."""
+enum OrderPdfImportCorrectionField {
+  PAYMENT_TERMS
+  """O cliente do PDF sem CNPJ; `value` é o CNPJ escolhido."""
+  CLIENT
+}
+
+"""O valor que a pessoa deixou num campo do PDF ao importar."""
+input OrderPdfImportCorrectionInput {
+  fileId: UUID!
+  field: OrderPdfImportCorrectionField!
+  value: String
 }
 
 """Uma leva de PDFs de pedido de uma fábrica."""
@@ -3934,6 +4000,11 @@ extend type Mutation {
     batchId: UUID!
     fileIds: [UUID!]!
     historyBatchId: UUID = null
+    """
+    O valor final de cada campo aprendível. O servidor compara com o lido:
+    o que mudou fica guardado e, repetido, vira sugestão no próximo PDF.
+    """
+    corrections: [OrderPdfImportCorrectionInput!] = null
   ): MarkOrderPdfImportFilesResultDataResponse!
   """
   Troca a fábrica do lote enquanto nenhum PDF dele virou pedido. Os PDFs já
@@ -3942,8 +4013,18 @@ extend type Mutation {
   changeOrderPdfImportBatchFactory(id: UUID!, factoryId: UUID!): OrderPdfImportBatchTypeDataResponse!
   """Apaga o lote e os PDFs dele. Pedidos já importados continuam."""
   deleteOrderPdfImportBatch(id: UUID!): BaseResponse!
-  """Tira um PDF do lote. O que já virou pedido não sai."""
-  deleteOrderPdfImportFile(batchId: UUID!, fileId: UUID!): BaseResponse!
+  """
+  Tira um PDF do lote. O que já virou pedido não sai. O motivo (e o texto
+  livre, se fizer sentido) vai ao diagnóstico quando a leitura falhou — e o
+  PDF fica guardado lá para se entender o porquê.
+  """
+  deleteOrderPdfImportFile(
+    batchId: UUID!
+    fileId: UUID!
+    reason: OrderPdfDiscardReason
+    note: String
+    wrongFields: [OrderPdfWrongFieldInput!]
+  ): BaseResponse!
 }
 
 """
@@ -5297,6 +5378,11 @@ input ImportOrderHistoryRowInput {
   createClient: Boolean! = false
   """Código do cliente na fábrica: gravado no vínculo que ainda não tem código."""
   factoryClientCode: String = null
+  """
+  Alíquota de IPI do item (3.25 = 3,25%), como veio no PDF da fábrica. Vai ao
+  produto que ainda não tem IPI; na fábrica com IPI no pedido, entra no item.
+  """
+  ipiRate: Decimal = null
 }
 
 input ImportOrderHistoryInput {

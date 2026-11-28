@@ -101,6 +101,8 @@ export interface HistoryRowInput {
   createClient?: boolean;
   /** O código do cliente na fábrica, gravado no vínculo quando estiver livre. */
   factoryClientCode?: string | null;
+  /** IPI do item em % ("3.25"), como o PDF da fábrica traz. */
+  ipiRate?: string | null;
 }
 
 export interface RowProblem {

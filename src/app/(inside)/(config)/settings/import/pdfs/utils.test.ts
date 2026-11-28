@@ -7,6 +7,7 @@ import {
   batchCounts,
   batchOpenedAt,
   buildPdfRows,
+  fileAmounts,
   fileBadge,
   fileItemsTotal,
   hashFile,
@@ -18,6 +19,14 @@ import {
   paymentTermsHint,
   pickedId,
   rowStatus,
+  applySuggestions,
+  buildPdfCorrections,
+  filePaymentTerms,
+  isSuggestedClient,
+  isSuggestedTerms,
+  undoClientSuggestion,
+  undoTermsSuggestion,
+  withSuggestions,
 } from "./utils";
 
 const batch = (over: Partial<PdfImportBatch> = {}): PdfImportBatch => ({
@@ -215,7 +224,7 @@ describe("buildPdfRows", () => {
     expect(withCode.problems[0].message).toMatch(/código 23401/);
     const noCode = buildPdfRows(batch(), [file({ header: noCnpj })], {});
     expect(noCode.problems[0].message).toBe(
-      "o PDF não traz o CNPJ nem o código do cliente. Vincule um cliente da carteira ou cadastre um novo."
+      "o PDF não traz o CNPJ nem o código do cliente. Escolha o cliente da carteira ou digite o CNPJ."
     );
   });
 
@@ -387,19 +396,39 @@ describe("cliente escolhido na prévia (PDF sem CNPJ nem código)", () => {
     expect(fileBlocker(defaults, noClient)).toMatch(/código 777/);
   });
 
-  it("cliente da carteira: usa o CNPJ e o nome do escolhido", () => {
-    expect(fileBlocker(defaults, noClient, { clientMode: "existing" })).toBe(
-      "escolha o cliente da carteira."
+  it("CNPJ digitado: exige CNPJ válido e pede para criar se faltar", () => {
+    expect(
+      fileBlocker(defaults, noClient, {
+        clientMode: "typed",
+        clientDocument: "11222333000100",
+      })
+    ).toBe("informe um CNPJ válido.");
+    const built = buildPdfRows(
+      batch(),
+      [noClient],
+      { p1: { clientMode: "typed", clientDocument: "11222333000181" } },
+      defaults
+    );
+    expect(built.problems).toEqual([]);
+    expect(built.rows[0]).toMatchObject({
+      clientDocument: "11222333000181",
+      createClient: true,
+      factoryClientCode: "777",
+    });
+  });
+
+  it("da carteira: exige escolher, usa o cliente sem criar e leva o código", () => {
+    expect(fileBlocker(defaults, noClient, { clientMode: "wallet" })).toMatch(
+      /Escolha o cliente da carteira ou digite o CNPJ\.$/
     );
     const built = buildPdfRows(
       batch(),
       [noClient],
       {
         p1: {
-          clientMode: "existing",
           clientId: "c9",
           clientDocument: "11222333000181",
-          clientName: "Mercado Escolhido",
+          clientName: "Mercado Bom Preço",
         },
       },
       defaults
@@ -407,45 +436,54 @@ describe("cliente escolhido na prévia (PDF sem CNPJ nem código)", () => {
     expect(built.problems).toEqual([]);
     expect(built.rows[0]).toMatchObject({
       clientDocument: "11222333000181",
-      clientName: "Mercado Escolhido",
+      clientName: "Mercado Bom Preço",
       createClient: false,
       factoryClientCode: "777",
     });
   });
 
-  it("cliente novo: exige CNPJ válido e nome, e pede para criar", () => {
-    const base = { clientMode: "new" as const };
+  it("CNPJ sem cliente escolhido na carteira não basta", () => {
     expect(
-      fileBlocker(defaults, noClient, {
-        ...base,
-        clientDocument: "11222333000100",
-      })
-    ).toBe("informe um CNPJ válido para o cliente novo.");
-    expect(
-      fileBlocker(defaults, noClient, {
-        ...base,
-        clientDocument: "11222333000181",
-        clientName: "  ",
-      })
-    ).toBe("informe o nome do cliente novo.");
-    const built = buildPdfRows(
+      fileBlocker(defaults, noClient, { clientDocument: "11222333000181" })
+    ).toMatch(/código 777/);
+  });
+
+  it("código digitado vence o lido; apagado vai sem código", () => {
+    const typed = buildPdfRows(
       batch(),
       [noClient],
       {
         p1: {
-          ...base,
+          clientMode: "typed",
           clientDocument: "11222333000181",
-          clientName: "Mercado Novo",
+          clientCode: " 9001 ",
         },
       },
       defaults
     );
-    expect(built.problems).toEqual([]);
+    expect(typed.rows[0].factoryClientCode).toBe("9001");
+    const cleared = buildPdfRows(
+      batch(),
+      [noClient],
+      {
+        p1: {
+          clientMode: "typed",
+          clientDocument: "11222333000181",
+          clientCode: "",
+        },
+      },
+      defaults
+    );
+    expect(cleared.rows[0].factoryClientCode).toBeNull();
+  });
+
+  it("CNPJ digitado não vale para PDF que já trouxe o cliente", () => {
+    const built = buildPdfRows(batch(), [file()], {
+      p1: { clientMode: "typed", clientDocument: "11222333000181" },
+    });
     expect(built.rows[0]).toMatchObject({
-      clientDocument: "11222333000181",
-      clientName: "Mercado Novo",
-      createClient: true,
-      factoryClientCode: "777",
+      clientDocument: "12345678000190",
+      createClient: false,
     });
   });
 
@@ -511,6 +549,102 @@ describe("fileItemsTotal", () => {
   });
 });
 
+describe("fileAmounts", () => {
+  const item = (
+    quantity: string,
+    unitPrice: string | null,
+    ipiRate: string | null = null
+  ) => ({
+    code: "X",
+    name: "X",
+    quantity,
+    unitPrice,
+    ipiRate,
+  });
+  const withTotals = (totals: object, items = [item("10", "157.80")]) => {
+    const base = file();
+    return file({
+      items,
+      header: {
+        ...base.header!,
+        totals: { items: null, ipi: null, st: null, total: null, ...totals },
+      },
+    });
+  };
+
+  it("o total do pedido é o do rodapé, com o IPI que o preço do item não traz", () => {
+    const amounts = fileAmounts(
+      withTotals({
+        items: "1578.00",
+        ipi: "51.28",
+        st: "0.00",
+        total: "1629.29",
+      })
+    );
+    expect(amounts).toMatchObject({
+      items: 1578,
+      ipi: 51.28,
+      st: 0,
+      total: 1629.29,
+      printedItems: null,
+    });
+  });
+
+  it("a alíquota por item vale sobre o IPI do rodapé, e sem rodapé o total é a soma", () => {
+    const amounts = fileAmounts(
+      file({ items: [item("10", "157.80", "3.25")] })
+    );
+    expect(amounts?.ipi).toBeCloseTo(51.29);
+    expect(amounts?.total).toBeCloseTo(1629.29);
+  });
+
+  it("acusa quando a soma dos itens não bate com o subtotal impresso", () => {
+    const amounts = fileAmounts(
+      withTotals({ items: "1629.29", total: "1629.29" })
+    );
+    expect(amounts?.printedItems).toBe(1629.29);
+  });
+
+  it("não acusa diferença de arredondamento nem com item sem preço", () => {
+    expect(
+      fileAmounts(withTotals({ items: "1578.01" }))?.printedItems
+    ).toBeNull();
+    expect(
+      fileAmounts(
+        withTotals({ items: "9999.00" }, [
+          item("10", "157.80"),
+          item("1", null),
+        ])
+      )?.printedItems
+    ).toBeNull();
+  });
+
+  it("sem rodapé e sem alíquota, o total é só a soma dos itens", () => {
+    expect(fileAmounts(file())).toMatchObject({
+      ipi: 0,
+      st: 0,
+      printedItems: null,
+    });
+  });
+});
+
+describe("IPI no histórico", () => {
+  it("a alíquota de cada item vai na linha", () => {
+    const items = [
+      {
+        code: "A1",
+        name: "Pote",
+        quantity: "1",
+        unitPrice: "2",
+        ipiRate: "3.25",
+      },
+    ];
+    expect(buildPdfRows(batch(), [file({ items })], {}).rows[0].ipiRate).toBe(
+      "3.25"
+    );
+  });
+});
+
 describe("condição de pagamento", () => {
   it("a digitada vale sobre a lida; apagada, o pedido vai sem condição", () => {
     const rows = (override = {}) =>
@@ -532,5 +666,82 @@ describe("condição de pagamento", () => {
     expect(paymentTermsHint("a vista").message).toContain("à vista");
     expect(paymentTermsHint("boleto").error).toBe(true);
     expect(paymentTermsHint(null).error).toBe(false);
+  });
+});
+
+describe("o que a leitura aprendeu da fábrica", () => {
+  const CNPJ = "11222333000181";
+  const noCnpj = (over: Partial<PdfImportFile> = {}) =>
+    file({
+      header: { ...file().header!, clientDocument: null },
+      clientId: null,
+      clientName: null,
+      suggestedSellerId: null,
+      ...over,
+    });
+  const learned = {
+    id: "c9",
+    name: "Mercado Bom Ltda",
+    document: CNPJ,
+  };
+
+  it("a condição aprendida entra no lugar da lida, e o digitado vence", () => {
+    const f = file({ suggestedPaymentTerms: "28/35/42" });
+    expect(filePaymentTerms(f, withSuggestions(f, undefined))).toBe("28/35/42");
+    expect(isSuggestedTerms(f, withSuggestions(f, undefined))).toBe(true);
+    const typed = { paymentTerms: "45" };
+    expect(filePaymentTerms(f, withSuggestions(f, typed))).toBe("45");
+  });
+
+  it("desfazer a condição volta à do PDF e não reaplica", () => {
+    const f = file({ suggestedPaymentTerms: "28/35/42" });
+    const undone = withSuggestions(f, undoTermsSuggestion(f));
+    expect(filePaymentTerms(f, undone)).toBe("30/60");
+    expect(isSuggestedTerms(f, undone)).toBe(false);
+  });
+
+  it("o cliente aprendido entra escolhido da carteira e libera o PDF", () => {
+    const f = noCnpj({ suggestedClient: learned, suggestedSellerId: "s1" });
+    const effective = withSuggestions(f, undefined);
+    expect(effective).toMatchObject({ clientMode: "wallet", clientId: "c9" });
+    expect(isSuggestedClient(f, effective)).toBe(true);
+    expect(
+      fileBlocker({ sellerId: null, status: "DELIVERED" }, f, effective)
+    ).toBeNull();
+  });
+
+  it("mexer no cliente (ou desfazer) tira a sugestão", () => {
+    const f = noCnpj({ suggestedClient: learned });
+    const undone = withSuggestions(f, undoClientSuggestion());
+    expect(undone?.clientId).toBeNull();
+    expect(isSuggestedClient(f, undone)).toBe(false);
+    const typed = withSuggestions(f, { clientMode: "typed" });
+    expect(typed?.clientId).toBeUndefined();
+  });
+
+  it("PDF com cliente identificado ignora o cliente sugerido", () => {
+    const f = file({ suggestedClient: learned });
+    expect(withSuggestions(f, undefined)).toBeUndefined();
+  });
+
+  it("aplica em todos os PDFs sem perder os acertos", () => {
+    const a = file({ id: "a", suggestedPaymentTerms: "28" });
+    const b = file({ id: "b" });
+    const all = applySuggestions([a, b], { b: { sellerId: "s2" } });
+    expect(all).toEqual({ a: { paymentTerms: "28" }, b: { sellerId: "s2" } });
+  });
+
+  it("manda a condição de todos e o cliente só de quem não tinha CNPJ", () => {
+    const a = file({ id: "a" });
+    const b = noCnpj({ id: "b", suggestedClient: learned });
+    const c = file({ id: "c" });
+    const overrides = applySuggestions([a, b, c], {
+      a: { paymentTerms: " 45 " },
+    });
+    expect(buildPdfCorrections([a, b, c], ["a", "b"], overrides)).toEqual([
+      { fileId: "a", field: "PAYMENT_TERMS", value: "45" },
+      { fileId: "b", field: "PAYMENT_TERMS", value: "30/60" },
+      { fileId: "b", field: "CLIENT", value: CNPJ },
+    ]);
   });
 });

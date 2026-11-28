@@ -12,7 +12,9 @@ import {
   RowProblem,
 } from "../interface";
 import {
+  PdfCorrection,
   PdfDefaults,
+  PdfClientMode,
   PdfFileOverride,
   PdfImportBatch,
   PdfImportFile,
@@ -184,25 +186,39 @@ const pdfClientDocument = (file: PdfImportFile): string | null =>
 export const fileNeedsClient = (file: PdfImportFile): boolean =>
   file.status === "READ" && !pdfClientDocument(file);
 
-/** O CNPJ do cliente do PDF: o identificado pelo PDF ou o escolhido na prévia. */
+/** O CNPJ do cliente do PDF: o identificado pelo PDF ou o digitado na prévia. */
 export const fileClientDocument = (
   file: PdfImportFile,
   override?: PdfFileOverride
 ): string | null =>
   pdfClientDocument(file) ??
-  (override?.clientMode ? (override.clientDocument ?? null) : null);
+  (fileNeedsClient(file) ? (override?.clientDocument ?? null) : null);
 
-/** O nome do cliente: o escolhido na prévia, o do cadastro ou o lido. */
+/** Como a prévia aponta o cliente do PDF sem CNPJ (padrão: carteira). */
+export const fileClientMode = (override?: PdfFileOverride): PdfClientMode =>
+  override?.clientMode ?? "wallet";
+
+/** O nome do cliente: o do cadastro, o escolhido na carteira ou o lido do PDF. */
 export const fileClientName = (
   file: PdfImportFile,
   override?: PdfFileOverride
 ): string | null =>
-  (fileNeedsClient(file) && override?.clientMode
-    ? override.clientName
-    : null) ??
   file.clientName ??
+  (fileNeedsClient(file) && fileClientMode(override) === "wallet"
+    ? (override?.clientName ?? null)
+    : null) ??
   file.header?.clientName ??
   null;
+
+/** O código do cliente na fábrica: o digitado na prévia ou o lido do PDF. */
+export const fileClientCode = (
+  file: PdfImportFile,
+  override?: PdfFileOverride
+): string | null => {
+  const typed = override?.clientCode;
+  if (typed !== undefined) return typed?.trim() || null;
+  return file.header?.clientCode ?? null;
+};
 
 /** O cliente que falta acertar na prévia, em palavras; nulo = identificado. */
 function clientBlocker(
@@ -210,19 +226,125 @@ function clientBlocker(
   override?: PdfFileOverride
 ): string | null {
   if (!fileNeedsClient(file)) return null;
-  const mode = override?.clientMode;
-  if (mode === "existing")
-    return override?.clientDocument ? null : "escolha o cliente da carteira.";
-  if (mode === "new") {
-    if (!isValidCnpj(override?.clientDocument))
-      return "informe um CNPJ válido para o cliente novo.";
-    if (!override?.clientName?.trim()) return "informe o nome do cliente novo.";
+  const document = override?.clientDocument;
+  if (fileClientMode(override) === "typed" && document)
+    return isValidCnpj(document) ? null : "informe um CNPJ válido.";
+  if (fileClientMode(override) === "wallet" && override?.clientId && document)
     return null;
-  }
   const code = file.header?.clientCode;
+  const ask =
+    fileClientMode(override) === "wallet"
+      ? "Escolha o cliente da carteira ou digite o CNPJ."
+      : "Informe o CNPJ do cliente.";
   return code
-    ? `o PDF não traz o CNPJ, e nenhum cliente tem o código ${code} nesta fábrica. Vincule um cliente da carteira ou cadastre um novo.`
-    : "o PDF não traz o CNPJ nem o código do cliente. Vincule um cliente da carteira ou cadastre um novo.";
+    ? `o PDF não traz o CNPJ, e nenhum cliente tem o código ${code} nesta fábrica. ${ask}`
+    : `o PDF não traz o CNPJ nem o código do cliente. ${ask}`;
+}
+
+/** A pessoa já mexeu no cliente deste PDF (escolheu, digitou ou limpou)? */
+const touchedClient = (override?: PdfFileOverride): boolean =>
+  override?.clientMode !== undefined ||
+  override?.clientId !== undefined ||
+  override?.clientDocument !== undefined;
+
+/**
+ * O acerto do PDF com o que a leitura aprendeu desta fábrica: a condição e o
+ * cliente que a pessoa costuma pôr no lugar dos lidos entram como se ela os
+ * tivesse posto — até ela mexer no campo (o que ela põe vence sempre).
+ */
+export function withSuggestions(
+  file: PdfImportFile,
+  override?: PdfFileOverride
+): PdfFileOverride | undefined {
+  let next = override;
+  if (
+    file.status === "READ" &&
+    file.suggestedPaymentTerms &&
+    override?.paymentTerms === undefined
+  )
+    next = { ...next, paymentTerms: file.suggestedPaymentTerms };
+  const client = file.suggestedClient;
+  if (client && fileNeedsClient(file) && !touchedClient(override))
+    next = {
+      ...next,
+      clientMode: "wallet",
+      clientId: client.id,
+      clientName: client.name,
+      clientDocument: client.document,
+    };
+  return next;
+}
+
+/** Os acertos de todos os PDFs, com as sugestões aplicadas. */
+export const applySuggestions = (
+  files: PdfImportFile[],
+  overrides: Record<string, PdfFileOverride>
+): Record<string, PdfFileOverride> => {
+  const all: Record<string, PdfFileOverride> = { ...overrides };
+  for (const file of files) {
+    const next = withSuggestions(file, overrides[file.id]);
+    if (next) all[file.id] = next;
+  }
+  return all;
+};
+
+/** O campo está com o valor aprendido (para a ficha avisar e oferecer desfazer). */
+export const isSuggestedTerms = (
+  file: PdfImportFile,
+  override?: PdfFileOverride
+): boolean =>
+  Boolean(file.suggestedPaymentTerms) &&
+  override?.paymentTerms === file.suggestedPaymentTerms;
+
+export const isSuggestedClient = (
+  file: PdfImportFile,
+  override?: PdfFileOverride
+): boolean =>
+  Boolean(file.suggestedClient) &&
+  fileNeedsClient(file) &&
+  fileClientMode(override) === "wallet" &&
+  override?.clientId === file.suggestedClient?.id;
+
+/** Desfazer a sugestão: volta ao lido do PDF, e a leitura esquece o aprendido. */
+export const undoTermsSuggestion = (file: PdfImportFile): PdfFileOverride => ({
+  paymentTerms: file.header?.paymentTerms ?? null,
+});
+
+export const undoClientSuggestion = (): PdfFileOverride => ({
+  clientMode: "wallet",
+  clientId: null,
+  clientName: null,
+  clientDocument: null,
+});
+
+/**
+ * O que a pessoa deixou na condição e no cliente dos PDFs importados, para a
+ * leitura aprender (ou esquecer, quando ela voltou ao lido). Vai tudo: quem
+ * decide o que é acerto é o servidor, que conhece o lido e o aprendido.
+ */
+export function buildPdfCorrections(
+  files: PdfImportFile[],
+  fileIds: string[],
+  overrides: Record<string, PdfFileOverride>
+): PdfCorrection[] {
+  const wanted = new Set(fileIds);
+  const corrections: PdfCorrection[] = [];
+  for (const file of files) {
+    if (!wanted.has(file.id)) continue;
+    const override = overrides[file.id];
+    corrections.push({
+      fileId: file.id,
+      field: "PAYMENT_TERMS",
+      value: filePaymentTerms(file, override),
+    });
+    if (fileNeedsClient(file))
+      corrections.push({
+        fileId: file.id,
+        field: "CLIENT",
+        value: fileClientDocument(file, override),
+      });
+  }
+  return corrections;
 }
 
 /** O que impede um PDF lido de entrar, em palavras; nulo = pode entrar. */
@@ -238,7 +360,9 @@ export function fileBlocker(
   if (!fileSellerId(defaults, file, override))
     return file.clientId
       ? "o cliente não tem vendedor ligado nesta fábrica. Escolha o vendedor deste pedido no campo Vendedor."
-      : "o cliente não está na carteira, então não há vendedor ligado a ele. Escolha o vendedor deste pedido no campo Vendedor.";
+      : fileNeedsClient(file)
+        ? "escolha o vendedor deste pedido no campo Vendedor."
+        : "o cliente não está na carteira, então não há vendedor ligado a ele. Escolha o vendedor deste pedido no campo Vendedor.";
   return null;
 }
 
@@ -291,14 +415,17 @@ export function buildPdfRows(
     const sellerId = fileSellerId(defaults, file, override)!;
     const orderDate = fileOrderDate(file, override)!;
     const status = fileStatus(defaults, file, override);
+    // CNPJ digitado na prévia: se não estiver na carteira, o cliente nasce
+    // na importação, com os dados da Receita (o backend usa o da carteira
+    // quando ele já existe). O escolhido na carteira já existe.
     const createClient =
-      fileNeedsClient(file) && override?.clientMode === "new";
-    // O código do PDF vai junto quando não foi ele que achou o cliente: o
-    // backend grava no vínculo se estiver vazio e o código, livre.
+      fileNeedsClient(file) && fileClientMode(override) === "typed";
+    // O código vai junto quando não foi ele que achou o cliente: o backend
+    // grava no vínculo se estiver vazio e o código, livre.
     const factoryClientCode =
       file.clientMatchedBy === "FACTORY_CODE"
         ? null
-        : (header.clientCode ?? null);
+        : fileClientCode(file, override);
     if (file.unreadableRows > 0) {
       flag(
         file,
@@ -330,6 +457,7 @@ export function buildPdfRows(
         notes: index === 0 ? (header.notes ?? null) : null,
         createClient,
         factoryClientCode,
+        ipiRate: item.ipiRate,
       });
       next += 1;
     }
@@ -382,6 +510,64 @@ export function fileItemsTotal(
     priced += 1;
   }
   return priced > 0 ? { total, unpriced } : null;
+}
+
+export interface PdfFileAmounts {
+  /** Σ quantidade × preço dos itens lidos, sem imposto. */
+  items: number;
+  /** IPI pelos itens (alíquota × subtotal) ou, sem alíquota, o do rodapé. */
+  ipi: number;
+  st: number;
+  /** O que o cliente paga: o total do rodapé, ou itens + impostos. */
+  total: number;
+  unpriced: number;
+  /** O subtotal impresso, quando a soma dos itens lidos não bate com ele. */
+  printedItems: number | null;
+}
+
+const money = (text: string | null | undefined): number | null => {
+  if (text == null) return null;
+  const value = Number(text);
+  return isFinite(value) ? value : null;
+};
+
+/**
+ * Os valores do pedido: o preço do item no PDF é sem imposto, e o total do
+ * rodapé é com. Mostrar só a soma dos itens faz parecer que o pedido saiu
+ * mais barato; aqui o IPI e a ST entram, e o subtotal impresso confere a
+ * leitura — se não bate, algum item saiu torto.
+ */
+export function fileAmounts(file: PdfImportFile): PdfFileAmounts | null {
+  const read = fileItemsTotal(file);
+  if (!read) return null;
+  const totals = file.header?.totals;
+  let ipiFromItems = 0;
+  let hasRate = false;
+  for (const item of file.items ?? []) {
+    const rate = money(item.ipiRate);
+    const qty = Number(item.quantity);
+    const price = money(item.unitPrice);
+    if (!rate || price == null || !isFinite(qty)) continue;
+    hasRate = true;
+    ipiFromItems += Math.round(qty * price * rate) / 100;
+  }
+  const ipi = hasRate ? ipiFromItems : (money(totals?.ipi) ?? 0);
+  const st = money(totals?.st) ?? 0;
+  const printedTotal = money(totals?.total);
+  const printed = money(totals?.items);
+  const tolerance = 0.01 * ((file.items?.length ?? 0) + 1);
+  const mismatched =
+    printed != null &&
+    read.unpriced === 0 &&
+    Math.abs(read.total - printed) > tolerance + 1e-9;
+  return {
+    items: read.total,
+    ipi,
+    st,
+    total: printedTotal ?? read.total + ipi + st,
+    unpriced: read.unpriced,
+    printedItems: mismatched ? printed : null,
+  };
 }
 
 /** Em que pé está o PDF, para a etiqueta da lista. */

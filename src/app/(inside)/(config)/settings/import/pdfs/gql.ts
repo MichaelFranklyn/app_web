@@ -31,6 +31,12 @@ const FILE_FIELDS = `
   clientDocument
   clientMatchedBy
   suggestedSellerId
+  suggestedPaymentTerms
+  suggestedClient {
+    id
+    name
+    document
+  }
 `;
 
 export const ORDER_PDF_IMPORT_BATCH_QUERY = gql`
@@ -94,11 +100,13 @@ export const MARK_ORDER_PDF_IMPORT_FILES_IMPORTED_MUTATION = gql`
     $batchId: UUID!
     $fileIds: [UUID!]!
     $historyBatchId: UUID
+    $corrections: [OrderPdfImportCorrectionInput!]
   ) {
     markOrderPdfImportFilesImported(
       batchId: $batchId
       fileIds: $fileIds
       historyBatchId: $historyBatchId
+      corrections: $corrections
     ) {
       status
       message
@@ -136,8 +144,20 @@ export const DELETE_ORDER_PDF_IMPORT_BATCH_MUTATION = gql`
 `;
 
 export const DELETE_ORDER_PDF_IMPORT_FILE_MUTATION = gql`
-  mutation DeleteOrderPdfImportFile($batchId: UUID!, $fileId: UUID!) {
-    deleteOrderPdfImportFile(batchId: $batchId, fileId: $fileId) {
+  mutation DeleteOrderPdfImportFile(
+    $batchId: UUID!
+    $fileId: UUID!
+    $reason: OrderPdfDiscardReason
+    $note: String
+    $wrongFields: [OrderPdfWrongFieldInput!]
+  ) {
+    deleteOrderPdfImportFile(
+      batchId: $batchId
+      fileId: $fileId
+      reason: $reason
+      note: $note
+      wrongFields: $wrongFields
+    ) {
       status
       message
     }
