@@ -19,6 +19,16 @@ export interface PdfOrderHeader {
   notes?: string | null;
   /** Prazo citado nas observações, só quando diverge da condição. */
   notesPaymentTerms?: string | null;
+  /** Os totais do rodapé do PDF, em texto ("1578.00"), quando ele imprime. */
+  totals?: PdfPrintedTotals | null;
+}
+
+/** O rodapé do pedido: itens sem imposto, IPI, ST e o total com tudo. */
+export interface PdfPrintedTotals {
+  items: string | null;
+  ipi: string | null;
+  st: string | null;
+  total: string | null;
 }
 
 /** Um item lido; os números vêm como texto para não perder casas. */
@@ -49,6 +59,29 @@ export interface PdfImportFile {
   /** Por onde o cliente foi achado. */
   clientMatchedBy?: "DOCUMENT" | "FACTORY_CODE" | null;
   suggestedSellerId: string | null;
+  /**
+   * A condição que a pessoa costuma pôr no lugar da lida, nos PDFs desta
+   * fábrica — vem já aplicada, e ela desfaz com um clique.
+   */
+  suggestedPaymentTerms?: string | null;
+  /** O cliente da carteira que a pessoa costuma apontar para este nome lido. */
+  suggestedClient?: PdfSuggestedClient | null;
+}
+
+export interface PdfSuggestedClient {
+  id: string;
+  name: string;
+  document: string;
+}
+
+/** Enum `OrderPdfImportCorrectionField` do backend, pelo NOME. */
+export type PdfCorrectionField = "PAYMENT_TERMS" | "CLIENT";
+
+/** O que a pessoa deixou num campo do PDF ao importar — a leitura aprende. */
+export interface PdfCorrection {
+  fileId: string;
+  field: PdfCorrectionField;
+  value: string | null;
 }
 
 export interface PdfImportBatch {
@@ -120,6 +153,9 @@ export interface PdfDefaults {
 }
 
 /** O que a pessoa acertou num PDF antes de importar. */
+/** Como apontar o cliente do PDF sem CNPJ: da carteira ou CNPJ digitado. */
+export type PdfClientMode = "wallet" | "typed";
+
 export interface PdfFileOverride {
   /** ISO; quando o PDF não trouxe a data (ou trouxe errada). */
   orderDate?: string | null;
@@ -132,14 +168,26 @@ export interface PdfFileOverride {
   paymentTerms?: string | null;
   /** A situação deste pedido, no lugar do padrão escolhido para todos. */
   status?: HistoryOrderStatus;
-  /** Sem CNPJ nem código no PDF: vincular um cliente da carteira ou criar um. */
-  clientMode?: "existing" | "new";
-  /** O cliente escolhido (modo "existing"). */
+  /**
+   * Sem CNPJ nem código que case, como a pessoa aponta o cliente: buscando na
+   * carteira ou digitando o CNPJ. `undefined` = carteira (o padrão).
+   */
+  clientMode?: PdfClientMode;
+  /** O cliente escolhido na carteira (modo `wallet`). */
   clientId?: string | null;
-  /** O CNPJ do cliente: o do cadastro escolhido ou o digitado no modo "new". */
-  clientDocument?: string | null;
-  /** O nome do cliente escolhido ou digitado. */
+  /** O nome do cliente escolhido na carteira, para a busca exibi-lo. */
   clientName?: string | null;
+  /**
+   * O CNPJ do cliente (só dígitos): o do escolhido na carteira ou o digitado.
+   * Digitado e fora da carteira, o cliente é cadastrado na importação com os
+   * dados da Receita.
+   */
+  clientDocument?: string | null;
+  /**
+   * O código do cliente na fábrica, digitado junto com o CNPJ; `undefined` =
+   * o lido do PDF. Gravado no vínculo, faz o próximo PDF achar o cliente sozinho.
+   */
+  clientCode?: string | null;
 }
 
 /** As linhas do `importOrderHistory` montadas a partir dos PDFs lidos. */

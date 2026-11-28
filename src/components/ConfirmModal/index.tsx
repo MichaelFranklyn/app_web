@@ -20,9 +20,16 @@ interface ConfirmModalProps {
   confirmLabel?: string;
   cancelLabel?: string;
   confirmColor?: ComponentProps<typeof Button.Root>["color"];
+  /** Trava o botão de confirmar (ex.: falta escolher um motivo). */
+  confirmDisabled?: boolean;
+  /** Conteúdo entre o cabeçalho e os botões (ex.: perguntar o motivo). */
+  children?: ReactNode;
 
-  /** Ação assíncrona. Deve LANÇAR em caso de erro (mostra toast e mantém aberto). */
-  onConfirm: () => Promise<void>;
+  /**
+   * Ação assíncrona. Deve LANÇAR em caso de erro (mostra toast e mantém aberto).
+   * Devolver um texto troca o `successMessage` (ex.: a API conta o que fez).
+   */
+  onConfirm: () => Promise<string | void>;
   successMessage?: string;
   /** Disparado de forma síncrona ANTES da ação (ex.: remoção otimista imediata). */
   onBeforeConfirm?: () => void;
@@ -56,6 +63,8 @@ export function ConfirmModal({
   confirmLabel = "Confirmar",
   cancelLabel = "Cancelar",
   confirmColor = "red",
+  confirmDisabled = false,
+  children,
   onConfirm,
   successMessage,
   onBeforeConfirm,
@@ -82,7 +91,7 @@ export function ConfirmModal({
   const handleConfirm = () => {
     onBeforeConfirm?.();
     execute(onConfirm, {
-      successMessage,
+      successMessage: (result) => result || successMessage,
       onSuccess: () => {
         onSuccess?.();
         if (redirectTo) {
@@ -102,6 +111,7 @@ export function ConfirmModal({
 
       <Modal.Content size={size}>
         <Modal.Header title={title} description={description} />
+        {children && <Modal.Body>{children}</Modal.Body>}
         <Modal.Footer>
           <Modal.Close asChild>
             <Button.Root
@@ -120,6 +130,7 @@ export function ConfirmModal({
             color={confirmColor}
             size="md"
             loading={busy}
+            disabled={confirmDisabled}
             onClick={handleConfirm}
           >
             <Button.Title>{confirmLabel}</Button.Title>

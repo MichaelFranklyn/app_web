@@ -23,7 +23,7 @@ import {
   fileBlocker,
   fileClientDocument,
   fileClientName,
-  fileItemsTotal,
+  fileAmounts,
   fileNeedsClient,
   fileOrderDate,
   filePaymentTerms,
@@ -35,9 +35,12 @@ import {
 } from "../../utils";
 import { DeletePdfFileModal } from "../DeletePdfFileModal";
 import { PdfClientFields } from "../PdfClientFields";
+import { PdfLearnedNotice } from "../PdfLearnedNotice";
 
 interface Props {
   batchId: string;
+  /** A fábrica do lote. */
+  factoryId: string;
   defaults: PdfDefaults;
   file: PdfImportFile;
   override?: PdfFileOverride;
@@ -55,6 +58,7 @@ interface Props {
  */
 export function PdfFileRow({
   batchId,
+  factoryId,
   defaults,
   file,
   override,
@@ -80,13 +84,12 @@ export function PdfFileRow({
   const statuses = toSelect(STATUS_OPTIONS);
   const sellerId = fileSellerId(defaults, file, override);
   const status = fileStatus(defaults, file, override);
-  const amount = fileItemsTotal(file);
+  const amount = fileAmounts(file);
+  const taxes = amount ? taxesText(amount.ipi, amount.st) : null;
   const paymentTerms = filePaymentTerms(file, override);
   const termsHint = paymentTermsHint(paymentTerms);
-  const outsideBase =
-    !file.clientId &&
-    Boolean(document) &&
-    !(needsClient && override?.clientMode === "existing");
+  // O CNPJ digitado na prévia pode ou não estar na carteira: não se afirma nada.
+  const outsideBase = !file.clientId && Boolean(document) && !needsClient;
   const [deleting, setDeleting] = useState(false);
 
   const title = header
@@ -130,14 +133,21 @@ export function PdfFileRow({
         {header && (
           <Card.Kpi.Group>
             <Card.Kpi>
-              <Card.Kpi.Label>Valor dos itens</Card.Kpi.Label>
+              <Card.Kpi.Label>Total do pedido</Card.Kpi.Label>
               <Card.Kpi.Value status={amount ? "neutral" : "muted"} size="sm">
                 {amount ? formatMoney(amount.total) : "Não informado"}
               </Card.Kpi.Value>
-              {amount && amount.unpriced > 0 && (
+              {amount && amount.unpriced > 0 ? (
                 <Card.Kpi.Delta>
                   {plural(amount.unpriced, "item sem preço", "itens sem preço")}
                 </Card.Kpi.Delta>
+              ) : (
+                amount &&
+                taxes && (
+                  <Card.Kpi.Delta>
+                    {formatMoney(amount.items)} em itens + {taxes}
+                  </Card.Kpi.Delta>
+                )
               )}
             </Card.Kpi>
             <Card.Kpi>
@@ -215,6 +225,14 @@ export function PdfFileRow({
             confira com a fábrica.
           </Notice>
         )}
+        {amount?.printedItems != null && (
+          <Notice variant="warning">
+            Os itens lidos somam {formatMoney(amount.items)}, mas o PDF diz{" "}
+            {formatMoney(amount.printedItems)} em produtos. Algum preço ou
+            quantidade pode ter saído errado; confira os itens antes de
+            importar.
+          </Notice>
+        )}
         {file.unreadableRows > 0 && (
           <Notice variant="warning">
             {plural(
@@ -254,8 +272,16 @@ export function PdfFileRow({
             <Title variant="micro" color="muted">
               Antes de importar
             </Title>
+            <PdfLearnedNotice
+              file={file}
+              override={override}
+              onOverride={onOverride}
+              disabled={disabled}
+            />
             {needsClient && (
               <PdfClientFields
+                factoryId={factoryId}
+                readCode={header?.clientCode ?? null}
                 override={override}
                 onOverride={onOverride}
                 disabled={disabled}
@@ -350,4 +376,13 @@ function Notice({
       </Alert.Content>
     </Alert.Root>
   );
+}
+
+/** "R$ 51,29 de IPI + R$ 10,00 de ST"; nulo sem imposto. */
+function taxesText(ipi: number, st: number): string | null {
+  const parts = [
+    ipi > 0 ? `${formatMoney(ipi)} de IPI` : null,
+    st > 0 ? `${formatMoney(st)} de ST` : null,
+  ].filter(Boolean);
+  return parts.length ? parts.join(" + ") : null;
 }

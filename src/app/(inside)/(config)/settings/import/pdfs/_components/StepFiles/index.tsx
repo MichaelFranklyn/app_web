@@ -284,6 +284,7 @@ export function StepFiles(props: Props) {
           <PdfFileRow
             key={shown.id}
             batchId={props.batch.id}
+            factoryId={props.batch.factoryId}
             defaults={props.defaults}
             file={shown}
             override={props.overrides[shown.id]}

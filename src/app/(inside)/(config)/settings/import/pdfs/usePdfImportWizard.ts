@@ -24,7 +24,9 @@ import {
 import { usePdfBatch } from "./usePdfBatch";
 import { usePdfUpload } from "./usePdfUpload";
 import {
+  applySuggestions,
   batchDefaults,
+  buildPdfCorrections,
   buildPdfRows,
   importedFileIds,
   pdfBatchPath,
@@ -53,9 +55,9 @@ export function usePdfImportWizard(initialBatchId: string | null) {
   const [defaultsChange, setDefaultsChange] = useState<Partial<PdfDefaults>>(
     {}
   );
-  const [overrides, setOverrides] = useState<Record<string, PdfFileOverride>>(
-    {}
-  );
+  // O que a pessoa acertou em cada PDF; `overrides` (abaixo) soma a isso o
+  // que a leitura aprendeu da fábrica.
+  const [typed, setOverrides] = useState<Record<string, PdfFileOverride>>({});
   const [createMissingClients, setCreateMissingClients] = useState(false);
   // Produto que falta já vem ligado: sem ele o item cai e o pedido soma menos.
   const [createMissingProducts, setCreateMissingProducts] = useState(true);
@@ -93,6 +95,11 @@ export function usePdfImportWizard(initialBatchId: string | null) {
 
   const setDefaults = (change: Partial<PdfDefaults>) =>
     setDefaultsChange((all) => ({ ...all, ...change }));
+
+  const overrides = useMemo(
+    () => applySuggestions(pdf.files, typed),
+    [pdf.files, typed]
+  );
 
   const build = useMemo(
     () =>
@@ -195,7 +202,13 @@ export function usePdfImportWizard(initialBatchId: string | null) {
       // `historyBatchId` amarra o PDF à importação: desfazê-la o devolve a
       // "Lido", pronto para importar de novo.
       await markImported({
-        variables: { batchId, fileIds, historyBatchId: result.batchId ?? null },
+        variables: {
+          batchId,
+          fileIds,
+          historyBatchId: result.batchId ?? null,
+          // O que ficou na condição e no cliente ensina a leitura desta fábrica.
+          corrections: buildPdfCorrections(pdf.files, fileIds, overrides),
+        },
       }).catch(() => null);
     }
     void pdf.reload();
